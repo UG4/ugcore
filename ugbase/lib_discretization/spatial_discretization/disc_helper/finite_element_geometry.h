@@ -118,7 +118,7 @@ class FEGeometry
 		}
 
 		/// update Geometry for corners
-		bool update(MathVector<world_dim> corners[])
+		bool update(const MathVector<world_dim> corners[])
 		{
 			m_mapping.update(corners);
 

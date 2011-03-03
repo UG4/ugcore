@@ -23,49 +23,48 @@ namespace ug{
 
 template<typename TDomain, typename TAlgebra>
 class FE1ConvectionDiffusionElemDisc
-	: public IElemDisc<TAlgebra>
+: public IDomainElemDisc<TDomain, TAlgebra>
 {
+	private:
+	///	Base class type
+		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+
 	public:
 	///	Domain type
-		typedef TDomain domain_type;
+		typedef typename base_type::domain_type domain_type;
 
 	///	World dimension
-		static const int dim = TDomain::dim;
+		static const int dim = base_type::dim;
 
 	///	Position type
-		typedef typename TDomain::position_type position_type;
+		typedef typename base_type::position_type position_type;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
-		typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
+		typedef typename base_type::local_matrix_type local_matrix_type;
 
 	///	Local vector type
-		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
+		typedef typename base_type::local_vector_type local_vector_type;
 
 	///	Local index type
-		typedef typename IElemDisc<TAlgebra>::local_index_type local_index_type;
-
+		typedef typename base_type::local_index_type local_index_type;
 
 	public:
 	///	Constructor
 		FE1ConvectionDiffusionElemDisc()
-		 : m_pDomain(NULL)
-			{
-			//	register assemling functions
-				register_ass_funcs(Int2Type<dim>());
+		{
+		//	register assemling functions
+			register_ass_funcs(Int2Type<dim>());
 
-			//	register imports
-				register_import(m_Diff);
-				register_import(m_ConvVel);
-				register_import(m_Reaction);
-				register_import(m_Rhs);
-				register_import(m_MassScale);
-			}
-
-	///	sets the domain
-		void set_domain(domain_type& domain) {m_pDomain = &domain;}
+		//	register imports
+			register_import(m_Diff);
+			register_import(m_ConvVel);
+			register_import(m_Reaction);
+			register_import(m_Rhs);
+			register_import(m_MassScale);
+		}
 
 	///	sets the diffusion tensor
 	/**
@@ -148,14 +147,8 @@ class FE1ConvectionDiffusionElemDisc
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
-	///	Domain
-		TDomain* m_pDomain;
-
 	///	Corner Coordinates
-		std::vector<position_type> m_vCornerCoords;
-
-	///	position accessor
-		typename TDomain::position_accessor_type m_aaPos;
+		const position_type* m_vCornerCoords;
 
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;

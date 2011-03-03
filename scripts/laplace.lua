@@ -297,7 +297,6 @@ ilut = ILUT()
 	-- Gemoetric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
 	gmg:set_smoother(jac)

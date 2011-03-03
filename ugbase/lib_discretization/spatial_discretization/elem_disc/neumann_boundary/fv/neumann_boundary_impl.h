@@ -141,21 +141,6 @@ bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
 {
-// 	resize corner coordinates
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	m_vCornerCoords.resize(ref_elem_type::num_corners);
-
-//  check domain
-	if(m_pDomain == NULL)
-	{
-		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::prepare_element_loop':"
-				" Domain not set.");
-		return false;
-	}
-
-// 	remember position attachement
-	m_aaPos = m_pDomain->get_position_accessor();
-
 //	register subsetIndex at Geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
@@ -203,16 +188,12 @@ bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
-//  load corners of this element
-	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
-	{
-		VertexBase* vert = elem->vertex(i);
-		m_vCornerCoords[i] = m_aaPos[vert];
-	}
+//	get corners
+	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 //  update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-	if(!geo.update(elem, m_pDomain->get_subset_handler(), &m_vCornerCoords[0]))
+	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
 		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::prepare_element': "
 				"Cannot update Finite Volume Geometry.\n");

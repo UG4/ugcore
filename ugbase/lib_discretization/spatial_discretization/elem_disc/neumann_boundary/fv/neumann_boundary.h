@@ -23,29 +23,33 @@ namespace ug{
 
 template<typename TDomain, typename TAlgebra>
 class FVNeumannBoundaryElemDisc
-	: public IElemDisc<TAlgebra>
+	: public IDomainElemDisc<TDomain, TAlgebra>
 {
+	private:
+	///	Base class type
+		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+
 	public:
-	///	domain type
-		typedef TDomain domain_type;
+	///	Domain type
+		typedef typename base_type::domain_type domain_type;
 
-	///	world dimension
-		static const int dim = TDomain::dim;
+	///	World dimension
+		static const int dim = base_type::dim;
 
-	///	position type
-		typedef typename TDomain::position_type position_type;
+	///	Position type
+		typedef typename base_type::position_type position_type;
 
-	///	algebra type
-		typedef TAlgebra algebra_type;
+	///	Algebra type
+		typedef typename base_type::algebra_type algebra_type;
 
-	///	local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type> local_matrix_type;
+	///	Local matrix type
+		typedef typename base_type::local_matrix_type local_matrix_type;
 
-	///	local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
+	///	Local vector type
+		typedef typename base_type::local_vector_type local_vector_type;
 
-	///	local index type
-		typedef LocalIndices local_index_type;
+	///	Local index type
+		typedef typename base_type::local_index_type local_index_type;
 
 	protected:
 	///	type of bnd number
@@ -54,14 +58,11 @@ class FVNeumannBoundaryElemDisc
 	public:
 	///	default constructor
 		FVNeumannBoundaryElemDisc()
-		 : m_numFct(0), m_pDomain(NULL)
+		 : m_numFct(0)
 			{
 				m_mBoundarySegment.clear();
 				register_assemble_functions(Int2Type<dim>());
 			}
-
-	///	set domain
-		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
 	///	add a boundary value
 		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, const char* function, const char* subsets);
@@ -135,12 +136,8 @@ class FVNeumannBoundaryElemDisc
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
-	// 	domain
-		TDomain* m_pDomain;
-
 	// 	position access
-		std::vector<position_type> m_vCornerCoords;
-		typename TDomain::position_accessor_type m_aaPos;
+		const position_type* m_vCornerCoords;
 
 	private:
 		///////////////////////////////////////

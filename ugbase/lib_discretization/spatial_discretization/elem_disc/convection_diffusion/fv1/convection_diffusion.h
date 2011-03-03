@@ -48,34 +48,38 @@ namespace ug{
 template<	typename TDomain,
 			typename TAlgebra>
 class FVConvectionDiffusionElemDisc
-	: public IElemDisc<TAlgebra>
+: public IDomainElemDisc<TDomain, TAlgebra>
 {
+	private:
+	///	Base class type
+		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+
 	public:
 	///	Domain type
-		typedef TDomain domain_type;
+		typedef typename base_type::domain_type domain_type;
 
 	///	World dimension
-		static const int dim = TDomain::dim;
+		static const int dim = base_type::dim;
 
 	///	Position type
-		typedef typename TDomain::position_type position_type;
+		typedef typename base_type::position_type position_type;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
-		typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
+		typedef typename base_type::local_matrix_type local_matrix_type;
 
 	///	Local vector type
-		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
+		typedef typename base_type::local_vector_type local_vector_type;
 
 	///	Local index type
-		typedef typename IElemDisc<TAlgebra>::local_index_type local_index_type;
+		typedef typename base_type::local_index_type local_index_type;
 
 	public:
 	///	Constructor
 		FVConvectionDiffusionElemDisc()
-		 : m_pDomain(NULL), m_upwindAmount(0.0)
+		 : m_upwindAmount(0.0)
 			{
 			//	register assemling functions
 				register_ass_funcs(Int2Type<dim>());
@@ -97,9 +101,6 @@ class FVConvectionDiffusionElemDisc
 	 * \param	amount		Amount of upwind
 	 */
 		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
-
-	///	sets the domain
-		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
 	///	sets the diffusion tensor
 	/**
@@ -263,14 +264,8 @@ class FVConvectionDiffusionElemDisc
 		}
 
 	private:
-	///	Domain
-		TDomain* m_pDomain;
-
 	///	Corner Coordinates
-		std::vector<position_type> m_vCornerCoords;
-
-	///	position accessor
-		typename TDomain::position_accessor_type m_aaPos;
+		const position_type* m_vCornerCoords;
 
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;

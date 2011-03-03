@@ -34,42 +34,42 @@ namespace ug{
 
 template<typename TDomain, typename TAlgebra>
 class FVInnerBoundaryElemDisc
-	: public IElemDisc<TAlgebra>
+: public IDomainElemDisc<TDomain, TAlgebra>
 {
+	private:
+	///	Base class type
+		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+
 	public:
-		// domain type
-		typedef TDomain domain_type;
+	///	Domain type
+		typedef typename base_type::domain_type domain_type;
 
-		// world dimension
-		static const int dim = TDomain::dim;
+	///	World dimension
+		static const int dim = base_type::dim;
 
-		// position type
-		typedef typename TDomain::position_type position_type;
+	///	Position type
+		typedef typename base_type::position_type position_type;
 
-		// algebra type
-		typedef TAlgebra algebra_type;
+	///	Algebra type
+		typedef typename base_type::algebra_type algebra_type;
 
-		// local matrix type
-		typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
+	///	Local matrix type
+		typedef typename base_type::local_matrix_type local_matrix_type;
 
-		// local vector type
-		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
+	///	Local vector type
+		typedef typename base_type::local_vector_type local_vector_type;
 
-		// local index type
-		typedef typename IElemDisc<TAlgebra>::local_index_type local_index_type;
-		//typedef LocalIndices local_index_type;
+	///	Local index type
+		typedef typename base_type::local_index_type local_index_type;
 
 	protected:
 		typedef typename IBoundaryNumberProvider<dim>::functor_type BNDNumberFunctor;
 
 	public:
 		FVInnerBoundaryElemDisc()
-		 : m_pDomain(NULL)
 		{
 			register_assemble_functions(Int2Type<dim>());
 		}
-
-		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 		
 	private:
 	//	number of functions required on manifold
@@ -149,12 +149,8 @@ class FVInnerBoundaryElemDisc
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
-		// domain
-		TDomain* m_pDomain;
-
 		// position access
-		std::vector<position_type> m_vCornerCoords;
-		typename TDomain::position_accessor_type m_aaPos;
+		const position_type* m_vCornerCoords;
 
 	private:
 		///////////////////////////////////////

@@ -67,33 +67,39 @@ namespace ug{
 template<template <	class TElem, int TWorldDim> class TFVGeom,
 					typename TDomain,
 					typename TAlgebra>
-class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
+class DensityDrivenFlowElemDisc
+	: public IDomainElemDisc<TDomain, TAlgebra>
+{
+	private:
+	///	Base class type
+		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+
 	public:
 	///	Domain type
-		typedef TDomain domain_type;
+		typedef typename base_type::domain_type domain_type;
 
 	///	World dimension
-		static const int dim = TDomain::dim;
+		static const int dim = base_type::dim;
 
 	///	Position type
-		typedef typename TDomain::position_type position_type;
+		typedef typename base_type::position_type position_type;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
-		typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
+		typedef typename base_type::local_matrix_type local_matrix_type;
 
 	///	Local vector type
-		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
+		typedef typename base_type::local_vector_type local_vector_type;
 
 	///	Local index type
-		typedef typename IElemDisc<TAlgebra>::local_index_type local_index_type;
+		typedef typename base_type::local_index_type local_index_type;
 
 	public:
 	///	Constructor
 		DensityDrivenFlowElemDisc() :
-			m_pDomain(NULL), m_Upwind(NO_UPWIND), m_bConsGravity(true),
+			m_Upwind(NO_UPWIND), m_bConsGravity(true),
 			m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 			m_imBrineScvf(false), m_imBrineGradScvf(false),
 			m_imPressureGradScvf(false), m_imDarcyVelScvf(false)
@@ -166,16 +172,6 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 			}
 			return true;
 		}
-
-	///	sets the approximation space
-		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
-		{
-			m_pDomain = &approxSpace.get_domain();
-			set_pattern(approxSpace);
-		}
-
-	///	sets the domain
-		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
 	///	sets the porosity
 	/**
@@ -302,12 +298,6 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
-	///	Domain
-		TDomain* m_pDomain;
-
-	///	Position access
-		typename TDomain::position_accessor_type m_aaPos;
-
 	/// Upwind (1.0 == full upwind, 0.0 == no upwind)
 		enum UpwindType{ NO_UPWIND = 0, FULL_UPWIND, PART_UPWIND};
 		int m_Upwind;
@@ -322,7 +312,7 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		bool m_BoussinesqFlow;
 
 	///	Corner Coordinates
-		std::vector<position_type> m_vCornerCoords;
+		const position_type* m_vCornerCoords;
 
 	/// constant Gravity, read in once
 		MathVector<dim> m_Gravity;

@@ -14,6 +14,7 @@
 // intern headers
 #include "lib_discretization/assemble.h"
 #include "lib_discretization/common/local_algebra.h"
+#include "lib_discretization/function_spaces/grid_function_space.h"
 
 namespace ug{
 
@@ -382,6 +383,120 @@ protected:
 		int m_id;
 };
 
+template <typename TDomain, typename TAlgebra>
+class IDomainElemDisc : public IElemDisc<TAlgebra>
+{
+	private:
+	///	base class type
+		typedef IElemDisc<TAlgebra> base_type;
+
+	public:
+	///	Domain type
+		typedef TDomain domain_type;
+
+	///	World dimension
+		static const int dim = TDomain::dim;
+
+	///	Position type
+		typedef typename TDomain::position_type position_type;
+
+	///	Algebra type
+		typedef typename base_type::algebra_type algebra_type;
+
+	///	Local matrix type
+		typedef typename base_type::local_matrix_type local_matrix_type;
+
+	/// Local vector type
+		typedef typename base_type::local_vector_type local_vector_type;
+
+	/// Local index type
+		typedef typename base_type::local_index_type local_index_type;
+
+	public:
+		IDomainElemDisc() : m_pDomain(NULL) {};
+
+	///	sets the approximation space
+		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
+		{
+		//	remember domain
+			set_domain(approxSpace.get_domain());
+
+		//	remember function pattern
+			this->set_pattern(approxSpace);
+		}
+
+	///	sets the domain
+		void set_domain(domain_type& domain)
+		{
+		//	remember domain
+			m_pDomain = &domain;
+
+		//	remember position accessor
+			m_aaPos = m_pDomain->get_position_accessor();
+		}
+
+	///	returns the domain
+		domain_type& get_domain()
+		{
+			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
+			return *m_pDomain;
+		}
+
+	///	returns the domain
+		const domain_type& get_domain() const
+		{
+			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
+			return *m_pDomain;
+		}
+
+	///	returns the subset handler
+		typename domain_type::subset_handler_type& get_subset_handler()
+		{
+			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
+			return m_pDomain->get_subset_handler();
+		}
+
+	///	returns the subset handler
+		const typename domain_type::subset_handler_type& get_subset_handler() const
+		{
+			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
+			return m_pDomain->get_subset_handler();
+		}
+
+	///	returns the corner coordinates of an Element in a C++-array
+		template<typename TElem>
+		const position_type* get_element_corners(TElem* elem)
+		{
+			typedef typename reference_element_traits<TElem>::reference_element_type
+							ref_elem_type;
+
+		//	resize corners
+			m_vCornerCoords.resize(ref_elem_type::num_corners);
+
+		//	check domain
+			UG_ASSERT(m_pDomain != NULL, "Domain not set");
+
+		//	extract corner coordinates
+			for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
+			{
+				VertexBase* vert = elem->vertex(i);
+				m_vCornerCoords[i] = m_aaPos[vert];
+			}
+
+		//	return corner coords
+			return &m_vCornerCoords[0];
+		}
+
+	protected:
+	///	Domain
+		TDomain* m_pDomain;
+
+	///	Position access
+		typename TDomain::position_accessor_type m_aaPos;
+
+	///	Corner Coordinates
+		std::vector<position_type> m_vCornerCoords;
+};
 /// @}
 
 } // end namespace ug

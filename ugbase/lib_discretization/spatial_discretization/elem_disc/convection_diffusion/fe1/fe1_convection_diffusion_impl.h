@@ -36,18 +36,6 @@ prepare_element_loop()
 																ref_elem_type;
 	static const int refDim = ref_elem_type::dim;
 
-	// resize corner coordinates
-	m_vCornerCoords.resize(ref_elem_type::num_corners);
-
-	// remember position attachement
-	if(m_pDomain == NULL)
-	{
-		UG_LOG("ERROR in 'FVConvectionDiffusionElemDisc::prepare_element_loop':"
-				" Domain not set.");
-		return false;
-	}
-	m_aaPos = m_pDomain->get_position_accessor();
-
 //	set local positions for rhs
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 	m_Diff.template 	set_local_ips<refDim>(geo.local_ips(),
@@ -89,12 +77,8 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
 
-// 	Load corners of this element
-	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
-	{
-		VertexBase* vert = elem->vertex(i);
-		m_vCornerCoords[i] = m_aaPos[vert];
-	}
+//	get corners
+	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 	// update Geometry for this element
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);

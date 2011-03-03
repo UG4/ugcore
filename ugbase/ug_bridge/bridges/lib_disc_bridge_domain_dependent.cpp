@@ -258,32 +258,42 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 						"Success", "Constant Value#Function#Subsets");
 	}
 
+//	DomainElemDisc base class
+	{
+		typedef IDomainElemDisc<domain_type, algebra_type> T;
+		typedef IElemDisc<algebra_type> TBase;
+
+		std::stringstream ss; ss << "IDomainElemDisc" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_method("set_approximation_space", &T::set_approximation_space);
+	}
+
 //	Neumann Boundary
 	{
 		typedef FVNeumannBoundaryElemDisc<domain_type, algebra_type> T;
+		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
 		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
-		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_domain", &T::set_domain)
 			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value);
 	}
 
 //	Inner Boundary
 	{
 		typedef FVInnerBoundaryElemDisc<domain_type, algebra_type> T;
+		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
 		std::stringstream ss; ss << "FV1InnerBoundary" << dim << "d";
-		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_domain", &T::set_domain);
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_constructor();
 	}
 
 //	Convection Diffusion Finite Volume
 	{
 		typedef FVConvectionDiffusionElemDisc<domain_type, algebra_type> T;
+		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
 		std::stringstream ss; ss << "FV1ConvectionDiffusion" << dim << "d";
-		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_domain", &T::set_domain)
 			.add_method("set_diffusion_tensor", &T::set_diffusion)
 			.add_method("set_velocity_field", &T::set_velocity)
 			.add_method("set_reaction", &T::set_reaction)
@@ -295,10 +305,10 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Convection Diffusion Finite Element
 	{
 		typedef FE1ConvectionDiffusionElemDisc<domain_type, algebra_type> T;
+		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
 		std::stringstream ss; ss << "FE1ConvectionDiffusion" << dim << "d";
-		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_domain", &T::set_domain)
 			.add_method("set_diffusion_tensor", &T::set_diffusion)
 			.add_method("set_velocity_field", &T::set_velocity)
 			.add_method("set_reaction", &T::set_reaction)
@@ -310,11 +320,11 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Density Driven Flow
 	{
 		typedef DensityDrivenFlowElemDisc<FV1Geometry, domain_type, algebra_type> T2;
+		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
 		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
-		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_domain|hide=true", &T2::set_domain)
-			.add_method("set_approximation_space|interactive=false", &T2::set_approximation_space,
+			.add_method("set_approximation_space", &T2::set_approximation_space,
 						"", "Approximation Space")
 			.add_method("set_upwind|interactive=false", &T2::set_upwind,
 						"", "Upwind (no, part, full)")

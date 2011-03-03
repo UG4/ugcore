@@ -78,8 +78,7 @@ function util.CreateNeumannBoundary(approxSpace, subsets)
 		return nil
 	end
 
-	neumannDisc:set_domain(domain)
-	neumannDisc:set_pattern(approxSpace)
+	neumannDisc:set_approximation_space(approxSpace)
 	neumannDisc:set_subsets(subsets)
 	return neumannDisc
 end
@@ -99,8 +98,7 @@ function util.CreateDirichletBoundary(approxSpace)
 		return nil
 	end
 
-	dirichlet:set_domain(domain)
-	dirichlet:set_pattern(approxSpace)
+	dirichlet:set_approximation_space(approxSpace)
 	return dirichlet
 end
 
@@ -119,8 +117,7 @@ function util.CreateInnerBoundary(approxSpace, functions, subsets)
 		return nil
 	end
 
-	innerDisc:set_domain(domain)
-	innerDisc:set_pattern(approxSpace)
+	innerDisc:set_approximation_space(approxSpace)
 	innerDisc:set_subsets(subsets)
 	innerDisc:set_functions(functions)
 	return innerDisc
@@ -141,8 +138,7 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	return nil
 	end
 	
-	elemDisc:set_domain(domain)
-	elemDisc:set_pattern(approxSpace)
+	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc
@@ -162,8 +158,7 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 		return nil
 	end
 	
-	elemDisc:set_domain(domain)
-	elemDisc:set_pattern(approxSpace)
+	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc

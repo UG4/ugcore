@@ -73,8 +73,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 		//	Base class
 			typedef IElemDisc<algebra_type> T;
 			reg.add_class_<T>("IElemDisc", grp.c_str())
-				.add_method("set_pattern|hide=true", &T::set_pattern)
-				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions,+
+				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions,
 							"", "Functions (sep. by ',')")
 				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets,
 							"", "Subsets (sep. by ',')");

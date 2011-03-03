@@ -22,36 +22,40 @@ namespace ug{
 
 
 template<typename TDomain, typename TAlgebra>
-class FE1LinearElasticityElemDisc : public IElemDisc<TAlgebra>
+class FE1LinearElasticityElemDisc
+	: public IDomainElemDisc<TDomain, TAlgebra>
 {
+	private:
+	///	Base class type
+		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+
 	public:
-		// domain type
-		typedef TDomain domain_type;
+	///	Domain type
+		typedef typename base_type::domain_type domain_type;
 
-		// world dimension
-		static const int dim = TDomain::dim;
+	///	World dimension
+		static const int dim = base_type::dim;
 
-		// position type
-		typedef typename TDomain::position_type position_type;
+	///	Position type
+		typedef typename base_type::position_type position_type;
 
-		// algebra type
-		typedef TAlgebra algebra_type;
+	///	Algebra type
+		typedef typename base_type::algebra_type algebra_type;
 
-		// local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
+	///	Local matrix type
+		typedef typename base_type::local_matrix_type local_matrix_type;
 
-		// local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
+	///	Local vector type
+		typedef typename base_type::local_vector_type local_vector_type;
 
-		// local index type
-		//typedef typename algebra_type::vector_type::local_index_type local_index_type;
-		typedef LocalIndices local_index_type;
+	///	Local index type
+		typedef typename base_type::local_index_type local_index_type;
 
 	protected:
 		typedef void (*Elasticity_Tensor_fct)(MathTensor<4,dim>&);
 
 	public:
-		FE1LinearElasticityElemDisc(TDomain& domain, Elasticity_Tensor_fct elast);
+		FE1LinearElasticityElemDisc(Elasticity_Tensor_fct elast);
 
 		virtual size_t num_fct(){return dim;}
 
@@ -93,12 +97,8 @@ class FE1LinearElasticityElemDisc : public IElemDisc<TAlgebra>
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
-		// domain
-		TDomain& m_domain;
-
 		// position access
-		position_type* m_corners;
-		typename TDomain::position_accessor_type m_aaPos;
+		const position_type* m_corners;
 
 		// User functions
 		Elasticity_Tensor_fct m_ElasticityTensorFct;

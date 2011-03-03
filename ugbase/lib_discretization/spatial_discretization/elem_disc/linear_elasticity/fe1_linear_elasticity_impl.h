@@ -24,8 +24,8 @@ namespace ug{
 
 template<typename TDomain, typename TAlgebra>
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
-FE1LinearElasticityElemDisc(TDomain& domain, Elasticity_Tensor_fct elast)
-	: 	m_domain(domain), m_ElasticityTensorFct(elast)
+FE1LinearElasticityElemDisc(Elasticity_Tensor_fct elast)
+	: 	m_ElasticityTensorFct(elast)
 {
 	register_assemble_functions();
 };
@@ -42,13 +42,7 @@ prepare_element_loop()
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
 
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	m_corners = new position_type[ref_elem_type::num_corners];
-
-	// remember position attachement
-	m_aaPos = m_domain.get_position_accessor();
-
-	// evaluate Elasticity Tensor
+// 	evaluate Elasticity Tensor
 	m_ElasticityTensorFct(m_ElasticityTensor);
 
 	return true;
@@ -61,10 +55,7 @@ bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
 {
-	// all this will be performed outside of the loop over the elements.
-	// Therefore it is not time critical.
-	delete[] m_corners;
-
+//	nothing to do
 	return true;
 }
 
@@ -76,18 +67,10 @@ bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
-	// this loop will be performed inside the loop over the elements.
-	// Therefore, it is TIME CRITICAL
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+//	get corners
+	m_corners = this->template get_element_corners<TElem>(elem);
 
-	// load corners of this element
-	for(int i = 0; i < ref_elem_type::num_corners; ++i)
-	{
-		VertexBase* vert = elem->vertex(i);
-		m_corners[i] = m_aaPos[vert];
-	}
-
-	// update Geometry for this element
+// 	update Geometry for this element
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 	if(!geo.update(m_corners))
 		{UG_LOG("FE1LinearElasticityElemDisc::prepare_element:"

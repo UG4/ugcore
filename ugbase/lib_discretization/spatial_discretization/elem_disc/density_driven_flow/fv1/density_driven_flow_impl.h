@@ -481,17 +481,9 @@ prepare_element_loop()
 // 	Resizes
 	typedef typename reference_element_traits<TElem>::reference_element_type
 					ref_elem_type;
-	static const int refDim = ref_elem_type::dim;
-	m_vCornerCoords.resize(ref_elem_type::num_corners);
 
-// 	Remember position attachement
-	if(m_pDomain == NULL)
-	{
-		UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::prepare_element_loop':"
-				" Domain not set.");
-		return false;
-	}
-	m_aaPos = m_pDomain->get_position_accessor();
+//	reference dimension
+	static const int refDim = ref_elem_type::dim;
 
 //	check necessary imports
 	if(!m_imBrineScvf.data_given())
@@ -632,18 +624,14 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
-// 	load corners of this element
-	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
-	{
-		VertexBase* vert = elem->vertex(i);
-		m_vCornerCoords[i] = m_aaPos[vert];
-	}
+//	get corners
+	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
 	static TFVGeom<TElem, dim>& geo =
 				FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
-	if(!geo.update(elem, m_pDomain->get_subset_handler(), &m_vCornerCoords[0]))
+	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
 		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
 				" Cannot update Finite Volume Geometry.\n"); return false;
