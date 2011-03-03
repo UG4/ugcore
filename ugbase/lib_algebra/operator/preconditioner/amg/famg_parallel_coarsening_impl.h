@@ -342,6 +342,27 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::create_OL2_matr
 	//-------------------------------
 	UG_LOG("\nGenerate Overlap 2..."); if(bTiming) SW.start();
 
+	{
+		UG_SET_DEBUG_LEVELS(4);
+		std::vector<IndexLayout> masterLayouts, slaveLayouts;
+		IndexLayout totalMasterLayout, totalSlaveLayout;
+		matrix_type mat;
+		GenerateOverlap2(A, mat, totalMasterLayout, totalSlaveLayout, masterLayouts, slaveLayouts, 1, 0, true, true);
+		std::vector<MathVector<3> > vec2(&m_famg.m_amghelper.positions[0], &m_famg.m_amghelper.positions[m_famg.m_amghelper.size]);
+		vec2.resize(A_OL2.num_rows());
+		// 2. get positions of newly created indices
+			//--------------------------------------------
+		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
+		pcl::ParallelCommunicator<IndexLayout> &communicator = mat.get_communicator();
+		communicator.send_data(totalMasterLayout, copyPol);
+		communicator.receive_data(totalSlaveLayout, copyPol);
+		communicator.communicate();
+
+		// debug: write overlap 2 matrix as debug output
+		WriteMatrixToConnectionViewer(GetProcFilename("A_fullRow", ".mat").c_str(), mat, &vec2[0], 2);
+		UG_SET_DEBUG_LEVELS(0);
+	}
+
 	std::vector<IndexLayout> masterLayouts, slaveLayouts;
 	IndexLayout totalMasterLayout, totalSlaveLayout;
 	GenerateOverlap(A, A_OL2, totalMasterLayout, totalSlaveLayout, masterLayouts, slaveLayouts, 2);

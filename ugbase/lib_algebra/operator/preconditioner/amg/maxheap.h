@@ -239,7 +239,7 @@ private:
 	{
 		int p = m_posinheap[index];
 		p = (p+1)*2 -1;
-		if(p < m_height)
+		if(p < (int)m_height)
 			return m_heap[p];
 		else return index;
 	}
@@ -253,7 +253,7 @@ private:
 	{
 		int p = m_posinheap[index];
 		p = (p+1)*2 -1 +1;
-		if(p < m_height)
+		if(p < (int)m_height)
 			return m_heap[p];
 		else return index;
 	}

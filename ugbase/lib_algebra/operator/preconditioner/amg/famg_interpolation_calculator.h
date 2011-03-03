@@ -488,9 +488,9 @@ private:
 		/// stdvector<size_t> &onlyN2 = neighbors[2];
 		// GetNeighborhoodHierachy(A, i, neighbors, bvisited);
 
-		bvisited.resize(A.num_rows(), false);
+		bvisited.resize(A_OL2.num_rows(), false);
 
-		GetNeighborhood(A, i, onlyN1, onlyN2, bvisited);
+		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
 
 		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN1, "\nn1-neighbors");
 		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN2, "n2-neighbors");
@@ -534,6 +534,7 @@ private:
 	// thats why they are stored here.
 	stdvector<bool> bvisited;					// used for N2-neighborhood calculation
 
+	// todo: instead of VariableArray2, use
 	DenseMatrix<VariableArray2<double> > S;		// local matrix S = 1 - wD^{-1}A on {N1, i_index, N2}
 	stdvector<double> SF;						// SF = 1 -wD^{-1} A(i_index,.)
 	stdvector<double> D;						// diagonal

@@ -27,7 +27,6 @@
 #include "famg.h"
 #include <set>
 
-
 class ccstring : public std::string
 {
 public:
@@ -277,11 +276,11 @@ public:
 		UG_LOG("\ncalculating testvector... ");
 		if(bTiming) SW.start();
 
-		CalculateTestvector(A_OL2, big_testvector, m_famg.get_testvector_zero_at_dirichlet(),
+		// todo: somethings wrong here. parallel vectors?
+		CalculateTestvector(dynamic_cast<SparseMatrix<double> &> (A_OL2), big_testvector, m_famg.get_testvector_zero_at_dirichlet(),
 				m_famg.get_testvector_damps(), rating);
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
-
 
 		heap.create(rating.nodes);
 
@@ -452,7 +451,8 @@ public:
 
 		write_debug_matrices();
 
-		CalculateNextTestvector(R, big_testvector);
+		// todo: remove dynamic cast, change big_testvector to parallel
+		CalculateNextTestvector(dynamic_cast<SparseMatrix<double> &> (R), big_testvector);
 
 		PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 
