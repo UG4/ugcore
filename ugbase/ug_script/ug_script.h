@@ -52,7 +52,7 @@ lua_State* GetDefaultLuaState();
 
 ///	parses and executes a buffer
 /**	Throws an instance of LuaError, if a parse error occurs.*/
-bool ParseBuffer(const char* buffer);
+bool ParseBuffer(const char* buffer, const char *bufferName="buffer");
 
 ///	parses and executes a file
 /**	Throws an instance of LuaError, if a parse error occurs.*/

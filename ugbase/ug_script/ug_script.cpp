@@ -149,10 +149,10 @@ lua_State* GetDefaultLuaState()
 	return L;
 }
 
-bool ParseBuffer(const char* buffer)
+bool ParseBuffer(const char* buffer, const char *bufferName)
 {
 	lua_State* L = GetDefaultLuaState();
-	int error = luaL_loadbuffer(L, buffer, strlen(buffer), "buffer") ||
+	int error = luaL_loadbuffer(L, buffer, strlen(buffer), bufferName) ||
 				lua_pcall(L, 0, 0, 0);
 
 	if(error)
