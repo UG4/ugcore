@@ -83,7 +83,18 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 		//	IMatrixOperator
 			typedef ILinearOperator<vector_type, vector_type> TBase;
 			typedef IMatrixOperator<vector_type, vector_type, matrix_type> T;
-			reg.add_class_<T, TBase>("IMatrixOperator", grp.c_str());
+			reg.add_class_<T, TBase>("IMatrixOperator", grp.c_str())
+				.add_method("resize", &T::resize)
+				.add_method("num_rows", &T::num_rows)
+				.add_method("num_cols", &T::num_cols);
+		}
+
+		{
+		//	PureMatrixOperator
+			typedef IMatrixOperator<vector_type, vector_type, matrix_type> TBase;
+			typedef PureMatrixOperator<vector_type, vector_type, matrix_type> T;
+			reg.add_class_<T, TBase>("PureMatrixOperator", grp.c_str())
+				.add_constructor();
 		}
 
 		{
