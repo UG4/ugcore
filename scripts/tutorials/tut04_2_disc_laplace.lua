@@ -64,15 +64,10 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 --	init some local variables
 	local dim = dom:get_dim()
 
---	create the function pattern	
-	local pattern = P1ConformFunctionPattern()
-	pattern:set_subset_handler(dom:get_subset_handler())
-	AddP1Function(pattern, "c", dim)
-	pattern:lock()
-	
-	
 --	create the approximation space
-	local approxSpace = util.CreateApproximationSpace(dom, pattern)
+	local approxSpace = util.CreateApproximationSpace(dom) -- creates new object
+	approxSpace:add_fct("c", "Lagrange", 1)          -- adds one function
+	approxSpace:init()                               -- fixes the space
 	
 --	initialize the callbacks. If callbacks were specified, use them. If not,
 --	use the default callbacks.
