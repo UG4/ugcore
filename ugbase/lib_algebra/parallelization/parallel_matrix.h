@@ -180,7 +180,7 @@ struct matrix_algebra_type_traits;
 template<typename T>
 struct matrix_algebra_type_traits<ParallelMatrix<T> >
 {
-	static const int type = matrix_algebra_type_traits<T>::type;
+	static const int type = MATRIX_USE_GLOBAL_FUNCTIONS;
 };
 
 } // end namespace ug

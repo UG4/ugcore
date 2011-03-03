@@ -113,10 +113,14 @@ private:
 
 	std::vector<IndexLayout> &m_vMasterLayouts; 	///< m_vMasterLayout[i] is the master layout from overlap i without others
 	std::vector<IndexLayout> &m_vSlaveLayouts;	///< m_vSlaveLayout[i] is the slave layout from overlap i without others
-	size_t m_overlapDepth;						///< overlap depth to be achieved
+	//size_t m_overlapDepth;						///< overlap depth to be achieved
 
-
-
+public:
+	size_t m_overlapDepthMaster;
+	size_t m_overlapDepthSlave;
+	bool m_masterDirichletLast;
+	bool m_slaveDirichletLast;
+private:
 
 	/// collect_matrix_row_data
 	/**
@@ -678,9 +682,9 @@ public:
 		 *
 		 */
 	GenerateOverlapClass(matrix_type &mat, matrix_type &newMat, IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout,
-			std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts, size_t overlapDepth=1) :
+			std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts) :
 		m_com(mat.get_communicator()), m_mat(mat), m_newMat(newMat), m_totalMasterLayout(totalMasterLayout), m_totalSlaveLayout(totalSlaveLayout),
-		m_vMasterLayouts(vMasterLayouts), m_vSlaveLayouts(vSlaveLayouts), m_overlapDepth(overlapDepth)
+		m_vMasterLayouts(vMasterLayouts), m_vSlaveLayouts(vSlaveLayouts)
 	{
 
 	}
@@ -723,20 +727,22 @@ public:
 		// collect data
 		//-----------------
 
+		size_t maxOverlap = std::max(m_overlapDepthMaster, m_overlapDepthSlave);
+
 		std::vector<IndexLayout> masterOLLayouts, slaveOLLayouts;
 		masterOLLayouts.clear();
-		masterOLLayouts.resize(m_overlapDepth+1);
+		masterOLLayouts.resize(maxOverlap+1);
 		slaveOLLayouts.clear();
-		slaveOLLayouts.resize(m_overlapDepth+1);
+		slaveOLLayouts.resize(maxOverlap+1);
 
 		std::vector<IndexLayout> backward_masterOLLayouts, backward_slaveOLLayouts;
 		backward_masterOLLayouts.clear();
-		backward_masterOLLayouts.resize(m_overlapDepth+1);
+		backward_masterOLLayouts.resize(maxOverlap+1);
 		backward_slaveOLLayouts.clear();
-		backward_slaveOLLayouts.resize(m_overlapDepth+1);
+		backward_slaveOLLayouts.resize(maxOverlap+1);
 
 		// TODO: try to remove these pid numbers or reduce them by introducing receivePIDs, sendPIDs
-		// these are necessary because notifications can occur to a processor not in the current layout
+		// these are necessary because notifications can occur from a processor not in the current layout
 		std::set<int> pids;
 		for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 			pids.insert(iter->first);
@@ -745,60 +751,84 @@ public:
 
 
 		create_mark_map(masterLayout);
-		m_vMasterLayouts.resize(m_overlapDepth+1);
-		m_vSlaveLayouts.resize(m_overlapDepth+1);
+		m_vMasterLayouts.resize(maxOverlap+1);
+		m_vSlaveLayouts.resize(maxOverlap+1);
 		AddLayout(m_vMasterLayouts[0], masterLayout);
 		AddLayout(m_vSlaveLayouts[0], slaveLayout);
 
-		for(size_t current_overlap=0; current_overlap <= m_overlapDepth; current_overlap++)
+		for(size_t current_overlap=0; current_overlap <= maxOverlap; current_overlap++)
 		{
-			bool bCreateNewNodes = (current_overlap == m_overlapDepth ? false : true);
+
 
 			IF_DEBUG(LIB_ALG_MATRIX, 4)
 			{
 				UG_DLOG(LIB_ALG_MATRIX, 4, "\n---------------------\ncurrentOL: " << current_overlap << "\n");
-				if(bCreateNewNodes)
-					UG_DLOG(LIB_ALG_MATRIX, 4, "(creating New Nodes)\n");
 				UG_DLOG(LIB_ALG_MATRIX, 4, "---------------------\n\n");
 			}
 
-			IndexLayout *send_layout;
-			if(current_overlap == 0)
-				send_layout = &slaveLayout;
-			else
-				send_layout = &masterOLLayouts[current_overlap-1];
+			if(current_overlap <= m_overlapDepthMaster)
+			{
+				IndexLayout *send_layout;
+				if(current_overlap == 0)
+					send_layout = &slaveLayout;
+				else
+					send_layout = &masterOLLayouts[current_overlap-1];
 
-			IndexLayout *receive_layout;
-			if(current_overlap == 0)
-				receive_layout = &masterLayout;
-			else
-				receive_layout = &slaveOLLayouts[current_overlap-1];
+				IndexLayout *receive_layout;
+				if(current_overlap == 0)
+					receive_layout = &masterLayout;
+				else
+					receive_layout = &slaveOLLayouts[current_overlap-1];
 
-
-			communicate(*send_layout, *receive_layout, bCreateNewNodes,
-					slaveOLLayouts[current_overlap], masterOLLayouts[current_overlap], pids,
-					nodeNummerator, false, current_overlap+1);
+				if(current_overlap == m_overlapDepthMaster && m_masterDirichletLast)
+				{
+					std::vector<IndexLayout::Element> vIndex;
+					CollectUniqueElements(vIndex,  *receive_layout);
+					SetDirichletRow(m_newMat, vIndex);
+				}
+				else
+				{
+					bool bCreateNewNodes = (current_overlap == m_overlapDepthMaster ? false : true);
+					communicate(*send_layout, *receive_layout, bCreateNewNodes,
+						slaveOLLayouts[current_overlap], masterOLLayouts[current_overlap], pids,
+						nodeNummerator, false, current_overlap+1);
+				}
+			}
 
 			// backwards
+			if(current_overlap <= m_overlapDepthSlave)
+			{
+				IndexLayout *backward_send_layout;
+				if(current_overlap == 0)
+					backward_send_layout = &masterLayout;
+				else
+					backward_send_layout = &backward_masterOLLayouts[current_overlap-1];
 
-			IndexLayout *backward_send_layout;
-			if(current_overlap == 0)
-				backward_send_layout = &masterLayout;
-			else
-				backward_send_layout = &backward_masterOLLayouts[current_overlap-1];
+				IndexLayout *backward_receive_layout;
+				if(current_overlap == 0)
+					backward_receive_layout = &slaveLayout;
+				else
+					backward_receive_layout = &backward_slaveOLLayouts[current_overlap-1];
 
-			IndexLayout *backward_receive_layout;
-			if(current_overlap == 0)
-				backward_receive_layout = &slaveLayout;
-			else
-				backward_receive_layout = &backward_slaveOLLayouts[current_overlap-1];
-
-			communicate(*backward_send_layout, *backward_receive_layout, bCreateNewNodes,
-					backward_slaveOLLayouts[current_overlap], backward_masterOLLayouts[current_overlap], pids,
-								nodeNummerator, true, current_overlap+1);
+				if(current_overlap == m_overlapDepthSlave && m_slaveDirichletLast)
+				{
+					std::vector<IndexLayout::Element> vIndex;
+					CollectUniqueElements(vIndex,  *backward_receive_layout);
+					SetDirichletRow(m_newMat, vIndex);
+				}
+				else
+				{
+					bool bCreateNewNodes = (current_overlap == m_overlapDepthSlave ? false : true);
+					communicate(*backward_send_layout, *backward_receive_layout, bCreateNewNodes,
+						backward_slaveOLLayouts[current_overlap], backward_masterOLLayouts[current_overlap], pids,
+									nodeNummerator, true, current_overlap+1);
+				}
+			}
 
 			// done!
 		}
+
+
 
 
 		m_newMat.set_layouts(m_totalMasterLayout, m_totalSlaveLayout);
@@ -823,8 +853,8 @@ public:
 		}
 
 		return true;
-
 	}
+
 };
 
 // TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
@@ -837,7 +867,29 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
 
-	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, overlapDepth);
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts);
+	c.m_overlapDepthMaster = overlapDepth;
+	c.m_overlapDepthSlave = overlapDepth;
+	c.m_masterDirichletLast = false;
+	c.m_slaveDirichletLast = false;
+	return c.calculate();
+}
+
+// TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
+template<typename matrix_type>
+bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
+		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
+		size_t overlapDepthMaster, size_t overlapDepthSlave, bool masterDirichletLast, bool slaveDirichletLast)
+{
+	// pcl does not use const much
+	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
+	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
+
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts);
+	c.m_overlapDepthMaster = overlapDepthMaster;
+	c.m_overlapDepthSlave = overlapDepthSlave;
+	c.m_masterDirichletLast = masterDirichletLast;
+	c.m_slaveDirichletLast = slaveDirichletLast;
 	return c.calculate();
 }
 
@@ -852,10 +904,21 @@ bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matr
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
 
-	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, 0);
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts);
+	c.m_overlapDepthMaster = 0;
+	c.m_overlapDepthSlave = 0;
+	c.m_masterDirichletLast = false;
+	c.m_slaveDirichletLast = false;
 	bool b = c.calculate();
 	newMat.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
 	return b;
+}
+
+template<typename matrix_type>
+bool MakeFullRowsMatrix(const ParallelMatrix<matrix_type> &mat, ParallelMatrix<matrix_type> &newMat)
+{
+	// GenerateOverlap2(mat, newMat, totalMasterLayout, totalSlaveLayout, masterLayouts, slaveLayouts, 1, 0, true, true);
+	return true;
 }
 
 
