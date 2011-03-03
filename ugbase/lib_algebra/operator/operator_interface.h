@@ -93,6 +93,10 @@ class IMatrixOperator :	public virtual ILinearOperator<X,Y>
 	// 	Matrix type
 		typedef M matrix_type;
 
+		void resize(size_t numCols, size_t numRows)	{get_matrix().resize(numCols, numRows);}
+		size_t num_rows()	{return get_matrix().num_rows();}
+		size_t num_cols()	{return get_matrix().num_cols();}
+
 	public:
 	// 	Access to matrix
 		virtual M& get_matrix() = 0;

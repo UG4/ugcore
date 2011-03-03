@@ -64,4 +64,7 @@
 
 #include "operator_util.h"
 
+// matrix operator methods
+#include "matrix_operator_functions.h"
+
 #endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR__ */
