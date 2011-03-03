@@ -598,10 +598,10 @@ static int LuaProxyFunction(lua_State* L)
 			func->execute(paramsIn, paramsOut);
 		}
 		catch(UGError err){
-			UG_LOG(GetLuaFileAndLine(L) << ":\nUGError in ")
+			UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
 			PrintFunctionInfo(*func);
-			UG_LOG(" with code " << err.get_code() << ": ");
-			UG_LOG(err.get_msg() << endl);
+			UG_LOG(" with code " << err.get_code() << ":\n");
+			UG_LOG("Error message: " << err.get_msg() << endl);
 			if(err.terminate())
 			{
 				UG_LOG("Call stack:\n"); lua_stacktrace(L);
@@ -688,10 +688,10 @@ static int LuaProxyMethod(lua_State* L)
 	}
 	catch(UGError err)
 	{
-		UG_LOG(GetLuaFileAndLine(L) << ":\nUGError in ")
+		UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
 		PrintLuaClassMethodInfo(L, 1, *m);
-		UG_LOG(" with code " << err.get_code() << ": ");
-		UG_LOG(err.get_msg() << endl);
+		UG_LOG(" with code " << err.get_code() << ":\n");
+		UG_LOG("Error message: " << err.get_msg() << endl);
 		if(err.terminate())
 		{
 			UG_LOG("terminating..." << endl);

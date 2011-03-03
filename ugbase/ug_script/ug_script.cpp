@@ -4,6 +4,8 @@
 
 #include <cassert>
 #include <cstring>
+#include <string>
+#include <stack>
 #include "ug.h"
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
@@ -22,21 +24,61 @@ namespace script
 ///	loads a file relative to APP_PATH../scripts
 bool LoadUGScript(const char* filename)
 {
-	string strFilename(UGGetScriptPath());
-	strFilename.append("/").append(filename);
+//	This stack is used to support relative pathes to a
+//	current script.
+	static stack<string> stkPathes;
 
-//	check absolute path
-	if(FileExists(filename)){
-		return ug::script::ParseFile(filename);
+//	get the path component of the current filename
+	string strInFile = filename;
+	string strInPath;
+	string::size_type pos = strInFile.rfind("/");
+	if(pos != string::npos){
+		strInPath = strInFile.substr(0, pos);
+	}
+	else if((pos = strInFile.rfind("\\")) != string::npos){
+		strInPath = strInFile.substr(0, pos);
 	}
 
+//	first we check whether the file can be found relative
+//	to the location of the current script
+	if(!stkPathes.empty()){
+		string curPath = stkPathes.top();
+		string file = curPath;
+		file.append("/").append(filename);
+		if(FileExists(file.c_str())){
+			curPath.append("/").append(strInPath);
+			stkPathes.push(curPath);
+			bool success = ug::script::ParseFile(file.c_str());
+			stkPathes.pop();
+			return success;
+		}
+	}
+
+//	the file was not found relative to the current script (if there
+//	was one at all). Check the default filename
+	if(FileExists(filename)){
+		stkPathes.push(strInPath);
+		bool success = ug::script::ParseFile(filename);
+		stkPathes.pop();
+		return success;
+	}
+
+//	finally we have to check relative to the  default path
+	string curPath = UGGetScriptPath();
+	string file = curPath;
+	file.append("/").append(filename);
+
 //	check script path
-	if(FileExists(strFilename.c_str())){
-		return ug::script::ParseFile(strFilename.c_str());
+	if(FileExists(file.c_str())){
+		curPath.append("/").append(strInPath);
+		stkPathes.push(curPath);
+		bool success = ug::script::ParseFile(file.c_str());
+		stkPathes.pop();
+		return success;
 	}
 
 //todo: check path relative to UG4_ROOT
-
+	UG_LOG("Couldn't find script " << filename << endl);
 	return false;
 }
 
@@ -115,9 +157,11 @@ bool ParseBuffer(const char* buffer)
 
 	if(error)
 	{
-		LOG("PARSE-ERROR: " << lua_tostring(L, -1) << endl);
+//		LOG("PARSE-ERROR: " << lua_tostring(L, -1) << endl);
+		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		return false;
+		throw(LuaError(msg.c_str()));
+//		return false;
 	}
 	return true;
 
@@ -127,15 +171,15 @@ bool ParseFile(const char* filename)
 {
 	lua_State* L = GetDefaultLuaState();
 
-	UG_LOG("Parsing file: " << filename << std::endl);
-
 	int error = luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0);
 
 	if(error)
 	{
-		LOG("PARSE-ERROR in parse_file(" << filename << "): " << lua_tostring(L, -1) << endl);
+		//LOG("PARSE-ERROR in parse_file(" << filename << "): " << lua_tostring(L, -1) << endl);
+		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		return false;
+		throw(LuaError(msg.c_str()));
+		//return false;
 	}
 	return true;
 }

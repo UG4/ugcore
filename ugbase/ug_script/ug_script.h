@@ -21,7 +21,22 @@ namespace ug
 namespace script
 {
 
-///	loads a file relative to APP_PATH../scripts
+///	Error class thrown if an error occurs during parsing.
+class LuaError : public UGError
+{
+	public:
+		LuaError(const char* msg) : UGError(msg)	{}
+};
+
+
+
+///	loads and parses a file. Several pathes are tried if the file is not found.
+/**	Throws an instance of LuaError, if a parse error occurs.
+ * This method first tries to load the file specified with filename relative
+ * to the path of the currently parsed file (if LoadUGScript is called from
+ * within a load-script). If this failed, the file is tried to be loaded
+ * with the raw specified filename. If this fails too, the method tries to
+ * load the file from ugs scripting directory.*/
 bool LoadUGScript(const char* filename);
 
 /// checks if given file exists.
@@ -36,9 +51,11 @@ bool FileExists(const char* filename);
 lua_State* GetDefaultLuaState();
 
 ///	parses and executes a buffer
+/**	Throws an instance of LuaError, if a parse error occurs.*/
 bool ParseBuffer(const char* buffer);
 
 ///	parses and executes a file
+/**	Throws an instance of LuaError, if a parse error occurs.*/
 bool ParseFile(const char* filename);
 
 }//	end of namespace

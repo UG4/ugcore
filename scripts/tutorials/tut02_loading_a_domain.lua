@@ -10,13 +10,15 @@
 --	not part of lua itself, but which have been registered at lua by ug.
 --------------------------------------------------------------------------------
 
--- First we will include a script file which defines some methods often used.
--- Loaded methods are all found in the library util.
-ug_load_script("ug_util.lua")
-
 -- Since ug supports a bunch of different algebra modules we will choose one here.
+-- This should always be the first thing you do in an ug-script.
 -- The cpu-algebra is fine for now.
-InitAlgebra(CPUAlgebraChooser());
+InitAlgebra(CPUAlgebraChooser())
+
+
+-- We will include a script file which defines some methods often used.
+-- Loaded methods are all found in the library util.
+ug_load_script("../ug_util.lua")
 
 
 -- To keep the script flexible we will now define some variables which have
