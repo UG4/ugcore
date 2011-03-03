@@ -15,6 +15,8 @@
 
 #include "common/operations.h"
 
+#include "common/stl_debug.h"
+
 // operator base interface
 #include "operator/operator_base_interface.h"
 
