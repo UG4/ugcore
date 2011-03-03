@@ -15,6 +15,7 @@
 #include "ug_script/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
 #include "ug_bridge/class_helper.h"
+#include "common/util/sort_util.h"
 
 extern "C"
 {
@@ -40,18 +41,17 @@ namespace lua
 
 const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 {
+	const std::vector<const char*> *p = NULL;
 	if(lua_getmetatable(L, index) != 0)
 	{
 		// get names
 		lua_pushstring(L, "names");
 		lua_rawget(L, -2);
 		if(!lua_isnil(L, -1) && lua_isuserdata(L, -1))
-		{
-			return (const std::vector<const char*>*) lua_touserdata(L, -1);
-		}
+			p = (const std::vector<const char*>*) lua_touserdata(L, -1);
 		lua_pop(L, 2); // pop userdata, metatable
 	}
-	return NULL;
+	return p;
 }
 
 
@@ -261,41 +261,16 @@ bool ClassUsage(const char *classname)
 	return true;
 }
 
-
-void LuaPrintTable(lua_State *L)
+static void LOGFillSpace(size_t n)
 {
-	UG_LOG("{ ");
-	//lua_getglobal(L, "ugargv"); // -2
-	int len=0;
-	lua_pushnil( L ); // -1
-	while( lua_next( L, (-1-len)*2) )
-	{
-		// key -2
-		// val -1
-		lua_pushvalue(L, -2);
-		len++;
-	}
-
-	for(int i=0; i<len; i++)
-	{
-		if(i>0) UG_LOG(", ");
-		const char * key = lua_tostring(L, -2*len+2*i);
-		const char * value = lua_tostring(L, -2*len+2*i+1);
-		UG_LOG(key);
-		if(value) { UG_LOG(" = \"" << value << "\"") };
-	}
-	lua_pop(L, 2*len);
-	UG_LOG(" }");
+	for(size_t i=0; i<n; i++)
+		UG_LOG(" ");
 }
-
-
 
 bool IsLonger(const std::string &a, const std::string &b)
 {
 	return b.size() > a.size();
 }
-
-
 
 string GetFileLine(const char *filename, size_t line)
 {
@@ -307,6 +282,79 @@ string GetFileLine(const char *filename, size_t line)
 	return string(buf+strspn(buf, " \t"));
 }
 
+void PrintLuaScriptFunction(lua_State *L)
+{
+	lua_Debug ar;
+	lua_getinfo(L, ">S", &ar);
+	if(ar.linedefined != -1)
+		UG_LOG(GetFileLine(ar.source+1, ar.linedefined)); // skip '@'
+}
+
+void LuaPrintTable(lua_State *L, size_t iSpace)
+{
+	LOGFillSpace(iSpace);
+	UG_LOG("{\n");
+	//lua_getglobal(L, "ugargv"); // -2
+	int len=0;
+	lua_pushnil( L ); // -1
+	while( lua_next( L, (-1-len)*2) )
+	{
+		// key -2
+		// val -1
+		lua_pushvalue(L, -2);
+		len++;
+	}
+
+	std::vector<SortStruct<int, string> > sorted;
+	sorted.resize(len);
+
+	for(int i=0; i<len; i++)
+	{
+		sorted[i].index = -2*len+2*i+1; // valueIndex
+		size_t indexIndex = -2*len+2*i;
+		const char *name = lua_tostring(L, indexIndex);
+		if(name) sorted[i].value = name;
+		else sorted[i].value = lua::GetLuaTypeString(L, indexIndex);
+	}
+
+	sort(sorted.begin(), sorted.end());
+
+	for(int i=0; i<len; i++)
+	{
+		int index = sorted[i].index;
+
+		LOGFillSpace(iSpace);
+		UG_LOG(sorted[i].value);
+		UG_LOG(" (" << lua::GetLuaTypeString(L, index) << ")");
+		if(lua_isfunction(L, index))
+		{
+			UG_LOG(": ");
+			lua_pushvalue(L, index);
+			PrintLuaScriptFunction(L);
+		}
+		else if(lua_istable(L, index))
+		{
+			UG_LOG(" = \n");
+			lua_pushvalue(L, index);
+			LuaPrintTable(L, iSpace+1);
+			lua_pop(L, 1);
+		}
+		else
+		{
+			const char * value = lua_tostring(L, index);
+			if(value) { UG_LOG(" = \"" << value << "\"") };
+		}
+		UG_LOG("\n");
+	}
+	lua_pop(L, 2*len);
+	LOGFillSpace(iSpace);
+	UG_LOG("}\n");
+}
+
+
+
+
+
 
 
 void LuaList()
@@ -314,33 +362,23 @@ void LuaList()
 	bridge::Registry &reg = GetUGRegistry();
 	lua_State* L = script::GetDefaultLuaState();
 	std::vector<std::string> classes, functions, internalFunctions, scriptFunctions, names, instantiations;
-	// iterate through all of lua's global string table
-	for(int i=0; i<G(L)->strt.size; i++)
-	{
-		GCObject *obj;
-		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->gch.next)
-		{
-			// get the string
-			TString *ts = rawgco2ts(obj);
-			if(ts == NULL) continue;
+	// iterate through all of lua's globals
 
-			const char *luastr = getstr(ts);
-			// check is of a global variable
-			lua_getglobal(L, luastr);
-			if(lua_isnil(L, -1))
-			{
-				lua_pop(L, 1); // remove global from stack
-				continue; // nope
-			}
-			if(strcmp(luastr, "_G") == 0)
-				;
-			else if(FindClass(reg, luastr))
+	lua_getglobal(L, "_G");
+	lua_pushnil( L ); // -1
+	while( lua_next( L, -2 ))
+	{
+		const char *luastr = lua_tostring(L, -2);
+		if(luastr && strcmp(luastr, "_G") != 0 && strcmp(luastr, "package") != 0)
+		{
+			if(FindClass(reg, luastr))
 				classes.push_back(luastr);
 			else if(FindFunction(reg, luastr))
 				functions.push_back(luastr);
 			else if(lua_isfunction(L, -1) || lua_iscfunction(L, -1))
 			{
 				lua_Debug ar;
+				lua_pushvalue(L, -1);
 				lua_getinfo(L, ">S", &ar);
 				if(ar.linedefined != -1)
 					scriptFunctions.push_back(luastr);
@@ -351,9 +389,8 @@ void LuaList()
 				instantiations.push_back(luastr);
 			else
 				names.push_back(luastr);
-
-			lua_pop(L, 1); // remove global from stack
 		}
+		lua_pop(L, 1); // remove global from stack
 	}
 	sort(classes.begin(), classes.end());
 	sort(functions.begin(), functions.end());
@@ -380,18 +417,10 @@ void LuaList()
 	std::vector<std::string>::const_iterator m = max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger);
 	for(size_t i=0; i<scriptFunctions.size(); i++)
 	{
-		lua_Debug ar;
 		lua_getglobal(L, scriptFunctions[i].c_str());  /* get global 'f' */
-		lua_getinfo(L, ">S", &ar);
-		if(ar.linedefined != -1)
-		{
-			UG_LOG(left << setw((*m).size()) << scriptFunctions[i] << ": ");
-			UG_LOG(GetFileLine(ar.source+1, ar.linedefined)); // skip '@'
-			UG_LOG(endl);
-		}
-		else
-		{ 	UG_LOG(scriptFunctions[i] << endl); }
-		lua_pop(L, 1);
+		UG_LOG(left << setw((*m).size()) << scriptFunctions[i] << ": ");
+		PrintLuaScriptFunction(L);
+		UG_LOG("\n");
 	}
 
 	UG_LOG(endl << "--- Internal Functions: ---" << endl)
@@ -405,12 +434,15 @@ void LuaList()
 	m = max_element(names.begin(), names.end(), IsLonger);
 	for(size_t i=0; i<names.size(); i++)
 	{
+		if(names[i].compare("_G") == 0) continue;
+		if(names[i].compare("package") == 0) continue;
 		lua_getglobal(L, names[i].c_str());
 		UG_LOG(left << setw((*m).size()) << names[i]);
+		UG_LOG(" (" << lua::GetLuaTypeString(L, -1) << ")");
 		if(lua_istable(L, -1))
 		{
-			UG_LOG(" = ");
-			LuaPrintTable(L);
+			UG_LOG(" = \n");
+			LuaPrintTable(L, 1);
 		}
 		const char *p = lua_tostring(L, -1);
 		if(p) UG_LOG(": " << p)
