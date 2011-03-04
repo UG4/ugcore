@@ -93,6 +93,10 @@ void GlobalMultiGridRefiner::refine()
 		else if(mg.has_vertex_attachment(aPosition2)){
 			localRefCallbackSet = true;
 			m_refCallback = new RefinementCallbackLinear<APosition2>(mg, aPosition2);
+		}
+		else if(mg.has_vertex_attachment(aPosition1)){
+			localRefCallbackSet = true;
+			m_refCallback = new RefinementCallbackLinear<APosition1>(mg, aPosition1);
 		}		
 	}
 
