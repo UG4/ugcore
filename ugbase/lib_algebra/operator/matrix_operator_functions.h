@@ -49,16 +49,15 @@ void MatIdentity(	IMatrixOperator<X, Y, M>& opOut)
 
 
 template <typename X, typename Y, typename M>
-void MatAdd( IMatrixOperator<X, Y, M>& res, number alpha1, const IMatrixOperator<X, Y, M>& A1, number alpha2, const IMatrixOperator<X, Y, M>& A2)
+void MatAdd( IMatrixOperator<X, Y, M>& res, number alpha1, IMatrixOperator<X, Y, M>& A1, number alpha2, IMatrixOperator<X, Y, M>& A2)
 {
 	typedef IMatrixOperator<X, Y, M> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
 
 	Matrix& matRes = res.get_matrix();
-	const Matrix& matA1 = A1.get_matrix();
-	const Matrix& matA2 = A2.get_matrix();
-
+	Matrix& matA1 = A1.get_matrix();
+	Matrix& matA2 = A2.get_matrix();
 	MatAdd(matRes, alpha1, matA1, alpha2, matA2);
 }
 
