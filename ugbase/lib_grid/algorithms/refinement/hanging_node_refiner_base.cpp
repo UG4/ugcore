@@ -107,6 +107,10 @@ void HangingNodeRefinerBase::refine()
 			localRefCallbackSet = true;
 			m_refCallback = new RefinementCallbackLinear<APosition2>(grid, aPosition2);
 		}
+		else if(grid.has_vertex_attachment(aPosition1)){
+			localRefCallbackSet = true;
+			m_refCallback = new RefinementCallbackLinear<APosition1>(grid, aPosition1);
+		}
 	}
 
 //	check grid options.
