@@ -71,7 +71,7 @@ class Registry {
 								const char* tooltip = "", const char* help = "")
 		{
 		// 	check that name is not empty
-			if(strlen(funcName) == 0)
+			if( *funcName != NULL /*strlen(funcName) == 0*/)
 			{
 				std::cout << "### Registry ERROR: Trying to register empty function name."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
