@@ -18,6 +18,8 @@
 #include "vrl_user_number.h"
 #include "invocation.h"
 
+#include "ug_script/user_data/user_data.h"
+
 namespace ug {
 namespace vrl {
 static ug::bridge::Registry* vrlRegistry = NULL;
@@ -40,8 +42,9 @@ JavaVM* getJavaVM() {
 	return javaVM;
 }
 
-} // end vrl::
+}// end vrl::
 }// end ug::
+
 
 class TestClass {
 public:
@@ -99,7 +102,7 @@ public:
 
 		std::cout << "***6\n";
 
-		return 23;
+		return 23; // :D
 	}
 
 	std::string getRev() {
@@ -145,7 +148,6 @@ public:
 
 	~TestClass() {
 		UG_LOG("~TestClass" << std::endl);
-		std::cerr << "~TestClass\n";
 	}
 };
 
@@ -165,6 +167,19 @@ int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
 	return test.get_refcount();
 }
 
+template <typename TVector>
+TVector* CreateVector(int dim) {
+	return new TVector(dim);
+}
+
+template <typename TVector>
+SmartPtr<TVector> CreateVectorSmart(int dim) {
+	return SmartPtr<TVector > (new TVector(dim));
+}
+
+
+
+
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
@@ -181,11 +196,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
-	//		static ug::bridge::Registry testReg;
-
-	//	Choose registry used.
+	// Choose registry used.
 	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
-	//		ug::bridge::Registry& reg = testReg;
 
 	using namespace ug;
 
@@ -195,7 +207,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	reg.add_class_<TestClass > ("TestClass", "testing")
 			.add_constructor()
-			.add_method("svnRevision", &TestClass::getRev)
+			.add_method("svnRevision|hide=true,interactive=false", &TestClass::getRev)
 			.add_method("add", &TestClass::add, "result",
 			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
 			.add_method("getString", &TestClass::getString)
@@ -207,24 +219,41 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	reg.add_function("SmartTestFunction", &SmartTestFunction, "testing");
 	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "testing");
 
-	//	Register Standard Interfaces (excluding algebra)
-	//		ug::bridge::RegisterStandardInterfaces(reg);
+	ug::vrl::RegisterVRLUserNumber(reg, "testing");
 
+	/************************************/
 
-	//	Register algebra
+	reg.add_class_<Vector<double> >("DVector", "testing")
+			.add_constructor()
+			.add_method("set|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set,
+			"Success", "Number")
+			.add_method("size|hide=true", (size_t(Vector<double> ::*)()) & Vector<double> ::size,
+			"Size", "")
+			.add_method("set_random|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set_random,
+			"Success", "Number")
+			.add_method("print|hide=true", &Vector<double> ::p);
+
+	reg.add_function("VecScaleAdd2", &VecScaleAdd2<Vector<double> >, "",
+			"dest, alpha1, vec1, alpha2, vec2", "dest = alpha1*vec1 + alpha2*vec2");
+	reg.add_function("VecScaleAdd3", &VecScaleAdd3<Vector<double> >, "",
+			"dest, alpha1, vec1, alpha2, vec2, alpha3, vec3", "dest = alpha1*vec1 + alpha2*vec2 + alpha3*vec3");
+
+	reg.add_function("CreateVector",
+			&CreateVector<Vector<double> >, "testing", "DVector", "Dimension");
+
+	/************************************/
+
+	// Register algebra
 	CPUAlgebraChooser chooser;
 	ug::bridge::RegisterDynamicLibAlgebraInterface(
 			reg, chooser.get_algebra_type());
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(
 			reg, chooser.get_algebra_type());
 
-
-	//	ug::vrl::RegisterVRLUserNumber(reg, "testing");
-	//				ug::bridge::RegisterTestInterface(reg);
-
-	//	ug::bridge::RegisterLibGridInterface(testReg);
-
-	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
+	if (!reg.check_consistency()) {
+		UG_LOG("UG-VRL: cannot compile code due to registration error.");
+		return 1;
+	}
 
 	ug::vrl::SetVRLRegistry(&reg);
 

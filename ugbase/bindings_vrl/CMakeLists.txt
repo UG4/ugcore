@@ -36,7 +36,7 @@ endif(NOT UG_SHARED)
 
 
 ####
-# make global svn revision available as C++ makro
+# make global svn revision available as C++ macro
 ####
 
 include(FindSubversion)
@@ -62,7 +62,7 @@ ELSE(Subversion_FOUND)
 ENDIF(Subversion_FOUND)
 
 ####
-# make compile date stamp available as C++ makro
+# make compile date stamp available as C++ macro
 ####
 
 IF(UNIX)

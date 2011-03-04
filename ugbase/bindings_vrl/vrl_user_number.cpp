@@ -46,21 +46,9 @@ public:
 
 	void set_vrl_callback(const char* expression) {
 		this->expression = expression;
-
-		//				JNIEnv* localEnv = NULL;
-		//				javaVM->AttachCurrentThread((void **) (&localEnv), NULL);
-		//
-		//
-		//				javaVM->DetachCurrentThread();
 	}
 
 	void operator() (number& c, const MathVector<dim>& x, number time = 0.0) const {
-
-		//			for(size_t i = 0; i < /*dim*/ 2; ++i) {
-		//
-		//			}
-
-		//			assert(dim==2);
 
 		double val_x = x[0];
 		double val_y = 0;
@@ -106,21 +94,6 @@ public:
 				double2JObject(localEnv, val_y));
 
 		c = jObject2Double(localEnv, result);
-
-		//			lua_getglobal(m_L, m_callbackName);
-		//			for(size_t i = 0; i < dim; ++i)
-		//				lua_pushnumber(m_L, x[i]);
-		//			lua_pushnumber(m_L, time);
-		//
-		//			if(lua_pcall(m_L, dim + 1, 1, 0) != 0)
-		//			{
-		//				UG_LOG("error running diffusion callback " << m_callbackName << ": "
-		//								<< lua_tostring(m_L, -1));
-		//				throw(int(0));
-		//			}
-		//
-		//			c = luaL_checknumber(m_L, -1);
-		//			lua_pop(m_L, 1);
 	}
 
 	///	implement as a IPData
