@@ -62,6 +62,13 @@ void MatAdd( IMatrixOperator<X, Y, M>& res, number alpha1, const IMatrixOperator
 	MatAdd(matRes, alpha1, matA1, alpha2, matA2);
 }
 
+template <typename X, typename Y, typename M>
+void MatScale( IMatrixOperator<X, Y, M>& A, number scale)
+{
+	Matrix& matA = A.get_matrix();
+
+	A.scale(alpha);
+}
 
 }//	end of namespace
 
