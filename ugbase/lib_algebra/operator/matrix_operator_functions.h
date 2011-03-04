@@ -63,8 +63,10 @@ void MatAdd( IMatrixOperator<X, Y, M>& res, number alpha1, const IMatrixOperator
 }
 
 template <typename X, typename Y, typename M>
-void MatScale( IMatrixOperator<X, Y, M>& A, number scale)
+void MatScale( IMatrixOperator<X, Y, M>& A, number alpha)
 {
+	typedef IMatrixOperator<X, Y, M> MatrixOperator;
+	typedef typename MatrixOperator::matrix_type Matrix;
 	Matrix& matA = A.get_matrix();
 
 	A.scale(alpha);
