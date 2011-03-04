@@ -493,7 +493,6 @@ class FV1Geometry {
 				const size_t dim = scv.midId[i].dim;
 				const size_t id = scv.midId[i].id;
 				scv.m_vGloPos[i] = m_gloMid[dim][id];
-				UG_LOG("Copy: (dim, id): ("<<dim<<","<<id<<") = " <<  m_gloMid[dim][id] <<"\n");
 			}
 		}
 
