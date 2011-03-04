@@ -413,7 +413,7 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 			.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
 					"", "Verbose");
 
-		reg.add_function("KostaUpdate", &KostaUpdate<CPUAlgebra::vector_type>);
+//		reg.add_function("KostaUpdate", &KostaUpdate<CPUAlgebra::vector_type>);
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)

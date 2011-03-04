@@ -6,6 +6,7 @@
 #define __H__UG__INTERFACE__BINDINGS_LUA__
 
 #include <vector>
+#include <string>
 
 extern "C" {
 #include "../externals/lua/lua.h"
@@ -27,6 +28,9 @@ namespace lua
 ///	creates bindings for ug_interface and a given lua-state.
 /**	If you use ug::script, this method will be invoked automatically.*/
 bool CreateBindings_LUA(lua_State* L, Registry& reg);
+
+/// gets current lua file and line of execution
+std::string GetLuaFileAndLine(lua_State* L);
 
 }//	end of namespace
 }//	end of namespace
