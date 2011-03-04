@@ -493,6 +493,7 @@ class FV1Geometry {
 				const size_t dim = scv.midId[i].dim;
 				const size_t id = scv.midId[i].id;
 				scv.m_vGloPos[i] = m_gloMid[dim][id];
+				UG_LOG("Copy: (dim, id): ("<<dim<<","<<id<<") = " <<  m_gloMid[dim][id] <<"\n");
 			}
 		}
 
@@ -521,9 +522,9 @@ class FV1Geometry {
 		TElem* m_pElem;
 
 		// local and global geom object midpoints for each dimension
-		// (most objects in 1 dim, i.e. number of edges)
-		MathVector<dim> m_locMid[dim+1][m_numSCVF];
-		MathVector<world_dim> m_gloMid[dim+1][m_numSCVF];
+		// (most objects in 1 dim, i.e. number of edges, but +1 for 1D)
+		MathVector<dim> m_locMid[dim+1][m_numSCVF + 1];
+		MathVector<world_dim> m_gloMid[dim+1][m_numSCVF +1];
 
 		// SubControlVolumeFaces
 		SCVF m_vSCVF[m_numSCVF];
