@@ -56,8 +56,8 @@ void MatAdd( IMatrixOperator<X, Y, M>& res, number alpha1, const IMatrixOperator
 	typedef typename MatrixOperator::matrix_type Matrix;
 
 	Matrix& matRes = res.get_matrix();
-	Matrix& matA1 = A1.get_matrix();
-	Matrix& matA2 = A2.get_matrix();
+	const Matrix& matA1 = A1.get_matrix();
+	const Matrix& matA2 = A2.get_matrix();
 
 	MatAdd(matRes, alpha1, matA1, alpha2, matA2);
 }
