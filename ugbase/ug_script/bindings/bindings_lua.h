@@ -29,9 +29,6 @@ namespace lua
 /**	If you use ug::script, this method will be invoked automatically.*/
 bool CreateBindings_LUA(lua_State* L, Registry& reg);
 
-/// gets current lua file and line of execution
-std::string GetLuaFileAndLine(lua_State* L);
-
 }//	end of namespace
 }//	end of namespace
 }//	end of namespace
