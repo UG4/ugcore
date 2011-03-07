@@ -85,10 +85,19 @@ class DataLinker
 		}
 
 	///	set input i
-		void set_input(size_t i, IPData<TDataIn, dim>& data)
+		bool set_input(size_t i, IPData<TDataIn, dim>& data)
 		{
 			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
+
+		//	check input number
+			if(i >= num_input())
+			{
+				UG_LOG("ERROR in 'DataLinker::set_input': Only " << num_input()
+				       << " inputs can be set. Use 'set_num_input' to increase"
+				       " the number of needed inputs.\n");
+				return false;
+			}
 
 		//	remember ipdata
 			m_vpIPData[i] = &data;
@@ -96,11 +105,33 @@ class DataLinker
 		//	cast to dependent data
 			m_vpDependData[i] = dynamic_cast<DependentIPData<TDataIn, dim>*>(&data);
 
+		//	we're done
+			return true;
+		}
+
+	///	returns if data is ok
+		virtual bool make_ready()
+		{
+		//	check, that all inputs are set
+			for(size_t i = 0; i < num_input(); ++i)
+			{
+				if(m_vpIPData[i] == NULL)
+				{
+					UG_LOG("ERROR in 'DataLinker::make_ready': Input number "<<
+							i << " missing.\n");
+					return false;
+				}
+			}
+
 		//	if data is dependent, forward function group
 			if(!update_function_group())
 			{
-				throw(UGFatalError("Cannot update function group."));
+				UG_LOG("ERROR in 'DataLinker::set_input': Cannot build function"
+						" group of linker.\n");
+				return false;
 			}
+
+			return true;
 		}
 
 	///	number of inputs

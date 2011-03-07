@@ -686,6 +686,13 @@ class DataEvaluator
 		//	prepare data linker
 			for(size_t i = 0; i < m_vLinkerDepend.size(); ++i)
 			{
+				if(!m_vLinkerDepend[i]->make_ready())
+				{
+					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+							"Linker not ready.\n");
+					return false;
+				}
+
 			//	adjust derivative array
 				ind.access_by_map(m_vMapLinker[i]);
 				m_vLinkerDepend[i]->resize(ind);
