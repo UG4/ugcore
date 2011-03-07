@@ -19,8 +19,6 @@
 #include "vrl_user_number.h"
 #include "invocation.h"
 
-#include "ug_script/user_data/user_data.h"
-
 namespace ug {
 namespace vrl {
 static ug::bridge::Registry* vrlRegistry = NULL;

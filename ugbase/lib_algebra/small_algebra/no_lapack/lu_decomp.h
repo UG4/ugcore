@@ -31,7 +31,7 @@ bool LUDecomp(DenseMatrix<matrix_t> &A, size_t *pInterchange)
 
 			if(biggest != i)
 				for(size_t j=0; j<n; j++)
-					swap(A(i, j), A(biggest, j));
+					std::swap(A(i, j), A(biggest, j));
 
 			pInterchange[i] = biggest;
 			if(dabs(A(i,i)) < 1e-10)
@@ -82,7 +82,7 @@ bool SolveLU(const DenseMatrix<matrix_t> &A, DenseVector<vector_t> &x, const siz
 	if(pInterchange)
 		for(size_t i=0; i<n; i++)
 			if(i < pInterchange[i])
-				swap(x[i], x[pInterchange[i]]);
+				std::swap(x[i], x[pInterchange[i]]);
 
 	// LU x = b, -> U x = L^{-1} b
 	// solve lower left
