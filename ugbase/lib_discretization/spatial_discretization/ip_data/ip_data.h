@@ -290,7 +290,7 @@ class IDependentIPData
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
 	///	returns if the dependent data is ok
-		virtual bool make_ready() const {return true;}
+		virtual bool make_ready() {return true;}
 
 	///	virtual destructor
 		virtual ~IDependentIPData() {}
