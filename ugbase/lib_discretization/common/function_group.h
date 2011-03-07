@@ -202,6 +202,12 @@ class FunctionIndexMapping
 			return m_vMapping[i];
 		}
 
+	/// returns if the mapping is valid for an index
+		bool mapping_valid(size_t i) const
+		{
+			return (i < num_fct() && m_vMapping[i] >= 0);
+		}
+
 	protected:
 	/// vector holding the mapped indices
 		std::vector<int> m_vMapping;

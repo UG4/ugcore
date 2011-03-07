@@ -78,23 +78,54 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionP
 
 bool
 CreateFunctionIndexMapping(FunctionIndexMapping& map,
-                           const FunctionGroup& grpFrom,
-                           const FunctionGroup& grpTo)
+                           const FunctionGroup& grpFromSmall,
+                           const FunctionGroup& grpToLarge)
 {
+//	clear map
+	map.clear();
+
 //	check that from group is contained in to group
-	if(!grpTo.contains(grpFrom)) return false;
+	if(!grpToLarge.contains(grpFromSmall)) return false;
 
 //	loop all functions on grpFrom
-	for(size_t from = 0; from < grpFrom.num_fct(); ++from)
+	for(size_t from = 0; from < grpFromSmall.num_fct(); ++from)
 	{
 	//	get unique id of function
-		const size_t uniqueID = grpFrom[from];
+		const size_t uniqueID = grpFromSmall[from];
 
 	//	find unique id of function in grpTo
-		const size_t locIndex = grpTo.local_index(uniqueID);
+		const size_t locIndex = grpToLarge.local_index(uniqueID);
 
 	//	set mapping
 		map.add(from, locIndex);
+	}
+
+//	we're done
+	return true;
+}
+
+bool
+CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
+                                  const FunctionGroup& grpFromLarge,
+                                  const FunctionGroup& grpToSmall)
+{
+//	clear map
+	map.clear();
+
+//	check that from group is contained in to group
+	if(!grpFromLarge.contains(grpToSmall)) return false;
+
+//	loop all functions on grpFrom
+	for(size_t to = 0; to < grpToSmall.num_fct(); ++to)
+	{
+	//	get unique id of function
+		const size_t uniqueID = grpToSmall[to];
+
+	//	find unique id of function in grpTo
+		const size_t locIndex = grpFromLarge.local_index(uniqueID);
+
+	//	set mapping
+		map.add(locIndex, to);
 	}
 
 //	we're done
@@ -110,7 +141,7 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
  * \param[in]		sortFct		flag if group should be sorted after adding
  */
 bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
-                                 const std::vector<FunctionGroup*>& vFctGrp,
+                                 const std::vector<const FunctionGroup*>& vFctGrp,
                                  bool sortFct)
 {
 //	clear group

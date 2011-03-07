@@ -45,13 +45,24 @@ ConvertStringToFunctionGroup(FunctionGroup&functionGroup, const FunctionPattern&
 
 /**
  * Creates a function index mapping that maps all local indices from the one
- * Function Group to the other. This is of coarse only possible if the first
+ * Function Group to the other. This is only possible if the first
  * Function Group is contained in the second.
  */
 bool
 CreateFunctionIndexMapping(FunctionIndexMapping& map,
                            const FunctionGroup& grpFrom,
                            const FunctionGroup& grpTo);
+
+/**
+ * Creates a function index mapping that maps all local indices from the one
+ * Function Group to the other. The second function group is here contained in
+ * the first, thus not all mappings are defined, but only those where the index
+ * of the first group is contained in the range of the second.
+ */
+bool
+CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
+                                  const FunctionGroup& grpFromLarge,
+                                  const FunctionGroup& grpToSmall);
 
 
 /**
@@ -62,7 +73,7 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
  * \param[in]		sortFct		flag if group should be sorted after adding
  */
 bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
-                                 const std::vector<FunctionGroup*>& vFctGrp,
+                                 const std::vector<const FunctionGroup*>& vFctGrp,
                                  bool sortFct = false);
 
 } // end namespace ug
