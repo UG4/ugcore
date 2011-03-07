@@ -3,6 +3,7 @@
 #include <string>
 
 #include "ug.h"
+#include "ugbase.h"
 #include "ug_bridge/registry.h"
 #include "ug_bridge/class.h"
 
