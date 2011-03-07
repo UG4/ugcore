@@ -900,10 +900,6 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 	//	register methods
 		for(size_t j = 0; j < c->num_methods(); ++j){
 			const ExportedMethodGroup& m = c->get_method_group(j);
-			if(m.num_overloads() > 1){
-				UG_LOG("registering method " << m.name() << " of class ");
-				UG_LOG(c->name() << " with " << m.num_overloads() << " overloads\n");
-			}
 			lua_pushstring(L, m.name().c_str());
 			lua_pushlightuserdata(L, (void*)&m);
 			lua_pushcclosure(L, LuaProxyMethod, 1);

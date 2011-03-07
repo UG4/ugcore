@@ -17,7 +17,7 @@ ug_load_script("../ug_util.lua")
 
 --------------------------------------------------------------------------------
 -- AssembleLaplace assembles the laplace operator. It returns a linear operator
--- containing the created matrix, a vector of unknowns and the right hand side.
+-- containing the created matrix and the underlying approximation space
 --
 -- You have to specify a domain and the names of the inner and boundary subsets.
 -- Optionally you may specify callbacks for the diffusion tensor, the rhs and
@@ -25,7 +25,8 @@ ug_load_script("../ug_util.lua")
 -- the callback methods as strings.
 --
 -- The assembled system operates on the surface-view of the specified domain
--- and is not usable in geometric multigrid methods.
+-- and is not usable in geometric multigrid methods (this could be enhanced
+-- by an additional)
 --
 -- Params:
 --   * dom: A domain object.
@@ -55,9 +56,8 @@ ug_load_script("../ug_util.lua")
 --			See LaplaceDefaults_DirichletBnd2d / 3d below for an example.
 --
 -- Returns:
---	 * AssembledLinearOperator: The assembled Linear operator A
---   * GridFunction: The vector of unknowns u, uninitialized.
---   * GridFunction: The vector b, containing the assembled right hand side.
+--	 * AssembledLinearOperator: The assembled Linear operator A.
+--   * ApproximationSpace: The underlying approximation space.
 --
 function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 						cbDiffTensorName, cbRhsName, cbDirichletBndName)
@@ -112,12 +112,8 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 	linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
 	linOp:init()
-	
-	u = approxSpace:create_surface_function()
-	b = approxSpace:create_surface_function()
-	b:assign(linOp:get_rhs())
 
-	return linOp, u, b
+	return linOp, approxSpace
 end
 
 

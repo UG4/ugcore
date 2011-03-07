@@ -50,10 +50,14 @@ dom = CreateAndDistributeDomain(gridName, dim, outFileNamePrefix)
 -- You could of course create your callbacks analogous to tutorial 3 and
 -- pass their names (as strings) to AssembleLaplace.
 -- Make sure that you use the ones with the right dimension!
-linOp, u, b = AssembleLaplace(dom, "Inner", "Boundary", nil, nil, nil, nil)
+linOp, approxSpace = AssembleLaplace(dom, "Inner", "Boundary", nil, nil, nil, nil)
 
--- set the initial values of u to 0
+-- Create surface functions (vectors) for Au=b (where A=linOp) and initialize them
+u = approxSpace:create_surface_function()
+b = approxSpace:create_surface_function()
+
 u:set(0)
+b:assign(linOp:get_rhs())
 
 
 -- We again choose the LU solver and make sure that it is only used in a
