@@ -234,7 +234,6 @@ std::ostream& operator<< (std::ostream& outStream, const ug::FunctionGroup& grp)
 	return outStream;
 }
 
-
 } // end namespace ug
 
 #endif /*__H__LIB_DISCRETIZATION__COMMON__FUNCTION_GROUP__ */

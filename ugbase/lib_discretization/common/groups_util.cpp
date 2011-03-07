@@ -102,4 +102,56 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 }
 
 
+/**
+ * This function create the union of function groups. Container is clear at beginning.
+ *
+ * \param[out]		fctGrp		Union of Functions
+ * \param[in]		vFctGrp		Vector of function group (may contain NULL)
+ * \param[in]		sortFct		flag if group should be sorted after adding
+ */
+bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
+                                 const std::vector<FunctionGroup*>& vFctGrp,
+                                 bool sortFct)
+{
+//	clear group
+	fctGrp.clear();
+
+//	if empty, nothing to do
+	if(vFctGrp.empty()) return true;
+
+//	set underlying subsetHandler
+	size_t grp = 0;
+	for(; grp < vFctGrp.size(); ++grp)
+	{
+		if(vFctGrp[grp] != NULL)
+		{
+			fctGrp.set_function_pattern(*(vFctGrp[grp]->get_function_pattern()));
+			break;
+		}
+	}
+
+//	if no function group given
+	if(grp == vFctGrp.size()) return true;
+
+//	add all Subset groups of the element discs
+	for(size_t i = 0; i < vFctGrp.size(); ++i)
+	{
+	//	add subset group of elem disc
+		if(vFctGrp[i] != NULL)
+			if(!fctGrp.add(*vFctGrp[i]))
+			{
+				UG_LOG("ERROR in 'CreateUnionOfFunctionGroups': Cannot add functions of the "
+					   "Function Group "<< i << ".\n");
+				return false;
+			}
+	}
+
+//	sort iff required
+	if(sortFct) fctGrp.sort();
+
+//	we're done
+	return true;
+}
+
+
 } // end namespace ug

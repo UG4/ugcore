@@ -54,6 +54,17 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
                            const FunctionGroup& grpTo);
 
 
+/**
+ * This function create the union of function groups. Container is clear at beginning.
+ *
+ * \param[out]		fctGrp		Union of Functions
+ * \param[in]		vFctGrp		Vector of function group (may contain NULL)
+ * \param[in]		sortFct		flag if group should be sorted after adding
+ */
+bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
+                                 const std::vector<FunctionGroup*>& vFctGrp,
+                                 bool sortFct = false);
+
 } // end namespace ug
 
 #endif /* __H__LIB_DISCRETIZATION__COMMON__GROUPS_UTIL__ */
