@@ -6,8 +6,9 @@
  */
 
 
-#include "ug.h"
 #include "ug_script/ug_script.h"
+#include "../registry.h"
+#include "../ug_bridge.h"
 
 namespace ug
 {

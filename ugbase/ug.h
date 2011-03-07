@@ -11,18 +11,6 @@
 
 #include "common/profiler/profiler.h"
 
-#include "common/common.h"
-#include "lib_algebra/lib_algebra.h"
-#include "lib_discretization/lib_discretization.h"
-#include "lib_grid/lib_grid.h"
-#include "node_tree/node_tree.h"
-#include "ug_bridge/ug_bridge.h"
-#include "ug_script/ug_script.h"
-
-#ifdef UG_PARALLEL
-	#include "pcl/pcl.h"
-#endif
-
 /**
  * 	\brief the ug namespace
  *
@@ -30,7 +18,6 @@
  */
 namespace ug
 {
-
 
 ////////////////////////////////////////////////////////////////////////
 ///	initializes ug

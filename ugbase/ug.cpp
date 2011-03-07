@@ -4,8 +4,15 @@
  *  Created on: 10.11.2010
  *      Author: marscher
  */
-#include "ug.h"
 
+#include "ug.h"
+#include "common/log.h"
+#include "ug_script/ug_script.h"
+#include "ug_bridge/ug_bridge.h"
+
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
 
 namespace ug {
 
