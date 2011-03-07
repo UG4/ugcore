@@ -315,7 +315,7 @@ template <typename TData, int dim, typename TDataIn>
 class LuaUserFunction
 	: public IUserFunction<TData, dim, TDataIn>
 {
-	private:
+	public:
 	//	type of base class
 		typedef IUserFunction<TData, dim, TDataIn> base_type;
 
