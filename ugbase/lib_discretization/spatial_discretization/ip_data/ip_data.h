@@ -391,6 +391,19 @@ class DependentIPData : public IPData<TData, dim>,
 				}
 		}
 
+	///	sets all derivative values to zero
+		void clear_derivative_values()
+		{
+			for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
+				for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
+					for(size_t fct = 0; fct <  m_vvvDeriv[s][ip].size(); ++fct)
+						for(size_t sh = 0; sh <  m_vvvDeriv[s][ip][fct].size(); ++sh)
+						{
+							m_vvvDeriv[s][ip][fct][sh] = 0.0;
+						}
+
+		}
+
 	protected:
 		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
 		{

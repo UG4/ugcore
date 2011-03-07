@@ -70,6 +70,13 @@ class DataLinker
 			return bRet;
  		}
 
+	///	returns if the derivative of the i'th input is zero
+		bool zero_derivative(size_t i) const
+		{
+			if(m_vpIPData[i] == NULL) return true;
+			return m_vpIPData[i]->zero_derivative();
+		}
+
 	///	set number of needed inputs
 		void set_num_input(size_t num)
 		{
@@ -90,20 +97,17 @@ class DataLinker
 			m_vpDependData[i] = dynamic_cast<DependentIPData<TDataIn, dim>*>(&data);
 
 		//	if data is dependent, forward function group
-			// todo: This is only valid for one input
-			UG_ASSERT(i <= 1, "This is only implemented for one input");
-			if(m_vpDependData[i] != NULL)
-				this->set_function_group(m_vpDependData[i]->get_function_group());
+			if(!update_function_group())
+			{
+				throw(UGFatalError("Cannot update function group."));
+			}
 		}
 
 	///	number of inputs
 		size_t num_input() const {return num_needed_data();}
 
 	///	number of other Data this data depends on
-		virtual size_t num_needed_data() const
-		{
-			return m_vpIPData.size();
-		}
+		virtual size_t num_needed_data() const {return m_vpIPData.size();}
 
 	///	return needed data
 		virtual IIPData* needed_data(size_t i)
@@ -118,7 +122,7 @@ class DataLinker
 		bool update_function_group()
 		{
 		//	collect all function groups
-			std::vector<FunctionGroup*> vFctGrp(num_input(), NULL);
+			std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
 			for(size_t i = 0; i < m_vpDependData.size(); ++i)
 				if(m_vpDependData[i] != NULL)
 					vFctGrp[i] = &(m_vpDependData[i]->get_function_group());
@@ -131,7 +135,42 @@ class DataLinker
 				return false;
 			}
 
+		//	create FunctionIndexMapping for each Disc
+			m_vMap.resize(m_vpDependData.size());
+			for(size_t i = 0; i < m_vpDependData.size(); ++i)
+			{
+				if(m_vpDependData[i] != NULL)
+				if(!CreateFunctionIndexMapping(m_vMap[i],
+				                               (m_vpDependData[i]->get_function_group()),
+				                               m_commonFctGroup))
+				{
+					UG_LOG("ERROR in 'DataLinker::update_function_group':"
+							"Cannot create Function Index Mapping.\n");
+					return false;
+				}
+			}
+
+		//	set common function group as the function group the data depends on
+			this->set_function_group(m_commonFctGroup);
+
+		//	we're done
 			return true;
+		}
+
+	///	returns number of functions the input depends on
+		size_t input_num_fct(size_t i) const
+		{
+			UG_ASSERT(i < m_vpDependData.size(), "Input invalid");
+			if(m_vpDependData[i] == NULL) return 0;
+			return m_vpDependData[i]->num_fct();
+		}
+
+	///	returns the number in the common FctGrp for a fct of an input
+		size_t input_common_fct(size_t i, size_t fct) const
+		{
+			UG_ASSERT(i < m_vMap.size(), "Input Map invalid");
+			UG_ASSERT(fct < m_vMap[i].num_fct(), "Input Map invalid for fct");
+			return m_vMap[i][fct];
 		}
 
 	///	data at ip of input
