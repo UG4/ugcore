@@ -219,27 +219,27 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	ug::vrl::RegisterVRLUserNumber(reg, "testing");
 
-	/************************************/
-
-	reg.add_class_<Vector<double> >("DVector", "testing")
-			.add_constructor()
-			.add_method("set|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set,
-			"Success", "Number")
-			.add_method("size|hide=true", (size_t(Vector<double> ::*)()) & Vector<double> ::size,
-			"Size", "")
-			.add_method("set_random|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set_random,
-			"Success", "Number")
-			.add_method("print|hide=true", &Vector<double> ::p);
-
-	reg.add_function("VecScaleAdd2", &VecScaleAdd2<Vector<double> >, "",
-			"dest, alpha1, vec1, alpha2, vec2", "dest = alpha1*vec1 + alpha2*vec2");
-	reg.add_function("VecScaleAdd3", &VecScaleAdd3<Vector<double> >, "",
-			"dest, alpha1, vec1, alpha2, vec2, alpha3, vec3", "dest = alpha1*vec1 + alpha2*vec2 + alpha3*vec3");
-
-	reg.add_function("CreateVector",
-			&CreateVector<Vector<double> >, "testing", "DVector", "Dimension");
-
-	/************************************/
+//	/************************************/
+//
+//	reg.add_class_<Vector<double> >("DVector", "testing")
+//			.add_constructor()
+//			.add_method("set|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set,
+//			"Success", "Number")
+//			.add_method("size|hide=true", (size_t(Vector<double> ::*)()) & Vector<double> ::size,
+//			"Size", "")
+//			.add_method("set_random|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set_random,
+//			"Success", "Number")
+//			.add_method("print|hide=true", &Vector<double> ::p);
+//
+//	reg.add_function("VecScaleAdd2", &VecScaleAdd2<Vector<double> >, "",
+//			"dest, alpha1, vec1, alpha2, vec2", "dest = alpha1*vec1 + alpha2*vec2");
+//	reg.add_function("VecScaleAdd3", &VecScaleAdd3<Vector<double> >, "",
+//			"dest, alpha1, vec1, alpha2, vec2, alpha3, vec3", "dest = alpha1*vec1 + alpha2*vec2 + alpha3*vec3");
+//
+//	reg.add_function("CreateVector",
+//			&CreateVector<Vector<double> >, "testing", "DVector", "Dimension");
+//
+//	/************************************/
 
 	// Register algebra
 	CPUAlgebraChooser chooser;

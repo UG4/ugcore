@@ -214,7 +214,7 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		reg.add_function("add", (int (*)(int, int))
 								&Add, grp.c_str(), "c", "a#b");
 		reg.add_function("add", (int (*)(int, int, int))
-								&Add, grp.c_str(), "c", "a#b");
+								&Add, grp.c_str(), "d", "a#b#c");
 		reg.add_function("add", (string (*)(const char*, const char*))
 								&Add, grp.c_str(), "c", "a#b");
 
