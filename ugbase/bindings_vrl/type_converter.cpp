@@ -276,8 +276,8 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj) {
 
 jobject pointer2JObject(JNIEnv *env, void* value) {
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Pointer");
-	jmethodID methodID = env->GetMethodID(cls, "<init>", "(J)V");
-	return env->NewObject(cls, methodID, (jlong) value);
+	jmethodID methodID = env->GetMethodID(cls, "<init>", "(JZ)V");
+	return env->NewObject(cls, methodID, (jlong) value, boolC2J(false));
 }
 
 jobject constPointer2JObject(JNIEnv *env, void* value) {
@@ -720,8 +720,10 @@ jobject retVal2NativeParam(JNIEnv *env,
 	} else {
 		type = paramType2Int(params, i);
 
-		env->CallVoidMethod(obj, setClassName, stringC2J(env, params.class_name(i)));
-		env->CallVoidMethod(obj, setClassNames, stringArrayC2J(env, params.class_names(i)));
+		env->CallVoidMethod(obj, setClassName,
+				stringC2J(env, params.class_name(i)));
+		env->CallVoidMethod(obj, setClassNames,
+				stringArrayC2J(env, params.class_names(i)));
 	}
 
 	env->CallVoidMethod(obj, setType, type);
@@ -764,7 +766,8 @@ jobject method2NativeMethod(JNIEnv *env,
 	env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
 	env->CallVoidMethod(obj, setHelp, stringC2J(env, method->help().c_str()));
 	env->CallVoidMethod(obj, setToolTip, stringC2J(env, name.c_str()));
-	env->CallVoidMethod(obj, setOptions, stringC2J(env, method->options().c_str()));
+	env->CallVoidMethod(obj, setOptions,
+			stringC2J(env, method->options().c_str()));
 	env->CallVoidMethod(obj, setRetValue,
 			retVal2NativeParam(env, *method));
 
@@ -834,7 +837,8 @@ jobjectArray methods2NativeGroups(JNIEnv *env,
 	return result;
 }
 
-jobject function2NativeFunction(JNIEnv *env, const ug::bridge::ExportedFunction& func) {
+jobject function2NativeFunction(JNIEnv *env,
+		const ug::bridge::ExportedFunction& func) {
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeFunctionInfo");
 
 	// create instance
@@ -865,10 +869,12 @@ jobject function2NativeFunction(JNIEnv *env, const ug::bridge::ExportedFunction&
 	std::string name = func.name(); // TODO pre-rpocessing necessary
 	env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
 	env->CallVoidMethod(obj, setConst, boolC2J(false));
-	env->CallVoidMethod(obj, setCategory, stringC2J(env, func.group().c_str()));
+	env->CallVoidMethod(obj, setCategory,
+			stringC2J(env, func.group().c_str()));
 	env->CallVoidMethod(obj, setHelp, stringC2J(env, func.help().c_str()));
 	env->CallVoidMethod(obj, setToolTip, stringC2J(env, name.c_str()));
-	env->CallVoidMethod(obj, setOptions, stringC2J(env, func.options().c_str()));
+	env->CallVoidMethod(obj, setOptions,
+			stringC2J(env, func.options().c_str()));
 	env->CallVoidMethod(obj, setRetValue,
 			retVal2NativeParam(env, func));
 
@@ -924,7 +930,8 @@ jobjectArray functions2NativeGroups(JNIEnv *env, ug::bridge::Registry* reg) {
 	return result;
 }
 
-jobjectArray classes2NativeClasses(JNIEnv *env, const ug::bridge::Registry* reg) {
+jobjectArray classes2NativeClasses(JNIEnv *env,
+		const ug::bridge::Registry* reg) {
 
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeClassInfo");
 
@@ -953,16 +960,22 @@ jobjectArray classes2NativeClasses(JNIEnv *env, const ug::bridge::Registry* reg)
 		jmethodID setMethods = env->GetMethodID(cls,
 				"setMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodGroupInfo;)V");
 		jmethodID setConstMethods = env->GetMethodID(cls,
-				"setConstMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodGroupInfo;)V");
+				"setConstMethods",
+				"([Ledu/gcsc/vrl/ug4/NativeMethodGroupInfo;)V");
 
 		//		using namespace ug::bridge;
 		std::string name = eCls.name(); // TODO pre-rpocessing necessary
 		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
-		env->CallVoidMethod(obj, setCategory, stringC2J(env, eCls.group().c_str()));
-		env->CallVoidMethod(obj, setClassNames, stringArrayC2J(env, eCls.class_names()));
-		env->CallVoidMethod(obj, setInstantiable, boolC2J(eCls.is_instantiable()));
-		env->CallVoidMethod(obj, setMethods, methods2NativeGroups(env, eCls, false));
-		env->CallVoidMethod(obj, setConstMethods, methods2NativeGroups(env, eCls, true));
+		env->CallVoidMethod(obj, setCategory,
+				stringC2J(env, eCls.group().c_str()));
+		env->CallVoidMethod(obj, setClassNames,
+				stringArrayC2J(env, eCls.class_names()));
+		env->CallVoidMethod(obj, setInstantiable,
+				boolC2J(eCls.is_instantiable()));
+		env->CallVoidMethod(obj, setMethods,
+				methods2NativeGroups(env, eCls, false));
+		env->CallVoidMethod(obj, setConstMethods,
+				methods2NativeGroups(env, eCls, true));
 
 		// set array element
 		env->SetObjectArrayElement(result, i, obj);
