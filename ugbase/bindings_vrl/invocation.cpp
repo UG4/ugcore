@@ -34,15 +34,15 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 		std::string methodName,
 		jobjectArray params) {
 
-//	// create signature
-//	std::string signature = createMethodSignature(
-//			env, clazz->name(), methodName.c_str(), readOnly, params);
-//
-//	// search in map first and return result if entry exists
-//	if (methods.find(signature.c_str()) != methods.end()) {
-//		UG_LOG("FOUND:" << signature << std::endl);
-//		return methods[signature.c_str()];
-//	}
+	//	// create signature
+	//	std::string signature = createMethodSignature(
+	//			env, clazz->name(), methodName.c_str(), readOnly, params);
+	//
+	//	// search in map first and return result if entry exists
+	//	if (methods.find(signature.c_str()) != methods.end()) {
+	//		UG_LOG("FOUND:" << signature << std::endl);
+	//		return methods[signature.c_str()];
+	//	}
 
 	// we allow invocation of methods defined in parent classes
 	std::vector<const ug::bridge::IExportedClass*> classes =
@@ -64,27 +64,38 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 		for (unsigned int j = 0; j < numMethods; j++) {
 			const ug::bridge::ExportedMethod* method = NULL;
 
-			// check whether to search const or non-const methods
+			unsigned int numOverloads = 1;
+
 			if (readOnly) {
-				method = &cls->get_const_method(j);
+				numOverloads = cls->num_const_overloads(j);
 			} else {
-				method = &cls->get_method(j);
+				numOverloads = cls->num_overloads(j);
 			}
 
-			// if the method name and the parameter types are equal
-			// we found the correct method
-			if (strcmp(method->name().c_str(),
-					methodName.c_str()) == 0 &&
-					compareParamTypes(
-					env, params, method->params_in())) {
+			for (unsigned int k = 0; k < numOverloads; k++) {
 
-//				// improve lookup time: add method signature to map
-//				methods[signature.c_str()] = method;
+				// check whether to search const or non-const methods
+				if (readOnly) {
+					method = &cls->get_const_overload(i, j);
+				} else {
+					method = &cls->get_overload(i, j);
+				}
 
-				return method;
-			}
-		}
-	}
+				// if the method name and the parameter types are equal
+				// we found the correct method
+				if (strcmp(method->name().c_str(),
+						methodName.c_str()) == 0 &&
+						compareParamTypes(
+						env, params, method->params_in())) {
+
+					//	// improve lookup time: add method signature to map
+					//	methods[signature.c_str()] = method;
+
+					return method;
+				}
+			} // for k
+		} // for j
+	} // for i
 
 	return NULL;
 }
@@ -96,15 +107,15 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 		jobjectArray params) {
 
 
-//	// create signature
-//	std::string signature = createMethodSignature(
-//			env, "", "", false, params);
-//
-//	// search in map first and return result if entry exists
-//	if (methods.find(signature.c_str()) != methods.end()) {
-//		UG_LOG("FOUND:" << signature << std::endl);
-//		return functions[signature.c_str()];
-//	}
+	//	// create signature
+	//	std::string signature = createMethodSignature(
+	//			env, "", "", false, params);
+	//
+	//	// search in map first and return result if entry exists
+	//	if (methods.find(signature.c_str()) != methods.end()) {
+	//		UG_LOG("FOUND:" << signature << std::endl);
+	//		return functions[signature.c_str()];
+	//	}
 
 	unsigned int numFunctions = 0;
 
@@ -113,18 +124,24 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 	for (unsigned int i = 0; i < numFunctions; i++) {
 		const ug::bridge::ExportedFunction* func = NULL;
 
-		func = &reg->get_function(i);
+		unsigned int numOverloads = 1;
 
-		// if the function name and the parameter types are equal
-		// we found the correct function
-		if (strcmp(func->name().c_str(),
-				functionName.c_str()) == 0 &&
-				compareParamTypes(
-				env, params, func->params_in())) {
-			
-			// improve lookup time
-//			functions[signature.c_str()] = func;
-			return func;
+		numOverloads = reg->num_overloads(i);
+
+		for (unsigned int k = 0; k < numOverloads; k++) {
+			func = &reg->get_overload(i, k);
+
+			// if the function name and the parameter types are equal
+			// we found the correct function
+			if (strcmp(func->name().c_str(),
+					functionName.c_str()) == 0 &&
+					compareParamTypes(
+					env, params, func->params_in())) {
+
+				// improve lookup time
+				//			functions[signature.c_str()] = func;
+				return func;
+			}
 		}
 	}
 

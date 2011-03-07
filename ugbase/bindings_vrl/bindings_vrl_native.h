@@ -71,14 +71,6 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getSvnRevision
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
   (JNIEnv *, jobject);
 
-/*
- * Class:     edu_gcsc_vrl_ug4_UG4
- * Method:    setMaxQueueSize
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_setMaxQueueSize
-  (JNIEnv *, jobject, jint);
-
 #ifdef __cplusplus
 }
 #endif

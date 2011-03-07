@@ -45,7 +45,6 @@ JavaVM* getJavaVM() {
 }// end vrl::
 }// end ug::
 
-
 class TestClass {
 public:
 
@@ -287,6 +286,12 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 			method = ug::vrl::invocation::getMethodBySignature(
 					env, ug::vrl::vrlRegistry,
 					clazz, ug::vrl::boolJ2C(true), name, params);
+		}
+
+		if (method == NULL) {
+			UG_LOG("Method not found: " << name <<
+					"()" << " : " << std::endl << VRL_CRITICAL_ERROR);
+			return NULL;
 		}
 
 		ug::vrl::jobjectArray2ParamStack(

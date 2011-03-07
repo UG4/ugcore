@@ -406,6 +406,13 @@ uint paramClass2ParamType(JNIEnv *env, jobject obj) {
 bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		ug::bridge::ParameterStack const& paramStack) {
 
+	// compare array lengths
+	jsize len = env->GetArrayLength(params);
+
+	if (len!=paramStack.size()) {
+		return false;
+	}
+
 	// iterate over all param stack elements and compare their type with
 	// the corresponding elements in the specified Java array
 	for (unsigned int i = 0; i < (unsigned int) paramStack.size(); i++) {
@@ -787,30 +794,40 @@ jobjectArray methods2NativeGroups(JNIEnv *env,
 
 	for (unsigned int i = 0; i < numMethodGroups; i++) {
 
+		if (constMethods) {
+			numberOfMethodsInGroup = eCls.num_const_overloads(i);
+		} else {
+			numberOfMethodsInGroup = eCls.num_overloads(i);
+		}
+
 		jobjectArray methodArray =
 				env->NewObjectArray(numberOfMethodsInGroup, cls, 0);
 
-		const ug::bridge::ExportedMethod* method;
-
-		if (constMethods) {
-			method = &eCls.get_const_method(i);
-		} else {
-			method = &eCls.get_method(i);
-		}
-
-		//--------- METHOD GROUP ---------
-
 		jmethodID methodID = env->GetMethodID(groupCls, "<init>", "()V");
 		jobject groupObj = env->NewObject(groupCls, methodID);
-
 		jmethodID setOverloads = env->GetMethodID(groupCls,
 				"setOverloads", "([Ledu/gcsc/vrl/ug4/NativeMethodInfo;)V");
 
-		// set array element, we currently have only one method per group
-		env->SetObjectArrayElement(methodArray, 0, method2NativeMethod(env, method));
+		for (unsigned int j = 0; j < numberOfMethodsInGroup; j++) {
+
+			//--------- METHOD GROUP ---------
+
+			const ug::bridge::ExportedMethod* method;
+
+			if (constMethods) {
+				method = &eCls.get_const_overload(i,j);
+			} else {
+				method = &eCls.get_overload(i,j);
+			}
+
+			// set array element, we currently have only one method per group
+			env->SetObjectArrayElement(methodArray, j,
+					method2NativeMethod(env, method));
+
+		}
 
 		env->CallVoidMethod(groupObj, setOverloads, methodArray);
-
+		
 		env->SetObjectArrayElement(result, i, groupObj);
 	}
 

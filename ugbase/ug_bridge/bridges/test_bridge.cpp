@@ -212,18 +212,18 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 
 	//	registering add
 		reg.add_function("add", (int (*)(int, int))
-								&Add, grp.c_str(), "c", "a,b");
+								&Add, grp.c_str(), "c", "a#b");
 		reg.add_function("add", (int (*)(int, int, int))
-								&Add, grp.c_str(), "c", "a,b");
+								&Add, grp.c_str(), "c", "a#b");
 		reg.add_function("add", (string (*)(const char*, const char*))
-								&Add, grp.c_str(), "c", "a,b");
+								&Add, grp.c_str(), "c", "a#b");
 
 	//	register class "Test"
 		reg.add_class_<Test>("Test", grp.c_str())
 			.add_constructor()
-			.add_method("add", (int (Test::*)(int, int))&Test::add, "c", "a,b")
-			.add_method("add", (int (Test::*)(int, int, int))&Test::add, "c", "a,b,c")
-			.add_method("add", (string (Test::*)(const char*, const char*))&Test::add, "d", "a,b,c")
+			.add_method("add", (int (Test::*)(int, int))&Test::add, "c", "a#b")
+			.add_method("add", (int (Test::*)(int, int, int))&Test::add, "d", "a#b#c")
+			.add_method("add", (string (Test::*)(const char*, const char*))&Test::add, "d", "a#b#c")
 			.add_method("print_name", &Test::print_name)
 			.add_method("print", (int(Test::*)()) &Test::print)
 			.add_method("print", (int(Test::*)() const) &Test::print);
