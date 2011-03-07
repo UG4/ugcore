@@ -220,7 +220,7 @@ class DensityDrivenFlowElemDisc
 		}
 
 	///	set density
-		void set_density(ScalarLinker<number, dim>& data)
+		void set_density(IPData<number,dim>& data)
 		{
 		//	remove old data
 			IIPData* oldData = m_imDensityScv.get_data();
@@ -233,10 +233,6 @@ class DensityDrivenFlowElemDisc
 		//	connect to import
 			m_imDensityScv.set_data(data);
 			m_imDensityScvf.set_data(data);
-
-		//	if data depends on other, concentration is used here
-			if(data.num_needed_data() >= 1)
-				data.set_input(m_exBrine);
 
 		//	darcy velocity depends on density
 			m_exDarcyVel.add_needed_data(data);

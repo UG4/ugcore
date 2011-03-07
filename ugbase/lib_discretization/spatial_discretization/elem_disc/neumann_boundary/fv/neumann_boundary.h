@@ -53,7 +53,7 @@ class FVNeumannBoundaryElemDisc
 
 	protected:
 	///	type of bnd number
-		typedef typename IBoundaryNumberProvider<dim>::functor_type BNDNumberFunctor;
+		typedef typename IBoundaryData<number, dim>::functor_type BNDNumberFunctor;
 
 	public:
 	///	default constructor
@@ -65,10 +65,10 @@ class FVNeumannBoundaryElemDisc
 			}
 
 	///	add a boundary value
-		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, const char* function, const char* subsets);
+		bool add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const char* subsets);
 
 	///	add a boundary value
-		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, size_t fct, SubsetGroup bndSubsetGroup);
+		bool add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bndSubsetGroup);
 
 	private:
 	//	Functor, function grouping

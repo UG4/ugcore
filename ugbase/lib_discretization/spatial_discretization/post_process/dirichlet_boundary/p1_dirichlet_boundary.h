@@ -48,7 +48,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
 
 	public:
-		typedef typename IBoundaryNumberProvider<dim>::functor_type BNDNumberFunctor;
+		typedef typename IBoundaryData<number, dim>::functor_type BNDNumberFunctor;
 
 		P1DirichletBoundary() :
 			m_pDomain(NULL), m_pPattern(NULL) {	m_mBoundarySegment.clear();}
@@ -60,7 +60,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 					delete m_vConstBoundaryNumber[i];
 		}
 
-		bool add_boundary_value(typename IBoundaryNumberProvider<dim>::functor_type func,
+		bool add_boundary_value(typename IBoundaryData<number, dim>::functor_type func,
 								const char* function, const char* subsets)
 		{
 		//	check that function pattern exists
@@ -96,14 +96,14 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 			return add_boundary_value(func, functionGroup.unique_id(0), subsetGroup);
 		}
 
-		bool add_boundary_value(IBoundaryNumberProvider<dim>& user,
+		bool add_boundary_value(IBoundaryData<number, dim>& user,
 								const char* function, const char* subsets)
 		{
 		//	forward request
 			return add_boundary_value(user.get_functor(), function, subsets);
 		}
 
-		bool add_boundary_value(typename IBoundaryNumberProvider<dim>::functor_type func,
+		bool add_boundary_value(typename IBoundaryData<number, dim>::functor_type func,
 								size_t fct, SubsetGroup subsetGroup)
 		{
 		//	check that function pattern exists
@@ -157,7 +157,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 			return true;
 		}
 
-		bool add_boundary_value(IBoundaryNumberProvider<dim>& user,
+		bool add_boundary_value(IBoundaryData<number, dim>& user,
 								size_t fct, SubsetGroup subsetGroup)
 		{
 		//	forward request

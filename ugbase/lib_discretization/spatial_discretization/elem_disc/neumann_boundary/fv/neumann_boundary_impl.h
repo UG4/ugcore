@@ -16,7 +16,7 @@ namespace ug{
 template<typename TDomain, typename TAlgebra>
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
-add_boundary_value(IBoundaryNumberProvider<dim>& user, const char* function, const char* subsets)
+add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const char* subsets)
 {
 //	check that function pattern exists
 	if(this->m_pPattern == NULL)
@@ -57,7 +57,7 @@ add_boundary_value(IBoundaryNumberProvider<dim>& user, const char* function, con
 template<typename TDomain, typename TAlgebra>
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
-add_boundary_value(IBoundaryNumberProvider<dim>& user, size_t fct, SubsetGroup bndSubsetGroup)
+add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bndSubsetGroup)
 {
 //	check that function pattern exists
 	if(this->m_pPattern == NULL)

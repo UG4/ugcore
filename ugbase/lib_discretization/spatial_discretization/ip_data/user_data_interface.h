@@ -13,6 +13,7 @@
 #include <boost/function.hpp>
 
 #include "ip_data.h"
+#include "data_linker.h"
 
 namespace ug {
 
@@ -55,8 +56,9 @@ class IUserData
  * \tparam		TData	provided data type
  * \tparam		TPos	Position type of world position
  */
-template<typename TData>
+template<typename TData, int dim, typename TDataIn>
 class IUserFunction
+	: public DataLinker<TData, dim, TDataIn>
 {
 	public:
 	///	virtual operator
@@ -74,12 +76,12 @@ class IUserFunction
  *
  * \tparam 	dim		World dimension
  */
-template <int dim>
-class IBoundaryNumberProvider
+template <typename TData, int dim>
+class IBoundaryData
 {
 	public:
 	///	Functor Type
-		typedef boost::function<bool (number& value,
+		typedef boost::function<bool (TData& value,
 		                              const MathVector<dim>& x,
 		                              number& time)>
 		functor_type;
@@ -88,7 +90,7 @@ class IBoundaryNumberProvider
 		virtual functor_type get_functor() const = 0;
 
 	///	virtual destructor
-		virtual ~IBoundaryNumberProvider(){}
+		virtual ~IBoundaryData(){}
 };
 
 /// @}

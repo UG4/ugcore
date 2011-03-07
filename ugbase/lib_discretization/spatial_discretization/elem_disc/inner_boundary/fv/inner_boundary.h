@@ -63,7 +63,7 @@ class FVInnerBoundaryElemDisc
 		typedef typename base_type::local_index_type local_index_type;
 
 	protected:
-		typedef typename IBoundaryNumberProvider<dim>::functor_type BNDNumberFunctor;
+		typedef typename IBoundaryData<number, dim>::functor_type BNDNumberFunctor;
 
 	public:
 		FVInnerBoundaryElemDisc()

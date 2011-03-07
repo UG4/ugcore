@@ -222,11 +222,11 @@ class ConstUserMatrix
 
 /// constant dirichlet boundary scalar user data
 template <int dim>
-class ConstBoundaryNumber : public IBoundaryNumberProvider<dim>
+class ConstBoundaryNumber : public IBoundaryData<number, dim>
 {
 	public:
 	///	Functor Type
-		typedef typename IBoundaryNumberProvider<dim>::functor_type functor_type;
+		typedef typename IBoundaryData<number, dim>::functor_type functor_type;
 
 	///	return functor
 		virtual functor_type get_functor() const {return boost::ref(*this);}

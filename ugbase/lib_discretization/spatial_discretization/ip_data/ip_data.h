@@ -307,10 +307,13 @@ template <typename TData, int dim>
 class DependentIPData : public IPData<TData, dim>,
 						virtual public IDependentIPData
 {
-	public:
-		using IPData<TData, dim>::num_series;
-		using IPData<TData, dim>::num_ip;
-		using IPData<TData, dim>::local_ips;
+	///	Base class type
+		typedef IPData<TData, dim> base_type;
+
+	//	explicitly forward methods of IIPData
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::local_ips;
 
 	public:
 	/// number of shapes for local function
