@@ -192,6 +192,7 @@ approxSpace = util.CreateApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:add_fct("p", "Lagrange", 1)
 approxSpace:init()
+approxSpace:print_statistic()
 
 -------------------------------------------
 --  Setup User Functions
@@ -220,8 +221,28 @@ molDiffusionValue = util.CreateConstDiagUserMatrix( 3.565e-6, dim)
 permeabilityValue = util.CreateConstDiagUserMatrix( 4.845e-13, dim)
 
 -- Density
-if dim == 2 then densityValue = NumberLinker2d();
-else densityValue = NumberLinker3d(); end
+function DensityFct(c)
+	return 1000 + 200 * c
+end
+
+function DDensityFct_c(c)
+	return 200
+end
+
+
+if dim == 2 then 
+--	densityValue = ElderDensityLinker2d();
+	densityValue = LuaUserFunctionNumber2d();
+	densityValue:set_lua_value_callback("DensityFct", 1);
+	densityValue:set_lua_deriv_callback(0, "DDensityFct_c");
+else 
+--	densityValue = ElderDensityLinker3d();
+	densityValue = LuaUserFunctionNumber3d();
+	densityValue:set_lua_value_callback("DensityFct", 1);
+	densityValue:set_lua_deriv_callback(0, "DDensityFct_c");
+end
+
+
 
 -- Viscosity
 viscosityValue = util.CreateConstUserNumber(1e-3, dim);
@@ -249,6 +270,8 @@ if elemDisc:set_upwind("no") == false then exit() end
 elemDisc:set_consistent_gravity(true)
 elemDisc:set_boussinesq_transport(true)
 elemDisc:set_boussinesq_flow(true)
+
+densityValue:set_input(0, elemDisc:get_brine())
 
 print("Setting Porosity.")
 elemDisc:set_porosity(porosityValue)

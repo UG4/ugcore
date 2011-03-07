@@ -158,6 +158,7 @@ approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:add_fct("p", "Lagrange", 1)
 approxSpace:add_fct("T", "Lagrange", 1)
 approxSpace:init()
+approxSpace:print_statistic()
 
 -------------------------------------------
 --  Setup User Functions
@@ -202,7 +203,7 @@ molDiffusionValue = util.CreateConstDiagUserMatrix( 3.565e-6, dim)
 permeabilityValue = util.CreateConstDiagUserMatrix( 4.845e-13, dim)
 
 -- Density
-densityValue = NumberLinker2d();
+densityValue = ElderDensityLinker2d();
 
 -- Viscosity
 viscosityValue = util.CreateConstUserNumber(1e-3, dim);
@@ -228,6 +229,8 @@ if elemDisc:set_upwind("part") == false then exit() end
 elemDisc:set_consistent_gravity(true)
 elemDisc:set_boussinesq_transport(true)
 elemDisc:set_boussinesq_flow(true)
+
+densityValue:set_input(0, elemDisc:get_brine())
 
 elemDisc:set_porosity(porosityValue)
 elemDisc:set_gravity(gravityValue)
