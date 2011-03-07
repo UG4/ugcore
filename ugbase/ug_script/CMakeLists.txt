@@ -80,8 +80,7 @@ set(srcUGScript		ug_script.cpp
 if(NOT NO_ALGEBRA)
 	# add the source files
 	set(srcUGScript ${srcUGScript}
-					user_data/user_data.cpp
-					user_data/boundary_number.cpp)
+					user_data/user_data.cpp)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)

@@ -2,10 +2,13 @@
 // s.b.reiter@googlemail.com
 // y10 m01 d20
 
+//	extern libraries
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <stack>
+
+//	ug libraries
 #include "ug.h"
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
@@ -13,6 +16,7 @@
 #include "ug_bridge/class_helper.h"
 #include "info_commands.h"
 #include "user_data/user_data.h"
+
 using namespace std;
 
 namespace ug
@@ -137,9 +141,6 @@ lua_State* GetDefaultLuaState()
 
 		//	Register user functions
 			RegisterLuaUserData(scriptRegistry, "/ug4");
-
-		//	Register Boundary functions
-			RegisterLuaBoundaryNumber(scriptRegistry, "/ug4");
 
 			ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
 		#endif
