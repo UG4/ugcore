@@ -14,7 +14,7 @@ Below you'll find the scripts sources. They are the same as in
 	- scripts/tutorials/tut04_1_domain_util.lua
 	- scripts/tutorials/tut04_2_disc_laplace.lua
 
-\includelineno tut04_modular_programming.lua
-\includelineno tut04_1_domain_util.lua
-\includelineno tut04_2_disc_laplace.lua
+\include tut04_modular_programming.lua
+\include tut04_1_domain_util.lua
+\include tut04_2_disc_laplace.lua
 */

@@ -9,5 +9,5 @@ commandline arguments can be accessed.
 Below you'll find the scripts sources. They are the same as in
 scripts/tutorials/tut02_loading_a_domain.lua.
 
-\includelineno tut02_loading_a_domain.lua
+\include tut02_loading_a_domain.lua
 */

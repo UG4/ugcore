@@ -122,7 +122,7 @@ if numPreRefs >= numRefs then
 end
 
 -- Create a refiner instance. This is a factory method
---	which automatically creates a parallel refiner if required.
+-- which automatically creates a parallel refiner if required.
 refiner = GlobalDomainRefiner(dom)
 
 -- Performing pre-refines

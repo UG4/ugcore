@@ -11,5 +11,5 @@ opened with ParaView or similar software.
 Below you'll find the scripts sources. They are the same as in
 scripts/tutorials/tut03_laplace_with_exact_solver.lua.
 
-\includelineno tut03_laplace_with_exact_solver.lua
+\include tut03_laplace_with_exact_solver.lua
 */

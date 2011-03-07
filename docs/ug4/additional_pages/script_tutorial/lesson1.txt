@@ -8,5 +8,5 @@ what else can be achieved in lua.
 Below you'll find the scripts sources. They are the same as in
 scripts/tutorials/tut01_lua_basics.lua.
 
-\includelineno tut01_lua_basics.lua
+\include tut01_lua_basics.lua
 */
