@@ -252,7 +252,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_pattern|hide=true", &T::set_pattern)
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
-			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value,
+			.add_method("add_boundary_value", (bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*))&T::add_boundary_value,
 						"Success", "Value#Function#Subsets")
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
 						"Success", "Constant Value#Function#Subsets");
@@ -275,7 +275,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value);
+			.add_method("add_boundary_value", (bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*))&T::add_boundary_value);
 	}
 
 //	Inner Boundary
@@ -346,7 +346,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 						"", "Density")
 			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
 						"", "Consistent Gravity")
-			.add_method("get_darcy_velocity", &T2::get_darcy_velocity);
+			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
+			.add_method("get_brine", &T2::get_brine);
 	}
 
 //	ProlongationOperator
@@ -533,12 +534,12 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg
 		std::string grp = parentGroup; grp.append("/Discretization");
 
 	//	Domain dependend part 1D
-		{
+/*		{
 			typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
-
+*/
 	//	Domain dependend part 2D
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
@@ -547,12 +548,12 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg
 		}
 
 	//	Domain dependend part 3D
-		{
+/*		{
 			typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
-
+*/
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

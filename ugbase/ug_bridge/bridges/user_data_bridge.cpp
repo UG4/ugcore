@@ -45,6 +45,66 @@ class PrintUserNumber2d
 		NumberFunctor m_Number;
 };
 
+
+
+/// Hard Coded Linker for d3f
+template <int dim>
+class ElderDensityLinker
+	: public DataLinker<number, dim, number>
+{
+	///	Base class type
+		typedef DataLinker<number, dim, number> base_type;
+
+	//	explicitly forward methods of IIPData
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::time;
+
+	//	explicitly forward methods of IPData
+		using base_type::ip;
+		using base_type::value;
+
+	//	explicitly forward methods of IDependentIPData
+		using base_type::num_fct;
+
+	//	explicitly forward methods of DependentIPData
+		using base_type::num_sh;
+		using base_type::deriv;
+
+	//	explicitly forward methods of Data Linker
+		using base_type::set_num_input;
+		using base_type::input_value;
+		using base_type::input_deriv;
+
+	public:
+		ElderDensityLinker()
+		{
+		//	this linker needs exactly one input
+			set_num_input(1);
+		}
+
+		virtual void compute(bool compDeriv)
+		{
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t ip = 0; ip < num_ip(s); ++ip)
+				{
+					value(s, ip) = 1e3 + 0.2e3 * input_value(0, s, ip);
+				}
+
+			if(!compDeriv || this->zero_derivative()) return;
+
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t ip = 0; ip < num_ip(s); ++ip)
+					for(size_t fct = 0; fct < num_fct(); ++fct)
+						for(size_t dof = 0; dof < num_sh(s, fct); ++dof)
+						{
+							deriv(s, ip, fct, dof) = 0.2e3 * input_deriv(0, s, ip, fct, dof);
+						}
+
+		}
+};
+
+
 template <int dim>
 bool RegisterUserData(Registry& reg, const char* parentGroup)
 {
@@ -89,7 +149,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //	Base class
 	{
 		std::stringstream ss; ss << "IBoundaryNumber" << dim << "d";
-		reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
+		reg.add_class_<IBoundaryData<number, dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	ConstUserNumber
@@ -129,17 +189,43 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef ConstBoundaryNumber<dim> T;
 		std::stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
-		reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IBoundaryData<number, dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set", &T::set)
 			.add_method("print", &T::print);
 	}
 
-//	ScalarLinker
+//	DependentIPData
 	{
-		typedef ScalarLinker<number, dim> T;
-		std::stringstream ss; ss << "NumberLinker" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+		typedef DependentIPData<number, dim> T;
+		typedef IPData<number, dim> TBase;
+		std::stringstream ss; ss << "NumberDependentIPData" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
+	}
+
+//	DataLinker
+	{
+		typedef DataLinker<number, dim, number> T;
+		typedef DependentIPData<number, dim> TBase;
+		std::stringstream ss; ss << "NumberNumberLinker" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_method("set_input", &T::set_input);
+	}
+
+//	IUserFunction
+	{
+		typedef IUserFunction<number, dim, number> T;
+		typedef DataLinker<number, dim, number> TBase;
+		std::stringstream ss; ss << "IUserFunctionNumber" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
+	}
+
+//	ElderDensityLinker
+	{
+		typedef ElderDensityLinker<dim> T;
+		typedef DataLinker<number, dim, number> TBase;
+		std::stringstream ss; ss << "ElderDensityLinker" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor();
 	}
 
