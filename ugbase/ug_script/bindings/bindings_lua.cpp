@@ -198,6 +198,7 @@ string GetTypeMismatchString(const ParameterStack& par, lua_State* L, int offset
 ///	copies parameter values from the lua-stack to a parameter-list.
 /**	\returns	The index of the first bad parameter starting from 1.
  *				Returns 0 if everything went right.
+ *				Returns -1 if the number of parameters did not match.
  */
 static int LuaStackToParams(ParameterStack& params,
 							const ParameterStack& paramsTemplate,
@@ -206,6 +207,12 @@ static int LuaStackToParams(ParameterStack& params,
 {
 //	I disabled all output, since we might have overloads (sreiter).
 
+//	make sure that we have the right amount of parameters
+//	if the sizes do not match, return -1.
+	if((lua_gettop(L)) - offsetToFirstParam != (int)paramsTemplate.size())
+		return -1;
+
+//	initialize temporary variables
 	int badParam = 0;
 	bool printDefaultParamErrorMsg = true;
 	
@@ -577,7 +584,7 @@ static int LuaProxyFunction(lua_State* L)
 	const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
 											lua_touserdata(L, lua_upvalueindex(1));
 //	we have to try each overload!
-	int badParam = -1;
+	int badParam = -2;
 	for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
 		const ExportedFunction* func = funcGrp->get_overload(i);
 
@@ -587,7 +594,7 @@ static int LuaProxyFunction(lua_State* L)
 		badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
 
 	//	check whether the parameter was correct
-		if(badParam > 0){
+		if(badParam != 0){
 		//	parameters didn't match. Try the next overload.
 			continue;
 		}
@@ -618,7 +625,7 @@ static int LuaProxyFunction(lua_State* L)
 		return ParamsToLuaStack(paramsOut, L);
 	}
 	
-	if(badParam > 0){
+	if(badParam != 0){
 		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
 		if(funcGrp->num_overloads() > 1) { UG_LOG("No matching overload found! Candidates are:\n"); }
 		for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
@@ -648,12 +655,13 @@ static int LuaProxyConstructor(lua_State* L)
 //	member methods of classes are handled here
 static int LuaProxyMethod(lua_State* L)
 {
-	const ExportedMethod* m = (const ExportedMethod*)lua_touserdata(L, lua_upvalueindex(1));
+	const ExportedMethodGroup* methodGrp = (const ExportedMethodGroup*)
+											lua_touserdata(L, lua_upvalueindex(1));
 
 	if(!lua_isuserdata(L, 1))
 	{
 		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR in call to LuaProxyMethod: No object specified in call to ");
-		PrintLuaClassMethodInfo(L, 1, *m);
+		PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(0));
 		UG_LOG(".\n");
 		return 0;
 	}
@@ -663,52 +671,73 @@ static int LuaProxyMethod(lua_State* L)
 	ParameterStack paramsIn;;
 	ParameterStack paramsOut;
 	
-	int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+	//int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+
+//	we have to try each overload!
+	int badParam = -2;
+	for(size_t i = 0; i < methodGrp->num_overloads(); ++i){
+		const ExportedMethod* m = methodGrp->get_overload(i);
+
+		ParameterStack paramsIn;
+		ParameterStack paramsOut;
+
+		badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+
+	//	check whether the parameter was correct
+		if(badParam != 0){
+		//	parameters didn't match. Try the next overload.
+			continue;
+		}
+
+		try{
+			if(self->is_raw_ptr())
+				m->execute(((RawUserDataWrapper*)self)->obj, paramsIn, paramsOut);
+			else if(self->is_smart_ptr()){
+				if(self->is_const())
+				//	This cast is a little extreme. However, since we registered the const member methods
+				//	before this should be ok.
+					m->execute((void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+				else
+					m->execute(((SmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+			}
+		}
+		catch(UGError err)
+		{
+			UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
+			PrintLuaClassMethodInfo(L, 1, *m);
+			UG_LOG(" with code " << err.get_code() << ":\n");
+			UG_LOG("Error message: " << err.get_msg() << endl);
+			if(err.terminate())
+			{
+				UG_LOG("terminating..." << endl);
+				exit(err.get_code());
+			}
+		}
+		catch(...)
+		{
+			UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ");
+			PrintLuaClassMethodInfo(L, 1, *m);
+			UG_LOG(". continuing execution...\n");
+		}
+
+	//	if we reach this point, then the method was successfully executed.
+		return ParamsToLuaStack(paramsOut, L);
+	}
 	
 //	check whether the parameter was correct
-	if(badParam > 0)
-	{
 
+	if(badParam != 0){
 		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to ");
-		PrintLuaClassMethodInfo(L, 1, *m);
-		UG_LOG(": " << GetTypeMismatchString(m->params_in(), L, 1, badParam) << "\n");
+		UG_LOG(methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
+		UG_LOG("No matching overload found! Candidates are:\n");
+		for(size_t i = 0; i < methodGrp->num_overloads(); ++i){
+			PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(i));
+			UG_LOG("\n");
+		}
 		UG_LOG("Call stack:\n"); lua_stacktrace(L);
-		return 0;
 	}
 
-	try{
-		if(self->is_raw_ptr())
-			m->execute(((RawUserDataWrapper*)self)->obj, paramsIn, paramsOut);
-		else if(self->is_smart_ptr()){
-			if(self->is_const())
-			//	This cast is a little extreme. However, since we registered the const member methods
-			//	before this should be ok.
-				m->execute((void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
-			else
-				m->execute(((SmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
-		}
-	}
-	catch(UGError err)
-	{
-		UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
-		PrintLuaClassMethodInfo(L, 1, *m);
-		UG_LOG(" with code " << err.get_code() << ":\n");
-		UG_LOG("Error message: " << err.get_msg() << endl);
-		if(err.terminate())
-		{
-			UG_LOG("terminating..." << endl);
-			exit(err.get_code());
-		}
-	}
-	catch(...)
-	{
-		UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ");
-		PrintLuaClassMethodInfo(L, 1, *m);
-		UG_LOG(". continuing execution...\n");
-	}
-
-
-	return ParamsToLuaStack(paramsOut, L);
+	return 0;
 }
 
 static int MetatableIndexer(lua_State*L)
@@ -870,20 +899,24 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		
 	//	register methods
 		for(size_t j = 0; j < c->num_methods(); ++j){
-			const ExportedMethod& m = c->get_method(j);
+			const ExportedMethodGroup& m = c->get_method_group(j);
+			if(m.num_overloads() > 1){
+				UG_LOG("registering method " << m.name() << " of class ");
+				UG_LOG(c->name() << " with " << m.num_overloads() << " overloads\n");
+			}
 			lua_pushstring(L, m.name().c_str());
 			lua_pushlightuserdata(L, (void*)&m);
 			lua_pushcclosure(L, LuaProxyMethod, 1);
 			lua_settable(L, -3);
 		}
-		
+
 	//	register const-methods
 		if(c->num_const_methods() > 0)
 		{
 		//	create a new table in the meta-table and store it in the entry __const
 			lua_newtable(L);
 			for(size_t j = 0; j < c->num_const_methods(); ++j){
-				const ExportedMethod& m = c->get_const_method(j);
+				const ExportedMethodGroup& m = c->get_const_method_group(j);
 				lua_pushstring(L, m.name().c_str());
 				lua_pushlightuserdata(L, (void*)&m);
 				lua_pushcclosure(L, LuaProxyMethod, 1);
@@ -891,7 +924,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			}
 			lua_setfield(L, -2, "__const");
 		}
-		
+
 	//	pop the metatable from the stack.
 		lua_pop(L, 1);
 	}

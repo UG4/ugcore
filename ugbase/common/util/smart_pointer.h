@@ -19,6 +19,15 @@ class FreeDelete
 };
 
 ////////////////////////////////////////////////////////////////////////
+//	FreeDelete
+template <typename T>
+class FreeArrayDelete
+{
+	public:
+		static void free(const T* data)	{delete[] data;}
+};
+
+////////////////////////////////////////////////////////////////////////
 //	FreeRelease
 template <typename T>
 class FreeRelease

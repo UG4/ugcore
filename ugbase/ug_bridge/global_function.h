@@ -41,25 +41,12 @@ struct UG_REGISTRY_ERROR_FunctionOrMethodNameMissing {};
 class ExportedFunctionBase
 {
 	public:
-		ExportedFunctionBase(	const char* funcInfos, const char* retValInfos, const char* paramInfos,
+		ExportedFunctionBase(	const char* funcName, const char* funcOptions,
+								const char* retValInfos, const char* paramInfos,
 								const char* tooltip, const char* help)
-		: m_funcInfos(funcInfos), m_retValInfos(retValInfos), m_paramInfos(paramInfos),
-		  m_tooltip(tooltip), m_help(help)
+		: m_name(funcName), m_methodOptions(funcOptions), m_retValInfos(retValInfos),
+		  m_paramInfos(paramInfos), m_tooltip(tooltip), m_help(help)
 		{
-		//	get name and visualization options of function
-			std::vector<std::string> vFuncInfoTmp;
-			tokenize(m_funcInfos, vFuncInfoTmp, '|');
-
-		//	set name
-			if(vFuncInfoTmp.size() >= 1) m_name = trim(vFuncInfoTmp[0]);
-			else throw(UG_REGISTRY_ERROR_FunctionOrMethodNameMissing());
-
-		//	set options if given
-			if(vFuncInfoTmp.size() >= 2) m_methodOptions = trim(vFuncInfoTmp[1]);
-			else m_methodOptions = "";
-
-		//	other fields are neglected
-
 		//	Tokenize string for return value (separated by '|')
 			tokenize(m_retValInfos, m_vRetValInfo, '|');
 
@@ -219,7 +206,6 @@ class ExportedFunctionBase
 		}
 
 	protected:
-		std::string m_funcInfos;
 		std::string m_name;
 		std::string m_methodOptions;
 
@@ -250,10 +236,10 @@ class ExportedFunction : public ExportedFunctionBase
 	public:
 		template <typename TFunc>
 		ExportedFunction(	TFunc f, ProxyFunc pf,
-							const char* name, const char* group,
+							const char* name, const char* funcOptions, const char* group,
 							const char* retValInfos, const char* paramInfos,
 							const char* tooltip, const char* help)
-			: ExportedFunctionBase( name , retValInfos, paramInfos, tooltip, help),
+			: ExportedFunctionBase(name, funcOptions, retValInfos, paramInfos, tooltip, help),
 			  m_group(group), m_func((void*)f), m_proxy_func(pf)
 		{
 			create_parameter_stack<TFunc>();
@@ -300,7 +286,7 @@ class ExportedFunctionGroup
 	///	adds an overload. Returns false if the overload already existed.
 		template <class TFunc>
 		bool add_overload(TFunc f, ExportedFunction::ProxyFunc pf,
-						const char* group,
+						const char* funcOptions, const char* group,
 						const char* retValInfos, const char* paramInfos,
 						const char* tooltip, const char* help)
 		{
@@ -313,8 +299,8 @@ class ExportedFunctionGroup
 		//	create a new overload
 
 			ExportedFunction* func = new ExportedFunction(f, pf, m_name.c_str(),
-												group, retValInfos, paramInfos,
-												tooltip, help);
+												funcOptions, group, retValInfos,
+												paramInfos, tooltip, help);
 
 			m_overloads.push_back(Overload(func, typeID));
 			return true;

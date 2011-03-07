@@ -70,33 +70,60 @@ class Registry {
 								const char* retValInfos = "", const char* paramInfos = "",
 								const char* tooltip = "", const char* help = "")
 		{
+		//	At this point the method name contains parameters (name|param1=...).
+		//todo: they should be removed and specified with an extra parameter.
+
+			std::string strippedMethodName = funcName;
+			std::string methodOptions;
+			std::string::size_type pos = strippedMethodName.find("|");
+			if(pos != std::string::npos){
+				methodOptions = strippedMethodName.substr(pos + 1, strippedMethodName.length() - pos);
+				strippedMethodName = strippedMethodName.substr(0, pos);
+				UG_LOG(strippedMethodName << " ... | ... " << methodOptions << std::endl);
+			}
+
+		//	trim whitespaces
+			{
+				const size_t start = strippedMethodName.find_first_not_of(" \t");
+				const size_t end = strippedMethodName.find_last_not_of(" \t");
+				if(start != std::string::npos && end != std::string::npos)
+					strippedMethodName = strippedMethodName.substr(start, end - start + 1);
+			}
+			{
+				const size_t start = methodOptions.find_first_not_of(" \t");
+				const size_t end = methodOptions.find_last_not_of(" \t");
+				if(start != std::string::npos && end != std::string::npos)
+					methodOptions = methodOptions.substr(start, end - start + 1);
+			}
+
 		// 	check that name is not empty
-			if(strlen(funcName) == 0)
+			if(strippedMethodName.empty())
 			{
 				std::cout << "### Registry ERROR: Trying to register empty function name."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName.c_str()));
 			}
 
 		//	if the function is already in use, we have to add an overload
-			ExportedFunctionGroup* funcGrp = get_exported_function_group(funcName);
+			ExportedFunctionGroup* funcGrp = get_exported_function_group(strippedMethodName.c_str());
 			if(!funcGrp)
 			{
 			//	we have to create a new function group
-				funcGrp = new ExportedFunctionGroup(funcName);
+				funcGrp = new ExportedFunctionGroup(strippedMethodName.c_str());
 				m_vFunction.push_back(funcGrp);
 			}
 
 		//  add an overload to the function group
 			bool success = funcGrp->add_overload(func, &FunctionProxy<TFunc>::apply,
-												group, retValInfos, paramInfos,
+												methodOptions.c_str(), group,
+												retValInfos, paramInfos,
 												tooltip, help);
 
 			if(!success){
 				std::cout << "### Registry ERROR: Trying to register function name '" << funcName
 						<< "', that is already used by another function in this registry."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName.c_str()));
 			}
 	
 			return *this;
