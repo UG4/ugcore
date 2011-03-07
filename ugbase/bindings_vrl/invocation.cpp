@@ -76,9 +76,9 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 
 				// check whether to search const or non-const methods
 				if (readOnly) {
-					method = &cls->get_const_overload(i, j);
+					method = &cls->get_const_overload(j, k);
 				} else {
-					method = &cls->get_overload(i, j);
+					method = &cls->get_overload(j, k);
 				}
 
 				// if the method name and the parameter types are equal
