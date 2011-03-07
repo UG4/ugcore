@@ -105,12 +105,14 @@ bool ProjectSurfaceToLevel(int si,
 		int level = surfaceView.get_level(elem);
 
 	//	get corresponding level vector for element
+		UG_ASSERT(vLevelVector[level] != NULL, "Vector missing");
 		TVector& levelVector = *(vLevelVector[level]);
 
 	//	check that level is correct
 		UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
 
 	//	extract all algebra indices for the element on level
+		UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
 		vLevelDD[level]->get_algebra_indices(elem, levelInd);
 
 	//	check that index sets have same cardinality
@@ -194,9 +196,8 @@ bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 #ifdef UG_PARALLEL
 //	copy storage type into all vectors
 	for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
-	{
-		vLevelVector[lev]->copy_storage_type(surfVector);
-	}
+		if(vLevelVector[lev] != NULL)
+			vLevelVector[lev]->copy_storage_type(surfVector);
 #endif
 
 //	we're done
@@ -236,12 +237,14 @@ bool ProjectLevelToSurface(int si,
 		int level = surfaceView.get_level(elem);
 
 	//	get corresponding level vector for element
+		UG_ASSERT(vLevelVector[level] != NULL, "Vector missing");
 		const TVector& levelVector = *(vLevelVector[level]);
 
 	//	check that level is correct
 		UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
 
 	//	extract all algebra indices for the element on level
+		UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
 		vLevelDD[level]->get_algebra_indices(elem, levelInd);
 
 	//	check that index sets have same cardinality
@@ -326,11 +329,12 @@ bool ProjectLevelToSurface(TVector& surfVector,
 //	copy storage type into surf vector
 	if(vLevelVector.size() > 0)
 	{
-		ParallelStorageType type = vLevelVector[0]->get_storage_mask();
+		ParallelStorageType type = vLevelVector[vLevelVector.size()-1]->get_storage_mask();
 
 	//	get intersection of types
-		for(size_t lev = 1; lev < vLevelVector.size(); ++lev)
-			type = type & vLevelVector[lev]->get_storage_mask();
+		for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
+			if(vLevelVector[lev] != NULL)
+				type = type & vLevelVector[lev]->get_storage_mask();
 
 	//	check if union is defined
 		if(type == PST_UNDEFINED)
@@ -340,7 +344,8 @@ bool ProjectLevelToSurface(TVector& surfVector,
 					" (e.g. additive/unique for all, or consistent for all)\n"
 					" Types in levels are:\n");
 			for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
-				UG_LOG("  lev " << lev << ": " << vLevelVector[lev]->get_storage_mask() << "\n");
+				if(vLevelVector[lev] != NULL)
+					UG_LOG("  lev " << lev << ": " << vLevelVector[lev]->get_storage_mask() << "\n");
 			return false;
 		}
 
