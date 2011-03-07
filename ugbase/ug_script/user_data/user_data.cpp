@@ -340,6 +340,8 @@ class LuaUserFunction
 		using base_type::num_input;
 		using base_type::input_value;
 		using base_type::input_deriv;
+		using base_type::input_num_fct;
+		using base_type::input_common_fct;
 
 	public:
 	///	constructor
@@ -467,10 +469,18 @@ class LuaUserFunction
 		//	check if derivative is required
 			if(!compDeriv || this->zero_derivative()) return;
 
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
-				{
-					for(size_t c = 0; c < vDataIn.size(); ++c)
+		//	clear all derivative values
+			this->clear_derivative_values();
+
+		//	loop all inputs
+			for(size_t c = 0; c < vDataIn.size(); ++c)
+			{
+			//	check if input has derivative
+				if(this->zero_derivative(c)) continue;
+
+			//	loop ips
+				for(size_t s = 0; s < num_series(); ++s)
+					for(size_t ip = 0; ip < num_ip(s); ++ip)
 					{
 					//	gather all input data for this ip
 						vDataIn[c] = input_value(c, s, ip);
@@ -483,13 +493,20 @@ class LuaUserFunction
 
 					//	loop functions
 						for(size_t fct = 0; fct < num_fct(); ++fct)
+						{
+						//	get common fct id for this function
+							const size_t commonFct = input_common_fct(c, fct);
+
+						//	loop dofs
 							for(size_t dof = 0; dof < num_sh(s, fct); ++dof)
 							{
-							//	todo: Is this product always defined?
-								deriv(s, ip, fct, dof) = derivVal * input_deriv(0, s, ip, fct, dof);
+							//	todo: Is this product always defined, maybe we need traits?
+								deriv(s, ip, commonFct, dof) +=
+										derivVal * input_deriv(c, s, ip, fct, dof);
 							}
+						}
 					}
-				}
+			}
 		}
 
 	///	evaluates the data
