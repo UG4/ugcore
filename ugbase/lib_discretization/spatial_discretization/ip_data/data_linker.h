@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_LINKER__
 
 #include "ip_data.h"
+#include "lib_discretization/common/groups_util.h"
 
 namespace ug{
 
@@ -27,6 +28,7 @@ template <typename TData, int dim, typename TDataIn>
 class DataLinker
 	: public DependentIPData<TData, dim>
 {
+	public:
 	///	Base class type
 		typedef DependentIPData<TData, dim> base_type;
 
@@ -112,6 +114,26 @@ class DataLinker
 		}
 
 	protected:
+	///	updates the function group
+		bool update_function_group()
+		{
+		//	collect all function groups
+			std::vector<FunctionGroup*> vFctGrp(num_input(), NULL);
+			for(size_t i = 0; i < m_vpDependData.size(); ++i)
+				if(m_vpDependData[i] != NULL)
+					vFctGrp[i] = &(m_vpDependData[i]->get_function_group());
+
+		//	create union of all function groups
+			if(!CreateUnionOfFunctionGroups(m_commonFctGroup, vFctGrp, true))
+			{
+				UG_LOG("ERROR in 'DataLinker::update_function_group': Cannot create"
+						"common function group.\n");
+				return false;
+			}
+
+			return true;
+		}
+
 	///	data at ip of input
 		const TData& input_value(size_t i, size_t s, size_t ip) const
 		{
@@ -206,6 +228,12 @@ class DataLinker
 
 	///	series id the linker uses to get data from input
 		std::vector<std::vector<size_t> > m_vvSeriesID;
+
+	///	common functions the data depends on
+		FunctionGroup m_commonFctGroup;
+
+	///	Function mapping for each input relative to common FunctionGroup
+		std::vector<FunctionIndexMapping> m_vMap;
 };
 
 } // end namespace ug

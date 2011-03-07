@@ -307,6 +307,7 @@ template <typename TData, int dim>
 class DependentIPData : public IPData<TData, dim>,
 						virtual public IDependentIPData
 {
+	public:
 	///	Base class type
 		typedef IPData<TData, dim> base_type;
 
