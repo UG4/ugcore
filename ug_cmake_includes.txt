@@ -402,6 +402,11 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     ####
     # External dependencies
     ####
+
+    if(FOR_VRL)
+        set(UG_SHARED ON)
+    endif(FOR_VRL)
+
     if(UG_SHARED AND FOR_VRL)
         find_package(JNI REQUIRED)
         include_directories(${JNI_INCLUDE_DIRS})
