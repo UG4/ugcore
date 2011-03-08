@@ -20,9 +20,6 @@
 // lib_grid
 #include "lib_grid/lib_grid.h"
 
-// lib_discretization
-#include "lib_discretization/lib_discretization.h"
-
 // node_tree
 #include "node_tree/node_tree.h"
 
