@@ -37,6 +37,7 @@
 # - NO_LAPACK: Disable LAPACK libraries
 # - NO_BLAS: Disable BLAS libraries
 # - UG_PROFILER: Enables the ug-profiler.
+# - DIM: Dimension to be build (1,2,3,ALL)
 #
 # To enable or disable options during the cmake call, call cmake like this:
 # cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
@@ -83,12 +84,41 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
 	OPTION(NO_SHELL "Disables building of the ugshell app.")
 	OPTION(UG_PROFILER "enables the ug-profiler")
+	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
+	
 
 	#######################
 	# include ug header and library path
 	get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 	include_directories(${UG_ROOT_PATH}/ugbase)
 	link_directories(${UG_ROOT_PATH}/lib)
+
+	#######################
+	# Dimension
+
+	# check if DIM flag has been passed, else set default to "ALL"
+	if(NOT DIM)
+		set(DIM "ALL")
+	endif(NOT DIM)
+	
+	# if DIM is "ALL"
+	if("${DIM}" STREQUAL "ALL")
+		message(STATUS "INFO: Building all world dimensions 1,2,3. (Choose dimension by -DDIM=\"1;2;3\")")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3")
+		
+	# if DIM is string of dimensions (e.g. "1;2")
+	else("${DIM}" STREQUAL "ALL")
+		# loop dims
+		foreach(d ${DIM})
+			# check if dim is valid
+			if(d GREATER 3 OR d LESS 1)
+			message(FATAL_ERROR "ERROR: Cannot build world dimension ${d}. Choose -DDIM=\"1;2;3\"")
+			endif(d GREATER 3 OR d LESS 1)
+		
+			message(STATUS "INFO: Building world dimension ${d}. (Choose all dimensions by -DDIM=ALL, others by -DDIM=\"1;2;3\")")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
+		endforeach(d)
+	endif("${DIM}" STREQUAL "ALL")
 
 	#######################
 	# compiler flags

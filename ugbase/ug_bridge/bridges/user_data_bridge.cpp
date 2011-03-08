@@ -262,9 +262,15 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //	get group string
 	std::string grp = parentGroup; grp.append("/UserData");
 
+#ifdef UG_DIM_1
 	RegisterUserData<1>(reg, grp.c_str());
+#endif
+#ifdef UG_DIM_2
 	RegisterUserData<2>(reg, grp.c_str());
+#endif
+#ifdef UG_DIM_3
 	RegisterUserData<3>(reg, grp.c_str());
+#endif
 
 //	PrintUserNumber2d
 	{

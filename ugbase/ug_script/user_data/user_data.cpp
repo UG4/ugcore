@@ -754,9 +754,15 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 			.add_method("set_lua_callback", &T::set_lua_callback);
 	}
 
+#ifdef UG_DIM_1
 	RegisterLuaUserData<1>(reg, parentGroup);
+#endif
+#ifdef UG_DIM_2
 	RegisterLuaUserData<2>(reg, parentGroup);
+#endif
+#ifdef UG_DIM_3
 	RegisterLuaUserData<3>(reg, parentGroup);
+#endif
 }
 
 } // end namespace

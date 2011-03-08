@@ -294,9 +294,15 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 bool RegisterDomainInterface(Registry& reg, const char* parentGroup)
 {
 	bool bSuccess = true;
+#ifdef UG_DIM_1
 	bSuccess &= RegisterDomainInterface_<Domain<1, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
+#endif
+#ifdef UG_DIM_2
 	bSuccess &= RegisterDomainInterface_<Domain<2, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
+#endif
+#ifdef UG_DIM_3
 	bSuccess &= RegisterDomainInterface_<Domain<3, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
+#endif
 	return bSuccess;
 }
 
