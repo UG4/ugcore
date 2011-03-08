@@ -4,7 +4,6 @@
  *  Created on: 11.10.2010
  *      Author: andreasvogel
  */
-// #define UG_USE_AMG // temporary switch until AMG for systems works again
 
 // extern headers
 #include <iostream>
@@ -20,8 +19,10 @@
 #include "ug_script/user_data/user_data.h"
 
 // \todo: remove this dependency
+// #define UG_USE_AMG // temporary switch until AMG for systems works again
+#undef UG_USE_AMG
 #ifdef UG_USE_AMG
-#include "lib_discretization/lib_discretization.h"
+ #include "lib_discretization/lib_discretization.h"
 #endif
 
 namespace ug
