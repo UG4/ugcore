@@ -79,9 +79,13 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 	file << dimensions << std::endl;
 
 	size_t rows = A.num_rows();
+
 	// write positions
 	file << rows << std::endl;
-	if(dimensions == 2)
+	if(dimensions == 1)
+			for(size_t i=0; i < rows; i++)
+				file << positions[i][0] << " 0.0"  << std::endl;
+	else if(dimensions == 2)
 		for(size_t i=0; i < rows; i++)
 			file << positions[i][0] << " " << positions[i][1] << std::endl;
 	else
@@ -184,7 +188,11 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 
 	// write positions
 	file << positions.size() << std::endl;
-	if(dimensions == 2)
+
+	if(dimensions == 1)
+			for(size_t i=0; i < positions.size(); i++)
+				file << positions[i][0] << " 0.0"  << std::endl;
+	else if(dimensions == 2)
 		for(size_t i=0; i < positions.size(); i++)
 			file << positions[i][0] << " " << positions[i][1] << std::endl;
 	else
@@ -222,7 +230,10 @@ void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, p
 	size_t rows = b.size();
 	// write positions
 	file << rows << std::endl;
-	if(dimensions == 2)
+	if(dimensions == 1)
+			for(size_t i=0; i < rows; i++)
+				file << positions[i][0] << " 0.0"  << std::endl;
+	else if(dimensions == 2)
 		for(size_t i=0; i < rows; i++)
 			file << positions[i][0] << " " << positions[i][1] << std::endl;
 	else
