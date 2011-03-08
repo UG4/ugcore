@@ -272,6 +272,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	RegisterUserData<3>(reg, grp.c_str());
 #endif
 
+#ifdef UG_DIM_2
 //	PrintUserNumber2d
 	{
 		typedef PrintUserNumber2d T;
@@ -281,6 +282,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_method("set_user_number|interactive=false", &T::set_user_number, "", "NumberProvider||invokeOnChange=true")
 			.add_method("print", &T::print, "Result", "x#y");
 	}
+#endif
 
 	return true;
 }
