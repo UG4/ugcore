@@ -305,6 +305,33 @@ class LuaBoundaryData
 // Generic LuaUserFunction
 ////////////////////////////////
 
+/// Lua Traits to push/pop on lua stack
+template <typename TData, typename TDataIn>
+struct lua_linker_traits;
+
+template <>
+struct lua_linker_traits<number, number>
+{
+	static void mult_add(number& res,
+	                     const number& deriv ,
+	                     const number& in)
+	{
+		res = deriv * in;
+	}
+};
+
+template <std::size_t dim>
+struct lua_linker_traits< MathMatrix<dim,dim>, number >
+{
+	static void mult_add(MathMatrix<dim,dim>& res,
+	                     const MathMatrix<dim,dim>& deriv ,
+	                     const number& in)
+	{
+		MatScale(res, in, deriv);
+	}
+};
+
+
 /// maps several data values to an output data value using a lua callback
 /**
  * This class provides the evaluation of a user function, that is specified
@@ -500,9 +527,10 @@ class LuaUserFunction
 						//	loop dofs
 							for(size_t dof = 0; dof < num_sh(s, fct); ++dof)
 							{
-							//	todo: Is this product always defined, maybe we need traits?
-								deriv(s, ip, commonFct, dof) +=
-										derivVal * input_deriv(c, s, ip, fct, dof);
+								lua_linker_traits<TData, TDataIn>::mult_add(
+										deriv(s, ip, commonFct, dof),
+										derivVal,
+										input_deriv(c, s, ip, fct, dof));
 							}
 						}
 					}
@@ -690,7 +718,7 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 			.add_method("set_lua_callback", &T::set_lua_callback);
 	}
 
-//	LuaUserFunction
+//	LuaUserFunctionNumber
 	{
 		typedef LuaUserFunction<number, dim, number> T;
 		typedef IUserFunction<number, dim, number> TBase;
@@ -700,6 +728,18 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
 			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
 	}
+
+//	LuaUserFunctionMatrixNumber
+	{
+		typedef LuaUserFunction<MathMatrix<dim,dim>, dim, number> T;
+		typedef IUserFunction<MathMatrix<dim,dim>, dim, number> TBase;
+		std::stringstream ss; ss << "LuaUserFunctionMatrixNumber" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), parentGroup)
+			.add_constructor()
+			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
+			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
+	}
+
 }
 
 void RegisterLuaUserData(Registry& reg, const char* parentGroup)

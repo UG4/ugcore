@@ -195,28 +195,53 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_method("print", &T::print);
 	}
 
-//	DependentIPData
+//	DependentIPDataNumber
 	{
 		typedef DependentIPData<number, dim> T;
 		typedef IPData<number, dim> TBase;
-		std::stringstream ss; ss << "NumberDependentIPData" << dim << "d";
+		std::stringstream ss; ss << "DependentIPDataNumber" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
 	}
 
-//	DataLinker
+//	DependentIPDataMatrix
+	{
+		typedef DependentIPData<MathMatrix<dim,dim>, dim> T;
+		typedef IPData<MathMatrix<dim,dim>, dim> TBase;
+		std::stringstream ss; ss << "DependentIPDataMatrix" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
+	}
+
+//	DataLinkerNumber
 	{
 		typedef DataLinker<number, dim, number> T;
 		typedef DependentIPData<number, dim> TBase;
-		std::stringstream ss; ss << "NumberNumberLinker" << dim << "d";
+		std::stringstream ss; ss << "DataLinkerNumber" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_method("set_input", &T::set_input);
 	}
 
-//	IUserFunction
+//	DataLinkerMatrixNumber
+	{
+		typedef DataLinker<MathMatrix<dim,dim>, dim, number> T;
+		typedef DependentIPData<MathMatrix<dim,dim>, dim> TBase;
+		std::stringstream ss; ss << "DataLinkerMatrixNumber" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_method("set_input", &T::set_input);
+	}
+
+//	IUserFunctionNumber
 	{
 		typedef IUserFunction<number, dim, number> T;
 		typedef DataLinker<number, dim, number> TBase;
 		std::stringstream ss; ss << "IUserFunctionNumber" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
+	}
+
+//	IUserFunctionMatrixNumber
+	{
+		typedef IUserFunction<MathMatrix<dim,dim>, dim, number> T;
+		typedef DataLinker<MathMatrix<dim,dim>, dim, number> TBase;
+		std::stringstream ss; ss << "IUserFunctionMatrixNumber" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
 	}
 

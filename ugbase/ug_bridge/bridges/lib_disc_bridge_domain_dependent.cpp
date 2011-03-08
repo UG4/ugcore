@@ -299,7 +299,9 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_reaction", &T::set_reaction)
 			.add_method("set_rhs", &T::set_rhs)
 			.add_method("set_mass_scale", &T::set_mass_scale)
-			.add_method("set_upwind_amount", &T::set_upwind_amount);
+			.add_method("set_upwind_amount", &T::set_upwind_amount)
+			.add_method("get_concentration", &T::get_concentration)
+			.add_method("get_concentration_grad", &T::get_concentration_grad);
 	}
 
 //	Convection Diffusion Finite Element
