@@ -205,7 +205,7 @@ class DataLinker
 		}
 
 	///	data at ip of input
-		const TData& input_value(size_t i, size_t s, size_t ip) const
+		const TDataIn& input_value(size_t i, size_t s, size_t ip) const
 		{
 			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
 			UG_ASSERT(m_vpIPData[i] != NULL, "Input invalid");
@@ -215,7 +215,7 @@ class DataLinker
 		}
 
 	///	data at ip of input
-		TData& input_value(size_t i, size_t s, size_t ip)
+		TDataIn& input_value(size_t i, size_t s, size_t ip)
 		{
 			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
 			UG_ASSERT(m_vpIPData[i] != NULL, "Input invalid");
@@ -225,7 +225,7 @@ class DataLinker
 		}
 
 	///	derivative of data at input at ip
-		const TData& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
+		const TDataIn& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
 		{
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
 			UG_ASSERT(m_vpDependData[i] != NULL, "Input invalid");
@@ -235,7 +235,7 @@ class DataLinker
 		}
 
 	///	derivative of data at input at ip
-		TData& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof)
+		TDataIn& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof)
 		{
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
 			UG_ASSERT(m_vpDependData[i] != NULL, "Input invalid");
