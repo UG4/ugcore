@@ -281,7 +281,7 @@ end
 
 LuaStartValue = util.CreateLuaUserNumber("StartValue", dim)
 
---InterpolateFunction2d(LuaStartValue, u, "c", 0.0)
+--InterpolateFunction(LuaStartValue, u, "c", 0.0)
 u:set(0.0)
 
 for i = 1,1 do

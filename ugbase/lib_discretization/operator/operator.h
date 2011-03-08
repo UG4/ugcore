@@ -8,11 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__OPERATOR__OPERATOR__
 #define __H__LIB_DISCRETIZATION__OPERATOR__OPERATOR__
 
-// generic solver routines
-#include "operator_util.h"
-
 // special operators
-#include "linear_operator/interpolation_operator.h"
 #include "linear_operator/projection_operator.h"
 #include "linear_operator/prolongation_operator.h"
 #include "linear_operator/assembled_linear_operator.h"

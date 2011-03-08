@@ -21,7 +21,7 @@ ug_load_script("../ug_util.lua")
 -- Depending on the dimension we will choose our domain object
 -- (either 1d, 2d or 3d) and associated discretization objects. Note that
 -- we're using some methods defined in "ug_util.lua" here.
-dim = util.GetParamNumber("-dim", 2) -- default dimension is 1.
+dim = util.GetParamNumber("-dim", 1) -- default dimension is 1.
 
 -- We also need a filename for the grid that shall be loaded.
 if 		dim == 1 then gridName = util.GetParam("-grid", "unit_line_2.ugx")
@@ -375,7 +375,7 @@ step = 0
 
 -- setup the lua functions ...
 function StartValue1d(x, t)
-	return 1.0
+	return x
 end
 function StartValue2d(x, y, t)
 	return 1.0
@@ -388,10 +388,7 @@ end
 LuaStartValue = util.CreateLuaUserNumber("StartValue"..dim.."d", dim)
 
 -- Now interpolate the function
-if		dim == 1 then InterpolateFunction1d(LuaStartValue, u, "c", time)
-elseif  dim == 2 then InterpolateFunction2d(LuaStartValue, u, "c", time)
-elseif  dim == 3 then InterpolateFunction3d(LuaStartValue, u, "c", time)
-else print("Choosen Dimension not supported. Exiting."); exit(); end
+InterpolateFunction(LuaStartValue, u, "c", time);
 
 -- In order to plot our time steps, we need a VTK writer. For time dependent
 -- problems we start a time series. This is necessary to group the time 

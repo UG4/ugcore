@@ -415,13 +415,8 @@ step = 0
 
 -- set initial value
 print("Interpolation start values")
-if dim == 2 then
-	InterpolateFunction2d(PressureStartValue, u, "p", time)
-	InterpolateFunction2d(ConcentrationStartValue, u, "c", time)
-else
-	InterpolateFunction3d(PressureStartValue, u, "p", time)
-	InterpolateFunction3d(ConcentrationStartValue, u, "c", time)
-end
+InterpolateFunction(PressureStartValue, u, "p", time)
+InterpolateFunction(ConcentrationStartValue, u, "c", time)
 
 ----------------------------------
 -- Time loop

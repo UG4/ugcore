@@ -377,9 +377,9 @@ time = 0.0
 step = 0
 
 -- set initial value
-InterpolateFunction2d(PressureStartValue, u, "p", time)
-InterpolateFunction2d(ConcentrationStartValue, u, "c", time)
-InterpolateFunction2d(TemperatureStartValue, u, "T", time)
+InterpolateFunction(PressureStartValue, u, "p", time)
+InterpolateFunction(ConcentrationStartValue, u, "c", time)
+InterpolateFunction(TemperatureStartValue, u, "T", time)
 
 ----------------------------------
 -- Time loop

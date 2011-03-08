@@ -98,85 +98,12 @@ void TestGridFunctionLayout(grid_function_type& func)
 
 #endif
 
+/// small wrapper to write a grid function to vtk
 template <typename TGridFunction>
 bool WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 {
 	VTKOutput<TGridFunction> out;
 	return out.print(filename, u);
-}
-
-template <typename TGridFunction>
-bool SaveMatrixForConnectionViewer(	TGridFunction& u,
-									IMatrixOperator<typename TGridFunction::vector_type,
-													typename TGridFunction::vector_type,
-													typename TGridFunction::algebra_type::matrix_type>& A,
-									const char* filename)
-{
-//	check that extension '.mat' is chosen
-	const char * p = strstr(filename, ".mat");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.mat' format supported for domains.\n");
-		return false;
-	}
-
-	std::string name(filename);
-
-#ifdef UG_PARALLEL
-//	search for ending
-	size_t found = name.find_first_of(".");
-
-//	remove endings
-	name.resize(found);
-
-//	add new ending, containing process number
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.mat", rank);
-	name.append(ext);
-#endif
-
-	static const int dim = TGridFunction::domain_type::dim;
-
-	std::vector<MathVector<dim> > positions;
-	ExtractPositions(u, positions);
-
-	WriteMatrixToConnectionViewer(name.c_str(), A.get_matrix(), &positions[0], dim);
-	return true;
-}
-
-template <typename TGridFunction>
-bool SaveVectorForConnectionViewer(	TGridFunction& b,
-									const char* filename)
-{
-	const char * p = strstr(filename, ".mat");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.mat' format supported for domains.\n");
-		return false;
-	}
-
-	static const int dim = TGridFunction::domain_type::dim;
-
-	std::string name(filename);
-
-#ifdef UG_PARALLEL
-	size_t found = name.find_first_of(".");
-	name.resize(found);
-
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.mat", rank);
-
-	name.append(ext);
-#endif
-
-
-	std::vector<MathVector<dim> > positions;
-	ExtractPositions(b, positions);
-
-	WriteVectorToConnectionViewer(name.c_str(), b, &positions[0], dim);
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
@@ -480,45 +407,47 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		}
 #endif
 
-	//	PerformTimeStep
-		{
-			std::stringstream ss; ss << "PerformTimeStep" << dim << "d";
-			reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>, grp.c_str(),
-							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Time#Timestep Size#Visualization Output#FileName#DoOutput");
-		}
-
 	//	ApplyLinearSolver
 		{
-			std::stringstream ss; ss << "ApplyLinearSolver" << dim << "d";
-			reg.add_function(ss.str().c_str(), &ApplyLinearSolver<vector_type>, grp.c_str());
+			reg.add_function( "ApplyLinearSolver",
+			                  &ApplyLinearSolver<vector_type>, grp.c_str());
 		}
 
 	//	WriteGridToVTK
 		{
-			std::stringstream ss; ss << "WriteGridFunctionToVTK" << dim << "d";
-			reg.add_function(ss.str().c_str(), &WriteGridFunctionToVTK<function_type>, grp.c_str(),
+			reg.add_function("WriteGridFunctionToVTK",
+			                 &WriteGridFunctionToVTK<function_type>, grp.c_str(),
 								"Success", "GridFunction#Filename|save-dialog",
-								"Saves GridFunction to *.tvk file", "No help");
+								"Saves GridFunction to *.vtk file", "No help");
 		}
 
 	//	SaveMatrixForConnectionViewer
 		{
-			std::stringstream ss; ss << "SaveMatrixForConnectionViewer" << dim << "d";
-			reg.add_function(ss.str().c_str(), &SaveMatrixForConnectionViewer<function_type>, grp.c_str());
+			reg.add_function("SaveMatrixForConnectionViewer",
+			                 &SaveMatrixForConnectionViewer<function_type>, grp.c_str());
 		}
 
 	//	SaveVectorForConnectionViewer
 		{
-			std::stringstream ss; ss << "SaveVectorForConnectionViewer" << dim << "d";
-			reg.add_function(ss.str().c_str(), &SaveVectorForConnectionViewer<function_type>, grp.c_str());
+			reg.add_function("SaveVectorForConnectionViewer",
+			                 &SaveVectorForConnectionViewer<function_type>, grp.c_str());
 		}
 
 	//	InterpolateFunction
 		{
-			std::stringstream ss; ss << "InterpolateFunction" << dim << "d";
+			std::stringstream ss; ss << "InterpolateFunction";
+			typedef bool (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
+										function_type& , const char* , number);
 			reg.add_function(ss.str().c_str(),
-								&InterpolateFunction<function_type>,
-								grp.c_str());
+			                 (fct_type)&InterpolateFunction<function_type>,
+			                 grp.c_str());
+
+			typedef bool (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
+										function_type& , const char* , number ,
+										const char*);
+			reg.add_function(ss.str().c_str(),
+			                 (fct_type_subset)&InterpolateFunction<function_type>,
+			                 grp.c_str());
 		}
 }
 

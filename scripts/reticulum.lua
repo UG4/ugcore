@@ -352,9 +352,9 @@ newtonSolver:init(op)
 u = approxSpace:create_surface_function()
 
 -- set initial value
-InterpolateFunction2d(CaCytStartValue, u, "ca_cyt", 0.0)
-InterpolateFunction2d(CaERStartValue, u, "ca_er", 0.0)
-InterpolateFunction2d(IP3StartValue, u, "ip3", 0.0)
+InterpolateFunction(CaCytStartValue, u, "ca_cyt", 0.0)
+InterpolateFunction(CaERStartValue, u, "ca_er", 0.0)
+InterpolateFunction(IP3StartValue, u, "ip3", 0.0)
 
 -- timestep in seconds
 dt = 0.01
