@@ -5,8 +5,6 @@
  *      Author: andreasvogel
  */
 
-// TODO: remove 'Callback_ProcessIDToSubdomainID' stuff ... (27012011)
-
 #ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_SPACE__
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_SPACE__
 

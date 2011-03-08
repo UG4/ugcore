@@ -14,6 +14,9 @@
 
 namespace ug{
 
+// predeclaration
+template <typename TAlgebra> class IElemDisc;
+
 /// Base class for data import
 /**
  * An IDataImport is the base class for importing data to ElemDiscs

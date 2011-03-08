@@ -15,13 +15,33 @@
 // lib algebra
 #include "lib_algebra/lib_algebra.h"
 
-// dof distribution
+// lib_discretization part
 #include "lib_discretization/dof_manager/dof_distribution.h"
 
-// assemblings
-#include "lib_discretization/spatial_discretization/spatial_discretization.h"
-#include "lib_discretization/time_discretization/time_discretization.h"
-#include "lib_discretization/operator/operator.h"
+// discretization interfaces
+#include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
+#include "lib_discretization/spatial_discretization/post_process/post_process_interface.h"
+#include "lib_discretization/time_discretization/time_discretization_interface.h"
+
+// time discretization implementation
+#include "lib_discretization/time_discretization/theta_time_step.h"
+
+// domain discretization implementation
+#include "lib_discretization/spatial_discretization/domain_discretization.h"
+
+// post processes
+#include "lib_discretization/spatial_discretization/post_process/constraints/p1_constraints_post_process.h"
+
+// operator interfaces
+#include "lib_discretization/operator/linear_operator/assembled_linear_operator.h"
+#include "lib_discretization/operator/non_linear_operator/assembled_non_linear_operator.h"
+
+// newton solver
+#include "lib_discretization/operator/non_linear_operator/line_search.h"
+#include "lib_discretization/operator/non_linear_operator/newton_solver/newton.h"
+
+#include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
 namespace ug
 {

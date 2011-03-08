@@ -9,6 +9,7 @@
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__
 
 #include "lib_algebra/operator/operator_base_interface.h"
+#include "lib_discretization/dof_manager/dof_distribution.h"
 
 namespace ug{
 

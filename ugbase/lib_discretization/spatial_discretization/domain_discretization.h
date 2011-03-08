@@ -11,12 +11,10 @@
 // other ug4 modules
 #include "common/common.h"
 #include "common/util/string_util.h"
-#include "lib_algebra/lib_algebra.h"
 
 // library intern headers
 #include "./domain_discretization_interface.h"
 #include "./elem_disc/elem_disc_assemble_util.h"
-//#include "./coupled_elem_disc/coupled_elem_disc_assemble_util.h"
 #include "./post_process/post_process_interface.h"
 #include "./subset_assemble_util.h"
 #include "lib_discretization/common/function_group.h"

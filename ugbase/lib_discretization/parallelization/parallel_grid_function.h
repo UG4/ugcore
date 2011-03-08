@@ -10,7 +10,6 @@
 
 #include "pcl/pcl.h"
 #include "lib_algebra/parallelization/parallelization.h"
-#include "lib_discretization/parallelization/parallelization.h"
 
 namespace ug
 {

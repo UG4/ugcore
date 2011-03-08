@@ -15,12 +15,11 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
-#include "lib_algebra/lib_algebra.h"
 
 // intern headers
 #include "../../reference_element/reference_element.h"
 #include "./elem_disc_interface.h"
-#include "lib_discretization/common/common.h"
+#include "lib_discretization/common/function_group.h"
 
 //#define PROFILE_ELEM_LOOP
 #ifdef PROFILE_ELEM_LOOP

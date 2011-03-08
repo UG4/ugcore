@@ -5,7 +5,7 @@
  *      Author: andreasvogel
  */
 
-#include "./function_group.h"
+#include "function_group.h"
 #include "common/common.h"
 #include <algorithm>
 #include <cstring>

@@ -8,14 +8,6 @@
 #ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__ELEM_DISC_INTERFACE__
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__ELEM_DISC_INTERFACE__
 
-// extern headers
-#include <vector>
-
-// intern headers
-#include "lib_discretization/assemble.h"
-#include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/function_spaces/grid_function_space.h"
-
 namespace ug{
 
 enum IElemDiscNeed {
@@ -26,6 +18,20 @@ enum IElemDiscNeed {
 	IEDN_STIFFNESS = 1 << 3,
 	IEDN_MASS = 1 << 4
 };
+
+}
+
+// extern headers
+#include <vector>
+
+// intern headers
+#include "lib_discretization/assemble.h"
+#include "lib_discretization/common/local_algebra.h"
+#include "lib_discretization/function_spaces/grid_function_space.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_export.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_import.h"
+
+namespace ug{
 
 // predeclaration
 template <typename TAlgebra> class IDataExport;

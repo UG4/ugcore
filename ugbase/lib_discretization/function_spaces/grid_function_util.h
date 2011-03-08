@@ -9,7 +9,7 @@
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
 #include "./grid_function.h"
-#include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/cpu_algebra/sparsematrix_print.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "lib_discretization/io/vtkoutput.h"
 #include <vector>

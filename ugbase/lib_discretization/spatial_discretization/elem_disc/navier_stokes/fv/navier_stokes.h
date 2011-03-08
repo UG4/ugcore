@@ -14,7 +14,7 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/spatial_discretization/disc_helper/disc_helper.h"
+#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
 #include "lib_discretization/spatial_discretization/disc_helper/fvgeom.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"

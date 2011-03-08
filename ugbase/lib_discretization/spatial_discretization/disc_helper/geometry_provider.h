@@ -1,12 +1,12 @@
 /*
- * disc_helper.h
+ * geometry_provider.h
  *
  *  Created on: 06.09.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__DISC_HELPER__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__DISC_HELPER__
+#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__GEOMETRY_PROVIDER__
+#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__GEOMETRY_PROVIDER__
 
 #include "./upwind_shapes.h"
 #include "./finite_volume_output.h"
@@ -46,4 +46,4 @@ class FVGeometryProvider {
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__DISC_HELPER__ */
+#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__GEOMETRY_PROVIDER__ */

@@ -8,11 +8,11 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON_IMPL__
 #define __H__LIBDISCRETIZATION__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON_IMPL__
 
-#include "newton.h"
-#include "lib_discretization/io/vtkoutput.h"
-#include "lib_discretization/function_spaces/grid_function_util.h"
 #include <iostream>
 #include <sstream>
+
+#include "newton.h"
+#include "lib_discretization/function_spaces/grid_function_util.h"
 
 //#define PROFILE_NEWTON
 #ifdef PROFILE_NEWTON

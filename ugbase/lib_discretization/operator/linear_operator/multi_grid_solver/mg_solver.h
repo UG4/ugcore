@@ -15,10 +15,13 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
-#include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/operator/operator_iterator_interface.h"
+#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/operator/operator_interface.h"
 
 // library intern headers
-#include "lib_discretization/lib_discretization.h"
+#include "lib_discretization/function_spaces/grid_function_util.h"
+#include "lib_discretization/operator/linear_operator/assembled_linear_operator.h"
 
 namespace ug{
 

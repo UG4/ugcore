@@ -14,7 +14,9 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "lib_discretization/common/common.h"
+#include "lib_discretization/common/function_group.h"
+#include "lib_discretization/common/subset_group.h"
+
 
 namespace ug {
 

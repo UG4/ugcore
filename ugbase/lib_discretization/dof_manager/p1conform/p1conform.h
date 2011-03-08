@@ -14,7 +14,6 @@
 
 #include "../dof_distribution.h"
 #include "../function_pattern.h"
-#include "../../common/common.h"
 #include "../../reference_element/reference_element.h"
 
 namespace ug{

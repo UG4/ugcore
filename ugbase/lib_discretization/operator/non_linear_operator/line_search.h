@@ -12,7 +12,6 @@
 #include <string>
 
 #include "common/common.h"
-#include "lib_discretization/operator/operator.h"
 
 namespace ug{
 

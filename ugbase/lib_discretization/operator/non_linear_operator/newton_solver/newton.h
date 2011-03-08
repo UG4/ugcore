@@ -10,9 +10,11 @@
 
 #include <cmath>
 
+#include "lib_algebra/operator/operator_inverse_interface.h"
+
 // modul intern headers
 #include "lib_discretization/assemble.h"
-#include "lib_discretization/operator/operator.h"
+#include "lib_discretization/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "../line_search.h"
 #include "lib_algebra/operator/debug_writer.h"
 

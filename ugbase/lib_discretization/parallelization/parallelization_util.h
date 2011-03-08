@@ -8,11 +8,13 @@
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 
-#include "lib_algebra/parallelization/parallel_index_layout.h"
-#include "lib_discretization/lib_discretization.h"
+
 #include "lib_grid/parallelization/parallelization.h"
-#include "lib_discretization/dof_manager/dof_distribution.h"
+
+#include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_algebra/parallelization/communication_policies.h"
+
+#include "lib_discretization/dof_manager/dof_distribution.h"
 
 namespace ug
 {

@@ -182,8 +182,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		}
 
 	protected:
-		template <typename T>
-		bool SplitAddRow(SparseMatrix<T>& A	,
+		bool SplitAddRow(matrix_type& A	,
 		                 algebra_index_vector_type& constrainedIndex,
 		                 std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
@@ -198,10 +197,10 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(constrainedIndex[i]);
+				for(typename matrix_type::rowIterator conn = A.beginRow(constrainedIndex[i]);
 						!conn.isEnd(); ++conn)
 				{
-					typename SparseMatrix<T>::value_type block = (*conn).dValue;
+					typename matrix_type::value_type block = (*conn).dValue;
 					const size_t j = (*conn).iIndex;
 
 					A(constrainedIndex[i], j) = 0.0;
@@ -222,8 +221,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 			return true;
 		}
 
-		template <typename T>
-		bool SetInterpolation(SparseMatrix<T>& A	,
+		bool SetInterpolation(matrix_type& A	,
 		                      algebra_index_vector_type& constrainedIndex,
 		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
@@ -247,8 +245,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 			return true;
 		}
 
-		template <typename T>
-		bool HandleRhs(Vector<T>& rhs,
+		bool HandleRhs(vector_type& rhs,
 		               algebra_index_vector_type& constrainedIndex,
 		               std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
@@ -263,7 +260,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				typename Vector<T>::value_type& val = rhs[constrainedIndex[i]];
+				typename vector_type::value_type& val = rhs[constrainedIndex[i]];
 				val *= 1./(vConstrainingIndices.size());
 
 				// split equally on all constraining indices
@@ -447,8 +444,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 		}
 
 	protected:
-		template <typename T>
-		bool SplitAddRow(SparseMatrix<T>& A,
+		bool SplitAddRow(matrix_type& A,
 		                 algebra_index_vector_type& constrainedIndex,
 		                 std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
@@ -463,10 +459,10 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(constrainedIndex[i]);
+				for(typename matrix_type::rowIterator conn = A.beginRow(constrainedIndex[i]);
 						!conn.isEnd(); ++conn)
 				{
-					typename SparseMatrix<T>::value_type block = (*conn).dValue;
+					typename matrix_type::value_type block = (*conn).dValue;
 					const size_t j = (*conn).iIndex;
 
 					// choose randomly the first dof to add whole row
@@ -477,8 +473,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 			return true;
 		}
 
-		template <typename T>
-		bool SetInterpolation(SparseMatrix<T>& A,
+		bool SetInterpolation(matrix_type& A,
 		                      algebra_index_vector_type& constrainedIndex,
 		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
@@ -503,8 +498,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 			return true;
 		}
 
-		template <typename T>
-		bool HandleRhs(Vector<T>& rhs,
+		bool HandleRhs(vector_type& rhs,
 		               algebra_index_vector_type& constrainedIndex,
 		               std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
@@ -519,7 +513,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				typename Vector<T>::value_type& val = rhs[constrainedIndex[i]];
+				typename vector_type::value_type& val = rhs[constrainedIndex[i]];
 
 				// choose randomly the first dof to add whole rhs (must be the same as for row)
 				rhs[vConstrainingIndices[0][i]] += val;

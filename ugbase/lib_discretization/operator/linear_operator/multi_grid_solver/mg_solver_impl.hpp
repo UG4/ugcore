@@ -9,9 +9,9 @@
 #define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 
 #include "common/profiler/profiler.h"
-#include "lib_discretization/io/vtkoutput.h"
 #include "projection_surface_level.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
+
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif

@@ -8,7 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__
 
-#include "lib_discretization/common/common.h"
+#include "lib_discretization/common/function_group.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
 #include "lib_discretization/function_spaces/grid_function_space.h"
 #include "lib_grid/tools/subset_handler_interface.h"

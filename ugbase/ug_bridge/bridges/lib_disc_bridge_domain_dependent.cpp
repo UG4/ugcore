@@ -5,16 +5,40 @@
  *      Author: andreasvogel
  */
 
-#include "../ug_bridge.h"
-#include "common/math/ugmath.h"
-#include "common/math/misc/math_util.h"
-#include "lib_algebra/lib_algebra.h"
-#include "lib_discretization/lib_discretization.h"
-#ifdef UG_PARALLEL
-#include "pcl/pcl.h"
-#endif
+// extern headers
 #include <iostream>
 #include <sstream>
+
+// include bridge
+#include "../ug_bridge.h"
+
+// lib_algebra includes
+#include "lib_algebra/algebra_chooser.h"
+#include "lib_algebra/lib_algebra.h"
+
+// lib_disc includes
+#include "lib_discretization/domain.h"
+#include "lib_discretization/function_spaces/grid_function.h"
+#include "lib_discretization/function_spaces/grid_function_space.h"
+#include "lib_discretization/function_spaces/grid_function_util.h"
+#include "lib_discretization/function_spaces/interpolate.h"
+#include "lib_discretization/dof_manager/p1conform/p1conform.h"
+
+#include "lib_discretization/io/vtkoutput.h"
+
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
+#include "lib_discretization/spatial_discretization/post_process/dirichlet_boundary/p1_dirichlet_boundary.h"
+#include "lib_discretization/spatial_discretization/elem_disc/neumann_boundary/fv/neumann_boundary.h"
+#include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/fv/inner_boundary.h"
+#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fe1/fe1_convection_diffusion.h"
+#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fv1/convection_diffusion.h"
+#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/density_driven_flow.h"
+#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/navier_stokes.h"
+#include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
+
+#include "lib_discretization/operator/linear_operator/projection_operator.h"
+#include "lib_discretization/operator/linear_operator/prolongation_operator.h"
+#include "lib_discretization/operator/linear_operator/multi_grid_solver/mg_solver.h"
 
 namespace ug
 {
@@ -22,81 +46,6 @@ extern enum_AlgebraType g_AlgebraType;
 
 namespace bridge
 {
-
-#ifdef UG_PARALLEL
-template <class grid_function_type>
-void OneToManyTests(grid_function_type& func)
-{
-	IndexLayout oneToManyMasterLayout;
-	IndexLayout oneToManySlaveLayout;
-	UG_LOG("executing OneToManyTests...\n");
-	LogIndexLayout(func.get_master_layout());
-	BuildOneToManyLayout(oneToManyMasterLayout,
-						 oneToManySlaveLayout,
-						 0,
-						 func.get_master_layout(),
-						 func.get_slave_layout(),
-						 pcl::ProcessCommunicator(pcl::PCD_WORLD));
-}
-
-template <class grid_function_type>
-void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
-										pcl::IDomainDecompositionInfo& ddinfo)
-{
-	IndexLayout subdomMasters;
-	IndexLayout subdomSlaves;
-	IndexLayout processMasters;
-	IndexLayout processSlaves;
-	IndexLayout deltaNbrMasters;
-	IndexLayout deltaNbrSlaves;
-	IndexLayout crossPointMasters;
-	IndexLayout crossPointSlaves;
-
-	UG_LOG("executing BuildDomainDecompositionLayoutsTest...\n");
-	UG_LOG("standard master layout: ");
-	LogIndexLayout(func.get_master_layout());
-	UG_LOG("standard slave layout: ");
-	LogIndexLayout(func.get_slave_layout());
-
-	BuildDomainDecompositionLayouts(subdomMasters, subdomSlaves,
-					processMasters, processSlaves, deltaNbrMasters,
-					deltaNbrSlaves, crossPointMasters, crossPointSlaves,
-					func.get_master_layout(), func.get_slave_layout(),
-					(int)func.num_dofs() - 1, ddinfo);
-
-	UG_LOG("done\n");
-
-	UG_LOG("subdomMasters: ");
-	LogIndexLayout(subdomMasters);
-	UG_LOG("subdomSlaves: ");
-	LogIndexLayout(subdomSlaves);
-
-	UG_LOG("processMasters: ");
-	LogIndexLayout(processMasters);
-	UG_LOG("processSlaves: ");
-	LogIndexLayout(processSlaves);
-
-	UG_LOG("deltaNbrMasters: ");
-	LogIndexLayout(deltaNbrMasters);
-	UG_LOG("deltaNbrSlaves: ");
-	LogIndexLayout(deltaNbrSlaves);
-
-	UG_LOG("crossPointMasters: ");
-	LogIndexLayout(crossPointMasters);
-	UG_LOG("crossPointSlaves: ");
-	LogIndexLayout(crossPointSlaves);
-
-}
-
-template <class grid_function_type>
-void TestGridFunctionLayout(grid_function_type& func)
-{
-	pcl::ParallelCommunicator<IndexLayout> com;
-	pcl::TestLayout(com, func.get_master_layout(),
-					func.get_slave_layout(), true);
-}
-
-#endif
 
 /// small wrapper to write a grid function to vtk
 template <typename TGridFunction>
@@ -377,34 +326,6 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
 #else
 		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
-#endif
-
-#ifdef UG_PARALLEL
-	//	todo: only temporary
-		{
-			std::stringstream ss; ss << "OneToManyTests" << dim << "d";
-
-			reg.add_function(ss.str().c_str(),
-							&OneToManyTests<function_type>);
-		}
-
-	//	todo: only temporary
-		{
-			std::stringstream ss; ss << "BuildDomainDecompositionLayoutsTest"
-								<< dim << "d";
-
-			reg.add_function(ss.str().c_str(),
-							&BuildDomainDecompositionLayoutsTest<function_type>);
-		}
-
-	//	todo: only temporary
-		{
-			std::stringstream ss; ss << "TestGridFunctionLayout"
-								<< dim << "d";
-
-			reg.add_function(ss.str().c_str(),
-							&TestGridFunctionLayout<function_type>);
-		}
 #endif
 
 	//	ApplyLinearSolver

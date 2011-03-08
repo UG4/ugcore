@@ -13,6 +13,9 @@
 
 namespace ug{
 
+// predeclaration
+template <typename TAlgebra> class IElemDisc;
+
 /// Base class for Data Export
 /**
  * An base class for all data exports

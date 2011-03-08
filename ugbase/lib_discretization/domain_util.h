@@ -271,11 +271,6 @@ bool WriteDomainToUGX(const char* filename, const TDomain& domain);
 
 ////////////////////////////////
 //	include implementation
-#include "domain_util_general_impl.h"
-#ifdef UG_PARALLEL
-	#include "domain_util_parallel_impl.hpp"
-#else
-	#include "domain_util_impl.hpp"
-#endif
+#include "domain_util_impl.h"
 
 #endif /* __H__LIBDISCRETIZATION__DOMAIN_UTIL__ */

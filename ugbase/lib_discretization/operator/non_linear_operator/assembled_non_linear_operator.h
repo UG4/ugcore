@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__NON_LINEAR_OPERATOR__ASSEMBLED_NON_LINEAR_OPERATOR__
 #define __H__LIBDISCRETIZATION__OPERATOR__NON_LINEAR_OPERATOR__ASSEMBLED_NON_LINEAR_OPERATOR__
 
-#include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/operator/operator_interface.h"
 
 namespace ug{
 
