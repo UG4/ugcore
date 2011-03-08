@@ -6,17 +6,23 @@
  */
 // #define UG_USE_AMG // temporary switch until AMG for systems works again
 
+// extern headers
+#include <iostream>
+#include <sstream>
+
+// bridge
 #include "../ug_bridge.h"
+
+// algebra inlcudes
 #include "lib_algebra/lib_algebra.h"
 
+// user data (temporarily for Kosta Update)
+#include "ug_script/user_data/user_data.h"
+
+// \todo: remove this dependency
 #ifdef UG_USE_AMG
 #include "lib_discretization/lib_discretization.h"
 #endif
-
-#include "ug_script/user_data/user_data.h"
-
-#include <iostream>
-#include <sstream>
 
 namespace ug
 {
