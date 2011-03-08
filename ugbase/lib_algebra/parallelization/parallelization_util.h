@@ -307,14 +307,25 @@ void VecCopy(	TVector* pVec,
 int GetHighestReferencedIndex(IndexLayout& layout);
 
 ////////////////////////////////////////////////////////////////////////
-///	fills a connection list, which gives the connected processes to each entry.
-/**	the first entry for each connection is the process on which the
+///	fills a connection list, which gives the connected processes to each interface.
+/**	The i-th entry in connectionsOut is a vector which contains the process-ids
+ * of all connected processes of the i-th interface. This includes connections
+ * to all slaves of the associated master.
+ * The first entry for each connection is the process on which the
  * master-element lies, followed by the processes where associated slaves lie.
+ *
+ * \param 	highestReferencedIndex has to hold the highest index which is referenced
+ * 			either by entries in the interfaces of masterLayout or by entries in the
+ * 			interfaces of slaveLayout. Note that it can be obtained by a call to
+ * 			std::max(GetHighestReferencedIndex(masterLayout), GetHighestReferencedIndex(slaveLayout)).
+ *
+ * \todo	The method should probably automatically find the highestReferencedIndex,
+ * 			to avoid misuse.
  */
 void CommunicateConnections(std::vector<std::vector<int> >& connectionsOut,
 							IndexLayout& masterLayout,
 							IndexLayout& slaveLayout,
-							int highestReferencedIndexs);
+							int highestReferencedIndex);
 
 /**	given a layout which defines relations between neighbours, this method
  * creates a layout which connect the elements in the given layouts with

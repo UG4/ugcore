@@ -397,6 +397,70 @@ void MarkForRefinement_VerticesInSquare(IRefiner& refiner,
 	}
 }
 
+
+////////////////////////////////////////////////////////////////////////
+///	This method only makes sense during the development of the grid redistribution
+/**	Note that the source grid is completly distributed (no vertical interfaces).
+ */
+void TestGridRedistribution(const char* filename)
+{
+	MultiGrid mg;
+	SubsetHandler sh(mg);
+	DistributedGridManager distGridMgr(mg);
+	GridLayoutMap& glm = distGridMgr.grid_layout_map();
+
+	int numProcs = pcl::GetNumProcesses();
+	if(numProcs != 4){
+		UG_LOG("This test-method only runs with exactly 4 processes.\n");
+		return;
+	}
+
+	if(pcl::GetProcRank() == 0){
+	//	use this for loading and distribution.
+		MutliGrid tmg;
+		SubsetHandler tsh(tmg);
+		if(!LoadGridFromFile(tmg, filename, tsh)){
+			UG_LOG("file not found\n");
+			return;
+		}
+
+	//	partition the grid once (only 2 partitions)
+		SubsetHandler shPart(tmg);
+		if(tmg.num_volumes() > 0){
+			PartitionElementsByRepeatedIntersection<Volume, 3>(
+											shPart, tmg,
+											tmg.num_levels() - 1,
+											2, aPosition);
+		}
+		else if(tmg.num_faces() > 0){
+			PartitionElementsByRepeatedIntersection<Face, 2>(
+											shPart, tmg,
+											tmg.num_levels() - 1,
+											2, aPosition);
+		}
+		else{
+			UG_LOG("This test-method only runs on geometries which contain ");
+			UG_LOG("faces or volumes.\n");
+			return;
+		}
+
+	//	now distribute the grid
+		if(!DistributeGrid(tmg, tsh, shPart, 0, mg, sh, glm)){
+			UG_LOG("Distribution failed\n");
+			return;
+		}
+	}
+	else if(pcl::GetProcRank() == 1){
+		if(!ReceiveGrid(mg, sh, glm, 0, false)){
+			UG_LOG("Receive failed.\n");
+			return;
+		}
+	}
+
+	distGridMgr.grid_layouts_changed(true);
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 {

@@ -1045,6 +1045,20 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 								vVolumeLayouts, distGridMgr, shPartition,
 							  	false, &msel);
 
+//	The distribution layouts now contain the elements which shall be
+//	sent to the associated processes.
+//	They also contain interfaces. Those are however not yet final.
+//	If parts e.g. of IAB are sent to C and associated parts of IBA
+//	are sent to D, then those new resulting interfaces ICD and IDC
+//	are not yet reflected (instead still interfaces ICD and IDA
+//	are contained).
+//	An idea to update those connections would be, that each process
+//	communicates with old associated processes and tells them, where
+//	common nodes are sent. This is done once for MASTER->SLAVE and
+//	once for SLAVE->MASTER. The processes are then able to update their
+//	interfaces. Eventually this could be done in CreateRedistributionLayouts.
+
+
 ////////////////////////////////
 //	SETUP COMMUNICATION PATTERNS
 //	first we have to communicate which process has to wait for data
