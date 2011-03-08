@@ -16,6 +16,7 @@
 --	* Section 3: tables (arrays and much more)
 --	* Section 4: functions
 --	* Section 5: scopes
+--  * Section 6: standard libraries 
 --------------------------------------------------------------------------------
 
 
@@ -175,9 +176,6 @@ print("Age: " .. con["age"])
 
 -- Be sure to check the reference documentation on tables.
 
-
-
-
 --------------------------------------------------------------------------------
 -- Section 4: functions
 --------------------------------------------------------------------------------
@@ -203,7 +201,30 @@ xScaled, yScaled = Scale(3, 4, 2)
 print("3 and 4 scaled by 2 results in " .. xScaled .. " and " .. yScaled)
 
 
+-- NOTE: omitted parameters are set to nil:
+function myprint(a, b)
+	if(a ~= nil) then print(a) end
+	if(b ~= nil) then print(a) end	
+end
 
+print("myprint(\"hello:\") ")
+myprint("hello") -- omitted parameter 'b'
+myprint() -- omitted both parameters
+
+-- (this is also true for wrapped C/C++-functions)
+
+-- functions can also be part of tables (this can be used to create 'namespaces')
+mytable = mytable or {} 
+function mytable.print_stuff()
+	print("hello!")
+end
+mytable.print_stuff();
+
+-- to 'extend namespaces' use
+mytable = mytable or {}
+-- because if you use
+mytable = {}
+-- mytable.print_stuff is gone.
 
 --------------------------------------------------------------------------------
 -- Section 5: scopes
@@ -236,3 +257,43 @@ print(localVar)
 SetLocalVar(33)
 print("Value of localVar after call to SetLocalVar(33): ")
 print(localVar)
+
+
+--------------------------------------------------------------------------------
+-- Section 6: standard libraries (http://www.lua.org/manual/5.1/manual.html#5)
+--------------------------------------------------------------------------------
+
+print("LUA Version is " .. _VERSION) -- might be nice to know
+
+-- string manipulation (http://www.lua.org/manual/5.1/manual.html#5.4)
+-- sometimes you want to format your strings like this
+print("normal: " .. math.pi)
+print("formatted: " .. string.format ("%.40f", math.pi) )
+
+-- math functions (http://www.lua.org/manual/5.1/manual.html#5.6)
+-- math.abs     math.acos    math.asin    math.atan    math.atan2
+-- math.ceil    math.cos     math.deg     math.exp     math.floor
+-- math.log     math.log10   math.max     math.min     math.mod
+-- math.pow     math.rad     math.sin     math.sqrt    math.tan
+-- math.frexp   math.ldexp   math.random  math.randomseed
+
+-- i/o . (http://www.lua.org/manual/5.1/manual.html#5.7)
+-- with io.open, you get access to files. io.open returns a handle which is actually a FILE* pointer
+file = io.open("tut01_lua_basics_output.txt", "a")
+-- use file:write to write data to the file
+file:write("hello world")  -- this is the same as file:write(tostring(s))
+io.close(file)
+
+-- operating system facilities (http://www.lua.org/manual/5.1/manual.html#5.8)
+-- we only cover time and date functions here:
+tBefore = os.clock()
+-- do something
+for i = 1, 10000, 1 do
+str = str .. i .. " "
+end
+tAfter = os.clock()
+print("took " .. tAfter-tBefore .. " seconds!")
+
+print("it is " .. os.date("%X on %x"))
+filenamedate = os.date("y%ym%dd%d")
+print("you can use " .. filenamedate .. " as prefix for your files")
