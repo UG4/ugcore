@@ -358,10 +358,10 @@ class DensityDrivenFlowElemDisc
 		IPData<number, dim>& get_brine() {return m_exBrine;}
 
 	///	returns the export of brine mass fracture
-		IPData<number, dim>& get_brine_grad() {return m_exBrineGrad;}
+		IPData<MathVector<dim>, dim>& get_brine_grad() {return m_exBrineGrad;}
 
 	///	returns the export of brine mass fracture
-		IPData<number, dim>& get_pressure_grad() {return m_exPressureGrad;}
+		IPData<MathVector<dim>, dim>& get_pressure_grad() {return m_exPressureGrad;}
 
 	protected:
 	///	computes the darcy velocity using consistent gravity

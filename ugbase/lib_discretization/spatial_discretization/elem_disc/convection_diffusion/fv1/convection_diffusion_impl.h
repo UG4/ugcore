@@ -496,6 +496,259 @@ assemble_f(local_vector_type& d, number time)
 	return true;
 }
 
+
+//	computes the linearized defect w.r.t to the velocity
+template<typename TDomain, typename TAlgebra>
+template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+bool
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+lin_defect_velocity(const local_vector_type& u)
+{
+//  get finite volume geometry
+	static TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+
+//  loop Sub Control Volume Faces (SCVF)
+	size_t ip = 0;
+	for(size_t i = 0; i < geo.num_scvf(); ++i)
+	{
+	// get current SCVF
+		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
+
+	// loop integration point of SCVF
+		for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
+		{
+		//  reset
+			for(size_t j = 0; j < scvf.num_sh(); ++j)
+			{
+				m_ConvVel.lin_defect(ip, _C_, j) = 0.0;
+			}
+
+		// central part convection
+			number scale = (1.- m_upwindAmount);
+
+			number shape_u = 0.0;
+			for(size_t j = 0; j < scvf.num_sh(); ++j)
+				shape_u += u(_C_,j) * scvf.shape(j, i);
+
+			scale *= shape_u;
+
+		// upwind part convection
+			const number flux = m_upwindAmount
+								* VecDot(m_ConvVel[ip], scvf.normal());
+
+			if(flux >= 0.0) scale += m_upwindAmount* u(_C_, scvf.from());
+			else scale += m_upwindAmount * u(_C_, scvf.to());
+
+			MathVector<dim> linDefect = scvf.normal();
+			linDefect *= scale;
+
+			m_ConvVel.lin_defect(ip, _C_, scvf.from()) += linDefect;
+			m_ConvVel.lin_defect(ip, _C_, scvf.to()) -= linDefect;
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+//	computes the linearized defect w.r.t to the velocity
+template<typename TDomain, typename TAlgebra>
+template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+bool
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+lin_defect_diffusion(const local_vector_type& u)
+{
+//  get finite volume geometry
+	static TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+
+//  loop Sub Control Volume Faces (SCVF)
+	size_t ip = 0;
+	for(size_t i = 0; i < geo.num_scvf(); ++i)
+	{
+	// get current SCVF
+		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
+
+	// loop integration point of SCVF
+		for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
+		{
+			// 	reset values
+			for(size_t j = 0; j < scvf.num_sh(); ++j)
+			{
+				m_Diff.lin_defect(ip, _C_, j) = 0.0;
+			}
+
+			MathVector<dim> grad_u;
+		// 	compute gradient at ip
+			VecSet(grad_u, 0.0);
+			for(size_t j = 0; j < scvf.num_sh(); ++j)
+			{
+				VecScaleAppend(grad_u, u(_C_,j), scvf.global_grad(j, i));
+			}
+
+			MathMatrix<dim,dim> linDefect;
+
+			for(size_t k=0; k < (size_t)dim; ++k)
+				for(size_t j = 0; j < (size_t)dim; ++j)
+					linDefect(j,k) = (scvf.normal())[j] * grad_u[k];
+
+			m_Diff.lin_defect(ip, _C_, scvf.from()) -= linDefect;
+			m_Diff.lin_defect(ip, _C_, scvf.to()) += linDefect;
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+
+//	computes the linearized defect w.r.t to the velocity
+template<typename TDomain, typename TAlgebra>
+template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+bool
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+compute_concentration_export(const local_vector_type& u, bool compDeriv)
+{
+//  get finite volume geometry
+	static TFVGeom<TElem, dim>& geo
+		= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	static const size_t refDim = ref_elem_type::dim;
+	static const size_t num_co = ref_elem_type::num_corners;
+
+//	loop all ip series
+	for(size_t s = 0; s < m_exConcentration.num_series(); ++s)
+	{
+	//	FV1 SCVF ip
+		if(m_exConcentration.template local_ips<refDim>(s)
+				== geo.scvf_local_ips())
+		{
+		//	Loop Sub Control Volume Faces (SCVF)
+			size_t ip = 0;
+			for(size_t i = 0; i < geo.num_scvf(); ++i)
+			{
+			// 	Get current SCVF
+				const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
+
+			// 	Loop integration point of SCVF
+				for(size_t j = 0; j < scvf.num_ip(); ++j, ++ip)
+				{
+				//	compute concentration at ip
+					number& cIP = m_exConcentration.value(s, ip);
+					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+						cIP += u(_C_, sh) * scvf.shape(sh, j);
+
+				//	compute derivative w.r.t. to unknowns iff needed
+					if(compDeriv)
+					{
+					//	get field of derivatives
+						number* cIP_c = m_exConcentration.deriv(s, ip, _C_);
+
+					//	set shapes
+						for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+							cIP_c[sh] = scvf.shape(sh, j);
+					}
+				}
+			}
+
+		//	this position type is done
+			continue;
+		}
+
+	//	FV1 SCV ip
+		if(m_exConcentration.template local_ips<refDim>(s)
+				== geo.scv_local_ips())
+		{
+		//	Loop Corners
+			for(size_t ip = 0; ip < num_co; ip++)
+			{
+			//	Compute Gradients and concentration at ip
+				m_exConcentration.value(s, ip) = u(_C_, ip);
+
+			//	set derivatives if needed
+				if(compDeriv)
+				{
+					number* cIP_c = m_exConcentration.deriv(s, ip, _C_);
+
+					for(size_t sh = 0; sh < num_co; ++sh)
+						cIP_c[sh] = (ip==sh) ? 1.0 : 0.0;
+				}
+			}
+
+		//	this position type is done
+			continue;
+		}
+
+	// 	others not implemented
+		UG_LOG("Evaluation not implemented.");
+		return false;
+	}
+
+//	we're done
+	return true;
+}
+
+//	computes the linearized defect w.r.t to the velocity
+template<typename TDomain, typename TAlgebra>
+template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+bool
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
+{
+// 	Get finite volume geometry
+	static const TFVGeom<TElem, dim>& geo =
+				FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	static const size_t refDim = ref_elem_type::dim;
+
+	for(size_t s = 0; s < m_exConcentrationGrad.num_series(); ++s)
+	{
+	//	FV1 SCVF ip
+		if(m_exConcentrationGrad.template local_ips<refDim>(s)
+				== geo.scvf_local_ips())
+		{
+		//	Loop Sub Control Volume Faces (SCVF)
+			size_t ip = 0;
+			for(size_t i = 0; i < geo.num_scvf(); ++i)
+			{
+			// 	Get current SCVF
+				const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
+
+			// 	Loop integration point of SCVF
+				for(size_t j = 0; j < scvf.num_ip(); ++j, ++ip)
+				{
+				//	Compute Gradients and concentration at ip
+					MathVector<dim>& cIP = m_exConcentrationGrad.value(s, ip);
+
+					VecSet(cIP, 0.0);
+					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+						VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh, j));
+
+					if(compDeriv)
+					{
+						MathVector<dim>* cIP_c = m_exConcentrationGrad.deriv(s, ip, _C_);
+
+						for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+							cIP_c[sh] = scvf.global_grad(sh, j);
+					}
+				}
+			}
+
+		//	this position type is done
+			continue;
+		}
+
+		// others not implemented
+		UG_LOG("Evaluation not implemented.");
+		return false;
+	}
+
+//	we're done
+	return true;
+}
+
+
 } // namespace ug
 
 
