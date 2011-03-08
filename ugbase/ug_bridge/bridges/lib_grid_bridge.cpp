@@ -403,7 +403,7 @@ void MarkForRefinement_VerticesInSquare(IRefiner& refiner,
 /**	Note that the source grid is completly distributed (no vertical interfaces).
  */
 void TestGridRedistribution(const char* filename)
-{
+{/*
 	MultiGrid mg;
 	SubsetHandler sh(mg);
 	DistributedGridManager distGridMgr(mg);
@@ -457,7 +457,7 @@ void TestGridRedistribution(const char* filename)
 		}
 	}
 
-	distGridMgr.grid_layouts_changed(true);
+	distGridMgr.grid_layouts_changed(true);*/
 }
 
 
