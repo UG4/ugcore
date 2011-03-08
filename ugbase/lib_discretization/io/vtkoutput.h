@@ -5,19 +5,14 @@
  *      Author: andreasvogel
  */
 
-#ifndef VTKOUTPUT_H_
-#define VTKOUTPUT_H_
+#ifndef __H__LIB_DISCRETIZATION__IO__VTKOUTPUT__
+#define __H__LIB_DISCRETIZATION__IO__VTKOUTPUT__
 
 // extern libraries
-#include <cstdio>
+#include <vector>
 
 // other ug modules
-#include "common/common.h"
 #include "lib_grid/lg_base.h"
-#include "lib_algebra/lib_algebra.h"
-
-// library intern headers
-#include "lib_discretization/function_spaces/grid_function_space.h"
 
 namespace ug{
 
@@ -123,4 +118,4 @@ class VTKOutput{
 
 #include "vtkoutput_impl.h"
 
-#endif /* VTKOUTPUT_H_ */
+#endif /* __H__LIB_DISCRETIZATION__IO__VTKOUTPUT__ */

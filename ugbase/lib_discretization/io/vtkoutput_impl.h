@@ -8,10 +8,16 @@
 
 #define __SWAPBYTES__            /* if using LittleEndian */
 
-#include "vtkoutput.h"
-
+//other libraries
+#include <cstdio>
 #include <iostream>
 #include <cstring>
+
+// ug4 libraries
+#include "common/log.h"
+
+// own interface
+#include "vtkoutput.h"
 
 namespace ug{
 
