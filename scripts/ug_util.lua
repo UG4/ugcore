@@ -164,6 +164,27 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
+-- creates FV1NavierStokes
+function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
+	local domain = approxSpace:get_domain()
+	local dim = domain:get_dim()
+	local elemDisc
+	if dim == 1 then
+		elemDisc = FV1NavierStokes1d()
+	elseif dim == 2 then
+		elemDisc = FV1NavierStokes2d()
+	elseif dim == 3 then
+		elemDisc = FV1NavierStokes3d()
+	else
+	return nil
+	end
+	
+	elemDisc:set_approximation_space(approxSpace)
+	elemDisc:set_subsets(subsets)
+	elemDisc:set_functions(functions)
+	return elemDisc
+end
+
 -- create Geometric Multigrid
 function util.CreateGeometricMultiGrid(approxSpace)
 	local dim = approxSpace:get_domain():get_dim()

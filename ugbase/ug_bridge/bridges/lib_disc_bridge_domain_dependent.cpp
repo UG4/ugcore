@@ -202,9 +202,9 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
 		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_approximation_space", &T2::set_approximation_space,
+/*			.add_method("set_approximation_space", &T2::set_approximation_space,
 						"", "Approximation Space")
-			.add_method("set_upwind|interactive=false", &T2::set_upwind,
+*/			.add_method("set_upwind|interactive=false", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
 			.add_method("set_boussinesq_transport|interactive=false", &T2::set_boussinesq_transport,
 						"", "Boussinesq Transport")
@@ -226,6 +226,21 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 						"", "Consistent Gravity")
 			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
 			.add_method("get_brine", &T2::get_brine);
+	}
+
+//	Density Driven Flow
+	{
+		typedef FVNavierStokesElemDisc<FV1Geometry, domain_type, algebra_type> T;
+		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
+		std::stringstream ss; ss << "FV1NavierStokes" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_kinematic_viscosity", &T::set_kinematic_viscosity)
+			.add_method("set_upwind", &T::set_upwind)
+			.add_method("set_stabilization", &T::set_stabilization)
+			.add_method("set_diffusionlength", &T::set_diffusionlength)
+			.add_method("set_physicalAdvectionCorrection", &T::set_physicalAdvectionCorrection)
+			.add_method("set_pecletBlend", &T::set_pecletBlend);
 	}
 
 //	ProlongationOperator

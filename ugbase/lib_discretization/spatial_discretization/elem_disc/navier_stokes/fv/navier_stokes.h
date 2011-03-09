@@ -59,7 +59,7 @@ class FVNavierStokesElemDisc
 		FVNavierStokesElemDisc()
 		 : m_Viscosity(1.0)
 		   {
-                set_upwind("FULL_UPWIND");
+                set_upwind("Full");
                 set_stabilization("FIELDS");
                 set_diffusionlength("RAW");
                 set_physicalAdvectionCorrection("NOPAC");
@@ -70,14 +70,14 @@ class FVNavierStokesElemDisc
 
 	public:
 	//	Setup
-		void set_kinematicViscosity(number nu) {m_Viscosity = nu;}
+		void set_kinematic_viscosity(number nu) {m_Viscosity = nu;}
 
 	private:
 		int m_UpwindMethod;
         int m_StabOptions[STAB_OPTIONS];
 
 	public:
-		bool set_upwind(const std::string& upwind)
+		bool set_upwind(std::string upwind)
 		{
 			if      (upwind == "NoUpwind")  m_UpwindMethod = NO_UPWIND;
             else if (upwind == "Full")      m_UpwindMethod = FULL_UPWIND;
@@ -87,7 +87,7 @@ class FVNavierStokesElemDisc
 			return true;
 		}
 
-		bool set_stabilization(const std::string& stabilization)
+		bool set_stabilization(std::string stabilization)
 		{
 			if      (stabilization == "FIELDS")  m_StabOptions[STAB_METHOD] = FIELDS;
             else if (stabilization == "FLOW")    m_StabOptions[STAB_METHOD] = FLOW;
@@ -95,7 +95,7 @@ class FVNavierStokesElemDisc
 			return true;
 		}
 
-        bool set_diffusionlength(const std::string& diffusionlength)
+        bool set_diffusionlength(std::string diffusionlength)
 		{
 			if      (diffusionlength == "RAW")        m_StabOptions[DIFF_LENGTH_METHOD] = RAW;
             else if (diffusionlength == "FIVEPOINT")  m_StabOptions[DIFF_LENGTH_METHOD] = FIVEPOINT;
@@ -104,7 +104,7 @@ class FVNavierStokesElemDisc
 			return true;
 		}
 
-        bool set_physicalAdvectionCorrection(const std::string& physicalAdvectionCorrection)
+        bool set_physicalAdvectionCorrection(std::string physicalAdvectionCorrection)
 		{
 			if      (physicalAdvectionCorrection == "PAC")    m_StabOptions[PAC_SWITCH] = PAC;
             else if (physicalAdvectionCorrection == "NOPAC")  m_StabOptions[PAC_SWITCH] = NOPAC;
@@ -112,7 +112,7 @@ class FVNavierStokesElemDisc
 			return true;
 		}
 
-        bool set_pecletBlend(const std::string& pecletBlend)
+        bool set_pecletBlend(std::string pecletBlend)
 		{
 			if      (pecletBlend == "PEBLEND")    m_StabOptions[PECLET_BLENDING_SWITCH] = PEBLEND;
             else if (pecletBlend == "NOPEBLEND")  m_StabOptions[PECLET_BLENDING_SWITCH] = NOPEBLEND;

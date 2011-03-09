@@ -106,7 +106,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
    	// Store Corner values in vCornerVels variable
     for(size_t co = 0; co < numCo; ++co)
-        for (size_t component = 0; component < dim; ++component)
+        for (size_t component = 0; component < (size_t)dim; ++component)
             vCornerVels[co][component]=u(component,co);
 
 	// Compute Upwind Shapes at Ip's and ConvectionLength here fot the Momentum Equation
@@ -143,12 +143,12 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				number flux = VecDot(scvf.global_grad(co, ip), scvf.normal());
 
 				// Add flux term to local matrix
-				for(size_t vel1 = 0; vel1 < dim; ++vel1)
+				for(size_t vel1 = 0; vel1 < (size_t)dim; ++vel1)
 				{
 					J(vel1, scvf.from(), vel1, co) -= m_Viscosity * flux;
 					J(vel1, scvf.to()  , vel1, co) += m_Viscosity * flux;
 
-					for(size_t vel2 = 0; vel2 < dim; ++vel2)
+					for(size_t vel2 = 0; vel2 < (size_t)dim; ++vel2)
 					{
 						const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
 						J(vel1, scvf.from(), vel2, co) -= flux2;
@@ -160,7 +160,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// Pressure Term (Momentum Equation)
 				////////////////////////////////////////////////////
 
-                for(size_t vel = 0; vel < dim; ++vel)
+                for(size_t vel = 0; vel < (size_t)dim; ++vel)
 				{
 					J(vel, scvf.from(), _P_, co) += scvf.shape(co, ip) * scvf.normal()[vel];
 					J(vel, scvf.to()  , _P_, co) -= scvf.shape(co, ip) * scvf.normal()[vel];
@@ -174,12 +174,12 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				flux = VecDot(scvf.global_grad(co, ip), scvf.normal());
 
                 // Add flux term to local matrix
-				for(size_t vel1 = 0; vel1 < dim; ++vel1)
+				for(size_t vel1 = 0; vel1 < (size_t)dim; ++vel1)
 				{
 					J(vel1, scvf.from(), vel1, co) += m_Viscosity * flux;
 					J(vel1, scvf.to()  , vel1, co) -= m_Viscosity * flux;
 
-					for(size_t vel2 = 0; vel2 < dim; ++vel2)
+					for(size_t vel2 = 0; vel2 < (size_t)dim; ++vel2)
 					{
 						const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
 						J(vel1, scvf.from(), vel2, co) += flux2;
@@ -221,7 +221,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		const int co = scv.node_id();
 
 		// loop velocity components
-		for(size_t vel1 = 0; vel1 < dim; ++vel1)
+		for(size_t vel1 = 0; vel1 < (size_t)dim; ++vel1)
 		{
 			// Add to local matrix
 			J(vel1, co, vel1, co) += scv.volume();
@@ -265,7 +265,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
    	// Store Corner values in vCornerVels variable
     for(size_t co = 0; co < numCo; ++co){
-        for (size_t component = 0; component < dim; ++component)
+        for (size_t component = 0; component < (size_t)dim; ++component)
             vCornerVels[co][component]=u(component,co);
         vCornerPress[co]=u(_P_,co);
     }
@@ -303,12 +303,12 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 				number flux = VecDot(scvf.global_grad(co, ip), scvf.normal());
 
 				// Add flux term to local matrix
-				for(size_t vel1 = 0; vel1 < dim; ++vel1)
+				for(size_t vel1 = 0; vel1 < (size_t)dim; ++vel1)
 				{
 					//d(vel1, scvf.from(), vel1, co) -= m_Viscosity * flux;
 					//d(vel1, scvf.to()  , vel1, co) += m_Viscosity * flux;
 
-					for(size_t vel2 = 0; vel2 < dim; ++vel2)
+					for(size_t vel2 = 0; vel2 < (size_t)dim; ++vel2)
 					{
 						//const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
 						//d(vel1, scvf.from(), vel2, co) -= flux2;
@@ -320,7 +320,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 				// Pressure Term (Momentum Equation)
 				////////////////////////////////////////////////////
 
-                for(size_t vel = 0; vel < dim; ++vel)
+                for(size_t vel = 0; vel < (size_t)dim; ++vel)
 				{
 					//d(vel, scvf.from(), _P_, co) += scvf.shape(co, ip) * scvf.normal()[vel];
 					//d(vel, scvf.to()  , _P_, co) -= scvf.shape(co, ip) * scvf.normal()[vel];
@@ -334,12 +334,12 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 				flux = VecDot(scvf.global_grad(co, ip), scvf.normal());
 
                 // Add flux term to local matrix
-				for(size_t vel1 = 0; vel1 < dim; ++vel1)
+				for(size_t vel1 = 0; vel1 < (size_t)dim; ++vel1)
 				{
 					//d(vel1, scvf.from(), vel1, co) += m_Viscosity * flux;
 					//d(vel1, scvf.to()  , vel1, co) -= m_Viscosity * flux;
 
-					for(size_t vel2 = 0; vel2 < dim; ++vel2)
+					for(size_t vel2 = 0; vel2 < (size_t)dim; ++vel2)
 					{
 						//const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
 						//d(vel1, scvf.from(), vel2, co) += flux2;
@@ -381,7 +381,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		const int co = scv.node_id();
 
 		// loop velocity components
-		for(size_t vel1 = 0; vel1 < dim; ++vel1)
+		for(size_t vel1 = 0; vel1 < (size_t)dim; ++vel1)
 		{
 			// Add to local matrix
 			d(vel1, co) += u(vel1, co) * scv.volume();
