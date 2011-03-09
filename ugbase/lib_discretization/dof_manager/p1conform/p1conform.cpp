@@ -448,8 +448,12 @@ order_cuthill_mckee(bool bReverse)
 		return true;
 	}
 
-//	check that in all subsets same number of functions
 	size_t numFct = num_fct(0);
+
+// 	if number of functions 0, nothing to do
+	if(numFct == 0) return true;
+
+//	check that in all subsets same number of functions
 	for(int si = 0; si < num_subsets(); ++si)
 	{
 		if(numFct != num_fct(si))
