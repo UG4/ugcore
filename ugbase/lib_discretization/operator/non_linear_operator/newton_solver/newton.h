@@ -45,11 +45,13 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 					m_pConvCheck(&ConvCheck),
 					m_pLineSearch(LineSearch),
 					m_reallocate(reallocate), m_allocated(false),
-					m_dgbCall(0)
+					m_pDebugWriter(NULL), m_dgbCall(0)
 			{};
 
 		NewtonSolver() :
-			m_pLinearSolver(NULL), m_pConvCheck(NULL), m_pLineSearch(NULL), m_reallocate(false), m_allocated(false), m_dgbCall(0)
+			m_pLinearSolver(NULL), m_pConvCheck(NULL), m_pLineSearch(NULL),
+			m_reallocate(false), m_allocated(false), m_pDebugWriter(NULL),
+			m_dgbCall(0)
 			{};
 
 		void set_linear_solver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver) {m_pLinearSolver = &LinearSolver;}
