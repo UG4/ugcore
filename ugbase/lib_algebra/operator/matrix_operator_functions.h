@@ -44,7 +44,7 @@ void MatIdentity(	IMatrixOperator<X, Y, M>& opOut)
 	matOut.resize(numRows, numCols);
 
 	for(size_t i = 0; i < numRows; ++i)
-		matOut(i, i) = 1.0;
+		matOut(i, i) = 2.0;
 }
 
 
