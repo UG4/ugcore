@@ -3,6 +3,7 @@
 
 #include "operator_interface.h"
 #include "operator_inverse_interface.h"
+#include "common/profiler/profiler.h"
 
 namespace ug{
 
