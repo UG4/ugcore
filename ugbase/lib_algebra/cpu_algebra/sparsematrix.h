@@ -16,7 +16,7 @@
 
 #include "../common/template_expressions.h"
 #include "vector.h"
-
+#include "../common/operations_mat/operations_mat.h"
 
 namespace ug{
 

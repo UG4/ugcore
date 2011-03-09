@@ -12,7 +12,16 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
 
-namespace ug{
+
+#ifdef UG_PARALLEL
+
+#include <iostream>
+#include <sstream>
+#include <string>
+#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/parallelization/parallelization.h"
+#include "lib_algebra/operator/debug_writer.h"
+#include "pcl/pcl.h"
 
 /* 
  * Outline of FETI-DP algorithm (after Klawonn, A., Widlund, O., Dryja, M.:
@@ -43,15 +52,7 @@ namespace ug{
  *    final, global part of the linear system of equations.
  */
 
-#ifdef UG_PARALLEL
-
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "lib_algebra/operator/operator_inverse_interface.h"
-#include "lib_algebra/parallelization/parallelization.h"
-#include "lib_algebra/operator/debug_writer.h"
-#include "pcl/pcl.h"
+namespace ug{
 
 /// Auxiliary class for handling of "FETI layouts"
 /**
@@ -960,8 +961,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		pcl::IDomainDecompositionInfo* m_pDDInfo;
 
 }; /* end class 'FETISolver' */
-#endif /* UG_PARALLEL */
 
 } // end namespace ug
+
+#endif /* UG_PARALLEL */
 
 #endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__ */

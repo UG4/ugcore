@@ -1,8 +1,10 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_UTIL__
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_UTIL__
 
-namespace ug{
+#include "operator_interface.h"
+#include "operator_inverse_interface.h"
 
+namespace ug{
 
 template <typename vector_type>
 bool ApplyLinearSolver(	ILinearOperator<vector_type, vector_type>& A,

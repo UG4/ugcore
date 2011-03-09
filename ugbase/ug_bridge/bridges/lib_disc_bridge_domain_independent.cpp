@@ -12,8 +12,9 @@
 // registry
 #include "../registry.h"
 
-// lib algebra
-#include "lib_algebra/lib_algebra.h"
+// algebra chooser
+#include "lib_algebra/algebra_chooser.h"
+#include "lib_algebra/operator/matrix_operator_functions.h"
 
 // lib_discretization part
 #include "lib_discretization/dof_manager/dof_distribution.h"

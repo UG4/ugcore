@@ -14,7 +14,6 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
-#include "lib_algebra/lib_algebra.h"
 
 // library intern includes
 #include "../../reference_element/reference_element.h"

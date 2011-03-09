@@ -14,7 +14,9 @@
 
 // lib_algebra includes
 #include "lib_algebra/algebra_chooser.h"
-#include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/operator/operator_util.h"
+#include "lib_algebra/operator/operator_interface.h"
+#include "lib_algebra/operator/operator_inverse_interface.h"
 
 // lib_disc includes
 #include "lib_discretization/domain.h"
@@ -202,9 +204,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
 		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-/*			.add_method("set_approximation_space", &T2::set_approximation_space,
-						"", "Approximation Space")
-*/			.add_method("set_upwind|interactive=false", &T2::set_upwind,
+			.add_method("set_upwind|interactive=false", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
 			.add_method("set_boussinesq_transport|interactive=false", &T2::set_boussinesq_transport,
 						"", "Boussinesq Transport")

@@ -8,17 +8,19 @@
 //
 //	In the moment template instantiations are invoked at the end of this file.
 
-//	do not include feti.h itself or your will be sent to compile-error-hell
-//#include "feti.h"
-
 #ifdef UG_PARALLEL
 
-#include "lib_algebra/lib_algebra.h"
+// extern headers
 #include <cmath>
+
+// own header
+#include "feti.h"
+
+// algebra types
+#include "lib_algebra/algebra_chooser.h"
 
 // additions for profiling
 #include "common/profiler/profiler.h"
-
 #define PROFILE_FETI
 #ifdef PROFILE_FETI
 	#define FETI_PROFILE_FUNC()			PROFILE_FUNC()
@@ -32,6 +34,8 @@
 // additions for profiling - end
 
 namespace ug{
+
+
 //	used to inform root over primal connections.
 template <class TValue>
 struct PrimalConnection{
@@ -1479,6 +1483,7 @@ template class PrimalSubassembledMatrixInverse<CPUAlgebra>;
 template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<3> >;
 template class FETISolver<CPUAlgebra>;
 template class FETISolver<CPUBlockAlgebra<3> >;
-}// end of namespace
+
+};  // end of namespace
 
 #endif

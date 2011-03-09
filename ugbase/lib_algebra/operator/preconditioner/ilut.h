@@ -8,7 +8,6 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ILUT__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ILUT__
 
-#include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/operator_interface.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"

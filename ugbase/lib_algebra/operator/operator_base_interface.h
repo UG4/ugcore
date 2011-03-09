@@ -8,8 +8,9 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_BASE_INTERFACE__
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_BASE_INTERFACE__
 
-namespace ug{
+#include "common/common.h"
 
+namespace ug{
 
 class IFunctionBase
 {

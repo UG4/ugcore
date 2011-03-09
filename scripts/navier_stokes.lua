@@ -270,6 +270,29 @@ u = approxSpace:create_surface_function()
 -- reproducable results.
 u:set(0)
 
+-- We could also interpolate some user defined function
+-- setup the lua functions ...
+function Pressure_StartValue2d(x, y, t)
+	return 0.789
+end
+function VelX_StartValue2d(x, y, t)
+	return math.sin(10*x)
+end
+function VelY_StartValue2d(x, y, t)
+	return math.sin(10*y)
+end
+
+-- ... and wrap the lua-callback
+if dim == 2 then
+LuaPressureStartValue = util.CreateLuaUserNumber("Pressure_StartValue"..dim.."d", dim)
+LuaVelXStartValue = util.CreateLuaUserNumber("VelX_StartValue"..dim.."d", dim)
+LuaVelYStartValue = util.CreateLuaUserNumber("VelY_StartValue"..dim.."d", dim)
+end
+
+-- Now interpolate the function
+--InterpolateFunction(LuaStartValue, u, "c", time);
+
+
 -- we need a linear solver that solves the linearized problem inside of the
 -- newton solver iteration. So, we create an exact LU solver here.
 linSolver = LU()

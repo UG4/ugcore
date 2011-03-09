@@ -14,6 +14,7 @@
 #include <string>
 #include <limits>
 #include <algorithm>
+#include <iomanip>
 
 #include "common/common.h"
 #include "lib_algebra/operator/operator_base_interface.h"

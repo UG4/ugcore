@@ -12,7 +12,7 @@
 #include "ug.h"
 #include "algebra_extensions.h"
 #include "ug_bridge/ug_bridge.h"
-#include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/algebra_chooser.h"
 
 #ifdef UG_USE_AMG
 #include "lib_discretization/lib_discretization.h"

@@ -15,7 +15,11 @@
 // bridge
 #include "../ug_bridge.h"
 
-// algebra inlcudes
+// algebra includes
+#include "lib_algebra/algebra_chooser.h"
+
+// \todo: extract only really needed includes
+// all parts of lib algebra
 #include "lib_algebra/lib_algebra.h"
 
 
