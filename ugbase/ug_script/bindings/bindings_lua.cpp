@@ -239,7 +239,7 @@ static int LuaStackToParams(ParameterStack& params,
 			}break;
 			case PT_INTEGER:{
 				if(lua_isnumber(L, index))
-					params.push_integer(lua_tonumber(L, index));
+					params.push_integer((int)lua_tonumber(L, index));
 				else{
 					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
