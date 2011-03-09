@@ -82,15 +82,17 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 					return false;
 				}
 
+				ParallelVector<Vector< typename matrix_type::value_type > > m_diag;
+				
 				m_diagInv.resize(size);
-				m_diag.create(size);
+				m_diag.resize(size);
 
 				m_diag.set_layouts(c.get_master_layout(), c.get_slave_layout());
 				m_diag.set_communicator(c.get_communicator());
 
 				// copy diagonal
 				for(size_t i = 0; i < m_diag.size(); ++i){
-					m_diag[i] = mat.get_diag(i);
+					m_diag[i] = mat(i, i);
 				}
 
 				//	make diagonal consistent
@@ -103,8 +105,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 					m_diag[i] *= 1/m_damp;
 					GetInverse(m_diagInv[i], m_diag[i]);
 				}
-				m_diag.destroy();
-
+				
 				m_bOpChanged = false;
 			}
 #endif
@@ -143,7 +144,6 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 #ifdef UG_PARALLEL
-		ParallelVector<Vector< typename matrix_type::value_type > > m_diag;
 		std::vector< typename block_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;
 #endif
 		number m_damp;

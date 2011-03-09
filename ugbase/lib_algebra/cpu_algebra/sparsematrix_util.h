@@ -35,7 +35,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
 
 	// create output matrix M
-	M.create(A.num_rows(), C.num_cols());
+	M.resize(A.num_rows(), C.num_cols());
 
 	// speedup with array posInConnections, needs n memory
 	// posInConnections[i]: index in the connections for current row (if not in row: -1)
@@ -53,21 +53,25 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 
 	typename ABC_type::connection c;
 
+	typedef typename A_type::const_row_iterator cAiterator;
+	typedef typename B_type::const_row_iterator cBiterator;
+	typedef typename C_type::const_row_iterator cCiterator;
+
 	// do
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		con.clear();
-		for(typename A_type::cRowIterator itA(A, i); !itA.isEnd(); ++itA)
+		for(cAiterator itA = A.begin_row(i); itA != A.end_row(i); ++itA)
 		{
 			if(itA.value() == 0.0) continue;
 			a = itA.value();
 
-			for(typename B_type::cRowIterator itB(B, itA.index()); !itB.isEnd(); ++itB)
+			for(cBiterator itB = B.begin_row(itA.index()); itB != B.end_row(i); ++itB)
 			{
 				if(itB.value() == 0.0) continue;
 				AssignMult(ab, a, itB.value());
 
-				for(typename C_type::cRowIterator itC(C, itB.index()); !itC.isEnd(); ++itC)
+				for(cCiterator itC = C.begin_row(itB.index()); itC != C.end_row(i); ++itC)
 				{
 					cvalue = itC.value();
 					if(cvalue == 0.0) continue;
@@ -118,6 +122,7 @@ template<typename matrix_type>
 void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2, const matrix_type &B)
 {
 	UG_ASSERT(A.num_rows() == B.num_rows() && A.num_cols() == B.num_cols(), "sizes must match");
+	typedef typename matrix_type::const_row_iterator criterator;
 
 	// create output matrix M
 	if(&M != &A)
@@ -130,10 +135,10 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		con.clear();
-		typename matrix_type::cRowIterator itA(A, i);
-		typename matrix_type::cRowIterator itB(B, i);
+		criterator itA = A.begin_row(i), endA = A.end_row(i);
+		criterator itB = B.begin_row(i), endB = B.end_row(i);
 
-		while(!itA.isEnd() && !itB.isEnd())
+		while(itA != endA && itB != endB)
 		{
 			if(itA.index() == itB.index())
 			{
@@ -157,7 +162,7 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 			}
 			con.push_back(c);
 		}
-		while(!itA.isEnd())
+		while(itA != endA)
 		{
 			c.dValue = itA.value();
 			c.dValue *= alpha1;
@@ -165,7 +170,7 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 			++itA;
 			con.push_back(c);
 		}
-		while(!itB.isEnd())
+		while(itB != endB)
 		{
 			c.dValue = itB.value();
 			c.dValue *= alpha2;
@@ -176,7 +181,7 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 
 		M.set_matrix_row(i, &con[0], con.size());
 	}
-	M.finalize();
+	M.defragment();
 }
 
 
@@ -187,7 +192,7 @@ void GetNeighborhood_worker(const SparseMatrix<T> &A, size_t node, size_t depth,
 {
 	if(depth==0) return;
 	size_t iSizeBefore = indices.size();
-	for(typename SparseMatrix<T>::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	for(typename SparseMatrix<T>::const_row_iterator it = A.begin_row(node); A.end_row(node); ++it)
 	{
 		if(it.value() == 0) continue;
 		if(bVisited[it.index()] == false)
@@ -233,7 +238,7 @@ void GetNeighborhood(const SparseMatrix<T> &A, size_t node, size_t depth, std::v
 template<typename T>
 void MarkNeighbors(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<bool> &bVisited)
 {
-	for(typename SparseMatrix<T>::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	for(typename SparseMatrix<T>::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
 		if(it.value() == 0) continue;
 		bVisited[it.index()] = true;
@@ -245,7 +250,7 @@ template<typename T>
 void GetNeighborhoodHierachy_worker(const SparseMatrix<T> &A, size_t node, size_t depth, size_t maxdepth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited)
 {
 	size_t iSizeBefore = indices[depth].size();
-	for(typename SparseMatrix<T>::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	for(typename SparseMatrix<T>::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
 		if(it.value() == 0) continue;
 		if(bVisited[it.index()] == false)
@@ -314,10 +319,10 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<
 
 
 
-	vector<typename SparseMatrix<T>::cRowIterator> iterators;
+	vector<typename SparseMatrix<T>::const_row_iterator> iterators;
 	iterators.reserve(depth);
 
-	iterators.push_back( A.beginRow(node) );
+	iterators.push_back( A.begin_row(node) );
 
 	while(iterators.size() != 0)
 	{
@@ -328,7 +333,7 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<
 			size_t index = iterators.back().index();
 			++iterators.back();
 			if(iterators.size() < depth)
-				iterators.push_back( A.beginRow(index) );
+				iterators.push_back( A.begin_row(index) );
 			else
 			{
 				size_t pos;
@@ -383,7 +388,7 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 {
 	if(distance == 0) return A.is_isolated(node);
 	bool bFound = false;
-	for(typename SparseMatrix<T>::cRowIterator itA = A.beginRow(node); !itA.isEnd() && !bFound; ++itA)
+	for(typename SparseMatrix<T>::const_row_iterator itA = A.begin_row(node); itA != A.end_row(node) && !bFound; ++itA)
 		bFound = IsCloseToBoundary(A, itA.index(), distance-1);
 
 	return bFound;
@@ -404,7 +409,7 @@ template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 {
 	BlockRef(A(i,i), alpha, alpha) = 1.0;
-	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+	for(typename SparseMatrix<T>::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 	{
 		typename SparseMatrix<T>::value_type& block = conn.value();
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
@@ -428,7 +433,7 @@ template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 {
 	A(i,i) = 1.0;
-	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+	for(typename SparseMatrix<T>::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 	{
 		typename SparseMatrix<T>::value_type& block = conn.value();
 		if(conn.index() != i) block = 0.0;
@@ -455,7 +460,7 @@ void SetDirichletRow(SparseMatrix<T>& A, const std::vector<size_t> vIndex)
 		UG_ASSERT(i < A.num_rows(), "Index to large in index set.");
 
 		A(i,i) = 1.0;
-		for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		for(typename SparseMatrix<T>::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
 			typename SparseMatrix<T>::value_type& block = conn.value();
 			if(conn.index() != i) block = 0.0;

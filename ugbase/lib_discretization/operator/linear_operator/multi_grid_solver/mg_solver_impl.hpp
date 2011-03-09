@@ -216,7 +216,7 @@ lmgc(size_t lev)
 
 			//m_A[lev-1]->apply(dTmpCoarse, *m_c[lev-1]);
 			matrix_type mat;
-			mat.create_as_copy_of(m_A[lev-1]->get_matrix());
+			mat.set_as_copy_of(m_A[lev-1]->get_matrix());
 
 			const std::vector<bool>& vSkipBnd = m_vvSkipHidden[lev-1];
 			for(size_t i = 0; i < mat.num_rows(); ++i)
@@ -224,13 +224,13 @@ lmgc(size_t lev)
 //				mat(i,i) *= 0.5;
 				if(!vSkipBnd[i]) continue;
 
-				for(typename matrix_type::rowIterator conn = mat.beginRow(i);
-						!conn.isEnd(); ++conn)
+				for(typename matrix_type::row_iterator conn = mat.begin_row(i);
+						conn != mat.end_row(i); ++conn)
 				{
-					const size_t j = (*conn).iIndex;
+					const size_t j = conn.index();
 					if(!vSkipBnd[j] ) continue;
 
-					(*conn).dValue *= 0.5;
+					conn.value() *= 0.5;
 //					UG_LOG("Scal i="<<i<<", j="<<j<<"\n");
 
 				}
@@ -559,6 +559,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 }
 
 
+
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
@@ -675,7 +676,36 @@ init_common(bool nonlinear)
 //	we're done
 	return true;
 }
+/*
+template<typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::write_connection_viewer_matrices()
+{
+	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
+	{
+		vector<MathVector<dim> > positionsFrom, positionsTo;
+		ExtractPositions(*m_u[lev], positionsFrom);
+		ExtractPositions(*m_u[lev+1], positionsTo);
 
+		P1ProlongationOperator<TApproximationSpace, TAlgebra>* Op =
+						dynamic_cast< P1ProlongationOperator<TApproximationSpace, TAlgebra> *>(m_vProlongation[lev]);
+		if(Op)
+		{
+			stringstream s; s << "prolongation" << lev << ".mat";
+			WriteMatrixToConnectionViewer (Op->get_matrix(), s.str().c_str(), positionsFrom, positionsTo, dim);
+		}
+
+		stringstream s; s << "A" << lev << ".mat";
+		WriteMatrixToConnectionViewer (s.str().c_str(), m_A, &positionsFrom[0], dim);
+	}
+
+	stringstream s; s << "A" << m_surfaceLevel << ".mat";
+	vector<MathVector<dim> > positions;
+	ExtractPositions(*m_u[m_surfaceLevel], positions);
+	WriteMatrixToConnectionViewer (s.str().c_str(), m_A, &positions[0], dim);
+
+}
+*/
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::

@@ -197,11 +197,11 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				for(typename matrix_type::rowIterator conn = A.beginRow(constrainedIndex[i]);
-						!conn.isEnd(); ++conn)
+				for(typename matrix_type::row_iterator conn = A.begin_row(constrainedIndex[i]);
+						conn != A.end_row(constrainedIndex[i]); ++conn)
 				{
-					typename matrix_type::value_type block = (*conn).dValue;
-					const size_t j = (*conn).iIndex;
+					typename matrix_type::value_type block = conn.value();
+					const size_t j = conn.index();
 
 					A(constrainedIndex[i], j) = 0.0;
 
@@ -459,11 +459,11 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				for(typename matrix_type::rowIterator conn = A.beginRow(constrainedIndex[i]);
-						!conn.isEnd(); ++conn)
+				for(typename matrix_type::row_iterator conn = A.begin_row(constrainedIndex[i]);
+						conn != A.end_row(constrainedIndex[i]); ++conn)
 				{
-					typename matrix_type::value_type block = (*conn).dValue;
-					const size_t j = (*conn).iIndex;
+					typename matrix_type::value_type block = conn.value();
+					const size_t j = conn.index();
 
 					// choose randomly the first dof to add whole row
 					A(vConstrainingIndices[0][i], j) += block;

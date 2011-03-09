@@ -182,7 +182,7 @@ private:
 
 				// get number of connections != 0.0
 				size_t num_connections = 0;
-				for(typename matrix_type::cRowIterator conn = mat.beginRow(local_index); !conn.isEnd(); ++conn)
+				for(typename matrix_type::const_row_iterator conn = mat.begin_row(local_index); conn != mat.end_row(local_index); ++conn)
 				{
 					if(conn.value() == 0.0) continue;
 					num_connections++;
@@ -194,7 +194,7 @@ private:
 				UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << "\n");
 
 				// serialize connections
-				for(typename matrix_type::cRowIterator conn = mat.beginRow(local_index); !conn.isEnd(); ++conn)
+				for(typename matrix_type::const_row_iterator conn = mat.begin_row(local_index); conn != mat.end_row(local_index); ++conn)
 				{
 					if(conn.value() == 0.0) continue;
 					AlgebraID &globalColIndex = m_globalIDs[conn.index()];
@@ -719,7 +719,7 @@ public:
 				UG_DLOG(LIB_ALG_MATRIX, 4, "  " << i << ": global id " << m_globalIDs[i].first << " | " << m_globalIDs[i].second << "\n")
 		}
 
-		m_newMat.create_as_copy_of(m_mat);
+		m_newMat.set_as_copy_of(m_mat);
 
 		NewNodesNummerator nodeNummerator(m_globalIDs);
 

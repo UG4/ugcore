@@ -60,7 +60,7 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 				m_mat.resize(m_size);
 
 				for(size_t r=0; r<A.num_rows(); r++)
-					for(typename matrix_type::cRowIterator it(A, r); !it.isEnd(); ++it)
+					for(typename matrix_type::const_row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
 					{
 						size_t rr = r*nrOfRows;
 						size_t cc = (*it).iIndex*nrOfRows;
@@ -78,7 +78,7 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 				for(size_t i=0; i<A.num_rows(); i++)
 				{
 					bool bFound;
-					typename matrix_type::cRowIterator it = A.get_connection(i,i, bFound);
+					typename matrix_type::const_row_iterator it = A.get_connection(i,i, bFound);
 					UG_ASSERT(bFound, "Matrix has to have entry A(" << i << ", " << i << ")");
 					size_t s = GetRows((*it).dValue);
 					UG_ASSERT(s == GetCols((*it).dValue), "diagonal elements have to be square");
@@ -91,7 +91,7 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 				m_mat.resize(m_size);
 
 				for(size_t r=0; r<A.num_rows(); r++)
-					for(typename matrix_type::cRowIterator it(A, r); !it.isEnd(); ++it)
+					for(typename matrix_type::const_row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
 					{
 						size_t c = (*it).iIndex;
 						const typename matrix_type::value_type &val = (*it).dValue;

@@ -52,7 +52,7 @@ public:
 	capacity() const;
 
 	inline bool
-	resize(size_type newN);
+	resize(size_type newN, bool bCopyValues=true);
 
 	inline bool
 	reserve(size_type newN) const;
@@ -135,7 +135,7 @@ public:
 	num_cols() const;
 
 	inline bool
-	resize(size_type newRows, size_type newCols);
+	resize(size_type newRows, size_type newCols, bool bCopyValues=true);
 
 	inline size_type
 	capacity_num_rows() const { return rowsT; }

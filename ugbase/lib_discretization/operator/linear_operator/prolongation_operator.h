@@ -403,7 +403,6 @@ class P1ProlongationOperator :
 
 		~P1ProlongationOperator()
 		{
-			m_matrix.destroy();
 		}
 
 

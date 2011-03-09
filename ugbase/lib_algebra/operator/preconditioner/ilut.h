@@ -47,8 +47,6 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	// 	Destructor
 		virtual ~ILUTPreconditioner()
 		{
-			m_L.destroy();
-			m_U.destroy();
 		};
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
@@ -68,8 +66,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		//	Prepare Inverse Matrix
 			matrix_type* A = this->m_pMatrix;
-			m_L.destroy();	m_L.create(A->num_rows(), A->num_cols());
-			m_U.destroy();	m_U.create(A->num_rows(), A->num_cols());
+			m_L.resize(A->num_rows(), A->num_cols());
+			m_U.resize(A->num_rows(), A->num_cols());
 
 			// con is the current line of L/U
 			std::vector<typename matrix_type::connection> con;
@@ -77,7 +75,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			con.resize(0);
 
 			// init row 0 of U
-			for(typename matrix_type::rowIterator i_it = A->beginRow(0); !i_it.isEnd(); ++i_it)
+			for(typename matrix_type::row_iterator i_it = A->begin_row(0); i_it != A->end_row(0); ++i_it)
 				con.push_back(*i_it);
 			m_U.set_matrix_row(0, &con[0], con.size());
 
@@ -90,7 +88,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 				// get the row A(i, .) into con
 				double dmax=0;
-				for(typename matrix_type::rowIterator i_it = A->beginRow(i); !i_it.isEnd(); ++i_it)
+				for(typename matrix_type::row_iterator i_it = A->begin_row(i); i_it != A->end_row(i); ++i_it)
 				{
 					con.push_back(*i_it);
 					if(dmax < BlockNorm(i_it.value()))
@@ -108,18 +106,18 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						break;
 					}
 					if(con[i_it].dValue == 0.0) continue;
-					UG_ASSERT(!m_U.beginRow(k).isEnd() && m_U.beginRow(k).index() == k, "");
-					block_type &ukk = m_U.beginRow(k).value();
+					UG_ASSERT(m_U.num_connections(k) != 0 && m_U.begin_row(k).index() == k, "");
+					block_type &ukk = m_U.begin_row(k).value();
 
 					// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
 					// so that A(i,k) is zero.
 					// safe A(i,k)/U(k,k) in con, (later L(i,k) )
 					block_type &d = con[i_it].dValue = con[i_it].dValue / ukk;
 
-					typename matrix_type::rowIterator k_it = m_U.beginRow(k); // upper row iterator
+					typename matrix_type::row_iterator k_it = m_U.begin_row(k); // upper row iterator
 					++k_it; // skip diag
 					size_t j = i_it+1;
-					while(!k_it.isEnd() && j < con.size())
+					while(k_it != m_U.end_row(k) && j < con.size())
 					{
 						// (since con and U[k] is sorted, we can do sth like a merge on the two lists)
 						if(k_it.index() == con[j].iIndex)
@@ -162,8 +160,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
 			}
 
-			m_L.finalize();
-			m_U.finalize();
+			m_L.defragment();
+			m_U.defragment();
 
 			return true;
 		}
@@ -177,7 +175,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			{
 				// c[i] = d[i] - m_L[i]*c;
 				c[i] = d[i];
-				for(typename matrix_type::rowIterator it = m_L.beginRow(i); !it.isEnd(); ++it)
+				for(typename matrix_type::row_iterator it = m_L.begin_row(i); it != m_L.end_row(i); ++it)
 					MatMultAdd(c[i], 1.0, c[i], -1.0, it.value(), c[it.index()] );
 				// lii = 1.0.
 			}
@@ -185,13 +183,13 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			// U
 			for(size_t i=m_U.num_rows()-1; ; i--)
 			{
-				typename matrix_type::rowIterator it = m_U.beginRow(i);
+				typename matrix_type::row_iterator it = m_U.begin_row(i);
 				UG_ASSERT(it.index() == i, "");
 				block_type &uii = it.value();
 
 				typename vector_type::value_type s = c[i];
 				++it; // skip diag
-				for(; !it.isEnd(); ++it)
+				for(; it != m_U.end_row(i); ++it)
 					// s -= it.value() * c[it.index()];
 					MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
 

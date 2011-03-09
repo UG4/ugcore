@@ -26,7 +26,8 @@ bool FactorizeILU(Matrix_type &A)
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && (it_k.index() < i); ++it_k)
+		typename Matrix_type::row_iterator rowEnd = A.end_row(i);
+		for(typename Matrix_type::row_iterator it_k = A.begin_row(i); it_k != rowEnd && (it_k.index() < i); ++it_k)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
@@ -37,13 +38,13 @@ bool FactorizeILU(Matrix_type &A)
 			// safe A(i,k)/A(k,k) in A(i,k)
 			a_ik /= A(k,k);
 
-			typename Matrix_type::rowIterator it_j = it_k;
-			for(++it_j; !it_j.isEnd(); ++it_j)
+			typename Matrix_type::row_iterator it_j = it_k;
+			for(++it_j; it_j != rowEnd; ++it_j)
 			{
 				const size_t j = it_j.index();
 				block_type& a_ij = it_j.value();
 				bool bFound;
-				typename Matrix_type::rowIterator p = A.get_connection(k,j, bFound);
+				typename Matrix_type::row_iterator p = A.get_connection(k,j, bFound);
 				if(bFound)
 				{
 					const block_type a_kj = p.value();
@@ -66,7 +67,7 @@ bool FactorizeILUSorted(Matrix_type &A)
 	{
 
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && (it_k.index() < i); ++it_k)
+		for(typename Matrix_type::row_iterator it_k = A.begin_row(i); it_k != A.end_row(i) && (it_k.index() < i); ++it_k)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
@@ -78,11 +79,11 @@ bool FactorizeILUSorted(Matrix_type &A)
 			// safe A(i,k)/A(k,k) in A(i,k)
 			a_ik /= a_kk;
 
-			typename Matrix_type::rowIterator it_ij = it_k; // of row i
+			typename Matrix_type::row_iterator it_ij = it_k; // of row i
 			++it_ij; // skip a_ik
-			typename Matrix_type::rowIterator it_kj = A.beginRow(k); // of row k
+			typename Matrix_type::row_iterator it_kj = A.begin_row(k); // of row k
 
-			while(!it_ij.isEnd() && !it_kj.isEnd())
+			while(it_ij != A.end_row(i) && it_kj != A.end_row(k))
 			{
 				if(it_ij.index() > it_kj.index())
 					++it_kj;
@@ -111,7 +112,7 @@ bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	for(size_t i=0; i < x.size(); i++)
 	{
 		s = b[i];
-		for(typename Matrix_type::cRowIterator it = A.beginRow(i); !it.isEnd(); ++it)
+		for(typename Matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
 		{
 			if(it.index() >= i) continue;
 			MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
@@ -130,7 +131,7 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	for(size_t i = x.size()-1; ; --i)
 	{
 		s = b[i];
-		for(typename Matrix_type::cRowIterator it = A.beginRow(i); !it.isEnd(); ++it)
+		for(typename Matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
 		{
 			if(it.index() <= i) continue;
 			// s -= it.value() * x[it.index()];
@@ -178,8 +179,6 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 	//	Destructor
 		~ILUPreconditioner()
 		{
-			m_ILU.destroy();
-			m_h.destroy();
 		}
 
 	protected:

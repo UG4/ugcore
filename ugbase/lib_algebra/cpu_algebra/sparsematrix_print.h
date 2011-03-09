@@ -22,7 +22,7 @@ void SparseMatrix<T>::print(const char * const text) const
 {
 	UG_LOG("================= SparseMatrix " << rows << "x" << cols << " =================\n");
 	for(size_t i=0; i < rows; i++)
-		getrow(i).print();
+		printrow(i);
 }
 
 
@@ -31,27 +31,15 @@ void SparseMatrix<T>::print(const char * const text) const
 template<typename T>
 void SparseMatrix<T>::printrow(size_t row) const
 {
-#ifdef FLEXAMG
-	std::cout << "row " << row << " [" << GetOriginalIndex(tolevel, row) << "] : ";
-#else
 	UG_LOG("row " << row << ": ");
-#endif
-	for(cRowIterator it=beginRow(row); !it.isEnd(); ++it)
+	for(const_row_iterator it=begin_row(row); it != end_row(row); ++it)
 	{
 		if(it.value() == 0.0) continue;
 		UG_LOG(" ");
-#ifdef FLEXAMG
-		std::cout << "(" << it.index() << " [" << GetOriginalIndex(fromlevel, it.index()) << "] -> " << it.value() << ")";
-#else
 		UG_LOG("(" << it.index() << " -> " << it.value() << ")");
-#endif
 	}
 
-#ifdef FLEXAMG
-	std::cout << std::endl;
-#else
 	UG_LOG("\n");
-#endif
 }
 
 template<typename T>
@@ -98,7 +86,7 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 	// write connections
 	for(size_t i=0; i < rows; i++)
 	{
-		for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
 				file << i << " " << conn.index() << " " << conn.value() <<		std::endl;
 	}
@@ -192,9 +180,10 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 	file << positions.size() << std::endl;
 
 	if(dimensions == 1)
-			for(size_t i=0; i < positions.size(); i++)
-				file << positions[i][0] << " 0.0"  << std::endl;
+		for(size_t i=0; i < positions.size(); i++)
+			file << positions[i][0] << " 0.0"  << std::endl;
 	else if(dimensions == 2)
+
 		for(size_t i=0; i < positions.size(); i++)
 			file << positions[i][0] << " " << positions[i][1] << std::endl;
 	else
@@ -205,7 +194,7 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 	// write connections
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
-		for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
 				file << mapTo[i] << " " << mapFrom[conn.index()] << " " << conn.value() <<		std::endl;
 	}
@@ -232,9 +221,10 @@ void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, p
 	size_t rows = b.size();
 	// write positions
 	file << rows << std::endl;
+
 	if(dimensions == 1)
-			for(size_t i=0; i < rows; i++)
-				file << positions[i][0] << " 0.0"  << std::endl;
+		for(size_t i=0; i < rows; i++)
+			file << positions[i][0] << " 0.0"  << std::endl;
 	else if(dimensions == 2)
 		for(size_t i=0; i < rows; i++)
 			file << positions[i][0] << " " << positions[i][1] << std::endl;
@@ -268,7 +258,10 @@ void WriteVectorToConnectionViewerNEW(const char *filename, const Vector_type &b
 	size_t rows = b.size();
 	// write positions
 	file << rows << std::endl;
-	if(dimensions == 2)
+	if(dimensions == 1)
+		for(size_t i=0; i < rows; i++)
+			file << positions[i][0] << " 0.0" << std::endl;
+	else if(dimensions == 2)
 		for(size_t i=0; i < rows; i++)
 			file << positions[i][0] << " " << positions[i][1] << " " << b[i] * scale << std::endl;
 	else

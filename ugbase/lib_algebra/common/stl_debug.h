@@ -2,8 +2,12 @@
 #define __H__LIB_ALGEBRA__STL_DEBUG__
 
 #ifndef NDEBUG
+#include "common/assert.h"
 
 #include <vector>
+
+namespace ug{
+
 template<typename T, class Allocator = std::allocator<T> >
 class stdvector : public std::vector<T, Allocator>
 {
@@ -16,7 +20,7 @@ private:
 
 	inline void size_check(size_t i) const
 	{
-		UG_ASSERT(i < super::size(), "accessing element " << i << " but vector only has size " << super::size() << ".");
+		UG_ASSERT(i < super::size(), "accessing element " << i << " but vector only has size " << super::size() << ".")
 	}
 
 public:
@@ -38,10 +42,10 @@ public:
 	}
 };
 
+}
 #else
 
 #define stdvector std::vector
-
 
 #endif
 

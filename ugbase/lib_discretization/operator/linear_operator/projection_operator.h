@@ -266,7 +266,6 @@ class P1ProjectionOperator :
 	//	Destructor
 		~P1ProjectionOperator()
 		{
-			m_matrix.destroy();
 		}
 
 		virtual IProjectionOperator<vector_type, vector_type>* clone()

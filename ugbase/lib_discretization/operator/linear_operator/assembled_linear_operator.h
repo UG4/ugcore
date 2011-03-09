@@ -92,8 +92,6 @@ class AssembledLinearOperator :
 	///	Destructor
 		virtual ~AssembledLinearOperator()
 		{
-			m_J.destroy();
-			m_rhs.destroy();
 		};
 
 	protected:

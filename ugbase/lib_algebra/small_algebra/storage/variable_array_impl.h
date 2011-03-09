@@ -30,7 +30,7 @@ VariableArray1<T>::VariableArray1(size_t n_)
 {
 	n = 0;
 	values = NULL;
-	resize(n_);
+	resize(n_, false);
 }
 
 template<typename T>
@@ -39,7 +39,7 @@ VariableArray1<T>::VariableArray1(const VariableArray1<T> &other)
 	if(this == &other) return;
 	n = 0;
 	if(values) { delete[] values; values = NULL; }
-	resize(other.size());
+	resize(other.size(), false);
 	for(size_type i=0; i<n; i++)
 		values[i] = other[i];
 }
@@ -63,7 +63,7 @@ VariableArray1<T>::size() const
 
 template<typename T>
 bool
-VariableArray1<T>::resize(size_t newN)
+VariableArray1<T>::resize(size_t newN, bool bCopyValues)
 {
 	if(newN == n) return true;
 
@@ -79,18 +79,21 @@ VariableArray1<T>::resize(size_t newN)
 	if(new_values == NULL) return false;
 	memset(new_values, 0, sizeof(T)*newN); // todo: think about that
 
-	/*
-	if(storage_traits<value_type>::is_static)
+	if(bCopyValues)
 	{
-		for(int i=0; i<n; i++)
-			new_values[i] = values[i];
+		/*
+		if(storage_traits<value_type>::is_static)
+		{
+			for(int i=0; i<n; i++)
+				new_values[i] = values[i];
+		}
+		else {
+		// we are using swap to avoid re-allocations
+		 */
+		size_t minN = std::min(n, newN);
+		for(size_t i=0; i<minN; i++)
+			std::swap(new_values[i], values[i]);
 	}
-	else {
-	// we are using swap to avoid re-allocations
-	 */
-	size_t minN = std::min(n, newN);
-	for(size_t i=0; i<minN; i++)
-		std::swap(new_values[i], values[i]);
 
 	if(values) delete[] values;
 	values = new_values;
@@ -174,7 +177,7 @@ VariableArray2<T, T_ordering>::VariableArray2(const VariableArray2<T, T_ordering
 	if(values) { delete[] values; values = NULL; }
 	rows = 0;
 	cols = 0;
-	resize(other.num_rows(), other.num_cols());
+	resize(other.num_rows(), other.num_cols(), false);
 	for(size_type i=0; i<rows*cols; i++)
 		values[i] = other.values[i];
 }
@@ -205,7 +208,7 @@ VariableArray2<T, T_ordering>::num_cols() const
 
 template<typename T, eMatrixOrdering T_ordering>
 bool
-VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
+VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCopyValues)
 {
 	assert(newRows >= 0 && newCols >= 0);
 	if(newRows == rows && newCols == cols) return true;
@@ -230,18 +233,21 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 	else {
 
 	 */
-	size_t minRows = std::min(rows, newRows);
-	size_t minCols = std::min(cols, newCols);
+	if(bCopyValues)
+	{
+		size_t minRows = std::min(rows, newRows);
+		size_t minCols = std::min(cols, newCols);
 
-	// we are using swap to avoid re-allocations
-	if(T_ordering==RowMajor)
-		for(size_t r=0; r<minRows; r++)
-			for(size_t c=0; c<minCols; c++)
-				std::swap(new_values[c+r*newCols], values[c+r*cols]);
-	else
-		for(size_t r=0; r<minRows; r++)
-			for(size_t c=0; c<minCols; c++)
-				std::swap(new_values[r+c*newRows], values[r+c*rows]);
+		// we are using swap to avoid re-allocations
+		if(T_ordering==RowMajor)
+			for(size_t r=0; r<minRows; r++)
+				for(size_t c=0; c<minCols; c++)
+					std::swap(new_values[c+r*newCols], values[c+r*cols]);
+		else
+			for(size_t r=0; r<minRows; r++)
+				for(size_t c=0; c<minCols; c++)
+					std::swap(new_values[r+c*newRows], values[r+c*rows]);
+	}
 
 	if(values) delete[] values;
 	rows = newRows;

@@ -39,7 +39,7 @@ bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	{
 		s = b[i];
 
-		for(typename Matrix_type::cLowerLeftIterator it = A.beginLowerLeftRow(i); !it.isEnd(); ++it)
+		for(typename Matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) && it.index() < i; ++it)
 			// s -= it.value() * x[it.index()];
 			MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
 
@@ -71,12 +71,15 @@ bool gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	do
 	{
 		s = b[i];
-		for(typename Matrix_type::cUpperRightIterator it = A.beginUpperRightRow(i); !it.isEnd(); ++it)
+		typename Matrix_type::const_row_iterator diag = A.get_connection(i, i);
+		
+		typename Matrix_type::const_row_iterator it = diag; ++it;
+		for(; it != A.end_row(i); ++it)
 			// s -= it.value() * x[it.index()];
 			MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
 
 		// x[i] = s/A(i,i)
-		InverseMatMult(x[i], 1.0, A(i,i), s);
+		InverseMatMult(x[i], 1.0, diag.value(), s);
 	} while(i-- != 0);
 
 	return true;
@@ -102,7 +105,7 @@ bool sgs_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 
 	// x2 = D x1
 	for(size_t i = 0; i<x.size(); i++)
-		MatMult(x[i], 1.0, A.get_diag(i), x[i]);
+		MatMult(x[i], 1.0, A(i, i), x[i]);
 
 	// x3 = (D-U)^{-1} x2
 	gs_step_UR(A, x, x);

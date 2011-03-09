@@ -37,10 +37,16 @@ private:
 };
 
 template<typename M>
-class c_localMatrix_from_mat_and_array
+localMatrix_from_mat_and_array<M> LocalMatrix(M &m, size_t *rows, size_t *cols)
+{
+	return localMatrix_from_mat_and_array<M> (m, rows, cols);
+}
+
+template<typename M>
+class const_localMatrix_from_mat_and_array
 {
 public:
-	c_localMatrix_from_mat_and_array(const M &m_, size_t *rows_, size_t *cols_) : m(m_), rows(rows_), cols(cols_)
+	const_localMatrix_from_mat_and_array(const M &m_, size_t *rows_, size_t *cols_) : m(m_), rows(rows_), cols(cols_)
 	{	}
 
 	size_t num_rows() const { return m.num_rows(); }
@@ -54,6 +60,12 @@ private:
 	size_t *rows;
 	size_t *cols;
 };
+
+template<typename M>
+const_localMatrix_from_mat_and_array<M> LocalMatrix(const M &m, size_t *rows, size_t *cols)
+{
+	return const_localMatrix_from_mat_and_array<M> (m, rows, cols);
+}
 
 template<typename T>
 class localMatrix_from_col_major_and_array
