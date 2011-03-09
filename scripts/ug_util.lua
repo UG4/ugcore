@@ -456,3 +456,25 @@ function util.HasParamOption(name)
 	end
 	return false 
 end
+
+--------------------------------------------------------------------------------
+-- lua script functions
+--------------------------------------------------------------------------------
+
+function util.PrintTableHelper(indexPar, valuePar)
+	if type(valuePar) == "table" then
+		print(util.PrintTableHelperIntend .. tostring(indexPar)  .. " = {")
+		util.PrintTableHelperIntend = util.PrintTableHelperIntend .. " "
+		table.foreachi (valuePar, util.PrintTableHelper)
+		util.PrintTableHelperIntend = string.sub(util.PrintTableHelperIntend, 2)
+		print(util.PrintTableHelperIntend .. "}")
+	else
+		print(util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar)
+	end
+end
+
+-- to print tables
+function util.PrintTable(tablePar)
+	util.PrintTableHelperIntend = ""
+	util.PrintTableHelper("", tablePar)
+end
