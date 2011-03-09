@@ -658,7 +658,7 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 	{
 		number val = va_arg(ap, number);
 		lua_pushnumber(m_L, val);
-		UG_LOG("Push value i=" << i << ": " << val<<"\n");
+//		UG_LOG("Push value i=" << i << ": " << val<<"\n");
 	}
 
 	va_end(ap);

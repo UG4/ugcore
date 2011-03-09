@@ -2,13 +2,14 @@
 // s.b.reiter@googlemail.com
 // y10 m01 d20
 
-//	extern libraries
+//extern libraries
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <stack>
 
-//	ug libraries
+
+// ug libraries
 #include "ug.h"
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
@@ -16,7 +17,7 @@
 #include "ug_bridge/class_helper.h"
 #include "info_commands.h"
 #include "user_data/user_data.h"
-
+#include "extensions/algebra_extensions.h"
 using namespace std;
 
 namespace ug
@@ -110,6 +111,14 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 										*pReg);
 }
 
+#ifdef UG_ALGEBRA
+static void LoadAlgebraExtensions()
+{
+	RegisterAlgebraExtensions(ug::bridge::GetUGRegistry(), "/ug4");
+	ug::bridge::GetUGRegistry().registry_changed();
+}
+#endif
+
 lua_State* GetDefaultLuaState()
 {
 	static lua_State* L = NULL;
@@ -136,11 +145,18 @@ lua_State* GetDefaultLuaState()
 	//	this define makes sure that no methods are referenced that
 	//	use the algebra, even if no algebra is included.
 		#ifdef UG_ALGEBRA
+			UG_LOG("REGISTERING SCRIPT INTERFACES\n");
 		//	Register info commands
 			RegisterInfoCommands(scriptRegistry);
 
 		//	Register user functions
 			RegisterLuaUserData(scriptRegistry, "/ug4");
+
+		//	Register Boundary functions
+			RegisterLuaBoundaryNumber(scriptRegistry, "/ug4");
+
+		//	Register algebra extensions
+			scriptRegistry.add_function("LoadAlgebraExtensions", &LoadAlgebraExtensions);
 
 			ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
 		#endif
