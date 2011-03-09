@@ -25,8 +25,7 @@ bool NSDiffLengthFivePoint(number DiffLengthSqInv[], const TFVGeometry& geo)
 	static const size_t dim = TFVGeometry::dim;
 
     // Check the SCVF - number of IPs (order of elements)
-    const typename TFVGeometry::SCVF& scvf = geo.scvf(0);
-    UG_ASSERT(scvf.num_ip() == 1, "Only implemented for first order.");
+    UG_ASSERT(geo.scvf(0).num_ip() == 1, "Only implemented for first order.");
 
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
 	{
@@ -76,8 +75,7 @@ bool NSDiffLengthRaw(number DiffLengthSqInv[], const TFVGeometry& geo)
 	static const size_t dim = TFVGeometry::dim;
 
     // Check the SCVF - number of IPs (order of elements)
-    const typename TFVGeometry::SCVF& scvf = geo.scvf(0);
-    UG_ASSERT(scvf.num_ip() == 1, "Only implemented for first order.");
+    UG_ASSERT(geo.scvf(0).num_ip() == 1, "Only implemented for first order.");
 
 
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -128,8 +126,7 @@ bool NSDiffLengthCor(number DiffLengthSqInv[], const TFVGeometry& geo)
 	//static const size_t dim = TFVGeometry::dim;
 
     // Check the SCVF - number of IPs (order of elements)
-    const typename TFVGeometry::SCVF& scvf = geo.scvf(0);
-    UG_ASSERT(scvf.num_ip() == 1, "Only implemented for first order.");
+    UG_ASSERT(geo.scvf(0).num_ip() == 1, "Only implemented for first order.");
 
 
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
