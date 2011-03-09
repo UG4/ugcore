@@ -31,7 +31,8 @@ if(NOT NO_PCL)
 	set(src_Algebra	 ${src_Algebra}
 						operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
-						operator/preconditioner/amg/famg_coloring.cpp )
+						#operator/preconditioner/amg/famg_coloring.cpp
+						 )
 endif(NOT NO_PCL)
 
 	##########################
