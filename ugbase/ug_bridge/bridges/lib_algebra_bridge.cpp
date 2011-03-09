@@ -19,10 +19,14 @@
 #include "ug_script/user_data/user_data.h"
 
 // \todo: remove this dependency
+// WARNING: To use AMG, please define UG_USE_AMG __and__ (!!) uncomment
+// 			the include of lib_discretization. It is uncommented here, since
+//          else we get a build of this file on each change of lib_disc (Maybe
+//			cmake does not recognize the undef (?) )
 // #define UG_USE_AMG // temporary switch until AMG for systems works again
 #undef UG_USE_AMG
 #ifdef UG_USE_AMG
- #include "lib_discretization/lib_discretization.h"
+ //#include "lib_discretization/lib_discretization.h"
 #endif
 
 namespace ug
