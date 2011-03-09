@@ -18,39 +18,30 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
 {
 //	nothing to do
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
 {
 //	nothing to do
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u,
 								const local_index_type& glob_ind)
 {
@@ -72,13 +63,10 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
 //	number of corners == number of scv
@@ -199,13 +187,10 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	// get finite volume geometry
@@ -233,11 +218,10 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 //	number of corners == number of scv
@@ -359,13 +343,10 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	// get finite volume geometry
@@ -393,13 +374,10 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 }
 
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
-inline
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
 	// we're done

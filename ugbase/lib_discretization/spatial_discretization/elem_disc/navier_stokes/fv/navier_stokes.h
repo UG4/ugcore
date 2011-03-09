@@ -23,7 +23,8 @@
 
 namespace ug{
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	typename TDomain,
+			typename TAlgebra>
 class FVNavierStokesElemDisc
 	: public IDomainElemDisc<TDomain, TAlgebra>
 {
@@ -144,28 +145,28 @@ class FVNavierStokesElemDisc
 		}
 
 	private:
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool prepare_element_loop();
 
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
 
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool finish_element_loop();
 
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0);
 
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_JM(local_matrix_type& J, const local_vector_type& u, number time=0.0);
 
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_A(local_vector_type& d, const local_vector_type& u, number time=0.0);
 
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_M(local_vector_type& d, const local_vector_type& u, number time=0.0);
 
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
@@ -213,14 +214,14 @@ class FVNavierStokesElemDisc
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_prepare_element_loop_function(	id, &FVNavierStokesElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &FVNavierStokesElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &FVNavierStokesElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &FVNavierStokesElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &FVNavierStokesElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &FVNavierStokesElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &FVNavierStokesElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &FVNavierStokesElemDisc::template assemble_f<TElem>);
+			register_prepare_element_loop_function(	id, &FVNavierStokesElemDisc::template prepare_element_loop<TElem, FV1Geometry>);
+			register_prepare_element_function(		id, &FVNavierStokesElemDisc::template prepare_element<TElem, FV1Geometry>);
+			register_finish_element_loop_function(	id, &FVNavierStokesElemDisc::template finish_element_loop<TElem, FV1Geometry>);
+			register_assemble_JA_function(			id, &FVNavierStokesElemDisc::template assemble_JA<TElem, FV1Geometry>);
+			register_assemble_JM_function(			id, &FVNavierStokesElemDisc::template assemble_JM<TElem, FV1Geometry>);
+			register_assemble_A_function(			id, &FVNavierStokesElemDisc::template assemble_A<TElem, FV1Geometry>);
+			register_assemble_M_function(			id, &FVNavierStokesElemDisc::template assemble_M<TElem, FV1Geometry>);
+			register_assemble_f_function(			id, &FVNavierStokesElemDisc::template assemble_f<TElem, FV1Geometry>);
 		}
 
 };
