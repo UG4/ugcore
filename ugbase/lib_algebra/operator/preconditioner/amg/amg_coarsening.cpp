@@ -95,10 +95,10 @@ void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, stdvector<am
 		// first calculate all nodes reachable with paths of length 2
 
 		// ! i is coarse -> has only fine neighbors
-		for(cgraph::cRowIterator conn = graph.begin_row(i); conn != graph.end_row(i); ++conn)
+		for(cgraph::const_row_iterator conn = graph.begin_row(i); conn != graph.end_row(i); ++conn)
 		{
 			size_t indexN = (*conn);
-			for(cgraph::cRowIterator connN = graph.begin_row(indexN); connN != graph.end_row(indexN); ++connN)
+			for(cgraph::const_row_iterator connN = graph.begin_row(indexN); connN != graph.end_row(indexN); ++connN)
 			{
 				size_t indexNN = (*connN);
 
@@ -198,7 +198,7 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int u
 		unassigned--;
 
 		// unassigned neighbors will be marked as fine, so remove from PQ
-		for(cgraph::cRowIterator conn = graph.begin_row(best); conn != graph.end_row(best); ++conn)
+		for(cgraph::const_row_iterator conn = graph.begin_row(best); conn != graph.end_row(best); ++conn)
 		{
 			size_t indexN = (*conn);
 			if(nodes[indexN].isAssigned()) continue;
@@ -206,7 +206,7 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int u
 		}
 
 		// now mark unassigned neighbors as fine
-		for(cgraph::cRowIterator conn = graph.begin_row(best); conn != graph.end_row(best); ++conn)
+		for(cgraph::const_row_iterator conn = graph.begin_row(best); conn != graph.end_row(best); ++conn)
 		{
 			int indexN = (*conn);
 
@@ -227,7 +227,7 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int u
 
 			// increase rating of neighbors of this node (= neighbors of neighbors of node "best")
 			// rating = unassigned neighbors + 2 * fine neighbors
-			for(cgraph::cRowIterator connN = graph.begin_row(indexN); connN != graph.end_row(indexN); ++connN)
+			for(cgraph::const_row_iterator connN = graph.begin_row(indexN); connN != graph.end_row(indexN); ++connN)
 			{
 				int indexNN = (*connN);
 				// TODO: perhaps we could create a the f-f candidate list here
@@ -281,20 +281,20 @@ void PreventFFConnections(cgraph &graphS, cgraph &graphST, stdvector<amg_nodeinf
 			continue;
 
 		// mark coarse nodes interpolating this fine node
-		for(cgraph::cRowIterator it = graphST.begin_row(i); it != graphST.end_row(i); ++it)
+		for(cgraph::const_row_iterator it = graphST.begin_row(i); it != graphST.end_row(i); ++it)
 		{
 			if(nodes[(*it)].isCoarse())
 				marks[(*it)] = true;
 		}
 
 		// prevent strong F-F connections without common Interpolation node
-		for(cgraph::cRowIterator it = graphST.begin_row(i); it != graphST.end_row(i); ++it)
+		for(cgraph::const_row_iterator it = graphST.begin_row(i); it != graphST.end_row(i); ++it)
 		{
 			if(nodes[*it].isCoarse() || graphS.is_isolated(*it))
 				continue;
 
-			cgraph::cRowIterator it2 = graphST.begin_row(*it);
-			cgraph::cRowIterator it2end = graphST.end_row(*it);
+			cgraph::const_row_iterator it2 = graphST.begin_row(*it);
+			cgraph::const_row_iterator it2end = graphST.end_row(*it);
 			for(; it2 != it2end; ++it2)
 			{
 				if(nodes[*it2].isCoarse() && marks[*it2])
@@ -318,7 +318,7 @@ void PreventFFConnections(cgraph &graphS, cgraph &graphST, stdvector<amg_nodeinf
 		}
 
 		// remove marks
-		for(cgraph::cRowIterator conn = graphS.begin_row(i); conn != graphS.end_row(i); ++conn)
+		for(cgraph::const_row_iterator conn = graphS.begin_row(i); conn != graphS.end_row(i); ++conn)
 		{
 			size_t index = (*conn);
 			if(nodes[index].isCoarse())

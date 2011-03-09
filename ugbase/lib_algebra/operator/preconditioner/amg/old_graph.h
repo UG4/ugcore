@@ -29,8 +29,8 @@ namespace ug{
 class cgraph
 {
 public:
-	typedef stdvector<size_t>::const_iterator cRowIterator;
-	typedef stdvector<size_t>::iterator rowIterator;
+	typedef stdvector<size_t>::const_iterator const_row_iterator;
+	typedef stdvector<size_t>::iterator row_iterator;
 public:
 	/** constructor
 	 */
@@ -94,25 +94,25 @@ public:
 			m_data[from].insert(it, to);
 	}
 
-	rowIterator begin_row(size_t row)
+	row_iterator begin_row(size_t row)
 	{
 		size_check(row);
 		return m_data[row].begin();
 	}
 
-	rowIterator end_row(size_t row)
+	row_iterator end_row(size_t row)
 	{
 		size_check(row);
 		return m_data[row].end();
 	}
 
-	cRowIterator begin_row(size_t row) const
+	const_row_iterator begin_row(size_t row) const
 	{
 		size_check(row);
 		return m_data[row].begin();
 	}
 
-	cRowIterator end_row(size_t row) const
+	const_row_iterator end_row(size_t row) const
 	{
 		size_check(row);
 		return m_data[row].end();
@@ -122,19 +122,19 @@ public:
 	void transpose()
 	{
 		cgraph G;
-		G.create_as_transpose_of(*this);
+		G.set_as_transpose_of(*this);
 		swap(m_data, G.m_data);
 	}
 	
 	//! creates this graph as the transpose of other
-	void create_as_transpose_of(const cgraph &other)
+	void set_as_transpose_of(const cgraph &other)
 	{
 		stdvector<size_t> rowSize(other.size());
 		for(size_t i=0; i<other.size(); i++) rowSize[i] = 0;
 
 		for(size_t i=0; i<other.size(); i++)
 		{
-			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
+			for(const_row_iterator it = other.begin_row(i); it != other.end_row(i); ++it)
 				rowSize[(*it)]++;
 		}
 		
@@ -146,7 +146,7 @@ public:
 		}
 
 		for(size_t i=0; i < other.size(); i++)
-			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
+			for(const_row_iterator it = other.begin_row(i); it != other.end_row(i); ++it)
 			{
 				size_t from = (*it);
 				size_t to = i;
@@ -164,7 +164,7 @@ public:
 	void pr(size_t i)
 	{
 		std::cout << "graph row " << i << ", length " << num_connections(i) << ":" << std::endl;
-		for(cRowIterator it = begin_row(i); it != end_row(i); ++it)
+		for(const_row_iterator it = begin_row(i); it != end_row(i); ++it)
 			std::cout << (*it) << " ";
 		std::cout << std::endl;
 		std::cout.flush();
@@ -181,7 +181,7 @@ public:
 		for(size_t i=0; i<g.size(); ++i)
 		{
 			out << "[" << i << "]:  ";
-			for(cRowIterator it = g.begin_row(i); it != g.end_row(i); ++it)
+			for(const_row_iterator it = g.begin_row(i); it != g.end_row(i); ++it)
 				out << (*it) << " ";
 			out << std::endl;
 		}

@@ -20,7 +20,7 @@ template<typename matrix_type>
 void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1)
 {
 	onlyN1.clear();
-	for(typename matrix_type::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	for(typename matrix_type::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
 		if(it.value() != 0.0)
 			onlyN1.push_back(it.index());
@@ -34,7 +34,7 @@ void GetNeighborhoodRec(matrix_type &A, size_t node, std::vector<size_t> &onlyN1
 {
 	bvisited[node] = true;
 
-	for(typename matrix_type::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	for(typename matrix_type::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
 		if(bvisited[it.index()] == false && it.value() != 0.0)
 		{
@@ -379,7 +379,7 @@ public:
 				for(size_t j=0; j<onlyN1.size(); j++)
 				{
 					size_t node = onlyN1[j];
-					for(typename matrix_type::rowIterator it=P.beginRow(node); !it.isEnd(); ++it)
+					for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
 						P(i, it.index()) += -q[j] * it.value();
 				}
 				rating.set_fine(i);
@@ -518,7 +518,10 @@ private:
 
 		S.resize(N2.size(), N2.size());
 		S = 0.0;
-		A_OL2.get(S, &N2[0], &N2[0]);
+
+		localMatrix_from_mat_and_array<DenseMatrix<VariableArray2<double> > >
+		localMatrix(S, &N2[0], &N2[0]);
+		A_OL2.get(localMatrix);
 
 		//IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("\nsubA");
 

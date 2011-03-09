@@ -35,7 +35,7 @@ template<typename Matrix_type>
 void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, stdvector<int> &newIndex,
 		int iNrOfCoarse, int &unassigned, stdvector<amg_nodeinfo> &nodes, double theta)
 {
-	P.create(A.num_rows(), iNrOfCoarse);
+	P.resize(A.num_rows(), iNrOfCoarse);
 
 	std::vector<SparseMatrix<double>::connection> con(255);
 	SparseMatrix<double>::connection c;
@@ -50,7 +50,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			UG_ASSERT(newIndex[i] != -1, "coarse node but no new index?");
 			P(i, newIndex[i]) = 1.0;
 		}
-		else if(A[i].is_isolated())
+		else if(A.is_isolated(i))
 		{
 			//P[i].initWithoutDiag(); // boundary values need not to be prolongated
 		}
@@ -62,9 +62,9 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			double dmax = 0, connValue, maxConnValue = 0;
 			double sumNeighbors =0, sumInterpolatory=0;
 
-			double diag = amg_diag_value(A.get_diag(i));
+			double diag = amg_diag_value(A(i, i));
 
-			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
 				if(conn.index() == i) continue; // skip diag
 				connValue = amg_offdiag_value(conn.value());
@@ -92,7 +92,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 			con.clear();
 			// step 1: set w'_ij = a_ij/a_jj for suitable j
-			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
 				if(conn.index() == i) continue; // skip diagonal
 				if(!nodes[conn.index()].isCoarse()) continue;
@@ -179,14 +179,14 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 		UG_LOG("Pass " << pass << ": ");
 		for(size_t i=0; i<A.num_rows() && unassigned > 0; i++)
 		{
-			if(!nodes[i].isUnassignedFineIndirect() || A[i].is_isolated())
+			if(!nodes[i].isUnassignedFineIndirect() || A.is_isolated(i))
 				continue;
 
-			double diag = amg_diag_value(A.get_diag(i));
+			double diag = amg_diag_value(A(i, i));
 			// calculate min offdiag-entry
 			double dmax = 0;
 
-			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
 				if(conn.index() == i) continue; // skip diagonal
 				double connValue = amg_offdiag_value(conn.value());
@@ -205,7 +205,7 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 			//cout << "indirect interpolating node " << i << endl;
 
 			// look at neighbors of node i, try to interpolate indirectly through them
-			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
 				size_t indexN = conn.index();
 				if(indexN == i) continue; // skip diagonal
@@ -226,7 +226,7 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 
 				// now we look at the interpolation values of this neighbor (in P !!!)
 				// and set w'(i,indexNN) += A(i,indexN) * P(indexN,indexNN)
-				for(typename SparseMatrix<double>::rowIterator conn2 = P.beginRow(indexN); !conn2.isEnd(); ++conn2)
+				for(typename SparseMatrix<double>::row_iterator conn2 = P.begin_row(indexN); conn2 != P.end_row(indexN); ++conn2)
 				{
 					size_t indexNN = conn2.index();
 					int pos = posInConnections[indexNN];
@@ -297,7 +297,7 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 		//break;
 	}
 
-	P.finalize();
+	P.defragment();
 	//P.print();
 }
 

@@ -75,7 +75,7 @@ bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 	/*for(size_t i=0; i<N; i++)
 		if(nodes[i].isCoarse())
 		{
-			int rows = GetRows(A.beginRow(i).value());
+			int rows = GetRows(A.begin_row(i).value());
 			UG_ASSERT(newIndex[i] >= 0, "");
 			SetSize((*m_vec1[level+1])[newIndex[i]], rows);
 			SetSize((*m_vec2[level+1])[newIndex[i]], rows);

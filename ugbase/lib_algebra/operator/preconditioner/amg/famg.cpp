@@ -19,6 +19,7 @@
 //#include "sparsematrix_util.h"
 
 #include "ug.h"
+#include "lib_algebra/common/stl_debug.h"
 #include "amg_debug_helper.h"
 
 #include "stopwatch.h"
@@ -26,6 +27,7 @@
 #include "maxheap.h"
 #include "famg.h"
 #include <set>
+
 
 class ccstring : public std::string
 {
@@ -137,7 +139,7 @@ template<typename matrix_type>
 void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 {
 	for(size_t i=0; i<A.num_rows(); i++)
-		for(typename matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		for(typename matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
 			if(i == conn.index() || conn.value() == 0.0) continue;
 			SymmNeighGraph.set_connection(i, conn.index());
@@ -292,7 +294,7 @@ public:
 		}
 
 		UG_LOG("\nCreate P, SymmNeighGraph... "); if(bTiming) SW.start();
-		P.create(N, N);
+		P.resize(N, N);
 		// get neighboring information
 		SymmNeighGraph.resize(N);
 		CreateSymmConnectivityGraph(A_OL2, SymmNeighGraph);
@@ -372,7 +374,7 @@ public:
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
 		P.resize(A.num_rows(), rating.get_nr_of_coarse());
-		P.finalize();
+		P.defragment();
 	#ifdef UG_PARALLEL
 		P.set_storage_type(PST_CONSISTENT);
 	#endif
@@ -405,8 +407,8 @@ public:
 
 		UG_LOG(std::endl << "restriction... "); if(bTiming) SW.start();
 		// construct restriction R = I_{h -> 2h}
-		R.create_as_transpose_of(P);
-		// R is already finalized
+		R.set_as_transpose_of(P);
+		// R is already defragmented
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
 	#ifdef UG_PARALLEL
@@ -435,7 +437,7 @@ public:
 
 		// finalize
 		if(bTiming) { UG_LOG(std::endl << "Finalizing.."); SW.start(); }
-		AH.finalize();
+		AH.defragment();
 		if(bTiming) UG_LOG(" took " << SW.ms() << " ms\n");
 
 	#ifdef FAMG_PRINT_AH

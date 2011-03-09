@@ -13,12 +13,12 @@
 
 #ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_BASE_H__
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_BASE_H__
-
+#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/operator/operator_iterator_interface.h"
 #include <vector>
 #include <iostream>
 
 #include "amg_debug_helper.h"
-#include "sparsematrix_operator.h"
 
 
 template<typename T>
@@ -218,7 +218,7 @@ protected:
 	stdvector<prolongation_matrix_type *> m_R; 	///< R Restriction Matrices
 	stdvector<prolongation_matrix_type *> m_P; 	///< P Prolongation Matrices
 	stdvector<matrix_type *> m_A;				///< A Matrices
-	stdvector< SparseMatrixOperator<matrix_type, vector_type> > m_SMO;
+	stdvector< IndirectPureMatrixOperator<vector_type, vector_type, matrix_type> > m_SMO;
 
 #ifdef UG_PARALLEL
 	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels

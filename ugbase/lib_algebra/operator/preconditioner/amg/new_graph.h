@@ -36,8 +36,8 @@ namespace ug{
 class cgraph
 {
 public:
-	typedef const size_t * cRowIterator;
-	typedef size_t * rowIterator;
+	typedef const size_t * const_row_iterator;
+	typedef size_t * row_iterator;
 public:
 	/** constructor
 	 */
@@ -133,27 +133,27 @@ public:
 
 
 
-	rowIterator begin_row(size_t row)
+	row_iterator begin_row(size_t row)
 	{
 		size_check(row);
 		if(cons[row+1] == NULL) return NULL;
 		return cons[row];
 	}
 
-	rowIterator end_row(size_t row)
+	row_iterator end_row(size_t row)
 	{
 		size_check(row);
 		return cons[row+1];
 	}
 
-	cRowIterator begin_row(size_t row) const
+	const_row_iterator begin_row(size_t row) const
 	{
 		size_check(row);
 		if(cons[row+1] == NULL) return NULL;
 		return cons[row];
 	}
 
-	cRowIterator end_row(size_t row) const
+	const_row_iterator end_row(size_t row) const
 	{
 		size_check(row);
 		return cons[row+1];
@@ -163,7 +163,7 @@ public:
 	void transpose()
 	{
 		cgraph G;
-		G.create_as_transpose_of(*this);
+		G.set_as_transpose_of(*this);
 		swap(cons, G.cons);
 		swap(consmem, G.consmem);
 		size_t t;
@@ -189,7 +189,7 @@ public:
 
 		for(size_t i=0; i<other.size(); i++)
 		{
-			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
+			for(const_row_iterator it = other.begin_row(i); it != other.end_row(i); ++it)
 				rowSize[(*it)]++;
 			iTotalNrOfConnections += other.num_connections(i);
 			rowSize[i] += other.num_connections(i);
@@ -206,7 +206,7 @@ public:
 		cons[other.size()] = p;
 
 		for(size_t i=0; i < other.size(); i++)
-			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
+			for(const_row_iterator it = other.begin_row(i); it != other.end_row(i); ++it)
 			{
 				size_t from = (*it);
 				size_t to = i;
@@ -218,14 +218,14 @@ public:
 	}
 
 	//! creates this graph as the transpose of other
-	void create_as_transpose_of(const cgraph &other)
+	void set_as_transpose_of(const cgraph &other)
 	{
 		stdvector<size_t> rowSize(other.size());
 		for(size_t i=0; i<other.size(); i++) rowSize[i] = 0;
 
 		for(size_t i=0; i<other.size(); i++)
 		{
-			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
+			for(const_row_iterator it = other.begin_row(i); it != other.end_row(i); ++it)
 				rowSize[(*it)]++;
 			iTotalNrOfConnections += other.num_connections(i);
 		}
@@ -241,7 +241,7 @@ public:
 		cons[other.size()] = p;
 
 		for(size_t i=0; i < other.size(); i++)
-			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
+			for(const_row_iterator it = other.begin_row(i); it != other.end_row(i); ++it)
 			{
 				size_t from = (*it);
 				size_t to = i;
@@ -287,7 +287,7 @@ public:
 		for(size_t i=0; i < size(); i++)
 		{
 			cout << i << ": ";
-			for(rowIterator it=begin_row(i); it != end_row(i); ++it)
+			for(row_iterator it=begin_row(i); it != end_row(i); ++it)
 				cout << (*it) << " ";
 			cout << endl;
 		}

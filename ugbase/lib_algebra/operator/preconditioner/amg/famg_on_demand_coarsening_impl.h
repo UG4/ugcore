@@ -28,7 +28,7 @@ bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_node
 	{
 #if 0
 		int coarseNeighbors=0;
-		for(cgraph::cRowIterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
+		for(cgraph::const_row_iterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
 		{
 			if(rating[(*conn)].is_coarse())
 				coarseNeighbors++;
@@ -42,7 +42,7 @@ bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_node
 			return true;
 #else
 		int hasCoarseNeighbors=false;
-		for(cgraph::cRowIterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
+		for(cgraph::const_row_iterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
 		{
 			if(nodes[(*conn)].is_coarse())
 			{
@@ -102,7 +102,7 @@ void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possibl
 
 void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mark, stdvector<size_t> &list)
 {
-	for(cgraph::cRowIterator conn = SymmNeighGraph.begin_row(i); conn != SymmNeighGraph.end_row(i); ++conn)
+	for(cgraph::const_row_iterator conn = SymmNeighGraph.begin_row(i); conn != SymmNeighGraph.end_row(i); ++conn)
 		if(mark[(*conn)] == false) list.push_back((*conn));
 }
 

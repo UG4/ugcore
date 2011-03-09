@@ -89,19 +89,19 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_d
 
 	for(size_t i=0; i< A.num_rows(); i++)
 	{
-		if(A[i].is_isolated())
+		if(A.is_isolated(i))
 			continue;
 
 		double dmax = 0;
 
-		for(typename matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		for(typename matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
 			if(conn.index() == i) continue; // skip diag
 			if(conn.value() != 0.0 && amg_offdiag_value(conn.value()) < dmax)
 				dmax = amg_offdiag_value(conn.value());
 		}
 
-		for(typename matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		for(typename matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
 			if(conn.index() == i) continue; // skip diag
 			if( amg_offdiag_value(conn.value()) < m_dTheta * dmax)
@@ -168,7 +168,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	// all nodes to be fine which can be interpolated by this coarse node
 	// graph is afterwards made up of connections from a node i to j if
 	// j has a strong connection to i
-	graphST.create_as_transpose_of(graphS);
+	graphST.set_as_transpose_of(graphS);
 
 #ifdef AMG_WRITE_GRAPH
 	WriteAMGGraphToFile(graphS, (std::string(AMG_WRITE_MATRICES_PATH) + "G" + ToString(level) + ".mat").c_str(), m_amghelper, level);
@@ -261,7 +261,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	if(unassigned > 0)
 		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, &posInConnections[0], m_dTheta);
 
-	P.finalize();
+	P.defragment();
 
 /*#ifdef UG_PARALLEL
 	P.set_storage_type(PST_CONSISTENT);
@@ -282,8 +282,8 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	if(bTiming) SW.start();
 
 	// construct restriction R = I_{h -> 2h}
-	R.create_as_transpose_of(P);
-	// R is already finalized
+	R.set_as_transpose_of(P);
+	// R is already defragmented
 
 /*#ifdef UG_PARALLEL
 	R.set_storage_type(PST_CONSISTENT);
@@ -307,10 +307,10 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
-	// finalize
+	// defragment
 	if(bTiming) SW.start();
-	AH.finalize();
-	if(bTiming) UG_LOG(std::endl << "Finalizing... took " << SW.ms() << " ms");
+	AH.defragment();
+	if(bTiming) UG_LOG(std::endl << "Defragment ... took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_AH
 	UG_LOG("AH level " << level << std::endl);

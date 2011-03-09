@@ -336,7 +336,7 @@ template<typename neighborstruct>
 void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvector<neighborstruct> > &possible_neighbors,
 		famg_nodes &nodes, maxheap<famg_nodeinfo> &heap)
 {
-	for(cgraph::cRowIterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
+	for(cgraph::const_row_iterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
 	{
 		size_t neigh = (*conn);
 		UG_ASSERT(node != neigh, "");

@@ -18,6 +18,7 @@
 #include "amg_debug_helper.h"
 #include "postscript.h"
 #include "graph.h"
+#include "lib_algebra/lib_algebra.h"
 
 namespace ug {
 	
@@ -288,9 +289,9 @@ void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const 
 	file << 1 << std::endl;
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
-		for(typename SparseMatrix<T>::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
-			if((*conn).dValue != 0.0)
-				file << h.GetOriginalIndex(tolevel, i) << " " << h.GetOriginalIndex(fromlevel, (*conn).iIndex) << " " << ((*conn).dValue) << std::endl;
+		for(typename SparseMatrix<T>::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+			if(conn.value() != 0.0)
+				file << h.GetOriginalIndex(tolevel, i) << " " << h.GetOriginalIndex(fromlevel, conn.index()) << " " << conn.value() << std::endl;
 	}
 }
 
@@ -315,13 +316,13 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 		ps.move_to(h.positions[from].x, h.positions[from].y);
 		ps.print_text( std::string("0") + ToString(i));
 
-		for(typename SparseMatrix<T>::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		for(typename SparseMatrix<T>::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
-			if((*conn).dValue != 0.0)
+			if(conn.value() != 0.0)
 			{
-				if((*conn).iIndex != i)
+				if(conn.index() != i)
 				{
-					int to = h.GetOriginalIndex(fromlevel, (*conn).iIndex);
+					int to = h.GetOriginalIndex(fromlevel, conn.index());
 					ps.move_to(h.positions[from].x, h.positions[from].y);
 					ps.line_to(h.positions[to].x, h.positions[to].y);
 
@@ -349,7 +350,7 @@ inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_help
 	file << 1 << std::endl;
 	for(size_t i=0; i < G.size(); i++)
 	{
-		for(cgraph::cRowIterator it = G.begin_row(i); it != G.end_row(i); ++it)
+		for(cgraph::const_row_iterator it = G.begin_row(i); it != G.end_row(i); ++it)
 			file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, (*it)) << "  " << std::endl;
 	}
 }
