@@ -727,12 +727,15 @@ static int LuaProxyMethod(lua_State* L)
 //	check whether the parameter was correct
 
 	if(badParam != 0){
-		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to ");
-		UG_LOG(methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
-		UG_LOG("No matching overload found! Candidates are:\n");
-		for(size_t i = 0; i < methodGrp->num_overloads(); ++i){
-			PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(i));
-			UG_LOG("\n");
+		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to " << methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
+		if(methodGrp->num_overloads() > 1) { UG_LOG("No matching overload found! Candidates are:\n"); }
+		for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
+		{
+			const ExportedMethod* func = methodGrp->get_overload(i);
+			ParameterStack paramsIn;
+			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
+			PrintFunctionInfo(*func);
+			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
 		}
 		UG_LOG("Call stack:\n"); lua_stacktrace(L);
 	}
