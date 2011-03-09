@@ -23,7 +23,7 @@ if(NOT NO_ALGEBRA)
 
 	set(src_Algebra	 ${src_Algebra}
 		operator/preconditioner/amg/amg_coarsening.cpp
-		#operator/preconditioner/amg/famg.cpp
+		#operator/preconditioner/amg/famg.cpp		
 		 )
 
 if(NOT NO_PCL)
@@ -31,7 +31,7 @@ if(NOT NO_PCL)
 	set(src_Algebra	 ${src_Algebra}
 						operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
-						#operator/preconditioner/amg/famg_coloring.cpp
+						#operator/preconditioner/amg/famg_coloring.cpp						
 						 )
 endif(NOT NO_PCL)
 
