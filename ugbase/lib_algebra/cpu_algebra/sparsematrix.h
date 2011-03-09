@@ -321,7 +321,7 @@ public:
 		}
 #else
 	public:
-		inline row_iterator(connection *pC, connection *pE)
+		inline const_row_iterator(connection *pC, connection *pE)
 			: p(pC)
 			  { }
 		inline void check() const {}
