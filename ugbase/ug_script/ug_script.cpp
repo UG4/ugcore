@@ -153,7 +153,7 @@ lua_State* GetDefaultLuaState()
 			RegisterLuaUserData(scriptRegistry, "/ug4");
 
 		//	Register Boundary functions
-			RegisterLuaBoundaryNumber(scriptRegistry, "/ug4");
+		//	RegisterLuaBoundaryNumber(scriptRegistry, "/ug4");
 
 		//	Register algebra extensions
 			scriptRegistry.add_function("LoadAlgebraExtensions", &LoadAlgebraExtensions);
