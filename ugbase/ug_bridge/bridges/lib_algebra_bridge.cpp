@@ -15,6 +15,7 @@
 // algebra inlcudes
 #include "lib_algebra/lib_algebra.h"
 
+
 // user data (temporarily for Kosta Update)
 #include "ug_script/user_data/user_data.h"
 
@@ -34,21 +35,6 @@ namespace ug
 extern enum_AlgebraType g_AlgebraType;
 namespace bridge
 {
-
-template <typename TVector>
-void KostaUpdate(TVector& vOut, const TVector& vIn, const LuaUserNumberNumberFunction& alpha)
-{
-	UG_ASSERT(vOut.size() == vIn.size(), "Vector size does not match.");
-
-	for(size_t i = 0; i < vOut.size(); ++i)
-	{
-		const number c = vIn[i];
-		const number b = 20;
-		vOut[i] = alpha(2, c, b);
-		UG_LOG("Setting value i=" << i << " to " << vIn[i] << "\n");
-	}
-}
-
 
 template <typename TAlgebra>
 void RegisterAlgebraType(Registry& reg, const char* parentGroup)
@@ -425,8 +411,8 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 					"", "Verbose");
 
 //		reg.add_function("KostaUpdate", &KostaUpdate<CPUAlgebra::vector_type>);
-
 	}
+
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
 		UG_LOG("### ERROR in RegisterLibAlgebraInterface: "
