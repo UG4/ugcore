@@ -7,6 +7,8 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__ASSEMBLE__
 #define __H__UG__LIB_DISCRETIZATION__ASSEMBLE__
 
+#include "lib_discretization/dof_manager/dof_distribution.h"
+
 namespace ug{
 
 /// Return types of assembling
