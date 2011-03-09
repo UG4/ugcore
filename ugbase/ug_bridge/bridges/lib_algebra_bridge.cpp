@@ -9,6 +9,9 @@
 #include <iostream>
 #include <sstream>
 
+// #define UG_USE_AMG // temporary switch until AMG for systems works again
+
+
 // bridge
 #include "../ug_bridge.h"
 
@@ -24,10 +27,10 @@
 // 			the include of lib_discretization. It is uncommented here, since
 //          else we get a build of this file on each change of lib_disc (Maybe
 //			cmake does not recognize the undef (?) )
-// #define UG_USE_AMG // temporary switch until AMG for systems works again
-#undef UG_USE_AMG
+
+//#undef UG_USE_AMG
 #ifdef UG_USE_AMG
- //#include "lib_discretization/lib_discretization.h"
+//#include "lib_discretization/lib_discretization.h"
 #endif
 
 namespace ug
@@ -207,6 +210,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "threshold", "sets threshold of incomplete LU factorisation"); // added 01122010ih
 
 
+
 #ifdef UG_USE_AMG
 	//	AMG
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
@@ -218,37 +222,65 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 		typedef GridFunction<domain_type, dof_distribution_type, TAlgebra> function_type;
 	#endif
 
+		reg.add_class_< typename amg_base<algebra_type>::LevelInformation > ("AMGLevelInformation", grp2.c_str())
+			.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms)
+			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes)
+			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid);
+
 //todo: existance of AMGPreconditioner class should not depend on defines.
-		reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > ("AMGBase", grp.c_str())
-			.add_method("set_num_presmooth", &amg_base<algebra_type>::set_num_presmooth, "", "nu1", "sets nr. of presmoothing steps")
-			.add_method("set_num_postsmooth", &amg_base<algebra_type>::set_num_postsmooth, "", "nu2", "sets nr. of postsmoothing steps")
-			.add_method("set_cycle_type", &amg_base<algebra_type>::set_cycle_type, "", "gamma", "sets cycle type in multigrid cycle")
+		reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > ("AMGBase", grp2.c_str())
+			.add_method("set_num_presmooth", &amg_base<algebra_type>::set_num_presmooth, "", "nu1", "sets nr. of presmoothing steps (nu1)")
+			.add_method("get_num_presmooth", &amg_base<algebra_type>::get_num_presmooth, "nr. of presmoothing steps (nu1)")
+
+			.add_method("set_num_postsmooth", &amg_base<algebra_type>::set_num_postsmooth, "", "nu2", "sets nr. of postsmoothing steps (nu2)")
+			.add_method("get_num_postsmooth", &amg_base<algebra_type>::get_num_postsmooth, "nr. of postsmoothing steps (nu2)")
+
+			.add_method("set_cycle_type", &amg_base<algebra_type>::set_cycle_type, "", "gamma", "sets cycle type in multigrid cycle (gamma)")
+			.add_method("get_cycle_type", &amg_base<algebra_type>::get_cycle_type, "cycle type in multigrid cycle (gamma)")
+
+			.add_method("set_max_levels", &amg_base<algebra_type>::set_max_levels, "", "max_levels", "sets max nr of AMG levels")
+			.add_method("get_max_levels", &amg_base<algebra_type>::get_max_levels,  "max nr of AMG levels")
+
+			.add_method("set_max_nodes_for_base", &amg_base<algebra_type>::set_max_nodes_for_base, "", "maxNrOfNodes", "sets the maximal nr of nodes for base solver")
+			.add_method("get_max_nodes_for_base", &amg_base<algebra_type>::get_max_nodes_for_base, "maximal nr of nodes for base solver")
+
+			.add_method("set_max_fill_before_base", &amg_base<algebra_type>::set_max_fill_before_base, "", "fillrate", "sets maximal fill rate before base solver is used")
+			.add_method("get_max_fill_before_base", &amg_base<algebra_type>::get_max_fill_before_base, "maximal fill rate before base solver is used", "")
+
+			.add_method("get_operator_complexity", &amg_base<algebra_type>::get_operator_complexity, "", "")
+			.add_method("get_nodes_complexity", &amg_base<algebra_type>::get_nodes_complexity, "", "")
+			.add_method("get_timing_whole_setup_ms", &amg_base<algebra_type>::get_timing_whole_setup_ms, "", "")
+			.add_method("get_timing_coarse_solver_ms", &amg_base<algebra_type>::get_timing_coarse_solver_ms, "", "")
+			.add_method("get_level_information", &amg_base<algebra_type>::get_level_information, "", "")
+
 			.add_method("set_presmoother", &amg_base<algebra_type>::set_presmoother, "", "presmoother")
 			.add_method("set_postsmoother", &amg_base<algebra_type>::set_postsmoother, "", "postsmoother")
 			.add_method("set_base_solver", &amg_base<algebra_type>::set_base_solver, "", "basesmoother")
-			.add_method("set_max_levels", &amg_base<algebra_type>::set_max_levels, "", "max_levels", "sets max nr of AMG levels")
 			.add_method("set_debug", (bool (amg_base<algebra_type>::*)(function_type&)) &amg_base<algebra_type>::set_debug,"", "u",
 					"sets the internal positions of each node")
 			.add_method("check", &amg_base<algebra_type>::check, "", "")
-			.add_method("set_max_nodes_for_exact", &amg_base<algebra_type>::set_max_nodes_for_exact, "", "")
-			.add_method("set_max_fill_before_exact", &amg_base<algebra_type>::set_max_fill_before_exact, "", "")
 			.add_method("set_matrix_write_path", &amg_base<algebra_type>::set_matrix_write_path, "", "")
 			.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "");
 
-		reg.add_class_<	amg<algebra_type>, amg_base<algebra_type> > ("AMGPreconditioner", grp.c_str())
+		reg.add_class_<	amg<algebra_type>, amg_base<algebra_type> > ("AMGPreconditioner", grp2.c_str())
 			.add_constructor()
-			.add_method("set_theta", &amg<algebra_type>::set_theta, "", "theta")
-			.add_method("tostring", &amg<algebra_type>::tostring)
-			.add_method("enable_aggressive_coarsening_A_2", &amg<algebra_type>::enable_aggressive_coarsening_A_2)
-			.add_method("enable_aggressive_coarsening_A_1", &amg<algebra_type>::enable_aggressive_coarsening_A_1)
-			.add_method("disable_aggressive_coarsening", &amg<algebra_type>::disable_aggressive_coarsening);
+			.add_method("set_theta", &amg<algebra_type>::set_theta, "", "theta", "sets theta, a measure for strong connectivity")
+			.add_method("get_theta", &amg<algebra_type>::get_theta, "theta", "")
+			.add_method("set_sigma", &amg<algebra_type>::set_sigma, "", "sigma", "sets theta, a parameter used for truncation of interpolation")
+			.add_method("get_sigma", &amg<algebra_type>::get_sigma, "", "sigma", "sets theta, a parameter used for truncation of interpolation")
 
-		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > ("FAMGPreconditioner", grp.c_str())
+			.add_method("tostring", &amg<algebra_type>::tostring)
+			.add_method("enable_aggressive_coarsening_A", &amg<algebra_type>::enable_aggressive_coarsening_A)
+			.add_method("disable_aggressive_coarsening", &amg<algebra_type>::disable_aggressive_coarsening)
+			.add_method("is_aggressive_coarsening", &amg<algebra_type>::is_aggressive_coarsening)
+			.add_method("is_aggressive_coarsening_A", &amg<algebra_type>::is_aggressive_coarsening_A);
+
+		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > ("FAMGPreconditioner", grp2.c_str())
 			.add_constructor()
 			.add_method("tostring", &famg<algebra_type>::tostring)
 			.add_method("set_aggressive_coarsening", &famg<algebra_type>::set_aggressive_coarsening)
-			.add_method("set_delta", &famg<algebra_type>::set_delta)
-			.add_method("set_theta", &famg<algebra_type>::set_theta)
+			.add_method("set_delta", &famg<algebra_type>::set_delta, "", "delta", "\"Interpolation quality\" F may not be worse than this (F < m_delta)")
+			.add_method("set_theta", &famg<algebra_type>::set_theta, "" , "theta", "clip all interpolations with m_theta * F > min F.")
 			.add_method("set_damping_for_smoother_in_interpolation_calculation",
 					&famg<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
 			.add_method("set_testvector_zero_at_dirichlet", &famg<algebra_type>::set_testvector_zero_at_dirichlet)
