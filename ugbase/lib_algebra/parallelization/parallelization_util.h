@@ -309,10 +309,15 @@ int GetHighestReferencedIndex(IndexLayout& layout);
 ////////////////////////////////////////////////////////////////////////
 ///	fills a connection list, which gives the connected processes to each interface.
 /**	The i-th entry in connectionsOut is a vector which contains the process-ids
- * of all connected processes of the i-th interface. This includes connections
- * to all slaves of the associated master.
+ * of all connected processes of the layout-entry with value i.
+ * This includes connections to all slaves of the associated master.
  * The first entry for each connection is the process on which the
  * master-element lies, followed by the processes where associated slaves lie.
+ *
+ * \param	connectionsOut will have the size highestReferencedIndex + 1 when the
+ * 			method is done. By indexing connectionsOut with an entry of one of the
+ * 			layouts interfaces, you will obtain a vector of all processes on
+ * 			which copies of that entry reside.
  *
  * \param 	highestReferencedIndex has to hold the highest index which is referenced
  * 			either by entries in the interfaces of masterLayout or by entries in the
