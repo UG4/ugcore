@@ -9,6 +9,10 @@
 #include "lib_discretization/domain_util.h"
 #include "lib_discretization/common/groups_util.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl.h"
+#endif
+
 namespace ug{
 
 bool
@@ -33,6 +37,15 @@ add_fct(const char* name, LocalShapeFunctionSetID id, int dim)
 //	if no dimension passed, try to get dimension
 	if(dim == -1)
 		dim = DimensionOfSubsets(*m_pSH);
+
+#ifdef UG_PARALLEL
+//	some processes may not have an element of the subset at all. They can not
+//	out the dimension of the subset. Therefore we have to broadcast it.
+	pcl::ProcessCommunicator ProcCom;
+	int dimGlob;
+	ProcCom.allreduce(&dim, &dimGlob, 1, PCL_DT_INT, PCL_RO_MAX);
+	dim = dimGlob;
+#endif
 
 //	if still no dimension available, return false
 	if(dim == -1)
@@ -90,6 +103,15 @@ add_fct(const char* name,
 	{
 		dim = SubsetIndices.get_highest_subset_dimension();
 	}
+
+#ifdef UG_PARALLEL
+//	some processes may not have an element of the subset at all. They can not
+//	out the dimension of the subset. Therefore we have to broadcast it.
+	pcl::ProcessCommunicator ProcCom;
+	int dimGlob;
+	ProcCom.allreduce(&dim, &dimGlob, 1, PCL_DT_INT, PCL_RO_MAX);
+	dim = dimGlob;
+#endif
 
 //	if still no dimension available, return false
 	if(dim == -1)
