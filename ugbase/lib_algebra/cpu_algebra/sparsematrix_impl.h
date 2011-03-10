@@ -16,6 +16,8 @@
 
 #include "algebra_misc.h"
 #include "local_helper.h"
+#include <vector>
+#include <algorithm>
 
 template<typename T> T abs(const T &a, const T &b)
 {
