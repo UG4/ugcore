@@ -48,7 +48,7 @@ class IDataImport
 	 */
 		bool non_zero_derivative() const
 		{
-			if(m_pIDataExport == NULL) return false;
+			if(m_pIDependentIPData == NULL) return false;
 			else return m_bCompLinDefect;
 		}
 
@@ -81,6 +81,7 @@ class IDataImport
 	protected:
 	/// connected iexport
 		IDataExport<TAlgebra>* m_pIDataExport;
+		IDependentIPData* m_pIDependentIPData;
 
 	///	function group for linear defect
 		const FunctionGroup* m_pFctGrp;
@@ -156,7 +157,7 @@ class DataImport : public IDataImport<TAlgebra>
 	/// Constructor
 		DataImport(bool compLinDefect = true) :
 			IDataImport<TAlgebra>(compLinDefect),
-			m_seriesID(-1), m_pIPData(NULL), m_pDataExport(NULL)
+			m_seriesID(-1), m_pIPData(NULL), m_pDataExport(NULL), m_pDependentIPData(NULL)
 		{}
 
 	///	set the user data
@@ -167,9 +168,12 @@ class DataImport : public IDataImport<TAlgebra>
 
 		//	remember iexport
 			this->m_pIDataExport = dynamic_cast<IDataExport<TAlgebra>*>(&data);
+			this->m_pIDependentIPData = dynamic_cast<IDependentIPData*>(&data);
+			m_pDependentIPData = dynamic_cast<DependentIPData<TData, dim>*>(&data);
 
 		//	remember export (i.e. is NULL iff no export given)
 			m_pDataExport = dynamic_cast<DataExport<TData, dim, TAlgebra>*>(&data);
+			m_pDependentIPData = dynamic_cast<DependentIPData<TData, dim>*>(&data);
 		}
 
 	/// returns the connected IIPData
@@ -324,16 +328,16 @@ class DataImport : public IDataImport<TAlgebra>
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
 		void assemble_jacobian(local_matrix_type& J)
 		{
-			UG_ASSERT(m_pDataExport != NULL, "No Export set.");
+			UG_ASSERT(m_pDependentIPData != NULL, "No Export set.");
 
 			for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
-				for(size_t fct2 = 0; fct2 < m_pDataExport->num_fct(); ++fct2)
+				for(size_t fct2 = 0; fct2 < m_pDependentIPData->num_fct(); ++fct2)
 					for(size_t dof1 = 0; dof1 < num_sh(fct1); ++dof1)
-						for(size_t dof2 = 0; dof2 < m_pDataExport->num_sh(m_seriesID, fct2); ++dof2)
+						for(size_t dof2 = 0; dof2 < m_pDependentIPData->num_sh(m_seriesID, fct2); ++dof2)
 							for(size_t ip = 0; ip < num_ip(); ++ip)
 							{
 								number prod = lin_defect(ip, fct1, dof1)
-												* m_pDataExport->deriv(m_seriesID, ip, fct2, dof2);
+												* m_pDependentIPData->deriv(m_seriesID, ip, fct2, dof2);
 								J(fct1, dof1, fct2, dof2) += prod;
 							}
 		}
@@ -365,6 +369,9 @@ class DataImport : public IDataImport<TAlgebra>
 
 	/// connected export (if depended data)
 		DataExport<TData, dim, TAlgebra>* m_pDataExport;
+
+	/// connected export (if depended data)
+		DependentIPData<TData, dim>* m_pDependentIPData;
 
 	/// linearized defect (num_ip) x (num_fct) x (num_dofs(i))
 		std::vector<std::vector<std::vector<TData> > > m_vvvLinDefect;
