@@ -15,6 +15,8 @@
 // other ug4 modules
 #include "common/common.h"
 
+#include "lib_discretization/common/geometry_util.h"
+
 namespace ug{
 
 /// averages positions by arithmetic mean
