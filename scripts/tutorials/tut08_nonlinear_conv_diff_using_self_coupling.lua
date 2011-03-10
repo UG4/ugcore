@@ -37,6 +37,18 @@ outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 -- We read in the number of time steps to be performed
 numTimeSteps = util.GetParamNumber("-numTimeSteps", 10) -- default dimension is 10
 
+-- We additionally use parameters which allow to specify the number of
+-- pre- and total-refinement steps (wrt domain distribution).
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
+numTotalRefs = util.GetParamNumber("-numTotalRefs", 3)
+
+-- Calculate the number of post-refs and make sure that the result makes sense.
+numPostRefs = numTotalRefs - numPreRefs
+if numPostRefs < 0 then
+	print("WARNING:\tnumPreRefs exceeds the number of total refinements.")
+	print("\t\t\tNo refinement will be preformed after distribution.")
+	numPostRefs = 0
+end
 
 
 -- Now its time to create the domain object. We will use an util method here,
@@ -58,6 +70,18 @@ end
 -- Now that we're here, the domain was successfully loaded
 print("Loaded domain from " .. gridName)
 
+-- We will create a refiner now. This is a tool associated with a domain.
+-- UG defines factory methods for refiners, which automatically choose
+-- the right refiner for the given context, i.e. different refiners are
+-- created depending on whether we are in a parallel or in a serial environment.
+-- Note that another factory method is HangingNodeDomainRefiner, which is
+-- subject to a later tutorial.
+refiner = GlobalDomainRefiner(dom)
+
+-- perform pre-refinement
+for i = 1, numPreRefs do
+	refiner:refine()
+end
 
 -- Distribute the domain to all involved processes
 if DistributeDomain(dom) == false then
@@ -65,6 +89,11 @@ if DistributeDomain(dom) == false then
 	exit()
 end
 
+
+-- perform post-refinement
+for i = 1, numPostRefs do
+	refiner:refine()
+end
 
 -- Lets save the domain on each process
 outFileName = outFileNamePrefix .. GetProcessRank() .. ".ugx"
@@ -157,7 +186,7 @@ function linkDiffTensor1d(c)
 	return c
 end
 function linkDiffTensor2d(c)
-	local v = 0.001 * c
+	local v =  c
 	return 	v, 0,
 			0, v
 end
@@ -171,7 +200,7 @@ function DlinkDiffTensor1d_c(c)
 	return 1
 end
 function DlinkDiffTensor2d_c(c)
-	local v = 0.001
+	local v = 1
 	return 	v, 0,
 			0, v
 end
@@ -254,11 +283,11 @@ linkedDiffTensor:set_input(0, elemDisc:get_concentration())
 -- Now we have to choose, which coefficients to use. Out of the created 
 -- data objects we can choose. E.g. for the Diffusion matrix, we have 
 -- the three choices, created above. We pick one ...
---elemDisc:set_diffusion_tensor(luaDiffTensorCallback)	-- set lua diffusion matrix
+elemDisc:set_diffusion_tensor(linkedDiffTensor)	-- set linker diffusion matrix
 
 -- ... we could also have used these two possibilities
 --elemDisc:set_diffusion_tensor(constDiffTensor)	-- set const diffusion matrix
-elemDisc:set_diffusion_tensor(linkedDiffTensor)	-- set linker diffusion matrix
+--elemDisc:set_diffusion_tensor(luaDiffTensorCallback)	-- set lua diffusion matrix
 
 
 -- we add also the other coefficients
@@ -326,7 +355,7 @@ linSolver = LU()
 
 -- Next we need a convergence check, that computes the defect within each 
 -- newton step and stops the iteration when a specified creterion is fullfilled.
--- For our purpose is the StandardConvergenceCheck is sufficient. Please note,
+-- For our purpose the StandardConvergenceCheck is sufficient. Please note,
 -- that this class derives from a general IConvergenceCheck-Interface and
 -- also more specialized or self-coded convergence checks could be used.
 newtonConvCheck = StandardConvergenceCheck()
@@ -444,7 +473,7 @@ for step = 1, numTimeSteps do
 	print("++++++ TIMESTEP " .. step .. "  END ++++++");
 end
 
--- At the end of the time loop, we finish our time loop. This produces a
+-- At the end of the time loop, we finish our time series. This produces a
 -- grouping "Solution.pvd" file, that containes all time steps and can be
 -- opened by a viewer like Paraview.
 out:end_timeseries("Solution", u)
