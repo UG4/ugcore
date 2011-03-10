@@ -137,9 +137,10 @@ bool InterpolateFunctionHelp(	boost::function<void (
 	//	skip if function is not defined in subset
 		if(!u.is_def_in_subset(fct, si)) continue;
 
+
 	//	switch dimensions
 		bool bRes = true;
-		switch(u.dim(fct))
+		switch(ssGrp.dim(i))
 		{
 		case 1:
 			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
@@ -227,6 +228,7 @@ bool InterpolateFunction(	IUserData<number, TGridFunction::domain_type::dim>& da
 		ConvertStringToSubsetGroup(ssGrp, *approxSpace.get_subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
+
 
 //	forward
 	return InterpolateFunctionHelp(InterpolFunction, u, fct, time, ssGrp);
