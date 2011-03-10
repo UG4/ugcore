@@ -570,6 +570,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			}
 		}
 
+	//	Compute element data
+		Eval.add_coupl_JA(locJ, ind);
+
+
 	// 	send local to global matrix
 		J.add(locJ);
 	}
