@@ -70,6 +70,10 @@ save compilation time, use the -DDIM option. Examples:
 <li> "cmake -DDIM="2;3" .." -> Builds dimension 2 and 3, but not 1
 </ul>
 
+For cmake Versions old than 2.8 yo must explicitly specify, that in the option
+DIM is passed a string. So, please use:
+"cmake -DDIM:STRING=2 .." etc.
+
 <hr>
 \section secInstallUG4Make Make
 <hr>
