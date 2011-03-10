@@ -72,7 +72,10 @@ FV1Geometry() : m_pElem(NULL)
 		copy_local_corners(m_vSCVF[i]);
 
 		// integration point
-		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
+		if(dim != 1)
+			AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
+		else
+			m_vSCVF[i].localIP = m_locMid[1][0];
 	}
 
 	// set up local informations for SubControlVolumes (scv)
@@ -120,6 +123,7 @@ FV1Geometry() : m_pElem(NULL)
 	/////////////////////////
 	// Shapes and Derivatives
 	/////////////////////////
+
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
@@ -134,6 +138,7 @@ FV1Geometry() : m_pElem(NULL)
 
 		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
 		TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
+
 	}
 
 	///////////////////////////
@@ -213,7 +218,10 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 		copy_global_corners(m_vSCVF[i]);
 
 	// 	integration point
+		if(dim != 1)
 		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
+		else
+			m_vSCVF[i].globalIP = m_gloMid[1][0];
 
 	// 	normal on scvf
 		if(ref_elem_type::dim == world_dim)

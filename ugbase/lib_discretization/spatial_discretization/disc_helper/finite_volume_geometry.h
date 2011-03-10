@@ -25,9 +25,36 @@
 namespace ug{
 
 
+///	a singleton class that returns a new id for each type
+class UniqueFVGeomIDProvider{
+	public:
+		static UniqueFVGeomIDProvider& inst(){
+			static UniqueFVGeomIDProvider instance;
+			return instance;
+		}
+
+		size_t new_id()	{return ++m_id;}
+
+	private:
+		UniqueFVGeomIDProvider() : m_id(0)	{}
+		size_t m_id;
+};
+
+///	This method associates a unique unsigned integer value with each type.
+template <class TType>
+size_t GetUniqueFVGeomID()
+{
+	static size_t typeID = UniqueFVGeomIDProvider::inst().new_id();
+	return typeID;
+}
+
+
+/// base class for all FVGeometries
+class FVGeometryBase {};
+
 template <	typename TElem,
 			int TWorldDim>
-class FV1Geometry {
+class FV1Geometry : public FVGeometryBase {
 	public:
 		// type of element
 		typedef TElem elem_type;
