@@ -46,10 +46,10 @@ class IDataImport
 	/**
 	 * This method returns if the data depends on the unknown functions.
 	 */
-		bool non_zero_derivative() const
+		bool zero_derivative() const
 		{
-			if(m_pIDependentIPData == NULL) return false;
-			else return m_bCompLinDefect;
+			if(m_pIDependentIPData == NULL) return true;
+			else return !m_bCompLinDefect;
 		}
 
 	/// returns the connected ip data

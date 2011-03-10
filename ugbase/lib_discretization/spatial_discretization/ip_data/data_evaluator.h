@@ -91,6 +91,7 @@ class DataEvaluator
 		{
 		//	remove imports scheduled for evaluation of lin defect
 			m_vMapImp.clear();
+			m_vMapImpConn.clear();
 			m_vIDataImport.clear();
 
 		// 	remove data scheduled for evaluation
@@ -179,7 +180,7 @@ class DataEvaluator
 				//	get import
 					IDataImport<TAlgebra>* iimp = (*m_pvElemDisc)[d]->import(i);
 
-				//	skip zero data
+				//	skip non-given data (no need for evaluation)
 					if(!iimp->data_given()) continue;
 
 				//	push export on stack of needed data
@@ -188,24 +189,50 @@ class DataEvaluator
 				//	add data and all dependency to evaluation list
 					if(!add_data_to_eval_data(vEvalData, vTryingToAdd))
 					{
-						UG_LOG("ERROR in extract_imports_and_ipdata:"
+						UG_LOG("ERROR in DataEvaluator::extract_imports_and_ipdata:"
 								" Circle dependency of data detected for IP Data.\n");
 						return false;
 					}
 					UG_ASSERT(vTryingToAdd.empty(), "All must have been added.");
 
 				//	done iff zero-derivative
-					if(!iimp->non_zero_derivative()) continue;
+					if(iimp->zero_derivative()) continue;
 
 				//	schedule import for computation of lin defect:
 					m_vIDataImport.push_back(iimp);
 
+				//	cast to dependent data
+					IDependentIPData* dependData =
+							dynamic_cast<IDependentIPData*>(iimp->get_data());
+
+				//	check success
+					if(dependData == NULL)
+					{
+						UG_LOG("ERROR in DataEvaluator::extract_imports_and_ipdata:"
+								" Data seems dependent, but cast failed.\n");
+						return false;
+					}
+
+				//	create FuncMap
+					FunctionIndexMapping map;
+					if(!CreateFunctionIndexMapping(map,
+												   dependData->get_function_group(),
+												   m_commonFctGroup))
+					{
+						UG_LOG("Cannot create Function Index Mapping for disc.\n");
+						return false;
+					}
+
+
 				//	Remember FuncMap for lin defect (the same map as for elem disc)
 					m_vMapImp.push_back(m_vMap[d]);
+
+				//  Remember FuncMap for connected data
+					m_vMapImpConn.push_back(map);
 				}
 			}
 
-		//	loop all needed ip data and sort it
+		//	loop all needed ip data and group it
 			for(size_t i = 0; i < vEvalData.size(); ++i)
 			{
 				IIPData* ipData = vEvalData[i];
@@ -232,7 +259,11 @@ class DataEvaluator
 
 			//	check success
 				if(dependData == NULL)
-					{return false;}
+				{
+					UG_LOG("ERROR in DataEvaluator::extract_imports_and_ipdata:"
+							" Data seems dependent, but cast failed.\n");
+					return false;
+				}
 
 			//	create FuncMap
 				FunctionIndexMapping map;
@@ -265,12 +296,12 @@ class DataEvaluator
 				else
 			//	Linker case
 				{
-					//	schedule for evaluation of linker
-						m_vLinkerData.push_back(ipData);
-						m_vLinkerDepend.push_back(dependData);
+				//	schedule for evaluation of linker
+					m_vLinkerData.push_back(ipData);
+					m_vLinkerDepend.push_back(dependData);
 
-					// 	remember function map
-						m_vMapLinker.push_back(map);
+				// 	remember function map
+					m_vMapLinker.push_back(map);
 				}
 			}
 
@@ -312,9 +343,14 @@ class DataEvaluator
 			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
 			{
 			//	set id for imports
-				m_vIDataImport[i]->set_geometric_object_type(id);
+				if(!m_vIDataImport[i]->set_geometric_object_type(id))
+				{
+					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+							"Cannot set geometric object type for Import " << i <<".\n");
+					return false;
+				}
 
-			//	adjust derivative array
+			//	adjust lin defect array
 				ind.access_by_map(m_vMapImp[i]);
 				m_vIDataImport[i]->resize(ind);
 			}
@@ -323,7 +359,12 @@ class DataEvaluator
 			for(size_t i = 0; i < m_vIDataExport.size(); ++i)
 			{
 			//	set id for imports
-				m_vIDataExport[i]->set_geometric_object_type(id);
+				if(!m_vIDataExport[i]->set_geometric_object_type(id))
+				{
+					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+							"Cannot set geometric object type for Export " << i <<".\n");
+					return false;
+				}
 
 			//	adjust derivative array
 				ind.access_by_map(m_vMapExp[i]);
@@ -377,7 +418,12 @@ class DataEvaluator
 				else
 				{
 					ind.access_by_map(m_vMapDepend[i]);
-					exp->compute_export(u, computeDeriv);
+					if(!exp->compute_export(u, computeDeriv))
+					{
+						UG_LOG("In 'DataEvaluator::compute_elem_data':"
+								"Cannot compute data for Export " << i <<".\n");
+						return false;
+					}
 				}
 			}
 
@@ -388,7 +434,12 @@ class DataEvaluator
 			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
 			{
 				ind.access_by_map(m_vMapImp[i]);
-				m_vIDataImport[i]->compute_lin_defect(u);
+				if(!m_vIDataImport[i]->compute_lin_defect(u))
+				{
+					UG_LOG("In 'DataEvaluator::compute_elem_data':"
+							"Cannot compute lin defect for Import " << i <<".\n");
+					return false;
+				}
 			}
 
 		//	we're done
@@ -410,8 +461,7 @@ class DataEvaluator
 				indRow.access_by_map(m_vMapImp[i]);
 
 			//	cols are given by export
-				// todo this not right iff numExp != numImp
-				indCol.access_by_map(m_vMapExp[i]);
+				indCol.access_by_map(m_vMapImpConn[i]);
 
 			//	add off diagonal coupling
 				m_vIDataImport[i]->assemble_jacobian(J);
@@ -437,8 +487,9 @@ class DataEvaluator
 	//	data imports which are connected to non-zero derivative ip data
 		std::vector<IDataImport<TAlgebra>*> m_vIDataImport;
 
-	//	Function mapping for import
+	//	Function mapping for import and for the connected data
 		std::vector<FunctionIndexMapping> m_vMapImp;
+		std::vector<FunctionIndexMapping> m_vMapImpConn;
 
 	//	constant data
 		std::vector<IIPData*> m_vConstData;
@@ -453,16 +504,11 @@ class DataEvaluator
 	//	data linker
 		std::vector<IIPData*> m_vLinkerData;
 		std::vector<IDependentIPData*> m_vLinkerDepend;
+		std::vector<FunctionIndexMapping> m_vMapLinker;
 
 	//	exports
 		std::vector<IDataExport<TAlgebra>*> m_vIDataExport;
-
-	//	Function mapping for exports
 		std::vector<FunctionIndexMapping> m_vMapExp;
-
-	//	Function mapping for exports
-		std::vector<FunctionIndexMapping> m_vMapLinker;
-
 };
 
 } // end namespace ug
