@@ -635,6 +635,7 @@ compute_concentration_export(const local_vector_type& u, bool compDeriv)
 				{
 				//	compute concentration at ip
 					number& cIP = m_exConcentration.value(s, ip);
+					cIP = 0.0;
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 						cIP += u(_C_, sh) * scvf.shape(sh, j);
 
