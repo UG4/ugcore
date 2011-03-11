@@ -163,12 +163,12 @@ class IGridFunction
 	/// fill the global algebra indices in LocalIndex
 		template<typename TElem>
 		void update_indices(TElem* elem, LocalIndices& ind, bool useHanging = false) const
-			{check(); return m_pDoFDist->update_indices(elem, ind, useHanging);}
+			{check(); m_pDoFDist->update_indices(elem, ind, useHanging);}
 
 	/// fill the global algebra indices in LocalIndex
 		template<typename TElem>
 		void update_inner_indices(TElem* elem, LocalIndices& ind) const
-			{check(); return m_pDoFDist->update_inner_indices(elem, ind);}
+			{check(); m_pDoFDist->update_inner_indices(elem, ind);}
 
 		////////// Multi indices ////////////
 
