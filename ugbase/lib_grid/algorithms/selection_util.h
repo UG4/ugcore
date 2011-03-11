@@ -274,10 +274,32 @@ void DeselectBoundarySelectionFaces(TSelector& sel);
 /**
  * \param sel: Selector
  * \param maxDeviationAngle: in degree. Maximal angle between normals of faces considered as flat.
+ * \param traverseFlipped (default false): If true, neighboured faces which have
+ * 							inverted orientation are traversed anyways.
  * \param aPos: Position attachment
  */
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
+						   bool traverseFlipped = false,
 						   APosition& aPos = aPosition);
+
+////////////////////////////////////////////////////////////////////////
+//	SelectLinkedFlatFaces
+///	Extends the selection of faces to all neighbouring faces that have a similar normal.
+/**
+ * In contrast to SelectLinkedFlatFaces this method also traverses
+ * degenerated faces over their non-degenerated sides.
+ *
+ * \param sel: Selector
+ * \param maxDeviationAngle: in degree. Maximal angle between normals of faces considered as flat.
+ * \param traverseFlipped (default false): If true, neighboured faces which have
+ * 							inverted orientation are traversed anyways.
+ * \param aPos: Position attachment
+ */
+void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
+										 number maxDeviationAngle,
+										 bool traverseFlipped = false,
+										 number degThreshold = SMALL,
+						   	   	   	     APosition& aPos = aPosition);
 
 }// end of namespace
 

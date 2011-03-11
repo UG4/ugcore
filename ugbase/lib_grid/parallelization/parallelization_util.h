@@ -22,6 +22,17 @@ namespace ug
 int GetAssociatedInterfaceType(int interfaceType);
 
 
+/// \addtogroup lib_grid_parallelization
+///	@{
+////////////////////////////////////////////////////////////////////////
+///	Creates and distributes global ids for the given element type.
+/**	IDs are written to the given attachment (aGeomObjID by default).
+ */
+template <class TGeomObj>
+void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
+								  AGeomObjID& aID = aGeomObjID);
+///	@}
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -174,5 +185,10 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 
 /// @}
 }//	end of namespace
+
+
+////////////////////////////////
+//	include implementation
+#include "parallelization_util_impl.hpp"
 
 #endif

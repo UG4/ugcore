@@ -87,11 +87,18 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 				
 ///	redistributes parts of distributed grids.
 /**	This method is still in development... Use with care!
- *	(If possible, you shouldn't use it at all in its current incarnation!).
+ * (If possible, you shouldn't use it at all in its current incarnation!).
+ *
+ * \param	procMap is by default NULL and thus ignored. If you specify it
+ * 			make sure to specify a pointer to an array with size
+ * 			shPartition.num_subsets(). All values in the array have to be
+ * 			in the range [0, pcl:GetNumProcesses()[.
+ * 			The procMap associates a process rank with each subset index.
  */
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  ISubsetHandler& shInOut,
-					  SubsetHandler& shPartition);
+					  SubsetHandler& shPartition,
+					  int* processMap = NULL);
 					  
 /// @}
 }//	end of namespace

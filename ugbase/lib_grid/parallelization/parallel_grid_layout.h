@@ -8,6 +8,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <algorithm>
 #include "pcl/pcl.h"
 #include "lib_grid/lg_base.h"
 
@@ -47,8 +48,33 @@ struct type_traits<ug::Volume>
 namespace ug
 {
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 /// \addtogroup lib_grid_parallelization
 /// @{
+
+////////////////////////////////////////////////////////////////////////
+///	The global id can be used to uniquely identify distributed objects.
+/**	Note that normally no global IDs are associated with geometric objects.
+ * However, methods exist, which can assign global ids based on the
+ * current layouts.
+ */
+typedef std::pair<int, size_t>	GeomObjID;
+
+////////////////////////////////////////////////////////////////////////
+///	Can be used to construct a GeomObjID from a proc-rank and a local id.
+inline GeomObjID MakeGeomObjID(int procRank, size_t localGeomObjID)
+{
+	return std::make_pair(procRank, localGeomObjID);
+}
+
+////////////////////////////////////////////////////////////////////////
+///	An attachment which can store GeomObjIDs
+typedef Attachment<GeomObjID>	AGeomObjID;
+
+///	This attachment instance should be used to store global ids
+extern AGeomObjID aGeomObjID;
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	The types of interface-entries.

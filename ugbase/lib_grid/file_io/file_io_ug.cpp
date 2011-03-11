@@ -342,7 +342,7 @@ static bool CollectAllVerticesForNG(Grid& grid, VertexSelector& NgVrtSel,
  * boundaries).
  * Note that only faces in the same subset as q are regarded.
  */
-static int GetFirstRegularVertex(Grid& grid, SubsetHandler sh, Face* q)
+static int GetFirstRegularVertex(Grid& grid, const SubsetHandler& sh, Face* q)
 {
 	grid.begin_marking();
 	vector<EdgeBase*> edges;

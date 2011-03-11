@@ -80,6 +80,7 @@ class Grid
 				AttachmentAccessor();
 				AttachmentAccessor(const AttachmentAccessor& aa);
 				AttachmentAccessor(Grid& grid, TAttachment& a);
+				AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 
 				inline void access(Grid& grid, TAttachment& a)
 					{ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>::access(grid.get_attachment_pipe<TElem>(), a);}
@@ -442,6 +443,8 @@ class Grid
 		inline void attach_to_faces(IAttachment& attachment, bool passOnValues)		{attach_to<Face>(attachment, passOnValues);}
 		inline void attach_to_volumes(IAttachment& attachment, bool passOnValues)		{attach_to<Volume>(attachment, passOnValues);}
 
+		inline void attach_to_all(IAttachment& attachment, bool passOnValues);
+
 	////////////////////////////////////////////////////////////////////////
 	///	attach with default pass-on behaviour and unspecified default value.
 		template <class TGeomObjClass>
@@ -451,6 +454,9 @@ class Grid
 		inline void attach_to_edges(IAttachment& attachment)	{attach_to<EdgeBase>(attachment);}
 		inline void attach_to_faces(IAttachment& attachment)	{attach_to<Face>(attachment);}
 		inline void attach_to_volumes(IAttachment& attachment)	{attach_to<Volume>(attachment);}
+
+	///	attaches to vertices, edges, faces and volumes at once.
+		inline void attach_to_all(IAttachment& attachment);
 
 	////////////////////////////////////////////////////////////////////////
 	//	attach with specified default value and default pass-on behaviour
@@ -466,6 +472,10 @@ class Grid
 		template <class TAttachment>
 		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Volume>(attachment, defaultValue);}
 
+	///	attaches to vertices, edges, faces and volumes at once.
+		template <class TAttachment>
+		inline void attach_to_all_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue);
+
 	////////////////////////////////////////////////////////////////////////
 	//	attach with specified default value and custom pass-on behaviour
 		template <class TGeomObjClass, class TAttachment>
@@ -480,6 +490,8 @@ class Grid
 		template <class TAttachment>
 		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)	{attach_to_dv<Volume>(attachment, defaultValue, passOnValues);}
 
+		template <class TAttachment>
+		inline void attach_to_all_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues);
 	////////////////////////////////////////////////////////////////////////
 	//	detach
 		template <class TGeomObjClass>
@@ -489,6 +501,9 @@ class Grid
 		inline void detach_from_edges(IAttachment& attachment)		{detach_from<EdgeBase>(attachment);}
 		inline void detach_from_faces(IAttachment& attachment)		{detach_from<Face>(attachment);}
 		inline void detach_from_volumes(IAttachment& attachment)	{detach_from<Volume>(attachment);}
+
+		inline void detach_from_all(IAttachment& attachment);
+
 
 		template <class TGeomObjClass>
 		inline bool has_attachment(IAttachment& attachment)			{return get_attachment_pipe<TGeomObjClass>().has_attachment(attachment);}

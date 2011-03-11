@@ -9,6 +9,7 @@
 #include "selection_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "graph/graph.h"
+#include "lib_grid/grid/grid_util.h"
 
 using namespace std;
 
@@ -920,7 +921,7 @@ void DeselectBoundarySelectionFaces(TSelector& sel)
 ////////////////////////////////////////////////////////////////////////
 // SelectLinkedFlatFaces
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
-						   APosition& aPos)
+						   bool traverseFlipped, APosition& aPos)
 {
 	if(!sel.get_assigned_grid())
 		return;
@@ -965,10 +966,110 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 				CalculateNormal(nNbr, nbr, aaPos);
 				
 			//	check dots
-				if(VecDot(n, nNbr) >= thresholdDot){
+				number d = VecDot(n, nNbr);
+				if(traverseFlipped)
+					d = fabs(d);
+
+				if(d >= thresholdDot){
 				//	nbr is a linked flat face
 					sel.select(nbr);
 					qCandidates.push(nbr);
+				}
+			}
+		}
+	}
+}
+
+
+void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
+										 number maxDeviationAngle,
+										 bool traverseFlipped,
+										 number degThreshold,
+						   	   	   	     APosition& aPos)
+{
+	if(!sel.get_assigned_grid())
+		return;
+
+	Grid& grid = *sel.get_assigned_grid();
+
+	if(!grid.has_vertex_attachment(aPosition))
+		return;
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+
+//	convert the thresholdDegree to thresholdDot
+	number thresholdDot = cos(deg_to_rad(maxDeviationAngle));
+	number degThresholdSq = degThreshold * degThreshold;
+
+//	all initially selected faces are candidates
+//	with each candidate we'll also store its normal (this is
+//	required since we'll traverse degenerated faces)
+	queue<Face*> 	qCandidates;
+	queue<vector3>	qNormals;
+	for(FaceIterator iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter){
+		qCandidates.push(*iter);
+	//	calculate the normal
+		vector3 n;
+		CalculateNormal(n, *iter, aaPos);
+		qNormals.push(n);
+	}
+
+//	temporary vectors for edges and faces
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+
+//	while there are candidates left
+	while(!qCandidates.empty())
+	{
+		Face* f = qCandidates.front();
+		qCandidates.pop();
+
+	//	calculate the normal
+		vector3 n = qNormals.front();
+		qNormals.pop();
+
+	//	get associated edges
+		CollectAssociated(edges, grid, f);
+
+	//	iterate through all edges
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
+		{
+			EdgeBase* e = edges[i_edge];
+
+		//	only proceed if the edge is not degenerated
+			if(EdgeLengthSq(e, aaPos) <= degThresholdSq)
+				continue;
+
+		//	check associated faces
+			CollectAssociated(faces, grid, e);
+			for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+				Face* nbr = faces[i_face];
+				if(!sel.is_selected(nbr)){
+				//	if the neighbor is degenerated, we can immediately select it.
+					if(IsDegenerated(nbr, aaPos, degThreshold)){
+						sel.select(nbr);
+						qCandidates.push(nbr);
+					//	use the normal from the face from which the degenerated
+					//	face was encountered
+						qNormals.push(n);
+					}
+					else{
+					//	compare normals
+						vector3 nNbr;
+						CalculateNormal(nNbr, nbr, aaPos);
+
+					//	check dots
+						number d = VecDot(n, nNbr);
+						if(traverseFlipped)
+							d = fabs(d);
+
+						if(d >= thresholdDot){
+						//	nbr is a linked flat face
+							sel.select(nbr);
+							qCandidates.push(nbr);
+							qNormals.push(nNbr);
+						}
+					}
 				}
 			}
 		}

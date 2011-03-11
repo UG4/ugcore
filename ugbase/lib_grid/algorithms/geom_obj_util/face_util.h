@@ -273,7 +273,8 @@ template <class TTriangleIterator, class TAAPosVRT>
 bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 						   TTriangleIterator trisBegin, TTriangleIterator trisEnd,
 						   TAAPosVRT& aaPos, bool compareNormals = false);
-						   
+
+////////////////////////////////////////////////////////////////////////
 /**
  * returns 1 if a point lies in front of a face,
  * 0 if it lies on the face and -1 if it lies behind the face.
@@ -282,6 +283,12 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
  */
 template <class TAAPosVRT>
 int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	returns true if the given face is degenerated.
+/**	Faces are degenerated if at least one edge is shorter than the given threshold.*/
+template <class TAAPosVRT>
+bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold = SMALL);
 
 /// @}
 

@@ -81,6 +81,20 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 int NumAssociatedFaces(Grid& grid, EdgeBase* e);
 						
 ////////////////////////////////////////////////////////////////////////
+///	Calculates the squared length of the given edge
+/**	The specified accessor has to access a MathVector compatible type
+ * in the vertices of the underlying grid.*/
+template <class TAAPosVRT>
+inline number EdgeLengthSq(EdgeBase* e, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	Calculates the length of the given edge
+/**	The specified accessor has to access a MathVector compatible type
+ * in the vertices of the underlying grid.*/
+template <class TAAPosVRT>
+inline number EdgeLength(EdgeBase* e, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
 ///	Calculates the normal of the given edge
 /**

@@ -248,10 +248,37 @@ void Grid::attach_to(IAttachment& attachment, bool passOnValues)
 	m_elementStorage[objType].m_attachmentPipe.attach(attachment, options);
 }
 
+inline void Grid::attach_to_all(IAttachment& attachment, bool passOnValues)
+{
+	attach_to<VertexBase>(attachment, passOnValues);
+	attach_to<EdgeBase>(attachment, passOnValues);
+	attach_to<Face>(attachment, passOnValues);
+	attach_to<Volume>(attachment, passOnValues);
+}
+
+inline void Grid::attach_to_all(IAttachment& attachment)
+{
+	attach_to<VertexBase>(attachment);
+	attach_to<EdgeBase>(attachment);
+	attach_to<Face>(attachment);
+	attach_to<Volume>(attachment);
+}
+
 template <class TGeomObjClass, class TAttachment>
 void Grid::attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)
 {
 	attach_to_dv<TGeomObjClass, TAttachment>(attachment, defaultValue, attachment.default_pass_on_behaviour());
+}
+
+template <class TAttachment>
+inline void Grid::
+attach_to_all_dv(TAttachment& attachment,
+				 const typename TAttachment::ValueType& defaultValue)
+{
+	attach_to_dv<VertexBase>(attachment, defaultValue);
+	attach_to_dv<EdgeBase>(attachment, defaultValue);
+	attach_to_dv<Face>(attachment, defaultValue);
+	attach_to_dv<Volume>(attachment, defaultValue);
 }
 
 template <class TGeomObjClass, class TAttachment>
@@ -269,6 +296,18 @@ void Grid::attach_to_dv(TAttachment& attachment, const typename TAttachment::Val
 	m_elementStorage[objType].m_attachmentPipe.attach(attachment, defaultValue, options);
 }
 
+template <class TAttachment>
+inline void Grid::
+attach_to_all_dv(TAttachment& attachment,
+				 const typename TAttachment::ValueType& defaultValue,
+				 bool passOnValues)
+{
+	attach_to_dv<VertexBase>(attachment, defaultValue, passOnValues);
+	attach_to_dv<EdgeBase>(attachment, defaultValue, passOnValues);
+	attach_to_dv<Face>(attachment, defaultValue, passOnValues);
+	attach_to_dv<Volume>(attachment, defaultValue, passOnValues);
+}
+
 template <class TGeomObjClass>
 void Grid::detach_from(IAttachment& attachment)
 {
@@ -278,6 +317,15 @@ void Grid::detach_from(IAttachment& attachment)
 	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 	m_elementStorage[objType].m_attachmentPipe.detach(attachment);
 }
+
+inline void Grid::detach_from_all(IAttachment& attachment)
+{
+	detach_from<VertexBase>(attachment);
+	detach_from<EdgeBase>(attachment);
+	detach_from<Face>(attachment);
+	detach_from<Volume>(attachment);
+}
+
 /*
 template <class TGeomObjClass>
 util::IAttachmentDataContainer* Grid::get_data_container(util::IAttachment& attachment)
@@ -428,6 +476,19 @@ Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a) :
 ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>(grid.get_attachment_pipe<TElem>(), a)
 {
+}
+
+template <class TElem, class TAttachment>
+Grid::AttachmentAccessor<TElem, TAttachment>::
+AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
+ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>()
+{
+	if(autoAttach){
+		if(!grid.has_attachment<TElem>(a))
+			grid.attach_to<TElem>(a);
+	}
+
+	access(grid, a);
 }
 
 ////////////////////////////////////////////////////////////////////////

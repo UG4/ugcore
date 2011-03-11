@@ -26,23 +26,32 @@ struct DistributionInterfaceEntry
 {
 	DistributionInterfaceEntry() :
 		localID(0),
-		type(0),
-		associatedInterfaceID(-1)	{}
+		type(0)	{}
 		
 	DistributionInterfaceEntry(int nLocalID, int nType) :
 		localID(nLocalID),
-		type(nType),
-		associatedInterfaceID(-1)	{}
-	
-	DistributionInterfaceEntry(int nLocalID, int nType, int nAssInterfaceID) :
-		localID(nLocalID),
-		type(nType),
-		associatedInterfaceID(nAssInterfaceID)	{}
+		type(nType)	{}
 
 	int localID : 28;
 	int type  	: 4;
-	int associatedInterfaceID;///< required for redistribution only.
 };
+
+////////////////////////////////////////////////////////////////////////
+///	This small helper gives us information about a node move during redistribution
+struct RedistributionNodeTransferInfo{
+	RedistributionNodeTransferInfo() :
+		srcProc(-1), targetProc(-1), bMove(false)	{}
+	RedistributionNodeTransferInfo(int nSrcProc, int nTargetProc, bool nMove) :
+		srcProc(nSrcProc), targetProc(nTargetProc), bMove(nMove)	{}
+
+	int srcProc;
+	int targetProc;
+	bool bMove;
+};
+
+///	Attachment for a vector of RedistributionNodeTransferInfo
+typedef Attachment<std::vector<RedistributionNodeTransferInfo> >
+		ARedistributionNodeTransferInfoVec;
 
 ////////////////////////////////////////////////////////////////////////
 ///	Holds nodes and interfaces. Used during distribution only.
@@ -69,6 +78,8 @@ struct DistributionNodeLayout
 ///	a vector that holds nodes.
 	typedef std::vector<TNode>				NodeVec;	
 	
+	virtual ~DistributionNodeLayout()	{}
+
 //	some methods
 /*
 ///	set process id. Use with care to not invalidate other ProcessLayouts.
@@ -109,11 +120,31 @@ protected:
 
 
 ////////////////////////////////////////////////////////////////////////
+///	Used during grid redistribution.
+/**	It holds an instance of DistributionNodeLayout<TNode> and a vector
+ * of global ids, which store a globalID for each node in the
+ * distribution layout.
+ */
+template <class TNode>
+struct RedistributionNodeLayout : public DistributionNodeLayout<TNode>
+{
+///	this array is of the same size as m_distLayout.node_vec()
+	std::vector<GeomObjID>	m_globalIDs;
+};
+
+
+////////////////////////////////////////////////////////////////////////
 //	typedefs
 typedef DistributionNodeLayout<VertexBase*>	DistributionVertexLayout;
 typedef DistributionNodeLayout<EdgeBase*>	DistributionEdgeLayout;
 typedef DistributionNodeLayout<Face*>		DistributionFaceLayout;
 typedef DistributionNodeLayout<Volume*>		DistributionVolumeLayout;
+
+typedef RedistributionNodeLayout<VertexBase*>	RedistributionVertexLayout;
+typedef RedistributionNodeLayout<EdgeBase*>		RedistributionEdgeLayout;
+typedef RedistributionNodeLayout<Face*>			RedistributionFaceLayout;
+typedef RedistributionNodeLayout<Volume*>		RedistributionVolumeLayout;
+
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateDistributionLayouts
@@ -134,12 +165,17 @@ typedef DistributionNodeLayout<Volume*>		DistributionVolumeLayout;
  * for this parameter is a speed increase.
  * You shouldn't assume anything about the content of pSel after the
  * method finished.
+ *
+ * TVertexDistributionLayout has to be either DistributionNodeLayout<VertexBase>
+ * or RedistributionLayout<VertexBase>. Analogous for the other types.
  */
+template <class TVertexDistributionLayout, class TEdgeDistributionLayout,
+		  class TFaceDistributionLayout, class TVolumeDistributionLayout>
 void CreateDistributionLayouts(
-						std::vector<DistributionVertexLayout>& vertexLayoutsOut,
-						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
-						std::vector<DistributionFaceLayout>& faceLayoutsOut,
-						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
+						std::vector<TVertexDistributionLayout>& vertexLayoutsOut,
+						std::vector<TEdgeDistributionLayout>& edgeLayoutsOut,
+						std::vector<TFaceDistributionLayout>& faceLayoutsOut,
+						std::vector<TVolumeDistributionLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						bool distributeGenealogy,
 						MGSelector* pSel = NULL);
@@ -149,38 +185,54 @@ void CreateDistributionLayouts(
 ///	Creates distribution layouts for vertices, edges, faces and volumes
 /**
  * Given a DistributedGridManager and a SubsetHandler, this method
- * creates distribution layouts for vertices, edges, ...
+ * creates redistribution layouts for vertices, edges, ...
  * Those layouts can then be used to redistribute a distributed grid onto
  * different processes.
  * Please note that those layouts are not used to perform
  * communication later on. Their sole purpose is to help to redistribute
  * a grid.
  *
- * For each subset a separate distribution-layout is created. That means 
+ * For each subset a separate redistribution-layout is created. That means
  * that i.e. vertexLayoutsOut[k] holds the vertex-layout for the k-th subset.
  *
  * If nodes that lie in an existing interface are to be distributed to
  * another process, interfaces are automatically generated, which will
  * connect the nodes on the new process to associated nodes on the old
- * neighbor. It is cruical to realize, that thos interfaces may not be
- * be final. If a neighbored process moves associated nodes, too, then
- * those interfaces will have to be adjusted manually. This has to be done
- * before the DistributionNodeLayouts are transfered to their target processes.
+ * neighbor or - if those nodes move too, to their new destinations.
+ * Note that if a processMap was specified, the interfaces are build
+ * with respect to the processMap.
  *
  * If you pass a pointer to a valid selector (which is registered at mg),
- * the selector will be used for internal calculations. The only reason
- * for this parameter is a speed increase.
- * You shouldn't assume anything about the content of pSel after the
- * method finished.
+ * the selector will be used for internal calculations.
+ * Whent the algorithm is done the selector will contain all elements,
+ * which will reside on the local process (vertices, edges, faces and volumes).
+ *
+ * You may specify the attachments paTargetProcs and paTransferInfoVec,
+ * which are then filled for all elements during the algorithm. If you
+ * do specify them, make sure to detach them when they no longer are
+ * of any use.
+ * 		- Data associated with paTargetProcs will tell you onto which
+ * 			processes elements are sent from the local process.
+ * 		- Data associated with paTransferInfoVec tells where elements
+ * 		  are sent from neighbor processes. This data is only interesting
+ * 		  in interface elements.
+ *
+ * Make sure that global ids are generated and that aGlobalID points to
+ * the attachment which holds them (aGeomObjID by default). Those are
+ * only required at this point, since they are written into the
+ * redistribution layouts.
  */
 void CreateRedistributionLayouts(
-						std::vector<DistributionVertexLayout>& vertexLayoutsOut,
-						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
-						std::vector<DistributionFaceLayout>& faceLayoutsOut,
-						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
-						DistributedGridManager& distGridMgr, SubsetHandler& sh,
-						bool distributeGenealogy,
-						MGSelector* pSel = NULL);
+					std::vector<RedistributionVertexLayout>& vertexLayoutsOut,
+					std::vector<RedistributionEdgeLayout>& edgeLayoutsOut,
+					std::vector<RedistributionFaceLayout>& faceLayoutsOut,
+					std::vector<RedistributionVolumeLayout>& volumeLayoutsOut,
+					DistributedGridManager& distGridMgr,
+					SubsetHandler& shPartition, bool distributeGenealogy,
+					MGSelector* pSel = NULL, int* processMap = NULL,
+					Attachment<std::vector<int> >* paTargetProcs = NULL,
+					ARedistributionNodeTransferInfoVec* paTransferInfoVec = NULL,
+					AGeomObjID& aGlobalID = aGeomObjID);
 						
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridAndDistributionLayouts
@@ -238,7 +290,6 @@ void DeserializeDistributionLayoutInterfaces(
  *	Face or Volume.
  */
 template <class TSelector, class TDistributionLayout>
-static
 void SelectNodesInLayout(TSelector& sel, TDistributionLayout& layout)
 {
 	typename TDistributionLayout::NodeVec& nodes = layout.node_vec();
@@ -246,6 +297,37 @@ void SelectNodesInLayout(TSelector& sel, TDistributionLayout& layout)
 		sel.select(nodes[i]);
 }
 
+////////////////////////////////////////////////////////////////////////
+///	marks all elements in a DistributionLayout
+/**	TDistributionLayout has to be a specialization of
+ * DistributionNodeLayout for either VertexBase, EdgeBase,
+ * Face or Volume.
+ * Make sure that this method is called between calls to g.begin_marking()
+ * and g.end_marking().
+ */
+template <class TDistributionLayout>
+void MarkNodesInLayout(Grid& g, TDistributionLayout& layout)
+{
+	typename TDistributionLayout::NodeVec& nodes = layout.node_vec();
+	for(size_t i = 0; i < nodes.size(); ++i)
+		g.mark(nodes[i]);
+}
+
+////////////////////////////////////////////////////////////////////////
+///	marks all elements in a series of DistributionLayouts
+/**	TIterator has to be a stl-compatible iterator type and
+ * TIterator::value_type has to be an instance of a specialization of
+ * DistributionNodeLayout for either VertexBase, EdgeBase, Face or Volume.
+ *
+ * Make sure that this method is called between calls to g.begin_marking()
+ * and g.end_marking().
+ */
+template <class TIterator>
+void MarkNodesInLayouts(Grid& g, TIterator layoutsBegin, TIterator layoutsEnd)
+{
+	for(TIterator iter = layoutsBegin; iter != layoutsEnd; iter++)
+		MarkNodesInLayout(g, *iter);
+}
 
 ///	Counts how many entries with the given type are contained in the given interface.
 size_t NumEntriesOfTypeInDistributionInterface(int type,
@@ -253,7 +335,13 @@ size_t NumEntriesOfTypeInDistributionInterface(int type,
 
 ///	checks whether the interconnections between the layouts are consistent.
 template <class TDistLayout>
-bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts);
+bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts,
+							 int* procMap = NULL);
+
+///	Currently simply outputs the connections in the layouts.
+template <class TDistLayout>
+bool TestRedistributionLayouts(std::vector<TDistLayout>& distLayouts,
+								int* procMap = NULL);
 
 /// @}
 }//	end of namespace

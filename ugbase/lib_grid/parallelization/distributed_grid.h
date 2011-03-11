@@ -38,6 +38,7 @@ enum ElementStatus
  *		added to the corresponding interfaces.
  *		Note that you have to call begin_ordered_element_insertion() before
  *		and end_ordered_element_insertion() after you add elements.
+ *	- Elements can be replaced. Interface entries are updated on the fly.
  *
  * The following things do not yet work properly:
  *	- Face-interfaces are not yet handled correctly during element-insertion.

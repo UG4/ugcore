@@ -400,10 +400,19 @@ void MarkForRefinement_VerticesInSquare(IRefiner& refiner,
 
 ////////////////////////////////////////////////////////////////////////
 ///	This method only makes sense during the development of the grid redistribution
-/**	Note that the source grid is completly distributed (no vertical interfaces).
+/**	Note that the source grid is completely distributed (no vertical interfaces).
+ *
+ * The method loads a grid on proc 0 and distributes half of it to proc 1.
+ * It then creates a new partition map on each process and redistributes
+ * half of the grid on process 0 to process 2 and half of the grid on
+ * process 1 to process 3.
  */
 void TestGridRedistribution(const char* filename)
-{/*
+{
+#ifndef UG_PARALLEL
+	UG_LOG("WARNING in TestGridRedistribution: ");
+	UG_LOG("This method only works in a parallel environment.\n");
+#else
 	MultiGrid mg;
 	SubsetHandler sh(mg);
 	DistributedGridManager distGridMgr(mg);
@@ -415,49 +424,141 @@ void TestGridRedistribution(const char* filename)
 		return;
 	}
 
+UG_LOG("performing initial distribution\n");
 	if(pcl::GetProcRank() == 0){
 	//	use this for loading and distribution.
-		MutliGrid tmg;
+		MultiGrid tmg;
 		SubsetHandler tsh(tmg);
-		if(!LoadGridFromFile(tmg, filename, tsh)){
-			UG_LOG("file not found\n");
-			return;
-		}
-
-	//	partition the grid once (only 2 partitions)
 		SubsetHandler shPart(tmg);
-		if(tmg.num_volumes() > 0){
-			PartitionElementsByRepeatedIntersection<Volume, 3>(
-											shPart, tmg,
-											tmg.num_levels() - 1,
-											2, aPosition);
-		}
-		else if(tmg.num_faces() > 0){
-			PartitionElementsByRepeatedIntersection<Face, 2>(
-											shPart, tmg,
-											tmg.num_levels() - 1,
-											2, aPosition);
+
+		bool success = true;
+		string strError;
+
+		if(!LoadGridFromFile(tmg, filename, tsh)){
+			strError = "File not found.";
+			success = false;
 		}
 		else{
-			UG_LOG("This test-method only runs on geometries which contain ");
-			UG_LOG("faces or volumes.\n");
+		//	partition the grid once (only 2 partitions)
+			if(tmg.num_volumes() > 0){
+				PartitionElementsByRepeatedIntersection<Volume, 3>(
+												shPart, tmg,
+												tmg.num_levels() - 1,
+												2, aPosition);
+			}
+			else if(tmg.num_faces() > 0){
+				PartitionElementsByRepeatedIntersection<Face, 2>(
+												shPart, tmg,
+												tmg.num_levels() - 1,
+												2, aPosition);
+			}
+			else{
+				strError = "This test-method only runs on geometries which contain "
+							"faces or volumes.\n";
+				success = false;
+			}
+		}
+
+	//	make sure that all processes exit if something went wrong.
+		if(!pcl::AllProcsTrue(success)){
+			UG_LOG(strError << endl);
 			return;
 		}
 
 	//	now distribute the grid
-		if(!DistributeGrid(tmg, tsh, shPart, 0, mg, sh, glm)){
+		if(!DistributeGrid(tmg, tsh, shPart, 0, &mg, &sh, &glm)){
 			UG_LOG("Distribution failed\n");
 			return;
 		}
 	}
 	else if(pcl::GetProcRank() == 1){
+		if(!pcl::AllProcsTrue(true)){
+			UG_LOG("Problems occured on process 0. Aborting.\n");
+			return;
+		}
+
 		if(!ReceiveGrid(mg, sh, glm, 0, false)){
 			UG_LOG("Receive failed.\n");
 			return;
 		}
 	}
+	else{
+		if(!pcl::AllProcsTrue(true)){
+			UG_LOG("Problems occured on process 0. Aborting.\n");
+			return;
+		}
+	}
 
-	distGridMgr.grid_layouts_changed(true);*/
+	distGridMgr.grid_layouts_changed(true);
+
+UG_LOG("done\n");
+UG_LOG("preparing for redistribution\n");
+////////////////////////////////
+//	The grid is now distributed to two processes (proc 1 and proc 2).
+//	note that it was distributed completely (no source grid kept).
+
+////////////////////////////////
+//	Now lets redistribute the grid.
+	SubsetHandler shPart(mg);
+
+//	at this point it is clear that we either have volumes or faces.
+//	note that we now cut the geometry along the second coordinate (start counting at 0).
+	int rank = pcl::GetProcRank();
+	if(rank < 2){
+		if(mg.num_volumes() > 0){
+			PartitionElementsByRepeatedIntersection<Volume, 3>(
+											shPart, mg,
+											mg.num_levels() - 1,
+											2, aPosition, 1);
+		}
+		else if(mg.num_faces() > 0){
+			PartitionElementsByRepeatedIntersection<Face, 2>(
+											shPart, mg,
+											mg.num_levels() - 1,
+											2, aPosition, 1);
+		}
+		else{
+			throw UGError("TestGridRedistribution: Method should have been aborted earlier.");
+		}
+
+
+	//	since currently no proc-map is supported during redistribution, we will now
+	//	adjust the subsets so that they match the process-ids.
+	//	We do this by hand here. If a real process map would exist this could be automated.
+		switch(rank){
+			case 0:	shPart.move_subset(1, 2);
+					break;
+
+			case 1:	shPart.move_subset(1, 3);
+					shPart.move_subset(0, 1);
+					break;
+
+			default:
+					break;
+		}
+	}
+
+UG_LOG("done\n");
+UG_LOG("redistributing grid\n");
+//	now call redistribution
+	RedistributeGrid(distGridMgr, sh, shPart);
+UG_LOG("done\n");
+
+//	save the hierarchy on each process
+	{
+		stringstream ss;
+		ss << "hierarchy_" << pcl::GetProcRank() << ".ugx";
+		SaveGridHierarchy(mg, ss.str().c_str());
+	}
+
+//	save the domain on each process
+	{
+		stringstream ss;
+		ss << "domain_" << pcl::GetProcRank() << ".ugx";
+		SaveGridToFile(mg, ss.str().c_str(), sh);
+	}
+
+#endif // UG_PARALLEL
 }
 
 
@@ -573,7 +674,8 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_function("MarkForRefinement_VerticesInSphere", (void (*)(IRefiner&, number, number, number, number))
 															&MarkForRefinement_VerticesInSphere, grp.c_str())
 		.add_function("MarkForRefinement_VerticesInSquare", (void (*)(IRefiner&, number, number, number, number, number, number))
-															&MarkForRefinement_VerticesInSquare, grp.c_str());
+															&MarkForRefinement_VerticesInSquare, grp.c_str())
+		.add_function("TestGridRedistribution", &TestGridRedistribution);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

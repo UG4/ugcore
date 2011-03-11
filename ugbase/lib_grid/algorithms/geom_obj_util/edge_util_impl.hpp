@@ -11,6 +11,21 @@
 #include "vertex_util.h"
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+inline number EdgeLengthSq(EdgeBase* e, TAAPosVRT& aaPos)
+{
+	return VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+inline number EdgeLength(EdgeBase* e, TAAPosVRT& aaPos)
+{
+	return VecDistance(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	SplitEdge
 //	see edge_operations.h for detailed description

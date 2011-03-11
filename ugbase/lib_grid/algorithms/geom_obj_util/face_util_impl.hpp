@@ -276,6 +276,22 @@ int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos)
 	return 0;
 }
 
+template <class TAAPosVRT>
+bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold)
+{
+	number threshSQ = threshold * threshold;
+	size_t numVrts = f->num_vertices();
+
+	for(size_t i = 0; i < numVrts; ++i){
+		if(VecDistanceSq(aaPos[f->vertex(i)], aaPos[f->vertex((i+1) % numVrts)])
+			< threshSQ)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 }//	end of namespace
 
 #endif

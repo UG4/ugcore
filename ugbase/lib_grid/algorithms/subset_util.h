@@ -210,7 +210,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
  * this algorithm finds a regular part and assigns all other faces to
  * the given targetIndex.
  *
- * \return true if the subset was splitted, false if not.
+ * \return	true if the subset was splitted, false if not.
  */
 bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 								  int targetIndex);
