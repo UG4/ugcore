@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <map>
+#include <cassert>
 #include "common/util/binary_stream.h"
 #include "common/util/stream_pack.h"
 #include "pcl_communication_structs.h"
