@@ -90,11 +90,11 @@ class FVConvectionDiffusionElemDisc
 				register_export(m_exConcentrationGrad);
 
 			//	register imports
-				register_import(m_Diff);
-				register_import(m_ConvVel);
-				register_import(m_Reaction);
-				register_import(m_Rhs);
-				register_import(m_MassScale);
+				register_import(m_imDiffusion);
+				register_import(m_imVelocity);
+				register_import(m_imReaction);
+				register_import(m_imRhs);
+				register_import(m_imMassScale);
 			}
 
 	///	set the amount of upwind
@@ -112,27 +112,27 @@ class FVConvectionDiffusionElemDisc
 	 * This method sets the Diffusion tensor used in computations. If no
 	 * Tensor is set, a zero value is assumed.
 	 */
-		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_Diff.set_data(user);}
+		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_imDiffusion.set_data(user);}
 
 	///	sets the velocity field
 	/**
 	 * This method sets the Velocity field. If no field is provided a zero
 	 * value is assumed.
 	 */
-		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_ConvVel.set_data(user);}
+		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_imVelocity.set_data(user);}
 
 	///	sets the reaction
 	/**
 	 * This method sets the Reaction. A zero value is assumed as default.
 	 */
-		void set_reaction(IPData<number, dim>& user) {m_Reaction.set_data(user);}
+		void set_reaction(IPData<number, dim>& user) {m_imReaction.set_data(user);}
 
 	///	sets the right-hand side
 	/**
 	 * This method sets the right hand side value. A zero value is assumed as
 	 * default.
 	 */
-		void set_rhs(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
+		void set_rhs(IPData<number, dim>& user)	{m_imRhs.set_data(user);}
 
 
 	///	sets mass scale
@@ -140,7 +140,7 @@ class FVConvectionDiffusionElemDisc
 	 * This method sets the mass scale value. A value of 1.0 is assumed as
 	 * default.
 	 */
-		void set_mass_scale(IPData<number, dim>& user)	{m_MassScale.set_data(user);}
+		void set_mass_scale(IPData<number, dim>& user)	{m_imMassScale.set_data(user);}
 
 	public:
 	///	number of functions used
@@ -236,19 +236,19 @@ class FVConvectionDiffusionElemDisc
 		number m_upwindAmount;
 
 	///	Data import for Diffusion
-		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_Diff;
+		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_imDiffusion;
 
 	///	Data import for the Velocity field
-		DataImport<MathVector<dim>, dim, algebra_type > m_ConvVel;
+		DataImport<MathVector<dim>, dim, algebra_type > m_imVelocity;
 
 	///	Data import for the reaction term
-		DataImport<number, dim, algebra_type> m_Reaction;
+		DataImport<number, dim, algebra_type> m_imReaction;
 
 	///	Data import for the right-hand side
-		DataImport<number, dim, algebra_type> m_Rhs;
+		DataImport<number, dim, algebra_type> m_imRhs;
 
 	///	Data import for the mass scale
-		DataImport<number, dim, algebra_type> m_MassScale;
+		DataImport<number, dim, algebra_type> m_imMassScale;
 
 	public:
 	///	returns the export of the concentration
@@ -317,8 +317,8 @@ class FVConvectionDiffusionElemDisc
 			register_assemble_f_function(			id, &T::template assemble_f<TElem, FV1Geometry>);
 
 		//	set computation of linearized defect w.r.t velocity
-			m_ConvVel.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, FV1Geometry>);
-			m_Diff.register_lin_defect_func(id, this, &T::template lin_defect_diffusion<TElem, FV1Geometry>);
+			m_imVelocity.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, FV1Geometry>);
+			m_imDiffusion.register_lin_defect_func(id, this, &T::template lin_defect_diffusion<TElem, FV1Geometry>);
 
 		//	exports
 			m_exConcentration.register_export_func(id, this, &T::template compute_concentration_export<TElem, FV1Geometry>);
@@ -369,8 +369,8 @@ class FVConvectionDiffusionElemDisc
 			register_assemble_f_function(			id, &T::template assemble_f<TElem, HFV1Geometry>);
 
 		//	set computation of linearized defect w.r.t velocity
-			m_ConvVel.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, HFV1Geometry>);
-			m_Diff.register_lin_defect_func(id, this, &T::template lin_defect_diffusion<TElem, HFV1Geometry>);
+			m_imVelocity.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, HFV1Geometry>);
+			m_imDiffusion.register_lin_defect_func(id, this, &T::template lin_defect_diffusion<TElem, HFV1Geometry>);
 
 		//	exports
 			m_exConcentration.register_export_func(id, this, &T::template compute_concentration_export<TElem, HFV1Geometry>);

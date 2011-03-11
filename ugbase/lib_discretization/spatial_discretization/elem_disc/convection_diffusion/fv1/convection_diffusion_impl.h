@@ -38,15 +38,15 @@ prepare_element_loop()
 	if(!TFVGeom<TElem, dim>::usesHangingNodes)
 	{
 		TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-		m_Diff.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		m_imDiffusion.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                	                      geo.num_scvf_local_ips());
-		m_ConvVel.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                   	                      geo.num_scvf_local_ips());
-		m_Rhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imRhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
 		               		                      geo.num_scv_local_ips());
-		m_Reaction.template set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imReaction.template set_local_ips<refDim>(geo.scv_local_ips(),
 		                                          geo.num_scv_local_ips());
-		m_MassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
 		                                           geo.num_scv_local_ips());
 	}
 
@@ -94,24 +94,24 @@ prepare_element(TElem* elem, const local_vector_type& u,
 //	set local positions for rhs
 	if(TFVGeom<TElem, dim>::usesHangingNodes)
 	{
-		m_Diff.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		m_imDiffusion.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 												  geo.num_scvf_local_ips());
-		m_ConvVel.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 												  geo.num_scvf_local_ips());
-		m_Rhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imRhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
 												  geo.num_scv_local_ips());
-		m_Reaction.template set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imReaction.template set_local_ips<refDim>(geo.scv_local_ips(),
 												  geo.num_scv_local_ips());
-		m_MassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
 												   geo.num_scv_local_ips());
 	}
 
 //	set global positions for rhs
-	m_Diff.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
-	m_ConvVel.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
-	m_Rhs.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
-	m_Reaction.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
-	m_MassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_imDiffusion.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
+	m_imVelocity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
+	m_imRhs.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_imReaction.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_imMassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
 
 //	we're done
 	return true;
@@ -133,7 +133,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 //	Diffusion and Velocity Term
 	size_t ip = 0;
-	if(m_Diff.data_given() || m_ConvVel.data_given())
+	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
 	{
 	// 	loop Sub Control Volume Faces (SCVF)
 		for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -151,10 +151,10 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// Diffusive Term
 				// (central discretization)
 				////////////////////////////////////////////////////
-					if(m_Diff.data_given())
+					if(m_imDiffusion.data_given())
 					{
 					// 	Compute Diffusion Tensor times Gradient
-						MatVecMult(Dgrad, m_Diff[ip], scvf.global_grad(j, i));
+						MatVecMult(Dgrad, m_imDiffusion[ip], scvf.global_grad(j, i));
 
 					//	Compute flux at IP
 						const number flux = VecDot(Dgrad, scvf.normal());
@@ -173,11 +173,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// central part convection
 					if(m_upwindAmount != 1.0)
 					{
-						if(m_ConvVel.data_given())
+						if(m_imVelocity.data_given())
 						{
 						// 	Compute flux
 							const number flux = (1.- m_upwindAmount) * scvf.shape(j, i)
-												* VecDot(m_ConvVel[ip], scvf.normal());
+												* VecDot(m_imVelocity[ip], scvf.normal());
 
 						// 	Add flux to local matrix
 							J(_C_, scvf.from(), _C_, j) += flux;
@@ -189,13 +189,13 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			// 	upwind part convection (does only depend on one shape function)
 				if(m_upwindAmount != 0.0)
 				{
-					if(m_ConvVel.data_given())
+					if(m_imVelocity.data_given())
 					{
 					// corner for upwind switch
 						int up;
 
 					//	Compute flux
-						const number flux = m_upwindAmount * VecDot(m_ConvVel[ip], scvf.normal());
+						const number flux = m_upwindAmount * VecDot(m_imVelocity[ip], scvf.normal());
 
 					// 	switch upwind direction
 						if(flux >= 0.0) up = scvf.from(); else up = scvf.to();
@@ -215,7 +215,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 ////////////////////////////////////////////////////
 
 //	if no data for reaction, return
-	if(!m_Reaction.data_given()) return true;
+	if(!m_imReaction.data_given()) return true;
 
 // 	loop Sub Control Volume (SCV)
 	ip = 0;
@@ -224,13 +224,13 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	// 	get current SCV
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
-		number val = m_Reaction[ip++];
+		number val = m_imReaction[ip++];
 
 	// 	loop other ip positions
 		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
 		{
 			// TODO: Add here scaling factor for ip point
-			val += m_Reaction[ip++];
+			val += m_imReaction[ip++];
 		}
 
 	// 	scale with volume of SCV
@@ -273,8 +273,8 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		number val = scv.volume();
 
 	//	multiply by scaling
-		if(m_MassScale.data_given())
-			val *= m_MassScale[ip++];
+		if(m_imMassScale.data_given())
+			val *= m_imMassScale[ip++];
 
 	// 	Add to local matrix
 		J(_C_, co, _C_, co) += val;
@@ -301,7 +301,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	MathVector<dim> Dgrad_u;		// Diff.Tensor times gradient of solution
 
 	size_t ip = 0;
-	if(m_Diff.data_given() || m_ConvVel.data_given())
+	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
 	{
 	// 	loop Sub Control Volume Faces (SCVF)
 		for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -326,9 +326,9 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			// Diffusive Term
 			// (central discretization)
 			/////////////////////////////////////////////////////
-				if(m_Diff.data_given())
+				if(m_imDiffusion.data_given())
 				{
-					MatVecMult(Dgrad_u, m_Diff[ip], grad_u);
+					MatVecMult(Dgrad_u, m_imDiffusion[ip], grad_u);
 
 				// 	Compute flux
 					const number flux = VecDot(Dgrad_u, scvf.normal());
@@ -343,14 +343,14 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			// (upwinding_amount == 1.0 -> full upwind;
 			//  upwinding_amount == 0.0 -> full central disc)
 			/////////////////////////////////////////////////////
-				if(m_ConvVel.data_given())
+				if(m_imVelocity.data_given())
 				{
 				// 	central part convection
 					if(m_upwindAmount != 1.0)
 					{
 					// 	Compute flux at ip
 						const number flux = (1.- m_upwindAmount) * shape_u
-											* VecDot(m_ConvVel[ip], scvf.normal());
+											* VecDot(m_imVelocity[ip], scvf.normal());
 
 					// 	Add to local defect
 						d(_C_, scvf.from()) += flux;
@@ -361,7 +361,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 					if(m_upwindAmount != 0.0)
 					{
 					// 	compute flux at ip
-						number flux = m_upwindAmount * VecDot(m_ConvVel[ip], scvf.normal());
+						number flux = m_upwindAmount * VecDot(m_imVelocity[ip], scvf.normal());
 
 					// 	Upwind switch
 						if(flux >= 0.0) flux *= u(_C_, scvf.from());
@@ -377,7 +377,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	}
 
 //	if no reaction data given, return
-	if(!m_Reaction.data_given()) return true;
+	if(!m_imReaction.data_given()) return true;
 
 // 	loop Sub Control Volumes (SCV)
 	ip = 0;
@@ -387,13 +387,13 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
 	// 	first ip
-		number val = m_Reaction[ip++];
+		number val = m_imReaction[ip++];
 
 	// 	loop other ip
 		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
 		{
 			// TODO: Add weight for integration
-			val += m_Reaction[ip++];
+			val += m_imReaction[ip++];
 		}
 
 	// 	scale with volume of SCV
@@ -436,8 +436,8 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		number val = u(_C_, co) * scv.volume();
 
 	//	multiply by scaling
-		if(m_MassScale.data_given())
-			val *= m_MassScale[ip++];
+		if(m_imMassScale.data_given())
+			val *= m_imMassScale[ip++];
 
 	// 	Add to local defect
 		d(_C_, co) += val;
@@ -456,7 +456,7 @@ FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
 //	if zero data given, return
-	if(!m_Rhs.data_given()) return true;
+	if(!m_imRhs.data_given()) return true;
 
 // 	get finite volume geometry
 	static TFVGeom<TElem, dim>& geo
@@ -470,13 +470,13 @@ assemble_f(local_vector_type& d, number time)
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
 	// 	first value
-		number val = m_Rhs[ip++];
+		number val = m_imRhs[ip++];
 
 	// 	other values
 		for(size_t i = 1; i < scv.num_ip(); ++i)
 		{
 			number ip_val;
-			ip_val = m_Rhs[ip++];
+			ip_val = m_imRhs[ip++];
 
 			// TODO: add weights for integration
 			val += ip_val;
@@ -520,7 +520,7 @@ lin_defect_velocity(const local_vector_type& u)
 		//  reset
 			for(size_t j = 0; j < scvf.num_sh(); ++j)
 			{
-				m_ConvVel.lin_defect(ip, _C_, j) = 0.0;
+				m_imVelocity.lin_defect(ip, _C_, j) = 0.0;
 			}
 
 		// central part convection
@@ -534,7 +534,7 @@ lin_defect_velocity(const local_vector_type& u)
 
 		// upwind part convection
 			const number flux = m_upwindAmount
-								* VecDot(m_ConvVel[ip], scvf.normal());
+								* VecDot(m_imVelocity[ip], scvf.normal());
 
 			if(flux >= 0.0) scale += m_upwindAmount* u(_C_, scvf.from());
 			else scale += m_upwindAmount * u(_C_, scvf.to());
@@ -542,8 +542,8 @@ lin_defect_velocity(const local_vector_type& u)
 			MathVector<dim> linDefect = scvf.normal();
 			linDefect *= scale;
 
-			m_ConvVel.lin_defect(ip, _C_, scvf.from()) += linDefect;
-			m_ConvVel.lin_defect(ip, _C_, scvf.to()) -= linDefect;
+			m_imVelocity.lin_defect(ip, _C_, scvf.from()) += linDefect;
+			m_imVelocity.lin_defect(ip, _C_, scvf.to()) -= linDefect;
 		}
 	}
 
@@ -574,7 +574,7 @@ lin_defect_diffusion(const local_vector_type& u)
 			// 	reset values
 			for(size_t j = 0; j < scvf.num_sh(); ++j)
 			{
-				m_Diff.lin_defect(ip, _C_, j) = 0.0;
+				m_imDiffusion.lin_defect(ip, _C_, j) = 0.0;
 			}
 
 			MathVector<dim> grad_u;
@@ -591,8 +591,8 @@ lin_defect_diffusion(const local_vector_type& u)
 				for(size_t j = 0; j < (size_t)dim; ++j)
 					linDefect(j,k) = (scvf.normal())[j] * grad_u[k];
 
-			m_Diff.lin_defect(ip, _C_, scvf.from()) -= linDefect;
-			m_Diff.lin_defect(ip, _C_, scvf.to()) += linDefect;
+			m_imDiffusion.lin_defect(ip, _C_, scvf.from()) -= linDefect;
+			m_imDiffusion.lin_defect(ip, _C_, scvf.to()) += linDefect;
 		}
 	}
 
