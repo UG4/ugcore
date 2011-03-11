@@ -152,6 +152,16 @@ public:
 		return erg;
 	}
 
+	this_type operator * (double alpha ) const
+	{
+		this_type erg;
+		erg.resize(num_rows(), num_cols());
+
+		for(size_t r=0; r < num_rows(); r++)
+			for(size_t c=0; c < num_cols(); c++)
+				erg(r,c) = at(r,c)*alpha;
+		return erg;
+	}
 
 
 	this_type &operator /= (this_type &other)
