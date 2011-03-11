@@ -12,6 +12,8 @@
 #include <iostream>
 #include <assert.h>
 
+#include "common/common.h"
+
 namespace ug{
 
 /**
