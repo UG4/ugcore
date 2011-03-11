@@ -68,7 +68,7 @@ void MatScale( IMatrixOperator<X, Y, M>& A, number alpha)
 	typedef typename MatrixOperator::matrix_type Matrix;
 	Matrix& matA = A.get_matrix();
 
-	A.scale(alpha);
+	matA.scale(alpha);
 }
 
 }//	end of namespace
