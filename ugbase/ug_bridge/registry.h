@@ -4,7 +4,10 @@
 
 #include <vector>
 #include <cstring>
+#include <typeinfo>
 #include <boost/function.hpp>
+#include <boost/type_traits.hpp>
+
 
 #include "global_function.h"
 #include "class.h"
@@ -211,6 +214,22 @@ class Registry {
 			{
 				std::cout << "### Registry ERROR: Trying to register empty class name."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+			}
+
+		// 	check that base class is not same type as class
+			if(typeid(TClass) == typeid(TBaseClass))
+			{
+				std::cout << "### Registry ERROR: Trying to register class " << className
+						<< "\n### that derives from itself. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+			}
+
+		// 	check that class derives from base class
+			if(boost::is_base_of<TBaseClass, TClass>::value == false)
+			{
+				std::cout << "### Registry ERROR: Trying to register class " << className
+						<< "\n### with base class that is no base class. Aborting ..." << std::endl;
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
 
