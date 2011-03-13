@@ -274,7 +274,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			//	loop defect components
 				for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
 				{
-				//	derivaztives w.r.t. velocity
+				//	derivatives w.r.t. velocity
 				//	Compute n * derivs
 					number prod_vel = 0.0;
 

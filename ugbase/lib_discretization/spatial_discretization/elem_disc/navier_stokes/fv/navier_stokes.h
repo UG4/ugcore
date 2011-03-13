@@ -171,7 +171,7 @@ class FVNavierStokesElemDisc
 	/**
 	 * This method sets the kinematic viscosity value.
 	 *
-	 * \param[in]	nu		kinematic Viscosity
+	 * \param[in]	data		kinematic Viscosity
 	 */
 		void set_kinematic_viscosity(IPData<number, dim>& data)
 			{m_imKinViscosity.set_data(data);}
@@ -262,6 +262,69 @@ class FVNavierStokesElemDisc
 		inline bool finish_element_loop();
 
 	///	adds the stiffness part to the local jacobian
+	/**
+	 * This function adds the local contributions of the stiffness part to
+	 * the local jacobian.
+	 *
+	 * For the definition of \f$ \vec{f}^{\text{diff}}|_{ip}\f$ and
+	 * \f$ \vec{f}^{\text{conv}}|_{ip}\f$ see assemble_A.
+	 *
+	 * The derivative of the diffusive flux is given by
+	 * \f{align*}
+	 * 	\frac{\partial \vec{f}^{\text{diff}}_{d_1}|_{ip}}{\partial \vec{u}_{d_2}^{sh}}
+	 * 	&= - \nu \left( \delta_{d_1, d_2} \sum_{k=1}^{\text{dim}}
+	 * 		\left. \frac{\partial \phi^{sh}}{\partial x_k}\right|_{ip} \vec{n_k}|_{ip}
+	 * 		+ \left. \frac{\partial \phi^{sh}}{\partial x_{d_1}}\right|_{ip} \vec{n_{d_2}}|_{ip}
+	 * 		\right)\\
+	 * 	\frac{\partial \vec{f}^{\text{diff}}_{d_1}|_{ip}}{\partial p^{sh}}
+	 * &= 0
+	 * \f}
+	 *
+	 * For the derivative of the convective term, we can use a fixpoint linearization
+	 * if we only differentiate the first factor of
+	 * \f$
+	 * 	\vec{f}^{\text{conv}}_{d_1}
+	 * 	= (\vec{u}^{\text{blend}} (\vec{u}^{\text{blend}})^T)_{d_1 k} \vec{n}_k
+	 *  = \vec{u}^{\text{blend}}_{d_1} \sum_{k=1}^{\text{dim}} \vec{u}^{\text{blend}}_k \vec{n}_k
+	 *  = \vec{u}^{\text{blend}}_{d_1} \langle \vec{u}^{\text{blend}}, \vec{n} \rangle
+	 * \f$
+	 *
+	 * This gives
+	 * \f{align*}
+	 * 	\frac{\partial \vec{f}^{\text{conv}}_{d_1}}{\partial \vec{u}_{d_2}^{sh}}
+	 *  &= \langle \vec{u}^{\text{blend}}, \vec{n} \rangle
+	 *  	\frac{\partial \vec{u}^{\text{blend}}_{d_1}}{\partial \vec{u}_{d_2}^{sh}}
+	 *  &= \langle \vec{u}^{\text{blend}}, \vec{n} \rangle \left(
+	 *  	(1-\omega) \delta_{d_1 d_2} \phi^{sh}
+	 *  	+ \omega \frac{\partial \vec{u}^{\text{up}}_{d_1}}{\partial \vec{u}_{d_2}^{sh}}
+	 *  \right)
+	 * \f}
+	 *
+	 * The derivative of the pressure term is given by
+	 * \f{align*}
+	 * 	\frac{\partial p \vec{n}|_{ip}}{\partial \vec{u}_{d_2}^{sh}}
+	 * 	&= 0\\
+	 * 	\frac{\partial p \vec{n}|_{ip}}{\partial p^{sh}}
+	 * &= \phi^{sh}|_{ip} \vec{n}
+	 * \f}
+	 *
+	 * The derivative of the continuity term is given by
+	 * \f{align*}
+	 * 	\frac{\partial \vec{u}^{\text{stab}}|_{ip} \vec{n}|_{ip}}{\partial \vec{u}_{d_1}^{sh}}
+	 * 	&= \sum_{d_2=1}^{dim} \left. \frac{\partial u_{d_2}^{\text{stab}}}
+	 * 	{\partial \vec{u}_{d_1}^{sh}} \right|_{ip} \vec{n}_{d_2}\\
+	 * 	\frac{\partial \vec{u}^{\text{stab}}|_{ip} \vec{n}|_{ip}}{\partial p^{sh}}
+	 * &=\sum_{d_2=1}^{dim} \left. \frac{\partial u_{d_2}^{\text{stab}}}
+	 * 	{\partial p^{sh}} \right|_{ip} \vec{n}_{d_2}\\
+	 * \f}
+	 *
+	 * \param[in,out]	J		local jacobian with values added on output
+	 * \param[in]		u		local vector of current solution
+	 * \param[in]		time	current time step
+	 *
+	 * \tparam	TElem 	Element type
+	 * \tparam	TFVGeom	Finite Volume Geometry
+	 */
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0);
 
