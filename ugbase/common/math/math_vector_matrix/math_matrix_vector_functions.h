@@ -27,6 +27,12 @@ inline
 void
 TransposedMatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
 
+/// Transposed Matrix - Vector Muliplication
+// vOut += Transpose(m) * v
+template <typename vector_t_out, typename matrix_t, typename vector_t_in>
+inline
+void
+TransposedMatVecMultAdd(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
 
 } //end of namespace: lgmath
 

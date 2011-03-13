@@ -57,6 +57,26 @@ TransposedMatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v
 	}
 }
 
+/// Transposed Matrix - Vector Muliplication
+// vOut += Transpose(m) * v
+template <typename vector_t_out, typename matrix_t, typename vector_t_in>
+inline
+void
+TransposedMatVecMultAdd(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
+{
+	assert(vector_t_out::Size == matrix_t::RowSize);
+	assert(vector_t_in::Size == matrix_t::ColSize);
+
+	typedef typename matrix_t::size_type size_type;
+	for(size_type i = 0; i < vOut.size(); ++i)
+	{
+		for(size_type j = 0; j < v.size(); ++j)
+		{
+			vOut[i] += m(j,i) * v[j];
+		}
+	}
+}
+
 
 
 }// end of namespace: lgmath
