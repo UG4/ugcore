@@ -78,8 +78,14 @@ MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m);
 /// Determinant of a matrix_t
 template <typename T>
 inline
+typename MathMatrix<1,1,T>::value_type
+Determinant(const MathMatrix<1,1,T>& m);
+
+template <typename T>
+inline
 typename MathMatrix<2,2,T>::value_type
 Determinant(const MathMatrix<2,2,T>& m);
+
 template <typename T>
 inline
 typename MathMatrix<3,3,T>::value_type

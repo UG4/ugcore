@@ -192,6 +192,14 @@ Transpose(matrix_t& m)
 
 template <typename T>
 inline
+typename MathMatrix<1,1,T>::value_type
+Determinant(const MathMatrix<1,1,T>& m)
+{
+	return m(0,0);
+}
+
+template <typename T>
+inline
 typename MathMatrix<2,2,T>::value_type
 Determinant(const MathMatrix<2,2,T>& m)
 {
