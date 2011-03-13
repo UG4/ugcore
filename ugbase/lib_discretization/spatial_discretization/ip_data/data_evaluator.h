@@ -137,7 +137,7 @@ class DataEvaluator
 		//	if found, return error of circle dependency
 			if(it != itEnd)
 			{
-				UG_LOG("ERROR in add_data_to_eval_data:"
+				UG_LOG("ERROR in 'DataEvaluator::add_data_to_eval_data':"
 						" Circle dependency of data detected for IP Data.\n");
 				return false;
 			}
@@ -208,7 +208,7 @@ class DataEvaluator
 				//	check success
 					if(dependData == NULL)
 					{
-						UG_LOG("ERROR in DataEvaluator::extract_imports_and_ipdata:"
+						UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
 								" Data seems dependent, but cast failed.\n");
 						return false;
 					}
@@ -219,7 +219,8 @@ class DataEvaluator
 												   dependData->get_function_group(),
 												   m_commonFctGroup))
 					{
-						UG_LOG("Cannot create Function Index Mapping for disc.\n");
+						UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
+								"Cannot create Function Index Mapping for disc.\n");
 						return false;
 					}
 
@@ -260,7 +261,7 @@ class DataEvaluator
 			//	check success
 				if(dependData == NULL)
 				{
-					UG_LOG("ERROR in DataEvaluator::extract_imports_and_ipdata:"
+					UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
 							" Data seems dependent, but cast failed.\n");
 					return false;
 				}
@@ -271,7 +272,8 @@ class DataEvaluator
 				                               dependData->get_function_group(),
 											   m_commonFctGroup))
 				{
-					UG_LOG("Cannot create Function Index Mapping for disc.\n");
+					UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
+							"Cannot create Function Index Mapping for disc.\n");
 					return false;
 				}
 
@@ -325,7 +327,7 @@ class DataEvaluator
 			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 				if(!(*m_pvElemDisc)[i]->set_geometric_object_type(id, need))
 				{
-					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
 							"Cannot set geometric object type for Disc " << i <<".\n");
 					return false;
 				}
@@ -334,7 +336,7 @@ class DataEvaluator
 			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 				if(!(*m_pvElemDisc)[i]->prepare_element_loop())
 				{
-					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
 							"Cannot prepare element loop.\n");
 					return false;
 				}
@@ -345,7 +347,7 @@ class DataEvaluator
 			//	set id for imports
 				if(!m_vIDataImport[i]->set_geometric_object_type(id))
 				{
-					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
 							"Cannot set geometric object type for Import " << i <<".\n");
 					return false;
 				}
@@ -361,7 +363,7 @@ class DataEvaluator
 			//	set id for imports
 				if(!m_vIDataExport[i]->set_geometric_object_type(id))
 				{
-					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
 							"Cannot set geometric object type for Export " << i <<".\n");
 					return false;
 				}
@@ -376,7 +378,7 @@ class DataEvaluator
 			{
 				if(!m_vLinkerDepend[i]->make_ready())
 				{
-					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
 							"Linker not ready.\n");
 					return false;
 				}
@@ -420,7 +422,7 @@ class DataEvaluator
 					ind.access_by_map(m_vMapDepend[i]);
 					if(!exp->compute_export(u, computeDeriv))
 					{
-						UG_LOG("In 'DataEvaluator::compute_elem_data':"
+						UG_LOG("ERROR in 'DataEvaluator::compute_elem_data':"
 								"Cannot compute data for Export " << i <<".\n");
 						return false;
 					}
@@ -436,7 +438,7 @@ class DataEvaluator
 				ind.access_by_map(m_vMapImp[i]);
 				if(!m_vIDataImport[i]->compute_lin_defect(u))
 				{
-					UG_LOG("In 'DataEvaluator::compute_elem_data':"
+					UG_LOG("ERROR in 'DataEvaluator::compute_elem_data':"
 							"Cannot compute lin defect for Import " << i <<".\n");
 					return false;
 				}
