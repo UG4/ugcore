@@ -29,6 +29,7 @@ if(NOT NO_ALGEBRA)
 					bridges/lib_disc_bridge_algebra_independent.cpp
 					bridges/lib_disc_bridge_domain_independent.cpp
 					bridges/lib_disc_bridge_domain_dependent.cpp
+					bridges/lib_disc_bridge_discs.cpp
 					bridges/user_data_bridge.cpp
 					bridges/domain_bridge.cpp
 					bridges/profiler_bridge.cpp)

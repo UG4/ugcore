@@ -15,7 +15,7 @@
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
 
 namespace ug{
-
+/*
 template <typename TRefElem, int TWorldDim>
 bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 								const MathVector<TWorldDim>& IPVel, const MathVector<TWorldDim>* vCornerCoords)
@@ -25,9 +25,9 @@ bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 	MathVector<TRefElem::dim> localIntersection;
 
 	if(!ElementSideRayIntersection<TRefElem, TWorldDim>
-		(	side, globalIntersection, localIntersection,
-			IP, IPVel, false /* search upwind */, vCornerCoords))
-	{
+		(	side, globalIntersection, localIntersection,*/
+//			IP, IPVel, false /* search upwind */, vCornerCoords))
+/*	{
 		UG_LOG("ERROR in GetNodeNextToCut: Cannot find cut side.\n");
 		return false;
 	}
@@ -58,13 +58,13 @@ bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 
 	return true;
 }
-
+*/
 template <typename TFVGeometry>
 bool GetNoUpwindShapes(	const TFVGeometry& geo,
-                                        const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
-                                        number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
-                                        number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
-                                        number ConvectionLength[TFVGeometry::m_numSCV])
+                       	const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
+                       	number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
+                       	number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
+                       	number ConvectionLength[TFVGeometry::m_numSCV])
 {
     // No interdependencies between upwind velocities in element IPs
     vIPVelUpwindDependencies=NULL;
@@ -87,10 +87,10 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 
 template <typename TFVGeometry>
 bool GetFullUpwindShapes(	const TFVGeometry& geo,
-                                        const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
-                                        number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
-                                        number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
-                                        number ConvectionLength[TFVGeometry::m_numSCV])
+                         	const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
+                         	number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
+                         	number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
+                         	number ConvectionLength[TFVGeometry::m_numSCV])
 {
    	static const size_t numCo = TFVGeometry::m_numSCV;
 	static const size_t dim   = TFVGeometry::world_dim;
@@ -143,7 +143,7 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
 
 	return true;
 }
-
+/*
 template <typename TSCVF>
 bool GetSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::world_dim>& IPVel, number* shape)
 {
@@ -197,9 +197,9 @@ bool GetLinearProfileSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCV
 
 	// find local intersection and side
 	if(!ElementSideRayIntersection<TSCVF::ref_elem_type, TSCVF::world_dim>
-		(	side, globalIntersection, localIntersection,
-			scvf.global_ip(0), IPVel, false /* search upwind */, vCornerCoords))
-	{
+		(	side, globalIntersection, localIntersection,*/
+//			scvf.global_ip(0), IPVel, false /* search upwind */, vCornerCoords))
+/*	{
 		UG_LOG("ERROR in GetLinearProfileSkewedUpwindShapes: Cannot find cut side.\n");
 		return false;
 	}
@@ -228,7 +228,7 @@ bool GetLinearProfileSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCV
 
 	return true;
 }
-
+*/
 
 
 } // end namespace ug

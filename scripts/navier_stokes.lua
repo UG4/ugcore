@@ -55,10 +55,10 @@ end
 
 -- Lets write some info about the choosen parameter
 print(" Choosen Parater:")
-print("    dim        = " .. dim)
-print("    numRefs    = " .. numTotalRefs)
-print("    numPreRefs = " .. numPreRefs)
-print("    grid       = " .. gridName)
+print("    dim        	= " .. dim)
+print("    numTotalRefs = " .. numTotalRefs)
+print("    numPreRefs 	= " .. numPreRefs)
+print("    grid       	= " .. gridName)
 
 --------------------------------------------
 --------------------------------------------
@@ -177,15 +177,38 @@ fctUsed = fctUsed .. ", p"
 -- separated by ',', (e.g. "Inner1, Inner2, Inner3").
 elemDisc = util.CreateFV1NavierStokes(approxSpace, fctUsed, "Inner")
 
--- Next we choose the settings of the elem disc ...
-elemDisc:set_upwind("Full")
-elemDisc:set_stabilization("FIELDS")
-elemDisc:set_diffusionlength("RAW")
-elemDisc:set_physicalAdvectionCorrection("PAC")
-elemDisc:set_pecletBlend("PEBLEND")
+-- Now, we have to setup the stabilization, that is used for the Continuity Equation.
+-- The stabilization is passed to the Navier-Stokes elem disc as an object. 
+-- Therefore, we created it now and will pass it to the disc. But first, we have
+-- to create the Upwind scheme, that is used inside the stabilization. There are
+-- several possibilities:
+
+noUpwind = util.CreateNavierStokesNoUpwind(dim);
+fullUpwind = util.CreateNavierStokesFullUpwind(dim);
+skewedUpwind = util.CreateNavierStokesSkewedUpwind(dim);
+LPSUpwind = util.CreateNavierStokesLinearProfileSkewedUpwind(dim);
+
+-- Now, we create the stabilization ...
+fieldsStab = util.CreateNavierStokesFIELDSStabilization(dim)
+
+-- ... and set the upwind
+fieldsStab:set_upwind(fullUpwind)
+
+-- We also can choose, how the diffusion length of the stabilization is computed.
+-- Under the option we pick on:
+fieldsStab:set_diffusion_length("NS_RAW")
+--fieldsStab:set_diffusion_length("NS_FIVEPOINT")
+--fieldsStab:set_diffusion_length("NS_COR")
+
+-- Next we set the options for the Navier-Stokes elem disc ...
+elemDisc:set_stabilization(fieldsStab)
+elemDisc:set_PAC(true)
+elemDisc:set_peclet_blend(true)
+elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-elemDisc:set_kinematic_viscosity(1.0);
+ConstKinViscosity = util.CreateConstUserNumber(1.0e-3, dim)
+elemDisc:set_kinematic_viscosity(ConstKinViscosity);
  
 
 -- Next, lets create the boundary conditions. We will use lua-callback functions
@@ -197,19 +220,10 @@ elemDisc:set_kinematic_viscosity(1.0);
 -- and the boundary value itself.
 -- Note that we use math-functions from luas standard math-library.
 -- (here the . operator is used, since math is not an object but a library)
-function dirichletBnd1d(x, t)
-	local s = 2*math.pi
-	return true, math.sin(s*x) 
-end
-
-function dirichletBnd2d(x, y, t)
-	local s = 2*math.pi
-	return true, math.sin(s*x) + math.sin(s*y)
-end
-
-function dirichletBnd3d(x, y, z, t)
-	local s = 2*math.pi
-	return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
+function inletVelX2d(x, y, t)
+	local H = 0.41
+	local Um = 0.3
+	return true, 4 * Um * y * (H-y) / (H*H)
 end
 
 -- Next, we create objects that encapsulate our callback. Those can then
@@ -217,17 +231,33 @@ end
 -- to concatenate strings and numbers. This saves us from a lot of if dim == 2 ... else ...
 -- For the dirichlet callback we use utilCreateLuaBoundaryNumber, where
 -- a boolean and a number are returned.
-dirichletCallback = util.CreateLuaBoundaryNumber("dirichletBnd" .. dim .. "d", dim)
+LuaInletVelX2d = util.CreateLuaBoundaryNumber("inletVelX" .. dim .. "d", dim)
+ConstZeroDirichlet = util.CreateConstBoundaryNumber(0.0, dim)
+
+
+-- We need neumann boundary for the pressure at Inlet
+function inletPressure2d(x, y, t)
+	local b, vel = inletVelX2d(x,y,t)
+	return true, -1.0 * vel
+end
+
+LuaNeumannPressure = util.CreateLuaBoundaryNumber("inletPressure"..dim.."d", dim)
+neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
+neumannDisc:add_boundary_value(LuaNeumannPressure, "p", "Inlet")
 
 -- Now we create a Dirichlet Boundary object. At this object all boundary conditions
 -- are registered.
 dirichletBnd = util.CreateDirichletBoundary(approxSpace)
-dirichletBnd:add_boundary_value(dirichletCallback, "u", "Inlet")
+dirichletBnd:add_boundary_value(LuaInletVelX2d, "u", "Inlet")
+dirichletBnd:add_boundary_value(ConstZeroDirichlet, "u", "UpperWall,LowerWall,CylinderWall")
+dirichletBnd:add_boundary_value(ConstZeroDirichlet, "v", "Inlet,UpperWall,LowerWall,CylinderWall")
+dirichletBnd:add_boundary_value(ConstZeroDirichlet, "p", "Outlet")
 
 -- Finally we create the discretization object which combines all the
 -- separate discretizations into one domain discretization.
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc)
+domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBnd)
 
 --------------------------------
@@ -273,13 +303,13 @@ u:set(0)
 -- We could also interpolate some user defined function
 -- setup the lua functions ...
 function Pressure_StartValue2d(x, y, t)
-	return 0.789
+	return 0.0
 end
 function VelX_StartValue2d(x, y, t)
-	return math.sin(10*x)
+	return 1.0
 end
 function VelY_StartValue2d(x, y, t)
-	return math.sin(10*y)
+	return 0.0
 end
 
 -- ... and wrap the lua-callback
@@ -290,12 +320,16 @@ LuaVelYStartValue = util.CreateLuaUserNumber("VelY_StartValue"..dim.."d", dim)
 end
 
 -- Now interpolate the function
---InterpolateFunction(LuaStartValue, u, "c", time);
+time = 0.0
+InterpolateFunction(LuaPressureStartValue, u, "p", time);
+InterpolateFunction(LuaVelXStartValue, u, "u", time);
+InterpolateFunction(LuaVelYStartValue, u, "v", time);
 
 
 -- we need a linear solver that solves the linearized problem inside of the
 -- newton solver iteration. So, we create an exact LU solver here.
 linSolver = LU()
+
 
 -- Next we need a convergence check, that computes the defect within each 
 -- newton step and stops the iteration when a specified creterion is fullfilled.
@@ -313,13 +347,20 @@ newtonConvCheck:set_verbose_level(true)
 -- solver. Here again we use the standard implementation.
 newtonLineSearch = StandardLineSearch()
 
+-- Sometimes its helpful to write the defect and jacobian of the newton step
+-- to debug the implementation. For that, we use the debug writer
+dbgWriter = util.CreateGridFunctionDebugWriter(dim)
+dbgWriter:set_reference_grid_function(u)
+dbgWriter:set_vtk_output(false)
+
 -- Now we can set up the newton solver. We set the linear solver created above
 -- as solver for the linearized problem and set the convergence check. If you
 -- want to you can also set the line search.
 newtonSolver = NewtonSolver()
 newtonSolver:set_linear_solver(linSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
---newtonSolver:set_line_search(newtonLineSearch)
+newtonSolver:set_line_search(newtonLineSearch)
+newtonSolver:set_debug(dbgWriter)
 
 -- Finally we set the non-linear operator created above and initiallize the
 -- Newton solver for this operator.

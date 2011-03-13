@@ -164,27 +164,6 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
--- creates FV1NavierStokes
-function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
-	local domain = approxSpace:get_domain()
-	local dim = domain:get_dim()
-	local elemDisc
-	if dim == 1 then
-		elemDisc = FV1NavierStokes1d()
-	elseif dim == 2 then
-		elemDisc = FV1NavierStokes2d()
-	elseif dim == 3 then
-		elemDisc = FV1NavierStokes3d()
-	else
-	return nil
-	end
-	
-	elemDisc:set_approximation_space(approxSpace)
-	elemDisc:set_subsets(subsets)
-	elemDisc:set_functions(functions)
-	return elemDisc
-end
-
 -- create Geometric Multigrid
 function util.CreateGeometricMultiGrid(approxSpace)
 	local dim = approxSpace:get_domain():get_dim()
@@ -389,6 +368,87 @@ function util.CreateVTKWriter(dim)
 	end
 	
 	return writer
+end
+
+--------------------------------------------------------------------------------
+-- Navier - Stokes utils
+--------------------------------------------------------------------------------
+
+-- creates FV1NavierStokes
+function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
+	local domain = approxSpace:get_domain()
+	local dim = domain:get_dim()
+	local elemDisc
+	if dim == 1 then
+		elemDisc = FV1NavierStokes1d()
+	elseif dim == 2 then
+		elemDisc = FV1NavierStokes2d()
+	elseif dim == 3 then
+		elemDisc = FV1NavierStokes3d()
+	else
+	return nil
+	end
+	
+	elemDisc:set_approximation_space(approxSpace)
+	elemDisc:set_subsets(subsets)
+	elemDisc:set_functions(functions)
+	return elemDisc
+end
+
+
+-- creates NavierStokesNoUpwind
+function util.CreateNavierStokesNoUpwind(dim)
+	local upwind
+	if     dim == 1 then upwind = NavierStokesNoUpwind1d()
+	elseif dim == 2 then upwind = NavierStokesNoUpwind2d()
+	elseif dim == 3 then upwind = NavierStokesNoUpwind3d()
+	else return nil end
+
+	return upwind
+end
+
+-- creates NavierStokesFullUpwind
+function util.CreateNavierStokesFullUpwind(dim)
+	local upwind
+	if     dim == 1 then upwind = NavierStokesFullUpwind1d()
+	elseif dim == 2 then upwind = NavierStokesFullUpwind2d()
+	elseif dim == 3 then upwind = NavierStokesFullUpwind3d()
+	else return nil end
+
+	return upwind
+end
+
+-- creates NavierStokesSkewedUpwind
+function util.CreateNavierStokesSkewedUpwind(dim)
+	local upwind
+	if     dim == 1 then upwind = NavierStokesSkewedUpwind1d()
+	elseif dim == 2 then upwind = NavierStokesSkewedUpwind2d()
+	elseif dim == 3 then upwind = NavierStokesSkewedUpwind3d()
+	else return nil end
+
+	return upwind
+end
+
+-- creates NavierStokesLinearProfileSkewedUpwind
+function util.CreateNavierStokesLinearProfileSkewedUpwind(dim)
+	local upwind
+	if     dim == 1 then upwind = NavierStokesLinearProfileSkewedUpwind1d()
+	elseif dim == 2 then upwind = NavierStokesLinearProfileSkewedUpwind2d()
+	elseif dim == 3 then upwind = NavierStokesLinearProfileSkewedUpwind3d()
+	else return nil end
+
+	return upwind
+end
+
+-- creates NavierStokesFIELDSStabilization
+function util.CreateNavierStokesFIELDSStabilization(dim)
+	local stab
+	if     dim == 1 then stab = NavierStokesFIELDSStabilization1d()
+	elseif dim == 2 then stab = NavierStokesFIELDSStabilization2d()
+	elseif dim == 3 then stab = NavierStokesFIELDSStabilization3d()
+	else return nil end
+
+	return stab
 end
 
 --------------------------------------------------------------------------------

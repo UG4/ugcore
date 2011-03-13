@@ -28,10 +28,10 @@ class FVGeometryProvider {
 		~FVGeometryProvider(){};
 
 		// geometry provider
-		template <template <class TElem, int TWorldDim> class TFVGeom, typename TElem, int TWorldDim>
-		inline static TFVGeom<TElem, TWorldDim>& inst()
+		template <typename TFVGeom>
+		inline static TFVGeom& inst()
 		{
-			static TFVGeom<TElem, TWorldDim> myInst;
+			static TFVGeom myInst;
 			return myInst;
 		};
 
@@ -40,7 +40,13 @@ class FVGeometryProvider {
 		template <template <class TElem, int TWorldDim> class TFVGeom, typename TElem, int TWorldDim>
 		inline static TFVGeom<TElem, TWorldDim>& get_geom()
 		{
-			return inst<TFVGeom, TElem, TWorldDim>();
+			return inst<TFVGeom<TElem, TWorldDim> >();
+		}
+
+		template <typename TFVGeom>
+		inline static TFVGeom& get_geom()
+		{
+			return inst<TFVGeom>();
 		}
 };
 

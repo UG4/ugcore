@@ -75,6 +75,7 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 	bool bResult = true;
 	bResult &= RegisterDynamicLibDiscretizationInterfaceDomainIndependent(reg, algebra_type, parentGroup);
 	bResult &= RegisterDynamicLibDiscretizationInterfaceDomainDependent(reg, algebra_type, parentGroup);
+	bResult &= RegisterDynamicLibDiscInterfaceDiscs(reg, algebra_type, parentGroup);
 	return bResult;
 }
 
