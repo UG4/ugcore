@@ -14,10 +14,6 @@
 #include "ug_bridge/ug_bridge.h"
 #include "lib_algebra/algebra_chooser.h"
 
-#ifdef UG_USE_AMG
-#include "lib_discretization/lib_discretization.h"
-#endif
-
 #include "ug_script/user_data/user_data.h"
 
 #include <iostream>
