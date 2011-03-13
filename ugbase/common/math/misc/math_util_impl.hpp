@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include "common/common.h"
+#include "common/math/math_vector_matrix/math_vector_functions.h"
 #include "common/math/math_vector_matrix/math_matrix_functions.h"
 
 namespace ug
@@ -322,14 +323,16 @@ bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 	m[1][0] = v[1]; m[1][1] = -1 * vDir[1];
 
 	// invert matrix
-	number det;
-	Inverse(mInv, m, det);
+	number det = Determinant(m);
 
 	// if det == 0.0 lines are parallel
 	if(det == 0.0) return false;
 
+	// compute inverse
+	Inverse(mInv, m, det);
+
 	// compute rhs of system
-	VecSubstract(b, vFrom, p0);
+	VecSubtract(b, vFrom, p0);
 
 	// solve system
 	MatVecMult(v, mInv, b);
@@ -342,8 +345,8 @@ bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 		tOut = v[1];
 
 		// compute intersection point
-		VecCopy(vOut, vFrom);
-		VecScaleAppend(vOut, vDir, tOut);
+		vOut = vFrom;
+		VecScaleAppend(vOut, tOut, vDir);
 
 		// intersection
 		return true;
