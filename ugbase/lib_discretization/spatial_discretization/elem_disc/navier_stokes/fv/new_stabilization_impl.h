@@ -214,7 +214,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 			VecSet(vIPVelCurrent, 0.0);
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				for(int d = 0; d < dim; ++d)
-					vIPVelCurrent[d] = scvf.shape(sh, 0) * vCornerValue(d, sh);
+					vIPVelCurrent[d] += scvf.shape(sh, 0) * vCornerValue(d, sh);
 
 		// 	Loop components of velocity
 			for(size_t d = 0; d < (size_t)dim; d++)
@@ -251,10 +251,9 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 				if(pvCornerValueOldTime != NULL)
 				{
 				//	interpolate old time step
-				//	\todo: Is this ok? Or do we need the old stabilized vel ?
 					number oldIPVel = 0.0;
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						oldIPVel = scvf.shape(sh, 0) * (*pvCornerValueOldTime)(d, sh);
+						oldIPVel += scvf.shape(sh, 0) * (*pvCornerValueOldTime)(d, sh);
 
 				//	add to rhs
 					rhs += oldIPVel / dt;
@@ -307,7 +306,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 			VecSet(vIPVelCurrent[ip], 0.0);
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				for(int d = 0; d < dim; ++d)
-					vIPVelCurrent[ip][d] = scvf.shape(sh, 0) * vCornerValue(d, sh);
+					vIPVelCurrent[ip][d] += scvf.shape(sh, 0) * vCornerValue(d, sh);
 		}
 
 	// 	For the FIELDS stabilization, there is no connection between the
@@ -436,7 +435,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 				//	\todo: Is this ok? Or do we need the old stabilized vel ?
 					number oldIPVel = 0.0;
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						oldIPVel = scvf.shape(sh, 0) * (*pvCornerValueOldTime)(d, sh);
+						oldIPVel += scvf.shape(sh, 0) * (*pvCornerValueOldTime)(d, sh);
 
 				//	add to rhs
 					f[ip] += oldIPVel / dt;
