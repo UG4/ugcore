@@ -18,9 +18,10 @@
 
 namespace ug{
 
-template<typename neighborstruct, typename matrix_type>
+template<typename neighborstruct, typename matrix_type, typename vector_type>
 bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &nodes,
-		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,	FAMGInterpolationCalculator<matrix_type> &calculator)
+		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,
+		FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
 	if(prolongation_calculated[node])
 		return nodes.update_rating(node, PN);
@@ -64,10 +65,10 @@ bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_node
 	}
 }
 
-template<typename neighborstruct, typename matrix_type>
+template<typename neighborstruct, typename matrix_type, typename vector_type>
 void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possible_parents, famg_nodes &nodes,
 		maxheap<famg_nodeinfo> &heap,
-		stdvector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type> &calculator)
+		stdvector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
 	if(!nodes[node].is_valid_rating())
 		return;
@@ -108,8 +109,8 @@ void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mar
 
 
 
-template<typename matrix_type, typename prolongation_matrix_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::on_demand_coarsening()
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on_demand_coarsening()
 {
 	size_t N = rating.size();
 

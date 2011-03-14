@@ -131,6 +131,8 @@ template<typename TAlgebra>
 void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
+	UG_ASSERT(pcl::GetNumProcesses()==1, "not implemented for procs > 1");
+
 	size_t N = A.num_rows();
 	stdvector<amg_nodeinfo> nodes; nodes.resize(N);
 
@@ -262,10 +264,9 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, &posInConnections[0], m_dTheta);
 
 	P.defragment();
-
-/*#ifdef UG_PARALLEL
+#ifdef UG_PARALLEL
 	P.set_storage_type(PST_CONSISTENT);
-#endif*/
+#endif
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -285,9 +286,9 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	R.set_as_transpose_of(P);
 	// R is already defragmented
 
-/*#ifdef UG_PARALLEL
+#ifdef UG_PARALLEL
 	R.set_storage_type(PST_CONSISTENT);
-#endif*/
+#endif
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -311,6 +312,11 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	if(bTiming) SW.start();
 	AH.defragment();
 	if(bTiming) UG_LOG(std::endl << "Defragment ... took " << SW.ms() << " ms");
+
+#ifdef UG_PARALLEL
+	AH.set_storage_type(PST_ADDITIVE);
+	AH.set_layouts(A.get_master_layout(), A.get_slave_layout());
+#endif
 
 #ifdef AMG_PRINT_AH
 	UG_LOG("AH level " << level << std::endl);

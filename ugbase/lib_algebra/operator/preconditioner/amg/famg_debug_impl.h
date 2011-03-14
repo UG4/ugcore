@@ -21,8 +21,8 @@ namespace ug
 {
 
 
-template<typename matrix_type, typename prolongation_matrix_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::write_debug_matrices()
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::write_debug_matrices()
 {
 	if(m_famg.m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
@@ -39,8 +39,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::write_debug_mat
 	}
 }
 
-template<typename matrix_type, typename prolongation_matrix_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::write_debug_matrix_markers()
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::write_debug_matrix_markers()
 {
 	int me = pcl::GetProcRank();
 	if(m_famg.m_writeMatrices)
@@ -65,9 +65,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::write_debug_mat
 
 }
 
-template<typename matrix_type, typename prolongation_matrix_type>
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 template<typename TMatrix>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name)
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name)
 {
 	std::string filename = GetProcFilename(m_famg.m_writeMatrixPath, ToString(name) + ToString(fromlevel),".mat");
 	AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_famg.m_amghelper);

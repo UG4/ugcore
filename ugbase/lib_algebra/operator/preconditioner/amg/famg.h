@@ -38,7 +38,7 @@ namespace ug{
 
 #define FAMG_MAX_LEVELS 32
 
-template<typename matrix_type, typename prolongation_matrix_type>
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 class FAMGLevelCalculator;
 
 // AMG
@@ -101,12 +101,33 @@ public:
 	double get_theta() const { return m_theta;}
 
 
-	void set_testvector_zero_at_dirichlet(bool bZeroAtDirichlet) { m_bTestvectorZeroAtDirichlet = bZeroAtDirichlet; }
-	bool get_testvector_zero_at_dirichlet() const { return m_bTestvectorZeroAtDirichlet; }
-
 	void set_testvector_damps(size_t testvectordamps) { m_iTestvectorDamps = testvectordamps; }
 	size_t get_testvector_damps() const { return m_iTestvectorDamps; }
 
+
+	void reset_testvectors()
+	{
+		m_testvectors.clear();
+		m_vVectorWriters.clear();
+		m_omega.clear();
+		m_omegaVectorWriters.clear();
+	}
+
+	// void add_std_testvector
+	// with callback calculate(vector_type &c, double &weight, stdvector<positions>, stdvector<bool> isinner) o€.
+
+	void add_testvector(vector_type& c, double weight)
+	{
+		UG_ASSERT(m_testvectors.size() == m_omega.size(), "???");
+		m_testvectors.push_back(c);
+		m_omega.push_back(weight);
+	}
+
+	void add_vector_writer(IVectorWriter<vector_type> *vw, double weight)
+	{
+		m_vVectorWriters.push_back(vw);
+		m_omegaVectorWriters.push_back(weight);
+	}
 
 private:
 //  functions
@@ -126,9 +147,12 @@ private:
 	size_t m_iTestvectorDamps;
 	bool m_bTestvectorZeroAtDirichlet;
 
-	friend class FAMGLevelCalculator<matrix_type, SparseMatrix<double> >;
+	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;
 
-	ug::Vector<double> big_testvector;
+	stdvector<vector_type> m_testvectors;
+	stdvector<double> m_omega; // testvectorWeights
+	stdvector< IVectorWriter<vector_type> * > m_vVectorWriters;
+	stdvector<double> m_omegaVectorWriters; // testvectorWeights
 };
 
 

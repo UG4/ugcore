@@ -49,22 +49,10 @@ inline void get_testvector_xy(DenseVector<VariableArray1<double> > &testvector, 
 */
 
 template<typename matrix_type, typename vector_type>
-void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector, bool zeroAtDirichlet,
-		size_t iTestvectorDamps, famg_nodes &rating)
+void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector,
+		size_t iTestvectorDamps)
 {
-	if(big_testvector.size() == 0)
-	{
-		big_testvector.resize(A_OL2.num_rows());
-		for(size_t i=0; i<A_OL2.num_rows(); i++)
-			if(rating.is_inner_node(i) && A_OL2.is_isolated(i) && zeroAtDirichlet)
-				big_testvector[i] = 0.0;
-			else
-				big_testvector[i] = 1.0;
-
-		//big_testvector = 1.0;
-	}
-
-	Vector<double> d; d.resize(A_OL2.num_rows());
+	vector_type d; d.resize(A_OL2.num_rows());
 	for(size_t jj=0; jj < iTestvectorDamps; jj++)
 	{
 		MatMult(d, 1.0, A_OL2, big_testvector);
@@ -76,7 +64,7 @@ void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector, bool z
 template<typename matrix_type, typename vector_type>
 void CalculateNextTestvector(matrix_type &R, vector_type &big_testvector)
 {
-	Vector<double> t;
+	vector_type t;
 	t.resize(R.num_rows());
 
 	MatMult(t, 1.0, R, big_testvector);

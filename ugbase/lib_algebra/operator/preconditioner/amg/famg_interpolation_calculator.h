@@ -69,17 +69,17 @@ void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1, s
 }
 
 
-template<typename matrix_type>
+template<typename matrix_type, typename vector_type>
 class FAMGInterpolationCalculator
 {
 private:
-	FAMGInterpolationCalculator(const FAMGInterpolationCalculator<matrix_type> &other);
+	FAMGInterpolationCalculator(const FAMGInterpolationCalculator<matrix_type, vector_type> &other);
 
 public:
 	FAMGInterpolationCalculator(const matrix_type &A_,
 			const matrix_type &A_OL2_, double delta, double theta, double damping,
-			ug::Vector<double> &_big_testvector)
-	: A(A_), A_OL2(A_OL2_), big_testvector(_big_testvector)
+			stdvector< vector_type > &testvectors, stdvector<double> &omega)
+	: A(A_), A_OL2(A_OL2_), m_testvectors(testvectors), m_omega(omega)
 	{
 		m_delta = delta;
 		m_theta = theta;
@@ -87,18 +87,32 @@ public:
 	}
 
 
-	void calculate_testvector(size_t i)
+	void calculate_testvectors(size_t node)
 	{
-		testvector.resize(onlyN1.size()+1);
-		//get_testvector_constant(testvector, onlyN1, testvector[onlyN1.size()], i);
-		for(size_t j=0; j<onlyN1.size(); j++)
-			testvector[j] = big_testvector[onlyN1[j]];
-		testvector[onlyN1.size()] = big_testvector[i];
+		for(size_t k=0; k<m_testvectors.size(); k++)
+		{
+			localTestvector[k].resize(onlyN1.size()+1);
 
+			for(size_t j=0; j<onlyN1.size(); j++)
+				localTestvector[k][j] = m_testvectors[k][onlyN1[j]];
+
+			localTestvector[k][onlyN1.size()] = m_testvectors[k][node];
+		}
 	}
 
-
-
+	void add_additional_testvectors_to_H()
+	{
+		// skip first vector (it is approximated exactly)
+		// /test if other way round is faster/
+		for(size_t r = 0; r < onlyN1.size(); r++)
+			for(size_t c = 0; c < onlyN1.size(); c++)
+			{
+				double s = 0;
+				for(size_t k=1; k<m_testvectors.size(); k++)
+					s+= m_omega[k] * localTestvector[k][r] * localTestvector[k][c];
+				H(r, c) += s;
+			}
+	}
 
 	// get_possible_parent_pairs:
 	//---------------------------------------
@@ -124,13 +138,14 @@ public:
 		size_t i_index = onlyN1.size();
 
 		// calculate testvector
-		calculate_testvector(i);
+		calculate_testvectors(i);
+		add_additional_testvectors_to_H();
 
 		DenseMatrix<FixedArray2<double, 3, 3> > KKT;
 		DenseVector<FixedArray1<double, 3> > rhs;
 		DenseVector<FixedArray1<double, 3> > q;
 		DenseVector<FixedArray1<double, 3> > t;
-		rhs[2] = - testvector[i_index];
+		rhs[2] = - localTestvector[0][i_index];
 		i_neighborpairs.clear();
 
 		int i_min = -1;
@@ -157,8 +172,8 @@ public:
 				KKT(1, 0) = H(m, n);
 				KKT(1, 1) = H(m, m);
 
-				KKT(2, 0) = KKT(0, 2) = testvector[n];
-				KKT(2, 1) = KKT(1, 2) = testvector[m];
+				KKT(2, 0) = KKT(0, 2) = localTestvector[0][n];
+				KKT(2, 1) = KKT(1, 2) = localTestvector[0][m];
 				KKT(2, 2) = 0.0;
 
 				rhs[0] = - Hi[n];
@@ -234,7 +249,6 @@ public:
 		}
 	}
 
-
 	// get_all_neighbors_interpolation:
 	//---------------------------------------
 	/** calculates an interpolation of the node i, when i is interpolating by all his neighbors
@@ -252,7 +266,9 @@ public:
 
 		size_t i_index = onlyN1.size();
 		// get testvector
-		calculate_testvector(i);
+		calculate_testvectors(i);
+
+		add_additional_testvectors_to_H();
 
 		std::vector<size_t> coarse_neighbors;
 		for(size_t j=0; j<onlyN1.size(); j++)
@@ -291,14 +307,14 @@ public:
 					vKKT(r, c) = H(coarse_neighbors[r], coarse_neighbors[c]);
 
 			for(size_t j=0; j < N; j++)
-				vKKT(j, N) = vKKT(N, j) = testvector[coarse_neighbors[j]];
+				vKKT(j, N) = vKKT(N, j) = localTestvector[0][coarse_neighbors[j]];
 
 			vKKT(N, N) = 0;
 
 			rhs.resize(N+1);
 			for(size_t j=0; j < N; j++)
 				rhs[j] = -Hi[coarse_neighbors[j]];
-			rhs[N] = -testvector[i_index];
+			rhs[N] = -localTestvector[0][i_index];
 
 			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
 			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
@@ -344,13 +360,13 @@ public:
 			  *			( t^T   0 ) ( lambda )  = ( t[i]  ) */
 
 			for(size_t j=0; j < onlyN1.size(); j++)
-				vKKT(j, i_index) = vKKT(i_index, j) = testvector[j];
+				vKKT(j, i_index) = vKKT(i_index, j) = localTestvector[0][j];
 			vKKT(i_index, i_index) = 0;
 
 			rhs.resize(onlyN1.size()+1);
 			for(size_t j=0; j < onlyN1.size(); j++)
 				rhs[j] = -Hi[j];
-			rhs[i_index] = -testvector[i_index];
+			rhs[i_index] = -localTestvector[0][i_index];
 
 			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
 			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
@@ -538,15 +554,17 @@ private:
 	stdvector<bool> bvisited;					// used for N2-neighborhood calculation
 
 	// todo: instead of VariableArray2, use
-	DenseMatrix<VariableArray2<double> > S;		// local matrix S = 1 - wD^{-1}A on {N1, i_index, N2}
-	stdvector<double> SF;						// SF = 1 -wD^{-1} A(i_index,.)
-	stdvector<double> D;						// diagonal
-	stdvector<double> Dinv;						// diagonal
-	DenseMatrix<VariableArray2<double> > H;		// matrix H = S Y S^T  on {N1}
-	stdvector<double> Hi;						// H(i_index, N1)
+	// onlyN1: 1-neighborhood without i
+	// onlyN2: 2-neighborhood without i and N1.
+	DenseMatrix<VariableArray2<double> > S;		//< local matrix S = 1 - wD^{-1}A on {onlyN1, i, onlyN2}
+	stdvector<double> SF;						//< SF = 1 -wD^{-1} A(ix,.)
+	stdvector<double> D;						//< diagonal
+	stdvector<double> Dinv;						//< diagonal
+	DenseMatrix<VariableArray2<double> > H;		//< matrix H = S Y S^T  on {onlyN1}
+	stdvector<double> Hi;						//< H(i, onlyN1)
 
 	// for the KKT system
-	stdvector<double> testvector;
+	stdvector<stdvector<double> > localTestvector;			//< on {onlyN1, i}
 	DenseVector<stdvector<double> > rhs;
 	DenseVector<stdvector<double> > q;
 	DenseVector<stdvector<double> > t;
@@ -564,7 +582,8 @@ private:
 	double m_delta;
 	double m_theta;
 	double m_damping;
-	ug::Vector<double> &big_testvector;
+	stdvector< vector_type > &m_testvectors;
+	stdvector<double> &m_omega;
 };
 
 

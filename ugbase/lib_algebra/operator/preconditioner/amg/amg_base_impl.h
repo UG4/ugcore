@@ -86,6 +86,18 @@ bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::init()
 {
+	update_positions();
+
+	// init m_amghelper for grid printing
+	if(m_dbgPositions.size() > 0)
+		m_amghelper.positions = &m_dbgPositions[0];
+	m_amghelper.size = m_A[0]->num_rows();
+	m_amghelper.parentIndex = &m_parentIndex;
+	m_amghelper.dimension = m_dbgDimension;
+
+	UG_ASSERT(m_writeMatrices == false || m_dbgDimension != 0, "you need to provide position information for writing matrices");
+
+
 	if(m_basesolver==NULL)
 	{
 		UG_LOG("amg_base::init(): No base solver selected. Call set_base_solver(basesolver) to set a base solver.\n");
@@ -102,18 +114,16 @@ bool amg_base<TAlgebra>::init()
 		return false;
 	}
 
-	// init m_amghelper for grid printing
-	m_amghelper.positions = &m_dbgPositions[0];
-	m_amghelper.size = m_A[0]->num_rows();
-	m_amghelper.parentIndex = &m_parentIndex;
-	m_amghelper.dimension = m_dbgDimension;
+
 
 	UG_LOG("Starting AMG Setup." << std::endl << std::endl);
 
 	m_levelInformation.clear();
 
+
 	stopwatch SWwhole;
 	SWwhole.start();
+
 
 	m_levelInformation.push_back(LevelInformation(0, m_A[0]->num_rows()));
 
@@ -250,7 +260,10 @@ amg_base<TAlgebra>::amg_base() :
 
 	m_presmoother(NULL),
 	m_postsmoother(NULL),
-	m_basesolver(NULL)
+	m_basesolver(NULL),
+
+	m_pPositionProvider2d(NULL),
+	m_pPositionProvider3d(NULL)
 {
 	m_vec4 = NULL;
 	m_bInited = false;
@@ -260,6 +273,9 @@ amg_base<TAlgebra>::amg_base() :
 
 	m_writeMatrices = false;
 	m_fDamp = 0.0;
+
+	m_dbgDimension = 0;
+
 }
 
 
@@ -600,6 +616,28 @@ void amg_base<TAlgebra>::tostring() const
 		UG_LOG("Used Levels: " << m_usedLevels << "\n");
 	}
 }
+
+
+template<typename TAlgebra>
+void amg_base<TAlgebra>::update_positions()
+{
+	UG_ASSERT(m_pPositionProvider2d == NULL || m_pPositionProvider3d == NULL, "specify EITHER positions 2d or 3d");
+	if(m_pPositionProvider2d == NULL && m_pPositionProvider3d == NULL)
+		return;
+	if(m_pPositionProvider2d)
+	{
+		std::vector<MathVector<2> > pos;
+		m_pPositionProvider2d->get_positions(pos);
+		set_positions(&pos[0], pos.size());
+	}
+	if(m_pPositionProvider3d)
+	{
+		std::vector<MathVector<3> > pos;
+		m_pPositionProvider3d->get_positions(pos);
+		set_positions(&pos[0], pos.size());
+	}
+}
+
 
 } // namespace ug
 

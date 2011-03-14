@@ -15,6 +15,7 @@
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_BASE_H__
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/operator/operator_iterator_interface.h"
+#include "lib_algebra/operator/vector_writer.h"
 #include <vector>
 #include <iostream>
 #include <sstream>
@@ -147,6 +148,15 @@ public:
 	void 	set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
 
 
+	void set_position_provider2d(IPositionProvider<2> *ppp2d)
+	{
+		m_pPositionProvider2d = ppp2d;
+	}
+
+	void set_position_provider3d(IPositionProvider<3> *ppp3d)
+	{
+		m_pPositionProvider3d = ppp3d;
+	}
 
 	void set_matrix_write_path(const char *path)
 	{
@@ -154,7 +164,7 @@ public:
 		m_writeMatrices = true;
 	}
 
-	void set_debug_positions(const MathVector<2> *pos, size_t size)
+	void set_positions(const MathVector<2> *pos, size_t size)
 	{
 		m_dbgPositions.resize(size);
 		for(size_t i=0; i<size; ++i)
@@ -165,7 +175,7 @@ public:
 		}
 		m_dbgDimension = 2;
 	}
-	void set_debug_positions(const MathVector<3> *pos, size_t size)
+	void set_positions(const MathVector<3> *pos, size_t size)
 	{
 		m_dbgPositions.resize(size);
 		for(size_t i=0; i<size; ++i)
@@ -173,21 +183,12 @@ public:
 		m_dbgDimension = 3;
 	}
 
-	template <typename TGridFunction>
-	bool set_debug(	TGridFunction& u)
-	{
-		static const int dim = TGridFunction::domain_type::dim;
-
-		stdvector<MathVector<dim> > positions;
-		ExtractPositions(u, positions);
-		set_debug_positions(&positions[0], positions.size());
-		UG_LOG("successfully set " << positions.size() << " positions.\n");
-		return true;
-	}
 
 	void tostring() const;
 
 protected:
+	void update_positions();
+
 	bool create_level_vectors(size_t level);
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level) = 0;
@@ -249,6 +250,9 @@ protected:
 	double m_dTimingCoarseSolverMS;
 
 	stdvector<LevelInformation> m_levelInformation;
+
+	IPositionProvider<2> *m_pPositionProvider2d;
+	IPositionProvider<3> *m_pPositionProvider3d;
 
 public:
 	double get_operator_complexity() { return m_dOperatorComplexity; }

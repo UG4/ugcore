@@ -34,9 +34,9 @@ namespace ug
  * and gets arrays processesWithLowerColor and processesWithHigherColor
  * \sa ColorProcessorGraph
  */
-template<typename matrix_type, typename prolongation_matrix_type>
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
+FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	color_process_graph()
 {
 	stopwatch SW;
@@ -68,9 +68,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
  * that is: nextMasterLayout.interface(pid1) if i is master on this processor,
  * or nextSlaveLayout.interface(pid1) if i is slave on this processor
  */
-template<typename matrix_type, typename prolongation_matrix_type>
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
+FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	receive_coarsening_from_processes_with_lower_color()
 {
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
@@ -156,9 +156,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
  * that is: nextMasterLayout.interface(pid1) if i is master on this processor,
  * or nextSlaveLayout.interface(pid1) if i is slave on this processor
  */
-template<typename matrix_type, typename prolongation_matrix_type>
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
+FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	send_coarsening_data_to_processes_with_higher_color()
 {
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
@@ -214,9 +214,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
  * data from one node to all processes which have this node (as master or as slave).
   *
  */
-template<typename matrix_type, typename prolongation_matrix_type>
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
+FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout)
 {
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
@@ -333,8 +333,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::
  * creates overlap 2 matrix A_OL2,
  * \sa GnerateOverlap
  */
-template<typename matrix_type, typename prolongation_matrix_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::create_OL2_matrix()
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
 	stopwatch SW;
 
@@ -342,7 +342,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::create_OL2_matr
 	//-------------------------------
 	UG_LOG("\nGenerate Overlap 2..."); if(bTiming) SW.start();
 
-	{
+	/*{
 		UG_SET_DEBUG_LEVELS(4);
 		std::vector<IndexLayout> masterLayouts, slaveLayouts;
 		IndexLayout totalMasterLayout, totalSlaveLayout;
@@ -361,7 +361,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::create_OL2_matr
 		// debug: write overlap 2 matrix as debug output
 		WriteMatrixToConnectionViewer(GetProcFilename("A_fullRow", ".mat").c_str(), mat, &vec2[0], 2);
 		UG_SET_DEBUG_LEVELS(0);
-	}
+	}*/
+
 
 	std::vector<IndexLayout> masterLayouts, slaveLayouts;
 	IndexLayout totalMasterLayout, totalSlaveLayout;
@@ -372,14 +373,28 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::create_OL2_matr
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
-	// 2. get positions of newly created indices
+	// 2. get data on newly created indices
 	//--------------------------------------------
-	UG_LOG("\nGet positions of Overlap 2 nodes..."); if(bTiming) SW.start();
+	// use ONE communicate
+
+	UG_LOG("\nGet data on Overlap 2 nodes..."); if(bTiming) SW.start();
+
 	ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 	communicator.send_data(totalMasterLayout, copyPol);
 	communicator.receive_data(totalSlaveLayout, copyPol);
+
+	std::vector<ComPol_VecCopy< Vector<double> > > vecCopyPol;
+	vecCopyPol.resize(m_testvectors.size());
+	for(size_t i=0; i<m_testvectors.size(); i++)
+	{
+		vecCopyPol[i].set_vector(&m_testvectors[i]);
+		communicator.send_data(totalMasterLayout, vecCopyPol[i]);
+		communicator.receive_data(totalSlaveLayout, vecCopyPol[i]);
+	}
+
 	communicator.communicate();
+
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 	// debug: write overlap 2 matrix as debug output

@@ -27,7 +27,7 @@
 #include "maxheap.h"
 #include "famg.h"
 #include <set>
-
+#include "lib_algebra/algebra_chooser.h"
 
 class ccstring : public std::string
 {
@@ -160,7 +160,7 @@ void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 
 
 
-template<typename matrix_type, typename prolongation_matrix_type>
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 class FAMGLevelCalculator
 {
 private:
@@ -173,11 +173,13 @@ private:
 	prolongation_matrix_type &R, &P;
 	size_t level;
 
-	FAMGInterpolationCalculator<matrix_type> calculator;
+	FAMGInterpolationCalculator<matrix_type, vector_type> calculator;
 	famg_nodes rating;
 	stdvector<stdvector<neighborstruct2> > possible_parents; // list of possible interpolating parents for each node
 	maxheap<famg_nodeinfo> heap;  // heap used for sorting of ratings
 	cgraph SymmNeighGraph; ///< used to determine which neighbors' rating needs to be updated
+
+	stdvector< vector_type > m_testvectors;
 
 #ifdef UG_PARALLEL
 	IndexLayout OLCoarseningReceiveLayout, OLCoarseningSendLayout;
@@ -199,11 +201,13 @@ private:
 public:
 	FAMGLevelCalculator(famg<CPUAlgebra> &f,
 			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A,
-			prolongation_matrix_type &_P, size_t _level, ug::Vector<double> &big_testvector)
+			prolongation_matrix_type &_P, size_t _level,
+			stdvector< vector_type > &testvectors, stdvector<double> &omega)
 	: m_famg(f), AH(_AH), A(_A), R(_R), P(_P), level(_level),
 			calculator(A, A_OL2, m_famg.get_delta(), m_famg.get_theta(),
-					m_famg.get_damping_for_smoother_in_interpolation_calculation(), big_testvector),
-			rating(P, _level, m_famg.m_amghelper)
+					m_famg.get_damping_for_smoother_in_interpolation_calculation(), testvectors, omega),
+			rating(P, _level, m_famg.m_amghelper),
+			m_testvectors(testvectors)
 #ifndef UG_PARALLEL
 			, A_OL2(A)
 #else
@@ -258,7 +262,7 @@ private:
 #endif
 
 public:
-	void do_stuff(ug::Vector<double> &big_testvector)
+	void do_stuff()
 	{
 		UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
@@ -278,9 +282,15 @@ public:
 		UG_LOG("\ncalculating testvector... ");
 		if(bTiming) SW.start();
 
-		// todo: somethings wrong here. parallel vectors?
-		CalculateTestvector(dynamic_cast<SparseMatrix<double> &> (A_OL2), big_testvector, m_famg.get_testvector_zero_at_dirichlet(),
-				m_famg.get_testvector_damps(), rating);
+
+		for(size_t i=0; i<m_testvectors.size(); i++)
+		{
+#ifdef UG_PARALLEL
+			m_testvectors[i].set_storage_type(PST_CONSISTENT);
+#endif
+			CalculateTestvector(A_OL2,
+					m_testvectors[i], m_famg.get_testvector_damps());
+		}
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -440,6 +450,11 @@ public:
 		AH.defragment();
 		if(bTiming) UG_LOG(" took " << SW.ms() << " ms\n");
 
+	#ifdef UG_PARALLEL
+		AH.set_storage_type(PST_ADDITIVE);
+	#endif
+
+
 	#ifdef FAMG_PRINT_AH
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
@@ -454,7 +469,8 @@ public:
 		write_debug_matrices();
 
 		// todo: remove dynamic cast, change big_testvector to parallel
-		CalculateNextTestvector(dynamic_cast<SparseMatrix<double> &> (R), big_testvector);
+		for(size_t i=0; i<m_testvectors.size(); i++)
+			CalculateNextTestvector(R, m_testvectors[i]);
 
 		PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 
@@ -477,8 +493,23 @@ template<>
 void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
-	FAMGLevelCalculator<matrix_type, prolongation_matrix_type > dummy(*this, AH, R, A, P, level, big_testvector);
-	dummy.do_stuff(big_testvector);
+	stdvector< vector_type > testvectors;
+
+	if(m_testvectors.size() == 0 && m_vVectorWriters.size() == 0)
+		testvectors.resize(1);
+	else
+	{
+		testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
+		for(size_t i=0; i<m_testvectors.size(); i++)
+			testvectors[i] = m_testvectors[i];
+
+		for(size_t i=0; i<m_vVectorWriters.size(); i++)
+			m_vVectorWriters[i]->update(testvectors[i+m_testvectors.size()]);
+	}
+
+	// testvectors will be altered by FAMGLevelCalculator
+	FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, m_omega);
+	dummy.do_stuff();
 
 	UG_SET_DEBUG_LEVELS(0);
 }

@@ -85,7 +85,7 @@ public:
 	void enable_aggressive_coarsening_A(int nrOfPaths)
 	{
 		m_bAggressiveCoarsening = true; m_iAggressiveCoarseningNrOfPaths = nrOfPaths;
-		UG_ASSERT(m_iAggressiveCoarseningNrOfPaths >= 0 && m_iAggressiveCoarseningNrOfPaths < 2, "only A1 and A2 supported, not A" << m_iAggressiveCoarseningNrOfPaths);
+		UG_ASSERT(m_iAggressiveCoarseningNrOfPaths == 1 || m_iAggressiveCoarseningNrOfPaths == 2, "only A1 and A2 supported, not A" << m_iAggressiveCoarseningNrOfPaths);
 	}
 	void disable_aggressive_coarsening() 	{ m_bAggressiveCoarsening = false; }
 	bool is_aggressive_coarsening() const 	{ return m_bAggressiveCoarsening; }
