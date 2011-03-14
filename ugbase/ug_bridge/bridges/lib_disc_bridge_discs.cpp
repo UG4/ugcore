@@ -121,6 +121,15 @@ void RegisterLibDiscDiscObjects(Registry& reg, const char* parentGroup)
 			.add_constructor();
 	}
 
+//	NavierStokesPositiveUpwind
+	{
+		typedef NavierStokesPositiveUpwind<dim, algebra_type> T;
+		typedef INavierStokesUpwind<dim, algebra_type> TBase;
+		std::stringstream ss; ss << "NavierStokesPositiveUpwind" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor();
+	}
+
 /////////////////////////////////////////////////////////////////////////////
 // Stabilization
 /////////////////////////////////////////////////////////////////////////////

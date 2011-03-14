@@ -440,6 +440,17 @@ function util.CreateNavierStokesLinearProfileSkewedUpwind(dim)
 	return upwind
 end
 
+-- creates NavierStokesPositiveUpwind
+function util.CreateNavierStokesPositiveUpwind(dim)
+	local upwind
+	if     dim == 1 then upwind = NavierStokesPositiveUpwind1d()
+	elseif dim == 2 then upwind = NavierStokesPositiveUpwind2d()
+	elseif dim == 3 then upwind = NavierStokesPositiveUpwind3d()
+	else return nil end
+
+	return upwind
+end
+
 -- creates NavierStokesFIELDSStabilization
 function util.CreateNavierStokesFIELDSStabilization(dim)
 	local stab

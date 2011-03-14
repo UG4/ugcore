@@ -472,6 +472,78 @@ class NavierStokesLinearProfileSkewedUpwind
 		}
 };
 
+
+/////////////////////////////////////////////////////////////////////////////
+// Positive Upwind
+/////////////////////////////////////////////////////////////////////////////
+
+template <int TDim, typename TAlgebra>
+class NavierStokesPositiveUpwind
+	: public INavierStokesUpwind<TDim, TAlgebra>
+{
+	public:
+	///	Base class
+		typedef INavierStokesUpwind<TDim, TAlgebra> base_type;
+
+	///	This class
+		typedef NavierStokesPositiveUpwind<TDim, TAlgebra> this_type;
+
+	/// Local vector type
+		typedef typename base_type::local_vector_type local_vector_type;
+
+	///	Dimension
+		static const int dim = TDim;
+
+	protected:
+	//	explicitly forward some function
+		using base_type::set_shape_ip_flag;
+		using base_type::upwind_shape_sh;
+		using base_type::upwind_shape_ip;
+		using base_type::conv_length;
+		using base_type::ip_vel;
+		using base_type::register_update_func;
+
+	public:
+	///	constructor
+		NavierStokesPositiveUpwind()
+		{
+		//	shapes for ip vels are non-zero (dependency between ip shapes)
+			set_shape_ip_flag(true);
+
+		//	register evaluation function
+			register_func(Int2Type<dim>());
+		}
+
+	///	update of values for FV1Geometry
+		template <typename TElem>
+		bool update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue);
+
+	private:
+		void register_func(Int2Type<1>)
+		{register_func<Edge>();}
+
+		void register_func(Int2Type<2>)
+		{	register_func(Int2Type<1>());
+			register_func<Triangle>();
+			register_func<Quadrilateral>();}
+
+		void register_func(Int2Type<3>)
+		{	register_func(Int2Type<2>());
+			register_func<Tetrahedron>();
+			register_func<Pyramid>();
+			register_func<Prism>();
+			register_func<Hexahedron>();}
+
+		template <typename TElem>
+		void register_func()
+		{
+			typedef FV1Geometry<TElem, dim> TGeom;
+			typedef bool (this_type::*TFunc)(const TGeom* geo, const local_vector_type& vCornerValue);
+
+			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
+		}
+};
+
 } // end namespace ug
 
 // include implementation

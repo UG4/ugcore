@@ -10,6 +10,7 @@
 
 // for minimum
 #include <limits>
+#include <algorithm>
 
 // function space, reference element
 #include "lib_discretization/common/geometry_util.h"
@@ -385,6 +386,130 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
  	//	compute conv length
 		MathVector<dim> dist;
 	    VecSubtract(dist, scvf.global_ip(0), globalIntersection);
+        conv_length(i) = VecTwoNorm(dist);
+	}
+
+//	we're done
+	return true;
+}
+
+
+
+template <int TDim, typename TAlgebra>
+template <typename TElem>
+bool
+NavierStokesPositiveUpwind<TDim, TAlgebra>::
+update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue)
+{
+
+//	1. Reset values and compute ip velocities and Compute mass fluxes at ip's
+
+//	vector for flux values
+	std::vector<number> vMassFlux(geo->num_scvf(), 0.0);
+
+//	loop all scvf
+	for(size_t i = 0; i < geo->num_scvf(); ++i)
+	{
+	//	get SubControlVolumeFace
+		const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo->scvf(i);
+
+	// 	reset shapes w.r.t corner value to zero and extract ip vel
+		VecSet(ip_vel(i), 0.0);
+		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+		{
+			upwind_shape_sh(i,sh) = 0.0;
+			for(size_t d = 0; d < (size_t)dim; ++d)
+				ip_vel(i)[d] += scvf.shape(sh, 0) * vCornerValue(d, sh);
+		}
+
+	// 	reset shapes w.r.t. ip value to zero and extract ip vel
+		for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
+			upwind_shape_ip(i,ip) = 0.0;
+
+	//	compute flux
+		vMassFlux[i] = VecProd(ip_vel(i), scvf.normal());
+	}
+
+
+//	2. Handle each SCV separately
+
+	for(size_t sh = 0; sh < this->num_sh(); ++sh)
+	{
+	//	reset inflow, outflow
+		number m_in = 0, m_out = 0;
+		std::vector<size_t> vSCVIP;
+		std::vector<size_t> vFlux;
+
+	//	loop subcontrol volume faces
+		for(size_t i = 0; i < geo->num_scvf(); ++i)
+		{
+		//	get SubControlVolumeFace
+			const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo->scvf(i);
+
+		//	if scvf is part of the scv, add fluxes
+			if(scvf.from() == sh)
+			{
+			//	normal directed outwards
+				vSCVIP.push_back(i);
+				vFlux.push_back( vMassFlux[i] );
+				m_in += -1.0 * std::min(vMassFlux[i], 0.0);
+				m_out += std::max(vMassFlux[i], 0.0);
+			}
+			else if (scvf.to() == sh)
+			{
+			//	normal directed inwards
+				vSCVIP.push_back(i);
+				vFlux.push_back( -1.0 * vMassFlux[i] );
+				m_in += -1.0 * std::min(-1.0 *  vMassFlux[i], 0.0);
+				m_out += std::max(-1.0 * vMassFlux[i], 0.0);
+			}
+		}
+
+	//	compute F
+		number F = std::max(m_in, m_out);
+
+	//	set shapes
+		for(size_t i = 0; i < vSCVIP.size(); ++i)
+		{
+			if(vFlux[i] > 0)
+			{
+				number sum = 0.0;
+				for(size_t j = 0; j < vSCVIP.size(); ++j)
+				{
+					if(vFlux[j] < 0)
+					{
+					//	set ip shapes
+						upwind_shape_ip(i, j) = -1.0 * vFlux[j] / F;
+						sum += upwind_shape_ip(i, j);
+					}
+				}
+			//	set nodal shapes
+				upwind_shape_sh(i, sh) = 1.0 - sum;
+			}
+		}
+	}
+
+//	3. compute convection length
+
+// 	corners of geometry
+	const MathVector<dim>* vCornerCoords = geo->corners();
+
+//	compute upwind point
+	MathVector<dim> upPos; VecSet(upPos, 0.0);
+	for(size_t i = 0; i < geo->num_scvf(); ++i)
+	{
+	//	get SubControlVolumeFace
+		const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo->scvf(i);
+
+	//	sum up contributions
+        for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
+        	VecScaleAppend(upPos, upwind_shape_sh(i, sh), vCornerCoords[sh]);
+        for (size_t j = 0; j < geo->num_scvf(); ++j)
+        	VecScaleAppend(upPos, upwind_shape_sh(i, j), geo->scvf(j).global_ip(0));
+
+    //	save convection length
+		MathVector<dim> dist;
+	    VecSubtract(dist, scvf.global_ip(0), upPos);
         conv_length(i) = VecTwoNorm(dist);
 	}
 

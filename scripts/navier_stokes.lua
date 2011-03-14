@@ -189,12 +189,13 @@ noUpwind = util.CreateNavierStokesNoUpwind(dim);
 fullUpwind = util.CreateNavierStokesFullUpwind(dim);
 skewedUpwind = util.CreateNavierStokesSkewedUpwind(dim);
 LPSUpwind = util.CreateNavierStokesLinearProfileSkewedUpwind(dim);
+POSUpwind = util.CreateNavierStokesPositiveUpwind(dim);
 
 -- Now, we create the stabilization ...
 fieldsStab = util.CreateNavierStokesFIELDSStabilization(dim)
 
 -- ... and set the upwind
-fieldsStab:set_upwind(fullUpwind)
+fieldsStab:set_upwind(POSUpwind)
 
 -- We also can choose, how the diffusion length of the stabilization is computed.
 -- Under the option we pick on:
@@ -209,7 +210,7 @@ elemDisc:set_peclet_blend(true)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-ConstKinViscosity = util.CreateConstUserNumber(1.0e-3, dim)
+ConstKinViscosity = util.CreateConstUserNumber(1.0, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
  
 
