@@ -66,12 +66,12 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 			if(itA.value() == 0.0) continue;
 			a = itA.value();
 
-			for(cBiterator itB = B.begin_row(itA.index()); itB != B.end_row(i); ++itB)
+			for(cBiterator itB = B.begin_row(itA.index()); itB != B.end_row(itA.index()); ++itB)
 			{
 				if(itB.value() == 0.0) continue;
 				AssignMult(ab, a, itB.value());
 
-				for(cCiterator itC = C.begin_row(itB.index()); itC != C.end_row(i); ++itC)
+				for(cCiterator itC = C.begin_row(itB.index()); itC != C.end_row(itB.index()); ++itC)
 				{
 					cvalue = itC.value();
 					if(cvalue == 0.0) continue;
