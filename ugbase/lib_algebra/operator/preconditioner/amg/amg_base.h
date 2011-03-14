@@ -17,6 +17,7 @@
 #include "lib_algebra/operator/operator_iterator_interface.h"
 #include <vector>
 #include <iostream>
+#include <sstream>
 
 #include "amg_debug_helper.h"
 
