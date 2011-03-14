@@ -244,14 +244,6 @@ class GridFunctionDebugWriter
 			size_t found = name.find_first_of(".");
 			if(found != std::string::npos) name.resize(found);
 
-		#ifdef UG_PARALLEL
-		//	add process number
-			int rank = pcl::GetProcRank();
-			char ext[20];
-			sprintf(ext, "_p%04d", rank);
-			name.append(ext);
-		#endif
-
 		//	add ending
 			name.append(".mat");
 
@@ -281,14 +273,6 @@ class GridFunctionDebugWriter
 		//	search for ending and remove
 			size_t found = name.find_first_of(".");
 			if(found != std::string::npos) name.resize(found);
-
-		#ifdef UG_PARALLEL
-		//	add process number
-			int rank = pcl::GetProcRank();
-			char ext[20];
-			sprintf(ext, "_p%04d", rank);
-			name.append(ext);
-		#endif
 
 		//	add ending
 		//	\todo: Introduce a ending *.vec for Connection Viewer

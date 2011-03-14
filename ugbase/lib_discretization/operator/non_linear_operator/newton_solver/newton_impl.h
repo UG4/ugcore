@@ -123,27 +123,44 @@ apply(vector_type& u)
 //	increase call count
 	m_dgbCall++;
 
+//	Check for linear solver
 	if(m_pLinearSolver == NULL)
 	{
 		UG_LOG("ERROR in 'NewtonSolver::apply': Linear Solver not set.\n");
 		return false;
 	}
+
+//	Check if ConvCheck has been set
 	if(m_pConvCheck == NULL)
 	{
 		UG_LOG("ERROR in 'NewtonSolver::apply': Convergence Check not set.\n");
 		return false;
 	}
 
-	// Compute first Defect
+// 	Compute first Defect
 	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
 	if(m_N->prepare(m_d, u) != true)
-		{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator.\n"); return false;}
+	{
+		UG_LOG("ERROR in 'NewtonSolver::apply':"
+				" Cannot prepare Non-linear Operator.\n");
+		return false;
+	}
 	if(m_N->apply(m_d, u) != true)
-		{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n"); return false;}
+	{
+		UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Non-linear"
+				" Operator to compute start defect.\n");
+		return false;
+	}
 	NEWTON_PROFILE_END();
-	write_debug(m_d, "NEWTON_StartDefect");
 
-	// increase offset of output for linear solver
+//	write start defect for debug
+	int loopCnt = 0;
+	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+	std::string name("NEWTON_Defect");
+	name.append(ext);
+	write_debug(m_d, name.c_str());
+
+// 	increase offset of output for linear solver
 	IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
 	int iLinSolverOffset = 0;
 	if(pLinConvCheck != NULL)
@@ -152,82 +169,108 @@ apply(vector_type& u)
 		pLinConvCheck->set_offset( m_pConvCheck->get_offset() + 3);
 	}
 
-	// set info string indicating the used linear solver
+// 	set info string indicating the used linear solver
 	std::stringstream ss; ss << "(Linear Solver: " << m_pLinearSolver->name() << ")";
 	m_pConvCheck->set_info(ss.str());
 
-	// copy pattern
+// 	copy pattern
 	vector_type s; s.resize(u.size()); s = u;
 
-	// start convergence check
+// 	start convergence check
 	m_pConvCheck->start(m_d);
 
-	//loop iteration
-	int loopCnt = 0;
+//	loop iteration
 	while(!m_pConvCheck->iteration_ended())
 	{
-		loopCnt++;
-		char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
-
-		// set c = 0
+	// 	set c = 0
 		NEWTON_PROFILE_BEGIN(NewtonSetCorretionZero);
 		if(!m_c.set(0.0))
-			{UG_LOG("NewtonSolver::apply: Cannot reset correction to zero.\n"); return false;}
+		{
+			UG_LOG("ERROR in 'NewtonSolver::apply':"
+					" Cannot reset correction to zero.\n");
+			return false;
+		}
 		NEWTON_PROFILE_END();
 
-		// Compute Jacobian
+	// 	Compute Jacobian
 		NEWTON_PROFILE_BEGIN(NewtonComputeJacobian);
 		if(!m_J->init(u))
-			{UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n"); return false;}
+		{
+			UG_LOG("ERROR in 'NewtonSolver::apply':"
+					" Cannot prepare Jacobi Operator.\n");
+			return false;
+		}
 		NEWTON_PROFILE_END();
 
+	//	Write Jacobian for debug
 		std::string matname("NEWTON_Jacobian");
 		matname.append(ext);
 		write_debug(m_J->get_matrix(), matname.c_str());
 
+	// 	Init Jacobi Inverse
 		NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
-		// Init Jacobi Inverse
 		if(!m_pLinearSolver->init(*m_J, u))
-			{UG_LOG("NewtonSolver::apply: Cannot init Inverse Linear "
-					"Operator for Jacobi-Operator.\n"); return false;}
+		{
+			UG_LOG("ERROR in 'NewtonSolver::apply': Cannot init Inverse Linear "
+					"Operator for Jacobi-Operator.\n");
+			return false;
+		}
 		NEWTON_PROFILE_END();
 
+	// 	Solve Linearized System
 		NEWTON_PROFILE_BEGIN(NewtonApplyLinSolver);
-		// Solve Linearized System
 		if(!m_pLinearSolver->apply(m_c, m_d))
-			{UG_LOG("NewtonSolver::apply: Cannot apply Inverse Linear "
-					"Operator for Jacobi-Operator.\n"); return false;}
+		{
+			UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Inverse Linear "
+					"Operator for Jacobi-Operator.\n");
+			return false;
+		}
 		NEWTON_PROFILE_END();
 
-		// Line Search
+	// 	Line Search
 		if(m_pLineSearch != NULL)
 		{
 			m_pLineSearch->set_offset("   #  ");
 			if(!m_pLineSearch->search(*m_N, u, m_c, m_d, m_pConvCheck->defect()))
-				{UG_LOG("Newton Solver did not converge.\n"); return false;}
+			{
+				UG_LOG("ERROR in 'NewtonSolver::apply': "
+						"Newton Solver did not converge.\n");
+				return false;
+			}
 		}
-		// no line search: Compute new defect
+	// 	No line search: Compute new defect
 		else
 		{
-			// update solution
+		// 	update solution
 			u -= m_c;
 
-			// compute new Defect
+		// 	compute new Defect
 			NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
 			if(!m_N->prepare(m_d, u))
-				{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear"
-						" Operator for defect computation.\n"); return false;}
+			{
+				UG_LOG("ERROR in 'NewtonSolver::apply': Cannot prepare Non-linear"
+						" Operator for defect computation.\n");
+				return false;
+			}
 			if(!m_N->apply(m_d, u))
-				{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator "
-						"to compute defect.\n"); return false;}
+			{
+				UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Non-linear "
+						"Operator to compute defect.\n");
+				return false;
+			}
 			NEWTON_PROFILE_END();
 		}
 
+	//	update counter
+		loopCnt++;
+		sprintf(ext, "_iter%03d", loopCnt);
+
+	//	write defect for debug
 		std::string name("NEWTON_Defect");
 		name.append(ext);
 		write_debug(m_d, name.c_str());
 
-		// check convergence
+	// 	check convergence
 		m_pConvCheck->update(m_d);
 	}
 
