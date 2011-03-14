@@ -1,14 +1,14 @@
 /*
- * new_stabilization_impl.h
+ *stabilization_impl.h
  *
  *  Created on: 11.03.2011
  *      Author: andreasvogel
  */
 
-#ifndef NEW_STABILIZATION_IMPL_H_
-#define NEW_STABILIZATION_IMPL_H_
+#ifndef NEW_STABILIZATION_IMPL_H___H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__STABILIZATION_IMPL__
+#define NEW_STABILIZATION_IMPL_H___H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__STABILIZATION_IMPL__
 
-#include "new_stabilization.h"
+#include "stabilization.h"
 #include "diffusion_length.h"
 
 #include "common/math/math_vector_matrix/math_vector_functions.h"
@@ -475,4 +475,4 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 
 } // end namespace ug
 
-#endif /* NEW_STABILIZATION_IMPL_H_ */
+#endif /* NEW_STABILIZATION_IMPL_H___H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__STABILIZATION_IMPL__ */

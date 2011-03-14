@@ -20,8 +20,8 @@
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/spatial_discretization/ip_data/user_data.h"
 
-#include "new_upwind.h"
-#include "new_stabilization.h"
+#include "upwind.h"
+#include "stabilization.h"
 
 namespace ug{
 

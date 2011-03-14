@@ -26,8 +26,8 @@
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/navier_stokes.h"
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/new_upwind.h"
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/new_stabilization.h"
+#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/upwind.h"
+#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/stabilization.h"
 
 namespace ug
 {

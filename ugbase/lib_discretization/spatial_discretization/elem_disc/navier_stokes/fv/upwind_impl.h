@@ -1,12 +1,12 @@
 /*
- * new_upwind_impl.cpp
+ * upwind_impl.cpp
  *
  *  Created on: 10.03.2011
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__NEW_STABILIZATION__IMPL__
-#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__NEW_STABILIZATION__IMPL__
+#ifndef NEW_STABILIZATION_IMPL_H___H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__UPWIND_IMPL__
+#define NEW_STABILIZATION_IMPL_H___H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__UPWIND_IMPL__
 
 // for minimum
 #include <limits>
@@ -17,7 +17,7 @@
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
 #include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
 
-#include "new_upwind.h"
+#include "upwind.h"
 #include "lib_algebra/algebra_chooser.h"
 
 namespace ug {
@@ -355,4 +355,4 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__NEW_STABILIZATION__IMPL__ */
+#endif /* NEW_STABILIZATION_IMPL_H___H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__UPWIND_IMPL__ */
