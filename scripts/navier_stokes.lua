@@ -25,7 +25,9 @@ ug_load_script("ug_util.lua")
 -- there are block structured matrices or simple double-valued matrices. We
 -- decide to use the double-valued CSR Matrix. This is the default case for the
 -- Algebra chooser and so we leave the intiallizer of the AlgebraChooser empty.
-InitAlgebra(CPUAlgebraChooser());
+algChooser = CPUAlgebraChooser()
+algChooser:set_fixed_blocksize(3)
+InitAlgebra(algChooser);
 
 -- Depending on the dimension we will choose our domain object
 -- (either 1d, 2d or 3d) and associated discretization objects. Note that
@@ -192,7 +194,7 @@ LPSUpwind = util.CreateNavierStokesLinearProfileSkewedUpwind(dim);
 fieldsStab = util.CreateNavierStokesFIELDSStabilization(dim)
 
 -- ... and set the upwind
-fieldsStab:set_upwind(LPSUpwind)
+fieldsStab:set_upwind(fullUpwind)
 
 -- We also can choose, how the diffusion length of the stabilization is computed.
 -- Under the option we pick on:
@@ -207,7 +209,7 @@ elemDisc:set_peclet_blend(true)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-ConstKinViscosity = util.CreateConstUserNumber(1.0e-3, dim)
+ConstKinViscosity = util.CreateConstUserNumber(1.0, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
  
 
