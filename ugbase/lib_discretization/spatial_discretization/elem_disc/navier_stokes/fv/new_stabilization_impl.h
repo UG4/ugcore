@@ -325,8 +325,10 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 			static const size_t N = numIp;
 
 		//	a fixed size matrix
-			//\todo: do we have to reset the values of the matrix?
 			DenseMatrix< FixedArray2<number, N, N> > mat;
+
+		//	reset all values of the matrix to zero
+			mat = 0.0;
 
 		//	Loop integration points
 			for(size_t ip = 0; ip < numIp; ++ip)
