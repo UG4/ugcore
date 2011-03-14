@@ -246,8 +246,8 @@ bool GetNodeNextToCut(size_t& coOut,
 		return false;
 	}
 
-	// TODO: Replace by SingletonProvider
-	static TRefElem rRefElem;
+//	get reference element
+	static const TRefElem& rRefElem = ReferenceElementProvider::get<TRefElem>();
 	const int dim = TRefElem::dim;
 
 // 	reset minimum
@@ -367,8 +367,10 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
  					get_local_shape_function_set<typename FV1Geometry<TElem, dim>::ref_elem_type>
  					(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
- 	// 	TODO: Replace by SingletonProvider
- 		static typename FV1Geometry<TElem, dim>::ref_elem_type rRefElem;
+ 	// 	get Reference Element
+ 		typedef typename FV1Geometry<TElem, dim>::ref_elem_type ref_elem_type;
+ 		static const ref_elem_type& rRefElem
+ 			= ReferenceElementProvider::get<ref_elem_type>();
 
  	// 	loop corners of side
  		for(size_t j = 0; j < rRefElem.num_obj_of_obj(dim-1, side, 0); ++j)

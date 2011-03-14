@@ -216,7 +216,7 @@ class HFV1Geometry {
 
 
 	public:
-		HFV1Geometry() : m_pElem(NULL)
+		HFV1Geometry() : m_pElem(NULL),  m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
 		{
 			// local corners
 			m_vSCV.resize(m_numNaturalSCV);
@@ -959,8 +959,7 @@ class HFV1Geometry {
 		ReferenceMapping<ref_elem_type, world_dim> m_rMapping;
 
 		// Reference Element
-		ref_elem_type m_rRefElem;
-
+		const ref_elem_type& m_rRefElem;
 };
 
 }

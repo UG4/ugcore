@@ -561,7 +561,7 @@ class FV1Geometry : public FVGeometryBase {
 		ReferenceMapping<ref_elem_type, world_dim> m_rMapping;
 
 		// Reference Element
-		ref_elem_type m_rRefElem;
+		const ref_elem_type& m_rRefElem;
 };
 
 
@@ -747,7 +747,7 @@ class FV1ManifoldBoundary
 		ReferenceMapping<ref_elem_type, world_dim> m_rMapping;
 
 		// Reference Element
-		ref_elem_type m_rRefElem;
+		const ref_elem_type& m_rRefElem;
 
 		
 };

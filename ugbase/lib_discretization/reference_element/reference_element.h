@@ -288,6 +288,49 @@ class reference_element_traits
 {};
 
 
+// Singleton, holding a Reference Elements
+class ReferenceElementProvider {
+
+	// 	private constructor
+		ReferenceElementProvider();
+
+	// 	disallow copy and assignment (intentionally left unimplemented)
+		ReferenceElementProvider(const ReferenceElementProvider&);
+		ReferenceElementProvider& operator=(const ReferenceElementProvider&);
+
+	// 	private destructor
+		~ReferenceElementProvider(){};
+
+	// 	geometry provider
+		template <typename TRefElem>
+		inline static const TRefElem& inst()
+		{
+			static TRefElem myInst;
+			return myInst;
+		};
+
+	public:
+	// 	get reference element for a concrete element type
+		template <typename TElem>
+		inline static
+		const typename reference_element_traits<TElem>::reference_element_type&
+		get_by_elem()
+		{
+			typedef typename reference_element_traits<TElem>::reference_element_type
+						reference_element_type;
+
+			return get<reference_element_type>();
+		}
+
+	//	get the reference element by reference element type
+		template <typename TRefElem>
+		inline static const TRefElem& get()
+		{
+			return inst<TRefElem>();
+		}
+};
+
+
 
 } // end namespace ug
 

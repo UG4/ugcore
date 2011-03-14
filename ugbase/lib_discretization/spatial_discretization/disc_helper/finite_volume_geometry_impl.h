@@ -15,7 +15,8 @@ namespace ug{
 
 template <typename TElem, int TWorldDim>
 FV1Geometry<TElem, TWorldDim>::
-FV1Geometry() : m_pElem(NULL)
+FV1Geometry()
+	: m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
 {
 	// set corners of element as local centers of nodes
 	for(size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
@@ -449,7 +450,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 
 template <typename TElem, int TWorldDim>
 FV1ManifoldBoundary<TElem, TWorldDim>::
-FV1ManifoldBoundary() : m_pElem(NULL)
+FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
 {
 	// set corners of element as local centers of nodes
 	for (size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
