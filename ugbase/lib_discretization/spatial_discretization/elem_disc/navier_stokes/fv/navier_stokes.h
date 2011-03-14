@@ -228,7 +228,7 @@ class FVNavierStokesElemDisc
 			return true;
 		}
 
-	private:
+	public:
 	///	prepares the element loop
 	/**
 	 * This function is used to prepare the element loop. It gets called, before
