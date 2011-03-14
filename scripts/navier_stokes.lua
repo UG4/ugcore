@@ -209,7 +209,7 @@ elemDisc:set_peclet_blend(true)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-ConstKinViscosity = util.CreateConstUserNumber(1.0, dim)
+ConstKinViscosity = util.CreateConstUserNumber(1.0e-3, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
  
 
