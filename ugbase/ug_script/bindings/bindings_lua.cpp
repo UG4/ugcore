@@ -626,13 +626,14 @@ static int LuaProxyFunction(lua_State* L)
 	}
 	
 	if(badParam != 0){
-		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
-		if(funcGrp->num_overloads() > 1) { UG_LOG("No matching overload found! Candidates are:\n"); }
+		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during trying to call " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
+		UG_LOG("No matching overload found! Candidates are:\n");
 		for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
 		{
 			const ExportedFunction* func = funcGrp->get_overload(i);
 			ParameterStack paramsIn;
 			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
+			UG_LOG("- ");
 			PrintFunctionInfo(*func);
 			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 		}
@@ -726,14 +727,21 @@ static int LuaProxyMethod(lua_State* L)
 	
 //	check whether the parameter was correct
 
-	if(badParam != 0){
-		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to " << methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
-		if(methodGrp->num_overloads() > 1) { UG_LOG("No matching overload found! Candidates are:\n"); }
+	if(badParam != 0)
+	{
+		const std::vector<const char*> *names = GetClassNames(L, 1);
+		const char *classname = "(unknown class)";
+		if(names != NULL)
+			classname = names->at(0);
+
+		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function " << classname << ":" << methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
+		UG_LOG("No matching overload found! Candidates in class " << classname << " are:\n");
 		for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
 		{
 			const ExportedMethod* func = methodGrp->get_overload(i);
 			ParameterStack paramsIn;
 			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
+			UG_LOG("- ");
 			PrintFunctionInfo(*func);
 			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
 		}
