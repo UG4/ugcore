@@ -253,8 +253,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			{
 				const number convFlux_p = prod * w * stab.stab_shape_p(i, d1, sh);
 
-				J(d1, scvf.from(), _P_, sh) += convFlux_p * UpwindVel[d1];
-				J(d1, scvf.to()  , _P_, sh) -= convFlux_p * UpwindVel[d1];
+				J(d1, scvf.from(), _P_, sh) += convFlux_p;
+				J(d1, scvf.to()  , _P_, sh) -= convFlux_p;
 			}
 
 		//	derivative due to peclet blending
@@ -274,23 +274,23 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			//	loop defect components
 				for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
 				{
+					for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
+					{
 				//	derivatives w.r.t. velocity
 				//	Compute n * derivs
 					number prod_vel = 0.0;
 
-				//	Compute sum_j n_j * \parial_{u_i^sh} u_j
+				//	Compute sum_j n_j * \partial_{u_i^sh} u_j
 					if(stab.vel_comp_connected())
-						for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
-							prod_vel += stab.stab_shape_vel(i, d2, d1, sh)
-											* scvf.normal()[d2];
+						for(size_t k = 0; k < (size_t)dim; ++k)
+							prod_vel += w * stab.stab_shape_vel(i, k, d2, sh)
+											* scvf.normal()[k];
 					else
 						prod_vel = stab.stab_shape_vel(i, d1, d1, sh)
 											* scvf.normal()[d1];
 
-					for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
-					{
-						J(d1, scvf.from(), d2, sh) += prod_vel * UpwindVel[d1];
-						J(d1, scvf.to()  , d2, sh) -= prod_vel * UpwindVel[d1];
+					J(d1, scvf.from(), d2, sh) += prod_vel * UpwindVel[d1];
+					J(d1, scvf.to()  , d2, sh) -= prod_vel * UpwindVel[d1];
 					}
 
 				//	derivative w.r.t pressure
@@ -298,26 +298,26 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					number prod_p = 0.0;
 
 				//	Compute sum_j n_j * \parial_{u_i^sh} u_j
-					for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
-						prod_p += stab.stab_shape_p(i, d2, sh)
-											* scvf.normal()[d2];
+					for(size_t k = 0; k < (size_t)dim; ++k)
+						prod_p += stab.stab_shape_p(i, k, sh)
+											* scvf.normal()[k];
 
 					J(d1, scvf.from(), _P_, sh) += prod_p * UpwindVel[d1];
 					J(d1, scvf.to()  , _P_, sh) -= prod_p * UpwindVel[d1];
+				}
 
-				//	derivative due to peclet blending
-					if(m_bPecletBlend)
-					{
-						for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
-							for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
-							{
-								const number convFluxPe = UpwindVel[d1] * (1.0-w)
-														  * scvf.shape(sh, ip)
-														  * scvf.normal()[d2];
-								J(d1, scvf.from(), d2, sh) += convFluxPe;
-								J(d1, scvf.to()  , d2, sh) -= convFluxPe;
-							}
-					}
+			//	derivative due to peclet blending
+				if(m_bPecletBlend)
+				{
+					for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
+						for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
+						{
+							const number convFluxPe = UpwindVel[d1] * (1.0-w)
+													  * scvf.shape(sh, ip)
+													  * scvf.normal()[d2];
+							J(d1, scvf.from(), d2, sh) += convFluxPe;
+							J(d1, scvf.to()  , d2, sh) -= convFluxPe;
+						}
 				}
 			} // end exact jacobian part
 
