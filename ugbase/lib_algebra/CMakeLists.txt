@@ -23,7 +23,7 @@ if(NOT NO_ALGEBRA)
 
 	set(src_Algebra	 ${src_Algebra}
 		operator/preconditioner/amg/amg_coarsening.cpp
-		operator/preconditioner/amg/famg.cpp		
+		#operator/preconditioner/amg/famg.cpp		
 		 )
 
 if(NOT NO_PCL)
