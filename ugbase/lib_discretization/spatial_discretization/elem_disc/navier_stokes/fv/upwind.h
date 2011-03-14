@@ -42,9 +42,16 @@ class INavierStokesUpwind
 		{
 			m_vUpdateFunc.clear();
 			m_vConvLength.clear();
+			m_vIPVel.clear();
 			m_vUpShapeSh.clear();
 			m_vUpShapeIp.clear();
 		}
+
+	///	returns number of shapes
+		size_t num_sh() const {return m_numSh;}
+
+	///	returns number of sub control volume faces
+		size_t num_scvf() const {return m_numScvf;}
 
 	///	Convection Length
 		number conv_length(size_t scvf) const
@@ -53,8 +60,15 @@ class INavierStokesUpwind
 			return m_vConvLength[scvf];
 		}
 
-	///	upwind velocity
-		const MathVector<dim>& upind_vel(size_t scvf);
+	///	ip velocity (i.e. interpolated velocity at ip)
+		const MathVector<dim>& ip_vel(size_t scvf) const
+		{
+			UG_ASSERT(scvf < m_vIPVel.size(), "Invalid index");
+			return m_vIPVel[scvf];
+		}
+
+	/// returns the upwind velocity
+		MathVector<dim> upwind_vel(size_t scvf) const;
 
 	///	upwind shape for corner vel
 		number upwind_shape_sh(size_t scvf, size_t sh) const
@@ -90,6 +104,13 @@ class INavierStokesUpwind
 	///	sets the shape ip flag
 		void set_shape_ip_flag(bool flag) {m_bNonZeroShapeIp = flag;}
 
+	/// non-const access to ip velocity (i.e. interpolated velocity at ip)
+		MathVector<dim>& ip_vel(size_t scvf)
+		{
+			UG_ASSERT(scvf < m_vIPVel.size(), "Invalid index");
+			return m_vIPVel[scvf];
+		}
+
 	///	non-const access to upwind shapes for corner vel
 		number& upwind_shape_sh(size_t scvf, size_t sh)
 		{
@@ -115,6 +136,9 @@ class INavierStokesUpwind
 
 	///	pointer to currently used values
 		const local_vector_type* m_pCornerValue;
+
+	///	interpolated value at ip
+		std::vector<MathVector<dim> > m_vIPVel;
 
 	///	number of current scvf
 		size_t m_numScvf;
@@ -183,6 +207,7 @@ class NavierStokesNoUpwind
 		using base_type::upwind_shape_sh;
 		using base_type::upwind_shape_ip;
 		using base_type::conv_length;
+		using base_type::ip_vel;
 		using base_type::register_update_func;
 
 	public:
@@ -255,6 +280,7 @@ class NavierStokesFullUpwind
 		using base_type::upwind_shape_sh;
 		using base_type::upwind_shape_ip;
 		using base_type::conv_length;
+		using base_type::ip_vel;
 		using base_type::register_update_func;
 
 	public:
@@ -327,6 +353,7 @@ class NavierStokesSkewedUpwind
 		using base_type::upwind_shape_sh;
 		using base_type::upwind_shape_ip;
 		using base_type::conv_length;
+		using base_type::ip_vel;
 		using base_type::register_update_func;
 
 	public:
@@ -399,6 +426,7 @@ class NavierStokesLinearProfileSkewedUpwind
 		using base_type::upwind_shape_sh;
 		using base_type::upwind_shape_ip;
 		using base_type::conv_length;
+		using base_type::ip_vel;
 		using base_type::register_update_func;
 
 	public:
