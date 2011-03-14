@@ -586,65 +586,74 @@ string GetLuaFileAndLine(lua_State* L)
 //	Note that not the best matching, but the first matchin overload is chosen!
 static int LuaProxyFunction(lua_State* L)
 {
-	const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
-											lua_touserdata(L, lua_upvalueindex(1));
-//	we have to try each overload!
-	int badParam = -2;
-	for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
-		const ExportedFunction* func = funcGrp->get_overload(i);
-
-		ParameterStack paramsIn;
-		ParameterStack paramsOut;
-
-		badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
-
-	//	check whether the parameter was correct
-		if(badParam != 0){
-		//	parameters didn't match. Try the next overload.
-			continue;
-		}
-	
-		try{
-			func->execute(paramsIn, paramsOut);
-		}
-		catch(UGError err){
-			UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
-			PrintFunctionInfo(*func);
-			UG_LOG(" with code " << err.get_code() << ":\n");
-			UG_LOG("Error message: " << err.get_msg() << endl);
-			if(err.terminate())
-			{
-				UG_LOG("Call stack:\n"); lua_stacktrace(L);
-				UG_LOG("terminating..." << endl);
-				exit(err.get_code());
-			}
-		}
-		catch(...)
-		{
-			UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ")
-			PrintFunctionInfo(*func);
-			UG_LOG(". continuing execution...\n");
-		}
-
-	//	if we reach this point, then the method was successfully executed.
-		return ParamsToLuaStack(paramsOut, L);
-	}
-	
-	if(badParam != 0){
-		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during trying to call " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
-		UG_LOG("No matching overload found! Candidates are:\n");
-		for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
-		{
+	bool bLuaError = false;
+	{
+		const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
+												lua_touserdata(L, lua_upvalueindex(1));
+	//	we have to try each overload!
+		int badParam = -2;
+		for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
 			const ExportedFunction* func = funcGrp->get_overload(i);
+
 			ParameterStack paramsIn;
+			ParameterStack paramsOut;
+
 			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
-			UG_LOG("- ");
-			PrintFunctionInfo(*func);
-			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
+
+		//	check whether the parameter was correct
+			if(badParam != 0){
+			//	parameters didn't match. Try the next overload.
+				continue;
+			}
+
+			try{
+				func->execute(paramsIn, paramsOut);
+			}
+			catch(UGError err){
+				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
+				PrintFunctionInfo(*func);
+				UG_LOG(" with code " << err.get_code() << ":\n");
+				UG_LOG("Error message: " << err.get_msg() << endl);
+				if(err.terminate())
+				{
+					UG_LOG("Call stack:\n"); lua_stacktrace(L);
+					UG_LOG("terminating..." << endl);
+					exit(err.get_code());
+				}
+			}
+			catch(...)
+			{
+				UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ")
+				PrintFunctionInfo(*func);
+				UG_LOG(". continuing execution...\n");
+			}
+	
+		//	if we reach this point, then the method was successfully executed.
+			return ParamsToLuaStack(paramsOut, L);
 		}
-		UG_LOG("Call stack:\n"); lua_stacktrace(L);
-		return 0;
+
+		if(badParam != 0){
+			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during trying to call " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
+			UG_LOG("No matching overload found! Candidates are:\n");
+			for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
+			{
+				const ExportedFunction* func = funcGrp->get_overload(i);
+				ParameterStack paramsIn;
+				badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
+				UG_LOG("- ");
+				PrintFunctionInfo(*func);
+				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
+			}
+			UG_LOG("Call stack:\n"); lua_stacktrace(L);
+
+			lua_pushstring (L, "Unknown member function overload.");
+			bLuaError=true;
+		}
 	}
+	
+	// pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
+	if(bLuaError)
+		lua_error(L);
 
 	return 0;
 }
@@ -661,97 +670,107 @@ static int LuaProxyConstructor(lua_State* L)
 //	member methods of classes are handled here
 static int LuaProxyMethod(lua_State* L)
 {
-	const ExportedMethodGroup* methodGrp = (const ExportedMethodGroup*)
-											lua_touserdata(L, lua_upvalueindex(1));
-
-	if(!lua_isuserdata(L, 1))
+	bool bLuaError=false;
 	{
-		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR in call to LuaProxyMethod: No object specified in call to ");
-		PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(0));
-		UG_LOG(".\n");
-		return 0;
-	}
-	
-	UserDataWrapper* self = (UserDataWrapper*)lua_touserdata(L, 1);
-	
-	ParameterStack paramsIn;;
-	ParameterStack paramsOut;
-	
-	//int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+		const ExportedMethodGroup* methodGrp = (const ExportedMethodGroup*)
+												lua_touserdata(L, lua_upvalueindex(1));
 
-//	we have to try each overload!
-	int badParam = -2;
-	for(size_t i = 0; i < methodGrp->num_overloads(); ++i){
-		const ExportedMethod* m = methodGrp->get_overload(i);
+		if(!lua_isuserdata(L, 1))
+		{
+			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR in call to LuaProxyMethod: No object specified in call to ");
+			PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(0));
+			UG_LOG(".\n");
+			return 0;
+		}
 
-		ParameterStack paramsIn;
+		UserDataWrapper* self = (UserDataWrapper*)lua_touserdata(L, 1);
+
+		ParameterStack paramsIn;;
 		ParameterStack paramsOut;
 
-		badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+		//int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+
+	//	we have to try each overload!
+		int badParam = -2;
+		for(size_t i = 0; i < methodGrp->num_overloads(); ++i){
+			const ExportedMethod* m = methodGrp->get_overload(i);
+
+			ParameterStack paramsIn;
+			ParameterStack paramsOut;
+	
+			badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+	
+		//	check whether the parameter was correct
+			if(badParam != 0){
+			//	parameters didn't match. Try the next overload.
+				continue;
+			}
+	
+			try{
+				if(self->is_raw_ptr())
+					m->execute(((RawUserDataWrapper*)self)->obj, paramsIn, paramsOut);
+				else if(self->is_smart_ptr()){
+					if(self->is_const())
+					//	This cast is a little extreme. However, since we registered the const member methods
+					//	before this should be ok.
+						m->execute((void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+					else
+						m->execute(((SmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+				}
+			}
+			catch(UGError err)
+			{
+				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
+				PrintLuaClassMethodInfo(L, 1, *m);
+				UG_LOG(" with code " << err.get_code() << ":\n");
+				UG_LOG("Error message: " << err.get_msg() << endl);
+				if(err.terminate())
+				{
+					UG_LOG("terminating..." << endl);
+					exit(err.get_code());
+				}
+			}
+			catch(...)
+			{
+				UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ");
+				PrintLuaClassMethodInfo(L, 1, *m);
+				UG_LOG(". continuing execution...\n");
+			}
+
+		//	if we reach this point, then the method was successfully executed.
+			return ParamsToLuaStack(paramsOut, L);
+		}
 
 	//	check whether the parameter was correct
-		if(badParam != 0){
-		//	parameters didn't match. Try the next overload.
-			continue;
-		}
 
-		try{
-			if(self->is_raw_ptr())
-				m->execute(((RawUserDataWrapper*)self)->obj, paramsIn, paramsOut);
-			else if(self->is_smart_ptr()){
-				if(self->is_const())
-				//	This cast is a little extreme. However, since we registered the const member methods
-				//	before this should be ok.
-					m->execute((void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
-				else
-					m->execute(((SmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
-			}
-		}
-		catch(UGError err)
+		if(badParam != 0)
 		{
-			UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
-			PrintLuaClassMethodInfo(L, 1, *m);
-			UG_LOG(" with code " << err.get_code() << ":\n");
-			UG_LOG("Error message: " << err.get_msg() << endl);
-			if(err.terminate())
+			const std::vector<const char*> *names = GetClassNames(L, 1);
+			const char *classname = "(unknown class)";
+			if(names != NULL)
+				classname = names->at(0);
+
+			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function " << classname << ":" << methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
+			UG_LOG("No matching overload found! Candidates in class " << classname << " are:\n");
+			for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
 			{
-				UG_LOG("terminating..." << endl);
-				exit(err.get_code());
+				const ExportedMethod* func = methodGrp->get_overload(i);
+				ParameterStack paramsIn;
+				badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
+				UG_LOG("- ");
+				PrintFunctionInfo(*func);
+				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
 			}
-		}
-		catch(...)
-		{
-			UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ");
-			PrintLuaClassMethodInfo(L, 1, *m);
-			UG_LOG(". continuing execution...\n");
-		}
+			UG_LOG("Call stack:\n"); lua_stacktrace(L);
 
-	//	if we reach this point, then the method was successfully executed.
-		return ParamsToLuaStack(paramsOut, L);
+			lua_pushstring (L, "Unknown member function overload.");
+			bLuaError=true;
+		}
 	}
 	
-//	check whether the parameter was correct
-
-	if(badParam != 0)
-	{
-		const std::vector<const char*> *names = GetClassNames(L, 1);
-		const char *classname = "(unknown class)";
-		if(names != NULL)
-			classname = names->at(0);
-
-		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function " << classname << ":" << methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
-		UG_LOG("No matching overload found! Candidates in class " << classname << " are:\n");
-		for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
-		{
-			const ExportedMethod* func = methodGrp->get_overload(i);
-			ParameterStack paramsIn;
-			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
-			UG_LOG("- ");
-			PrintFunctionInfo(*func);
-			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
-		}
-		UG_LOG("Call stack:\n"); lua_stacktrace(L);
-	}
+	// pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
+	if(bLuaError)
+		lua_error(L);
 
 	return 0;
 }
