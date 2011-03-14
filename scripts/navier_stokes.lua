@@ -195,7 +195,7 @@ POSUpwind = util.CreateNavierStokesPositiveUpwind(dim);
 fieldsStab = util.CreateNavierStokesFIELDSStabilization(dim)
 
 -- ... and set the upwind
-fieldsStab:set_upwind(POSUpwind)
+fieldsStab:set_upwind(fullUpwind)
 
 -- We also can choose, how the diffusion length of the stabilization is computed.
 -- Under the option we pick on:
@@ -205,12 +205,12 @@ fieldsStab:set_diffusion_length("NS_FIVEPOINT")
 
 -- Next we set the options for the Navier-Stokes elem disc ...
 elemDisc:set_stabilization(fieldsStab)
-elemDisc:set_PAC(true)
+elemDisc:set_conv_upwind(fullUpwind)
 elemDisc:set_peclet_blend(true)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-ConstKinViscosity = util.CreateConstUserNumber(1.0, dim)
+ConstKinViscosity = util.CreateConstUserNumber(1.0e-1, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
  
 

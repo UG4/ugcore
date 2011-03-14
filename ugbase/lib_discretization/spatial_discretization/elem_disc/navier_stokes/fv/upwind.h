@@ -91,7 +91,8 @@ class INavierStokesUpwind
 
 	///	compute values for new geometry and corner velocities
 		bool update(const FVGeometryBase* geo, const local_vector_type& vCornerValue)
-			{return (this->*(m_vUpdateFunc[m_id]))(geo, vCornerValue);}
+			{	m_pCornerValue = &vCornerValue;
+				return (this->*(m_vUpdateFunc[m_id]))(geo, vCornerValue);}
 
 	//////////////////////////
 	// internal handling

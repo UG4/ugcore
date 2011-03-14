@@ -153,10 +153,10 @@ class FVNavierStokesElemDisc
 	public:
 	///	Constructor (setting default values)
 		FVNavierStokesElemDisc()
-			: m_bExactJacobian(true), m_pStab(NULL)
+			: m_bExactJacobian(true), m_pStab(NULL),
+			  m_pConvStab(NULL), m_pConvUpwind(NULL)
 		{
 		//	set default options
-			set_PAC(false);
 			set_peclet_blend(false);
 
 		//	register imports
@@ -191,8 +191,13 @@ class FVNavierStokesElemDisc
 		void set_stabilization(INavierStokesStabilization<dim, algebra_type>& stab)
 			{m_pStab = & stab;}
 
-	///	sets if Physical Advection Correction is used
-        void set_PAC(bool bPAC){m_bPAC = bPAC;}
+	///	sets a stabilization for upwinding (Physical Advection Correction)
+        void set_conv_upwind(INavierStokesStabilization<dim, algebra_type>& stab)
+        	{m_pConvStab = &stab; m_pConvUpwind = NULL;}
+
+	///	sets an upwinding for the convective term of momentum equation
+		void set_conv_upwind(INavierStokesUpwind<dim, algebra_type>& upwind)
+			{m_pConvStab = NULL; m_pConvUpwind = &upwind;}
 
     ///	sets if peclet blending is used in momentum equation
         void set_peclet_blend(bool pecletBlend) {m_bPecletBlend = pecletBlend;}
@@ -512,9 +517,6 @@ class FVNavierStokesElemDisc
 		                        const local_vector_type& u, number kinVisco);
 
 	private:
-	///	flag if using PAC
-		int m_bPAC;
-
 	///	flag if using Peclet Blending
 		int m_bPecletBlend;
 
@@ -529,6 +531,13 @@ class FVNavierStokesElemDisc
 
 	///	Stabilization for velocity in continuity equation
 		INavierStokesStabilization<dim, algebra_type>* m_pStab;
+
+	///	Stabilization for velocity in convective term of momentum equation
+	///	Here, the stabilization is used as an upwinding
+		INavierStokesStabilization<dim, algebra_type>* m_pConvStab;
+
+	///	Upwinding for velocity in convective term of momentum equation
+		INavierStokesUpwind<dim, algebra_type>* m_pConvUpwind;
 
 	/// position access
 		const position_type* m_vCornerCoords;

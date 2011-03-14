@@ -69,7 +69,8 @@ void RegisterLibDiscDiscObjects(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set_kinematic_viscosity", &T::set_kinematic_viscosity)
 			.add_method("set_stabilization", &T::set_stabilization)
-			.add_method("set_PAC", &T::set_PAC)
+			.add_method("set_conv_upwind",  (void (T::*)(INavierStokesStabilization<dim, algebra_type>&))&T::set_conv_upwind)
+			.add_method("set_conv_upwind",  (void (T::*)(INavierStokesUpwind<dim, algebra_type>&))&T::set_conv_upwind)
 			.add_method("set_peclet_blend", &T::set_peclet_blend)
 			.add_method("set_exact_jacobian", &T::set_exact_jacobian);
 	}

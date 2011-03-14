@@ -59,6 +59,10 @@ class INavierStokesStabilization
 			m_pConstUpwind = const_cast<const INavierStokesUpwind<dim, TAlgebra>*>(m_pUpwind);
 		}
 
+	///	returns the upwind
+		const INavierStokesUpwind<dim, TAlgebra>* get_upwind() const
+			{return m_pConstUpwind;}
+
 	///	diff length
 		number diff_length_sq_inv(size_t scvf) const
 		{
