@@ -184,14 +184,19 @@ static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
 	return str;
 }
 
-string GetTypeMismatchString(const ParameterStack& par, lua_State* L, int offsetToFirstParam,
+string GetTypeMismatchString(const ParameterStack& paramsTemplate, lua_State* L, int offsetToFirstParam,
 		int badParamOneBased)
 {
-	int i = badParamOneBased-1; // i is zero-based.
-	int index = (int)i + offsetToFirstParam + 1;
 	std::stringstream ss;
-	ss << "type mismatch in argument " << badParamOneBased << ": expected " << ParameterToString(par, i) <<
-			", but given " << GetLuaTypeString(L, index);
+	if(badParamOneBased == -1)
+		ss << "not enough parameters (got " << lua_gettop(L) - offsetToFirstParam << ", but needs " << paramsTemplate.size() << ").";
+	else
+	{
+		int i = badParamOneBased-1; // i is zero-based.
+		int index = (int)i + offsetToFirstParam + 1;
+		ss << "type mismatch in argument " << badParamOneBased << ": expected " << ParameterToString(paramsTemplate, i) <<
+				", but given " << GetLuaTypeString(L, index);
+	}
 	return ss.str();
 }
 
@@ -239,7 +244,7 @@ static int LuaStackToParams(ParameterStack& params,
 			}break;
 			case PT_INTEGER:{
 				if(lua_isnumber(L, index))
-					params.push_integer((int)lua_tonumber(L, index));
+					params.push_integer(lua_tonumber(L, index));
 				else{
 					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
