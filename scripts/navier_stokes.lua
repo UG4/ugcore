@@ -192,12 +192,12 @@ LPSUpwind = util.CreateNavierStokesLinearProfileSkewedUpwind(dim);
 fieldsStab = util.CreateNavierStokesFIELDSStabilization(dim)
 
 -- ... and set the upwind
-fieldsStab:set_upwind(fullUpwind)
+fieldsStab:set_upwind(LPSUpwind)
 
 -- We also can choose, how the diffusion length of the stabilization is computed.
 -- Under the option we pick on:
-fieldsStab:set_diffusion_length("NS_RAW")
---fieldsStab:set_diffusion_length("NS_FIVEPOINT")
+--fieldsStab:set_diffusion_length("NS_RAW")
+fieldsStab:set_diffusion_length("NS_FIVEPOINT")
 --fieldsStab:set_diffusion_length("NS_COR")
 
 -- Next we set the options for the Navier-Stokes elem disc ...
