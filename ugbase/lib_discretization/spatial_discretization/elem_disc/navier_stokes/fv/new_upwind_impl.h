@@ -113,11 +113,13 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerVels)
 
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 			upwind_shape_sh(i,sh) = scvf.shape(sh, 0);
-	}
 
-//	compute convection length
-	//\todo: Implement
-	UG_ASSERT(0, "No convection length implemented.");
+	//	compute convection length
+	//  \todo: (optional) A convection length is not really defined for no upwind.
+	//	       but in the computation of a stabilization the term cancels, so
+	//   	   we only have to ensure that the conv_lengh is non-zero
+        conv_length(i) = 1.0;
+	}
 
 //	we're done
 	return true;
