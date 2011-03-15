@@ -454,7 +454,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 	//	reset inflow, outflow
 		number m_in = 0, m_out = 0;
 		std::vector<size_t> vSCVIP;
-		std::vector<size_t> vFlux;
+		std::vector<number> vFlux;
 
 	//	loop subcontrol volume faces
 		for(size_t i = 0; i < geo->num_scvf(); ++i)
