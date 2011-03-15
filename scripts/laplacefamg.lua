@@ -316,7 +316,6 @@ ilut = ILUT()
 	-- Gemoetric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
 	gmg:set_smoother(jac)
@@ -326,23 +325,83 @@ ilut = ILUT()
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
 
+
+function ourTestvector2d_0_0(x, y, t)
+	return 0
+end
+
+function ourTestvector2d_1_1(x, y, t)
+	return math.sin(math.pi*x)*math.sin(math.pi*y)
+end
+
+function ourTestvector2d_2_1(x, y, t)
+	return math.sin(2*math.pi*x)*math.sin(math.pi*y)
+end
+
+function ourTestvector2d_1_2(x, y, t)
+	return math.sin(math.pi*x)*math.sin(2*math.pi*y)
+end
+
+function ourTestvector2d_2_2(x, y, t)
+	return math.sin(2*math.pi*x)*math.sin(2*math.pi*y)
+end
+
 -- create AMG ---
 -----------------
 bUseFAMG = 1
 if bUseFAMG == 1 then
-amg = FAMGPreconditioner()
+	amg = FAMGPreconditioner()
+	
+	amg:set_delta(0.5)
+	amg:set_theta(0.95)
+	amg:set_aggressive_coarsening(true)
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
+	amg:set_testvector_damps(5)
+	
+	-- amgDirichlet0 = GridFunctionVectorWriterDirichlet02d()
+	-- amgDirichlet0:init(dirichletBND, approxSpace)
+	-- amg:add_vector_writer(amgDirichlet0, 1.0)
+	
+	
+	luaTestvector0_0 = util.CreateLuaUserNumber("ourTestvector2d_0_0", dim)
+	amgTestvector0_0 = GridFunctionVectorWriter2d()
+	amgTestvector0_0:set_reference_grid_function(u)
+	amgTestvector0_0:set_user_data(luaTestvector0_0)	
+	amg:add_vector_writer(amgTestvector0_0, 1.0)
 
-amg:set_delta(0.5)
-amg:set_theta(0.95)
-amg:set_aggressive_coarsening(true)
-amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
-amg:set_testvector_zero_at_dirichlet(true)
-amg:set_testvector_damps(5)
+	luaTestvector1_1 = util.CreateLuaUserNumber("ourTestvector2d_1_1", dim)
+	amgTestvector1_1 = GridFunctionVectorWriter2d()
+	amgTestvector1_1:set_reference_grid_function(u)
+	amgTestvector1_1:set_user_data(luaTestvector1_1)	
+	amg:add_vector_writer(amgTestvector1_1, 1.0)
+
+	luaTestvector1_2 = util.CreateLuaUserNumber("ourTestvector2d_1_2", dim)
+	amgTestvector1_2 = GridFunctionVectorWriter2d()
+	amgTestvector1_2:set_reference_grid_function(u)
+	amgTestvector1_2:set_user_data(luaTestvector1_2)	
+	amg:add_vector_writer(amgTestvector1_2, 1.0)
+
+	luaTestvector2_1 = util.CreateLuaUserNumber("ourTestvector2d_2_1", dim)
+	amgTestvector2_1 = GridFunctionVectorWriter2d()
+	amgTestvector2_1:set_reference_grid_function(u)
+	amgTestvector2_1:set_user_data(luaTestvector2_1)	
+	amg:add_vector_writer(amgTestvector2_1, 1.0)
+
+	luaTestvector2_2 = util.CreateLuaUserNumber("ourTestvector2d_2_2", dim)
+	amgTestvector2_2 = GridFunctionVectorWriter2d()
+	amgTestvector2_2:set_reference_grid_function(u)
+	amgTestvector2_2:set_user_data(luaTestvector2_1)	
+	amg:add_vector_writer(amgTestvector2_2, 1.0)
 
 else
-amg = AMGPreconditioner()
-amg:enable_aggressive_coarsening_A_2()
+	amg = AMGPreconditioner()
+	amg:enable_aggressive_coarsening_A(2)
 end
+
+
+vectorWriter = GridFunctionPositionProvider2d()
+vectorWriter:set_reference_grid_function(u)
+amg:set_position_provider2d(vectorWriter)
  
 amg:set_num_presmooth(3)
 amg:set_num_postsmooth(3)
@@ -350,13 +409,11 @@ amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
 amg:set_base_solver(base)
-amg:set_debug(u)
 amg:set_max_levels(2)
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
 amg:set_max_nodes_for_base(5)
 amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(0.0)
-
 
 amg:tostring()
 
