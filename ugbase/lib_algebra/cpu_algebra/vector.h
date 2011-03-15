@@ -24,9 +24,6 @@ namespace ug{
 ///	@{
 
 //!
-//! "big" Vector class for use with the big SparseMatrix
-//! can = template expressions like x = 0.5*x - y + A*z
-//! see TemplateExpressions.h
 template <typename templ_value_type>
 class Vector :  //public TE_VEC<Vector<templ_value_type> >,
 				public virtual IFunctionBase
@@ -45,8 +42,12 @@ public:
 	//! destructor
 	~Vector();
 
-private: // forbidden functions
-	Vector(Vector&); // disallow copy operator
+	Vector(const vector_type & v)
+	{
+		length = 0; values = NULL;
+		create(v.length);
+		operator =(v);
+	}
 
 public:
 	//! create a vector with specific length
