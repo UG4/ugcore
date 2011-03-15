@@ -29,7 +29,8 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_pIDataExport(NULL), m_id(-1), m_bCompLinDefect(compLinDefect)
+			: m_pIDataExport(NULL), m_pIDependentIPData(NULL),
+			  m_id(-1), m_bCompLinDefect(compLinDefect)
 		{}
 		virtual ~IDataImport()	{}
 
@@ -109,11 +110,16 @@ class IDataImport
 	///	sets the geometric object type
 		bool set_geometric_object_type(int id)
 		{
+		//	if lin defect is not supposed to be computed, we're done
+			if(!m_bCompLinDefect) return true;
+
+		//	Check for evaluation function and choose it if present
 			if(id < (int)m_vLinDefectFunc.size() && m_vLinDefectFunc[id] != NULL)
 			{
 				m_id = id;
 				return true;
 			}
+		//	return error else
 			else
 			{
 				UG_LOG("No or not all lin defect functions registered "
