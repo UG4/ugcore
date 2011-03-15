@@ -347,6 +347,8 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 	      		ip_vel(i)[d] += scvf.shape(sh, 0) * vCornerValue(d, sh);
 		}
 
+ 		if(VecTwoNorm(ip_vel(i)) == 0.0) continue;
+
  	// 	side and intersection vectors
  		static const int refDim = FV1Geometry<TElem, dim>::dim;
  		size_t side;
