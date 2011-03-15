@@ -155,7 +155,7 @@ bool InterpolateFunctionHelp(	boost::function<void (
 			bRes &= InterpolateFunctionOnElem<Prism, TGridFunction>(InterpolFunction, u, fct, si, time);
 			bRes &= InterpolateFunctionOnElem<Pyramid, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension not implemented.\n"); return false;
+		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<" not implemented.\n"); return false;
 		}
 
 	//	check success
