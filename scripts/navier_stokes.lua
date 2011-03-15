@@ -195,7 +195,7 @@ POSUpwind = util.CreateNavierStokesPositiveUpwind(dim);
 fieldsStab = util.CreateNavierStokesFIELDSStabilization(dim)
 
 -- ... and set the upwind
-fieldsStab:set_upwind(fullUpwind)
+fieldsStab:set_upwind(LPSUpwind)
 
 -- We also can choose, how the diffusion length of the stabilization is computed.
 -- Under the option we pick on:
@@ -205,12 +205,12 @@ fieldsStab:set_diffusion_length("NS_RAW")
 
 -- Next we set the options for the Navier-Stokes elem disc ...
 elemDisc:set_stabilization(fieldsStab)
-elemDisc:set_conv_upwind(fullUpwind)
+elemDisc:set_conv_upwind(fieldsStab)
 elemDisc:set_peclet_blend(true)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-ConstKinViscosity = util.CreateConstUserNumber(1.0, dim)
+ConstKinViscosity = util.CreateConstUserNumber(1.0e-3, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
  
 
@@ -339,7 +339,7 @@ linSolver = LU()
 -- that this class derives from a general IConvergenceCheck-Interface and
 -- also more specialized or self-coded convergence checks could be used.
 newtonConvCheck = StandardConvergenceCheck()
-newtonConvCheck:set_maximum_steps(10)
+newtonConvCheck:set_maximum_steps(20)
 newtonConvCheck:set_minimum_defect(5e-8)
 newtonConvCheck:set_reduction(1e-10)
 newtonConvCheck:set_verbose_level(true)
