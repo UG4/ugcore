@@ -15,7 +15,7 @@
 #include "common/common.h"
 
 // module intern libraries
-#include "lib_discretization/assemble.h"
+#include "lib_discretization/assemble_interface.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
 
 namespace ug{

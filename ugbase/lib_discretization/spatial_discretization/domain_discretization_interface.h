@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
 
-#include "lib_discretization/assemble.h"
+#include "lib_discretization/assemble_interface.h"
 #include "./post_process/post_process_interface.h"
 
 namespace ug {

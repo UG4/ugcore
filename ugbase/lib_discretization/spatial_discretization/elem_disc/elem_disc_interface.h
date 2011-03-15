@@ -25,7 +25,7 @@ enum IElemDiscNeed {
 #include <vector>
 
 // intern headers
-#include "lib_discretization/assemble.h"
+#include "lib_discretization/assemble_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/function_spaces/grid_function_space.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
