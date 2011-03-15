@@ -161,10 +161,11 @@ class LuaUserData
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
 			{
-				UG_LOG("ERROR in 'LuaUserData::operator(...)': Error while "
-						"running lua matrix callback '" << m_callbackName << "',"
-						" lua message: "<< lua_tostring(m_L, -1) << "\n");
-				throw(int(0));
+				std::stringstream ss;
+				ss << "ERROR in 'LuaUserData::operator(...)': Error while "
+						"running callback '" << m_callbackName << "',"
+						" lua message: "<< lua_tostring(m_L, -1) << "\n";
+				throw(UGError(true, ss.str().c_str()));
 			}
 
 		//	read return value
@@ -271,10 +272,11 @@ class LuaBoundaryData
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
 			{
-				UG_LOG("ERROR in 'LuaUserData::operator(...)': Error while "
-						"running lua matrix callback '" << m_callbackName << "',"
-						" lua message: "<< lua_tostring(m_L, -1) << "\n");
-				throw(int(0));
+				std::stringstream ss;
+				ss << "ERROR in 'LuaBoundaryData::operator(...)': Error while "
+						"running callback '" << m_callbackName << "',"
+						" lua message: "<< lua_tostring(m_L, -1) << "\n";
+				throw(UGError(true, ss.str().c_str()));
 			}
 
 		//	read return value
@@ -463,10 +465,11 @@ class LuaUserFunction
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
 			{
-				UG_LOG("ERROR in 'LuaUserFunction::operator(...)': Error while "
-						"running lua matrix callback '" << m_cbValueName << "',"
-						" lua message: "<< lua_tostring(m_L, -1) << "\n");
-				throw(int(0));
+				std::stringstream ss;
+				ss << "ERROR in 'LuaUserFunction::operator(...)': Error while "
+						"running callback '" << m_cbValueName << "',"
+						" lua message: "<< lua_tostring(m_L, -1) << "\n";
+				throw(UGError(true, ss.str().c_str()));
 			}
 
 		//	read return value
@@ -561,10 +564,11 @@ class LuaUserFunction
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
 			{
-				UG_LOG("ERROR in 'LuaUserFunction::operator(...)': Error while "
-						"running lua matrix callback '" << m_cbValueName << "',"
-						" lua message: "<< lua_tostring(m_L, -1) << "\n");
-				throw(int(0));
+				std::stringstream ss;
+				ss << "ERROR in 'LuaUserFunction::eval_value(...)': Error while "
+						"running callback '" << m_cbValueName << "',"
+						" lua message: "<< lua_tostring(m_L, -1) << "\n";
+				throw(UGError(true, ss.str().c_str()));
 			}
 
 		//	read return value
@@ -600,10 +604,11 @@ class LuaUserFunction
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
 			{
-				UG_LOG("ERROR in 'LuaUserFunction::operator(...)': Error while "
-						"running lua matrix callback '" << m_cbDerivName[arg] << "',"
-						" lua message: "<< lua_tostring(m_L, -1) << "\n");
-				throw(int(0));
+				std::stringstream ss;
+				ss << "ERROR in 'LuaUserFunction::eval_deriv': Error while "
+						"running callback '" << m_cbDerivName[arg] << "',"
+						" lua message: "<< lua_tostring(m_L, -1) << "\n";
+				throw(UGError(true, ss.str().c_str()));
 			}
 
 		//	read return value
@@ -666,9 +671,11 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 
 	if(lua_pcall(m_L, numArgs, 1, 0) != 0)
 	{
-		UG_LOG("error running lua number callback '" << m_callbackName << "': "
-						<< lua_tostring(m_L, -1) << "\n");
-		throw(int(0));
+		std::stringstream ss;
+		ss << "ERROR in 'LuaUserNumberNumberFunction::operator(...)': Error while "
+				"running callback '" << m_callbackName << "',"
+				" lua message: "<< lua_tostring(m_L, -1) << "\n";
+		throw(UGError(true, ss.str().c_str()));
 	}
 
 	number c = luaL_checknumber(m_L, -1);
