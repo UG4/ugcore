@@ -16,7 +16,7 @@
 
 // module intern libraries
 #include "lib_discretization/assemble_interface.h"
-#include "lib_discretization/time_discretization/previous_solution.h"
+#include "lib_discretization/time_discretization/solution_time_series.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
 
 namespace ug{
@@ -92,7 +92,7 @@ class ITimeDiscretization
 	 * \param[in] time_old	the time at the previous time steps
 	 * \param[in] dt		size of time step
 	 */
-		virtual bool prepare_step(const PreviousSolutions<vector_type>& prevSol,
+		virtual bool prepare_step(const SolutionTimeSeries<vector_type>& prevSol,
 		                          number dt) = 0;
 
 	/// returns number of previous time steps needed

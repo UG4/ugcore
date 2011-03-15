@@ -196,14 +196,15 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 
 	// PreviousSolutions
 		{
-			typedef PreviousSolutions<vector_type> T;
-			reg.add_class_<T>("PreviousSolutions", grp.c_str())
+			typedef SolutionTimeSeries<vector_type> T;
+			reg.add_class_<T>("SolutionTimeSeries", grp.c_str())
 				.add_constructor()
 				.add_method("size", &T::size)
 				.add_method("push_discard_oldest", &T::push_discard_oldest)
 				.add_method("push", &T::push)
 				.add_method("solution", (const vector_type&(T::*)(size_t) const)&T::solution)
-				.add_method("oldest_solution", &T::oldest_solution)
+				.add_method("oldest", (vector_type& (T::*)()) &T::oldest)
+				.add_method("latest", (vector_type& (T::*)()) &T::latest)
 				.add_method("time", &T::time);
 
 		}

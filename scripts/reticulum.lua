@@ -375,8 +375,8 @@ print( "   NumTimeSteps is " .. NumTimeSteps)
 uOld = u:clone()
 
 -- store grid function in vector of  old solutions
-prevSol = PreviousSolutions()
-prevSol:push(uOld, time)
+solTimeSeries = SolutionTimeSeries()
+solTimeSeries:push(uOld, time)
 
 for step = 1, NumTimeSteps do
 	print("++++++ TIMESTEP " .. step .. " BEGIN ++++++")
@@ -385,7 +385,7 @@ for step = 1, NumTimeSteps do
 	do_dt = dt
 	
 	-- setup time Disc for old solutions and timestep
-	timeDisc:prepare_step(prevSol, do_dt)
+	timeDisc:prepare_step(solTimeSeries, do_dt)
 	
 	-- prepare newton solver
 	if newtonSolver:prepare(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
@@ -394,19 +394,19 @@ for step = 1, NumTimeSteps do
 	if newtonSolver:apply(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
 	
 	-- update new time
-	time = prevSol:time(0) + do_dt
+	time = solTimeSeries:time(0) + do_dt
 	
 	-- plot solution
 	out:print("Con", u, step, time)
 	
 	-- get oldest solution
-	oldestSol = prevSol:oldest_solution()
+	oldestSol = solTimeSeries:oldest()
 	
 	-- copy values into oldest solution (we reuse the memory here)
 	VecScaleAssign(oldestSol, 1.0, u)
 	
 	-- push oldest solutions with new values to front, oldest sol pointer is poped from end
-	prevSol:push_discard_oldest(oldestSol, time)
+	solTimeSeries:push_discard_oldest(oldestSol, time)
 	
 	print("++++++ TIMESTEP " .. step .. "  END ++++++");
 end

@@ -84,7 +84,7 @@ class DomainDiscretization :
 	virtual
 	IAssembleReturn assemble_jacobian(	matrix_type& J,
 	                                  	const vector_type& u, number time,
-	                                  	const PreviousSolutions<vector_type>& prevSol,
+	                                  	const SolutionTimeSeries<vector_type>& prevSol,
 	                                  	const dof_distribution_type& dofDistr,
 	                                  	number s_m, number s_a);
 
@@ -92,7 +92,7 @@ class DomainDiscretization :
 	virtual
 	IAssembleReturn assemble_defect(	vector_type& d,
 		                                const vector_type& u, number time,
-		                                const PreviousSolutions<vector_type>& prevSol,
+		                                const SolutionTimeSeries<vector_type>& prevSol,
 		                                const dof_distribution_type& dofDistr,
 		                                number s_m, number s_a);
 
@@ -100,7 +100,7 @@ class DomainDiscretization :
 	virtual
 	IAssembleReturn assemble_linear(	matrix_type& A, vector_type& b,
 		                                const vector_type& u, number time,
-		                                const PreviousSolutions<vector_type>& prevSol,
+		                                const SolutionTimeSeries<vector_type>& prevSol,
 		                                const dof_distribution_type& dofDistr,
 		                                number s_m, number s_a);
 

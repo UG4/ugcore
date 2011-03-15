@@ -19,7 +19,7 @@ namespace ug{
 /// \ingroup lib_disc_time_assemble
 /// @{
 
-/// old solutions and time steps
+/// time series of solutions and corresponding time point
 /**
  * This class holds solutions and corresponding points in time. It is
  * intended to group previous computed solutions for a time stepping scheme, such
@@ -28,7 +28,7 @@ namespace ug{
  * computed solution lets the object pop the oldest stored solution.
  */
 template <typename TVector>
-class PreviousSolutions
+class SolutionTimeSeries
 {
 	public:
 	///	vector type of solutions
@@ -36,43 +36,55 @@ class PreviousSolutions
 
 	public:
 
-	///	returns number of previous time steps handled
-		size_t size() const {return m_vPreviousSolution.size();}
+	///	returns number of time steps handled
+		size_t size() const {return m_vTimeSolution.size();}
+
+	///	returns point in time for solution
+		number time(size_t i) const {return m_vTimeSolution.at(i).time();}
+
+	///	returns solution
+		vector_type& solution(size_t i) {return *(m_vTimeSolution.at(i).solution());}
+
+	///	returns solution
+		const vector_type& solution(size_t i) const {return *(m_vTimeSolution.at(i).solution());}
+
+	///	returns oldest solution
+		vector_type& oldest() {return *(m_vTimeSolution.back().solution());}
+
+	/// const access to oldest solution
+		const vector_type& oldest() const {return *(m_vTimeSolution.back().solution());}
+
+	///	returns latest solution
+		vector_type& latest() {return *(m_vTimeSolution.front().solution());}
+
+	///	const access to latest solution
+		const vector_type& latest() const {return *(m_vTimeSolution.front().solution());}
+
+	///	adds new time point, not discarding the oldest
+		void push(vector_type& vec, number time) {m_vTimeSolution.push_front(TimeSol(vec, time));}
 
 	///	adds new time point, oldest solution is discarded and returned
 		vector_type* push_discard_oldest(vector_type& vec, number time)
 		{
-			vector_type* discardVec = m_vPreviousSolution.back().solution();
-			m_vPreviousSolution.pop_back();
-			m_vPreviousSolution.push_front(PreviousSolution(vec, time));
+			vector_type* discardVec = m_vTimeSolution.back().solution();
+			remove_oldest(); push(vec, time);
 			return discardVec;
 		}
 
-	///	adds new time point, not discarding the oldest
-		void push(vector_type& vec, number time)
-		{
-			m_vPreviousSolution.push_front(PreviousSolution(vec, time));
-		}
+	///	removes latest time point
+		void remove_latest() {m_vTimeSolution.pop_front();}
 
-	///	returns previous solution
-		const vector_type& solution(size_t i) const {return *(m_vPreviousSolution.at(i).solution());}
-
-	///	returns previous solution
-		vector_type& solution(size_t i) {return *(m_vPreviousSolution.at(i).solution());}
-
-	///	returns point in time for previous solution
-		number time(size_t i) const {return m_vPreviousSolution.at(i).time();}
-
-	///	returns oldest solution
-		vector_type& oldest_solution() {return *(m_vPreviousSolution.back().solution());}
+	///	removes oldest time point
+		void remove_oldest() {m_vTimeSolution.pop_back();}
 
 	protected:
-		class PreviousSolution
+	///	grouping of solution and time point
+		class TimeSol
 		{
 			public:
-				PreviousSolution() : vec(NULL), t(0.0) {}
+				TimeSol() : vec(NULL), t(0.0) {}
 
-				PreviousSolution(vector_type& vec_, number t_)
+				TimeSol(vector_type& vec_, number t_)
 					: vec(&vec_), t(t_) {}
 
 			///	access solution
@@ -96,7 +108,7 @@ class PreviousSolutions
 		};
 
 	//	deque of previous solutions
-		std::deque<PreviousSolution> m_vPreviousSolution;
+		std::deque<TimeSol> m_vTimeSolution;
 };
 
 /// @}

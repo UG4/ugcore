@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
 
 #include "lib_discretization/assemble_interface.h"
-#include "lib_discretization/time_discretization/previous_solution.h"
+#include "lib_discretization/time_discretization/solution_time_series.h"
 #include "./post_process/post_process_interface.h"
 
 namespace ug {
@@ -65,7 +65,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		virtual
 		IAssembleReturn assemble_jacobian(matrix_type& J,
 		                                  const vector_type& u, number time,
-		                                  const PreviousSolutions<vector_type>& prevSol,
+		                                  const SolutionTimeSeries<vector_type>& prevSol,
 		                                  const dof_distribution_type& dofDistr,
 		                                  number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
@@ -88,7 +88,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		virtual
 		IAssembleReturn assemble_defect(vector_type& d,
 		                                const vector_type& u, number time,
-		                                const PreviousSolutions<vector_type>& prevSol,
+		                                const SolutionTimeSeries<vector_type>& prevSol,
 		                                const dof_distribution_type& dofDistr,
 		                                number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
@@ -114,7 +114,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		IAssembleReturn assemble_linear(matrix_type& A,
 		                                vector_type& b,
 		                                const vector_type& u, number time,
-		                                const PreviousSolutions<vector_type>& prevSol,
+		                                const SolutionTimeSeries<vector_type>& prevSol,
 		                                const dof_distribution_type& dofDistr,
 		                                number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}

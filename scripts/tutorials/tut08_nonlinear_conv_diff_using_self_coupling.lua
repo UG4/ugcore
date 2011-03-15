@@ -432,8 +432,8 @@ out:print("Solution", u, step, time)
 -- object, that behaves like a queue of fixed size. We push the start solution
 -- as the first old time step to our queue
 uOld = u:clone()
-prevSol = PreviousSolutions()
-prevSol:push(uOld, time)
+solTimeSeries = SolutionTimeSeries()
+solTimeSeries:push(uOld, time)
 
 -- Now we can start our time loop 
 for step = 1, numTimeSteps do
@@ -443,7 +443,7 @@ for step = 1, numTimeSteps do
 	do_dt = dt
 	
 	-- setup time Disc for old solutions and timestep
-	timeDisc:prepare_step(prevSol, do_dt)
+	timeDisc:prepare_step(solTimeSeries, do_dt)
 	
 	-- prepare newton solver
 	if newtonSolver:prepare(u) == false then 
@@ -456,19 +456,19 @@ for step = 1, numTimeSteps do
 	end 
 
 	-- compute the new (absolut) time
-	time = prevSol:time(0) + do_dt
+	time = solTimeSeries:time(0) + do_dt
 	
 	-- we write the newly computed time step to our time series
 	out:print("Solution", u, step, time)
 	
 	-- get oldest solution
-	oldestSol = prevSol:oldest_solution()
+	oldestSol = solTimeSeries:oldest()
 
 	-- copy values into oldest solution (we reuse the memory here)
 	VecScaleAssign(oldestSol, 1.0, u)
 	
 	-- push oldest solutions with new values to front, oldest sol pointer is poped from end
-	prevSol:push_discard_oldest(oldestSol, time)
+	solTimeSeries:push_discard_oldest(oldestSol, time)
 
 	print("++++++ TIMESTEP " .. step .. "  END ++++++");
 end
