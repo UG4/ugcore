@@ -176,7 +176,7 @@ and/or discretization.
 The discretization of time-dependent part of a PDE is closely related to the
 solution of ordinary differential equations (ODE). Those have the form
 \f{align*}
-	\partial_t u(t) &= f(t, u(t)) \\
+	\partial_t u(t) &= - f(t, u(t)) \\
 		u(t_{start}) &= u_0
 \f}
 where the unknown function is \f$u: \mathbb{R} \mapsto \mathbb{R}^N\f$ and the 
@@ -184,11 +184,11 @@ right-hand side is \f$: \mathbb{R} \times \mathbb{R}^N \mapsto \mathbb{R}^N\f$.
 
 In order to discretize such an ODE introduce a time grid 
 \f$\{t_0 = t_{start}, t_1, t_2, \ldots \}\f$ and define the time step size
-\f$\Delta t := t_{k+1} - t_k\f$. Let \f$u^{(k)} \approx u(t_k)\f$ be the 
+\f$\Delta t^k := t_{k} - t_{k-1}\f$. Let \f$u^{(k)} \approx u(t_k)\f$ be the 
 approximation of \f$u\f$ at time step k. 
 A general L-step discretization scheme for ODEs takes the form
 \f{align*}
-	\sum_{l=0}^{L-1} \left[ s_{m,l} u^{(k-l)} + s_{a,l} f(u^{(k-l)}) \right] = 0.
+	\sum_{l=0}^{L-1} \left[ s_{m,l} u^{(k-l)} + s_{a,l} f(t^{k-l}, u^{(k-l)}) \right] = 0.
 \f}
 where
 <ul>
@@ -203,28 +203,41 @@ factors.
 
 Some common schemes are
 <ul>
-<li> implicit Euler with \f$L = 2\f$ and 
+<li> implicit Euler: \f$ u^{k} - u^{k-1} + \Delta t^k f(t^k, u^k) = 0 \f$
+This gives \f$L = 2\f$ and 
 \f{align*}
-	\vec{s}_a &= (\Delta t, 0)\\
-	\vec{s}_m &= (-1, 1)
+	\vec{s}_a &= (\Delta t^k, 0)\\
+	\vec{s}_m &= (1, -1)
 \f}
-<li> explicit Euler with \f$L = 2\f$ and 
+<li> explicit Euler: \f$ u^{k} - u^{k-1} + \Delta t^k f(t^{k-1}, u^{k-1}) = 0 \f$
+This gives \f$L = 2\f$ and 
 \f{align*}
-	\vec{s}_a &= (0, \Delta t)\\
-	\vec{s}_m &= (-1, 1)
+	\vec{s}_a &= (0, \Delta t^k)\\
+	\vec{s}_m &= (1, -1)
 \f}
-<li> Crank-Nicolson with \f$L = 2\f$ and 
+<li> Crank-Nicolson: \f$ u^{k} - u^{k-1} + \frac{1}{2} \Delta t^k f(t^{k}, u^{k})  
+	+ \frac{1}{2} \Delta t^k f(t^{k-1}, u^{k-1}) = 0\f$
+This gives \f$L = 2\f$ and 
 \f{align*}
-	\vec{s}_a &= (\frac{1}{2} \Delta t, \frac{1}{2} \Delta t)\\
-	\vec{s}_m &= (-1, 1)
+	\vec{s}_a &= (\frac{1}{2} \Delta t^k, \frac{1}{2} \Delta t^k)\\
+	\vec{s}_m &= (1, -1)
 \f}
-<li> \f$\theta\f$-scheme with \f$L = 2\f$ and 
+<li> \f$\theta\f$-scheme: \f$ u^{k} - u^{k-1} + \theta \Delta t^k f(t^{k}, u^{k})  
+	+ (1- \theta) \Delta t^k f(t^{k-1}, u^{k-1}) = 0\f$
+This gives \f$L = 2\f$ and 
 \f{align*}
-	\vec{s}_a &= (\theta \Delta t, (1- \theta)\Delta t)\\
-	\vec{s}_m &= (-1, 1)
+	\vec{s}_a &= (\theta \Delta t^k, (1- \theta)\Delta t^k)\\
+	\vec{s}_m &= (1, -1)
 \f}
 with implements the three forementined scheme by specifing \f$ \theta\f$.
-<li> Runge-Kutta schemes
+<li> BDF(2): \f$ u^{k} - \frac{4}{3}u^{k-1} + \frac{1}{3}u^{k-2}
+	+ \frac{2}{3} \Delta t^k f(t^{k}, u^{k}) = 0\f$
+This gives \f$L = 3\f$ and 
+\f{align*}
+	\vec{s}_a &= (\frac{2}{3} \Delta t^k, 0, 0)\\
+	\vec{s}_m &= (1, -\frac{4}{3}, \frac{1}{3})
+\f}
+<li> Runge-Kutta schemes (e.g. DIRK(2))
 <li> Linear multi-step schemes like Adams-Bashforth or Adams-Moulton
 </ul> 
 <br>
@@ -232,13 +245,13 @@ with implements the three forementined scheme by specifing \f$ \theta\f$.
 Now assume \f$\mathcal{M}(u)\f$ to have the form \f$\frac{\partial}{\partial t} u\f$.
 One can rearrange the problem to
 \f{align*}
-	\mathcal{M}(u) = \frac{\partial}{\partial t} u = - \mathcal{A}(u) + f
+	\mathcal{M}(u) = \frac{\partial}{\partial t} u = - \mathcal{A}(u, t) + f(t)
 \f}
 and finds the setup for an ODE problem in time.
 
 Discretize the time-dependent PDE problem first in space. This gives
 \f{align*}
-	\frac{\partial}{\partial t} M_h \vec{u}_h(t) = - \mathcal{A}_h(\vec{u}_h(t)) + f_h(t).
+	\frac{\partial}{\partial t} M_h \vec{u}_h(t) = - \mathcal{A}_h(\vec{u}_h(t), t) + f_h(t).
 \f}
 Supposing that the Mass-matrix is independent of time one can apply the ODE
 time stepping scheme and gets the next time step by solving
@@ -246,40 +259,40 @@ time stepping scheme and gets the next time step by solving
 \f{align*}
 	\vec{d}_h(\vec{u}_h^{(k)}) := \sum_{l=0}^{L-1} 
 	\left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
-		   + s_{a,l} \left( \mathcal{A}_h(\vec{u}^{(k-l)}) - \vec{f}_h^{(k-l)} 
+		   + s_{a,l} \left( \mathcal{A}_h(\vec{u}^{(k-l)}, t^{(k-l)}) - \vec{f}_h(t^{(k-l)}) 
 		   \right) \right] = 0.
 \f}
 
 The defect \f$\vec{d}(u_h^{(k)})\f$ can be split up into
 \f{align*}
 	\vec{d}_h(\vec{u}_h^{(k)}) := \sum_{l=0}^{L-1} 
-		\hat{\vec{d}}_h(\vec{u}_h^{(k-l)}, s_{m,l}, s_{a,l})
+		\hat{\vec{d}}_h(\vec{u}_h^{(k-l)}, t^{(k-l)}, s_{m,l}, s_{a,l})
 \f}
 where
 \f{align*}
-	\hat{\vec{d}}_h(\vec{u}_h, s_m, s_a) := 
+	\hat{\vec{d}}_h(\vec{u}_h, t, s_m, s_a) := 
 			s_m M_h \vec{u}_h 
-		   + s_a \mathcal{A}_h(\vec{u})
+		   + s_a \left( \mathcal{A}_h(\vec{u}, t) - \vec{f}_h(t) \right)
 \f}
 
 For the Jacobian one finds
 \f{align*}
-	J_h(\vec{u}_h^{(k)}, s_{m,0}, s_{a,0})
+	J_h(\vec{u}_h^{(k)}, t^k, s_{m,0}, s_{a,0})
 	= \frac{\partial \vec{d}_h(\vec{u}_h)}{\partial \vec{u}_h}
 		\left( \vec{u}_h^{(k)} \right)	
-	= 	\frac{\partial \hat{\vec{d}}_h(\vec{u}_h, s_{m,0}, s_{a,0})}
+	= 	\frac{\partial \hat{\vec{d}}_h(\vec{u}_h, t^k, s_{m,0}, s_{a,0})}
 			 {\partial \vec{u}_h} \left( \vec{u}_h^{(k)} \right)
 	= s_{m,0} M_h
-		   + s_{a,0} \frac{\partial \mathcal{A}_h(\vec{u}_h)}{\partial \vec{u}_h}
+		   + s_{a,0} \frac{\partial \mathcal{A}_h(\vec{u}_h, t^k)}{\partial \vec{u}_h}
 		   	\left( \vec{u}_h^{(k)} \right)	
 \f}
 
 Thus, in order to specify a problem, the user has to specify:
 <ul>
-<li> the computation of the preconditioner \f$J_h(\vec{u}_h, s_m, s_a)\f$ 
-	for any \f$\vec{u}_h, s_m, s_a\f$
-<li> the computation of the defect \f$\hat{\vec{d}}_h(\vec{u}_h, s_m, s_a)\f$ 
-	for any \f$\vec{u}_h, s_m, s_a\f$
+<li> the computation of the preconditioner \f$J_h(\vec{u}_h, t, s_m, s_a)\f$ 
+	for any \f$\vec{u}_h, t, s_m, s_a\f$
+<li> the computation of the defect \f$\hat{\vec{d}}_h(\vec{u}_h, t, s_m, s_a)\f$ 
+	for any \f$\vec{u}_h, t, s_m, s_a\f$
 </ul>
 <br>
 
@@ -321,7 +334,7 @@ In this case the defect equation
 \f{align*}
 	\vec{d}_h(\vec{u}_h^{(k)}) := \sum_{l=0}^{L-1} 
 	\left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
-		   + s_{a,l} \left( \mathcal{A}_h(\vec{u}^{(k-l)}) - \vec{f}_h^{(k-l)} 
+		   + s_{a,l} \left( \mathcal{A}_h(\vec{u}^{(k-l)}, t^{(k-l)}) - \vec{f}_h^{(k-l)} 
 		   \right) \right] = 0
 \f}
 has to be solved using a newton scheme. Fixing the time step \f$k\f$ this
