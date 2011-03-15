@@ -11,7 +11,10 @@
 #include "./grid_function.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"
 #include "lib_algebra/operator/debug_writer.h"
+#include "lib_algebra/operator/vector_writer.h"
 #include "lib_discretization/io/vtkoutput.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
+#include "lib_discretization/spatial_discretization/post_process/post_process_interface.h"
 #include <vector>
 #include <string>
 
@@ -322,6 +325,185 @@ class GridFunctionDebugWriter
 	//	flag if write to vtk
 		bool bVTKOut;
 };
+
+template <typename TGridFunction>
+class GridFunctionPositionProvider
+	: public IPositionProvider<TGridFunction::domain_type::dim>
+{
+	public:
+	///	Constructor
+		GridFunctionPositionProvider() : m_pGridFunc(NULL)
+		{
+		}
+
+		void set_reference_grid_function(const TGridFunction& u)
+		{
+			m_pGridFunc = &u;
+		}
+
+		virtual bool get_positions(std::vector<MathVector<TGridFunction::domain_type::dim> >&vec)
+		{
+			UG_ASSERT(m_pGridFunc != NULL, "provide a grid function with set_reference_grid_function");
+			ExtractPositions(*m_pGridFunc, vec);
+			return true;
+		}
+
+	protected:
+		const TGridFunction *m_pGridFunc;
+};
+
+
+template <typename TGridFunction, typename TVector>
+class GridFunctionVectorWriter
+	: public IVectorWriter<TVector>
+{
+	public:
+		typedef typename TVector::value_type value_type;
+		typedef typename TGridFunction::domain_type domain_type;
+		typedef TVector vector_type;
+		typedef IUserData<value_type, domain_type::dim> userdata_type;
+
+	public:
+	///	Constructor
+		GridFunctionVectorWriter() :
+			m_pGridFunc(NULL)
+		{}
+
+		void set_user_data(userdata_type *userData)
+		{
+			m_userData = userData;
+		}
+
+		void set_reference_grid_function(const TGridFunction& u)
+		{
+			m_pGridFunc = &u;
+		}
+
+		/*virtual double calculate(MathVector<3> &v, double time)
+		{
+		}*/
+
+		virtual bool update(vector_type &vec)
+		{
+			UG_ASSERT(m_pGridFunc != NULL, "provide a grid function with set_reference_grid_function");
+			UG_ASSERT(m_userData != NULL, "provide user data with set_user_data");
+
+			const TGridFunction &u = *m_pGridFunc;
+
+		//	get position accessor
+
+			const typename domain_type::position_accessor_type& aaPos
+					= u.get_approximation_space().get_domain().get_position_accessor();
+
+		//	number of total dofs
+			int nr = u.num_dofs();
+
+		//	resize positions
+			vec.resize(nr);
+
+			typename userdata_type::functor_type data = m_userData->get_functor();
+		//	loop all subsets
+			for(int si = 0; si < u.num_subsets(); ++si)
+			{
+			//	loop all vertices
+				geometry_traits<VertexBase>::const_iterator iter
+													= u.template begin<VertexBase>(si);
+				for(;iter != u.template end<VertexBase>(si); ++iter)
+				{
+				//	get vertex
+					VertexBase* v = *iter;
+
+				//	algebra indices vector
+					typename TGridFunction::algebra_index_vector_type ind;
+
+				//	load indices associated with vertex
+					u.get_inner_algebra_indices(v, ind);
+
+					number t = 0.0;
+
+					value_type d;
+					data(d, aaPos[v], t);
+
+				//	write
+					for(size_t i = 0; i < ind.size(); ++i)
+					{
+						const size_t index = ind[i];
+						vec[index] = d;
+					}
+				}
+			}
+			return true;
+		}
+
+	protected:
+		const TGridFunction *m_pGridFunc;
+		userdata_type *m_userData;
+};
+
+
+template <typename TGridFunction>
+class GridFunctionVectorWriterDirichlet0
+	: public IVectorWriter<typename TGridFunction::algebra_type::vector_type>
+{
+	public:
+		typedef typename TGridFunction::domain_type domain_type;
+
+		typedef typename TGridFunction::approximation_space_type approximation_space_type;
+		typedef typename approximation_space_type::dof_distribution_type dof_distribution_type;
+
+		typedef typename TGridFunction::algebra_type algebra_type;
+		typedef typename algebra_type::vector_type vector_type;
+		typedef typename vector_type::value_type value_type;
+
+		typedef IPostProcess<typename dof_distribution_type::implementation_type, algebra_type>
+			post_process_type;
+	public:
+	///	Constructor
+		GridFunctionVectorWriterDirichlet0() :
+			m_pApproxSpace(NULL), m_pPostProcess(NULL), m_level(-1)
+		{}
+
+
+		void set_level(size_t level)
+		{
+			m_level = level;
+		}
+
+		void init(post_process_type &pp, approximation_space_type& approxSpace)
+		{
+			m_pPostProcess = &pp;
+			m_pApproxSpace = &approxSpace;
+		}
+
+
+		/*virtual double calculate(MathVector<3> &v, double time)
+		{
+		}*/
+
+		virtual bool update(vector_type &vec)
+		{
+			UG_ASSERT(m_pPostProcess != NULL, "provide a post process with init");
+			UG_ASSERT(m_pApproxSpace != NULL, "provide approximation space init");
+
+			dof_distribution_type *pDOF;
+			if(m_level == (size_t)-1)
+				pDOF = &m_pApproxSpace->get_surface_dof_distribution();
+			else
+				pDOF = &m_pApproxSpace->get_level_dof_distribution(m_level) ;
+
+			vec.resize(pDOF->num_dofs());
+			vec.set(1.0);
+
+			return m_pPostProcess->post_process_defect(vec, vec, *pDOF);
+		}
+
+	protected:
+		approximation_space_type * m_pApproxSpace;
+		post_process_type *m_pPostProcess;
+		size_t m_level;
+};
+
+
 
 } // end namespace ug
 
