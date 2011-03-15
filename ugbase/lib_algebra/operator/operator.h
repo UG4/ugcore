@@ -29,6 +29,8 @@
 
 // debug writer
 #include "debug_writer.h"
+// vector writer
+#include "vector_writer.h"
 
 ///////////////////////////
 // Implementations
