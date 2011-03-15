@@ -489,6 +489,8 @@ private:
 };
 
 
+
+
 template<>
 void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
@@ -504,8 +506,24 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 			testvectors[i] = m_testvectors[i];
 
 		for(size_t i=0; i<m_vVectorWriters.size(); i++)
-			m_vVectorWriters[i]->update(testvectors[i+m_testvectors.size()]);
+		{
+			vector_type &vec = testvectors[i+m_testvectors.size()];
+			m_vVectorWriters[i]->update(vec);
+
+			/*
+			std::fstream file((m_writeMatrixPath + "testvector" + ToString(i) + ".values").c_str(),
+					std::ios::out);
+			for(size_t j=0; j<vec.size(); j++)
+				file << j << " " << (vec[j]) << std::endl;
+
+			WriteVectorToConnectionViewer((m_writeMatrixPath + "testvector" + ToString(i) +".mat").c_str(),
+					vec, m_amghelper.positions, 2); 
+			*/
+
+		}
 	}
+
+	UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
 
 	// testvectors will be altered by FAMGLevelCalculator
 	FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, m_omega);
