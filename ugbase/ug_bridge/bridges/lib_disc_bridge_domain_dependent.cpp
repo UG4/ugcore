@@ -294,17 +294,51 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("print", &VTKOutput<function_type>::print);
 	}
 
-//	GridFunctionDebugWriter
+
+	//	GridFunctionDebugWriter
+		{
+			typedef GridFunctionDebugWriter<function_type> T;
+			typedef IDebugWriter<typename function_type::algebra_type> TBase;
+			std::stringstream ss; ss << "GridFunctionDebugWriter" << dim << "d";
+			reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+				.add_constructor()
+				.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
+				.add_method("set_vtk_output", &T::set_vtk_output, "", "vtkOutput")
+				.add_method("set_conn_viewer_output", &T::set_conn_viewer_output, "", "cvOutput");
+
+		}
+
+	//	GridFunctionPositionProvider
 	{
-		typedef GridFunctionDebugWriter<function_type> T;
-		typedef IDebugWriter<typename function_type::algebra_type> TBase;
-		std::stringstream ss; ss << "GridFunctionDebugWriter" << dim << "d";
+		typedef GridFunctionPositionProvider<function_type> T;
+		typedef IPositionProvider<dim> TBase;
+		std::stringstream ss; ss << "GridFunctionPositionProvider" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_reference_grid_function", &T::set_reference_grid_function)
-			.add_method("set_vtk_output", &T::set_vtk_output)
-			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output);
+			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction");
+	}
 
+
+	//	GridFunctionVectorWriter
+	{
+		typedef GridFunctionVectorWriter<function_type, vector_type> T;
+		typedef IVectorWriter<vector_type> TBase;
+		std::stringstream ss; ss << "GridFunctionVectorWriter" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
+			.add_method("set_user_data", &T::set_user_data, "", "userData");
+	}
+
+	// GridFunctionVectorWriterDirichlet0
+	{
+		typedef GridFunctionVectorWriterDirichlet0<function_type> T;
+		std::stringstream ss; ss << "GridFunctionVectorWriterDirichlet0" << dim << "d";
+		typedef IVectorWriter<vector_type> TBase;
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("init", &T::init, "", "postProcess#approxSpace#level")
+			.add_method("set_level", &T::set_level, "", "level");
 	}
 }
 
