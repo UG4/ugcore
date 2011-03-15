@@ -19,7 +19,7 @@
 #include "domain_util.h"
 
 // Assemble interface
-#include "assemble.h"
+#include "assemble_interface.h"
 
 // Common
 #include "common/function_group.h"
