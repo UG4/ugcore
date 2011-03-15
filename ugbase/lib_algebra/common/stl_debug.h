@@ -1,10 +1,10 @@
 #ifndef __H__LIB_ALGEBRA__STL_DEBUG__
 #define __H__LIB_ALGEBRA__STL_DEBUG__
 
+#include <vector>
+
 #ifndef NDEBUG
 #include "common/assert.h"
-
-#include <vector>
 
 namespace ug{
 
