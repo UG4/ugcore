@@ -34,7 +34,7 @@ class ParallelVector : public TVector
 {
 	private:
 	// 	disallow copy constructor
-		ParallelVector(const ParallelVector&);
+		//ParallelVector(const ParallelVector&);
 
 	public:
 	///	own type
