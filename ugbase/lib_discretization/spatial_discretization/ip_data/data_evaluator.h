@@ -327,7 +327,7 @@ class DataEvaluator
 			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 				if(!(*m_pvElemDisc)[i]->set_geometric_object_type(id, need))
 				{
-					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 							"Cannot set geometric object type for Disc " << i <<".\n");
 					return false;
 				}
@@ -336,7 +336,7 @@ class DataEvaluator
 			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 				if(!(*m_pvElemDisc)[i]->prepare_element_loop())
 				{
-					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 							"Cannot prepare element loop.\n");
 					return false;
 				}
@@ -347,7 +347,7 @@ class DataEvaluator
 			//	set id for imports
 				if(!m_vIDataImport[i]->set_geometric_object_type(id))
 				{
-					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 							"Cannot set geometric object type for Import " << i <<".\n");
 					return false;
 				}
@@ -363,7 +363,7 @@ class DataEvaluator
 			//	set id for imports
 				if(!m_vIDataExport[i]->set_geometric_object_type(id))
 				{
-					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 							"Cannot set geometric object type for Export " << i <<".\n");
 					return false;
 				}
@@ -378,7 +378,7 @@ class DataEvaluator
 			{
 				if(!m_vLinkerDepend[i]->make_ready())
 				{
-					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop':"
+					UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 							"Linker not ready.\n");
 					return false;
 				}
