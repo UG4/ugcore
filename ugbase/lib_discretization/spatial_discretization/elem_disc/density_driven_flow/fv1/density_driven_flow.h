@@ -104,7 +104,9 @@ class DensityDrivenFlowElemDisc
 			m_Upwind(NO_UPWIND), m_bConsGravity(true),
 			m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 			m_imBrineScvf(false), m_imBrineGradScvf(false),
-			m_imPressureGradScvf(false), m_imDarcyVelScvf(false)
+			m_imPressureGradScvf(false),
+			m_imDensityScv(false), m_imDensityScvf(false),
+			m_imDarcyVelScvf(false)
 		{
 		//	register assemble functions
 			register_assemble_functions(Int2Type<dim>());
