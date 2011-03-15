@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 
-// #define UG_USE_AMG // temporary switch until AMG for systems works again
+#define UG_USE_AMG // temporary switch until AMG for systems works again
 
 
 // bridge
@@ -24,7 +24,7 @@
 
 
 // user data (temporarily for Kosta Update)
-#include "ug_script/user_data/user_data.h"
+//#include "ug_script/user_data/user_data.h" // kostaupdate is disabled?
 
 // \todo: remove this dependency
 // WARNING: To use AMG, please define UG_USE_AMG __and__ (!!) uncomment
@@ -33,9 +33,6 @@
 //			cmake does not recognize the undef (?) )
 
 //#undef UG_USE_AMG
-#ifdef UG_USE_AMG
-//#include "lib_discretization/lib_discretization.h"
-#endif
 
 namespace ug
 {
@@ -67,10 +64,10 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 									"Success", "Number")
 			.add_method("print|hide=true", &vector_type::p);
 
-		reg.add_function("VecScaleAdd2", &VecScaleAdd2<vector_type>, "",
-				"dest, alpha1, vec1, alpha2, vec2", "dest = alpha1*vec1 + alpha2*vec2");
-		reg.add_function("VecScaleAdd3", &VecScaleAdd3<vector_type>, "",
-				"dest, alpha1, vec1, alpha2, vec2, alpha3, vec3", "dest = alpha1*vec1 + alpha2*vec2 + alpha3*vec3");
+		reg.add_function("VecScaleAdd2", &VecScaleAdd2<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
+				"dest#alpha1#vec1#alpha2#vec2");
+		reg.add_function("VecScaleAdd3", &VecScaleAdd3<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
+				"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");
 	}
 
 	// Vector copy
@@ -86,10 +83,24 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	}
 
 	// Debug Writer (abstract base class)
+		{
+			typedef IDebugWriter<algebra_type> T;
+			reg.add_class_<T>("IDebugWriter", grp.c_str());
+		}
+
+	// IPositionProvider (abstract base class)
 	{
-		typedef IDebugWriter<algebra_type> T;
-		reg.add_class_<T>("DebugWriter", grp.c_str());
+		reg.add_class_<IPositionProvider<1> >("IPositionProvider1d", grp.c_str());
+		reg.add_class_<IPositionProvider<2> >("IPositionProvider2d", grp.c_str());
+		reg.add_class_<IPositionProvider<3> >("IPositionProvider3d", grp.c_str());
 	}
+
+	// IVectorWriter (abstract base class)
+	{
+		typedef IVectorWriter<vector_type> T;
+		reg.add_class_<T>("IVectorWriter", grp.c_str());
+	}
+
 
 	// Base Classes
 	{
@@ -106,8 +117,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			typedef IMatrixOperator<vector_type, vector_type, matrix_type> T;
 			reg.add_class_<T, TBase>("IMatrixOperator", grp.c_str())
 				.add_method("resize", &T::resize)
-				.add_method("num_rows", &T::num_rows)
-				.add_method("num_cols", &T::num_cols);
+				.add_method("num_rows", &T::num_rows, "rows")
+				.add_method("num_cols", &T::num_cols, "cols");
 		}
 
 		{
@@ -136,8 +147,9 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			typedef ILinearOperatorInverse<vector_type, vector_type> T;
 			reg.add_class_<T>("ILinearOperatorInverse", grp.c_str())
 				.add_method("init", (bool(T::*)(ILinearOperator<vector_type,vector_type>&))&T::init)
-				.add_method("apply_return_defect", &T::apply_return_defect)
-				.add_method("apply", &T::apply);
+				.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",
+						"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
+				.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant");
 		}
 
 		{
@@ -203,7 +215,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 		reg.add_class_<	ILUPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("ILU", grp2.c_str())
 			.add_constructor()
-			.add_method("set_debug", &ILUPreconditioner<algebra_type>::set_debug);
+			.add_method("set_debug", &ILUPreconditioner<algebra_type>::set_debug, "", "d");
 
 
 	//	ILU Threshold
@@ -217,19 +229,10 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 #ifdef UG_USE_AMG
 	//	AMG
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef P1ConformDoFDistribution dof_distribution_type;
-
-	#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, TAlgebra> > function_type;
-	#else
-		typedef GridFunction<domain_type, dof_distribution_type, TAlgebra> function_type;
-	#endif
-
 		reg.add_class_< typename amg_base<algebra_type>::LevelInformation > ("AMGLevelInformation", grp2.c_str())
-			.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms)
-			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes)
-			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid);
+			.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms, "creation time of this level (in ms)")
+			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level")
+			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information");
 
 //todo: existance of AMGPreconditioner class should not depend on defines.
 		reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > ("AMGBase", grp2.c_str())
@@ -260,11 +263,13 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("set_presmoother", &amg_base<algebra_type>::set_presmoother, "", "presmoother")
 			.add_method("set_postsmoother", &amg_base<algebra_type>::set_postsmoother, "", "postsmoother")
 			.add_method("set_base_solver", &amg_base<algebra_type>::set_base_solver, "", "basesmoother")
-			.add_method("set_debug", (bool (amg_base<algebra_type>::*)(function_type&)) &amg_base<algebra_type>::set_debug,"", "u",
-					"sets the internal positions of each node")
 			.add_method("check", &amg_base<algebra_type>::check, "", "")
 			.add_method("set_matrix_write_path", &amg_base<algebra_type>::set_matrix_write_path, "", "")
-			.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "");
+			.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "")
+
+			.add_method("set_position_provider2d", &amg_base<algebra_type>::set_position_provider2d)
+			.add_method("set_position_provider3d", &amg_base<algebra_type>::set_position_provider3d)
+			;
 
 		reg.add_class_<	amg<algebra_type>, amg_base<algebra_type> > ("AMGPreconditioner", grp2.c_str())
 			.add_constructor()
@@ -287,8 +292,10 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("set_theta", &famg<algebra_type>::set_theta, "" , "theta", "clip all interpolations with m_theta * F > min F.")
 			.add_method("set_damping_for_smoother_in_interpolation_calculation",
 					&famg<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
-			.add_method("set_testvector_zero_at_dirichlet", &famg<algebra_type>::set_testvector_zero_at_dirichlet)
 			.add_method("set_testvector_damps", &famg<algebra_type>::set_testvector_damps)
+			.add_method("reset_testvectors", &famg<algebra_type>::reset_testvectors)
+			.add_method("add_testvector", &famg<algebra_type>::add_testvector)
+			.add_method("add_vector_writer", &famg<algebra_type>::add_vector_writer)
 			;
 #endif
 	}
@@ -365,7 +372,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
 						"", "Check")
 			.add_method("set_theta|interactive=false", &T::set_theta,
-						"", "Theta")
+						"", "Theta", "set damping factor theta")
 			.add_method("set_neumann_solver|interactive=false", &T::set_neumann_solver,
 						"", "Neumann Solver")
 			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
@@ -383,7 +390,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "Matrix")
 			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
 						"", "Dirichlet Solver")
-			.add_method("set_debug", &T::set_debug)
+			.add_method("set_debug", &T::set_debug, "", "d")
 			// the following functions would normally not be executed from script
 			.add_method("init", (bool (T::*)())&T::init)
 			.add_method("apply", &T::apply,
