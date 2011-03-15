@@ -12,7 +12,7 @@
 #include <vector>
 
 // intern headers
-#include "lib_discretization/assemble.h"
+#include "lib_discretization/assemble.h"  // needed from lib_disc_bridge_domain_dependent.cpp
 #include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
