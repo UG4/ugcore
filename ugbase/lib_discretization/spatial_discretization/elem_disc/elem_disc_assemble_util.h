@@ -47,6 +47,7 @@ namespace ug {
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Stiffness matrix
  * \param[in]		u				solution
  */
@@ -228,6 +229,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	M				Mass matrix
  * \param[in]		u				solution
  */
@@ -409,6 +411,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
  * \param[in]		u				solution
  */
@@ -599,6 +602,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
  * \param[in]		u				solution
  * \param[in]		s_a0			scaling factor for stiffness part
@@ -812,6 +816,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
  * \param[in]		u				solution
  */
@@ -1019,6 +1024,7 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
  * \param[in]		u				solution
  * \param[in]		s_m				scaling factor for mass part
@@ -1252,6 +1258,7 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		u				solution
@@ -1461,6 +1468,7 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
  * \param[in]		vElemDisc		element discretizations
  * \param[in]		dofDistr		DoF Distribution
  * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		u				solution

@@ -82,28 +82,32 @@ class DomainDiscretization :
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
 	virtual
-	IAssembleReturn assemble_jacobian(matrix_type& J, const vector_type& u,
-	                                  const dof_distribution_type& dofDistr,
-	                                  number time, number s_m, number s_a);
+	IAssembleReturn assemble_jacobian(	matrix_type& J,
+	                                  	const vector_type& u, number time,
+	                                  	const PreviousSolutions<vector_type>& prevSol,
+	                                  	const dof_distribution_type& dofDistr,
+	                                  	number s_m, number s_a);
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
 	virtual
-	IAssembleReturn assemble_defect(vector_type& d, const vector_type& u,
-	                                const dof_distribution_type& dofDistr,
-									number time, number s_m, number s_a);
+	IAssembleReturn assemble_defect(	vector_type& d,
+		                                const vector_type& u, number time,
+		                                const PreviousSolutions<vector_type>& prevSol,
+		                                const dof_distribution_type& dofDistr,
+		                                number s_m, number s_a);
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
 	virtual
-	IAssembleReturn assemble_linear(matrix_type& A, vector_type& b,
-	                                const vector_type& u,
-	                                const dof_distribution_type& dofDistr,
-									number time, number s_m, number s_a);
+	IAssembleReturn assemble_linear(	matrix_type& A, vector_type& b,
+		                                const vector_type& u, number time,
+		                                const PreviousSolutions<vector_type>& prevSol,
+		                                const dof_distribution_type& dofDistr,
+		                                number s_m, number s_a);
 
 	/// \copydoc IDomainDiscretization::assemble_solution()
 	virtual
-	IAssembleReturn assemble_solution(vector_type& u,
-	                                  const dof_distribution_type& dofDistr,
-	                                  number time);
+	IAssembleReturn assemble_solution(vector_type& u, number time,
+	                                  const dof_distribution_type& dofDistr);
 
 	///////////////////////////
 	// Mass and Stiffness Matrix

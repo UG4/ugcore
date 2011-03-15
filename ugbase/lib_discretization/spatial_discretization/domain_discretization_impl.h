@@ -262,7 +262,8 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_jacobian(matrix_type& J, const vector_type& u,
+assemble_jacobian(matrix_type& J,
+                  const vector_type& u,
                   const dof_distribution_type& dofDistr)
 {
 //	Union of Subsets
@@ -387,7 +388,8 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_defect(vector_type& d, const vector_type& u,
+assemble_defect(vector_type& d,
+                const vector_type& u,
                 const dof_distribution_type& dofDistr)
 {
 //	Union of Subsets
@@ -506,7 +508,8 @@ assemble_defect(vector_type& d, const vector_type& u,
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
+assemble_linear(matrix_type& mat, vector_type& rhs,
+                const vector_type& u,
                 const dof_distribution_type& dofDistr)
 {
 //	Union of Subsets
@@ -655,9 +658,11 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_jacobian(matrix_type& J, const vector_type& u,
+assemble_jacobian(matrix_type& J,
+                  const vector_type& u, number time,
+                  const PreviousSolutions<vector_type>& prevSol,
                   const dof_distribution_type& dofDistr,
-                  number time, number s_m0, number s_a0)
+                  number s_m0, number s_a0)
 {
 //	check that s_m is 1.0
 	if(s_m0 != 1.0)
@@ -782,9 +787,11 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_defect(vector_type& d, const vector_type& u,
+assemble_defect(vector_type& d,
+                const vector_type& u, number time,
+                const PreviousSolutions<vector_type>& prevSol,
                 const dof_distribution_type& dofDistr,
-                number time, number s_m, number s_a)
+                number s_m, number s_a)
 {
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -902,9 +909,11 @@ assemble_defect(vector_type& d, const vector_type& u,
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
+assemble_linear(matrix_type& mat, vector_type& rhs,
+                const vector_type& u, number time,
+                const PreviousSolutions<vector_type>& prevSol,
                 const dof_distribution_type& dofDistr,
-                number time, number s_m, number s_a)
+                number s_m, number s_a)
 {
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1023,7 +1032,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
+assemble_solution(vector_type& u, number time, const dof_distribution_type& dofDistr)
 {
 //	post process
 	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)

@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
 
 #include "lib_discretization/assemble_interface.h"
+#include "lib_discretization/time_discretization/previous_solution.h"
 #include "./post_process/post_process_interface.h"
 
 namespace ug {
@@ -51,9 +52,9 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * Assembles Jacobian at a given Solution u.
 	 *
 	 * \param[out] J 		Jacobian J(u) Matrix to be filled
-	 * \param[in]  u 		Current solution
+	 * \param[in]  u 		Current iterated (next timestep) solution
+	 * \param[in]  time		time of next (to be computed) timestep
 	 * \param[in]  dofDistr DoF Distribution
-	 * \param[in]  time		current time
 	 * \param[in]  s_m		scaling for mass matrix
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
@@ -63,9 +64,10 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 */
 		virtual
 		IAssembleReturn assemble_jacobian(matrix_type& J,
-		                                  const vector_type& u,
+		                                  const vector_type& u, number time,
+		                                  const PreviousSolutions<vector_type>& prevSol,
 		                                  const dof_distribution_type& dofDistr,
-		                                  number time, number s_m, number s_a)
+		                                  number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 	/// assembles Defect
@@ -73,9 +75,9 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * Assembles Defect at a given Solution u.
 	 *
 	 * \param[out] d Defect d(u) to be filled
-	 * \param[in]  u 		Current solution
+	 * \param[in]  u 		Current iterated (next timestep) solution
+	 * \param[in]  time		time of next (to be computed) timestep
 	 * \param[in]  dofDistr DoF Distribution
-	 * \param[in]  time		current time
 	 * \param[in]  s_m		scaling for mass matrix
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
@@ -85,9 +87,10 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 */
 		virtual
 		IAssembleReturn assemble_defect(vector_type& d,
-		                                const vector_type& u,
+		                                const vector_type& u, number time,
+		                                const PreviousSolutions<vector_type>& prevSol,
 		                                const dof_distribution_type& dofDistr,
-		                                number time, number s_m, number s_a)
+		                                number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 	/// Assembles matrix_type and Right-Hand-Side for a linear problem
@@ -96,9 +99,9 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 *
 	 * \param[out] A Mass-/Stiffness- matrix_type of the discretization
 	 * \param[out] b Right-Hand-Side of the discretization
-	 * \param[in]  u 		Current solution
+	 * \param[in]  u 		Current iterated solution
+	 * \param[in]  time		time of next (to be computed) timestep
 	 * \param[in]  dofDistr DoF Distribution
-	 * \param[in]  time		current time
 	 * \param[in]  s_m		scaling for mass matrix
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
@@ -110,9 +113,10 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		virtual
 		IAssembleReturn assemble_linear(matrix_type& A,
 		                                vector_type& b,
-		                                const vector_type& u,
+		                                const vector_type& u, number time,
+		                                const PreviousSolutions<vector_type>& prevSol,
 		                                const dof_distribution_type& dofDistr,
-		                                number time, number s_m, number s_a)
+		                                number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 	/// sets dirichlet values in solution vector
@@ -120,17 +124,16 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * Sets dirichlet values of the Solution u when components are dirichlet
 	 *
 	 * \param[in]  u 		Solution to set values at
+	 * \param[in]  time		time of next (to be computed) timestep
 	 * \param[in]  dofDistr DoF Distribution
-	 * \param[in]  time		current time
 	 *
 	 * \return 	IAssemble_OK 				if successful
 	 * 			IAssemble_NOT_IMPLEMENTED 	if function has not been implemented
 	 * 			IAssemble_ERROR 			if implemented but error occurred
 	 */
 		virtual
-		IAssembleReturn assemble_solution(vector_type& u,
-		                                  const dof_distribution_type& dofDistr,
-		                                  number time)
+		IAssembleReturn assemble_solution(vector_type& u, number time,
+		                                  const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 	///	returns the number of post processes

@@ -61,7 +61,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 
 //	assemble jacobian using current iterate
 	if(this->m_pDomDisc->assemble_jacobian
-			(J, u, dofDistr, m_futureTime, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
+			(J, u, m_futureTime, (*m_pPrevSol), dofDistr, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
 		return IAssemble_ERROR;
 
 //	we're done
@@ -84,14 +84,14 @@ assemble_defect(vector_type& d, const vector_type& u,
 
 // 	future solution part
 	if(this->m_pDomDisc->assemble_defect
-			(d, u, dofDistr, m_futureTime, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
+			(d, u, m_futureTime, (*m_pPrevSol), dofDistr, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
 		return IAssemble_ERROR;
 
 // 	previous time step part
 	for(size_t i=0; i < m_pPrevSol->size(); ++i)
 	{
 		if(this->m_pDomDisc->assemble_defect
-				(d,  m_pPrevSol->solution(i), dofDistr,  m_pPrevSol->time(i),
+				(d,  m_pPrevSol->solution(i), m_pPrevSol->time(i), (*m_pPrevSol), dofDistr,
 				 s_m[i+1], s_a[i+1]*m_dt) != IAssemble_OK)
 			return IAssemble_ERROR;
 	}
@@ -117,7 +117,7 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 	IAssembleReturn res;
 
 //	assemble solution
-	res = this->m_pDomDisc->assemble_solution(u, dofDistr, m_futureTime);
+	res = this->m_pDomDisc->assemble_solution(u, m_futureTime, dofDistr);
 
 //	interprete result
 	switch(res)
