@@ -37,7 +37,9 @@ namespace lua
 	string GetLuaTypeString(lua_State* L, int index);
 }
 
-
+string GetFileLine(const char *filename, size_t line);
+string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
+void LuaPrintTable(lua_State *L, size_t iSpace);
 
 const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 {
@@ -52,6 +54,19 @@ const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 		lua_pop(L, 2); // pop userdata, metatable
 	}
 	return p;
+}
+
+
+int PrintFunctionInfo(lua_State *L)
+{
+	lua_Debug ar;
+	lua_getinfo(L, ">Snlu", &ar);
+	if(ar.source)
+	{
+		UG_LOG(ar.source+1 << ":" << ar.linedefined << "-" << ar.lastlinedefined << "\n");
+		UG_LOG(GetFileLines(ar.source+1, ar.linedefined, ar.lastlinedefined, true) << "\n");
+	}
+	return 0;
 }
 
 
@@ -73,11 +88,10 @@ void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thef
  * - TypeInfo("Function") prints all member functions+parameters
  * - TypeInfo("variable") prints class information if variable is a object of a ug class, otherwise what type in lua it is
  */
-bool UGTypeInfo(const char *p)
+int UGTypeInfo(const char *p)
 {
 	bridge::Registry &reg = GetUGRegistry();
 
-	UG_LOG("\n");
 	const IExportedClass *c = FindClass(reg, p);
 	if(c)
 	{
@@ -105,16 +119,16 @@ bool UGTypeInfo(const char *p)
 		return false;
 	}
 
-	if(lua_isfunction(L, -1))
-	{
-		UG_LOG(p << " is a function\n ");
-		PrintFunctionInfo(reg, p);
-		UG_LOG(endl);
-	}
-	else if(lua_iscfunction(L, -1))
+	if(lua_iscfunction(L, -1))
 	{
 		UG_LOG(p << " is a cfunction\n ");
 		PrintFunctionInfo(reg, p);
+		UG_LOG(endl);
+	}
+	else if(lua_isfunction(L, -1))
+	{
+		UG_LOG(p << " is a function\n ");
+		PrintFunctionInfo(L);
 		UG_LOG(endl);
 	}
 	else if(lua_isuserdata(L, -1))
@@ -122,7 +136,7 @@ bool UGTypeInfo(const char *p)
 		// names = GetClassNames(L, -1))
 		if(lua_getmetatable(L, -1) == 0)
 		{
-			UG_LOG("global variable " << p << " has light user data, but no metatable." << endl);
+			UG_LOG(p << "is a global variable which has light user data, but no metatable." << endl);
 			lua_pop(L, 1); // pop globals
 			return false;
 		}
@@ -132,7 +146,7 @@ bool UGTypeInfo(const char *p)
 		lua_rawget(L, -2);
 		if(lua_isnil(L, -1) || !lua_isuserdata(L, -1))
 		{
-			UG_LOG("global variable " << p << " has metatable, but cannot access names." << endl);
+			UG_LOG(p << "is a global variable which has a metatable, but cannot access names." << endl);
 			lua_pop(L, 3); // pop metatable, userdata, globals
 			return false;
 		}
@@ -145,13 +159,18 @@ bool UGTypeInfo(const char *p)
 		if(names->size() > 0)
 			PrintClassHierarchy(reg, names->at(0));
 	}
+	else if (lua_istable(L, -1))
+	{
+		LuaPrintTable(L, 1);
+		UG_LOG(p << "is a table" << "\n");
+	}
 	else
-		UG_LOG(p << " is a " << lua::GetLuaTypeString(L, -1) << endl);
-
-	lua_pop(L, 1); // pop globals
+	{
+		UG_LOG(p << "type is " << lua::GetLuaTypeString(L, -1) << ": " << lua_tostring(L, -1));
+	}
 
 	UG_LOG("\n");
-	return true;
+	return 0;
 }
 
 
@@ -272,14 +291,32 @@ bool IsLonger(const std::string &a, const std::string &b)
 	return b.size() > a.size();
 }
 
-string GetFileLine(const char *filename, size_t line)
+
+string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
 {
 	char buf[512];
 	fstream file(filename, ios::in);
 	if(file.is_open() == false) return string("");
-	for(size_t i=0; i<line; i++)
+	for(size_t i=0; i<fromline; i++)
 		file.getline(buf, 512);
-	return string(buf+strspn(buf, " \t"));
+	stringstream ss;
+	if(includeLineNumbers)
+		ss << fromline << "\t";
+	ss << buf;
+	for(; fromline < toline; fromline++)
+	{
+		file.getline(buf, 512);
+		ss << "\n";
+		if(includeLineNumbers)
+			ss << fromline << "\t";
+		ss << buf;
+	}
+	return ss.str();
+}
+
+string GetFileLine(const char *filename, size_t line)
+{
+	return GetFileLines(filename, line, line, false);
 }
 
 void PrintLuaScriptFunction(lua_State *L)
@@ -350,7 +387,6 @@ void LuaPrintTable(lua_State *L, size_t iSpace)
 	LOGFillSpace(iSpace);
 	UG_LOG("}\n");
 }
-
 
 
 
