@@ -89,6 +89,7 @@ public:
 
 	void calculate_testvectors(size_t node)
 	{
+		localTestvector.resize(m_testvectors.size());
 		for(size_t k=0; k<m_testvectors.size(); k++)
 		{
 			localTestvector[k].resize(onlyN1.size()+1);
