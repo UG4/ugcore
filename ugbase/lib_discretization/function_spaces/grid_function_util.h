@@ -361,7 +361,7 @@ class GridFunctionVectorWriter
 		typedef typename TVector::value_type value_type;
 		typedef typename TGridFunction::domain_type domain_type;
 		typedef TVector vector_type;
-		typedef IUserData<value_type, domain_type::dim> userdata_type;
+		typedef IUserData<number, domain_type::dim> userdata_type;
 
 	public:
 	///	Constructor
@@ -421,14 +421,15 @@ class GridFunctionVectorWriter
 
 					number t = 0.0;
 
-					value_type d;
+					number d;
 					data(d, aaPos[v], t);
 
 				//	write
 					for(size_t i = 0; i < ind.size(); ++i)
 					{
 						const size_t index = ind[i];
-						vec[index] = d;
+						for(size_t alpha = 0; alpha < GetSize(vec[index]); ++alpha)
+							BlockRef(vec[index], alpha) = d;
 					}
 				}
 			}
