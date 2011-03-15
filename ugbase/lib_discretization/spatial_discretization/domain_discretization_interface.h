@@ -138,10 +138,6 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 
 	///	returns the i'th post process
 		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
-
-	// todo: remove when possible
-	/// returns if the number of functions of this assembling
-		virtual size_t num_fct() const = 0;
 };
 
 /// @}

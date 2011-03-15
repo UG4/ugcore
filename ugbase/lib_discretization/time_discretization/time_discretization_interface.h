@@ -186,9 +186,6 @@ class ITimeDiscretization
 				m_pDomDisc->force_regular_grid(bForce);
 		}
 
-		// todo: Remove
-		size_t num_fct() const{return m_pDomDisc->num_fct();}
-
 	protected:
 		domain_discretization_type* m_pDomDisc; ///< Domain Discretization
 };

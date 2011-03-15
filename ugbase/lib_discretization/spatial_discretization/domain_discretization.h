@@ -191,17 +191,6 @@ class DomainDiscretization :
 		{
 			return m_vvPostProcess[PPT_DIRICHLET].at(i);
 		}
-
-	// todo: What is this function used for???? Do we have to include it
-	// todo: Remove if possible.
-		virtual size_t num_fct() const
-		{
-			size_t sum = 0;
-			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				sum += m_vElemDisc[i]->get_function_group().num_fct();
-
-			return sum;
-		}
 };
 
 /// @}
