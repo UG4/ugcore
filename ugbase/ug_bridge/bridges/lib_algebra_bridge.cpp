@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 
-#define UG_USE_AMG // temporary switch until AMG for systems works again
+//#define UG_USE_AMG // temporary switch until AMG for systems works again
 
 
 // bridge
@@ -81,6 +81,14 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("print|hide=true", &matrix_type::p);
 	}
+
+
+	//	ApplyLinearSolver
+	{
+		reg.add_function( "ApplyLinearSolver",
+						  &ApplyLinearSolver<vector_type>, grp.c_str());
+	}
+
 
 	// Debug Writer (abstract base class)
 		{

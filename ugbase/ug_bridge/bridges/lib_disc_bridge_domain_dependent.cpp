@@ -362,12 +362,6 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
 #endif
 
-	//	ApplyLinearSolver
-		{
-			reg.add_function( "ApplyLinearSolver",
-			                  &ApplyLinearSolver<vector_type>, grp.c_str());
-		}
-
 	//	WriteGridToVTK
 		{
 			reg.add_function("WriteGridFunctionToVTK",
