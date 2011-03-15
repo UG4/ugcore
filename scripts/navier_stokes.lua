@@ -199,8 +199,8 @@ fieldsStab:set_upwind(fullUpwind)
 
 -- We also can choose, how the diffusion length of the stabilization is computed.
 -- Under the option we pick on:
---fieldsStab:set_diffusion_length("NS_RAW")
-fieldsStab:set_diffusion_length("NS_FIVEPOINT")
+fieldsStab:set_diffusion_length("NS_RAW")
+--fieldsStab:set_diffusion_length("NS_FIVEPOINT")
 --fieldsStab:set_diffusion_length("NS_COR")
 
 -- Next we set the options for the Navier-Stokes elem disc ...
@@ -210,7 +210,7 @@ elemDisc:set_peclet_blend(true)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-ConstKinViscosity = util.CreateConstUserNumber(1.0e-1, dim)
+ConstKinViscosity = util.CreateConstUserNumber(1.0, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
  
 
@@ -309,7 +309,7 @@ function Pressure_StartValue2d(x, y, t)
 	return 0.0
 end
 function VelX_StartValue2d(x, y, t)
-	return 1.0
+	return 0.0
 end
 function VelY_StartValue2d(x, y, t)
 	return 0.0
@@ -327,7 +327,6 @@ time = 0.0
 InterpolateFunction(LuaPressureStartValue, u, "p", time);
 InterpolateFunction(LuaVelXStartValue, u, "u", time);
 InterpolateFunction(LuaVelYStartValue, u, "v", time);
-
 
 -- we need a linear solver that solves the linearized problem inside of the
 -- newton solver iteration. So, we create an exact LU solver here.
@@ -375,6 +374,9 @@ newtonSolver:init(op)
 if newtonSolver:prepare(u) == false then 
 	print ("Newton solver prepare failed."); exit(); 
 end 
+
+
+SaveVectorForConnectionViewer(u, "StartSolution.mat")
 
 -- Now we can apply the newton solver. A newton itertation is performed to find
 -- the solution.

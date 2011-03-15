@@ -159,6 +159,7 @@ apply(vector_type& u)
 	std::string name("NEWTON_Defect");
 	name.append(ext);
 	write_debug(m_d, name.c_str());
+	write_debug(u, "NEWTON_StartSolution");
 
 // 	increase offset of output for linear solver
 	IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
