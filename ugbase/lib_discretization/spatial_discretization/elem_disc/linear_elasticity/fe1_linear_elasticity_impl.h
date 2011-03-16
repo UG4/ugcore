@@ -34,7 +34,6 @@ FE1LinearElasticityElemDisc(Elasticity_Tensor_fct elast)
 
 template<typename TDomain, typename TAlgebra>
 template<typename TElem >
-inline
 bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
@@ -84,7 +83,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
@@ -125,7 +124,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
@@ -154,7 +153,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
-assemble_A(local_vector_type& d, const local_vector_type& u, number time)
+assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// Not implemented
 	return false;
@@ -166,7 +165,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
-assemble_M(local_vector_type& d, const local_vector_type& u, number time)
+assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	// Not implemented
 	return false;
@@ -178,7 +177,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
-assemble_f(local_vector_type& d, number time)
+assemble_f(local_vector_type& d)
 {
 	// Not implemented
 	return false;

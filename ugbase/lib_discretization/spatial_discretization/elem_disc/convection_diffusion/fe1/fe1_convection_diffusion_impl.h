@@ -53,7 +53,6 @@ prepare_element_loop()
 
 template<typename TDomain, typename TAlgebra>
 template<typename TElem >
-inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
@@ -67,7 +66,6 @@ finish_element_loop()
 template<typename TDomain, typename TAlgebra>
 
 template<typename TElem >
-inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
@@ -104,7 +102,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
@@ -148,7 +146,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
@@ -177,7 +175,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_A(local_vector_type& d, const local_vector_type& u, number time)
+assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	static const int dim = TDomain::dim;
 
@@ -230,7 +228,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_M(local_vector_type& d, const local_vector_type& u, number time)
+assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
@@ -262,7 +260,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_f(local_vector_type& d, number time)
+assemble_f(local_vector_type& d)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 

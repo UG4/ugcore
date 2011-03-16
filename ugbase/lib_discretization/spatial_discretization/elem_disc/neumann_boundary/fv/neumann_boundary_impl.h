@@ -159,7 +159,6 @@ prepare_element_loop()
 
 template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
@@ -209,7 +208,7 @@ template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	// we're done
 	return true;
@@ -221,7 +220,7 @@ template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	// we're done
 	return true;
@@ -233,7 +232,7 @@ template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_A(local_vector_type& d, const local_vector_type& u, number time)
+assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// we're done
 	return true;
@@ -245,7 +244,7 @@ template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_M(local_vector_type& d, const local_vector_type& u, number time)
+assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	// we're done
 	return true;
@@ -257,7 +256,7 @@ template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
 FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_f(local_vector_type& d, number time)
+assemble_f(local_vector_type& d)
 {
 	// get finite volume geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
@@ -280,13 +279,13 @@ assemble_f(local_vector_type& d, number time)
 			{
 				// first value
 				number val = 0.0;
-				vSegmentFunction[fct].functor(val, bf.global_ip(0), time);
+				vSegmentFunction[fct].functor(val, bf.global_ip(0), time());
 
 				// other values
 				for(size_t ip = 1; ip < bf.num_ip(); ++ip)
 				{
 					number ip_val;
-					vSegmentFunction[fct].functor(ip_val, bf.global_ip(ip), time);
+					vSegmentFunction[fct].functor(ip_val, bf.global_ip(ip), time());
 
 					// TODO: add weights for integration
 					val += ip_val;

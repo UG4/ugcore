@@ -473,7 +473,6 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
 prepare_element_loop()
@@ -604,7 +603,6 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
 finish_element_loop()
@@ -616,7 +614,6 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
@@ -663,10 +660,9 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 // 	Get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo =
@@ -825,10 +821,9 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
-assemble_A(local_vector_type& d, const local_vector_type& u, number time)
+assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 //	Get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo =
@@ -928,10 +923,9 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 // 	get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo =
@@ -973,10 +967,9 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
-assemble_M(local_vector_type& d, const local_vector_type& u, number time)
+assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	Get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo =
@@ -1013,10 +1006,9 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-inline
 bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
-assemble_f(local_vector_type& d, number time)
+assemble_f(local_vector_type& d)
 {
 	// Here we implement the right hand side and the boundary conditions,
 	// that do not depend on the solution

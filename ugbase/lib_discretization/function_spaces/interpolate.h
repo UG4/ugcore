@@ -23,7 +23,7 @@ template <typename TElem, typename TGridFunction>
 bool InterpolateFunctionOnElem( boost::function<void (
 									number& res,
 									const MathVector<TGridFunction::domain_type::dim>& x,
-									number& time)> InterpolFunction,
+									number time)> InterpolFunction,
 								TGridFunction& u, size_t fct, int si, number time)
 {
 //	get reference element type
@@ -121,7 +121,7 @@ template <typename TGridFunction>
 bool InterpolateFunctionHelp(	boost::function<void (
 									number& res,
 									const MathVector<TGridFunction::domain_type::dim>& x,
-									number& time)>
+									number time)>
 									InterpolFunction,
 								TGridFunction& u,
 								size_t fct,

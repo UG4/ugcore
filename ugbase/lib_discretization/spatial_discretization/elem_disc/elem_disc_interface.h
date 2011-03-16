@@ -339,8 +339,8 @@ protected:
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0)
-			{return (this->*(m_vAssJAFunc[m_id]))(J, u, time);}
+		bool assemble_JA(local_matrix_type& J, const local_vector_type& u)
+			{return (this->*(m_vAssJAFunc[m_id]))(J, u);}
 
 	/// Assembling of Jacobian (Mass part)
 	/**
@@ -349,8 +349,8 @@ protected:
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_JM(local_matrix_type& J, const local_vector_type& u, number time=0.0)
-			{return (this->*(m_vAssJMFunc[m_id]))(J, u, time);}
+		bool assemble_JM(local_matrix_type& J, const local_vector_type& u)
+			{return (this->*(m_vAssJMFunc[m_id]))(J, u);}
 
 	/// Assembling of Defect (Stiffness part)
 	/**
@@ -359,8 +359,8 @@ protected:
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_A(local_vector_type& d, const local_vector_type& u, number time=0.0)
-			{return (this->*(m_vAssAFunc[m_id]))(d, u, time);}
+		bool assemble_A(local_vector_type& d, const local_vector_type& u)
+			{return (this->*(m_vAssAFunc[m_id]))(d, u);}
 
 
 	/// Assembling of Defect (Mass part)
@@ -370,8 +370,8 @@ protected:
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_M(local_vector_type& d, const local_vector_type& u, number time=0.0)
-			{return (this->*(m_vAssMFunc[m_id]))(d, u, time);}
+		bool assemble_M(local_vector_type& d, const local_vector_type& u)
+			{return (this->*(m_vAssMFunc[m_id]))(d, u);}
 
 	/// Assembling of Right-Hand Side
 	/**
@@ -379,8 +379,8 @@ protected:
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_f(local_vector_type& rhs, number time=0.0)
-			{return (this->*(m_vAssFFunc[m_id]))(rhs, time);}
+		bool assemble_f(local_vector_type& rhs)
+			{return (this->*(m_vAssFFunc[m_id]))(rhs);}
 
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
@@ -436,18 +436,18 @@ protected:
 
 		// types of Jacobian assemble functions
 		typedef bool (T::*AssembleJAFunc)(	local_matrix_type& J,
-											const local_vector_type& u, number time);
+											const local_vector_type& u);
 		typedef bool (T::*AssembleJMFunc)(	local_matrix_type& J,
-											const local_vector_type& u, number time);
+											const local_vector_type& u);
 
 		// types of Defect assemble functions
 		typedef bool (T::*AssembleAFunc)( 	local_vector_type& d,
-											const local_vector_type& u, number time);
+											const local_vector_type& u);
 		typedef bool (T::*AssembleMFunc)(	local_vector_type& d,
-											const local_vector_type& u, number time);
+											const local_vector_type& u);
 
 		// types of right hand side assemble functions
-		typedef bool (T::*AssembleFFunc)(local_vector_type& d, number time);
+		typedef bool (T::*AssembleFFunc)(local_vector_type& d);
 
 	private:
 		// loop function pointers

@@ -72,28 +72,28 @@ class FE1LinearElasticityElemDisc
 
 	private:
 		template <typename TElem>
-		inline bool prepare_element_loop();
+		bool prepare_element_loop();
 
 		template <typename TElem>
-		inline bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
+		bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
 
 		template <typename TElem>
-		inline bool finish_element_loop();
+		bool finish_element_loop();
 
 		template <typename TElem>
-		inline bool assemble_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0);
+		bool assemble_JA(local_matrix_type& J, const local_vector_type& u);
 
 		template <typename TElem>
-		inline bool assemble_JM(local_matrix_type& J, const local_vector_type& u, number time=0.0);
+		bool assemble_JM(local_matrix_type& J, const local_vector_type& u);
 
 		template <typename TElem>
-		inline bool assemble_A(local_vector_type& d, const local_vector_type& u, number time=0.0);
+		bool assemble_A(local_vector_type& d, const local_vector_type& u);
 
 		template <typename TElem>
-		inline bool assemble_M(local_vector_type& d, const local_vector_type& u, number time=0.0);
+		bool assemble_M(local_vector_type& d, const local_vector_type& u);
 
 		template <typename TElem>
-		inline bool assemble_f(local_vector_type& d, number time=0.0);
+		bool assemble_f(local_vector_type& d);
 
 	private:
 		// position access

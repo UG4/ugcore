@@ -49,7 +49,6 @@ namespace ug{
 
 template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
 bool
 FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
@@ -100,7 +99,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
@@ -190,7 +189,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	// nothing to be done
 	return true;
@@ -203,7 +202,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_A(local_vector_type& d, const local_vector_type& u, number time)
+assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
@@ -268,7 +267,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_M(local_vector_type& d, const local_vector_type& u, number time)
+assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	// nothing to be done
 	return true;
@@ -281,7 +280,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
-assemble_f(local_vector_type& d, number time)
+assemble_f(local_vector_type& d)
 {
 	// nothing to be done
 	return true;

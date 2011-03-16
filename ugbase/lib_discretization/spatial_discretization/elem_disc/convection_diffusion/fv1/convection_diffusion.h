@@ -194,27 +194,23 @@ class FVConvectionDiffusionElemDisc
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		inline bool assemble_JA(local_matrix_type& J,
-		                        const local_vector_type& u, number time=0.0);
+		bool assemble_JA(local_matrix_type& J, const local_vector_type& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		inline bool assemble_JM(local_matrix_type& J,
-		                        const local_vector_type& u, number time=0.0);
+		bool assemble_JM(local_matrix_type& J, const local_vector_type& u);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		inline bool assemble_A(local_vector_type& d,
-		                       const local_vector_type& u, number time=0.0);
+		bool assemble_A(local_vector_type& d, const local_vector_type& u);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		inline bool assemble_M(local_vector_type& d,
-		                       const local_vector_type& u, number time=0.0);
+		bool assemble_M(local_vector_type& d, const local_vector_type& u);
 
 	///	assembles the local right hand side
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		inline bool assemble_f(local_vector_type& d, number time=0.0);
+		bool assemble_f(local_vector_type& d);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity

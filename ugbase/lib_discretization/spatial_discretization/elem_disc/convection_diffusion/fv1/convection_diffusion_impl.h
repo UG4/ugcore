@@ -122,7 +122,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 // get finite volume geometry
 	static TFVGeom<TElem, dim>& geo =
@@ -253,7 +253,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
+assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 // 	get finite volume geometry
 	static TFVGeom<TElem, dim>& geo
@@ -290,7 +290,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_A(local_vector_type& d, const local_vector_type& u, number time)
+assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
 	static TFVGeom<TElem, dim>& geo
@@ -416,7 +416,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_M(local_vector_type& d, const local_vector_type& u, number time)
+assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
 	static TFVGeom<TElem, dim>& geo
@@ -453,7 +453,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
-assemble_f(local_vector_type& d, number time)
+assemble_f(local_vector_type& d)
 {
 //	if zero data given, return
 	if(!m_imRhs.data_given()) return true;

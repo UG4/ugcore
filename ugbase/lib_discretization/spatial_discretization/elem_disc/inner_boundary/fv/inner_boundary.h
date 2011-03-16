@@ -112,7 +112,7 @@ class FVInnerBoundaryElemDisc
 	 * at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool prepare_element_loop();
+		bool prepare_element_loop();
 
 	///	prepares the element for assembling
 	/**
@@ -121,31 +121,31 @@ class FVInnerBoundaryElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
+		bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
 
 	///	finishes the loop over all elements
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool finish_element_loop();
+		bool finish_element_loop();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool assemble_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0);
+		bool assemble_JA(local_matrix_type& J, const local_vector_type& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool assemble_JM(local_matrix_type& J, const local_vector_type& u, number time=0.0);
+		bool assemble_JM(local_matrix_type& J, const local_vector_type& u);
 
 	///	assembles the stiffness part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool assemble_A(local_vector_type& d, const local_vector_type& u, number time=0.0);
+		bool assemble_A(local_vector_type& d, const local_vector_type& u);
 
 	///	assembles the mass part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool assemble_M(local_vector_type& d, const local_vector_type& u, number time=0.0);
+		bool assemble_M(local_vector_type& d, const local_vector_type& u);
 
 	///	assembles the local right hand side
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		inline bool assemble_f(local_vector_type& d, number time=0.0);
+		bool assemble_f(local_vector_type& d);
 
 	private:
 		// position access

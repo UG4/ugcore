@@ -43,7 +43,7 @@ class IUserData
 	///	Functor type for evaluation function
 		typedef boost::function<void (TData& value,
 		                              const MathVector<dim>& x,
-		                              number& time)>
+		                              number time)>
 		functor_type;
 
 	/// provides the functor
@@ -83,7 +83,7 @@ class IBoundaryData
 	///	Functor Type
 		typedef boost::function<bool (TData& value,
 		                              const MathVector<dim>& x,
-		                              number& time)>
+		                              number time)>
 		functor_type;
 
 	/// provides the functor
