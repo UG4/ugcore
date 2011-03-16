@@ -195,7 +195,7 @@ POSUpwind = util.CreateNavierStokesPositiveUpwind(dim);
 fieldsStab = util.CreateNavierStokesFIELDSStabilization(dim)
 
 -- ... and set the upwind
-fieldsStab:set_upwind(LPSUpwind)
+fieldsStab:set_upwind(fullUpwind)
 
 -- We also can choose, how the diffusion length of the stabilization is computed.
 -- Under the option we pick on:
@@ -348,6 +348,10 @@ newtonConvCheck:set_verbose_level(true)
 -- implementation of the ILineSearch-Interface can be passed to the newton
 -- solver. Here again we use the standard implementation.
 newtonLineSearch = StandardLineSearch()
+newtonLineSearch:set_maximum_steps(20)
+newtonLineSearch:set_lambda_start(1.0)
+newtonLineSearch:set_reduce_factor(0.5)
+newtonLineSearch:set_accept_best(true)
 
 -- Sometimes its helpful to write the defect and jacobian of the newton step
 -- to debug the implementation. For that, we use the debug writer

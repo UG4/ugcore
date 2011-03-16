@@ -189,10 +189,10 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 				.add_method("set_maximum_steps", &T::set_maximum_steps)
 				.add_method("set_lambda_start", &T::set_lambda_start)
 				.add_method("set_reduce_factor", &T::set_reduce_factor)
+				.add_method("set_accept_best", &T::set_accept_best)
 				.add_method("set_verbose_level", &T::set_verbose_level)
 				.add_method("set_offset", &T::set_offset);
 		}
-
 
 	// PreviousSolutions
 		{

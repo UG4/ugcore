@@ -10,6 +10,8 @@
 
 #include <ostream>
 #include <string>
+#include <vector>
+#include <cmath>
 
 #include "common/common.h"
 
@@ -27,138 +29,219 @@ namespace ug{
  * passed to a newton solver to control the line search.
  *
  */
-template <typename TFunction>
+template <typename TVector>
 class ILineSearch
 {
 	public:
-		typedef TFunction function_type;
+		typedef TVector vector_type;
 
 	public:
-		/// set string to be printed before each output of line search
+	/// set string to be printed before each output of line search
 		virtual void set_offset(std::string offset) = 0;
 
-		/**
-		 *	Performs a line search to a given direction.
-		 *
-		 * \param[in]		Op		Non-linear operator
-		 * \param[in]  		u 		current solution
-		 * \param[in]		p		search direction
-		 * \param[in,out]	d		defect
-		 * \param[in]		defect	norm of current defect
-		 *
-		 * \return 	true 		if line search successful
-		 * 			false 		if line search failed
-		 */
-		virtual bool search(IOperator<function_type, function_type>& Op,
-		                    function_type& u, function_type& p,
-		                    function_type& d, number defect) = 0;
+	/**
+	 *	Performs a line search to a given direction.
+	 *
+	 * \param[in]		Op		Non-linear operator
+	 * \param[in]  		u 		current solution
+	 * \param[in]		p		search direction
+	 * \param[in,out]	d		defect
+	 * \param[in]		defect	norm of current defect
+	 *
+	 * \return 	true 		if line search successful
+	 * 			false 		if line search failed
+	 */
+		virtual bool search(IOperator<vector_type, vector_type>& Op,
+		                    vector_type& u, vector_type& p,
+		                    vector_type& d, number defect) = 0;
 
-		/// virtual destructor
+	/// virtual destructor
 		virtual ~ILineSearch() {}
 };
 
-template <typename TFunction>
-class StandardLineSearch : public ILineSearch<TFunction>
+/// standard implementation for line search
+template <typename TVector>
+class StandardLineSearch : public ILineSearch<TVector>
 {
 	public:
-		typedef TFunction function_type;
+	//	type of
+		typedef TVector vector_type;
 
 	public:
-		StandardLineSearch(int maxSteps, number lambdaStart,
-		                   number lambdaReduce, bool verbose)
-		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart),
-		  	 m_lambdaReduce(lambdaReduce),
-			 m_verbose(verbose), m_offset("")
-			 {};
-
+	///	default constructor (setting default values)
 		StandardLineSearch()
 		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5),
-			 m_verbose(true), m_offset("")
+			 m_verbose(true), m_bAcceptBest(false), m_offset("")
 			 {};
 
+	///	sets maximum number of line search steps
 		void set_maximum_steps(int steps) {m_maxSteps = steps;}
-		void set_lambda_start(number start) {m_lambdaStart = start;}
-		void set_reduce_factor(number factor) {m_lambdaReduce = factor;}
-		void set_verbose_level(bool level) {m_verbose = level;}
-		void set_offset(std::string offset) {m_offset = offset;};
 
-		bool search(IOperator<function_type, function_type>& Op,
-		            function_type& u, function_type& p,
-		            function_type& d, number defect)
+	///	sets start factor
+		void set_lambda_start(number start) {m_lambdaStart = start;}
+
+	///	sets factor by which line search factor is multiplied in each step
+		void set_reduce_factor(number factor) {m_lambdaReduce = factor;}
+
+	///	sets iff after max_steps the best try is used
+		void set_accept_best(bool bAcceptBest) {m_bAcceptBest = bAcceptBest;}
+
+	///	sets if info should be printed
+		void set_verbose_level(bool level) {m_verbose = level;}
+
+	///	\copydoc ILineSearch::set_offset
+		virtual void set_offset(std::string offset) {m_offset = offset;};
+
+	///	\copydoc ILineSearch::search
+		virtual bool search(IOperator<vector_type, vector_type>& Op,
+		                    vector_type& u, vector_type& p,
+		                    vector_type& d, number defect)
 		{
-			// clone pattern for s
+		// 	clone pattern for s
 			s.resize(u.size());
 
+		//	start factor
 			number lambda = m_lambdaStart;
 			number alpha = 0.25;
 
-			number norm, norm_old;
-			norm_old = defect;
+		//	some values
+			number norm, norm_old = defect;
+			std::vector<number> vRho;
 
-			// remember u
+		// remember u
 			s = u;
 
+		//	print heading line
 			if(m_verbose)
 				UG_LOG(m_offset << "   ++++ Line Search:  Iter       lambda        Defect          Rate \n");
 
+		//	loop line stearch steps
 			for(int k = 1; k <= m_maxSteps; ++k)
 			{
-				// try on line u := u - lambda*p
+			// 	try on line u := u - lambda*p
 				VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
 
-				// compute new Defect
+			// 	compute new Defect
 				if(!Op.prepare(d, u))
-					{UG_LOG("StandardLineSearch: Cannot prepare Non-linear"
-							" Operator for defect computation.\n"); return false;}
+				{
+					UG_LOG("ERROR in 'StandardLineSearch::search': Cannot "
+							"prepare Non-linear Operator for defect computation.\n");
+					return false;
+				}
 				if(!Op.apply(d, u))
-					{UG_LOG("StandardLineSearch: Cannot apply Non-linear Operator "
-							"to compute defect.\n"); return false;}
+				{
+					UG_LOG("ERROR in 'StandardLineSearch::search': Cannot apply"
+							" Non-linear Operator to compute defect.\n");
+					return false;
+				}
 
-				//compute new Residuum
+			//	compute new Residuum
 				norm = d.two_norm();
 
-				// compute reduction
-				number rho = norm/norm_old;
+			// 	compute reduction
+				vRho.push_back(norm/norm_old);
 
-				// print rate
+			//	print rate
 				if(m_verbose)
-					UG_LOG(m_offset << "   +                 " << std::setw(4) << k << ":   " << std::setw(10)
-									<< std::resetiosflags( ::std::ios::scientific )<< lambda << "     "
-									<< std::scientific << norm << "   " << rho <<"\n");
+					UG_LOG(m_offset << "   +                 " << std::setw(4)
+							<< k << ":   " << std::setw(11)
+							<< std::resetiosflags( ::std::ios::scientific )<<
+							lambda << "     "
+							<< std::scientific << norm << "   " << vRho.back() <<"\n");
 
-				// check if reduction fits
-				if(rho <= 1 - alpha * fabs(lambda)) break;
+			// 	check if reduction fits
+				if(vRho.back() <= 1 - alpha * fabs(lambda)) break;
 				else lambda *= m_lambdaReduce;
 
+			//	check if maximum number of steps reached
 				if(k == m_maxSteps)
-					{UG_LOG(m_offset << "   ++++ Line Search did not converge.\n"); return false;}
+				{
+				//	if not accept best, line search failed
+					if(!m_bAcceptBest)
+					{
+						UG_LOG(m_offset << "   ++++ Line Search did not converge.\n");
+						return false;
+					}
 
-				// reset u
+				//	search minimum
+					size_t best = 0;
+					number rho_min = vRho.front();
+					for(size_t i = 1; i < vRho.size(); ++i)
+					{
+						if(rho_min > vRho[i])
+						{
+							rho_min = vRho[i];
+							best = i;
+						}
+					}
+
+				//	check if best is converging (i.e. rho < 1)
+					if(vRho[best] >= 1)
+					{
+						UG_LOG(m_offset << "   ++++ Accept Best: No try with "
+								"Rate < 1, cannot accept any line search step.\n");
+						UG_LOG(m_offset << "   ++++ Line Search did not converge.\n");
+						return false;
+					}
+
+				//	accept best
+					UG_LOG(m_offset << "   ++++ Accept Best: Accepting step " <<
+					       best+1 << ", Rate = "<< vRho[best] <<".\n");
+
+				// 	try on line u := u - lambda*p
+					VecScaleAdd(u, 1.0, u, (-1)*lambda*std::pow(m_lambdaReduce, (number)best), p);
+
+				// 	compute new Defect
+					if(!Op.prepare(d, u))
+					{
+						UG_LOG("ERROR in 'StandardLineSearch::search': Cannot "
+								"prepare Non-linear Operator for defect computation.\n");
+						return false;
+					}
+					if(!Op.apply(d, u))
+					{
+						UG_LOG("ERROR in 'StandardLineSearch::search': Cannot apply"
+								" Non-linear Operator to compute defect.\n");
+						return false;
+					}
+
+				//	break to finish
+					break;
+				}
+
+			// 	reset u
 				u = s;
 			}
+
+		//	print end line
 			if(m_verbose)
 				UG_LOG(m_offset << "   ++++ Line Search converged.\n");
+
+		//	we're done
 			return true;
 		}
 
 	protected:
-		// solution in line direction
-		function_type s;
+	/// solution in line direction
+		vector_type s;
 
 	protected:
-		// maximum number of steps to be performed
+	/// maximum number of steps to be performed
 		int m_maxSteps;
 
-		// lambda start
+	/// lambda start
 		number m_lambdaStart;
 
-		// lambda reduce
+	/// lambda reduce
 		number m_lambdaReduce;
 
-		// verbose level
+	/// verbose level
 		bool m_verbose;
 
-		// number of spaces inserted before output
+	///	accept best
+		bool m_bAcceptBest;
+
+	/// number of spaces inserted before output
 		std::string m_offset;
 };
 
