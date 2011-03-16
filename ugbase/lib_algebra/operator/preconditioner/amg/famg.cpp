@@ -219,7 +219,6 @@ public:
 private:
 	void get_aggressive_coarsening_interpolation()
 	{
-		UG_SET_DEBUG_LEVELS(4);
 		for(size_t i=0; i<A.num_rows(); i++)
 		{
 			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating (neither coarse nor fine but interpolateable), but is not in heap anymore???");
@@ -227,7 +226,6 @@ private:
 
 			calculator.get_all_neighbors_interpolation(i, P, rating);
 		}
-		UG_SET_DEBUG_LEVELS(0);
 	}
 
 
@@ -540,7 +538,7 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, omega);
 	dummy.do_stuff();
 
-	UG_SET_DEBUG_LEVELS(0);
+	//UG_SET_DEBUG_LEVELS(0);
 }
 
 

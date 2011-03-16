@@ -438,7 +438,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		}
 	}
 
-	rating.print_OL_types();
+	//rating.print_OL_types();
 
 
 	// debug: print some layouts

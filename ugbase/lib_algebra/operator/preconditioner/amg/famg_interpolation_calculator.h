@@ -389,10 +389,10 @@ public:
 			}
 			else
 			{
-				UG_LOG("fine neighbors, Interpolating from ");
+				/*UG_LOG("fine neighbors, Interpolating from ");
 				for(size_t j=0; j<onlyN1.size(); j++)
 					UG_LOG(onlyN1[j] << ": " << q[j] << ", ");
-				UG_LOG("\n");
+				UG_LOG("\n");*/
 				for(size_t j=0; j<onlyN1.size(); j++)
 				{
 					size_t node = onlyN1[j];
