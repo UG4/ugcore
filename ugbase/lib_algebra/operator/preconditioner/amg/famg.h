@@ -109,7 +109,7 @@ public:
 	{
 		m_testvectors.clear();
 		m_vVectorWriters.clear();
-		m_omega.clear();
+		m_omegaVectors.clear();
 		m_omegaVectorWriters.clear();
 	}
 
@@ -118,9 +118,9 @@ public:
 
 	void add_testvector(vector_type& c, double weight)
 	{
-		UG_ASSERT(m_testvectors.size() == m_omega.size(), "???");
+		UG_ASSERT(m_testvectors.size() == m_omegaVectors.size(), "???");
 		m_testvectors.push_back(c);
-		m_omega.push_back(weight);
+		m_omegaVectors.push_back(weight);
 	}
 
 	void add_vector_writer(IVectorWriter<vector_type> *vw, double weight)
@@ -150,7 +150,7 @@ private:
 	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;
 
 	stdvector<vector_type> m_testvectors;
-	stdvector<double> m_omega; // testvectorWeights
+	stdvector<double> m_omegaVectors; // testvectorWeights
 	stdvector< IVectorWriter<vector_type> * > m_vVectorWriters;
 	stdvector<double> m_omegaVectorWriters; // testvectorWeights
 };
