@@ -31,7 +31,7 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 2)
+numRefs = util.GetParamNumber("-numRefs", 5)
 
 
 --------------------------------
@@ -105,6 +105,7 @@ numRefs = util.GetParamNumber("-numRefs", 2)
 -- User Data Functions (end)
 --------------------------------
 
+
 -- create Instance of a Domain
 print("Create Domain.")
 dom = util.CreateDomain(dim)
@@ -112,31 +113,24 @@ dom = util.CreateDomain(dim)
 -- load domain
 print("Load Domain from File.")
 if util.LoadDomain(dom, gridName) == false then
-   print("Loading Domain failed.")
-   exit()
+print("Loading Domain failed.")
+exit()
 end
-
--- get subset handler
-sh = dom:get_subset_handler()
---if sh:num_subsets() ~= 2 then 
---	print("Domain must have 2 Subsets for this problem.")
---	exit()
---end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("DirichletBoundary", 1)
---sh:set_subset_name("NeumannBoundary", 2)
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs > numRefs then
-	print("numPreRefs must be smaller/equal than numRefs");
-	exit();
+if numPreRefs >= numRefs then
+print("numPreRefs must be smaller than numRefs");
+exit();
 end
 
-refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
+-- Create a refiner instance. This is a factory method
+-- which automatically creates a parallel refiner if required.
+refiner = GlobalDomainRefiner(dom)
+
+-- Performing pre-refines
 for i=1,numPreRefs do
-	refiner:refine()
+refiner:refine()
 end
 
 -- Distribute the domain to all involved processes
@@ -145,11 +139,21 @@ print("Error while Distributing Grid.")
 exit()
 end
 
-
+-- Perform post-refine
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-	util.GlobalRefineParallelDomain(dom)
+refiner:refine()
 end
+
+-- get subset handler
+sh = dom:get_subset_handler()
+if sh:num_subsets() ~= 2 then 
+print("Domain must have 2 Subsets for this problem.")
+exit()
+end
+sh:set_subset_name("Inner", 0)
+sh:set_subset_name("DirichletBoundary", 1)
+--sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
 SaveDomain(dom, "refined_grid.ugx")
@@ -159,60 +163,40 @@ print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
+-- approxSpace:print_layout_statistic()
+-- approxSpace:print_statistic()
 
 -------------------------------------------
 --  Setup User Functions
 -------------------------------------------
 print ("Setting up Assembling")
 
+-- depending on the dimension we're choosing the appropriate callbacks.
+-- we're using the .. operator to assemble the names (dim = 2 -> "ourDiffTensor2d")
 -- Diffusion Tensor setup
-	if dim == 2 then
-		diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor2d", dim)
-	elseif dim == 3 then
-		diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor3d", dim)
-	end
-	diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
+diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
+--diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-	if dim == 2 then
-		velocityField = util.CreateLuaUserVector("ourVelocityField2d", dim)
-	elseif dim == 3 then
-		velocityField = util.CreateLuaUserVector("ourVelocityField3d", dim)
-	end 
-	velocityField = util.CreateConstUserVector(0.0, dim)
+velocityField = util.CreateLuaUserVector("ourVelocityField"..dim.."d", dim)
+--velocityField = util.CreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-	if dim == 2 then
-		reaction = util.CreateLuaUserNumber("ourReaction2d", dim)
-	elseif dim == 3 then
-		reaction = util.CreateLuaUserNumber("ourReaction3d", dim)
-	end
-	reaction = util.CreateConstUserNumber(0.0, dim)
+reaction = util.CreateLuaUserNumber("ourReaction"..dim.."d", dim)
+--reaction = util.CreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-	if dim == 2 then
-		rhs = util.CreateLuaUserNumber("ourRhs2d", dim)
-	elseif dim == 3 then
-		rhs = util.CreateLuaUserNumber("ourRhs3d", dim)
-	end
-	rhs = util.CreateConstUserNumber(0.0, dim)
+rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
+--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-	if dim == 2 then
-		neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
-	elseif dim == 3 then
-		neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd3d", dim)
-	end
-	neumann = util.CreateConstUserNumber(0.0, dim)
+neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
+--neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	if dim == 2 then
-		dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
-	elseif dim == 3 then
-		dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd3d", dim)
-	end
-	dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
-	
+dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
+
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
@@ -247,6 +231,7 @@ domainDisc:add_elem_disc(elemDisc)
 --domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 
+
 -------------------------------------------
 --  Algebra
 -------------------------------------------
@@ -279,7 +264,7 @@ print ("done")
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 -- SaveVectorForConnectionViewer(b, "Rhs.mat")
 
--- create algebraic Preconditioner
+-- create algebraic Preconditioners
 
 print ("create preconditioners... ")
 jac = Jacobi()
@@ -290,40 +275,45 @@ bgs = BackwardGaussSeidel()
 ilu = ILU()
 ilut = ILUT()
 
--- create GMG ---
------------------
 
-	-- Base Solver
-	baseConvCheck = StandardConvergenceCheck()
-	baseConvCheck:set_maximum_steps(500)
-	baseConvCheck:set_minimum_defect(1e-16)
-	baseConvCheck:set_reduction(1e-16)
-	baseConvCheck:set_verbose_level(false)
-	
-	if true then
-		base = LinearSolver()
-		base:set_convergence_check(baseConvCheck)
-		base:set_preconditioner(jac)
-	else
-		base = LU()
+-- create Base Solver
+baseConvCheck = StandardConvergenceCheck()
+baseConvCheck:set_maximum_steps(500)
+baseConvCheck:set_minimum_defect(1e-16)
+baseConvCheck:set_reduction(1e-16)
+baseConvCheck:set_verbose_level(false)
+
+if false then
+	base = LinearSolver()
+	base:set_convergence_check(baseConvCheck)
+	base:set_preconditioner(jac)
+else
+	base = LU()
+end
+
+-- Testvectors for AMG ---
+--------------------------
+
+function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
+	local amgTestvector;
+	if dim == 1 then
+		amgTestvector = GridFunctionVectorWriter1d()
+	elseif dim == 2 then
+		amgTestvector = GridFunctionVectorWriter2d()
+	elseif dim == 3 then
+		amgTestvector = GridFunctionVectorWriter3d()
 	end
-	
-	-- Transfer and Projection
-	transfer = util.CreateP1Prolongation(approxSpace)
-	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = util.CreateP1Projection(approxSpace)
-	
-	-- Gemoetric Multi Grid
-	gmg = util.CreateGeometricMultiGrid(approxSpace)
-	gmg:set_discretization(domainDisc)
-	gmg:set_base_level(0)
-	gmg:set_base_solver(base)
-	gmg:set_smoother(jac)
-	gmg:set_cycle_type(1)
-	gmg:set_num_presmooth(3)
-	gmg:set_num_postsmooth(3)
-	gmg:set_prolongation(transfer)
-	gmg:set_projection(projection)
+	amgTestvector:set_reference_grid_function(gridfunction)
+	amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
+	return amgTestvector	
+end
+
+
+function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+	local amgDirichlet0 = GridFunctionVectorWriterDirichlet02d()
+	amgDirichlet0:init(dirichletBND, approxSpace)
+	return amgDirichlet0
+end
 
 
 function ourTestvector2d_0_0(x, y, t)
@@ -338,60 +328,39 @@ function ourTestvector2d_2_1(x, y, t)
 	return math.sin(2*math.pi*x)*math.sin(math.pi*y)
 end
 
+
 function ourTestvector2d_1_2(x, y, t)
 	return math.sin(math.pi*x)*math.sin(2*math.pi*y)
 end
+
 
 function ourTestvector2d_2_2(x, y, t)
 	return math.sin(2*math.pi*x)*math.sin(2*math.pi*y)
 end
 
+
+
 -- create AMG ---
 -----------------
 bUseFAMG = 1
 if bUseFAMG == 1 then
-	amg = FAMGPreconditioner()
-	
+	amg = FAMGPreconditioner()	
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
 	amg:set_aggressive_coarsening(true)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
 	amg:set_testvector_damps(5)
 	
-	-- amgDirichlet0 = GridFunctionVectorWriterDirichlet02d()
-	-- amgDirichlet0:init(dirichletBND, approxSpace)
-	-- amg:add_vector_writer(amgDirichlet0, 1.0)
 	
+	-- add testvectors with lua callbacks (see ourTestvector2d_1_1)
+	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_0_0", dim), 1.0)
+	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_1_1", dim), 1.0)
+	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_1_2", dim), 1.0)
+	amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_2_1", dim), 1.0)
+	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_2_2", dim), 1.0)
 	
-	luaTestvector0_0 = util.CreateLuaUserNumber("ourTestvector2d_0_0", dim)
-	amgTestvector0_0 = GridFunctionVectorWriter2d()
-	amgTestvector0_0:set_reference_grid_function(u)
-	amgTestvector0_0:set_user_data(luaTestvector0_0)	
-	amg:add_vector_writer(amgTestvector0_0, 1.0)
-
-	luaTestvector1_1 = util.CreateLuaUserNumber("ourTestvector2d_1_1", dim)
-	amgTestvector1_1 = GridFunctionVectorWriter2d()
-	amgTestvector1_1:set_reference_grid_function(u)
-	amgTestvector1_1:set_user_data(luaTestvector1_1)	
-	amg:add_vector_writer(amgTestvector1_1, 1.0)
-
-	luaTestvector1_2 = util.CreateLuaUserNumber("ourTestvector2d_1_2", dim)
-	amgTestvector1_2 = GridFunctionVectorWriter2d()
-	amgTestvector1_2:set_reference_grid_function(u)
-	amgTestvector1_2:set_user_data(luaTestvector1_2)	
-	amg:add_vector_writer(amgTestvector1_2, 1.0)
-
-	luaTestvector2_1 = util.CreateLuaUserNumber("ourTestvector2d_2_1", dim)
-	amgTestvector2_1 = GridFunctionVectorWriter2d()
-	amgTestvector2_1:set_reference_grid_function(u)
-	amgTestvector2_1:set_user_data(luaTestvector2_1)	
-	amg:add_vector_writer(amgTestvector2_1, 1.0)
-
-	luaTestvector2_2 = util.CreateLuaUserNumber("ourTestvector2d_2_2", dim)
-	amgTestvector2_2 = GridFunctionVectorWriter2d()
-	amgTestvector2_2:set_reference_grid_function(u)
-	amgTestvector2_2:set_user_data(luaTestvector2_1)	
-	amg:add_vector_writer(amgTestvector2_2, 1.0)
+	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
+	-- amg:add_vector_writer(CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace), 1.0)
 
 else
 	amg = AMGPreconditioner()
@@ -417,9 +386,12 @@ amg:set_fsmoothing(0.0)
 
 amg:tostring()
 
+
+
+
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(10)
+convCheck:set_maximum_steps(30)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
 
