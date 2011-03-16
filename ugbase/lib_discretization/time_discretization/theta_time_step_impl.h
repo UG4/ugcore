@@ -15,7 +15,7 @@ namespace ug{
 template <typename TDoFDistribution, typename TAlgebra >
 bool
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-prepare_step(const SolutionTimeSeries<vector_type>& prevSol,
+prepare_step(SolutionTimeSeries<vector_type>& prevSol,
              number dt)
 {
 //	perform checks
@@ -59,10 +59,20 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 		return IAssemble_ERROR;
 	}
 
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
+
 //	assemble jacobian using current iterate
 	if(this->m_pDomDisc->assemble_jacobian
 			(J, u, m_futureTime, (*m_pPrevSol), dofDistr, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
 		return IAssemble_ERROR;
+
+//	pop unknown solution to solution time series
+	m_pPrevSol->remove_latest();
 
 //	we're done
 	return IAssemble_OK;
@@ -82,19 +92,30 @@ assemble_defect(vector_type& d, const vector_type& u,
 		return IAssemble_ERROR;
 	}
 
+
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
+
 // 	future solution part
 	if(this->m_pDomDisc->assemble_defect
 			(d, u, m_futureTime, (*m_pPrevSol), dofDistr, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
 		return IAssemble_ERROR;
 
 // 	previous time step part
-	for(size_t i=0; i < m_pPrevSol->size(); ++i)
+	for(size_t i=1; i < m_pPrevSol->size(); ++i)
 	{
 		if(this->m_pDomDisc->assemble_defect
 				(d,  m_pPrevSol->solution(i), m_pPrevSol->time(i), (*m_pPrevSol), dofDistr,
-				 s_m[i+1], s_a[i+1]*m_dt) != IAssemble_OK)
+				 s_m[i], s_a[i]*m_dt) != IAssemble_OK)
 			return IAssemble_ERROR;
 	}
+
+//	pop unknown solution to solution time series
+	m_pPrevSol->remove_latest();
 
 //	we're done
 	return IAssemble_OK;

@@ -14,6 +14,8 @@
 // other ug libraries
 #include "common/common.h"
 
+#include "lib_discretization/common/local_algebra.h"
+
 namespace ug{
 
 /// \ingroup lib_disc_time_assemble
@@ -109,6 +111,51 @@ class SolutionTimeSeries
 
 	//	deque of previous solutions
 		std::deque<TimeSol> m_vTimeSolution;
+};
+
+
+template <typename TVector>
+class LocalVectorTimeSeries
+{
+	public:
+	///	Vector type
+		typedef TVector vector_type;
+
+	///	Entry type
+		typedef typename vector_type::value_type value_type;
+
+	public:
+	///	constructor
+		LocalVectorTimeSeries(const SolutionTimeSeries<TVector>& solTimeSeries)
+			: m_rSolTimeSeries(solTimeSeries)
+		{}
+
+	///	returns number of time points
+		size_t size() const {return m_rSolTimeSeries.size();}
+
+	///	returns time point i
+		number time(size_t i) const {return m_rSolTimeSeries.time(i);}
+
+	///	returns the local vector for the i'th time point
+		const LocalVector<value_type>& solution(size_t i) const
+			{return m_vLocalVector.at(i);}
+
+	///	update for indices
+		void read_values(LocalIndices& ind)
+		{
+			for(size_t i = 0; i < m_vLocalVector.size(); ++i)
+			{
+				m_vLocalVector[i].set_indices(ind);
+				m_vLocalVector[i].read_values(m_rSolTimeSeries.solution(i));
+			}
+		}
+
+	protected:
+	///	time series
+		const SolutionTimeSeries<TVector>& m_rSolTimeSeries;
+
+	///	vector of local vectors (one for each time point)
+		std::vector<LocalVector<value_type> > m_vLocalVector;
 };
 
 /// @}

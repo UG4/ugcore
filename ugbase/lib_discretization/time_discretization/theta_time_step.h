@@ -92,7 +92,7 @@ class ThetaTimeDiscretization
 		size_t num_prev_steps() {return m_prevSteps;}
 
 	///	\copydoc ITimeDiscretization::prepare_step()
-		virtual bool prepare_step(const SolutionTimeSeries<vector_type>& prevSol,
+		virtual bool prepare_step(SolutionTimeSeries<vector_type>& prevSol,
 		                          number dt);
 
 	public:
@@ -116,7 +116,7 @@ class ThetaTimeDiscretization
 		size_t m_prevSteps;
 		number s_a[2];
 		number s_m[2];
-		const SolutionTimeSeries<vector_type>* m_pPrevSol;
+		SolutionTimeSeries<vector_type>* m_pPrevSol;
 		number m_dt; 							///< Time Step size
 		number m_futureTime;					///< Future Time
 };

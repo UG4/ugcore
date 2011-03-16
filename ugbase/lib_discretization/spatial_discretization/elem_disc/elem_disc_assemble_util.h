@@ -130,6 +130,10 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 // 	set common functions
 	ind.set_function_group(Eval.fct_group());
 
+//	set time-independent
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		vElemDisc[i]->set_time_dependent(false);
+
 // 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 	{
@@ -311,6 +315,10 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 
 // 	set common functions
 	ind.set_function_group(Eval.fct_group());
+
+//	set time-independent
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		vElemDisc[i]->set_time_dependent(false);
 
 // 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
@@ -501,6 +509,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		return false;
 	}
 
+//	set time-independent
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		vElemDisc[i]->set_time_dependent(false);
+
 // 	adjust local algebra
 	if(!useHanging)
 	{
@@ -616,8 +628,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
-					const typename TAlgebra::vector_type& u,
-					number s_a0, number time)
+					const typename TAlgebra::vector_type& u, number time,
+	                const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
+					number s_a0)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -688,6 +701,12 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 // 	set common functions
 	ind.set_function_group(Eval.fct_group());
 
+//	set time dependent part
+	LocalVectorTimeSeries<typename TAlgebra::vector_type> locTimeSeries(solList);
+	bool bNeedLocTimeSeries = false;
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		bNeedLocTimeSeries |= vElemDisc[i]->set_time_dependent(true, time, &locTimeSeries);
+
 // 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 	{
@@ -728,6 +747,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 
 	// 	read local values of u
 		locU.read_values(u);
+
+	//	read local values of time series
+		if(bNeedLocTimeSeries) locTimeSeries.read_values(ind);
 
 	// 	prepare element
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
@@ -900,6 +922,10 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 // 	set common functions
 	ind.set_function_group(Eval.fct_group());
 
+//	set time-independent
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		vElemDisc[i]->set_time_dependent(false);
+
 // 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 	{
@@ -1039,8 +1065,9 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	const IDoFDistribution<TDoFDistribution>& dofDistr,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
-               	const typename TAlgebra::vector_type& u,
-               	number s_m, number s_a, number time)
+               	const typename TAlgebra::vector_type& u, number time,
+                const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
+               	number s_m, number s_a)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -1119,12 +1146,19 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		return false;
 	}
 
+//	set time dependent part
+	LocalVectorTimeSeries<typename TAlgebra::vector_type> locTimeSeries(solList);
+	bool bNeedLocTimeSeries = false;
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		bNeedLocTimeSeries |= vElemDisc[i]->set_time_dependent(true, time, &locTimeSeries);
+
 // 	adjust local algebra
 	if(!useHanging)
 	{
 		locU.set_indices(ind);
 		locD.set_indices(ind);
 		tmpLocD.set_indices(ind);
+
 	}
 
 //	prepare element discs
@@ -1154,6 +1188,9 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 
 	// 	read local values of u
 		locU.read_values(u);
+
+	//	read local values of time series
+		if(bNeedLocTimeSeries) locTimeSeries.read_values(ind);
 
 	// 	reset local matrix and rhs
 		locD.set(0.0);
@@ -1344,6 +1381,10 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 // 	set common functions
 	ind.set_function_group(Eval.fct_group());
 
+//	set time-independent
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		vElemDisc[i]->set_time_dependent(false);
+
 // 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 	{
@@ -1485,8 +1526,9 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-               	const typename TAlgebra::vector_type& u,
-               	number s_m, number s_a, number time)
+               	const typename TAlgebra::vector_type& u, number time,
+                const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
+               	number s_m, number s_a)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -1559,6 +1601,12 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 // 	set common functions
 	ind.set_function_group(Eval.fct_group());
 
+//	set time dependent part
+	LocalVectorTimeSeries<typename TAlgebra::vector_type> locTimeSeries(solList);
+	bool bNeedLocTimeSeries = false;
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		bNeedLocTimeSeries |= vElemDisc[i]->set_time_dependent(true, time, &locTimeSeries);
+
 // 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 	{
@@ -1603,6 +1651,9 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 
 	// 	read local values of u
 		locU.read_values(u);
+
+	//	read local values of time series
+		if(bNeedLocTimeSeries) locTimeSeries.read_values(ind);
 
 	// 	reset local matrix and rhs
 		locRhs.set(0.0);

@@ -92,7 +92,7 @@ class ITimeDiscretization
 	 * \param[in] time_old	the time at the previous time steps
 	 * \param[in] dt		size of time step
 	 */
-		virtual bool prepare_step(const SolutionTimeSeries<vector_type>& prevSol,
+		virtual bool prepare_step(SolutionTimeSeries<vector_type>& prevSol,
 		                          number dt) = 0;
 
 	/// returns number of previous time steps needed

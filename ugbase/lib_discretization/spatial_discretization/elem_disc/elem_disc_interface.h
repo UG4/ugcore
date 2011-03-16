@@ -27,6 +27,7 @@ enum IElemDiscNeed {
 // intern headers
 #include "lib_discretization/assemble_interface.h"
 #include "lib_discretization/common/local_algebra.h"
+#include "lib_discretization/time_discretization/solution_time_series.h"
 #include "lib_discretization/function_spaces/grid_function_space.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
@@ -54,20 +55,30 @@ class IElemDisc{
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
+	///	Vector type
+		typedef typename algebra_type::vector_type vector_type;
+
+	///	Matrix type
+		typedef typename algebra_type::matrix_type matrix_type;
+
 	///	Local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type>
-				local_matrix_type;
+		typedef LocalMatrix<typename matrix_type::value_type> local_matrix_type;
 
 	/// Local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type>
-				local_vector_type;
+		typedef LocalVector<typename vector_type::value_type> local_vector_type;
 
 	/// Local index type
 		typedef LocalIndices local_index_type;
 
 	public:
 	///	Constructor
-		IElemDisc() : m_pPattern(NULL), m_id(-1) {}
+		IElemDisc()
+			: 	m_pPattern(NULL),
+			  	m_bTimeDependent(false),
+			  	m_time(0.0),
+			  	m_pLocalVectorTimeSeries(NULL),
+				m_id(-1)
+		{}
 
 	////////////////////////////
 	// Functions and Subsets
@@ -222,6 +233,67 @@ protected:
 	 */
 		bool set_geometric_object_type(int id, IElemDiscNeed need);
 
+	///	sets if assembling should be time-dependent (and the time point iff)
+	/**
+	 * This function specifies if the assembling is time-dependent. In that case
+	 * the time point is set and can be accessed by the method time(). Iff the
+	 * problem is time dependent, the time_point_changed() callback is invoked
+	 * with the new time point.
+	 *
+	 * \param[in]	bTimeDependent	flag if time-dependent
+	 * \param[in]	time			time point
+	 * \param[in]	time	time point
+	 *
+	 * \returns 	if elem disc needs time series local solutions
+	 */
+		bool set_time_dependent(bool bTimeDependent,
+		                        number time = 0.0,
+		                        const LocalVectorTimeSeries<vector_type>* locTimeSeries = NULL)
+		{
+			m_bTimeDependent = bTimeDependent;
+			m_time = time;
+			m_pLocalVectorTimeSeries = locTimeSeries;
+			if(is_time_dependent()) return time_point_changed(m_time);
+			else return false;
+		}
+
+	///	returns if assembling is time-dependent
+		bool is_time_dependent() const {return m_bTimeDependent;}
+
+	///	callback, invoked when new time point is set
+	/**
+	 * This callback must be implemented by a derived Elem Disc in order to handle
+	 * time-dependent data. The callback is invoked, whenever the time point
+	 * of the disc changes. As return the derived Elem Disc can specify, if
+	 * it really needs data from previous time steps for the (spatial) disc. The
+	 * default is false.
+	 *
+	 * \param[in]	time		new time point
+	 * \returns 	if elem disc needs time series local solutions
+	 */
+		virtual bool time_point_changed(number time) {return false;}
+
+	///	returns the current time point
+	/**
+	 * This function returns the current time point.
+	 *
+	 * \returns 	time 	time point
+	 */
+		inline number time() const {return m_time;}
+
+	///	returns the local time solutions
+	/**
+	 * This function returns the local time solutions. This a type of vector,
+	 * that holds the local unknowns for each time point of a time series.
+	 * Note, that the first sol is always the current (iterated, unknown)
+	 * time point, while all remaining sols are the already computed time steps
+	 * used e.g. in a time stepping scheme.
+	 *
+	 * \returns vLocalTimeSol		vector of local time Solutions
+	 */
+		const LocalVectorTimeSeries<vector_type>* local_time_solutions() const
+			{return m_pLocalVectorTimeSeries;}
+
 	///	prepares the loop over all elements of one type
 	/**
 	 * This function should prepare the element loop for elements of one fixed
@@ -312,6 +384,16 @@ protected:
 
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
+
+	protected:
+	///	flag if time dependent
+		bool m_bTimeDependent;
+
+	///	time point
+		number m_time;
+
+	///	list of local vectors for all solutions of the time series
+		const LocalVectorTimeSeries<vector_type>* m_pLocalVectorTimeSeries;
 
 	protected:
 		// register the functions
