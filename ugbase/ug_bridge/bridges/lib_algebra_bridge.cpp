@@ -235,6 +235,9 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 
 
+
+
+
 #ifdef UG_USE_AMG
 	//	AMG
 		reg.add_class_< typename amg_base<algebra_type>::LevelInformation > ("AMGLevelInformation", grp2.c_str())
@@ -307,6 +310,12 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			;
 #endif
 	}
+
+	//	LinearIteratorProduct
+					reg.add_class_<	LinearIteratorProduct<vector_type, vector_type>,
+									ILinearIterator<vector_type, vector_type> >("LinearIteratorProduct", grp.c_str())
+						.add_constructor()
+						.add_method("add_iteration", &LinearIteratorProduct<vector_type, vector_type>::add_iterator, "Add an iterator");
 /*
 	{
 #ifdef LAPACK_AVAILABLE
