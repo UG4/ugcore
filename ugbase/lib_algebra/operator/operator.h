@@ -24,6 +24,9 @@
 // iterator operators (Preconditioners)
 #include "operator_iterator_interface.h"
 
+// products and sums of iterator operators
+#include "operator_iterator_product.h"
+
 // convergence check
 #include "convergence_check.h"
 
@@ -50,6 +53,7 @@
 #include "preconditioner/ilut.h"
 #include "preconditioner/jacobi.h"
 #include "preconditioner/gauss_seidel.h"
+
 
 #ifdef UG_USE_AMG
 #include "preconditioner/amg/amg.h"
