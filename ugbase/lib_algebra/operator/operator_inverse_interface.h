@@ -226,8 +226,9 @@ class ILinearOperatorInverse
  * 		L*u = f     i.e. u := L^{-1} f
  *
  *
- * \tparam	X		domain space
- * \tparam	Y		range space
+ * \tparam	X		domain space (i.e. a vector corresponding to the matrix)
+ * \tparam	Y		range space (i.e. a vector corresponding to the matrix)
+ * \tparam	M		matrix type used to represent linear mapping
  */
 template <typename X, typename Y, typename M>
 class IMatrixOperatorInverse
