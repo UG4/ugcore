@@ -100,7 +100,7 @@ class IOperatorInverse
 
 /// describes an inverse linear mapping X->Y
 /**
- * This class is the base class for the inversion of linear soperator given in
+ * This class is the base class for the inversion of linear operator given in
  * form of the ILinearOperator interface class. Given a operator L, the basic
  * usage of this class is to invert this operator, i.e. to compute the solution
  * u of
@@ -109,16 +109,13 @@ class IOperatorInverse
  *
  * This application has been split up into three steps:
  *
- * 1. init(N): This method initializes the inverse operator. The inverse operator
+ * 1. init():  This method initializes the inverse operator. The inverse operator
  * 			   is initialized the way that, its application will be the inverse
- * 			   application of the operator N passed in by this function. The
+ * 			   application of the operator L passed in by this function. The
  * 			   prepare method can only be called, when this method has been
  * 			   called once.
  *
- * 2. prepare(u): This method prepares the function u, before it can be used in
- * 				  the apply method. Here, typically dirichlet values are set.
- *
- * 3. apply(u):	This method performs the inversion. Before this method is called
+ * 3. apply():	This method performs the inversion. Before this method is called
  * 				the init and prepare methods have to be called.
  *
  * This splitting has been made, since initialization and preparation may be
@@ -126,8 +123,10 @@ class IOperatorInverse
  * when to call this initialization/preparation. E.g. when the operator is
  * applied several times on the same vectors, those have only to be prepared
  * once and the init of the operator is only needed once.
+ *
+ * \tparam	X		domain space
+ * \tparam	Y		range space
  */
-
 template <typename X, typename Y>
 class ILinearOperatorInverse
 {
@@ -214,45 +213,99 @@ class ILinearOperatorInverse
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Inverse of a Matrix Linear Operator
+// Inverse of a Matrix-based Linear Operator
 ///////////////////////////////////////////////////////////////////////////////
 
+/// describes an inverse linear mapping X->Y based on a matrix
+/**
+ * This class is the base class for the inversion of linear matrix-based operator
+ * given in form of the IMatrixOperator interface class. Given a operator L,
+ * the basic usage of this class is to invert this operator, i.e. to compute
+ * the solution u of
+ *
+ * 		L*u = f     i.e. u := L^{-1} f
+ *
+ *
+ * \tparam	X		domain space
+ * \tparam	Y		range space
+ */
 template <typename X, typename Y, typename M>
 class IMatrixOperatorInverse
 	: public virtual ILinearOperatorInverse<X,Y>
 {
 	public:
-	//	Domain space
+	///	Domain space
 		typedef X domain_function_type;
 
-	// 	Range space
+	///	Range space
 		typedef Y codomain_function_type;
 
-	// 	Matrix type
+	///	Matrix type
 		typedef M matrix_type;
 
 	public:
-	// 	Init for Operator A
+	///	initializes this inverse operator for a matrix-based operator
+	/**
+	 * This method passes the operator A that is inverted by this operator. In
+	 * addition some preparation step can be made.
+	 *
+	 * \param[in]	A		linear matrix-basewd operator to invert
+	 * \returns		bool	success flag
+	 */
 		virtual bool init(IMatrixOperator<Y,X,M>& A) = 0;
 
-	// 	Apply solver, i.e. return u = A^{-1} * f
+	/// applies the inverse operator, i.e. returns u = A^{-1} * f
+	/**
+	 * This method applies the inverse operator.
+	 *
+	 * \param[out]	u		solution
+	 * \param[in]	f		right-hand side
+	 * \returns		bool	success flag
+	 */
 		virtual bool apply(Y& u, const X& f) = 0;
 
-	// 	Solve A*u = f, such that u = A^{-1} f
-	// 	This is done by iterating: u := u + B(f - A*u)
-	// 	In f the last defect f := f - A*u is returned
+	/// applies the inverse operator and updates the defect
+	/**
+	 * This method applies the inverse operator and updates the defect, i.e.
+	 * returns u = A^{-1} * f and in f the last defect d:= f - A*u is returned.
+	 *
+	 * \param[out]	u		solution
+	 * \param[in]	f		right-hand side on entry, defect on exit
+	 * \returns		bool	success flag
+	 */
 		virtual bool apply_return_defect(Y& u, X& f) = 0;
 
-	// 	Destructor
+	/// virtual destructor
 		virtual ~IMatrixOperatorInverse() {};
 
 	public:
-	//	Implement functions of LinearOperator
+	///	initializes this inverse operator for a linear operator
+	/**
+	 * This method implements the ILinearOperatorInverse interface method.
+	 * Basically, the request is forwarded to the matrix-based init method,
+	 * if the the operator is matrix-based. If the operator is not matrix-based
+	 * this inverse can not be used and false is returned
+	 *
+	 * \param[in]	A		linear matrix-based operator to invert
+	 * \param[in]	u		linearization point
+	 * \returns		bool	success flag
+	 */
 		virtual bool init(ILinearOperator<Y,X>& A, const Y&u)
 		{
+		//	forget about u and forward request.
 			return init(A);
 		}
 
+	///	initializes this inverse operator for a linear operator
+	/**
+	 * This method implements the ILinearOperatorInverse interface method.
+	 * Basically, the request is forwarded to the matrix-based init method,
+	 * if the the operator is matrix-based. If the operator is not matrix-based
+	 * this inverse can not be used and false is returned
+	 *
+	 * \param[in]	A		linear matrix-based operator to invert
+	 * \returns		bool	success flag
+	 */
 		virtual bool init(ILinearOperator<Y,X>& A)
 		{
 		//	cast operator
@@ -261,11 +314,12 @@ class IMatrixOperatorInverse
 		//	check if correct types are present
 			if(op == NULL)
 			{
-				UG_LOG("Type mismatch in IMatrixOperatorInverse::init:"
-						" Wrong type of operator A detected.\n");
+				UG_LOG("ERROR in 'IMatrixOperatorInverse::init':"
+						" Passed operator is not matrix-based.\n");
 				return false;
 			}
 
+		//	forward request
 			return init(*op);
 		}
 };
