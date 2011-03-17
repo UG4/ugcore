@@ -10,7 +10,7 @@
 
 #include "lib_algebra/operator/operator.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
 namespace ug{
@@ -19,126 +19,126 @@ namespace ug{
 template <typename X, typename Y>
 class LinearIteratorProduct : public ILinearIterator<X,Y>
 {
-	public:
+public:
 	// 	Domain space
-		typedef X domain_function_type;
+	typedef X domain_function_type;
 
 	// 	Range space
-		typedef Y codomain_function_type;
+	typedef Y codomain_function_type;
 
-		typedef ILinearIterator<X,Y> iterator_type;
+	typedef ILinearIterator<X,Y> iterator_type;
 
-	public:
+public:
 
-		LinearIteratorProduct() {};
+	LinearIteratorProduct() {};
 
 	//	Name of Iterator
-		virtual const char* name() const {return "IteratorProduct";}
+	virtual const char* name() const {return "IteratorProduct";}
 
 	// 	Prepare for Operator J(u) and linearization point u (current solution)
-		virtual bool init(ILinearOperator<Y,X>& J, const Y& u) {
-
-			const size_t max = m_vIterator.size();
-			for(size_t i=0; i<max; i++){
-					m_vIterator[i]->init(J,u);
-			}
-			return true;
-
+	virtual bool init(ILinearOperator<Y,X>& J, const Y& u) {
+		m_op = &J;
+		const size_t max = m_vIterator.size();
+		for(size_t i=0; i<max; i++){
+			m_vIterator[i]->init(J,u);
 		}
+		return true;
 
-	//	Prepare for Linear Operartor L
-		virtual bool init(ILinearOperator<Y,X>& L)
+	}
+
+	// Prepare for Linear Operator L
+	virtual bool init(ILinearOperator<Y,X>& L)
+	{
+		m_op = &L;
+		const size_t max = m_vIterator.size();
+		for(size_t i=0; i<max; i++) {
+			m_vIterator[i]->init(L);
+		}
+		return true;
+
+	}
+
+	// Compute correction
+	virtual bool apply(Y& c, const X& d)
+	{
+		// create temporary defect and forward request
+		X dTmp;
+		dTmp.resize(d.size()); dTmp = d;
+
+		return apply_update_defect(c, dTmp);
+	}
+
+	// Compute correction and update defect
+	virtual bool apply_update_defect(Y& c, X& d)
+	{
+		Y cTmp;
+		cTmp.resize(c.size()); cTmp = c; // TODO: obsolete, replace by clone
+
+		const size_t max = m_vIterator.size();
+		for(size_t i=0; i<max; i++)
 		{
-
-			const size_t max = m_vIterator.size();
-			for(size_t i=0; i<max; i++) {
-				m_vIterator[i]->init(L);
-			}
-			return true;
-
+			m_vIterator[i]->apply_update_defect(cTmp,d);
+			c+=cTmp;
 		}
+		return true;
+	}
 
-	//	Compute new correction c = B*d
-		virtual bool apply(Y& c, const X& d)
-		{
-			// create temporary defect and forward request
-			X dTmp;
-			dTmp.resize(d.size()); dTmp= d; // maybe resize needed ?
-
-		   return apply_update_defect(c, dTmp);
-		}
-
-	//	Compute new correction c = B*d and return new defect d := d - A*c
-		virtual bool apply_update_defect(Y& c, X& d)
-		{
-			Y cTmp;
-			cTmp.resize(c.size());
-			cTmp = c; // TODO: obsolete, replace by clone
-
-			const size_t max = m_vIterator.size();
-			for(size_t i=0; i<max; i++)
-			{
-				m_vIterator[i]->apply_update_defect(cTmp,d);
-				c+=cTmp;
-			}
-			return true;
-		}
-
-		void add_iterator(iterator_type &I) {m_vIterator.push_back(&I);}
+	void add_iterator(iterator_type &I) {m_vIterator.push_back(&I);}
 
 	//	Clone
-		virtual ILinearIterator<X,Y>* clone() {UG_ASSERT(0,"Implement!"); return 0;}
+	virtual ILinearIterator<X,Y>* clone() {UG_ASSERT(0,"Implement!"); return 0;}
 
 	// 	Destructor
-		virtual ~LinearIteratorProduct() {};
+	virtual ~LinearIteratorProduct() {};
 
-	private:
+protected:
+	ILinearOperator<Y,X>* common_operator() {return m_op;}
 
-		std::vector<iterator_type*> m_vIterator;
+private:
+	std::vector<iterator_type*> m_vIterator;
+	ILinearOperator<Y,X>* m_op;
 };
 
 /** This operator is a sum of ILinearIterator (additive composition). */
 template <typename X, typename Y>
 class LinearIteratorSum: public LinearIteratorProduct<X,Y>
 {
-	public:
-	// 	Domain space
-	//	typedef LinearIteratorProduct::X X;
+public:
 
-	// 	Range space
-///		typedef Y LinearIteratorProduct::codomain_function_type;
+	LinearIteratorSum() {};
+	virtual const char* name() const {return "IteratorSum";}
 
-		//typedef ILinearIterator<X,Y> iterator_type;
+	// Compute correction
+	virtual bool apply(Y& c, const X& d)
+	{
+		// create temporary defect and forward request
+		Y cTmp;
+		cTmp.resize(c.size());
+		cTmp = c; // TODO: obsolete, replace by clone
 
-	public:
 
-		LinearIteratorSum() {};
-		virtual const char* name() const {return "IteratorSum";}
-
-		//	Compute new correction c = B*d
-		virtual bool apply(Y& c, const X& d)
+		// this part computes all corrections independently
+		c.set(0.0);
+		const size_t max = LinearIteratorProduct<X,Y>::m_vIterator.size();
+		for(size_t i=0; i<max; i++)
 		{
-			// create temporary defect and forward request
-			Y cTmp;
-			cTmp.resize(c.size());
-			cTmp = c; // TODO: obsolete, replace by clone
-
-			const size_t max = LinearIteratorProduct<X,Y>::m_vIterator.size();
-			for(size_t i=0; i<max; i++)
-			{
-				LinearIteratorProduct<X,Y>::m_vIterator[i]->apply_update_defect(cTmp,d);
-					c+=cTmp;
-			}
-
-			return true;
+			LinearIteratorProduct<X,Y>::m_vIterator[i]->apply(cTmp,d);
+			c+=cTmp;
 		}
 
-		//	Compute new correction c = B*d and return new defect d := d - A*c
-		virtual bool apply_update_defect(Y& c, X& d)
-		{
-			UG_ASSERT(0, name() << "Please implement me!");
-			return false;
-		}
+		return true;
+	}
+
+	//	Compute correction and update defect
+	virtual bool apply_update_defect(Y& c, X& d)
+	{
+		apply(c, d);
+
+		// update defect
+		LinearIteratorProduct<X,Y>::common_operator()->apply_sub(d, c);
+		return true;
+	}
+
 };
 
 
