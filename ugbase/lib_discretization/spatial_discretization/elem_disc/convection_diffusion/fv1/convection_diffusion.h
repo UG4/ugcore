@@ -93,7 +93,7 @@ class FVConvectionDiffusionElemDisc
 				register_import(m_imDiffusion);
 				register_import(m_imVelocity);
 				register_import(m_imReaction);
-				register_import(m_imRhs);
+				register_import(m_imSource);
 				register_import(m_imMassScale);
 			}
 
@@ -127,13 +127,12 @@ class FVConvectionDiffusionElemDisc
 	 */
 		void set_reaction(IPData<number, dim>& user) {m_imReaction.set_data(user);}
 
-	///	sets the right-hand side
+	///	sets the source / sink term
 	/**
-	 * This method sets the right hand side value. A zero value is assumed as
+	 * This method sets the source/sink value. A zero value is assumed as
 	 * default.
 	 */
-		void set_rhs(IPData<number, dim>& user)	{m_imRhs.set_data(user);}
-
+		void set_source(IPData<number, dim>& user)	{m_imSource.set_data(user);}
 
 	///	sets mass scale
 	/**
@@ -241,7 +240,7 @@ class FVConvectionDiffusionElemDisc
 		DataImport<number, dim, algebra_type> m_imReaction;
 
 	///	Data import for the right-hand side
-		DataImport<number, dim, algebra_type> m_imRhs;
+		DataImport<number, dim, algebra_type> m_imSource;
 
 	///	Data import for the mass scale
 		DataImport<number, dim, algebra_type> m_imMassScale;

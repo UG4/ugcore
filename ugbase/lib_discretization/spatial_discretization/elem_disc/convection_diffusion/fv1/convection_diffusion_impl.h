@@ -42,7 +42,7 @@ prepare_element_loop()
 		                	                      geo.num_scvf_local_ips());
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                   	                      geo.num_scvf_local_ips());
-		m_imRhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
 		               		                      geo.num_scv_local_ips());
 		m_imReaction.template set_local_ips<refDim>(geo.scv_local_ips(),
 		                                          geo.num_scv_local_ips());
@@ -98,7 +98,7 @@ prepare_element(TElem* elem, const local_vector_type& u,
 												  geo.num_scvf_local_ips());
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 												  geo.num_scvf_local_ips());
-		m_imRhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
+		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
 												  geo.num_scv_local_ips());
 		m_imReaction.template set_local_ips<refDim>(geo.scv_local_ips(),
 												  geo.num_scv_local_ips());
@@ -109,7 +109,7 @@ prepare_element(TElem* elem, const local_vector_type& u,
 //	set global positions for rhs
 	m_imDiffusion.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
 	m_imVelocity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
-	m_imRhs.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_imSource.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
 	m_imReaction.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
 	m_imMassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
 
@@ -456,7 +456,7 @@ FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d)
 {
 //	if zero data given, return
-	if(!m_imRhs.data_given()) return true;
+	if(!m_imSource.data_given()) return true;
 
 // 	get finite volume geometry
 	static TFVGeom<TElem, dim>& geo
@@ -470,13 +470,13 @@ assemble_f(local_vector_type& d)
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
 	// 	first value
-		number val = m_imRhs[ip++];
+		number val = m_imSource[ip++];
 
 	// 	other values
 		for(size_t i = 1; i < scv.num_ip(); ++i)
 		{
 			number ip_val;
-			ip_val = m_imRhs[ip++];
+			ip_val = m_imSource[ip++];
 
 			// TODO: add weights for integration
 			val += ip_val;

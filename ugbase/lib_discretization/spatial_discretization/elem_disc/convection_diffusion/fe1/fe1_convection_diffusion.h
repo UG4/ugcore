@@ -93,7 +93,7 @@ class FE1ConvectionDiffusionElemDisc
 	 * This method sets the right hand side value. A zero value is assumed as
 	 * default.
 	 */
-		void set_rhs(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
+		void set_source(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
 
 
 	///	sets mass scale

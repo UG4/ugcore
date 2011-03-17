@@ -103,7 +103,7 @@ elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
-elemDisc:set_rhs(rhs)
+elemDisc:set_source(rhs)
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary

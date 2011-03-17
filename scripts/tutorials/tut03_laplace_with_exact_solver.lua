@@ -202,7 +202,7 @@ dirichletCallback = util.CreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d"
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0)
 elemDisc:set_diffusion_tensor(diffMatrixCallback)	-- set the diffusion matrix
-elemDisc:set_rhs(rhsCallback)						-- set the right hand side
+elemDisc:set_source(rhsCallback)						-- set the right hand side
 
 -- Note that the dirichlet boundary callback was not registered at the
 -- element discretization. This is important since the concept of

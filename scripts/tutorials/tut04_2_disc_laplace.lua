@@ -95,7 +95,7 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 	local elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", innerSubsets)
 	elemDisc:set_upwind_amount(0)
 	elemDisc:set_diffusion_tensor(cbDiff)	-- set the diffusion matrix
-	elemDisc:set_rhs(cbRhs)					-- set the right hand side
+	elemDisc:set_source(cbRhs)					-- set the right hand side
 	
 	local dirichletBnd = util.CreateDirichletBoundary(approxSpace)
 	dirichletBnd:add_boundary_value(cbBnd, "c", boundarySubsets)

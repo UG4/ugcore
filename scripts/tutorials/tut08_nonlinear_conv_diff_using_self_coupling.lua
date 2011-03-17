@@ -291,7 +291,7 @@ elemDisc:set_diffusion_tensor(linkedDiffTensor)	-- set linker diffusion matrix
 
 
 -- we add also the other coefficients
-elemDisc:set_rhs(rhsCallback)						-- set the right hand side
+elemDisc:set_source(rhsCallback)						-- set the right hand side
 
 ----------------------------------------------------
 -- Dirichlet Boundary

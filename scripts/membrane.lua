@@ -166,14 +166,14 @@ elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
-elemDisc:set_rhs(rhs)
+elemDisc:set_source(rhs)
 
 membraneElemDisc = util.CreateFV1ConvDiff(approxSpace, "c_membrane", "Membrane")
 membraneElemDisc:set_upwind_amount(0.0)
 membraneElemDisc:set_diffusion_tensor(diffusionMatrix)
 membraneElemDisc:set_velocity_field(velocityField)
 membraneElemDisc:set_reaction(reaction)
-membraneElemDisc:set_rhs(membraneRhs)
+membraneElemDisc:set_source(membraneRhs)
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary

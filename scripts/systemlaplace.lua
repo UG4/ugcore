@@ -232,7 +232,7 @@ elemDisc[i]:set_upwind_amount(0.0)
 elemDisc[i]:set_diffusion_tensor(diffusionMatrix)
 elemDisc[i]:set_velocity_field(velocityField)
 elemDisc[i]:set_reaction(reaction)
-elemDisc[i]:set_rhs(rhs)
+elemDisc[i]:set_source(rhs)
 end
 
 -----------------------------------------------------------------

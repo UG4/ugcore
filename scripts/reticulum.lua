@@ -178,17 +178,17 @@ print ("Setting up Assembling")
 elemDiscER = util.CreateFV1ConvDiff(approxSpace, "ca_er", "er") 
 elemDiscER:set_upwind_amount(0.0)
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
-elemDiscER:set_rhs(rhs)
+elemDiscER:set_source(rhs)
 
 elemDiscCYT = util.CreateFV1ConvDiff(approxSpace, "ca_cyt", "cyt")
 elemDiscCYT:set_upwind_amount(0.0)
 elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
-elemDiscCYT:set_rhs(rhs)
+elemDiscCYT:set_source(rhs)
 
 elemDiscIP3 = util.CreateFV1ConvDiff(approxSpace, "ip3", "cyt")
 elemDiscIP3:set_upwind_amount(0.0)
 elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
-elemDiscIP3:set_rhs(rhs)
+elemDiscIP3:set_source(rhs)
 
 -----------------------------------------------------------------
 --  Setup Neumann Boundary
