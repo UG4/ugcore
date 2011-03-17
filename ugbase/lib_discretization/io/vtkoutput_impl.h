@@ -107,13 +107,11 @@ end_timeseries(const char* filename, discrete_function_type& u)
 	if(strcmp(m_seriesname, filename) != 0) return false;
 	if(m_u != &u) return false;
 
-#ifdef UG_PARALLEL
 	if(write_time_pvd(u, filename) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write pvd - file. \n");
 		return false;
 	}
-#endif
 
 	return true;
 }
@@ -205,8 +203,6 @@ print_subset(const char* filename, discrete_function_type& u, int si, size_t ste
 	m_grid->detach_from_vertices(m_aDOFIndex);
 	m_aaDOFIndexVRT.invalidate();
 
-
-#ifdef UG_PARALLEL
 	if(write_pvtu(u, filename, si, step, time) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write pvtu - file" << std::endl);
@@ -217,7 +213,6 @@ print_subset(const char* filename, discrete_function_type& u, int si, size_t ste
 	if((m_u == &u) && (strcmp(filename, m_seriesname) == 0))
 		if(m_timestep.empty() || (m_timestep.back() != time))
 			m_timestep.push_back(time);
-#endif
 
 	return true;
 }
@@ -916,7 +911,6 @@ pvd_time_filename(char *nameOut, const char *nameIn, size_t timestep)
 
 }
 
-#ifdef UG_PARALLEL
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
@@ -925,7 +919,16 @@ write_pvtu(discrete_function_type& u, const char* filename, int si, size_t step,
 	FILE* file;
 	char sname[NAMESIZE], pname[NAMESIZE];
 
-	if (pcl::IsOutputProc()) {
+	bool isOutputProc = true;
+	int numProcs = 1;
+	#ifdef UG_PARALLEL
+		isOutputProc = pcl::IsOutputProc();
+		numProcs = pcl::GetNumProcesses();
+	#endif
+
+
+
+	if (isOutputProc) {
 		if(pvtu_filename(sname, filename, si, step) != true) return false;
 
 		file = fopen(sname, "w");
@@ -959,7 +962,7 @@ write_pvtu(discrete_function_type& u, const char* filename, int si, size_t step,
 		// Element Data (currently not supported)
 
 		// include files from all procs
-		for (int i = 0; i < pcl::GetNumProcesses(); i++) {
+		for (int i = 0; i < numProcs; i++) {
 			vtu_filename(pname, filename, i, si, step);
 			fprintf(file, "    <Piece Source=\"%s\"/>\n", pname);
 		}
@@ -979,7 +982,14 @@ write_time_pvd(discrete_function_type& u, const char* filename)
 	FILE* file;
 	char sname[NAMESIZE], pname[NAMESIZE], procname[NAMESIZE];
 
-	if (pcl::IsOutputProc()) {
+	bool isOutputProc = true;
+	int numProcs = 1;
+	#ifdef UG_PARALLEL
+		isOutputProc = pcl::IsOutputProc();
+		numProcs = pcl::GetNumProcesses();
+	#endif
+
+	if (isOutputProc) {
 		if(pvd_filename(sname, filename) != true) return false;
 
 		file = fopen(sname, "w");
@@ -1009,7 +1019,7 @@ write_time_pvd(discrete_function_type& u, const char* filename)
 		fclose(file);
 	}
 
-	if (pcl::IsOutputProc()) {
+	if (isOutputProc) {
 		strcpy(sname, filename);
 		strcat(sname, "_processwise");
 
@@ -1030,7 +1040,7 @@ write_time_pvd(discrete_function_type& u, const char* filename)
 		// include files from all procs
 		for(size_t t = 0; t < m_timestep.size(); ++t)
 		{
-			for (int i = 0; i < pcl::GetNumProcesses(); i++)
+			for (int i = 0; i < numProcs; i++)
 			{
 				for(int si = 0; si < u.num_subsets(); ++si)
 				{
@@ -1048,8 +1058,6 @@ write_time_pvd(discrete_function_type& u, const char* filename)
 	return true;
 }
 
-#endif
-
 
 template <typename TDiscreteFunction>
 bool
@@ -1058,14 +1066,17 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 {
 	FILE* file;
 	char sname[NAMESIZE], pname[NAMESIZE];
-
-#ifdef UG_PARALLEL
 	char procname[NAMESIZE];
-#endif
 
-#ifdef UG_PARALLEL
-	if (pcl::IsOutputProc()) {
-#endif
+	bool isOutputProc = true;
+	int numProcs = 1;
+	#ifdef UG_PARALLEL
+		isOutputProc = pcl::IsOutputProc();
+		numProcs = pcl::GetNumProcesses();
+	#endif
+
+
+	if (isOutputProc) {
 		if(pvd_time_filename(sname, filename, timestep) != true) return false;
 
 		file = fopen(sname, "w");
@@ -1094,12 +1105,9 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 		fprintf(file, "  </Collection>\n");
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
-#ifdef UG_PARALLEL
 	}
-#endif
 
-#ifdef UG_PARALLEL
-	if (pcl::IsOutputProc()) {
+	if (isOutputProc) {
 		strcpy(sname, filename);
 		strcat(sname, "_processwise");
 
@@ -1118,7 +1126,7 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 		fprintf(file, "  <Collection>\n");
 
 		// include files from all procs
-		for (int i = 0; i < pcl::GetNumProcesses(); i++)
+		for (int i = 0; i < numProcs; i++)
 		{
 			for(int si = 0; si < u.num_subsets(); ++si)
 			{
@@ -1131,7 +1139,6 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
-#endif
 
 	return true;
 }

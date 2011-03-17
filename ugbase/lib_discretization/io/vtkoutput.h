@@ -41,10 +41,8 @@ class VTKOutput{
 		bool write_epilog(FILE* file);
 		bool write_piece_epilog(FILE* file);
 
-#ifdef UG_PARALLEL
 		bool write_pvtu(discrete_function_type& u, const char* filename, int si, size_t step, number time);
 		bool write_time_pvd(discrete_function_type& u, const char* filename);
-#endif
 
 		bool write_pvd(discrete_function_type& u, const char* filename, size_t timestep = 0, number time = 0.0);
 
