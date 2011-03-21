@@ -167,6 +167,16 @@ class FVConvectionDiffusionElemDisc
 		virtual bool use_hanging() const {return true;}
 
 	private:
+	///	prepares the discretization for time dependent discretization
+	/**
+	 * This function prepares the discretization for time-dependent problems.
+	 * It sets the time in the imports.
+	 *
+	 * \param[in]	time	new time point
+	 * \returns 	true	indicates, that old values are needed
+	 */
+		virtual bool time_point_changed(number time);
+
 	///	prepares the loop over all elements
 	/**
 	 * This method prepares the loop over all elements. It resizes the Position

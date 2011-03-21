@@ -38,15 +38,15 @@ prepare_element_loop()
 
 //	set local positions for rhs
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
-	m_Diff.template 	set_local_ips<refDim>(geo.local_ips(),
+	m_imDiffusion.template 	set_local_ips<refDim>(geo.local_ips(),
 											  geo.num_ip());
-	m_ConvVel.template 	set_local_ips<refDim>(geo.local_ips(),
+	m_imVelocity.template 	set_local_ips<refDim>(geo.local_ips(),
 											  geo.num_ip());
-	m_Rhs.template 		set_local_ips<refDim>(geo.local_ips(),
+	m_imSource.template 		set_local_ips<refDim>(geo.local_ips(),
 											  geo.num_ip());
-	m_Reaction.template set_local_ips<refDim>(geo.local_ips(),
+	m_imReaction.template set_local_ips<refDim>(geo.local_ips(),
 											  geo.num_ip());
-	m_MassScale.template set_local_ips<refDim>(geo.local_ips(),
+	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(),
 											   geo.num_ip());
 	return true;
 }
@@ -62,6 +62,23 @@ finish_element_loop()
 
 	return true;
 }
+
+template<typename TDomain, typename TAlgebra>
+bool
+FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+time_point_changed(number time)
+{
+//	set new time point at imports
+	m_imDiffusion.set_time(time);
+	m_imVelocity.set_time(time);
+	m_imSource.set_time(time);
+	m_imReaction.set_time(time);
+	m_imMassScale.set_time(time);
+
+//	this disc does not need the old time solutions, thus, return false
+	return false;
+}
+
 
 template<typename TDomain, typename TAlgebra>
 
@@ -88,11 +105,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	}
 
 //	set global positions for rhs
-	m_Diff.set_global_ips(geo.global_ips(), geo.num_ip());
-	m_ConvVel.set_global_ips(geo.global_ips(), geo.num_ip());
-	m_Rhs.set_global_ips(geo.global_ips(), geo.num_ip());
-	m_Reaction.set_global_ips(geo.global_ips(), geo.num_ip());
-	m_MassScale.set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imDiffusion.set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imVelocity.set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imSource.set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imReaction.set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imMassScale.set_global_ips(geo.global_ips(), geo.num_ip());
 
 	return true;
 }
@@ -113,22 +130,22 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		for(size_t j = 0; j < geo.num_sh(); ++j)
 		{
 			// diffusion
-			if(m_Diff.data_given())
-				MatVecMult(Dgrad, m_Diff[ip], geo.grad_global(ip, j));
+			if(m_imDiffusion.data_given())
+				MatVecMult(Dgrad, m_imDiffusion[ip], geo.grad_global(ip, j));
 			else
 				VecSet(Dgrad, 0.0);
 
 			// convection
-			if(m_ConvVel.data_given())
-				VecScaleAppend(Dgrad, -1*geo.shape(ip,j), m_ConvVel[ip]);
+			if(m_imVelocity.data_given())
+				VecScaleAppend(Dgrad, -1*geo.shape(ip,j), m_imVelocity[ip]);
 
 			for(size_t i = 0; i < geo.num_sh(); ++i)
 			{
 				number integrand = VecDot(Dgrad, geo.grad_global(ip, i));
 
 				// reaction
-				if(m_Reaction.data_given())
-					integrand += m_Reaction[ip] * geo.shape(ip, j) * geo.shape(ip, i);
+				if(m_imReaction.data_given())
+					integrand += m_imReaction[ip] * geo.shape(ip, j) * geo.shape(ip, i);
 
 				integrand *= geo.weight(ip);
 
@@ -158,8 +175,8 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 			{
 				number val = geo.shape(ip, i) *geo.shape(ip, j) * geo.weight(ip);
 
-				if(m_MassScale.data_given())
-					val *= m_MassScale[ip++];
+				if(m_imMassScale.data_given())
+					val *= m_imMassScale[ip++];
 
 				J(_C_, i, _C_, j) += val;
 			}
@@ -197,21 +214,21 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 		}
 
 		// diffusion
-		if(m_Diff.data_given())
-			MatVecMult(Dgrad_u, m_Diff[ip], grad_u);
+		if(m_imDiffusion.data_given())
+			MatVecMult(Dgrad_u, m_imDiffusion[ip], grad_u);
 		else
 			VecSet(Dgrad_u, 0.0);
 
 		// convection
-		if(m_Reaction.data_given())
-			VecScaleAppend(Dgrad_u, -1*shape_u, m_ConvVel[ip]);
+		if(m_imReaction.data_given())
+			VecScaleAppend(Dgrad_u, -1*shape_u, m_imVelocity[ip]);
 
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 			integrand = VecDot(Dgrad_u, geo.grad_global(ip, i));
 			// reaction
-			if(m_Reaction.data_given())
-				integrand += m_Reaction[ip] * shape_u * geo.shape(ip, i);
+			if(m_imReaction.data_given())
+				integrand += m_imReaction[ip] * shape_u * geo.shape(ip, i);
 
 			integrand *= geo.weight(ip);
 
@@ -244,8 +261,8 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 			number val = shape_u * geo.shape(ip, i) * geo.weight(ip);
-			if(m_MassScale.data_given())
-				val *= m_MassScale[ip];
+			if(m_imMassScale.data_given())
+				val *= m_imMassScale[ip];
 
 			d(_C_, i) +=  val;
 		}
@@ -264,13 +281,13 @@ assemble_f(local_vector_type& d)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
-	if(!m_Rhs.data_given()) return true;
+	if(!m_imSource.data_given()) return true;
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
-			d(_C_, i) +=  m_Rhs[ip] * geo.shape(ip, i) * geo.weight(ip);
+			d(_C_, i) +=  m_imSource[ip] * geo.shape(ip, i) * geo.weight(ip);
 		}
 	}
 	return true;

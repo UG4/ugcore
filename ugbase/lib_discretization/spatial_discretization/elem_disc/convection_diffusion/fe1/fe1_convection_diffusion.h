@@ -61,11 +61,11 @@ class FE1ConvectionDiffusionElemDisc
 			register_ass_funcs(Int2Type<dim>());
 
 		//	register imports
-			register_import(m_Diff);
-			register_import(m_ConvVel);
-			register_import(m_Reaction);
-			register_import(m_Rhs);
-			register_import(m_MassScale);
+			register_import(m_imDiffusion);
+			register_import(m_imVelocity);
+			register_import(m_imReaction);
+			register_import(m_imSource);
+			register_import(m_imMassScale);
 		}
 
 	///	sets the diffusion tensor
@@ -73,27 +73,27 @@ class FE1ConvectionDiffusionElemDisc
 	 * This method sets the Diffusion tensor used in computations. If no
 	 * Tensor is set, a zero value is assumed.
 	 */
-		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_Diff.set_data(user);}
+		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_imDiffusion.set_data(user);}
 
 	///	sets the velocity field
 	/**
 	 * This method sets the Velocity field. If no field is provided a zero
 	 * value is assumed.
 	 */
-		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_ConvVel.set_data(user);}
+		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_imVelocity.set_data(user);}
 
 	///	sets the reaction
 	/**
 	 * This method sets the Reaction. A zero value is assumed as default.
 	 */
-		void set_reaction(IPData<number, dim>& user) {m_Reaction.set_data(user);}
+		void set_reaction(IPData<number, dim>& user) {m_imReaction.set_data(user);}
 
 	///	sets the right-hand side
 	/**
 	 * This method sets the right hand side value. A zero value is assumed as
 	 * default.
 	 */
-		void set_source(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
+		void set_source(IPData<number, dim>& user)	{m_imSource.set_data(user);}
 
 
 	///	sets mass scale
@@ -101,7 +101,7 @@ class FE1ConvectionDiffusionElemDisc
 	 * This method sets the mass scale value. A value of 1.0 is assumed as
 	 * default.
 	 */
-		void set_mass_scale(IPData<number, dim>& user)	{m_MassScale.set_data(user);}
+		void set_mass_scale(IPData<number, dim>& user)	{m_imMassScale.set_data(user);}
 
 	public:
 	///	number of functions used
@@ -124,6 +124,16 @@ class FE1ConvectionDiffusionElemDisc
 		virtual bool use_hanging() const {return false;}
 
 	private:
+	///	prepares the discretization for time dependent discretization
+	/**
+	 * This function prepares the discretization for time-dependent problems.
+	 * It sets the time in the imports.
+	 *
+	 * \param[in]	time	new time point
+	 * \returns 	true	indicates, that old values are needed
+	 */
+		virtual bool time_point_changed(number time);
+
 		template <typename TElem>
 		bool prepare_element_loop();
 
@@ -156,19 +166,19 @@ class FE1ConvectionDiffusionElemDisc
 		static const size_t _C_ = 0;
 
 	///	Data import for Diffusion
-		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_Diff;
+		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_imDiffusion;
 
 	///	Data import for the Velocity field
-		DataImport<MathVector<dim>, dim, algebra_type > m_ConvVel;
+		DataImport<MathVector<dim>, dim, algebra_type > m_imVelocity;
 
 	///	Data import for the reaction term
-		DataImport<number, dim, algebra_type> m_Reaction;
+		DataImport<number, dim, algebra_type> m_imReaction;
 
 	///	Data import for the right-hand side
-		DataImport<number, dim, algebra_type> m_Rhs;
+		DataImport<number, dim, algebra_type> m_imSource;
 
 	///	Data import for the right-hand side
-		DataImport<number, dim, algebra_type> m_MassScale;
+		DataImport<number, dim, algebra_type> m_imMassScale;
 
 	private:
 		///////////////////////////////////////

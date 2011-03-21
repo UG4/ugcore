@@ -67,6 +67,23 @@ finish_element_loop()
 }
 
 template<typename TDomain, typename TAlgebra>
+bool
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+time_point_changed(number time)
+{
+//	set new time point at imports
+	m_imDiffusion.set_time(time);
+	m_imVelocity.set_time(time);
+	m_imSource.set_time(time);
+	m_imReaction.set_time(time);
+	m_imMassScale.set_time(time);
+
+//	this disc does not need the old time solutions, thus, return false
+	return false;
+}
+
+
+template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
