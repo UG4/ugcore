@@ -75,11 +75,7 @@ NewtonSolver<TDoFDistribution, TAlgebra>::
 deallocate_memory()
 {
 	if(m_allocated)
-	{
-		m_d.destroy();
-		m_c.destroy();
 		delete m_J;
-	}
 	m_allocated = false;
 	return true;
 }
