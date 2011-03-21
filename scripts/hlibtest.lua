@@ -228,7 +228,7 @@ elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
-elemDisc:set_rhs(rhs)
+elemDisc:set_source(rhs)
 
 -----------------------------------------------------------------
 --  Setup Neumann Boundary
@@ -359,7 +359,7 @@ hlibSolver:set_hlib_accuracy_LU(1.e-4) -- default: 1.e-4
 hlibSolver:set_clustering_method("algebraic", "nested dissection")
 
 hlibSolver:set_hlib_verbosity(4) -- '>= 2': create HLIB related postscripts; '>=3' also create plots of matrix entries
-hlibSolver:set_ps_basename("NS")
+hlibSolver:set_ps_basename("hlib")
 
 hlibConvCheck = StandardConvergenceCheck()
 hlibConvCheck:set_maximum_steps(600)
