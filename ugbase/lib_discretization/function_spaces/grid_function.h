@@ -343,7 +343,10 @@ class GridFunction
 
 	protected:
 	/// deletes the memory
-		void release_storage(){vector_type::destroy();}
+		void release_storage()
+		{
+			// vector_type::destroy(); // todo: replace (mrupp)
+		}
 
 	///	assigns another GridFunction
 		bool assign(const this_type& v)
