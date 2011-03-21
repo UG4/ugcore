@@ -234,6 +234,16 @@ class FVNavierStokesElemDisc
 		}
 
 	public:
+	///	prepares the discretization for time dependent discretization
+	/**
+	 * This function prepares the discretization for time-dependent problems.
+	 * It sets the time in the imports.
+	 *
+	 * \param[in]	time	new time point
+	 * \returns 	true	indicates, that old values are needed
+	 */
+		virtual bool time_point_changed(number time);
+
 	///	prepares the element loop
 	/**
 	 * This function is used to prepare the element loop. It gets called, before

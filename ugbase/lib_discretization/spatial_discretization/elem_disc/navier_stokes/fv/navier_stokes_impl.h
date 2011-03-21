@@ -111,6 +111,21 @@ finish_element_loop()
 	return true;
 }
 
+
+template<typename TDomain, typename TAlgebra>
+bool
+FVNavierStokesElemDisc<TDomain, TAlgebra>::
+time_point_changed(number time)
+{
+//	set new time point at imports
+	m_imKinViscosity.set_time(time);
+	m_imSource.set_time(time);
+
+//	this disc needs the old time solutions, thus, return true
+	return true;
+}
+
+
 template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool

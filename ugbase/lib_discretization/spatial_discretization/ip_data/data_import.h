@@ -186,6 +186,10 @@ class DataImport : public IDataImport<TAlgebra>
 	///	returns true if data given
 		virtual bool data_given() const {return !(m_pIPData == NULL);}
 
+	///	sets the evaluation time point
+		void set_time(number time) {if(m_pIPData != NULL) m_pIPData->set_time(time);}
+
+
 	/////////////////////////////////////////
 	// Data
 	/////////////////////////////////////////
