@@ -612,8 +612,17 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 		if(m_bPecletBlend)
 			peclet_blend(UpwindVel, scvf, u, m_imKinViscosity[i]);
 
+
+//	\todo: implement the linearization in a clean way
+        MathVector<dim> StdVel; VecSet(StdVel, 0.0);
+        for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+            for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
+                StdVel[d1] += u(d1, sh) * scvf.shape(sh, 0);
+
+
 	//	compute product of upwinded (and blended) velocity and normal
-		const number prod = VecProd(UpwindVel, scvf.normal());
+		//const number prod = VecProd(UpwindVel, scvf.normal());
+		const number prod = VecProd(StdVel, scvf.normal());
 
 	//	Add contributions to local velocity components
 		for(size_t d1 = 0; d1 < (size_t)dim; ++d1)

@@ -3,7 +3,7 @@
 --   Lua - Script to test the Navier-Stokes implementation
 --
 --	This script sets up a problem for the Navier-Stokes discretization
---	and is intended to test the implementation. 
+--	and is intended to test the implementation.
 --
 --   Author: Josef Dubsky, Andreas Vogel
 --
@@ -17,7 +17,7 @@
 
 -- Right at the beginning we load a lot of util functions, that help us basically
 -- to programm a domain independent lua-script and provide some basic helper
--- functions. Most the util functions are in the namespace util, i.e. they 
+-- functions. Most the util functions are in the namespace util, i.e. they
 -- are used by 'util.SomeFunction'
 ug_load_script("ug_util.lua")
 
@@ -33,7 +33,7 @@ InitAlgebra(algChooser);
 -- (either 1d, 2d or 3d) and associated discretization objects. Note that
 -- we're using some methods defined in "ug_util.lua" here. The dimesion is
 -- read in from the bash command line passing e.g. the option "-dim 2". If no
--- dim-option is specified the default value in the second argument of 
+-- dim-option is specified the default value in the second argument of
 -- GetParamNumber is used.
 dim = util.GetParamNumber("-dim", 2) -- default dimension is 2.
 
@@ -73,7 +73,7 @@ dom = util.CreateDomain(dim)
 
 if util.LoadDomain(dom, gridName) == false then
 	print("Loading of domain " .. gridName .. " failed. Aborting.")
-	exit() 
+	exit()
 end
 
 -- Now that we're here, the domain was successfully loaded
@@ -109,8 +109,8 @@ end
 --------------------------------
 --------------------------------
 
--- We succesfully loaded and refined the domain. Now its time to setup an 
--- ApproximationSpace on the domain. First, we check that the domain we use 
+-- We succesfully loaded and refined the domain. Now its time to setup an
+-- ApproximationSpace on the domain. First, we check that the domain we use
 -- has suitable subsets. This are parts of the domain, that partition the domain.
 -- We need them, to handle e.g. boundary conditions on different parts of the
 -- domain boundary.
@@ -139,7 +139,7 @@ if dim >= 3 then approxSpace:add_fct("w", "Lagrange", 1) end
 approxSpace:add_fct("p", "Lagrange", 1)
 
 -- we init the approximation space. This fixes the dof pattern used and afterwards
--- no function can be added or removed. This is needed to have fast access and 
+-- no function can be added or removed. This is needed to have fast access and
 -- less checks during the computation phase.
 approxSpace:init()
 
@@ -153,7 +153,7 @@ approxSpace:print_statistic()
 --------------------------------
 
 -- We set up the discretization. The basic idea is to first create the single
--- components of the discretization (e.g. element discretization, boundary 
+-- components of the discretization (e.g. element discretization, boundary
 -- conditions, ...) and then glue everything together in one DomainDiscretization
 -- object that does nothing else than grouping the single components. When it
 -- comes to assembling this object runs all scheduled discretization component
@@ -162,7 +162,7 @@ approxSpace:print_statistic()
 -- Lets begin with the element discretization. This is the core part for the
 -- Navier-Stokes equation and provides the local stiffness- and mass matrices,
 -- that are then added to the global matrices. First we concatenate a string
--- that holds all function we use. This string must be passed to the navier 
+-- that holds all function we use. This string must be passed to the navier
 -- stokes elem disc to indicate which function is used for velocity and which
 -- one for pressure. E.g. for dim==2 this gives: "u, v, p".
 fctUsed = "u"
@@ -180,7 +180,7 @@ fctUsed = fctUsed .. ", p"
 elemDisc = util.CreateFV1NavierStokes(approxSpace, fctUsed, "Inner")
 
 -- Now, we have to setup the stabilization, that is used for the Continuity Equation.
--- The stabilization is passed to the Navier-Stokes elem disc as an object. 
+-- The stabilization is passed to the Navier-Stokes elem disc as an object.
 -- Therefore, we created it now and will pass it to the disc. But first, we have
 -- to create the Upwind scheme, that is used inside the stabilization. There are
 -- several possibilities:
@@ -205,14 +205,14 @@ fieldsStab:set_diffusion_length("NS_RAW")
 
 -- Next we set the options for the Navier-Stokes elem disc ...
 elemDisc:set_stabilization(fieldsStab)
-elemDisc:set_conv_upwind(fieldsStab)
-elemDisc:set_peclet_blend(true)
+elemDisc:set_conv_upwind(fullUpwind)
+elemDisc:set_peclet_blend(false)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
 ConstKinViscosity = util.CreateConstUserNumber(1.0e-3, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
- 
+
 
 -- Next, lets create the boundary conditions. We will use lua-callback functions
 -- to implement the values of the dirichlet-bnd conditions. So lets define
@@ -229,12 +229,19 @@ function inletVelX2d(x, y, t)
 	return true, 4 * Um * y * (H-y) / (H*H)
 end
 
+function inletVelY2d(x, y, t)
+	local H = 0.41
+	local Um = 0.2
+	return true, Um * math.sin(y/H*2*3.1415)
+end
+
 -- Next, we create objects that encapsulate our callback. Those can then
 -- be registered at the discretization object. Note that we use the .. operator
 -- to concatenate strings and numbers. This saves us from a lot of if dim == 2 ... else ...
 -- For the dirichlet callback we use utilCreateLuaBoundaryNumber, where
 -- a boolean and a number are returned.
 LuaInletVelX2d = util.CreateLuaBoundaryNumber("inletVelX" .. dim .. "d", dim)
+LuaInletVelY2d = util.CreateLuaBoundaryNumber("inletVelY" .. dim .. "d", dim)
 ConstZeroDirichlet = util.CreateConstBoundaryNumber(0.0, dim)
 
 
@@ -252,8 +259,9 @@ neumannDisc:add_boundary_value(LuaNeumannPressure, "p", "Inlet")
 -- are registered.
 dirichletBnd = util.CreateDirichletBoundary(approxSpace)
 dirichletBnd:add_boundary_value(LuaInletVelX2d, "u", "Inlet")
+dirichletBnd:add_boundary_value(LuaInletVelY2d, "v", "Inlet")
 dirichletBnd:add_boundary_value(ConstZeroDirichlet, "u", "UpperWall,LowerWall,CylinderWall")
-dirichletBnd:add_boundary_value(ConstZeroDirichlet, "v", "Inlet,UpperWall,LowerWall,CylinderWall")
+dirichletBnd:add_boundary_value(ConstZeroDirichlet, "v", "UpperWall,LowerWall,CylinderWall")
 dirichletBnd:add_boundary_value(ConstZeroDirichlet, "p", "Outlet")
 
 -- Finally we create the discretization object which combines all the
@@ -269,10 +277,10 @@ domainDisc:add_post_process(dirichletBnd)
 --------------------------------
 --------------------------------
 
--- In ug4 we use Operator interfaces. An operator is simply a mapping from in 
--- space into the other. A frequently used implementation of such a mapping is 
+-- In ug4 we use Operator interfaces. An operator is simply a mapping from in
+-- space into the other. A frequently used implementation of such a mapping is
 -- the usage of discretizations, that map a solution (grid function) onto some
--- right-hand side. We can create an operator that uses the recently created 
+-- right-hand side. We can create an operator that uses the recently created
 -- domainDisc.
 op = AssembledOperator()
 
@@ -333,7 +341,7 @@ InterpolateFunction(LuaVelYStartValue, u, "v", time);
 linSolver = LU()
 
 
--- Next we need a convergence check, that computes the defect within each 
+-- Next we need a convergence check, that computes the defect within each
 -- newton step and stops the iteration when a specified creterion is fullfilled.
 -- For our purpose is the StandardConvergenceCheck is sufficient. Please note,
 -- that this class derives from a general IConvergenceCheck-Interface and
@@ -375,9 +383,9 @@ newtonSolver:init(op)
 
 -- In a first step we have to prepare the newton solver for the solution u. This
 -- sets e.g. dirichlet values in u.
-if newtonSolver:prepare(u) == false then 
-	print ("Newton solver prepare failed."); exit(); 
-end 
+if newtonSolver:prepare(u) == false then
+	print ("Newton solver prepare failed."); exit();
+end
 
 
 SaveVectorForConnectionViewer(u, "StartSolution.mat")
@@ -386,7 +394,7 @@ SaveVectorForConnectionViewer(u, "StartSolution.mat")
 -- the solution.
 if newtonSolver:apply(u) == false then
 	 print ("Newton solver apply failed."); exit();
-end 
+end
 
 -- Finally we're nearly done. The only thing left to do is to write the
 -- solution to a file which can then be examined using e.g. Paraview.
