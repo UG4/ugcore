@@ -47,7 +47,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	// types
 	std::vector<typename ABC_type::connection > con; con.reserve(255);
 
-	typename A_type::value_type a;
+	typedef typename A_type::value_type avalue;
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
 	typename C_type::value_type cvalue;
 
@@ -64,12 +64,11 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 		for(cAiterator itA = A.begin_row(i); itA != A.end_row(i); ++itA)
 		{
 			if(itA.value() == 0.0) continue;
-			a = itA.value();
 
 			for(cBiterator itB = B.begin_row(itA.index()); itB != B.end_row(itA.index()); ++itB)
 			{
 				if(itB.value() == 0.0) continue;
-				AssignMult(ab, a, itB.value());
+				AssignMult(ab, itA.value(), itB.value());
 
 				for(cCiterator itC = C.begin_row(itB.index()); itC != C.end_row(itB.index()); ++itC)
 				{
@@ -95,6 +94,74 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 						AddMult(con[posInConnections[indexTo]].dValue, ab, cvalue);
 					}
 
+				}
+			}
+		}
+
+		// reset posInConnections to -1
+		for(size_t j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
+		// set Matrix_type Row in AH
+		M.set_matrix_row(i, &con[0], con.size());
+	}
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CreateAsMultiplyOf:
+//-------------------------
+/**
+ * \brief Calculates M = A*B.
+ * \param M (out) Matrix M, M = A*B$
+ * \param A (in) Matrix A
+ * \param B (in) Matrix B
+ */
+template<typename AB_type, typename A_type, typename B_type>
+void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
+{
+	UG_ASSERT(B.num_rows() == A.num_cols(), "sizes must match");
+
+	// create output matrix M
+	M.resize(A.num_rows(), B.num_cols());
+
+	std::vector<int> posInConnections(B.num_cols(), -1);
+
+	// types
+	std::vector<typename AB_type::connection > con; con.reserve(255);
+	typename AB_type::connection c;
+	typedef typename A_type::const_row_iterator cAiterator;
+	typedef typename B_type::const_row_iterator cBiterator;
+
+	// do
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		con.clear();
+		for(cAiterator itA = A.begin_row(i); itA != A.end_row(i); ++itA)
+		{
+			if(itA.value() == 0.0) continue;
+
+			for(cBiterator itB = B.begin_row(itA.index()); itB != B.end_row(itA.index()); ++itB)
+			{
+				if(itB.value() == 0.0) continue;
+				size_t indexTo = itB.index();
+
+				if(posInConnections[indexTo] == -1)
+				{
+					// we havent visited node <indexTo>
+					// so we need to add a Connection to the row
+					// save the index of the connection in the row
+					posInConnections[indexTo] = con.size();
+					c.iIndex = indexTo;
+					AssignMult(c.dValue, itA.value(), itB.value());
+					con.push_back(c);
+				}
+				else
+				{
+					// we have visited this node before,
+					// so we know the index of the connection
+					// -> add a*b*c
+					AddMult(con[posInConnections[indexTo]].dValue, itA.value(), itB.value());
 				}
 			}
 		}
@@ -183,9 +250,6 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 	}
 	M.defragment();
 }
-
-
-
 
 template<typename T>
 void GetNeighborhood_worker(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
