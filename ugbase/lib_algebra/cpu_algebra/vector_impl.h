@@ -72,72 +72,29 @@ inline bool Vector<value_type>::set_random(double from, double to)
 }
 
 
-// für Function Expression, sh. TemplateExpression.h
 template<typename value_type>
-template<class Function> inline void Vector<value_type>::operator = (Function &ex)
+inline void Vector<value_type>::operator = (const vector_type &v)
 {
-	ex.applyto(*this);
-}
-
-template<typename value_type>
-inline void Vector<value_type>::operator = (const Vector &v)
-{
-	v.applyto(*this);
-}
-template<typename value_type>
-inline void Vector<value_type>::applyto(Vector &v) const
-{
-	UG_ASSERT(v.length == length, *this << " has not same length as " << v);
-
+	resize(v.size());
 	for(size_t i=0; i<length; i++)
-		v.values[i] = values[i];
+		values[i] = v[i];
 }
-
 
 template<typename value_type>
-template<typename Type> inline void Vector<value_type>::operator = (const Type &t)
+inline void Vector<value_type>::operator += (const vector_type &v)
 {
-	//IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
-	/*UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
-	t.preventForbiddenDestination(this);
-
-	for(size_t i=0; i < length; i++)
-	{
-		prefetchReadWrite(values+i+512);
-		t.assign(values[i], i);
-	}*/
-	VectorAssign(*this, t);
+	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
+	for(size_t i=0; i<length; i++)
+		values[i] += v[i];
 }
 
-// v += exp
 template<typename value_type>
-template<typename Type> inline void Vector<value_type>::operator += (const Type &t)
+inline void Vector<value_type>::operator -= (const vector_type &v)
 {
-	/*UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
-
-	for(size_t i=0; i < length; i++)
-	{
-		prefetchReadWrite(values+i+512);
-		t.addTo(values[i], i);
-	}*/
-	VectorAdd(*this, t);
+	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
+	for(size_t i=0; i<length; i++)
+		values[i] -= v[i];
 }
-
-// v -= exp
-template<typename value_type>
-template<typename Type> inline void Vector<value_type>::operator -= (const Type &t)
-{
-	/*UG_DLOG(LIB_ALG_VECTOR, 5, *this << " -= " << t << " (unspecialized) ");
-	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
-	//t.preventForbiddenDestination(this);
-
-	for(size_t i=0; i < length; i++)
-		t.substractFrom(values[i], i);
-		*/
-	VectorSub(*this, t);
-}
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -152,8 +109,6 @@ template<typename value_type>
 Vector<value_type>::Vector(size_t _length) : length(0), values(NULL)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
-
-	length = 0;
 	create(_length);
 }
 
@@ -236,12 +191,6 @@ void Vector<value_type>::print(const char * const text) const
 	std::cout << std::endl;
 }
 
-template<typename value_type>
-void Vector<value_type>::printtype() const
-{
-	std::cout << *this;
-}
-
 
 template<typename value_type>
 template<typename V>
@@ -295,24 +244,6 @@ bool Vector<value_type>::get(value_type *u, const size_t *indices, int nr) const
 	for(size_t i=0; i < nr; i++)
 		u[i] = values[indices[i]] ;
 	return true;
-}
-
-
-
-template<typename value_type>
-void Vector<value_type>::add(const value_type &d, size_t i)
-{
-	values[i] += d;
-}
-template<typename value_type>
-void Vector<value_type>::set(const value_type &d, size_t i)
-{
-	values[i] = d;
-}
-template<typename value_type>
-void Vector<value_type>::get(value_type &d, size_t i) const
-{
-	d = values[i];
 }
 
 

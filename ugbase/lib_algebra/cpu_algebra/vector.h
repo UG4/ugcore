@@ -58,14 +58,9 @@ public:
 	//! resize vector
 	bool resize(size_t new_length, bool bCopyValues=true);
 
-	bool destroy();
-
-
 	//! access element i of the vector
 	inline value_type &operator [] (size_t i);
 	inline const value_type &operator [] (size_t i) const;
-
-
 
 
 	//! returns v.T w, that is the dotprod of this vector and w
@@ -85,10 +80,6 @@ public:
 	//! assign double d to whole Vector
 	bool set(double d) { operator = (d); return true; }
 	bool set_random(double from, double to);
-
-	void add(const value_type &d, size_t i);
-	void set(const value_type &d, size_t i);
-	void get(value_type &d, size_t i) const;
 
 	/** add/set/get a local vector
 	 *
@@ -111,24 +102,14 @@ public:
 
 	//! assign other vector v
 	inline void operator = (const Vector &v);
+	inline void operator += (const Vector &v);
+	inline void operator -= (const Vector &v);
+
 	inline bool operator *= (const number &a)
 	{
 		for(size_t i=0; i<size(); i++) values[i] *= a;
 		return true;
 	}
-
-	//! assign this vector to another vector v
-	inline void applyto(Vector &v) const;
-
-	// template expressions for functions
-	template<class Function> inline void operator = (Function &ex);
-
-	//! template expression assignment
-	template<typename Type> inline void operator = (const Type &t);
-	//! template expression +=
-	template<typename Type> inline void operator += (const Type &t);
-	//! template expression -=
-	template<typename Type> inline void operator -= (const Type &t);
 
 	//! return sqrt(sum values[i]^2) (euclidian norm)
 	inline double norm();
@@ -139,26 +120,6 @@ public:
 
 	size_t size() const { return length; }
 
-	void addTo(value_type &dest, size_t i) const
-	{
-		dest += values[i];
-	}
-
-	void substractFrom(value_type &dest, size_t i) const
-	{
-		dest -= values[i];
-	}
-
-	void assign(value_type &dest, size_t i) const
-	{
-		dest = values[i];
-	}
-
-	void preventForbiddenDestination(void *p, bool &bFirst) const
-	{
-		assert(bFirst == true || p != this);
-		bFirst = false;
-	}
 
 public: // output functions
 	//! print vector to console
@@ -172,15 +133,19 @@ public: // output functions
 		return output;
 	}
 
-	void printtype() const;
-	size_t finalize() { return true; }
+	size_t defragment() { return true; }
 
 public:
-	int firstIndex() { return 0; }
-	int lastIndex() { return size(); }
+	/*size_t begin_index() { return 0;}
+	size_t end_index() { return size();}
+
+	value_type *begin() { return values + begin_index(); }
+	value_type *end() { return values + end_index(); }*/
 
 
 private:
+	bool destroy();
+
 	size_t length;				///< length of the vector (vector is from 0..length-1)
 	value_type *values;		///< array where the values are stored, size length
 
