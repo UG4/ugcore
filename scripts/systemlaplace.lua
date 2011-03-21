@@ -143,15 +143,19 @@ end
 
 refiner = GlobalMultiGridRefiner()
 refiner:assign_grid(dom:get_grid())
+
+-- Performing pre-refines
 for i=1,numPreRefs do
 	refiner:refine()
 end
 
+-- Distribute the domain to all involved processes
 if DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
+-- Perform post-refine
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
 util.GlobalRefineParallelDomain(dom)
@@ -167,6 +171,7 @@ for i=1, nSystems do
 	approxSpace:add_fct("c"..i, "Lagrange", 1)
 end
 approxSpace:init()
+approxSpace:print_statistic()
 
 -------------------------------------------
 --  Setup User Functions
@@ -277,6 +282,7 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
+print ("Reset initial value")
 -- set initial value
 u:set(1.0)
 
@@ -321,10 +327,9 @@ ilut = ILUT()
 	transfer:set_dirichlet_post_process(dirichletBND)
 	projection = util.CreateP1Projection(approxSpace)
 	
-	-- Gemoetric Multi Grid
+	-- Geometric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
 	gmg:set_smoother(jac)
