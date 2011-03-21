@@ -68,6 +68,11 @@
 #include "linear_solver/dirichletdirichlet.h"
 #include "linear_solver/feti.h"
 
+// HLIBpro based solver
+#ifdef USE_HLIBPRO
+#include "linear_solver/hlib_operator.h"
+#endif
+
 #include "operator_util.h"
 
 // matrix operator methods

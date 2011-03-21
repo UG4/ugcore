@@ -435,6 +435,33 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 		}
 #endif
 
+	// 	HLIBSolver
+#ifdef USE_HLIBPRO
+		{
+			typedef HLIBSolver<algebra_type> T;
+			reg.add_class_<	T, ILinearOperatorInverse<vector_type, vector_type> >("HLIBSolver", grp3.c_str())
+			.add_constructor()
+			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+						"", "Check")
+			.add_method("set_hlib_nmin|interactive=false",         &T::set_hlib_nmin,
+						"", "HLIB nmin")
+			.add_method("set_hlib_accuracy_H|interactive=false",   &T::set_hlib_accuracy_H,
+						"", "HLIB accuracy_H")
+			.add_method("set_hlib_accuracy_LU|interactive=false",  &T::set_hlib_accuracy_LU,
+						"", "HLIB accuracy_LU")
+			.add_method("set_hlib_verbosity|interactive=false",    &T::set_hlib_verbosity,
+						"", "HLIB verbosity")
+			.add_method("set_clustering_method|interactive=false", &T::set_clustering_method,
+						"", "Clustering")
+			.add_method("set_ps_basename|interactive=false",       &T::set_ps_basename,
+						"", "PostScript basename")
+			.add_method("check_crs_matrix|interactive=false",      &T::check_crs_matrix,
+						"", "Check CR matrix")
+/*			*/
+			.add_method("set_debug", &T::set_debug);
+		}
+#endif
+
 	}
 
 }

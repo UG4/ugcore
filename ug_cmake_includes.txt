@@ -31,6 +31,7 @@
 # - NO_MPI: Disables MPI support.
 # - NO_ALGEBRA: Disables support for algebra and discretization.
 # - HYPRE: Enables support for hypre.
+# - HLIBPRO: Enables support for HLibPro.
 # - NO_BOOST: Disables support for boost (should only be disabled if required).
 # - NO_PCL: Disables creation of the pcl-library.
 # - NO_FORTRAN: Disables Fortran (Fortran may be needed to find LAPACK)
@@ -69,19 +70,20 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 
 	# options for use in cmake gui and help strings in CMakeCache.txt
 	OPTION(UG_DEBUG "debug mode")
-    OPTION(UG_SHARED "builds a shared lib")
+	OPTION(UG_SHARED "builds a shared lib")
 	OPTION(FORCE_64 "Force -m64, 64bit-Compilation")
 	OPTION(FORCE_32 "Force -m32, 32bit-Compiltation")
 	OPTION(NO_MPI "Disable MPI Support")
 	OPTION(NO_ALGEBRA "Disable algebra and discretization")
 	OPTION(HYPRE "Enable Hypre")
+	OPTION(HLIBPRO "Enable HLibPro")
 	OPTION(NO_BOOST "disable support for BOOST")
 	OPTION(NO_PCL "Disable parallel communication library")
 
 	OPTION(NO_FORTRAN "Do not use Fortran (Fortran may be needed to find LAPACK)")
 	OPTION(NO_LAPACK "Disable LAPACK")
 	OPTION(NO_BLAS "Disable BLAS")
-    OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
+	OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
 	OPTION(NO_SHELL "Disables building of the ugshell app.")
 	OPTION(UG_PROFILER "enables the ug-profiler")
 	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
@@ -186,7 +188,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	if(NO_MPI)
 		message(STATUS "INFO: Not using MPI. (To use MPI define -DNO_MPI=OFF)")
 	else(NO_MPI)
-		message(STATUS "INFO: Using MPI. (To disbale MPI define -DNO_MPI=ON)")
+		message(STATUS "INFO: Using MPI. (To disable MPI define -DNO_MPI=ON)")
 
 		find_package(MPI)
 		if(MPI_FOUND)
@@ -246,6 +248,26 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 				message(WARNING " HYPRE not found! Compiling WITHOUT HYPRE.")
 			endif(HYPRELIB_DIR)
 		endif(NOT HYPRE)
+
+		if(NOT HLIBPRO)
+			message(STATUS "INFO: Not using HLibPro. (To enable HLibPro define -DHLIBPRO=ON)")
+		else(NOT HLIBPRO)
+			find_path (HLIBPROLIB_DIR libhpro.a
+					PATHS ENV PATH
+					PATH_SUFFIXES ../../hlibpro-0.13.6/lib/ )
+
+			if(HLIBPROLIB_DIR)
+				message(STATUS "INFO: Using HLibPro (libs at '${HLIBPROLIB_DIR}'). (To disable HLibPro define -DHLIBPRO=OFF)")
+
+				# add include path - the second path for the C interface header 'hlib-c.hh'
+				include_directories (${HLIBPROLIB_DIR}/../include/ ${HLIBPROLIB_DIR}/../src/include/)
+				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHLIBPROLIB_DIR")
+				add_definitions(-DUSE_HLIBPRO)
+
+			else(HLIBPROLIB_DIR)
+				message(WARNING " HLibPro not found! Compiling WITHOUT HLIBPRO.")
+			endif(HLIBPROLIB_DIR)
+		endif(NOT HLIBPRO)
 	endif(NOT NO_ALGEBRA)
 
 	#######################
@@ -261,9 +283,15 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 
 	if(NOT NO_ALGEBRA)
 		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
+		# Hypre:
 		if(HYPRE AND HYPRELIB_DIR)
 			set(UG_LIBRARIES ${UG_LIBRARIES} ${HYPRELIB_DIR}/libHYPRE.a)
 		endif(HYPRE AND HYPRELIB_DIR)
+		# HLibPro:
+		if(HLIBPRO AND HLIBPROLIB_DIR)
+			set(UG_LIBRARIES ${UG_LIBRARIES} ${HLIBPROLIB_DIR}/libhpro.a)
+			#list(APPEND ${UG_LIBRARIES} ${HLIBPROLIB_DIR}/libhpro.a) # should be possible since CMake 2.4!
+		endif(HLIBPRO AND HLIBPROLIB_DIR)
 	endif(NOT NO_ALGEBRA)
 
 	set(UG_LIBRARIES ${UG_LIBRARIES} grid)

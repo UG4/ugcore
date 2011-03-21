@@ -43,6 +43,12 @@ How to compile algebra and discretization module:
 
 
 ########################################################################
+How to compile and use the optional library HLIBpro (http://www.hlibpro.com/):
+
+See file 'README_hlibpro.txt' (in the same directory as this file)!
+
+
+########################################################################
 You can enable and disable some parts of ug.
 
 You can enable and disable some parts of ug, in order to reduce build-times or
@@ -51,10 +57,12 @@ It is good practice to disable everything you don't need.
 The following options can be enabled / disabled:
 
 - UG_DEBUG: Produces slow but debuggable applications.
+- UG_PROFILER: Enables the ug-profiler.
 - NO_MPI: Disables MPI support.
 - NO_ALGEBRA: Disables support for algebra and discretization.
 - NO_BOOST: Disables support for boost (should only be disabled if required).
 - NO_PCL: Disables creation of the pcl-library.
+- HLIBRO: Enables coupling with HLibPro.
 
 To enable or disable options during the cmake call, call cmake like this:
 cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
