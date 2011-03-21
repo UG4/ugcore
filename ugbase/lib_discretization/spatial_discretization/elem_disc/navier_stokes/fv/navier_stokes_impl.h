@@ -186,9 +186,29 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 	const DataImport<MathVector<dim>, dim, TAlgebra>* pSource = NULL;
 	if(m_imSource.data_given())	pSource = &m_imSource;
 
+//	check for solutions to pass to stabilization in time-dependent case
+	const local_vector_type *pSol = &u, *pOldSol = NULL;
+	number dt = 0.0;
+	if(this->is_time_dependent())
+	{
+	//	get and check current and old solution
+		const LocalVectorTimeSeries<typename TAlgebra::vector_type>* vLocSol
+			= this->local_time_solutions();
+		if(vLocSol->size() != 2)
+		{
+			UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
+					" Stabilization needs exactly two time points.\n");
+			return false;
+		}
+
+	//	remember local solutions
+		pSol = &vLocSol->solution(0);
+		pOldSol = &vLocSol->solution(1);
+		dt = vLocSol->time(0) - vLocSol->time(1);
+	}
+
 //	compute stabilized velocities and shapes for continuity equation
-	// \todo: handle time dependent case (i.e. not passing NULL)
-	if(!m_pStab->update(&geo, u, m_imKinViscosity, pSource, NULL, 0.0))
+	if(!m_pStab->update(&geo, *pSol, m_imKinViscosity, pSource, pOldSol, dt))
 	{
 		UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
 				"Cannot compute stabilized velocities and shapes.\n");
@@ -198,7 +218,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 //	compute stabilized velocities and shapes for convection upwind
 	if(m_pConvStab != NULL)
 		if(m_pConvStab != m_pStab)
-			if(!m_pConvStab->update(&geo, u, m_imKinViscosity, pSource, NULL, 0.0))
+			if(!m_pConvStab->update(&geo, *pSol, m_imKinViscosity, pSource, pOldSol, dt))
 			{
 				UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
 						"Cannot compute upwind (PAC) velocities and shapes.\n");
@@ -208,7 +228,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 //	compute upwind shapes
 	if(m_pConvUpwind != NULL)
 		if(m_pStab->get_upwind() != m_pConvUpwind)
-			if(!m_pConvUpwind->update(&geo, u))
+			if(!m_pConvUpwind->update(&geo, *pSol))
 			{
 				UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
 						"Cannot compute upwind velocities and shapes.\n");
@@ -293,8 +313,6 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 						" Cannot find upwind for convective term.\n");
 				return false;
 			}
-
-		//	\todo: implement derivative of p_ConvUpwind case
 
 		//	peclet blend
 			number w = 1.0;
@@ -503,10 +521,30 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	const DataImport<MathVector<dim>, dim, TAlgebra>* pSource = NULL;
 	if(m_imSource.data_given())	pSource = &m_imSource;
 
+//	check for solutions to pass to stabilization in time-dependent case
+	const local_vector_type *pSol = &u, *pOldSol = NULL;
+	number dt = 0.0;
+	if(this->is_time_dependent())
+	{
+	//	get and check current and old solution
+		const LocalVectorTimeSeries<typename TAlgebra::vector_type>* vLocSol
+			= this->local_time_solutions();
+		if(vLocSol->size() != 2)
+		{
+			UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
+					" Stabilization needs exactly two time points.\n");
+			return false;
+		}
+
+	//	remember local solutions
+		pSol = &vLocSol->solution(0);
+		pOldSol = &vLocSol->solution(1);
+		dt = vLocSol->time(0) - vLocSol->time(1);
+	}
+
 //	compute stabilized velocities and shapes for continuity equation
 	// \todo: (optional) Here we can skip the computation of shapes, implement?
-	// \todo: handle time dependent case (i.e. not passing NULL)
-	if(!m_pStab->update(&geo, u, m_imKinViscosity, pSource, NULL, 0.0))
+	if(!m_pStab->update(&geo, *pSol, m_imKinViscosity, pSource, pOldSol, dt))
 	{
 		UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
 				"Cannot compute stabilized velocities and shapes.\n");
@@ -516,7 +554,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 //	compute stabilized velocities and shapes for convection upwind
 	if(m_pConvStab != NULL)
 		if(m_pConvStab != m_pStab)
-			if(!m_pConvStab->update(&geo, u, m_imKinViscosity, pSource, NULL, 0.0))
+			if(!m_pConvStab->update(&geo, *pSol, m_imKinViscosity, pSource, pOldSol, dt))
 			{
 				UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
 						"Cannot compute upwind (PAC) velocities and shapes.\n");
@@ -526,7 +564,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 //	compute upwind shapes
 	if(m_pConvUpwind != NULL)
 		if(m_pStab->get_upwind() != m_pConvUpwind)
-			if(!m_pConvUpwind->update(&geo, u))
+			if(!m_pConvUpwind->update(&geo, *pSol))
 			{
 				UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
 						"Cannot compute upwind velocities and shapes.\n");
