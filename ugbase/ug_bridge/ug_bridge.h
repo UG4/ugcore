@@ -57,6 +57,7 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup = "/ug4");
 /// registers access to profiling functions at the registry
 bool RegisterProfileFunctions(Registry &reg, const char* parentGroup = "/ug4");
 
+bool RegisterMiscFunctions(Registry &reg, const char* parentGroup = "/ug4");
 
 }//	end of namespace 
 }//	end of namespace 

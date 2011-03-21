@@ -6,10 +6,12 @@
 #include "registry.h"
 #include "lib_algebra/algebra_chooser.h"
 
+
 namespace ug
 {
 namespace bridge
 {
+
 
 Registry & GetUGRegistry()
 {
@@ -51,6 +53,8 @@ UG_LOG("REGISTERING STANDARD INTERFACES\n");
 
 		bResult &= RegisterProfileFunctions(reg, parentGroup);
 		
+		bResult &= RegisterMiscFunctions(reg, parentGroup);
+
 		#ifdef UG_ALGEBRA
 			bResult &= RegisterDomainInterface(reg, parentGroup);
 			bResult &= RegisterUserData(reg, parentGroup);
