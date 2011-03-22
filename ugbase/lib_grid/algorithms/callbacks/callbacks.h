@@ -8,5 +8,6 @@
 #include "callback_definitions.h"
 #include "subset_handler_callbacks.h"
 #include "selector_callbacks.h"
+#include "grid_callbacks.h"
 
 #endif

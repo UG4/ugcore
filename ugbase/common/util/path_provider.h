@@ -1,0 +1,103 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 22.03.2011 (m,d,y)
+
+#ifndef __H__UG__path_provider__
+#define __H__UG__path_provider__
+
+#include <string>
+#include <map>
+#include <stack>
+
+namespace ug
+{
+
+////////////////////////////////////////////////////////////////////////
+///	Constants used by PathProvider
+enum PathTypes
+{
+	APP_PATH = 0,
+	DATA_PATH,
+	SCRIPT_PATH,
+//	always last
+	MAX_PATH_CONSTANT
+};
+
+////////////////////////////////////////////////////////////////////////
+///	Singleton which stores common paths and a stack of current paths.
+/**	All paths are initially set to "".
+ *
+ * Note that all public methods of PathProvider are static. That means
+ * you have to call them through the :: operator. E.g.
+ *
+ * \code
+ * std::string appPath = PathProvider::get_path(APP_PATH);
+ * \endcode
+ */
+class PathProvider
+{
+	public:
+	///	sets the path for the given constant.
+	/** Note that all pathes should end with a "/".
+	 *
+	 * \param pathType	should be one of the constants enumerated in PathTypes
+	 * 					or a used defined constant starting from
+	 * 					MAX_PATH_CONSTANT + 1.
+	 */
+		static inline void set_path(int pathType, const std::string& path)
+		{inst().m_map[pathType] = path;}
+
+	///	returns the path associated with the given constant.
+	/** Note that all pathes (ideally) end with a "/".
+	 *
+	 * \param pathType	should be one of the constants enumerated in PathTypes
+	 * 					or a used defined constant starting from
+	 * 					MAX_PATH_CONSTANT + 1.
+	 */
+		static inline const std::string& get_path(int pathType)
+		{return inst().m_map[pathType];}
+
+	///	returns the current path
+	/**	current pathes are stored in a stack. The top of the stack is considered
+	 * to be the most current path and is returned by this method.
+	 *
+	 * \param defPath	(optional) If the stack is empty, the path associated with
+	 * 					defPath is returned. By default defPath is set to APP_PATH.
+	 */
+		static inline const std::string& get_current_path(int defPath = APP_PATH)
+		{
+			if(inst().m_curPaths.empty())
+				return get_path(defPath);
+			return inst().m_curPaths.top();
+		}
+
+	///	returns true if a current path exists, false if not.
+		bool has_current_path()
+		{return !inst().m_curPaths.empty();}
+
+	///	pushes a path to the stack of current paths
+		static inline void push_current_path(const std::string& path)
+		{inst().m_curPaths.push(path);}
+
+	///	pops a path from the stack of current paths
+		static inline void pop_current_path()
+		{inst().m_curPaths.pop();}
+
+	private:
+		PathProvider()	{}
+		PathProvider(const PathProvider&)	{}
+
+		static PathProvider& inst()
+		{
+			static PathProvider pp;
+			return pp;
+		}
+
+	private:
+		std::map<int, std::string>	m_map;
+		std::stack<std::string>		m_curPaths;
+};
+
+}//	end of namespace
+
+#endif

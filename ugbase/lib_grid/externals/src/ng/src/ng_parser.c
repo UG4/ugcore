@@ -54,7 +54,7 @@ static const char* err_msg_noe = "Not an element [internal error], line %d, char
 static const char* err_msg_uid = "Error reading subdomain id at line %d, char %d.";
 static const char* err_msg_SNF = "Expected node id or 'F' token at line %d, char %d.";
 
-static const char* err_msg_nof = "Not a face [internal error], line %d, char %d.";
+static const char* err_msg_nof = "Not a face nor a side [internal error], line %d, char %d.";
 
 
 /*
@@ -84,7 +84,7 @@ int ng_parser_strtod(const char* str, double* d);
 int ng_parse_file(tokstream* ts, struct ng* n, struct ng_info* fileinfo);
 int ng_parse_bnode(tokstream* ts, struct ng_bnode* bnode, struct ng* n, struct ng_info* fileinfo);
 int ng_parse_inode(tokstream* ts, struct ng_inode* inode, struct ng* n, struct ng_info* fileinfo);
-int ng_parse_element(tokstream* ts, struct ng_element* element, struct ng_info* fileinfo);
+int ng_parse_element(tokstream* ts, struct ng_element* element, struct ng_info* fileinfo, int dim);
 int ng_parse_surface_pos(tokstream* ts, struct ng_surface_pos* spos, struct ng_info* fileinfo);
 int ng_parse_line_pos(tokstream* ts, struct ng_line_pos* lpos, struct ng_info* fileinfo);
 int ng_parse_face(tokstream* ts, struct ng_face* face, struct ng_info* fileinfo);
@@ -247,7 +247,7 @@ int ng_parse_file(tokstream* ts, struct ng* n, struct ng_info* fileinfo)
             }
 
             /* read element */
-            $(ng_parse_element(ts, &n->elements[n->num_elements], fileinfo));
+            $(ng_parse_element(ts, &n->elements[n->num_elements], fileinfo, n->dim));
             ++n->num_elements;
 
             continue;
@@ -458,7 +458,7 @@ int ng_parse_inode(tokstream* ts, struct ng_inode* bnode,
     return 0;
 }
 
-int ng_parse_element(tokstream* ts, struct ng_element* element, struct ng_info* fileinfo)
+int ng_parse_element(tokstream* ts, struct ng_element* element, struct ng_info* fileinfo, int dim)
 {
     const char* tok;
     int subdomain_id;
@@ -542,7 +542,7 @@ int ng_parse_element(tokstream* ts, struct ng_element* element, struct ng_info* 
         }
 
         /* check for face */
-        if(is_token(tok, "F"))
+        if(is_token(tok, "F") || is_token(tok, "S"))
         {
             /* check for reallocation */
             if(element->num_faces == alloc_faces)
@@ -575,7 +575,7 @@ int ng_parse_element(tokstream* ts, struct ng_element* element, struct ng_info* 
     /* read delimiter */
     tok = ts_get(ts);
     if(!is_token(tok, ";"))
-        return ng_error_parse(fileinfo, err_msg_SNF, ts);
+		return ng_error_parse(fileinfo, err_msg_SNF, ts);
 
     /* success */
     return 0;
@@ -588,9 +588,9 @@ int ng_parse_face(tokstream* ts, struct ng_face* face, struct ng_info* fileinfo)
 
     int alloc_nodes = init_num_nodes;
 
-    /* check that this is a face */
+    /* check that this is a face or a side*/
     tok = ts_tok(ts);
-    if(!is_token(tok, "F"))
+    if((!is_token(tok, "F")) && (!is_token(tok, "S")))
         return ng_error_parse(fileinfo, err_msg_nof, ts);
 
     /* initialize nodes */

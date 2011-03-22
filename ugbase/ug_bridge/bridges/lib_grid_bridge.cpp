@@ -413,6 +413,7 @@ void TestGridRedistribution(const char* filename)
 	UG_LOG("WARNING in TestGridRedistribution: ");
 	UG_LOG("This method only works in a parallel environment.\n");
 #else
+	UG_LOG("Executing TestGridRedistribution...\n");
 	MultiGrid mg;
 	SubsetHandler sh(mg);
 	DistributedGridManager distGridMgr(mg);
@@ -420,11 +421,11 @@ void TestGridRedistribution(const char* filename)
 
 	int numProcs = pcl::GetNumProcesses();
 	if(numProcs != 4){
-		UG_LOG("This test-method only runs with exactly 4 processes.\n");
+		UG_LOG(" This test-method only runs with exactly 4 processes.\n");
 		return;
 	}
 
-UG_LOG("performing initial distribution\n");
+UG_LOG(" performing initial distribution\n");
 	if(pcl::GetProcRank() == 0){
 	//	use this for loading and distribution.
 		MultiGrid tmg;
@@ -491,8 +492,8 @@ UG_LOG("performing initial distribution\n");
 
 	distGridMgr.grid_layouts_changed(true);
 
-UG_LOG("done\n");
-UG_LOG("preparing for redistribution\n");
+UG_LOG(" done\n");
+UG_LOG(" preparing for redistribution\n");
 ////////////////////////////////
 //	The grid is now distributed to two processes (proc 1 and proc 2).
 //	note that it was distributed completely (no source grid kept).
@@ -536,12 +537,30 @@ UG_LOG("preparing for redistribution\n");
 			default:
 					break;
 		}
+
+	//	save the partition maps
+		{
+			stringstream ss;
+			ss << "partition_map_" << pcl::GetProcRank() << ".ugx";
+			SaveGridToFile(mg, ss.str().c_str(), shPart);
+		}
 	}
 
-UG_LOG("done\n");
-UG_LOG("redistributing grid\n");
+UG_LOG(" done\n");
+UG_LOG(" redistributing grid\n");
+//	data serialization and deserialization
+	GridDataSerializer serializer;
+	GridDataDeserializer deserializer;
+
+	serializer.add_vertex_callback(
+					GridAttachmentSerializer<VertexBase, APosition>(
+														mg, aPosition));
+	deserializer.add_vertex_callback(
+					GridAttachmentDeserializer<VertexBase, APosition>(
+														mg, aPosition));
+
 //	now call redistribution
-	RedistributeGrid(distGridMgr, sh, shPart);
+	RedistributeGrid(distGridMgr, shPart, serializer, deserializer);
 UG_LOG("done\n");
 
 //	save the hierarchy on each process

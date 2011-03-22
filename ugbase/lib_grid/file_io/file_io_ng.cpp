@@ -14,6 +14,12 @@ extern "C" {
 
 using namespace std;
 
+enum ng_face_type
+{
+	ng_triangle = 3,
+	ng_quadrilateral = 4,
+};
+
 enum ng_volume_type
 {
 	ng_tetrahedra = 4,
@@ -103,63 +109,106 @@ bool ImportGridFromNG(Grid& grid,
 		);
 	}
 
-	//	read volumes
-	for(int i = 0; i < n->num_elements; ++i)
-	{
-		ng_element* elem = &n->elements[i];
-
-		Volume* vol = NULL;
-
-		// create volume
-		switch(elem->num_nodes)
-		{
-			case ng_tetrahedra:
-				vol = *grid.create<Tetrahedron>(TetrahedronDescriptor(
-						vVertices[elem->nodes[0]],
-						vVertices[elem->nodes[1]],
-						vVertices[elem->nodes[2]],
-						vVertices[elem->nodes[3]]
-				));
-				break;
-
-			case ng_pyramid:
-				vol = *grid.create<Pyramid>(PyramidDescriptor(
-						vVertices[elem->nodes[0]],
-						vVertices[elem->nodes[1]],
-						vVertices[elem->nodes[2]],
-						vVertices[elem->nodes[3]],
-						vVertices[elem->nodes[4]]));
-				break;
-			case ng_prism:
-				vol = *grid.create<Prism>(PrismDescriptor(
-						vVertices[elem->nodes[0]],
-						vVertices[elem->nodes[1]],
-						vVertices[elem->nodes[2]],
-						vVertices[elem->nodes[3]],
-						vVertices[elem->nodes[4]],
-						vVertices[elem->nodes[5]]));
-				break;
-			case ng_hexahedra:
-				vol = *grid.create<Hexahedron>(HexahedronDescriptor(
-						vVertices[elem->nodes[0]],
-						vVertices[elem->nodes[1]],
-						vVertices[elem->nodes[2]],
-						vVertices[elem->nodes[3]],
-						vVertices[elem->nodes[4]],
-						vVertices[elem->nodes[5]],
-						vVertices[elem->nodes[6]],
-						vVertices[elem->nodes[7]]));
-				break;
-			default:
-				LOG("WARNING in ImportGridFromNG: Volume type not implemented!" << endl);
-				break;
-		}
-
-		// add volume to subset
-		if(vol != NULL && pSubdomainHandler != NULL)
-			pSubdomainHandler->assign_subset(vol, elem->subdomain - 1);
+//	if we're in 2d, set all z-coords to 0
+	if(n->dim == 2){
+		for(size_t i = 0; i < vVertices.size(); ++i)
+			aaPosition[vVertices[i]].z = 0;
 	}
 
+//	create the elements
+	if(n->dim == 2){
+		//	read faces
+		for(int i = 0; i < n->num_elements; ++i)
+		{
+			ng_element* elem = &n->elements[i];
+
+			Face* face = NULL;
+
+			// create face
+			switch(elem->num_nodes)
+			{
+				case ng_triangle:
+					face = *grid.create<Triangle>(TriangleDescriptor(
+							vVertices[elem->nodes[0]],
+							vVertices[elem->nodes[1]],
+							vVertices[elem->nodes[2]]));
+					break;
+
+				case ng_quadrilateral:
+					face = *grid.create<Quadrilateral>(QuadrilateralDescriptor(
+							vVertices[elem->nodes[0]],
+							vVertices[elem->nodes[1]],
+							vVertices[elem->nodes[2]],
+							vVertices[elem->nodes[3]]));
+					break;
+				default:
+					LOG("WARNING in ImportGridFromNG: Face type not implemented!" << endl);
+					break;
+			}
+
+			// add face to subset
+			if(face != NULL && pSubdomainHandler != NULL)
+				pSubdomainHandler->assign_subset(face, elem->subdomain - 1);
+		}
+	}
+	else{
+		//	read volumes
+		for(int i = 0; i < n->num_elements; ++i)
+		{
+			ng_element* elem = &n->elements[i];
+
+			Volume* vol = NULL;
+
+			// create volume
+			switch(elem->num_nodes)
+			{
+				case ng_tetrahedra:
+					vol = *grid.create<Tetrahedron>(TetrahedronDescriptor(
+							vVertices[elem->nodes[0]],
+							vVertices[elem->nodes[1]],
+							vVertices[elem->nodes[2]],
+							vVertices[elem->nodes[3]]
+					));
+					break;
+
+				case ng_pyramid:
+					vol = *grid.create<Pyramid>(PyramidDescriptor(
+							vVertices[elem->nodes[0]],
+							vVertices[elem->nodes[1]],
+							vVertices[elem->nodes[2]],
+							vVertices[elem->nodes[3]],
+							vVertices[elem->nodes[4]]));
+					break;
+				case ng_prism:
+					vol = *grid.create<Prism>(PrismDescriptor(
+							vVertices[elem->nodes[0]],
+							vVertices[elem->nodes[1]],
+							vVertices[elem->nodes[2]],
+							vVertices[elem->nodes[3]],
+							vVertices[elem->nodes[4]],
+							vVertices[elem->nodes[5]]));
+					break;
+				case ng_hexahedra:
+					vol = *grid.create<Hexahedron>(HexahedronDescriptor(
+							vVertices[elem->nodes[0]],
+							vVertices[elem->nodes[1]],
+							vVertices[elem->nodes[2]],
+							vVertices[elem->nodes[3]],
+							vVertices[elem->nodes[4]],
+							vVertices[elem->nodes[5]],
+							vVertices[elem->nodes[6]],
+							vVertices[elem->nodes[7]]));
+					break;
+				default:
+					LOG("WARNING in ImportGridFromNG: Volume type not implemented!" << endl);
+					break;
+			}
+
+			// add volume to subset
+			if(vol != NULL && pSubdomainHandler != NULL)
+				pSubdomainHandler->assign_subset(vol, elem->subdomain - 1);
+		}
+	}
 	// done importing!
 
 	// delete ng object

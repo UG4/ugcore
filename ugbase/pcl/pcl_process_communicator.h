@@ -10,6 +10,7 @@
 #include <vector>
 #include "pcl_methods.h"
 #include "common/util/smart_pointer.h"
+#include "common/util/binary_stream.h"
 
 namespace pcl
 {
@@ -218,7 +219,37 @@ class ProcessCommunicator
 							 int* pSenderProcMap, int numSenderProcs,
 							 void* pBuffer, int* pBufferSegSizes,
 							 int* pRecvProcMap, int numRecvProcs,
-							 int tag = 1);
+							 int tag = 1) const;
+
+	///	sends and receives data to/from multiple processes
+	/**	This method automatically determines the size of the distributed
+	 * data and writes it to a binary stream.
+	 * Note that it has to communicate twice, since the buffer-sizes also
+	 * have to be communicated.
+	 *
+	 * \param recvBufOut	Received data will be written to this buffer.
+	 * \param segSizesOut	Array to which the block-sizes received from
+	 * 						each process will be written.
+	 * 						Has to have size numRecvFroms.
+	 * \param recvFromRanks	Array containing the ranks which send data to
+	 * 						this process. Has to have size numRecvFroms.
+	 * \param numRecvFroms	Specifies from how many processes this process
+	 * 						will receive data.
+	 * \param sendBuf		Contains the data which will be send to other
+	 * 						processes. Make sure that it is big enough
+	 * 						(sum of all sendSegSizes).
+	 * \param sendSegSizes	The i-th entry corresponds to the block-size
+	 * 						which will be send to the i-th process in
+	 * 						sendToRanks. Has to have size numSendTos.
+	 * \param sendToRanks	An array of process ids, which defines to where
+	 * 						data shall be sent. Has to have size numSendTos.
+	 * \param numSendTos	Specifies to how many processes data will be sent.
+	 */
+		void distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
+							int* recvFromRanks, int numRecvFroms,
+							void* sendBuf, int* sendSegSizes,
+							int* sendToRanks, int numSendTos) const;
+
 	private:
 	///	holds an mpi-communicator.
 	/**	A variable stores whether the communicator has to be freed when the

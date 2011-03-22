@@ -10,8 +10,8 @@
 
 
 // ug libraries
-#include "ug.h"
 #include "ug_script.h"
+#include "common/util/path_provider.h"
 #include "bindings/bindings_lua.h"
 #include "ug_bridge/ug_bridge.h"
 #include "ug_bridge/class_helper.h"
@@ -29,8 +29,9 @@ namespace script
 ///	loads a file relative to APP_PATH../scripts
 bool LoadUGScript(const char* filename)
 {
-//	This stack is used to support relative pathes to a
-//	current script.
+//	This stack is used to support relative pathes to a current script.
+//	We do not use PathProvider here, since the current path not necessarily
+//	holds the most current script-path.
 	static stack<string> stkPathes;
 
 //	get the path component of the current filename
@@ -53,7 +54,9 @@ bool LoadUGScript(const char* filename)
 		if(FileExists(file.c_str())){
 			curPath.append("/").append(strInPath);
 			stkPathes.push(curPath);
+			PathProvider::push_current_path(curPath);
 			bool success = ug::script::ParseFile(file.c_str());
+			PathProvider::pop_current_path();
 			stkPathes.pop();
 			return success;
 		}
@@ -63,13 +66,15 @@ bool LoadUGScript(const char* filename)
 //	was one at all). Check the default filename
 	if(FileExists(filename)){
 		stkPathes.push(strInPath);
+		PathProvider::push_current_path(strInPath);
 		bool success = ug::script::ParseFile(filename);
+		PathProvider::pop_current_path();
 		stkPathes.pop();
 		return success;
 	}
 
 //	finally we have to check relative to the  default path
-	string curPath = UGGetScriptPath();
+	string curPath = PathProvider::get_path(SCRIPT_PATH);
 	string file = curPath;
 	file.append("/").append(filename);
 
@@ -77,7 +82,9 @@ bool LoadUGScript(const char* filename)
 	if(FileExists(file.c_str())){
 		curPath.append("/").append(strInPath);
 		stkPathes.push(curPath);
+		PathProvider::push_current_path(curPath);
 		bool success = ug::script::ParseFile(file.c_str());
+		PathProvider::pop_current_path();
 		stkPathes.pop();
 		return success;
 	}

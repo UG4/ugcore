@@ -18,7 +18,10 @@ set(srcUGBridge    	class_name_provider.cpp
 					ug_bridge.cpp
 					bridges/lib_grid_bridge.cpp
 					bridges/test_bridge.cpp
-					bridges/pcl_bridge.cpp)
+					bridges/pcl_bridge.cpp
+					bridges/profiler_bridge.cpp
+					bridges/util_bridge.cpp
+					bridges/misc_bridge.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
@@ -31,9 +34,7 @@ if(NOT NO_ALGEBRA)
 					bridges/lib_disc_bridge_domain_dependent.cpp
 					bridges/lib_disc_bridge_discs.cpp
 					bridges/user_data_bridge.cpp
-					bridges/domain_bridge.cpp
-					bridges/profiler_bridge.cpp
-					bridges/misc_bridge.cpp)
+					bridges/domain_bridge.cpp)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)

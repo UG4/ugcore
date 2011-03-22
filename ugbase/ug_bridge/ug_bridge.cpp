@@ -47,6 +47,7 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 UG_LOG("REGISTERING STANDARD INTERFACES\n");
 	try
 	{
+		bResult &= RegisterUtilInterface(reg, parentGroup);
 		bResult &= RegisterLibGridInterface(reg, parentGroup);
 		bResult &= RegisterTestInterface(reg, parentGroup);
 		bResult &= RegisterPCLInterface(reg, parentGroup);

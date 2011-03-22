@@ -13,6 +13,49 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+//	Implementation
+void GridDataSerializer::add_vertex_callback(const CB_SerializeVertexData& cb)
+{
+	m_vrtSerializers.push_back(cb);
+}
+
+void GridDataSerializer::add_edge_callback(const CB_SerializeEdgeData& cb)
+{
+	m_edgeSerializers.push_back(cb);
+}
+
+void GridDataSerializer::add_face_callback(const CB_SerializeFaceData& cb)
+{
+	m_faceSerializers.push_back(cb);
+}
+
+void GridDataSerializer::add_volume_callback(const CB_SerializeVolumeData& cb)
+{
+	m_volSerializers.push_back(cb);
+}
+
+
+void GridDataDeserializer::add_vertex_callback(const CB_DeserializeVertexData& cb)
+{
+	m_vrtDeserializers.push_back(cb);
+}
+
+void GridDataDeserializer::add_edge_callback(const CB_DeserializeEdgeData& cb)
+{
+	m_edgeDeserializers.push_back(cb);
+}
+
+void GridDataDeserializer::add_face_callback(const CB_DeserializeFaceData& cb)
+{
+	m_faceDeserializers.push_back(cb);
+}
+
+void GridDataDeserializer::add_volume_callback(const CB_DeserializeVolumeData& cb)
+{
+	m_volDeserializers.push_back(cb);
+}
+
+////////////////////////////////////////////////////////////////////////
 //	enumerations
 
 /**

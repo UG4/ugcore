@@ -20,9 +20,10 @@ namespace ug
  * \{
  */
  
+////////////////////////////////////////////////////////////////////////
 /**
  *\{
- *	\brief Callback definition used by several algorithms.
+ *	\brief Callback definition associating a boolean with a geometric object
  *
  *	Allows to apply algorithms on arbitrary parts of a mesh.
  *	You may implement your own callbacks, which have to return true
@@ -32,9 +33,9 @@ typedef boost::function<bool (VertexBase*)> CB_ConsiderVertex;
 typedef boost::function<bool (EdgeBase*)>	CB_ConsiderEdge;
 typedef boost::function<bool (Face*)>		CB_ConsiderFace;
 typedef boost::function<bool (Volume*)>		CB_ConsiderVolume;
-
 /** \} */
 
+////////////////////////////////////////////////////////////////////////
 /**
  *\{
  *	\brief A callback that returns true for all given objects.
@@ -45,6 +46,30 @@ inline bool ConsiderAllFaces(Face*)				{return true;}
 inline bool ConsiderAllVolumes(Volume*)			{return true;}
 /** \} */
 
+
+////////////////////////////////////////////////////////////////////////
+/**
+ *\{
+ *	\brief Callback definition for writing data associated with a
+ *			geometric object to a binary stream.
+ */
+typedef boost::function<void (std::ostream&, VertexBase*)> CB_SerializeVertexData;
+typedef boost::function<void (std::ostream&, EdgeBase*)> CB_SerializeEdgeData;
+typedef boost::function<void (std::ostream&, Face*)> 	CB_SerializeFaceData;
+typedef boost::function<void (std::ostream&, Volume*)>	CB_SerializeVolumeData;
+///	\}
+
+////////////////////////////////////////////////////////////////////////
+/**
+ *\{
+ *	\brief Callback definition for reading data associated with a
+ *			geometric object from a binary stream.
+ */
+typedef boost::function<void (std::istream&, VertexBase*)> CB_DeserializeVertexData;
+typedef boost::function<void (std::istream&, EdgeBase*)> CB_DeserializeEdgeData;
+typedef boost::function<void (std::istream&, Face*)> 	CB_DeserializeFaceData;
+typedef boost::function<void (std::istream&, Volume*)>	CB_DeserializeVolumeData;
+///	\}
 
 /** \} */	// end of group definition
 

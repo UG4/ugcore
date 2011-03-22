@@ -11,6 +11,69 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+//	DataSerializer
+inline void GridDataSerializer::serialize(std::ostream& out, VertexBase* vrt) const
+{serialize(out, vrt, m_vrtSerializers);}
+
+inline void GridDataSerializer::serialize(std::ostream& out, EdgeBase* edge) const
+{serialize(out, edge, m_edgeSerializers);}
+
+inline void GridDataSerializer::serialize(std::ostream& out, Face* face) const
+{serialize(out, face, m_faceSerializers);}
+
+inline void GridDataSerializer::serialize(std::ostream& out, Volume* vol) const
+{serialize(out, vol, m_volSerializers);}
+
+template<class TGeomObj, class TSerializers>
+void GridDataSerializer::serialize(std::ostream& out, TGeomObj* o,
+									TSerializers& serializers) const
+{
+	for(size_t i = 0; i < serializers.size(); ++i){
+		serializers[i](out, o);
+	}
+}
+
+template <class TIterator>
+void GridDataSerializer::
+serialize(std::ostream& out, TIterator begin, TIterator end) const
+{
+	for(TIterator iter = begin; iter != end; ++iter)
+		serialize(out, *iter);
+}
+
+////////////////////////////////////////////////////////////////////////
+inline void GridDataDeserializer::deserialize(std::istream& in, VertexBase* vrt) const
+{deserialize(in, vrt, m_vrtDeserializers);}
+
+inline void GridDataDeserializer::deserialize(std::istream& in, EdgeBase* edge) const
+{deserialize(in, edge, m_edgeDeserializers);}
+
+inline void GridDataDeserializer::deserialize(std::istream& in, Face* face) const
+{deserialize(in, face, m_faceDeserializers);}
+
+inline void GridDataDeserializer::deserialize(std::istream& in, Volume* vol) const
+{deserialize(in, vol, m_volDeserializers);}
+
+template<class TGeomObj, class TDeserializers>
+void GridDataDeserializer::deserialize(std::istream& in, TGeomObj* o,
+									   TDeserializers& deserializers) const
+{
+	for(size_t i = 0; i < deserializers.size(); ++i){
+		deserializers[i](in, o);
+	}
+}
+
+template <class TIterator>
+void GridDataDeserializer::
+deserialize(std::istream& in, TIterator begin, TIterator end) const
+{
+	for(TIterator iter = begin; iter != end; ++iter)
+		deserialize(in, *iter);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //	SerializeAttachment
 template <class TElem, class TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,

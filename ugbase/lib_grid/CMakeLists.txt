@@ -88,7 +88,8 @@ if(NOT NO_MPI)
 							parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
 							parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp
 							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
-							parallelization/util/distribution_util.cpp)
+							parallelization/util/distribution_util.cpp
+							parallelization/util/redistribution_util.cpp)
 
 else(NOT NO_MPI)
 	# give a warning that pcl will not be compiled.
@@ -97,7 +98,7 @@ endif(NOT NO_MPI)
 
 ################################################
 # EXTERNALS - TetGen
-add_definitions(-DTETLIBRARY)
+add_definitions(-DTETLIBRARY -DSELF_CHECK)
 
 set_source_files_properties(externals/src/tetgen/predicates.cxx
 	PROPERTIES COMPILE_FLAGS -O0)

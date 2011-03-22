@@ -14,7 +14,8 @@ include_directories("externals/metis")
 
 set(srcPcl	pcl_base.cpp
 			pcl_methods.cpp
-			pcl_process_communicator.cpp)
+			pcl_process_communicator.cpp
+			pcl_util.cpp)
 
 EXPORTSOURCES(pcl ${srcPcl})
 

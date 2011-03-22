@@ -192,6 +192,8 @@ class GridLayoutMap
 		template <class TType>
 		void erase_layout(const Key& key);
 
+		void clear();
+
 	private:
 		template <class TType>
 		inline typename Types<TType>::Map&

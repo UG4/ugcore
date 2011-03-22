@@ -30,6 +30,9 @@ typedef Attachment<vector2>		AVector2;
 typedef Attachment<vector3>		AVector3;
 typedef Attachment<vector4>		AVector4;
 typedef Attachment<VertexBase*>	AVertexBase;
+typedef Attachment<EdgeBase*>	AEdgeBase;
+typedef Attachment<Face*>		AFace;
+typedef Attachment<Volume*>		AVolume;
 
 typedef AVector1	APosition1;
 typedef AVector2	APosition2;

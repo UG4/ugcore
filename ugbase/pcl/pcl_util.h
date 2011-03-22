@@ -168,6 +168,28 @@ void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
+///	exchanges information about which process wants to communicate with which other process.
+/**	If processes want to send data to other processes, but the target
+ * processes do not know from where to receive their data, then this
+ * method can be used to notify each process from where he has to
+ * receive data.
+ *
+ * Each process has to call this method, passing an array of process-ids
+ * to where it will send data (vSendToRanks).
+ *
+ * The processes from which it has to receive data are then collected in
+ * vReceiveFromRanksOut.
+ *
+ * Note that this method involves global communication (with respect to
+ * the used process-communicator) and should thus be rarely used - at least
+ * if the used process communicator is big.
+ */
+void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
+								  std::vector<int>& vSendToRanks,
+								  const ProcessCommunicator& procComm
+								  	= ProcessCommunicator());
+
+////////////////////////////////////////////////////////////////////////
 /**
  * Removes unselected entries from the interfaces in the given layout.
  * Empty interfaces are removed from the layout, too.

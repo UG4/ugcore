@@ -30,13 +30,16 @@ class LuaError : public UGError
 
 
 
-///	loads and parses a file. Several pathes are tried if the file is not found.
+///	loads and parses a file. Several paths are tried if the file is not found.
 /**	Throws an instance of LuaError, if a parse error occurs.
  * This method first tries to load the file specified with filename relative
  * to the path of the currently parsed file (if LoadUGScript is called from
  * within a load-script). If this failed, the file is tried to be loaded
  * with the raw specified filename. If this fails too, the method tries to
- * load the file from ugs scripting directory.*/
+ * load the file from ugs scripting directory.
+ *
+ * Note that this method pushes the path of the currently parsed script to
+ * PathProvider when parsing starts, and pops it when parsing is done.*/
 bool LoadUGScript(const char* filename);
 
 /// checks if given file exists.

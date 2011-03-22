@@ -208,6 +208,9 @@ template <> class mginfo_traits<Volume>
  *
  * In order to make state-assignment as effective as possible, one should
  * assign the status of the parent before creating its children.
+ *
+ * Note that states are currently not really used. They should probably
+ * be removed.
  */
 class MultiGrid : public Grid, public GridObserver
 {
@@ -225,6 +228,7 @@ class MultiGrid : public Grid, public GridObserver
 		using Grid::num;
 		using Grid::get_geometric_object_collection;
 		using Grid::create;
+		using Grid::create_by_cloning;
 
 	public:
 		MultiGrid();
@@ -256,6 +260,25 @@ class MultiGrid : public Grid, public GridObserver
 		create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 				size_t level);
 	/**	\} */
+
+	///	this method creates a new vertex, which has the same type as pCloneMe.
+		VertexBaseIterator create_by_cloning(VertexBase* pCloneMe,
+											int level);
+
+	///	this method creates a new edge, which has the same type as pCloneMe.
+		EdgeBaseIterator create_by_cloning(EdgeBase* pCloneMe,
+										   const EdgeVertices& ev,
+										   int level);
+
+	///	this method creates a new face, which has the same type as pCloneMe.
+		FaceIterator create_by_cloning(Face* pCloneMe,
+									   const FaceVertices& fv,
+									   int level);
+
+	///	this method creates a new volume, which has the same type as pCloneMe.
+		VolumeIterator create_by_cloning(Volume* pCloneMe,
+										 const VolumeVertices& vv,
+										 int level);
 
 		inline uint num_levels() const	{return m_hierarchy.num_subsets();}
 

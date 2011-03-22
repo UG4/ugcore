@@ -7,9 +7,90 @@
 
 #include <iostream>
 #include "lib_grid/lg_base.h"
+#include "callbacks/callback_definitions.h"
 
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////
+//	Utilities
+///	Serialization of data associated with grid elements.
+/**	Through the add-method callbacks can be registered,
+ * which will be called during serialization to write
+ * data associated with the given elements into a binary stream.
+ */
+class GridDataSerializer
+{
+	public:
+		~GridDataSerializer()	{}
+
+		void add_vertex_callback(const CB_SerializeVertexData& cb);
+		void add_edge_callback(const CB_SerializeEdgeData& cb);
+		void add_face_callback(const CB_SerializeFaceData& cb);
+		void add_volume_callback(const CB_SerializeVolumeData& cb);
+
+		inline void serialize(std::ostream& out, VertexBase* vrt) const;
+		inline void serialize(std::ostream& out, EdgeBase* edge) const;
+		inline void serialize(std::ostream& out, Face* face) const;
+		inline void serialize(std::ostream& out, Volume* vol) const;
+
+	///	Calls serialize on all elements between begin and end.
+	/**	Make sure that TIterator::value_type is compatible with
+	 * either VertexBase*, EdgeBase*, Face*, Volume*.*/
+		template <class TIterator>
+		void serialize(std::ostream& out, TIterator begin, TIterator end) const;
+
+	private:
+		template<class TGeomObj, class TSerializers>
+		void serialize(std::ostream& out, TGeomObj* o,
+					   TSerializers& serializers) const;
+
+	private:
+		std::vector<CB_SerializeVertexData>	m_vrtSerializers;
+		std::vector<CB_SerializeEdgeData>	m_edgeSerializers;
+		std::vector<CB_SerializeFaceData>	m_faceSerializers;
+		std::vector<CB_SerializeVolumeData>	m_volSerializers;
+};
+
+///	Deserialization of data associated with grid elements.
+/**	Through the add-method callbacks can be registered,
+ * which will be called during deerialization to read
+ * data associated with the given elements into a binary stream.
+ */
+class GridDataDeserializer
+{
+	public:
+		~GridDataDeserializer()	{}
+
+		void add_vertex_callback(const CB_DeserializeVertexData& cb);
+		void add_edge_callback(const CB_DeserializeEdgeData& cb);
+		void add_face_callback(const CB_DeserializeFaceData& cb);
+		void add_volume_callback(const CB_DeserializeVolumeData& cb);
+
+		inline void deserialize(std::istream& in, VertexBase* vrt) const;
+		inline void deserialize(std::istream& in, EdgeBase* edge) const;
+		inline void deserialize(std::istream& in, Face* face) const;
+		inline void deserialize(std::istream& in, Volume* vol) const;
+
+	///	Calls deserialize on all elements between begin and end.
+	/**	Make sure that TIterator::value_type is compatible with
+	 * either VertexBase*, EdgeBase*, Face*, Volume*.*/
+		template <class TIterator>
+		void deserialize(std::istream& in, TIterator begin, TIterator end) const;
+
+	private:
+		template<class TGeomObj, class TDeserializers>
+		void deserialize(std::istream& in, TGeomObj* o,
+					   TDeserializers& deserializers) const;
+
+	private:
+		std::vector<CB_DeserializeVertexData>	m_vrtDeserializers;
+		std::vector<CB_DeserializeEdgeData>		m_edgeDeserializers;
+		std::vector<CB_DeserializeFaceData>		m_faceDeserializers;
+		std::vector<CB_DeserializeVolumeData>	m_volDeserializers;
+};
+
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	GRID

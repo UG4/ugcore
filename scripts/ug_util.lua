@@ -24,10 +24,16 @@ function util.LoadDomain(domain, gridName)
 	local dim = domain:get_dim()
 
 	local tname = gridName
+--	first try the original name.
 	if ug_file_exists(tname) == false then
-		tname = ug_get_data_path().."/grids/" .. gridName
+	--	now try relative to the current path.
+		tname = ug_get_current_path() .. "/" .. gridName
 		if ug_file_exists(tname) == false then
-			return false
+		--	finally check the default grid path.
+			tname = ug_get_data_path().."/grids/" .. gridName
+			if ug_file_exists(tname) == false then
+				return false
+			end
 		end
 	end
 

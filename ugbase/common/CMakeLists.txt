@@ -14,6 +14,7 @@ set(srcCommon	log.cpp
 				util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
 				util/ostream_util.cpp
+				util/parameter_parsing.cpp
 				util/stream_pack.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp

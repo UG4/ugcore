@@ -10,6 +10,7 @@
 #include "lib_grid/lg_base.h"
 #include "parallel_grid_layout.h"
 #include "distributed_grid.h"
+#include "lib_grid/algorithms/serialization.h"
 
 namespace ug
 {
@@ -89,6 +90,10 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 /**	This method is still in development... Use with care!
  * (If possible, you shouldn't use it at all in its current incarnation!).
  *
+ * Note that the method assumes that all data serialized and deserialized
+ * is stored in a consistent manner - i.e. that all slaves hold the same
+ * values as their associated masters.
+ *
  * \param	procMap is by default NULL and thus ignored. If you specify it
  * 			make sure to specify a pointer to an array with size
  * 			shPartition.num_subsets(). All values in the array have to be
@@ -96,9 +101,12 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
  * 			The procMap associates a process rank with each subset index.
  */
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
-					  ISubsetHandler& shInOut,
 					  SubsetHandler& shPartition,
-					  int* processMap = NULL);
+					  const GridDataSerializer& serializer,
+					  const GridDataDeserializer& deserializer,
+					  int* processMap = NULL,
+					  const pcl::ProcessCommunicator& procComm =
+							  	  	  pcl::ProcessCommunicator());
 					  
 /// @}
 }//	end of namespace

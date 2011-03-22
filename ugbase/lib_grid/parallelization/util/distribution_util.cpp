@@ -40,7 +40,8 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 						TAIntAccessor& aaFirstLayout,
 						TAIntAccessor& aaFirstProcLocalInd,
 						int level = 0,
-						int interfacesOnLevelOnly = -1)
+						int interfacesOnLevelOnly = -1,
+						DistributedGridManager* pDistGridMgr = NULL)
 {
 	TNodeLayout& layout = layouts[layoutIndex];
 
@@ -72,6 +73,13 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 			layout.node_vec().push_back(node);
 
 		//	access the interfaces
+		//	if the node already is in a 'real' interface, we'll ignore it
+		//todo: check the type of interface
+			if(pDistGridMgr){
+				if(pDistGridMgr->is_interface_element(*iter))
+					continue;
+			}
+
 			if((interfacesOnLevelOnly == -1) ||
 				(interfacesOnLevelOnly == level))
 			{
@@ -94,7 +102,8 @@ void CreateDistributionLayouts(
 						std::vector<TVolumeDistributionLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						bool distributeGenealogy,
-						MGSelector* pSel)
+						MGSelector* pSel,
+						DistributedGridManager* pDistGridMgr)
 {
 //	initialize a selector.
 	MGSelector tmpSel;
@@ -206,19 +215,19 @@ void CreateDistributionLayouts(
 			AddNodesToLayout(vertexLayoutsOut, i,
 								msel.begin<VertexBase>(level), msel.end<VertexBase>(level),
 								aaFirstProcVRT, aaFirstProcLocalIndVRT, level,
-								interfacesOnLevelOnly);
+								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(edgeLayoutsOut, i,
 								msel.begin<EdgeBase>(level), msel.end<EdgeBase>(level),
 								aaFirstProcEDGE, aaFirstProcLocalIndEDGE, level,
-								interfacesOnLevelOnly);
+								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(faceLayoutsOut, i,
 								msel.begin<Face>(level), msel.end<Face>(level),
 								aaFirstProcFACE, aaFirstProcLocalIndFACE, level,
-								interfacesOnLevelOnly);
+								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(volumeLayoutsOut, i,
 								msel.begin<Volume>(level), msel.end<Volume>(level),
 								aaFirstProcVOL, aaFirstProcLocalIndVOL, level,
-								interfacesOnLevelOnly);
+								interfacesOnLevelOnly, pDistGridMgr);
 		}
 	}
 
@@ -243,7 +252,8 @@ template void CreateDistributionLayouts<DistributionVertexLayout, DistributionEd
 										std::vector<DistributionEdgeLayout>&,
 										std::vector<DistributionFaceLayout>&,
 										std::vector<DistributionVolumeLayout>&,
-										MultiGrid&, SubsetHandler&, bool, MGSelector*);
+										MultiGrid&, SubsetHandler&, bool, MGSelector*,
+										DistributedGridManager*);
 
 template void CreateDistributionLayouts<RedistributionVertexLayout, RedistributionEdgeLayout,
 										RedistributionFaceLayout, RedistributionVolumeLayout>(
@@ -251,7 +261,8 @@ template void CreateDistributionLayouts<RedistributionVertexLayout, Redistributi
 										std::vector<RedistributionEdgeLayout>&,
 										std::vector<RedistributionFaceLayout>&,
 										std::vector<RedistributionVolumeLayout>&,
-										MultiGrid&, SubsetHandler&, bool, MGSelector*);
+										MultiGrid&, SubsetHandler&, bool, MGSelector*,
+										DistributedGridManager*);
 
 /*
 ////////////////////////////////////////////////////////////////////////
@@ -293,560 +304,6 @@ void CreateDistributionLayouts_SplitBaseGrid(
 }
 */
 
-////////////////////////////////////////////////////////////////////////
-///	Copies the associated global id from each interface entry into the redist-layouts.
-/**	Make sure that aGlobalID contains valid global ids.*/
-template <class TGeomObj>
-void AssociateGlobalIDs(Grid& g,
-						std::vector<RedistributionNodeLayout<TGeomObj*> >& layouts,
-						AGeomObjID& aGlobalID)
-{
-	if(!g.has_attachment<TGeomObj>(aGlobalID)){
-		g.attach_to<TGeomObj>(aGlobalID);
-	}
-
-	Grid::AttachmentAccessor<TGeomObj, AGeomObjID> aaID(g, aGlobalID);
-
-	for(size_t i_layout = 0; i_layout < layouts.size(); ++i_layout){
-		RedistributionNodeLayout<TGeomObj*>& layout = layouts[i_layout];
-		const typename DistributionNodeLayout<TGeomObj*>::NodeVec& nodes =
-												layout.node_vec();
-		layout.m_globalIDs.resize(nodes.size());
-
-		for(size_t i_node = 0; i_node < nodes.size(); ++i_node){
-			layout.m_globalIDs[i_node] = aaID[nodes[i_node]];
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////
-///	Collects all target processes for each entry in the grid.
-/**	For each element of the grid of type TGeomObj, the target processes can
- * be found in the attachment to which TAAIntVec points, after the algorithm
- * is done.
- *
- * Note that the current process itself is not regarded as a target proc.
- *
- * Make sure that TGeomObj is either VertexBase, EdgeBase, Face or Volume.
- * Make also sure that TAAIntVec is accessing a valid Attachment<vector<int> >
- * attachment at grid.
- */
-template <class TGeomObj, class TAAIntVec>
-static void
-CollectRedistributionTargetProcs(
-						vector<RedistributionNodeLayout<TGeomObj> >& layouts,
-						TAAIntVec& aaIntVec, int localLayoutIndex, int* processMap)
-{
-	typedef typename DistributionNodeLayout<TGeomObj>::NodeVec		NodeVec;
-	typedef typename DistributionNodeLayout<TGeomObj>::Interface	Interface;
-	typedef typename DistributionNodeLayout<TGeomObj>::InterfaceMap	InterfaceMap;
-
-	for(size_t i_layout = 0; i_layout < layouts.size(); ++i_layout){
-		if((int)i_layout == localLayoutIndex)
-			continue;
-
-		int targetProc = i_layout;
-		if(processMap)
-			targetProc = processMap[i_layout];
-
-	//	get the nodes of the current layout
-		NodeVec& nodes = layouts[i_layout].node_vec();
-
-	//	now iterate over the nodes and add the target-proc
-		for(size_t i = 0; i < nodes.size(); ++i)
-			aaIntVec[nodes[i]].push_back(targetProc);
-	}
-}
-
-////////////////////////////////////////////////////////////////////////
-///	A highly specialized communication policy used during grid redistribution
-/**	All nodes that will reside on the local process have to be selected
- * in the specified selector.
- *
- * TAAIntVec has to be an attachment accessor to a vector<int> attachment and
- * TAATransferInfoVec has to be an attachment accessor to a
- * vector<RedistributionNodeTransferInfo> attachment.
- *
- * The fist accessor is the source-accessor from which data will be taken,
- * the second one is the target to which data will be written.
- *
- * Make sure that both accessors work with the elements in the given layout.
- */
-template <class TLayout, class TAAIntVec, class TAATransferInfoVec>
-class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
-{
-	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
-
-	///	Construct the communication policy with a ug::Selector.
-	/**	Through the parameters select and deselect one may specify whether
-	 * a process selects and/or deselects elements based on the received
-	 * selection status.*/
-		ComPol_SynchronizeNodeTransfer(ISelector& sel, TAAIntVec& aaIntVec,
-										TAATransferInfoVec& aaTransInfoVec)
-			 :	m_sel(sel), m_aaIntVec(aaIntVec), m_aaTransInfoVec(aaTransInfoVec)
-		{}
-
-		virtual int
-		get_required_buffer_size(Interface& interface)		{return -1;}
-
-	///	write target processes and move-flag
-		virtual bool
-		collect(std::ostream& buff, Interface& interface)
-		{
-			byte bTrue = 1; byte bFalse = 0;
-
-		//	write the entry indices of selected elements.
-			for(InterfaceIter iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-				Element elem = interface.get_element(iter);
-			//	first write whether the elem is moved away from this proc
-				if(m_sel.is_selected(elem))
-					buff.write((char*)&bFalse, sizeof(byte));
-				else
-					buff.write((char*)&bTrue, sizeof(byte));
-
-			//	now write the target processes
-				Serialize(buff, m_aaIntVec[elem]);
-			}
-
-			return true;
-		}
-
-	///	read target processes and move-flag
-		virtual bool
-		extract(std::istream& buff, Interface& interface)
-		{
-			byte bMove;
-			int srcProc = interface.get_target_proc();
-			vector<int> targetProcs;
-			for(InterfaceIter iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-				Element elem = interface.get_element(iter);
-				buff.read((char*)&bMove, sizeof(byte));
-				targetProcs.clear();
-				Deserialize(buff, targetProcs);
-
-				for(size_t i = 0; i < targetProcs.size(); ++i){
-					m_aaTransInfoVec[elem].push_back(
-						RedistributionNodeTransferInfo(srcProc, targetProcs[i],
-														bMove != 0));
-				}
-			}
-			return true;
-		}
-
-	protected:
-		ISelector&			m_sel;
-		TAAIntVec&			m_aaIntVec;
-		TAATransferInfoVec&	m_aaTransInfoVec;
-};
-
-
-////////////////////////////////////////////////////////////////////////
-///	This method distributes information between neighbor procs on where which node is send.
-/**	All nodes that will reside on the local process have to be selected
- * in the specified selector.
- *
- * Synchronization of the node movement is required, since
- * neighbored processes may redistribute connected parts of a grid at the
- * same time. They thus have to inform associated processes about those
- * changes. This information can be used during creation of the distribution
- * interfaces.
- */
-template <class TGeomObj, class TAAIntVec, class TAATransferInfoVec>
-static void
-SynchronizeNodeTransfer(Grid& g, GridLayoutMap& glm,
-						pcl::ParallelCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
-						TAAIntVec& aaIntVec,
-						TAATransferInfoVec& aaTransInfoVec,
-						int localLayoutIndex,
-						ISelector& sel,
-						int* processMap)
-{
-	typedef typename GridLayoutMap::Types<TGeomObj>		Types;
-	typedef typename Types::Layout		Layout;
-	typedef typename Types::Interface	Interface;
-
-//	this communication policy fills aaTransInfoVec
-	ComPol_SynchronizeNodeTransfer<Layout, TAAIntVec, TAATransferInfoVec>
-		compol(sel, aaIntVec, aaTransInfoVec);
-
-//	exchange data, both from masters to slaves and vice versa
-	comm.exchange_data(glm, INT_MASTER, INT_SLAVE, compol);
-	comm.exchange_data(glm, INT_SLAVE, INT_MASTER, compol);
-	comm.communicate();
-}
-
-////////////////////////////////////////////////////////////////////////
-/**	\brief iterates through existing interfaces and adds interface entries to
- *			the redistribution layouts.
- *
- * All nodes that will reside on the local process have to be selected
- * in the specified selector.
- *
- * Note that the interfaces of the resulting redistribution layouts will not
- * match the original interfaces in the distGridMgr. This is because node-
- * movement on other processes is already considered. The resulting
- * interfaces are final, which means that they exactly describe the connections
- * which will be created on other processes.
- *
- * Note that the redistribution layouts already contain interfaces to the
- * target processes to which parts of the grid are sent. Those interfaces
- * may be enhanced, but existing entries won't be changed nor removed.
- */
-template <class TDistLayout, class TAAProcTargets,
-		  class TAATransferInfos>
-static
-void FinalizeRedistributionLayoutInterfaces(
-					DistributedGridManager& distGridMgr,
-					std::vector<TDistLayout>& distLayoutVec,
-					TAAProcTargets& aaTargetProcs,
-					TAATransferInfos& aaTransferInfos,
-					ISelector& sel,
-					int* processMap = NULL)
-{
-	typedef typename TDistLayout::NodeType 	Node;
-	typedef typename TDistLayout::Interface	Interface;
-
-//	access the associated multi-grid
-	if(!distGridMgr.get_assigned_grid())
-		return;
-
-	MultiGrid& mg = *distGridMgr.get_assigned_grid();
-
-//	we'll use this vector to gather existing interface-entries for a node
-	vector<pair<int, size_t> > interfaceEntries;
-
-//	iterate over all nodes in the distribution layouts
-	for(size_t i_layout = 0; i_layout < distLayoutVec.size(); ++i_layout)
-	{
-		int targetProcID = i_layout;
-		if(processMap)
-			targetProcID = processMap[i_layout];
-
-		TDistLayout& layout = distLayoutVec[i_layout];
-		const typename TDistLayout::NodeVec& nodes = layout.node_vec();
-
-	//	iterate over all nodes
-		for(size_t i_node = 0; i_node < nodes.size(); ++i_node){
-		//	Node is a VertexBase*, EdgeBase*, Face* or Volume*
-			const Node& node = nodes[i_node];
-
-		//	only coninue for interface nodes
-			if(!distGridMgr.is_interface_element(node))
-				continue;
-
-		//	the node lies in at least one interface to an old neighbor.
-		//	We have to add the entry to corresponding distribution-interfaces
-			byte nodeStatus = distGridMgr.get_status(node);
-			distGridMgr.collect_interface_entries(interfaceEntries, node);
-
-		//todo: cache interfaces
-		//	target procs of the current node
-			const vector<int>& targetProcs = aaTargetProcs[node];
-			const vector<RedistributionNodeTransferInfo>& transferInfos =
-													aaTransferInfos[node];
-
-		//	copyAll means that slave interfaces to all associated nodes
-		//	are created in the target redistribution layout.
-			bool copyAll = false;
-
-		//	if the node is a master node and a copy is created on the target
-		//	process, then we only have to create a slave interface on target
-		//	process to this master.
-		//todo: consider horizontal and virtual interfaces
-
-
-//todo:	FIX IT!
-
-
-			if((nodeStatus & ES_MASTER)){
-				if(sel.is_selected(node)){
-					UG_LOG("typ1 -");
-				//	a copy is created. This is already handled by CreateDistributionLayouts.
-				/*
-					Interface& interface = layout.interface(localProcID,
-														 mg.get_level(node));
-					interface.push_back(DistributionInterfaceEntry(i_node,
-																INT_SLAVE));
-				*/
-				}
-				else{
-				//	check whether the target-process is the new master.
-				//	The new master is always the target proc with the lowest rank.
-					int newMaster = pcl::GetNumProcesses();
-					for(size_t i = 0; i < targetProcs.size(); ++i){
-						if(targetProcs[i] < newMaster){
-							newMaster = targetProcs[i];
-						}
-					}
-
-					if(newMaster == targetProcID){
-						for(size_t i_int = 0; i_int < interfaceEntries.size(); ++i_int){
-							int assProc = interfaceEntries[i_int].first;
-							bool createDefault = true;
-
-						//	check whether the associated node on the associated process
-						//	is also sent somewhere else.
-							for(size_t i = 0; i < transferInfos.size(); ++i){
-								const RedistributionNodeTransferInfo& info = transferInfos[i];
-								if(info.srcProc == assProc){
-									UG_LOG("typ2_1 -");
-								//	we have to create a new interface to the infos targetProc
-									Interface& interface = layout.interface(info.targetProc,
-																			 	 mg.get_level(node));
-									interface.push_back(DistributionInterfaceEntry(i_node, INT_MASTER));
-									if(info.bMove)
-										createDefault = false;
-								}
-							}
-
-						//	create the connection to assProc, if the associated node resides there
-							if(createDefault){
-								UG_LOG("typ2_2 -");
-								Interface& interface = layout.interface(assProc,
-																			mg.get_level(node));
-								interface.push_back(DistributionInterfaceEntry(i_node, INT_MASTER));
-							}
-						}
-					}
-					else
-						copyAll = true;
-				}
-			}
-			else if(nodeStatus & ES_SLAVE)
-				copyAll = true;
-			else{
-				throw(UGError("Only ES_MASTER and ES_SLAVE are supported during "
-							  "redistribution in the current implementation!"));
-			}
-
-			if(copyAll){
-				for(size_t i_int = 0; i_int < interfaceEntries.size(); ++i_int){
-					int assProc = interfaceEntries[i_int].first;
-					bool createDefault = true;
-					int newMasterRank = pcl::GetProcRank();
-
-				//	check whether the associated node on the associated process
-				//	is also sent somewhere else.
-					for(size_t i = 0; i < transferInfos.size(); ++i){
-						const RedistributionNodeTransferInfo& info = transferInfos[i];
-						if(info.srcProc == assProc){
-						//	we have to create a new interface to the infos targetProc only
-						//	if the node moves. If not, the old master resides where it was.
-							if(info.bMove){
-							//	the master node moves. The new master is the process with the
-							//	lowest rank
-								newMasterRank = min(newMasterRank, info.targetProc);
-								createDefault = false;
-							}
-						}
-					}
-
-					if(createDefault){
-						UG_LOG("typ3_1 -");
-					//	create the connection to assProc, if the associated master node resides there
-						Interface& interface = layout.interface(assProc,
-																	mg.get_level(node));
-						interface.push_back(DistributionInterfaceEntry(i_node, INT_SLAVE));
-					}
-					else{
-						UG_LOG("typ3_2 -");
-					//	The master moves. Create an interface to the new master
-						Interface& interface = layout.interface(newMasterRank,
-																 mg.get_level(node));
-						interface.push_back(DistributionInterfaceEntry(i_node, INT_SLAVE));
-					}
-				}
-			}
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////
-void CreateRedistributionLayouts(
-					std::vector<RedistributionVertexLayout>& vertexLayoutsOut,
-					std::vector<RedistributionEdgeLayout>& edgeLayoutsOut,
-					std::vector<RedistributionFaceLayout>& faceLayoutsOut,
-					std::vector<RedistributionVolumeLayout>& volumeLayoutsOut,
-					DistributedGridManager& distGridMgr, SubsetHandler& sh,
-					bool distributeGenealogy, MGSelector* pSel, int* processMap,
-					Attachment<std::vector<int> >* paTargetProcs,
-					ARedistributionNodeTransferInfoVec* paTransferInfoVec,
-					AGeomObjID& aGlobalID)
-{
-//	access the associated multi-grid
-	if(!distGridMgr.get_assigned_grid())
-		return;
-
-	MultiGrid& mg = *distGridMgr.get_assigned_grid();
-
-	MGSelector tmpSel;
-	if(!pSel){
-		tmpSel.assign_grid(mg);
-		pSel = &tmpSel;
-	}
-	MGSelector& msel = *pSel;
-
-//	first we'll create normal distribution layouts
-	CreateDistributionLayouts(vertexLayoutsOut, edgeLayoutsOut,
-							  faceLayoutsOut, volumeLayoutsOut,
-							  mg, sh, distributeGenealogy, &msel);
-
-//	gather global ids for each node
-	AssociateGlobalIDs<VertexBase>(mg, vertexLayoutsOut, aGlobalID);
-	AssociateGlobalIDs<EdgeBase>(mg, edgeLayoutsOut, aGlobalID);
-	AssociateGlobalIDs<Face>(mg, faceLayoutsOut, aGlobalID);
-	AssociateGlobalIDs<Volume>(mg, volumeLayoutsOut, aGlobalID);
-
-//	we have to know which redistribution layout corresponds with this process
-	int localLayoutInd = -1;
-	if(processMap){
-	//	find the local process in the processMap
-		int myRank = pcl::GetProcRank();
-		for(int i = 0; i < sh.num_subsets(); ++i){
-			if(processMap[i] == myRank){
-				localLayoutInd = i;
-				break;
-			}
-		}
-	}
-	else{
-		localLayoutInd = pcl::GetProcRank();
-	}
-
-	if(localLayoutInd >= sh.num_subsets())
-		localLayoutInd = -1;
-
-	msel.clear();
-	if(localLayoutInd != -1){
-		SelectNodesInLayout(msel, vertexLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, edgeLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, faceLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, volumeLayoutsOut[localLayoutInd]);
-	}
-
-//	to each node we will now attach a vector<int>, into which we'll write all
-//	processes to which the node will be sent.
-//	we'll use the autoattach mechanism of the AttachmentAccessor.
-	typedef Attachment<vector<int> > AIntVec;
-	AIntVec aTargetProcs;
-	if(paTargetProcs)
-		aTargetProcs = *paTargetProcs;
-
-	Grid::AttachmentAccessor<VertexBase, AIntVec>
-		aaTargetProcsVRT(mg, aTargetProcs, true);
-	Grid::AttachmentAccessor<EdgeBase, AIntVec>
-		aaTargetProcsEDGE(mg, aTargetProcs, true);
-	Grid::AttachmentAccessor<Face, AIntVec>
-		aaTargetProcsFACE(mg, aTargetProcs, true);
-	Grid::AttachmentAccessor<Volume, AIntVec>
-		aaTargetProcsVOL(mg, aTargetProcs, true);
-
-	CollectRedistributionTargetProcs(vertexLayoutsOut, aaTargetProcsVRT,
-									 localLayoutInd, processMap);
-	CollectRedistributionTargetProcs(edgeLayoutsOut, aaTargetProcsEDGE,
-									 localLayoutInd, processMap);
-	CollectRedistributionTargetProcs(faceLayoutsOut, aaTargetProcsFACE,
-									 localLayoutInd, processMap);
-	CollectRedistributionTargetProcs(volumeLayoutsOut, aaTargetProcsVOL,
-									 localLayoutInd, processMap);
-
-//	we need a second attachment, which tells us for each node, to where
-//	associated nodes on other processes go. We store this through a
-//	vector<RedistributionNodeMoveInfo>, which tells us on which
-//	process the copy/move operation was scheduled (srcProc) and to which
-//	process the element will be transfered (targetProc) and which operation shall be
-//	performed (bMove).
-	typedef ARedistributionNodeTransferInfoVec ATransferInfoVec;
-	ATransferInfoVec aTransferInfoVec;
-	if(paTransferInfoVec)
-		aTransferInfoVec = *paTransferInfoVec;
-
-	Grid::AttachmentAccessor<VertexBase, ATransferInfoVec>
-		aaTransInfoVecVRT(mg, aTransferInfoVec, true);
-	Grid::AttachmentAccessor<EdgeBase, ATransferInfoVec>
-		aaTransInfoVecEDGE(mg, aTransferInfoVec, true);
-	Grid::AttachmentAccessor<Face, ATransferInfoVec>
-		aaTransInfoVecFACE(mg, aTransferInfoVec, true);
-	Grid::AttachmentAccessor<Volume, ATransferInfoVec>
-		aaTransInfoVecVOL(mg, aTransferInfoVec, true);
-
-//	the synchronization is performed in SynchronizeNodeTransfer.
-//	It fills data associated with aTransferInfoVec.
-//todo: the communicators could also be declared in SynchronizeNodeTransfer.
-	pcl::ParallelCommunicator<VertexLayout> commVRT;
-	pcl::ParallelCommunicator<EdgeLayout> commEDGE;
-	pcl::ParallelCommunicator<FaceLayout> commFACE;
-	pcl::ParallelCommunicator<VolumeLayout> commVOL;
-
-	GridLayoutMap& glm = distGridMgr.grid_layout_map();
-	SynchronizeNodeTransfer<VertexBase>(mg, glm, commVRT, aaTargetProcsVRT,
-							aaTransInfoVecVRT, localLayoutInd, msel, processMap);
-	SynchronizeNodeTransfer<EdgeBase>(mg, glm, commEDGE, aaTargetProcsEDGE,
-							aaTransInfoVecEDGE, localLayoutInd, msel, processMap);
-	SynchronizeNodeTransfer<Face>(mg, glm, commFACE, aaTargetProcsFACE,
-							aaTransInfoVecFACE, localLayoutInd, msel, processMap);
-	SynchronizeNodeTransfer<Volume>(mg, glm, commVOL, aaTargetProcsVOL,
-							aaTransInfoVecVOL, localLayoutInd, msel, processMap);
-
-
-//	finalize the redistribution layouts by constructing all interfaces
-	FinalizeRedistributionLayoutInterfaces(distGridMgr, vertexLayoutsOut,
-										aaTargetProcsVRT, aaTransInfoVecVRT,
-										msel, processMap);
-	FinalizeRedistributionLayoutInterfaces(distGridMgr, edgeLayoutsOut,
-										aaTargetProcsEDGE, aaTransInfoVecEDGE,
-										msel, processMap);
-	FinalizeRedistributionLayoutInterfaces(distGridMgr, faceLayoutsOut,
-										aaTargetProcsFACE, aaTransInfoVecFACE,
-										msel, processMap);
-	FinalizeRedistributionLayoutInterfaces(distGridMgr, volumeLayoutsOut,
-										aaTargetProcsVOL, aaTransInfoVecVOL,
-										msel, processMap);
-
-// detach temporary attachments, only if they were not specified from outside.
-	if(!paTargetProcs)
-		mg.detach_from_all(aTargetProcs);
-	if(!paTransferInfoVec)
-		mg.detach_from_all(aTransferInfoVec);
-}
-/*
-void CreateRedistributionLayouts(
-						std::vector<DistributionVertexLayout>& vertexLayoutsOut,
-						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
-						std::vector<DistributionFaceLayout>& faceLayoutsOut,
-						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
-						DistributedGridManager& distGridMgr, SubsetHandler& sh,
-						bool distributeGenealogy,
-						MGSelector* pSel)
-{
-//	access the associated multi-grid
-	if(!distGridMgr.get_assigned_grid())
-		return;
-
-	MultiGrid& mg = *distGridMgr.get_assigned_grid();
-
-//	first we'll create normal distribution layouts
-	CreateDistributionLayouts(vertexLayoutsOut, edgeLayoutsOut,
-							  faceLayoutsOut, volumeLayoutsOut,
-							  mg, sh, distributeGenealogy, pSel);
-
-//	now we can create distribution-interfaces from existing ones
-	AddExistingInterfacesForRedistribution(distGridMgr, vertexLayoutsOut);
-	AddExistingInterfacesForRedistribution(distGridMgr, edgeLayoutsOut);
-	AddExistingInterfacesForRedistribution(distGridMgr, faceLayoutsOut);
-	AddExistingInterfacesForRedistribution(distGridMgr, volumeLayoutsOut);
-
-}
-*/
 ////////////////////////////////////////////////////////////////////////
 void SerializeGridAndDistributionLayouts(
 								std::ostream& out, MultiGrid& mg,

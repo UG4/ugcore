@@ -61,6 +61,50 @@ void SerializeDistributionLayoutInterfaces(
 }
 
 ////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void DeserializeDistributionLayoutInterfaces(TLayout& layout,
+											std::istream& in)
+{
+//	write the number of levels
+//	then for each level the number of interfaces
+//	then for each interface the number of nodes and the local-ids of the nodes.
+
+	int numLevels;
+	in.read((char*)&numLevels, sizeof(int));
+	layout.set_num_levels(numLevels);
+
+//	iterate through the levels of the layout
+	for(int level = 0; level < numLevels; ++level)
+	{
+	//	read the number of interfaces for this level
+		int numInterfaces;
+		in.read((char*)&numInterfaces, sizeof(int));
+
+	//	iterate through the interfaces
+		for(int i = 0; i < numInterfaces; ++i)
+		{
+		//	read the connected process-id
+			int procID;
+			in.read((char*)&procID, sizeof(int));
+
+		//	access the interface
+			typename TLayout::Interface& interface =
+										layout.interface(procID, level);
+
+		//	read the number of entries that are contained in the interface
+			int num;
+			in.read((char*)&num, sizeof(int));
+			interface.resize(num);
+
+		//	write the interface-entries
+			for(int j = 0; j < num; ++j){
+				in.read((char*)&interface[j], sizeof(typename TLayout::InterfaceEntry));
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	DeserializeLayoutInterfaces
 template <class TGeomObj, class TLayoutMap>
 void DeserializeDistributionLayoutInterfaces(

@@ -168,6 +168,11 @@ typedef RedistributionNodeLayout<Volume*>		RedistributionVolumeLayout;
  *
  * TVertexDistributionLayout has to be either DistributionNodeLayout<VertexBase>
  * or RedistributionLayout<VertexBase>. Analogous for the other types.
+ *
+ * If CreateDistributionLayouts is used during redistribution, a
+ * DistributedGridManager should be specified, since existing interface
+ * entries will have to be ignored during assignment of distribution-
+ * interface entries. Only specify pDistGridMgr for redistribution.
  */
 template <class TVertexDistributionLayout, class TEdgeDistributionLayout,
 		  class TFaceDistributionLayout, class TVolumeDistributionLayout>
@@ -178,7 +183,8 @@ void CreateDistributionLayouts(
 						std::vector<TVolumeDistributionLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						bool distributeGenealogy,
-						MGSelector* pSel = NULL);
+						MGSelector* pSel = NULL,
+						DistributedGridManager* pDistGridMgr = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateRedistributionLayouts
@@ -243,6 +249,16 @@ void CreateRedistributionLayouts(
  * method. After this method finished pSel will contain all elements
  * that have been written to the stream (in the same order as they were
  * written).
+ *
+ * This method first uses SerializeMultiGridElements to write the multi-grid
+ * to the stream and calls SerializeDistributionLayoutInterfaces for the
+ * vertex, edge, face and volume layouts afterwards.
+ *
+ * Make sure to only pass a process-map if your layouts do not already
+ * reference the final processes.
+ *
+ * \todo	layouts should already reference the real target procs -
+ * 			pProcessMap should thus be removed.
  */
 void SerializeGridAndDistributionLayouts(
 							std::ostream& out, MultiGrid& mg,
@@ -257,20 +273,25 @@ void SerializeGridAndDistributionLayouts(
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeDistributionLayoutInterfaces
+/**	Make sure to only pass a process-map if your layouts do not already
+ * reference the final processes.
+ *
+ * \todo	layouts should already reference the real target procs -
+ * 			pProcessMap should thus be removed.
+ */
 template <class TLayout>
-void SerializeDistributionLayoutInterfaces(
-									std::ostream& out, TLayout& layout,
+void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
 									std::vector<int>* pProcessMap = NULL);
 
 ////////////////////////////////////////////////////////////////////////
-//	DeserializeGridAndDistributionLayouts
-void DeserializeGridAndDistributionLayouts(
-									MultiGrid& mgOut,
-									GridLayoutMap& gridLayoutOut,
-									std::istream& in);
+///	deserializes a DistributionLayoutInterface.
+template <class TLayout>
+void DeserializeDistributionLayoutInterfaces(TLayout& layout,
+											std::istream& in);
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeDistributionLayoutInterfaces
+///	Reads serialized DistributionLayout data and creates GridLayoutMaps on the fly.
 /**
  * TLayoutMap has to be compatible with an
  * std::map<int, ParallelELEMENTLayout>, where ELEMENT can be either
@@ -281,7 +302,14 @@ void DeserializeDistributionLayoutInterfaces(
 									TLayoutMap& layoutMapOut,
 									std::vector<TGeomObj*>& vGeomObjs,
 									std::istream& in);
-									
+
+////////////////////////////////////////////////////////////////////////
+//	DeserializeGridAndDistributionLayouts
+void DeserializeGridAndDistributionLayouts(
+									MultiGrid& mgOut,
+									GridLayoutMap& gridLayoutOut,
+									std::istream& in);
+
 ////////////////////////////////////////////////////////////////////////
 ///	selects all elements in a DistributionLayout into a selector
 /**	TSelector should be either Selector or MGSelector.

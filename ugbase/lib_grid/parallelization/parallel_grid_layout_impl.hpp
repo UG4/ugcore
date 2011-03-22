@@ -61,6 +61,14 @@ erase_layout(const Key& key)
 		m.erase(iter);
 }
 
+inline void GridLayoutMap::clear()
+{
+	m_vertexLayoutMap = Types<VertexBase>::Map();
+	m_edgeLayoutMap = Types<EdgeBase>::Map();
+	m_faceLayoutMap = Types<Face>::Map();
+	m_volumeLayoutMap = Types<Volume>::Map();
+}
+
 template <class TType>
 inline typename GridLayoutMap::Types<TType>::Map& GridLayoutMap::
 get_layout_map()

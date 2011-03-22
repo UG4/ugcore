@@ -21,6 +21,9 @@ Registry & GetUGRegistry();
  */
 bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup = "/ug4");
 
+///	registers some util methods like path-access and script-parsing.
+bool RegisterUtilInterface(Registry& reg, const char* parentGroup = "/ug4");
+
 ///	registers lib-grid interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup = "/ug4");

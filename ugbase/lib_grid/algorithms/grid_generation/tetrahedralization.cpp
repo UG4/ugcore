@@ -16,6 +16,8 @@ namespace ug
 static bool PerformTetrahedralization(Grid& grid,
 										SubsetHandler* pSH,
 										number quality,
+										bool preserveBnds,
+										bool preserveAll,
 										APosition& aPos)
 {
 	if(!grid.has_vertex_attachment(aPos))
@@ -126,8 +128,13 @@ static bool PerformTetrahedralization(Grid& grid,
 		stringstream ss;
 		ss << "p";
 		if(quality > SMALL)
-			ss << "q" << quality;
-		ss << "YYQ";
+			ss << "qq" << quality;
+		if(preserveBnds || preserveAll)
+			ss << "Y";
+		if(preserveAll)
+			ss << "Y";	// if inner bnds shall be preserved "YY" has to be passed to tetgen
+
+		ss << "Q";
 		tetrahedralize(const_cast<char*>(ss.str().c_str()), &in, &out);
 	}
 	catch(int errCode){
@@ -161,28 +168,21 @@ static bool PerformTetrahedralization(Grid& grid,
 		}
 	}
 
-//	new elements only have to be created if they are assigned to a subset.
-	if(pSH){
-	/*
-		UG_LOG("number of edges out: " << out.numberofedges << endl);
-	//	add new edges
+//	erase edges if boundary segments were not preserved
+	if(!preserveAll){
 		grid.erase(grid.edges_begin(), grid.edges_end());
-		for(int i = 0; i < out.numberofedges; ++i){
-			Edge* e = *grid.create<Edge>(EdgeDescriptor(vVrts[out.edgelist[i*2]],
-														vVrts[out.edgelist[i*2 + 1]]));
-			pSH->assign_subset(e, out.edgemarkerlist[i]);
-		}*/
+	}
 
-	//	add new faces
-		grid.erase(grid.faces_begin(), grid.faces_end());
-		for(int i = 0; i < out.numberoftrifaces; ++i)
-		{
-			Triangle* tri = *grid.create<Triangle>(TriangleDescriptor(vVrts[out.trifacelist[i*3]],
-													vVrts[out.trifacelist[i*3 + 1]],
-													vVrts[out.trifacelist[i*3 + 2]]));
+//	add new faces
+	grid.erase(grid.faces_begin(), grid.faces_end());
+	for(int i = 0; i < out.numberoftrifaces; ++i)
+	{
+		Triangle* tri = *grid.create<Triangle>(TriangleDescriptor(vVrts[out.trifacelist[i*3]],
+												vVrts[out.trifacelist[i*3 + 1]],
+												vVrts[out.trifacelist[i*3 + 2]]));
 
+		if(pSH)
 			pSH->assign_subset(tri, out.trifacemarkerlist[i]);
-		}
 	}
 
 	if(out.numberoftetrahedra < 1)
@@ -204,15 +204,18 @@ static bool PerformTetrahedralization(Grid& grid,
 }
 
 
-bool Tetrahedralize(Grid& grid, number quality, APosition& aPos)
+bool Tetrahedralize(Grid& grid, number quality, bool preserveBnds,
+					bool preserveAll, APosition& aPos)
 {
-	return PerformTetrahedralization(grid, NULL, quality, aPos);
+	return PerformTetrahedralization(grid, NULL, quality, preserveBnds,
+									preserveAll, aPos);
 }
 
-bool Tetrahedralize(Grid& grid, SubsetHandler& sh,
-					number quality, APosition& aPos)
+bool Tetrahedralize(Grid& grid, SubsetHandler& sh, number quality,
+					bool preserveBnds, bool preserveAll, APosition& aPos)
 {
-	return PerformTetrahedralization(grid, &sh, quality, aPos);
+	return PerformTetrahedralization(grid, &sh, quality, preserveBnds,
+									preserveAll, aPos);
 }
 
 }//	end of namespace

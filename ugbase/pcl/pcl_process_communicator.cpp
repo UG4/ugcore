@@ -272,12 +272,11 @@ receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag)
 	MPI_Wait(&request, &status);
 }
 
-void
-ProcessCommunicator::
+void ProcessCommunicator::
 distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 				int* pSenderProcMap, int numSenderProcs,
 				void* pBuffer, int* pBufferSegSizes,
-			  	int* pRecvProcMap, int numRecvProcs, int tag)
+			  	int* pRecvProcMap, int numRecvProcs, int tag) const
 {
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
@@ -314,6 +313,40 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 	MPI_Waitall(numSenderProcs, &vReceiveRequests.front(), &vReceiveStates.front());
 	MPI_Waitall(numRecvProcs, &vSendRequests.front(), &vSendStates.front());
 }
+
+void ProcessCommunicator::
+distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
+				int* recvFromRanks, int numRecvFroms,
+				void* sendBuf, int* sendSegSizes,
+				int* sendToRanks, int numSendTos) const
+{
+//	small helper arrays
+	vector<int> tmpRecvSegSizes(numRecvFroms, sizeof(int));
+	vector<int> tmpSendSegSizes(numSendTos, sizeof(int));
+
+//	every process receives the size of the data-buffer first.
+	vector<int> bufferSizes(numRecvFroms);
+
+//	exchange buffer sizes (use an arbitrary tag)
+	distribute_data(&bufferSizes.front(), &tmpRecvSegSizes.front(),
+					recvFromRanks, numRecvFroms,
+					sendSegSizes, &tmpSendSegSizes.front(),
+					sendToRanks, numSendTos, 89347);
+
+//	calculate buffer sizes and resize the binary stream
+	int totalSize = 0;
+	for(int i = 0; i < numRecvFroms; ++i)
+		totalSize += bufferSizes[i];
+
+	recvBufOut.resize(totalSize);
+
+//	now exchange the buffers
+	distribute_data(recvBufOut.buffer(), &bufferSizes.front(),
+					recvFromRanks, numRecvFroms,
+					sendBuf, sendSegSizes,
+					sendToRanks, numSendTos, 3458);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
