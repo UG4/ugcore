@@ -87,7 +87,7 @@ Now, these Makefiles can be used in Eclipse:
 <li> Choose "Build directory: ..." -> Click "Filesystem" -> Choose newly created
  	folder "build_debug"
 <li> In "Behaviour": In "Build (incremential build)" remove "all"
-<li> Disable automatically build: Remove "Project"->"Build automatically"
+<li> Disable automatically build: In Heading bar: "Project"-> remove "Build automatically"
 </ol>
 
 You find the binary in "ug4/bin/" with the name "ugshell"
