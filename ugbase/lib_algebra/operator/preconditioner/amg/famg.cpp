@@ -18,7 +18,10 @@
 
 //#include "sparsematrix_util.h"
 
-#include "ug.h"
+#include "common/assert.h"
+
+#include "famg.h"
+#include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/common/stl_debug.h"
 #include "amg_debug_helper.h"
 
@@ -29,7 +32,7 @@
 #include <set>
 #include "lib_algebra/algebra_chooser.h"
 
-class ccstring : public std::string
+/*class ccstring : public std::string
 {
 public:
 	ccstring(const char *p) : std::string(p) { }
@@ -48,7 +51,7 @@ public:
 		a.append(ss.str());
 		return a;
 	}
-};
+};*/
 
 
 #ifdef UG_PARALLEL
@@ -535,6 +538,8 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
 
 	// testvectors will be altered by FAMGLevelCalculator
+	//UG_SET_DEBUG_LEVELS(4);
+
 	FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, omega);
 	dummy.do_stuff();
 

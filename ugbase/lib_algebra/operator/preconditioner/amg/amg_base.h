@@ -13,6 +13,9 @@
 
 #ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_BASE_H__
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_BASE_H__
+
+#include "lib_algebra/lib_algebra.h"
+
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/operator/operator_iterator_interface.h"
 #include "lib_algebra/operator/vector_writer.h"

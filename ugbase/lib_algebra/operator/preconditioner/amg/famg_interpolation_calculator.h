@@ -128,8 +128,8 @@ public:
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << "\n");
 
-
-		if(get_H(i, rating) == false)
+		if(BlockNorm2(m_testvectors[0][i]) < 1e-12 ||
+			get_H(i, rating) == false)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "node has no connections, set as fine\n");
 			rating.set_fine(i);
@@ -184,7 +184,11 @@ public:
 				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
 				IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
-				InverseMatMult(q, 1.0, KKT, rhs);
+				if(InverseMatMult(q, 1.0, KKT, rhs) == false)
+				{
+					UG_DLOG(LIB_ALG_AMG, 3, "could not invert KKT system.");
+					continue;
+				}
 
 				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
 
@@ -321,37 +325,41 @@ public:
 			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
 			q.resize(N+1);
-			InverseMatMult(q, 1.0, vKKT, rhs);
-
-			IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
-
-			t.resize(q.size());
-			// todo: calc F
-			//MatMult(t, 1.0, H, q);
-			double F = 0; //VecDot(q, t);
-
-			if(F > m_delta)
+			if(InverseMatMult(q, 1.0, vKKT, rhs) == true)
 			{
-				UG_LOG("coarse neighbors, had to set node " << i << " coarse!");
-				rating.set_coarse(i);
+				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
 
+				t.resize(q.size());
+				// todo: calc F
+				//MatMult(t, 1.0, H, q);
+				double F = 0; //VecDot(q, t);
+
+				if(F > m_delta)
+				{
+					UG_LOG("coarse neighbors, had to set node " << i << " coarse!");
+					rating.set_coarse(i);
+
+				}
+				else
+				{
+					UG_LOG("coarse neighbors, Interpolating from ");
+					for(size_t j=0; j<N; j++)
+					{
+						int jj = coarse_neighbors[j];
+						size_t node = onlyN1[jj];
+						UG_LOG(node << ": " << q[jj] << ", ");
+						P(i, rating.newIndex[node]) = -q[jj];
+					}
+					rating.set_fine(i);
+				}
 			}
 			else
 			{
-				UG_LOG("coarse neighbors, Interpolating from ");
-				for(size_t j=0; j<N; j++)
-				{
-					int jj = coarse_neighbors[j];
-					size_t node = onlyN1[jj];
-					UG_LOG(node << ": " << q[jj] << ", ");
-					P(i, rating.newIndex[node]) = -q[jj];
-				}
-				rating.set_fine(i);
+				UG_DLOG(LIB_ALG_AMG, 3, "could not invert KKT system.");
 			}
 		}
 		else
 		{
-
 			vKKT.resize(onlyN1.size()+1, onlyN1.size()+1);
 			for(size_t r=0; r<onlyN1.size(); r++)
 				for(size_t c=0; c<onlyN1.size(); c++)
@@ -373,35 +381,41 @@ public:
 			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
 			q.resize(onlyN1.size()+1);
-			InverseMatMult(q, 1.0, vKKT, rhs);
-
-			IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
-
-			t.resize(q.size());
-			// todo: calc F
-			//MatMult(t, 1.0, H, q);
-			double F = 0; //VecDot(q, t);
-
-			if(F > m_delta)
+			if(InverseMatMult(q, 1.0, vKKT, rhs) == false)
 			{
-				UG_LOG("had to set node " << i << " coarse!");
-				rating.set_coarse(i);
+				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
+
+				t.resize(q.size());
+				// todo: calc F
+				//MatMult(t, 1.0, H, q);
+				double F = 0; //VecDot(q, t);
+
+				if(F > m_delta)
+				{
+					UG_LOG("had to set node " << i << " coarse!");
+					rating.set_coarse(i);
+				}
+				else
+				{
+					/*UG_LOG("fine neighbors, Interpolating from ");
+					for(size_t j=0; j<onlyN1.size(); j++)
+						UG_LOG(onlyN1[j] << ": " << q[j] << ", ");
+					UG_LOG("\n");*/
+					for(size_t j=0; j<onlyN1.size(); j++)
+					{
+						size_t node = onlyN1[j];
+						for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
+							P(i, it.index()) += -q[j] * it.value();
+					}
+					rating.set_fine(i);
+
+				}
 			}
 			else
 			{
-				/*UG_LOG("fine neighbors, Interpolating from ");
-				for(size_t j=0; j<onlyN1.size(); j++)
-					UG_LOG(onlyN1[j] << ": " << q[j] << ", ");
-				UG_LOG("\n");*/
-				for(size_t j=0; j<onlyN1.size(); j++)
-				{
-					size_t node = onlyN1[j];
-					for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
-						P(i, it.index()) += -q[j] * it.value();
-				}
-				rating.set_fine(i);
-
+				UG_DLOG(LIB_ALG_AMG, 3, "could not invert KKT system.");
 			}
+
 		}
 
 	}

@@ -15,11 +15,9 @@
 #ifndef __H__LIB_ALGEBRA__AMG__FAMG_PARALLEL_COARSENING_IMPL_H__
 #define __H__LIB_ALGEBRA__AMG__FAMG_PARALLEL_COARSENING_IMPL_H__
 
-#include "ug.h"
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 
 #include "stopwatch.h"
-#include "common/assert.h"
 
 
 namespace ug

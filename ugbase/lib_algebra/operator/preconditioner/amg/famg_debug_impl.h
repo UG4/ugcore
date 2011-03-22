@@ -15,7 +15,6 @@
 #ifndef __H__LIB_ALGEBRA__AMG__FAMG_DEBUG_IMPL_H__
 #define __H__LIB_ALGEBRA__AMG__FAMG_DEBUG_IMPL_H__
 
-#include "ug.h"
 
 namespace ug
 {

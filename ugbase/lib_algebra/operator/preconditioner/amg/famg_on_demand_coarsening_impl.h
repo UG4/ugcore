@@ -74,7 +74,7 @@ void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possibl
 		return;
 	if(OnDemand_UpdateRating(node, possible_parents[node], nodes, prolongation_calculated, SymmNeighGraph, calculator))
 	{
-		if(nodes[node].is_uninterpolateable())
+		if(nodes[node].is_uninterpolateable() || nodes[node].is_fine())
 		{
 			if(heap.is_in(node))
 			{
@@ -123,6 +123,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 			rating.set_fine(j);
 	}
 
+	stdvector<bool> prolongation_calculated;
+	prolongation_calculated.resize(N, false);
+
 	size_t i=N;
 	for(size_t j=0; j<N; j++)
 	{
@@ -130,15 +133,20 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 		{
 			i=j;
 			if(IsCloseToBoundary(A_OL2, j , 2) == false)
-				break;
+			{
+				calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
+				prolongation_calculated[i] = true;
+				rating.update_rating(i, possible_parents[i]);
+				if(!rating[i].is_uninterpolateable() && !rating[i].is_fine())
+					break;
+			}
 		}
 	}
 
 	UG_ASSERT(i != N, "did not found suitable node");
 	UG_DLOG(LIB_ALG_AMG, 2, "\nStarting with node " << rating.get_original_index(i) << "\n");
 
-	stdvector<bool> prolongation_calculated;
-	prolongation_calculated.resize(N, false);
+
 
 	stdvector<bool> bvisited;
 	bvisited.resize(N, false);
@@ -150,9 +158,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 			bvisited[j] = true;
 	}
 
-	calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
-	prolongation_calculated[i] = true;
-	rating.update_rating(i, possible_parents[i]);
+
 
 	while(1)
 	{
