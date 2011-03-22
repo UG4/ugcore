@@ -24,7 +24,7 @@ if dim == 3 then
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = util.GetParamNumber("-numPreRefs", 1)
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
 print(" Choosen Parater:")
@@ -116,7 +116,7 @@ end
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs >= numRefs then
+if numPreRefs > numRefs then
 	print("numPreRefs must be smaller than numRefs");
 	exit();
 end
@@ -162,6 +162,11 @@ approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
+
+-- lets order indices using Cuthill-McKee
+if OrderCuthillMcKee(approxSpace, true) == false then
+	print("ERROR when ordering Cuthill-McKee"); exit();
+end
 
 -------------------------------------------
 --  Setup User Functions

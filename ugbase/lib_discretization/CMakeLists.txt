@@ -16,6 +16,7 @@ set(srcDiscretization	common/function_group.cpp
 						common/groups_util.cpp
 
 						dof_manager/function_pattern.cpp
+						dof_manager/cuthill_mckee.cpp
 						dof_manager/p1conform/p1conform.cpp
 
 						reference_element/reference_element.cpp

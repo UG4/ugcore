@@ -194,6 +194,11 @@ approxSpace:add_fct("p", "Lagrange", 1)
 approxSpace:init()
 approxSpace:print_statistic()
 
+-- lets order indices using Cuthill-McKee
+if OrderCuthillMcKee(approxSpace, false) == false then
+	print("ERROR when ordering Cuthill-McKee"); exit();
+end
+
 -------------------------------------------
 --  Setup User Functions
 -------------------------------------------

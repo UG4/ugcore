@@ -25,6 +25,7 @@
 #include "lib_discretization/function_spaces/grid_function_util.h"
 #include "lib_discretization/function_spaces/interpolate.h"
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
+#include "lib_discretization/dof_manager/cuthill_mckee.h"
 
 #include "lib_discretization/io/vtkoutput.h"
 
@@ -118,6 +119,12 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("print_layout_statistic|hide=true", &T::print_layout_statistic)
 			.add_method("get_surface_dof_distribution|hide=true",  (const typename T::dof_distribution_type& (T::*)() const) &T::get_surface_dof_distribution)
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
+	}
+
+//	Order Cuthill-McKee
+	{
+		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
+		reg.add_function("OrderCuthillMcKee", (bool (*)(T&, bool))&OrderCuthillMcKee);
 	}
 
 //	DirichletBNDValues

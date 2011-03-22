@@ -205,8 +205,28 @@ class P1ConformDoFDistribution
 	/// \copydoc IDoFDistribution::distribute_dofs()
 		bool distribute_dofs();
 
-	/// ordering
-		bool order_cuthill_mckee(bool bReverse = false);
+	/// \copydoc IDoFDistribution::swap_indices()
+		bool swap_indices(const std::vector<size_t>& vIndNew);
+
+	/// \copydoc IDoFDistribution::get_connections()
+		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
+
+	protected:
+	///	returns first algebra index of a vertex
+		size_t& first_index(VertexBase* vrt, size_t si)
+		{
+			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
+			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
+			return m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+		}
+
+	///	const access to first algebra index of a vertex
+		const size_t& first_index(VertexBase* vrt, size_t si) const
+		{
+			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
+			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
+			return m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+		}
 
 	protected:
 	/// subset handler for this distributor
@@ -389,8 +409,11 @@ class GroupedP1ConformDoFDistribution
 	/// \copydoc IDoFDistribution::distribute_dofs()
 		bool distribute_dofs();
 
-	/// ordering
-		bool order_cuthill_mckee(bool bReverse = false);
+	/// \copydoc IDoFDistribution::swap_indices()
+		bool swap_indices(const std::vector<size_t>& vIndNew);
+
+	/// \copydoc IDoFDistribution::get_connections()
+		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
 
 	protected:
 	/// subset handler for this distributor

@@ -35,7 +35,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 		{
 			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
-			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			const size_t index = first_index(vrt, si);
 
 			size_t numFct = 0;
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
@@ -58,7 +58,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 
-			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			const size_t index = first_index(vrt, si);
 
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 			{
@@ -109,8 +109,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 				{
 					VertexBase* vrt = *iter;
 					int si = m_pISubsetHandler->get_subset_index(vrt);
-					const size_t index =
-							m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+					const size_t index = first_index(vrt, si);
 
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
@@ -155,8 +154,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 				{
 					VertexBase* vrt = *iter;
 					int si = m_pISubsetHandler->get_subset_index(vrt);
-					const size_t index =
-							m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+					const size_t index = first_index(vrt, si);
 
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
@@ -227,8 +225,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 		VertexBase* vrt = GetVertex(elem, i);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
-		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt]
-		                                              + m_vvOffsets[si][fct];
+		ind[i][0] = first_index(vrt, si) + m_vvOffsets[si][fct];
 		ind[i][1] = 0;
 	}
 	return numDofs;
@@ -244,8 +241,7 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 		VertexBase* vrt = GetVertex(elem, 0);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 		ind.resize(1);
-		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt]
-		                                                + m_vvOffsets[si][fct];
+		ind[0][0] = first_index(vrt, si) + m_vvOffsets[si][fct];
 		ind[0][1] = 0;
 		return 1;
 	}
@@ -290,9 +286,7 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 			if(!is_def_in_subset(fct, si)) continue;
-			const size_t index =
-					m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt]
-					                            + m_vvOffsets[si][fct];
+			const size_t index = first_index(vrt, si) + m_vvOffsets[si][fct];
 			ind.push_back(index);
 		}
 	}
@@ -309,7 +303,7 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 		VertexBase* vrt = GetVertex(elem, 0);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
-		const size_t index =  m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+		const size_t index = first_index(vrt, si);
 		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
 			if(!is_def_in_subset(fct, si)) continue;

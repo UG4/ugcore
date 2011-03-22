@@ -272,6 +272,18 @@ class IDoFDistribution
 	///	compress indices
 	//	bool compress(std::vector<size_t>& ...)
 
+	///	swaps indices
+	/**
+	 * This method swaps the indices according to the passed mapping vector. The
+	 * vector vIndNew must have the size of the number of indices and for each
+	 * index it must return the new index, i.e. newIndex = vIndNew[oldIndex].
+	 *
+	 * \param[in]	vIndNew		mapping for each index
+	 * \returns 	success flag
+	 */
+		bool swap_indices(const std::vector<size_t>& vIndNew)
+			{return getImpl().swap_indices(vIndNew);}
+
 	///	schedule grid function for adaption
 		void manage_grid_function(IGridFunction<TImpl>& gf){}
 
@@ -288,6 +300,19 @@ class IDoFDistribution
 
 	/// distribute dofs
 		bool distribute_dofs() {return getImpl().distribute_dofs();}
+
+	///	returns the connectivity for the indices
+	/**
+	 * This method returns a vector, that contains for each index a list of
+	 * all indices, that are connected to the index. This gives a representation
+	 * of the connectivity graph of the dof distribution.
+	 *
+	 * \param[out]	vvConnection	vector with connected indices for each index
+	 * \returns 	success flag
+	 */
+		bool get_connections(std::vector<std::vector<size_t> >& vvConnection)
+			{return  getImpl().get_connections(vvConnection);}
+
 
 	protected:
 	///	access to implementation
