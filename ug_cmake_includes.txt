@@ -86,6 +86,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
 	OPTION(NO_SHELL "Disables building of the ugshell app.")
 	OPTION(UG_PROFILER "enables the ug-profiler")
+	OPTION(GENERATE_DEBUG_SYMBOLS "adds -g to gcc. Generates debug symbols in release mode (for profilers etc)")
 	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
 	
 
@@ -149,7 +150,12 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	else(UG_DEBUG)
 		message(STATUS "INFO: Release mode. (Enable debug-mode by defining -DUG_DEBUG=ON)")
 		# Enable these flags for a fast ublas algebra
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize -msse3 -mssse3")
+		if(GENERATE_DEBUG_SYMBOLS)
+			message(STATUS "INFO: Generating debug symbols (-g) (Disable by defining -DGENERATE_DEBUG_SYMBOLS=OFF)")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+		endif(GENERATE_DEBUG_SYMBOLS)
+		
 	endif(UG_DEBUG)
 
 	#######################
@@ -194,7 +200,6 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		if(MPI_FOUND)
 			include_directories(${MPI_INCLUDE_PATH})
 			set(MPI_LIBS ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
-			ADD_DEFINITIONS(-DUG_PARALLEL)
 		else(MPI_FOUND)
 			message(WARNING " MPI not found!")
 		endif(MPI_FOUND)
@@ -298,6 +303,10 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 
 	if(NOT NO_PCL AND MPI_FOUND)
 		set(UG_LIBRARIES ${UG_LIBRARIES} pcl)
+		ADD_DEFINITIONS(-DUG_PARALLEL)
+		message(STATUS "INFO: Compiling parallel (UG_PARALLEL)")
+	else(NOT NO_PCL AND MPI_FOUND)
+		message(STATUS "INFO: NOT compiling parallel (NO_PCL=${NO_PCL}, NO_MPI=${NO_MPI}, MPI_FOUND=${MPI_FOUND})")
 	endif(NOT NO_PCL AND MPI_FOUND)
 
 	set(UG_LIBRARIES ${UG_LIBRARIES} node_tree common)
