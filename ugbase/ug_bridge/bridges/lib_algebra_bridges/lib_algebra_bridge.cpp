@@ -480,12 +480,12 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 		std::stringstream groupString; groupString << parentGroup << "/Algebra";
 		std::string grp = groupString.str();
 
-		// Chooser Interface
-		reg.add_class_<	AlgebraTypeChooserInterface >("AlgebraTypeChooserInterface", grp.c_str());
-		reg.add_class_<	CPUAlgebraChooser,AlgebraTypeChooserInterface >("CPUAlgebraChooser", grp.c_str())
+		// AlgebraSelector Interface
+		reg.add_class_<	IAlgebraTypeSelector>("IAlgebraTypeSelector", grp.c_str());
+		reg.add_class_<	CPUAlgebraSelector, IAlgebraTypeSelector>("CPUAlgebraSelector", grp.c_str())
 			.add_constructor()
-			.add_method("set_fixed_blocksize", &CPUAlgebraChooser::set_fixed_blocksize, "", "blocksize")
-			.add_method("set_variable_blocksize", &CPUAlgebraChooser::set_variable_blocksize);
+			.add_method("set_fixed_blocksize", &CPUAlgebraSelector::set_fixed_blocksize, "", "blocksize")
+			.add_method("set_variable_blocksize", &CPUAlgebraSelector::set_variable_blocksize);
 
 		// StandardConvCheck
 		reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp.c_str());
@@ -515,14 +515,14 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 }
 
 
-bool RegisterAMG(Registry& reg, int algebra_type, const char* parentGroup);
+//bool RegisterAMG(Registry& reg, int algebra_type, const char* parentGroup);
 
 bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const char* parentGroup)
 {
 	// switch moved to lib_algebra_bridge.h
 	RegisterAlgebraClass<cRegisterAlgebraType>(reg, algebra_type, parentGroup);
 
-	RegisterAMG(reg, algebra_type, parentGroup);
+	//RegisterAMG(reg, algebra_type, parentGroup);
 
 	return true;
 }

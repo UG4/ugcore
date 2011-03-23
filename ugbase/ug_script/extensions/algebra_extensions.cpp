@@ -12,7 +12,7 @@
 #include "ug.h"
 #include "algebra_extensions.h"
 #include "ug_bridge/ug_bridge.h"
-#include "lib_algebra/algebra_chooser.h"
+#include "lib_algebra/algebra_selector.h"
 
 #include "ug_script/user_data/user_data.h"
 
@@ -21,7 +21,7 @@
 
 namespace ug
 {
-extern enum_AlgebraType g_AlgebraType;
+
 namespace bridge
 {
 

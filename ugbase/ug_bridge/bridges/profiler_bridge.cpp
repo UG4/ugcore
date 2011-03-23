@@ -103,6 +103,21 @@ public:
 	{
 		return false;
 	}
+
+	const char * tostring()
+	{
+		return "hello world";
+	}
+
+	void unm()
+	{
+		UG_LOG("unm!\n");
+	}
+
+	void add(const UGProfilerNode *other)
+	{
+		UG_LOG("oha oha!\n");
+	}
 };
 
 
@@ -130,9 +145,13 @@ bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 				"time in milliseconds spend in this node excluding subnodes", "")
 		.add_method("get_avg_total_time_ms", &UGProfilerNode::get_avg_total_time_ms,
 				"time in milliseconds spend in this node including subnodes", "")
-		.add_method("is_valid", &UGProfilerNode::is_valid, "true if node has been found", "");
+		.add_method("is_valid", &UGProfilerNode::is_valid, "true if node has been found", "")
+		.add_method("__tostring", &UGProfilerNode::tostring, "tostring")
+		.add_method("__unm", &UGProfilerNode::unm, "unm")
+		.add_method("__add", &UGProfilerNode::add, "add");
 	reg.add_function("GetProfileNode", &GetProfileNode, group.str().c_str());
 	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, group.str().c_str(), "true if profiler available");
+
 	return true;
 }
 

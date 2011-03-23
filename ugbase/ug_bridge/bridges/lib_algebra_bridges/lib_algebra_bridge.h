@@ -10,7 +10,7 @@
 
 
 #include "ug_bridge/ug_bridge.h"
-#include "lib_algebra/algebra_chooser.h"
+#include "lib_algebra/algebra_selector.h"
 
 namespace ug
 {
