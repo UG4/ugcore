@@ -9,7 +9,7 @@
 ug_load_script("../scripts/ug_util.lua")
 
 -- choose algebra
-algebra = CPUAlgebraChooser()
+algebra = CPUAlgebraSelector()
 algebra:set_fixed_blocksize(1)
 InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes

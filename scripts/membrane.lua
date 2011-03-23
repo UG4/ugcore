@@ -9,7 +9,7 @@
 ug_load_script("ug_util.lua")
 
 -- choose algebra
-InitAlgebra(CPUAlgebraChooser());
+InitAlgebra(CPUAlgebraSelector());
 
 -- Dimension
 dim = 2

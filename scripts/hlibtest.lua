@@ -19,7 +19,7 @@ activateDbgWriter = 0	-- set to 0 i.e. for time measurements,
 activateDbgWriter = util.GetParamNumber("-dbgw", 0)
 
 -- choose algebra
-InitAlgebra(CPUAlgebraChooser());
+InitAlgebra(CPUAlgebraSelector());
 
 -- constants
 dim = 2

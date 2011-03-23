@@ -9,7 +9,7 @@
 ug_load_script("ug_util.lua")
 
 -- choose algebra
-InitAlgebra(CPUAlgebraChooser());
+InitAlgebra(CPUAlgebraSelector());
 
 -- constants
 if util.HasParamOption("-3d") then
@@ -31,7 +31,7 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 5)
+numRefs = util.GetParamNumber("-numRefs", 4)
 
 
 --------------------------------
@@ -247,6 +247,8 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
+testvector = approxSpace:create_surface_function()
+
 -- set initial value
 u:set(1.0)
 
@@ -339,7 +341,6 @@ function ourTestvector2d_2_2(x, y, t)
 end
 
 
-
 -- create AMG ---
 -----------------
 bUseFAMG = 1
@@ -356,11 +357,14 @@ if bUseFAMG == 1 then
 	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_0_0", dim), 1.0)
 	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_1_1", dim), 1.0)
 	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_1_2", dim), 1.0)
-	amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_2_1", dim), 1.0)
+	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_2_1", dim), 1.0)
 	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_2_2", dim), 1.0)
 	
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
-	-- amg:add_vector_writer(CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace), 1.0)
+	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+	testvectorwriter:update(testvector)
+	amg:add_testvector(testvector, 1.0)
+	
 
 else
 	amg = AMGPreconditioner()
@@ -382,7 +386,7 @@ amg:set_max_levels(2)
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
 amg:set_max_nodes_for_base(5)
 amg:set_max_fill_before_base(0.7)
-amg:set_fsmoothing(0.0)
+amg:set_fsmoothing(true)
 
 amg:tostring()
 
@@ -402,6 +406,10 @@ linSolver:set_preconditioner(amg)
 linSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
+
+log = GetLogAssistant();
+log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 0)
+
 ApplyLinearSolver(linOp, u, b, linSolver)
 
 -- amg:check(u, b);

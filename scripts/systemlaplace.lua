@@ -15,7 +15,7 @@ ug_load_script("ug_util.lua")
 nSystems = util.GetParamNumber("-block", 1)
 
 -- choose algebra
-algebra = CPUAlgebraChooser()
+algebra = CPUAlgebraSelector()
 algebra:set_fixed_blocksize(nSystems)
 InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes

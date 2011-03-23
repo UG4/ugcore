@@ -25,7 +25,7 @@ ug_load_script("ug_util.lua")
 -- there are block structured matrices or simple double-valued matrices. We
 -- decide to use the double-valued CSR Matrix. This is the default case for the
 -- Algebra chooser and so we leave the intiallizer of the AlgebraChooser empty.
-algChooser = CPUAlgebraChooser()
+algChooser = CPUAlgebraSelector()
 algChooser:set_fixed_blocksize(3)
 InitAlgebra(algChooser);
 

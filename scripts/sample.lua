@@ -13,7 +13,7 @@ end
 print("")
 
 -- use the default Algebra
-InitAlgebra(CPUAlgebraChooser());
+InitAlgebra(CPUAlgebraSelector());
 
 -- create a new grid and a new subset handler
 g = Grid.new()

@@ -21,7 +21,7 @@
 -- Since ug supports a bunch of different algebra modules we will choose one here.
 -- This should always be the first thing you do in an ug-script.
 -- The cpu-algebra is fine for now.
-InitAlgebra(CPUAlgebraChooser())
+InitAlgebra(CPUAlgebraSelector())
 
 -- include the basic util-methods.
 ug_load_script("../ug_util.lua")
