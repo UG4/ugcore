@@ -73,9 +73,11 @@ struct cRegisterAlgebraType
 								"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");*/
 		}
 
-		// Vector copy
+		// Vector copy and add
 		{
 			reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
+			reg.add_function("VecScaleAdd2", (void (*)(vector_type&, number, const vector_type &, number, const vector_type &))&VecScaleAdd2<vector_type>);
+
 		}
 
 		//	Matrix
@@ -129,7 +131,9 @@ struct cRegisterAlgebraType
 				reg.add_class_<T, TBase>("IMatrixOperator", grp.c_str())
 					.add_method("resize", &T::resize)
 					.add_method("num_rows", &T::num_rows, "rows")
-					.add_method("num_cols", &T::num_cols, "cols");
+					.add_method("num_cols", &T::num_cols, "cols")
+					.add_method("apply", &TBase::apply);
+
 			}
 
 			{
