@@ -24,9 +24,6 @@
 // iterator operators (Preconditioners)
 #include "operator_iterator_interface.h"
 
-// products and sums of iterator operators
-#include "operator_iterator_product.h"
-
 // convergence check
 #include "convergence_check.h"
 
@@ -35,47 +32,10 @@
 // vector writer
 #include "vector_writer.h"
 
-///////////////////////////
-// Implementations
-///////////////////////////
-
-
-
-#include "linear_solver/lu_operator.h"
-
-// solvers
-#include "linear_solver/cg_solver.h"
-#include "linear_solver/bicgstab_solver.h"
-#include "linear_solver/linear_solver.h"
-
-// preconditioner
-#include "preconditioner/ilu.h"
-#include "preconditioner/ilut.h"
-#include "preconditioner/jacobi.h"
-#include "preconditioner/gauss_seidel.h"
-
-
-#ifdef UG_USE_AMG
-#include "preconditioner/amg/amg.h"
-#include "preconditioner/amg/famg.h"
-#endif
-
-#ifdef LAPACK_AVAILABLE
-//#include "eigensolver/pinvit.h"
-#endif
-
-// feti solver
-#include "linear_solver/dirichletdirichlet.h"
-#include "linear_solver/feti.h"
-
-// HLIBpro based solver
-#ifdef USE_HLIBPRO
-#include "linear_solver/hlib_operator.h"
-#endif
-
 #include "operator_util.h"
 
 // matrix operator methods
 #include "matrix_operator_functions.h"
+
 
 #endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR__ */
