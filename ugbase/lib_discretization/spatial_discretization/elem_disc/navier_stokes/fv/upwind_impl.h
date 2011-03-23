@@ -19,7 +19,7 @@
 #include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
 
 #include "upwind.h"
-#include "lib_algebra/algebra_chooser.h"
+#include "lib_algebra/algebra_selector.h"
 
 namespace ug {
 
