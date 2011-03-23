@@ -9,7 +9,7 @@
  *
  * Goethe-Center for Scientific Computing 2010-2011.
  *
- * for test purposes, functions are here in a cpp file.
+ * NOTE: for test purposes, functions are here in a cpp file.
  */
 
 
@@ -31,27 +31,6 @@
 #include "famg.h"
 #include <set>
 #include "lib_algebra/algebra_chooser.h"
-
-/*class ccstring : public std::string
-{
-public:
-	ccstring(const char *p) : std::string(p) { }
-	ccstring(const std::string &str) : std::string(str) { }
-	operator const char *()
-	{
-		return this->c_str();
-	}
-
-	template<typename T>
-	ccstring operator + (const T &t) const
-	{
-		std::stringstream ss;
-		ss << t;
-		ccstring a(*this);
-		a.append(ss.str());
-		return a;
-	}
-};*/
 
 
 #ifdef UG_PARALLEL
@@ -125,12 +104,6 @@ template <> struct block_traits<MathVector<3> >
 int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<int> &pids,
 		std::vector<int> &processesWithLowerColor,
 		std::vector<int> &processesWithHigherColor);
-/*#ifdef UG_PARALLEL
-typedef ParallelMatrix<SparseMatrix<double> > matrix_type;
-#else
-typedef SparseMatrix<double> matrix_type;
-#endif*/
-
 
 // CreateSymmConnectivityGraph:
 //------------------------------
@@ -167,30 +140,54 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 class FAMGLevelCalculator
 {
 private:
+	// refernce to famg object. this will be done differently in the future
+	// (constructor looks ugly)
 	famg<CPUAlgebra> &m_famg;
+
+	// the coarse matrices to be filled
 	matrix_type &AH;
+
+	// the fine grid matrix (const!)
 	const matrix_type &A;
-	bool bTiming;
 
+	bool bTiming; //< if true, timing will be outputed
 
+	// interpolation/restriction matrices to be filled
 	prolongation_matrix_type &R, &P;
-	size_t level;
 
+	size_t level; // current amg level
+
+	// the calculator which calculates our interpolation weighs
 	FAMGInterpolationCalculator<matrix_type, vector_type> calculator;
-	famg_nodes rating;
-	stdvector<stdvector<neighborstruct2> > possible_parents; // list of possible interpolating parents for each node
-	maxheap<famg_nodeinfo> heap;  // heap used for sorting of ratings
-	cgraph SymmNeighGraph; ///< used to determine which neighbors' rating needs to be updated
 
+	// this structure holds coarse/fine information as well as
+	// master/slave. it tries to replace the missing "node" object here
+	famg_nodes rating;
+
+	//! list of possible interpolating parents for each node
+	stdvector<stdvector<neighborstruct2> > possible_parents;
+
+	//! heap used for sorting of ratings
+	maxheap<famg_nodeinfo> heap;
+
+	//! used to determine which neighbors' rating needs to be updated:
+	cgraph SymmNeighGraph;
+
+	// our testvectors
 	stdvector< vector_type > m_testvectors;
 
 #ifdef UG_PARALLEL
+	//! layout for sending/receiving coarsening information
+	//! note: this is not a classical master/slave distribution!
 	IndexLayout OLCoarseningReceiveLayout, OLCoarseningSendLayout;
+
+	//! processes with higher/lower color to distribute coarsening information
 	std::vector<int> processesWithLowerColor, processesWithHigherColor;
 	int m_myColor;
 #endif
 
 #ifdef UG_PARALLEL
+	// overlap 2 matrix in parallel case
 	matrix_type A_OL2;
 	IndexLayout &nextLevelMasterLayout;
 	IndexLayout &nextLevelSlaveLayout;
@@ -202,6 +199,7 @@ private:
 
 
 public:
+	// todo: clean up this mess of constructor
 	FAMGLevelCalculator(famg<CPUAlgebra> &f,
 			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A,
 			prolongation_matrix_type &_P, size_t _level,
@@ -214,24 +212,28 @@ public:
 #ifndef UG_PARALLEL
 			, A_OL2(A)
 #else
-			, nextLevelMasterLayout(*(new IndexLayout)), nextLevelSlaveLayout(*(new IndexLayout)) // TODO: fix that, its a memory leak
+			// TODO: fix that, its a memory leak
+			, nextLevelMasterLayout(*(new IndexLayout)), nextLevelSlaveLayout(*(new IndexLayout))
 #endif
 	{
 	}
 
 private:
+	//! tries for all nodes which are uninterpolateable an indirect interpolation
+	//! \sa set_uninterpolateable_as_coarse
 	void get_aggressive_coarsening_interpolation()
 	{
 		for(size_t i=0; i<A.num_rows(); i++)
 		{
-			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating (neither coarse nor fine but interpolateable), but is not in heap anymore???");
+			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating, but has not been processed yet?");
 			if(rating[i].is_uninterpolateable() == false) continue;
 
 			calculator.get_all_neighbors_interpolation(i, P, rating);
 		}
 	}
 
-
+	//! sets all nodes which are uninterpolateable as coarse
+	//! \sa get_aggressive_coarsening_interpolation
 	void set_uninterpolateable_as_coarse()
 	{
 		for(size_t i=0; i<rating.size(); i++)
@@ -242,6 +244,7 @@ private:
 		}
 	}
 
+	//! creates the parentIndex struct for display
 	void create_parentIndex()
 	{
 		stdvector<stdvector<int> > &parentIndex = m_famg.m_parentIndex;
@@ -263,14 +266,14 @@ private:
 #endif
 
 public:
-	void do_stuff()
+	void do_calculation()
 	{
 		UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
 		stopwatch SW, SWwhole; SWwhole.start();
 
-		// int me = pcl::GetProcRank();
 
+		// 1. Overlap calculation
 #ifdef UG_PARALLEL
 		create_OL2_matrix();
 #else
@@ -280,9 +283,10 @@ public:
 
 		// UG_SET_DEBUG_LEVELS(4);
 
+		// 2. global Testvector calculation (damping)
+		// todo: all global?
 		UG_LOG("\ncalculating testvector... ");
 		if(bTiming) SW.start();
-
 
 		for(size_t i=0; i<m_testvectors.size(); i++)
 		{
@@ -294,6 +298,8 @@ public:
 		}
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+
+		// 3. create heap, P, SymmNeighGraph
 
 		heap.create(rating.nodes);
 
@@ -312,6 +318,7 @@ public:
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 
+		// 5. coloring in parallel
 
 	#ifdef UG_PARALLEL
 		color_process_graph();
@@ -320,6 +327,7 @@ public:
 
 		rating.calculate_unassigned();
 
+		// 6. do coarsening
 		if(0)
 		{
 			// get possible parent nodes
@@ -346,15 +354,7 @@ public:
 			if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 		}
 
-	#ifdef UG_PARALLEL
-		for(size_t i=0; i<A.num_rows(); i++)
-		{
-			if(rating.is_inner_node(i) || rating[i].is_uninterpolateable() == false) continue;
-			calculator.get_all_neighbors_interpolation(i, P, rating);
-		}
-		send_coarsening_data_to_processes_with_higher_color();
-	#endif
-
+		// [ debug output
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
 			UG_LOG("Coarse nodes:\n");
@@ -366,9 +366,22 @@ public:
 				UG_LOG("\n");
 			}
 		}
-
-
 		write_debug_matrix_markers();
+		// ]
+
+		// do aggressive coarsening
+		// todo: check if this is ok to be off in parallel
+
+		if(m_famg.get_aggressive_coarsening() == true)
+			get_aggressive_coarsening_interpolation();
+		else
+			set_uninterpolateable_as_coarse();
+
+		// 5b. send coarsening data to processes with higher color
+		#ifdef UG_PARALLEL
+			send_coarsening_data_to_processes_with_higher_color();
+		#endif
+
 
 
 		UG_LOG(std::endl << N - rating.get_unassigned() << " nodes assigned, " << rating.get_nr_of_coarse() << " coarse, "
@@ -377,10 +390,7 @@ public:
 		UG_LOG(std::endl << "second coarsening... "); if(bTiming) SW.start();
 
 
-		if(m_famg.get_aggressive_coarsening() == true)
-			get_aggressive_coarsening_interpolation();
-		else
-			set_uninterpolateable_as_coarse();
+
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
@@ -541,7 +551,7 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	//UG_SET_DEBUG_LEVELS(4);
 
 	FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, omega);
-	dummy.do_stuff();
+	dummy.do_calculation();
 
 	//UG_SET_DEBUG_LEVELS(0);
 }

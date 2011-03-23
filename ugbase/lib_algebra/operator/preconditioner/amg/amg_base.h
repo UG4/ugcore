@@ -136,13 +136,13 @@ public:
 	}
 	size_t	get_max_levels() const									{ return m_maxLevels; }
 
-	void 	set_fsmoothing(double fdamping) 						{ m_fDamp = fdamping; }
-	double	get_fsmoothing() const									{ return m_fDamp; }
+	void 	set_fsmoothing(bool enable) 							{ m_bFSmoothing = enable; }
+	bool 	get_fsmoothing() const									{ return m_bFSmoothing; }
 
-	void 	set_max_nodes_for_base(size_t newMaxNodesForBase) 	{ m_maxNodesForBase = newMaxNodesForBase; }
+	void 	set_max_nodes_for_base(size_t newMaxNodesForBase) 		{ m_maxNodesForBase = newMaxNodesForBase; }
 	size_t 	get_max_nodes_for_base() const							{ return m_maxNodesForBase; }
 
-	void 	set_max_fill_before_base(double newMaxFillBeforeBase) { m_dMaxFillBeforeBase = newMaxFillBeforeBase;	}
+	void 	set_max_fill_before_base(double newMaxFillBeforeBase)	{ m_dMaxFillBeforeBase = newMaxFillBeforeBase;	}
 	double	get_max_fill_before_base() const						{ return m_dMaxFillBeforeBase;	}
 
 
@@ -196,7 +196,7 @@ protected:
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level) = 0;
 	virtual bool init();
-	bool do_f_smoothing(vector_type &corr, vector_type &d, size_t level);
+	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
 
 // data
 	size_t 	m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
@@ -211,7 +211,7 @@ protected:
 
 	std::string m_writeMatrixPath;
 	bool 	m_writeMatrices;
-	double 	m_fDamp;
+	bool	m_bFSmoothing;
 
 	stdvector<vector_type*> m_vec1; 			///< temporary Vector for storing r = Ax -b
 	stdvector<vector_type*> m_vec2; 			///< temporary Vector for storing rH

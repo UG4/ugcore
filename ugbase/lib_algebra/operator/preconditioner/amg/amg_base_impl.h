@@ -272,7 +272,7 @@ amg_base<TAlgebra>::amg_base() :
 	m_dMaxFillBeforeBase = 0.5;
 
 	m_writeMatrices = false;
-	m_fDamp = 0.0;
+	m_bFSmoothing = false;
 
 	m_dbgDimension = 0;
 
@@ -316,15 +316,18 @@ amg_base<TAlgebra>::~amg_base()
 
 
 template<typename TAlgebra>
-bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, size_t level)
+bool amg_base<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t level)
 {
+	UG_ASSERT(level < is_fine.size(), "fine markers not available for level " << level);
+
 	matrix_type &M = *m_A[level];
+	UG_ASSERT(M.num_rows() == is_fine[level].size(), "fine markers do not match in size on level " << level);
 	for(size_t i=0; i<M.num_rows(); i++)
 	{
-		//if(is_fine[level][i])
-			corr[i] = m_fDamp*d[i]/M(i,i);
-		/*else
-			corr[i] = 0.0;*/
+		if(is_fine[level][i])
+			corr[i] = d[i]/M(i,i);
+		else
+			corr[i] = 0.0;
 	}
 
 	M.matmul_minus(d, corr);
@@ -355,12 +358,17 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 	// presmooth
 	// same as setting c.set(0.0).
 	m_presmoothers[level]->apply_update_defect(c, d);
-	if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 	for(size_t i=1; i < m_numPreSmooth; i++)
 	{
 		m_presmoothers[level]->apply_update_defect(corr, d);
 		c += corr;
-		if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
+	}
+
+	// pre f-smoothing
+	if(m_bFSmoothing)
+	{
+		f_smoothing(corr, d, level);
+		c+=corr;
 	}
 
 	vector_type &cH = *m_vec1[level+1];
@@ -392,10 +400,16 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 	// d = d - Ah*corr
 	Ah.matmul_minus(d, corr);
 
+	// post f-smoothing
+	if(m_bFSmoothing)
+	{
+		f_smoothing(corr, d, level);
+		c+=corr;
+	}
+
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
 	{
-		if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 		m_postsmoothers[level]->apply_update_defect(corr, d);
 		c += corr;
 	}
@@ -500,16 +514,21 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	double n1 = d.two_norm(), n2;
 
 	m_presmoothers[level]->apply_update_defect(c, d);
-	if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 	n2 = d.two_norm();	UG_LOG("presmoothing 1 " << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	for(size_t i=1; i < m_numPreSmooth; i++)
 	{
 		m_presmoothers[level]->apply_update_defect(corr, d);
 		c += corr;
-		if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
-
 		n2 = d.two_norm();	UG_LOG("presmoothing " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	}
+
+	if(m_bFSmoothing)
+	{
+		f_smoothing(corr, d, level);
+		c+=corr;
+		n2 = d.two_norm();	UG_LOG("pre f-smoothing: " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+	}
+
 
 	if(m_writeMatrices) writevec(m_amghelper, (m_writeMatrixPath + "AMG_dp" + ToString(level) + ".values").c_str(), d, level);
 
@@ -566,14 +585,23 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 
 	if(m_writeMatrices) writevec(m_amghelper, (m_writeMatrixPath + "AMG_dc" + ToString(level) + ".values").c_str(), d, level);
 
+
+	// post f-smoothing
+	if(m_bFSmoothing)
+	{
+		f_smoothing(corr, d, level);
+		c+=corr;
+	}
+	n2 = d.two_norm();	UG_LOG("post f-smoothing: " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
 	{
-		if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 		m_postsmoothers[level]->apply_update_defect(corr, d);
 		c += corr;
 		n2 = d.two_norm();	UG_LOG("postsmoothing " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	}
+
 
 	double postnorm = d.two_norm();
 	UG_LOG("Level " << level << " reduction: " << postnorm/prenorm << std::endl);

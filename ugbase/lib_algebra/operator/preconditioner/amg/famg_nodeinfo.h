@@ -75,6 +75,8 @@ public:
 	}
 };
 
+//! this structure holds coarse/fine information as well as master/slave
+//! for use in amg. it tries to replace the missing "node" object here
 class famg_nodes
 {
 public:
