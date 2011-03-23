@@ -1,14 +1,14 @@
 /*
- * mi.h
+ * operator_iterator_product.h
  *
- *  Created on: 04.07.2010
- *      Author: andreasvogel
+ *  Created on: 17.03.2011
+ *      Author: anaegel
  */
 
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PRODUCT__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PRODUCT__
 
-#include "lib_algebra/operator/operator.h"
+#include "lib_algebra/operator/operator_iterator_interface.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallelization.h"
 #endif
