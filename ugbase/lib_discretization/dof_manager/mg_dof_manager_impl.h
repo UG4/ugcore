@@ -106,6 +106,40 @@ enable_level_dofs()
 		return false;
 	}
 
+//	check, that all geom objects are assigned to a subset
+	if(	m_pMGSubsetHandler->num<VertexBase>() != m_pMultiGrid->num<VertexBase>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Vertices "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
+		return false;
+	}
+	if(	m_pMGSubsetHandler->num<EdgeBase>() != m_pMultiGrid->num<EdgeBase>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Edges "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
+		return false;
+	}
+	if(	m_pMGSubsetHandler->num<Face>() != m_pMultiGrid->num<Face>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Faces "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
+		return false;
+	}
+	if(	m_pMGSubsetHandler->num<Volume>() != m_pMultiGrid->num<Volume>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Volumes "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
+		return false;
+	}
+
 // 	require distributions on all levels
 	if(!level_distribution_required(num_levels()))
 	{
@@ -139,6 +173,40 @@ enable_surface_dofs()
 	if(m_pFuncPattern == NULL)
 	{
 		UG_LOG("No Function Pattern set to MultiGrid DoF Manager.\n");
+		return false;
+	}
+
+//	check, that all geom objects are assigned to a subset
+	if(	m_pMGSubsetHandler->num<VertexBase>() != m_pMultiGrid->num<VertexBase>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Vertices "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
+		return false;
+	}
+	if(	m_pMGSubsetHandler->num<EdgeBase>() != m_pMultiGrid->num<EdgeBase>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Edges "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
+		return false;
+	}
+	if(	m_pMGSubsetHandler->num<Face>() != m_pMultiGrid->num<Face>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Faces "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
+		return false;
+	}
+	if(	m_pMGSubsetHandler->num<Volume>() != m_pMultiGrid->num<Volume>())
+	{
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Volumes "
+			   " must be assigned to a subset. The passed subset handler "
+			   " contains non-assigned elements, thus the dof distribution"
+			   " is not possible, aborting.\n");
 		return false;
 	}
 
