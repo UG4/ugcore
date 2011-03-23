@@ -242,7 +242,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 //	/************************************/
 
 	// Register algebra
-	CPUAlgebraChooser chooser;
+	CPUAlgebraSelector chooser;
 	ug::bridge::RegisterDynamicLibAlgebraInterface(
 			reg, chooser.get_algebra_type());
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(
