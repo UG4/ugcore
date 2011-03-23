@@ -31,7 +31,6 @@
 
 namespace ug
 {
-extern enum_AlgebraType g_AlgebraType;
 
 namespace bridge
 {
