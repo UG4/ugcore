@@ -4,7 +4,7 @@
 
 #include "ug_bridge.h"
 #include "registry.h"
-#include "lib_algebra/algebra_chooser.h"
+#include "lib_algebra/algebra_selector.h"
 
 
 namespace ug
@@ -21,7 +21,7 @@ Registry & GetUGRegistry()
 
 
 #ifdef UG_ALGEBRA
-	bool InitAlgebra(AlgebraTypeChooserInterface *algebra_type)
+	bool InitAlgebra(IAlgebraTypeSelector *algebra_type)
 	{
 		bridge::Registry& reg = bridge::GetUGRegistry();
 		bool bResult = true;
