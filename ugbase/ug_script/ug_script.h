@@ -61,6 +61,9 @@ bool ParseBuffer(const char* buffer, const char *bufferName="buffer");
 /**	Throws an instance of LuaError, if a parse error occurs.*/
 bool ParseFile(const char* filename);
 
+/// UGLuaPrint. Redirects LUA prints to UG_LOG
+int UGLuaPrint(lua_State *L);
+
 }//	end of namespace
 }//	end of namespace
 
