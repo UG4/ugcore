@@ -247,7 +247,6 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
-testvector = approxSpace:create_surface_function()
 
 -- set initial value
 u:set(1.0)
@@ -362,8 +361,15 @@ if bUseFAMG == 1 then
 	
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
 	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+	
+	-- your algebraic testvector
+	testvector = approxSpace:create_surface_function()
+	-- there you write it
 	testvectorwriter:update(testvector)
+	
 	amg:add_testvector(testvector, 1.0)
+	
+	
 	
 
 else
