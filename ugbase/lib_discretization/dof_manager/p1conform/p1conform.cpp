@@ -5,9 +5,11 @@
 
 namespace ug{
 
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // P1StorageManager
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 void
 P1StorageManager::
@@ -65,9 +67,11 @@ update_attachments()
 
 
 
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // P1ConformDoFDistribution
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 size_t
 P1ConformDoFDistribution::
@@ -416,32 +420,27 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 
 bool
 P1ConformDoFDistribution::
-vertices_created(std::vector<VertexBase*>& vElem)
+vertex_added(VertexBase* vrt)
 {
 //	for newly created vertices, we have to add the integers
-	for(size_t i = 0; i < vElem.size(); ++i)
-	{
-	// 	get vertex
-		VertexBase* vrt = vElem[i];
 
-	//	get subset index
-		const int si = m_pISubsetHandler->get_subset_index(vrt);
+//	get subset index
+	const int si = m_pISubsetHandler->get_subset_index(vrt);
 
-	//	\todo: must be done?!?!?
-	//	skip shadows
-		if(m_pSurfaceView != NULL)
-			if(m_pSurfaceView->is_shadow(vrt))
-				continue;
+//	\todo: must be done?!?!?
+//	skip shadows
+	if(m_pSurfaceView != NULL)
+		if(m_pSurfaceView->is_shadow(vrt))
+			return true;
 
-	// 	write next free index
-		first_index(vrt, si) = m_numDoFs;
+// 	write next free index
+	first_index(vrt, si) = m_numDoFs;
 
-	//	increase number of DoFs
-		m_numDoFs += num_fct(si);
+//	increase number of DoFs
+	m_numDoFs += num_fct(si);
 
-	//	increase number of dofs on subset
-		m_vNumDoFs[si] += num_fct(si);
-	}
+//	increase number of dofs on subset
+	m_vNumDoFs[si] += num_fct(si);
 
 //	we're done
 	return true;
@@ -449,14 +448,17 @@ vertices_created(std::vector<VertexBase*>& vElem)
 
 bool
 P1ConformDoFDistribution::
-vertices_to_be_erased(std::vector<VertexBase*>& vElem)
+vertex_to_be_removed(VertexBase* vrt)
 {
+//	not implemented yet
 	return false;
 }
 
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // GroupedP1ConformDoFDistribution
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
 size_t
@@ -551,7 +553,7 @@ distribute_dofs()
 //	counters
 	size_t i = 0;
 
-// 	reset number of dofs
+// 	reset number of DoFs
 	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
 	m_vvOffsets.clear(); m_vvOffsets.resize(num_subsets());
 
@@ -567,7 +569,7 @@ distribute_dofs()
 			else m_vvOffsets[si][fct] = count++;
 		}
 
-	// 	skip if no dofs to be distributed
+	// 	skip if no DoFs to be distributed
 		if(!(num_fct(si)>0)) continue;
 
 		iterBegin = this->begin<VertexBase>(si);
@@ -583,15 +585,15 @@ distribute_dofs()
 		// 	write index
 			alg_index(vrt, si) = i ++;
 
-		//	increase number of dofs in subset
+		//	increase number of DoFs in subset
 			m_vNumDoFs[si] ++;
 		}
 	}
 
-//	remember total number of dofs
+//	remember total number of DoFs
 	m_numDoFs = i;
 
-//	the size of the index set is the number of dofs
+//	the size of the index set is the number of DoFs
 	m_sizeIndexSet = m_numDoFs;
 
 //	we're done
@@ -759,30 +761,29 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 
 bool
 GroupedP1ConformDoFDistribution::
-vertices_created(std::vector<VertexBase*>& vElem)
+vertex_added(VertexBase* vrt)
 {
 //	for newly created vertices, we have to add the integers
-	for(size_t i = 0; i < vElem.size(); ++i)
+
+//	get subset index
+	const int si = m_pISubsetHandler->get_subset_index(vrt);
+
+//	Only for the surface dof manager:
+//	If the added vertex is a shadow, use index of child (shadowing) vertex
+	if(m_pSurfaceView->is_shadow(vrt))
 	{
-	// 	get vertex
-		VertexBase* vrt = vElem[i];
+	//	get child
+		VertexBase* vrtChild = m_pSurfaceView->get_child(vrt);
 
-	//	get subset index
-		const int si = m_pISubsetHandler->get_subset_index(vrt);
+	//	get indices of child
+		const size_t indexChild = alg_index(vrtChild, si);
 
-	//	Only for the surface dof manager:
-	//	Reuse the index of the father vertex if possible, else create new one
-		if(m_pSurfaceView != NULL)
-		{
-			GeometricObject* parent = m_pSurfaceView->get_parent(vrt);
-			VertexBase* parentVrt = dynamic_cast<VertexBase*>(parent);
-			if(parentVrt != NULL)
-			{
-				alg_index(vrt, si) = alg_index(parentVrt, si);
-				continue;
-			}
-		}
-
+	//	set index of shadow to index of child
+		alg_index(vrt, si) = indexChild;
+	}
+//	normally, we can set a new free index
+	else
+	{
 	// 	write next free index
 		alg_index(vrt, si) = get_free_index(si);
 	}
@@ -793,28 +794,15 @@ vertices_created(std::vector<VertexBase*>& vElem)
 
 bool
 GroupedP1ConformDoFDistribution::
-vertices_to_be_erased(std::vector<VertexBase*>& vElem)
+vertex_to_be_removed(VertexBase* vrt)
 {
 //	for vertices that will be erased, we have to remember the removed indices
-	for(size_t i = 0; i < vElem.size(); ++i)
-	{
-	// 	get vertex
-		VertexBase* vrt = vElem[i];
 
-	//	Only for the surface dof manager:
-	//	if the vertex shadows a child vertex, both have the same index and
-	//	the index will still be used for the uncovered vertex. Thus, for those
-	//	vertices we do not have to free the index.
-		if(m_pSurfaceView != NULL)
-			if(m_pSurfaceView->shadows(vrt))
-				continue;
+//	get subset index
+	const int si = m_pISubsetHandler->get_subset_index(vrt);
 
-	//	get subset index
-		const int si = m_pISubsetHandler->get_subset_index(vrt);
-
-	// 	remember free index
-		push_free_index(alg_index(vrt, si), si);
-	}
+// 	remember free index
+	push_free_index(alg_index(vrt, si), si);
 
 //	we're done
 	return true;
@@ -829,14 +817,21 @@ defragment()
 //	All indices with an index >= m_numDoFs are replaced.
 
 //	check, if holes exist. If not, we're done
-	if(m_vFreeIndex.empty()) return true;
+	if(m_vFreeIndex.empty())
+	{
+	//	the index set might have been increased. Thus resize grid functions
+		num_indices_changed(m_numDoFs);
+
+	//	we're done
+		return true;
+	}
 
 //	pairs of replaced indices
 	std::vector<std::pair<size_t, size_t> > m_vReplaced;
 
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-	// 	skip if no dofs to be distributed
+	// 	skip if no DoFs to be distributed
 		if(!(num_fct(si)>0)) continue;
 
 		geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;

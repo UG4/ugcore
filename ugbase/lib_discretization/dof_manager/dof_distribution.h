@@ -331,11 +331,11 @@ class IDoFDistribution
 		bool defragment() {return getImpl().defragment();}
 
 	///	add indices to elements
-		bool vertices_created(std::vector<VertexBase*>& vElem) {return getImpl().vertices_created(vElem);}
+		bool vertex_added(VertexBase* vrt) {return getImpl().vertex_added(vrt);}
 		// \todo: add other geom obj callbacks
 
 	///	remove indices from elements
-		bool vertices_to_be_erased(std::vector<VertexBase*>& vElem) {return getImpl().vertices_to_be_erased(vElem);}
+		bool vertex_to_be_removed(VertexBase* vrt) {return getImpl().vertex_to_be_removed(vrt);}
 		// \todo: add other geom obj callbacks
 
 	/// distribute dofs

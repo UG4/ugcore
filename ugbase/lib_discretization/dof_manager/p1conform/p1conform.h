@@ -212,10 +212,10 @@ class P1ConformDoFDistribution
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
 
 	/// \copydoc IDoFDistribution::vertices_created()
-		bool vertices_created(std::vector<VertexBase*>& vElem);
+		bool vertex_added(VertexBase* vrt);
 
 	/// \copydoc IDoFDistribution::vertices_to_be_erased()
-		bool vertices_to_be_erased(std::vector<VertexBase*>& vElem);
+		bool vertex_to_be_removed(VertexBase* vrt);
 
 	protected:
 	///	returns first algebra index of a vertex
@@ -422,10 +422,10 @@ class GroupedP1ConformDoFDistribution
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
 
 	/// \copydoc IDoFDistribution::vertices_created()
-		bool vertices_created(std::vector<VertexBase*>& vElem);
+		bool vertex_added(VertexBase* vrt);
 
 	/// \copydoc IDoFDistribution::vertices_to_be_erased()
-		bool vertices_to_be_erased(std::vector<VertexBase*>& vElem);
+		bool vertex_to_be_removed(VertexBase* vrt);
 
 	/// \copydoc IDoFDistribution::compress()
 		bool defragment();

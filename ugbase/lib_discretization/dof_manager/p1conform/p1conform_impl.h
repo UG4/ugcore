@@ -25,65 +25,97 @@ void
 P1ConformDoFDistribution::
 update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 {
-	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	const ReferenceElement& refElem =
-			ReferenceElementFactory::get_reference_element(refID);
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
+//	compile-time number of DoFs
+	static const size_t numCo = ref_elem_type::num_corners;
+
+//	CASE: no Hanging DoFs
 	if(!withHanging)
 	{
-		for(size_t i = 0; i <  refElem.num_obj(0); ++i)
+	//	update algebraic indices
+		for(size_t i = 0; i < numCo; ++i)
 		{
+		//	get vertex
 			VertexBase* vrt = GetVertex(elem, i);
+
+		//	get subset index
 			int si = m_pISubsetHandler->get_subset_index(vrt);
+
+		//	read algebra index
 			const size_t index = first_index(vrt, si);
 
+		//	loop all functions
 			size_t numFct = 0;
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 			{
+			//	\todo: can this happen ???
 				if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
-				ind.set_index(i + numFct*refElem.num_obj(0),
+
+			//	set algebraic index
+				ind.set_index(i + numFct * numCo,
 				              index + m_vvOffsets[si][ind.unique_id(fct)]);
+
+			//	increase number of functions
 				numFct++;
 			}
 		}
 	}
+
+//	CASE: Hanging DoFs
 	else
 	{
+	//	clear indices
 		ind.clear();
+
+	//	reset alg dof counter
 		size_t algDof = 0;
 
-		// natural dofs
-		for(size_t i = 0; i < refElem.num_obj(0); ++i)
+	// 	handle Natural DoFs
+		for(size_t i = 0; i < numCo; ++i)
 		{
+		//	get natural vertex
 			VertexBase* vrt = GetVertex(elem, i);
+
+		//	get subset index
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 
+		//	read algebra index
 			const size_t index = first_index(vrt, si);
 
+		//	loop functions
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 			{
+			//	\todo: can this happen ???
 				if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
+			//	compute algebra index
 				const size_t theIndex = index + m_vvOffsets[si][ind.unique_id(fct)];
 				UG_ASSERT(theIndex < m_numDoFs, "Adding index " << theIndex <<
 				          ", but only " << m_numDoFs << " present.");
 
+			//	increase number of indices
 				ind.set_num_indices(algDof+1);
+
+			//	set algebra index
 				ind.set_index(algDof, theIndex);
 
+			//	set mapping (fct, dof) -> (alg index, alg comp)
 				LocalIndices::multi_index_type dof_ind;
 				dof_ind[0] = algDof;
 				dof_ind[1] = 0;
 				ind.add_dof(fct, dof_ind);
 
+			//	increase number of algebraic indices
 				algDof++;
 			}
 		}
 
-		// hanging dofs
-
-		// get natural edges
+	// 	Handle Hanging DoFs on Natural edges
 		{
+		//	collect all edges
 			std::vector<EdgeBase*> vEdges;
 			EdgeBase* ed = dynamic_cast<EdgeBase*>(elem);
 			if(ed != NULL)
@@ -100,40 +132,60 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 				CollectEdgesSorted(vEdges,
 				                   *(m_pISubsetHandler->get_assigned_grid()), vol);
 
+		//	loop all edges
 			for(size_t i = 0; i < vEdges.size(); ++i)
 			{
+			//	only constraining edges are of interest
 				ConstrainingEdge* edge = dynamic_cast<ConstrainingEdge*>(vEdges[i]);
 				if(edge == NULL) continue;
+
+			//	loop constraining vertices
 				for(VertexBaseIterator iter = edge->constrained_vertices_begin();
 						iter != edge->constrained_vertices_end(); ++iter)
 				{
+				//	get vertex
 					VertexBase* vrt = *iter;
+
+				//	get subset index
 					int si = m_pISubsetHandler->get_subset_index(vrt);
+
+				//	read algebra index
 					const size_t index = first_index(vrt, si);
 
+				//	loop functions
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
+					//	\todo: Can this happen ???
 						if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
+					//	compute algebra index
 						const size_t theIndex = index + m_vvOffsets[si][ind.unique_id(fct)];
 						UG_ASSERT(theIndex < m_numDoFs, "Adding index " << theIndex <<
 						          ", but only " << m_numDoFs << " present.");
 
+					//	increase number of indices
 						ind.set_num_indices(algDof+1);
+
+					//	write algebra index
 						ind.set_index(algDof, theIndex);
 
+
+					//	set mapping (fct, dof) -> (alg index, alg comp)
 						LocalIndices::multi_index_type dof_ind;
 						dof_ind[0] = algDof;
 						dof_ind[1] = 0;
 						ind.add_dof(fct, dof_ind);
 
+					//	increase number of algebraic indices
 						algDof++;
 					}
 				}
 			}
 		}
-		// get natural faces
+
+	// 	Handle Hanging DoFs on Natural edges
 		{
+		//	Collect all faces
 			std::vector<Face*> vFaces; vFaces.clear();
 			Face* face = dynamic_cast<Face*>(elem);
 			if(face != NULL)
@@ -144,40 +196,60 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 				CollectFacesSorted(vFaces,
 				                   *(m_pISubsetHandler->get_assigned_grid()), vol);
 
+		//	loop faces
 			for(size_t i = 0; i < vFaces.size(); ++i)
 			{
+			//	only constraining quads are of interest
 				ConstrainingQuadrilateral* quad =
 						dynamic_cast<ConstrainingQuadrilateral*>(vFaces[i]);
 				if(quad == NULL) continue;
+
+			//	loop hanging vertices
 				for(VertexBaseIterator iter = quad->constrained_vertices_begin();
 						iter != quad->constrained_vertices_end(); ++iter)
 				{
+				//	get vertex
 					VertexBase* vrt = *iter;
+
+				//	get subset index
 					int si = m_pISubsetHandler->get_subset_index(vrt);
+
+				//	read algebraic index
 					const size_t index = first_index(vrt, si);
 
+				//	loop functions
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
+					// \todo: can this happen ???
 						if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
+					//	compute algebra index
 						const size_t theIndex = index + m_vvOffsets[si][ind.unique_id(fct)];
 						UG_ASSERT(theIndex < m_numDoFs, "Adding index " << theIndex <<
 						          ", but only " << m_numDoFs << " present.");
 
+					//	increase number of algebraic indices
 						ind.set_num_indices(algDof+1);
+
+					//	set algebraic index
 						ind.set_index(algDof, theIndex);
 
+
+					//	set mapping (fct, dof) -> (alg index, alg comp)
 						LocalIndices::multi_index_type dof_ind;
 						dof_ind[0] = algDof;
 						dof_ind[1] = 0;
 						ind.add_dof(fct, dof_ind);
 
+					//	increase number of algebraic DoFs
 						algDof++;
 					}
 				}
 			}
 		}
 	}
+
+//	we're done
 	return;
 }
 
@@ -186,9 +258,15 @@ void
 P1ConformDoFDistribution::
 update_inner_indices(TElem* elem, LocalIndices& ind) const
 {
-	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	if(refID != ROID_VERTEX) return;
-	else return update_indices(elem, ind);
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of a Vertex, we have a DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return update_indices(elem, ind);
+	else
+		return;
 }
 
 ///////////// Multi index access /////////////////
@@ -198,8 +276,12 @@ size_t
 P1ConformDoFDistribution::
 num_multi_indices(TElem* elem, size_t fct) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	return ref_elem_type::num_corners;
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	number of multi indices for each function is the number of corners
+	return reference_element_type::num_corners;
 }
 
 template<typename TElem>
@@ -207,8 +289,15 @@ size_t
 P1ConformDoFDistribution::
 num_inner_multi_indices(TElem* elem, size_t fct) const
 {
-	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX) return 1;
-	else return 0;
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	if elem is a vertex, we have a DoF else no DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return 1;
+	else
+		return 0;
 }
 
 template<typename TElem>
@@ -216,19 +305,32 @@ size_t
 P1ConformDoFDistribution::
 get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
-	const size_t numDofs = ref_elem_type::num_corners;
-	ind.resize(numDofs);
-	for(size_t i = 0; i < numDofs; ++i)
+//	compile-time number of DoFs
+	static const size_t numDoFs = ref_elem_type::num_corners;
+
+//	resize indices
+	ind.resize(numDoFs);
+
+//	add indices
+	for(size_t i = 0; i < numDoFs; ++i)
 	{
+	//	get vertex
 		VertexBase* vrt = GetVertex(elem, i);
+
+	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
+	//	fill algebra index
 		ind[i][0] = first_index(vrt, si) + m_vvOffsets[si][fct];
 		ind[i][1] = 0;
 	}
-	return numDofs;
+
+//	return number of DoFs
+	return numDoFs;
 }
 
 template<typename TElem>
@@ -236,16 +338,37 @@ size_t
 P1ConformDoFDistribution::
 get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
-	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX)
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	if elem is a vertex, we have a DoF else no DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
 	{
+	//	get Vertex itself
 		VertexBase* vrt = GetVertex(elem, 0);
+
+	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+
+	//	resize indices
 		ind.resize(1);
+
+	// 	fill algebra index
 		ind[0][0] = first_index(vrt, si) + m_vvOffsets[si][fct];
 		ind[0][1] = 0;
+
+	//	return number of indices
 		return 1;
 	}
-	else return 0;
+	else
+	{
+	//	clear, since no indices given
+		ind.clear();
+
+	//	return number of indices
+		return 0;
+	}
 }
 
 ///////////// Algebra index access /////////////////
@@ -255,9 +378,12 @@ size_t
 P1ConformDoFDistribution::
 num_algebra_indices(TElem* elem, size_t fct) const
 {
+//	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
-	return ref_elem_type::num_corners;
+				reference_element_type;
+
+//	number of multi indices for each function is the number of corners
+	return reference_element_type::num_corners;
 }
 
 template<typename TElem>
@@ -265,8 +391,15 @@ size_t
 P1ConformDoFDistribution::
 num_inner_algebra_indices(TElem* elem, size_t fct) const
 {
-	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX) return 1;
-	else return 0;
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	if elem is a vertex, we have a DoF else no DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return 1;
+	else
+		return 0;
 }
 
 template<typename TElem>
@@ -274,19 +407,31 @@ void
 P1ConformDoFDistribution::
 get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
+//	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
+//	clear indices
 	ind.clear();
 
+//	fill vector of algebraic indices
 	for(size_t fct = 0; fct < num_fct(); ++fct)
 	{
 		for(size_t i = 0; i < (size_t)ref_elem_type::num_corners; ++i)
 		{
+		//	get vertex
 			VertexBase* vrt = GetVertex(elem, i);
+
+		//	get subset index
 			int si = m_pISubsetHandler->get_subset_index(vrt);
+
+		//	\todo: can this happen ???
 			if(!is_def_in_subset(fct, si)) continue;
+
+		//	get algebra index
 			const size_t index = first_index(vrt, si) + m_vvOffsets[si][fct];
+
+		//	write algebra index
 			ind.push_back(index);
 		}
 	}
@@ -297,25 +442,46 @@ void
 P1ConformDoFDistribution::
 get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
+//	clear indices
 	ind.clear();
-	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX)
+
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of vertex, we have DoFs
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
 	{
+	//	get vertex
 		VertexBase* vrt = GetVertex(elem, 0);
+
+	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
-		const size_t index = first_index(vrt, si);
+	//	get first algebra index
+		const size_t firstIndex = first_index(vrt, si);
+
+	//	loop functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
+		//	\todo: Can this happen ???
 			if(!is_def_in_subset(fct, si)) continue;
-			ind.push_back(index + m_vvOffsets[si][fct]);
+
+		//	get algebra index
+			const size_t index = firstIndex + m_vvOffsets[si][fct];
+
+		//	write algebra index
+			ind.push_back(index);
 		}
 	}
 }
 
 
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // GroupedP1ConformDoFDistribution
-///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
 ///////////// LocalIndex access /////////////////
@@ -325,18 +491,28 @@ void
 GroupedP1ConformDoFDistribution::
 update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 {
-	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	const ReferenceElement& refElem =
-			ReferenceElementFactory::get_reference_element(refID);
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+//	compile-time number of DoFs
+	static const size_t numDoFs = ref_elem_type::num_corners;
 
 	if(withHanging) throw(UGError("Not implemented"));
 
-	for(size_t i = 0; i <  refElem.num_obj(0); ++i)
+//	update all algebraic indices
+	for(size_t i = 0; i < numDoFs; ++i)
 	{
-		VertexBase* vrt = GetVertex(elem, i);;
+	//	get vertex
+		VertexBase* vrt = GetVertex(elem, i);
+
+	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
-		const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+	//	read algebra index
+		const size_t index = alg_index(vrt, si);
+
+	//	write algebra index
 		ind.set_index(i, index);
 	}
 }
@@ -346,9 +522,15 @@ void
 GroupedP1ConformDoFDistribution::
 update_inner_indices(TElem* elem, LocalIndices& ind) const
 {
-	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	if(refID != ROID_VERTEX) return;
-	else return update_indices(elem, ind);
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of a Vertex, we have a DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return update_indices(elem, ind);
+	else
+		return;
 }
 
 
@@ -357,20 +539,30 @@ update_inner_indices(TElem* elem, LocalIndices& ind) const
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
-num_multi_indices(TElem* obj, size_t fct) const
+num_multi_indices(TElem* elem, size_t fct) const
 {
+//	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
-	return ref_elem_type::num_corners;
+				reference_element_type;
+
+//	number of multi indices for each function is the number of corners
+	return reference_element_type::num_corners;
 }
 
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
-num_inner_multi_indices(TElem* obj, size_t fct) const
+num_inner_multi_indices(TElem* elem, size_t fct) const
 {
-	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX) return 1;
-	else return 0;
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	if elem is a vertex, we have a DoF else no DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return 1;
+	else
+		return 0;
 }
 
 template<typename TElem>
@@ -378,39 +570,68 @@ size_t
 GroupedP1ConformDoFDistribution::
 get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
+//	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
-	const size_t numDofs = ref_elem_type::num_corners;
-	ind.resize(numDofs);
-	for(size_t i = 0; i < numDofs; ++i)
+//	compile-time number of DoFs
+	static const size_t numDoFs = ref_elem_type::num_corners;
+
+//	resize indices
+	ind.resize(numDoFs);
+
+//	add indices
+	for(size_t i = 0; i < numDoFs; ++i)
 	{
+	//	get vertex
 		VertexBase* vrt = GetVertex(elem, i);
+
+	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
-		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+	//	fill algebra index
+		ind[i][0] = alg_index(vrt, si);
 		ind[i][1] = fct;
 	}
-	return numDofs;
+
+//	return number of DoFs
+	return numDoFs;
 }
 
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
-get_inner_multi_indices(TElem* obj, size_t fct, multi_index_vector_type& ind) const
+get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
-	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX)
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	if elem is a vertex, we have a DoF else no DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
 	{
-		VertexBase* vrt = GetVertex(obj, 0);
+	//	get Vertex itself
+		VertexBase* vrt = GetVertex(elem, 0);
+
+	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+
+	//	resize indices
 		ind.resize(1);
-		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+
+	// 	fill algebra index
+		ind[0][0] = alg_index(vrt, si);
 		ind[0][1] = fct;
+
+	//	return number of indices
 		return 1;
 	}
 	else
 	{
+	//	clear, since no indices given
 		ind.clear();
+
+	//	return number of indices
 		return 0;
 	}
 }
@@ -424,9 +645,12 @@ size_t
 GroupedP1ConformDoFDistribution::
 num_algebra_indices(TElem* elem, size_t fct) const
 {
+//	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
-	return ref_elem_type::num_corners;
+				reference_element_type;
+
+//	number of multi indices for each function is the number of corners
+	return reference_element_type::num_corners;
 }
 
 /// number of algebras indices on element for a function (only inner part of Element)
@@ -435,8 +659,15 @@ size_t
 GroupedP1ConformDoFDistribution::
 num_inner_algebra_indices(TElem* elem, size_t fct) const
 {
-	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX) return 1;
-	else return 0;
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	if elem is a vertex, we have a DoF else no DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return 1;
+	else
+		return 0;
 }
 
 template<typename TElem>
@@ -444,38 +675,62 @@ void
 GroupedP1ConformDoFDistribution::
 get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
+//	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
+//	clear indices
 	ind.clear();
 
-	// if no functions, return
+// 	if no functions, return
 	const int elem_si = m_pISubsetHandler->get_subset_index(elem);
 	if(num_fct(elem_si) == 0) return;
 
+//	fill vector of algebraic indices
 	for(size_t i = 0; i < (size_t)ref_elem_type::num_corners; ++i)
 	{
-			VertexBase* vrt = GetVertex(elem, i);;
-			int si = m_pISubsetHandler->get_subset_index(vrt);
-			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
-			ind.push_back(index);
+	//	get vertex
+		VertexBase* vrt = GetVertex(elem, i);;
+
+	//	get subset index
+		int si = m_pISubsetHandler->get_subset_index(vrt);
+
+	//	get algebra indices
+		const size_t index = alg_index(vrt, si);
+
+	//	write algebra index
+		ind.push_back(index);
 	}
 }
 
 template<typename TElem>
 void
 GroupedP1ConformDoFDistribution::
-get_inner_algebra_indices(TElem* obj, algebra_index_vector_type& ind) const
+get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
+//	clear indices
 	ind.clear();
-	if((GeometricBaseObject)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID
-			== (GeometricBaseObject)VERTEX)
+
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of vertex, we have DoFs
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
 	{
-		VertexBase* vrt = (VertexBase*)obj;
+	//	get vertex
+		VertexBase* vrt = GetVertex(elem, 0);
+
+	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+
+	//	if no functions given in this subset, nothing to do
 		if(num_fct(si) == 0) return;
 
-		const size_t index =  m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+	//	get algebra index
+		const size_t index = alg_index(vrt, si);
+
+	//	write algebra index
 		ind.push_back(index);
 	}
 }
