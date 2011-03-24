@@ -55,7 +55,7 @@ bool RegisterAlgebraClass(Registry& reg, int algebra_type, const char* parentGro
 		{
 		case eCPUAlgebra:		 		TRegister<CPUAlgebra >::reg(reg, grp.c_str()); break;
 //		case eCPUBlockAlgebra2x2: 		TRegister<CPUBlockAlgebra<2> >::reg(reg, grp.c_str()); break;
-//		case eCPUBlockAlgebra3x3: 		TRegister<CPUBlockAlgebra<3> >::reg(reg, grp.c_str()); break;
+		case eCPUBlockAlgebra3x3: 		TRegister<CPUBlockAlgebra<3> >::reg(reg, grp.c_str()); break;
 //		case eCPUBlockAlgebra4x4: 		TRegister<CPUBlockAlgebra<4> >::reg(reg, grp.c_str()); break;
 //		case eCPUVariableBlockAlgebra: 	TRegister<CPUVariableBlockAlgebra>::reg(reg, grp.c_str()); break;
 		default: UG_ASSERT(0, "In RegisterAlgebraClass: " << algebra_type << " is unsupported algebra type");
