@@ -85,16 +85,12 @@ bool ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	//	check if one unhandled vertex left
 		if(i_start == vHandled.size()) break;
 
-		UG_LOG("Search from "<<i_start << "\n");
-
 	//	Find node with smallest degree for all remaining indices
 		for(size_t i = start; i < vHandled.size(); ++i)
 		{
 			if(vHandled[i] == false && vvConnection[i].size() < vvConnection[start].size())
 				start = i;
 		}
-
-		UG_LOG("First index "<<start << "\n");
 
 	//	Add start vertex to mapping
 		vNewOrder.push_back(start);
