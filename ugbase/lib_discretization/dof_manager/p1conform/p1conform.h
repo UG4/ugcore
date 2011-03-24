@@ -129,25 +129,24 @@ class P1ConformDoFDistribution
 		///////////////////////////////////////
 
 	/// \copydoc IDoFDistribution::num_indices()
-		size_t num_indices(ReferenceObjectID refID, int si,
-		                   const FunctionGroup& funcGroup) const;
+		template<typename TElem>
+		size_t num_indices(int si, const FunctionGroup& fctGrp) const;
 
 	/// \copydoc IDoFDistribution::num_inner_indices()
-		size_t num_inner_indices(ReferenceObjectID refID, int si,
-		                         const FunctionGroup& funcGroup) const;
+		template<typename TElem>
+		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const;
 
 	/// \copydoc IDoFDistribution::prepare_indices()
-		bool prepare_indices(ReferenceObjectID refID, int si,
-		                     LocalIndices& ind, bool withHanging = false) const;
+		template<typename TElem>
+		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const;
 
 	/// \copydoc IDoFDistribution::prepare_inner_indices()
-		bool prepare_inner_indices(ReferenceObjectID refID, int si,
-		                           LocalIndices& ind) const;
+		template<typename TElem>
+		bool prepare_inner_indices(int si, LocalIndices& ind) const;
 
 	/// \copydoc IDoFDistribution::update_indices()
 		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind,
-		                    bool withHanging = false) const;
+		void update_indices(TElem* elem, LocalIndices& ind, bool withHanging = false) const;
 
 	/// \copydoc IDoFDistribution::update_inner_indices()
 		template<typename TElem>
@@ -338,27 +337,24 @@ class GroupedP1ConformDoFDistribution
 		///////////////////////////////////////
 
 	/// \copydoc IDoFDistribution::num_indices()
-		size_t num_indices(ReferenceObjectID refID, int si,
-		                   const FunctionGroup& funcGroup) const;
+		template<typename TElem>
+		size_t num_indices(int si, const FunctionGroup& fctGrp) const;
 
 	/// \copydoc IDoFDistribution::num_inner_indices()
-		size_t num_inner_indices(ReferenceObjectID refID, int si,
-		                         const FunctionGroup& funcGroup) const;
+		template<typename TElem>
+		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const;
 
 	/// \copydoc IDoFDistribution::prepare_indices()
-		// TODO: withHanging == true is not yet implemented
-		bool prepare_indices(ReferenceObjectID refID, int si,
-		                     LocalIndices& ind, bool withHanging = false) const;
+		template<typename TElem>
+		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const;
 
 	/// \copydoc IDoFDistribution::prepare_inner_indices()
-		bool prepare_inner_indices(ReferenceObjectID refID, int si,
-		                           LocalIndices& ind) const;
+		template<typename TElem>
+		bool prepare_inner_indices(int si, LocalIndices& ind) const;
 
 	/// \copydoc IDoFDistribution::update_indices()
-		// TODO: withHanging == true is not yet implemented
 		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind,
-		                    bool withHanging = false) const;
+		void update_indices(TElem* elem, LocalIndices& ind, bool withHanging = false) const;
 
 	/// \copydoc IDoFDistribution::update_inner_indices()
 		template<typename TElem>

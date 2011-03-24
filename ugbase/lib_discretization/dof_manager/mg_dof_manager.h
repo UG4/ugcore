@@ -24,7 +24,7 @@ namespace ug{
  * \tparam 	TDoFDistribution	Type of DoF Distribution
  */
 template <typename TDoFDistribution>
-class MGDoFManager
+class MGDoFManager : public GridObserver
 {
 	public:
 	///	DoF Distribution type
@@ -150,6 +150,74 @@ class MGDoFManager
 
 			disable_level_dofs();
 			disable_surface_dofs();
+		}
+
+	public:
+	///////////////////////////////////////////////////
+	//	GridObserver Callbacks
+	///////////////////////////////////////////////////
+
+		virtual void vertex_created(Grid* grid, VertexBase* vrt,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false)
+		{
+		//	we do not check pointer m_pMGSubsetHandler != NULL, since we only
+		//	register the callback, if that is the case
+
+		//	get level of Vertex
+			const int level = m_pMGSubsetHandler->get_level(vrt);
+
+		//	if level dofs enabled, add vertex to level dofs
+			if(level_dofs_enabled())
+			{
+			//	check if level dof distribution must be created
+				if(!level_distribution_required(level+1))
+					throw(UGFatalError("Cannot create level dof distribution"));
+
+			//	get level dof distribution
+				dof_distribution_type* levDoFDistr =
+								get_level_dof_distribution(level);
+
+				UG_ASSERT(levDoFDistr != NULL, "Invalid DoF Distribution.");
+
+			//	announce created vertex to level dof distribution
+				levDoFDistr->vertex_added(vrt);
+			}
+
+		//	if surface dofs enabled, add vertex to surface dofs
+			if(surface_dofs_enabled())
+			{
+			//	get surface dof distribution
+				dof_distribution_type* surfDoFDistr = get_surface_dof_distribution();
+
+			//	1. Release index for parent (which may not be part of surface
+			//     view after adding the child; created shadows are not part of
+			//	   the surface view at this stage.)
+				VertexBase* vrtParent = dynamic_cast<VertexBase*>(pParent);
+				if(vrtParent != NULL)
+					surfDoFDistr->vertex_to_be_removed(vrtParent);
+
+			//	2. Add the created vertex to the surface view
+				const int si = m_pMGSubsetHandler->get_subset_index(vrt);
+				m_pSurfaceView->assign_subset(vrt, si);
+
+			//	3. Remove parent from surface view
+				// \todo: This is for vertices only, handle all cases
+				m_pSurfaceView->assign_subset(vrtParent, -1);
+
+			//	4. Add index for child
+				surfDoFDistr->vertex_added(vrt);
+
+			//	NOTE: at this point the parent Vertex may be a shadow. But we
+			//		  do not add the shadow here, but on a later call of defragment
+			}
+		}
+
+		void defragment()
+		{
+		//	we add the shadows to the surface view, that may have been created
+		//	due to grid adaption
+
 		}
 
 	protected:

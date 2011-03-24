@@ -21,6 +21,116 @@ namespace ug{
 ///////////// LocalIndex access /////////////////
 
 template<typename TElem>
+size_t
+P1ConformDoFDistribution::
+num_indices(int si, const FunctionGroup& fctGrp) const
+{
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+//	compile-time number of DoFs
+	static const size_t numCo = ref_elem_type::num_corners;
+
+//	count number of function on this subset
+	size_t numFct = 0;
+	for(size_t fct = 0; fct < fctGrp.num_fct(); ++fct)
+	{
+		if(is_def_in_subset(fctGrp[fct], si))
+			numFct++;
+	}
+
+//	return number of algebraic indices
+	return numFct * numCo;
+}
+
+template<typename TElem>
+bool
+P1ConformDoFDistribution::
+prepare_indices(int si, LocalIndices& ind, bool withHanging) const
+{
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+//	compile-time number of DoFs
+	static const size_t numCo = ref_elem_type::num_corners;
+
+//	case of hanging nodes is not handled here
+	if(withHanging) return true;
+
+//	clear indices
+	ind.clear();
+
+//	reset counters
+	size_t numInd = 0;
+	size_t numFct = 0;
+
+//	loop functions
+	for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+	{
+	//	\todo: can this happen ???
+		if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
+
+	//	loop vertices
+		for(size_t dof = 0; dof < numCo; ++dof)
+		{
+		//	write mapping
+			LocalIndices::multi_index_type dof_ind;
+			dof_ind[0] = dof + numFct * numCo;
+			dof_ind[1] = 0;
+			ind.add_dof(fct, dof_ind);
+		}
+
+	//	increase counter
+		numInd += numCo;
+		numFct++;
+	}
+
+//	resize algebraic index array
+	ind.set_num_indices(numInd);
+
+//	we're done
+	return true;
+}
+
+template<typename TElem>
+size_t
+P1ConformDoFDistribution::
+num_inner_indices(int si, const FunctionGroup& fctGrp) const
+{
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of a Vertex, we have a DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return num_indices<TElem>(si, fctGrp);
+	else
+		return 0;
+}
+
+template<typename TElem>
+bool
+P1ConformDoFDistribution::
+prepare_inner_indices(int si, LocalIndices& ind) const
+{
+//	clear all indices
+	ind.clear();
+
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of a Vertex, we have a DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return prepare_indices<TElem>(si, ind);
+	else
+		return true;
+}
+
+
+template<typename TElem>
 void
 P1ConformDoFDistribution::
 update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
@@ -483,8 +593,110 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+template<typename TElem>
+size_t
+GroupedP1ConformDoFDistribution::
+num_indices(int si, const FunctionGroup& fctGrp) const
+{
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
-///////////// LocalIndex access /////////////////
+//	compile-time number of DoFs
+	static const size_t numCo = ref_elem_type::num_corners;
+
+	for(size_t fct = 0; fct < fctGrp.num_fct(); ++fct)
+	{
+		if(is_def_in_subset(fctGrp[fct], si))
+			return numCo;
+	}
+
+	return 0;
+}
+
+template<typename TElem>
+bool
+GroupedP1ConformDoFDistribution::
+prepare_indices(int si, LocalIndices& ind, bool withHanging) const
+{
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+//	compile-time number of DoFs
+	static const size_t numCo = ref_elem_type::num_corners;
+
+//	hanging nodes not implemented
+	if(withHanging) throw(UGError("Not implemented"));
+
+//	clear indices
+	ind.clear();
+
+//	reset counters
+	size_t numInd = 0;
+
+//	loop functions
+	for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+	{
+	//	\todo: Can this happen ???
+		if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
+
+	//	loop vertices
+		for(size_t dof = 0; dof < numCo; ++dof)
+		{
+		//	write mapping
+			LocalIndices::multi_index_type dof_ind;
+			dof_ind[0] = dof;
+			dof_ind[1] = ind.unique_id(fct);
+			ind.add_dof(fct, dof_ind);
+		}
+
+	//	increase counter
+		numInd = numCo;
+	}
+
+//	resize algebraic index array
+	ind.set_num_indices(numInd);
+
+//	we're done
+	return true;
+}
+
+
+template<typename TElem>
+size_t
+GroupedP1ConformDoFDistribution::
+num_inner_indices(int si, const FunctionGroup& fctGrp) const
+{
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of a Vertex, we have a DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return num_indices<TElem>(si, fctGrp);
+	else
+		return 0;
+}
+
+template<typename TElem>
+bool
+GroupedP1ConformDoFDistribution::
+prepare_inner_indices(int si, LocalIndices& ind) const
+{
+//	clear all indices
+	ind.clear();
+
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+				reference_element_type;
+
+//	only in case of a Vertex, we have a DoF
+	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+		return prepare_indices<TElem>(si, ind);
+	else
+		return true;
+}
 
 template<typename TElem>
 void

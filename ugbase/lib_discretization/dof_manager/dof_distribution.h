@@ -186,29 +186,28 @@ class IDoFDistribution
 		///////////////////////////////////////
 
 	/// number of algebra indices (Element + Closure of Element)
-		size_t num_indices(ReferenceObjectID refID, int si,
-		                   const FunctionGroup& funcGroup) const
-			{return getImpl().num_indices(refID, si, funcGroup);}
+		template<typename TElem>
+		size_t num_indices(int si, const FunctionGroup& fctGrp) const
+			{return getImpl().num_indices<TElem>(si, fctGrp);}
 
 	/// number of algebra indices (only inner part of Element)
-		size_t num_inner_indices(ReferenceObjectID refID, int si,
-		                         const FunctionGroup& funcGroup) const
-			{return getImpl().num_inner_indices(refID, si, funcGroup);}
+		template<typename TElem>
+		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const
+			{return getImpl().num_inner_indices<TElem>(si, fctGrp);}
 
 	/// fill local informations in LocalIndex (Element + Closure of Element)
-		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind,
-		                     bool withHanging = false) const
-			{return getImpl().prepare_indices(refID, si, ind, withHanging);}
+		template<typename TElem>
+		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const
+			{return getImpl().prepare_indices<TElem>(si, ind, withHanging);}
 
 	/// fill local informations in LocalIndex (only inner part of Element)
-		bool prepare_inner_indices(ReferenceObjectID refID, int si,
-		                           LocalIndices& ind) const
-			{return getImpl().prepare_inner_indices(refID, si, ind);}
+		template<typename TElem>
+		bool prepare_inner_indices(int si, LocalIndices& ind) const
+			{return getImpl().prepare_inner_indices<TElem>(si, ind);}
 
 	/// fill the global algebra indices in LocalIndex (Element + Closure of Element)
 		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind,
-		                    bool withHanging = false) const
+		void update_indices(TElem* elem, LocalIndices& ind, bool withHanging = false) const
 			{getImpl().update_indices(elem, ind, withHanging);}
 
 	/// fill the global algebra indices in LocalIndex (only inner part of Element)

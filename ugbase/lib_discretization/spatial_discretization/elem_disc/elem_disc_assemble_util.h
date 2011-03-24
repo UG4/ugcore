@@ -503,7 +503,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	ind.set_function_group(Eval.fct_group());
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare indices.\n");
 		return false;
@@ -708,7 +708,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		bNeedLocTimeSeries |= vElemDisc[i]->set_time_dependent(true, time, &locTimeSeries);
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare indices.\n");
 		return false;
@@ -927,7 +927,7 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		vElemDisc[i]->set_time_dependent(false);
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleDefect': Cannot prepare indices.\n");
 		return false;
@@ -1140,7 +1140,7 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	ind.set_function_group(Eval.fct_group());
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleDefect': Cannot prepare indices.\n");
 		return false;
@@ -1386,7 +1386,7 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		vElemDisc[i]->set_time_dependent(false);
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleLinear': Cannot prepare indices.\n");
 		return false;
@@ -1608,7 +1608,7 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		bNeedLocTimeSeries |= vElemDisc[i]->set_time_dependent(true, time, &locTimeSeries);
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleLinear': Cannot prepare indices.\n");
 		return false;

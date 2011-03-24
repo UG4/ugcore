@@ -183,20 +183,24 @@ class IGridFunction
 		////////// Local Algebra ////////////
 
 	/// number of algebra indices on an element
-		size_t num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
-			{check(); return m_pDoFDist->num_indices(refID, si, funcGroup);}
+		template<typename TElem>
+		size_t num_indices(int si, const FunctionGroup& funcGroup) const
+			{check(); return m_pDoFDist->num_indices<TElem>(si, funcGroup);}
 
 	/// number of algebra indices on an element
-		size_t num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
-			{check(); return m_pDoFDist->num_inner_indices(refID, si, funcGroup);}
+		template<typename TElem>
+		size_t num_inner_indices(int si, const FunctionGroup& funcGroup) const
+			{check(); return m_pDoFDist->num_inner_indices<TElem>(si, funcGroup);}
 
 	/// fill local informations in LocalIndex
-		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool useHanging = false) const
-			{check(); return m_pDoFDist->prepare_indices(refID, si, ind, useHanging);}
+		template<typename TElem>
+		bool prepare_indices(int si, LocalIndices& ind, bool useHanging = false) const
+			{check(); return m_pDoFDist->prepare_indices<TElem>(si, ind, useHanging);}
 
 	/// fill local informations in LocalIndex
-		bool prepare_inner_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
-			{check(); return m_pDoFDist->prepare_inner_indices(refID, si, ind);}
+		template<typename TElem>
+		bool prepare_inner_indices(int si, LocalIndices& ind) const
+			{check(); return m_pDoFDist->prepare_inner_indices<TElem>(si, ind);}
 
 	/// fill the global algebra indices in LocalIndex
 		template<typename TElem>
