@@ -27,6 +27,20 @@ namespace ug
 namespace bridge
 {
 
+//! calculates dest = alpha1*v1 + alpha2*v2
+template<typename vector_t>
+inline void VecScaleAdd2(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2)
+{
+	VecScaleAdd(dest, alpha1, v1, alpha2, v2);
+}
+
+//! calculates dest = alpha1*v1 + alpha2*v2 + alpha3*v3
+template<typename vector_t>
+inline void VecScaleAdd3(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2, double alpha3, const vector_t &v3)
+{
+	VecScaleAdd(dest, alpha1, v1, alpha2, v2, alpha3, v3);
+}
+
 template <typename TAlgebra>
 struct cRegisterAlgebraType
 {
@@ -54,10 +68,11 @@ struct cRegisterAlgebraType
 				.add_method("print|hide=true", &vector_type::p);
 
 				reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
-				reg.add_function("VecScaleAdd2", (void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) &VecScaleAdd<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
+				reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
+						&VecScaleAdd2<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
 						"dest#alpha1#vec1#alpha2#vec2");
-				reg.add_function("VecScaleAdd3", (void (*)(vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))
-						&VecScaleAdd<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
+				reg.add_function("VecScaleAdd3", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))*/
+						&VecScaleAdd3<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
 						"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");
 		}
 
