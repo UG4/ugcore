@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include "serialization.h"
+#include "common/serialization.h"
 
 using namespace std;
 
@@ -14,46 +15,156 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	Implementation
-void GridDataSerializer::add_vertex_callback(const CB_SerializeVertexData& cb)
+void GridDataSerializationHandler::add(VertexDataSerializer* cb)
 {
 	m_vrtSerializers.push_back(cb);
 }
 
-void GridDataSerializer::add_edge_callback(const CB_SerializeEdgeData& cb)
+void GridDataSerializationHandler::add(EdgeDataSerializer* cb)
 {
 	m_edgeSerializers.push_back(cb);
 }
 
-void GridDataSerializer::add_face_callback(const CB_SerializeFaceData& cb)
+void GridDataSerializationHandler::add(FaceDataSerializer* cb)
 {
 	m_faceSerializers.push_back(cb);
 }
 
-void GridDataSerializer::add_volume_callback(const CB_SerializeVolumeData& cb)
+void GridDataSerializationHandler::add(VolumeDataSerializer* cb)
 {
 	m_volSerializers.push_back(cb);
 }
 
-
-void GridDataDeserializer::add_vertex_callback(const CB_DeserializeVertexData& cb)
+void GridDataSerializationHandler::add(GridDataSerializer* cb)
 {
-	m_vrtDeserializers.push_back(cb);
+	m_gridSerializers.push_back(cb);
 }
 
-void GridDataDeserializer::add_edge_callback(const CB_DeserializeEdgeData& cb)
+template<class TSerializers>
+void GridDataSerializationHandler::
+write_info(std::ostream& out, TSerializers& serializers) const
 {
-	m_edgeDeserializers.push_back(cb);
+	for(size_t i = 0; i < serializers.size(); ++i)
+		serializers[i]->write_info(out);
 }
 
-void GridDataDeserializer::add_face_callback(const CB_DeserializeFaceData& cb)
+template<class TSerializers>
+void GridDataSerializationHandler::
+read_info(std::istream& in, TSerializers& serializers) const
 {
-	m_faceDeserializers.push_back(cb);
+	for(size_t i = 0; i < serializers.size(); ++i)
+		serializers[i]->read_info(in);
 }
 
-void GridDataDeserializer::add_volume_callback(const CB_DeserializeVolumeData& cb)
+void GridDataSerializationHandler::write_infos(std::ostream& out) const
 {
-	m_volDeserializers.push_back(cb);
+	write_info(out, m_vrtSerializers);
+	write_info(out, m_edgeSerializers);
+	write_info(out, m_faceSerializers);
+	write_info(out, m_volSerializers);
+	write_info(out, m_gridSerializers);
 }
+
+void GridDataSerializationHandler::read_infos(std::istream& in) const
+{
+	read_info(in, m_vrtSerializers);
+	read_info(in, m_edgeSerializers);
+	read_info(in, m_faceSerializers);
+	read_info(in, m_volSerializers);
+	read_info(in, m_gridSerializers);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+SubsetHandlerSerializer::
+SubsetHandlerSerializer(ISubsetHandler& sh) :
+	m_sh(sh)
+{
+}
+
+void SubsetHandlerSerializer::
+write_info(std::ostream& out) const
+{
+//	serialize the subset infos
+	Serialize(out, m_sh.num_subsets());
+	for(int i = 0; i < m_sh.num_subsets(); ++i){
+		SubsetInfo& si = m_sh.subset_info(i);
+		Serialize(out, si.name);
+		Serialize(out, si.color);
+	}
+}
+
+void SubsetHandlerSerializer::
+read_info(std::istream& in) const
+{
+//	deserialize the subset infos
+	int num;
+	Deserialize(in, num);
+
+	for(int i = 0; i < num; ++i){
+		SubsetInfo& si = m_sh.subset_info(i);
+		Deserialize(in, si.name);
+		Deserialize(in, si.color);
+	}
+}
+
+void SubsetHandlerSerializer::
+write_data(std::ostream& out, VertexBase* o) const
+{
+	Serialize(out, m_sh.get_subset_index(o));
+}
+
+void SubsetHandlerSerializer::
+write_data(std::ostream& out, EdgeBase* o) const
+{
+	Serialize(out, m_sh.get_subset_index(o));
+}
+
+void SubsetHandlerSerializer::
+write_data(std::ostream& out, Face* o) const
+{
+	Serialize(out, m_sh.get_subset_index(o));
+}
+
+void SubsetHandlerSerializer::
+write_data(std::ostream& out, Volume* o) const
+{
+	Serialize(out, m_sh.get_subset_index(o));
+}
+
+void SubsetHandlerSerializer::
+read_data(std::istream& in, VertexBase* o) const
+{
+	int si;
+	Deserialize(in, si);
+	m_sh.assign_subset(o, si);
+}
+
+void SubsetHandlerSerializer::
+read_data(std::istream& in, EdgeBase* o) const
+{
+	int si;
+	Deserialize(in, si);
+	m_sh.assign_subset(o, si);
+}
+
+void SubsetHandlerSerializer::
+read_data(std::istream& in, Face* o) const
+{
+	int si;
+	Deserialize(in, si);
+	m_sh.assign_subset(o, si);
+}
+
+void SubsetHandlerSerializer::
+read_data(std::istream& in, Volume* o) const
+{
+	int si;
+	Deserialize(in, si);
+	m_sh.assign_subset(o, si);
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////
 //	enumerations

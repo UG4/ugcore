@@ -548,20 +548,21 @@ UG_LOG(" preparing for redistribution\n");
 
 UG_LOG(" done\n");
 UG_LOG(" redistributing grid\n");
-//	data serialization and deserialization
-	GridDataSerializer serializer;
-	GridDataDeserializer deserializer;
 
-	serializer.add_vertex_callback(
-					GridAttachmentSerializer<VertexBase, APosition>(
-														mg, aPosition));
-	deserializer.add_vertex_callback(
-					GridAttachmentDeserializer<VertexBase, APosition>(
-														mg, aPosition));
+//	data serialization
+	GeomObjAttachmentSerializer<VertexBase, APosition>
+		posSerializer(mg, aPosition);
+	SubsetHandlerSerializer shSerializer(sh);
+
+	GridDataSerializationHandler serializer;
+	serializer.add(&posSerializer);
+	serializer.add(&shSerializer);
 
 //	now call redistribution
-	RedistributeGrid(distGridMgr, shPart, serializer, deserializer);
+	RedistributeGrid(distGridMgr, shPart, serializer, serializer);
 UG_LOG("done\n");
+
+
 
 //	save the hierarchy on each process
 	{

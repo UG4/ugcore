@@ -47,7 +47,7 @@ class BinaryStreamBuffer : public std::streambuf
 		inline void* buffer() //< returns a pointer to the front of the buffer.
 			{return &m_dataBuf.front();}
 
-		inline int size() //< returns the size of the buffer in bytes.
+		inline int size() const //< returns the size of the buffer in bytes.
 			{return m_dataBuf.size();}
 
 		inline void write_jump(int jumpSize) //< advances the write-pointer by jumpSize bytes
@@ -56,7 +56,7 @@ class BinaryStreamBuffer : public std::streambuf
 		inline void read_jump(int jumpSize) //< advances the read-pointer by jumpSize bytes
 			{m_readPos += jumpSize;}
 
-		inline size_t get_read_pos() //< returns the read-position
+		inline size_t get_read_pos() const //< returns the read-position
 			{return m_readPos;}
 			
 	//	implementation of virtual std::streambuf methods.
@@ -113,7 +113,7 @@ class BinaryStream : public std::iostream
 		inline void* buffer() //< returns a pointer to the front of the buffer.
 			{return m_streamBuf.buffer();}
 
-		inline int size() //< returns the size of the buffer in bytes.
+		inline int size() const//< returns the size of the buffer in bytes.
 			{return m_streamBuf.size();}
 
 		inline void write_jump(int jumpSize) //< advances the write-pointer by jumpSize bytes
@@ -121,6 +121,9 @@ class BinaryStream : public std::iostream
 
 		inline void read_jump(int jumpSize) //< advances the read-pointer by jumpSize bytes
 			{m_streamBuf.read_jump(jumpSize);}
+
+		inline size_t read_pos() const
+			{return m_streamBuf.get_read_pos();}
 
 	///	returns true if there is more data left to read.
 	/** \todo this method should be removed. The normal stream-methdos should be used

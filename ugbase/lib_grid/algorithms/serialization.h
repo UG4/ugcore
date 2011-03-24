@@ -14,25 +14,131 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	Utilities
-///	Serialization of data associated with grid elements.
-/**	Through the add-method callbacks can be registered,
- * which will be called during serialization to write
- * data associated with the given elements into a binary stream.
+
+/**	\brief	Interface for handling serialization and deserialization of
+ * 			data associated with geometric objects.
+ *
+ * The GeomObjDataSerializer allows to serialize data associated with
+ * geometric objects. Before the data will be serialized, write_info is
+ * called. Accordingly read_info is called before data is deserialized.
+ *
+ * Note that this class handles serialization and deserialization at once.
+ *
+ * Make sure to completely read all data written by the associated write calls.
+ *
+ * Note that the following typedefs exist: VertexDataSerializer,
+ * EdgeDataSerializer, FaceDataSerializer, VolumeDataSerializer.
+ *
+ * If one wants to serialize data of all objects in a grid, he should
+ * take a look at GridDataSerializer.
  */
-class GridDataSerializer
+template <class TGeomObj>
+class GeomObjDataSerializer
 {
 	public:
-		~GridDataSerializer()	{}
+		virtual ~GeomObjDataSerializer()	{}
 
-		void add_vertex_callback(const CB_SerializeVertexData& cb);
-		void add_edge_callback(const CB_SerializeEdgeData& cb);
-		void add_face_callback(const CB_SerializeFaceData& cb);
-		void add_volume_callback(const CB_SerializeVolumeData& cb);
+	///	can be used to write arbitrary info to the file.
+	/**	Make sure to read everything you've written during read_data.
+	 * Default implementation is empty.*/
+		virtual void write_info(std::ostream& out) const {};
+	///	write data associated with the given object. Pure virtual.
+		virtual void write_data(std::ostream& out, TGeomObj* o) const = 0;
 
+	///	Read the info written during write_info here. Default: empty implementation.
+		virtual void read_info(std::istream& in) const	{};
+	///	read data associated with the given object. Pure virtual.
+		virtual void read_data(std::istream& in, TGeomObj* o) const = 0;
+};
+
+typedef GeomObjDataSerializer<VertexBase>	VertexDataSerializer;
+typedef GeomObjDataSerializer<EdgeBase>		EdgeDataSerializer;
+typedef GeomObjDataSerializer<Face>			FaceDataSerializer;
+typedef GeomObjDataSerializer<Volume>		VolumeDataSerializer;
+
+/**	\brief	Interface for handling serialization and deserialization of
+ * 			data associated with all geometric objects in a grid.
+ *
+ * The GridDataSerializer allows to serialize data associated with
+ * all geometric objects in a grid. Before the data will be serialized,
+ * write_info is called. Accordingly read_info is called before data is
+ * deserialized.
+ *
+ * Note that this class handles serialization and deserialization at once.
+ *
+ * Make sure to completely read all data written by the associated write calls.
+ *
+ * Note that this class specifies the interfaces of VertexDataSerializer,
+ * EdgeDataSerializer, FaceDataSerializer, VolumeDataSerializer.
+ *
+ * All methods have an empty implementation by default.
+ */
+class GridDataSerializer : public virtual VertexDataSerializer,
+	EdgeDataSerializer, FaceDataSerializer, VolumeDataSerializer
+{
+	public:
+	///	can be used to write arbitrary info to the file.
+	/**	Make sure to read everything you've written during read_data.
+	 * Default implementation is empty.*/
+		virtual void write_info(std::ostream& out) const				{}
+
+	///	Read the info written during write_info here. Default: empty implementation.
+		virtual void read_info(std::istream& in) const					{}
+
+		virtual void write_data(std::ostream& out, VertexBase* o) const	{}
+		virtual void write_data(std::ostream& out, EdgeBase* o) const	{}
+		virtual void write_data(std::ostream& out, Face* o) const		{}
+		virtual void write_data(std::ostream& out, Volume* o) const		{}
+
+		virtual void read_data(std::istream& in, VertexBase* o) const	{}
+		virtual void read_data(std::istream& in, EdgeBase* o) const		{}
+		virtual void read_data(std::istream& in, Face* o) const			{}
+		virtual void read_data(std::istream& in, Volume* o) const		{}
+};
+
+
+
+///	Serialization of data associated with grid elements.
+/**	Through the add-method callback-classes can be registered,
+ * which will be called during serialization and deserialization to
+ * write data associated with the given elements into a binary stream.
+ *
+ * Note when data for a given object-type not only registered
+ * callback classes for the type are called, but also registered
+ * instances of GridDataSerializer.
+ *
+ * Note that this class performs both serialization and deserialization.
+ */
+class GridDataSerializationHandler
+{
+	public:
+		~GridDataSerializationHandler()	{}
+
+	/**	\{
+	 * Adds a callback class for serialization and deserialization.
+	 * Note that only a pointer to those callback-classes is stored.
+	 * You thus have to make sure that this pointer points to a
+	 * valid instance until the whole serialization and deserialization
+	 * process is done.
+	 */
+		void add(VertexDataSerializer* cb);
+		void add(EdgeDataSerializer* cb);
+		void add(FaceDataSerializer* cb);
+		void add(VolumeDataSerializer* cb);
+		void add(GridDataSerializer* cb);
+	/**	\} */
+
+
+	///	calls write_info on all registered serializers
+		void write_infos(std::ostream& out) const;
+
+	/**	\{
+	 * \brief Serializes data associated with the given object.*/
 		inline void serialize(std::ostream& out, VertexBase* vrt) const;
 		inline void serialize(std::ostream& out, EdgeBase* edge) const;
 		inline void serialize(std::ostream& out, Face* face) const;
 		inline void serialize(std::ostream& out, Volume* vol) const;
+	/**	\} */
 
 	///	Calls serialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
@@ -40,37 +146,17 @@ class GridDataSerializer
 		template <class TIterator>
 		void serialize(std::ostream& out, TIterator begin, TIterator end) const;
 
-	private:
-		template<class TGeomObj, class TSerializers>
-		void serialize(std::ostream& out, TGeomObj* o,
-					   TSerializers& serializers) const;
 
-	private:
-		std::vector<CB_SerializeVertexData>	m_vrtSerializers;
-		std::vector<CB_SerializeEdgeData>	m_edgeSerializers;
-		std::vector<CB_SerializeFaceData>	m_faceSerializers;
-		std::vector<CB_SerializeVolumeData>	m_volSerializers;
-};
+	///	calls read_info on all registered serializers
+		void read_infos(std::istream& in) const;
 
-///	Deserialization of data associated with grid elements.
-/**	Through the add-method callbacks can be registered,
- * which will be called during deerialization to read
- * data associated with the given elements into a binary stream.
- */
-class GridDataDeserializer
-{
-	public:
-		~GridDataDeserializer()	{}
-
-		void add_vertex_callback(const CB_DeserializeVertexData& cb);
-		void add_edge_callback(const CB_DeserializeEdgeData& cb);
-		void add_face_callback(const CB_DeserializeFaceData& cb);
-		void add_volume_callback(const CB_DeserializeVolumeData& cb);
-
+	/**	\{
+	 * \brief Deserializes data associated with the given object.*/
 		inline void deserialize(std::istream& in, VertexBase* vrt) const;
 		inline void deserialize(std::istream& in, EdgeBase* edge) const;
 		inline void deserialize(std::istream& in, Face* face) const;
 		inline void deserialize(std::istream& in, Volume* vol) const;
+	/**	\} */
 
 	///	Calls deserialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
@@ -79,15 +165,79 @@ class GridDataDeserializer
 		void deserialize(std::istream& in, TIterator begin, TIterator end) const;
 
 	private:
+	///	performs serialization on all given serializers.
+		template<class TGeomObj, class TSerializers>
+		void serialize(std::ostream& out, TGeomObj* o,
+					   TSerializers& serializers) const;
+
+	///	performs deserialization on all given deserializers.
 		template<class TGeomObj, class TDeserializers>
 		void deserialize(std::istream& in, TGeomObj* o,
 					   TDeserializers& deserializers) const;
 
+		template<class TSerializers>
+		void write_info(std::ostream& out, TSerializers& serializers) const;
+
+		template<class TSerializers>
+		void read_info(std::istream& in, TSerializers& serializers) const;
+
 	private:
-		std::vector<CB_DeserializeVertexData>	m_vrtDeserializers;
-		std::vector<CB_DeserializeEdgeData>		m_edgeDeserializers;
-		std::vector<CB_DeserializeFaceData>		m_faceDeserializers;
-		std::vector<CB_DeserializeVolumeData>	m_volDeserializers;
+		std::vector<VertexDataSerializer*>	m_vrtSerializers;
+		std::vector<EdgeDataSerializer*>	m_edgeSerializers;
+		std::vector<FaceDataSerializer*>	m_faceSerializers;
+		std::vector<VolumeDataSerializer*>	m_volSerializers;
+		std::vector<GridDataSerializer*>	m_gridSerializers;
+};
+
+
+////////////////////////////////////////////////////////////////////////
+///	Serialization callback for grid attachments
+/**	template class where TGeomObj should be one of the
+ * following types: VertexBase, EdgeBase, Face, Volume.
+ *
+ * Note that the attachment is automatically attached, if not yet present.
+ */
+template <class TGeomObj, class TAttachment>
+class GeomObjAttachmentSerializer :
+	public GeomObjDataSerializer<TGeomObj>
+{
+	public:
+		GeomObjAttachmentSerializer(Grid& g, TAttachment& a) :
+			m_aa(g, a, true)	{}
+
+		virtual void write_data(std::ostream& out, TGeomObj* o) const
+		{Serialize(out, m_aa[o]);}
+
+		virtual void read_data(std::istream& in, TGeomObj* o) const
+		{Deserialize(in, m_aa[o]);}
+
+	private:
+		Grid::AttachmentAccessor<TGeomObj, TAttachment>	m_aa;
+};
+
+class SubsetHandlerSerializer : public GridDataSerializer
+{
+	public:
+		SubsetHandlerSerializer(ISubsetHandler& sh);
+
+	///	writes subset-infos to the stream (subset names and colors)
+		virtual void write_info(std::ostream& out) const;
+
+		///	Read the info written during write_info here. Default: empty implementation.
+		virtual void read_info(std::istream& in) const;
+
+		virtual void write_data(std::ostream& out, VertexBase* o) const;
+		virtual void write_data(std::ostream& out, EdgeBase* o) const;
+		virtual void write_data(std::ostream& out, Face* o) const;
+		virtual void write_data(std::ostream& out, Volume* o) const;
+
+		virtual void read_data(std::istream& in, VertexBase* o) const;
+		virtual void read_data(std::istream& in, EdgeBase* o) const;
+		virtual void read_data(std::istream& in, Face* o) const;
+		virtual void read_data(std::istream& in, Volume* o) const;
+
+	private:
+		ISubsetHandler& m_sh;
 };
 
 

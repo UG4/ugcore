@@ -150,7 +150,9 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	else(UG_DEBUG)
 		message(STATUS "INFO: Release mode. (Enable debug-mode by defining -DUG_DEBUG=ON)")
 		# Enable these flags for a fast ublas algebra
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize -msse3 -mssse3")
+		
+		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize -msse3 -mssse3")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize")
 		if(GENERATE_DEBUG_SYMBOLS)
 			message(STATUS "INFO: Generating debug symbols (-g) (Disable by defining -DGENERATE_DEBUG_SYMBOLS=OFF)")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")

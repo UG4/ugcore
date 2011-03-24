@@ -31,6 +31,10 @@ int GetAssociatedInterfaceType(int interfaceType);
 template <class TGeomObj>
 void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 								  AGeomObjID& aID = aGeomObjID);
+
+////////////////////////////////////////////////////////////////////////
+///	Checks whether the grid-layout-map on this proc is consistent with connected ones.
+void TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm);
 ///	@}
 
 

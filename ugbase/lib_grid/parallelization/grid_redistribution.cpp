@@ -69,8 +69,8 @@ void LogTransferInfos(MultiGrid& mg, TAATransferInfos& aaTransferInfos,
 
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  SubsetHandler& shPartition,
-					  const GridDataSerializer& serializer,
-					  const GridDataDeserializer& deserializer,
+					  const GridDataSerializationHandler& serializer,
+					  const GridDataSerializationHandler& deserializer,
 					  int* processMap,
 					  const pcl::ProcessCommunicator& procComm)
 {
@@ -223,7 +223,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 				toProc = processMap[si];
 
 			sendToRanks.push_back(toProc);
-			sendPartitionInds.push_back(toProc);
+			sendPartitionInds.push_back(si);
 		}
 	}
 
@@ -258,8 +258,18 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	BinaryStream out;
 	vector<int> outSegSizes;
 
+//	the magic number is used for debugging to make sure that the stream is read correctly
+	int magicNumber1 = 75234587;
+	int magicNumber2 = 560245;
+
 	for(size_t i_to = 0; i_to < sendToRanks.size(); ++i_to){
 		int partInd = sendPartitionInds[i_to];
+
+	//	the last size is required to calculate the size of the new segment
+		size_t oldSize = out.size();
+
+	//	write a magic number for debugging purposes
+		out.write((char*)&magicNumber1, sizeof(int));
 
 	//	First we'll serialize the global ids of all distributed elements
 		Serialize(out, vertexLayouts[partInd].m_globalIDs);
@@ -267,15 +277,15 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		Serialize(out, faceLayouts[partInd].m_globalIDs);
 		Serialize(out, volumeLayouts[partInd].m_globalIDs);
 
-	//	the last size is required to calculate the size of the new segment
-		size_t oldSize = out.size();
-
 	//	Now let's serialize the grid and the redistribution layout interfaces
 		SerializeGridAndDistributionLayouts(out, mg, vertexLayouts[partInd],
 				edgeLayouts[partInd], faceLayouts[partInd], volumeLayouts[partInd],
 				aLocalInd, aLocalInd, aLocalInd, aLocalInd, &msel);
 
 	//	next thing is to serialize data associated with the layouts nodes
+	//	first write the infos of all serializers
+		serializer.write_infos(out);
+	//	now serialize data associated with vertices, edges, faces and volumes
 		serializer.serialize(out, vertexLayouts[partInd].node_vec().begin(),
 							 vertexLayouts[partInd].node_vec().end());
 		serializer.serialize(out, edgeLayouts[partInd].node_vec().begin(),
@@ -285,7 +295,12 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		serializer.serialize(out, volumeLayouts[partInd].node_vec().begin(),
 							 volumeLayouts[partInd].node_vec().end());
 
+	//	write a magic number for debugging purposes
+		out.write((char*)&magicNumber2, sizeof(int));
+
 	//	size of the segment we just wrote to out
+		UG_LOG("seg size of block for partition " << partInd << ": "
+				<< out.size() - oldSize << endl);
 		outSegSizes.push_back((int)(out.size() - oldSize));
 	}
 
@@ -298,6 +313,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							out.buffer(), &outSegSizes.front(),
 							&sendToRanks.front(), (int)sendToRanks.size());
 
+	UG_LOG("Size of in buffer: " << in.size() << endl);
 
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
@@ -375,6 +391,14 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		in.reset();
 		in.read_jump(recvProcsSorted[i].second);
 
+	//	read the magic number and make sure that it matches our magicNumber
+		int tmp = 0;
+		in.read((char*)&tmp, sizeof(int));
+		if(tmp != magicNumber1){
+			UG_LOG("ERROR in RedistributeGrid: ");
+			UG_LOG("Magic number mismatch before deserialization.\n");
+		}
+
 	//	those layouts will be used to deserialize the received data
 		RedistributionVertexLayout vrtLayout;
 		RedistributionEdgeLayout edgeLayout;
@@ -387,11 +411,12 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		Deserialize(in, faceLayout.m_globalIDs);
 		Deserialize(in, volLayout.m_globalIDs);
 
-
-
-		DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
+		if(!DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
 							&edgeLayout.node_vec(), &faceLayout.node_vec(),
-							&volLayout.node_vec());
+							&volLayout.node_vec()))
+		{
+			UG_LOG("DeserializeMultiGridElements failed.\n");
+		}
 //todo: use the code below instead of the one above
 /*
 		tmg.clear_geometry();
@@ -399,10 +424,14 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							&edgeLayout.node_vec(), &faceLayout.node_vec(),
 							&volLayout.node_vec());
 */
-		DeserializeDistributionLayoutInterfaces(vrtLayout, in);
-		DeserializeDistributionLayoutInterfaces(edgeLayout, in);
-		DeserializeDistributionLayoutInterfaces(faceLayout, in);
-		DeserializeDistributionLayoutInterfaces(volLayout, in);
+		DeserializeDistributionLayoutInterfaces(glm,
+							vrtLayout.node_vec(), in);
+		DeserializeDistributionLayoutInterfaces(glm,
+							edgeLayout.node_vec(), in);
+		DeserializeDistributionLayoutInterfaces(glm,
+							faceLayout.node_vec(), in);
+		DeserializeDistributionLayoutInterfaces(glm,
+							volLayout.node_vec(), in);
 
 	//	before we'll deserialize the associated data, we'll create the new
 	//	elements in the target grid.
@@ -411,6 +440,9 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	//		Also update the layout-vecs so that they point to the elements in mg.
 
 	//	now deserialize the data associated with the elements in the layouts node-vecs
+	//	first read the infos of all deserializers
+		deserializer.read_infos(in);
+	//	now deserialize data associated with vertices, edges, faces and volumes
 		deserializer.deserialize(in, vrtLayout.node_vec().begin(),
 							 	 vrtLayout.node_vec().end());
 		deserializer.deserialize(in, edgeLayout.node_vec().begin(),
@@ -419,6 +451,14 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							 	 faceLayout.node_vec().end());
 		deserializer.deserialize(in, volLayout.node_vec().begin(),
 							 	 volLayout.node_vec().end());
+
+	//	read the magic number and make sure that it matches our magicNumber
+		tmp = 0;
+		in.read((char*)&tmp, sizeof(int));
+		if(tmp != magicNumber2){
+			UG_LOG("ERROR in RedistributeGrid: ");
+			UG_LOG("Magic number mismatch after deserialization.\n");
+		}
 
 //BEGIN - ONLY FOR DEBUG
 		UG_LOG("received global vertex ids:");
@@ -434,6 +474,12 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	UPDATE THE DISTRIBUTED GRID MANAGER
 	distGridMgrInOut.enable_ordered_element_insertion(true);
 	distGridMgrInOut.grid_layouts_changed(false);
+
+
+//BEGIN - ONLY FOR DEBUG
+	TestGridLayoutMap(mg, glm);
+//END - ONLY FOR DEBUG
+
 
 ////////////////////////////////
 //	CLEAN UP

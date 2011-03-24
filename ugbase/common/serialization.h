@@ -9,6 +9,8 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <string>
+#include <cassert>
 #include "log.h"
 namespace ug
 {
@@ -36,6 +38,7 @@ void Serialize(std::ostream& buf, const T& val)
 template <class T>
 void Deserialize(std::istream& buf, T& valOut)
 {
+	assert(!buf.eof() && "End of buf reached.");
 	buf.read((char*)&valOut, sizeof(T));
 }
 
@@ -154,7 +157,14 @@ void Deserialize(std::istream& buf, std::set<T>& myset)
 		myset.insert (myset.end(), t);
 	}
 }
-	
+
+///	Writes a string to a binary stream
+/**	First the length of the string is written, then its content.*/
+void Serialize(std::ostream& buf, const std::string& str);
+
+///	deserializes data from a binary stream into a string
+void Deserialize(std::istream& buf, std::string& str);
+
 }//	end of namespace
 
 #endif

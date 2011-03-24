@@ -102,8 +102,8 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
  */
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  SubsetHandler& shPartition,
-					  const GridDataSerializer& serializer,
-					  const GridDataDeserializer& deserializer,
+					  const GridDataSerializationHandler& serializer,
+					  const GridDataSerializationHandler& deserializer,
 					  int* processMap = NULL,
 					  const pcl::ProcessCommunicator& procComm =
 							  	  	  pcl::ProcessCommunicator());

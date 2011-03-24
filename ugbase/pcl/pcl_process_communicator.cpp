@@ -335,8 +335,9 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 
 //	calculate buffer sizes and resize the binary stream
 	int totalSize = 0;
-	for(int i = 0; i < numRecvFroms; ++i)
+	for(int i = 0; i < numRecvFroms; ++i){
 		totalSize += bufferSizes[i];
+	}
 
 	recvBufOut.resize(totalSize);
 

@@ -60,16 +60,14 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 //	the adjacency list to do so.
 	for(int i = 0; i < (int)vNumAssProcs.size(); ++i)
 	{
-		if(i != localProcRank){
-		//	check whether the i-th proc wants to communicate with the local proc
-			for(int j = 0; j < vNumAssProcs[i]; ++j)
+	//	check whether the i-th proc wants to communicate with the local proc
+		for(int j = 0; j < vNumAssProcs[i]; ++j)
+		{
+			if(vGlobalProcList[vDisplacements[i] + j] == localProcRank)
 			{
-				if(vGlobalProcList[vDisplacements[i] + j] == localProcRank)
-				{
-					vReceiveFromRanksOut.push_back(procComm.get_proc_id(i));
-				//	the j-th proc is handled completly. resume with the next.
-					break;
-				}
+				vReceiveFromRanksOut.push_back(procComm.get_proc_id(i));
+			//	the j-th proc is handled completly. resume with the next.
+				break;
 			}
 		}
 	}

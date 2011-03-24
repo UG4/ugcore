@@ -346,15 +346,21 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 
 //	tell the distGridMgr that the associated layout changed.
 	distGridMgrOut.grid_layouts_changed(true);
-/*
+
+	return true;
+}
+
+
+void TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
+{
 //	check the interfaces
 	pcl::ParallelCommunicator<VertexLayout::LevelLayout> com;
 
 	UG_LOG("\nTesting horizontal layouts...\n");
 	{
-		VertexLayout& masterLayout = glmOut.get_layout<VertexBase>(INT_MASTER);
-		VertexLayout& slaveLayout = glmOut.get_layout<VertexBase>(INT_SLAVE);
-		for(size_t i = 0; i < mgOut.num_levels(); ++i){
+		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_MASTER);
+		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_SLAVE);
+		for(size_t i = 0; i < mg.num_levels(); ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
 					slaveLayout.layout_on_level(i), true);
@@ -363,9 +369,9 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 
 	UG_LOG("\nTesting vertical layouts...\n");
 	{
-		VertexLayout& masterLayout = glmOut.get_layout<VertexBase>(INT_VERTICAL_MASTER);
-		VertexLayout& slaveLayout = glmOut.get_layout<VertexBase>(INT_VERTICAL_SLAVE);
-		for(size_t i = 0; i < mgOut.num_levels(); ++i){
+		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_VERTICAL_MASTER);
+		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_VERTICAL_SLAVE);
+		for(size_t i = 0; i < mg.num_levels(); ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
 					slaveLayout.layout_on_level(i), true);
@@ -374,16 +380,15 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 
 	UG_LOG("\nTesting virtual layouts...\n");
 	{
-		VertexLayout& masterLayout = glmOut.get_layout<VertexBase>(INT_VIRTUAL_MASTER);
-		VertexLayout& slaveLayout = glmOut.get_layout<VertexBase>(INT_VIRTUAL_SLAVE);
-		for(size_t i = 0; i < mgOut.num_levels(); ++i){
+		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_VIRTUAL_MASTER);
+		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_VIRTUAL_SLAVE);
+		for(size_t i = 0; i < mg.num_levels(); ++i){
 			UG_LOG("Testing VerticalVertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
 					slaveLayout.layout_on_level(i), true);
 		}
 	}
-*/
-	return true;
 }
+
 }//	end of namespace
 

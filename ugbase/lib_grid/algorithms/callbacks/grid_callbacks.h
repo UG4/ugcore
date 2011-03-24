@@ -18,6 +18,7 @@ namespace ug
  *
  * Note that the attachment is automatically attached, if not yet present.
  */
+/*
 template <class TGeomObj, class TAttachment>
 class GridAttachmentSerializer
 {
@@ -31,7 +32,7 @@ class GridAttachmentSerializer
 	private:
 		Grid::AttachmentAccessor<TGeomObj, TAttachment>	m_aa;
 };
-
+*/
 ///	Deserialization callback for grid attachments
 /**	template class usable as CB_Deserialize{ELEMENT}Data, where
  * {ELEMENT} is specified by TGeomObj and must be one of the
@@ -39,6 +40,7 @@ class GridAttachmentSerializer
  *
  * Note that the attachment is automatically attached, if not yet present.
  */
+/*
 template <class TGeomObj, class TAttachment>
 class GridAttachmentDeserializer
 {
@@ -52,7 +54,7 @@ class GridAttachmentDeserializer
 	private:
 		Grid::AttachmentAccessor<TGeomObj, TAttachment>	m_aa;
 };
-
+*/
 
 }//	end of namespace
 
