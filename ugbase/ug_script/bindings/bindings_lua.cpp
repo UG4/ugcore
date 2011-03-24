@@ -620,19 +620,24 @@ static int LuaProxyFunction(lua_State* L)
 					UG_LOG("terminating..." << endl);
 					exit(err.get_code());
 				}
+				UG_LOG(". continuing execution...\n");
 			}
 			catch(...)
 			{
-				UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ")
+				UG_LOG(GetLuaFileAndLine(L) << ":\nunknown exception occured in call to ")
 				PrintFunctionInfo(*func);
-				UG_LOG(". continuing execution...\n");
+				UG_LOG("terminating..." << endl);
+				lua_pushstring (L, "Unknown exception.");
+				bLuaError=true;
 			}
 	
 		//	if we reach this point, then the method was successfully executed.
-			return ParamsToLuaStack(paramsOut, L);
+			if(!bLuaError)
+				return ParamsToLuaStack(paramsOut, L);
 		}
 
-		if(badParam != 0){
+		if(!bLuaError && badParam != 0)
+		{
 			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during trying to call " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
 			UG_LOG("No matching overload found! Candidates are:\n");
 			for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
@@ -729,21 +734,25 @@ static int LuaProxyMethod(lua_State* L)
 					UG_LOG("terminating..." << endl);
 					exit(err.get_code());
 				}
+				UG_LOG(". continuing execution...\n");
 			}
 			catch(...)
 			{
 				UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ");
 				PrintLuaClassMethodInfo(L, 1, *m);
-				UG_LOG(". continuing execution...\n");
+				UG_LOG("terminating script..." << endl);
+				lua_pushstring (L, "Unknown exception.");
+				bLuaError=true;
 			}
 
+			if(!bLuaError)
 		//	if we reach this point, then the method was successfully executed.
-			return ParamsToLuaStack(paramsOut, L);
+				return ParamsToLuaStack(paramsOut, L);
 		}
 
 	//	check whether the parameter was correct
 
-		if(badParam != 0)
+		if(!bLuaError && badParam != 0)
 		{
 			const std::vector<const char*> *names = GetClassNames(L, 1);
 			const char *classname = "(unknown class)";
