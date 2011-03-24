@@ -609,7 +609,7 @@ static int LuaProxyFunction(lua_State* L)
 			try{
 				func->execute(paramsIn, paramsOut);
 			}
-			catch(UGError err){
+			catch(UGError& err){
 				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
 				PrintFunctionInfo(*func);
 				UG_LOG(" with code " << err.get_code() << ":\n");
@@ -723,7 +723,7 @@ static int LuaProxyMethod(lua_State* L)
 						m->execute(((SmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
 				}
 			}
-			catch(UGError err)
+			catch(UGError& err)
 			{
 				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
 				PrintLuaClassMethodInfo(L, 1, *m);
