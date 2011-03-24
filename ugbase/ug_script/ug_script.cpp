@@ -10,6 +10,7 @@
 
 
 // ug libraries
+#include "ug.h"
 #include "ug_script.h"
 #include "common/util/path_provider.h"
 #include "bindings/bindings_lua.h"
@@ -231,6 +232,14 @@ int UGLuaPrint(lua_State *L)
 	UG_LOG(endl);
 	lua_pop(L,1);
 	return 0;
+}
+
+///	exits right away
+void ForceExit()
+{
+	UG_LOG("--- ABORTING SCRIPT EXECUTION ---\n");
+	UGFinalize(true);
+	exit(0);
 }
 
 }}//	end of namespace
