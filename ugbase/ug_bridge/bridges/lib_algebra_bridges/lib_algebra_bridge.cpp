@@ -9,9 +9,6 @@
 #include <iostream>
 #include <sstream>
 
-//#define UG_USE_AMG // temporary switch until AMG for systems works again
-
-
 // bridge
 #include "ug_bridge/ug_bridge.h"
 
@@ -23,20 +20,10 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/operator_impl.h"
 
-// user data (temporarily for Kosta Update)
-//#include "ug_script/user_data/user_data.h" // kostaupdate is disabled?
-
-// \todo: remove this dependency
-// WARNING: To use AMG, please define UG_USE_AMG __and__ (!!) uncomment
-// 			the include of lib_discretization. It is uncommented here, since
-//          else we get a build of this file on each change of lib_disc (Maybe
-//			cmake does not recognize the undef (?) )
-
-//#undef UG_USE_AMG
 
 namespace ug
 {
-extern enum_AlgebraType g_AlgebraType;
+
 namespace bridge
 {
 
@@ -66,18 +53,12 @@ struct cRegisterAlgebraType
 										"Success", "Number")
 				.add_method("print|hide=true", &vector_type::p);
 
-				/*		reg.add_function("VecScaleAdd2", (void (vector_type&, number, const vector_type&, number, const vector_type &)) &VecScaleAdd<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
-								"dest#alpha1#vec1#alpha2#vec2");
-						reg.add_function("VecScaleAdd3", (void (vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))
-								&VecScaleAdd<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
-								"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");*/
-		}
-
-		// Vector copy and add
-		{
-			reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
-			reg.add_function("VecScaleAdd2", (void (*)(vector_type&, number, const vector_type &, number, const vector_type &))&VecScaleAdd2<vector_type>);
-
+				reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
+				reg.add_function("VecScaleAdd2", (void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) &VecScaleAdd<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
+						"dest#alpha1#vec1#alpha2#vec2");
+				reg.add_function("VecScaleAdd3", (void (*)(vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))
+						&VecScaleAdd<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
+						"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");
 		}
 
 		//	Matrix
@@ -111,7 +92,8 @@ struct cRegisterAlgebraType
 		// IVectorWriter (abstract base class)
 		{
 			typedef IVectorWriter<vector_type> T;
-			reg.add_class_<T>("IVectorWriter", grp.c_str());
+			reg.add_class_<T>("IVectorWriter", grp.c_str())
+					.add_method("update", &T::update, "", "v", "updates the vector v");
 		}
 
 
@@ -504,8 +486,7 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 					"", "Reduction")
 			.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
 					"", "Verbose");
-
-//		reg.add_function("KostaUpdate", &KostaUpdate<CPUAlgebra::vector_type>);
+				
 	}
 
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
