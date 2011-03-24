@@ -9,14 +9,17 @@
 #define __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION__
 
 #include <vector>
+#include <algorithm>
 
 #include "./function_pattern.h"
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_discretization/function_spaces/grid_function.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallel_index_layout.h"
+	#include "lib_discretization/parallelization/parallelization_util.h"
 #endif
 
 namespace ug{
@@ -269,37 +272,74 @@ class IDoFDistribution
 		// Creation
 		///////////////////////////
 
-	///	compress indices
-	//	bool compress(std::vector<size_t>& ...)
+	///	schedule grid function for adaption
+		void manage_grid_function(IGridFunction<TImpl>& gf)
+		{
+		//	search for grid function in list
+			typename std::vector<IGridFunction<TImpl>*>::iterator it;
+			it = find(m_vManagedGridFunc.begin(), m_vManagedGridFunc.end(), &gf);
 
-	///	swaps indices
+		//	add if not found
+			if(it != m_vManagedGridFunc.end())
+				m_vManagedGridFunc.push_back(&gf);
+		}
+
+	///	unschedule grid function for adaption
+		void unmanage_grid_function(IGridFunction<TImpl>& gf)
+		{
+		//	search for grid function in list
+			typename std::vector<IGridFunction<TImpl>*>::iterator it;
+			it = find(m_vManagedGridFunc.begin(), m_vManagedGridFunc.end(), &gf);
+
+		//	remove if found
+			if(it != m_vManagedGridFunc.end())
+				m_vManagedGridFunc.erase(it);
+		}
+
+	///	permutes all indices
 	/**
-	 * This method swaps the indices according to the passed mapping vector. The
-	 * vector vIndNew must have the size of the number of indices and for each
-	 * index it must return the new index, i.e. newIndex = vIndNew[oldIndex].
+	 * This method swaps the indices according to the passed mapping vector, i.e.
+	 * it performs a permutation of the whole index set. The vector vIndNew must
+	 * have the size of the number of indices and for each index it must return
+	 * the new index, i.e. newIndex = vIndNew[oldIndex].
 	 *
 	 * \param[in]	vIndNew		mapping for each index
 	 * \returns 	success flag
 	 */
-		bool swap_indices(const std::vector<size_t>& vIndNew)
-			{return getImpl().swap_indices(vIndNew);}
+		bool permute_indices(const std::vector<size_t>& vIndNew)
+		{
+		//	swap indices as implemented
+			if(!getImpl().permute_indices(vIndNew)) return false;
 
-	///	schedule grid function for adaption
-		void manage_grid_function(IGridFunction<TImpl>& gf){}
+		//	in parallel adjust also the layouts
+#ifdef UG_PARALLEL
+			PermuteIndicesInIndexLayout(m_slaveLayout, vIndNew);
+			PermuteIndicesInIndexLayout(m_masterLayout, vIndNew);
+			PermuteIndicesInIndexLayout(m_verticalSlaveLayout, vIndNew);
+			PermuteIndicesInIndexLayout(m_verticalMasterLayout, vIndNew);
+#endif
 
-	///	unschedule grid function for adaption
-		void unmanage_grid_function(IGridFunction<TImpl>& gf){}
+		//	swap values of handled grid functions
+			for(size_t i = 0; i < m_vManagedGridFunc.size(); ++i)
+				m_vManagedGridFunc[i]->permute_values(vIndNew);
+
+		//	we're done
+			return true;
+		}
+
+	///	compress indices
+		bool defragment() {return getImpl().defragment();}
 
 	///	add indices to elements
-		template <typename TElem>
-		bool add(std::vector<TElem*>& vElem);
+		bool vertices_created(std::vector<VertexBase*>& vElem) {return getImpl().vertices_created(vElem);}
+		// \todo: add other geom obj callbacks
 
 	///	remove indices from elements
-		template <typename TElem>
-		bool to_be_removed(std::vector<TElem*>& vElem);
+		bool vertices_to_be_erased(std::vector<VertexBase*>& vElem) {return getImpl().vertices_to_be_erased(vElem);}
+		// \todo: add other geom obj callbacks
 
 	/// distribute dofs
-		bool distribute_dofs() {return getImpl().distribute_dofs();}
+		bool distribute_dofs(){return getImpl().distribute_dofs();}
 
 	///	returns the connectivity for the indices
 	/**
@@ -315,6 +355,42 @@ class IDoFDistribution
 
 
 	protected:
+	///	copy values in managed grid functions for pairs of indices
+	/**
+	 * This method copies the values for the pairs of indices in all
+	 * managed grid function. The method is typically used to fill "holes" in
+	 * vectors after adaptive grid refinement.
+	 *
+	 * \param[in]	vIndexMap		vector of index mappings (indexOld, indexNew)
+	 * \param[in]	bDisjunct		flag, if permutation disjunct
+	 * \returns 	success flag
+	 */
+		bool indices_swaped(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
+							bool bDisjunct = false)
+		{
+		//	swap values of handled grid functions
+			for(size_t i = 0; i < m_vManagedGridFunc.size(); ++i)
+				m_vManagedGridFunc[i]->copy_values(vIndexMap, bDisjunct);
+
+		//	we're done
+			return true;
+		}
+
+	///	resizes managed grid functions when number of indices changed
+	/**
+	 * This method resizes all managed grid function. The method is typically
+	 * used to cut vectors after adaptive grid refinement.
+	 *
+	 * \param[in]	newSize			new vector size
+	 */
+		void num_indices_changed(size_t newSize)
+		{
+		//	swap values of handled grid functions
+			for(size_t i = 0; i < m_vManagedGridFunc.size(); ++i)
+				m_vManagedGridFunc[i]->resize_values(newSize);
+		}
+
+	protected:
 	///	access to implementation
 		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
 
@@ -322,6 +398,9 @@ class IDoFDistribution
 		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
 
 	protected:
+	///	vector of all handled gridfunctions
+		std::vector<IGridFunction<TImpl>*> m_vManagedGridFunc;
+
 	/// geometric object collection for this Distributor
 		GeometricObjectCollection m_goc;
 

@@ -17,6 +17,9 @@ namespace ug{
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 class ApproximationSpace;
 
+template <typename TImpl>
+class IDoFDistribution;
+
 /// Base class for all Grid Functions
 /**
  * This class is the base class for all grid functions. It basically only
@@ -68,10 +71,45 @@ class IGridFunction
 	/// get assigned dof distribution
 		dof_distribution_type& get_dof_distribution() {check(); return *m_pDoFDist;}
 
-	///	adapts the vector to new values
-		virtual bool swap_values(std::vector<size_t> vOldIndex, std::vector<size_t> vNewIndex) = 0;
+	///	permutes all values
+	/**
+	 * This method permutes the values according to the passed mapping vector, i.e.
+	 * it performs a permutation of the whole index set. The vector vIndNew must
+	 * have the size of the number of indices and for each index it must return
+	 * the new index, i.e. newIndex = vIndNew[oldIndex].
+	 *
+	 * \param[in]	vIndNew		mapping for each index
+	 * \returns 	success flag
+	 */
+		virtual bool permute_values(const std::vector<size_t>& vIndNew) = 0;
+
+	///	copy values
+	/**
+	 * This method copies values between indices according to the passed mapping.
+	 * The copy of the values is are performed as:
+	 *
+	 * 	for all i:	newIndex = vIndexMap[i].second
+	 * 				oldIndex = vIndexMap[i].first
+	 * 				value[newIndex] <- value[oldIndex]
+	 *
+	 * If the copy operation is known to be a disjunct composition (i.e. each index
+	 * appears only in one operation), this can be specified by a flag. In
+	 * this case the order in which the copying is performed is arbitrary and
+	 * this will save a copy operation of the whole vector.
+	 *
+	 * \param[in]	vIndexMap		vector of index mappings (indexOld, indexNew)
+	 * \param[in]	bDisjunct		flag, if permutation disjunct
+	 * \returns 	success flag
+	 */
+		virtual bool copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
+		                         bool bDisjunct = false) = 0;
 
 	///	resize
+	/**
+	 * This method resizes the length of the vector.
+	 *
+	 * \param[in]	s		new size
+	 */
 		virtual void resize_values(size_t s) = 0;
 
 	///	Destructor
@@ -296,25 +334,46 @@ class GridFunction
 			assign_dof_distribution(*v.m_pDoFDist);
 		};
 
-	/// creates adequate storage
+	///	\copydoc IGridFunction::resize_values
 		virtual void resize_values(size_t s) {vector_type::resize(s);}
 
-	///	adapts the vector to new values
-		virtual bool swap_values(std::vector<size_t> vOldIndex, std::vector<size_t> vNewIndex)
+	///	\copydoc IGridFunction::permute_values
+		virtual	bool permute_values(const std::vector<size_t>& vIndNew)
 		{
 		//	check sizes
-			if(vOldIndex.size() != vNewIndex.size())
+			if(vIndNew.size() != this->size())
 			{
-				UG_LOG("ERROR in GridFunction::swap_values:"
-						" Index sets must have same cardinality.\n");
+				UG_LOG("ERROR in GridFunction::swap_values: For a permutation the"
+						" index set must have same cardinality as vector.\n");
 				return false;
 			}
 
+		// \todo: avoid tmp vector, only copy values into new vector and use that one
+		//	create tmp vector
+			vector_type vecTmp; vecTmp.resize(this->size());
+
 		//	loop indices and copy values
-			for(size_t i = 0; i < vOldIndex.size(); ++i)
-			{
-				this->operator[](vNewIndex[i]) = this->operator[](vOldIndex[i]);
-			}
+			for(size_t i = 0; i < vIndNew.size(); ++i)
+				vecTmp[vIndNew[i]] = this->operator[](i);
+
+		//	copy tmp vector into this vector
+			if(!this->assign(vecTmp)) return false;
+
+		//	we're done
+			return true;
+		}
+
+	///	\copydoc IGridFunction::copy_values
+		virtual bool copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
+		                         bool bDisjunct = false)
+		{
+		//	disjunct case
+			if(bDisjunct)
+				for(size_t i = 0; i < vIndexMap.size(); ++i)
+					this->operator[](vIndexMap[i].second)
+						= this->operator[](vIndexMap[i].first);
+		//	other case not implemented
+			else return false;
 
 		//	we're done
 			return true;

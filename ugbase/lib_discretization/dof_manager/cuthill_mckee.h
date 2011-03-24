@@ -48,7 +48,7 @@ bool OrderCuthillMcKee(IDoFDistribution<TDoFImpl>& dofDistr,
 		return false;
 
 //	reorder indices
-	if(!dofDistr.swap_indices(vNewIndex))
+	if(!dofDistr.permute_indices(vNewIndex))
 		return false;
 
 //	we're done
