@@ -14,8 +14,6 @@
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_algebra/parallelization/communication_policies.h"
 
-#include "lib_discretization/dof_manager/dof_distribution.h"
-
 namespace ug
 {
 
@@ -92,7 +90,7 @@ bool CreateIndexLayout(	IndexLayout& layoutOut,
 }
 
 template <typename TMatrix, typename TDoFDistr>
-void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, IDoFDistribution<TDoFDistr>& dofDistr)
+void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, TDoFDistr& dofDistr)
 {
 	mat.set_layouts(dofDistr.get_master_layout(), dofDistr.get_slave_layout());
 
@@ -207,119 +205,30 @@ bool CreateIndexLayouts_DomainDecomposition(
 	return bRetVal;
 }
 
-/// returns in a vector all appearencies of an index in a layout
-inline void FindPositionInInterfaces(std::vector<std::pair<int, size_t> >& vIndexInterface,
-                                     IndexLayout& layout, size_t index)
-{
-	for(IndexLayout::iterator interface_iter = layout.begin();
-				interface_iter != layout.end(); ++interface_iter)
-	{
-	//	get interface
-		IndexLayout::Interface& interface = layout.interface(interface_iter);
+// returns in a vector all appearencies of an index in a layout
+void FindPositionInInterfaces(std::vector<std::pair<int, size_t> >& vIndexInterface,
+                                     IndexLayout& layout, size_t index);
 
-		int targetProc   = layout.proc_id(interface_iter);
-
-	//	loop over indices
-		int i = 0;
-		for( IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter, ++i)
-		{
-			size_t currIndex = interface.get_element(iter);
-
-			if(currIndex == index)
-				vIndexInterface.push_back(std::pair<int, size_t>(targetProc, i));
-		}
-	}
-}
-
-inline bool AddExtraProcessEntriesToSubdomainLayout(
+bool AddExtraProcessEntriesToSubdomainLayout(
 								size_t numIDs,
 								IndexLayout& processMasterLayoutIn,
 								IndexLayout& processSlaveLayoutIn,
 								IndexLayout& subdomainMasterLayoutInOut,
-								IndexLayout& subdomainSlaveLayoutInOut)
-{
-	std::vector<int> vMultiplicity;
-//	generate an id for each entry.
-	vMultiplicity.clear();
-	vMultiplicity.resize(numIDs, 0);
+								IndexLayout& subdomainSlaveLayoutInOut);
 
-	int localProc = pcl::GetProcRank();
-
-	for(IndexLayout::iterator interface_iter = processMasterLayoutIn.begin();
-			interface_iter != processMasterLayoutIn.end(); ++interface_iter)
-	{
-	//	get interface
-		IndexLayout::Interface& interface = processMasterLayoutIn.interface(interface_iter);
-		int targetProc = processMasterLayoutIn.proc_id(interface_iter);
-
-	//	loop over indices
-		for( IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-		{
-		//  get index
-			const size_t index = interface.get_element(iter);
-
-			UG_LOG("Checking index " << index << std::endl);
-
-			std::vector<std::pair<int, size_t> > vIndexAppear;
-			FindPositionInInterfaces(vIndexAppear, subdomainMasterLayoutInOut, index);
-
-			if(vIndexAppear.size() > 0)
-			{
-			//	 flag
-				vMultiplicity[index] = 1;
-
-				UG_LOG("Flagging index=" << index << " on Proc " << localProc << " to target proc "<< targetProc<<std::endl);
-
-			//	add to subdomain interface
-			//	get interface
-				IndexLayout::Interface& subdomInterface = subdomainMasterLayoutInOut.interface(targetProc);
-
-				subdomInterface.push_back(index);
-			}
-		}
-	}
-
-//	Communicate flagged vector to slaves
-	ComPol_VecCopy<std::vector<int> >	copyPol(&vMultiplicity);
-
-	pcl::ParallelCommunicator<IndexLayout> communicator;
-	communicator.send_data(processMasterLayoutIn, copyPol);
-	communicator.receive_data(processSlaveLayoutIn, copyPol);
-	communicator.communicate();
-
-//	add slaves
-	for(IndexLayout::iterator interface_iter = processSlaveLayoutIn.begin();
-			interface_iter != processSlaveLayoutIn.end(); ++interface_iter)
-	{
-	//	get interface
-		IndexLayout::Interface& interface = processSlaveLayoutIn.interface(interface_iter);
-		int targetProc = processSlaveLayoutIn.proc_id(interface_iter);
-
-	//	loop over indices
-		for( IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-		{
-		//  get index
-			const size_t index = interface.get_element(iter);
-
-		//	is flagged?
-			if(vMultiplicity[index] > 0)
-			{
-			//	add to subdomain interface
-			//	get interface
-				IndexLayout::Interface& subdomInterface = subdomainSlaveLayoutInOut.interface(targetProc);
-
-				UG_LOG("Adding index " << index << " on Proc "<< localProc<<" to target Proc interface "<<targetProc << "\n");
-
-				subdomInterface.push_back(index);
-			}
-		}
-	}
-
-	return true;
-}
+/// permutes an IndexLayout for the permutation of indices
+/**
+ * This Function changes the indices in the layout according to a given
+ * permutation of the indices. (The order of the DoFs in the interfaces remains
+ * the same, but the DoFs are "renamed")
+ * The vector vIndNew must return the new index for each old index,
+ * i.e. newIndex = vIndNew[oldIndex].
+ *
+ * \param[in]	vIndNew		mapping for each index
+ * \returns 	success flag
+ */
+void PermuteIndicesInIndexLayout(	IndexLayout& layout,
+									const std::vector<size_t>& vIndNew);
 
 }//	end of namespace
 
