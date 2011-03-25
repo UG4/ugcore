@@ -587,115 +587,123 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 {
 	try
 	{
-//	get group string
-	std::stringstream groupString; groupString << parentGroup << "/Grid";
-	std::string grp = groupString.str();
+	//	get group string
+		std::stringstream groupString; groupString << parentGroup << "/Grid";
+		std::string grp = groupString.str();
 
-//	Grid
-	reg.add_class_<Grid>("Grid", grp.c_str())
-		.add_constructor()
-		.add_method("clear", &Grid::clear)
-		.add_method("num_vertices", &Grid::num_vertices)
-		.add_method("num_edges", &Grid::num_edges)
-		.add_method("num_faces", &Grid::num_faces)
-		.add_method("num_volumes", &Grid::num_volumes);
+	//	Grid
+		reg.add_class_<Grid>("Grid", grp.c_str())
+			.add_constructor()
+			.add_method("clear", &Grid::clear)
+			.add_method("num_vertices", &Grid::num_vertices)
+			.add_method("num_edges", &Grid::num_edges)
+			.add_method("num_faces", &Grid::num_faces)
+			.add_method("num_volumes", &Grid::num_volumes);
+
+	//	MultiGrid
+		reg.add_class_<MultiGrid, Grid>("MultiGrid", grp.c_str())
+			.add_constructor()
+			.add_method("num_vertices_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<VertexBase>)
+			.add_method("num_edges_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
+			.add_method("num_faces_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Face>)
+			.add_method("num_volumes_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Volume>);
+
+
+	////////////////////////
+	//	SUBSET HANDLERS
+
+	//  ISubsetHandler
+		reg.add_class_<ISubsetHandler>("ISubsetHandler", grp.c_str())
+			.add_method("num_subsets", &ISubsetHandler::num_subsets)
+			.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
+			.add_method("set_subset_name", &ISubsetHandler::set_subset_name)
+			.add_method("get_subset_index", (int (ISubsetHandler::*)(const char*) const)
+											&ISubsetHandler::get_subset_index);
 		
-//	MultiGrid
-	reg.add_class_<MultiGrid, Grid>("MultiGrid", grp.c_str())
-		.add_constructor()
-		.add_method("num_vertices_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<VertexBase>)
-		.add_method("num_edges_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
-		.add_method("num_faces_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Face>)
-		.add_method("num_volumes_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Volume>);
+	//	SubsetHandler
+		reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp.c_str())
+			.add_constructor()
+			.add_method("assign_grid", &SubsetHandler::assign_grid);
 
+	//	MGSubsetHandler
+		reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp.c_str())
+			.add_constructor()
+			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
 
-////////////////////////
-//	SUBSET HANDLERS
+	//	SurfaceView
 
-//  ISubsetHandler
-	reg.add_class_<ISubsetHandler>("ISubsetHandler", grp.c_str())
-		.add_method("num_subsets", &ISubsetHandler::num_subsets)
-		.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
-		.add_method("set_subset_name", &ISubsetHandler::set_subset_name)
-		.add_method("get_subset_index", (int (ISubsetHandler::*)(const char*) const)
-										&ISubsetHandler::get_subset_index);
+		#ifndef FOR_VRL
+
+		reg.add_class_<SurfaceView, SubsetHandler>("SurfaceView", grp.c_str())
+			.add_constructor()
+			.add_method("assign_grid", (void (SurfaceView::*)(MultiGrid&)) &SurfaceView::assign_grid);
+
+		#endif
+
+	////////////////////////
+	//	REFINEMENT
+
+	//	IRefiner
+		reg.add_class_<IRefiner>("IRefiner", grp.c_str())
+			.add_method("refine", &IRefiner::refine)
+			.add_method("clear_marks", &IRefiner::clear_marks);
+
+	//	HangingNodeRefiner
+		reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp.c_str())
+			.add_constructor()
+			.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid);
+
+		reg.add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp.c_str())
+			.add_constructor()
+			.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid);
+
+	//	GlobalMultiGridRefiner
+		reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp.c_str())
+			.add_constructor()
+			.add_method("assign_grid", (void (GlobalMultiGridRefiner::*)(MultiGrid&)) &GlobalMultiGridRefiner::assign_grid);
 	
-//	SubsetHandler
-	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp.c_str())
-		.add_constructor()
-		.add_method("assign_grid", &SubsetHandler::assign_grid);
-
-//	MGSubsetHandler
-	reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp.c_str())
-		.add_constructor()
-		.add_method("assign_grid", &MGSubsetHandler::assign_grid);
-
-//	SurfaceView
-
-	#ifndef FOR_VRL
-
-	reg.add_class_<SurfaceView, SubsetHandler>("SurfaceView", grp.c_str())
-		.add_constructor()
-		.add_method("assign_grid", (void (SurfaceView::*)(MultiGrid&)) &SurfaceView::assign_grid);
-
+	//	parallel refinement
+	#ifdef UG_PARALLEL
+		reg.add_class_<ParallelHangingNodeRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>
+			("ParallelHangingNodeRefiner_MultiGrid", grp.c_str())
+			.add_constructor();
 	#endif
-
-////////////////////////
-//	REFINEMENT
-
-//	IRefiner
-	reg.add_class_<IRefiner>("IRefiner", grp.c_str())
-		.add_method("refine", &IRefiner::refine)
-		.add_method("clear_marks", &IRefiner::clear_marks);
-
-//	HangingNodeRefiner
-	reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp.c_str())
-		.add_constructor()
-		.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid);
-
-	reg.add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp.c_str())
-		.add_constructor()
-		.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid);
-
-//	GlobalMultiGridRefiner
-	reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp.c_str())
-		.add_constructor()
-		.add_method("assign_grid", (void (GlobalMultiGridRefiner::*)(MultiGrid&)) &GlobalMultiGridRefiner::assign_grid);
-
-//	parallel refinement
-#ifdef UG_PARALLEL
-	reg.add_class_<ParallelHangingNodeRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>
-		("ParallelHangingNodeRefiner_MultiGrid", grp.c_str())
-		.add_constructor();
-#endif
-
-//	GridObject
-	reg.add_class_<GridObject, Grid>("GridObject", grp.c_str())
-		.add_constructor()
-		.add_method("get_grid", &GridObject::get_grid)
-		.add_method("get_subset_handler", &GridObject::get_subset_handler);
-
-//	Grid functions
-	reg.add_function("CreateFractal", &CreateFractal, grp.c_str());
 	
-//  GridObject functions
-	reg.add_function("LoadGrid", &LoadGrid, grp.c_str())
-		.add_function("SaveGrid", &SaveGrid, grp.c_str())
-		.add_function("LoadGridObject", &LoadGridObject, grp.c_str())
-		.add_function("SaveGridObject", &SaveGridObject, grp.c_str())
-		.add_function("CreateGridObject", &CreateGridObject, grp.c_str());
+	//	GridObject
+		reg.add_class_<GridObject, Grid>("GridObject", grp.c_str())
+			.add_constructor()
+			.add_method("get_grid", &GridObject::get_grid)
+			.add_method("get_subset_handler", &GridObject::get_subset_handler);
+
+	//	Grid functions
+		reg.add_function("CreateFractal", &CreateFractal, grp.c_str());
+
+	//  GridObject functions
+		reg.add_function("LoadGrid", &LoadGrid, grp.c_str())
+			.add_function("SaveGrid", &SaveGrid, grp.c_str())
+			.add_function("LoadGridObject", &LoadGridObject, grp.c_str())
+			.add_function("SaveGridObject", &SaveGridObject, grp.c_str())
+			.add_function("CreateGridObject", &CreateGridObject, grp.c_str());
+
+	//	refinement
+		reg.add_function("TestSubdivision", &TestSubdivision)
+			.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid)
+			.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
+			.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
+			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str())
+			.add_function("MarkForRefinement_VerticesInSphere", (void (*)(IRefiner&, number, number, number, number))
+																&MarkForRefinement_VerticesInSphere, grp.c_str())
+			.add_function("MarkForRefinement_VerticesInSquare", (void (*)(IRefiner&, number, number, number, number, number, number))
+																&MarkForRefinement_VerticesInSquare, grp.c_str())
+			.add_function("TestGridRedistribution", &TestGridRedistribution);
 		
-//	refinement
-	reg.add_function("TestSubdivision", &TestSubdivision)
-		.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid)
-		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
-		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
-		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str())
-		.add_function("MarkForRefinement_VerticesInSphere", (void (*)(IRefiner&, number, number, number, number))
-															&MarkForRefinement_VerticesInSphere, grp.c_str())
-		.add_function("MarkForRefinement_VerticesInSquare", (void (*)(IRefiner&, number, number, number, number, number, number))
-															&MarkForRefinement_VerticesInSquare, grp.c_str())
-		.add_function("TestGridRedistribution", &TestGridRedistribution);
+	//	subset util
+		reg.add_function("AdjustSubsetsForSimulation",
+						(void (*)(SubsetHandler&, bool, bool, bool))
+						&AdjustSubsetsForSimulation<SubsetHandler>)
+			.add_function("AdjustSubsetsForSimulation",
+						(void (*)(MGSubsetHandler&, bool, bool, bool))
+						&AdjustSubsetsForSimulation<MGSubsetHandler>);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

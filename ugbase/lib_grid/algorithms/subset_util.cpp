@@ -940,6 +940,7 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
 	typedef typename TElem::lower_dim_base_object 		Side;
 	typedef typename geometry_traits<Side>::iterator 	SideIter;
+	typedef basic_string<int> IntString;
 
 //	access the grid on which sh operates.
 	if(!sh.get_assigned_grid())
@@ -958,11 +959,12 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 //	here we'll check whether a subset already contains elements with
 //	a given neighborhood subset-constellation.
 //	Note that the key will be calculated from the subset-constellation.
-	map<int, int> subsetMap;
+//	we're using double to allow more values
+	map<IntString, int> subsetMap;
 
 //	this vector will be used to collect all associated subsets of an element.
 //	we'll use the subset-mark mechanism to avoid duplicate entries.
-	vector<int> subsets;
+	IntString skey;
 
 //	used to collect neighbors of type TElem
 	vector<TElem*> elems;
@@ -980,26 +982,42 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 		CollectAssociated(elems, grid, side);
 
 	//	collect the subsets in which they lie. Note that we won't push the
-	//	same subset index twice to subsets.
-		subsets.clear();
+	//	same subset index twice to skey.
+		skey.clear();
+
+	//	we also want to use a little trick: All sides, which lie between two
+	//	neighbors of the same subset and some of other subsets (only two, which
+	//	lie in one subset), then the element shall be associated with that subset
+		int twoOfSame = -2;
+	//	this subset index shall be used if the key is new
+		int useSubsetInd = sh.num_subsets();
+
 		for(size_t i_elems = 0; i_elems < elems.size(); ++i_elems){
 			int si = sh.get_subset_index(elems[i_elems]);
 		//	check if the subset is marked
 			if(marks[si] != curMark){
 			//	no - mark it and add si to subsets
 				marks[si] = curMark;
-				subsets.push_back(si);
+				skey += si;
+			}
+			else{
+			//	twoOfSame is only interesting if there are exactly 2 elems
+			//	of higher dimension in the same subset
+				if(twoOfSame == -2)
+					twoOfSame = si;
+				else
+					twoOfSame = -1;
 			}
 		}
 
 	//	check whether we have an inner, an interface or a manifold element
 	//	and whether we really have to assign a new subset
 		if(sh.get_subset_index(side) != -1){
-			if(subsets.size() == 0){
+			if(skey.size() == 0){
 				if(preserveManifolds)
 					continue;// no - we don't
 			}
-			else if(subsets.size() == 1){
+			else if(skey.size() == 1){
 			//	if there is more than 1 associated elem, we have an inner
 			//	side. If not, side is considered as an interface to the outer space
 				if(elems.size() > 1){
@@ -1020,28 +1038,44 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 			}
 		}
 
-	//	we collected all subsets. now sort them so that we can calculate
-	//	a unique key, which does not depend on the order.
-	//	Note that we add 1 to all subsets, to compensate subset-index -1
-		sort(subsets.begin(), subsets.end());
-		int key = 0;
-		int tKeyBase = 1;
-		for(size_t i = 0; i < subsets.size(); ++i){
-			key += tKeyBase * (subsets[i] + 1);
-			tKeyBase *= (sh.num_subsets() + 1);
+	//	if we found exactly two of the same subset, we'll use that subset index.
+		if(twoOfSame >= 0){
+			skey.clear();
+			skey += twoOfSame;
+			useSubsetInd = twoOfSame;
+		}
+		else{
+			if(skey.size() == 1){
+				if(elems.size() > 1){
+				//	we've got an inner element. Assign the subset-index
+				//	of those inner neighbor elements.
+					useSubsetInd = skey[0];
+				}
+				else{
+				//	An outer interface element.
+				//	add -2 to skey to make sure that they go into a separate subset
+				//	(-1 might occur as a normal subset index)
+					skey += -2;
+				}
+			}
 		}
 
+	//	The subset indices in skey have to be sorted before they can be
+	//	used as unique key
+		sort(skey.begin(), skey.end());
+
 	//	get the subset index from the subsetMap, if one exists.
-		map<int, int>::iterator tMapIter = subsetMap.find(tKeyBase);
+		map<IntString, int>::iterator tMapIter = subsetMap.find(skey);
 		if(tMapIter != subsetMap.end()){
 		//	got one
 			sh.assign_subset(side, tMapIter->second);
 		}
 		else{
 		//	create a new entry and resize the marks array
-			subsetMap[tKeyBase] = sh.num_subsets();
-			sh.assign_subset(side, sh.num_subsets());
-			marks.resize(sh.num_subsets(), 0);//num_subset just grew by one
+			subsetMap[skey] = useSubsetInd;
+			sh.assign_subset(side, useSubsetInd);
+			if(sh.num_subsets() > (int)marks.size())
+				marks.resize(sh.num_subsets(), 0);
 		}
 	}
 }
