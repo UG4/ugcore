@@ -119,6 +119,11 @@ int UGFinalize(bool outputProfilerStats) {
 	return 0;
 }
 
-
+void UGForceExit()
+{
+	UG_LOG("--- ABORTING UG EXECUTION ---\n");
+	UGFinalize(true);
+	exit(0);
+}
 
 } //end of namespace ug

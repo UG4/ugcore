@@ -36,6 +36,9 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
  */
 int UGFinalize(bool outputProfilerStats = false);
 
+///	Calls UGFinalize and terminates the application.
+void UGForceExit();
+
 }//	end of namespace
 
 #endif

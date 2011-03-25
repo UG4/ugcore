@@ -234,12 +234,4 @@ int UGLuaPrint(lua_State *L)
 	return 0;
 }
 
-///	exits right away
-void ForceExit()
-{
-	UG_LOG("--- ABORTING SCRIPT EXECUTION ---\n");
-	UGFinalize(true);
-	exit(0);
-}
-
 }}//	end of namespace

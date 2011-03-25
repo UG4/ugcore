@@ -64,9 +64,6 @@ bool ParseFile(const char* filename);
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 int UGLuaPrint(lua_State *L);
 
-///	exits right away
-void ForceExit();
-
 }//	end of namespace
 }//	end of namespace
 

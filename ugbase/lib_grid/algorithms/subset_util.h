@@ -411,6 +411,10 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si);
  * You may forbid assignment of sides which already are in a subset through
  * the different preserve... parameters. Not that they all have true as
  * default parameter
+ *
+ * \todo	An additional parameter would be nice, with which one could
+ * 			decide whether elements should only be added to existing
+ * 			subsets (assignToExistingSubsets).
  */
 template <class TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
