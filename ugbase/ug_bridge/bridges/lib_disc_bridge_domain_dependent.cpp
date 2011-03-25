@@ -57,15 +57,24 @@ template <class TMatOp, class TDirichletBnd, class TApproxSpace>
 void AssembleDirichletRows(TMatOp& matOp, TDirichletBnd& dirichletBnd,
 							TApproxSpace& approxSpace)
 {
-/*
-	typedef typename TApproxSpace::dof_distribution_type dof_distribution_type;
-	typedef typename TApproxSpace::algebra_type algebra_type;
-	typedef typename algebra_type::vector_type vector_type;
-	typedef typename algebra_type::matrix_type matrix_type;
-*/
 	dirichletBnd.assemble_dirichlet_rows(matOp.get_matrix(),
 						approxSpace.get_surface_dof_distribution());
 }
+
+/**	Calls e.g. P1DirichletBoundary::assemble_dirichlet_rows.
+ * Also takes a time argument.
+ *
+ * This method probably shouldn't be implemented here, but in some util file.
+ */
+template <class TMatOp, class TDirichletBnd, class TApproxSpace>
+void AssembleDirichletRows(TMatOp& matOp, TDirichletBnd& dirichletBnd,
+							TApproxSpace& approxSpace, number time)
+{
+	dirichletBnd.assemble_dirichlet_rows(matOp.get_matrix(),
+					approxSpace.get_surface_dof_distribution(), time);
+}
+
+
 
 /// small wrapper to write a grid function to vtk
 template <typename TGridFunction>
@@ -437,6 +446,15 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		reg.add_function("AssembleDirichletRows",
 						(fct_type)&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>,
 						grp.c_str());
+
+		typedef void (*fct_type2)(	mat_op_type&,
+									dirichlet_type&,
+									approximation_space_type&,
+									number);
+
+		reg.add_function("AssembleDirichletRows",
+				(fct_type2)&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>,
+				grp.c_str());
 	}
 }
 

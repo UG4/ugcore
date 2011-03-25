@@ -196,11 +196,17 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 	 * This method is just an attempt to allow to set dirichlet rows in a matrix.
 	 * It should probably be a virtual method derived from IDirichletPostProcess.
 	 *
-	 * If Mr. Vogel decides that this is nonsense, he may of course remove it!!!
+	 * Note that post_process_jacobian does the same (...!!!)
+	 * You should thus use post_process_jacobian.
 	 *
-	 * \todo	The dirichlet callback has to be executed (compilation errors)
+	 * This method is probably removed in the near future!
+	 *
+	 * It could make sense to keep it but implement it as an overload of
+	 * post_process_jacobian...
+	 *
+	 * If Mr. Vogel decides that this is nonsense, he may of course remove it!!!
 	 */
-		void assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr);
+		void assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr, number time = 0.0);
 
 	public:
 	// 	Implement Interface
@@ -258,7 +264,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr)
+assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
 	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
@@ -274,7 +280,7 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr)
 		multi_index_vector_type multInd;
 
 	//	for readin
-//		number val;
+		number val;
 		position_type corner;
 
 	//	loop vertices
@@ -290,8 +296,7 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr)
 			for(size_t i = 0; i < userData.size(); ++i)
 			{
 			// 	check if function is dirichlet
-//todo: why doesn't this work? It's important!
-				//if(!userData[i].functor(val, corner, time)) continue;
+				if(!userData[i].functor(val, corner, time)) continue;
 
 			//	get function index
 				const size_t fct = userData[i].fct;
