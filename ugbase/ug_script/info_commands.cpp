@@ -55,10 +55,8 @@ bool GetLuaNamespace(lua_State* L, string &name)
 
 	lua_getglobal(L, tokens[0].c_str());
 	if(lua_isnil(L, -1))
-	{
-		lua_pop(L, 1);	// remove global from stack
 		return 0; 	// global name not found
-	}
+
 	size_t i=1;
 	for(; i<tokens.size(); i++)
 	{
@@ -191,7 +189,7 @@ int UGTypeInfo(const char *p)
 		// names = GetClassNames(L, -1))
 		if(lua_getmetatable(L, -1) == 0)
 		{
-			UG_LOG(p << "is a global variable which has light user data, but no metatable." << endl);
+			UG_LOG(p << " is a global variable which has light user data, but no metatable." << endl);
 			lua_pop(L, 1); // pop globals
 			return false;
 		}
@@ -201,7 +199,7 @@ int UGTypeInfo(const char *p)
 		lua_rawget(L, -2);
 		if(lua_isnil(L, -1) || !lua_isuserdata(L, -1))
 		{
-			UG_LOG(p << "is a global variable which has a metatable, but cannot access names." << endl);
+			UG_LOG(p << " is a global variable which has a metatable, but cannot access names." << endl);
 			lua_pop(L, 3); // pop metatable, userdata, globals
 			return false;
 		}
@@ -217,11 +215,11 @@ int UGTypeInfo(const char *p)
 	else if (lua_istable(L, -1))
 	{
 		LuaPrintTable(L, 1);
-		UG_LOG(p << "is a table" << "\n");
+		UG_LOG(p << " is a table" << "\n");
 	}
 	else
 	{
-		UG_LOG(p << "type is " << lua::GetLuaTypeString(L, -1) << ": " << lua_tostring(L, -1));
+		UG_LOG(p << ": type is " << lua::GetLuaTypeString(L, -1) << ": " << lua_tostring(L, -1));
 	}
 
 	UG_LOG("\n");
