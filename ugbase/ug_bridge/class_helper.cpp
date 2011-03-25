@@ -316,17 +316,23 @@ bool PrintFunctionInfo(Registry &reg, const char *functionname)
  */
 void PrintClassInfo(const IExportedClass &c)
 {
-	UG_LOG("class " << c.name() << ", " << c.num_methods() << " method(s), " <<
-		c.num_const_methods() << " const method(s):" << endl);
+	UG_LOG("class " << c.name() << "\n");
+	if(c.is_instantiable())
+	{	UG_LOG(" has constructor\n");		}
+	else
+	{	UG_LOG(" has no constructor\n"); 	}
+	UG_LOG(" " << c.num_methods() << " method(s):" << endl);
+
 	for(size_t k=0; k<c.num_methods(); ++k)
 	{
-		UG_LOG(" ");
+		UG_LOG(" - ");
 		PrintFunctionInfo(c.get_method(k), false);
 		UG_LOG(endl);
 	}
+	UG_LOG(" " << c.num_const_methods() << " const method(s):" << endl);
 	for(size_t k=0; k<c.num_const_methods(); ++k)
 	{
-		UG_LOG(" ");
+		UG_LOG(" - ");
 		PrintFunctionInfo(c.get_const_method(k), true);
 		UG_LOG(endl);
 	}
