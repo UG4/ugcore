@@ -16,9 +16,14 @@ bool RegisterInfoCommands(bridge::Registry &reg,
 
 
 const std::vector<const char*> *GetClassNames(lua_State *L, int index);
+const std::vector<const char*> *GetClassNames(lua_State* L, const char *name);
+
 void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc);
 
 std::string GetFileLine(const char *filename, size_t line);
+int PrintFunctionInfo(lua_State *L, bool bComplete);
+int UGTypeInfo(const char *p);
+bool GetLuaNamespace(lua_State* L, std::string &name);
 }
 }
 						  

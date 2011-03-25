@@ -16,6 +16,7 @@
 #include "ug_bridge/ug_bridge.h"
 #include "ug_bridge/class_helper.h"
 #include "common/util/sort_util.h"
+#include "common/util/string_util.h"
 
 extern "C"
 {
@@ -41,6 +42,36 @@ string GetFileLine(const char *filename, size_t line);
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
 void LuaPrintTable(lua_State *L, size_t iSpace);
 
+
+bool GetLuaNamespace(lua_State* L, string &name)
+{
+	vector<string> tokens;
+	TokenizeString(name, tokens, '.');
+	if(tokens.size() == 0)
+	{
+		lua_pushnil(L);
+		return false;
+	}
+
+	lua_getglobal(L, tokens[0].c_str());
+	if(lua_isnil(L, -1))
+	{
+		lua_pop(L, 1);	// remove global from stack
+		return 0; 	// global name not found
+	}
+	size_t i=1;
+	for(; i<tokens.size(); i++)
+	{
+		lua_pushstring(L, tokens[i].c_str());
+		lua_rawget(L, -2);
+		lua_remove(L, -2);
+		if(lua_isnil(L, -1))
+			return false;
+	}
+
+	return true;
+}
+
 const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 {
 	const std::vector<const char*> *p = NULL;
@@ -56,15 +87,37 @@ const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 	return p;
 }
 
+const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
+{
+	// get the lua object with that name
+	lua_getglobal(L, name);
+	if(lua_isnil(L, -1))
+	{
+		lua_pop(L, 1);	// remove global from stack
+		return NULL; 	// global name not found
+	}
 
-int PrintFunctionInfo(lua_State *L)
+	const std::vector<const char*> *p = GetClassNames(L, -1);
+	lua_pop(L, 1); // remove global from stack;
+	return p;
+}
+
+
+int PrintFunctionInfo(lua_State *L, bool bComplete)
 {
 	lua_Debug ar;
 	lua_getinfo(L, ">Snlu", &ar);
 	if(ar.source)
 	{
-		UG_LOG(ar.source+1 << ":" << ar.linedefined << "-" << ar.lastlinedefined << "\n");
-		UG_LOG(GetFileLines(ar.source+1, ar.linedefined, ar.lastlinedefined, true) << "\n");
+		if(bComplete)
+		{
+			UG_LOG(ar.source+1 << ":" << ar.linedefined << "-" << ar.lastlinedefined << "\n");
+			UG_LOG(GetFileLines(ar.source+1, ar.linedefined, ar.lastlinedefined, true) << "\n");
+		}
+		else
+		{
+			UG_LOG(GetFileLine(ar.source+1, ar.linedefined) << "\n");
+		}
 	}
 	return 0;
 }
@@ -111,7 +164,9 @@ int UGTypeInfo(const char *p)
 		void*	obj;
 	};
 
-	lua_getglobal(L, p);
+	string str = p;
+	GetLuaNamespace(L, str);
+
 	if(lua_isnil(L, -1))
 	{
 		lua_pop(L, 1);
@@ -128,7 +183,7 @@ int UGTypeInfo(const char *p)
 	else if(lua_isfunction(L, -1))
 	{
 		UG_LOG(p << " is a function\n ");
-		PrintFunctionInfo(L);
+		PrintFunctionInfo(L, true);
 		UG_LOG(endl);
 	}
 	else if(lua_isuserdata(L, -1))
@@ -204,24 +259,11 @@ bool ClassInstantiations(const char *classname)
 
 			const char *luastr = getstr(ts);
 			// check is of a global variable
-			lua_getglobal(L, luastr);
-			if(lua_isnil(L, -1) || !lua_isuserdata(L, -1) || lua_getmetatable(L, -1) == 0)
-			{
-				lua_pop(L, 1); // remove global from stack
-				continue; // nope
-			}
 
-			// get names
-			lua_pushstring(L, "names");
-			lua_rawget(L, -2);
-			if(lua_isnil(L, -1) || !lua_isuserdata(L, -1))
-			{
-				lua_pop(L, 3); // pop userdata, metatable, globals
+			const std::vector<const char*> *names = GetClassNames(L, luastr);
+			if(names == NULL)
 				continue;
-			}
-			const std::vector<const char*> *names =
-					(const std::vector<const char*>*) lua_touserdata(L, -1);
-			lua_pop(L, 3); // pop userdata, metatable, globals
+
 			if(ClassNameVecContains(*names, classname))
 			{
 				bFound = true;
@@ -428,6 +470,9 @@ void LuaList()
 		}
 		lua_pop(L, 1); // remove global from stack
 	}
+	classes.clear();
+	for(size_t j=0; j<reg.num_classes(); ++j)
+		classes.push_back(reg.get_class(j).name());
 	sort(classes.begin(), classes.end());
 	sort(functions.begin(), functions.end());
 	sort(names.begin(), names.end());
