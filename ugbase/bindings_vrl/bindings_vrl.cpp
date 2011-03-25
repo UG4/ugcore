@@ -203,9 +203,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	char** pargv = &argv[0];
 	int retVal = ug::UGInit(&argc, &pargv);
 
-	reg.add_class_<TestClass > ("TestClass", "testing")
+	reg.add_class_<TestClass > ("TestClass", "ug4/testing")
 			.add_constructor()
-			.add_method("svnRevision|hide=true,interactive=false", &TestClass::getRev)
+			.add_method("svnRevision|hide=true,interactive=true", &TestClass::getRev)
 			.add_method("add", &TestClass::add, "result",
 			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
 			.add_method("getString", &TestClass::getString)
@@ -214,10 +214,10 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 			.add_method("smartTestImpl", &TestClass::smartTestImpl)
 			.add_method("constSmartTestImpl", &TestClass::constSmartTestImpl);
 
-	reg.add_function("SmartTestFunction", &SmartTestFunction, "testing");
-	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "testing");
+	reg.add_function("SmartTestFunction", &SmartTestFunction, "ug4/testing");
+	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "ug4/testing");
 
-	ug::vrl::RegisterVRLUserNumber(reg, "testing");
+	ug::vrl::RegisterVRLUserNumber(reg, "ug4/testing");
 
 //	/************************************/
 //
@@ -242,11 +242,11 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 //	/************************************/
 
 	// Register algebra
-	CPUAlgebraSelector chooser;
+	CPUAlgebraSelector selector;
 	ug::bridge::RegisterDynamicLibAlgebraInterface(
-			reg, chooser.get_algebra_type());
+			reg, selector.get_algebra_type());
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(
-			reg, chooser.get_algebra_type());
+			reg, selector.get_algebra_type());
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");
