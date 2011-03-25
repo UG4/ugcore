@@ -44,7 +44,7 @@ Registry & GetUGRegistry()
 bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 {
 	bool bResult = true;
-UG_LOG("REGISTERING STANDARD INTERFACES\n");
+	UG_LOG("REGISTERING STANDARD INTERFACES\n");
 	try
 	{
 		bResult &= RegisterUtilInterface(reg, parentGroup);
