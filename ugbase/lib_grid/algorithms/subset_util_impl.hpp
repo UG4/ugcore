@@ -56,6 +56,11 @@ void MakeSubsetsConsecutive(SubsetHandler& sh)
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	EraseEmptySubsets
+///	Erases all subsets which do not contain any geometric objects
+void EraseEmptySubsets(ISubsetHandler& sh);
+
+////////////////////////////////////////////////////////////////////////
 //	AssignAssociatedVerticesToSubset
 template <class TIterator>
 void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
@@ -220,7 +225,7 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 	AssignAssociatedLowerDimElemsToSubsets<TElem>(sh,
 											srcIndHandler, TElem());
 }
-
+/*
 ////////////////////////////////////////////////////////////////////////
 //	CreateSurfaceView
 template <class TIterator>
@@ -238,7 +243,7 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
 		++iterBegin;
 	}
 }
-
+*/
 template <class TElem>
 void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh)
 {
@@ -323,6 +328,75 @@ void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 		subsetIndex++;
 	}
 }
+
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem, class TSubsetHandler>
+void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
+{
+	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
+
+//	access the grid on which sh operates.
+	if(!sh.get_assigned_grid())
+		return;
+
+	Grid& grid = *sh.get_assigned_grid();
+
+//	first make sure, that all elems are assigned to a subset, since
+//	those won't be processed later on.
+	if(sh.template num<TElem>() != grid.num<TElem>()){
+		for(ElemIter iter = grid.begin<TElem>();
+			iter != grid.end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == -1)
+				sh.assign_subset(*iter, si);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TSubsetHandler>
+void AdjustSubsetsForSimulation(TSubsetHandler& sh,
+								bool preserveManifolds,
+								bool preserveInterfaces,
+								bool preserveInner)
+{
+//	access the grid on which sh operates.
+	if(!sh.get_assigned_grid())
+		return;
+
+	Grid& grid = *sh.get_assigned_grid();
+
+//	erase empty subsets
+	EraseEmptySubsets(sh);
+
+//	to speed up the algo, we'll perform some checks
+	if(grid.num_volumes() > 0){
+		AssignUnassignedElemsToSubset<Volume>(sh, sh.num_subsets());
+		AssignSidesToSubsets<Volume>(sh, preserveManifolds,
+							preserveInterfaces, preserveInner);
+		AssignSidesToSubsets<Face>(sh, preserveManifolds,
+							preserveInterfaces, preserveInner);
+		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
+							preserveInterfaces, preserveInner);
+	}
+	else if(grid.num_faces() > 0){
+		AssignUnassignedElemsToSubset<Face>(sh, sh.num_subsets());
+		AssignSidesToSubsets<Face>(sh, preserveManifolds,
+							preserveInterfaces, preserveInner);
+		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
+							preserveInterfaces, preserveInner);
+	}
+	else if(grid.num_edges() > 0){
+		AssignUnassignedElemsToSubset<EdgeBase>(sh, sh.num_subsets());
+		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
+							preserveInterfaces, preserveInner);
+	}
+	else{
+		AssignUnassignedElemsToSubset<VertexBase>(sh, sh.num_subsets());
+	}
+}
+
 
 }//	end of namespace
 

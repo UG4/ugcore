@@ -10,7 +10,6 @@
 
 namespace ug
 {
-
 template <class TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
                                 DistributedGridManager& distGridMgr,

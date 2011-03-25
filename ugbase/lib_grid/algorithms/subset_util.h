@@ -85,11 +85,13 @@ void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
  *
  * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
  * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
  */
 template <class TElem, class TSubsetHandler>
 void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler);
-									
+
 ////////////////////////////////////////////////////////////////////////
 //	AssignAssociatedEdgesToSubsets
 ///	Assigns associated edges of elements of type TElem in sh to sh.
@@ -102,6 +104,8 @@ void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
  *
  * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
  * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
  */
 template <class TElem, class TSubsetHandler>
 void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
@@ -119,6 +123,8 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
  *
  * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
  * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
  */
 template <class TElem, class TSubsetHandler>
 void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
@@ -134,6 +140,8 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
  *
  * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
  * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
  */
 template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
 void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
@@ -152,6 +160,8 @@ void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
  *
  * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
  * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
  */
 template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
@@ -176,11 +186,12 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
  * This method will extend the surface-view. The caller is responsible for
  * clearing it before calling this method.
  */
+/*
 template <class TIterator>
 void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
 						ISubsetHandler& sh, TIterator iterBegin,
 						TIterator iterEnd);
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg
 ///	reorders subsets in a way that allows for easy export to lgm-ng.
@@ -355,6 +366,57 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 //	AssignSubsetColors
 ///	assigns a different color to each subset
 void AssignSubsetColors(ISubsetHandler& sh);
+
+
+
+////////////////////////////////////////////////////////////////////////
+///	Assigns all sides of elements of the given type to a separate subset
+/**	All elements of type TElem::lower_dim_base_object are assigned to a
+ * subset, depending on the subsets of neighbors of type TElem.
+ * For each neighborhood constellation a separate subset index is chosen.
+ * You may forbid assignment of sides, which already are in a subset through
+ * the different preserve... parameters. Note that all have the
+ * default parameter true.
+ *
+ * Valid parameters for TElem are: EdgeBase, Face, Volume
+ *
+ * \todo	Some performance improvements could be implemented, by checking
+ * 			for the different preserve... states as early as possible.
+ */
+template <class TElem>
+void AssignSidesToSubsets(ISubsetHandler& sh,
+						bool preserveManifolds = true,
+						bool preserveInterfaces = true,
+						bool preserveInner = true);
+
+
+////////////////////////////////////////////////////////////////////////
+///	Assigns all elements of type TElem with subset index -1 to subset at index si
+template <class TElem, class TSubsetHandler>
+void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si);
+
+
+////////////////////////////////////////////////////////////////////////
+///	Adjust the grid so that it is ready for simulation with ug4
+/**	For simulation it is crucial that all geometric objects of a
+ * grid are assigned to a subset. Furthermore all lower dimensional
+ * elements, which are only connected to higher dimensional elements
+ * of one subset should be in the same subset as those elements.
+ * Elements which form an interface between different subsets should
+ * be in a separate subset.
+ *
+ * This method will erase all empty subsets before executing the
+ * actual algorithm.
+ *
+ * You may forbid assignment of sides which already are in a subset through
+ * the different preserve... parameters. Not that they all have true as
+ * default parameter
+ */
+template <class TSubsetHandler>
+void AdjustSubsetsForSimulation(TSubsetHandler& sh,
+								bool preserveManifolds = true,
+								bool preserveInterfaces = true,
+								bool preserveInner = true);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

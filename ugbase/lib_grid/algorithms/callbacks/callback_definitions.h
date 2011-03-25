@@ -46,31 +46,6 @@ inline bool ConsiderAllFaces(Face*)				{return true;}
 inline bool ConsiderAllVolumes(Volume*)			{return true;}
 /** \} */
 
-
-////////////////////////////////////////////////////////////////////////
-/**
- *\{
- *	\brief Callback definition for writing data associated with a
- *			geometric object to a binary stream.
- */
-typedef boost::function<void (std::ostream&, VertexBase*)> CB_SerializeVertexData;
-typedef boost::function<void (std::ostream&, EdgeBase*)> CB_SerializeEdgeData;
-typedef boost::function<void (std::ostream&, Face*)> 	CB_SerializeFaceData;
-typedef boost::function<void (std::ostream&, Volume*)>	CB_SerializeVolumeData;
-///	\}
-
-////////////////////////////////////////////////////////////////////////
-/**
- *\{
- *	\brief Callback definition for reading data associated with a
- *			geometric object from a binary stream.
- */
-typedef boost::function<void (std::istream&, VertexBase*)> CB_DeserializeVertexData;
-typedef boost::function<void (std::istream&, EdgeBase*)> CB_DeserializeEdgeData;
-typedef boost::function<void (std::istream&, Face*)> 	CB_DeserializeFaceData;
-typedef boost::function<void (std::istream&, Volume*)>	CB_DeserializeVolumeData;
-///	\}
-
 /** \} */	// end of group definition
 
 }//	end of namespace

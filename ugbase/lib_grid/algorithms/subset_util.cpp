@@ -12,6 +12,27 @@ using namespace std;
 
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////
+//	EraseEmptySubsets
+///	Erases all subsets which do not contain any geometric objects
+void EraseEmptySubsets(ISubsetHandler& sh)
+{
+	int si = 0;
+	while(si < sh.num_subsets()){
+		if(!(	sh.contains_vertices(si)
+			||	sh.contains_edges(si)
+			||	sh.contains_faces(si)
+			||	sh.contains_volumes(si)))
+		{
+		//	the subset is empty
+			sh.erase_subset(si);
+		}
+		else
+			++si;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	AssignInterfaceEdgesToSubsets
 void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh)
@@ -907,6 +928,129 @@ void AssignSubsetColors(ISubsetHandler& sh)
 		si.color.w = 1.f;
 	}
 }
+
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem>
+void AssignSidesToSubsets(ISubsetHandler& sh,
+						bool preserveManifolds,
+						bool preserveInterfaces,
+						bool preserveInner)
+{
+	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
+	typedef typename TElem::lower_dim_base_object 		Side;
+	typedef typename geometry_traits<Side>::iterator 	SideIter;
+
+//	access the grid on which sh operates.
+	if(!sh.get_assigned_grid())
+		return;
+
+	Grid& grid = *sh.get_assigned_grid();
+
+//	we'll use those marks to check whether a subset has already been
+//	processed in an iteration. A subset is considered to be marked, if
+//	marks[subInd] == curMarker.
+//	Note that curMarker is increased in each iteration.
+//	Note also, that marks has to be resized whenever a new subset is added.
+	size_t curMark = 1;
+	vector<size_t> marks(sh.num_subsets(), 0);
+
+//	here we'll check whether a subset already contains elements with
+//	a given neighborhood subset-constellation.
+//	Note that the key will be calculated from the subset-constellation.
+	map<int, int> subsetMap;
+
+//	this vector will be used to collect all associated subsets of an element.
+//	we'll use the subset-mark mechanism to avoid duplicate entries.
+	vector<int> subsets;
+
+//	used to collect neighbors of type TElem
+	vector<TElem*> elems;
+
+//	Now iterate over all elements which of type Side
+	for(SideIter iterSide = grid.begin<Side>();
+		iterSide != grid.end<Side>(); ++iterSide)
+	{
+		Side* side = *iterSide;
+
+	//	increase curMark
+		++curMark;
+
+	//	collect all associated elements of side
+		CollectAssociated(elems, grid, side);
+
+	//	collect the subsets in which they lie. Note that we won't push the
+	//	same subset index twice to subsets.
+		subsets.clear();
+		for(size_t i_elems = 0; i_elems < elems.size(); ++i_elems){
+			int si = sh.get_subset_index(elems[i_elems]);
+		//	check if the subset is marked
+			if(marks[si] != curMark){
+			//	no - mark it and add si to subsets
+				marks[si] = curMark;
+				subsets.push_back(si);
+			}
+		}
+
+	//	check whether we have an inner, an interface or a manifold element
+	//	and whether we really have to assign a new subset
+		if(sh.get_subset_index(side) != -1){
+			if(subsets.size() == 0){
+				if(preserveManifolds)
+					continue;// no - we don't
+			}
+			else if(subsets.size() == 1){
+			//	if there is more than 1 associated elem, we have an inner
+			//	side. If not, side is considered as an interface to the outer space
+				if(elems.size() > 1){
+				//	inner subset
+					if(preserveInner)
+						continue;// no - we don't
+				}
+				else{
+				//	interface subset
+					if(preserveInterfaces)
+						continue;// no - we don't
+				}
+			}
+			else{
+			//	we've got an interface subset
+				if(preserveInterfaces)
+					continue;// no - we don't
+			}
+		}
+
+	//	we collected all subsets. now sort them so that we can calculate
+	//	a unique key, which does not depend on the order.
+	//	Note that we add 1 to all subsets, to compensate subset-index -1
+		sort(subsets.begin(), subsets.end());
+		int key = 0;
+		int tKeyBase = 1;
+		for(size_t i = 0; i < subsets.size(); ++i){
+			key += tKeyBase * (subsets[i] + 1);
+			tKeyBase *= (sh.num_subsets() + 1);
+		}
+
+	//	get the subset index from the subsetMap, if one exists.
+		map<int, int>::iterator tMapIter = subsetMap.find(tKeyBase);
+		if(tMapIter != subsetMap.end()){
+		//	got one
+			sh.assign_subset(side, tMapIter->second);
+		}
+		else{
+		//	create a new entry and resize the marks array
+			subsetMap[tKeyBase] = sh.num_subsets();
+			sh.assign_subset(side, sh.num_subsets());
+			marks.resize(sh.num_subsets(), 0);//num_subset just grew by one
+		}
+	}
+}
+
+//	template specialization
+template void AssignSidesToSubsets<EdgeBase>(ISubsetHandler&, bool, bool, bool);
+template void AssignSidesToSubsets<Face>(ISubsetHandler&, bool, bool, bool);
+template void AssignSidesToSubsets<Volume>(ISubsetHandler&, bool, bool, bool);
+
 
 }//	end of namespace
 

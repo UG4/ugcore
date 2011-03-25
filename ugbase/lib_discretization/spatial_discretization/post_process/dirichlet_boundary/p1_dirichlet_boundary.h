@@ -190,6 +190,18 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 			m_mBoundarySegment.clear();
 		}
 
+	///	Sets dirichlet rows for all registered dirichlet values
+	/**	(implemented by Mr. Xylouris and Mr. Reiter)
+	 *
+	 * This method is just an attempt to allow to set dirichlet rows in a matrix.
+	 * It should probably be a virtual method derived from IDirichletPostProcess.
+	 *
+	 * If Mr. Vogel decides that this is nonsense, he may of course remove it!!!
+	 *
+	 * \todo	The dirichlet callback has to be executed (compilation errors)
+	 */
+		void assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr);
+
 	public:
 	// 	Implement Interface
 		IAssembleReturn post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
@@ -242,6 +254,62 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 		typename domain_type::position_accessor_type m_aaPos;
 };
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+void P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr)
+{
+//	loop boundary subsets
+	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
+	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	{
+		const int si = (*iter).first;
+		const std::vector<UserDataFunction>& userData = (*iter).second;
+
+		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
+		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+
+	//	create Multiindex
+		multi_index_vector_type multInd;
+
+	//	for readin
+//		number val;
+		position_type corner;
+
+	//	loop vertices
+		for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+		{
+		//	get vertex
+			VertexBase* vertex = *iter;
+
+		//	get corner position
+			corner = m_aaPos[vertex];
+
+		//	loop dirichlet functions on this segment
+			for(size_t i = 0; i < userData.size(); ++i)
+			{
+			// 	check if function is dirichlet
+//todo: why doesn't this work? It's important!
+				//if(!userData[i].functor(val, corner, time)) continue;
+
+			//	get function index
+				const size_t fct = userData[i].fct;
+
+			//	get multi indices
+				if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+					return;
+
+				const size_t index = multInd[0][0];
+				const size_t alpha = multInd[0][1];
+
+			//	set dirichlet row
+				SetDirichletRow(mat, index, alpha);
+			}
+		}
+	}
+}
+
 
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>

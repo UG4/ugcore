@@ -164,6 +164,16 @@ void SelectAssociatedGeometricObjects(MGSelector& msel);
 void ExtendSelection(Selector& sel, size_t extSize);
 
 ////////////////////////////////////////////////////////////////////////
+///	Extends the selection around selected objects until selected sides are reached.
+/**	Selects all elements of the given base-type which are reachable
+ * without traversing a selected side.
+ *
+ * Valid types for TGeomBaseObj are EdgeBase, Face and Volume.
+ */
+template <class TGeomObj>
+void SelectionFill(Selector& sel);
+
+////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGenealogy
 ///	Selects the complete genealogy of all selected elements.
 /**

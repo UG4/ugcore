@@ -49,6 +49,24 @@ namespace ug
 namespace bridge
 {
 
+/**	Calls e.g. P1DirichletBoundary::assemble_dirichlet_rows.
+ *
+ * This method probably shouldn't be implemented here, but in some util file.
+ */
+template <class TMatOp, class TDirichletBnd, class TApproxSpace>
+void AssembleDirichletRows(TMatOp& matOp, TDirichletBnd& dirichletBnd,
+							TApproxSpace& approxSpace)
+{
+/*
+	typedef typename TApproxSpace::dof_distribution_type dof_distribution_type;
+	typedef typename TApproxSpace::algebra_type algebra_type;
+	typedef typename algebra_type::vector_type vector_type;
+	typedef typename algebra_type::matrix_type matrix_type;
+*/
+	dirichletBnd.assemble_dirichlet_rows(matOp.get_matrix(),
+						approxSpace.get_surface_dof_distribution());
+}
+
 /// small wrapper to write a grid function to vtk
 template <typename TGridFunction>
 bool WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
@@ -368,42 +386,58 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
 #endif
 
-	//	WriteGridToVTK
-		{
-			reg.add_function("WriteGridFunctionToVTK",
-			                 &WriteGridFunctionToVTK<function_type>, grp.c_str(),
-								"Success", "GridFunction#Filename|save-dialog",
-								"Saves GridFunction to *.vtk file", "No help");
-		}
+//	WriteGridToVTK
+	{
+		reg.add_function("WriteGridFunctionToVTK",
+						 &WriteGridFunctionToVTK<function_type>, grp.c_str(),
+							"Success", "GridFunction#Filename|save-dialog",
+							"Saves GridFunction to *.vtk file", "No help");
+	}
 
-	//	SaveMatrixForConnectionViewer
-		{
-			reg.add_function("SaveMatrixForConnectionViewer",
-			                 &SaveMatrixForConnectionViewer<function_type>, grp.c_str());
-		}
+//	SaveMatrixForConnectionViewer
+	{
+		reg.add_function("SaveMatrixForConnectionViewer",
+						 &SaveMatrixForConnectionViewer<function_type>, grp.c_str());
+	}
 
-	//	SaveVectorForConnectionViewer
-		{
-			reg.add_function("SaveVectorForConnectionViewer",
-			                 &SaveVectorForConnectionViewer<function_type>, grp.c_str());
-		}
+//	SaveVectorForConnectionViewer
+	{
+		reg.add_function("SaveVectorForConnectionViewer",
+						 &SaveVectorForConnectionViewer<function_type>, grp.c_str());
+	}
 
-	//	InterpolateFunction
-		{
-			std::stringstream ss; ss << "InterpolateFunction";
-			typedef bool (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
-										function_type& , const char* , number);
-			reg.add_function(ss.str().c_str(),
-			                 (fct_type)&InterpolateFunction<function_type>,
-			                 grp.c_str());
+//	InterpolateFunction
+	{
+		std::stringstream ss; ss << "InterpolateFunction";
+		typedef bool (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
+									function_type& , const char* , number);
+		reg.add_function(ss.str().c_str(),
+						 (fct_type)&InterpolateFunction<function_type>,
+						 grp.c_str());
 
-			typedef bool (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
-										function_type& , const char* , number ,
-										const char*);
-			reg.add_function(ss.str().c_str(),
-			                 (fct_type_subset)&InterpolateFunction<function_type>,
-			                 grp.c_str());
-		}
+		typedef bool (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
+									function_type& , const char* , number ,
+									const char*);
+		reg.add_function(ss.str().c_str(),
+						 (fct_type_subset)&InterpolateFunction<function_type>,
+						 grp.c_str());
+	}
+
+//	AssembleDirichletBoundary
+	{
+	//todo: This should work for all IDirichletPostProcess
+		typedef IMatrixOperator<vector_type, vector_type, matrix_type> mat_op_type;
+		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> dirichlet_type;
+		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
+
+		typedef void (*fct_type)(	mat_op_type&,
+									dirichlet_type&,
+									approximation_space_type&);
+
+		reg.add_function("AssembleDirichletRows",
+						(fct_type)&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>,
+						grp.c_str());
+	}
 }
 
 template <typename TAlgebra, typename TDoFDistribution>

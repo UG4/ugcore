@@ -305,6 +305,64 @@ void ExtendSelection(Selector& sel, size_t extSize)
 	grid.end_marking();
 }
 
+template <class TGeomObj>
+void SelectionFill(Selector& sel)
+{
+	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
+	typedef typename TGeomObj::lower_dim_base_object Side;
+
+	if(sel.get_assigned_grid() == 0){
+		UG_LOG("WARNING in SelectionFill: A grid has to be assigned! Aborting.\n");
+		return;
+	}
+
+	Grid& grid = *sel.get_assigned_grid();
+
+	vector<Side*> sides;
+	vector<TGeomObj*> objs;
+	queue<TGeomObj*> qCandidates;
+
+//	all initially selected objects are candidates
+	for(GeomObjIter iter = sel.begin<TGeomObj>();
+		iter != sel.end<TGeomObj>(); ++iter)
+	{
+		qCandidates.push(*iter);
+	}
+
+//	while there are candidates left
+	while(!qCandidates.empty())
+	{
+	//	get the candidate
+		TGeomObj* o = qCandidates.front();
+		qCandidates.pop();
+
+	//	collect all sides in a vector
+		CollectAssociated(sides, grid, o);
+		for(size_t i = 0; i < sides.size(); ++i){
+		//	if the side is selected, we don't have to process it
+			if(sel.is_selected(sides[i]))
+				continue;
+
+		//	all associated unselected geom-objs have to be selected
+		//	and are new candidates
+			CollectAssociated(objs, grid, sides[i]);
+			for(size_t j = 0; j < objs.size(); ++j){
+				if(!sel.is_selected(objs[j])){
+					sel.select(objs[j]);
+					qCandidates.push(objs[j]);
+				}
+			}
+		}
+	}
+}
+
+//	Only those template specializations make sense.
+template void SelectionFill<EdgeBase>(Selector&);
+template void SelectionFill<Face>(Selector&);
+template void SelectionFill<Volume>(Selector&);
+
+
+
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGenealogy
 void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
