@@ -39,27 +39,6 @@ namespace lua
 }
 
 
-class LuaStackCheck
-{
-public:
-	LuaStackCheck(lua_State *L, int growth=0)
-	{
-		m_L = L;
-		m_topBefore = lua_gettop(L);
-		m_growth = growth;
-	}
-	~LuaStackCheck()
-	{
-		int m_topAfter = lua_gettop(m_L);
-		UG_ASSERT(m_topBefore+m_growth == m_topAfter, m_topBefore << " + " << m_growth << " != " << m_topAfter << "\n");
-	}
-private:
-	lua_State *m_L;
-	int m_topBefore;
-	int m_growth;
-};
-
-
 string GetFileLine(const char *filename, size_t line);
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
 void LuaPrintTable(lua_State *L, size_t iSpace);
@@ -67,7 +46,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace);
 
 bool GetLuaNamespace(lua_State* L, string &name)
 {
-	LuaStackCheck check(L, 1);
+	LUA_STACK_CHECK(L, 1);
 	vector<string> tokens;
 	TokenizeString(name, tokens, '.');
 	if(tokens.size() == 0)
@@ -78,7 +57,9 @@ bool GetLuaNamespace(lua_State* L, string &name)
 
 	lua_getglobal(L, tokens[0].c_str());
 	if(lua_isnil(L, -1))
+	{
 		return 0; 	// global name not found
+	}
 
 	size_t i=1;
 	for(; i<tokens.size(); i++)
@@ -95,7 +76,7 @@ bool GetLuaNamespace(lua_State* L, string &name)
 
 const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 {
-	LuaStackCheck check(L);
+	LUA_STACK_CHECK(L, 0);
 	const std::vector<const char*> *p = NULL;
 	if(lua_getmetatable(L, index) != 0)
 	{
@@ -127,7 +108,8 @@ const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
 
 int PrintFunctionInfo(lua_State *L, bool bComplete)
 {
-	LuaStackCheck check(L);
+	LUA_STACK_CHECK(L, 0);
+	lua_pushvalue(L, -1);
 	lua_Debug ar;
 	lua_getinfo(L, ">Snlu", &ar);
 	if(ar.source)
@@ -142,6 +124,7 @@ int PrintFunctionInfo(lua_State *L, bool bComplete)
 			UG_LOG(GetFileLine(ar.source+1, ar.linedefined) << "\n");
 		}
 	}
+
 	return 0;
 }
 
@@ -180,7 +163,7 @@ int UGTypeInfo(const char *p)
 	}
 
 	lua_State* L = script::GetDefaultLuaState();
-	LuaStackCheck check(L);
+	LUA_STACK_CHECK(L, 0);
 
 	struct UserDataWrapper
 	{
@@ -269,7 +252,7 @@ bool ClassInstantiations(const char *classname)
 	UG_LOG("Instantiations of Class " << classname << ":\n");
 
 	lua_State* L = script::GetDefaultLuaState();
-	LuaStackCheck check(L);
+	LUA_STACK_CHECK(L, 0);
 	bool bFound = false;
 
 	// iterate through all of lua's global string table
@@ -396,7 +379,7 @@ void PrintLuaScriptFunction(lua_State *L)
 
 void LuaPrintTable(lua_State *L, size_t iSpace)
 {
-	LuaStackCheck check(L);
+	LUA_STACK_CHECK(L, 0);
 
 	LOGFillSpace(iSpace);
 	UG_LOG("{\n");
@@ -442,7 +425,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace)
 		{
 			UG_LOG(" = \n");
 			lua_pushvalue(L, index);
-			LuaPrintTable(L, iSpace+1);
+			//LuaPrintTable(L, iSpace+1);
 			lua_pop(L, 1);
 		}
 		else
@@ -467,7 +450,7 @@ void LuaList()
 {
 	bridge::Registry &reg = GetUGRegistry();
 	lua_State* L = script::GetDefaultLuaState();
-	LuaStackCheck check(L);
+	LUA_STACK_CHECK(L, 0);
 	std::vector<std::string> classes, functions, internalFunctions, scriptFunctions, names, instantiations;
 	// iterate through all of lua's globals
 
