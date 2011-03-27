@@ -38,7 +38,8 @@ LuaError::LuaError(const char* msg): UGError(msg) {
 	m_file = msg_.substr(0, i);
 
 	std::string line = msg_.substr(i+1, msg_.find(':', i));
-	m_line = atoi(line.c_str());
+	int l = atoi(line.c_str();
+		m_line = (l > 0) l:1;
 }
 
 ///	loads a file relative to APP_PATH../scripts
