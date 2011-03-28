@@ -92,9 +92,14 @@ if(UG_SHARED)
     #       However - since lib_grid is a sub-script of this one,
     #       those properties are not stored (I believe so).
     set_source_files_properties(lib_grid/externals/src/tetgen/predicates.cxx
-        PROPERTIES COMPILE_FLAGS -O0)
-    set_source_files_properties(lib_grid/externals/src/tetgen/tetgen.cxx
-        PROPERTIES COMPILE_FLAGS -w)
+        						PROPERTIES COMPILE_FLAGS -O0)
+	set_source_files_properties(externals/src/tetgen/tetgen.cxx
+								PROPERTIES COMPILE_FLAGS -w)
+	if(NOT UG_DEBUG)
+		# Tetgen seems to crash on some geometries if compiled with O3.
+		set_source_files_properties(externals/src/tetgen/tetgen.cxx
+									PROPERTIES COMPILE_FLAGS "-O2 -w")
+	endif(NOT UG_DEBUG)
 
     # the definition -DTETLIBRARY has to be set on this level.
     # this is important for the tetlibrary, which is compiled as
