@@ -154,7 +154,7 @@ void GlobalMultiGridRefiner::refine()
 			continue;
 			
 		VertexBase* v = *iter;
-		
+
 	//	create a new vertex in the next layer.
 GMGR_PROFILE(GMGR_Refine_CreatingVertices);
 		VertexBase* nVrt = *mg.create_by_cloning(v, v);
@@ -192,7 +192,7 @@ GMGR_PROFILE(GMGR_Refine_CreatingEdges);
 		VertexBase* substituteVrts[2];
 		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
-		
+
 		e->refine(vEdges, nVrt, substituteVrts);
 		assert((vEdges.size() == 2) && "Edge refine produced wrong number of edges.");
 		mg.register_element(vEdges[0], e);
@@ -225,12 +225,12 @@ GMGR_PROFILE_END();
 		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
-				GMGR_PROFILE(GMGR_Refine_CreatingVertices);
+				//GMGR_PROFILE(GMGR_Refine_CreatingVertices);
 				mg.register_element(newVrt, f);
 			//	allow refCallback to calculate a new position
 				if(m_refCallback)
 					m_refCallback->new_vertex(newVrt, f);
-				GMGR_PROFILE_END();
+				//GMGR_PROFILE_END();
 			}
 
 		//	register the new faces and assign status
@@ -249,24 +249,31 @@ GMGR_PROFILE_END();
 	{
 		if(!refinement_is_allowed(*iter))
 			continue;
-			
+
 		Volume* v = *iter;
 	//	collect child-vertices
+		//GMGR_PROFILE(GMGR_CollectingVolumeVertices);
 		vVrts.clear();
 		for(uint j = 0; j < v->num_vertices(); ++j)
 			vVrts.push_back(mg.get_child_vertex(v->vertex(j)));
+		//GMGR_PROFILE_END();
 
 	//	collect the associated edges
 		vEdgeVrts.clear();
+		//GMGR_PROFILE(GMGR_CollectingVolumeEdgeVertices);
 		//bool bIrregular = false;
 		for(uint j = 0; j < v->num_edges(); ++j)
 			vEdgeVrts.push_back(mg.get_child_vertex(mg.get_edge(v, j)));
+		//GMGR_PROFILE_END();
 
 	//	collect associated face-vertices
 		vFaceVrts.clear();
+		//GMGR_PROFILE(GMGR_CollectingVolumeFaceVertices);
 		for(uint j = 0; j < v->num_faces(); ++j)
 			vFaceVrts.push_back(mg.get_child_vertex(mg.get_face(v, j)));
-		
+		//GMGR_PROFILE_END();
+
+		//GMGR_PROFILE(GMGR_Refining_Volume);
 		VertexBase* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
 					NULL, Vertex(), &vVrts.front())){
@@ -285,6 +292,7 @@ GMGR_PROFILE_END();
 		else{
 			LOG("  WARNING in Refine: could not refine volume.\n");
 		}
+		//GMGR_PROFILE_END();
 	}
 
 //	done - clean up

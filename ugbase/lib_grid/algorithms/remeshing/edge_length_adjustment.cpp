@@ -980,12 +980,12 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	SPOctree octree;
 	node_tree::Traverser_ProjectPoint pojectionTraverser;
 	if(projectPoints){
-		PROFILE_BEGIN(octree_construction);
+		//PROFILE_BEGIN(octree_construction);
 		octree = CreateOctree(*pRefGrid, pRefGrid->begin<Triangle>(),
 									pRefGrid->end<Triangle>(),
 									10, 30, false, aPos);
 
-		PROFILE_END();
+		//PROFILE_END();
 		if(!octree.is_valid()){
 			UG_LOG("  Octree creation failed in AdjustEdgeLength. Aborting.\n");
 			return false;
@@ -1030,7 +1030,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		if(projectPoints)
 		{
 			LOG("  projecting points...");
-			PROFILE_BEGIN(projecting_points);
+			//PROFILE_BEGIN(projecting_points);
 			for(VertexBaseIterator iter = grid.vertices_begin();
 				iter != grid.vertices_end(); ++iter)
 			{
@@ -1057,7 +1057,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 				}
 */
 			}
-			PROFILE_END();
+			//PROFILE_END();
 			LOG(" done\n");
 		}
 	}

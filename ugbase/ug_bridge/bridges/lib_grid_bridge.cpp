@@ -209,22 +209,27 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 	MGSubsetHandler sh(mg);
 	HangingNodeRefiner_MultiGrid refiner(mg);
 
+	PROFILE_BEGIN(PROFTEST_loading);
 	if(!LoadGridFromFile(mg, filename, sh)){
 		UG_LOG("  could not load " << filename << endl);
 		return false;
 	}
+	PROFILE_END();
 
-	for(int i = 0; i < numIterations; ++i){
-		UG_LOG("refinement step " << i+1 << endl);
+	{
+		PROFILE_BEGIN(PROFTEST_refining);
+		for(int i = 0; i < numIterations; ++i){
+			UG_LOG("refinement step " << i+1 << endl);
 
-		if(mg.num<Volume>() > 0)
-			MarkForRefinement<Volume>(mg, refiner, percentage);
-		else if(mg.num<Face>() > 0)
-			MarkForRefinement<Face>(mg, refiner, percentage);
-		else
-			MarkForRefinement<EdgeBase>(mg, refiner, percentage);
+			if(mg.num<Volume>() > 0)
+				MarkForRefinement<Volume>(mg, refiner, percentage);
+			else if(mg.num<Face>() > 0)
+				MarkForRefinement<Face>(mg, refiner, percentage);
+			else
+				MarkForRefinement<EdgeBase>(mg, refiner, percentage);
 
-		refiner.refine();
+			refiner.refine();
+		}
 	}
 
 	UG_LOG("saving to " << outFilename << endl;)

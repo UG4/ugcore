@@ -23,17 +23,23 @@ set(srcCommon	log.cpp
 				math/misc/tritri.cpp
 				math/misc/eigenvalues.cpp
 				math/misc/math_util.cpp)
-				
-set(srcProfiler	profiler/src/ShinyManager.cpp
-				profiler/src/ShinyNode.cpp
-				profiler/src/ShinyNodePool.cpp
-				profiler/src/ShinyOutput.cpp
-				profiler/src/ShinyTools.cpp)
+
+set(sources ${srcCommon})
 
 
-EXPORTSOURCES("common" ${srcCommon})
-EXPORTSOURCES("common" ${srcProfiler})
+if(UG_PROFILER)
+	set(srcProfiler	profiler/profiler.cpp
+					profiler/src/ShinyManager.cpp
+					profiler/src/ShinyNode.cpp
+					profiler/src/ShinyNodePool.cpp
+					profiler/src/ShinyOutput.cpp
+					profiler/src/ShinyTools.cpp)
+	
+	set(sources ${sources} ${srcProfiler})
+endif(UG_PROFILER)
+
+EXPORTSOURCES("common" ${sources})
 
 if(NOT UG_SHARED)
-add_library(common ${srcCommon} ${srcProfiler})
+add_library(common ${sources})
 endif(NOT UG_SHARED)

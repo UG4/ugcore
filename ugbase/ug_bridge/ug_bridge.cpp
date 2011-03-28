@@ -39,6 +39,16 @@ Registry & GetUGRegistry()
 		reg.registry_changed();
 		return true;
 	}
+
+	bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup)
+	{
+		bool bResult = true;
+		bResult &= RegisterDynamicLibDiscretizationInterfaceDomainIndependent(reg, algebra_type, parentGroup);
+		bResult &= RegisterDynamicLibDiscretizationInterfaceDomainDependent(reg, algebra_type, parentGroup);
+		bResult &= RegisterDynamicLibDiscInterfaceDiscs(reg, algebra_type, parentGroup);
+		return bResult;
+	}
+
 #endif
 
 bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
@@ -72,15 +82,6 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 		return false;
 	}
 
-	return bResult;
-}
-
-bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup)
-{
-	bool bResult = true;
-	bResult &= RegisterDynamicLibDiscretizationInterfaceDomainIndependent(reg, algebra_type, parentGroup);
-	bResult &= RegisterDynamicLibDiscretizationInterfaceDomainDependent(reg, algebra_type, parentGroup);
-	bResult &= RegisterDynamicLibDiscInterfaceDiscs(reg, algebra_type, parentGroup);
 	return bResult;
 }
 
