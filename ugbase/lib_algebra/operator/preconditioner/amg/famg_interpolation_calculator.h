@@ -359,6 +359,7 @@ public:
 			}
 			else
 			{
+				rating.set_coarse(i);
 				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system (coarse neighbors).\n");
 			}
 		}
@@ -417,6 +418,7 @@ public:
 			}
 			else
 			{
+				rating.set_coarse(i);
 				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system.\n");
 			}
 
