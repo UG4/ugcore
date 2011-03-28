@@ -89,6 +89,7 @@ public:
 
 	void calculate_testvectors(size_t node)
 	{
+		FAMG_PROFILE_FUNC();
 		localTestvector.resize(m_testvectors.size());
 		for(size_t k=0; k<m_testvectors.size(); k++)
 		{
@@ -103,6 +104,7 @@ public:
 
 	void add_additional_testvectors_to_H()
 	{
+		FAMG_PROFILE_FUNC();
 		// skip first vector (it is approximated exactly)
 		// /test if other way round is faster/
 		for(size_t r = 0; r < onlyN1.size(); r++)
@@ -125,6 +127,7 @@ public:
 	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors,
 			famg_nodes &rating)
 	{
+		FAMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << "\n");
 
@@ -186,7 +189,7 @@ public:
 
 				if(InverseMatMult(q, 1.0, KKT, rhs) == false)
 				{
-					UG_DLOG(LIB_ALG_AMG, 3, "could not invert KKT system.");
+					UG_DLOG(LIB_ALG_AMG, 3, "get_possible_parent_pairs: could not invert KKT system.\n");
 					continue;
 				}
 
@@ -265,6 +268,7 @@ public:
 	template<typename prolongation_matrix_type>
 	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	famg_nodes &rating)
 	{
+		FAMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << rating.get_original_index(i) << "\n")
 
 		get_H(i, rating);
@@ -325,7 +329,7 @@ public:
 			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
 			q.resize(N+1);
-			if(InverseMatMult(q, 1.0, vKKT, rhs) == true)
+			if(InverseMatMult(q, 1.0, vKKT, rhs))
 			{
 				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
 
@@ -355,7 +359,7 @@ public:
 			}
 			else
 			{
-				UG_DLOG(LIB_ALG_AMG, 3, "could not invert KKT system.");
+				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system (coarse neighbors).\n");
 			}
 		}
 		else
@@ -381,7 +385,7 @@ public:
 			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
 			q.resize(onlyN1.size()+1);
-			if(InverseMatMult(q, 1.0, vKKT, rhs) == false)
+			if(InverseMatMult(q, 1.0, vKKT, rhs))
 			{
 				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
 
@@ -413,7 +417,7 @@ public:
 			}
 			else
 			{
-				UG_DLOG(LIB_ALG_AMG, 3, "could not invert KKT system.");
+				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system.\n");
 			}
 
 		}
@@ -424,6 +428,7 @@ public:
 private:
 	void calculate_H_from_S()
 	{
+		FAMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
 		UG_ASSERT(S.num_cols() == S.num_rows(), "");
 		UG_ASSERT(S.num_cols() == onlyN1.size()+1+onlyN2.size(), "");
@@ -513,6 +518,7 @@ private:
 	}
 	bool get_H(size_t i, famg_nodes &rating)
 	{
+		FAMG_PROFILE_FUNC();
 		// replace this with
 		// stdvector<stdvector<size_t> > neighbors(3);
 		/// stdvector<size_t> &onlyN1 = neighbors[1];

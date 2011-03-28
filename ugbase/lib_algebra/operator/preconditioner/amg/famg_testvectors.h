@@ -52,6 +52,7 @@ template<typename matrix_type, typename vector_type>
 void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector,
 		size_t iTestvectorDamps)
 {
+	FAMG_PROFILE_FUNC();
 	vector_type d; d.resize(A_OL2.num_rows());
 	for(size_t jj=0; jj < iTestvectorDamps; jj++)
 	{
@@ -64,6 +65,7 @@ void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector,
 template<typename matrix_type, typename vector_type>
 void CalculateNextTestvector(matrix_type &R, vector_type &big_testvector)
 {
+	FAMG_PROFILE_FUNC();
 	vector_type t;
 	t.resize(R.num_rows());
 

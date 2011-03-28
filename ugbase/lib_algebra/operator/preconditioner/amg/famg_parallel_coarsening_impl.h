@@ -37,6 +37,7 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	color_process_graph()
 {
+	FAMG_PROFILE_FUNC();
 	stopwatch SW;
 
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
@@ -71,6 +72,7 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	receive_coarsening_from_processes_with_lower_color()
 {
+	FAMG_PROFILE_FUNC();
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 
 	// issue receive of coarsening data from processes with lower color
@@ -159,6 +161,7 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	send_coarsening_data_to_processes_with_higher_color()
 {
+	FAMG_PROFILE_FUNC();
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 
 	stopwatch SW;
@@ -217,6 +220,7 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout)
 {
+	FAMG_PROFILE_FUNC();
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 	UG_LOG("\n\nadd_connections_between_slave_nodes...\n")
 
@@ -334,6 +338,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
+	FAMG_PROFILE_FUNC();
 	stopwatch SW;
 
 	// 1. get the Overlap 2 matrix

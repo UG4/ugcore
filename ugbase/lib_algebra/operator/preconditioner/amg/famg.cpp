@@ -16,6 +16,17 @@
 #ifndef __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 #define __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 
+//#define PROFILE_FAMG
+#ifdef PROFILE_FAMG
+	#define FAMG_PROFILE_FUNC()			PROFILE_FUNC()
+	#define FAMG_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define FAMG_PROFILE_END()			PROFILE_END()
+#else
+	#define FAMG_PROFILE_FUNC()
+	#define FAMG_PROFILE_BEGIN(name)
+	#define FAMG_PROFILE_END()
+#endif
+
 //#include "sparsematrix_util.h"
 
 #include "common/assert.h"
@@ -30,7 +41,6 @@
 #include "maxheap.h"
 #include "famg.h"
 #include <set>
-#include "lib_algebra/algebra_chooser.h"
 
 
 #ifdef UG_PARALLEL
@@ -114,6 +124,8 @@ int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<in
 template<typename matrix_type>
 void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 {
+	FAMG_PROFILE_FUNC();
+
 	for(size_t i=0; i<A.num_rows(); i++)
 		for(typename matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
@@ -223,6 +235,9 @@ private:
 	//! \sa set_uninterpolateable_as_coarse
 	void get_aggressive_coarsening_interpolation()
 	{
+		FAMG_PROFILE_FUNC();
+
+		UG_SET_DEBUG_LEVELS(4);
 		for(size_t i=0; i<A.num_rows(); i++)
 		{
 			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating, but has not been processed yet?");
@@ -236,6 +251,8 @@ private:
 	//! \sa get_aggressive_coarsening_interpolation
 	void set_uninterpolateable_as_coarse()
 	{
+		FAMG_PROFILE_FUNC();
+
 		for(size_t i=0; i<rating.size(); i++)
 		{
 			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating (neither coarse nor fine but interpolateable), but is not in heap anymore???");
@@ -247,6 +264,8 @@ private:
 	//! creates the parentIndex struct for display
 	void create_parentIndex()
 	{
+		FAMG_PROFILE_FUNC();
+
 		stdvector<stdvector<int> > &parentIndex = m_famg.m_parentIndex;
 		parentIndex.resize(level+2);
 		parentIndex[level+1].resize(rating.get_nr_of_coarse());
@@ -268,6 +287,8 @@ private:
 public:
 	void do_calculation()
 	{
+		FAMG_PROFILE_FUNC();
+
 		UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
 		stopwatch SW, SWwhole; SWwhole.start();
@@ -506,6 +527,7 @@ template<>
 void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
+	FAMG_PROFILE_FUNC();
 	stdvector< vector_type > testvectors;
 	stdvector<double> omega;
 
@@ -532,7 +554,8 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 			m_vVectorWriters[i]->update(testvectors[index]);
 			omega[index] = m_omegaVectorWriters[i];
 
-			/*
+			vector_type &vec = testvectors[index];
+
 			std::fstream file((m_writeMatrixPath + "testvector" + ToString(i) + ".values").c_str(),
 					std::ios::out);
 			for(size_t j=0; j<vec.size(); j++)
@@ -540,7 +563,6 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 			WriteVectorToConnectionViewer((m_writeMatrixPath + "testvector" + ToString(i) +".mat").c_str(),
 					vec, m_amghelper.positions, 2); 
-			*/
 
 		}
 	}
@@ -565,6 +587,3 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 #include "famg_precalculate_coarsening_impl.h"
 
 #endif //  __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
-
-
-

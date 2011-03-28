@@ -23,6 +23,7 @@ bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_node
 		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,
 		FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
+	FAMG_PROFILE_FUNC();
 	if(prolongation_calculated[node])
 		return nodes.update_rating(node, PN);
 	else
@@ -70,6 +71,7 @@ void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possibl
 		maxheap<famg_nodeinfo> &heap,
 		stdvector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
+	FAMG_PROFILE_FUNC();
 	if(!nodes[node].is_valid_rating())
 		return;
 	if(OnDemand_UpdateRating(node, possible_parents[node], nodes, prolongation_calculated, SymmNeighGraph, calculator))
@@ -112,6 +114,7 @@ void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mar
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on_demand_coarsening()
 {
+	FAMG_PROFILE_FUNC();
 	size_t N = rating.size();
 
 	possible_parents.clear();
@@ -126,13 +129,12 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 	stdvector<bool> prolongation_calculated;
 	prolongation_calculated.resize(N, false);
 
-	size_t i=N;
-	for(size_t j=0; j<N; j++)
+	size_t i;
+	for(i=0; i<N; i++)
 	{
-		if(rating.i_must_assign(j))
+		if(rating.i_must_assign(i))
 		{
-			i=j;
-			if(IsCloseToBoundary(A_OL2, j , 2) == false)
+			if(IsCloseToBoundary(A_OL2, i , 2) == false)
 			{
 				calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 				prolongation_calculated[i] = true;
@@ -162,6 +164,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 
 	while(1)
 	{
+		UG_ASSERT(possible_parents[i].size() > 0, "node " << i << "has no possible parents?");
 		neighborstruct2 &n = possible_parents[i][0];
 
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\nSelect next node...\n");
@@ -269,6 +272,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 		if(rating[i].rating == 0.0)
 			rating[i].set_uninterpolateable();
 	}
+
+	UG_DLOG(LIB_ALG_AMG, 2, "\nDone!\n");
 
 }
 
