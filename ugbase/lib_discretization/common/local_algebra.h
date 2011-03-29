@@ -344,25 +344,25 @@ class LocalVector
 	/// number of dofs of accessible functions (sum)
 		size_t num_dofs() const {return m_pIndex->num_dofs();}
 
-	/// number of dofs per accessble function
+	/// number of dofs per accessible function
 		size_t num_dofs(size_t fct) const {return m_pIndex->num_dofs(fct);}
 
 	/// access to dof of accessible function fct
 		number& operator()(size_t fct, size_t dof)
 		{
-			const index_type index = m_pIndex->local_index(fct, dof);
-			const comp_type comp = m_pIndex->comp(fct, dof);
-			UG_ASSERT(index < size(), "Index not valid");
-			return BlockRef(m_entries[index], comp);
+			const typename LocalIndices::multi_index_type& ind
+										= m_pIndex->local_multi_index(fct, dof);
+			UG_ASSERT(ind[0] < size(), "Index not valid");
+			return BlockRef(m_entries[ind[0]], ind[1]);
 		}
 
 	/// const access to dof of accessible function fct
 		const number& operator()(size_t fct, size_t dof) const
 		{
-			const index_type index = m_pIndex->local_index(fct, dof);
-			const comp_type comp = m_pIndex->comp(fct, dof);
-			UG_ASSERT(index < size(), "Index not valid");
-			return BlockRef(m_entries[index], comp);
+			const typename LocalIndices::multi_index_type& ind
+										= m_pIndex->local_multi_index(fct, dof);
+			UG_ASSERT(ind[0] < size(), "Index not valid");
+			return BlockRef(m_entries[ind[0]], ind[1]);
 		}
 
 	protected:
