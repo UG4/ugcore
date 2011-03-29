@@ -16,4 +16,5 @@
 	- \ref pageInstallUG4 "Install ug4"
 	- \ref pageUG4CodingStyle "Coding Style"
 	- \ref pageScriptTutorial "Script Tutorial"
+	- \ref pageTeamCommunication "Developer Team Communication"
  */
