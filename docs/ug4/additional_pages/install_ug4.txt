@@ -4,8 +4,6 @@
 
 /**	\page pageInstallUG4 ug4 - Installation
 
-The following Coding Style is recommended for ug.
-
 	- \ref secInstallUG4Boost "Download Boost"
 	- \ref secInstallUG4CMake "Download CMake"
 	- \ref secInstallUG4UG4 "Download UG4"
