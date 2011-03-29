@@ -235,91 +235,17 @@ struct cRegisterAlgebraType
 							IPreconditioner<algebra_type> >("ILUT", grp2.c_str())
 				.add_constructor()
 				.add_method("set_threshold", &ILUTPreconditioner<algebra_type>::set_threshold,
-							"", "threshold", "sets threshold of incomplete LU factorisation"); // added 01122010ih
+							"", "threshold", "sets threshold of incomplete LU factorisation");
 
-
-
-
-
-
-	#ifdef UG_USE_AMG
-		//	AMG
-			reg.add_class_< typename amg_base<algebra_type>::LevelInformation > ("AMGLevelInformation", grp2.c_str())
-				.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms, "creation time of this level (in ms)")
-				.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level")
-				.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information");
-
-	//todo: existance of AMGPreconditioner class should not depend on defines.
-			reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > ("AMGBase", grp2.c_str())
-				.add_method("set_num_presmooth", &amg_base<algebra_type>::set_num_presmooth, "", "nu1", "sets nr. of presmoothing steps (nu1)")
-				.add_method("get_num_presmooth", &amg_base<algebra_type>::get_num_presmooth, "nr. of presmoothing steps (nu1)")
-
-				.add_method("set_num_postsmooth", &amg_base<algebra_type>::set_num_postsmooth, "", "nu2", "sets nr. of postsmoothing steps (nu2)")
-				.add_method("get_num_postsmooth", &amg_base<algebra_type>::get_num_postsmooth, "nr. of postsmoothing steps (nu2)")
-
-				.add_method("set_cycle_type", &amg_base<algebra_type>::set_cycle_type, "", "gamma", "sets cycle type in multigrid cycle (gamma)")
-				.add_method("get_cycle_type", &amg_base<algebra_type>::get_cycle_type, "cycle type in multigrid cycle (gamma)")
-
-				.add_method("set_max_levels", &amg_base<algebra_type>::set_max_levels, "", "max_levels", "sets max nr of AMG levels")
-				.add_method("get_max_levels", &amg_base<algebra_type>::get_max_levels,  "max nr of AMG levels")
-
-				.add_method("set_max_nodes_for_base", &amg_base<algebra_type>::set_max_nodes_for_base, "", "maxNrOfNodes", "sets the maximal nr of nodes for base solver")
-				.add_method("get_max_nodes_for_base", &amg_base<algebra_type>::get_max_nodes_for_base, "maximal nr of nodes for base solver")
-
-				.add_method("set_max_fill_before_base", &amg_base<algebra_type>::set_max_fill_before_base, "", "fillrate", "sets maximal fill rate before base solver is used")
-				.add_method("get_max_fill_before_base", &amg_base<algebra_type>::get_max_fill_before_base, "maximal fill rate before base solver is used", "")
-
-				.add_method("get_operator_complexity", &amg_base<algebra_type>::get_operator_complexity, "", "")
-				.add_method("get_nodes_complexity", &amg_base<algebra_type>::get_nodes_complexity, "", "")
-				.add_method("get_timing_whole_setup_ms", &amg_base<algebra_type>::get_timing_whole_setup_ms, "", "")
-				.add_method("get_timing_coarse_solver_ms", &amg_base<algebra_type>::get_timing_coarse_solver_ms, "", "")
-				.add_method("get_level_information", &amg_base<algebra_type>::get_level_information, "", "")
-
-				.add_method("set_presmoother", &amg_base<algebra_type>::set_presmoother, "", "presmoother")
-				.add_method("set_postsmoother", &amg_base<algebra_type>::set_postsmoother, "", "postsmoother")
-				.add_method("set_base_solver", &amg_base<algebra_type>::set_base_solver, "", "basesmoother")
-				.add_method("check", &amg_base<algebra_type>::check, "", "")
-				.add_method("set_matrix_write_path", &amg_base<algebra_type>::set_matrix_write_path, "", "")
-				.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "")
-
-				.add_method("set_position_provider2d", &amg_base<algebra_type>::set_position_provider2d)
-				.add_method("set_position_provider3d", &amg_base<algebra_type>::set_position_provider3d)
-				;
-
-			reg.add_class_<	amg<algebra_type>, amg_base<algebra_type> > ("AMGPreconditioner", grp2.c_str())
-				.add_constructor()
-				.add_method("set_theta", &amg<algebra_type>::set_theta, "", "theta", "sets theta, a measure for strong connectivity")
-				.add_method("get_theta", &amg<algebra_type>::get_theta, "theta", "")
-				.add_method("set_sigma", &amg<algebra_type>::set_sigma, "", "sigma", "sets theta, a parameter used for truncation of interpolation")
-				.add_method("get_sigma", &amg<algebra_type>::get_sigma, "", "sigma", "sets theta, a parameter used for truncation of interpolation")
-
-				.add_method("tostring", &amg<algebra_type>::tostring)
-				.add_method("enable_aggressive_coarsening_A", &amg<algebra_type>::enable_aggressive_coarsening_A)
-				.add_method("disable_aggressive_coarsening", &amg<algebra_type>::disable_aggressive_coarsening)
-				.add_method("is_aggressive_coarsening", &amg<algebra_type>::is_aggressive_coarsening)
-				.add_method("is_aggressive_coarsening_A", &amg<algebra_type>::is_aggressive_coarsening_A);
-
-			reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > ("FAMGPreconditioner", grp2.c_str())
-				.add_constructor()
-				.add_method("tostring", &famg<algebra_type>::tostring)
-				.add_method("set_aggressive_coarsening", &famg<algebra_type>::set_aggressive_coarsening)
-				.add_method("set_delta", &famg<algebra_type>::set_delta, "", "delta", "\"Interpolation quality\" F may not be worse than this (F < m_delta)")
-				.add_method("set_theta", &famg<algebra_type>::set_theta, "" , "theta", "clip all interpolations with m_theta * F > min F.")
-				.add_method("set_damping_for_smoother_in_interpolation_calculation",
-						&famg<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
-				.add_method("set_testvector_damps", &famg<algebra_type>::set_testvector_damps)
-				.add_method("reset_testvectors", &famg<algebra_type>::reset_testvectors)
-				.add_method("add_testvector", &famg<algebra_type>::add_testvector)
-				.add_method("add_vector_writer", &famg<algebra_type>::add_vector_writer)
-				;
-	#endif
 		}
 
-		//	LinearIteratorProduct
-						reg.add_class_<	LinearIteratorProduct<vector_type, vector_type>,
-										ILinearIterator<vector_type, vector_type> >("LinearIteratorProduct", grp.c_str())
-							.add_constructor()
-							.add_method("add_iteration", &LinearIteratorProduct<vector_type, vector_type>::add_iterator, "Add an iterator");
+		{
+			//	LinearIteratorProduct
+				reg.add_class_<	LinearIteratorProduct<vector_type, vector_type>,
+						ILinearIterator<vector_type, vector_type> >("LinearIteratorProduct", grp.c_str())
+						.add_constructor()
+						.add_method("add_iteration", &LinearIteratorProduct<vector_type, vector_type>::add_iterator, "Add an iterator");
+		}
 	/*
 		{
 	#ifdef LAPACK_AVAILABLE
@@ -415,7 +341,7 @@ struct cRegisterAlgebraType
 				// the following functions would normally not be executed from script
 				.add_method("init", (bool (T::*)())&T::init)
 				.add_method("apply", &T::apply,
-							"Success", "local SC times Vector", "Vector");
+							"Success", "local SC times Vector#Vector");
 			}
 	#endif
 		// 	FETISolver
@@ -460,7 +386,7 @@ struct cRegisterAlgebraType
 				.add_method("set_ps_basename|interactive=false",       &T::set_ps_basename,
 							"", "PostScript basename")
 				.add_method("check_crs_matrix|interactive=false",      &T::check_crs_matrix,
-							"", "Check CR matrix")
+							"", "Check CRS matrix")
 	/*			*/
 				.add_method("set_debug", &T::set_debug);
 			}
@@ -515,14 +441,14 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 }
 
 
-//bool RegisterAMG(Registry& reg, int algebra_type, const char* parentGroup);
+bool RegisterAMG(Registry& reg, int algebra_type, const char* parentGroup);
 
 bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const char* parentGroup)
 {
 	// switch moved to lib_algebra_bridge.h
 	RegisterAlgebraClass<cRegisterAlgebraType>(reg, algebra_type, parentGroup);
 
-	//RegisterAMG(reg, algebra_type, parentGroup);
+	RegisterAMG(reg, algebra_type, parentGroup);
 
 	return true;
 }
