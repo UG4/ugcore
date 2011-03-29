@@ -295,6 +295,7 @@ public:
 
 
 		// 1. Overlap calculation
+		//---------------------------
 #ifdef UG_PARALLEL
 		create_OL2_matrix();
 #else
@@ -305,6 +306,7 @@ public:
 		// UG_SET_DEBUG_LEVELS(4);
 
 		// 2. global Testvector calculation (damping)
+		//-----------------------------------------------
 		// todo: all global?
 		UG_LOG("\ncalculating testvector... ");
 		if(bTiming) SW.start();
@@ -321,7 +323,7 @@ public:
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 		// 3. create heap, P, SymmNeighGraph
-
+		//-------------------------------------
 		heap.create(rating.nodes);
 
 		IF_DEBUG(LIB_ALG_AMG, 3)
@@ -339,16 +341,17 @@ public:
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 
-		// 5. coloring in parallel
-
 	#ifdef UG_PARALLEL
+		// 4. coloring in parallel
+		//-------------------------------------
 		color_process_graph();
 		receive_coarsening_from_processes_with_lower_color();
 	#endif
 
 		rating.calculate_unassigned();
 
-		// 6. do coarsening
+		// 5. do coarsening
+		//-------------------------
 		if(0)
 		{
 			// get possible parent nodes
@@ -390,31 +393,30 @@ public:
 		write_debug_matrix_markers();
 		// ]
 
-		// do aggressive coarsening
+		// 6. do aggressive coarsening
+		//-----------------------------------------------
 		// todo: check if this is ok to be off in parallel
 
+		UG_LOG(std::endl << "second coarsening... "); if(bTiming) SW.start();
 		if(m_famg.get_aggressive_coarsening() == true)
 			get_aggressive_coarsening_interpolation();
 		else
 			set_uninterpolateable_as_coarse();
+		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
-		// 5b. send coarsening data to processes with higher color
 		#ifdef UG_PARALLEL
+		// 7. send coarsening data to processes with higher color
+		//----------------------------------------------------------
 			send_coarsening_data_to_processes_with_higher_color();
 		#endif
 
 
+		// resize P, output statistics & debug stuff
 
 		UG_LOG(std::endl << N - rating.get_unassigned() << " nodes assigned, " << rating.get_nr_of_coarse() << " coarse, "
 				<< N - rating.get_unassigned() - rating.get_nr_of_coarse() << " fine, " << rating.get_unassigned() << " unassigned.");
 
-		UG_LOG(std::endl << "second coarsening... "); if(bTiming) SW.start();
-
-
-
-
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
-
+		// set P to real size
 		P.resize(A.num_rows(), rating.get_nr_of_coarse());
 		P.defragment();
 	#ifdef UG_PARALLEL
@@ -442,8 +444,8 @@ public:
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl << rating.get_nr_of_coarse() << " coarse, " << N - rating.get_unassigned() - rating.get_nr_of_coarse() << " fine.");
 
-		// construct restriction R = I_{h->2h}
-		/////////////////////////////////////////
+		// 8. construct restriction R = I_{h->2h}
+		//-----------------------------------------
 
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "restriction... ");	if(bTiming) SW.start();
 
@@ -467,8 +469,8 @@ public:
 		}
 	#endif
 
-		// create Galerkin product
-		/////////////////////////////////////////
+		// 9. create Galerkin product AH = R A P
+		//-----------------------------------------
 
 		UG_LOG("\ngalerkin product... "); if(bTiming) SW.start();
 
@@ -495,8 +497,8 @@ public:
 		}
 	#endif
 
-		// finish
-		/////////////////////////////////////////
+		// 9. create Galerkin product AH = R A P
+		//-----------------------------------------
 
 		write_debug_matrices();
 
@@ -581,7 +583,10 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 } // namespace ug
 
+#ifdef UG_PARALLEL
 #include "famg_parallel_coarsening_impl.h"
+#endif
+
 #include "famg_debug_impl.h"
 #include "famg_on_demand_coarsening_impl.h"
 #include "famg_precalculate_coarsening_impl.h"
