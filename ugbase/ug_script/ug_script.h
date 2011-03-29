@@ -28,7 +28,7 @@ class LuaError : public UGError
 		std::string m_file;
 		std::size_t m_line;
 	public:
-		LuaError(const char* msg);
+		LuaError(const char* msg, const char* file);
 
 		std::string getFile() const { return m_file; }
 		std::size_t getLine() const { return m_line; }
