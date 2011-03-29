@@ -495,10 +495,12 @@ end
 -- Command line functions
 --------------------------------------------------------------------------------
 
+
+--- util.GetParam
 -- returns parameter in ugargv after ugargv[i] == name
--- use with CommandLine to get parameters, like -dim 3
--- second parameter gets returned when parameter is not found
--- remember that GetParam(name) is GetParam(name, nil)
+-- @param name parameter in ugargv to search for
+-- @param return_if_unavailable when parameter 'name' is not found, this will be returned
+-- @return parameter in ugargv after ugargv[i] == name
 function util.GetParam(name, return_if_unavailable)
 	local i
 	for i = 1, ugargc-1 do
@@ -510,8 +512,11 @@ function util.GetParam(name, return_if_unavailable)
 end
 
 
--- return the number for parameter 'name'
+--- util.GetParamNumber
+-- use with CommandLine to get option, like -useAMG
 -- if parameter is not a number, returns return_if_unavailable
+-- @param name parameter in ugargv to search for
+-- @return the number after the parameter 'name'
 function util.GetParamNumber(name, return_if_unavailable)
 	local param = util.GetParam(name, return_if_unavailable)
 	local number = tonumber(param)
@@ -523,8 +528,10 @@ function util.GetParamNumber(name, return_if_unavailable)
 	end
 end
 
--- returns if ugargv contains an option name
+--- util.HasParamOption
 -- use with CommandLine to get option, like -useAMG
+-- @param name option in argv to search for
+-- @return true if option found, else false
 function util.HasParamOption(name)
 	for i = 1, ugargc do
 		if ugargv[i] == name then
@@ -533,6 +540,7 @@ function util.HasParamOption(name)
 	end
 	return false 
 end
+
 
 --------------------------------------------------------------------------------
 -- lua script functions
