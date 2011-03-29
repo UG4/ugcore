@@ -19,8 +19,8 @@ InitAlgebra(CPUAlgebraSelector());
 -- CONSTANTS
 dim = util.GetParamNumber("-dim",    2)
 if dim == 2 then
---	gridName = "open_circle.ugx"
-	gridName = "unit_square_quads_2x2.ugx"
+	gridName = "open_circle.ugx"
+--	gridName = "unit_square_quads_2x2.ugx"
 elseif dim == 3 then
 	gridName = "open_cube_hex.ugx"
 else
@@ -29,7 +29,7 @@ else
 end
 
 --refinement (default is 5)
-numRefs    = util.GetParamNumber("-numRefs",    5)
+numRefs    = util.GetParamNumber("-numRefs",    2)
 
 -- all elements connected to vertices in this sphere will be refined
 refCenterX = 0.0
@@ -58,8 +58,8 @@ function ourDirichletBnd2d(x, y, t)
 
 	-- line bnd
 	local small = 0.0001
---	if (-small < x and x < small) and y <= 0 then return true, 0.0 end
---	if (-small < y and y < small) and x >= 0 then return true, 0.0 end
+	if (-small < x and x < small) and y <= 0 then return true, 0.0 end
+	if (-small < y and y < small) and x >= 0 then return true, 0.0 end
 	
 	-- circle bnd
 	local phi;
@@ -67,9 +67,9 @@ function ourDirichletBnd2d(x, y, t)
 	if y >= 0 then phi = math.acos(x/r) end
 	if y < 0 then phi =2*math.pi - math.acos(x/r) end
 	
-	return true, 10.0;
+	return true, math.sin((2*phi)/3)
 	
---	return true, math.sin((2*phi)/3)
+	--	return true, 10.0;
 end
 
 -- 3D
@@ -111,8 +111,8 @@ refiner = HangingNodeDomainRefiner(dom);
 -- refine
 local radius = initialRadius
 for i = 1, numRefs do
---	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
-	MarkForRefinement_VerticesInSquare(refiner, -0.5 + 0.2*i, 1, -1, 1, 0, 0)
+	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
+--	MarkForRefinement_VerticesInSquare(refiner, -0.5 + 0.2*i, 1, -1, 1, 0, 0)
 	
 	refiner:refine()
 	radius = radius * radiusFalloff
@@ -237,9 +237,28 @@ ilut = ILUT()
 	gmg:set_projection(projection)
 	--gmg:set_debug(dbgWriter)
 
+
+amg = AMGPreconditioner()
+--amg:enable_aggressive_coarsening_A(2)
+
+amg:set_num_presmooth(3)
+amg:set_num_postsmooth(3)
+amg:set_cycle_type(1)
+amg:set_presmoother(jac)
+amg:set_postsmoother(jac)
+amg:set_base_solver(base)
+amg:set_max_levels(5)
+
+amg:set_max_nodes_for_base(300)
+amg:set_max_fill_before_base(0.7)
+amg:set_fsmoothing(true)
+
+amg:tostring()
+
+
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(30)
+convCheck:set_maximum_steps(300)
 convCheck:set_minimum_defect(1e-12)
 convCheck:set_reduction(1e-12)
 
@@ -248,7 +267,7 @@ exSolver = LU()
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(gmg)
+linSolver:set_preconditioner(amg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
