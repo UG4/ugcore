@@ -272,6 +272,11 @@ public:
 		return false;
 	}
 
+	bool i_must_assign(size_t i)
+	{
+		return true;
+	}
+
 	bool i_can_set_coarse(size_t i)
 	{
 		return nodes[i].is_valid_rating() || nodes[i].is_coarse();
