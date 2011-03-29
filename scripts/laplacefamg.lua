@@ -31,7 +31,7 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 4)
+numRefs = util.GetParamNumber("-numRefs", 5)
 
 
 --------------------------------
@@ -292,65 +292,63 @@ else
 	base = LU()
 end
 
--- Testvectors for AMG ---
---------------------------
-
-function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
-	local amgTestvector;
-	if dim == 1 then
-		amgTestvector = GridFunctionVectorWriter1d()
-	elseif dim == 2 then
-		amgTestvector = GridFunctionVectorWriter2d()
-	elseif dim == 3 then
-		amgTestvector = GridFunctionVectorWriter3d()
-	end
-	amgTestvector:set_reference_grid_function(gridfunction)
-	amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
-	return amgTestvector	
-end
-
-
-function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
-	local amgDirichlet0 = GridFunctionVectorWriterDirichlet02d()
-	amgDirichlet0:init(dirichletBND, approxSpace)
-	return amgDirichlet0
-end
-
-
-function ourTestvector2d_0_0(x, y, t)
-	return 0
-end
-
-function ourTestvector2d_1_1(x, y, t)
-	return math.sin(math.pi*x)*math.sin(math.pi*y)
-end
-
-function ourTestvector2d_2_1(x, y, t)
-	return math.sin(2*math.pi*x)*math.sin(math.pi*y)
-end
-
-
-function ourTestvector2d_1_2(x, y, t)
-	return math.sin(math.pi*x)*math.sin(2*math.pi*y)
-end
-
-
-function ourTestvector2d_2_2(x, y, t)
-	return math.sin(2*math.pi*x)*math.sin(2*math.pi*y)
-end
 
 
 -- create AMG ---
 -----------------
-bUseFAMG = 1
+bUseFAMG = 0
 if bUseFAMG == 1 then
+	-- Testvectors for FAMG ---
+	--------------------------	
+	function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
+		local amgTestvector;
+		if dim == 1 then
+			amgTestvector = GridFunctionVectorWriter1d()
+		elseif dim == 2 then
+			amgTestvector = GridFunctionVectorWriter2d()
+		elseif dim == 3 then
+			amgTestvector = GridFunctionVectorWriter3d()
+		end
+		amgTestvector:set_reference_grid_function(gridfunction)
+		amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
+		return amgTestvector	
+	end
+	
+	
+	function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+		local amgDirichlet0 = GridFunctionVectorWriterDirichlet02d()
+		amgDirichlet0:init(dirichletBND, approxSpace)
+		return amgDirichlet0
+	end
+	
+	
+	function ourTestvector2d_0_0(x, y, t)
+		return 0
+	end
+	
+	function ourTestvector2d_1_1(x, y, t)
+		return math.sin(math.pi*x)*math.sin(math.pi*y)
+	end
+	
+	function ourTestvector2d_2_1(x, y, t)
+		return math.sin(2*math.pi*x)*math.sin(math.pi*y)
+	end
+	
+	
+	function ourTestvector2d_1_2(x, y, t)
+		return math.sin(math.pi*x)*math.sin(2*math.pi*y)
+	end
+	
+	
+	function ourTestvector2d_2_2(x, y, t)
+		return math.sin(2*math.pi*x)*math.sin(2*math.pi*y)
+	end
+
 	amg = FAMGPreconditioner()	
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
 	amg:set_aggressive_coarsening(true)
-	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
-	amg:set_testvector_damps(5)
-	
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
 	
 	-- add testvectors with lua callbacks (see ourTestvector2d_1_1)
 	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_0_0", dim), 1.0)
@@ -360,15 +358,17 @@ if bUseFAMG == 1 then
 	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_2_2", dim), 1.0)
 	
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
-	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+	-- testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+	testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
 	
 	-- your algebraic testvector
 	testvector = approxSpace:create_surface_function()
+	SaveVectorForConnectionViewer(testvector, "testvecotr.mat")
 	-- there you write it
 	testvectorwriter:update(testvector)
 	
-	amg:add_testvector(testvector, 1.0)
-	
+	amg:add_vector_writer(testvectorwriter, 1.0)
+	amg:set_testvector_damps(1)
 	
 	
 
@@ -381,6 +381,7 @@ end
 vectorWriter = GridFunctionPositionProvider2d()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
+amg:set_matrix_write_path("/Users/mrupp/matrices/")
  
 amg:set_num_presmooth(3)
 amg:set_num_postsmooth(3)
@@ -388,9 +389,9 @@ amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
 amg:set_base_solver(base)
-amg:set_max_levels(2)
-amg:set_matrix_write_path("/Users/mrupp/matrices/")
-amg:set_max_nodes_for_base(5)
+amg:set_max_levels(5)
+
+amg:set_max_nodes_for_base(300)
 amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(true)
 
@@ -414,13 +415,20 @@ linSolver:set_convergence_check(convCheck)
 -- Apply Solver
 
 log = GetLogAssistant();
-log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 0)
 
+
+log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 2)
 ApplyLinearSolver(linOp, u, b, linSolver)
 
+log:set_debug_levels(0)
+
+
+-- print("c_create_AMG_level call tree:")
+-- print(GetProfileNode("do_calculation"):call_tree())
+-- print("-----------------------------------------------")
 -- amg:check(u, b);
 
 -- SaveVectorForConnectionViewer(u, "u.mat")
 
 -- Output
-WriteGridFunctionToVTK(u, "Solution")
+-- WriteGridFunctionToVTK(u, "Solution")
