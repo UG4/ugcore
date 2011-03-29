@@ -374,7 +374,9 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 	vector_type &cH = *m_vec1[level+1];
 	vector_type &dH = *m_vec2[level+1];
 
+#ifdef UG_PARALLEL
 	cH.set_storage_type(PST_CONSISTENT);
+#endif
 
 	// restrict defect
 	// dH = m_R[level]*d;
