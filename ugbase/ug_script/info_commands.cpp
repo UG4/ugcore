@@ -17,6 +17,7 @@
 #include "ug_bridge/class_helper.h"
 #include "common/util/sort_util.h"
 #include "common/util/string_util.h"
+#include "lua_stack_check.h"
 
 extern "C"
 {
