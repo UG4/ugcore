@@ -429,18 +429,11 @@ bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const
 
 
 	if(m_vec4 == NULL)
-	{
 		m_vec4 = new vector_type;
-		m_vec4->resize(const_d.size());
-	}
-	else if(m_vec4->size() != const_d.size())
-	{
-		m_vec4->set_layouts(c.get_master_layout(), c.get_slave_layout());
-		m_vec4->resize(const_d.size());
-	}
 
+	m_vec4->resize(const_d.size());
 #ifdef UG_PARALLEL
-	// todo: change this for later "right" parallel implementation
+	m_vec4->set_layouts(c.get_master_layout(), c.get_slave_layout());
 	m_vec4->set_storage_type(PST_ADDITIVE);
 #endif
 	vector_type &d = *m_vec4;
