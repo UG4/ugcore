@@ -111,13 +111,10 @@ template <> struct block_traits<MathVector<3> >
 };
 
 
-int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<int> &pids,
-		std::vector<int> &processesWithLowerColor,
-		std::vector<int> &processesWithHigherColor);
-
 // CreateSymmConnectivityGraph:
 //------------------------------
 /**
+ * Creates a graph which has a connection from i to j if A_{ij} != 0 or A_{ji} != 0
  * \param A						the matrix A
  * \param SymmNeighGraph		later used to determine which neighbors' rating needs to be updated
  */
@@ -231,6 +228,7 @@ public:
 	}
 
 private:
+	//	get_aggressive_coarsening_interpolation
 	//! tries for all nodes which are uninterpolateable an indirect interpolation
 	//! \sa set_uninterpolateable_as_coarse
 	void get_aggressive_coarsening_interpolation()
@@ -247,6 +245,8 @@ private:
 		}
 	}
 
+
+	//	set_uninterpolateable_as_coarse
 	//! sets all nodes which are uninterpolateable as coarse
 	//! \sa get_aggressive_coarsening_interpolation
 	void set_uninterpolateable_as_coarse()

@@ -48,6 +48,36 @@ inline void get_testvector_xy(DenseVector<VariableArray1<double> > &testvector, 
 
 */
 
+
+
+template<typename matrix_type, typename vector_type>
+double ScalProd(const vector_type &v1, const matrix_type &M, const vector_type &v2)
+{
+	double sum=0.0;
+	UG_ASSERT(v1.size() == M.num_rows() && M.num_cols() == v2.size(), "size mismatch");
+	for(size_t i=0; i < v1.size(); ++i)
+	{
+		for(typename matrix_type::const_row_iterator it = M.begin_row(i); it != M.end_row(i); ++it)
+			sum += v1[i] * it.value() * v2[i];
+	}
+	return sum;
+}
+
+template<typename matrix_type, typename vector_type>
+double EnergyProd(const vector_type &v1, const matrix_type &M)
+{
+	double sum=0.0;
+	UG_ASSERT(v1.size() == M.num_rows() && M.num_cols() == v1.size(), "size mismatch");
+	for(size_t i=0; i < v1.size(); ++i)
+	{
+		for(typename matrix_type::const_row_iterator it = M.begin_row(i); it != M.end_row(i); ++it)
+			sum += (v1[i]*v1[i]) * it.value();
+	}
+	return sum;
+}
+
+
+
 template<typename matrix_type, typename vector_type>
 void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector,
 		size_t iTestvectorDamps)
@@ -60,6 +90,8 @@ void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector,
 		for(size_t i=0; i<A_OL2.num_rows(); i++)
 			big_testvector[i] = big_testvector[i] - 0.6*d[i]/A_OL2(i,i);
 	}
+
+	VecScaleAssign(big_testvector, 1/sqrt(EnergyProd(big_testvector, A_OL2)), big_testvector);
 }
 
 template<typename matrix_type, typename vector_type>

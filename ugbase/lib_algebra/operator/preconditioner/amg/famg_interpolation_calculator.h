@@ -68,7 +68,14 @@ void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1, s
 		bvisited[onlyN2[i]] = false;
 }
 
-
+/**
+ * FAMGInterpolationCalculator
+ *
+ * This class calculates the interpolation weights. It should perhaps be merged with FAMGLevelCalculator
+ * its only public member functions are
+ * void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors, famg_nodes &rating)
+ * void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	famg_nodes &rating)
+ */
 template<typename matrix_type, typename vector_type>
 class FAMGInterpolationCalculator
 {
@@ -84,48 +91,18 @@ public:
 		m_delta = delta;
 		m_theta = theta;
 		m_damping = damping;
+		testvectorsExtern = true;
 	}
 
-
-	void calculate_testvectors(size_t node)
-	{
-		FAMG_PROFILE_FUNC();
-		localTestvector.resize(m_testvectors.size());
-		for(size_t k=0; k<m_testvectors.size(); k++)
-		{
-			localTestvector[k].resize(onlyN1.size()+1);
-
-			for(size_t j=0; j<onlyN1.size(); j++)
-				localTestvector[k][j] = m_testvectors[k][onlyN1[j]];
-
-			localTestvector[k][onlyN1.size()] = m_testvectors[k][node];
-		}
-	}
-
-	void add_additional_testvectors_to_H()
-	{
-		FAMG_PROFILE_FUNC();
-		// skip first vector (it is approximated exactly)
-		// /test if other way round is faster/
-		for(size_t r = 0; r < onlyN1.size(); r++)
-			for(size_t c = 0; c < onlyN1.size(); c++)
-			{
-				double s = 0;
-				for(size_t k=1; k<m_testvectors.size(); k++)
-					s+= m_omega[k] * localTestvector[k][r] * localTestvector[k][c];
-				H(r, c) += s;
-			}
-	}
 
 	// get_possible_parent_pairs:
 	//---------------------------------------
 	/** calculates of an index i a list of interpolating parent pairs.
 	 * \param i						node index for which to calculate possible parent pairs
-	 * \param possible_neighbors	list of possible parent pairs
-	 * \param nodeinfo				info of the node. possibly set to coarse or fine.
+	 * \param possible_neighbors	here goes list of possible parent pairs
+	 * \param rating				fine/coarse infos of the nodes
 	 */
-	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors,
-			famg_nodes &rating)
+	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors, famg_nodes &rating)
 	{
 		FAMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
@@ -143,7 +120,6 @@ public:
 
 		// calculate testvector
 		calculate_testvectors(i);
-		add_additional_testvectors_to_H();
 
 		DenseMatrix<FixedArray2<double, 3, 3> > KKT;
 		DenseVector<FixedArray1<double, 3> > rhs;
@@ -154,6 +130,8 @@ public:
 
 		int i_min = -1;
 		double f_min = 1e12;
+
+		const double &aii = A_OL2(i,i);
 		for(size_t n=0; n < onlyN1.size(); n++)
 		{
 			if(A.is_isolated(onlyN1[n]) || !rating.i_can_set_coarse(onlyN1[n]))
@@ -205,13 +183,14 @@ public:
 				s.F = 	q[0] * (KKT(0,0) * q[0] + KKT(0,1) * q[1] + /* 1.0 */ Hi[n]) +
 						q[1] * (KKT(1,0) * q[0] + KKT(1,1) * q[1] + /* 1.0 */ Hi[m]) +
 						/*1 */ (Hi[n] * q[0] + Hi[m] * q[1] + Hi[i_index]);
-
+				// diagonal scaling is made here:
+				s.F *= aii;
 				UG_DLOG(LIB_ALG_AMG, 2, "F: " << s.F << "\n");
 
 				if(s.F > m_delta) continue;
 				if(s.F < f_min)
 				{
-					f_min = s.F;
+					f_min =s.F;
 					i_min = i_neighborpairs.size();
 				}
 				s.parents[0].from = onlyN1[n];
@@ -263,7 +242,7 @@ public:
 	 * if neighbors are fine, their interpolation form coarse nodes is used (indirect)
 	 * \param i			node index for which to calculate possible parent pairs
 	 * \param P			matrix for the interpolation
-	 * \param rating
+	 * \param rating	fine/coarse infos of the nodes
 	 */
 	template<typename prolongation_matrix_type>
 	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	famg_nodes &rating)
@@ -277,7 +256,7 @@ public:
 		// get testvector
 		calculate_testvectors(i);
 
-		add_additional_testvectors_to_H();
+		//const double &aii = A_OL2(i,i);
 
 		std::vector<size_t> coarse_neighbors;
 		for(size_t j=0; j<onlyN1.size(); j++)
@@ -336,7 +315,7 @@ public:
 				t.resize(q.size());
 				// todo: calc F
 				//MatMult(t, 1.0, H, q);
-				double F = 0; //VecDot(q, t);
+				double F = 0; //aii * VecDot(q, t);
 
 				if(F > m_delta)
 				{
@@ -393,7 +372,7 @@ public:
 				t.resize(q.size());
 				// todo: calc F
 				//MatMult(t, 1.0, H, q);
-				double F = 0; //VecDot(q, t);
+				double F = 0; //aii * VecDot(q, t);
 
 				if(F > m_delta)
 				{
@@ -428,7 +407,75 @@ public:
 
 
 private:
-	void calculate_H_from_S()
+	/**
+	 * get_H
+	 * \param i 		central node i
+	 * \param rating	only used for debug output (get_orinal_index)
+	 */
+	bool get_H(size_t i, famg_nodes &rating)
+	{
+		FAMG_PROFILE_FUNC();
+		// replace this with
+		// stdvector<stdvector<size_t> > neighbors(3);
+		/// stdvector<size_t> &onlyN1 = neighbors[1];
+		/// stdvector<size_t> &onlyN2 = neighbors[2];
+		// GetNeighborhoodHierachy(A, i, neighbors, bvisited);
+
+		// 1. Get Neighborhood N1 and N2 of i.
+		bvisited.resize(A_OL2.num_rows(), false);
+
+		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
+
+		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN1, "\nn1-neighbors");
+		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN2, "n2-neighbors");
+
+		if(onlyN1.size() == 0)
+			return false;
+
+		N2 = onlyN1;
+		N2.push_back(i);
+		N2.insert(N2.end(), onlyN2.begin(), onlyN2.end());
+
+		IF_DEBUG(LIB_ALG_AMG, 2)
+		{
+			UG_LOG("\nN1 ");
+			for(size_t i=0; i<onlyN1.size(); i++)
+			{
+				if(i>0) UG_LOG(", ");
+				UG_LOG(rating.get_original_index(onlyN1[i]));
+			}
+			UG_LOG("\n");
+			//print_vector(onlyN2, "\nN2");
+		}
+
+		// 2. get submatrix in A_OL2 on N2
+
+		S.resize(N2.size(), N2.size());
+		S = 0.0;
+
+		localMatrix_from_mat_and_array<DenseMatrix<VariableArray2<double> > >
+		localMatrix(S, &N2[0], &N2[0]);
+		A_OL2.get(localMatrix);
+
+		//IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("\nsubA");
+
+		// 3. calculate H from submatrix A
+		calculate_H_from_local_A();
+
+		//IF_DEBUG(LIB_ALG_AMG, 3) H.maple_print("\nsubH");
+
+		return true;
+	}
+
+	/**
+	 * calculate_H_from_local_A
+	 * calculates locally
+	 * - F-Smoothing SF = 1-w DF^{-1} A  (on only1, i, only2)
+	 * - S = SF (1-w D^{-1} A)			 (on only1, i, only2)
+	 * - H = H = S Y S^T				 (on only1)
+	 * - Hi[.] = H(., i)				 (on only1)
+	 */
+	void calculate_H_from_local_A()
 	{
 		FAMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
@@ -518,73 +565,97 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 2) print_vector(Hi, "Hi");
 	}
-	bool get_H(size_t i, famg_nodes &rating)
+
+	// global_to_local_testvectors
+	/** calculates the local testvectors
+	 * \param node the fine node to be interpolated
+	 *	note: das mit den testvektoren ist noch nicht so sicher:
+	 *	sie müssen ja theoretisch 2 mal geglättet werden. 1x normal jacobi,
+	 *	und dann ein 2. mal nur auf den feinen knoten. und danach muss noch
+	 *	und $\frac 1 {\abs{t}_A}$ geteilt werden. Leider weiß man aber ja vorher noch nicht,
+	 *	und welche Knoten fein sind. Dh. im Moment ist das so: Man macht einmal Jacobi,
+	 *	und berechnet dann mal $\frac 1 {\abs{t}_A}$, und macht dann lokal nur noch so eine
+	 *	und Nachglättung, wenn die globalen Testvektoren in lokale Testvektoren umgerechnet werden.
+	 */
+	void global_to_local_testvectors(size_t node)
 	{
 		FAMG_PROFILE_FUNC();
-		// replace this with
-		// stdvector<stdvector<size_t> > neighbors(3);
-		/// stdvector<size_t> &onlyN1 = neighbors[1];
-		/// stdvector<size_t> &onlyN2 = neighbors[2];
-		// GetNeighborhoodHierachy(A, i, neighbors, bvisited);
-
-		bvisited.resize(A_OL2.num_rows(), false);
-
-		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
-
-		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN1, "\nn1-neighbors");
-		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN2, "n2-neighbors");
-
-		if(onlyN1.size() == 0)
-			return false;
-
-		N2 = onlyN1;
-		N2.push_back(i);
-		N2.insert(N2.end(), onlyN2.begin(), onlyN2.end());
-
-		IF_DEBUG(LIB_ALG_AMG, 2)
+		localTestvector.resize(m_testvectors.size());
+		for(size_t k=0; k<m_testvectors.size(); k++)
 		{
-			UG_LOG("\nN1 ");
-			for(size_t i=0; i<onlyN1.size(); i++)
-			{
-				if(i>0) UG_LOG(", ");
-				UG_LOG(rating.get_original_index(onlyN1[i]));
-			}
-			UG_LOG("\n");
-			//print_vector(onlyN2, "\nN2");
+			localTestvector[k].resize(onlyN1.size()+1);
+
+			for(size_t j=0; j<onlyN1.size(); j++)
+				localTestvector[k][j] = m_testvectors[k][onlyN1[j]];
+
+			localTestvector[k][onlyN1.size()] = m_testvectors[k][node];
 		}
 
-		// get submatrix in A_OL2 on N2
+		// smooth localTestvectors:
+		for(size_t k=0; k<m_testvectors.size(); k++)
+		{
+			double s=0;
+			for(size_t j=0; j < onlyN1.size()+1; j++)
+				s += localTestvector[k][j] * SF[j];
 
-		S.resize(N2.size(), N2.size());
-		S = 0.0;
-
-		localMatrix_from_mat_and_array<DenseMatrix<VariableArray2<double> > >
-		localMatrix(S, &N2[0], &N2[0]);
-		A_OL2.get(localMatrix);
-
-		//IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("\nsubA");
-
-		calculate_H_from_S();
-
-		//IF_DEBUG(LIB_ALG_AMG, 3) H.maple_print("\nsubH");
-
-		return true;
+			localTestvector[k][onlyN1.size()] = s;
+		}
 	}
 
+	void calculate_EV_testvectors(size_t node)
+	{
+		UG_ASSERT(0, "not yet implemented");
+	}
+
+	// calculate_testvectors
+	//---------------------------------------
+	void calculate_testvectors(size_t node)
+	{
+		FAMG_PROFILE_FUNC();
+
+		if(testvectorsExtern == true)
+		{
+			global_to_local_testvectors(node);
+			add_additional_testvectors_to_H();
+		}
+		else
+			calculate_EV_testvectors(node);
+	}
+
+	/** add_additional_testvectors_to_H
+	 * adds additional factors from the testvectors to H, namely
+	 * H += \omega_k t^{(k)} t^{(k)}^T
+	 * for the testvectors 1 .. m_testvectors.size()-1
+	 * (testvector 0 is approximated exactly)
+	 */
+	void add_additional_testvectors_to_H()
+	{
+		FAMG_PROFILE_FUNC();
+		// skip first vector (it is approximated exactly)
+		// /test if other way round is faster/
+		for(size_t r = 0; r < onlyN1.size(); r++)
+			for(size_t c = 0; c < onlyN1.size(); c++)
+			{
+				double s = 0;
+				for(size_t k=1; k<m_testvectors.size(); k++)
+					s+= m_omega[k] * localTestvector[k][r] * localTestvector[k][c];
+				H(r, c) += s;
+			}
+	}
 private:
 	// for speedup purposes, we don't want these arrays to be re-allocated all the time,
 	// thats why they are stored here.
 	stdvector<bool> bvisited;					// used for N2-neighborhood calculation
 
-	// todo: instead of VariableArray2, use
+	// todo: instead of VariableArray2, use ReserveableArray2
 	// onlyN1: 1-neighborhood without i
 	// onlyN2: 2-neighborhood without i and N1.
 	DenseMatrix<VariableArray2<double> > S;		//< local matrix S = 1 - wD^{-1}A on {onlyN1, i, onlyN2}
-	stdvector<double> SF;						//< SF = 1 -wD^{-1} A(ix,.)
+	stdvector<double> SF;						//< SF = 1 -wD^{-1} A(ix,.)  on {onlyN1, i, onlyN2}
 	stdvector<double> D;						//< diagonal
-	stdvector<double> Dinv;						//< diagonal
+	stdvector<double> Dinv;						//< diagonal on {onlyN1, i, onlyN2}
 	DenseMatrix<VariableArray2<double> > H;		//< matrix H = S Y S^T  on {onlyN1}
-	stdvector<double> Hi;						//< H(i, onlyN1)
+	stdvector<double> Hi;						//< H(i, onlyN1) on {onlyN1}
 
 	// for the KKT system
 	stdvector<stdvector<double> > localTestvector;			//< on {onlyN1, i}
@@ -607,6 +678,8 @@ private:
 	double m_damping;
 	stdvector< vector_type > &m_testvectors;
 	stdvector<double> &m_omega;
+
+	bool testvectorsExtern;
 };
 
 
