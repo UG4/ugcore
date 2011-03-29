@@ -37,7 +37,7 @@ LuaError::LuaError(const char* msg, const char* filename = ""): UGError(msg) {
 	size_t i = msg_.find_first_of(':');
 	// prepend absolute path to relative script path
 	// (needed for correct parsing of unit tests in hudson)
-	m_file = string(get_current_dir_name()) + filename;
+	m_file = string(get_current_dir_name()) + '/' + filename;
 
 	int l = atoi(msg_.substr(i + 1, msg_.find(':', i)).c_str());
 	m_line = (l > 0) ? l : 1;
