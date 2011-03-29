@@ -186,6 +186,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		                 algebra_index_vector_type& constrainedIndex,
 		                 std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
+		//	check number of indices passed
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
@@ -195,29 +196,72 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 				}
 			}
 
+		//	handle each contrained index
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
+			//	loop coupling between constrained dof -> constraining dof
 				for(typename matrix_type::row_iterator conn = A.begin_row(constrainedIndex[i]);
 						conn != A.end_row(constrainedIndex[i]); ++conn)
 				{
-					typename matrix_type::value_type block = conn.value();
+				//	copy value of coupling entry
+					typename matrix_type::value_type& block = conn.value();
 					const size_t j = conn.index();
 
-					A(constrainedIndex[i], j) = 0.0;
-
+				//	multiply the cpl value by the inverse number of constraining
+				//	indices
 					block *= 1./(vConstrainingIndices.size());
 
+				//	add the coupling to the constraining indices rows
 					for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
 						A(vConstrainingIndices[k][i], j) += block;
+
+				//	set the splitted coupling to zero
+					block = 0.0;
 				}
 
-				A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
+			//	loop coupling between constraining dof -> constrained dof
+				for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
+				{
+				//	get entry
+					typename matrix_type::value_type& block
+							= A(vConstrainingIndices[k][i], constrainedIndex[i]);
 
-				number frac = -1.0/(vConstrainingIndices.size());
-				for(size_t j=0; j < vConstrainingIndices.size();++j)
-					A(constrainedIndex[i], vConstrainingIndices[j][i]) = frac;
+				//	scale by weight
+					block *= 1./(vConstrainingIndices.size());
+
+				//	add coupling
+					for(size_t m = 0; m < vConstrainingIndices.size(); ++m)
+					{
+						A(vConstrainingIndices[k][i],
+						  vConstrainingIndices[m][i]) += block;
+					}
+
+				//	set the splitted coupling to zero
+					block = 0.0;
+				}
+
+			//	add coupling constrained dof -> constrained dof
+			//	get entry
+				typename matrix_type::value_type& block
+						= A(constrainedIndex[i], constrainedIndex[i]);
+
+			//	scale by weight
+				block *= (1./(vConstrainingIndices.size()))*
+							(1./(vConstrainingIndices.size()));
+
+			//	add coupling
+				for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
+					for(size_t m = 0; m < vConstrainingIndices.size(); ++m)
+				{
+					A(vConstrainingIndices[k][i],
+					  vConstrainingIndices[m][i]) += block;
+				}
+
+			//	set the splitted coupling to zero
+				block = 0.0;
 			}
 
+		//	we're done
 			return true;
 		}
 
@@ -225,6 +269,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		                      algebra_index_vector_type& constrainedIndex,
 		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
+		//	check number of indices passed
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
@@ -234,14 +279,20 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 				}
 			}
 
+		//	loop all constrained dofs
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
+			//	set diag of row to identity
 				A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
 
+			//	set coupling to all contraining dofs the inverse of the
+			//	number of contraining dofs
 				number frac = -1.0/(vConstrainingIndices.size());
 				for(size_t j=0; j < vConstrainingIndices.size();++j)
 					A(constrainedIndex[i], vConstrainingIndices[j][i]) = frac;
 			}
+
+		//	we're done
 			return true;
 		}
 
@@ -249,6 +300,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		               algebra_index_vector_type& constrainedIndex,
 		               std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
+		//	check number of indices passed
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
@@ -258,14 +310,19 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 				}
 			}
 
+		//	loop constrained indices
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
+			//	get constrained rhs
 				typename vector_type::value_type& val = rhs[constrainedIndex[i]];
 				val *= 1./(vConstrainingIndices.size());
 
-				// split equally on all constraining indices
+			// 	split equally on all constraining indices
 				for(size_t j=0; j < vConstrainingIndices.size(); ++j)
 					rhs[vConstrainingIndices[j][i]] += val;
+
+			//	set rhs to zero for contrained index
+				val = 0.0;
 			}
 			return true;
 		}
