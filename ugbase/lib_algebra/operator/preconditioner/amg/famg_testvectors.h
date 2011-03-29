@@ -79,7 +79,7 @@ double EnergyProd(const vector_type &v1, const matrix_type &M)
 
 
 template<typename matrix_type, typename vector_type>
-void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector,
+void CalculateTestvector(const matrix_type &A_OL2, vector_type &big_testvector,
 		size_t iTestvectorDamps)
 {
 	FAMG_PROFILE_FUNC();
@@ -95,7 +95,7 @@ void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector,
 }
 
 template<typename matrix_type, typename vector_type>
-void CalculateNextTestvector(matrix_type &R, vector_type &big_testvector)
+void CalculateNextTestvector(const matrix_type &R, vector_type &big_testvector)
 {
 	FAMG_PROFILE_FUNC();
 	vector_type t;

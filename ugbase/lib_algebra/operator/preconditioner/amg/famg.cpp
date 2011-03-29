@@ -202,7 +202,7 @@ private:
 	IndexLayout &nextLevelSlaveLayout;
 
 #else
-	matrix_type &A_OL2;
+	const matrix_type &A_OL2;
 #endif
 
 
@@ -506,7 +506,9 @@ public:
 		for(size_t i=0; i<m_testvectors.size(); i++)
 			CalculateNextTestvector(R, m_testvectors[i]);
 
+#ifdef UG_PARALLEL
 		PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+#endif
 
 	}
 
