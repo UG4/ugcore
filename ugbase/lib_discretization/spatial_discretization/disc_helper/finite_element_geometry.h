@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 
 #include "lib_discretization/quadrature/quadrature.h"
+#include <cmath>
 
 namespace ug{
 
@@ -78,7 +79,7 @@ class FEGeometry
 		number weight(size_t ip) const
 		{
 			UG_ASSERT(ip < m_detJ.size(), "Wrong ip.");
-			return m_detJ[ip] * m_rQuadRule.weight(ip);
+			return fabs(m_detJ[ip]) * m_rQuadRule.weight(ip);
 		}
 
 		/// local integration point
