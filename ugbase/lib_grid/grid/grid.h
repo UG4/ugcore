@@ -234,6 +234,15 @@ class Grid
 	///	this method creates a new volume, which has the same type as pCloneMe.
 		VolumeIterator create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GeometricObject* pParent = NULL);
 
+	///	Reserves memory for the creation of the given object type
+	/**	Calls to this method are optional, but can improve runtime.
+	 * Specify the total number of objects which the grid should be
+	 * capable to hold (if more are required, the grid will automatically
+	 * adjust sizes)
+	 */
+		template <class TGeomObj>
+		void reserve(size_t num);
+
 	////////////////////////////////////////////////
 	//	element deletion
 		void erase(GeometricObject* geomObj);

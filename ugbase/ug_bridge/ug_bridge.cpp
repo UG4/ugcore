@@ -66,8 +66,9 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 		
 		bResult &= RegisterMiscFunctions(reg, parentGroup);
 
+		bResult &= RegisterDomainInterface(reg, parentGroup);
+
 		#ifdef UG_ALGEBRA
-			bResult &= RegisterDomainInterface(reg, parentGroup);
 			bResult &= RegisterUserData(reg, parentGroup);
 			bResult &= RegisterStaticLibAlgebraInterface(reg, parentGroup);
 			bResult &= RegisterStaticLibDiscretizationInterface(reg, parentGroup);

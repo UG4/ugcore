@@ -117,6 +117,34 @@ void GlobalMultiGridRefiner::refine()
 		}
 	}
 
+//	the old top level
+	int oldTopLevel = mg.num_levels() - 1;
+
+//	reserve enough memory to speed up the algo
+	GMGR_PROFILE(GMGR_Reserve);
+	{
+		int l = oldTopLevel;
+		mg.reserve<VertexBase>(mg.num<VertexBase>() +
+					+ mg.num<VertexBase>(l) + mg.num<EdgeBase>(l)
+					+ mg.num<Quadrilateral>(l) + mg.num<Hexahedron>(l));
+
+		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
+					+ 2 * mg.num<EdgeBase>(l) + 3 * mg.num<Triangle>(l)
+					+ 4 * mg.num<Quadrilateral>(l) + 3 * mg.num<Prism>(l)
+					+ mg.num<Tetrahedron>(l)
+					+ 4 * mg.num<Pyramid>(l) + 6 * mg.num<Hexahedron>(l));
+
+		mg.reserve<Face>(mg.num<Face>()
+					+ 4 * mg.num<Face>(l) + 10 * mg.num<Prism>(l)
+					+ 8 * mg.num<Tetrahedron>(l)
+					+ 9 * mg.num<Pyramid>(l) + 12 * mg.num<Hexahedron>(l));
+
+		mg.reserve<Volume>(mg.num<Volume>()
+					+ 8 * mg.num<Tetrahedron>(l) + 8 * mg.num<Prism>(l)
+					+ 6 * mg.num<Pyramid>(l) + 8 * mg.num<Hexahedron>(l));
+	}
+	GMGR_PROFILE_END();
+
 //	notify derivates that refinement begins
 	refinement_step_begins();
 	
@@ -141,9 +169,6 @@ void GlobalMultiGridRefiner::refine()
 	EdgeDescriptor ed;
 	FaceDescriptor fd;
 	VolumeDescriptor vd;
-
-//	the old top level
-	int oldTopLevel = mg.num_levels() - 1;
 	
 //LOG("creating new vertices\n");
 //	create new vertices from marked vertices
@@ -251,6 +276,8 @@ GMGR_PROFILE_END();
 			continue;
 
 		Volume* v = *iter;
+		GMGR_PROFILE(GMGR_Refining_Volume);
+
 	//	collect child-vertices
 		//GMGR_PROFILE(GMGR_CollectingVolumeVertices);
 		vVrts.clear();
@@ -273,7 +300,6 @@ GMGR_PROFILE_END();
 			vFaceVrts.push_back(mg.get_child_vertex(mg.get_face(v, j)));
 		//GMGR_PROFILE_END();
 
-		//GMGR_PROFILE(GMGR_Refining_Volume);
 		VertexBase* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
 					NULL, Vertex(), &vVrts.front())){
@@ -292,7 +318,7 @@ GMGR_PROFILE_END();
 		else{
 			LOG("  WARNING in Refine: could not refine volume.\n");
 		}
-		//GMGR_PROFILE_END();
+		GMGR_PROFILE_END();
 	}
 
 //	done - clean up

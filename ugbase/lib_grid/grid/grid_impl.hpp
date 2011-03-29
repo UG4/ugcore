@@ -79,6 +79,17 @@ Grid::create_and_replace(typename geometry_traits<TGeomObj>::geometric_base_obje
 }
 
 ////////////////////////////////////////////////////////////////////////
+template <class TGeomObj>
+void Grid::reserve(size_t num)
+{
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+				invalid_geometry_type);
+
+	m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID]
+	         .m_attachmentPipe.reserve(num);
+}
+
+////////////////////////////////////////////////////////////////////////
 //	erase
 template <class GeomObjIter>
 void Grid::erase(const GeomObjIter& iterBegin, const GeomObjIter& iterEnd)
