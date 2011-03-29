@@ -481,8 +481,10 @@ void LuaList()
 
 				names.push_back(luastr);
 		}
-		lua_pop(L, 1); // remove global from stack
+		lua_pop(L, 1); // remove table entry from stack
 	}
+	lua_pop(L, 1); // remove global _G from stack
+
 	classes.clear();
 	for(size_t j=0; j<reg.num_classes(); ++j)
 		classes.push_back(reg.get_class(j).name());
