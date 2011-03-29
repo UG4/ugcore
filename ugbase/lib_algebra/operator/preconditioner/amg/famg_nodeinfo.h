@@ -276,6 +276,10 @@ public:
 	{
 		return nodes[i].is_valid_rating() || nodes[i].is_coarse();
 	}
+	void calculate_unassigned()
+	{
+		m_iUnassigned = size();
+	}
 #endif
 
 	void set_fine(size_t index)

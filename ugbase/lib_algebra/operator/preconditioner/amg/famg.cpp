@@ -41,7 +41,7 @@
 #include "maxheap.h"
 #include "famg.h"
 #include <set>
-
+#include <string>
 
 #ifdef UG_PARALLEL
 std::string GetProcFilename(std::string name, std::string extension)
@@ -50,7 +50,7 @@ std::string GetProcFilename(std::string name, std::string extension)
 }
 
 #else
-std::string GetProcFilename(string name, string extension)
+std::string GetProcFilename(std::string name, std::string extension)
 {
 	return name + "_0" + extension;
 }
