@@ -10,6 +10,18 @@
 
 #include "assembled_linear_operator.h"
 
+//#define PROFILE_LIN_ASS
+#ifdef PROFILE_LIN_ASS
+	#define LINASS_PROFILE_FUNC()		PROFILE_FUNC()
+	#define LINASS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define LINASS_PROFILE_END()		PROFILE_END()
+#else
+	#define LINASS_PROFILE_FUNC()
+	#define LINASS_PROFILE_BEGIN(name)
+	#define LINASS_PROFILE_END()
+#endif
+
+
 namespace ug{
 
 template <typename TDoFDistribution, typename TAlgebra>
@@ -81,25 +93,31 @@ init()
 	const size_t numDoFs = m_pDoFDistribution->num_dofs();
 
 //	Resize Matrix and set to zero
+	LINASS_PROFILE_BEGIN(AssLinOp_reset);
 	m_J.resize(numDoFs, numDoFs);
 	m_J.set(0.0);
 
 //	Resize rhs
 	m_rhs.resize(numDoFs);
+	LINASS_PROFILE_END();
 
 //	Compute matrix (and rhs if needed)
 	if(m_bAssembleRhs)
 	{
 	//	reset rhs to zero
+		LINASS_PROFILE_BEGIN(AssLinOp_setRHSZero);
 		m_rhs.set(0.0);
+		LINASS_PROFILE_END();
 
 	//	assemble matrix and rhs in one loop
+		LINASS_PROFILE_BEGIN(AssLinOp_assLinear);
 		if(m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution) != IAssemble_OK)
 		{
 			UG_LOG("ERROR in AssembledLinearOperator::init:"
 					" Cannot assemble Matrix and Rhs.\n");
 			return false;
 		}
+		LINASS_PROFILE_END();
 
 	//	remember parallel storage type of rhs
 		#ifdef UG_PARALLEL
