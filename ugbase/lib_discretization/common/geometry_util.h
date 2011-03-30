@@ -430,8 +430,8 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 		const int dim = TRefElem::dim;
 
 		// parameters
-		number bc, t;
-		size_t p0, p1;
+		number bc = 0., t = 0.;
+		size_t p0 = 0, p1 = 0;
 
 		// find side
 		for(sideOut = 0; sideOut < rRefElem.num_obj(dim-1); ++sideOut)
@@ -478,8 +478,8 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 		const int dim = TRefElem::dim;
 
 		// parameters
-		number bc0, bc1, t;
-		size_t p0, p1, p2;
+		number bc0 = 0., bc1 = 0., t = 0.;
+		size_t p0 = 0, p1 = 0, p2 = 0;
 
 		// find side
 		for(sideOut = 0; sideOut < rRefElem.num_obj(dim-1); ++sideOut)

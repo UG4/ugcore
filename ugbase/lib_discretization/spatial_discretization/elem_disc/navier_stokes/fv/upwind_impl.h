@@ -365,7 +365,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 
  	// 	side and intersection vectors
  		static const int refDim = FV1Geometry<TElem, dim>::dim;
- 		size_t side;
+ 		size_t side = 0;
  		MathVector<dim> globalIntersection;
  		MathVector<refDim> localIntersection;
 
