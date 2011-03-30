@@ -4,7 +4,10 @@
 
 #include "ug_bridge.h"
 #include "registry.h"
-#include "lib_algebra/algebra_selector.h"
+
+#ifdef UG_ALGEBRA
+	#include "lib_algebra/algebra_selector.h"
+#endif
 
 
 namespace ug
