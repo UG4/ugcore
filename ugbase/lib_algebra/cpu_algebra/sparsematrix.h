@@ -38,13 +38,13 @@ template<typename vec_type> class Vector;
  * \sa matrixrow, CreateAsMultiplyOf
  * \param T blocktype
  */
-template<typename T>
-class SparseMatrix
+template<typename TValueType> class SparseMatrix
 {
 public:
-	typedef T value_type;
+	typedef TValueType value_type;
 	enum {rows_sorted=true};
 
+	typedef SparseMatrix<value_type> this_type;
 	typedef matrixrow<value_type> row_type;
 	typedef matrixrow<value_type> matrixrow_type;
 
@@ -90,11 +90,11 @@ public:
 
 
 	//! create this as a transpose of SparseMatrix B
-	bool set_as_transpose_of(const SparseMatrix &B, double scale=1.0);
+	bool set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
 
 	//! create/recreate this as a copy of SparseMatrix B
-	bool set_as_copy_of(const SparseMatrix<T> &B, double scale=1.0);
-	SparseMatrix<T> &operator = (const SparseMatrix<T> &B)
+	bool set_as_copy_of(const SparseMatrix<value_type> &B, double scale=1.0);
+	SparseMatrix<value_type> &operator = (const SparseMatrix<value_type> &B)
 	{
 		set_as_copy_of(B);
 		return *this;
@@ -145,7 +145,7 @@ public:
 	inline bool is_isolated(size_t i) const;
 
 	bool scale(double d);
-	SparseMatrix<T> &operator *= (double d) { scale(d); return *this; }
+	SparseMatrix<value_type> &operator *= (double d) { scale(d); return *this; }
 
 	// submatrix set/get functions
 	//-------------------------------
@@ -222,6 +222,7 @@ public:
 	//! returns number of connections of row row.
 	inline size_t num_connections(size_t row) const;
 
+	//! calculates dest += alpha * A[row, .] v;
 	template<typename vector_t>
 	inline void mat_mult_add_row(size_t row, typename vector_t::value_type &dest, double alpha, const vector_t &v) const;
 public:
@@ -346,6 +347,7 @@ public:
 	};
 
 
+	// iterators
 	const_row_iterator begin_row(size_t row) const
 	{
 		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
@@ -358,16 +360,16 @@ public:
 		return row_iterator(pRowStart[row], pRowEnd[row]);
 	}
 
-	row_iterator end_row(size_t row)
-	{
-		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
-		return row_iterator(pRowEnd[row], pRowEnd[row]);
-	}
-
 	const_row_iterator end_row(size_t row) const
 	{
 		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
 		return const_row_iterator(pRowEnd[row], pRowEnd[row]);
+	}
+
+	row_iterator end_row(size_t row)
+	{
+		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
+		return row_iterator(pRowEnd[row], pRowEnd[row]);
 	}
 
 public:
