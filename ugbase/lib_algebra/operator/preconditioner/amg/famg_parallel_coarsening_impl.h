@@ -436,7 +436,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 			for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			{
 				size_t index = interface.get_element(iter2);
-				rating.OLtype[index] |= 1 << i+1;
+				rating.OLtype[index] |= (1 << (i+1));
 			}
 		}
 	}

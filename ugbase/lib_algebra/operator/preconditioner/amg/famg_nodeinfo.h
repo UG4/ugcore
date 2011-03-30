@@ -211,7 +211,7 @@ public:
 
 	bool is_slave(size_t i, int OLlevel=0)
 	{
-		return OLtype[i] & (1 << OLlevel+1);
+		return OLtype[i] & (1 << (OLlevel+1));
 	}
 
 	bool i_must_assign(size_t i)

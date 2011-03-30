@@ -28,7 +28,7 @@ private:
 	BoxSort(const BoxSort<T> &other);
 
 public:
-	BoxSort() : arr(NULL), m_box(), m_posInBox(NULL), m_values(NULL), m_size(0), m_height(0)
+	BoxSort() : arr(NULL), m_box(), m_posInBox(), m_values(), m_size(0), m_height(0)
 	{
 
 	}

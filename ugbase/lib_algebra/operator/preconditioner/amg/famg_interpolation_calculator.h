@@ -668,8 +668,10 @@ private:
 		DenseVector<VariableArray1<double> > lambda;
 		lambda.resize(N);
 
-		int res = GeneralizedEigenvalueProblem(localS, X,
+		/*int res =*/
+		GeneralizedEigenvalueProblem(localS, X,
 						lambda, B, true);
+
 
 		// X.maple_print("X");
 		// lambda.maple_print("lambda");
