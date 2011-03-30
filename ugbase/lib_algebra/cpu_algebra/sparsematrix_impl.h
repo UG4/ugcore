@@ -198,7 +198,7 @@ SparseMatrix<T>::destroy()
 //!
 //! write in a empty SparseMatrix the transpose SparseMatrix of B.
 template<typename T>
-bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix &B, double scale)
+bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<T> &B, double scale)
 {
 	//destroy();
 	UG_ASSERT(rows == 0 && cols == 0, *this << " not empty.");
