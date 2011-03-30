@@ -235,7 +235,6 @@ private:
 	{
 		FAMG_PROFILE_FUNC();
 
-		UG_SET_DEBUG_LEVELS(4);
 		for(size_t i=0; i<A.num_rows(); i++)
 		{
 			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating, but has not been processed yet?");
@@ -535,43 +534,34 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	stdvector< vector_type > testvectors;
 	stdvector<double> omega;
 
-	if(m_testvectors.size() == 0 && m_vVectorWriters.size() == 0)
+	testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
+	omega.resize(m_vVectorWriters.size() + m_testvectors.size());
+
+	for(size_t i=0; i<m_testvectors.size(); i++)
 	{
-		testvectors.resize(1);
-		omega.resize(1);
-		omega[0] = 1.0;
-	}
-	else
-	{
-		testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
-		omega.resize(m_vVectorWriters.size() + m_testvectors.size());
-
-		for(size_t i=0; i<m_testvectors.size(); i++)
-		{
-			testvectors[i] = m_testvectors[i];
-			omega[i] = m_omegaVectors[i];
-		}
-
-		for(size_t i=0; i<m_vVectorWriters.size(); i++)
-		{
-			size_t index = i+m_testvectors.size();
-			m_vVectorWriters[i]->update(testvectors[index]);
-			omega[index] = m_omegaVectorWriters[i];
-
-			vector_type &vec = testvectors[index];
-
-			std::fstream file((m_writeMatrixPath + "testvector" + ToString(i) + ".values").c_str(),
-					std::ios::out);
-			for(size_t j=0; j<vec.size(); j++)
-				file << j << " " << (vec[j]) << std::endl;
-
-			WriteVectorToConnectionViewer((m_writeMatrixPath + "testvector" + ToString(i) +".mat").c_str(),
-					vec, m_amghelper.positions, 2); 
-
-		}
+		testvectors[i] = m_testvectors[i];
+		omega[i] = m_omegaVectors[i];
 	}
 
-	UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
+	for(size_t i=0; i<m_vVectorWriters.size(); i++)
+	{
+		size_t index = i+m_testvectors.size();
+		m_vVectorWriters[i]->update(testvectors[index]);
+		omega[index] = m_omegaVectorWriters[i];
+
+		vector_type &vec = testvectors[index];
+
+		std::fstream file((m_writeMatrixPath + "testvector" + ToString(i) + ".values").c_str(),
+				std::ios::out);
+		for(size_t j=0; j<vec.size(); j++)
+			file << j << " " << (vec[j]) << std::endl;
+
+		WriteVectorToConnectionViewer((m_writeMatrixPath + "testvector" + ToString(i) +".mat").c_str(),
+				vec, m_amghelper.positions, 2);
+
+	}
+
+	//UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
 
 	// testvectors will be altered by FAMGLevelCalculator
 	//UG_SET_DEBUG_LEVELS(4);

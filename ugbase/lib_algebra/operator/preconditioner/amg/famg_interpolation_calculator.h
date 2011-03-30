@@ -91,7 +91,7 @@ public:
 		m_delta = delta;
 		m_theta = theta;
 		m_damping = damping;
-		testvectorsExtern = true;
+		testvectorsExtern = (m_testvectors.size() > 0);
 	}
 
 
@@ -108,8 +108,14 @@ public:
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << "\n");
 
-		if(BlockNorm2(m_testvectors[0][i]) < 1e-12 ||
-			get_H(i, rating) == false)
+		if(testvectorsExtern && BlockNorm2(m_testvectors[0][i]) < 1e-12 )
+		{
+			UG_DLOG(LIB_ALG_AMG, 2, "testvector in " << i << " nearly 0, set as fine\n");
+			rating.set_fine(i);
+			return;
+		}
+
+		if(get_H(i, rating) == false)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "node has no connections, set as fine\n");
 			rating.set_fine(i);
@@ -158,8 +164,8 @@ public:
 				KKT(2, 1) = KKT(1, 2) = localTestvector[0][m];
 				KKT(2, 2) = 0.0;
 
-				rhs[0] = - Hi[n];
-				rhs[1] = - Hi[m];
+				rhs[0] = - H(i_index, n);
+				rhs[1] = - H(i_index, m);
 
 				UG_DLOG(LIB_ALG_AMG, 2, "checking parents " << n << " (" << rating.get_original_index(onlyN1[n]) << ") and " << m << " (" << rating.get_original_index(onlyN1[m]) << ")\n");
 				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
@@ -176,13 +182,13 @@ public:
 				neighborstruct2 s;
 
 				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
-				UG_DLOG(LIB_ALG_AMG, 3, "Hi[n] = " << Hi[n] << ", " << " Hi[m] = " << Hi[m] << " Hi[i_index] = " << Hi[i_index] << "\n");
+				UG_DLOG(LIB_ALG_AMG, 3, "H(i, n) = " << H(i_index, n) << ", " << " H(i, m) = " << H(i_index, m) << " H(i, i) = " << H(i_index, i_index) << "\n");
 
 				// calc q^T H q
 
-				s.F = 	q[0] * (KKT(0,0) * q[0] + KKT(0,1) * q[1] + /* 1.0 */ Hi[n]) +
-						q[1] * (KKT(1,0) * q[0] + KKT(1,1) * q[1] + /* 1.0 */ Hi[m]) +
-						/*1 */ (Hi[n] * q[0] + Hi[m] * q[1] + Hi[i_index]);
+				s.F = 	q[0] * (KKT(0,0) * q[0] + KKT(0,1) * q[1] + /* 1.0 */ H(i_index, n)) +
+						q[1] * (KKT(1,0) * q[0] + KKT(1,1) * q[1] + /* 1.0 */ H(i_index, m)) +
+						/*1 */ (H(i_index, n) * q[0] + H(i_index, m) * q[1] + H(i_index, i_index));
 				// diagonal scaling is made here:
 				s.F *= aii;
 				UG_DLOG(LIB_ALG_AMG, 2, "F: " << s.F << "\n");
@@ -265,6 +271,10 @@ public:
 
 		if(coarse_neighbors.size() >= 1)
 		{
+			rating.set_coarse(i);
+			return;
+
+#if 0
 			if(coarse_neighbors.size() == 1)
 			{
 				/*UG_LOG("only 1 coarse neighbor (" << rating.get_original_index(onlyN1[coarse_neighbors[0]]) << " for " << rating.get_original_index(i) << "?\n")
@@ -301,7 +311,7 @@ public:
 
 			rhs.resize(N+1);
 			for(size_t j=0; j < N; j++)
-				rhs[j] = -Hi[coarse_neighbors[j]];
+				rhs[j] = -H(i_index, coarse_neighbors[j]);
 			rhs[N] = -localTestvector[0][i_index];
 
 			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
@@ -341,6 +351,7 @@ public:
 				rating.set_coarse(i);
 				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system (coarse neighbors).\n");
 			}
+#endif
 		}
 		else
 		{
@@ -358,7 +369,7 @@ public:
 
 			rhs.resize(onlyN1.size()+1);
 			for(size_t j=0; j < onlyN1.size(); j++)
-				rhs[j] = -Hi[j];
+				rhs[j] = -H(i_index, j);
 			rhs[i_index] = -localTestvector[0][i_index];
 
 			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
@@ -457,7 +468,8 @@ private:
 		localMatrix(S, &N2[0], &N2[0]);
 		A_OL2.get(localMatrix);
 
-		//IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("\nsubA");
+		//IF_DEBUG(LIB_ALG_AMG, 3)
+		//S.maple_print("\nsubA");
 
 		// 3. calculate H from submatrix A
 		calculate_H_from_local_A();
@@ -538,11 +550,11 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 3)	S.maple_print("S_SF");
 
-		H.resize(onlyN1.size(),onlyN1.size());
+		H.resize(onlyN1.size()+1, onlyN1.size()+1);
 		// get H = S Y S^T
 		// todo: use symmetric H.
-		for(size_t r=0; r < onlyN1.size(); r++)
-			for(size_t c=r; c < onlyN1.size(); c++)
+		for(size_t r=0; r < onlyN1.size()+1; r++)
+			for(size_t c=r; c < onlyN1.size()+1; c++)
 			{
 				double s=0;
 				for(size_t j=0; j<N; j++)
@@ -552,18 +564,6 @@ private:
 			}
 
 		IF_DEBUG(LIB_ALG_AMG, 2)	H.maple_print("H");
-
-		// get Hi[.] = H(i_index, .)
-		Hi.resize(onlyN1.size()+1);
-		for(size_t r=0; r < onlyN1.size()+1; r++)
-		{
-			double s=0;
-			for(size_t j=0; j<N; j++)
-				s += S(r, j) * Dinv[j] * S(i_index, j);
-			Hi[r] = s;
-		}
-
-		IF_DEBUG(LIB_ALG_AMG, 2) print_vector(Hi, "Hi");
 	}
 
 	// global_to_local_testvectors
@@ -572,10 +572,10 @@ private:
 	 *	note: das mit den testvektoren ist noch nicht so sicher:
 	 *	sie mŸssen ja theoretisch 2 mal geglŠttet werden. 1x normal jacobi,
 	 *	und dann ein 2. mal nur auf den feinen knoten. und danach muss noch
-	 *	und $\frac 1 {\abs{t}_A}$ geteilt werden. Leider wei§ man aber ja vorher noch nicht,
-	 *	und welche Knoten fein sind. Dh. im Moment ist das so: Man macht einmal Jacobi,
-	 *	und berechnet dann mal $\frac 1 {\abs{t}_A}$, und macht dann lokal nur noch so eine
-	 *	und NachglŠttung, wenn die globalen Testvektoren in lokale Testvektoren umgerechnet werden.
+	 *	$\frac 1 {\abs{t}_A}$ geteilt werden. Leider wei§ man aber ja vorher noch nicht,
+	 *	welche Knoten fein sind. Dh. im Moment ist das so: Man macht einmal Jacobi,
+	 *	berechnet dann mal $\frac 1 {\abs{t}_A}$, und macht dann lokal nur noch so eine
+	 *	NachglŠttung, wenn die globalen Testvektoren in lokale Testvektoren umgerechnet werden.
 	 */
 	void global_to_local_testvectors(size_t node)
 	{
@@ -604,7 +604,80 @@ private:
 
 	void calculate_EV_testvectors(size_t node)
 	{
-		UG_ASSERT(0, "not yet implemented");
+		std::vector<std::vector<size_t> > neighbors(4);
+		std::vector<size_t> &onlyN1 = neighbors[1];
+		std::vector<size_t> &onlyN2 = neighbors[2];
+		std::vector<size_t> &onlyN3 = neighbors[3];
+		GetNeighborhoodHierachy(A_OL2, node, 3, neighbors);
+
+		// print_vector(onlyN1, "\nn1-neighbors");
+		// print_vector(onlyN2, "\nn2-neighbors");
+		// print_vector(onlyN3, "\nn3-neighbors");
+
+		stdvector<size_t> myNeigh;
+		myNeigh = onlyN1;
+		myNeigh.push_back(node);
+		myNeigh.insert(myNeigh.end(), onlyN2.begin(), onlyN2.end());
+		myNeigh.insert(myNeigh.end(), onlyN3.begin(), onlyN3.end());
+
+		DenseMatrix<VariableArray2<double> > localA;
+		localA.resize(myNeigh.size(), myNeigh.size());
+
+		localMatrix_from_mat_and_array<DenseMatrix<VariableArray2<double> > >
+		localMatrix(localA, &myNeigh[0], &myNeigh[0]);
+		A_OL2.get(localMatrix);
+
+		// localA.maple_print("A");
+
+		size_t N1 = onlyN1.size();
+		size_t N2 = onlyN2.size();
+		DenseMatrix<VariableArray2<double> > localS;
+		localS.resize(N1+1+N2, N1+1+N2);
+
+
+		for(size_t r=0; r<N1+1+N2; r++)
+		{
+			for(size_t c=0; c < N1+1+N2; c++)
+				localS(r, c) = localA(r, c);
+			for(size_t c=N1+1+N2; c < localA.num_cols(); c++)
+				localS(r, r) += localA(r, c);
+		}
+
+		// localS.maple_print("S1");
+
+
+		// get S = 1-D^{-1} A
+		for(size_t r=0; r < N1+1+N2; r++)
+		{
+			double diagInv = 1/localS(r,r);
+			for(size_t c=0; c < N1+1+N2; c++)
+			{
+				localS(r, c) = -diagInv*localS(r,c);
+				if(r==c) localS(r, c) += 1.0;
+			}
+		}
+
+		// localS.maple_print("S2");
+
+		size_t N = N1+1+N2;
+		DenseMatrix<VariableArray2<double> > X;
+		X.resize(N, N);
+		DenseMatrix<VariableArray2<double> > B;
+		B.resize(N, N);
+		B = 1.0;
+		DenseVector<VariableArray1<double> > lambda;
+		lambda.resize(N);
+
+		int res = GeneralizedEigenvalueProblem(localS, X,
+						lambda, B, true);
+
+		// X.maple_print("X");
+		// lambda.maple_print("lambda");
+
+		localTestvector.resize(1);
+		localTestvector[0].resize(onlyN1.size()+1);
+		for(size_t i=0; i<onlyN1.size()+1; i++)
+			localTestvector[0][i] = X(i, N-1);
 	}
 
 	// calculate_testvectors
@@ -655,7 +728,6 @@ private:
 	stdvector<double> D;						//< diagonal
 	stdvector<double> Dinv;						//< diagonal on {onlyN1, i, onlyN2}
 	DenseMatrix<VariableArray2<double> > H;		//< matrix H = S Y S^T  on {onlyN1}
-	stdvector<double> Hi;						//< H(i, onlyN1) on {onlyN1}
 
 	// for the KKT system
 	stdvector<stdvector<double> > localTestvector;			//< on {onlyN1, i}
