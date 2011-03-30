@@ -9,6 +9,7 @@ int GeneralizedEigenvalueProblem(A_type &A, A_type &X,
 		B_type &lambda, A_type &B, bool bSortEigenvalues=false)
 {
 	UG_ASSERT(0, "GeneralizedEigenvalueProblem is only implemented for LAPACK at the moment");
+	return 0;
 }
 
 
