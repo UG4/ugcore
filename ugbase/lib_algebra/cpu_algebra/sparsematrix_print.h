@@ -89,6 +89,8 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
 				file << i << " " << conn.index() << " " << conn.value() <<		std::endl;
+			else
+				file << i << " " << conn.index() << " 0" <<	std::endl;
 	}
 }
 
@@ -197,6 +199,8 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
 				file << mapTo[i] << " " << mapFrom[conn.index()] << " " << conn.value() <<		std::endl;
+			else
+				file << mapTo[i] << " " << mapFrom[conn.index()] << " 0" << std::endl;
 	}
 	return true;
 }
