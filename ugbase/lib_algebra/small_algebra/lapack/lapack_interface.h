@@ -25,6 +25,25 @@
 
 namespace ug{
 
+extern "C" // solve generalized eigenvalue system
+	void dgegv_(char *cCalcLeftEV, char *cCalcRightEV, lapack_int *n,
+			lapack_double *pColMajorMatrixA, lapack_int *lda, lapack_double *pColMajorMatrixB,
+			lapack_int *ldb, lapack_double *alphar,	lapack_double *alphai, lapack_double *beta,
+			lapack_double *vl, lapack_int *ldvl, lapack_double *vr, lapack_int *ldvr, lapack_double *pWork,
+				lapack_int *worksize, lapack_int *info);
+
+inline lapack_int gegv(bool calcLeftEV, bool calcRightEV, lapack_int n,
+		lapack_double *pColMajorMatrixA, lapack_int leading_dim_a, lapack_double *pColMajorMatrixB, lapack_int leading_dim_b,
+		lapack_double *alphar, lapack_double *alphai, lapack_double *beta, lapack_double *vl, lapack_int leading_dim_vl,
+		lapack_double *vr, lapack_int leading_dim_vr, lapack_double *work, lapack_int worksize)
+{
+	char jobvl = calcLeftEV ? 'V' : 'N';
+	char jobvr = calcRightEV ? 'V' : 'N';
+	lapack_int info=0;
+	dgegv_(&jobvl, &jobvr, &n, pColMajorMatrixA, &leading_dim_a, pColMajorMatrixB, &leading_dim_b, alphar, alphai, beta, vl, &leading_dim_vl, vr, &leading_dim_vr, work, &worksize, &info);
+	return info;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -75,7 +94,7 @@ int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 
 	delete[] dwork;
 
-	for(int i=0; i<N; i++)
+	for(size_t i=0; i<N; i++)
 	{
 		lambda[i] = alphar[i]/beta[i];
 		UG_ASSERT(dabs(alphai[i]) < 1e-10, "complex values");
@@ -90,9 +109,9 @@ int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 			for(int j=0; j<i; j++)
 				if(lambda[j] > lambda[j+1])
 				{
-					swap(lambda[j], lambda[j+1]);
+					std::swap(lambda[j], lambda[j+1]);
 					for(size_t r = 0; r<X.num_rows(); r++)
-						swap(X(r, j), X(r, j+1));
+						std::swap(X(r, j), X(r, j+1));
 				}
 		}
 	}
