@@ -251,12 +251,12 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 	M.defragment();
 }
 
-template<typename T>
-void GetNeighborhood_worker(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
+template<typename TMatrix>
+void GetNeighborhood_worker(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
 {
 	if(depth==0) return;
 	size_t iSizeBefore = indices.size();
-	for(typename SparseMatrix<T>::const_row_iterator it = A.begin_row(node); A.end_row(node); ++it)
+	for(typename TMatrix::const_row_iterator it = A.begin_row(node); A.end_row(node); ++it)
 	{
 		if(it.value() == 0) continue;
 		if(bVisited[it.index()] == false)
@@ -273,8 +273,8 @@ void GetNeighborhood_worker(const SparseMatrix<T> &A, size_t node, size_t depth,
 		GetNeighborhood_worker(A, indices[i], depth-1, indices, bVisited);
 }
 
-template<typename T>
-void GetNeighborhood(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited, bool bResetVisitedFlags=true)
+template<typename TMatrix>
+void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited, bool bResetVisitedFlags=true)
 {
 
 	indices.clear();
@@ -291,18 +291,18 @@ void GetNeighborhood(const SparseMatrix<T> &A, size_t node, size_t depth, std::v
 			bVisited[i] = false;
 }
 
-template<typename T>
-void GetNeighborhood(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices)
+template<typename TMatrix>
+void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices)
 {
 	std::vector<bool> bVisited(max(A.num_cols(), A.num_rows()), false);
 	GetNeighborhood(A, node, depth, indices, bVisited, false);
 }
 
 
-template<typename T>
-void MarkNeighbors(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<bool> &bVisited)
+template<typename TMatrix>
+void MarkNeighbors(const TMatrix &A, size_t node, size_t depth, std::vector<bool> &bVisited)
 {
-	for(typename SparseMatrix<T>::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
+	for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
 		if(it.value() == 0) continue;
 		bVisited[it.index()] = true;
@@ -310,11 +310,11 @@ void MarkNeighbors(const SparseMatrix<T> &A, size_t node, size_t depth, std::vec
 	}
 }
 
-template<typename T>
-void GetNeighborhoodHierachy_worker(const SparseMatrix<T> &A, size_t node, size_t depth, size_t maxdepth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited)
+template<typename TMatrix>
+void GetNeighborhoodHierachy_worker(const TMatrix &A, size_t node, size_t depth, size_t maxdepth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited)
 {
 	size_t iSizeBefore = indices[depth].size();
-	for(typename SparseMatrix<T>::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
+	for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
 		if(it.value() == 0) continue;
 		if(bVisited[it.index()] == false)
@@ -327,11 +327,11 @@ void GetNeighborhoodHierachy_worker(const SparseMatrix<T> &A, size_t node, size_
 	if(depth==maxdepth) return;
 	size_t iSizeAfter = indices[depth].size();
 	for(size_t i=iSizeBefore; i<iSizeAfter; i++)
-		GetNeighborhood(A, indices[i], depth+1, maxdepth, indices, bVisited);
+		GetNeighborhoodHierachy_worker(A, indices[i], depth+1, maxdepth, indices, bVisited);
 }
 
-template<typename T>
-void GetNeighborhoodHierachy(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited,
+template<typename TMatrix>
+void GetNeighborhoodHierachy(const TMatrix &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited,
 		bool bResetVisitedFlags=true)
 {
 	if(indices.size() != depth+1)
@@ -339,13 +339,28 @@ void GetNeighborhoodHierachy(const SparseMatrix<T> &A, size_t node, size_t depth
 	for(size_t i=0; i < depth+1; i++)
 		indices[i].clear();
 
-	if(bVisited[node] == false)
-	{
-		bVisited[node] = true;
-		indices[0].push_back(node);
-	}
+	bVisited[node] = true;
+	indices[0].push_back(node);
+
 	if(depth==0) return;
-	GetNeighborhood_worker(A, node, 1, depth, indices, bVisited);
+
+	for(size_t d = 0; d < depth; d++)
+	{
+		for(size_t i=0; i<indices[d].size(); i++)
+		{
+			size_t k = indices[d][i];
+			for(typename TMatrix::const_row_iterator it = A.begin_row(k); it != A.end_row(k); ++it)
+			{
+				if(it.value() == 0) continue;
+				if(bVisited[it.index()] == false)
+				{
+					bVisited[it.index()] = true;
+					indices[d+1].push_back(it.index());
+				}
+			}
+
+		}
+	}
 
 	if(bResetVisitedFlags)
 		for(size_t i=0; i < depth+1; i++)
@@ -354,10 +369,10 @@ void GetNeighborhoodHierachy(const SparseMatrix<T> &A, size_t node, size_t depth
 }
 
 
-template<typename T>
-void GetNeighborhoodHierachy(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices)
+template<typename TMatrix>
+void GetNeighborhoodHierachy(const TMatrix &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices)
 {
-	std::vector<bool> bVisited(max(A.num_cols(), A.num_rows()), false);
+	std::vector<bool> bVisited(std::max(A.num_cols(), A.num_rows()), false);
 	GetNeighborhoodHierachy(A, node, depth, indices, bVisited, false);
 }
 
