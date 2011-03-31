@@ -160,6 +160,16 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		
 	endif(UG_DEBUG)
 
+	# Saturn is an OSX profiler. Specify -DUSE_SATURN=ON to generate an
+	# executable which is compatible with saturn.
+	if(USE_SATURN)
+		set(CMAKE_CXX_FLAGS "-gfull -pg -finstrument-functions")
+		find_library(LIB_SATURN Saturn)
+		message(STATUS "INFO: Generating profile code (performance drawbacks).")
+		message(STATUS "      Found Saturn lib: ${LIB_SATURN}")
+		link_libraries(${LIB_SATURN})
+	endif(USE_SATURN)
+	
 	#######################
 	# FORCE_32/64 . for use e.g. on MacOS 10.6, where -m64 is default otherwise
 

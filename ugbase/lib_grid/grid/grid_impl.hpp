@@ -409,6 +409,8 @@ template <class TGeomObj>
 EdgeBase* Grid::find_edge_in_associated_edges(TGeomObj* obj,
 												EdgeVertices& ev)
 {
+	GRID_PROFILE_FUNC();
+
 	AssociatedEdgeIterator iterEnd = associated_edges_end(obj);
 	for(AssociatedEdgeIterator iter = associated_edges_begin(obj);
 		iter != iterEnd; ++iter)
@@ -425,6 +427,8 @@ template <class TGeomObj>
 Face* Grid::find_face_in_associated_faces(TGeomObj* obj,
 											FaceVertices& fv)
 {
+	GRID_PROFILE_FUNC();
+
 	unsigned long key = hash_key(&fv);
 	AssociatedFaceIterator iterEnd = associated_faces_end(obj);
 	for(AssociatedFaceIterator iter = associated_faces_begin(obj);
@@ -445,6 +449,8 @@ template <class TGeomObj>
 Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
 												VolumeVertices& vv)
 {
+	GRID_PROFILE_FUNC();
+
 	unsigned long key = hash_key(&vv);
 	AssociatedVolumeIterator iterEnd = associated_volumes_end(obj);
 	for(AssociatedVolumeIterator iter = associated_volumes_begin(obj);

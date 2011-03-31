@@ -8,8 +8,8 @@
 #include "lib_grid/algorithms/algorithms.h"
 
 //define PROFILE_GLOBAL_MULTI_GRID_REFINER if you want to profile
-//the actions in GlobalMultiGridRefiner.
-//#define PROFILE_GLOBAL_MULTI_GRID_REFINER
+//the refinement code.
+#define PROFILE_GLOBAL_MULTI_GRID_REFINER
 #ifdef PROFILE_GLOBAL_MULTI_GRID_REFINER
 	#define GMGR_PROFILE_FUNC()	PROFILE_FUNC()
 	#define GMGR_PROFILE(name)	PROFILE_BEGIN(name)
@@ -124,24 +124,33 @@ void GlobalMultiGridRefiner::refine()
 	GMGR_PROFILE(GMGR_Reserve);
 	{
 		int l = oldTopLevel;
+
+		GMGR_PROFILE(GMGR_ReserveVrtData);
 		mg.reserve<VertexBase>(mg.num<VertexBase>() +
 					+ mg.num<VertexBase>(l) + mg.num<EdgeBase>(l)
 					+ mg.num<Quadrilateral>(l) + mg.num<Hexahedron>(l));
+		GMGR_PROFILE_END();
 
+		GMGR_PROFILE(GMGR_ReserveEdgeData);
 		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
 					+ 2 * mg.num<EdgeBase>(l) + 3 * mg.num<Triangle>(l)
 					+ 4 * mg.num<Quadrilateral>(l) + 3 * mg.num<Prism>(l)
 					+ mg.num<Tetrahedron>(l)
 					+ 4 * mg.num<Pyramid>(l) + 6 * mg.num<Hexahedron>(l));
+		GMGR_PROFILE_END();
 
+		GMGR_PROFILE(GMGR_ReserveFaceData);
 		mg.reserve<Face>(mg.num<Face>()
 					+ 4 * mg.num<Face>(l) + 10 * mg.num<Prism>(l)
 					+ 8 * mg.num<Tetrahedron>(l)
 					+ 9 * mg.num<Pyramid>(l) + 12 * mg.num<Hexahedron>(l));
+		GMGR_PROFILE_END();
 
+		GMGR_PROFILE(GMGR_ReserveVolData);
 		mg.reserve<Volume>(mg.num<Volume>()
 					+ 8 * mg.num<Tetrahedron>(l) + 8 * mg.num<Prism>(l)
 					+ 6 * mg.num<Pyramid>(l) + 8 * mg.num<Hexahedron>(l));
+		GMGR_PROFILE_END();
 	}
 	GMGR_PROFILE_END();
 

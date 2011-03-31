@@ -88,10 +88,12 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 	}
 
 //	select the top-view
+/*
 	LOG("creating top view ...");
 	CreateSurfaceView(shTopViewOut, distGridMgr, sh,
 					  mg.faces_begin(), mg.faces_end());
 	LOG(" done\n");
+*/
 
 //	save the top-view for debug purposes
 	if(writeProcessGrids)

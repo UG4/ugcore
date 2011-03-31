@@ -13,6 +13,19 @@
 #include "common/util/section_container.h"
 #include "geometric_object_collection.h"
 
+//	Define PROFILE_GRID to profile some often used gird-methods
+//#define PROFILE_GRID
+#ifdef PROFILE_GRID
+	#include "common/profiler/profiler.h"
+	#define GRID_PROFILE_FUNC()	PROFILE_FUNC()
+	#define GRID_PROFILE(name)	PROFILE_BEGIN(name)
+	#define GRID_PROFILE_END()	PROFILE_END()
+#else
+	#define GRID_PROFILE_FUNC()
+	#define GRID_PROFILE(name)
+	#define GRID_PROFILE_END()
+#endif
+
 namespace ug
 {
 
@@ -676,9 +689,11 @@ class Grid
 
 		void register_vertex(VertexBase* v, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_vertex(VertexBase* v);
-		void register_edge(EdgeBase* e, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
+		void register_edge(EdgeBase* e, GeometricObject* pParent = NULL,
+						Face* createdByFace = NULL, Volume* createdByVol = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_edge(EdgeBase* e);
-		void register_face(Face* f, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
+		void register_face(Face* f, GeometricObject* pParent = NULL,
+						   Volume* createdByVol = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_face(Face* f);
 		void register_volume(Volume* v, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_volume(Volume* v);
