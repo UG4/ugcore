@@ -469,13 +469,10 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 	{
 		if(alpha1 != 1.0)
 		{
-			if(alpha1 != 0.0)
-				dest *= alpha1;
-		//	\todo: @Martin: Verify please. (If a passed dest Vector has not been
-		//					initiallized in apply_transposed, multiply by 0.0
-		//					will not cancel out nan's ...
-			else
+			if(alpha1 == 0.0)
 				dest.set(0.0);
+			else if(alpha1 != 1.0)
+				dest *= alpha1;
 		}
 	}
 	else if(alpha1 != 0.0)
