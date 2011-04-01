@@ -337,6 +337,13 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 					Grid& grid, EdgeBase* e, bool clearContainer = true);
 /** \} */
 
+///	Collects all faces. (Returns the face itself)
+void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Face* v, bool clearContainer = true);
+
+///	Collects all faces. (Returns the face itself)
+inline void CollectAssociated(std::vector<Face*>& vFacesOut,
+					Grid& grid, Face* vol, bool clearContainer = true);
+
 ///	Collects all faces that exist in the given grid are part of the given volume.
 /**
  * \ingroup lib_grid_algorithms_volume_util
@@ -423,6 +430,13 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 					Grid& grid, FaceDescriptor& fd, bool clearContainer = true);
 /// @}
+
+///	Collects all volumes. (Returns the volume itself)
+void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Volume* v, bool clearContainer = true);
+
+///	Collects all volumes. (Returns the volume itself)
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+					Grid& grid, Volume* vol, bool clearContainer = true);
 
 ////////////////////////////////////////////////////////////////////////
 //	VolumeContains

@@ -362,6 +362,15 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool c
 	}
 }
 
+///	Collects all faces. (Returns the face itself)
+void CollectFaces(vector<Face*>& vFacesOut, Grid& grid, Face* e, bool clearContainer)
+{
+	if(clearContainer)
+		vFacesOut.clear();
+
+	vFacesOut.push_back(e);
+}
+
 ///	Collects all faces that exist in the given grid are part of the given volume.
 void CollectFaces(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool clearContainer)
 {
@@ -518,6 +527,15 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Face* f, bool
 			}
 		}
 	}
+}
+
+///	Collects all volumes. (Returns the volume itself)
+void CollectVolumes(vector<Volume*>& vVolumesOut, Grid& grid, Volume* v, bool clearContainer)
+{
+	if(clearContainer)
+		vVolumesOut.clear();
+
+	vVolumesOut.push_back(v);
 }
 
 ///	Collects all volumes that exist in the given grid which contain the given face.

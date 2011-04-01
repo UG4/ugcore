@@ -146,6 +146,12 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 }
 
 inline void CollectAssociated(std::vector<Face*>& vFacesOut,
+					Grid& grid, Face* f, bool clearContainer)
+{
+	CollectFaces(vFacesOut, grid, f, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 					Grid& grid, Volume* v, bool clearContainer)
 {
 	CollectFaces(vFacesOut, grid, v, clearContainer);
@@ -169,6 +175,12 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 					bool ignoreAssociatedVolumes)
 {
 	CollectVolumes(vVolumesOut, grid, f, clearContainer, ignoreAssociatedVolumes);
+}
+
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+					Grid& grid, Volume* vol, bool clearContainer)
+{
+	CollectVolumes(vVolumesOut, grid, vol, clearContainer);
 }
 
 inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
