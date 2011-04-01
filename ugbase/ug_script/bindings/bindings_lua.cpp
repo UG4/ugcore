@@ -184,12 +184,22 @@ static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
 	return str;
 }
 
+/**
+ *
+ * \returns	String describing the reason why LuaStackToParams failed.
+ * \param paramsTempalte
+ * \param L
+ * \param offsetToFirstParam
+ * \param badParamOneBased : return value as in LuaStackParams
+ * \sa LuaStackToParams
+ */
 string GetTypeMismatchString(const ParameterStack& paramsTemplate, lua_State* L, int offsetToFirstParam,
 		int badParamOneBased)
 {
 	std::stringstream ss;
+
 	if(badParamOneBased == -1)
-		ss << "not enough parameters (got " << lua_gettop(L) - offsetToFirstParam << ", but needs " << paramsTemplate.size() << ").";
+		ss << "number of parameters did not match (got " << lua_gettop(L) - offsetToFirstParam << ", but needs " << paramsTemplate.size() << ").";
 	else
 	{
 		int i = badParamOneBased-1; // i is zero-based.
