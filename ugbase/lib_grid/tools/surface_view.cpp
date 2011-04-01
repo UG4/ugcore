@@ -196,5 +196,130 @@ void SurfaceView::unregister_observer(GridObserver* observer)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+// Check Surface Grid
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+/// check if all elements are assigned correctly to the surface view
+template <typename TElem>
+bool CheckSurfaceViewElements(const SurfaceView& surfView,
+                                     const MultiGrid& mg)
+{
+	typename geometry_traits<TElem>::const_iterator iter;
+
+	std::vector<EdgeBase*> vEdge;
+	std::vector<Face*> vFace;
+	std::vector<Volume*> vVolume;
+
+	for(size_t lev = 0; lev < mg.num_levels(); ++lev)
+		for(iter = mg.begin<TElem>(lev); iter != mg.end<TElem>(lev); ++iter)
+		{
+		//	get element
+			TElem* elem = *iter;
+
+		//	get subset index
+			const int si = surfView.get_subset_index(elem);
+
+		//	check if in surface view
+			bool inSurfView = (si >= 0);
+
+			if(!mg.has_children(elem))
+			{
+				if(!inSurfView)
+				{
+					UG_LOG("ERROR in CheckSurfaceView: Element on level "
+							<< lev << " without child is"
+							" not contained in SurfaceView.\n");
+					return false;
+				}
+			}
+			else
+			{
+			//	collect all associated elements
+				CollectAssociated(vEdge, *const_cast<MultiGrid*>(&mg), elem);
+				CollectAssociated(vFace, *const_cast<MultiGrid*>(&mg), elem);
+				CollectAssociated(vVolume, *const_cast<MultiGrid*>(&mg), elem);
+
+				bool bIsShadow = false;
+
+			//	search for associated surface grid edge
+				for(size_t i = 0; i < vEdge.size(); ++i)
+					if(!mg.has_children(vEdge[i]))
+						bIsShadow = true;
+
+			//	search for associated surface grid face
+				for(size_t i = 0; i < vFace.size(); ++i)
+					if(!mg.has_children(vFace[i]))
+						bIsShadow = true;
+
+			//	search for associated surface grid volume
+				for(size_t i = 0; i < vVolume.size(); ++i)
+					if(!mg.has_children(vVolume[i]))
+						bIsShadow = true;
+
+				if(bIsShadow && !inSurfView)
+				{
+					UG_LOG("ERROR in CheckSurfaceView: Shadow element on level "
+							<< lev << " is not contained in SurfaceView.\n");
+					return false;
+				}
+
+				if(!bIsShadow && inSurfView)
+				{
+					UG_LOG("ERROR in CheckSurfaceView: Element in Surface view "
+							"on level "	<< lev <<
+							" though has children and is no shadow.\n");
+					return false;
+				}
+			}
+		}
+
+//	all fine
+	return true;
+}
+
+/// checks if surface view is correct
+bool CheckSurfaceView(const SurfaceView& surfView)
+{
+//	get underlying grid
+	Grid* grid = surfView.get_assigned_grid();
+
+//	check that grid is a MultiGrid
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(grid);
+	if(pMG == NULL)
+	{
+		UG_LOG("ERROR in CheckSurfaceView: underlying grid not a Multigrid.\n");
+		return false;
+	}
+
+//	check all elements
+	if(!CheckSurfaceViewElements<VertexBase>(surfView, *pMG))
+	{
+		UG_LOG("ERROR in CheckSurfaceView: wrong VertexBase found.\n");
+		return false;
+	}
+	if(!CheckSurfaceViewElements<EdgeBase>(surfView, *pMG))
+	{
+		UG_LOG("ERROR in CheckSurfaceView: wrong EdgeBase found.\n");
+		return false;
+	}
+	if(!CheckSurfaceViewElements<Face>(surfView, *pMG))
+	{
+		UG_LOG("ERROR in CheckSurfaceView: wrong Face found.\n");
+		return false;
+	}
+	if(!CheckSurfaceViewElements<Volume>(surfView, *pMG))
+	{
+		UG_LOG("ERROR in CheckSurfaceView: wrong Volume found.\n");
+		return false;
+	}
+
+//	everything ok
+	return true;
+}
+
+
 }//	end of namespace
 

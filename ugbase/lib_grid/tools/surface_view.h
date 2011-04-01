@@ -79,6 +79,10 @@ class SurfaceView : public SubsetHandler
 		ObserverContainer	m_volumeObservers;
 };
 
+
+/// checks if surface view is correct
+bool CheckSurfaceView(const SurfaceView& surfView);
+
 }//	end of namespace
 
 #endif // __H__UG__SURFACE_VIEW__
