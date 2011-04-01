@@ -145,6 +145,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("init|hide=true", &T::init)
 			.add_method("print_statistic|hide=true", &T::print_statistic)
 			.add_method("defragment|hide=true", &T::defragment)
+			.add_method("get_surface_view|hide=true", &T::get_surface_view)
 			.add_method("print_layout_statistic|hide=true", &T::print_layout_statistic)
 			.add_method("get_surface_dof_distribution|hide=true",  (const typename T::dof_distribution_type& (T::*)() const) &T::get_surface_dof_distribution)
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
@@ -481,7 +482,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg
 		std::string grp = parentGroup; grp.append("/Discretization");
 
 #ifdef UG_DIM_1
-	//	Domain dependend part 1D
+	//	Domain dependent part 1D
 		{
 			typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
@@ -490,7 +491,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg
 #endif
 
 #ifdef UG_DIM_2
-	//	Domain dependend part 2D
+	//	Domain dependent part 2D
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
@@ -499,7 +500,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg
 #endif
 
 #ifdef UG_DIM_3
-	//	Domain dependend part 3D
+	//	Domain dependent part 3D
 		{
 			typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
