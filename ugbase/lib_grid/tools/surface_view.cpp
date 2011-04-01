@@ -13,12 +13,14 @@ namespace ug
 SurfaceView::SurfaceView() : SubsetHandler()
 {
 	enable_subset_attachments(true);
+	enable_subset_inheritance(false);
 }
 
 SurfaceView::SurfaceView(MultiGrid& mg) : SubsetHandler(mg)
 {
 	m_pMG = &mg;
 	enable_subset_attachments(true);
+	enable_subset_inheritance(false);
 }
 
 SurfaceView::~SurfaceView()
