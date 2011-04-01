@@ -282,7 +282,6 @@ b:assign(linOp:get_rhs())
 
 -- debug output
 print("Saving for debug.")
-SaveDomain(dom, "refined_grid_" .. i .. ".ugx")
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness".. i ..".mat")
 SaveVectorForConnectionViewer(b, "Rhs".. i ..".mat")
 
@@ -308,6 +307,12 @@ refiner:clear_marks()
 -- 8. defragment approximation space
 approxSpace:defragment()
 approxSpace:print_statistic()
+
+SaveDomain(dom, "refined_grid_" .. i .. ".ugx")
+SaveGridHierarchy(dom:get_grid(), "refined_grid_"..i.."hierarchy.ugx")
+SaveGrid(dom:get_grid(), approxSpace:get_surface_view(), "surface_view_" .. i .. ".ugx")
+SaveGridHierarchyTransformed(dom:get_grid(), approxSpace:get_surface_view(), "surface_view_extrude_" .. i .. ".ugx", 0.25)
+
 if CheckSurfaceView(approxSpace:get_surface_view()) ~= true then 
 print("Surface View is not correct. Aborting."); exit(); end
 
