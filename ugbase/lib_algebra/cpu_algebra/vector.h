@@ -1,6 +1,5 @@
 /*
  *  Vector.h
- *  flexamg
  *
  *  Created by Martin Rupp on 04.11.09.
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
@@ -24,14 +23,13 @@ namespace ug{
 ///	@{
 
 //!
-template <typename templ_value_type>
-class Vector :  //public TE_VEC<Vector<templ_value_type> >,
-				public virtual IFunctionBase
+template <typename TValueType>
+class Vector :	public virtual IFunctionBase
 {
 public:
-	typedef templ_value_type value_type;
+	typedef TValueType value_type;
 	//typedef subvector<value_type> subvector_type;
-	typedef Vector<templ_value_type> vector_type;
+	typedef Vector<TValueType> vector_type;
 
 	//! constructor
 	Vector();

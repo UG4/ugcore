@@ -1,6 +1,5 @@
 /*
  *  matrixRow.hpp
- *  flexamg
  *
  *  Created by Martin Rupp on 18.01.10.
  *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.

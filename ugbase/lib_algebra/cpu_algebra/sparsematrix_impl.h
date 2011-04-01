@@ -1,6 +1,5 @@
 /*
  *  sparsematrix_impl.hpp
- *  flexamg
  *
  *  Created by Martin Rupp on 04.11.09.
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
@@ -44,10 +43,6 @@ SparseMatrix<T>::SparseMatrix()
 
 	estimatedRowSize = 0;
 	iMaxNrOfConnections = NULL;
-
-#ifdef FLEXAMG
-	tolevel = fromlevel = 0;
-#endif
 
 	FORCE_CREATION { print(); p(); pr(0); }
 }
