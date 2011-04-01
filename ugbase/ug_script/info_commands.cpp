@@ -43,7 +43,8 @@ namespace lua
 string GetFileLine(const char *filename, size_t line);
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
 void LuaPrintTable(lua_State *L, size_t iSpace);
-
+bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
+bool ClassInstantiations(const char *classname);
 
 bool GetLuaNamespace(lua_State* L, string &name)
 {
@@ -160,6 +161,7 @@ int UGTypeInfo(const char *p)
 			PrintClassInfo(reg, names->at(i));
 		UG_LOG(endl);
 		PrintClassHierarchy(reg, c->name());
+		ClassInstantiations(c->name());
 		return true;
 	}
 
@@ -239,7 +241,6 @@ int UGTypeInfo(const char *p)
 
 
 
-bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
 bool ClassInstantiations(const char *classname)
 {	bridge::Registry &reg = GetUGRegistry();
 	const IExportedClass *c = FindClass(reg, classname);
