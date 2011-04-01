@@ -688,7 +688,9 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_function("SaveGrid", &SaveGrid, grp.c_str())
 			.add_function("LoadGridObject", &LoadGridObject, grp.c_str())
 			.add_function("SaveGridObject", &SaveGridObject, grp.c_str())
-			.add_function("CreateGridObject", &CreateGridObject, grp.c_str());
+			.add_function("CreateGridObject", &CreateGridObject, grp.c_str())
+			.add_function("PrintGridElementNumbers", (void (*)(MultiGrid&))&PrintGridElementNumbers, grp.c_str())
+			.add_function("PrintGridElementNumbers", (void (*)(Grid&))&PrintGridElementNumbers, grp.c_str());
 
 	//	refinement
 		reg.add_function("TestSubdivision", &TestSubdivision)
