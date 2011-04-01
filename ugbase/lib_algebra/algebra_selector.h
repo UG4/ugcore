@@ -8,16 +8,8 @@
 #ifndef __H__LIB_ALGEBRA__ALGEBRA_SELECTOR_
 #define __H__LIB_ALGEBRA__ALGEBRA_SELECTOR_
 
-// vector and sparse_matrix
-#include "cpu_algebra/vector.h"
-#include "cpu_algebra/sparsematrix.h"
-
-// parallel support
-#ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallel_vector.h"
-	#include "lib_algebra/parallelization/parallel_matrix.h"
-#endif
-
+#include "common/log.h"
+#include "common/assert.h"
 
 namespace ug{
 
@@ -28,66 +20,6 @@ namespace ug{
  * \defgroup lib_algebra lib_algebra
  */
 
-/////////////////////////////////////////////
-/////////////////////////////////////////////
-//   Algebra Types
-/////////////////////////////////////////////
-/////////////////////////////////////////////
-
-/*  Define different algebra types.
- *  An Algebra should export the following typedef:
- *  - matrix_type
- *  - vector_type
- */
-
-/////////////////////////////////////////////
-//   CPU Algebra (Block 1x1 Algebra)
-/////////////////////////////////////////////
-
-class CPUAlgebra
-{
-public:
-#ifdef UG_PARALLEL
-		typedef ParallelMatrix<SparseMatrix<double> > matrix_type;
-		typedef ParallelVector<Vector<double> > vector_type;
-#else
-		typedef SparseMatrix<double> matrix_type;
-		typedef Vector<double> vector_type;
-#endif
-};
-
-/////////////////////////////////////////////
-//   CPU Fixed Block Algebra
-/////////////////////////////////////////////
-template<int TBlockSize>
-class CPUBlockAlgebra
-{
-public:
-#ifdef UG_PARALLEL
-	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > > matrix_type;
-	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, TBlockSize> > > > vector_type;
-#else
-	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > matrix_type;
-	typedef Vector<DenseVector<FixedArray1<double, TBlockSize> > > vector_type;
-#endif
-};
-
-
-/////////////////////////////////////////////
-//   CPU Variable Block Algebra
-/////////////////////////////////////////////
-
-class CPUVariableBlockAlgebra
-{
-public:
-#ifdef UG_PARALLEL
-	typedef ParallelMatrix<SparseMatrix<DenseMatrix<VariableArray2<double> > > > matrix_type;
-	typedef ParallelVector<Vector<DenseVector<VariableArray1<double> > > > vector_type;
-#else
-	typedef  SparseMatrix<DenseMatrix<VariableArray2<double> > > matrix_type;
-	typedef Vector<DenseVector<VariableArray1<double> > > vector_type;
-#endif
-};
 
 
 /////////////////////////////////////////////

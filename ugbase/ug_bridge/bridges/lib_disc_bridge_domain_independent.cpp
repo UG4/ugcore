@@ -14,6 +14,7 @@
 
 // algebra chooser
 #include "lib_algebra/algebra_selector.h"
+#include "lib_algebra/algebra_types.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
 
 // lib_discretization part

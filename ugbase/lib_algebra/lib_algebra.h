@@ -18,6 +18,7 @@
 
 // algebra chooser and types
 #include "algebra_selector.h"
+#include "algebra_types.h"
 
 // common
 #include "common/operations.h"

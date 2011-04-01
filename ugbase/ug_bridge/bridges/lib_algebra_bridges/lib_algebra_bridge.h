@@ -11,6 +11,7 @@
 
 #include "ug_bridge/ug_bridge.h"
 #include "lib_algebra/algebra_selector.h"
+#include "lib_algebra/algebra_types.h"
 
 namespace ug
 {

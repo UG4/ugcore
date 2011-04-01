@@ -14,6 +14,7 @@
 
 // lib_algebra includes
 #include "lib_algebra/algebra_selector.h"
+#include "lib_algebra/algebra_types.h"
 #include "lib_algebra/operator/operator_util.h"
 #include "lib_algebra/operator/operator_interface.h"
 #include "lib_algebra/operator/operator_inverse_interface.h"
