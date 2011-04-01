@@ -3,7 +3,7 @@
 --   Lua - 	Script to perform the Laplace-Problem on
 --	 		adaptive multigrid hierarchies.
 --
---   Authors: Andreas Vogel, Sebastian Reiter (only a small part!)
+--   Authors: Andreas Vogel, Sebastian Reiter
 --
 --	This script intends to demonstrate how adaptive-multigrid
 --	hierarchies with hanging nodes can be used to solve
@@ -19,8 +19,8 @@ InitAlgebra(CPUAlgebraSelector());
 -- CONSTANTS
 dim = util.GetParamNumber("-dim",    2)
 if dim == 2 then
-	gridName = "open_circle.ugx"
---	gridName = "unit_square_quads_2x2.ugx"
+--	gridName = "open_circle.ugx"
+	gridName = "unit_square_quads_2x2.ugx"
 elseif dim == 3 then
 	gridName = "open_cube_hex.ugx"
 else
@@ -58,8 +58,8 @@ function ourDirichletBnd2d(x, y, t)
 
 	-- line bnd
 	local small = 0.0001
-	if (-small < x and x < small) and y <= 0 then return true, 0.0 end
-	if (-small < y and y < small) and x >= 0 then return true, 0.0 end
+--	if (-small < x and x < small) and y <= 0 then return true, 0.0 end
+--	if (-small < y and y < small) and x >= 0 then return true, 0.0 end
 	
 	-- circle bnd
 	local phi;
@@ -67,9 +67,9 @@ function ourDirichletBnd2d(x, y, t)
 	if y >= 0 then phi = math.acos(x/r) end
 	if y < 0 then phi =2*math.pi - math.acos(x/r) end
 	
-	return true, math.sin((2*phi)/3)
+--	return true, math.sin((2*phi)/3)
 	
-	--	return true, 10.0;
+	return true, 10.0;
 end
 
 -- 3D
@@ -111,10 +111,11 @@ refiner = HangingNodeDomainRefiner(dom);
 -- refine
 local radius = initialRadius
 for i = 1, numRefs do
-	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
---	MarkForRefinement_VerticesInSquare(refiner, -0.5 + 0.2*i, 1, -1, 1, 0, 0)
+--	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
+	MarkForRefinement_VerticesInSquare(refiner, -0.5 + 0.2*i, 1, -1, 1, 0, 0)
 	
 	refiner:refine()
+	
 	radius = radius * radiusFalloff
 end
 
@@ -267,7 +268,7 @@ exSolver = LU()
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(amg)
+linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
@@ -277,7 +278,7 @@ cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(jac)
+bicgstabSolver:set_preconditioner(gmg)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -------------------------------------------
@@ -285,7 +286,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -------------------------------------------
 
 -- choose some solver
-solver = linSolver
+solver = bicgstabSolver
 
 -- create grid function
 u = approxSpace:create_surface_function()
