@@ -157,81 +157,153 @@ class MGDoFManager : public GridObserver
 	//	GridObserver Callbacks
 	///////////////////////////////////////////////////
 
+	//	creation callbacks
+	/**
+	 *
+	 */
+	/// \{
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
 									GeometricObject* pParent = NULL,
-									bool replacesParent = false)
-		{
-		//	we do not check pointer m_pMGSubsetHandler != NULL, since we only
-		//	register the callback, if that is the case
+									bool replacesParent = false);
 
-		//	get level of Vertex
-			const int level = m_pMGSubsetHandler->get_level(vrt);
+		virtual void edge_created(Grid* grid, EdgeBase* e,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-		//	if level dofs enabled, add vertex to level dofs
-			if(level_dofs_enabled())
-			{
-			//	check if level dof distribution must be created
-				if(!level_distribution_required(level+1))
-					throw(UGFatalError("Cannot create level dof distribution"));
+		virtual void face_created(Grid* grid, Face* f,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-			//	get level dof distribution
-				dof_distribution_type* levDoFDistr =
-								get_level_dof_distribution(level);
+		virtual void volume_created(Grid* grid, Volume* vol,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
+	///	\}
 
-				UG_ASSERT(levDoFDistr != NULL, "Invalid DoF Distribution.");
+	//	erase callbacks
+	/**
+	 *
+	 * \{ */
+		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
+										 VertexBase* replacedBy = NULL);
 
-			//	announce created vertex to level dof distribution
-				levDoFDistr->vertex_added(vrt);
-			}
+		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
+										 EdgeBase* replacedBy = NULL);
 
-		//	if surface dofs enabled, add vertex to surface dofs
-			if(surface_dofs_enabled())
-			{
-			//	get surface dof distribution
-				dof_distribution_type* surfDoFDistr = get_surface_dof_distribution();
+		virtual void face_to_be_erased(Grid* grid, Face* f,
+										 Face* replacedBy = NULL);
 
-			//	1. Release index for parent (which may not be part of surface
-			//     view after adding the child; created shadows are not part of
-			//	   the surface view at this stage.)
-				VertexBase* vrtParent = dynamic_cast<VertexBase*>(pParent);
-				if(vrtParent != NULL)
-					surfDoFDistr->vertex_to_be_removed(vrtParent);
+		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
+										 Volume* replacedBy = NULL);
 
-			//	2. Add the created vertex to the surface view
-				const int si = m_pMGSubsetHandler->get_subset_index(vrt);
-				m_pSurfaceView->assign_subset(vrt, si);
-
-			//	3. Remove parent from surface view
-				// \todo: This is for vertices only, handle all cases
-				m_pSurfaceView->assign_subset(vrtParent, -1);
-
-			//	4. Add index for child
-				surfDoFDistr->vertex_added(vrt);
-
-			//	NOTE: at this point the parent Vertex may be a shadow. But we
-			//		  do not add the shadow here, but on a later call of defragment
-			}
-		}
+	/**	\}	*/
 
 		void defragment()
 		{
 		//	we add the shadows to the surface view, that may have been created
 		//	due to grid adaption
 
+		//	check grid options
+			if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+			  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_FACES");
+			  m_pMultiGrid->enable_options(VOLOPT_AUTOGENERATE_FACES);
+			}
+			if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+			  UG_LOG("WARNING: Auto-enabling grid option FACEOPT_AUTOGENERATE_EDGES");
+			  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
+			}
+			if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)){
+			  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_EDGES");
+			  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
+			}
+
+		//	add missing shadows to surface view
+			if(surface_dofs_enabled())
+			{
+				add_associated_sides_to_surface_view<Volume>();
+				add_associated_sides_to_surface_view<Face>();
+				add_associated_sides_to_surface_view<EdgeBase>();
+			}
+
+		//	defragment dof distributions
+			if(surface_dofs_enabled())
+				get_surface_dof_distribution()->defragment();
+			if(level_dofs_enabled())
+				for(size_t lev = 0; lev < num_levels(); ++lev)
+					get_level_dof_distribution(lev)->defragment();
+
+		}
+
+		template <class TElem>
+		void add_associated_sides_to_surface_view()
+		{
+			typedef typename geometry_traits<TElem>::const_iterator iterator;
+			typedef typename TElem::lower_dim_base_object Side;
+			std::vector<Side*> vSides;
+			Grid& grid = *m_pSurfaceView->get_assigned_grid();
+
+			for(size_t l  = 0; l < m_pSurfaceView->num_levels(); ++l){
+				for(int si = 0; si < m_pSurfaceView->num_subsets(); ++si){
+					for(iterator iter = m_pSurfaceView->begin<TElem>(si, l);
+						iter != m_pSurfaceView->end<TElem>(si, l); ++iter)
+					{
+						TElem* e = *iter;
+						CollectAssociated(vSides, grid, e);
+
+						for(size_t i = 0; i < vSides.size(); ++i)
+						{
+							Side* s = vSides[i];
+
+							if(m_pSurfaceView->get_subset_index(s) == -1)
+							{
+								add_to_surface_view(s);
+								get_surface_dof_distribution()->grid_obj_added(s);
+							}
+						}
+					}
+				}
+			}
 		}
 
 	protected:
 	///	creates the surface view
 		virtual bool surface_view_required();
 
-	///	creates the surface distribution
-		bool surface_distribution_required();
+	///	adds an element to the surface view
+		void add_to_surface_view(GeometricObject* obj);
+		void add_to_surface_view(VertexBase* vrt);
+		void add_to_surface_view(EdgeBase* edge);
+		void add_to_surface_view(Face* face);
+		void add_to_surface_view(Volume* vol);
+
+	///	removes an element to the surface view
+		void remove_from_surface_view(GeometricObject* obj);
+		void remove_from_surface_view(VertexBase* vrt);
+		void remove_from_surface_view(EdgeBase* edge);
+		void remove_from_surface_view(Face* face);
+		void remove_from_surface_view(Volume* vol);
 
 	///	creates level DoF Distributions iff needed
 		bool level_distribution_required(size_t numLevel);
 
 	///	deletes all level distributions
 		void disable_level_dofs();
+
+	///	adds an element to to level dof distribution
+		void add_to_level_dof_distribution(GeometricObject* vrt);
+		void add_to_level_dof_distribution(VertexBase* vrt);
+		void add_to_level_dof_distribution(EdgeBase* edge);
+		void add_to_level_dof_distribution(Face* face);
+		void add_to_level_dof_distribution(Volume* vol);
+
+	///	removes an element from level dof distribution
+		void remove_from_level_dof_distribution(GeometricObject* vrt);
+		void remove_from_level_dof_distribution(VertexBase* vrt);
+		void remove_from_level_dof_distribution(EdgeBase* edge);
+		void remove_from_level_dof_distribution(Face* face);
+		void remove_from_level_dof_distribution(Volume* vol);
+
+	///	creates the surface distribution
+		bool surface_distribution_required();
 
 	///	deletes the surface distributions
 		void disable_surface_dofs();

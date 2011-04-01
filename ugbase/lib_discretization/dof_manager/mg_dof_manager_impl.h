@@ -157,6 +157,11 @@ enable_level_dofs()
 		}
 	}
 
+//	register DoFManager as observer
+	m_pMultiGrid->register_observer(this,	OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
+	                       	   			    OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
+	                       	   		        OT_VOLUME_OBSERVER);
+
 	return true;
 }
 
@@ -223,6 +228,20 @@ enable_surface_dofs()
 		UG_LOG("Cannot distribute dofs on surface.\n");
 		return false;
 	}
+
+//	unregister DoFManager
+	m_pMultiGrid->unregister_observer(this);
+
+//	register SurfaceView first
+	m_pMultiGrid->register_observer(m_pSurfaceView,
+	                                	  OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
+	                       	   			  OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
+	                       	   			  OT_VOLUME_OBSERVER);
+
+//	register DoFManager again
+	m_pMultiGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
+	                       	   			  OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
+	                       	   			  OT_VOLUME_OBSERVER);
 
 //	we're done
 	return true;
@@ -462,6 +481,602 @@ disable_level_dofs()
 	m_vLevelDD.clear();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// 	Handling of surface view
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_surface_view(GeometricObject* obj)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:
+			add_to_surface_view(reinterpret_cast<VertexBase*>(obj)); return;
+		case EDGE:
+			add_to_surface_view(reinterpret_cast<EdgeBase*>(obj)); return;
+		case FACE:
+			add_to_surface_view(reinterpret_cast<Face*>(obj)); return;
+		case VOLUME:
+			add_to_surface_view(reinterpret_cast<Volume*>(obj)); return;
+	}
+
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_surface_view(VertexBase* vrt)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	const int si = m_pMGSubsetHandler->get_subset_index(vrt);
+	m_pSurfaceView->assign_subset(vrt, si);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_surface_view(EdgeBase* edge)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	const int si = m_pMGSubsetHandler->get_subset_index(edge);
+	m_pSurfaceView->assign_subset(edge, si);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_surface_view(Face* face)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	const int si = m_pMGSubsetHandler->get_subset_index(face);
+	m_pSurfaceView->assign_subset(face, si);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_surface_view(Volume* vol)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	const int si = m_pMGSubsetHandler->get_subset_index(vol);
+	m_pSurfaceView->assign_subset(vol, si);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_surface_view(GeometricObject* obj)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:
+			remove_from_surface_view(reinterpret_cast<VertexBase*>(obj)); return;
+		case EDGE:
+			remove_from_surface_view(reinterpret_cast<EdgeBase*>(obj)); return;
+		case FACE:
+			remove_from_surface_view(reinterpret_cast<Face*>(obj)); return;
+		case VOLUME:
+			remove_from_surface_view(reinterpret_cast<Volume*>(obj)); return;
+	}
+
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_surface_view(VertexBase* vrt)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	m_pSurfaceView->assign_subset(vrt, -1);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_surface_view(EdgeBase* edge)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	m_pSurfaceView->assign_subset(edge, -1);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_surface_view(Face* face)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	m_pSurfaceView->assign_subset(face, -1);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_surface_view(Volume* vol)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+
+	m_pSurfaceView->assign_subset(vol, -1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// 	Handling of level dof distribution
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_level_dof_distribution(GeometricObject* obj)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:
+			add_to_level_dof_distribution(reinterpret_cast<VertexBase*>(obj)); return;
+		case EDGE:
+			add_to_level_dof_distribution(reinterpret_cast<EdgeBase*>(obj)); return;
+		case FACE:
+			add_to_level_dof_distribution(reinterpret_cast<Face*>(obj)); return;
+		case VOLUME:
+			add_to_level_dof_distribution(reinterpret_cast<Volume*>(obj)); return;
+	}
+
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_level_dof_distribution(VertexBase* vrt)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(vrt);
+
+//	check if level dof distribution must be created
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Cannot create level dof distribution"));
+
+//	announce element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_added(vrt);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_level_dof_distribution(EdgeBase* edge)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(edge);
+
+//	check if level dof distribution must be created
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Cannot create level dof distribution"));
+
+//	announce element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_added(edge);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_level_dof_distribution(Face* face)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(face);
+
+//	check if level dof distribution must be created
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Cannot create level dof distribution"));
+
+//	announce element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_added(face);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+add_to_level_dof_distribution(Volume* vol)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(vol);
+
+//	check if level dof distribution must be created
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Cannot create level dof distribution"));
+
+//	announce element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_added(vol);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_level_dof_distribution(GeometricObject* obj)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:
+			remove_from_level_dof_distribution(reinterpret_cast<VertexBase*>(obj)); return;
+		case EDGE:
+			remove_from_level_dof_distribution(reinterpret_cast<EdgeBase*>(obj)); return;
+		case FACE:
+			remove_from_level_dof_distribution(reinterpret_cast<Face*>(obj)); return;
+		case VOLUME:
+			remove_from_level_dof_distribution(reinterpret_cast<Volume*>(obj)); return;
+	}
+
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_level_dof_distribution(VertexBase* vrt)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(vrt);
+
+//	check if level dof distribution exists
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Level dof distribution does not exist."));
+
+//	announce removal of element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_to_be_removed(vrt);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_level_dof_distribution(EdgeBase* edge)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(edge);
+
+//	check if level dof distribution exists
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Level dof distribution does not exist."));
+
+//	announce removal of element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_to_be_removed(edge);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_level_dof_distribution(Face* face)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(face);
+
+//	check if level dof distribution exists
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Level dof distribution does not exist."));
+
+//	announce removal of element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_to_be_removed(face);
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+remove_from_level_dof_distribution(Volume* vol)
+{
+	UG_ASSERT(m_pMGSubsetHandler != NULL, "Missing MGSubsetHandler.");
+
+//	get level of Vertex
+	const int level = m_pMGSubsetHandler->get_level(vol);
+
+//	check if level dof distribution exists
+	if(!level_distribution_required(level+1))
+		throw(UGFatalError("Level dof distribution does not exist."));
+
+//	announce removal of element to level dof distribution
+	get_level_dof_distribution(level)->grid_obj_to_be_removed(vol);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// 	Grid Observer Callbacks
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+vertex_created(Grid* grid, VertexBase* vrt,	GeometricObject* pParent, bool replacesParent)
+{
+//	if level dofs enabled, add the element to level dofs
+	if(level_dofs_enabled())
+		add_to_level_dof_distribution(vrt);
+
+//	if surface dofs enabled, add the element to surface dofs
+	if(surface_dofs_enabled())
+	{
+		if(pParent != NULL)
+		{
+		//	1. Release index for parent (which may not be part of surface
+		//     view after adding the child; created shadows are not part of
+		//	   the surface view at this stage.)
+			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+
+		//	2. Remove parent from surface view
+			remove_from_surface_view(pParent);
+		}
+
+	//	3. Add the created element to the surface view
+		add_to_surface_view(vrt);
+
+	//	4. Add index for child
+		get_surface_dof_distribution()->grid_obj_added(vrt);
+
+	//	NOTE: at this point the parent element may be a shadow. But we
+	//		  do not add the shadow here, but on a later call of defragment
+	}
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replacesParent)
+{
+//	if level dofs enabled, add the element to level dofs
+	if(level_dofs_enabled())
+		add_to_level_dof_distribution(edge);
+
+//	if surface dofs enabled, add the element to surface dofs
+	if(surface_dofs_enabled())
+	{
+		if(pParent != NULL)
+		{
+		//	1. Release index for parent (which may not be part of surface
+		//     view after adding the child; created shadows are not part of
+		//	   the surface view at this stage.)
+			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+
+		//	2. Remove parent from surface view
+			remove_from_surface_view(pParent);
+		}
+
+	//	3. Add the created element to the surface view
+		add_to_surface_view(edge);
+
+	//	4. Add index for child
+		get_surface_dof_distribution()->grid_obj_added(edge);
+
+	//	NOTE: at this point the parent element may be a shadow. But we
+	//		  do not add the shadow here, but on a later call of defragment
+	}
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+face_created(Grid* grid, Face* face,	GeometricObject* pParent, bool replacesParent)
+{
+//	if level dofs enabled, add the element to level dofs
+	if(level_dofs_enabled())
+		add_to_level_dof_distribution(face);
+
+//	if surface dofs enabled, add the element to surface dofs
+	if(surface_dofs_enabled())
+	{
+		if(pParent != NULL)
+		{
+		//	1. Release index for parent (which may not be part of surface
+		//     view after adding the child; created shadows are not part of
+		//	   the surface view at this stage.)
+			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+
+		//	2. Remove parent from surface view
+			remove_from_surface_view(pParent);
+		}
+
+	//	3. Add the created element to the surface view
+		add_to_surface_view(face);
+
+	//	4. Add index for child
+		get_surface_dof_distribution()->grid_obj_added(face);
+
+	//	NOTE: at this point the parent element may be a shadow. But we
+	//		  do not add the shadow here, but on a later call of defragment
+	}
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+volume_created(Grid* grid, Volume* vol,	GeometricObject* pParent, bool replacesParent)
+{
+//	if level dofs enabled, add the element to level dofs
+	if(level_dofs_enabled())
+		add_to_level_dof_distribution(vol);
+
+//	if surface dofs enabled, add the element to surface dofs
+	if(surface_dofs_enabled())
+	{
+		if(pParent != NULL)
+		{
+		//	1. Release index for parent (which may not be part of surface
+		//     view after adding the child; created shadows are not part of
+		//	   the surface view at this stage.)
+			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+
+		//	2. Remove parent from surface view
+			remove_from_surface_view(pParent);
+		}
+
+	//	3. Add the created element to the surface view
+		add_to_surface_view(vol);
+
+	//	4. Add index for child
+		get_surface_dof_distribution()->grid_obj_added(vol);
+
+	//	NOTE: at this point the parent element may be a shadow. But we
+	//		  do not add the shadow here, but on a later call of defragment
+	}
+}
+
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
+{
+	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
+
+//	if level dofs enabled, remove element from level dofs
+	if(level_dofs_enabled())
+		remove_from_level_dof_distribution(vrt);
+
+//	if surface dofs enabled, remove element from surface dofs
+	if(surface_dofs_enabled())
+	{
+	//	1. Remove index for erased element
+		get_surface_dof_distribution()->grid_obj_to_be_removed(vrt);
+
+	//	get parent
+		GeometricObject* pParent = m_pMultiGrid->get_parent(vrt);
+
+		if(pParent != NULL && replacedBy == NULL)
+		{
+		//	2. Add parent to surface view
+			add_to_surface_view(pParent);
+
+		//	3. Add index for parent
+			get_surface_dof_distribution()->grid_obj_added(pParent);
+		}
+	}
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+edge_to_be_erased(Grid* grid, EdgeBase* edge, EdgeBase* replacedBy)
+{
+	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
+
+//	if level dofs enabled, remove element from level dofs
+	if(level_dofs_enabled())
+		remove_from_level_dof_distribution(edge);
+
+//	if surface dofs enabled, remove element from surface dofs
+	if(surface_dofs_enabled())
+	{
+	//	1. Remove index for erased element
+		get_surface_dof_distribution()->grid_obj_to_be_removed(edge);
+
+	//	get parent
+		GeometricObject* pParent = m_pMultiGrid->get_parent(edge);
+
+		if(pParent != NULL && replacedBy == NULL)
+		{
+		//	2. Add parent to surface view
+			add_to_surface_view(pParent);
+
+		//	3. Add index for parent
+			get_surface_dof_distribution()->grid_obj_added(pParent);
+		}
+	}
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
+{
+	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
+
+//	if level dofs enabled, remove element from level dofs
+	if(level_dofs_enabled())
+		remove_from_level_dof_distribution(face);
+
+//	if surface dofs enabled, remove element from surface dofs
+	if(surface_dofs_enabled())
+	{
+	//	1. Remove index for erased element
+		get_surface_dof_distribution()->grid_obj_to_be_removed(face);
+
+	//	get parent
+		GeometricObject* pParent = m_pMultiGrid->get_parent(face);
+
+		if(pParent != NULL && replacedBy == NULL)
+		{
+		//	2. Add parent to surface view
+			add_to_surface_view(pParent);
+
+		//	3. Add index for parent
+			get_surface_dof_distribution()->grid_obj_added(pParent);
+		}
+	}
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
+{
+	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
+
+//	if level dofs enabled, remove element from level dofs
+	if(level_dofs_enabled())
+		remove_from_level_dof_distribution(vol);
+
+//	if surface dofs enabled, remove element from surface dofs
+	if(surface_dofs_enabled())
+	{
+	//	1. Remove index for erased element
+		get_surface_dof_distribution()->grid_obj_to_be_removed(vol);
+
+	//	get parent
+		GeometricObject* pParent = m_pMultiGrid->get_parent(vol);
+
+		if(pParent != NULL && replacedBy == NULL)
+		{
+		//	2. Add parent to surface view
+			add_to_surface_view(pParent);
+
+		//	3. Add index for parent
+			get_surface_dof_distribution()->grid_obj_added(pParent);
+		}
+	}
+}
 
 } // end namespace ug
 

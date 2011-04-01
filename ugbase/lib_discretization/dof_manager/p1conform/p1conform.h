@@ -211,10 +211,19 @@ class P1ConformDoFDistribution
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
 
 	/// \copydoc IDoFDistribution::vertices_created()
-		bool vertex_added(VertexBase* vrt);
+		void grid_obj_added(VertexBase* vrt);
+		void grid_obj_added(EdgeBase* edge) {}
+		void grid_obj_added(Face* face) {}
+		void grid_obj_added(Volume* vol) {}
 
 	/// \copydoc IDoFDistribution::vertices_to_be_erased()
-		bool vertex_to_be_removed(VertexBase* vrt);
+		void grid_obj_to_be_removed(VertexBase* vrt);
+		void grid_obj_to_be_removed(EdgeBase* edge) {}
+		void grid_obj_to_be_removed(Face* face) {}
+		void grid_obj_to_be_removed(Volume* vol) {}
+
+	/// \copydoc IDoFDistribution::compress()
+		bool defragment();
 
 	protected:
 	///	returns first algebra index of a vertex
@@ -233,6 +242,52 @@ class P1ConformDoFDistribution
 			return m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 		}
 
+	///	returns the next free index
+		size_t get_free_index(size_t si)
+		{
+		//	The idea is as follows:
+		//	- 	If a free index is left, the a free index is returned. This
+		//		changes the number of (used) dofs, but the index set remains
+		//		the same. (one hole less)
+		// 	-	If no free index is left (i.e. no holes in index set and therefore
+		//		m_numDoFs == m_sizeIndexSet), the index set is increased and
+		//		the newly created index is returned. This changes the size of
+		//		the index set and the number of dofs.
+
+		//	start with default index to be returned
+			size_t freeIndex = m_sizeIndexSet;
+
+		//	check if free index available
+			if(!m_vFreeIndex.empty())
+			{
+			//	return free index instead and pop index from free index list
+				freeIndex = m_vFreeIndex.back(); m_vFreeIndex.pop_back();
+			}
+			else
+			{
+			//	if using new index, increase size of index set
+				m_sizeIndexSet += num_fct(si);
+			}
+
+		//	adjust counters
+			m_numDoFs += num_fct(si);
+			m_vNumDoFs[si] += num_fct(si);
+
+		//	return new index
+			return freeIndex;
+		}
+
+	///	remembers a free index
+		void push_free_index(size_t freeIndex, size_t si)
+		{
+		//	remember index
+			m_vFreeIndex.push_back(freeIndex);
+
+		//	decrease number of distributed indices
+			m_numDoFs -= num_fct(si);
+			m_vNumDoFs[si] -= num_fct(si);
+		}
+
 	protected:
 	/// subset handler for this distributor
 		ISubsetHandler* m_pISubsetHandler;
@@ -243,11 +298,18 @@ class P1ConformDoFDistribution
 	/// number of distributed dofs on whole domain
 		size_t m_numDoFs;
 
-	/// number offset map
+	///	number of largest index used, i.e. (0, ..., m_sizeIndexSet-1) available,
+	///	but maybe some indices are not used
+		size_t m_sizeIndexSet;
+
+	/// number offsetmap
 		std::vector<std::vector<size_t> > m_vvOffsets;
 
 	/// number of distributed dofs on each subset
 		std::vector<size_t> m_vNumDoFs;
+
+	///	vector to store free algebraic indices
+		std::vector<size_t> m_vFreeIndex;
 };
 
 
@@ -418,10 +480,16 @@ class GroupedP1ConformDoFDistribution
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
 
 	/// \copydoc IDoFDistribution::vertices_created()
-		bool vertex_added(VertexBase* vrt);
+		void grid_obj_added(VertexBase* vrt);
+		void grid_obj_added(EdgeBase* edge) {}
+		void grid_obj_added(Face* face) {}
+		void grid_obj_added(Volume* vol) {}
 
 	/// \copydoc IDoFDistribution::vertices_to_be_erased()
-		bool vertex_to_be_removed(VertexBase* vrt);
+		void grid_obj_to_be_removed(VertexBase* vrt);
+		void grid_obj_to_be_removed(EdgeBase* edge) {}
+		void grid_obj_to_be_removed(Face* face) {}
+		void grid_obj_to_be_removed(Volume* vol) {}
 
 	/// \copydoc IDoFDistribution::compress()
 		bool defragment();

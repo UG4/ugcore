@@ -279,7 +279,7 @@ class IDoFDistribution
 			it = find(m_vManagedGridFunc.begin(), m_vManagedGridFunc.end(), &gf);
 
 		//	add if not found
-			if(it != m_vManagedGridFunc.end())
+			if(it == m_vManagedGridFunc.end())
 				m_vManagedGridFunc.push_back(&gf);
 		}
 
@@ -330,12 +330,40 @@ class IDoFDistribution
 		bool defragment() {return getImpl().defragment();}
 
 	///	add indices to elements
-		bool vertex_added(VertexBase* vrt) {return getImpl().vertex_added(vrt);}
-		// \todo: add other geom obj callbacks
+		void grid_obj_added(GeometricObject* obj)
+		{
+			uint type = obj->base_object_type_id();
+			switch(type)
+			{
+				case VERTEX:grid_obj_added(reinterpret_cast<VertexBase*>(obj)); return;
+				case EDGE: 	grid_obj_added(reinterpret_cast<EdgeBase*>(obj)); return;
+				case FACE:	grid_obj_added(reinterpret_cast<Face*>(obj)); return;
+				case VOLUME:grid_obj_added(reinterpret_cast<Volume*>(obj)); return;
+			}
+			throw(UGFatalError("GeomObject type not known."));
+		}
+		void grid_obj_added(VertexBase* vrt){getImpl().grid_obj_added(vrt);}
+		void grid_obj_added(EdgeBase* edge) {getImpl().grid_obj_added(edge);}
+		void grid_obj_added(Face* face) 	{getImpl().grid_obj_added(face);}
+		void grid_obj_added(Volume* vol) 	{getImpl().grid_obj_added(vol);}
 
 	///	remove indices from elements
-		bool vertex_to_be_removed(VertexBase* vrt) {return getImpl().vertex_to_be_removed(vrt);}
-		// \todo: add other geom obj callbacks
+		void grid_obj_to_be_removed(GeometricObject* obj)
+		{
+			uint type = obj->base_object_type_id();
+			switch(type)
+			{
+				case VERTEX:grid_obj_to_be_removed(reinterpret_cast<VertexBase*>(obj)); return;
+				case EDGE: 	grid_obj_to_be_removed(reinterpret_cast<EdgeBase*>(obj)); return;
+				case FACE:	grid_obj_to_be_removed(reinterpret_cast<Face*>(obj)); return;
+				case VOLUME:grid_obj_to_be_removed(reinterpret_cast<Volume*>(obj)); return;
+			}
+			throw(UGFatalError("GeomObject type not known."));
+		}
+		void grid_obj_to_be_removed(VertexBase* vrt){getImpl().grid_obj_to_be_removed(vrt);}
+		void grid_obj_to_be_removed(EdgeBase* edge) {getImpl().grid_obj_to_be_removed(edge);}
+		void grid_obj_to_be_removed(Face* face) 	{getImpl().grid_obj_to_be_removed(face);}
+		void grid_obj_to_be_removed(Volume* vol) 	{getImpl().grid_obj_to_be_removed(vol);}
 
 	/// distribute dofs
 		bool distribute_dofs(){return getImpl().distribute_dofs();}
