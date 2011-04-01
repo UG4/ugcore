@@ -206,6 +206,35 @@ template <typename TFunction>
 void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              TFunction& u,
                                              number TOL, number scale,
+                                             Int2Type<1>)
+{
+//	get domain
+	typename TFunction::domain_type& domain = u.get_approximation_space().get_domain();
+
+//	get multigrid
+	typename TFunction::domain_type::grid_type& mg = domain.get_grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.attach_to_edges(aError);
+	MultiGrid::EdgeAttachmentAccessor<ANumber> aaError(mg, aError);
+
+// 	Compute error on elements
+	ComputeGradient<Edge, TFunction>(u, aaError);
+
+// 	Mark elements for refinement
+	if(!MarkElements<Edge, TFunction>(refiner, u, TOL, scale, aaError))
+		UG_LOG("No element marked. Not refining the grid.\n");
+
+// 	detach error field
+	mg.detach_from_edges(aError);
+};
+
+template <typename TFunction>
+void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
+                                             TFunction& u,
+                                             number TOL, number scale,
                                              Int2Type<2>)
 {
 //	get domain
