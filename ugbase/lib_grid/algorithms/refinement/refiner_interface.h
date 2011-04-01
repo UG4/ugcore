@@ -5,6 +5,8 @@
 #ifndef __H__UG__REFINER_INTERFACE__
 #define __H__UG__REFINER_INTERFACE__
 
+#include "refinement_callbacks.h"
+
 namespace ug
 {
 
