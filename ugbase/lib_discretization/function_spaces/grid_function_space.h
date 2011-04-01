@@ -190,6 +190,11 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			m_MGDoFManager.print_layout_statistic();
 		}
 
+		void defragment()
+		{
+			m_MGDoFManager.defragment();
+		}
+
 		// create a new grid function of this approximation space
 		function_type* create_level_function(size_t level)
 		{
