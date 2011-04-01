@@ -9,11 +9,17 @@
 #ifndef __H__UG__MARTIN_ALGEBRA__LOCAL_HELPER__
 #define __H__UG__MARTIN_ALGEBRA__LOCAL_HELPER__
 
+#include "sparsematrix.h"
+
+namespace ug
+{
+
+
 template<typename M>
 class localMatrix_from_mat_and_array
 {
 public:
-	localMatrix_from_mat_and_array(M &m_, size_t *rows_, size_t *cols_) : rows(rows_), cols(cols_)
+	localMatrix_from_mat_and_array(M &m_, const size_t *rows_, const size_t *cols_) : rows(rows_), cols(cols_)
 	{
 		m = &m_;
 	}
@@ -32,21 +38,15 @@ public:
 
 private:
 	M *m;
-	size_t *rows;
-	size_t *cols;
+	const size_t *rows;
+	const size_t *cols;
 };
-
-template<typename M>
-localMatrix_from_mat_and_array<M> LocalMatrix(M &m, size_t *rows, size_t *cols)
-{
-	return localMatrix_from_mat_and_array<M> (m, rows, cols);
-}
 
 template<typename M>
 class const_localMatrix_from_mat_and_array
 {
 public:
-	const_localMatrix_from_mat_and_array(const M &m_, size_t *rows_, size_t *cols_) : m(m_), rows(rows_), cols(cols_)
+	const_localMatrix_from_mat_and_array(const M &m_, const size_t *rows_, const size_t *cols_) : m(m_), rows(rows_), cols(cols_)
 	{	}
 
 	size_t num_rows() const { return m.num_rows(); }
@@ -57,21 +57,15 @@ public:
 
 private:
 	const M &m;
-	size_t *rows;
-	size_t *cols;
+	const size_t *rows;
+	const size_t *cols;
 };
-
-template<typename M>
-const_localMatrix_from_mat_and_array<M> LocalMatrix(const M &m, size_t *rows, size_t *cols)
-{
-	return const_localMatrix_from_mat_and_array<M> (m, rows, cols);
-}
 
 template<typename T>
 class localMatrix_from_col_major_and_array
 {
 public:
-	localMatrix_from_col_major_and_array(size_t numrows_, size_t numcols_, T *m_, size_t *rows_, size_t *cols_)
+	localMatrix_from_col_major_and_array(size_t numrows_, size_t numcols_, T *m_, const size_t *rows_, const size_t *cols_)
 			: m(m_), rows(rows_), cols(cols_)
 	{
 		numrows = numrows_;
@@ -89,15 +83,15 @@ private:
 	T *m;
 	size_t numrows;
 	size_t numcols;
-	size_t *rows;
-	size_t *cols;
+	const size_t *rows;
+	const size_t *cols;
 };
 
 template<typename T>
 class localMatrix_from_row_major_and_array
 {
 public:
-	localMatrix_from_row_major_and_array(size_t numrows_, size_t numcols_, T *m_, size_t *rows_, size_t *cols_)
+	localMatrix_from_row_major_and_array(size_t numrows_, size_t numcols_, T *m_, const size_t *rows_, const size_t *cols_)
 			: m(m_), rows(rows_), cols(cols_)
 	{
 		numrows = numrows_;
@@ -113,8 +107,8 @@ public:
 
 private:
 	T *m;
-	size_t *rows;
-	size_t *cols;
+	const size_t *rows;
+	const size_t *cols;
 	size_t numrows;
 	size_t numcols;
 };
@@ -123,7 +117,7 @@ template<typename T>
 class localVector_from_array
 {
 public:
-	localVector_from_array(size_t N_, T *v_, size_t *indices_)
+	localVector_from_array(size_t N_, T *v_, const size_t *indices_)
 			: N(N_), v(v_), indices(indices_)
 	{
 	}
@@ -137,8 +131,67 @@ public:
 private:
 	size_t N;
 	T *v;
-	size_t *indices;
+	const size_t *indices;
 };
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/** Add a local matrix
+ *
+ * The local matrix type must declare the following members:
+ * - num_rows()
+ * - num_cols()
+ * - row_index(size_t i)
+ * - col_index(size_t j)
+ * - operator()(size_t i, size_t j)
+ * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
+ * \param mat the whole local matrix type
+ */
+template<typename TValueType, typename TLocalMatrix>
+inline bool AddLocalMatrix(SparseMatrix<TValueType> &mat, const TLocalMatrix &localMat)
+{
+	mat.add(localMat);
+	return true;
+}
+template<typename TValueType, typename TLocalMatrix>
+inline bool SetLocalMatrix(SparseMatrix<TValueType> &mat, const TLocalMatrix &localMat)
+{
+	mat.set(localMat);
+	return true;
+}
+template<typename TValueType, typename TLocalMatrix>
+inline bool GetLocalMatrix(const SparseMatrix<TValueType> &mat, TLocalMatrix &localMat)
+{
+	mat.get(localMat);
+	return true;
+}
+
+template<typename TValueType, typename TLocalMatrix>
+inline bool AddLocalMatrix(SparseMatrix<TValueType> &mat, const TLocalMatrix &localMat, const size_t *rowIndices, const size_t *colIndices)
+{
+	const_localMatrix_from_mat_and_array<TLocalMatrix> loc(localMat, rowIndices, colIndices);
+	return AddLocalMatrix(mat, loc);
+}
+
+template<typename TValueType, typename TLocalMatrix>
+inline bool SetLocalMatrix(SparseMatrix<TValueType> &mat, TLocalMatrix &localMat, const size_t *rowIndices, const size_t *colIndices)
+{
+	const_localMatrix_from_mat_and_array<TLocalMatrix> loc(localMat, rowIndices, colIndices);
+	return AddLocalMatrix(mat, loc);
+}
+
+template<typename TValueType, typename TLocalMatrix>
+inline bool GetLocalMatrix(const SparseMatrix<TValueType> &mat, TLocalMatrix &localMat, const size_t *rowIndices, const size_t *colIndices)
+{
+	localMatrix_from_mat_and_array<TLocalMatrix> loc(localMat, rowIndices, colIndices);
+	return GetLocalMatrix(mat, loc);
+}
+
+
+}
 
 #endif
