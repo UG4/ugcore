@@ -1,6 +1,5 @@
 /*
  *  blockMatrix.h
- *  flexamg
  *
  *  Created by Martin Rupp on 16.12.09.
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
@@ -14,8 +13,8 @@
 
 // todo: also with float / complex<float> / complex<double>
 
-#ifndef __H__UG__MARTIN_ALGEBRA__DOUBLE__
-#define __H__UG__MARTIN_ALGEBRA__DOUBLE__
+#ifndef __H__UG__SMALL_ALGEBRA__DOUBLE__
+#define __H__UG__SMALL_ALGEBRA__DOUBLE__
 #include "blocks.h"
 namespace ug{
 

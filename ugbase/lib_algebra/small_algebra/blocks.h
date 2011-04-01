@@ -1,6 +1,6 @@
 
-#ifndef __H__UG__MARTIN_ALGEBRA__BLOCKS__
-#define __H__UG__MARTIN_ALGEBRA__BLOCKS__
+#ifndef __H__UG__SMALL_ALGEBRA__BLOCKS__
+#define __H__UG__SMALL_ALGEBRA__BLOCKS__
 
 #include <ostream>
 
@@ -124,4 +124,5 @@ inline size_t GetCols(const T &t);
 #include "small_matrix/densematrix.h"
 #include "small_matrix/block_dense.h"
 #include "storage/storage.h"
-#endif
+
+#endif /* __H__UG__SMALL_ALGEBRA__BLOCKS__ */

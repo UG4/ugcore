@@ -1,3 +1,7 @@
+#ifndef __H__UG__SMALL_ALGEBRA__
+#define __H__UG__SMALL_ALGEBRA__
+
+
 #include "blocks.h"
 
 
@@ -11,3 +15,5 @@
 
 #include "small_matrix/densematrix_inverse.h"
 
+
+#endif /* __H__UG__SMALL_ALGEBRA__ */
