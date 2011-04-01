@@ -48,7 +48,7 @@ subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(v) != -1)
-			get_attachment_pipe<VertexBase>(subsetIndex).unregister_element(v);
+			get_attachment_pipe<VertexBase>(get_subset_index(v)).unregister_element(v);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<VertexBase>(subsetIndex).register_element(v);
@@ -64,7 +64,7 @@ subset_assigned(EdgeBase* e, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(e) != -1)
-			get_attachment_pipe<EdgeBase>(subsetIndex).unregister_element(e);
+			get_attachment_pipe<EdgeBase>(get_subset_index(e)).unregister_element(e);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<EdgeBase>(subsetIndex).register_element(e);
@@ -81,7 +81,7 @@ subset_assigned(Face* f, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(f) != -1)
-			get_attachment_pipe<Face>(subsetIndex).unregister_element(f);
+			get_attachment_pipe<Face>(get_subset_index(f)).unregister_element(f);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<Face>(subsetIndex).register_element(f);
@@ -98,7 +98,7 @@ subset_assigned(Volume* v, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(v) != -1)
-			get_attachment_pipe<Volume>(subsetIndex).unregister_element(v);
+			get_attachment_pipe<Volume>(get_subset_index(v)).unregister_element(v);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<Volume>(subsetIndex).register_element(v);
