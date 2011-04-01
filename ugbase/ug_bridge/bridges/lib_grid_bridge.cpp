@@ -59,8 +59,43 @@ bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 
 
 
+///	Saves a grid hierarchy by offsetting levels along the z-axis.
+/**	Note that this method might better be implemented for domains.*/
+void SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
+								  const char* filename, number offset)
+{
+//	cast away constness
+	SubsetHandler& sh = *const_cast<SubsetHandler*>(&csh);
 
+	APosition aPos;
+//	uses auto-attach
+	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
 
+//	copy the existing position to aPos. We take care of dimension differences.
+//	Note:	if the method was implemented for domains, this could be implemented
+//			in a nicer way.
+	if(mg.has_vertex_attachment(aPosition))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+	else if(mg.has_vertex_attachment(aPosition2))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+	else if(mg.has_vertex_attachment(aPosition1))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+
+//	iterate through all vertices and apply an offset depending on their level.
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
+			iter != mg.end<VertexBase>(lvl); ++iter)
+		{
+			aaPos[*iter].z += (number)lvl * offset;
+		}
+	}
+
+//	finally save the grid
+	SaveGridToFile(mg, filename, sh, aPos);
+
+//	clean up
+	mg.detach_from_vertices(aPos);
+}
 
 
 bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
@@ -71,6 +106,11 @@ bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 {
 	return SaveGridToFile(grid, filename, sh);
+}
+
+bool SaveGrid(Grid& grid, const SubsetHandler& sh, const char* filename)
+{
+	return SaveGridToFile(grid, filename, *const_cast<SubsetHandler*>(&sh));
 }
 
 bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
@@ -687,9 +727,11 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 
 	//  GridObject functions
 		reg.add_function("LoadGrid", &LoadGrid, grp.c_str())
-			.add_function("SaveGrid", &SaveGrid, grp.c_str())
+			.add_function("SaveGrid", (bool (*)(Grid&, const SubsetHandler&, const char*))&SaveGrid, grp.c_str())
+			.add_function("SaveGrid", (bool (*)(Grid&, SubsetHandler&, const char*))&SaveGrid, grp.c_str())
 			.add_function("LoadGridObject", &LoadGridObject, grp.c_str())
 			.add_function("SaveGridObject", &SaveGridObject, grp.c_str())
+			.add_function("SaveGridHierarchyTransformed", &SaveGridHierarchyTransformed, grp.c_str())
 			.add_function("CreateGridObject", &CreateGridObject, grp.c_str())
 			.add_function("PrintGridElementNumbers", (void (*)(MultiGrid&))&PrintGridElementNumbers, grp.c_str())
 			.add_function("PrintGridElementNumbers", (void (*)(Grid&))&PrintGridElementNumbers, grp.c_str());
