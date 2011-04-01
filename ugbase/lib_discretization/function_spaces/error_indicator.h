@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "common/common.h"
+#include "lib_grid/algorithms/refinement/refiner_interface.h"
 #include "lib_discretization/common/geometry_util.h"
 
 namespace ug{
