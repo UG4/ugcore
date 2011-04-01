@@ -266,9 +266,7 @@ u:set(0.0)
 
 for i = 1,30 do
 
--- 0. defragment approximation space
-approxSpace:defragment()
-approxSpace:print_statistic()
+print(" #######  START Adaption " .. i .."  #######");
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
@@ -307,7 +305,15 @@ refiner:refine()
 print("Grid refined.")
 refiner:clear_marks()
 
--- 8. write statistik on new grid
+-- 8. defragment approximation space
+approxSpace:defragment()
+approxSpace:print_statistic()
+if CheckSurfaceView(approxSpace:get_surface_view()) ~= true then 
+print("Surface View is not correct. Aborting."); exit(); end
+
+-- 9. write statistik on new grid
 --PrintGridElementNumbers(dom:get_grid())
+
+print(" #######  END   Adaption " .. i .."  #######");
 
 end
