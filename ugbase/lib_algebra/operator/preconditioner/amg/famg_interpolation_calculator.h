@@ -464,9 +464,7 @@ private:
 		S.resize(N2.size(), N2.size());
 		S = 0.0;
 
-		localMatrix_from_mat_and_array<DenseMatrix<VariableArray2<double> > >
-		localMatrix(S, &N2[0], &N2[0]);
-		A_OL2.get(localMatrix);
+		GetLocalMatrix(A_OL2, S, &N2[0], &N2[0]);
 
 		//IF_DEBUG(LIB_ALG_AMG, 3)
 		//S.maple_print("\nsubA");
@@ -623,11 +621,9 @@ private:
 		DenseMatrix<VariableArray2<double> > localA;
 		localA.resize(myNeigh.size(), myNeigh.size());
 
-		localMatrix_from_mat_and_array<DenseMatrix<VariableArray2<double> > >
-		localMatrix(localA, &myNeigh[0], &myNeigh[0]);
-		A_OL2.get(localMatrix);
+		GetLocalMatrix(A_OL2, localA, &myNeigh[0], &myNeigh[0]);
 
-		// localA.maple_print("A");
+		localA.maple_print("A");
 
 		size_t N1 = onlyN1.size();
 		size_t N2 = onlyN2.size();
@@ -643,7 +639,7 @@ private:
 				localS(r, r) += localA(r, c);
 		}
 
-		// localS.maple_print("S1");
+		 localS.maple_print("S1");
 
 
 		// get S = 1-D^{-1} A
@@ -654,10 +650,12 @@ private:
 			{
 				localS(r, c) = -diagInv*localS(r,c);
 				if(r==c) localS(r, c) += 1.0;
+				else if(localS(r, c) < 1e-12)
+					localS(r, c) = 0.0;
 			}
 		}
 
-		// localS.maple_print("S2");
+		 localS.maple_print("S2");
 
 		size_t N = N1+1+N2;
 		DenseMatrix<VariableArray2<double> > X;
