@@ -24,6 +24,7 @@
 #include "lib_discretization/function_spaces/grid_function_space.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
 #include "lib_discretization/function_spaces/interpolate.h"
+#include "lib_discretization/function_spaces/error_indicator.h"
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 #include "lib_discretization/dof_manager/cuthill_mckee.h"
 
@@ -142,6 +143,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_constructor()
 			.add_method("init|hide=true", &T::init)
 			.add_method("print_statistic|hide=true", &T::print_statistic)
+			.add_method("defragment|hide=true", &T::defragment)
 			.add_method("print_layout_statistic|hide=true", &T::print_layout_statistic)
 			.add_method("get_surface_dof_distribution|hide=true",  (const typename T::dof_distribution_type& (T::*)() const) &T::get_surface_dof_distribution)
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
@@ -413,6 +415,12 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 	{
 		reg.add_function("SaveVectorForConnectionViewer",
 						 &SaveVectorForConnectionViewer<function_type>, grp.c_str());
+	}
+
+//	MarkForRefinement_GradientIndicator
+	{
+		reg.add_function("MarkForRefinement_GradientIndicator",
+						 &MarkForRefinement_GradientIndicator<function_type>, grp.c_str());
 	}
 
 //	InterpolateFunction
