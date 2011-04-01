@@ -14,7 +14,7 @@ namespace ug {
 template<typename T>
 inline bool GetInverse1(DenseMatrix<T> &inv, const DenseMatrix<T> &mat)
 {
-	UG_ASSERT(mat(0,0)!=0.0, "Determinant zero, cannot invert matrix.");
+	//UG_ASSERT(mat(0,0)!=0.0, "Determinant zero, cannot invert matrix.");
 	if(mat(0,0) == 0.0) return false;
 	inv(0,0) = 1/mat(0,0);
 	return true;
@@ -23,7 +23,7 @@ inline bool GetInverse1(DenseMatrix<T> &inv, const DenseMatrix<T> &mat)
 template<typename T>
 bool Invert1(DenseMatrix<T> &mat)
 {
-	UG_ASSERT(mat(0,0)!=0.0, "Determinant zero, cannot invert matrix.");
+	//UG_ASSERT(mat(0,0)!=0.0, "Determinant zero, cannot invert matrix.");
 	if(mat(0,0) == 0.0) return false;
 	mat(0,0) = 1/mat(0,0);
 	return true;
@@ -43,6 +43,7 @@ template<typename vector_t, typename matrix_t>
 inline bool InverseMatMult1(DenseVector<vector_t> &dest, double beta1,
 		const DenseMatrix<matrix_t> &A1, const DenseVector<vector_t> &w1)
 {
+	if(A1(0,0) == 0.0) return false;
 	UG_ASSERT(&dest != &w1, "");
 	dest[0] = beta1*w1[0]/A1(0,0);
 	return true;
@@ -69,7 +70,7 @@ inline bool GetInverse2(DenseMatrix<T> &inv, const DenseMatrix<T> &mat)
 {
 	UG_ASSERT(&inv != &mat, "inv and mat have to be different. Otherwise use Invert/Invert2");
 	double invdet = GetDet2(mat);
-	UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
+	//UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
 	if(invdet == 0.0) return false;
 	invdet = 1.0/invdet;
 	inv(0,0) = mat(1,1) * invdet;
@@ -83,7 +84,7 @@ template<typename T>
 bool Invert2(DenseMatrix<T> &mat)
 {
 	double invdet = GetDet2(mat);
-	UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
+	//UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
 	if(invdet == 0.0) return false;
 	invdet = 1.0/invdet;
 
@@ -112,7 +113,7 @@ inline bool InverseMatMult2(DenseVector<vector_t> &dest, double beta,
 		const DenseMatrix<matrix_t> &mat, const DenseVector<vector_t> &vec)
 {
 	number det = GetDet2(mat);
-	UG_ASSERT(det != 0, "Determinant zero, cannot invert matrix.");
+	//UG_ASSERT(det != 0, "Determinant zero, cannot invert matrix.");
 	UG_ASSERT(&dest != &vec, "");
 	if(det == 0.0) return false;
 	dest[0] = beta * (mat(1,1)*vec[0] - mat(0,1)*vec[1]) / det;
@@ -144,7 +145,7 @@ inline bool GetInverse3(DenseMatrix<T> &inv, const DenseMatrix<T> &mat)
 {
 	UG_ASSERT(&inv != &mat, "inv and mat have to be different. Otherwise use Invert/Invert3");
 	double invdet = GetDet3(mat);
-	UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
+	//UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
 	if(invdet == 0.0) return false;
 	invdet = 1.0/invdet;
 
@@ -192,7 +193,7 @@ inline bool InverseMatMult3(DenseVector<vector_t> &dest, double beta,
 		const DenseMatrix<matrix_t> &mat, const DenseVector<vector_t> &vec)
 {
 	number det = GetDet3(mat);
-	UG_ASSERT(det != 0, "Determinant zero, cannot invert matrix.");
+	//UG_ASSERT(det != 0, "Determinant zero, cannot invert matrix.");
 	UG_ASSERT(&dest != &vec, "");
 	if(det == 0.0) return false;
 	dest[0] = ( ( mat(1,1)*mat(2,2) - mat(1,2)*mat(2,1)) *vec[0] +
