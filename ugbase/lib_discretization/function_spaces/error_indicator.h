@@ -1,0 +1,276 @@
+/*
+ * error_indicator.h
+ *
+ *  Created on: 30.03.2011
+ *      Author: andreasvogel
+ */
+
+#ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__ERROR_INDICATOR__
+#define __H__LIBDISCRETIZATION__FUNCTION_SPACE__ERROR_INDICATOR__
+
+#include <vector>
+
+#include "common/common.h"
+#include "lib_discretization/common/geometry_util.h"
+
+namespace ug{
+
+template <typename TElem, typename TFunction>
+bool ComputeGradient(TFunction& u,
+                     MultiGrid::AttachmentAccessor<
+                     	 typename geometry_traits<TElem>::geometric_base_object,
+                     	 ug::Attachment<number> >& aaError)
+{
+//	get reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	const ref_elem_type& refElem = ReferenceElementProvider::get_by_elem<TElem>();
+
+//	get reference dimension
+	static const int dim = ref_elem_type::dim;
+
+//	get world dimension
+	static const int world_dim = TFunction::domain_type::dim;
+
+//	get position accessor
+	typename TFunction::domain_type::position_accessor_type& aaPos
+			= u.get_approximation_space().get_domain().get_position_accessor();
+
+//	get trial space
+	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+			LocalShapeFunctionSetProvider::
+				get_local_shape_function_set<ref_elem_type>
+				(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
+
+//	create a reference mapping
+	ReferenceMapping<ref_elem_type, world_dim> mapping;
+
+//	number of shape functions
+	size_t num_sh = (size_t)ref_elem_type::num_corners;
+
+//	local IP
+	MathVector<dim> localIP;
+
+//	some storage
+	std::vector<MathVector<dim> > localGrad(num_sh);
+	std::vector<MathVector<world_dim> > globalGrad(num_sh);
+	std::vector<MathVector<world_dim> > vCorner(num_sh);
+	MathMatrix<dim, dim> JTInv;
+	number detJ;
+
+//	compute local midpoint
+	VecSet(localIP, 0.0);
+	for(size_t i = 0; i < num_sh; ++i)
+		localIP += refElem.corner(i);
+	localIP *= 1./(num_sh);
+
+//	evaluate reference gradient at local midpoint
+	TrialSpace.grads(&localGrad[0], localIP);
+
+//	get iterator over elements
+	typename geometry_traits<TElem>::const_iterator iter = u.template begin<TElem>();
+
+//	loop elements
+	for(; iter != u.template end<TElem>(); ++iter)
+	{
+	//	get the element
+		TElem* elem = *iter;
+
+	//	get corners of element
+		CollectCornerCoordinates(vCorner, *elem, aaPos);
+
+	//	update mapping
+		mapping.update(&vCorner[0]);
+
+	//	compute jacobian
+		if(!mapping.jacobian_transposed_inverse(localIP, JTInv))
+		{
+			UG_LOG("Cannot compute jacobian transposed.\n");
+			return false;
+		}
+
+	//	compute size (volume) of element
+		number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);
+
+	//	compute determinate
+		if(!mapping.jacobian_det(localIP, detJ))
+		{
+			UG_LOG("Cannot compute jacobian determinate.\n");
+			return false;
+		}
+
+	//	compute gradient at mid point by summing contributions of all shape fct
+		MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
+		for(size_t sh = 0 ; sh < num_sh; ++sh)
+		{
+		//	get global Gradient
+			MatVecMult(globalGrad[sh], JTInv,localGrad[sh]);
+
+		//	get vertex
+			VertexBase* vert = elem->vertex(sh);
+
+		//	get of of vertex
+			//\todo: this is for fct=0 only
+			typename TFunction::multi_index_vector_type ind;
+			u.get_inner_multi_indices(vert, 0, ind);
+
+		//	scale global gradient
+			globalGrad[sh] *= (u.get_dof_value(ind[0][0], ind[0][1]));
+
+		//	sum up
+			MidGrad += globalGrad[sh];
+		}
+
+	//	write result in array storage
+		aaError[elem] = VecTwoNorm(MidGrad) * pow(elemSize, 2./dim);
+	}
+
+//	we're done
+	return true;
+}
+
+/// marks elements according to an attached error value field
+/**
+ * This function marks elements for refinement. The passed error attachment
+ * is used as a weight for the amount of the error an each element. All elements
+ * that have an indicated error with s* max <= err <= max are marked for refinement.
+ * Here, max is the maximum error measured, s is a scaling quantity choosen by
+ * the user. In addition, all elements with an error smaller than TOL
+ * (user defined) are not refined.
+ *
+ * \param[in, out]	refiner		Refiner, elements marked on exit
+ * \param[in]		u			Grid Function
+ * \param[in]		TOL			Minimum error, such that an element is marked
+ * \param[in]		scale		scaling factor indicating lower bound for marking
+ * \param[in]		aaError		Error value attachment to elements
+ */
+template <typename TElemBase, typename TFunction>
+bool MarkElements(IRefiner& refiner,
+                  TFunction& u,
+                  number TOL, number scale,
+                  MultiGrid::AttachmentAccessor<TElemBase, ug::Attachment<number> >& aaError)
+{
+//	reset maximum of error
+	number max = 0.0;
+
+//	get element iterator
+	typename geometry_traits<TElemBase>::const_iterator iter = u.template begin<TElemBase>();
+
+//	loop all elements to find the maximum of the error
+	for( ;iter != u.template end<TElemBase>(); ++iter)
+	{
+	//	get element
+		TElemBase* elem = *iter;
+
+	//	search for maximum
+		if(aaError[elem] > max)
+			max = aaError[elem];
+	}
+
+	UG_LOG("Max Error is " << max << ". ");
+
+//	check if something to do
+	if(max <= TOL) return false;
+
+//	Compute minimum
+	number min = max*scale;
+	if(min < TOL) min = TOL;
+
+	UG_LOG("Refining all elements with error >= " << min << ". ");
+
+//	reset counter
+	size_t num_marked = 0;
+
+//	loop elements for marking
+	for(iter = u.template begin<TElemBase>(); iter != u.template end<TElemBase>(); ++iter)
+	{
+	//	get element
+		TElemBase* elem = *iter;
+
+	//	check if element error is in range
+		if(aaError[elem] >= min)
+		{
+		//	mark element and increase counter
+			refiner.mark_for_refinement(elem);
+			num_marked++;
+		}
+	}
+
+	UG_LOG(num_marked << " Elements marked for refinement.\n");
+
+//	we're done
+	return true;
+}
+
+
+template <typename TFunction>
+void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
+                                             TFunction& u,
+                                             number TOL, number scale,
+                                             Int2Type<2>)
+{
+//	get domain
+	typename TFunction::domain_type& domain = u.get_approximation_space().get_domain();
+
+//	get multigrid
+	typename TFunction::domain_type::grid_type& mg = domain.get_grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.attach_to_faces(aError);
+	MultiGrid::FaceAttachmentAccessor<ANumber> aaError(mg, aError);
+
+// 	Compute error on elements
+	ComputeGradient<Triangle, TFunction>(u, aaError);
+	ComputeGradient<Quadrilateral, TFunction>(u, aaError);
+
+// 	Mark elements for refinement
+	if(!MarkElements<Face, TFunction>(refiner, u, TOL, scale, aaError))
+		UG_LOG("No element marked. Not refining the grid.\n");
+
+// 	detach error field
+	mg.detach_from_faces(aError);
+};
+
+template <typename TFunction>
+void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
+                                             TFunction& u,
+                                             number TOL, number scale,
+                                             Int2Type<3>)
+{
+//	get domain
+	typename TFunction::domain_type& domain = u.get_approximation_space().get_domain();
+
+//	get multigrid
+	typename TFunction::domain_type::grid_type& mg = domain.get_grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.attach_to_volumes(aError);
+	MultiGrid::VolumeAttachmentAccessor<ANumber> aaError(mg, aError);
+
+// 	Compute error on elements
+	ComputeGradient<Tetrahedron, TFunction>(u, aaError);
+	ComputeGradient<Quadrilateral, TFunction>(u, aaError);
+
+// 	Mark elements for refinement
+	if(!MarkElements<Volume, TFunction>(refiner, u, TOL, scale, aaError))
+		UG_LOG("No element marked. Not refining the grid.\n");
+
+// 	detach error field
+	mg.detach_from_faces(aError);
+};
+
+template <typename TFunction>
+void MarkForRefinement_GradientIndicator(IRefiner& refiner,
+                                         TFunction& u,
+                                         number TOL, number scale)
+{
+	MarkForRefinement_GradientIndicator_DIM(refiner, u, TOL, scale,
+	                                    Int2Type<TFunction::domain_type::dim>());
+}
+
+} // end namespace ug
+
+#endif /* __H__LIBDISCRETIZATION__FUNCTION_SPACE__ERROR_INDICATOR__ */
