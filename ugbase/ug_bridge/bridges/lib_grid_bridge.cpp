@@ -643,6 +643,8 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("assign_grid", (void (SurfaceView::*)(MultiGrid&)) &SurfaceView::assign_grid);
 
+		reg.add_function("CheckSurfaceView", &CheckSurfaceView, grp.c_str());
+
 		#endif
 
 	////////////////////////
