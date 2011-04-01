@@ -199,47 +199,6 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		//	handle each contrained index
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-			//	loop coupling between constrained dof -> constraining dof
-				for(typename matrix_type::row_iterator conn = A.begin_row(constrainedIndex[i]);
-						conn != A.end_row(constrainedIndex[i]); ++conn)
-				{
-				//	copy value of coupling entry
-					typename matrix_type::value_type& block = conn.value();
-					const size_t j = conn.index();
-
-				//	multiply the cpl value by the inverse number of constraining
-				//	indices
-					block *= 1./(vConstrainingIndices.size());
-
-				//	add the coupling to the constraining indices rows
-					for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
-						A(vConstrainingIndices[k][i], j) += block;
-
-				//	set the splitted coupling to zero
-					block = 0.0;
-				}
-
-			//	loop coupling between constraining dof -> constrained dof
-				for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
-				{
-				//	get entry
-					typename matrix_type::value_type& block
-							= A(vConstrainingIndices[k][i], constrainedIndex[i]);
-
-				//	scale by weight
-					block *= 1./(vConstrainingIndices.size());
-
-				//	add coupling
-					for(size_t m = 0; m < vConstrainingIndices.size(); ++m)
-					{
-						A(vConstrainingIndices[k][i],
-						  vConstrainingIndices[m][i]) += block;
-					}
-
-				//	set the splitted coupling to zero
-					block = 0.0;
-				}
-
 			//	add coupling constrained dof -> constrained dof
 			//	get entry
 				typename matrix_type::value_type& block
@@ -257,8 +216,40 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					  vConstrainingIndices[m][i]) += block;
 				}
 
-			//	set the splitted coupling to zero
-				block = 0.0;
+			//	reset block
+				 A(constrainedIndex[i], constrainedIndex[i]) = 0.0;
+
+			//	loop coupling between constrained dof -> constraining dof
+				for(typename matrix_type::row_iterator conn = A.begin_row(constrainedIndex[i]);
+						conn != A.end_row(constrainedIndex[i]); ++conn)
+				{
+				//	skip self-coupling (already handled)
+					const size_t j = conn.index();
+					if(j == constrainedIndex[i]) continue;
+
+				//	get coupling entry
+					typename matrix_type::value_type block = conn.value();
+
+				//	get transposed coupling entry
+					typename matrix_type::value_type blockT = A(j, constrainedIndex[i]);
+
+				//	multiply the cpl value by the inverse number of constraining
+				//	indices
+					block *= 1./(vConstrainingIndices.size());
+					blockT *= 1./(vConstrainingIndices.size());
+
+				//	add the coupling to the constraining indices rows
+					for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
+					{
+						A(vConstrainingIndices[k][i], j) += block;
+
+						A(j, vConstrainingIndices[k][i]) += blockT;
+					}
+
+				//	set the splitted coupling to zero
+					conn.value() = 0.0;
+					A(j, constrainedIndex[i]) = 0.0;
+				}
 			}
 
 		//	we're done
