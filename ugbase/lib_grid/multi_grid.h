@@ -64,7 +64,7 @@ struct MGVertexInfo
 {
 	MGVertexInfo()		{clear();}
 	inline void clear()	{m_pParent = m_pVrtChild = NULL;}
-	inline bool has_children()	{return m_pVrtChild != NULL;}
+	inline bool has_children() const {return m_pVrtChild != NULL;}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
@@ -86,7 +86,7 @@ struct MGEdgeInfo
 {
 	MGEdgeInfo()		{clear();}
 	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = 0;}
-	inline bool has_children()	{return m_pVrtChild || m_numEdgeChildren;}
+	inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren;}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_EDGE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
@@ -106,7 +106,7 @@ struct MGFaceInfo
 {
 	MGFaceInfo()		{clear();}
 	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = 0;}
-	inline bool has_children()	{return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren;}
+	inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren;}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_FACE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
 	inline void add_child(Face* elem)		{assert(m_numFaceChildren < MG_FACE_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
@@ -131,7 +131,7 @@ struct MGVolumeInfo
 {
 	MGVolumeInfo()		{clear();}
 	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = m_numVolChildren = 0;}
-	inline bool has_children()	{return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren || m_numVolChildren;}
+	inline bool has_children()	const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren || m_numVolChildren;}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_VOLUME_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
 	inline void add_child(Face* elem)		{assert(m_numFaceChildren < MG_VOLUME_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
@@ -301,6 +301,22 @@ class MultiGrid : public Grid, public GridObserver
 			return m_hierarchy.end<TElem>(level);
 		}
 
+		template <class TElem> inline
+		typename geometry_traits<TElem>::const_iterator
+		begin(int level) const
+		{
+			assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
+			return m_hierarchy.begin<TElem>(level);
+		}
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::const_iterator
+		end(int level) const
+		{
+			assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
+			return m_hierarchy.end<TElem>(level);
+		}
+
 	//	geometric-object-collection
 		inline GeometricObjectCollection
 		get_geometric_object_collection(int level)
@@ -322,7 +338,7 @@ class MultiGrid : public Grid, public GridObserver
 
 	//	number of children
 		template <class TElem> inline
-		bool has_children(TElem* elem)
+		bool has_children(TElem* elem) const
 		{return get_info(elem).has_children();}
 
 	////////////////////////////////
@@ -482,6 +498,12 @@ class MultiGrid : public Grid, public GridObserver
 		inline EdgeInfo& get_info(EdgeBase* e)		{return m_aaEdgeInf[e];}
 		inline FaceInfo& get_info(Face* f)			{return m_aaFaceInf[f];}
 		inline VolumeInfo& get_info(Volume* v)		{return m_aaVolInf[v];}
+
+	//	const info-access
+		inline const VertexInfo& get_info(VertexBase* v) const	{return m_aaVrtInf[v];}
+		inline const EdgeInfo& get_info(EdgeBase* e) const		{return m_aaEdgeInf[e];}
+		inline const FaceInfo& get_info(Face* f) const			{return m_aaFaceInf[f];}
+		inline const VolumeInfo& get_info(Volume* v) const		{return m_aaVolInf[v];}
 
 	//	elem creation
 		template <class TElem>
