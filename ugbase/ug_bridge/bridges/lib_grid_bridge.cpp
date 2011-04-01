@@ -2,12 +2,12 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
+#include <iostream>
+#include <sstream>
 #include "../registry.h"
 #include "../ug_bridge.h"
 #include "lib_grid/lib_grid.h"
 #include "common/profiler/profiler.h"
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 
@@ -91,7 +91,8 @@ void SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
 	}
 
 //	finally save the grid
-	SaveGridToFile(mg, filename, sh, aPos);
+	//SaveGridToFile(mg, filename, sh, aPos);
+	SaveGridToUGX(mg, sh, filename, aPos);
 
 //	clean up
 	mg.detach_from_vertices(aPos);
@@ -626,6 +627,20 @@ UG_LOG("done\n");
 #endif // UG_PARALLEL
 }
 
+///	only for temporary testing purposes.
+void TestAttachedLinkedList(const char* filename)
+{
+	Grid g;
+	SubsetHandler sh(g);
+
+	if(!LoadGridFromFile(g, filename, sh)){
+		UG_LOG("load file failed\n");
+		return;
+	}
+
+	//g.test_attached_linked_lists();
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
@@ -755,6 +770,9 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_function("AdjustSubsetsForSimulation",
 						(void (*)(MGSubsetHandler&, bool, bool, bool))
 						&AdjustSubsetsForSimulation<MGSubsetHandler>);
+
+	//	tests:
+		reg.add_function("TestAttachedLinkedList", &TestAttachedLinkedList);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
