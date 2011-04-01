@@ -78,10 +78,10 @@ static bool SaveGrid(Grid& grid, const char* filename,
 	if(strName.find(".ugx") != string::npos){
 		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
 		if(shGrid)
-			return SaveGridToUGX(grid, *shGrid, filename, aPos);
+			return SaveGridToUGX(grid, *shGrid, filename);
 		else {
 			SubsetHandler emptySH(grid);
-			return SaveGridToUGX(grid, emptySH, filename, aPos);
+			return SaveGridToUGX(grid, emptySH, filename);
 		}
 	}
 	else if(strName.find(".txt") != string::npos)
