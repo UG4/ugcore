@@ -45,28 +45,6 @@ public:
 	 */
 	const value_type &operator() (size_t r, size_t c) const;
 
-	/** Add a local matrix
-	 *
-	 * The local matrix type must declare the following members:
-	 * - num_rows()
-	 * - num_cols()
-	 * - row_index(size_t i)
-	 * - col_index(size_t j)
-	 * - operator()(size_t i, size_t j)
-	 * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
-	 * \param mat the whole local matrix type
-	 * these functions may be considerably faster than calling operator() for each entry.
-	 */
-	template<typename M>
-	void add(const M &mat);
-	template<typename M>
-	//! set local matrix \sa add
-	void set(const M &mat);
-	//! get local matrix \sa add
-	template<typename M>
-	void get(M &mat) const;
-
-
 	// information functions
 public:
 	inline size_t num_connections(size_t row) const;
