@@ -225,7 +225,7 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
 	ComputeGradient<Edge, TFunction>(u, aaError);
 
 // 	Mark elements for refinement
-	if(!MarkElements<Edge, TFunction>(refiner, u, TOL, scale, aaError))
+	if(!MarkElements<EdgeBase, TFunction>(refiner, u, TOL, scale, aaError))
 		UG_LOG("No element marked. Not refining the grid.\n");
 
 // 	detach error field
@@ -282,7 +282,7 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
 
 // 	Compute error on elements
 	ComputeGradient<Tetrahedron, TFunction>(u, aaError);
-	ComputeGradient<Quadrilateral, TFunction>(u, aaError);
+	ComputeGradient<Hexahedron, TFunction>(u, aaError);
 
 // 	Mark elements for refinement
 	if(!MarkElements<Volume, TFunction>(refiner, u, TOL, scale, aaError))
