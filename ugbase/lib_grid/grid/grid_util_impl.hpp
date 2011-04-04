@@ -8,6 +8,7 @@
 #include <vector>
 #include "grid_util.h"
 #include "common/assert.h"
+#include "common/common.h"
 
 namespace ug
 {
@@ -107,6 +108,21 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
 	CollectVertices(vVertexOut, grid, v, clearContainer);
 }
 
+inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:CollectAssociated(vVertexOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
+		case EDGE:	CollectAssociated(vVertexOut, grid, reinterpret_cast<EdgeBase*>(obj), clearContainer); return;
+		case FACE:	CollectAssociated(vVertexOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case VOLUME:CollectAssociated(vVertexOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+	}
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
 					Grid& grid, VertexBase* vrt, bool clearContainer)
@@ -132,6 +148,21 @@ inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
 	CollectEdges(vEdgesOut, grid, v, clearContainer);
 }
 
+inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:CollectAssociated(vEdgesOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
+		case EDGE:	CollectAssociated(vEdgesOut, grid, reinterpret_cast<EdgeBase*>(obj), clearContainer); return;
+		case FACE:	CollectAssociated(vEdgesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case VOLUME:CollectAssociated(vEdgesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+	}
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 					Grid& grid, VertexBase* vrt, bool clearContainer)
@@ -156,6 +187,21 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 {
 	CollectFaces(vFacesOut, grid, v, clearContainer);
 }
+
+inline void CollectAssociated(std::vector<Face*>& vFacesOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:CollectAssociated(vFacesOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
+		case EDGE:	CollectAssociated(vFacesOut, grid, reinterpret_cast<EdgeBase*>(obj), clearContainer); return;
+		case FACE:	CollectAssociated(vFacesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case VOLUME:CollectAssociated(vFacesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+	}
+	throw(UGFatalError("GeomObject type not known."));
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
@@ -187,6 +233,20 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 					Grid& grid, FaceDescriptor& fd, bool clearContainer)
 {
 	CollectVolumes(vVolumesOut, grid, fd, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:CollectAssociated(vVolumesOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
+		case EDGE:	CollectAssociated(vVolumesOut, grid, reinterpret_cast<EdgeBase*>(obj), clearContainer); return;
+		case FACE:	CollectAssociated(vVolumesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case VOLUME:CollectAssociated(vVolumesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+	}
+	throw(UGFatalError("GeomObject type not known."));
 }
 
 }//	end of namespace libGrid

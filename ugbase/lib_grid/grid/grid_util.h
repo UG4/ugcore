@@ -83,6 +83,10 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectVertices
+
+inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer = true);
+
 ///	Dummy-method. Puts the vertex itself into the given vector.
 /**
  * \ingroup lib_grid_algorithms_vertex_util
@@ -211,6 +215,10 @@ void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectEdges
+
+inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer = true);
+
 ///	Collects all edges that exist in the given grid are part of the given edge.
 /**
  * \ingroup lib_grid_algorithms_edge_util
@@ -309,6 +317,10 @@ void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid, Volume* v, bo
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectFaces
+
+inline void CollectAssociated(std::vector<Face*>& vFacesOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer = true);
+
 /**
  * \ingroup lib_grid_algorithms_face_util
  *
@@ -394,6 +406,9 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectVolumes
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+                              Grid& grid, GeometricObject* obj, bool clearContainer = true);
+
 ///	Collects all volumes that exist in the given grid which contain the given edge.
 /**
  * \ingroup lib_grid_algorithms_edge_util
@@ -437,6 +452,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Volume* v, bo
 ///	Collects all volumes. (Returns the volume itself)
 inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 					Grid& grid, Volume* vol, bool clearContainer = true);
+
 
 ////////////////////////////////////////////////////////////////////////
 //	VolumeContains
