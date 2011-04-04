@@ -67,8 +67,10 @@ class GridObserver
 	 *	Creation callbacks are called in the order in which the GridObservers
 	 * 	were registered at the given grid.
 	 *
-	 * 	if replacesParent is true, then pParent is of the same type as the
-	 * 	created object.
+	 * 	If replacesParent is true, then pParent is of the same base type as the
+	 * 	created object (e.g. in case of edge_created, the parent is an EdgeBase*).
+	 *  This case usually appears, when a contraining object is replaced by a
+	 *  regular grid object if the same base type during refinement.
 	 * 	The method is called with replacesParent == true by
 	 * 	Grid::create_and_replace methods.
 	 *
@@ -99,10 +101,12 @@ class GridObserver
 	/**	Erase callbacks are called in reverse order in which the GridObservers
 	 * 	were registered at the given grid.
 	 *
-	 * 	if replacedBy != NULL is true, then pParent is of the same type as the
-	 * 	created object.
-	 * 	The method is called with replacesParent == true by
-	 * 	Grid::create_and_replace methods.
+	 * 	if replacedBy != NULL the erased object is only replaced by another
+	 *  grid object of the same base type. This usually happens when constraining
+	 *  objects are replaced by regular objects in refinements. (E.g. a constraining
+	 *  edge by become a regular Edge; note that both objects are of type
+	 *  EdgeBase*).
+	 *
 	 * \{ */
 		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
 										 VertexBase* replacedBy = NULL)	{}
