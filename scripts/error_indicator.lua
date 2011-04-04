@@ -245,7 +245,7 @@ cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(gmg)
+bicgstabSolver:set_preconditioner(amg)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -------------------------------------------
@@ -264,7 +264,7 @@ u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 u:set(0.0)
 
-for i = 1,30 do
+for i = 1,23 do
 
 print(" #######  START Adaption " .. i .."  #######");
 
