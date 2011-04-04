@@ -47,6 +47,7 @@ init(const vector_type& u)
 	const size_t numDoFs = m_pDoFDistribution->num_dofs();
 
 //	resize matrix and set to zero
+	m_J.resize(0, 0);
 	m_J.resize(numDoFs, numDoFs);
 	m_J.set(0.0);
 
@@ -94,6 +95,7 @@ init()
 
 //	Resize Matrix and set to zero
 	LINASS_PROFILE_BEGIN(AssLinOp_reset);
+	m_J.resize(0, 0);
 	m_J.resize(numDoFs, numDoFs);
 	m_J.set(0.0);
 
