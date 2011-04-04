@@ -196,14 +196,17 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 				}
 				else
 				{
+					// copy q = p
+					q = p;
+
 					#ifdef UG_PARALLEL
-					// make p consistent
-					if(!p.change_storage_type(PST_CONSISTENT))
-						{UG_LOG("Cannot convert p to consistent vector.\n"); return false;}
+					// make q consistent
+					if(!q.change_storage_type(PST_CONSISTENT))
+						{UG_LOG("Cannot convert q to consistent vector.\n"); return false;}
 					#endif
 
-					// compute v := A*p
-					if(m_A->apply(v, p) != true)
+					// compute v := A*q
+					if(m_A->apply(v, q) != true)
 						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
 					#ifdef UG_PARALLEL
@@ -217,8 +220,8 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 					if(alpha != 0.0) alpha = rho_new/alpha;
 					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
 
-					// add: x := x + alpha * p
-					VecScaleAppend(xOut, p, alpha);
+					// add: x := x + alpha * q
+					VecScaleAppend(xOut, q, alpha);
 				}
 
 
