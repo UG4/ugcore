@@ -365,6 +365,12 @@ class IDoFDistribution
 		void grid_obj_to_be_removed(Face* face) 	{getImpl().grid_obj_to_be_removed(face);}
 		void grid_obj_to_be_removed(Volume* vol) 	{getImpl().grid_obj_to_be_removed(vol);}
 
+	//	copies the indices on replacement of objects
+		void grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld){getImpl().grid_obj_replaced(vrtNew, vrtOld);}
+		void grid_obj_replaced(EdgeBase* edgeNew, EdgeBase* edgeOld) {getImpl().grid_obj_replaced(edgeNew, edgeOld);}
+		void grid_obj_replaced(Face* faceNew, Face* faceOld) 	{getImpl().grid_obj_replaced(faceNew, faceOld);}
+		void grid_obj_replaced(Volume* volNew, Volume* volOld) 	{getImpl().grid_obj_replaced(volNew, volOld);}
+
 	/// distribute dofs
 		bool distribute_dofs(){return getImpl().distribute_dofs();}
 

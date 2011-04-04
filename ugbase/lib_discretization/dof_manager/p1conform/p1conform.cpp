@@ -393,10 +393,22 @@ grid_obj_to_be_removed(VertexBase* vrt)
 //	get subset index
 	const int si = m_pISubsetHandler->get_subset_index(vrt);
 
-	if(si < 0) return;
-
 // 	remember free index
 	push_free_index(first_index(vrt, si), si);
+}
+
+void
+P1ConformDoFDistribution::
+grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld)
+{
+//	get subset index
+	const int si = m_pISubsetHandler->get_subset_index(vrtOld);
+
+	UG_ASSERT(m_pISubsetHandler->get_subset_index(vrtNew) == si,
+	          "New vertex does not have same subset as replaced on.");
+
+//	copy index
+	first_index(vrtNew, si) = first_index(vrtOld, si);
 }
 
 
@@ -763,6 +775,20 @@ grid_obj_to_be_removed(VertexBase* vrt)
 
 // 	remember free index
 	push_free_index(alg_index(vrt, si), si);
+}
+
+void
+GroupedP1ConformDoFDistribution::
+grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld)
+{
+//	get subset index
+	const int si = m_pISubsetHandler->get_subset_index(vrtOld);
+
+	UG_ASSERT(m_pISubsetHandler->get_subset_index(vrtNew) == si,
+	          "New vertex does not have same subset as replaced on.");
+
+//	copy index
+	alg_index(vrtNew, si) = alg_index(vrtOld, si);
 }
 
 bool

@@ -197,76 +197,24 @@ class MGDoFManager : public GridObserver
 
 	/**	\}	*/
 
-		void defragment()
-		{
-		//	we add the shadows to the surface view, that may have been created
-		//	due to grid adaption
-
-		//	check grid options
-			if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-			  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_FACES");
-			  m_pMultiGrid->enable_options(VOLOPT_AUTOGENERATE_FACES);
-			}
-			if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-			  UG_LOG("WARNING: Auto-enabling grid option FACEOPT_AUTOGENERATE_EDGES");
-			  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
-			}
-			if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)){
-			  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_EDGES");
-			  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
-			}
-
-		//	add missing shadows to surface view
-			if(surface_dofs_enabled())
-			{
-				add_associated_sides_to_surface_view<Volume>();
-				add_associated_sides_to_surface_view<Face>();
-				add_associated_sides_to_surface_view<EdgeBase>();
-			}
-
-		//	defragment dof distributions
-			if(surface_dofs_enabled())
-				get_surface_dof_distribution()->defragment();
-			if(level_dofs_enabled())
-				for(size_t lev = 0; lev < num_levels(); ++lev)
-					get_level_dof_distribution(lev)->defragment();
-
-		}
-
-		template <class TElem>
-		void add_associated_sides_to_surface_view()
-		{
-			typedef typename geometry_traits<TElem>::const_iterator iterator;
-			typedef typename TElem::lower_dim_base_object Side;
-			std::vector<Side*> vSides;
-			Grid& grid = *m_pSurfaceView->get_assigned_grid();
-
-			for(size_t l  = 0; l < m_pSurfaceView->num_levels(); ++l){
-				for(int si = 0; si < m_pSurfaceView->num_subsets(); ++si){
-					for(iterator iter = m_pSurfaceView->begin<TElem>(si, l);
-						iter != m_pSurfaceView->end<TElem>(si, l); ++iter)
-					{
-						TElem* e = *iter;
-						CollectAssociated(vSides, grid, e);
-
-						for(size_t i = 0; i < vSides.size(); ++i)
-						{
-							Side* s = vSides[i];
-
-							if(m_pSurfaceView->get_subset_index(s) == -1)
-							{
-								add_to_surface_view(s);
-								get_surface_dof_distribution()->grid_obj_added(s);
-							}
-						}
-					}
-				}
-			}
-		}
+	///	defragments the index set
+		void defragment();
 
 	protected:
+
+	///	adds lower-dim elements ot surface view
+		template <class TElem>
+		void add_associated_sides_to_surface_view();
+
 	///	creates the surface view
 		virtual bool surface_view_required();
+
+	///	returns if an element belongs to the surface view
+		bool is_in_surface_view(GeometricObject* obj);
+		bool is_in_surface_view(VertexBase* vrt);
+		bool is_in_surface_view(EdgeBase* edge);
+		bool is_in_surface_view(Face* face);
+		bool is_in_surface_view(Volume* vol);
 
 	///	adds an element to the surface view
 		void add_to_surface_view(GeometricObject* obj);

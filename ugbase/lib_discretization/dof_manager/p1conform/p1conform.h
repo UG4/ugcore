@@ -222,6 +222,12 @@ class P1ConformDoFDistribution
 		void grid_obj_to_be_removed(Face* face) {}
 		void grid_obj_to_be_removed(Volume* vol) {}
 
+	/// \copydoc IDoFDistribution::grid_obj_replaced()
+		void grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld);
+		void grid_obj_replaced(EdgeBase* edgeNew, EdgeBase* edgeOld) {}
+		void grid_obj_replaced(Face* faceNew, Face* faceOld) 	{}
+		void grid_obj_replaced(Volume* volNew, Volume* volOld) 	{}
+
 	/// \copydoc IDoFDistribution::compress()
 		bool defragment();
 
@@ -490,6 +496,12 @@ class GroupedP1ConformDoFDistribution
 		void grid_obj_to_be_removed(EdgeBase* edge) {}
 		void grid_obj_to_be_removed(Face* face) {}
 		void grid_obj_to_be_removed(Volume* vol) {}
+
+	/// \copydoc IDoFDistribution::grid_obj_replaced()
+		void grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld);
+		void grid_obj_replaced(EdgeBase* edgeNew, EdgeBase* edgeOld) {}
+		void grid_obj_replaced(Face* faceNew, Face* faceOld) 	{}
+		void grid_obj_replaced(Volume* volNew, Volume* volOld) 	{}
 
 	/// \copydoc IDoFDistribution::compress()
 		bool defragment();

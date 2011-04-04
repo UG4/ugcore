@@ -487,6 +487,63 @@ disable_level_dofs()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+template <typename TDoFDistribution>
+bool
+MGDoFManager<TDoFDistribution>::
+is_in_surface_view(GeometricObject* obj)
+{
+	uint type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:
+			return is_in_surface_view(reinterpret_cast<VertexBase*>(obj));
+		case EDGE:
+			return is_in_surface_view(reinterpret_cast<EdgeBase*>(obj));
+		case FACE:
+			return is_in_surface_view(reinterpret_cast<Face*>(obj));
+		case VOLUME:
+			return is_in_surface_view(reinterpret_cast<Volume*>(obj));
+	}
+
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+template <typename TDoFDistribution>
+bool
+MGDoFManager<TDoFDistribution>::
+is_in_surface_view(VertexBase* vrt)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+	return (m_pSurfaceView->get_subset_index(vrt) >= 0);
+}
+
+template <typename TDoFDistribution>
+bool
+MGDoFManager<TDoFDistribution>::
+is_in_surface_view(EdgeBase* edge)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+	return (m_pSurfaceView->get_subset_index(edge) >= 0);
+}
+
+template <typename TDoFDistribution>
+bool
+MGDoFManager<TDoFDistribution>::
+is_in_surface_view(Face* face)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+	return (m_pSurfaceView->get_subset_index(face) >= 0);
+}
+
+template <typename TDoFDistribution>
+bool
+MGDoFManager<TDoFDistribution>::
+is_in_surface_view(Volume* vol)
+{
+	UG_ASSERT(m_pSurfaceView != NULL, "Missing SurfaceView.");
+	return (m_pSurfaceView->get_subset_index(vol) >= 0);
+}
+
 
 template <typename TDoFDistribution>
 void
@@ -829,29 +886,56 @@ vertex_created(Grid* grid, VertexBase* vrt,	GeometricObject* pParent, bool repla
 //	if surface dofs enabled, add the element to surface dofs
 	if(surface_dofs_enabled())
 	{
-		if(pParent != NULL)
-		{
-		//	1. Release index for parent (which may not be part of surface
-		//     view after adding the child; created shadows are not part of
-		//	   the surface view at this stage.)
-			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+	//	handle: we have two possibilities here, what the creation could be:
+	//		1. a regular refinement, thus we exclude the parent from SurfaceView
+	//			and add the created obj the the Surface View
+	//		2. a replaced obj; we also exclude the parent from the SurfaceView
+	//			since it will be erased and add the created obj depending if
+	//			the created obj has already children
 
-		//	2. Remove parent from surface view
-			remove_from_surface_view(pParent);
-		}
-
-		if(!m_pMultiGrid->has_children(vrt))
+	//	1. case: regular element creation
+		if(!replacesParent)
 		{
-		//	3. Add the created element to the surface view
+		//	first, handle the parent: remove it from surface view
+			if(pParent != NULL)
+				if(is_in_surface_view(pParent))
+				{
+				//	a) Release index for parent (which may not be part of surface
+				//     view after adding the child; created shadows are not part of
+				//	   the surface view at this stage.)
+					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+
+				//	b) Remove parent from surface view
+					remove_from_surface_view(pParent);
+				}
+
+		//	now add the obj to the surface view:
+		//	a) Add the created element to the surface view
 			add_to_surface_view(vrt);
 
-		//	4. Add index for child
+		//	b) Add index
 			get_surface_dof_distribution()->grid_obj_added(vrt);
 		}
+	//	2. case: object is replaced
 		else
 		{
-			get_surface_dof_distribution()->grid_obj_to_be_removed(vrt);
-			remove_from_surface_view(vrt);
+		//	replaced object
+			VertexBase* pReplaced = reinterpret_cast<VertexBase*>(pParent);
+
+		//	check if created element has no children. In this case, we copy
+		//	the dofs from the replaced object ...
+			if(!m_pMultiGrid->has_children(vrt))
+			{
+			//	a) Add the created element to the surface view
+				add_to_surface_view(vrt);
+
+			//	b) Add index
+				get_surface_dof_distribution()->grid_obj_replaced(vrt, pReplaced);
+			}
+
+		//	in any case the old obj is dropped. The index is not removed, since
+		//	the index remains valid on the shadowing obj.
+			remove_from_surface_view(pReplaced);
 		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
@@ -871,38 +955,65 @@ edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replaces
 //	if surface dofs enabled, add the element to surface dofs
 	if(surface_dofs_enabled())
 	{
-		if(pParent != NULL && !replacesParent)
-		{
-		//	1. Release index for parent (which may not be part of surface
-		//     view after adding the child; created shadows are not part of
-		//	   the surface view at this stage.)
-			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+	//	handle: we have two possibilities here, what the creation could be:
+	//		1. a regular refinement, thus we exclude the parent from SurfaceView
+	//			and add the created obj the the Surface View
+	//		2. a replaced obj; we also exclude the parent from the SurfaceView
+	//			since it will be erased and add the created obj depending if
+	//			the created obj has already children
 
-		//	2. Remove parent from surface view
-			remove_from_surface_view(pParent);
-		}
-
-		if(!m_pMultiGrid->has_children(edge))
+	//	1. case: regular element creation
+		if(!replacesParent)
 		{
-		//	3. Add the created element to the surface view
+		//	first, handle the parent: remove it from surface view
+			if(pParent != NULL)
+				if(is_in_surface_view(pParent))
+				{
+				//	a) Release index for parent (which may not be part of surface
+				//     view after adding the child; created shadows are not part of
+				//	   the surface view at this stage.)
+					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+
+				//	b) Remove parent from surface view
+					remove_from_surface_view(pParent);
+				}
+
+		//	now add the obj to the surface view:
+		//	a) Add the created element to the surface view
 			add_to_surface_view(edge);
 
-		//	4. Add index for child
+		//	b) Add index
 			get_surface_dof_distribution()->grid_obj_added(edge);
 		}
+	//	2. case: object is replaced
 		else
 		{
-		//	remove from surface view
-			remove_from_surface_view(edge);
+		//	replaced object
+			EdgeBase* pReplaced = reinterpret_cast<EdgeBase*>(pParent);
 
-		//	remove also subelements from surface view
-			std::vector<VertexBase*> vVertex;
+		//	check if created element has no children. In this case, we copy
+		//	the dofs from the replaced object ...
+			if(!m_pMultiGrid->has_children(edge))
+			{
+			//	a) Add the created element to the surface view
+				add_to_surface_view(edge);
 
-			CollectAssociated(vVertex, *grid, pParent);
-
-			for(size_t i = 0; i < vVertex.size(); ++i){
-				remove_from_surface_view(vVertex[i]);
+			//	b) Add index
+				get_surface_dof_distribution()->grid_obj_replaced(edge, pReplaced);
 			}
+			else
+			{
+			//	remove also subelements from surface view
+				std::vector<VertexBase*> vVertex;
+				CollectAssociated(vVertex, *grid, pReplaced);
+				for(size_t i = 0; i < vVertex.size(); ++i){
+					remove_from_surface_view(vVertex[i]);
+				}
+			}
+
+		//	in any case the old obj is dropped. The index is not removed, since
+		//	the index remains valid on the shadowing obj.
+			remove_from_surface_view(pReplaced);
 		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
@@ -922,38 +1033,70 @@ face_created(Grid* grid, Face* face,	GeometricObject* pParent, bool replacesPare
 //	if surface dofs enabled, add the element to surface dofs
 	if(surface_dofs_enabled())
 	{
-		if(pParent != NULL)
-		{
-		//	1. Release index for parent (which may not be part of surface
-		//     view after adding the child; created shadows are not part of
-		//	   the surface view at this stage.)
-			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+	//	handle: we have two possibilities here, what the creation could be:
+	//		1. a regular refinement, thus we exclude the parent from SurfaceView
+	//			and add the created obj the the Surface View
+	//		2. a replaced obj; we also exclude the parent from the SurfaceView
+	//			since it will be erased and add the created obj depending if
+	//			the created obj has already children
 
-		//	2. Remove parent from surface view
-			remove_from_surface_view(pParent);
-		}
-
-		if(!m_pMultiGrid->has_children(face))
+	//	1. case: regular element creation
+		if(!replacesParent)
 		{
-		//	3. Add the created element to the surface view
+		//	first, handle the parent: remove it from surface view
+			if(pParent != NULL)
+				if(is_in_surface_view(pParent))
+				{
+				//	a) Release index for parent (which may not be part of surface
+				//     view after adding the child; created shadows are not part of
+				//	   the surface view at this stage.)
+					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+
+				//	b) Remove parent from surface view
+					remove_from_surface_view(pParent);
+				}
+
+		//	now add the obj to the surface view:
+		//	a) Add the created element to the surface view
 			add_to_surface_view(face);
 
-		//	4. Add index for child
+		//	b) Add index
 			get_surface_dof_distribution()->grid_obj_added(face);
 		}
+	//	2. case: object is replaced
 		else
 		{
-		//	remove from surface view
-			remove_from_surface_view(face);
+		//	replaced object
+			Face* pReplaced = reinterpret_cast<Face*>(pParent);
 
-		//	remove also subelements from surface view
-			std::vector<VertexBase*> vVertex;
+		//	check if created element has no children. In this case, we copy
+		//	the dofs from the replaced object ...
+			if(!m_pMultiGrid->has_children(face))
+			{
+			//	a) Add the created element to the surface view
+				add_to_surface_view(face);
 
-			CollectAssociated(vVertex, *grid, pParent);
-
-			for(size_t i = 0; i < vVertex.size(); ++i){
-				remove_from_surface_view(vVertex[i]);
+			//	b) Add index
+				get_surface_dof_distribution()->grid_obj_replaced(face, pReplaced);
 			}
+			else
+			{
+			//	remove also subelements from surface view
+				std::vector<VertexBase*> vVertex;
+				CollectAssociated(vVertex, *grid, pReplaced);
+				for(size_t i = 0; i < vVertex.size(); ++i){
+					remove_from_surface_view(vVertex[i]);
+				}
+				std::vector<EdgeBase*> vEdge;
+				CollectAssociated(vEdge, *grid, pReplaced);
+				for(size_t i = 0; i < vEdge.size(); ++i){
+					remove_from_surface_view(vEdge[i]);
+				}
+			}
+
+		//	in any case the old obj is dropped. The index is not removed, since
+		//	the index remains valid on the shadowing obj.
+			remove_from_surface_view(pReplaced);
 		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
@@ -973,38 +1116,33 @@ volume_created(Grid* grid, Volume* vol,	GeometricObject* pParent, bool replacesP
 //	if surface dofs enabled, add the element to surface dofs
 	if(surface_dofs_enabled())
 	{
-		if(pParent != NULL)
+	//	1. case: regular element creation
+		if(!replacesParent)
 		{
-		//	1. Release index for parent (which may not be part of surface
-		//     view after adding the child; created shadows are not part of
-		//	   the surface view at this stage.)
-			get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+		//	first, handle the parent: remove it from surface view
+			if(pParent != NULL)
+				if(is_in_surface_view(pParent))
+				{
+				//	a) Release index for parent (which may not be part of surface
+				//     view after adding the child; created shadows are not part of
+				//	   the surface view at this stage.)
+					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
 
-		//	2. Remove parent from surface view
-			remove_from_surface_view(pParent);
-		}
+				//	b) Remove parent from surface view
+					remove_from_surface_view(pParent);
+				}
 
-		if(!m_pMultiGrid->has_children(vol))
-		{
-		//	3. Add the created element to the surface view
+		//	now add the obj to the surface view:
+		//	a) Add the created element to the surface view
 			add_to_surface_view(vol);
 
-		//	4. Add index for child
+		//	b) Add index
 			get_surface_dof_distribution()->grid_obj_added(vol);
 		}
+	//	2. case: object is replaced
 		else
 		{
-		//	remove from surface view
-			remove_from_surface_view(vol);
-
-		//	remove also subelements from surface view
-			std::vector<VertexBase*> vVertex;
-
-			CollectAssociated(vVertex, *grid, pParent);
-
-			for(size_t i = 0; i < vVertex.size(); ++i){
-				remove_from_surface_view(vVertex[i]);
-			}
+			throw(UGFatalError("There are no Volume replacements in 3D."));
 		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
@@ -1027,13 +1165,15 @@ vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
 //	if surface dofs enabled, remove element from surface dofs
 	if(surface_dofs_enabled())
 	{
+	//	The case of replaced objects has been handled in create part
+		if(replacedBy != NULL) return;
+
 	//	1. Remove index for erased element
 		get_surface_dof_distribution()->grid_obj_to_be_removed(vrt);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(vrt);
-
-		if(pParent != NULL && replacedBy == NULL)
+		if(pParent != NULL && !is_in_surface_view(pParent))
 		{
 		//	2. Add parent to surface view
 			add_to_surface_view(pParent);
@@ -1058,13 +1198,15 @@ edge_to_be_erased(Grid* grid, EdgeBase* edge, EdgeBase* replacedBy)
 //	if surface dofs enabled, remove element from surface dofs
 	if(surface_dofs_enabled())
 	{
+	//	The case of replaced objects has been handled in create part
+		if(replacedBy != NULL) return;
+
 	//	1. Remove index for erased element
 		get_surface_dof_distribution()->grid_obj_to_be_removed(edge);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(edge);
-
-		if(pParent != NULL && replacedBy == NULL)
+		if(pParent != NULL && !is_in_surface_view(pParent))
 		{
 		//	2. Add parent to surface view
 			add_to_surface_view(pParent);
@@ -1089,13 +1231,15 @@ face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
 //	if surface dofs enabled, remove element from surface dofs
 	if(surface_dofs_enabled())
 	{
+	//	The case of replaced objects has been handled in create part
+		if(replacedBy != NULL) return;
+
 	//	1. Remove index for erased element
 		get_surface_dof_distribution()->grid_obj_to_be_removed(face);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(face);
-
-		if(pParent != NULL && replacedBy == NULL)
+		if(pParent != NULL && !is_in_surface_view(pParent))
 		{
 		//	2. Add parent to surface view
 			add_to_surface_view(pParent);
@@ -1120,19 +1264,101 @@ volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 //	if surface dofs enabled, remove element from surface dofs
 	if(surface_dofs_enabled())
 	{
+	//	The case of replaced objects has been handled in create part
+		if(replacedBy == NULL) return;
+
 	//	1. Remove index for erased element
 		get_surface_dof_distribution()->grid_obj_to_be_removed(vol);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(vol);
-
-		if(pParent != NULL && replacedBy == NULL)
+		if(pParent != NULL && !is_in_surface_view(pParent))
 		{
 		//	2. Add parent to surface view
 			add_to_surface_view(pParent);
 
 		//	3. Add index for parent
 			get_surface_dof_distribution()->grid_obj_added(pParent);
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// 	Defragment
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+defragment()
+{
+//	we add the shadows to the surface view, that may have been created
+//	due to grid adaption
+
+//	check grid options
+	if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+	  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_FACES");
+	  m_pMultiGrid->enable_options(VOLOPT_AUTOGENERATE_FACES);
+	}
+	if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+	  UG_LOG("WARNING: Auto-enabling grid option FACEOPT_AUTOGENERATE_EDGES");
+	  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
+	}
+	if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)){
+	  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_EDGES");
+	  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
+	}
+
+//	add missing shadows to surface view
+	if(surface_dofs_enabled())
+	{
+		add_associated_sides_to_surface_view<Volume>();
+		add_associated_sides_to_surface_view<Face>();
+		add_associated_sides_to_surface_view<EdgeBase>();
+	}
+
+//	defragment dof distributions
+	if(surface_dofs_enabled())
+		get_surface_dof_distribution()->defragment();
+	if(level_dofs_enabled())
+		for(size_t lev = 0; lev < num_levels(); ++lev)
+			get_level_dof_distribution(lev)->defragment();
+
+}
+
+template <typename TDoFDistribution>
+template <class TElem>
+void
+MGDoFManager<TDoFDistribution>::
+add_associated_sides_to_surface_view()
+{
+	typedef typename geometry_traits<TElem>::const_iterator iterator;
+	typedef typename TElem::lower_dim_base_object Side;
+	std::vector<Side*> vSides;
+	Grid& grid = *m_pSurfaceView->get_assigned_grid();
+
+	for(size_t l  = 0; l < m_pSurfaceView->num_levels(); ++l){
+		for(int si = 0; si < m_pSurfaceView->num_subsets(); ++si){
+			for(iterator iter = m_pSurfaceView->begin<TElem>(si, l);
+				iter != m_pSurfaceView->end<TElem>(si, l); ++iter)
+			{
+				TElem* e = *iter;
+				CollectAssociated(vSides, grid, e);
+
+				for(size_t i = 0; i < vSides.size(); ++i)
+				{
+					Side* s = vSides[i];
+
+					if(!is_in_surface_view(s))
+					{
+						add_to_surface_view(s);
+						get_surface_dof_distribution()->grid_obj_added(s);
+					}
+				}
+			}
 		}
 	}
 }
