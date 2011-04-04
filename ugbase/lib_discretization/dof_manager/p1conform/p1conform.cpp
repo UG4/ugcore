@@ -379,8 +379,10 @@ grid_obj_added(VertexBase* vrt)
 //	normally, we can set a new free index
 	else
 	{
+		const size_t index = get_free_index(si);
+
 	// 	write next free index
-		first_index(vrt, si) = get_free_index(si);
+		first_index(vrt, si) = index;
 	}
 }
 
@@ -455,6 +457,8 @@ defragment()
 			m_vNumDoFs[si] -= num_fct(si);
 		}
 	}
+
+	UG_LOG(" swapping done.\n");
 
 //	check that all holes have been removed
 	if(m_numDoFs != m_sizeIndexSet)

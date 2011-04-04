@@ -840,11 +840,19 @@ vertex_created(Grid* grid, VertexBase* vrt,	GeometricObject* pParent, bool repla
 			remove_from_surface_view(pParent);
 		}
 
-	//	3. Add the created element to the surface view
-		add_to_surface_view(vrt);
+		if(!m_pMultiGrid->has_children(vrt))
+		{
+		//	3. Add the created element to the surface view
+			add_to_surface_view(vrt);
 
-	//	4. Add index for child
-		get_surface_dof_distribution()->grid_obj_added(vrt);
+		//	4. Add index for child
+			get_surface_dof_distribution()->grid_obj_added(vrt);
+		}
+		else
+		{
+			get_surface_dof_distribution()->grid_obj_to_be_removed(vrt);
+			remove_from_surface_view(vrt);
+		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
 	//		  do not add the shadow here, but on a later call of defragment
@@ -863,7 +871,7 @@ edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replaces
 //	if surface dofs enabled, add the element to surface dofs
 	if(surface_dofs_enabled())
 	{
-		if(pParent != NULL)
+		if(pParent != NULL && !replacesParent)
 		{
 		//	1. Release index for parent (which may not be part of surface
 		//     view after adding the child; created shadows are not part of
@@ -874,11 +882,28 @@ edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replaces
 			remove_from_surface_view(pParent);
 		}
 
-	//	3. Add the created element to the surface view
-		add_to_surface_view(edge);
+		if(!m_pMultiGrid->has_children(edge))
+		{
+		//	3. Add the created element to the surface view
+			add_to_surface_view(edge);
 
-	//	4. Add index for child
-		get_surface_dof_distribution()->grid_obj_added(edge);
+		//	4. Add index for child
+			get_surface_dof_distribution()->grid_obj_added(edge);
+		}
+		else
+		{
+		//	remove from surface view
+			remove_from_surface_view(edge);
+
+		//	remove also subelements from surface view
+			std::vector<VertexBase*> vVertex;
+
+			CollectAssociated(vVertex, *grid, pParent);
+
+			for(size_t i = 0; i < vVertex.size(); ++i){
+				remove_from_surface_view(vVertex[i]);
+			}
+		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
 	//		  do not add the shadow here, but on a later call of defragment
@@ -908,11 +933,28 @@ face_created(Grid* grid, Face* face,	GeometricObject* pParent, bool replacesPare
 			remove_from_surface_view(pParent);
 		}
 
-	//	3. Add the created element to the surface view
-		add_to_surface_view(face);
+		if(!m_pMultiGrid->has_children(face))
+		{
+		//	3. Add the created element to the surface view
+			add_to_surface_view(face);
 
-	//	4. Add index for child
-		get_surface_dof_distribution()->grid_obj_added(face);
+		//	4. Add index for child
+			get_surface_dof_distribution()->grid_obj_added(face);
+		}
+		else
+		{
+		//	remove from surface view
+			remove_from_surface_view(face);
+
+		//	remove also subelements from surface view
+			std::vector<VertexBase*> vVertex;
+
+			CollectAssociated(vVertex, *grid, pParent);
+
+			for(size_t i = 0; i < vVertex.size(); ++i){
+				remove_from_surface_view(vVertex[i]);
+			}
+		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
 	//		  do not add the shadow here, but on a later call of defragment
@@ -942,11 +984,28 @@ volume_created(Grid* grid, Volume* vol,	GeometricObject* pParent, bool replacesP
 			remove_from_surface_view(pParent);
 		}
 
-	//	3. Add the created element to the surface view
-		add_to_surface_view(vol);
+		if(!m_pMultiGrid->has_children(vol))
+		{
+		//	3. Add the created element to the surface view
+			add_to_surface_view(vol);
 
-	//	4. Add index for child
-		get_surface_dof_distribution()->grid_obj_added(vol);
+		//	4. Add index for child
+			get_surface_dof_distribution()->grid_obj_added(vol);
+		}
+		else
+		{
+		//	remove from surface view
+			remove_from_surface_view(vol);
+
+		//	remove also subelements from surface view
+			std::vector<VertexBase*> vVertex;
+
+			CollectAssociated(vVertex, *grid, pParent);
+
+			for(size_t i = 0; i < vVertex.size(); ++i){
+				remove_from_surface_view(vVertex[i]);
+			}
+		}
 
 	//	NOTE: at this point the parent element may be a shadow. But we
 	//		  do not add the shadow here, but on a later call of defragment
