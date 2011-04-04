@@ -110,7 +110,7 @@ class IGridFunction
 	 *
 	 * \param[in]	s		new size
 	 */
-		virtual void resize_values(size_t s) = 0;
+		virtual void resize_values(size_t s, number defaultValue = 0.0) = 0;
 
 	///	Destructor
 		virtual ~IGridFunction()
@@ -339,7 +339,18 @@ class GridFunction
 		};
 
 	///	\copydoc IGridFunction::resize_values
-		virtual void resize_values(size_t s) {vector_type::resize(s);}
+		virtual void resize_values(size_t s, number defaultValue = 0.0)
+		{
+		//	remember old values
+			const size_t oldSize = vector_type::size();
+
+		//	resize vector
+			vector_type::resize(s);
+
+		//	set vector to zero-values
+			for(size_t i = oldSize; i < s; ++i)
+				this->operator[](i) = defaultValue;
+		}
 
 	///	\copydoc IGridFunction::permute_values
 		virtual	bool permute_values(const std::vector<size_t>& vIndNew)
