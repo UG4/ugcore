@@ -131,11 +131,13 @@ lmgc(size_t lev)
 		#endif
 
 	// 	Restrict Defect
+		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 		if(!m_vProlongation[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
 		{
 			UG_LOG("ERROR in restriction from level " << lev << " to " << lev-1 << ".\n");
 			return false;
 		}
+		GMG_PROFILE_END();
 
 		bool resume = true;
 
@@ -192,11 +194,13 @@ lmgc(size_t lev)
 		#endif
 
 	//	Interpolate Correction
+		GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
 		if(!m_vProlongation[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
 		{
 			UG_LOG("ERROR in prolongation from level " << lev-1 << " to " << lev << ".\n");
 			return false;
 		}
+		GMG_PROFILE_END();
 
 	// 	Add coarse grid correction to level correction
 		*m_c[lev] += *m_t[lev];
