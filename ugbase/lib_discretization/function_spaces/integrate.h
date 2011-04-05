@@ -138,7 +138,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 			const number weightIP = rQuadRule.weight(ip);
 
 		//	get determinate of mapping
-			number det;
+			number det = 0.0;
 			mapping.jacobian_det(locIP, det);
 
 		//	add contribution of integration point
