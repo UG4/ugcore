@@ -233,7 +233,7 @@ bool GetNodeNextToCut(size_t& coOut,
                       const MathVector<TWorldDim>* vCornerCoords)
 {
 //	help variables
-	size_t side;
+	size_t side = 0;
 	MathVector<TWorldDim> globalIntersection;
 	MathVector<TRefElem::dim> localIntersection;
 
