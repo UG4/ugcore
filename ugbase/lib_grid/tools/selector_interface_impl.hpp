@@ -15,8 +15,10 @@ ISelector::elements_are_supported(uint shElements) const
 
 template <class TElem>
 inline void ISelector::select(TElem* elem){
-	if(!is_selected(elem))
-		mark_selected(elem, add_to_list(elem));
+	if(!is_selected(elem)){
+		add_to_list(elem);
+		mark_selected(elem);
+	}
 }
 
 inline void ISelector::select(GeometricObject* elem){
@@ -81,7 +83,7 @@ template <class TIterator>
 inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 {
 	while(iterBegin != iterEnd){
-		typename TIterator::value_type& val = *iterBegin;
+		typename TIterator::value_type val = *iterBegin;
 		++iterBegin;
 		deselect(val);
 	}

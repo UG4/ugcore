@@ -89,34 +89,34 @@ void TElemSelector<BaseElem>::clear()
 }
 
 template <class BaseElem>
-ISelector::iterator
+void
 TElemSelector<BaseElem>::add_to_list(VertexBase* elem)
 {
-	return get_section_container<VertexBase>().insert(elem,
+	get_section_container<VertexBase>().insert(elem,
 								elem->shared_pipe_section());
 }
 
 template <class BaseElem>
-ISelector::iterator
+void
 TElemSelector<BaseElem>::add_to_list(EdgeBase* elem)
 {
-	return get_section_container<EdgeBase>().insert(elem,
+	get_section_container<EdgeBase>().insert(elem,
 								elem->shared_pipe_section());
 }
 
 template <class BaseElem>
-ISelector::iterator
+void
 TElemSelector<BaseElem>::add_to_list(Face* elem)
 {
-	return get_section_container<Face>().insert(elem,
+	get_section_container<Face>().insert(elem,
 								elem->shared_pipe_section());
 }
 
 template <class BaseElem>
-ISelector::iterator
+void
 TElemSelector<BaseElem>::add_to_list(Volume* elem)
 {
-	return get_section_container<Volume>().insert(elem,
+	get_section_container<Volume>().insert(elem,
 								elem->shared_pipe_section());
 }	
 

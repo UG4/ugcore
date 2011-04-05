@@ -31,7 +31,7 @@ Grid::create(GeometricObject* pParent)
 
 	register_element(geomObj, pParent);
 
-	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(geomObj->m_entryIter);
+	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(get_iterator(geomObj));
 }
 
 template <class TGeomObj>
@@ -51,7 +51,7 @@ Grid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 
 	register_element(geomObj, pParent);
 
-	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(geomObj->m_entryIter);
+	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(get_iterator(geomObj));
 }
 
 template<class TGeomObj>
@@ -67,7 +67,7 @@ Grid::create_and_replace(typename geometry_traits<TGeomObj>::geometric_base_obje
 	if(geomObj->reference_object_id() == pReplaceMe->reference_object_id())
 	{
 		register_and_replace_element(geomObj, pReplaceMe);
-		return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(geomObj->m_entryIter);
+		return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(get_iterator(geomObj));
 	}
 	else
 	{

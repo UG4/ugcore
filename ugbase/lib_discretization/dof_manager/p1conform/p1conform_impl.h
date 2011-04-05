@@ -250,11 +250,10 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 				if(edge == NULL) continue;
 
 			//	loop constraining vertices
-				for(VertexBaseIterator iter = edge->constrained_vertices_begin();
-						iter != edge->constrained_vertices_end(); ++iter)
+				for(size_t i_cv = 0; i_cv != edge->num_constrained_vertices(); ++i_cv)
 				{
 				//	get vertex
-					VertexBase* vrt = *iter;
+					VertexBase* vrt = edge->constrained_vertex(i_cv);
 
 				//	get subset index
 					int si = m_pISubsetHandler->get_subset_index(vrt);
@@ -315,11 +314,10 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 				if(quad == NULL) continue;
 
 			//	loop hanging vertices
-				for(VertexBaseIterator iter = quad->constrained_vertices_begin();
-						iter != quad->constrained_vertices_end(); ++iter)
+				for(size_t i_cv = 0; i_cv < quad->num_constrained_vertices(); ++i_cv)
 				{
 				//	get vertex
-					VertexBase* vrt = *iter;
+					VertexBase* vrt = quad->constrained_vertex(i_cv);
 
 				//	get subset index
 					int si = m_pISubsetHandler->get_subset_index(vrt);

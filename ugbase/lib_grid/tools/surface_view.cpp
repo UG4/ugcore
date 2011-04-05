@@ -44,6 +44,7 @@ SurfaceView::~SurfaceView()
 void SurfaceView::grid_to_be_destroyed(Grid* grid)
 {
 //	notify all observers that the underlying grid is to be destroyed.
+	SubsetHandler::grid_to_be_destroyed(grid);
 }
 
 ////////////////////////////////////////////////////////////////////////

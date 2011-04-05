@@ -18,8 +18,9 @@ GridSubsetHandler(uint supportedElements) : ISubsetHandler(supportedElements)
 
 GridSubsetHandler::
 GridSubsetHandler(Grid& grid, uint supportedElements) :
-ISubsetHandler(grid, supportedElements)
+ISubsetHandler(supportedElements)
 {
+	assign_grid(grid);
 }
 
 GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
@@ -36,8 +37,50 @@ GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
 
 GridSubsetHandler::~GridSubsetHandler()
 {
-	if(m_pGrid != NULL)
+	if(m_pGrid != NULL){
+		cleanup();
 		m_pGrid->unregister_observer(this);
+	}
+}
+
+void GridSubsetHandler::grid_to_be_destroyed(Grid* grid)
+{
+	cleanup();
+	ISubsetHandler::grid_to_be_destroyed(grid);
+}
+
+void GridSubsetHandler::cleanup()
+{
+	for(size_t i = 0; i < m_subsets.size(); ++i){
+		delete m_subsets[i];
+	}
+
+	if(elements_are_supported(SHE_VERTEX))
+		m_pGrid->detach_from_vertices(m_aSharedEntry);
+	if(elements_are_supported(SHE_EDGE))
+		m_pGrid->detach_from_edges(m_aSharedEntry);
+	if(elements_are_supported(SHE_FACE))
+		m_pGrid->detach_from_faces(m_aSharedEntry);
+	if(elements_are_supported(SHE_VOLUME))
+		m_pGrid->detach_from_volumes(m_aSharedEntry);
+}
+
+void GridSubsetHandler::assign_grid(Grid& grid)
+{
+	if(m_pGrid)
+		cleanup();
+
+	ISubsetHandler::set_grid(&grid);
+
+//	attach shared entries
+	if(elements_are_supported(SHE_VERTEX))
+		m_pGrid->attach_to_vertices(m_aSharedEntry);
+	if(elements_are_supported(SHE_EDGE))
+		m_pGrid->attach_to_edges(m_aSharedEntry);
+	if(elements_are_supported(SHE_FACE))
+		m_pGrid->attach_to_faces(m_aSharedEntry);
+	if(elements_are_supported(SHE_VOLUME))
+		m_pGrid->attach_to_volumes(m_aSharedEntry);
 }
 
 GridSubsetHandler& GridSubsetHandler::operator = (const GridSubsetHandler& sh)
@@ -81,12 +124,12 @@ assign_subset(TElemPtr elem, int subsetIndex, int elemType)
 //	add the element to the subset.
 	if(subsetIndex != -1)
 	{
-		ISubsetHandler::iterator iter = m_subsets[subsetIndex]->m_elements[elemType].insert(elem, elem->shared_pipe_section());
-		subset_assigned(elem, iter, subsetIndex);
+		m_subsets[subsetIndex]->m_elements[elemType].insert(elem, elem->shared_pipe_section());
+		subset_assigned(elem, subsetIndex);
 	}
 	else{
 //TODO:	iterator is useless!
-		subset_assigned(elem, ISubsetHandler::iterator(), -1);
+		subset_assigned(elem, -1);
 	}
 
 }
@@ -130,8 +173,23 @@ change_subset_indices(int indOld, int indNew)
 
 void GridSubsetHandler::add_required_subset_lists(int maxIndex)
 {
-	while((int)m_subsets.size() <= maxIndex)
-		m_subsets.push_back(new Subset);
+	while((int)m_subsets.size() <= maxIndex){
+	//	initialize section containers
+		Subset* sub = new Subset;
+		if(elements_are_supported(SHE_VERTEX))
+			sub->m_elements[VERTEX].get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntry);
+		if(elements_are_supported(SHE_EDGE))
+			sub->m_elements[EDGE].get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntry);
+		if(elements_are_supported(SHE_FACE))
+			sub->m_elements[FACE].get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntry);
+		if(elements_are_supported(SHE_VOLUME))
+			sub->m_elements[VOLUME].get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntry);
+		m_subsets.push_back(sub);
+	}
 }
 
 void GridSubsetHandler::erase_subset_lists(int index)

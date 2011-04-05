@@ -161,9 +161,9 @@ back(int secIndex)
 //	directly follows the last element of this section.
 //	we'll thus create a reverse iterator on m_elemsEnd, increase it
 //	once, and return the element, to which the iterator now points.
-	reverse_iterator riter(m_vSections[secIndex].m_elemsEnd);
-	++riter;
-	return *riter;
+	iterator titer(m_vSections[secIndex].m_elemsEnd);
+	--titer;
+	return *titer;
 }
 
 template <class TValue, class TContainer>

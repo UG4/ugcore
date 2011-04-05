@@ -626,7 +626,9 @@ refine_constraining_edge(ConstrainingEdge* cge)
 	Grid& grid = *m_pGrid;
 
 //	the central hanging vertex has to be transformed into a normal vertex
-	HangingVertex* centralHV = dynamic_cast<HangingVertex*>(*cge->constrained_vertices_begin());
+	HangingVertex* centralHV = NULL;
+	if(cge->num_constrained_vertices() > 0)
+		centralHV = dynamic_cast<HangingVertex*>(cge->constrained_vertex(0));
 
 	if(!centralHV){
 		UG_LOG("The central hanging vertex of a constraining edge is missing. ignoring edge.\n");
@@ -641,15 +643,14 @@ refine_constraining_edge(ConstrainingEdge* cge)
 //	Marked ones will be replaced by a ConstrainingEdge. Additionally
 //	associated constrained edges will be created together with the
 //	new central vertex.
-	for(EdgeBaseIterator iter = cge->constrained_edges_begin();
-		iter != cge->constrained_edges_end(); ++iter)
-	{
-		if(is_marked(*iter)){
-			refine_edge_with_hanging_vertex(*iter);
+	for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
+		EdgeBase* cde = cge->constrained_edge(i);
+		if(is_marked(cde)){
+			refine_edge_with_hanging_vertex(cde);
 		}
 		else{
 		//	the constrained-edge can be transformed to a normal edge
-			grid.create_and_replace<Edge>(*iter);
+			grid.create_and_replace<Edge>(cde);
 		}
 	}
 
@@ -920,7 +921,9 @@ refine_constraining_face(ConstrainingFace* cgf)
 
 	if(numVrts == 4){
 	//	the central hanging vertex has to be transformed into a normal vertex
-		centralHV = dynamic_cast<HangingVertex*>(*cgf->constrained_vertices_begin());
+		centralHV = NULL;
+		if(cgf->num_constrained_vertices() > 0)
+			centralHV = dynamic_cast<HangingVertex*>(cgf->constrained_vertex(0));
 
 		if(!centralHV){
 			UG_LOG("The central hanging vertex of a constraining face is missing. ignoring face.\n");
@@ -936,15 +939,14 @@ refine_constraining_face(ConstrainingFace* cgf)
 //	Marked ones will be replaced by a ConstrainingEdge. Additionally
 //	associated constrained edges will be created together with the
 //	new central vertex.
-	for(EdgeBaseIterator iter = cgf->constrained_edges_begin();
-		iter != cgf->constrained_edges_end(); ++iter)
-	{
-		if(is_marked(*iter)){
-			refine_edge_with_hanging_vertex(*iter);
+	for(size_t i = 0; i < cgf->num_constrained_edges(); ++i){
+		EdgeBase* cde = cgf->constrained_edge(i);
+		if(is_marked(cde)){
+			refine_edge_with_hanging_vertex(cde);
 		}
 		else{
 		//	the constrained-edge can be transformed to a normal edge
-			grid.create_and_replace<Edge>(*iter);
+			grid.create_and_replace<Edge>(cde);
 		}
 	}
 
@@ -954,10 +956,8 @@ refine_constraining_face(ConstrainingFace* cgf)
 //	if not, it will simply be transformed to a normal face.
 //	To ease implementation we will transform it anyway and if required we will
 //	call refine_face_with_hanging_vertex(...).
-	for(FaceIterator iter = cgf->constrained_faces_begin();
-		iter != cgf->constrained_faces_end(); ++iter)
-	{
-		Face* f = *iter;
+	for(size_t i = 0; i < cgf->num_constrained_faces(); ++i){
+		Face* f = cgf->constrained_face(i);
 		if(is_marked(f)){
 		//	refine it using hanging_node_refinement.
 			refine_face_with_hanging_vertex(f);

@@ -30,7 +30,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
 		~MultiGridSubsetHandler();
 				
-		inline void assign_grid(MultiGrid& mg)	{m_pMG = &mg; ISubsetHandler::set_grid(&mg);}
+		void assign_grid(MultiGrid& mg);
 		inline MultiGrid* get_assigned_multi_grid()	{return m_pMG;}
 		
 	///	Makes sure that the subset with the given index exists.
@@ -173,6 +173,10 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	///	returns true if the subset contains volumes
 		virtual bool contains_volumes(int subsetIndex) const	{return num<Volume>(subsetIndex) > 0;}
 
+
+	///	perform cleanup
+		virtual void grid_to_be_destroyed(Grid* grid);
+
 	protected:
 	///	returns the number of subsets in the local list
 		inline uint num_subsets_in_list() const	{return m_numSubsets;}
@@ -227,7 +231,8 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
 		
 	protected:
-		typedef ISubsetHandler::SectionContainer SectionContainer;
+		typedef ISubsetHandler::SectionContainer 	SectionContainer;
+		typedef ISubsetHandler::AttachedElemList	AttachedElemList;
 		
 		struct Subset
 		{
@@ -242,10 +247,52 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		inline Subset* subset(int si, int level)	{return m_levels[level][si];}
 		inline const Subset* subset(int si, int level)	const {return m_levels[level][si];}
 
+	///	creates a new subset. Caller is responsible for deletion
+		Subset* new_subset();
+
+		void cleanup();
+
+	///	returns the iterator at which the given element lies in the section container
+	/**	This method may only be called if the element is in a subset != -1.
+	 * \{
+	 */
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(VertexBase* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return subset(get_subset_index(o), m_pMG->get_level(o))->
+					m_elements[VERTEX].get_container().get_iterator(o);
+		}
+
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(EdgeBase* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return subset(get_subset_index(o), m_pMG->get_level(o))->
+					m_elements[EDGE].get_container().get_iterator(o);
+		}
+
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(Face* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return subset(get_subset_index(o), m_pMG->get_level(o))->
+					m_elements[FACE].get_container().get_iterator(o);
+		}
+
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(Volume* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return subset(get_subset_index(o), m_pMG->get_level(o))->
+					m_elements[VOLUME].get_container().get_iterator(o);
+		}
+	/**	\}	*/
 	protected:
 		MultiGrid*		m_pMG;
 		LevelVec		m_levels;
 		int				m_numSubsets;
+		AttachedElemList::AEntry	m_aSharedEntry;
 };
 
 inline void

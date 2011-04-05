@@ -115,10 +115,10 @@ class TElemSelector : public ISelector
 	protected:
 		void clear_lists();
 
-		virtual iterator add_to_list(VertexBase* elem);
-		virtual iterator add_to_list(EdgeBase* elem);
-		virtual iterator add_to_list(Face* elem);
-		virtual iterator add_to_list(Volume* elem);
+		virtual void add_to_list(VertexBase* elem);
+		virtual void add_to_list(EdgeBase* elem);
+		virtual void add_to_list(Face* elem);
+		virtual void add_to_list(Volume* elem);
 
 		virtual void erase_from_list(VertexBase* elem);
 		virtual void erase_from_list(EdgeBase* elem);
@@ -132,6 +132,38 @@ class TElemSelector : public ISelector
 		template <class TElem>
 		inline int get_section_index();
 
+	///	returns the iterator at which the given element lies in the section container
+	/**	This method may only be called if the element is indeed selected
+	 * \{
+	 */
+		inline SectionContainer::iterator
+		get_iterator(VertexBase* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected.");
+			return m_elements.get_container().get_iterator(o);
+		}
+
+		inline SectionContainer::iterator
+		get_iterator(EdgeBase* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected");
+			return m_elements.get_container().get_iterator(o);
+		}
+
+		inline SectionContainer::iterator
+		get_iterator(Face* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected");
+			return m_elements.get_container().get_iterator(o);
+		}
+
+		inline SectionContainer::iterator
+		get_iterator(Volume* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected");
+			return m_elements.get_container().get_iterator(o);
+		}
+	/**	\}	*/
 	private:
 		TElemSelector(const TElemSelector& sel){};///<	Copy Constructor not yet implemented!
 

@@ -1,0 +1,427 @@
+// created by Sebastian Reiter, ideas from discussions with Andreas Vogel
+// s.b.reiter@googlemail.com
+// 01.04.2011 (m,d,y)
+
+#ifndef __H__UG__attached_list__
+#define __H__UG__attached_list__
+
+#include <iterator>
+#include "attachment_pipe.h"
+
+namespace ug
+{
+
+////////////////////////////////////////////////////////////////////////////////
+//	predeclarations
+template <class TAAEntry> class ConstAttachedElementListIterator;
+
+////////////////////////////////////////////////////////////////////////////////
+///	A special iterator which allows to iterate over elements in a AttachedElementList.
+template <class TAAEntry>
+class AttachedElementListIterator : public std::iterator<
+											std::bidirectional_iterator_tag,
+											typename TAAEntry::element>
+{
+	public:
+		typedef typename TAAEntry::element				element;
+		typedef AttachedElementListIterator<TAAEntry>	iterator;
+
+		AttachedElementListIterator() : m_curElem(NULL)	{}
+		AttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
+			m_aaEntry(aaEntry), m_curElem(curElem)	{}
+		AttachedElementListIterator(const AttachedElementListIterator& cpy) :
+			m_aaEntry(cpy.m_aaEntry), m_curElem(cpy.m_curElem)	{}
+
+		const iterator& operator=(const iterator& iter)
+		{
+			m_aaEntry = iter.m_aaEntry;
+			m_curElem = iter.m_curElem;
+			return *this;
+		}
+
+	///	note that the * operator is read only.
+		element operator*() const	{return m_curElem;}
+		element* operator->() const	{return &m_curElem;}
+
+		iterator operator++()		{m_curElem = m_aaEntry[m_curElem].next; return *this;}
+		iterator operator++(int)
+		{//	post-increment
+			iterator iter = *this;
+			m_curElem = m_aaEntry[m_curElem].next;
+			return iter;
+		}
+
+		iterator operator--()		{m_curElem = m_aaEntry[m_curElem].prev; return *this;}
+		iterator operator--(int)
+		{
+			iterator iter = *this;
+			m_curElem = m_aaEntry[m_curElem].prev;
+			return iter;
+		}
+
+	//	note that each element may only be in the list once.
+		bool operator==(const iterator& iter) const	{return m_curElem == iter.m_curElem;}
+		bool operator!=(const iterator& iter) const	{return m_curElem != iter.m_curElem;}
+
+	private:
+		TAAEntry	m_aaEntry;
+		element		m_curElem;
+
+	friend class ConstAttachedElementListIterator<TAAEntry>;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///	A special iterator which allows to iterate over elements in a AttachedElementList.
+template <class TAAEntry>
+class ConstAttachedElementListIterator : public std::iterator<
+											std::bidirectional_iterator_tag,
+											const typename TAAEntry::element>
+{
+	public:
+		typedef typename TAAEntry::element					element;
+		typedef ConstAttachedElementListIterator<TAAEntry>	iterator;
+
+		ConstAttachedElementListIterator() : m_curElem(NULL)	{}
+		ConstAttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
+			m_aaEntry(aaEntry), m_curElem(curElem)	{}
+		ConstAttachedElementListIterator(const ConstAttachedElementListIterator& it) :
+			m_aaEntry(it.m_aaEntry), m_curElem(it.m_curElem)	{}
+		ConstAttachedElementListIterator(const AttachedElementListIterator<TAAEntry>& it) :
+			m_aaEntry(it.m_aaEntry), m_curElem(it.m_curElem)	{}
+
+		const iterator& operator=(const iterator& iter)
+		{
+			m_aaEntry = iter.m_aaEntry;
+			m_curElem = iter.m_curElem;
+			return *this;
+		}
+
+	///	note that the * operator is read only.
+		element operator*() const			{return m_curElem;}
+		const element* operator->() const	{return &m_curElem;}
+
+		iterator operator++()		{m_curElem = m_aaEntry[m_curElem].next; return *this;}
+		iterator operator++(int)
+		{//	post-increment
+			iterator iter = *this;
+			m_curElem = m_aaEntry[m_curElem].next;
+			return iter;
+		}
+
+		iterator operator--()		{m_curElem = m_aaEntry[m_curElem].prev; return *this;}
+		iterator operator--(int)
+		{
+			iterator iter = *this;
+			m_curElem = m_aaEntry[m_curElem].prev;
+			return iter;
+		}
+
+	//	note that each element may only be in the list once.
+		bool operator==(const iterator& iter) const	{return m_curElem == iter.m_curElem;}
+		bool operator!=(const iterator& iter) const	{return m_curElem != iter.m_curElem;}
+
+	private:
+		TAAEntry	m_aaEntry;
+		element		m_curElem;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///	A linked list of elements living in an attachment
+/**	This is a highly specialized linked list mainly (only!) used in the Grid,
+ * SubsetHandler, Selector, ... classes to maintain a list of GeometricObjects.
+ *
+ * Only elements registered at the underlying attachment pipe may be added
+ * to the list. Note that each element may only be added once.
+ *
+ * Make sure that the attachment pipe on which the list operates
+ * exists at least as long as the list itself, or call set_pipe(NULL),
+ * if the pipe is erased before.
+ *
+ * This list assumes that TAttachmentPipe::element is a pointer type.
+ *
+ * Note that instances of this class are never lightweight, since memory
+ * for a potentially full list is allocated in the attachment pipe.
+ *
+ * If the list operates on a shared attachment, the one who created the
+ * attachment is responsible for releasing it.
+ */
+template <class TAttachmentPipe>
+class AttachedElementList
+{
+	public:
+		typedef typename TAttachmentPipe::element		element;
+
+		struct Entry{
+			Entry() : prev(NULL), next(NULL)	{}
+			Entry(const element& p, const element& n) : prev(p), next(n) {}
+			element prev;
+			element next;
+		};
+
+		typedef Attachment<Entry> AEntry;
+		typedef typename TAttachmentPipe::ElementHandler ElemHandler;
+		typedef AttachmentAccessor<element, AEntry, ElemHandler> AAEntry;
+
+		typedef AttachedElementListIterator<AAEntry>		iterator;
+		typedef ConstAttachedElementListIterator<AAEntry>	const_iterator;
+
+	public:
+		AttachedElementList(TAttachmentPipe* pipe = NULL) :
+			m_pipe(NULL),
+			m_front(NULL),
+			m_back(NULL),
+			m_bSharedAttachment(false)
+		{
+			if(pipe)
+				set_pipe(pipe);
+		}
+
+	///	Note that auto-copy on aEntry has to be disabled.
+		AttachedElementList(AEntry aEntry) :
+			m_pipe(NULL),
+			m_aEntry(aEntry),
+			m_front(NULL),
+			m_back(NULL),
+			m_bSharedAttachment(false)
+		{}
+
+	///	Note that auto-copy on aEntry has to be disabled.
+		AttachedElementList(TAttachmentPipe* pipe, AEntry aEntry) :
+			m_pipe(NULL),
+			m_aEntry(aEntry),
+			m_front(NULL),
+			m_back(NULL),
+			m_bSharedAttachment(true)
+		{
+			if(pipe)
+				set_pipe(pipe);
+		}
+
+		AttachedElementList(const AttachedElementList& ael) : m_pipe(NULL)
+		{
+			m_bSharedAttachment = ael.m_bSharedAttachment;
+			if(m_bSharedAttachment)
+				m_aEntry = ael.m_aEntry;
+
+			set_pipe(ael.m_pipe);
+			if(ael.m_first){
+				iterator iter(ael.m_first, m_aaEntry);
+				while(*iter){
+					push_back(*iter);
+					++iter;
+				}
+			}
+		}
+
+		~AttachedElementList()
+		{
+			set_pipe(NULL);
+		}
+
+		const AttachedElementList& operator=(const AttachedElementList& ael)
+		{
+			clear();
+
+			if(ael.m_bSharedAttachment)
+				set_pipe(ael.m_pipe, ael.m_aEntry);
+			else
+				set_pipe(ael.m_pipe);
+
+			if(ael.m_first){
+				iterator iter(ael.m_first, m_aaEntry);
+				while(*iter){
+					push_back(*iter);
+					++iter;
+				}
+			}
+
+			return *this;
+		}
+
+	///	set the attachment pipe on which the list shall operate
+		void set_pipe(TAttachmentPipe* pipe)
+		{
+			if(!m_bSharedAttachment && m_pipe)
+				m_pipe->detach(m_aEntry);
+			m_aaEntry.invalidate();
+
+			m_pipe = pipe;
+			if(m_pipe){
+				if(!m_pipe->has_attachment(m_aEntry))
+					m_pipe->attach(m_aEntry);
+				m_aaEntry.access(*m_pipe, m_aEntry);
+			}
+
+			m_front = m_back = NULL;
+		}
+
+	///	Sets the pipe and a shared entry-attachment on which the list will operate
+	/** Note that auto-copy on aEntry has to be disabled.*/
+		void set_pipe(TAttachmentPipe* pipe, AEntry aEntry)
+		{
+			if(!m_bSharedAttachment && m_pipe)
+				m_pipe->detach(m_aEntry);
+			m_aaEntry.invalidate();
+
+			m_pipe = pipe;
+			m_aEntry = aEntry;
+
+			if(m_pipe){
+			//	since we use a shared attachment in this case, it may already be
+			//	attached to the pipe.
+				if(!m_pipe->has_attachment(m_aEntry))
+					m_pipe->attach(m_aEntry);
+				m_aaEntry.access(*m_pipe, m_aEntry);
+			}
+
+			m_front = m_back = NULL;
+		}
+
+	///	clears the list. begin() == end() afterwards.
+		void clear()
+		{
+			m_front = m_back = NULL;
+		/*
+			if(m_pipe){
+				iterator iter = begin();
+				while(iter != end()){
+					element elem = *iter;
+					iter++;
+					m_aaEntry[elem] = Entry();
+				}
+
+				m_front = m_back = NULL;
+			}
+		*/
+		}
+
+
+	///	retunrs true if the list is empty
+		bool empty() const				{return m_front == NULL;}
+
+	///	returns the first element in the list
+		element front()					{return m_front;}
+	///	returns the last element in the list
+		element back()					{return m_back;}
+
+	///	returns the first element in the list (const)
+		const element front() const		{return m_front;}
+	///	returns the last element in the list (const)
+		const element back() const		{return m_back;}
+
+	///	pushes an element to the end of the list
+		void push_back(const element& elem)
+		{
+			m_aaEntry[elem] = Entry(m_back, NULL);
+			if(empty())
+				m_front = elem;
+			else
+				m_aaEntry[m_back].next = elem;
+			m_back = elem;
+		}
+
+	///	inserts an element right before the specified position.
+	/**	returns the iterator of the newly inserted element.
+	 */
+		iterator insert(iterator position, const element& elem)
+		{
+			if(empty() || !(*position))
+				push_back(elem);
+			else{
+				Entry& entry = m_aaEntry[*position];
+
+				if(entry.prev){
+					m_aaEntry[entry.prev].next = elem;
+					m_aaEntry[elem].prev = entry.prev;
+				}
+				else{
+					m_aaEntry[elem].prev = NULL;
+					m_front = elem;
+				}
+
+				m_aaEntry[elem].next = *position;
+				entry.prev = elem;
+			}
+
+			return get_iterator(elem);
+		}
+
+	///	erases the element at the given position
+	/**	returns an iterator to the element directly behind position.
+	 */
+		iterator erase(iterator position)
+		{
+			Entry& entry = m_aaEntry[*position];
+			if(entry.prev)
+				m_aaEntry[entry.prev].next = entry.next;
+			else
+				m_front = entry.next;
+
+			if(entry.next)
+				m_aaEntry[entry.next].prev = entry.prev;
+			else
+				m_back = entry.prev;
+
+			//iterator iter(entry.next, m_aaEntry);
+			//entry = Entry();
+			//return iter;
+			return iterator(entry.next, m_aaEntry);
+		}
+
+	///	erases a sequence of entries
+		iterator erase(iterator begin, iterator end)
+		{
+			iterator iter = begin;
+			while(iter != end){
+				iterator titer = iter++;
+				erase(titer);
+			}
+			return iter;
+		}
+
+	///	returns the iterator to the given element
+	/**	Note that the return value is undefined if element is not
+	 * a member of the list!
+	 */
+		iterator get_iterator(const element& elem)
+		{
+			return iterator(elem, m_aaEntry);
+		}
+
+	///	returns an iterator to the beginning of the sequence.
+		iterator begin()				{return iterator(m_front, m_aaEntry);}
+
+	///	returns an iterator to the end of the sequence.
+	/**	Note that this is the iterator to the element behind the last one.*/
+		iterator end()					{return iterator(NULL, m_aaEntry);}
+
+	///	returns an iterator to the beginning of the sequence.
+		const_iterator begin() const	{return const_iterator(m_front, m_aaEntry);}
+
+	///	returns an iterator to the end of the sequence.
+	/**	Note that this is the iterator to the element behind the last one.*/
+		const_iterator end() const		{return const_iterator(NULL, m_aaEntry);}
+
+	private:
+	//	the attachment pipe on which we'll operate
+		TAttachmentPipe*	m_pipe;
+
+	//	The entry attachment
+		AEntry		m_aEntry;
+
+	//	the attachment accessor with which the entries are accessed
+		AAEntry		m_aaEntry;
+
+	//	front and back elements
+		element		m_front;
+		element		m_back;
+
+	//	tells whether the entry attachment is shared with other lists
+		bool		m_bSharedAttachment;
+};
+
+
+
+}//	end of namespace
+
+#endif

@@ -7,6 +7,7 @@
 
 #include "../grid/geometric_base_objects.h"
 #include "common/math/ugmath.h"
+#include "common/assert.h"
 
 namespace ug
 {
@@ -363,12 +364,16 @@ class ConstrainingEdge : public EdgeBase
 			{
 				m_vertices[0] = v1;
 				m_vertices[1] = v2;
+				m_constrainedVertices.reserve(1);
+				m_constrainedEdges.reserve(2);
 			}
 
 		ConstrainingEdge(const EdgeDescriptor& descriptor)
 			{
 				m_vertices[0] = descriptor.vertex(0);
 				m_vertices[1] = descriptor.vertex(1);
+				m_constrainedVertices.reserve(1);
+				m_constrainedEdges.reserve(2);
 			}
 
 		virtual ~ConstrainingEdge()	{}
@@ -403,67 +408,72 @@ class ConstrainingEdge : public EdgeBase
 
 		inline void add_constrained_object(VertexBase* pObj)
 			{
-				if(!is_constrained_object(pObj))
-					m_lstConstrainedVertices.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj), "vertex is already constrained by this edge.");
+					m_constrainedVertices.push_back(pObj);
 			}
 
 		inline void add_constrained_object(EdgeBase* pObj)
 			{
-				if(!is_constrained_object(pObj))
-					m_lstConstrainedEdges.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj), "edge is already constrained by this edge.");
+					m_constrainedEdges.push_back(pObj);
 			}
-
-		inline VertexBaseIterator constrained_vertices_begin()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.begin());}
-		inline VertexBaseIterator constrained_vertices_end()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.end());}
-		inline EdgeBaseIterator constrained_edges_begin()			{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.begin());}
-		inline EdgeBaseIterator constrained_edges_end()				{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.end());}
 
 		inline bool is_constrained_object(VertexBase* vrt)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
-																m_lstConstrainedVertices.end(), vrt);
-				return iter != m_lstConstrainedVertices.end();
+				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+																m_constrainedVertices.end(), vrt);
+				return iter != m_constrainedVertices.end();
 			}
 
 		inline bool is_constrained_object(EdgeBase* edge)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
-																m_lstConstrainedEdges.end(), edge);
-				return iter != m_lstConstrainedEdges.end();
+				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+																m_constrainedEdges.end(), edge);
+				return iter != m_constrainedEdges.end();
 			}
 
 		inline void unconstrain_vertex(const VertexBase* vrt)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
-																m_lstConstrainedVertices.end(), vrt);
-				if(iter != m_lstConstrainedVertices.end())
-					m_lstConstrainedVertices.erase(iter);
+				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+																m_constrainedVertices.end(), vrt);
+				if(iter != m_constrainedVertices.end())
+					m_constrainedVertices.erase(iter);
 			}
 
 		inline void unconstrain_edge(const EdgeBase* edge)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
-																m_lstConstrainedEdges.end(), edge);
-				if(iter != m_lstConstrainedEdges.end())
-					m_lstConstrainedEdges.erase(iter);
+				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+																m_constrainedEdges.end(), edge);
+				if(iter != m_constrainedEdges.end())
+					m_constrainedEdges.erase(iter);
 			}
 
-		inline void clear_constrained_vertices()	{m_lstConstrainedVertices.clear();}
-		inline void clear_constrained_edges()		{m_lstConstrainedEdges.clear();}
+		inline void clear_constrained_vertices()	{m_constrainedVertices.clear();}
+		inline void clear_constrained_edges()		{m_constrainedEdges.clear();}
 		inline void clear_constrained_objects()
 			{
 				clear_constrained_vertices();
 				clear_constrained_edges();
 			}
 
-	///	linear time
-		inline uint num_constrained_vertices()	{return m_lstConstrainedVertices.size();}
-	///	linear time
-		inline uint num_constrained_edges()		{return m_lstConstrainedEdges.size();}
+		inline size_t num_constrained_vertices()	{return m_constrainedVertices.size();}
+		inline size_t num_constrained_edges()		{return m_constrainedEdges.size();}
+
+		VertexBase* constrained_vertex(size_t ind)
+		{
+			UG_ASSERT(ind < m_constrainedVertices.size(), "bad index");
+			return m_constrainedVertices[ind];
+		}
+
+		EdgeBase* constrained_edge(size_t ind)
+		{
+			UG_ASSERT(ind < m_constrainedEdges.size(), "bad index");
+			return m_constrainedEdges[ind];
+		}
 
 	protected:
-		std::list<GeometricObject*>	m_lstConstrainedVertices;
-		std::list<GeometricObject*>	m_lstConstrainedEdges;
+		std::vector<VertexBase*>	m_constrainedVertices;
+		std::vector<EdgeBase*>		m_constrainedEdges;
 };
 
 template <>
@@ -644,77 +654,70 @@ class ConstrainingFace : public Face
 
 		inline void add_constrained_object(VertexBase* pObj)
 			{
-				if(!is_constrained_object(pObj))
-					m_lstConstrainedVertices.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj), "vertex is already registered at constraining face");
+					m_constrainedVertices.push_back(pObj);
 			}
 
 		inline void add_constrained_object(EdgeBase* pObj)
 			{
-				if(!is_constrained_object(pObj))
-					m_lstConstrainedEdges.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj), "edge is already registered at constraining face");
+					m_constrainedEdges.push_back(pObj);
 			}
 
 		inline void add_constrained_object(Face* pObj)
 			{
-				if(!is_constrained_object(pObj))
-					m_lstConstrainedFaces.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj), "face is already registered at constraining face");
+					m_constrainedFaces.push_back(pObj);
 			}
-
-		inline VertexBaseIterator constrained_vertices_begin()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.begin());}
-		inline VertexBaseIterator constrained_vertices_end()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.end());}
-		inline EdgeBaseIterator constrained_edges_begin()			{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.begin());}
-		inline EdgeBaseIterator constrained_edges_end()				{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.end());}
-		inline FaceIterator constrained_faces_begin()				{return iterator_cast<FaceIterator>(m_lstConstrainedFaces.begin());}
-		inline FaceIterator constrained_faces_end()					{return iterator_cast<FaceIterator>(m_lstConstrainedFaces.end());}
 
 		inline bool is_constrained_object(VertexBase* vrt)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
-																m_lstConstrainedVertices.end(), vrt);
-				return iter != m_lstConstrainedVertices.end();
+				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+															m_constrainedVertices.end(), vrt);
+				return iter != m_constrainedVertices.end();
 			}
 
 		inline bool is_constrained_object(EdgeBase* edge)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
-																m_lstConstrainedEdges.end(), edge);
-				return iter != m_lstConstrainedEdges.end();
+				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+															m_constrainedEdges.end(), edge);
+				return iter != m_constrainedEdges.end();
 			}
 
 		inline bool is_constrained_object(Face* face)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedFaces.begin(),
-																m_lstConstrainedFaces.end(), face);
-				return iter != m_lstConstrainedFaces.end();
+				std::vector<Face*>::iterator iter = find(m_constrainedFaces.begin(),
+														m_constrainedFaces.end(), face);
+				return iter != m_constrainedFaces.end();
 			}
 
 		inline void unconstrain_object(const VertexBase* vrt)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
-																m_lstConstrainedVertices.end(), vrt);
-				if(iter != m_lstConstrainedVertices.end())
-					m_lstConstrainedVertices.erase(iter);
+				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+															 m_constrainedVertices.end(), vrt);
+				if(iter != m_constrainedVertices.end())
+					m_constrainedVertices.erase(iter);
 			}
 
 		inline void unconstrain_object(const EdgeBase* edge)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
-																m_lstConstrainedEdges.end(), edge);
-				if(iter != m_lstConstrainedEdges.end())
-					m_lstConstrainedEdges.erase(iter);
+				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+															m_constrainedEdges.end(), edge);
+				if(iter != m_constrainedEdges.end())
+					m_constrainedEdges.erase(iter);
 			}
 
 		inline void unconstrain_object(const Face* face)
 			{
-				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedFaces.begin(),
-																m_lstConstrainedFaces.end(), face);
-				if(iter != m_lstConstrainedFaces.end())
-					m_lstConstrainedFaces.erase(iter);
+				std::vector<Face*>::iterator iter = find(m_constrainedFaces.begin(),
+														m_constrainedFaces.end(), face);
+				if(iter != m_constrainedFaces.end())
+					m_constrainedFaces.erase(iter);
 			}
 
-		inline void clear_constrained_vertices()	{m_lstConstrainedVertices.clear();}
-		inline void clear_constrained_edges()		{m_lstConstrainedEdges.clear();}
-		inline void clear_constrained_faces()		{m_lstConstrainedFaces.clear();}
+		inline void clear_constrained_vertices()	{m_constrainedVertices.clear();}
+		inline void clear_constrained_edges()		{m_constrainedEdges.clear();}
+		inline void clear_constrained_faces()		{m_constrainedFaces.clear();}
 		inline void clear_constrained_objects()
 			{
 				clear_constrained_vertices();
@@ -722,17 +725,32 @@ class ConstrainingFace : public Face
 				clear_constrained_faces();
 			}
 
-	///	linear time
-		inline uint num_constrained_vertices()	{return m_lstConstrainedVertices.size();}
-	///	linear time
-		inline uint num_constrained_edges()		{return m_lstConstrainedEdges.size();}
-	///	linear time
-		inline uint num_constrained_faces()		{return m_lstConstrainedFaces.size();}
+		inline size_t num_constrained_vertices()	{return m_constrainedVertices.size();}
+		inline size_t num_constrained_edges()		{return m_constrainedEdges.size();}
+		inline size_t num_constrained_faces()		{return m_constrainedFaces.size();}
+
+		inline VertexBase* constrained_vertex(size_t ind)
+			{
+				UG_ASSERT(ind < m_constrainedVertices.size(), "bad index.");
+				return m_constrainedVertices[ind];
+			}
+
+		inline EdgeBase* constrained_edge(size_t ind)
+			{
+				UG_ASSERT(ind < m_constrainedEdges.size(), "bad index.");
+				return m_constrainedEdges[ind];
+			}
+
+		inline Face* constrained_face(size_t ind)
+			{
+				UG_ASSERT(ind < m_constrainedFaces.size(), "bad index.");
+				return m_constrainedFaces[ind];
+			}
 
 	protected:
-		std::list<GeometricObject*>	m_lstConstrainedVertices;
-		std::list<GeometricObject*>	m_lstConstrainedEdges;
-		std::list<GeometricObject*>		m_lstConstrainedFaces;
+		std::vector<VertexBase*>	m_constrainedVertices;
+		std::vector<EdgeBase*>		m_constrainedEdges;
+		std::vector<Face*>			m_constrainedFaces;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -769,9 +787,14 @@ class ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, Constrain
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedTriangle*>(pObj) != NULL;}
 
-		ConstrainedTriangle() : BaseTriangle()	{}
-		ConstrainedTriangle(const TriangleDescriptor& td) : BaseTriangle(td)	{}
-		ConstrainedTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) : BaseTriangle(v1, v2, v3)	{}
+		ConstrainedTriangle() :
+			BaseTriangle()	{}
+
+		ConstrainedTriangle(const TriangleDescriptor& td) :
+			BaseTriangle(td)	{}
+
+		ConstrainedTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) :
+			BaseTriangle(v1, v2, v3)	{}
 
 		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINED_TRIANGLE;}
 
@@ -786,8 +809,8 @@ template <>
 class geometry_traits<ConstrainedTriangle>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainedTriangle*, TriangleIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainedTriangle*, ConstTriangleIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<ConstrainedTriangle*, FaceIterator>					iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainedTriangle*, ConstFaceIterator>		const_iterator;
 
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
@@ -816,13 +839,22 @@ class ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, Constra
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainingTriangle*>(pObj) != NULL;}
 
-		ConstrainingTriangle() : BaseTriangle()	{}
-		ConstrainingTriangle(const TriangleDescriptor& td) : BaseTriangle(td)	{}
-		ConstrainingTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) : BaseTriangle(v1, v2, v3)	{}
+		ConstrainingTriangle() :
+			BaseTriangle()	{reserve_memory();}
+		ConstrainingTriangle(const TriangleDescriptor& td) :
+			BaseTriangle(td)	{reserve_memory();}
+		ConstrainingTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) :
+			BaseTriangle(v1, v2, v3)	{reserve_memory();}
 
 		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINING_TRIANGLE;}
 
 	protected:
+		void reserve_memory()
+			{
+				m_constrainedEdges.reserve(3);
+				m_constrainedFaces.reserve(4);
+			}
+
 		virtual EdgeBase* create_edge(int index)
 			{
 				return new Edge(m_vertices[index], m_vertices[(index+1) % 3]);
@@ -1036,14 +1068,24 @@ class ConstrainingQuadrilateral : public CustomQuadrilateral<ConstrainingQuadril
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainingQuadrilateral*>(pObj) != NULL;}
 
-		ConstrainingQuadrilateral() : BaseClass()	{}
-		ConstrainingQuadrilateral(const QuadrilateralDescriptor& qd) : BaseClass(qd)	{}
+		ConstrainingQuadrilateral() :
+			BaseClass()	{reserve_memory();}
+		ConstrainingQuadrilateral(const QuadrilateralDescriptor& qd) :
+			BaseClass(qd)	{reserve_memory();}
 		ConstrainingQuadrilateral(VertexBase* v1, VertexBase* v2,
-								  VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
+								  VertexBase* v3, VertexBase* v4) :
+			BaseClass(v1, v2, v3, v4)	{reserve_memory();}
 
 		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINING_QUADRILATERAL;}
 
 	protected:
+		void reserve_memory()
+			{
+				m_constrainedVertices.reserve(1);
+				m_constrainedEdges.reserve(4);
+				m_constrainedFaces.reserve(4);
+			}
+
 		virtual EdgeBase* create_edge(int index)
 			{
 				return new Edge(m_vertices[index], m_vertices[(index+1) % 4]);

@@ -9,6 +9,7 @@
 #include <cassert>
 #include "common/types.h"
 #include "lib_grid/attachments/attachment_pipe.h"
+#include "lib_grid/attachments/attached_list.h"
 #include "common/util/hash.h"
 #include "common/allocators/small_object_allocator.h"
 
@@ -81,12 +82,73 @@ typedef FaceVertices*		PFaceVertices;
 typedef VolumeVertices*	PVolumeVertices;
 
 
+/**
+ * \brief Geometric objects are the building blocks of a grid.
+ *
+ * \defgroup lib_grid_geometric_objects geometric objects
+ * \ingroup lib_grid
+ */
+////////////////////////////////////////////////////////////////////////
+//	GeometricObject
+///	The base class for all geometric objects, such as vertices, edges, faces, volumes, ...
+/**
+ * In order to be used by libGrid, all derivatives of GeometricObject
+ * have to specialize geometry_traits<GeomObjectType>.
+ *
+ * \ingroup lib_grid_geometric_objects
+ */
+class GeometricObject/* : public SmallObject<>*/
+{
+	friend class Grid;
+	friend class attachment_traits<GeometricObject*, Grid>;
+	public:
+		virtual ~GeometricObject()	{}
+
+	///	create an instance of the derived type
+	/**	Make sure to overload this method in derivates of this class!*/
+		virtual GeometricObject* create_empty_instance() const {return NULL;}
+
+		virtual int shared_pipe_section() const = 0;
+		virtual int base_object_type_id() const = 0;//	This method probably shouldn't be there!
+	/**
+	 * A reference object represents a class of geometric objects.
+	 * Tetrahedrons, Triangles etc are such classes.
+	 * Reference ids should be defined in the file in which concrete geometric objects are defined.
+	 */
+		virtual int reference_object_id() const = 0;///	returns the id of the reference-object.
+
+	protected:
+		uint						m_gridDataIndex;//	index to grid-attached data.
+		//GeometricObjectIterator		m_entryIter;//	used for fast list-access.
+};
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	specialization of attachment_traits for libGrid::GeometricObject
+
+template<>
+class attachment_traits<GeometricObject*, Grid>
+{
+	public:
+		typedef GeometricObject*&		ElemRef;
+		typedef GeometricObject*		ElemPtr;
+		typedef const GeometricObject*	ConstElemPtr;
+		typedef Grid*					ElemHandlerPtr;
+		typedef const Grid*				ConstElemHandlerPtr;
+
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)			{elem = NULL;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)			{return elem != NULL;}
+		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->m_gridDataIndex;}
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->m_gridDataIndex = index;}
+};
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	GeometricObjectContainer
 ///	Declaration of the container that will hold all geometric objects.
-typedef std::list<GeometricObject*> 		GeometricObjectContainer;
+//typedef std::list<GeometricObject*> 		GeometricObjectContainer;
+typedef AttachedElementList<AttachmentPipe<GeometricObject*, Grid> >
+		GeometricObjectContainer;
 
 ////////////////////////////////////////////////////////////////////////
 //	GeometricObjectIterator
@@ -143,8 +205,8 @@ class GenericGeometricObjectIterator : public TBaseIterator
 		GenericGeometricObjectIterator(const GenericGeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
 
-		inline TValue& operator* ()	{return (TValue&)(TBaseIterator::operator*());}
-		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
+	///	note that the * operator is read only.
+		inline TValue operator* () const	{return static_cast<TValue>(TBaseIterator::operator*());}
 
 	protected:
 		GenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
@@ -172,7 +234,8 @@ class ConstGenericGeometricObjectIterator : public TBaseIterator
 		ConstGenericGeometricObjectIterator(const ConstGenericGeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
 
-		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
+	///	note that the * operator is read only.
+		inline TValue operator* () const	{return static_cast<TValue>(TBaseIterator::operator*());}
 
 	protected:
 		ConstGenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
@@ -192,46 +255,6 @@ iterator_cast(const TIterSrc& iter)
 {
 	return TIterDest(iter);
 }
-
-/**
- * \brief Geometric objects are the building blocks of a grid.
- *
- * \defgroup lib_grid_geometric_objects geometric objects
- * \ingroup lib_grid
- */
-////////////////////////////////////////////////////////////////////////
-//	GeometricObject
-///	The base class for all geometric objects, such as vertices, edges, faces, volumes, ...
-/**
- * In order to be used by libGrid, all derivatives of GeometricObject
- * have to specialize geometry_traits<GeomObjectType>.
- *
- * \ingroup lib_grid_geometric_objects
- */
-class GeometricObject/* : public SmallObject<>*/
-{
-	friend class Grid;
-	friend class attachment_traits<GeometricObject*, Grid>;
-	public:
-		virtual ~GeometricObject()	{}
-
-	///	create an instance of the derived type
-	/**	Make sure to overload this method in derivates of this class!*/
-		virtual GeometricObject* create_empty_instance() const {return NULL;}
-
-		virtual int shared_pipe_section() const = 0;
-		virtual int base_object_type_id() const = 0;//	This method probably shouldn't be there!
-	/**
-	 * A reference object represents a class of geometric objects.
-	 * Tetrahedrons, Triangles etc are such classes.
-	 * Reference ids should be defined in the file in which concrete geometric objects are defined.
-	 */
-		virtual int reference_object_id() const = 0;///	returns the id of the reference-object.
-
-	protected:
-		uint						m_gridDataIndex;//	index to grid-attached data.
-		GeometricObjectIterator		m_entryIter;//	used for fast list-access.
-};
 
 template <>
 class geometry_traits<GeometricObject>
@@ -930,26 +953,6 @@ typedef geometry_traits<VertexBase>::const_iterator	ConstVertexBaseIterator;
 typedef geometry_traits<EdgeBase>::const_iterator	ConstEdgeBaseIterator;
 typedef geometry_traits<Face>::const_iterator		ConstFaceIterator;
 typedef geometry_traits<Volume>::const_iterator		ConstVolumeIterator;
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-//	specialization of attachment_traits for libGrid::GeometricObject
-
-template<>
-class attachment_traits<GeometricObject*, Grid>
-{
-	public:
-		typedef GeometricObject*&		ElemRef;
-		typedef GeometricObject*		ElemPtr;
-		typedef const GeometricObject*	ConstElemPtr;
-		typedef Grid*					ElemHandlerPtr;
-		typedef const Grid*				ConstElemHandlerPtr;
-
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)			{elem = NULL;}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)			{return elem != NULL;}
-		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->m_gridDataIndex;}
-		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->m_gridDataIndex = index;}
-};
 
 
 ////////////////////////////////////////////////////////////////////////

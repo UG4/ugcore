@@ -16,7 +16,7 @@ namespace ug
 /// @{
 
 ///	a section-container that holds geometric-objects in a std::list
-typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >
+typedef SectionContainer<GeometricObject*, GeometricObjectContainer >
 		GeometricObjectSectionContainer;
 
 ////////////////////////////////////////////////////////////////////////
@@ -183,7 +183,7 @@ class GeometricObjectCollection
 		
 		typedef std::vector<ContainerCollection> ContainerVec;
 		//typedef std::vector<GeometricObjectCollection> GOCVec;
-		
+
 	protected:
 		ContainerVec	m_levels;
 };

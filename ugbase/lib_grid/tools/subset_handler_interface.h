@@ -489,8 +489,12 @@ class ISubsetHandler : public GridObserver
 		get_attachment_data_container(TAttachment& attachment, int subsetIndex);
 
 	protected:
-		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
-		typedef SectionContainer::iterator iterator;
+		//typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
+		//typedef SectionContainer::iterator iterator;
+		typedef AttachedElementList<Grid::AttachmentPipe>
+				AttachedElemList;
+		typedef ug::SectionContainer<GeometricObject*, AttachedElemList>
+				SectionContainer;
 
 	protected:
 	///	selects elements based on the selection in the srcHandler
@@ -516,15 +520,10 @@ class ISubsetHandler : public GridObserver
 	///	creates all required infos (and pipes) up to the given index.
 		void create_required_subset_infos(int index);
 
-		inline void subset_assigned(VertexBase* v, iterator iter, int subsetIndex);
-		inline void subset_assigned(EdgeBase* e, iterator iter, int subsetIndex);
-		inline void subset_assigned(Face* f, iterator iter, int subsetIndex);
-		inline void subset_assigned(Volume* v, iterator iter, int subsetIndex);
-
-		inline iterator get_list_iterator(VertexBase* v)	{return m_aaIteratorVRT[v];}
-		inline iterator get_list_iterator(EdgeBase* e)		{return m_aaIteratorEDGE[e];}
-		inline iterator get_list_iterator(Face* f)			{return m_aaIteratorFACE[f];}
-		inline iterator get_list_iterator(Volume* v)		{return m_aaIteratorVOL[v];}
+		inline void subset_assigned(VertexBase* v, int subsetIndex);
+		inline void subset_assigned(EdgeBase* e, int subsetIndex);
+		inline void subset_assigned(Face* f, int subsetIndex);
+		inline void subset_assigned(Volume* v, int subsetIndex);
 
 	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
@@ -656,7 +655,6 @@ class ISubsetHandler : public GridObserver
 
 	protected:
 		typedef AInt					ASubsetIndex;
-		typedef Attachment<iterator>	AIterator;
 		typedef Attachment<uint>		ADataIndex;
 		typedef std::vector<SubsetInfo>	SubsetInfoVec;
 		typedef std::vector<VertexAttachmentPipe*>	VertexAttachmentPipeVec;
@@ -676,7 +674,6 @@ class ISubsetHandler : public GridObserver
 		uint			m_supportedElements;
 
 		ASubsetIndex	m_aSubsetIndex;
-		AIterator		m_aIterator;
 		ADataIndex		m_aDataIndex;
 
 		int				m_defaultSubsetIndex;
@@ -688,11 +685,6 @@ class ISubsetHandler : public GridObserver
 		Grid::EdgeAttachmentAccessor<ASubsetIndex>		m_aaSubsetIndexEDGE;
 		Grid::FaceAttachmentAccessor<ASubsetIndex>		m_aaSubsetIndexFACE;
 		Grid::VolumeAttachmentAccessor<ASubsetIndex>	m_aaSubsetIndexVOL;
-
-		Grid::VertexAttachmentAccessor<AIterator>		m_aaIteratorVRT;
-		Grid::EdgeAttachmentAccessor<AIterator>			m_aaIteratorEDGE;
-		Grid::FaceAttachmentAccessor<AIterator>			m_aaIteratorFACE;
-		Grid::VolumeAttachmentAccessor<AIterator>		m_aaIteratorVOL;
 
 		Grid::VertexAttachmentAccessor<ADataIndex>		m_aaDataIndVRT;
 		Grid::EdgeAttachmentAccessor<ADataIndex>		m_aaDataIndEDGE;

@@ -39,7 +39,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/refinement/hanging_node_refiner_base.cpp
 					algorithms/refinement/hanging_node_refiner_grid.cpp
 					algorithms/refinement/hanging_node_refiner_multi_grid.cpp
-					algorithms/refinement/hanging_node_refiner_2d_irn.cpp
+					# (unmaintained) algorithms/refinement/hanging_node_refiner_2d_irn.cpp
 					algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
 					algorithms/refinement/global_multi_grid_refiner.cpp

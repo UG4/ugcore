@@ -233,8 +233,6 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
 	std::string grp = grpSS.str();
 
-	domain_type dom;
-
 //	Domain
 	{
 		std::stringstream ss; ss << "Domain" << dim << "d";

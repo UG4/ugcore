@@ -15,18 +15,71 @@ Selector::Selector(uint supportedElements) :
 }
 
 Selector::Selector(Grid& grid, uint supportedElements) :
-	ISelector(grid, supportedElements)
+	ISelector(supportedElements)
 {
+	assign_grid(&grid);
+}
+
+Selector::~Selector()
+{
+	if(m_pGrid){
+	//	release the attachments in the current grid
+		if(elements_are_supported(SE_VERTEX))
+			get_section_container<VertexBase>().get_container().set_pipe(NULL);
+
+		if(elements_are_supported(SE_EDGE))
+			get_section_container<EdgeBase>().get_container().set_pipe(NULL);
+
+		if(elements_are_supported(SE_FACE))
+			get_section_container<Face>().get_container().set_pipe(NULL);
+
+		if(elements_are_supported(SE_VOLUME))
+			get_section_container<Volume>().get_container().set_pipe(NULL);
+	}
 }
 
 void Selector::assign_grid(Grid& grid)
 {
-	BaseClass::set_grid(&grid);
+	assign_grid(&grid);
 }
 
 void Selector::assign_grid(Grid* grid)
 {
+	if(m_pGrid){
+	//	release the attachments in the current grid
+		if(elements_are_supported(SE_VERTEX))
+			get_section_container<VertexBase>().get_container().set_pipe(NULL);
+
+		if(elements_are_supported(SE_EDGE))
+			get_section_container<EdgeBase>().get_container().set_pipe(NULL);
+
+		if(elements_are_supported(SE_FACE))
+			get_section_container<Face>().get_container().set_pipe(NULL);
+
+		if(elements_are_supported(SE_VOLUME))
+			get_section_container<Volume>().get_container().set_pipe(NULL);
+	}
+
 	BaseClass::set_grid(grid);
+
+	if(m_pGrid){
+	//	initialize attachment lists
+		if(elements_are_supported(SE_VERTEX))
+			get_section_container<VertexBase>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<VertexBase>());
+
+		if(elements_are_supported(SE_EDGE))
+			get_section_container<EdgeBase>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<EdgeBase>());
+
+		if(elements_are_supported(SE_FACE))
+			get_section_container<Face>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<Face>());
+
+		if(elements_are_supported(SE_VOLUME))
+			get_section_container<Volume>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<Volume>());
+	}
 }
 
 void Selector::clear_lists()
@@ -45,31 +98,27 @@ void Selector::clear()
 	clear<Volume>();
 }
 
-Selector::iterator
-Selector::add_to_list(VertexBase* elem)
+void Selector::add_to_list(VertexBase* elem)
 {
-	return get_section_container<VertexBase>().insert(elem,
+	get_section_container<VertexBase>().insert(elem,
 								elem->shared_pipe_section());
 }
 
-Selector::iterator 
-Selector::add_to_list(EdgeBase* elem)
+void Selector::add_to_list(EdgeBase* elem)
 {
-	return get_section_container<EdgeBase>().insert(elem,
+	get_section_container<EdgeBase>().insert(elem,
 								elem->shared_pipe_section());
 }
 
-Selector::iterator 
-Selector::add_to_list(Face* elem)
+void Selector::add_to_list(Face* elem)
 {
-	return get_section_container<Face>().insert(elem,
+	get_section_container<Face>().insert(elem,
 								elem->shared_pipe_section());
 }
 
-Selector::iterator 
-Selector::add_to_list(Volume* elem)
+void Selector::add_to_list(Volume* elem)
 {
-	return get_section_container<Volume>().insert(elem,
+	get_section_container<Volume>().insert(elem,
 								elem->shared_pipe_section());
 }	
 

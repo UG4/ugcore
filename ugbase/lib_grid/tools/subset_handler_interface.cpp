@@ -22,7 +22,7 @@ SubsetInfo::SubsetInfo()
 ////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler implementation
 ISubsetHandler::
-ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false), m_aIterator(false)
+ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false)
 {
 	m_pGrid = NULL;
 	m_supportedElements = supportedElements;
@@ -38,7 +38,7 @@ ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false), m_aIterator(fals
 
 ISubsetHandler::
 ISubsetHandler(Grid& grid, uint supportedElements) :
-	m_aSubsetIndex(false), m_aIterator(false)
+	m_aSubsetIndex(false)
 {
 	m_pGrid = &grid;
 	m_supportedElements = SHE_NONE;
@@ -267,9 +267,7 @@ enable_element_support(uint shElements)
 //LOG("enabling vertex support\n");
 		//	enable vertex-support.
 			m_pGrid->attach_to_vertices(m_aSubsetIndex);
-			m_pGrid->attach_to_vertices(m_aIterator);
 			m_aaSubsetIndexVRT.access(*m_pGrid, m_aSubsetIndex);
-			m_aaIteratorVRT.access(*m_pGrid, m_aIterator);
 			m_supportedElements |= SHE_VERTEX;
 			reset_subset_indices(SHE_VERTEX);
 		}
@@ -280,9 +278,7 @@ enable_element_support(uint shElements)
 //LOG("enabling edge support\n");
 		//	enable edge support
 			m_pGrid->attach_to_edges(m_aSubsetIndex);
-			m_pGrid->attach_to_edges(m_aIterator);
 			m_aaSubsetIndexEDGE.access(*m_pGrid, m_aSubsetIndex);
-			m_aaIteratorEDGE.access(*m_pGrid, m_aIterator);
 			m_supportedElements |= SHE_EDGE;
 			reset_subset_indices(SHE_EDGE);
 		}
@@ -293,9 +289,7 @@ enable_element_support(uint shElements)
 //LOG("enabling face support\n");
 		//	enable face support
 			m_pGrid->attach_to_faces(m_aSubsetIndex);
-			m_pGrid->attach_to_faces(m_aIterator);
 			m_aaSubsetIndexFACE.access(*m_pGrid, m_aSubsetIndex);
-			m_aaIteratorFACE.access(*m_pGrid, m_aIterator);
 			m_supportedElements |= SHE_FACE;
 			reset_subset_indices(SHE_FACE);
 		}
@@ -306,9 +300,7 @@ enable_element_support(uint shElements)
 //LOG("enabling volume support\n");
 		//	enable volume support
 			m_pGrid->attach_to_volumes(m_aSubsetIndex);
-			m_pGrid->attach_to_volumes(m_aIterator);
 			m_aaSubsetIndexVOL.access(*m_pGrid, m_aSubsetIndex);
-			m_aaIteratorVOL.access(*m_pGrid, m_aIterator);
 			m_supportedElements |= SHE_VOLUME;
 			reset_subset_indices(SHE_VOLUME);
 		}
@@ -329,28 +321,24 @@ disable_element_support(uint shElements)
 		{
 //LOG("disabling vertex support\n");
 			m_pGrid->detach_from_vertices(m_aSubsetIndex);
-			m_pGrid->detach_from_vertices(m_aIterator);
 		}
 
 		if((shElements & SHE_EDGE) && elements_are_supported(SHE_EDGE))
 		{
 //LOG("disabling edge support\n");
 			m_pGrid->detach_from_edges(m_aSubsetIndex);
-			m_pGrid->detach_from_edges(m_aIterator);
 		}
 
 		if((shElements & SHE_FACE) && elements_are_supported(SHE_FACE))
 		{
 //LOG("disabling face support\n");
 			m_pGrid->detach_from_faces(m_aSubsetIndex);
-			m_pGrid->detach_from_faces(m_aIterator);
 		}
 
 		if((shElements & SHE_VOLUME) && elements_are_supported(SHE_VOLUME))
 		{
 //LOG("disabling volume support\n");
 			m_pGrid->detach_from_volumes(m_aSubsetIndex);
-			m_pGrid->detach_from_volumes(m_aIterator);
 		}
 	}
 
@@ -774,7 +762,6 @@ enable_subset_attachments(bool bEnable)
 			m_bSubsetAttachmentsEnabled = false;
 		}
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -10,7 +10,6 @@
 #include "trees/octree.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "grid_generation/grid_generation.h"
-#include "refinement/hanging_node_refiner_2d_irn.h"
 #include "refinement/hanging_node_refiner_grid.h"
 #include "refinement/hanging_node_refiner_multi_grid.h"
 #include "refinement/regular_refinement.h"
@@ -29,6 +28,10 @@
 #include "remeshing/edge_length_adjustment.h"
 #include "remeshing/grid_adaption.h"
 #include "fractals.h"
+
+// hanging_node_refiner_2d_irn.h is currently not maintained.
+//#include "refinement/hanging_node_refiner_2d_irn.h"
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

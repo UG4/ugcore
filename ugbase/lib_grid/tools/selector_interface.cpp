@@ -8,28 +8,22 @@
 namespace ug
 {
 	
-ISelector::ISelector(uint supportedElements) :
-	m_aIterator(false)
+ISelector::ISelector(uint supportedElements)
 {
 	m_pGrid = NULL;
 	m_supportedElements = supportedElements;
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
 	m_bStrictInheritanceEnabled = false;
-	m_invalidContainer.push_back(NULL);
-	m_invalidIterator = m_invalidContainer.begin();
 }
 
-ISelector::ISelector(Grid& grid, uint supportedElements) :
-	m_aIterator(false)
+ISelector::ISelector(Grid& grid, uint supportedElements)
 {
 	m_pGrid = &grid;
 	m_supportedElements = SE_NONE;
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
 	m_bStrictInheritanceEnabled = false;
-	m_invalidContainer.push_back(NULL);
-	m_invalidIterator = m_invalidContainer.begin();
 
 //	register at grid. Don't use set_grid here since it invokes virtual methods.
 	if(m_pGrid){
@@ -80,10 +74,10 @@ void ISelector::enable_element_support(uint shElements)
 			(!elements_are_supported(SE_VERTEX))){
 //LOG("enabling vertex support\n");
 		//	enable vertex-support.
-			m_pGrid->attach_to_vertices(m_aIterator);
-			m_aaIterVRT.access(*m_pGrid, m_aIterator);
-			SetAttachmentValues(m_aaIterVRT, m_pGrid->begin<VertexBase>(),
-								m_pGrid->end<VertexBase>(), m_invalidIterator);
+			m_pGrid->attach_to_vertices(m_aSelected);
+			m_aaSelVRT.access(*m_pGrid, m_aSelected);
+			SetAttachmentValues(m_aaSelVRT, m_pGrid->begin<VertexBase>(),
+								m_pGrid->end<VertexBase>(), 0);
 			m_supportedElements |= SE_VERTEX;
 		}
 
@@ -91,10 +85,10 @@ void ISelector::enable_element_support(uint shElements)
 			(!elements_are_supported(SE_EDGE))){
 //LOG("enabling edge support\n");
 		//	enable edge support
-			m_pGrid->attach_to_edges(m_aIterator);
-			m_aaIterEDGE.access(*m_pGrid, m_aIterator);
-			SetAttachmentValues(m_aaIterEDGE, m_pGrid->begin<EdgeBase>(),
-								m_pGrid->end<EdgeBase>(), m_invalidIterator);
+			m_pGrid->attach_to_edges(m_aSelected);
+			m_aaSelEDGE.access(*m_pGrid, m_aSelected);
+			SetAttachmentValues(m_aaSelEDGE, m_pGrid->begin<EdgeBase>(),
+								m_pGrid->end<EdgeBase>(), 0);
 			m_supportedElements |= SE_EDGE;
 		}
 
@@ -102,10 +96,10 @@ void ISelector::enable_element_support(uint shElements)
 			(!elements_are_supported(SE_FACE))){
 //LOG("enabling face support\n");
 		//	enable face support
-			m_pGrid->attach_to_faces(m_aIterator);
-			m_aaIterFACE.access(*m_pGrid, m_aIterator);
-			SetAttachmentValues(m_aaIterFACE, m_pGrid->begin<Face>(),
-								m_pGrid->end<Face>(), m_invalidIterator);
+			m_pGrid->attach_to_faces(m_aSelected);
+			m_aaSelFACE.access(*m_pGrid, m_aSelected);
+			SetAttachmentValues(m_aaSelFACE, m_pGrid->begin<Face>(),
+								m_pGrid->end<Face>(), 0);
 			m_supportedElements |= SE_FACE;
 		}
 
@@ -113,10 +107,10 @@ void ISelector::enable_element_support(uint shElements)
 			(!elements_are_supported(SE_VOLUME))){
 //LOG("enabling volume support\n");
 		//	enable volume support
-			m_pGrid->attach_to_volumes(m_aIterator);
-			m_aaIterVOL.access(*m_pGrid, m_aIterator);
-			SetAttachmentValues(m_aaIterVOL, m_pGrid->begin<Volume>(),
-								m_pGrid->end<Volume>(), m_invalidIterator);
+			m_pGrid->attach_to_volumes(m_aSelected);
+			m_aaSelVOL.access(*m_pGrid, m_aSelected);
+			SetAttachmentValues(m_aaSelVOL, m_pGrid->begin<Volume>(),
+								m_pGrid->end<Volume>(), 0);
 			m_supportedElements |= SE_VOLUME;
 		}
 	}
@@ -132,22 +126,22 @@ void ISelector::disable_element_support(uint shElements)
 
 		if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX)){
 //LOG("disabling vertex support\n");
-			m_pGrid->detach_from_vertices(m_aIterator);
+			m_pGrid->detach_from_vertices(m_aSelected);
 		}
 
 		if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE)){
 //LOG("disabling edge support\n");
-			m_pGrid->detach_from_edges(m_aIterator);
+			m_pGrid->detach_from_edges(m_aSelected);
 		}
 
 		if((shElements & SE_FACE) && elements_are_supported(SE_FACE)){
 //LOG("disabling face support\n");
-			m_pGrid->detach_from_faces(m_aIterator);
+			m_pGrid->detach_from_faces(m_aSelected);
 		}
 
 		if((shElements & SE_VOLUME) && elements_are_supported(SE_VOLUME)){
 //LOG("disabling volume support\n");
-			m_pGrid->detach_from_volumes(m_aIterator);
+			m_pGrid->detach_from_volumes(m_aSelected);
 		}
 	}
 

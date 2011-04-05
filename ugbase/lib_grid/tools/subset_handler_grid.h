@@ -6,6 +6,7 @@
 #define __H__LIBGRID__SUBSET_HANDLER_GRID__
 
 #include <vector>
+#include <cassert>
 #include "lib_grid/grid/grid.h"
 #include "common/util/section_container.h"
 #include "subset_handler_interface.h"
@@ -30,7 +31,7 @@ class GridSubsetHandler : public ISubsetHandler
 		
 		GridSubsetHandler& operator = (const GridSubsetHandler& sh);
 
-		inline void assign_grid(Grid& grid)	{ISubsetHandler::set_grid(&grid);}
+		void assign_grid(Grid& grid);
 		
 	///	Makes sure that the subset with the given index exists.
 	/**	If required the subsets between num_subsets() and index will be created.
@@ -200,6 +201,10 @@ class GridSubsetHandler : public ISubsetHandler
 		template <class TElem>
 		uint num(int subsetIndex, size_t) const				{return num<TElem>();}
 		
+
+	///	perform cleanup
+		virtual void grid_to_be_destroyed(Grid* grid);
+
 	protected:
 	///	returns the number of subsets in the local list
 		inline uint num_subsets_in_list() const	{return m_subsets.size();}
@@ -248,20 +253,61 @@ class GridSubsetHandler : public ISubsetHandler
 		template <class TElem>
 		size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
 		
+	///	removes attachments
+		void cleanup();
+
+	///	returns the iterator at which the given element lies in the section container
+	/**	This method may only be called if the element is in a subset != -1.
+	 * \{
+	 */
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(VertexBase* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return m_subsets[get_subset_index(o)]->m_elements[VERTEX].
+				get_container().get_iterator(o);
+		}
+
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(EdgeBase* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return m_subsets[get_subset_index(o)]->m_elements[EDGE].
+				get_container().get_iterator(o);
+		}
+
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(Face* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return m_subsets[get_subset_index(o)]->m_elements[FACE].
+				get_container().get_iterator(o);
+		}
+
+		inline ISubsetHandler::SectionContainer::iterator
+		get_list_iterator(Volume* o)
+		{
+			assert((get_subset_index(o) >= 0) && "invalid subset.");
+			return m_subsets[get_subset_index(o)]->m_elements[VOLUME].
+				get_container().get_iterator(o);
+		}
+	/**	\}	*/
+
 	protected:
 		typedef ISubsetHandler::SectionContainer SectionContainer;
+		typedef ISubsetHandler::AttachedElemList AttachedElemList;
 		
 		struct Subset
 		{
 			SectionContainer 	m_elements[NUM_GEOMETRIC_BASE_OBJECTS];	/// holds pointers to elements.
-			//attachment_pipe
 		};
 
 		typedef std::vector<Subset*>	SubsetVec;
 
 	protected:
 		SubsetVec			m_subsets;
-		SectionContainer	m_invalidContainer;///< used to retrieve an invalid begin- and end-iterator
+	//	we use a shared attachment for the entry-lists of all section containers
+		AttachedElemList::AEntry	m_aSharedEntry;
 };
 
 

@@ -20,7 +20,7 @@ begin(int subsetIndex)
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-												m_invalidContainer.end());
+											AttachedElemList::iterator());
 			
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::begin(): bad element type.");
@@ -43,7 +43,7 @@ end(int subsetIndex)
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-												m_invalidContainer.end());
+											AttachedElemList::iterator());
 
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::end(): bad element type.");
@@ -66,7 +66,7 @@ begin(int subsetIndex) const
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-												m_invalidContainer.end());
+												AttachedElemList::iterator());
 			
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::begin(): bad element type.");
@@ -89,7 +89,7 @@ end(int subsetIndex) const
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-												m_invalidContainer.end());
+												AttachedElemList::iterator());
 
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::end(): bad element type.");

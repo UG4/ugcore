@@ -91,6 +91,7 @@ for i, tval in ipairs(neededSubsets) do
 end
 
 -- write grid to file for test purpose
+print("saving refined domain to refined_grid.ugx")
 SaveDomain(dom, "refined_grid.ugx")
 
 -- create Approximation Space

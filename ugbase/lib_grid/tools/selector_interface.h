@@ -118,10 +118,10 @@ class ISelector : public GridObserver
 
 	//	selection status
 		inline bool is_selected(GeometricObject* elem) const;
-		inline bool is_selected(VertexBase* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return false; return *m_aaIterVRT[vrt] != NULL;}
-		inline bool is_selected(EdgeBase* edge) const	{if(!elements_are_supported(SE_EDGE)) return false; return *m_aaIterEDGE[edge] != NULL;}
-		inline bool is_selected(Face* face) const		{if(!elements_are_supported(SE_FACE)) return false; return *m_aaIterFACE[face] != NULL;}
-		inline bool is_selected(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return false; return *m_aaIterVOL[vol] != NULL;}
+		inline bool is_selected(VertexBase* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return false; return m_aaSelVRT[vrt] != 0;}
+		inline bool is_selected(EdgeBase* edge) const	{if(!elements_are_supported(SE_EDGE)) return false; return m_aaSelEDGE[edge] != 0;}
+		inline bool is_selected(Face* face) const		{if(!elements_are_supported(SE_FACE)) return false; return m_aaSelFACE[face] != 0;}
+		inline bool is_selected(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return false; return m_aaSelVOL[vol] != 0;}
 
 	//	non-virtual methods.
 		inline Grid* get_assigned_grid() const		{return m_pGrid;}
@@ -195,15 +195,17 @@ class ISelector : public GridObserver
 										 Volume* elem1, Volume* elem2);
 
 	protected:
-		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
-		typedef SectionContainer::iterator iterator;
-		typedef Attachment<iterator> AIterator;
+		//typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
+		typedef AttachedElementList<Grid::AttachmentPipe>
+				AttachedElemList;
+		typedef ug::SectionContainer<GeometricObject*, AttachedElemList>
+					SectionContainer;
 
 	protected:
-		virtual iterator add_to_list(VertexBase* elem) = 0;
-		virtual iterator add_to_list(EdgeBase* elem) = 0;
-		virtual iterator add_to_list(Face* elem) = 0;
-		virtual iterator add_to_list(Volume* elem) = 0;
+		virtual void add_to_list(VertexBase* elem) = 0;
+		virtual void add_to_list(EdgeBase* elem) = 0;
+		virtual void add_to_list(Face* elem) = 0;
+		virtual void add_to_list(Volume* elem) = 0;
 
 		virtual void erase_from_list(VertexBase* elem) = 0;
 		virtual void erase_from_list(EdgeBase* elem) = 0;
@@ -231,21 +233,21 @@ class ISelector : public GridObserver
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		void disable_element_support(uint shElements);
 
-		inline void mark_selected(VertexBase* elem, iterator iter)	{assert(elements_are_supported(SE_VERTEX)); m_aaIterVRT[elem] = iter;}
-		inline void mark_selected(EdgeBase* elem, iterator iter)	{assert(elements_are_supported(SE_EDGE)); m_aaIterEDGE[elem] = iter;}
-		inline void mark_selected(Face* elem, iterator iter)		{assert(elements_are_supported(SE_FACE)); m_aaIterFACE[elem] = iter;}
-		inline void mark_selected(Volume* elem, iterator iter)		{assert(elements_are_supported(SE_VOLUME)); m_aaIterVOL[elem] = iter;}
+		inline void mark_selected(VertexBase* elem)		{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = 1;}
+		inline void mark_selected(EdgeBase* elem)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = 1;}
+		inline void mark_selected(Face* elem)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = 1;}
+		inline void mark_selected(Volume* elem)			{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = 1;}
 
-		inline void mark_deselected(VertexBase* elem)	{assert(elements_are_supported(SE_VERTEX)); m_aaIterVRT[elem] = m_invalidIterator;}
-		inline void mark_deselected(EdgeBase* elem)		{assert(elements_are_supported(SE_EDGE)); m_aaIterEDGE[elem] = m_invalidIterator;}
-		inline void mark_deselected(Face* elem)			{assert(elements_are_supported(SE_FACE)); m_aaIterFACE[elem] = m_invalidIterator;}
-		inline void mark_deselected(Volume* elem)		{assert(elements_are_supported(SE_VOLUME)); m_aaIterVOL[elem] = m_invalidIterator;}
-
+		inline void mark_deselected(VertexBase* elem)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = 0;}
+		inline void mark_deselected(EdgeBase* elem)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = 0;}
+		inline void mark_deselected(Face* elem)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = 0;}
+		inline void mark_deselected(Volume* elem)		{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = 0;}
+/*
 		inline iterator get_iterator(VertexBase* elem)	{assert(elements_are_supported(SE_VERTEX)); return m_aaIterVRT[elem];}
 		inline iterator get_iterator(EdgeBase* elem)	{assert(elements_are_supported(SE_EDGE)); return m_aaIterEDGE[elem];}
 		inline iterator get_iterator(Face* elem)		{assert(elements_are_supported(SE_FACE)); return m_aaIterFACE[elem];}
 		inline iterator get_iterator(Volume* elem)		{assert(elements_are_supported(SE_VOLUME)); return m_aaIterVOL[elem];}
-
+*/
 	///	helper for GridObserver callbacks.
 		template <class TElem>
 		void elems_to_be_merged(Grid* grid, TElem* target,
@@ -261,14 +263,14 @@ class ISelector : public GridObserver
 		bool	m_bSelectionInheritanceEnabled;
 		bool	m_bStrictInheritanceEnabled;
 		
-		AIterator 	m_aIterator;	/// this attachment will be used to store an iterator into m_selectedElements
-		Grid::AttachmentAccessor<VertexBase, AIterator>	m_aaIterVRT;
-		Grid::AttachmentAccessor<EdgeBase, AIterator>	m_aaIterEDGE;
-		Grid::AttachmentAccessor<Face, AIterator>		m_aaIterFACE;
-		Grid::AttachmentAccessor<Volume, AIterator>		m_aaIterVOL;
-		
-		std::list<GeometricObject*>	m_invalidContainer;
-		iterator					m_invalidIterator;
+	//	will use a default constructor
+		typedef Attachment<unsigned char> 	AUChar;
+		AUChar								m_aSelected;
+
+		Grid::AttachmentAccessor<VertexBase, AUChar>	m_aaSelVRT;
+		Grid::AttachmentAccessor<EdgeBase, AUChar>		m_aaSelEDGE;
+		Grid::AttachmentAccessor<Face, AUChar>			m_aaSelFACE;
+		Grid::AttachmentAccessor<Volume, AUChar>		m_aaSelVOL;
 };
 
 /// \}

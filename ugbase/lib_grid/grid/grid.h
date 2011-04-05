@@ -136,10 +136,10 @@ class Grid
 				VolumeAttachmentAccessor(Grid& grid, TAttachment& a);
 		};
 
-		typedef std::list<VertexBase*>	VertexContainer;
-		typedef std::list<EdgeBase*>	EdgeContainer;
-		typedef std::list<Face*>		FaceContainer;
-		typedef std::list<Volume*>		VolumeContainer;
+		typedef std::vector<VertexBase*>	VertexContainer;
+		typedef std::vector<EdgeBase*>	EdgeContainer;
+		typedef std::vector<Face*>		FaceContainer;
+		typedef std::vector<Volume*>		VolumeContainer;
 	///	used to iterate over associated edges of vertices, faces and volumes
 		typedef EdgeContainer::iterator 	AssociatedEdgeIterator;
 	///	used to iterate over associated faces of vertices, edges and volumes
@@ -544,6 +544,15 @@ class Grid
 		typename TAttachment::ContainerType*
 		get_attachment_data_container(TAttachment& attachment);
 		
+	///	returns the attachment-pipe in which data associated with the given objects-types are stored.
+	/**	This method is seldomly used, can however be useful. Use with care.
+	 * If in doubt please use the methods featured by Grid instead of directly
+	 * operating on the attachment pipe.
+	 */
+		template <class TGeomObj>
+		ug::AttachmentPipe<GeometricObject*, Grid>&
+		get_attachment_pipe();
+
 	////////////////////////////////////////////////
 	//	observers
 		/**
@@ -676,6 +685,41 @@ class Grid
 	///	ends a marking sequence. Call this method when you're done with marking.
 		void end_marking();
 		
+	///	a temporary testing method
+		void test_attached_linked_lists();
+
+	protected:
+		typedef ug::SectionContainer<GeometricObject*,
+						AttachedElementList<AttachmentPipe> >
+					SectionContainer;
+
+	///	This struct is used to hold GeometricObjects and their attachment pipes.
+		struct ElementStorage
+		{
+			ElementStorage(){
+				m_sectionContainer.get_container().set_pipe(&m_attachmentPipe);
+			}
+		//	the destructor is important, since destruction order is undefined
+		//	and since the AttachedElementList in SectionContainer tries to
+		//	unregister itself fomt the assigned pipe.
+			~ElementStorage(){
+				m_sectionContainer.get_container().set_pipe(NULL);
+			}
+
+			SectionContainer	m_sectionContainer;///	holds elements
+			AttachmentPipe		m_attachmentPipe;///	holds the data of the stored elements.
+		};
+
+	//	typedefs
+		typedef std::vector<GridObserver*>	ObserverContainer;
+
+		typedef Attachment<VertexContainer>	AVertexContainer;
+		typedef Attachment<EdgeContainer>	AEdgeContainer;
+		typedef Attachment<FaceContainer>	AFaceContainer;
+		typedef Attachment<VolumeContainer>	AVolumeContainer;
+
+		typedef Attachment<int>	AMark;
+
 	protected:
 	///	copies the contents from the given grid to this grid.
 	/**	Make sure that the grid on which this method is called is
@@ -698,18 +742,8 @@ class Grid
 		void register_volume(Volume* v, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_volume(Volume* v);
 
-		//void pass_on_values(util::AttachmentPipe& attachmentPipe, util::AttachmentPipeElement* elemFrom, util::AttachmentPipeElement* elemTo);
 		void change_options(uint optsNew);
-	/*
-		void enable_vertex_options(uint opts);
-		void enable_edge_options(uint opts);
-		void enable_face_options(uint opts);
-		void enable_volume_options(uint opts);
-		void disable_vertex_options(uint opts);
-		void disable_edge_options(uint opts);
-		void disable_face_options(uint opts);
-		void disable_volume_options(uint opts);
-	*/
+
 		void change_vertex_options(uint optsNew);
 		void change_edge_options(uint optsNew);
 		void change_face_options(uint optsNew);
@@ -731,10 +765,6 @@ class Grid
 		void pass_on_values(AttachmentPipe& attachmentPipe,
 							GeometricObject* pSrc, GeometricObject* pDest);
 
-		template <class TGeomObj>
-		ug::AttachmentPipe<GeometricObject*, Grid>&
-		get_attachment_pipe();
-
 	//	some methods that simplify auto-enabling of grid options
 		inline void autoenable_option(uint option, const char* caller, const char* optionName);
 
@@ -755,27 +785,40 @@ class Grid
 		void init_marks();
 		void reset_marks();
 		void remove_marks();
-												
-	protected:
-		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> > SectionContainer;
 
-	///	This struct is used to hold GeometricObjects and their attachment pipes.
-		struct ElementStorage
+	protected:
+	///	returns the iterator at which the given element lies in the section container
+	/**	This method may only be called if the element has already been registered at the grid.
+	 * \{
+	 */
+		inline SectionContainer::iterator
+		get_iterator(VertexBase* o)
 		{
-			SectionContainer	m_sectionContainer;///	holds elements
-			AttachmentPipe		m_attachmentPipe;///	holds the data of the stored elements.
-		};
+			return m_elementStorage[VERTEX].m_sectionContainer.
+					get_container().get_iterator(o);
+		}
 
-	protected:
-	//	typedefs
-		typedef std::vector<GridObserver*>	ObserverContainer;
+		inline SectionContainer::iterator
+		get_iterator(EdgeBase* o)
+		{
+			return m_elementStorage[EDGE].m_sectionContainer.
+					get_container().get_iterator(o);
+		}
 
-		typedef Attachment<VertexContainer>	AVertexContainer;
-		typedef Attachment<EdgeContainer>	AEdgeContainer;
-		typedef Attachment<FaceContainer>	AFaceContainer;
-		typedef Attachment<VolumeContainer>	AVolumeContainer;
-		
-		typedef Attachment<int>	AMark;
+		inline SectionContainer::iterator
+		get_iterator(Face* o)
+		{
+			return m_elementStorage[FACE].m_sectionContainer.
+					get_container().get_iterator(o);
+		}
+
+		inline SectionContainer::iterator
+		get_iterator(Volume* o)
+		{
+			return m_elementStorage[VOLUME].m_sectionContainer.
+					get_container().get_iterator(o);
+		}
+	/**	\}	*/
 
 	protected:
 		ElementStorage	m_elementStorage[NUM_GEOMETRIC_BASE_OBJECTS];

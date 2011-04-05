@@ -1,41 +1,31 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m11 d10
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 01.04.2011 (m,d,y)
 
-#ifndef __UTIL__SECTION_CONTAINER__
-#define __UTIL__SECTION_CONTAINER__
-
-#include <vector>
-#include "../types.h"
+#ifndef __H__UG__attached_section_container__
+#define __H__UG__attached_section_container__
 
 namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	SectionContainer
-///	A container that is divided into different sections.
+//	AttachedSectionContainer
+///	A container that is divided into different sections, living in an attachment.
 /**
  * This container can be used to store values that have a common base,
  * but can be sorted in different sections. The SectionContainer supplies
  * you with interfaces to iterate over a certain section or to iterate
  * over the complete container.
- * The SectionContainer works on containers of the standard template library.
- * Be sure, that TContainer holds values of type TValue.
- * TContainer has to support the container operations of a std::list.
+ * The section container stores its entries directly in an attachment.
  */
-template <class TValue, class TContainer>
-class SectionContainer
+template <class TValue, class TAttachmentPipe>
+class AttachedSectionContainer
 {
 	public:
 		typedef TValue								value_type;
-		typedef TContainer							Container;
-		typedef typename Container::iterator		iterator;
-		typedef typename Container::const_iterator	const_iterator;
-		//typedef typename Container::reverse_iterator		reverse_iterator;
-		//typedef typename Container::const_reverse_iterator	const_reverse_iterator;
-		
+
 	public:
-		SectionContainer();
+		AttachedSectionContainer();
 
 		void clear();
 		void clear_section(int sectionIndex);
@@ -72,17 +62,10 @@ class SectionContainer
 	 *	Make sure to only call this method if there are elements in the
 	 *	given section at all.*/
 		value_type& back(int secIndex = -1);
-			
+
 		uint num_elements(int sectionIndex) const;
 		inline uint num_elements() const	{return m_numElements;}
 		inline int num_sections() const		{return m_vSections.size();}
-
-	///	returns the container for raw access.
-	/**	Use this method with extreme care. Changes to the elements
-	 * and to the layout of the container may most likely result in a
-	 * corruption of the SectionContainer.
-	 */
-		inline Container& get_container()			{return m_container;}
 
 	protected:
 		void add_sections(int num);
@@ -116,8 +99,5 @@ class SectionContainer
 };
 
 }//	end of namespace
-
-//	include implementation
-#include "section_container.hpp"
 
 #endif

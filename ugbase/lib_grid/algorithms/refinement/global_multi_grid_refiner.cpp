@@ -9,7 +9,7 @@
 
 //define PROFILE_GLOBAL_MULTI_GRID_REFINER if you want to profile
 //the refinement code.
-#define PROFILE_GLOBAL_MULTI_GRID_REFINER
+//#define PROFILE_GLOBAL_MULTI_GRID_REFINER
 #ifdef PROFILE_GLOBAL_MULTI_GRID_REFINER
 	#define GMGR_PROFILE_FUNC()	PROFILE_FUNC()
 	#define GMGR_PROFILE(name)	PROFILE_BEGIN(name)
@@ -190,13 +190,13 @@ void GlobalMultiGridRefiner::refine()
 		VertexBase* v = *iter;
 
 	//	create a new vertex in the next layer.
-GMGR_PROFILE(GMGR_Refine_CreatingVertices);
+		GMGR_PROFILE(GMGR_Refine_CreatingVertices);
 		VertexBase* nVrt = *mg.create_by_cloning(v, v);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
 			m_refCallback->new_vertex(nVrt, v);
-GMGR_PROFILE_END();
+		GMGR_PROFILE_END();
 	}
 
 
@@ -212,17 +212,17 @@ GMGR_PROFILE_END();
 	//	refined. No need to check that again.
 		EdgeBase* e = *iter;
 
-GMGR_PROFILE(GMGR_Refine_CreatingEdgeVertices);
+		GMGR_PROFILE(GMGR_Refine_CreatingEdgeVertices);
 	//	create two new edges by edge-split
 		Vertex* nVrt = *mg.create<Vertex>(e);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
 			m_refCallback->new_vertex(nVrt, e);
-GMGR_PROFILE_END();
+		GMGR_PROFILE_END();
 
 	//	split the edge
-GMGR_PROFILE(GMGR_Refine_CreatingEdges);
+		GMGR_PROFILE(GMGR_Refine_CreatingEdges);
 		VertexBase* substituteVrts[2];
 		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
@@ -231,7 +231,7 @@ GMGR_PROFILE(GMGR_Refine_CreatingEdges);
 		assert((vEdges.size() == 2) && "Edge refine produced wrong number of edges.");
 		mg.register_element(vEdges[0], e);
 		mg.register_element(vEdges[1], e);
-GMGR_PROFILE_END();
+		GMGR_PROFILE_END();
 	}
 
 //LOG("creating new faces\n");

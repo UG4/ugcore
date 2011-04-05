@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include "selector_interface.h"
+#include "../multi_grid.h"
 
 namespace ug
 {
@@ -187,10 +188,10 @@ class MGSelector : public ISelector
 	protected:
 		void clear_lists();
 
-		virtual iterator add_to_list(VertexBase* elem);
-		virtual iterator add_to_list(EdgeBase* elem);
-		virtual iterator add_to_list(Face* elem);
-		virtual iterator add_to_list(Volume* elem);
+		virtual void add_to_list(VertexBase* elem);
+		virtual void add_to_list(EdgeBase* elem);
+		virtual void add_to_list(Face* elem);
+		virtual void add_to_list(Volume* elem);
 
 		virtual void erase_from_list(VertexBase* elem);
 		virtual void erase_from_list(EdgeBase* elem);
@@ -213,8 +214,48 @@ class MGSelector : public ISelector
 		template <class TElem>
 		inline int get_section_index() const;
 
-		void level_required(int newSize);
+		inline void level_required(int newSize);
+		void add_level();
 
+	///	This method should only be called if a complete cleanup is required.
+		void cleanup();
+
+	///	returns the iterator at which the given element lies in the section container
+	/**	This method may only be called if the element is indeed selected
+	 * \{
+	 */
+		inline SectionContainer::iterator
+		get_iterator(VertexBase* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected.");
+			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[VERTEX].
+				get_container().get_iterator(o);
+		}
+
+		inline SectionContainer::iterator
+		get_iterator(EdgeBase* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected");
+			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[EDGE].
+				get_container().get_iterator(o);
+		}
+
+		inline SectionContainer::iterator
+		get_iterator(Face* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected");
+			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[FACE].
+				get_container().get_iterator(o);
+		}
+
+		inline SectionContainer::iterator
+		get_iterator(Volume* o)
+		{
+			assert((is_selected(o) >= 0) && "object not selected");
+			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[VOLUME].
+				get_container().get_iterator(o);
+		}
+	/**	\}	*/
 	private:
 		MGSelector(const MGSelector& sel){};///<	Copy Constructor not yet implemented!
 
@@ -223,6 +264,9 @@ class MGSelector : public ISelector
 		LevelVec 	m_levels;
 		VertexBaseIterator m_tmpVBegin;
 		VertexBaseIterator m_tmpVEnd;
+
+	//	we use a shared attachment for the entry-lists of all section containers
+		AttachedElemList::AEntry	m_aSharedEntry;
 };
 
 }//	end of namespace

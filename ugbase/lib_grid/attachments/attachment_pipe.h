@@ -279,6 +279,8 @@ template<class TElem, class TElemHandler>
 class AttachmentPipe
 {
 	public:
+		typedef TElem								element;
+		typedef TElemHandler						ElementHandler;
 		typedef std::list<AttachmentEntry>			AttachmentEntryContainer;
 		typedef AttachmentEntryContainer::iterator	AttachmentEntryIterator;
 		typedef AttachmentEntryContainer::const_iterator	ConstAttachmentEntryIterator;
@@ -440,8 +442,9 @@ template <class TElem, class TAttachment, class TElemHandler>
 class AttachmentAccessor
 {
 	public:
+		typedef TElem								element;
 		typedef typename TAttachment::ValueType		ValueType;
-		typedef typename TAttachment::ContainerType			ContainerType;
+		typedef typename TAttachment::ContainerType	ContainerType;
 		typedef attachment_traits<TElem, TElemHandler>	atraits;
 
 	public:

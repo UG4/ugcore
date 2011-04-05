@@ -7,6 +7,7 @@
 #include "grid.h"
 #include "grid_util.h"
 #include "common/common.h"
+#include "lib_grid/attachments/attached_list.h"
 
 using namespace std;
 
@@ -249,7 +250,7 @@ VertexBaseIterator Grid::create_by_cloning(VertexBase* pCloneMe, GeometricObject
 {
 	VertexBase* pNew = reinterpret_cast<VertexBase*>(pCloneMe->create_empty_instance());
 	register_vertex(pNew, pParent);
-	return iterator_cast<VertexBaseIterator>(pNew->m_entryIter);
+	return iterator_cast<VertexBaseIterator>(get_iterator(pNew));
 }
 
 EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GeometricObject* pParent)
@@ -258,7 +259,7 @@ EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices&
 	pNew->set_vertex(0, ev.vertex(0));
 	pNew->set_vertex(1, ev.vertex(1));
 	register_edge(pNew, pParent);
-	return iterator_cast<EdgeBaseIterator>(pNew->m_entryIter);
+	return iterator_cast<EdgeBaseIterator>(get_iterator(pNew));
 }
 
 FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GeometricObject* pParent)
@@ -268,7 +269,7 @@ FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, Geo
 	for(uint i = 0; i < numVrts; ++i)
 		pNew->set_vertex(i, fv.vertex(i));
 	register_face(pNew, pParent);
-	return iterator_cast<FaceIterator>(pNew->m_entryIter);
+	return iterator_cast<FaceIterator>(get_iterator(pNew));
 }
 
 VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GeometricObject* pParent)
@@ -278,7 +279,7 @@ VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& v
 	for(uint i = 0; i < numVrts; ++i)
 		pNew->set_vertex(i, vv.vertex(i));
 	register_volume(pNew, pParent);
-	return iterator_cast<VolumeIterator>(pNew->m_entryIter);
+	return iterator_cast<VolumeIterator>(get_iterator(pNew));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -827,18 +828,22 @@ EdgeBase* Grid::get_edge(EdgeVertices& ev)
 
 EdgeBase* Grid::get_edge(Face* f, int ind)
 {
-//	get the descriptor of the i-th edge
-	EdgeDescriptor ed;
-	f->edge(ind, ed);
-	
 //	check whether the face stores associated edges
 	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
-	//	it does. get the edge that matches.
-		return find_edge_in_associated_edges(f, ed);
+		if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+			return m_aaEdgeContainerFACE[f][ind];
+		else{
+			EdgeDescriptor ed;
+			f->edge(ind, ed);
+			return find_edge_in_associated_edges(f, ed);
+		}
 	}
 	else
 	{
+	//	get the descriptor of the i-th edge
+		EdgeDescriptor ed;
+		f->edge(ind, ed);
 	//	it doesn't. find the edge by checking vertices.
 		return find_edge_in_associated_edges(ed.vertex(0), ed);
 	}
@@ -848,18 +853,27 @@ EdgeBase* Grid::get_edge(Face* f, int ind)
 
 EdgeBase* Grid::get_edge(Volume* v, int ind)
 {
-//	get the descriptor of the i-th edge
-	EdgeDescriptor ed;
-	v->edge(ind, ed);
-	
 //	check whether the face stores associated edges
 	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
-	//	it does. get the edge that matches.
-		return find_edge_in_associated_edges(v, ed);
+	//	if autogenerate is enabeld, edges are sorted.
+		if(option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)
+			|| option_is_enabled(VOLOPT_AUTOGENERATE_FACES
+								| FACEOPT_AUTOGENERATE_EDGES))
+		{
+			return m_aaEdgeContainerVOLUME[v][ind];
+		}
+		else{
+			EdgeDescriptor ed;
+			v->edge(ind, ed);
+			return find_edge_in_associated_edges(v, ed);
+		}
 	}
 	else
 	{
+	//	get the descriptor of the i-th edge
+		EdgeDescriptor ed;
+		v->edge(ind, ed);
 	//	it doesn't. find the edge by checking vertices.
 		return find_edge_in_associated_edges(ed.vertex(0), ed);
 	}
@@ -874,15 +888,21 @@ Face* Grid::get_face(FaceVertices& fv)
 
 Face* Grid::get_face(Volume* v, int ind)
 {
-	FaceDescriptor fd;
-	v->face(ind, fd);
-	
 //	check whether the volume stores associated faces
 	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
 	{
-		return find_face_in_associated_faces(v, fd);
+	//	if autogenerate is enabeld, faces are sorted.
+		if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+			return m_aaFaceContainerVOLUME[v][ind];
+		else{
+			FaceDescriptor fd;
+			v->face(ind, fd);
+			return find_face_in_associated_faces(v, fd);
+		}
 	}
 	else {
+		FaceDescriptor fd;
+		v->face(ind, fd);
 	//	it does not. check associated faces of the first vertex of fd.
 		return find_face_in_associated_faces(fd.vertex(0), fd);
 	}
@@ -1025,6 +1045,11 @@ void Grid::clear_marks()
 		begin_marking();
 		end_marking();
 	}
+}
+
+void Grid::test_attached_linked_lists()
+{
+	UG_LOG("empty\n");
 }
 
 }//	end of namespace

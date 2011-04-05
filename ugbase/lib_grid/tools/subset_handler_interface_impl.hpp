@@ -43,7 +43,7 @@ ISubsetHandler::get_attachment_pipe<Volume>(int subsetIndex)
 
 
 inline void ISubsetHandler::
-subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
+subset_assigned(VertexBase* v, int subsetIndex)
 {
 	if(subset_attachments_are_enabled())
 	{
@@ -54,12 +54,11 @@ subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
 			get_attachment_pipe<VertexBase>(subsetIndex).register_element(v);
 	}
 
-	m_aaIteratorVRT[v] = iter;
 	m_aaSubsetIndexVRT[v] = subsetIndex;
 }
 
 inline void ISubsetHandler::
-subset_assigned(EdgeBase* e, iterator iter, int subsetIndex)
+subset_assigned(EdgeBase* e, int subsetIndex)
 {
 	if(subset_attachments_are_enabled())
 	{
@@ -70,13 +69,12 @@ subset_assigned(EdgeBase* e, iterator iter, int subsetIndex)
 			get_attachment_pipe<EdgeBase>(subsetIndex).register_element(e);
 	}
 
-	m_aaIteratorEDGE[e] = iter;
 	m_aaSubsetIndexEDGE[e] = subsetIndex;
 }
 
 inline void
 ISubsetHandler::
-subset_assigned(Face* f, iterator iter, int subsetIndex)
+subset_assigned(Face* f, int subsetIndex)
 {
 	if(subset_attachments_are_enabled())
 	{
@@ -87,13 +85,12 @@ subset_assigned(Face* f, iterator iter, int subsetIndex)
 			get_attachment_pipe<Face>(subsetIndex).register_element(f);
 	}
 
-	m_aaIteratorFACE[f] = iter;
 	m_aaSubsetIndexFACE[f] = subsetIndex;
 }
 
 inline void
 ISubsetHandler::
-subset_assigned(Volume* v, iterator iter, int subsetIndex)
+subset_assigned(Volume* v, int subsetIndex)
 {
 	if(subset_attachments_are_enabled())
 	{
@@ -104,7 +101,6 @@ subset_assigned(Volume* v, iterator iter, int subsetIndex)
 			get_attachment_pipe<Volume>(subsetIndex).register_element(v);
 	}
 
-	m_aaIteratorVOL[v] = iter;
 	m_aaSubsetIndexVOL[v] = subsetIndex;
 }
 

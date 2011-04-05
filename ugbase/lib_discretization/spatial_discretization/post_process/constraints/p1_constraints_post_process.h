@@ -98,11 +98,11 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					}
 
 				//	get constraining vertices
-					EdgeBaseIterator edgeIter = constrainingEdge->constrained_edges_begin();
-					for(; edgeIter != constrainingEdge->constrained_edges_end(); ++edgeIter)
+					for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
 					{
 					//	get constrained edge
-						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(*edgeIter);
+						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
+															constrainingEdge->constrained_edge(i_cde));
 
 					//	check
 						if(constrainedEdge == NULL)
@@ -408,11 +408,11 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 					}
 
 				//	get constraining vertices
-					EdgeBaseIterator edgeIter = constrainingEdge->constrained_edges_begin();
-					for(; edgeIter != constrainingEdge->constrained_edges_end(); ++edgeIter)
+					for(size_t i_cde = 0; i_cde != constrainingEdge->num_constrained_edges(); ++i_cde)
 					{
 					//	get constrained edge
-						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(*edgeIter);
+						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
+																constrainingEdge->constrained_edge(i_cde));
 
 					//	check
 						if(constrainedEdge == NULL)

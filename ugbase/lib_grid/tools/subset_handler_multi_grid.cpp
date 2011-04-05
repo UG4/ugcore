@@ -20,10 +20,11 @@ MultiGridSubsetHandler(uint supportedElements) : ISubsetHandler(supportedElement
 
 MultiGridSubsetHandler::
 MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements) :
-ISubsetHandler(mg, supportedElements)
+ISubsetHandler(supportedElements)
 {
 	m_numSubsets = 0;
-	m_pMG = &mg;
+	m_pMG = NULL;
+	assign_grid(mg);
 }
 
 MultiGridSubsetHandler::
@@ -41,10 +42,59 @@ MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
 
 MultiGridSubsetHandler::~MultiGridSubsetHandler()
 {
+	cleanup();
+
 	if(m_pGrid != NULL)
 		m_pGrid->unregister_observer(this);
 }
 
+void MultiGridSubsetHandler::grid_to_be_destroyed(Grid* grid)
+{
+	cleanup();
+	ISubsetHandler::grid_to_be_destroyed(grid);
+}
+
+void MultiGridSubsetHandler::cleanup()
+{
+	erase_subset_lists();
+	m_levels.clear();
+
+	if(m_pMG){
+		if(elements_are_supported(SHE_VERTEX))
+			m_pMG->detach_from_vertices(m_aSharedEntry);
+		if(elements_are_supported(SHE_EDGE))
+			m_pMG->detach_from_edges(m_aSharedEntry);
+		if(elements_are_supported(SHE_FACE))
+			m_pMG->detach_from_faces(m_aSharedEntry);
+		if(elements_are_supported(SHE_VOLUME))
+			m_pMG->detach_from_volumes(m_aSharedEntry);
+
+		m_pMG = NULL;
+	}
+
+	ISubsetHandler::set_grid(NULL);
+
+}
+
+void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
+{
+	if(m_pMG)
+		cleanup();
+
+	m_pMG = &mg;
+
+	ISubsetHandler::set_grid(&mg);
+
+//	attach shared entries
+	if(elements_are_supported(SHE_VERTEX))
+		m_pGrid->attach_to_vertices(m_aSharedEntry);
+	if(elements_are_supported(SHE_EDGE))
+		m_pGrid->attach_to_edges(m_aSharedEntry);
+	if(elements_are_supported(SHE_FACE))
+		m_pGrid->attach_to_faces(m_aSharedEntry);
+	if(elements_are_supported(SHE_VOLUME))
+		m_pGrid->attach_to_volumes(m_aSharedEntry);
+}
 
 void MultiGridSubsetHandler::erase_subset_lists()
 {
@@ -91,12 +141,12 @@ assign_subset(TElemPtr elem, int subsetIndex, int elemType)
 //	add the element to the subset.
 	if(subsetIndex != -1)
 	{
-		ISubsetHandler::iterator iter = m_levels[level][subsetIndex]->m_elements[elemType].insert(elem, elem->shared_pipe_section());
-		subset_assigned(elem, iter, subsetIndex);
+		m_levels[level][subsetIndex]->m_elements[elemType].insert(elem, elem->shared_pipe_section());
+		subset_assigned(elem, subsetIndex);
 	}
 	else {
 //TODO:	iterator is useless!
-		subset_assigned(elem, ISubsetHandler::iterator(), -1);
+		subset_assigned(elem, -1);
 	}
 }
 
@@ -277,18 +327,37 @@ get_goc_by_level(int level)
 	return goc;
 }
 
+MultiGridSubsetHandler::Subset* MultiGridSubsetHandler::new_subset()
+{
+
+	Subset* sub = new Subset;
+	if(elements_are_supported(SHE_VERTEX))
+		sub->m_elements[VERTEX].get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntry);
+	if(elements_are_supported(SHE_EDGE))
+		sub->m_elements[EDGE].get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntry);
+	if(elements_are_supported(SHE_FACE))
+		sub->m_elements[FACE].get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntry);
+	if(elements_are_supported(SHE_VOLUME))
+		sub->m_elements[VOLUME].get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntry);
+	return sub;
+}
+
 void MultiGridSubsetHandler::add_level()
 {
 	m_levels.push_back(SubsetVec());
 	int topLevel = m_levels.size() - 1;
 	for(uint i = 0; i < num_subsets_in_list(); ++i)
-		m_levels[topLevel].push_back(new Subset);
+		m_levels[topLevel].push_back(new_subset());
 }
 
 void MultiGridSubsetHandler::add_subset_to_all_levels()
 {
 	for(size_t i = 0; i < m_levels.size(); ++i)
-		m_levels[i].push_back(new Subset);
+		m_levels[i].push_back(new_subset());
 
 	m_numSubsets++;
 }

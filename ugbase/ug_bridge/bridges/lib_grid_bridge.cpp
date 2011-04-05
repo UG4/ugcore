@@ -104,6 +104,16 @@ bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 	return LoadGridFromFile(grid, filename, sh);
 }
 
+bool LoadGrid(Grid& grid, const char* filename)
+{
+	return LoadGridFromFile(grid, filename);
+}
+
+bool SaveGrid(Grid& grid, const char* filename)
+{
+	return SaveGridToFile(grid, filename);
+}
+
 bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 {
 	return SaveGridToFile(grid, filename, sh);
@@ -631,14 +641,20 @@ UG_LOG("done\n");
 void TestAttachedLinkedList(const char* filename)
 {
 	Grid g;
-	SubsetHandler sh(g);
+	//SubsetHandler sh(g);
 
-	if(!LoadGridFromFile(g, filename, sh)){
+	UG_LOG("loading...");
+	//if(!LoadGridFromFile(g, filename, sh)){
+	if(!LoadGridFromFile(g, filename)){
 		UG_LOG("load file failed\n");
 		return;
 	}
+	UG_LOG(" done.\n");
 
-	//g.test_attached_linked_lists();
+	//UG_LOG("testing surface view... ");
+	//SurfaceView sv(g);
+	//sv.assign_subset(*g.begin<VertexBase>(), 0);
+	//UG_LOG(" done\n");
 }
 
 
@@ -741,9 +757,11 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		reg.add_function("CreateFractal", &CreateFractal, grp.c_str());
 
 	//  GridObject functions
-		reg.add_function("LoadGrid", &LoadGrid, grp.c_str())
+		reg.add_function("LoadGrid", (bool (*)(Grid&, ISubsetHandler&, const char*))&LoadGrid, grp.c_str())
+			.add_function("LoadGrid", (bool (*)(Grid&, const char*))&LoadGrid, grp.c_str())
 			.add_function("SaveGrid", (bool (*)(Grid&, const SubsetHandler&, const char*))&SaveGrid, grp.c_str())
 			.add_function("SaveGrid", (bool (*)(Grid&, SubsetHandler&, const char*))&SaveGrid, grp.c_str())
+			.add_function("SaveGrid", (bool (*)(Grid&, const char*))&SaveGrid, grp.c_str())
 			.add_function("LoadGridObject", &LoadGridObject, grp.c_str())
 			.add_function("SaveGridObject", &SaveGridObject, grp.c_str())
 			.add_function("SaveGridHierarchyTransformed", &SaveGridHierarchyTransformed, grp.c_str())

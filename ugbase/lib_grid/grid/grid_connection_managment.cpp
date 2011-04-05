@@ -71,8 +71,8 @@ void Grid::register_vertex(VertexBase* v, GeometricObject* pParent)
 	GCM_PROFILE_FUNC();
 
 //	store the element and register it at the pipe.
-	v->m_entryIter = m_elementStorage[VERTEX].m_sectionContainer.insert(static_cast<GeometricObject*>(v), v->shared_pipe_section());
 	m_elementStorage[VERTEX].m_attachmentPipe.register_element(v);
+	m_elementStorage[VERTEX].m_sectionContainer.insert(static_cast<GeometricObject*>(v), v->shared_pipe_section());
 
 //	assign the hash-value
 	assign_hash_value(v);
@@ -85,8 +85,8 @@ void Grid::register_vertex(VertexBase* v, GeometricObject* pParent)
 
 void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 {
-	v->m_entryIter = m_elementStorage[VERTEX].m_sectionContainer.insert(static_cast<GeometricObject*>(v), v->shared_pipe_section());
 	m_elementStorage[VERTEX].m_attachmentPipe.register_element(v);
+	m_elementStorage[VERTEX].m_sectionContainer.insert(static_cast<GeometricObject*>(v), v->shared_pipe_section());
 
 //	assign the hash-value
 	assign_hash_value(v);
@@ -172,7 +172,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 
 //	remove pReplaceMe
 	m_elementStorage[VERTEX].m_attachmentPipe.unregister_element(pReplaceMe);
-	m_elementStorage[VERTEX].m_sectionContainer.erase(pReplaceMe->m_entryIter, pReplaceMe->shared_pipe_section());
+	m_elementStorage[VERTEX].m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
 	delete pReplaceMe;
 }
 
@@ -280,8 +280,8 @@ void Grid::unregister_vertex(VertexBase* v)
 	}
 
 //	remove the element from the storage
+	m_elementStorage[VERTEX].m_sectionContainer.erase(get_iterator(v), v->shared_pipe_section());
 	m_elementStorage[VERTEX].m_attachmentPipe.unregister_element(v);
-	m_elementStorage[VERTEX].m_sectionContainer.erase(v->m_entryIter, v->shared_pipe_section());
 }
 
 void Grid::change_vertex_options(uint optsNew)
@@ -432,8 +432,8 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent,
 	GCM_PROFILE_FUNC();
 
 //	store the element and register it at the pipe.
-	e->m_entryIter = m_elementStorage[EDGE].m_sectionContainer.insert(e, e->shared_pipe_section());
 	m_elementStorage[EDGE].m_attachmentPipe.register_element(e);
+	m_elementStorage[EDGE].m_sectionContainer.insert(e, e->shared_pipe_section());
 
 //	register edge at vertices, faces and volumes, if the according options are enabled.
 	if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
@@ -559,8 +559,8 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent,
 void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 {
 //	store the element and register it at the pipe.
-	e->m_entryIter = m_elementStorage[EDGE].m_sectionContainer.insert(e, e->shared_pipe_section());
 	m_elementStorage[EDGE].m_attachmentPipe.register_element(e);
+	m_elementStorage[EDGE].m_sectionContainer.insert(e, e->shared_pipe_section());
 
 	pass_on_values(pReplaceMe, e);
 
@@ -621,8 +621,8 @@ void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 	}
 
 //	remove the element from the storage and delete it.
+	m_elementStorage[EDGE].m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
 	m_elementStorage[EDGE].m_attachmentPipe.unregister_element(pReplaceMe);
-	m_elementStorage[EDGE].m_sectionContainer.erase(pReplaceMe->m_entryIter, pReplaceMe->shared_pipe_section());
 	delete pReplaceMe;
 }
 
@@ -726,8 +726,8 @@ void Grid::unregister_edge(EdgeBase* e)
 	}
 
 //	remove the element from the storage
+	m_elementStorage[EDGE].m_sectionContainer.erase(get_iterator(e), e->shared_pipe_section());
 	m_elementStorage[EDGE].m_attachmentPipe.unregister_element(e);
-	m_elementStorage[EDGE].m_sectionContainer.erase(e->m_entryIter, e->shared_pipe_section());
 }
 
 void Grid::change_edge_options(uint optsNew)
@@ -869,8 +869,8 @@ void Grid::register_face(Face* f, GeometricObject* pParent, Volume* createdByVol
 	GCM_PROFILE_FUNC();
 
 //	store the element and register it at the pipe.
-	f->m_entryIter = m_elementStorage[FACE].m_sectionContainer.insert(f, f->shared_pipe_section());
 	m_elementStorage[FACE].m_attachmentPipe.register_element(f);
+	m_elementStorage[FACE].m_sectionContainer.insert(f, f->shared_pipe_section());
 
 //	register face at vertices
 	if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
@@ -883,6 +883,10 @@ void Grid::register_face(Face* f, GeometricObject* pParent, Volume* createdByVol
 	bool createEdges = option_is_enabled(FACEOPT_AUTOGENERATE_EDGES);;
 	const bool edgesStoreFaces = option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES);
 	const bool facesStoreEdges = option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES);
+
+//	make sure that the edge container is big enough to hold all edges
+	if(facesStoreEdges)
+		m_aaEdgeContainerFACE[f].reserve(f->num_edges());
 
 //	create edges if FACEOPT_AUTOGENERATE_EDGES is enabled.
 //	register face at associated vertices and edges if the according options are set.
@@ -989,8 +993,8 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 	}
 
 //	store the element and register it at the pipe.
-	f->m_entryIter = m_elementStorage[FACE].m_sectionContainer.insert(f, f->shared_pipe_section());
 	m_elementStorage[FACE].m_attachmentPipe.register_element(f);
+	m_elementStorage[FACE].m_sectionContainer.insert(f, f->shared_pipe_section());
 
 	pass_on_values(pReplaceMe, f);
 
@@ -1054,8 +1058,8 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 	}
 
 //	remove the element from the storage and delete it.
+	m_elementStorage[FACE].m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
 	m_elementStorage[FACE].m_attachmentPipe.unregister_element(pReplaceMe);
-	m_elementStorage[FACE].m_sectionContainer.erase(pReplaceMe->m_entryIter, pReplaceMe->shared_pipe_section());
 	delete pReplaceMe;
 }
 
@@ -1131,8 +1135,8 @@ void Grid::unregister_face(Face* f)
 	}
 
 //	remove the element from the storage
+	m_elementStorage[FACE].m_sectionContainer.erase(get_iterator(f), f->shared_pipe_section());
 	m_elementStorage[FACE].m_attachmentPipe.unregister_element(f);
-	m_elementStorage[FACE].m_sectionContainer.erase(f->m_entryIter, f->shared_pipe_section());
 }
 
 void Grid::change_face_options(uint optsNew)
@@ -1184,12 +1188,17 @@ void Grid::face_store_associated_edges(bool bStoreIt)
 			attach_to_faces(m_aEdgeContainer);
 			m_aaEdgeContainerFACE.access(*this, m_aEdgeContainer);
 
+			bool createEdges = option_is_enabled(FACEOPT_AUTOGENERATE_EDGES);
+
 		//	if EDGEOPT_STORE_ASSOCIATED_FACES is enabled, this is as simple
 		//	as to iterate through all edges and store them at their
 		//	associated faces.
 		//	if not we have to iterate through the faces and store
 		//	each of their edges..
-			if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+		//	If createEdges == true, we want to store the edges sorted.
+		//	The else branch thus has to be executed.
+			if(!createEdges
+				&& option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 			{
 			//	iterate through the edges
 				for(EdgeBaseIterator iter = edges_begin(); iter != edges_end(); iter++)
@@ -1209,14 +1218,21 @@ void Grid::face_store_associated_edges(bool bStoreIt)
 				for(FaceIterator iter = faces_begin(); iter != faces_end(); iter++)
 				{
 					Face* f = *iter;
-				//	iterate through the edges of the face
 					uint numEdges = f->num_edges();
-					for(uint i = 0; i < numEdges; ++i)
-					{
-					//	get the i-th edge that is described by the EdgeDescriptor - if it exists at all.
-						EdgeBase* e = get_edge(f, i);
-						if(e != NULL)
-							m_aaEdgeContainerFACE[f].push_back(e);
+
+					if(createEdges){
+						m_aaEdgeContainerFACE[f].resize(numEdges);
+						for(uint i = 0; i < numEdges; ++i)
+							m_aaEdgeContainerFACE[f][i] = get_edge(f, i);
+					}
+					else{
+						for(uint i = 0; i < numEdges; ++i)
+						{
+						//	get the i-th edge that is described by the EdgeDescriptor - if it exists at all.
+							EdgeBase* e = get_edge(f, i);
+							if(e != NULL)
+								m_aaEdgeContainerFACE[f].push_back(e);
+						}
 					}
 				}
 			}
@@ -1260,8 +1276,8 @@ void Grid::face_store_associated_volumes(bool bStoreIt)
 				}
 				else
 				{
-					int numFaces = v->num_faces();
-					for(int i = 0; i < numFaces; ++i)
+					uint numFaces = v->num_faces();
+					for(uint i = 0; i < numFaces; ++i)
 					{
 						Face* f = get_face(v, i);
 
@@ -1292,23 +1308,38 @@ void Grid::face_autogenerate_edges(bool bAutogen)
 	{
 		if(!option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		{
+			bool storeEdges = option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES);
+			EdgeDescriptor ed;
+
 		//	generate all missing edges now!
 			for(FaceIterator iter = faces_begin(); iter != faces_end(); iter++)
 			{
 				Face* f = *iter;
 			//	check for each edge of the face if it exists. if not create it and link it to the face.
-				int numEdges = f->num_edges();
+				uint numEdges = f->num_edges();
 
-				for(int i = 0; i < numEdges; ++i)
+			//	reserve memory for neighbors
+				if(storeEdges){
+					m_aaEdgeContainerFACE[f].clear();
+					m_aaEdgeContainerFACE[f].reserve(numEdges);
+				}
+
+				for(uint i = 0; i < numEdges; ++i)
 				{
-					EdgeBase* e = get_edge(f, i);
+				//	we can't use get_edge here, since we're manipulating m_aaEdgeContainerFACE on the fly.
+					f->edge(i, ed);
+					EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 					if(e == NULL)
 					{
 					//	create the edge
 						e = f->create_edge(i);
-						register_edge(e);
+						if(storeEdges)
+							m_aaEdgeContainerFACE[f].push_back(e);
+						register_edge(e, f, f, NULL);
 					}
+					else if(storeEdges)
+						m_aaEdgeContainerFACE[f].push_back(e);
 				}
 			}
 
@@ -1333,8 +1364,8 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 	GCM_PROFILE_FUNC();
 
 //	store the element and register it at the pipe.
-	v->m_entryIter = m_elementStorage[VOLUME].m_sectionContainer.insert(v, v->shared_pipe_section());
 	m_elementStorage[VOLUME].m_attachmentPipe.register_element(v);
+	m_elementStorage[VOLUME].m_sectionContainer.insert(v, v->shared_pipe_section());
 
 //	create edges and faces if the according options are enabled.
 //	register the volume at the associated vertices, edges and faces, if the according options are enabled.
@@ -1355,6 +1386,14 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 
 	const bool facesStoreVols = option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES);
 	const bool volsStoreFaces = option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES);
+
+
+//	if elements are automatically created, then we can directly reserve memory
+//	to store neighborhood relations
+	if(volsStoreEdges && createEdges)
+		m_aaEdgeContainerVOLUME[v].reserve(v->num_edges());
+	if(volsStoreFaces && createFaces)
+		m_aaFaceContainerVOLUME[v].reserve(v->num_faces());
 
 //	create faces first. This makes sense, since faces thus get a chance to
 //	generate associated edges. This has the benefit, that the option
@@ -1392,6 +1431,7 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 			{
 				if(facesStoreVols)
 					m_aaVolumeContainerFACE[f].push_back(v);
+
 				if(volsStoreFaces)
 					m_aaFaceContainerVOLUME[v].push_back(f);
 			}
@@ -1432,6 +1472,7 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 			{
 				if(edgesStoreVols)
 					m_aaVolumeContainerEDGE[e].push_back(v);
+
 				if(volsStoreEdges)
 					m_aaEdgeContainerVOLUME[v].push_back(e);
 			}
@@ -1456,8 +1497,8 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 	}
 
 //	store the element and register it at the pipe.
-	v->m_entryIter = m_elementStorage[VOLUME].m_sectionContainer.insert(v, v->shared_pipe_section());
 	m_elementStorage[VOLUME].m_attachmentPipe.register_element(v);
+	m_elementStorage[VOLUME].m_sectionContainer.insert(v, v->shared_pipe_section());
 
 	pass_on_values(pReplaceMe, v);
 
@@ -1521,8 +1562,8 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 	}
 
 //	remove the element from the storage and delete it.
+	m_elementStorage[VOLUME].m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
 	m_elementStorage[VOLUME].m_attachmentPipe.unregister_element(pReplaceMe);
-	m_elementStorage[VOLUME].m_sectionContainer.erase(pReplaceMe->m_entryIter, pReplaceMe->shared_pipe_section());
 	delete pReplaceMe;
 }
 
@@ -1588,8 +1629,8 @@ void Grid::unregister_volume(Volume* v)
 	}
 
 //	remove the element from the storage
+	m_elementStorage[VOLUME].m_sectionContainer.erase(get_iterator(v), v->shared_pipe_section());
 	m_elementStorage[VOLUME].m_attachmentPipe.unregister_element(v);
-	m_elementStorage[VOLUME].m_sectionContainer.erase(v->m_entryIter, v->shared_pipe_section());
 }
 
 void Grid::change_volume_options(uint optsNew)
@@ -1653,12 +1694,16 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 			attach_to_volumes(m_aEdgeContainer);
 			m_aaEdgeContainerVOLUME.access(*this, m_aEdgeContainer);
 
+			bool createEdges = option_is_enabled(VOLOPT_AUTOGENERATE_EDGES);
 		//	if EDGEOPT_STORE_ASSOCIATED_VOLUMES is enabled, this is as simple
 		//	as to iterate through all edges and store them at their
 		//	associated volumes.
 		//	if not we have to iterate through the volumes and store
 		//	each of their edges..
-			if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
+		//	If createEdges == true, we want to store the edges sorted.
+		//	The else branch thus has to be executed.
+			if(!createEdges
+				&& option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 			{
 			//	iterate through the edges
 				for(EdgeBaseIterator iter = edges_begin(); iter != edges_end(); iter++)
@@ -1678,14 +1723,23 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 				for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); iter++)
 				{
 					Volume* v = *iter;
-				//	iterate through the edges of the volume
 					int numEdges = v->num_edges();
-					for(int i = 0; i < numEdges; ++i)
-					{
-					//	get the edge-descriptor
-						EdgeBase* e = get_edge(v, i);
-						if(e != NULL)
-							m_aaEdgeContainerVOLUME[v].push_back(e);
+
+					if(createEdges){
+					//	all edges exist. We can insert them sorted.
+						m_aaEdgeContainerVOLUME[v].resize(numEdges);
+						for(int i = 0; i < numEdges; ++i)
+							m_aaEdgeContainerVOLUME[v][i] = get_edge(v, i);
+					}
+					else{
+					//	iterate through the edges of the volume
+						for(int i = 0; i < numEdges; ++i)
+						{
+						//	get the edge-descriptor
+							EdgeBase* e = get_edge(v, i);
+							if(e != NULL)
+								m_aaEdgeContainerVOLUME[v].push_back(e);
+						}
 					}
 				}
 			}
@@ -1715,12 +1769,16 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 			attach_to_volumes(m_aFaceContainer);
 			m_aaFaceContainerVOLUME.access(*this, m_aFaceContainer);
 
+			bool createFaces = option_is_enabled(VOLOPT_AUTOGENERATE_FACES);
+
 		//	if FACEOPT_STORE_ASSOCIATED_VOLUMES is enabled, this is as simple
 		//	as to iterate through all faces and store them at their
 		//	associated volumes.
 		//	if not we have to iterate through the volumes and store
 		//	each of their faces..
-			if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
+		//	if createFaces == true then we want to store the faces sorted.
+			if(!createFaces
+				&& option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
 			{
 			//	iterate through the edges
 				for(FaceIterator iter = faces_begin(); iter != faces_end(); iter++)
@@ -1744,13 +1802,22 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 					Volume* v = *iter;
 				//	iterate through the faces of the volume and get the corresponding face from the grid.
 					int numFaces = v->num_faces();
-					for(int i = 0; i < numFaces; ++i)
-					{
-						v->face(i, fd);
-						Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
-						if(f)
-							m_aaFaceContainerVOLUME[v].push_back(f);
+					if(createFaces){
+						m_aaFaceContainerVOLUME[v].resize(numFaces);
+						for(int i = 0; i < numFaces; ++i)
+							m_aaFaceContainerVOLUME[v][i] = get_face(v, i);
+
+					}
+					else{
+						for(int i = 0; i < numFaces; ++i)
+						{
+							v->face(i, fd);
+							Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
+
+							if(f)
+								m_aaFaceContainerVOLUME[v].push_back(f);
+						}
 					}
 				}
 			}
@@ -1776,23 +1843,39 @@ void Grid::volume_autogenerate_edges(bool bAutogen)
 	{
 		if(!option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
 		{
+			bool volsStoreEdges = option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES);
+			EdgeDescriptor ed;
+
 		//	generate all missing edges now!
 			for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); iter++)
 			{
 				Volume* v = *iter;
-			//	check for each edge of the volume if it exists. if not create it and link it to the face.
+
+			//	check for each edge of the volume if it exists. if not create it and link it to the edge.
 				uint numEdges = v->num_edges();
+
+			//	reserve memory for neighbors
+				if(volsStoreEdges){
+					m_aaEdgeContainerVOLUME[v].clear();
+					m_aaEdgeContainerVOLUME[v].reserve(numEdges);
+				}
 
 				for(uint i = 0; i < numEdges; ++i)
 				{
-					EdgeBase* e = get_edge(v, i);
+				//	we can't use get_edge here, since we modify m_aaEdgeContainerVOLUME on the fly.
+					v->edge(i, ed);
+					EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 					if(e == NULL)
 					{
 					//	create the edge
 						e = v->create_edge(i);
-						register_edge(e);
+						if(volsStoreEdges) // has to be performed before register_edge
+							m_aaEdgeContainerVOLUME[v].push_back(e);
+						register_edge(e, v, NULL, v);
 					}
+					else if(volsStoreEdges)
+						m_aaEdgeContainerVOLUME[v].push_back(e);
 				}
 			}
 
@@ -1813,6 +1896,9 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 	{
 		if(!option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 		{
+			bool volsStoreFaces = option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES);
+			FaceDescriptor fd;
+
 		//	generate all missing faces now!
 			for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); iter++)
 			{
@@ -1820,16 +1906,28 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 			//	check for each face of the volume if it exists. if not create it and link it to the face.
 				uint numFaces = v->num_faces();
 
+			//	reserve memory for neighbors
+				if(volsStoreFaces){
+					m_aaFaceContainerVOLUME[v].clear();
+					m_aaFaceContainerVOLUME[v].reserve(numFaces);
+				}
+
 				for(uint i = 0; i < numFaces; ++i)
 				{
-					Face* f = get_face(v, i);
+				//	we can't use get_face here, since we modify m_aaEdgeContainerVOLUME on the fly.
+					v->face(i, fd);
+					Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
 					if(f == NULL)
 					{
 					//	create the face
 						f = v->create_face(i);
-						register_face(f);
+						if(volsStoreFaces) // has to be performed before register_face
+							m_aaFaceContainerVOLUME[v].push_back(f);
+						register_face(f, v, v);
 					}
+					else if(volsStoreFaces)
+						m_aaFaceContainerVOLUME[v].push_back(f);
 				}
 			}
 
@@ -1950,8 +2048,8 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					}
 
 				//	we can now remove e from the storage.
+					m_elementStorage[EDGE].m_sectionContainer.erase(get_iterator(e), e->shared_pipe_section());
 					m_elementStorage[EDGE].m_attachmentPipe.unregister_element(e);
-					m_elementStorage[EDGE].m_sectionContainer.erase(e->m_entryIter, e->shared_pipe_section());
 					delete e;
 				}
 			}
@@ -2066,8 +2164,8 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					}
 
 				//	we can now remove f from the storage.
+					m_elementStorage[FACE].m_sectionContainer.erase(get_iterator(f), f->shared_pipe_section());
 					m_elementStorage[FACE].m_attachmentPipe.unregister_element(f);
-					m_elementStorage[FACE].m_sectionContainer.erase(f->m_entryIter, f->shared_pipe_section());
 					delete f;
 				}
 			}
@@ -2205,8 +2303,8 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 
 
 				//	we can now remove v from the storage.
+					m_elementStorage[VOLUME].m_sectionContainer.erase(get_iterator(v), v->shared_pipe_section());
 					m_elementStorage[VOLUME].m_attachmentPipe.unregister_element(v);
-					m_elementStorage[VOLUME].m_sectionContainer.erase(v->m_entryIter, v->shared_pipe_section());
 					delete v;
 				}
 			}
@@ -2287,8 +2385,8 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 	}
 
 //	finally erase vrtOld.
+	m_elementStorage[VERTEX].m_sectionContainer.erase(get_iterator(vrtOld), vrtOld->shared_pipe_section());
 	m_elementStorage[VERTEX].m_attachmentPipe.unregister_element(vrtOld);
-	m_elementStorage[VERTEX].m_sectionContainer.erase(vrtOld->m_entryIter, vrtOld->shared_pipe_section());
 	delete vrtOld;
 
 	return true;
