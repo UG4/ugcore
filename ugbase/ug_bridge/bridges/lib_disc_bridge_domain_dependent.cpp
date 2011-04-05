@@ -25,6 +25,7 @@
 #include "lib_discretization/function_spaces/grid_function_space.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
 #include "lib_discretization/function_spaces/interpolate.h"
+#include "lib_discretization/function_spaces/integrate.h"
 #include "lib_discretization/function_spaces/error_indicator.h"
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 #include "lib_discretization/dof_manager/cuthill_mckee.h"
@@ -439,6 +440,23 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 									const char*);
 		reg.add_function(ss.str().c_str(),
 						 (fct_type_subset)&InterpolateFunction<function_type>,
+						 grp.c_str());
+	}
+
+//	L2Error
+	{
+		std::stringstream ss; ss << "L2Error";
+		typedef number (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
+									function_type& , const char* , number);
+		reg.add_function(ss.str().c_str(),
+						 (fct_type)&L2Error<function_type>,
+						 grp.c_str());
+
+		typedef number (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
+									function_type& , const char* , number ,
+									const char*);
+		reg.add_function(ss.str().c_str(),
+						 (fct_type_subset)&L2Error<function_type>,
 						 grp.c_str());
 	}
 
