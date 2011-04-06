@@ -56,7 +56,7 @@ class MGDoFManager : public GridObserver
 		bool assign_function_pattern(FunctionPattern& dp);
 
 	/// number of levels
-		size_t num_levels() const
+		virtual size_t num_levels() const
 		{
 		//	without SubsetHandler, we have no level information
 			if(m_pMGSubsetHandler == NULL) return 0;

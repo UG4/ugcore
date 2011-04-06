@@ -423,14 +423,6 @@ bool
 MGDoFManager<TDoFDistribution>::
 level_distribution_required(size_t numLevel)
 {
-	if(numLevel > m_pMGSubsetHandler->num_levels())
-	{
-		UG_LOG("Level DoF Distribution required for "<< numLevel << " Level"
-			   ", but MGSubsetHandler has only " <<
-			   m_pMGSubsetHandler->num_levels()<< ".\n");
-		return false;
-	}
-
 // 	Create level dof distributions
 	for(size_t l = m_vLevelDD.size(); l < numLevel; ++l)
 	{
