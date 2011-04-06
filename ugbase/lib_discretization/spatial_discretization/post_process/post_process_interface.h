@@ -49,20 +49,20 @@ class IPostProcess{
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		virtual IAssembleReturn post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		virtual bool post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return false;}
 
-		virtual IAssembleReturn post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		virtual bool post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return false;}
 
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		virtual bool post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return false;}
 
-		virtual IAssembleReturn post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		virtual bool post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return false;}
 
-		virtual IAssembleReturn post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		virtual bool post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return false;}
 
 		virtual int type()
 		{return PPT_NONE;}

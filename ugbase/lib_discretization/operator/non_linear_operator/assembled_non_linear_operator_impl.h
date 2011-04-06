@@ -50,7 +50,7 @@ prepare(vector_type& dOut, vector_type& uIn)
 	}
 
 // 	Set Dirichlet - Nodes to exact values
-	if(m_pAss->assemble_solution(uIn, *m_pDoFDistribution) != IAssemble_OK)
+	if(m_pAss->assemble_solution(uIn, *m_pDoFDistribution) != true)
 	{
 		UG_LOG("ERROR in 'AssembledOperator::prepare': "
 				"Cannot set dirichlet values in solution.\n");
@@ -75,7 +75,7 @@ apply(vector_type& dOut, const vector_type& uIn)
 	}
 
 //  assemble defect
-	if(m_pAss->assemble_defect(dOut, uIn, *m_pDoFDistribution) != IAssemble_OK)
+	if(m_pAss->assemble_defect(dOut, uIn, *m_pDoFDistribution) != true)
 	{
 		UG_LOG("ERROR in 'AssembledOperator::apply': Could not "
 				"assemble defect. Aborting.\n");

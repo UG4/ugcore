@@ -323,7 +323,7 @@ class P1ProlongationOperator :
 			{
 				const dof_distribution_type& dofDistr =
 						m_pApproxSpace->get_level_dof_distribution(m_fineLevel);
-				if(m_vPostProcess[i]->post_process_defect(uFineOut, uFineOut, dofDistr) != IAssemble_OK)
+				if(m_vPostProcess[i]->post_process_defect(uFineOut, uFineOut, dofDistr) != true)
 				{
 					UG_LOG("ERROR in 'P1ProlongationOperator::apply': "
 							"Error while setting dirichlet defect nr " << i << " to zero.\n");
@@ -373,7 +373,7 @@ class P1ProlongationOperator :
 			{
 				const dof_distribution_type& dofDistr =
 						m_pApproxSpace->get_level_dof_distribution(m_coarseLevel);
-				if(m_vPostProcess[i]->post_process_defect(uCoarseOut, uCoarseOut, dofDistr) != IAssemble_OK)
+				if(m_vPostProcess[i]->post_process_defect(uCoarseOut, uCoarseOut, dofDistr) != true)
 				{
 					UG_LOG("ERROR in 'ProjectionOperator::apply_transposed': "
 							"Error while setting dirichlet defect nr " << i << " to zero.\n");

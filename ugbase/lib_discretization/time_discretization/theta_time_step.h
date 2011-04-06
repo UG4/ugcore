@@ -97,18 +97,18 @@ class ThetaTimeDiscretization
 
 	public:
 	//	Implements the assemble interface
-		IAssembleReturn assemble_jacobian(matrix_type& J,
+		bool assemble_jacobian(matrix_type& J,
 		                                  const vector_type& u,
 		                                  const dof_distribution_type& dofDistr);
 
-		IAssembleReturn assemble_defect(vector_type& d,
+		bool assemble_defect(vector_type& d,
 		                                const vector_type& u,
 		                                const dof_distribution_type& dofDistr);
 
-		IAssembleReturn assemble_solution(vector_type& u,
+		bool assemble_solution(vector_type& u,
 		                                  const dof_distribution_type& dofDistr);
 
-		IAssembleReturn assemble_linear(matrix_type& A, vector_type& b,
+		bool assemble_linear(matrix_type& A, vector_type& b,
 		                                const vector_type& u,
 		                                const dof_distribution_type& dofDistr);
 

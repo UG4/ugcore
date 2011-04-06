@@ -11,16 +11,6 @@
 
 namespace ug{
 
-/// Return types of assembling
-enum IAssembleReturn {
-	IAssemble_OK = 0,
-	IAssemble_NOT_IMPLEMENTED = 1,
-	IAssemble_ERROR = 2,
-	IAssemble_NON_LINEAR = 3,
-	IAssemble_TIME_INDEPENDENT = 4
-
-};
-
 /**
  * \brief Assemblings.
  *
@@ -109,10 +99,10 @@ class IAssemble {
 		 * \param[in]  	u 			Current iterate
 		 * \param[in]	dofDistr	DoF Distribution
 		 */
-		virtual IAssembleReturn assemble_jacobian(matrix_type& J,
+		virtual bool assemble_jacobian(matrix_type& J,
 		                                          const vector_type& u,
 		                                          const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		/// assembles Defect
 		/**
@@ -122,10 +112,10 @@ class IAssemble {
 		 * \param[in] 	u 			Current iterate
 		 * \param[in]	dofDistr	DoF Distribution
 		 */
-		virtual IAssembleReturn assemble_defect(vector_type& d,
+		virtual bool assemble_defect(vector_type& d,
 		                                        const vector_type& u,
 		                                        const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
@@ -136,15 +126,15 @@ class IAssemble {
 		 * \param[in] 	u 			Current iterate
 		 * \param[in]	dofDistr	DoF Distribution
 		 *
-		 * \return 	IAssemble_OK 		if problem is linear and assembling successful
-		 * 			IAssemble_ERROR 	if problem is linear and an error occurred during assembling
+		 * \return 	true 		if problem is linear and assembling successful
+		 * 			false 	if problem is linear and an error occurred during assembling
 		 * 			IAssemble_NONLINEAR if problem is non-linear
 		 */
-		virtual IAssembleReturn assemble_linear(matrix_type& A,
+		virtual bool assemble_linear(matrix_type& A,
 		                                        vector_type& b,
 		                                        const vector_type& u,
 		                                        const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		/// sets dirichlet values in solution vector
 		/**
@@ -154,13 +144,13 @@ class IAssemble {
 		 * \param[out] 	u			Numerical Solution
 		 * \param[in]	dofDistr	DoF Distribution
 		 *
-		 * \return 	IAssemble_OK 				if function is implemented and assembling successful
-		 * 			IAssemble_NOT_IMPLEMENTED 	if function has not been implemented
-		 * 			IAssemble_ERROR 			if function is implemented and an error occurred during assembling
+		 * \return 	true 				if function is implemented and assembling successful
+		 * 			false 	if function has not been implemented
+		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
-		virtual IAssembleReturn assemble_solution(vector_type& u,
+		virtual bool assemble_solution(vector_type& u,
 		                                          const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 
 	/// forces the assembling to consider the grid as regular

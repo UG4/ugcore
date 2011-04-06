@@ -35,21 +35,21 @@ class IAssemble {
 		virtual IAssembleReturn assemble_jacobian(matrix_type& J,
 		                                          const vector_type& u,
 		                                          const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		virtual IAssembleReturn assemble_defect(vector_type& d,
 		                                        const vector_type& u,
 		                                        const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		virtual IAssembleReturn assemble_linear(matrix_type& A,
 		                                        vector_type& b,
 		                                        const vector_type& u,
 		                                        const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 		virtual IAssembleReturn assemble_solution(vector_type& u,
 		                                          const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 }
 \endcode
 
@@ -104,14 +104,14 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		                                  const vector_type& u,
 		                                  const dof_distribution_type& dofDistr,
 		                                  number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		virtual
 		IAssembleReturn assemble_defect(vector_type& d,
 		                                const vector_type& u,
 		                                const dof_distribution_type& dofDistr,
 		                                number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		virtual
 		IAssembleReturn assemble_linear(matrix_type& A,
@@ -119,13 +119,13 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		                                const vector_type& u,
 		                                const dof_distribution_type& dofDistr,
 		                                number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		virtual
 		IAssembleReturn assemble_solution(vector_type& u,
 		                                  const dof_distribution_type& dofDistr,
 		                                  number time)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 		virtual size_t num_post_process() const = 0;
 		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;

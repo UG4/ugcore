@@ -35,7 +35,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 	public:
 		virtual int type() {return PPT_CONSTRAINTS;}
 
-		virtual IAssembleReturn post_process_jacobian(matrix_type& J,
+		virtual bool post_process_jacobian(matrix_type& J,
 		                                              const vector_type& u,
 		                                              const dof_distribution_type& dofDistr,
 		                                              number time = 0.0)
@@ -48,7 +48,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 			return post_process_linear(J, rhsDummy, u, dofDistr, time);
 		}
 
-		virtual IAssembleReturn post_process_linear(matrix_type& mat,
+		virtual bool post_process_linear(matrix_type& mat,
 		                                            vector_type& rhs,
 		                                            const vector_type& u,
 		                                            const dof_distribution_type& dofDistr,
@@ -94,7 +94,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					{
 						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 								" Parent element should be constraining edge, but is not.\n");
-						return IAssemble_ERROR;
+						return false;
 					}
 
 				//	get constraining vertices
@@ -109,7 +109,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 						{
 							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 									" Child element should be constrained edge, but is not.\n");
-							return IAssemble_ERROR;
+							return false;
 						}
 
 					//	get non-hanging vertex
@@ -131,7 +131,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					{
 						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 								" Parent element should be constraining quad, but is not.\n");
-						return IAssemble_ERROR;
+						return false;
 					}
 
 				//	get constraining vertices
@@ -142,7 +142,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					break;
 				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 								" Parent element of hang. vertex wrong.\n");
-						return IAssemble_ERROR;
+						return false;
 				}
 
 			//	resize constraining indices
@@ -159,26 +159,26 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 				if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))
 				{
 					UG_LOG("ERROR while splitting rows. Aborting.\n");
-					return IAssemble_ERROR;
+					return false;
 				}
 
 			//	Set interpolation
 				if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
 				{
 					UG_LOG("ERROR while setting interpolation. Aborting.\n");
-					return IAssemble_ERROR;
+					return false;
 				}
 
 			//	adapt rhs
 				if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
 				{
 					UG_LOG("ERROR while setting interpolation. Aborting.\n");
-					return IAssemble_ERROR;
+					return false;
 				}
 			}
 
 		//  we're done
-			return IAssemble_OK;
+			return true;
 		}
 
 	protected:
@@ -345,7 +345,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 	public:
 		virtual int type() {return PPT_CONSTRAINTS;}
 
-		virtual IAssembleReturn post_process_jacobian(matrix_type& J,
+		virtual bool post_process_jacobian(matrix_type& J,
 		                                              const vector_type& u,
 		                                              const dof_distribution_type& dofDistr,
 		                                              number time = 0.0)
@@ -358,7 +358,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 			return post_process_linear(J, rhsDummy, u, dofDistr, time);
 		}
 
-		virtual IAssembleReturn post_process_linear(matrix_type& mat,
+		virtual bool post_process_linear(matrix_type& mat,
 		                                            vector_type& rhs,
 		                                            const vector_type& u,
 		                                            const dof_distribution_type& dofDistr,
@@ -404,7 +404,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 					{
 						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 								" Parent element should be constraining edge, but is not.\n");
-						return IAssemble_ERROR;
+						return false;
 					}
 
 				//	get constraining vertices
@@ -419,7 +419,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 						{
 							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 									" Child element should be constrained edge, but is not.\n");
-							return IAssemble_ERROR;
+							return false;
 						}
 
 					//	get non-hanging vertex
@@ -441,7 +441,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 					{
 						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 								" Parent element should be constraining quad, but is not.\n");
-						return IAssemble_ERROR;
+						return false;
 					}
 
 				//	get constraining vertices
@@ -452,7 +452,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 					break;
 				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
 								" Parent element of hang. vertex wrong.\n");
-						return IAssemble_ERROR;
+						return false;
 				}
 
 			//	resize constraining indices
@@ -469,26 +469,26 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 				if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))
 				{
 					UG_LOG("ERROR while splitting rows. Aborting.\n");
-					return IAssemble_ERROR;
+					return false;
 				}
 
 			//	Set interpolation
 				if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
 				{
 					UG_LOG("ERROR while setting interpolation. Aborting.\n");
-					return IAssemble_ERROR;
+					return false;
 				}
 
 			//	adapt rhs
 				if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
 				{
 					UG_LOG("ERROR while setting interpolation. Aborting.\n");
-					return IAssemble_ERROR;
+					return false;
 				}
 			}
 
 		//  we're done
-			return IAssemble_OK;
+			return true;
 		}
 
 	protected:

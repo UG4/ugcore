@@ -58,17 +58,17 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  s_m		scaling for mass matrix
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
-	 * \return 	IAssemble_OK  				if time dependent and successful
-	 * 			IAssemble_ERROR 			if time dependent and error occurred
+	 * \return 	true  				if time dependent and successful
+	 * 			false 			if time dependent and error occurred
 	 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
 	 */
 		virtual
-		IAssembleReturn assemble_jacobian(matrix_type& J,
+		bool assemble_jacobian(matrix_type& J,
 		                                  const vector_type& u, number time,
 		                                  const SolutionTimeSeries<vector_type>& solList,
 		                                  const dof_distribution_type& dofDistr,
 		                                  number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 	/// assembles Defect
 	/**
@@ -81,17 +81,17 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  s_m		scaling for mass matrix
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
-	 * \return 	IAssemble_OK  				if time dependent and successful
-	 * 			IAssemble_ERROR 			if time dependent and error occurred
+	 * \return 	true  				if time dependent and successful
+	 * 			false 			if time dependent and error occurred
 	 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
 	 */
 		virtual
-		IAssembleReturn assemble_defect(vector_type& d,
+		bool assemble_defect(vector_type& d,
 		                                const vector_type& u, number time,
 		                                const SolutionTimeSeries<vector_type>& solList,
 		                                const dof_distribution_type& dofDistr,
 		                                number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 	/// Assembles matrix_type and Right-Hand-Side for a linear problem
 	/**
@@ -105,19 +105,19 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  s_m		scaling for mass matrix
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
-	 * \return 	IAssemble_OK  				if time dependent and linear and successful
-	 * 			IAssemble_ERROR 			if time dependent and linear and error occurred
+	 * \return 	true  				if time dependent and linear and successful
+	 * 			false 			if time dependent and linear and error occurred
 	 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent and linear
 	 * 			IAssemble_NONLINEAR			if problem is time dependent, but nonlinear
 	 */
 		virtual
-		IAssembleReturn assemble_linear(matrix_type& A,
+		bool assemble_linear(matrix_type& A,
 		                                vector_type& b,
 		                                const vector_type& u, number time,
 		                                const SolutionTimeSeries<vector_type>& solList,
 		                                const dof_distribution_type& dofDistr,
 		                                number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 	/// sets dirichlet values in solution vector
 	/**
@@ -127,14 +127,14 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  time		time of next (to be computed) timestep
 	 * \param[in]  dofDistr DoF Distribution
 	 *
-	 * \return 	IAssemble_OK 				if successful
-	 * 			IAssemble_NOT_IMPLEMENTED 	if function has not been implemented
-	 * 			IAssemble_ERROR 			if implemented but error occurred
+	 * \return 	true 				if successful
+	 * 			false 	if function has not been implemented
+	 * 			false 			if implemented but error occurred
 	 */
 		virtual
-		IAssembleReturn assemble_solution(vector_type& u, number time,
+		bool assemble_solution(vector_type& u, number time,
 		                                  const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
+		{return false;}
 
 	///	returns the number of post processes
 		virtual size_t num_post_process() const = 0;

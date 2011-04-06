@@ -210,11 +210,11 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 	public:
 	// 	Implement Interface
-		IAssembleReturn post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		IAssembleReturn post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		IAssembleReturn post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		IAssembleReturn post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
 		virtual int type()	{return PPT_DIRICHLET;}
 
@@ -324,7 +324,7 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr,
 
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -342,15 +342,15 @@ post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distributi
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
-			return IAssemble_ERROR;
+			return false;
 		}
 	}
 
-	return IAssemble_OK;
+	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -368,15 +368,15 @@ post_process_defect(vector_type& d, const vector_type& u, const dof_distribution
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
-			return IAssemble_ERROR;
+			return false;
 		}
 	}
 
-	return IAssemble_OK;
+	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -394,14 +394,14 @@ post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, num
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
-			return IAssemble_ERROR;
+			return false;
 		}
 	}
-	return IAssemble_OK;
+	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -419,14 +419,14 @@ post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, co
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
-			return IAssemble_ERROR;
+			return false;
 		}
 	}
-	return IAssemble_OK;
+	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -444,10 +444,10 @@ post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_rhs':"
 					" while calling 'clear_dirichlet_rhs', aborting.\n");
-			return IAssemble_ERROR;
+			return false;
 		}
 	}
-	return IAssemble_OK;
+	return true;
 }
 
 

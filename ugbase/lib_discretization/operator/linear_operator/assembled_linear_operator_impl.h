@@ -44,7 +44,7 @@ init(const vector_type& u)
 	}
 
 //	assemble matrix (depending on u, i.e. J(u))
-	if(m_pAss->assemble_jacobian(m_J, u, *m_pDoFDistribution) != IAssemble_OK)
+	if(m_pAss->assemble_jacobian(m_J, u, *m_pDoFDistribution) != true)
 	{
 		UG_LOG("ERROR in AssembledLinearizedOperator::init:"
 				" Cannot assemble Jacobi matrix.\n");
@@ -81,7 +81,7 @@ init()
 	if(m_bAssembleRhs)
 	{
 	//	assemble matrix and rhs in one loop
-		if(m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution) != IAssemble_OK)
+		if(m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution) != true)
 		{
 			UG_LOG("ERROR in AssembledLinearOperator::init:"
 					" Cannot assemble Matrix and Rhs.\n");
@@ -92,7 +92,7 @@ init()
 	else
 	{
 	//	assemble only matrix
-		if(m_pAss->assemble_jacobian(m_J, m_rhs, *m_pDoFDistribution) != IAssemble_OK)
+		if(m_pAss->assemble_jacobian(m_J, m_rhs, *m_pDoFDistribution) != true)
 		{
 			UG_LOG("ERROR in AssembledLinearOperator::init:"
 					" Cannot assemble Matrix.\n");
@@ -191,7 +191,7 @@ set_dirichlet_values(vector_type& u)
 		return false;
 	}
 
-	if(m_pAss->assemble_solution(u, *m_pDoFDistribution) != IAssemble_OK)
+	if(m_pAss->assemble_solution(u, *m_pDoFDistribution) != true)
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
 				" Cannot assemble solution.\n");

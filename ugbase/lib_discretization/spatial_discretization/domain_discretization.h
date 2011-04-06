@@ -60,20 +60,20 @@ class DomainDiscretization :
 	///////////////////////////
 
 	/// \copydoc IAssemble::assemble_jacobian()
-	IAssembleReturn assemble_jacobian(matrix_type& J, const vector_type& u,
+	bool assemble_jacobian(matrix_type& J, const vector_type& u,
 	                                  const dof_distribution_type& dofDistr);
 
 	/// \copydoc IAssemble::assemble_defect()
-	IAssembleReturn assemble_defect(vector_type& d, const vector_type& u,
+	bool assemble_defect(vector_type& d, const vector_type& u,
 	                                const dof_distribution_type& dofDistr);
 
 	/// \copydoc IAssemble::assemble_linear()
-	IAssembleReturn assemble_linear(matrix_type& A, vector_type& b,
+	bool assemble_linear(matrix_type& A, vector_type& b,
 	                                const vector_type& u,
 	                                const dof_distribution_type& dofDistr);
 
 	/// \copydoc IAssemble::assemble_solution()
-	IAssembleReturn assemble_solution(vector_type& u,
+	bool assemble_solution(vector_type& u,
 	                                  const dof_distribution_type& dofDistr);
 
 	///////////////////////
@@ -82,7 +82,7 @@ class DomainDiscretization :
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
 	virtual
-	IAssembleReturn assemble_jacobian(	matrix_type& J,
+	bool assemble_jacobian(	matrix_type& J,
 	                                  	const vector_type& u, number time,
 	                                  	const SolutionTimeSeries<vector_type>& solList,
 	                                  	const dof_distribution_type& dofDistr,
@@ -90,7 +90,7 @@ class DomainDiscretization :
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
 	virtual
-	IAssembleReturn assemble_defect(	vector_type& d,
+	bool assemble_defect(	vector_type& d,
 		                                const vector_type& u, number time,
 		                                const SolutionTimeSeries<vector_type>& solList,
 		                                const dof_distribution_type& dofDistr,
@@ -98,7 +98,7 @@ class DomainDiscretization :
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
 	virtual
-	IAssembleReturn assemble_linear(	matrix_type& A, vector_type& b,
+	bool assemble_linear(	matrix_type& A, vector_type& b,
 		                                const vector_type& u, number time,
 		                                const SolutionTimeSeries<vector_type>& solList,
 		                                const dof_distribution_type& dofDistr,
@@ -106,7 +106,7 @@ class DomainDiscretization :
 
 	/// \copydoc IDomainDiscretization::assemble_solution()
 	virtual
-	IAssembleReturn assemble_solution(vector_type& u, number time,
+	bool assemble_solution(vector_type& u, number time,
 	                                  const dof_distribution_type& dofDistr);
 
 	///////////////////////////
