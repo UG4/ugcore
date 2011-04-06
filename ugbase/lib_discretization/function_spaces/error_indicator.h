@@ -167,6 +167,13 @@ bool MarkElements(IRefiner& refiner,
 			max = aaError[elem];
 	}
 
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator com;
+	number maxLocal = max;
+	com.allreduce(&maxLocal, &max, 1, PCL_DT_DOUBLE, PCL_RO_MAX);
+	UG_LOG("Max Error on Proc " << pcl::GetProcRank() << " is " << maxLocal << ".");
+#endif
+
 	UG_LOG("Max Error is " << max << ". ");
 
 //	check if something to do
@@ -179,7 +186,7 @@ bool MarkElements(IRefiner& refiner,
 	UG_LOG("Refining all elements with error >= " << min << ". ");
 
 //	reset counter
-	size_t num_marked = 0;
+	int numMarked = 0;
 
 //	loop elements for marking
 	for(iter = u.template begin<TElemBase>(); iter != u.template end<TElemBase>(); ++iter)
@@ -192,11 +199,17 @@ bool MarkElements(IRefiner& refiner,
 		{
 		//	mark element and increase counter
 			refiner.mark_for_refinement(elem);
-			num_marked++;
+			numMarked++;
 		}
 	}
 
-	UG_LOG(num_marked << " Elements marked for refinement.\n");
+#ifdef UG_PARALLEL
+	int numMarkedLocal = numMarked;
+	com.allreduce(&numMarkedLocal, &numMarked, 1, PCL_DT_INT, PCL_RO_SUM);
+	UG_LOG(numMarkedLocal << " Elements marked on Proc " << pcl::GetProcRank() << ".");
+#endif
+
+	UG_LOG(numMarked << " Elements marked for refinement.\n");
 
 //	we're done
 	return true;
