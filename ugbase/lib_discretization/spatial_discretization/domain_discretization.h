@@ -114,16 +114,16 @@ class DomainDiscretization :
 	///////////////////////////
 
 	/// assembles the mass matrix
-	IAssembleReturn assemble_mass_matrix(matrix_type& M, const vector_type& u,
-	                                     const dof_distribution_type& dofDistr);
+	bool assemble_mass_matrix(matrix_type& M, const vector_type& u,
+	                                     	  const dof_distribution_type& dofDistr);
 
 	/// assembles the stiffness matrix
-	IAssembleReturn assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-	                                          const dof_distribution_type& dofDistr);
+	bool assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+													const dof_distribution_type& dofDistr);
 
 	/// assembles the stiffness matrix
-	IAssembleReturn assemble_rhs(vector_type& rhs, const vector_type& u,
-	                                          const dof_distribution_type& dofDistr);
+	bool assemble_rhs(vector_type& rhs, const vector_type& u,
+										const dof_distribution_type& dofDistr);
 
 	/// forces the assembling to consider the grid as regular
 	virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}

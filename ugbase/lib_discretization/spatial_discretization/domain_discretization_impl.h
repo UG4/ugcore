@@ -17,11 +17,17 @@ namespace ug{
 // assemble Mass Matrix
 //////////////////////////
 template <typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      const dof_distribution_type& dofDistr)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	M.resize(0,0);
+	M.resize(numDoFs, numDoFs);
+	M.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -29,7 +35,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
 		UG_LOG("ERROR: Can not create union of subsets.\n");
-		return IAssemble_ERROR;
+		return false;
 	}
 
 //	loop subsets
@@ -62,7 +68,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Edges.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		case 2:
@@ -71,14 +77,14 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Triangles.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleMassMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Quadrilaterals.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		case 3:
@@ -87,33 +93,33 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Tetrahedrons.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleMassMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Pyramids.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleMassMatrix<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Prisms.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleMassMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Hexahedrons.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 				"Dimension " << dim << " not supported.\n");
-				return IAssemble_ERROR;
+				return false;
 		}
 	}
 
@@ -124,20 +130,33 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		{
 			if(m_vvPostProcess[type][i]->post_process_jacobian(M, u, dofDistr)
 					!= IAssemble_OK)
-				return IAssemble_ERROR;
+				return false;
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	M.set_storage_type(PST_ADDITIVE);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	CopyLayoutsAndCommunicatorIntoMatrix(M, *dist);
+#endif
+
 //	done
-	return IAssemble_OK;
+	return true;
 }
 
 template <typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           const dof_distribution_type& dofDistr)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	A.resize(0,0);
+	A.resize(numDoFs, numDoFs);
+	A.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -145,7 +164,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
 		UG_LOG("ERROR: Can not create union of subsets.\n");
-		return IAssemble_ERROR;
+		return false;
 	}
 
 //	loop subsets
@@ -178,7 +197,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Edges.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		case 2:
@@ -187,14 +206,14 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Triangles.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleStiffnessMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Quadrilaterals.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		case 3:
@@ -203,33 +222,33 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Tetrahedrons.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleStiffnessMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Pyramids.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleStiffnessMatrix<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Prisms.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleStiffnessMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Hexahedrons.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 				"Dimension " << dim << " not supported.\n");
-				return IAssemble_ERROR;
+				return false;
 		}
 	}
 
@@ -240,12 +259,19 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		{
 			if(m_vvPostProcess[type][i]->post_process_jacobian(A, u, dofDistr)
 					!= IAssemble_OK)
-				return IAssemble_ERROR;
+				return false;
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	A.set_storage_type(PST_ADDITIVE);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	CopyLayoutsAndCommunicatorIntoMatrix(A, *dist);
+#endif
+
 //	done
-	return IAssemble_OK;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -266,6 +292,12 @@ assemble_jacobian(matrix_type& J,
                   const vector_type& u,
                   const dof_distribution_type& dofDistr)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	J.resize(0,0);
+	J.resize(numDoFs, numDoFs);
+	J.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -377,6 +409,13 @@ assemble_jacobian(matrix_type& J,
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	J.set_storage_type(PST_ADDITIVE);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
+#endif
+
 //	done
 	return IAssemble_OK;
 }
@@ -392,6 +431,11 @@ assemble_defect(vector_type& d,
                 const vector_type& u,
                 const dof_distribution_type& dofDistr)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	d.resize(numDoFs);
+	d.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -498,6 +542,11 @@ assemble_defect(vector_type& d,
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	d.set_storage_type(PST_ADDITIVE);
+#endif
+
 //	done
 	return IAssemble_OK;
 }
@@ -512,6 +561,15 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const vector_type& u,
                 const dof_distribution_type& dofDistr)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	mat.resize(0,0);
+	mat.resize(numDoFs, numDoFs);
+	mat.set(0.0);
+
+	rhs.resize(numDoFs);
+	rhs.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -622,6 +680,15 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	mat.set_storage_type(PST_ADDITIVE);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	CopyLayoutsAndCommunicatorIntoMatrix(mat, *dist);
+
+	rhs.set_storage_type(PST_ADDITIVE);
+#endif
+
 //	done
 	return IAssemble_OK;
 }
@@ -630,12 +697,17 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 // assemble Matrix and RHS
 //////////////////////////
 template <typename TDoFDistribution, typename TAlgebra>
-IAssembleReturn
+bool
 DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_rhs(vector_type& rhs,
 			const vector_type& u,
 			const dof_distribution_type& dofDistr)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	rhs.resize(numDoFs);
+	rhs.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -643,7 +715,7 @@ assemble_rhs(vector_type& rhs,
 	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
 		UG_LOG("ERROR: Can not create union of subsets.\n");
-		return IAssemble_ERROR;
+		return false;
 	}
 
 //	loop subsets
@@ -676,7 +748,7 @@ assemble_rhs(vector_type& rhs,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Edges.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		case 2:
@@ -685,14 +757,14 @@ assemble_rhs(vector_type& rhs,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Triangles.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleRhs<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Quadrilaterals.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		case 3:
@@ -701,33 +773,33 @@ assemble_rhs(vector_type& rhs,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Tetrahedrons.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
-			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+			if(!AssembleRhs<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Pyramids.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleRhs<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Prisms.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			if(!AssembleRhs<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Hexahedrons.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 				"Dimension " << dim << " not supported.\n");
-				return IAssemble_ERROR;
+				return false;
 		}
 	}
 
@@ -741,13 +813,18 @@ assemble_rhs(vector_type& rhs,
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						" Cannot post process.\n");
-				return IAssemble_ERROR;
+				return false;
 			}
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	rhs.set_storage_type(PST_ADDITIVE);
+#endif
+
 //	done
-	return IAssemble_OK;
+	return true;
 }
 
 //////////////////////////////////
@@ -788,6 +865,12 @@ assemble_jacobian(matrix_type& J,
                   const dof_distribution_type& dofDistr,
                   number s_m0, number s_a0)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	J.resize(0,0);
+	J.resize(numDoFs, numDoFs);
+	J.set(0.0);
+
 //	check that s_m is 1.0
 	if(s_m0 != 1.0)
 	{
@@ -901,6 +984,13 @@ assemble_jacobian(matrix_type& J,
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	J.set_storage_type(PST_ADDITIVE);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
+#endif
+
 //	done
 	return IAssemble_OK;
 }
@@ -917,6 +1007,11 @@ assemble_defect(vector_type& d,
                 const dof_distribution_type& dofDistr,
                 number s_m, number s_a)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	d.resize(numDoFs);
+	d.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -1023,6 +1118,11 @@ assemble_defect(vector_type& d,
 		}
 	}
 
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	d.set_storage_type(PST_ADDITIVE);
+#endif
+
 //	done
 	return IAssemble_OK;
 }
@@ -1039,6 +1139,15 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const dof_distribution_type& dofDistr,
                 number s_m, number s_a)
 {
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	mat.resize(0,0);
+	mat.resize(numDoFs, numDoFs);
+	mat.set(0.0);
+
+	rhs.resize(numDoFs);
+	rhs.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -1145,6 +1254,16 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 				return IAssemble_ERROR;
 		}
 	}
+
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
+	mat.set_storage_type(PST_ADDITIVE);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	CopyLayoutsAndCommunicatorIntoMatrix(mat, *dist);
+
+	rhs.set_storage_type(PST_ADDITIVE);
+#endif
+
 
 //	done
 	return IAssemble_OK;

@@ -135,7 +135,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		vElemDisc[i]->set_time_dependent(false);
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleStiffnessMatrix': Cannot prepare indices.\n");
 		return false;
@@ -162,6 +162,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		TElem* elem = *iter;
 
 	// 	get global indices
+		ind.access_all();
 		dofDistr.update_indices(elem, ind, useHanging);
 
 	// 	adapt local algebra
@@ -191,6 +192,13 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			}
 		}
 
+	//	Compute element data
+		if(!Eval.compute_elem_data(locU, ind, true))
+		{
+			UG_LOG("ERROR in 'AssembleStiffnessMatrix': Cannot compute elem data.\n");
+			return false;
+		}
+
 	// 	Assemble JA
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
@@ -205,6 +213,9 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
+
+	//	Compute element data
+		Eval.add_coupl_JA(locA, ind);
 
 	// 	send local to global matrix
 		A.add(locA);
@@ -321,7 +332,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		vElemDisc[i]->set_time_dependent(false);
 
 // 	prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.template prepare_indices<TElem>(si, ind, useHanging))
 	{
 		UG_LOG("ERROR in 'AssembleMassMatrix': Cannot prepare indices.\n");
 		return false;

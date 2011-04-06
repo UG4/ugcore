@@ -43,14 +43,6 @@ init(const vector_type& u)
 		return false;
 	}
 
-//	get number of dofs
-	const size_t numDoFs = m_pDoFDistribution->num_dofs();
-
-//	resize matrix and set to zero
-	m_J.resize(0, 0);
-	m_J.resize(numDoFs, numDoFs);
-	m_J.set(0.0);
-
 //	assemble matrix (depending on u, i.e. J(u))
 	if(m_pAss->assemble_jacobian(m_J, u, *m_pDoFDistribution) != IAssemble_OK)
 	{
@@ -58,14 +50,6 @@ init(const vector_type& u)
 				" Cannot assemble Jacobi matrix.\n");
 		return false;
 	}
-
-//	Remember parallel storage type
-	#ifdef UG_PARALLEL
-		m_J.set_storage_type(PST_ADDITIVE);
-		IDoFDistribution<TDoFDistribution>* dist =
-				const_cast<IDoFDistribution<TDoFDistribution>*>(m_pDoFDistribution);
-		CopyLayoutsAndCommunicatorIntoMatrix(m_J, *dist);
-	#endif
 
 //	remember that operator is initialized
 	m_bInit = true;
@@ -90,41 +74,17 @@ init()
 		return false;
 	}
 
-//	get number of dofs
-	const size_t numDoFs = m_pDoFDistribution->num_dofs();
-
-//	Resize Matrix and set to zero
-	LINASS_PROFILE_BEGIN(AssLinOp_reset);
-	m_J.resize(0, 0);
-	m_J.resize(numDoFs, numDoFs);
-	m_J.set(0.0);
-
-//	Resize rhs
-	m_rhs.resize(numDoFs);
-	LINASS_PROFILE_END();
-
 //	Compute matrix (and rhs if needed)
 	if(m_bAssembleRhs)
 	{
-	//	reset rhs to zero
-		LINASS_PROFILE_BEGIN(AssLinOp_setRHSZero);
-		m_rhs.set(0.0);
-		LINASS_PROFILE_END();
-
 	//	assemble matrix and rhs in one loop
-		LINASS_PROFILE_BEGIN(AssLinOp_assLinear);
 		if(m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution) != IAssemble_OK)
 		{
 			UG_LOG("ERROR in AssembledLinearOperator::init:"
 					" Cannot assemble Matrix and Rhs.\n");
 			return false;
 		}
-		LINASS_PROFILE_END();
 
-	//	remember parallel storage type of rhs
-		#ifdef UG_PARALLEL
-		m_rhs.set_storage_type(PST_ADDITIVE);
-		#endif
 	}
 	else
 	{
@@ -136,14 +96,6 @@ init()
 			return false;
 		}
 	}
-
-//	remember storage type for matrix
-	#ifdef UG_PARALLEL
-	m_J.set_storage_type(PST_ADDITIVE);
-	IDoFDistribution<TDoFDistribution>* dist =
-			const_cast<IDoFDistribution<TDoFDistribution>*>(m_pDoFDistribution);
-	CopyLayoutsAndCommunicatorIntoMatrix(m_J, *dist);
-	#endif
 
 //	Remember that operator has been initialized
 	m_bInit = true;

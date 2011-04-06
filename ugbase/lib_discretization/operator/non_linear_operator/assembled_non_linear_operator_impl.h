@@ -74,14 +74,6 @@ apply(vector_type& dOut, const vector_type& uIn)
 		return false;
 	}
 
-//  reset defect
-	if(!dOut.set(0.0))
-	{
-		UG_LOG("ERROR in 'AssembledOperator::apply': Could not reset defect "
-				"to zero before assembling. Aborting.\n");
-		return false;
-	}
-
 //  assemble defect
 	if(m_pAss->assemble_defect(dOut, uIn, *m_pDoFDistribution) != IAssemble_OK)
 	{
@@ -89,11 +81,6 @@ apply(vector_type& dOut, const vector_type& uIn)
 				"assemble defect. Aborting.\n");
 		return false;
 	}
-
-//	remember parallel storage type
-#ifdef UG_PARALLEL
-	dOut.set_storage_type(PST_ADDITIVE);
-#endif
 
 //	we're done
 	return true;
