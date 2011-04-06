@@ -138,7 +138,8 @@ struct cRegisterAlgebraType
 				typedef IMatrixOperator<vector_type, vector_type, matrix_type> TBase;
 				typedef PureMatrixOperator<vector_type, vector_type, matrix_type> T;
 				reg.add_class_<T, TBase>("PureMatrixOperator", grp.c_str())
-					.add_constructor();
+					.add_constructor()
+					.add_method("get_matrix", &T::get_matrix);
 			}
 
 			{

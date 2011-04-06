@@ -114,7 +114,10 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 				.add_method("add_post_process|interactive=false", &T::add_post_process,
 							"", "Post Process")
 				.add_method("add_elem_disc|interactive=false", (bool (T::*)(IElemDisc<algebra_type>&)) &T::add_elem_disc,
-							"", "Discretization");
+							"", "Discretization")
+				.add_method("assemble_mass_matrix", &T::assemble_mass_matrix)
+				.add_method("assemble_stiffness_matrix", &T::assemble_stiffness_matrix)
+				.add_method("assemble_rhs", &T::assemble_rhs);
 		}
 
 	//	ITimeDiscretization
