@@ -118,6 +118,17 @@ collect_objects_for_refine()
 
 //	make sure that no element which has children is selected
 //	(except constraining edges and faces)
+	for(VertexBaseIterator iter = m_selMarkedElements.begin<VertexBase>();
+		iter != m_selMarkedElements.end<VertexBase>();)
+	{
+		VertexBase* v = *iter;
+		++iter;
+
+		if(mg.has_children(v)){
+			m_selMarkedElements.deselect(v);
+		}
+	}
+
 	for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
 		iter != m_selMarkedElements.end<EdgeBase>();)
 	{
@@ -156,13 +167,12 @@ collect_objects_for_refine()
 //	finally we have to select all associated vertices of marked objects,
 //	since we have to create new vertices in the next levels of the hierarchies.
 //	only vertices which do not already have child vertices are selected.
-	m_selMarkedElements.clear<VertexBase>();
 	for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
 		iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
 	{
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
 			if(!mg.has_children((*iter)->vertex(i)))
-					m_selMarkedElements.select((*iter)->vertex(i));
+				mark((*iter)->vertex(i));
 		}
 	}
 
@@ -171,7 +181,7 @@ collect_objects_for_refine()
 	{
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
 			if(!mg.has_children((*iter)->vertex(i)))
-					m_selMarkedElements.select((*iter)->vertex(i));
+				mark((*iter)->vertex(i));
 		}
 	}
 
@@ -180,7 +190,7 @@ collect_objects_for_refine()
 	{
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
 			if(!mg.has_children((*iter)->vertex(i)))
-					m_selMarkedElements.select((*iter)->vertex(i));
+				mark((*iter)->vertex(i));
 		}
 	}
 }

@@ -260,9 +260,6 @@ void FinalizeRedistributionLayoutInterfaces(
 	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(INT_SLAVE))
 		slaves = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(INT_SLAVE);
 
-//	store the localLayoutIndex on the fly (the layout index of the current proc).
-//	int localLayoutIndex = -1;
-
 //	we have to attach integers to the elements, in which we'll store the
 //	redistribution layouts node indices.
 	AInt aNodeInd;
@@ -292,6 +289,7 @@ void FinalizeRedistributionLayoutInterfaces(
 	//	have to further process it.
 		if(masters){
 			for(size_t lvl = 0; lvl < masters->num_levels(); ++lvl){
+			//	Note that interfaces are sorted by associated proc-id.
 				for(IntfIter intfIter = masters->begin(lvl);
 					intfIter != masters->end(lvl); ++intfIter)
 				{
@@ -392,6 +390,7 @@ void FinalizeRedistributionLayoutInterfaces(
 	//	have to further process it.
 		if(slaves){
 			for(size_t lvl = 0; lvl < slaves->num_levels(); ++lvl){
+			//	Note that interfaces are sorted by associated proc-id.
 				for(IntfIter intfIter = slaves->begin(lvl);
 					intfIter != slaves->end(lvl); ++intfIter)
 				{

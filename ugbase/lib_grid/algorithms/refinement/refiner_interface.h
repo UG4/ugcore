@@ -31,6 +31,9 @@ class IRefiner
 	///	clears all marks. Default implementation is empty
 		virtual void clear_marks()	{}
 
+	///	Marks a vertex for refinement. Default implementation is empty
+		virtual void mark_for_refinement(VertexBase* v)	{}
+
 	///	Marks an edge for refinement. Default implementation is empty
 		virtual void mark_for_refinement(EdgeBase* e)	{}
 

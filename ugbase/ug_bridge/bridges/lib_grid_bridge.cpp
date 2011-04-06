@@ -453,6 +453,23 @@ void MarkForRefinement_VerticesInSquare(IRefiner& refiner,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+///	Marks all elements from refinement.
+/**	If used in a parallel environment only elements on the calling proc
+ * are marked.
+ */
+void MarkForRefinement_All(IRefiner& ref)
+{
+	Grid* g = ref.get_associated_grid();
+	if(!g){
+		UG_LOG("Refiner is not registered at a grid. Aborting.\n");
+		return;
+	}
+	ref.mark_for_refinement(g->vertices_begin(), g->vertices_end());
+	ref.mark_for_refinement(g->edges_begin(), g->edges_end());
+	ref.mark_for_refinement(g->faces_begin(), g->faces_end());
+	ref.mark_for_refinement(g->volumes_begin(), g->volumes_end());
+}
 
 ////////////////////////////////////////////////////////////////////////
 ///	This method only makes sense during the development of the grid redistribution
@@ -779,6 +796,7 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 																&MarkForRefinement_VerticesInSphere, grp.c_str())
 			.add_function("MarkForRefinement_VerticesInSquare", (void (*)(IRefiner&, number, number, number, number, number, number))
 																&MarkForRefinement_VerticesInSquare, grp.c_str())
+			.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp.c_str())
 			.add_function("TestGridRedistribution", &TestGridRedistribution);
 		
 	//	subset util

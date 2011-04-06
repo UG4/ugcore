@@ -28,6 +28,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
 
 		virtual void clear_marks();
+
+	///	Marks a vertex for refinement.
+		virtual void mark_for_refinement(VertexBase* v);
+
 	///	Marks an edge for refinement.
 		virtual void mark_for_refinement(EdgeBase* e);
 
@@ -121,6 +125,9 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	//	helpers. Make sure that everything is initialized properly
 	//	before calling these methods.
 	//	you should use this methods instead of directly marking elements.
+		inline bool is_marked(VertexBase* v)				{return m_selMarkedElements.is_selected(v);}
+		inline void mark(VertexBase* v)						{mark_for_refinement(v);}
+
 		inline bool is_marked(EdgeBase* e)					{return m_selMarkedElements.is_selected(e);}
 		inline void mark(EdgeBase* e)						{mark_for_refinement(e);}
 

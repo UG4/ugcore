@@ -67,6 +67,12 @@ void HangingNodeRefinerBase::clear_marks()
 	m_selMarkedElements.clear();
 }
 
+void HangingNodeRefinerBase::mark_for_refinement(VertexBase* v)
+{
+	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
+	m_selMarkedElements.select(v);
+}
+
 void HangingNodeRefinerBase::mark_for_refinement(EdgeBase* e)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");

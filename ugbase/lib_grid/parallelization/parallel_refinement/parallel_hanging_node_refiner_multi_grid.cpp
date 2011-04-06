@@ -15,6 +15,7 @@ ParallelHangingNodeRefiner_MultiGrid(
 	BaseClass(refCallback),
 	m_pDistGridMgr(NULL),
 	m_pMG(NULL),
+	m_bNewInterfaceVerticesMarked(false),
 	m_bNewInterfaceEdgesMarked(false),
 	m_bNewInterfaceFacesMarked(false),
 	m_bNewInterfaceVolumesMarked(false)
@@ -28,6 +29,7 @@ ParallelHangingNodeRefiner_MultiGrid(
 	BaseClass(*distGridMgr.get_assigned_grid(), refCallback),
 	m_pDistGridMgr(&distGridMgr),
 	m_pMG(distGridMgr.get_assigned_grid()),
+	m_bNewInterfaceVerticesMarked(false),
 	m_bNewInterfaceEdgesMarked(false),
 	m_bNewInterfaceFacesMarked(false),
 	m_bNewInterfaceVolumesMarked(false)
@@ -51,9 +53,20 @@ void ParallelHangingNodeRefiner_MultiGrid::
 clear_marks()
 {
 	BaseClass::clear_marks();
+	m_bNewInterfaceVerticesMarked = false;
 	m_bNewInterfaceEdgesMarked = false;
 	m_bNewInterfaceFacesMarked = false;
 	m_bNewInterfaceVolumesMarked = false;
+}
+
+void ParallelHangingNodeRefiner_MultiGrid::
+mark_for_refinement(VertexBase* v)
+{
+	if((!is_marked(v))
+		&& (!m_pMG->has_children(v))
+		&& m_pDistGridMgr->is_interface_element(v))
+		m_bNewInterfaceVerticesMarked = true;
+	BaseClass::mark_for_refinement(v);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
@@ -106,7 +119,8 @@ collect_objects_for_refine()
 	//	we now have to inform all processes whether interface elements
 	//	were marked on any process.
 		int newlyMarkedElems = 0;
-		if(m_bNewInterfaceEdgesMarked ||
+		if(m_bNewInterfaceVerticesMarked ||
+			m_bNewInterfaceEdgesMarked ||
 			m_bNewInterfaceFacesMarked ||
 			m_bNewInterfaceVolumesMarked)
 		{
@@ -118,6 +132,7 @@ collect_objects_for_refine()
 							PCL_DT_INT, PCL_RO_LOR);
 
 	//	before we continue we'll set all flags to false
+		m_bNewInterfaceVerticesMarked = false;
 		m_bNewInterfaceEdgesMarked = false;
 		m_bNewInterfaceFacesMarked = false;
 		m_bNewInterfaceVolumesMarked = false;
@@ -127,10 +142,16 @@ collect_objects_for_refine()
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
+			ComPol_Selection<VertexLayout> compolSelVRT(m_selMarkedElements, true, false);
 			ComPol_Selection<EdgeLayout> compolSelEDGE(m_selMarkedElements, true, false);
 			ComPol_Selection<FaceLayout> compolSelFACE(m_selMarkedElements, true, false);
 
 		//	send data SLAVE -> MASTER
+			m_intfComVRT.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
+										compolSelVRT);
+			m_intfComVRT.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
+										compolSelVRT);
+
 			m_intfComEDGE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
 										compolSelEDGE);
 			m_intfComEDGE.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
@@ -141,10 +162,16 @@ collect_objects_for_refine()
 			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
 										compolSelFACE);
 
+			m_intfComVRT.communicate();
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
 
 		//	and now MASTER -> SLAVE (the selection has been adjusted on the fly)
+			m_intfComVRT.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
+										compolSelVRT);
+			m_intfComVRT.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
+										compolSelVRT);
+
 			m_intfComEDGE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
 										compolSelEDGE);
 			m_intfComEDGE.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
@@ -155,6 +182,7 @@ collect_objects_for_refine()
 			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
 										compolSelFACE);
 
+			m_intfComVRT.communicate();
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
 		}

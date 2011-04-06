@@ -38,6 +38,9 @@ class ParallelHangingNodeRefiner_MultiGrid :
 	///	all marks are cleared and flags are resetted.
 		virtual void clear_marks();
 
+	///	Marks an vertex for refinement.
+		virtual void mark_for_refinement(VertexBase* v);
+
 	///	Marks an edge for refinement.
 	/**	If interface elements are selected a flag will be checked.*/
 		virtual void mark_for_refinement(EdgeBase* e);
@@ -95,9 +98,11 @@ class ParallelHangingNodeRefiner_MultiGrid :
 		DistributedGridManager* m_pDistGridMgr;
 		MultiGrid*				m_pMG;
 		pcl::ProcessCommunicator m_procCom;
+		pcl::ParallelCommunicator<VertexLayout> m_intfComVRT;
 		pcl::ParallelCommunicator<EdgeLayout> m_intfComEDGE;
 		pcl::ParallelCommunicator<FaceLayout> m_intfComFACE;
 
+		bool m_bNewInterfaceVerticesMarked;
 		bool m_bNewInterfaceEdgesMarked;
 		bool m_bNewInterfaceFacesMarked;
 		bool m_bNewInterfaceVolumesMarked;
