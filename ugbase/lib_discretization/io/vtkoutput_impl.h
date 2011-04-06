@@ -123,6 +123,14 @@ bool
 VTKOutput<TDiscreteFunction>::
 print(const char* filename, discrete_function_type& u, size_t step, number time)
 {
+#ifdef UG_PARALLEL
+	if(!u.change_storage_type(PST_CONSISTENT))
+	{
+		UG_LOG("ERROR (in VTKOutput::print(...)): Cannot change storage type to consistent.\n");
+		return false;
+	}
+#endif
+
 	// loop subsets
 	for(int si = 0; si < u.num_subsets(); ++si)
 	{
@@ -144,6 +152,14 @@ bool
 VTKOutput<TDiscreteFunction>::
 print_subset(const char* filename, discrete_function_type& u, int si, size_t step, number time)
 {
+#ifdef UG_PARALLEL
+	if(!u.change_storage_type(PST_CONSISTENT))
+	{
+		UG_LOG("ERROR (in VTKOutput::print(...)): Cannot change storage type to consistent.\n");
+		return false;
+	}
+#endif
+
 	m_grid = dynamic_cast<Grid*>(&u.get_approximation_space().get_domain().get_grid());
 
 	// attach help indices
