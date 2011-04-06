@@ -74,6 +74,9 @@ init()
 		return false;
 	}
 
+//	resize rhs, since used as u dummy
+	m_rhs.resize(m_pDoFDistribution->num_dofs());
+
 //	Compute matrix (and rhs if needed)
 	if(m_bAssembleRhs)
 	{
