@@ -394,6 +394,9 @@ class SingleLevelLayout
 				return iter;
 			}
 		
+	///	clears the layout
+		void clear(){m_interfaceMap.clear();}
+
 	///	returns the interface to the given process.
 	/**	if the queried interface exist, it will be returned.
 	 *	If not it will be created.
