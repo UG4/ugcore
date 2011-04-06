@@ -137,7 +137,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	M.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofDistr);
 	CopyLayoutsAndCommunicatorIntoMatrix(M, *dist);
 #endif
 
@@ -266,7 +266,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	A.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofDistr);
 	CopyLayoutsAndCommunicatorIntoMatrix(A, *dist);
 #endif
 
@@ -412,7 +412,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofDistr);
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
 #endif
 
@@ -683,7 +683,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofDistr);
 	CopyLayoutsAndCommunicatorIntoMatrix(mat, *dist);
 
 	rhs.set_storage_type(PST_ADDITIVE);
@@ -987,7 +987,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofDistr);
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
 #endif
 
@@ -1258,7 +1258,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofdofDistr);
+	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dofDistr);
 	CopyLayoutsAndCommunicatorIntoMatrix(mat, *dist);
 
 	rhs.set_storage_type(PST_ADDITIVE);
