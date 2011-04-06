@@ -169,6 +169,10 @@ class IDoFDistribution
 		// general informations
 		///////////////////////////
 
+	///	returns if the dof distribution distributes dofs on a given element type
+		template <typename TElem>
+		bool has_dofs_on() const {return getImpl().has_dofs_on<TElem>();}
+
 	/// return the number of dofs distributed
 		size_t num_dofs() const {return getImpl().num_dofs();}
 
