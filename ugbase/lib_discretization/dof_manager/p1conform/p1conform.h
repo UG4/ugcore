@@ -86,6 +86,12 @@ class P1ConformDoFDistribution
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
+
+		// 	Attach indices
+			m_pStorageManager->update_attachments();
+
+		// 	create offsets
+			create_offsets();
 		}
 
 		P1ConformDoFDistribution(GeometricObjectCollection goc,
@@ -97,6 +103,12 @@ class P1ConformDoFDistribution
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
+
+		// 	Attach indices
+			m_pStorageManager->update_attachments();
+
+		// 	create offsets
+			create_offsets();
 		}
 
 		///////////////////////////
@@ -111,6 +123,10 @@ class P1ConformDoFDistribution
 		///////////////////////////
 		// Infos
 		///////////////////////////
+
+	/// \copydoc ug::IDoFDistribution::has_dofs_on()
+		template <typename TElem>
+		bool has_dofs_on() const;
 
 	/// \copydoc ug::IDoFDistribution::num_dofs()
 		size_t num_dofs() const {return m_numDoFs;}
@@ -232,6 +248,9 @@ class P1ConformDoFDistribution
 		bool defragment();
 
 	protected:
+	///	creates the offset array
+		void create_offsets();
+
 	///	returns first algebra index of a vertex
 		size_t& first_index(VertexBase* vrt, size_t si)
 		{
@@ -348,6 +367,9 @@ class GroupedP1ConformDoFDistribution
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
+
+		// 	Attach indices
+			m_pStorageManager->update_attachments();
 		}
 
 		GroupedP1ConformDoFDistribution(GeometricObjectCollection goc,
@@ -360,6 +382,9 @@ class GroupedP1ConformDoFDistribution
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
+
+		// 	Attach indices
+			m_pStorageManager->update_attachments();
 		}
 
 		///////////////////////////
@@ -374,6 +399,10 @@ class GroupedP1ConformDoFDistribution
 		///////////////////////////
 		// Infos
 		///////////////////////////
+
+	/// \copydoc ug::IDoFDistribution::has_dofs_on()
+		template <typename TElem>
+		bool has_dofs_on() const;
 
 	/// \copydoc IDoFDistribution::num_dofs()
 		inline size_t num_dofs() const {return m_numDoFs;}
@@ -582,9 +611,6 @@ class GroupedP1ConformDoFDistribution
 	///	number of largest index used, i.e. (0, ..., m_sizeIndexSet-1) available,
 	///	but maybe some indices are not used
 		size_t m_sizeIndexSet;
-
-	/// number offsetmap
-		std::vector<std::vector<size_t> > m_vvOffsets;
 
 	/// number of distributed dofs on each subset
 		std::vector<size_t> m_vNumDoFs;

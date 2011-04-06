@@ -21,6 +21,19 @@ namespace ug{
 ///////////// LocalIndex access /////////////////
 
 template<typename TElem>
+bool
+P1ConformDoFDistribution::
+has_dofs_on() const
+{
+//	get base obj type
+	uint type = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+
+//	only in case of a Vertex, we have a DoF
+	if(type == VERTEX) return true;
+	else return false;
+}
+
+template<typename TElem>
 size_t
 P1ConformDoFDistribution::
 num_indices(int si, const FunctionGroup& fctGrp) const
@@ -153,6 +166,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 		//	get subset index
 			int si = m_pISubsetHandler->get_subset_index(vrt);
+			UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 		//	read algebra index
 			const size_t index = first_index(vrt, si);
@@ -191,6 +205,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 		//	get subset index
 			int si = m_pISubsetHandler->get_subset_index(vrt);
+			UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 		//	read algebra index
 			const size_t index = first_index(vrt, si);
@@ -257,6 +272,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 				//	get subset index
 					int si = m_pISubsetHandler->get_subset_index(vrt);
+					UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 				//	read algebra index
 					const size_t index = first_index(vrt, si);
@@ -321,6 +337,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 				//	get subset index
 					int si = m_pISubsetHandler->get_subset_index(vrt);
+					UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 				//	read algebraic index
 					const size_t index = first_index(vrt, si);
@@ -431,6 +448,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	fill algebra index
 		ind[i][0] = first_index(vrt, si) + m_vvOffsets[si][fct];
@@ -458,6 +476,7 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	resize indices
 		ind.resize(1);
@@ -532,6 +551,7 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 
 		//	get subset index
 			int si = m_pISubsetHandler->get_subset_index(vrt);
+			UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 		//	\todo: can this happen ???
 			if(!is_def_in_subset(fct, si)) continue;
@@ -553,18 +573,18 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 //	clear indices
 	ind.clear();
 
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
+//	get base obj type
+	static const uint type = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 
 //	only in case of vertex, we have DoFs
-	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+	if(type == VERTEX)
 	{
 	//	get vertex
 		VertexBase* vrt = GetVertex(elem, 0);
 
 	//	get subset index
-		int si = m_pISubsetHandler->get_subset_index(vrt);
+		const int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	get first algebra index
 		const size_t firstIndex = first_index(vrt, si);
@@ -590,6 +610,19 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 // GroupedP1ConformDoFDistribution
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
+
+template<typename TElem>
+bool
+GroupedP1ConformDoFDistribution::
+has_dofs_on() const
+{
+//	get base obj type
+	uint type = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+
+//	only in case of a Vertex, we have a DoF
+	if(type == VERTEX) return true;
+	else return false;
+}
 
 template<typename TElem>
 size_t
@@ -718,6 +751,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	read algebra index
 		const size_t index = alg_index(vrt, si);
@@ -798,6 +832,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	fill algebra index
 		ind[i][0] = alg_index(vrt, si);
@@ -825,6 +860,7 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	resize indices
 		ind.resize(1);
@@ -904,6 +940,7 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	get algebra indices
 		const size_t index = alg_index(vrt, si);
@@ -921,18 +958,18 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 //	clear indices
 	ind.clear();
 
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
+//	get base obj type
+	static const uint type = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 
-//	only in case of vertex, we have DoFs
-	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
+	//	only in case of vertex, we have DoFs
+	if(type == VERTEX)
 	{
 	//	get vertex
 		VertexBase* vrt = GetVertex(elem, 0);
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	if no functions given in this subset, nothing to do
 		if(num_fct(si) == 0) return;

@@ -73,6 +73,35 @@ update_attachments()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+void
+P1ConformDoFDistribution::
+create_offsets()
+{
+//	clear offsets
+	m_vvOffsets.clear();
+
+//	resize for all subsets
+	m_vvOffsets.resize(num_subsets());
+
+// 	loop subsets
+	for(int si = 0; si < num_subsets(); ++si)
+	{
+	// 	counter
+		size_t count = 0;
+
+	//	resize for each function
+		m_vvOffsets[si].resize(num_fct());
+
+	//	loop functions
+		for(size_t fct = 0; fct < num_fct(); ++fct)
+		{
+		//	set offset for each function defined in the subset
+			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
+			else m_vvOffsets[si][fct] = count++;
+		}
+	}
+}
+
 bool
 P1ConformDoFDistribution::
 distribute_dofs()
@@ -97,25 +126,18 @@ distribute_dofs()
 // 	iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
 
+// 	create offsets
+	create_offsets();
+
 // 	reset counter for all dofs
 	m_numDoFs = 0;
 
 // 	reset number of dofs
 	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
-	m_vvOffsets.clear(); m_vvOffsets.resize(num_subsets());
 
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-	// 	create offsets
-		size_t count = 0;
-		m_vvOffsets[si].resize(num_fct());
-		for(size_t fct = 0; fct < num_fct(); ++fct)
-		{
-			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
-			else m_vvOffsets[si][fct] = count++;
-		}
-
 	// 	skip if no dofs to be distributed
 		if(!(num_fct(si)>0)) continue;
 
@@ -530,20 +552,10 @@ distribute_dofs()
 
 // 	reset number of DoFs
 	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
-	m_vvOffsets.clear(); m_vvOffsets.resize(num_subsets());
 
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-	// 	create offsets
-		size_t count = 0;
-		m_vvOffsets[si].resize(num_fct());
-		for(size_t fct = 0; fct < num_fct(); ++fct)
-		{
-			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
-			else m_vvOffsets[si][fct] = count++;
-		}
-
 	// 	skip if no DoFs to be distributed
 		if(!(num_fct(si)>0)) continue;
 
