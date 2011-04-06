@@ -89,6 +89,7 @@ if sh:num_subsets() ~= 2 then print("Domain must have 2 Subsets for this problem
 -- create refiner
 print("Create Hierarchy")
 refiner = HangingNodeDomainRefiner(dom);
+--refiner = GlobalDomainRefiner(dom);
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -207,6 +208,7 @@ ilut = ILUT()
 	--gmg:set_debug(dbgWriter)
 
 
+if false then
 amg = AMGPreconditioner()
 --amg:enable_aggressive_coarsening_A(2)
 
@@ -223,11 +225,11 @@ amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(true)
 
 amg:tostring()
-
+end
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(300)
+convCheck:set_maximum_steps(1000)
 convCheck:set_minimum_defect(1e-12)
 convCheck:set_reduction(1e-12)
 
@@ -236,7 +238,7 @@ exSolver = LU()
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(gmg)
+linSolver:set_preconditioner(ilu)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
@@ -246,7 +248,7 @@ cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(amg)
+bicgstabSolver:set_preconditioner(ilu)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -------------------------------------------
@@ -254,7 +256,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -------------------------------------------
 
 -- choose some solver
-solver = exSolver
+solver = bicgstabSolver
 
 approxSpace:init()
 approxSpace:print_statistic()
@@ -263,11 +265,11 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 -- create surface view
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
-u:set(0.0)
 
-for i = 1,23 do
+for i = 1,30 do
 
 print(" #######  START Adaption " .. i .."  #######");
+u:set(0.0)
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
@@ -292,30 +294,33 @@ if solver:init(linOp) ~= true then print("Cannot init solver"); exit() end
 
 -- 5. apply solver
 print("Apply solver.")
-if solver:apply_return_defect(u,b) ~= true then print("Cannot apply solver"); end -- exit() end
+if solver:apply_return_defect(u,b) ~= true then print("Cannot apply solver"); exit() end
 
 WriteGridFunctionToVTK(u, "Solution"..i)
 
 -- 6. estimate error and mark
-MarkForRefinement_GradientIndicator(refiner, u, 1e-8, 0.8);
+MarkForRefinement_GradientIndicator(refiner, u, 1e-8, 0.5);
 print("Elements marked.")
 
 -- 7. refine
 refiner:refine()
 print("Grid refined.")
 refiner:clear_marks()
+SaveDomain(dom, "refined_grid_" .. i .. "_p" .. GetProcessRank() .. ".ugx")
+SaveGridHierarchy(dom:get_grid(), "refined_grid_"..i.."hierarchy.ugx")
+print("Refined Grid written to file.")
 
 -- 8. defragment approximation space
 approxSpace:defragment()
+print("Defragmentate");
 approxSpace:print_statistic()
+print("Statistic done");
 
-SaveDomain(dom, "refined_grid_" .. i .. ".ugx")
-SaveGridHierarchy(dom:get_grid(), "refined_grid_"..i.."hierarchy.ugx")
 SaveGrid(dom:get_grid(), approxSpace:get_surface_view(), "surface_view_" .. i .. ".ugx")
-SaveGridHierarchyTransformed(dom:get_grid(), approxSpace:get_surface_view(), "surface_view_extrude_" .. i .. ".ugx", 0.25)
+SaveGridHierarchyTransformed(dom:get_grid(), approxSpace:get_surface_view(), "surface_view_extrude_" .. i .. "_p".. GetProcessRank() .. ".ugx", 0.25)
 
-if CheckSurfaceView(approxSpace:get_surface_view()) ~= true then 
-print("Surface View is not correct. Aborting."); exit(); end
+--if CheckSurfaceView(approxSpace:get_surface_view()) ~= true then 
+--print("Surface View is not correct. Aborting."); exit(); end
 
 -- 9. write statistik on new grid
 --PrintGridElementNumbers(dom:get_grid())
