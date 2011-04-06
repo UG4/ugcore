@@ -63,7 +63,16 @@ class ParallelMGDoFManager : public TMGDoFManager
 	///	print a statistic on dof distribution
 		void print_statistic() const;
 
+	///	defragments the index set
+		void defragment();
+
 	protected:
+	///	create the layouts on all levels
+		bool create_level_index_layouts(size_t numGlobalLevels);
+
+	///	create the layouts on the surface level
+		bool create_surface_index_layouts();
+
 	///	creates the surface view iff needed
 		virtual bool surface_view_required();
 
