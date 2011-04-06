@@ -626,6 +626,130 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	return IAssemble_OK;
 }
 
+/////////////////////////
+// assemble Matrix and RHS
+//////////////////////////
+template <typename TDoFDistribution, typename TAlgebra>
+IAssembleReturn
+DomainDiscretization<TDoFDistribution, TAlgebra>::
+assemble_rhs(vector_type& rhs,
+			const vector_type& u,
+			const dof_distribution_type& dofDistr)
+{
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
+	{
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
+	}
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleRhs<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+									   rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleRhs<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+									   rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleRhs<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+									   rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleRhs<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+									   rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+									   rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleRhs<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+									   rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleRhs<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
+									   rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
+		}
+	}
+
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_rhs(rhs, u, dofDistr)
+					!= IAssemble_OK)
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
+						" Cannot post process.\n");
+				return IAssemble_ERROR;
+			}
+		}
+	}
+
+//	done
+	return IAssemble_OK;
+}
+
 //////////////////////////////////
 // set solution in dirichlet dofs
 //////////////////////////////////

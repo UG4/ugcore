@@ -58,6 +58,9 @@ class IPostProcess{
 		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
+		virtual IAssembleReturn post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
 		virtual IAssembleReturn post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
 

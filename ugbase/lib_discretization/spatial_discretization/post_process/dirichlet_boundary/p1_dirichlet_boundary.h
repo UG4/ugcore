@@ -213,6 +213,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		IAssembleReturn post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 		IAssembleReturn post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 		IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		IAssembleReturn post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 		IAssembleReturn post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
 		virtual int type()	{return PPT_DIRICHLET;}
@@ -246,6 +247,11 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		bool set_dirichlet_linear(				geometry_traits<VertexBase>::const_iterator iterBegin,
 												geometry_traits<VertexBase>::const_iterator iterEnd,
 												const std::vector<UserDataFunction>& userData, int si, matrix_type& mat, vector_type& rhs,
+												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+
+		bool set_dirichlet_rhs(				geometry_traits<VertexBase>::const_iterator iterBegin,
+												geometry_traits<VertexBase>::const_iterator iterEnd,
+												const std::vector<UserDataFunction>& userData, int si, vector_type& rhs,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
 	protected:
@@ -413,6 +419,31 @@ post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, co
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
+			return IAssemble_ERROR;
+		}
+	}
+	return IAssemble_OK;
+}
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+IAssembleReturn
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+{
+//	loop boundary subsets
+	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
+	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	{
+		const int si = (*iter).first;
+		const std::vector<UserDataFunction>& userData = (*iter).second;
+
+		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
+		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+
+		if(!set_dirichlet_rhs(iterBegin, iterEnd, userData, si, rhs, u, dofDistr, time))
+		{
+			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_rhs':"
+					" while calling 'clear_dirichlet_rhs', aborting.\n");
 			return IAssemble_ERROR;
 		}
 	}
@@ -608,6 +639,53 @@ set_dirichlet_linear(	geometry_traits<VertexBase>::const_iterator iterBegin,
 }
 
 
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+set_dirichlet_rhs(	geometry_traits<VertexBase>::const_iterator iterBegin,
+					geometry_traits<VertexBase>::const_iterator iterEnd,
+					const std::vector<UserDataFunction>& userData, int si,
+					vector_type& rhs,
+					const vector_type& u, const dof_distribution_type& dofDistr, number time)
+{
+//	create Multiindex
+	multi_index_vector_type multInd;
+
+//	for readin
+	number val;
+	position_type corner;
+
+//	loop vertices
+	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		VertexBase* vertex = *iter;
+
+	//	get corner position
+		corner = m_aaPos[vertex];
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < userData.size(); ++i)
+		{
+		// 	check if function is dirichlet
+			if(!userData[i].functor(val, corner, time)) continue;
+
+		//	get function index
+			const size_t fct = userData[i].fct;
+
+		//	get multi indices
+			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+				return false;
+
+			const size_t index = multInd[0][0];
+			const size_t alpha = multInd[0][1];
+
+		//	set dirichlet value
+			BlockRef(rhs[index], alpha) = val;
+		}
+	}
+	return true;
+}
 
 
 } // end namespace ug
