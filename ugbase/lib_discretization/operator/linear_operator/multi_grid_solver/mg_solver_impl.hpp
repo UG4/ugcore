@@ -259,9 +259,6 @@ lmgc(size_t lev)
 	//	begin profiling
 		GMG_PROFILE_BEGIN(GMG_BaseSolver);
 
-	//	reset the correction to zero
-		m_c[lev]->set(0.0);
-
 	//	some debug output
 		#ifdef UG_PARALLEL
 		UG_DLOG(LIB_DISC_MULTIGRID, 2, " Starting Base solver on level "<<lev<< ".\n");
@@ -309,10 +306,10 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 {
 // 	Cast Operator
-	m_Op = dynamic_cast<operator_type*>(&J);
+	m_pSurfaceOp = dynamic_cast<operator_type*>(&J);
 
 //	Check that Operator type is correct
-	if(m_Op == NULL)
+	if(m_pSurfaceOp == NULL)
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
 				"Can not cast Operator to AssembledLinearizedOperator.\n");
@@ -330,57 +327,34 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 //	get current toplevel
 	m_topLev = m_pApproxSpace->num_levels() - 1;
 
-//	check, if grid is full-refined
-	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
-		m_pApproxSpace->get_surface_dof_distribution().num_dofs())
-		m_bFullRefined = true;
-	else
-		m_bFullRefined =false;
-
-//	init common
-	GMG_PROFILE_BEGIN(GMG_InitCommon);
-	if(!init_common(true))
+//	Allocate memory for given top level
+	if(!top_level_required(m_topLev))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': Can init common part.\n");
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
+				" Cannot allocate memory. Aborting.\n");
+		return false;
+	}
+
+	if(m_pProjectionPrototype == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
+				"Projection not set, although problem nonlinear.\n");
+		return false;
+	}
+
+//	Create Projection
+	GMG_PROFILE_BEGIN(GMG_InitProjection);
+	if(!init_projection())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
+				"Initialization of Projection failed.\n");
 		return false;
 	}
 	GMG_PROFILE_END();
 
-//	*****   Collect needs for Projection
-//	level dof distributions
-	std::vector<const dof_distribution_type*> vLevelDD =
-			m_pApproxSpace->get_level_dof_distributions();
-
-//	surface dof distribution
-	const dof_distribution_type& surfDD = m_pApproxSpace->get_surface_dof_distribution();
-
-//	check that surface dof distribution exists
-	if(&surfDD == NULL)
-	{
-		UG_LOG("Surface DoF Distribution missing.\n");
-		return false;
-	}
-
-//	surface view
-	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
-
-//	check that surface view exists
-	if(surfView == NULL)
-	{
-		UG_LOG("Surface View missing.\n");
-		return false;
-	}
-
-//	std::vector of algebra level vectors
-	std::vector<vector_type*> vLevelVec;
-
-// *****	Project current Solution from surface grid onto the level grids
-//	create std::vector of level vectors
-	ExtractVectorsFromGridFunction(vLevelVec, m_u);
-
 //	project
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionFromSurface);
-	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, u, surfDD, *surfView))
+	if(!project_surface_to_level(m_u, u))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
 				"Projection of solution to level failed.\n");
@@ -401,44 +375,15 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	}
 	GMG_PROFILE_END();
 
-// 	Create coarse level operators
-	GMG_PROFILE_BEGIN(GMG_AssembleCoarseGridMatrices);
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
-	{
-	//	set correct dof distribution
-		if(!m_A[lev]->set_dof_distribution(m_pApproxSpace->get_level_dof_distribution(lev)))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Cannot set dof "
-					"distribution for coarse operator on level "<<m_baseLev<<".\n");
-			return false;
-		}
-
-	//	force grid to be considered as regular
-		m_A[lev]->force_regular_grid(true);
-
-	//	init operator (i.e. assemble matrix)
-		if(!m_A[lev]->init(*m_u[lev]))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Cannot init coarse "
-					"grid operator for level "<< lev << ".\n");
-			return false;
-		}
-
-	//	remove force flag
-		m_A[lev]->force_regular_grid(false);
-	}
-	GMG_PROFILE_END();
-
-//	Init smoother and base solver for coarse grid operators
-	GMG_PROFILE_BEGIN(GMG_InitBaseAndSmoother);
-	if(!init_smoother_and_base_solver())
+//	init common
+	if(!init_common(true))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Can init Smoother and Base Solver.\n");
+				"Cannot init common part.\n");
 		return false;
 	}
-	GMG_PROFILE_END();
 
+//	we're done
 	return true;
 }
 
@@ -448,10 +393,10 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& L)
 {
 // 	Cast Operator
-	m_Op = dynamic_cast<operator_type*>(&L);
+	m_pSurfaceOp = dynamic_cast<operator_type*>(&L);
 
 //	Check that Operator type is correct
-	if(m_Op == NULL)
+	if(m_pSurfaceOp == NULL)
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
 				"Can not cast Operator to AssembledLinearizedOperator.\n");
@@ -469,60 +414,19 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	get current toplevel
 	m_topLev = m_pApproxSpace->num_levels() - 1;
 
-//	check, if grid is full-refined
-	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
-		m_pApproxSpace->get_surface_dof_distribution().num_dofs())
-		m_bFullRefined = true;
-	else
-		m_bFullRefined =false;
-
-//	init common
-	if(!init_common(!m_bFullRefined))
+//	Allocate memory for given top level
+	if(!top_level_required(m_topLev))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Can init common part.\n");
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
+				" Cannot allocate memory. Aborting.\n");
 		return false;
 	}
 
-// 	Create coarse level operators
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
-	{
-	//	get dof distribution
-		const dof_distribution_type& levelDD =
-							m_pApproxSpace->get_level_dof_distribution(lev);
-
-	//	skip assembling if no dofs given
-		if(levelDD.num_dofs() == 0)
-			continue;
-
-	//	set dof distribution to level operator
-		if(!m_A[lev]->set_dof_distribution(levelDD))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': Cannot set dof "
-					" distribution on level "<< lev << ".\n");
-			return false;
-		}
-
-	//	force grid to be considered as regular
-		m_A[lev]->force_regular_grid(true);
-
-	//	init level operator
-		if(!m_A[lev]->init())
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': Cannot"
-					" init operator for level "<< lev << ".\n");
-			return false;
-		}
-
-	//	remove force flag
-		m_A[lev]->force_regular_grid(false);
-	}
-
-//	Init smoother and base solver for coarse grid operators
-	if(!init_smoother_and_base_solver())
+//	init common
+	if(!init_common(false))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Can init Smoother and Base Solver.\n");
+				"Cannot init common part.\n");
 		return false;
 	}
 
@@ -556,25 +460,18 @@ init_common(bool nonlinear)
 				"Base Solver not set.\n");
 		return false;
 	}
-	if(m_vSmoother[0] == NULL)
+	if(m_pSmootherPrototype == NULL)
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Smoother not set.\n");
 		return false;
 	}
-	if(m_vProlongation[0] == NULL)
+	if(m_pProlongationPrototype == NULL)
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Prolongation not set.\n");
 		return false;
 	}
-	if(nonlinear)
-		if(m_vProjection[0] == NULL)
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-					"Projection not set, although problem nonlinear.\n");
-			return false;
-		}
 
 	if(m_baseLev > m_topLev)
 	{
@@ -583,65 +480,182 @@ init_common(bool nonlinear)
 		return false;
 	}
 
-// 	If grid may be changed, we reallocate all memory
-	if(m_grid_changes && m_allocated)
-		if(!free_memory())
+//	check, if grid is full-refined
+	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
+		m_pApproxSpace->get_surface_dof_distribution().num_dofs())
+		m_bFullRefined = true;
+	else
+		m_bFullRefined =false;
+
+//	Assemble coarse grid operators
+	GMG_PROFILE_BEGIN(GMG_InitCoarseGridOperator);
+	if(nonlinear){
+		if(!init_non_linear_level_operator()){
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+					"Cannot init (nonlinear) Coarse Grid Operator.\n");
+			return false;
+		}
+	}
+	else {
+		if(!init_linear_level_operator()){
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+					"Cannot init (linear) Coarse Grid Operator.\n");
+			return false;
+		}
+	}
+	GMG_PROFILE_END();
+
+//	Init smoother for coarse grid operators
+	GMG_PROFILE_BEGIN(GMG_InitSmoother);
+	if(!init_smoother())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+				"Cannot init Smoother.\n");
+		return false;
+	}
+	GMG_PROFILE_END();
+
+//	Init base solver
+	GMG_PROFILE_BEGIN(GMG_InitBaseSolver);
+	if(!init_base_solver())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+				"Cannot init Base Solver.\n");
+		return false;
+	}
+	GMG_PROFILE_END();
+
+// 	Create Interpolation
+	GMG_PROFILE_BEGIN(GMG_InitProlongation);
+	if(!init_prolongation())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+				"Cannot init Prolongation.\n");
+		return false;
+	}
+	GMG_PROFILE_END();
+
+//	we're done
+	return true;
+}
+
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+init_linear_level_operator()
+{
+// 	Create coarse level operators
+	for(size_t lev = m_baseLev; lev < m_A.size(); ++lev)
+	{
+	//	skip if no operator needed
+		if(m_A[lev] == NULL) continue;
+
+	//	get dof distribution
+		const dof_distribution_type& levelDD =
+							m_pApproxSpace->get_level_dof_distribution(lev);
+
+	//	skip assembling if no dofs given
+		if(levelDD.num_dofs() == 0)
+			continue;
+
+	//	set dof distribution to level operator
+		if(!m_A[lev]->set_dof_distribution(levelDD))
 		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
-					" Cannot free memory. Aborting.\n");
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator': "
+					"Cannot set dof distribution on level "<< lev << ".\n");
 			return false;
 		}
 
-//	Reallocate memory if needed
-	bool reallocated = false;
-	if(!(m_allocated))
-	{
-		if(!allocate_memory())
+	//	force grid to be considered as regular
+		m_A[lev]->force_regular_grid(true);
+
+	//	init level operator
+		if(!m_A[lev]->init())
 		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
-					" Cannot allocate memory. Aborting.\n");
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+					" Cannot init operator for level "<< lev << ".\n");
 			return false;
 		}
-		reallocated = true;
+
+	//	remove force flag
+		m_A[lev]->force_regular_grid(false);
 	}
 
-// 	Create Interpolation and Projection Operators
-	if(reallocated)
-	{
-		for(size_t lev = m_baseLev; lev != m_topLev; ++lev)
-		{
-			if(!m_vProlongation[lev]->set_levels(lev, lev+1))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
-						" Cannot set level in interpolation matrices for level "
-						<< lev << ", aborting.\n");
-				return false;
-			}
-			if(!m_vProlongation[lev]->init())
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
-						" Cannot init interpolation operator for level "
-						<< lev << ", aborting.\n");
-				return false;
-			}
+//	we're done
+	return true;
+}
 
-			if(nonlinear)
-			{
-				if(!m_vProjection[lev]->set_levels(lev, lev+1))
-				{
-					UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
-							" Cannot set level for projection operator for level "
-							<< lev << ", aborting.\n");
-					return false;
-				}
-				if(!m_vProjection[lev]->init())
-				{
-					UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
-							" Cannot init  projection operator for level "
-							<< lev << ", aborting.\n");
-					return false;
-				}
-			}
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+init_non_linear_level_operator()
+{
+// 	Create coarse level operators
+	for(size_t lev = m_baseLev; lev < m_A.size(); ++lev)
+	{
+	//	skip if no operator needed
+		if(m_A[lev] == NULL) continue;
+
+	//	get dof distribution
+		const dof_distribution_type& levelDD =
+							m_pApproxSpace->get_level_dof_distribution(lev);
+
+	//	set correct dof distribution
+		if(!m_A[lev]->set_dof_distribution(levelDD))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_non_linear_level_operator':"
+					" Cannot set dof distribution for coarse operator on level "
+					<<m_baseLev<<".\n");
+			return false;
+		}
+
+	//	force grid to be considered as regular
+		m_A[lev]->force_regular_grid(true);
+
+	//	init operator (i.e. assemble matrix)
+		if(!m_A[lev]->init(*m_u[lev]))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_non_linear_level_operator':"
+					" Cannot init coarse grid operator for level "<< lev << ".\n");
+			return false;
+		}
+
+	//	remove force flag
+		m_A[lev]->force_regular_grid(false);
+	}
+
+//	we're done
+	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+init_prolongation()
+{
+//	loop all levels
+	for(size_t lev = m_baseLev; lev < m_topLev; ++lev)
+	{
+	//	skip if no prolongation needed
+		if(m_vProlongation[lev] == NULL) continue;
+
+	//	set levels
+		if(!m_vProlongation[lev]->set_levels(lev, lev+1))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_prolongation':"
+					" Cannot set level in interpolation matrices for level "
+					<< lev << ", aborting.\n");
+			return false;
+		}
+
+	//	init prolongation
+		if(!m_vProlongation[lev]->init())
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_prolongation':"
+					" Cannot init interpolation operator for level "
+					<< lev << ", aborting.\n");
+			return false;
 		}
 	}
 
@@ -652,35 +666,74 @@ init_common(bool nonlinear)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-init_smoother_and_base_solver()
+init_projection()
 {
-// 	Init smoother
-//	Todo: maybe we should admit also smoothers depending explicitly on the current solution
-//	todo: since currently m_u may be uninitiallized here if linear operator was passed
-	GMG_PROFILE_BEGIN(GMG_InitSmoother);
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+//	loop all levels
+	for(size_t lev = m_baseLev; lev < m_topLev; ++lev)
 	{
-		if(!m_vSmoother[lev]->init(*m_A[lev], *m_u[lev]))
+	//	skip if no projection needed
+		if(m_vProjection[lev] == NULL) continue;
+
+	//	set levels
+		if(!m_vProjection[lev]->set_levels(lev, lev+1))
 		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother_and_base_solver':"
-					" Cannot init smoother for level "<< lev << ".\n");
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_projection':"
+					" Cannot set level in projection matrices for level "
+					<< lev << ", aborting.\n");
 			return false;
 		}
 
-		write_level_debug(m_A[lev]->get_matrix(), "Operator", lev);
+	//	init projection
+		if(!m_vProjection[lev]->init())
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_projection':"
+					" Cannot init projection operator for level "
+					<< lev << ", aborting.\n");
+			return false;
+		}
 	}
-	GMG_PROFILE_END();
 
+//	we're done
+	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+init_smoother()
+{
+// 	Init smoother
+	for(size_t lev = m_baseLev; lev < m_vSmoother.size(); ++lev)
+	{
+	//	skip if no smoother needed
+		if(m_vSmoother[lev] == NULL) continue;
+
+		if(!m_vSmoother[lev]->init(*m_A[lev], *m_u[lev]))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
+					" Cannot init smoother for level "<< lev << ".\n");
+			return false;
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+init_base_solver()
+{
 // 	Prepare base solver
-	GMG_PROFILE_BEGIN(GMG_BaseSolver);
 	if(!m_pBaseSolver->init(*m_A[m_baseLev], *m_u[m_baseLev]))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother_and_base_solver':"
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
 				" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
 		return false;
 	}
-	GMG_PROFILE_END();
 
+//	we're done
 	return true;
 }
 
@@ -732,69 +785,15 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
-//	*****   Collect needs for Projection
-//	level dof distributions
-	std::vector<const dof_distribution_type*> vLevelDD =
-			m_pApproxSpace->get_level_dof_distributions();
-
-//	surface dof distribution
-	const dof_distribution_type& surfDD = m_pApproxSpace->get_surface_dof_distribution();
-
-//	check that surface dof distribution exists
-	if(&surfDD == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
-				"Surface DoF Distribution missing.\n");
-		return false;
-	}
-
-//	surface view
-	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
-
-//	check that surface view exists
-	if(surfView == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
-				" Surface View missing.\n");
-		return false;
-	}
-
-//	debug output
-	write_surface_debug(d, "GMG_DefectIn");
-
-//	std::vector of algebra level vectors
-	std::vector<vector_type*> vLevelVec;
-
-// *****	Project Defect from surface grid onto the level grids
-//	create std::vector of level vectors
-	ExtractVectorsFromGridFunction(vLevelVec, m_d);
-
-//	project
-	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, d, surfDD, *surfView))
+//	project defect from surface to level
+	if(!project_surface_to_level(m_d, d))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of defect to level failed.\n");
 		return false;
 	}
 
-// *****	Project Correction from surface grid onto the level grids
-// \todo: Do we really need the projected correction or is zero everywhere ok?
-//	create std::vector of level vectors
-	ExtractVectorsFromGridFunction(vLevelVec, m_c);
-
-//	project
-	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, c, surfDD, *surfView))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Projection of correction to level failed.\n");
-		return false;
-	}
-
-//	debug output
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
-		write_level_debug(*m_d[lev], "GMG_DefectInProject", lev);
-
-// *****	Perform one multigrid cycle
+// 	Perform one multigrid cycle
 	if(!lmgc(m_topLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
@@ -802,40 +801,21 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
-//	std::vector of algebra level vectors
-	std::vector<const vector_type*> cvLevelVec;
-
-// *****	Project Defect from the level grids to surface grid
-//	create std::vector of const level vectors
-	ExtractVectorsFromGridFunction(cvLevelVec, m_d);
-
-//	project
-	if(!ProjectLevelToSurface(d, surfDD, *surfView, cvLevelVec, vLevelDD))
+//	project defect from level to surface
+	if(!project_level_to_surface(d, m_d))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of defect to surface failed.\n");
 		return false;
 	}
 
-// *****	Project Correction from the level grid to surface grid
-//	create std::vector of level vectors
-	ExtractVectorsFromGridFunction(cvLevelVec, m_c);
-
-//	project
-	if(!ProjectLevelToSurface(c, surfDD, *surfView, cvLevelVec, vLevelDD))
+//	project correction from level to surface
+	if(!project_level_to_surface(c, m_c))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of correction to surface failed.\n");
 		return false;
 	}
-
-//	debug output
-	write_surface_debug(c, "GMG_CorrOut");
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
-		write_level_debug(*m_c[lev], "GMG_CorrOutProject", lev);
-	write_surface_debug(d, "GMG_DefectOut");
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
-		write_level_debug(*m_d[lev], "GMG_DefectOutProject", lev);
 
 //	increase dbg counter
 	m_dbgIterCnt++;
@@ -847,117 +827,223 @@ apply_update_defect(vector_type &c, vector_type& d)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-allocate_memory()
+project_level_to_surface(vector_type& surfFunc,
+                         const std::vector<function_type*>& vLevelFunc)
 {
-	// dynamically created pointer for Coarse Grid Functions
-	m_u.resize(m_topLev+1);
-	m_c.resize(m_topLev+1);
-	m_t.resize(m_topLev+1);
-	m_d.resize(m_topLev+1);
+//	level dof distributions
+	const std::vector<const dof_distribution_type*>& vLevelDD =
+								m_pApproxSpace->get_level_dof_distributions();
 
-	// create coarse level vectors
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+//	surface dof distribution
+	const dof_distribution_type& surfDD =
+								m_pApproxSpace->get_surface_dof_distribution();
+
+//	check that surface dof distribution exists
+	if(&surfDD == NULL)
 	{
-		// create solution
-		m_u[lev] = m_pApproxSpace->create_level_function(lev);
-
-		// create correction
-		m_c[lev] = m_pApproxSpace->create_level_function(lev);
-
-		// create help vector
-		m_t[lev] = m_pApproxSpace->create_level_function(lev);
-
-		// create defect
-		m_d[lev] = m_pApproxSpace->create_level_function(lev);
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level':"
+				"Surface DoF Distribution missing.\n");
+		return false;
 	}
 
-	//	dynamically created pointer for Coarse Operators
-	m_A.resize(m_topLev + 1);
-	m_vProlongation.resize(m_topLev+1);
-	m_vProjection.resize(m_topLev+1);
+//	surface view
+	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
 
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+//	check that surface view exists
+	if(surfView == NULL)
 	{
-		// create prolongation operators
-		if(lev != 0)
-			m_vProlongation[lev] = m_vProlongation[0]->clone();
-
-		// create prolongation operators
-		if(m_vProjection[0] != NULL && lev != 0)
-			m_vProjection[lev] = m_vProjection[0]->clone();
-
-		// create coarse grid matrices
-		m_A[lev] = new operator_type(*m_pAss);
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level':"
+				" Surface View missing.\n");
+		return false;
 	}
 
-	// create smoother for all level
-	m_vSmoother.resize(m_topLev+1);
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
-	{
-		if(lev == 0) continue;
+//	std::vector of algebra level vectors
+	std::vector<const vector_type*> cvLevelVec;
 
-		m_vSmoother[lev] = m_vSmoother[0]->clone();
+//	create std::vector of const level vectors
+	ExtractVectorsFromGridFunction(cvLevelVec, vLevelFunc);
+
+//	project
+	if(!ProjectLevelToSurface(surfFunc, surfDD, *surfView, cvLevelVec, vLevelDD))
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
+				"Projection of function from level to surface failed.\n");
+		return false;
 	}
 
-	m_allocated = true;
+//	we're done
 	return true;
 }
 
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-free_memory()
+project_surface_to_level(std::vector<function_type*>& vLevelFunc,
+                         const vector_type& surfFunc)
 {
-	// do nothing, if no memory allocated
-	if(m_allocated == false) return true;
+//	level dof distributions
+	const std::vector<const dof_distribution_type*>& vLevelDD =
+								m_pApproxSpace->get_level_dof_distributions();
 
-	for(size_t j = m_baseLev; j <= m_topLev; ++j)
+//	surface dof distribution
+	const dof_distribution_type& surfDD =
+								m_pApproxSpace->get_surface_dof_distribution();
+
+//	check that surface dof distribution exists
+	if(&surfDD == NULL)
 	{
-		if(j < m_A.size())
-			if(m_A[j] != NULL) {delete m_A[j]; m_A[j] = NULL;};
-
-		if(j < m_vProlongation.size() && j != 0)
-			if(m_vProlongation[j] != NULL)
-			{
-				delete m_vProlongation[j];
-				m_vProlongation[j] = NULL;
-			}
-
-		if(j < m_vProjection.size() && j != 0)
-			if(m_vProjection[j] != NULL)
-			{
-				delete m_vProjection[j];
-				m_vProjection[j] = NULL;
-			}
-
-		if(j < m_u.size())
-			if(m_u[j] != NULL) {delete m_u[j]; m_u[j] = NULL;};
-		if(j < m_c.size())
-			if(m_c[j] != NULL) {delete m_c[j]; m_c[j] = NULL;};
-		if(j < m_t.size())
-			if(m_t[j] != NULL) {delete m_t[j]; m_t[j] = NULL;};
-		if(j < m_d.size())
-			if(m_d[j] != NULL) {delete m_d[j]; m_d[j] = NULL;};
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level':"
+				"Surface DoF Distribution missing.\n");
+		return false;
 	}
 
-	m_A.clear();
-	m_vProlongation.resize(1);
-	m_vProjection.resize(1);
+//	surface view
+	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
 
-	m_u.clear();
-	m_c.clear();
-	m_t.clear();
-	m_d.clear();
-
-	// delete smoother
-	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+//	check that surface view exists
+	if(surfView == NULL)
 	{
-		if(lev == 0) continue;
-		delete m_vSmoother[lev];
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level':"
+				" Surface View missing.\n");
+		return false;
 	}
 
-	m_allocated = false;
+//	std::vector of algebra level vectors
+	std::vector<vector_type*> vLevelVec;
+
+//	create std::vector of level vectors
+	ExtractVectorsFromGridFunction(vLevelVec, vLevelFunc);
+
+//	project
+	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfFunc, surfDD, *surfView))
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level': "
+				"Projection of function from surface to level failed.\n");
+		return false;
+	}
+
+//	we're done
 	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+top_level_required(size_t topLevel)
+{
+//	allocated level if needed
+	while(num_levels() <= topLevel)
+		if(!allocate_level(num_levels()))
+			return false;
+
+//	free level if needed
+	while(num_levels() > topLevel+1)
+		free_level(num_levels());
+
+//	we're done
+	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+allocate_level(size_t level)
+{
+//	allocate grid functions
+	if(m_u.size() <= level) m_u.resize(level+1, NULL);
+	if(m_u[level] == NULL)
+		m_u[level] = m_pApproxSpace->create_level_function(level);
+
+	if(m_c.size() <= level) m_c.resize(level+1, NULL);
+	if(m_c[level] == NULL)
+		m_c[level] = m_pApproxSpace->create_level_function(level);
+
+	if(m_t.size() <= level) m_t.resize(level+1, NULL);
+	if(m_t[level] == NULL)
+		m_t[level] = m_pApproxSpace->create_level_function(level);
+
+	if(m_d.size() <= level) m_d.resize(level+1, NULL);
+	if(m_d[level] == NULL)
+		m_d[level] = m_pApproxSpace->create_level_function(level);
+
+//	allocate coarse grid operators
+	if(m_A.size() <= level) m_A.resize(level+1, NULL);
+	if(m_A[level] == NULL)
+		m_A[level] = new operator_type(*m_pAss);
+
+//	allocate prolongation
+	if(m_vProlongation.size() <= level) m_vProlongation.resize(level+1, NULL);
+	if(m_vProlongation[level] == NULL)
+		m_vProlongation[level] = m_pProlongationPrototype->clone();
+
+//	allocate projection
+	if(m_vProjection.size() <= level) m_vProjection.resize(level+1, NULL);
+	if(m_vProjection[level] == NULL)
+		m_vProjection[level] = m_pProjectionPrototype->clone();
+
+//	allocate smoother
+	if(m_vSmoother.size() <= level) m_vSmoother.resize(level+1, NULL);
+	if(m_vSmoother[level] == NULL)
+		m_vSmoother[level] = m_pSmootherPrototype->clone();
+
+//	check success
+	if(m_A[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for coarse grid operator on level "<<level<<".\n"); return false;}
+	if(m_vProlongation[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for prolongation operator on level "<<level<<".\n"); return false;}
+	if(m_vProjection[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for projection operator on level "<<level<<".\n"); return false;}
+	if(m_vSmoother[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for smoother operator on level "<<level<<".\n"); return false;}
+
+	if(m_u[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for solution on level "<<level<<".\n"); return false;}
+	if(m_c[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for correction on level "<<level<<".\n"); return false;}
+	if(m_t[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for help correction on level "<<level<<".\n"); return false;}
+	if(m_d[level] == NULL)
+	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
+			" memory for defect on level "<<level<<".\n"); return false;}
+
+//	we're done
+	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+void
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+free_level(size_t level)
+{
+//	free operator
+	if(m_A[level] != NULL) delete m_A[level];
+	if(m_vProlongation[level] != NULL) delete m_vProlongation[level];
+	if(m_vProjection[level] != NULL) delete m_vProjection[level];
+	if(m_vSmoother[level] != NULL) delete m_vSmoother[level];
+
+//	free grid functions
+	if(m_u[level] != NULL) {delete m_u[level]; m_u[level] = NULL;}
+	if(m_c[level] != NULL) {delete m_c[level]; m_c[level] = NULL;}
+	if(m_t[level] != NULL) {delete m_t[level]; m_t[level] = NULL;}
+	if(m_d[level] != NULL) {delete m_d[level]; m_d[level] = NULL;}
+
+//	free unused elements from vectors
+	while(m_A.back() == NULL) m_A.pop_back();
+	while(m_vProlongation.back() == NULL) m_vProlongation.pop_back();
+	while(m_vProjection.back() == NULL) m_vProjection.pop_back();
+	while(m_vSmoother.back() == NULL) m_vSmoother.pop_back();
+
+	while(m_u.back() == NULL) m_u.pop_back();
+	while(m_c.back() == NULL) m_c.pop_back();
+	while(m_t.back() == NULL) m_t.pop_back();
+	while(m_d.back() == NULL) m_d.pop_back();
 }
 
 
@@ -965,7 +1051,8 @@ template <typename TApproximationSpace, typename TAlgebra>
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 ~AssembledMultiGridCycle()
 {
-	free_memory();
+	top_level_required(0);
+	free_level(0);
 }
 
 

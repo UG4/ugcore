@@ -25,6 +25,19 @@
 
 namespace ug{
 
+/// geometric multi grid preconditioner
+/**
+ * This class implements one step of the geometric multi grid as a
+ * preconditioner for linear iteration schemes such as linear iteration, cg
+ * or bicgstab.
+ *
+ * The coarse grid spaces are build up according to the Approximation Space
+ * that is set from outside. In addition an Assembling routine must be
+ * specified that is used to assemble the coarse grid matrices.
+ *
+ * \tparam		TApproximationSpace		Type of Approximation Space
+ * \tparam		TAlgebra				Type of Algebra
+ */
 template <typename TApproximationSpace, typename TAlgebra>
 class AssembledMultiGridCycle :
 	virtual public ILinearIterator<	typename TAlgebra::vector_type,
@@ -75,19 +88,15 @@ class AssembledMultiGridCycle :
 		AssembledMultiGridCycle() :
 			m_pAss(NULL), m_pApproxSpace(NULL),
 			m_topLev(0), m_baseLev(0), m_cycleType(1),
-			m_numPreSmooth(1), m_numPostSmooth(1), m_pBaseSolver(NULL),
-			m_grid_changes(false), m_allocated(false),
+			m_numPreSmooth(1), m_numPostSmooth(1),
+			m_pSmootherPrototype(NULL), m_pBaseSolver(NULL),
+			m_pProjectionPrototype(NULL), m_pProlongationPrototype(NULL),
 			m_bFullRefined(false),
 			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{
-			m_vSmoother.resize(1);
-			m_vSmoother[0] = NULL;
-
-			m_vProlongation.resize(1);
-			m_vProlongation[0] = NULL;
-
-			m_vProjection.resize(1);
-			m_vProjection[0] = NULL;
+			m_vSmoother.clear();
+			m_vProlongation.clear();
+			m_vProjection.clear();
 		};
 
 	///////////////////////////////////////////////////////////////////////////
@@ -109,9 +118,6 @@ class AssembledMultiGridCycle :
 		void set_base_solver(base_solver_type& baseSolver)
 			{m_pBaseSolver = &baseSolver;}
 
-	///	sets the smoother that is used
-		void set_smoother(smoother_type& smoother) {m_vSmoother[0] = & smoother;}
-
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(int type) {m_cycleType = type;}
 
@@ -121,13 +127,17 @@ class AssembledMultiGridCycle :
 	///	sets the number of post-smoothing steps to be performed
 		void set_num_postsmooth(int num) {m_numPostSmooth = num;}
 
+	///	sets the smoother that is used
+		void set_smoother(smoother_type& smoother)
+			{m_pSmootherPrototype = & smoother;}
+
 	///	sets the prolongation operator
 		void set_prolongation_operator(IProlongationOperator<vector_type, vector_type>& P)
-			{m_vProlongation[0] = &P;}
+			{m_pProlongationPrototype = &P;}
 
 	///	sets the projection operator
 		void set_projection_operator(IProjectionOperator<vector_type, vector_type>& P)
-			{m_vProjection[0] = &P;}
+			{m_pProjectionPrototype = &P;}
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Linear Solver interface methods
@@ -161,21 +171,51 @@ class AssembledMultiGridCycle :
 	/// performs smoothing on level l, nu times
 		bool smooth(function_type& d, function_type& c, size_t lev, int nu);
 
+	///	returns the number of allocated levels
+		size_t num_levels() const {return m_A.size();}
+
+	///	allocates the memory
+		bool top_level_required(size_t topLevel);
+
+	///	allocates memory for one level
+		bool allocate_level(size_t level);
+
+	///	frees the memory
+		void free_level(size_t level);
+
 	///	initializes common part
 		bool init_common(bool nonlinear);
 
 	///	initializes the smoother and base solver
-		bool init_smoother_and_base_solver();
+		bool init_smoother();
 
-	///	allocates the memory
-		bool allocate_memory();
+	///	initializes the coarse grid matrices for non-linear case
+		bool init_non_linear_level_operator();
 
-	///	frees the memory
-		bool free_memory();
+	///	initializes the coarse grid matrices for linear case
+		bool init_linear_level_operator();
+
+	///	initializes the smoother and base solver
+		bool init_base_solver();
+
+	///	initializes the prolongation
+		bool init_prolongation();
+
+	///	initializes the prolongation
+		bool init_projection();
+
+	///	projects a grid function from the surface to the levels
+		bool project_surface_to_level(std::vector<function_type*>& vLevelFunc,
+		                              const vector_type& surfFunc);
+
+	///	projects a grid function from the levels to the surface
+		bool project_level_to_surface(vector_type& surfFunc,
+		                              const std::vector<function_type*>& vLevelFunc);
+
 
 	protected:
 	/// operator to invert (surface grid)
-		operator_type* m_Op;
+		operator_type* m_pSurfaceOp;
 
 	///	assembling routine for coarse grid matrices
 		IAssemble<dof_distribution_impl_type, algebra_type>* m_pAss;
@@ -199,29 +239,41 @@ class AssembledMultiGridCycle :
 	///	number of Postsmooth steps
 		int m_numPostSmooth;
 
+	///	coarse grid operator for each grid level
+		std::vector<operator_type*> m_A;
+
 	///	smoothing iterator for every grid level
 		std::vector<smoother_type*> m_vSmoother;
+
+	///	prototype for smoother
+		smoother_type* m_pSmootherPrototype;
 
 	///	base solver for the coarse problem
 		base_solver_type* m_pBaseSolver;
 
-	///	coarse grid operator for each grid level
-		std::vector<operator_type*> m_A;
-
 	///	projection operator between grid levels
 		std::vector<projection_operator_type*> m_vProjection;
+
+	///	prototype for projection operator
+		projection_operator_type* m_pProjectionPrototype;
 
 	///	prolongation/restriction operator between grid levels
 		std::vector<prolongation_operator_type*> m_vProlongation;
 
-		std::vector<function_type*> m_u;
-		std::vector<function_type*> m_c;
-		std::vector<function_type*> m_d;
-		std::vector<function_type*> m_t;
+	///	prototype for prolongation operator
+		prolongation_operator_type* m_pProlongationPrototype;
 
-		// true -> allocate new matrices on every prepare
-		bool m_grid_changes;
-		bool m_allocated;
+	///	solution for each grid level
+		std::vector<function_type*> m_u;
+
+	///	correction for each grid level
+		std::vector<function_type*> m_c;
+
+	///	defect for each grid level
+		std::vector<function_type*> m_d;
+
+	///	help vector (correction) for each grid level
+		std::vector<function_type*> m_t;
 
 	///	flag indicating if grid is full refined
 		bool m_bFullRefined;
