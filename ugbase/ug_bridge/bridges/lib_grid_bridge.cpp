@@ -724,16 +724,12 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
 
 	//	SurfaceView
-
-		#ifndef FOR_VRL
-
 		reg.add_class_<SurfaceView, SubsetHandler>("SurfaceView", grp.c_str())
 			.add_constructor()
 			.add_method("assign_grid", (void (SurfaceView::*)(MultiGrid&)) &SurfaceView::assign_grid);
 
 		reg.add_function("CheckSurfaceView", &CheckSurfaceView, grp.c_str());
 
-		#endif
 
 	////////////////////////
 	//	REFINEMENT
