@@ -66,6 +66,12 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 //			   Solution list afterwards, such that nothing happens to u
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
 
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	J.resize(0,0);
+	J.resize(numDoFs, numDoFs);
+	J.set(0.0);
+
 //	assemble jacobian using current iterate
 	if(this->m_pDomDisc->assemble_jacobian
 			(J, u, m_futureTime, (*m_pPrevSol), dofDistr, s_m[0], s_a[0]*m_dt) != true)
@@ -99,6 +105,11 @@ assemble_defect(vector_type& d, const vector_type& u,
 //			   the solution will not be changed there and we pop it from the
 //			   Solution list afterwards, such that nothing happens to u
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
+
+//	reset matrix to zero and resize
+	const size_t numDoFs = dofDistr.num_dofs();
+	d.resize(numDoFs);
+	d.set(0.0);
 
 // 	future solution part
 	if(this->m_pDomDisc->assemble_defect

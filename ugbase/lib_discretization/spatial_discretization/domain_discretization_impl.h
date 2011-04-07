@@ -865,12 +865,6 @@ assemble_jacobian(matrix_type& J,
                   const dof_distribution_type& dofDistr,
                   number s_m0, number s_a0)
 {
-//	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
-	J.resize(0,0);
-	J.resize(numDoFs, numDoFs);
-	J.set(0.0);
-
 //	check that s_m is 1.0
 	if(s_m0 != 1.0)
 	{
@@ -1007,11 +1001,6 @@ assemble_defect(vector_type& d,
                 const dof_distribution_type& dofDistr,
                 number s_m, number s_a)
 {
-//	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
-	d.resize(numDoFs);
-	d.set(0.0);
-
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
@@ -1139,15 +1128,6 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const dof_distribution_type& dofDistr,
                 number s_m, number s_a)
 {
-//	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
-	mat.resize(0,0);
-	mat.resize(numDoFs, numDoFs);
-	mat.set(0.0);
-
-	rhs.resize(numDoFs);
-	rhs.set(0.0);
-
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 
