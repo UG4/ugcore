@@ -302,7 +302,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 						"", "Discretization")
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
-			.add_method("set_surface_level", &T::set_surface_level)
 			.add_method("set_base_level|interactive=false", &T::set_base_level,
 						"", "Base Level")
 			.add_method("set_base_solver|interactive=false", &T::set_base_solver,
