@@ -92,15 +92,17 @@ create_level_index_layouts(size_t numGlobalLevels)
 		{
 		//	create index layouts
 			bRet &= CreateLevelIndexLayout(distr.get_master_layout(),
-									  distr, *m_pLayoutMap, INT_MASTER,l);
+									  distr, *m_pLayoutMap, INT_H_MASTER, l,
+									  m_pDistGridManager, INT_V_MASTER | INT_V_SLAVE);
 			bRet &= CreateLevelIndexLayout(distr.get_slave_layout(),
-									  distr, *m_pLayoutMap, INT_SLAVE,l);
+									  distr, *m_pLayoutMap, INT_H_SLAVE,l,
+									  m_pDistGridManager, INT_V_MASTER | INT_V_SLAVE);
 
 		//	create vertical layouts
 			bRet &= CreateLevelIndexLayout(distr.get_vertical_master_layout(),
-									  distr, *m_pLayoutMap, INT_VERTICAL_MASTER,l);
+									  distr, *m_pLayoutMap, INT_V_MASTER,l);
 			bRet &= CreateLevelIndexLayout(distr.get_vertical_slave_layout(),
-									  distr, *m_pLayoutMap, INT_VERTICAL_SLAVE,l);
+									  distr, *m_pLayoutMap, INT_V_SLAVE,l);
 		}
 		else
 		{
@@ -229,19 +231,19 @@ create_surface_index_layouts()
 
 //	create surface index layouts
 	bRet &= CreateSurfaceIndexLayout(distr.get_master_layout(),
-	                                 distr, *m_pLayoutMap, INT_MASTER,
+	                                 distr, *m_pLayoutMap, INT_H_MASTER,
 									 *this->m_pMultiGrid,
 									 *m_pDistGridManager);
 	bRet &= CreateSurfaceIndexLayout(distr.get_slave_layout(),
-	                                 distr, *m_pLayoutMap, INT_SLAVE,
+	                                 distr, *m_pLayoutMap, INT_H_SLAVE,
 	                                 *this->m_pMultiGrid,
 	                                 *m_pDistGridManager);
 	bRet &= CreateSurfaceIndexLayout(distr.get_master_layout(),
-	                                 distr, *m_pLayoutMap, INT_VIRTUAL_MASTER,
+	                                 distr, *m_pLayoutMap, INT_V_MASTER,
 									 *this->m_pMultiGrid,
 									 *m_pDistGridManager);
 	bRet &= CreateSurfaceIndexLayout(distr.get_slave_layout(),
-	                                 distr, *m_pLayoutMap, INT_VIRTUAL_SLAVE,
+	                                 distr, *m_pLayoutMap, INT_V_SLAVE,
 	                                 *this->m_pMultiGrid,
 	                                 *m_pDistGridManager);
 

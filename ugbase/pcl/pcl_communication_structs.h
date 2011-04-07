@@ -131,6 +131,7 @@ class BasicInterface
 
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
+		inline bool empty()							{return size() == 0;}
 
 		int get_target_proc()						{return m_targetProc;}
 
@@ -216,6 +217,7 @@ class OrderedInterface
 
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size() const					{return m_size;}
+		inline bool empty()							{return size() == 0;}
 
 		int get_target_proc() const					{return m_targetProc;}
 
@@ -372,6 +374,9 @@ class SingleLevelLayout
 		inline const_iterator end(size_t level = 0)	const		{return m_interfaceMap.end();}
 
 	///	returns true if the layout has no interfaces.
+	/**	Note that this method only tells whether there are interfaces or not.
+	 * To check whether there are any elements use has_interface_elements.
+	 */
 		inline bool empty(size_t level = 0)	const 				{return begin() == end();}
 		
 	///	returns 1
@@ -426,6 +431,15 @@ class SingleLevelLayout
 			for(iterator iter = begin(); iter != end(); ++iter)
 				sum += interface(iter).size();
 			return sum;
+		}
+
+	///	returns true if the layout contains interface elements
+		inline bool has_interface_elements(){
+			for(iterator iter = begin(); iter != end(); ++iter){
+				if(!interface(iter).empty())
+					return true;
+			}
+			return false;
 		}
 
 	private:
@@ -515,9 +529,15 @@ class MultiLevelLayout
 		inline iterator end(size_t level)				{require_level(level); return m_vLayouts[level]->end();}
 
 	///	returns true if the layout has no interfaces on the given level.
+	/**	Note that this method only tells whether there are interfaces or not.
+	 * To check whether there are any elements use has_interface_elements.
+	 */
 		inline bool empty(size_t level)					{return begin(level) == end(level);}
 
 	///	returns true if the layout has no interfaces.
+	/**	Note that this method only tells whether there are interfaces or not.
+	 * To check whether there are any elements use has_interface_elements.
+	 */
 		inline bool empty()								{for(size_t l = 0; l < num_levels(); ++l){if(!empty(l)) return false;} return true;}
 
 	///	returns the interface to the given iterator.
@@ -566,6 +586,17 @@ class MultiLevelLayout
 					sum += interface(iter).size();
 			}
 			return sum;
+		}
+
+	///	returns true if the layout contains any interface entries
+		inline bool has_interface_elements(){
+			for(size_t lvl = 0; lvl < num_levels(); ++lvl){
+				for(iterator iter = begin(lvl); iter != end(lvl); ++iter){
+					if(!interface(iter).empty())
+						return true;
+				}
+			}
+			return false;
 		}
 
 	protected:

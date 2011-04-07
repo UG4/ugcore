@@ -85,8 +85,8 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 			{
 				typename TNodeLayout::Interface& masterInterface = masterLayout.interface(layoutIndex, level);
 				typename TNodeLayout::Interface& slaveInterface = layout.interface(masterLayoutIndex, level);
-				masterInterface.push_back(typename TNodeLayout::InterfaceEntry(localMasterID, INT_MASTER));
-				slaveInterface.push_back(typename TNodeLayout::InterfaceEntry(localID, INT_SLAVE));
+				masterInterface.push_back(typename TNodeLayout::InterfaceEntry(localMasterID, INT_H_MASTER));
+				slaveInterface.push_back(typename TNodeLayout::InterfaceEntry(localID, INT_H_SLAVE));
 			}
 		}
 	}
@@ -407,9 +407,9 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 //DEBUG
 /*
 	PCLLOG("deserialization done.\n");
-	if(gridLayoutOut.has_vertex_layout(INT_MASTER))
+	if(gridLayoutOut.has_vertex_layout(INT_H_MASTER))
 	{
-		ParallelVertexLayout& pvl = gridLayoutOut.vertex_layout(INT_MASTER);
+		ParallelVertexLayout& pvl = gridLayoutOut.vertex_layout(INT_H_MASTER);
 		PCLLOG("process has vertex-master-layout with " << pvl.num_levels() << " levels\n");
 		ParallelVertexLayout::Layout& layout = pvl.layout(0);
 		ParallelVertexLayout::Layout::iterator iter;
@@ -420,9 +420,9 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 		}
 	}
 
-	if(gridLayoutOut.has_vertex_layout(INT_SLAVE))
+	if(gridLayoutOut.has_vertex_layout(INT_H_SLAVE))
 	{
-		ParallelVertexLayout& pvl = gridLayoutOut.vertex_layout(INT_SLAVE);
+		ParallelVertexLayout& pvl = gridLayoutOut.vertex_layout(INT_H_SLAVE);
 		PCLLOG("process has vertex-slave-layout with " << pvl.num_levels() << " levels\n");
 		ParallelVertexLayout::Layout& layout = pvl.layout(0);
 		ParallelVertexLayout::Layout::iterator iter;
@@ -493,22 +493,22 @@ bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts,
 
 			//	make sure that the different interfaces match each other in size
 				size_t numCurMasters = NumEntriesOfTypeInDistributionInterface(
-															INT_MASTER, curIntf);
+															INT_H_MASTER, curIntf);
 				size_t numCurSlaves = NumEntriesOfTypeInDistributionInterface(
-															INT_SLAVE, curIntf);
+															INT_H_SLAVE, curIntf);
 				size_t numConMasters = NumEntriesOfTypeInDistributionInterface(
-															INT_MASTER, conIntf);
+															INT_H_MASTER, conIntf);
 				size_t numConSlaves = NumEntriesOfTypeInDistributionInterface(
-															INT_SLAVE, conIntf);
+															INT_H_SLAVE, conIntf);
 
 				size_t numCurVrtMasters = NumEntriesOfTypeInDistributionInterface(
-													INT_VERTICAL_MASTER, curIntf);
+													INT_V_MASTER, curIntf);
 				size_t numCurVrtSlaves = NumEntriesOfTypeInDistributionInterface(
-													INT_VERTICAL_SLAVE, curIntf);
+													INT_V_SLAVE, curIntf);
 				size_t numConVrtMasters = NumEntriesOfTypeInDistributionInterface(
-													INT_VERTICAL_MASTER, conIntf);
+													INT_V_MASTER, conIntf);
 				size_t numConVrtSlaves = NumEntriesOfTypeInDistributionInterface(
-													INT_VERTICAL_SLAVE, conIntf);
+													INT_V_SLAVE, conIntf);
 
 				if(numCurMasters != numConSlaves){
 					UG_LOG("  Master -> Slave Interface mismatch on level " << lvl << ":\n");
@@ -584,14 +584,14 @@ bool TestRedistributionLayouts(std::vector<TDistLayout>& distLayouts,
 
 			//	make sure that the different interfaces match each other in size
 				size_t numCurMasters = NumEntriesOfTypeInDistributionInterface(
-															INT_MASTER, curIntf);
+															INT_H_MASTER, curIntf);
 				size_t numCurSlaves = NumEntriesOfTypeInDistributionInterface(
-															INT_SLAVE, curIntf);
+															INT_H_SLAVE, curIntf);
 /*
 				size_t numCurVrtMasters = NumEntriesOfTypeInDistributionInterface(
-													INT_VERTICAL_MASTER, curIntf);
+													INT_V_MASTER, curIntf);
 				size_t numCurVrtSlaves = NumEntriesOfTypeInDistributionInterface(
-													INT_VERTICAL_SLAVE, curIntf);
+													INT_V_SLAVE, curIntf);
 */
 				if(numCurMasters){
 					UG_LOG("    masters: " << numCurMasters);

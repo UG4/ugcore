@@ -17,16 +17,21 @@ namespace ug
 /// @{
 
 ///	the states with which elements are marked in ug::DistributedGridManager
-enum ElementStatus
+/**	Note that the constants are directly related to the constants enumerated
+ * in InterfaceNodeTypes.
+ * Please also note that the constants are currently stored in bytes. No
+ * value usig more thatn 8 bits is thus allowed.
+ */
+enum ElementStatusTypes
 {
-	ES_NONE = 0,
-	ES_SCHEDULED_FOR_INTERFACE = 1 << 1,
-	ES_IN_INTERFACE = 1 << 2,
-	ES_MASTER = 1 << 3,
-	ES_SLAVE = 1 << 4,
-	ES_VERTICAL_MASTER = 1 << 5,
-	ES_VERTICAL_SLAVE = 1 << 6,
-	ES_VIRTUAL = 1 << 7
+	ES_NONE = INT_NONE,
+	ES_H_MASTER = INT_H_MASTER,
+	ES_H_SLAVE = INT_H_SLAVE,
+	ES_V_MASTER = INT_V_MASTER,
+	ES_V_SLAVE = INT_V_SLAVE,
+
+	ES_SCHEDULED_FOR_INTERFACE = 1 << 6,
+	ES_IN_INTERFACE = 1 << 7
 };
 
 ///	manages the layouts and interfaces which are associated with a distributed grid.
@@ -79,11 +84,26 @@ class DistributedGridManager : public GridObserver
 	 *	the layout - whichever is higher).*/
 	 	void grid_layouts_changed(bool addedElemsOnly = false);
 		
+	///	returns the status of the given object.
+	/**	The status gives information about the type of interfaces in which a node
+	 * lies. The returned value is an or combination of the constants enumerated
+	 * in InterfaceNodeTypes and ElementStatusTypes.
+	 * \sa contains_status
+	 * \{
+	 */
 		byte get_status(GeometricObject* go);
 		inline byte get_status(VertexBase* vrt)	{return elem_info(vrt).get_status();}
 		inline byte get_status(EdgeBase* edge)	{return elem_info(edge).get_status();}
 		inline byte get_status(Face* face)		{return elem_info(face).get_status();}
 		inline byte get_status(Volume* vol)		{return elem_info(vol).get_status();}
+	/**	\} */
+
+	///	returns true if the status of the given object contains the given status.
+	/**	status can be an or-combination of constants enumerated in InterfaceNodeTypes
+	 * and ElementStatusTypes.
+	 */
+		template <class TGeomObj>
+		bool contains_status(TGeomObj* o, byte status)	{return (get_status(o) & status) == status;}
 
 	///	returns true if the element is a ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.

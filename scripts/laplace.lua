@@ -153,7 +153,9 @@ sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
-SaveDomain(dom, "refined_grid.ugx")
+refinedGridOutName = "refined_grid_p" .. GetProcessRank() .. ".ugx"
+print("saving domain to " .. refinedGridOutName)
+SaveDomain(dom, refinedGridOutName)
 
 -- create Approximation Space
 print("Create ApproximationSpace")

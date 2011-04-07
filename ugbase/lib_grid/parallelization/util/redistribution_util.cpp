@@ -199,8 +199,8 @@ SynchronizeNodeTransfer(Grid& g, GridLayoutMap& glm,
 		compol(sel, aaIntVec, aaTransInfoVec);
 
 //	exchange data, both from masters to slaves and vice versa
-	comm.exchange_data(glm, INT_MASTER, INT_SLAVE, compol);
-	comm.exchange_data(glm, INT_SLAVE, INT_MASTER, compol);
+	comm.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compol);
+	comm.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compol);
 	comm.communicate();
 }
 
@@ -253,12 +253,12 @@ void FinalizeRedistributionLayoutInterfaces(
 	MultiGrid& mg = *distGridMgr.get_assigned_grid();
 
 	Layout* masters = NULL;
-	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(INT_MASTER))
-		masters = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(INT_MASTER);
+	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(INT_H_MASTER))
+		masters = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(INT_H_MASTER);
 
 	Layout* slaves = NULL;
-	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(INT_SLAVE))
-		slaves = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(INT_SLAVE);
+	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(INT_H_SLAVE))
+		slaves = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(INT_H_SLAVE);
 
 //	we have to attach integers to the elements, in which we'll store the
 //	redistribution layouts node indices.
@@ -350,7 +350,7 @@ void FinalizeRedistributionLayoutInterfaces(
 										DistInterface& interface = distLayout.interface(
 																	targets[j], lvl);
 										interface.push_back(DistributionInterfaceEntry(
-																aaNodeInd[elem], INT_MASTER));
+																aaNodeInd[elem], INT_H_MASTER));
 									}
 									break;
 								}
@@ -359,7 +359,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									DistInterface& interface = distLayout.interface(
 																	newMasterProc, lvl);
 									interface.push_back(DistributionInterfaceEntry(
-															aaNodeInd[elem], INT_SLAVE));
+															aaNodeInd[elem], INT_H_SLAVE));
 									break;
 								}
 							}
@@ -377,7 +377,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									DistInterface& interface = distLayout.interface(
 																info.targetProc, lvl);
 									interface.push_back(DistributionInterfaceEntry(
-															aaNodeInd[elem], INT_MASTER));
+															aaNodeInd[elem], INT_H_MASTER));
 								}
 							}
 						}
@@ -451,7 +451,7 @@ void FinalizeRedistributionLayoutInterfaces(
 										DistInterface& interface = distLayout.interface(
 																	targets[j], lvl);
 										interface.push_back(DistributionInterfaceEntry(
-																aaNodeInd[elem], INT_MASTER));
+																aaNodeInd[elem], INT_H_MASTER));
 									}
 									break;
 								}
@@ -460,7 +460,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									DistInterface& interface = distLayout.interface(
 																	newMasterProc, lvl);
 									interface.push_back(DistributionInterfaceEntry(
-															aaNodeInd[elem], INT_SLAVE));
+															aaNodeInd[elem], INT_H_SLAVE));
 									break;
 								}
 							}
@@ -478,7 +478,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									DistInterface& interface = distLayout.interface(
 																info.targetProc, lvl);
 									interface.push_back(DistributionInterfaceEntry(
-															aaNodeInd[elem], INT_MASTER));
+															aaNodeInd[elem], INT_H_MASTER));
 								}
 							}
 						}

@@ -78,27 +78,31 @@ extern AGeomObjID aGeomObjID;
 
 ////////////////////////////////////////////////////////////////////////
 ///	The types of interface-entries.
-/**	INT_MASTER and INT_SLAVE describe (horizontal) connections between
+/**	INT_H_MASTER and INT_H_SLAVE describe (horizontal) connections between
  *	nodes on one level in a grid-hierarchy. They are used to communicate
  *	data between neighbours.
  *
- *	INT_VERTICAL_MASTER and INT_VERTICAL_SLAVE describe connections
+ *	INT_V_MASTER and INT_V_SLAVE describe (vertical) connections
  *	between nodes on different levels of a grid. They are used to
  *	communicate data between parents and children. They are only used
  *	for multigrids.
  *
  *	Note that the type parameter in DistributionInterfaceEntry is currently
  *	restricted to 4 bytes only!
+ *
+ *	developer note: Introducing INT_HORIZONTAL, INT_VERTICAL, INT_MASTER,
+ *					INT_SLAVE and building or combinations of those
+ *					would not make sense! Think about INT_H_MASTER | INT_V_SLAVE
+ *					in this case (it would not be clear whether the master
+ *					was in the H or in the V interface).
  */
 enum InterfaceNodeTypes
 {
-	INT_UNKNOWN =	0,
-	INT_MASTER,	///< horizontal master
-	INT_SLAVE,	///< horizontal slave
-	INT_VIRTUAL_MASTER,	///< virtual horizontal master. Required to build master-interfaces in special cases.
-	INT_VIRTUAL_SLAVE,	///< virtual horizontal slave. Required to build slave-interfaces in special cases.
-	INT_VERTICAL_MASTER,
-	INT_VERTICAL_SLAVE
+	INT_NONE =	0,
+	INT_H_MASTER = 1,		///< horizontal master node
+	INT_H_SLAVE = 1<<1,		///< horizontal slave node
+	INT_V_MASTER = 1<<2,	///< vertical master node
+	INT_V_SLAVE = 1<<3,		///< vertical slave node
 };
 
 //	declare vertex-, edge-, face- and volume-layouts

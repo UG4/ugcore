@@ -46,12 +46,14 @@ void ParallelCommunicator<TLayout>::
 send_data(int targetProc, Interface& interface,
 			  ICommunicationPolicy<TLayout>& commPol)
 {
-	assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
+	if(!interface.empty()){
+		assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
 
-	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
-	commPol.collect(stream, interface);
-	m_bSendBuffersFixed = m_bSendBuffersFixed
-						&& (commPol.get_required_buffer_size(interface) >= 0);
+		ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
+		commPol.collect(stream, interface);
+		m_bSendBuffersFixed = m_bSendBuffersFixed
+							&& (commPol.get_required_buffer_size(interface) >= 0);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -70,20 +72,22 @@ send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::single_level_layout_tag&)
 {
-	typename Layout::iterator iter = layout.begin();
-	typename Layout::iterator end = layout.end();
-	
-	commPol.begin_layout_collection(&layout);
-	
-	for(; iter != end; ++iter)
-	{
-		ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
-		commPol.collect(stream, layout.interface(iter));
-		m_bSendBuffersFixed = m_bSendBuffersFixed
-			&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+	if(layout.has_interface_elements()){
+		typename Layout::iterator iter = layout.begin();
+		typename Layout::iterator end = layout.end();
+
+		commPol.begin_layout_collection(&layout);
+
+		for(; iter != end; ++iter)
+		{
+			ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+			commPol.collect(stream, layout.interface(iter));
+			m_bSendBuffersFixed = m_bSendBuffersFixed
+				&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+		}
+
+		commPol.end_layout_collection();
 	}
-	
-	commPol.end_layout_collection();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -93,23 +97,25 @@ send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::multi_level_layout_tag&)
 {
-	commPol.begin_layout_collection(&layout);
-	
-	for(size_t i = 0; i < layout.num_levels(); ++i)
-	{
-		typename Layout::iterator iter = layout.begin(i);
-		typename Layout::iterator end = layout.end(i);
+	if(layout.has_interface_elements()){
+		commPol.begin_layout_collection(&layout);
 		
-		for(; iter != end; ++iter)
+		for(size_t i = 0; i < layout.num_levels(); ++i)
 		{
-			ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
-			commPol.collect(stream, layout.interface(iter));
-			m_bSendBuffersFixed = m_bSendBuffersFixed
-				&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+			typename Layout::iterator iter = layout.begin(i);
+			typename Layout::iterator end = layout.end(i);
+
+			for(; iter != end; ++iter)
+			{
+				ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+				commPol.collect(stream, layout.interface(iter));
+				m_bSendBuffersFixed = m_bSendBuffersFixed
+					&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+			}
 		}
+
+		commPol.end_layout_collection();
 	}
-	
-	commPol.end_layout_collection();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -142,9 +148,11 @@ void ParallelCommunicator<TLayout>::
 receive_data(int srcProc, Interface& interface,
 			ICommunicationPolicy<TLayout>& commPol)
 {
-	m_extractorInfos.push_back(ExtractorInfo(srcProc, &commPol
-											 &interface, NULL,
-											 NULL, NULL, 0));
+	if(!interface.empty()){
+		m_extractorInfos.push_back(ExtractorInfo(srcProc, &commPol
+												 &interface, NULL,
+												 NULL, NULL, 0));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -152,9 +160,11 @@ template <class TLayout>
 void ParallelCommunicator<TLayout>::
 receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
-	m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
-											 NULL, &layout,
-											 NULL, NULL, 0));
+	if(layout.has_interface_elements()){
+		m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
+												 NULL, &layout,
+												 NULL, NULL, 0));
+	}
 }
 
 template <class TLayout>

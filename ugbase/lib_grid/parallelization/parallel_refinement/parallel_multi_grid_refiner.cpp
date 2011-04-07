@@ -172,7 +172,7 @@ exchange_data(TDistributor& distributor,
 		GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
 
 	//	send data SLAVE -> MASTER
-		communicator.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
+		communicator.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
 										distributor);
 		communicator.communicate();
 		
@@ -188,7 +188,7 @@ exchange_data(TDistributor& distributor,
 		}
 				
 	//	send data MASTER -> SLAVE
-		communicator.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
+		communicator.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
 										distributor);
 		communicator.communicate();
 		
@@ -208,14 +208,14 @@ template <class TGeomObj, class TIterator>
 void ParallelMultiGridRefiner::
 mark_fixed_elements(TIterator iterBegin, TIterator iterEnd)
 {
-	if(m_distGridMgr.grid_layout_map().has_layout<TGeomObj>(INT_VERTICAL_MASTER))
+	if(m_distGridMgr.grid_layout_map().has_layout<TGeomObj>(INT_V_MASTER))
 	{
 		for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 		{
 			byte status = distGridMgr.get_status(*iter);
-			if(( status & ES_VERTICAL_MASTER)
-				&! (status & ES_MASTER)
-				&! (status & ES_SLAVE))
+			if(( status & ES_V_MASTER)
+				&! (status & ES_H_MASTER)
+				&! (status & ES_H_SLAVE))
 			{
 				set_rule(*iter, RM_FIXED);
 			}

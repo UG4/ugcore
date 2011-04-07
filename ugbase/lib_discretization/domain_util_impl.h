@@ -147,10 +147,10 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 /*
 //debug: check interfaces
 	GridLayoutMap& gridLayoutMap = distGridMgr.grid_layout_map();
-	if(gridLayoutMap.has_layout<VertexBase>(INT_VERTICAL_MASTER)){
+	if(gridLayoutMap.has_layout<VertexBase>(INT_V_MASTER)){
 		UG_LOG(">>> has vertical masters\n");
 	//	get the vertex layout (this is a multi-level-layout!)
-		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_VERTICAL_MASTER);
+		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_V_MASTER);
 		for(size_t l = 0; l < vl.num_levels(); ++l)
 		{
 			for(VertexLayout::iterator iter = vl.begin(l);
@@ -161,10 +161,10 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 			}
 		}
 	}
-	if(gridLayoutMap.has_layout<VertexBase>(INT_VERTICAL_SLAVE)){
+	if(gridLayoutMap.has_layout<VertexBase>(INT_V_SLAVE)){
 		UG_LOG(">>> has vertical slaves\n");
 	//	get the vertex layout (this is a multi-level-layout!)
-		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_VERTICAL_SLAVE);
+		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_V_SLAVE);
 		for(size_t l = 0; l < vl.num_levels(); ++l)
 		{
 			for(VertexLayout::iterator iter = vl.begin(l);
@@ -175,10 +175,10 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 			}
 		}
 	}
-	if(gridLayoutMap.has_layout<VertexBase>(INT_MASTER)){
+	if(gridLayoutMap.has_layout<VertexBase>(INT_H_MASTER)){
 		UG_LOG(">>> has horizontal masters\n");
 	//	get the vertex layout (this is a multi-level-layout!)
-		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_MASTER);
+		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_H_MASTER);
 		for(size_t l = 0; l < vl.num_levels(); ++l)
 		{
 			for(VertexLayout::iterator iter = vl.begin(l);
@@ -189,10 +189,10 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 			}
 		}
 	}
-	if(gridLayoutMap.has_layout<VertexBase>(INT_SLAVE)){
+	if(gridLayoutMap.has_layout<VertexBase>(INT_H_SLAVE)){
 		UG_LOG(">>> has horizontal slaves\n");
 	//	get the vertex layout (this is a multi-level-layout!)
-		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_SLAVE);
+		VertexLayout& vl = gridLayoutMap.get_layout<VertexBase>(INT_H_SLAVE);
 		for(size_t l = 0; l < vl.num_levels(); ++l)
 		{
 			for(VertexLayout::iterator iter = vl.begin(l);

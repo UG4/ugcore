@@ -147,19 +147,13 @@ collect_objects_for_refine()
 			ComPol_Selection<FaceLayout> compolSelFACE(m_selMarkedElements, true, false);
 
 		//	send data SLAVE -> MASTER
-			m_intfComVRT.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
-										compolSelVRT);
-			m_intfComVRT.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
+			m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
 										compolSelVRT);
 
-			m_intfComEDGE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
-										compolSelEDGE);
-			m_intfComEDGE.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
+			m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
 										compolSelEDGE);
 
-			m_intfComFACE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
-										compolSelFACE);
-			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
+			m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
 										compolSelFACE);
 
 			m_intfComVRT.communicate();
@@ -167,19 +161,13 @@ collect_objects_for_refine()
 			m_intfComFACE.communicate();
 
 		//	and now MASTER -> SLAVE (the selection has been adjusted on the fly)
-			m_intfComVRT.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
-										compolSelVRT);
-			m_intfComVRT.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
+			m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
 										compolSelVRT);
 
-			m_intfComEDGE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
-										compolSelEDGE);
-			m_intfComEDGE.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
+			m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
 										compolSelEDGE);
 
-			m_intfComFACE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
-										compolSelFACE);
-			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
+			m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
 										compolSelFACE);
 
 			m_intfComVRT.communicate();
@@ -254,7 +242,7 @@ void ParallelHangingNodeRefiner_MultiGrid::refine()
 	UG_LOG("\nTesting horizontal layouts...\n");
 	{
 		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_MASTER);
-		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_SLAVE);
+		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_H_SLAVE);
 		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
@@ -264,8 +252,8 @@ void ParallelHangingNodeRefiner_MultiGrid::refine()
 
 	UG_LOG("\nTesting vertical layouts...\n");
 	{
-		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_VERTICAL_MASTER);
-		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_VERTICAL_SLAVE);
+		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_V_MASTER);
+		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_V_SLAVE);
 		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),

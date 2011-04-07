@@ -39,7 +39,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 	pcl::ParallelCommunicator<Layout> com;
 	CopyPolicy<Layout, AGeomObjID> compolCopy(g, aID);
 
-	com.exchange_data(glm, INT_MASTER, INT_SLAVE, compolCopy);
+	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopy);
 	com.communicate();
 }
 

@@ -22,8 +22,8 @@ inline bool DistributedGridManager::
 is_ghost(TElem* elem)
 {
 	byte status = get_status(elem);
-	return 	(status & (ES_VERTICAL_MASTER | ES_MASTER | ES_SLAVE))
-			== ES_VERTICAL_MASTER;
+	return 	(status & (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE))
+			== ES_V_MASTER;
 }
 
 template <class TElem>

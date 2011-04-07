@@ -223,6 +223,17 @@ static IRefiner* HangingNodeDomainRefiner(TDomain* dom)
 	return new HangingNodeRefiner_MultiGrid(dom->get_grid());
 }
 
+
+template <typename TDomain>
+static void TestDomainInterfaces(TDomain* dom)
+{
+	#ifdef UG_PARALLEL
+		TestGridLayoutMap(dom->get_grid(),
+					dom->get_distributed_grid_manager()->grid_layout_map());
+	#endif
+}
+
+
 template <typename TDomain>
 static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 {
@@ -287,6 +298,9 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 //	refiner registration
 	reg.add_function("GlobalDomainRefiner", &GlobalDomainRefiner<domain_type>, grp.c_str());
 	reg.add_function("HangingNodeDomainRefiner", &HangingNodeDomainRefiner<domain_type>, grp.c_str());
+
+//	debugging
+	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<domain_type>, grp.c_str());
 
 	return true;
 }

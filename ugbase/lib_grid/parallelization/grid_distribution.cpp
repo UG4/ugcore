@@ -26,7 +26,7 @@ void PrintData(int* data, int size)
 
 ////////////////////////////////////////////////////////////////////////
 /**	All nodes in the given distribution layout will be added to
- *	the INT_VERTICAL_MASTER interface of layoutMapOut.*/
+ *	the INT_V_MASTER interface of layoutMapOut.*/
 template <class TGeomObj>
 static void AddVerticalMasterInterfaces(GridLayoutMap& layoutMapOut,
 										MultiGrid& mg,
@@ -57,7 +57,7 @@ static void AddVerticalMasterInterfaces(GridLayoutMap& layoutMapOut,
 			if(level != currentLevel){
 				currentLevel = level;
 			//	get the layout and the interface to targetProc
-				pLayout = &layoutMapOut.template get_layout<TGeomObj>(INT_VERTICAL_MASTER).
+				pLayout = &layoutMapOut.template get_layout<TGeomObj>(INT_V_MASTER).
 															layout_on_level(level);
 				pInterface = &pLayout->interface(targetProc);
 			}
@@ -140,42 +140,6 @@ static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
-/**	This method is only called if the source-grid is kept on the distributing
- *	process. In this case all master and slave entries have to be transformed
- *	to virtual-master and virtual-slave entries.
- */
-template <class TGeomObj>
-static void AdjustInterfaceElementType(DistributionNodeLayout<TGeomObj*>& distLayout)
-{
-//	some typedefs
-	typedef DistributionNodeLayout<TGeomObj*> 			DistLayout;
-
-//	iterate over the nodes
-	for(size_t level = 0; level < distLayout.num_levels(); ++level)
-	{
-		typename DistLayout::InterfaceMap& imap = distLayout.interface_map(level);
-		for(typename DistLayout::InterfaceMap::iterator iter = imap.begin();
-			iter != imap.end(); ++iter)
-		{
-			typename DistLayout::Interface& distInterface = iter->second;
-
-		//	iterate over the nodes in the interface
-			for(size_t i = 0; i < distInterface.size(); ++i){
-			//	change the types:
-			//		MASTER -> VIRTUAL_MASTER
-			//		SLAVE -> VIRTUAL_SLAVE
-
-				int elemType = distInterface[i].type;
-				switch(elemType){
-					case INT_MASTER: distInterface[i].type = INT_VIRTUAL_MASTER; break;
-					case INT_SLAVE: distInterface[i].type = INT_VIRTUAL_SLAVE; break;
-				}
-			}
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////
 //	DistributeGrid_KeepSrcGrid
 bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 								GridLayoutMap& layoutMap,
@@ -238,12 +202,6 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 		int proc = i;
 		if(pProcessMap)
 			proc = (*pProcessMap)[i];
-
-	//	all horizontal nodes have to be transformed to virtual horizontal nodes.
-		AdjustInterfaceElementType(vVertexLayouts[i]);
-		AdjustInterfaceElementType(vEdgeLayouts[i]);
-		AdjustInterfaceElementType(vFaceLayouts[i]);
-		AdjustInterfaceElementType(vVolumeLayouts[i]);
 
 	//	check whether the current proc is the local proc or another proc.
 		if(proc == localProcID)
@@ -495,7 +453,7 @@ bailout_false:
 
 ////////////////////////////////////////////////////////////////////////
 /**	All nodes in the given distribution layout will be added to
- *	the INT_VERTICAL_MASTER interface of layoutMapOut.
+ *	the INT_V_MASTER interface of layoutMapOut.
  *	This method is a little unsafe...
  *	It is absolutly crucial, that all elements have been created
  *	in the same order as they were received through the in-stream
@@ -540,7 +498,7 @@ static void AddVerticalSlaveInterfaces(GridLayoutMap& layoutMapOut,
 			//	get the appropriate layout and interface
 				if(!pInterface){
 					pLayout = &layoutMapOut.template
-								get_layout<TGeomObj>(INT_VERTICAL_SLAVE).
+								get_layout<TGeomObj>(INT_V_SLAVE).
 									layout_on_level(level);
 
 					pInterface = &pLayout->interface(srcProc);

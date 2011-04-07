@@ -121,23 +121,17 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 template <class TGeomObj>
 void DistributedGridManager::update_all_elem_infos()
 {
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_MASTER,
-							   ES_IN_INTERFACE | ES_MASTER);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_H_MASTER,
+							   ES_IN_INTERFACE | ES_H_MASTER);
 
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_SLAVE,
-							   ES_IN_INTERFACE | ES_SLAVE);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_H_SLAVE,
+							   ES_IN_INTERFACE | ES_H_SLAVE);
 
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VIRTUAL_MASTER,
-							   ES_IN_INTERFACE | ES_MASTER | ES_VIRTUAL);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_V_MASTER,
+							   ES_V_MASTER, true);
 
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VIRTUAL_SLAVE,
-							   ES_IN_INTERFACE | ES_SLAVE | ES_VIRTUAL);
-
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VERTICAL_MASTER,
-							   ES_VERTICAL_MASTER, true);
-
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
-							   ES_VERTICAL_SLAVE, true);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_V_SLAVE,
+							   ES_V_SLAVE, true);
 }
 		
 ////////////////////////////////////////////////////////////////////////
@@ -245,9 +239,9 @@ add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 	
 //	update status
 	if(nodeType == pcl::NT_MASTER)
-		set_status(pElem, get_status(pElem) | ES_MASTER);
+		set_status(pElem, get_status(pElem) | ES_H_MASTER);
 	else if(nodeType == pcl::NT_SLAVE)
-		set_status(pElem, get_status(pElem) | ES_SLAVE);
+		set_status(pElem, get_status(pElem) | ES_H_SLAVE);
 		
 	set_status(pElem, get_status(pElem) | ES_IN_INTERFACE);
 
@@ -262,19 +256,19 @@ add_element_to_interface(TElem* pElem, int procID)
 	typename GridLayoutMap::Types<TElem>::Interface::iterator iter;
 	typename GridLayoutMap::Types<TElem>::Interface* interface;
 	
-	if(status & ES_MASTER){
-		interface = &m_gridLayoutMap.get_layout<TElem>(INT_MASTER)
+	if(status & ES_H_MASTER){
+		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_MASTER)
 						.interface(procID, m_pGrid->get_level(pElem));
 		iter = interface->push_back(pElem);
-		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_MASTER);
+		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_H_MASTER);
 	}
 	else{
-		UG_ASSERT(status & ES_SLAVE, "interface-elements have to be either master or slave!");
-		interface = &m_gridLayoutMap.get_layout<TElem>(INT_SLAVE)
+		UG_ASSERT(status & ES_H_SLAVE, "interface-elements have to be either master or slave!");
+		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_SLAVE)
 						.interface(procID, m_pGrid->get_level(pElem));
 		iter = interface->push_back(pElem);
 						
-		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_SLAVE);
+		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_H_SLAVE);
 	}
 	
 //	add the interface-entry to the info
@@ -354,11 +348,11 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 	}
 	
 //	set the status
-	if(parentInfo.get_status() & (ES_MASTER))
-		elem_info(elem).set_status(ES_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+	if(parentInfo.get_status() & (ES_H_MASTER))
+		elem_info(elem).set_status(ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
 	else{
-		UG_ASSERT(parentInfo.get_status() & (ES_SLAVE), "interface-elements have to be either master or slave!");
-		elem_info(elem).set_status(ES_SLAVE);
+		UG_ASSERT(parentInfo.get_status() & (ES_H_SLAVE), "interface-elements have to be either master or slave!");
+		elem_info(elem).set_status(ES_H_SLAVE);
 	}
 }
 
@@ -619,9 +613,9 @@ add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 	
 //	update status
 	if(nodeType == pcl::NT_MASTER)
-		set_status(pElem, get_status(pElem) | ES_MASTER);
+		set_status(pElem, get_status(pElem) | ES_H_MASTER);
 	else if(nodeType == pcl::NT_SLAVE)
-		set_status(pElem, get_status(pElem) | ES_SLAVE);
+		set_status(pElem, get_status(pElem) | ES_H_SLAVE);
 		
 	set_status(pElem, get_status(pElem) | ES_IN_INTERFACE);
 
@@ -694,9 +688,9 @@ init_elem_status_from_comm_group(TCommGrp& commGrp,
 		if(commGrp.num_containing_interfaces(hNode) > 0)
 			stat |= ES_IN_INTERFACE;
 		if(commGrp.get_node_type(hNode) == pcl::NT_MASTER)
-			stat |= ES_MASTER;
+			stat |= ES_H_MASTER;
 		else if(commGrp.get_node_type(hNode) == pcl::NT_SLAVE)
-			stat |= ES_SLAVE;
+			stat |= ES_H_SLAVE;
 	}
 }
 */
@@ -716,37 +710,37 @@ void DistributedGrid::grid_layouts_changed(bool addedElemsOnly)
 //	init_elem_status_from_layout function.
 //	every layout has multiple levels
 //	VERTICES
-	if(m_gridLayoutMap.has_layout<VertexBase>(INT_MASTER))
-		set_elem_statuses(m_gridLayoutMap.get_layout<VertexBase>(INT_MASTER),
-						m_aaStatusVRT, m_aaIEIterVRT, ES_IN_INTERFACE | ES_MASTER);
+	if(m_gridLayoutMap.has_layout<VertexBase>(INT_H_MASTER))
+		set_elem_statuses(m_gridLayoutMap.get_layout<VertexBase>(INT_H_MASTER),
+						m_aaStatusVRT, m_aaIEIterVRT, ES_IN_INTERFACE | ES_H_MASTER);
 	
-	if(parallelGridLayout.has_vertex_layout(INT_SLAVE))
-		set_elem_statuses(parallelGridLayout.vertex_layout(INT_SLAVE),
-						m_aaStatusVRT, ES_IN_INTERFACE | ES_SLAVE);
+	if(parallelGridLayout.has_vertex_layout(INT_H_SLAVE))
+		set_elem_statuses(parallelGridLayout.vertex_layout(INT_H_SLAVE),
+						m_aaStatusVRT, ES_IN_INTERFACE | ES_H_SLAVE);
 
 //	EDGES						
-	if(m_gridLayoutMap.has_edge_layout(INT_MASTER))
-		set_elem_statuses(m_gridLayoutMap.edge_layout(INT_MASTER),
-						m_aaStatusEDGE, ES_IN_INTERFACE | ES_MASTER);
-	if(m_gridLayoutMap.has_edge_layout(INT_SLAVE))
-		set_elem_statuses(m_gridLayoutMap.edge_layout(INT_SLAVE),
-						m_aaStatusEDGE, ES_IN_INTERFACE | ES_SLAVE);
+	if(m_gridLayoutMap.has_edge_layout(INT_H_MASTER))
+		set_elem_statuses(m_gridLayoutMap.edge_layout(INT_H_MASTER),
+						m_aaStatusEDGE, ES_IN_INTERFACE | ES_H_MASTER);
+	if(m_gridLayoutMap.has_edge_layout(INT_H_SLAVE))
+		set_elem_statuses(m_gridLayoutMap.edge_layout(INT_H_SLAVE),
+						m_aaStatusEDGE, ES_IN_INTERFACE | ES_H_SLAVE);
 
 //	FACES
-	if(m_gridLayoutMap.has_face_layout(INT_MASTER))
-		set_elem_statuses(m_gridLayoutMap.face_layout(INT_MASTER),
-						m_aaStatusFACE, ES_IN_INTERFACE | ES_MASTER);
-	if(m_gridLayoutMap.has_face_layout(INT_SLAVE))
-		set_elem_statuses(m_gridLayoutMap.face_layout(INT_SLAVE),
-						m_aaStatusFACE, ES_IN_INTERFACE | ES_SLAVE);
+	if(m_gridLayoutMap.has_face_layout(INT_H_MASTER))
+		set_elem_statuses(m_gridLayoutMap.face_layout(INT_H_MASTER),
+						m_aaStatusFACE, ES_IN_INTERFACE | ES_H_MASTER);
+	if(m_gridLayoutMap.has_face_layout(INT_H_SLAVE))
+		set_elem_statuses(m_gridLayoutMap.face_layout(INT_H_SLAVE),
+						m_aaStatusFACE, ES_IN_INTERFACE | ES_H_SLAVE);
 
 //	VOLUMES				
-	if(m_gridLayoutMap.has_volume_layout(INT_MASTER))
-		set_elem_statuses(m_gridLayoutMap.volume_layout(INT_MASTER),
-						m_aaStatusVOL, ES_IN_INTERFACE | ES_MASTER);
-	if(m_gridLayoutMap.has_volume_layout(INT_SLAVE))
-		set_elem_statuses(m_gridLayoutMap.volume_layout(INT_SLAVE),
-						m_aaStatusVOL, ES_IN_INTERFACE | ES_SLAVE);						
+	if(m_gridLayoutMap.has_volume_layout(INT_H_MASTER))
+		set_elem_statuses(m_gridLayoutMap.volume_layout(INT_H_MASTER),
+						m_aaStatusVOL, ES_IN_INTERFACE | ES_H_MASTER);
+	if(m_gridLayoutMap.has_volume_layout(INT_H_SLAVE))
+		set_elem_statuses(m_gridLayoutMap.volume_layout(INT_H_SLAVE),
+						m_aaStatusVOL, ES_IN_INTERFACE | ES_H_SLAVE);						
 }
 
 ////////////////////////////////////////////////////////////////////////

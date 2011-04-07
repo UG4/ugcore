@@ -16,7 +16,7 @@ namespace ug
 ///	Returns the type of associated interfaces
 /**
  * \param interfaceType: a constant enumerated in ug::InterfaceNodeTypes.
- * \return the associated interface type or INT_UNKNOWN, if no associated
+ * \return the associated interface type or INT_NONE, if no associated
  *		type is known.
  */
 int GetAssociatedInterfaceType(int interfaceType);
