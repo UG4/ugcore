@@ -261,6 +261,9 @@ class IExportedClass
 	///	get groups
 		virtual const std::string& group() const = 0;
 
+	/// get tooltip
+		virtual const std::string& tooltip() const = 0;
+
 	///	name-list of class hierarchy
 		virtual const std::vector<const char*>* class_names() const = 0;
 
@@ -305,6 +308,8 @@ class IExportedClass
 	///	destructur for object
 		virtual void destroy(void* obj) const = 0;
 
+
+
 	///  virtual destructor
 		virtual ~IExportedClass() {};
 };
@@ -320,8 +325,8 @@ class ExportedClass_ : public IExportedClass
 
 	public:
 	//  contructor
-		ExportedClass_(const char* name, const char* group = "") 
-				: m_constructor(NULL), m_destructor(NULL)
+		ExportedClass_(const char* name, const char* group = "", const char *tooltip = "")
+				: m_constructor(NULL), m_destructor(NULL), m_tooltip(tooltip)
 		{
 			ClassNameProvider<TClass>::set_name(name, group, true);
 			ClassNameProvider<const TClass>::set_name(name, group, true);
@@ -330,6 +335,11 @@ class ExportedClass_ : public IExportedClass
 	/// name of class
 		virtual const char* name() const {return ClassNameProvider<TClass>::name();}
 
+	/// tooltip
+		virtual const std::string& tooltip() const
+		{
+			return m_tooltip;
+		}
 	///	get groups
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
@@ -547,6 +557,7 @@ class ExportedClass_ : public IExportedClass
 
 		std::vector<ExportedMethodGroup*> m_vMethod;
 		std::vector<ExportedMethodGroup*> m_vConstMethod;
+		std::string m_tooltip;
 };
 
 } // end namespace bridge
