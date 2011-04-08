@@ -155,7 +155,7 @@ class Registry {
 	 * This function registers any class
 	 */
 		template <typename TClass>
-		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
+		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "", const char *tooltip="")
 		{
 		//	check that className is not already used
 			if(classname_registered(className))
@@ -179,7 +179,7 @@ class Registry {
 		//	try creation
 			try
 			{
-				newClass = new ExportedClass_<TClass>(className, group);
+				newClass = new ExportedClass_<TClass>(className, group, tooltip);
 			}
 			catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
 			{
@@ -199,7 +199,7 @@ class Registry {
 	 * This function registers any class together with its base class
 	 */
 		template <typename TClass, typename TBaseClass>
-		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
+		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "", const char *tooltip = "")
 		{
 		//	check that className is not already used
 			if(classname_registered(className))
@@ -239,7 +239,7 @@ class Registry {
 		//	try creation of new class
 			try
 			{
-				newClass = new ExportedClass_<TClass>(className, group);
+				newClass = new ExportedClass_<TClass>(className, group, tooltip);
 			}
 			catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
 			{
