@@ -333,7 +333,7 @@ bool ProjectLevelToSurface(TVector& surfVector,
 
 	//	get intersection of types
 		for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
-			if(vLevelVector[lev] != NULL)
+			if(vLevelVector[lev] != NULL && vLevelVector[lev]->size() > 0)
 				type = type & vLevelVector[lev]->get_storage_mask();
 
 	//	check if union is defined
