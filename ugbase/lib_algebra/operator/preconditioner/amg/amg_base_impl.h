@@ -182,15 +182,18 @@ bool amg_base<TAlgebra>::init()
 		// finish
 		/////////////////////////////////////////
 
-		size_t nnzCoarse = m_A[level+1]->total_num_connections();
-		double nrOfFine = m_A[level]->num_rows();
 		double nrOfCoarse = m_A[level+1]->num_rows();
-		UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << nnzCoarse << " Density: " <<
-				nnzCoarse/(nrOfCoarse*nrOfCoarse)*100.0 << "%, avg. nnz pre row: " << nnzCoarse/nrOfCoarse << std::endl);
+		IF_DEBUG(LIB_ALG_AMG, 1)
+		{
+			size_t nnzCoarse = m_A[level+1]->total_num_connections();
+			double nrOfFine = m_A[level]->num_rows();
+			UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << nnzCoarse << " Density: " <<
+					nnzCoarse/(nrOfCoarse*nrOfCoarse)*100.0 << "%, avg. nnz pre row: " << nnzCoarse/nrOfCoarse << std::endl);
 
-		UG_DLOG(LIB_ALG_AMG, 1, "Coarsening rate: " << (100.0*nrOfCoarse)/nrOfFine << "%" << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 1, "Coarsening rate: " << (100.0*nrOfCoarse)/nrOfFine << "%" << std::endl);
 
-		UG_DLOG(LIB_ALG_AMG, 1, " level took " << SWwhole.ms() << " ms" << std::endl << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 1, " level took " << SWwhole.ms() << " ms" << std::endl << std::endl);
+		}
 
 		m_levelInformation.push_back(LevelInformation(SWwhole.ms(), nrOfCoarse));
 
@@ -443,11 +446,13 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 	c = const_c;
 	d = const_d;
 
+#ifdef UG_PARALLEL
 	if(!d.has_storage_type(PST_ADDITIVE) || !c.has_storage_type(PST_CONSISTENT))
 	{
 		UG_LOG("ERROR: In 'amg::check':Inadequate storage format of Vectors.\n");
 		return false;
 	}
+#endif
 
 	// build defect:  d := d_nl - J(u)*c_nl
 //	m_A[0]->matmul_minus(d, c);
