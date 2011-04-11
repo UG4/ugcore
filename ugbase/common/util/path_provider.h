@@ -58,7 +58,7 @@ class PathProvider
 		{return inst().m_map[pathType];}
 
 	///	returns the current path
-	/**	current pathes are stored in a stack. The top of the stack is considered
+	/**	current paths are stored in a stack. The top of the stack is considered
 	 * to be the most current path and is returned by this method.
 	 *
 	 * \param defPath	(optional) If the stack is empty, the path associated with
