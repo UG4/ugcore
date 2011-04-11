@@ -14,46 +14,53 @@
 
 //#include "maxheap.h"
 #include "boxsort.h"
+#include "amg_debug_helper.h"
 
 namespace ug {
 
 //  structs
-#define ASSIGNED_RATING					(-1000000000)
-#define COARSE_RATING					(-1000000001)
-#define FINE_RATING						(-2000000000)
-#define FINE_RATING_INDIRECT_UNASSIGNED	(-1000000002)
-struct amg_nodeinfo
+#define AMG_UNKNOWN							(-1)
+#define AMG_ASSIGNED_RATING					(-2)
+#define AMG_COARSE_RATING					(-3)
+#define AMG_UNASSIGNED_FINE_INDIRECT_RATING	(-4)
+#define AMG_FINE_RATING						(-6)
+class AMGNode
 {
-	int rating;
+private:
+
 	//int newIndex;		
-	inline void setAssigned(){rating = ASSIGNED_RATING;}		
-	inline void setCoarse()	{rating = COARSE_RATING;}
-	inline void setFineDirect(){rating = FINE_RATING;	}
+	inline void set_assigned(){rating = AMG_ASSIGNED_RATING;}		
+	inline void set_coarse()	{rating = AMG_COARSE_RATING;}
+	inline void set_fine_direct(){rating = AMG_FINE_RATING;	}
 	
-	inline void setFineIndirect(){rating = FINE_RATING_INDIRECT_UNASSIGNED;}
+	inline void set_unassigned_fine_indirect(){rating = AMG_UNASSIGNED_FINE_INDIRECT_RATING;}
+	inline void set_fine_indirect_level(int level) { rating = AMG_FINE_RATING+1-level;}
 	
-	inline bool isCoarse() const {	return rating == COARSE_RATING;}
-	inline bool isFineDirect() const {return (rating == FINE_RATING);}
+public:
+	AMGNode() { rating = AMG_UNKNOWN; }
+	int rating;
+	inline bool is_coarse() const {	return rating == AMG_COARSE_RATING;}
+	inline bool is_fine_direct() const {return (rating == AMG_FINE_RATING);}
 	
-	inline bool isUnassignedFineIndirect() const {return rating == FINE_RATING_INDIRECT_UNASSIGNED;}
+	inline bool is_unassigned_fine_indirect() const {return rating == AMG_UNASSIGNED_FINE_INDIRECT_RATING;}
 	
 	
-	inline bool isFineIndirectLevel(int level) const { return rating == FINE_RATING+1-level;}
-	inline void setFineIndirectLevel(int level) { rating = FINE_RATING+1-level;}
+	inline bool is_fine_indirect_level(int level) const { return rating == AMG_FINE_RATING+1-level;}
 	
-	inline bool isAssigned() const {return (rating <= ASSIGNED_RATING);}
-	
-	friend std::ostream &operator << (std::ostream &out, const amg_nodeinfo &n)
+
+	inline bool is_assigned() const {return (rating <= AMG_ASSIGNED_RATING);}
+
+	friend std::ostream &operator << (std::ostream &out, const AMGNode &n)
 	{
 		out << "Rating: " << n.rating;
 		if(n.rating < 0)
 		{
-			if(n.isCoarse()) out << " (coarse)";
-			else if(n.isUnassignedFineIndirect()) out << "(unknown indirect fine)";
-			else if(FINE_RATING-n.rating == 0)
+			if(n.is_coarse()) out << " (coarse)";
+			else if(n.is_unassigned_fine_indirect()) out << "(unknown indirect fine)";
+			else if(n.is_fine_direct())
 				out << " (fine direct)";
 			else
-				out << " (indirect level " << FINE_RATING+1-n.rating << ")";
+				out << " (indirect level " << AMG_FINE_RATING+1-n.rating << ")";
 		}
 		out << " ";
 		return out;
@@ -63,7 +70,7 @@ struct amg_nodeinfo
 		std::cout << *this << std::endl;
 	} // << " newindex: " << newIndex << endl;
 	
-	inline bool operator > (const amg_nodeinfo &other) const
+	inline bool operator > (const AMGNode &other) const
 	{
 		if(rating == other.rating)
 			return this < &other; // we somehow want a STABLE sort, for that coarsening is in the direction of the numbering of the elements
@@ -76,10 +83,140 @@ struct amg_nodeinfo
 		UG_ASSERT(rating >= 0 && rating < 1000, "rating is " << rating << ", out of bounds [0, 1000]");
 		return (int)rating;
 	}
+
+	friend class AMGNodes;
 };
 
-//	typedef maxheap<amg_nodeinfo> nodeinfo_pq_type;
-typedef BoxSort<amg_nodeinfo> nodeinfo_pq_type;
+
+class AMGNodes
+{
+public:
+	AMGNodes()
+	{
+		m_unassigned = 0;
+		m_iNrOfCoarse = 0;
+	}
+
+	AMGNodes(size_t s)
+	{
+		resize(s);
+	}
+
+	void resize(size_t s)
+	{
+		m_nodes.resize(s);
+		m_isOnBoundary.resize(s, false);
+
+		m_unassigned = 0;
+		m_iNrOfCoarse = 0;
+	}
+
+	AMGNode &operator[] (size_t i)
+	{
+		return m_nodes[i];
+	}
+
+	const AMGNode &operator[] (size_t i) const
+	{
+		return m_nodes[i];
+	}
+
+	bool is_on_boundary(size_t i)
+	{
+		return m_isOnBoundary[i];
+	}
+
+	void set_is_on_boundary(size_t i, bool b)
+	{
+		m_isOnBoundary[i] = b;
+	}
+
+	size_t size() const
+	{
+		return m_nodes.size();
+	}
+
+	inline void set_assigned(size_t i)
+	{
+		m_nodes[i].set_assigned();
+		UG_ASSERT(m_unassigned != 0, i);
+		m_unassigned--;
+	}
+	inline void set_coarse(size_t i)
+	{
+		if(m_nodes[i].is_assigned() == false)
+		{
+			UG_ASSERT(m_unassigned != 0, i);
+			m_unassigned--;
+		}
+		else if(m_nodes[i].is_coarse()) return;
+		m_nodes[i].set_coarse();
+		m_iNrOfCoarse++;
+	}
+	inline void set_fine_direct(size_t i)
+	{
+		m_nodes[i].set_fine_direct();
+		UG_ASSERT(m_unassigned != 0, i);
+		m_unassigned--;
+	}
+
+	inline void set_unassigned_fine_indirect(size_t i)
+	{
+		UG_ASSERT(m_nodes[i].is_fine_direct(), "");
+		m_nodes[i].set_unassigned_fine_indirect();
+		m_unassigned++;
+	}
+
+	inline void set_fine_indirect_level(size_t i, int level)
+	{
+		UG_ASSERT(m_nodes[i].is_unassigned_fine_indirect(), "");
+		m_nodes[i].set_fine_indirect_level(level);
+		m_unassigned--;
+	}
+
+	inline void set_isolated(size_t i)
+	{
+		if(m_nodes[i].rating >=0)
+			m_unassigned--;
+		m_nodes[i].set_fine_direct();
+	}
+
+
+	size_t get_unassigned() const
+	{
+		return m_unassigned;
+	}
+
+	size_t get_nr_of_coarse() const
+	{
+		return m_iNrOfCoarse;
+	}
+
+	void set_rating(size_t i, int rating)
+	{
+		UG_ASSERT(rating >=0, "");
+		m_unassigned++;
+		if(m_nodes[i].is_coarse()) m_iNrOfCoarse--;
+		m_nodes[i].rating = rating;
+	}
+
+	void print_ratings(const cAMG_helper &amghelper, size_t level) const
+	{
+		UG_LOG("Coarsen ratings:\n")
+		for(size_t i=0; i<size(); i++)
+			UG_LOG(i << " [" << amghelper.GetOriginalIndex(level, i) << "] " << m_nodes[i] << std::endl);
+	}
+
+
+private:
+	stdvector<AMGNode> m_nodes;
+	stdvector<bool> m_isOnBoundary;
+	int m_unassigned;
+	int m_iNrOfCoarse;			//< nr of nodes to assign
+};
+
+//	typedef maxheap<AMGNode> nodeinfo_pq_type;
+typedef BoxSort<AMGNode> nodeinfo_pq_type;
 
 }
 

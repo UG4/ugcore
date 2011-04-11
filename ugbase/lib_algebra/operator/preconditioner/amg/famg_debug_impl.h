@@ -49,7 +49,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::wr
 		std::fstream fdirichlet(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_dirichlet") + ToString(level), ".marks").c_str(), std::ios::out);
 		for(size_t i=0; i < rating.size(); i++)
 		{
-			int o = m_famg.m_amghelper.GetOriginalIndex(level, i);
+			//int o = m_famg.m_amghelper.GetOriginalIndex(level, i);
+			int o=i;
 			if(rating[i].is_fine()) ffine << o << "\n";
 			else if(rating[i].is_coarse()) fcoarse << o << "\n";
 			else if(rating[i].is_dirichlet()) fdirichlet << o << "\n";

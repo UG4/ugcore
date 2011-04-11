@@ -7,7 +7,9 @@
  *
  * class declaration for amg_base
  *
- * Goethe-Center for Scientific Computing 2009-2010.
+ * Goethe-Center for Scientific Computing 2009-2011.
+ *
+ *
  */
 
 
@@ -35,9 +37,13 @@ namespace ug{
 
 // AMG
 //---------------------------------
-//! algebraic multigrid class.
-//!
-
+/**
+ * algebraic multigrid (AMG) class.
+ *
+ * scientific references:
+ * [AMGKS99]: Algebraic Multigrid (AMG): An Introduction with Applications, K Stüben. GMD Report 70, November 1999
+ *
+ */
 template <typename TAlgebra>
 class amg:
 	public amg_base< TAlgebra >
@@ -48,6 +54,7 @@ public:
 	using super::m_parentIndex;
 	using super::m_writeMatrices;
 	using super::m_writeMatrixPath;
+	using super::is_fine;
 
 public:
 //	Algebra type
@@ -74,14 +81,28 @@ public:
 
 	virtual const char* name() const {return "AMGPreconditioner";}
 
-	void set_theta(double new_theta) 		{ m_dTheta = new_theta; }
-	double get_theta() const				{ return m_dTheta; }
-	void set_sigma(double new_sigma) 		{ m_dSigma = new_sigma; }
-	double get_sigma() const				{ return m_dSigma; }
+
+	//! 	sets epsilon_strong, a measure for strong connectivity
+	void 	set_epsilon_strong(double new_theta) 		{ m_dTheta = new_theta; }
+	double 	get_epsilon_strong() const					{ return m_dTheta; }
+
+
+	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
+	void 	set_epsilon_truncation(double new_sigma) 	{ m_dSigma = new_sigma; }
+	double 	get_epsilon_truncation() const				{ return m_dSigma; }
 
 	void set_epsilon(double new_epsilon) 	{ m_dEpsilon = new_epsilon; }
 	double get_epsilon() const				{ return m_dEpsilon; }
 
+
+	/**
+	 * enables Aggressive Coarsening on the first level
+	 * two coarse nodes are strong connected if there exist nrOfPaths of length 2 on the original graph
+	 * \param nrOfPaths
+	 * \note only 1 and 2 supported at the moment (A1 and A2).
+	 * \sa CreateAggressiveCoarseningGraph
+	 * [AMGKS99] 7.1.2
+	 */
 	void enable_aggressive_coarsening_A(int nrOfPaths)
 	{
 		m_bAggressiveCoarsening = true; m_iAggressiveCoarseningNrOfPaths = nrOfPaths;
@@ -97,6 +118,12 @@ protected:
 //  functions
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 					prolongation_matrix_type &P, size_t level);
+
+private:
+	void debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+			prolongation_matrix_type &P, size_t level, const AMGNodes &nodes);
+	void create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level);
+	void create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level);
 
 // data
 	double m_dEpsilon;	///< parameter used for truncation of interpolation

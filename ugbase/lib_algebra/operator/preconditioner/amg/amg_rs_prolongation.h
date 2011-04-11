@@ -22,29 +22,27 @@ namespace ug {
 //-------------------------
 /**
  * Calculates Prolongation P with Matrix_type A and coarse/fine markers in
- * nodes[i].isFine/isCoarse by direct interpolation
+ * nodes[i].is_/is_coarse by direct interpolation
  * \param 	P				Matrix P: here goes the calculated prolongation
  * \param	A				Matrix A: matrix for which to calculate prolongation on next level
- * \param	newIndex		newIndex of coarse Node i on next coarser level
- * \param	iNrOfCoarse		nr of coarse nodes on this level
- * \param	unassigned		(out) returns the nr of nodes which could not be assigned
  * \param	nodes			fine/coarse marks of the nodes.
  * \param	theta			\f$\epsilon_{str}\f$.
  */
 template<typename Matrix_type>
-void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, stdvector<int> &newIndex,
-		int iNrOfCoarse, int &unassigned, stdvector<amg_nodeinfo> &nodes, double theta)
+void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, AMGNodes &nodes,
+		stdvector<int> &newIndex, double theta)
 {
-	P.resize(A.num_rows(), iNrOfCoarse);
+	UG_ASSERT(newIndex.size() == nodes.size(), "");
+	P.resize(A.num_rows(), nodes.get_nr_of_coarse());
 
 	std::vector<SparseMatrix<double>::connection> con(255);
 	SparseMatrix<double>::connection c;
+
 	// DIRECT INTERPOLATION
-	unassigned=0;
 
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
-		if(nodes[i].isCoarse())
+		if(nodes[i].is_coarse())
 		{
 			// a coarse node
 			UG_ASSERT(newIndex[i] != -1, "coarse node but no new index?");
@@ -54,7 +52,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 		{
 			//P[i].initWithoutDiag(); // boundary values need not to be prolongated
 		}
-		else if(nodes[i].isFineDirect())
+		else if(nodes[i].is_fine_direct())
 		{
 			// a non-interpolated fine node. calculate interpolation weights
 
@@ -79,15 +77,16 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 				if(dmax > connValue)
 					dmax = connValue;
-				if(nodes[conn.index()].isCoarse() && maxConnValue > connValue)
+				if(nodes[conn.index()].is_coarse() && maxConnValue > connValue)
 					maxConnValue = connValue;
 
 			}
 
 			double barrier;
-			//if(eps_truncation_of_interpolation > 0)  // Ruge/Stuebe A.7.2.4 truncation of interpolation
-			//	barrier = min(theta*dmax, eps_truncation_of_interpolation*maxConnValue);
-			//else
+			// todo: check if it is ok to do it THIS way:
+			/*if(eps_truncation_of_interpolation > 0)  // [AMGKS99] 7.2.4 truncation of interpolation
+				barrier = min(theta*dmax, eps_truncation_of_interpolation*maxConnValue);
+			else*/
 				barrier = theta*dmax;
 
 			con.clear();
@@ -95,13 +94,15 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
 				if(conn.index() == i) continue; // skip diagonal
-				if(!nodes[conn.index()].isCoarse()) continue;
+				if(!nodes[conn.index()].is_coarse()) continue;
 
 				connValue = amg_offdiag_value(conn.value());
 				if(connValue > barrier)
 					continue;
-				c.iIndex = newIndex[conn.index()];   assert(c.iIndex >= 0);
+				c.iIndex = newIndex[conn.index()];
 				c.dValue = connValue;
+
+				UG_ASSERT(c.iIndex >= 0, "not coarse?");
 
 				con.push_back(c);
 				sumInterpolatory += connValue;
@@ -123,19 +124,19 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			{
 				// no suitable interpolating nodes for node i,
 				// so this node has to be treated by indirect interpolation
-				unassigned++;
-				nodes[i].setFineIndirect();
+				nodes.set_unassigned_fine_indirect(i);
 			}
 		}
 		else
 		{
-			unassigned++;
+			UG_ASSERT(0, "?");
+			//unassigned++;
 			//UG_ASSERT(aggressiveCoarsening != 0, "no aggressive Coarsening but node " << i << " is fine and indirect??");
 		}
 	}
 
-	if(unassigned)
-		UG_LOG("Pass 1: " << unassigned << " left. ")
+	if(nodes.get_unassigned())
+		UG_DLOG(LIB_ALG_AMG, 1, "Pass 1: " << nodes.get_unassigned() << " left. ")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,24 +144,21 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 //-------------------------
 /**
  * Assume Prolongation of all normal fine nodes is already computed, it calculates the Interpolation of
- * fineIndirect nodes with Matrix_type A and Coarse/FineIndirect markers in nodes[i].isCoarse/isFineIndirect
+ * fineIndirect nodes with Matrix_type A and Coarse/FineIndirect markers in nodes[i].is_coarse/is_fine_indirect
  *
- * Probably this is not the fastest way to do this:
- * One could create the graph 1 directly with indirect interpolation, then coarse, and then
- * calc interpolation. For fine nodes with no coarse neighbors, calc fine neighbors' interpolation,
- * then calc indirect interpolation. check if interpolation already calculated by looking at P.iNrOfConnections[i].
+ * [AMGKS99] 7.2.2 Multi-pass-interpolation
+ * Using A1 or A2 aggressive coarsening, it can be shown that we need at most 4 passes.
+ * \note CreateIndirectProlongation is starts with pass 2, since pass 1 is CreateRugeStuebenProlongation.
  *
  * \param 	P					Matrix P: here goes the calculated prolongation
  * \param	A					Matrix A: matrix for which to calculate prolongation on next level
- * \param	newIndex			newIndex of coarse Node i on next coarser level
- * \param	unassigned
  * \param	nodes
  * \param 	posInConnections	array of size A.num_rows() for speedup of neighbor-neighbor-calculation inited with -1.
  * \param	theta
  */
 template<typename Matrix_type>
 void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
-		stdvector<int> &newIndex, int unassigned, stdvector<amg_nodeinfo> &nodes, int *posInConnections, double theta)
+		AMGNodes &nodes, int *posInConnections, double theta)
 {
 	std::vector<SparseMatrix<double>::connection > con, con2;
 	std::vector<int> nrOfPaths;
@@ -169,17 +167,17 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 	//P.print();
 	// INDIRECT INTERPOLATION
 
-	int oldUnassigned = -1;
+	size_t oldUnassigned = -1;
 	int pass=2;
-	while(unassigned)
+	while(nodes.get_unassigned())
 	{
 #ifdef AMG_PRINT_INDIRECT
-		UG_LOG(std::endl);
+		UG_DLOG(LIB_ALG_AMG, 1, std::endl);
 #endif
-		UG_LOG("Pass " << pass << ": ");
-		for(size_t i=0; i<A.num_rows() && unassigned > 0; i++)
+		UG_DLOG(LIB_ALG_AMG, 1, "Pass " << pass << ": ");
+		for(size_t i=0; i<A.num_rows() && nodes.get_unassigned() > 0; i++)
 		{
-			if(!nodes[i].isUnassignedFineIndirect() || A.is_isolated(i))
+			if(!nodes[i].is_unassigned_fine_indirect() || A.is_isolated(i))
 				continue;
 
 			double diag = amg_diag_value(A(i, i));
@@ -217,12 +215,12 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 
 				// we dont want fine nodes which were indirectly interpolated in THIS pass
 				// (no gauss-seidel-style)
-				if(nodes[indexN].isFineIndirectLevel(pass))
+				if(nodes[indexN].is_fine_indirect_level(pass))
 					continue;
 				// all interpolate neighbors are now from pass (pass-1)
 
 
-				UG_ASSERT(!nodes[indexN].isCoarse(), "Node " << i << " indirect, but neighbor " <<  indexN << " coarse?");
+				UG_ASSERT(!nodes[indexN].is_coarse(), "Node " << i << " indirect, but neighbor " <<  indexN << " coarse?");
 
 				// now we look at the interpolation values of this neighbor (in P !!!)
 				// and set w'(i,indexNN) += A(i,indexN) * P(indexN,indexNN)
@@ -253,15 +251,17 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 			if(con.size() == 0)
 				continue;
 
-			unassigned --;
-			nodes[i].setFineIndirectLevel(pass);
+			nodes.set_fine_indirect_level(i, pass);
+
 #ifdef AMG_PRINT_INDIRECT
 			cout << i << " ";
 #endif
 			//cout << endl;
 
 			UG_ASSERT(sumInterpolatory != 0.0, " numerical unstable?");
-			double alpha =  /*1/sumInterpolatory; */ - (sumNeighbors / sumInterpolatory)/diag;
+
+			double alpha = - (sumNeighbors / sumInterpolatory)/diag;
+
 			for(size_t j=0; j<con.size(); j++)
 			{
 				// set w(i,j) = alpha * w'(i,j)
@@ -269,33 +269,34 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 				con[j].dValue *= alpha;
 			}
 
-			// connections hinzufuegen
+			// add connections
 			P.set_matrix_row(i, &con[0], con.size());
-
 		}
 
 
-		if(unassigned == oldUnassigned)
+		if(nodes.get_unassigned() == oldUnassigned)
 		{
 			UG_LOG(std::endl << "unassigned nodes left: " << std::endl);
 			for(size_t i=0; i<A.num_rows(); i++)
 			{
-				if(nodes[i].isUnassignedFineIndirect())
+				if(nodes[i].is_unassigned_fine_indirect())
 				 UG_LOG(i << " ");
 			}
 			UG_LOG("\n");
 		}
-		UG_ASSERT(unassigned != oldUnassigned, "Pass " << pass <<
-				": Indirect Interpolation hangs at " << unassigned << " unassigned nodes.");
+		UG_ASSERT(nodes.get_unassigned() != oldUnassigned, "Pass " << pass <<
+				": Indirect Interpolation hangs at " << nodes.get_unassigned() << " unassigned nodes.");
 
 #ifdef AMG_PRINT_INDIRECT
 		UG_LOG("calculated, ");
 #endif
-		UG_LOG(unassigned << " left. ");
+		UG_LOG(nodes.get_unassigned() << " left. ");
 		pass++;
-		oldUnassigned = unassigned;
-		//break;
+		oldUnassigned = nodes.get_unassigned();
+		break;
 	}
+
+	UG_ASSERT(nodes.get_unassigned() == 0, "number of unassigned nodes is still " << nodes.get_unassigned());
 
 	P.defragment();
 	//P.print();

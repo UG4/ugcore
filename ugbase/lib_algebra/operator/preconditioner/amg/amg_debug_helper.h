@@ -31,7 +31,11 @@ struct cAMG_helper
 	int GetOriginalIndex(int level, int i) const
 	{
 		while(level > 0)
+		{
+			if(i >= (int)(*parentIndex)[level].size())
+				return 0;
 			i = (*parentIndex)[level--][i];
+		}
 		return i;
 	}
 

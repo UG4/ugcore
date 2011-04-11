@@ -183,7 +183,7 @@ private:
 	cgraph SymmNeighGraph;
 
 	// our testvectors
-	stdvector< vector_type > m_testvectors;
+	stdvector< vector_type > &m_testvectors;
 
 #ifdef UG_PARALLEL
 	//! layout for sending/receiving coarsening information
@@ -260,11 +260,21 @@ private:
 		}
 	}
 
+	void create_fine_marks()
+	{
+		FAMG_PROFILE_FUNC();
+		m_famg.is_fine.resize(level+1);
+		stdvector<bool> &vFine = m_famg.is_fine[level];
+		vFine.resize(rating.get_nr_of_coarse());
+
+		for(size_t i=0; i < rating.size(); i++)
+			vFine[i] = rating[i].is_fine();
+	}
+
 	//! creates the parentIndex struct for display
 	void create_parentIndex()
 	{
 		FAMG_PROFILE_FUNC();
-
 		stdvector<stdvector<int> > &parentIndex = m_famg.m_parentIndex;
 		parentIndex.resize(level+2);
 		parentIndex[level+1].resize(rating.get_nr_of_coarse());
@@ -288,7 +298,7 @@ public:
 	{
 		FAMG_PROFILE_FUNC();
 
-		UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
+		UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
 		stopwatch SW, SWwhole; SWwhole.start();
 
@@ -307,7 +317,7 @@ public:
 		// 2. global Testvector calculation (damping)
 		//-----------------------------------------------
 		// todo: all global?
-		UG_LOG("\ncalculating testvector... ");
+		UG_DLOG(LIB_ALG_AMG, 1, "\ncalculating testvector... ");
 		if(bTiming) SW.start();
 
 		for(size_t i=0; i<m_testvectors.size(); i++)
@@ -319,7 +329,7 @@ public:
 					m_testvectors[i], m_famg.get_testvector_damps());
 		}
 
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 		// 3. create heap, P, SymmNeighGraph
 		//-------------------------------------
@@ -327,17 +337,17 @@ public:
 
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
-			UG_LOG("\bThe Matrix A:\n\n");
+			UG_DLOG(LIB_ALG_AMG, 1, "\bThe Matrix A:\n\n");
 			A.print();
-			UG_LOG("\n\n");
+			UG_DLOG(LIB_ALG_AMG, 1, "\n\n");
 		}
 
-		UG_LOG("\nCreate P, SymmNeighGraph... "); if(bTiming) SW.start();
+		UG_DLOG(LIB_ALG_AMG, 1, "\nCreate P, SymmNeighGraph... "); if(bTiming) SW.start();
 		P.resize(N, N);
 		// get neighboring information
 		SymmNeighGraph.resize(N);
 		CreateSymmConnectivityGraph(A_OL2, SymmNeighGraph);
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 
 	#ifdef UG_PARALLEL
@@ -354,39 +364,39 @@ public:
 		if(0)
 		{
 			// get possible parent nodes
-			UG_LOG("\ncreating possible parent list... "); if(bTiming) SW.start();
+			UG_DLOG(LIB_ALG_AMG, 1, "\ncreating possible parent list... "); if(bTiming) SW.start();
 			calculate_all_possible_parent_pairs();
-			if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 			// calculate ratings (not precalculateable because of coarse/uninterpolateable)
-			UG_LOG(std::endl << "calculate ratings... "); if(bTiming) SW.start();
+			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "calculate ratings... "); if(bTiming) SW.start();
 			GetRatings(possible_parents, rating, heap);
-			if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 			heap.print();
 
 			// do coarsening
-			UG_LOG(std::endl << "coarsening... "); if(bTiming) SW.start();
+			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "coarsening... "); if(bTiming) SW.start();
 			precalculate_coarsening();
-			if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 		}
 		else
 		{
-			UG_LOG(std::endl << "other coarsening... "); if(bTiming) SW.start();
+			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "other coarsening... "); if(bTiming) SW.start();
 			on_demand_coarsening();
-			if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 		}
 
 		// [ debug output
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
-			UG_LOG("Coarse nodes:\n");
+			UG_DLOG(LIB_ALG_AMG, 1, "Coarse nodes:\n");
 			for(size_t i=0; i<N; i++)
 			{
-				UG_LOG(i << " rating: " << rating[i]);
+				UG_DLOG(LIB_ALG_AMG, 1, i << " rating: " << rating[i]);
 				if(rating[i].is_coarse())
-					UG_LOG(", new index = " << rating.newIndex[i]);
-				UG_LOG("\n");
+					UG_DLOG(LIB_ALG_AMG, 1, ", new index = " << rating.newIndex[i]);
+				UG_DLOG(LIB_ALG_AMG, 1, "\n");
 			}
 		}
 		write_debug_matrix_markers();
@@ -396,12 +406,12 @@ public:
 		//-----------------------------------------------
 		// todo: check if this is ok to be off in parallel
 
-		UG_LOG(std::endl << "second coarsening... "); if(bTiming) SW.start();
+		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "second coarsening... "); if(bTiming) SW.start();
 		if(m_famg.get_aggressive_coarsening() == true)
 			get_aggressive_coarsening_interpolation();
 		else
 			set_uninterpolateable_as_coarse();
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 
 		#ifdef UG_PARALLEL
 		// 7. send coarsening data to processes with higher color
@@ -412,7 +422,7 @@ public:
 
 		// resize P, output statistics & debug stuff
 
-		UG_LOG(std::endl << N - rating.get_unassigned() << " nodes assigned, " << rating.get_nr_of_coarse() << " coarse, "
+		UG_DLOG(LIB_ALG_AMG, 1, std::endl << N - rating.get_unassigned() << " nodes assigned, " << rating.get_nr_of_coarse() << " coarse, "
 				<< N - rating.get_unassigned() - rating.get_nr_of_coarse() << " fine, " << rating.get_unassigned() << " unassigned.");
 
 		// set P to real size
@@ -423,11 +433,17 @@ public:
 	#endif
 
 		// create parentIndex
-		UG_LOG(std::endl << "create parentIndex... "); if(bTiming) SW.start();
-		create_parentIndex();
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+		if(m_famg.m_writeMatrices)
+		{
+			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create parentIndex... "); if(bTiming) SW.start();
+			create_parentIndex();
+			if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+		}
 
-		//UG_LOG("parentIndex level " << level << "\n")
+		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create fine marks... "); if(bTiming) SW.start();
+		create_fine_marks();
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
+		//UG_DLOG(LIB_ALG_AMG, 1, "parentIndex level " << level << "\n")
 		//for(size_t i=0; i<rating.get_nr_of_coarse(); i++) { UG_ASSERT(amghelper.parentIndex[level+1][i] != -1, i << " == -1???"); UG_LOG(i << " = " << amghelper.parentIndex[level+1][i] << "\n"); }
 
 
@@ -448,11 +464,11 @@ public:
 
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "restriction... ");	if(bTiming) SW.start();
 
-		UG_LOG(std::endl << "restriction... "); if(bTiming) SW.start();
+		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "restriction... "); if(bTiming) SW.start();
 		// construct restriction R = I_{h -> 2h}
 		R.set_as_transpose_of(P);
 		// R is already defragmented
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 
 	#ifdef UG_PARALLEL
 		R.set_storage_type(PST_CONSISTENT);
@@ -463,7 +479,7 @@ public:
 	#ifdef FAMG_PRINT_R
 		IF_DEBUG(LIB_ALG_AMG, 4)
 		{
-			UG_LOG(std::endl << "Restriction level " << level << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "Restriction level " << level << std::endl);
 			R.print();
 		}
 	#endif
@@ -471,17 +487,17 @@ public:
 		// 9. create Galerkin product AH = R A P
 		//-----------------------------------------
 
-		UG_LOG("\ngalerkin product... "); if(bTiming) SW.start();
+		UG_DLOG(LIB_ALG_AMG, 1, "\ngalerkin product... "); if(bTiming) SW.start();
 
 		// AH = R A P
 		CreateAsMultiplyOf(AH, R, A, P);
 
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 		// finalize
-		if(bTiming) { UG_LOG(std::endl << "Finalizing.."); SW.start(); }
+		if(bTiming) { UG_DLOG(LIB_ALG_AMG, 1, std::endl << "Finalizing.."); SW.start(); }
 		AH.defragment();
-		if(bTiming) UG_LOG(" took " << SW.ms() << " ms\n");
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, " took " << SW.ms() << " ms\n");
 
 	#ifdef UG_PARALLEL
 		AH.set_storage_type(PST_ADDITIVE);
@@ -491,7 +507,7 @@ public:
 	#ifdef FAMG_PRINT_AH
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
-			UG_LOG("AH level " << level << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 1, "AH level " << level << std::endl);
 			AH.print();
 		}
 	#endif
@@ -506,7 +522,16 @@ public:
 			CalculateNextTestvector(R, m_testvectors[i]);
 
 #ifdef UG_PARALLEL
-		PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+		IF_DEBUG(LIB_ALG_AMG, 3)
+		{
+			UG_LOG("nextLevelMasterLayout :\n");
+			PrintLayout(nextLevelMasterLayout);
+
+			UG_LOG("nextLevelSlaveLayout :\n");
+			PrintLayout(nextLevelSlaveLayout);
+			UG_LOG("nextLevelLayout :\n");
+			PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+		}
 #endif
 
 	}
@@ -549,15 +574,19 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 		m_vVectorWriters[i]->update(testvectors[index]);
 		omega[index] = m_omegaVectorWriters[i];
 
-		vector_type &vec = testvectors[index];
 
-		std::fstream file((m_writeMatrixPath + "testvector" + ToString(i) + ".values").c_str(),
-				std::ios::out);
-		for(size_t j=0; j<vec.size(); j++)
-			file << j << " " << (vec[j]) << std::endl;
+		if(m_writeMatrices && m_writeTestvectors)
+		{
+			vector_type &vec = testvectors[index];
+			std::fstream file((m_writeMatrixPath + "testvector" + ToString(i) + ".values").c_str(),
+					std::ios::out);
+			for(size_t j=0; j<vec.size(); j++)
+				file << j << " " << (vec[j]) << std::endl;
 
-		WriteVectorToConnectionViewer((m_writeMatrixPath + "testvector" + ToString(i) +".mat").c_str(),
+
+			WriteVectorToConnectionViewer((m_writeMatrixPath + "testvector" + ToString(i) +".mat").c_str(),
 				vec, m_amghelper.positions, 2);
+		}
 
 	}
 
@@ -568,6 +597,8 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 	FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, omega);
 	dummy.do_calculation();
+
+
 
 	//UG_SET_DEBUG_LEVELS(0);
 }

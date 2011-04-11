@@ -22,7 +22,9 @@
 
 namespace ug
 {
-
+void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communicator,
+		IndexLayout &masterLayout, IndexLayout &slaveLayout, IndexLayout &allToAllSend,
+		IndexLayout &allToAllReceive);
 
 // FAMGLevelCalculator::color_process_graph
 //-------------------------------------------
@@ -112,8 +114,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 				//UG_LOG((int)coarseNodes[i][j] << " ");
 				UG_LOG(" " << index);
 				if(rating.is_master(index))
-
 					UG_LOG(" master");
+
 				if(coarseNodes[i][j++])
 				{
 					rating.external_set_coarse(index);
@@ -123,14 +125,17 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 					// add node to next Level Interface
 					if(rating.is_master(index))
 						nextMasterInterface.push_back(newIndex);
-					else
+					else if(rating.is_master_on(index, pid))
 						nextSlaveInterface.push_back(newIndex);
 
 					UG_LOG(" coarse ");
 				}
 				else
 				{
-					rating[index].set_uninterpolateable();
+					// todo: das ist falsch, da macht der nacher coarse nodes draus, und das ist doof
+					// man müsste vielleicht hier direkt die interpolation ausrechnen. dann müsste man sie aber
+					// mitschicken?!? nochmal genau überlegen, wie die parallelisierung funktionieren soll
+					rating.set_uninterpolateable(index);
 					UG_LOG(" fine ");
 				}
 				UG_LOG("\n");
@@ -165,11 +170,11 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 
 	stopwatch SW;
-	UG_LOG("\nsend coarsening data to processes "); if(bTiming) SW.start();
+	UG_LOG("\nsend coarsening data to processes\n"); if(bTiming) SW.start();
 	for(size_t i=0; i<processesWithHigherColor.size(); i++)
 	{
 		int pid = processesWithHigherColor[i];
-		UG_LOG(pid << ": ");
+		UG_LOG("Process " << pid << ":\n");
 		BinaryStream s;
 
 		IndexLayout::Interface &interface = OLCoarseningSendLayout.interface(pid);
@@ -182,7 +187,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			char bCoarse = rating[index].is_coarse();
 			UG_LOG(index << (bCoarse ? " is coarse " : " is fine "));
 			Serialize(s, bCoarse);
-
+			if(rating.is_master(index))
+				UG_LOG("master");
+			UG_LOG("\n");
 			if(bCoarse)
 			{
 				int newIndex = rating.newIndex[index];
@@ -191,12 +198,12 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 				// add node to next Level Interface
 				if(rating.is_master(index))
 					nextMasterInterface.push_back(newIndex);
-				else
+				else if(rating.is_master_on(index, pid))
 					nextSlaveInterface.push_back(newIndex);
 			}
 		}
 
-		UG_LOG("sending " << s.size() << " of data to pid " << pid << " ");
+		UG_LOG("sending " << s.size() << " of data to pid " << pid << "\n");
 		communicator.send_raw(pid, s.buffer(), s.size(), true);
 	}
 	UG_LOG("with higher color...")
@@ -215,118 +222,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
  * data from one node to all processes which have this node (as master or as slave).
   *
  */
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
-	add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout)
-{
-	FAMG_PROFILE_FUNC();
-	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-	UG_LOG("\n\nadd_connections_between_slave_nodes...\n")
 
-	// 1. get for every master node where it is slave
-	std::map<size_t, std::vector<int> > slaveOnProc;
-	//slaveOnProc.resize(A_OL2.num_rows());
-
-	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
-	{
-		IndexLayout::Interface &interface = masterLayout.interface(iter);
-		int pid = masterLayout.proc_id(iter);
-		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
-		{
-			size_t index = interface.get_element(iter2);
-			slaveOnProc[index].push_back(pid);
-		}
-	}
-
-	// 2. send information to slaves
-	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
-	{
-		BinaryStream stream;
-
-		IndexLayout::Interface &interface = masterLayout.interface(iter);
-		int pid = masterLayout.proc_id(iter);
-		size_t j=0;
-		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2, ++j)
-		{
-			size_t index = interface.get_element(iter2);
-			size_t s = slaveOnProc[index].size()-1;
-			if(s <= 0) continue;
-			Serialize(stream, j);
-			Serialize(stream, s);
-			for(size_t i=0; i < s+1; i++)
-			{
-				int pid2 = slaveOnProc[index][i];
-				if(pid2 != pid)
-					Serialize(stream, pid2);
-			}
-		}
-		UG_LOG("Sending " << stream.size() << " bytes of data to processor " << pid);
-		communicator.send_raw(pid, stream.buffer(), stream.size(), false);
-	}
-
-	// 3. communicate
-	StreamPack pack;
-	std::vector<int> pids;
-
-	for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
-	{
-		int pid = slaveLayout.proc_id(iter);
-		pids.push_back(pid);
-		communicator.receive_raw(pid, *pack.get_stream(pid));
-	}
-	communicator.communicate();
-
-	/* sort pids. this is important!
-	* imagine 4 processes. when 2 of them have 2 common slave nodes, they have to be inserted in the same order to the interfaces:
-	* process 1: interface to 2: 5 (master). interface to 3: 5 (master)
-	* process 2 interface to 1: 5 (slave). interface to 4: 10 (slave)
-	* process 3 interface to 1: 5 (slave). interface to 4: 10 (slave)
-	* process 4 interface to 2: 10 (master). interface to 3: 10 (master)
-	* process 1 sends to process 2 / 3: node 0 of our interface is connected with processor 3 / 2
-	* process 4 sends to process 2 / 3: node 0 of our interface is connected with processor 3 / 2
-	* so process 2 starts with information from processor 1: inserting node 5 to his interface to processor 3. then information from processor 4: node 10 to pid 3.
-	* so his interface is 5, 10 with pid 3.
-	* if process 3 does in same order, he gets also interface 5, 10 with pid 2. */
-	sort(pids.begin(), pids.end());
-
-	// 4. process data
-
-	for(size_t i=0; i<pids.size(); i++)
-	{
-		int pid = pids[i];
-		BinaryStream &stream = *pack.get_stream(pid);
-		UG_LOG("Received " << stream.size() << " bytes of data from processor " << pid << ":\n");
-
-		std::vector<size_t> indices;
-		IndexLayout::Interface &interface = slaveLayout.interface(pid);
-		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
-			indices.push_back(interface.get_element(iter2));
-
-		while(stream.can_read_more())
-		{
-			size_t index, s;
-			Deserialize(stream, index);
-			index = indices[index];
-			Deserialize(stream, s);
-			UG_LOG(" got " << s << " other slave connections from node " << index << ": ")
-			for(size_t i=0; i<s; i++)
-			{
-				int pid2;
-				UG_ASSERT(stream.can_read_more(), "stream said to have " << s << " entries, but got only " << i);
-				Deserialize(stream, pid2);
-				UG_ASSERT(pid2 != pcl::GetProcRank(), "");
-				OLCoarseningReceiveLayout.interface(pid2).push_back(index);
-				OLCoarseningSendLayout.interface(pid2).push_back(index);
-				UG_LOG(pid2 << " ");
-			}
-			UG_LOG("\n");
-		}
-
-	}
-
-	UG_LOG("\n");
-}
 
 
 // FAMGLevelCalculator::create_OL2_matrix
@@ -386,17 +282,21 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 	communicator.send_data(totalMasterLayout, copyPol);
 	communicator.receive_data(totalSlaveLayout, copyPol);
+	communicator.communicate();
 
-	std::vector<ComPol_VecCopy< Vector<double> > > vecCopyPol;
-	vecCopyPol.resize(m_testvectors.size());
+	//std::vector<ComPol_VecCopy< Vector<double> > > vecCopyPol;
+	//vecCopyPol.resize(m_testvectors.size());
 	for(size_t i=0; i<m_testvectors.size(); i++)
 	{
-		vecCopyPol[i].set_vector(&m_testvectors[i]);
-		communicator.send_data(totalMasterLayout, vecCopyPol[i]);
-		communicator.receive_data(totalSlaveLayout, vecCopyPol[i]);
+		ComPol_VecCopy< Vector<double> > vecCopyPol;
+		m_testvectors[i].resize(A_OL2.num_rows());
+		vecCopyPol.set_vector(&m_testvectors[i]);
+		communicator.send_data(totalMasterLayout, vecCopyPol);
+		communicator.receive_data(totalSlaveLayout, vecCopyPol);
+		communicator.communicate();
 	}
 
-	communicator.communicate();
+
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -405,14 +305,30 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 	// create OLCoarseningSendLayout, OLCoarseningReceiveLayout
 	//------------------------------------------------------------
-	AddLayout(OLCoarseningSendLayout, masterLayouts[0]);
-	AddLayout(OLCoarseningSendLayout, slaveLayouts[0]);
 
+	// in the pcl, there are only connections between master to slave, and not
+	// between all slaves. we add those connections, so that we can send coarsening
+	// data from one node to all processes which have this node (as master or as slave).
+
+	// master -> master
+	AddLayout(OLCoarseningSendLayout, masterLayouts[0]);
 	AddLayout(OLCoarseningReceiveLayout, slaveLayouts[0]);
+
+	// slave -> master
+	AddLayout(OLCoarseningSendLayout, slaveLayouts[0]);
 	AddLayout(OLCoarseningReceiveLayout, masterLayouts[0]);
 
-	// add connections between slave nodes
-	add_connections_between_slave_nodes(masterLayouts[0], slaveLayouts[0]);
+	AddConnectionsBetweenSlaves(A_OL2.get_communicator(), masterLayouts[0], slaveLayouts[0], OLCoarseningSendLayout, OLCoarseningReceiveLayout);
+
+
+	UG_LOG("OLCoarseningLayout :\n")
+	PrintLayout(A_OL2.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
+
+/*	UG_LOG("OLCoarseningSendLayout :\n");
+	PrintLayout(OLCoarseningSendLayout);
+
+	UG_LOG("OLCoarseningRecvLayout :\n");
+	PrintLayout(OLCoarseningSendLayout);*/
 
 	size_t N = A_OL2.num_rows();
 	rating.create(N);
@@ -437,6 +353,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 			{
 				size_t index = interface.get_element(iter2);
 				rating.OLtype[index] |= (1 << (i+1));
+				if(i==0)
+					rating.m_masterOn[index] = slaveLayouts[i].proc_id(iter);
 			}
 		}
 	}

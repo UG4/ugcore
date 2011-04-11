@@ -11,18 +11,17 @@ template<typename Matrix_type>
 void
 CreateStrongConnectionGraph(const Matrix_type &A, cgraph &graph, double theta=0.25);
 
-void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, int &unassigned, stdvector<amg_nodeinfo> &nodes);
+void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
-void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, stdvector<amg_nodeinfo> &nodes,
+void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, AMGNodes &nodes,
 		int nrOfPaths, int *posInConnections);
 
 
-void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, int &unassigned, int &iNrOfCoarse,
-		stdvector<int> &newIndex, stdvector<amg_nodeinfo> &nodes);
+void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
-int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int unassigned, int &iNrOfCoarse, stdvector<amg_nodeinfo> &nodes);
+int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
-void PreventFFConnections(cgraph &graphS, cgraph &graphST, stdvector<amg_nodeinfo> &nodes, stdvector<int> &newIndex, int &nrOfCoarse);
+void PreventFFConnections(cgraph &graphS, cgraph &graphST, AMGNodes &nodes);
 
 } // namespace ug
 

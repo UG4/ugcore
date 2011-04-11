@@ -55,7 +55,7 @@ void amg<Matrix_type, Vector_type>::writeMatrices(const char *pathAndName)
 //! Debug output. Writes position of Coarse nodes in coarse<level>.dat, and fine in fine<level>.dat for display in gnuplot
 //! @param level	level which is to be printed
 template<typename Matrix_type, typename Vector_type>
-void amg<Matrix_type, Vector_type>::printCoarsening(int level, amg_nodeinfo *grid)
+void amg<Matrix_type, Vector_type>::printCoarsening(int level, AMGNodes &nodes)
 {  
 	if(h.has_positions() == false)
 	{
@@ -70,7 +70,7 @@ void amg<Matrix_type, Vector_type>::printCoarsening(int level, amg_nodeinfo *gri
 	for(int i=0; i < n; i++)
 	{
 		postype pos = GetPosForIndexAtLevel(i, level);
-		if(grid[i].isCoarse())
+		if(nodes[i].is_coarse())
 			fcoarse << pos.x << " " << pos.y << " " << endl;
 		else
 			ffine << pos.x << " " << pos.y << " " << endl;
@@ -83,7 +83,7 @@ void amg<Matrix_type, Vector_type>::printCoarsening(int level, amg_nodeinfo *gri
 	file << 0 << endl;
 	for(int i=0; i < n; i++)
 	{
-		if(!grid[i].isCoarse())
+		if(!nodes[i].is_coarse())
 		{
 			int org =  GetOriginalIndex(level, i);
 			file << org << " " << org << " " << 1.0 << endl;

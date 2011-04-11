@@ -80,11 +80,11 @@ void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possibl
 		{
 			if(heap.is_in(node))
 			{
-				UG_DLOG(LIB_ALG_AMG, 2, " remove node " << node << " from heap! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " remove node " << node << " from heap!\n");
 				heap.remove(node);
 			}
 			else
-				UG_DLOG(LIB_ALG_AMG, 2, " node " << node << " uninterpolateable, but not in heap anyway! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " node " << node << " uninterpolateable, but not in heap anyway!\n");
 		}
 		else
 		{
@@ -92,12 +92,12 @@ void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possibl
 			if(heap.is_in(node))
 			{
 				heap.update(node);
-				UG_DLOG(LIB_ALG_AMG, 2, " updated node " << node << " in heap! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " updated node " << node << " in heap!\n");
 			}
 			else
 			{
 				heap.insert_item(node);
-				UG_DLOG(LIB_ALG_AMG, 2, " inserted node " << node << " into heap!");
+				UG_DLOG(LIB_ALG_AMG, 2, " inserted node " << node << " into heap!\n");
 			}
 		}
 	}
@@ -122,7 +122,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 
 	for(size_t j=0; j<N; j++)
 	{
-		if(rating.i_must_assign(j) && A_OL2.is_isolated(j))
+		if(rating[j].is_valid_rating() &&
+				rating.i_must_assign(j) && A_OL2.is_isolated(j))
 			rating.set_fine(j);
 	}
 
@@ -132,16 +133,16 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 	size_t i;
 	for(i=0; i<N; i++)
 	{
-		if(rating.i_must_assign(i))
+		if(!rating[i].is_valid_rating() || !rating.i_must_assign(i))
+			continue;
+
+		if(IsCloseToBoundary(A_OL2, i , 2) == false)
 		{
-			if(IsCloseToBoundary(A_OL2, i , 2) == false)
-			{
-				calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
-				prolongation_calculated[i] = true;
-				rating.update_rating(i, possible_parents[i]);
-				if(!rating[i].is_uninterpolateable() && !rating[i].is_fine())
-					break;
-			}
+			calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
+			prolongation_calculated[i] = true;
+			rating.update_rating(i, possible_parents[i]);
+			if(!rating[i].is_uninterpolateable() && !rating[i].is_fine())
+				break;
 		}
 	}
 
@@ -156,7 +157,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 
 	for(size_t j=0; j<N; j++)
 	{
-		if(!rating.i_must_assign(j))
+		if(!rating[i].is_valid_rating() || !rating.i_must_assign(j))
 			bvisited[j] = true;
 	}
 
@@ -172,6 +173,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << " has rating " << rating[i] << ". now gets fine. parents: ");
 		for(size_t j=0; j < n.parents.size(); j++)
 			UG_DLOG(LIB_ALG_AMG, 2, rating.get_original_index(n.parents[j].from) << " ");
+		UG_DLOG(LIB_ALG_AMG, 2,"\n");
 
 		// node i gets fine. update neighbors.
 		rating.set_fine(i);
@@ -188,6 +190,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 		for(size_t j=0; j < n.parents.size(); j++)
 		{
 			size_t node = n.parents[j].from;
+
+			UG_ASSERT(!rating[node].is_fine(), "parent node " << rating.get_original_index(node) << " of node " << rating.get_original_index(i) << " is FINE?");
 
 			if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << rating.get_original_index(node) << " is already coarse\n"); }
 			else { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << rating.get_original_index(node) << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
@@ -220,7 +224,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 			// heap empty, we need to get another start node
 			for(i=0; i<N; i++)
 			{
-				if(rating.i_must_assign(i) == false) continue;
+				if(!rating[i].is_valid_rating() || rating.i_must_assign(i) == false) continue;
 				UG_DLOG(LIB_ALG_AMG, 2, "rating " << i << " is " << rating[i] << "\n");
 				if(A.is_isolated(i) == false && rating[i].is_valid_rating())
 				{
@@ -247,9 +251,20 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 		else
 			while(1)
 			{
-				i = heap.get_max();
+				do
+				{
+					i = heap.get_max();
+					// update rating since because we made some nodes fine that rating could be wrong
+					if(rating.update_rating(i, possible_parents[i]) == false)
+						break;
+					if(rating[i].is_uninterpolateable() || rating[i].is_fine())
+						heap.remove(i);
+					else
+						heap.update(i);
+				} while(true);
 				UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " has best rating");
 				UG_ASSERT(rating.i_must_assign(i), "node " << i << " is not master!");
+
 				if(prolongation_calculated[i] == false)
 				{
 					UG_DLOG(LIB_ALG_AMG, 2, ", but prolongation not calculated. update.\n");
@@ -270,7 +285,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 	for(size_t i=0; i<N; i++)
 	{
 		if(rating[i].rating == 0.0)
-			rating[i].set_uninterpolateable();
+			rating.set_uninterpolateable(i);
 	}
 
 	UG_DLOG(LIB_ALG_AMG, 2, "\nDone!\n");

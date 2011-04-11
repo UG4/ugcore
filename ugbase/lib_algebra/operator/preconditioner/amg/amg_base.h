@@ -22,7 +22,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-
+#include <string>
 #include "amg_debug_helper.h"
 
 
@@ -88,15 +88,7 @@ protected:
 //	Stepping routine
 	virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
 	{
-		if(m_bInited == false)
-		{
-#ifdef UG_PARALLEL
-			// set level 0 communicator
-			com = &c.get_communicator();
-#endif
-			init();
-			m_bInited = true;
-		}
+		UG_ASSERT(m_bInited, "not inited?");
 		return get_correction(c, d);
 	}
 
@@ -110,9 +102,10 @@ public:
 		return A[level+1]->length;
 	}
 */
-	size_t get_nr_of_used_levels() { return m_usedLevels; }
+	size_t get_used_levels() { return m_usedLevels; }
 
 	bool check_level(vector_type &c, vector_type &d, size_t level);
+//	bool check(IMatrixOperator const vector_type &const_c, const vector_type &const_d);
 	bool check(const vector_type &const_c, const vector_type &const_d);
 //  data
 
@@ -190,6 +183,7 @@ public:
 	void tostring() const;
 
 protected:
+	bool writevec(std::string filename, const vector_type &d, size_t level);
 	void update_positions();
 
 	bool create_level_vectors(size_t level);
@@ -209,8 +203,7 @@ protected:
 	size_t 	m_maxNodesForBase;					///< max nr of coarse nodes before Base solver is used
 	double 	m_dMaxFillBeforeBase;				///< max fill rate before Base solver is used
 
-	std::string m_writeMatrixPath;
-	bool 	m_writeMatrices;
+
 	bool	m_bFSmoothing;
 
 	stdvector<vector_type*> m_vec1; 			///< temporary Vector for storing r = Ax -b
@@ -231,6 +224,9 @@ protected:
 
 #endif
 
+	bool 	m_writeMatrices;
+
+	std::string m_writeMatrixPath;
 	stdvector< stdvector<int> > m_parentIndex;	///< parentIndex[L][i] is the index of i on level L-1
 	cAMG_helper m_amghelper;					///< helper struct for viewing matrices (optional)
 	stdvector<MathVector<3> > m_dbgPositions;	///< positions of geometric grid (optional)
@@ -246,11 +242,11 @@ protected:
 	ILinearOperatorInverse<vector_type, vector_type> *m_basesolver; ///< the base solver
 
 
-	bool m_bInited;				///< true if inited. needed since preprocess doesnt give us a ParallelCommunicator atm.
+	bool m_bInited;					///< true if inited. needed since preprocess doesnt give us a ParallelCommunicator atm.
 	double m_dOperatorComplexity;
-	double m_dNodesComplexity;
+	double m_dGridComplexity;
 	double m_dTimingWholeSetupMS;
-	double m_dTimingCoarseSolverMS;
+	double m_dTimingCoarseSolverSetupMS;
 
 	stdvector<LevelInformation> m_levelInformation;
 
@@ -258,10 +254,18 @@ protected:
 	IPositionProvider<3> *m_pPositionProvider3d;
 
 public:
+	//! \return c_A = total nnz of all matrices divided by nnz of matrix A
 	double get_operator_complexity() { return m_dOperatorComplexity; }
-	double get_nodes_complexity() { return m_dNodesComplexity; }
+
+	//! \return c_G = total number of nodes of all levels divided by number of nodes on level 0
+	double get_grid_complexity() { return m_dGridComplexity; }
+
+	//! \return the time spent on the whole setup in ms
 	double get_timing_whole_setup_ms() { return m_dTimingWholeSetupMS; }
-	double get_timing_coarse_solver_ms() { return m_dTimingCoarseSolverMS; }
+
+	//! \return the time spent in the coarse solver setup in ms
+	double get_timing_coarse_solver_setup_ms() { return m_dTimingCoarseSolverSetupMS; }
+
 	LevelInformation *get_level_information(size_t i)
 	{
 		if(i < m_levelInformation.size())

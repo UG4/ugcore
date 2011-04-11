@@ -47,6 +47,7 @@ famg<TAlgebra>::famg() : amg_base<TAlgebra>()
 	m_delta = 0.5;
 	m_dDampingForSmootherInInterpolationCalculation = 0.8;
 	m_bAggressiveCoarsening = false;
+	m_writeTestvectors = false;
 }
 
 template<typename TAlgebra>
@@ -68,6 +69,8 @@ void famg<TAlgebra>::tostring() const
 	UG_LOG(" \n");
 	UG_LOG(" testvector is " << (m_bTestvectorZeroAtDirichlet ? "0" : "1") << " at dirichlet nodes" << std::endl);
 	UG_LOG(" Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);
+	if(m_writeMatrices && m_writeTestvectors)
+		UG_LOG(" Write Testvectors is on.\n")
 	UG_LOG(" \n");
 }
 

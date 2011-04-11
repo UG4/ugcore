@@ -28,6 +28,9 @@ class famg_nodeinfo
 private:
 	inline void set_fine(){rating = FAMG_FINE_RATING;}
 	inline void set_coarse(){rating = FAMG_COARSE_RATING;}
+	inline void set_uninterpolateable()
+	{	rating = FAMG_UNINTERPOLATEABLE;	}
+	inline void set_dirichlet() { rating = FAMG_DIRICHLET_RATING; }
 
 
 public:
@@ -35,8 +38,6 @@ public:
 	double rating;
 	//int newIndex;		
 
-	inline void set_uninterpolateable(){rating = FAMG_UNINTERPOLATEABLE;	}
-	inline void set_dirichlet() { rating = FAMG_DIRICHLET_RATING; }
 	
 	inline bool is_fine() const { return rating == FAMG_FINE_RATING; }
 	inline bool is_coarse() const { return rating == FAMG_COARSE_RATING; }
@@ -186,7 +187,7 @@ public:
 				return false;
 			else
 			{
-				nodes[node].set_uninterpolateable();
+				set_uninterpolateable(node);
 				return true;
 			}
 		}
@@ -199,33 +200,41 @@ public:
 
 #ifdef UG_PARALLEL
 public:
-	bool is_inner_node(size_t i)
+	bool is_inner_node(size_t i) const
 	{
 		return OLtype[i] == 0;
 	}
 
-	bool is_master(size_t i)
+	bool is_master(size_t i) const
 	{
 		return OLtype[i] & 1;
 	}
 
-	bool is_slave(size_t i, int OLlevel=0)
+	bool is_slave(size_t i, int OLlevel=0) const
 	{
 		return OLtype[i] & (1 << (OLlevel+1));
 	}
 
-	bool i_must_assign(size_t i)
+	bool is_master_on(size_t i, int pid)
+	{
+		if(is_slave(i, 0))
+			return m_masterOn[i] == pid;
+		else
+			return false;
+	}
+
+	bool i_must_assign(size_t i) const
 	{
 		return is_inner_node(i) || is_master(i);
 	}
 
-	bool i_can_set_coarse(size_t i)
+	bool i_can_set_coarse(size_t i) const
 	{
 		return nodes[i].is_coarse() ||	// node already coarse
 			((i_must_assign(i) || is_slave(i, 0)) && nodes[i].could_be_coarse());  // or i can set coarse
 	}
 
-	void print_OL_types()
+	void print_OL_types() const
 	{
 		for(size_t i=0; i<size(); i++)
 		{
@@ -255,6 +264,7 @@ public:
 		}
 	}
 	stdvector<int> OLtype;
+	std::map<size_t, int> m_masterOn;
 #else
 public:
 	bool is_inner_node(size_t i)
@@ -265,6 +275,11 @@ public:
 	bool is_master(size_t i)
 	{
 		return true;
+	}
+
+	bool is_master_on(size_t i, int pid)
+	{
+		return pid == 0;
 	}
 
 	bool is_slave(size_t i, int OLlevel=0)
@@ -289,6 +304,7 @@ public:
 
 	void set_fine(size_t index)
 	{
+		UG_ASSERT(nodes[index].is_coarse() == false, "try to set node " << index << " fine, but is coarse???");
 		if(nodes[index].is_fine() == false && i_must_assign(index))
 			m_iUnassigned--;
 		nodes[index].set_fine();
@@ -300,8 +316,10 @@ public:
 		if(nodes[index].is_coarse() == false)
 		{
 			nodes[index].set_coarse();
+			UG_LOG("Index " << index << " is now coarse and has new index " << m_iNrOfCoarse << "\n");
 
 			m_iUnassigned--;
+			// todo: perhaps we should not do this here
 			newIndex[index] = m_iNrOfCoarse++;
 			P(index, newIndex[index]) = 1.0;
 		}
@@ -313,6 +331,12 @@ public:
 		external_set_coarse(index);
 	}
 
+	void set_uninterpolateable(size_t index)
+	{
+		UG_ASSERT(nodes[index].is_valid_rating() || nodes[index].is_uninterpolateable(),
+				"node " << index << " is already set to " << nodes[index].rating);
+		nodes[index].set_uninterpolateable();
+	}
 
 	size_t get_nr_of_coarse()
 	{

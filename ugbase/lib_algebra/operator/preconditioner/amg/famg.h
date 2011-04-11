@@ -129,6 +129,11 @@ public:
 		m_omegaVectorWriters.push_back(weight);
 	}
 
+	void write_testvectors(bool wt)
+	{
+		m_writeTestvectors = wt;
+	}
+
 private:
 //  functions
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
@@ -146,6 +151,7 @@ private:
 
 	size_t m_iTestvectorDamps;
 	bool m_bTestvectorZeroAtDirichlet;
+	bool m_writeTestvectors;
 
 	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;
 

@@ -35,26 +35,23 @@ namespace ug
  * \param 	strong
  * \param 	strongT 	transpose of the strong connectivity graph
  * \param	PQ			maxheap priority queue for sorting of the nodes wrt the rating
- * \param 	unassigned	nr of nodes which are now to be assigned coarse or fine
  * \param	nodes
  * \sa	CreateStrongConnectionGraph
  */
-void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, int &unassigned, stdvector<amg_nodeinfo> &nodes)
+void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, AMGNodes &nodes)
 {
 	UG_ASSERT(nodes.size() == strongT.size(), "");
 
-	PQ.create(nodes);
-	unassigned = 0;
+	PQ.create(nodes.size(), &nodes[0]);
 	for(size_t i=0; i < nodes.size(); i++)
 	{
 		if(strong.is_isolated(i))
-			nodes[i].setFineDirect();
+			nodes.set_isolated(i);
 		else
 		{
 			//UG_ASSERT(graph.iNrOfConnections[i] > 0, "node " << i << " has " << graph.iNrOfConnections[i] << " connections?");
-			nodes[i].rating = strongT.num_connections(i);
+			nodes.set_rating(i, strongT.num_connections(i));
 			PQ.insert_item(i);
-			unassigned++;
 		}
 	}
 }
@@ -77,7 +74,7 @@ void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_ty
  * \param	minNrOfPaths		2 or 1, depending on A2- or A1-Coarsening.
  * \param 	posInConnections	array of size graph.size for speedup of neighbor-neighbor-calculation inited with -1.
  */
-void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, stdvector<amg_nodeinfo> &nodes,
+void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, AMGNodes &nodes,
 		int minNrOfPaths, int *posInConnections)
 {
 	UG_ASSERT(nodes.size() == graph.size(), "");
@@ -87,7 +84,7 @@ void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, stdvector<am
 	//graph.print();
 	for(size_t i=0; i < graph.size(); i++)
 	{
-		if(nodes[i].isFineDirect())
+		if(nodes[i].is_fine_direct())
 			continue;
 
 		connection.clear();
@@ -102,7 +99,7 @@ void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, stdvector<am
 			{
 				size_t indexNN = (*connN);
 
-				if(indexNN == i || nodes[indexNN].isFineDirect())
+				if(indexNN == i || nodes[indexNN].is_fine_direct())
 					continue;
 				int pos = posInConnections[indexNN];
 				if(pos == -1)
@@ -139,31 +136,23 @@ void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, stdvector<am
  * this function could be merged with CreateMeasureOfImportancePQ
  * \param	graphAC			graph created by CreateAggressiveCoarseningGraph
  * \param 	PQ				maxheap priority queue for sorting of the nodes wrt the rating
- * \param 	unassigned		nr of nodes which are now to be assigned coarse or fine
- * \param	iNrOfCoarse		since we need to assign coarse nodes, we need this number
- * \param	newIndex		newIndex of new coarse nodes
  * \param	nodes			fine/coarse marks (skip fine nodes)
  */
-void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, int &unassigned,
-		int &iNrOfCoarse, stdvector<int> &newIndex, stdvector<amg_nodeinfo> &nodes)
+void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, AMGNodes &nodes)
 {
 	UG_ASSERT(nodes.size() == graphAC.size(), "");
 	PQ.create(nodes.size(), &nodes[0]);
 
-	unassigned = 0;
-	iNrOfCoarse = 0;
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		if(nodes[i].isFineDirect())
+		if(nodes[i].is_fine_direct())
 			continue;
 
-		nodes[i].rating = graphAC.num_connections(i);
+		nodes.set_rating(i, graphAC.num_connections(i));
 		PQ.insert_item(i);
-		unassigned++;
 	}
 
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,35 +162,30 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_p
  * \brief Coarsens the graph with ratings of nodes in nodes[i].rating, set up in a priority queue PQ
  * \param graph			Graph
  * \param PQ
- * \param newIndex		store in newIndex[i] new index of node i in coarse nodes (>0, if fine < 0)
- * \param unassigned	nr of nodes to assign
- * \param iNrOfCoarse
  *  bIndirect		if true, this is 2nd stage of Aggressive Coarsening, then fine nodes get marker "IndirectFine"
  *						instead of just "fine". Used later in CreateProlongation and CreateIndirectProlongation
  * \param nodes
  * \return				returns number of new coarse nodes.
  */
-int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int unassigned, int &iNrOfCoarse, stdvector<amg_nodeinfo> &nodes)
+int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes)
 {
-	UG_ASSERT(graph.size() == nodes.size() && graph.size() == newIndex.size() && graph.size() == PQ.arr_size(), "");
-	while(unassigned > 0)
+	UG_ASSERT(graph.size() == nodes.size() && graph.size() == PQ.arr_size(), "");
+	while(nodes.get_unassigned() > 0)
 	{
 		// get Node with best rating
 		int best = PQ.remove_max();
 
 		UG_DLOG(LIB_ALG_AMG, 3, endl << "set coarse: " << best << " rating " << nodes[best].rating  << ". then fine: ");
 
-		UG_ASSERT(!nodes[best].isAssigned(), "node " << best << " is already assigned??? (rating = " << nodes[best].rating << ", unassigend = " << unassigned << ")");
+		UG_ASSERT(!nodes[best].is_assigned(), "node " << best << " is already assigned??? (rating = " << nodes[best].rating << ", unassigend = " << nodes.get_unassigned() << ")");
 
-		nodes[best].setCoarse();				// mark as coarse/assigned
-		newIndex[best] = iNrOfCoarse++;		// new coarse index
-		unassigned--;
+		nodes.set_coarse(best);					// mark as coarse/assigned
 
 		// unassigned neighbors will be marked as fine, so remove from PQ
 		for(cgraph::const_row_iterator conn = graph.begin_row(best); conn != graph.end_row(best); ++conn)
 		{
 			size_t indexN = (*conn);
-			if(nodes[indexN].isAssigned()) continue;
+			if(nodes[indexN].is_assigned()) continue;
 			PQ.remove(indexN);
 		}
 
@@ -213,17 +197,16 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int u
 			IF_DEBUG(LIB_ALG_AMG, 3)
 			{
 				UG_LOG(indexN << " ");
-				if(nodes[indexN].isAssigned())
-					UG_LOG((nodes[indexN].isCoarse() ? "(c) " : "(f) "));
+				if(nodes[indexN].is_assigned())
+					UG_LOG((nodes[indexN].is_coarse() ? "(c) " : "(f) "));
 			}
 
-			if(nodes[indexN].isAssigned()) continue;
+			if(nodes[indexN].is_assigned()) continue;
 
 			//if(bIndirect) nodes[indexN].setFineIndirect();
 			//else
 
-			nodes[indexN].setFineDirect();
-			unassigned--;
+			nodes.set_fine_direct(indexN);
 
 			// increase rating of neighbors of this node (= neighbors of neighbors of node "best")
 			// rating = unassigned neighbors + 2 * fine neighbors
@@ -232,7 +215,7 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int u
 				int indexNN = (*connN);
 				// TODO: perhaps we could create a the f-f candidate list here
 
-				if(nodes[indexNN].isAssigned())
+				if(nodes[indexNN].is_assigned())
 					continue;
 				nodes[indexNN].rating++;
 				PQ.update(indexNN);
@@ -244,10 +227,9 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int u
 	}
 	//cout << endl;
 
-	UG_ASSERT(iNrOfCoarse > 0, "no coarse nodes???");
-
-	cout << iNrOfCoarse << " Coarse Nodes. ";
-	return iNrOfCoarse;
+	UG_ASSERT(nodes.get_nr_of_coarse() > 0, "no coarse nodes???");
+	UG_DLOG(LIB_ALG_AMG, 1, nodes.get_nr_of_coarse() << " Coarse Nodes. ");
+	return nodes.get_nr_of_coarse();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,15 +241,12 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, stdvector<int> &newIndex, int u
  * \param graphS
  * \param graphST
  * \param nodes
- * \param newIndex		store in newIndex[i] new index of node i in coarse nodes (>0, if fine < 0)
- * \param iNrOfCoarse
-
  * \return				returns number of new coarse nodes.
  */
-void PreventFFConnections(cgraph &graphS, cgraph &graphST, stdvector<amg_nodeinfo> &nodes, stdvector<int> &newIndex, int &iNrOfCoarse)
+void PreventFFConnections(cgraph &graphS, cgraph &graphST, AMGNodes &nodes)
 {
 	size_t N = graphS.size();
-	UG_ASSERT(N == graphST.size() && N == nodes.size() && N == newIndex.size(), "");
+	UG_ASSERT(N == graphST.size() && N == nodes.size(), "");
 	// second pass
 	//----------------
 	// seems to work but doesnt help with convergence rates on complicated geometries???
@@ -277,27 +256,27 @@ void PreventFFConnections(cgraph &graphS, cgraph &graphST, stdvector<amg_nodeinf
 
 	for(size_t i=0; i< N; i++)
 	{
-		if(nodes[i].isCoarse() || graphS.num_connections(i)==0)
+		if(nodes[i].is_coarse() || graphS.num_connections(i)==0)
 			continue;
 
 		// mark coarse nodes interpolating this fine node
 		for(cgraph::const_row_iterator it = graphST.begin_row(i); it != graphST.end_row(i); ++it)
 		{
-			if(nodes[(*it)].isCoarse())
+			if(nodes[(*it)].is_coarse())
 				marks[(*it)] = true;
 		}
 
 		// prevent strong F-F connections without common Interpolation node
 		for(cgraph::const_row_iterator it = graphST.begin_row(i); it != graphST.end_row(i); ++it)
 		{
-			if(nodes[*it].isCoarse() || graphS.is_isolated(*it))
+			if(nodes[*it].is_coarse() || graphS.is_isolated(*it))
 				continue;
 
 			cgraph::const_row_iterator it2 = graphST.begin_row(*it);
 			cgraph::const_row_iterator it2end = graphST.end_row(*it);
 			for(; it2 != it2end; ++it2)
 			{
-				if(nodes[*it2].isCoarse() && marks[*it2])
+				if(nodes[*it2].is_coarse() && marks[*it2])
 					break;
 			}
 
@@ -309,9 +288,7 @@ void PreventFFConnections(cgraph &graphS, cgraph &graphST, stdvector<amg_nodeinf
 				// problem: updating
 
 				//cout << endl << "prevent F-F-connection between (2) " << i << "[" << GetOriginalIndex(A.tolevel, i) << "] and " << it() << "[" << GetOriginalIndex(A.tolevel, it()) << "], setting " << i << " coarse.";
-				nodes[i].setCoarse();
-				newIndex[i] = iNrOfCoarse++;
-
+				nodes.set_coarse(i);
 				nrOfFFCoarseNodes++;
 				break;
 			}
@@ -321,13 +298,13 @@ void PreventFFConnections(cgraph &graphS, cgraph &graphST, stdvector<amg_nodeinf
 		for(cgraph::const_row_iterator conn = graphS.begin_row(i); conn != graphS.end_row(i); ++conn)
 		{
 			size_t index = (*conn);
-			if(nodes[index].isCoarse())
+			if(nodes[index].is_coarse())
 				marks[index] = false;
 		}
 	}
 
 	if(nrOfFFCoarseNodes)
-		cout << "F-F prevention, now " << iNrOfCoarse << " coarse nodes." << endl;
+		UG_DLOG(LIB_ALG_AMG, 1, "F-F prevention, now " << nodes.get_nr_of_coarse() << " coarse nodes.\n");
 }
 
 } // namespace ug

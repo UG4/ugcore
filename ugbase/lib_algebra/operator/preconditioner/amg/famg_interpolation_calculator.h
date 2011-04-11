@@ -108,6 +108,8 @@ public:
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << "\n");
 
+		UG_ASSERT(rating[i].is_valid_rating(), "node " << i << " has no valid rating " << rating[i].rating);
+
 		if(testvectorsExtern && BlockNorm2(m_testvectors[0][i]) < 1e-12 )
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "testvector in " << i << " nearly 0, set as fine\n");
@@ -140,11 +142,11 @@ public:
 		const double &aii = A_OL2(i,i);
 		for(size_t n=0; n < onlyN1.size(); n++)
 		{
-			if(A.is_isolated(onlyN1[n]) || !rating.i_can_set_coarse(onlyN1[n]))
+			if(!rating.i_can_set_coarse(onlyN1[n]) || A.is_isolated(onlyN1[n]))
 				continue;
 			for(size_t m=n+1; m < onlyN1.size(); m++)
 			{
-				if(A.is_isolated(onlyN1[m]) || !rating.i_can_set_coarse(onlyN1[m]))
+				if(!rating.i_can_set_coarse(onlyN1[m]) || A.is_isolated(onlyN1[m]))
 					continue;
 				// set KKT matrix
 				/*
@@ -238,7 +240,7 @@ public:
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, std::endl << rating.get_original_index(i) << ": UNINTERPOLATEABLE" << std::endl);
 			//UG_ASSERT(0, "node has no parents :'-(");
-			rating[i].set_uninterpolateable();
+			rating.set_uninterpolateable(i);
 		}
 	}
 
@@ -655,7 +657,7 @@ private:
 			}
 		}
 
-		 localS.maple_print("S2");
+		localS.maple_print("S2");
 
 		size_t N = N1+1+N2;
 		DenseMatrix<VariableArray2<double> > X;

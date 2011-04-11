@@ -12,14 +12,24 @@
 
 namespace ug{
 
+//! maximal value for T::get_val(). Keep in mind that memory requirements are O(max get_val()).
+#define BOXSORT_MAXIMAL_VALUE 500
+
 // note: in the current implementation, this is not a "stable" sort
 /**
  * \brief updateable priority queue class.
-  * maxheap works on an external array of elements T, note that none of the elements of m_arr[0]..m_arr[size-1]
- * are in the queue at the begining. You can insert elements by using BoxSort::insert(i);
+  * this priority queue works on an external array of elements T.
+  * \note none of the elements of m_arr[0]..m_arr[size-1] are in the queue at the begining.
+  * You can insert elements by using BoxSort::insert(i);
  *
- * \param T type of elements in the maxheap. Have to support size_t T::get_val() const, and get_val() has to
- * be between 0 and and small number (for example, 100).
+ * \param T type of elements in the maxheap. Has to support size_t T::get_val() const, and get_val() has to
+ * be between 0 and and small number (for example, 500).
+ *
+ * Elements are put in "boxes" depending on their get_val()-value - this makes sorting extermely easy:
+ * sorting and accessing is O(1), and inserting is maximal a) creation of enough boxes, and b) inserting
+ * into a box, so it is O(maximal get_val()). This algorithm is like a "radical" radix exchange sort.
+ * \note memory requirements are O(maximal get_val()) + O(size).
+ *
  */
 template<typename T>
 class BoxSort
@@ -41,7 +51,7 @@ public:
 		create(n, arr_);
 	}
 
-	BoxSort(std::vector<T> &v) : m_size(0), m_height(0)
+	BoxSort(const std::vector<T> &v) : m_size(0), m_height(0)
 	{
 		create(v.size(), &v[0]);
 	}
@@ -84,7 +94,7 @@ public:
 	{
 		size_check(i);
 		size_t val = arr[i].get_val();
-		UG_ASSERT(val < 5000, "boxsort is not meant for big m_values");
+		UG_ASSERT(val < BOXSORT_MAXIMAL_VALUE, "T::get_val() has to be < " << BOXSORT_MAXIMAL_VALUE << " but is " << val);
 		if(m_box.size() < val+1)
 		{
 			//size_t s = m_box.size();
