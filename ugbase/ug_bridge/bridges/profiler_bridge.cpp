@@ -283,9 +283,9 @@ bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 
 	reg.add_class_<UGProfilerNode>("UGProfilerNode", group.str().c_str())
 		.add_method("call_tree", &UGProfilerNode::call_tree, "string with call tree")
-		.add_method("child_self_time_sorted", &UGProfilerNode::child_self_time_sorted, "string with sorted childs")
-		.add_method("total_time_sorted", &UGProfilerNode::total_time_sorted, "string with sorted childs")
-		.add_method("entry_count_sorted", &UGProfilerNode::entry_count_sorted, "string with sorted childs")
+		.add_method("child_self_time_sorted", &UGProfilerNode::child_self_time_sorted, "string with sorted childs", "", "childs are sorted by self time")
+		.add_method("total_time_sorted", &UGProfilerNode::total_time_sorted, "string with sorted childs", "", "childs are sorted by total time")
+		.add_method("entry_count_sorted", &UGProfilerNode::entry_count_sorted, "string with sorted childs", "", "childs are sorted by entry count")
 		.add_method("get_avg_entry_count", &UGProfilerNode::get_avg_entry_count,
 				"number of entries in this profiler node", "")
 		.add_method("get_avg_self_time_ms", &UGProfilerNode::get_avg_self_time_ms,
