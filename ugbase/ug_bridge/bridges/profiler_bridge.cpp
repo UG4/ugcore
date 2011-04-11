@@ -9,6 +9,9 @@
 #include "ug_script/ug_script.h"
 #include "../registry.h"
 #include "../ug_bridge.h"
+#include "common/profiler/profiler.h"
+#include <iomanip>
+
 
 namespace ug
 {
@@ -28,7 +31,7 @@ public:
 	double get_avg_entry_count() const
 	{
 		if(!is_valid()) return 0.0;
-		return data.entryCount.avg * SHINY_DAMPING_FACTOR;
+		return data.entryCount.avg; // * SHINY_DAMPING_FACTOR;
 	}
 
 	/// \return time in milliseconds spend in this node excluding subnodes
@@ -45,10 +48,68 @@ public:
 		return data.totalTicksAvg() / 1000.0 * SHINY_DAMPING_FACTOR;
 	}
 
-	/// \return true if node has been found
+	std::string print_node(double full, size_t offset=0) const
+	{
+		if(!is_valid()) return "";
+		double totalTicksAvg = get_avg_total_time_ms();
+		const Shiny::TimeUnit *selfUnit = Shiny::GetTimeUnit(get_avg_self_time_ms());
+		const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(totalTicksAvg);
+		std::stringstream s;
+		if(offset)	s << std::setw(offset) << " ";
+		s <<	std::left << std::setw(Shiny::OUTPUT_WIDTH_NAME-offset) << zone->name <<
+				std::right << std::setw(Shiny::OUTPUT_WIDTH_HIT) << get_avg_entry_count() << " " <<
+				std::setw(Shiny::OUTPUT_WIDTH_TIME) << get_avg_self_time_ms() * selfUnit->invTickFreq << " " << selfUnit->suffix << " " <<
+				std::setw(Shiny::OUTPUT_WIDTH_PERC) << get_avg_self_time_ms() / full * 100 << "% " <<
+				std::setw(Shiny::OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " << totalUnit->suffix << " " <<
+				std::setw(Shiny::OUTPUT_WIDTH_PERC) << totalTicksAvg / full * 100<< "% ";
+		return s.str();
+	}
+
+	const UGProfilerNode *get_first_child() const
+	{
+		return reinterpret_cast<const UGProfilerNode*>(firstChild);
+	}
+
+	const UGProfilerNode *get_last_child() const
+	{
+		return reinterpret_cast<const UGProfilerNode*>(lastChild);
+	}
+
+	const UGProfilerNode *get_next_sibling() const
+	{
+		return reinterpret_cast<const UGProfilerNode*>(nextSibling);
+	}
+
+	std::string call_tree() const
+	{
+		if(!is_valid()) return "Profile Node not valid!";
+
+		float fTicksToPc = get_avg_total_time_ms();
+		std::string str;
+		std::stringstream s;
+		s << 	std::left << std::setw(Shiny::OUTPUT_WIDTH_NAME) << "call tree" << " " <<
+				std::right << std::setw(Shiny::OUTPUT_WIDTH_HIT) << "hits" << " " <<
+				std::setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "self time" << " " <<
+				std::setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "total time"  << " \n";
+
+		rec_print(fTicksToPc, 0, s);
+
+		return s.str();
+	}
+
+	// \return true if node has been found
 	bool is_valid() const
 	{
 		return this != NULL;
+	}
+
+private:
+	void rec_print(double full, size_t offset, std::stringstream &s) const
+	{
+		if(!is_valid()) return;
+		s << print_node(full, offset) << "\n";
+		for(const UGProfilerNode *p=get_first_child(); p != NULL && p!=get_last_child(); p=p->get_next_sibling())
+			s << p->print_node(full, offset+1) << "\n";
 	}
 };
 
@@ -98,6 +159,12 @@ public:
 		return 0.0;
 	}
 
+	std::string call_tree()
+	{
+		return "Profiler not availabel!";
+	}
+
+
 	/// \return true if node has been found
 	bool is_valid() const
 	{
@@ -139,13 +206,16 @@ bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 	std::stringstream group; group << parentGroup << "/Profiler";
 
 	reg.add_class_<UGProfilerNode>("UGProfilerNode", group.str().c_str())
+		.add_method("call_tree", &UGProfilerNode::call_tree, "string with call tree")
 		.add_method("get_avg_entry_count", &UGProfilerNode::get_avg_entry_count,
 				"number of entries in this profiler node", "")
 		.add_method("get_avg_self_time_ms", &UGProfilerNode::get_avg_self_time_ms,
 				"time in milliseconds spend in this node excluding subnodes", "")
 		.add_method("get_avg_total_time_ms", &UGProfilerNode::get_avg_total_time_ms,
 				"time in milliseconds spend in this node including subnodes", "")
-		.add_method("is_valid", &UGProfilerNode::is_valid, "true if node has been found", "");
+		.add_method("is_valid", &UGProfilerNode::is_valid, "true if node has been found", "")
+
+		;
 		/*.add_method("__tostring", &UGProfilerNode::tostring, "tostring")
 		.add_method("__unm", &UGProfilerNode::unm, "unm")
 		.add_method("__add", &UGProfilerNode::add, "add");*/
