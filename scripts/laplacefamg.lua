@@ -28,10 +28,10 @@ if dim == 3 then
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = util.GetParamNumber("-numPreRefs", 0)
+numPreRefs = util.GetParamNumber("-numPreRefs", 2)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 5)
+numRefs = util.GetParamNumber("-numRefs", 4)
 
 
 --------------------------------
@@ -389,7 +389,7 @@ amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
 amg:set_base_solver(base)
-amg:set_max_levels(5)
+amg:set_max_levels(4)
 
 amg:set_max_nodes_for_base(300)
 amg:set_max_fill_before_base(0.7)
@@ -402,7 +402,7 @@ amg:tostring()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(30)
+convCheck:set_maximum_steps(100)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
 
@@ -416,15 +416,27 @@ linSolver:set_convergence_check(convCheck)
 
 log = GetLogAssistant();
 
-
-log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 2)
+log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 0)
 ApplyLinearSolver(linOp, u, b, linSolver)
+
+-- amg:check(u, b)
 
 log:set_debug_levels(0)
 
+print("AMG Information:")
+print("Setup took "..amg:get_timing_whole_setup_ms().." ms")
+print("Coarse solver setup took "..amg:get_timing_coarse_solver_setup_ms().." ms")
+print("Operator complexity c_A = "..amg:get_operator_complexity())
+print("Grid complexity c_G = "..amg:get_grid_complexity())
+
+for i = 0, amg:get_used_levels()-1 do
+	LI = amg:get_level_information(i)
+	print("Level "..i..": creation time: "..LI:get_creation_time_ms() .. " ms. number of nodes: " .. LI:get_nr_of_nodes() )
+end
+
 
 -- print("c_create_AMG_level call tree:")
--- print(GetProfileNode("do_calculation"):call_tree())
+print(GetProfileNode("main"):call_tree())
 -- print("-----------------------------------------------")
 -- amg:check(u, b);
 
