@@ -205,13 +205,13 @@ struct cRegisterAlgebraType
 
 		//	Jacobi
 			reg.add_class_<	JacobiPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("Jacobi", grp2.c_str())
+							IPreconditioner<algebra_type> >("Jacobi", grp2.c_str(), "Jacobi Preconditioner")
 				.add_constructor()
 				.add_method("set_damp", &JacobiPreconditioner<algebra_type>::set_damp, "", "damp");
 
 		//	GaussSeidel
 			reg.add_class_<	GSPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("GaussSeidel", grp2.c_str())
+							IPreconditioner<algebra_type> >("GaussSeidel", grp2.c_str(), "Gauss-Seidel Preconditioner")
 				.add_constructor();
 
 		//	Symmetric GaussSeidel
@@ -226,14 +226,14 @@ struct cRegisterAlgebraType
 
 		//	ILU
 			reg.add_class_<	ILUPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("ILU", grp2.c_str())
+							IPreconditioner<algebra_type> >("ILU", grp2.c_str(), "Incomplete LU Decomposition")
 				.add_constructor()
 				.add_method("set_debug", &ILUPreconditioner<algebra_type>::set_debug, "", "d");
 
 
 		//	ILU Threshold
 			reg.add_class_<	ILUTPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("ILUT", grp2.c_str())
+							IPreconditioner<algebra_type> >("ILUT", grp2.c_str(), "Incomplete LU Decomposition with threshold")
 				.add_constructor()
 				.add_method("set_threshold", &ILUTPreconditioner<algebra_type>::set_threshold,
 							"", "threshold", "sets threshold of incomplete LU factorisation");
@@ -243,7 +243,8 @@ struct cRegisterAlgebraType
 		{
 			//	LinearIteratorProduct
 				reg.add_class_<	LinearIteratorProduct<vector_type, vector_type>,
-						ILinearIterator<vector_type, vector_type> >("LinearIteratorProduct", grp.c_str())
+						ILinearIterator<vector_type, vector_type> >("LinearIteratorProduct", grp.c_str(),
+								"Linear Iterator consisting of several LinearIterations")
 						.add_constructor()
 						.add_method("add_iteration", &LinearIteratorProduct<vector_type, vector_type>::add_iterator, "Add an iterator");
 		}
@@ -287,7 +288,7 @@ struct cRegisterAlgebraType
 
 		// 	CG Solver
 			reg.add_class_<	CGSolver<algebra_type>,
-							ILinearOperatorInverse<vector_type, vector_type> >("CG", grp3.c_str())
+							ILinearOperatorInverse<vector_type, vector_type> >("CG", grp3.c_str(), "Conjugate Gradient")
 				.add_constructor()
 				.add_method("set_preconditioner|interactive=false", &CGSolver<algebra_type>::set_preconditioner,
 							"", "Preconditioner")
@@ -305,7 +306,7 @@ struct cRegisterAlgebraType
 
 		// 	LUSolver
 			reg.add_class_<	LUSolver<algebra_type>,
-							ILinearOperatorInverse<vector_type, vector_type> >("LU", grp3.c_str())
+							ILinearOperatorInverse<vector_type, vector_type> >("LU", grp3.c_str(), "LU-Decomposition exact solver")
 				.add_constructor()
 				.add_method("set_convergence_check|interactive=false", &LUSolver<algebra_type>::set_convergence_check,
 							"", "Check");
@@ -315,7 +316,7 @@ struct cRegisterAlgebraType
 			{
 				typedef DirichletDirichletSolver<algebra_type> T;
 				typedef ILinearOperatorInverse<vector_type, vector_type> BaseT;
-				reg.add_class_<	T, BaseT >("DirichletDirichlet", grp3.c_str())
+				reg.add_class_<	T, BaseT >("DirichletDirichlet", grp3.c_str(), "Dirichlet-Dirichlet Domain Decomposition Algorithm")
 				.add_constructor()
 				.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
 							"", "Check")
@@ -350,7 +351,7 @@ struct cRegisterAlgebraType
 			{
 				typedef FETISolver<algebra_type> T;
 				typedef IMatrixOperatorInverse<vector_type, vector_type, matrix_type> BaseT;
-				reg.add_class_<	T, BaseT >("FETI", grp3.c_str())
+				reg.add_class_<	T, BaseT >("FETI", grp3.c_str(), "FETI Domain Decomposition Solver")
 				.add_constructor()
 				.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
 							"", "Check")
