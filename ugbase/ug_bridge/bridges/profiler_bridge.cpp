@@ -48,22 +48,38 @@ public:
 	/// \return time in milliseconds spend in this node excluding subnodes
 	double get_avg_self_time_ms() const
 	{
-		if(!is_valid()) return 0.0;
-		return data.selfTicks.avg / 1000.0 * SHINY_DAMPING_FACTOR;
+		return get_avg_self_time() / 1000.0;
 	}
 
 	/// \return time in milliseconds spend in this node including subnodes
 	double get_avg_total_time_ms() const
 	{
-		if(!is_valid()) return 0.0;
-		return data.totalTicksAvg() / 1000.0 * SHINY_DAMPING_FACTOR;
+		return get_avg_total_time() / 1000.0;
 	}
+
+
+	/// \return time in seconds spend in this node excluding subnodes
+	double get_avg_self_time() const
+	{
+		if(!is_valid()) return 0.0;
+		return data.selfTicks.avg * SHINY_DAMPING_FACTOR;
+	}
+
+	/// \return time in seconds spend in this node including subnodes
+	double get_avg_total_time() const
+	{
+		if(!is_valid()) return 0.0;
+		return data.totalTicksAvg() * SHINY_DAMPING_FACTOR;
+	}
+
+
+
 
 	std::string print_node(double full, size_t offset=0) const
 	{
 		if(!is_valid()) return "";
-		double totalTicksAvg = get_avg_total_time_ms();
-		const Shiny::TimeUnit *selfUnit = Shiny::GetTimeUnit(get_avg_self_time_ms());
+		double totalTicksAvg = get_avg_total_time();
+		const Shiny::TimeUnit *selfUnit = Shiny::GetTimeUnit(get_avg_self_time());
 		const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(totalTicksAvg);
 		std::stringstream s;
 		if(offset)	s << std::setw(offset) << " ";
@@ -71,8 +87,8 @@ public:
 		s <<	std::left << std::setw(Shiny::OUTPUT_WIDTH_NAME-offset) << cut(zone->name, Shiny::OUTPUT_WIDTH_NAME-offset) <<
 				std::right << std::setw(Shiny::OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
 				std::setprecision(Shiny::OUTPUT_WIDTH_TIME-1) <<
-				std::setw(Shiny::OUTPUT_WIDTH_TIME) << get_avg_self_time_ms() * selfUnit->invTickFreq << " " << selfUnit->suffix << " " <<
-				std::setw(Shiny::OUTPUT_WIDTH_PERC) << floor(get_avg_self_time_ms() / full * 100) << "% " <<
+				std::setw(Shiny::OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " << selfUnit->suffix << " " <<
+				std::setw(Shiny::OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "% " <<
 				std::setw(Shiny::OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " << totalUnit->suffix << " " <<
 				std::setw(Shiny::OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "% ";
 		return s.str();
@@ -100,7 +116,7 @@ public:
 		std::stringstream s;
 		UGProfilerNode::log_header(s, "call tree");
 
-		rec_print(get_avg_total_time_ms(), s);
+		rec_print(get_avg_total_time(), s);
 
 		return s.str();
 	}
@@ -152,6 +168,7 @@ private:
 
 	std::string child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b)) const
 	{
+		if(!is_valid()) return "";
 		std::stringstream s;
 		std::vector<const UGProfilerNode*> nodes;
 		add_nodes(nodes);
@@ -159,7 +176,7 @@ private:
 
 		UGProfilerNode::log_header(s, name);
 		for(size_t i=0; i<nodes.size(); i++)
-			s << nodes[i]->print_node(get_avg_total_time_ms()) << "\n";
+			s << nodes[i]->print_node(get_avg_total_time()) << "\n";
 		return s.str();
 	}
 
@@ -174,12 +191,12 @@ private:
 
 	static bool self_time_sort(const UGProfilerNode *a, const UGProfilerNode *b)
 	{
-		return a->get_avg_self_time_ms() < b->get_avg_self_time_ms();
+		return a->get_avg_self_time() < b->get_avg_self_time();
 	}
 
 	static bool total_time_sort(const UGProfilerNode *a, const UGProfilerNode *b)
 	{
-		return a->get_avg_total_time_ms() < b->get_avg_total_time_ms();
+		return a->get_avg_total_time() < b->get_avg_total_time();
 	}
 
 	static bool entry_count_sort(const UGProfilerNode *a, const UGProfilerNode *b)
