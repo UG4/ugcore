@@ -241,7 +241,7 @@ class ParallelVector : public TVector
 			return *this;
 		}
 
-	protected:
+
 	///	copy layouts from another parallel vector
 		void copy_layouts(const this_type &v)
 		{
@@ -253,7 +253,7 @@ class ParallelVector : public TVector
 			m_pCommunicator = v.m_pCommunicator;
 			m_processCommunicator = v.m_processCommunicator;
 		}
-
+	protected:
 	private:
 	// 	type of storage  (i.e. consistent, additiv, additiv unique)
 		int m_type;
