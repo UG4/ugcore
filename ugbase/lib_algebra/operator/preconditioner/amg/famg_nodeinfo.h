@@ -21,9 +21,9 @@ namespace ug {
 #define FAMG_DIRICHLET_RATING	(-1003)
 
 
-class famg_nodeinfo
+class FAMGNode
 {
-	friend class famg_nodes;
+	friend class FAMGNodes;
 
 private:
 	inline void set_fine(){rating = FAMG_FINE_RATING;}
@@ -34,7 +34,7 @@ private:
 
 
 public:
-	famg_nodeinfo() { rating = 0.0; }
+	FAMGNode() { rating = 0.0; }
 	double rating;
 	//int newIndex;		
 
@@ -52,7 +52,7 @@ public:
 	{
 		return rating >= 0;
 	}
-	inline bool operator > (const famg_nodeinfo &other) const
+	inline bool operator > (const FAMGNode &other) const
 	{
 		if(rating == other.rating)
 			return this < &other;
@@ -66,7 +66,7 @@ public:
 		return rating;
 	}
 
-	friend std::ostream &operator << (std::ostream &out, const famg_nodeinfo &n)
+	friend std::ostream &operator << (std::ostream &out, const FAMGNode &n)
 	{
 		out << "Rating: " << n.rating;
 		if(n.is_fine()) out << " (fine)";
@@ -78,10 +78,10 @@ public:
 
 //! this structure holds coarse/fine information as well as master/slave
 //! for use in amg. it tries to replace the missing "node" object here
-class famg_nodes
+class FAMGNodes
 {
 public:
-	famg_nodes(SparseMatrix<double> &_P, size_t level, ug::cAMG_helper &amghelper)
+	FAMGNodes(SparseMatrix<double> &_P, size_t level, ug::cAMG_helper &amghelper)
 	: P(_P), m_level(level), m_amghelper(amghelper)
 	{
 		m_iNrOfCoarse = 0;
@@ -97,8 +97,8 @@ public:
 #endif
 	}
 
-	famg_nodeinfo &operator [] (size_t i) { return nodes[i]; }
-	const famg_nodeinfo &operator [] (size_t i) const { return nodes[i]; }
+	FAMGNode &operator [] (size_t i) { return nodes[i]; }
+	const FAMGNode &operator [] (size_t i) const { return nodes[i]; }
 
 	template<typename vec_type>
 	int get_rating(const vec_type &M)
@@ -107,7 +107,7 @@ public:
 		size_t rating = 0;
 		for(size_t i=0; i<M.size(); ++i)
 		{
-			const famg_nodeinfo &ninfo = nodes[M[i].from];
+			const FAMGNode &ninfo = nodes[M[i].from];
 			if(ninfo.is_fine())
 			{
 				UG_DLOG(LIB_ALG_AMG, 2, " pair " << get_original_index(M[0].from) << ", " << get_original_index(M[1].from) << " is invalid, since " << get_original_index(M[i].from) << " is fine. ");
@@ -316,7 +316,6 @@ public:
 		if(nodes[index].is_coarse() == false)
 		{
 			nodes[index].set_coarse();
-			UG_LOG("Index " << index << " is now coarse and has new index " << m_iNrOfCoarse << "\n");
 
 			m_iUnassigned--;
 			// todo: perhaps we should not do this here
@@ -357,7 +356,7 @@ public:
 //private:
 public:
 	stdvector<int> newIndex;
-	stdvector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array, because it is used in the heap
+	stdvector<FAMGNode> nodes; // !!! this HAS to be a consecutive array, because it is used in the heap
 
 private:
 	size_t m_iNrOfCoarse;			// number of coarse nodes so far
@@ -371,7 +370,7 @@ private:
 
 template<typename neighborstruct>
 void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvector<neighborstruct> > &possible_neighbors,
-		famg_nodes &nodes, maxheap<famg_nodeinfo> &heap)
+		FAMGNodes &nodes, maxheap<FAMGNode> &heap)
 {
 	for(cgraph::const_row_iterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
 	{
@@ -398,7 +397,7 @@ void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvec
 
 template<typename neighborstruct, typename heap_type>
 void GetRatings(stdvector<stdvector<neighborstruct> > &possible_neighbors,
-		famg_nodes &nodes, heap_type &heap)
+		FAMGNodes &nodes, heap_type &heap)
 {
 	UG_DLOG(LIB_ALG_AMG, 2, "\nGetRatings...\n\n");
 	for(size_t i=0; i<nodes.size(); i++)

@@ -133,7 +133,7 @@ bool amg_base<TAlgebra>::init()
 	SWwhole.start();
 
 
-	m_levelInformation.push_back(LevelInformation(0, m_A[0]->num_rows()));
+	m_levelInformation.push_back(LevelInformation(0, m_A[0]->num_rows(), m_A[0]->total_num_connections()));
 
 	size_t level=0;
 	for(; level< m_maxLevels-1; level++)
@@ -183,9 +183,9 @@ bool amg_base<TAlgebra>::init()
 		/////////////////////////////////////////
 
 		double nrOfCoarse = m_A[level+1]->num_rows();
+		size_t nnzCoarse = m_A[level+1]->total_num_connections();
 		IF_DEBUG(LIB_ALG_AMG, 1)
 		{
-			size_t nnzCoarse = m_A[level+1]->total_num_connections();
 			double nrOfFine = m_A[level]->num_rows();
 			UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << nnzCoarse << " Density: " <<
 					nnzCoarse/(nrOfCoarse*nrOfCoarse)*100.0 << "%, avg. nnz pre row: " << nnzCoarse/nrOfCoarse << std::endl);
@@ -195,7 +195,7 @@ bool amg_base<TAlgebra>::init()
 			UG_DLOG(LIB_ALG_AMG, 1, " level took " << SWwhole.ms() << " ms" << std::endl << std::endl);
 		}
 
-		m_levelInformation.push_back(LevelInformation(SWwhole.ms(), nrOfCoarse));
+		m_levelInformation.push_back(LevelInformation(SWwhole.ms(), nrOfCoarse, nnzCoarse));
 
 		create_level_vectors(level);
 	}

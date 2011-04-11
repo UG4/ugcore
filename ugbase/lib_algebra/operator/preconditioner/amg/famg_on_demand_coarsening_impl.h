@@ -19,7 +19,7 @@
 namespace ug{
 
 template<typename neighborstruct, typename matrix_type, typename vector_type>
-bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &nodes,
+bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, FAMGNodes &nodes,
 		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,
 		FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
@@ -67,8 +67,8 @@ bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_node
 }
 
 template<typename neighborstruct, typename matrix_type, typename vector_type>
-void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possible_parents, famg_nodes &nodes,
-		maxheap<famg_nodeinfo> &heap,
+void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possible_parents, FAMGNodes &nodes,
+		maxheap<FAMGNode> &heap,
 		stdvector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
 	FAMG_PROFILE_FUNC();

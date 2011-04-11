@@ -16,7 +16,7 @@
 #ifndef __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 #define __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 
-//#define PROFILE_FAMG
+#define PROFILE_FAMG
 #ifdef PROFILE_FAMG
 	#define FAMG_PROFILE_FUNC()			PROFILE_FUNC()
 	#define FAMG_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
@@ -171,13 +171,13 @@ private:
 
 	// this structure holds coarse/fine information as well as
 	// master/slave. it tries to replace the missing "node" object here
-	famg_nodes rating;
+	FAMGNodes rating;
 
 	//! list of possible interpolating parents for each node
 	stdvector<stdvector<neighborstruct2> > possible_parents;
 
 	//! heap used for sorting of ratings
-	maxheap<famg_nodeinfo> heap;
+	maxheap<FAMGNode> heap;
 
 	//! used to determine which neighbors' rating needs to be updated:
 	cgraph SymmNeighGraph;
@@ -265,7 +265,7 @@ private:
 		FAMG_PROFILE_FUNC();
 		m_famg.is_fine.resize(level+1);
 		stdvector<bool> &vFine = m_famg.is_fine[level];
-		vFine.resize(rating.get_nr_of_coarse());
+		vFine.resize(rating.size());
 
 		for(size_t i=0; i < rating.size(); i++)
 			vFine[i] = rating[i].is_fine();

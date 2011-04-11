@@ -12,7 +12,7 @@ struct s_interpolation
 
 struct neighborstruct2
 {
-	void print(famg_nodes &rating)
+	void print(FAMGNodes &rating)
 	{
 		UG_LOG(parents.size() << " parents, F = " << F << ": ");
 		for(size_t i=0; i<parents.size(); i++)
@@ -25,7 +25,7 @@ struct neighborstruct2
 
 struct neighborstruct_var
 {
-	void print(famg_nodes &rating)
+	void print(FAMGNodes &rating)
 	{
 		UG_LOG(parents.size() << " parents, F = " << F << ": ");
 		for(size_t i=0; i<parents.size(); i++)

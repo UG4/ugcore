@@ -102,7 +102,7 @@ public:
 	 * \param possible_neighbors	here goes list of possible parent pairs
 	 * \param rating				fine/coarse infos of the nodes
 	 */
-	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors, famg_nodes &rating)
+	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors, FAMGNodes &rating)
 	{
 		FAMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
@@ -253,7 +253,7 @@ public:
 	 * \param rating	fine/coarse infos of the nodes
 	 */
 	template<typename prolongation_matrix_type>
-	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	famg_nodes &rating)
+	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	FAMGNodes &rating)
 	{
 		FAMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << rating.get_original_index(i) << "\n")
@@ -425,7 +425,7 @@ private:
 	 * \param i 		central node i
 	 * \param rating	only used for debug output (get_orinal_index)
 	 */
-	bool get_H(size_t i, famg_nodes &rating)
+	bool get_H(size_t i, FAMGNodes &rating)
 	{
 		FAMG_PROFILE_FUNC();
 		// replace this with

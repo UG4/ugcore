@@ -57,13 +57,16 @@ public:
 	class LevelInformation
 	{
 	public:
-		LevelInformation(double creationTimeMS, size_t iNrOfNodes) : m_dCreationTimeMS(creationTimeMS), m_iNrOfNodes(iNrOfNodes) { }
+		LevelInformation(double creationTimeMS, size_t iNrOfNodes, size_t nnzs) : m_dCreationTimeMS(creationTimeMS), m_iNrOfNodes(iNrOfNodes), m_iNNZs(nnzs) { }
 		double get_creation_time_ms() { return m_dCreationTimeMS; }
-		double get_nr_of_nodes() { return m_iNrOfNodes; }
+		size_t get_nr_of_nodes() { return m_iNrOfNodes; }
+		size_t get_nnz() { return m_iNNZs; }
+		double get_fill_in() { return ((double)m_iNNZs)/(((double)m_iNrOfNodes)*((double)m_iNrOfNodes)); }
 		bool is_valid() { return this != NULL; }
 	private:
 		double m_dCreationTimeMS;
 		size_t m_iNrOfNodes;
+		size_t m_iNNZs;
 	};
 
 
