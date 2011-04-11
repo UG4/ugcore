@@ -66,6 +66,7 @@ struct RegisterAMGClass<CPUAlgebra>
 
 			.add_method("set_max_levels", &amg_base<algebra_type>::set_max_levels, "", "max_levels", "sets max nr of AMG levels")
 			.add_method("get_max_levels", &amg_base<algebra_type>::get_max_levels,  "max nr of AMG levels")
+			.add_method("get_used_levels", &amg_base<algebra_type>::get_used_levels, "used nr of AMG levels")
 
 			.add_method("set_max_nodes_for_base", &amg_base<algebra_type>::set_max_nodes_for_base, "", "maxNrOfNodes", "sets the maximal nr of nodes for base solver")
 			.add_method("get_max_nodes_for_base", &amg_base<algebra_type>::get_max_nodes_for_base, "maximal nr of nodes for base solver")
@@ -73,38 +74,39 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_max_fill_before_base", &amg_base<algebra_type>::set_max_fill_before_base, "", "fillrate", "sets maximal fill rate before base solver is used")
 			.add_method("get_max_fill_before_base", &amg_base<algebra_type>::get_max_fill_before_base, "maximal fill rate before base solver is used", "")
 
-			.add_method("get_operator_complexity", &amg_base<algebra_type>::get_operator_complexity, "", "")
-			.add_method("get_nodes_complexity", &amg_base<algebra_type>::get_nodes_complexity, "", "")
-			.add_method("get_timing_whole_setup_ms", &amg_base<algebra_type>::get_timing_whole_setup_ms, "", "")
-			.add_method("get_timing_coarse_solver_ms", &amg_base<algebra_type>::get_timing_coarse_solver_ms, "", "")
-			.add_method("get_level_information", &amg_base<algebra_type>::get_level_information, "", "")
+			.add_method("get_operator_complexity", &amg_base<algebra_type>::get_operator_complexity, "operator complexity c_A", "", "c_A = total nnz of all matrices divided by nnz of matrix A")
+			.add_method("get_grid_complexity", &amg_base<algebra_type>::get_grid_complexity, "grid complexity c_G", "", "c_G = total number of nodes of all levels divided by number of nodes on level 0")
+			.add_method("get_timing_whole_setup_ms", &amg_base<algebra_type>::get_timing_whole_setup_ms, "the time spent on the whole setup in ms")
+			.add_method("get_timing_coarse_solver_setup_ms", &amg_base<algebra_type>::get_timing_coarse_solver_setup_ms, "the time spent in the coarse solver setup in ms")
+
+			.add_method("get_level_information", &amg_base<algebra_type>::get_level_information, "information about the level L", "L")
 
 			.add_method("set_presmoother", &amg_base<algebra_type>::set_presmoother, "", "presmoother")
 			.add_method("set_postsmoother", &amg_base<algebra_type>::set_postsmoother, "", "postsmoother")
 			.add_method("set_base_solver", &amg_base<algebra_type>::set_base_solver, "", "basesmoother")
-			.add_method("check", &amg_base<algebra_type>::check, "", "")
-			.add_method("set_matrix_write_path", &amg_base<algebra_type>::set_matrix_write_path, "", "")
-			.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "enable")
+			.add_method("check", &amg_base<algebra_type>::check, "", "x#b", "performs a check of convergence on all levels")
+			.add_method("set_matrix_write_path", &amg_base<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
+			.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "enable", "")
 			.add_method("get_fsmoothing", &amg_base<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
 
-			.add_method("set_position_provider2d", &amg_base<algebra_type>::set_position_provider2d)
-			.add_method("set_position_provider3d", &amg_base<algebra_type>::set_position_provider3d)
+			.add_method("set_position_provider2d", &amg_base<algebra_type>::set_position_provider2d, "", "prov", "needed for connectionviewer output")
+			.add_method("set_position_provider3d", &amg_base<algebra_type>::set_position_provider3d, "", "prov", "needed for connectionviewer output")
 			;
 
-		reg.add_class_<	amg<algebra_type>, amg_base<algebra_type> > ("AMGPreconditioner", grp2.c_str())
+		reg.add_class_<	amg<algebra_type>, amg_base<algebra_type> > ("AMGPreconditioner", grp2.c_str(), "Ruge-Stueben Algebraic Multigrid Preconditioner")
 			.add_constructor()
-			.add_method("set_theta", &amg<algebra_type>::set_theta, "", "theta", "sets theta, a measure for strong connectivity")
-			.add_method("get_theta", &amg<algebra_type>::get_theta, "theta", "")
-			.add_method("set_sigma", &amg<algebra_type>::set_sigma, "", "sigma", "sets sigma, a parameter used for truncation of interpolation")
-			.add_method("get_sigma", &amg<algebra_type>::get_sigma, "sigma", "", "gets sigma")
+			.add_method("set_epsilon_strong", &amg<algebra_type>::set_epsilon_strong, "", "epsilon_str", "sets epsilon_strong, a measure for strong connectivity")
+			.add_method("get_epsilon_strong", &amg<algebra_type>::get_epsilon_strong, "epsilon_strong", "")
+			.add_method("set_epsilon_truncation", &amg<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
+			.add_method("get_epsilon_truncation", &amg<algebra_type>::get_epsilon_truncation, "epsilon_tr")
 
 			.add_method("tostring", &amg<algebra_type>::tostring)
-			.add_method("enable_aggressive_coarsening_A", &amg<algebra_type>::enable_aggressive_coarsening_A)
-			.add_method("disable_aggressive_coarsening", &amg<algebra_type>::disable_aggressive_coarsening)
+			.add_method("enable_aggressive_coarsening_A", &amg<algebra_type>::enable_aggressive_coarsening_A, "", "nrOfPaths", "enables aggressive coarsening (A1 or A2) on the first level.")
+			.add_method("disable_aggressive_coarsening", &amg<algebra_type>::disable_aggressive_coarsening, "", "", "disables aggressive coarsening")
 			.add_method("is_aggressive_coarsening", &amg<algebra_type>::is_aggressive_coarsening)
 			.add_method("is_aggressive_coarsening_A", &amg<algebra_type>::is_aggressive_coarsening_A);
 
-		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > ("FAMGPreconditioner", grp2.c_str())
+		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > ("FAMGPreconditioner", grp2.c_str(), "Filtering Algebraic Multigrid")
 			.add_constructor()
 			.add_method("tostring", &famg<algebra_type>::tostring)
 			.add_method("set_aggressive_coarsening", &famg<algebra_type>::set_aggressive_coarsening)
