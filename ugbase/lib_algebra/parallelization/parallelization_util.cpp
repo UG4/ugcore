@@ -653,4 +653,190 @@ void BuildDomainDecompositionLayouts(
 }
 */
 
+
+/**
+ * adds connections between slave nodes to the interfaces/layouts
+ * when a master node has 2 slave nodes, this function adds a connection between these nodes
+ *
+ * \param communicator used ParallelCommunicator
+ * \param masterLayout master layout
+ * \param slaveLayout slave layout
+ * \param allToAllSend layout with slave-slave connections at the end of this function
+ * \param allToAllReceive layout with slave-slave connections at the end of this function
+ *
+ * since we have slave->slave and slave<-slave connections, indices added to layouts
+ * are always added to allToAllSend AND allToAllReceive.
+ *
+ * \note this function ONLY adds slave-slave connections. if you need master->slave connections, try
+ *  AddLayout(allToAllSend, masterLayout);
+ *  AddLayout(allToAllReceive, slaveLayout);
+ * for slave->master
+ *  AddLayout(allToAllSend, slaveLayout);
+ *  AddLayout(allToAllReceive, masterLayout);
+ *
+ * \note because the order in the interfaces is important, this function is more complicate that one would expect.
+ */
+void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communicator,
+		IndexLayout &masterLayout, IndexLayout &slaveLayout, IndexLayout &allToAllSend,
+		IndexLayout &allToAllReceive)
+{
+	// slave -> slave
+#if 1
+	// 1. get for every master node where it is slave
+	std::map<size_t, std::vector<int> > slaveOnProc;
+
+	// localToLocal[pid][i] is the position of i in the interface to processor pid.
+	std::map<size_t, std::map<size_t, size_t> > localToInterfaceIndex;
+	//slaveOnProc.resize(A_OL2.num_rows());
+
+	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	{
+		IndexLayout::Interface &interface = masterLayout.interface(iter);
+		int pid = masterLayout.proc_id(iter);
+
+		std::map<size_t, size_t> &localToInterfaceIndexMap = localToInterfaceIndex[pid];
+		size_t i=0;
+		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2, ++i)
+		{
+			size_t index = interface.get_element(iter2);
+			slaveOnProc[index].push_back(pid);
+			localToInterfaceIndexMap[index] = i;
+		}
+	}
+
+	StreamPack sendpack;
+	UG_LOG("\n\n");
+	for(std::map<size_t, std::vector<int> >::iterator it = slaveOnProc.begin(); it != slaveOnProc.end(); ++it)
+	{
+		std::vector<int> &procs = it->second;
+		if(procs.size() <= 1) continue;
+		size_t index = it->first;
+		UG_LOG("index " << index << " is to processors ");
+		for(size_t i=0; i<procs.size(); i++)
+		{
+
+			BinaryStream &stream = *sendpack.get_stream(procs[i]);
+			size_t interfaceIndex = localToInterfaceIndex[procs[i]][index];
+			UG_LOG(procs[i] << " (interfaceIndex " << interfaceIndex << ") ");
+			for(size_t j=0; j<procs.size(); j++)
+			{
+				if(i == j) continue;
+				Serialize(stream, interfaceIndex);
+				Serialize(stream, procs[j]);
+			}
+		}
+		UG_LOG("\n");
+	}
+
+	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	{
+		int pid = masterLayout.proc_id(iter);
+		BinaryStream &stream = *sendpack.get_stream(pid);
+		communicator.send_raw(pid, stream.buffer(), stream.size(), false);
+		UG_LOG("Sending " << stream.size() << " bytes of data to processor " << pid << ":\n");
+	}
+
+	// 3. communicate
+	StreamPack receivepack;
+	std::vector<int> pids;
+
+	for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+	{
+		int pid = slaveLayout.proc_id(iter);
+		pids.push_back(pid);
+		communicator.receive_raw(pid, *receivepack.get_stream(pid));
+	}
+	communicator.communicate();
+
+	/* sort pids. this is important!
+	 * example: processor A has two slave nodes in common with processor B, say GID 0 and GID 1
+	 * so if the interface A -> B looks like 0, 1, the interface B->A must be 0, 1.
+	 * to assure this, indices with lower master PID are added first AND we use the order which we got from
+	 * (otherwise we could get A->B: 0,1 and B->A: 1,0)
+	 */
+	sort(pids.begin(), pids.end());
+
+	// 4. process data
+
+	for(size_t i=0; i<pids.size(); i++)
+	{
+		int pid = pids[i];
+		BinaryStream &stream = *receivepack.get_stream(pid);
+		UG_LOG("Received " << stream.size() << " bytes of data from processor " << pid << ":\n");
+
+		std::vector<size_t> indices;
+		IndexLayout::Interface &interface = slaveLayout.interface(pid);
+		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+			indices.push_back(interface.get_element(iter2));
+
+		while(stream.can_read_more())
+		{
+			size_t index;
+			Deserialize(stream, index);
+			index = indices[index];
+			int pid2;
+			Deserialize(stream, pid2);
+
+			//UG_LOG(" got " << s << " other slave connections from node " << index << ": ")
+			UG_ASSERT(pid2 != pcl::GetProcRank(), "");
+			allToAllReceive.interface(pid2).push_back(index);
+			allToAllSend.interface(pid2).push_back(index);
+			UG_LOG("Added Index " << index << " to interface with processor " << pid2 << "\n");
+		}
+
+	}
+
+	UG_LOG("\n\n");
+#else
+	// this implementation, using CommunicateConnections, unfortunately does not work at the moment (sorting issue below)
+	std::vector<std::vector<int> > connections;
+	CommunicateConnections(connections,	masterLayout, slaveLayout, A_OL2.num_rows());
+
+	std::vector<int> pids;
+
+	for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+	{
+		int pid = slaveLayout.proc_id(iter);
+		if(pid != pcl::GetProcRank())
+			pids.push_back(pid);
+	}
+
+	/* sort pids. this is important!
+	 * example: processor A has two slave nodes in common with processor B, say GID 0 and GID 1
+	 * so if the interface A -> B looks like 0, 1, the interface B->A must be 0, 1.
+	 * to assure this, indices with lower master PID are added first
+	 * (otherwise we could get A->B: 0,1 and B->A: 1,0) */
+	sort(pids.begin(), pids.end());
+
+		// add first all connections from the lowest master PID
+	for(std::vector<int>::iterator masterPIDit = pids.begin(); masterPIDit != pids.end(); ++masterPIDit)
+	{
+		int masterPID = (*masterPIDit);
+		//UG_LOG("Processing pid " << masterPID << ":\n");
+
+		// this does not work, since the indices on this node can have a different ordering as on the other processing node
+		// but we need to insert them into the layout like on the other processing node
+		// if you can fix this, you can use this function again
+		for(size_t i=0; i<connections.size(); i++)
+		{
+			std::vector<int> &cons = connections[i];
+			size_t index = i;
+			//	the first entry in each connection is the master elements process
+			if(cons.size() <= 1 || cons[0] != masterPID) continue;
+			//UG_LOG("index " << index << "added to ");
+			for(size_t j=1; j<cons.size(); j++)
+			{
+				int pid = cons[j];
+				if(pid == pcl::GetProcRank()) continue;
+				UG_LOG(pid << " ");
+				OLCoarseningReceiveLayout.interface(pid).push_back(index);
+				OLCoarseningSendLayout.interface(pid).push_back(index);
+			}
+			//UG_LOG("\n");
+		}
+	}
+#endif
+
+}
+
 }// end of namespace
