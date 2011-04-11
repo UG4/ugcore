@@ -108,8 +108,13 @@ private:
 	{
 		if(!is_valid()) return;
 		s << print_node(full, offset) << "\n";
-		for(const UGProfilerNode *p=get_first_child(); p != NULL && p!=get_last_child(); p=p->get_next_sibling())
-			s << p->print_node(full, offset+1) << "\n";
+		size_t n=0;
+		for(const UGProfilerNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+		{
+			p->rec_print(full, offset+1, s);
+			if(p==get_last_child())
+				break;
+		}
 	}
 };
 
