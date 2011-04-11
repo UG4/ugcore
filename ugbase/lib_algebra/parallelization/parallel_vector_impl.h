@@ -252,10 +252,21 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
 	dest.set_storage_type(mask);
 
-	VecScaleAdd(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1),
-											alpha2, *dynamic_cast<const T*>(&v2),
-											alpha3, *dynamic_cast<const T*>(&v3));
+	VecScaleAdd((T&)dest, alpha1, (const T&)v1, alpha2, (const T&)v2, alpha3, (const T&)v3);
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename TVector>
+bool CloneVector(ParallelVector<TVector> &dest, const ParallelVector<TVector> src)
+{
+	CloneVector((TVector&)dest, (TVector&)src);
+	dest.copy_storage_type(src);
+	dest.copy_layouts(src);
+	return true;
+}
+
 
 
 } // end namespace ug

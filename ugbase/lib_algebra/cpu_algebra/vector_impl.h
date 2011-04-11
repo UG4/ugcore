@@ -261,6 +261,14 @@ inline double Vector<value_type>::norm()
 	return sqrt(d);
 }
 
+
+template<typename TValueType>
+bool CloneVector(Vector<TValueType> &dest, const Vector<TValueType> src)
+{
+	dest.resize(src.size());
+	return true;
+}
+
 }//namespace ug
 
 #endif
