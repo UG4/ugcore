@@ -51,6 +51,8 @@ struct RegisterAMGClass<CPUAlgebra>
 		reg.add_class_< amg_base<algebra_type>::LevelInformation > ("AMGLevelInformation", grp2.c_str())
 			.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms, "creation time of this level (in ms)")
 			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level")
+			.add_method("get_nnz", &amg_base<algebra_type>::LevelInformation::get_nnz, "nr of non-zeros")
+			.add_method("get_fill_in", &amg_base<algebra_type>::LevelInformation::get_fill_in, "nr of non-zeros / (nr of nodes)^2")
 			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information");
 
 	//todo: existance of AMGPreconditioner class should not depend on defines.
