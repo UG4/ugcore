@@ -257,6 +257,20 @@ public:
 		return "Profiler not availabel!";
 	}
 
+	std::string child_self_time_sorted() const
+	{
+		return "Profiler not availabel!";
+	}
+
+	std::string total_time_sorted() const
+	{
+		return "Profiler not availabel!";
+	}
+
+	std::string entry_count_sorted() const
+	{
+		return "Profiler not availabel!";
+	}
 
 	/// \return true if node has been found
 	bool is_valid() const
