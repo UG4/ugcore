@@ -91,6 +91,7 @@ bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::init()
 {
+	AMG_PROFILE_FUNC();
 	update_positions();
 
 	// init m_amghelper for grid printing

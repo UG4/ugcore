@@ -25,6 +25,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::wr
 {
 	if(m_famg.m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
+		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 1, "write matrices");
 
 		write_debug_matrix(A, level, level, "AMG_A");			UG_DLOG(LIB_ALG_AMG, 1, ".");
@@ -43,6 +44,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::wr
 {
 	if(m_famg.m_writeMatrices)
 	{
+		AMG_PROFILE_FUNC();
 		std::fstream ffine(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_fine") + ToString(level), ".marks").c_str(), std::ios::out);
 		std::fstream fcoarse(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_coarse") + ToString(level), ".marks").c_str(), std::ios::out);
 		std::fstream fother(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_other") + ToString(level), ".marks").c_str(), std::ios::out);
@@ -64,14 +66,17 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 template<typename TMatrix>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name)
 {
-	std::string filename = GetProcFilename(m_famg.m_writeMatrixPath, ToString(name) + ToString(fromlevel),".mat");
-	AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_famg.m_amghelper);
-	std::fstream f2(filename.c_str(), std::ios::out | std::ios::app);
-	f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_fine") + ToString(level), ".marks") << "\n";
-	f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_coarse") + ToString(level), ".marks") << "\n";
-	f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_other") + ToString(level), ".marks") << "\n";
-	f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_dirichlet") + ToString(level), ".marks") << "\n";
-
+	if(m_famg.m_writeMatrices)
+	{
+		AMG_PROFILE_FUNC();
+		std::string filename = GetProcFilename(m_famg.m_writeMatrixPath, ToString(name) + ToString(fromlevel),".mat");
+		AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_famg.m_amghelper);
+		std::fstream f2(filename.c_str(), std::ios::out | std::ios::app);
+		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_fine") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_coarse") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_other") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_dirichlet") + ToString(level), ".marks") << "\n";
+	}
 }
 
 }

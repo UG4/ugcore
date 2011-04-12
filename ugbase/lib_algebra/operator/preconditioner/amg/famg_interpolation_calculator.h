@@ -104,7 +104,7 @@ public:
 	 */
 	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors, FAMGNodes &rating)
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << "\n");
 
@@ -255,7 +255,7 @@ public:
 	template<typename prolongation_matrix_type>
 	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	FAMGNodes &rating)
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << rating.get_original_index(i) << "\n")
 
 		get_H(i, rating);
@@ -427,7 +427,7 @@ private:
 	 */
 	bool get_H(size_t i, FAMGNodes &rating)
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		// replace this with
 		// stdvector<stdvector<size_t> > neighbors(3);
 		/// stdvector<size_t> &onlyN1 = neighbors[1];
@@ -489,7 +489,7 @@ private:
 	 */
 	void calculate_H_from_local_A()
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
 		UG_ASSERT(S.num_cols() == S.num_rows(), "");
 		UG_ASSERT(S.num_cols() == onlyN1.size()+1+onlyN2.size(), "");
@@ -579,7 +579,7 @@ private:
 	 */
 	void global_to_local_testvectors(size_t node)
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		localTestvector.resize(m_testvectors.size());
 		for(size_t k=0; k<m_testvectors.size(); k++)
 		{
@@ -686,7 +686,7 @@ private:
 	//---------------------------------------
 	void calculate_testvectors(size_t node)
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 
 		if(testvectorsExtern == true)
 		{
@@ -705,7 +705,7 @@ private:
 	 */
 	void add_additional_testvectors_to_H()
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		// skip first vector (it is approximated exactly)
 		// /test if other way round is faster/
 		for(size_t r = 0; r < onlyN1.size(); r++)

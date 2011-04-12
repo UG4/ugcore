@@ -103,7 +103,7 @@ public:
 	template<typename vec_type>
 	int get_rating(const vec_type &M)
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		size_t rating = 0;
 		for(size_t i=0; i<M.size(); ++i)
 		{
@@ -132,7 +132,7 @@ public:
 	template<typename neighborstruct>
 	bool update_rating(size_t node, stdvector<neighborstruct> &PN)
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 2, " update rating of node " << node << "... ");
 		if(nodes[node].is_valid_rating() == false)
 		{

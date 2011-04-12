@@ -26,7 +26,7 @@
 #include "amg_coarsening.h"
 
 #include "stopwatch.h"
-
+#include "amg_profiling.h"
 
 namespace ug{
 
@@ -85,6 +85,7 @@ template<typename T> inline double amg_offdiag_value(const T &d) { return -Block
 template<typename matrix_type>
 void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_dTheta)
 {
+	AMG_PROFILE_FUNC();
 	graph.resize(A.num_rows());
 
 	for(size_t i=0; i< A.num_rows(); i++)
@@ -126,6 +127,7 @@ void amg<TAlgebra>::FullSubdomainBlocking(matrix_type &AH, IndexLayout &nextMast
 template<typename TAlgebra>
 void amg<TAlgebra>::create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
 {
+	AMG_PROFILE_FUNC();
 	is_fine.resize(level+1);
 	is_fine[level].resize(nodes.size());
 	size_t iNrOfCoarse=0;
@@ -147,6 +149,7 @@ void amg<TAlgebra>::create_new_indices(stdvector<int> &newIndex, const AMGNodes 
 template<typename TAlgebra>
 void amg<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
 {
+	AMG_PROFILE_FUNC();
 	m_parentIndex.resize(level+2);
 	m_parentIndex[level+1].resize(nodes.get_nr_of_coarse());
 	for(size_t i=0; i<nodes.size(); i++)
@@ -160,6 +163,7 @@ template<typename TAlgebra>
 void amg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level, const AMGNodes &nodes)
 {
+	AMG_PROFILE_FUNC();
 	std::fstream ffine((std::string(m_writeMatrixPath) + "AMG_fine" + ToString(level) + ".marks").c_str(), std::ios::out);
 	std::fstream fcoarse((std::string(m_writeMatrixPath) + "AMG_coarse" + ToString(level) + ".marks").c_str(), std::ios::out);
 	std::fstream fother((std::string(m_writeMatrixPath) + "AMG_other" + ToString(level) + ".marks").c_str(), std::ios::out);
@@ -217,6 +221,7 @@ template<typename TAlgebra>
 void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(pcl::GetNumProcesses()==1, "not implemented for procs > 1");
 
 	size_t N = A.num_rows();
@@ -359,8 +364,10 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	UG_DLOG(LIB_ALG_AMG, 1, std::endl << "restriction... ");
 	if(bTiming) SW.start();
 
+	PROFILE_BEGIN(AMGSetAsTransposeOf)
 	// construct restriction R = I_{h -> 2h}
 	R.set_as_transpose_of(P);
+	PROFILE_END();
 	// R is already defragmented
 
 #ifdef UG_PARALLEL
@@ -381,7 +388,9 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	if(bTiming) SW.start();
 
 	// AH = R A P
-	CreateAsMultiplyOf(AH, R, A, P);
+	PROFILE_BEGIN(AMGCreateAsMultiplyOf)
+		CreateAsMultiplyOf(AH, R, A, P);
+	PROFILE_END();
 
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 

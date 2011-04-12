@@ -20,6 +20,7 @@ using namespace std;
 #include "maxheap.h"
 
 #include "lib_algebra/common/stl_debug.h"
+#include "amg_profiling.h"
 
 //#define AMG_PRINT_COARSEN
 
@@ -40,6 +41,7 @@ namespace ug
  */
 void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, AMGNodes &nodes)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(nodes.size() == strongT.size(), "");
 
 	PQ.create(nodes.size(), &nodes[0]);
@@ -77,6 +79,7 @@ void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_ty
 void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, AMGNodes &nodes,
 		int minNrOfPaths, int *posInConnections)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(nodes.size() == graph.size(), "");
 	vector<int> connection(255);
 	vector<int> nrOfPaths(255);
@@ -140,6 +143,7 @@ void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, AMGNodes &no
  */
 void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, AMGNodes &nodes)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(nodes.size() == graphAC.size(), "");
 	PQ.create(nodes.size(), &nodes[0]);
 
@@ -169,6 +173,7 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_p
  */
 int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(graph.size() == nodes.size() && graph.size() == PQ.arr_size(), "");
 	while(nodes.get_unassigned() > 0)
 	{
@@ -245,6 +250,7 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes)
  */
 void PreventFFConnections(cgraph &graphS, cgraph &graphST, AMGNodes &nodes)
 {
+	AMG_PROFILE_FUNC();
 	size_t N = graphS.size();
 	UG_ASSERT(N == graphST.size() && N == nodes.size(), "");
 	// second pass

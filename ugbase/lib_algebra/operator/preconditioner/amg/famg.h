@@ -18,9 +18,7 @@
 #include <iostream>
 
 #include "amg_base.h"
-
-
-
+#include "amg_profiling.h"
 /**
  * \brief Filtering Algebraic Multigrid Functions.
  *
@@ -141,6 +139,8 @@ private:
 
 	void c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level);
+
+	void get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega);
 
 private:
 // data

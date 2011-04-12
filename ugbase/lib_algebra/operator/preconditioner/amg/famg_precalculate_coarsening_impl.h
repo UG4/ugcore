@@ -21,7 +21,7 @@ namespace ug
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_all_possible_parent_pairs()
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	possible_parents.clear();
 	possible_parents.resize(A.num_rows());
 
@@ -36,7 +36,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::precalculate_coarsening()
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	while(heap.height() != 0)
 	{
 		// get node i with best rating

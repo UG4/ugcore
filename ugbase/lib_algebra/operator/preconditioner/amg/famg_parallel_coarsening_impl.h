@@ -39,11 +39,11 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	color_process_graph()
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	stopwatch SW;
 
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-	UG_LOG("\ncoloring processor OL graph..."); if(bTiming) SW.start();
+	UG_DLOG(LIB_ALG_AMG, 1, "\ncoloring processor OL graph..."); if(bTiming) SW.start();
 	// add processors of overlap 1 to pidsOL
 	std::set<int> pidsOL;
 	for(IndexLayout::iterator iter = OLCoarseningSendLayout.begin(); iter != OLCoarseningSendLayout.end(); ++iter)
@@ -52,8 +52,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		pidsOL.insert(OLCoarseningReceiveLayout.proc_id(iter));
 
 	m_myColor = ColorProcessorGraph(communicator, pidsOL, processesWithLowerColor, processesWithHigherColor);
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
-	UG_LOG("my color is " << m_myColor);
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
+	UG_DLOG(LIB_ALG_AMG, 1, "my color is " << m_myColor);
 }
 
 // FAMGLevelCalculator::receive_coarsening_from_processes_with_lower_color
@@ -74,14 +74,14 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	receive_coarsening_from_processes_with_lower_color()
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 
 	// issue receive of coarsening data from processes with lower color
 	if(processesWithLowerColor.size() > 0)
 	{
 		stopwatch SW;
-		UG_LOG("\nWaiting for processes "); if(bTiming) SW.start();
+		UG_DLOG(LIB_ALG_AMG, 1, "\nWaiting for processes "); if(bTiming) SW.start();
 		stdvector< stdvector<char> > coarseNodes;
 		coarseNodes.resize(processesWithLowerColor.size());
 
@@ -91,18 +91,18 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 			size_t s = OLCoarseningReceiveLayout.interface(pid).size();
 			coarseNodes[i].resize(s, -1);
-			UG_LOG(pid << ", awaiting  " << s << " bytes.");
+			UG_DLOG(LIB_ALG_AMG, 1, pid << ", awaiting  " << s << " bytes.");
 			communicator.receive_raw(pid, &coarseNodes[i][0], s);
 		}
-		UG_LOG("which have higher color to receive coarse nodes... ");
+		UG_DLOG(LIB_ALG_AMG, 1, "which have higher color to receive coarse nodes... ");
 		communicator.communicate();
-		UG_LOG("done. processing data...");
+		UG_DLOG(LIB_ALG_AMG, 1, "done. processing data...");
 
 		// set nodes coarse
 		for(size_t i=0; i<processesWithLowerColor.size(); i++)
 		{
 			int pid = processesWithLowerColor[i];
-			UG_LOG("\nfrom processor " << pid << ":\n");
+			UG_DLOG(LIB_ALG_AMG, 3, "\nfrom processor " << pid << ":\n");
 
 			int j=0;
 			IndexLayout::Interface &interface = OLCoarseningReceiveLayout.interface(pid);
@@ -111,10 +111,10 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				size_t index = interface.get_element(iter);
-				//UG_LOG((int)coarseNodes[i][j] << " ");
-				UG_LOG(" " << index);
+				//UG_DLOG(LIB_ALG_AMG, 3, (int)coarseNodes[i][j] << " ");
+				UG_DLOG(LIB_ALG_AMG, 3, " " << index);
 				if(rating.is_master(index))
-					UG_LOG(" master");
+					UG_DLOG(LIB_ALG_AMG, 3, " master");
 
 				if(coarseNodes[i][j++])
 				{
@@ -128,7 +128,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 					else if(rating.is_master_on(index, pid))
 						nextSlaveInterface.push_back(newIndex);
 
-					UG_LOG(" coarse ");
+					UG_DLOG(LIB_ALG_AMG, 3, " coarse ");
 				}
 				else
 				{
@@ -136,15 +136,15 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 					// man müsste vielleicht hier direkt die interpolation ausrechnen. dann müsste man sie aber
 					// mitschicken?!? nochmal genau überlegen, wie die parallelisierung funktionieren soll
 					rating.set_uninterpolateable(index);
-					UG_LOG(" fine ");
+					UG_DLOG(LIB_ALG_AMG, 3, " fine ");
 				}
-				UG_LOG("\n");
+				UG_DLOG(LIB_ALG_AMG, 3, "\n");
 			}
 		}
-		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+		if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
 	}
 	else
-		UG_LOG("\nno processes with lower color.")
+		UG_DLOG(LIB_ALG_AMG, 3, "\nno processes with lower color.")
 
 	AH.set_communicator(communicator);
 	AH.set_slave_layout(nextLevelSlaveLayout);
@@ -166,15 +166,15 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	send_coarsening_data_to_processes_with_higher_color()
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 
 	stopwatch SW;
-	UG_LOG("\nsend coarsening data to processes\n"); if(bTiming) SW.start();
+	UG_DLOG(LIB_ALG_AMG, 1, "\nsend coarsening data to processes\n"); if(bTiming) SW.start();
 	for(size_t i=0; i<processesWithHigherColor.size(); i++)
 	{
 		int pid = processesWithHigherColor[i];
-		UG_LOG("Process " << pid << ":\n");
+		UG_DLOG(LIB_ALG_AMG, 1, "Process " << pid << ":\n");
 		BinaryStream s;
 
 		IndexLayout::Interface &interface = OLCoarseningSendLayout.interface(pid);
@@ -185,11 +185,11 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		{
 			size_t index = interface.get_element(iter);
 			char bCoarse = rating[index].is_coarse();
-			UG_LOG(index << (bCoarse ? " is coarse " : " is fine "));
+			UG_DLOG(LIB_ALG_AMG, 3, index << (bCoarse ? " is coarse " : " is fine "));
 			Serialize(s, bCoarse);
 			if(rating.is_master(index))
-				UG_LOG("master");
-			UG_LOG("\n");
+				UG_DLOG(LIB_ALG_AMG, 3, "master");
+			UG_DLOG(LIB_ALG_AMG, 3, "\n");
 			if(bCoarse)
 			{
 				int newIndex = rating.newIndex[index];
@@ -203,14 +203,14 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			}
 		}
 
-		UG_LOG("sending " << s.size() << " of data to pid " << pid << "\n");
+		UG_DLOG(LIB_ALG_AMG, 1, "sending " << s.size() << " of data to pid " << pid << "\n");
 		communicator.send_raw(pid, s.buffer(), s.size(), true);
 	}
-	UG_LOG("with higher color...")
+	UG_DLOG(LIB_ALG_AMG, 1, "with higher color...")
 
 	communicator.communicate();
-	UG_LOG("done.");
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+	UG_DLOG(LIB_ALG_AMG, 1, "done.");
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 }
 
 
@@ -234,12 +234,12 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	stopwatch SW;
 
 	// 1. get the Overlap 2 matrix
 	//-------------------------------
-	UG_LOG("\nGenerate Overlap 2..."); if(bTiming) SW.start();
+	UG_DLOG(LIB_ALG_AMG, 1, "\nGenerate Overlap 2..."); if(bTiming) SW.start();
 
 	/*{
 		UG_SET_DEBUG_LEVELS(4);
@@ -270,13 +270,13 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	std::vector<MathVector<3> > vec2(&m_famg.m_amghelper.positions[0], &m_famg.m_amghelper.positions[m_famg.m_amghelper.size]);
 	vec2.resize(A_OL2.num_rows());
 
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 	// 2. get data on newly created indices
 	//--------------------------------------------
 	// use ONE communicate
 
-	UG_LOG("\nGet data on Overlap 2 nodes..."); if(bTiming) SW.start();
+	UG_DLOG(LIB_ALG_AMG, 1, "\nGet data on Overlap 2 nodes..."); if(bTiming) SW.start();
 
 	ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
@@ -298,10 +298,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 
 
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
-
-	// debug: write overlap 2 matrix as debug output
-	WriteMatrixToConnectionViewer(GetProcFilename("A_OL2", ".mat").c_str(), A_OL2, &vec2[0], 2);
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 	// create OLCoarseningSendLayout, OLCoarseningReceiveLayout
 	//------------------------------------------------------------
@@ -321,13 +318,13 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddConnectionsBetweenSlaves(A_OL2.get_communicator(), masterLayouts[0], slaveLayouts[0], OLCoarseningSendLayout, OLCoarseningReceiveLayout);
 
 
-	UG_LOG("OLCoarseningLayout :\n")
-	PrintLayout(A_OL2.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
+	UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningLayout :\n")
+	//PrintLayout(A_OL2.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
 
-/*	UG_LOG("OLCoarseningSendLayout :\n");
+/*	UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningSendLayout :\n");
 	PrintLayout(OLCoarseningSendLayout);
 
-	UG_LOG("OLCoarseningRecvLayout :\n");
+	UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningRecvLayout :\n");
 	PrintLayout(OLCoarseningSendLayout);*/
 
 	size_t N = A_OL2.num_rows();
@@ -362,18 +359,29 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	//rating.print_OL_types();
 
 
-	// debug: print some layouts
-	UG_LOG("\n");
-	for(size_t i=0; i<slaveLayouts.size(); i++)
+	PROFILE_BEGIN(create_OL2_matrix_debug_output)
+
+	// debug: write overlap 2 matrix as debug output
+	if(m_famg.m_writeMatrices)
+		WriteMatrixToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, "A_OL2", ".mat").c_str(),
+			A_OL2, &vec2[0], 2);
+
+	IF_DEBUG(LIB_ALG_AMG, 4)
 	{
-		UG_LOG("Slave OL Level " << i << ":\n");
-		PrintLayout(slaveLayouts[i]);
+		// debug: print some layouts
+		UG_LOG("\n");
+		for(size_t i=0; i<slaveLayouts.size(); i++)
+		{
+			UG_LOG("Slave OL Level " << i << ":\n");
+			PrintLayout(slaveLayouts[i]);
+		}
+		for(size_t i=0; i<masterLayouts.size(); i++)
+		{
+			UG_LOG("Master OL Level " << i << ": ");
+			PrintLayout(masterLayouts[i]);
+		}
 	}
-	for(size_t i=0; i<masterLayouts.size(); i++)
-	{
-		UG_LOG("Master OL Level " << i << ": ");
-		PrintLayout(masterLayouts[i]);
-	}
+	PROFILE_END();
 }
 
 }

@@ -32,6 +32,7 @@ template<typename Matrix_type>
 void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, AMGNodes &nodes,
 		stdvector<int> &newIndex, double theta)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(newIndex.size() == nodes.size(), "");
 	P.resize(A.num_rows(), nodes.get_nr_of_coarse());
 
@@ -160,6 +161,7 @@ template<typename Matrix_type>
 void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 		AMGNodes &nodes, int *posInConnections, double theta)
 {
+	AMG_PROFILE_FUNC();
 	std::vector<SparseMatrix<double>::connection > con, con2;
 	std::vector<int> nrOfPaths;
 	con.reserve(255); con2.reserve(255); nrOfPaths.reserve(255);
@@ -288,9 +290,9 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 				": Indirect Interpolation hangs at " << nodes.get_unassigned() << " unassigned nodes.");
 
 #ifdef AMG_PRINT_INDIRECT
-		UG_LOG("calculated, ");
+		UG_DLOG(LIB_ALG_AMG, 1, "calculated, ");
 #endif
-		UG_LOG(nodes.get_unassigned() << " left. ");
+		UG_DLOG(LIB_ALG_AMG, 1, nodes.get_unassigned() << " left. ");
 		pass++;
 		oldUnassigned = nodes.get_unassigned();
 		break;

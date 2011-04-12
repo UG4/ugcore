@@ -16,17 +16,6 @@
 #ifndef __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 #define __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 
-#define PROFILE_FAMG
-#ifdef PROFILE_FAMG
-	#define FAMG_PROFILE_FUNC()			PROFILE_FUNC()
-	#define FAMG_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
-	#define FAMG_PROFILE_END()			PROFILE_END()
-#else
-	#define FAMG_PROFILE_FUNC()
-	#define FAMG_PROFILE_BEGIN(name)
-	#define FAMG_PROFILE_END()
-#endif
-
 //#include "sparsematrix_util.h"
 
 #include "common/assert.h"
@@ -121,7 +110,7 @@ template <> struct block_traits<MathVector<3> >
 template<typename matrix_type>
 void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 
 	for(size_t i=0; i<A.num_rows(); i++)
 		for(typename matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
@@ -233,7 +222,7 @@ private:
 	//! \sa set_uninterpolateable_as_coarse
 	void get_aggressive_coarsening_interpolation()
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 
 		for(size_t i=0; i<A.num_rows(); i++)
 		{
@@ -250,7 +239,7 @@ private:
 	//! \sa get_aggressive_coarsening_interpolation
 	void set_uninterpolateable_as_coarse()
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 
 		for(size_t i=0; i<rating.size(); i++)
 		{
@@ -262,7 +251,7 @@ private:
 
 	void create_fine_marks()
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		m_famg.is_fine.resize(level+1);
 		stdvector<bool> &vFine = m_famg.is_fine[level];
 		vFine.resize(rating.size());
@@ -274,7 +263,7 @@ private:
 	//! creates the parentIndex struct for display
 	void create_parentIndex()
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		stdvector<stdvector<int> > &parentIndex = m_famg.m_parentIndex;
 		parentIndex.resize(level+2);
 		parentIndex[level+1].resize(rating.get_nr_of_coarse());
@@ -296,7 +285,7 @@ private:
 public:
 	void do_calculation()
 	{
-		FAMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 
 		UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
@@ -437,7 +426,7 @@ public:
 		{
 			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create parentIndex... "); if(bTiming) SW.start();
 			create_parentIndex();
-			if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 		}
 
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create fine marks... "); if(bTiming) SW.start();
@@ -490,7 +479,9 @@ public:
 		UG_DLOG(LIB_ALG_AMG, 1, "\ngalerkin product... "); if(bTiming) SW.start();
 
 		// AH = R A P
-		CreateAsMultiplyOf(AH, R, A, P);
+		PROFILE_BEGIN(FAMGCreateAsMultiplyOf)
+			CreateAsMultiplyOf(AH, R, A, P);
+		PROFILE_END();
 
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
@@ -549,16 +540,10 @@ private:
 };
 
 
-
-
 template<>
-void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
-		prolongation_matrix_type &P, size_t level)
+void famg<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega)
 {
-	FAMG_PROFILE_FUNC();
-	stdvector< vector_type > testvectors;
-	stdvector<double> omega;
-
+	AMG_PROFILE_FUNC();
 	testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
 	omega.resize(m_vVectorWriters.size() + m_testvectors.size());
 
@@ -589,6 +574,17 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 		}
 
 	}
+}
+
+
+template<>
+void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+		prolongation_matrix_type &P, size_t level)
+{
+	AMG_PROFILE_FUNC();
+	stdvector< vector_type > testvectors;
+	stdvector<double> omega;
+	get_testvectors(testvectors, omega);
 
 	//UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
 

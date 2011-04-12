@@ -25,7 +25,6 @@
 #include <string>
 #include "amg_debug_helper.h"
 
-
 template<typename T>
 std::string ToString(const T &t)
 {

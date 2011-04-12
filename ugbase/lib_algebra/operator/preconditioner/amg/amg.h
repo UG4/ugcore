@@ -21,7 +21,6 @@
 
 #include "amg_base.h"
 
-
 /**
  * \brief Algebraic Multigrid Functions.
  *

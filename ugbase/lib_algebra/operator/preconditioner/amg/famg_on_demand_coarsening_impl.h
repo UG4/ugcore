@@ -23,7 +23,7 @@ bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, FAMGNodes
 		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,
 		FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	if(prolongation_calculated[node])
 		return nodes.update_rating(node, PN);
 	else
@@ -71,7 +71,7 @@ void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possibl
 		maxheap<FAMGNode> &heap,
 		stdvector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	if(!nodes[node].is_valid_rating())
 		return;
 	if(OnDemand_UpdateRating(node, possible_parents[node], nodes, prolongation_calculated, SymmNeighGraph, calculator))
@@ -114,7 +114,7 @@ void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mar
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on_demand_coarsening()
 {
-	FAMG_PROFILE_FUNC();
+	AMG_PROFILE_FUNC();
 	size_t N = rating.size();
 
 	possible_parents.clear();
