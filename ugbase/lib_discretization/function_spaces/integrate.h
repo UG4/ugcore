@@ -153,9 +153,13 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	return true;
 }
 
+template <int dim, typename TGridFunction>
+struct L2ErrorLoopHelp
+{};
 
 template <typename TGridFunction>
-number L2ErrorHelp(	boost::function<void (
+struct L2ErrorLoopHelp<3, TGridFunction>{
+static number invoke(	boost::function<void (
 									number& res,
 									const MathVector<TGridFunction::domain_type::dim>& x,
 									number time)>
@@ -195,7 +199,8 @@ number L2ErrorHelp(	boost::function<void (
 			bRes &= DiffSquaredOnElems<Prism, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			bRes &= DiffSquaredOnElems<Pyramid, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("ERROR in L2ErrorHelp: Dimension "<<ssGrp.dim(i) << " not supported.");
+		default: UG_LOG("ERROR in L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
+		                " not supported in world dimension "<<3<<".");
 			throw(UGFatalError("Dimension not supported."));
 		}
 
@@ -210,6 +215,111 @@ number L2ErrorHelp(	boost::function<void (
 //	we're done
 	return l2norm;
 }
+};
+
+template <typename TGridFunction>
+struct L2ErrorLoopHelp<1, TGridFunction>{
+static number invoke(	boost::function<void (
+									number& res,
+									const MathVector<TGridFunction::domain_type::dim>& x,
+									number time)>
+									InterpolFunction,
+								TGridFunction& u,
+								size_t fct,
+								number time,
+								const SubsetGroup& ssGrp)
+{
+//	difference squared on all elements
+	number diffSquared = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+
+	//	switch dimensions
+		bool bRes = true;
+		switch(ssGrp.dim(i))
+		{
+		case 1:
+			bRes &= DiffSquaredOnElems<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			break;
+		default: UG_LOG("ERROR in L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
+		                " not supported in world dimension "<<1<<".");
+			throw(UGFatalError("Dimension not supported."));
+		}
+
+	//	check success
+		if(!bRes)
+			throw(UGFatalError("Error when summing up l2norm"));
+	}
+
+//	compute norm by taking root
+	const number l2norm = sqrt(diffSquared);
+
+//	we're done
+	return l2norm;
+}
+};
+
+template <typename TGridFunction>
+struct L2ErrorLoopHelp<2, TGridFunction>{
+static number invoke(	boost::function<void (
+									number& res,
+									const MathVector<TGridFunction::domain_type::dim>& x,
+									number time)>
+									InterpolFunction,
+								TGridFunction& u,
+								size_t fct,
+								number time,
+								const SubsetGroup& ssGrp)
+{
+//	difference squared on all elements
+	number diffSquared = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+
+	//	switch dimensions
+		bool bRes = true;
+		switch(ssGrp.dim(i))
+		{
+		case 1:
+			bRes &= DiffSquaredOnElems<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			break;
+		case 2:
+			bRes &= DiffSquaredOnElems<Triangle, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= DiffSquaredOnElems<Quadrilateral, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			break;
+		default: UG_LOG("ERROR in L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
+		                " not supported in world dimension "<<2<<".");
+			throw(UGFatalError("Dimension not supported."));
+		}
+
+	//	check success
+		if(!bRes)
+			throw(UGFatalError("Error when summing up l2norm"));
+	}
+
+//	compute norm by taking root
+	const number l2norm = sqrt(diffSquared);
+
+//	we're done
+	return l2norm;
+}
+};
 
 /// interpolates a function on a subset
 /**
@@ -267,7 +377,7 @@ number L2Error(	IUserData<number, TGridFunction::domain_type::dim>& data,
 
 
 //	forward
-	return L2ErrorHelp(InterpolFunction, u, fct, time, ssGrp);
+	return L2ErrorLoopHelp<TGridFunction::dim, TGridFunction>::invoke(InterpolFunction, u, fct, time, ssGrp);
 }
 
 /// interpolates a function on the whole domain

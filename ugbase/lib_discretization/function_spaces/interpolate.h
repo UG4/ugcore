@@ -116,9 +116,13 @@ bool InterpolateFunctionOnElem( boost::function<void (
 	return true;
 }
 
+template <int dim, typename TGridFunction>
+struct InterpolationLoopHelp
+{};
 
 template <typename TGridFunction>
-bool InterpolateFunctionHelp(	boost::function<void (
+struct InterpolationLoopHelp<3, TGridFunction>{
+static number invoke(	boost::function<void (
 									number& res,
 									const MathVector<TGridFunction::domain_type::dim>& x,
 									number time)>
@@ -155,7 +159,8 @@ bool InterpolateFunctionHelp(	boost::function<void (
 			bRes &= InterpolateFunctionOnElem<Prism, TGridFunction>(InterpolFunction, u, fct, si, time);
 			bRes &= InterpolateFunctionOnElem<Pyramid, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<" not implemented.\n"); return false;
+		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<
+		                " not possible for world dim "<<3<<".\n"); return false;
 		}
 
 	//	check success
@@ -174,6 +179,113 @@ bool InterpolateFunctionHelp(	boost::function<void (
 //	we're done
 	return true;
 }
+};
+
+template <typename TGridFunction>
+struct InterpolationLoopHelp<2, TGridFunction>{
+static number invoke(	boost::function<void (
+									number& res,
+									const MathVector<TGridFunction::domain_type::dim>& x,
+									number time)>
+									InterpolFunction,
+								TGridFunction& u,
+								size_t fct,
+								number time,
+								const SubsetGroup& ssGrp)
+{
+//	loop subsets
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+
+	//	switch dimensions
+		bool bRes = true;
+		switch(ssGrp.dim(i))
+		{
+		case 1:
+			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
+			break;
+		case 2:
+			bRes &= InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time);
+			bRes &= InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time);
+			break;
+		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<
+		                " not possible for world dim "<<2<<".\n"); return false;
+		}
+
+	//	check success
+		if(!bRes)
+		{
+			UG_LOG("ERROR in InterpolateFunction: Cannot interpolate on elements.\n");
+			return false;
+		}
+	}
+
+//	adjust parallel storage state
+#ifdef UG_PARALLEL
+	u.set_storage_type(PST_CONSISTENT);
+#endif
+
+//	we're done
+	return true;
+}
+};
+
+template <typename TGridFunction>
+struct InterpolationLoopHelp<1, TGridFunction>{
+static number invoke(	boost::function<void (
+									number& res,
+									const MathVector<TGridFunction::domain_type::dim>& x,
+									number time)>
+									InterpolFunction,
+								TGridFunction& u,
+								size_t fct,
+								number time,
+								const SubsetGroup& ssGrp)
+{
+//	loop subsets
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+
+	//	switch dimensions
+		bool bRes = true;
+		switch(ssGrp.dim(i))
+		{
+		case 1:
+			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
+			break;
+		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<
+		                " not possible for world dim "<<1<<".\n"); return false;
+		}
+
+	//	check success
+		if(!bRes)
+		{
+			UG_LOG("ERROR in InterpolateFunction: Cannot interpolate on elements.\n");
+			return false;
+		}
+	}
+
+//	adjust parallel storage state
+#ifdef UG_PARALLEL
+	u.set_storage_type(PST_CONSISTENT);
+#endif
+
+//	we're done
+	return true;
+}
+};
 
 /// interpolates a function on a subset
 /**
@@ -231,7 +343,8 @@ bool InterpolateFunction(	IUserData<number, TGridFunction::domain_type::dim>& da
 
 
 //	forward
-	return InterpolateFunctionHelp(InterpolFunction, u, fct, time, ssGrp);
+	return InterpolationLoopHelp<TGridFunction::dim, TGridFunction>::
+								invoke(InterpolFunction, u, fct, time, ssGrp);
 }
 
 /// interpolates a function on the whole domain

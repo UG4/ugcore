@@ -284,6 +284,9 @@ class GridFunction
 	///	Domain
 		typedef TDomain domain_type;
 
+	///	World Dimension
+		static const int dim = domain_type::dim;
+
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
