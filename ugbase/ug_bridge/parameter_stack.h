@@ -13,7 +13,6 @@
 
 #define PUSH_PARAM_TO_STACK(paramVar, val, paramType, clName)	{m_entries[m_numEntries].param.paramVar = (val);\
 																m_entries[m_numEntries].type = (paramType);\
-                                                                UG_LOG("PUSHING: " << (clName) << "\n");\
 																m_entries[m_numEntries].pClassNameNode = (clName);\
 																++m_numEntries;}
 
