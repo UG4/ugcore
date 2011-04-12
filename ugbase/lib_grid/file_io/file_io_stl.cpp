@@ -37,7 +37,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 	vector<string> paramVec;
 	bool bSuccess = true;
 	int lineCount = 1;
-	vector3 n;
+	vector3 n(0.0, 0.0, 0.0);
 	vector<vector3> positions;
 	int newSubsetIndex = -1;
 		
