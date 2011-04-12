@@ -14,6 +14,7 @@ namespace bridge
 bool RegisterInfoCommands(bridge::Registry &reg,
 						  const char* parentGroup = "/ug4");
 
+const ClassNameNode* GetClassNameNode(lua_State *L, int index);
 
 const std::vector<const char*> *GetClassNames(lua_State *L, int index);
 const std::vector<const char*> *GetClassNames(lua_State* L, const char *name);

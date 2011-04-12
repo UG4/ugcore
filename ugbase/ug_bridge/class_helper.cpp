@@ -368,7 +368,7 @@ bool IsClassInParameters(const ParameterStack &par, const char *classname)
 	{
 		if(par.get_type(i) != PT_POINTER && par.get_type(i) != PT_CONST_POINTER)
 			continue;
-		if(par.class_names(i) != NULL && strcmp(par.class_name(i), classname)==0)
+		if(par.class_name_node(i) != NULL && strcmp(par.class_name(i), classname)==0)
 			break;
 	}
 

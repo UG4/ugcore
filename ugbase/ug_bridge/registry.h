@@ -3,6 +3,8 @@
 #define __H__UG_BRIDGE__REGISTRY__
 
 #include <vector>
+#include <string>
+#include <map>
 #include <cstring>
 #include <typeinfo>
 #include <boost/function.hpp>
@@ -195,11 +197,9 @@ class Registry {
 			return *newClass;
 		}
 
-	/** Register a class at this registry
-	 * This function registers any class together with its base class
-	 */
+	///	performs some checks, throws error if something wrong
 		template <typename TClass, typename TBaseClass>
-		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "", const char *tooltip = "")
+		void check_base_class(const char* className)
 		{
 		//	check that className is not already used
 			if(classname_registered(className))
@@ -232,15 +232,22 @@ class Registry {
 						<< "\n### with base class that is no base class. Aborting ..." << std::endl;
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
+		}
+
+	/** Register a class at this registry
+	 * This function registers any class together with its base class
+	 */
+		template <typename TClass, typename TBaseClass>
+		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "", const char *tooltip = "")
+		{
+		//	check
+			check_base_class<TClass, TBaseClass>(className);
 
 		//	new class pointer
 			ExportedClass_<TClass>* newClass = NULL;
 
 		//	try creation of new class
-			try
-			{
-				newClass = new ExportedClass_<TClass>(className, group, tooltip);
-			}
+			try { newClass = new ExportedClass_<TClass>(className, group, tooltip);}
 			catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
 			{
 				std::cout << "### Registry ERROR: Trying to register class with name '" << className
@@ -261,6 +268,54 @@ class Registry {
 						<< "\n### Please change register process. Aborting ..." << std::endl;
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
+
+		//	add cast function
+			ClassCastProvider::add_cast_func<TBaseClass, TClass>();
+
+		//	add new class to list of classes
+			m_vClass.push_back(newClass);
+			return *newClass;
+		}
+
+	/** Register a class at this registry
+	 * This function registers any class together with its base class
+	 */
+		template <typename TClass, typename TBaseClass1, typename TBaseClass2>
+		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
+		{
+		//	check
+			check_base_class<TClass, TBaseClass1>(className);
+			check_base_class<TClass, TBaseClass2>(className);
+
+		//	new class pointer
+			ExportedClass_<TClass>* newClass = NULL;
+
+		//	try creation of new class
+			try { newClass = new ExportedClass_<TClass>(className, group);}
+			catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
+			{
+				std::cout << "### Registry ERROR: Trying to register class with name '" << className
+						<< "', that has already been named. This is not allowed. "
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+			}
+
+		// 	set base class names
+			try
+			{
+				ClassNameProvider<TClass>::template set_name<TBaseClass1, TBaseClass2>(className, group);
+			}
+			catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
+			{
+				std::cout <<"### Registry ERROR: Trying to register class with name '" << className
+						<< "', that derives from class, that has not yet been registered to this Registry."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+			}
+
+		//	add cast function
+			ClassCastProvider::add_cast_func<TBaseClass1, TClass>();
+			ClassCastProvider::add_cast_func<TBaseClass2, TClass>();
 
 		//	add new class to list of classes
 			m_vClass.push_back(newClass);
@@ -387,10 +442,16 @@ class Registry {
 		}
 
 	private:
+	//	disallow copy
 		Registry(const Registry& reg)	{}
 		
+	//	registered functions
 		std::vector<ExportedFunctionGroup*>	m_vFunction;
+
+	//	registered classes
 		std::vector<IExportedClass*> m_vClass;
+
+	//	Callback, that are called when registry changed is invoked
 		std::vector<FuncRegistryChanged> m_callbacksRegChanged;
 };
 

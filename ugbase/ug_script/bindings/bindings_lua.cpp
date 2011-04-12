@@ -5,6 +5,7 @@
 #include <sstream>
 #include <cstring>
 #include <cstdlib>
+#include <queue>
 #include "bindings_lua.h"
 #include "ug_script/ug_script.h"
 #include "ug_bridge/registry.h"
@@ -153,9 +154,9 @@ string GetLuaTypeString(lua_State* L, int index)
 		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
 			str.append("const ");
 		}
-		const std::vector<const char*> *names = GetClassNames(L, index);
-		if(names == NULL || names->size() <= 0) str.append("userdata/");
-		else str.append((*names)[0]); str.append("*/");
+		const ClassNameNode* classNameNode = GetClassNameNode(L, index);
+		if(classNameNode == NULL || classNameNode->empty()) str.append("userdata/");
+		else str.append(classNameNode->name()); str.append("*/");
 	}
 
 	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
@@ -238,25 +239,19 @@ static int LuaStackToParams(ParameterStack& params,
 		int index = (int)i + offsetToFirstParam + 1;//stack-indices start with 1
 		
 		if(lua_type(L, index) == LUA_TNONE)
-		{
-			//UG_LOG("ERROR: not enough parameters to function (got " << i << ", but needs " << paramsTemplate.size() << ")\n");
 			return (int)i + 1;
-		}
 
 		switch(type){
 			case PT_BOOL:{
 				if(lua_isboolean(L, index))
 					params.push_bool(lua_toboolean(L, index));
-				else{
-					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected bool, but given " << GetLuaTypeString(L, index) << "\n");
-					badParam = (int)i + 1;
-				}
+				else badParam = (int)i + 1;
+
 			}break;
 			case PT_INTEGER:{
 				if(lua_isnumber(L, index))
 					params.push_integer(lua_tonumber(L, index));
 				else{
-					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -265,7 +260,6 @@ static int LuaStackToParams(ParameterStack& params,
 					params.push_number(lua_tonumber(L, index));
 				}
 				else{
-					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -274,7 +268,6 @@ static int LuaStackToParams(ParameterStack& params,
 					params.push_string(lua_tostring(L, index));
 				else{
 					badParam = (int)i + 1;
-					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected string, but given " << GetLuaTypeString(L, index) << "\n");
 				}
 			}break;
 			case PT_POINTER:{
@@ -287,7 +280,6 @@ static int LuaStackToParams(ParameterStack& params,
 
 				//	if the object is a const object, we can't use it here.
 					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
-						//UG_LOG("ERROR: Can't convert const object to non-const object.\n");
 						badParam = (int)i + 1;
 						break;
 					}
@@ -297,47 +289,33 @@ static int LuaStackToParams(ParameterStack& params,
 					void* obj = ((RawUserDataWrapper*)lua_touserdata(L, index))->obj;
 					if(lua_getmetatable(L, index) != 0){
 
-						lua_pushstring(L, "names");
+						lua_pushstring(L, "class_name_node");
 						lua_rawget(L, -2);
-						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 						lua_pop(L, 2);
 						bool typeMatch = false;
-						if(names){
-							if(!names->empty()){
-								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+						if(classNameNode){
+							if(!classNameNode->empty()){
+								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
 									typeMatch = true;
 							}
 						}
 
 						if(typeMatch)
-							params.push_pointer(obj, names);
+						{
+							params.push_pointer(obj, classNameNode);
+						}
 						else{
-							//UG_LOG("ERROR: type mismatch in argument " << i + 1);
-							//UG_LOG(": Expected type that supports " << paramsTemplate.class_name(i));
-							bool gotone = false;
-							if(names){
-								if(!names->empty()){
-									gotone = true;
-									//UG_LOG(", but given object of type " << names->at(0) << ".\n");
-								}
-							}
-
-							if(!gotone){
-								//UG_LOG(", but given object of unknown type.\n");
-							}
 							printDefaultParamErrorMsg = false;
 							badParam = (int)i + 1;
 						}
 					}
 					else{
-						//UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
 						badParam = (int)i + 1;
 					}
 				}
 				else
 				{
-					//UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
-					//UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ", but given " << GetLuaTypeString(L, index) << ")" << endl);
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -354,47 +332,33 @@ static int LuaStackToParams(ParameterStack& params,
 					const void* obj = ((RawUserDataWrapper*)lua_touserdata(L, index))->obj;
 					if(lua_getmetatable(L, index) != 0){
 
-						lua_pushstring(L, "names");
+						lua_pushstring(L, "class_name_node");
 						lua_rawget(L, -2);
-						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 						lua_pop(L, 2);
 						bool typeMatch = false;
-						if(names){
-							if(!names->empty()){
-								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+						if(classNameNode){
+							if(!classNameNode->empty()){
+								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
 									typeMatch = true;
 							}
 						}
 
 						if(typeMatch)
-							params.push_const_pointer(obj, names);
+						{
+							params.push_const_pointer(obj, classNameNode);
+						}
 						else{
-							//UG_LOG("ERROR: type mismatch in argument " << i + 1);
-							//UG_LOG(": Expected type that supports const " << paramsTemplate.class_name(i));
-							bool gotone = false;
-							if(names){
-								if(!names->empty()){
-									gotone = true;
-									//UG_LOG(", but given object of type " << names->at(0) << ".\n");
-								}
-							}
-
-							if(!gotone){
-								//UG_LOG(", but given object of unknown type.\n");
-							}
 							printDefaultParamErrorMsg = false;
 							badParam = (int)i + 1;
 						}
 					}
 					else{
-						//UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
 						badParam = (int)i + 1;
 					}
 				}
 				else
 				{
-					//UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
-					//UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ")" << endl);
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -408,7 +372,6 @@ static int LuaStackToParams(ParameterStack& params,
 
 				//	if the object is a const object, we can't use it here.
 					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
-						//UG_LOG("ERROR: Can't convert const object to non-const object.\n");
 						badParam = (int)i + 1;
 						break;
 					}
@@ -418,24 +381,26 @@ static int LuaStackToParams(ParameterStack& params,
 					SmartPtr<void>& obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
 					if(lua_getmetatable(L, index) != 0){
 
-						lua_pushstring(L, "names");
+						lua_pushstring(L, "class_name_node");
 						lua_rawget(L, -2);
-						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 						lua_pop(L, 2);
 						bool typeMatch = false;
-						if(names){
-							if(!names->empty()){
-								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+						if(classNameNode){
+							if(!classNameNode->empty()){
+								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
 									typeMatch = true;
 							}
 						}
 
 						if(typeMatch)
-							params.push_smart_pointer(obj, names);
+						{
+							params.push_smart_pointer(obj, classNameNode);
+						}
 						else{
 							bool gotone = false;
-							if(names){
-								if(!names->empty()){
+							if(classNameNode){
+								if(!classNameNode->empty()){
 									gotone = true;
 								}
 							}
@@ -469,24 +434,26 @@ static int LuaStackToParams(ParameterStack& params,
 
 					if(lua_getmetatable(L, index) != 0){
 
-						lua_pushstring(L, "names");
+						lua_pushstring(L, "class_name_node");
 						lua_rawget(L, -2);
-						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 						lua_pop(L, 2);
 						bool typeMatch = false;
-						if(names){
-							if(!names->empty()){
-								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+						if(classNameNode){
+							if(!classNameNode->empty()){
+								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
 									typeMatch = true;
 							}
 						}
 
 						if(typeMatch)
-							params.push_const_smart_pointer(obj, names);
+						{
+							params.push_const_smart_pointer(obj, classNameNode);
+						}
 						else{
 							bool gotone = false;
-							if(names){
-								if(!names->empty()){
+							if(classNameNode){
+								if(!classNameNode->empty()){
 									gotone = true;
 								}
 							}
@@ -555,8 +522,6 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 				CreateNewUserData(L, params.to_const_smart_pointer(i), params.class_name(i));
 			}break;
 			default:{
-				//UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
-				//UG_LOG("Return-values may be incomplete.\n");
 				return (int)i;
 			}break;
 		}
@@ -721,16 +686,47 @@ static int LuaProxyMethod(lua_State* L)
 				continue;
 			}
 	
-			try{
+			try
+			{
+			//	get metatable of object and extract the class name node
+				lua_getmetatable(L, 1);
+				lua_pushstring(L, "class_name_node");
+				lua_rawget(L, -2);
+				const ClassNameNode* pClassNameNode
+					= (const ClassNameNode*) lua_touserdata(L, -1);
+				lua_pop(L, 2);
+
+			//	raw pointer
 				if(self->is_raw_ptr())
-					m->execute(((RawUserDataWrapper*)self)->obj, paramsIn, paramsOut);
-				else if(self->is_smart_ptr()){
+				{
+				//	cast to the needed base class
+					void* objPtr = ClassCastProvider::cast_to_base_class(
+												((RawUserDataWrapper*)self)->obj,
+												pClassNameNode, m->class_name());
+
+					m->execute(objPtr, paramsIn, paramsOut);
+				}
+			//	smart pointer
+				else if(self->is_smart_ptr())
+				{
 					if(self->is_const())
-					//	This cast is a little extreme. However, since we registered the const member methods
-					//	before this should be ok.
-						m->execute((void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+					{
+					//	cast to the needed base class
+						void* objPtr = ClassCastProvider::cast_to_base_class(
+													(void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(),
+													pClassNameNode, m->class_name());
+
+						m->execute(objPtr, paramsIn, paramsOut);
+					}
 					else
-						m->execute(((SmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+					{
+					//	cast to the needed base class
+						void* objPtr = ClassCastProvider::cast_to_base_class(
+													((SmartUserDataWrapper*)self)->smartPtr.get_impl(),
+													pClassNameNode, m->class_name());
+
+						m->execute(objPtr, paramsIn, paramsOut);
+					}
 				}
 			}
 			catch(UGError& err)
@@ -764,13 +760,18 @@ static int LuaProxyMethod(lua_State* L)
 
 		if(!bLuaError && badParam != 0)
 		{
-			const std::vector<const char*> *names = GetClassNames(L, 1);
+			const ClassNameNode* classNameNode = GetClassNameNode(L, 1);
 			const char *classname = "(unknown class)";
-			if(names != NULL)
-				classname = names->at(0);
+			if(classNameNode != NULL)
+				classname = classNameNode->name().c_str();
 
-			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function " << classname << ":" << methodGrp->name() << "(" << GetLuaParametersString(L, 1) << "):\n");
-			UG_LOG("No matching overload found! Candidates in class " << classname << " are:\n");
+			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function "
+			       << classname << ":" << methodGrp->name() << "(" <<
+			       GetLuaParametersString(L, 1) << "):\n");
+
+			UG_LOG("No matching overload found! Candidates in class "
+					<< classname << " are:\n");
+
 			for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
 			{
 				const ExportedMethod* func = methodGrp->get_overload(i);
@@ -802,6 +803,9 @@ static int MetatableIndexer(lua_State*L)
 	
 //	first we push the objects metatable onto the stack.
 	lua_getmetatable(L, 1);
+
+//	queue of class name nodes
+	std::queue<const ClassNameNode*> qClassNameNodes;
 
 //	now we have to traverse the class hierarchy
 	while(1)
@@ -838,18 +842,32 @@ static int MetatableIndexer(lua_State*L)
 		
 	//	the requested key has not been in the metatable.
 	//	we thus have to check the parents metatable.
-		lua_pushstring(L, "__parent");
+
+		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		
-	//	if we retrieved a parent-table, we will remove the old table
-	//	and rerun the iteration. If not, we're done in here.
-	//	if no method has been found, nil should be returned.
-		if(lua_isnil(L, -1))
+		const ClassNameNode* pClassNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+	//	push all base classes to queue
+		for(size_t i = 0; i < pClassNameNode->num_base_classes(); ++i)
+		{
+			qClassNameNodes.push(&pClassNameNode->base_class(i));
+		}
+
+	//	check if some base class left; if not, return nil
+		if(qClassNameNodes.empty())
+		{
+			lua_pushnil(L);
 			return 1;
-		
-	//	remove the old metatable
-		lua_remove(L, -2);
+		}
+
+	//	get metatable of first base class
+		luaL_getmetatable(L, qClassNameNodes.front()->name().c_str());
+		qClassNameNodes.pop();
 	}
+
+//	this point should never be reached
+	return 0;
 }
 
 static int LuaProxyRelease(lua_State* L)
@@ -935,22 +953,16 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		lua_pushcfunction(L, LuaProxyRelease);
 		lua_setfield(L, -2, "__gc");
 	//	we have to store the class-names of the class hierarchy
+		lua_pushstring(L, "class_name_node");
+		lua_pushlightuserdata(L, (void*)&(c->class_name_node()));
+		lua_settable(L, -3);
+
+	//	add class name hierarchy
+	//	\todo: REMOVE, only needed by info commands.
 		lua_pushstring(L, "names");
 		lua_pushlightuserdata(L, (void*)c->class_names());
 		lua_settable(L, -3);
-	//	if the class has a parent, we'll store its metatable in the __parent entry.
-		const vector<const char*>* classNames = c->class_names();
-		if(classNames){
-			if(classNames->size() > 1){
-			//	push the entries name
-				lua_pushstring(L, "__parent");
-			//	get the metatable of the parent
-				luaL_getmetatable(L, classNames->at(1));
-			//	assign the entry
-				lua_settable(L, -3);
-			}
-		}
-		
+
 	//	register methods
 		for(size_t j = 0; j < c->num_methods(); ++j){
 			const ExportedMethodGroup& m = c->get_method_group(j);

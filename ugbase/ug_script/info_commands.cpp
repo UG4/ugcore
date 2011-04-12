@@ -76,6 +76,22 @@ bool GetLuaNamespace(lua_State* L, string &name)
 	return true;
 }
 
+const ClassNameNode* GetClassNameNode(lua_State *L, int index)
+{
+	LUA_STACK_CHECK(L, 0);
+	const ClassNameNode* classNameNode = NULL;
+	if(lua_getmetatable(L, index) != 0)
+	{
+		// get names
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		if(!lua_isnil(L, -1) && lua_isuserdata(L, -1))
+			classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2); // pop userdata, metatable
+	}
+	return classNameNode;
+}
+
 const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 {
 	LUA_STACK_CHECK(L, 0);

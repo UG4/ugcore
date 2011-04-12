@@ -13,19 +13,19 @@
 
 #define PUSH_PARAM_TO_STACK(paramVar, val, paramType, clName)	{m_entries[m_numEntries].param.paramVar = (val);\
 																m_entries[m_numEntries].type = (paramType);\
-																m_entries[m_numEntries].pClassNames = (clName);\
+																m_entries[m_numEntries].pClassNameNode = (clName);\
 																++m_numEntries;}
 
 //	call the constructor and assign the smart-ptr afterwards.
 #define PUSH_SP_TO_STACK(val, clName)				{m_entries[m_numEntries].param.m_smartPtrWrapper = new SmartPtr<void>(val);\
 													 m_entries[m_numEntries].type = PT_SMART_POINTER;\
-													 m_entries[m_numEntries].pClassNames = (clName);\
+													 m_entries[m_numEntries].pClassNameNode = (clName);\
 													 ++m_numEntries;}
 
 //	call the constructor and assign the smart-ptr afterwards.
 #define PUSH_CSP_TO_STACK(val, clName)				{m_entries[m_numEntries].param.m_constSmartPtrWrapper = new ConstSmartPtr<void>(val);\
 													 m_entries[m_numEntries].type = PT_CONST_SMART_POINTER;\
-													 m_entries[m_numEntries].pClassNames = (clName);\
+													 m_entries[m_numEntries].pClassNameNode = (clName);\
 													 ++m_numEntries;}
 
 namespace ug
@@ -180,30 +180,30 @@ class ParameterStack
 	/// user defined classes
 		template<class T>
 		inline void push_pointer(T* ptr = NULL)			{PUSH_PARAM_TO_STACK(	m_ptr, (void*)ptr, PT_POINTER,
-																				&ClassNameProvider<T>::names());}
+																				&ClassNameProvider<T>::class_name_node());}
 
-		inline void push_pointer(void* ptr, const std::vector<const char*>* classNames)
-														{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNames);}
+		inline void push_pointer(void* ptr, const ClassNameNode* classNameNode)
+														{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNameNode);}
 
 	/// user defined classes
 		template<class T>
 		inline void push_const_pointer(const T* ptr = NULL)	{PUSH_PARAM_TO_STACK(	m_constPtr, (const void*)ptr, PT_CONST_POINTER,
-																				&ClassNameProvider<T>::names());}
+																				&ClassNameProvider<T>::class_name_node());}
 
-		inline void push_const_pointer(const void* ptr, const std::vector<const char*>* classNames)
-														{PUSH_PARAM_TO_STACK(m_constPtr, ptr, PT_CONST_POINTER, classNames);}
+		inline void push_const_pointer(const void* ptr, const ClassNameNode* classNameNode)
+														{PUSH_PARAM_TO_STACK(m_constPtr, ptr, PT_CONST_POINTER, classNameNode);}
 
 	/// SmartPtrs to user defined classes
 		template<class T>
 		inline void push_smart_pointer(const SmartPtr<T>& ptr = SmartPtr<T>(NULL))
 			{
-				PUSH_SP_TO_STACK(ptr, &ClassNameProvider<T>::names());
+				PUSH_SP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
 				m_bHasSmartPtrs = true;
 			}
 
-		inline void push_smart_pointer(const SmartPtr<void>& ptr, const std::vector<const char*>* classNames)
+		inline void push_smart_pointer(const SmartPtr<void>& ptr, const ClassNameNode* classNameNode)
 			{
-				PUSH_SP_TO_STACK(ptr, classNames);
+				PUSH_SP_TO_STACK(ptr, classNameNode);
 				m_bHasSmartPtrs = true;
 			}
 
@@ -211,13 +211,13 @@ class ParameterStack
 		template<class T>
 		inline void push_const_smart_pointer(const ConstSmartPtr<T>& ptr = ConstSmartPtr<T>(NULL))
 			{
-				PUSH_CSP_TO_STACK(ptr, &ClassNameProvider<T>::names());
+				PUSH_CSP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
 				m_bHasSmartPtrs = true;
 			}
 
-		inline void push_const_smart_pointer(const ConstSmartPtr<void>& ptr, const std::vector<const char*>* classNames)
+		inline void push_const_smart_pointer(const ConstSmartPtr<void>& ptr, const ClassNameNode* classNameNode)
 			{
-				PUSH_CSP_TO_STACK(ptr, classNames);
+				PUSH_CSP_TO_STACK(ptr, classNameNode);
 				m_bHasSmartPtrs = true;
 			}
 
@@ -233,15 +233,15 @@ class ParameterStack
 		const char* class_name(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			if(m_entries[index].pClassNames == NULL) return "";
-			else if (m_entries[index].pClassNames->empty()) return "";
-			return (*m_entries[index].pClassNames)[0];
+			if(m_entries[index].pClassNameNode == NULL) return "";
+			else if (m_entries[index].pClassNameNode->empty()) return "";
+			return (*m_entries[index].pClassNameNode).name().c_str();
 		}
 
-		const std::vector<const char*>* class_names(int index) const
+		const ClassNameNode* class_name_node(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			return m_entries[index].pClassNames;
+			return m_entries[index].pClassNameNode;
 		}
 
 		bool to_bool(int index) const
@@ -303,10 +303,16 @@ class ParameterStack
 			const Entry& e = m_entries[index];
 			if(e.type == PT_POINTER)
 			{
-				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return reinterpret_cast<T*>(e.param.m_ptr);
+			//	copy pointer; only copy will be changed
+				const ClassNameNode* pClassNameNode = e.pClassNameNode;
+				void* ptr = ClassCastProvider::cast_to_base_class(
+						e.param.m_ptr, pClassNameNode, ClassNameProvider<T>::name());
+
+				if(ptr != NULL)
+					return reinterpret_cast<T*>(ptr);
 				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+					throw(ERROR_IncompatibleClasses(index, class_name(index),
+					                                ClassNameProvider<T>::name()));
 			}
 			
 			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
@@ -331,10 +337,16 @@ class ParameterStack
 			const Entry& e = m_entries[index];
 			if(e.type == PT_CONST_POINTER)
 			{
-				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return reinterpret_cast<const T*>(e.param.m_constPtr);
+			//	copy pointer; only copy will be changed
+				const ClassNameNode* pClassNameNode = e.pClassNameNode;
+				void* ptr = ClassCastProvider::cast_to_base_class(
+						e.param.m_ptr, pClassNameNode, ClassNameProvider<T>::name());
+
+				if(ptr != NULL)
+					return reinterpret_cast<const T*>(ptr);
 				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+					throw(ERROR_IncompatibleClasses(index, class_name(index),
+													ClassNameProvider<T>::name()));
 			}
 			
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
@@ -359,10 +371,27 @@ class ParameterStack
 			const Entry& e = m_entries[index];
 			if(e.type == PT_SMART_POINTER)
 			{
-				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return e.param.m_smartPtrWrapper->to_smart_pointer_reinterpret<T>();
+			//	copy pointer; only copy will be changed
+				const ClassNameNode* pClassNameNode = e.pClassNameNode;
+
+			//	copy smart pointer
+				SmartPtr<void> smartPtr =  *(e.param.m_smartPtrWrapper);
+
+			//	cast raw pointer
+				void* rawPtr = smartPtr.get_impl();
+
+			// 	cast raw pointer to desired class
+				rawPtr = ClassCastProvider::cast_to_base_class(
+						rawPtr, pClassNameNode, ClassNameProvider<T>::name());
+
+			//	set raw ptr into smart pointer
+				smartPtr.set_impl<T>(rawPtr);
+
+				if(rawPtr != NULL)
+					return smartPtr.to_smart_pointer_reinterpret<T>();
 				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+					throw(ERROR_IncompatibleClasses(index, class_name(index),
+					                                ClassNameProvider<T>::name()));
 			}
 
 			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
@@ -387,8 +416,25 @@ class ParameterStack
 			const Entry& e = m_entries[index];
 			if(e.type == PT_CONST_SMART_POINTER)
 			{
-				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return e.param.m_constSmartPtrWrapper->to_smart_pointer_reinterpret<T>();
+			//	copy pointer; only copy will be changed
+				const ClassNameNode* pClassNameNode = e.pClassNameNode;
+
+			//	copy smart pointer
+				ConstSmartPtr<void> smartPtr =  *(e.param.m_constSmartPtrWrapper);
+
+			//	cast raw pointer
+				const void* rawPtrConst = smartPtr.get_impl();
+				void* rawPtr = const_cast<void*>(rawPtrConst);
+
+			// 	cast raw pointer to desired class
+				rawPtr = ClassCastProvider::cast_to_base_class(
+						rawPtr, pClassNameNode, ClassNameProvider<T>::name());
+
+			//	set raw ptr into smart pointer
+				smartPtr.set_impl<T>(const_cast<const void*>(rawPtr));
+
+				if(rawPtr != NULL)
+					return smartPtr.to_smart_pointer_reinterpret<T>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
 			}
@@ -547,7 +593,7 @@ class ParameterStack
 		struct Entry{			
 			Parameter param;
 			uint type;
-			const std::vector<const char*>*	pClassNames;
+			const ClassNameNode* pClassNameNode;
 		};
 
 	//	This array is of fixed size, since we want to introduce a minimal

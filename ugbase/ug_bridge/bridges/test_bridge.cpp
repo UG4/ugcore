@@ -163,6 +163,86 @@ class Derived : public Base
 		}
 };
 
+
+class Base0
+{
+	public:
+		virtual ~Base0() {}
+		virtual void virt_print_base0() = 0;
+		void print_base0() {UG_LOG("Base0::print_base0() called.\n");}
+};
+
+class Base1
+{
+	public:
+		virtual ~Base1() {}
+		virtual void virt_print_base1() = 0;
+		void print_base1() {UG_LOG("Base1::print_base1() called.\n");}
+};
+
+class Base2
+{
+	public:
+		virtual ~Base2() {}
+		virtual void virt_print_base2() = 0;
+		void print_base2() {UG_LOG("Base2::print_base2() called.\n");}
+};
+
+class Base3
+{
+	public:
+		virtual ~Base3() {}
+		virtual void virt_print_base3() = 0;
+		void print_base3() {UG_LOG("Base3::print_base3() called.\n");}
+};
+
+class Intermediate0 : public Base0, public Base1
+{
+	public:
+		virtual ~Intermediate0() {}
+		virtual void virt_print_intermediate0() = 0;
+		void print_intermediate0() {UG_LOG("Intermediate0::print_intermediate0() called.\n");}
+};
+
+class Intermediate1 : public Base2, public Base3
+{
+	public:
+		virtual ~Intermediate1() {}
+		virtual void virt_print_intermediate1() = 0;
+		void print_intermediate1() {UG_LOG("Intermediate1::print_intermediate1() called.\n");}
+};
+
+class MultipleDerived : public Intermediate0, public Intermediate1
+{
+	public:
+		virtual ~MultipleDerived() {}
+		void print_mulitple_derived(){UG_LOG("MultipleDerived::print() called\n");}
+
+		virtual void virt_print_intermediate0()	{UG_LOG("MultipleDerived::virt_print_intermediate0() called\n");}
+		virtual void virt_print_intermediate1()	{UG_LOG("MultipleDerived::virt_print_intermediate1() called\n");}
+
+		virtual void virt_print_base0()	{UG_LOG("MultipleDerived::virt_print_base0() called\n");}
+		virtual void virt_print_base1()	{UG_LOG("MultipleDerived::virt_print_base1() called\n");}
+		virtual void virt_print_base2()	{UG_LOG("MultipleDerived::virt_print_base2() called\n");}
+		virtual void virt_print_base3()	{UG_LOG("MultipleDerived::virt_print_base3() called\n");}
+};
+
+SmartPtr<MultipleDerived> SmartMultipleDerivedImpl(){
+	return SmartPtr<MultipleDerived>(new MultipleDerived());
+}
+
+void PrintFunction(SmartPtr<Base3> b)
+{
+	b->virt_print_base3();
+	b->print_base3();
+}
+
+void PrintFunctionIntermediate(SmartPtr<Intermediate1> b)
+{
+	b->virt_print_intermediate1();
+	b->print_intermediate1();
+}
+
 class ConstClass
 {
 	public:
@@ -171,6 +251,18 @@ class ConstClass
 			return "const_method_called";
 		}
 };
+
+void PrintFunctionIntermediate(Intermediate1& b)
+{
+	b.virt_print_intermediate1();
+	b.print_intermediate1();
+}
+
+void PrintFunction(Base3& b)
+{
+	b.virt_print_base3();
+	b.print_base3();
+}
 
 void PrintFunction(Base& b)
 {
@@ -236,6 +328,43 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		reg.add_class_<Derived, Base>("Derived", grp.c_str())
 			.add_constructor();
 
+
+		reg.add_class_<Base0>("Base0", grp.c_str())
+			.add_method("virt_print_base0", &Base0::virt_print_base0)
+			.add_method("print_base0", &Base0::print_base0);
+
+		reg.add_class_<Base1>("Base1", grp.c_str())
+			.add_method("virt_print_base1", &Base1::virt_print_base1)
+			.add_method("print_base1", &Base1::print_base1);
+
+		reg.add_class_<Base2>("Base2", grp.c_str())
+			.add_method("virt_print_base2", &Base2::virt_print_base2)
+			.add_method("print_base2", &Base2::print_base2);
+
+		reg.add_class_<Base3>("Base3", grp.c_str())
+			.add_method("virt_print_base3", &Base3::virt_print_base3)
+			.add_method("print_base3", &Base3::print_base3);
+
+		reg.add_class_<Intermediate0, Base1, Base0>("Intermediate0", grp.c_str())
+			.add_method("virt_print_intermediate0", &Intermediate0::virt_print_intermediate0)
+			.add_method("print_intermediate0", &Intermediate0::print_intermediate0);
+
+		reg.add_class_<Intermediate1, Base2, Base3>("Intermediate1", grp.c_str())
+			.add_method("virt_print_intermediate1", &Intermediate1::virt_print_intermediate1)
+			.add_method("print_intermediate1", &Intermediate1::print_intermediate1);
+
+		reg.add_class_<MultipleDerived, Intermediate0, Intermediate1>("MultipleDerived", grp.c_str())
+			.add_constructor()
+			.add_method("print_mulitple_derived", &MultipleDerived::print_mulitple_derived);
+
+		reg.add_function("SmartMultipleDerivedImpl", SmartMultipleDerivedImpl);
+
+		reg.add_function("PrintFunctionIntermediate", (void (*)(SmartPtr<Intermediate1>))&PrintFunctionIntermediate);
+		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base3>))&PrintFunction);
+		reg.add_function("PrintFunction", (void (*)(Base&))&PrintFunction);
+		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate1&))&PrintFunctionIntermediate);
+		reg.add_function("PrintFunction", (void (*)(Base3&))&PrintFunction);
+
 		reg.add_class_<ConstClass>("ConstClass", grp.c_str())
 			.add_constructor()
 			.add_method("const_method", &ConstClass::const_method);
@@ -249,8 +378,6 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_method("take_pieces", &Cake::take_pieces)
 			.add_method("add_pieces", &Cake::add_pieces)
 			.add_method("pieces_left", &Cake::pieces_left);
-
-		reg.add_function("PrintFunction", &PrintFunction);
 
 		reg.add_function("TestFunc", TestFunc, grp.c_str())
 			.add_function("SmartTestImpl", SmartTestImpl, grp.c_str())

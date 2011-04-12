@@ -62,11 +62,12 @@ class ExportedMethod : public ExportedFunctionBase
 
 	public:
 		ExportedMethod(	const MethodPtrWrapper& m, ProxyFunc pf,
-						const char* name, const char* methodOptions,
+						const char* name, const char* className,
+						const char* methodOptions,
 						const char* retValInfos, const char* paramInfos,
 						const char* tooltip, const char* help)
 		: ExportedFunctionBase(name, methodOptions, retValInfos, paramInfos, tooltip, help),
-		  m_ptrWrapper(m), m_proxy_func(pf)
+		  m_ptrWrapper(m), m_proxy_func(pf), m_className(className)
 		{}
 
 	/// executes the function
@@ -82,12 +83,18 @@ class ExportedMethod : public ExportedFunctionBase
 			ExportedFunctionBase::create_parameter_stack<TFunc>();
 		}
 		
+	///	returns the class name this method belongs to
+		const char* class_name() const {return m_className;}
+
 	private:
 		// pointer to function (stored in a wrapper)
 		MethodPtrWrapper m_ptrWrapper;
 	
 		// proxy function to call method
 		ProxyFunc m_proxy_func;
+
+		// name of class this method belongs to
+		const char* m_className;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -113,6 +120,7 @@ class ExportedMethodGroup
 	///	adds an overload. Returns false if the overload already existed.
 		template <class TFunc>
 		bool add_overload(	const TFunc& m, ProxyFunc pf,
+		                  	const char* className,
 							const char* methodOptions, const char* retValInfos,
 							const char* paramInfos, const char* tooltip,
 							const char* help)
@@ -125,7 +133,7 @@ class ExportedMethodGroup
 
 		//	create a new overload
 			ExportedMethod* func = new ExportedMethod(MethodPtrWrapper(m),
-												pf, m_name.c_str(),
+												pf, m_name.c_str(), className,
 												methodOptions, retValInfos,
 												paramInfos, tooltip, help);
 
@@ -261,6 +269,9 @@ class IExportedClass
 	///	get groups
 		virtual const std::string& group() const = 0;
 
+	///	name node of class
+		virtual const ClassNameNode& class_name_node() const = 0;
+
 	/// get tooltip
 		virtual const std::string& tooltip() const = 0;
 
@@ -335,11 +346,12 @@ class ExportedClass_ : public IExportedClass
 	/// name of class
 		virtual const char* name() const {return ClassNameProvider<TClass>::name();}
 
+	///	name node of class
+		virtual const ClassNameNode& class_name_node() const {return ClassNameProvider<TClass>::class_name_node();}
+
 	/// tooltip
-		virtual const std::string& tooltip() const
-		{
-			return m_tooltip;
-		}
+		virtual const std::string& tooltip() const{return m_tooltip;}
+
 	///	get groups
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
@@ -435,6 +447,7 @@ class ExportedClass_ : public IExportedClass
 
 			try{
 				bool success = methodGrp->add_overload(func, &MethodProxy<TClass, TMethod>::apply,
+				                                       ClassNameProvider<TClass>::name(),
 														methodOptions.c_str(), retValInfos, paramInfos,
 														tooltip, help);
 
