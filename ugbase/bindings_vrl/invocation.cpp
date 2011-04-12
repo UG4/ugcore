@@ -164,6 +164,22 @@ const ug::bridge::IExportedClass* getExportedClassPtrByName(
 	return NULL;
 }
 
+const ug::bridge::ClassNameNode* getClassNodePtrByName(
+		ug::bridge::Registry* reg,
+		std::string className) {
+
+	for (unsigned int i = 0; i < reg->num_classes(); i++) {
+
+		const ug::bridge::IExportedClass& clazz = reg->get_class(i);
+
+		if (strcmp(clazz.name(), className.c_str()) == 0) {
+			return &clazz.class_name_node();
+		}
+	}
+
+	return NULL;
+}
+
 } // invocation::
 } // vrl::
 } // ug::

@@ -75,9 +75,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	// Register Playground if we are in debug mode
 
-//#ifdef UG_DEBUG
-//	registerPlayground(reg);
-//#endif
+	//#ifdef UG_DEBUG
+	//	registerPlayground(reg);
+	//#endif
 
 	// Register algebra
 	CPUAlgebraSelector selector;
@@ -101,9 +101,11 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 		jstring exportedClassName, jlong objPtr, jboolean readOnly,
 		jstring methodName, jobjectArray params) {
 
+	std::string className = ug::vrl::stringJ2C(env, exportedClassName);
+
 	const ug::bridge::IExportedClass* clazz =
 			ug::vrl::invocation::getExportedClassPtrByName(
-			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, exportedClassName));
+			ug::vrl::vrlRegistry, className);
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -133,7 +135,15 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 		ug::vrl::jobjectArray2ParamStack(
 				env, paramsIn, method->params_in(), params);
 
-		method->execute((void*) objPtr, paramsIn, paramsOut);
+		const ug::bridge::ClassNameNode* clsNode =
+				ug::vrl::invocation::getClassNodePtrByName(
+				ug::vrl::vrlRegistry, className);
+
+		void* finalObjPtr = ug::bridge::ClassCastProvider::cast_to_base_class(
+				(void*) objPtr,
+				clsNode, method->class_name());
+
+		method->execute(finalObjPtr, paramsIn, paramsOut);
 
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);

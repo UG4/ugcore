@@ -64,6 +64,18 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 const ug::bridge::IExportedClass* getExportedClassPtrByName(
 		ug::bridge::Registry* reg,
 		std::string className);
+
+/**
+ * Returns a classnode by name.
+ * @param reg registry to search
+ * @param className class name
+ * @return pointer to requested classnode if such a node exists;
+ *         <code>NULL</code> otherwise
+ */
+const ug::bridge::ClassNameNode* getClassNodePtrByName(
+		ug::bridge::Registry* reg,
+		std::string className);
+
 } // invocation::
 } // vrl::
 } // ug::
