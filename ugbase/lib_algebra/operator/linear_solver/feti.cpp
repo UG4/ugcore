@@ -602,6 +602,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 	//	init sequential solver for coarse problem
 		if(newVecSize > 0)
+		{
 			if(m_pCoarseProblemSolver != NULL)
 			{
 				if(!m_pCoarseProblemSolver->init(m_RootSchurComplementOp))
@@ -617,6 +618,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						" needs to be inverted, but no CoarseSolver given.\n");
 				return false;
 			}
+		}
 
 	//	set correct parallel storage type of coarse problem matrix (obviously,
 	//	this problem is solved in serial by a single process, but the parallel
