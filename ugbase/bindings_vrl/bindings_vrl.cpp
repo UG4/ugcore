@@ -18,6 +18,7 @@
 #include "compiledate.h"
 #include "vrl_user_number.h"
 #include "invocation.h"
+#include "playground.h"
 
 namespace ug {
 namespace vrl {
@@ -44,139 +45,6 @@ JavaVM* getJavaVM() {
 }// end vrl::
 }// end ug::
 
-class TestClass {
-public:
-
-	TestClass() {
-		//
-	}
-
-	int performTest() {
-
-		std::cout << "***0\n";
-
-		const ug::bridge::IExportedClass* cls =
-				ug::vrl::invocation::getExportedClassPtrByName(
-				ug::vrl::vrlRegistry, "Domain2d");
-
-		std::cout << "***1\n";
-
-		void* obj = cls->create();
-
-		UG_LOG("Domain2d: " << (long) obj << ", " << obj << "\n");
-
-		std::cout << "***2\n";
-
-		int methodID = -1;
-
-		for (unsigned int i = 0; i < cls->num_methods(); i++) {
-			std::cout << "***3:" << i << std::endl;
-			if (cls->get_method(i).name() == "get_grid") {
-				UG_LOG("method found!\n");
-				std::cout << "***3:found, ID=" << i << "\n";
-				methodID = i;
-				break;
-			}
-		}
-
-		std::cout << "***4\n";
-
-		const ug::bridge::ExportedMethod& method = cls->get_method(methodID);
-
-		UG_LOG("Call Method:" << method.name() << "\n");
-
-		ug::bridge::ParameterStack paramsIn;
-		ug::bridge::ParameterStack paramsOut;
-
-		std::cout << "***5\n";
-
-		method.execute(obj, paramsIn, paramsOut);
-
-		if (paramsOut.size() > 0
-				&& paramsOut.get_type(0) == ug::bridge::PT_POINTER) {
-			UG_LOG("Output: " << (long) paramsOut.to_pointer(0) << ", " <<
-					paramsOut.to_pointer(0) << "\n");
-		}
-
-		std::cout << "***6\n";
-
-		return 23; // :D
-	}
-
-	std::string getRev() {
-		return ug::vrl::svnRevision();
-	}
-
-	int add(int a, int b) {
-		return a + b;
-	}
-
-	std::string getString() {
-		UG_LOG("Test123" << std::endl);
-		return "Test123";
-	}
-
-	SmartPtr<TestClass> smartTestImpl() {
-		return SmartPtr<TestClass > (new TestClass());
-	}
-
-	ConstSmartPtr<TestClass> constSmartTestImpl() {
-		return ConstSmartPtr<TestClass > (new TestClass());
-	}
-
-	int print_name() {
-		UG_LOG("Name is Test\n");
-		return 1;
-	}
-
-	int print() {
-		UG_LOG("Test::print()\n");
-		return 0;
-	}
-
-	int print2() {
-		UG_LOG("Test::print2()\n");
-		return 1;
-	}
-
-	int print2() const {
-		UG_LOG("Test::print2() const\n");
-		return 1;
-	}
-
-	~TestClass() {
-		UG_LOG("~TestClass" << std::endl);
-	}
-};
-
-int SmartTestFunction(SmartPtr<TestClass> test) {
-	UG_LOG("SmartTestFunc: ");
-
-	test->print2();
-
-	return test.get_refcount();
-}
-
-int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
-	UG_LOG("ConstSmartTestFunc: ");
-
-	test->print2();
-
-	return test.get_refcount();
-}
-
-template <typename TVector>
-TVector* CreateVector(int dim) {
-	return new TVector(dim);
-}
-
-template <typename TVector>
-SmartPtr<TVector> CreateVectorSmart(int dim) {
-	return SmartPtr<TVector > (new TVector(dim));
-}
-
-
-
 
 //*********************************************************
 //* JNI METHODS
@@ -184,6 +52,8 @@ SmartPtr<TVector> CreateVectorSmart(int dim) {
 
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 (JNIEnv *env, jobject obj, jobjectArray args) {
+
+	std::cout << "init::0\n";
 
 	ug::vrl::initJavaVM(env);
 
@@ -203,43 +73,11 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	char** pargv = &argv[0];
 	int retVal = ug::UGInit(&argc, &pargv);
 
-	reg.add_class_<TestClass > ("TestClass", "ug4/testing")
-			.add_constructor()
-			.add_method("svnRevision|hide=true,interactive=true", &TestClass::getRev)
-			.add_method("add", &TestClass::add, "result",
-			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
-			.add_method("getString", &TestClass::getString)
-			.add_method("performTest", &TestClass::performTest)
-			.add_method("print", &TestClass::print)
-			.add_method("smartTestImpl", &TestClass::smartTestImpl)
-			.add_method("constSmartTestImpl", &TestClass::constSmartTestImpl);
+	// Register Playground if we are in debug mode
 
-	reg.add_function("SmartTestFunction", &SmartTestFunction, "ug4/testing");
-	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "ug4/testing");
-
-	ug::vrl::RegisterVRLUserNumber(reg, "ug4/testing");
-
-//	/************************************/
-//
-//	reg.add_class_<Vector<double> >("DVector", "testing")
-//			.add_constructor()
-//			.add_method("set|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set,
-//			"Success", "Number")
-//			.add_method("size|hide=true", (size_t(Vector<double> ::*)()) & Vector<double> ::size,
-//			"Size", "")
-//			.add_method("set_random|hide=true", (bool (Vector<double> ::*)(number)) & Vector<double> ::set_random,
-//			"Success", "Number")
-//			.add_method("print|hide=true", &Vector<double> ::p);
-//
-//	reg.add_function("VecScaleAdd2", &VecScaleAdd2<Vector<double> >, "",
-//			"dest, alpha1, vec1, alpha2, vec2", "dest = alpha1*vec1 + alpha2*vec2");
-//	reg.add_function("VecScaleAdd3", &VecScaleAdd3<Vector<double> >, "",
-//			"dest, alpha1, vec1, alpha2, vec2, alpha3, vec3", "dest = alpha1*vec1 + alpha2*vec2 + alpha3*vec3");
-//
-//	reg.add_function("CreateVector",
-//			&CreateVector<Vector<double> >, "testing", "DVector", "Dimension");
-//
-//	/************************************/
+//#ifdef UG_DEBUG
+//	registerPlayground(reg);
+//#endif
 
 	// Register algebra
 	CPUAlgebraSelector selector;
@@ -275,7 +113,6 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 	jobject result = NULL;
 
 	try {
-
 		const ug::bridge::ExportedMethod* method =
 				ug::vrl::invocation::getMethodBySignature(
 				env, ug::vrl::vrlRegistry,

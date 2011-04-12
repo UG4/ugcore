@@ -22,6 +22,7 @@ set(srcBindingsVRL
                     messaging.cpp
                     vrl_user_number.cpp
                     invocation.cpp
+                    playground.cpp
 )
 
 

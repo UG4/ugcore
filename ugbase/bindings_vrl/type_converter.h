@@ -299,6 +299,12 @@ const std::vector<const ug::bridge::IExportedClass*> getParentClasses(
  */
 jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg);
 
+/**
+ * Returns the base classes of the given class name node.
+ * @return the base classes of the given class name node
+ */
+std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node);
+
 }// end vrl::
 }// end ug::
 

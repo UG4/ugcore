@@ -104,6 +104,21 @@ jobjectArray stringArrayC2J(
 	}
 }
 
+jobjectArray stringArrayC2J(
+		JNIEnv *env, const std::vector<const char*> strings) {
+
+	if (strings.size() > 0) {
+		// it is safe to give a pointer to the first vector element as
+		// std::vector implementation uses contiguous memory
+		return stringArrayC2J(env, &strings[0], strings.size());
+	} else {
+
+		// create an empty string array
+		jclass cls = env->FindClass("java/lang/String");
+		return env->NewObjectArray(0, cls, createEmptyString(env));
+	}
+}
+
 std::vector<std::string> stringArrayJ2C(
 		JNIEnv *env, jobjectArray const& array) {
 
@@ -173,6 +188,30 @@ jboolean jObject2Boolean(JNIEnv *env, jobject obj) {
 	jclass argClass = env->GetObjectClass(obj);
 	jmethodID methodID = env->GetMethodID(argClass, "booleanValue", "()Z");
 	return env->CallBooleanMethod(obj, methodID);
+}
+
+std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node) {
+	std::vector<const char*> classNames;
+
+	std::cout << "BEFORE" << std::endl;
+
+	if (node==NULL) {
+		std::cout << "node == NULL\n";
+	} else {
+		std::cout << "node != NULL\n";
+	}
+
+	ug::bridge::ExtractClassNameVec(classNames, *node, false);
+
+	std::cout << "AFTER" << std::endl;
+
+
+	for (unsigned int i = 0; i < classNames.size();i++) {
+		std::cout << "--> name (" << i << "): " << classNames[i] << std::endl;
+	}
+
+	std::cout << "END" << std::endl;
+	return classNames;
 }
 
 void* jObject2Pointer(JNIEnv *env, jobject obj) {
@@ -409,7 +448,7 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 	// compare array lengths
 	jsize len = env->GetArrayLength(params);
 
-	if (len!=paramStack.size()) {
+	if (len != paramStack.size()) {
 		return false;
 	}
 
@@ -479,7 +518,7 @@ void jobjectArray2ParamStack(
 			case PT_POINTER:
 			{
 				paramsOut.push_pointer(jObject2Pointer(env, value),
-						paramsTemplate.class_names(i));
+						paramsTemplate.class_name_node(i));
 				//DON'T USE paramsTemplate here!!!
 				// Use the original type string of value
 				//
@@ -492,20 +531,20 @@ void jobjectArray2ParamStack(
 			{
 				paramsOut.push_const_pointer(
 						jObject2Pointer(env, value),
-						paramsTemplate.class_names(i));
+						paramsTemplate.class_name_node(i));
 			}
 				break;
 			case PT_SMART_POINTER:
 			{
 				paramsOut.push_smart_pointer(jObject2SmartPointer(env, value),
-						paramsTemplate.class_names(i));
+						paramsTemplate.class_name_node(i));
 			}
 				break;
 			case PT_CONST_SMART_POINTER:
 			{
 				paramsOut.push_const_smart_pointer(
 						jObject2ConstSmartPointer(env, value),
-						paramsTemplate.class_names(i));
+						paramsTemplate.class_name_node(i));
 			}
 				break;
 		}
@@ -668,7 +707,10 @@ jobjectArray params2NativeParams(JNIEnv *env,
 		env->CallVoidMethod(obj, setID, i);
 
 		env->CallVoidMethod(obj, setClassName, stringC2J(env, params.class_name(i)));
-		env->CallVoidMethod(obj, setClassNames, stringArrayC2J(env, params.class_names(i)));
+
+		env->CallVoidMethod(obj, setClassNames, stringArrayC2J(env,
+				getBaseClassNames(params.class_name_node(i))));
+		
 		env->CallVoidMethod(obj, setParamInfo,
 				stringArrayC2J(env, func.parameter_info_vec(i)));
 
@@ -722,8 +764,10 @@ jobject retVal2NativeParam(JNIEnv *env,
 
 		env->CallVoidMethod(obj, setClassName,
 				stringC2J(env, params.class_name(i)));
+
 		env->CallVoidMethod(obj, setClassNames,
-				stringArrayC2J(env, params.class_names(i)));
+				stringArrayC2J(env,
+				getBaseClassNames(params.class_name_node(i))));
 	}
 
 	env->CallVoidMethod(obj, setType, type);
@@ -818,9 +862,9 @@ jobjectArray methods2NativeGroups(JNIEnv *env,
 			const ug::bridge::ExportedMethod* method;
 
 			if (constMethods) {
-				method = &eCls.get_const_overload(i,j);
+				method = &eCls.get_const_overload(i, j);
 			} else {
-				method = &eCls.get_overload(i,j);
+				method = &eCls.get_overload(i, j);
 			}
 
 			// set array element, we currently have only one method per group
@@ -830,7 +874,7 @@ jobjectArray methods2NativeGroups(JNIEnv *env,
 		}
 
 		env->CallVoidMethod(groupObj, setOverloads, methodArray);
-		
+
 		env->SetObjectArrayElement(result, i, groupObj);
 	}
 

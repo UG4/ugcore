@@ -13,6 +13,7 @@
 
 #define PUSH_PARAM_TO_STACK(paramVar, val, paramType, clName)	{m_entries[m_numEntries].param.paramVar = (val);\
 																m_entries[m_numEntries].type = (paramType);\
+                                                                UG_LOG("PUSHING: " << (clName) << "\n");\
 																m_entries[m_numEntries].pClassNameNode = (clName);\
 																++m_numEntries;}
 
@@ -157,9 +158,9 @@ class ParameterStack
 		
 	////////////////////////////////
 	//	push
-		inline void push_bool(bool val = true)			{PUSH_PARAM_TO_STACK(m_bool, val, PT_BOOL, NULL);}
-		inline void push_integer(int val = 0)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, NULL);}
-		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, NULL);}
+		inline void push_bool(bool val = true)			{PUSH_PARAM_TO_STACK(m_bool, val, PT_BOOL, &ClassNameProvider<bool>::class_name_node());}
+		inline void push_integer(int val = 0)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, &ClassNameProvider<int>::class_name_node());}
+		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, &ClassNameProvider<number>::class_name_node());}
 		
 	///	strings are not bufferd.
 		inline void push_string(const char* str = "", bool bCopy = false)
@@ -169,11 +170,11 @@ class ParameterStack
 				int strSize = strlen(str) + 1;	// don't forget terminating 0
 				char* tstr = new char[strSize];
 				memcpy(tstr, str, strSize);
-				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY, NULL);
+				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY, &ClassNameProvider<const char*>::class_name_node());
 				m_bHasStringCopies = true;
 			}
 			else{
-				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, NULL);
+				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, &ClassNameProvider<const char*>::class_name_node());
 			}
 		}
 
