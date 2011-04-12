@@ -16,7 +16,7 @@ namespace ug{
 
 
 template<typename TStorage>
-DenseMatrix<TStorage>::DenseMatrix()
+DenseMatrix<TStorage>::DenseMatrix() : TStorage()
 {
 }
 
