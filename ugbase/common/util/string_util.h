@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include "hash.h"
 
 namespace ug{
 
@@ -17,6 +18,15 @@ void RemoveWhitespaceFromString(std::string& string);
 
 // help function to remove whitespace from front and end of string
 std::string TrimString(const std::string& str);
+
+
+//sreiter
+///	this template function creates a hash key for a string value.
+template <> unsigned long hash_key(const std::string& key);
+
+//sreiter
+///	this template function creates a hash key for a string value.
+template <> unsigned long hash_key(const char* key);
 
 } // end namespace ug
 

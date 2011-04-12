@@ -12,15 +12,19 @@
 namespace ug
 {
 
-///	this template function creates a hash key for a number value. Specify to support other types
-/**
- * the returned value does not have to be unique.
- * The more diverse, the better the hashing result will be.
+///	The hashing method can be specialized for different types.
+/**	A default implementation exists, which casts each key
+ * to a unsigned long.
+ * \{
  */
+template <typename TKey> unsigned long hash_key(const TKey& key);
+template <typename TKey> unsigned long hash_key(const TKey* key);
+
 template <typename TKey> unsigned long hash_key(const TKey& key)
 {
 	return (unsigned long)key;
 }
+/** \} */
 
 /*
 template <> inline unsigned long

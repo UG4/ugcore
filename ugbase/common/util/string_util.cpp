@@ -36,5 +36,37 @@ std::string TrimString(const std::string& str)
 	return str.substr(start, end - start + 1);
 }
 
+
+//sreiter - Implementation is copied from some book or website. Can't remember...
+template <> unsigned long hash_key(const std::string& key)
+{
+
+	unsigned long hash = 5381;
+	const char* str = key.c_str();
+	int c;
+
+	while((c = *str)){
+		hash = hash * 33 + c;
+		++str;
+	}
+
+	return hash;
+}
+
+//sreiter - Implementation is copied from some book or website. Can't remember...
+template <> unsigned long hash_key(const char* key)
+{
+
+	unsigned long hash = 5381;
+	int c;
+
+	while((c = *key)){
+		hash = hash * 33 + c;
+		++key;
+	}
+
+	return hash;
+}
+
 }
 
