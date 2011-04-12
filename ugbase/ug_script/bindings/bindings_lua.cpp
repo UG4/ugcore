@@ -250,7 +250,7 @@ static int LuaStackToParams(ParameterStack& params,
 			}break;
 			case PT_INTEGER:{
 				if(lua_isnumber(L, index))
-					params.push_integer(lua_tonumber(L, index));
+					params.push_integer(lua_tointeger(L, index));
 				else{
 					badParam = (int)i + 1;
 				}
