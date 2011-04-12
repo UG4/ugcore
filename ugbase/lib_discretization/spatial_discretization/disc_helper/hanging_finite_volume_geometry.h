@@ -73,7 +73,7 @@ class HFV1Geometry {
 				static const size_t m_numIP = 1;
 
 				// Number of corners of scvf
-				static const size_t m_numCorners = dim;
+				static const size_t m_numCorners = finite_volume_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			public:
 				SCVF() {};
