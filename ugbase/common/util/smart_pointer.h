@@ -383,6 +383,17 @@ class SmartPtr<void>
 			return SmartPtr<T>(reinterpret_cast<T*>(m_ptr), m_refCountPtr);
 		}
 
+	///	sets the void* to a different location correspoding to a cast to a new type T
+	/**	!!! WARNING: THIS METHOD IS DANDGEROUS: DO NOT USE IT UNLESS YOU REALLY
+	 *               KNOW WHAT YOU ARE DOING !!!
+	 */
+		template <class T>
+		void set_impl(void* ptr)
+		{
+			m_ptr = ptr;
+			m_freeFunc = &SmartPtr<T>::free_void_ptr;
+		}
+
 		inline bool is_valid() const	{return m_ptr != NULL;}
 		void invalidate()				{if(is_valid())	release(); m_ptr = NULL;}
 
@@ -506,6 +517,17 @@ class ConstSmartPtr<void>
 		template <class T>
 		ConstSmartPtr<T> to_smart_pointer_reinterpret() const{
 			return ConstSmartPtr<T>(reinterpret_cast<const T*>(m_ptr), m_refCountPtr);
+		}
+
+	///	sets the void* to a different location correspoding to a cast to a new type T
+	/**	!!! WARNING: THIS METHOD IS DANDGEROUS: DO NOT USE IT UNLESS YOU REALLY
+	 *               KNOW WHAT YOU ARE DOING !!!
+	 */
+		template <class T>
+		void set_impl(const void* ptr)
+		{
+			m_ptr = ptr;
+			m_freeFunc = &SmartPtr<T>::free_void_ptr;
 		}
 
 		inline bool is_valid() const	{return m_ptr != NULL;}
