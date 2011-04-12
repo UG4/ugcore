@@ -129,8 +129,12 @@ enum ParameterFlags
 class ParameterStack
 {
 	public:
-		ParameterStack() : m_numEntries(0), m_bHasSmartPtrs(false), m_bHasStringCopies(false)	{}
+	///	default constructor
+		ParameterStack() :
+			m_numEntries(0), m_bHasSmartPtrs(false), m_bHasStringCopies(false)
+		{}
 		
+	///	destructor
 		~ParameterStack()
 		{
 		//	we have to release all string copies and smart pointers.
@@ -153,13 +157,27 @@ class ParameterStack
 
 	////////////////////////////////
 	//	info
+	////////////////////////////////
 		inline int size() const		{return m_numEntries;}
 		
 	////////////////////////////////
 	//	push
-		inline void push_bool(bool val = true)			{PUSH_PARAM_TO_STACK(m_bool, val, PT_BOOL, &ClassNameProvider<bool>::class_name_node());}
-		inline void push_integer(int val = 0)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, &ClassNameProvider<int>::class_name_node());}
-		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, &ClassNameProvider<number>::class_name_node());}
+	////////////////////////////////
+
+	///	push bool
+		inline void push_bool(bool val = true)
+			{PUSH_PARAM_TO_STACK(m_bool, val, PT_BOOL,
+			  &ClassNameProvider<bool>::class_name_node());}
+
+	///	push integer
+		inline void push_integer(int val = 0)
+			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER,
+			  &ClassNameProvider<int>::class_name_node());}
+
+	///	push a number (double/float)
+		inline void push_number(number val = 0)
+			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER,
+			  &ClassNameProvider<number>::class_name_node());}
 		
 	///	strings are not bufferd.
 		inline void push_string(const char* str = "", bool bCopy = false)
@@ -169,60 +187,61 @@ class ParameterStack
 				int strSize = strlen(str) + 1;	// don't forget terminating 0
 				char* tstr = new char[strSize];
 				memcpy(tstr, str, strSize);
-				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY, &ClassNameProvider<const char*>::class_name_node());
+				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY,
+				                    &ClassNameProvider<const char*>::class_name_node());
 				m_bHasStringCopies = true;
 			}
 			else{
-				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, &ClassNameProvider<const char*>::class_name_node());
+				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING,
+				                    &ClassNameProvider<const char*>::class_name_node());
 			}
 		}
 
-	/// user defined classes
+	/// push user defined classes
 		template<class T>
-		inline void push_pointer(T* ptr = NULL)			{PUSH_PARAM_TO_STACK(	m_ptr, (void*)ptr, PT_POINTER,
-																				&ClassNameProvider<T>::class_name_node());}
+		inline void push_pointer(T* ptr = NULL)
+			{PUSH_PARAM_TO_STACK(	m_ptr, (void*)ptr, PT_POINTER,
+		                     		&ClassNameProvider<T>::class_name_node());}
 
 		inline void push_pointer(void* ptr, const ClassNameNode* classNameNode)
-														{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNameNode);}
+			{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNameNode);}
 
 	/// user defined classes
 		template<class T>
-		inline void push_const_pointer(const T* ptr = NULL)	{PUSH_PARAM_TO_STACK(	m_constPtr, (const void*)ptr, PT_CONST_POINTER,
-																				&ClassNameProvider<T>::class_name_node());}
+		inline void push_const_pointer(const T* ptr = NULL)
+			{PUSH_PARAM_TO_STACK(	m_constPtr, (const void*)ptr, PT_CONST_POINTER,
+			                     	&ClassNameProvider<T>::class_name_node());}
 
 		inline void push_const_pointer(const void* ptr, const ClassNameNode* classNameNode)
-														{PUSH_PARAM_TO_STACK(m_constPtr, ptr, PT_CONST_POINTER, classNameNode);}
+			{PUSH_PARAM_TO_STACK(m_constPtr, ptr, PT_CONST_POINTER, classNameNode);}
 
 	/// SmartPtrs to user defined classes
 		template<class T>
 		inline void push_smart_pointer(const SmartPtr<T>& ptr = SmartPtr<T>(NULL))
-			{
-				PUSH_SP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
-				m_bHasSmartPtrs = true;
-			}
+			{PUSH_SP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
+				m_bHasSmartPtrs = true;}
 
-		inline void push_smart_pointer(const SmartPtr<void>& ptr, const ClassNameNode* classNameNode)
-			{
-				PUSH_SP_TO_STACK(ptr, classNameNode);
-				m_bHasSmartPtrs = true;
-			}
+		inline void push_smart_pointer(const SmartPtr<void>& ptr,
+		                               const ClassNameNode* classNameNode)
+			{PUSH_SP_TO_STACK(ptr, classNameNode);
+				m_bHasSmartPtrs = true;}
 
 	/// ConstSmartPtrs to user defined classes
 		template<class T>
 		inline void push_const_smart_pointer(const ConstSmartPtr<T>& ptr = ConstSmartPtr<T>(NULL))
-			{
-				PUSH_CSP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
-				m_bHasSmartPtrs = true;
-			}
+			{PUSH_CSP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
+				m_bHasSmartPtrs = true;}
 
-		inline void push_const_smart_pointer(const ConstSmartPtr<void>& ptr, const ClassNameNode* classNameNode)
-			{
-				PUSH_CSP_TO_STACK(ptr, classNameNode);
-				m_bHasSmartPtrs = true;
-			}
+		inline void push_const_smart_pointer(const ConstSmartPtr<void>& ptr,
+		                                     const ClassNameNode* classNameNode)
+			{PUSH_CSP_TO_STACK(ptr, classNameNode);
+				m_bHasSmartPtrs = true;}
 
 	////////////////////////////////
 	//	get
+	////////////////////////////////
+
+	///	returns ParameterType enum of data type for a stack entry
 		uint get_type(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -230,6 +249,7 @@ class ParameterStack
 			return m_entries[index].type & PT_RANGE;
 		}
 		
+	///	returns the class name for an element in the param stack
 		const char* class_name(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -238,12 +258,14 @@ class ParameterStack
 			return (*m_entries[index].pClassNameNode).name().c_str();
 		}
 
+	///	returns the class name node for an element in the param stack
 		const ClassNameNode* class_name_node(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			return m_entries[index].pClassNameNode;
 		}
 
+	///	return element in param stack casted to bool
 		bool to_bool(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -257,6 +279,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_BOOL));
 		}
 
+	///	return element in param stack casted to int
 		int to_integer(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -270,6 +293,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_INTEGER));
 		}
 
+	///	return element in param stack casted to number (double/float)
 		number to_number(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -283,6 +307,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_NUMBER));
 		}
 
+	///	return element in param stack casted to const char*
 		const char* to_string(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -295,6 +320,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_STRING));
 		}
 
+	///	return element in param stack casted to user defined type
 		template <class T>
 		T* to_pointer(int index) const
 		{
@@ -318,6 +344,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
 		}
 
+	///	return element in param stack casted to void*
 		void* to_pointer(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -329,6 +356,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
 		}
 
+	///	return element in param stack casted to user defined type
 		template <class T>
 		const T* to_const_pointer(int index) const
 		{
@@ -352,6 +380,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}
 
+	///	return element in param stack casted to void*
 		const void* to_const_pointer(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -363,6 +392,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}
 
+	///	return element in param stack casted to user defined type in SmartPtr
 		template <class T>
 		SmartPtr<T> to_smart_pointer(int index) const
 		{
@@ -397,6 +427,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
 		}
 
+	///	return element in param stack casted to user defined type in SmartPtr
 		SmartPtr<void> to_smart_pointer(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -408,6 +439,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
 		}
 
+	///	return element in param stack casted to user defined type in SmartPtr
 		template <class T>
 		ConstSmartPtr<T> to_const_smart_pointer(int index) const
 		{
@@ -436,12 +468,14 @@ class ParameterStack
 				if(rawPtr != NULL)
 					return smartPtr.to_smart_pointer_reinterpret<T>();
 				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+					throw(ERROR_IncompatibleClasses(index, class_name(index),
+					                                ClassNameProvider<T>::name()));
 			}
 
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
 		}
 
+	///	return element in param stack casted to user defined type in SmartPtr
 		ConstSmartPtr<void> to_const_smart_pointer(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -455,6 +489,8 @@ class ParameterStack
 
 	////////////////////////////////
 	//	set		
+	////////////////////////////////
+
 		void set_bool(int index, bool val)
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -590,15 +626,18 @@ class ParameterStack
 			ConstSmartPtr<void>* m_constSmartPtrWrapper;
 		};
 		
+	///	structure to store a data entry with additional information
 		struct Entry{			
-			Parameter param;
-			uint type;
-			const ClassNameNode* pClassNameNode;
+			Parameter param;  	//< Storage of data (native data or pointer)
+			uint type;			//<	enum ParameterTypes indicating stored type
+			const ClassNameNode* pClassNameNode; //< class name for user defined data
 		};
 
 	//	This array is of fixed size, since we want to introduce a minimal
 	//	overhead during argument assignment.
 		Entry m_entries[PARAMETER_STACK_MAX_SIZE];
+
+	///	number of currently stored entries
 		int m_numEntries;
 
 	//	variables that tell whether m_entries contains string copies or smart pointers
