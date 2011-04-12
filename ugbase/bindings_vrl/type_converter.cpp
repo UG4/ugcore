@@ -18,7 +18,7 @@ jstring stringC2J(JNIEnv *env, const char* s) {
 }
 
 std::string stringJ2C(JNIEnv *env, jstring const& s) {
-	const char* tmpStr = env->GetStringUTFChars(s, false);
+	const char* tmpStr = env->GetStringUTFChars(s, JNI_FALSE);
 	std::string result = (std::string)tmpStr;
 	env->ReleaseStringUTFChars(s, tmpStr);
 	return result;
@@ -193,24 +193,12 @@ jboolean jObject2Boolean(JNIEnv *env, jobject obj) {
 std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node) {
 	std::vector<const char*> classNames;
 
-	std::cout << "BEFORE" << std::endl;
-
-	if (node==NULL) {
-		std::cout << "node == NULL\n";
-	} else {
-		std::cout << "node != NULL\n";
-	}
-
 	ug::bridge::ExtractClassNameVec(classNames, *node, false);
-
-	std::cout << "AFTER" << std::endl;
-
 
 	for (unsigned int i = 0; i < classNames.size();i++) {
 		std::cout << "--> name (" << i << "): " << classNames[i] << std::endl;
 	}
 
-	std::cout << "END" << std::endl;
 	return classNames;
 }
 

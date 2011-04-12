@@ -237,6 +237,12 @@ void PrintFunction(SmartPtr<Base3> b)
 	b->print_base3();
 }
 
+void PrintFunction(SmartPtr<Base2> b)
+{
+	b->virt_print_base2();
+	b->print_base2();
+}
+
 void PrintFunctionIntermediate(SmartPtr<Intermediate1> b)
 {
 	b->virt_print_intermediate1();
@@ -252,10 +258,10 @@ class ConstClass
 		}
 };
 
-void PrintFunctionIntermediate(Intermediate1& b)
+void PrintFunctionIntermediate(Intermediate0& b)
 {
-	b.virt_print_intermediate1();
-	b.print_intermediate1();
+	b.virt_print_intermediate0();
+	b.print_intermediate0();
 }
 
 void PrintFunction(Base3& b)
@@ -360,9 +366,11 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		reg.add_function("SmartMultipleDerivedImpl", SmartMultipleDerivedImpl);
 
 		reg.add_function("PrintFunctionIntermediate", (void (*)(SmartPtr<Intermediate1>))&PrintFunctionIntermediate);
-		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base3>))&PrintFunction);
+//		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base3>))&PrintFunction); // nasty example!
+		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base2>))&PrintFunction);
 		reg.add_function("PrintFunction", (void (*)(Base&))&PrintFunction);
-		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate1&))&PrintFunctionIntermediate);
+//		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate1&))&PrintFunctionIntermediate); // nasty example!
+		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate0&))&PrintFunctionIntermediate);
 		reg.add_function("PrintFunction", (void (*)(Base3&))&PrintFunction);
 
 		reg.add_class_<ConstClass>("ConstClass", grp.c_str())

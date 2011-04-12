@@ -220,7 +220,7 @@
 //	reg.add_function("SmartTestFunction", &SmartTestFunction, "ug4/testing");
 //	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "ug4/testing");
 //
-//	ug::vrl::RegisterVRLUserNumber(reg, "ug4/testing");
+////	ug::vrl::RegisterVRLUserNumber(reg, "ug4/testing");
 //
 //	//	/************************************/
 //	//
@@ -256,9 +256,9 @@
 //			add_constructor().
 //			add_method("say", &C::say);
 //
-////	reg.add_class_<D, B, C > ("D", "ug4/testing").
-////			add_constructor().
-////			add_method("say", &D::say);
+//	reg.add_class_<D, B, C > ("D", "ug4/testing").
+//			add_constructor().
+//			add_method("say", &D::say);
 //}
 //
 //} // end vrl::
