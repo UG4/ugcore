@@ -330,6 +330,12 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 		//	reset all values of the matrix to zero
 			mat = 0.0;
 
+			for(size_t i_ = 0; i_ < N; i++)
+				for(size_t j_ = 0; j_ < N; j++)
+				{
+					mat(i,j) = 0.0;
+				}
+
 		//	Loop integration points
 			for(size_t ip = 0; ip < numIp; ++ip)
 			{
