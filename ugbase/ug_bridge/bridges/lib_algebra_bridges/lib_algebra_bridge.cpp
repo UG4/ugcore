@@ -44,6 +44,12 @@ inline void VecScaleAdd3(vector_t &dest, double alpha1, const vector_t &v1, doub
 template <size_t N>
 void TestInverse()
 {
+		int i;
+
+		i+= 2;
+
+		UG_LOG("i="<<i<<"\n");
+
 	//	a fixed size matrix
 		DenseMatrix< FixedArray2<number, N, N> > mat;
 
