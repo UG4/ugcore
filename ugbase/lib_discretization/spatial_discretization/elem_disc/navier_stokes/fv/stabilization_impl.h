@@ -355,7 +355,12 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 			typename block_traits<DenseMatrix< FixedArray2<number, N, N> > >::inverse_type inv;
 
 		//	get the inverse
-			GetInverse(inv, mat);
+			if(!GetInverse(inv, mat))
+			{
+		       	UG_LOG("ERROR in 'NavierStokesFIELDSStabilization::update':"
+		       			" Could not compute inverse.\n");
+		       	return false;
+		 	}
 
 		//	create two vectors
 			DenseVector< FixedArray1<number, N> > contVel[numSh];
