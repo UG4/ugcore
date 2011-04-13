@@ -41,6 +41,24 @@ inline void VecScaleAdd3(vector_t &dest, double alpha1, const vector_t &v1, doub
 	VecScaleAdd(dest, alpha1, v1, alpha2, v2, alpha3, v3);
 }
 
+template <size_t N>
+void TestInverse()
+{
+	//	a fixed size matrix
+		DenseMatrix< FixedArray2<number, N, N> > mat;
+
+	//	reset all values of the matrix to zero
+		mat = 0.0;
+
+	//	we now create a matrix, where we store the inverse matrix
+		typename block_traits<DenseMatrix< FixedArray2<number, N, N> > >::inverse_type inv;
+
+	//	get the inverse
+		GetInverse(inv, mat);
+
+		UG_LOG("Inv(0,0) = "<< inv(0,0) << "\n");
+}
+
 template <typename TAlgebra>
 struct cRegisterAlgebraType
 {
@@ -430,6 +448,8 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 			.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
 					"", "Verbose");
 				
+
+		reg.add_function("TestInverse3", &TestInverse<3>);
 	}
 
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
