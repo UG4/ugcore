@@ -63,6 +63,12 @@ void TestInverse()
 		GetInverse(inv, mat);
 
 		UG_LOG("Inv(0,0) = "<< inv(0,0) << "\n");
+
+	//	invert the system for all contributions
+		DenseVector< FixedArray1<number, N> > x, f;
+
+		MatMult(x, 1.0, inv, f);
+
 }
 
 template <typename TAlgebra>
