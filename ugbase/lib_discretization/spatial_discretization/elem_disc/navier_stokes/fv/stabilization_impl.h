@@ -330,8 +330,8 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 		//	reset all values of the matrix to zero
 			mat = 0.0;
 
-			for(size_t i_ = 0; i_ < N; i++)
-				for(size_t j_ = 0; j_ < N; j++)
+			for(size_t i_ = 0; i_ < N; i_++)
+				for(size_t j_ = 0; j_ < N; j_++)
 				{
 					mat(i_,j_) = 0.0;
 				}
