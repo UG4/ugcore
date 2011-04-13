@@ -333,7 +333,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 			for(size_t i_ = 0; i_ < N; i++)
 				for(size_t j_ = 0; j_ < N; j++)
 				{
-					mat(i,j) = 0.0;
+					mat(i_,j_) = 0.0;
 				}
 
 		//	Loop integration points
