@@ -360,6 +360,12 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 		//	we now create a matrix, where we store the inverse matrix
 			typename block_traits<DenseMatrix< FixedArray2<number, N, N> > >::inverse_type inv;
 
+			for(size_t i_ = 0; i_ < N; i_++)
+				for(size_t j_ = 0; j_ < N; j_++)
+				{
+					inv(i_,j_) = 0.0;
+				}
+
 		//	get the inverse
 			GetInverse(inv, mat);
 
