@@ -1,0 +1,162 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//	y11 m04 d13
+
+/**	\page pageUG4Shell ugshell
+
+	- \ref secCommandLineOption "Command-Line Options"
+	- \ref secInteractiveShell "Interactive Shell"
+	- \ref secAutoCompletion "Auto Completion"
+	- \ref secRuntimeInfromation "Runtime Information"
+
+For any questions, contact martin.rupp@gcsc.uni-frankfurt.de.
+
+<hr>
+\section secCommandLineOption Command-Line Options
+<hr>
+
+ugshell has the following build-in command-line options:
+	- -outproc id:	Sets the output-proc to id. Default is 0.
+	- -ex scriptname:	Executes the specified script.
+	- -noquit: Does run the interactive shell after specified script.
+	- -noterm: Terminal logging will be disabled.
+	- -logtofile filename:	Output will be written to the specified file.
+
+You can also use the command line to pass arguments to your scripts:
+\verbatim
+ugshell -ex tutorials/tut02_loading_a_domain.lua -grid unit_square_quads_2x2.ugx  
+\endverbatim
+
+You can access command line parameters by using the lua function from ug_util.lua:
+\code
+function util.GetParam(name, return_if_unavailable)
+\endcode
+
+Example:
+\code
+gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
+\endcode
+
+If there is no commandline argument "-grid", then the second argument is returned by util.GetParam.
+Otherwise, the argument after "-grid" in the commandline is returned.
+Notice that omitted parameters to lua-functions a treated as nil, so util.GetParam("-grid") is
+the same as util.GetParam("-grid", nil). If you want your argument to be casted
+to a number, use util.GetParamNumber:
+\code
+function util.GetParamNumber(name, return_if_unavailable)
+\endcode
+If the argument is not a number, the second argument is returned. 
+To check if an option is in the command line, use util.HasParamOption:
+\code
+function util.HasParamOption(name)
+\endcode
+Examples:
+\code
+dim = util.GetParamNumber("-dim", 2)
+useAggressiveCoarsening = util.HasParamOption("-AC")
+\endcode
+
+<hr>
+\section secInteractiveShell Interactive Shell
+<hr>
+
+When starting ugshell without arguments, you get the following output:
+
+\verbatim
+ug:> 
+\endverbatim
+
+and a blinking cursor: This is called the interactive shell. Interactive shell is disabled
+when you use -ex without -noquit and if UG is running in parallel.
+
+<hr>
+\section secAutoCompletion Auto Completion
+<hr>
+
+ugshell has some auto-completion features implemented. When you enter a part of something and hit tab
+ugshell tries to auto-complete your input. If there is not a unique completion, 
+and you hit tab again, you get a list of possible completions.
+ 
+<ul>
+<li> 
+Path Completion: <br>
+"../scr -> "../scripts/ <br>
+(only tried if the word left from the cursor starts with a ")
+<li> 
+Member Function Completion: <br>
+mainProfileNode:cal -> mainProfileNode:call_tree <br>
+(only tried if there is a : in the word)
+<li>
+Table/"Namespace" Completion:<br>
+math.e -> math.exp
+<li>
+Completion of LUA globals, internal functions and modules (like math, io, string),
+classes and global functions from the ug registry, and functions defined in lua script. 
+</ul>
+
+<hr>
+\section secRuntimeInfromation Runtime Information
+<hr>
+
+You can get Information about the current state of LUA by the following methods:
+<ul>
+<li> 
+\code
+void TypeInfo(const char *typename)
+\endcode
+TypeInfo prints all information available the data you insert. Note that you have to enclose your
+type name with ". Example: TypeInfo("Grid"). TypeInfo works with
+<ul>
+<li> tables, and prints their content recursively
+<li> all other basic lua types: numbers, strings, ...
+<li> lua script functions, and prints their code
+<li> classes, global functions and member function from the ug registry
+</ul>
+The use of TypeInfo can be abrevated by using
+\verbatim
+ug:> Grid?
+\endverbatim
+and hitting enter.
+
+<li>
+\code
+void ClassUsage(const char *typename)
+\endcode
+ClassUsage prints the usage of the class, that is:
+<ul>
+<li> Functions returning an instantiation of the class 
+<li> Functions which require one argument to be of the type of the class or of a base class
+<li> Instatiations in LUA which have the type class or a subclass of the class.
+</ul>
+
+Example (excerpt):
+\verbatim
+ug:> ClassUsage("Domain2d")
+
+--- Functions returning Domain2d: ---
+ Domain2d* IApproximationSpace2d:get_domain ()
+--- Functions using Domain2d: ---
+ bool Domain2d:LoadDomain (Domain2d* Domain, string Filename, integer Number Refinements)
+ bool Domain2d:DistributeDomain (Domain2d* )
+ IRefiner* Domain2d:GlobalDomainRefiner (Domain2d* )
+ Domain2d:TestDomainInterfaces (Domain2d* )
+ IApproximationSpace2d:assign_domain ([Domain2d* ])
+ DirichletBND2d:set_domain ([Domain2d* ])
+
+Instantiations of Class Domain2d:
+dom        (Domain2d)
+\endverbatim
+
+<li>
+\code
+void ls()
+\endcode	
+ls prints all available objects and classes in LUA, including 
+<ul>
+<li> global LUA objects, like normal LUA objects and instatiations of UG classes
+<li> LUA script functions
+<li> global functions and classes from UG registry
+</ul>
+
+</ul>
+*/

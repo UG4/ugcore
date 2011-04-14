@@ -1,0 +1,258 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//  sebastian.reiter@gcsc.uni-frankfurt.de
+//	y11 m04 d13
+
+/**	\page pageUG4Profiling ug - Profiling
+
+	- \ref secProfilingYourCode "Adding profiling to your code"
+	- \ref secViewProfilingNodes "View profiling statistics"
+
+For any questions, contact martin.rupp@gcsc.uni-frankfurt.de or sebastian.reiter@gcsc.uni-frankfurt.de .
+
+<hr>
+\section secProfilingYourCode Adding profiling to your code
+<hr>
+
+If you want measure the time spend in your functions or in sections of your code, you can use our profiling functions:
+\code
+#include  "common/profiler/profiler.h"
+\endcode
+<ul>
+<li>
+PROFILE_BEGIN(name) is for profiling sections of code. Profiling is done from the line where PROFILE_BEGIN(name) is until PROFILE_END() or until the end of the scope where PROFILE_BEGIN(name) was in.
+\code
+	void MyFunction(size_t n)
+	{
+		// first do some stuff
+		
+		PROFILE_BEGIN(CalculationA)
+		
+		// do calculation A
+		
+		PROFILE_END()
+		
+		PROFILE_BEGIN(CalculationB)
+		
+		// do calculation B
+		
+		PROFILE_END()
+		
+		PROFILE_BEGIN(CalculationRest)
+		// do rest stuff 
+		// CalculationRest is evaluated until the end
+	}
+\endcode
+
+Here the profile node Calculation A measures only the part in "do calculation A", Calculation B measures only the part in "do calculation B", and CalculationRest measures only the part in "do rest stuff". 
+
+<li>
+PROFILE_FUNC() is for profiling functions: Put PROFILE_FUNC() at the beginning of the function. Note that PROFILE_FUNC() is basically only a PROFILE_BEGIN with the function name. Example:
+\code
+	void MyFunction(size_t n)
+	{
+		PROFILE_FUNC(); // Same as PROFILE_BEGIN(MyFunction)
+		
+		// do stuff 
+	}
+\endcode
+Note: When you put PROFILE_FUNC() not at the beginning of the scope you or others might get unexpected behaviour.
+
+<li>
+When a profile node is auto-ended by the scope mechanism, we use destructors to accomplish this. However, it is possible that some destructors are called AFTER
+the destructor of the profile node. The reason for this is that destructors are called in reverse order of constructors: First constructed, last destructed (see <a href="http://www.parashift.com/c++-faq-lite/dtors.html#faq-11.2">here</a>). 
+So the times spend in some destructors might not be added to this profile node. Examples for this are objects which are declared before PROFILE_BEGIN or arguments with destructors which are passed as value:
+\code
+ void MyFunction(std::vector<int> vec)
+	{
+		PROFILE_FUNC() // does not measure destructor of vec.
+		
+		std::vector<int> vec2;
+		
+		PROFILE_BEGIN(MyFunctionSectionA)  // does not measure destructor of vec and vec2.
+		
+		std::vector<int> vec3;				
+		
+		// implicit destructor of vec3
+		// implicit PROFILE_END(MyFunctionSectionA)
+		// implicit destructor of vec2
+		// implicit PROFILE_END(MyFunction)
+		// implicit destructor of vec
+	}	
+\endcode
+
+<li>
+You can also nest Profiling:
+
+\code
+	void MyFunction(size_t n)
+	{
+		PROFILE_FUNC()
+		
+		for(size_t i=0; i<5; i++)
+		{
+			PROFILE_BEGIN(MyFunction_InLoop);
+			// do some stuff
+		}		
+		
+		// do some other stuff (not measure by MyFunction_InLoop anymore)
+	}
+\endcode
+
+<li>
+Internally we use the <a href="http://sourceforge.net/projects/shinyprofiler/">Shiny Profiler</a> for profiling. Shiny is fast, but not priceless. 
+Be aware that PROFILE_BEGIN has a small overhead, so dont use it in functions which do only very little.  
+</ul>
+<hr>
+\section secViewProfilingNodes View profiling statistics
+<hr>
+
+<ul>
+<li>
+You can access the profiling nodes directly from the script with
+\code
+bool GetProfilerAvailable();
+UGProfileNode *GetProfileNode(const char *str);
+class UGProfileNode
+{
+	double get_avg_entry_count() const;
+	double get_avg_self_time_ms() const;
+	double get_avg_total_time_ms() const;
+	string call_tree() const;
+	string child_self_time_sorted() const;
+	string total_time_sorted() const;
+	string entry_count_sorted() const;
+	bool is_valid() const; 
+}
+\endcode
+
+<li>
+Example Code to be profiled:
+\code
+void FunctionA(double &b)
+{
+	PROFILE_FUNC();
+	for(size_t i=0; i<1000; i++)
+		b += sin(b);
+}
+
+void FunctionA_bad(double &b)
+{
+	PROFILE_FUNC();
+	for(size_t i=0; i<1000; i++)
+	{
+		// this section is too small!
+		PROFILE_BEGIN(FuncationA_bad_in_loop)
+		b += sin(b);
+	}
+}
+
+void FunctionB(double &b)
+{
+	PROFILE_FUNC();
+	for(size_t i=0; i<1000; i++)
+	{
+		FunctionA(b);
+		FunctionA_bad(b);
+	}
+}
+
+void FunctionC(double &b)
+{
+	PROFILE_FUNC();
+	FunctionB(b);
+	FunctionA(b);
+	FunctionB(b);
+}
+
+void MyFunction()
+{
+	PROFILE_FUNC();
+	double d=0.1;
+	FunctionC(d);
+	cout << d << endl;
+}
+\endcode
+
+<li>
+Now we write a LUA Script:
+
+\code
+-- check if profiler is available
+if GetProfilerAvailable() == true then
+	-- get node
+	pn = GetProfileNode("MyFunction")
+	-- check if node is valid
+	if pn:is_valid() then
+		print("Called MyFunction "..pn:get_avg_entry_count().." times.")
+		print("Spend "..pn:get_avg_self_time_ms().." ms for MyFunction alone (without child nodes).")
+		print("Spend "..pn:get_avg_total_time_ms().." ms in MyFunction altogether.\n")
+		
+		print("MyFunction call tree")
+		print(pn:call_tree())
+		print("MyFunction call list self time sorted")
+		print(pn:child_self_time_sorted())
+		print("MyFunction call list total time sorted")
+		print(pn:total_time_sorted())
+		print("MyFunction call list entry count sorted")
+		print(pn:entry_count_sorted())
+	else
+		print("MyFunction is not known to the profiler.")
+	end
+else
+	print("Profiler not available.")
+end	
+\endcode
+
+<li>
+Results:
+\verbatim
+Called MyFunction 1 times.
+Spend 0.1044 ms for MyFunction alone (without child nodes).
+Spend 725.6421 ms in MyFunction altogether.
+
+MyFunction call tree
+call tree                                            hits       self time      total time 
+MyFunction                                             1  104.4 us    0% 725.64 ms  100% 
+ FunctionC                                             1    900 ns    0% 725.54 ms   99% 
+  FunctionB                                            2  579.6 us    0% 725.49 ms   99% 
+   FunctionA                                        2000 98.969 ms   13% 98.969 ms   13% 
+   FunctionA_bad                                    2000 243.79 ms   33% 625.94 ms   86% 
+    FuncationA_bad_in_loop                         2e+06 382.15 ms   52% 382.15 ms   52% 
+  FunctionA                                            1   49.5 us    0%   49.5 us    0% 
+
+MyFunction call list self time sorted
+self time sorted                                     hits       self time      total time 
+FunctionC                                              1    900 ns    0% 725.54 ms   99% 
+FunctionA                                              1   49.5 us    0%   49.5 us    0% 
+MyFunction                                             1  104.4 us    0% 725.64 ms  100% 
+FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
+FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
+FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
+FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+
+MyFunction call list total time sorted
+total time sorted                                    hits       self time      total time 
+FunctionA                                              1   49.5 us    0%   49.5 us    0% 
+FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
+FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
+FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
+FunctionC                                              1    900 ns    0% 725.54 ms   99% 
+MyFunction                                             1  104.4 us    0% 725.64 ms  100% 
+
+MyFunction call list entry count sorted
+entry count sorted                                   hits       self time      total time 
+MyFunction                                             1  104.4 us    0% 725.64 ms  100% 
+FunctionC                                              1    900 ns    0% 725.54 ms   99% 
+FunctionA                                              1   49.5 us    0%   49.5 us    0% 
+FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
+FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
+FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
+FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+\endverbatim
+
+Here we see that FunctionA_bad takes six times as long as FunctionA, even though they both perform the same task. This is because the small overhead of PROFILE_BEGIN accumulated to a 
+measureable time when it was executed two million times.
+</ul>
+*/

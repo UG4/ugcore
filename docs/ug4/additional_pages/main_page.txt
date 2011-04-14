@@ -17,4 +17,6 @@
 	- \ref pageUG4CodingStyle "Coding Style"
 	- \ref pageScriptTutorial "Script Tutorial"
 	- \ref pageTeamCommunication "Developer Team Communication"
+	- \ref pageUG4Profiling "Profiling"
+	- \ref pageUG4Shell "ugshell" 
  */

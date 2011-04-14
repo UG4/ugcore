@@ -19,7 +19,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <hr>
 
 <ul>
-<li> Download <b>eclipse</b> from www.eclipse.org: "Eclipse IDE for C/C++ Developers"
+<li> Download <b>eclipse</b> from <a href="http://www.eclipse.org/downloads/">www.eclipse.org/downloads</a>: "Eclipse IDE for C/C++ Developers"
 <li> Unzip eclipse and move it to your "Application" folder
 <li> Start eclipse. On startup you are requested to choose a workspace. This is 
 	the location, where your projects will be placed. Specially, ug4 will
