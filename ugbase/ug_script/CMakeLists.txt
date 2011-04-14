@@ -17,6 +17,10 @@ include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 
 include("../../ug_cmake_includes.txt")
 
+if(UNIX)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_LINUX")
+endif(UNIX)
+
 set(srcLua	externals/lua/lapi.c
 			externals/lua/lapi.h
 			externals/lua/lauxlib.c
