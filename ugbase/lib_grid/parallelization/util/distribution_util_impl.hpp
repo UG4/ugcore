@@ -17,11 +17,13 @@ void SerializeDistributionLayoutInterfaces(
 								std::ostream& out, TLayout& layout,
 								std::vector<int>* pProcessMap)
 {
-//	write the number of levels
+//	write source-proc and the number of levels
 //	then for each level the number of interfaces
 //	then for each interface the number of nodes and the local-ids of the nodes.
 	int tmp;
-	
+	tmp = layout.get_source_proc();
+	out.write((char*)&tmp, sizeof(int));
+
 	tmp = (int) layout.num_levels();
 	out.write((char*)&tmp, sizeof(int));
 	
@@ -39,7 +41,8 @@ void SerializeDistributionLayoutInterfaces(
 		{
 		//	write the connected process-id
 		//	if a process map is supplied perform a lookup
-			int procID = iter->first;
+			int procID = iter->first.first;
+			int oldTargetProc = iter->first.second;
 			if(pProcessMap)
 			{
 				assert((int)pProcessMap->size() > procID && "process-map to small.");
@@ -47,6 +50,7 @@ void SerializeDistributionLayoutInterfaces(
 					procID = (*pProcessMap)[procID];
 			}
 			out.write((char*)&procID, sizeof(int));
+			out.write((char*)&oldTargetProc, sizeof(int));
 			
 		//	write the number of entries that are contained in the interface
 			typename TLayout::Interface& interface = iter->second;
@@ -65,9 +69,13 @@ template <class TLayout>
 void DeserializeDistributionLayoutInterfaces(TLayout& layout,
 											std::istream& in)
 {
-//	write the number of levels
+	typedef typename TLayout::ProcPair	ProcPair;
+//	read the source-proc and the number of levels
 //	then for each level the number of interfaces
 //	then for each interface the number of nodes and the local-ids of the nodes.
+	int sourceProc;
+	in.read((char*)&sourceProc, sizeof(int));
+	layout.set_source_proc(sourceProc);
 
 	int numLevels;
 	in.read((char*)&numLevels, sizeof(int));
@@ -84,12 +92,13 @@ void DeserializeDistributionLayoutInterfaces(TLayout& layout,
 		for(int i = 0; i < numInterfaces; ++i)
 		{
 		//	read the connected process-id
-			int procID;
+			int procID, oldTargetProc;
 			in.read((char*)&procID, sizeof(int));
+			in.read((char*)&oldTargetProc, sizeof(int));
 
 		//	access the interface
 			typename TLayout::Interface& interface =
-										layout.interface(procID, level);
+						layout.interface(ProcPair(procID, oldTargetProc), level);
 
 		//	read the number of entries that are contained in the interface
 			int num;
@@ -123,9 +132,12 @@ void DeserializeDistributionLayoutInterfaces(
 	TInterface* pInterface = NULL;
 	DistributionInterfaceEntry entry;
 	
-//	read the number of levels
+//	read the source proc and the number of levels
 //	then for each level the number of interfaces
 //	then for each interface the number of nodes and the local-ids of the nodes.
+	int sourceProc;
+	in.read((char*)&sourceProc, sizeof(int));
+
 	int numLevels;
 	in.read((char*)&numLevels, sizeof(int));
 	
@@ -140,8 +152,9 @@ void DeserializeDistributionLayoutInterfaces(
 		for(int i = 0; i < numInterfaces; ++i)
 		{
 		//	read the connected process-id
-			int procID;
+			int procID, oldTargetProc;
 			in.read((char*)&procID, sizeof(int));
+			in.read((char*)&oldTargetProc, sizeof(int));
 					
 		//	read the number of entries that are contained in the interface
 			int numEntries;
@@ -159,7 +172,6 @@ void DeserializeDistributionLayoutInterfaces(
 				if((!pLayout) || (lastLayoutKey != entry.type))
 				{
 				//	get the matching layout
-					//pLayout = &layoutMapOut[entry.type].layout(level);
 					pLayout = &layoutMapOut.template get_layout<TGeomObj>(entry.type).
 																layout_on_level(level);
 					lastLayoutKey = entry.type;

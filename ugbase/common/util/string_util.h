@@ -24,10 +24,6 @@ std::string TrimString(const std::string& str);
 ///	this template function creates a hash key for a string value.
 template <> unsigned long hash_key(const std::string& key);
 
-//sreiter
-///	this template function creates a hash key for a string value.
-template <> unsigned long hash_key(const char* key);
-
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/

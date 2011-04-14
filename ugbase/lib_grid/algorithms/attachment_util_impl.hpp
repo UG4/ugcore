@@ -153,7 +153,22 @@ void AssignIndices(TIterator begin, TIterator end,
 	for(TIterator iter = begin; iter != end; ++iter)
 		aaInt[*iter] = baseIndex++;
 }
-					
+
+////////////////////////////////////////////////////////////////////////
+template <class TIterator, class TAttAcc>
+TIterator FindElementByValue(TIterator begin, TIterator end,
+							 const typename TAttAcc::ValueType& val,
+							 TAttAcc& aa)
+{
+	TIterator iter = begin;
+	while(iter != end){
+		if(aa[*iter] == val)
+			break;
+		++iter;
+	}
+	return iter;
+}
+
 }//	end of namespace
 
 #endif

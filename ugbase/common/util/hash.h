@@ -18,7 +18,6 @@ namespace ug
  * \{
  */
 template <typename TKey> unsigned long hash_key(const TKey& key);
-template <typename TKey> unsigned long hash_key(const TKey* key);
 
 template <typename TKey> unsigned long hash_key(const TKey& key)
 {

@@ -289,7 +289,9 @@ class MultiGrid : public Grid, public GridObserver
 		typename geometry_traits<TElem>::iterator
 		begin(int level)
 		{
-			assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
+			//assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
+			if(level >= (int)num_levels())
+				return end<TElem>();
 			return m_hierarchy.begin<TElem>(level);
 		}
 
@@ -297,7 +299,9 @@ class MultiGrid : public Grid, public GridObserver
 		typename geometry_traits<TElem>::iterator
 		end(int level)
 		{
-			assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
+			//assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
+			if(level >= (int)num_levels())
+				return end<TElem>();
 			return m_hierarchy.end<TElem>(level);
 		}
 
@@ -305,7 +309,9 @@ class MultiGrid : public Grid, public GridObserver
 		typename geometry_traits<TElem>::const_iterator
 		begin(int level) const
 		{
-			assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
+			//assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
+			if(level >= (int)num_levels())
+				return end<TElem>();
 			return m_hierarchy.begin<TElem>(level);
 		}
 
@@ -313,7 +319,9 @@ class MultiGrid : public Grid, public GridObserver
 		typename geometry_traits<TElem>::const_iterator
 		end(int level) const
 		{
-			assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
+			//assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
+			if(level >= (int)num_levels())
+				return end<TElem>();
 			return m_hierarchy.end<TElem>(level);
 		}
 

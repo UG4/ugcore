@@ -493,8 +493,8 @@ void TestGridRedistribution(const char* filename)
 	GridLayoutMap& glm = distGridMgr.grid_layout_map();
 
 	int numProcs = pcl::GetNumProcesses();
-	if(numProcs != 4){
-		UG_LOG(" This test-method only runs with exactly 4 processes.\n");
+	if(numProcs != 3){
+		UG_LOG(" This test-method only runs with exactly 3 processes.\n");
 		return;
 	}
 
@@ -603,7 +603,7 @@ UG_LOG(" preparing for redistribution\n");
 			case 0:	shPart.move_subset(1, 2);
 					break;
 
-			case 1:	shPart.move_subset(1, 3);
+			case 1:	shPart.move_subset(1, 2);
 					shPart.move_subset(0, 1);
 					break;
 
@@ -636,6 +636,10 @@ UG_LOG(" redistributing grid\n");
 UG_LOG("done\n");
 
 
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		UG_LOG("level " << lvl << ":\n");
+		PrintElementNumbers(mg.get_geometric_object_collection(lvl));
+	}
 
 //	save the hierarchy on each process
 	{

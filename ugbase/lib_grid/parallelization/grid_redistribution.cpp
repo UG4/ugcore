@@ -3,14 +3,48 @@
 // 09.03.2011 (m,d,y)
  
 #include <vector>
+#include <map>
+#include "common/assert.h"
 #include "grid_distribution.h"
 #include "util/distribution_util.h"
 #include "parallelization_util.h"
+#include "lib_grid/algorithms/attachment_util.h"
 
 using namespace std;
 
 namespace ug{
 
+////////////////////////////////////////////////////////////////////////////////
+/**	Copies vertices from mgSrc to mgDest, but only if a vertex with the
+ * same global id is not already present in mgDest.
+ * vrtLayout will be slightly adjusted: If a vertex was already present,
+ * the corresponding node entry in the layout is replaced by the
+ * existing one.
+ *
+ * The given attachment accessors have to be associated with mgDest.
+ */
+static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
+							RedistributionVertexLayout& vrtLayout,
+							RedistributionEdgeLayout& edgeLayout,
+							RedistributionFaceLayout& faceLayout,
+							RedistributionVolumeLayout& volLayout,
+							Grid::AttachmentAccessor<VertexBase, AVertexBase>& aaVrt,
+							Grid::AttachmentAccessor<EdgeBase, AEdgeBase>& aaEdge,
+							Grid::AttachmentAccessor<Face, AFace>& aaFace,
+							Grid::AttachmentAccessor<Volume, AVolume>& aaVol);
+
+////////////////////////////////////////////////////////////////////////////////
+static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
+										istream& in, vector<int>& recvFromRanks,
+										const GridDataSerializationHandler& deserializer);
+
+////////////////////////////////////////////////////////////////////////////////
+template <class TGeomObj>
+void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
+					vector<RedistributionNodeLayout<TGeomObj*> >& redistLayouts);
+
+
+////////////////////////////////////////////////////////////////////////////////
 template <class TGeomObj, class TAATargetProcs, class TAAGlobalIDs>
 static
 void LogTargetProcs(MultiGrid& mg, TAATargetProcs& aaTargetProcs,
@@ -38,6 +72,7 @@ void LogTargetProcs(MultiGrid& mg, TAATargetProcs& aaTargetProcs,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
 template <class TGeomObj, class TAATransferInfos, class TAAGlobalIDs>
 static
 void LogTransferInfos(MultiGrid& mg, TAATransferInfos& aaTransferInfos,
@@ -67,6 +102,7 @@ void LogTransferInfos(MultiGrid& mg, TAATransferInfos& aaTransferInfos,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  SubsetHandler& shPartition,
 					  const GridDataSerializationHandler& serializer,
@@ -149,11 +185,6 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	CreateAndDistributeGlobalIDs<Face>(mg, glm);
 	CreateAndDistributeGlobalIDs<Volume>(mg, glm);
 
-	Grid::AttachmentAccessor<VertexBase, AGeomObjID> aaIDVRT(mg, aGeomObjID);
-	Grid::AttachmentAccessor<EdgeBase, AGeomObjID> 	aaIDEDGE(mg, aGeomObjID);
-	Grid::AttachmentAccessor<Face, AGeomObjID> 		aaIDFACE(mg, aGeomObjID);
-	Grid::AttachmentAccessor<Volume, AGeomObjID> 	aaIDVOL(mg, aGeomObjID);
-
 ////////////////////////////////
 //	REDISTRIBITION LAYOUTS
 //	we have to store the layouts for all the processes.
@@ -197,11 +228,12 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 
 //BEGIN - ONLY FOR DEBUG
+/*
 	LogTargetProcs<VertexBase>(mg, aaTargetProcsVRT, aaIDVRT);
 
 
 	LogTransferInfos<VertexBase>(mg, aaTransferInfosVRT, aaIDVRT);
-
+*/
 	TestRedistributionLayouts(vertexLayouts);
 //END - ONLY FOR DEBUG
 
@@ -343,11 +375,57 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 */
 ////////////////////////////////
 //	DESERILAIZATION
+	UG_LOG("\ndeserializing...\n");
+	DeserializeRedistributedGrid(mg, glm, in, recvFromRanks, deserializer);
+	UG_LOG("deserialization done\n\n");
+
+////////////////////////////////
+//	UPDATE THE DISTRIBUTED GRID MANAGER
+	distGridMgrInOut.enable_ordered_element_insertion(true);
+	distGridMgrInOut.grid_layouts_changed(false);
+
+
+//BEGIN - ONLY FOR DEBUG
+/*
+UG_LOG("has vertex masters: " << glm.has_layout<VertexBase>(INT_H_MASTER) << endl);
+UG_LOG("has vertex slaves: " << glm.has_layout<VertexBase>(INT_H_SLAVE) << endl);
+VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_H_MASTER);
+VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_H_SLAVE);
+
+UG_LOG("has master interface to 0: " << masterLayout.interface_exists(0) << endl);
+UG_LOG("has master interface to 1: " << masterLayout.interface_exists(1) << endl);
+UG_LOG("has master interface to 2: " << masterLayout.interface_exists(2) << endl);
+UG_LOG("has master interface to 3: " << masterLayout.interface_exists(3) << endl);
+
+UG_LOG("has slave interface to 0: " << slaveLayout.interface_exists(0) << endl);
+UG_LOG("has slave interface to 1: " << slaveLayout.interface_exists(1) << endl);
+UG_LOG("has slave interface to 2: " << slaveLayout.interface_exists(2) << endl);
+UG_LOG("has slave interface to 3: " << slaveLayout.interface_exists(3) << endl);
+*/
+TestGridLayoutMap(mg, glm);
+//END - ONLY FOR DEBUG
+
+
+////////////////////////////////
+//	CLEAN UP
+	mg.detach_from_all(aLocalInd);
+	mg.detach_from_all(aTargetProcs);
+	mg.detach_from_all(aTransferInfos);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
+										istream& in, vector<int>& recvFromRanks,
+										const GridDataSerializationHandler& deserializer)
+{
 //	before deserializing the received data, we'll sort the data we received
 //	by the ranks of the processes from which we received data. This is
 //	important to make sure that elements on different processes are added
 //	to the interfaces in the right order.
 //	vector of pairs <procRank, readPos>
+/*
 	std::vector<pair<int, size_t> >	recvProcsSorted;
 	size_t readPos = 0;
 	for(size_t i = 0; i < recvFromRanks.size(); ++i){
@@ -365,7 +443,11 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	}
 	UG_LOG(endl);
 //END - ONLY FOR DEBUG
+*/
 
+//	the magic number is used for debugging to make sure that the stream is read correctly
+	int magicNumber1 = 75234587;
+	int magicNumber2 = 560245;
 
 //	deserialize the redist-layouts
 //	read redistribution layouts from the stream
@@ -383,13 +465,24 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	Grid::AttachmentAccessor<Face, AFace> aaFace(tmg, aFace, true);
 	Grid::AttachmentAccessor<Volume, AVolume> aaVol(tmg, aVol, true);
 
-	for(size_t i = 0; i < recvProcsSorted.size(); ++i){
+//	those layouts will be used to deserialize the received data
+	vector<RedistributionVertexLayout> vrtLayouts(recvFromRanks.size());
+	vector<RedistributionEdgeLayout> edgeLayouts(recvFromRanks.size());
+	vector<RedistributionFaceLayout> faceLayouts(recvFromRanks.size());
+	vector<RedistributionVolumeLayout> volLayouts(recvFromRanks.size());
+
+	for(size_t i = 0; i < recvFromRanks.size(); ++i){
+		RedistributionVertexLayout& vrtLayout = vrtLayouts[i];
+		RedistributionEdgeLayout& edgeLayout = edgeLayouts[i];
+		RedistributionFaceLayout& faceLayout = faceLayouts[i];
+		RedistributionVolumeLayout& volLayout = volLayouts[i];
+
 		//int recvFrom = recvProcsSorted[i].first;
 
 	//	set the read position of the in-stream to the data section
 	//	of the process we're currently processing.
-		in.reset();
-		in.read_jump(recvProcsSorted[i].second);
+		//in.reset();
+		//in.read_jump(recvProcsSorted[i].second);
 
 	//	read the magic number and make sure that it matches our magicNumber
 		int tmp = 0;
@@ -399,45 +492,36 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 			UG_LOG("Magic number mismatch before deserialization.\n");
 		}
 
-	//	those layouts will be used to deserialize the received data
-		RedistributionVertexLayout vrtLayout;
-		RedistributionEdgeLayout edgeLayout;
-		RedistributionFaceLayout faceLayout;
-		RedistributionVolumeLayout volLayout;
-
 	//	First we'll deserialize the global ids of all distributed elements
 		Deserialize(in, vrtLayout.m_globalIDs);
 		Deserialize(in, edgeLayout.m_globalIDs);
 		Deserialize(in, faceLayout.m_globalIDs);
 		Deserialize(in, volLayout.m_globalIDs);
 
+/*delete this
 		if(!DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
 							&edgeLayout.node_vec(), &faceLayout.node_vec(),
 							&volLayout.node_vec()))
 		{
 			UG_LOG("DeserializeMultiGridElements failed.\n");
 		}
-//todo: use the code below instead of the one above
-/*
+*/
 		tmg.clear_geometry();
 		DeserializeMultiGridElements(tmg, in, &vrtLayout.node_vec(),
 							&edgeLayout.node_vec(), &faceLayout.node_vec(),
 							&volLayout.node_vec());
-*/
-		DeserializeDistributionLayoutInterfaces(glm,
-							vrtLayout.node_vec(), in);
-		DeserializeDistributionLayoutInterfaces(glm,
-							edgeLayout.node_vec(), in);
-		DeserializeDistributionLayoutInterfaces(glm,
-							faceLayout.node_vec(), in);
-		DeserializeDistributionLayoutInterfaces(glm,
-							volLayout.node_vec(), in);
+
+		DeserializeDistributionLayoutInterfaces(vrtLayout, in);
+		DeserializeDistributionLayoutInterfaces(edgeLayout, in);
+		DeserializeDistributionLayoutInterfaces(faceLayout, in);
+		DeserializeDistributionLayoutInterfaces(volLayout, in);
 
 	//	before we'll deserialize the associated data, we'll create the new
 	//	elements in the target grid.
+	//	copy elements - layouts are upadted to the new elements on the fly.
+		CopyNewElements(mg, tmg, vrtLayout, edgeLayout, faceLayout, volLayout,
+						aaVrt, aaEdge, aaFace, aaVol);
 
-	//todo: create elems in mg and check for existing nodes with the same global id.
-	//		Also update the layout-vecs so that they point to the elements in mg.
 
 	//	now deserialize the data associated with the elements in the layouts node-vecs
 	//	first read the infos of all deserializers
@@ -459,7 +543,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 			UG_LOG("ERROR in RedistributeGrid: ");
 			UG_LOG("Magic number mismatch after deserialization.\n");
 		}
-
+/*
 //BEGIN - ONLY FOR DEBUG
 		UG_LOG("received global vertex ids:");
 		for(size_t i = 0; i < vrtLayout.m_globalIDs.size(); ++i){
@@ -467,27 +551,409 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		}
 		UG_LOG(endl);
 //END - ONLY FOR DEBUG
+*/
 	}
 
+//	Now that everything has been deserialized, we can create the interfaces
+UG_LOG("Creating vertex interfaces...\n");
+	CreateInterfaces(mg, glm, vrtLayouts);
+UG_LOG("Creating edge interfaces...\n");
+	CreateInterfaces(mg, glm, edgeLayouts);
+UG_LOG("Creating face interfaces...\n");
+	CreateInterfaces(mg, glm, faceLayouts);
+UG_LOG("Creating volume interfaces...\n");
+	CreateInterfaces(mg, glm, volLayouts);
+}
 
-////////////////////////////////
-//	UPDATE THE DISTRIBUTED GRID MANAGER
-	distGridMgrInOut.enable_ordered_element_insertion(true);
-	distGridMgrInOut.grid_layouts_changed(false);
+template <class TGeomObj>
+void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
+					vector<RedistributionNodeLayout<TGeomObj*> >& redistLayouts)
+{
+//todo: if the redistLayouts are empty, we should return immediately.
 
+//	In order to make sure that associated interfaces are created in the same order
+//	on different processes, we have to sort them by pair<proc1, proc2> where proc1 is
+//	the smaller rank.
+	typedef RedistributionNodeLayout<TGeomObj*>		RedistLayout;
+	typedef typename RedistLayout::Interface		RedistInterface;
+	typedef typename RedistLayout::InterfaceMap		InterfaceMap;
+	typedef typename InterfaceMap::iterator			InterfaceIter;
 
-//BEGIN - ONLY FOR DEBUG
-	TestGridLayoutMap(mg, glm);
-//END - ONLY FOR DEBUG
+//	We use a multi-map. This is fine since values with the same
+//	keys can be processed in arbitrary order.
+	typedef multimap<pair<int, int>,
+				pair<RedistLayout*, InterfaceIter> > 	SortedMap;
 
+//	the layout and interface types which we want to fill
+	typedef GridLayoutMap::Types<TGeomObj>		Types;
+	typedef typename Types::Layout::LevelLayout	Layout;
+	typedef typename Types::Interface			Interface;
 
-////////////////////////////////
-//	CLEAN UP
-	mg.detach_from_all(aLocalInd);
-	mg.detach_from_all(aTargetProcs);
-	mg.detach_from_all(aTransferInfos);
+//	the position attachment is only accessed for debug purposes
+//todo:	remove this
+	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPosition);
 
-	return true;
+//	to avoid double interface entries we sadly have to attach vectors
+//	to each element type, which stores in which interfaces the entry already lies.
+//	vector<pair<targetProc, type> >
+	typedef vector<pair<int, byte> >	ConnectionVec;
+	typedef Attachment<ConnectionVec> 	AConnectionVec;
+	AConnectionVec aConVec;
+	Grid::AttachmentAccessor<TGeomObj, AConnectionVec> aaConVec(mg, aConVec, true);
+
+	//int localRank = pcl::GetProcRank();
+/*
+	UG_LOG("\nPrinting redistribution layout before interface creation:\n");
+	PrintRedistributionLayouts(redistLayouts);
+	UG_LOG("\n");
+*/
+//	we'll create interfaces level by level
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl)
+	{
+	//	store all interfaces together with their layouts in this sortMap.
+	//	The key is a pair of old-source-proc and old-target-proc, where
+	//	the smaller value is the first in the key.
+		SortedMap sortMap;
+
+		for(size_t i_layout = 0; i_layout < redistLayouts.size(); ++i_layout)
+		{
+			RedistLayout& layout = redistLayouts[i_layout];
+			InterfaceMap& imap = layout.interface_map(lvl);
+
+			int oldSrcProc = layout.get_source_proc();
+			for(InterfaceIter iiter = imap.begin(); iiter != imap.end(); ++iiter)
+			{
+				int oldTargetProc = iiter->first.second;
+				pair<int, int> key = make_pair(min(oldSrcProc, oldTargetProc),
+												max(oldSrcProc, oldTargetProc));
+				sortMap.insert(make_pair(key, make_pair(&layout, iiter)));
+			}
+		}
+
+	//	the map is filled. We can create the interfaces now.
+		for(typename SortedMap::iterator iter = sortMap.begin();
+			iter != sortMap.end(); ++iter)
+		{
+			RedistLayout& redistLayout = *(iter->second.first);
+		//	All right - this is really nasty!
+		//	SortMapIter->Value->InterfaceIter->RedistInterface
+			RedistInterface& redistInterface = iter->second.second->second;
+		//	SortMapIter->Value->InterfaceIter->ProcPair->ConnectedProc
+			int targetProc = iter->second.second->first.first;
+
+			vector<TGeomObj*>& nodes = redistLayout.node_vec();
+
+		//	to speed things up, we'll cache the target interfaces and layouts.
+			Layout* pcurLayout = NULL;
+			int curLayoutKey = 0;
+			Interface* pcurInterface = NULL;
+
+		//	iterate over all entries of redistLayout
+			for(size_t i = 0; i < redistInterface.size(); ++i)
+			{
+				DistributionInterfaceEntry& entry = redistInterface[i];
+				TGeomObj* node = nodes[entry.localID];
+
+			//	first check whether the node is already contained in an
+			//	interface of the given type to the given proc.
+				pair<int, byte> connection(targetProc, entry.type);
+				ConnectionVec& conVec = aaConVec[node];
+
+			//	if the connection has already been established, we'll continue
+			//	with the next node.
+				if(find(conVec.begin(), conVec.end(), connection) != conVec.end())
+					continue;
+
+			//	we're caching the last layout and interface to avoid too
+			//	many lookups
+				if((!pcurLayout) || (curLayoutKey != entry.type)){
+					pcurLayout = &glm.template get_layout<TGeomObj>(entry.type).
+																layout_on_level(lvl);
+					curLayoutKey = entry.type;
+					pcurInterface = &pcurLayout->interface(targetProc);
+				}
+
+			//	copy the element into the interface
+				pcurInterface->push_back(node);
+			//	store the connection
+				conVec.push_back(connection);
+
+			//	debug output
+				UG_LOG("Added Interface entry to " << targetProc);
+				UG_LOG(": " << entry.type);
+				if((int)geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID
+					== (int)VERTEX)
+				{
+					UG_LOG(" at " << aaPos[node] << endl);
+				}
+				else{
+					UG_LOG(endl);
+				}
+			}
+		}
+	}
+
+	mg.detach_from<TGeomObj>(aConVec);
+}
+
+/**	Copies vertices from mgSrc to mgDest, but only if a vertex with the
+ * same global id is not already present in mgDest.
+ * vrtLayout will be slightly adjusted: If a vertex was already present,
+ * the corresponding node entry in the layout is replaced by the
+ * existing one.
+ *
+ * The given attachment accessors have to be associated with mgDest.
+ *
+ * \todo	This method should utilize hashes to increase performance
+ */
+static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
+							RedistributionVertexLayout& vrtLayout,
+							RedistributionEdgeLayout& edgeLayout,
+							RedistributionFaceLayout& faceLayout,
+							RedistributionVolumeLayout& volLayout,
+							Grid::AttachmentAccessor<VertexBase, AVertexBase>& aaVrt,
+							Grid::AttachmentAccessor<EdgeBase, AEdgeBase>& aaEdge,
+							Grid::AttachmentAccessor<Face, AFace>& aaFace,
+							Grid::AttachmentAccessor<Volume, AVolume>& aaVol)
+{
+//	used to access the global ids of elements already present on the local process
+	Grid::AttachmentAccessor<VertexBase, AGeomObjID> aaIDVRT(mgDest, aGeomObjID);
+	Grid::AttachmentAccessor<EdgeBase, AGeomObjID> aaIDEDGE(mgDest, aGeomObjID);
+	Grid::AttachmentAccessor<Face, AGeomObjID> aaIDFACE(mgDest, aGeomObjID);
+	Grid::AttachmentAccessor<Volume, AGeomObjID> aaIDVOL(mgDest, aGeomObjID);
+
+//	iterate over all vertices in mgSrc and create new ones in mgDest
+	size_t vrtCounter = 0;
+	size_t edgeCounter = 0;
+	size_t faceCounter = 0;
+	size_t volCounter = 0;
+
+//	reused for efficient element creation
+	EdgeDescriptor ed;
+	FaceDescriptor fd;
+	VolumeDescriptor vd;
+
+	for(size_t lvl = 0; lvl < mgSrc.num_levels(); ++lvl){
+	//	create hashes for existing geometric objects
+		Hash<VertexBase*, GeomObjID>	vrtHash(1.5 * (mgDest.num<VertexBase>(lvl)
+													  + mgSrc.num<VertexBase>(lvl)));
+		Hash<EdgeBase*, GeomObjID>		edgeHash(1.5 * (mgDest.num<EdgeBase>(lvl)
+													  + mgSrc.num<EdgeBase>(lvl)));
+		Hash<Face*, GeomObjID>			faceHash(1.5 * (mgDest.num<Face>(lvl)
+													  + mgSrc.num<Face>(lvl)));
+		Hash<Volume*, GeomObjID>		volHash(1.5 * (mgDest.num<Volume>(lvl)
+													  + mgSrc.num<Volume>(lvl)));
+
+	//	add existing elements to the hashes
+		for(VertexBaseIterator iter = mgDest.begin<VertexBase>(lvl);
+			iter != mgDest.end<VertexBase>(lvl); ++iter)
+		{vrtHash.add(*iter, aaIDVRT[*iter]);}
+
+		for(EdgeBaseIterator iter = mgDest.begin<EdgeBase>(lvl);
+			iter != mgDest.end<EdgeBase>(lvl); ++iter)
+		{edgeHash.add(*iter, aaIDEDGE[*iter]);}
+
+		for(FaceIterator iter = mgDest.begin<Face>(lvl);
+			iter != mgDest.end<Face>(lvl); ++iter)
+		{faceHash.add(*iter, aaIDFACE[*iter]);}
+
+		for(VolumeIterator iter = mgDest.begin<Volume>(lvl);
+			iter != mgDest.end<Volume>(lvl); ++iter)
+		{volHash.add(*iter, aaIDVOL[*iter]);}
+
+	//	copy vertices
+		for(VertexBaseIterator iter = mgSrc.begin<VertexBase>(lvl);
+			iter != mgSrc.end<VertexBase>(lvl); ++iter, ++vrtCounter)
+		{
+			VertexBase* vrt = *iter;
+			VertexBase* nVrt = NULL;
+
+		//	make sure that mgSrc and vrtLayout are synchronous
+			UG_ASSERT(vrt == vrtLayout.node_vec()[vrtCounter], "mgSrc and vrtLayout are asynchronous.");
+
+		//	check whether the object already exists
+			GeomObjID curID = vrtLayout.m_globalIDs[vrtCounter];
+			Hash<VertexBase*, GeomObjID>::Iterator findIter = vrtHash.begin(curID);
+
+			if(findIter != vrtHash.end(curID))
+			{
+			//	the vertex already exists.
+				nVrt = *findIter;
+			}
+			else{
+			//	the vertex didn't yet exist. create it.
+				GeometricObject* parent = mgSrc.get_parent(vrt);
+				if(parent){
+					int type = parent->base_object_type_id();
+					switch(type){
+						case VERTEX:
+							nVrt = *mgDest.create_by_cloning(vrt, aaVrt[parent]);
+							break;
+						case EDGE:
+							nVrt = *mgDest.create_by_cloning(vrt, aaEdge[parent]);
+							break;
+						case FACE:
+							nVrt = *mgDest.create_by_cloning(vrt, aaFace[parent]);
+							break;
+						case VOLUME:
+							nVrt = *mgDest.create_by_cloning(vrt, aaVol[parent]);
+							break;
+					}
+				}
+				else
+					nVrt = *mgDest.create_by_cloning(vrt, lvl);
+			}
+
+			UG_ASSERT(nVrt, "Vertex couldn't be created.");
+
+		//	update the vertex layout
+			vrtLayout.node_vec()[vrtCounter] = nVrt;
+
+		//	copy the global id
+			aaIDVRT[nVrt] = curID;
+
+		//	store a reference to the new vertex
+			aaVrt[vrt] = nVrt;
+
+		}
+
+	//	copy the edges
+		for(EdgeBaseIterator iter = mgSrc.begin<EdgeBase>(lvl);
+			iter != mgSrc.end<EdgeBase>(lvl); ++iter, ++edgeCounter)
+		{
+			EdgeBase* e = *iter;
+			EdgeBase* ne = NULL;
+
+		//	check whether the object already exists
+			GeomObjID curID = edgeLayout.m_globalIDs[edgeCounter];
+			Hash<EdgeBase*, GeomObjID>::Iterator findIter = edgeHash.begin(curID);
+
+			if(findIter != edgeHash.end(curID))
+			{
+			//	the edge already exists.
+				ne = *findIter;
+			}
+			else{
+			//	the edge didn't yet exist. create it.
+				ed.set_vertices(aaVrt[e->vertex(0)], aaVrt[e->vertex(1)]);
+				GeometricObject* parent = mgSrc.get_parent(e);
+				if(parent){
+					int type = parent->base_object_type_id();
+					switch(type){
+						case EDGE:
+							ne = *mgDest.create_by_cloning(e, ed, aaEdge[parent]);
+							break;
+						case FACE:
+							ne = *mgDest.create_by_cloning(e, ed, aaFace[parent]);
+							break;
+						case VOLUME:
+							ne = *mgDest.create_by_cloning(e, ed, aaVol[parent]);
+							break;
+					}
+				}
+				else
+					ne = *mgDest.create_by_cloning(e, ed, lvl);
+			}
+
+		//	update the edge layout
+			edgeLayout.node_vec()[edgeCounter] = ne;
+
+		//	copy the global id
+			aaIDEDGE[ne] = curID;
+
+		//	store a reference to the new edge
+			aaEdge[e] = ne;
+		}
+
+	//	copy the faces
+		for(FaceIterator iter = mgSrc.begin<Face>(lvl);
+			iter != mgSrc.end<Face>(lvl); ++iter, ++faceCounter)
+		{
+			Face* f = *iter;
+			Face* nf = NULL;
+
+		//	check whether the object already exists
+			GeomObjID curID = faceLayout.m_globalIDs[faceCounter];
+			Hash<Face*, GeomObjID>::Iterator findIter = faceHash.begin(curID);
+
+			if(findIter != faceHash.end(curID))
+			{
+			//	the face already exists.
+				nf = *findIter;
+			}
+			else{
+			//	the face didn't yet exist. create it.
+				fd.set_num_vertices(f->num_vertices());
+				for(size_t i = 0; i < fd.num_vertices(); ++i)
+					fd.set_vertex(i, aaVrt[f->vertex(i)]);
+
+				GeometricObject* parent = mgSrc.get_parent(f);
+				if(parent){
+					int type = parent->base_object_type_id();
+					switch(type){
+						case FACE:
+							nf = *mgDest.create_by_cloning(f, fd, aaFace[parent]);
+							break;
+						case VOLUME:
+							nf = *mgDest.create_by_cloning(f, fd, aaVol[parent]);
+							break;
+					}
+				}
+				else
+					nf = *mgDest.create_by_cloning(f, fd, lvl);
+			}
+
+		//	update the face layout
+			faceLayout.node_vec()[faceCounter] = nf;
+
+		//	copy the global id
+			aaIDFACE[nf] = curID;
+
+		//	store a reference to the new face
+			aaFace[f] = nf;
+		}
+
+	//	copy the volumes
+		for(VolumeIterator iter = mgSrc.begin<Volume>(lvl);
+			iter != mgSrc.end<Volume>(lvl); ++iter, ++volCounter)
+		{
+			Volume* v = *iter;
+			Volume* nv = NULL;
+
+		//	check whether the object already exists
+			GeomObjID curID = volLayout.m_globalIDs[volCounter];
+			Hash<Volume*, GeomObjID>::Iterator findIter = volHash.begin(curID);
+
+			if(findIter != volHash.end(curID))
+			{
+			//	the volume already exists.
+				nv = *findIter;
+			}
+			else{
+			//	the face didn't yet exist. create it.
+				vd.set_num_vertices(v->num_vertices());
+				for(size_t i = 0; i < vd.num_vertices(); ++i)
+					vd.set_vertex(i, aaVrt[v->vertex(i)]);
+
+				GeometricObject* parent = mgSrc.get_parent(v);
+				if(parent){
+					UG_ASSERT(parent->base_object_type_id() == VOLUME, "volumes can only be children to volumes.");
+					nv = *mgDest.create_by_cloning(v, vd, aaVol[parent]);
+				}
+				else
+					nv = *mgDest.create_by_cloning(v, vd, lvl);
+			}
+
+		//	update the volume layout
+			volLayout.node_vec()[volCounter] = nv;
+
+		//	copy the global id
+			aaIDVOL[nv] = curID;
+
+		//	store a reference to the new volume
+			aaVol[v] = nv;
+		}
+	}
 }
 
 }// end of namespace

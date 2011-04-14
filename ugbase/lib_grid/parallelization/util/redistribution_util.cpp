@@ -237,6 +237,7 @@ void FinalizeRedistributionLayoutInterfaces(
 	typedef RedistributionNodeLayout<TGeomObj*> TDistLayout;
 	typedef typename TDistLayout::NodeType 	Node;
 	typedef typename TDistLayout::Interface	DistInterface;
+	typedef typename TDistLayout::ProcPair	ProcPair;
 
 	typedef typename GridLayoutMap::Types<TGeomObj>	Types;
 	typedef typename Types::Layout 		Layout;
@@ -348,7 +349,7 @@ void FinalizeRedistributionLayoutInterfaces(
 											continue;
 
 										DistInterface& interface = distLayout.interface(
-																	targets[j], lvl);
+															ProcPair(targets[j], connProc), lvl);
 										interface.push_back(DistributionInterfaceEntry(
 																aaNodeInd[elem], INT_H_MASTER));
 									}
@@ -357,7 +358,7 @@ void FinalizeRedistributionLayoutInterfaces(
 								else{
 								//	create interface to master
 									DistInterface& interface = distLayout.interface(
-																	newMasterProc, lvl);
+															ProcPair(newMasterProc, connProc), lvl);
 									interface.push_back(DistributionInterfaceEntry(
 															aaNodeInd[elem], INT_H_SLAVE));
 									break;
@@ -374,8 +375,16 @@ void FinalizeRedistributionLayoutInterfaces(
 								if(info.srcProc == connProc){
 								//	the node is moved. only create an interface
 								//	to the target proc.
+								//	If targetProc and info.targetProc are the same, then
+								//	we don't have to create the entry...
+									if(targetProc == info.targetProc)
+										continue;
+
+									//UG_LOG("Creating Master entry from " << targetProc);
+									//UG_LOG(" to " << info.targetProc << endl);
+
 									DistInterface& interface = distLayout.interface(
-																info.targetProc, lvl);
+														ProcPair(info.targetProc, connProc), lvl);
 									interface.push_back(DistributionInterfaceEntry(
 															aaNodeInd[elem], INT_H_MASTER));
 								}
@@ -408,7 +417,7 @@ void FinalizeRedistributionLayoutInterfaces(
 						if(!mg.is_marked(elem))
 							continue;
 
-					//	access target and trasferInfo attachments
+					//	access target and transferInfo attachments
 						const vector<int>& targets = aaTargetProcs[elem];
 						const vector<RedistributionNodeTransferInfo>& transferInfos =
 																aaTransferInfos[elem];
@@ -449,7 +458,7 @@ void FinalizeRedistributionLayoutInterfaces(
 											continue;
 
 										DistInterface& interface = distLayout.interface(
-																	targets[j], lvl);
+															ProcPair(targets[j], connProc), lvl);
 										interface.push_back(DistributionInterfaceEntry(
 																aaNodeInd[elem], INT_H_MASTER));
 									}
@@ -458,7 +467,7 @@ void FinalizeRedistributionLayoutInterfaces(
 								else{
 								//	create interface to master
 									DistInterface& interface = distLayout.interface(
-																	newMasterProc, lvl);
+															ProcPair(newMasterProc, connProc), lvl);
 									interface.push_back(DistributionInterfaceEntry(
 															aaNodeInd[elem], INT_H_SLAVE));
 									break;
@@ -469,12 +478,18 @@ void FinalizeRedistributionLayoutInterfaces(
 					//	if newMasterProc and targetProc match, we'll build a new master entry.
 					//	however, we have to check whether the associated slave is sent
 					//	to a new proc, too.
+					/*
 						if(newMasterProc == targetProc){
 							for(size_t i = 0; i < transferInfos.size(); ++i){
 								const RedistributionNodeTransferInfo& info = transferInfos[i];
 								if(info.srcProc == connProc){
 								//	the node is moved. only create an interface
 								//	to the target proc.
+								//	If targetProc and info.targetProc are the same, then
+								//	we don't have to create the entry...
+									if(targetProc == info.targetProc)
+										continue;
+
 									DistInterface& interface = distLayout.interface(
 																info.targetProc, lvl);
 									interface.push_back(DistributionInterfaceEntry(
@@ -482,6 +497,7 @@ void FinalizeRedistributionLayoutInterfaces(
 								}
 							}
 						}
+					*/
 					}
 				}
 			}
@@ -622,7 +638,6 @@ void CreateRedistributionLayouts(
 							aaTransInfoVecFACE, localLayoutInd, msel, processMap);
 	SynchronizeNodeTransfer<Volume>(mg, glm, commVOL, aaTargetProcsVOL,
 							aaTransInfoVecVOL, localLayoutInd, msel, processMap);
-
 
 //	finalize the redistribution layouts by constructing all interfaces
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, vertexLayoutsOut,

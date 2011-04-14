@@ -84,7 +84,19 @@ bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
 template <class TIterator, class TAAInt>
 void AssignIndices(TIterator begin, TIterator end,
 					TAAInt& aaInt, int baseIndex = 0);
-							
+
+////////////////////////////////////////////////////////////////////////
+///	returns the iterator whose element has the specified attachment value.
+/** If no element contains the given value, end is returned.
+ *
+ * Make sure that the specified attachment accessor operates on the
+ * specified elements.
+ */
+template <class TIterator, class TAttAcc>
+TIterator FindElementByValue(TIterator begin, TIterator end,
+							 const typename TAttAcc::ValueType& val,
+							 TAttAcc& aa);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

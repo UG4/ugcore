@@ -476,7 +476,7 @@ bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts,
 			{
 			//	we'll only compare with connected processes with a higher rank.
 			//	All others have already been checked.
-				int conProcID = mapIter->first;
+				int conProcID = mapIter->first.first;
 				if(conProcID <= curProcID)
 					continue;
 
@@ -556,6 +556,8 @@ bool TestRedistributionLayouts(std::vector<TDistLayout>& distLayouts,
 	bool bSuccess = true;
 
 	UG_LOG("Performing RedistributionLayout Tests: ...\n")
+	UG_LOG("Layouts: " << distLayouts.size() << endl);
+
 //	first check whether corresponding interfaces exist
 	typedef typename TDistLayout::InterfaceMap 	InterfaceMap;
 	typedef typename TDistLayout::Interface		Interface;
@@ -574,7 +576,7 @@ bool TestRedistributionLayouts(std::vector<TDistLayout>& distLayouts,
 			for(typename InterfaceMap::iterator mapIter = curMap.begin();
 				mapIter != curMap.end(); ++mapIter)
 			{
-				int conProcID = mapIter->first;
+				int conProcID = mapIter->first.first;
 				if(conProcID == curProcID)
 					continue;
 
@@ -614,5 +616,69 @@ template bool TestRedistributionLayouts<RedistributionVertexLayout>(std::vector<
 template bool TestRedistributionLayouts<RedistributionEdgeLayout>(std::vector<RedistributionEdgeLayout>&, int*);
 template bool TestRedistributionLayouts<RedistributionFaceLayout>(std::vector<RedistributionFaceLayout>&, int*);
 template bool TestRedistributionLayouts<RedistributionVolumeLayout>(std::vector<RedistributionVolumeLayout>&, int*);
+
+template <class TDistLayout>
+bool PrintRedistributionLayouts(std::vector<TDistLayout>& distLayouts)
+{
+	bool bSuccess = true;
+
+	UG_LOG("Printing RedistributionLayouts: ...\n")
+	UG_LOG("Layouts: " << distLayouts.size() << endl);
+
+//	first check whether corresponding interfaces exist
+	typedef typename TDistLayout::InterfaceMap 	InterfaceMap;
+	typedef typename TDistLayout::Interface		Interface;
+
+	for(int i_curLayout = 0; i_curLayout < (int)distLayouts.size(); ++i_curLayout)
+	{
+		TDistLayout& curLayout = distLayouts[i_curLayout];
+		UG_LOG("layout with source proc: " << curLayout.get_source_proc() << endl);
+
+		for(size_t lvl = 0; lvl < curLayout.num_levels(); ++lvl)
+		{
+			InterfaceMap& curMap = curLayout.interface_map(lvl);
+			for(typename InterfaceMap::iterator mapIter = curMap.begin();
+				mapIter != curMap.end(); ++mapIter)
+			{
+				int conProcID = mapIter->first.first;
+				int oldConProcID = mapIter->first.second;
+
+				UG_LOG("  interface to " << conProcID << ":\n");
+				UG_LOG("  old connected proc: " << oldConProcID << endl);
+
+				Interface& curIntf = mapIter->second;
+
+			//	make sure that the different interfaces match each other in size
+				size_t numCurMasters = NumEntriesOfTypeInDistributionInterface(
+															INT_H_MASTER, curIntf);
+				size_t numCurSlaves = NumEntriesOfTypeInDistributionInterface(
+															INT_H_SLAVE, curIntf);
+/*
+				size_t numCurVrtMasters = NumEntriesOfTypeInDistributionInterface(
+													INT_V_MASTER, curIntf);
+				size_t numCurVrtSlaves = NumEntriesOfTypeInDistributionInterface(
+													INT_V_SLAVE, curIntf);
+*/
+				if(numCurMasters){
+					UG_LOG("    masters: " << numCurMasters);
+				}
+
+				if(numCurSlaves){
+					UG_LOG("    slaves: " << numCurSlaves);
+				}
+
+				UG_LOG(endl);
+			}
+		}
+	}
+	UG_LOG("  ... done\n");
+	return bSuccess;
+}
+
+
+template bool PrintRedistributionLayouts<RedistributionVertexLayout>(std::vector<RedistributionVertexLayout>&);
+template bool PrintRedistributionLayouts<RedistributionEdgeLayout>(std::vector<RedistributionEdgeLayout>&);
+template bool PrintRedistributionLayouts<RedistributionFaceLayout>(std::vector<RedistributionFaceLayout>&);
+template bool PrintRedistributionLayouts<RedistributionVolumeLayout>(std::vector<RedistributionVolumeLayout>&);
 
 }//	end of namespace

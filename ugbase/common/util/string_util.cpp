@@ -53,20 +53,5 @@ template <> unsigned long hash_key(const std::string& key)
 	return hash;
 }
 
-//sreiter - Implementation is copied from some book or website. Can't remember...
-template <> unsigned long hash_key(const char* key)
-{
-
-	unsigned long hash = 5381;
-	int c;
-
-	while((c = *key)){
-		hash = hash * 33 + c;
-		++key;
-	}
-
-	return hash;
-}
-
 }
 

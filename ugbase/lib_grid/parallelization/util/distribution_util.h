@@ -20,8 +20,8 @@ namespace ug
 ///	The interface entry holds a local id and the type of the entry.
 /** Note that the type is restricted to 4 bytes currently.
  *
- *  Note that this is pointed out in the documentation for InterfaceNodeTypes,
- *  too.*/
+ * Note that this is pointed out in the documentation for InterfaceNodeTypes,
+ * too.*/
 struct DistributionInterfaceEntry
 {
 	DistributionInterfaceEntry() :
@@ -68,8 +68,11 @@ struct DistributionNodeLayout
 	typedef DistributionInterfaceEntry		InterfaceEntry;
 ///	an interface consists of a list of local ids.
 	typedef std::vector<InterfaceEntry>		Interface;
-///	an interface-map is a list of interfaces, each associated with a process id.
-	typedef std::map<int, Interface>		InterfaceMap;
+///	a proc-pair combines the target-proc (first) and the old target proc(second).
+	typedef std::pair<int, int>				ProcPair;
+///	an interface-map is a list of interfaces, each associated with a new and old process id.
+/**	The old process-id is only used during redistribution.*/
+	typedef std::map<ProcPair, Interface>	InterfaceMap;
 ///	a list of interface-maps. Required for multilevel / hierarchical approaches.
 	typedef std::vector<InterfaceMap>		InterfaceMapVec;
 
@@ -78,6 +81,8 @@ struct DistributionNodeLayout
 ///	a vector that holds nodes.
 	typedef std::vector<TNode>				NodeVec;	
 	
+///	sets m_srcProcID to pcl::GetProcRank.
+	DistributionNodeLayout() : m_srcProcID(pcl::GetProcRank())	{}
 	virtual ~DistributionNodeLayout()	{}
 
 //	some methods
@@ -95,25 +100,49 @@ struct DistributionNodeLayout
 	inline const NodeVec& node_vec() const					{return m_vNodes;}
 		
 ///	returns the interface to the given process on the given level.
-	/**	if you don't specify a level, level = 0 will be used.*/
-	inline Interface& interface(int procID, size_t level = 0)	{return interface_map(level)[procID];}
-	
+/**	if you don't specify a level, level = 0 will be used.
+ * Since the interface is internally associated with a ProcPair,
+ * -1 is used for the old target proc.*/
+	inline Interface& interface(int procID, size_t level = 0)	{return interface_map(level)[ProcPair(procID, -1)];}
+
+///	returns the interface to the given process and the given old process on the given level.
+	inline Interface& interface(ProcPair procPair, size_t level = 0)	{return interface_map(level)[procPair];}
+
 ///	returns true if the interface already exists
-	inline bool has_interface(int procID, size_t level = 0)		{InterfaceMap& m = interface_map(level); return (m.find(procID) != m.end());}
+/** Since the interface is internally associated with a ProcPair,
+ * -1 is used for the old target proc.*/
+	inline bool has_interface(int procID, size_t level = 0)
+	{
+		InterfaceMap& m = interface_map(level);
+		return (m.find(ProcPair(procID, -1)) != m.end());
+	}
+
+///	returns true if the interface already exists
+	inline bool has_interface(ProcPair procPair, size_t level = 0)
+	{
+		InterfaceMap& m = interface_map(level);
+		return (m.find(procPair) != m.end());
+	}
 	
 ///	returns the interface-map for the given level.
-	/**	if you don't specify a level, level = 0 will be used.*/
+/**	if you don't specify a level, level = 0 will be used.*/
 	inline InterfaceMap& interface_map(size_t level = 0)		{if(level >= m_vInterfaceMaps.size()) m_vInterfaceMaps.resize(level + 1); return m_vInterfaceMaps[level];}
 	
 ///	sets the number of levels.
-	/**	Setting the number of levels is optional. Increases performance for \#levels > 1.*/
+/**	Setting the number of levels is optional. Increases performance for \#levels > 1.*/
 	void set_num_levels(size_t num)							{m_vInterfaceMaps.resize(num);}
 	
 ///	returns the number of levels.
 	inline size_t num_levels() const						{return m_vInterfaceMaps.size();}
 	
+///	the source-proc defines which process created the layout
+/**	\{	*/
+	inline void set_source_proc(int procID)		{m_srcProcID = procID;}
+	inline int get_source_proc()				{return m_srcProcID;}
+/**	\}	*/
+
 protected:
-	//int				m_procID;
+	int				m_srcProcID;
 	NodeVec			m_vNodes;
 	InterfaceMapVec	m_vInterfaceMaps;
 };
@@ -362,15 +391,24 @@ size_t NumEntriesOfTypeInDistributionInterface(int type,
 			std::vector<DistributionInterfaceEntry>& interface);
 
 ///	checks whether the interconnections between the layouts are consistent.
+/**	Note that the i-th entry of distLayouts is considered to
+ * be the layout of process i (eventually redirected by procMap).
+ */
 template <class TDistLayout>
 bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts,
 							 int* procMap = NULL);
 
 ///	Currently simply outputs the connections in the layouts.
+/**	Note that the i-th entry of distLayouts is considered to
+ * be the layout of process i (eventually redirected by procMap).
+ */
 template <class TDistLayout>
 bool TestRedistributionLayouts(std::vector<TDistLayout>& distLayouts,
 								int* procMap = NULL);
 
+///	Simply prints the contents of the given layouts.
+template <class TDistLayout>
+bool PrintRedistributionLayouts(std::vector<TDistLayout>& distLayouts);
 /// @}
 }//	end of namespace
 

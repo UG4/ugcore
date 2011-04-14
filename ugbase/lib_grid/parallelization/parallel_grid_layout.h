@@ -9,6 +9,7 @@
 #include <list>
 #include <map>
 #include <algorithm>
+#include "common/util/hash.h"
 #include "pcl/pcl.h"
 #include "lib_grid/lg_base.h"
 
@@ -75,6 +76,10 @@ typedef Attachment<GeomObjID>	AGeomObjID;
 ///	This attachment instance should be used to store global ids
 extern AGeomObjID aGeomObjID;
 
+///	generates a hash key for a GeomObjID.
+/**	\todo Check distribution quality.*/
+template <>
+unsigned long hash_key<GeomObjID>(const GeomObjID& key);
 
 ////////////////////////////////////////////////////////////////////////
 ///	The types of interface-entries.

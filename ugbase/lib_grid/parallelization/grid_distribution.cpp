@@ -103,7 +103,7 @@ static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 			int elemType = -1;
 
 		//	get the proc-id of this interface
-			int procID = iter->first;
+			int procID = iter->first.first;
 			if(pProcessMap)
 			{
 				//assert((int)pProcessMap->size() > procID && "process-map to small.");
