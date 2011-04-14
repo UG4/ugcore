@@ -19,10 +19,6 @@ include("../../ug_cmake_includes.txt")
 
 if(UNIX)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_LINUX")
-	
-	if(NOT APPLE)
-    	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-E -ldl -lreadline -lhistory -lncurses")	    
-	endif(NOT APPLE)
 endif(UNIX)
 
 set(srcLua	externals/lua/lapi.c
