@@ -499,11 +499,13 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     # libraries for lua
     ####
     
-    if(UNIX)
-		if(NOT APPLE)
-	    	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-E -ldl -lreadline -lhistory -lncurses")	    
-		endif(NOT APPLE)
-	endif(UNIX)
-    
+#	if(NOT UG_SHARED)
+#	    if(UNIX)
+#			if(NOT APPLE)
+#		    	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-E -ldl -lreadline -lhistory -lncurses")	    
+#			endif(NOT APPLE)
+#		endif(UNIX)
+#	endif(NOT UG_SHARED)
+	    
 
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
