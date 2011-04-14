@@ -187,12 +187,11 @@ bool amg_base<TAlgebra>::init()
 		size_t nnzCoarse = m_A[level+1]->total_num_connections();
 		IF_DEBUG(LIB_ALG_AMG, 1)
 		{
-			double nrOfFine = m_A[level]->num_rows();
 			UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << nnzCoarse << " Density: " <<
-					nnzCoarse/(nrOfCoarse*nrOfCoarse)*100.0 << "%, avg. nnz pre row: " << nnzCoarse/nrOfCoarse << std::endl);
-
-			UG_DLOG(LIB_ALG_AMG, 1, "Coarsening rate: " << (100.0*nrOfCoarse)/nrOfFine << "%" << std::endl);
-
+					nnzCoarse/(nrOfCoarse*nrOfCoarse)*100.0 << "%, avg. nnz pre row: " <<
+					nnzCoarse/nrOfCoarse << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 1, "Coarsening rate: " << (100.0*nrOfCoarse)/m_A[level]->num_rows() <<
+					"%" << std::endl);
 			UG_DLOG(LIB_ALG_AMG, 1, " level took " << SWwhole.ms() << " ms" << std::endl << std::endl);
 		}
 
@@ -202,12 +201,12 @@ bool amg_base<TAlgebra>::init()
 	}
 
 	UG_ASSERT(block_traits< typename vector_type::value_type >::is_static, "dynamic not yet implemented");
-	size_t static_nrUnknowns = block_traits< typename vector_type::value_type >::static_size;
 
+	size_t static_nrUnknowns = block_traits< typename vector_type::value_type >::static_size;
 	UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << " (" << m_A[level]->num_rows() << " nodes, total "
 			<< m_A[level]->num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
 			<< m_A[level]->num_rows()*static_nrUnknowns << "x" << m_A[level]->num_rows()*static_nrUnknowns << ". ");
-
+	(void) static_nrUnknowns;
 	stopwatch SW; SW.start();
 
 	m_SMO.resize(level+1);
