@@ -5,6 +5,7 @@
 #include "mpi.h"
 #include "pcl_base.h"
 #include "common/log.h"
+#include "pcl_profiling.h"
 
 namespace pcl
 {
@@ -61,6 +62,7 @@ void SetOutputProcRank(int rank)
 ////////////////////////////////////////////////////////////////////////
 void SynchronizeProcesses()
 {
+	PCL_PROFILE(pclSynchronizeProcesses);
 	MPI_Barrier(MPI_COMM_WORLD);
 }
 

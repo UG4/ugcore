@@ -3,6 +3,7 @@
 // 17.03.2011 (m,d,y)
  
 #include "pcl_util.h"
+#include "pcl_profiling.h"
 
 namespace pcl{
 
@@ -10,6 +11,8 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 								  std::vector<int>& vSendToRanks,
 								  const ProcessCommunicator& procComm)
 {
+	PCL_PROFILE(pcl_CommunicateInvolvedProcesses);
+
 	using namespace std;
 
 	vReceiveFromRanksOut.clear();

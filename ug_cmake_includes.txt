@@ -39,6 +39,7 @@
 # - NO_BLAS: Disable BLAS libraries
 # - UG_PROFILER: Enables the ug-profiler.
 # - DIM: Dimension to be build (1,2,3,ALL)
+# - PROFILE_PCL: Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.
 #
 # To enable or disable options during the cmake call, call cmake like this:
 # cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
@@ -88,7 +89,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(UG_PROFILER "enables the ug-profiler")
 	OPTION(GENERATE_DEBUG_SYMBOLS "adds -g to gcc. Generates debug symbols in release mode (for profilers etc)")
 	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
-	
+	OPTION(PROFILE_PCL "Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.")
 
 	#######################
 	# include ug header and library path
@@ -201,6 +202,14 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		message(STATUS "INFO: Not using profiler (Enable by defining -DUG_PROFILER=ON)")
 	endif(UG_PROFILER)
 
+	#check whether pcl-profiling is activated
+	if(PROFILE_PCL)
+		message(STATUS "INFO: profiling pcl (Disable by defining -DPROFILE_PCL=OFF)")
+		add_definitions(-DPROFILE_PCL)
+	else(PROFILE_PCL)
+		message(STATUS "INFO: Not profiling pcl (Enable by defining -DPROFILE_PCL=ON)")
+	endif(PROFILE_PCL)
+	
 	#######################
 	# MPI - find include-path and link-libraries
 	if(NO_MPI)

@@ -11,7 +11,7 @@
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
-#include "common/profiler/profiler.h"
+#include "pcl_profiling.h"
 
 namespace pcl
 {
@@ -340,7 +340,7 @@ template <class TLayout>
 bool ParallelCommunicator<TLayout>::
 communicate()
 {
-//	PROFILE_FUNC();
+	PCL_PROFILE(pcl_IntCom_communicate);
 //	prepare receive streams
 //TODO:	This should be done in a way so that the least possible amount
 //		of data has to be reallocated (very often the map won't change
@@ -436,10 +436,11 @@ communicate()
 		}
 	}
 	
-	//	if the buffer size could not be determined, we have to communicate it.
+//	if the buffer size could not be determined, we have to communicate it.
 	if(!allBufferSizesFixed)
 	{
-//		PROFILE_BEGIN(communicateBufferSizes);
+		PCL_PROFILE(pcl_IntCom_communicateBufSizes);
+
 		int sizeTag = 189345;//	an arbitrary number
 		int counter;
 
@@ -474,7 +475,7 @@ communicate()
 
 ////////////////////////////////////////////////
 //	communicate data.
-//	PROFILE_BEGIN(communicateData);
+	PCL_PROFILE(pcl_IntCom_communicateData);
 	int dataTag = 749345;//	an arbitrary number
 
 //	first shedule receives
@@ -506,8 +507,10 @@ communicate()
 //		by waiting for the next one etc...
 	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
 	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
-//	PROFILE_END();
+
+	PCL_PROFILE_END();
 	
+
 //	call the extractors with the received data
 	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
 		iter != m_extractorInfos.end(); ++iter)

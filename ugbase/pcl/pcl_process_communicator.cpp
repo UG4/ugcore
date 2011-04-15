@@ -8,6 +8,8 @@
 #include "common/util/smart_pointer.h"
 #include "pcl_process_communicator.h"
 #include "common/log.h"
+#include "pcl_profiling.h"
+
 using namespace std;
 
 namespace pcl
@@ -72,6 +74,8 @@ ProcessCommunicator
 ProcessCommunicator::
 create_sub_communicator(bool participate)
 {
+	PCL_PROFILE(pcl_ProcCom_create_sub_com);
+
 //	if the current communicator is empty theres nothing to do
 	if(empty())
 		return ProcessCommunicator(PCD_EMPTY);
@@ -138,6 +142,8 @@ ProcessCommunicator::
 allreduce(void* sendBuf, void* recBuf, int count,
 		  DataType type, ReduceOperation op) const
 {
+	PCL_PROFILE(pcl_ProcCom_allreduce);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 	if(empty()){
@@ -152,6 +158,8 @@ ProcessCommunicator::
 gather(void* sendBuf, int sendCount, DataType sendType,
 	   void* recBuf, int recCount, DataType recType, int root) const
 {
+	PCL_PROFILE(pcl_ProcCom_gather);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::gather: empty communicator.");
 	if(empty()){
@@ -168,6 +176,8 @@ gatherv(void* sendBuf, int sendCount, DataType sendType,
 		void* recBuf, int* recCounts, int* displs,
 		DataType recType, int root) const
 {
+	PCL_PROFILE(pcl_ProcCom_gatherv);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::gather: empty communicator.");
 	if(empty()){
@@ -183,6 +193,8 @@ ProcessCommunicator::
 allgather(void* sendBuf, int sendCount, DataType sendType,
 		  void* recBuf, int recCount, DataType recType) const
 {
+	PCL_PROFILE(pcl_ProcCom_allgather);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::allgather: empty communicator.");
 	if(empty()){
@@ -199,6 +211,8 @@ allgatherv(void* sendBuf, int sendCount, DataType sendType,
 			void* recBuf, int* recCounts, int* displs,
 			DataType recType) const
 {
+	PCL_PROFILE(pcl_ProcCom_allgatherv);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::allgatherv: empty communicator.");
 	if(empty()){
@@ -213,6 +227,8 @@ void
 ProcessCommunicator::
 send_data(void* pBuffer, int bufferSize, int destProc, int tag)
 {
+	PCL_PROFILE(pcl_ProcCom_send_data);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::send_data: empty communicator.");
 	if(empty()){
@@ -232,6 +248,8 @@ ProcessCommunicator::
 send_data(void* pBuffer, int* pBufferSegSizes,
 		  int* pRecProcMap, int numRecProcs, int tag)
 {
+	PCL_PROFILE(pcl_ProcCom_send_data__to_many);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::send_data: empty communicator.");
 	if(empty()){
@@ -257,6 +275,8 @@ void
 ProcessCommunicator::
 receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag)
 {
+	PCL_PROFILE(pcl_ProcCom_recv_data);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::receive_data: empty communicator.");
 	if(empty()){
@@ -278,6 +298,8 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 				void* pBuffer, int* pBufferSegSizes,
 			  	int* pRecvProcMap, int numRecvProcs, int tag) const
 {
+	PCL_PROFILE(pcl_ProcCom_distribute_data);
+
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
 	if(empty()){
@@ -320,6 +342,8 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 				void* sendBuf, int* sendSegSizes,
 				int* sendToRanks, int numSendTos) const
 {
+	PCL_PROFILE(pcl_ProcCom_distribute_data__flex);
+
 //	small helper arrays
 	vector<int> tmpRecvSegSizes(numRecvFroms, sizeof(int));
 	vector<int> tmpSendSegSizes(numSendTos, sizeof(int));

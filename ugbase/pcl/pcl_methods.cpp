@@ -4,6 +4,7 @@
 
 #include "mpi.h"
 #include "pcl_methods.h"
+#include "common/log.h"
 
 namespace pcl
 {
@@ -18,6 +19,8 @@ double Time()
 //
 void SendData(ProcID destProc, void* pBuffer, int bufferSize, int tag)
 {
+	UG_LOG("DEPRECIATED: pcl::SendData\n");
+
 	MPI_Request request;
 	MPI_Status	status;
 	
@@ -29,6 +32,8 @@ void SendData(ProcID destProc, void* pBuffer, int bufferSize, int tag)
 //
 void ReceiveData(void* pBuffOut, ProcID srcProc, int bufferSize, int tag)
 {
+	UG_LOG("DEPRECIATED: pcl::ReceiveData\n");
+
 	MPI_Request request;
 	MPI_Status	status;
 	
@@ -43,6 +48,8 @@ void ReceiveData(void* pBuffOut, ProcID srcProc, int bufferSize, int tag)
 void CollectData(ProcID thisProcID, int firstSendProc, int numSendProcs,
 					void* pBuffer, int bufferSizePerProc, int tag)
 {
+	UG_LOG("DEPRECIATED: pcl::CollectData\n");
+
 //	receive data
 	std::vector<MPI_Request> vReceiveRequests(numSendProcs);
 		
@@ -66,6 +73,8 @@ void CollectData(ProcID thisProcID, int firstSendProc, int numSendProcs,
 void DistributeData(ProcID thisProcID, int firstRecProc, int numRecProcs,
 					void* pBuffer, int* pBufferSegSizes, int tag)
 {
+	UG_LOG("DEPRECIATED: pcl::DistributeData\n");
+
 //	receive data
 	std::vector<MPI_Request> vSendRequests(numRecProcs);
 		
@@ -90,6 +99,8 @@ void DistributeData(ProcID thisProcID, int firstRecProc, int numRecProcs,
 void DistributeData(ProcID thisProcID, int* pRecProcMap, int numRecProcs,
 					void* pBuffer, int* pBufferSegSizes, int tag)
 {
+	UG_LOG("DEPRECIATED: pcl::DistributeData\n");
+
 //	receive data
 	std::vector<MPI_Request> vSendRequests(numRecProcs);
 		
@@ -109,6 +120,8 @@ void DistributeData(ProcID thisProcID, int* pRecProcMap, int numRecProcs,
 void AllReduce(void* sendBuf, void* recBuf, int count, DataType type,
 				ReduceOperation op)
 {
+	UG_LOG("DEPRECIATED: pcl::AllReduce\n");
+
 	MPI_Allreduce(sendBuf, recBuf, count, type, op, MPI_COMM_WORLD);
 }
 
