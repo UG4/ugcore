@@ -116,7 +116,12 @@ The use of TypeInfo can be abrevated by using
 \verbatim
 ug:> Grid?
 \endverbatim
-and hitting enter.
+and hitting enter. When the name left to the cursor is unambiguous, hitting tab three times also displays information about the object. 
+Functions show their parameters when you enter the function and the first bracket
+\verbatim
+ug:> GetProfileNode(
+\endverbatim
+and hit tab.
 
 <li>
 \code
