@@ -23,6 +23,7 @@ set(srcBindingsVRL
                     vrl_user_number.cpp
                     invocation.cpp
                     playground.cpp
+                    user_data.cpp
 )
 
 

@@ -3,12 +3,16 @@
 #include "type_converter.h"
 #include <string>
 
+#include "../common/util/string_util.h"
+#include "../common/util/hash.h"
+
 namespace ug {
 namespace vrl {
 namespace invocation {
 
 //static std::map<const char*, const ug::bridge::ExportedMethod*> methods;
 //static std::map<const char*, const ug::bridge::ExportedFunction*> functions;
+//
 //
 //const std::string createMethodSignature(JNIEnv* env, const char* className,
 //		const char* methodName, bool readOnly, jobjectArray params) {
@@ -26,6 +30,21 @@ namespace invocation {
 //
 //	return signature.str();
 //}
+
+//static ug::Hash<const ug::bridge::ClassNameNode*, std::string> classNameNodes;
+static ug::Hash<const ug::bridge::IExportedClass*, std::string> classes;
+
+void initClasses(ug::bridge::Registry &reg) {
+	using namespace ug::bridge;
+
+	classes = ug::Hash<const ug::bridge::IExportedClass*,
+			std::string > (reg.num_classes()*2);
+
+	for (unsigned int i = 0; i < reg.num_classes(); i++) {
+		const ug::bridge::IExportedClass* c = &reg.get_class(i);
+		classes.add(c, c->name());
+	}
+}
 
 const ug::bridge::ExportedMethod* getMethodBySignature(
 		JNIEnv *env,
@@ -106,7 +125,6 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 		std::string functionName,
 		jobjectArray params) {
 
-
 	//	// create signature
 	//	std::string signature = createMethodSignature(
 	//			env, "", "", false, params);
@@ -152,32 +170,14 @@ const ug::bridge::IExportedClass* getExportedClassPtrByName(
 		ug::bridge::Registry* reg,
 		std::string className) {
 
-	for (unsigned int i = 0; i < reg->num_classes(); i++) {
-
-		const ug::bridge::IExportedClass& clazz = reg->get_class(i);
-
-		if (strcmp(clazz.name(), className.c_str()) == 0) {
-			return &clazz;
-		}
-	}
-
-	return NULL;
+	return classes.first(className);
 }
 
 const ug::bridge::ClassNameNode* getClassNodePtrByName(
 		ug::bridge::Registry* reg,
 		std::string className) {
 
-	for (unsigned int i = 0; i < reg->num_classes(); i++) {
-
-		const ug::bridge::IExportedClass& clazz = reg->get_class(i);
-
-		if (strcmp(clazz.name(), className.c_str()) == 0) {
-			return &clazz.class_name_node();
-		}
-	}
-
-	return NULL;
+	return &classes.first(className)->class_name_node();
 }
 
 } // invocation::

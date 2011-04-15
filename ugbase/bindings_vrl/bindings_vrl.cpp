@@ -274,6 +274,7 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_invalidate
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
 (JNIEnv * env, jobject obj) {
+	ug::vrl::invocation::initClasses(*ug::vrl::vrlRegistry);
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 

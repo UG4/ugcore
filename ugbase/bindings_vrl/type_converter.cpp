@@ -195,10 +195,6 @@ std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node
 
 	ug::bridge::ExtractClassNameVec(classNames, *node, false);
 
-	for (unsigned int i = 0; i < classNames.size();i++) {
-		std::cout << "--> name (" << i << "): " << classNames[i] << std::endl;
-	}
-
 	return classNames;
 }
 

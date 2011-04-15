@@ -76,6 +76,8 @@ const ug::bridge::ClassNameNode* getClassNodePtrByName(
 		ug::bridge::Registry* reg,
 		std::string className);
 
+void initClasses(ug::bridge::Registry &reg);
+
 } // invocation::
 } // vrl::
 } // ug::
