@@ -95,7 +95,7 @@ template <class TVal, class TKey> class Hash
 		{
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
-			HashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), key, hIndex);
+			HashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
 			assert((iter != m_v[hIndex].end()) && "ERROR in Hash::first(...): Hash does not contain an entry with the given key.");
 			return (*iter).value;
 		}
@@ -104,7 +104,7 @@ template <class TVal, class TKey> class Hash
 		{
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
-			ConstHashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), key, hIndex);
+			ConstHashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
 			assert((iter != m_v[hIndex].end()) && "ERROR in Hash::first(...): Hash does not contain an entry with the given key.");
 			return (*iter).value;
 		}

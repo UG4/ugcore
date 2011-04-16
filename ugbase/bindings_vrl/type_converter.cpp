@@ -204,6 +204,10 @@ void* jObject2Pointer(JNIEnv *env, jobject obj) {
 	return (void*) env->CallLongMethod(obj, methodID);
 }
 
+//jdoubleArray doubleArrayC2J(double[] array) {
+//
+//}
+
 SmartPtr<void> jObject2SmartPointer(JNIEnv *env, jobject obj) {
 
 	jclass argClass = env->GetObjectClass(obj);
