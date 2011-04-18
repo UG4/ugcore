@@ -211,7 +211,8 @@ bool ProjectLevelToSurface(int si,
                            const IDoFDistribution<TDoFDistributionImpl>& surfaceDD,
                            const SurfaceView& surfaceView,
 						   const std::vector<const TVector*>& vLevelVector,
-                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD)
+                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
+			   const int baseLevel) // 'baseLevel' added (13042011ih)
 {
 //	type of element iterator
 	typedef typename geometry_traits<TElem>::const_iterator iter_type;
@@ -268,7 +269,8 @@ bool ProjectLevelToSurface(TVector& surfVector,
                            const IDoFDistribution<TDoFDistributionImpl>& surfDD,
                            const SurfaceView& surfView,
                            const std::vector<const TVector*>& vLevelVector,
-                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD)
+                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
+			   const int baseLevel) // 'baseLevel' added (13042011ih)
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
@@ -296,27 +298,27 @@ bool ProjectLevelToSurface(TVector& surfVector,
 		{
 			case 0:
 				bRet &= ProjectLevelToSurface<VertexBase, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				break;
 			case 1:
 				bRet &= ProjectLevelToSurface<Edge, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				break;
 			case 2:
 				bRet &= ProjectLevelToSurface<Triangle, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				bRet &= ProjectLevelToSurface<Quadrilateral, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				break;
 			case 3:
 				bRet &= ProjectLevelToSurface<Tetrahedron, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				bRet &= ProjectLevelToSurface<Pyramid, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				bRet &= ProjectLevelToSurface<Prism, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				bRet &= ProjectLevelToSurface<Hexahedron, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD);
+							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel); // 'baseLevel' added (13042011ih)
 				break;
 			default:
 				UG_LOG("ERROR in 'ProjectLevelToSurface': Dimension of subset ("
@@ -332,7 +334,7 @@ bool ProjectLevelToSurface(TVector& surfVector,
 		ParallelStorageType type = vLevelVector[vLevelVector.size()-1]->get_storage_mask();
 
 	//	get intersection of types
-		for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
+		for(size_t lev =  baseLevel /*0*/; lev < vLevelVector.size(); ++lev) // '0' changed to 'baseLevel' (13042011ih)
 			if(vLevelVector[lev] != NULL && vLevelVector[lev]->size() > 0)
 				type = type & vLevelVector[lev]->get_storage_mask();
 
@@ -343,7 +345,7 @@ bool ProjectLevelToSurface(TVector& surfVector,
 					" vectors is not ok. Must have at least on common type."
 					" (e.g. additive/unique for all, or consistent for all)\n"
 					" Types in levels are:\n");
-			for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
+ 			for(size_t lev =  baseLevel /*0*/; lev < vLevelVector.size(); ++lev) // '0' changed to 'baseLevel' (13042011ih)
 				if(vLevelVector[lev] != NULL)
 					UG_LOG("  lev " << lev << ": " << vLevelVector[lev]->get_storage_mask() << "\n");
 			return false;
