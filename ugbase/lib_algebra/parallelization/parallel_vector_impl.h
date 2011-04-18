@@ -11,6 +11,20 @@
 #include <cmath>
 #include "parallel_vector.h"
 
+// additions for profiling (14042011ih)
+#include "common/profiler/profiler.h"
+#define PROFILE_PARALLEL_VECTOR
+#ifdef PROFILE_PARALLEL_VECTOR
+	#define PARVEC_PROFILE_FUNC()		PROFILE_FUNC()
+	#define PARVEC_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define PARVEC_PROFILE_END()		PROFILE_END()
+#else
+	#define PARVEC_PROFILE_FUNC()
+	#define PARVEC_PROFILE_BEGIN(name)
+	#define PARVEC_PROFILE_END()
+#endif
+// additions for profiling - end
+
 namespace ug
 {
 
@@ -37,49 +51,61 @@ change_storage_type(ParallelStorageType type)
 	{
 	case PST_CONSISTENT:
 			 if(has_storage_type(PST_UNIQUE)){
+			 	PARVEC_PROFILE_BEGIN(ParVec_CSTUnique2Consistent); // added 14042011ih
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
 					return false;
 				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
 				                    pCommunicator);
 				 set_storage_type(PST_CONSISTENT);
+				 PARVEC_PROFILE_END(); //ParVec_CSTUnique2Consistent // added 14042011ih
 				 break;
 			 }
 			 else if(has_storage_type(PST_ADDITIVE)){
+			 	PARVEC_PROFILE_BEGIN(ParVec_CSTAdditive2Consistent); // added 14042011ih
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
 					return false;
 				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
 				                     pCommunicator);
 				set_storage_type(PST_CONSISTENT);
+				PARVEC_PROFILE_END(); //ParVec_CSTAdditive2Consistent // added 14042011ih
 				break;
 			}
 			else return false;
 	case PST_ADDITIVE:
 			if(has_storage_type(PST_UNIQUE)){
+				PARVEC_PROFILE_BEGIN(ParVec_CSTUnique2Additive); // added 14042011ih
 				add_storage_type(PST_ADDITIVE);
+				PARVEC_PROFILE_END(); //ParVec_CSTUnique2Additive // added 14042011ih
 				break;
 			}
 			else if(has_storage_type(PST_CONSISTENT)){
+				PARVEC_PROFILE_BEGIN(ParVec_CSTConsistent2Additive); // added 14042011ih
 				if(m_pMasterLayout == NULL) return false;
 				ConsistentToUnique(this, *m_pSlaveLayout);
 				set_storage_type(PST_ADDITIVE);
 				add_storage_type(PST_UNIQUE);
+				PARVEC_PROFILE_END(); //ParVec_CSTConsistent2Additive // added 14042011ih
 				break;
 			}
 			else return false;
 	case PST_UNIQUE:
 			if(has_storage_type(PST_ADDITIVE)){
+				PARVEC_PROFILE_BEGIN(ParVec_CSTAdditive2Unique); // added 14042011ih
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
 					return false;
 				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout,
 				                 pCommunicator);
 				add_storage_type(PST_UNIQUE);
+				PARVEC_PROFILE_END(); //ParVec_CSTAdditive2Unique // added 14042011ih
 				break;
 			}
 			else if(has_storage_type(PST_CONSISTENT)){
+				PARVEC_PROFILE_BEGIN(ParVec_CSTConsistent2Unique); // added 14042011ih
 				if(m_pSlaveLayout == NULL) return false;
 				ConsistentToUnique(this, *m_pSlaveLayout);
 				set_storage_type(PST_ADDITIVE);
 				add_storage_type(PST_UNIQUE);
+				PARVEC_PROFILE_END(); //ParVec_CSTConsistent2Unique // added 14042011ih
 				break;
 			}
 			else return false;
@@ -149,8 +175,17 @@ two_norm()
 	// step 3: sum local norms
 	double tNormGlobal;
 
+	PARVEC_PROFILE_BEGIN(ParVec_two_norm_allreduce); // added 14042011ih
 	m_processCommunicator.allreduce(&tNormLocal, &tNormGlobal, 1,
 									PCL_DT_DOUBLE, PCL_RO_SUM);
+	PARVEC_PROFILE_END(); //ParVec_two_norm_allreduce // added 14042011ih
+	/* TMP (VERY TEMPORARY ...) 29032011ih
+	UG_LOG_ALL_PROCS("'two_norm()' on Proc " << std::setw(3) << pcl::GetProcRank() <<
+			 ": tNormLocal  = " << std::setprecision(4) << tNormLocal <<
+			 ", tNormGlobal = " << std::setprecision(4) << tNormGlobal << ".\n");
+	UG_LOG("'two_norm()': tNormGlobal = " << std::setprecision(4) << tNormGlobal << ".\n");
+	*/
+	/* TMP END (VERY TEMPORARY ...) 29032011ih */
 
 	// step 4: return global norm
 	return sqrt((number)tNormGlobal);
