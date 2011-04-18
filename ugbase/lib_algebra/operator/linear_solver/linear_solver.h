@@ -15,6 +15,17 @@
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
+#define PROFILE_LS
+#ifdef PROFILE_LS
+	#define LS_PROFILE_FUNC()		PROFILE_FUNC()
+	#define LS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define LS_PROFILE_END()		PROFILE_END()
+#else
+	#define LS_PROFILE_FUNC()
+	#define LS_PROFILE_BEGIN(name)
+	#define LS_PROFILE_END()
+#endif
+
 namespace ug{
 
 template <typename TAlgebra>
@@ -109,8 +120,10 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 			vector_type& d = dNLIn;
 
 			// build defect:  d := d_nl - J(u)*c_nl
+			LS_PROFILE_BEGIN(LinSolve_BuildDefect);
 			if(!m_A->apply_sub(d, cNLOut))
 				{UG_LOG("ERROR in 'LinearSolver::apply': Unable to build defect. Aborting.\n"); return false;}
+			LS_PROFILE_END(); //LinSolve_BuildDefect
 
 			// create correction
 			// todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
@@ -125,23 +138,32 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 			{
 				// Compute a correction c := B*d using one iterative step
 				// Internally the defect is updated d := d - A*c = d - A*(x+c)
-				if(m_pPrecond != NULL)
+				if(m_pPrecond != NULL) {
+					LS_PROFILE_BEGIN(LinSolve_PrecondApplyUpdateDefect);
 					if(!m_pPrecond->apply_update_defect(c, d))
 						{UG_LOG("ERROR in 'LinearSolver::apply': Iterator Operator "
 									"applied incorrectly. Aborting.\n"); return false;}
+					LS_PROFILE_END(); //LinSolve_PrecondApplyUpdateDefect
+				}
 
 				// add correction to solution
+				LS_PROFILE_BEGIN(LinSolve_PrecondAddCorrection);
 				cNLOut += c;
+				LS_PROFILE_END(); //LinSolve_PrecondAddCorrection
 
 				// compute new defect (in parallel)
+				LS_PROFILE_BEGIN(LinSolve_ComputeNewDefect);
 				m_pConvCheck->update(d);
+				LS_PROFILE_END(); //LinSolve_ComputeNewDefect
 			}
 
+			LS_PROFILE_BEGIN(LinSolve_ConvCheckPost);
 			if(!m_pConvCheck->post())
 			{
 				UG_LOG("ERROR in 'LinearSolver::apply': post-convergence-check signaled failure. Aborting.\n");
 				return false;
 			}
+			LS_PROFILE_END(); //LinSolve_ConvCheckPost
 			return true;
 		}
 
