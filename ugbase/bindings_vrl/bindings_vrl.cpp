@@ -16,7 +16,7 @@
 
 #include "lib_grid/lib_grid.h"
 #include "compiledate.h"
-#include "vrl_user_number.h"
+#include "user_data.h"
 #include "invocation.h"
 #include "playground.h"
 
@@ -85,6 +85,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 			reg, selector.get_algebra_type());
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(
 			reg, selector.get_algebra_type());
+
+	ug::vrl::RegisterUserData(reg,"UG4/VRL");
+
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");
