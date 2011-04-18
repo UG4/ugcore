@@ -53,8 +53,6 @@ JavaVM* getJavaVM() {
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 (JNIEnv *env, jobject obj, jobjectArray args) {
 
-	std::cout << "init::0\n";
-
 	ug::vrl::initJavaVM(env);
 
 	std::vector<std::string> arguments = ug::vrl::stringArrayJ2C(env, args);

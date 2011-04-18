@@ -9,12 +9,18 @@
 #include <string>
 #include <deque>
 #include <vector>
+#include  <jni.h>
 
 #ifndef MESSAGING_H
 #define	MESSAGING_H
 
 #define EMPHASIZE_BEGIN "\"<tt><b>"
 #define EMPHASIZE_END "</tt></b>\""
+
+#define RED_BEGIN "<font color=\"red\">"
+#define COLOR_END "</font>"
+#define GREEN_BEGIN "<font color=\"green\">"
+#define YELLOW_BEGIN "<font color=\"yellow\">"
 
 #define VRL_CRITICAL_ERROR ">> this is a critical error in UG-VRL bindings!" \
 					" Please write a bug report to " \
@@ -64,6 +70,25 @@ std::string replaceAll(
 std::vector<std::string> split(
 		const std::string& str,
 		const char delimiter);
+
+/**
+ * Returns the message string of the specified Java exception. If no exception
+ * occured, an empty String will be returned.
+ * @param env JVM environment
+ * @param ex Java exception
+ * @return the message string of the specified Java exception or an empty string
+ *         if no exception occured
+ */
+std::string getExceptionMessageString(JNIEnv* env, jthrowable ex);
+
+/**
+ * Checks whether an exception has occured. And logs available exception
+ * messages.
+ * @param env JVM environment
+ * @param msg custom error message (shown if exception occurs)
+ * @return <code>true</code> if no exception has occured; <code>false> otherwise
+ */
+bool checkException(JNIEnv* env, std::string msg = "");
 
 class MessageBuffer {
 public:

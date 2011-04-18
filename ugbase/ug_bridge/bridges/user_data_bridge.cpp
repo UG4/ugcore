@@ -274,21 +274,14 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 
 #ifdef UG_DIM_2
 //	PrintUserNumber2d
-	{
+//	{
 //		typedef PrintUserNumber2d T;
 //		std::stringstream ss; ss << "PrintUserNumber2d";
 //		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 //			.add_constructor()
 //			.add_method("set_user_number|interactive=false", &T::set_user_number, "", "NumberProvider||invokeOnChange=true")
 //			.add_method("print", &T::print, "Result", "x#y");
-		
-		typedef PrintUserNumber2d T;
-		std::stringstream ss; ss << "PrintUserNumber2d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_user_number", &T::set_user_number, "", "NumberProvider")
-			.add_method("print", &T::print, "Result", "x#y");
-	}
+//	}
 #endif
 
 	return true;

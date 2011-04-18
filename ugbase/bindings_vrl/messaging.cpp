@@ -15,11 +15,11 @@ void MessageBuffer::addMessage(std::string msg) {
 	JNIEnv* env = threading::attachThread(getJavaVM());
 	jclass clazz = env->FindClass("edu/gcsc/vrl/ug4/UG4");
 	jmethodID addMessage =
-			env->GetStaticMethodID(clazz, "addMessage","(Ljava/lang/String;)V");
+			env->GetStaticMethodID(clazz, "addMessage", "(Ljava/lang/String;)V");
 
 	msg = replaceAll(msg, "\n", "<br>");
 
-	env->CallStaticObjectMethod(clazz, addMessage, stringC2J(env,msg.c_str()));
+	env->CallStaticObjectMethod(clazz, addMessage, stringC2J(env, msg.c_str()));
 }
 
 std::vector<std::string> split(const std::string& str, const char delimiter) {
@@ -53,6 +53,35 @@ std::string replaceAll(
 	}
 
 	return target;
+}
+
+std::string getExceptionMessageString(JNIEnv* env, jthrowable exception) {
+	std::string result = "";
+
+	jclass cls;
+	jmethodID getMessage;
+	
+	if (exception != NULL) {
+		cls = env->FindClass("java/lang/Throwable");
+		getMessage = env->GetMethodID(cls, "getMessage", "()Ljava/lang/String;");
+		jstring msgObj = (jstring)env->CallObjectMethod(exception,getMessage);
+		result = stringJ2C(env,msgObj);
+	}
+
+	return result;
+}
+
+bool checkException(JNIEnv* env, std::string msg) {
+	jthrowable ex = env->ExceptionOccurred();
+	env->ExceptionClear();
+	std::string exMsg = getExceptionMessageString(env,ex);
+
+	if (exMsg!="") {
+		UG_LOG(msg << std::endl);
+		UG_LOG("<font color=\"red\">" << exMsg << "</font>\n");
+	}
+
+	return ex == NULL;
 }
 
 } // end vrl::

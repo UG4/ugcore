@@ -95,6 +95,13 @@ struct VectorConverter {
 		jdouble elements[dim];
 		env->GetDoubleArrayRegion(array, 0, dim, elements);
 
+		jint arrayLength = env->GetArrayLength(array);
+
+		if (arrayLength != dim) {
+			UG_LOG(RED_BEGIN << "VRLUserData: dimensions do not match! Required: "
+					<< dim << ", returned: " << arrayLength << COLOR_END << std::endl);
+		}
+
 		for (size_t i = 0; i < dim; ++i) {
 			x[i] = elements[i];
 		}
@@ -119,8 +126,6 @@ jobject compileUserDataString(JNIEnv *env, const char* s, unsigned int returnVal
 		env->ExceptionDescribe();
 	}
 
-	UG_LOG("Output: " << s << std::endl);
-
 	return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s),
 			returnValueDim);
 }
@@ -144,12 +149,11 @@ jmethodID getRunMethod(JNIEnv *env, jclass cls, int dim, const char* signature) 
 
 	jmethodID result = env->GetMethodID(cls, mName.str().c_str(), signature);
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
+	if (!checkException(env)) {
 
 		UG_LOG("[VRL-Bindings] Error:"
 				<< " cannot find userdata method."
-				<< " Please check our implementation!" << std::endl);
+				<< " Please check your implementation!" << std::endl);
 	}
 	return result;
 }
@@ -183,6 +187,11 @@ public:
 		javaVM = getJavaVM();
 		expression = "";
 		returnValueDim = 0;
+		
+		std::stringstream stream;
+		stream << "<font color=\"red\">VRLUserNumber"
+				<< dim << "D: invokation error:</font>";
+		invocationErrorMsg = stream.str();
 	}
 
 	void set_vrl_callback(const char* expression) {
@@ -211,9 +220,8 @@ public:
 					runMethod,
 					params);
 
-			if (localEnv->ExceptionCheck()) {
-				UG_LOG("VRLUserNumber: invokation error!\n");
-				localEnv->ExceptionDescribe();
+			if (checkException(localEnv,invocationErrorMsg)) {
+				// currently nothing to do, only necessary for arrays
 			}
 		}
 	}
@@ -236,6 +244,7 @@ protected:
 	jclass userDataClass;
 	jmethodID runMethod;
 	unsigned int returnValueDim;
+	std::string invocationErrorMsg;
 };
 
 template <int dim>
@@ -267,6 +276,11 @@ public:
 		javaVM = getJavaVM();
 		expression = "";
 		returnValueDim = 1;
+
+		std::stringstream stream;
+		stream << "<font color=\"red\">VRLUserNumber"
+				<< dim << "D: invokation error:</font>";
+		invocationErrorMsg = stream.str();
 	}
 
 	void set_vrl_callback(const char* expression) {
@@ -295,11 +309,8 @@ public:
 					runMethod,
 					params);
 
-			VectorConverter<dim>::toC(localEnv, result, c);
-
-			if (localEnv->ExceptionCheck()) {
-				UG_LOG("VRLUserNumber: invokation error!\n");
-				localEnv->ExceptionDescribe();
+			if (checkException(localEnv,invocationErrorMsg)) {
+				VectorConverter<dim>::toC(localEnv, result, c);
 			}
 		}
 	}
@@ -322,39 +333,37 @@ protected:
 	jclass userDataClass;
 	jmethodID runMethod;
 	unsigned int returnValueDim;
+	std::string invocationErrorMsg;
 };
 
-//class PrintUserNumber2d
-//{
-//	protected:
-//		typedef IUserData<number, 2>::functor_type NumberFunctor;
-//
-//	public:
-//		void set_user_number(IUserData<number, 2>& user)
-//		{
-//			m_Number = user.get_functor();
-//		}
-//
-//		number print(number x, number y)
-//		{
-//			MathVector<2> v(x,y);
-//			number time = 0.0;
-//			number ret;
-//
-//			if(m_Number)
-//				m_Number(ret, v, time);
-//			else
-//			{
-//				UG_LOG("Functor not set. \n");
-//				ret = -1;
-//			}
-//
-//			return ret;
-//		}
-//
-//	private:
-//		NumberFunctor m_Number;
-//};
+class PrintUserNumber2d {
+protected:
+	typedef IUserData<number, 2 > ::functor_type NumberFunctor;
+
+public:
+
+	void set_user_number(IUserData<number, 2 > & user) {
+		m_Number = user.get_functor();
+	}
+
+	number print(number x, number y) {
+		MathVector < 2 > v(x, y);
+		number time = 0.0;
+		number ret;
+
+		if (m_Number)
+			m_Number(ret, v, time);
+		else {
+			UG_LOG("Functor not set. \n");
+			ret = -1;
+		}
+
+		return ret;
+	}
+
+private:
+	NumberFunctor m_Number;
+};
 
 class PrintUserVector2d {
 protected:
@@ -388,7 +397,8 @@ private:
 };
 
 template <int dim>
-void RegisterUserData(ug::bridge::Registry& reg, std::vector<const char*> paramNames, const char* parentGroup) {
+void RegisterUserData(ug::bridge::Registry& reg,
+		std::vector<const char*> paramNames, const char* parentGroup) {
 	std::string grp = std::string(parentGroup);
 
 	////	Base class
@@ -410,7 +420,6 @@ void RegisterUserData(ug::bridge::Registry& reg, std::vector<const char*> paramN
 	//		}
 	//
 	//	}
-
 
 
 	//	VRLUserNumber
@@ -475,13 +484,21 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup) {
 	paramNames.push_back("t");
 	ug::vrl::RegisterUserData < 2 > (reg, paramNames, parentGroup);
 
-	typedef PrintUserVector2d T;
+	typedef PrintUserNumber2d T;
 	std::stringstream ss;
-	ss << "PrintUserVector2d";
+	ss << "PrintUserNumber2d";
 	reg.add_class_<T > (ss.str().c_str(), parentGroup)
 			.add_constructor()
-			.add_method("set_user_vector", &T::set_user_vector, "", "NumberProvider")
+			.add_method("set_user_number", &T::set_user_number, "", "NumberProvider")
 			.add_method("print", &T::print, "Result", "x#y");
+
+	typedef PrintUserVector2d T2;
+	std::stringstream ss2;
+	ss2 << "PrintUserVector2d";
+	reg.add_class_<T2 > (ss2.str().c_str(), parentGroup)
+			.add_constructor()
+			.add_method("set_user_vector", &T2::set_user_vector, "", "NumberProvider")
+			.add_method("print", &T2::print, "Result", "x#y");
 
 
 #endif
