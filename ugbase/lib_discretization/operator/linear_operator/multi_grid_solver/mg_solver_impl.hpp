@@ -20,7 +20,7 @@
 #include <sstream>
 
 
-//#define PROFILE_GMG
+#define PROFILE_GMG
 #ifdef PROFILE_GMG
 	#define GMG_PROFILE_FUNC()		PROFILE_FUNC()
 	#define GMG_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
@@ -69,6 +69,7 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 lmgc(size_t lev)
 {
+  GMG_PROFILE_FUNC(); // added 13042011ih
 // 	reset correction to zero on this level
 	m_c[lev]->set(0.0);
 
@@ -95,10 +96,12 @@ lmgc(size_t lev)
 	//	we restrict the defect. This is important since we will add vertical
 	//	slave values after restriction.
 		#ifdef UG_PARALLEL
+		GMG_PROFILE_BEGIN(GMG_PreSmConsistentToUnique); // added 13042011ih
 		if(!m_d[lev-1]->get_vertical_master_layout().empty())
 		{
 			ConsistentToUnique(m_d[lev-1], m_d[lev-1]->get_vertical_master_layout());
 		}
+		GMG_PROFILE_END(); // GMG_PreSmConsistentToUnique
 		#endif
 
 	// 	RESTRICT DEFECT
@@ -220,17 +223,22 @@ lmgc(size_t lev)
 		GMG_PROFILE_END();
 
 	// 	ADD COARSE GRID CORRECTION
+		GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr); // added 13042011ih
 		*m_c[lev] += *m_t[lev];
+		GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
 	//	UPDATE DEFECT FOR COARSE GRID CORRECTION
 	//	the correction has changed c := c + t. Thus, we also have to update
 	//	the defect d := d - A*t
+		GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr); // added 13042011ih
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_t[lev]))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Updating of defect"
 					" on level " << lev << " failed.\n");
+			GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
 			return false;
 		}
+		GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
 
 	// 	POST-SMOOTHING
 	//	We smooth the updated defect againt. This means that we compute a
@@ -253,7 +261,9 @@ lmgc(size_t lev)
 	{
 	// 	PARALLEL CASE: the d is additive
 		#ifdef UG_PARALLEL
+		GMG_PROFILE_BEGIN(GMG_SetStorageTypeBeforeBS); // added 13042011ih
 		m_d[lev]->set_storage_type(PST_ADDITIVE);
+		GMG_PROFILE_END(); // GMG_SetStorageTypeBeforeBS
 		#endif
 
 	//	begin profiling
@@ -330,7 +340,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 //	Allocate memory for given top level
 	if(!top_level_required(m_topLev))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':" // typo corrected (14042011ih)
 				" Cannot allocate memory. Aborting.\n");
 		return false;
 	}
@@ -417,7 +427,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	Allocate memory for given top level
 	if(!top_level_required(m_topLev))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common':"
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':" // typo corrected (14042011ih)
 				" Cannot allocate memory. Aborting.\n");
 		return false;
 	}
@@ -491,14 +501,14 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitCoarseGridOperator);
 	if(nonlinear){
 		if(!init_non_linear_level_operator()){
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
 					"Cannot init (nonlinear) Coarse Grid Operator.\n");
 			return false;
 		}
 	}
 	else {
 		if(!init_linear_level_operator()){
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
 					"Cannot init (linear) Coarse Grid Operator.\n");
 			return false;
 		}
@@ -509,7 +519,7 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
 	if(!init_smoother())
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
 				"Cannot init Smoother.\n");
 		return false;
 	}
@@ -519,7 +529,7 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitBaseSolver);
 	if(!init_base_solver())
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
 				"Cannot init Base Solver.\n");
 		return false;
 	}
@@ -529,7 +539,7 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitProlongation);
 	if(!init_prolongation())
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
 				"Cannot init Prolongation.\n");
 		return false;
 	}
@@ -786,36 +796,44 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 
 //	project defect from surface to level
+	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromSurface);
 	if(!project_surface_to_level(m_d, d))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of defect to level failed.\n");
 		return false;
 	}
+	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
 
 // 	Perform one multigrid cycle
+	GMG_PROFILE_BEGIN(GMGApply_lmgc);
 	if(!lmgc(m_topLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Cannot perform multi grid cycle.\n");
 		return false;
 	}
+	GMG_PROFILE_END(); //GMGApply_lmgc
 
 //	project defect from level to surface
+	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromLevelToSurface);
 	if(!project_level_to_surface(d, m_d))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of defect to surface failed.\n");
 		return false;
 	}
+	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromLevelToSurface
 
 //	project correction from level to surface
+	GMG_PROFILE_BEGIN(GMGApply_ProjectCorrectionFromLevelToSurface);
 	if(!project_level_to_surface(c, m_c))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of correction to surface failed.\n");
 		return false;
 	}
+	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
 
 //	increase dbg counter
 	m_dbgIterCnt++;
@@ -830,6 +848,7 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_level_to_surface(vector_type& surfFunc,
                          const std::vector<function_type*>& vLevelFunc)
 {
+  GMG_PROFILE_FUNC(); // added 13042011ih
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
 								m_pApproxSpace->get_level_dof_distributions();
@@ -841,7 +860,7 @@ project_level_to_surface(vector_type& surfFunc,
 //	check that surface dof distribution exists
 	if(&surfDD == NULL)
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level':"
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface':" // typo corrected (14042011ih)
 				"Surface DoF Distribution missing.\n");
 		return false;
 	}
@@ -852,7 +871,7 @@ project_level_to_surface(vector_type& surfFunc,
 //	check that surface view exists
 	if(surfView == NULL)
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level':"
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface':" // typo corrected (14042011ih)
 				" Surface View missing.\n");
 		return false;
 	}
@@ -864,9 +883,9 @@ project_level_to_surface(vector_type& surfFunc,
 	ExtractVectorsFromGridFunction(cvLevelVec, vLevelFunc);
 
 //	project
-	if(!ProjectLevelToSurface(surfFunc, surfDD, *surfView, cvLevelVec, vLevelDD))
+	if(!ProjectLevelToSurface(surfFunc, surfDD, *surfView, cvLevelVec, vLevelDD, m_baseLev)) // 'm_baseLev' added (13042011)
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': " // typo corrected (14042011ih)
 				"Projection of function from level to surface failed.\n");
 		return false;
 	}
@@ -881,6 +900,7 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_surface_to_level(std::vector<function_type*>& vLevelFunc,
                          const vector_type& surfFunc)
 {
+  GMG_PROFILE_FUNC(); // added 13042011ih
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
 								m_pApproxSpace->get_level_dof_distributions();
