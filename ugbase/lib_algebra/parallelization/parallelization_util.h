@@ -14,6 +14,20 @@
 #include "common/assert.h"
 #include "communication_policies.h"
 
+// additions for profiling (18042011ih)
+#include "common/profiler/profiler.h"
+#define PROFILE_PARALLELIZATION_UTIL
+#ifdef PROFILE_PARALLELIZATION_UTIL
+	#define PU_PROFILE_FUNC()	PROFILE_FUNC()
+	#define PU_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define PU_PROFILE_END()	PROFILE_END()
+#else
+	#define PU_PROFILE_FUNC()
+	#define PU_PROFILE_BEGIN(name)
+	#define PU_PROFILE_END()
+#endif
+// additions for profiling - end
+
 namespace ug{
 
 /**
@@ -84,19 +98,23 @@ void AdditiveToConsistent(	TVector* pVec,
 	//	create the required communication policies
 		ComPol_VecAdd<TVector> cpVecAdd(pVec);
 
+		PU_PROFILE_BEGIN(AdditiveToConsistent_step1); // added 18042011ih
 	//	perform communication
 		com.send_data(slaveLayout, cpVecAdd);
 		com.receive_data(masterLayout, cpVecAdd);
 		com.communicate();
+		PU_PROFILE_END(); //AdditiveToConsistent_step1 // added 18042011ih
 
 	//	step 2: copy master values to slaves
 	//	create the required communication policies
 		ComPol_VecCopy<TVector> cpVecCopy(pVec);
 
+		PU_PROFILE_BEGIN(AdditiveToConsistent_step2); // added 18042011ih
 	//	perform communication
 		com.send_data(masterLayout, cpVecCopy);
 		com.receive_data(slaveLayout, cpVecCopy);
 		com.communicate();
+		PU_PROFILE_END(); //AdditiveToConsistent_step2 // added 18042011ih
 }
 
 /// changes parallel storage type from unique to consistent
