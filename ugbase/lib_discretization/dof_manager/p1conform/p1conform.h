@@ -82,7 +82,7 @@ class P1ConformDoFDistribution
 		                         ISubsetHandler& sh, storage_manager_type& sm,
 		                         FunctionPattern& fp)
 		: base_type(goc, fp), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0)
+		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
@@ -99,7 +99,7 @@ class P1ConformDoFDistribution
 		                         FunctionPattern& fp,
 		                         const SurfaceView& surfView)
 		: base_type(goc, fp, surfView), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0)
+		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
@@ -363,7 +363,7 @@ class GroupedP1ConformDoFDistribution
 		                                storage_manager_type& sm,
 		                                FunctionPattern& dp)
 		: base_type(goc, dp), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0)
+		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
@@ -378,7 +378,7 @@ class GroupedP1ConformDoFDistribution
 		                                FunctionPattern& dp,
 		                                const SurfaceView& surfView)
 		: base_type(goc, dp, surfView), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0)
+		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
