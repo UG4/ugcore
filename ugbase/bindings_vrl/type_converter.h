@@ -258,6 +258,14 @@ jobject getClass(JNIEnv *env, jobject obj);
 std::string getClassName(JNIEnv *env, jobject obj);
 
 /**
+ * Returns the class name of the specified param object (class UGObject).
+ * @param env JVM environment to operate on
+ * @param obj param object
+ * @return class name of the specified param object
+ */
+std::string getParamClassName(JNIEnv *env, jobject obj);
+
+/**
  * Returns the parameter type (ug::bridge::ParameterTypes) of the
  * specified Java object.
  * @param env JVM environment to operate on
@@ -273,11 +281,13 @@ uint paramClass2ParamType(JNIEnv *env, jobject obj);
  * This is checked on Java via interface types.
  * @param env JVM environment to operate on
  * @param params array of Java objects
+ * @param reg ug registry
  * @param paramStack parameter stack
  * @return <code>true</code> if parameter types are equal;
  *         <code>false</code> otherwise
  */
 bool compareParamTypes(JNIEnv *env, jobjectArray params,
+        ug::bridge::Registry *reg,
 		const ug::bridge::ParameterStack& paramStack);
 
 /**

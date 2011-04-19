@@ -401,6 +401,41 @@ std::string getClassName(JNIEnv *env, jobject obj) {
 	return jObject2String(env, resultObj);
 }
 
+std::string getParamClassName(JNIEnv *env, jobject obj) {
+
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Pointer");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	jmethodID instanceMethodID =
+			env->GetStaticMethodID(cls, "isInstance", "(Ljava/lang/Object;)Z");
+
+	jboolean instanceof =
+			env->CallStaticBooleanMethod(cls, instanceMethodID, obj);
+
+	if (boolJ2C(instanceof)) {
+		jmethodID classNameMethodID = env->GetMethodID(cls,
+				"getClassName", "()Ljava/lang/String;");
+
+		if (env->ExceptionCheck()) {
+			env->ExceptionDescribe();
+		}
+		jobject resultObj = env->CallObjectMethod(obj,
+				classNameMethodID);
+
+		if (resultObj == NULL) {
+			return "";
+		}
+
+		return jObject2String(env, resultObj);
+	}
+
+
+	return "";
+}
+
 uint paramClass2ParamType(JNIEnv *env, jobject obj) {
 	int result = ug::bridge::PT_UNKNOWN;
 
@@ -431,6 +466,7 @@ uint paramClass2ParamType(JNIEnv *env, jobject obj) {
 }
 
 bool compareParamTypes(JNIEnv *env, jobjectArray params,
+		ug::bridge::Registry *reg,
 		ug::bridge::ParameterStack const& paramStack) {
 
 	// compare array lengths
@@ -460,6 +496,20 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 
 		if (paramType != paramStack.get_type(i)) {
 			return false;
+		}
+
+		// check if param is assignable
+		const ug::bridge::ClassNameNode* classNameNode =
+				ug::vrl::invocation::getClassNodePtrByName(
+				reg, getParamClassName(env, param));
+
+		if (classNameNode != NULL) {
+			if (paramStack.class_name(i) != NULL) {
+				if (!ug::bridge::ClassNameTreeContains(
+						*classNameNode, paramStack.class_name(i))) {
+					return false;
+				}
+			}
 		}
 	}
 
@@ -698,7 +748,7 @@ jobjectArray params2NativeParams(JNIEnv *env,
 
 		env->CallVoidMethod(obj, setClassNames, stringArrayC2J(env,
 				getBaseClassNames(params.class_name_node(i))));
-		
+
 		env->CallVoidMethod(obj, setParamInfo,
 				stringArrayC2J(env, func.parameter_info_vec(i)));
 

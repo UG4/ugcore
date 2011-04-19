@@ -105,7 +105,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 				if (strcmp(method->name().c_str(),
 						methodName.c_str()) == 0 &&
 						compareParamTypes(
-						env, params, method->params_in())) {
+						env, params, reg, method->params_in())) {
 
 					//	// improve lookup time: add method signature to map
 					//	methods[signature.c_str()] = method;
@@ -154,7 +154,7 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 			if (strcmp(func->name().c_str(),
 					functionName.c_str()) == 0 &&
 					compareParamTypes(
-					env, params, func->params_in())) {
+					env, params, reg, func->params_in())) {
 
 				// improve lookup time
 				//			functions[signature.c_str()] = func;
@@ -176,6 +176,10 @@ const ug::bridge::IExportedClass* getExportedClassPtrByName(
 const ug::bridge::ClassNameNode* getClassNodePtrByName(
 		ug::bridge::Registry* reg,
 		std::string className) {
+
+	if (className == "") {
+		return NULL;
+	}
 
 	return &classes.first(className)->class_name_node();
 }
