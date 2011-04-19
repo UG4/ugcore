@@ -15,4 +15,42 @@ unsigned long hash_key<GeomObjID>(const GeomObjID& key)
 	return (unsigned long)(99971 * key.first + key.second * key.second);
 }
 
+
+
+///	A helper method for GridLayoutMap::remove_empty_interfaces()
+template <class TGeomObj>
+static void RemoveEmptyInterfaces(
+		typename GridLayoutMap::Types<TGeomObj>::Map& map)
+{
+	typedef typename GridLayoutMap::Types<TGeomObj>::Map TMap;
+	typedef typename TMap::iterator TIterator;
+
+	typedef typename GridLayoutMap::Types<TGeomObj>::Layout TLayout;
+	typedef typename TLayout::iterator TInterfaceIter;
+	typedef typename TLayout::Interface TInterface;
+
+	for(TIterator layoutIter = map.begin(); layoutIter != map.end(); ++layoutIter)
+	{
+		TLayout& layout = layoutIter->second;
+		for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
+			for(TInterfaceIter iter = layout.begin(lvl); iter != layout.end(lvl);)
+			{
+				TInterface& intfc = layout.interface(iter);
+				if(intfc.empty())
+					iter = layout.erase(iter, lvl);
+				else
+					++iter;
+			}
+		}
+	}
+}
+
+void GridLayoutMap::remove_empty_interfaces()
+{
+	RemoveEmptyInterfaces<VertexBase>(m_vertexLayoutMap);
+	RemoveEmptyInterfaces<EdgeBase>(m_edgeLayoutMap);
+	RemoveEmptyInterfaces<Face>(m_faceLayoutMap);
+	RemoveEmptyInterfaces<Volume>(m_volumeLayoutMap);
+}
+
 }// end of namespace

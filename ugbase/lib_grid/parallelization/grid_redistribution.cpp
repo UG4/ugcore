@@ -107,7 +107,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  SubsetHandler& shPartition,
 					  const GridDataSerializationHandler& serializer,
 					  const GridDataSerializationHandler& deserializer,
-					  int* processMap,
+					  bool createVerticalInterfaces,
+					  vector<int>* processMap,
 					  const pcl::ProcessCommunicator& procComm)
 {
 
@@ -223,7 +224,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	connected procs.
 	CreateRedistributionLayouts(vertexLayouts, edgeLayouts, faceLayouts,
 					volumeLayouts, distGridMgrInOut, shPartition, false,
-					&msel, processMap, &aTargetProcs, &aTransferInfos);
+					createVerticalInterfaces, &msel, processMap,
+					&aTargetProcs, &aTransferInfos);
 
 
 
@@ -252,7 +254,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 			int toProc = si;
 		//	if a process map exists, we'll use the associated process
 			if(processMap)
-				toProc = processMap[si];
+				toProc = processMap->at(si);
 
 			sendToRanks.push_back(toProc);
 			sendPartitionInds.push_back(si);
@@ -381,6 +383,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 ////////////////////////////////
 //	UPDATE THE DISTRIBUTED GRID MANAGER
+	glm.remove_empty_interfaces();
 	distGridMgrInOut.enable_ordered_element_insertion(true);
 	distGridMgrInOut.grid_layouts_changed(false);
 
@@ -402,7 +405,9 @@ UG_LOG("has slave interface to 1: " << slaveLayout.interface_exists(1) << endl);
 UG_LOG("has slave interface to 2: " << slaveLayout.interface_exists(2) << endl);
 UG_LOG("has slave interface to 3: " << slaveLayout.interface_exists(3) << endl);
 */
-TestGridLayoutMap(mg, glm);
+
+//TestGridLayoutMap(mg, glm);
+
 //END - ONLY FOR DEBUG
 
 
@@ -591,7 +596,7 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 
 //	the position attachment is only accessed for debug purposes
 //todo:	remove this
-	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPosition);
+	//Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPosition);
 
 //	to avoid double interface entries we sadly have to attach vectors
 //	to each element type, which stores in which interfaces the entry already lies.
@@ -645,7 +650,7 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 
 		//	to speed things up, we'll cache the target interfaces and layouts.
 			Layout* pcurLayout = NULL;
-			int curLayoutKey = 0;
+			unsigned int curLayoutKey = 0;
 			Interface* pcurInterface = NULL;
 
 		//	iterate over all entries of redistLayout
@@ -684,7 +689,8 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 				if((int)geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID
 					== (int)VERTEX)
 				{
-					UG_LOG(" at " << aaPos[node] << endl);
+					UG_LOG(endl);
+					//UG_LOG(" at " << aaPos[node] << endl);
 				}
 				else{
 					UG_LOG(endl);

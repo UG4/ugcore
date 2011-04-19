@@ -41,6 +41,7 @@
  * to the main axes and there is a similar amount of elements in each direction
  * (no anisotropy), it should work well.
  */
+/*
 template <class TElem, int IDimension>
 bool PartitionElementsByRepeatedIntersectionKD(ug::SubsetHandler& shOut,
 										ug::Grid& grid,
@@ -140,25 +141,26 @@ bool PartitionElementsByRepeatedIntersectionKD(ug::SubsetHandler& shOut,
 
 	return true;
 }
-
+*/
 
 ////////////////////////////////////////////////////////////////////////
 //	some classes and methods that help sorting certain elements by position
-template <class TElem>
+template <class TElem, class TPos>
 class ElemWithPosition
 {
 	public:
-		TElem*			pElem;
-		ug::vector3	pos;
+		TElem*	pElem;
+		TPos	pos;
 };
 
 /// if two values are identical, we'll return the cmp of the next dimension.
-template <class TElem, int IDim>
-bool cmp(const ElemWithPosition<TElem>& ele1, const ElemWithPosition<TElem>& ele2)
+template <class TElem, int ICurDim, class TPos>
+bool cmp(const ElemWithPosition<TElem, TPos>& ele1,
+		 const ElemWithPosition<TElem, TPos>& ele2)
 {
-	for(int i = 0; i < 3; ++i)
+	for(size_t i = 0; i < TPos::Size; ++i)
 	{
-		int ind = (IDim + i) % 3;
+		int ind = (ICurDim + i) % TPos::Size;
 		if(ele1.pos[ind] != ele2.pos[ind])
 			return ele1.pos[ind] < ele2.pos[ind];
 	}
@@ -177,16 +179,16 @@ bool cmp(const ElemWithPosition<TElem>& ele1, const ElemWithPosition<TElem>& ele
  * The method the calls itself recursivly, until it finally assigns the
  * elements to subsets.
  */
-template <class TElem, int IDim>
+template <class TElem, int IDim, class TPos>
 bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										int firstSubset, int numSubsets,
 										int firstElemInd, int numElems,
-										std::vector<ElemWithPosition<TElem> >& vElems,
+										std::vector<ElemWithPosition<TElem, TPos> >& vElems,
 										int actDim)
 {
-	typename std::vector<ElemWithPosition<TElem> >::iterator iterBegin =
+	typename std::vector<ElemWithPosition<TElem, TPos> >::iterator iterBegin =
 												vElems.begin() + firstElemInd;
-	typename std::vector<ElemWithPosition<TElem> >::iterator iterEnd =
+	typename std::vector<ElemWithPosition<TElem, TPos> >::iterator iterEnd =
 												iterBegin + numElems;
 												
 //	if we have to split vElems into multiple subsets
@@ -196,9 +198,9 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 	//	by their coordinate-value for actDim.		
 		switch(actDim)
 		{
-			case 0:	sort(iterBegin, iterEnd, cmp<TElem, 0>); break;
-			case 1:	sort(iterBegin, iterEnd, cmp<TElem, 1>); break;
-			case 2:	sort(iterBegin, iterEnd, cmp<TElem, 2>); break;
+			case 0:	sort(iterBegin, iterEnd, cmp<TElem, 0, TPos>); break;
+			case 1:	sort(iterBegin, iterEnd, cmp<TElem, 1, TPos>); break;
+			case 2:	sort(iterBegin, iterEnd, cmp<TElem, 2, TPos>); break;
 		}
 		
 	//	get the number of elements that go into the first and second subtree
@@ -243,22 +245,24 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
  * Runs with something like O(n*log(n)).
  * It can not be guaranteed, that subsets are connected.
  */
-template <class TElem, int IDimension>
+template <class TElem, int IDimension, class TAPosition>
 bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										ug::Grid& grid,
 										int numSubsets,
-										ug::APosition& aVrtPos,
+										TAPosition& aVrtPos,
 										int startDim = 0)
 {
 //	TODO: move implementation to separate ..._impl.hpp file.
 	using namespace ug;
 	using namespace std;
 	
+	typedef typename TAPosition::ValueType	TPos;
+
 //	position attachment accessor
-	typename Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aVrtPos);
+	typename Grid::VertexAttachmentAccessor<TAPosition> aaPos(grid, aVrtPos);
 	
 //	fill all elements of type TElem of the grid into an ElemWithPosition-vector
-	typedef ElemWithPosition<TElem>	Element;
+	typedef ElemWithPosition<TElem, TPos>	Element;
 	vector<Element> vElems(grid.template num<TElem>());
 	
 	typename geometry_traits<TElem>::iterator elemIter = grid.template begin<TElem>();
@@ -271,8 +275,8 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 	}
 	
 //	create the subsets from this vector
-	return PartitionElementsByRepeatedIntersection<TElem, IDimension>(shOut, 0,
-															numSubsets,
+	return PartitionElementsByRepeatedIntersection<TElem, IDimension, TPos>(
+															shOut, 0, numSubsets,
 															0, vElems.size(),
 															vElems,
 															startDim % IDimension);
@@ -287,23 +291,25 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
  * Runs with something like O(n*log(n)).
  * It can not be guaranteed, that subsets are connected.
  */
-template <class TElem, int IDimension>
+template <class TElem, int IDimension, class TAPosition>
 bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										ug::MultiGrid& mg,
 										int level,
 										int numSubsets,
-										ug::APosition& aVrtPos,
+										TAPosition& aVrtPos,
 										int startDim = 0)
 {
 //	TODO: move implementation to separate ..._impl.hpp file.
 	using namespace ug;
 	using namespace std;
 	
+	typedef typename TAPosition::ValueType	TPos;
+
 //	position attachment accessor
-	typename Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aVrtPos);
+	typename Grid::VertexAttachmentAccessor<TAPosition> aaPos(mg, aVrtPos);
 	
 //	fill all elements of type TElem of the grid into an ElemWithPosition-vector
-	typedef ElemWithPosition<TElem>	Element;
+	typedef ElemWithPosition<TElem, TPos>	Element;
 	vector<Element> vElems(mg.template num<TElem>(level));
 	
 	typename geometry_traits<TElem>::iterator elemIter = mg.template begin<TElem>(level);
@@ -316,8 +322,8 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 	}
 	
 //	create the subsets from this vector
-	return PartitionElementsByRepeatedIntersection<TElem, IDimension>(shOut, 0,
-															numSubsets,
+	return PartitionElementsByRepeatedIntersection<TElem, IDimension, TPos>(
+															shOut, 0, numSubsets,
 															0, vElems.size(),
 															vElems,
 															startDim % IDimension);

@@ -55,7 +55,8 @@ template <class TGeomObj, class TAAIntVec>
 static void
 CollectRedistributionTargetProcs(
 						vector<RedistributionNodeLayout<TGeomObj> >& layouts,
-						TAAIntVec& aaIntVec, int localLayoutIndex, int* processMap)
+						TAAIntVec& aaIntVec, int localLayoutIndex,
+						std::vector<int>* processMap)
 {
 	typedef typename DistributionNodeLayout<TGeomObj>::NodeVec		NodeVec;
 	typedef typename DistributionNodeLayout<TGeomObj>::Interface	Interface;
@@ -67,7 +68,7 @@ CollectRedistributionTargetProcs(
 
 		int targetProc = i_layout;
 		if(processMap)
-			targetProc = processMap[i_layout];
+			targetProc = (*processMap)[i_layout];
 
 	//	get the nodes of the current layout
 		NodeVec& nodes = layouts[i_layout].node_vec();
@@ -91,6 +92,10 @@ CollectRedistributionTargetProcs(
  * the second one is the target to which data will be written.
  *
  * Make sure that both accessors work with the elements in the given layout.
+ *
+ * \param pureVertical	if this parameter is set to true, data is only communicated
+ * 						for elements which only lie in a vertical interface.
+ * 						This is important to avoid double-entries.
  */
 template <class TLayout, class TAAIntVec, class TAATransferInfoVec>
 class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
@@ -106,9 +111,15 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 	/**	Through the parameters select and deselect one may specify whether
 	 * a process selects and/or deselects elements based on the received
 	 * selection status.*/
-		ComPol_SynchronizeNodeTransfer(ISelector& sel, TAAIntVec& aaIntVec,
-										TAATransferInfoVec& aaTransInfoVec)
-			 :	m_sel(sel), m_aaIntVec(aaIntVec), m_aaTransInfoVec(aaTransInfoVec)
+		ComPol_SynchronizeNodeTransfer(DistributedGridManager& distGridMgr,
+										ISelector& sel, TAAIntVec& aaIntVec,
+										TAATransferInfoVec& aaTransInfoVec,
+										bool pureVertical) :
+			m_distGridMgr(distGridMgr),
+			m_sel(sel),
+			m_aaIntVec(aaIntVec),
+			m_aaTransInfoVec(aaTransInfoVec),
+			m_pureVertical(pureVertical)
 		{}
 
 		virtual int
@@ -125,6 +136,14 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
+				if(m_pureVertical){
+				//	if pure vertical is enabled, we wont send data for
+				//	elements which also lie in a horizontal interface
+					if(m_distGridMgr.contains_status(elem, INT_H_MASTER)
+					  || m_distGridMgr.contains_status(elem, INT_H_SLAVE))
+						continue;
+				}
+
 			//	first write whether the elem is moved away from this proc
 				if(m_sel.is_selected(elem))
 					buff.write((char*)&bFalse, sizeof(byte));
@@ -149,6 +168,14 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
+				if(m_pureVertical){
+				//	if pure vertical is enabled, we wont read data for
+				//	elements which also lie in a horizontal interface
+					if(m_distGridMgr.contains_status(elem, INT_H_MASTER)
+					  || m_distGridMgr.contains_status(elem, INT_H_SLAVE))
+						continue;
+				}
+
 				buff.read((char*)&bMove, sizeof(byte));
 				targetProcs.clear();
 				Deserialize(buff, targetProcs);
@@ -163,9 +190,11 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	protected:
+		DistributedGridManager&	m_distGridMgr;
 		ISelector&			m_sel;
 		TAAIntVec&			m_aaIntVec;
 		TAATransferInfoVec&	m_aaTransInfoVec;
+		bool				m_pureVertical;
 };
 
 
@@ -182,25 +211,30 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
  */
 template <class TGeomObj, class TAAIntVec, class TAATransferInfoVec>
 static void
-SynchronizeNodeTransfer(Grid& g, GridLayoutMap& glm,
+SynchronizeNodeTransfer(DistributedGridManager& distGridMgr,
 						pcl::ParallelCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
 						TAAIntVec& aaIntVec,
 						TAATransferInfoVec& aaTransInfoVec,
 						int localLayoutIndex,
-						ISelector& sel,
-						int* processMap)
+						ISelector& sel)
 {
 	typedef typename GridLayoutMap::Types<TGeomObj>		Types;
 	typedef typename Types::Layout		Layout;
 	typedef typename Types::Interface	Interface;
 
+	GridLayoutMap& glm = distGridMgr.grid_layout_map();
+
 //	this communication policy fills aaTransInfoVec
 	ComPol_SynchronizeNodeTransfer<Layout, TAAIntVec, TAATransferInfoVec>
-		compol(sel, aaIntVec, aaTransInfoVec);
+		compolH(distGridMgr, sel, aaIntVec, aaTransInfoVec, false);
+	ComPol_SynchronizeNodeTransfer<Layout, TAAIntVec, TAATransferInfoVec>
+		compolV(distGridMgr, sel, aaIntVec, aaTransInfoVec, true);
 
 //	exchange data, both from masters to slaves and vice versa
-	comm.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compol);
-	comm.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compol);
+	comm.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolH);
+	comm.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolH);
+	comm.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolV);
+	comm.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolV);
 	comm.communicate();
 }
 
@@ -232,7 +266,9 @@ void FinalizeRedistributionLayoutInterfaces(
 					TAAProcTargets& aaTargetProcs,
 					TAATransferInfos& aaTransferInfos,
 					ISelector& sel,
-					int* processMap = NULL)
+					byte masterKey,
+					byte slaveKey,
+					vector<int>* processMap = NULL)
 {
 	typedef RedistributionNodeLayout<TGeomObj*> TDistLayout;
 	typedef typename TDistLayout::NodeType 	Node;
@@ -254,12 +290,12 @@ void FinalizeRedistributionLayoutInterfaces(
 	MultiGrid& mg = *distGridMgr.get_assigned_grid();
 
 	Layout* masters = NULL;
-	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(INT_H_MASTER))
-		masters = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(INT_H_MASTER);
+	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(masterKey))
+		masters = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(masterKey);
 
 	Layout* slaves = NULL;
-	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(INT_H_SLAVE))
-		slaves = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(INT_H_SLAVE);
+	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(slaveKey))
+		slaves = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(slaveKey);
 
 //	we have to attach integers to the elements, in which we'll store the
 //	redistribution layouts node indices.
@@ -274,7 +310,7 @@ void FinalizeRedistributionLayoutInterfaces(
 	{
 		int targetProc = i_layout;
 		if(processMap)
-			targetProc = processMap[i_layout];
+			targetProc = (*processMap)[i_layout];
 
 		TDistLayout& distLayout = distLayoutVec[i_layout];
 		const typename TDistLayout::NodeVec& nodes = distLayout.node_vec();
@@ -351,7 +387,7 @@ void FinalizeRedistributionLayoutInterfaces(
 										DistInterface& interface = distLayout.interface(
 															ProcPair(targets[j], connProc), lvl);
 										interface.push_back(DistributionInterfaceEntry(
-																aaNodeInd[elem], INT_H_MASTER));
+																aaNodeInd[elem], masterKey));
 									}
 									break;
 								}
@@ -360,7 +396,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									DistInterface& interface = distLayout.interface(
 															ProcPair(newMasterProc, connProc), lvl);
 									interface.push_back(DistributionInterfaceEntry(
-															aaNodeInd[elem], INT_H_SLAVE));
+															aaNodeInd[elem], slaveKey));
 									break;
 								}
 							}
@@ -386,7 +422,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									DistInterface& interface = distLayout.interface(
 														ProcPair(info.targetProc, connProc), lvl);
 									interface.push_back(DistributionInterfaceEntry(
-															aaNodeInd[elem], INT_H_MASTER));
+															aaNodeInd[elem], masterKey));
 								}
 							}
 						}
@@ -460,7 +496,7 @@ void FinalizeRedistributionLayoutInterfaces(
 										DistInterface& interface = distLayout.interface(
 															ProcPair(targets[j], connProc), lvl);
 										interface.push_back(DistributionInterfaceEntry(
-																aaNodeInd[elem], INT_H_MASTER));
+																aaNodeInd[elem], masterKey));
 									}
 									break;
 								}
@@ -469,7 +505,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									DistInterface& interface = distLayout.interface(
 															ProcPair(newMasterProc, connProc), lvl);
 									interface.push_back(DistributionInterfaceEntry(
-															aaNodeInd[elem], INT_H_SLAVE));
+															aaNodeInd[elem], slaveKey));
 									break;
 								}
 							}
@@ -515,7 +551,8 @@ void CreateRedistributionLayouts(
 					std::vector<RedistributionFaceLayout>& faceLayoutsOut,
 					std::vector<RedistributionVolumeLayout>& volumeLayoutsOut,
 					DistributedGridManager& distGridMgr, SubsetHandler& sh,
-					bool distributeGenealogy, MGSelector* pSel, int* processMap,
+					bool distributeGenealogy, bool createVerticalInterfaces,
+					MGSelector* pSel, std::vector<int>* processMap,
 					Attachment<std::vector<int> >* paTargetProcs,
 					ARedistributionNodeTransferInfoVec* paTransferInfoVec,
 					AGeomObjID& aGlobalID)
@@ -539,8 +576,9 @@ void CreateRedistributionLayouts(
 //		could accidently be marked as masters.
 	CreateDistributionLayouts(vertexLayoutsOut, edgeLayoutsOut,
 							  faceLayoutsOut, volumeLayoutsOut,
-							  mg, sh, distributeGenealogy, &msel,
-							  &distGridMgr);
+							  mg, sh, distributeGenealogy,
+							  createVerticalInterfaces,
+							  &msel, &distGridMgr, processMap);
 
 //	gather global ids for each node
 	AssociateGlobalIDs<VertexBase>(mg, vertexLayoutsOut, aGlobalID);
@@ -553,9 +591,9 @@ void CreateRedistributionLayouts(
 	if(processMap){
 	//	find the local process in the processMap
 		int myRank = pcl::GetProcRank();
-		for(int i = 0; i < sh.num_subsets(); ++i){
-			if(processMap[i] == myRank){
-				localLayoutInd = i;
+		for(size_t i = 0; i < processMap->size(); ++i){
+			if(processMap->at(i) == myRank){
+				localLayoutInd = (int)i;
 				break;
 			}
 		}
@@ -629,30 +667,41 @@ void CreateRedistributionLayouts(
 	pcl::ParallelCommunicator<FaceLayout> commFACE;
 	pcl::ParallelCommunicator<VolumeLayout> commVOL;
 
-	GridLayoutMap& glm = distGridMgr.grid_layout_map();
-	SynchronizeNodeTransfer<VertexBase>(mg, glm, commVRT, aaTargetProcsVRT,
-							aaTransInfoVecVRT, localLayoutInd, msel, processMap);
-	SynchronizeNodeTransfer<EdgeBase>(mg, glm, commEDGE, aaTargetProcsEDGE,
-							aaTransInfoVecEDGE, localLayoutInd, msel, processMap);
-	SynchronizeNodeTransfer<Face>(mg, glm, commFACE, aaTargetProcsFACE,
-							aaTransInfoVecFACE, localLayoutInd, msel, processMap);
-	SynchronizeNodeTransfer<Volume>(mg, glm, commVOL, aaTargetProcsVOL,
-							aaTransInfoVecVOL, localLayoutInd, msel, processMap);
+	SynchronizeNodeTransfer<VertexBase>(distGridMgr, commVRT, aaTargetProcsVRT,
+							aaTransInfoVecVRT, localLayoutInd, msel);
+	SynchronizeNodeTransfer<EdgeBase>(distGridMgr, commEDGE, aaTargetProcsEDGE,
+							aaTransInfoVecEDGE, localLayoutInd, msel);
+	SynchronizeNodeTransfer<Face>(distGridMgr, commFACE, aaTargetProcsFACE,
+							aaTransInfoVecFACE, localLayoutInd, msel);
+	SynchronizeNodeTransfer<Volume>(distGridMgr, commVOL, aaTargetProcsVOL,
+							aaTransInfoVecVOL, localLayoutInd, msel);
 
 //	finalize the redistribution layouts by constructing all interfaces
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, vertexLayoutsOut,
 										aaTargetProcsVRT, aaTransInfoVecVRT,
-										msel, processMap);
-
+										msel, INT_H_MASTER, INT_H_SLAVE, processMap);
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, edgeLayoutsOut,
 										aaTargetProcsEDGE, aaTransInfoVecEDGE,
-										msel, processMap);
+										msel, INT_H_MASTER, INT_H_SLAVE, processMap);
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, faceLayoutsOut,
 										aaTargetProcsFACE, aaTransInfoVecFACE,
-										msel, processMap);
+										msel, INT_H_MASTER, INT_H_SLAVE, processMap);
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, volumeLayoutsOut,
 										aaTargetProcsVOL, aaTransInfoVecVOL,
-										msel, processMap);
+										msel, INT_H_MASTER, INT_H_SLAVE, processMap);
+
+	FinalizeRedistributionLayoutInterfaces(distGridMgr, vertexLayoutsOut,
+										aaTargetProcsVRT, aaTransInfoVecVRT,
+										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
+	FinalizeRedistributionLayoutInterfaces(distGridMgr, edgeLayoutsOut,
+										aaTargetProcsEDGE, aaTransInfoVecEDGE,
+										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
+	FinalizeRedistributionLayoutInterfaces(distGridMgr, faceLayoutsOut,
+										aaTargetProcsFACE, aaTransInfoVecFACE,
+										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
+	FinalizeRedistributionLayoutInterfaces(distGridMgr, volumeLayoutsOut,
+										aaTargetProcsVOL, aaTransInfoVecVOL,
+										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
 
 // detach temporary attachments, only if they were not specified from outside.
 	if(!paTargetProcs)

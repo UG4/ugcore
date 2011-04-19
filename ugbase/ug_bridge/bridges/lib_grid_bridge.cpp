@@ -493,37 +493,37 @@ void TestGridRedistribution(const char* filename)
 	GridLayoutMap& glm = distGridMgr.grid_layout_map();
 
 	int numProcs = pcl::GetNumProcesses();
-	if(numProcs != 3){
-		UG_LOG(" This test-method only runs with exactly 3 processes.\n");
+	if(numProcs != 4){
+		UG_LOG(" This test-method only runs with exactly 4 processes.\n");
 		return;
 	}
 
 UG_LOG(" performing initial distribution\n");
 	if(pcl::GetProcRank() == 0){
 	//	use this for loading and distribution.
-		MultiGrid tmg;
-		SubsetHandler tsh(tmg);
-		SubsetHandler shPart(tmg);
+		//MultiGrid tmg;
+		//SubsetHandler tsh(tmg);
+		SubsetHandler shPart(mg);
 
 		bool success = true;
 		string strError;
 
-		if(!LoadGridFromFile(tmg, filename, tsh)){
+		if(!LoadGridFromFile(mg, filename, sh)){
 			strError = "File not found.";
 			success = false;
 		}
 		else{
 		//	partition the grid once (only 2 partitions)
-			if(tmg.num_volumes() > 0){
+			if(mg.num_volumes() > 0){
 				PartitionElementsByRepeatedIntersection<Volume, 3>(
-												shPart, tmg,
-												tmg.num_levels() - 1,
+												shPart, mg,
+												mg.num_levels() - 1,
 												2, aPosition);
 			}
-			else if(tmg.num_faces() > 0){
+			else if(mg.num_faces() > 0){
 				PartitionElementsByRepeatedIntersection<Face, 2>(
-												shPart, tmg,
-												tmg.num_levels() - 1,
+												shPart, mg,
+												mg.num_levels() - 1,
 												2, aPosition);
 			}
 			else{
@@ -540,7 +540,8 @@ UG_LOG(" performing initial distribution\n");
 		}
 
 	//	now distribute the grid
-		if(!DistributeGrid(tmg, tsh, shPart, 0, &mg, &sh, &glm)){
+		//if(!DistributeGrid(tmg, tsh, shPart, 0, &mg, &sh, &glm)){
+		if(!DistributeGrid_KeepSrcGrid(mg, sh, glm, shPart, 0, false)){
 			UG_LOG("Distribution failed\n");
 			return;
 		}
@@ -551,7 +552,7 @@ UG_LOG(" performing initial distribution\n");
 			return;
 		}
 
-		if(!ReceiveGrid(mg, sh, glm, 0, false)){
+		if(!ReceiveGrid(mg, sh, glm, 0, true)){
 			UG_LOG("Receive failed.\n");
 			return;
 		}
@@ -603,7 +604,7 @@ UG_LOG(" preparing for redistribution\n");
 			case 0:	shPart.move_subset(1, 2);
 					break;
 
-			case 1:	shPart.move_subset(1, 2);
+			case 1:	shPart.move_subset(1, 3);
 					shPart.move_subset(0, 1);
 					break;
 
@@ -632,15 +633,15 @@ UG_LOG(" redistributing grid\n");
 	serializer.add(&shSerializer);
 
 //	now call redistribution
-	RedistributeGrid(distGridMgr, shPart, serializer, serializer);
+	RedistributeGrid(distGridMgr, shPart, serializer, serializer, false);
 UG_LOG("done\n");
 
-
+/*
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
 		UG_LOG("level " << lvl << ":\n");
 		PrintElementNumbers(mg.get_geometric_object_collection(lvl));
 	}
-
+*/
 //	save the hierarchy on each process
 	{
 		stringstream ss;

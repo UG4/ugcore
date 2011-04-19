@@ -104,7 +104,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  SubsetHandler& shPartition,
 					  const GridDataSerializationHandler& serializer,
 					  const GridDataSerializationHandler& deserializer,
-					  int* processMap = NULL,
+					  bool createVerticalInterfaces,
+					  std::vector<int>* processMap = NULL,
 					  const pcl::ProcessCommunicator& procComm =
 							  	  	  pcl::ProcessCommunicator());
 					  

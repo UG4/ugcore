@@ -203,6 +203,9 @@ class GridLayoutMap
 
 		void clear();
 
+	///	removes empty interfaces.
+		void remove_empty_interfaces();
+
 	private:
 		template <class TType>
 		inline typename Types<TType>::Map&

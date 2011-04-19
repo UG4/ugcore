@@ -32,8 +32,8 @@ struct DistributionInterfaceEntry
 		localID(nLocalID),
 		type(nType)	{}
 
-	int localID : 28;
-	int type  	: 4;
+	unsigned int localID : 28;
+	unsigned int type  	: 4;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -212,8 +212,10 @@ void CreateDistributionLayouts(
 						std::vector<TVolumeDistributionLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						bool distributeGenealogy,
+						bool createVerticalInterfaces = false,
 						MGSelector* pSel = NULL,
-						DistributedGridManager* pDistGridMgr = NULL);
+						DistributedGridManager* pDistGridMgr = NULL,
+						std::vector<int>* processMap = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateRedistributionLayouts
@@ -239,7 +241,7 @@ void CreateDistributionLayouts(
  *
  * If you pass a pointer to a valid selector (which is registered at mg),
  * the selector will be used for internal calculations.
- * Whent the algorithm is done the selector will contain all elements,
+ * When the algorithm is done the selector will contain all elements,
  * which will reside on the local process (vertices, edges, faces and volumes).
  *
  * You may specify the attachments paTargetProcs and paTransferInfoVec,
@@ -264,7 +266,8 @@ void CreateRedistributionLayouts(
 					std::vector<RedistributionVolumeLayout>& volumeLayoutsOut,
 					DistributedGridManager& distGridMgr,
 					SubsetHandler& shPartition, bool distributeGenealogy,
-					MGSelector* pSel = NULL, int* processMap = NULL,
+					bool createVerticalInterfaces,
+					MGSelector* pSel = NULL, std::vector<int>* processMap = NULL,
 					Attachment<std::vector<int> >* paTargetProcs = NULL,
 					ARedistributionNodeTransferInfoVec* paTransferInfoVec = NULL,
 					AGeomObjID& aGlobalID = aGeomObjID);
@@ -297,8 +300,7 @@ void SerializeGridAndDistributionLayouts(
 							DistributionVolumeLayout& volLayout,
 							AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
 							AInt& aLocalIndFACE, AInt& aLocalIndVOL,
-							MGSelector* pSel = NULL,
-							std::vector<int>* pProcessMap = NULL);
+							MGSelector* pSel = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeDistributionLayoutInterfaces
@@ -309,8 +311,7 @@ void SerializeGridAndDistributionLayouts(
  * 			pProcessMap should thus be removed.
  */
 template <class TLayout>
-void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
-									std::vector<int>* pProcessMap = NULL);
+void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout);
 
 ////////////////////////////////////////////////////////////////////////
 ///	deserializes a DistributionLayoutInterface.
@@ -387,7 +388,7 @@ void MarkNodesInLayouts(Grid& g, TIterator layoutsBegin, TIterator layoutsEnd)
 }
 
 ///	Counts how many entries with the given type are contained in the given interface.
-size_t NumEntriesOfTypeInDistributionInterface(int type,
+size_t NumEntriesOfTypeInDistributionInterface(unsigned int type,
 			std::vector<DistributionInterfaceEntry>& interface);
 
 ///	checks whether the interconnections between the layouts are consistent.

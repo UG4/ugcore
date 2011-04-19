@@ -353,12 +353,19 @@ void TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
 {
 //	check the interfaces
 	pcl::ParallelCommunicator<VertexLayout::LevelLayout> com;
+	pcl::ProcessCommunicator procCom;
 
 	UG_LOG("\nTesting horizontal layouts...\n");
 	{
 		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_H_MASTER);
 		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_H_SLAVE);
-		for(size_t i = 0; i < mg.num_levels(); ++i){
+
+	//	we have to retrieve the max level of all layouts
+		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
+		int globMaxLevel = locMaxLevel;
+		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
+
+		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
 					slaveLayout.layout_on_level(i), true);
@@ -369,7 +376,11 @@ void TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
 	{
 		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_V_MASTER);
 		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_V_SLAVE);
-		for(size_t i = 0; i < mg.num_levels(); ++i){
+		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
+		int globMaxLevel = locMaxLevel;
+		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
+
+		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
 					slaveLayout.layout_on_level(i), true);

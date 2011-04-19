@@ -60,10 +60,8 @@ class Domain {
 		typedef Grid::VertexAttachmentAccessor<position_attachment_type>
 					position_accessor_type;
 
-#ifdef UG_PARALLEL
 	//	Distributed Grid Manager (for parallel case)
 		typedef DistributedGridManager distributed_grid_manager_type;
-#endif
 
 	public:
 	///	Default constructor
@@ -73,10 +71,7 @@ class Domain {
 	 * \param[in]	options		Grid Options (optinal)
 	 */
 		Domain(uint options = GRIDOPT_STANDARD_INTERCONNECTION) :
-			m_grid(options), m_sh(m_grid)
-#ifdef UG_PARALLEL
-			, m_distGridMgr(NULL)
-#endif
+			m_grid(options), m_sh(m_grid) , m_distGridMgr(NULL)
 			{
 			//	get position attachment
 				m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
@@ -137,13 +132,11 @@ class Domain {
 			return m_aaPos;
 		}
 
-#ifdef UG_PARALLEL
 	///	get Distributed Grid Manager
 		inline DistributedGridManager* get_distributed_grid_manager()
 		{
 			return m_distGridMgr;
 		}
-#endif
 
 	protected:
 		TGrid m_grid;			///< Grid
@@ -152,10 +145,8 @@ class Domain {
 		position_attachment_type m_aPos;	///<Position Attachment
 		position_accessor_type m_aaPos;		///<Accessor
 
-#ifdef UG_PARALLEL
-	//	for parallelization only
+	//	for parallelization only. NULL in serial mode.
 		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
-#endif
 };
 
 } // end namespace ug

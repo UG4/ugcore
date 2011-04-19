@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include "../registry.h"
 #include "../ug_bridge.h"
@@ -14,10 +15,162 @@
 #include "lib_discretization/domain.h"
 #include "lib_discretization/domain_util.h"
 
+#include "lib_grid/parallelization/load_balancer.h"
+
 using namespace std;
 
 namespace ug{
-namespace bridge{
+
+///	Used to describe how a domain shall be distributed in a parallel environment.
+class PartitionMap{
+	public:
+		void clear()
+		{
+			m_targetProcs.clear();
+			m_shPartitions.clear();
+		}
+
+		void assign_grid(Grid& grid)
+		{
+			if(&grid != m_shPartitions.get_assigned_grid())
+				m_shPartitions.assign_grid(grid);
+		}
+
+		SubsetHandler& get_partition_handler()
+		{return m_shPartitions;}
+
+		void add_target_proc(int targetProcRank)
+		{m_targetProcs.push_back(targetProcRank);}
+
+		void add_target_procs(int first, int num)
+		{
+			for(int i = 0; i < num; ++i)
+				add_target_proc(first + i);
+		}
+
+		size_t num_target_procs()
+		{return m_targetProcs.size();}
+
+		int get_target_proc(size_t index)
+		{
+			if(index < m_targetProcs.size())
+				return m_targetProcs[index];
+			UG_LOG("BAD INDEX in PartitionMap::get_target_proc: " << index);
+			if(num_target_procs() > 0){
+				UG_LOG("    Max valid index: " << num_target_procs() - 1 << endl);
+			}
+			else{
+				UG_LOG("    No target processes available.\n");
+			}
+			return -1;
+		}
+
+		int* get_target_procs()
+		{return &m_targetProcs.front();}
+
+		std::vector<int>& get_target_proc_vec()
+		{return m_targetProcs;}
+
+	private:
+		std::vector<int>	m_targetProcs;
+		SubsetHandler		m_shPartitions;
+};
+
+
+
+///	partitions a domain by repeatedly cutting it along the different axis
+template <typename TDomain>
+static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMap,
+									  int firstAxisToCut)
+{
+	MultiGrid& mg = domain.get_grid();
+	partitionMap.assign_grid(mg);
+
+	if(mg.num<Volume>() > 0)
+		PartitionElementsByRepeatedIntersection<Volume, TDomain::dim>(
+											partitionMap.get_partition_handler(),
+											mg, mg.num_levels() - 1,
+											partitionMap.num_target_procs(),
+											domain.get_position_attachment(),
+											firstAxisToCut);
+	else if(mg.num<Face>() > 0)
+		PartitionElementsByRepeatedIntersection<Face, TDomain::dim>(
+											partitionMap.get_partition_handler(),
+											mg, mg.num_levels() - 1,
+											partitionMap.num_target_procs(),
+											domain.get_position_attachment(),
+											firstAxisToCut);
+	else if(mg.num<EdgeBase>() > 0)
+		PartitionElementsByRepeatedIntersection<EdgeBase, TDomain::dim>(
+											partitionMap.get_partition_handler(),
+											mg, mg.num_levels() - 1,
+											partitionMap.num_target_procs(),
+											domain.get_position_attachment(),
+											firstAxisToCut);
+	else if(mg.num<VertexBase>() > 0)
+		PartitionElementsByRepeatedIntersection<VertexBase, TDomain::dim>(
+											partitionMap.get_partition_handler(),
+											mg, mg.num_levels() - 1,
+											partitionMap.num_target_procs(),
+											domain.get_position_attachment(),
+											firstAxisToCut);
+	else{
+		LOG("partitioning could not be performed - "
+			<< "grid doesn't contain any elements!\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+template <typename TDomain>
+static bool RedistributeDomain(TDomain& domainOut,
+							   PartitionMap& partitionMap,
+							   bool createVerticalInterfaces)
+{
+	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
+	typedef typename TDomain::position_attachment_type	position_attachment_type;
+//	make sure that the input is fine
+	typename TDomain::grid_type& grid = domainOut.get_grid();
+	SubsetHandler& shPart = partitionMap.get_partition_handler();
+
+	if(shPart.get_assigned_grid() != &grid){
+		partitionMap.assign_grid(grid);
+	}
+
+#ifdef UG_PARALLEL
+//	make sure that manager exists
+	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
+	if(!pDistGridMgr)
+	{
+		UG_LOG("ERROR in RedistibuteDomain: Domain has to feature a Distributed Grid Manager.\n");
+		return false;
+	}
+	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
+
+//todo:	check whether all target-processes in partitionMap are in the valid range.
+
+//	data serialization
+	GeomObjAttachmentSerializer<VertexBase, position_attachment_type>
+		posSerializer(grid, domainOut.get_position_attachment());
+	SubsetHandlerSerializer shSerializer(domainOut.get_subset_handler());
+
+	GridDataSerializationHandler serializer;
+	serializer.add(&posSerializer);
+	serializer.add(&shSerializer);
+
+//	now call redistribution
+	RedistributeGrid(distGridMgr, shPart, serializer, serializer,
+					 createVerticalInterfaces, &partitionMap.get_target_proc_vec());
+
+#endif
+
+//	in the serial case there's nothing to do.
+	return true;
+}
+
+
 
 template <typename TDomain>
 static bool DistributeDomain(TDomain& domainOut)
@@ -138,33 +291,7 @@ static bool SaveDomain(TDomain& domain, const char* filename)
 		UG_LOG("Currently only '.ugx' format supported for domains.\n");
 		return false;
 	}
-/*
-Ich habe mir erlaubt das hier auszukommentieren. Ich denke man sollte den
-Namen der Domain komplett im Skript spezifizieren. Das geht auch ohne weiteres:
-domName = "mydom_" .. GetProcessRank() .. ".ugx"
-Das kann man besser über eine util Funktion lösen.
-Grüße,
-Sebastian
 
-
-	std::string name(filename);
-
-#ifdef UG_PARALLEL
-//	search for ending
-	size_t found = name.find_first_of(".");
-
-//	remove endings
-	name.resize(found);
-
-//	add new ending, containing process number
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.ugx", rank);
-	name.append(ext);
-#endif
-
-	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), name.c_str());
-*/
 	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), filename);
 }
 
@@ -234,6 +361,11 @@ static void TestDomainInterfaces(TDomain* dom)
 }
 
 
+
+
+
+namespace bridge{
+
 template <typename TDomain>
 static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 {
@@ -253,8 +385,6 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 			.add_method("get_grid|hide=true", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
 			.add_method("get_dim|hide=true", (int (domain_type::*)()) &domain_type::get_dim);
 	}
-
-
 
 // 	LoadDomain
 	reg.add_function("LoadDomain", &LoadDomain<domain_type>, grp.c_str(),
@@ -288,6 +418,12 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 		reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>, grp.c_str());
 	}
 
+	reg.add_function("PartitionDomain_Bisection",
+					 &PartitionDomain_Bisection<domain_type>, grp.c_str());
+
+	reg.add_function("RedistributeDomain",
+					 &RedistributeDomain<domain_type>, grp.c_str());
+
 //	GlobalRefineParallelDomain
 //	todo: remove this
 	{
@@ -308,6 +444,17 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 bool RegisterDomainInterface(Registry& reg, const char* parentGroup)
 {
 	bool bSuccess = true;
+
+	reg.add_class_<PartitionMap>("PartitionMap", "ug4")
+		.add_constructor()
+		.add_method("clear", &PartitionMap::clear)
+		.add_method("get_partition_handler", &PartitionMap::get_partition_handler)
+		.add_method("add_target_proc", &PartitionMap::add_target_proc)
+		.add_method("add_target_procs", &PartitionMap::add_target_procs)
+		.add_method("num_target_procs", &PartitionMap::num_target_procs)
+		.add_method("get_target_proc", &PartitionMap::get_target_proc);
+
+
 #ifdef UG_DIM_1
 	bSuccess &= RegisterDomainInterface_<Domain<1, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
 #endif

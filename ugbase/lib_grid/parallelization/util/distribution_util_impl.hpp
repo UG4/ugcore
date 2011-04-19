@@ -14,8 +14,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void SerializeDistributionLayoutInterfaces(
-								std::ostream& out, TLayout& layout,
-								std::vector<int>* pProcessMap)
+								std::ostream& out, TLayout& layout)
 {
 //	write source-proc and the number of levels
 //	then for each level the number of interfaces
@@ -43,12 +42,6 @@ void SerializeDistributionLayoutInterfaces(
 		//	if a process map is supplied perform a lookup
 			int procID = iter->first.first;
 			int oldTargetProc = iter->first.second;
-			if(pProcessMap)
-			{
-				assert((int)pProcessMap->size() > procID && "process-map to small.");
-				if((int)pProcessMap->size() > procID)
-					procID = (*pProcessMap)[procID];
-			}
 			out.write((char*)&procID, sizeof(int));
 			out.write((char*)&oldTargetProc, sizeof(int));
 			
@@ -58,8 +51,9 @@ void SerializeDistributionLayoutInterfaces(
 			out.write((char*)&tmp, sizeof(int));
 			
 		//	write the interface-entries
-			for(size_t i = 0; i < interface.size(); ++i)
+			for(size_t i = 0; i < interface.size(); ++i){
 				out.write((char*)&interface[i], sizeof(typename TLayout::InterfaceEntry));
+			}
 		}
 	}
 }
@@ -128,7 +122,7 @@ void DeserializeDistributionLayoutInterfaces(
 			Types<TGeomObj>::Layout::LevelLayout 	TLayout;
 	typedef typename TLayout::Interface				TInterface;
 	TLayout* pLayout = NULL;
-	int lastLayoutKey = 0;
+	unsigned int lastLayoutKey = 0;
 	TInterface* pInterface = NULL;
 	DistributionInterfaceEntry entry;
 	

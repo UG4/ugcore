@@ -632,17 +632,14 @@ class Grid
 		void clear_marks();
 
 	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
+	/**	Only pass objects that are contained by the grid.
+	 * \{ */
+		inline void mark(GeometricObject* obj);
 		inline void mark(VertexBase* obj);
-	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
 		inline void mark(EdgeBase* obj);
-	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
 		inline void mark(Face* obj);
-	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
 		inline void mark(Volume* obj);
+	/**	\} */
 
 	///	marks all objects between begin and end
 	/**	TIterator::value_type has to be either
@@ -651,17 +648,14 @@ class Grid
 		void mark(TIterator begin, TIterator end);
 		
 	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
+	/**	Only pass objects that are contained by the grid.
+	 * \{ */
+		inline void unmark(GeometricObject* obj);
 		inline void unmark(VertexBase* obj);
-	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
 		inline void unmark(EdgeBase* obj);
-	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
 		inline void unmark(Face* obj);
-	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
-	/**	Only pass objects that are contained by the grid.*/
 		inline void unmark(Volume* obj);
+	/** \} */
 
 	///	unmarks all objects between begin and end
 	/**	TIterator::value_type has to be either
@@ -670,17 +664,14 @@ class Grid
 		void unmark(TIterator begin, TIterator end);
 		
 	///	returns true if the object is marked, false if not.
-	/**	Only pass objects that are contained by the grid.*/
+	/**	Only pass objects that are contained by the grid.
+	 * \{ */
+		inline bool is_marked(GeometricObject* obj);
 		inline bool is_marked(VertexBase* obj);
-	///	returns true if the object is marked, false if not.
-	/**	Only pass objects that are contained by the grid.*/
 		inline bool is_marked(EdgeBase* obj);
-	///	returns true if the object is marked, false if not.
-	/**	Only pass objects that are contained by the grid.*/
 		inline bool is_marked(Face* obj);
-	///	returns true if the object is marked, false if not.
-	/**	Only pass objects that are contained by the grid.*/
 		inline bool is_marked(Volume* obj);
+	/** \} */
 
 	///	ends a marking sequence. Call this method when you're done with marking.
 		void end_marking();

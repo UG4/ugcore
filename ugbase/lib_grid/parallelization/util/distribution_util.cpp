@@ -8,6 +8,7 @@
 #include "common/util/stream_pack.h"
 #include "common/util/binary_stream.h"
 #include "common/serialization.h"
+#include "common/assert.h"
 
 using namespace std;
 
@@ -39,10 +40,14 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 						TIterator nodesBegin, TIterator nodesEnd,
 						TAIntAccessor& aaFirstLayout,
 						TAIntAccessor& aaFirstProcLocalInd,
+						std::vector<int>* processMap = NULL,
 						int level = 0,
 						int interfacesOnLevelOnly = -1,
 						DistributedGridManager* pDistGridMgr = NULL)
 {
+	typedef typename TNodeLayout::Interface			Interface;
+	typedef typename TNodeLayout::InterfaceEntry	InterfaceEntry;
+
 	TNodeLayout& layout = layouts[layoutIndex];
 
 	for(TIterator iter = nodesBegin; iter != nodesEnd; ++iter)
@@ -73,22 +78,163 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 			layout.node_vec().push_back(node);
 
 		//	access the interfaces
-		//	if the node already is in a 'real' interface, we'll ignore it
+		//	if the node already is in a 'real' horizontal interface, we'll ignore it
 		//todo: check the type of interface
 			if(pDistGridMgr){
-				if(pDistGridMgr->is_interface_element(*iter))
+				if(pDistGridMgr->contains_status(*iter, INT_H_MASTER)
+				  || pDistGridMgr->contains_status(*iter, INT_H_SLAVE))
 					continue;
 			}
 
 			if((interfacesOnLevelOnly == -1) ||
 				(interfacesOnLevelOnly == level))
 			{
-				typename TNodeLayout::Interface& masterInterface = masterLayout.interface(layoutIndex, level);
-				typename TNodeLayout::Interface& slaveInterface = layout.interface(masterLayoutIndex, level);
-				masterInterface.push_back(typename TNodeLayout::InterfaceEntry(localMasterID, INT_H_MASTER));
-				slaveInterface.push_back(typename TNodeLayout::InterfaceEntry(localID, INT_H_SLAVE));
+			//	get the master and slave proc-id
+				int masterProc = masterLayoutIndex;
+				int slaveProc = layoutIndex;
+				if(processMap){
+					masterProc = (*processMap)[masterProc];
+					slaveProc = (*processMap)[slaveProc];
+				}
+
+				Interface& masterInterface = masterLayout.interface(slaveProc, level);
+				Interface& slaveInterface = layout.interface(masterProc, level);
+				masterInterface.push_back(InterfaceEntry(localMasterID, INT_H_MASTER));
+				slaveInterface.push_back(InterfaceEntry(localID, INT_H_SLAVE));
 			}
 		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+/**	Creates vertical interfaces for all elements which are moved away
+ * from this process and which do not have a parent or whose parent
+ * is not moved along with them.
+ *
+ * Note that this method may add a new distLayout, a new process-map entry
+ * and a new empty subset to shPart.
+ */
+template <class TDistLayout, class TAAInt>
+void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
+								MultiGrid& mg, MGSelector& msel,
+								SubsetHandler& shPart, TAAInt& aaInt,
+								DistributedGridManager* pDistGridMgr = NULL,
+								std::vector<int>* processMap = NULL)
+{
+//	all elements which do not have a parent on their associated proc
+//	have to be added to a vertical interface to localProc. An associated
+//	vertical master has to be added in the associated interface on
+//	localProc.
+
+	typedef typename TDistLayout::NodeVec			NodeVec;
+	typedef typename TDistLayout::NodeType			Node;
+	typedef typename TDistLayout::Interface			Interface;
+	typedef typename TDistLayout::InterfaceEntry	InterfaceEntry;
+
+	int locProcRank = pcl::GetProcRank();
+
+//	we have to find the local LayoutIndex
+	int locLayoutInd = -1;
+	if(processMap){
+		vector<int>& procMap = *processMap;
+		for(size_t i = 0; i < distLayouts.size(); ++i){
+			if(procMap[i] == locProcRank){
+				locLayoutInd = i;
+				break;
+			}
+		}
+	//	if no layout was found for the local proc, we have to add a new one
+		if(locLayoutInd == -1){
+			locLayoutInd = (int)distLayouts.size();
+			shPart.subset_required(shPart.num_subsets());
+			distLayouts.push_back(TDistLayout());
+			procMap.push_back(locProcRank);
+		}
+	}
+	else{
+		locLayoutInd = locProcRank;
+	//	if no layout exists for the local proc, we have to add new ones
+		if(locLayoutInd >= (int)distLayouts.size()){
+			distLayouts.resize(locLayoutInd + 1);
+			shPart.subset_required(locLayoutInd);
+		}
+	}
+
+	TDistLayout& locLayout = distLayouts[locLayoutInd];
+	NodeVec& locNodes = locLayout.node_vec();
+
+//	msel will always hold all nodes in localLayout
+//	aaInt will be used to store the local index of each selected node
+	msel.clear();
+	for(size_t i = 0; i < locNodes.size(); ++i){
+		msel.select(locNodes[i]);
+		aaInt[locNodes[i]] = i;
+	}
+
+//	iterate over all distLayouts but the local one
+	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
+	{
+		if((int)i_layout == locLayoutInd)
+			continue;
+
+		int curProcRank = i_layout;
+		if(processMap)
+			curProcRank = processMap->at(i_layout);
+
+		TDistLayout& curLayout = distLayouts[i_layout];
+
+	//	mark all nodes in curLayout
+		mg.begin_marking();
+		MarkNodesInLayout(mg, curLayout);
+
+	//	we wont access the interfaces directly. Instead we'll cache them
+	//	for efficient reuse
+		Interface* locInterface = NULL;
+		Interface* curInterface = NULL;
+		int interfaceLevel = -1;
+
+	//	check for each node whether its parent is not marked or if it has
+	//	no parent at all
+		NodeVec& curNodes = curLayout.node_vec();
+		for(size_t i_node = 0; i_node < curNodes.size(); ++i_node)
+		{
+			Node node = curNodes[i_node];
+
+		//	if pDistGridMgr is supplied, we first check however whether
+		//	the element is already contained in a vertical interface.
+		//	If so, we wont add it to another one.
+			if(!pDistGridMgr || pDistGridMgr->contains_status(node, INT_V_MASTER)
+			  || pDistGridMgr->contains_status(node, INT_V_SLAVE))
+				continue;
+
+			GeometricObject* parent = mg.get_parent(node);
+		//	!mg.is_marked(parent) is only executed if a parent exists.
+			if((!parent) || !mg.is_marked(parent)){
+			//	the element has to be put into a vertical interface
+			//	get the level and check whether we have to access the interfaces again
+				int lvl = mg.get_level(node);
+				if(lvl != interfaceLevel){
+				//	we have to access the interfaces
+					interfaceLevel = lvl;
+					locInterface = &locLayout.interface(curProcRank, lvl);
+					curInterface = &curLayout.interface(locProcRank, lvl);
+				}
+
+			//	before we can insert node into locInterface, we first have to
+			//	make sure, that it is contained in locLayout.
+				if(!msel.is_selected(node)){
+					msel.select(node);
+					aaInt[node] = (int)locNodes.size();
+					locNodes.push_back(node);
+				}
+
+			//	finally insert the node into the interfaces
+				locInterface->push_back(InterfaceEntry(aaInt[node], INT_V_MASTER));
+				curInterface->push_back(InterfaceEntry(i_node, INT_V_SLAVE));
+			}
+		}
+
+		mg.end_marking();
 	}
 }
 
@@ -102,8 +248,10 @@ void CreateDistributionLayouts(
 						std::vector<TVolumeDistributionLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						bool distributeGenealogy,
+						bool createVerticalInterfaces,
 						MGSelector* pSel,
-						DistributedGridManager* pDistGridMgr)
+						DistributedGridManager* pDistGridMgr,
+						std::vector<int>* processMap)
 {
 //	initialize a selector.
 	MGSelector tmpSel;
@@ -114,6 +262,11 @@ void CreateDistributionLayouts(
 	}
 	MGSelector& msel = *pSel;
 
+//	make sure that the processMap has the right size
+	if(processMap){
+		UG_ASSERT((int)processMap->size() == sh.num_subsets(),
+				  "ProcessMap has to have as many entries as there are partitions");
+	}
 //	resize and clear the layouts
 	vertexLayoutsOut = std::vector<TVertexDistributionLayout>(sh.num_subsets());
 	edgeLayoutsOut = std::vector<TEdgeDistributionLayout>(sh.num_subsets());
@@ -160,16 +313,20 @@ void CreateDistributionLayouts(
 	//	by passing -1 we can assert that no interface is accessed.
 		AddNodesToLayout(vertexLayoutsOut, i,
 							sh.begin<VertexBase>(i), sh.end<VertexBase>(i),
-							aaFirstProcVRT, aaFirstProcLocalIndVRT, -1);
+							aaFirstProcVRT, aaFirstProcLocalIndVRT,
+							processMap, -1);
 		AddNodesToLayout(edgeLayoutsOut, i,
 							sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i),
-							aaFirstProcEDGE, aaFirstProcLocalIndEDGE, -1);
+							aaFirstProcEDGE, aaFirstProcLocalIndEDGE,
+							processMap, -1);
 		AddNodesToLayout(faceLayoutsOut, i,
 							sh.begin<Face>(i), sh.end<Face>(i),
-							aaFirstProcFACE, aaFirstProcLocalIndFACE, -1);
+							aaFirstProcFACE, aaFirstProcLocalIndFACE,
+							processMap, -1);
 		AddNodesToLayout(volumeLayoutsOut, i,
 							sh.begin<Volume>(i), sh.end<Volume>(i),
-							aaFirstProcVOL, aaFirstProcLocalIndVOL, -1);
+							aaFirstProcVOL, aaFirstProcLocalIndVOL,
+							processMap, -1);
 	}
 
 //	step 2: add all the associated elements to the distribution groups, which
@@ -201,6 +358,7 @@ void CreateDistributionLayouts(
 		if(distributeGenealogy)
 			interfacesOnLevelOnly = mg.num_levels() - 1;
 
+	//	now add the missing horizontal interfaces
 	//	make sure that we won't add elements twice.
 		msel.deselect(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
 		msel.deselect(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
@@ -214,21 +372,40 @@ void CreateDistributionLayouts(
 		{
 			AddNodesToLayout(vertexLayoutsOut, i,
 								msel.begin<VertexBase>(level), msel.end<VertexBase>(level),
-								aaFirstProcVRT, aaFirstProcLocalIndVRT, level,
+								aaFirstProcVRT, aaFirstProcLocalIndVRT,
+								processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(edgeLayoutsOut, i,
 								msel.begin<EdgeBase>(level), msel.end<EdgeBase>(level),
-								aaFirstProcEDGE, aaFirstProcLocalIndEDGE, level,
+								aaFirstProcEDGE, aaFirstProcLocalIndEDGE,
+								processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(faceLayoutsOut, i,
 								msel.begin<Face>(level), msel.end<Face>(level),
-								aaFirstProcFACE, aaFirstProcLocalIndFACE, level,
+								aaFirstProcFACE, aaFirstProcLocalIndFACE,
+								processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(volumeLayoutsOut, i,
 								msel.begin<Volume>(level), msel.end<Volume>(level),
-								aaFirstProcVOL, aaFirstProcLocalIndVOL, level,
+								aaFirstProcVOL, aaFirstProcLocalIndVOL,
+								processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 		}
+	}
+
+//	horizontal layouts are complete by now. All nodes that go to process i
+//	are contained in layout i at this point.
+//	we can now use this information to add vertical interfaces
+	if(createVerticalInterfaces){
+	//	we'll reuse aaFirstProc... for a different purpose here.
+		CreateVerticalInterfaces(vertexLayoutsOut, mg, msel, sh, aaFirstProcVRT,
+								pDistGridMgr, processMap);
+		CreateVerticalInterfaces(edgeLayoutsOut, mg, msel, sh, aaFirstProcEDGE,
+								pDistGridMgr, processMap);
+		CreateVerticalInterfaces(faceLayoutsOut, mg, msel, sh, aaFirstProcFACE,
+								pDistGridMgr, processMap);
+		CreateVerticalInterfaces(volumeLayoutsOut, mg, msel, sh, aaFirstProcVOL,
+								pDistGridMgr, processMap);
 	}
 
 //	The layouts are now complete.
@@ -252,8 +429,8 @@ template void CreateDistributionLayouts<DistributionVertexLayout, DistributionEd
 										std::vector<DistributionEdgeLayout>&,
 										std::vector<DistributionFaceLayout>&,
 										std::vector<DistributionVolumeLayout>&,
-										MultiGrid&, SubsetHandler&, bool, MGSelector*,
-										DistributedGridManager*);
+										MultiGrid&, SubsetHandler&, bool, bool, MGSelector*,
+										DistributedGridManager*, std::vector<int>*);
 
 template void CreateDistributionLayouts<RedistributionVertexLayout, RedistributionEdgeLayout,
 										RedistributionFaceLayout, RedistributionVolumeLayout>(
@@ -261,8 +438,8 @@ template void CreateDistributionLayouts<RedistributionVertexLayout, Redistributi
 										std::vector<RedistributionEdgeLayout>&,
 										std::vector<RedistributionFaceLayout>&,
 										std::vector<RedistributionVolumeLayout>&,
-										MultiGrid&, SubsetHandler&, bool, MGSelector*,
-										DistributedGridManager*);
+										MultiGrid&, SubsetHandler&, bool, bool, MGSelector*,
+										DistributedGridManager*, std::vector<int>*);
 
 /*
 ////////////////////////////////////////////////////////////////////////
@@ -313,8 +490,7 @@ void SerializeGridAndDistributionLayouts(
 								DistributionVolumeLayout& volLayout,
 								AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
 								AInt& aLocalIndFACE, AInt& aLocalIndVOL,
-								MGSelector* pSel,
-								std::vector<int>* pProcessMap)
+								MGSelector* pSel)
 {
 //	initialize a selector.
 	MGSelector tmpSel;
@@ -343,10 +519,10 @@ void SerializeGridAndDistributionLayouts(
 						aLocalIndFACE, aLocalIndVOL, out);
 
 //	write the layouts
-	SerializeDistributionLayoutInterfaces(out, vrtLayout, pProcessMap);
-	SerializeDistributionLayoutInterfaces(out, edgeLayout, pProcessMap);
-	SerializeDistributionLayoutInterfaces(out, faceLayout, pProcessMap);
-	SerializeDistributionLayoutInterfaces(out, volLayout, pProcessMap);
+	SerializeDistributionLayoutInterfaces(out, vrtLayout);
+	SerializeDistributionLayoutInterfaces(out, edgeLayout);
+	SerializeDistributionLayoutInterfaces(out, faceLayout);
+	SerializeDistributionLayoutInterfaces(out, volLayout);
 
 //	done. Please note that no attachments have been serialized in this method.
 }
@@ -437,7 +613,7 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 }
 
 
-size_t NumEntriesOfTypeInDistributionInterface(int type,
+size_t NumEntriesOfTypeInDistributionInterface(unsigned int type,
 			std::vector<DistributionInterfaceEntry>& interface)
 {
 	size_t counter = 0;
@@ -589,18 +765,26 @@ bool TestRedistributionLayouts(std::vector<TDistLayout>& distLayouts,
 															INT_H_MASTER, curIntf);
 				size_t numCurSlaves = NumEntriesOfTypeInDistributionInterface(
 															INT_H_SLAVE, curIntf);
-/*
+
 				size_t numCurVrtMasters = NumEntriesOfTypeInDistributionInterface(
 													INT_V_MASTER, curIntf);
 				size_t numCurVrtSlaves = NumEntriesOfTypeInDistributionInterface(
 													INT_V_SLAVE, curIntf);
-*/
+
 				if(numCurMasters){
-					UG_LOG("    masters: " << numCurMasters);
+					UG_LOG("    h-masters: " << numCurMasters);
 				}
 
 				if(numCurSlaves){
-					UG_LOG("    slaves: " << numCurSlaves);
+					UG_LOG("    h-slaves: " << numCurSlaves);
+				}
+
+				if(numCurVrtMasters){
+					UG_LOG("    v-masters: " << numCurVrtMasters);
+				}
+
+				if(numCurVrtSlaves){
+					UG_LOG("    v-slaves: " << numCurVrtSlaves);
 				}
 
 				UG_LOG(endl);
@@ -653,18 +837,26 @@ bool PrintRedistributionLayouts(std::vector<TDistLayout>& distLayouts)
 															INT_H_MASTER, curIntf);
 				size_t numCurSlaves = NumEntriesOfTypeInDistributionInterface(
 															INT_H_SLAVE, curIntf);
-/*
+
 				size_t numCurVrtMasters = NumEntriesOfTypeInDistributionInterface(
 													INT_V_MASTER, curIntf);
 				size_t numCurVrtSlaves = NumEntriesOfTypeInDistributionInterface(
 													INT_V_SLAVE, curIntf);
-*/
+
 				if(numCurMasters){
-					UG_LOG("    masters: " << numCurMasters);
+					UG_LOG("    h-masters: " << numCurMasters);
 				}
 
 				if(numCurSlaves){
-					UG_LOG("    slaves: " << numCurSlaves);
+					UG_LOG("    h-slaves: " << numCurSlaves);
+				}
+
+				if(numCurVrtMasters){
+					UG_LOG("    v-masters: " << numCurVrtMasters);
+				}
+
+				if(numCurVrtSlaves){
+					UG_LOG("    v-slaves: " << numCurVrtSlaves);
 				}
 
 				UG_LOG(endl);

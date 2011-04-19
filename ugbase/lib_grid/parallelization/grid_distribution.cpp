@@ -169,7 +169,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 //	the whole genealogy
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
-							  distributeGenealogy, &msel);
+							  distributeGenealogy, false, &msel, NULL, pProcessMap);
 /*
 	UG_LOG("Testing Vertex Distribution Layouts:\n");
 	if(!TestDistributionLayouts(vVertexLayouts))
@@ -231,7 +231,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 			SerializeGridAndDistributionLayouts(
 									globalStream, mg, vVertexLayouts[i],
 									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
-									aInt, aInt, aInt, aInt, &msel, pProcessMap);
+									aInt, aInt, aInt, aInt, &msel);
 
 		//	serialize subset indices
 			SerializeSubsetHandler(mg, sh,
@@ -306,7 +306,7 @@ bool DistributeGrid(MultiGrid& mg, ISubsetHandler& sh,
 
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
-							  true, &msel);
+							  true, false, &msel, NULL, pProcessMap);
 
 //	we will now fill a binary stream with all the grids.
 //	this stream will receive the data that has to be copied to the local grid.
@@ -341,7 +341,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 			SerializeGridAndDistributionLayouts(
 								localStream, mg, vVertexLayouts[i],
 								vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
-								aInt, aInt, aInt, aInt, &msel, pProcessMap);
+								aInt, aInt, aInt, aInt, &msel);
 
 		//	serialize subset indices
 			SerializeSubsetHandler(mg, sh,
@@ -365,7 +365,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 			SerializeGridAndDistributionLayouts(
 									globalStream, mg, vVertexLayouts[i],
 									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
-									aInt, aInt, aInt, aInt, &msel, pProcessMap);
+									aInt, aInt, aInt, aInt, &msel);
 
 		//	serialize subset indices
 			SerializeSubsetHandler(mg, sh,

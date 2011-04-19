@@ -606,6 +606,17 @@ VolumeAttachmentAccessor(Grid& grid, TAttachment& a) :
 
 ////////////////////////////////////////////////////////////////////////
 //	marks
+inline void Grid::mark(GeometricObject* obj)
+{
+	const int typeID = obj->base_object_type_id();
+	switch(typeID){
+		case VERTEX: mark(static_cast<VertexBase*>(obj)); break;
+		case EDGE: mark(static_cast<EdgeBase*>(obj)); break;
+		case FACE: mark(static_cast<Face*>(obj)); break;
+		case VOLUME: mark(static_cast<Volume*>(obj)); break;
+	}
+}
+
 inline void Grid::mark(VertexBase* obj)
 {
 	assert(m_bMarking && "ERROR: Grid::mark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
@@ -630,6 +641,17 @@ inline void Grid::mark(Volume* obj)
 	m_aaMarkVOL[obj] = m_currentMark;
 }
 
+inline void Grid::unmark(GeometricObject* obj)
+{
+	const int typeID = obj->base_object_type_id();
+	switch(typeID){
+		case VERTEX: unmark(static_cast<VertexBase*>(obj)); break;
+		case EDGE: unmark(static_cast<EdgeBase*>(obj)); break;
+		case FACE: unmark(static_cast<Face*>(obj)); break;
+		case VOLUME: unmark(static_cast<Volume*>(obj)); break;
+	}
+}
+
 inline void Grid::unmark(VertexBase* obj)
 {
 	assert(m_bMarking && "ERROR: Grid::unmark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
@@ -652,6 +674,18 @@ inline void Grid::unmark(Volume* obj)
 {
 	assert(m_bMarking && "ERROR: Grid::unmark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
 	m_aaMarkVOL[obj] = 0;
+}
+
+inline bool Grid::is_marked(GeometricObject* obj)
+{
+	const int typeID = obj->base_object_type_id();
+	switch(typeID){
+		case VERTEX: return is_marked(static_cast<VertexBase*>(obj));
+		case EDGE: return is_marked(static_cast<EdgeBase*>(obj));
+		case FACE: return is_marked(static_cast<Face*>(obj));
+		case VOLUME: return is_marked(static_cast<Volume*>(obj));
+		default: return false;
+	}
 }
 
 inline bool Grid::is_marked(VertexBase* obj)
