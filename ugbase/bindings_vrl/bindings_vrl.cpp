@@ -42,6 +42,19 @@ JavaVM* getJavaVM() {
 	return javaVM;
 }
 
+void Log(std::string s) {
+	UG_LOG(s);
+}
+
+void Logln(std::string s) {
+	UG_LOG(s << std::endl);
+}
+
+void registerMessaging(ug::bridge::Registry & reg) {
+	reg.add_function("print",&Log,"UG4/Messaging");
+	reg.add_function("println",&Logln,"UG4/Messaging");
+}
+
 }// end vrl::
 }// end ug::
 
@@ -84,8 +97,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(
 			reg, selector.get_algebra_type());
 
-	ug::vrl::RegisterUserData(reg,"UG4/VRL");
+	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 
+	ug::vrl::registerMessaging(reg);
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");

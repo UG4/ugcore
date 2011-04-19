@@ -110,6 +110,46 @@ struct VectorConverter {
 	static const int size = dim;
 };
 
+jdouble boundaryReturnData2Double(JNIEnv *env, jobject obj) {
+	jdouble result = 0;
+
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Boundary");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	jmethodID method = env->GetMethodID(cls, "getValue", "()D");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	result = env->CallDoubleMethod(obj, method);
+
+	return result;
+}
+
+jdouble boundaryReturnData2Boolean(JNIEnv *env, jobject obj) {
+	jdouble result = 0;
+
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Boundary");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	jmethodID method = env->GetMethodID(cls, "getBndBool", "()Z");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	result = env->CallBooleanMethod(obj, method);
+
+	return result;
+}
+
 jobject compileUserDataString(JNIEnv *env, const char* s, unsigned int returnValueDim) {
 	jclass cls = env->FindClass(
 			"edu/gcsc/vrl/ug4/UserDataCompiler");
@@ -141,7 +181,7 @@ jclass getUserDataClass(JNIEnv *env) {
 	return result;
 }
 
-jmethodID getRunMethod(JNIEnv *env, jclass cls, int dim, const char* signature) {
+jmethodID getUserDataRunMethod(JNIEnv *env, jclass cls, int dim, const char* signature) {
 
 	std::stringstream mName;
 
@@ -153,6 +193,57 @@ jmethodID getRunMethod(JNIEnv *env, jclass cls, int dim, const char* signature) 
 
 		UG_LOG("[VRL-Bindings] Error:"
 				<< " cannot find userdata method."
+				<< " Please check your implementation!" << std::endl);
+	}
+	return result;
+}
+
+jobject compileBoundaryUserDataString(JNIEnv *env, const char* s) {
+	jclass cls = env->FindClass(
+			"edu/gcsc/vrl/ug4/UserDataCompiler");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	jmethodID runMethod = env->GetStaticMethodID(
+			cls, "compile",
+			"(Ljava/lang/String;I)Ljava/lang/Object;");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s));
+}
+
+jclass getBoundaryUserDataClass(JNIEnv *env) {
+	jclass result = env->FindClass(
+			"edu/gcsc/vrl/ug4/BoundaryUserData");
+
+	if (env->ExceptionCheck()) {
+		env->ExceptionDescribe();
+	}
+
+	return result;
+}
+
+jmethodID getBoundaryUserDataRunMethod(JNIEnv *env, jclass cls) {
+
+	std::string signature =
+			"([D)Ledu/gcsc/vrl/ug4/Boundary;";
+
+	std::stringstream mName;
+
+	mName << "run";
+
+	jmethodID result = env->GetMethodID(
+			cls, mName.str().c_str(), signature.c_str());
+
+	if (!checkException(env)) {
+
+		UG_LOG("[VRL-Bindings] Error:"
+				<< " cannot find boundary-userdata method."
 				<< " Please check your implementation!" << std::endl);
 	}
 	return result;
@@ -187,7 +278,7 @@ public:
 		javaVM = getJavaVM();
 		expression = "";
 		returnValueDim = 0;
-		
+
 		std::stringstream stream;
 		stream << "<font color=\"red\">VRLUserNumber"
 				<< dim << "D: invokation error:</font>";
@@ -208,7 +299,7 @@ public:
 		// <BEGIN>
 		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
 		userDataClass = getUserDataClass(localEnv);
-		runMethod = getRunMethod(
+		runMethod = getUserDataRunMethod(
 				localEnv, userDataClass, returnValueDim, "([D)D");
 		// <END>
 
@@ -220,7 +311,7 @@ public:
 					runMethod,
 					params);
 
-			if (checkException(localEnv,invocationErrorMsg)) {
+			if (checkException(localEnv, invocationErrorMsg)) {
 				// currently nothing to do, only necessary for arrays
 			}
 		}
@@ -297,7 +388,7 @@ public:
 		// <BEGIN>
 		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
 		userDataClass = getUserDataClass(localEnv);
-		runMethod = getRunMethod(
+		runMethod = getUserDataRunMethod(
 				localEnv, userDataClass, returnValueDim, "([D)[D");
 		// <END>
 
@@ -309,7 +400,7 @@ public:
 					runMethod,
 					params);
 
-			if (checkException(localEnv,invocationErrorMsg)) {
+			if (checkException(localEnv, invocationErrorMsg)) {
 				VectorConverter<dim>::toC(localEnv, result, c);
 			}
 		}
@@ -333,6 +424,80 @@ protected:
 	jclass userDataClass;
 	jmethodID runMethod;
 	unsigned int returnValueDim;
+	std::string invocationErrorMsg;
+};
+
+template <int dim>
+class BoundaryNumber : public IBoundaryData<number, dim> {
+public:
+
+	///	Base class type
+	typedef IBoundaryData<number, dim> base_type;
+
+	//	Functor Type
+	typedef typename base_type::functor_type functor_type;
+
+	//	return functor
+
+	virtual functor_type get_functor() const {
+		return *this;
+	}
+
+public:
+
+	BoundaryNumber() {
+		javaVM = getJavaVM();
+		expression = "";
+
+		std::stringstream stream;
+		stream << "<font color=\"red\">VRLUserNumber"
+				<< dim << "D: invokation error:</font>";
+		invocationErrorMsg = stream.str();
+	}
+
+	void set_vrl_callback(const char* expression) {
+		this->expression = expression;
+	}
+
+	///	evaluates the data at a given point and time
+
+	bool operator() (number& c, const MathVector<dim>& x, number time = 0.0) {
+
+		JNIEnv* localEnv = threading::getEnv(getJavaVM());
+
+		bool result = false;
+
+		// TODO this should be cached!!!
+		// <BEGIN>
+		userDataObject =
+				compileBoundaryUserDataString(localEnv, expression.c_str());
+		userDataClass = getBoundaryUserDataClass(localEnv);
+		runMethod = getBoundaryUserDataRunMethod(localEnv, userDataClass);
+		// <END>
+
+		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
+
+		if (runMethod != NULL) {
+			jobject bndResult = (jdoubleArray) localEnv->CallObjectMethod(
+					userDataObject,
+					runMethod,
+					params);
+
+			if (checkException(localEnv, invocationErrorMsg)) {
+				result = boundaryReturnData2Boolean(localEnv, bndResult);
+				c = boundaryReturnData2Double(localEnv, bndResult);
+			}
+		}
+
+		return result;
+	}
+
+protected:
+	std::string expression;
+	JavaVM* javaVM;
+	jobject userDataObject;
+	jclass userDataClass;
+	jmethodID runMethod;
 	std::string invocationErrorMsg;
 };
 
@@ -396,6 +561,40 @@ private:
 	NumberFunctor m_Number;
 };
 
+class PrintBoundaryNumber2d {
+protected:
+	typedef IBoundaryData<number, 2 > ::functor_type NumberFunctor;
+
+public:
+
+	void set_user_number(IBoundaryData<number, 2 > & user) {
+		m_Number = user.get_functor();
+	}
+
+	std::string print(number x, number y) {
+		MathVector < 2 > v(x, y);
+		number time = 0.0;
+		number ret;
+		bool bndResult = false;
+
+		if (m_Number)
+			bndResult = m_Number(ret, v, time);
+		else {
+			UG_LOG("Functor not set. \n");
+			ret = -1;
+		}
+
+		std::stringstream stream;
+
+		stream << "[" << bndResult << "," << ret << "]";
+
+		return stream.str();
+	}
+
+private:
+	NumberFunctor m_Number;
+};
+
 template <int dim>
 void RegisterUserData(ug::bridge::Registry& reg,
 		std::vector<const char*> paramNames, const char* parentGroup) {
@@ -439,7 +638,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 
 		options << "];";
 
-		reg.add_class_<T, IUserData<number, dim> >(className.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserData<number, dim> >(
+				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userNumber", &T::set_vrl_callback, "",
 				options.str().c_str());
@@ -462,9 +662,34 @@ void RegisterUserData(ug::bridge::Registry& reg,
 
 		options << "];";
 
-		reg.add_class_<T, IUserData<MathVector<dim>, dim> >(className.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserData<MathVector<dim>, dim> >(
+				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userVector", &T::set_vrl_callback, "",
+				options.str().c_str());
+	}
+
+	//	VRLBoundaryUserVector
+	{
+		typedef BoundaryNumber<dim> T;
+		std::stringstream className;
+		className << "VRLBoundaryNumber" << dim << "d";
+		std::stringstream options;
+		options << "Input:|boundary-user-data|params=[";
+
+		for (size_t i = 0; i < paramNames.size(); i++) {
+			if (i > 0) {
+				options << ",";
+			}
+			options << "\"" << paramNames[i] << "\"";
+		}
+
+		options << "];";
+
+		reg.add_class_<T, IBoundaryData<number, dim> >(
+				className.str().c_str(), grp.c_str())
+				.add_constructor()
+				.add_method("boundaryNumber", &T::set_vrl_callback, "",
 				options.str().c_str());
 	}
 
@@ -499,6 +724,14 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup) {
 			.add_constructor()
 			.add_method("set_user_vector", &T2::set_user_vector, "", "NumberProvider")
 			.add_method("print", &T2::print, "Result", "x#y");
+
+	typedef PrintBoundaryNumber2d T3;
+	std::stringstream ss3;
+	ss3 << "PrintBoundaryNumber2d";
+	reg.add_class_<T3 > (ss3.str().c_str(), parentGroup)
+			.add_constructor()
+			.add_method("set_user_number", &T3::set_user_number, "", "BoundaryNumber")
+			.add_method("print", &T3::print, "Result", "x#y");
 
 
 #endif
