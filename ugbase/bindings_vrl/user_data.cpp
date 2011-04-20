@@ -287,6 +287,19 @@ public:
 
 	void set_vrl_callback(const char* expression) {
 		this->expression = expression;
+
+		JNIEnv* localEnv = threading::getEnv(getJavaVM());
+		
+		// TODO this should be cached!!!
+		userDataObject = compileUserDataString(localEnv, expression, returnValueDim);
+		userDataClass = getUserDataClass(localEnv);
+		runMethod = getUserDataRunMethod(
+				localEnv, userDataClass, returnValueDim, "([D)D");
+
+		// create thread-safe references
+		// (GC won't deallocate them until manual deletion request)
+		userDataObject = localEnv->NewGlobalRef(userDataObject);
+		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
 	}
 
 	///	evaluates the data at a given point and time
@@ -295,13 +308,13 @@ public:
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
-		// TODO this should be cached!!!
-		// <BEGIN>
-		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
-		userDataClass = getUserDataClass(localEnv);
-		runMethod = getUserDataRunMethod(
-				localEnv, userDataClass, returnValueDim, "([D)D");
-		// <END>
+//		// TODO this should be cached!!!
+//		// <BEGIN>
+//		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
+//		userDataClass = getUserDataClass(localEnv);
+//		runMethod = getUserDataRunMethod(
+//				localEnv, userDataClass, returnValueDim, "([D)D");
+//		// <END>
 
 		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
 
@@ -326,6 +339,13 @@ public:
 						ip(s, i),
 						time());
 			}
+	}
+
+	~UserNumber() {
+		// deleting thread-safe global references
+//		JNIEnv* localEnv = threading::getEnv(getJavaVM());
+//		localEnv->DeleteGlobalRef(userDataObject);
+//		localEnv->DeleteGlobalRef((jobject) userDataClass);
 	}
 
 protected:
@@ -376,6 +396,26 @@ public:
 
 	void set_vrl_callback(const char* expression) {
 		this->expression = expression;
+
+		JNIEnv* localEnv = threading::getEnv(getJavaVM());
+
+		userDataObject = compileUserDataString(localEnv, expression, returnValueDim);
+		userDataClass = getUserDataClass(localEnv);
+		runMethod = getUserDataRunMethod(
+				localEnv, userDataClass, returnValueDim, "([D)[D");
+
+		if (checkException(localEnv,"creatinerror")) {
+			UG_LOG(">> HERE 0\n");
+		}
+
+		// create thread-safe references
+		// (GC won't deallocate them until manual deletion request)
+		userDataObject = localEnv->NewGlobalRef(userDataObject);
+		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
+
+		if (checkException(localEnv,"globalref error")) {
+			UG_LOG(">> HERE 1\n");
+		}
 	}
 
 	///	evaluates the data at a given point and time
@@ -384,15 +424,19 @@ public:
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
-		// TODO this should be cached!!!
-		// <BEGIN>
-		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
-		userDataClass = getUserDataClass(localEnv);
-		runMethod = getUserDataRunMethod(
-				localEnv, userDataClass, returnValueDim, "([D)[D");
-		// <END>
+		//		// TODO this should be cached!!!
+		//		// <BEGIN>
+		//		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
+		//		userDataClass = getUserDataClass(localEnv);
+		//		runMethod = getUserDataRunMethod(
+		//				localEnv, userDataClass, returnValueDim, "([D)[D");
+		//		// <END>
 
 		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
+
+		if (checkException(localEnv,"paramconverter error")) {
+			UG_LOG(">> HERE 2\n");
+		}
 
 		if (runMethod != NULL) {
 			jdoubleArray result = (jdoubleArray) localEnv->CallObjectMethod(
@@ -403,6 +447,10 @@ public:
 			if (checkException(localEnv, invocationErrorMsg)) {
 				VectorConverter<dim>::toC(localEnv, result, c);
 			}
+		}
+
+		if (checkException(localEnv,"???")) {
+			UG_LOG(">> HERE 3\n");
 		}
 	}
 
@@ -415,6 +463,14 @@ public:
 						ip(s, i),
 						time());
 			}
+	}
+
+	~UserVector() {
+
+		// deleting thread-safe global references
+//		JNIEnv* localEnv = threading::getEnv(getJavaVM());
+//		localEnv->DeleteGlobalRef(userDataObject);
+//		localEnv->DeleteGlobalRef((jobject) userDataClass);
 	}
 
 protected:
@@ -457,6 +513,18 @@ public:
 
 	void set_vrl_callback(const char* expression) {
 		this->expression = expression;
+
+		JNIEnv* localEnv = threading::getEnv(getJavaVM());
+
+		userDataObject =
+				compileBoundaryUserDataString(localEnv, expression);
+		userDataClass = getBoundaryUserDataClass(localEnv);
+		runMethod = getBoundaryUserDataRunMethod(localEnv, userDataClass);
+
+		// create thread-safe references 
+		// (GC won't deallocate them until manual deletion request)
+		userDataObject = localEnv->NewGlobalRef(userDataObject);
+		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
 	}
 
 	///	evaluates the data at a given point and time
@@ -466,14 +534,6 @@ public:
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
 		bool result = false;
-
-		// TODO this should be cached!!!
-		// <BEGIN>
-		userDataObject =
-				compileBoundaryUserDataString(localEnv, expression.c_str());
-		userDataClass = getBoundaryUserDataClass(localEnv);
-		runMethod = getBoundaryUserDataRunMethod(localEnv, userDataClass);
-		// <END>
 
 		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
 
@@ -490,6 +550,14 @@ public:
 		}
 
 		return result;
+	}
+
+	~BoundaryNumber() {
+
+		// deleting thread-safe global references
+//		JNIEnv* localEnv = threading::getEnv(getJavaVM());
+//		localEnv->DeleteGlobalRef(userDataObject);
+//		localEnv->DeleteGlobalRef((jobject) userDataClass);
 	}
 
 protected:
