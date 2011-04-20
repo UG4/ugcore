@@ -206,6 +206,9 @@ end
 -- dirichlet setup
 ConcentrationDirichlet = util.CreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
 PressureDirichlet = util.CreateLuaBoundaryNumber("PressureDirichletBnd", dim)
+-- COMMENT IN BELOW TO USE C++ HARD CODED STANDARD ELDER BOUNDARY DATA
+--ConcentrationDirichlet = ElderConcentrationBoundaryData2d()
+--PressureDirichlet = ElderPressureBoundaryData2d()
 
 -- start setup
 ConcentrationStartValue = util.CreateLuaUserNumber("ConcentrationStart", dim)

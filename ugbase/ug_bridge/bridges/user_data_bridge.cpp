@@ -45,6 +45,99 @@ class PrintUserNumber2d
 		NumberFunctor m_Number;
 };
 
+/// provides boundary data for the concentration of the elder problem
+/**
+ * This class provide boundary data for the elder problem.
+ * \todo: This should be temporarily only, until setting of user data can
+ * 		  be done efficiently in script/VRL
+ */
+class ElderConcentrationBoundaryData2d
+	: public IBoundaryData<number, 2>
+{
+	///	Base class type
+		typedef IBoundaryData<number, 2> base_type;
+
+	public:
+	//	Functor Type
+		typedef base_type::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
+	public:
+	///	Constructor
+		ElderConcentrationBoundaryData2d()
+		{}
+
+	///	virtual destructor
+		virtual ~ElderConcentrationBoundaryData2d()	{}
+
+	///	evaluates the data at a given point and time
+		bool operator() (number& val, const MathVector<2>& pos, number time = 0.0)
+		{
+			const number x = pos[0];
+			const number y = pos[1];
+
+			if(y == 150){
+				if(x > 150 && x < 450){
+					val = 1.0;
+					return true;
+				}
+			}
+			if(y == 0.0){
+				val = 0.0;
+				return true;
+			}
+
+			val = 0.0;
+			return false;
+		}
+};
+
+/// provides boundary data for the pressure of the elder problem
+/**
+ * This class provide boundary data for the elder problem.
+ * \todo: This should be temporarily only, until setting of user data can
+ * 		  be done efficiently in script/VRL
+ */
+class ElderPressureBoundaryData2d
+	: public IBoundaryData<number, 2>
+{
+	///	Base class type
+		typedef IBoundaryData<number, 2> base_type;
+
+	public:
+	//	Functor Type
+		typedef base_type::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
+	public:
+	///	Constructor
+		ElderPressureBoundaryData2d()
+		{}
+
+	///	virtual destructor
+		virtual ~ElderPressureBoundaryData2d()	{}
+
+	///	evaluates the data at a given point and time
+		bool operator() (number& val, const MathVector<2>& pos, number time = 0.0)
+		{
+			const number x = pos[0];
+			const number y = pos[1];
+
+			if(y == 150){
+				if(x == 0.0 || x == 600){
+					val = 9810 * (150 - y);
+					return true;
+				}
+			}
+
+			val = 0.0;
+			return false;
+		}
+};
 
 
 /// Hard Coded Linker for d3f
@@ -282,6 +375,23 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //			.add_method("set_user_number|interactive=false", &T::set_user_number, "", "NumberProvider||invokeOnChange=true")
 //			.add_method("print", &T::print, "Result", "x#y");
 //	}
+
+//	Elder Boundary Data for 2D
+	{
+		typedef ElderConcentrationBoundaryData2d T;
+		typedef IBoundaryData<number, 2> TBase;
+		std::stringstream ss; ss << "ElderConcentrationBoundaryData2d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor();
+	}
+	{
+		typedef ElderPressureBoundaryData2d T;
+		typedef IBoundaryData<number, 2> TBase;
+		std::stringstream ss; ss << "ElderPressureBoundaryData2d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor();
+	}
+
 #endif
 
 	return true;
