@@ -236,7 +236,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 	LogTransferInfos<VertexBase>(mg, aaTransferInfosVRT, aaIDVRT);
 */
-	TestRedistributionLayouts(vertexLayouts);
+	//TestRedistributionLayouts(vertexLayouts);
 //END - ONLY FOR DEBUG
 
 
@@ -263,7 +263,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 	pcl::CommunicateInvolvedProcesses(recvFromRanks, sendToRanks, procComm);
 
-
+/*
 //BEGIN - ONLY FOR DEBUG
 	UG_LOG("  send to ranks:");
 	for(size_t i = 0; i < sendToRanks.size(); ++i){
@@ -277,7 +277,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	}
 	UG_LOG(endl);
 //END - ONLY FOR DEBUG
-
+*/
 
 
 ////////////////////////////////
@@ -333,8 +333,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		out.write((char*)&magicNumber2, sizeof(int));
 
 	//	size of the segment we just wrote to out
-		UG_LOG("seg size of block for partition " << partInd << ": "
-				<< out.size() - oldSize << endl);
+		//UG_LOG("seg size of block for partition " << partInd << ": "
+		//		<< out.size() - oldSize << endl);
 		outSegSizes.push_back((int)(out.size() - oldSize));
 	}
 
@@ -347,7 +347,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							out.buffer(), &outSegSizes.front(),
 							&sendToRanks.front(), (int)sendToRanks.size());
 
-	UG_LOG("Size of in buffer: " << in.size() << endl);
+	//UG_LOG("Size of in buffer: " << in.size() << endl);
 
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
@@ -377,9 +377,9 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 */
 ////////////////////////////////
 //	DESERILAIZATION
-	UG_LOG("\ndeserializing...\n");
+	//UG_LOG("\ndeserializing...\n");
 	DeserializeRedistributedGrid(mg, glm, in, recvFromRanks, deserializer);
-	UG_LOG("deserialization done\n\n");
+	//UG_LOG("deserialization done\n\n");
 
 ////////////////////////////////
 //	UPDATE THE DISTRIBUTED GRID MANAGER
@@ -560,13 +560,13 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 	}
 
 //	Now that everything has been deserialized, we can create the interfaces
-UG_LOG("Creating vertex interfaces...\n");
+//UG_LOG("Creating vertex interfaces...\n");
 	CreateInterfaces(mg, glm, vrtLayouts);
-UG_LOG("Creating edge interfaces...\n");
+//UG_LOG("Creating edge interfaces...\n");
 	CreateInterfaces(mg, glm, edgeLayouts);
-UG_LOG("Creating face interfaces...\n");
+//UG_LOG("Creating face interfaces...\n");
 	CreateInterfaces(mg, glm, faceLayouts);
-UG_LOG("Creating volume interfaces...\n");
+//UG_LOG("Creating volume interfaces...\n");
 	CreateInterfaces(mg, glm, volLayouts);
 }
 
@@ -682,7 +682,7 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 				pcurInterface->push_back(node);
 			//	store the connection
 				conVec.push_back(connection);
-
+/*
 			//	debug output
 				UG_LOG("Added Interface entry to " << targetProc);
 				UG_LOG(": " << entry.type);
@@ -695,6 +695,7 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 				else{
 					UG_LOG(endl);
 				}
+*/
 			}
 		}
 	}

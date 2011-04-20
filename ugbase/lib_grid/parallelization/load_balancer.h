@@ -6,6 +6,7 @@
 #define __H__LOAD_BALANCER__
 
 #include <vector>
+#include "common/static_assert.h"
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/trees/kd_tree_static.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
@@ -329,5 +330,65 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 															startDim % IDimension);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+///	Partitions the elements in the grid by sorting them into a regular grid.
+/**	Let xInd, yInd be the indices of the cell in which an element lies.
+ * the associated subset index is then calculated by
+ * \code
+ * 		subsetIndex = yInd * numCellsX + xInd;
+ * \endcode
+ */
+template <class TElem, class TAPosition>
+bool PartitionElements_RegularGrid(ug::SubsetHandler& shOut, ug::MultiGrid& mg, int level,
+							int numCellsX, int numCellsY, TAPosition& aPos)
+{
+	using namespace ug;
+
+	typedef typename geometry_traits<TElem>::iterator	ElemIter;
+	typedef typename TAPosition::ValueType vector_t;
+
+//	make sure that the dimension is right
+	UG_STATIC_ASSERT(TAPosition::ValueType::Size >= 2,
+					TAPosition_has_to_be_at_least_two_dimensional);
+
+//	access the position attachment
+	Grid::AttachmentAccessor<VertexBase, TAPosition> aaPos(mg, aPos);
+
+//	calculate the bounding box
+	vector_t min, max;
+	CalculateBoundingBox(min, max, mg.begin<VertexBase>(level),
+						mg.end<VertexBase>(level), aaPos);
+
+	number width = max.x - min.x;
+	number height = max.y - min.y;
+
+	if(width < SMALL){
+		UG_LOG("Can't execute PartitionElements_Rectangle: Geometry has no width.\n");
+		return false;
+	}
+	if(height < SMALL){
+		UG_LOG("Can't execute PartitionElements_Rectangle: Geometry has no height.\n");
+		return false;
+	}
+
+//	iterate over all elements and calculate the index at which they shall be
+//	inserted into the subset handler
+	for(ElemIter iter = mg.begin<TElem>(level);
+		iter != mg.end<TElem>(level); ++iter)
+	{
+		TElem* elem = *iter;
+		vector_t center = CalculateCenter(elem, aaPos);
+
+	//	get the cell index
+		int xInd = (int)((number)numCellsX * (center.x - min.x) / width);
+		int yInd = (int)((number)numCellsY * (center.y - min.y) / height);
+
+	//	calculate the subset index (one could think of several alternatives here)
+		int si = yInd * numCellsX + xInd;
+
+	//	assign the subset
+		shOut.assign_subset(elem, si);
+	}
+}
 /// @}
 #endif

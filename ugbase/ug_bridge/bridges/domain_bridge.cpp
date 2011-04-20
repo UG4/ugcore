@@ -123,12 +123,54 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 	return true;
 }
 
+///	partitions a domain by sorting all elements into a regular grid
+template <typename TDomain>
+static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partitionMap,
+										int numCellsX, int numCellsY)
+{
+	MultiGrid& mg = domain.get_grid();
+	partitionMap.assign_grid(mg);
+
+	if(mg.num<Volume>() > 0)
+		PartitionElements_RegularGrid<Volume>(
+									partitionMap.get_partition_handler(),
+									mg, mg.num_levels() - 1,
+									numCellsX, numCellsY,
+									domain.get_position_attachment());
+	else if(mg.num<Face>() > 0)
+		PartitionElements_RegularGrid<Face>(
+									partitionMap.get_partition_handler(),
+									mg, mg.num_levels() - 1,
+									numCellsX, numCellsY,
+									domain.get_position_attachment());
+	else if(mg.num<EdgeBase>() > 0)
+		PartitionElements_RegularGrid<EdgeBase>(
+									partitionMap.get_partition_handler(),
+									mg, mg.num_levels() - 1,
+									numCellsX, numCellsY,
+									domain.get_position_attachment());
+	else if(mg.num<VertexBase>() > 0)
+		PartitionElements_RegularGrid<VertexBase>(
+									partitionMap.get_partition_handler(),
+									mg, mg.num_levels() - 1,
+									numCellsX, numCellsY,
+									domain.get_position_attachment());
+	else{
+		LOG("partitioning could not be performed - "
+			<< "grid doesn't contain any elements!\n");
+		return false;
+	}
+
+	return true;
+}
 
 template <typename TDomain>
 static bool RedistributeDomain(TDomain& domainOut,
 							   PartitionMap& partitionMap,
 							   bool createVerticalInterfaces)
 {
+//todo	Use a process-communicator to restrict communication
+
 	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 	typedef typename TDomain::position_attachment_type	position_attachment_type;
 //	make sure that the input is fine
@@ -139,17 +181,37 @@ static bool RedistributeDomain(TDomain& domainOut,
 		partitionMap.assign_grid(grid);
 	}
 
+//	used to check whether all processes are correctly prepared for redistribution
+	bool performDistribution = true;
+
+//	make sure that the number of subsets and target processes match
+	const int numSubs = partitionMap.get_partition_handler().num_subsets();
+	const int numTargetProcs = (int)partitionMap.num_target_procs();
+	if(numSubs > numTargetProcs){
+		UG_LOG("ERROR in RedistributeDomain: More partitions than target processes.\n");
+		performDistribution = false;
+	}
+	else if(numSubs < numTargetProcs){
+		UG_LOG("ERROR in RedistributeDomain: More target processes than partitions.\n");
+		performDistribution = false;
+	}
+
+//todo:	check whether all target-processes in partitionMap are in the valid range.
+
 #ifdef UG_PARALLEL
 //	make sure that manager exists
 	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
 	if(!pDistGridMgr)
 	{
 		UG_LOG("ERROR in RedistibuteDomain: Domain has to feature a Distributed Grid Manager.\n");
-		return false;
+		performDistribution = false;
 	}
-	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
 
-//todo:	check whether all target-processes in partitionMap are in the valid range.
+//todo	Use a process-communicator to restrict communication
+	if(!pcl::AllProcsTrue(performDistribution))
+		return false;
+
+	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
 
 //	data serialization
 	GeomObjAttachmentSerializer<VertexBase, position_attachment_type>
@@ -441,6 +503,23 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	return true;
 }
 
+///	methods that are only available for 2d and 3d are registered here
+template <typename TDomain>
+static bool RegisterDomainInterface_2d_3d(Registry& reg, const char* parentGroup)
+{
+	typedef TDomain domain_type;
+	static const int dim = domain_type::dim;
+
+//	get group string
+	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	std::string grp = grpSS.str();
+
+	reg.add_function("PartitionDomain_RegularGrid",
+					 &PartitionDomain_RegularGrid<domain_type>, grp.c_str());
+
+	return true;
+}
+
 bool RegisterDomainInterface(Registry& reg, const char* parentGroup)
 {
 	bool bSuccess = true;
@@ -460,9 +539,11 @@ bool RegisterDomainInterface(Registry& reg, const char* parentGroup)
 #endif
 #ifdef UG_DIM_2
 	bSuccess &= RegisterDomainInterface_<Domain<2, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
+	bSuccess &= RegisterDomainInterface_2d_3d<Domain<2, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
 #endif
 #ifdef UG_DIM_3
 	bSuccess &= RegisterDomainInterface_<Domain<3, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
+	bSuccess &= RegisterDomainInterface_2d_3d<Domain<3, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
 #endif
 	return bSuccess;
 }

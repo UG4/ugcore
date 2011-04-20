@@ -126,8 +126,19 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm);
 ////////////////////////////////////////////////////////////////////////
 //	CalculateBoundingBox
 /// calculates the BoundingBox
+/**	\{	*/
 void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator vrtsBegin,
-						  VertexBaseIterator vrtsEnd, Grid::VertexAttachmentAccessor<AVector3>& aaPos);
+						  VertexBaseIterator vrtsEnd,
+						  Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
+
+void CalculateBoundingBox(vector2& vMinOut, vector2& vMaxOut, VertexBaseIterator vrtsBegin,
+						  VertexBaseIterator vrtsEnd,
+						  Grid::AttachmentAccessor<VertexBase, APosition2>& aaPos);
+
+void CalculateBoundingBox(vector1& vMinOut, vector1& vMaxOut, VertexBaseIterator vrtsBegin,
+						  VertexBaseIterator vrtsEnd,
+						  Grid::AttachmentAccessor<VertexBase, APosition1>& aaPos);
+/**	\}	*/
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
@@ -135,8 +146,10 @@ void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator
 /**	The difference to CalculateBarycenter is that this method
  * returns the center of the bounding box which contains the
  * given set of vertices.*/
-vector3 CalculateCenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
-						Grid::VertexAttachmentAccessor<AVector3>& aaPos);
+template <class TAPosition>
+typename TAPosition::ValueType
+CalculateCenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
+				Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateBarycenter - mstepnie
