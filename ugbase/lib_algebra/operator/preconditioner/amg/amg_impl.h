@@ -28,6 +28,10 @@
 #include "stopwatch.h"
 #include "amg_profiling.h"
 
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
+
 namespace ug{
 
 //#define GRAPH_WITH_LOCAL_INVERSE
@@ -222,8 +226,9 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 		prolongation_matrix_type &P, size_t level)
 {
 	AMG_PROFILE_FUNC();
+#ifdef UG_PARALLEL
 	UG_ASSERT(pcl::GetNumProcesses()==1, "not implemented for procs > 1");
-
+#endif UG_PARALLEL
 	size_t N = A.num_rows();
 	AMGNodes nodes(N);
 
