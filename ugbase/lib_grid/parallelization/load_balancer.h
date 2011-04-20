@@ -389,6 +389,7 @@ bool PartitionElements_RegularGrid(ug::SubsetHandler& shOut, ug::MultiGrid& mg, 
 	//	assign the subset
 		shOut.assign_subset(elem, si);
 	}
+	return true;
 }
 /// @}
 #endif

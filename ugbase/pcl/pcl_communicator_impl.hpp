@@ -505,9 +505,10 @@ communicate()
 //		instead of waiting for all, one could wait until one has finished and directly
 //		start copying the data to the local receive buffer. Afterwards on could continue
 //		by waiting for the next one etc...
+	PCL_PROFILE(pcl_IntCom_MPIWait);
 	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
 	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
-
+	PCL_PROFILE_END();
 	PCL_PROFILE_END();
 	
 
