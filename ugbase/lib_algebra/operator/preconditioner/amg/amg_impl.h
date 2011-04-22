@@ -228,7 +228,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 	AMG_PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	UG_ASSERT(pcl::GetNumProcesses()==1, "not implemented for procs > 1");
-#endif UG_PARALLEL
+#endif
 	size_t N = A.num_rows();
 	AMGNodes nodes(N);
 
