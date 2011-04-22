@@ -24,16 +24,11 @@ namespace script
 ///	Error class thrown if an error occurs during parsing.
 class LuaError : public UGError
 {
-	protected:
-		std::string m_file;
-		std::size_t m_line;
 	public:
-		LuaError(const char* msg, const char* file);
-
-		std::string getFile() const { return m_file; }
-		std::size_t getLine() const { return m_line; }
-
+		LuaError(const char* msg) : UGError(msg)	{}
 };
+
+
 
 ///	loads and parses a file. Several paths are tried if the file is not found.
 /**	Throws an instance of LuaError, if a parse error occurs.
