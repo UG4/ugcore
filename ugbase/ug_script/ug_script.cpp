@@ -19,7 +19,6 @@
 #include "info_commands.h"
 #include "user_data/user_data.h"
 #include "extensions/algebra_extensions.h"
-
 using namespace std;
 
 namespace ug
@@ -40,16 +39,16 @@ bool LoadUGScript(const char* filename)
 	string strInFile = filename;
 	string strInPath;
 	string::size_type pos = strInFile.rfind("/");
-	if(pos != string::npos) {
+	if(pos != string::npos){
 		strInPath = strInFile.substr(0, pos);
 	}
-	else if((pos = strInFile.rfind("\\")) != string::npos) {
+	else if((pos = strInFile.rfind("\\")) != string::npos){
 		strInPath = strInFile.substr(0, pos);
 	}
 
 //	first we check whether the file can be found relative
 //	to the location of the current script
-	if(!stkPathes.empty()) {
+	if(!stkPathes.empty()){
 		string curPath = stkPathes.top();
 		string file = curPath;
 		file.append("/").append(filename);
@@ -66,7 +65,7 @@ bool LoadUGScript(const char* filename)
 
 //	the file was not found relative to the current script (if there
 //	was one at all). Check the default filename
-	if(FileExists(filename)) {
+	if(FileExists(filename)){
 		stkPathes.push(strInPath);
 		PathProvider::push_current_path(strInPath);
 		bool success = ug::script::ParseFile(filename);
@@ -81,7 +80,7 @@ bool LoadUGScript(const char* filename)
 	file.append("/").append(filename);
 
 //	check script path
-	if(FileExists(file.c_str())) {
+	if(FileExists(file.c_str())){
 		curPath.append("/").append(strInPath);
 		stkPathes.push(curPath);
 		PathProvider::push_current_path(curPath);
@@ -175,25 +174,22 @@ lua_State* GetDefaultLuaState()
 	return L;
 }
 
-static bool handleError(int errorCode, const char* filename = "") {
-	if (errorCode) {
-		lua_State* L = GetDefaultLuaState();
-		string msg = lua_tostring(L, -1);
-		size_t i = msg.find_first_of(':');
-		int line = atoi(msg.substr(i + 1, msg.find(':', i)).c_str());
-
-		throw LuaError(msg.c_str(), filename, line);
-	}
-	return true;
-}
-
 bool ParseBuffer(const char* buffer, const char *bufferName)
 {
 	lua_State* L = GetDefaultLuaState();
 	int error = luaL_loadbuffer(L, buffer, strlen(buffer), bufferName) ||
 				lua_pcall(L, 0, 0, 0);
 
-	return handleError(error);
+	if(error)
+	{
+//		LOG("PARSE-ERROR: " << lua_tostring(L, -1) << endl);
+		string msg = lua_tostring(L, -1);
+		lua_pop(L, 1);
+		throw(LuaError(msg.c_str()));
+//		return false;
+	}
+	return true;
+
 }
 
 bool ParseFile(const char* filename)
@@ -201,7 +197,15 @@ bool ParseFile(const char* filename)
 	lua_State* L = GetDefaultLuaState();
 
 	int error = luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0);
-	return handleError(error, filename);
+
+	if(error)
+	{
+		//LOG("PARSE-ERROR in parse_file(" << filename << "): " << lua_tostring(L, -1) << endl);
+		string msg = lua_tostring(L, -1);
+		lua_pop(L, 1);
+		throw(LuaError(msg.c_str()));
+	}
+	return true;
 }
 
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
