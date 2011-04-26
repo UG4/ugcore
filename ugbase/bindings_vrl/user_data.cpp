@@ -283,14 +283,14 @@ public:
 		stream << "<font color=\"red\">VRLUserNumber"
 				<< dim << "D: invokation error:</font>";
 		invocationErrorMsg = stream.str();
+		initialized = false;
 	}
 
 	void set_vrl_callback(const char* expression) {
 		this->expression = expression;
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-		
-		// TODO this should be cached!!!
+
 		userDataObject = compileUserDataString(localEnv, expression, returnValueDim);
 		userDataClass = getUserDataClass(localEnv);
 		runMethod = getUserDataRunMethod(
@@ -300,6 +300,8 @@ public:
 		// (GC won't deallocate them until manual deletion request)
 		userDataObject = localEnv->NewGlobalRef(userDataObject);
 		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
+
+		initialized = true;
 	}
 
 	///	evaluates the data at a given point and time
@@ -308,13 +310,13 @@ public:
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
-//		// TODO this should be cached!!!
-//		// <BEGIN>
-//		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
-//		userDataClass = getUserDataClass(localEnv);
-//		runMethod = getUserDataRunMethod(
-//				localEnv, userDataClass, returnValueDim, "([D)D");
-//		// <END>
+		//		// TODO this should be cached!!!
+		//		// <BEGIN>
+		//		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
+		//		userDataClass = getUserDataClass(localEnv);
+		//		runMethod = getUserDataRunMethod(
+		//				localEnv, userDataClass, returnValueDim, "([D)D");
+		//		// <END>
 
 		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
 
@@ -343,12 +345,14 @@ public:
 
 	~UserNumber() {
 		// deleting thread-safe global references
-//		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-//		localEnv->DeleteGlobalRef(userDataObject);
-//		localEnv->DeleteGlobalRef((jobject) userDataClass);
+		if (initialized) {
+			JNIEnv* localEnv = threading::getEnv(getJavaVM());
+			localEnv->DeleteGlobalRef(userDataObject);
+			localEnv->DeleteGlobalRef((jobject) userDataClass);
+		}
 	}
 
-protected:
+private:
 	std::string expression;
 	JavaVM* javaVM;
 	jobject userDataObject;
@@ -356,6 +360,7 @@ protected:
 	jmethodID runMethod;
 	unsigned int returnValueDim;
 	std::string invocationErrorMsg;
+	bool initialized;
 };
 
 template <int dim>
@@ -392,6 +397,8 @@ public:
 		stream << "<font color=\"red\">VRLUserNumber"
 				<< dim << "D: invokation error:</font>";
 		invocationErrorMsg = stream.str();
+
+		initialized = false;
 	}
 
 	void set_vrl_callback(const char* expression) {
@@ -404,7 +411,7 @@ public:
 		runMethod = getUserDataRunMethod(
 				localEnv, userDataClass, returnValueDim, "([D)[D");
 
-		if (checkException(localEnv,"creatinerror")) {
+		if (checkException(localEnv, "creatinerror")) {
 			UG_LOG(">> HERE 0\n");
 		}
 
@@ -413,9 +420,11 @@ public:
 		userDataObject = localEnv->NewGlobalRef(userDataObject);
 		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
 
-		if (checkException(localEnv,"globalref error")) {
+		if (checkException(localEnv, "globalref error")) {
 			UG_LOG(">> HERE 1\n");
 		}
+
+		initialized = true;
 	}
 
 	///	evaluates the data at a given point and time
@@ -434,7 +443,7 @@ public:
 
 		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
 
-		if (checkException(localEnv,"paramconverter error")) {
+		if (checkException(localEnv, "paramconverter error")) {
 			UG_LOG(">> HERE 2\n");
 		}
 
@@ -449,7 +458,7 @@ public:
 			}
 		}
 
-		if (checkException(localEnv,"???")) {
+		if (checkException(localEnv, "???")) {
 			UG_LOG(">> HERE 3\n");
 		}
 	}
@@ -468,12 +477,14 @@ public:
 	~UserVector() {
 
 		// deleting thread-safe global references
-//		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-//		localEnv->DeleteGlobalRef(userDataObject);
-//		localEnv->DeleteGlobalRef((jobject) userDataClass);
+		if (initialized) {
+			JNIEnv* localEnv = threading::getEnv(getJavaVM());
+			localEnv->DeleteGlobalRef(userDataObject);
+			localEnv->DeleteGlobalRef((jobject) userDataClass);
+		}
 	}
 
-protected:
+private:
 	std::string expression;
 	JavaVM* javaVM;
 	jobject userDataObject;
@@ -481,6 +492,7 @@ protected:
 	jmethodID runMethod;
 	unsigned int returnValueDim;
 	std::string invocationErrorMsg;
+	bool initialized;
 };
 
 template <int dim>
@@ -509,6 +521,8 @@ public:
 		stream << "<font color=\"red\">VRLUserNumber"
 				<< dim << "D: invokation error:</font>";
 		invocationErrorMsg = stream.str();
+
+		initialized = false;
 	}
 
 	void set_vrl_callback(const char* expression) {
@@ -525,6 +539,8 @@ public:
 		// (GC won't deallocate them until manual deletion request)
 		userDataObject = localEnv->NewGlobalRef(userDataObject);
 		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
+
+		initialized = true;
 	}
 
 	///	evaluates the data at a given point and time
@@ -553,20 +569,22 @@ public:
 	}
 
 	~BoundaryNumber() {
-
 		// deleting thread-safe global references
-//		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-//		localEnv->DeleteGlobalRef(userDataObject);
-//		localEnv->DeleteGlobalRef((jobject) userDataClass);
+		if (initialized) {
+			JNIEnv* localEnv = threading::getEnv(getJavaVM());
+			localEnv->DeleteGlobalRef(userDataObject);
+			localEnv->DeleteGlobalRef((jobject) userDataClass);
+		}
 	}
 
-protected:
+private:
 	std::string expression;
 	JavaVM* javaVM;
 	jobject userDataObject;
 	jclass userDataClass;
 	jmethodID runMethod;
 	std::string invocationErrorMsg;
+	bool initialized;
 };
 
 class PrintUserNumber2d {
