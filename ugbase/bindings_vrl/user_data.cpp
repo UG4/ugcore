@@ -345,11 +345,11 @@ public:
 
 	~UserNumber() {
 		// deleting thread-safe global references
-		if (initialized) {
-			JNIEnv* localEnv = threading::getEnv(getJavaVM());
-			localEnv->DeleteGlobalRef(userDataObject);
-			localEnv->DeleteGlobalRef((jobject) userDataClass);
-		}
+//		if (initialized) {
+//			JNIEnv* localEnv = threading::getEnv(getJavaVM());
+//			localEnv->DeleteGlobalRef(userDataObject);
+//			localEnv->DeleteGlobalRef((jobject) userDataClass);
+//		}
 	}
 
 private:
@@ -477,11 +477,11 @@ public:
 	~UserVector() {
 
 		// deleting thread-safe global references
-		if (initialized) {
-			JNIEnv* localEnv = threading::getEnv(getJavaVM());
-			localEnv->DeleteGlobalRef(userDataObject);
-			localEnv->DeleteGlobalRef((jobject) userDataClass);
-		}
+//		if (initialized) {
+//			JNIEnv* localEnv = threading::getEnv(getJavaVM());
+//			localEnv->DeleteGlobalRef(userDataObject);
+//			localEnv->DeleteGlobalRef((jobject) userDataClass);
+//		}
 	}
 
 private:
@@ -570,11 +570,11 @@ public:
 
 	~BoundaryNumber() {
 		// deleting thread-safe global references
-		if (initialized) {
-			JNIEnv* localEnv = threading::getEnv(getJavaVM());
-			localEnv->DeleteGlobalRef(userDataObject);
-			localEnv->DeleteGlobalRef((jobject) userDataClass);
-		}
+//		if (initialized) {
+//			JNIEnv* localEnv = threading::getEnv(getJavaVM());
+//			localEnv->DeleteGlobalRef(userDataObject);
+//			localEnv->DeleteGlobalRef((jobject) userDataClass);
+//		}
 	}
 
 private:
