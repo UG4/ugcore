@@ -323,12 +323,17 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	VTK Output
 	{
+		typedef VTKOutput<function_type> T;
 		std::stringstream ss; ss << "VTKOutput" << dim << "d";
-		reg.add_class_<VTKOutput<function_type> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("begin_timeseries", &VTKOutput<function_type>::begin_timeseries)
-			.add_method("end_timeseries", &VTKOutput<function_type>::end_timeseries)
-			.add_method("print", &VTKOutput<function_type>::print);
+			.add_method("write_time_pvd", &T::write_time_pvd)
+			.add_method("clear_selection", &T::clear_selection)
+			.add_method("select_all", &T::select_all)
+			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
+			.add_method("select_nodal_vector", &T::select_nodal_vector)
+			.add_method("print", (bool (T::*)(const char*, function_type&, int, number))&T::print)
+			.add_method("print", (bool (T::*)(const char*, function_type&))&T::print);
 	}
 
 
