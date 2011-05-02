@@ -358,6 +358,21 @@ inline int DimensionOfSubset(const TDomain& domain, int si)
 	return DimensionOfSubset(sh, si);
 }
 
+///	returns the current dimension of the domain
+template <typename TDomain>
+inline int DimensionOfDomain(const TDomain& domain)
+{
+//	get grid
+	const typename TDomain::grid_type& grid = domain.get_grid();
+
+// 	choose dimension
+	if(grid.template num<Volume>() > 0) return 3;
+	if(grid.template num<Face>() > 0) return 2;
+	if(grid.template num<EdgeBase>() > 0) return 1;
+	if(grid.template num<VertexBase>() > 0) return 0;
+	else return -1;
+}
+
 //	returns the corner coordinates of a geometric object
 template <typename TElem, typename TAAPos>
 void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerCoordsOut,

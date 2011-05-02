@@ -190,6 +190,22 @@ template <typename TDomain>
 inline int DimensionOfSubset(const TDomain& domain, int si);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns the current dimension of the domain
+/** Returns the dimension of geometric objects, that are contained in the domain
+ *
+ * This function returns the dimension of the domain. The dimension is simply
+ * defined to be the highest reference dimension of all geometric objects
+ * contained in the domain
+ *
+ * \param[in]	domain		Domain
+ *
+ * \return		dimension	Dimension of Subset
+ * 				-1 			if no Dimension accessible
+ */
+template <typename TDomain>
+inline int DimensionOfDomain(const TDomain& domain);
+
+////////////////////////////////////////////////////////////////////////
 ///	returns the corner coordinates of a geometric object
 /** Returns the corner coordinated of a geometric object in a vector
  *
