@@ -106,9 +106,16 @@ class IDoFDistribution
 		bool is_def_in_subset(size_t fct, int si) const
 			{return m_pFuncPattern->is_def_in_subset(fct, si);}
 
+	/// returns true if the discrete function is defined everywhere
+		bool is_def_everywhere(size_t fct) const
+			{return m_pFuncPattern->is_def_everywhere(fct);}
+
 	/// returns function id for local function on subset
 		size_t fct_id(size_t loc_fct, int si) const
 			{return m_pFuncPattern->fct_id(loc_fct, si);}
+
+	///	returns the function pattern
+		const FunctionPattern& get_function_pattern() {return *m_pFuncPattern;}
 
 		///////////////////////////////////////
 		// Elements where dofs are distributed
