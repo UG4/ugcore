@@ -162,17 +162,221 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					return false;
 				}
 
+			//	adapt rhs
+				if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while setting interpolation. Aborting.\n");
+					return false;
+				}
+			}
+
+		//	second loop to set the constraints
+		//	loop constraining edges
+			for(iter = iterBegin; iter != iterEnd; ++iter)
+			{
+			//	resize tmp arrays
+				vConstrainingInd.clear();
+				vConstrainingVrt.clear();
+
+			//	get hanging vert
+				HangingVertex* hgVrt = *iter;
+
+			//	switch constraining parent
+				switch(hgVrt->get_parent_base_object_type_id())
+				{
+				case EDGE:
+				{
+				//	cast to constraining edge
+					ConstrainingEdge* constrainingEdge =
+							dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+
+				//	check that edge is correct
+					if(constrainingEdge == NULL)
+					{
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining edge, but is not.\n");
+						return false;
+					}
+
+				//	get constraining vertices
+					for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
+					{
+					//	get constrained edge
+						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
+															constrainingEdge->constrained_edge(i_cde));
+
+					//	check
+						if(constrainedEdge == NULL)
+						{
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+									" Child element should be constrained edge, but is not.\n");
+							return false;
+						}
+
+					//	get non-hanging vertex
+						VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
+
+					//	push back in list of interpolation vertices
+						vConstrainingVrt.push_back(vrt);
+					}
+				}
+					break;
+				case FACE:
+				{
+				//	cast to constraining quadrilateral
+					ConstrainingQuadrilateral* bigQuad =
+							dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
+
+				//	check that quad is correct
+					if(bigQuad == NULL)
+					{
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining quad, but is not.\n");
+						return false;
+					}
+
+				//	get constraining vertices
+				//	\todo: This is only valid for a surface grid!!!
+					for(size_t i=0; i < bigQuad->num_vertices(); ++i)
+						vConstrainingVrt.push_back(bigQuad->vertex(i));
+				}
+					break;
+				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element of hang. vertex wrong.\n");
+						return false;
+				}
+
+			//	resize constraining indices
+				vConstrainingInd.resize(vConstrainingVrt.size());
+
+			// 	get algebra indices for constraining vertices
+				for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+					dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+
+			// 	get algebra indices constrained vertices
+				dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
+
 			//	Set interpolation
 				if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
 				{
 					UG_LOG("ERROR while setting interpolation. Aborting.\n");
 					return false;
 				}
+			}
 
-			//	adapt rhs
-				if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
+		//  we're done
+			return true;
+		}
+
+		virtual bool post_process_solution(vector_type& u,
+		                                   const dof_distribution_type& dofDistr,
+		                                   number time = 0.0)
+		{
+		//	algebra indices of constraining vertex
+			std::vector<algebra_index_vector_type> vConstrainingInd;
+
+		//	algebra indices of constrained vertex
+			algebra_index_vector_type constrainedInd;
+
+		//	vector of constraining vertices
+			std::vector<VertexBase*> vConstrainingVrt;
+
+		//	iterators for hanging vertices
+			typename geometry_traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+
+		//	get begin end of hanging vertices
+			iterBegin = dofDistr.template begin<HangingVertex>();
+			iterEnd = dofDistr.template end<HangingVertex>();
+
+		//	loop constraining edges
+			for(iter = iterBegin; iter != iterEnd; ++iter)
+			{
+			//	resize tmp arrays
+				vConstrainingInd.clear();
+				vConstrainingVrt.clear();
+
+			//	get hanging vert
+				HangingVertex* hgVrt = *iter;
+
+			//	switch constraining parent
+				switch(hgVrt->get_parent_base_object_type_id())
 				{
-					UG_LOG("ERROR while setting interpolation. Aborting.\n");
+				case EDGE:
+				{
+				//	cast to constraining edge
+					ConstrainingEdge* constrainingEdge =
+							dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+
+				//	check that edge is correct
+					if(constrainingEdge == NULL)
+					{
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining edge, but is not.\n");
+						return false;
+					}
+
+				//	get constraining vertices
+					for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
+					{
+					//	get constrained edge
+						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
+															constrainingEdge->constrained_edge(i_cde));
+
+					//	check
+						if(constrainedEdge == NULL)
+						{
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+									" Child element should be constrained edge, but is not.\n");
+							return false;
+						}
+
+					//	get non-hanging vertex
+						VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
+
+					//	push back in list of interpolation vertices
+						vConstrainingVrt.push_back(vrt);
+					}
+				}
+					break;
+				case FACE:
+				{
+				//	cast to constraining quadrilateral
+					ConstrainingQuadrilateral* bigQuad =
+							dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
+
+				//	check that quad is correct
+					if(bigQuad == NULL)
+					{
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining quad, but is not.\n");
+						return false;
+					}
+
+				//	get constraining vertices
+				//	\todo: This is only valid for a surface grid!!!
+					for(size_t i=0; i < bigQuad->num_vertices(); ++i)
+						vConstrainingVrt.push_back(bigQuad->vertex(i));
+				}
+					break;
+				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element of hang. vertex wrong.\n");
+						return false;
+				}
+
+			//	resize constraining indices
+				vConstrainingInd.resize(vConstrainingVrt.size());
+
+			// 	get algebra indices for constraining vertices
+				for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+					dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+
+			// 	get algebra indices constrained vertices
+				dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
+
+			// 	Interpolate values
+				if(!InterpolateValues(u, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while interpolating values rows. Aborting.\n");
 					return false;
 				}
 			}
@@ -273,6 +477,13 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		//	loop all constrained dofs
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
+			//	remove all couplings
+				for(typename matrix_type::row_iterator conn = A.begin_row(constrainedIndex[i]);
+						conn != A.end_row(constrainedIndex[i]); ++conn)
+				{
+					conn.value() = 0.0;
+				}
+
 			//	set diag of row to identity
 				A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
 
@@ -318,6 +529,39 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 			return true;
 		}
 
+		bool InterpolateValues(vector_type& u,
+		                       algebra_index_vector_type& constrainedIndex,
+		                       std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		{
+		//	check number of indices passed
+			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
+			{
+				if(vConstrainingIndices[i].size() != constrainedIndex.size())
+				{
+					UG_LOG("Wrong number of indices. Cannot split row.\n");
+					return false;
+				}
+			}
+
+		//	loop constrained indices
+			for(size_t i = 0; i < constrainedIndex.size(); ++i)
+			{
+			//	get constrained rhs
+				typename vector_type::value_type& val = u[constrainedIndex[i]];
+				const number scale = 1./(vConstrainingIndices.size());
+
+				val = 0.0;
+
+			// 	split equally on all constraining indices
+				for(size_t j=0; j < vConstrainingIndices.size(); ++j)
+				{
+					typename vector_type::value_type entry = u[vConstrainingIndices[j][i]];
+					entry *= scale;
+					val += entry;
+				}
+			}
+			return true;
+		}
 
 };
 
