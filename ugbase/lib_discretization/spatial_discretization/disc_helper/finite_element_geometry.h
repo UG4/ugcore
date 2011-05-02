@@ -30,7 +30,7 @@ class FEGeometry
 
 	public:
 		FEGeometry(int order)
-			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_rule(order))
+			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_rule(2*order))
 			{
 				UG_ASSERT(order == 1, " Currently only first order implemented.");
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
