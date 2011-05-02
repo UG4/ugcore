@@ -141,6 +141,9 @@ class IGridFunction
 	/// returns true if the discrete function nr_fct is defined on subset s
 		bool is_def_in_subset(size_t fct, int si) const {check(); return m_pDoFDist->is_def_in_subset(fct, si);}
 
+	/// returns true if the discrete function nr_fct is defined everywhere
+		bool is_def_everywhere(size_t fct) const {check(); return m_pDoFDist->is_def_everywhere(fct);}
+
 	/// number of subsets
 		int num_subsets() const {check(); return m_pDoFDist->num_subsets();}
 
