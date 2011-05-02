@@ -15,7 +15,7 @@
 #include "lib_discretization/domain.h"
 #include "lib_discretization/domain_util.h"
 
-#include "lib_grid/parallelization/load_balancer.h"
+#include "lib_grid/parallelization/load_balancing.h"
 
 using namespace std;
 
@@ -70,6 +70,16 @@ class PartitionMap{
 
 		std::vector<int>& get_target_proc_vec()
 		{return m_targetProcs;}
+
+	///	returns the index at which the given process lies. -1 if it doesn't exist.
+		int find_target_proc(int procRank)
+		{
+			for(size_t i = 0; i < m_targetProcs.size(); ++i){
+				if(m_targetProcs[i] == procRank)
+					return i;
+			}
+			return -1;
+		}
 
 	private:
 		std::vector<int>	m_targetProcs;
@@ -128,37 +138,70 @@ template <typename TDomain>
 static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partitionMap,
 										int numCellsX, int numCellsY)
 {
+//	a distributed grid manager is required
+	if(!domain.get_distributed_grid_manager()){
+		UG_LOG("A distributed grid manager is required in the given domain.\n");
+		return false;
+	}
+
+//	prepare the partition map and a vertex position attachment accessor
 	MultiGrid& mg = domain.get_grid();
 	partitionMap.assign_grid(mg);
 
+	typedef typename TDomain::position_attachment_type TAPos;
+	Grid::AttachmentAccessor<VertexBase, TAPos> aaPos(mg,
+											domain.get_position_attachment());
+
+//	this callback allows us to only distribute surface elements, which are no ghosts
+	IsRegularSurfaceElem cbConsiderElem(*domain.get_distributed_grid_manager());
+
+//	we need a process to which elements which are not considered will be send.
+//	Those elements should stay on the current process.
+	int localProc = 0;
+#ifdef UG_PARALLEL
+	localProc = pcl::GetProcRank();
+#endif
+
+	int bucketSubset = partitionMap.find_target_proc(localProc);
+	if(bucketSubset == -1)
+		bucketSubset = (int)partitionMap.num_target_procs();
+
+//	partition the grid
 	if(mg.num<Volume>() > 0)
 		PartitionElements_RegularGrid<Volume>(
 									partitionMap.get_partition_handler(),
-									mg, mg.num_levels() - 1,
-									numCellsX, numCellsY,
-									domain.get_position_attachment());
+									mg.begin<Volume>(), mg.end<Volume>(),
+									numCellsX, numCellsY, aaPos,
+									cbConsiderElem, bucketSubset);
 	else if(mg.num<Face>() > 0)
 		PartitionElements_RegularGrid<Face>(
 									partitionMap.get_partition_handler(),
-									mg, mg.num_levels() - 1,
-									numCellsX, numCellsY,
-									domain.get_position_attachment());
+									mg.begin<Face>(), mg.end<Face>(),
+									numCellsX, numCellsY, aaPos,
+									cbConsiderElem, bucketSubset);
 	else if(mg.num<EdgeBase>() > 0)
 		PartitionElements_RegularGrid<EdgeBase>(
 									partitionMap.get_partition_handler(),
-									mg, mg.num_levels() - 1,
-									numCellsX, numCellsY,
-									domain.get_position_attachment());
+									mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
+									numCellsX, numCellsY, aaPos,
+									cbConsiderElem, bucketSubset);
 	else if(mg.num<VertexBase>() > 0)
 		PartitionElements_RegularGrid<VertexBase>(
 									partitionMap.get_partition_handler(),
-									mg, mg.num_levels() - 1,
-									numCellsX, numCellsY,
-									domain.get_position_attachment());
+									mg.begin<VertexBase>(), mg.end<VertexBase>(),
+									numCellsX, numCellsY, aaPos,
+									cbConsiderElem, bucketSubset);
 	else{
 		LOG("partitioning could not be performed - "
 			<< "grid doesn't contain any elements!\n");
 		return false;
+	}
+
+//	if elements have been assigned to bucketProc, then we have to make sure,
+//	that it is also present in the process-map
+	if(!partitionMap.get_partition_handler().empty(bucketSubset)){
+		if(bucketSubset >= (int)partitionMap.num_target_procs())
+			partitionMap.add_target_proc(localProc);
 	}
 
 	return true;
@@ -414,12 +457,13 @@ static IRefiner* HangingNodeDomainRefiner(TDomain* dom)
 
 
 template <typename TDomain>
-static void TestDomainInterfaces(TDomain* dom)
+static bool TestDomainInterfaces(TDomain* dom)
 {
 	#ifdef UG_PARALLEL
-		TestGridLayoutMap(dom->get_grid(),
+		return TestGridLayoutMap(dom->get_grid(),
 					dom->get_distributed_grid_manager()->grid_layout_map());
 	#endif
+	return true;
 }
 
 

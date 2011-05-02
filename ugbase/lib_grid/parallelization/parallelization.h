@@ -6,7 +6,7 @@
 #define __H__LIB_GRID__PARALLELIZATION__
 
 #include "parallel_grid_layout.h"
-#include "load_balancer.h"
+#include "load_balancing.h"
 #include "grid_distribution.h"
 #include "distributed_grid.h"
 

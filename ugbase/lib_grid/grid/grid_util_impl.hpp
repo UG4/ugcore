@@ -83,6 +83,27 @@ inline VertexBase* GetVertex(Volume* vol, size_t i)
 	return vol->vertex(i);
 }
 
+inline size_t NumVertices(VertexBase* elem)
+{
+	return 1;
+}
+
+inline size_t NumVertices(EdgeBase* elem)
+{
+	return elem->num_vertices();
+}
+
+inline size_t NumVertices(Face* elem)
+{
+	return elem->num_vertices();
+}
+
+inline size_t NumVertices(Volume* elem)
+{
+	return elem->num_vertices();
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
 					  Grid& grid, VertexBase* v, bool clearContainer)

@@ -289,6 +289,9 @@ void FinalizeRedistributionLayoutInterfaces(
 
 	MultiGrid& mg = *distGridMgr.get_assigned_grid();
 
+//TEMPORARY POSITION ATTACHMENT
+//	Grid::VertexAttachmentAccessor<APosition2> aaPos(mg, aPosition2);
+
 	Layout* masters = NULL;
 	if(distGridMgr.grid_layout_map().template has_layout<TGeomObj>(masterKey))
 		masters = &distGridMgr.grid_layout_map().template get_layout<TGeomObj>(masterKey);
@@ -312,6 +315,8 @@ void FinalizeRedistributionLayoutInterfaces(
 		if(processMap)
 			targetProc = (*processMap)[i_layout];
 
+		//UG_LOG("TARGET_PROC: " << targetProc << endl);
+
 		TDistLayout& distLayout = distLayoutVec[i_layout];
 		const typename TDistLayout::NodeVec& nodes = distLayout.node_vec();
 
@@ -322,7 +327,7 @@ void FinalizeRedistributionLayoutInterfaces(
 			mg.mark(nodes[i]);
 		}
 
-	//	iterate over all master nodes of this process. If the node is marked we'll
+	//	iterate over all existing master nodes of this process. If the node is marked we'll
 	//	have to further process it.
 		if(masters){
 			for(size_t lvl = 0; lvl < masters->num_levels(); ++lvl){
@@ -332,7 +337,8 @@ void FinalizeRedistributionLayoutInterfaces(
 				{
 					Interface& intf = masters->interface(intfIter);
 					int connProc = intf.get_target_proc();
-
+					//UG_LOG("CONN_PROC: " << connProc << endl);
+					//UG_LOG("INTF_SIZE: " << intf.size() << endl);
 					//UG_LOG("checking master interface: " << localProcRank << "->" << connProc);
 					//UG_LOG(" for target proc " << targetProc << endl);
 
@@ -406,9 +412,16 @@ void FinalizeRedistributionLayoutInterfaces(
 					//	however, we have to check whether the associated slave is sent
 					//	to a new proc, too.
 						if(newMasterProc == targetProc){
+						/*
+							UG_LOG("TI:");
+							if(elem->base_object_type_id() == VERTEX){
+								UG_LOG(" [" << aaPos[elem] << "] -");
+							}
+						*/
 							for(size_t i = 0; i < transferInfos.size(); ++i){
 								const RedistributionNodeTransferInfo& info = transferInfos[i];
 								if(info.srcProc == connProc){
+									//UG_LOG(" (" << info.srcProc << ", " << info.targetProc << ")");
 								//	the node is moved. only create an interface
 								//	to the target proc.
 								//	If targetProc and info.targetProc are the same, then
@@ -416,15 +429,17 @@ void FinalizeRedistributionLayoutInterfaces(
 									if(targetProc == info.targetProc)
 										continue;
 
-									//UG_LOG("Creating Master entry from " << targetProc);
-									//UG_LOG(" to " << info.targetProc << endl);
-
 									DistInterface& interface = distLayout.interface(
 														ProcPair(info.targetProc, connProc), lvl);
+
 									interface.push_back(DistributionInterfaceEntry(
 															aaNodeInd[elem], masterKey));
 								}
+								else{
+									//UG_LOG(" *(" << info.srcProc << ", " << info.targetProc << ")*");
+								}
 							}
+							UG_LOG(endl);
 						}
 					}
 				}
@@ -690,9 +705,11 @@ void CreateRedistributionLayouts(
 										aaTargetProcsVOL, aaTransInfoVecVOL,
 										msel, INT_H_MASTER, INT_H_SLAVE, processMap);
 
+//UG_LOG("\nVRTS_BEGIN\n");
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, vertexLayoutsOut,
 										aaTargetProcsVRT, aaTransInfoVecVRT,
 										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
+//UG_LOG("VRTS_END\n\n");
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, edgeLayoutsOut,
 										aaTargetProcsEDGE, aaTransInfoVecEDGE,
 										msel, INT_V_MASTER, INT_V_SLAVE, processMap);

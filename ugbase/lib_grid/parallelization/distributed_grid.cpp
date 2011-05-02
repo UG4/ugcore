@@ -191,7 +191,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 }
 
 byte DistributedGridManager::
-get_status(GeometricObject* go)
+get_status(GeometricObject* go) const
 {
 	int baseType = go->base_object_type_id();
 	switch(baseType)

@@ -6,10 +6,10 @@
 #define __H__LIB_GRID__MISC_UTIL__IMPL__
 
 #include "misc_util.h"
+#include "lib_grid/grid/grid_util.h"
 
 namespace ug
 {
-
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
 template <class TIterator, class TAAPosVRT>
@@ -57,6 +57,39 @@ TElem* FindByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueT
 	}
 
 	return bestElem;
+}
+
+////////////////////////////////////////////////////////////////////////
+template<class vector_t, class TIterator, class TAAPos>
+void CalculateBoundingBox(vector_t& vMinOut, vector_t& vMaxOut,
+						  TIterator begin, TIterator end,
+						  TAAPos& aaPos)
+{
+	if(begin == end){
+		VecSet(vMinOut, 0);
+		VecSet(vMaxOut, 0);
+		return;
+	}
+
+	vMinOut = vMaxOut = aaPos[GetVertex(*begin, 0)];
+
+	const int dim = vector_t::Size;
+
+//	iterate over all elements and find min and max values
+	vector_t tmin, tmax;
+	for(TIterator iter = begin; iter != end; ++iter){
+		typename TIterator::value_type elem = *iter;
+
+		for(size_t i_vrt = 0; i_vrt < NumVertices(elem); ++i_vrt){
+			for(int i = 0; i < dim; ++i){
+				vector_t& v = aaPos[GetVertex(elem, i_vrt)];
+				if(v[i] < vMinOut[i])
+					vMinOut[i] = v[i];
+				else if(v[i] > vMaxOut[i])
+					vMaxOut[i] = v[i];
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////

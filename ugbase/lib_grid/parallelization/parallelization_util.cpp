@@ -4,7 +4,7 @@
 
 #include <sstream>
 #include "parallelization_util.h"
-#include "load_balancer.h"
+#include "load_balancing.h"
 #include "grid_distribution.h"
 #include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/file_io/file_io.h"
@@ -349,11 +349,43 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 }
 
 
-void TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
+
+template <class TElem, class TAVrtPos>
+class ToElementPosition
 {
+	public:
+		typedef typename TAVrtPos::ValueType	TValue;
+
+		ToElementPosition(Grid& g, TAVrtPos& aPos)
+		{
+			if(g.has_vertex_attachment(aPos))
+				m_aaPos.access(g, aPos);
+		}
+
+		TValue operator() (VertexBase* e)	{return m_aaPos[e];}
+		TValue operator() (EdgeBase* e)		{return CalculateCenter(e, m_aaPos);}
+		TValue operator() (Face* e)			{return CalculateCenter(e, m_aaPos);}
+		TValue operator() (Volume* e)		{return CalculateCenter(e, m_aaPos);}
+
+	private:
+		Grid::VertexAttachmentAccessor<TAVrtPos>	m_aaPos;
+};
+
+
+template <class TAPos>
+bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
+{
+	typedef typename TAPos::ValueType	TValue;
+	typedef VertexLayout::LevelLayout	VrtLevelLayout;
+
+	bool bSuccess = true;
+
 //	check the interfaces
 	pcl::ParallelCommunicator<VertexLayout::LevelLayout> com;
 	pcl::ProcessCommunicator procCom;
+
+	ToElementPosition<VertexBase, TAPos> toPos(mg, aPos);
+	boost::function<TValue (VertexBase*)> cbToPos = toPos;
 
 	UG_LOG("\nTesting horizontal layouts...\n");
 	{
@@ -367,8 +399,8 @@ void TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
 
 		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
-			pcl::TestLayout(com, masterLayout.layout_on_level(i),
-					slaveLayout.layout_on_level(i), true);
+			bSuccess &= pcl::TestLayout<VrtLevelLayout, TValue>(com, masterLayout.layout_on_level(i),
+											slaveLayout.layout_on_level(i), true, toPos);
 		}
 	}
 
@@ -382,10 +414,26 @@ void TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
 
 		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
-			pcl::TestLayout(com, masterLayout.layout_on_level(i),
-					slaveLayout.layout_on_level(i), true);
+			bSuccess &= pcl::TestLayout<VrtLevelLayout, TValue>(com, masterLayout.layout_on_level(i),
+											slaveLayout.layout_on_level(i), true, toPos);
 		}
 	}
+
+	return bSuccess;
+}
+
+bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
+{
+	if(mg.has_vertex_attachment(aPosition))
+		return TestGridLayoutMap(mg, glm, aPosition);
+	else if(mg.has_vertex_attachment(aPosition2))
+		return TestGridLayoutMap(mg, glm, aPosition2);
+	else if(mg.has_vertex_attachment(aPosition1))
+		return TestGridLayoutMap(mg, glm, aPosition1);
+	else
+		UG_LOG("ERROR in TestGridLayoutMap: A standard position attachment"
+				" is required.\n");
+	return false;
 }
 
 }//	end of namespace

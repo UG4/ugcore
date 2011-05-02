@@ -17,6 +17,7 @@ namespace ug
  * @{
  */
 
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
 ///	calculates the center for a set of elements
@@ -47,6 +48,18 @@ TElem* FindByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueT
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						TVertexPositionAttachmentAccessor& aaPosVRT);
+
+////////////////////////////////////////////////////////////////////////
+///	Calculates the bounding box of a set of geometric objects
+/**	TIterator has to be an iterator to a set containing elements of type
+ * EdgeBase*, Face* or Volume*. An overload for VertexBase* exists.
+ *
+ * Make sure that TAAPos::ValueType == vector_t.
+ */
+template<class vector_t, class TIterator, class TAAPos>
+void CalculateBoundingBox(vector_t& vMinOut, vector_t& vMaxOut,
+						  TIterator begin, TIterator end,
+						  TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	NumSharedVertices

@@ -66,6 +66,8 @@ class DistributedGridManager : public GridObserver
 		void assign(MultiGrid& grid);
 			
 		inline MultiGrid* get_assigned_grid()	{return m_pGrid;}
+		inline const MultiGrid* get_assigned_grid()	const {return m_pGrid;}
+
 	//	layout access
 	/**	if you change the layout externally, be sure to call
 	 *	DistributedGrid::layout_changed() afterwards.*/
@@ -91,11 +93,11 @@ class DistributedGridManager : public GridObserver
 	 * \sa contains_status
 	 * \{
 	 */
-		byte get_status(GeometricObject* go);
-		inline byte get_status(VertexBase* vrt)	{return elem_info(vrt).get_status();}
-		inline byte get_status(EdgeBase* edge)	{return elem_info(edge).get_status();}
-		inline byte get_status(Face* face)		{return elem_info(face).get_status();}
-		inline byte get_status(Volume* vol)		{return elem_info(vol).get_status();}
+		byte get_status(GeometricObject* go) const;
+		inline byte get_status(VertexBase* vrt)	const	{return elem_info(vrt).get_status();}
+		inline byte get_status(EdgeBase* edge) const	{return elem_info(edge).get_status();}
+		inline byte get_status(Face* face) const		{return elem_info(face).get_status();}
+		inline byte get_status(Volume* vol) const		{return elem_info(vol).get_status();}
 	/**	\} */
 
 	///	returns true if the status of the given object contains the given status.
@@ -109,7 +111,7 @@ class DistributedGridManager : public GridObserver
 	/**	ghost elements are vertical masters that are in no other interfaces.
 	 *	Those elements shouldn't be refined.*/
 	 	template<class TElem>
-		inline bool is_ghost(TElem* elem);
+		inline bool is_ghost(TElem* elem) const;
 
 	//	element creation
 	///	call this method before you start creating new elements in the associated grid.
@@ -220,7 +222,7 @@ class DistributedGridManager : public GridObserver
 				EntryIterator find_entry(Interface* interface)	{return find(entries_begin(), entries_end(), interface);}
 				
 				void set_status(byte status)				{m_status = status;}
-				byte get_status()							{return m_status;}
+				byte get_status() const						{return m_status;}
 				
 			protected:
 				EntryList	m_entries;
@@ -259,6 +261,11 @@ class DistributedGridManager : public GridObserver
 		inline ElemInfoEdge& elem_info(EdgeBase* ele)	{return m_aaElemInfoEDGE[ele];}
 		inline ElemInfoFace& elem_info(Face* ele)		{return m_aaElemInfoFACE[ele];}
 		inline ElemInfoVol& elem_info(Volume* ele)		{return m_aaElemInfoVOL[ele];}
+
+		inline const ElemInfoVrt& elem_info(VertexBase* ele) const	{return m_aaElemInfoVRT[ele];}
+		inline const ElemInfoEdge& elem_info(EdgeBase* ele) const	{return m_aaElemInfoEDGE[ele];}
+		inline const ElemInfoFace& elem_info(Face* ele) const		{return m_aaElemInfoFACE[ele];}
+		inline const ElemInfoVol& elem_info(Volume* ele) const		{return m_aaElemInfoVOL[ele];}
 
 	protected:
 		MultiGrid*		m_pGrid;

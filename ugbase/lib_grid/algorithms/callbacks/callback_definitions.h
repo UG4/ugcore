@@ -44,6 +44,12 @@ inline bool ConsiderAllVertices(VertexBase*)	{return true;}
 inline bool ConsiderAllEdges(EdgeBase*)			{return true;}
 inline bool ConsiderAllFaces(Face*)				{return true;}
 inline bool ConsiderAllVolumes(Volume*)			{return true;}
+
+inline bool ConsiderAll(VertexBase*)	{return true;}
+inline bool ConsiderAll(EdgeBase*)		{return true;}
+inline bool ConsiderAll(Face*)			{return true;}
+inline bool ConsiderAll(Volume*)		{return true;}
+
 /** \} */
 
 /** \} */	// end of group definition

@@ -88,13 +88,15 @@ end
 --	RedistributeDomain takes three parameters: The domain, the
 --	partitionMap, and a boolean indicating whether vertical interfaces
 --	shall be created.
-if RedistributeDomain(dom, partitionMap, false) == false then
+if RedistributeDomain(dom, partitionMap, true) == false then
 	print("First redistribution failed. Please check your partitionMap.")
 	exit()
 end
 
---SaveDomain(dom, "dom_after_first_"..procRank..".ugx")
---exit()
+if TestDomainInterfaces(dom) == false then
+	print("Inconsistent grid layouts after first distribution. Aborting.")
+	exit()
+end
 
 --	The different target processes now all have their part of the grid.
 --	We'll further distribute it using regular-grid-partitioning again.
@@ -119,8 +121,14 @@ for i, src in ipairs(firstTargets) do
 end
 
 --	The partition map is set up. We can now redistribute the domain
-if RedistributeDomain(dom, partitionMap, false) == false then
+if RedistributeDomain(dom, partitionMap, true) == false then
 	print("Second redistribution failed. Please check your partitionMap.")
+	exit()
+end
+
+--	We can optionall test the interfaces here.
+if TestDomainInterfaces(dom) == false then
+	print("Inconsistent grid layouts after second distribution. Aborting.")
 	exit()
 end
 

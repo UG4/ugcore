@@ -185,6 +185,21 @@ inline VertexBase* GetVertex(Face* f, size_t i);
 inline VertexBase* GetVertex(Volume* v, size_t i);
 
 ////////////////////////////////////////////////////////////////////////
+///	Returns the number of vertices of the given geometric object.
+/** \ingroup lib_grid_algorithms_volume_util
+ * Valid template arguments are VertexBase, EdgeBase, Face, Volume and
+ * derived types.
+ *
+ * unifies access to geometric objects.
+ * \{*/
+inline size_t NumVertices(VertexBase* elem);
+inline size_t NumVertices(EdgeBase* elem);
+inline size_t NumVertices(Face* elem);
+inline size_t NumVertices(Volume* elem);
+/**	\} */
+
+
+////////////////////////////////////////////////////////////////////////
 //	CollectEdgesSorted
 ///	Collects all edges that exist in the given grid are part of the given edge in the order defined by the reference elements.
 /**
