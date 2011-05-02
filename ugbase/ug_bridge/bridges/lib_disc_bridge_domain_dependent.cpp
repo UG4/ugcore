@@ -171,7 +171,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("add_boundary_value", (bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*))&T::add_boundary_value,
 						"Success", "Value#Function#Subsets")
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
-						"Success", "Constant Value#Function#Subsets");
+						"Success", "Constant Value#Function#Subsets")
+			.add_method("clear", &T::clear);
 	}
 
 //	DomainElemDisc base class
@@ -275,6 +276,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		reg.add_class_<T, IProlongationOperator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space)
+			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("set_dirichlet_post_process", &T::set_dirichlet_post_process);
 
 	}
