@@ -190,6 +190,11 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 			m_mBoundarySegment.clear();
 		}
 
+		void clear()
+		{
+			m_mBoundarySegment.clear();
+		}
+
 	///	Sets dirichlet rows for all registered dirichlet values
 	/**	(implemented by Mr. Xylouris and Mr. Reiter)
 	 *
