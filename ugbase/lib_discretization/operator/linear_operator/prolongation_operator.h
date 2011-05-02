@@ -216,7 +216,8 @@ class P1ProlongationOperator :
 	public:
 		// Transfer Operator acts on level -> level + 1
 		P1ProlongationOperator() :
-			m_pApproxSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
+			m_pApproxSpace(NULL), m_fineLevel(0), m_coarseLevel(0),
+			m_bInit(false), m_dampRes(1.0)
 		{
 			m_vPostProcess.clear();
 		};
@@ -232,6 +233,12 @@ class P1ProlongationOperator :
 		void set_approximation_space(approximation_space_type& approxSpace)
 		{
 			m_pApproxSpace = &approxSpace;
+		}
+
+	//	set interpolation damping
+		void set_restriction_damping(number damp)
+		{
+			m_dampRes = damp;
 		}
 
 	//	Set levels
@@ -269,6 +276,8 @@ class P1ProlongationOperator :
 						" Can only project between successiv level.\n");
 				return false;
 			}
+
+			m_matrix.resize(0,0);
 
 			if(!AssembleVertexProlongation<approximation_space_type, algebra_type>
 				(m_matrix, *m_pApproxSpace, m_coarseLevel, m_fineLevel, m_vIsRestricted))
@@ -362,6 +371,8 @@ class P1ProlongationOperator :
 				return false;
 			}
 
+			uTmp *= m_dampRes;
+
 		//	Copy only restricted values
 			for(size_t i = 0; i < uTmp.size(); ++i)
 				if(m_vIsRestricted[i])
@@ -398,6 +409,7 @@ class P1ProlongationOperator :
 			op->set_approximation_space(*m_pApproxSpace);
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 				op->set_dirichlet_post_process(*m_vPostProcess[i]);
+			op->set_restriction_damping(m_dampRes);
 			return op;
 		}
 
@@ -418,6 +430,7 @@ class P1ProlongationOperator :
 		std::vector<bool> m_vIsRestricted;
 
 		bool m_bInit;
+		number m_dampRes;
 };
 
 } // end namespace ug

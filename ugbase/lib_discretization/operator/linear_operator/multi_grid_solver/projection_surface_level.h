@@ -360,5 +360,521 @@ bool ProjectLevelToSurface(TVector& surfVector,
 	return bRet;
 }
 
+
+
+/**
+ * This functions adds the shadow values from a coarser grid to the shadowing
+ * DoFs on the finer grid.
+ *
+ * \param[out]	fineVec			fine grid vector
+ * \param[out]	coarseVec		coarse grid vector
+ * \param[in] 	approxSpace		Approximation Space
+ * \param[in]	coarseLevel		Coarse Level index
+ * \param[in]	fineLevel		Fine Level index
+ */
+template <typename TApproximationSpace, typename TVector>
+bool AddProjectionOfVertexShadows(TVector& fineVec, const TVector& coarseVec,
+                                  TApproximationSpace& approxSpace,
+                                  size_t coarseLevel, size_t fineLevel)
+{
+//	get DoFDistributions
+	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
+		= approxSpace.get_level_dof_distribution(coarseLevel);
+	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
+		= approxSpace.get_level_dof_distribution(fineLevel);
+
+//	get surface view
+	const SurfaceView& surfView = *approxSpace.get_surface_view();
+
+//  Allow only lagrange P1 functions
+	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
+		if(fineDoFDistr.local_shape_function_set_id(fct)
+				!= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+		{
+			UG_LOG("ERROR in 'AssembleVertexProjection': "
+					"Interpolation only implemented for Lagrange P1 functions.\n");
+			return false;
+		}
+
+// 	get MultiGrid
+	MultiGrid& grid = approxSpace.get_domain().get_grid();
+
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type fineInd;
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type coarseInd;
+
+// 	Vertex iterators
+	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
+
+// 	loop subsets of fine level
+	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
+	{
+		iterBegin = fineDoFDistr.template begin<VertexBase>(si);
+		iterEnd = fineDoFDistr.template end<VertexBase>(si);
+
+	// 	loop nodes of fine subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	skip non-shadowing vertices
+			if(!surfView.shadows(*iter)) continue;
+
+		// 	get father
+			GeometricObject* geomObj = grid.get_parent(*iter);
+			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
+
+		//	Check if father is Vertex
+			if(vert != NULL)
+			{
+				// get global indices
+				coarseDoFDistr.get_inner_algebra_indices(vert, coarseInd);
+			}
+			else continue;
+
+		// 	get global indices
+			fineDoFDistr.get_inner_algebra_indices(*iter, fineInd);
+
+		//	add coarse vector entries to fine vector entries
+			for(size_t i = 0; i < coarseInd.size(); ++i)
+			{
+				fineVec[fineInd[i]] += coarseVec[coarseInd[i]];
+			}
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+/**
+ * This functions sets the shadowing values from a finer grid to the shadow
+ * DoFs on the coarser grid.
+ *
+ * \param[out]	coarseVec		coarse grid vector
+ * \param[out]	fineVec			fine grid vector
+ * \param[in] 	approxSpace		Approximation Space
+ * \param[in]	coarseLevel		Coarse Level index
+ * \param[in]	fineLevel		Fine Level index
+ */
+template <typename TApproximationSpace, typename TVector>
+bool SetProjectionOfVertexShadowing(TVector& coarseVec, const TVector& fineVec,
+                                    TApproximationSpace& approxSpace,
+                                    size_t coarseLevel, size_t fineLevel)
+{
+//	get DoFDistributions
+	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
+		= approxSpace.get_level_dof_distribution(coarseLevel);
+	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
+		= approxSpace.get_level_dof_distribution(fineLevel);
+
+//	get surface view
+	const SurfaceView& surfView = *approxSpace.get_surface_view();
+
+//  Allow only lagrange P1 functions
+	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
+		if(fineDoFDistr.local_shape_function_set_id(fct)
+				!= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+		{
+			UG_LOG("ERROR in 'AssembleVertexProjection': "
+					"Interpolation only implemented for Lagrange P1 functions.\n");
+			return false;
+		}
+
+// 	get MultiGrid
+	MultiGrid& grid = approxSpace.get_domain().get_grid();
+
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type fineInd;
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type coarseInd;
+
+// 	Vertex iterators
+	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
+
+// 	loop subsets of fine level
+	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
+	{
+		iterBegin = fineDoFDistr.template begin<VertexBase>(si);
+		iterEnd = fineDoFDistr.template end<VertexBase>(si);
+
+	// 	loop nodes of fine subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	skip non-shadowing vertices
+			if(!surfView.shadows(*iter)) continue;
+
+		// 	get father
+			GeometricObject* geomObj = grid.get_parent(*iter);
+			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
+
+		//	Check if father is Vertex
+			if(vert != NULL)
+			{
+				// get global indices
+				coarseDoFDistr.get_inner_algebra_indices(vert, coarseInd);
+			}
+			else continue;
+
+		// 	get global indices
+			fineDoFDistr.get_inner_algebra_indices(*iter, fineInd);
+
+		//	add coarse vector entries to fine vector entries
+			for(size_t i = 0; i < coarseInd.size(); ++i)
+			{
+				 coarseVec[coarseInd[i]] = fineVec[fineInd[i]];
+			}
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+/**
+ * This functions sets the values of a vector to zero, where the index
+ * corresponds to a refine-patch boundary (i.e. the vertex is a shadowing
+ * vertex)
+ *
+ * \param[out]	vec				grid vector
+ * \param[in] 	approxSpace		Approximation Space
+ * \param[in]	level			Level index
+ */
+template <typename TApproximationSpace, typename TVector>
+bool SetZeroOnShadowingVertex(TVector& vec,
+                            TApproximationSpace& approxSpace,
+                            size_t level)
+{
+//	get DoFDistributions
+	const typename TApproximationSpace::dof_distribution_type& dofDistr
+		= approxSpace.get_level_dof_distribution(level);
+
+//	get surface view
+	const SurfaceView& surfView = *approxSpace.get_surface_view();
+
+//  Allow only lagrange P1 functions
+	for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
+		if(dofDistr.local_shape_function_set_id(fct)
+				!= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+		{
+			UG_LOG("ERROR in 'AssembleVertexProjection': "
+					"Interpolation only implemented for Lagrange P1 functions.\n");
+			return false;
+		}
+
+//	indices
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type ind;
+
+// 	Vertex iterators
+	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
+
+// 	loop subsets of fine level
+	for(int si = 0; si < dofDistr.num_subsets(); ++si)
+	{
+		iterBegin = dofDistr.template begin<VertexBase>(si);
+		iterEnd = dofDistr.template end<VertexBase>(si);
+
+	// 	loop nodes of fine subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get vertex
+			VertexBase* vrt = *iter;
+
+		//	skip non-shadowing vertices
+			if(!surfView.shadows(vrt)) continue;
+
+		// 	get global indices
+			dofDistr.get_inner_algebra_indices(vrt, ind);
+
+		//	add coarse vector entries to fine vector entries
+			for(size_t i = 0; i < ind.size(); ++i)
+			{
+				vec[ind[i]] = 0.0;
+			}
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+/**
+ * This functions sets the values of a vector to zero, where the index
+ * corresponds to a vertex shadowed by a refine-patch boundary
+ *
+ * \param[out]	vec				grid vector
+ * \param[in] 	approxSpace		Approximation Space
+ * \param[in]	level			Level index
+ */
+template <typename TApproximationSpace, typename TVector>
+bool SetZeroOnVertexShadows(TVector& vec,
+                            TApproximationSpace& approxSpace,
+                            size_t level)
+{
+//	get DoFDistributions
+	const typename TApproximationSpace::dof_distribution_type& dofDistr
+		= approxSpace.get_level_dof_distribution(level);
+
+//	get surface view
+	const SurfaceView& surfView = *approxSpace.get_surface_view();
+
+//  Allow only lagrange P1 functions
+	for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
+		if(dofDistr.local_shape_function_set_id(fct)
+				!= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+		{
+			UG_LOG("ERROR in 'AssembleVertexProjection': "
+					"Interpolation only implemented for Lagrange P1 functions.\n");
+			return false;
+		}
+
+//	indices
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type ind;
+
+// 	Vertex iterators
+	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
+
+// 	loop subsets of fine level
+	for(int si = 0; si < dofDistr.num_subsets(); ++si)
+	{
+		iterBegin = dofDistr.template begin<VertexBase>(si);
+		iterEnd = dofDistr.template end<VertexBase>(si);
+
+	// 	loop nodes of fine subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get vertex
+			VertexBase* vrt = *iter;
+
+		//	skip non-shadowing vertices
+			if(!surfView.is_shadow(vrt)) continue;
+
+		// 	get global indices
+			dofDistr.get_inner_algebra_indices(vrt, ind);
+
+		//	add coarse vector entries to fine vector entries
+			for(size_t i = 0; i < ind.size(); ++i)
+			{
+				vec[ind[i]] = 0.0;
+			}
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+
+template <typename TElemBase>
+bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
+{
+//	vectors for associated elements
+	std::vector<VertexBase*> vAssVertex;
+	std::vector<EdgeBase*> vAssEdge;
+	std::vector<Face*> vAssFace;
+	std::vector<Volume*> vAssVolume;
+
+//	get grid
+	Grid& grid = *sel.get_assigned_grid();
+
+//	loop all subsets
+	for(int si = 0; si < surfView.num_subsets(); ++si)
+	{
+	//	iterator type
+		typename geometry_traits<TElemBase>::const_iterator iter, iterEnd;
+		iterEnd = surfView.end<TElemBase>(si);
+
+	//	loop all base elems
+		for(iter = surfView.begin<TElemBase>(si); iter != iterEnd; ++iter)
+		{
+		//	get element
+			TElemBase* elem = *iter;
+
+		//	check if element is a shadow
+			if(surfView.shadows(elem))
+			{
+			//	get shadow
+				GeometricObject* shadow = surfView.get_parent(elem);
+
+			//	get adjacent elemens
+				CollectAssociated(vAssVertex, grid, shadow);
+				CollectAssociated(vAssEdge, grid, shadow);
+				CollectAssociated(vAssFace, grid, shadow);
+				CollectAssociated(vAssVolume, grid, shadow);
+
+			//	select associated elements
+				for(size_t i = 0; i < vAssVertex.size(); ++i)
+					if(surfView.is_contained(vAssVertex[i]))
+						sel.select(vAssVertex[i]);
+				for(size_t i = 0; i < vAssEdge.size(); ++i)
+					if(surfView.is_contained(vAssEdge[i]))
+						sel.select(vAssEdge[i]);
+				for(size_t i = 0; i < vAssFace.size(); ++i)
+					if(surfView.is_contained(vAssFace[i]))
+						sel.select(vAssFace[i]);
+				for(size_t i = 0; i < vAssVolume.size(); ++i)
+					if(surfView.is_contained(vAssVolume[i]))
+						sel.select(vAssVolume[i]);
+			}
+		}
+
+	}
+
+//	we're done
+	return true;
+}
+
+
+bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
+{
+//	clear all marks
+	sel.clear();
+
+//	get grid
+	Grid& grid = *sel.get_assigned_grid();
+
+//	select elements
+	bool bRes = true;
+
+//	note: the highest dimension of elements must not be loop, since there are
+//		  no slaves of the highest dimension
+	bRes &= SelectNonShadowsAdjacentToShadows<VertexBase>(sel, surfView);
+
+	if(grid.num<Face>() > 0 || grid.num<Volume>() > 0)
+		bRes &= SelectNonShadowsAdjacentToShadows<EdgeBase>(sel, surfView);
+
+	if(grid.num<Volume>() > 0)
+		bRes &= SelectNonShadowsAdjacentToShadows<Face>(sel, surfView);
+
+//	we're done
+	return bRes;
+}
+
+template <typename TElemBase>
+bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
+                                              const SurfaceView& surfView,
+                                              int level)
+{
+//	vectors for associated elements
+	std::vector<VertexBase*> vAssVertex;
+	std::vector<EdgeBase*> vAssEdge;
+	std::vector<Face*> vAssFace;
+	std::vector<Volume*> vAssVolume;
+
+//	get grid
+	Grid& grid = *sel.get_assigned_grid();
+
+//	get multigrid
+	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
+
+//	check multigrid
+	if(&mg == NULL)
+	{
+		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: No "
+				"Multigrid given, selection ob level not possible.\n");
+		return false;
+	}
+
+//	check level
+	if(level >= (int) mg.num_levels() || level < 0)
+	{
+		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
+				"level "<<level<<" does not exist in Multigrid.\n");
+		return false;
+	}
+
+//	loop all subsets
+	for(int si = 0; si < surfView.num_subsets(); ++si)
+	{
+	//	iterator type
+		typename geometry_traits<TElemBase>::const_iterator iter, iterEnd;
+		iterEnd = surfView.end<TElemBase>(si);
+
+	//	loop all base elems
+		for(iter = surfView.begin<TElemBase>(si); iter != iterEnd; ++iter)
+		{
+		//	get element
+			TElemBase* elem = *iter;
+
+		//	check if element is a shadow
+			if(surfView.shadows(elem))
+			{
+			//	get shadow
+				GeometricObject* shadow = surfView.get_parent(elem);
+
+			//	check if this is the correct level
+				if(mg.get_level(shadow) != level) continue;
+
+			//	get adjacent elements
+				CollectAssociated(vAssVertex, grid, shadow);
+				CollectAssociated(vAssEdge, grid, shadow);
+				CollectAssociated(vAssFace, grid, shadow);
+				CollectAssociated(vAssVolume, grid, shadow);
+
+			//	select associated elements
+				for(size_t i = 0; i < vAssVertex.size(); ++i)
+					if(surfView.is_contained(vAssVertex[i]))
+						sel.select(vAssVertex[i]);
+				for(size_t i = 0; i < vAssEdge.size(); ++i)
+					if(surfView.is_contained(vAssEdge[i]))
+						sel.select(vAssEdge[i]);
+				for(size_t i = 0; i < vAssFace.size(); ++i)
+					if(surfView.is_contained(vAssFace[i]))
+						sel.select(vAssFace[i]);
+				for(size_t i = 0; i < vAssVolume.size(); ++i)
+					if(surfView.is_contained(vAssVolume[i]))
+						sel.select(vAssVolume[i]);
+			}
+		}
+
+	}
+
+//	we're done
+	return true;
+}
+
+
+bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
+                                              const SurfaceView& surfView,
+                                              int level)
+{
+//	clear all marks
+	sel.clear();
+
+//	get grid
+	Grid& grid = *sel.get_assigned_grid();
+
+//	get multigrid
+	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
+
+//	check multigrid
+	if(&mg == NULL)
+	{
+		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: No "
+				"Multigrid given, selection ob level not possible.\n");
+		return false;
+	}
+
+//	check level
+	if(level >= (int) mg.num_levels() || level < 0)
+	{
+		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
+				"level "<<level<<" does not exist in Multigrid.\n");
+		return false;
+	}
+
+//	select elements
+	bool bRes = true;
+
+//	note: the highest dimension of elements must not be loop, since there are
+//		  no slaves of the highest dimension
+	bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<VertexBase>(sel, surfView, level);
+
+	if(grid.num<Face>() > 0 || grid.num<Volume>() > 0)
+		bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<EdgeBase>(sel, surfView, level);
+
+	if(grid.num<Volume>() > 0)
+		bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<Face>(sel, surfView, level);
+
+//	we're done
+	return bRes;
+}
+
+
 } // end namespace ug
 #endif

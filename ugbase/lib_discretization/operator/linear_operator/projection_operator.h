@@ -174,6 +174,8 @@ class P1ProjectionOperator :
 				return false;
 			}
 
+			m_matrix.resize(0,0);
+
 			if(!AssembleVertexProjection(m_matrix, *m_pApproxSpace,
 			                             m_coarseLevel, m_fineLevel))
 			{

@@ -212,6 +212,10 @@ class AssembledMultiGridCycle :
 		bool project_level_to_surface(vector_type& surfFunc,
 		                              const std::vector<function_type*>& vLevelFunc);
 
+	///	assembles the missing matrix part on the coarse level, that must be
+	///	added if the correction has been computed to ensure a correctly updated
+	///	defect. (i.e. assembles A^c, with d^f -= A^c * c^c)
+		bool init_missing_coarse_grid_coupling(const vector_type* u);
 
 	protected:
 	/// operator to invert (surface grid)
@@ -278,6 +282,9 @@ class AssembledMultiGridCycle :
 	///	flag indicating if grid is full refined
 		bool m_bFullRefined;
 
+	///	matrix storing missing contribution
+		std::vector<matrix_type*> m_vCoarseContributionMat;
+
 #ifdef UG_PARALLEL
 	/// communicator
 		pcl::ParallelCommunicator<IndexLayout> m_Com;
@@ -328,6 +335,16 @@ class AssembledMultiGridCycle :
 	 * \param[in]		filename	Filename
 	 */
 		bool write_surface_debug(const vector_type& vec, const char* filename);
+
+	///	writes debug output for a surface matrix
+	/**
+	 * This method writes the surface matrix to a debug file, if a debug writer
+	 * has been set.
+	 *
+	 * \param[in]		mat			Level Matrix to write for debug purpose
+	 * \param[in]		filename	Filename
+	 */
+		bool write_surface_debug(const matrix_type& mat, const char* filename);
 
 	///	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;

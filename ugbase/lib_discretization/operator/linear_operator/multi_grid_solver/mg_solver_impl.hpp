@@ -11,6 +11,7 @@
 #include "common/profiler/profiler.h"
 #include "projection_surface_level.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
+#include "lib_discretization/dof_manager/dof_manager_util.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
@@ -42,21 +43,59 @@ smooth(function_type& d, function_type& c, size_t lev, int nu)
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
-	// 	Compute Correction of one smoothing step:
-	//	a)  Compute t = B*d with some iterator B
-	//	b) 	Update Defect d := d - A * t
-		if(!m_vSmoother[lev]->apply_update_defect(*m_t[lev], d))
+	//	switch if adaptive case must be handled
+		if(m_bFullRefined)
 		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
-					<< i+1 << " on level " << lev << " failed.\n");
-			return false;
-		}
+		// 	Compute Correction of one smoothing step:
+		//	a)  Compute t = B*d with some iterator B
+		//	b) 	Update Defect d := d - A * t
+			if(!m_vSmoother[lev]->apply_update_defect(*m_t[lev], d))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
+						<< i+1 << " on level " << lev << " failed.\n");
+				return false;
+			}
 
-	// 	add correction of smoothing step to level correction
-	//	(Note: we do not work on c directly here, since we update the defect
-	//	       after every smoothing step. The summed up correction corresponds
-	//		   to the total correction of the whole smoothing.)
-		c += *m_t[lev];
+		// 	add correction of smoothing step to level correction
+		//	(Note: we do not work on c directly here, since we update the defect
+		//	       after every smoothing step. The summed up correction corresponds
+		//		   to the total correction of the whole smoothing.)
+			c += *m_t[lev];
+		}
+		else
+	//	This is the adaptive case. Here, we must ensure, that the added correction
+	//	is zero on the adaptively refined patch boundary of this level
+		{
+		// 	Compute Correction of one smoothing step, but do not update defect
+		//	a)  Compute t = B*d with some iterator B
+			if(!m_vSmoother[lev]->apply(*m_t[lev], d))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
+						<< i+1 << " on level " << lev << " failed.\n");
+				return false;
+			}
+
+		//	First we reset the correction to zero on the patch boundary.
+			if(!SetZeroOnShadowingVertex(*m_t[lev], *m_pApproxSpace, lev))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Could not "
+						" reset the values to zero on patch boundary for correction "
+						<< i+1 << " on level " << lev << ".\n");
+				return false;
+			}
+
+		//	now, we can update the defect with this correction ...
+			if(!m_A[lev]->apply_sub(d, *m_t[lev]))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Could not "
+						" update defect for patch correction in smooth step "
+						<< i+1 << " on level " << lev << ".\n");
+				return false;
+			}
+
+		//	... and add the correction to to overall correction
+			c += *m_t[lev];
+		}
 	}
 
 //	we're done
@@ -240,6 +279,34 @@ lmgc(size_t lev)
 		}
 		GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
 
+	//	ADAPTIVE CASE
+		if(!m_bFullRefined)
+		{
+		//	in the adaptive case there is a small part of the coarse coupling that
+		//	has not been used to update the defect. In order to ensure, that the
+		//	defect on this level still corresponds to the updated defect, we need
+		//	to add if here. This is done in three steps:
+		//	a) Compute the coarse update of the defect induced by missing coupling
+			m_t[lev-1]->set(0.0);
+			if(!m_vCoarseContributionMat[lev-1]->apply(*m_t[lev-1], *m_c[lev-1]))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Could not compute"
+						" missing update defect contribution on level "<<lev-1<<".\n");
+				return false;
+			}
+
+			*m_t[lev-1] *= -1.0;
+
+		//	b) interpolate the coarse defect up
+			if(!AddProjectionOfVertexShadows(*m_d[lev], *m_t[lev-1], *m_pApproxSpace,
+			                                 lev-1, lev))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Could not add"
+						" missing update defect contribution to level "<<lev<<".\n");
+				return false;
+			}
+		}
+
 	// 	POST-SMOOTHING
 	//	We smooth the updated defect againt. This means that we compute a
 	//	correction c, such that the defect is "smoother".
@@ -393,6 +460,15 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		return false;
 	}
 
+//	assemble missing coarse grid matrix contribution (only in adaptive case)
+	if(!m_bFullRefined)
+		if(!init_missing_coarse_grid_coupling(&u))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+					"Cannot init missing coarse grid coupling.\n");
+			return false;
+		}
+
 //	we're done
 	return true;
 }
@@ -439,6 +515,15 @@ init(ILinearOperator<vector_type, vector_type>& L)
 				"Cannot init common part.\n");
 		return false;
 	}
+
+//	assemble missing coarse grid matrix contribution (only in adaptive case)
+	if(!m_bFullRefined)
+		if(!init_missing_coarse_grid_coupling(NULL))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+					"Cannot init missing coarse grid coupling.\n");
+			return false;
+		}
 
 //	we're done
 	return true;
@@ -514,6 +599,9 @@ init_common(bool nonlinear)
 		}
 	}
 	GMG_PROFILE_END();
+
+	for(size_t lev = m_baseLev; lev < m_A.size(); ++lev)
+		write_level_debug(m_A[lev]->get_matrix(), "LevelMatrix", lev);
 
 //	Init smoother for coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
@@ -836,7 +924,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
 
 //	increase dbg counter
-	m_dbgIterCnt++;
+	if(m_pDebugWriter) m_dbgIterCnt++;
 
 //	we're done
 	return true;
@@ -1193,6 +1281,46 @@ write_surface_debug(const vector_type& vec, const char* filename)
 	return bRet;
 }
 
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+write_surface_debug(const matrix_type& mat, const char* filename)
+{
+//	if no debug writer set, we're done
+	if(m_pDebugWriter == NULL) return true;
+
+//	create level function
+	function_type* dbgFunc = m_pApproxSpace->create_surface_function();
+
+//	cast dbg writer
+	GridFunctionDebugWriter<function_type>* dbgWriter =
+			dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
+
+//	set grid function
+	if(dbgWriter != NULL)
+		dbgWriter->set_reference_grid_function(*dbgFunc);
+	else
+	{
+		delete dbgFunc;
+		UG_LOG("Cannot write debug on surface.\n");
+		return false;
+	}
+
+//	add iter count to name
+	std::string name(filename);
+	char ext[20]; sprintf(ext, "_surf_iter%03d", m_dbgIterCnt);
+	name.append(ext);
+
+//	write
+	bool bRet = m_pDebugWriter->write_matrix(mat, name.c_str());
+
+//	remove dbgFunc
+	delete dbgFunc;
+
+	return bRet;
+}
+
 template <typename TApproximationSpace, typename TAlgebra>
 typename AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::base_type*
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
@@ -1214,6 +1342,144 @@ clone()
 	clone->set_smoother(*(m_vSmoother[0]));
 
 	return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+}
+
+
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+init_missing_coarse_grid_coupling(const vector_type* u)
+{
+//	create storage for matrix (one matrix for each level, except top level)
+	size_t oldSize = m_vCoarseContributionMat.size();
+//	a) delete not need matrices
+	for(size_t i = m_topLev+1; i < m_vCoarseContributionMat.size(); ++i)
+		if(m_vCoarseContributionMat[i])
+			delete m_vCoarseContributionMat[i];
+	m_vCoarseContributionMat.resize(m_topLev+1);
+
+//	b) create needed storage
+	for(size_t i = oldSize; i < m_vCoarseContributionMat.size(); ++i)
+		m_vCoarseContributionMat[i] = new matrix_type;
+
+//	clear matrices
+	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
+		m_vCoarseContributionMat[lev]->resize(0,0);
+
+//	if the grid is fully refined, nothing to do
+	if(m_bFullRefined) return true;
+
+//	get the surface view
+	const SurfaceView& surfView = *m_pApproxSpace->get_surface_view();
+
+//	check that surface view exists
+	if(&surfView == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_missing_coarse_grid_coupling':"
+				" Surface View missing.\n");
+		return false;
+	}
+
+//	create storage for matrices on the grid levels
+	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
+	{
+	//	get dof distributions on levels
+		const dof_distribution_type& dofDistr = m_pApproxSpace->get_level_dof_distribution(lev);
+
+	//	resize the matrix
+		m_vCoarseContributionMat[lev]->resize(dofDistr.num_dofs(),
+											   dofDistr.num_dofs());
+	}
+
+///////////////////////////////////////
+//	create surface -> level mappings
+///////////////////////////////////////
+
+//	level dof distributions
+	const std::vector<const dof_distribution_type*>& vLevelDD =
+								m_pApproxSpace->get_level_dof_distributions();
+
+//	surface dof distribution
+	const dof_distribution_type& surfDD =
+								m_pApproxSpace->get_surface_dof_distribution();
+
+//	check that surface dof distribution exists
+	if(&surfDD == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_missing_coarse_grid_coupling':"
+				"Surface DoF Distribution missing.\n");
+		return false;
+	}
+
+//	create mappings
+	std::vector<std::vector<int> > vSurfLevelMapping;
+	if(!CreateSurfaceToLevelMapping(vSurfLevelMapping, vLevelDD, surfDD, surfView))
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_missing_coarse_grid_coupling':"
+				" Cannot build surface index to level index mappings.\n");
+		return false;
+	}
+
+///////////////////////////////////////
+//	assemble contribution for each level and project
+///////////////////////////////////////
+
+//	loop all levels to compute the missing contribution
+//	\todo: this is implemented very resource consuming, re-think arrangement
+	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
+	{
+	//	select all elements, that have a shadow as a subelement, but are not itself
+	//	a shadow
+		Selector sel(m_pApproxSpace->get_domain().get_grid());
+		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
+
+	//	now set this selector to the assembling, such that only those elements
+	//	will be assembled
+		m_pAss->set_selector(&sel);
+
+	//	create a surface matrix
+		matrix_type surfMat;
+
+	//	assemble the surface jacobian only for selected elements
+		if(u)
+			m_pAss->assemble_jacobian(surfMat, *u, m_pApproxSpace->get_surface_dof_distribution());
+		else
+		{
+		// \todo: Currently assemble_linear needs a solution. Remove this and do
+		//	not use tmp vector here
+			vector_type tmpVec; tmpVec.resize(m_pApproxSpace->get_surface_dof_distribution().num_dofs());
+			m_pAss->assemble_jacobian(surfMat, tmpVec, m_pApproxSpace->get_surface_dof_distribution());
+		}
+
+	//	write matrix for debug purpose
+		std::stringstream ss; ss << "MissingSurfMat_" << lev;
+		write_surface_debug(surfMat, ss.str().c_str());
+
+	//	remove the selector from the assembling procedure
+		m_pAss->set_selector(NULL);
+
+	//	project
+		if(!CopyMatrixSurfaceToLevel(*m_vCoarseContributionMat[lev],
+		                             vSurfLevelMapping[lev],
+		                             surfMat))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_missing_coarse_grid_coupling': "
+					"Projection of matrix from surface to level failed.\n");
+			return false;
+		}
+	}
+
+//	write matrix for debug purpose
+	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
+		write_level_debug(*m_vCoarseContributionMat[lev], "MissingLevelMat", lev);
+
+/////////////
+// end project
+/////////////
+
+//	we're done
+	return true;
 }
 
 
