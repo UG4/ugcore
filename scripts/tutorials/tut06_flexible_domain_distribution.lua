@@ -88,7 +88,7 @@ end
 --	RedistributeDomain takes three parameters: The domain, the
 --	partitionMap, and a boolean indicating whether vertical interfaces
 --	shall be created.
-if RedistributeDomain(dom, partitionMap, true) == false then
+if RedistributeDomain(dom, partitionMap, false) == false then
 	print("First redistribution failed. Please check your partitionMap.")
 	exit()
 end
@@ -121,7 +121,7 @@ for i, src in ipairs(firstTargets) do
 end
 
 --	The partition map is set up. We can now redistribute the domain
-if RedistributeDomain(dom, partitionMap, true) == false then
+if RedistributeDomain(dom, partitionMap, false) == false then
 	print("Second redistribution failed. Please check your partitionMap.")
 	exit()
 end

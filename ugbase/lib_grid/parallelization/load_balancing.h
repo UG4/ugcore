@@ -9,7 +9,6 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "util/parallel_callbacks.h"
-#include "distributed_grid.h"
 
 namespace ug
 {

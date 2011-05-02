@@ -15,7 +15,9 @@
 #include "lib_discretization/domain.h"
 #include "lib_discretization/domain_util.h"
 
-#include "lib_grid/parallelization/load_balancing.h"
+#ifdef UG_PARALLEL
+	#include "lib_grid/parallelization/load_balancing.h"
+#endif
 
 using namespace std;
 
@@ -95,40 +97,41 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 {
 	MultiGrid& mg = domain.get_grid();
 	partitionMap.assign_grid(mg);
-
-	if(mg.num<Volume>() > 0)
-		PartitionElementsByRepeatedIntersection<Volume, TDomain::dim>(
-											partitionMap.get_partition_handler(),
-											mg, mg.num_levels() - 1,
-											partitionMap.num_target_procs(),
-											domain.get_position_attachment(),
-											firstAxisToCut);
-	else if(mg.num<Face>() > 0)
-		PartitionElementsByRepeatedIntersection<Face, TDomain::dim>(
-											partitionMap.get_partition_handler(),
-											mg, mg.num_levels() - 1,
-											partitionMap.num_target_procs(),
-											domain.get_position_attachment(),
-											firstAxisToCut);
-	else if(mg.num<EdgeBase>() > 0)
-		PartitionElementsByRepeatedIntersection<EdgeBase, TDomain::dim>(
-											partitionMap.get_partition_handler(),
-											mg, mg.num_levels() - 1,
-											partitionMap.num_target_procs(),
-											domain.get_position_attachment(),
-											firstAxisToCut);
-	else if(mg.num<VertexBase>() > 0)
-		PartitionElementsByRepeatedIntersection<VertexBase, TDomain::dim>(
-											partitionMap.get_partition_handler(),
-											mg, mg.num_levels() - 1,
-											partitionMap.num_target_procs(),
-											domain.get_position_attachment(),
-											firstAxisToCut);
-	else{
-		LOG("partitioning could not be performed - "
-			<< "grid doesn't contain any elements!\n");
-		return false;
-	}
+	#ifdef UG_PARALLEL
+		if(mg.num<Volume>() > 0)
+			PartitionElementsByRepeatedIntersection<Volume, TDomain::dim>(
+												partitionMap.get_partition_handler(),
+												mg, mg.num_levels() - 1,
+												partitionMap.num_target_procs(),
+												domain.get_position_attachment(),
+												firstAxisToCut);
+		else if(mg.num<Face>() > 0)
+			PartitionElementsByRepeatedIntersection<Face, TDomain::dim>(
+												partitionMap.get_partition_handler(),
+												mg, mg.num_levels() - 1,
+												partitionMap.num_target_procs(),
+												domain.get_position_attachment(),
+												firstAxisToCut);
+		else if(mg.num<EdgeBase>() > 0)
+			PartitionElementsByRepeatedIntersection<EdgeBase, TDomain::dim>(
+												partitionMap.get_partition_handler(),
+												mg, mg.num_levels() - 1,
+												partitionMap.num_target_procs(),
+												domain.get_position_attachment(),
+												firstAxisToCut);
+		else if(mg.num<VertexBase>() > 0)
+			PartitionElementsByRepeatedIntersection<VertexBase, TDomain::dim>(
+												partitionMap.get_partition_handler(),
+												mg, mg.num_levels() - 1,
+												partitionMap.num_target_procs(),
+												domain.get_position_attachment(),
+												firstAxisToCut);
+		else{
+			LOG("partitioning could not be performed - "
+				<< "grid doesn't contain any elements!\n");
+			return false;
+		}
+	#endif
 
 	return true;
 }
@@ -138,71 +141,71 @@ template <typename TDomain>
 static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partitionMap,
 										int numCellsX, int numCellsY)
 {
-//	a distributed grid manager is required
-	if(!domain.get_distributed_grid_manager()){
-		UG_LOG("A distributed grid manager is required in the given domain.\n");
-		return false;
-	}
-
 //	prepare the partition map and a vertex position attachment accessor
 	MultiGrid& mg = domain.get_grid();
 	partitionMap.assign_grid(mg);
 
-	typedef typename TDomain::position_attachment_type TAPos;
-	Grid::AttachmentAccessor<VertexBase, TAPos> aaPos(mg,
-											domain.get_position_attachment());
+	#ifdef UG_PARALLEL
+	//	a distributed grid manager is required
+		if(!domain.get_distributed_grid_manager()){
+			UG_LOG("A distributed grid manager is required in the given domain.\n");
+			return false;
+		}
 
-//	this callback allows us to only distribute surface elements, which are no ghosts
-	IsRegularSurfaceElem cbConsiderElem(*domain.get_distributed_grid_manager());
+		typedef typename TDomain::position_attachment_type TAPos;
+		Grid::AttachmentAccessor<VertexBase, TAPos> aaPos(mg,
+												domain.get_position_attachment());
 
-//	we need a process to which elements which are not considered will be send.
-//	Those elements should stay on the current process.
-	int localProc = 0;
-#ifdef UG_PARALLEL
-	localProc = pcl::GetProcRank();
-#endif
+	//	this callback allows us to only distribute surface elements, which are no ghosts
+		IsRegularSurfaceElem cbConsiderElem(*domain.get_distributed_grid_manager());
 
-	int bucketSubset = partitionMap.find_target_proc(localProc);
-	if(bucketSubset == -1)
-		bucketSubset = (int)partitionMap.num_target_procs();
+	//	we need a process to which elements which are not considered will be send.
+	//	Those elements should stay on the current process.
+		int localProc = 0;
+		localProc = pcl::GetProcRank();
 
-//	partition the grid
-	if(mg.num<Volume>() > 0)
-		PartitionElements_RegularGrid<Volume>(
-									partitionMap.get_partition_handler(),
-									mg.begin<Volume>(), mg.end<Volume>(),
-									numCellsX, numCellsY, aaPos,
-									cbConsiderElem, bucketSubset);
-	else if(mg.num<Face>() > 0)
-		PartitionElements_RegularGrid<Face>(
-									partitionMap.get_partition_handler(),
-									mg.begin<Face>(), mg.end<Face>(),
-									numCellsX, numCellsY, aaPos,
-									cbConsiderElem, bucketSubset);
-	else if(mg.num<EdgeBase>() > 0)
-		PartitionElements_RegularGrid<EdgeBase>(
-									partitionMap.get_partition_handler(),
-									mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
-									numCellsX, numCellsY, aaPos,
-									cbConsiderElem, bucketSubset);
-	else if(mg.num<VertexBase>() > 0)
-		PartitionElements_RegularGrid<VertexBase>(
-									partitionMap.get_partition_handler(),
-									mg.begin<VertexBase>(), mg.end<VertexBase>(),
-									numCellsX, numCellsY, aaPos,
-									cbConsiderElem, bucketSubset);
-	else{
-		LOG("partitioning could not be performed - "
-			<< "grid doesn't contain any elements!\n");
-		return false;
-	}
+		int bucketSubset = partitionMap.find_target_proc(localProc);
+		if(bucketSubset == -1)
+			bucketSubset = (int)partitionMap.num_target_procs();
 
-//	if elements have been assigned to bucketProc, then we have to make sure,
-//	that it is also present in the process-map
-	if(!partitionMap.get_partition_handler().empty(bucketSubset)){
-		if(bucketSubset >= (int)partitionMap.num_target_procs())
-			partitionMap.add_target_proc(localProc);
-	}
+	//	partition the grid
+		if(mg.num<Volume>() > 0)
+			PartitionElements_RegularGrid<Volume>(
+										partitionMap.get_partition_handler(),
+										mg.begin<Volume>(), mg.end<Volume>(),
+										numCellsX, numCellsY, aaPos,
+										cbConsiderElem, bucketSubset);
+		else if(mg.num<Face>() > 0)
+			PartitionElements_RegularGrid<Face>(
+										partitionMap.get_partition_handler(),
+										mg.begin<Face>(), mg.end<Face>(),
+										numCellsX, numCellsY, aaPos,
+										cbConsiderElem, bucketSubset);
+		else if(mg.num<EdgeBase>() > 0)
+			PartitionElements_RegularGrid<EdgeBase>(
+										partitionMap.get_partition_handler(),
+										mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
+										numCellsX, numCellsY, aaPos,
+										cbConsiderElem, bucketSubset);
+		else if(mg.num<VertexBase>() > 0)
+			PartitionElements_RegularGrid<VertexBase>(
+										partitionMap.get_partition_handler(),
+										mg.begin<VertexBase>(), mg.end<VertexBase>(),
+										numCellsX, numCellsY, aaPos,
+										cbConsiderElem, bucketSubset);
+		else{
+			LOG("partitioning could not be performed - "
+				<< "grid doesn't contain any elements!\n");
+			return false;
+		}
+
+	//	if elements have been assigned to bucketProc, then we have to make sure,
+	//	that it is also present in the process-map
+		if(!partitionMap.get_partition_handler().empty(bucketSubset)){
+			if(bucketSubset >= (int)partitionMap.num_target_procs())
+				partitionMap.add_target_proc(localProc);
+		}
+	#endif
 
 	return true;
 }
