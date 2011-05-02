@@ -204,6 +204,14 @@ class FunctionPattern
 			return m_vFunction[fct].is_def_in_subset(si);
 		}
 
+	/// returns true if the discrete function nr_fct is defined on all subsets
+		bool is_def_everywhere(size_t fct) const
+		{
+			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
+			UG_ASSERT(fct < num_fct(), "Invalid index.");
+			return m_vFunction[fct].is_def_everywhere();
+		}
+
 	/// virtual destructor
 		virtual ~FunctionPattern() {}
 
@@ -229,6 +237,8 @@ class FunctionPattern
 				if(subsetIndices.contains(si)) return true;
 				return false;
 			}
+
+			bool is_def_everywhere() const {return everywhere;}
 		};
 
 	protected:
