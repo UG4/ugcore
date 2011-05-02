@@ -19,6 +19,28 @@ void RemoveWhitespaceFromString(std::string& string);
 // help function to remove whitespace from front and end of string
 std::string TrimString(const std::string& str);
 
+/// returns the number of digits of an integer (expressed with base 10)
+/**
+ * This functions returns the number of digits for the passed number. A minus
+ * sign is ignored.
+ *
+ * \param[in]	n 		number to count the number of digits
+ */
+int NumberOfDigits(int n);
+
+///	appends a counter number to a string
+/**
+ * This functions appends to a string a counter preceded by some indicator. If
+ * a maxCounter is passed, the field is adjusted to the maximum needed width
+ * and additional space is filled by zeros.
+ *
+ * \param[in, out]	str			string to append the counter
+ * \param[in]		indicator	some string preceding the counter
+ * \param[in]		counter		counter added
+ * \param[in]		maxCounter	maximum counter to be added
+ */
+void AppendCounterToString(std::string& str, std::string indicator,
+                           int counter, int maxCounter = -1);
 
 //sreiter
 ///	this template function creates a hash key for a string value.
