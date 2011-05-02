@@ -1291,16 +1291,17 @@ defragment()
 //	due to grid adaption
 
 //	check grid options
+//	\todo: all needed ?
 	if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-	  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_FACES");
+	  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_FACES.\n");
 	  m_pMultiGrid->enable_options(VOLOPT_AUTOGENERATE_FACES);
 	}
-	if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-	  UG_LOG("WARNING: Auto-enabling grid option FACEOPT_AUTOGENERATE_EDGES");
-	  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
+/*	if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)){
+	  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_EDGES.\n");
+	  m_pMultiGrid->enable_options(VOLOPT_AUTOGENERATE_EDGES);
 	}
-	if(!m_pMultiGrid->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)){
-	  UG_LOG("WARNING: Auto-enabling grid option VOLOPT_AUTOGENERATE_EDGES");
+*/	if(!m_pMultiGrid->option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	  UG_LOG("WARNING: Auto-enabling grid option FACEOPT_AUTOGENERATE_EDGES.\n");
 	  m_pMultiGrid->enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 
