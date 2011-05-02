@@ -90,20 +90,25 @@ if numPreRefs > numRefs then
 	exit();
 end
 
-refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
+-- Create a refiner instance. This is a factory method
+-- which automatically creates a parallel refiner if required.
+refiner = GlobalDomainRefiner(dom)
+
+-- Performing pre-refines
 for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if util.DistributeDomain(dom) == false then
+-- Distribute the domain to all involved processes
+if DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
+-- Perform post-refine
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-	util.GlobalRefineParallelDomain(dom)
+	refiner:refine()
 end
 
 -- get subset handler
@@ -120,7 +125,7 @@ SaveDomain(dom, "refined_grid.ugx")
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-approxSpace:add_fct_on_subset("c_membrane", "Membrane, MembraneBnd", 1)
+approxSpace:add_fct_on_subset("c_membrane", "Lagrange", 1, "Membrane, MembraneBnd")
 approxSpace:init()
 
 -------------------------------------------
@@ -257,7 +262,6 @@ ilut = ILUT()
 	-- Gemoetric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
 	gmg:set_smoother(gs)
@@ -303,7 +307,7 @@ bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, linSolver)
+ApplyLinearSolver(linOp, u, b, cgSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")

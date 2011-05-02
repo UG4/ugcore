@@ -210,7 +210,7 @@ elemDisc:set_peclet_blend(false)
 elemDisc:set_exact_jacobian(false)
 
 -- ... and finally we choose a value for the kinematic viscosity.
-ConstKinViscosity = util.CreateConstUserNumber(1.0e-3, dim)
+ConstKinViscosity = util.CreateConstUserNumber(1.0e-1, dim)
 elemDisc:set_kinematic_viscosity(ConstKinViscosity);
 
 
@@ -398,9 +398,12 @@ end
 
 -- Finally we're nearly done. The only thing left to do is to write the
 -- solution to a file which can then be examined using e.g. Paraview.
--- (Open "Solution_t0000.pvd" in paraview to view the complete domain
--- at timestep 0 (we solved a stationary problem))
-WriteGridFunctionToVTK(u, "Solution")
+-- (Open "Solution.vtu" in paraview to view the complete domain
+vtkWriter = util.CreateVTKWriter(dim)
+vtkWriter:select_all(false)
+vtkWriter:select_nodal_vector("u,v", "velocity")
+vtkWriter:select_nodal_scalar("p", "pressure")
+vtkWriter:print("Solution", u)
 
 print("done.")
 

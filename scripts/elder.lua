@@ -429,12 +429,13 @@ InterpolateFunction(ConcentrationStartValue, u, "c", time)
 ----------------------------------
 -- Time loop
 ----------------------------------
+-- filename
+filename = "Elder"
 
 -- write start solution
 print("Writing start values")
 out = util.CreateVTKWriter(dim)
-out:begin_timeseries("Elder", u)
-out:print("Elder", u, step, time)
+out:print(filename, u, step, time)
 
 -- some info output
 print( "   numPreRefs is   " .. numPreRefs ..     ",  numRefs is         " .. numRefs)
@@ -468,7 +469,7 @@ for step = 1, NumTimeSteps do
 	time = solTimeSeries:time(0) + do_dt
 	
 	-- plot solution
-	out:print("Elder", u, step, time)
+	out:print(filename, u, step, time)
 	
 	-- get oldest solution
 	oldestSol = solTimeSeries:oldest()
@@ -483,4 +484,4 @@ for step = 1, NumTimeSteps do
 end
 
 -- end timeseries, produce gathering file
-out:end_timeseries("Elder", u)
+out:write_time_pvd(filename, u)
