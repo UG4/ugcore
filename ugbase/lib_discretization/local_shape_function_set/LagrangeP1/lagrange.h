@@ -65,9 +65,6 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	///	Constructor
 		LagrangeLSFS()
 		{
-			m_vPolynom.resize(nsh);
-			m_vDPolynom.resize(nsh);
-
 			for(size_t i = 0; i < nsh; ++i)
 			{
 			//	create equidistant polynomials and its derivatives
@@ -135,8 +132,8 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	protected:
-		std::vector<Polynomial1D> m_vPolynom;	///< Shape Polynomials
-		std::vector<Polynomial1D> m_vDPolynom;	///< Derivative of Shape Polynomial
+		Polynomial1D m_vPolynom[p+1];	///< Shape Polynomials
+		Polynomial1D m_vDPolynom[p+1];	///< Derivative of Shape Polynomial
 };
 
 template <>
@@ -176,9 +173,6 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 	///	Constructor
 		LagrangeLSFS()
 		{
-			m_vPolynom.resize(p+1);
-			m_vDPolynom.resize(p+1);
-
 			for(size_t i = 0; i <= p; ++i)
 			{
 			//	create trancated equidistant polynomials and its derivatives
@@ -329,9 +323,8 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	private:
-		std::vector<Polynomial1D> m_vPolynom;
-		std::vector<Polynomial1D> m_vDPolynom;
-
+		Polynomial1D m_vPolynom[p+1];
+		Polynomial1D m_vDPolynom[p+1];
 };
 
 
@@ -372,9 +365,6 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	///	Constructor
 		LagrangeLSFS()
 		{
-			m_vPolynom.resize(p+1);
-			m_vDPolynom.resize(p+1);
-
 			for(size_t i = 0; i <= p; ++i)
 			{
 			//	create trancated equidistant polynomials and its derivatives
@@ -489,8 +479,8 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	private:
-		std::vector<Polynomial1D> m_vPolynom;
-		std::vector<Polynomial1D> m_vDPolynom;
+		Polynomial1D m_vPolynom[p+1];
+		Polynomial1D m_vDPolynom[p+1];
 };
 
 
@@ -531,9 +521,6 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	///	Constructor
 		LagrangeLSFS()
 		{
-			m_vPolynom.resize(p+1);
-			m_vDPolynom.resize(p+1);
-
 			for(size_t i = 0; i <= p; ++i)
 			{
 			//	create trancated equidistant polynomials and its derivatives
@@ -712,8 +699,8 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	private:
-		std::vector<Polynomial1D> m_vPolynom;
-		std::vector<Polynomial1D> m_vDPolynom;
+		Polynomial1D m_vPolynom[p+1];
+		Polynomial1D m_vDPolynom[p+1];
 };
 
 
@@ -758,11 +745,6 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 	///	Constructor
 		LagrangeLSFS()
 		{
-			m_vPolynom.resize(p+1);
-			m_vDPolynom.resize(p+1);
-			m_vTruncPolynom.resize(p+1);
-			m_vDTruncPolynom.resize(p+1);
-
 			for(size_t i = 0; i <= p; ++i)
 			{
 			//	create truncated equidistant polynomials and its derivatives
@@ -931,10 +913,10 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	private:
-		std::vector<Polynomial1D> m_vPolynom;
-		std::vector<Polynomial1D> m_vDPolynom;
-		std::vector<Polynomial1D> m_vTruncPolynom;
-		std::vector<Polynomial1D> m_vDTruncPolynom;
+		Polynomial1D m_vPolynom[p+1];
+		Polynomial1D m_vDPolynom[p+1];
+		Polynomial1D m_vTruncPolynom[p+1];
+		Polynomial1D m_vDTruncPolynom[p+1];
 };
 
 namespace {
@@ -1213,9 +1195,6 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	///	Constructor
 		LagrangeLSFS()
 		{
-			m_vPolynom.resize(p+1);
-			m_vDPolynom.resize(p+1);
-
 			for(size_t i = 0; i <= p; ++i)
 			{
 			//	create trancated equidistant polynomials and its derivatives
@@ -1332,8 +1311,8 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	private:
-		std::vector<Polynomial1D> m_vPolynom;
-		std::vector<Polynomial1D> m_vDPolynom;
+		Polynomial1D m_vPolynom[p+1];
+		Polynomial1D m_vDPolynom[p+1];
 };
 
 
