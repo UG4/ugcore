@@ -720,7 +720,7 @@ bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfVi
 }
 
 
-bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
+inline bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
 {
 //	clear all marks
 	sel.clear();
@@ -829,7 +829,7 @@ bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 }
 
 
-bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
+inline bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
                                               const SurfaceView& surfView,
                                               int level)
 {
