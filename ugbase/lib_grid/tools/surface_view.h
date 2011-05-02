@@ -52,6 +52,13 @@ class SurfaceView : public SubsetHandler
 			else return (get_subset_index(parent) != -1);
 		}
 
+	///	returns if the element is contained in the surface view
+		template <class TGeomObj>
+		inline bool is_contained(TGeomObj* obj) const
+		{
+			return (get_subset_index(obj) != -1);
+		}
+
 	///	returns father of a shadowing element
 		template <class TGeomObj>
 		inline GeometricObject* get_parent(TGeomObj* obj) const {return m_pMG->get_parent(obj);}
