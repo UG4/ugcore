@@ -64,7 +64,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		{
 		case 1:
 			if(!AssembleMassMatrix<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									     M, u))
+									     M, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Edges.\n");
@@ -73,14 +73,14 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			break;
 		case 2:
 			if(!AssembleMassMatrix<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									     M, u))
+									     M, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleMassMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									     M, u))
+									     M, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -89,28 +89,28 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			break;
 		case 3:
 			if(!AssembleMassMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									     M, u))
+									     M, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleMassMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									     M, u))
+									     M, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleMassMatrix<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									     M, u))
+									     M, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleMassMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									     M, u))
+									     M, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Hexahedrons.\n");
@@ -193,7 +193,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		{
 		case 1:
 			if(!AssembleStiffnessMatrix<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-										         A, u))
+										         A, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Edges.\n");
@@ -202,14 +202,14 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			break;
 		case 2:
 			if(!AssembleStiffnessMatrix<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-										         A, u))
+										         A, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleStiffnessMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-										         A, u))
+										         A, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -218,28 +218,28 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			break;
 		case 3:
 			if(!AssembleStiffnessMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-										         A, u))
+										         A, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleStiffnessMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-										         A, u))
+										         A, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleStiffnessMatrix<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-										         A, u))
+										         A, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleStiffnessMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-										         A, u))
+										         A, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Hexahedrons.\n");
@@ -335,7 +335,7 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                           J, u))
+			                           J, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Edges.\n");
@@ -344,14 +344,14 @@ assemble_jacobian(matrix_type& J,
 			break;
 		case 2:
 			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                           J, u))
+			                           J, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                           J, u))
+			                           J, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -360,28 +360,28 @@ assemble_jacobian(matrix_type& J,
 			break;
 		case 3:
 			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                           J, u))
+			                           J, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                           J, u))
+			                           J, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                           J, u))
+			                           J, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                           J, u))
+			                           J, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Hexahedrons.\n");
@@ -472,7 +472,7 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u))
+									   d, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Edges.\n");
@@ -481,14 +481,14 @@ assemble_defect(vector_type& d,
 			break;
 		case 2:
 			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u))
+									   d, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u))
+									   d, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -497,28 +497,28 @@ assemble_defect(vector_type& d,
 			break;
 		case 3:
 			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u))
+									   d, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u))
+									   d, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u))
+									   d, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u))
+									   d, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Hexahedrons.\n");
@@ -606,7 +606,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u))
+									   mat, rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Edges.\n");
@@ -615,14 +615,14 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			break;
 		case 2:
 			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u))
+									   mat, rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u))
+									   mat, rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -631,28 +631,28 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			break;
 		case 3:
 			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u))
+									   mat, rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u))
+									   mat, rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u))
+									   mat, rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u))
+									   mat, rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Hexahedrons.\n");
@@ -744,7 +744,7 @@ assemble_rhs(vector_type& rhs,
 		{
 		case 1:
 			if(!AssembleRhs<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   rhs, u))
+									   rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Edges.\n");
@@ -753,14 +753,14 @@ assemble_rhs(vector_type& rhs,
 			break;
 		case 2:
 			if(!AssembleRhs<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   rhs, u))
+									   rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleRhs<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   rhs, u))
+									   rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -769,28 +769,28 @@ assemble_rhs(vector_type& rhs,
 			break;
 		case 3:
 			if(!AssembleRhs<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   rhs, u))
+									   rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleRhs<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   rhs, u))
+									   rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleRhs<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   rhs, u))
+									   rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleRhs<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   rhs, u))
+									   rhs, u, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
 						"Cannot assemble Hexahedrons.\n");
@@ -839,6 +839,14 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
 	{
 		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr)
+				!= true)
+			return false;
+	}
+
+//	post process constraints
+	for(size_t i = 0; i < m_vvPostProcess[PPT_CONSTRAINTS].size(); ++i)
+	{
+		if(m_vvPostProcess[PPT_CONSTRAINTS][i]->post_process_solution(u, dofDistr)
 				!= true)
 			return false;
 	}
@@ -908,7 +916,7 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0))
+									   J, u, time, solList, s_a0, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Edges.\n");
@@ -917,14 +925,14 @@ assemble_jacobian(matrix_type& J,
 			break;
 		case 2:
 			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0))
+									   J, u, time, solList, s_a0, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0))
+									   J, u, time, solList, s_a0, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -933,28 +941,28 @@ assemble_jacobian(matrix_type& J,
 			break;
 		case 3:
 			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0))
+									   J, u, time, solList, s_a0, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0))
+									   J, u, time, solList, s_a0, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0))
+									   J, u, time, solList, s_a0, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0))
+									   J, u, time, solList, s_a0, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Hexahedrons.\n");
@@ -1037,7 +1045,7 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u, time, solList, s_m, s_a))
+									   d, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Edges.\n");
@@ -1046,14 +1054,14 @@ assemble_defect(vector_type& d,
 			break;
 		case 2:
 			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u, time, solList, s_m, s_a))
+									   d, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u, time, solList, s_m, s_a))
+									   d, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -1062,28 +1070,28 @@ assemble_defect(vector_type& d,
 			break;
 		case 3:
 			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u, time, solList, s_m, s_a))
+									   d, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u, time, solList, s_m, s_a))
+									   d, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u, time, solList, s_m, s_a))
+									   d, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   d, u, time, solList, s_m, s_a))
+									   d, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Hexahedrons.\n");
@@ -1164,7 +1172,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-			                         mat, rhs, u, time, solList, s_m, s_a))
+			                         mat, rhs, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Edges.\n");
@@ -1173,14 +1181,14 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			break;
 		case 2:
 			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u, time, solList, s_m, s_a))
+									   mat, rhs, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Triangles.\n");
 				return false;
 			}
 			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u, time, solList, s_m, s_a))
+									   mat, rhs, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Quadrilaterals.\n");
@@ -1189,28 +1197,28 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			break;
 		case 3:
 			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u, time, solList, s_m, s_a))
+									   mat, rhs, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Tetrahedrons.\n");
 				return false;
 			}
 			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u, time, solList, s_m, s_a))
+									   mat, rhs, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Pyramids.\n");
 				return false;
 			}
 			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u, time, solList, s_m, s_a))
+									   mat, rhs, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Prisms.\n");
 				return false;
 			}
 			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
-									   mat, rhs, u, time, solList, s_m, s_a))
+									   mat, rhs, u, time, solList, s_m, s_a, m_pSelector))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Hexahedrons.\n");
@@ -1257,10 +1265,18 @@ bool
 DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, number time, const dof_distribution_type& dofDistr)
 {
-//	post process
+//	dirichlet
 	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
 	{
 		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr, time)
+				!= true)
+			return false;
+	}
+
+//	constraints
+	for(size_t i = 0; i < m_vvPostProcess[PPT_CONSTRAINTS].size(); ++i)
+	{
+		if(m_vvPostProcess[PPT_CONSTRAINTS][i]->post_process_solution(u, dofDistr, time)
 				!= true)
 			return false;
 	}

@@ -50,7 +50,7 @@ class DomainDiscretization :
 
 	public:
 	///	Empty Constructor
-		DomainDiscretization() : m_bForceRegGrid(false)
+		DomainDiscretization() : m_bForceRegGrid(false), m_pSelector(NULL)
 		{
 			m_vvPostProcess.resize(PPT_NUM_POST_PROCESS_TYPES);
 		};
@@ -128,9 +128,25 @@ class DomainDiscretization :
 	/// forces the assembling to consider the grid as regular
 	virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
 
+	///	sets a selector to exlude elements from assembling
+	/**
+	 * This methods sets a selector. Only elements that are selected will be
+	 * assembled during assembling process. If no selector is set, this
+	 * corresponds to a selector where all elements have been selected.
+	 *
+	 * \param[in]	sel		Selector
+	 */
+	virtual void set_selector(ISelector* sel = NULL)
+	{
+		m_pSelector = sel;
+	}
+
 	protected:
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;
+
+	///	selector used to skip elements
+		ISelector* m_pSelector;
 
 	public:
 	/// adds an element discretization to the assembling process

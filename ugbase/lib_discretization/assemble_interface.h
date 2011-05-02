@@ -8,6 +8,7 @@
 #define __H__UG__LIB_DISCRETIZATION__ASSEMBLE__
 
 #include "lib_discretization/dof_manager/dof_distribution.h"
+#include "lib_grid/tools/selector_interface.h"
 
 namespace ug{
 
@@ -155,6 +156,16 @@ class IAssemble {
 
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) = 0;
+
+	///	sets a selector to exlude elements from assembling
+	/**
+	 * This methods sets a selector. Only elements that are selected will be
+	 * assembled during assembling process. If no selector is set, this
+	 * corresponds to a selector where all elements have been selected.
+	 *
+	 * \param[in]	sel		Selector
+	 */
+		virtual void set_selector(ISelector* sel = NULL) = 0;
 
 	/// Virtual Destructor
 		virtual ~IAssemble(){};

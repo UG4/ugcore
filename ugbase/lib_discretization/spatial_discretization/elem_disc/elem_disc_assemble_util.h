@@ -59,7 +59,8 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                         	const IDoFDistribution<TDoFDistribution>& dofDistr,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
-                        	const typename TAlgebra::vector_type& u)
+                        	const typename TAlgebra::vector_type& u,
+                        	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -161,6 +162,11 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
+
 	// 	get global indices
 		ind.access_all();
 		dofDistr.update_indices(elem, ind, useHanging);
@@ -256,7 +262,8 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
-					const typename TAlgebra::vector_type& u)
+					const typename TAlgebra::vector_type& u,
+                	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -358,6 +365,11 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
+
 	// 	get global indices
 		dofDistr.update_indices(elem, ind, useHanging);
 
@@ -442,7 +454,8 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
-					const typename TAlgebra::vector_type& u)
+					const typename TAlgebra::vector_type& u,
+                	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -544,6 +557,11 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
+
 	// 	get global indices
 		ind.access_all();
 		dofDistr.update_indices(elem, ind, useHanging);
@@ -641,7 +659,8 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u, number time,
 	                const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
-					number s_a0)
+					number s_a0,
+                	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -744,6 +763,11 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	{
 	// 	get Element
 		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
 
 	// 	get global indices
 		ind.access_all();
@@ -861,7 +885,8 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	const IDoFDistribution<TDoFDistribution>& dofDistr,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
-               	const typename TAlgebra::vector_type& u)
+               	const typename TAlgebra::vector_type& u,
+            	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -964,6 +989,11 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	{
 	// 	get Element
 		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
 
 	// 	get global indices
 		ind.access_all();
@@ -1078,7 +1108,8 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u, number time,
                 const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
-               	number s_m, number s_a)
+               	number s_m, number s_a,
+            	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -1184,6 +1215,11 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	{
 	// 	get Element
 		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
 
 	// 	get global indices
 		ind.access_all();
@@ -1320,7 +1356,8 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-               	const typename TAlgebra::vector_type& u)
+               	const typename TAlgebra::vector_type& u,
+            	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -1423,6 +1460,11 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	{
 	// 	get Element
 		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
 
 	// 	get global indices
 		ind.access_all();
@@ -1539,7 +1581,8 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u, number time,
                 const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
-               	number s_m, number s_a)
+               	number s_m, number s_a,
+            	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -1646,6 +1689,11 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	{
 	// 	get Element
 		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
 
 	// 	get global indices
 		ind.access_all();
@@ -1780,7 +1828,8 @@ AssembleRhs(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	const IDoFDistribution<TDoFDistribution>& dofDistr,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
-               	const typename TAlgebra::vector_type& u)
+               	const typename TAlgebra::vector_type& u,
+            	ISelector* sel = NULL)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -1881,6 +1930,11 @@ AssembleRhs(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	{
 	// 	get Element
 		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel)
+			if(!sel->is_selected(elem))
+				continue;
 
 	// 	get global indices
 		ind.access_all();

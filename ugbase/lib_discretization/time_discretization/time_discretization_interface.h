@@ -61,7 +61,7 @@ class ITimeDiscretization
 	 * spatial Discretization has to be set.
 	 */
 		ITimeDiscretization()
-			: m_pDomDisc(NULL)	{}
+			: m_pDomDisc(NULL), m_pSelector(NULL)	{}
 
 	/// create and set domain discretization
 	/**
@@ -74,7 +74,7 @@ class ITimeDiscretization
 	///	set the domain discretization
 		void set_domain_discretization(domain_discretization_type& dd)
 		{
-			m_pDomDisc = &dd;
+			m_pDomDisc = &dd; forward_selector();
 		}
 
 	///	get the domain discretization
@@ -105,8 +105,28 @@ class ITimeDiscretization
 				m_pDomDisc->force_regular_grid(bForce);
 		}
 
+	///	sets a selector to exlude elements from assembling
+	/**
+	 * This methods sets a selector. Only elements that are selected will be
+	 * assembled during assembling process. If no selector is set, this
+	 * corresponds to a selector where all elements have been selected.
+	 *
+	 * \param[in]	sel		Selector
+	 */
+		virtual void set_selector(ISelector* sel = NULL)
+		{
+			m_pSelector = sel; forward_selector();
+		}
+
 	protected:
+		void forward_selector()
+		{
+			if(m_pDomDisc) m_pDomDisc->set_selector(m_pSelector);
+		}
+
 		domain_discretization_type* m_pDomDisc; ///< Domain Discretization
+
+		ISelector* m_pSelector;
 };
 
 /// @}
