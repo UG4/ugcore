@@ -20,7 +20,7 @@ InitAlgebra(CPUAlgebraSelector());
 dim = util.GetParamNumber("-dim",    2)
 if dim == 2 then
 	gridName = "unit_square_quads_2x2.ugx"
---	gridName = "unit_square_01/unit_square_01_tri.ugx"
+--	gridName = "unit_square_tri_8x8.ugx"
 	gridName = "unit_square_01/unit_square_01_quads_8x8.ugx"
 elseif dim == 3 then
 	gridName = "open_cube_hex.ugx"
@@ -52,6 +52,14 @@ function ourDirichletBnd2d(x, y, t)
 	local r = math.sqrt(x*x + y*y)
 	
 	return true, 1.0/(1 + math.exp(-200*(r-0.8)))
+end
+
+function ourSource2dSimple(x, y, t)
+	return	0.0;
+end
+		
+function ourDirichletBnd2dSimple(x, y, t)
+	return true, 10.0
 end
 
 -- 3D
@@ -107,11 +115,13 @@ diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Source setup
 sourceValue = util.CreateLuaUserNumber("ourSource"..dim.."d", dim)
+sourceValueSimple = util.CreateLuaUserNumber("ourSource"..dim.."dSimple", dim)
 
 -- dirichlet setup
 -- depending on the dimension we're choosing the appropriate callbacks.
 -- we're using the .. operator to assemble the names (dim = 2 -> "ourDirichletBnd2d")
 dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+dirichletSimple = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."dSimple", dim)
 	
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -168,7 +178,7 @@ dbgWriter:set_vtk_output(true)
 
 -- create algebraic Preconditioner
 jac = Jacobi()
-jac:set_damp(1.0)
+jac:set_damp(2/3)
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
@@ -208,7 +218,6 @@ ilut = ILUT()
 	--gmg:set_debug(dbgWriter)
 
 
-if false then
 amg = AMGPreconditioner()
 --amg:enable_aggressive_coarsening_A(2)
 
@@ -224,12 +233,11 @@ amg:set_max_nodes_for_base(300)
 amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(true)
 
-amg:tostring()
-end
+--amg:tostring()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(1000)
+convCheck:set_maximum_steps(100)
 convCheck:set_minimum_defect(1e-12)
 convCheck:set_reduction(1e-12)
 
@@ -238,7 +246,7 @@ exSolver = LU()
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(ilu)
+linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
@@ -248,7 +256,7 @@ cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(ilu)
+bicgstabSolver:set_preconditioner(gmg)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -------------------------------------------
@@ -256,7 +264,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -------------------------------------------
 
 -- choose some solver
-solver = bicgstabSolver
+solver = linSolver
 
 approxSpace:init()
 approxSpace:print_statistic()
@@ -294,7 +302,7 @@ if solver:init(linOp) ~= true then print("Cannot init solver"); exit() end
 
 -- 5. apply solver
 print("Apply solver.")
-if solver:apply_return_defect(u,b) ~= true then print("Cannot apply solver"); exit() end
+if solver:apply_return_defect(u,b) ~= true then print("Cannot apply solver"); WriteGridFunctionToVTK(u, "Solution"..i); exit() end
 
 WriteGridFunctionToVTK(u, "Solution"..i)
 
@@ -306,8 +314,8 @@ print("Elements marked.")
 refiner:refine()
 print("Grid refined.")
 refiner:clear_marks()
-SaveDomain(dom, "refined_grid_" .. i .. "_p" .. GetProcessRank() .. ".ugx")
-SaveGridHierarchy(dom:get_grid(), "refined_grid_"..i.."hierarchy.ugx")
+--SaveDomain(dom, "refined_grid_" .. i .. "_p" .. GetProcessRank() .. ".ugx")
+--SaveGridHierarchy(dom:get_grid(), "refined_grid_"..i.."hierarchy.ugx")
 print("Refined Grid written to file.")
 
 -- 8. defragment approximation space
