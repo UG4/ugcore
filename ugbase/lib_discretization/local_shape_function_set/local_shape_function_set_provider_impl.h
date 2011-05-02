@@ -10,8 +10,8 @@
 
 // include instances
 #include "local_shape_function_set_id.h"
-#include "LagrangeP1/lagrangep1.h"
-#include "LagrangeP1/lagrange.h"
+#include "lagrange/lagrangep1.h"
+#include "lagrange/lagrange.h"
 
 
 namespace ug{

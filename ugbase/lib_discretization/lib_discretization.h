@@ -49,8 +49,8 @@
 #include "local_shape_function_set/local_shape_function_set.h"
 #include "local_shape_function_set/local_shape_function_set_provider.h"
 #include "local_shape_function_set/local_shape_function_set_id.h"
-#include "local_shape_function_set/LagrangeP1/lagrange.h"
-#include "local_shape_function_set/LagrangeP1/lagrangep1.h"
+#include "local_shape_function_set/lagrange/lagrange.h"
+#include "local_shape_function_set/lagrange/lagrangep1.h"
 #include "local_shape_function_set/common/lagrange1d.h"
 #include "local_shape_function_set/common/polynomial1d.h"
 

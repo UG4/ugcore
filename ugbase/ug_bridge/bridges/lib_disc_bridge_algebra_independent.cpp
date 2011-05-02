@@ -13,7 +13,7 @@
 #include "common/math/misc/math_util.h"
 
 // Lagrange Function Space
-#include "lib_discretization/local_shape_function_set/LagrangeP1/lagrange.h"
+#include "lib_discretization/local_shape_function_set/lagrange/lagrange.h"
 
 // P1ConformFunctionPattern
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"

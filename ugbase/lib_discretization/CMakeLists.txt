@@ -33,7 +33,7 @@ set(srcDiscretization	common/function_group.cpp
 
 						local_shape_function_set/local_shape_function_set_provider.cpp
 						local_shape_function_set/local_dof_pattern.cpp
-						local_shape_function_set/LagrangeP1/lagrangep1.cpp)
+						local_shape_function_set/lagrange/lagrangep1.cpp)
 
 # add parallelization
 if(NOT NO_MPI)
