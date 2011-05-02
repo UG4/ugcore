@@ -74,6 +74,9 @@ class IDataExport : virtual public IDependentIPData
 			return (m_pObj->*(m_vExportFunc[m_id]))(u, compDeriv);
 		}
 
+	///	get corresponding element disc
+		IElemDisc<TAlgebra>* get_elem_disc() {return m_pObj;}
+
 	///	virtual destructor
 		virtual ~IDataExport() {}
 
