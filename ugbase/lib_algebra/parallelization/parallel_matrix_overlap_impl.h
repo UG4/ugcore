@@ -116,6 +116,7 @@ private:
 	//size_t m_overlapDepth;						///< overlap depth to be achieved
 
 public:
+	std::vector<size_t> m_overlapSize;
 	size_t m_overlapDepthMaster;
 	size_t m_overlapDepthSlave;
 	bool m_masterDirichletLast;
@@ -124,6 +125,11 @@ private:
 
 	/// collect_matrix_row_data
 	/**
+	 * problem here is that we have to keep track of the interfaces. when we send a connection to a node
+	 * which is not on that processor, we need to add an interface from that node to its master:
+	 * if we are master of the node, it is simple. if we are not, we need to send a notification to the
+	 * masters' processor
+	 *
 	 * \param mat
 	 * \param layout
 	 * \param bAddNodesToLayout if true, create new nodes in interfaces/send notifications
@@ -152,7 +158,7 @@ private:
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::collect_matrix_row_data\n");
 
-		StreamPack notifications_pack;
+		StreamPack notificationsPack;
 
 		// zeilen verschicken
 		for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
@@ -171,37 +177,30 @@ private:
 
 			for(Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			{
-				size_t local_index = interface.get_element(iter2);
+				size_t localIndex = interface.get_element(iter2);
 
-				AlgebraID &globalRowIndex = m_globalIDs[local_index];
+				AlgebraID &globalRowIndex = m_globalIDs[localIndex];
 
 				std::vector<size_t> *p_vNewInterface = NULL;
 
 				// serialize global row index
 				Serialize(stream, globalRowIndex);
 
-				// get number of connections != 0.0
-				size_t num_connections = 0;
-				for(typename matrix_type::const_row_iterator conn = mat.begin_row(local_index); conn != mat.end_row(local_index); ++conn)
-				{
-					if(conn.value() == 0.0) continue;
-					num_connections++;
-				}
+				size_t numConnections = mat.num_connections(localIndex);
 
 				// serialize number of connections
-				Serialize(stream, num_connections);
+				Serialize(stream, numConnections);
 
-				UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << "\n");
+				UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex << "\n");
 
 				// serialize connections
-				for(typename matrix_type::const_row_iterator conn = mat.begin_row(local_index); conn != mat.end_row(local_index); ++conn)
+				for(typename matrix_type::const_row_iterator conn = mat.begin_row(localIndex); conn != mat.end_row(localIndex); ++conn)
 				{
-					if(conn.value() == 0.0) continue;
 					AlgebraID &globalColIndex = m_globalIDs[conn.index()];
 					size_t localColIndex = conn.index();
 
 					UG_DLOG(LIB_ALG_MATRIX, 4, "  " << conn.index() << " (global id " <<
-							globalColIndex.first << " | " << globalColIndex.second << ") -> " << conn.value() << "\n");
+							globalColIndex << ") -> " << conn.value() << "\n");
 
 					// serialize connection
 					Serialize(stream, globalColIndex);
@@ -253,11 +252,11 @@ private:
 								if(otherMark[localColIndex] == false)
 								{
 									otherMark[localColIndex] = true;
-									BinaryStream &notifications_stream = *notifications_pack.get_stream(globalColIndex.first);
+									BinaryStream &notificationsStream = *notificationsPack.get_stream(globalColIndex.first);
 
-									// serialize notification: global_index.second, pid.
-									Serialize(notifications_stream, globalColIndex.second);
-									Serialize(notifications_stream, pid);
+									// serialize notification: globalColIndex.second, pid.
+									Serialize(notificationsStream, globalColIndex.second);
+									Serialize(notificationsStream, pid);
 									//UG_ASSERT(find(pids.begin(), pids.end(), globalColIndex.first) != pids.end(), "sending notification to a processor "
 									// << globalColIndex.first << ", not in pid list???");
 								}
@@ -266,16 +265,10 @@ private:
 							}
 							else
 								UG_DLOG(LIB_ALG_MATRIX, 4, "  not sending notification because owner knows that his node is on his\n");
-
 						}
 					}
-
-
-
-
 				}
 			}
-
 			// use communicator to send data
 			UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": sending matrixrow data to proc " << pid << " (size " << stream.size() << ")\n");
 			m_com.send_raw(pid, stream.buffer(), stream.size(), false);
@@ -286,7 +279,7 @@ private:
 			for(std::set<int>::iterator iter = pids.begin(); iter != pids.end(); ++iter)
 			{
 				int pid = *iter;
-				BinaryStream &stream = *notifications_pack.get_stream(pid);
+				BinaryStream &stream = *notificationsPack.get_stream(pid);
 				m_com.send_raw(pid, stream.buffer(), stream.size(), false);
 				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": sending notifications data to proc " << pid << " (size " << stream.size() << ") \n");
 			}
@@ -296,20 +289,20 @@ private:
 	/// receive_notifications
 	/**
 	 * processing notifications about our master nodes having slaves on other processors
-	 * \param notifications_pack notifications stream in form (size_t) local_index, (int) pid.
+	 * \param notificationsPack notifications stream in form (size_t) localIndex, (int) pid.
 	 * \param masterOLLayout layout where to add masters if appropriate
 	 *
-	 * for a notification that the index local_index has now a copy on processor pid, we add local_index to masterOLLayout[pid], if
-	 * local_index is not already in some master interface to pid.
+	 * for a notification that the index localIndex has now a copy on processor pid, we add localIndex to masterOLLayout[pid], if
+	 * localIndex is not already in some master interface to pid.
 	 *
 	 * \sa m_mapMark
 	 */
-	void receive_notifications(StreamPack &notifications_pack,	std::map<int, std::vector<size_t> > &masterOLLayout)
+	void receive_notifications(StreamPack &notificationsPack,	std::map<int, std::vector<size_t> > &masterOLLayout)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nProcessing notifications\n");
 
 		std::vector<int> pids;
-		for(StreamPack::iterator iter = notifications_pack.begin(); iter != notifications_pack.end(); ++iter)
+		for(StreamPack::iterator iter = notificationsPack.begin(); iter != notificationsPack.end(); ++iter)
 			pids.push_back(iter->first);
 		sort(pids.begin(), pids.end());
 
@@ -319,28 +312,28 @@ private:
 
 			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pid << "\n");
 
-			BinaryStream &stream = *notifications_pack.get_stream(pid);
+			BinaryStream &stream = *notificationsPack.get_stream(pid);
 			while(stream.can_read_more())
 			{
-				size_t local_index;
+				size_t localIndex;
 				int pid2;
-				Deserialize(stream, local_index);
+				Deserialize(stream, localIndex);
 				Deserialize(stream, pid2);
 				std::vector<bool> &mark = m_mapMark[pid2];
 
-				UG_DLOG(LIB_ALG_MATRIX, 4, "Got a notification from processor " << pid << " that local index " << local_index << " has a copy on processor " << pid2 << "\n");
+				UG_DLOG(LIB_ALG_MATRIX, 4, "Got a notification from processor " << pid << " that local index " << localIndex << " has a copy on processor " << pid2 << "\n");
 
-				UG_ASSERT(m_globalIDs[local_index].first == pcl::GetProcRank() && m_globalIDs[local_index].second == local_index, "got notification about a node not master on this proc?");
-				UG_ASSERT(local_index < m_mat.num_rows(), "");
+				UG_ASSERT(m_globalIDs[localIndex].first == pcl::GetProcRank() && m_globalIDs[localIndex].second == localIndex, "got notification about a node not master on this proc?");
+				UG_ASSERT(localIndex < m_mat.num_rows(), "");
 
 				mark.resize(m_globalIDs.size(), false);
-				if(mark[local_index] == false)
+				if(mark[localIndex] == false)
 				{
 					UG_ASSERT(mark.size() == m_globalIDs.size(), "");
-					mark[local_index]=true;
+					mark[localIndex]=true;
 
-					// this is a notification that local_index is now slave on processor pid2.
-					masterOLLayout[pid2].push_back(local_index);
+					// this is a notification that localIndex is now slave on processor pid2.
+					masterOLLayout[pid2].push_back(localIndex);
 				}
 				else
 					UG_DLOG(LIB_ALG_MATRIX, 4, " but is already.\n")
@@ -374,9 +367,9 @@ private:
 
 			for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			{
-				size_t local_index = interface.get_element(iter2);
-				UG_DLOG(LIB_ALG_MATRIX, 4, local_index << " ");
-				mark[local_index] = true;
+				size_t localIndex = interface.get_element(iter2);
+				UG_DLOG(LIB_ALG_MATRIX, 4, localIndex << " ");
+				mark[localIndex] = true;
 			}
 		}
 	}
@@ -384,22 +377,22 @@ private:
 
 	/// get_new_indices
 	/**
-	 * \param matrixrow_pack data received from other processors
+	 * \param matrixrowPack data received from other processors
 	 * \param overlapLayout layout where to add not yet existing nodes
 	 * \param nodeNummerator tells us if globalID has a local ID or creates one
 	 */
-	void get_new_indices(StreamPack &matrixrow_pack, std::map<int, std::vector<size_t> > &overlapLayout,
+	void get_new_indices(StreamPack &matrixrowPack, std::map<int, std::vector<size_t> > &overlapLayout,
 			NewNodesNummerator &nodeNummerator)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::GetNewIndices\n");
 		typedef IndexLayout::Interface Interface;
 
-		size_t num_connections;
+		size_t numConnections;
 		AlgebraID globalRowIndex, globalColIndex;
 		typename matrix_type::value_type value;
 
 		std::vector<int> pids;
-		for(StreamPack::iterator iter = matrixrow_pack.begin(); iter != matrixrow_pack.end(); ++iter)
+		for(StreamPack::iterator iter = matrixrowPack.begin(); iter != matrixrowPack.end(); ++iter)
 			pids.push_back(iter->first);
 
 		sort(pids.begin(), pids.end());
@@ -410,30 +403,30 @@ private:
 			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pids[i] << "\n");
 
 			// copy stream (bug in BinaryStream, otherwise I would use stream.seekg(ios::begin)
-			BinaryStream &stream2 = *matrixrow_pack.get_stream(pids[i]);
+			BinaryStream &stream2 = *matrixrowPack.get_stream(pids[i]);
 			BinaryStream stream; stream.write((const char*)stream2.buffer(), stream2.size());
 
 			while(stream.can_read_more())
 			{
 				Deserialize(stream, globalRowIndex);
 
+				Deserialize(stream, numConnections);
+
 #ifdef UG_ENABLE_DEBUG_LOGS
 				IF_DEBUG(LIB_ALG_MATRIX, 4)
 				{
-					bool has_index;
-					size_t localRowIndex = nodeNummerator.get_index_if_available(globalRowIndex, has_index);
-					UG_ASSERT(has_index, "global id " << globalRowIndex.first << " | " << globalRowIndex.second << " has no associated local id");
-					UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << " has local ID " << localRowIndex << "\n");
+					size_t localRowIndex = nodeNummerator[globalRowIndex];
+					UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex << " has local ID " << localRowIndex << ", and " << numConnections << " connections\n");
 				}
 #endif
 
-				Deserialize(stream, num_connections);
 
-				for(size_t i=0; i<num_connections; i++)
+
+				for(size_t i=0; i<numConnections; i++)
 				{
 					Deserialize(stream, globalColIndex);
 					size_t localColIndex = nodeNummerator.get_index_or_create_new(globalColIndex, bCreated);
-					UG_DLOG(LIB_ALG_MATRIX, 4, " connection GID " << globalColIndex.first << " | " << globalColIndex.second << " has local ID " << localColIndex <<
+					UG_DLOG(LIB_ALG_MATRIX, 4, " connection GID " << globalColIndex << " has local ID " << localColIndex <<
 							(bCreated ? " and was created\n" : "\n"));
 					if(bCreated)
 						overlapLayout[globalColIndex.first].push_back(localColIndex);
@@ -448,21 +441,21 @@ private:
 
 	/// process_matrix_rows
 	/**
-	 * \param matrixrow_pack 	StreamPack where to extract data from
+	 * \param matrixrowPack 	StreamPack where to extract data from
 	 * \param nodeNummerator	maps global indices to local indices
 	 * \param 					bSet if true, use overwrite (set) for received matrix rows. else add matrix rows.
 	 *
 	 */
-	void process_matrix_rows(StreamPack &matrixrow_pack, NewNodesNummerator &nodeNummerator, bool bSet)
+	void process_matrix_rows(StreamPack &matrixrowPack, NewNodesNummerator &nodeNummerator, bool bSet)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\niterate again over all streams to get the matrix lines\n");
 
-		size_t num_connections;
+		size_t numConnections;
 		AlgebraID globalRowIndex, globalColIndex;
 		std::vector<typename matrix_type::connection> cons;
 		bool has_index;
 
-		for(StreamPack::iterator iter = matrixrow_pack.begin(); iter != matrixrow_pack.end(); ++iter)
+		for(StreamPack::iterator iter = matrixrowPack.begin(); iter != matrixrowPack.end(); ++iter)
 		{
 			BinaryStream &stream = *iter->second;
 
@@ -473,31 +466,29 @@ private:
 				Deserialize(stream, globalRowIndex);
 
 				// get local index for this global index
-				size_t localRowIndex = nodeNummerator.get_index_if_available(globalRowIndex, has_index);
-				UG_ASSERT(has_index, "global id " << globalRowIndex.first << " | " << globalRowIndex.second << " has no associated local id");
+				size_t localRowIndex = nodeNummerator[globalRowIndex];
 
-				UG_DLOG(LIB_ALG_MATRIX, 4, "Processing global id " << globalRowIndex.first << " | " << globalRowIndex.second << ", local id " << localRowIndex << ". ");
+				UG_DLOG(LIB_ALG_MATRIX, 4, "Processing global id " << globalRowIndex << ", local id " << localRowIndex << ". ");
 
 				// get nr of connections
-				Deserialize(stream, num_connections);
-				if(cons.size() < num_connections) cons.resize(num_connections);
-				UG_DLOG(LIB_ALG_MATRIX, 4, num_connections << " connections:\n");
+				Deserialize(stream, numConnections);
+				if(cons.size() < numConnections) cons.resize(numConnections);
+				UG_DLOG(LIB_ALG_MATRIX, 4, numConnections << " connections:\n");
 
 				size_t j=0;
-				for(size_t i=0; i<num_connections; i++)
+				for(size_t i=0; i<numConnections; i++)
 				{
 					// get global column index, and associated local index
 					Deserialize(stream, globalColIndex);
 					Deserialize(stream, cons[j].dValue);
 					cons[j].iIndex = nodeNummerator.get_index_if_available(globalColIndex, has_index);
 
-					UG_DLOG(LIB_ALG_MATRIX, 4, cons[j].iIndex << " (global index " << globalColIndex.first << " | " << globalColIndex.second << ")");
-					UG_DLOG(LIB_ALG_MATRIX, 4, " -> " << cons[j].dValue << "\n");
+					if(has_index) 	{ UG_DLOG(LIB_ALG_MATRIX, 4, cons[j].iIndex);   }
+					else			{ UG_DLOG(LIB_ALG_MATRIX, 4, "n/a"); }
+					UG_DLOG(LIB_ALG_MATRIX, 4,  " (global index " << globalColIndex << ")" << " -> " << cons[j].dValue << "\n");
 
-					//UG_ASSERT(has_index, "global id " << globalColIndex.first << " | " << globalColIndex.second << " has no associated local id");
-					if(!has_index)
-						UG_DLOG(LIB_ALG_MATRIX, 4, "has no index\n")
-					else j++;
+					//UG_ASSERT(has_index, "global id " << globalColIndex << " has no associated local id");
+					if(has_index) j++;
 				}
 
 				// set matrix row
@@ -570,14 +561,14 @@ private:
 		//-----------------
 
 
-		StreamPack notifications_pack, matrixrow_pack;
+		StreamPack notificationsPack, matrixrowPack;
 
 		for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
 				++iter)
 		{
 			int pid = receivingNodesLayout.proc_id(iter);
 			UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": preparing buffer for matrixrow data from proc " << pid << "\n");
-			m_com.receive_raw(pid, *matrixrow_pack.get_stream(pid));
+			m_com.receive_raw(pid, *matrixrowPack.get_stream(pid));
 		}
 
 		if(bCreateNewNodes)
@@ -586,7 +577,7 @@ private:
 			{
 				size_t pid = *iter;
 				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": preparing buffer for notifications data from proc " << pid << "\n");
-				m_com.receive_raw(pid, *notifications_pack.get_stream(pid));
+				m_com.receive_raw(pid, *notificationsPack.get_stream(pid));
 			}
 		}
 
@@ -605,7 +596,7 @@ private:
 			for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
 					++iter)
 			{
-				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrow_pack.get_stream(receivingNodesLayout.proc_id(iter))->size() << " bytes of matrixrow data from proc " <<
+				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrowPack.get_stream(receivingNodesLayout.proc_id(iter))->size() << " bytes of matrixrow data from proc " <<
 						receivingNodesLayout.proc_id(iter) << "\n");
 			}
 
@@ -614,8 +605,8 @@ private:
 				for(std::set<int>::iterator iter = pids.begin(); iter != pids.end(); ++iter)
 				{
 					//size_t pid = *iter;
-					UG_ASSERT(notifications_pack.has_stream(*iter), "pid = " << *iter);
-					UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notifications_pack.get_stream(*iter)->size() << " bytes of notifications data from proc " << *iter << "\n");
+					UG_ASSERT(notificationsPack.has_stream(*iter), "pid = " << *iter);
+					UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notificationsPack.get_stream(*iter)->size() << " bytes of notifications data from proc " << *iter << "\n");
 				}
 			}
 		}
@@ -624,11 +615,11 @@ private:
 
 		if(bCreateNewNodes)
 		{
-			receive_notifications(notifications_pack, newMasters);
+			receive_notifications(notificationsPack, newMasters);
 			//GenerateOverlap_CreateMarks(pids, slaveLayout, masterLayout, master_map, newMat.num_rows());
 
 			// get all new nodes and their indices
-			get_new_indices(matrixrow_pack, newSlaves, nodeNummerator);
+			get_new_indices(matrixrowPack, newSlaves, nodeNummerator);
 
 
 			insert_map_into_layout_sorted(newMasters, newMastersLayout);
@@ -654,7 +645,7 @@ private:
 		m_newMat.resize(new_indices_size, new_indices_size);
 
 		// iterate again over all streams to get the matrix lines
-		process_matrix_rows(matrixrow_pack, nodeNummerator, bSet);
+		process_matrix_rows(matrixrowPack, nodeNummerator, bSet);
 
 		// send master rows to slaves
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
@@ -716,7 +707,7 @@ public:
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
 		{
 			for(size_t i=0; i<m_globalIDs.size(); i++)
-				UG_DLOG(LIB_ALG_MATRIX, 4, "  " << i << ": global id " << m_globalIDs[i].first << " | " << m_globalIDs[i].second << "\n")
+				UG_DLOG(LIB_ALG_MATRIX, 4, "  " << i << ": global id " << m_globalIDs[i] << "\n")
 		}
 
 		m_newMat.set_as_copy_of(m_mat);
@@ -755,10 +746,10 @@ public:
 		m_vSlaveLayouts.resize(maxOverlap+1);
 		AddLayout(m_vMasterLayouts[0], masterLayout);
 		AddLayout(m_vSlaveLayouts[0], slaveLayout);
-
+		m_overlapSize.clear();
 		for(size_t current_overlap=0; current_overlap <= maxOverlap; current_overlap++)
 		{
-
+			m_overlapSize.push_back(m_newMat.num_rows());
 
 			IF_DEBUG(LIB_ALG_MATRIX, 4)
 			{
@@ -861,6 +852,7 @@ public:
 template<typename matrix_type>
 bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
 		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
+		std::vector<size_t> &overlapSize,
 		size_t overlapDepth=1)
 {
 	// pcl does not use const much
@@ -872,7 +864,9 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 	c.m_overlapDepthSlave = overlapDepth;
 	c.m_masterDirichletLast = false;
 	c.m_slaveDirichletLast = false;
-	return c.calculate();
+	bool b = c.calculate();
+	overlapSize = c.m_overlapSize;
+	return b;
 }
 
 // TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
