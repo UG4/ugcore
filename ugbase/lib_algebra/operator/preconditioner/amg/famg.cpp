@@ -664,10 +664,10 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 #ifdef UG_PARALLEL
 #include "famg_parallel_coarsening_impl.h"
+#include "famg_communicate_prolongation.h"
 #endif
 
 #include "famg_debug_impl.h"
 #include "famg_on_demand_coarsening_impl.h"
 #include "famg_precalculate_coarsening_impl.h"
-#include "famg_communicate_prolongation.h"
 #endif //  __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
