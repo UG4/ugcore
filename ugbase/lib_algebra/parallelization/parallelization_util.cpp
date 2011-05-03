@@ -13,6 +13,14 @@ using namespace pcl;
 
 namespace ug{
 
+
+std::ostream& operator<<(std::ostream &out, const AlgebraID &ID)
+{
+  out << "p" << ID.first << "i" << ID.second;
+  return out;
+}
+
+
 ///	vector<int> has a variable size
 template <> struct block_traits<vector<int> >
 {
@@ -705,19 +713,19 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 	}
 
 	StreamPack sendpack;
-	UG_LOG("\n\n");
+	//UG_LOG("\n\n");
 	for(std::map<size_t, std::vector<int> >::iterator it = slaveOnProc.begin(); it != slaveOnProc.end(); ++it)
 	{
 		std::vector<int> &procs = it->second;
 		if(procs.size() <= 1) continue;
 		size_t index = it->first;
-		UG_LOG("index " << index << " is to processors ");
+		//UG_LOG("index " << index << " is to processors ");
 		for(size_t i=0; i<procs.size(); i++)
 		{
 
 			BinaryStream &stream = *sendpack.get_stream(procs[i]);
 			size_t interfaceIndex = localToInterfaceIndex[procs[i]][index];
-			UG_LOG(procs[i] << " (interfaceIndex " << interfaceIndex << ") ");
+			//UG_LOG(procs[i] << " (interfaceIndex " << interfaceIndex << ") ");
 			for(size_t j=0; j<procs.size(); j++)
 			{
 				if(i == j) continue;
@@ -725,7 +733,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 				Serialize(stream, procs[j]);
 			}
 		}
-		UG_LOG("\n");
+		//UG_LOG("\n");
 	}
 
 	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
@@ -733,7 +741,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 		int pid = masterLayout.proc_id(iter);
 		BinaryStream &stream = *sendpack.get_stream(pid);
 		communicator.send_raw(pid, stream.buffer(), stream.size(), false);
-		UG_LOG("Sending " << stream.size() << " bytes of data to processor " << pid << ":\n");
+		//UG_LOG("Sending " << stream.size() << " bytes of data to processor " << pid << ":\n");
 	}
 
 	// 3. communicate
@@ -762,7 +770,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 	{
 		int pid = pids[i];
 		BinaryStream &stream = *receivepack.get_stream(pid);
-		UG_LOG("Received " << stream.size() << " bytes of data from processor " << pid << ":\n");
+		//UG_LOG("Received " << stream.size() << " bytes of data from processor " << pid << ":\n");
 
 		std::vector<size_t> indices;
 		IndexLayout::Interface &interface = slaveLayout.interface(pid);
@@ -781,12 +789,12 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 			UG_ASSERT(pid2 != pcl::GetProcRank(), "");
 			allToAllReceive.interface(pid2).push_back(index);
 			allToAllSend.interface(pid2).push_back(index);
-			UG_LOG("Added Index " << index << " to interface with processor " << pid2 << "\n");
+			//UG_LOG("Added Index " << index << " to interface with processor " << pid2 << "\n");
 		}
 
 	}
 
-	UG_LOG("\n\n");
+	//UG_LOG("\n\n");
 #else
 	// this implementation, using CommunicateConnections, unfortunately does not work at the moment (sorting issue below)
 	std::vector<std::vector<int> > connections;
@@ -828,7 +836,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 			{
 				int pid = cons[j];
 				if(pid == pcl::GetProcRank()) continue;
-				UG_LOG(pid << " ");
+				//UG_LOG(pid << " ");
 				OLCoarseningReceiveLayout.interface(pid).push_back(index);
 				OLCoarseningSendLayout.interface(pid).push_back(index);
 			}

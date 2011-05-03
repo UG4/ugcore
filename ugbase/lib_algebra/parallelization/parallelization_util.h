@@ -46,6 +46,9 @@ namespace ug{
 ///	this type is used to identify distributed objects.
 typedef std::pair<int, size_t> AlgebraID;
 
+
+std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
+
 ///	Generates a set of global algebra ids.
 /**	Make sure that masterLayout and slaveLayout do not reference
  * indices >= numIDs.
