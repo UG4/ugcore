@@ -34,33 +34,33 @@ private:
 
 public:
 	/// constructor. new_indices_start is the index of the first newly create local index
-	NewNodesNummerator(std::vector<AlgebraID> &global_ids) : m_globalIDs(global_ids)
+	NewNodesNummerator(std::vector<AlgebraID> &globalIDs) : m_globalIDs(globalIDs)
 	{
-		for(size_t i=0; i<global_ids.size(); ++i)
+		for(size_t i=0; i<globalIDs.size(); ++i)
 		{
-			if(global_ids[i].first != pcl::GetProcRank() || global_ids[i].second != i)
-				m_indicesMap.insert(std::pair<AlgebraID, size_t> (global_ids[i], i));
+			if(globalIDs[i].first != pcl::GetProcRank() || globalIDs[i].second != i)
+				m_indicesMap.insert(std::pair<AlgebraID, size_t> (globalIDs[i], i));
 		}
 	}
 
 
 	/// get_index_or_create_new: returns a local index by creating and saving a new one or returning an old
-	size_t get_index_or_create_new(const AlgebraID &global_index, bool &bCreated)
+	size_t get_index_or_create_new(const AlgebraID &globalIndex, bool &bCreated)
 	{
-		// UG_LOG("get_index_or_create_new for global index " << global_index.first << " | " << global_index.second << ": ");
-		if(global_index.first == pcl::GetProcRank())
+		// UG_LOG("get_index_or_create_new for global index " << globalIndex.first << " | " << globalIndex.second << ": ");
+		if(globalIndex.first == pcl::GetProcRank())
 		{
 			// UG_LOG("is on this processor\n");
 			bCreated = false;
-			return global_index.second;
+			return globalIndex.second;
 		}
 		else
 		{
-			std::pair<iterator, bool> ret = m_indicesMap.insert(std::pair<AlgebraID, size_t> (global_index, m_globalIDs.size()));
+			std::pair<iterator, bool> ret = m_indicesMap.insert(std::pair<AlgebraID, size_t> (globalIndex, m_globalIDs.size()));
 			if(ret.second)
 			{
 				// UG_LOG("created new index " << m_globalIDs.size() << "\n");
-				m_globalIDs.push_back(global_index);
+				m_globalIDs.push_back(globalIndex);
 				bCreated = true;
 			}
 			else
@@ -72,33 +72,41 @@ public:
 		}
 	}
 
-	size_t get_index_or_create_new(const AlgebraID &global_index)
+	size_t get_index_or_create_new(const AlgebraID &globalIndex)
 	{
 		bool b;
-		return get_index_or_create_new(global_index, b);
+		return get_index_or_create_new(globalIndex, b);
+	}
+
+	size_t operator [] (const AlgebraID &globalIndex) const
+	{
+		bool hasIndex;
+		size_t index = get_index_if_available(globalIndex, hasIndex);
+		UG_ASSERT(hasIndex, "global id " << globalIndex << " has no associated local id");
+		return index;
 	}
 
 	/// returns a local index by returning a old local one or a saved created one
-	size_t get_index_if_available(const AlgebraID &global_index, bool &has_index) const
+	size_t get_index_if_available(const AlgebraID &globalIndex, bool &bHasIndex) const
 	{
-		// UG_LOG("get_index_if_available for global index " << global_index.first << " | " << global_index.second << ": ");
-		if(global_index.first == pcl::GetProcRank())
+		// UG_LOG("get_index_if_available for global index " << globalIndex << ": ");
+		if(globalIndex.first == pcl::GetProcRank())
 		{
 			// UG_LOG("is on this processor\n");
-			has_index = true;
-			return global_index.second;
+			bHasIndex = true;
+			return globalIndex.second;
 		}
-		const_iterator it = m_indicesMap.find(global_index);
+		const_iterator it = m_indicesMap.find(globalIndex);
 		if(it == m_indicesMap.end())
 		{
 			// UG_LOG("index not found\n");
-			has_index = false;
+			bHasIndex = false;
 			return (size_t) -1;
 		}
 		else
 		{
 			// UG_LOG("index is " << it->second << "\n");
-			has_index = true;
+			bHasIndex = true;
 			return it->second;
 		}
 	}
