@@ -417,7 +417,8 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 			UG_LOG("\n\ncollD after collecting:\n");
 			collD.p();
 			UG_LOG("\n\ncollC after collecting:\n");
-#endif		collC.p();
+			collC.p();
+#endif
 
 			m_basesolver->apply_return_defect(collC, collD);
 
