@@ -99,6 +99,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 			EdgeBase* edge = dynamic_cast<EdgeBase*>(geomObj);
 			Quadrilateral* quad = dynamic_cast<Quadrilateral*>(geomObj);
+			ConstrainingFace* cFace = dynamic_cast<ConstrainingFace*>(geomObj);
+			Face* face = dynamic_cast<Face*>(geomObj);
 			Hexahedron* hexaeder = dynamic_cast<Hexahedron*>(geomObj);
 
 			for(size_t fct = 0; fct < fineDoFDistr.num_fct(); fct++)
@@ -143,11 +145,11 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 				}
 
 			//  Check if father is Quad
-				if(quad != NULL)
+				if(quad != NULL || cFace != NULL)
 				{
 					for(int i = 0; i < 4; ++i)
 					{
-						VertexBase* v = quad->vertex(i);
+						VertexBase* v = face->vertex(i);
 
 					//  get global indices
 						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
