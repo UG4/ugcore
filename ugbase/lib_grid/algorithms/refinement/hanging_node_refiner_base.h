@@ -27,6 +27,17 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		void set_refinement_callback(IRefinementCallback* refCallback);
 		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
 
+	///	enables or disables node-dependency-order-1.
+	/**	\{
+	 * If enabled, hanging nodes may only depend on non-hanging nodes.
+	 * An edge containing a hanging node thus will not have a hanging-node
+	 * as a corner vertex.
+	 *
+	 * Enabled by default.*/
+		void enable_node_dependency_order_1(bool bEnable)	{m_nodeDependencyOrder1 = bEnable;}
+		bool node_dependency_order_1_enabled()				{return m_nodeDependencyOrder1;}
+	/**	\} */
+
 		virtual void clear_marks();
 
 	///	Marks a vertex for refinement.
@@ -185,6 +196,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	private:
 		Grid*		m_pGrid;
+		bool		m_nodeDependencyOrder1;
 };
 
 

@@ -13,7 +13,8 @@ namespace ug{
 HangingNodeRefinerBase::
 HangingNodeRefinerBase(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
-	m_pGrid(NULL)
+	m_pGrid(NULL),
+	m_nodeDependencyOrder1(true)
 {
 }
 
@@ -354,6 +355,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	vector<Volume*> vVols;
 
 //	queues will be used to avoid recursion during element selection
+	queue<HangingVertex*> qHVrts;//	only required if hanging-node-order-1 is enabled.
 	queue<EdgeBase*>	qEdges;
 	queue<Face*> 		qFaces;
 	queue<Volume*> 		qVols;
@@ -435,12 +437,62 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		}
 	}
 
+//	if a hanging node may only lie on an edge or a face with regular corner-vertices,
+//	then we have to push all hanging nodes to a queue in order to further refine
+//	constraining edges as required.
+	if(node_dependency_order_1_enabled()){
+	//	iterate over all marked edges
+		for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
+			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
+		{
+			for(size_t i = 0; i < 2; ++i){
+				if(HangingVertex::type_match((*iter)->vertex(i))){
+					qHVrts.push(static_cast<HangingVertex*>((*iter)->vertex(i)));
+				}
+			}
+		}
 
+	//	hanging nodes on faces can only occur, if volumes are present.
+		if(grid.num<Volume>() > 0){
+		//	iterate over all marked faces
+			for(FaceIterator iter = m_selMarkedElements.begin<Face>();
+				iter != m_selMarkedElements.end<Face>(); ++iter)
+			{
+				Face* f = *iter;
+				for(size_t i = 0; i < f->num_vertices(); ++i){
+					if(HangingVertex::type_match(f->vertex(i))){
+						qHVrts.push(static_cast<HangingVertex*>(f->vertex(i)));
+					}
+				}
+			}
+		}
+	}
 
 //	we'll now iterate over the queues and adjust the marks
 //	as long as at least one queue contains something, we'll continue looping.
-	while(!(qEdges.empty() && qFaces.empty() && qVols.empty()))
+	while(!(qHVrts.empty() && qEdges.empty() && qFaces.empty() && qVols.empty()))
 	{
+	////////////////////////////////
+	//	process vertices in qHVrts.
+	//	Note that qHVrts only contains elements if hangingNodeOrder1 is true.
+		while(!qHVrts.empty()){
+			HangingVertex* hv = qHVrts.front();
+			qHVrts.pop();
+
+		//	find unmarked parents of qHVrts.
+			GeometricObject* co = hv->get_parent();
+			if(co){
+				if(EdgeBase* e = dynamic_cast<EdgeBase*>(co)){
+					if(!is_marked(e))
+						qEdges.push(e);
+				}
+				else if(Face* f = dynamic_cast<Face*>(co)){
+					if(!is_marked(f))
+						qFaces.push(f);
+				}
+			}
+		}
+
 	////////////////////////////////
 	//	process edges in qEdges
 		while(!qEdges.empty()){
@@ -454,6 +506,16 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 
 		//	mark the edge
 			mark(e);
+
+		//	check whether hangingNodeOrder1 is enabled. If so, we have to check
+		//	for associated hanging vertices and push them to qHVrts.
+			if(node_dependency_order_1_enabled()){
+				for(size_t i = 0; i < 2; ++i){
+					if(HangingVertex::type_match(e->vertex(i))){
+						qHVrts.push(static_cast<HangingVertex*>(e->vertex(i)));
+					}
+				}
+			}
 
 		//	depending on the type of the edge, we have to perform different operations
 			if(ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e))
@@ -511,6 +573,16 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 
 		//	mark the face
 			mark(f);
+
+		//	check whether hangingNodeOrder1 is enabled. If so, we have to check
+		//	for associated hanging vertices and push them to qHVrts.
+			if(node_dependency_order_1_enabled()){
+				for(size_t i = 0; i < f->num_vertices(); ++i){
+					if(HangingVertex::type_match(f->vertex(i))){
+						qHVrts.push(static_cast<HangingVertex*>(f->vertex(i)));
+					}
+				}
+			}
 
 		//	we have to make sure that all associated edges are marked.
 			CollectEdges(vEdges, grid, f);
