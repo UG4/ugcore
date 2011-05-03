@@ -136,8 +136,22 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 				//	get constraining vertices
 				//	\todo: This is only valid for a surface grid!!!
-					for(size_t i=0; i < bigQuad->num_vertices(); ++i)
-						vConstrainingVrt.push_back(bigQuad->vertex(i));
+					for(size_t i_cf=0; i_cf < bigQuad->num_constrained_faces(); ++i_cf)
+					{
+						Face* face = bigQuad->constrained_face(i_cf);
+
+						VertexBase* vrt = NULL;
+						size_t i_vrt = 0;
+						for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
+						{
+							vrt = face->vertex(i_vrt);
+							if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
+								break;
+						}
+						if(i_vrt == face->num_vertices()) {UG_LOG("ERROR: Vertex not detected.\n"); return false;}
+
+						vConstrainingVrt.push_back(vrt);
+					}
 				}
 					break;
 				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
@@ -237,8 +251,25 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 				//	get constraining vertices
 				//	\todo: This is only valid for a surface grid!!!
-					for(size_t i=0; i < bigQuad->num_vertices(); ++i)
-						vConstrainingVrt.push_back(bigQuad->vertex(i));
+				//	since then the indices in shadowing vertex and shadow are
+				//	the same. In general, on a level, we will get the wrong
+				//	vertex from the coarser level
+					for(size_t i_cf=0; i_cf < bigQuad->num_constrained_faces(); ++i_cf)
+					{
+						Face* face = bigQuad->constrained_face(i_cf);
+
+						VertexBase* vrt = NULL;
+						size_t i_vrt = 0;
+						for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
+						{
+							vrt = face->vertex(i_vrt);
+							if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
+								break;
+						}
+						if(i_vrt == face->num_vertices()) {UG_LOG("ERROR: Vertex not detected.\n"); return false;}
+
+						vConstrainingVrt.push_back(vrt);
+					}
 				}
 					break;
 				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
