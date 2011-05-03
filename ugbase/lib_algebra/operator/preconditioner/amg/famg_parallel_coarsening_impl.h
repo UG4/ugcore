@@ -82,17 +82,17 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	{
 		stopwatch SW;
 		UG_DLOG(LIB_ALG_AMG, 1, "\nWaiting for processes "); if(bTiming) SW.start();
-		stdvector< stdvector<char> > coarseNodes;
-		coarseNodes.resize(processesWithLowerColor.size());
+		stdvector< stdvector<char> > states;
+		states.resize(processesWithLowerColor.size());
 
 		for(size_t i=0; i<processesWithLowerColor.size(); i++)
 		{
 			int pid = processesWithLowerColor[i];
 
 			size_t s = OLCoarseningReceiveLayout.interface(pid).size();
-			coarseNodes[i].resize(s, -1);
+			states[i].resize(s, -1);
 			UG_DLOG(LIB_ALG_AMG, 1, pid << ", awaiting  " << s << " bytes.");
-			communicator.receive_raw(pid, &coarseNodes[i][0], s);
+			communicator.receive_raw(pid, &states[i][0], s);
 		}
 		UG_DLOG(LIB_ALG_AMG, 1, "which have higher color to receive coarse nodes... ");
 		communicator.communicate();
@@ -106,39 +106,24 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 			int j=0;
 			IndexLayout::Interface &interface = OLCoarseningReceiveLayout.interface(pid);
-			IndexLayout::Interface &nextMasterInterface = nextLevelMasterLayout.interface(pid);
-			IndexLayout::Interface &nextSlaveInterface = nextLevelSlaveLayout.interface(pid);
 			for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				size_t index = interface.get_element(iter);
-				//UG_DLOG(LIB_ALG_AMG, 3, (int)coarseNodes[i][j] << " ");
-				UG_DLOG(LIB_ALG_AMG, 3, " " << index);
-				if(rating.is_master(index))
-					UG_DLOG(LIB_ALG_AMG, 3, " master");
 
-				if(coarseNodes[i][j++])
-				{
+				int state = states[i][j++];
+
+				if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING)
+					rating.external_set_uncalculated_fine(index);
+				else if(state == FAMG_COARSE_RATING)
 					rating.external_set_coarse(index);
-					int newIndex = rating.newIndex[index];
-					UG_ASSERT(newIndex != -1, "");
-
-					// add node to next Level Interface
-					if(rating.is_master(index))
-						nextMasterInterface.push_back(newIndex);
-					else if(rating.is_master_on(index, pid))
-						nextSlaveInterface.push_back(newIndex);
-
-					UG_DLOG(LIB_ALG_AMG, 3, " coarse ");
-				}
+				else if(state == 0.0)
+					; // nothing
 				else
 				{
-					// todo: das ist falsch, da macht der nacher coarse nodes draus, und das ist doof
-					// man mŸsste vielleicht hier direkt die interpolation ausrechnen. dann mŸsste man sie aber
-					// mitschicken?!? nochmal genau Ÿberlegen, wie die parallelisierung funktionieren soll
-					rating.set_uninterpolateable(index);
-					UG_DLOG(LIB_ALG_AMG, 3, " fine ");
+					UG_ASSERT(0, "state is " << state << "?");
 				}
-				UG_DLOG(LIB_ALG_AMG, 3, "\n");
+
+				UG_DLOG(LIB_ALG_AMG, 3, index << ": got state " << state << " now " << rating[index] << ", " << rating.OL_type(index) << "\n");
 			}
 		}
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
@@ -156,10 +141,6 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 /** sends coarsening data to processes with higher color
  * we send data to processes in processesWithHigherColor about which nodes we have set coarse.
  * for this, we use OLCoarseningSendLayout.
- * If i is in the OLCoarseningSendLayout to processor pid1,
- * and it is coarse, we have to add it to an interface for the next level.
- * that is: nextMasterLayout.interface(pid1) if i is master on this processor,
- * or nextSlaveLayout.interface(pid1) if i is slave on this processor
  */
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void
@@ -178,29 +159,15 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		BinaryStream s;
 
 		IndexLayout::Interface &interface = OLCoarseningSendLayout.interface(pid);
-		IndexLayout::Interface &nextMasterInterface = nextLevelMasterLayout.interface(pid);
-		IndexLayout::Interface &nextSlaveInterface = nextLevelSlaveLayout.interface(pid);
-
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t index = interface.get_element(iter);
-			char bCoarse = rating[index].is_coarse();
-			UG_DLOG(LIB_ALG_AMG, 3, index << (bCoarse ? " is coarse " : " is fine "));
-			Serialize(s, bCoarse);
-			if(rating.is_master(index))
-				UG_DLOG(LIB_ALG_AMG, 3, "master");
-			UG_DLOG(LIB_ALG_AMG, 3, "\n");
-			if(bCoarse)
-			{
-				int newIndex = rating.newIndex[index];
-				UG_ASSERT(newIndex != -1, "");
+			char state = rating[index].get_state();
+			UG_ASSERT(state <= 0 , "node " << index << " still has a valid rating");
 
-				// add node to next Level Interface
-				if(rating.is_master(index))
-					nextMasterInterface.push_back(newIndex);
-				else if(rating.is_master_on(index, pid))
-					nextSlaveInterface.push_back(newIndex);
-			}
+			Serialize(s, state);
+
+			UG_DLOG(LIB_ALG_AMG, 3, rating.info(index));
 		}
 
 		UG_DLOG(LIB_ALG_AMG, 1, "sending " << s.size() << " of data to pid " << pid << "\n");
@@ -214,16 +181,68 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 }
 
 
-// FAMGLevelCalculator::add_connections_between_slave_nodes
+
+// FAMGLevelCalculator::create_interface
 //---------------------------------------------------------------------------
-/** adds connections between slave nodes to OLCoarseningSendLayout/OLCoarseningReceiveLayout
- * in the pcl, there are only connections between master to slave, and not
- * between all slaves. we add those connections, so that we can send coarsening
- * data from one node to all processes which have this node (as master or as slave).
-  *
+/**
+ * this function copies the layout 'layout' to 'nextLevelLayout',
+ * but skips fine nodes (which have newIndex[i] == -1), and adds the coarse nodes
+ * with the new indices.
+ * called once with slave and with master, we have our next level layouts.
+ * \param layout
+ * \param nextLevelLayout
+ * \param newIndex
  */
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void
+FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
+	create_interface(IndexLayout &layout, IndexLayout &nextLevelLayout, stdvector<int> &newIndex)
+{
+	AMG_PROFILE_FUNC();
+	UG_DLOG(LIB_ALG_AMG, 4, "*** create_interface ***");
+	//PrintLayout(layout);
+	UG_DLOG(LIB_ALG_AMG, 4, "\n");
+	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	{
+		IndexLayout::Interface &interface = layout.interface(iter);
+		int pid = layout.proc_id(iter);
+		UG_DLOG(LIB_ALG_AMG, 4, "to processor " << pid << ": ");
+		IndexLayout::Interface &nextLevelinterface = nextLevelLayout.interface(pid);
+		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		{
+			size_t i = interface.get_element(iter2);
+			if(newIndex[i] != -1)
+			{
+				UG_DLOG(LIB_ALG_AMG, 4, i << "(new " << newIndex[i] << ")  ");
+				nextLevelinterface.push_back(newIndex[i]);
+			}
+		}
+		UG_DLOG(LIB_ALG_AMG, 4, "\n");
+	}
+
+	//UG_DLOG(LIB_ALG_AMG, 4, "total layout:\n");
+	//PrintLayout(nextLevelLayout);
+}
 
 
+/*
+template<typename matrix_type>
+bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
+		IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout, size_t overlapDepthMaster, size_t overlapDepthSlave, bool masterDirichletLast, bool slaveDirichletLast)
+{
+	std::vector<IndexLayout> vMasterLayouts;
+	std::vector<IndexLayout> vSlaveLayouts;
+	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
+
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts);
+	c.m_overlapDepthMaster = overlapDepthMaster;
+	c.m_overlapDepthSlave = overlapDepthSlave;
+	c.m_masterDirichletLast = masterDirichletLast;
+	c.m_slaveDirichletLast = slaveDirichletLast;
+	bool b = c.calculate();
+	newMat.set_layouts(newMasterLayout, newSlaveLayout);
+	return b;
+}*/
 
 // FAMGLevelCalculator::create_OL2_matrix
 //---------------------------------------------------------------------------
@@ -239,93 +258,89 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 	// 1. get the Overlap 2 matrix
 	//-------------------------------
-	UG_DLOG(LIB_ALG_AMG, 1, "\nGenerate Overlap 2..."); if(bTiming) SW.start();
 
-	/*{
-		UG_SET_DEBUG_LEVELS(4);
-		std::vector<IndexLayout> masterLayouts, slaveLayouts;
-		IndexLayout totalMasterLayout, totalSlaveLayout;
-		matrix_type mat;
-		GenerateOverlap2(A, mat, totalMasterLayout, totalSlaveLayout, masterLayouts, slaveLayouts, 1, 0, true, true);
-		std::vector<MathVector<3> > vec2(&m_famg.m_amghelper.positions[0], &m_famg.m_amghelper.positions[m_famg.m_amghelper.size]);
-		vec2.resize(A_OL2.num_rows());
-		// 2. get positions of newly created indices
-			//--------------------------------------------
-		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
-		pcl::ParallelCommunicator<IndexLayout> &communicator = mat.get_communicator();
-		communicator.send_data(totalMasterLayout, copyPol);
-		communicator.receive_data(totalSlaveLayout, copyPol);
-		communicator.communicate();
+	AMG_PROFILE_BEGIN(AMG_GenerateOverlap2)
 
-		// debug: write overlap 2 matrix as debug output
-		WriteMatrixToConnectionViewer(GetProcFilename("A_fullRow", ".mat").c_str(), mat, &vec2[0], 2);
-		UG_SET_DEBUG_LEVELS(0);
-	}*/
+	std::vector<IndexLayout> masterLayouts;
+	std::vector<IndexLayout> slaveLayouts;
+	//GenerateOverlap(A_OL1, A_OL2, OL2MasterLayout, OL2SlaveLayout, 1, 0, true, true);
+
+	AddLayout(OL2MasterLayout, A.get_master_layout());
+	AddLayout(OL2SlaveLayout, A.get_slave_layout());
+
+	GenerateOverlap(A, A_OL2, OL2MasterLayout, OL2SlaveLayout, masterLayouts, slaveLayouts, overlapSize, 2);
 
 
-	std::vector<IndexLayout> masterLayouts, slaveLayouts;
-	IndexLayout totalMasterLayout, totalSlaveLayout;
-	GenerateOverlap(A, A_OL2, totalMasterLayout, totalSlaveLayout, masterLayouts, slaveLayouts, 2);
+	// OL1
+	AddLayout(OL1MasterLayout, masterLayouts[0]);
+	AddLayout(OL1MasterLayout, masterLayouts[1]);
+	AddLayout(OL1SlaveLayout, slaveLayouts[0]);
+	AddLayout(OL1SlaveLayout, slaveLayouts[1]);
 
-	std::vector<MathVector<3> > vec2(&m_famg.m_amghelper.positions[0], &m_famg.m_amghelper.positions[m_famg.m_amghelper.size]);
+
+
+	/*UG_DLOG(LIB_ALG_AMG, 1, "\n\n\nOL1Layout:\n")
+	PrintLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout);
+
+	UG_DLOG(LIB_ALG_AMG, 1, "\n\n\nOL2Layout:\n")
+	PrintLayout(A_OL2.get_communicator(), OL2MasterLayout, OL2SlaveLayout);
+	*/
+	// 2. get famg helper positions
+	//-------------------------------
+	AMG_PROFILE_NEXT(AMG_get_famg_helper_pos)
+
+	std::vector<MathVector<3> > &vec2 = m_famg.m_amghelper.positions[level];
 	vec2.resize(A_OL2.num_rows());
-
-	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
-
-	// 2. get data on newly created indices
-	//--------------------------------------------
-	// use ONE communicate
-
-	UG_DLOG(LIB_ALG_AMG, 1, "\nGet data on Overlap 2 nodes..."); if(bTiming) SW.start();
 
 	ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-	communicator.send_data(totalMasterLayout, copyPol);
-	communicator.receive_data(totalSlaveLayout, copyPol);
+	communicator.send_data(OL2MasterLayout, copyPol);
+	communicator.receive_data(OL2SlaveLayout, copyPol);
 	communicator.communicate();
 
+
+	// 3. get testvectors on newly created indices
+	//--------------------------------------------
+	// todo: use ONE communicate
 	//std::vector<ComPol_VecCopy< Vector<double> > > vecCopyPol;
 	//vecCopyPol.resize(m_testvectors.size());
+
+	AMG_PROFILE_NEXT(AMG_get_testvecs_on_OL2);
+
 	for(size_t i=0; i<m_testvectors.size(); i++)
 	{
 		ComPol_VecCopy< Vector<double> > vecCopyPol;
 		m_testvectors[i].resize(A_OL2.num_rows());
 		vecCopyPol.set_vector(&m_testvectors[i]);
-		communicator.send_data(totalMasterLayout, vecCopyPol);
-		communicator.receive_data(totalSlaveLayout, vecCopyPol);
+		communicator.send_data(OL2MasterLayout, vecCopyPol);
+		communicator.receive_data(OL2SlaveLayout, vecCopyPol);
 		communicator.communicate();
 	}
 
 
 
-	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
-
 	// create OLCoarseningSendLayout, OLCoarseningReceiveLayout
 	//------------------------------------------------------------
+	AMG_PROFILE_NEXT(AMG_create_coarsening_layout);
 
 	// in the pcl, there are only connections between master to slave, and not
 	// between all slaves. we add those connections, so that we can send coarsening
 	// data from one node to all processes which have this node (as master or as slave).
 
-	// master -> master
-	AddLayout(OLCoarseningSendLayout, masterLayouts[0]);
-	AddLayout(OLCoarseningReceiveLayout, slaveLayouts[0]);
+	// master0 and slave0 nodes can be set coarse by anyone, so we need to send coarsening information
+	// master -> slave
+	AddLayout(OLCoarseningSendLayout, OL1MasterLayout);
+	AddLayout(OLCoarseningReceiveLayout, OL1SlaveLayout);
 
 	// slave -> master
-	AddLayout(OLCoarseningSendLayout, slaveLayouts[0]);
-	AddLayout(OLCoarseningReceiveLayout, masterLayouts[0]);
+	AddLayout(OLCoarseningSendLayout, OL1SlaveLayout);
+	AddLayout(OLCoarseningReceiveLayout, OL1MasterLayout);
 
-	AddConnectionsBetweenSlaves(A_OL2.get_communicator(), masterLayouts[0], slaveLayouts[0], OLCoarseningSendLayout, OLCoarseningReceiveLayout);
+	AddConnectionsBetweenSlaves(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
 
-
-	UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningLayout :\n")
+	//UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningLayout :\n")
 	//PrintLayout(A_OL2.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
 
-/*	UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningSendLayout :\n");
-	PrintLayout(OLCoarseningSendLayout);
-
-	UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningRecvLayout :\n");
-	PrintLayout(OLCoarseningSendLayout);*/
 
 	size_t N = A_OL2.num_rows();
 	rating.create(N);
@@ -346,20 +361,19 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		for(IndexLayout::iterator iter = slaveLayouts[i].begin(); iter != slaveLayouts[i].end(); ++iter)
 		{
 			IndexLayout::Interface &interface = slaveLayouts[i].interface(iter);
+			int pid = slaveLayouts[i].proc_id(iter);
 			for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			{
 				size_t index = interface.get_element(iter2);
 				rating.OLtype[index] |= (1 << (i+1));
 				if(i==0)
-					rating.m_masterOn[index] = slaveLayouts[i].proc_id(iter);
+					rating.m_masterOn[index] = pid;
 			}
 		}
 	}
 
-	//rating.print_OL_types();
 
-
-	PROFILE_BEGIN(create_OL2_matrix_debug_output)
+	AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
 
 	// debug: write overlap 2 matrix as debug output
 	if(m_famg.m_writeMatrices)
@@ -381,8 +395,36 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 			PrintLayout(masterLayouts[i]);
 		}
 	}
-	PROFILE_END();
 }
+
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void
+FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
+	calculate_uncalculated_fine_nodes()
+{
+	AMG_PROFILE_FUNC();
+	for(size_t i=0; i<A.num_rows(); i++)
+	{
+		if(rating[i].is_uncalculated_fine() == false || rating.i_must_assign(i) == false)
+			continue;
+		if(prolongation_calculated[i])
+		{
+			calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
+			prolongation_calculated[i] = true;
+			rating.update_rating(i, possible_parents[i]);
+		}
+
+		neighborstruct2 &n = possible_parents[i][0];
+
+		for(size_t j=0; j < n.parents.size(); j++)
+		{
+			size_t node = n.parents[j].from;
+			UG_ASSERT(rating[node].is_coarse(), "parent node " << rating.get_original_index(node) << " of node " << rating.get_original_index(i) << " has to be coarse");
+			PoldIndices(i, node) = n.parents[j].value;
+		}
+	}
+}
+
 
 }
 

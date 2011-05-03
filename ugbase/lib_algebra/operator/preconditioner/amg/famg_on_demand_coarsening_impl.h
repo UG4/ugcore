@@ -115,11 +115,14 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on_demand_coarsening()
 {
 	AMG_PROFILE_FUNC();
+
+	AMG_PROFILE_BEGIN(AMG_on_demand_Init)
 	size_t N = rating.size();
 
 	possible_parents.clear();
 	possible_parents.resize(A_OL2.num_rows());
 
+	// handle dirichlet boundaries
 	for(size_t j=0; j<N; j++)
 	{
 		if(rating[j].is_valid_rating() &&
@@ -127,9 +130,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 			rating.set_fine(j);
 	}
 
-	stdvector<bool> prolongation_calculated;
 	prolongation_calculated.resize(N, false);
 
+	// try to find a node which is "inside"
 	size_t i;
 	for(i=0; i<N; i++)
 	{
@@ -151,6 +154,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 
 
 
+	// set "visited" flags, so we do not update twice
 	stdvector<bool> bvisited;
 	bvisited.resize(N, false);
 	stdvector<size_t> neighborsToUpdate;
@@ -162,6 +166,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 	}
 
 
+
+	AMG_PROFILE_NEXT(AMG_on_demand_loop)
 
 	while(1)
 	{
@@ -202,7 +208,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 				rating.set_coarse(node);
 				AddUnmarkedNeighbors(SymmNeighGraph, node, bvisited, neighborsToUpdate);
 			}
-			P(i, rating.newIndex[node]) = n.parents[j].value;
+			PoldIndices(i, node) = n.parents[j].value;
 		}
 
 		IF_DEBUG(LIB_ALG_AMG,4) print_vector(neighborsToUpdate, "neighborsToUpdate");
@@ -219,6 +225,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 
 
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\nSearching for next node...\n");
+		AMG_PROFILE_BEGIN(AMG_Search_for_next_node)
 		if(heap.height() == 0)
 		{
 			// heap empty, we need to get another start node
@@ -284,8 +291,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 
 	for(size_t i=0; i<N; i++)
 	{
-		if(rating[i].rating == 0.0)
-			rating.set_uninterpolateable(i);
+		UG_ASSERT(rating.i_must_assign(i) == false || rating[i].rating != 0.0, i);
 	}
 
 	UG_DLOG(LIB_ALG_AMG, 2, "\nDone!\n");

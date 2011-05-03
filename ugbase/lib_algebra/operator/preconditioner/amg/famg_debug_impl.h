@@ -23,13 +23,22 @@ namespace ug
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::write_debug_matrices()
 {
+	//------------------------------------
+	if(m_famg.m_amghelper.positions[level].size() > 0)
+	{
+		m_famg.m_amghelper.positions.resize(level+2);
+		m_famg.m_amghelper.positions[level+1].resize(AH.num_rows());
+		for(size_t i=0; i < AH.num_rows(); i++)
+			m_famg.m_amghelper.positions[level+1][i] = m_famg.m_amghelper.positions[level][m_famg.m_parentIndex[level+1][i]];
+	}
+
 	if(m_famg.m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
 		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 1, "write matrices");
 
 		write_debug_matrix(A, level, level, "AMG_A");			UG_DLOG(LIB_ALG_AMG, 1, ".");
-		write_debug_matrix(P, level+1, level, "AMG_P");			UG_DLOG(LIB_ALG_AMG, 1, ".");
+		write_debug_matrix(PoldIndices, level, level, "AMG_P");			UG_DLOG(LIB_ALG_AMG, 1, ".");
 		write_debug_matrix(R, level, level+1, "AMG_R");			UG_DLOG(LIB_ALG_AMG, 1, ".");
 
 		AMGWriteToFile(AH, level+1, level+1, GetProcFilename(m_famg.m_writeMatrixPath,

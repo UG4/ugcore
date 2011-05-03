@@ -80,7 +80,7 @@ void amg<Matrix_type, Vector_type>::printCoarsening(int level, AMGNodes &nodes)
 	/////////////
 	
 	fstream file((string("/Users/mrupp/matrices/coarsening") + ToString(level) + ".mat").c_str(), ios::out);
-	writePosToStream(file);
+	WritePositionsToStream(file, h.positions, h.dimension);
 	file << 0 << endl;
 	for(int i=0; i < n; i++)
 	{
@@ -287,13 +287,15 @@ void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const 
 	std::fstream file(filename, std::ios::out);
 	file << 1 << std::endl; // connection viewer version
 
-	h.writePosToStream(file);
+	int minlevel = std::min(fromlevel, tolevel);
+	WritePositionsToStream(file, h.positions[minlevel], h.dimension);
+
 	file << 1 << std::endl;
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		for(typename SparseMatrix<T>::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
-				file << h.GetOriginalIndex(tolevel, i) << " " << h.GetOriginalIndex(fromlevel, conn.index()) << " " << conn.value() << std::endl;
+				file << h.GetOriginalIndex(tolevel, minlevel, i) << " " << h.GetOriginalIndex(fromlevel, minlevel, conn.index()) << " " << conn.value() << std::endl;
 	}
 }
 
@@ -312,11 +314,11 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 
 	postscript ps;
 	ps.create(filename);
-
+	int minlevel = std::min(fromlevel, tolevel);
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
-		int from = h.GetOriginalIndex(tolevel, i);
-		ps.move_to(h.positions[from].x, h.positions[from].y);
+		int from = h.GetOriginalIndex(tolevel, minlevel, i);
+		ps.move_to(h.positions[minlevel][from].x, h.positions[minlevel][from].y);
 		ps.print_text( std::string("0") + ToString(i));
 
 		for(typename SparseMatrix<T>::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
@@ -325,9 +327,9 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 			{
 				if(conn.index() != i)
 				{
-					int to = h.GetOriginalIndex(fromlevel, conn.index());
-					ps.move_to(h.positions[from].x, h.positions[from].y);
-					ps.line_to(h.positions[to].x, h.positions[to].y);
+					int to = h.GetOriginalIndex(fromlevel, minlevel, conn.index());
+					ps.move_to(h.positions[minlevel][from].x, h.positions[minlevel][from].y);
+					ps.line_to(h.positions[minlevel][to].x, h.positions[minlevel][to].y);
 
 				}
 			}
@@ -350,12 +352,12 @@ inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_help
 	std::fstream file(filename, std::ios::out);
 	file << /*CONNECTION_VIEWER_VERSION*/ 1 << std::endl;
 
-	h.writePosToStream(file);
+	WritePositionsToStream(file, h.positions[level], h.dimension);
 	file << 1 << std::endl;
 	for(size_t i=0; i < G.size(); i++)
 	{
 		for(cgraph::const_row_iterator it = G.begin_row(i); it != G.end_row(i); ++it)
-			file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, (*it)) << "  " << std::endl;
+			file << i << " " << (*it) << "  " << std::endl;
 	}
 }
 }

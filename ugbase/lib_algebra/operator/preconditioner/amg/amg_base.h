@@ -94,6 +94,8 @@ protected:
 		return get_correction(c, d);
 	}
 
+	void create_direct_solver(size_t level);
+
 public:
 	bool get_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
@@ -254,6 +256,11 @@ protected:
 
 	IPositionProvider<2> *m_pPositionProvider2d;
 	IPositionProvider<3> *m_pPositionProvider3d;
+
+#ifdef UG_PARALLEL
+	matrix_type collectedBaseA;
+	IndexLayout masterColl, slaveColl;
+#endif
 
 public:
 	//! \return c_A = total nnz of all matrices divided by nnz of matrix A

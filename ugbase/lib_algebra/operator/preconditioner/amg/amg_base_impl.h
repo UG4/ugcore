@@ -17,6 +17,8 @@
 #include "stopwatch.h"
 #include "amg_debug.h"
 
+#include "collect_matrix.h"
+
 namespace ug{
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,8 +100,10 @@ bool amg_base<TAlgebra>::init()
 	if(m_writeMatrices)
 	{
 		if(m_dbgPositions.size() > 0)
-			m_amghelper.positions = &m_dbgPositions[0];
-		m_amghelper.size = m_A[0]->num_rows();
+		{
+			m_amghelper.positions.resize(1);
+			m_amghelper.positions[0] = m_dbgPositions;
+		}
 		m_amghelper.parentIndex = &m_parentIndex;
 		m_amghelper.dimension = m_dbgDimension;
 	}
@@ -200,21 +204,9 @@ bool amg_base<TAlgebra>::init()
 		create_level_vectors(level);
 	}
 
-	UG_ASSERT(block_traits< typename vector_type::value_type >::is_static, "dynamic not yet implemented");
-
-	size_t static_nrUnknowns = block_traits< typename vector_type::value_type >::static_size;
-	UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << " (" << m_A[level]->num_rows() << " nodes, total "
-			<< m_A[level]->num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
-			<< m_A[level]->num_rows()*static_nrUnknowns << "x" << m_A[level]->num_rows()*static_nrUnknowns << ". ");
-	(void) static_nrUnknowns;
-	stopwatch SW; SW.start();
-
-	m_SMO.resize(level+1);
-	m_SMO[level].setmatrix(m_A[level]);
-	m_basesolver->init(m_SMO[level]);
-
-	m_dTimingCoarseSolverSetupMS = SW.ms();
-	UG_DLOG(LIB_ALG_AMG, 1, "Coarse Solver Setup took " << m_dTimingCoarseSolverSetupMS << "ms." << std::endl);
+	AMG_PROFILE_BEGIN(amg_createDirectSolver);
+	create_direct_solver(level);
+	AMG_PROFILE_END();
 
 	m_usedLevels = level+1;
 	UG_LOG("AMG Setup finished. Used Levels: " << m_usedLevels << ". ");
@@ -240,6 +232,46 @@ bool amg_base<TAlgebra>::init()
 	return true;
 }
 
+template<typename TAlgebra>
+void amg_base<TAlgebra>::create_direct_solver(size_t level)
+{
+	UG_ASSERT(block_traits< typename vector_type::value_type >::is_static, "dynamic not yet implemented");
+
+	size_t static_nrUnknowns = block_traits< typename vector_type::value_type >::static_size;
+	UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << " (" << m_A[level]->num_rows() << " nodes, total "
+			<< m_A[level]->num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
+			<< m_A[level]->num_rows()*static_nrUnknowns << "x" << m_A[level]->num_rows()*static_nrUnknowns << ". ");
+	(void) static_nrUnknowns;
+	stopwatch SW; SW.start();
+
+	m_SMO.resize(level+1);
+#ifdef UG_PARALLEL
+	// create basesolver
+	collect_matrix(*(m_A[level]), collectedBaseA, masterColl, slaveColl);
+
+	std::vector<MathVector<3> > vec = m_amghelper.positions[level];
+	vec.resize(collectedBaseA.num_rows());
+	ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
+	pcl::ParallelCommunicator<IndexLayout> &communicator = m_A[level]->get_communicator();
+	communicator.send_data(slaveColl, copyPol);
+	communicator.receive_data(masterColl, copyPol);
+	communicator.communicate();
+	std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
+	WriteMatrixToConnectionViewer(name.c_str(), collectedBaseA, &vec[0], m_amghelper.dimension);
+
+	if(pcl::GetProcRank() == 0)
+	{
+		m_SMO[level].setmatrix(&collectedBaseA);
+		m_basesolver->init(m_SMO[level]);
+	}
+#else
+	m_SMO[level].setmatrix(m_A[level]);
+	m_basesolver->init(m_SMO[level]);
+#endif
+
+	m_dTimingCoarseSolverSetupMS = SW.ms();
+	UG_DLOG(LIB_ALG_AMG, 1, "Coarse Solver Setup took " << m_dTimingCoarseSolverSetupMS << "ms." << std::endl);
+}
 
 //!
 //! amg constructor
@@ -343,7 +375,99 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 	c.set(0.0);
 	if(level == m_usedLevels-1)
 	{
+#ifdef UG_PARALLEL
+		vector_type collC;
+		vector_type collD;
+		if(pcl::GetProcRank() == 0)
+		{
+			size_t N = collectedBaseA.num_rows();
+			collC.resize(N);
+			collC.set(0.0);
+
+			collD = d;
+			collD.resize(N);
+			for(size_t i=Ah.num_rows(); i<N; i++)
+				collD[i] = 0.0;
+
+#if PRINT_VECTORS
+			UG_LOG("\n\ncollD:\n");
+			collD.p();
+			UG_LOG("\n\ncollC:\n");
+			collC.p();
+#endif
+		}
+
+#if PRINT_VECTORS
+		UG_LOG("\n\nc:\n");
+		c.p();
+		UG_LOG("\n\nd:\n");
+		d.p();
+#endif
+
+		// send d -> collD
+		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
+		pcl::ParallelCommunicator<IndexLayout> &com = m_A[level]->get_communicator();
+		com.send_data(slaveColl, compolAdd);
+		com.receive_data(masterColl, compolAdd);
+		com.communicate();
+
+		if(pcl::GetProcRank() == 0)
+		{
+#if PRINT_VECTORS
+			UG_LOG("\n\ncollD after collecting:\n");
+			collD.p();
+			UG_LOG("\n\ncollC after collecting:\n");
+#endif		collC.p();
+
+			m_basesolver->apply_return_defect(collC, collD);
+
+#if PRINT_VECTORS
+			UG_LOG("\n\ncollD: after calculation\n");
+			collD.p();
+			UG_LOG("\n\ncollC: after calculation\n");
+			collC.p();
+#endif
+		}
+
+		// send c -> collC
+		ComPol_VecCopy<vector_type> compolCopy(&c, &collC);
+		com.send_data(masterColl, compolCopy);
+		com.receive_data(slaveColl, compolCopy);
+		com.communicate();
+
+		if(pcl::GetProcRank() == 0)
+		{
+			for(size_t i=0; i<Ah.num_rows(); i++)
+				d[i] = collD[i];
+			for(size_t i=0; i<Ah.num_rows(); i++)
+				c[i] = collC[i];
+
+#if PRINT_VECTORS
+			UG_LOG("\n\nc:\n");
+			c.p();
+			UG_LOG("\n\nd:\n");
+			d.p();
+#endif
+		}
+		else
+		{
+#if PRINT_VECTORS
+			UG_LOG("\n\nc:\n");
+			c.p();
+			UG_LOG("\n\nd:\n");
+			d.p();
+#endif
+			Ah.matmul_minus(d, c);
+#if PRINT_VECTORS
+			UG_LOG("\n\nd: after corr\n");
+			d.p();
+#endif
+		}
+		d.set(0.0);
+
+#else
 		m_basesolver->apply_return_defect(c, d);
+#endif
 		return true;
 	}
 

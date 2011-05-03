@@ -8,17 +8,18 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
-
 #ifndef __H__LIB_DISCRETIZATION__FAMG_SOLVER__FAMG_NODEINFO_H__
 #define __H__LIB_DISCRETIZATION__FAMG_SOLVER__FAMG_NODEINFO_H__
 
 namespace ug {
 
 //  structs
-#define FAMG_UNINTERPOLATEABLE	(-1001)
-#define FAMG_FINE_RATING		(-1002)
-#define FAMG_COARSE_RATING		(-1003)
-#define FAMG_DIRICHLET_RATING	(-1003)
+#define FAMG_UNINTERPOLATEABLE			(-11)
+#define FAMG_FINE_RATING				(-12)
+#define FAMG_COARSE_RATING				(-13)
+#define FAMG_DIRICHLET_RATING			(-13)
+// those are border-nodes which are fine on another processor. we need to calculate ratings for them
+#define FAMG_UNCALCULATED_FINE_RATING	(-14)
 
 
 class FAMGNode
@@ -31,15 +32,14 @@ private:
 	inline void set_uninterpolateable()
 	{	rating = FAMG_UNINTERPOLATEABLE;	}
 	inline void set_dirichlet() { rating = FAMG_DIRICHLET_RATING; }
-
+	inline void set_uncalculated_fine() { rating = FAMG_UNCALCULATED_FINE_RATING; }
 
 public:
 	FAMGNode() { rating = 0.0; }
 	double rating;
-	//int newIndex;		
-
 	
-	inline bool is_fine() const { return rating == FAMG_FINE_RATING; }
+	inline bool is_fine() const { return rating == FAMG_FINE_RATING || rating == FAMG_UNCALCULATED_FINE_RATING; }
+	inline bool is_uncalculated_fine() const { return rating == FAMG_UNCALCULATED_FINE_RATING; }
 	inline bool is_coarse() const { return rating == FAMG_COARSE_RATING; }
 	inline bool is_uninterpolateable() const { return rating == FAMG_UNINTERPOLATEABLE; }
 	inline bool is_dirichlet() const { return rating == FAMG_DIRICHLET_RATING; }
@@ -60,6 +60,12 @@ public:
 			return rating < other.rating;
 	}
 
+	inline char get_state() const
+	{
+		UG_ASSERT(rating <= 0 && rating == floor(rating), "rating is " << rating << ", but needs to be <= 0 and integer");
+		return (char) rating;
+	}
+
 	inline double get_val() const
 	{
 		UG_ASSERT(rating >= 0 && rating < 1000, "rating is " << rating << ", out of bounds [0, 1000]");
@@ -69,9 +75,11 @@ public:
 	friend std::ostream &operator << (std::ostream &out, const FAMGNode &n)
 	{
 		out << "Rating: " << n.rating;
-		if(n.is_fine()) out << " (fine)";
+		if(n.rating == FAMG_FINE_RATING) out << " (fine)";
 		else if(n.is_coarse()) out << " (coarse)";
-		if(n.is_uninterpolateable()) out << " (uninterpolateable)";
+		else if(n.rating == FAMG_UNCALCULATED_FINE_RATING) out << " (fine u)";
+		else if(n.rating == 0.0) out << "(unassigned)";
+		else if(n.is_uninterpolateable()) out << " (uninterpolateable)";
 		return out;
 	}
 };
@@ -91,7 +99,6 @@ public:
 	{
 		m_iNrOfCoarse = 0;
 		nodes.clear(); 		nodes.resize(size);
-		newIndex.clear(); 	newIndex.resize(size, -1);
 #ifdef UG_PARALLEL
 		OLtype.clear();		OLtype.resize(size, 0);
 #endif
@@ -132,6 +139,11 @@ public:
 	template<typename neighborstruct>
 	bool update_rating(size_t node, stdvector<neighborstruct> &PN)
 	{
+		if(i_must_assign(node) == false)
+		{
+			return false;
+		}
+
 		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 2, " update rating of node " << node << "... ");
 		if(nodes[node].is_valid_rating() == false)
@@ -234,23 +246,34 @@ public:
 			((i_must_assign(i) || is_slave(i, 0)) && nodes[i].could_be_coarse());  // or i can set coarse
 	}
 
-	void print_OL_types() const
+	std::string OL_type(size_t i) const
 	{
-		for(size_t i=0; i<size(); i++)
+		if(is_inner_node(i))
+			return "inner ";
+		else
 		{
-			UG_LOG("Index " << i << ": ");
-			if(is_inner_node(i))
-				UG_LOG("inner")
-			else
-			{
-				UG_LOG("non-inner ");
-				if(is_master(i))
-					UG_LOG("master ")
-				for(size_t j=0; j<5; j++)
-					if(is_slave(i, j)) UG_LOG("slave" << j << " ");
-			}
-			UG_LOG("\n");
+			std::stringstream  ss;
+			if(is_master(i))
+				ss << "master ";
+			for(size_t j=0; j<5; j++)
+				if(is_slave(i, j)) ss << "slave" << j << " ";
+			return ss.str();
 		}
+	}
+
+	std::string info(size_t i)
+	{
+		std::stringstream ss;
+		ss << "Index " << i << ": " << nodes[i] << ", " << OL_type(i);
+		return ss.str();
+	}
+
+	void print()
+	{
+		UG_LOG("\n");
+		for(size_t i=0; i<size(); i++)
+			UG_LOG(info(i) << "\n");
+		UG_LOG("\n");
 	}
 
 	void calculate_unassigned()
@@ -310,17 +333,23 @@ public:
 		nodes[index].set_fine();
 	}
 
+	void external_set_uncalculated_fine(size_t index)
+	{
+		UG_ASSERT(!is_inner_node(index), "node " << index << " can not be set uncalculated_fine, since it is an inner node");
+		nodes[index].set_uncalculated_fine();
+		m_iUnassigned--;
+	}
+
 	void external_set_coarse(size_t index)
 	{
-		UG_ASSERT(i_can_set_coarse(index), "Index " << index << " can not be coarse.\n");
 		if(nodes[index].is_coarse() == false)
 		{
 			nodes[index].set_coarse();
 
-			m_iUnassigned--;
-			// todo: perhaps we should not do this here
-			newIndex[index] = m_iNrOfCoarse++;
-			P(index, newIndex[index]) = 1.0;
+			if(i_must_assign(index))
+				m_iUnassigned--;
+			m_iNrOfCoarse++;
+			P(index, index) = 1.0;
 		}
 	}
 
@@ -355,7 +384,6 @@ public:
 
 //private:
 public:
-	stdvector<int> newIndex;
 	stdvector<FAMGNode> nodes; // !!! this HAS to be a consecutive array, because it is used in the heap
 
 private:
@@ -376,7 +404,7 @@ void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvec
 	{
 		size_t neigh = (*conn);
 		UG_ASSERT(node != neigh, "");
-		if(!nodes[neigh].is_valid_rating())
+		if(!nodes[neigh].is_valid_rating() || !nodes.i_must_assign(neigh))
 			continue;
 
 		if(nodes.update_rating(neigh, possible_neighbors[neigh]))
@@ -403,7 +431,7 @@ void GetRatings(stdvector<stdvector<neighborstruct> > &possible_neighbors,
 	for(size_t i=0; i<nodes.size(); i++)
 	{
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << nodes.get_original_index(i) << ": ");
-		if(nodes[i].rating == 0)
+		if(nodes.i_must_assign(i) && nodes[i].is_valid_rating())
 		{
 			nodes.update_rating(i, possible_neighbors[i]);
 			if(nodes[i].is_valid_rating())

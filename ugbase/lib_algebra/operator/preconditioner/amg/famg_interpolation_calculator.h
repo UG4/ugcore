@@ -142,11 +142,11 @@ public:
 		const double &aii = A_OL2(i,i);
 		for(size_t n=0; n < onlyN1.size(); n++)
 		{
-			if(!rating.i_can_set_coarse(onlyN1[n]) || A.is_isolated(onlyN1[n]))
+			if(!rating.i_can_set_coarse(onlyN1[n])) // || A.is_isolated(onlyN1[n]))
 				continue;
 			for(size_t m=n+1; m < onlyN1.size(); m++)
 			{
-				if(!rating.i_can_set_coarse(onlyN1[m]) || A.is_isolated(onlyN1[m]))
+				if(!rating.i_can_set_coarse(onlyN1[m])) // || A.is_isolated(onlyN1[m]))
 					continue;
 				// set KKT matrix
 				/*
@@ -240,6 +240,7 @@ public:
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, std::endl << rating.get_original_index(i) << ": UNINTERPOLATEABLE" << std::endl);
 			//UG_ASSERT(0, "node has no parents :'-(");
+			UG_ASSERT(rating.i_must_assign(i), i);
 			rating.set_uninterpolateable(i);
 		}
 	}
@@ -292,7 +293,7 @@ public:
 					rating.set_coarse(i);
 				else
 				{
-					P(i, rating.newIndex[onlyN1[coarse_neighbors[0]]]) = 1.0;
+					P(i, onlyN1[coarse_neighbors[0]]) = 1.0;
 					rating.set_fine(i);
 				}
 				return;
@@ -343,7 +344,7 @@ public:
 						int jj = coarse_neighbors[j];
 						size_t node = onlyN1[jj];
 						UG_LOG(node << ": " << q[jj] << ", ");
-						P(i, rating.newIndex[node]) = -q[jj];
+						P(i, node) = -q[jj];
 					}
 					rating.set_fine(i);
 				}
@@ -357,27 +358,35 @@ public:
 		}
 		else
 		{
-			vKKT.resize(onlyN1.size()+1, onlyN1.size()+1);
-			for(size_t r=0; r<onlyN1.size(); r++)
-				for(size_t c=0; c<onlyN1.size(); c++)
-					vKKT(r, c) = H(r,c);
+			std::vector<size_t> innerNodes;
+			for(size_t j=0; j<onlyN1.size(); j++)
+				if(rating.is_inner_node(onlyN1[j]) || rating.is_master(onlyN1[j]))
+					innerNodes.push_back(j);
+			size_t N = innerNodes.size();
+			vKKT.resize(N+1, N+1);
+			for(size_t r=0; r<N; r++)
+				for(size_t c=0; c<N; c++)
+					vKKT(r, c) = H(innerNodes[r], innerNodes[c]);
+
+			for(size_t j=0; j < N; j++)
+				vKKT(j, N) = vKKT(N, j) = localTestvector[0][innerNodes[j]];
+
 
 			 /*  KKT = 	( H     t ) ( q_i,nm )    ( -H e_i )
 			  *			( t^T   0 ) ( lambda )  = ( t[i]  ) */
 
-			for(size_t j=0; j < onlyN1.size(); j++)
-				vKKT(j, i_index) = vKKT(i_index, j) = localTestvector[0][j];
-			vKKT(i_index, i_index) = 0;
 
-			rhs.resize(onlyN1.size()+1);
-			for(size_t j=0; j < onlyN1.size(); j++)
-				rhs[j] = -H(i_index, j);
-			rhs[i_index] = -localTestvector[0][i_index];
+			vKKT(N, N) = 0;
+
+			rhs.resize(N+1);
+			for(size_t j=0; j < N; j++)
+				rhs[j] = -H(i_index, innerNodes[j]);
+			rhs[N] = -localTestvector[0][i_index];
 
 			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
 			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
-			q.resize(onlyN1.size()+1);
+			q.resize(N+1);
 			if(InverseMatMult(q, 1.0, vKKT, rhs))
 			{
 				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
@@ -394,18 +403,14 @@ public:
 				}
 				else
 				{
-					/*UG_LOG("fine neighbors, Interpolating from ");
-					for(size_t j=0; j<onlyN1.size(); j++)
-						UG_LOG(onlyN1[j] << ": " << q[j] << ", ");
-					UG_LOG("\n");*/
-					for(size_t j=0; j<onlyN1.size(); j++)
+					for(size_t j=0; j<N; j++)
 					{
-						size_t node = onlyN1[j];
+						int jj = innerNodes[j];
+						size_t node = onlyN1[jj];
 						for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
 							P(i, it.index()) += -q[j] * it.value();
 					}
 					rating.set_fine(i);
-
 				}
 			}
 			else
@@ -435,6 +440,7 @@ private:
 		// GetNeighborhoodHierachy(A, i, neighbors, bvisited);
 
 		// 1. Get Neighborhood N1 and N2 of i.
+		AMG_PROFILE_BEGIN(AMG_H_GetNeighborhood);
 		bvisited.resize(A_OL2.num_rows(), false);
 
 		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
@@ -462,6 +468,7 @@ private:
 		}
 
 		// 2. get submatrix in A_OL2 on N2
+		AMG_PROFILE_NEXT(AMG_H_GetLocalMatrix);
 
 		S.resize(N2.size(), N2.size());
 		S = 0.0;
@@ -471,6 +478,7 @@ private:
 		//IF_DEBUG(LIB_ALG_AMG, 3)
 		//S.maple_print("\nsubA");
 
+		AMG_PROFILE_END();
 		// 3. calculate H from submatrix A
 		calculate_H_from_local_A();
 
@@ -501,6 +509,7 @@ private:
 			GetInverse(Dinv[j], S(j,j));
 
 		// get SF = 1-wDF^{-1} A  (F-smoothing)
+		AMG_PROFILE_BEGIN(AMG_HA_calculate_SF);
 		SF.resize(N);
 		double diaginv = m_damping/S(i_index, i_index);
 		for(size_t j=0; j < N; j++)
@@ -522,6 +531,7 @@ private:
 		IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("Sjac");
 
 		// get S = SF S
+		AMG_PROFILE_NEXT(AMG_HA_calculate_SFS);
 		// (possible without temporary since SF is mostly Id,
 		//  and then SF S is addition of rows of S)
 		// r<N1size, c<N1size
@@ -550,6 +560,7 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 3)	S.maple_print("S_SF");
 
+		AMG_PROFILE_NEXT(AMG_HA_calculate_H);
 		H.resize(onlyN1.size()+1, onlyN1.size()+1);
 		// get H = S Y S^T
 		// todo: use symmetric H.
