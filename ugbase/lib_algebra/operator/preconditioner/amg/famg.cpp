@@ -593,10 +593,10 @@ private:
 	void communicate_prolongation(); // in famg_communicate_prolongation.h
 	void calculate_uncalculated_fine_nodes();
 	void create_interface(IndexLayout &layout, IndexLayout &nextLevelLayout, stdvector<int> &newIndex);
-#endif
-
 	IndexLayout OL1MasterLayout, OL1SlaveLayout;
 	IndexLayout OL2MasterLayout, OL2SlaveLayout;
+#endif
+
 
 	std::vector<size_t> overlapSize;
 };
