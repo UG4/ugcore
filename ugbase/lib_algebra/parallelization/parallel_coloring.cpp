@@ -41,7 +41,7 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 
 	int myPID = pcl::GetProcRank();
 
-#ifdef UG_ENABLE_DEBUG_LOGS
+/*#ifdef UG_ENABLE_DEBUG_LOGS
 	IF_DEBUG(LIB_ALG_MATRIX, 2)
 	{
 		UG_DLOG(LIB_ALG_AMG, 2, "process " <<  myPID << " here. I have degree " << myDegree << ".\n");
@@ -51,7 +51,7 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 			UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid << " has degree " << othersDegree[pid] << ".\n");
 		}
 	}
-#endif
+#endif*/
 
 	stdvector<int> colors(myDegree, -1);
 
@@ -82,11 +82,11 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 	// 3. communicate & get a free color (only if actually got color from neighbors)
 	if(processesWithHigherWeight.size() > 0)
 	{
-		UG_DLOG(LIB_ALG_AMG, 2, "communicate...");
+		//UG_DLOG(LIB_ALG_AMG, 2, "communicate...");
 		com.communicate();
-		UG_DLOG(LIB_ALG_AMG, 2, "done.\n");
+		//UG_DLOG(LIB_ALG_AMG, 2, "done.\n");
 
-#ifdef UG_ENABLE_DEBUG_LOGS
+/*#ifdef UG_ENABLE_DEBUG_LOGS
 		IF_DEBUG(LIB_ALG_MATRIX, 2)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "received colors from " << processesWithHigherWeight.size() << " processes!\n");
@@ -98,7 +98,7 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 				UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid2 << " has color " << colors[i] << ".\n");
 			}
 		}
-#endif
+#endif*/
 
 		// determine the smallest unused color for me
 		sort(colors.begin(), colors.end());
@@ -117,11 +117,11 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 			myColor++;			// introduce new color
 	}
 
-	UG_DLOG(LIB_ALG_AMG, 2, "GOT COLOR! My color is " << myColor << "\n");
+	//UG_DLOG(LIB_ALG_AMG, 2, "GOT COLOR! My color is " << myColor << "\n");
 
 	// 4. send color to all neighbors
 
-	UG_LOG("send color to all neighbors\n");
+	//UG_DLOG(LIB_ALG_AMG, 2, "send color to all neighbors\n");
 	for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
 	{
 		int pid2 = *iter;
@@ -152,7 +152,7 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 	// issue a color request from processors with lower rank
 	if(processesWithLowerWeight.size() > 0)
 	{
-		UG_LOG("issue a color request from processors with lower rank\n");
+		//UG_LOG("issue a color request from processors with lower rank\n");
 		colors.resize(processesWithLowerWeight.size(), -1);
 		for(size_t i=0; i<processesWithLowerWeight.size(); i++)
 		{
@@ -161,9 +161,9 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 			com.receive_raw(pid2, &colors[i], sizeof(int));
 		}
 
-		UG_DLOG(LIB_ALG_AMG, 2, "communicate...");
+		//UG_DLOG(LIB_ALG_AMG, 2, "communicate...");
 		com.communicate();
-		UG_DLOG(LIB_ALG_AMG, 2, "done.\n");
+		//UG_DLOG(LIB_ALG_AMG, 2, "done.\n");
 
 		if(p_colors || p_processesWithLowerColor || p_processesWithHigherColor)
 		{
@@ -180,7 +180,7 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 		}
 	}
 
-	UG_DLOG(LIB_ALG_AMG, 2, "coloring done.\n");
+	//UG_DLOG(LIB_ALG_AMG, 2, "coloring done.\n");
 	return myColor;
 }
 
