@@ -268,13 +268,7 @@ public:
 		return ss.str();
 	}
 
-	void print()
-	{
-		UG_LOG("\n");
-		for(size_t i=0; i<size(); i++)
-			UG_LOG(info(i) << "\n");
-		UG_LOG("\n");
-	}
+
 
 	void calculate_unassigned()
 	{
@@ -290,6 +284,13 @@ public:
 	std::map<size_t, int> m_masterOn;
 #else
 public:
+	std::string info(size_t i)
+	{
+		std::stringstream ss;
+		ss << "Index " << i << ": " << nodes[i];
+		return ss.str();
+	}
+
 	bool is_inner_node(size_t i)
 	{
 		return true;
@@ -324,7 +325,13 @@ public:
 		m_iUnassigned = size();
 	}
 #endif
-
+	void print()
+	{
+		UG_LOG("\n");
+		for(size_t i=0; i<size(); i++)
+			UG_LOG(info(i) << "\n");
+		UG_LOG("\n");
+	}
 	void set_fine(size_t index)
 	{
 		UG_ASSERT(nodes[index].is_coarse() == false, "try to set node " << index << " fine, but is coarse???");
