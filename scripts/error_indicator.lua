@@ -23,7 +23,9 @@ if dim == 2 then
 --	gridName = "unit_square_tri_8x8.ugx"
 	gridName = "unit_square_01/unit_square_01_quads_8x8.ugx"
 elseif dim == 3 then
-	gridName = "open_cube_hex.ugx"
+	gridName = "unit_cube_hex.ugx"
+	gridName = "unit_square_01/unit_cube_01_hex_4x4x4.ugx"
+--	gridName = "unit_square_01/unit_cube_01_tets.ugx"
 else
 	print("Dimension " .. dim .. " not supported. Aborting.")
 	exit()
@@ -67,7 +69,7 @@ end
 function ourSource3d(x, y, z, t)
 	local r = math.sqrt(x*x + y*y + z*z)
 	return	-400 * (1 + math.exp(-200 * r + 160) - 100 * r + 100 * math.exp(-200*r+160)*r)
-				 * math.exp(-200*r+160) * math.pow(1 + exp(-200 * r + 160), -3) * math.pow(r, -1);
+				 * math.exp(-200*r+160) * math.pow(1 + math.exp(-200 * r + 160), -3) * math.pow(r, -1);
 
 end
 
@@ -256,7 +258,7 @@ cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(gmg)
+bicgstabSolver:set_preconditioner(amg)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -------------------------------------------
@@ -293,8 +295,8 @@ b:assign(linOp:get_rhs())
 
 -- debug output
 print("Saving for debug.")
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness".. i ..".mat")
-SaveVectorForConnectionViewer(b, "Rhs".. i ..".mat")
+--SaveMatrixForConnectionViewer(u, linOp, "Stiffness".. i ..".mat")
+--SaveVectorForConnectionViewer(b, "Rhs".. i ..".mat")
 
 -- 4. init solver for linear Operator
 print("Init solver for operator.")
