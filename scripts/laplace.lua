@@ -166,6 +166,7 @@ elseif distributionType == "grid2d" then
 	end
 else
 	print("unknown distribution type. Valid options are 'bisect' and 'grid2d'")
+	exit()
 end
 
 
