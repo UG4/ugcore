@@ -223,7 +223,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	some communication in order to synchronize interfaces between
 //	connected procs.
 	CreateRedistributionLayouts(vertexLayouts, edgeLayouts, faceLayouts,
-					volumeLayouts, distGridMgrInOut, shPartition, false,
+					volumeLayouts, distGridMgrInOut, shPartition,
+					!createVerticalInterfaces,
 					createVerticalInterfaces, &msel, processMap,
 					&aTargetProcs, &aTransferInfos);
 

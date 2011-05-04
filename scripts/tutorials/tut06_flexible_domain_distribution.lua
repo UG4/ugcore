@@ -76,7 +76,8 @@ if procRank == 0 then
 	--
 	-- For this algorithm it is crucial that the number of processes in the
 	-- partitionMap match the number of cells specified for the load-balancer.
-	PartitionDomain_RegularGrid(dom, partitionMap, 2, 2)
+	-- The last parameter says that only surface-elements shall be partitioned
+	PartitionDomain_RegularGrid(dom, partitionMap, 2, 2, true)
 	
 	-- We'll save the partition map. This should only be done for debugging.
 	SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(),
@@ -112,7 +113,7 @@ for i, src in ipairs(firstTargets) do
 		partitionMap:add_target_procs(src, 4)
 		
 		-- We again use regular-grid partitioning 
-		PartitionDomain_RegularGrid(dom, partitionMap, 2, 2)
+		PartitionDomain_RegularGrid(dom, partitionMap, 2, 2, true)
 		
 		-- again we'll save the partition map. This should only be done for debugging.
 		SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(),

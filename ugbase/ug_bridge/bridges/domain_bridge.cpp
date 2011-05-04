@@ -139,7 +139,8 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 ///	partitions a domain by sorting all elements into a regular grid
 template <typename TDomain>
 static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partitionMap,
-										int numCellsX, int numCellsY)
+										int numCellsX, int numCellsY,
+										bool surfaceOnly)
 {
 //	prepare the partition map and a vertex position attachment accessor
 	MultiGrid& mg = domain.get_grid();
@@ -169,30 +170,62 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 			bucketSubset = (int)partitionMap.num_target_procs();
 
 	//	partition the grid
-		if(mg.num<Volume>() > 0)
-			PartitionElements_RegularGrid<Volume>(
-										partitionMap.get_partition_handler(),
-										mg.begin<Volume>(), mg.end<Volume>(),
-										numCellsX, numCellsY, aaPos,
-										cbConsiderElem, bucketSubset);
-		else if(mg.num<Face>() > 0)
-			PartitionElements_RegularGrid<Face>(
-										partitionMap.get_partition_handler(),
-										mg.begin<Face>(), mg.end<Face>(),
-										numCellsX, numCellsY, aaPos,
-										cbConsiderElem, bucketSubset);
-		else if(mg.num<EdgeBase>() > 0)
-			PartitionElements_RegularGrid<EdgeBase>(
-										partitionMap.get_partition_handler(),
-										mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
-										numCellsX, numCellsY, aaPos,
-										cbConsiderElem, bucketSubset);
-		else if(mg.num<VertexBase>() > 0)
-			PartitionElements_RegularGrid<VertexBase>(
-										partitionMap.get_partition_handler(),
-										mg.begin<VertexBase>(), mg.end<VertexBase>(),
-										numCellsX, numCellsY, aaPos,
-										cbConsiderElem, bucketSubset);
+		if(mg.num<Volume>() > 0){
+			if(!surfaceOnly)
+				PartitionElements_RegularGrid<Volume>(
+											partitionMap.get_partition_handler(),
+											mg.begin<Volume>(), mg.end<Volume>(),
+											numCellsX, numCellsY, aaPos,
+											(bool(*)(Volume*))ConsiderAll, bucketSubset);
+			else
+				PartitionElements_RegularGrid<Volume>(
+											partitionMap.get_partition_handler(),
+											mg.begin<Volume>(), mg.end<Volume>(),
+											numCellsX, numCellsY, aaPos,
+											cbConsiderElem, bucketSubset);
+		}
+		else if(mg.num<Face>() > 0){
+			if(!surfaceOnly)
+				PartitionElements_RegularGrid<Face>(
+											partitionMap.get_partition_handler(),
+											mg.begin<Face>(), mg.end<Face>(),
+											numCellsX, numCellsY, aaPos,
+											(bool(*)(Face*))ConsiderAll, bucketSubset);
+			else
+				PartitionElements_RegularGrid<Face>(
+											partitionMap.get_partition_handler(),
+											mg.begin<Face>(), mg.end<Face>(),
+											numCellsX, numCellsY, aaPos,
+											cbConsiderElem, bucketSubset);
+		}
+		else if(mg.num<EdgeBase>() > 0){
+			if(!surfaceOnly)
+				PartitionElements_RegularGrid<EdgeBase>(
+											partitionMap.get_partition_handler(),
+											mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
+											numCellsX, numCellsY, aaPos,
+											(bool(*)(EdgeBase*))ConsiderAll, bucketSubset);
+			else
+				PartitionElements_RegularGrid<EdgeBase>(
+											partitionMap.get_partition_handler(),
+											mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
+											numCellsX, numCellsY, aaPos,
+											cbConsiderElem, bucketSubset);
+		}
+		else if(mg.num<VertexBase>() > 0){
+			if(!surfaceOnly)
+				PartitionElements_RegularGrid<VertexBase>(
+											partitionMap.get_partition_handler(),
+											mg.begin<VertexBase>(), mg.end<VertexBase>(),
+											numCellsX, numCellsY, aaPos,
+											(bool(*)(VertexBase*))ConsiderAll, bucketSubset);
+			else
+				PartitionElements_RegularGrid<VertexBase>(
+											partitionMap.get_partition_handler(),
+											mg.begin<VertexBase>(), mg.end<VertexBase>(),
+											numCellsX, numCellsY, aaPos,
+											cbConsiderElem, bucketSubset);
+		}
 		else{
 			LOG("partitioning could not be performed - "
 				<< "grid doesn't contain any elements!\n");

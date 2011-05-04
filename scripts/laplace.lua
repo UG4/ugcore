@@ -155,8 +155,8 @@ elseif distributionType == "grid2d" then
 		end
 		local numCellsY = math.ceil(GetNumProcesses() / numCellsX)
 		print("num cells: (" .. numCellsX .. "," .. numCellsY .. ")")
-	--	create partitions
-		PartitionDomain_RegularGrid(dom, partitionMap, numCellsX, numCellsY)
+	--	create partitions (only partition surface elements)
+		PartitionDomain_RegularGrid(dom, partitionMap, numCellsX, numCellsY, true)
 	end
 	
 --	distribute the domain
