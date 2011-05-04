@@ -27,10 +27,13 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
+distributionType = util.GetParam("-distType", "bisect")
+
 print(" Choosen Parater:")
 print("    numRefs    = " .. numRefs)
 print("    numPreRefs = " .. numPreRefs)
 print("    grid       = " .. gridName)
+print("    dostType   = " .. distributionType)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -131,10 +134,40 @@ for i=1,numPreRefs do
 end
 
 -- Distribute the domain to all involved processes
-if DistributeDomain(dom) == false then
-	print("Error while Distributing Grid.")
-	exit()
+if distributionType == "bisect" then
+	if DistributeDomain(dom) == false then
+		print("Error while Distributing Grid.")
+		exit()
+	end
+elseif distributionType == "grid2d" then
+	local partitionMap = PartitionMap()
+	
+--	only process 0 has a content to partition
+	if GetProcessRank() == 0 then
+		partitionMap:add_target_procs(0, GetNumProcesses())
+		
+	--	calculate the number of cells in x and y direction
+		local numCellsX = math.ceil(math.sqrt(GetNumProcesses()))
+		if numCellsX == 0 then
+		--	this is a problem. abort.
+			print("Can't distribute grid with option grid2d. Bad number of processes.")
+			exit()
+		end
+		local numCellsY = math.ceil(GetNumProcesses() / numCellsX)
+		print("num cells: (" .. numCellsX .. "," .. numCellsY .. ")")
+	--	create partitions
+		PartitionDomain_RegularGrid(dom, partitionMap, numCellsX, numCellsY)
+	end
+	
+--	distribute the domain
+	if RedistributeDomain(dom, partitionMap, true) == false then
+		print("Distribution with option grid2d failed. Please check your partitionMap.")
+		exit()
+	end
+else
+	print("unknown distribution type. Valid options are 'bisect' and 'grid2d'")
 end
+
 
 -- Perform post-refine
 print("Refine Parallel Grid")

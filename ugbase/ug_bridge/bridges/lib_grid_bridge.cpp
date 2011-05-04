@@ -781,7 +781,7 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 	//	Grid
 		reg.add_class_<Grid>("Grid", grp.c_str())
 			.add_constructor()
-			.add_method("clear", &Grid::clear)
+			.add_method("clear", (void (Grid::*)()) &Grid::clear)
 			.add_method("num_vertices", &Grid::num_vertices)
 			.add_method("num_edges", &Grid::num_edges)
 			.add_method("num_faces", &Grid::num_faces)

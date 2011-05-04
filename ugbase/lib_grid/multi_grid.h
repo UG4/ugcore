@@ -19,6 +19,9 @@
 
 namespace ug
 {
+//	Predeclaration
+class MultiGrid;
+
 //	The following constants define the maximum number of children
 //	for each element-type.
 //	This makes sense, since it allows us to align all the element
@@ -68,10 +71,10 @@ struct MGVertexInfo
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
-	void erase_all_children(Grid& grid);
-	byte				m_state;
+	void unregister_from_children(MultiGrid& mg);
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
+	byte				m_state;
 };
 
 ///	Holds information about edge relations. Used internally.
@@ -93,12 +96,12 @@ struct MGEdgeInfo
 	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
-	void erase_all_children(Grid& grid);
-	byte				m_state;
+	void unregister_from_children(MultiGrid& mg);
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
 	byte				m_numEdgeChildren;///< primarily required during refinement
+	byte				m_state;
 };
 
 ///	Holds information about face relations. Used internally.
@@ -116,14 +119,14 @@ struct MGFaceInfo
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
 	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
-	void erase_all_children(Grid& grid);
-	byte				m_state;
+	void unregister_from_children(MultiGrid& mg);
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
-	byte				m_numEdgeChildren;///< primarily required during refinement
 	Face*				m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
+	byte				m_numEdgeChildren;///< primarily required during refinement
 	byte				m_numFaceChildren;///< primarily required during refinement
+	byte				m_state;
 };
 
 ///	Holds information about volume relations. Used internally.
@@ -144,17 +147,17 @@ struct MGVolumeInfo
 	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
 	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
 	inline void replace_child(Volume* elem, Volume* child)			{ArrayReplaceEntry(m_pVolChild, elem, child, m_numVolChildren);}
+	void unregister_from_children(MultiGrid& mg);
 
-	void erase_all_children(Grid& grid);
-	byte				m_state;
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_VOLUME_MAX_EDGE_CHILDREN];
-	byte				m_numEdgeChildren;///< primarily required during refinement
 	Face*				m_pFaceChild[MG_VOLUME_MAX_FACE_CHILDREN];
-	byte				m_numFaceChildren;///< primarily required during refinement
 	Volume*				m_pVolChild[MG_VOLUME_MAX_VOLUME_CHILDREN];
+	byte				m_numEdgeChildren;///< primarily required during refinement
+	byte				m_numFaceChildren;///< primarily required during refinement
 	byte				m_numVolChildren;///< primarily required during refinement
+	byte				m_state;
 };
 
 ///	access to connected types. used internally
@@ -214,6 +217,11 @@ template <> class mginfo_traits<Volume>
  */
 class MultiGrid : public Grid, public GridObserver
 {
+	friend struct MGVertexInfo;
+	friend struct MGEdgeInfo;
+	friend struct MGFaceInfo;
+	friend struct MGVolumeInfo;
+
 	protected:
 		typedef MGVertexInfo VertexInfo;
 		typedef MGEdgeInfo EdgeInfo;

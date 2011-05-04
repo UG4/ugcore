@@ -103,6 +103,13 @@ void Grid::erase(const GeomObjIter& iterBegin, const GeomObjIter& iterEnd)
 	}
 }
 
+template <class TGeomObj>
+void Grid::clear()
+{
+	while(begin<TGeomObj>() != end<TGeomObj>())
+		erase(*begin<TGeomObj>());
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	Iterators
 template <class TGeomObj>

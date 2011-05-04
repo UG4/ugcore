@@ -163,7 +163,7 @@ void MultiGrid::element_to_be_erased(TElem* elem)
 {
 //	we have to remove the elements children as well.
 	typename mginfo_traits<TElem>::info_type& info = get_info(elem);
-	info.erase_all_children(*this);
+	info.unregister_from_children(*this);
 }
 
 template <class TElem, class TParent>

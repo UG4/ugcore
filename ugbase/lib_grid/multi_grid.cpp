@@ -555,43 +555,43 @@ void MultiGrid::check_volume_elem_infos(int level)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of Info-Classes
-void MGVertexInfo::erase_all_children(Grid& grid)
+void MGVertexInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		grid.erase(m_pVrtChild);
+		mg.get_info(m_pVrtChild).m_pParent = NULL;
 	clear();
 }
 
-void MGEdgeInfo::erase_all_children(Grid& grid)
+void MGEdgeInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		grid.erase(m_pVrtChild);
+		mg.get_info(m_pVrtChild).m_pParent = NULL;
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		grid.erase(m_pEdgeChild[i]);
+		mg.get_info(m_pEdgeChild[i]).m_pParent = NULL;
 	clear();
 }
 
-void MGFaceInfo::erase_all_children(Grid& grid)
+void MGFaceInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		grid.erase(m_pVrtChild);
+		mg.get_info(m_pVrtChild).m_pParent = NULL;
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		grid.erase(m_pEdgeChild[i]);
+		mg.get_info(m_pEdgeChild[i]).m_pParent = NULL;
 	for(int i = 0; i < m_numFaceChildren; ++i)
-		grid.erase(m_pFaceChild[i]);
+		mg.get_info(m_pFaceChild[i]).m_pParent = NULL;
 	clear();
 }
 
-void MGVolumeInfo::erase_all_children(Grid& grid)
+void MGVolumeInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		grid.erase(m_pVrtChild);
+		mg.get_info(m_pVrtChild).m_pParent = NULL;
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		grid.erase(m_pEdgeChild[i]);
+		mg.get_info(m_pEdgeChild[i]).m_pParent = NULL;
 	for(int i = 0; i < m_numFaceChildren; ++i)
-		grid.erase(m_pFaceChild[i]);
+		mg.get_info(m_pFaceChild[i]).m_pParent = NULL;
 	for(int i = 0; i < m_numVolChildren; ++i)
-		grid.erase(m_pVolChild[i]);
+		mg.get_info(m_pVolChild[i]).m_pParent = NULL;
 	clear();
 }
 

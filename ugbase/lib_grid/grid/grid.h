@@ -264,8 +264,12 @@ class Grid
 		void erase(Face* face);
 		void erase(Volume* vol);
 
+	/**\todo: This erase method can cause problems if used with multi-grids.*/
 		template <class GeomObjIter>
 		void erase(const GeomObjIter& iterBegin, const GeomObjIter& iterEnd);
+
+		template <class TGeomObj>
+		void clear();
 
 	////////////////////////////////////////////////
 	//	replace

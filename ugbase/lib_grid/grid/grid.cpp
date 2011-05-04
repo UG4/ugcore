@@ -58,10 +58,20 @@ Grid::~Grid()
 
 //	unregister all observers	
 	while(!m_gridObservers.empty())
-	{
 		unregister_observer(m_gridObservers.back());
-	}
 	
+	while(!m_vertexObservers.empty())
+		unregister_observer(m_vertexObservers.back());
+
+	while(!m_edgeObservers.empty())
+		unregister_observer(m_edgeObservers.back());
+
+	while(!m_faceObservers.empty())
+		unregister_observer(m_faceObservers.back());
+
+	while(!m_volumeObservers.empty())
+		unregister_observer(m_volumeObservers.back());
+
 //	erase all elements
 	clear_geometry();
 	
@@ -81,10 +91,10 @@ void Grid::clear_geometry()
 	uint opts = get_options();
 	set_options(GRIDOPT_NONE);
 	
-	erase(begin<Volume>(), end<Volume>());
-	erase(begin<Face>(), end<Face>());
-	erase(begin<EdgeBase>(), end<EdgeBase>());
-	erase(begin<VertexBase>(), end<VertexBase>());
+	clear<Volume>();
+	clear<Face>();
+	clear<EdgeBase>();
+	clear<VertexBase>();
 	
 //	reset options
 	set_options(opts);
