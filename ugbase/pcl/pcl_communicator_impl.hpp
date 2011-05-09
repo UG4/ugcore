@@ -80,10 +80,12 @@ send_data(Layout& layout,
 
 		for(; iter != end; ++iter)
 		{
-			ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
-			commPol.collect(stream, layout.interface(iter));
-			m_bSendBuffersFixed = m_bSendBuffersFixed
-				&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+			if(!layout.interface(iter).empty()){
+				ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+				commPol.collect(stream, layout.interface(iter));
+				m_bSendBuffersFixed = m_bSendBuffersFixed
+					&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+			}
 		}
 
 		commPol.end_layout_collection();
@@ -107,10 +109,12 @@ send_data(Layout& layout,
 
 			for(; iter != end; ++iter)
 			{
-				ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
-				commPol.collect(stream, layout.interface(iter));
-				m_bSendBuffersFixed = m_bSendBuffersFixed
-					&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+				if(!layout.interface(iter).empty()){
+					ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+					commPol.collect(stream, layout.interface(iter));
+					m_bSendBuffersFixed = m_bSendBuffersFixed
+						&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+				}
 			}
 		}
 
@@ -205,7 +209,8 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 	for(typename TLayout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
-		streamPack.get_stream(layout.proc_id(li));
+		if(!layout.interface(li).empty())
+			streamPack.get_stream(layout.proc_id(li));
 	}
 }
 
@@ -222,7 +227,8 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 		for(typename TLayout::iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
-			streamPack.get_stream(layout.proc_id(li));
+			if(!layout.interface(li).empty())
+				streamPack.get_stream(layout.proc_id(li));
 		}
 	}
 }
@@ -238,20 +244,22 @@ collect_layout_buffer_sizes(TLayout& layout,
 	for(typename TLayout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
-	//	get the buffer size
-		int buffSize = commPol.get_required_buffer_size(
-								layout.interface(li));
-		if(buffSize < 0){
-		//	buffer sizes can't be determined
-			return false;
-		}
-		else if(pMapBuffSizesOut){
-		//	find the entry in the map
-			std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
-			if(iter != pMapBuffSizesOut->end())
-				iter->second += buffSize;
-			else
-				(*pMapBuffSizesOut)[layout.proc_id(li)] = buffSize;
+		if(!layout.interface(li).empty()){
+		//	get the buffer size
+			int buffSize = commPol.get_required_buffer_size(
+									layout.interface(li));
+			if(buffSize < 0){
+			//	buffer sizes can't be determined
+				return false;
+			}
+			else if(pMapBuffSizesOut){
+			//	find the entry in the map
+				std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
+				if(iter != pMapBuffSizesOut->end())
+					iter->second += buffSize;
+				else
+					(*pMapBuffSizesOut)[layout.proc_id(li)] = buffSize;
+			}
 		}
 	}
 	return true;
@@ -270,20 +278,22 @@ collect_layout_buffer_sizes(TLayout& layout,
 		for(typename TLayout::iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
-		//	get the buffer size
-			int buffSize = commPol.get_required_buffer_size(
-									layout.interface(li));
-			if(buffSize < 0){
-			//	buffer sizes can't be determined
-				return false;
-			}
-			else if(pMapBuffSizesOut){
-			//	find the entry in the map
-				std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
-				if(iter != pMapBuffSizesOut->end())
-					iter->second += buffSize;
-				else
-					(*pMapBuffSizesOut)[layout.proc_id(li)] = buffSize;
+			if(!layout.interface(li).empty()){
+			//	get the buffer size
+				int buffSize = commPol.get_required_buffer_size(
+										layout.interface(li));
+				if(buffSize < 0){
+				//	buffer sizes can't be determined
+					return false;
+				}
+				else if(pMapBuffSizesOut){
+				//	find the entry in the map
+					std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
+					if(iter != pMapBuffSizesOut->end())
+						iter->second += buffSize;
+					else
+						(*pMapBuffSizesOut)[layout.proc_id(li)] = buffSize;
+				}
 			}
 		}
 	}
@@ -311,8 +321,10 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 	for(typename Layout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
-		extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
-						layout.interface(li));
+		if(!layout.interface(li).empty()){
+			extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
+							layout.interface(li));
+		}
 	}
 }
 
@@ -329,8 +341,10 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 		for(typename Layout::iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
-			extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
-							layout.interface(li));
+			if(!layout.interface(li).empty()){
+				extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
+								layout.interface(li));
+			}
 		}
 	}
 }
