@@ -56,6 +56,23 @@ void DistributeGlobalIDs(TLayout& masterLayout, TLayout& slaveLayout,
 }
 */
 
+template <class TLayout>
+void RemoveEmptyInterfaces(TLayout& layout)
+{
+	typedef typename TLayout::iterator TInterfaceIter;
+	typedef typename TLayout::Interface TInterface;
+
+	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
+		for(TInterfaceIter iter = layout.begin(lvl); iter != layout.end(lvl);)
+		{
+			TInterface& intfc = layout.interface(iter);
+			if(intfc.empty())
+				iter = layout.erase(iter, lvl);
+			else
+				++iter;
+		}
+	}
+}
 ////////////////////////////////////////////////////////////////////////
 ///	collects the ids of all processes to which interfaces exist.
 /**

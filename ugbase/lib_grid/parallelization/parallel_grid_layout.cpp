@@ -32,16 +32,7 @@ static void RemoveEmptyInterfaces(
 	for(TIterator layoutIter = map.begin(); layoutIter != map.end(); ++layoutIter)
 	{
 		TLayout& layout = layoutIter->second;
-		for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
-			for(TInterfaceIter iter = layout.begin(lvl); iter != layout.end(lvl);)
-			{
-				TInterface& intfc = layout.interface(iter);
-				if(intfc.empty())
-					iter = layout.erase(iter, lvl);
-				else
-					++iter;
-			}
-		}
+		RemoveEmptyInterfaces(layout);
 	}
 }
 
