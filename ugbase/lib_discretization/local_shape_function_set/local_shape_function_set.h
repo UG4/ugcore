@@ -131,9 +131,6 @@ class LocalShapeFunctionSet
 	 */
 		virtual void grads(grad_type* gOut, const position_type& x) const = 0;
 
-	///	returns the local dof pattern for this element type
-		virtual const LocalDoFPattern<TRefElem>& local_dof_pattern() const = 0;
-
 	///	virtual destructor
 		virtual ~LocalShapeFunctionSet()
 		{};
@@ -141,14 +138,84 @@ class LocalShapeFunctionSet
 
 /// @}
 
-/** Traits for local shape function sets
+//////////////////////////////////////////////////////////////////////////////
+
+/// wrapper class implementing the LocalShapeFunctionSet interface
+/**
+ * This class wrappes a class passed by the template argument into the
+ * virtual ILocalShapeFunctionSet interface and makes it thus usable in that
+ * context on the price of virtual functions.
  *
- * Every set has to supply the following info:
- *
- * - corresponding LocalDoFPattern as local_dof_pattern_type
- *
+ * \tparam 	TImpl		Implementation of a Local Shape Function Set
  */
-class local_shape_function_set_traits {};
+template <typename TImpl>
+class LocalShapeFunctionSetWrapper
+	: public ug::LocalShapeFunctionSet<typename TImpl::reference_element_type>,
+	  public TImpl
+{
+	/// Implementation
+		typedef TImpl ImplType;
+
+	public:
+	///	Reference Element type
+		typedef typename ImplType::reference_element_type reference_element_type;
+
+	///	Order of Shape functions
+		static const size_t order = ImplType::order;
+
+	///	Dimension, where shape functions are defined
+		static const int dim = ImplType::dim;
+
+	///	Domain position type
+		typedef typename ImplType::position_type position_type;
+
+	///	Shape type
+		typedef typename ImplType::shape_type shape_type;
+
+	///	Gradient type
+		typedef typename ImplType::grad_type grad_type;
+
+	/// Number of shape functions
+		static const size_t nsh = ImplType::nsh;
+
+	public:
+	///	constructor
+		LocalShapeFunctionSetWrapper(){}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		virtual size_t num_sh() const {return nsh;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::position()
+		virtual bool position(size_t i, position_type& pos) const
+		{
+			return ImplType::position(i, pos);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		virtual shape_type shape(size_t i, const position_type& x) const
+		{
+			return ImplType::shape(i, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shapes()
+		virtual void shapes(shape_type* sOut, const position_type& x) const
+		{
+			ImplType::shapes(sOut, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		virtual grad_type grad(size_t i, const position_type& x) const
+		{
+			return ImplType::grad(i, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grads()
+		virtual void grads(grad_type* gOut, const position_type& x) const
+		{
+			ImplType::grads(gOut, x);
+		}
+};
+
 
 } // namespace ug
 

@@ -13,71 +13,94 @@
 namespace ug{
 
 /**
- * Gives number of dofs for a Reference Element and its sub elements
+ * This class is used to store for a single degree of freedom (DoF) the location
+ * within an element. For continuous finite elements the DoFs are usually
+ * associated with a sub-geometric object of the element itself (e.g. a vertex).
+ * This can be requested from this class.
+ */
+class LocalDoFStorage
+{
+	public:
+	///	constructor
+		LocalDoFStorage(int dim, size_t id, size_t offset)
+			: m_dim(dim), m_id(id), m_offset(offset)
+		{}
+
+	///	returns the dimension of associated geometric object
+		inline int dim(size_t sh) const {return m_dim;}
+
+	///	returns the index for the geometric object (w.r.t reference element numbering)
+		inline size_t id(size_t sh) const {return m_id;}
+
+	///	returns the offset for the geometric object
+		inline size_t offset(size_t sh) const {return m_offset;}
+
+	protected:
+	///	dimension
+		int m_dim;
+
+	///	id of sub geom obj in counting of reference element
+		size_t m_id;
+
+	///	offset if several DoFs associated to the same geometric object
+		size_t m_offset;
+};
+
+/**
+ * This class provides the interface for the storage of degrees of freedom
+ * on a finite element.
+ *
+ * \tparam 	TRefElem	Reference Element type
  */
 template <typename TRefElem>
-class LocalDoFPattern
+class ILocalDoFPattern
 {
 	public:
-		// constructor (init with 0 dofs on every ref element)
-		LocalDoFPattern();
+	///	returns the total number of dofs on the finite element
+		virtual size_t num_sh() const;
 
-		// sets the number of dofs
-		void set_num_dofs(ReferenceObjectID type, int num);
+	///	returns the DoFs storage
+		virtual const LocalDoFStorage& storage(size_t sh) const;
 
-		// returns the total number of dofs on the finite element
-		inline int total_num_dofs() const;
-
-		// returns the number of dof on a geometric object
-		inline int num_dofs(ReferenceObjectID type) const;
-
-	private:
-		int m_num_dof[NUM_REFERENCE_OBJECTS];
-		int m_total_num_dofs;
+	///	returns if DoFs are associated with objects of the dimension
+		virtual bool storage_use(int dim) const;
 };
 
-/*
- * Gives number of dofs for all Reference Elements used in a grid.
- * Only possible, if distribution is equal on all elements
+/**
+ * This class provides a wrapper class into the ILocalDoFPattern interface in
+ * order to make it available in that context by paying the price of
+ * virtual functions
  */
-class ContinuousDoFPattern
+template <typename TImpl>
+class ILocalDoFPatternWrapper
+	: public ILocalDoFPattern<typename TImpl::reference_element_type>,
+	  private TImpl
 {
-	public:
-		// constructor (init with 0)
-		ContinuousDoFPattern();
-
-		// copy constructor
-		ContinuousDoFPattern(const ContinuousDoFPattern& item);
-
-		// assignment
-		ContinuousDoFPattern& operator=(const ContinuousDoFPattern& item);
-
-		// add
-		ContinuousDoFPattern& operator+=(const ContinuousDoFPattern& item);
-
-		// subtract
-		ContinuousDoFPattern& operator-=(const ContinuousDoFPattern& item);
-
-		// add a LocalDoFPattern
-		template <typename TRefElem>
-		bool add_local_dof_pattern(const LocalDoFPattern<TRefElem>& p);
-
-		// returns the number of dofs needed on a Reference Element
-		inline int total_num_dofs(ReferenceObjectID type) const;
-
-		// returns the number of dofs needed on a Reference Element
-		inline int num_dofs(ReferenceObjectID type) const;
-
-		// comparison operator
-		friend bool operator==(const ContinuousDoFPattern& lhs, const ContinuousDoFPattern& rhs);
-
 	private:
-		int m_num_dofs[NUM_REFERENCE_OBJECTS];
-		int m_total_num_dofs[NUM_REFERENCE_OBJECTS];
-		int m_dim;
+	///	implementation type
+		typedef TImpl ImplType;
+
+	public:
+	///	\copydoc ug::ILocalDoFPattern::num_sh()
+		virtual size_t num_sh() const
+		{
+			return ImplType::num_sh();
+		}
+
+	///	\copydoc ug::ILocalDoFPattern::storage()
+		virtual const LocalDoFStorage& storage(size_t sh) const
+		{
+			return ImplType::storage(sh);
+		}
+
+	///	\copydoc ug::ILocalDoFPattern::storage_use()
+		virtual bool storage_use(int dim) const
+		{
+			return ImplType::storage_use(dim);
+		}
+
 };
 
-bool operator==(const ContinuousDoFPattern& lhs, const ContinuousDoFPattern& rhs);
 
 }
 

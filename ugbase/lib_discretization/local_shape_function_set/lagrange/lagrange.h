@@ -23,6 +23,10 @@ namespace ug{
 template <typename TRefElem, size_t TOrder>
 struct LagrangeLSFS{};
 
+/// Lagrange DoF Pattern
+template <typename TRefElem, size_t TOrder>
+struct LagrangeLDP{};
+
 /// specialization for Edges
 /**
  * Lagrange shape function of any order for the Reference Edge
@@ -74,7 +78,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		size_t num_sh() const {return nsh;}
+		inline static size_t num_sh() {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
 		bool position(size_t i, position_type& pos) const
@@ -112,14 +116,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline MultiIndex<dim> multi_index(size_t i) const
+		inline static MultiIndex<dim> multi_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 			return MultiIndex<1>(i);
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline static size_t index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] < nsh, "ind[0] must be smaller than Number of DoFs.");
 			return ind[0];
@@ -135,6 +139,75 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		Polynomial1D m_vPolynom[p+1];	///< Shape Polynomials
 		Polynomial1D m_vDPolynom[p+1];	///< Derivative of Shape Polynomial
 };
+
+/// specialization for Edges
+/**
+ * Lagrange shape function of any order for the Reference Edge
+ * \tparam 	TOrder		requested order
+ */
+template <>
+template <size_t TOrder>
+class LagrangeLDP<ReferenceEdge, TOrder>
+{
+	protected:
+	///	corresponding local shape function set
+		typedef LagrangeLSFS<ReferenceEdge, TOrder> LSFS;
+
+	///	number of shapes
+		static const size_t nsh = LSFS::nsh;
+
+	public:
+	///	constructor
+		LagrangeLDP()
+		{
+			for(size_t sh = 0; sh < nsh; ++sh)
+			{
+				typename LSFS::multi_index_type m = LSFS::multi_index(sh);
+
+			//	on vertex
+				if(m[0] == 0)
+					m_vLocalDoFStorage[sh] = LocalDoFStorage(0, 1, 0);
+				if(m[0] == nsh-1)
+					m_vLocalDoFStorage[sh] = LocalDoFStorage(0, 0, 0);
+			//	on edge
+				else
+					m_vLocalDoFStorage[sh] = LocalDoFStorage(1, 0, sh-1);
+			}
+		}
+
+	///	returns the total number of DoFs on the finite element
+		static inline size_t num_sh() {return nsh;};
+
+	///	returns the dof storage
+		inline const LocalDoFStorage& storage(size_t sh) const
+			{return m_vLocalDoFStorage[sh];}
+
+	///	returns if the storage needs objects of a given dimension
+		static inline bool storage_use(int dim)
+		{
+				 if(dim == 1) return true;
+			else if(dim == 2) return nsh > 2;
+			else return false;
+		}
+
+		static inline size_t map_offset(size_t offset, std::vector<size_t>& vNodeOrder)
+		{
+			if(vNodeOrder[0] < vNodeOrder[1]) return offset;
+			else return nsh-1 - offset;
+		}
+
+		static inline size_t num_sh(int dim, size_t i)
+		{
+			if(dim == 1) return 1;
+			else if (dim == 2) return nsh - 2;
+			else return 0;
+		}
+
+	protected:
+	///	association to elements
+		LocalDoFStorage m_vLocalDoFStorage[nsh];
+};
+
 
 template <>
 template <size_t TOrder>
@@ -1313,93 +1386,6 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
-};
-
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-/// wrapper class implementing the LocalShapeFunctionSet interface
-/**
- * This class wrappes a class passed by the template arguement into the
- * virtual ILocalShapeFunctionSet interface and makes it thus usable in that
- * context on the price of virtual functions.
- * \tparam 	TImpl		Implementation of a Local Shape Function Set
- */
-template <typename TImpl>
-class LocalShapeFunctionSetWrapper
-	: public ug::LocalShapeFunctionSet<typename TImpl::reference_element_type>,
-	  public TImpl
-{
-	/// Implementation
-		typedef TImpl ImplType;
-
-	public:
-	///	Reference Element type
-		typedef typename ImplType::reference_element_type reference_element_type;
-
-	///	Order of Shape functions
-		static const size_t order = ImplType::order;
-
-	///	Dimension, where shape functions are defined
-		static const int dim = ImplType::dim;
-
-	///	Domain position type
-		typedef typename ImplType::position_type position_type;
-
-	///	Shape type
-		typedef typename ImplType::shape_type shape_type;
-
-	///	Gradient type
-		typedef typename ImplType::grad_type grad_type;
-
-	/// Number of shape functions
-		static const size_t nsh = ImplType::nsh;
-
-	public:
-	///	constructor
-		LocalShapeFunctionSetWrapper(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		virtual size_t num_sh() const {return nsh;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::position()
-		virtual bool position(size_t i, position_type& pos) const
-		{
-			return ImplType::position(i, pos);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		virtual shape_type shape(size_t i, const position_type& x) const
-		{
-			return ImplType::shape(i, x);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(shape_type* sOut, const position_type& x) const
-		{
-			ImplType::shapes(sOut, x);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		virtual grad_type grad(size_t i, const position_type& x) const
-		{
-			return ImplType::grad(i, x);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(grad_type* gOut, const position_type& x) const
-		{
-			ImplType::grads(gOut, x);
-		}
-
-		const LocalDoFPattern<reference_element_type>& local_dof_pattern() const
-		{
-			return m_ElementDoFPattern;
-		}
-
-	private:
-		LocalDoFPattern<reference_element_type> m_ElementDoFPattern;
 };
 
 } //namespace ug
