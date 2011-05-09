@@ -215,7 +215,7 @@ bool ConvectionShapes_PartialUpwind
 //	The case of the "non-positive diffusive flux" (lambda <= 0)
 	if (lambda <= 0)
 	{
-		UG_LOG("FULL\n");
+		UG_LOG("FULL, lambda = "<<lambda<<"\n");
 		return ConvectionShapes_FullUpwind (fvg, scvf, Vel, Diffusion, shape,
 											D_shape_vel, D_shape_D, bNonZeroDerivD);
 	}
@@ -232,7 +232,7 @@ bool ConvectionShapes_PartialUpwind
 //	The case of the diffusion dominance (central differences)
 	if (2 * lambda > fabs(convFlux))
 	{
-		UG_LOG("2 * LAMBDA\n");
+		UG_LOG("2 * LAMBDA, lambda = "<<lambda<<", flux = "<<convFlux<<"\n");
 		if (bNonZeroDerivD != NULL) *bNonZeroDerivD = false;
 
 		shape[co_from] = convFlux / 2;
@@ -253,7 +253,7 @@ bool ConvectionShapes_PartialUpwind
 	if (bNonZeroDerivD != NULL) *bNonZeroDerivD = true;
 	if (convFlux >= 0)
 	{
-		UG_LOG("FLUX > 0\n");
+		UG_LOG("FLUX > 0, lambda = "<<lambda<<", flux = "<<convFlux<<"\n");
 		shape[co_from] = convFlux - lambda;
 		shape[co_to] = lambda;
 
@@ -265,7 +265,7 @@ bool ConvectionShapes_PartialUpwind
 	}
 	else
 	{
-		UG_LOG("FLUX < 0\n");
+		UG_LOG("FLUX < 0, lambda = "<<lambda<<", flux = "<<convFlux<<"\n");
 		shape[co_from] = - lambda;
 		shape[co_to] = convFlux + lambda;
 
