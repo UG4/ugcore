@@ -22,6 +22,8 @@
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
 #include "consistent_gravity.h"
 #include "convection_shape.h"
+#include "conv_shape_interface.h"
+#include "conv_shape.h"
 
 namespace ug{
 
