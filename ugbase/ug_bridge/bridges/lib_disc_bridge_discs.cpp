@@ -30,6 +30,9 @@
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/upwind.h"
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/stabilization.h"
 
+#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/conv_shape_interface.h"
+#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/conv_shape.h"
+
 namespace ug
 {
 
@@ -150,6 +153,44 @@ void RegisterLibDiscDiscObjects(Registry& reg, const char* parentGroup)
 		typedef NavierStokesFIELDSStabilization<dim, algebra_type> T;
 		typedef INavierStokesStabilization<dim, algebra_type> TBase;
 		std::stringstream ss; ss << "NavierStokesFIELDSStabilization" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor();
+	}
+
+/////////////////////////////////////////////////////////////////////////////
+// Convection Shapes
+/////////////////////////////////////////////////////////////////////////////
+
+//	IConvectionShapes
+	{
+		typedef IConvectionShapes<dim, algebra_type> T;
+		std::stringstream ss; ss << "IConvectionShapes" << dim << "d";
+		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
+	}
+
+//	ConvectionShapesNoUpwind
+	{
+		typedef ConvectionShapesNoUpwind<dim, algebra_type> T;
+		typedef IConvectionShapes<dim, algebra_type> TBase;
+		std::stringstream ss; ss << "ConvectionShapesNoUpwind" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor();
+	}
+
+//	ConvectionShapesFullUpwind
+	{
+		typedef ConvectionShapesFullUpwind<dim, algebra_type> T;
+		typedef IConvectionShapes<dim, algebra_type> TBase;
+		std::stringstream ss; ss << "ConvectionShapesFullUpwind" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor();
+	}
+
+//	ConvectionShapesPartialUpwind
+	{
+		typedef ConvectionShapesPartialUpwind<dim, algebra_type> T;
+		typedef IConvectionShapes<dim, algebra_type> TBase;
+		std::stringstream ss; ss << "ConvectionShapesPartialUpwind" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor();
 	}
