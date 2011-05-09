@@ -10,8 +10,8 @@
 #include <sstream>
 
 // include bridge
-#include "../ug_bridge.h"
-#include "../registry.h"
+#include "../../../ug_bridge.h"
+#include "../../../registry.h"
 
 // lib_algebra includes
 #include "lib_algebra/algebra_selector.h"
@@ -30,9 +30,6 @@
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/upwind.h"
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/stabilization.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/conv_shape_interface.h"
-#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/conv_shape.h"
-
 namespace ug
 {
 
@@ -40,7 +37,7 @@ namespace bridge
 {
 
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
-void RegisterLibDiscDiscObjects(Registry& reg, const char* parentGroup)
+void RegisterNavierStokesObjects(Registry& reg, const char* parentGroup)
 {
 //	typedef domain
 	typedef TDomain domain_type;
@@ -156,71 +153,11 @@ void RegisterLibDiscDiscObjects(Registry& reg, const char* parentGroup)
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor();
 	}
-
-/////////////////////////////////////////////////////////////////////////////
-// Convection Shapes
-/////////////////////////////////////////////////////////////////////////////
-
-//	IConvectionShapes
-	{
-		typedef IConvectionShapes<dim, algebra_type> T;
-		std::stringstream ss; ss << "IConvectionShapes" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
-	}
-
-//	ConvectionShapesNoUpwind
-	{
-		typedef ConvectionShapesNoUpwind<dim, algebra_type> T;
-		typedef IConvectionShapes<dim, algebra_type> TBase;
-		std::stringstream ss; ss << "ConvectionShapesNoUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
-			.add_constructor();
-	}
-
-//	ConvectionShapesFullUpwind
-	{
-		typedef ConvectionShapesFullUpwind<dim, algebra_type> T;
-		typedef IConvectionShapes<dim, algebra_type> TBase;
-		std::stringstream ss; ss << "ConvectionShapesFullUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
-			.add_constructor();
-	}
-
-//	ConvectionShapesPartialUpwind
-	{
-		typedef ConvectionShapesPartialUpwind<dim, algebra_type> T;
-		typedef IConvectionShapes<dim, algebra_type> TBase;
-		std::stringstream ss; ss << "ConvectionShapesPartialUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
-			.add_constructor();
-	}
-
 }
 
-template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
-void RegisterLibDiscDiscFunctions(Registry& reg, const char* parentGroup)
-{
-//	typedef domain
-	typedef TDomain domain_type;
-	typedef TDoFDistribution dof_distribution_type;
-	typedef TAlgebra algebra_type;
-	typedef typename algebra_type::vector_type vector_type;
-	typedef typename algebra_type::matrix_type matrix_type;
-	static const int dim = domain_type::dim;
-
-	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
-	std::string grp = grpSS.str();
-
-#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
-#else
-		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
-#endif
-
-}
 
 template <typename TAlgebra, typename TDoFDistribution>
-bool RegisterLibDiscInterfaceDiscs(Registry& reg, const char* parentGroup)
+bool RegisterNavierStokesDisc(Registry& reg, const char* parentGroup)
 {
 	typedef TDoFDistribution dof_distribution_type;
 	typedef TAlgebra algebra_type;
@@ -236,8 +173,7 @@ bool RegisterLibDiscInterfaceDiscs(Registry& reg, const char* parentGroup)
 	//	Domain dependend part 1D
 		{
 			typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterLibDiscDiscObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
-			RegisterLibDiscDiscFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterNavierStokesObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
 #endif
 
@@ -245,8 +181,7 @@ bool RegisterLibDiscInterfaceDiscs(Registry& reg, const char* parentGroup)
 	//	Domain dependend part 2D
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterLibDiscDiscObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
-			RegisterLibDiscDiscFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterNavierStokesObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
 #endif
 
@@ -254,14 +189,13 @@ bool RegisterLibDiscInterfaceDiscs(Registry& reg, const char* parentGroup)
 	//	Domain dependend part 3D
 		{
 			typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterLibDiscDiscObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
-			RegisterLibDiscDiscFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterNavierStokesObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
 #endif
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterLibDiscretizationInterfaceForAlgebra: "
+		UG_LOG("### ERROR in RegisterNavierStokesDiscs: "
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}
@@ -269,17 +203,17 @@ bool RegisterLibDiscInterfaceDiscs(Registry& reg, const char* parentGroup)
 	return true;
 }
 
-bool RegisterDynamicLibDiscInterfaceDiscs(Registry& reg, int algebra_type, const char* parentGroup)
+bool RegisterDynamicNavierStokesDisc(Registry& reg, int algebra_type, const char* parentGroup)
 {
 	bool bReturn = true;
 
 	switch(algebra_type)
 	{
-	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscInterfaceDiscs<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscInterfaceDiscs<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscInterfaceDiscs<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscInterfaceDiscs<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscInterfaceDiscs<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUAlgebra:		 		bReturn &= RegisterNavierStokesDisc<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterNavierStokesDisc<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterNavierStokesDisc<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterNavierStokesDisc<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterNavierStokesDisc<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;

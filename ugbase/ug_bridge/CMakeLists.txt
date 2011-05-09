@@ -31,10 +31,12 @@ if(NOT NO_ALGEBRA)
 	set(srcUGBridge ${srcUGBridge}
 					bridges/lib_algebra_bridges/lib_algebra_bridge.cpp
 					bridges/lib_algebra_bridges/amg_bridge.cpp
-					bridges/lib_disc_bridge_algebra_independent.cpp
-					bridges/lib_disc_bridge_domain_independent.cpp
-					bridges/lib_disc_bridge_domain_dependent.cpp
-					bridges/lib_disc_bridge_discs.cpp
+					bridges/lib_disc_bridges/lib_disc_bridge_algebra_independent.cpp
+					bridges/lib_disc_bridges/lib_disc_bridge_domain_independent.cpp
+					bridges/lib_disc_bridges/lib_disc_bridge_domain_dependent.cpp
+					bridges/lib_disc_bridges/discs/lib_disc_bridge_discs.cpp
+					bridges/lib_disc_bridges/discs/navier_stokes_bridge.cpp
+					bridges/lib_disc_bridges/discs/density_driven_flow_bridge.cpp
 					bridges/user_data_bridge.cpp)
 else(NOT NO_ALGEBRA)
 

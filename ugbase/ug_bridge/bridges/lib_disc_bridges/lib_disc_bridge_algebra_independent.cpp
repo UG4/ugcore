@@ -6,7 +6,7 @@
  */
 
 // include brigde
-#include "../ug_bridge.h"
+#include "../../ug_bridge.h"
 
 // common includes
 #include "common/math/ugmath.h"

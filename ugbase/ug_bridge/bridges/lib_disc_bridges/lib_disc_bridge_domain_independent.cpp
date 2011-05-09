@@ -10,7 +10,7 @@
 #include <sstream>
 
 // registry
-#include "../registry.h"
+#include "../../registry.h"
 
 // algebra chooser
 #include "lib_algebra/algebra_selector.h"

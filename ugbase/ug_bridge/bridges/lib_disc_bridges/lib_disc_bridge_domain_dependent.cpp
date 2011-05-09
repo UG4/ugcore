@@ -10,7 +10,7 @@
 #include <sstream>
 
 // include bridge
-#include "../ug_bridge.h"
+#include "../../ug_bridge.h"
 
 // lib_algebra includes
 #include "lib_algebra/algebra_selector.h"
@@ -38,8 +38,6 @@
 #include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/fv/inner_boundary.h"
 #include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fe1/fe1_convection_diffusion.h"
 #include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fv1/convection_diffusion.h"
-#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/density_driven_flow.h"
-//#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/navier_stokes.h"
 #include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 #include "lib_discretization/operator/linear_operator/projection_operator.h"
@@ -233,38 +231,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_reaction", &T::set_reaction)
 			.add_method("set_source", &T::set_source)
 			.add_method("set_mass_scale", &T::set_mass_scale);
-	}
-
-
-//	Density Driven Flow
-	{
-		typedef DensityDrivenFlowElemDisc<FV1Geometry, domain_type, algebra_type> T2;
-		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
-		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
-		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_upwind|interactive=false", &T2::set_upwind,
-						"", "Upwind (no, part, full)")
-			.add_method("set_boussinesq_transport|interactive=false", &T2::set_boussinesq_transport,
-						"", "Boussinesq Transport")
-			.add_method("set_boussinesq_flow|interactive=false", &T2::set_boussinesq_flow,
-						"", "Boussinesq Flow")
-			.add_method("set_porosity|interactive=false", &T2::set_porosity,
-						"", "Porosity")
-			.add_method("set_gravity|interactive=false", &T2::set_gravity,
-						"", "Gravity")
-			.add_method("set_permeability|interactive=false", &T2::set_permeability,
-						"", "Permeability")
-			.add_method("set_viscosity|interactive=false", &T2::set_viscosity,
-						"", "Viscosity")
-			.add_method("set_molecular_diffusion|interactive=false", &T2::set_molecular_diffusion,
-						"", "Molecular Diffusion")
-			.add_method("set_density|interactive=false", &T2::set_density,
-						"", "Density")
-			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
-						"", "Consistent Gravity")
-			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
-			.add_method("get_brine", &T2::get_brine);
 	}
 
 //	ProlongationOperator
