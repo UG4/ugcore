@@ -44,6 +44,7 @@ typedef MPI_Op ReduceOperation;
 #define PCL_DT_SHORT 			MPI_SHORT
 #define PCL_DT_INT 				MPI_INT
 #define PCL_DT_LONG 			MPI_LONG
+#define PCL_DT_UNSIGNED_LONG	MPI_UNSIGNED_LONG
 #define PCL_DT_FLOAT 			MPI_FLOAT
 #define PCL_DT_DOUBLE 			MPI_DOUBLE
 #define PCL_DT_LONG_DOUBLE 		MPI_LONG_DOUBLE
