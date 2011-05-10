@@ -379,11 +379,21 @@ inline bool AllProcsTrue(bool bFlag,
  * whether sending processes are contained in receive-stream-packs and vice-versa.
  *
  * The return value is the same for all participating processes.
+ * \sa pcl::StreamPackBuffersMatch
  */
 bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPackSend,
 					  const ProcessCommunicator& involvedProcs = ProcessCommunicator());
-					  
 
+///	checks whether buffers matching buffers in send- and recv-stream-packs have the same size
+/**	Note that this method does not check whether matching buffers exist. This is assumed.
+ * Checks are only performed on the sizes of associated buffers.
+ *
+ * The return value is the same for all participating processes.
+ * \sa pcl::StreamPacksMatch
+ */
+bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
+							ug::StreamPack &streamPackSend,
+							const ProcessCommunicator& involvedProcs = ProcessCommunicator());
 }//	end of namespace
 
 #endif

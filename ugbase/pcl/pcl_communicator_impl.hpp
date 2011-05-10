@@ -498,6 +498,26 @@ communicate()
 //		PROFILE_END();
 	}
 
+//	we can now resize the receive buffers to their final sizes
+	{
+		size_t counter = 0;
+		for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
+			iter != m_streamPackIn.end(); ++iter, ++counter)
+		{
+			iter->second->resize(vBufferSizesIn[counter]);
+		}
+	}
+	
+//	if communication_debugging is enabled, we can now check whether associated
+//	send / receive buffers have the same size.
+	if(communication_debugging_enabled()){
+		if(!StreamPackBuffersMatch(m_streamPackIn, m_streamPackOut, m_debugProcComm)){
+			UG_LOG("ERROR in ParallelCommunicator::communicate(): "
+					"send / receive buffer size mismatch. Aborting.\n");
+			return false;
+		}
+	}
+	
 ////////////////////////////////////////////////
 //	communicate data.
 	PCL_PROFILE(pcl_IntCom_communicateData);
@@ -512,9 +532,6 @@ communicate()
 	{
 		UG_DLOG(LIB_PCL, 1, " " << iter->first
 				<< "(" << vBufferSizesIn[counter] << ")");
-
-	//	resize the buffer
-		iter->second->resize(vBufferSizesIn[counter]);
 		
 	//	receive the data
 		MPI_Irecv(iter->second->buffer(), vBufferSizesIn[counter], MPI_UNSIGNED_CHAR,	

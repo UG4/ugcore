@@ -140,7 +140,84 @@ bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPack
 		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
 							PCL_DT_INT, GetOutputProcRank());
 
-		UG_LOG("MISMATCH occured on proc:");
+		UG_LOG("SEND / RECEIVE MISMATCH OCCURED ON PROC:");
+		for(size_t i = 0; i < buffer.size(); ++i){
+			if(buffer[i] != 0){
+			//	a mismatch occurred
+				UG_LOG(" " << involvedProcs.get_proc_id(i));
+			}
+		}
+		UG_LOG(endl);
+		return false;
+	}
+	
+	return true;
+}
+
+
+bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
+							ug::StreamPack &streamPackSend,
+							const ProcessCommunicator& involvedProcs)
+{
+//	number of in and out-streams.
+	size_t	numOutStreams = streamPackSend.num_streams();
+	size_t	numInStreams = streamPackRecv.num_streams();
+	
+//	used for mpi-communication.
+	std::vector<MPI_Request> vSendRequests(numOutStreams);
+	std::vector<MPI_Request> vReceiveRequests(numInStreams);
+
+//	wait until data has been received
+	std::vector<MPI_Status> vReceiveStates(numInStreams);
+	std::vector<MPI_Status> vSendStates(numOutStreams);
+
+	int testTag = 744444;//	an arbitrary number
+	int counter = 0;
+
+	std::vector<int> vSendBufSizes(numInStreams);
+	for(ug::StreamPack::iterator iter = streamPackRecv.begin();
+		iter != streamPackRecv.end(); ++iter, ++counter)
+	{
+		MPI_Irecv(&vSendBufSizes[counter], 1, MPI_INT, iter->first, testTag,
+				  MPI_COMM_WORLD, &vReceiveRequests[counter]);
+	}
+	
+	counter = 0;
+	for(ug::StreamPack::iterator iter = streamPackSend.begin();
+		iter != streamPackSend.end(); ++iter, ++counter)
+	{
+		int s = iter->second->size();
+		MPI_Isend(&s, 1, MPI_INT, iter->first, testTag, MPI_COMM_WORLD,
+				  &vSendRequests[counter]);
+	}
+
+	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
+	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
+
+	bool bSuccess = true;
+	counter = 0;
+	for(ug::StreamPack::iterator iter = streamPackRecv.begin();
+		iter != streamPackRecv.end(); ++iter, ++counter)
+	{
+		if((int)iter->second->size() != vSendBufSizes[counter])
+		{
+			UG_LOG("SEND / RECEIVE BUFFER MISMATCH: "
+					<< "receive buffer on proc " << GetProcRank()
+					<< " has "<< iter->second->size()
+					<< " bytes, but send buffer on proc " << iter->first
+					<< " has " << vSendBufSizes[counter] << " bytes\n");
+			bSuccess = false;
+		}
+	}
+
+//	if a mismatch occurred on one, then we'll gather all procs which failed.
+	if(!AllProcsTrue(bSuccess, involvedProcs)){
+		int mismatch = (int)(!bSuccess);
+		vector<int> buffer(involvedProcs.size(), 0);
+		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
+							PCL_DT_INT, GetOutputProcRank());
+
+		UG_LOG("SEND / RECEIVE BUFFER MISMATCH OCCURED ON PROC:");
 		for(size_t i = 0; i < buffer.size(); ++i){
 			if(buffer[i] != 0){
 			//	a mismatch occurred
