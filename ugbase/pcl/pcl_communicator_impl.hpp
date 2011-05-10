@@ -12,6 +12,7 @@
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
 #include "pcl_profiling.h"
+#include "pcl_util.h"
 #include "common/log.h"
 
 namespace pcl
@@ -377,6 +378,15 @@ communicate()
 		}
 	}
 
+//	if communication_debugging is enabled, then we check whether scheduled
+//	sends and receives match.
+	if(communication_debugging_enabled()){
+		if(!StreamPacksMatch(m_streamPackIn, m_streamPackOut, m_debugProcComm)){
+			UG_LOG("ERROR in ParallelCommunicator::communicate(): send / receive mismatch. Aborting.\n");
+			return false;
+		}
+	}
+
 //	number of in and out-streams.
 	size_t	numOutStreams = m_streamPackOut.num_streams();
 	size_t	numInStreams = m_streamPackIn.num_streams();
@@ -594,6 +604,35 @@ communicate()
 	
 //	done
 	return true;
+}
+
+template <class TLayout>
+void ParallelCommunicator<TLayout>::
+enable_communication_debugging(const ProcessCommunicator& involvedProcs)
+{
+	static bool bFirstTime = true;
+	if(bFirstTime){
+		UG_LOG("WARNING: Communication debugging enabled in ParallelCommunicator.");
+		UG_LOG(" Expect performance penalty!\n");
+		bFirstTime = false;
+	}
+	
+	m_bDebugCommunication = true;
+	m_debugProcComm = involvedProcs;
+}
+	 
+template <class TLayout>
+void ParallelCommunicator<TLayout>::
+disable_communication_debugging()
+{
+	m_bDebugCommunication = false;
+}
+
+template <class TLayout>
+bool ParallelCommunicator<TLayout>::
+communication_debugging_enabled()
+{
+	return m_bDebugCommunication;
 }
 
 }//	end of namespace pcl

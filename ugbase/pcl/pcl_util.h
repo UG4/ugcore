@@ -11,50 +11,12 @@
 #include "common/util/hash.h"
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
-#include "pcl_communicator.h"
+#include "common/util/binary_stream.h"
+#include "common/util/stream_pack.h"
 #include "pcl_process_communicator.h"
 
 namespace pcl
 {
-
-////////////////////////////////////////////////////////////////////////
-///	holds an id
-/**	Default constructor creates an invalid id.*/
-/*
-template <class TLocalID>
-struct ID
-{
-	ID(int procID = -1, TLocalID localID = 0)
-		:m_procID(procID), m_localID(localID)	{}
-
-///	returns true if m_procID >= 0.
-	bool is_valid()		{return m_procID >= 0;}
-
-///	sets m_procID to -1.
-	void invalidate()	{m_procID = -1;}
-
-
-	int m_procID;
-	TLocalID m_localID;
-};
-
-
-////////////////////////////////////////////////////////////////////////
-///	generates global ids for the elements in the given layout.
-template <class TLayout, class TLocalID>
-void DistributeGlobalIDs(TLayout& masterLayout, TLayout& slaveLayout,
-						boost::function<void (typename TLayout::Element elem,
-							ID<TLocalID>)> cbSetID,
-						boost::function<ID<TLocalID>
-							(typename TLayout::Element elem)> cbGetID)
-{
-	typedef ID<TLocalID> TID;
-	TID invalidID;
-
-//	iterate over all elements in the layouts and invalidate their ids.
-
-}
-*/
 
 template <class TLayout>
 void RemoveEmptyInterfaces(TLayout& layout)
@@ -410,6 +372,17 @@ inline bool AllProcsTrue(bool bFlag,
 		return true;
 	return false;
 }
+
+
+///	checks whether entries in send- and recv-stream-packs on participating processes match
+/**	Note that this method does not compare the sizes. it only checks
+ * whether sending processes are contained in receive-stream-packs and vice-versa.
+ *
+ * The return value is the same for all participating processes.
+ */
+bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPackSend,
+					  const ProcessCommunicator& involvedProcs = ProcessCommunicator());
+					  
 
 }//	end of namespace
 

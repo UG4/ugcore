@@ -11,6 +11,7 @@
 #include "common/util/binary_stream.h"
 #include "common/util/stream_pack.h"
 #include "pcl_communication_structs.h"
+#include "pcl_process_communicator.h"
 
 namespace pcl
 {
@@ -178,6 +179,32 @@ class ParallelCommunicator
 	 *	in memory until this point.*/
 		bool communicate();
 		
+	
+	///	enables debugging of communication. This has a severe effect on performance!
+	/**	communication debugging will execute some code during communicate(), which
+	 * checks whether matching sends and receives have been scheduled with matching
+	 * buffer sizes.
+	 *
+	 * If not all processes participate during communication, you have to specify
+	 * a process-communicator (involvedProcs), which includes all and only the procs,
+	 * which will call communicate later on. If no process communicator is specified,
+	 * then PCD_WORLD is used.
+	 *
+	 * Note that communication debugging introduces additional communication which
+	 * considerable slows down performance. You should only use it temporarily, if
+	 * you encounter problems during communication.
+	 *
+	 * Don't forget to call disable_communication_debugging(), when you're done
+	 * with debugging.*/
+		void enable_communication_debugging(const ProcessCommunicator& involvedProcs =
+												ProcessCommunicator(PCD_WORLD));
+	 
+	///	disables debugging of communication
+		void disable_communication_debugging();
+	
+	///	returns true if communication debugging is enabled
+		bool communication_debugging_enabled();
+	 
 	protected:
 	///	helper to collect data from single-level-layouts
 		void send_data(Layout& layout,
@@ -272,6 +299,12 @@ class ParallelCommunicator
 		ug::StreamPack		m_streamPackIn;
 	///	holds information about the extractors that are awaiting data.
 		ExtractorInfoList	m_extractorInfos;
+		
+	///	This procComm holds the processes that shall participate during communication-debugging.
+		ProcessCommunicator	m_debugProcComm;
+		
+	///	true if the communication shall be debugged.
+		bool m_bDebugCommunication;
 		
 	///	holds info whether all send-buffers are of predetermined fixed size.
 	/**	reset to true after each communication-step.*/

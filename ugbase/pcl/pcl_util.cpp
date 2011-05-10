@@ -2,8 +2,12 @@
 // s.b.reiter@googlemail.com
 // 17.03.2011 (m,d,y)
  
+#include <vector>
 #include "pcl_util.h"
 #include "pcl_profiling.h"
+#include "common/log.h"
+
+using namespace std;
 
 namespace pcl{
 
@@ -77,6 +81,77 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 
 //	vProcRanksInOut should now contain all process-ranks with which
 //	the local proc should communicate.
+}
+
+
+
+bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPackSend,
+					  const ProcessCommunicator& involvedProcs)
+{
+//	create a vector containing all recv-from ranks and a vector containing all send-to ranks.
+	vector<int> recvFrom, sendTo;
+	
+	for(ug::StreamPack::iterator iter = streamPackRecv.begin();
+		iter != streamPackRecv.end(); ++iter)
+	{
+		recvFrom.push_back(iter->first);
+	}
+	
+	for(ug::StreamPack::iterator iter = streamPackSend.begin();
+		iter != streamPackSend.end(); ++iter)
+	{
+		sendTo.push_back(iter->first);
+	}
+	
+//	make sure that all processes know, who is sending data to them
+	vector<int> sendingProcs;
+	CommunicateInvolvedProcesses(sendingProcs, sendTo, involvedProcs);
+	
+//	check whether the list of sendingProcs and the list of recvFrom procs matches.
+//	we do this by setting each entry in recvFrom, which also lies in sendingProcs to -1.
+	bool sendRecvMismatch = false;
+	for(size_t i = 0; i < sendingProcs.size(); ++i){
+		int rank = sendingProcs[i];
+		vector<int>::iterator findIter = find(recvFrom.begin(), recvFrom.end(), rank);
+		if(findIter != recvFrom.end())
+			*findIter = -1;
+		else{
+			UG_LOG("ERROR: send / receive mismatch: ");
+			UG_LOG("proc " << rank << " sends to proc " << GetProcRank());
+			UG_LOG(" but no matching receive is scheduled.\n");
+			sendRecvMismatch = true;
+		}
+	}
+	
+//	now check whether an entry != -1 still resides in recvFrom.
+	for(size_t i = 0; i < recvFrom.size(); ++i){
+		if(recvFrom[i] != -1){
+			UG_LOG("ERROR: receive / send mismatch: ");
+			UG_LOG("proc " << GetProcRank() << " awaits data from proc " << recvFrom[i]);
+			UG_LOG(", but no send was scheduled.\n");
+			sendRecvMismatch = true;
+		}
+	}
+	
+//	if a mismatch occurred on one, then we'll gather all procs which failed.
+	if(!AllProcsTrue(!sendRecvMismatch, involvedProcs)){
+		int mismatch = (int)sendRecvMismatch;
+		vector<int> buffer(involvedProcs.size(), 0);
+		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
+							PCL_DT_INT, GetOutputProcRank());
+
+		UG_LOG("MISMATCH occured on proc:");
+		for(size_t i = 0; i < buffer.size(); ++i){
+			if(buffer[i] != 0){
+			//	a mismatch occurred
+				UG_LOG(" " << involvedProcs.get_proc_id(i));
+			}
+		}
+		UG_LOG(endl);
+		return false;
+	}
+	
+	return true;
 }
 
 }// end of namespace
