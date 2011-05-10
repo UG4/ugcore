@@ -313,7 +313,7 @@ bool TestLagrangeSpaces()
 
 	return bRet;
 }
-
+/*
 void SetDebugLevel(const char* t, int level)
 {
 	std::string tag(t);
@@ -326,7 +326,7 @@ void SetDebugLevel(const char* t, int level)
 	{
 		UG_LOG("In SetDebugLevel: Tag '" << tag << "'not found.\n");
 	}
-}
+}*/
 
 bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
@@ -354,7 +354,7 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 		}
 
 	//  Debug function
-		reg.add_function("SetDebugLevel", &SetDebugLevel, grp.c_str());
+		//reg.add_function("SetDebugLevel", &SetDebugLevel, grp.c_str());
 
 	//	TestLagrangeSpaces
 		reg.add_function("TestLagrangeSpaces", &TestLagrangeSpaces, grp.c_str());

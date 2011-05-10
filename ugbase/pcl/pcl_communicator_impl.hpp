@@ -12,6 +12,7 @@
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
 #include "pcl_profiling.h"
+#include "common/log.h"
 
 namespace pcl
 {
@@ -492,11 +493,16 @@ communicate()
 	PCL_PROFILE(pcl_IntCom_communicateData);
 	int dataTag = 749345;//	an arbitrary number
 
+	UG_DLOG(LIB_PCL, 1, "receiving from procs:");
+
 //	first shedule receives
 	int counter = 0;
 	for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
 		iter != m_streamPackIn.end(); ++iter, ++counter)
 	{
+		UG_DLOG(LIB_PCL, 1, " " << iter->first
+				<< "(" << vBufferSizesIn[counter] << ")");
+
 	//	resize the buffer
 		iter->second->resize(vBufferSizesIn[counter]);
 		
@@ -505,15 +511,21 @@ communicate()
 				iter->first, dataTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
 	}
 
+	UG_DLOG(LIB_PCL, 1, "\nsending to procs:");
+
 //	now send data
 	counter = 0;
 	for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
 		iter != m_streamPackOut.end(); ++iter, ++counter)
 	{
+		UG_DLOG(LIB_PCL, 1, " " << iter->first
+				<< "(" << iter->second->size() << ")");
+
 		//int retVal =
 		MPI_Isend(iter->second->buffer(), iter->second->size(), MPI_UNSIGNED_CHAR,
 				iter->first, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 	}
+	UG_DLOG(LIB_PCL, 1, "\n");
 
 //	TODO: this can be improved:
 //		instead of waiting for all, one could wait until one has finished and directly

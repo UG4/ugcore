@@ -55,6 +55,7 @@ LogAssistant::Tags GetLogAssistantTag(const char *s)
 	if(strcmp(s, "LIB_ALG_VECTOR") == 0) return LogAssistant::LIB_ALG_VECTOR;
 	if(strcmp(s, "LIB_ALG_MATRIX") == 0) return LogAssistant::LIB_ALG_MATRIX;
 	if(strcmp(s, "LIB_ALG_AMG") == 0) return LogAssistant::LIB_ALG_AMG;
+	if(strcmp(s, "LIB_PCL") == 0) return LogAssistant::LIB_PCL;
 	UG_LOG("Tag " << s << " not found!");
 	return LogAssistant::MAIN;
 }
@@ -72,7 +73,10 @@ bool DefinedUG_ENABLE_DEBUG_LOGS() { return true; }
 bool DefinedUG_ENABLE_DEBUG_LOGS() { return false; }
 #endif
 
-
+void SetDebugLevel(const char* strTag, int level)
+{
+	GetLogAssistant().set_debug_level(GetLogAssistantTag(strTag), level);
+}
 
 bool RegisterMiscFunctions(Registry &reg, const char* parentGroup)
 {
@@ -91,6 +95,7 @@ bool RegisterMiscFunctions(Registry &reg, const char* parentGroup)
 			;
 		reg.add_function("GetLogAssistant", &GetLogAssistant, group.str().c_str(), "the log assistant");
 		reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, group.str().c_str(), "integer tag for use int set_debug_level");
+		reg.add_function("SetDebugLevel", &SetDebugLevel, group.str().c_str());
 	}
 
 	{

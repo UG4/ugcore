@@ -65,6 +65,7 @@ class LogAssistant
 			LIB_ALG_VECTOR,
 			LIB_ALG_MATRIX,
 			LIB_ALG_AMG,
+			LIB_PCL,
 			NUM_TAGS
 		};
 
