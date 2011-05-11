@@ -71,6 +71,12 @@ class StreamPack
 		a new one will be created.*/
 		BinaryStream* get_stream(int tag);
 
+	///	resets read and write pointers of all streams
+		void reset_streams();
+		
+	///	erases the stream associated with the given tag.
+		void erase_stream(int tag);
+
 	///	returns the begin-iterator to the stored (tag, stream)-pairs
 	/**	use iter->first to access the tag and iter->second to access the stream.*/
 		inline iterator begin()						{return m_streamMap.begin();}

@@ -140,4 +140,20 @@ BinaryStream* StreamPack::get_stream(int tag)
 	return stream;
 }
 
+void StreamPack::erase_stream(int tag)
+{
+	iterator iter = m_streamMap.find(tag);
+	if(iter == m_streamMap.end())
+		return;
+
+	delete iter->second;
+	m_streamMap.erase(iter);
 }
+
+void StreamPack::reset_streams()
+{
+	for(iterator iter = begin(); iter != end(); ++iter)
+		iter->second->reset();
+}
+
+}//	end of namespace
