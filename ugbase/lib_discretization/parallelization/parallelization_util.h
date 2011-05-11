@@ -86,6 +86,10 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 		}
 	}
 
+//	touching an interface means creation. Thus we remove the empty interfaces
+//	to avoid storage, communication (should not happen any longer) etc...
+	pcl::RemoveEmptyInterfaces(elemLayout);
+
 //	we're done
 	return true;
 }
@@ -229,6 +233,10 @@ bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
 			}
 		}
 	}
+
+//	touching an interface means creation. Thus we remove the empty interfaces
+//	to avoid storage, communication (should not happen any longer) etc...
+	pcl::RemoveEmptyInterfaces(elemLayout);
 
 //	we're done
 	return true;

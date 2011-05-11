@@ -238,7 +238,8 @@ create_surface_index_layouts()
 	                                 distr, *m_pLayoutMap, INT_H_SLAVE,
 	                                 *this->m_pMultiGrid,
 	                                 *m_pDistGridManager);
-	bRet &= CreateSurfaceIndexLayout(distr.get_master_layout(),
+// 	INFO: THIS MUST NOT BE USED AND WILL SOON BE DELETED AFTER SOME TESTS
+/*	bRet &= CreateSurfaceIndexLayout(distr.get_master_layout(),
 	                                 distr, *m_pLayoutMap, INT_V_MASTER,
 									 *this->m_pMultiGrid,
 									 *m_pDistGridManager);
@@ -246,10 +247,11 @@ create_surface_index_layouts()
 	                                 distr, *m_pLayoutMap, INT_V_SLAVE,
 	                                 *this->m_pMultiGrid,
 	                                 *m_pDistGridManager);
+*/
 
-//	check layouts
+//	check
 //	pcl::ParallelCommunicator<IndexLayout> comTmp;
-//	PrintLayout(comTmp, distr.get_master_layout(), distr.get_slave_layout());
+//	pcl::PrintLayout(comTmp, distr.get_master_layout(), distr.get_slave_layout());
 
 //	on the surface view, there are no vertical layouts.
 	distr.get_vertical_master_layout().clear();
