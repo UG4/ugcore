@@ -63,7 +63,7 @@ void RegisterDensityDrivenFlowObjects(Registry& reg, const char* parentGroup)
 
 //	Density Driven Flow
 	{
-		typedef DensityDrivenFlowElemDisc<FV1Geometry, domain_type, algebra_type> T2;
+		typedef DensityDrivenFlowElemDisc<domain_type, algebra_type> T2;
 		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
 		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
 		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
@@ -91,6 +91,18 @@ void RegisterDensityDrivenFlowObjects(Registry& reg, const char* parentGroup)
 			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
 			.add_method("get_brine", &T2::get_brine);
 	}
+}
+
+
+template <typename TDomain>
+void RegisterDensityDrivenFlowDimObjects(Registry& reg, const char* parentGroup)
+{
+//	typedef domain
+	typedef TDomain domain_type;
+	static const int dim = domain_type::dim;
+
+	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	std::string grp = grpSS.str();
 
 /////////////////////////////////////////////////////////////////////////////
 // Convection Shapes
@@ -98,15 +110,15 @@ void RegisterDensityDrivenFlowObjects(Registry& reg, const char* parentGroup)
 
 //	IConvectionShapes
 	{
-		typedef IConvectionShapes<dim, algebra_type> T;
+		typedef IConvectionShapes<dim> T;
 		std::stringstream ss; ss << "IConvectionShapes" << dim << "d";
 		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
 	}
 
 //	ConvectionShapesNoUpwind
 	{
-		typedef ConvectionShapesNoUpwind<dim, algebra_type> T;
-		typedef IConvectionShapes<dim, algebra_type> TBase;
+		typedef ConvectionShapesNoUpwind<dim> T;
+		typedef IConvectionShapes<dim> TBase;
 		std::stringstream ss; ss << "ConvectionShapesNoUpwind" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor();
@@ -114,8 +126,8 @@ void RegisterDensityDrivenFlowObjects(Registry& reg, const char* parentGroup)
 
 //	ConvectionShapesFullUpwind
 	{
-		typedef ConvectionShapesFullUpwind<dim, algebra_type> T;
-		typedef IConvectionShapes<dim, algebra_type> TBase;
+		typedef ConvectionShapesFullUpwind<dim> T;
+		typedef IConvectionShapes<dim> TBase;
 		std::stringstream ss; ss << "ConvectionShapesFullUpwind" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor();
@@ -123,13 +135,12 @@ void RegisterDensityDrivenFlowObjects(Registry& reg, const char* parentGroup)
 
 //	ConvectionShapesPartialUpwind
 	{
-		typedef ConvectionShapesPartialUpwind<dim, algebra_type> T;
-		typedef IConvectionShapes<dim, algebra_type> TBase;
+		typedef ConvectionShapesPartialUpwind<dim> T;
+		typedef IConvectionShapes<dim> TBase;
 		std::stringstream ss; ss << "ConvectionShapesPartialUpwind" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor();
 	}
-
 }
 
 
@@ -151,6 +162,7 @@ bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
 		{
 			typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterDensityDrivenFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterDensityDrivenFlowDimObjects<domain_type>(reg, grp.c_str());
 		}
 #endif
 
@@ -159,6 +171,7 @@ bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterDensityDrivenFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterDensityDrivenFlowDimObjects<domain_type>(reg, grp.c_str());
 		}
 #endif
 
@@ -167,6 +180,7 @@ bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
 		{
 			typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterDensityDrivenFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterDensityDrivenFlowDimObjects<domain_type>(reg, grp.c_str());
 		}
 #endif
 	}
