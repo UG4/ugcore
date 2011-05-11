@@ -274,10 +274,20 @@ else  elemDisc = DensityDrivenFlow3d() end
 elemDisc:set_approximation_space(approxSpace)
 elemDisc:set_functions("c,p")
 elemDisc:set_subsets("Inner")
-if elemDisc:set_upwind("no") == false then exit() end
 elemDisc:set_consistent_gravity(true)
 elemDisc:set_boussinesq_transport(true)
 elemDisc:set_boussinesq_flow(true)
+
+
+-- Select upwind
+if dim == 2 then 
+--upwind = ConvectionShapesNoUpwind2d()
+upwind = ConvectionShapesFullUpwind2d()
+--upwind = ConvectionShapesPartialUpwind2d()
+else print("Dim not supported for upwind"); exit() end
+
+if elemDisc:set_upwind(upwind) == false then exit() end
+
 
 densityValue:set_input(0, elemDisc:get_brine())
 
