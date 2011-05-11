@@ -68,6 +68,7 @@ template <class TLayout>
 void ParallelCommunicator<TLayout>::
 send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
+PCL_PROFILE(pcl_IntCom_send_layout_data);
 //	through the the category_tag we're able to find the correct send method.
 	send_data(layout, commPol, typename TLayout::category_tag());
 }
@@ -206,6 +207,7 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 							std::set<int>& curProcs,
 							TLayout& layout)
 {
+PCL_PROFILE_FUNC();
 	prepare_receiver_stream_pack(streamPack, curProcs, layout,
 								typename TLayout::category_tag());
 }
@@ -259,6 +261,7 @@ collect_layout_buffer_sizes(TLayout& layout,
 							std::map<int, int>* pMapBuffSizesOut,
 							const layout_tags::single_level_layout_tag&)
 {
+PCL_PROFILE_FUNC();
 	for(typename TLayout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
@@ -291,6 +294,7 @@ collect_layout_buffer_sizes(TLayout& layout,
 							std::map<int, int>* pMapBuffSizesOut,
 							const layout_tags::multi_level_layout_tag&)
 {
+PCL_PROFILE_FUNC();
 //	iterate through all interfaces
 	for(size_t i = 0; i < layout.num_levels(); ++i){
 		for(typename TLayout::iterator li = layout.begin(i);
@@ -323,6 +327,7 @@ template <class TLayout>
 void ParallelCommunicator<TLayout>::
 extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor)
 {
+PCL_PROFILE_FUNC();
 	extract_data(layout, streamPack,
 				extractor,
 				typename TLayout::category_tag());
@@ -518,6 +523,7 @@ communicate()
 
 //	we can now resize the receive buffers to their final sizes
 	{
+		PCL_PROFILE(pcl_IntCom_communicate_resizeRecvBufs);
 		size_t counter = 0;
 		for(std::set<int>::iterator iter = m_curInProcs.begin();
 			iter != m_curInProcs.end(); ++iter, ++counter)
