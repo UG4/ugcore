@@ -21,6 +21,7 @@ namespace pcl
 template <class TLayout>
 ParallelCommunicator<TLayout>::
 ParallelCommunicator() :
+	m_bDebugCommunication(false),
 	m_bSendBuffersFixed(true)
 {
 }
@@ -34,6 +35,8 @@ send_raw(int targetProc, void* pBuff, int bufferSize,
 	assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
 
 	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
+	m_curOutProcs.insert(targetProc);
+
 	if(!bSizeKnownAtTarget)
 		stream.write((char*)&bufferSize, sizeof(int));
 		
@@ -52,6 +55,8 @@ send_data(int targetProc, Interface& interface,
 		assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
 
 		ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
+		m_curOutProcs.insert(targetProc);
+
 		commPol.collect(stream, interface);
 		m_bSendBuffersFixed = m_bSendBuffersFixed
 							&& (commPol.get_required_buffer_size(interface) >= 0);
@@ -84,6 +89,8 @@ send_data(Layout& layout,
 		{
 			if(!layout.interface(iter).empty()){
 				ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+				m_curOutProcs.insert(layout.proc_id(iter));
+
 				commPol.collect(stream, layout.interface(iter));
 				m_bSendBuffersFixed = m_bSendBuffersFixed
 					&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
@@ -113,6 +120,8 @@ send_data(Layout& layout,
 			{
 				if(!layout.interface(iter).empty()){
 					ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+					m_curOutProcs.insert(layout.proc_id(iter));
+
 					commPol.collect(stream, layout.interface(iter));
 					m_bSendBuffersFixed = m_bSendBuffersFixed
 						&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
@@ -194,9 +203,10 @@ exchange_data(TLayoutMap& layoutMap,
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
 prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+							std::set<int>& curProcs,
 							TLayout& layout)
 {
-	prepare_receiver_stream_pack(streamPack, layout,
+	prepare_receiver_stream_pack(streamPack, curProcs, layout,
 								typename TLayout::category_tag());
 }
 
@@ -204,6 +214,7 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
 prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+							std::set<int>& curProcs,
 							TLayout& layout,
 							const layout_tags::single_level_layout_tag&)
 {
@@ -211,8 +222,10 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 	for(typename TLayout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
-		if(!layout.interface(li).empty())
+		if(!layout.interface(li).empty()){
 			streamPack.get_stream(layout.proc_id(li));
+			curProcs.insert(layout.proc_id(li));
+		}
 	}
 }
 
@@ -220,6 +233,7 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
 prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+							std::set<int>& curProcs,
 							TLayout& layout,
 							const layout_tags::multi_level_layout_tag&)
 {
@@ -229,8 +243,10 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 		for(typename TLayout::iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
-			if(!layout.interface(li).empty())
+			if(!layout.interface(li).empty()){
 				streamPack.get_stream(layout.proc_id(li));
+				curProcs.insert(layout.proc_id(li));
+			}
 		}
 	}
 }
@@ -357,12 +373,11 @@ bool ParallelCommunicator<TLayout>::
 communicate()
 {
 	PCL_PROFILE(pcl_IntCom_communicate);
-//	prepare receive streams
-//TODO:	This should be done in a way so that the least possible amount
-//		of data has to be reallocated (very often the map won't change
-//		compared to the last communication step).
-//	clear the map
-	m_streamPackIn.clear();
+
+//	note that we won't free thre memory in the stream-packs.
+//	we will only reset their write and read pointers.
+	m_streamPackIn.reset_streams();
+	m_curInProcs.clear();
 
 //	iterate through all registered extractors and create entries for
 //	the source-processes in the map (by simply 'touching' the entry).
@@ -370,16 +385,19 @@ communicate()
 		iter != m_extractorInfos.end(); ++iter)
 	{
 		ExtractorInfo& info = *iter;
-		if(info.m_srcProc > -1)
+		if(info.m_srcProc > -1){
 			m_streamPackIn.get_stream(info.m_srcProc);
+			m_curInProcs.insert(info.m_srcProc);
+		}
 		else
 		{
-			prepare_receiver_stream_pack(m_streamPackIn, *info.m_layout);
+			prepare_receiver_stream_pack(m_streamPackIn, m_curInProcs, *info.m_layout);
 		}
 	}
 
 //	if communication_debugging is enabled, then we check whether scheduled
 //	sends and receives match.
+//todo: use m_curInProcs / m_curOutProcs instead.
 	if(communication_debugging_enabled()){
 		if(!StreamPacksMatch(m_streamPackIn, m_streamPackOut, m_debugProcComm)){
 			UG_LOG("ERROR in ParallelCommunicator::communicate(): send / receive mismatch. Aborting.\n");
@@ -388,8 +406,8 @@ communicate()
 	}
 
 //	number of in and out-streams.
-	size_t	numOutStreams = m_streamPackOut.num_streams();
-	size_t	numInStreams = m_streamPackIn.num_streams();
+	size_t	numOutStreams = m_curOutProcs.size(); //m_streamPackOut.num_streams();
+	size_t	numInStreams = m_curInProcs.size(); //m_streamPackIn.num_streams();
 
 //	used for mpi-communication.
 	std::vector<MPI_Request> vSendRequests(numOutStreams);
@@ -410,10 +428,10 @@ communicate()
 	//	a map with <procId, Size>. Will be used to collect stream-sizes
 		std::map<int, int> mapBuffSizes;
 	//	initialise all sizes with 0
-		for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
-			iter != m_streamPackIn.end(); ++iter)
+		for(std::set<int>::iterator iter = m_curInProcs.begin();
+			iter != m_curInProcs.end(); ++iter)
 		{
-			mapBuffSizes[iter->first] = 0;
+			mapBuffSizes[*iter] = 0;
 		}
 		
 	//	iterate over all extractors and collect the buffer sizes
@@ -453,10 +471,10 @@ communicate()
 	//	m_streamPackIn...
 		if(allBufferSizesFixed){
 			int counter = 0;
-			for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
-				iter != m_streamPackIn.end(); ++iter, ++counter)
+			for(std::set<int>::iterator iter = m_curInProcs.begin();
+				iter != m_curInProcs.end(); ++iter, ++counter)
 			{
-				vBufferSizesIn[counter] = mapBuffSizes[iter->first];
+				vBufferSizesIn[counter] = mapBuffSizes[*iter];
 			}
 		}
 	}
@@ -471,22 +489,22 @@ communicate()
 
 	//	shedule receives first
 		counter = 0;
-		for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
-			iter != m_streamPackIn.end(); ++iter, ++counter)
+		for(std::set<int>::iterator iter = m_curInProcs.begin();
+			iter != m_curInProcs.end(); ++iter, ++counter)
 		{
 			MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
-					iter->first, sizeTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
+					*iter, sizeTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
 		}
 
 	//	send buffer sizes
 		counter = 0;
-		for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
-			iter != m_streamPackOut.end(); ++iter, ++counter)
+		for(std::set<int>::iterator iter = m_curOutProcs.begin();
+			iter != m_curOutProcs.end(); ++iter, ++counter)
 		{
-			int streamSize = (int)iter->second->size();
-			//int retVal =
+			int streamSize = (int)m_streamPackOut.get_stream(*iter)->size();
+
 			MPI_Isend(&streamSize, sizeof(int), MPI_UNSIGNED_CHAR,
-					iter->first, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
+					*iter, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 		}
 
 	//	TODO: this can be improved:
@@ -501,10 +519,11 @@ communicate()
 //	we can now resize the receive buffers to their final sizes
 	{
 		size_t counter = 0;
-		for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
-			iter != m_streamPackIn.end(); ++iter, ++counter)
+		for(std::set<int>::iterator iter = m_curInProcs.begin();
+			iter != m_curInProcs.end(); ++iter, ++counter)
 		{
-			iter->second->resize(vBufferSizesIn[counter]);
+			m_streamPackIn.get_stream(*iter)->resize(vBufferSizesIn[counter]);
+			//iter->second->resize(vBufferSizesIn[counter]);
 		}
 	}
 	
@@ -527,30 +546,33 @@ communicate()
 
 //	first shedule receives
 	int counter = 0;
-	for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
-		iter != m_streamPackIn.end(); ++iter, ++counter)
+	for(std::set<int>::iterator iter = m_curInProcs.begin();
+		iter != m_curInProcs.end(); ++iter, ++counter)
 	{
-		UG_DLOG(LIB_PCL, 1, " " << iter->first
+		UG_DLOG(LIB_PCL, 1, " " << *iter
 				<< "(" << vBufferSizesIn[counter] << ")");
 		
+		ug::BinaryStream* pStream = m_streamPackIn.get_stream(*iter);
 	//	receive the data
-		MPI_Irecv(iter->second->buffer(), vBufferSizesIn[counter], MPI_UNSIGNED_CHAR,	
-				iter->first, dataTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
+		MPI_Irecv(pStream->buffer(), vBufferSizesIn[counter], MPI_UNSIGNED_CHAR,
+				*iter, dataTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
 	}
 
 	UG_DLOG(LIB_PCL, 1, "\nsending to procs:");
 
 //	now send data
 	counter = 0;
-	for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
-		iter != m_streamPackOut.end(); ++iter, ++counter)
+	for(std::set<int>::iterator iter = m_curOutProcs.begin();
+		iter != m_curOutProcs.end(); ++iter, ++counter)
 	{
-		UG_DLOG(LIB_PCL, 1, " " << iter->first
-				<< "(" << iter->second->size() << ")");
+		ug::BinaryStream* pStream = m_streamPackOut.get_stream(*iter);
+
+		UG_DLOG(LIB_PCL, 1, " " << *iter
+				<< "(" << pStream->size() << ")");
 
 		//int retVal =
-		MPI_Isend(iter->second->buffer(), iter->second->size(), MPI_UNSIGNED_CHAR,
-				iter->first, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
+		MPI_Isend(pStream->buffer(), pStream->size(), MPI_UNSIGNED_CHAR,
+				*iter, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 	}
 	UG_DLOG(LIB_PCL, 1, "\n");
 
@@ -613,7 +635,8 @@ communicate()
 	}
 
 //	clean up
-	m_streamPackOut.clear();
+	m_streamPackOut.reset_streams();
+	m_curOutProcs.clear();
 	m_extractorInfos.clear();
 
 //	reset m_bSendBuffersFixed

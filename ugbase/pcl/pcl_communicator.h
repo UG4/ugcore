@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <map>
+#include <set>
 #include <cassert>
 #include "common/util/binary_stream.h"
 #include "common/util/stream_pack.h"
@@ -218,13 +219,16 @@ class ParallelCommunicator
 	
 	///	prepare stream-pack-in
 		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+											std::set<int>& curProcs,
 											TLayout& layout);
 	/// specialization of stream-pack preparation for single-level-layouts
 		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+										std::set<int>& curProcs,
 										TLayout& layout,
 										const layout_tags::single_level_layout_tag&);
 	/// specialization of stream-pack preparation for multi-level-layouts
 		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+										std::set<int>& curProcs,
 										TLayout& layout,
 										const layout_tags::multi_level_layout_tag&);
 
@@ -295,8 +299,14 @@ class ParallelCommunicator
 	protected:
 	///	holds the streams that are used to send data
 		ug::StreamPack		m_streamPackOut;
+	///	stores out-procs for the next communication step
+		std::set<int>	m_curOutProcs;
+
 	///	holds the streams that are used to receive data
 		ug::StreamPack		m_streamPackIn;
+	///	stores in-procs for the next communication step
+		std::set<int>	m_curInProcs;
+
 	///	holds information about the extractors that are awaiting data.
 		ExtractorInfoList	m_extractorInfos;
 		
