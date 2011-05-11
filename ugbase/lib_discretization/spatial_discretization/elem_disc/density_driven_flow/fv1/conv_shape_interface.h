@@ -14,18 +14,39 @@ namespace ug{
 // Interface for Convection shapes
 /////////////////////////////////////////////////////////////////////////////
 
-template <int dim, typename TAlgebra>
+
+/**
+ * The idea of convection shapes is to generalize the upwinding, such that
+ * the upwind may also depend on additional parameters.
+ *
+ * In the case of d3f for example, one is interested in the evaluation of
+ * the convective flux at an integration point
+ *
+ * conv_flux_{ip} := (\omega \vec{q} \cdot \vec{n})|_{ip}
+ *
+ * In order to do so, the flux is interpolated by shape functions as:
+ * conv_flux_{ip} := \sum_{sh=1}^{n_sh} \phi_{sh}^{conv}|_{ip} \cdot \omega_{sh}
+ *
+ * The computation of the convective flux does not only depend on the geometry
+ * but does also depend on the convection velocity and the Diffusion-Dispersion-
+ * Tensor in order to allow a weighting between diffusive and convective flux.
+ * Therefore, also the convection shape depend on those quantities and the
+ * derivatives of the convection shapes w.r.t. the velocity and the Diff-Disp-Tensor
+ * must be taken into account when computing an exact jacobian.
+ *
+ */
+template <int dim>
 class IConvectionShapes
 {
 	public:
 	/// Abbreviation for own type
-		typedef IConvectionShapes<dim, TAlgebra> this_type;
+		typedef IConvectionShapes<dim> this_type;
 
 	///	type of update function
 		typedef bool (this_type::*UpdateFunc)
 				(const FVGeometryBase* geo,
-				 const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-				 const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+				 const MathVector<dim>* DarcyVelocity,
+				 const MathMatrix<dim, dim>* Diffusion,
 				 bool computeDeriv);
 
 	public:
@@ -73,10 +94,10 @@ class IConvectionShapes
 		}
 
 		bool update(const FVGeometryBase* geo,
-		            const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-		            const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+					const MathVector<dim>* DarcyVelocity,
+					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv)
-			{return (this->*(m_vUpdateFunc[m_id]))(	geo, DarcyVelocity,Diffusion, computeDeriv);}
+			{return (this->*(m_vUpdateFunc[m_id]))(	geo, DarcyVelocity,DiffDisp, computeDeriv);}
 
 	//////////////////////////
 	// internal handling
@@ -93,6 +114,7 @@ class IConvectionShapes
 		number& conv_shape(size_t scvf, size_t sh)
 		{
 			UG_ASSERT(scvf < m_vUpShape.size(), "Invalid index");
+			UG_ASSERT(sh < m_vUpShape[scvf].size(), "Invalid index");
 			return m_vUpShape[scvf][sh];
 		}
 
@@ -157,10 +179,10 @@ class IConvectionShapes
 /////////////////////////////////////////////////////////////////////////////
 
 //	register a update function for a Geometry
-template <int dim, typename TAlgebra>
+template <int dim>
 template <typename TFVGeom, typename TAssFunc>
 void
-IConvectionShapes<dim, TAlgebra>::
+IConvectionShapes<dim>::
 register_update_func(TAssFunc func)
 {
 //	get unique geometry id
@@ -175,10 +197,10 @@ register_update_func(TAssFunc func)
 }
 
 //	set the Geometry type to use for next updates
-template <int dim, typename TAlgebra>
+template <int dim>
 template <typename TFVGeom>
 bool
-IConvectionShapes<dim, TAlgebra>::
+IConvectionShapes<dim>::
 set_geometry_type()
 {
 //	get unique geometry id
@@ -205,9 +227,9 @@ set_geometry_type()
 
 
 //	resize the data arrays
-template <int dim, typename TAlgebra>
+template <int dim>
 void
-IConvectionShapes<dim, TAlgebra>::
+IConvectionShapes<dim>::
 set_sizes(size_t numScvf, size_t numSh)
 {
 //	remember sizes
@@ -217,7 +239,7 @@ set_sizes(size_t numScvf, size_t numSh)
 //	adjust arrays
 	m_vUpShape.resize(m_numScvf);
 	m_vUpShapeVel.resize(m_numScvf);
-	m_vUpShapeVel.resize(m_numScvf);
+	m_vUpShapeDiffusion.resize(m_numScvf);
 	for(size_t scvf = 0; scvf < m_numScvf; ++scvf)
 	{
 		m_vUpShape[scvf].resize(m_numSh);

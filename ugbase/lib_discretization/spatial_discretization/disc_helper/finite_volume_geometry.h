@@ -67,13 +67,13 @@ class FV1Geometry : public FVGeometryBase {
 		static const int order = 1;
 
 		// number of SubControlVolumes
-		static const size_t m_numSCV = ref_elem_type::num_corners;
+		static const size_t numSCV = ref_elem_type::num_corners;
 
 		// type of SubControlVolume
 		typedef typename finite_volume_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
 
 		// number of SubControlVolumeFaces
-		static const size_t m_numSCVF = ref_elem_type::num_edges;
+		static const size_t numSCVF = ref_elem_type::num_edges;
 
 	public:
 		// dimension of reference element
@@ -386,14 +386,14 @@ class FV1Geometry : public FVGeometryBase {
 		const MathVector<world_dim>* corners() const {return m_gloMid[0];}
 
 		/// number of SubControlVolumeFaces
-		inline size_t num_scvf() const {return m_numSCVF;};
+		inline size_t num_scvf() const {return numSCVF;};
 
 		/// const access to SubControlVolumeFace number i
 		inline const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 		/// number of SubControlVolumes
-		inline size_t num_scv() const {return m_numSCV;}
+		inline size_t num_scv() const {return numSCV;}
 
 		/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
@@ -548,14 +548,14 @@ class FV1Geometry : public FVGeometryBase {
 
 		// local and global geom object midpoints for each dimension
 		// (most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-		MathVector<dim> m_locMid[dim+1][m_numSCVF + 1];
-		MathVector<world_dim> m_gloMid[dim+1][m_numSCVF +1];
+		MathVector<dim> m_locMid[dim+1][numSCVF + 1];
+		MathVector<world_dim> m_gloMid[dim+1][numSCVF +1];
 
 		// SubControlVolumeFaces
-		SCVF m_vSCVF[m_numSCVF];
+		SCVF m_vSCVF[numSCVF];
 
 		// SubControlVolumes
-		SCV m_vSCV[m_numSCV];
+		SCV m_vSCV[numSCV];
 
 		// Reference Mapping
 		ReferenceMapping<ref_elem_type, world_dim> m_rMapping;

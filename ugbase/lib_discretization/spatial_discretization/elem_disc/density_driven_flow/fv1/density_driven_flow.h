@@ -68,9 +68,7 @@ namespace ug{
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
-template<template <	class TElem, int TWorldDim> class TFVGeom,
-					typename TDomain,
-					typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 class DensityDrivenFlowElemDisc
 	: public IDomainElemDisc<TDomain, TAlgebra>
 {
@@ -103,7 +101,7 @@ class DensityDrivenFlowElemDisc
 	public:
 	///	Constructor
 		DensityDrivenFlowElemDisc() :
-			m_Upwind(NO_UPWIND), m_bConsGravity(true),
+			m_pUpwind(NULL), m_bConsGravity(true),
 			m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 			m_imBrineScvf(false), m_imBrineGradScvf(false),
 			m_imPressureGradScvf(false),
@@ -156,27 +154,11 @@ class DensityDrivenFlowElemDisc
 
 	///	sets the type of upwind
 	/**
-	 * This methods lets the user choose the type of upwind
-	 * Currently, there are three implementations:
-	 * <ul>
-	 * <li> no
-	 * <li> full
-	 * <li> part
-	 * </ul>
+	 * This method sets the procedure that compute the upwinded flux.
 	 */
-		bool set_upwind(std::string upwind)
+		void set_upwind(IConvectionShapes<dim>& shape)
 		{
-			if(upwind == "no")		   m_Upwind = NO_UPWIND;
-			else if(upwind == "full")  m_Upwind = FULL_UPWIND;
-			else if(upwind == "part")  m_Upwind = PART_UPWIND;
-			else
-			{
-#ifndef FOR_VRL
-				UG_LOG("Upwind type not found.\n");
-				return false;
-#endif
-			}
-			return true;
+			m_pUpwind = &shape;
 		}
 
 	///	sets the porosity
@@ -306,9 +288,8 @@ class DensityDrivenFlowElemDisc
 		bool assemble_f(local_vector_type& d);
 
 	private:
-	/// Upwind (1.0 == full upwind, 0.0 == no upwind)
-		enum UpwindType{ NO_UPWIND = 0, FULL_UPWIND, PART_UPWIND};
-		int m_Upwind;
+	///	strategy to compute the upwind shapes
+		IConvectionShapes<dim>* m_pUpwind;
 
 	///	flag if using Consistent Gravity
 		bool m_bConsGravity;
@@ -376,6 +357,20 @@ class DensityDrivenFlowElemDisc
 		IPData<MathVector<dim>, dim>& get_pressure_grad() {return m_exPressureGrad;}
 
 	protected:
+	///	compute darcy velocity at one ip
+		void compute_darcy_velocity_ip_std(MathVector<dim>& DarcyVel,
+		                                   const MathMatrix<dim, dim>& Permeability,
+		                                   number Viscosity,
+		                                   const MathVector<dim>& DensityTimesGravity,
+		                                   const MathVector<dim>& PressureGrad,
+		                                   bool compDeriv,
+		                                   MathVector<dim>* DarcyVel_c,
+		                                   MathVector<dim>* DarcyVel_p,
+		                                   const MathVector<dim>* DensityTimesGravity_c,
+		                                   const number* Viscosity_c,
+		                                   const MathVector<dim>* PressureGrad_p,
+		                                   size_t numSh);
+
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
 		bool compute_darcy_export_std(const local_vector_type& u, bool compDeriv);

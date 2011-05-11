@@ -16,16 +16,16 @@ namespace ug{
 // No Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class ConvectionShapesNoUpwind
-	: public IConvectionShapes<TDim, TAlgebra>
+	: public IConvectionShapes<TDim>
 {
 	public:
 	///	Base class
-		typedef IConvectionShapes<TDim, TAlgebra> base_type;
+		typedef IConvectionShapes<TDim> base_type;
 
 	///	This class
-		typedef ConvectionShapesNoUpwind<TDim, TAlgebra> this_type;
+		typedef ConvectionShapesNoUpwind<TDim> this_type;
 
 	///	Dimension
 		static const int dim = TDim;
@@ -43,8 +43,8 @@ class ConvectionShapesNoUpwind
 	///	constructor
 		ConvectionShapesNoUpwind()
 		{
-		//	the shapes do not depend on the Diffusion. Thus, we can set the
-		//	derivative to be always zero w.r.t. the Diffusion for all shapes
+		//	the shapes do not depend on the DiffDisp. Thus, we can set the
+		//	derivative to be always zero w.r.t. the DiffDisp for all shapes
 			set_non_zero_deriv_diffusion_flag(false);
 
 		//	register evaluation function
@@ -54,8 +54,8 @@ class ConvectionShapesNoUpwind
 	///	update of values for FV1Geometry
 		template <typename TElem>
 		bool update(const FV1Geometry<TElem, dim>* geo,
-		            const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-		            const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+					const MathVector<dim>* DarcyVelocity,
+					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
 
 	private:
@@ -79,24 +79,27 @@ class ConvectionShapesNoUpwind
 		{
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)
-					(const TGeom* geo,
-					const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-					const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
-					bool computeDeriv);
+					(  const TGeom* geo,
+					   const MathVector<dim>* DarcyVelocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
 
 			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
 		}
 };
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-ConvectionShapesNoUpwind<TDim, TAlgebra>::
+ConvectionShapesNoUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo,
-       const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-       const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+       const MathVector<dim>* DarcyVelocity,
+       const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
+	UG_ASSERT(geo != NULL, "Null pointer");
+	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
+
 //	loop subcontrol volume faces
 	for(size_t i = 0; i < geo->num_scvf(); ++i)
 	{
@@ -131,16 +134,16 @@ update(const FV1Geometry<TElem, dim>* geo,
 // Full Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class ConvectionShapesFullUpwind
-	: public IConvectionShapes<TDim, TAlgebra>
+	: public IConvectionShapes<TDim>
 {
 	public:
 	///	Base class
-		typedef IConvectionShapes<TDim, TAlgebra> base_type;
+		typedef IConvectionShapes<TDim> base_type;
 
 	///	This class
-		typedef ConvectionShapesFullUpwind<TDim, TAlgebra> this_type;
+		typedef ConvectionShapesFullUpwind<TDim> this_type;
 
 	///	Dimension
 		static const int dim = TDim;
@@ -158,8 +161,8 @@ class ConvectionShapesFullUpwind
 	///	constructor
 		ConvectionShapesFullUpwind()
 		{
-		//	the shapes do not depend on the Diffusion. Thus, we can set the
-		//	derivative to be always zero w.r.t. the Diffusion for all shapes
+		//	the shapes do not depend on the DiffDisp. Thus, we can set the
+		//	derivative to be always zero w.r.t. the DiffDisp for all shapes
 			set_non_zero_deriv_diffusion_flag(false);
 
 		//	register evaluation function
@@ -169,8 +172,8 @@ class ConvectionShapesFullUpwind
 	///	update of values for FV1Geometry
 		template <typename TElem>
 		bool update(const FV1Geometry<TElem, dim>* geo,
-		            const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-		            const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+					const MathVector<dim>* DarcyVelocity,
+					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
 
 	private:
@@ -194,24 +197,27 @@ class ConvectionShapesFullUpwind
 		{
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)
-					(const TGeom* geo,
-					const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-					const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
-					bool computeDeriv);
+					(  const TGeom* geo,
+					   const MathVector<dim>* DarcyVelocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
 
 			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
 		}
 };
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-ConvectionShapesFullUpwind<TDim, TAlgebra>::
+ConvectionShapesFullUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo,
-       const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-       const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+       const MathVector<dim>* DarcyVelocity,
+       const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
+	UG_ASSERT(geo != NULL, "Null pointer");
+	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
+
 //	loop subcontrol volume faces
 	for(size_t i = 0; i < geo->num_scvf(); ++i)
 	{
@@ -248,16 +254,16 @@ update(const FV1Geometry<TElem, dim>* geo,
 // Full Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class ConvectionShapesPartialUpwind
-	: public IConvectionShapes<TDim, TAlgebra>
+	: public IConvectionShapes<TDim>
 {
 	public:
 	///	Base class
-		typedef IConvectionShapes<TDim, TAlgebra> base_type;
+		typedef IConvectionShapes<TDim> base_type;
 
 	///	This class
-		typedef ConvectionShapesPartialUpwind<TDim, TAlgebra> this_type;
+		typedef ConvectionShapesPartialUpwind<TDim> this_type;
 
 	///	Dimension
 		static const int dim = TDim;
@@ -275,10 +281,6 @@ class ConvectionShapesPartialUpwind
 	///	constructor
 		ConvectionShapesPartialUpwind()
 		{
-		//	the shapes do not depend on the Diffusion. Thus, we can set the
-		//	derivative to be always zero w.r.t. the Diffusion for all shapes
-			set_non_zero_deriv_diffusion_flag(false);
-
 		//	register evaluation function
 			register_func(Int2Type<dim>());
 		}
@@ -286,8 +288,8 @@ class ConvectionShapesPartialUpwind
 	///	update of values for FV1Geometry
 		template <typename TElem>
 		bool update(const FV1Geometry<TElem, dim>* geo,
-		            const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-		            const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+					const MathVector<dim>* DarcyVelocity,
+					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
 
 	private:
@@ -311,24 +313,32 @@ class ConvectionShapesPartialUpwind
 		{
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)
-					(const TGeom* geo,
-					const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-					const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
-					bool computeDeriv);
+					(  const TGeom* geo,
+					   const MathVector<dim>* DarcyVelocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
 
 			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
 		}
 };
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-ConvectionShapesPartialUpwind<TDim, TAlgebra>::
+ConvectionShapesPartialUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo,
-       const DataImport<MathVector<dim>, dim, TAlgebra>& DarcyVelocity,
-       const DataImport<MathMatrix<dim, dim>, dim, TAlgebra>& Diffusion,
+       const MathVector<dim>* DarcyVelocity,
+       const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
+	UG_ASSERT(geo != NULL, "Null pointer");
+	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
+	UG_ASSERT(DiffDisp != NULL, "Null pointer");
+
+//	Compute Volume of Element
+	typedef typename FV1Geometry<TElem, dim>::ref_elem_type ref_elem_type;
+	const number vol = ElementSize<ref_elem_type, dim>(geo->corners());
+
 //	loop subcontrol volume faces
 	for(size_t i = 0; i < geo->num_scvf(); ++i)
 	{
@@ -339,41 +349,59 @@ update(const FV1Geometry<TElem, dim>* geo,
 		static const size_t ip = 0;
 		UG_ASSERT(scvf.num_ip() == 1, "Only first order implemented.");
 
-	//	Compute Volume of Element
-		number Volume = ElementSize<typename FV1Geometry<TElem, dim>::ref_elem_type, dim>(geo->corners());
+	//	get corners
+		const size_t from = scvf.from();
+		const size_t to = scvf.to();
 
-	//  Get Gradients
-		MathVector<dim> DiffGrad;
-		const MathVector<dim>& gradTo = scvf.global_grad(scvf.to(), ip);
-		const MathVector<dim>& gradFrom = scvf.global_grad(scvf.from(), ip);
+	//	get gradients
+		const MathVector<dim>& gradTo = scvf.global_grad(to, ip);
+		const MathVector<dim>& gradFrom = scvf.global_grad(from, ip);
 
-	//	Compute DiffGrad = D * Grad Phi_to
-		MatVecMult(DiffGrad, Diffusion[i], gradTo);
+	//	set lambda negative as default
+		number lambda = -1;
 
-	//	Compute GradDiffGrad = < Grad Phi_from, DiffGrad >
-		const number GradDiffGrad = VecDot(DiffGrad,  gradFrom);
+	//	if DiffDisp-Tensor passed, compute lambda
+		if(DiffDisp != NULL)
+		{
+		//  Get Gradients
+			MathVector<dim> DiffGrad;
 
-	//	Set lambda
-		const number lambda = - GradDiffGrad * Volume;
+		//	Compute DiffGrad = D * Grad Phi_to
+			MatVecMult(DiffGrad, DiffDisp[i], gradTo);
+
+		//	Compute GradDiffGrad = < Grad Phi_from, DiffGrad >
+			const number GradDiffGrad = VecDot(DiffGrad,  gradFrom);
+
+		//	Set lambda
+			lambda = - GradDiffGrad * vol;
+		}
 
 	//	Compute flux
 		const number flux = VecDot(scvf.normal(), DarcyVelocity[i]);
 
-	//	switch if full upwind has to be used
-		if(lambda <= 0)
+	//	reset values
+		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+			conv_shape(i, sh) = 0.0;
+		if(computeDeriv)
+			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				VecSet(conv_shape_vel(i, sh), 0.0);
+
+	///////////////////////////////////////////////////////////////////
+	//	Case 1:
+	//	full upwind is used
+	///////////////////////////////////////////////////////////////////
+		if(lambda <= 0 || DiffDisp == NULL)
 		{
 		//	Choose Upwind corner
 			const size_t up = (flux >= 0) ? scvf.from() : scvf.to();
 
 		//	Write Shapes
-			for(size_t sh = 0; sh < scvf.num_sh(); ++sh) conv_shape(i, sh) = 0.0;
 			conv_shape(i, up) = flux;
 
 		//	Write Derivatives if wanted
 			if(computeDeriv)
 			{
-				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecSet(conv_shape_vel(i, sh), 0.0);
+			//	set derivative
 				conv_shape_vel(i, up) = scvf.normal();
 
 			//	does not depend on diffusion
@@ -381,71 +409,50 @@ update(const FV1Geometry<TElem, dim>* geo,
 			}
 
 		//	everything done
-			return true;
+			continue;
 		}
 
-	//	Compute derivatives
-		MathMatrix<dim, dim> D_lambda;
-		for (size_t k = 0; k < (size_t)dim; k++)
-			for (size_t l = 0; l < (size_t)dim; l++)
-				D_lambda(k, l) = - gradFrom[k] * gradTo[l] * Volume;
-
-	//	get corners
-		const size_t co_from = scvf.from();
-		const size_t co_to = scvf.to();
-
-
-	//	reset values
-		for(size_t sh = 0; sh < scvf.num_sh(); ++sh) conv_shape(i, sh) = 0.0;
-
+	///////////////////////////////////////////////////////////////////
+	//	Case 2:
 	//	The case of the diffusion dominance (central differences)
+	///////////////////////////////////////////////////////////////////
 		if (2 * lambda > fabs(flux))
 		{
-			conv_shape(i, co_from) = flux / 2;
-			conv_shape(i, co_to) = flux / 2;
+			conv_shape(i, from) = flux / 2.0;
+			conv_shape(i, to) = flux / 2.0;
 
 			if(computeDeriv)
 			{
 				set_non_zero_deriv_diffusion_flag(false);
 
-				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecSet(conv_shape_vel(i, sh), 0.0);
-
-				VecScale(conv_shape_vel(i,co_from), scvf.normal(), 1.0/2.0);
-				VecScale(conv_shape_vel(i, co_to), scvf.normal(), 1.0/2.0);
+				VecScale(conv_shape_vel(i,from), scvf.normal(), 1.0/2.0);
+				VecScale(conv_shape_vel(i, to), scvf.normal(), 1.0/2.0);
 			}
 
 		//	everything done
-			return true;
+			continue;
 		}
 
+	///////////////////////////////////////////////////////////////////
+	//	Case 3:
 	//	The cases of the convection dominance
+	///////////////////////////////////////////////////////////////////
 		set_non_zero_deriv_diffusion_flag(true);
 		if (flux >= 0)
 		{
-			conv_shape(i, co_from) = flux - lambda;
-			conv_shape(i, co_to) = lambda;
+			conv_shape(i, from) = flux - lambda;
+			conv_shape(i, to) = lambda;
 
 			if(computeDeriv)
-			{
-				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecSet(conv_shape_vel(i, sh), 0.0);
-
-				conv_shape_vel(i,co_from) = scvf.normal();
-			}
+				conv_shape_vel(i,from) = scvf.normal();
 		}
 		else
 		{
-			conv_shape(i, co_from) = - lambda;
-			conv_shape(i, co_to) = flux + lambda;
+			conv_shape(i, from) = - lambda;
+			conv_shape(i, to) = flux + lambda;
 
 			if(computeDeriv)
-			{
-				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecSet(conv_shape_vel(i, sh), 0.0);
-
-				conv_shape_vel(i,co_to) = scvf.normal();
-			}
+				conv_shape_vel(i,to) = scvf.normal();
 		}
 
 		if (computeDeriv)
@@ -456,8 +463,8 @@ update(const FV1Geometry<TElem, dim>* geo,
 			for (size_t k = 0; k < (size_t)dim; k++)
 				for (size_t l = 0; l < (size_t)dim; l++)
 				{
-					conv_shape_diffusion(i, co_from)(k,l) = - D_lambda(k,l);
-					conv_shape_diffusion(i, co_to)(k,l) = D_lambda(k,l);
+					conv_shape_diffusion(i, from)(k,l) = gradFrom[k]*gradTo[l]*vol;
+					conv_shape_diffusion(i, to)(k,l) = - gradFrom[k]*gradTo[l]*vol;
 				}
 		}
 	}

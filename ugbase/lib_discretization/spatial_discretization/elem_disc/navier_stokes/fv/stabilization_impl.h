@@ -177,8 +177,8 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 	static const size_t _P_ = dim;
 
 //	Some constants
-	static const size_t numIp = FV1Geometry<TElem, dim>::m_numSCVF;
-	static const size_t numSh = FV1Geometry<TElem, dim>::m_numSCV;
+	static const size_t numIp = FV1Geometry<TElem, dim>::numSCVF;
+	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
 
 //	compute upwind
 	if(!compute_upwind(geo, vCornerValue))

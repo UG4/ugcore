@@ -132,7 +132,7 @@ FV1Geometry()
 					get_local_shape_function_set<ref_elem_type>
 					(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
-		const size_t num_sh = m_numSCV;
+		const size_t num_sh = numSCV;
 		m_vSCVF[i].vShape.resize(num_sh);
 		m_vSCVF[i].localGrad.resize(num_sh);
 		m_vSCVF[i].globalGrad.resize(num_sh);
@@ -420,7 +420,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 							get_local_shape_function_set<ref_elem_type>
 								(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
-				const size_t num_sh = m_numSCV;
+				const size_t num_sh = numSCV;
 				bf.vShape.resize(num_sh);
 				bf.localGrad.resize(num_sh);
 				bf.globalGrad.resize(num_sh);
