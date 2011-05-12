@@ -5,12 +5,10 @@
 #ifndef __H__PCL__PCL_COMMUNICATOR__
 #define __H__PCL__PCL_COMMUNICATOR__
 
-#include <iostream>
 #include <map>
 #include <set>
 #include <cassert>
-#include "common/util/binary_stream.h"
-#include "common/util/stream_pack.h"
+#include "common/util/binary_buffer.h"
 #include "pcl_communication_structs.h"
 #include "pcl_process_communicator.h"
 
@@ -104,8 +102,8 @@ class ParallelCommunicator
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::receive.
 	 */
-		void receive_raw(int srcProc, ug::BinaryStream& binStreamOut,
-						 int bufferSize = -1);
+		void receive_raw(int srcProc, ug::BinaryBuffer& bufOut,
+						 int bufSize = -1);
 
 	///	registers a buffer to receive data from a source-proc.
 	/**	Receives data that has been sent with send_raw.
@@ -122,8 +120,7 @@ class ParallelCommunicator
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::receive.
 	 */
-		void receive_raw(int srcProc, void* buffOut,
-						 int bufferSize);
+		void receive_raw(int srcProc, void* bufOut, int bufSize);
 		
 	///	registers a communication-policy to receive data on communicate.
 	/**	Receives have to be registered before communicate is executed.
@@ -207,6 +204,9 @@ class ParallelCommunicator
 		bool communication_debugging_enabled();
 	 
 	protected:
+		typedef std::map<int, ug::BinaryBuffer>	BufferMap;
+
+	protected:
 	///	helper to collect data from single-level-layouts
 		void send_data(Layout& layout,
 				  ICommunicationPolicy<TLayout>& commPol,
@@ -218,16 +218,16 @@ class ParallelCommunicator
 				  const layout_tags::multi_level_layout_tag&);
 	
 	///	prepare stream-pack-in
-		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+		void prepare_receiver_buffer_map(BufferMap& bufMap,
 											std::set<int>& curProcs,
 											TLayout& layout);
 	/// specialization of stream-pack preparation for single-level-layouts
-		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+		void prepare_receiver_buffer_map(BufferMap& streamPack,
 										std::set<int>& curProcs,
 										TLayout& layout,
 										const layout_tags::single_level_layout_tag&);
 	/// specialization of stream-pack preparation for multi-level-layouts
-		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+		void prepare_receiver_buffer_map(BufferMap& streamPack,
 										std::set<int>& curProcs,
 										TLayout& layout,
 										const layout_tags::multi_level_layout_tag&);
@@ -253,14 +253,14 @@ class ParallelCommunicator
 										const layout_tags::multi_level_layout_tag&);	
 	
 	///	extract data from stream-pack
-		void extract_data(TLayout& layout, ug::StreamPack& streamPack,
+		void extract_data(TLayout& layout, BufferMap& bufMap,
 						CommPol& extractor);
 		
-		void extract_data(TLayout& layout, ug::StreamPack& streamPack,
+		void extract_data(TLayout& layout, BufferMap& bufMap,
 						CommPol& extractor,
 						const layout_tags::single_level_layout_tag&);
 		
-		void extract_data(TLayout& layout, ug::StreamPack& streamPack,
+		void extract_data(TLayout& layout, BufferMap& bufMap,
 						CommPol& extractor,
 						const layout_tags::multi_level_layout_tag&);
 		
@@ -276,10 +276,10 @@ class ParallelCommunicator
 			ExtractorInfo()			{}
 			ExtractorInfo(int srcProc, CommPol* pExtractor,
 						Interface* pInterface, Layout* pLayout,
-						void* buffer, ug::BinaryStream* stream, int rawSize) :
+						void* buffer, ug::BinaryBuffer* binBuffer, int rawSize) :
 				m_srcProc(srcProc), m_extractor(pExtractor),
 				m_interface(pInterface), m_layout(pLayout),
-				m_buffer(buffer), m_stream(stream), m_rawSize(rawSize)
+				m_buffer(buffer), m_binBuffer(binBuffer), m_rawSize(rawSize)
 			{
 				assert(srcProc == -1 || srcProc >= 0 && srcProc < pcl::GetNumProcesses());
 			}
@@ -289,7 +289,7 @@ class ParallelCommunicator
 			Interface*			m_interface;
 			Layout*				m_layout;
 			void*				m_buffer;
-			ug::BinaryStream*	m_stream;
+			ug::BinaryBuffer*	m_binBuffer;
 			int					m_rawSize;
 		};
 
@@ -297,13 +297,13 @@ class ParallelCommunicator
 		typedef std::list<ExtractorInfo> ExtractorInfoList;
 
 	protected:
-	///	holds the streams that are used to send data
-		ug::StreamPack		m_streamPackOut;
+	///	holds the buffers that are used to send data
+		BufferMap		m_bufMapOut;
 	///	stores out-procs for the next communication step
 		std::set<int>	m_curOutProcs;
 
-	///	holds the streams that are used to receive data
-		ug::StreamPack		m_streamPackIn;
+	///	holds the buffers that are used to receive data
+		BufferMap		m_bufMapIn;
 	///	stores in-procs for the next communication step
 		std::set<int>	m_curInProcs;
 

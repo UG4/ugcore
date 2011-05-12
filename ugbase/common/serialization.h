@@ -22,8 +22,8 @@ namespace ug
  * If you want to overload this method for your types, you can simply do
  * so by using template specialization.
  */
-template <class T>
-void Serialize(std::ostream& buf, const T& val)
+template <class T, class TOStream>
+void Serialize(TOStream& buf, const T& val)
 {
 	buf.write((char*)&val, sizeof(T));
 }
@@ -35,8 +35,8 @@ void Serialize(std::ostream& buf, const T& val)
  * If you want to overload this method for your types, you can simply do
  * so by using template specialization.
  */
-template <class T>
-void Deserialize(std::istream& buf, T& valOut)
+template <class T, class TIStream>
+void Deserialize(TIStream& buf, T& valOut)
 {
 	assert(!buf.eof() && "End of buf reached.");
 	buf.read((char*)&valOut, sizeof(T));
@@ -48,8 +48,8 @@ void Deserialize(std::istream& buf, T& valOut)
  * In its default implementation, it first writes the size of the vector
  * and then serializes the entries.
  */
-template <class T>
-void Serialize(std::ostream& buf, const std::vector<T>& vec)
+template <class T, class TOStream>
+void Serialize(TOStream& buf, const std::vector<T>& vec)
 {
 	size_t size = vec.size();
 	buf.write((char*)&size, sizeof(size_t));
@@ -59,8 +59,8 @@ void Serialize(std::ostream& buf, const std::vector<T>& vec)
 }
 
 ///	deserializes data from a binary stream into a vector
-template <class T>
-void Deserialize(std::istream& buf, std::vector<T>& vec)
+template <class T, class TIStream>
+void Deserialize(TIStream& buf, std::vector<T>& vec)
 {
 	size_t size = 0;
 	buf.read((char*)&size, sizeof(size_t));
@@ -76,7 +76,8 @@ void Deserialize(std::istream& buf, std::vector<T>& vec)
  * because of vector<bool>::reference.
  * Note: You could also define Serialize(., vector<bool>::reference)
  */
-inline void Serialize(std::ostream& buf, const std::vector<bool>::reference& boolRef)
+template <class TOStream>
+inline void Serialize(TOStream& buf, const std::vector<bool>::reference& boolRef)
 {
 	char b = ((bool)boolRef) ? 1 : 0;
 	buf.write(&b, sizeof(char));
@@ -85,7 +86,8 @@ inline void Serialize(std::ostream& buf, const std::vector<bool>::reference& boo
 ///	deserializes data from a binary stream into a vector<bool>
 // * This function is to avoid surprises with vector<bool>
 // note: boolRef is not &boolRef.
-inline void Deserialize(std::istream& buf, std::vector<bool>::reference boolRef)
+template <class TIStream>
+inline void Deserialize(TIStream& buf, std::vector<bool>::reference boolRef)
 {
 	char b;
 	buf.read(&b, sizeof(char));
@@ -99,8 +101,8 @@ inline void Deserialize(std::istream& buf, std::vector<bool>::reference boolRef)
  * In its default implementation, it first writes the size of the map
  * and then serializes the entries.
  */
-template <class Key, class T>
-void Serialize(std::ostream& buf, const std::map<Key, T>& m)
+template <class Key, class T, class TOStream>
+void Serialize(TOStream& buf, const std::map<Key, T>& m)
 {
 	size_t size = m.size();
 	buf.write((char*)&size, sizeof(size_t));
@@ -112,8 +114,8 @@ void Serialize(std::ostream& buf, const std::map<Key, T>& m)
 }
 
 ///	deserializes data from a binary stream into a map
-template <class Key, class T>
-void Deserialize(std::istream& buf, std::map<Key, T>& m)
+template <class Key, class T, class TIStream>
+void Deserialize(TIStream& buf, std::map<Key, T>& m)
 {
 	m.clear();
 	size_t size = 0;
@@ -132,8 +134,8 @@ void Deserialize(std::istream& buf, std::map<Key, T>& m)
  * In its default implementation, it first writes the size of the map
  * and then serializes the entries.
  */
-template <class T>
-void Serialize(std::ostream& buf, const std::set<T>& m)
+template <class T, class TOStream>
+void Serialize(TOStream& buf, const std::set<T>& m)
 {
 	size_t size = m.size();
 	buf.write((char*)&size, sizeof(size_t));
@@ -142,8 +144,8 @@ void Serialize(std::ostream& buf, const std::set<T>& m)
 }
 
 ///	deserializes data from a binary stream into a set
-template <class T>
-void Deserialize(std::istream& buf, std::set<T>& myset)
+template <class T, class TIStream>
+void Deserialize(TIStream& buf, std::set<T>& myset)
 {
 	myset.clear();
 
@@ -160,11 +162,49 @@ void Deserialize(std::istream& buf, std::set<T>& myset)
 
 ///	Writes a string to a binary stream
 /**	First the length of the string is written, then its content.*/
-void Serialize(std::ostream& buf, const std::string& str);
+template <class TOStream>
+void Serialize(TOStream& buf, const std::string& str)
+{
+	size_t len = str.length();
+
+	buf.write((char*)&len, sizeof(size_t));
+	if(len > 0)
+		buf.write(str.c_str(), sizeof(char) * len);
+}
 
 ///	deserializes data from a binary stream into a string
-void Deserialize(std::istream& buf, std::string& str);
+template <class TIStream>
+void Deserialize(TIStream& buf, std::string& str)
+{
+//	the buffers allow us to read small strings fast.
+//	for bigger ones we have to temporarily reserve memory.
+	char staticBuf[64];
+	char* flexBuf = NULL;
+	char* tBuf = staticBuf;
+
+	size_t len = 0;
+	buf.read((char*)&len, sizeof(size_t));
+
+//	check whether we have to allocate memory
+//	don't forget that we have to append a zero at the end
+	if(len >= 63){
+		flexBuf = new char[len + 1];
+		tBuf = flexBuf;
+	}
+
+	if(len > 0)
+		buf.read(tBuf, sizeof(char) * len);
+	tBuf[len] = 0;
+
+//	assign data to the out-string
+	str = tBuf;
+
+//	clean up
+	if(flexBuf)
+		delete[] flexBuf;
+}
 
 }//	end of namespace
+
 
 #endif

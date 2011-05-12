@@ -47,14 +47,14 @@ class CopyPolicy : public pcl::ICommunicationPolicy<TLayout>
 	 *	Make sure that all members of the interface are members of the
 	 *	grid too.*/
 		virtual bool
-		collect(std::ostream& buff, Interface& interface);
+		collect(ug::BinaryBuffer& buff, Interface& interface);
 		
 	///	reads the data from the buffer to the given interface .
 	/**	Derived from IExtractor
 	 *	Make sure that all members of the interface are members of the
 	 *	grid too.*/
 		virtual bool
-		extract(std::istream& buff, Interface& interface);
+		extract(ug::BinaryBuffer& buff, Interface& interface);
 		
 	protected:
 		Grid::AttachmentAccessor<GeomObj, TAttachment>	m_aaVal;
@@ -92,7 +92,7 @@ set_attachment(Grid& grid, TAttachment& attachment)
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 bool CopyPolicy<TNodeLayout, TAttachment>::
-collect(std::ostream& buff, Interface& interface)
+collect(ug::BinaryBuffer& buff, Interface& interface)
 {
 	for(typename Interface::iterator iter = interface.begin();
 		iter != interface.end(); ++iter)
@@ -103,7 +103,7 @@ collect(std::ostream& buff, Interface& interface)
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 bool CopyPolicy<TNodeLayout, TAttachment>::
-extract(std::istream& buff, Interface& interface)
+extract(ug::BinaryBuffer& buff, Interface& interface)
 {
 	for(typename Interface::iterator iter = interface.begin();
 		iter != interface.end(); ++iter)

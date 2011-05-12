@@ -84,7 +84,7 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 }
 
 
-
+/*
 bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPackSend,
 					  const ProcessCommunicator& involvedProcs)
 {
@@ -230,5 +230,5 @@ bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
 	
 	return true;
 }
-
+*/
 }// end of namespace

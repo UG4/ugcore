@@ -3,18 +3,20 @@
 #ifndef __H__PCL_TEST_LAYOUTS__
 #define __H__PCL_TEST_LAYOUTS__
 
+#include <vector>
+#include <iomanip> // for 'std::setw()' etc.
+#include <map>
+
 #include "pcl_base.h"
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
 #include "pcl_process_communicator.h"
 
-#include <vector>
-#include "common/util/stream_pack.h"
+#include "common/util/binary_buffer.h"
 #include "common/log.h"
 #include "common/assert.h"
 #include "common/serialization.h"
-#include <iomanip> // for 'std::setw()' etc.
 
 #include <boost/function.hpp>
 
@@ -38,6 +40,8 @@ TElem TrivialToValue(TElem e)
 template<typename TLayout>
 bool TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
 {
+	typedef std::map<int, ug::BinaryBuffer>	BufferMap;
+
 	// check if connections are double-ended
 	std::vector<char> bMasterToProcess; bMasterToProcess.resize(pcl::GetNumProcesses(), 0x00);
 	std::vector<char> bSlaveToProcess; bSlaveToProcess.resize(pcl::GetNumProcesses(), 0x00);
@@ -53,11 +57,12 @@ bool TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &m
 		com.send_raw(i, &bSlaveToProcess[i], sizeof(char));
 	}
 
-	ug::StreamPack masterToThisProcessPack, slaveToThisProcessPack;
+	//ug::StreamPack masterToThisProcessPack, slaveToThisProcessPack;
+	BufferMap masterToThisProcessMap, slaveToThisProcessMap;
 	for(int i=0; i<pcl::GetNumProcesses(); i++)
 	{
-		com.receive_raw(i, *masterToThisProcessPack.get_stream(i));
-		com.receive_raw(i, *slaveToThisProcessPack.get_stream(i));
+		com.receive_raw(i, masterToThisProcessMap[i]);
+		com.receive_raw(i, slaveToThisProcessMap[i]);
 	}
 
 	com.communicate();
@@ -65,8 +70,8 @@ bool TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &m
 	for(int i=0; i<pcl::GetNumProcesses(); i++)
 	{
 		char bMasterToThisProcess, bSlaveToThisProcess;
-		ug::Deserialize(*masterToThisProcessPack.get_stream(i), bMasterToThisProcess);
-		ug::Deserialize(*slaveToThisProcessPack.get_stream(i), bSlaveToThisProcess);
+		ug::Deserialize(masterToThisProcessMap[i], bMasterToThisProcess);
+		ug::Deserialize(slaveToThisProcessMap[i], bSlaveToThisProcess);
 
 		if(bMasterToThisProcess != bSlaveToProcess[i])
 		{
@@ -98,27 +103,30 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
 					boost::function<TValue (typename TLayout::Element)> cbToValue
 						= TrivialToValue<typename TLayout::Element>)
 {
+	typedef std::map<int, ug::BinaryBuffer>	BufferMap;
 	typedef typename TLayout::Interface Interface;
-	ug::StreamPack sendpack, receivepack;
+
+	BufferMap sendMap, receiveMap;
+
 	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 	{
 		Interface &interface = slaveLayout.interface(iter);
 		int pid = slaveLayout.proc_id(iter);
-		ug::BinaryStream &stream = *sendpack.get_stream(pid);
+		ug::BinaryBuffer& buffer = sendMap[pid];
 
 		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
 			typename Interface::Element &element = interface.get_element(iter2);
-			Serialize(stream, cbToValue(element));
+			Serialize(buffer, cbToValue(element));
 		}
-		com.send_raw(pid, stream.buffer(), stream.size(), false);
+		com.send_raw(pid, buffer.buffer(), buffer.write_pos(), false);
 	}
 
 
 	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int pid = masterLayout.proc_id(iter);
-		com.receive_raw(pid, *receivepack.get_stream(pid));
+		com.receive_raw(pid, receiveMap[pid]);
 	}
 
 	com.communicate();
@@ -127,13 +135,13 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
 	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int pid = masterLayout.proc_id(iter);
-		ug::BinaryStream &stream = *receivepack.get_stream(pid);
+		ug::BinaryBuffer &buffer = receiveMap[pid];
 		bool broken=false;
 		if(bPrint) UG_LOG("Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n");
 		typename TLayout::Interface &interface = masterLayout.interface(iter);
 		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
-			if(stream.can_read_more() == false)
+			if(!buffer.eof() == false)
 			{
 				broken =true;
 				if(bPrint){
@@ -144,17 +152,17 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
 			else
 			{
 				TValue val1 = cbToValue(interface.get_element(iter2));
-				TValue val2; Deserialize(stream, val2);
+				TValue val2; Deserialize(buffer, val2);
 				if(bPrint){
 					UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << std::endl);
 				}
 			}
 		}
-		while(stream.can_read_more())
+		while(!buffer.eof())
 		{
 			broken = true;
 			if(!bPrint) break;
-			TValue value; Deserialize(stream, value);
+			TValue value; Deserialize(buffer, value);
 
 			UG_LOG(" BROKEN! -> " << std::setw(9) << value << std::endl);
 		}

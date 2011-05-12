@@ -19,7 +19,7 @@ namespace ug
  *
  */
 template<typename matrix_type, typename TLocalToGlobal>
-void SerializeRow(BinaryStream &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
+void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
 {
 	const AlgebraID &globalRowIndex = localToGlobal[localRowIndex];
 
@@ -48,7 +48,7 @@ void SerializeRow(BinaryStream &stream, const matrix_type &mat, size_t localRowI
 
 
 template<typename TConnectionType, typename TGlobalToLocal>
-size_t DeserializeRow(BinaryStream &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal)
+size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal)
 {
 	AlgebraID globalRowIndex;
 
@@ -105,7 +105,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		IndexLayout::Interface &interface = A.get_master_layout().interface(iter);
 		int pid = A.get_master_layout().proc_id(iter);
 		UG_DLOG(LIB_ALG_AMG, 4, "sending to pid " << pid << "\n");
-		BinaryStream stream;
+		BinaryBuffer stream;
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t localIndex = interface.get_element(iter);
@@ -113,16 +113,17 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 				continue;
 			SerializeRow(stream, PoldIndices, localIndex, localToGlobal);
 		}
-		communicator.send_raw(pid, stream.buffer(), stream.size(), false);
+		communicator.send_raw(pid, stream.buffer(), stream.write_pos(), false);
 	}
 
 	// 3. set receive buffer
-	StreamPack receivepack;
+	typedef std::map<int, BinaryBuffer> BufferMap;
+	BufferMap receivepack;
 
 	for(IndexLayout::iterator iter = A.get_slave_layout().begin(); iter != A.get_slave_layout().end(); ++iter)
 	{
 		int pid = A.get_slave_layout().proc_id(iter);
-		communicator.receive_raw(pid, *receivepack.get_stream(pid));
+		communicator.receive_raw(pid, receivepack[pid]);
 	}
 
 	// 4. communicate
@@ -133,10 +134,10 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	{
 		int pid = A.get_slave_layout().proc_id(iter);
 		UG_DLOG(LIB_ALG_AMG, 4, "receiving from pid " << pid << "\n");
-		BinaryStream &stream = *receivepack.get_stream( pid );
+		BinaryBuffer &stream = receivepack[pid];
 
 		stdvector<typename matrix_type::connection> cons;
-		while(stream.can_read_more())
+		while(!stream.eof())
 		{
 
 			size_t localRowIndex = DeserializeRow(stream, cons, globalToLocal);

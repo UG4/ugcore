@@ -5,7 +5,6 @@
 #include "lib_grid/lib_grid.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
-#include "common/util/stream_pack.h"
 #include "common/util/binary_stream.h"
 #include "common/serialization.h"
 #include "common/assert.h"

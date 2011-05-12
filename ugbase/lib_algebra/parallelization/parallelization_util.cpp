@@ -712,7 +712,8 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 		}
 	}
 
-	StreamPack sendpack;
+	typedef std::map<int, BinaryBuffer> BufferMap;
+	BufferMap sendpack;
 	//UG_LOG("\n\n");
 	for(std::map<size_t, std::vector<int> >::iterator it = slaveOnProc.begin(); it != slaveOnProc.end(); ++it)
 	{
@@ -723,7 +724,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 		for(size_t i=0; i<procs.size(); i++)
 		{
 
-			BinaryStream &stream = *sendpack.get_stream(procs[i]);
+			BinaryBuffer &stream = sendpack[procs[i]];
 			size_t interfaceIndex = localToInterfaceIndex[procs[i]][index];
 			//UG_LOG(procs[i] << " (interfaceIndex " << interfaceIndex << ") ");
 			for(size_t j=0; j<procs.size(); j++)
@@ -739,20 +740,20 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int pid = masterLayout.proc_id(iter);
-		BinaryStream &stream = *sendpack.get_stream(pid);
-		communicator.send_raw(pid, stream.buffer(), stream.size(), false);
+		BinaryBuffer &stream = sendpack[pid];
+		communicator.send_raw(pid, stream.buffer(), stream.write_pos(), false);
 		//UG_LOG("Sending " << stream.size() << " bytes of data to processor " << pid << ":\n");
 	}
 
 	// 3. communicate
-	StreamPack receivepack;
+	BufferMap receivepack;
 	std::vector<int> pids;
 
 	for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 	{
 		int pid = slaveLayout.proc_id(iter);
 		pids.push_back(pid);
-		communicator.receive_raw(pid, *receivepack.get_stream(pid));
+		communicator.receive_raw(pid, receivepack[pid]);
 	}
 	communicator.communicate();
 
@@ -769,7 +770,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 	for(size_t i=0; i<pids.size(); i++)
 	{
 		int pid = pids[i];
-		BinaryStream &stream = *receivepack.get_stream(pid);
+		BinaryBuffer &stream = receivepack[pid];
 		//UG_LOG("Received " << stream.size() << " bytes of data from processor " << pid << ":\n");
 
 		std::vector<size_t> indices;
@@ -777,7 +778,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			indices.push_back(interface.get_element(iter2));
 
-		while(stream.can_read_more())
+		while(!stream.eof())
 		{
 			size_t index;
 			Deserialize(stream, index);

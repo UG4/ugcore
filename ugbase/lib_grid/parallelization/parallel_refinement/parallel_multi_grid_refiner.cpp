@@ -60,7 +60,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 		
 	///	writes entries for marked interface elements
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			if(!m_vMarkedInterfaceElems.empty())
@@ -94,7 +94,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 		
 	///	reads marks from the given stream
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	iterate through interface elements.
 		//	if indices match then mark it.

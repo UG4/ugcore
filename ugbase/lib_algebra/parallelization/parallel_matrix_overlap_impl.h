@@ -16,7 +16,7 @@
 #include "parallelization_util.h"
 //#include "test_layout.h"
 #include "common/util/sort_util.h"
-
+#include "common/util/binary_buffer.h"
 
 namespace ug
 {
@@ -78,6 +78,7 @@ class GenerateOverlapClass
 {
 private:
 	typedef IndexLayout::Interface Interface;
+	typedef std::map<int, BinaryBuffer>	BufferMap;
 
 	pcl::ParallelCommunicator<IndexLayout> &m_com; ///< communicator
 
@@ -158,7 +159,7 @@ private:
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::collect_matrix_row_data\n");
 
-		StreamPack notificationsPack;
+		BufferMap notificationsPack;
 
 		// zeilen verschicken
 		for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
@@ -167,7 +168,7 @@ private:
 			int pid = layout.proc_id(iter);
 
 			// get a stream to put data to process pid to
-			BinaryStream stream;
+			BinaryBuffer stream;
 			std::vector<bool> &mark = m_mapMark[pid];
 
 			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pid << "\n");
@@ -252,7 +253,7 @@ private:
 								if(otherMark[localColIndex] == false)
 								{
 									otherMark[localColIndex] = true;
-									BinaryStream &notificationsStream = *notificationsPack.get_stream(globalColIndex.first);
+									BinaryBuffer &notificationsStream = notificationsPack[globalColIndex.first];
 
 									// serialize notification: globalColIndex.second, pid.
 									Serialize(notificationsStream, globalColIndex.second);
@@ -270,8 +271,8 @@ private:
 				}
 			}
 			// use communicator to send data
-			UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": sending matrixrow data to proc " << pid << " (size " << stream.size() << ")\n");
-			m_com.send_raw(pid, stream.buffer(), stream.size(), false);
+			UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": sending matrixrow data to proc " << pid << " (size " << stream.write_pos() << ")\n");
+			m_com.send_raw(pid, stream.buffer(), stream.write_pos(), false);
 		}
 
 		if(bAddNodesToLayout)
@@ -279,9 +280,9 @@ private:
 			for(std::set<int>::iterator iter = pids.begin(); iter != pids.end(); ++iter)
 			{
 				int pid = *iter;
-				BinaryStream &stream = *notificationsPack.get_stream(pid);
-				m_com.send_raw(pid, stream.buffer(), stream.size(), false);
-				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": sending notifications data to proc " << pid << " (size " << stream.size() << ") \n");
+				BinaryBuffer &stream = notificationsPack[pid];
+				m_com.send_raw(pid, stream.buffer(), stream.write_pos(), false);
+				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": sending notifications data to proc " << pid << " (size " << stream.write_pos() << ") \n");
 			}
 		}
 	}
@@ -297,12 +298,12 @@ private:
 	 *
 	 * \sa m_mapMark
 	 */
-	void receive_notifications(StreamPack &notificationsPack,	std::map<int, std::vector<size_t> > &masterOLLayout)
+	void receive_notifications(BufferMap &notificationsPack,	std::map<int, std::vector<size_t> > &masterOLLayout)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nProcessing notifications\n");
 
 		std::vector<int> pids;
-		for(StreamPack::iterator iter = notificationsPack.begin(); iter != notificationsPack.end(); ++iter)
+		for(BufferMap::iterator iter = notificationsPack.begin(); iter != notificationsPack.end(); ++iter)
 			pids.push_back(iter->first);
 		sort(pids.begin(), pids.end());
 
@@ -312,8 +313,8 @@ private:
 
 			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pid << "\n");
 
-			BinaryStream &stream = *notificationsPack.get_stream(pid);
-			while(stream.can_read_more())
+			BinaryBuffer &stream = notificationsPack[pid];
+			while(!stream.eof())
 			{
 				size_t localIndex;
 				int pid2;
@@ -381,7 +382,7 @@ private:
 	 * \param overlapLayout layout where to add not yet existing nodes
 	 * \param nodeNummerator tells us if globalID has a local ID or creates one
 	 */
-	void get_new_indices(StreamPack &matrixrowPack, std::map<int, std::vector<size_t> > &overlapLayout,
+	void get_new_indices(BufferMap &matrixrowPack, std::map<int, std::vector<size_t> > &overlapLayout,
 			NewNodesNummerator &nodeNummerator)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::GetNewIndices\n");
@@ -392,7 +393,7 @@ private:
 		typename matrix_type::value_type value;
 
 		std::vector<int> pids;
-		for(StreamPack::iterator iter = matrixrowPack.begin(); iter != matrixrowPack.end(); ++iter)
+		for(BufferMap::iterator iter = matrixrowPack.begin(); iter != matrixrowPack.end(); ++iter)
 			pids.push_back(iter->first);
 
 		sort(pids.begin(), pids.end());
@@ -403,10 +404,10 @@ private:
 			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pids[i] << "\n");
 
 			// copy stream (bug in BinaryStream, otherwise I would use stream.seekg(ios::begin)
-			BinaryStream &stream2 = *matrixrowPack.get_stream(pids[i]);
-			BinaryStream stream; stream.write((const char*)stream2.buffer(), stream2.size());
+			BinaryBuffer &stream2 = matrixrowPack[pids[i]];
+			BinaryBuffer stream; stream.write((const char*)stream2.buffer(), stream2.write_pos());
 
-			while(stream.can_read_more())
+			while(!stream.eof())
 			{
 				Deserialize(stream, globalRowIndex);
 
@@ -446,7 +447,7 @@ private:
 	 * \param 					bSet if true, use overwrite (set) for received matrix rows. else add matrix rows.
 	 *
 	 */
-	void process_matrix_rows(StreamPack &matrixrowPack, NewNodesNummerator &nodeNummerator, bool bSet)
+	void process_matrix_rows(BufferMap &matrixrowPack, NewNodesNummerator &nodeNummerator, bool bSet)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\niterate again over all streams to get the matrix lines\n");
 
@@ -455,13 +456,13 @@ private:
 		std::vector<typename matrix_type::connection> cons;
 		bool has_index;
 
-		for(StreamPack::iterator iter = matrixrowPack.begin(); iter != matrixrowPack.end(); ++iter)
+		for(BufferMap::iterator iter = matrixrowPack.begin(); iter != matrixrowPack.end(); ++iter)
 		{
-			BinaryStream &stream = *iter->second;
+			BinaryBuffer &stream = iter->second;
 
-			UG_DLOG(LIB_ALG_MATRIX, 4, "processing data for master interface with processor " << iter->first << ". size is " << stream.size() << "\n");
+			UG_DLOG(LIB_ALG_MATRIX, 4, "processing data for master interface with processor " << iter->first << ". size is " << stream.write_pos() << "\n");
 
-			while(stream.can_read_more())
+			while(!stream.eof())
 			{
 				Deserialize(stream, globalRowIndex);
 
@@ -561,14 +562,14 @@ private:
 		//-----------------
 
 
-		StreamPack notificationsPack, matrixrowPack;
+		BufferMap notificationsPack, matrixrowPack;
 
 		for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
 				++iter)
 		{
 			int pid = receivingNodesLayout.proc_id(iter);
 			UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": preparing buffer for matrixrow data from proc " << pid << "\n");
-			m_com.receive_raw(pid, *matrixrowPack.get_stream(pid));
+			m_com.receive_raw(pid, matrixrowPack[pid]);
 		}
 
 		if(bCreateNewNodes)
@@ -577,7 +578,7 @@ private:
 			{
 				size_t pid = *iter;
 				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": preparing buffer for notifications data from proc " << pid << "\n");
-				m_com.receive_raw(pid, *notificationsPack.get_stream(pid));
+				m_com.receive_raw(pid, notificationsPack[pid]);
 			}
 		}
 
@@ -596,7 +597,7 @@ private:
 			for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
 					++iter)
 			{
-				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrowPack.get_stream(receivingNodesLayout.proc_id(iter))->size() << " bytes of matrixrow data from proc " <<
+				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrowPack[receivingNodesLayout.proc_id(iter)].write_pos() << " bytes of matrixrow data from proc " <<
 						receivingNodesLayout.proc_id(iter) << "\n");
 			}
 
@@ -605,8 +606,8 @@ private:
 				for(std::set<int>::iterator iter = pids.begin(); iter != pids.end(); ++iter)
 				{
 					//size_t pid = *iter;
-					UG_ASSERT(notificationsPack.has_stream(*iter), "pid = " << *iter);
-					UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notificationsPack.get_stream(*iter)->size() << " bytes of notifications data from proc " << *iter << "\n");
+					UG_ASSERT(notificationsPack.find(*iter) != notificationsPack.end(), "pid = " << *iter);
+					UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notificationsPack[*iter].write_pos() << " bytes of notifications data from proc " << *iter << "\n");
 				}
 			}
 		}

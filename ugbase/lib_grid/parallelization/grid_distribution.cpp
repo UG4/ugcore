@@ -7,7 +7,6 @@
 #include "lib_grid/lib_grid.h"
 #include "pcl/pcl.h"
 #include "util/distribution_util.h"
-#include "common/util/stream_pack.h"
 #include "common/util/binary_stream.h"
 
 using namespace std;

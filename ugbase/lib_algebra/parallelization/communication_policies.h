@@ -106,7 +106,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVecSrc == NULL) return false;
@@ -135,7 +135,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVecDest == NULL) return false;
@@ -216,7 +216,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -245,7 +245,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -333,7 +333,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVecSrc == NULL) return false;
@@ -362,7 +362,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVecDest == NULL) return false;
@@ -447,7 +447,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -476,7 +476,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -563,7 +563,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -595,7 +595,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -676,7 +676,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -705,7 +705,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -801,7 +801,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
@@ -830,7 +830,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;

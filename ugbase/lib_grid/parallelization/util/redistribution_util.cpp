@@ -5,7 +5,6 @@
 #include "lib_grid/lib_grid.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
-#include "common/util/stream_pack.h"
 #include "common/util/binary_stream.h"
 #include "common/serialization.h"
 
@@ -127,7 +126,7 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 
 	///	write target processes and move-flag
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 			byte bTrue = 1; byte bFalse = 0;
 
@@ -159,7 +158,7 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 
 	///	read target processes and move-flag
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 			byte bMove;
 			int srcProc = interface.get_target_proc();

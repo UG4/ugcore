@@ -10,6 +10,7 @@
 #include <list>
 #include <map>
 #include "common/util/smart_pointer.h"
+#include "common/util/binary_buffer.h"
 
 namespace pcl
 {
@@ -665,7 +666,7 @@ class ICommunicationPolicy
 
 	///	should write data which is associated with the interface elements to the buffer.
 		virtual bool
-		collect(std::ostream& buff, Interface& interface) = 0;
+		collect(ug::BinaryBuffer& buff, Interface& interface) = 0;
 
 	////////////////////////////////
 	//	EXTRACT
@@ -694,7 +695,7 @@ class ICommunicationPolicy
 		end_layout_extraction, the interface that is passed to this method
 		belongs to the layout.*/
 		virtual bool
-		extract(std::istream& buff, Interface& interface) = 0;
+		extract(ug::BinaryBuffer& buff, Interface& interface) = 0;
 };
 
 }//	end of namespace pcl

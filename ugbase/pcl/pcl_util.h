@@ -11,8 +11,7 @@
 #include "common/util/hash.h"
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
-#include "common/util/binary_stream.h"
-#include "common/util/stream_pack.h"
+#include "common/util/binary_buffer.h"
 #include "pcl_process_communicator.h"
 
 namespace pcl
@@ -313,7 +312,7 @@ class SelectionCommPol : public ICommunicationPolicy<TLayout>
 			
 	///	iterates over the interface entries. Writes 1 for selected, 0 for unselected.
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 			char zero = 0;
 			char one = 1;
@@ -332,7 +331,7 @@ class SelectionCommPol : public ICommunicationPolicy<TLayout>
 		
 	///	iterates over the interface entries. selects for 1, deselects for 0.
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 			char tmp;
 			for(typename Interface::iterator iter = interface.begin();
@@ -381,9 +380,10 @@ inline bool AllProcsTrue(bool bFlag,
  * The return value is the same for all participating processes.
  * \sa pcl::StreamPackBuffersMatch
  */
+/*
 bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPackSend,
 					  const ProcessCommunicator& involvedProcs = ProcessCommunicator());
-
+*/
 ///	checks whether buffers matching buffers in send- and recv-stream-packs have the same size
 /**	Note that this method does not check whether matching buffers exist. This is assumed.
  * Checks are only performed on the sizes of associated buffers.
@@ -391,9 +391,11 @@ bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPack
  * The return value is the same for all participating processes.
  * \sa pcl::StreamPacksMatch
  */
+/*
 bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
 							ug::StreamPack &streamPackSend,
 							const ProcessCommunicator& involvedProcs = ProcessCommunicator());
+*/
 }//	end of namespace
 
 #endif

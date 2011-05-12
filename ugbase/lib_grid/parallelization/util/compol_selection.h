@@ -33,7 +33,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 
 	///	writes 1 for selected and 0 for unselected interface entries
 		virtual bool
-		collect(std::ostream& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
 			byte zero = 0; byte one = 1;
 		//	write the entry indices of marked elements.
@@ -54,7 +54,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(std::istream& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
 			byte val;
 			for(InterfaceIter iter = interface.begin();

@@ -11,12 +11,12 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 set(srcCommon	log.cpp
 				serialization.cpp
 				allocators/small_object_allocator.cpp
+				util/binary_buffer.cpp
                 util/string_util.cpp
 				util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
 				util/ostream_util.cpp
 				util/parameter_parsing.cpp
-				util/stream_pack.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp
 				math/misc/tri_box.cpp

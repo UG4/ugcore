@@ -5,7 +5,6 @@
 #ifndef __H__PCL__PCL_COMMUNICATOR_IMPL__
 #define __H__PCL__PCL_COMMUNICATOR_IMPL__
 
-#include <iostream>
 #include <cassert>
 #include "mpi.h"
 #include "pcl_methods.h"
@@ -34,13 +33,13 @@ send_raw(int targetProc, void* pBuff, int bufferSize,
 {
 	assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
 
-	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
+	ug::BinaryBuffer& buffer = m_bufMapOut[targetProc];
 	m_curOutProcs.insert(targetProc);
 
 	if(!bSizeKnownAtTarget)
-		stream.write((char*)&bufferSize, sizeof(int));
+		buffer.write((char*)&bufferSize, sizeof(int));
 		
-	stream.write((char*)pBuff, bufferSize);
+	buffer.write((char*)pBuff, bufferSize);
 	m_bSendBuffersFixed = m_bSendBuffersFixed
 						&& bSizeKnownAtTarget;
 }
@@ -54,10 +53,10 @@ send_data(int targetProc, Interface& interface,
 	if(!interface.empty()){
 		assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
 
-		ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
+		ug::BinaryBuffer& buffer = m_bufMapOut[targetProc];
 		m_curOutProcs.insert(targetProc);
 
-		commPol.collect(stream, interface);
+		commPol.collect(buffer, interface);
 		m_bSendBuffersFixed = m_bSendBuffersFixed
 							&& (commPol.get_required_buffer_size(interface) >= 0);
 	}
@@ -89,10 +88,10 @@ send_data(Layout& layout,
 		for(; iter != end; ++iter)
 		{
 			if(!layout.interface(iter).empty()){
-				ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+				ug::BinaryBuffer& buffer = m_bufMapOut[layout.proc_id(iter)];
 				m_curOutProcs.insert(layout.proc_id(iter));
 
-				commPol.collect(stream, layout.interface(iter));
+				commPol.collect(buffer, layout.interface(iter));
 				m_bSendBuffersFixed = m_bSendBuffersFixed
 					&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 			}
@@ -120,10 +119,10 @@ send_data(Layout& layout,
 			for(; iter != end; ++iter)
 			{
 				if(!layout.interface(iter).empty()){
-					ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+					ug::BinaryBuffer& buffer = m_bufMapOut[layout.proc_id(iter)];
 					m_curOutProcs.insert(layout.proc_id(iter));
 
-					commPol.collect(stream, layout.interface(iter));
+					commPol.collect(buffer, layout.interface(iter));
 					m_bSendBuffersFixed = m_bSendBuffersFixed
 						&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 				}
@@ -137,25 +136,23 @@ send_data(Layout& layout,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-receive_raw(int srcProc, ug::BinaryStream& binStreamOut,
-			int bufferSize)
+receive_raw(int srcProc, ug::BinaryBuffer& bufOut, int bufSize)
 {
 	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
 											 NULL, NULL,
-											 NULL, &binStreamOut,
-											 bufferSize));
+											 NULL, &bufOut,
+											 bufSize));
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-receive_raw(int srcProc, void* buffOut,
-			int bufferSize)
+receive_raw(int srcProc, void* bufOut, int bufSize)
 {
 	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
 											 NULL, NULL,
-											 buffOut, NULL,
-											 bufferSize));
+											 bufOut, NULL,
+											 bufSize));
 }
 			
 ////////////////////////////////////////////////////////////////////////
@@ -203,29 +200,28 @@ exchange_data(TLayoutMap& layoutMap,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
 							TLayout& layout)
 {
-PCL_PROFILE_FUNC();
-	prepare_receiver_stream_pack(streamPack, curProcs, layout,
+	prepare_receiver_buffer_map(bufMap, curProcs, layout,
 								typename TLayout::category_tag());
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
 							TLayout& layout,
 							const layout_tags::single_level_layout_tag&)
 {
-//	simply 'touch' the stream to make sure it's in the pack.
+//	simply 'touch' the buffer to make sure it's in the map.
 	for(typename TLayout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
-			streamPack.get_stream(layout.proc_id(li));
+			bufMap[layout.proc_id(li)];
 			curProcs.insert(layout.proc_id(li));
 		}
 	}
@@ -234,19 +230,19 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
 							TLayout& layout,
 							const layout_tags::multi_level_layout_tag&)
 {
-//	simply 'touch' the stream to make sure it's in the pack.
+//	simply 'touch' the buffer to make sure it's in the map.
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
 		for(typename TLayout::iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
-				streamPack.get_stream(layout.proc_id(li));
+				bufMap[layout.proc_id(li)];
 				curProcs.insert(layout.proc_id(li));
 			}
 		}
@@ -261,7 +257,6 @@ collect_layout_buffer_sizes(TLayout& layout,
 							std::map<int, int>* pMapBuffSizesOut,
 							const layout_tags::single_level_layout_tag&)
 {
-PCL_PROFILE_FUNC();
 	for(typename TLayout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
@@ -325,10 +320,10 @@ PCL_PROFILE_FUNC();
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor)
+extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor)
 {
 PCL_PROFILE_FUNC();
-	extract_data(layout, streamPack,
+	extract_data(layout, bufMap,
 				extractor,
 				typename TLayout::category_tag());
 }
@@ -336,7 +331,7 @@ PCL_PROFILE_FUNC();
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
+extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 				const layout_tags::single_level_layout_tag&)
 {
 	extractor.begin_level_extraction(0);
@@ -345,7 +340,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 		li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
-			extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
+			extractor.extract(bufMap[layout.proc_id(li)],
 							layout.interface(li));
 		}
 	}
@@ -354,7 +349,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
-extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
+extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 				const layout_tags::multi_level_layout_tag&)
 {
 //	extract data for the layouts interfaces
@@ -365,7 +360,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 			li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
-				extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
+				extractor.extract(bufMap[layout.proc_id(li)],
 								layout.interface(li));
 			}
 		}
@@ -379,10 +374,16 @@ communicate()
 {
 	PCL_PROFILE(pcl_IntCom_communicate);
 
-//	note that we won't free thre memory in the stream-packs.
-//	we will only reset their write and read pointers.
-	m_streamPackIn.reset_streams();
 	m_curInProcs.clear();
+
+//	note that we won't free the memory in the stream-packs.
+//	we will only reset their write and read pointers.
+	for(BufferMap::iterator iter = m_bufMapIn.begin();
+		iter != m_bufMapIn.end(); ++iter)
+	{
+		iter->second.clear();
+	}
+
 
 //	iterate through all registered extractors and create entries for
 //	the source-processes in the map (by simply 'touching' the entry).
@@ -391,28 +392,30 @@ communicate()
 	{
 		ExtractorInfo& info = *iter;
 		if(info.m_srcProc > -1){
-			m_streamPackIn.get_stream(info.m_srcProc);
+			m_bufMapIn[info.m_srcProc];
 			m_curInProcs.insert(info.m_srcProc);
 		}
 		else
 		{
-			prepare_receiver_stream_pack(m_streamPackIn, m_curInProcs, *info.m_layout);
+			prepare_receiver_buffer_map(m_bufMapIn, m_curInProcs, *info.m_layout);
 		}
 	}
 
 //	if communication_debugging is enabled, then we check whether scheduled
 //	sends and receives match.
 //todo: use m_curInProcs / m_curOutProcs instead.
+/*
 	if(communication_debugging_enabled()){
 		if(!StreamPacksMatch(m_streamPackIn, m_streamPackOut, m_debugProcComm)){
 			UG_LOG("ERROR in ParallelCommunicator::communicate(): send / receive mismatch. Aborting.\n");
 			return false;
 		}
 	}
+*/
 
 //	number of in and out-streams.
-	size_t	numOutStreams = m_curOutProcs.size(); //m_streamPackOut.num_streams();
-	size_t	numInStreams = m_curInProcs.size(); //m_streamPackIn.num_streams();
+	size_t	numOutStreams = m_curOutProcs.size();
+	size_t	numInStreams = m_curInProcs.size();
 
 //	used for mpi-communication.
 	std::vector<MPI_Request> vSendRequests(numOutStreams);
@@ -506,7 +509,7 @@ communicate()
 		for(std::set<int>::iterator iter = m_curOutProcs.begin();
 			iter != m_curOutProcs.end(); ++iter, ++counter)
 		{
-			int streamSize = (int)m_streamPackOut.get_stream(*iter)->size();
+			int streamSize = (int)m_bufMapOut[*iter].write_pos();
 
 			MPI_Isend(&streamSize, sizeof(int), MPI_UNSIGNED_CHAR,
 					*iter, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
@@ -528,13 +531,19 @@ communicate()
 		for(std::set<int>::iterator iter = m_curInProcs.begin();
 			iter != m_curInProcs.end(); ++iter, ++counter)
 		{
-			m_streamPackIn.get_stream(*iter)->resize(vBufferSizesIn[counter]);
-			//iter->second->resize(vBufferSizesIn[counter]);
+			ug::BinaryBuffer& buf = m_bufMapIn[*iter];
+			buf.reserve(vBufferSizesIn[counter]);
+		//	since we will write the data to the associated buffer
+		//	using a raw copy, we will also set the write-position
+		//	at this point (the write position will not be used during raw copy).
+			buf.set_write_pos(vBufferSizesIn[counter]);
 		}
 	}
 	
 //	if communication_debugging is enabled, we can now check whether associated
 //	send / receive buffers have the same size.
+//todo: operate on the sets m_curInProcs and m_curOutProcs.
+/*
 	if(communication_debugging_enabled()){
 		if(!StreamPackBuffersMatch(m_streamPackIn, m_streamPackOut, m_debugProcComm)){
 			UG_LOG("ERROR in ParallelCommunicator::communicate(): "
@@ -542,6 +551,7 @@ communicate()
 			return false;
 		}
 	}
+*/
 	
 ////////////////////////////////////////////////
 //	communicate data.
@@ -558,9 +568,9 @@ communicate()
 		UG_DLOG(LIB_PCL, 1, " " << *iter
 				<< "(" << vBufferSizesIn[counter] << ")");
 		
-		ug::BinaryStream* pStream = m_streamPackIn.get_stream(*iter);
+		ug::BinaryBuffer& binBuf = m_bufMapIn[*iter];
 	//	receive the data
-		MPI_Irecv(pStream->buffer(), vBufferSizesIn[counter], MPI_UNSIGNED_CHAR,
+		MPI_Irecv(binBuf.buffer(), vBufferSizesIn[counter], MPI_UNSIGNED_CHAR,
 				*iter, dataTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
 	}
 
@@ -571,13 +581,12 @@ communicate()
 	for(std::set<int>::iterator iter = m_curOutProcs.begin();
 		iter != m_curOutProcs.end(); ++iter, ++counter)
 	{
-		ug::BinaryStream* pStream = m_streamPackOut.get_stream(*iter);
+		ug::BinaryBuffer& binBuf = m_bufMapOut[*iter];
 
 		UG_DLOG(LIB_PCL, 1, " " << *iter
-				<< "(" << pStream->size() << ")");
+				<< "(" << binBuf.write_pos() << ")");
 
-		//int retVal =
-		MPI_Isend(pStream->buffer(), pStream->size(), MPI_UNSIGNED_CHAR,
+		MPI_Isend(binBuf.buffer(), binBuf.write_pos(), MPI_UNSIGNED_CHAR,
 				*iter, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 	}
 	UG_DLOG(LIB_PCL, 1, "\n");
@@ -601,27 +610,27 @@ communicate()
 		if(info.m_srcProc > -1)
 		{
 		//	extract the data for single proc
-			ug::BinaryStream& stream = *m_streamPackIn.get_stream(info.m_srcProc);
+			ug::BinaryBuffer& binBuf = m_bufMapIn[info.m_srcProc];
 		//	this can be either an interface, a void* buffer or a
 		//	binary-stream.
 			if(info.m_interface){
-				info.m_extractor->extract(stream, *info.m_interface);
+				info.m_extractor->extract(binBuf, *info.m_interface);
 			}
 			else if(info.m_buffer){
-				stream.read((char*)info.m_buffer, info.m_rawSize);
+				binBuf.read((char*)info.m_buffer, info.m_rawSize);
 			}
 			else{
-				assert(info.m_stream && "ERROR in ParallelCommunicator::communicate: No valid receiver specified.");
+				assert(info.m_binBuffer && "ERROR in ParallelCommunicator::communicate: No valid receiver specified.");
 				
 				int rawSize = info.m_rawSize;
 				if(rawSize < 0){
 				//	the raw size is encoded in the buffer in this case.
-					stream.read((char*)&rawSize, sizeof(int));
+					binBuf.read((char*)&rawSize, sizeof(int));
 				}
 				
-				info.m_stream->reset();
-				info.m_stream->resize(rawSize);
-				stream.read((char*)info.m_stream->buffer(), rawSize);
+				info.m_binBuffer->clear();
+				info.m_binBuffer->reserve(rawSize);
+				binBuf.read((char*)info.m_binBuffer->buffer(), rawSize);
 			}
 		}
 		else
@@ -632,7 +641,7 @@ communicate()
 			
 		//	extract the data
 			extract_data(*info.m_layout,
-						m_streamPackIn,
+						m_bufMapIn,
 						*info.m_extractor);
 			
 		//	notify the extractor that extraction is complete.
@@ -641,7 +650,13 @@ communicate()
 	}
 
 //	clean up
-	m_streamPackOut.reset_streams();
+	for(BufferMap::iterator iter = m_bufMapOut.begin();
+		iter != m_bufMapOut.end(); ++iter)
+	{
+	//	clear does not free memory. Only resets read and write pointers.
+		iter->second.clear();
+	}
+
 	m_curOutProcs.clear();
 	m_extractorInfos.clear();
 
