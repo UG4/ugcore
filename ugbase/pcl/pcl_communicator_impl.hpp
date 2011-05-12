@@ -374,6 +374,8 @@ communicate()
 {
 	PCL_PROFILE(pcl_IntCom_communicate);
 
+	bool retVal = true;
+	
 	m_curInProcs.clear();
 
 //	note that we won't free the memory in the stream-packs.
@@ -403,15 +405,25 @@ communicate()
 
 //	if communication_debugging is enabled, then we check whether scheduled
 //	sends and receives match.
-//todo: use m_curInProcs / m_curOutProcs instead.
-/*
+//	those vectors are only filled, if debugging is performed.
+	std::vector<int> dbgRecvFrom, dbgSendTo;
+
 	if(communication_debugging_enabled()){
-		if(!StreamPacksMatch(m_streamPackIn, m_streamPackOut, m_debugProcComm)){
+	//	fill receive and send vectors
+		for(std::set<int>::iterator iter = m_curInProcs.begin();
+			iter != m_curInProcs.end(); ++iter){
+			dbgRecvFrom.push_back(*iter);
+		}
+			
+		for(std::set<int>::iterator iter = m_curOutProcs.begin();
+			iter != m_curOutProcs.end(); ++iter)
+			dbgSendTo.push_back(*iter);
+			
+		if(!SendRecvListsMatch(dbgRecvFrom, dbgSendTo, m_debugProcComm)){
 			UG_LOG("ERROR in ParallelCommunicator::communicate(): send / receive mismatch. Aborting.\n");
-			return false;
+			retVal = false;
 		}
 	}
-*/
 
 //	number of in and out-streams.
 	size_t	numOutStreams = m_curOutProcs.size();
@@ -542,16 +554,25 @@ communicate()
 	
 //	if communication_debugging is enabled, we can now check whether associated
 //	send / receive buffers have the same size.
-//todo: operate on the sets m_curInProcs and m_curOutProcs.
-/*
 	if(communication_debugging_enabled()){
-		if(!StreamPackBuffersMatch(m_streamPackIn, m_streamPackOut, m_debugProcComm)){
+		std::vector<int> recvBufSizes, sendBufSizes;
+		for(std::set<int>::iterator iter = m_curInProcs.begin();
+			iter != m_curInProcs.end(); ++iter)
+			recvBufSizes.push_back((int)m_bufMapIn[*iter].write_pos());
+
+		for(std::set<int>::iterator iter = m_curOutProcs.begin();
+			iter != m_curOutProcs.end(); ++iter)
+			sendBufSizes.push_back((int)m_bufMapOut[*iter].write_pos());
+						
+		if(!SendRecvBuffersMatch(dbgRecvFrom, recvBufSizes,
+								 dbgSendTo, sendBufSizes, m_debugProcComm))
+		{
 			UG_LOG("ERROR in ParallelCommunicator::communicate(): "
 					"send / receive buffer size mismatch. Aborting.\n");
-			return false;
+			retVal = false;
 		}
 	}
-*/
+
 	
 ////////////////////////////////////////////////
 //	communicate data.
@@ -664,7 +685,7 @@ communicate()
 	m_bSendBuffersFixed = true;
 	
 //	done
-	return true;
+	return retVal;
 }
 
 template <class TLayout>

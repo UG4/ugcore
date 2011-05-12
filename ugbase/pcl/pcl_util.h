@@ -163,7 +163,7 @@ void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
  * if the used process communicator is big.
  */
 void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
-								  std::vector<int>& vSendToRanks,
+								  const std::vector<int>& vSendToRanks,
 								  const ProcessCommunicator& procComm
 								  	= ProcessCommunicator());
 
@@ -373,29 +373,27 @@ inline bool AllProcsTrue(bool bFlag,
 }
 
 
-///	checks whether entries in send- and recv-stream-packs on participating processes match
-/**	Note that this method does not compare the sizes. it only checks
- * whether sending processes are contained in receive-stream-packs and vice-versa.
- *
- * The return value is the same for all participating processes.
- * \sa pcl::StreamPackBuffersMatch
+///	checks whether proc-entries in send- and recv-lists on participating processes match
+/** The return value is the same for all participating processes.
+ * \sa pcl::SendRecvBuffersMatch
  */
-/*
-bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPackSend,
-					  const ProcessCommunicator& involvedProcs = ProcessCommunicator());
-*/
-///	checks whether buffers matching buffers in send- and recv-stream-packs have the same size
+bool SendRecvListsMatch(const std::vector<int>& recvFrom,
+						const std::vector<int>& sendTo,
+						const ProcessCommunicator& involvedProcs = ProcessCommunicator());
+
+///	checks whether matching buffers in send- and recv-lists have the same size
 /**	Note that this method does not check whether matching buffers exist. This is assumed.
  * Checks are only performed on the sizes of associated buffers.
  *
+ * Make sure that recvBufSizes specifies the buffer size for each entry in recvFrom.
+ * Same for sendBufSizes and sendTo.
+ *
  * The return value is the same for all participating processes.
- * \sa pcl::StreamPacksMatch
+ * \sa pcl::SendRecvMapsMatch
  */
-/*
-bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
-							ug::StreamPack &streamPackSend,
-							const ProcessCommunicator& involvedProcs = ProcessCommunicator());
-*/
+bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<int>& recvBufSizes,
+						  const std::vector<int>& sendTo, const std::vector<int>& sendBufSizes,
+						  const ProcessCommunicator& involvedProcs = ProcessCommunicator());
 }//	end of namespace
 
 #endif

@@ -61,7 +61,7 @@ class ProcessCommunicator
 	///	performs MPI_Allreduce on the processes of the communicator.
 	/**	This method synchronises involved processes.
 	 */	
-		void allreduce(void* sendBuf, void* recBuf, int count,
+		void allreduce(const void* sendBuf, void* recBuf, int count,
 					   DataType type, ReduceOperation op) const;
 		
 	///	performs MPI_Gather on the processes of the communicator.
@@ -74,7 +74,7 @@ class ProcessCommunicator
 	 * \param recType data type of receive buffer elements (handle)
 	 * \param root The rank of the process that receives all the data.
 	 */
-		void gather(void* sendBuf, int sendCount, DataType sendType,
+		void gather(const void* sendBuf, int sendCount, DataType sendType,
 					void* recBuf, int recCount, DataType recType, int root) const;
 
 	///	performs MPI_Gatherv on the processes of the communicator.
@@ -95,7 +95,7 @@ class ProcessCommunicator
 	 * 					(Only significant at root)
 	 * \param root The rank of the process that receives all the data.
 	 */
-		void gatherv(void* sendBuf, int sendCount, DataType sendType,
+		void gatherv(const void* sendBuf, int sendCount, DataType sendType,
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType, int root) const;
 
@@ -130,7 +130,7 @@ class ProcessCommunicator
 	 * \param recCount number of elements received from any process (integer)
 	 * \param recType data type of receive buffer elements (handle)
 	 */
-		void allgather(void* sendBuf, int sendCount, DataType sendType,
+		void allgather(const void* sendBuf, int sendCount, DataType sendType,
 					   void* recBuf, int recCount, DataType recType) const;
 
 	///	performs MPI_Allgatherv on the processes of the communicator.
@@ -143,7 +143,7 @@ class ProcessCommunicator
 	 * \param displs 	integer array (of length group size). Entry i specifies the displacement (relative to recvbuf ) at which to place the incoming data from process i
 	 * \param recType 	data type of receive buffer elements (handle)
 	 */
-		void allgatherv(void* sendBuf, int sendCount, DataType sendType,
+		void allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType) const;
 

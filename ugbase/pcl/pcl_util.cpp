@@ -12,7 +12,7 @@ using namespace std;
 namespace pcl{
 
 void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
-								  std::vector<int>& vSendToRanks,
+								  const std::vector<int>& vSendToRanks,
 								  const ProcessCommunicator& procComm)
 {
 	PCL_PROFILE(pcl_CommunicateInvolvedProcesses);
@@ -84,24 +84,12 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 }
 
 
-/*
-bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPackSend,
-					  const ProcessCommunicator& involvedProcs)
+bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
+						const std::vector<int>& sendTo,
+						const ProcessCommunicator& involvedProcs)
 {
-//	create a vector containing all recv-from ranks and a vector containing all send-to ranks.
-	vector<int> recvFrom, sendTo;
-	
-	for(ug::StreamPack::iterator iter = streamPackRecv.begin();
-		iter != streamPackRecv.end(); ++iter)
-	{
-		recvFrom.push_back(iter->first);
-	}
-	
-	for(ug::StreamPack::iterator iter = streamPackSend.begin();
-		iter != streamPackSend.end(); ++iter)
-	{
-		sendTo.push_back(iter->first);
-	}
+//	we overwrite some data in recvFrom - thats why we need a copy
+	std::vector<int> recvFrom = recvFromTmp;
 	
 //	make sure that all processes know, who is sending data to them
 	vector<int> sendingProcs;
@@ -148,6 +136,7 @@ bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPack
 			}
 		}
 		UG_LOG(endl);
+		UG_LOG(endl);
 		return false;
 	}
 	
@@ -155,13 +144,16 @@ bool StreamPacksMatch(ug::StreamPack& streamPackRecv, ug::StreamPack& streamPack
 }
 
 
-bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
-							ug::StreamPack &streamPackSend,
-							const ProcessCommunicator& involvedProcs)
+bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<int>& recvBufSizes,
+						  const std::vector<int>& sendTo, const std::vector<int>& sendBufSizes,
+						  const ProcessCommunicator& involvedProcs)
 {
+	assert(recvFrom.size() == recvBufSizes.size());
+	assert(sendTo.size() == sendBufSizes.size());
+	
 //	number of in and out-streams.
-	size_t	numOutStreams = streamPackSend.num_streams();
-	size_t	numInStreams = streamPackRecv.num_streams();
+	size_t	numOutStreams = sendTo.size();
+	size_t	numInStreams = recvFrom.size();
 	
 //	used for mpi-communication.
 	std::vector<MPI_Request> vSendRequests(numOutStreams);
@@ -172,40 +164,33 @@ bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
 	std::vector<MPI_Status> vSendStates(numOutStreams);
 
 	int testTag = 744444;//	an arbitrary number
-	int counter = 0;
 
 	std::vector<int> vSendBufSizes(numInStreams);
-	for(ug::StreamPack::iterator iter = streamPackRecv.begin();
-		iter != streamPackRecv.end(); ++iter, ++counter)
+	for(size_t i = 0; i < recvFrom.size(); ++i)
 	{
-		MPI_Irecv(&vSendBufSizes[counter], 1, MPI_INT, iter->first, testTag,
-				  MPI_COMM_WORLD, &vReceiveRequests[counter]);
+		MPI_Irecv(&vSendBufSizes[i], 1, MPI_INT, recvFrom[i], testTag,
+				  MPI_COMM_WORLD, &vReceiveRequests[i]);
 	}
-	
-	counter = 0;
-	for(ug::StreamPack::iterator iter = streamPackSend.begin();
-		iter != streamPackSend.end(); ++iter, ++counter)
+
+	for(size_t i = 0; i < sendTo.size(); ++i)
 	{
-		int s = iter->second->size();
-		MPI_Isend(&s, 1, MPI_INT, iter->first, testTag, MPI_COMM_WORLD,
-				  &vSendRequests[counter]);
+		int s = sendBufSizes[i];
+		MPI_Isend(&s, 1, MPI_INT, sendTo[i], testTag, MPI_COMM_WORLD,
+				  &vSendRequests[i]);
 	}
 
 	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
 	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
 
 	bool bSuccess = true;
-	counter = 0;
-	for(ug::StreamPack::iterator iter = streamPackRecv.begin();
-		iter != streamPackRecv.end(); ++iter, ++counter)
-	{
-		if((int)iter->second->size() != vSendBufSizes[counter])
+	for(size_t i = 0; i < recvFrom.size(); ++i){
+		if(recvBufSizes[i] != vSendBufSizes[i])
 		{
 			UG_LOG("SEND / RECEIVE BUFFER MISMATCH: "
 					<< "receive buffer on proc " << GetProcRank()
-					<< " has "<< iter->second->size()
-					<< " bytes, but send buffer on proc " << iter->first
-					<< " has " << vSendBufSizes[counter] << " bytes\n");
+					<< " has "<< recvBufSizes[i]
+					<< " bytes, but send buffer on proc " << recvFrom[i]
+					<< " has " << vSendBufSizes[i] << " bytes\n");
 			bSuccess = false;
 		}
 	}
@@ -230,5 +215,5 @@ bool StreamPackBuffersMatch(ug::StreamPack &streamPackRecv,
 	
 	return true;
 }
-*/
+
 }// end of namespace
