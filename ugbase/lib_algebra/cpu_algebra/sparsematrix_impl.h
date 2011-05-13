@@ -124,7 +124,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 		// reallocate arrays
 		connection **pNewRowStart = new connection*[newRows+1];
 		UG_ASSERT(pNewRowStart != NULL, "out of memory, no more space for " << sizeof(connection*)*(newRows+1));
-		memcpy(pNewRowStart, pRowStart, sizeof(connection*)*(newRows+1));
+		memcpy(pNewRowStart, pRowStart, sizeof(connection*)*std::min(rows+1, newRows+1));
 		delete[] pRowStart;
 		pRowStart = pNewRowStart;
 
