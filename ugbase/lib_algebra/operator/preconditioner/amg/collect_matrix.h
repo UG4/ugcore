@@ -16,14 +16,13 @@ template<typename TConnectionType, typename TGlobalToLocal>
 size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal);
 
 template<typename matrix_type, typename TLocalToGlobal>
-void SerializeRow(BinaryStream &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
+void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
 {
 	const AlgebraID &globalRowIndex = localToGlobal[localRowIndex];
 
 	// serialize global row index
 	Serialize(stream, globalRowIndex);
 
-	//mat.s();
 	size_t num_connections = mat.num_connections(localRowIndex);
 
 	// serialize number of connections
@@ -42,6 +41,37 @@ void SerializeRow(BinaryStream &stream, const matrix_type &mat, size_t localRowI
 		Serialize(stream, conn.value());
 	}
 	UG_DLOG(LIB_ALG_AMG, 4, "\n");
+}
+
+
+template<typename TConnectionType, typename TGlobalToLocal>
+size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal)
+{
+	AlgebraID globalRowIndex;
+
+	// serialize global row index
+	Deserialize(stream, globalRowIndex);
+	size_t localRowIndex = globalToLocal[globalRowIndex];
+
+	UG_DLOG(LIB_ALG_AMG, 4, "Got row " << localRowIndex << " (" << globalRowIndex << "), ");
+	size_t num_connections;
+
+	// serialize number of connections
+	Deserialize(stream, num_connections);
+
+	UG_DLOG(LIB_ALG_AMG, 4, num_connections << " connections: ")
+
+	cons.resize(num_connections);
+	for(size_t i =0; i<num_connections; i++)
+	{
+		AlgebraID globalColIndex;
+		Deserialize(stream, globalColIndex);
+		cons[i].iIndex = globalToLocal[globalColIndex];
+		Deserialize(stream, cons[i].dValue);
+		UG_DLOG(LIB_ALG_AMG, 4, cons[i].iIndex << " (" << globalColIndex << ") -> " << cons[i].dValue << " ");
+	}
+	UG_DLOG(LIB_ALG_AMG, 4, "\n");
+	return localRowIndex;
 }
 
 
