@@ -45,6 +45,7 @@ famg<TAlgebra>::famg() : amg_base<TAlgebra>()
 {
 	m_theta = 0.95;
 	m_delta = 0.5;
+	m_dEpsilonTr = 0.3;
 	m_dDampingForSmootherInInterpolationCalculation = 0.8;
 	m_bAggressiveCoarsening = false;
 	m_writeTestvectors = false;
@@ -66,6 +67,7 @@ void famg<TAlgebra>::tostring() const
 	UG_LOG(" Theta: " << m_theta << " (forces theta * F < minimimum F in this node) " << std::endl);
 	UG_LOG(" Damping for Smoother in interpolation calculation: " << m_dDampingForSmootherInInterpolationCalculation << std::endl);
 	UG_LOG(" Aggressive Coarsening is " << (m_bAggressiveCoarsening ? "[ON]\n" : "OFF\n"));
+	UG_LOG(" epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << std::endl);
 	UG_LOG(" \n");
 	UG_LOG(" testvector is " << (m_bTestvectorZeroAtDirichlet ? "0" : "1") << " at dirichlet nodes" << std::endl);
 	UG_LOG(" Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);

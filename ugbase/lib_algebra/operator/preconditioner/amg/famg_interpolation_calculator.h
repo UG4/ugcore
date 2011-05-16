@@ -170,8 +170,8 @@ public:
 				rhs[1] = - H(i_index, m);
 
 				UG_DLOG(LIB_ALG_AMG, 2, "checking parents " << n << " (" << rating.get_original_index(onlyN1[n]) << ") and " << m << " (" << rating.get_original_index(onlyN1[m]) << ")\n");
-				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
-				IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
+				IF_DEBUG(LIB_ALG_AMG, 5) KKT.maple_print("KKT");
+				IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
 
 				if(InverseMatMult(q, 1.0, KKT, rhs) == false)
 				{
@@ -179,12 +179,12 @@ public:
 					continue;
 				}
 
-				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
+				IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 
 				neighborstruct2 s;
 
-				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
-				UG_DLOG(LIB_ALG_AMG, 3, "H(i, n) = " << H(i_index, n) << ", " << " H(i, m) = " << H(i_index, m) << " H(i, i) = " << H(i_index, i_index) << "\n");
+				IF_DEBUG(LIB_ALG_AMG, 5) KKT.maple_print("KKT");
+				UG_DLOG(LIB_ALG_AMG, 5, "H(i, n) = " << H(i_index, n) << ", " << " H(i, m) = " << H(i_index, m) << " H(i, i) = " << H(i_index, i_index) << "\n");
 
 				// calc q^T H q
 
@@ -276,7 +276,6 @@ public:
 		{
 			rating.set_coarse(i);
 			return;
-
 #if 0
 			if(coarse_neighbors.size() == 1)
 			{
@@ -317,13 +316,13 @@ public:
 				rhs[j] = -H(i_index, coarse_neighbors[j]);
 			rhs[N] = -localTestvector[0][i_index];
 
-			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
-			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
+			IF_DEBUG(LIB_ALG_AMG, 5) vKKT.maple_print("KKT");
+			IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
 
 			q.resize(N+1);
 			if(InverseMatMult(q, 1.0, vKKT, rhs))
 			{
-				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
+				IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 
 				t.resize(q.size());
 				// todo: calc F
@@ -383,13 +382,13 @@ public:
 				rhs[j] = -H(i_index, innerNodes[j]);
 			rhs[N] = -localTestvector[0][i_index];
 
-			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
-			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
+			IF_DEBUG(LIB_ALG_AMG, 5) vKKT.maple_print("KKT");
+			IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
 
 			q.resize(N+1);
 			if(InverseMatMult(q, 1.0, vKKT, rhs))
 			{
-				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
+				IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 
 				t.resize(q.size());
 				// todo: calc F
@@ -475,14 +474,14 @@ private:
 
 		GetLocalMatrix(A_OL2, S, &N2[0], &N2[0]);
 
-		//IF_DEBUG(LIB_ALG_AMG, 3)
+		//IF_DEBUG(LIB_ALG_AMG, 5)
 		//S.maple_print("\nsubA");
 
 		AMG_PROFILE_END();
 		// 3. calculate H from submatrix A
 		calculate_H_from_local_A();
 
-		//IF_DEBUG(LIB_ALG_AMG, 3) H.maple_print("\nsubH");
+		//IF_DEBUG(LIB_ALG_AMG, 5) H.maple_print("\nsubH");
 
 		return true;
 	}
@@ -516,7 +515,7 @@ private:
 			SF[j] = - diaginv * S(i_index, j);
 		SF[i_index] += 1.0;
 
-		IF_DEBUG(LIB_ALG_AMG, 3) print_vector(SF, "SF");
+		IF_DEBUG(LIB_ALG_AMG, 5) print_vector(SF, "SF");
 
 		// get S = 1-w D^{-1} A
 		for(size_t r=0; r < N; r++)
@@ -528,7 +527,7 @@ private:
 			}
 		}
 
-		IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("Sjac");
+		IF_DEBUG(LIB_ALG_AMG, 5) S.maple_print("Sjac");
 
 		// get S = SF S
 		AMG_PROFILE_NEXT(AMG_HA_calculate_SFS);
@@ -558,7 +557,7 @@ private:
 				S(r, c) = s;
 			}*/
 
-		IF_DEBUG(LIB_ALG_AMG, 3)	S.maple_print("S_SF");
+		IF_DEBUG(LIB_ALG_AMG, 5)	S.maple_print("S_SF");
 
 		AMG_PROFILE_NEXT(AMG_HA_calculate_H);
 		H.resize(onlyN1.size()+1, onlyN1.size()+1);

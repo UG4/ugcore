@@ -56,16 +56,33 @@ public:
 	class LevelInformation
 	{
 	public:
-		LevelInformation(double creationTimeMS, size_t iNrOfNodes, size_t nnzs) : m_dCreationTimeMS(creationTimeMS), m_iNrOfNodes(iNrOfNodes), m_iNNZs(nnzs) { }
+		LevelInformation(double creationTimeMS, size_t iNrOfNodes, size_t nnzs) : m_dCreationTimeMS(creationTimeMS),
+			m_iNrOfNodesMin(iNrOfNodes), m_iNrOfNodesMax(iNrOfNodes), m_iNrOfNodesSum(iNrOfNodes),
+			m_iNNZsMin(nnzs), m_iNNZsMax(nnzs), m_iNNZsSum(nnzs) { }
+		LevelInformation(double creationTimeMS, size_t iNrOfNodesMin, size_t iNrOfNodesMax, size_t iNrOfNodesSum, size_t nnzsMin, size_t nnzsMax, size_t nnzsSum)
+			: m_dCreationTimeMS(creationTimeMS),
+			  m_iNrOfNodesMin(iNrOfNodesMin), m_iNrOfNodesMax(iNrOfNodesMax), m_iNrOfNodesSum(iNrOfNodesSum),
+		  			m_iNNZsMin(nnzsMin), m_iNNZsMax(nnzsMax), m_iNNZsSum(nnzsSum) { }
 		double get_creation_time_ms() { return m_dCreationTimeMS; }
-		size_t get_nr_of_nodes() { return m_iNrOfNodes; }
-		size_t get_nnz() { return m_iNNZs; }
-		double get_fill_in() { return ((double)m_iNNZs)/(((double)m_iNrOfNodes)*((double)m_iNrOfNodes)); }
+
+		size_t get_nr_of_nodes_min() { return m_iNrOfNodesMin; }
+		size_t get_nr_of_nodes_max() { return m_iNrOfNodesMax; }
+		size_t get_nr_of_nodes() { return m_iNrOfNodesSum; }
+		size_t get_nnz() { return m_iNNZsSum; }
+		size_t get_nnz_min() { return m_iNNZsMin; }
+		size_t get_nnz_max() { return m_iNNZsMax; }
+
+		double get_fill_in() { return ((double)m_iNNZsSum)/(((double)m_iNrOfNodesSum)*((double)m_iNrOfNodesSum)); }
+		double get_avg_nnz_per_row() { return m_iNNZsSum/(double)m_iNrOfNodesSum; }
 		bool is_valid() { return this != NULL; }
 	private:
 		double m_dCreationTimeMS;
-		size_t m_iNrOfNodes;
-		size_t m_iNNZs;
+		size_t m_iNrOfNodesMin;
+		size_t m_iNrOfNodesMax;
+		size_t m_iNrOfNodesSum;
+		size_t m_iNNZsMin;
+		size_t m_iNNZsMax;
+		size_t m_iNNZsSum;
 	};
 
 
@@ -143,6 +160,9 @@ public:
 	double	get_max_fill_before_base() const						{ return m_dMaxFillBeforeBase;	}
 
 
+	void 	set_min_nodes_on_one_processor(size_t newMinNodes)		{ m_minNodesOnOneProcessor = newMinNodes; }
+	size_t	get_min_nodes_on_one_processor()						{ return m_minNodesOnOneProcessor; }
+
 	void 	set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
 	void 	set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
 	void 	set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
@@ -206,7 +226,8 @@ protected:
 
 	size_t 	m_maxNodesForBase;					///< max nr of coarse nodes before Base solver is used
 	double 	m_dMaxFillBeforeBase;				///< max fill rate before Base solver is used
-
+	size_t	m_minNodesOnOneProcessor;			///< min nr of nodes on one processor (for agglomeration)
+	bool 	m_bUseCollectedSolver;
 
 	bool	m_bFSmoothing;
 
@@ -226,6 +247,11 @@ protected:
 	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
 	stdvector<IndexLayout> slaveLayouts, masterLayouts;				///< Pseudo-IndexLayout for the created ParallelVectors.
 
+
+	matrix_type collectedBaseA;
+	IndexLayout masterColl, slaveColl;
+	vector_type collC;
+	vector_type collD;
 #endif
 
 	bool 	m_writeMatrices;
@@ -257,10 +283,6 @@ protected:
 	IPositionProvider<2> *m_pPositionProvider2d;
 	IPositionProvider<3> *m_pPositionProvider3d;
 
-#ifdef UG_PARALLEL
-	matrix_type collectedBaseA;
-	IndexLayout masterColl, slaveColl;
-#endif
 
 public:
 	//! \return c_A = total nnz of all matrices divided by nnz of matrix A

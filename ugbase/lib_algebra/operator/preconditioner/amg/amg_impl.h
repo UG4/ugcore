@@ -168,10 +168,10 @@ void amg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type
 		prolongation_matrix_type &P, size_t level, const AMGNodes &nodes)
 {
 	AMG_PROFILE_FUNC();
-	std::fstream ffine((std::string(m_writeMatrixPath) + "AMG_fine" + ToString(level) + ".marks").c_str(), std::ios::out);
-	std::fstream fcoarse((std::string(m_writeMatrixPath) + "AMG_coarse" + ToString(level) + ".marks").c_str(), std::ios::out);
-	std::fstream fother((std::string(m_writeMatrixPath) + "AMG_other" + ToString(level) + ".marks").c_str(), std::ios::out);
-	std::fstream fdirichlet((std::string(m_writeMatrixPath) + "AMG_dirichlet" + ToString(level) + ".marks").c_str(), std::ios::out);
+	std::fstream ffine((std::string(m_writeMatrixPath) + "AMG_fine_L" + ToString(level) + ".marks").c_str(), std::ios::out);
+	std::fstream fcoarse((std::string(m_writeMatrixPath) + "AMG_coarse_L" + ToString(level) + ".marks").c_str(), std::ios::out);
+	std::fstream fother((std::string(m_writeMatrixPath) + "AMG_other_L" + ToString(level) + ".marks").c_str(), std::ios::out);
+	std::fstream fdirichlet((std::string(m_writeMatrixPath) + "AMG_dirichlet_L" + ToString(level) + ".marks").c_str(), std::ios::out);
 	for(size_t i=0; i<nodes.size(); i++)
 	{
 		int o = m_amghelper.GetOriginalIndex(level, i);
@@ -181,32 +181,32 @@ void amg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type
 	}
 
 	UG_DLOG(LIB_ALG_AMG, 1, "write matrices");
-	AMGWriteToFile(A, level, level, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), m_amghelper);
-	std::fstream f((std::string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
-	f << "v " << std::string(m_writeMatrixPath) << "AMG_d" << level << ".values\n";
+	AMGWriteToFile(A, level, level, (std::string(m_writeMatrixPath) + "AMG_A_L" + ToString(level) + ".mat").c_str(), m_amghelper);
+	std::fstream f((std::string(m_writeMatrixPath) + "AMG_A_L" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
+	f << "c " << std::string(m_writeMatrixPath) << "AMG_fine_L" << level << ".marks\n";
+	f << "c " << std::string(m_writeMatrixPath) << "AMG_coarse_L" << level << ".marks\n";
+	f << "c " << std::string(m_writeMatrixPath) << "AMG_other_L" << level << ".marks\n";
+	f << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet_L" << level << ".marks\n";
+	f << "v " << std::string(m_writeMatrixPath) << "AMG_d_L" << level << ".values\n";
 	UG_DLOG(LIB_ALG_AMG, 1, ".");
 
-	AMGWriteToFile(P, level+1, level, (std::string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), m_amghelper);
-	std::fstream f2((std::string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+	AMGWriteToFile(P, level+1, level, (std::string(m_writeMatrixPath) + "AMG_Pp_L" + ToString(level) + ".mat").c_str(), m_amghelper);
+	std::fstream f2((std::string(m_writeMatrixPath) + "AMG_Pp_L" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
+	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_fine_L" << level << ".marks\n";
+	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse_L" << level << ".marks\n";
+	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_other_L" << level << ".marks\n";
+	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet_L" << level << ".marks\n";
 	UG_DLOG(LIB_ALG_AMG, 1, ".");
 
-	AMGWriteToFile(R, level, level+1, (std::string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), m_amghelper);
-	std::fstream f3((std::string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+	AMGWriteToFile(R, level, level+1, (std::string(m_writeMatrixPath) + "AMG_Rr_L" + ToString(level) + ".mat").c_str(), m_amghelper);
+	std::fstream f3((std::string(m_writeMatrixPath) + "AMG_Rr_L" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
+	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_fine_L" << level << ".marks\n";
+	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse_L" << level << ".marks\n";
+	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_other_L" << level << ".marks\n";
+	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet_L" << level << ".marks\n";
 	UG_DLOG(LIB_ALG_AMG, 1, ".");
 
-	AMGWriteToFile(AH, level+1, level+1, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level+1) + ".mat").c_str(), m_amghelper);
+	AMGWriteToFile(AH, level+1, level+1, (std::string(m_writeMatrixPath) + "AMG_A_L" + ToString(level+1) + ".mat").c_str(), m_amghelper);
 	UG_DLOG(LIB_ALG_AMG, 1, ". done.\n");
 }
 
@@ -426,9 +426,9 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 template<typename TAlgebra>
 amg<TAlgebra>::amg() :
 	amg_base<TAlgebra>(),
-	m_dEpsilon(0.3),
+	m_dEpsilonTr(0.3),
 	m_dTheta(0.3),
-	m_dSigma(0.3),
+	//m_dSigma(0.3),
 	m_bAggressiveCoarsening(0),
 	m_iAggressiveCoarseningNrOfPaths(2)
 {
@@ -442,9 +442,9 @@ void amg<TAlgebra>::tostring() const
 	amg_base<TAlgebra>::tostring();
 
 	UG_LOG("Ruge/Stueben AMG Preconditioner:\n");
-	UG_LOG(" Theta (strong connectivity) = " << m_dTheta << std::endl);
-	UG_LOG(" Sigma = " << m_dSigma << std::endl);
-	UG_LOG(" Epsilon (truncation of interpolation) = " << m_dEpsilon << std::endl);
+	UG_LOG(" theta (epsilon_strong, strong connectivity) = " << m_dTheta << std::endl);
+	//UG_LOG(" sigma = " << m_dSigma << std::endl);
+	UG_LOG(" epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << std::endl);
 
 	if(m_bAggressiveCoarsening)	{UG_LOG(" Aggressive Coarsening is on, A" << m_iAggressiveCoarseningNrOfPaths << "-mode." << std::endl);}
 	else						{UG_LOG(" no Aggressive Coarsening" << std::endl);}

@@ -31,6 +31,27 @@
 #include "famg.h"
 #include <set>
 #include <string>
+#include <stack>
+
+std::stack<int> g_DebugLevelStack;
+
+#define PUSH_DEBUG_LEVEL() g_DebugLevelStack.push(ug::GetLogAssistant().get_debug_level(LIB_ALG_AMG))
+#define SET_AND_PUSH_DEBUG_LEVEL(level) g_DebugLevelStack.push(ug::GetLogAssistant().get_debug_level(LIB_ALG_AMG)); ug::GetLogAssistant().set_debug_level(level)
+#define POP_DEBUG_LEVEL() ug::GetLogAssistant().set_debug_level(g_DebugLevelStack.pop())
+
+
+#define SET_DEBUG_LEVEL_OVERLAP() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 0); UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, 0)
+#define SET_DEBUG_LEVEL_TESTVECTOR_CALC() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1); UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, 0)
+#define SET_DEBUG_LEVEL_PHASE_3() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_CALCULATE_PARENT_PAIRS() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_COLORING() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_RECV_COARSENING() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_GET_RATINGS() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_PRECALCULATE_COARSENING() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_AGGRESSIVE_COARSENING() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_SEND_COARSENING() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_COMMUNICATE_PROLONGATION() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
+#define SET_DEBUG_LEVEL_AFTER_COMMUNICATE_PROLONGATION() UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1)
 
 #ifdef UG_PARALLEL
 std::string GetProcFilename(std::string name, std::string extension)
@@ -228,6 +249,7 @@ public:
 		stopwatch SW, SWwhole; SWwhole.start();
 
 
+		SET_DEBUG_LEVEL_OVERLAP();
 		// 1. Overlap calculation
 		//---------------------------
 #ifdef UG_PARALLEL
@@ -237,6 +259,7 @@ public:
 #endif
 		size_t N = A_OL2.num_rows();
 
+		SET_DEBUG_LEVEL_TESTVECTOR_CALC();
 		// 2. global Testvector calculation (damping)
 		//-----------------------------------------------
 		// todo: all global?
@@ -256,6 +279,7 @@ public:
 
 		// 3. create heap, P, SymmNeighGraph
 		//-------------------------------------
+		SET_DEBUG_LEVEL_PHASE_3();
 		heap.create(rating.nodes);
 
 		IF_DEBUG(LIB_ALG_AMG, 3)
@@ -272,11 +296,24 @@ public:
 		CreateSymmConnectivityGraph(A_OL2, SymmNeighGraph);
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
+		bool bUsePrecalculate = true;
+		if(bUsePrecalculate)
+		{
+			// get possible parent nodes
+			UG_DLOG(LIB_ALG_AMG, 1, "\ncreating possible parent list... "); if(bTiming) SW.start();
+			SET_DEBUG_LEVEL_CALCULATE_PARENT_PAIRS();
+			calculate_all_possible_parent_pairs();
+
+			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
+		}
+
 
 	#ifdef UG_PARALLEL
 		// 4. coloring in parallel
 		//-------------------------------------
+		SET_DEBUG_LEVEL_COLORING();
 		color_process_graph();
+		SET_DEBUG_LEVEL_RECV_COARSENING();
 		receive_coarsening_from_processes_with_lower_color();
 	#endif
 
@@ -284,15 +321,10 @@ public:
 
 		// 5. do coarsening
 		//-------------------------
-		if(1)
+		if(bUsePrecalculate)
 		{
-			// get possible parent nodes
-			UG_DLOG(LIB_ALG_AMG, 1, "\ncreating possible parent list... "); if(bTiming) SW.start();
-			calculate_all_possible_parent_pairs();
-
-			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
-
 			// calculate ratings (not precalculateable because of coarse/uninterpolateable)
+			SET_DEBUG_LEVEL_GET_RATINGS();
 			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "calculate ratings... "); if(bTiming) SW.start();
 			GetRatings(possible_parents, rating, heap);
 			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
@@ -300,6 +332,7 @@ public:
 			//heap.print();
 
 			// do coarsening
+			SET_DEBUG_LEVEL_PRECALCULATE_COARSENING();
 			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "coarsening... "); if(bTiming) SW.start();
 			precalculate_coarsening();
 			if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
@@ -317,6 +350,7 @@ public:
 		// this has to be AFTER communication of coarse/fine markers,
 		// since on border nodes, we will have
 
+		SET_DEBUG_LEVEL_AGGRESSIVE_COARSENING();
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "second coarsening... "); if(bTiming) SW.start();
 		if(m_famg.get_aggressive_coarsening() == true)
 			get_aggressive_coarsening_interpolation();
@@ -330,6 +364,7 @@ public:
 		#ifdef UG_PARALLEL
 		// 6. send coarsening data to processes with higher color
 		//----------------------------------------------------------
+			SET_DEBUG_LEVEL_SEND_COARSENING();
 			send_coarsening_data_to_processes_with_higher_color();
 // we could use this information to do better interpolation on the border
 // send_coarsening_data_to_processes_with_lower_color_and_receive_coarsening_data_from_processes_with_higher_color
@@ -348,6 +383,7 @@ public:
 		// set P to real size
 
 		#ifdef UG_PARALLEL
+			SET_DEBUG_LEVEL_COMMUNICATE_PROLONGATION();
 			communicate_prolongation();
 		#endif
 
@@ -355,6 +391,7 @@ public:
 		write_debug_matrix_markers();
 		// ]
 
+		SET_DEBUG_LEVEL_AFTER_COMMUNICATE_PROLONGATION();
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{	rating.print(); 	}
 
@@ -410,7 +447,7 @@ public:
 
 		// AH = R A P
 		PROFILE_BEGIN(FAMGCreateAsMultiplyOf)
-			CreateAsMultiplyOf(AH, R, A, PnewIndices);
+			CreateAsMultiplyOf(AH, R, A, PnewIndices, 0.01);
 		PROFILE_END();
 
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
@@ -485,8 +522,7 @@ private:
 
 		for(size_t i=0; i<rating.size(); i++)
 		{
-			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating (neither coarse nor fine but interpolateable), but is not in heap anymore???");
-			if(rating[i].is_uninterpolateable() == false) continue;
+			if(rating[i].is_uninterpolateable() == false || rating.i_must_assign(i) == false) continue;
 			rating.set_coarse(i);
 		}
 	}
@@ -525,9 +561,17 @@ private:
 		PnewIndices.resize(A.num_rows(), nrOfCoarse);
 		for(size_t r=0; r<A.num_rows(); r++)
 		{
+			double maxCon=0;
+			for(typename prolongation_matrix_type::row_iterator conn = PoldIndices.begin_row(r);
+				conn != PoldIndices.end_row(r); ++conn)
+				maxCon = BlockNorm(conn.value());
+
+
 			for(typename prolongation_matrix_type::row_iterator conn = PoldIndices.begin_row(r);
 					conn != PoldIndices.end_row(r); ++conn)
 			{
+				if(BlockNorm(conn.value()) < maxCon*m_famg.m_dEpsilonTr)
+					continue;
 				size_t c = conn.index();
 				UG_ASSERT(rating[c].is_coarse(), "node " << c << " is not even coarse.");
 				UG_ASSERT(newIndex[c] != -1, rating.info(c));
@@ -542,14 +586,14 @@ private:
 			UG_ASSERT(rating[r].is_fine() == false || rating[r].is_uncalculated_fine(), rating.info(r));
 
 		PnewIndices.resize(A.num_rows(), nrOfCoarse);
-		UG_LOG("rating.get_nr_of_coarse() = " << rating.get_nr_of_coarse() << ", nrOfCoarse = " << nrOfCoarse);
+		UG_DLOG(LIB_ALG_AMG, 1, "rating.get_nr_of_coarse() = " << rating.get_nr_of_coarse() << ", nrOfCoarse = " << nrOfCoarse << "\n");
 
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 
 		AMG_PROFILE_NEXT(create_parent_index)
 		if(m_famg.m_writeMatrices)
 		{
-			if(bTiming) { SW.start();UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create parentIndex... "); }
+			if(bTiming) { SW.start(); UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create parentIndex... "); }
 
 			stdvector<stdvector<int> > &parentIndex = m_famg.m_parentIndex;
 			parentIndex.resize(level+2);
@@ -565,8 +609,8 @@ private:
 #ifdef UG_PARALLEL
 		if(bTiming) { SW.start();UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create interfaces... "); }
 		AMG_PROFILE_NEXT(create_interfaces)
-		create_interface(A.get_master_layout(), nextLevelMasterLayout, newIndex);
-		create_interface(A.get_slave_layout(), nextLevelSlaveLayout, newIndex);
+		update_interface_with_newIndex(A.get_master_layout(), nextLevelMasterLayout, newIndex);
+		update_interface_with_newIndex(A.get_slave_layout(), nextLevelSlaveLayout, newIndex);
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.\n");
 		//PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 #endif
@@ -592,7 +636,7 @@ private:
 	void add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout);
 	void communicate_prolongation(); // in famg_communicate_prolongation.h
 	void calculate_uncalculated_fine_nodes();
-	void create_interface(IndexLayout &layout, IndexLayout &nextLevelLayout, stdvector<int> &newIndex);
+	void update_interface_with_newIndex(IndexLayout &layout, IndexLayout &nextLevelLayout, stdvector<int> &newIndex);
 	IndexLayout OL1MasterLayout, OL1SlaveLayout;
 	IndexLayout OL2MasterLayout, OL2SlaveLayout;
 #endif

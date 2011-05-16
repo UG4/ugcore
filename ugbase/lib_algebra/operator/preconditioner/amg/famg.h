@@ -98,6 +98,9 @@ public:
 	double get_delta() const { return m_delta;}
 	double get_theta() const { return m_theta;}
 
+	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
+	void 	set_epsilon_truncation(double epsilonTr) 	{ m_dEpsilonTr = epsilonTr; }
+	double 	get_epsilon_truncation() const				{ return m_dEpsilonTr; }
 
 	void set_testvector_damps(size_t testvectordamps) { m_iTestvectorDamps = testvectordamps; }
 	size_t get_testvector_damps() const { return m_iTestvectorDamps; }
@@ -148,6 +151,7 @@ private:
 	double m_dDampingForSmootherInInterpolationCalculation;
 	double m_delta;								///< "Interpolation quality" F may not be worse than this (F < m_delta)
 	double m_theta;								///< clip all interpolations with m_theta * F > min F.
+	double m_dEpsilonTr;						///< parameter used for truncation of interpolation
 
 	size_t m_iTestvectorDamps;
 	bool m_bTestvectorZeroAtDirichlet;

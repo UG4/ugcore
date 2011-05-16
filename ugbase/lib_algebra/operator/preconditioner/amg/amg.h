@@ -87,11 +87,8 @@ public:
 
 
 	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
-	void 	set_epsilon_truncation(double new_sigma) 	{ m_dSigma = new_sigma; }
-	double 	get_epsilon_truncation() const				{ return m_dSigma; }
-
-	void set_epsilon(double new_epsilon) 	{ m_dEpsilon = new_epsilon; }
-	double get_epsilon() const				{ return m_dEpsilon; }
+	void 	set_epsilon_truncation(double epsilonTr) 	{ m_dEpsilonTr = epsilonTr; }
+	double 	get_epsilon_truncation() const				{ return m_dEpsilonTr; }
 
 
 	/**
@@ -125,9 +122,8 @@ private:
 	void create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level);
 
 // data
-	double m_dEpsilon;	///< parameter used for truncation of interpolation
-	double m_dTheta; 	///< measure for strong connectivity
-	double m_dSigma;
+	double m_dEpsilonTr;	///< parameter used for truncation of interpolation
+	double m_dTheta; 		///< measure for strong connectivity
 
 	bool m_bAggressiveCoarsening;				///< true if aggressive coarsening is used on first level
 	int m_iAggressiveCoarseningNrOfPaths;  	///<

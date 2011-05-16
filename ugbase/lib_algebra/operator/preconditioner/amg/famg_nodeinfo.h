@@ -117,7 +117,7 @@ public:
 			const FAMGNode &ninfo = nodes[M[i].from];
 			if(ninfo.is_fine())
 			{
-				UG_DLOG(LIB_ALG_AMG, 2, " pair " << get_original_index(M[0].from) << ", " << get_original_index(M[1].from) << " is invalid, since " << get_original_index(M[i].from) << " is fine. ");
+				UG_DLOG(LIB_ALG_AMG, 4, " pair " << get_original_index(M[0].from) << ", " << get_original_index(M[1].from) << " is invalid, since " << get_original_index(M[i].from) << " is fine. ");
 				return -1;
 			}
 			/*else if(ninfo.is_uninterpolateable())
@@ -145,16 +145,16 @@ public:
 		}
 
 		AMG_PROFILE_FUNC();
-		UG_DLOG(LIB_ALG_AMG, 2, " update rating of node " << node << "... ");
+		UG_DLOG(LIB_ALG_AMG, 4, " update rating of node " << node << "... ");
 		if(nodes[node].is_valid_rating() == false)
 		{
-			UG_DLOG(LIB_ALG_AMG, 2, nodes[node].rating << " is not a valid rating."); return false;
+			UG_DLOG(LIB_ALG_AMG, 4, nodes[node].rating << " is not a valid rating."); return false;
 		}
 
 		int mini = -1;
 		double minrating = 10000;
 		//double minF = 1e12;
-		UG_DLOG(LIB_ALG_AMG, 2, "has " << PN.size() << " possible parent nodes. ");
+		UG_DLOG(LIB_ALG_AMG, 4, "has " << PN.size() << " possible parent nodes. ");
 		for(size_t i=0; i<PN.size(); )
 		{
 			double irating = get_rating(PN[i].parents) + PN[i].F/1000;
@@ -163,7 +163,7 @@ public:
 			{
 				std::swap(PN[i], PN.back()); // remove this pair
 				PN.resize(PN.size()-1);
-				UG_DLOG(LIB_ALG_AMG, 2, " removed pair " << i << " ");
+				UG_DLOG(LIB_ALG_AMG, 4, " removed pair " << i << " ");
 				continue;
 			}
 
@@ -176,17 +176,17 @@ public:
 			}
 			i++;
 		}
-		UG_DLOG(LIB_ALG_AMG, 2, "now has " << PN.size() << " possible parent nodes. ");
+		UG_DLOG(LIB_ALG_AMG, 4, "now has " << PN.size() << " possible parent nodes. ");
 		for(size_t i=0; i<PN.size(); i++)
-			UG_DLOG(LIB_ALG_AMG, 2, PN[i].parents[0].from << "-" << PN[i].parents[1].from << " ");
+			UG_DLOG(LIB_ALG_AMG, 4, PN[i].parents[0].from << "-" << PN[i].parents[1].from << " ");
 
 		if(mini != -1)
 		{
-			UG_DLOG(LIB_ALG_AMG, 2, " has rating " << minrating << "\n");
+			UG_DLOG(LIB_ALG_AMG, 4, " has rating " << minrating << "\n");
 			if(mini != 0) std::swap(PN[0], PN[mini]);
 			if(nodes[node].rating != minrating)
 			{
-				UG_DLOG(LIB_ALG_AMG, 2, " new rating! ");
+				UG_DLOG(LIB_ALG_AMG, 4, " new rating! ");
 				nodes[node].rating = minrating;
 				return true;
 			}
@@ -194,7 +194,7 @@ public:
 		}
 		else
 		{
-			UG_DLOG(LIB_ALG_AMG, 2, " is uninterpolateable! ");
+			UG_DLOG(LIB_ALG_AMG, 4, " is uninterpolateable! ");
 			if(nodes[node].is_uninterpolateable())
 				return false;
 			else
@@ -418,12 +418,12 @@ void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvec
 		{
 			if(nodes[neigh].is_uninterpolateable())
 			{
-				UG_DLOG(LIB_ALG_AMG, 2, " remove from heap! ");
+				UG_DLOG(LIB_ALG_AMG, 5, " remove from heap! ");
 				heap.remove(neigh);
 			}
 			else
 			{
-				UG_DLOG(LIB_ALG_AMG, 2, " update in heap! ");
+				UG_DLOG(LIB_ALG_AMG, 5, " update in heap! ");
 				heap.update(neigh);
 			}
 		}
@@ -434,17 +434,17 @@ template<typename neighborstruct, typename heap_type>
 void GetRatings(stdvector<stdvector<neighborstruct> > &possible_neighbors,
 		FAMGNodes &nodes, heap_type &heap)
 {
-	UG_DLOG(LIB_ALG_AMG, 2, "\nGetRatings...\n\n");
+	UG_DLOG(LIB_ALG_AMG, 4, "\nGetRatings...\n\n");
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		UG_DLOG(LIB_ALG_AMG, 2, "node " << nodes.get_original_index(i) << ": ");
+		UG_DLOG(LIB_ALG_AMG, 4, "node " << nodes.get_original_index(i) << ": ");
 		if(nodes.i_must_assign(i) && nodes[i].is_valid_rating())
 		{
 			nodes.update_rating(i, possible_neighbors[i]);
 			if(nodes[i].is_valid_rating())
 				heap.insert_item(i);
 		}
-		UG_DLOG(LIB_ALG_AMG, 2, "rating = " << nodes[i].rating << "\n");
+		UG_DLOG(LIB_ALG_AMG, 4, "rating = " << nodes[i].rating << "\n");
 	}
 }
 

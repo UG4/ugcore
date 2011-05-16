@@ -58,10 +58,10 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::pr
 		size_t i = heap.remove_max();
 		neighborstruct2 &n = possible_parents[i][0];
 
-		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\nSelect next node...\n");
-		UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " has rating " << rating[i] << ". now gets fine. parents: ");
+		UG_DLOG(LIB_ALG_AMG, 4, "\n\n\nSelect next node...\n");
+		UG_DLOG(LIB_ALG_AMG, 4, "node " << i << " has rating " << rating[i] << ". now gets fine. parents: ");
 		for(size_t j=0; j < n.parents.size(); j++)	UG_DLOG(LIB_ALG_AMG, 2, n.parents[j].from << " ");
-		UG_DLOG(LIB_ALG_AMG, 2, "\nUpdate Neighbors of " << i << "\n");
+		UG_DLOG(LIB_ALG_AMG, 4, "\nUpdate Neighbors of " << i << "\n");
 
 		// node i then gets fine, parent nodes get coarse, and neighbors of those updated.
 
@@ -69,15 +69,15 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::pr
 		rating.set_fine(i);
 		UpdateNeighbors(SymmNeighGraph, i, possible_parents, rating, heap);
 
-		UG_DLOG(LIB_ALG_AMG, 2, "Set coarse parents:\n");
+		UG_DLOG(LIB_ALG_AMG, 4, "Set coarse parents:\n");
 		// get parent pair, set as coarse (if not already done), update neighbors.
 
 		for(size_t j=0; j < n.parents.size(); j++)
 		{
 			size_t node = n.parents[j].from;
 
-			if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << node << " is already coarse\n"); }
-			else { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << node << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
+			if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 4, "\nnode " << node << " is already coarse\n"); }
+			else { UG_DLOG(LIB_ALG_AMG, 4, "\nnode " << node << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
 
 			if(!rating[node].is_coarse())
 			{

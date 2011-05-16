@@ -15,19 +15,79 @@ void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowI
 template<typename TConnectionType, typename TGlobalToLocal>
 size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal);
 
+template<typename matrix_type, typename TLocalToGlobal>
+void SerializeRow(BinaryStream &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
+{
+	const AlgebraID &globalRowIndex = localToGlobal[localRowIndex];
+
+	// serialize global row index
+	Serialize(stream, globalRowIndex);
+
+	//mat.s();
+	size_t num_connections = mat.num_connections(localRowIndex);
+
+	// serialize number of connections
+	Serialize(stream, num_connections);
+	UG_DLOG(LIB_ALG_AMG, 4, "Sending row " << localRowIndex << " (" << globalRowIndex << "), " << num_connections << " cons: ");
+
+	for(typename matrix_type::const_row_iterator conn = mat.begin_row(localRowIndex);
+						conn != mat.end_row(localRowIndex); ++conn)
+	{
+		size_t localColIndex = conn.index();
+		const AlgebraID &globalColIndex = localToGlobal[localColIndex];
+		UG_DLOG(LIB_ALG_AMG, 4, localColIndex << " (" << globalColIndex << ") -> " << conn.value() << " ");
+
+		// serialize connection
+		Serialize(stream, globalColIndex);
+		Serialize(stream, conn.value());
+	}
+	UG_DLOG(LIB_ALG_AMG, 4, "\n");
+}
+
+
+template<typename TConnectionType, typename TGlobalToLocal>
+size_t DeserializeRow(BinaryStream &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal)
+{
+	AlgebraID globalRowIndex;
+
+	// serialize global row index
+	Deserialize(stream, globalRowIndex);
+	size_t localRowIndex = globalToLocal[globalRowIndex];
+
+	UG_DLOG(LIB_ALG_AMG, 4, "Got row " << localRowIndex << " (" << globalRowIndex << "), ");
+	size_t num_connections;
+
+	// serialize number of connections
+	Deserialize(stream, num_connections);
+
+	UG_DLOG(LIB_ALG_AMG, 4, num_connections << " connections: ")
+
+	cons.resize(num_connections);
+	for(size_t i =0; i<num_connections; i++)
+	{
+		AlgebraID globalColIndex;
+		Deserialize(stream, globalColIndex);
+		cons[i].iIndex = globalToLocal[globalColIndex];
+		Deserialize(stream, cons[i].dValue);
+		UG_DLOG(LIB_ALG_AMG, 4, cons[i].iIndex << " (" << globalColIndex << ") -> " << cons[i].dValue << " ");
+	}
+	UG_DLOG(LIB_ALG_AMG, 4, "\n");
+	return localRowIndex;
+}
 template<typename matrix_type>
 void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLayout, IndexLayout &slaveLayout)
 {
-	UG_DLOG(LIB_ALG_AMG, 4, "\n*********** collect_matrix ************\n\n");
+	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** collect_matrix ************\n\n");
+
 	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
 	std::vector<AlgebraID> localToGlobal;
 	GenerateGlobalAlgebraIDs(localToGlobal, A.num_rows(), A.get_master_layout(), A.get_slave_layout());
 	NewNodesNummerator globalToLocal(localToGlobal);
 
-	//UG_DLOG(LIB_ALG_AMG, 4, "\n** the matrix A: \n\n");
-	//A.print();
-	//UG_LOG("\n");
-
+	/*UG_DLOG(LIB_ALG_AMG, 4, "\n** the matrix A: \n\n");
+	A.print();
+	UG_LOG("\n");*/
+;;
 	if(pcl::GetProcRank() != 0)
 	{
 		BinaryBuffer stream;
@@ -103,7 +163,8 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 			while(!stream.eof())
 			{
 				size_t localRowIndex = DeserializeRow(stream, cons, globalToLocal);
-				M.add_matrix_row(localRowIndex, &cons[0], cons.size());
+				if(cons.size())
+					M.add_matrix_row(localRowIndex, &cons[0], cons.size());
 			}
 		}
 		//UG_DLOG(LIB_ALG_AMG, 4, "\n** the matrix M: \n\n");
