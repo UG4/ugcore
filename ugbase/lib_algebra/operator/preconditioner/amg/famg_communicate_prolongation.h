@@ -18,6 +18,7 @@ namespace ug
  * send prolongation from masters to slaves
  *
  */
+#if 0
 template<typename matrix_type, typename TLocalToGlobal>
 void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
 {
@@ -76,6 +77,7 @@ size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, co
 	UG_DLOG(LIB_ALG_AMG, 4, "\n");
 	return localRowIndex;
 }
+#endif
 
 
 // FAMGLevelCalculator::communicate_prolongation
