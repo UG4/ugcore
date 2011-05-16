@@ -41,7 +41,7 @@ const int MG_VOLUME_MAX_VOLUME_CHILDREN = 8;///< maximal number of volumes that 
  * Vertices in the new level that have a parent vertex that lies on
  * this boundary are regarded as fixed vertices and have the state MGES_FIXED.
  * Vertices and edges in the new level that have a parent edge that lies
- * on the mark-boundary are regarded as constraied objects and have
+ * on the mark-boundary are regarded as constrained objects and have
  * the state MGES_CONSTRAINED.
  * If the parent edge of such an element is not a constrained edge itself,
  * it has the state MGES_CONSTRAINING.
