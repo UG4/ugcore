@@ -250,6 +250,51 @@ class ProcessCommunicator
 							void* sendBuf, int* sendSegSizes,
 							int* sendToRanks, int numSendTos) const;
 
+
+
+	/**
+	 * simplified allreduce for size=1. calls allreduce for parameter t, and then returns the result
+	 * \param t the input parameter
+	 * \param op the Reduce Operation
+	 * \return the reduced result
+	 */
+		template<typename T>
+		T allreduce(const T &t, pcl::ReduceOperation op)
+		{
+			T ret;
+			allreduce(&t, &ret, 1, get_data_type(ret), op);
+			return ret;
+		}
+
+	/**
+	 * simplified allreduce for buffers.
+	 * \param pSendBuff the input buffer
+	 * \param pReceiveBuff the output buffer
+	 * \param count number of elements in the input/output buffers
+	 * \param op the Reduce Operation
+	 */
+		template<typename T>
+		void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op)
+		{
+			allreduce(pSendBuff, pReceiveBuff, count, get_data_type(T()), op);
+		}
+
+	private:
+	/**
+	 * \{
+	 * \param dummy not used (only the type information is used)
+	 * \return the PCL-DataType for a given C-Type.
+	 * \note this might be better in a different place (e.g. global function)
+	 */
+		static DataType get_data_type(const unsigned long &) 	{ return PCL_DT_UNSIGNED_LONG; }
+		static DataType get_data_type(const long &)				{ return PCL_DT_LONG; }
+		static DataType get_data_type(const int &) 				{ return PCL_DT_INT; }
+		static DataType get_data_type(const float &)			{ return PCL_DT_FLOAT; }
+		static DataType get_data_type(const double &)			{ return PCL_DT_DOUBLE; }
+		static DataType get_data_type(const char &) 			{ return PCL_DT_CHAR; }
+		static DataType get_data_type(const unsigned char &) 	{ return PCL_DT_UNSIGNED_CHAR; }
+		/** \} */
+
 	private:
 	///	holds an mpi-communicator.
 	/**	A variable stores whether the communicator has to be freed when the
