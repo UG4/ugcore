@@ -29,7 +29,7 @@ class AssembledLinearOperator :
 	//	Type of Vector
 		typedef typename TAlgebra::vector_type vector_type;
 
-	//	Type of Vector
+	//	Type of Matrix
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	public:
