@@ -88,5 +88,11 @@ public:
 	value_type *end() { return values + end_index(); }*/
 };
 
+template<typename TValueType>
+bool CloneVector(Vector<TValueType> &dest, const Vector<TValueType> src)
+{
+	// clone stuff like
+	dest.resize(src.size());
+}
 
 #endif /* VECTOR_INTERFACE_H_ */
