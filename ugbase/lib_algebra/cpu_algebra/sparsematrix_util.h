@@ -30,7 +30,7 @@ namespace ug
  * \param C (in) Matrix C
  */
 template<typename ABC_type, typename A_type, typename B_type, typename C_type>
-void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C)
+void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, double epsilonTruncation=0.0)
 {
 	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
 
@@ -45,7 +45,8 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	std::vector<int> posInConnections(C.num_cols(), -1);
 
 	// types
-	std::vector<typename ABC_type::connection > con; con.reserve(255);
+	std::vector<typename ABC_type::connection > con; con.reserve(16);
+	std::vector<typename ABC_type::connection > con2; con2.reserve(16);
 
 	typedef typename A_type::value_type avalue;
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
@@ -100,8 +101,24 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 
 		// reset posInConnections to -1
 		for(size_t j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
-		// set Matrix_type Row in AH
-		M.set_matrix_row(i, &con[0], con.size());
+		if(epsilonTruncation != 0.0)
+		{
+			double m=0;
+			for(size_t j=0; j<con.size(); j++)
+			{
+				double d = BlockNorm(con[j].dValue);
+				if(d > m) m = d;
+			}
+			m *= epsilonTruncation;
+			con2.clear();
+			for(size_t j=0; j<con.size(); j++)
+				if( BlockNorm(con[j].dValue) > m )
+					con2.push_back(con[j]);
+			M.set_matrix_row(i, &con2[0], con2.size());
+		}
+		else
+			// set Matrix_type Row in AH
+			M.set_matrix_row(i, &con[0], con.size());
 	}
 
 }
