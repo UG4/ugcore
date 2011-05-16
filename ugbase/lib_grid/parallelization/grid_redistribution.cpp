@@ -711,8 +711,6 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
  * existing one.
  *
  * The given attachment accessors have to be associated with mgDest.
- *
- * \todo	This method should utilize hashes to increase performance
  */
 static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 							RedistributionVertexLayout& vrtLayout,
@@ -743,14 +741,14 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 
 	for(size_t lvl = 0; lvl < mgSrc.num_levels(); ++lvl){
 	//	create hashes for existing geometric objects
-		Hash<VertexBase*, GeomObjID>	vrtHash(1.5 * (mgDest.num<VertexBase>(lvl)
-													  + mgSrc.num<VertexBase>(lvl)));
-		Hash<EdgeBase*, GeomObjID>		edgeHash(1.5 * (mgDest.num<EdgeBase>(lvl)
-													  + mgSrc.num<EdgeBase>(lvl)));
-		Hash<Face*, GeomObjID>			faceHash(1.5 * (mgDest.num<Face>(lvl)
-													  + mgSrc.num<Face>(lvl)));
-		Hash<Volume*, GeomObjID>		volHash(1.5 * (mgDest.num<Volume>(lvl)
-													  + mgSrc.num<Volume>(lvl)));
+		Hash<VertexBase*, GeomObjID>	vrtHash((int)(1.5f * (float)(mgDest.num<VertexBase>(lvl)
+													  + mgSrc.num<VertexBase>(lvl))));
+		Hash<EdgeBase*, GeomObjID>		edgeHash((int)(1.5f * (float)(mgDest.num<EdgeBase>(lvl)
+													  + mgSrc.num<EdgeBase>(lvl))));
+		Hash<Face*, GeomObjID>			faceHash((int)(1.5f * (float)(mgDest.num<Face>(lvl)
+													  + mgSrc.num<Face>(lvl))));
+		Hash<Volume*, GeomObjID>		volHash((int)(1.5f * (float)(mgDest.num<Volume>(lvl)
+													  + mgSrc.num<Volume>(lvl))));
 
 	//	add existing elements to the hashes
 		for(VertexBaseIterator iter = mgDest.begin<VertexBase>(lvl);

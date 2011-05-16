@@ -438,7 +438,7 @@ void FinalizeRedistributionLayoutInterfaces(
 									//UG_LOG(" *(" << info.srcProc << ", " << info.targetProc << ")*");
 								}
 							}
-							UG_LOG(endl);
+							//UG_LOG(endl);
 						}
 					}
 				}

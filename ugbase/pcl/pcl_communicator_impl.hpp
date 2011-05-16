@@ -652,6 +652,7 @@ communicate()
 				info.m_binBuffer->clear();
 				info.m_binBuffer->reserve(rawSize);
 				binBuf.read((char*)info.m_binBuffer->buffer(), rawSize);
+				info.m_binBuffer->set_write_pos(rawSize);
 			}
 		}
 		else

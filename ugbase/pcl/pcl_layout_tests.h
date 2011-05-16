@@ -40,9 +40,7 @@ TElem TrivialToValue(TElem e)
 template<typename TLayout>
 bool TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
 {
-	typedef std::map<int, ug::BinaryBuffer>	BufferMap;
-
-	// check if connections are double-ended
+//	check if connections are double-ended
 	std::vector<char> bMasterToProcess; bMasterToProcess.resize(pcl::GetNumProcesses(), 0x00);
 	std::vector<char> bSlaveToProcess; bSlaveToProcess.resize(pcl::GetNumProcesses(), 0x00);
 
@@ -57,8 +55,8 @@ bool TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &m
 		com.send_raw(i, &bSlaveToProcess[i], sizeof(char));
 	}
 
-	//ug::StreamPack masterToThisProcessPack, slaveToThisProcessPack;
-	BufferMap masterToThisProcessMap, slaveToThisProcessMap;
+	std::vector<ug::BinaryBuffer> masterToThisProcessMap(pcl::GetNumProcesses());
+	std::vector<ug::BinaryBuffer> slaveToThisProcessMap(pcl::GetNumProcesses());
 	for(int i=0; i<pcl::GetNumProcesses(); i++)
 	{
 		com.receive_raw(i, masterToThisProcessMap[i]);
