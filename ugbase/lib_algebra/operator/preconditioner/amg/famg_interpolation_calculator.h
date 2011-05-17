@@ -136,6 +136,7 @@ public:
 		rhs[2] = - localTestvector[0][i_index];
 		i_neighborpairs.clear();
 
+		AMG_PROFILE_NEXT(FAMG_getPPP_minCalc);
 		int i_min = -1;
 		double f_min = 1e12;
 
@@ -210,6 +211,7 @@ public:
 				// F = q^T H q
 			}
 		}
+		AMG_PROFILE_NEXT(FAMG_getPPP_cleanup);
 		possible_neighbors.clear();
 		if(i_min != -1)
 		{
@@ -439,7 +441,7 @@ private:
 		// GetNeighborhoodHierachy(A, i, neighbors, bvisited);
 
 		// 1. Get Neighborhood N1 and N2 of i.
-		AMG_PROFILE_BEGIN(AMG_H_GetNeighborhood);
+		//AMG_PROFILE_BEGIN(AMG_H_GetNeighborhood);
 		bvisited.resize(A_OL2.num_rows(), false);
 
 		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
@@ -450,6 +452,7 @@ private:
 		if(onlyN1.size() == 0)
 			return false;
 
+		//AMG_PROFILE_NEXT(AMG_H_CreateN2);
 		N2 = onlyN1;
 		N2.push_back(i);
 		N2.insert(N2.end(), onlyN2.begin(), onlyN2.end());
@@ -467,7 +470,7 @@ private:
 		}
 
 		// 2. get submatrix in A_OL2 on N2
-		AMG_PROFILE_NEXT(AMG_H_GetLocalMatrix);
+		//AMG_PROFILE_NEXT(AMG_H_GetLocalMatrix);
 
 		S.resize(N2.size(), N2.size());
 		S = 0.0;
@@ -477,7 +480,7 @@ private:
 		//IF_DEBUG(LIB_ALG_AMG, 5)
 		//S.maple_print("\nsubA");
 
-		AMG_PROFILE_END();
+		//AMG_PROFILE_END();
 		// 3. calculate H from submatrix A
 		calculate_H_from_local_A();
 
@@ -496,12 +499,13 @@ private:
 	 */
 	void calculate_H_from_local_A()
 	{
-		AMG_PROFILE_FUNC();
+		//AMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
 		UG_ASSERT(S.num_cols() == S.num_rows(), "");
 		UG_ASSERT(S.num_cols() == onlyN1.size()+1+onlyN2.size(), "");
 		size_t N = S.num_rows();
 
+		//AMG_PROFILE_NEXT(AMG_HA_Dinv);
 		// get Dinv = 1/Aii
 		Dinv.resize(N);
 		for(size_t j=0; j < N; j++)
@@ -530,7 +534,7 @@ private:
 		IF_DEBUG(LIB_ALG_AMG, 5) S.maple_print("Sjac");
 
 		// get S = SF S
-		AMG_PROFILE_NEXT(AMG_HA_calculate_SFS);
+		//AMG_PROFILE_NEXT(AMG_HA_calculate_SFS);
 		// (possible without temporary since SF is mostly Id,
 		//  and then SF S is addition of rows of S)
 		// r<N1size, c<N1size
@@ -559,7 +563,7 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 5)	S.maple_print("S_SF");
 
-		AMG_PROFILE_NEXT(AMG_HA_calculate_H);
+		//AMG_PROFILE_NEXT(AMG_HA_calculate_H);
 		H.resize(onlyN1.size()+1, onlyN1.size()+1);
 		// get H = S Y S^T
 		// todo: use symmetric H.
