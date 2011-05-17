@@ -157,6 +157,7 @@ private:
 			IndexLayout &layout, bool bAddNodesToLayout, std::set<int> &pids,
 			std::map<int, std::vector<size_t> > &mNewLayout)
 	{
+		PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::collect_matrix_row_data\n");
 
 		BufferMap notificationsPack;
@@ -300,6 +301,7 @@ private:
 	 */
 	void receive_notifications(BufferMap &notificationsPack,	std::map<int, std::vector<size_t> > &masterOLLayout)
 	{
+		PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nProcessing notifications\n");
 
 		std::vector<int> pids;
@@ -353,6 +355,7 @@ private:
 	 */
 	void create_mark_map(IndexLayout &masterLayout)
 	{
+		PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::CreateMarks\n");
 
 		for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
@@ -385,6 +388,7 @@ private:
 	void get_new_indices(BufferMap &matrixrowPack, std::map<int, std::vector<size_t> > &overlapLayout,
 			NewNodesNummerator &nodeNummerator)
 	{
+		PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::GetNewIndices\n");
 		typedef IndexLayout::Interface Interface;
 
@@ -449,6 +453,7 @@ private:
 	 */
 	void process_matrix_rows(BufferMap &matrixrowPack, NewNodesNummerator &nodeNummerator, bool bSet)
 	{
+		PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\niterate again over all streams to get the matrix lines\n");
 
 		size_t numConnections;
@@ -521,6 +526,7 @@ private:
 	 */
 	void insert_map_into_layout_sorted(std::map<int, std::vector<size_t> > &m, IndexLayout &layout)
 	{
+		PROFILE_FUNC();
 		for(std::map<int, std::vector<size_t> >::iterator iter = m.begin(); iter != m.end(); ++iter)
 		{
 			int pid = iter->first;
@@ -552,6 +558,7 @@ private:
 			IndexLayout &newSlavesLayout, IndexLayout &newMastersLayout,
 			std::set<int> &pids, NewNodesNummerator &nodeNummerator, bool bSet, size_t level)
 	{
+		PROFILE_FUNC();
 
 		std::map<int, std::vector<size_t> > newSlaves;
 		std::map<int, std::vector<size_t> > newMasters;
@@ -687,6 +694,7 @@ public:
 	 */
 	bool calculate()
 	{
+		PROFILE_FUNC();
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
 		{
 			UG_DLOG(LIB_ALG_MATRIX, 4, "GENERATE OVERLAP START\n");
@@ -856,6 +864,7 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 		std::vector<size_t> &overlapSize,
 		size_t overlapDepth=1)
 {
+	PROFILE_FUNC();
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
@@ -876,6 +885,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
 		size_t overlapDepthMaster, size_t overlapDepthSlave, bool masterDirichletLast, bool slaveDirichletLast)
 {
+	PROFILE_FUNC();
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
@@ -892,6 +902,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 template<typename matrix_type>
 bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat)
 {
+	PROFILE_FUNC();
 	IndexLayout totalMasterLayout, totalSlaveLayout;
 	std::vector<IndexLayout> vMasterLayouts;
 	std::vector<IndexLayout> vSlaveLayouts;
