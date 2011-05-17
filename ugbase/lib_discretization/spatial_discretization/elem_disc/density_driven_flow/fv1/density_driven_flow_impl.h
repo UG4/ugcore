@@ -82,7 +82,7 @@ compute_darcy_velocity_ip_std(MathVector<dim>& DarcyVel,
 		MatVecMult(DarcyVel_c[sh], Permeability, DensityTimesGravity_c[sh]);
 
 	//	scale by viscosity
-		VecScale(DarcyVel_c[sh], DarcyVel_c[sh], 1./Viscosity);
+		VecScale(DarcyVel_c[sh], DarcyVel_c[sh], InvVisco);
 	}
 
 //	Viscosity derivative
@@ -90,7 +90,7 @@ compute_darcy_velocity_ip_std(MathVector<dim>& DarcyVel,
 		for(size_t sh = 0; sh < numSh; ++sh)
 		{
 		//  DarcyVel_c[sh] -= mu_c_sh(c) / mu * q
-			VecSubtract(DarcyVel_c[sh], DarcyVel, - Viscosity_c[sh] / Viscosity);
+			VecSubtract(DarcyVel_c[sh], DarcyVel, - Viscosity_c[sh] * InvVisco);
 		}
 }
 
@@ -334,6 +334,7 @@ compute_brine_export(const local_vector_type& u, bool compDeriv)
 
 			//	Compute Gradients and concentration at ip
 				number& cIP = m_exBrine.value(s, ip);
+				cIP = 0.0;
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					cIP += u(_C_, sh) * scvf.shape(sh, j);
 

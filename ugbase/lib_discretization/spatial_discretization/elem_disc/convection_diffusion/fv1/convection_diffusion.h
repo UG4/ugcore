@@ -20,6 +20,8 @@
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
 
+#include "lib_discretization/spatial_discretization/disc_helper/conv_shape_interface.h"
+
 namespace ug{
 
 /// \ingroup lib_disc_elem_disc
@@ -31,12 +33,13 @@ namespace ug{
  * assemblings for the convection diffusion equation.
  * The Equation has the form
  * \f[
- * 	\partial_t c - \nabla \left( D \nabla c - \vec{v} c \right) + r \cdot c
+ * 	\partial_t (m c) - \nabla \left( D \nabla c - \vec{v} c \right) + r \cdot c
  * 		= f
  * \f]
  * with
  * <ul>
  * <li>	\f$ c \f$ is the unknown solution
+ * <li>	\f$ m \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
  * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
  * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
  * <li>	\f$ r \equiv r(\vec{x},t) \f$ is the Reaction Term
@@ -80,7 +83,7 @@ class FVConvectionDiffusionElemDisc
 	public:
 	///	Constructor
 		FVConvectionDiffusionElemDisc()
-		 : m_upwindAmount(0.0)
+		 : m_pConvShape(NULL)
 			{
 			//	register assemling functions
 				register_ass_funcs(Int2Type<dim>());
@@ -95,17 +98,17 @@ class FVConvectionDiffusionElemDisc
 				register_import(m_imReaction);
 				register_import(m_imSource);
 				register_import(m_imMassScale);
+
+				m_imMassScale.set_mass_part(true);
 			}
 
-	///	set the amount of upwind
+	///	set the upwind method
 	/**
-	 * This method sets the amount of upwind to use for the velocity
-	 * discretization. A value of 0.0 gives a central scheme, while
-	 * 1.0 corresponds to full upwinding.
+	 * This method sets the upwind method used to upwind the convection.
 	 *
-	 * \param	amount		Amount of upwind
+	 * \param	shapes		upwind method
 	 */
-		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
+		void set_upwind(IConvectionShapes<dim>& shapes) {m_pConvShape = &shapes;}
 
 	///	sets the diffusion tensor
 	/**
@@ -230,6 +233,18 @@ class FVConvectionDiffusionElemDisc
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool lin_defect_diffusion(const local_vector_type& u);
 
+	///	computes the linearized defect w.r.t to the reaction
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		bool lin_defect_reaction(const local_vector_type& u);
+
+	///	computes the linearized defect w.r.t to the source term
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		bool lin_defect_source(const local_vector_type& u);
+
+	///	computes the linearized defect w.r.t to the mass scale term
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		bool lin_defect_mass_scale(const local_vector_type& u);
+
 	private:
 	///	Corner Coordinates
 		const position_type* m_vCornerCoords;
@@ -237,8 +252,8 @@ class FVConvectionDiffusionElemDisc
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
 
-	/// Amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwindAmount;
+	/// method to compute the upwind shapes
+		IConvectionShapes<dim>* m_pConvShape;
 
 	///	Data import for Diffusion
 		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_imDiffusion;
@@ -263,6 +278,11 @@ class FVConvectionDiffusionElemDisc
 		IPData<MathVector<dim>, dim>& get_concentration_grad() {return m_exConcentrationGrad;}
 
 	protected:
+		typedef IConvectionShapes<dim> conv_shape_type;
+
+	///	returns the updated convection shapes
+		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo);
+
 	///	computes the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool compute_concentration_export(const local_vector_type& u, bool compDeriv);
@@ -324,6 +344,9 @@ class FVConvectionDiffusionElemDisc
 		//	set computation of linearized defect w.r.t velocity
 			m_imVelocity.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, FV1Geometry>);
 			m_imDiffusion.register_lin_defect_func(id, this, &T::template lin_defect_diffusion<TElem, FV1Geometry>);
+			m_imReaction.register_lin_defect_func(id, this, &T::template lin_defect_reaction<TElem, FV1Geometry>);
+			m_imSource.register_lin_defect_func(id, this, &T::template lin_defect_source<TElem, FV1Geometry>);
+			m_imMassScale.register_lin_defect_func(id, this, &T::template lin_defect_mass_scale<TElem, HFV1Geometry>);
 
 		//	exports
 			m_exConcentration.register_export_func(id, this, &T::template compute_concentration_export<TElem, FV1Geometry>);
@@ -376,6 +399,9 @@ class FVConvectionDiffusionElemDisc
 		//	set computation of linearized defect w.r.t velocity
 			m_imVelocity.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, HFV1Geometry>);
 			m_imDiffusion.register_lin_defect_func(id, this, &T::template lin_defect_diffusion<TElem, HFV1Geometry>);
+			m_imReaction.register_lin_defect_func(id, this, &T::template lin_defect_reaction<TElem, HFV1Geometry>);
+			m_imSource.register_lin_defect_func(id, this, &T::template lin_defect_source<TElem, HFV1Geometry>);
+			m_imMassScale.register_lin_defect_func(id, this, &T::template lin_defect_mass_scale<TElem, HFV1Geometry>);
 
 		//	exports
 			m_exConcentration.register_export_func(id, this, &T::template compute_concentration_export<TElem, HFV1Geometry>);

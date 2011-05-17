@@ -20,10 +20,9 @@
 #include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
+
+#include "lib_discretization/spatial_discretization/disc_helper/conv_shape_interface.h"
 #include "consistent_gravity.h"
-#include "convection_shape.h"
-#include "conv_shape_interface.h"
-#include "conv_shape.h"
 
 namespace ug{
 
