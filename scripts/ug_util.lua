@@ -468,6 +468,23 @@ function util.CreateNavierStokesFIELDSStabilization(dim)
 	return stab
 end
 
+--- util.CheckSubsets
+-- checks if all required subsets are contained in the SubsetHandler
+-- @param dom Domain
+-- @param neededSubsets List of subsets the SubsetHandler must contain
+-- @return true if all subsets are contained, false else
+function util.CheckSubsets(dom, neededSubsets)
+	sh = dom:get_subset_handler()
+	for i, tval in ipairs(neededSubsets) do
+		if sh:get_subset_index(tval) == -1 then
+			print("Domain does not contain subset '"..tval.."'.")
+			return false
+		end
+	end
+	
+	return true
+end
+
 --------------------------------------------------------------------------------
 -- some auxiliary functions
 --------------------------------------------------------------------------------

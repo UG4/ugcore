@@ -124,15 +124,11 @@ if util.LoadDomain(dom, gridName) == false then
    exit()
 end
 
--- get subset handler
-sh = dom:get_subset_handler()
---if sh:num_subsets() ~= 2 then 
---	print("Domain must have 2 Subsets for this problem.")
---	exit()
---end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("DirichletBoundary", 1)
---sh:set_subset_name("NeumannBoundary", 2)
+-- Lets define a list of all subsets that we need
+neededSubsets = {"Inner", "Boundary"}
+
+-- Now we loop all subsets an search for it in the SubsetHandler of the domain
+if util.CheckSubsets(dom, neededSubsets) == false then print("Wrong subsets detected.") end
 
 -- create Refiner
 print("Create Refiner")
@@ -231,9 +227,11 @@ dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 elemDisc = {}
+upwind = {}
 for i=1, nSystems do
+upwind[i] = FullUpwind2d()
 elemDisc[i] = util.CreateFV1ConvDiff(approxSpace, "c"..i, "Inner")
-elemDisc[i]:set_upwind_amount(0.0)
+elemDisc[i]:set_upwind(upwind[i])
 elemDisc[i]:set_diffusion_tensor(diffusionMatrix)
 elemDisc[i]:set_velocity_field(velocityField)
 elemDisc[i]:set_reaction(reaction)
@@ -241,19 +239,12 @@ elemDisc[i]:set_source(rhs)
 end
 
 -----------------------------------------------------------------
---  Setup Neumann Boundary
------------------------------------------------------------------
-
---neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
---neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
-
------------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 for i=1, nSystems do
-dirichletBND:add_boundary_value(dirichlet, "c"..i, "DirichletBoundary")
+dirichletBND:add_boundary_value(dirichlet, "c"..i, "Boundary")
 end
 
 -------------------------------------------

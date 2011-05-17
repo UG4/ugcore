@@ -119,13 +119,7 @@ end
 neededSubsets = {"Inner", "Inlet", "Outlet", "UpperWall", "LowerWall", "CylinderWall"}
 
 -- Now we loop all subsets an search for it in the SubsetHandler of the domain
-sh = dom:get_subset_handler()
-for i, tval in ipairs(neededSubsets) do
-	if sh:get_subset_index(tval) == -1 then
-		print("Domain does not contain subset '"..tval.."'. Aborting.")
-		exit()
-	end
-end
+if util.CheckSubsets(dom, neededSubsets) == false then print("Wrong subsets detected.") end
 
 -- All subset are ok. So we can create the Approximation Space
 approxSpace = util.CreateApproximationSpace(dom)
