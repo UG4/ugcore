@@ -17,6 +17,7 @@ of the script.
 	- \ref pageSTLesson3 "Lesson 3 - laplace with exact solver"
 	- \ref pageSTLesson4 "Lesson 4 - modular programming"
 	- \ref pageSTLesson5 "Lesson 5 - global refinement"
+	- \ref pageSTLesson6 "Lesson 6 - flexible grid distribution"
 
 
 	- \ref pageSTRegistry "Registry"

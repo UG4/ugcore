@@ -67,4 +67,50 @@
  * \ingroup lib_grid_algorithms
  */
 
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief remeshing algorithms
+ *
+ * Remeshing algorithms change the topology of a grid in order to
+ * e.g. adapt it to a given shape or to optimize its triangle aspect ratios.
+ *
+ * \defgroup lib_grid_algorithms_remeshing remeshing
+ * \ingroup lib_grid_algorithms
+ */
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief tree structures
+ *
+ * Trees allow to perform space-partitioning on a grid. This is important
+ * if collision-tests, vertex-projection or clustering shall be performed
+ * with maximal performance.
+ *
+ * \defgroup lib_grid_algorithms_trees trees
+ * \ingroup lib_grid_algorithms
+ */
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief subdivision classes and algorithms
+ *
+ * Subdivision is a special form of refinement, where smooth surfaces
+ * are described through repeated refinement and application of position masks.
+ *
+ * \defgroup lib_grid_algorithms_refinement_subdivision subdivision
+ * \ingroup lib_grid_algorithms_refinement
+ */
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief grid generation algorithms
+ *
+ * Those algorithms allow to construct a triangulation or a tetrahedralization
+ * of a given domain.
+ *
+ * \defgroup lib_grid_algorithms_grid_generation grid generation
+ * \ingroup lib_grid_algorithms
+ */
+
+
 #endif

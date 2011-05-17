@@ -10,6 +10,13 @@
 namespace ug
 {
 
+/**
+ * Methods that log informations on grids, subset-handlers, ...
+ * \defgroup lib_grid_algorithms_log_util log util
+ * \ingroup lib_grid_algorithms
+ * @{
+ */
+
 ///	prints how many elements of each type exist in the goc.
 void PrintElementNumbers(const GeometricObjectCollection& goc);
 
@@ -21,6 +28,8 @@ void PrintGridElementNumbers(MultiGrid& mg);
 
 ///	prints how many elements of each type exist in the subset handler.
 void PrintGridElementNumbers(GridSubsetHandler& sh);
+
+/**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
 

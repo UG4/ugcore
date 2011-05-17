@@ -1,5 +1,5 @@
-//	created by Martin Stepniewski, Sebastian Reiter
-//	mastep@gmx.de, s.b.reiter@googlemail.com
+//	created by Sebastian Reiter, Martin Stepniewski
+//	s.b.reiter@googlemail.com, mastep@gmx.de
 //	y08 m12 d07
 
 #ifndef __H__UG__SUBDIVISION_LOOP__
@@ -10,7 +10,10 @@
 
 namespace ug
 {
-	
+
+///	\addtogroup lib_grid_algorithms_refinement_subdivision
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 ///	projects all vertices in the given grid to their limit-positions using the piecewise loop scheme.
 template <class TAVrtPos> void
@@ -235,6 +238,8 @@ ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 //	ProjectToLimitLoop
 /// projects surface vertices to their limit subdivision surface position
 bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos);
+
+/// @}	//	end of add_to_group
 
 }//	end of namespace
 

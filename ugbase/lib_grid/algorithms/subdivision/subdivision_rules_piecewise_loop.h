@@ -12,6 +12,9 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement_subdivision
+///	@{
+
 ///	A singleton that stores all rules for a piecewise-loop subdivision surface.
 class SubdivRules_PLoop
 {
@@ -199,6 +202,8 @@ class SubdivRules_PLoop
 	private:
 		std::vector<number>	m_betas;//< precalculated betas.
 };
+
+/// @}	//	end of add_to_group
 
 }//	end of namespace
 

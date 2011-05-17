@@ -41,9 +41,10 @@ Those basic objects are then further specialized:
 	- ug::Triangle, ug::Quadrilateral
 	- ug::Tetrahedron, ug::Hexahedron, ug::Prism, ug::Pyramid
 	
-For hanging-node support (only in 2d in the moment) the following objects are introduced:
+For hanging-node support the following objects are introduced:
 	- ug::HangingVertex
 	- ug::ConstrainingEdge. ug::ConstrainingEdge
+	- ug::ConstrainingTriangle, ug::ConstrainingQuadrilateral, ug::ConstrainedTriangle, ug::ConstrainedQuadrilateral
 
 <br>
 <hr>

@@ -12,6 +12,13 @@
 namespace ug
 {
 
+/**
+ * Methods that allow to interprete parts of a grid as a polygonal chain.
+ * \defgroup lib_grid_algorithms_polychain_util polygonal-chain util
+ * \ingroup lib_grid_algorithms
+ * @{
+ */
+
 enum PolyChainTypes
 {
 	PCT_UNKNOWN = 0,
@@ -83,6 +90,8 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSect
  * Returns true if the chain was splitted and false if not.
  */
 bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex);
+
+/**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
 

@@ -11,6 +11,9 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_trees
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 //	SPOctree
 /**	This typedef is only intended to increase comfort for callers.
@@ -44,6 +47,7 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 			int maxDepth, int elemThreshold, bool bLoose,
 			APosition& aPos = aPosition);
 
+/// @}
 							   
 }//	end of namespace
 

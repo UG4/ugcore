@@ -15,6 +15,13 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	selection util methods
 
+/**
+ * Several methods that ease selection-handling are grouped here.
+ * \defgroup lib_grid_algorithms_selection_util selection util
+ * \ingroup lib_grid_algorithms
+ * @{
+ */
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
 ///	calculates the center of selected objects
@@ -310,6 +317,8 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 bool traverseFlipped = false,
 										 number degThreshold = SMALL,
 						   	   	   	     APosition& aPos = aPosition);
+
+/**@}*/ // end of doxygen defgroup command
 
 }// end of namespace
 

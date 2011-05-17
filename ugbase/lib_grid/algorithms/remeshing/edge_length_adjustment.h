@@ -10,6 +10,9 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_remeshing
+///	@{
+
 enum RemeshingMarks
 {
 	RM_NONE = -1,
@@ -28,6 +31,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 					  number minEdgeLen, number maxEdgeLen, int numIterations,
 					  bool projectPoints = true, bool adaptive = true);
 
+/// @}	// end of add_to_group command
 
 }//	end of namespace
 

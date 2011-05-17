@@ -9,6 +9,10 @@
 
 namespace ug
 {
+
+///	\addtogroup lib_grid_algorithms_trees
+///	@{
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //KDTREE
 
@@ -118,6 +122,8 @@ class KDTreeStatic
 		int		m_numNeighboursFound;
 		float	m_maxDistSQ;
 };
+
+/// @}
 
 }//	end of namespace
 

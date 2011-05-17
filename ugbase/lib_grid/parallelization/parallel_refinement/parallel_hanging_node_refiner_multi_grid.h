@@ -14,6 +14,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_parallelization_refinement
+/// @{
+
 /**	The parallel hanging node refiner allows parallel refinement
  * with hanging nodes. Make sure that you initialize it with
  * a valid DistributedGridManager.
@@ -107,6 +110,8 @@ class ParallelHangingNodeRefiner_MultiGrid :
 		bool m_bNewInterfaceFacesMarked;
 		bool m_bNewInterfaceVolumesMarked;
 };
+
+/// @}
 
 }//	end of namespace
 

@@ -13,6 +13,47 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
+///	Base class for a hanging-node refiner.
+/**	A hanging node refiner allows to adaptively refine grid elements
+ * by inserting hanging nodes at points where T-junctions would occur
+ * (ug::HangingVertex).
+ * If further refinement is performed, the refiner automatically
+ * takes care to adjust the refined area, so that no more than
+ * 1 hanging vertex resides on any edge.
+ *
+ * Each edge on which a hanging node lies is replaced by a
+ * ug::ConstrainingEdge. Child-edges of a constraining edge have the
+ * type ug::ConstrainedEdge.
+ *
+ * If volumes exist, the refiner may also create elements of type
+ * ug::ConstrainingTriangle or ug::ConstrainingQuadrilateral, as well
+ * as ug::ConstrainedTriangle and ug::ConstrainedQuadrilateral.
+ *
+ * Use the mark_for_refinement methods to mark elements which
+ * shall be refined. A call to refine will then perform the refinement
+ * and clear all marks.
+ *
+ * Please note: If you're using a hanging node refiner, you have to
+ * be careful to not destroy the connections between hanging-vertices,
+ * and constrained / constraining objects.
+ *
+ * Specializations of this class exist to support hanging node refinement
+ * on flat and on hierarchical grids.
+ *
+ * Note that you may set a refinement callback, which will be
+ * responsible to calculate new positions of newly created vertices.
+ * By default a linear refinement callback is created for one of
+ * the standard position attachments (ug::aPosition, ug::aPosition2,
+ * ug::aPosition1 - whichever is present).
+ *
+ * This class can't be instantiated directly. Use one of its
+ * specializations instead.
+ *
+ * \sa ug::HangingNodeRefiner_Grid, ug::HangingNodeRefiner_MultiGrid
+ */
 class HangingNodeRefinerBase : public IRefiner, public GridObserver
 {
 	public:
@@ -24,6 +65,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 
+	///	sets the callback which will be responsible to calculate new vertex positions
 		void set_refinement_callback(IRefinementCallback* refCallback);
 		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
 
@@ -199,6 +241,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		bool		m_nodeDependencyOrder1;
 };
 
+/// @}	// end of add_to_group command
 
 }//	end of namespace
 

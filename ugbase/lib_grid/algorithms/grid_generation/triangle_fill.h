@@ -11,6 +11,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_algorithms_grid_generation
+///	@{
+
 /// Fills a 2d-region, bounded by the given poly-chain, with triangles.
 bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 					size_t polyChainSize, bool bTriangulateInside = true);
@@ -23,6 +26,7 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 bool TriangleFill(Grid& grid, EdgeBaseIterator edgesBegin,
 				EdgeBaseIterator edgesEnd, bool bTriangulateInside = true);
 
+/**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
 

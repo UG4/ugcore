@@ -10,6 +10,10 @@
 
 namespace ug
 {
+
+///	\addtogroup lib_grid_algorithms_remeshing
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 ///	Performs local remeshing so that the grid is adapted to the given cylinder.
 /**
@@ -55,6 +59,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 						   number radius, number badNormalDot = -1,
 						   APosition& aPos = aPosition);
 
+/// @}	// end of add_to_group command
 
 }//	end of namespace
 

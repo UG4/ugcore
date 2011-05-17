@@ -10,6 +10,19 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
+///	Specialization of ug::HangingNodeRefiner for ug::Grid
+/**	This class should be used, if hanging node refinement shall be
+ * applied on a flat grid (ug::Grid).
+ *
+ * Marked elements will be replaced by their newly created children.
+ *
+ * Take a look at ug::HangingNodeRefinerBase for a more in-depth documentation.
+ *
+ * \sa ug::HangingNodeRefinerBase, ug::HangingNodeRefiner_Grid
+ */
 class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 {
 	public:
@@ -66,6 +79,8 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 		Grid::EdgeAttachmentAccessor<AVertexBase>		m_aaVertexEDGE;
 		Grid::FaceAttachmentAccessor<AVertexBase>		m_aaVertexFACE;
 };
+
+/// @}	// end of add_to_group command
 
 }//	end of namespace
 

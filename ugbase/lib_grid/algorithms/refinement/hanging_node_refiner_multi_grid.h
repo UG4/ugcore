@@ -10,6 +10,19 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
+///	Specialization of ug::HangingNodeRefiner for ug::MultiGrid
+/**	This class should be used, if hanging node refinement shall be
+ * applied on a hierarchical grid (ug::MultiGrid).
+ *
+ * New elements will be constructed one level above their parent elements.
+ *
+ * Take a look at ug::HangingNodeRefinerBase for a more in-depth documentation.
+ *
+ * \sa ug::HangingNodeRefinerBase, ug::HangingNodeRefiner_Grid
+ */
 class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 {
 	public:
@@ -93,6 +106,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	private:
 		MultiGrid*	m_pMG;
 };
+
+/// @}	// end of add_to_group command
 
 }//	end of namespace
 

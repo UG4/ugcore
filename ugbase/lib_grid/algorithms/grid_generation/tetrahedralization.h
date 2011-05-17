@@ -10,6 +10,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_algorithms_grid_generation
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 ///	fills a closed surface-grid with tetrahedrons.
 /**	You may specify a quality parameter. If this parameter is <= 0, no
@@ -32,6 +35,8 @@ bool Tetrahedralize(Grid& grid, SubsetHandler& sh,
 					bool preserveAll = false,
 					APosition& aPos = aPosition);
 ///	\}
+
+/**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
 

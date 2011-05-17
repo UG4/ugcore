@@ -12,6 +12,13 @@
 namespace ug
 {
 
+/**
+ * Methods that perform grid-related serialization are grouped here.
+ * \defgroup lib_grid_algorithms_serialization serialization
+ * \ingroup lib_grid_algorithms
+ * @{
+ */
+
 ////////////////////////////////////////////////////////////////////////
 //	Utilities
 
@@ -483,6 +490,9 @@ bool SerializeSelector(Grid& grid, Selector& sel, std::ostream& out);
 
 bool DeserializeSelector(Grid& grid, Selector& sel, std::istream& in);
 */
+
+/**@}*/ // end of doxygen defgroup command
+
 }
 
 ////////////////////////////////

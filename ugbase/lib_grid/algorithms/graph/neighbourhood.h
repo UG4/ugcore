@@ -11,6 +11,13 @@
 namespace ug
 {
 
+/**
+ * Methods to access the neighborhood of geometric objects
+ * \defgroup lib_grid_algorithms_neighborhood_util neighborhood util
+ * \ingroup lib_grid_algorithms
+ * @{
+ */
+
 enum NeighbourhoodType
 {
 	NHT_DEFAULT = 0,
@@ -90,6 +97,8 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 void CollectNeighbourhood(std::vector<Face*>& facesOut, Grid& grid,
 						  VertexBase* vrt, size_t range,
 						  bool clearContainer = true);
+
+/**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
 

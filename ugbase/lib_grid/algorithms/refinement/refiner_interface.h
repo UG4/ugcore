@@ -9,8 +9,14 @@
 
 namespace ug
 {
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
 
 ///	The refiner interface allows to mark elements for refinement and to call refine.
+/**	A refiner always operates on a grid. A grid thus has to be assigned
+ * before refinement starts. Please take a look at the specializations
+ * of IRefiner, for more information.
+ */
 class IRefiner
 {
 	public:
@@ -62,6 +68,8 @@ class IRefiner
 	protected:
 		IRefinementCallback*	m_refCallback;
 };
+
+/// @}	// end of add_to_group command
 
 }//	end of namespace
 

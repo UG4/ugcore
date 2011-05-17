@@ -18,16 +18,17 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	HangingNodeRefiner2D_IRN
-///	Performs adaptive grid refinement with hanging nodes.
-/**
+///	Performs adaptive grid refinement with hanging nodes (DEPRECIATED AND UNSUPPORTED).
+/** DEPRECIATED AND UNSUPPORTED
+ *
  * IRN stands for "irregularity rule n", which intends to say that
  * an arbitrary number of hanging nodes may exist on each edge.
  *
  * Refines flat 2d grids (no multigrids) using hanging node refinement
  * with an arbitrary number of hanging nodes per edge.
  *
- * Most commonly you won't use this refiner, but the HangingNodeRefiner_Grid
- * or HanginNodeRefiner_MultiGrid, which only support one hanging node per
+ * Most commonly you won't use this refiner, but the ug::HangingNodeRefiner_Grid
+ * or ug::HanginNodeRefiner_MultiGrid, which only support one hanging node per
  * edge, but which are more robust and work in 3d as well.
  *
  * Initialize the Refiner with a grid or manually assign one later on.
