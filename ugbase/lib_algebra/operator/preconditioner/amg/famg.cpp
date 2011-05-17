@@ -388,7 +388,8 @@ public:
 		#endif
 
 		// [ debug output
-		write_debug_matrix_markers();
+		if(m_famg.m_writeMatrices)
+			write_debug_matrix_markers();
 		// ]
 
 		SET_DEBUG_LEVEL_AFTER_COMMUNICATE_PROLONGATION();
@@ -459,6 +460,8 @@ public:
 
 	#ifdef UG_PARALLEL
 		AH.set_storage_type(PST_ADDITIVE);
+		AH.set_communicator(A_OL2.get_communicator());
+		AH.set_process_communicator(A_OL2.get_process_communicator());
 		AH.set_layouts(nextLevelMasterLayout, nextLevelSlaveLayout);
 	#endif
 
@@ -474,7 +477,8 @@ public:
 		// 10.
 		//-----------------------------------------
 
-		write_debug_matrices();
+		if(m_famg.m_writeMatrices)
+			write_debug_matrices();
 
 		// todo: remove dynamic cast, change big_testvector to parallel
 		for(size_t i=0; i<m_testvectors.size(); i++)
