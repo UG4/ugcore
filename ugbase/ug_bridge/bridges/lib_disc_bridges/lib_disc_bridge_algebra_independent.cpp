@@ -350,7 +350,9 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 			reg.add_class_<T>("FunctionPattern", grp.c_str())
 				.add_method("clear", &T::clear)
 				.add_method("add_fct_on_subset", (bool (T::*)(const char*, const char*, int, const char*))&T::add_fct_on_subset)
-				.add_method("add_fct", (bool (T::*)(const char*, const char*, int))&T::add_fct);
+				.add_method("add_fct", (bool (T::*)(const char*, const char*, int))&T::add_fct,
+				            "Success", "Name|Type|Order", "Adds a function to the Function Pattern",
+				            "currently no help available");
 		}
 
 	//  Debug function
