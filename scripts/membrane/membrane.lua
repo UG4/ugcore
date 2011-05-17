@@ -15,8 +15,8 @@ InitAlgebra(CPUAlgebraSelector());
 dim = 2
 
 -- Grid
-gridName = "unit_square_tri_with_membrane.ugx"
---gridName = "unit_square_with_membrane.ugx"
+gridName = "grids/unit_square_tri_with_membrane.ugx"
+--gridName = "grids/unit_square_with_membrane.ugx"
 
 -- Refinements before distributing grid
 numPreRefs = 0

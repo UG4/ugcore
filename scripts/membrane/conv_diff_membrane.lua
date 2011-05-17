@@ -16,7 +16,7 @@ InitAlgebra(CPUAlgebraSelector());
 dim = 2
 
 if dim == 2 then
-	gridName = "unit_square_tri_with_membrane.ugx"
+	gridName = "grids/unit_square_tri_with_membrane.ugx"
 end
 
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grid name="defGrid">
+	<vertices coords="3">1 1 0 1 0 0 -0 0 0 0 1 0 0.5 0 0 1 0.5 0 0.5 1 0 0 0.5 0 0.5 0.5 0</vertices>
+	<edges>8 7 7 4 4 8 7 2 2 4 3 7 8 3 8 6 6 3 8 5 5 6 5 0 0 6 4 1 1 8 1 5</edges>
+	<triangles>8 7 4 7 2 4 3 7 8 3 8 6 6 8 5 5 0 6 8 4 1 8 1 5</triangles>
+	<subset_handler name="defSH">
+		<subset name="Inner" color="1 0 0 1">
+			<edges>0 1 2 7 9 10</edges>
+			<faces>0 1 2 3 4 5 6 7</faces>
+		</subset>
+		<subset name="Boundary" color="0 1 0 1">
+			<vertices>7 2 4 6 5 0</vertices>
+			<edges>3 4 5 8 11 12 13 15</edges>
+		</subset>
+		<subset name="Membrane" color="0 0 1 1">
+			<vertices>8</vertices>
+			<edges>6 14</edges>
+		</subset>
+		<subset name="MembraneBnd" color="1 0 1 1">
+			<vertices>1 3</vertices>
+		</subset>
+	</subset_handler>
+</grid>
+
