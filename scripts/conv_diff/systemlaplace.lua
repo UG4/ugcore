@@ -20,20 +20,14 @@ algebra:set_fixed_blocksize(nSystems)
 InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
-
 -- constants
-if util.HasParamOption("-3d") == true then
-	dim = 3
-else
-	dim = 2
-end
+if 		util.HasParamOption("-1d") == true then dim = 1
+elseif 	util.HasParamOption("-3d") == true then dim = 3
+else dim = 2 end
 
-if dim == 2 then
-gridName = "unit_square/unit_square_quads_8x8.ugx"
-end
-if dim == 3 then
-gridName = "unit_square/unit_cube_hex.ugx"
---gridName = "unit_square/unit_cube_tets_regular.ugx"
+if 		dim == 2 then gridName = "unit_square/unit_square_quads_8x8.ugx"
+elseif 	dim == 3 then gridName = "unit_square/unit_cube_hex.ugx"
+					--gridName = "unit_square/unit_cube_tets_regular.ugx"
 end
 
 numPreRefs = util.GetParamNumber("-numPreRefs", 2)
@@ -45,68 +39,40 @@ print("\nSYSTEMLAPLACE, nSystems = "..nSystems..", Dim = "..dim..", numRefs = ".
 -- User Data Functions (begin)
 --------------------------------
 function ourDiffTensor2d(x, y, t)
-return	1, 0, 
-0, 1
-end
-
-function ourVelocityField2d(x, y, t)
-return	0, 0
-end
-
-function ourReaction2d(x, y, t)
-return	0
+	return	1, 0, 
+			0, 1
 end
 
 function ourRhs2d(x, y, t)
-local s = 2*math.pi
-return	s*s*(math.sin(s*x) + math.sin(s*y))
---return -2*y
---return 0;
-end
-
-function ourNeumannBnd2d(x, y, t)
---local s = 2*math.pi
---return -s*math.cos(s*x)
-return true, -2*x*y
+	local s = 2*math.pi
+	return	s*s*(math.sin(s*x) + math.sin(s*y))
 end
 
 function ourDirichletBnd2d(x, y, t)
-local s = 2*math.pi
-return true, math.sin(s*x) + math.sin(s*y)
---return true, x*x*y
---return true, 2.5
+	local s = 2*math.pi
+	return true, math.sin(s*x) + math.sin(s*y)
 end
 
 function ourDiffTensor3d(x, y, z, t)
-return	1, 0, 0,
-0, 1, 0,
-0, 0, 1
+	return	1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
 end
 
-function ourVelocityField3d(x, y, z, t)
-return	0, 0, 0
-end
-
-function ourReaction3d(x, y, z, t)
-return	0
-end
 
 function ourRhs3d(x, y, z, t)
---local s = 2*math.pi
---return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
-return 0;
+	local s = 2*math.pi
+	return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
 end
 
 function ourNeumannBnd3d(x, y, t)
---local s = 2*math.pi
---return -s*math.cos(s*x)
-return true, -2*x*y*z
+	local s = 2*math.pi
+	return -s*math.cos(s*x)
 end
 
 function ourDirichletBnd3d(x, y, z, t)
---local s = 2*math.pi
---return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
-return true, x
+	local s = 2*math.pi
+	return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
 end
 
 --------------------------------
@@ -124,11 +90,9 @@ if util.LoadDomain(dom, gridName) == false then
    exit()
 end
 
--- Lets define a list of all subsets that we need
-neededSubsets = {"Inner", "Boundary"}
-
 -- Now we loop all subsets an search for it in the SubsetHandler of the domain
-if util.CheckSubsets(dom, neededSubsets) == false then print("Wrong subsets detected.") end
+neededSubsets = {"Inner", "Boundary"}
+if util.CheckSubsets(dom, neededSubsets) then print("Wrong subsets detected.") end
 
 -- create Refiner
 print("Create Refiner")
@@ -176,52 +140,16 @@ print ("Setting up Assembling")
 
 
 -- Diffusion Tensor setup
-if dim == 2 then
-	diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor2d", dim)
-elseif dim == 3 then
-	diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor3d", dim)
-end
+--diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
 diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
--- Velocity Field setup
-if dim == 2 then
-	velocityField = util.CreateLuaUserVector("ourVelocityField2d", dim)
-elseif dim == 3 then
-	velocityField = util.CreateLuaUserVector("ourVelocityField3d", dim)
-end 
-velocityField = util.CreateConstUserVector(0.0, dim)
-
--- Reaction setup
-if dim == 2 then
-	reaction = util.CreateLuaUserNumber("ourReaction2d", dim)
-elseif dim == 3 then
-	reaction = util.CreateLuaUserNumber("ourReaction3d", dim)
-end
-reaction = util.CreateConstUserNumber(0.0, dim)
-
 -- rhs setup
-if dim == 2 then
-	rhs = util.CreateLuaUserNumber("ourRhs2d", dim)
-elseif dim == 3 then
-	rhs = util.CreateLuaUserNumber("ourRhs3d", dim)
-end
-rhs = util.CreateConstUserNumber(0.0, dim)
-
--- neumann setup
-if dim == 2 then
-	neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
-elseif dim == 3 then
-	neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd3d", dim)
-end
---neumann = util.CreateConstUserNumber(0.0, dim)
+rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
+--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-if dim == 2 then
-	dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
-elseif dim == 3 then
-	dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd3d", dim)
-end
-dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
+dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+--dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -229,13 +157,11 @@ dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
 elemDisc = {}
 upwind = {}
 for i=1, nSystems do
-upwind[i] = FullUpwind2d()
-elemDisc[i] = util.CreateFV1ConvDiff(approxSpace, "c"..i, "Inner")
-elemDisc[i]:set_upwind(upwind[i])
-elemDisc[i]:set_diffusion_tensor(diffusionMatrix)
-elemDisc[i]:set_velocity_field(velocityField)
-elemDisc[i]:set_reaction(reaction)
-elemDisc[i]:set_source(rhs)
+	upwind[i] = FullUpwind2d()
+	elemDisc[i] = util.CreateFV1ConvDiff(approxSpace, "c"..i, "Inner")
+	elemDisc[i]:set_upwind(upwind[i])
+	elemDisc[i]:set_diffusion_tensor(diffusionMatrix)
+	elemDisc[i]:set_source(rhs)
 end
 
 -----------------------------------------------------------------
@@ -244,7 +170,7 @@ end
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 for i=1, nSystems do
-dirichletBND:add_boundary_value(dirichlet, "c"..i, "Boundary")
+	dirichletBND:add_boundary_value(dirichlet, "c"..i, "Boundary")
 end
 
 -------------------------------------------
@@ -253,9 +179,8 @@ end
 
 domainDisc = DomainDiscretization()
 for i=1, nSystems do
-domainDisc:add_elem_disc(elemDisc[i])
+	domainDisc:add_elem_disc(elemDisc[i])
 end
---domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 
 -------------------------------------------
