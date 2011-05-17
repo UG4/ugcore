@@ -3,7 +3,7 @@
 
 ug_load_script("ug_util.lua")
 
-gridInName = util.GetGridPath() .. "unit_square_quads_8x8.ugx"
+gridInName = util.GetGridPath() .. "unit_square/unit_square_quads_8x8.ugx"
 
 go = GridObject()
 

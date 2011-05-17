@@ -25,8 +25,8 @@ dim = util.GetParamNumber("-dim", 1) -- default dimension is 1.
 
 -- We also need a filename for the grid that shall be loaded.
 if 		dim == 1 then gridName = util.GetParam("-grid", "unit_line_2.ugx")
-elseif 	dim == 2 then gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
-elseif 	dim == 3 then gridName = util.GetParam("-grid", "unit_cube_hex.ugx")
+elseif 	dim == 2 then gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
+elseif 	dim == 3 then gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
 else print("Choosen Dimension not supported. Exiting."); exit(); end
 
 -- Since we want to save the domains grid to a file, we also need an output file.

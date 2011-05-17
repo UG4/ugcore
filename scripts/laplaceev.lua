@@ -15,7 +15,7 @@ InitAlgebra(CPUAlgebraSelector());
 
 -- constants
 dim = 2
-gridName = "unit_square_tri.ugx"
+gridName = "unit_square/unit_square_tri_2x2.ugx"
 numPreRefs = 0
 numRefs = 4
 

@@ -15,13 +15,13 @@ InitAlgebra(CPUAlgebraSelector());
 dim = 2
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_tri.ugx")
+	gridName = util.GetParam("-grid", "unit_square/unit_square_tri_2x2.ugx")
 	--gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
-	--gridName = "unit_square_quads_8x8.ugx"
+	--gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
-	gridName = util.GetParam("-grid", "unit_cube_hex.ugx")
-	--gridName = "unit_cube_tets_regular.ugx"
+	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
+	--gridName = "unit_square/unit_cube_tets_regular.ugx"
 end
 
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)
@@ -239,8 +239,17 @@ dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
+-- Select upwind
+if dim == 2 then 
+--upwind = NoUpwind2d()
+--upwind = FullUpwind2d()
+upwind = WeightedUpwind2d(); upwind:set_weight(0.0)
+--upwind = PartialUpwind2d()
+else print("Dim not supported for upwind"); exit() end
+
+
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
-elemDisc:set_upwind_amount(0.0)
+if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)

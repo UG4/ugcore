@@ -18,7 +18,7 @@ ug_load_script("../ug_util.lua")
 
 -- Get the command line parameters
 dim = util.GetParamNumber("-dim", 2)
-gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
+gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 
 -- We will save the created hierarchy to this file (with appended process id)

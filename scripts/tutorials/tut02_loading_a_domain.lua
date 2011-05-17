@@ -30,7 +30,7 @@ ug_load_script("../ug_util.lua")
 dim = util.GetParamNumber("-dim", 2) -- default dimension is 2.
 
 -- We also need a filename for the grid that shall be loaded.
-gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
+gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 
 
 

@@ -33,7 +33,7 @@ ug_load_script("tut04_2_disc_laplace.lua")
 
 -- Get the command line parameters
 dim = util.GetParamNumber("-dim", 2)
-gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
+gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 
 

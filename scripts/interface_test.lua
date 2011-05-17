@@ -17,11 +17,11 @@ InitAlgebra(CPUAlgebraSelector());
 dim = 3
 
 if dim == 2 then
-	gridName = "unit_square_tri.ugx"
+	gridName = "unit_square/unit_square_tri_2x2.ugx"
 end
 if dim == 3 then
-	gridName = "unit_cube_hex.ugx"
-	--gridName = "unit_cube_tets_regular.ugx"
+	gridName = "unit_square/unit_cube_hex.ugx"
+	--gridName = "unit_square/unit_cube_tets_regular.ugx"
 end
 
 numPreRefs = 0
