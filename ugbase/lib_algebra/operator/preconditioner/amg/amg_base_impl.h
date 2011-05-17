@@ -274,17 +274,23 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 	// create basesolver
 	collect_matrix(*(m_A[level]), collectedBaseA, masterColl, slaveColl);
 
-	std::vector<MathVector<3> > vec = m_amghelper.positions[level];
-	vec.resize(collectedBaseA.num_rows());
-	ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
-	pcl::ParallelCommunicator<IndexLayout> &communicator = m_A[level]->get_communicator();
-	communicator.send_data(slaveColl, copyPol);
-	communicator.receive_data(masterColl, copyPol);
-	communicator.communicate();
+	if(m_writeMatrices && m_amghelper.has_positions())
+	{
+		std::vector<MathVector<3> > vec = m_amghelper.positions[level];
+		vec.resize(collectedBaseA.num_rows());
+		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
+		pcl::ParallelCommunicator<IndexLayout> &communicator = m_A[level]->get_communicator();
+		communicator.send_data(slaveColl, copyPol);
+		communicator.receive_data(masterColl, copyPol);
+		communicator.communicate();
+		if(pcl::GetProcRank() == 0)
+		{
+			std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
+			WriteMatrixToConnectionViewer(name.c_str(), collectedBaseA, &vec[0], m_amghelper.dimension);
+		}
+	}
 	if(pcl::GetProcRank() == 0)
 	{
-		std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
-		WriteMatrixToConnectionViewer(name.c_str(), collectedBaseA, &vec[0], m_amghelper.dimension);
 		m_SMO[level].setmatrix(&collectedBaseA);
 		m_basesolver->init(m_SMO[level]);
 	}
