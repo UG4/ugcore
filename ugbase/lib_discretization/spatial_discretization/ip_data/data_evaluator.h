@@ -428,14 +428,48 @@ class DataEvaluator
 					}
 				}
 			}
+		//	we're done
+			return true;
+		}
 
-		//	if no derivatives needed, we're done
-			if(!computeDeriv) return true;
-
+		bool compute_lin_defect_JA(const local_vector_type & u,
+		                           LocalIndices& ind)
+		{
 		//	compute linearized defect
 			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
 			{
+			//	skip imports that are not located in mass part
+				if(m_vIDataImport[i]->in_mass_part()) continue;
+
+			//	set correct access for import
 				ind.access_by_map(m_vMapImp[i]);
+
+			//	compute linearization of defect
+				if(!m_vIDataImport[i]->compute_lin_defect(u))
+				{
+					UG_LOG("ERROR in 'DataEvaluator::compute_elem_data':"
+							"Cannot compute lin defect for Import " << i <<".\n");
+					return false;
+				}
+			}
+
+		//	we're done
+			return true;
+		}
+
+		bool compute_lin_defect_JM(const local_vector_type & u,
+		                           LocalIndices& ind)
+		{
+		//	compute linearized defect
+			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
+			{
+			//	skip imports that are not located in mass part
+				if(!m_vIDataImport[i]->in_mass_part()) continue;
+
+			//	set correct access for import
+				ind.access_by_map(m_vMapImp[i]);
+
+			//	compute linearization of defect
 				if(!m_vIDataImport[i]->compute_lin_defect(u))
 				{
 					UG_LOG("ERROR in 'DataEvaluator::compute_elem_data':"
@@ -459,6 +493,40 @@ class DataEvaluator
 
 			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
 			{
+			//	skip imports that are not located in mass part
+				if(m_vIDataImport[i]->in_mass_part()) continue;
+
+			//	rows are given by import
+				indRow.access_by_map(m_vMapImp[i]);
+
+			//	cols are given by export
+				indCol.access_by_map(m_vMapImpConn[i]);
+
+			//	add off diagonal coupling
+				m_vIDataImport[i]->assemble_jacobian(J);
+			}
+
+		//	reset indices
+			J.set_col_indices_no_resize(indRow);
+
+		//	we're done
+			return true;
+		}
+
+		bool add_coupl_JM(local_matrix_type& J,
+		                  LocalIndices& indRow)
+		{
+		//	copy local indices
+			LocalIndices indCol = indRow;
+
+		//	set different col indices
+			J.set_col_indices_no_resize(indCol);
+
+			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
+			{
+			//	skip imports that are not located in mass part
+				if(!m_vIDataImport[i]->in_mass_part()) continue;
+
 			//	rows are given by import
 				indRow.access_by_map(m_vMapImp[i]);
 

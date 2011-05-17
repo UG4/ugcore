@@ -58,7 +58,7 @@ class IUserData
  */
 template<typename TData, int dim, typename TDataIn>
 class IUserFunction
-	: public DataLinker<TData, dim, TDataIn>
+	: public DataLinkerEqualData<TData, dim, TDataIn>
 {
 	public:
 	///	virtual operator

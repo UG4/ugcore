@@ -30,9 +30,16 @@ class IDataImport
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
 			: m_pIDataExport(NULL), m_pIDependentIPData(NULL),
+			  m_bInMassPart(false),
 			  m_id(-1), m_bCompLinDefect(compLinDefect)
 		{}
 		virtual ~IDataImport()	{}
+
+	///	sets if import is located in mass part (for time dependent problems)
+		void set_mass_part(bool bInMassPart) {m_bInMassPart = bInMassPart;}
+
+	///	returns if import is located in mass part (for time dependent problems)
+		bool in_mass_part() const {return m_bInMassPart;}
 
 	/// returns if data is set
 		virtual bool data_given() const = 0;
@@ -96,6 +103,9 @@ class IDataImport
 
 	///	function pointers for all elem types
 		std::vector<LinDefectFunc>	m_vLinDefectFunc;
+
+	///	flag to indicate if import is located in mass part
+		bool m_bInMassPart;
 
 	/// current Geom Object
 		int m_id;
@@ -163,7 +173,7 @@ class DataImport : public IDataImport<TAlgebra>
 	/// Constructor
 		DataImport(bool compLinDefect = true) :
 			IDataImport<TAlgebra>(compLinDefect),
-			m_seriesID(-1), m_pIPData(NULL), m_pDependentIPData(NULL)
+			m_seriesID(-1),	m_pIPData(NULL), m_pDependentIPData(NULL)
 		{}
 
 	///	set the user data
@@ -294,22 +304,47 @@ class DataImport : public IDataImport<TAlgebra>
 			return m_vvvLinDefect[ip][fct].size();
 		}
 
-	///	returns the linearized defect
-		TData& lin_defect(size_t ip, size_t fct, size_t dof)
+	///	returns the pointer to all  linearized defects at one ip
+		TData* lin_defect(size_t ip, size_t fct)
 		{
 			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
 			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
-			UG_ASSERT(dof < m_vvvLinDefect[ip][fct].size(), "Invalid index.");
-			return m_vvvLinDefect[ip][fct][dof];
+			return &(m_vvvLinDefect[ip][fct][0]);
+		}
+
+	///	returns the pointer to all  linearized defects at one ip
+		const TData* lin_defect(size_t ip, size_t fct) const
+		{
+			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
+			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
+			return &(m_vvvLinDefect[ip][fct][0]);
+		}
+
+	///	returns the linearized defect
+		TData& lin_defect(size_t ip, size_t fct, size_t sh)
+		{
+			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
+			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
+			UG_ASSERT(sh < m_vvvLinDefect[ip][fct].size(), "Invalid index.");
+			return m_vvvLinDefect[ip][fct][sh];
 		}
 
 	/// const access to lin defect
-		const TData& lin_defect(size_t ip, size_t fct, size_t dof) const
+		const TData& lin_defect(size_t ip, size_t fct, size_t sh) const
 		{
 			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
 			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
-			UG_ASSERT(dof < m_vvvLinDefect[ip][fct].size(), "Invalid index.");
-			return m_vvvLinDefect[ip][fct][dof];
+			UG_ASSERT(sh < m_vvvLinDefect[ip][fct].size(), "Invalid index.");
+			return m_vvvLinDefect[ip][fct][sh];
+		}
+
+	///	resets all values of the linearized defect to zero
+		void clear_lin_defect()
+		{
+			for(size_t ip = 0; ip < m_vvvLinDefect.size(); ++ip)
+				for(size_t fct = 0; fct < m_vvvLinDefect[ip].size(); ++fct)
+					for(size_t sh = 0; sh < m_vvvLinDefect[ip][fct].size(); ++sh)
+						m_vvvLinDefect[ip][fct][sh] = 0.0;
 		}
 
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
