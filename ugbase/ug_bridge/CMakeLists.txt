@@ -18,11 +18,15 @@ set(srcUGBridge    	class_name_provider.cpp
 					ug_bridge.cpp
 					bridges/lib_grid_bridge.cpp
 					bridges/test_bridge.cpp
-					bridges/pcl_bridge.cpp
 					bridges/profiler_bridge.cpp
 					bridges/util_bridge.cpp
 					bridges/misc_bridge.cpp
 					bridges/domain_bridge.cpp)
+
+if(NOT NO_MPI)
+	set(srcUGBridge	${srcUGBridge}
+					bridges/pcl_bridge.cpp)
+endif(NOT NO_MPI)	
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
