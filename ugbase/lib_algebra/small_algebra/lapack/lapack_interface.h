@@ -84,7 +84,7 @@ int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], NULL, N, &X(0,0), N, &dWorksize, worksize);
 	UG_ASSERT(info == 0, "gegv: failed to detect worksize");
 
-	worksize = dWorksize;
+	worksize = (int)dWorksize;
 	double *dwork = new double[worksize];
 	if(A_type::ordering == RowMajor)
 		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, NULL, 0, dwork, worksize);
