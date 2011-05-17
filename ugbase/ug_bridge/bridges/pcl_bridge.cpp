@@ -6,7 +6,10 @@
 #include <string>
 #include "../registry.h"
 #include "../ug_bridge.h"
+
+#ifdef UG_PARALLEL
 #include "pcl/pcl.h"
+#endif
 
 namespace ug{
 namespace bridge{
