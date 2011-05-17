@@ -5,6 +5,7 @@
 --   Author: Martin Rupp / Andreas Vogel
 --
 ----------------------------------------------------------
+SetOutputProfileStats(false)
 
 ug_load_script("ug_util.lua")
 
