@@ -117,14 +117,9 @@ for i=numPreRefs+1,numRefs do
 	refiner:refine()
 end
 
--- get subset handler
-sh = dom:get_subset_handler()
-if sh:num_subsets() ~= 2 then 
-print("Domain must have 2 Subsets for this problem.")
-exit()
-end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("DirichletBoundary", 1)
+-- Now we loop all subsets an search for it in the SubsetHandler of the domain
+neededSubsets = {"Inner", "Boundary"}
+if util.CheckSubsets(dom, neededSubsets) then print("Wrong subsets detected.") end
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -173,7 +168,7 @@ elemDisc:set_velocity_field(velocityField)
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
+dirichletBND:add_boundary_value(dirichlet, "c", "Boundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
