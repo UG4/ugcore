@@ -12,6 +12,66 @@ using namespace std;
 
 namespace ug{
 
+////////////////////////////////////////////////////////////////////////////////
+///	A Debug method. Not used during normal program runs.
+template <class TGeomObj, class TAATargetProcs, class TAAGlobalIDs>
+static
+void LogTargetProcs(MultiGrid& mg, TAATargetProcs& aaTargetProcs,
+					  TAAGlobalIDs& aaIDs)
+{
+	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
+	UG_LOG("  TARGET-PROCS:\n");
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		UG_LOG("    level " << lvl << ":\n");
+		for(GeomObjIter iter = mg.begin<VertexBase>(lvl);
+			iter != mg.end<VertexBase>(lvl); ++iter)
+		{
+		//	log the id
+			TGeomObj* o = *iter;
+			UG_LOG("      " << aaIDs[o].first << "_" << aaIDs[o].second << ":\t");
+
+		//	log the target procs
+			vector<int>& v = aaTargetProcs[o];
+			for(size_t i = 0; i < v.size(); ++i){
+				UG_LOG(" " << v[i]);
+			}
+
+			UG_LOG(endl);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///	A Debug method. Not used during normal program runs.
+template <class TGeomObj, class TAATransferInfos, class TAAGlobalIDs>
+static
+void LogTransferInfos(MultiGrid& mg, TAATransferInfos& aaTransferInfos,
+					  TAAGlobalIDs& aaIDs)
+{
+	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
+	UG_LOG("  TRANSFER-INFOS:\n");
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		UG_LOG("    level " << lvl << ":\n");
+		for(GeomObjIter iter = mg.begin<VertexBase>(lvl);
+			iter != mg.end<VertexBase>(lvl); ++iter)
+		{
+		//	log the id
+			TGeomObj* o = *iter;
+			UG_LOG("      " << aaIDs[o].first << "_" << aaIDs[o].second << ":\t");
+
+		//	log the target procs
+			vector<RedistributionNodeTransferInfo>& infos = aaTransferInfos[o];
+			for(size_t i = 0; i < infos.size(); ++i){
+				UG_LOG("src: " << infos[i].srcProc);
+				UG_LOG(", target: " << infos[i].targetProc);
+				UG_LOG(", bMove: " << infos[i].bMove << "  ||  ");
+			}
+
+			UG_LOG(endl);
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///	Copies the associated global id from each interface entry into the redist-layouts.
 /**	Make sure that aGlobalID contains valid global ids.*/
@@ -49,13 +109,17 @@ void AssociateGlobalIDs(Grid& g,
  * Make sure that TGeomObj is either VertexBase, EdgeBase, Face or Volume.
  * Make also sure that TAAIntVec is accessing a valid Attachment<vector<int> >
  * attachment at grid.
+ *
+ * if psel is specified, then only selected entries of the layout with
+ * localLayoutIndex are regarded.
  */
 template <class TGeomObj, class TAAIntVec>
 static void
 CollectRedistributionTargetProcs(
 						vector<RedistributionNodeLayout<TGeomObj> >& layouts,
 						TAAIntVec& aaIntVec, int localLayoutIndex,
-						std::vector<int>* processMap)
+						std::vector<int>* processMap,
+						ISelector* psel = NULL)
 {
 	typedef typename DistributionNodeLayout<TGeomObj>::NodeVec		NodeVec;
 	typedef typename DistributionNodeLayout<TGeomObj>::Interface	Interface;
@@ -72,9 +136,20 @@ CollectRedistributionTargetProcs(
 	//	get the nodes of the current layout
 		NodeVec& nodes = layouts[i_layout].node_vec();
 
-	//	now iterate over the nodes and add the target-proc
-		for(size_t i = 0; i < nodes.size(); ++i)
-			aaIntVec[nodes[i]].push_back(targetProc);
+	//	if we're checking the local layout and if psel was specified, then
+	//	we have to only add targetProcs to selected entries.
+		if(localLayoutIndex == (int)i_layout && psel != NULL){
+		//	now iterate over the nodes and add the target-proc
+			for(size_t i = 0; i < nodes.size(); ++i){
+				if(psel->is_selected(nodes[i]))
+					aaIntVec[nodes[i]].push_back(targetProc);
+			}
+		}
+		else{
+		//	now iterate over the nodes and add the target-proc
+			for(size_t i = 0; i < nodes.size(); ++i)
+				aaIntVec[nodes[i]].push_back(targetProc);
+		}
 	}
 }
 
@@ -135,13 +210,6 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				if(m_pureVertical){
-				//	if pure vertical is enabled, we wont send data for
-				//	elements which also lie in a horizontal interface
-					if(m_distGridMgr.contains_status(elem, INT_H_MASTER)
-					  || m_distGridMgr.contains_status(elem, INT_H_SLAVE))
-						continue;
-				}
 
 			//	first write whether the elem is moved away from this proc
 				if(m_sel.is_selected(elem))
@@ -167,17 +235,18 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
+
+				buff.read((char*)&bMove, sizeof(byte));
+				targetProcs.clear();
+				Deserialize(buff, targetProcs);
+
 				if(m_pureVertical){
-				//	if pure vertical is enabled, we wont read data for
+				//	if pure vertical is enabled, we wont use data for
 				//	elements which also lie in a horizontal interface
 					if(m_distGridMgr.contains_status(elem, INT_H_MASTER)
 					  || m_distGridMgr.contains_status(elem, INT_H_SLAVE))
 						continue;
 				}
-
-				buff.read((char*)&bMove, sizeof(byte));
-				targetProcs.clear();
-				Deserialize(buff, targetProcs);
 
 				for(size_t i = 0; i < targetProcs.size(); ++i){
 					m_aaTransInfoVec[elem].push_back(
@@ -185,6 +254,7 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 														bMove != 0));
 				}
 			}
+
 			return true;
 		}
 
@@ -210,28 +280,45 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
  */
 template <class TGeomObj, class TAAIntVec, class TAATransferInfoVec>
 static void
-SynchronizeNodeTransfer(DistributedGridManager& distGridMgr,
+SynchronizeHNodeTransfer(DistributedGridManager& distGridMgr,
 						pcl::ParallelCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
 						TAAIntVec& aaIntVec,
 						TAATransferInfoVec& aaTransInfoVec,
 						int localLayoutIndex,
 						ISelector& sel)
 {
-	typedef typename GridLayoutMap::Types<TGeomObj>		Types;
-	typedef typename Types::Layout		Layout;
-	typedef typename Types::Interface	Interface;
+	typedef typename GridLayoutMap::Types<TGeomObj>::Layout		Layout;
 
 	GridLayoutMap& glm = distGridMgr.grid_layout_map();
 
 //	this communication policy fills aaTransInfoVec
 	ComPol_SynchronizeNodeTransfer<Layout, TAAIntVec, TAATransferInfoVec>
 		compolH(distGridMgr, sel, aaIntVec, aaTransInfoVec, false);
-	ComPol_SynchronizeNodeTransfer<Layout, TAAIntVec, TAATransferInfoVec>
-		compolV(distGridMgr, sel, aaIntVec, aaTransInfoVec, true);
 
 //	exchange data, both from masters to slaves and vice versa
 	comm.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolH);
 	comm.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolH);
+	comm.communicate();
+}
+
+template <class TGeomObj, class TAAIntVec, class TAATransferInfoVec>
+static void
+SynchronizeVNodeTransfer(DistributedGridManager& distGridMgr,
+						pcl::ParallelCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
+						TAAIntVec& aaIntVec,
+						TAATransferInfoVec& aaTransInfoVec,
+						int localLayoutIndex,
+						ISelector& sel)
+{
+	typedef typename GridLayoutMap::Types<TGeomObj>::Layout		Layout;
+
+	GridLayoutMap& glm = distGridMgr.grid_layout_map();
+
+//	this communication policy fills aaTransInfoVec
+	ComPol_SynchronizeNodeTransfer<Layout, TAAIntVec, TAATransferInfoVec>
+		compolV(distGridMgr, sel, aaIntVec, aaTransInfoVec, false);
+
+//	exchange data, both from masters to slaves and vice versa
 	comm.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolV);
 	comm.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolV);
 	comm.communicate();
@@ -319,7 +406,11 @@ void FinalizeRedistributionLayoutInterfaces(
 		TDistLayout& distLayout = distLayoutVec[i_layout];
 		const typename TDistLayout::NodeVec& nodes = distLayout.node_vec();
 
-	//	mark all nodes in the current layout and assign their redist-layout node index
+	//	mark all nodes in the current layout and assign their redist-layout node
+	//	index. However - if the layout of the current process is processed,
+	//	we'll only use the elements in the selector. This is important to
+	//	avoid problems during the creation of horizontal interfaces,
+	//	caused by elements in vertical interfaces.
 		mg.clear_marks();
 		for(size_t i = 0; i < nodes.size(); ++i){
 			aaNodeInd[nodes[i]] = (int)i;
@@ -529,6 +620,8 @@ void FinalizeRedistributionLayoutInterfaces(
 					//	however, we have to check whether the associated slave is sent
 					//	to a new proc, too.
 					/*
+					 * As far as I can see, this piece of code is unnecessary.
+					 * One should remove it as soon as the code proves to run stable.
 						if(newMasterProc == targetProc){
 							for(size_t i = 0; i < transferInfos.size(); ++i){
 								const RedistributionNodeTransferInfo& info = transferInfos[i];
@@ -558,6 +651,57 @@ void FinalizeRedistributionLayoutInterfaces(
 	mg.detach_from<TGeomObj>(aNodeInd);
 }
 
+
+///	Selects elements in layout, which are not vertical-masters
+template <class TGeomObj, class TRedistLayout>
+void SelectAllButVerticalMasters(DistributedGridManager& distGridMgr,
+								 ISelector& sel, TRedistLayout& layout)
+{
+
+	typename TRedistLayout::NodeVec& nodes = layout.node_vec();
+	for(size_t i = 0; i < nodes.size(); ++i)
+	{
+		if(!(distGridMgr.contains_status(nodes[i], INT_V_MASTER)))
+		{
+			sel.select(nodes[i]);
+		}
+	}
+}
+
+///	Deselects all elements in layouts other than localLayoutInd.
+template <class TGeomObj>
+void DeselectElementsInOtherLayouts(ISelector& sel, int localLayoutInd,
+				std::vector<RedistributionNodeLayout<TGeomObj*> >& distLayoutVec)
+{
+//	iterate through all layouts.
+//	deselect all elements in layouts other than loaclLayoutInd.
+	for(size_t i_layout = 0; i_layout < distLayoutVec.size(); ++i_layout)
+	{
+		if((int)i_layout == localLayoutInd)
+			continue;
+
+		typename RedistributionNodeLayout<TGeomObj*>::NodeVec&
+			nodes = distLayoutVec[i_layout].node_vec();
+
+		for(size_t i = 0; i < nodes.size(); ++i)
+			sel.deselect(nodes[i]);
+	}
+}
+
+///	Calls clear on all vectors in the given attachments.
+template <class TGeomObj, class TAATargetProcs, class TAATransferInfos>
+void ClearTargetAndTransferInfos(Grid& g, TAATargetProcs& aaTP,
+								 TAATransferInfos& aaTF)
+{
+//	iterate over all geom objs and clear the attachments
+	typedef typename geometry_traits<TGeomObj>::iterator TIter;
+	for(TIter iter = g.begin<TGeomObj>(); iter != g.end<TGeomObj>(); ++iter)
+	{
+		aaTP[*iter].clear();
+		aaTF[*iter].clear();
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 void CreateRedistributionLayouts(
 					std::vector<RedistributionVertexLayout>& vertexLayoutsOut,
@@ -567,8 +711,6 @@ void CreateRedistributionLayouts(
 					DistributedGridManager& distGridMgr, SubsetHandler& sh,
 					bool distributeGenealogy, bool createVerticalInterfaces,
 					MGSelector* pSel, std::vector<int>* processMap,
-					Attachment<std::vector<int> >* paTargetProcs,
-					ARedistributionNodeTransferInfoVec* paTransferInfoVec,
 					AGeomObjID& aGlobalID)
 {
 //	access the associated multi-grid
@@ -619,21 +761,11 @@ void CreateRedistributionLayouts(
 	if(localLayoutInd >= sh.num_subsets())
 		localLayoutInd = -1;
 
-	msel.clear();
-	if(localLayoutInd != -1){
-		SelectNodesInLayout(msel, vertexLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, edgeLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, faceLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, volumeLayoutsOut[localLayoutInd]);
-	}
-
 //	to each node we will now attach a vector<int>, into which we'll write all
 //	processes to which the node will be sent.
 //	we'll use the autoattach mechanism of the AttachmentAccessor.
 	typedef Attachment<vector<int> > AIntVec;
 	AIntVec aTargetProcs;
-	if(paTargetProcs)
-		aTargetProcs = *paTargetProcs;
 
 	Grid::AttachmentAccessor<VertexBase, AIntVec>
 		aaTargetProcsVRT(mg, aTargetProcs, true);
@@ -644,14 +776,50 @@ void CreateRedistributionLayouts(
 	Grid::AttachmentAccessor<Volume, AIntVec>
 		aaTargetProcsVOL(mg, aTargetProcs, true);
 
+//	select all elements, which are not contained in a vertical master interface.
+//	Include all associated elements of lower dimension in that selection, too.
+//	However - don't select elements from other layouts. This is important,
+//	since the selection should afterwards only hold the elements it would
+//	hold, if vertical interfaces were not present.
+//	This is required so that we can synchronize the node transfer as required
+//	to build horizontal interfaces.
+	msel.clear();
+	if(localLayoutInd != -1){
+		SelectAllButVerticalMasters<VertexBase>(distGridMgr, msel,
+											vertexLayoutsOut[localLayoutInd]);
+		SelectAllButVerticalMasters<EdgeBase>(distGridMgr, msel,
+											edgeLayoutsOut[localLayoutInd]);
+		SelectAllButVerticalMasters<Face>(distGridMgr, msel,
+											faceLayoutsOut[localLayoutInd]);
+		SelectAllButVerticalMasters<Volume>(distGridMgr, msel,
+											volumeLayoutsOut[localLayoutInd]);
+
+		DeselectElementsInOtherLayouts(msel, localLayoutInd, vertexLayoutsOut);
+		DeselectElementsInOtherLayouts(msel, localLayoutInd, edgeLayoutsOut);
+		DeselectElementsInOtherLayouts(msel, localLayoutInd, faceLayoutsOut);
+		DeselectElementsInOtherLayouts(msel, localLayoutInd, volumeLayoutsOut);
+
+		SelectAssociatedGeometricObjects(msel);
+	}
+
+/*
+UG_LOG("DEBUG: Positions of selected vertices:\n");
+Grid::AttachmentAccessor<VertexBase, APosition2> aaPos(mg, aPosition2);
+for(VertexBaseIterator iter = msel.begin<VertexBase>(0);
+	iter != msel.end<VertexBase>(0); ++iter)
+{
+	UG_LOG(aaPos[*iter] << endl);
+}
+*/
+
 	CollectRedistributionTargetProcs(vertexLayoutsOut, aaTargetProcsVRT,
-									 localLayoutInd, processMap);
+									 localLayoutInd, processMap, &msel);
 	CollectRedistributionTargetProcs(edgeLayoutsOut, aaTargetProcsEDGE,
-									 localLayoutInd, processMap);
+									 localLayoutInd, processMap, &msel);
 	CollectRedistributionTargetProcs(faceLayoutsOut, aaTargetProcsFACE,
-									 localLayoutInd, processMap);
+									 localLayoutInd, processMap, &msel);
 	CollectRedistributionTargetProcs(volumeLayoutsOut, aaTargetProcsVOL,
-									 localLayoutInd, processMap);
+									 localLayoutInd, processMap, &msel);
 
 //	we need a second attachment, which tells us for each node, to where
 //	associated nodes on other processes go. We store this through a
@@ -661,8 +829,6 @@ void CreateRedistributionLayouts(
 //	performed (bMove).
 	typedef ARedistributionNodeTransferInfoVec ATransferInfoVec;
 	ATransferInfoVec aTransferInfoVec;
-	if(paTransferInfoVec)
-		aTransferInfoVec = *paTransferInfoVec;
 
 	Grid::AttachmentAccessor<VertexBase, ATransferInfoVec>
 		aaTransInfoVecVRT(mg, aTransferInfoVec, true);
@@ -681,13 +847,15 @@ void CreateRedistributionLayouts(
 	pcl::ParallelCommunicator<FaceLayout> commFACE;
 	pcl::ParallelCommunicator<VolumeLayout> commVOL;
 
-	SynchronizeNodeTransfer<VertexBase>(distGridMgr, commVRT, aaTargetProcsVRT,
+////////////////////////////////
+//	BUILD HORIZONTAL INTERFACES
+	SynchronizeHNodeTransfer<VertexBase>(distGridMgr, commVRT, aaTargetProcsVRT,
 							aaTransInfoVecVRT, localLayoutInd, msel);
-	SynchronizeNodeTransfer<EdgeBase>(distGridMgr, commEDGE, aaTargetProcsEDGE,
+	SynchronizeHNodeTransfer<EdgeBase>(distGridMgr, commEDGE, aaTargetProcsEDGE,
 							aaTransInfoVecEDGE, localLayoutInd, msel);
-	SynchronizeNodeTransfer<Face>(distGridMgr, commFACE, aaTargetProcsFACE,
+	SynchronizeHNodeTransfer<Face>(distGridMgr, commFACE, aaTargetProcsFACE,
 							aaTransInfoVecFACE, localLayoutInd, msel);
-	SynchronizeNodeTransfer<Volume>(distGridMgr, commVOL, aaTargetProcsVOL,
+	SynchronizeHNodeTransfer<Volume>(distGridMgr, commVOL, aaTargetProcsVOL,
 							aaTransInfoVecVOL, localLayoutInd, msel);
 
 //	finalize the redistribution layouts by constructing all interfaces
@@ -704,11 +872,46 @@ void CreateRedistributionLayouts(
 										aaTargetProcsVOL, aaTransInfoVecVOL,
 										msel, INT_H_MASTER, INT_H_SLAVE, processMap);
 
-//UG_LOG("\nVRTS_BEGIN\n");
+////////////////////////////////
+//	BUILD VERTICAL INTERFACES
+//	targetProcs and transferInfos now have to be cleared. We will then
+//	synchronize the targetProcs for all horizontal interfaces.
+	ClearTargetAndTransferInfos<VertexBase>(mg, aaTargetProcsVRT, aaTransInfoVecVRT);
+	ClearTargetAndTransferInfos<EdgeBase>(mg, aaTargetProcsEDGE, aaTransInfoVecEDGE);
+	ClearTargetAndTransferInfos<Face>(mg, aaTargetProcsFACE, aaTransInfoVecFACE);
+	ClearTargetAndTransferInfos<Volume>(mg, aaTargetProcsVOL, aaTransInfoVecVOL);
+
+//	we now have to select all elements, which will stay on the local proc.
+//	This is required to correctly build the vertical interfaces.
+	msel.clear();
+	if(localLayoutInd != -1){
+		SelectNodesInLayout(msel, vertexLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, edgeLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, faceLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, volumeLayoutsOut[localLayoutInd]);
+	}
+
+	CollectRedistributionTargetProcs(vertexLayoutsOut, aaTargetProcsVRT,
+									 localLayoutInd, processMap);
+	CollectRedistributionTargetProcs(edgeLayoutsOut, aaTargetProcsEDGE,
+									 localLayoutInd, processMap);
+	CollectRedistributionTargetProcs(faceLayoutsOut, aaTargetProcsFACE,
+									 localLayoutInd, processMap);
+	CollectRedistributionTargetProcs(volumeLayoutsOut, aaTargetProcsVOL,
+									 localLayoutInd, processMap);
+
+	SynchronizeVNodeTransfer<VertexBase>(distGridMgr, commVRT, aaTargetProcsVRT,
+							aaTransInfoVecVRT, localLayoutInd, msel);
+	SynchronizeVNodeTransfer<EdgeBase>(distGridMgr, commEDGE, aaTargetProcsEDGE,
+							aaTransInfoVecEDGE, localLayoutInd, msel);
+	SynchronizeVNodeTransfer<Face>(distGridMgr, commFACE, aaTargetProcsFACE,
+							aaTransInfoVecFACE, localLayoutInd, msel);
+	SynchronizeVNodeTransfer<Volume>(distGridMgr, commVOL, aaTargetProcsVOL,
+							aaTransInfoVecVOL, localLayoutInd, msel);
+
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, vertexLayoutsOut,
 										aaTargetProcsVRT, aaTransInfoVecVRT,
 										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
-//UG_LOG("VRTS_END\n\n");
 	FinalizeRedistributionLayoutInterfaces(distGridMgr, edgeLayoutsOut,
 										aaTargetProcsEDGE, aaTransInfoVecEDGE,
 										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
@@ -719,11 +922,9 @@ void CreateRedistributionLayouts(
 										aaTargetProcsVOL, aaTransInfoVecVOL,
 										msel, INT_V_MASTER, INT_V_SLAVE, processMap);
 
-// detach temporary attachments, only if they were not specified from outside.
-	if(!paTargetProcs)
-		mg.detach_from_all(aTargetProcs);
-	if(!paTransferInfoVec)
-		mg.detach_from_all(aTransferInfoVec);
+// detach temporary attachments.
+	mg.detach_from_all(aTargetProcs);
+	mg.detach_from_all(aTransferInfoVec);
 }
 
 }// end of namespace

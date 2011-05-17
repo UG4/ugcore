@@ -44,63 +44,6 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 					vector<RedistributionNodeLayout<TGeomObj*> >& redistLayouts);
 
 
-////////////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TAATargetProcs, class TAAGlobalIDs>
-static
-void LogTargetProcs(MultiGrid& mg, TAATargetProcs& aaTargetProcs,
-					  TAAGlobalIDs& aaIDs)
-{
-	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
-	UG_LOG("  TARGET-PROCS:\n");
-	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		UG_LOG("    level " << lvl << ":\n");
-		for(GeomObjIter iter = mg.begin<VertexBase>(lvl);
-			iter != mg.end<VertexBase>(lvl); ++iter)
-		{
-		//	log the id
-			TGeomObj* o = *iter;
-			UG_LOG("      " << aaIDs[o].first << "_" << aaIDs[o].second << ":\t");
-
-		//	log the target procs
-			vector<int>& v = aaTargetProcs[o];
-			for(size_t i = 0; i < v.size(); ++i){
-				UG_LOG(" " << v[i]);
-			}
-
-			UG_LOG(endl);
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TAATransferInfos, class TAAGlobalIDs>
-static
-void LogTransferInfos(MultiGrid& mg, TAATransferInfos& aaTransferInfos,
-					  TAAGlobalIDs& aaIDs)
-{
-	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
-	UG_LOG("  TRANSFER-INFOS:\n");
-	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		UG_LOG("    level " << lvl << ":\n");
-		for(GeomObjIter iter = mg.begin<VertexBase>(lvl);
-			iter != mg.end<VertexBase>(lvl); ++iter)
-		{
-		//	log the id
-			TGeomObj* o = *iter;
-			UG_LOG("      " << aaIDs[o].first << "_" << aaIDs[o].second << ":\t");
-
-		//	log the target procs
-			vector<RedistributionNodeTransferInfo>& infos = aaTransferInfos[o];
-			for(size_t i = 0; i < infos.size(); ++i){
-				UG_LOG("src: " << infos[i].srcProc);
-				UG_LOG(", target: " << infos[i].targetProc);
-				UG_LOG(", bMove: " << infos[i].bMove << "  ||  ");
-			}
-
-			UG_LOG(endl);
-		}
-	}
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
@@ -112,7 +55,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  const pcl::ProcessCommunicator& procComm)
 {
 
-//	Algorithm outline:
+//	Algorithm outline (not completely accurate):
 //	- Distribute global IDs (if they were not already computed),
 //	- Prepare redistribution groups
 //		* This involves immediate updates to associated interfaces:
@@ -125,17 +68,6 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	- Distribute the redistribution groups
 //		* This involves serializing the associated grid-parts
 //		* At this point one would also want to serialize custom user-data.
-//	- Update local interfaces.
-//		* This can be safely done here, since all redistribution groups are complete
-//		  and since all neighbors are informed which interface elements go where.
-//		* Note that this is not the final update. We're only erasing entries which were
-//		  sent to other processes or entries in interfaces where neighbor processes
-//		  informed us that the entries will be moved to other processes.
-//		  We will also create new entries for those moved neighbor elements - as long
-//		  as we didn't move our elements to another process, too.
-//		* If connected entries on a neighbor proc A are moved to another process B,
-//		  note that if an interface IAB already exists, there may also already exist some
-//		  connections. Don't readd those!
 //	- Erase all parts of the grid which are no longer used.
 //		* Note that associated entries are already removed from local interfaces.
 //	- Create new elements and add new interface entries.
@@ -143,8 +75,6 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //		  on the given process.
 //		* The check can e.g. be implemented using hashes. Make sure to add all new
 //		  elements to that hash.
-//		* Create temporary arrays into which the referenced elements are sorted.
-//		  This will make it easy to add the new interface entries.
 //		* Note that if a referenced element already existed, it is also possible,
 //		  that associated interface entries already exist. This has to be checked
 //		  before new interface entries are added.
@@ -194,53 +124,17 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	vector<RedistributionFaceLayout> faceLayouts;
 	vector<RedistributionVolumeLayout> volumeLayouts;
 
-//	create the redistribution layouts
-//	we want to access the created target-procs and transfer-info-vec attachments
-//	later on.
-	typedef Attachment<vector<int> > AIntVec;
-	AIntVec aTargetProcs;
-	ARedistributionNodeTransferInfoVec aTransferInfos;
-
-	Grid::AttachmentAccessor<VertexBase, AIntVec>
-		aaTargetProcsVRT(mg, aTargetProcs, true);
-	Grid::AttachmentAccessor<EdgeBase, AIntVec>
-		aaTargetProcsEDGE(mg, aTargetProcs, true);
-	Grid::AttachmentAccessor<Face, AIntVec>
-		aaTargetProcsFACE(mg, aTargetProcs, true);
-	Grid::AttachmentAccessor<Volume, AIntVec>
-		aaTargetProcsVOL(mg, aTargetProcs, true);
-
-	Grid::AttachmentAccessor<VertexBase, ARedistributionNodeTransferInfoVec>
-		aaTransferInfosVRT(mg, aTransferInfos, true);
-	Grid::AttachmentAccessor<EdgeBase, ARedistributionNodeTransferInfoVec>
-		aaTransferInfosEDGE(mg, aTransferInfos, true);
-	Grid::AttachmentAccessor<Face, ARedistributionNodeTransferInfoVec>
-		aaTransferInfosFACE(mg, aTransferInfos, true);
-	Grid::AttachmentAccessor<Volume, ARedistributionNodeTransferInfoVec>
-		aaTransferInfosVOL(mg, aTransferInfos, true);
-
-//	Now create the redistribution layouts. Note that this involves
+//	create the redistribution layouts. Note that this involves
 //	some communication in order to synchronize interfaces between
 //	connected procs.
 	CreateRedistributionLayouts(vertexLayouts, edgeLayouts, faceLayouts,
 					volumeLayouts, distGridMgrInOut, shPartition,
 					!createVerticalInterfaces,
-					createVerticalInterfaces, &msel, processMap,
-					&aTargetProcs, &aTransferInfos);
-
-
+					createVerticalInterfaces, &msel, processMap);
 
 //BEGIN - ONLY FOR DEBUG
-/*
-	LogTargetProcs<VertexBase>(mg, aaTargetProcsVRT, aaIDVRT);
-
-
-	LogTransferInfos<VertexBase>(mg, aaTransferInfosVRT, aaIDVRT);
-*/
 	//TestRedistributionLayouts(vertexLayouts);
 //END - ONLY FOR DEBUG
-
-
 
 ////////////////////////////////
 //	COMMUNICATE INVOLVED PROCESSES
@@ -356,26 +250,6 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	mg.clear_geometry();
 	glm.clear();
 
-/*
-	{
-	//	select all elements which shall be cleared.
-	//	we'll do this by first selecting all elements on the local proc
-	//	and afterwards inverting the selection.
-		SelectNodesInLayout(msel, vertexLayouts[localPartSI]);
-		SelectNodesInLayout(msel, edgeLayouts[localPartSI]);
-		SelectNodesInLayout(msel, faceLayouts[localPartSI]);
-		SelectNodesInLayout(msel, volumeLayouts[localPartSI]);
-		InvertSelection(msel);
-
-	//	erase the grid parts and all selected interface entries
-		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-			mg.erase(msel.vertices_begin(lvl), msel.vertices_end(lvl));
-			mg.erase(msel.edges_begin(lvl), msel.edges_end(lvl));
-			mg.erase(msel.faces_begin(lvl), msel.faces_end(lvl));
-			mg.erase(msel.volumes_begin(lvl), msel.volumes_end(lvl));
-		}
-	}
-*/
 ////////////////////////////////
 //	DESERILAIZATION
 	//UG_LOG("\ndeserializing...\n");
@@ -415,8 +289,6 @@ UG_LOG("has slave interface to 3: " << slaveLayout.interface_exists(3) << endl);
 ////////////////////////////////
 //	CLEAN UP
 	mg.detach_from_all(aLocalInd);
-	mg.detach_from_all(aTargetProcs);
-	mg.detach_from_all(aTransferInfos);
 
 	return true;
 }

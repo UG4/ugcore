@@ -240,19 +240,8 @@ void CreateDistributionLayouts(
  * with respect to the processMap.
  *
  * If you pass a pointer to a valid selector (which is registered at mg),
- * the selector will be used for internal calculations.
- * When the algorithm is done the selector will contain all elements,
- * which will reside on the local process (vertices, edges, faces and volumes).
- *
- * You may specify the attachments paTargetProcs and paTransferInfoVec,
- * which are then filled for all elements during the algorithm. If you
- * do specify them, make sure to detach them when they no longer are
- * of any use.
- * 		- Data associated with paTargetProcs will tell you onto which
- * 			processes elements are sent from the local process.
- * 		- Data associated with paTransferInfoVec tells where elements
- * 		  are sent from neighbor processes. This data is only interesting
- * 		  in interface elements.
+ * the selector will be used for internal calculations. This increases
+ * performance and avoids unnecessary data allocation.
  *
  * Make sure that global ids are generated and that aGlobalID points to
  * the attachment which holds them (aGeomObjID by default). Those are
@@ -268,8 +257,6 @@ void CreateRedistributionLayouts(
 					SubsetHandler& shPartition, bool distributeGenealogy,
 					bool createVerticalInterfaces,
 					MGSelector* pSel = NULL, std::vector<int>* processMap = NULL,
-					Attachment<std::vector<int> >* paTargetProcs = NULL,
-					ARedistributionNodeTransferInfoVec* paTransferInfoVec = NULL,
 					AGeomObjID& aGlobalID = aGeomObjID);
 						
 ////////////////////////////////////////////////////////////////////////
