@@ -101,11 +101,11 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 
 	// issue receive of coarsening data from processes with lower color
-	IF_DEBUG(LIB_ALG_AMG, 11)
+	/*IF_DEBUG(LIB_ALG_AMG, 11)
 	{
 		pcl::ProcessCommunicator lowerPC = A_OL2.get_process_communicator().create_sub_communicator(processesWithLowerColor);
 		communicator.enable_communication_debugging(lowerPC);
-	}
+	}*/
 
 	stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 1, "\nWaiting for processes "); if(bTiming) SW.start();
@@ -180,11 +180,11 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 	pcl::ParallelCommunicator<IndexLayout> communicator = A_OL2.get_communicator();
 
-	IF_DEBUG(LIB_ALG_AMG, 11)
+	/*IF_DEBUG(LIB_ALG_AMG, 11)
 	{
 		pcl::ProcessCommunicator higherPC = A_OL2.get_process_communicator().create_sub_communicator(processesWithHigherColor);
 		communicator.enable_communication_debugging(higherPC);
-	}
+	}*/
 
 	for(size_t i=0; i<processesWithHigherColor.size(); i++)
 	{
