@@ -20,7 +20,7 @@ InitAlgebra(CPUAlgebraSelector());
 dim = util.GetParamNumber("-dim",    2)
 if dim == 2 then
 	gridName = "unit_square/unit_square_quads_2x2.ugx"
---	gridName = "unit_square/unit_square_tri_8x8.ugx"
+--	gridName = "unit_square_01/unit_square_01_tri_8x8.ugx"
 	gridName = "unit_square_01/unit_square_01_quads_8x8.ugx"
 elseif dim == 3 then
 	gridName = "unit_square/unit_cube_hex.ugx"

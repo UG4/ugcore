@@ -21,8 +21,8 @@ dim = util.GetParamNumber("-dim",    2)
 if dim == 2 then
 	gridName = "grids/open_circle.ugx"
 --	gridName = "unit_square/unit_square_quads_8x8.ugx"
---	gridName = "unit_square/unit_square_tri_8x8.ugx"
---	gridName = "unit_square/unit_square_tri_2x2.ugx"
+--	gridName = "unit_square_01/unit_square_01_tri_8x8.ugx"
+--	gridName = "unit_square_01/unit_square_01_tri_2x2.ugx"
 elseif dim == 3 then
 	gridName = "grids/open_cube_hex.ugx"
 else

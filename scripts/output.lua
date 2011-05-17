@@ -16,10 +16,10 @@ dim = util.GetParam("-dim", 2)
 
 
 if dim == 2 then
-gridName = util.GetParam("-grid", "unit_square/unit_square_tri_2x2.ugx")
+gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
 end
 if dim == 3 then
-gridName = util.GetParam("-grid", "unit_square/unit_square_tri_2x2.ugx")
+gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
 end
 
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)

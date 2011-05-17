@@ -30,7 +30,7 @@ else
 end
 
 if dim == 2 then
-gridName = "unit_square/unit_square_tri_2x2.ugx" -- "unit_square/unit_square_quads_8x8.ugx"
+gridName = "unit_square_01/unit_square_01_tri_2x2.ugx" -- "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 gridName = "unit_square/unit_cube_hex.ugx"

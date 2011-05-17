@@ -24,7 +24,7 @@ ug_load_script("../ug_util.lua")
 dim = util.GetParamNumber("-dim", 1) -- default dimension is 1.
 
 -- We also need a filename for the grid that shall be loaded.
-if 		dim == 1 then gridName = util.GetParam("-grid", "unit_line_2.ugx")
+if 		dim == 1 then gridName = util.GetParam("-grid", "unit_square_01/unit_line_01_edge_2.ugx")
 elseif 	dim == 2 then gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 elseif 	dim == 3 then gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
 else print("Choosen Dimension not supported. Exiting."); exit(); end
