@@ -1,4 +1,4 @@
-/----------------------------------------------------------
+----------------------------------------------------------
 --
 --   Lua - Script to perform the Laplace-Problem
 --
@@ -31,7 +31,11 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 3)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 9)
+numRefs = util.GetParamNumber("-numRefs", 6)
+
+print("Parameters: ")
+print("    numRefs = "..numRefs)
+print("    numPreRefs = "..numPreRefs)
 
 
 --------------------------------
@@ -163,8 +167,8 @@ print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
--- approxSpace:print_layout_statistic()
--- approxSpace:print_statistic()
+approxSpace:print_layout_statistic()
+approxSpace:print_statistic()
 
 -------------------------------------------
 --  Setup User Functions
@@ -403,7 +407,7 @@ amg:tostring()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(5)
+convCheck:set_maximum_steps(30)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
 
@@ -478,6 +482,11 @@ function PrintParallelProfileNode(name)
 	printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
 end
 
+t = GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()
+tmin = ParallelMin(t)
+tmax = ParallelMax(t)
+printf("GetProfileNode: min: %.2f %%, max: %.2f %%", tmin, tmax)
+
 to100 = GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()
 PrintParallelProfileNode("create_OL2_matrix")
 PrintParallelProfileNode("CalculateTestvector")
@@ -495,8 +504,6 @@ PrintParallelProfileNode("create_interfaces")
 PrintParallelProfileNode("create_fine_marks")
 PrintParallelProfileNode("FAMGCreateAsMultiplyOf")
 PrintParallelProfileNode("CalculateNextTestvector")
-
-
 
 
 
