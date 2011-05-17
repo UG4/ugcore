@@ -91,69 +91,71 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	receive_coarsening_from_processes_with_lower_color()
 {
 	AMG_PROFILE_FUNC();
-	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
+	UG_DLOG(LIB_ALG_AMG, 1, "\n*** receive coarsening data from processes with lower color ***\n");
+	if(processesWithLowerColor.size() == 0)
+	{
+		UG_DLOG(LIB_ALG_AMG, 1, "no processes with lower color.");
+		return;
+	}
+	pcl::ParallelCommunicator<IndexLayout> communicator = A_OL2.get_communicator();
 
-	UG_DLOG(LIB_ALG_AMG, 1, "\n*** receive coarsening data from processes ***\n");
+
 	// issue receive of coarsening data from processes with lower color
-	if(processesWithLowerColor.size() > 0)
+	IF_DEBUG(LIB_ALG_AMG, 11)
 	{
-		stopwatch SW;
-		UG_DLOG(LIB_ALG_AMG, 1, "\nWaiting for processes "); if(bTiming) SW.start();
-		stdvector< stdvector<char> > states;
-		states.resize(processesWithLowerColor.size());
+		pcl::ProcessCommunicator lowerPC = A_OL2.get_process_communicator().create_sub_communicator(processesWithLowerColor);
+		communicator.enable_communication_debugging(lowerPC);
+	}
 
-		for(size_t i=0; i<processesWithLowerColor.size(); i++)
+	stopwatch SW;
+	UG_DLOG(LIB_ALG_AMG, 1, "\nWaiting for processes "); if(bTiming) SW.start();
+	stdvector< stdvector<char> > states;
+	states.resize(processesWithLowerColor.size());
+
+	for(size_t i=0; i<processesWithLowerColor.size(); i++)
+	{
+		int pid = processesWithLowerColor[i];
+
+		size_t s = OLCoarseningReceiveLayout.interface(pid).size();
+		states[i].resize(s, -1);
+		UG_DLOG(LIB_ALG_AMG, 1, pid << ", awaiting  " << s << " bytes.");
+		communicator.receive_raw(pid, &states[i][0], s);
+	}
+	UG_DLOG(LIB_ALG_AMG, 1, "which have lower color to receive coarse nodes...\n");
+	AMG_PROFILE_BEGIN(FAMG_recv_coarsening_communicate);
+	communicator.communicate();
+	AMG_PROFILE_END();
+	UG_DLOG(LIB_ALG_AMG, 1, "done. processing data...");
+
+	// set nodes coarse
+	for(size_t i=0; i<processesWithLowerColor.size(); i++)
+	{
+		int pid = processesWithLowerColor[i];
+		UG_DLOG(LIB_ALG_AMG, 3, "\nfrom processor " << pid << ":\n");
+
+		int j=0;
+		IndexLayout::Interface &interface = OLCoarseningReceiveLayout.interface(pid);
+		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
-			int pid = processesWithLowerColor[i];
+			size_t index = interface.get_element(iter);
 
-			size_t s = OLCoarseningReceiveLayout.interface(pid).size();
-			states[i].resize(s, -1);
-			UG_DLOG(LIB_ALG_AMG, 1, pid << ", awaiting  " << s << " bytes.");
-			communicator.receive_raw(pid, &states[i][0], s);
-		}
-		UG_DLOG(LIB_ALG_AMG, 1, "which have lower color to receive coarse nodes...\n");
-		communicator.communicate();
-		UG_DLOG(LIB_ALG_AMG, 1, "done. processing data...");
+			int state = states[i][j++];
 
-		// set nodes coarse
-		for(size_t i=0; i<processesWithLowerColor.size(); i++)
-		{
-			int pid = processesWithLowerColor[i];
-			UG_DLOG(LIB_ALG_AMG, 3, "\nfrom processor " << pid << ":\n");
-
-			int j=0;
-			IndexLayout::Interface &interface = OLCoarseningReceiveLayout.interface(pid);
-			for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+			if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING)
+				rating.external_set_uncalculated_fine(index);
+			else if(state == FAMG_COARSE_RATING)
+				rating.external_set_coarse(index);
+			else if(state == 0.0)
+				; // nothing
+			else
 			{
-				size_t index = interface.get_element(iter);
-
-				int state = states[i][j++];
-
-				if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING)
-					rating.external_set_uncalculated_fine(index);
-				else if(state == FAMG_COARSE_RATING)
-					rating.external_set_coarse(index);
-				else if(state == 0.0)
-					; // nothing
-				else
-				{
-					UG_ASSERT(0, "state is " << state << "?");
-				}
-
-				UG_DLOG(LIB_ALG_AMG, 3, index << ": got state " << state << " now " << rating[index] << ", " << rating.OL_type(index) << "\n");
+				UG_ASSERT(0, "state is " << state << "?");
 			}
-		}
-		if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
-	}
-	else
-	{
-		communicator.communicate();
-		UG_DLOG(LIB_ALG_AMG, 3, "\nno processes with lower color.")
-	}
 
-	AH.set_communicator(communicator);
-	AH.set_slave_layout(nextLevelSlaveLayout);
-	AH.set_master_layout(nextLevelMasterLayout);
+			UG_DLOG(LIB_ALG_AMG, 3, index << ": got state " << state << " now " << rating[index] << ", " << rating.OL_type(index) << "\n");
+		}
+	}
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
 }
 
 // FAMGLevelCalculator::send_coarsening_data_to_processes_with_higher_color
@@ -168,10 +170,22 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	send_coarsening_data_to_processes_with_higher_color()
 {
 	AMG_PROFILE_FUNC();
-	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
+	stopwatch SW; if(bTiming) SW.start();
+	UG_DLOG(LIB_ALG_AMG, 1, "\n*** send coarsening data to processes ***\n");
+	if(processesWithHigherColor.size() == 0)
+	{
+		UG_DLOG(LIB_ALG_AMG, 1, "no processes with higher color.");
+		return;
+	}
 
-	stopwatch SW;
-	UG_DLOG(LIB_ALG_AMG, 1, "\n*** send coarsening data to processes ***\n"); if(bTiming) SW.start();
+	pcl::ParallelCommunicator<IndexLayout> communicator = A_OL2.get_communicator();
+
+	IF_DEBUG(LIB_ALG_AMG, 11)
+	{
+		pcl::ProcessCommunicator higherPC = A_OL2.get_process_communicator().create_sub_communicator(processesWithHigherColor);
+		communicator.enable_communication_debugging(higherPC);
+	}
+
 	for(size_t i=0; i<processesWithHigherColor.size(); i++)
 	{
 		int pid = processesWithHigherColor[i];
@@ -195,7 +209,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	}
 	UG_DLOG(LIB_ALG_AMG, 1, "with higher color...")
 
+	AMG_PROFILE_BEGIN(FAMG__coarsening_communicate);
 	communicator.communicate();
+	AMG_PROFILE_END();
 	UG_DLOG(LIB_ALG_AMG, 1, "done.");
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 }
@@ -277,7 +293,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AMG_PROFILE_FUNC();
 	stopwatch SW;
 
-	// 1. get the Overlap 2 matrix
+	// get the Overlap 2 matrix
 	//-------------------------------
 
 	AMG_PROFILE_BEGIN(AMG_GenerateOverlap2)
@@ -319,21 +335,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	UG_ASSERT(TestLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
 	UG_ASSERT(TestLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
 #endif
-	// 2. get famg helper positions
-	//-------------------------------
-	AMG_PROFILE_NEXT(AMG_get_famg_helper_pos)
 
-	std::vector<MathVector<3> > &vec2 = m_famg.m_amghelper.positions[level];
-	vec2.resize(A_OL2.num_rows());
-
-	ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
-	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-	communicator.send_data(OL2MasterLayout, copyPol);
-	communicator.receive_data(OL2SlaveLayout, copyPol);
-	communicator.communicate();
-
-
-	// 3. get testvectors on newly created indices
+	// get testvectors on newly created indices
 	//--------------------------------------------
 	// todo: use ONE communicate
 	//std::vector<ComPol_VecCopy< Vector<double> > > vecCopyPol;
@@ -346,6 +349,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		ComPol_VecCopy< Vector<double> > vecCopyPol;
 		m_testvectors[i].resize(A_OL2.num_rows());
 		vecCopyPol.set_vector(&m_testvectors[i]);
+		pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
 		communicator.send_data(OL2MasterLayout, vecCopyPol);
 		communicator.receive_data(OL2SlaveLayout, vecCopyPol);
 		communicator.communicate();
@@ -407,17 +411,32 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	}
 
 
-	AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
-
 	// debug: write overlap 2 matrix as debug output
-	if(m_famg.m_writeMatrices)
+
+	// 2. get famg helper positions
+	//-------------------------------
+	AMG_PROFILE_NEXT(AMG_get_famg_helper_pos);
+
+	if(m_famg.m_amghelper.has_positions())
 	{
-		WriteMatrixToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_A_OL2_L") + ToString(level), ".mat").c_str(),
-			A_OL2, &vec2[0], 2);
+		std::vector<MathVector<3> > &vec2 = m_famg.m_amghelper.positions[level];
+		vec2.resize(A_OL2.num_rows());
+
+		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
+		pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
+		communicator.send_data(OL2MasterLayout, copyPol);
+		communicator.receive_data(OL2SlaveLayout, copyPol);
+		communicator.communicate();
+
+		AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
+		if(m_famg.m_writeMatrices)
+			WriteMatrixToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_A_OL2_L") + ToString(level), ".mat").c_str(),
+					A_OL2, &vec2[0], 2);
 	}
 
 	IF_DEBUG(LIB_ALG_AMG, 4)
 	{
+		AMG_PROFILE_NEXT(create_OL2_print_layouts);
 		// debug: print some layouts
 		UG_LOG("\n");
 		for(size_t i=0; i<slaveLayouts.size(); i++)
