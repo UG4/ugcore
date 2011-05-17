@@ -351,7 +351,7 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 				.add_method("clear", &T::clear)
 				.add_method("add_fct_on_subset", (bool (T::*)(const char*, const char*, int, const char*))&T::add_fct_on_subset)
 				.add_method("add_fct", (bool (T::*)(const char*, const char*, int))&T::add_fct,
-				            "Success", "Name|Type|Order", "Adds a function to the Function Pattern",
+				            "Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
 				            "currently no help available");
 		}
 
