@@ -50,8 +50,12 @@ struct RegisterAMGClass<CPUAlgebra>
 	//	AMG
 		reg.add_class_< amg_base<algebra_type>::LevelInformation > ("AMGLevelInformation", grp2.c_str())
 			.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms, "creation time of this level (in ms)")
-			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level")
-			.add_method("get_nnz", &amg_base<algebra_type>::LevelInformation::get_nnz, "nr of non-zeros")
+			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level, sum over all processors")
+			.add_method("get_nr_of_nodes_min", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes_min, "nr of nodes of this level, minimum over all processors")
+			.add_method("get_nr_of_nodes_max", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes_max, "nr of nodes of this level, maximum over all processors")
+			.add_method("get_nnz", &amg_base<algebra_type>::LevelInformation::get_nnz, "nr of non-zeros, sum over all processors")
+			.add_method("get_nnz_min", &amg_base<algebra_type>::LevelInformation::get_nnz_min, "nr of non-zeros, minimum over all processors")
+			.add_method("get_nnz_max", &amg_base<algebra_type>::LevelInformation::get_nnz_max, "nr of non-zeros, maximum over all processors")
 			.add_method("get_fill_in", &amg_base<algebra_type>::LevelInformation::get_fill_in, "nr of non-zeros / (nr of nodes)^2")
 			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information");
 
@@ -72,6 +76,9 @@ struct RegisterAMGClass<CPUAlgebra>
 
 			.add_method("set_max_nodes_for_base", &amg_base<algebra_type>::set_max_nodes_for_base, "", "maxNrOfNodes", "sets the maximal nr of nodes for base solver")
 			.add_method("get_max_nodes_for_base", &amg_base<algebra_type>::get_max_nodes_for_base, "maximal nr of nodes for base solver")
+
+			.add_method("set_min_nodes_on_one_processor", &amg_base<algebra_type>::set_min_nodes_on_one_processor, "", "minNrOfNodes", "if the node number on one processor falls below this, agglomerate")
+			.add_method("get_min_nodes_on_one_processor", &amg_base<algebra_type>::get_min_nodes_on_one_processor, "minNrOfNodes", "", "if the node number on one processor falls below this, agglomerate")
 
 			.add_method("set_max_fill_before_base", &amg_base<algebra_type>::set_max_fill_before_base, "", "fillrate", "sets maximal fill rate before base solver is used")
 			.add_method("get_max_fill_before_base", &amg_base<algebra_type>::get_max_fill_before_base, "maximal fill rate before base solver is used", "")
@@ -120,6 +127,8 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("reset_testvectors", &famg<algebra_type>::reset_testvectors)
 			.add_method("add_testvector", &famg<algebra_type>::add_testvector)
 			.add_method("add_vector_writer", &famg<algebra_type>::add_vector_writer)
+			.add_method("set_epsilon_truncation", &famg<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
+			.add_method("get_epsilon_truncation", &famg<algebra_type>::get_epsilon_truncation, "epsilon_tr")
 			;
 
 		return true;
