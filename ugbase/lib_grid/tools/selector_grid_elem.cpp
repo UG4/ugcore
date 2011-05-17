@@ -36,7 +36,6 @@ template <class BaseElem>
 TElemSelector<BaseElem>::TElemSelector(Grid& grid) :
 	ISelector(SE_NONE)
 {
-	assign_grid(grid);
 //	enable element support
 //TODO:	unify constants in ISubsetHandler and ISelector and add them to the traits.
 	int objID = geometry_traits<BaseElem>::BASE_OBJECT_TYPE_ID;
@@ -54,12 +53,33 @@ TElemSelector<BaseElem>::TElemSelector(Grid& grid) :
 			set_supported_elements(SE_VOLUME);
 			break;
 	}
+
+	assign_grid(grid);
 }
 
 template <class BaseElem>
 void TElemSelector<BaseElem>::assign_grid(Grid& grid)
 {
 	BaseClass::set_grid(&grid);
+
+	if(m_pGrid){
+	//	initialize attachment lists
+		if(elements_are_supported(SE_VERTEX))
+			get_section_container<VertexBase>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<VertexBase>());
+
+		if(elements_are_supported(SE_EDGE))
+			get_section_container<EdgeBase>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<EdgeBase>());
+
+		if(elements_are_supported(SE_FACE))
+			get_section_container<Face>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<Face>());
+
+		if(elements_are_supported(SE_VOLUME))
+			get_section_container<Volume>().get_container().
+					set_pipe(&m_pGrid->get_attachment_pipe<Volume>());
+	}
 }
 
 template <class BaseElem>

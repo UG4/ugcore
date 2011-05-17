@@ -114,6 +114,9 @@ void ISelector::enable_element_support(uint shElements)
 			m_supportedElements |= SE_VOLUME;
 		}
 	}
+	else{
+		m_supportedElements |= shElements;
+	}
 }
 
 void ISelector::disable_element_support(uint shElements)
