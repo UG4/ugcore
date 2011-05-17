@@ -15,7 +15,7 @@
 namespace ug
 {
 
-/// Matrix - Vector Muliplication
+/// Matrix - Vector Multiplication
 // vOut = m * v
 template <typename vector_t_out, typename matrix_t, typename vector_t_in>
 inline
@@ -29,6 +29,26 @@ MatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = 0.0;
+		for(size_type j = 0; j < v.size(); ++j)
+		{
+			vOut[i] += m(i,j) * v[j];
+		}
+	}
+}
+
+/// Matrix - Vector Multiplication adding to a second matrix
+// vOut += m * v
+template <typename vector_t_out, typename matrix_t, typename vector_t_in>
+inline
+void
+MatVecMultAppend(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
+{
+	assert(vector_t_out::Size == matrix_t::RowSize);
+	assert(vector_t_in::Size == matrix_t::ColSize);
+
+	typedef typename matrix_t::size_type size_type;
+	for(size_type i = 0; i < vOut.size(); ++i)
+	{
 		for(size_type j = 0; j < v.size(); ++j)
 		{
 			vOut[i] += m(i,j) * v[j];

@@ -72,6 +72,13 @@ inline
 void
 MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m);
 
+///	scales a matrix_t and adds to result to a second matrix
+// mOut += s * m
+template <typename matrix_t>
+inline
+void
+MatScaleAppend(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m);
+
 ////////////////////////////////////////////////////////////////
 // Determinant of Matrix
 
@@ -197,25 +204,25 @@ inline
 void
 MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s);
 
-/// Add a scalar to a vector (componentwise)
+/// Add a scalar to a matrix (componentwise)
 template <typename matrix_t>
 inline
 void
 MatAdd(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
-/// Subtract a scalar from a vector (componentwise)
+/// Subtract a scalar from a matrix (componentwise)
 template <typename matrix_t>
 inline
 void
 MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
-/// Devide a vector by a scalar (componentwise)
+/// Devide a matrix by a scalar (componentwise)
 template <typename matrix_t>
 inline
 void
 MatDevide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
-/// Multiply a vector by a scalar (componentwise)
+/// Multiply a matrix by a scalar (componentwise)
 template <typename matrix_t>
 inline
 void
