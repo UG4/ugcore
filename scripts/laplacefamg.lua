@@ -1,4 +1,4 @@
-----------------------------------------------------------
+/----------------------------------------------------------
 --
 --   Lua - Script to perform the Laplace-Problem
 --
@@ -156,7 +156,7 @@ sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
-SaveDomain(dom, "refined_grid.ugx")
+-- SaveDomain(dom, "refined_grid.ugx")
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -262,7 +262,7 @@ linOp:set_dirichlet_values(u)
 b:assign(linOp:get_rhs())
 print ("done")
 -- write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+-- SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 -- SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- create algebraic Preconditioners
@@ -363,7 +363,7 @@ if bUseFAMG == 1 then
 	
 	-- your algebraic testvector
 	testvector = approxSpace:create_surface_function()
-	SaveVectorForConnectionViewer(testvector, "testvector.mat")
+	-- SaveVectorForConnectionViewer(testvector, "testvector.mat")
 	-- there you write it
 	testvectorwriter:update(testvector)
 	
