@@ -726,7 +726,7 @@ void test()
 //	create a new grid and load a file
 	Grid grid(GRIDOPT_STANDARD_INTERCONNECTION);
 	SubsetHandler sh(grid);
-	if(!LoadGridFromFile(grid, "/Users/sreiter/Projects/ug4/trunk/data/grids/unit_square_quads_8x8.obj", sh)){
+	if(!LoadGridFromFile(grid, "/Users/sreiter/Projects/ug4/trunk/data/grids/unit_square/unit_square_quads_8x8.obj", sh)){
 		UG_LOG("  file-load failed. aborting test\n");
 		return;
 	}

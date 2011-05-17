@@ -307,33 +307,6 @@ class LuaBoundaryData
 // Generic LuaUserFunction
 ////////////////////////////////
 
-/// Lua Traits to push/pop on lua stack
-template <typename TData, typename TDataIn>
-struct lua_linker_traits;
-
-template <>
-struct lua_linker_traits<number, number>
-{
-	static void mult_add(number& res,
-	                     const number& deriv ,
-	                     const number& in)
-	{
-		res = deriv * in;
-	}
-};
-
-template <std::size_t dim>
-struct lua_linker_traits< MathMatrix<dim,dim>, number >
-{
-	static void mult_add(MathMatrix<dim,dim>& res,
-	                     const MathMatrix<dim,dim>& deriv ,
-	                     const number& in)
-	{
-		MatScale(res, in, deriv);
-	}
-};
-
-
 /// maps several data values to an output data value using a lua callback
 /**
  * This class provides the evaluation of a user function, that is specified
@@ -522,7 +495,7 @@ class LuaUserFunction
 						eval_deriv(derivVal, vDataIn, c);
 
 					//	loop functions
-						for(size_t fct = 0; fct < num_fct(); ++fct)
+						for(size_t fct = 0; fct < input_num_fct(c); ++fct)
 						{
 						//	get common fct id for this function
 							const size_t commonFct = input_common_fct(c, fct);
@@ -530,10 +503,10 @@ class LuaUserFunction
 						//	loop dofs
 							for(size_t dof = 0; dof < num_sh(s, fct); ++dof)
 							{
-								lua_linker_traits<TData, TDataIn>::mult_add(
-										deriv(s, ip, commonFct, dof),
-										derivVal,
-										input_deriv(c, s, ip, fct, dof));
+								linker_traits<TData, TDataIn>::
+								mult_add(deriv(s, ip, commonFct, dof),
+								         derivVal,
+								         input_deriv(c, s, ip, fct, dof));
 							}
 						}
 					}

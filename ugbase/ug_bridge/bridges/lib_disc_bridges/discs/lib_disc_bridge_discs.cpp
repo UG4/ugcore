@@ -16,6 +16,8 @@
 // other files
 #include "navier_stokes_bridge.h"
 #include "density_driven_flow_bridge.h"
+#include "convection_diffusion_bridge.h"
+#include "constant_equation_bridge.h"
 
 namespace ug
 {
@@ -29,6 +31,8 @@ bool RegisterDynamicLibDiscInterfaceDiscs(Registry& reg, int algebra_type, const
 
 	bReturn &= RegisterDynamicNavierStokesDisc(reg, algebra_type, parentGroup);
 	bReturn &= RegisterDynamicDensityDrivenFlowDisc(reg, algebra_type, parentGroup);
+	bReturn &= RegisterDynamicConvectionDiffusionDisc(reg, algebra_type, parentGroup);
+	bReturn &= RegisterDynamicConstantEquationDisc(reg, algebra_type, parentGroup);
 
 	return bReturn;
 }

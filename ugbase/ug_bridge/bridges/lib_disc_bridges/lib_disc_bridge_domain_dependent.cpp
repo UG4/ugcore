@@ -36,8 +36,6 @@
 #include "lib_discretization/spatial_discretization/post_process/dirichlet_boundary/p1_dirichlet_boundary.h"
 #include "lib_discretization/spatial_discretization/elem_disc/neumann_boundary/fv/neumann_boundary.h"
 #include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/fv/inner_boundary.h"
-#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fe1/fe1_convection_diffusion.h"
-#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fv1/convection_diffusion.h"
 #include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 #include "lib_discretization/operator/linear_operator/projection_operator.h"
@@ -200,37 +198,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		std::stringstream ss; ss << "FV1InnerBoundary" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor();
-	}
-
-//	Convection Diffusion Finite Volume
-	{
-		typedef FVConvectionDiffusionElemDisc<domain_type, algebra_type> T;
-		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
-		std::stringstream ss; ss << "FV1ConvectionDiffusion" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_diffusion_tensor", &T::set_diffusion)
-			.add_method("set_velocity_field", &T::set_velocity)
-			.add_method("set_reaction", &T::set_reaction)
-			.add_method("set_source", &T::set_source)
-			.add_method("set_mass_scale", &T::set_mass_scale)
-			.add_method("set_upwind_amount", &T::set_upwind_amount)
-			.add_method("get_concentration", &T::get_concentration)
-			.add_method("get_concentration_grad", &T::get_concentration_grad);
-	}
-
-//	Convection Diffusion Finite Element
-	{
-		typedef FE1ConvectionDiffusionElemDisc<domain_type, algebra_type> T;
-		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
-		std::stringstream ss; ss << "FE1ConvectionDiffusion" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_diffusion_tensor", &T::set_diffusion)
-			.add_method("set_velocity_field", &T::set_velocity)
-			.add_method("set_reaction", &T::set_reaction)
-			.add_method("set_source", &T::set_source)
-			.add_method("set_mass_scale", &T::set_mass_scale);
 	}
 
 //	ProlongationOperator
