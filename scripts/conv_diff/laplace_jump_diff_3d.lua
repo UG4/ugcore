@@ -27,7 +27,7 @@ InitAlgebra(CPUAlgebraSelector());
 dim = 3
 
 if dim == 3 then
-	gridName = util.GetParam("-grid", "unit_cube_2x2x2_jump_diff.ugx")
+	gridName = util.GetParam("-grid", "grids/unit_cube_2x2x2_jump_diff.ugx")
 end
 
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
