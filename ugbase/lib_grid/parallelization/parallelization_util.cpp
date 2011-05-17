@@ -387,7 +387,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 	ToElementPosition<VertexBase, TAPos> toPos(mg, aPos);
 	boost::function<TValue (VertexBase*)> cbToPos = toPos;
 
-	UG_LOG("\nTesting horizontal layouts...\n");
+	UG_LOG("Testing horizontal layouts...\n");
 	{
 		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_H_MASTER);
 		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_H_SLAVE);

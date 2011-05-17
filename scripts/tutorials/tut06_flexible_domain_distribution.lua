@@ -18,8 +18,12 @@ ug_load_script("../ug_util.lua")
 
 -- Get the command line parameters
 dim = util.GetParamNumber("-dim", 2)
-gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
+gridName = util.GetParam("-grid", "unit_square_quads_2x2.ugx")
 outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
+numPreRefs = util.GetParamNumber("-numPreRefs", 1)
+numMidRefs = util.GetParamNumber("-numMidRefs", 1)
+numPostRefs = util.GetParamNumber("-numPostRefs", 1)
+debug = util.HasParamOption("-debug")
 
 -- We will save the created hierarchy to this file (with appended process id)
 outHierarchyFilePrefix = util.GetParam("-oh", "hierarchy_on_proc_")
@@ -36,6 +40,14 @@ end
 print("Loaded domain from " .. gridName)
 
 
+-- We'll create a global refiner and prerefine the domain before distribution starts.
+refiner = GlobalDomainRefiner(dom)
+
+-- perform pre-refinement
+for i = 1, numPreRefs do
+	print("refining...")
+	refiner:refine()
+end
 
 --------------------------------------------------------------------------------
 --	New code starts here
@@ -89,49 +101,68 @@ end
 --	RedistributeDomain takes three parameters: The domain, the
 --	partitionMap, and a boolean indicating whether vertical interfaces
 --	shall be created.
-if RedistributeDomain(dom, partitionMap, false) == false then
+print("\nPERFORMING INITIAL DISTRIBUTION")
+if RedistributeDomain(dom, partitionMap, true) == false then
 	print("First redistribution failed. Please check your partitionMap.")
 	exit()
 end
 
-if TestDomainInterfaces(dom) == false then
-	print("Inconsistent grid layouts after first distribution. Aborting.")
-	exit()
+if debug == true then
+	if TestDomainInterfaces(dom) == false then
+		print("Inconsistent grid layouts after first distribution. Aborting.")
+		exit()
+	end
 end
 
 --	The different target processes now all have their part of the grid.
+--	we'll now perform the 'mid-refinement' before we'll further
+--	distribute the domain.
+-- perform mid-refinement
+for i = 1, numMidRefs do
+	print("refining...")
+	refiner:refine()
+end
+
 --	We'll further distribute it using regular-grid-partitioning again.
 --	Process 0 will distribute its grid among processes 0, 1, 2, 3.
 --	Process 4 will distribute its grid among processes 4, 5, 6, 7.
 --	...
 
 partitionMap:clear()
-for i, src in ipairs(firstTargets) do
-	if src == procRank then
-		-- Specify the first process and the number of processes.
-		-- This will add processes src, src+1, ..., src+n-1
-		partitionMap:add_target_procs(src, 4)
-		
-		-- We again use regular-grid partitioning 
-		PartitionDomain_RegularGrid(dom, partitionMap, 2, 2, true)
-		
-		-- again we'll save the partition map. This should only be done for debugging.
-		SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(),
-			"partitionMap_2_p" .. procRank .. ".ugx")
-	end
+if procRank % 4 == 0 and procRank <= 12 then
+	-- Specify the first process and the number of processes.
+	-- This will add processes src, src+1, ..., src+n-1
+	partitionMap:add_target_procs(procRank, 4)
+	
+	-- We again use regular-grid partitioning 
+	PartitionDomain_RegularGrid(dom, partitionMap, 2, 2, true)
+	
+	-- again we'll save the partition map. This should only be done for debugging.
+	SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(),
+		"partitionMap_2_p" .. procRank .. ".ugx")
 end
 
 --	The partition map is set up. We can now redistribute the domain
-if RedistributeDomain(dom, partitionMap, false) == false then
+print("\nPERFORMING REDISTRIBUTION")
+if RedistributeDomain(dom, partitionMap, true) == false then
 	print("Second redistribution failed. Please check your partitionMap.")
 	exit()
 end
 
---	We can optionall test the interfaces here.
-if TestDomainInterfaces(dom) == false then
-	print("Inconsistent grid layouts after second distribution. Aborting.")
-	exit()
+--	We can optionally test the interfaces here.
+if debug == true then
+	if TestDomainInterfaces(dom) == false then
+		print("Inconsistent grid layouts after second distribution. Aborting.")
+		exit()
+	end
 end
+
+--	Now perform post-refinement
+for i = 1, numPostRefs do
+	print("refining...")
+	refiner:refine()
+end
+
 
 --	New code ends here
 --------------------------------------------------------------------------------
