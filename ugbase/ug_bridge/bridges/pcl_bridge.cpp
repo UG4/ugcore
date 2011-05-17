@@ -131,9 +131,9 @@ bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 					"", "", "Waits until all active processes reached this point.");
 
 
-	reg.add_function("ParallelMinDUMMY", &ParallelMin<double>, grpStr.c_str(), "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
-	reg.add_function("ParallelMaxDUMMY", &ParallelMax<double>, grpStr.c_str(), "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
-	reg.add_function("ParallelSumDUMMY", &ParallelSum<double>, grpStr.c_str(), "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMinDUMMY", &ParallelMinDUMMY<double>, grpStr.c_str(), "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMaxDUMMY", &ParallelMaxDUMMY<double>, grpStr.c_str(), "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelSumDUMMY", &ParallelSumDUMMY<double>, grpStr.c_str(), "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 
 	return true;
 }
