@@ -20,12 +20,13 @@
 #include "../../reference_element/reference_element.h"
 #include "../../local_shape_function_set/local_shape_function_set_provider.h"
 #include "./finite_volume_util.h"
+#include "finite_element_geometry.h"
 
 namespace ug{
 
 template <	typename TElem,
 			int TWorldDim>
-class HFV1Geometry {
+class HFV1Geometry : public FVGeometryBase{
 	private:
 		// type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
