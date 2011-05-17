@@ -600,6 +600,13 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			return false;
 		}
 
+	//	Compute element data
+		if(!Eval.compute_lin_defect_JA(locU, ind))
+		{
+			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute lin_defect_JA.\n");
+			return false;
+		}
+
 	// 	Assemble JA
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
@@ -807,6 +814,20 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			return false;
 		}
 
+	//	Compute element data
+		if(!Eval.compute_lin_defect_JA(locU, ind))
+		{
+			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute lin_defect_JA.\n");
+			return false;
+		}
+
+	//	Compute element data
+		if(!Eval.compute_lin_defect_JM(locU, ind))
+		{
+			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute lin_defect_JM.\n");
+			return false;
+		}
+
 	// 	reset local matrix
 		locJ.set(0.0);
 
@@ -845,6 +866,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
+
+	//	Compute element data
+		Eval.add_coupl_JM(locJ, ind);
 
 	// 	send local to global matrix
 		J.add(locJ);
