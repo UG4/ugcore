@@ -28,10 +28,10 @@ if dim == 3 then
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = util.GetParamNumber("-numPreRefs", 2)
+numPreRefs = util.GetParamNumber("-numPreRefs", 3)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 4)
+numRefs = util.GetParamNumber("-numRefs", 9)
 
 
 --------------------------------
@@ -296,7 +296,7 @@ end
 
 -- create AMG ---
 -----------------
-bUseFAMG = 0
+bUseFAMG = 1
 if bUseFAMG == 1 then
 	-- Testvectors for FAMG ---
 	--------------------------	
@@ -347,7 +347,7 @@ if bUseFAMG == 1 then
 	amg = FAMGPreconditioner()	
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
-	amg:set_aggressive_coarsening(true)
+	amg:set_aggressive_coarsening(false)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
 	
 	-- add testvectors with lua callbacks (see ourTestvector2d_1_1)
@@ -358,12 +358,12 @@ if bUseFAMG == 1 then
 	-- amg:add_vector_writer(CreateAMGTestvector(u, "ourTestvector2d_2_2", dim), 1.0)
 	
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
-	-- testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
-	testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
+	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+	-- testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
 	
 	-- your algebraic testvector
 	testvector = approxSpace:create_surface_function()
-	SaveVectorForConnectionViewer(testvector, "testvecotr.mat")
+	SaveVectorForConnectionViewer(testvector, "testvector.mat")
 	-- there you write it
 	testvectorwriter:update(testvector)
 	
@@ -381,7 +381,7 @@ end
 vectorWriter = GridFunctionPositionProvider2d()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
-amg:set_matrix_write_path("/Users/mrupp/matrices/")
+-- amg:set_matrix_write_path("/Users/mrupp/matrices/")
  
 amg:set_num_presmooth(3)
 amg:set_num_postsmooth(3)
@@ -389,12 +389,13 @@ amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
 amg:set_base_solver(base)
-amg:set_max_levels(4)
+amg:set_max_levels(20)
 
-amg:set_max_nodes_for_base(300)
+amg:set_min_nodes_on_one_processor(200)
+amg:set_max_nodes_for_base(1600)
 amg:set_max_fill_before_base(0.7)
-amg:set_fsmoothing(true)
-
+amg:set_fsmoothing(false)
+amg:set_epsilon_truncation(0.3)
 amg:tostring()
 
 
@@ -402,7 +403,7 @@ amg:tostring()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(100)
+convCheck:set_maximum_steps(5)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
 
@@ -416,27 +417,89 @@ linSolver:set_convergence_check(convCheck)
 
 log = GetLogAssistant();
 
-log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 0)
-ApplyLinearSolver(linOp, u, b, linSolver)
+log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 4)
+-- log:set_debug_level(GetLogAssistantTag("LIB_ALG_MATRIX"), 2)
+
+-------------------------------------------
+--  Apply Solver
+-------------------------------------------
+-- 1. init operator
+print("Init operator (i.e. assemble matrix).")
+linOp:init()
+
+-- 2. init solver for linear Operator
+print("Init solver for operator.")
+linSolver:init(linOp)
+
+-- 3. apply solver
+print("Apply solver.")
+linSolver:apply_return_defect(u,b)
+---------------------------------------------
 
 -- amg:check(u, b)
 
 log:set_debug_levels(0)
 
-print("AMG Information:")
-print("Setup took "..amg:get_timing_whole_setup_ms().." ms")
-print("Coarse solver setup took "..amg:get_timing_coarse_solver_setup_ms().." ms")
-print("Operator complexity c_A = "..amg:get_operator_complexity())
-print("Grid complexity c_G = "..amg:get_grid_complexity())
+printf = function(s,...)
+	print(s:format(...))
+end -- function
 
-for i = 0, amg:get_used_levels()-1 do
+
+print("AMG Information:")
+printf("Setup took %.2f ms",amg:get_timing_whole_setup_ms())
+printf("Coarse solver setup took %.2f ms",amg:get_timing_coarse_solver_setup_ms())
+printf("Operator complexity c_A = %.2f", amg:get_operator_complexity())
+printf("Grid complexity c_G = %.2f", amg:get_grid_complexity())
+
+LI = amg:get_level_information(0)
+printf("Level 0: number of nodes: %d. fill in %.2f%%", LI:get_nr_of_nodes(), LI:get_fill_in()*100)
+for i = 1, amg:get_used_levels()-1 do
 	LI = amg:get_level_information(i)
-	print("Level "..i..": creation time: "..LI:get_creation_time_ms() .. " ms. number of nodes: " .. LI:get_nr_of_nodes() )
+	printf("Level %d: creation time: %.2f ms. number of nodes: %d. fill in %.2f%%. coarsening rate: %.2f%%", i, 
+		LI:get_creation_time_ms(),  LI:get_nr_of_nodes(), LI:get_fill_in()*100,
+		LI:get_nr_of_nodes()*100/amg:get_level_information(i-1):get_nr_of_nodes())
 end
 
 
--- print("c_create_AMG_level call tree:")
-print(GetProfileNode("main"):call_tree())
+if GetProfilerAvailable() == true then
+
+print("c_create_AMG_level call tree:")
+print(GetProfileNode("c_create_AMG_level"):call_tree())
+print(GetProfileNode("c_create_AMG_level"):child_self_time_sorted())
+else
+	print("Profiler not available.")
+end	
+
+function PrintParallelProfileNode(name)
+	pn = GetProfileNode(name)
+	t = pn:get_avg_total_time_ms()/to100 * 100
+	tmin = ParallelMin(t)
+	tmax = ParallelMax(t)
+	printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
+end
+
+to100 = GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()
+PrintParallelProfileNode("create_OL2_matrix")
+PrintParallelProfileNode("CalculateTestvector")
+PrintParallelProfileNode("CreateSymmConnectivityGraph")
+PrintParallelProfileNode("calculate_all_possible_parent_pairs")
+PrintParallelProfileNode("color_process_graph")
+PrintParallelProfileNode("FAMG_recv_coarsening_communicate")
+PrintParallelProfileNode("update_rating")
+PrintParallelProfileNode("precalculate_coarsening")
+PrintParallelProfileNode("send_coarsening_data_to_processes_with_higher_color")
+PrintParallelProfileNode("communicate_prolongation")
+PrintParallelProfileNode("create_new_index")
+PrintParallelProfileNode("create_parent_index")
+PrintParallelProfileNode("create_interfaces")
+PrintParallelProfileNode("create_fine_marks")
+PrintParallelProfileNode("FAMGCreateAsMultiplyOf")
+PrintParallelProfileNode("CalculateNextTestvector")
+
+
+
+
+
 -- print("-----------------------------------------------")
 -- amg:check(u, b);
 
