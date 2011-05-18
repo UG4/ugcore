@@ -108,7 +108,7 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 lmgc(size_t lev)
 {
-  GMG_PROFILE_FUNC(); // added 13042011ih
+  GMG_PROFILE_FUNC();
 // 	reset correction to zero on this level
 	m_c[lev]->set(0.0);
 
@@ -125,7 +125,8 @@ lmgc(size_t lev)
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_numPreSmooth))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
-					"level " << lev << " failed.\n");
+					"level " << lev << " failed. "
+				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 			return false;
 		}
 		GMG_PROFILE_END();
@@ -135,7 +136,7 @@ lmgc(size_t lev)
 	//	we restrict the defect. This is important since we will add vertical
 	//	slave values after restriction.
 		#ifdef UG_PARALLEL
-		GMG_PROFILE_BEGIN(GMG_PreSmConsistentToUnique); // added 13042011ih
+		GMG_PROFILE_BEGIN(GMG_PreSmConsistentToUnique);
 		if(!m_d[lev-1]->get_vertical_master_layout().empty())
 		{
 			ConsistentToUnique(m_d[lev-1], m_d[lev-1]->get_vertical_master_layout());
@@ -150,7 +151,8 @@ lmgc(size_t lev)
 		if(!m_vProlongation[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Restriction of "
-					"Defect from level "<<lev<<" to "<<lev-1<<" failed.\n");
+					"Defect from level "<<lev<<" to "<<lev-1<<" failed. "
+					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 			return false;
 		}
 		GMG_PROFILE_END();
@@ -208,7 +210,8 @@ lmgc(size_t lev)
 			if(!lmgc(lev-1))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
-						" grid cycle on level " << lev-1 << " failed.\n");
+						" grid cycle on level " << lev-1 << " failed. "
+						"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 				return false;
 			}
 		}
@@ -256,20 +259,22 @@ lmgc(size_t lev)
 		if(!m_vProlongation[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Prolongation from"
-					" level " << lev-1 << " to " << lev << " failed.\n");
+					" level " << lev-1 << " to " << lev << " failed. "
+					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+
 			return false;
 		}
 		GMG_PROFILE_END();
 
 	// 	ADD COARSE GRID CORRECTION
-		GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr); // added 13042011ih
+		GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
 		*m_c[lev] += *m_t[lev];
 		GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
 	//	UPDATE DEFECT FOR COARSE GRID CORRECTION
 	//	the correction has changed c := c + t. Thus, we also have to update
 	//	the defect d := d - A*t
-		GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr); // added 13042011ih
+		GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_t[lev]))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Updating of defect"
@@ -314,7 +319,8 @@ lmgc(size_t lev)
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_numPostSmooth))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
-					" level " << lev << " failed.\n");
+					" level " << lev << " failed. "
+					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 			return false;
 		}
 		GMG_PROFILE_END();
@@ -328,7 +334,7 @@ lmgc(size_t lev)
 	{
 	// 	PARALLEL CASE: the d is additive
 		#ifdef UG_PARALLEL
-		GMG_PROFILE_BEGIN(GMG_SetStorageTypeBeforeBS); // added 13042011ih
+		GMG_PROFILE_BEGIN(GMG_SetStorageTypeBeforeBS);
 		m_d[lev]->set_storage_type(PST_ADDITIVE);
 		GMG_PROFILE_END(); // GMG_SetStorageTypeBeforeBS
 		#endif
@@ -345,7 +351,9 @@ lmgc(size_t lev)
 		if(!m_pBaseSolver->apply(*m_c[lev], *m_d[lev]))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
-					" base level " << lev << " failed.\n");
+					" base level " << lev << " failed. "
+					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+
 			return false;
 		}
 
@@ -353,7 +361,8 @@ lmgc(size_t lev)
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_c[lev]))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Updating defect "
-					" on base level " << lev << ".\n");
+					" on base level " << lev << ". "
+					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 			return false;
 		}
 
@@ -407,7 +416,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 //	Allocate memory for given top level
 	if(!top_level_required(m_topLev))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':" // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
 				" Cannot allocate memory. Aborting.\n");
 		return false;
 	}
@@ -503,7 +512,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	Allocate memory for given top level
 	if(!top_level_required(m_topLev))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':" // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
 				" Cannot allocate memory. Aborting.\n");
 		return false;
 	}
@@ -586,14 +595,14 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitCoarseGridOperator);
 	if(nonlinear){
 		if(!init_non_linear_level_operator()){
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
 					"Cannot init (nonlinear) Coarse Grid Operator.\n");
 			return false;
 		}
 	}
 	else {
 		if(!init_linear_level_operator()){
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
 					"Cannot init (linear) Coarse Grid Operator.\n");
 			return false;
 		}
@@ -607,7 +616,7 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
 	if(!init_smoother())
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
 				"Cannot init Smoother.\n");
 		return false;
 	}
@@ -617,7 +626,7 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitBaseSolver);
 	if(!init_base_solver())
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
 				"Cannot init Base Solver.\n");
 		return false;
 	}
@@ -627,7 +636,7 @@ init_common(bool nonlinear)
 	GMG_PROFILE_BEGIN(GMG_InitProlongation);
 	if(!init_prolongation())
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': " // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
 				"Cannot init Prolongation.\n");
 		return false;
 	}
@@ -824,12 +833,13 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_base_solver()
 {
 // 	Prepare base solver
-	if(!m_pBaseSolver->init(*m_A[m_baseLev], *m_u[m_baseLev]))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
-				" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
-		return false;
-	}
+	if(m_pApproxSpace->get_level_dof_distribution(m_baseLev).num_dofs() != 0)
+		if(!m_pBaseSolver->init(*m_A[m_baseLev], *m_u[m_baseLev]))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
+					" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
+			return false;
+		}
 
 //	we're done
 	return true;
@@ -936,7 +946,7 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_level_to_surface(vector_type& surfFunc,
                          const std::vector<function_type*>& vLevelFunc)
 {
-  GMG_PROFILE_FUNC(); // added 13042011ih
+  GMG_PROFILE_FUNC();
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
 								m_pApproxSpace->get_level_dof_distributions();
@@ -948,7 +958,7 @@ project_level_to_surface(vector_type& surfFunc,
 //	check that surface dof distribution exists
 	if(&surfDD == NULL)
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface':" // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface':"
 				"Surface DoF Distribution missing.\n");
 		return false;
 	}
@@ -959,7 +969,7 @@ project_level_to_surface(vector_type& surfFunc,
 //	check that surface view exists
 	if(surfView == NULL)
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface':" // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface':"
 				" Surface View missing.\n");
 		return false;
 	}
@@ -971,9 +981,9 @@ project_level_to_surface(vector_type& surfFunc,
 	ExtractVectorsFromGridFunction(cvLevelVec, vLevelFunc);
 
 //	project
-	if(!ProjectLevelToSurface(surfFunc, surfDD, *surfView, cvLevelVec, vLevelDD, m_baseLev)) // 'm_baseLev' added (13042011)
+	if(!ProjectLevelToSurface(surfFunc, surfDD, *surfView, cvLevelVec, vLevelDD, m_baseLev))
 	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': " // typo corrected (14042011ih)
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': "
 				"Projection of function from level to surface failed.\n");
 		return false;
 	}
@@ -988,7 +998,7 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_surface_to_level(std::vector<function_type*>& vLevelFunc,
                          const vector_type& surfFunc)
 {
-  GMG_PROFILE_FUNC(); // added 13042011ih
+  GMG_PROFILE_FUNC();
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
 								m_pApproxSpace->get_level_dof_distributions();
