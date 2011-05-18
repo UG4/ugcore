@@ -386,7 +386,7 @@ end
 vectorWriter = GridFunctionPositionProvider2d()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
--- amg:set_matrix_write_path("/Users/mrupp/matrices/")
+amg:set_matrix_write_path("/Users/mrupp/matrices/")
  
 amg:set_num_presmooth(3)
 amg:set_num_postsmooth(3)
@@ -397,7 +397,7 @@ amg:set_base_solver(base)
 amg:set_max_levels(20)
 
 amg:set_min_nodes_on_one_processor(200)
-amg:set_max_nodes_for_base(1600)
+amg:set_max_nodes_for_base(3200)
 amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(false)
 amg:set_epsilon_truncation(0.3)
@@ -468,6 +468,8 @@ end
 
 if GetProfilerAvailable() == true then
 
+if false then
+
 print("c_create_AMG_level call tree:")
 print(GetProfileNode("c_create_AMG_level"):call_tree())
 print(GetProfileNode("c_create_AMG_level"):child_self_time_sorted())
@@ -482,11 +484,6 @@ function PrintParallelProfileNode(name)
 	tmax = ParallelMax(t)
 	printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
 end
-
-t = GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()
-tmin = ParallelMin(t)
-tmax = ParallelMax(t)
-printf("GetProfileNode: min: %.2f %%, max: %.2f %%", tmin, tmax)
 
 to100 = GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()
 PrintParallelProfileNode("create_OL2_matrix")
@@ -505,11 +502,11 @@ PrintParallelProfileNode("create_interfaces")
 PrintParallelProfileNode("create_fine_marks")
 PrintParallelProfileNode("FAMGCreateAsMultiplyOf")
 PrintParallelProfileNode("CalculateNextTestvector")
-
+end
 
 
 -- print("-----------------------------------------------")
--- amg:check(u, b);
+amg:check(u, b);
 
 -- SaveVectorForConnectionViewer(u, "u.mat")
 
