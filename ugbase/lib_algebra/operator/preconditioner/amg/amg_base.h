@@ -112,9 +112,10 @@ protected:
 	}
 
 	void create_direct_solver(size_t level);
+	bool solve_on_base(vector_type &c, vector_type &d, size_t level);
 
 public:
-	bool get_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
+	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
 /*
 	size_t get_nr_of_coarse(size_t level)

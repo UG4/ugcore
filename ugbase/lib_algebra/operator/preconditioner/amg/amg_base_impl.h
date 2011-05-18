@@ -391,12 +391,64 @@ bool amg_base<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t l
 	return true;
 }
 
+template<typename TAlgebra>
+bool amg_base<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t level)
+{
+	const matrix_type &Ah = *(m_A[level]);
+#ifdef UG_PARALLEL
+	vector_type collC;
+	vector_type collD;
+	if(pcl::GetProcRank() == 0)
+	{
+		size_t N = collectedBaseA.num_rows();
+		collC.resize(N);
+		collC.set(0.0);
+
+		collD = d;
+		collD.resize(N);
+		for(size_t i=Ah.num_rows(); i<N; i++)
+			collD[i] = 0.0;
+	}
+	// send d -> collD
+	ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
+	pcl::ParallelCommunicator<IndexLayout> &com = m_A[level]->get_communicator();
+	com.send_data(slaveColl, compolAdd);
+	com.receive_data(masterColl, compolAdd);
+	com.communicate();
+
+	if(pcl::GetProcRank() == 0)
+		m_basesolver->apply_return_defect(collC, collD);
+
+	// send c -> collC
+	ComPol_VecCopy<vector_type> compolCopy(&c, &collC);
+	com.send_data(masterColl, compolCopy);
+	com.receive_data(slaveColl, compolCopy);
+	com.communicate();
+
+	if(pcl::GetProcRank() == 0)
+	{
+		for(size_t i=0; i<Ah.num_rows(); i++)
+			d[i] = collD[i];
+		for(size_t i=0; i<Ah.num_rows(); i++)
+			c[i] = collC[i];
+	}
+	else
+		Ah.matmul_minus(d, c);
+	d.set(0.0);
+
+#else
+	m_basesolver->apply_return_defect(c, d);
+#endif
+
+	return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// get_correction_and_update_defect:
+// add_correction_and_update_defect:
 //------------------------------------
 
 template<typename TAlgebra>
-bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type &d, size_t level)
+bool amg_base<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level)
 {
 	UG_ASSERT(c.size() == d.size() && c.size() == m_A[level]->num_rows(),
 			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << m_A[level]->num_rows() << ": not matching");
@@ -411,115 +463,13 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 
 	const matrix_type &Ah = *(m_A[level]);
 
-	c.set(0.0);
-	if(level == m_usedLevels-1)
-	{
-#ifdef UG_PARALLEL
-		vector_type collC;
-		vector_type collD;
-		if(pcl::GetProcRank() == 0)
-		{
-			size_t N = collectedBaseA.num_rows();
-			collC.resize(N);
-			collC.set(0.0);
-
-			collD = d;
-			collD.resize(N);
-			for(size_t i=Ah.num_rows(); i<N; i++)
-				collD[i] = 0.0;
-
-#if PRINT_VECTORS
-			UG_LOG("\n\ncollD:\n");
-			collD.p();
-			UG_LOG("\n\ncollC:\n");
-			collC.p();
-#endif
-		}
-
-#if PRINT_VECTORS
-		UG_LOG("\n\nc:\n");
-		c.p();
-		UG_LOG("\n\nd:\n");
-		d.p();
-#endif
-
-		// send d -> collD
-		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
-		pcl::ParallelCommunicator<IndexLayout> &com = m_A[level]->get_communicator();
-		com.send_data(slaveColl, compolAdd);
-		com.receive_data(masterColl, compolAdd);
-		com.communicate();
-
-		if(pcl::GetProcRank() == 0)
-		{
-#if PRINT_VECTORS
-			UG_LOG("\n\ncollD after collecting:\n");
-			collD.p();
-			UG_LOG("\n\ncollC after collecting:\n");
-			collC.p();
-#endif
-
-			m_basesolver->apply_return_defect(collC, collD);
-
-#if PRINT_VECTORS
-			UG_LOG("\n\ncollD: after calculation\n");
-			collD.p();
-			UG_LOG("\n\ncollC: after calculation\n");
-			collC.p();
-#endif
-		}
-
-		// send c -> collC
-		ComPol_VecCopy<vector_type> compolCopy(&c, &collC);
-		com.send_data(masterColl, compolCopy);
-		com.receive_data(slaveColl, compolCopy);
-		com.communicate();
-
-		if(pcl::GetProcRank() == 0)
-		{
-			for(size_t i=0; i<Ah.num_rows(); i++)
-				d[i] = collD[i];
-			for(size_t i=0; i<Ah.num_rows(); i++)
-				c[i] = collC[i];
-
-#if PRINT_VECTORS
-			UG_LOG("\n\nc:\n");
-			c.p();
-			UG_LOG("\n\nd:\n");
-			d.p();
-#endif
-		}
-		else
-		{
-#if PRINT_VECTORS
-			UG_LOG("\n\nc:\n");
-			c.p();
-			UG_LOG("\n\nd:\n");
-			d.p();
-#endif
-			Ah.matmul_minus(d, c);
-#if PRINT_VECTORS
-			UG_LOG("\n\nd: after corr\n");
-			d.p();
-#endif
-		}
-		d.set(0.0);
-
-#else
-		m_basesolver->apply_return_defect(c, d);
-#endif
-		return true;
-	}
-
 	vector_type &corr = *m_vec3[level];
 #ifdef UG_PARALLEL
 	corr.set_storage_type(PST_CONSISTENT);
 #endif
 
 	// presmooth
-	// same as setting c.set(0.0).
-	m_presmoothers[level]->apply_update_defect(c, d);
-	for(size_t i=1; i < m_numPreSmooth; i++)
+	for(size_t i=0; i < m_numPreSmooth; i++)
 	{
 		m_presmoothers[level]->apply_update_defect(corr, d);
 		c += corr;
@@ -545,11 +495,15 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 	m_R[level]->apply(dH, d);
 
 	// apply lmgc on coarser nodes
-	//if(level+1 == m_usedLevels-1)
-		get_correction_and_update_defect(cH, dH, level+1);
-	/*else
+
+	if(level+1 == m_usedLevels-1)
+		solve_on_base(cH, dH, level+1);
+	else
+	{
+		cH.set(0.0);
 		for(int i=0; i< m_cycleType; i++)
-			get_correction_and_update_defect(cH, dH, level+1);*/
+			add_correction_and_update_defect(cH, dH, level+1);
+	}
 
 	//cH.set(0.0);
 	// interpolate correction
@@ -601,8 +555,9 @@ bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const
 #endif
 	vector_type &d = *m_vec4;
 
+	c.set(0.0);
 	d = const_d;
-	return get_correction_and_update_defect(c, d);
+	return add_correction_and_update_defect(c, d);
 }
 
 
@@ -676,7 +631,7 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 
 	//UG_LOG("preprenorm: " << d.two_norm() << std::endl);
 	/*for(size_t i=0; i<5; i++)
-		get_correction_and_update_defect(corr, d, level);*/
+		add_correction_and_update_defect(corr, d, level);*/
 
 	double prenorm = d.two_norm();
 	UG_LOG("Prenorm = " << prenorm << "\n");
@@ -712,48 +667,36 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 
 	// restrict defect
 	// dH = m_R[level]*d;
-
 	m_R[level]->apply(dH, d);
-
-	vector_type tc;
-	CloneVector(tc, cH);
-	cH.set( 0.0);
-	//tc.set( 0.0);
-#ifdef UG_PARALLEL
-	tc.set_storage_type(PST_CONSISTENT);
-#endif
 
 	double nH1 = dH.two_norm();
 
 	double preHnorm=nH1;
-	size_t i;
-	for(i=0; i<100; i++)
+	size_t i=0;
+
+	if(level+1 == m_usedLevels-1)
 	{
-		// apply lmgc on coarser nodes
-		if(level+1 == m_usedLevels-1)
-		{
-			get_correction_and_update_defect(tc, dH, level+1);
-			cH += tc;
-		}
-		else
-			for(int i=0; i< m_cycleType; i++)
-			{
-				//m_presmoothers[level+1]->apply_update_defect(tc, dH);
-				get_correction_and_update_defect(tc, dH, level+1);
-				cH += tc;
-				//cH += tc;
-			}
-
+		solve_on_base(cH, dH, level+1);
 		double nH2 = dH.two_norm();
-		if(i < 6)
-		{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << "\n"); nH1 = nH2; }
-		if(nH2/preHnorm < 0.01) { UG_LOG("coarse solver reduced by 0.01 in iteration " << i+1 << std::endl); break; }
+		UG_LOG("base solver reduced by " << nH2/nH1 << " (on coarse)" << std::endl);
+	}
+	else
+	{
+		cH.set(0.0);
+		for(i=0; i<100; i++)
+		{
+			for(int j=0; j< m_cycleType; j++)
+				add_correction_and_update_defect(cH, dH, level+1);
 
+			double nH2 = dH.two_norm();
+			if(i < 6)
+			{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << "\n"); nH1 = nH2; }
+			if(nH2/preHnorm < 0.01) { UG_LOG("coarse solver reduced by 0.01 in iteration " << i+1 << std::endl); break; }
+		}
 	}
 
 	// interpolate correction
 	// corr = m_P[level]*cH
-
 	m_P[level]->apply(corr, cH);
 
 #ifdef UG_PARALLEL
