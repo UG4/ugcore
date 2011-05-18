@@ -683,8 +683,7 @@ private:
 		lambda.resize(N);
 
 		/*int res =*/
-		GeneralizedEigenvalueProblem(localS, X,
-						lambda, B, true);
+		GeneralizedEigenvalueProblem(localS, X, lambda, B, true);
 
 
 		// X.maple_print("X");
