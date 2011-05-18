@@ -68,6 +68,7 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 	local approxSpace = util.CreateApproximationSpace(dom) -- creates new object
 	approxSpace:add_fct("c", "Lagrange", 1)          -- adds one function
 	approxSpace:init()                               -- fixes the space
+	approxSpace:print_statistic()                    -- write some information
 	
 --	initialize the callbacks. If callbacks were specified, use them. If not,
 --	use the default callbacks.
@@ -93,7 +94,14 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 	
 --	set up the discretization
 	local elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", innerSubsets)
-	elemDisc:set_upwind_amount(0)
+	if dim == 1 then
+		upwind = NoUpwind1d() -- create an upwind procedure ("No Upwind")
+	elseif dim == 2 then
+		upwind = NoUpwind2d() -- create an upwind procedure ("No Upwind")
+	elseif dim == 3 then
+		upwind = NoUpwind3d() -- create an upwind procedure ("No Upwind")
+	end
+	elemDisc:set_upwind(upwind)  -- set the upwind procedure
 	elemDisc:set_diffusion_tensor(cbDiff)	-- set the diffusion matrix
 	elemDisc:set_source(cbRhs)					-- set the right hand side
 	
@@ -113,7 +121,7 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 
 	linOp:init()
 
-	return linOp, approxSpace
+	return linOp, approxSpace, domainDisc, dirichletBnd
 end
 
 
