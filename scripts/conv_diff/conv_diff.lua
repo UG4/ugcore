@@ -1,10 +1,14 @@
-----------------------------------------------------------
+-------------------------------------------------------------------------------
 --
---   Lua - Script to perform a time dependent conv diff problem
+--   Lua - Script to perform a time dependent Konvection-Diffusion-Problem
+--
+--	 This script is intended to show how a time-dependent problem is set up
+--   and solved.
+--
 --
 --   Author: Andreas Vogel
 --
-----------------------------------------------------------
+-------------------------------------------------------------------------------
 
 ug_load_script("ug_util.lua")
 
@@ -35,20 +39,28 @@ print("    grid       = " .. gridName)
 -- User Data Functions (begin)
 --------------------------------
 
--- Parameters
-eps = 1e-1
+-- This scales the amount of diffusion of the problem
+eps = 1
+
+-- The coordinates (cx, cy) specify the rotation center of the cone
 cx = 0.5
 cy = 0.5
 
+-- The coordinates (ax, ay) specify the position of the highest point of the
+-- cone at start time t=0.0
 ax = 0.25
 ay = 0.0
 
-nu = 100
+-- The parameter nu specifies the rotation velocity
+nu = 0
+
+-- The parameter delta is a scaling factor influencing the steepness of the cone
 delta = 1e-1
 
+-- This is the choosen time step
 dt = 1e-3
 
--- exact solution
+-- This is the exact solution for our problem
 function exactSolution(x, y, t)
 	local xRot = math.cos(nu*t) * (x-cx) - math.sin(nu*t) * (y-cy) 
 	local yRot = math.sin(nu*t) * (x-cx) + math.cos(nu*t) * (y-cy) 
@@ -59,17 +71,18 @@ function exactSolution(x, y, t)
 	return scale * math.exp(expo)
 end
 
--- Functions depending on parameters
+-- The Diffusion tensor
 function ourDiffTensor2d(x, y, t)
 	return	eps, 0, 
 			0, eps
 end
 	
+-- The velocity field
 function ourVelocityField2d(x, y, t)
 	return	nu*(y - cx), nu*(cy - x)
 end
 	
-
+-- The dirichlet condition
 function ourDirichletBnd2d(x, y, t)
 	return true, exactSolution(x, y, t)
 end
@@ -78,48 +91,9 @@ end
 -- User Data Functions (end)
 --------------------------------
 
--- create Instance of a Domain
-print("Create Domain.")
-dom = util.CreateDomain(dim)
-
--- load domain
-print("Load Domain from File.")
-if util.LoadDomain(dom, gridName) == false then
-   print("Loading Domain failed.")
-   exit()
-end
-
--- create Refiner
-print("Create Refiner")
-if numPreRefs > numRefs then
-	print("numPreRefs must be smaller than numRefs");
-	exit();
-end
-
--- Create a refiner instance. This is a factory method
--- which automatically creates a parallel refiner if required.
-refiner = GlobalDomainRefiner(dom)
-
--- Performing pre-refines
-for i=1,numPreRefs do
-	refiner:refine()
-end
-
--- Distribute the domain to all involved processes
-if DistributeDomain(dom) == false then
-	print("Error while Distributing Grid.")
-	exit()
-end
-
--- Perform post-refine
-print("Refine Parallel Grid")
-for i=numPreRefs+1,numRefs do
-	refiner:refine()
-end
-
--- Now we loop all subsets an search for it in the SubsetHandler of the domain
+-- Create, Load, Refine and Distribute Domain
 neededSubsets = {"Inner", "Boundary"}
-if util.CheckSubsets(dom, neededSubsets) then print("Wrong subsets detected.") end
+dom = util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubsets)
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -159,7 +133,8 @@ startValue = util.CreateLuaUserNumber("exactSolution", dim)
 -----------------------------------------------------------------
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
-elemDisc:set_upwind_amount(1.0)
+upwind = WeightedUpwind2d()
+elemDisc:set_upwind(upwind)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 
@@ -225,10 +200,10 @@ ilut = ILUT()
 	baseConvCheck:set_minimum_defect(1e-8)
 	baseConvCheck:set_reduction(1e-30)
 	baseConvCheck:set_verbose_level(false)
-	-- base = LapackLUSolver()
-	base = LinearSolver()
-	base:set_convergence_check(baseConvCheck)
-	base:set_preconditioner(jac)
+	base = LU()
+--	base = LinearSolver()
+--	base:set_convergence_check(baseConvCheck)
+--	base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
 	transfer = util.CreateP1Prolongation(approxSpace)
@@ -237,10 +212,10 @@ ilut = ILUT()
 	
 	-- Gemoetric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
-	gmg:set_discretization(domainDisc)
+	gmg:set_discretization(timeDisc)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
-	gmg:set_smoother(jac)
+	gmg:set_smoother(ilu)
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
@@ -292,7 +267,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 exactSolver = LU()
 
 -- choose some solver
-solver = bicgstabSolver
+solver = linSolver
 
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()

@@ -485,6 +485,57 @@ function util.CheckSubsets(dom, neededSubsets)
 	return true
 end
 
+
+function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubsets)
+
+	-- create Instance of a Domain
+	local dom = util.CreateDomain(dim)
+	
+	-- load domain
+	if util.LoadDomain(dom, gridName) == false then
+	   print("Loading Domain failed. Aborting.")
+	   exit()
+	end
+	
+	-- create Refiner
+	if numPreRefs > numRefs then
+		print("numPreRefs must be smaller than numRefs. Aborting.");
+		exit();
+	end
+	
+	-- Create a refiner instance. This is a factory method
+	-- which automatically creates a parallel refiner if required.
+	local refiner = GlobalDomainRefiner(dom)
+	
+	-- Performing pre-refines
+	for i=1,numPreRefs do
+		refiner:refine()
+	end
+	
+	-- Distribute the domain to all involved processes
+	if DistributeDomain(dom) == false then
+		print("Error while Distributing Grid. Aborting.")
+		exit();
+	end
+	
+	-- Perform post-refine
+	for i=numPreRefs+1,numRefs do
+		refiner:refine()
+	end
+	
+	-- Now we loop all subsets an search for it in the SubsetHandler of the domain
+	if neededSubsets ~= nil then
+		if util.CheckSubsets(dom, neededSubsets) then 
+			print("Wrong subsets detected.") 
+		end
+	end
+	
+	-- TODO: Delete the refiner
+	
+	-- return the created domain
+	return dom
+end
+
 --------------------------------------------------------------------------------
 -- some auxiliary functions
 --------------------------------------------------------------------------------
