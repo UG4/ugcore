@@ -292,7 +292,7 @@ class FVConstantEquationElemDisc
 		//	set computation of linearized defect w.r.t velocity
 			m_imVelocity.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, FV1Geometry>);
 			m_imSource.register_lin_defect_func(id, this, &T::template lin_defect_source<TElem, FV1Geometry>);
-			m_imMassScale.register_lin_defect_func(id, this, &T::template lin_defect_mass_scale<TElem, HFV1Geometry>);
+			m_imMassScale.register_lin_defect_func(id, this, &T::template lin_defect_mass_scale<TElem, FV1Geometry>);
 
 		//	exports
 			m_exConcentration.register_export_func(id, this, &T::template compute_concentration_export<TElem, FV1Geometry>);

@@ -201,9 +201,6 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 
 	// 	Add to local defect
 		d(_C_, co) += val;
-
-//		static int cnt = 0;
-//		UG_LOG(cnt++ << "AssM: MassScale|_ip = " << m_imMassScale[ip] << " vol=" << scv.volume() <<"\n");
 	}
 
 // 	we're done
@@ -308,20 +305,24 @@ bool
 FVConstantEquationElemDisc<TDomain, TAlgebra>::
 lin_defect_mass_scale(const local_vector_type& u)
 {
-//  get finite volume geometry
-	static TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+// 	get finite volume geometry
+	static TFVGeom<TElem, dim>& geo
+							= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+
+//	reset all values
+	m_imMassScale.clear_lin_defect();
 
 // 	loop Sub Control Volumes (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+	for(size_t co = 0; co < geo.num_scv(); ++co)
 	{
 	// 	get current SCV
-		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(ip);
+		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(co);
 
-	// 	get associated node
-		const int co = scv.node_id();
+	// 	Check associated node
+		UG_ASSERT(co == scv.node_id(), "Only one shape per SCV");
 
 	// 	Add to local defect
-		m_imMassScale.lin_defect(ip, _C_, co) = scv.volume();
+		m_imMassScale.lin_defect(co, _C_, co) = scv.volume();
 	}
 
 //	we're done
