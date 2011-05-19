@@ -82,7 +82,7 @@ class DataLinker
 		}
 
 	///	sets an input
-		void set_input(size_t i, IIPData* input)
+		void set_input(size_t i, IIPDimData<dim>* input)
 		{
 			UG_ASSERT(i < m_vpIIPData.size(), "invalid index");
 			m_vpIIPData[i] = input;
@@ -236,10 +236,28 @@ class DataLinker
 			DependentIPData<TData, dim>::adjust_global_ips_and_data(vNumIP);
 		}
 
+	/// implement callback, that is called when global ips changed
+		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP)
+		{
+		//	loop inputs
+			for(size_t i = 0; i < m_vpIIPData.size(); ++i)
+			{
+			//	skip unset data
+				UG_ASSERT(m_vpIIPData[i] != NULL, "No Input set, but requested.");
+
+			//	request local ips for all series at input data
+				for(size_t s = 0; s < m_vvSeriesID[i].size(); ++s)
+				{
+				//	adjust global ids of imported data
+					m_vpIIPData[i]->set_global_ips(m_vvSeriesID[i][s], vPos, numIP);
+				}
+			}
+		}
+
 
 	protected:
 	///	data input
-		std::vector<IIPData*> m_vpIIPData;
+		std::vector<IIPDimData<dim>*> m_vpIIPData;
 
 	///	data input casted to IDependend data
 		std::vector<IDependentIPData*> m_vpIDependData;
@@ -484,26 +502,28 @@ class ScaleAddLinker
 		bool add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data)
 		{
 		//	current number of inputs
-			const size_t numInput = base_type::num_input();
+			const size_t numInput = base_type::num_input() / 2;
 
 		//	resize scaling
 			resize_scaling(numInput+1);
 
 		//	remember ipdata
 			m_vpIPData[numInput] = &data;
+			UG_ASSERT(m_vpIPData[numInput] != NULL, "Null Pointer as Input set.");
 			m_vpDependData[numInput] = dynamic_cast<DependentIPData<TData, dim>*>(&data);
 
 		//	remember ipdata
 			m_vpScaleData[numInput] = &scale;
+			UG_ASSERT(m_vpScaleData[numInput] != NULL, "Null Pointer as Scale set.");
 			m_vpScaleDependData[numInput]
 			              = dynamic_cast<DependentIPData<TDataScale, dim>*>(&scale);
 
 		//	increase number of inputs by one
-			base_type::set_num_input(numInput+2);
+			base_type::set_num_input(2*numInput+2);
 
 		//	add this input
-			base_type::set_input(numInput, &data);
-			base_type::set_input(numInput+1, &scale);
+			base_type::set_input(2*numInput, &data);
+			base_type::set_input(2*numInput+1, &scale);
 
 		//	done
 			return true;
@@ -512,6 +532,9 @@ class ScaleAddLinker
 	///	computes the value
 		virtual void compute(bool compDeriv)
 		{
+		//	check that size of Scalings and inputs is equal
+			UG_ASSERT(m_vpIPData.size() == m_vpScaleData.size(), "Wrong num Scales.");
+
 		//	compute value
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
@@ -531,6 +554,10 @@ class ScaleAddLinker
 
 		//	check if derivative is required
 			if(!compDeriv || this->zero_derivative()) return;
+
+		//	check sizes
+			UG_ASSERT(m_vpDependData.size() == m_vpScaleDependData.size(),
+			          	  	  	  	  	  	  	  	  	  "Wrong num Scales.");
 
 		//	clear all derivative values
 			this->clear_derivative_values();

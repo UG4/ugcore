@@ -161,6 +161,73 @@ class IIPData
 		number m_time;
 };
 
+/// World dimension based IP Data
+/**
+ * This class is the dimension dependent base class for all integration point data.
+ * It provides the access to the data and handles the global integration
+ * points.
+ *
+ * \tparam	dim		world dimension
+ */
+template <int dim>
+class IIPDimData : public IIPData
+{
+	public:
+	///	set global positions
+		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id");
+
+		//	check number of ips (must match local ip number)
+			if(numIP != num_ip(s))
+			{
+				UG_LOG("ERROR in 'IPData::set_global_ips':"
+						" Num Local IPs is " << num_ip(s)  << ", but trying to set"
+						" Num Global IPs: " << numIP << " for series "<< s<< ".\n");
+				throw(UGFatalError("Num ip does not match."));
+			}
+
+		//	remember global positions
+			m_vvGlobPos[s] = vPos;
+
+		//	invoke callback
+			global_ips_changed(s, vPos, numIP);
+		}
+
+	///	returns global ips
+		const MathVector<dim>* ips(size_t s) const
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id");
+			return m_vvGlobPos[s];
+		}
+
+	/// returns global ip
+		const MathVector<dim>& ip(size_t s, size_t ip) const
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id.");
+			UG_ASSERT(s < m_vvGlobPos.size(), "Invalid index.");
+			UG_ASSERT(ip < num_ip(s), "Invalid index.");
+			UG_ASSERT(m_vvGlobPos[s] != NULL, "Local IP not set.");
+
+			return m_vvGlobPos[s][ip];
+		}
+
+	///	callback, that is called when global ips changed
+		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP) {}
+
+	protected:
+	///	implement callback, called when num of local IPs changes
+		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
+		{
+		//	adjust Global positions pointer
+			m_vvGlobPos.resize(vNumIP.size());
+		}
+
+	/// global ips
+		std::vector<const MathVector<dim>*> m_vvGlobPos;
+};
+
+
 /// Type based IP Data
 /**
  * This class is the base class for all integration point data for a templated
@@ -171,8 +238,16 @@ class IIPData
  * \tparam	dim		world dimension
  */
 template <typename TData, int dim>
-class IPData : public IIPData
+class IPData : public IIPDimData<dim>
 {
+	private:
+	///	type of base class
+		typedef IIPDimData<dim> base_type;
+
+	///	explicitly forward some functions
+		using base_type::num_series;
+		using base_type::num_ip;
+
 	public:
 	///	returns the value at ip
 		const TData& value(size_t s, size_t ip) const
@@ -210,59 +285,19 @@ class IPData : public IIPData
 			return &(m_vvValue[s][0]);
 		}
 
-	///	set global positions
-		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id");
-
-		//	check number of ips (must match local ip number)
-			if(numIP != num_ip(s))
-			{
-				UG_LOG("ERROR in 'IPData::set_global_ips':"
-						" Num Local IPs is " << num_ip(s)  << ", but trying to set"
-						" Num Global IPs: " << numIP << " for series "<< s<< ".\n");
-				throw(UGFatalError("Num ip does not match."));
-			}
-
-		//	remember global positions
-			m_vvGlobPos[s] = vPos;
-		}
-
-	///	returns global ips
-		const MathVector<dim>* ips(size_t s) const
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id");
-			return m_vvGlobPos[s];
-		}
-
-	/// returns global ip
-		const MathVector<dim>& ip(size_t s, size_t ip) const
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id.");
-			UG_ASSERT(s < m_vvGlobPos.size(), "Invalid index.");
-			UG_ASSERT(ip < num_ip(s), "Invalid index.");
-			UG_ASSERT(m_vvGlobPos[s] != NULL, "Local IP not set.");
-
-			return m_vvGlobPos[s][ip];
-		}
-
 	protected:
 		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
 		{
-		//	adjust Global positions pointer
-			m_vvGlobPos.resize(vNumIP.size());
-
 		//	adjust data arrays
 			m_vvValue.resize(vNumIP.size());
 			for(size_t s = 0; s < vNumIP.size(); ++s)
 				m_vvValue[s].resize(vNumIP[s]);
+
+			base_type::adjust_global_ips_and_data(vNumIP);
 		}
 
 	protected:
-		/// global ips
-		std::vector<const MathVector<dim>*> m_vvGlobPos;
-
-		/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
+	/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
 		std::vector<std::vector<TData> > m_vvValue;
 };
 

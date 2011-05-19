@@ -352,16 +352,25 @@ class DataImport : public IDataImport<TAlgebra>
 		{
 			UG_ASSERT(m_pDependentIPData != NULL, "No Export set.");
 
+		//	loop integration points
+			for(size_t ip = 0; ip < num_ip(); ++ip)
+			{
+		//	loop all functions
 			for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
 				for(size_t fct2 = 0; fct2 < m_pDependentIPData->num_fct(); ++fct2)
-					for(size_t dof1 = 0; dof1 < num_sh(fct1); ++dof1)
-						for(size_t dof2 = 0; dof2 < m_pDependentIPData->num_sh(m_seriesID, fct2); ++dof2)
-							for(size_t ip = 0; ip < num_ip(); ++ip)
-							{
-								number prod = lin_defect(ip, fct1, dof1)
-												* m_pDependentIPData->deriv(m_seriesID, ip, fct2, dof2);
-								J(fct1, dof1, fct2, dof2) += prod;
-							}
+				{
+		//	get array of linearized defect and derivative
+			const TData* LinDef = lin_defect(ip, fct1);
+			const TData* Deriv = m_pDependentIPData->deriv(m_seriesID, ip, fct2);
+
+		//	loop shapes of functions
+			for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
+				for(size_t sh2 = 0; sh2 < m_pDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
+				{
+					J(fct1, sh1, fct2, sh2) += LinDef[sh1]*Deriv[sh2];
+				}
+				}
+			}
 		}
 
 	///	resize lin defect arrays
