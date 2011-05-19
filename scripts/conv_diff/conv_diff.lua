@@ -23,12 +23,11 @@ if dim == 2 then
 	gridName = "unit_square_01/unit_square_01_quads_8x8.ugx"
 end
 
-numPreRefs = util.GetParamNumber("-numPreRefs", 1)
-numRefs    = util.GetParamNumber("-numRefs",    3)
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
+numRefs    = util.GetParamNumber("-numRefs",    5)
 
 -- choose number of time steps
-NumPreTimeSteps = util.GetParamNumber("-numPreTimeSteps", 1)
-NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 5)
+NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 10)
 
 print(" Choosen Parater:")
 print("    numRefs    = " .. numRefs)
@@ -40,7 +39,7 @@ print("    grid       = " .. gridName)
 --------------------------------
 
 -- This scales the amount of diffusion of the problem
-eps = 1
+eps = 1e-1
 
 -- The coordinates (cx, cy) specify the rotation center of the cone
 cx = 0.5
@@ -52,7 +51,7 @@ ax = 0.25
 ay = 0.0
 
 -- The parameter nu specifies the rotation velocity
-nu = 0
+nu = 100
 
 -- The parameter delta is a scaling factor influencing the steepness of the cone
 delta = 1e-1
@@ -133,7 +132,7 @@ startValue = util.CreateLuaUserNumber("exactSolution", dim)
 -----------------------------------------------------------------
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
-upwind = WeightedUpwind2d()
+upwind = NoUpwind2d()
 elemDisc:set_upwind(upwind)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
@@ -283,7 +282,7 @@ newtonSolver = NewtonSolver()
 newtonSolver:set_linear_solver(solver)
 newtonSolver:set_convergence_check(newtonConvCheck)
 --newtonSolver:set_line_search(newtonLineSearch)
-
+newtonSolver:set_debug(dbgWriter)
 newtonSolver:init(op)
 
 -------------------------------------------
@@ -308,7 +307,7 @@ out:print(filename, u, step, time)
 
 -- some info output
 print( "   numPreRefs is   " .. numPreRefs ..     ",  numRefs is         " .. numRefs)
-print( "   NumTimeSteps is " .. NumTimeSteps   .. ",  NumPreTimeSteps is " .. NumPreTimeSteps )
+print( "   NumTimeSteps is " .. NumTimeSteps)
 
 -- create new grid function for old value
 uOld = u:clone()
