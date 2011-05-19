@@ -240,7 +240,7 @@ class IIPDimData : public IIPData
 template <typename TData, int dim>
 class IPData : public IIPDimData<dim>
 {
-	protected:
+	public:
 	///	type of base class
 		typedef IIPDimData<dim> base_type;
 
