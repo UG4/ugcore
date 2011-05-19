@@ -22,7 +22,7 @@
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_evaluator.h"
 
-//#define PROFILE_ELEM_LOOP
+#define PROFILE_ELEM_LOOP
 #ifdef PROFILE_ELEM_LOOP
 	#define EL_PROFILE_FUNC()		PROFILE_FUNC()
 	#define EL_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
@@ -680,6 +680,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(dofDistr.template num<TElem>(si) == 0) return true;
 
+//	Start Profiling of whole assembling
+	EL_PROFILE_BEGIN(Ass_TJac);
+
+	EL_PROFILE_BEGIN(Ass_TJac_TotalPrepLoop);
 //	get element iterator
 	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dofDistr.template begin<TElem>(si);
@@ -764,10 +768,12 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare Elem Discs.\n");
 		return false;
 	}
+	EL_PROFILE_END();
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
+		EL_PROFILE_BEGIN(Ass_TJac_PrepForElem)
 	// 	get Element
 		TElem* elem = *iter;
 
@@ -792,8 +798,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 
 	//	read local values of time series
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(ind);
+		EL_PROFILE_END();
 
 	// 	prepare element
+		EL_PROFILE_BEGIN(Ass_TJac_AssPrepElem)
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
 		//	access disc functions
@@ -806,32 +814,42 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
+		EL_PROFILE_END();
 
 	//	Compute element data
+		EL_PROFILE_BEGIN(Ass_TJac_ElemData)
 		if(!Eval.compute_elem_data(locU, ind, true))
 		{
 			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute elem data.\n");
 			return false;
 		}
+		EL_PROFILE_END();
 
 	//	Compute element data
+		EL_PROFILE_BEGIN(Ass_TJac_LinDefJA)
 		if(!Eval.compute_lin_defect_JA(locU, ind))
 		{
 			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute lin_defect_JA.\n");
 			return false;
 		}
+		EL_PROFILE_END();
 
 	//	Compute element data
+		EL_PROFILE_BEGIN(Ass_TJac_LinDefJM)
 		if(!Eval.compute_lin_defect_JM(locU, ind))
 		{
 			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute lin_defect_JM.\n");
 			return false;
 		}
+		EL_PROFILE_END();
 
 	// 	reset local matrix
+		EL_PROFILE_BEGIN(Ass_TJac_ResetJ);
 		locJ.set(0.0);
+		EL_PROFILE_END();
 
 	// 	Assemble JA
+		EL_PROFILE_BEGIN(Ass_TJac_AssJA);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
 		//	access disc functions
@@ -845,14 +863,20 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
+		EL_PROFILE_END();
 
 	//	Compute element data
+		EL_PROFILE_BEGIN(Ass_TJac_CplJA)
 		Eval.add_coupl_JA(locJ, ind);
+		EL_PROFILE_END();
 
 	//	scale stiffness part
+		EL_PROFILE_BEGIN(Add_TJac_ScaleJ);
 		locJ *= s_a0;
+		EL_PROFILE_END();
 
 	// 	Assemble JM
+		EL_PROFILE_BEGIN(Ass_TJac_AssJM)
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
 		//	access disc functions
@@ -866,12 +890,17 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
+		EL_PROFILE_END();
 
 	//	Compute element data
+		EL_PROFILE_BEGIN(Ass_TJac_CplJM)
 		Eval.add_coupl_JM(locJ, ind);
+		EL_PROFILE_END();
 
 	// 	send local to global matrix
+		EL_PROFILE_BEGIN(Ass_TJac_AddToGlobal)
 		J.add(locJ);
+		EL_PROFILE_END();
 	}
 
 // finish element loop
@@ -922,6 +951,7 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 
 // 	check if at least on element exist, else return
 	if(dofDistr.template num<TElem>(si) == 0) return true;
+	EL_PROFILE_BEGIN(Ass_Def);
 
 //	get element iterator
 	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
@@ -1039,6 +1069,7 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		locRhs.set(0.0);
 
 	// 	prepare element
+		EL_PROFILE_BEGIN(Ass_Def_PrepElem);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
 		//	access disc functions
@@ -1051,15 +1082,19 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
+		EL_PROFILE_END();
 
 	//	Compute element data
+		EL_PROFILE_BEGIN(Ass_Def_ElemData);
 		if(!Eval.compute_elem_data(locU, ind, false))
 		{
 			UG_LOG("ERROR in 'AssembleDefect': Cannot compute elem data.\n");
 			return false;
 		}
+		EL_PROFILE_END();
 
 	// 	Assemble defect A
+		EL_PROFILE_BEGIN(Ass_Def_AssA);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
 		//	access disc functions
@@ -1073,9 +1108,10 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
-
+		EL_PROFILE_END();
 
 	// 	Assemble rhs
+		EL_PROFILE_BEGIN(Ass_Def_AddRhs);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
 		//	access disc functions
@@ -1090,9 +1126,12 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			}
 		}
 		locD -= locRhs;
+		EL_PROFILE_END();
 
 	// 	send local to global matrix
+		EL_PROFILE_BEGIN(Ass_Def_LocalToGlobal);
 		d.add(locD);
+		EL_PROFILE_END();
 	}
 
 // finish element loop
@@ -1134,8 +1173,7 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                 const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
                	number s_m, number s_a,
             	ISelector* sel = NULL)
-{
-//	type of reference element
+{//	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			reference_element_type;
 
@@ -1146,6 +1184,10 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(dofDistr.template num<TElem>(si) == 0) return true;
 
+//	Start Profiling of whole assembling
+	EL_PROFILE_BEGIN(Ass_TDef);
+
+	EL_PROFILE_BEGIN(Ass_TDef_PrepElemLoop);
 //	get element iterator
 	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dofDistr.template begin<TElem>(si);
@@ -1233,10 +1275,12 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		UG_LOG("ERROR in 'AssembleDefect': Cannot prepare Elem Discs.\n");
 		return false;
 	}
+	EL_PROFILE_END();
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
+		EL_PROFILE_BEGIN(Ass_TDef_TotalPrepElem);
 	// 	get Element
 		TElem* elem = *iter;
 
@@ -1262,11 +1306,15 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 
 	//	read local values of time series
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(ind);
+		EL_PROFILE_END();
 
 	// 	reset local matrix and rhs
+		EL_PROFILE_BEGIN(Ass_TDef_ResetD);
 		locD.set(0.0);
+		EL_PROFILE_END();
 
 	// 	prepare element
+		EL_PROFILE_BEGIN(Ass_TDef_AssPrepElem);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
 		//	access disc functions
@@ -1279,15 +1327,19 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 				return false;
 			}
 		}
+		EL_PROFILE_END();
 
 	//	Compute element data
+		EL_PROFILE_BEGIN(Ass_TDef_ElemData);
 		if(!Eval.compute_elem_data(locU, ind, false))
 		{
 			UG_LOG("ERROR in 'AssembleDefect': Cannot compute elem data.\n");
 			return false;
 		}
+		EL_PROFILE_END();
 
 	// 	Assemble defect M
+		EL_PROFILE_BEGIN(Ass_TDef_AssM);
 		tmpLocD.set(0.0);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
@@ -1303,8 +1355,10 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			}
 		}
 		locD += tmpLocD * s_m;
+		EL_PROFILE_END();
 
 	// 	Assemble defect A
+		EL_PROFILE_BEGIN(Ass_TDef_AssA);
 		tmpLocD.set(0.0);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
@@ -1320,8 +1374,10 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			}
 		}
 		locD += tmpLocD * s_a;
+		EL_PROFILE_END();
 
 	// 	Assemble defect rhs
+		EL_PROFILE_BEGIN(Ass_TDef_AssRHS);
 		tmpLocD.set(0.0);
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
 		{
@@ -1337,9 +1393,12 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			}
 		}
 		locD -= tmpLocD * s_a;
+		EL_PROFILE_END();
 
 	// 	send local to global matrix
+		EL_PROFILE_BEGIN(Ass_TDef_LocalToGlobal);
 		d.add(locD);
+		EL_PROFILE_END();
 	}
 
 // finish element loop
