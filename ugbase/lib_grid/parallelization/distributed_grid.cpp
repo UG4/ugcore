@@ -99,7 +99,9 @@ grid_to_be_destroyed(Grid* grid)
 
 template <class TElem>
 void DistributedGridManager::set_preliminary_ghost_states()
-{
+{//	Works but is currently unused and would only be required, if
+//	horizontal interfaces between vertical-masters would exist.
+/*
 	typedef typename geometry_traits<TElem>::iterator iterator;
 
 	for(iterator iter = m_pGrid->begin<TElem>(); iter != m_pGrid->end<TElem>(); ++iter)
@@ -157,11 +159,14 @@ void DistributedGridManager::set_preliminary_ghost_states()
 		else
 			elem_info(elem).set_status(status & (~ES_GHOST));
 	}
+*/
 }
 
 ////////////////////////////////////////////////////////////////////////
 void DistributedGridManager::update_ghost_states()
-{
+{//	Works but is currently unused and would only be required, if
+//	horizontal interfaces between vertical-masters would exist.
+/*
 //	first we'll calculate a preliminary ghost state
 	set_preliminary_ghost_states<VertexBase>();
 	set_preliminary_ghost_states<EdgeBase>();
@@ -218,7 +223,7 @@ void DistributedGridManager::update_ghost_states()
 		for(size_t i = 0; i < e->num_vertices(); ++i)
 			elem_info(e->vertex(i)).set_status(get_status(e->vertex(i)) & (~ES_GHOST));
 	}
-
+*/
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -244,7 +249,7 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 	update_all_elem_infos<Volume>();
 
 //	update ghost states
-	update_ghost_states();
+	//update_ghost_states();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -450,7 +455,7 @@ end_ordered_element_insertion()
 	m_bOrderedInsertionMode = false;
 
 //	we have to update ghost-states
-	update_ghost_states();
+	//update_ghost_states();
 }
 
 void

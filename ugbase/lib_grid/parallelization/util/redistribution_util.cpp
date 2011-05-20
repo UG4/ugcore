@@ -138,7 +138,7 @@ CollectRedistributionTargetProcs(
 
 	//	if we're checking the local layout and if psel was specified, then
 	//	we have to only add targetProcs to selected entries.
-		if(localLayoutIndex != (int)i_layout && psel != NULL){
+		if(localLayoutIndex == (int)i_layout && psel != NULL){
 		//	now iterate over the nodes and add the target-proc
 			for(size_t i = 0; i < nodes.size(); ++i){
 				if(psel->is_selected(nodes[i]))
@@ -845,9 +845,11 @@ if(mg.num_levels() > 0){
 
 ////////////////////////////////
 //	BUILD HORIZONTAL INTERFACES
+//	NOTE on the following comment: Shortening may be intended.
 //	before synchronizing horizontal node movement, we have to make sure, that
 //	all elements of the current layout are selected. Otherwise old h-interfaces
 //	would be lost or shortened.
+/*
 	msel.clear();
 	if(localLayoutInd != -1){
 		SelectNodesInLayout(msel, vertexLayoutsOut[localLayoutInd]);
@@ -855,7 +857,7 @@ if(mg.num_levels() > 0){
 		SelectNodesInLayout(msel, faceLayoutsOut[localLayoutInd]);
 		SelectNodesInLayout(msel, volumeLayoutsOut[localLayoutInd]);
 	}
-
+*/
 
 	SynchronizeHNodeTransfer<VertexBase>(distGridMgr, commVRT, aaTargetProcsVRT,
 							aaTransInfoVecVRT, localLayoutInd, msel);
@@ -884,6 +886,15 @@ if(mg.num_levels() > 0){
 //	BUILD VERTICAL INTERFACES
 //	targetProcs and transferInfos now have to be cleared. We will then
 //	synchronize the targetProcs for all horizontal interfaces.
+	msel.clear();
+	if(localLayoutInd != -1){
+		SelectNodesInLayout(msel, vertexLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, edgeLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, faceLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, volumeLayoutsOut[localLayoutInd]);
+	}
+
+
 	ClearTargetAndTransferInfos<VertexBase>(mg, aaTargetProcsVRT, aaTransInfoVecVRT);
 	ClearTargetAndTransferInfos<EdgeBase>(mg, aaTargetProcsEDGE, aaTransInfoVecEDGE);
 	ClearTargetAndTransferInfos<Face>(mg, aaTargetProcsFACE, aaTransInfoVecFACE);

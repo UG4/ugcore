@@ -30,7 +30,7 @@ enum ElementStatusTypes
 	ES_V_MASTER = INT_V_MASTER,
 	ES_V_SLAVE = INT_V_SLAVE,
 
-	ES_GHOST = 1 << 5,
+	//ES_GHOST = 1 << 5,//currently unused
 	ES_SCHEDULED_FOR_INTERFACE = 1 << 6,
 	ES_IN_INTERFACE = 1 << 7
 };
