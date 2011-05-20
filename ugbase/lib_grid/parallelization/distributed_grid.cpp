@@ -97,10 +97,137 @@ grid_to_be_destroyed(Grid* grid)
 		set_grid(NULL);
 }
 
+template <class TElem>
+void DistributedGridManager::set_preliminary_ghost_states()
+{
+	typedef typename geometry_traits<TElem>::iterator iterator;
+
+	for(iterator iter = m_pGrid->begin<TElem>(); iter != m_pGrid->end<TElem>(); ++iter)
+	{
+		TElem* elem = *iter;
+		byte status = get_status(elem);
+
+		bool isGhost = true;
+
+		if((status & ES_V_MASTER)){
+		//	the element is a vertical master and thus potentially is a ghost.
+		//	however - if an horizontal interface exists, which connects the
+		//	vertical master with its vertical slaves, then it is not regarded
+		//	as a ghost.
+			if(status & (ES_H_MASTER | ES_H_SLAVE))
+			{
+			//	it lies in vertical interfaces, too. check if the element
+			//	lies in a horizontal and in a vertical interface, which point
+			//	to the same proc.
+				const ElementInfo<TElem>& inf = elem_info(elem);
+
+				typedef typename ElementInfo<TElem>::ConstEntryIterator EntryIter;
+
+				for(EntryIter iter_v = inf.entries_begin();
+					iter_v != inf.entries_end(); ++iter_v)
+				{
+					int intfcTypeV = inf.get_interface_type(iter_v);
+					if(intfcTypeV == ES_V_MASTER){
+					//	search for a H_MASTER or H_SLAVE Entry with the same target proc
+						int vtarget = inf.get_target_proc(iter_v);
+
+						for(EntryIter iter_h = inf.entries_begin();
+							iter_h != inf.entries_end(); ++iter_h)
+						{
+							int intfcTypeH = inf.get_interface_type(iter_h);
+							if(intfcTypeH & (ES_H_MASTER | ES_H_SLAVE)){
+							//	compare target procs
+								if(inf.get_target_proc(iter_h) == vtarget){
+								//	we've got a connection.
+								//	The node thus isn't a ghost.
+									isGhost = false;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+			isGhost = false;
+
+		if(isGhost)
+			elem_info(elem).set_status(status | ES_GHOST);
+		else
+			elem_info(elem).set_status(status & (~ES_GHOST));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+void DistributedGridManager::update_ghost_states()
+{
+//	first we'll calculate a preliminary ghost state
+	set_preliminary_ghost_states<VertexBase>();
+	set_preliminary_ghost_states<EdgeBase>();
+	set_preliminary_ghost_states<Face>();
+	set_preliminary_ghost_states<Volume>();
+
+//	now we have to convert some ghost to non-ghosts.
+//	if a ghost is a part of a higher dimensional non-ghost, then
+//	it has to be marked as non-ghost, too.
+	vector<Face*> faces;
+	vector<EdgeBase*> edges;
+
+	for(VolumeIterator iter = m_pGrid->begin<Volume>();
+		iter != m_pGrid->end<Volume>(); ++iter)
+	{
+		Volume* v = *iter;
+		if(contains_status(v, ES_GHOST))
+			continue;
+
+		CollectAssociated(faces, *m_pGrid, v);
+		for(size_t i = 0; i < faces.size(); ++i)
+			elem_info(faces[i]).set_status(get_status(faces[i]) & (~ES_GHOST));
+
+		CollectAssociated(edges, *m_pGrid, v);
+		for(size_t i = 0; i < edges.size(); ++i)
+			elem_info(edges[i]).set_status(get_status(edges[i]) & (~ES_GHOST));
+
+		for(size_t i = 0; i < v->num_vertices(); ++i)
+			elem_info(v->vertex(i)).set_status(get_status(v->vertex(i)) & (~ES_GHOST));
+	}
+
+	for(FaceIterator iter = m_pGrid->begin<Face>();
+		iter != m_pGrid->end<Face>(); ++iter)
+	{
+		Face* f = *iter;
+		if(contains_status(f, ES_GHOST))
+			continue;
+
+		CollectAssociated(edges, *m_pGrid, f);
+		for(size_t i = 0; i < edges.size(); ++i)
+			elem_info(edges[i]).set_status(get_status(edges[i]) & (~ES_GHOST));
+
+		for(size_t i = 0; i < f->num_vertices(); ++i)
+			elem_info(f->vertex(i)).set_status(get_status(f->vertex(i)) & (~ES_GHOST));
+	}
+
+	for(EdgeBaseIterator iter = m_pGrid->begin<EdgeBase>();
+		iter != m_pGrid->end<EdgeBase>(); ++iter)
+	{
+		EdgeBase* e = *iter;
+		if(contains_status(e, ES_GHOST))
+			continue;
+
+		for(size_t i = 0; i < e->num_vertices(); ++i)
+			elem_info(e->vertex(i)).set_status(get_status(e->vertex(i)) & (~ES_GHOST));
+	}
+
+}
+
 ////////////////////////////////////////////////////////////////////////
 void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 {
-	if(!addedElemsOnly){
+//	I don't think that addedElemsOnly is correctly implemented in the moment.
+//	I thus disabled it here.
+	//if(!addedElemsOnly)
+	{
 	//	first we have to reset all elem infos
 		reset_elem_infos<VertexBase>();
 		reset_elem_infos<EdgeBase>();
@@ -115,6 +242,9 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 	update_all_elem_infos<EdgeBase>();
 	update_all_elem_infos<Face>();
 	update_all_elem_infos<Volume>();
+
+//	update ghost states
+	update_ghost_states();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -178,8 +308,8 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 						elem_info(interface.get_element(iter)).set_status(newStatus);
 					
 				//	add the iterator to the iterator list and set the proc-id
-					if(newStatus & ES_IN_INTERFACE)
-						elem_info(interface.get_element(iter)).add_entry(&interface, iter);
+					//if(newStatus & ES_IN_INTERFACE)
+					elem_info(interface.get_element(iter)).add_entry(&interface, iter, nodeType);
 				/*
 					elem_info(*iter).lstProcIterPairs.push_back(
 								typename ElementInfo<TGeomObj>(procID, iter));
@@ -255,12 +385,14 @@ add_element_to_interface(TElem* pElem, int procID)
 	
 	typename GridLayoutMap::Types<TElem>::Interface::iterator iter;
 	typename GridLayoutMap::Types<TElem>::Interface* interface;
+	int intfcType = ES_NONE;
 	
 	if(status & ES_H_MASTER){
 		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_MASTER)
 						.interface(procID, m_pGrid->get_level(pElem));
 		iter = interface->push_back(pElem);
 		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_H_MASTER);
+		intfcType = ES_H_MASTER;
 	}
 	else{
 		UG_ASSERT(status & ES_H_SLAVE, "interface-elements have to be either master or slave!");
@@ -269,10 +401,11 @@ add_element_to_interface(TElem* pElem, int procID)
 		iter = interface->push_back(pElem);
 						
 		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_H_SLAVE);
+		intfcType = ES_H_SLAVE;
 	}
 	
 //	add the interface-entry to the info
-	elem_info(pElem).add_entry(interface, iter);
+	elem_info(pElem).add_entry(interface, iter, intfcType);
 }
 		
 template <class TScheduledElemMap>
@@ -315,6 +448,9 @@ end_ordered_element_insertion()
 	}
 
 	m_bOrderedInsertionMode = false;
+
+//	we have to update ghost-states
+	update_ghost_states();
 }
 
 void
@@ -338,13 +474,16 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 	typedef typename ElementInfo<TParent>::EntryIterator entry_iter;
 	ElementInfo<TParent>& parentInfo = elem_info(pParent);
 
-//	schedule one element for each parent-interface
+//	schedule one element for each horizontal parent-interface
 	for(entry_iter iter = parentInfo.entries_begin();
 		iter != parentInfo.entries_end(); ++iter)
 	{
-		UG_DLOG(LIB_GRID, 3, parentInfo.get_target_proc(iter) << ", ");
-		elemMap.insert(make_pair(parentInfo.get_local_id(iter),
-				ScheduledElement(elem, parentInfo.get_target_proc(iter))));
+		int intfcType = parentInfo.get_interface_type(iter);
+		if(!(intfcType & (ES_V_MASTER | ES_V_SLAVE))){
+			UG_DLOG(LIB_GRID, 3, parentInfo.get_target_proc(iter) << ", ");
+			elemMap.insert(make_pair(parentInfo.get_local_id(iter),
+					ScheduledElement(elem, parentInfo.get_target_proc(iter))));
+		}
 	}
 	
 //	set the status
@@ -352,7 +491,7 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 		elem_info(elem).set_status(ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
 	else{
 		UG_ASSERT(parentInfo.get_status() & (ES_H_SLAVE), "interface-elements have to be either master or slave!");
-		elem_info(elem).set_status(ES_H_SLAVE);
+		elem_info(elem).set_status(ES_H_SLAVE | ES_SCHEDULED_FOR_INTERFACE);
 	}
 }
 
@@ -378,7 +517,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 				iter != elemInfo.entries_end(); ++iter)
 			{
 				typename ElementInfo<TElem>::Entry& entry = *iter;
-				entry.first->get_element(entry.second) = pElem;
+				entry.m_interface->get_element(entry.m_interfaceElemIter) = pElem;
 			}
 
 		//	clear the parent-info.
@@ -405,7 +544,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 	if(!(get_status(pParent) &
 		(ES_IN_INTERFACE | ES_SCHEDULED_FOR_INTERFACE)))
 		return;
-		
+
 	int parentType = pParent->base_object_type_id();
 
 //	if ordered insertion mode is active, we have to insert the elements

@@ -10,7 +10,7 @@
 
 
 #include "lib_grid/parallelization/parallelization.h"
-
+#include "lib_grid/parallelization/util/compol_interface_status.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_algebra/parallelization/communication_policies.h"
 
@@ -22,19 +22,19 @@ namespace ug
  * Make sure that TLayout holds elements of type VertexBase*, EdgeBase*,
  * Face* or Volume*.
  *
- * \param ignoreElemsWithStatus: an or combination of ug::ElementStatus.
- * 			Elements sharing at least on status with this param are not
- * 			added to the layout.
- * 			This param only has effect if dGrMgr is specified.
+ * \param pIgnoreMap	If specified (defaul: NULL), this map will be used to
+ * 						check whether an element shall not be added to the new
+ * 						interface. For each interface in the given layout, the
+ * 						map has to hold a vector<bool> of the size of the interface.
+ * 						If an entry is true, then the corresponding interface-
+ * 						entry will be ignored.
  *
  *  \todo: replace IndexLayout with TDoFManager::IndexLayout.
  */
 template <class TDoFDistr, class TLayout>
 bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
-                                  TDoFDistr& dofDistr,
-                                  TLayout& elemLayout,
-                                  DistributedGridManager* dGrMgr = NULL,
-                                  byte ignoreElemsWithStatus = ES_NONE)
+					  TDoFDistr& dofDistr, TLayout& elemLayout,
+					  const std::map<int, std::vector<bool> >* pIgnoreMap = NULL)
 {
 //	iterator for grid element interfaces
 	typedef typename TLayout::iterator InterfaceIterator;
@@ -59,29 +59,52 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 		IndexInterface& indexInterface = indexLayoutOut.interface(
 											elemLayout.proc_id(iIter));
 
-	//	iterate over entries in the grid element interface
-		for(ElemIterator eIter = elemInterface.begin();
-			eIter != elemInterface.end(); ++eIter)
-		{
-		//	get the grid element
-			typename ElemInterface::Element elem = elemInterface.get_element(eIter);
+	//	if some elements shall be ignored, then we'll perform a special loop
+		if(pIgnoreMap){
+			std::map<int, std::vector<bool> >::const_iterator
+				findIter = pIgnoreMap->find(elemInterface.get_target_proc());
 
-		//	check whether the element also lies in a vertical interface.
-		//	If so, no horizontal interfaces should be created.
-			if(dGrMgr){
-				if(dGrMgr->get_status(elem) & ignoreElemsWithStatus){
-					continue;
-				}
-			}
+			UG_ASSERT(findIter != pIgnoreMap->end(), "The vector has to exist");
+			const std::vector<bool>& vec = findIter->second;
 
-		//	get the algebraic indices on the grid element
-			typename TDoFDistr::algebra_index_vector_type indices;
-			dofDistr.get_inner_algebra_indices(elem, indices);
+			UG_ASSERT(vec.size() == elemInterface.size(), "Sizes have to match!");
 
-		//	add the indices to the interface
-			for(size_t i = 0; i < indices.size(); ++i)
+		//	iterate over entries in the grid element interface
+			int counter = 0;
+			for(ElemIterator eIter = elemInterface.begin();
+				eIter != elemInterface.end(); ++eIter, ++counter)
 			{
-				indexInterface.push_back(indices[i]);
+			//	if the corresponding vec-entry is true, then we'll ignore the elem.
+				if(vec[counter])
+					continue;
+
+			//	get the grid element
+				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
+
+			//	get the algebraic indices on the grid element
+				typename TDoFDistr::algebra_index_vector_type indices;
+				dofDistr.get_inner_algebra_indices(elem, indices);
+
+			//	add the indices to the interface
+				for(size_t i = 0; i < indices.size(); ++i)
+					indexInterface.push_back(indices[i]);
+			}
+		}
+		else{
+		//	iterate over entries in the grid element interface
+			for(ElemIterator eIter = elemInterface.begin();
+				eIter != elemInterface.end(); ++eIter)
+			{
+			//	get the grid element
+				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
+
+			//	get the algebraic indices on the grid element
+				typename TDoFDistr::algebra_index_vector_type indices;
+				dofDistr.get_inner_algebra_indices(elem, indices);
+
+			//	add the indices to the interface
+				for(size_t i = 0; i < indices.size(); ++i)
+					indexInterface.push_back(indices[i]);
 			}
 		}
 	}
@@ -108,18 +131,12 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
  * \param[in]		keyType			key type (e.g. slave or master)
  * \param[in]		level			level, where layouts should be build
  *
- * \param ignoreElemsWithStatus: an or combination of ug::ElementStatus.
- * 			Elements sharing at least on status with this param are not
- * 			added to the layout (default ES_NONE).
- * 			This param only has effect if dGrMgr is specified.
  */
 template <class TDoFDistribution>
 bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
                             	TDoFDistribution& dofDistr,
                             	GridLayoutMap& layoutMap,
-                            	int keyType, int level,
-                            	DistributedGridManager* dGrMgr = NULL,
-                            	byte ignoreElemsWithStatus = ES_NONE)
+                            	int keyType, int level)
 {
 //	clear the layout
 	layoutOut.clear();
@@ -132,32 +149,28 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
 		if(layoutMap.has_layout<VertexBase>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
-									layoutMap.get_layout<VertexBase>(keyType).layout_on_level(level),
-									dGrMgr, ignoreElemsWithStatus);
+									layoutMap.get_layout<VertexBase>(keyType).layout_on_level(level));
 		}
 
 	if(dofDistr.template has_dofs_on<EdgeBase>())
 		if(layoutMap.has_layout<EdgeBase>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
-									layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level),
-									dGrMgr, ignoreElemsWithStatus);
+									layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level));
 		}
 
 	if(dofDistr.template has_dofs_on<Face>())
 		if(layoutMap.has_layout<Face>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
-									layoutMap.get_layout<Face>(keyType).layout_on_level(level),
-									dGrMgr, ignoreElemsWithStatus);
+									layoutMap.get_layout<Face>(keyType).layout_on_level(level));
 		}
 
 	if(dofDistr.template has_dofs_on<Volume>())
 		if(layoutMap.has_layout<Volume>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
-									layoutMap.get_layout<Volume>(keyType).layout_on_level(level),
-									dGrMgr, ignoreElemsWithStatus);
+									layoutMap.get_layout<Volume>(keyType).layout_on_level(level));
 		}
 
 //	we're done

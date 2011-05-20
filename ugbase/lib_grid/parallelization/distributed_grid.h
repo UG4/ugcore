@@ -30,6 +30,7 @@ enum ElementStatusTypes
 	ES_V_MASTER = INT_V_MASTER,
 	ES_V_SLAVE = INT_V_SLAVE,
 
+	ES_GHOST = 1 << 5,
 	ES_SCHEDULED_FOR_INTERFACE = 1 << 6,
 	ES_IN_INTERFACE = 1 << 7
 };
@@ -105,7 +106,7 @@ class DistributedGridManager : public GridObserver
 	 * and ElementStatusTypes.
 	 */
 		template <class TGeomObj>
-		bool contains_status(TGeomObj* o, byte status)	{return (get_status(o) & status) == status;}
+		bool contains_status(TGeomObj* o, byte status) const	{return (get_status(o) & status) == status;}
 
 	///	returns true if the element is a ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.
@@ -160,6 +161,11 @@ class DistributedGridManager : public GridObserver
 		template <class TGeomObj>
 		void reset_elem_infos();
 		
+		template <class TElem>
+		void set_preliminary_ghost_states();
+
+		void update_ghost_states();
+
 		template <class TGeomObj, class TLayoutMap>
 		void update_elem_info(TLayoutMap& layoutMap, int nodeType,
 							  byte newStatus, bool addStatus = false);
@@ -194,7 +200,18 @@ class DistributedGridManager : public GridObserver
 				typedef typename GridLayoutMap::template Types<TGeomObj>
 						::Interface		Interface;
 				typedef typename Interface::iterator InterfaceElemIter;
-				typedef std::pair<Interface*, InterfaceElemIter> Entry;
+				//typedef std::pair<Interface*, InterfaceElemIter> Entry;
+
+				struct Entry{
+					Entry()	{}
+					Entry(Interface* intfc, InterfaceElemIter intfcElemIter, int intfcType) :
+						m_interface(intfc), m_interfaceElemIter(intfcElemIter),
+						m_interfaceType(intfcType)	{}
+
+					Interface* 			m_interface;
+					InterfaceElemIter	m_interfaceElemIter;
+					int					m_interfaceType;
+				};
 
 				typedef std::list<Entry>				EntryList;
 				typedef typename EntryList::iterator	EntryIterator;
@@ -206,7 +223,8 @@ class DistributedGridManager : public GridObserver
 				void reset()								{m_status = ES_NONE; m_entries.clear();}
 				
 				void add_entry(Interface* interface,
-								InterfaceElemIter iter)		{m_entries.push_back(Entry(interface, iter));}
+								InterfaceElemIter iter,
+								int intfcType)				{m_entries.push_back(Entry(interface, iter, intfcType));}
 				
 				void remove_entry(Interface* interface)		{m_entries.erase(find_entry(interface));}
 				
@@ -216,10 +234,21 @@ class DistributedGridManager : public GridObserver
 				inline ConstEntryIterator entries_begin() const	{return m_entries.begin();}
 				inline ConstEntryIterator entries_end() const	{return m_entries.end();}
 
-				size_t get_local_id(EntryIterator iter)		{return iter->first->get_local_id(iter->second);}
-				int get_target_proc(EntryIterator iter)		{return iter->first->get_target_proc();}
-				
-				EntryIterator find_entry(Interface* interface)	{return find(entries_begin(), entries_end(), interface);}
+				size_t get_local_id(EntryIterator iter) const	{return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
+				size_t get_local_id(ConstEntryIterator iter) const	{return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
+				int get_target_proc(EntryIterator iter) const	{return iter->m_interface->get_target_proc();}
+				int get_target_proc(ConstEntryIterator iter) const	{return iter->m_interface->get_target_proc();}
+				Interface* get_interface(EntryIterator iter)	{return iter->m_interface;}
+				int get_interface_type(EntryIterator iter) const	{return iter->m_interfaceType;}
+				int get_interface_type(ConstEntryIterator iter) const	{return iter->m_interfaceType;}
+
+				EntryIterator find_entry(Interface* interface)
+					{	for(EntryIterator iter = entries_begin(); iter != entries_end(); ++iter){
+							if(iter->m_interface == interface)
+								return iter;
+						}
+						return entries_end();
+					}
 				
 				void set_status(byte status)				{m_status = status;}
 				byte get_status() const						{return m_status;}

@@ -125,7 +125,7 @@ end
 --	...
 
 partitionMap:clear()
-if procRank % 2 == 0 and procRank <= 4 then
+if procRank % 2 == 0 and procRank < 4 then
 	-- Specify the first process and the number of processes.
 	-- This will add processes src, src+1, ..., src+n-1
 	partitionMap:add_target_procs(procRank, 2)

@@ -110,8 +110,8 @@ void AssociateGlobalIDs(Grid& g,
  * Make also sure that TAAIntVec is accessing a valid Attachment<vector<int> >
  * attachment at grid.
  *
- * if psel is specified, then only selected entries of the layout with
- * localLayoutIndex are regarded.
+ * if psel is specified, then unselected entries of the layout with
+ * localLayoutIndex will only recieve receive the current-proc as their target.
  */
 template <class TGeomObj, class TAAIntVec>
 static void
@@ -138,7 +138,7 @@ CollectRedistributionTargetProcs(
 
 	//	if we're checking the local layout and if psel was specified, then
 	//	we have to only add targetProcs to selected entries.
-		if(localLayoutIndex == (int)i_layout && psel != NULL){
+		if(localLayoutIndex != (int)i_layout && psel != NULL){
 		//	now iterate over the nodes and add the target-proc
 			for(size_t i = 0; i < nodes.size(); ++i){
 				if(psel->is_selected(nodes[i]))
@@ -407,10 +407,7 @@ void FinalizeRedistributionLayoutInterfaces(
 		const typename TDistLayout::NodeVec& nodes = distLayout.node_vec();
 
 	//	mark all nodes in the current layout and assign their redist-layout node
-	//	index. However - if the layout of the current process is processed,
-	//	we'll only use the elements in the selector. This is important to
-	//	avoid problems during the creation of horizontal interfaces,
-	//	caused by elements in vertical interfaces.
+	//	index
 		mg.clear_marks();
 		for(size_t i = 0; i < nodes.size(); ++i){
 			aaNodeInd[nodes[i]] = (int)i;
@@ -781,9 +778,8 @@ void CreateRedistributionLayouts(
 //	However - don't select elements from other layouts. This is important,
 //	since the selection should afterwards only hold the elements it would
 //	hold, if vertical interfaces were not present.
-//	This is required so that we can synchronize the node transfer as required
-//	to build horizontal interfaces.
-	msel.clear();
+//	This is important, since otherwise we would accidentally build h-interfaces,
+//	where only v-interfaces are required.
 	if(localLayoutInd != -1){
 		SelectAllButVerticalMasters<VertexBase>(distGridMgr, msel,
 											vertexLayoutsOut[localLayoutInd]);
@@ -801,17 +797,17 @@ void CreateRedistributionLayouts(
 
 		SelectAssociatedGeometricObjects(msel);
 	}
-
 /*
 UG_LOG("DEBUG: Positions of selected vertices:\n");
-Grid::AttachmentAccessor<VertexBase, APosition2> aaPos(mg, aPosition2);
-for(VertexBaseIterator iter = msel.begin<VertexBase>(0);
-	iter != msel.end<VertexBase>(0); ++iter)
-{
-	UG_LOG(aaPos[*iter] << endl);
+if(mg.num_levels() > 0){
+	Grid::AttachmentAccessor<VertexBase, APosition2> aaPos(mg, aPosition2);
+	for(VertexBaseIterator iter = msel.begin<VertexBase>(mg.num_levels()-1);
+		iter != msel.end<VertexBase>(mg.num_levels()-1); ++iter)
+	{
+		UG_LOG(aaPos[*iter] << endl);
+	}
 }
 */
-
 	CollectRedistributionTargetProcs(vertexLayoutsOut, aaTargetProcsVRT,
 									 localLayoutInd, processMap, &msel);
 	CollectRedistributionTargetProcs(edgeLayoutsOut, aaTargetProcsEDGE,
@@ -849,6 +845,18 @@ for(VertexBaseIterator iter = msel.begin<VertexBase>(0);
 
 ////////////////////////////////
 //	BUILD HORIZONTAL INTERFACES
+//	before synchronizing horizontal node movement, we have to make sure, that
+//	all elements of the current layout are selected. Otherwise old h-interfaces
+//	would be lost or shortened.
+	msel.clear();
+	if(localLayoutInd != -1){
+		SelectNodesInLayout(msel, vertexLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, edgeLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, faceLayoutsOut[localLayoutInd]);
+		SelectNodesInLayout(msel, volumeLayoutsOut[localLayoutInd]);
+	}
+
+
 	SynchronizeHNodeTransfer<VertexBase>(distGridMgr, commVRT, aaTargetProcsVRT,
 							aaTransInfoVecVRT, localLayoutInd, msel);
 	SynchronizeHNodeTransfer<EdgeBase>(distGridMgr, commEDGE, aaTargetProcsEDGE,
@@ -880,16 +888,6 @@ for(VertexBaseIterator iter = msel.begin<VertexBase>(0);
 	ClearTargetAndTransferInfos<EdgeBase>(mg, aaTargetProcsEDGE, aaTransInfoVecEDGE);
 	ClearTargetAndTransferInfos<Face>(mg, aaTargetProcsFACE, aaTransInfoVecFACE);
 	ClearTargetAndTransferInfos<Volume>(mg, aaTargetProcsVOL, aaTransInfoVecVOL);
-
-//	we now have to select all elements, which will stay on the local proc.
-//	This is required to correctly build the vertical interfaces.
-	msel.clear();
-	if(localLayoutInd != -1){
-		SelectNodesInLayout(msel, vertexLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, edgeLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, faceLayoutsOut[localLayoutInd]);
-		SelectNodesInLayout(msel, volumeLayoutsOut[localLayoutInd]);
-	}
 
 	CollectRedistributionTargetProcs(vertexLayoutsOut, aaTargetProcsVRT,
 									 localLayoutInd, processMap);

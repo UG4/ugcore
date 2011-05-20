@@ -79,11 +79,39 @@ send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::single_level_layout_tag&)
 {
-	if(layout.has_interface_elements()){
-		typename Layout::iterator iter = layout.begin();
-		typename Layout::iterator end = layout.end();
+	typename Layout::iterator iter = layout.begin();
+	typename Layout::iterator end = layout.end();
 
-		commPol.begin_layout_collection(&layout);
+	commPol.begin_layout_collection(&layout);
+
+	for(; iter != end; ++iter)
+	{
+		if(!layout.interface(iter).empty()){
+			ug::BinaryBuffer& buffer = m_bufMapOut[layout.proc_id(iter)];
+			m_curOutProcs.insert(layout.proc_id(iter));
+
+			commPol.collect(buffer, layout.interface(iter));
+			m_bSendBuffersFixed = m_bSendBuffersFixed
+				&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+		}
+	}
+
+	commPol.end_layout_collection();
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void ParallelCommunicator<TLayout>::
+send_data(Layout& layout,
+		  ICommunicationPolicy<TLayout>& commPol,
+		  const layout_tags::multi_level_layout_tag&)
+{
+	commPol.begin_layout_collection(&layout);
+
+	for(size_t i = 0; i < layout.num_levels(); ++i)
+	{
+		typename Layout::iterator iter = layout.begin(i);
+		typename Layout::iterator end = layout.end(i);
 
 		for(; iter != end; ++iter)
 		{
@@ -96,40 +124,6 @@ send_data(Layout& layout,
 					&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 			}
 		}
-
-		commPol.end_layout_collection();
-	}
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TLayout>
-void ParallelCommunicator<TLayout>::
-send_data(Layout& layout,
-		  ICommunicationPolicy<TLayout>& commPol,
-		  const layout_tags::multi_level_layout_tag&)
-{
-	if(layout.has_interface_elements()){
-		commPol.begin_layout_collection(&layout);
-		
-		for(size_t i = 0; i < layout.num_levels(); ++i)
-		{
-			typename Layout::iterator iter = layout.begin(i);
-			typename Layout::iterator end = layout.end(i);
-
-			for(; iter != end; ++iter)
-			{
-				if(!layout.interface(iter).empty()){
-					ug::BinaryBuffer& buffer = m_bufMapOut[layout.proc_id(iter)];
-					m_curOutProcs.insert(layout.proc_id(iter));
-
-					commPol.collect(buffer, layout.interface(iter));
-					m_bSendBuffersFixed = m_bSendBuffersFixed
-						&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
-				}
-			}
-		}
-
-		commPol.end_layout_collection();
 	}
 }
 
@@ -173,11 +167,9 @@ template <class TLayout>
 void ParallelCommunicator<TLayout>::
 receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
-	if(layout.has_interface_elements()){
-		m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
-												 NULL, &layout,
-												 NULL, NULL, 0));
-	}
+	m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
+											 NULL, &layout,
+											 NULL, NULL, 0));
 }
 
 template <class TLayout>
@@ -188,13 +180,13 @@ exchange_data(TLayoutMap& layoutMap,
 				const typename TLayoutMap::Key& keyTo,
 				ICommunicationPolicy<TLayout>& commPol)
 {
-	if(layoutMap.template has_layout<Type>(keyFrom)){
+	//if(layoutMap.template has_layout<Type>(keyFrom)){
 		send_data(layoutMap.template get_layout<Type>(keyFrom), commPol);
-	}
+	//}
 		
-	if(layoutMap.template has_layout<Type>(keyTo)){
+	//if(layoutMap.template has_layout<Type>(keyTo)){
 		receive_data(layoutMap.template get_layout<Type>(keyTo), commPol);
-	}
+	//}
 }
 							
 ////////////////////////////////////////////////////////////////////////
@@ -334,7 +326,9 @@ void ParallelCommunicator<TLayout>::
 extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 				const layout_tags::single_level_layout_tag&)
 {
+	extractor.begin_layout_extraction(&layout);
 	extractor.begin_level_extraction(0);
+
 //	extract data for the layouts interfaces
 	for(typename Layout::iterator li = layout.begin();
 		li != layout.end(); ++li)
@@ -344,6 +338,8 @@ extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 							layout.interface(li));
 		}
 	}
+
+	extractor.end_layout_collection();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -352,6 +348,8 @@ void ParallelCommunicator<TLayout>::
 extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 				const layout_tags::multi_level_layout_tag&)
 {
+	extractor.begin_layout_extraction(&layout);
+
 //	extract data for the layouts interfaces
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
@@ -365,6 +363,8 @@ extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 			}
 		}
 	}
+
+	extractor.end_layout_collection();
 }
 				
 ////////////////////////////////////////////////////////////////////////

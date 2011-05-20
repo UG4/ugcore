@@ -70,6 +70,10 @@ class ParallelMGDoFManager : public TMGDoFManager
 	///	create the layouts on all levels
 		bool create_level_index_layouts(size_t numGlobalLevels);
 
+	///	a helper, which will create the layouts for a given geometric object
+		template <class TElem> bool
+		create_level_index_layouts(size_t numGlobalLevels);
+
 	///	create the layouts on the surface level
 		bool create_surface_index_layouts();
 

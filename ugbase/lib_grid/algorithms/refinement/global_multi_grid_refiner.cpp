@@ -179,7 +179,10 @@ void GlobalMultiGridRefiner::refine()
 	FaceDescriptor fd;
 	VolumeDescriptor vd;
 	
-//LOG("creating new vertices\n");
+	UG_DLOG(LIB_GRID, 1, "GlobalMultiGridRefiner\n");
+
+	UG_DLOG(LIB_GRID, 1, "  creating new vertices\n");
+
 //	create new vertices from marked vertices
 	for(VertexBaseIterator iter = mg.begin<VertexBase>(oldTopLevel);
 		iter != mg.end<VertexBase>(oldTopLevel); ++iter)
@@ -200,7 +203,8 @@ void GlobalMultiGridRefiner::refine()
 	}
 
 
-//LOG("creating new edges\n");
+	UG_DLOG(LIB_GRID, 1, "  creating new edges\n");
+
 //	create new vertices and edges from marked edges
 	for(EdgeBaseIterator iter = mg.begin<EdgeBase>(oldTopLevel);
 		iter != mg.end<EdgeBase>(oldTopLevel); ++iter)
@@ -234,7 +238,9 @@ void GlobalMultiGridRefiner::refine()
 		GMGR_PROFILE_END();
 	}
 
-//LOG("creating new faces\n");
+
+	UG_DLOG(LIB_GRID, 1, "  creating new faces\n");
+
 //	create new vertices and faces from marked faces
 	for(FaceIterator iter = mg.begin<Face>(oldTopLevel);
 		iter != mg.end<Face>(oldTopLevel); ++iter)
@@ -276,6 +282,9 @@ void GlobalMultiGridRefiner::refine()
 		}
 		GMGR_PROFILE_END();
 	}
+
+
+	UG_DLOG(LIB_GRID, 1, "  creating new volumes\n");
 
 //	create new vertices and volumes from marked volumes
 	for(VolumeIterator iter = mg.begin<Volume>(oldTopLevel);
@@ -342,6 +351,8 @@ void GlobalMultiGridRefiner::refine()
 		delete m_refCallback;
 		m_refCallback = NULL;
 	}
+
+	UG_DLOG(LIB_GRID, 1, "  refinement done.");
 }
 	
 }//	end of namespace

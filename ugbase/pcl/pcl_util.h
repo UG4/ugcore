@@ -17,6 +17,7 @@
 namespace pcl
 {
 
+///	removes all empty interfaces from the given layout.
 template <class TLayout>
 void RemoveEmptyInterfaces(TLayout& layout)
 {

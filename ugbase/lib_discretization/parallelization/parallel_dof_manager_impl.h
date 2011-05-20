@@ -10,6 +10,7 @@
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
 
 #include "parallel_dof_manager.h"
+#include "pcl/pcl_communication_structs.h"
 #include <time.h>
 
 namespace ug{
@@ -63,6 +64,79 @@ enable_level_dofs()
 }
 
 template <typename TMGDoFManager>
+template <class TElem>
+bool
+ParallelMGDoFManager<TMGDoFManager>::
+create_level_index_layouts(size_t numGlobalLevels)
+{
+	typedef typename GridLayoutMap::Types<TElem>::Layout	TLayout;
+
+	bool bRet = true;
+
+//	in order to correctly build horizontal interfaces at vertical master
+//	nodes, we have to exchange whether a horizontal interface connects
+//	a vertical master with another vertical master, or no.
+//	this data is then passed to CreateLevelIndexLayout, so that only necessary
+//	interfaces will be build.
+	ComPol_InterfaceStatus<TLayout>
+		comPol_MasterStatus(m_pDistGridManager, INT_V_SLAVE);
+	ComPol_InterfaceStatus<TLayout>
+		comPol_SlaveStatus(m_pDistGridManager, INT_V_SLAVE);
+	pcl::ParallelCommunicator<TLayout> com;
+	com.exchange_data(m_pDistGridManager->grid_layout_map(),
+					  INT_H_SLAVE, INT_H_MASTER, comPol_MasterStatus);
+	com.exchange_data(m_pDistGridManager->grid_layout_map(),
+					  INT_H_MASTER, INT_H_SLAVE, comPol_SlaveStatus);
+	com.communicate();
+
+	GridLayoutMap& layoutMap = m_pDistGridManager->grid_layout_map();
+
+	for(size_t l = numGlobalLevels - 1; ; --l)
+	{
+	//	get dof distribution
+		typename TMGDoFManager::dof_distribution_type& distr =
+			*const_cast<typename TMGDoFManager::dof_distribution_type*>
+				(TMGDoFManager::get_level_dof_distribution(l));
+
+		UG_ASSERT(&distr != NULL, "No level dof distribution.");
+
+		if(l < TMGDoFManager::num_levels())
+		{
+		//	create horizontal index layouts
+			bRet &= AddEntriesToLevelIndexLayout(distr.get_master_layout(), distr,
+						  	  	  layoutMap.get_layout<TElem>(INT_H_MASTER).
+						  	  	  	  layout_on_level(l),
+						  	  	  &comPol_MasterStatus.get_result_map(l));
+
+			bRet &= AddEntriesToLevelIndexLayout(distr.get_slave_layout(), distr,
+						  	  	  layoutMap.get_layout<TElem>(INT_H_SLAVE).
+						  	  	  	  layout_on_level(l),
+						  	  	  &comPol_SlaveStatus.get_result_map(l));
+
+		//	create vertical layouts
+			bRet &= AddEntriesToLevelIndexLayout(distr.get_vertical_master_layout(),
+								distr, layoutMap.get_layout<TElem>(INT_V_MASTER).
+						  	  				layout_on_level(l));
+
+			bRet &= AddEntriesToLevelIndexLayout(distr.get_vertical_slave_layout(),
+								distr, layoutMap.get_layout<TElem>(INT_V_SLAVE).
+						  	  				layout_on_level(l));
+		}
+		else
+		{
+			distr.get_master_layout().clear();
+			distr.get_slave_layout().clear();
+			distr.get_vertical_master_layout().clear();
+			distr.get_vertical_slave_layout().clear();
+		}
+
+		if(l==0) break;
+	}
+
+	return bRet;
+}
+
+template <typename TMGDoFManager>
 bool
 ParallelMGDoFManager<TMGDoFManager>::
 create_level_index_layouts(size_t numGlobalLevels)
@@ -79,6 +153,11 @@ create_level_index_layouts(size_t numGlobalLevels)
 //	if no levels given, we're done
 	if(numGlobalLevels == 0) return true;
 
+	bRet &= create_level_index_layouts<VertexBase>(numGlobalLevels);
+	bRet &= create_level_index_layouts<EdgeBase>(numGlobalLevels);
+	bRet &= create_level_index_layouts<Face>(numGlobalLevels);
+	bRet &= create_level_index_layouts<Volume>(numGlobalLevels);
+
 	for(size_t l = numGlobalLevels - 1; ; --l)
 	{
 	//	get dof distribution
@@ -87,30 +166,6 @@ create_level_index_layouts(size_t numGlobalLevels)
 				(TMGDoFManager::get_level_dof_distribution(l));
 
 		UG_ASSERT(&distr != NULL, "No level dof distribution.");
-
-		if(l < TMGDoFManager::num_levels())
-		{
-		//	create index layouts
-			bRet &= CreateLevelIndexLayout(distr.get_master_layout(),
-									  distr, *m_pLayoutMap, INT_H_MASTER, l,
-									  m_pDistGridManager, INT_V_MASTER | INT_V_SLAVE);
-			bRet &= CreateLevelIndexLayout(distr.get_slave_layout(),
-									  distr, *m_pLayoutMap, INT_H_SLAVE,l,
-									  m_pDistGridManager, INT_V_MASTER | INT_V_SLAVE);
-
-		//	create vertical layouts
-			bRet &= CreateLevelIndexLayout(distr.get_vertical_master_layout(),
-									  distr, *m_pLayoutMap, INT_V_MASTER,l);
-			bRet &= CreateLevelIndexLayout(distr.get_vertical_slave_layout(),
-									  distr, *m_pLayoutMap, INT_V_SLAVE,l);
-		}
-		else
-		{
-			distr.get_master_layout().clear();
-			distr.get_slave_layout().clear();
-			distr.get_vertical_master_layout().clear();
-			distr.get_vertical_slave_layout().clear();
-		}
 
 	//	create local process communicator
 	//	The idea  of local processes is to exclude processes from
