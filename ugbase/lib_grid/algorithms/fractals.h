@@ -39,16 +39,16 @@ bool CreateFractal_NormalScale(Grid& grid, HangingNodeRefiner_Grid& href,
 				iter != grid.faces_end(); ++iter)
 			{
 				if(IsVolumeBoundaryFace(grid, *iter))
-					href.mark_for_refinement(*iter);
+					href.mark(*iter);
 			}
 		}
 		else if(grid.num_faces() > 0){
 		//	markall faces
-			href.mark_for_refinement(grid.faces_begin(), grid.faces_end());
+			href.mark(grid.faces_begin(), grid.faces_end());
 		}
 		else{
 		//	mark all edges
-			href.mark_for_refinement(grid.edges_begin(), grid.edges_end());
+			href.mark(grid.edges_begin(), grid.edges_end());
 		}
 
 	//	refine them

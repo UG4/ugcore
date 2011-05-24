@@ -14,7 +14,8 @@ HangingNodeRefinerBase::
 HangingNodeRefinerBase(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
 	m_pGrid(NULL),
-	m_nodeDependencyOrder1(true)
+	m_nodeDependencyOrder1(true),
+	m_automarkHigherDimensionalObjects(false)
 {
 }
 
@@ -68,28 +69,28 @@ void HangingNodeRefinerBase::clear_marks()
 	m_selMarkedElements.clear();
 }
 
-void HangingNodeRefinerBase::mark_for_refinement(VertexBase* v)
+void HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(v);
+	m_selMarkedElements.select(v, refMark);
 }
 
-void HangingNodeRefinerBase::mark_for_refinement(EdgeBase* e)
+void HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(e);
+	m_selMarkedElements.select(e, refMark);
 }
 
-void HangingNodeRefinerBase::mark_for_refinement(Face* f)
+void HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(f);
+	m_selMarkedElements.select(f, refMark);
 }
 
-void HangingNodeRefinerBase::mark_for_refinement(Volume* v)
+void HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(v);
+	m_selMarkedElements.select(v, refMark);
 }
 
 void HangingNodeRefinerBase::refine()
@@ -344,7 +345,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 
 //	This variable determines whether a marked edge leads to the refinement of
 //	associated faces and volumes.
-	static const bool automarkHigherDimensionalObjects = false;
+	bool automarkHigherDimensionalObjects = automark_objects_of_higher_dim_enabled();
 
 //	comfortable grid access.
 	Grid& grid = *m_pGrid;
@@ -365,11 +366,11 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 //	note that the queues may possibly contain several elements multiple times.
 	collect_associated_unmarked_edges(qEdges, grid,
 						m_selMarkedElements.begin<Face>(),
-						m_selMarkedElements.end<Face>());
+						m_selMarkedElements.end<Face>(), true);
 
 	collect_associated_unmarked_edges(qEdges, grid,
 						m_selMarkedElements.begin<Volume>(),
-						m_selMarkedElements.end<Volume>());
+						m_selMarkedElements.end<Volume>(), true);
 
 	if(grid.num_faces() > 0){
 		if(automarkHigherDimensionalObjects){
@@ -377,12 +378,12 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		//	if a edge is selected, all associated faces will be refined.
 			collect_associated_unmarked_faces(qFaces, grid,
 								m_selMarkedElements.begin<EdgeBase>(),
-								m_selMarkedElements.end<EdgeBase>());
+								m_selMarkedElements.end<EdgeBase>(), false);
 		}
 
 		collect_associated_unmarked_faces(qFaces, grid,
 							m_selMarkedElements.begin<Volume>(),
-							m_selMarkedElements.end<Volume>());
+							m_selMarkedElements.end<Volume>(), true);
 	}
 
 	if(grid.num_volumes() > 0){
@@ -391,11 +392,11 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		//	if an edge or face is selected, associated volumes will be refined, too.
 			collect_associated_unmarked_volumes(qVols, grid,
 								m_selMarkedElements.begin<EdgeBase>(),
-								m_selMarkedElements.end<EdgeBase>());
+								m_selMarkedElements.end<EdgeBase>(), false);
 
 			collect_associated_unmarked_volumes(qVols, grid,
 								m_selMarkedElements.begin<Face>(),
-								m_selMarkedElements.end<Face>());
+								m_selMarkedElements.end<Face>(), false);
 		}
 	}
 
@@ -584,11 +585,14 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 				}
 			}
 
+		//	if the face is not marked anisotropic, then
 		//	we have to make sure that all associated edges are marked.
-			CollectEdges(vEdges, grid, f);
-			for(size_t i = 0; i < vEdges.size(); ++i){
-				if(!is_marked(vEdges[i]))
-					qEdges.push(vEdges[i]);
+			if(!marked_anisotropic(f)){
+				CollectEdges(vEdges, grid, f);
+				for(size_t i = 0; i < vEdges.size(); ++i){
+					if(!is_marked(vEdges[i]))
+						qEdges.push(vEdges[i]);
+				}
 			}
 
 		//	constrained and constraining faces require special treatment
@@ -649,14 +653,18 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 template <class TIterator>
 void HangingNodeRefinerBase::
 collect_associated_unmarked_edges(std::queue<EdgeBase*>& qEdgesOut, Grid& grid,
-						 		  TIterator elemsBegin, TIterator elemsEnd)
+						 		  TIterator elemsBegin, TIterator elemsEnd,
+						 		  bool ignoreAnisotropicElements)
 {
 	vector<EdgeBase*> vEdges;
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
-		CollectEdges(vEdges, grid, *iter);
-		for(size_t i = 0; i < vEdges.size(); ++i){
-			if(!is_marked(vEdges[i]))
-				qEdgesOut.push(vEdges[i]);
+		if(!(ignoreAnisotropicElements && marked_anisotropic(*iter)))
+		{
+			CollectEdges(vEdges, grid, *iter);
+			for(size_t i = 0; i < vEdges.size(); ++i){
+				if(!is_marked(vEdges[i]))
+					qEdgesOut.push(vEdges[i]);
+			}
 		}
 	}
 }
@@ -664,14 +672,18 @@ collect_associated_unmarked_edges(std::queue<EdgeBase*>& qEdgesOut, Grid& grid,
 template <class TIterator>
 void HangingNodeRefinerBase::
 collect_associated_unmarked_faces(std::queue<Face*>& qFacesOut, Grid& grid,
-						 		  TIterator elemsBegin, TIterator elemsEnd)
+						 		  TIterator elemsBegin, TIterator elemsEnd,
+						 		  bool ignoreAnisotropicElements)
 {
 	vector<Face*> vFaces;
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
-		CollectFaces(vFaces, grid, *iter);
-		for(size_t i = 0; i < vFaces.size(); ++i){
-			if(!is_marked(vFaces[i]))
-				qFacesOut.push(vFaces[i]);
+		if(!(ignoreAnisotropicElements && marked_anisotropic(*iter)))
+		{
+			CollectFaces(vFaces, grid, *iter);
+			for(size_t i = 0; i < vFaces.size(); ++i){
+				if(!is_marked(vFaces[i]))
+					qFacesOut.push(vFaces[i]);
+			}
 		}
 	}
 }
@@ -679,14 +691,18 @@ collect_associated_unmarked_faces(std::queue<Face*>& qFacesOut, Grid& grid,
 template <class TIterator>
 void HangingNodeRefinerBase::
 collect_associated_unmarked_volumes(std::queue<Volume*>& qVolsOut, Grid& grid,
-									TIterator elemsBegin, TIterator elemsEnd)
+									TIterator elemsBegin, TIterator elemsEnd,
+									bool ignoreAnisotropicElements)
 {
 	vector<Volume*> vVols;
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
-		CollectVolumes(vVols, grid, *iter);
-		for(size_t i = 0; i < vVols.size(); ++i){
-			if(!is_marked(vVols[i]))
-				qVolsOut.push(vVols[i]);
+		if(!(ignoreAnisotropicElements && marked_anisotropic(*iter)))
+		{
+			CollectVolumes(vVols, grid, *iter);
+			for(size_t i = 0; i < vVols.size(); ++i){
+				if(!is_marked(vVols[i]))
+					qVolsOut.push(vVols[i]);
+			}
 		}
 	}
 }
@@ -808,6 +824,8 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 	vector<VertexBase*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
+//todo: iterate over edges directly
+
 //	collect all associated edges.
 	CollectEdges(vEdges, grid, f);
 	size_t numEdges = vEdges.size();
@@ -821,14 +839,15 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 		int edgeIndex = GetEdgeIndex(f, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineFaceWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
-		assert((get_center_vertex(e) != NULL) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
+		//assert((get_center_vertex(e) != NULL) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
 		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
 	}
 
 //	we'll perform a regular refine
 	VertexBase* nVrt = NULL;
-	f->refine_regular(vFaces, &nVrt, vNewEdgeVertices, NULL,
-					  Vertex(), newCornerVrts);
+	/*f->refine_regular(vFaces, &nVrt, vNewEdgeVertices, NULL,
+					  Vertex(), newCornerVrts);*/
+	f->refine(vFaces, &nVrt, &vNewEdgeVertices.front(), NULL, newCornerVrts);
 
 //	if a new vertex has been created during refine, then register it at the grid.
 	if(nVrt)
@@ -858,6 +877,8 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	vector<EdgeBase*> 	vEdges(f->num_edges());
 	vector<VertexBase*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(numVrts);// heuristic
+
+//todo: iterate over edges directly
 //	collect all associated edges.
 	CollectEdges(vEdges, grid, f);
 	size_t numEdges = vEdges.size();
@@ -871,7 +892,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 		int edgeIndex = GetEdgeIndex(f, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineFaceWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
-		assert((get_center_vertex(e) != NULL) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
+		//assert((get_center_vertex(e) != NULL) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
 		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
 	}
 
@@ -1002,14 +1023,15 @@ refine_constraining_face(ConstrainingFace* cgf)
 		centralHV = NULL;
 		if(cgf->num_constrained_vertices() > 0)
 			centralHV = dynamic_cast<HangingVertex*>(cgf->constrained_vertex(0));
-
+/*
 		if(!centralHV){
 			UG_LOG("The central hanging vertex of a constraining face is missing. ignoring face.\n");
 			return;
 		}
-
+*/
 	//	replace the central vertex with a normal vertex
-		centerVrt = *grid.create_and_replace<Vertex>(centralHV);
+		if(centralHV)
+			centerVrt = *grid.create_and_replace<Vertex>(centralHV);
 	}
 
 //	Iterate over the constrained edges.
@@ -1056,7 +1078,9 @@ refine_constraining_face(ConstrainingFace* cgf)
 		nFace = *grid.create_and_replace<Triangle>(cgf);
 	else
 		nFace = *grid.create_and_replace<Quadrilateral>(cgf);
-	set_center_vertex(nFace, centerVrt);
+
+	if(centerVrt)
+		set_center_vertex(nFace, centerVrt);
 }
 
 void HangingNodeRefinerBase::
@@ -1082,7 +1106,7 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 		int edgeIndex = GetEdgeIndex(v, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineVolumeWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
-		assert((get_center_vertex(e) != NULL) && "ERROR in RefineVolumeWithNormalVertex(...): no new vertex on refined edge.");
+		//assert((get_center_vertex(e) != NULL) && "ERROR in RefineVolumeWithNormalVertex(...): no new vertex on refined edge.");
 		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
 	}
 
@@ -1098,7 +1122,7 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 		if(f->num_vertices() == 3)
 			vNewFaceVertices[faceIndex] = NULL;
 		else{
-			assert(get_center_vertex(f) && "center-vertex of associated face is missing.");
+			//assert(get_center_vertex(f) && "center-vertex of associated face is missing.");
 			vNewFaceVertices[faceIndex] = get_center_vertex(f);
 		}
 	}

@@ -280,8 +280,6 @@ class AttachedElementList
 	///	clears the list. begin() == end() afterwards.
 		void clear()
 		{
-			m_front = m_back = NULL;
-		/*
 			if(m_pipe){
 				iterator iter = begin();
 				while(iter != end()){
@@ -292,7 +290,6 @@ class AttachedElementList
 
 				m_front = m_back = NULL;
 			}
-		*/
 		}
 
 
@@ -362,10 +359,10 @@ class AttachedElementList
 			else
 				m_back = entry.prev;
 
-			//iterator iter(entry.next, m_aaEntry);
-			//entry = Entry();
-			//return iter;
-			return iterator(entry.next, m_aaEntry);
+		//	get next element and reset entry.
+			element nextElem = entry.next;
+			entry = Entry();
+			return iterator(nextElem, m_aaEntry);
 		}
 
 	///	erases a sequence of entries
@@ -388,6 +385,11 @@ class AttachedElementList
 			return iterator(elem, m_aaEntry);
 		}
 
+	///	returns true if the element is in the list
+		bool is_in_list(const element& elem)
+		{
+			return (m_front == elem) || (m_aaEntry[elem].prev != NULL);
+		}
 	///	returns an iterator to the beginning of the sequence.
 		iterator begin()				{return iterator(m_front, m_aaEntry);}
 

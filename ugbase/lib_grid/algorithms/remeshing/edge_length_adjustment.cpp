@@ -19,8 +19,8 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 	grid.begin_marking();
 	
 //	mark all vertices that are not regular crease-vertices as fixed
-	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(RM_CREASE);
-		iter != shMarks.end<EdgeBase>(RM_CREASE); ++iter)
+	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_CREASE);
+		iter != shMarks.end<EdgeBase>(REM_CREASE); ++iter)
 	{
 		EdgeBase* e = *iter;
 		for(size_t i = 0; i < 2; ++i){
@@ -31,12 +31,12 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 				for(Grid::AssociatedEdgeIterator nbIter = grid.associated_edges_begin(vrt);
 					nbIter != grid.associated_edges_end(vrt); ++nbIter)
 				{
-					if(shMarks.get_subset_index(*nbIter) != RM_NONE)
+					if(shMarks.get_subset_index(*nbIter) != REM_NONE)
 						++counter;
 				}
 				
 				if(counter != 2)
-					shMarks.assign_subset(vrt, RM_FIXED);
+					shMarks.assign_subset(vrt, REM_FIXED);
 			}
 		}
 	}
@@ -44,12 +44,12 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 	grid.end_marking();
 	
 //	mark all vertices that lie on a fixed edge as fixed vertex
-	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(RM_FIXED);
-		iter != shMarks.end<EdgeBase>(RM_FIXED); ++iter)
+	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_FIXED);
+		iter != shMarks.end<EdgeBase>(REM_FIXED); ++iter)
 	{
 		EdgeBase* e = *iter;
-		shMarks.assign_subset(e->vertex(0), RM_FIXED);
-		shMarks.assign_subset(e->vertex(1), RM_FIXED);
+		shMarks.assign_subset(e->vertex(0), REM_FIXED);
+		shMarks.assign_subset(e->vertex(1), REM_FIXED);
 	}
 }
 
@@ -57,16 +57,16 @@ static void AssignCreaseVertices(Grid& grid, SubsetHandler& shMarks)
 {
 //	mark all vertices that lie on a crease and which are not fixed
 //	as crease vertices.
-	if(shMarks.num_subsets() <= RM_CREASE)
+	if(shMarks.num_subsets() <= REM_CREASE)
 		return;
 
-	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(RM_CREASE);
-		iter != shMarks.end<EdgeBase>(RM_CREASE); ++iter)
+	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_CREASE);
+		iter != shMarks.end<EdgeBase>(REM_CREASE); ++iter)
 	{
 		EdgeBase* e = *iter;
 		for(uint i = 0; i < 2; ++i)
-			if(shMarks.get_subset_index(e->vertex(i)) != RM_FIXED)
-				shMarks.assign_subset(e->vertex(i), RM_CREASE);
+			if(shMarks.get_subset_index(e->vertex(i)) != REM_FIXED)
+				shMarks.assign_subset(e->vertex(i), REM_CREASE);
 	}
 }
 
@@ -152,8 +152,8 @@ bool TrySwap(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 {
 //	swaps are neither allowed for crease edges nor for fixed edges
 	if(pshMarks){
-		if(pshMarks->get_subset_index(e) == RM_FIXED ||
-			pshMarks->get_subset_index(e) == RM_CREASE)
+		if(pshMarks->get_subset_index(e) == REM_FIXED ||
+			pshMarks->get_subset_index(e) == REM_CREASE)
 			return false;
 	}
 
@@ -282,7 +282,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 	{
 		SubsetHandler& shMarks = *pshMarks;
 	//	collapses are not allowed for fixed edges
-		if(shMarks.get_subset_index(e) == RM_FIXED)
+		if(shMarks.get_subset_index(e) == REM_FIXED)
 			return false;
 			
 	//	if both endpoints of are fixed vertices then
@@ -290,13 +290,13 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		int vrtSI[2];
 		vrtSI[0] = shMarks.get_subset_index(e->vertex(0));
 		vrtSI[1] = shMarks.get_subset_index(e->vertex(1));
-		if((vrtSI[0] == RM_FIXED) && (vrtSI[1] == RM_FIXED))
+		if((vrtSI[0] == REM_FIXED) && (vrtSI[1] == REM_FIXED))
 			return false;
 
 	//	if both endpoints are somehow marked, e has to be a
 	//	crease edge
-		if((vrtSI[0] != RM_NONE) && (vrtSI[1] != RM_NONE)
-			&&	(shMarks.get_subset_index(e) != RM_CREASE))
+		if((vrtSI[0] != REM_NONE) && (vrtSI[1] != REM_NONE)
+			&&	(shMarks.get_subset_index(e) != REM_CREASE))
 			return false;
 	}
 
@@ -341,20 +341,20 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		int bestIndex = -1;
 	//	the vertex subset index is used to support marks (crease and fixed vertices)
 		int vrtSI[2];
-		vrtSI[0] = vrtSI[1] = RM_NONE;
+		vrtSI[0] = vrtSI[1] = REM_NONE;
 
 		if(pshMarks)
 		{
 			vrtSI[0] = pshMarks->get_subset_index(e->vertex(0));
 			vrtSI[1] = pshMarks->get_subset_index(e->vertex(1));
 
-			if((vrtSI[0] == RM_FIXED) || ((vrtSI[0] != RM_NONE) && (vrtSI[1] == RM_NONE))){
+			if((vrtSI[0] == REM_FIXED) || ((vrtSI[0] != REM_NONE) && (vrtSI[1] == REM_NONE))){
 				bestIndex = 0;
 				sgDest.vertices[newInd] = v[0];
 				newApproxDeg[0] = GeometricApproximationDegree(sgDest);
 				newShapeDeg[0] = ShapeQualityDegree(sgDest);
 			}
-			else if((vrtSI[1] == RM_FIXED) || ((vrtSI[1] != RM_NONE) && (vrtSI[0] == RM_NONE))){
+			else if((vrtSI[1] == REM_FIXED) || ((vrtSI[1] != REM_NONE) && (vrtSI[0] == REM_NONE))){
 				bestIndex = 1;
 				sgDest.vertices[newInd] = v[1];
 				newApproxDeg[1] = GeometricApproximationDegree(sgDest);
@@ -420,13 +420,13 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		//	choose the vertex that shall remain.
 			VertexBase* vrt = e->vertex(0);
 			bestIndex = 0;
-			if(vrtSI[1] != RM_NONE && vrtSI[0] != RM_FIXED)
+			if(vrtSI[1] != REM_NONE && vrtSI[0] != REM_FIXED)
 			{
 				bestIndex = 1;
 				vrt = e->vertex(1);
 			}
 
-			if(vrtSI[0] != RM_NONE && vrtSI[1] != RM_NONE){
+			if(vrtSI[0] != REM_NONE && vrtSI[1] != REM_NONE){
 			//	both are marked. Things are getting complicated now!
 			//	get adjacent faces of e
 				vector<Face*> vFaces;
@@ -444,8 +444,8 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 					//	count the marked edges
 						int numMarked = 0;
 						for(size_t j = 0; j < vEdges.size(); ++j){
-						//	note that pshMarks exists since vrtSI != RM_NONE
-							if(pshMarks->get_subset_index(vEdges[j]) != RM_NONE)
+						//	note that pshMarks exists since vrtSI != REM_NONE
+							if(pshMarks->get_subset_index(vEdges[j]) != REM_NONE)
 								++numMarked;
 						}
 					
@@ -458,7 +458,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 							for(size_t j = 0; j < 2; ++j){
 								int numMarked = 0;
 								for(size_t k = 0; k < vEdges.size(); ++k){
-									if(pshMarks->get_subset_index(vEdges[k]) != RM_NONE){
+									if(pshMarks->get_subset_index(vEdges[k]) != REM_NONE){
 										if(EdgeContains(vEdges[k], e->vertex(j)))
 											++numMarked;
 									}
@@ -468,7 +468,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 								//	the connected edge has to be marked as a crease
 									EdgeBase* ce = GetConnectedEdge(grid, e->vertex(j), f);
 									if(ce)
-										pshMarks->assign_subset(ce, RM_CREASE);
+										pshMarks->assign_subset(ce, REM_CREASE);
 								//	we're done. break
 									break;
 								}
@@ -545,9 +545,9 @@ bool TrySplit(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	bool bCreaseEdge = false;
 //	splits are not allowed for fixed edges
 	if(pshMarks){
-		if(pshMarks->get_subset_index(e) == RM_FIXED)
+		if(pshMarks->get_subset_index(e) == REM_FIXED)
 			return false;
-		else if(pshMarks->get_subset_index(e) == RM_CREASE)
+		else if(pshMarks->get_subset_index(e) == REM_CREASE)
 			bCreaseEdge = true;
 	}
 
@@ -696,7 +696,7 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 				CollectEdges(vEdges, grid, f);
 
 				for(size_t j = 0; j < vEdges.size(); ++j){
-					if(shMarks.get_subset_index(vEdges[j]) == RM_NONE)
+					if(shMarks.get_subset_index(vEdges[j]) == REM_NONE)
 						sel.select(vEdges[j]);
 				}
 			}
@@ -784,9 +784,9 @@ void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 		{
 			VertexBase* vrt = *iter;
 		//	if the vertex is fixed then leave it where it is.
-			if(shMarks.get_subset_index(vrt) == RM_FIXED)
+			if(shMarks.get_subset_index(vrt) == REM_FIXED)
 				continue;
-if(shMarks.get_subset_index(vrt) == RM_CREASE)
+if(shMarks.get_subset_index(vrt) == REM_CREASE)
 	continue;
 		//	collect the neighbours and project them to the plane
 		//	that is defined by vrt and its normal
@@ -795,9 +795,9 @@ if(shMarks.get_subset_index(vrt) == RM_CREASE)
 
 			bool bProjectPointsToPlane = true;
 			
-			if(shMarks.get_subset_index(vrt) == RM_CREASE){
+			if(shMarks.get_subset_index(vrt) == REM_CREASE){
 				CollectSubsetNeighbours(vNeighbours, grid, shMarks,
-										vrt, RM_CREASE, NHT_EDGE_NEIGHBOURS);
+										vrt, REM_CREASE, NHT_EDGE_NEIGHBOURS);
 			//	we have to choose a special normal
 				if(vNeighbours.size() != 2){
 					UG_LOG("n"<<vNeighbours.size());
@@ -1017,8 +1017,8 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	//	adjacent to crease-edges badly shaped triangles may occur,
 	//	which have to be treated somehow.
 		esel.clear();
-		esel.select(shMarks.begin<EdgeBase>(RM_CREASE), shMarks.end<EdgeBase>(RM_CREASE));
-		esel.select(shMarks.begin<EdgeBase>(RM_FIXED), shMarks.end<EdgeBase>(RM_FIXED));
+		esel.select(shMarks.begin<EdgeBase>(REM_CREASE), shMarks.end<EdgeBase>(REM_CREASE));
+		esel.select(shMarks.begin<EdgeBase>(REM_FIXED), shMarks.end<EdgeBase>(REM_FIXED));
 		FixBadTriangles(grid, shMarks, esel, aaPos, aaNorm, 0.1);
 */
 	//	relocate points
@@ -1115,7 +1115,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 			number lenFac = CalculateLengthFac(grid, shMarks, e, aaPos);
 
 		//	fixed edges will not be refined
-			if(shMarks.get_subset_index(e) == RM_FIXED)
+			if(shMarks.get_subset_index(e) == REM_FIXED)
 				sel.deselect(e);
 			else if(VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]) < lenFac * maxEdgeLen)
 				sel.deselect(e);

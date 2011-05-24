@@ -32,7 +32,7 @@ namespace ug
  * ug::ConstrainingTriangle or ug::ConstrainingQuadrilateral, as well
  * as ug::ConstrainedTriangle and ug::ConstrainedQuadrilateral.
  *
- * Use the mark_for_refinement methods to mark elements which
+ * Use the mark methods to mark elements which
  * shall be refined. A call to refine will then perform the refinement
  * and clear all marks.
  *
@@ -57,7 +57,7 @@ namespace ug
 class HangingNodeRefinerBase : public IRefiner, public GridObserver
 {
 	public:
-		using IRefiner::mark_for_refinement;
+		using IRefiner::mark;
 
 	public:
 		HangingNodeRefinerBase(IRefinementCallback* refCallback = NULL);
@@ -80,19 +80,27 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		bool node_dependency_order_1_enabled()				{return m_nodeDependencyOrder1;}
 	/**	\} */
 
+	///	tells whether higher dimensional neighbors of an object are automatically refined, too.
+	/**	This is disabled by default. However - in some applications it may be
+	 * desirable.
+	 * \{ */
+		inline void enable_automark_objects_of_higher_dim(bool enable)	{m_automarkHigherDimensionalObjects = enable;}
+		inline bool automark_objects_of_higher_dim_enabled()			{return m_automarkHigherDimensionalObjects;}
+	/**	\} */
+
 		virtual void clear_marks();
 
 	///	Marks a vertex for refinement.
-		virtual void mark_for_refinement(VertexBase* v);
+		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks an edge for refinement.
-		virtual void mark_for_refinement(EdgeBase* e);
+		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks a face for refinement.
-		virtual void mark_for_refinement(Face* f);
+		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks a volume for refinement.
-		virtual void mark_for_refinement(Volume* v);
+		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR);
 
 	///	performs refinement on the marked elements.
 	/**
@@ -179,10 +187,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	//	before calling these methods.
 	//	you should use this methods instead of directly marking elements.
 		inline bool is_marked(VertexBase* v)				{return m_selMarkedElements.is_selected(v);}
-		inline void mark(VertexBase* v)						{mark_for_refinement(v);}
+		//inline void mark(VertexBase* v)						{mark(v);}
 
 		inline bool is_marked(EdgeBase* e)					{return m_selMarkedElements.is_selected(e);}
-		inline void mark(EdgeBase* e)						{mark_for_refinement(e);}
+		//inline void mark(EdgeBase* e)						{mark(e);}
 
 	///	Returns the vertex associated with the edge
 	/**	pure virtual method.
@@ -194,7 +202,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual void set_center_vertex(EdgeBase* e, VertexBase* v) = 0;
 
 		inline bool is_marked(Face* f)						{return m_selMarkedElements.is_selected(f);}
-		inline void mark(Face* f)							{mark_for_refinement(f);}
+		//inline void mark(Face* f)							{mark(f);}
 
 	///	Returns the vertex associated with the face
 	/**	pure virtual method.
@@ -206,7 +214,16 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual void set_center_vertex(Face* f, VertexBase* v) = 0;
 
 		inline bool is_marked(Volume* v)					{return m_selMarkedElements.is_selected(v);}
-		inline void mark(Volume* v)						{mark_for_refinement(v);}
+		//inline void mark(Volume* v)						{mark(v);}
+
+		template <class TElem>
+		inline bool marked_regular(TElem* elem)				{return m_selMarkedElements.get_selection_status(elem) == RM_REGULAR;}
+
+		template <class TElem>
+		inline bool marked_anisotropic(TElem* elem)			{return m_selMarkedElements.get_selection_status(elem) == RM_ANISOTROPIC;}
+
+		template <class TElem>
+		inline bool marked_coarsen(TElem* elem)			{return m_selMarkedElements.get_selection_status(elem) == RM_COARSEN;}
 
 	/**	used during collect_objects_for_refine.
 	 *	unmarked associated elements of the elements between elemsBegin and
@@ -216,17 +233,20 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		template <class TIterator>
 		void collect_associated_unmarked_edges(
 							std::queue<EdgeBase*>& qEdgesOut, Grid& grid,
-							TIterator elemsBegin, TIterator elemsEnd);
+							TIterator elemsBegin, TIterator elemsEnd,
+						 	bool ignoreAnisotropicElements);
 
 		template <class TIterator>
 		void collect_associated_unmarked_faces(
 							std::queue<Face*>& qFacesOut, Grid& grid,
-							TIterator elemsBegin, TIterator elemsEnd);
+							TIterator elemsBegin, TIterator elemsEnd,
+							bool ignoreAnisotropicElements);
 
 		template <class TIterator>
 		void collect_associated_unmarked_volumes(
 							std::queue<Volume*>& qVolsOut, Grid& grid,
-							TIterator elemsBegin, TIterator elemsEnd);
+							TIterator elemsBegin, TIterator elemsEnd,
+							bool ignoreAnisotropicElements);
 	/** \} */
 
 	private:
@@ -239,6 +259,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	private:
 		Grid*		m_pGrid;
 		bool		m_nodeDependencyOrder1;
+		bool		m_automarkHigherDimensionalObjects;
 };
 
 /// @}	// end of add_to_group command

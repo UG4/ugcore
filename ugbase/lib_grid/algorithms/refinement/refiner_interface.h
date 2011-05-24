@@ -12,6 +12,14 @@ namespace ug
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
 
+///	refinement-marks allow to specify how an element shall be processed during refinement.
+enum RefinementMark{
+	RM_NONE = 0,		///< no refinement is performed
+	RM_REGULAR,			///< regular refinement is performed
+	RM_ANISOTROPIC,		///< anisotropic refinement is performed
+	RM_COARSEN			///< the element is coarsened (only valid for adaptive multi-grid refinement)
+};
+
 ///	The refiner interface allows to mark elements for refinement and to call refine.
 /**	A refiner always operates on a grid. A grid thus has to be assigned
  * before refinement starts. Please take a look at the specializations
@@ -38,26 +46,27 @@ class IRefiner
 		virtual void clear_marks()	{}
 
 	///	Marks a vertex for refinement. Default implementation is empty
-		virtual void mark_for_refinement(VertexBase* v)	{}
+		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR)	{}
 
 	///	Marks an edge for refinement. Default implementation is empty
-		virtual void mark_for_refinement(EdgeBase* e)	{}
+		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR)	{}
 
 	///	Marks a face for refinement. Default implementation is empty
-		virtual void mark_for_refinement(Face* f)		{}
+		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR)		{}
 
 	///	Marks a volume for refinement. Default implementation is empty
-		virtual void mark_for_refinement(Volume* v)		{}
+		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR)		{}
 
 	///	marks all elements between iterBegin and iterEnd.
 	/**	the value-type of TIterator has to be a pointer to a type derived
 	 * 	from either EdgeBase, Face or Volume.*/
 		template <class TIterator>
-		void mark_for_refinement(const TIterator& iterBegin, const TIterator& iterEnd)
+		void mark(const TIterator& iterBegin, const TIterator& iterEnd,
+				  RefinementMark refMark = RM_REGULAR)
 			{
 				TIterator iter = iterBegin;
 				while(iter != iterEnd){
-					mark_for_refinement(*iter);
+					mark(*iter, refMark);
 					++iter;
 				}
 			}

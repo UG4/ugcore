@@ -21,6 +21,10 @@ namespace ug
 template <class TLayout>
 class RefinementMarkDistributor;
 
+///	DEPRECIATED
+/**	DEPRECIATED!
+ * This class is only intended for some test. Shouldn't be used.
+ */
 class ParallelMultiGridRefiner : public MultiGridRefiner
 {
 	friend class RefinementMarkDistributor<VertexLayout>;

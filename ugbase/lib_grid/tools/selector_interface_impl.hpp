@@ -14,27 +14,31 @@ ISelector::elements_are_supported(uint shElements) const
 }
 
 template <class TElem>
-inline void ISelector::select(TElem* elem){
-	if(!is_selected(elem)){
-		add_to_list(elem);
-		mark_selected(elem);
+inline void ISelector::select(TElem* elem, byte status){
+	if(status != 0){
+		if(!is_selected(elem)){
+			add_to_list(elem);
+		}
+		mark_selected(elem, status);
 	}
+	else
+		deselect(elem);
 }
 
-inline void ISelector::select(GeometricObject* elem){
+inline void ISelector::select(GeometricObject* elem, byte status){
 	int elemID = elem->base_object_type_id();
 	switch(elemID){
 		case VERTEX:
-			select(static_cast<VertexBase*>(elem));
+			select(static_cast<VertexBase*>(elem), status);
 			break;
 		case EDGE:
-			select(static_cast<EdgeBase*>(elem));
+			select(static_cast<EdgeBase*>(elem), status);
 			break;
 		case FACE:
-			select(static_cast<Face*>(elem));
+			select(static_cast<Face*>(elem), status);
 			break;
 		case VOLUME:
-			select(static_cast<Volume*>(elem));
+			select(static_cast<Volume*>(elem), status);
 			break;
 		default:
 			LOG("  ERROR: Bad Element Type in ISelector::select. Aborting.\n");
@@ -44,10 +48,10 @@ inline void ISelector::select(GeometricObject* elem){
 }
 
 template <class TIterator>
-inline void ISelector::select(TIterator iterBegin, TIterator iterEnd)
+inline void ISelector::select(TIterator iterBegin, TIterator iterEnd, byte status)
 {
 	while(iterBegin != iterEnd){
-		select(*iterBegin);
+		select(*iterBegin, status);
 		iterBegin++;
 	}
 }
@@ -90,19 +94,19 @@ inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 }
 
 
-bool ISelector::is_selected(GeometricObject* elem) const{
+byte ISelector::get_selection_status(GeometricObject* elem) const{
 	int elemID = elem->base_object_type_id();
 	switch(elemID){
 		case VERTEX:
-			return is_selected(static_cast<VertexBase*>(elem));
+			return get_selection_status(static_cast<VertexBase*>(elem));
 		case EDGE:
-			return is_selected(static_cast<EdgeBase*>(elem));
+			return get_selection_status(static_cast<EdgeBase*>(elem));
 		case FACE:
-			return is_selected(static_cast<Face*>(elem));
+			return get_selection_status(static_cast<Face*>(elem));
 		case VOLUME:
-			return is_selected(static_cast<Volume*>(elem));
+			return get_selection_status(static_cast<Volume*>(elem));
 	}
-	return false;
+	return 0;
 }
 
 }//	end of namespace

@@ -60,43 +60,43 @@ clear_marks()
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
-mark_for_refinement(VertexBase* v)
+mark(VertexBase* v, RefinementMark refMark)
 {
 	if((!is_marked(v))
 		&& (!m_pMG->has_children(v))
 		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVerticesMarked = true;
-	BaseClass::mark_for_refinement(v);
+	BaseClass::mark(v, refMark);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
-mark_for_refinement(EdgeBase* e)
+mark(EdgeBase* e, RefinementMark refMark)
 {
 	if((!is_marked(e))
 		&& (!m_pMG->has_children(e))
 		&& m_pDistGridMgr->is_interface_element(e))
 		m_bNewInterfaceEdgesMarked = true;
-	BaseClass::mark_for_refinement(e);
+	BaseClass::mark(e, refMark);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
-mark_for_refinement(Face* f)
+mark(Face* f, RefinementMark refMark)
 {
 	if((!is_marked(f))
 		&& (!m_pMG->has_children(f))
 		&& m_pDistGridMgr->is_interface_element(f))
 		m_bNewInterfaceFacesMarked = true;
-	BaseClass::mark_for_refinement(f);
+	BaseClass::mark(f, refMark);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
-mark_for_refinement(Volume* v)
+mark(Volume* v, RefinementMark refMark)
 {
 	if((!is_marked(v))
 		&& (!m_pMG->has_children(v))
 		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVolumesMarked = true;
-	BaseClass::mark_for_refinement(v);
+	BaseClass::mark(v, refMark);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::

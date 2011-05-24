@@ -26,6 +26,9 @@ namespace ug
 class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 {
 	public:
+		using HangingNodeRefinerBase::mark;
+
+	public:
 		HangingNodeRefiner_Grid(IRefinementCallback* refCallback = NULL);
 		HangingNodeRefiner_Grid(Grid& grid,
 								IRefinementCallback* refCallback = NULL);
@@ -36,6 +39,18 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 
 		void assign_grid(Grid& grid);
 		virtual Grid* get_associated_grid()		{return m_pGrid;}
+
+	///	Marks a vertex for refinement (ignores RM_COARSEN).
+		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
+
+	///	Marks an edge for refinement (ignores RM_COARSEN).
+		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
+
+	///	Marks a face for refinement (ignores RM_COARSEN).
+		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR);
+
+	///	Marks a volume for refinement (ignores RM_COARSEN).
+		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR);
 
 	protected:
 	///	performs registration and deregistration at a grid.

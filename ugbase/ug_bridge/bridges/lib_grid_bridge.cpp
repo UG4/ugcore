@@ -231,7 +231,7 @@ void MarkForRefinement(MultiGrid& mg,
 	for(iterator iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter)
 	{
 		if(urand<float>(0, 99) < percentage){
-			refiner.mark_for_refinement(*iter);
+			refiner.mark(*iter);
 		}
 	}
 
@@ -243,7 +243,7 @@ void MarkForRefinement(MultiGrid& mg,
 									aaPos);
 
 	if(elem)
-		refiner.mark_for_refinement(elem);
+		refiner.mark(elem);
 	else{
 		UG_LOG("No element found for refinement.\n");
 	}*/
@@ -333,9 +333,9 @@ void MarkForRefinement_VerticesInSphere(Grid& grid, IRefiner& refiner,
 			CollectAssociated(vFaces, grid, *iter);
 			CollectAssociated(vVols, grid, *iter);
 
-			refiner.mark_for_refinement(vEdges.begin(), vEdges.end());
-			refiner.mark_for_refinement(vFaces.begin(), vFaces.end());
-			refiner.mark_for_refinement(vVols.begin(), vVols.end());
+			refiner.mark(vEdges.begin(), vEdges.end());
+			refiner.mark(vFaces.begin(), vFaces.end());
+			refiner.mark(vVols.begin(), vVols.end());
 		}
 	}
 }
@@ -421,9 +421,9 @@ void MarkForRefinement_FacesInSphere(Grid& grid, IRefiner& refiner,
 			CollectAssociated(vFaces, grid, face);
 			CollectAssociated(vVols, grid, face);
 
-			refiner.mark_for_refinement(vEdges.begin(), vEdges.end());
-			refiner.mark_for_refinement(vFaces.begin(), vFaces.end());
-			refiner.mark_for_refinement(vVols.begin(), vVols.end());
+			refiner.mark(vEdges.begin(), vEdges.end());
+			refiner.mark(vFaces.begin(), vFaces.end());
+			refiner.mark(vVols.begin(), vVols.end());
 		}
 	}
 }
@@ -501,9 +501,9 @@ void MarkForRefinement_VerticesInSquare(Grid& grid, IRefiner& refiner,
 			CollectAssociated(vFaces, grid, *iter);
 			CollectAssociated(vVols, grid, *iter);
 
-			refiner.mark_for_refinement(vEdges.begin(), vEdges.end());
-			refiner.mark_for_refinement(vFaces.begin(), vFaces.end());
-			refiner.mark_for_refinement(vVols.begin(), vVols.end());
+			refiner.mark(vEdges.begin(), vEdges.end());
+			refiner.mark(vFaces.begin(), vFaces.end());
+			refiner.mark(vVols.begin(), vVols.end());
 		}
 	}
 }
@@ -554,10 +554,10 @@ void MarkForRefinement_All(IRefiner& ref)
 		UG_LOG("Refiner is not registered at a grid. Aborting.\n");
 		return;
 	}
-	ref.mark_for_refinement(g->vertices_begin(), g->vertices_end());
-	ref.mark_for_refinement(g->edges_begin(), g->edges_end());
-	ref.mark_for_refinement(g->faces_begin(), g->faces_end());
-	ref.mark_for_refinement(g->volumes_begin(), g->volumes_end());
+	ref.mark(g->vertices_begin(), g->vertices_end());
+	ref.mark(g->edges_begin(), g->edges_end());
+	ref.mark(g->faces_begin(), g->faces_end());
+	ref.mark(g->volumes_begin(), g->volumes_end());
 }
 
 ////////////////////////////////////////////////////////////////////////

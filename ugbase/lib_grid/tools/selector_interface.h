@@ -99,13 +99,19 @@ class ISelector : public GridObserver
 		virtual void clear() = 0;
 
 	//	selection
-		inline void select(GeometricObject* elem);
+	///	selects an element
+	/**	You may optionally pass a status-flag. Note that 0 is reserved for
+	 * non-selected elements. status thus has to be bigger then 0.
+	 * \{
+	 */
+		inline void select(GeometricObject* elem, byte status = 1);
 
 		template <class TElem>
-		inline void select(TElem* elem);
+		inline void select(TElem* elem, byte status = 1);
 
 		template <class TIterator>
-		inline void select(TIterator iterBegin, TIterator iterEnd);
+		inline void select(TIterator iterBegin, TIterator iterEnd, byte status = 1);
+	/**	\} */
 		
 	//	deselection
 		inline void deselect(GeometricObject* elem);
@@ -117,11 +123,14 @@ class ISelector : public GridObserver
 		inline void deselect(TIterator iterBegin, TIterator iterEnd);
 
 	//	selection status
-		inline bool is_selected(GeometricObject* elem) const;
-		inline bool is_selected(VertexBase* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return false; return m_aaSelVRT[vrt] != 0;}
-		inline bool is_selected(EdgeBase* edge) const	{if(!elements_are_supported(SE_EDGE)) return false; return m_aaSelEDGE[edge] != 0;}
-		inline bool is_selected(Face* face) const		{if(!elements_are_supported(SE_FACE)) return false; return m_aaSelFACE[face] != 0;}
-		inline bool is_selected(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return false; return m_aaSelVOL[vol] != 0;}
+		inline byte get_selection_status(GeometricObject* elem) const;
+		inline byte get_selection_status(VertexBase* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
+		inline byte get_selection_status(EdgeBase* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
+		inline byte get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
+		inline byte get_selection_status(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
+
+		template <class TElem>
+		inline bool is_selected(TElem* elem) const		{return get_selection_status(elem) != 0;}
 
 	//	non-virtual methods.
 		inline Grid* get_assigned_grid() const		{return m_pGrid;}
@@ -233,21 +242,16 @@ class ISelector : public GridObserver
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		void disable_element_support(uint shElements);
 
-		inline void mark_selected(VertexBase* elem)		{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = 1;}
-		inline void mark_selected(EdgeBase* elem)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = 1;}
-		inline void mark_selected(Face* elem)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = 1;}
-		inline void mark_selected(Volume* elem)			{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = 1;}
+		inline void mark_selected(VertexBase* elem, byte status)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = status;}
+		inline void mark_selected(EdgeBase* elem, byte status)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = status;}
+		inline void mark_selected(Face* elem, byte status)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = status;}
+		inline void mark_selected(Volume* elem, byte status)		{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = status;}
 
 		inline void mark_deselected(VertexBase* elem)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = 0;}
 		inline void mark_deselected(EdgeBase* elem)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = 0;}
 		inline void mark_deselected(Face* elem)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = 0;}
 		inline void mark_deselected(Volume* elem)		{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = 0;}
-/*
-		inline iterator get_iterator(VertexBase* elem)	{assert(elements_are_supported(SE_VERTEX)); return m_aaIterVRT[elem];}
-		inline iterator get_iterator(EdgeBase* elem)	{assert(elements_are_supported(SE_EDGE)); return m_aaIterEDGE[elem];}
-		inline iterator get_iterator(Face* elem)		{assert(elements_are_supported(SE_FACE)); return m_aaIterFACE[elem];}
-		inline iterator get_iterator(Volume* elem)		{assert(elements_are_supported(SE_VOLUME)); return m_aaIterVOL[elem];}
-*/
+
 	///	helper for GridObserver callbacks.
 		template <class TElem>
 		void elems_to_be_merged(Grid* grid, TElem* target,

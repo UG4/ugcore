@@ -198,7 +198,7 @@ bool MarkElements(IRefiner& refiner,
 		if(aaError[elem] >= min)
 		{
 		//	mark element and increase counter
-			refiner.mark_for_refinement(elem);
+			refiner.mark(elem);
 			numMarked++;
 		}
 	}

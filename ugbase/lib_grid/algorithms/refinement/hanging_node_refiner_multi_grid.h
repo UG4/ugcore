@@ -26,6 +26,9 @@ namespace ug
 class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 {
 	public:
+		using HangingNodeRefinerBase::mark;
+
+	public:
 		HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
 		HangingNodeRefiner_MultiGrid(MultiGrid& mg,
 									IRefinementCallback* refCallback = NULL);

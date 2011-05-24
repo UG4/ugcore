@@ -13,11 +13,11 @@ namespace ug
 ///	\addtogroup lib_grid_algorithms_remeshing
 ///	@{
 
-enum RemeshingMarks
+enum RemeshingElementMarks
 {
-	RM_NONE = -1,
-	RM_CREASE = 0,
-	RM_FIXED = 1
+	REM_NONE = -1,
+	REM_CREASE = 0,
+	REM_FIXED = 1
 };
 
 /**
