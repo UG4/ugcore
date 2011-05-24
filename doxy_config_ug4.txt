@@ -598,7 +598,7 @@ RECURSIVE = YES
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE = 	docs/lib_grid/additional_pages/main_page.txt docs/lib_algebra/additional_pages/main_page.txt docs/lib_discretization/additional_pages/main_page.txt ugbase/lib_grid/externals ugbase/pcl/old_pcl ug_script/externals ug3layer ugbase/lib_grid/algorithms/refinement/unmaintained
+EXCLUDE = 	docs/lib_grid/additional_pages/main_page.txt docs/lib_algebra/additional_pages/main_page.txt docs/lib_discretization/additional_pages/main_page.txt ugbase/lib_grid/externals ugbase/pcl/old_pcl ug_script/externals ug3layer ugbase/lib_grid/algorithms/refinement/unmaintained ugbase/lib_grid/parallelization/parallel_refinement/unmaintained
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded

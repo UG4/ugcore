@@ -40,7 +40,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/refinement/hanging_node_refiner_grid.cpp
 					algorithms/refinement/hanging_node_refiner_multi_grid.cpp
 					# (unmaintained) algorithms/refinement/hanging_node_refiner_2d_irn.cpp
-					algorithms/refinement/multi_grid_refiner.cpp
+					# (unmaintained) algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
 					algorithms/refinement/global_multi_grid_refiner.cpp
 					algorithms/refinement/refinement_callbacks.cpp
@@ -85,9 +85,7 @@ if(NOT NO_MPI)
 							parallelization/distributed_grid.cpp
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
-							parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
-							parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp
-							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
+							# (unmaintained) parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
 							parallelization/util/distribution_util.cpp
 							parallelization/util/redistribution_util.cpp)
 							

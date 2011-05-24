@@ -1,16 +1,20 @@
 // created by Sebastian Reiter
 // s.b.reiter@googlemail.com
 // 09.02.2011 (m,d,y)
- 
-#include "parallel_hanging_node_refiner_multi_grid.h"
+
+#ifndef __H__UG__parallel_adaptive_refiner_t_impl__
+#define __H__UG__parallel_adaptive_refiner_t_impl__
+
+#include "parallel_adaptive_refiner_t.h"
 #include "../util/compol_selection.h"
 
 using namespace std;
 
 namespace ug{
 
-ParallelHangingNodeRefiner_MultiGrid::
-ParallelHangingNodeRefiner_MultiGrid(
+template <class TRefiner>
+TParallelAdaptiveRefiner<TRefiner>::
+TParallelAdaptiveRefiner(
 		IRefinementCallback* refCallback) :
 	BaseClass(refCallback),
 	m_pDistGridMgr(NULL),
@@ -22,8 +26,9 @@ ParallelHangingNodeRefiner_MultiGrid(
 {
 }
 
-ParallelHangingNodeRefiner_MultiGrid::
-ParallelHangingNodeRefiner_MultiGrid(
+template <class TRefiner>
+TParallelAdaptiveRefiner<TRefiner>::
+TParallelAdaptiveRefiner(
 		DistributedGridManager& distGridMgr,
 		IRefinementCallback* refCallback) :
 	BaseClass(*distGridMgr.get_assigned_grid(), refCallback),
@@ -36,20 +41,25 @@ ParallelHangingNodeRefiner_MultiGrid(
 {
 }
 
-ParallelHangingNodeRefiner_MultiGrid::
-~ParallelHangingNodeRefiner_MultiGrid()
+template <class TRefiner>
+TParallelAdaptiveRefiner<TRefiner>::
+~TParallelAdaptiveRefiner()
 {
 
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 set_distributed_grid_manager(DistributedGridManager& distGridMgr)
 {
 	m_pDistGridMgr = &distGridMgr;
 	m_pMG = distGridMgr.get_assigned_grid();
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 clear_marks()
 {
 	BaseClass::clear_marks();
@@ -59,47 +69,57 @@ clear_marks()
 	m_bNewInterfaceVolumesMarked = false;
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 mark(VertexBase* v, RefinementMark refMark)
 {
-	if((!is_marked(v))
+	if((!BaseClass::is_marked(v))
 		&& (!m_pMG->has_children(v))
 		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVerticesMarked = true;
 	BaseClass::mark(v, refMark);
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 mark(EdgeBase* e, RefinementMark refMark)
 {
-	if((!is_marked(e))
+	if((!BaseClass::is_marked(e))
 		&& (!m_pMG->has_children(e))
 		&& m_pDistGridMgr->is_interface_element(e))
 		m_bNewInterfaceEdgesMarked = true;
 	BaseClass::mark(e, refMark);
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 mark(Face* f, RefinementMark refMark)
 {
-	if((!is_marked(f))
+	if((!BaseClass::is_marked(f))
 		&& (!m_pMG->has_children(f))
 		&& m_pDistGridMgr->is_interface_element(f))
 		m_bNewInterfaceFacesMarked = true;
 	BaseClass::mark(f, refMark);
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 mark(Volume* v, RefinementMark refMark)
 {
-	if((!is_marked(v))
+	if((!BaseClass::is_marked(v))
 		&& (!m_pMG->has_children(v))
 		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVolumesMarked = true;
 	BaseClass::mark(v, refMark);
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 collect_objects_for_refine()
 {
 //todo: This method could be improved.
@@ -142,9 +162,9 @@ collect_objects_for_refine()
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
-			ComPol_Selection<VertexLayout> compolSelVRT(m_selMarkedElements, true, false);
-			ComPol_Selection<EdgeLayout> compolSelEDGE(m_selMarkedElements, true, false);
-			ComPol_Selection<FaceLayout> compolSelFACE(m_selMarkedElements, true, false);
+			ComPol_Selection<VertexLayout> compolSelVRT(BaseClass::m_selMarkedElements, true, false);
+			ComPol_Selection<EdgeLayout> compolSelEDGE(BaseClass::m_selMarkedElements, true, false);
+			ComPol_Selection<FaceLayout> compolSelFACE(BaseClass::m_selMarkedElements, true, false);
 
 		//	send data SLAVE -> MASTER
 			m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
@@ -180,51 +200,68 @@ collect_objects_for_refine()
 }
 
 
-bool ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+bool
+TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(VertexBase* elem)
 {
 	return !m_pDistGridMgr->is_ghost(elem);
 }
 
-bool ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+bool
+TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(EdgeBase* elem)
 {
 	return !m_pDistGridMgr->is_ghost(elem);
 }
 
-bool ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+bool
+TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(Face* elem)
 {
 	return !m_pDistGridMgr->is_ghost(elem);
 }
 
-bool ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+bool
+TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(Volume* elem)
 {
 	return !m_pDistGridMgr->is_ghost(elem);
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 pre_refine()
 {
 	m_pDistGridMgr->begin_ordered_element_insertion();
 	BaseClass::pre_refine();
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 post_refine()
 {
 	BaseClass::post_refine();
 	m_pDistGridMgr->end_ordered_element_insertion();
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
 set_involved_processes(pcl::ProcessCommunicator com)
 {
 	m_procCom = com;
 }
 
-void ParallelHangingNodeRefiner_MultiGrid::refine()
+template <class TRefiner>
+void
+TParallelAdaptiveRefiner<TRefiner>::
+refine()
 {
 	UG_ASSERT(m_pDistGridMgr, "a distributed grid manager has to be assigned");
 	if(!m_pDistGridMgr){
@@ -275,3 +312,5 @@ void ParallelHangingNodeRefiner_MultiGrid::refine()
 }
 
 }// end of namespace
+
+#endif

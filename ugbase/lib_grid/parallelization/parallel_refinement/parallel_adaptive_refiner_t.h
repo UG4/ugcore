@@ -2,8 +2,8 @@
 // s.b.reiter@googlemail.com
 // 09.02.2011 (m,d,y)
 
-#ifndef __H__UG__parallel_hanging_node_refiner_multi_grid__
-#define __H__UG__parallel_hanging_node_refiner_multi_grid__
+#ifndef __H__UG__parallel_adaptive_refiner_t__
+#define __H__UG__parallel_adaptive_refiner_t__
 
 #include "lib_grid/lg_base.h"
 #include "lib_grid/multi_grid.h"
@@ -17,24 +17,27 @@ namespace ug
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{
 
-/**	The parallel hanging node refiner allows parallel refinement
- * with hanging nodes. Make sure that you initialize it with
- * a valid DistributedGridManager.
+/**	This is a template class that allows to use a refiner in a parallel
+ * environment.
+ * Make sure that you initialize it with a valid DistributedGridManager.
+ *
+ * \todo	This refiner currently only works for multi-grids.
  */
-class ParallelHangingNodeRefiner_MultiGrid :
-	public HangingNodeRefiner_MultiGrid
+template <class TRefiner>
+class TParallelAdaptiveRefiner:
+	public TRefiner
 {
-	typedef class HangingNodeRefiner_MultiGrid BaseClass;
+	typedef TRefiner BaseClass;
 	using BaseClass::mark;
 
 	public:
-		ParallelHangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
+		TParallelAdaptiveRefiner(IRefinementCallback* refCallback = NULL);
 
-		ParallelHangingNodeRefiner_MultiGrid(
+		TParallelAdaptiveRefiner(
 				DistributedGridManager& distGridMgr,
 				IRefinementCallback* refCallback = NULL);
 
-		virtual ~ParallelHangingNodeRefiner_MultiGrid();
+		virtual ~TParallelAdaptiveRefiner();
 
 		void set_distributed_grid_manager(DistributedGridManager& distGridMgr);
 
@@ -114,5 +117,9 @@ class ParallelHangingNodeRefiner_MultiGrid :
 /// @}
 
 }//	end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "parallel_adaptive_refiner_t_impl.hpp"
 
 #endif

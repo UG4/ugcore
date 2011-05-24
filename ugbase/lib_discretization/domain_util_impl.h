@@ -17,7 +17,7 @@
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
 #include "lib_grid/parallelization/parallelization_util.h"
-#include "lib_grid/parallelization/parallel_refinement/parallel_global_multi_grid_refiner.h"
+#include "lib_grid/parallelization/parallelization.h"
 #endif
 
 namespace ug{
@@ -71,7 +71,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 //	if post-refinement is required then do it now
 //	initialise the multi-grid-refiner
 	if(numPostRefinements > 0){
-		ParallelGlobalMultiGridRefiner refiner(distGridMgr);
+		ParallelGlobalRefiner_MultiGrid refiner(distGridMgr);
 
 	//	perform the refinement
 		PROFILE_BEGIN(postRefinement);

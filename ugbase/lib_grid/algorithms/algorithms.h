@@ -13,7 +13,6 @@
 #include "refinement/hanging_node_refiner_grid.h"
 #include "refinement/hanging_node_refiner_multi_grid.h"
 #include "refinement/regular_refinement.h"
-#include "refinement/multi_grid_refiner.h"
 #include "refinement/global_multi_grid_refiner.h"
 #include "extrusion/extrusion.h"
 #include "subdivision/subdivision_loop.h"

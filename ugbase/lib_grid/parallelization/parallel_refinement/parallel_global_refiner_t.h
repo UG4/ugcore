@@ -2,13 +2,9 @@
 //	s.b.reiter@googlemail.com
 //	y10 m04 d14
 
-#ifndef __H__LIB_GRID__PARALLEL_GLOBAL_MULTI_GRID_REFINER__
-#define __H__LIB_GRID__PARALLEL_GLOBAL_MULTI_GRID_REFINER__
+#ifndef __H__LIB_GRID__PARALLEL_GLOBAL_REFINER_T__
+#define __H__LIB_GRID__PARALLEL_GLOBAL_REFINER_T__
 
-#include <vector>
-#include "lib_grid/lg_base.h"
-#include "lib_grid/multi_grid.h"
-#include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
 #include "../distributed_grid.h"
 
 namespace ug
@@ -17,12 +13,16 @@ namespace ug
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{
 
-class ParallelGlobalMultiGridRefiner : public GlobalMultiGridRefiner
+///	Adds parallel support to a global refiner
+/**	\todo	This class would benefit from some comfort methods and a better
+ * 			documentation.
+ */
+template <class TRefiner>
+class TParallelGlobalRefiner : public TRefiner
 {
 	public:
-		//ParallelMultiGridRefiner();
-		ParallelGlobalMultiGridRefiner(DistributedGridManager& distGridMgr);
-		virtual ~ParallelGlobalMultiGridRefiner();
+		TParallelGlobalRefiner(DistributedGridManager& distGridMgr);
+		virtual ~TParallelGlobalRefiner();
 
 	protected:
 		virtual bool refinement_is_allowed(VertexBase* elem);
@@ -39,5 +39,9 @@ class ParallelGlobalMultiGridRefiner : public GlobalMultiGridRefiner
 
 /// @}
 }//	end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "parallel_global_refiner_t_impl.hpp"
 
 #endif

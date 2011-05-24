@@ -17,6 +17,7 @@
 
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/load_balancing.h"
+	#include "lib_grid/parallelization/parallelization.h"
 #endif
 
 using namespace std;
@@ -453,7 +454,7 @@ static void GlobalRefineParallelDomain(TDomain& domain)
 	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
 
 //	create Refiner
-	ParallelGlobalMultiGridRefiner refiner(distGridMgr);
+	ParallelGlobalRefiner_MultiGrid refiner(distGridMgr);
 #else
 	GlobalMultiGridRefiner refiner;
 	refiner.assign_grid(domain.get_grid());
@@ -470,7 +471,7 @@ static IRefiner* GlobalDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			return new ParallelGlobalMultiGridRefiner(*dom->get_distributed_grid_manager());
+			return new ParallelGlobalRefiner_MultiGrid(*dom->get_distributed_grid_manager());
 		}
 	#endif
 
