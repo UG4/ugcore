@@ -45,17 +45,21 @@ class IRefiner
 	///	clears all marks. Default implementation is empty
 		virtual void clear_marks()	{}
 
-	///	Marks a vertex for refinement. Default implementation is empty
+	///	Marks a element for refinement. Default implementation is empty
+	/**	\{ */
 		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR)	{}
-
-	///	Marks an edge for refinement. Default implementation is empty
 		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR)	{}
-
-	///	Marks a face for refinement. Default implementation is empty
 		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR)		{}
-
-	///	Marks a volume for refinement. Default implementation is empty
 		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR)		{}
+	/**	\} */
+
+	///	Returns the mark of a given element. Default returns RM_REGULAR
+	/**	\{ */
+		virtual RefinementMark get_mark(VertexBase* v)	{return RM_REGULAR;}
+		virtual RefinementMark get_mark(EdgeBase* e)	{return RM_REGULAR;}
+		virtual RefinementMark get_mark(Face* f)		{return RM_REGULAR;}
+		virtual RefinementMark get_mark(Volume* v)		{return RM_REGULAR;}
+	/**	\} */
 
 	///	marks all elements between iterBegin and iterEnd.
 	/**	the value-type of TIterator has to be a pointer to a type derived

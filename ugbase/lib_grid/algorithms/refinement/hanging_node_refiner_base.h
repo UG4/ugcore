@@ -90,17 +90,22 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 		virtual void clear_marks();
 
-	///	Marks a vertex for refinement.
+	///	Marks a element for refinement.
+	/**	\{ */
 		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
-
-	///	Marks an edge for refinement.
 		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
-
-	///	Marks a face for refinement.
 		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR);
-
-	///	Marks a volume for refinement.
 		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR);
+	/**	\} */
+
+	///	Returns the mark of a given element.
+	/**	\{ */
+		virtual RefinementMark get_mark(VertexBase* v);
+		virtual RefinementMark get_mark(EdgeBase* e);
+		virtual RefinementMark get_mark(Face* f);
+		virtual RefinementMark get_mark(Volume* v);
+	/**	\} */
+
 
 	///	performs refinement on the marked elements.
 	/**
@@ -248,6 +253,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 							TIterator elemsBegin, TIterator elemsEnd,
 							bool ignoreAnisotropicElements);
 	/** \} */
+
+		///	returns the selector which is internally used to mark elements.
+		/**	Be sure to use it carefully!*/
+		Selector& get_refmark_selector()	{return m_selMarkedElements;}
 
 	private:
 	///	private copy constructor to avoid copy construction

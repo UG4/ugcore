@@ -35,18 +35,13 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
-			byte zero = 0; byte one = 1;
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				if(m_sel.is_selected(elem)){
-					buff.write((char*)&one, sizeof(byte));
-				}
-				else{
-					buff.write((char*)&zero, sizeof(byte));
-				}
+				byte refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte));
 			}
 
 			return true;
@@ -63,7 +58,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 				Element elem = interface.get_element(iter);
 				buff.read((char*)&val, sizeof(byte));
 				if(val && select_allowed())
-					m_sel.select(elem);
+					m_sel.select(elem, val);
 				else if(!val && deselect_allowed())
 					m_sel.deselect(elem);
 			}

@@ -93,6 +93,32 @@ void HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 	m_selMarkedElements.select(v, refMark);
 }
 
+
+RefinementMark HangingNodeRefinerBase::
+get_mark(VertexBase* v)
+{
+	return (RefinementMark)m_selMarkedElements.get_selection_status(v);
+}
+
+RefinementMark HangingNodeRefinerBase::
+get_mark(EdgeBase* e)
+{
+	return (RefinementMark)m_selMarkedElements.get_selection_status(e);
+}
+
+RefinementMark HangingNodeRefinerBase::
+get_mark(Face* f)
+{
+	return (RefinementMark)m_selMarkedElements.get_selection_status(f);
+}
+
+RefinementMark HangingNodeRefinerBase::
+get_mark(Volume* v)
+{
+	return (RefinementMark)m_selMarkedElements.get_selection_status(v);
+}
+
+
 void HangingNodeRefinerBase::refine()
 {
 	if(!m_pGrid)

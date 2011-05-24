@@ -74,7 +74,7 @@ void
 TParallelAdaptiveRefiner<TRefiner>::
 mark(VertexBase* v, RefinementMark refMark)
 {
-	if((!BaseClass::is_marked(v))
+	if((!(BaseClass::get_mark(v) == refMark))
 		&& (!m_pMG->has_children(v))
 		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVerticesMarked = true;
@@ -86,7 +86,7 @@ void
 TParallelAdaptiveRefiner<TRefiner>::
 mark(EdgeBase* e, RefinementMark refMark)
 {
-	if((!BaseClass::is_marked(e))
+	if((!(BaseClass::get_mark(e) == refMark))
 		&& (!m_pMG->has_children(e))
 		&& m_pDistGridMgr->is_interface_element(e))
 		m_bNewInterfaceEdgesMarked = true;
@@ -98,7 +98,7 @@ void
 TParallelAdaptiveRefiner<TRefiner>::
 mark(Face* f, RefinementMark refMark)
 {
-	if((!BaseClass::is_marked(f))
+	if((!(BaseClass::get_mark(f) == refMark))
 		&& (!m_pMG->has_children(f))
 		&& m_pDistGridMgr->is_interface_element(f))
 		m_bNewInterfaceFacesMarked = true;
@@ -110,7 +110,7 @@ void
 TParallelAdaptiveRefiner<TRefiner>::
 mark(Volume* v, RefinementMark refMark)
 {
-	if((!BaseClass::is_marked(v))
+	if((!(BaseClass::get_mark(v) == refMark))
 		&& (!m_pMG->has_children(v))
 		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVolumesMarked = true;
