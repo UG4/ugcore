@@ -153,7 +153,6 @@ lua_State* GetDefaultLuaState()
 	//	this define makes sure that no methods are referenced that
 	//	use the algebra, even if no algebra is included.
 		#ifdef UG_ALGEBRA
-			UG_LOG("REGISTERING SCRIPT INTERFACES\n");
 		//	Register info commands
 			RegisterInfoCommands(scriptRegistry);
 

@@ -32,6 +32,7 @@ static bool InitPaths(const char* argv0) {
 	char* ug4Root = getenv("UG4_ROOT");
 	if(ug4Root){
 		std::string strRoot = ug4Root;
+		PathProvider::set_path(ROOT_PATH, strRoot);
 		PathProvider::set_path(APP_PATH, strRoot + "/bin");
 		PathProvider::set_path(SCRIPT_PATH, strRoot + "/scripts");
 		PathProvider::set_path(DATA_PATH, strRoot + "/data");
@@ -48,12 +49,14 @@ static bool InitPaths(const char* argv0) {
 			tPath = ".";
 
 		PathProvider::set_path(APP_PATH, tPath);
+		PathProvider::set_path(ROOT_PATH, tPath + "/..");
 		PathProvider::set_path(SCRIPT_PATH, tPath + "/../scripts");
 		PathProvider::set_path(DATA_PATH, tPath + "/../data");
 	}
 
-//	log the pathes
-	UG_LOG("app path set to: " << PathProvider::get_path(APP_PATH) <<
+//	log the paths
+	UG_LOG("UG4_ROOT path: " << PathProvider::get_path(ROOT_PATH) << std::endl);
+	UG_DLOG(MAIN, 0, "app path set to: " << PathProvider::get_path(APP_PATH) <<
 			std::endl << "script path set to: " << PathProvider::get_path(SCRIPT_PATH) <<
 			std::endl << "data path set to: " << PathProvider::get_path(DATA_PATH) <<
 			std::endl);

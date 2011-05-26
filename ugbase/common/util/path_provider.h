@@ -19,6 +19,7 @@ enum PathTypes
 	APP_PATH = 0,
 	DATA_PATH,
 	SCRIPT_PATH,
+	ROOT_PATH,
 //	always last
 	MAX_PATH_CONSTANT
 };
