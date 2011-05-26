@@ -6,6 +6,21 @@
 #include "hanging_node_refiner_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
+
+//define PROFILE_HANGING_NODE_REFINER if you want to profile
+//the refinement code.
+//#define PROFILE_HANGING_NODE_REFINER
+#ifdef PROFILE_HANGING_NODE_REFINER
+	#define HNODE_PROFILE_FUNC()	PROFILE_FUNC()
+	#define HNODE_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define HNODE_PROFILE_END()	PROFILE_END()
+#else
+	#define HNODE_PROFILE_FUNC()
+	#define HNODE_PROFILE_BEGIN(name)
+	#define HNODE_PROFILE_END()
+#endif
+
+
 using namespace std;
 
 namespace ug{
@@ -121,6 +136,8 @@ get_mark(Volume* v)
 
 void HangingNodeRefinerBase::refine()
 {
+	HNODE_PROFILE_FUNC();
+
 	if(!m_pGrid)
 		throw(UGError("ERROR in HangingNodeRefinerBase::refine(...): No grid assigned."));
 
@@ -148,10 +165,10 @@ void HangingNodeRefinerBase::refine()
 	}
 
 //	check grid options.
-	if(!grid.option_is_enabled(GRIDOPT_FULL_INTERCONNECTION))
+	if(!grid.option_is_enabled(GRIDOPT_STANDARD_INTERCONNECTION))
 	{
-		LOG("WARNING in HangingNodeRefiner_IR1::refine(): grid option GRIDOPT_FULL_INTERCONNECTION auto-enabled." << endl);
-		grid.enable_options(GRIDOPT_FULL_INTERCONNECTION);
+		LOG("WARNING in HangingNodeRefiner_IR1::refine(): grid option GRIDOPT_STANDARD_INTERCONNECTION auto-enabled." << endl);
+		grid.enable_options(GRIDOPT_STANDARD_INTERCONNECTION);
 	}
 
 //	containers used for temporary results
@@ -365,6 +382,7 @@ void HangingNodeRefinerBase::refine()
 
 void HangingNodeRefinerBase::collect_objects_for_refine()
 {
+	HNODE_PROFILE_FUNC();
 //	Algorithm Layout:
 //		The marks have to be adjusted. All edges on which a vertex has to be generated
 //		should be marked.
@@ -738,6 +756,8 @@ collect_associated_unmarked_volumes(std::queue<Volume*>& qVolsOut, Grid& grid,
 void HangingNodeRefinerBase::
 refine_constraining_edge(ConstrainingEdge* cge)
 {
+	HNODE_PROFILE_FUNC();
+
 //	make sure that there is one hanging vertex and two constrained edges.
 	assert(cge->num_constrained_vertices() == 1 && "bad number of constrained vertices. There has to be exactly 1.");
 	assert(cge->num_constrained_edges() == 2 && "bad number of constrained edges. There have to be exactly 2.");
@@ -781,6 +801,8 @@ refine_constraining_edge(ConstrainingEdge* cge)
 void HangingNodeRefinerBase::
 refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
+	HNODE_PROFILE_FUNC();
+
 //	the grid
 	Grid& grid = *m_pGrid;
 
@@ -802,6 +824,8 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 void HangingNodeRefinerBase::
 refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
+	HNODE_PROFILE_FUNC();
+
 	Grid& grid = *m_pGrid;
 //	we have to insert a hanging node.
 //	e has to be transformed to a constraining edge at the same time.
@@ -843,37 +867,32 @@ refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 void HangingNodeRefinerBase::
 refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 {
+	HNODE_PROFILE_FUNC();
+
 //UG_LOG("refine_face_with_normal_vertex\n");
 	Grid& grid = *m_pGrid;
 
-	vector<EdgeBase*> 	vEdges(f->num_edges());
-	vector<VertexBase*> vNewEdgeVertices(f->num_edges());
+	VertexBase* vNewEdgeVertices[MAX_FACE_VERTICES];
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
-//todo: iterate over edges directly
+	size_t numEdges = f->num_edges();
+	for(size_t i = 0; i < numEdges; ++i){
+		EdgeBase* e = grid.get_edge(f, i);
 
-//	collect all associated edges.
-	CollectEdges(vEdges, grid, f);
-	size_t numEdges = vEdges.size();
+	//	if the face is refined with a regular rule, then every edge has to have
+	//	an associated center vertex
+		assert((get_mark(f) == RM_ANISOTROPIC) ||
+				(get_mark(f) == RM_REGULAR && get_center_vertex(e) != NULL));
 
-	assert(numEdges == f->num_edges() && "ERROR in RefineFaceWithNormalVertex(...): associated edges missing.");
-
-//	each should have an associated vertex. sort them into vNewEdgeVertices.
-	for(size_t i = 0; i < numEdges; ++i)
-	{
-		EdgeBase* e = vEdges[i];
-		int edgeIndex = GetEdgeIndex(f, e);
-
-		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineFaceWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
-		//assert((get_center_vertex(e) != NULL) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
-		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
+	//	assign the center vertex
+		vNewEdgeVertices[i] = get_center_vertex(e);
 	}
 
 //	we'll perform a regular refine
 	VertexBase* nVrt = NULL;
 	/*f->refine_regular(vFaces, &nVrt, vNewEdgeVertices, NULL,
 					  Vertex(), newCornerVrts);*/
-	f->refine(vFaces, &nVrt, &vNewEdgeVertices.front(), NULL, newCornerVrts);
+	f->refine(vFaces, &nVrt, vNewEdgeVertices, NULL, newCornerVrts);
 
 //	if a new vertex has been created during refine, then register it at the grid.
 	if(nVrt)
@@ -896,10 +915,13 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 void HangingNodeRefinerBase::
 refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 {
+	HNODE_PROFILE_FUNC();
+
 //UG_LOG("refine_face_with_hanging_vertex\n");
 	Grid& grid = *m_pGrid;
-	size_t numVrts = f->num_vertices();
 
+	size_t numVrts = f->num_vertices();
+/*
 	vector<EdgeBase*> 	vEdges(f->num_edges());
 	vector<VertexBase*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(numVrts);// heuristic
@@ -921,7 +943,22 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 		//assert((get_center_vertex(e) != NULL) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
 		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
 	}
+*/
+	VertexBase* vNewEdgeVertices[MAX_FACE_VERTICES];
+	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
+	size_t numEdges = f->num_edges();
+	for(size_t i = 0; i < numEdges; ++i){
+		EdgeBase* e = grid.get_edge(f, i);
+
+	//	if the face is refined with a regular rule, then every edge has to have
+	//	an associated center vertex
+		assert((get_mark(f) == RM_ANISOTROPIC) ||
+				(get_mark(f) == RM_REGULAR && get_center_vertex(e) != NULL));
+
+	//	assign the center vertex
+		vNewEdgeVertices[i] = get_center_vertex(e);
+	}
 
 	ConstrainingFace* cgf = NULL;
 	HangingVertex* hv = NULL;
@@ -943,7 +980,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 
 			//	refine the constrained tri
 				VertexBase* tmpVrt;
-				constrainedTri.refine(vFaces, &tmpVrt, &vNewEdgeVertices.front(),
+				constrainedTri.refine(vFaces, &tmpVrt, vNewEdgeVertices,
 									  NULL, newCornerVrts);
 			}
 			break;
@@ -970,7 +1007,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 
 			//	refine the constrained quad
 				VertexBase* tmpVrt;
-				cdf.refine(vFaces, &tmpVrt, &vNewEdgeVertices.front(), hv, newCornerVrts);
+				cdf.refine(vFaces, &tmpVrt, vNewEdgeVertices, hv, newCornerVrts);
 			}
 			break;
 		default:
@@ -998,8 +1035,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	//	have to be linked with the constraining face, the following algorithm will be ok for
 	//	triangles and quadrilaterals.
 	//	Check for each new edge-vertex, if an edge exists with the new center vertex or with it's next neighbor.
-		uint numNewEdgeVertices = vNewEdgeVertices.size();
-		for(uint i = 0; i < numNewEdgeVertices; ++i)
+		for(size_t i = 0; i < numEdges; ++i)
 		{
 			if(hv)
 			{
@@ -1013,7 +1049,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 			}
 			else{
 			//	check if a constrained edge exists between the vertex and its next neighbor
-				VertexBase* vNext = vNewEdgeVertices[(i + 1) % numNewEdgeVertices];
+				VertexBase* vNext = vNewEdgeVertices[(i + 1) % numEdges];
 				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNext));
 				if(e)
 				{
@@ -1029,6 +1065,8 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 void HangingNodeRefinerBase::
 refine_constraining_face(ConstrainingFace* cgf)
 {
+	HNODE_PROFILE_FUNC();
+
 	size_t numVrts = cgf->num_vertices();
 
 //	make sure that there is one hanging vertex and two constrained edges.
@@ -1112,45 +1150,31 @@ refine_constraining_face(ConstrainingFace* cgf)
 void HangingNodeRefinerBase::
 refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 {
+	HNODE_PROFILE_FUNC();
+
 	Grid& grid = *m_pGrid;
 
-	vector<EdgeBase*> 	vEdges(v->num_edges());
+	//vector<EdgeBase*> 	vEdges(v->num_edges());
 	vector<VertexBase*> vNewEdgeVertices(v->num_edges());
-	vector<Face*>		vFaces(v->num_faces());
+	//vector<Face*>		vFaces(v->num_faces());
 	vector<VertexBase*>	vNewFaceVertices(v->num_faces());
 	vector<Volume*>		vVolumes(8);// heuristic
 //	collect all associated edges.
-	CollectEdges(vEdges, grid, v);
-	uint numEdges = vEdges.size();
 
-	assert(numEdges == v->num_edges() && "ERROR in RefineVolumeWithNormalVertex(...): associated edges missing.");
-
-//	each should have an associated vertex. sort them into vNewEdgeVertices.
-	for(uint i = 0; i < numEdges; ++i)
-	{
-		EdgeBase* e = vEdges[i];
-		int edgeIndex = GetEdgeIndex(v, e);
-
-		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineVolumeWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
-		//assert((get_center_vertex(e) != NULL) && "ERROR in RefineVolumeWithNormalVertex(...): no new vertex on refined edge.");
-		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
+	size_t numEdges = v->num_edges();
+	for(size_t i = 0; i < numEdges; ++i){
+		EdgeBase* e = grid.get_edge(v, i);
+		vNewEdgeVertices[i] = get_center_vertex(e);
 	}
 
-//	get the vertices contained by adjacent faces
-	CollectFaces(vFaces, grid, v);
-	assert(vFaces.size() == v->num_faces() && "Bad number of adjacent faces.");
-
-	for(uint i = 0; i < vFaces.size(); ++i)
-	{
-		Face* f = vFaces[i];
-		int faceIndex = GetFaceIndex(v, f);
+	size_t numFaces = v->num_faces();
+	for(size_t i = 0; i < numFaces; ++i){
+		Face* f = grid.get_face(v, i);
 
 		if(f->num_vertices() == 3)
-			vNewFaceVertices[faceIndex] = NULL;
-		else{
-			//assert(get_center_vertex(f) && "center-vertex of associated face is missing.");
-			vNewFaceVertices[faceIndex] = get_center_vertex(f);
-		}
+			vNewFaceVertices[i] = NULL;
+		else
+			vNewFaceVertices[i] = get_center_vertex(f);
 	}
 
 //	refine the volume and register new volumes at the grid.

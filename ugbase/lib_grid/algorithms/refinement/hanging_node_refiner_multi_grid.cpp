@@ -5,6 +5,19 @@
 #include "common/assert.h"
 #include "hanging_node_refiner_multi_grid.h"
 
+//define PROFILE_HANGING_NODE_REFINER_MG if you want to profile
+//the refinement code.
+//#define PROFILE_HANGING_NODE_REFINER_MG
+#ifdef PROFILE_HANGING_NODE_REFINER_MG
+	#define MGHNODE_PROFILE_FUNC()	PROFILE_FUNC()
+	#define MGHNODE_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define MGHNODE_PROFILE_END()	PROFILE_END()
+#else
+	#define MGHNODE_PROFILE_FUNC()
+	#define MGHNODE_PROFILE_BEGIN(name)
+	#define MGHNODE_PROFILE_END()
+#endif
+
 using namespace std;
 
 namespace ug{
@@ -54,6 +67,50 @@ pre_refine()
 		throw(UGError("HangingNodeRefiner_MultiGrid::refine: No grid assigned."));
 
 	MultiGrid& mg = *m_pMG;
+
+//	Resize the attachment containers
+
+	{
+		Selector& sel = get_refmark_selector();
+
+		MGHNODE_PROFILE_BEGIN(MGHNode_ReserveAttachmentMemory);
+
+		MGHNODE_PROFILE_BEGIN(MGHNODE_ReserveVrtData);
+		mg.reserve<VertexBase>(mg.num<VertexBase>() +
+					+ sel.num<VertexBase>()
+					+ sel.num<EdgeBase>() - sel.num<ConstrainingEdge>()
+					+ sel.num<Quadrilateral>()
+					+ sel.num<ConstrainedQuadrilateral>()
+					+ sel.num<Hexahedron>());
+		MGHNODE_PROFILE_END();
+
+		MGHNODE_PROFILE_BEGIN(MGHNODE_ReserveEdgeData);
+		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
+					+ 2 * (sel.num<EdgeBase>() - sel.num<ConstrainingEdge>())
+					+ 3 * (sel.num<Triangle>() + sel.num<ConstrainedTriangle>())
+					+ 4 * (sel.num<Quadrilateral>() + sel.num<ConstrainedQuadrilateral>())
+					+ 3 * sel.num<Prism>() + sel.num<Tetrahedron>()
+					+ 4 * sel.num<Pyramid>() + 6 * sel.num<Hexahedron>());
+		MGHNODE_PROFILE_END();
+
+		MGHNODE_PROFILE_BEGIN(MGHNODE_ReserveFaceData);
+		mg.reserve<Face>(mg.num<Face>()
+					+ 4 * (sel.num<Face>() - sel.num<ConstrainingTriangle>()
+							- sel.num<ConstrainingQuadrilateral>())
+					+ 10 * sel.num<Prism>()
+					+ 8 * sel.num<Tetrahedron>()
+					+ 9 * sel.num<Pyramid>() + 12 * sel.num<Hexahedron>());
+		MGHNODE_PROFILE_END();
+
+		MGHNODE_PROFILE_BEGIN(MGHNODE_ReserveVolData);
+		mg.reserve<Volume>(mg.num<Volume>()
+					+ 8 * sel.num<Tetrahedron>() + 8 * sel.num<Prism>()
+					+ 6 * sel.num<Pyramid>() + 8 * sel.num<Hexahedron>());
+		MGHNODE_PROFILE_END();
+
+		MGHNODE_PROFILE_END();
+	}
+
 
 //	create a child vertex for each marked vertex
 	for(VertexBaseIterator iter = m_selMarkedElements.begin<VertexBase>();

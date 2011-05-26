@@ -97,6 +97,43 @@ void HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 		HangingNodeRefinerBase::mark(v, refMark);
 }
 
+/* pre-refine
+//	Resize the attachment containers
+	{
+		Selector& sel = get_refmark_selector();
+
+		HNODE_PROFILE_BEGIN("HNode_ReserveAttachmentMemory");
+
+		HNODE_PROFILE_BEGIN(HNODE_ReserveVrtData);
+		mg.reserve<VertexBase>(grid.num<VertexBase>() +
+					+ sel.num<VertexBase>() + sel.num<EdgeBase>()
+					+ sel.num<Quadrilateral>() + sel.num<Hexahedron>());
+		HNODE_PROFILE_END();
+
+		HNODE_PROFILE_BEGIN(HNODE_ReserveEdgeData);
+		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
+					+ 2 * mg.num<EdgeBase>() + 3 * mg.num<Triangle>()
+					+ 4 * mg.num<Quadrilateral>() + 3 * mg.num<Prism>()
+					+ mg.num<Tetrahedron>()
+					+ 4 * mg.num<Pyramid>() + 6 * mg.num<Hexahedron>());
+		HNODE_PROFILE_END();
+
+		HNODE_PROFILE_BEGIN(HNODE_ReserveFaceData);
+		mg.reserve<Face>(mg.num<Face>()
+					+ 4 * mg.num<Face>(l) + 10 * mg.num<Prism>(l)
+					+ 8 * mg.num<Tetrahedron>(l)
+					+ 9 * mg.num<Pyramid>(l) + 12 * mg.num<Hexahedron>(l));
+		HNODE_PROFILE_END();
+
+		HNODE_PROFILE_BEGIN(HNODE_ReserveVolData);
+		mg.reserve<Volume>(mg.num<Volume>()
+					+ 8 * mg.num<Tetrahedron>(l) + 8 * mg.num<Prism>(l)
+					+ 6 * mg.num<Pyramid>(l) + 8 * mg.num<Hexahedron>(l));
+		HNODE_PROFILE_END();
+
+		HNODE_PROFILE_END();
+	}
+ */
 void HangingNodeRefiner_Grid::
 post_refine()
 {

@@ -108,13 +108,14 @@ collect_objects_for_refine()
 
 		//	mark as anisotropic
 			if(BaseClass::get_mark(f) != RM_ANISOTROPIC)
-				mark(f, RM_ANISOTROPIC);
+				BaseClass::mark(f, RM_ANISOTROPIC);
 
 		//	check edges
 			CollectAssociated(edges, grid, f);
 
 		//	degenerated neighbors of non-degenerated edges have to be selected.
 		//	degenerated edges may not be selected
+			size_t numDeg = 0;
 			for(size_t i_edge = 0; i_edge< edges.size(); ++i_edge){
 				EdgeBase* e = edges[i_edge];
 				if(EdgeLengthSq(e, m_aaPos) > degThresholdSq){
@@ -130,8 +131,8 @@ collect_objects_for_refine()
 						Face* nbr = faces[i_face];
 						if(!sel.is_selected(nbr)){
 							if(IsDegenerated(nbr, m_aaPos, m_degeneratedEdgeThreshold)){
-							//	this automatically pushes the element to the queue.
-								mark(nbr, RM_ANISOTROPIC);
+							//	push it to the queue.
+								m_queDegeneratedFaces.push(nbr);
 							}
 						}
 					}
@@ -139,7 +140,15 @@ collect_objects_for_refine()
 				else{
 				//	degenerated edge. unmark it
 					mark(e, RM_NONE);
+					++numDeg;
 				}
+			}
+
+		//	if all edges are degenerate, we will have to perform regular refinement
+			if(numDeg == edges.size()){
+				BaseClass::mark(f, RM_REGULAR);
+				for(size_t i = 0; i < edges.size(); ++i)
+					mark(edges[i], RM_REGULAR);
 			}
 		}
 
