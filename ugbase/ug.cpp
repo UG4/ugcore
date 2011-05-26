@@ -6,6 +6,7 @@
  */
 
 #include <stack>
+#include <cstdlib>
 #include "ug.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
@@ -22,30 +23,37 @@ namespace ug {
  *  init app, script and data paths
  */
 static bool InitPaths(const char* argv0) {
-	//TODO: on some systems argv0 does __not__ contain the absolute path to the process!
-	//some ugly macros are needed.
-
 	//The method currently only works if the path is explicitly specified
-	//during startup.
+	//during startup or if UG4_ROOT is defined.
 
 	//	extract the application path.
 	// UG_LOG("argv[0]: " << argv0 << endl);
-	std::string tPath = argv0;
-	size_t pos = tPath.find_last_of("/");
-	if (pos == std::string::npos)
-		pos = tPath.find_last_of("\\\\");
 
-	if (pos != std::string::npos)
-		tPath = tPath.substr(0, pos);
-	else
-		tPath = ".";
+	char* ug4Root = getenv("UG4_ROOT");
+	if(ug4Root){
+		std::string strRoot = ug4Root;
+		PathProvider::set_path(APP_PATH, strRoot + "/bin");
+		PathProvider::set_path(SCRIPT_PATH, strRoot + "/scripts");
+		PathProvider::set_path(DATA_PATH, strRoot + "/data");
+	}
+	else{
+		std::string tPath = argv0;
+		size_t pos = tPath.find_last_of("/");
+		if (pos == std::string::npos)
+			pos = tPath.find_last_of("\\\\");
 
-	PathProvider::set_path(APP_PATH, tPath);
-	PathProvider::set_path(SCRIPT_PATH, tPath + "/../scripts");
-	PathProvider::set_path(DATA_PATH, tPath + "/../data");
+		if (pos != std::string::npos)
+			tPath = tPath.substr(0, pos);
+		else
+			tPath = ".";
+
+		PathProvider::set_path(APP_PATH, tPath);
+		PathProvider::set_path(SCRIPT_PATH, tPath + "/../scripts");
+		PathProvider::set_path(DATA_PATH, tPath + "/../data");
+	}
 
 //	log the pathes
-	UG_DLOG(MAIN, 0, "app path set to: " << PathProvider::get_path(APP_PATH) <<
+	UG_LOG("app path set to: " << PathProvider::get_path(APP_PATH) <<
 			std::endl << "script path set to: " << PathProvider::get_path(SCRIPT_PATH) <<
 			std::endl << "data path set to: " << PathProvider::get_path(DATA_PATH) <<
 			std::endl);

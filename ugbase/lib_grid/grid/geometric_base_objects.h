@@ -563,35 +563,6 @@ class Face : public GeometricObject, public FaceVertices
 							VertexBase* newFaceVertex = NULL,
 							VertexBase** pSubstituteVertices = NULL)	{return false;}
 
-
-		/**
-		 * The refine_regular method can be used to create new elements by inserting new vertices
-		 * on the face.
-		 * The user that calls this function is responsible to either register the new
-		 * faces with a grid (the grid from which the vertices are), or to take responsibility
-		 * for deletion of the acquired memory (delete each element in vNewFacesOut).
-		 * - If the user did not specify a newFaceVertex but a face-vertex is required for
-		 * regular refinement, a new one is created and a pointer is returned in newFaceVertexOut.
-		 * Be sure to either register this vertex at the grid or to delete it.
-		 * If no new vertex was created, newFaceVertexOut contains NULL.
-		 * - Specify vertices that shall be inserted on edges with vNewEdgeVertices. Vertices
-		 * are inserted on the edge that corresponds to their index. For each edge a new
-		 * vertex has to be specified.
-		 * - If newFaceVertex is not NULL, vNewFaceIndex will be inserted in the center of the face.
-		 * - If no newFaceVertex had been specified but a inner vertex is required for regular
-		 * refinement, a vertex of the same type as prototypeVertex will be created.
-		 * - If you specify pvSubstituteVertices, the created faces will reference the vertices in
-		 * pvSubstituteVertices. Note that pvSubstituteVertices has to contain exactly as many
-		 * vertices as the refined Face. Vertices with the same index correlate.
-		 */
-			virtual bool refine_regular(std::vector<Face*>& vNewFacesOut,
-								VertexBase** newFaceVertexOut,
-								std::vector<VertexBase*>& vNewEdgeVertices,
-								VertexBase* newFaceVertex,
-								const VertexBase& prototypeVertex,
-								VertexBase** pSubstituteVertices = NULL)	{return false;}
-
-
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.
 	 * The user that calls this function is responsible to either register the new
@@ -829,18 +800,6 @@ class Volume : public GeometricObject, public VolumeVertices
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
 							VertexBase** pSubstituteVertices = NULL)	{return false;}
-	/**
-	 * See the refine-method for a detailed explanation of each parameter.
-	 * Please note that for each edge and for each face a new vertex has to be specified.
-	 * This means that vNewEdgeVertices and vNewFaceVertices may not contain NULL-pointers.
-	 */
-		virtual bool refine_regular(std::vector<Volume*>& vNewVolumesOut,
-							VertexBase** ppNewVertexOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							std::vector<VertexBase*>& vNewFaceVertices,
-							VertexBase* newVolumeVertex,
-							const VertexBase& prototypeVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
 
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.

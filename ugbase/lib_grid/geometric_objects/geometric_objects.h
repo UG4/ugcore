@@ -565,14 +565,6 @@ class CustomTriangle : public BaseClass
 							VertexBase* newFaceVertex = NULL,
 							VertexBase** pSubstituteVertices = NULL);
 
-	///	Performs a regular refine on the triangle. \sa Face::refine_regular.
-		virtual bool refine_regular(std::vector<Face*>& vNewFacesOut,
-										VertexBase** newFaceVertexOut,
-										std::vector<VertexBase*>& vNewEdgeVertices,
-										VertexBase* newFaceVertex,
-										const VertexBase& prototypeVertex,
-										VertexBase** pSubstituteVertices = NULL);
-
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, VertexBase* newVertex,
 								VertexBase** pSubstituteVertices = NULL);
@@ -931,14 +923,6 @@ class CustomQuadrilateral : public BaseClass
 							VertexBase** newEdgeVertices,
 							VertexBase* newFaceVertex = NULL,
 							VertexBase** pSubstituteVertices = NULL);
-
-	///	Performs a regular refine on the quadrilateral. \sa Face::refine_regular.
-		virtual bool refine_regular(std::vector<Face*>& vNewFacesOut,
-										VertexBase** newFaceVertexOut,
-										std::vector<VertexBase*>& vNewEdgeVertices,
-										VertexBase* newFaceVertex,
-										const VertexBase& prototypeVertex,
-										VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, VertexBase* newVertex,

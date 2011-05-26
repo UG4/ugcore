@@ -281,23 +281,6 @@ refine(std::vector<Face*>& vNewFacesOut,
 template <class ConcreteTriangleType, class BaseClass>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
-refine_regular(std::vector<Face*>& vNewFacesOut,
-				VertexBase** newFaceVertexOut,
-				std::vector<VertexBase*>& vNewEdgeVertices,
-				VertexBase* newFaceVertex,
-				const VertexBase& prototypeVertex,
-				VertexBase** pSubstituteVertices)
-{
-	assert(vNewEdgeVertices.size() == 3 && "wrong number of newEdgeVertices.");
-	assert(newFaceVertex == NULL && "regular triangle refine doesn't use newFaceVertex.");
-	*newFaceVertexOut = NULL;
-	
-	return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, pSubstituteVertices);		
-}
-
-template <class ConcreteTriangleType, class BaseClass>
-bool
-CustomTriangle<ConcreteTriangleType, BaseClass>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
 				int edgeIndex, VertexBase* newVertex,
 				VertexBase** pSubstituteVertices)
@@ -636,31 +619,6 @@ refine(std::vector<Face*>& vNewFacesOut,
 	}
 
 	return false;
-}
-
-template <class ConcreteQuadrilateralType, class BaseClass>
-bool
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
-refine_regular(std::vector<Face*>& vNewFacesOut,
-				VertexBase** newFaceVertexOut,
-				std::vector<VertexBase*>& vNewEdgeVertices,
-				VertexBase* newFaceVertex,
-				const VertexBase& prototypeVertex,
-				VertexBase** pSubstituteVertices)
-{
-	assert(vNewEdgeVertices.size() == 4 && "wrong number of newEdgeVertices.");
-
-//	call refine with the correct parameters.
-	if(newFaceVertex == NULL)
-	{
-		*newFaceVertexOut = newFaceVertex = dynamic_cast<VertexBase*>(prototypeVertex.create_empty_instance());
-		assert(newFaceVertex && "create_empty_instance of a derivate of VertexBase did not create a derivate of VertexBase");
-	}
-	else
-		*newFaceVertexOut = NULL;
-
-
-	return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, pSubstituteVertices);
 }
 
 template <class ConcreteQuadrilateralType, class BaseClass>

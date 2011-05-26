@@ -372,7 +372,7 @@ get_container_size()
 //	AttachmentAccessor
 template <class TElem, class TAttachment, class TElemHandler>
 AttachmentAccessor<TElem, TAttachment, TElemHandler>::
-AttachmentAccessor() : m_pContainer(NULL)
+AttachmentAccessor() : m_pContainer(NULL), m_pHandler(NULL)
 {
 }
 
