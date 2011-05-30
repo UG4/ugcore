@@ -464,6 +464,7 @@ bool amg_base<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector
 	const matrix_type &Ah = *(m_A[level]);
 
 	vector_type &corr = *m_vec3[level];
+	corr.set(0.0);
 #ifdef UG_PARALLEL
 	corr.set_storage_type(PST_CONSISTENT);
 #endif
@@ -544,7 +545,6 @@ bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const
 	UG_ASSERT(c.size() == const_d.size() && c.size() == m_A[0]->num_rows(),
 				"c.size = " << c.size() << ", d.size = " << const_d.size() << ", A.size = " << m_A[0]->num_rows() << ": not matching");
 
-
 	if(m_vec4 == NULL)
 		m_vec4 = new vector_type;
 
@@ -555,9 +555,19 @@ bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const
 #endif
 	vector_type &d = *m_vec4;
 
-	c.set(0.0);
+
 	d = const_d;
-	return add_correction_and_update_defect(c, d);
+
+	if(m_usedLevels == 1)
+	{
+		solve_on_base(c, d, 0);
+		return true;
+	}
+	else
+	{
+		c.set(0.0);
+		return add_correction_and_update_defect(c, d);
+	}
 }
 
 
@@ -566,6 +576,11 @@ template<typename TAlgebra>
 bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &const_d)
 {
 
+	if(m_usedLevels <= 1)
+	{
+		UG_LOG("No Multigrid hierachy.\n");
+		return true;
+	}
 	vector_type c, d;
 	CloneVector(c, const_c);
 	CloneVector(d, const_d);
@@ -739,6 +754,139 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	if(m_writeMatrices) writevec("AMG_d_L", d, level);
 
 	UG_LOG("\n\n");
+	return true;
+}
+
+
+template<typename TAlgebra>
+bool amg_base<TAlgebra>::check2(const vector_type &const_c, const vector_type &const_d)
+{
+	if(m_usedLevels <= 1)
+	{
+		UG_LOG("No Multigrid hierachy.\n");
+		return true;
+	}
+	vector_type c, d;
+	CloneVector(c, const_c);
+	CloneVector(d, const_d);
+	vector_type *oC=m_vec1[0], *oD=m_vec2[0];
+	m_vec1[0] = &c;
+	m_vec2[0] = &d;
+
+#ifdef UG_PARALLEL
+	if(!d.has_storage_type(PST_ADDITIVE) || !c.has_storage_type(PST_CONSISTENT))
+	{
+		UG_LOG("ERROR: In 'amg::check':Inadequate storage format of Vectors.\n");
+		return false;
+	}
+#endif
+
+	for(size_t i=1; i<m_usedLevels-1; i++)
+	{
+		c = const_c;
+		d = const_d;
+		UG_LOG("Testing Level 0 to " << i << ":\n");
+		double prenorm = d.two_norm();
+		add_correction_and_update_defect(c, d, 0, i);
+		double postnorm = d.two_norm();
+		UG_LOG("Reduction is " << postnorm/prenorm << "\n");
+	}
+
+	m_vec1[0] = oC;
+	m_vec2[0] = oD;
+	return true;
+}
+
+
+template<typename TAlgebra>
+bool amg_base<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel)
+{
+	UG_ASSERT(c.size() == d.size() && c.size() == m_A[level]->num_rows(),
+			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << m_A[level]->num_rows() << ": not matching");
+
+#ifdef UG_PARALLEL
+	if(!d.has_storage_type(PST_ADDITIVE) || !c.has_storage_type(PST_CONSISTENT))
+	{
+		UG_LOG("ERROR: In 'amg::check':Inadequate storage format of Vectors.\n");
+		return false;
+	}
+#endif
+
+	const matrix_type &Ah = *(m_A[level]);
+
+	vector_type &corr = *m_vec3[level];
+#ifdef UG_PARALLEL
+	corr.set_storage_type(PST_CONSISTENT);
+#endif
+
+	// presmooth
+	for(size_t i=0; i < m_numPreSmooth; i++)
+	{
+		m_presmoothers[level]->apply_update_defect(corr, d);
+		c += corr;
+	}
+
+	// pre f-smoothing
+	if(m_bFSmoothing)
+	{
+		f_smoothing(corr, d, level);
+		c+=corr;
+	}
+
+	vector_type &cH = *m_vec1[level+1];
+	vector_type &dH = *m_vec2[level+1];
+	cH.set(0.0);
+	dH.set(0.0);
+#ifdef UG_PARALLEL
+	cH.set_storage_type(PST_CONSISTENT);
+#endif
+
+	m_R[level]->apply(dH, d);
+
+	if(level+1 == m_usedLevels-1)
+		solve_on_base(cH, dH, level+1);
+	else
+	{
+		cH.set(0.0);
+		if(level+1 < exactLevel)
+		{
+			for(int i=0; i< m_cycleType; i++)
+				add_correction_and_update_defect(cH, dH, level+1, exactLevel);
+		}
+		else
+		{
+			UG_LOG("\n");
+			for(int k=0; k<100; k++)
+			{
+				for(int i=0; i< m_cycleType; i++)
+					add_correction_and_update_defect(cH, dH, level+1);
+				UG_LOG(".");
+				if(dH.two_norm() < 1e-12)
+					break;
+			}
+			if(dH.two_norm() > 1e-12) UG_LOG("\nnot converged!\n")
+			else UG_LOG("\n");
+		}
+	}
+
+	m_P[level]->apply(corr, cH);
+	c += corr;
+	Ah.matmul_minus(d, corr);
+
+	// post f-smoothing
+	if(m_bFSmoothing)
+	{
+		f_smoothing(corr, d, level);
+		c+=corr;
+	}
+
+	// postsmooth
+	for(size_t i=0; i < m_numPostSmooth; i++)
+	{
+		m_postsmoothers[level]->apply_update_defect(corr, d);
+		c += corr;
+	}
+
 	return true;
 }
 

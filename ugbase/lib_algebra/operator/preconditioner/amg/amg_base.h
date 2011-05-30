@@ -115,6 +115,9 @@ protected:
 	bool solve_on_base(vector_type &c, vector_type &d, size_t level);
 
 public:
+	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel);
+	bool check2(const vector_type &const_c, const vector_type &const_d);
+
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
 /*
