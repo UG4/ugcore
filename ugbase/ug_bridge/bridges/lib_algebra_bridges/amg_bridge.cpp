@@ -94,6 +94,7 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_postsmoother", &amg_base<algebra_type>::set_postsmoother, "", "postsmoother")
 			.add_method("set_base_solver", &amg_base<algebra_type>::set_base_solver, "", "basesmoother")
 			.add_method("check", &amg_base<algebra_type>::check, "", "x#b", "performs a check of convergence on all levels")
+			.add_method("check2", &amg_base<algebra_type>::check2, "", "x#b", "performs a check of convergence on all levels")
 			.add_method("set_matrix_write_path", &amg_base<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
 			.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "enable", "")
 			.add_method("get_fsmoothing", &amg_base<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
