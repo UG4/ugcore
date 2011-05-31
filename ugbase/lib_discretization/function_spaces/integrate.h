@@ -54,7 +54,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 
 //	get trial space
 	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
-			LocalShapeFunctionSetProvider::get_local_shape_function_set<ref_elem_type>(id);
+			LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
 
 //	number of dofs on element
 	const size_t num_sh = trialSpace.num_sh();

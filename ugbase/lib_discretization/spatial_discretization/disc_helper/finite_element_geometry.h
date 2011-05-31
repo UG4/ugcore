@@ -19,25 +19,25 @@ template <	typename TElem,
 class FEGeometry
 {
 	public:
-		/// reference dim
-		static const int dim = reference_element_traits<TElem>::reference_element_type::dim;
-
-		/// world dim
-		static const int world_dim = TWorldDim;
-
-	protected:
-		// reference element
+	///	type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
+	/// reference element dimension
+		static const int dim = ref_elem_type::dim;
+
+	/// world dimension
+		static const int world_dim = TWorldDim;
+
 	public:
-		FEGeometry(int order)
-			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_rule(2*order))
+		FEGeometry()
+		//	note: for quadratic elements we need a higher integration than the trial space
+			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_rule(2))
 			{
-				UG_ASSERT(order == 1, " Currently only first order implemented.");
+				LocalShapeFunctionSetID id
+					= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
+
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-						LocalShapeFunctionSetProvider::
-							get_local_shape_function_set<ref_elem_type>
-								(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
+							LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
 
 				// number of ips
 				m_numIP = m_rQuadRule.size();
@@ -172,31 +172,6 @@ class FEGeometry
 
 		std::vector<MathMatrix<world_dim,dim> > m_JTInv;
 		std::vector<number> m_detJ;
-};
-
-// Singeton
-template <	typename TElem,
-			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
-class FEGeometryProvider
-{
-	private:
-		FEGeometryProvider(){};
-		FEGeometryProvider(const FEGeometryProvider&){};
-		FEGeometryProvider& operator=(const FEGeometryProvider&);
-
-		template <int TOrder>
-		static FEGeometry<TElem, TWorldDim>& geom()
-		{
-			static FEGeometry<TElem, TWorldDim> inst(TOrder);
-			return inst;
-		}
-
-	public:
-		static FEGeometry<TElem, TWorldDim>& get(int order)
-		{
-			UG_ASSERT(order == 1, "Currently only order 1 implemented.");
-			return geom<1>();
-		}
 };
 
 } // end namespace ug

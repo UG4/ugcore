@@ -39,7 +39,7 @@ init_standard_local_shape_function_sets()
 							const LocalShapeFunctionSet<TRefElem>* > Map;
 
 	//	get map
-		Map& map = get_local_shape_function_set_map<TRefElem>();
+		Map& map = get_map<TRefElem>();
 
 	//	insert into map: P1 Lagrange
 		LocalShapeFunctionSetID type1(LocalShapeFunctionSetID::LAGRANGE, 1);
@@ -66,7 +66,7 @@ template <typename TRefElem>
 std::map<	LocalShapeFunctionSetID,
 			const LocalShapeFunctionSet<TRefElem>* >&
 LocalShapeFunctionSetProvider::
-get_local_shape_function_set_map()
+get_map()
 {
 //	get type of map
 	typedef std::map<	LocalShapeFunctionSetID,
@@ -90,7 +90,7 @@ register_local_shape_function_set(	LocalShapeFunctionSetID id,
 						const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	get map
-	static Map& map = inst().get_local_shape_function_set_map<TRefElem>();
+	static Map& map = inst().get_map<TRefElem>();
 
 	UG_LOG("Inserting id = " << id << " \n");
 
@@ -111,7 +111,7 @@ unregister_local_shape_function_set(LocalShapeFunctionSetID id)
 						const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	get map
-	static Map& map = inst().get_local_shape_function_set_map<TRefElem>();
+	static Map& map = inst().get_map<TRefElem>();
 
 //	erase element
 	return map.erase(id) == 1;
@@ -120,14 +120,14 @@ unregister_local_shape_function_set(LocalShapeFunctionSetID id)
 template <typename TRefElem>
 const LocalShapeFunctionSet<TRefElem>&
 LocalShapeFunctionSetProvider::
-get_local_shape_function_set(LocalShapeFunctionSetID id)
+get(LocalShapeFunctionSetID id)
 {
 //	get type of map
 	typedef std::map<	LocalShapeFunctionSetID,
 						const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	get map
-	static Map& map = inst().get_local_shape_function_set_map<TRefElem>();
+	static Map& map = inst().get_map<TRefElem>();
 
 //	search for identifier
 	typename Map::const_iterator iter = map.find(id);

@@ -460,7 +460,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::
-					get_local_shape_function_set<ref_elem_type>
+					get<ref_elem_type>
 						(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 		const size_t num_sh = ref_elem_type::num_corners;
