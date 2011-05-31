@@ -299,8 +299,10 @@ u:set(0.0)
 
 -- init Operator
 print ("Assemble Operator ... ")
-linOp:init()
-print ("done")
+tAssembleStart = os.clock() 
+if linOp:init() == false then print("Could assemble operator"); exit(); end
+tAssembleEnd = os.clock()
+print("Assembling took " .. tAssembleEnd - tAssembleStart .. " seconds.");
 
 -- set dirichlet values in start iterate
 linOp:set_dirichlet_values(u)
@@ -405,7 +407,10 @@ solver = linSolver
 -------------------------------------------
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-linOp:init()
+tAssembleStart = os.clock() 
+if linOp:init() == false then print("Could assemble operator"); exit(); end
+tAssembleEnd = os.clock()
+print("Assembling took " .. tAssembleEnd - tAssembleStart .. " seconds.");
 
 -- 2. init solver for linear Operator
 print("Init solver for operator.")

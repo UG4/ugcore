@@ -214,7 +214,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 			VecSet(vIPVelCurrent, 0.0);
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				for(int d = 0; d < dim; ++d)
-					vIPVelCurrent[d] += scvf.shape(sh, 0) * vCornerValue(d, sh);
+					vIPVelCurrent[d] += scvf.shape(sh) * vCornerValue(d, sh);
 
 		// 	Loop components of velocity
 			for(size_t d = 0; d < (size_t)dim; d++)
@@ -253,7 +253,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 				//	interpolate old time step
 					number oldIPVel = 0.0;
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						oldIPVel += scvf.shape(sh, 0) * (*pvCornerValueOldTime)(d, sh);
+						oldIPVel += scvf.shape(sh) * (*pvCornerValueOldTime)(d, sh);
 
 				//	add to rhs
 					rhs += oldIPVel / dt;
@@ -263,7 +263,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 				for(size_t k = 0; k < scvf.num_sh(); ++k)
 				{
 				//	Diffusion part
-					number sum = kinVisco[ip] * diff_length_sq_inv(ip) * scvf.shape(k, 0);
+					number sum = kinVisco[ip] * diff_length_sq_inv(ip) * scvf.shape(k);
 
 				//	Convection part
 					sum += VecTwoNorm(vIPVelCurrent) * upwind_shape_sh(ip, k) /
@@ -276,7 +276,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 					stab_shape_vel(ip, d, d, k) = sum / diag;
 
 				//	Pressure part
-					sum = -1.0 * (scvf.global_grad(k, 0))[d];
+					sum = -1.0 * (scvf.global_grad(k))[d];
 
 				//	Add to rhs
 					rhs += sum * vCornerValue(_P_, k);
@@ -306,7 +306,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 			VecSet(vIPVelCurrent[ip], 0.0);
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				for(int d = 0; d < dim; ++d)
-					vIPVelCurrent[ip][d] += scvf.shape(sh, 0) * vCornerValue(d, sh);
+					vIPVelCurrent[ip][d] += scvf.shape(sh) * vCornerValue(d, sh);
 		}
 
 	// 	For the FIELDS stabilization, there is no connection between the
@@ -382,7 +382,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 				//	Diffusion part
 					contVel[k][ip] = kinVisco[ip]
 										* diff_length_sq_inv(ip)
-										* scvf.shape(k, 0);
+										* scvf.shape(k);
 
 				//	Convection part
 					contVel[k][ip] += VecTwoNorm(vIPVelCurrent[ip])
@@ -390,7 +390,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 										conv_length(ip);
 
 				//	Pressure part
-					contP[k][ip] = -1.0 * (scvf.global_grad(k, 0))[d];
+					contP[k][ip] = -1.0 * (scvf.global_grad(k))[d];
 				}
 			}
 
@@ -442,7 +442,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 				//	\todo: Is this ok? Or do we need the old stabilized vel ?
 					number oldIPVel = 0.0;
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						oldIPVel += scvf.shape(sh, 0) * (*pvCornerValueOldTime)(d, sh);
+						oldIPVel += scvf.shape(sh) * (*pvCornerValueOldTime)(d, sh);
 
 				//	add to rhs
 					f[ip] += oldIPVel / dt;

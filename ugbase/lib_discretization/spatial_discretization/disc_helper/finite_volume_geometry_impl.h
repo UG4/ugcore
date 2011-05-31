@@ -74,7 +74,7 @@ FV1Geometry()
 
 		// integration point
 		if(dim != 1)
-			AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
+			AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::numCorners);
 		else
 			m_vSCVF[i].localIP = m_locMid[1][0];
 	}
@@ -132,11 +132,6 @@ FV1Geometry()
 					get_local_shape_function_set<ref_elem_type>
 					(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
-		const size_t num_sh = numSCV;
-		m_vSCVF[i].vShape.resize(num_sh);
-		m_vSCVF[i].localGrad.resize(num_sh);
-		m_vSCVF[i].globalGrad.resize(num_sh);
-
 		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
 		TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
 
@@ -154,10 +149,7 @@ FV1Geometry()
 		const SCV& rSCV = scv(i);
 
 	// 	loop ips
-		for(size_t ip = 0; ip < rSCV.num_ip(); ++ip)
-		{
-			m_vLocSCVIP.push_back(rSCV.local_ip(ip));
-		}
+		m_vLocSCVIP.push_back(rSCV.local_ip());
 	}
 
 // 	loop Sub Control Volumes Faces (SCVF)
@@ -168,10 +160,7 @@ FV1Geometry()
 		const SCVF& rSCVF = scvf(i);
 
 	// 	loop ips
-		for(size_t ip = 0; ip < rSCVF.num_ip(); ++ip)
-		{
-			m_vLocSCVFIP.push_back(rSCVF.local_ip(ip));
-		}
+		m_vLocSCVFIP.push_back(rSCVF.local_ip());
 	}
 }
 
@@ -220,7 +209,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 
 	// 	integration point
 		if(dim != 1)
-		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
+		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::numCorners);
 		else
 			m_vSCVF[i].globalIP = m_gloMid[1][0];
 
@@ -285,10 +274,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 		const SCV& rSCV = scv(i);
 
 	// 	loop ips
-		for(size_t ip = 0; ip < rSCV.num_ip(); ++ip)
-		{
-			m_vGlobSCVIP.push_back(rSCV.global_ip(ip));
-		}
+		m_vGlobSCVIP.push_back(rSCV.global_ip());
 	}
 
 // 	loop Sub Control Volumes Faces (SCVF)
@@ -298,11 +284,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 	//	get current SCVF
 		const SCVF& rSCVF = scvf(i);
 
-	// 	loop ips
-		for(size_t ip = 0; ip < rSCVF.num_ip(); ++ip)
-		{
-			m_vGlobSCVFIP.push_back(rSCVF.global_ip(ip));
-		}
+		m_vGlobSCVFIP.push_back(rSCVF.global_ip());
 	}
 
 	/////////////////////////
@@ -403,8 +385,8 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 				copy_global_corners(bf);
 
 			// 	integration point
-				AveragePositions(bf.localIP, bf.m_vLocPos, SCVF::m_numCorners);
-				AveragePositions(bf.globalIP, bf.m_vGloPos, SCVF::m_numCorners);
+				AveragePositions(bf.localIP, bf.m_vLocPos, SCVF::numCorners);
+				AveragePositions(bf.globalIP, bf.m_vGloPos, SCVF::numCorners);
 
 			// 	normal on scvf
 				NormalOnSCVF<ref_elem_type, world_dim>(bf.Normal, bf.m_vGloPos);
@@ -419,11 +401,6 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 						LocalShapeFunctionSetProvider::
 							get_local_shape_function_set<ref_elem_type>
 								(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
-
-				const size_t num_sh = numSCV;
-				bf.vShape.resize(num_sh);
-				bf.localGrad.resize(num_sh);
-				bf.globalGrad.resize(num_sh);
 
 				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
 				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);

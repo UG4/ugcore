@@ -21,7 +21,7 @@
 namespace ug{
 
 template<typename TDomain, typename TAlgebra>
-class FVNeumannBoundaryElemDisc
+class FV1NeumannBoundaryElemDisc
 	: public IDomainElemDisc<TDomain, TAlgebra>
 {
 	private:
@@ -59,7 +59,7 @@ class FVNeumannBoundaryElemDisc
 
 	public:
 	///	default constructor
-		FVNeumannBoundaryElemDisc()
+		FV1NeumannBoundaryElemDisc()
 		 : m_numFct(0)
 			{
 				m_mBoundarySegment.clear();
@@ -173,7 +173,7 @@ class FVNeumannBoundaryElemDisc
 		template<typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			typedef FVNeumannBoundaryElemDisc T;
+			typedef FV1NeumannBoundaryElemDisc T;
 
 			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem, FV1Geometry>);
 			register_prepare_element_function(		id, &T::template prepare_element<TElem, FV1Geometry>);

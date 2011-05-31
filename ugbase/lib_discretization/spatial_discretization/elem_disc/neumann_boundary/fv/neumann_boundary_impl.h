@@ -15,7 +15,7 @@ namespace ug{
 
 template<typename TDomain, typename TAlgebra>
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const char* subsets)
 {
 //	check that function pattern exists
@@ -56,7 +56,7 @@ add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const
 
 template<typename TDomain, typename TAlgebra>
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bndSubsetGroup)
 {
 //	check that function pattern exists
@@ -138,7 +138,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
 {
 //	register subsetIndex at Geometry
@@ -160,7 +160,7 @@ prepare_element_loop()
 template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
 {
 //	remove subsetIndex from Geometry
@@ -184,7 +184,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 //	get corners
@@ -207,7 +207,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	// we're done
@@ -219,7 +219,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	// we're done
@@ -231,7 +231,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// we're done
@@ -243,7 +243,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	// we're done
@@ -255,7 +255,7 @@ template<typename TDomain, typename TAlgebra>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FVNeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d)
 {
 	// get finite volume geometry
@@ -279,26 +279,13 @@ assemble_f(local_vector_type& d)
 			{
 				// first value
 				number val = 0.0;
-				vSegmentFunction[fct].functor(val, bf.global_ip(0), time());
-
-				// other values
-				for(size_t ip = 1; ip < bf.num_ip(); ++ip)
-				{
-					number ip_val;
-					vSegmentFunction[fct].functor(ip_val, bf.global_ip(ip), time());
-
-					// TODO: add weights for integration
-					val += ip_val;
-				}
-
-				// scale with volume of BF
-				val *= bf.volume();
+				vSegmentFunction[fct].functor(val, bf.global_ip(), time());
 
 				// get associated node
 				const int co = bf.node_id();
 
 				// Add to local matrix
-				d(vSegmentFunction[fct].loc_fct, co) -= val;
+				d(vSegmentFunction[fct].loc_fct, co) -= val * bf.volume();
 			}
 		}
 	}

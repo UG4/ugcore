@@ -232,9 +232,6 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 			return false;
 		}
 
-	//	only one ip present
-		const static size_t j = 0;
-
 	//	Loop Sub Control Volume Faces (SCVF)
 		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
@@ -267,8 +264,8 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 			//	compute rho_c_sh * g
 				for(size_t sh = 0; sh < numSh; ++sh)
 					if(!ComputeConsistentGravity<dim>(
-							DensityTimesGravity_c[sh], numSh, scvf.JTInv(j),
-							&(scvf.local_grad_vector(j))[0], &vvDConsGravity[sh][0]))
+							DensityTimesGravity_c[sh], numSh, scvf.JTInv(),
+							scvf.local_grad_vector(), &vvDConsGravity[sh][0]))
 					{
 						UG_LOG("ERROR in compute_ip_Darcy_velocity: Cannot "
 								"Compute Consistent Gravity.\n");
@@ -281,8 +278,8 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 
 		//	Compute DensityTimesGravity = rho * g
 			if(!ComputeConsistentGravity<dim>(
-					DensityTimesGravity, numSh, scvf.JTInv(j),
-					&(scvf.local_grad_vector(j))[0], vConsGravity))
+					DensityTimesGravity, numSh, scvf.JTInv(),
+					scvf.local_grad_vector(), vConsGravity))
 			{
 				UG_LOG("ERROR in compute_ip_Darcy_velocity: Cannot "
 						"Compute Consistent Gravity.\n");
@@ -329,14 +326,11 @@ compute_brine_export(const local_vector_type& u, bool compDeriv)
 			// 	Get current SCVF
 				const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo.scvf(ip);
 
-			//	number of ips is fixed
-				const static size_t j = 0;
-
 			//	Compute Gradients and concentration at ip
 				number& cIP = m_exBrine.value(s, ip);
 				cIP = 0.0;
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					cIP += u(_C_, sh) * scvf.shape(sh, j);
+					cIP += u(_C_, sh) * scvf.shape(sh);
 
 				if(compDeriv)
 				{
@@ -345,7 +339,7 @@ compute_brine_export(const local_vector_type& u, bool compDeriv)
 
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					{
-						cIP_c[sh] = scvf.shape(sh, j);
+						cIP_c[sh] = scvf.shape(sh);
 						cIP_p[sh] = 0.0;
 					}
 				}
@@ -412,15 +406,12 @@ compute_brine_grad_export(const local_vector_type& u, bool compDeriv)
 			// 	Get current SCVF
 				const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo.scvf(ip);
 
-			//	number of ips is fixed
-				const static size_t j = 0;
-
 			//	Compute Gradients and concentration at ip
 				MathVector<dim>& cIP = m_exBrineGrad.value(s, ip);
 
 				VecSet(cIP, 0.0);
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh, j));
+					VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh));
 
 				if(compDeriv)
 				{
@@ -429,7 +420,7 @@ compute_brine_grad_export(const local_vector_type& u, bool compDeriv)
 
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					{
-						cIP_c[sh] = scvf.global_grad(sh, j);
+						cIP_c[sh] = scvf.global_grad(sh);
 						VecSet(cIP_p[sh], 0.0);
 					}
 				}
@@ -465,9 +456,6 @@ compute_pressure_grad_export(const local_vector_type& u, bool compDeriv)
 		if(m_exPressureGrad.template local_ips<refDim>(s)
 				== geo.scvf_local_ips())
 		{
-		//	number of ips is fixed
-			const static size_t j = 0;
-
 			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 			{
 			// 	Get current SCVF
@@ -478,7 +466,7 @@ compute_pressure_grad_export(const local_vector_type& u, bool compDeriv)
 
 				VecSet(pressGrad, 0.0);
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(pressGrad, u(_P_, sh), scvf.global_grad(sh, j));
+					VecScaleAppend(pressGrad, u(_P_, sh), scvf.global_grad(sh));
 
 				if(compDeriv)
 				{
@@ -487,7 +475,7 @@ compute_pressure_grad_export(const local_vector_type& u, bool compDeriv)
 
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					{
-						pressGrad_p[sh] = scvf.global_grad(sh, j);
+						pressGrad_p[sh] = scvf.global_grad(sh);
 						VecSet(pressGrad_c[sh], 0.0);
 					}
 				}
@@ -764,9 +752,6 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 	const IConvectionShapes<dim>& convShape
 		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwind);
 
-//	there is only on integration point for first order
-	const size_t j = 0;
-
 //	Loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
@@ -801,7 +786,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 			//todo: Derivative of Dispersion
 
 		//	Add Derivative of Diffusive Flux
-			MatVecMult(Dgrad, Diffusion[ip], scvf.global_grad(sh, j));
+			MatVecMult(Dgrad, Diffusion[ip], scvf.global_grad(sh));
 			vDFlux_c[sh] -= VecDot(Dgrad, scvf.normal());
 
 			// todo: Derivative of Dispersion

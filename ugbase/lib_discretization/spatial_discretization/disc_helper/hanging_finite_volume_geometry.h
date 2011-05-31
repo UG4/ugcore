@@ -89,49 +89,45 @@ class HFV1Geometry : public FVGeometryBase{
 				inline size_t num_ip() const {return m_numIP;}
 
 				/// local integration point of scvf
-				inline const MathVector<dim>& local_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localIP;}
+				inline const MathVector<dim>& local_ip() const {return localIP;}
 
 				/// global integration point of scvf
-				inline const MathVector<world_dim>& global_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalIP;}
+				inline const MathVector<world_dim>& global_ip() const {return globalIP;}
 
 				/// normal on scvf (points direction "from"->"to"). Norm is equal to area
 				inline const MathVector<world_dim>& normal() const {return Normal;} // includes area
 
 				/// Transposed Inverse of Jacobian in integration point
-				inline const MathMatrix<dim,world_dim>& JTInv(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return JtInv;}
+				inline const MathMatrix<dim,world_dim>& JTInv() const {return JtInv;}
 
 				/// Determinante of Jacobian in integration point
-				inline number detJ(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return detj;}
+				inline number detJ() const {return detj;}
 
 				/// number of shape functions
 				inline size_t num_sh() const {return vShape.size();}
 
 				/// value of shape function i in integration point
-				inline number shape(size_t i, size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return vShape[i];}
+				inline number shape(size_t sh) const
+					{UG_ASSERT(sh < num_sh(), "Invalid ip index"); return vShape[sh];}
 
 				/// value of local gradient of shape function i in integration point
-				inline const MathVector<dim>& local_grad(size_t i, size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localGrad[i];}
+				inline const MathVector<dim>& local_grad(size_t sh) const
+					{UG_ASSERT(sh < num_sh(), "Invalid ip index"); return localGrad[sh];}
 
 				/// value of global gradient of shape function i in integration point
-				inline const MathVector<world_dim>& global_grad(size_t i, size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalGrad[i];}
+				inline const MathVector<world_dim>& global_grad(size_t sh) const
+					{UG_ASSERT(sh < num_sh(), "Invalid ip index"); return globalGrad[sh];}
 
 				/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return m_numCorners;}
 
 				/// return local corner number i
-				inline const MathVector<dim>& local_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vLocPos[i];}
+				inline const MathVector<dim>& local_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid corner index."); return m_vLocPos[co];}
 
 				/// return glbal corner number i
-				inline const MathVector<world_dim>& global_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vGloPos[i];}
+				inline const MathVector<world_dim>& global_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid corner index."); return m_vGloPos[co];}
 
 			private:
 				// This scvf separates the scv with the ids given in "from" and "to"
@@ -183,12 +179,10 @@ class HFV1Geometry : public FVGeometryBase{
 				inline size_t num_ip() const {return m_numIP;}
 
 				/// local integration point of scv
-				inline const MathVector<dim>& local_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return m_vLocPos[0];}
+				inline const MathVector<dim>& local_ip() const {return m_vLocPos[0];}
 
 				/// global integration point
-				inline const MathVector<world_dim>& global_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return m_vGloPos[0];}
+				inline const MathVector<world_dim>& global_ip() const {return m_vGloPos[0];}
 
 				/// volume of scv
 				inline number volume() const {return vol;}
@@ -197,12 +191,12 @@ class HFV1Geometry : public FVGeometryBase{
 				inline size_t num_corners() const {return m_numCorners;}
 
 				/// return local corner number i
-				inline const MathVector<dim>& local_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vLocPos[i];}
+				inline const MathVector<dim>& local_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid corner index."); return m_vLocPos[co];}
 
 				/// return glbal corner number i
-				inline const MathVector<world_dim>& global_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vGloPos[i];}
+				inline const MathVector<world_dim>& global_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid corner index."); return m_vGloPos[co];}
 
 			private:
 				size_t nodeId; // node id of associated node
@@ -689,12 +683,9 @@ class HFV1Geometry : public FVGeometryBase{
 			//	get current SCV
 				const SCV& rSCV = scv(i);
 
-			// 	loop ips
-				for(size_t ip = 0; ip < rSCV.num_ip(); ++ip)
-				{
-					m_vGlobSCVIP.push_back(rSCV.global_ip(ip));
-					m_vLocSCVIP.push_back(rSCV.local_ip(ip));
-				}
+			//	copy
+				m_vGlobSCVIP.push_back(rSCV.global_ip());
+				m_vLocSCVIP.push_back(rSCV.local_ip());
 			}
 
 		// 	loop Sub Control Volumes Faces (SCVF)
@@ -705,12 +696,9 @@ class HFV1Geometry : public FVGeometryBase{
 			//	get current SCVF
 				const SCVF& rSCVF = scvf(i);
 
-			// 	loop ips
-				for(size_t ip = 0; ip < rSCVF.num_ip(); ++ip)
-				{
-					m_vGlobSCVFIP.push_back(rSCVF.global_ip(ip));
-					m_vLocSCVFIP.push_back(rSCVF.local_ip(ip));
-				}
+			//  copy
+				m_vGlobSCVFIP.push_back(rSCVF.global_ip());
+				m_vLocSCVFIP.push_back(rSCVF.local_ip());
 			}
 
 

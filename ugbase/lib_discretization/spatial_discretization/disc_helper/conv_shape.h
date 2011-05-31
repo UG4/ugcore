@@ -111,13 +111,13 @@ update(const FV1Geometry<TElem, dim>* geo,
 
 	//	Write Shapes
 		for(size_t sh = 0; sh < scvf.num_sh(); sh++)
-			conv_shape(ip, sh) = flux * scvf.shape(sh, 0);
+			conv_shape(ip, sh) = flux * scvf.shape(sh);
 
 	//	Write Derivatives if wanted
 		if(computeDeriv)
 			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
 				VecScale(conv_shape_vel(ip, sh),
-				         scvf.normal(), scvf.shape(sh, 0));
+				         scvf.normal(), scvf.shape(sh));
 
 	//	The shapes do not depend of the diffusion tensor
 	}
@@ -354,7 +354,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 	//	write no upwind part of shapes
 		const number noUpFlux = (1.-m_weight)*flux;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			conv_shape(ip, sh) = noUpFlux * scvf.shape(sh, 0);
+			conv_shape(ip, sh) = noUpFlux * scvf.shape(sh);
 
 	//	add full upwind part of shapes
 		conv_shape(ip, up) += m_weight * flux;
@@ -365,7 +365,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 		//	write no upwind part of derivatives
 			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
 				VecScale(conv_shape_vel(ip, sh), scvf.normal(),
-				         	 	 	 	 	 (1.-m_weight)*scvf.shape(sh, 0));
+				         	 	 	 	 	 (1.-m_weight)*scvf.shape(sh));
 
 		//	add full upwind part of derivatives
 			VecScaleAppend(conv_shape_vel(ip, up), m_weight, scvf.normal());
@@ -474,17 +474,13 @@ update(const FV1Geometry<TElem, dim>* geo,
 	//	get subcontrol volume face
 		const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo->scvf(i);
 
-	//	Currently only first order
-		static const size_t ip = 0;
-		UG_ASSERT(scvf.num_ip() == 1, "Only first order implemented.");
-
 	//	get corners
 		const size_t from = scvf.from();
 		const size_t to = scvf.to();
 
 	//	get gradients
-		const MathVector<dim>& gradTo = scvf.global_grad(to, ip);
-		const MathVector<dim>& gradFrom = scvf.global_grad(from, ip);
+		const MathVector<dim>& gradTo = scvf.global_grad(to);
+		const MathVector<dim>& gradFrom = scvf.global_grad(from);
 
 	//	set lambda negative as default
 		number lambda = -1;

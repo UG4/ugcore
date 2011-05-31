@@ -176,9 +176,6 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 // 	Only first order implementation
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
-//	for first order only one integration point on scvf
-	static const size_t ip = 0;
-
 // 	get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
 
@@ -268,7 +265,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 
 		// 	Compute flux derivative at IP
 			const number flux_sh =  -1.0 * m_imKinViscosity[i]
-									* VecDot(scvf.global_grad(sh, ip), scvf.normal());
+									* VecDot(scvf.global_grad(sh), scvf.normal());
 
 		// 	Add flux derivative  to local matrix
 			for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
@@ -279,7 +276,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 				for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
 				{
 					const number flux2_sh = -1.0 * m_imKinViscosity[i]
-											* scvf.global_grad(sh, ip)[d1] * scvf.normal()[d2];
+											* scvf.global_grad(sh)[d1] * scvf.normal()[d2];
 					J(d1, scvf.from(), d2, sh) += flux2_sh;
 					J(d1, scvf.to()  , d2, sh) -= flux2_sh;
 				}
@@ -292,7 +289,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		//	Add flux derivative for local matrix
 			for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
 			{
-				const number flux_sh = scvf.shape(sh, ip) * scvf.normal()[d1];
+				const number flux_sh = scvf.shape(sh) * scvf.normal()[d1];
 				J(d1, scvf.from(), _P_, sh) += flux_sh;
 				J(d1, scvf.to()  , _P_, sh) -= flux_sh;
 			}
@@ -370,7 +367,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		//	derivative due to peclet blending
 			if(m_bPecletBlend)
 			{
-				const number convFluxPe = prod * (1.0-w) * scvf.shape(sh, ip);
+				const number convFluxPe = prod * (1.0-w) * scvf.shape(sh);
 				for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
 				{
 					J(d1, scvf.from(), d1, sh) += convFluxPe;
@@ -448,7 +445,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 						for(size_t d2 = 0; d2 < (size_t)dim; ++d2)
 						{
 							const number convFluxPe = UpwindVel[d1] * (1.0-w)
-													  * scvf.shape(sh, ip)
+													  * scvf.shape(sh)
 													  * scvf.normal()[d2];
 							J(d1, scvf.from(), d2, sh) += convFluxPe;
 							J(d1, scvf.to()  , d2, sh) -= convFluxPe;
@@ -510,9 +507,6 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 // 	Only first order implemented
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
-
-//	for first order only one integration point on scvf
-	static const size_t ip = 0;
 
 // 	get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
@@ -606,7 +600,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 			//	sum up contributions of each shape
 				gradVel(d1, d2) = 0.0;
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					gradVel(d1, d2) += scvf.global_grad(sh, ip)[d2]
+					gradVel(d1, d2) += scvf.global_grad(sh)[d2]
 					                    * u(d1, sh);
 			}
 
@@ -655,7 +649,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
         MathVector<dim> StdVel; VecSet(StdVel, 0.0);
         for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
             for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
-                StdVel[d1] += u(d1, sh) * scvf.shape(sh, 0);
+                StdVel[d1] += u(d1, sh) * scvf.shape(sh);
 
 
 	//	compute product of upwinded (and blended) velocity and normal
@@ -676,7 +670,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	//	1. Interpolate pressure at ip
 		number pressure = 0.0;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			pressure += scvf.shape(sh, ip) * u(_P_, sh);
+			pressure += scvf.shape(sh) * u(_P_, sh);
 
 	//	2. Add contributions to local defect
 		for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
@@ -814,21 +808,18 @@ FVNavierStokesElemDisc<TDomain, TAlgebra>::
 peclet_blend(MathVector<dim>& UpwindVel, const SCVF& scvf,
              const local_vector_type& u, number kinVisco)
 {
-//	for first order only one integration point on scvf
-	static const size_t ip = 0;
-
 //	Interpolate velocity at ip
 	MathVector<dim> InterpolVel; VecSet(InterpolVel, 0.0);
 	for(size_t d1 = 0; d1 < (size_t)dim; ++d1)
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			InterpolVel[d1] += scvf.shape(sh, ip) * u(d1, sh);
+			InterpolVel[d1] += scvf.shape(sh) * u(d1, sh);
 
 //	compute peclet number
 	number Pe = VecProd(InterpolVel, scvf.normal());
 	// \todo: ATTENTION: scvf.global_corner(0) gives edge midpoint of corresponding
 	//					 edge, but this is not defined as an interface specification,
 	//					 but only a feature of the special implementation (specify it)
-	Pe *= VecDistance(scvf.global_ip(ip), scvf.global_corner(0));
+	Pe *= VecDistance(scvf.global_ip(), scvf.global_corner(0));
 	Pe /= kinVisco;
 
 //	compute weight

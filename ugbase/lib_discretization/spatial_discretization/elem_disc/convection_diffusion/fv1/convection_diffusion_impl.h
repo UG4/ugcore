@@ -185,7 +185,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				{
 				// 	Compute Diffusion Tensor times Gradient
-					MatVecMult(Dgrad, m_imDiffusion[ip], scvf.global_grad(sh, 0));
+					MatVecMult(Dgrad, m_imDiffusion[ip], scvf.global_grad(sh));
 
 				//	Compute flux at IP
 					const number D_diff_flux = VecDot(Dgrad, scvf.normal());
@@ -308,7 +308,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 			// 	compute gradient and shape at ip
 				VecSet(grad_c, 0.0);
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(grad_c, u(_C_,sh), scvf.global_grad(sh, 0));
+					VecScaleAppend(grad_c, u(_C_,sh), scvf.global_grad(sh));
 
 			//	scale by diffusion tensor
 				MatVecMult(Dgrad_c, m_imDiffusion[ip], grad_c);
@@ -492,7 +492,7 @@ lin_defect_diffusion(const local_vector_type& u)
 	// 	compute gradient at ip
 		MathVector<dim> grad_u;	VecSet(grad_u, 0.0);
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			VecScaleAppend(grad_u, u(_C_,sh), scvf.global_grad(sh, 0));
+			VecScaleAppend(grad_u, u(_C_,sh), scvf.global_grad(sh));
 
 	//	compute the lin defect at this ip
 		MathMatrix<dim,dim> linDefect;
@@ -633,7 +633,7 @@ compute_concentration_export(const local_vector_type& u, bool compDeriv)
 				number& cIP = m_exConcentration.value(s, ip);
 				cIP = 0.0;
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					cIP += u(_C_, sh) * scvf.shape(sh, 0);
+					cIP += u(_C_, sh) * scvf.shape(sh);
 
 			//	compute derivative w.r.t. to unknowns iff needed
 				if(compDeriv)
@@ -643,7 +643,7 @@ compute_concentration_export(const local_vector_type& u, bool compDeriv)
 
 				//	set shapes
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						cIP_c[sh] = scvf.shape(sh, 0);
+						cIP_c[sh] = scvf.shape(sh);
 				}
 			}
 		}
@@ -713,14 +713,14 @@ compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
 
 				VecSet(cIP, 0.0);
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh, 0));
+					VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh));
 
 				if(compDeriv)
 				{
 					MathVector<dim>* cIP_c = m_exConcentrationGrad.deriv(s, ip, _C_);
 
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						cIP_c[sh] = scvf.global_grad(sh, 0);
+						cIP_c[sh] = scvf.global_grad(sh);
 				}
 			}
 		}
