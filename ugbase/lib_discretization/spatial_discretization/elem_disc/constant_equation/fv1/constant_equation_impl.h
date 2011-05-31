@@ -34,13 +34,13 @@ prepare_element_loop()
 //	set local positions for rhs
 	if(!TFVGeom<TElem, dim>::usesHangingNodes)
 	{
-		TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+		TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
-		                   	                      geo.num_scvf_local_ips());
+		                   	                      geo.num_scvf_ips());
 		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
-		               		                      geo.num_scv_local_ips());
+		               		                      geo.num_scv_ips());
 		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
-		                                           geo.num_scv_local_ips());
+		                                           geo.num_scv_ips());
 	}
 
 //	we're done
@@ -88,7 +88,7 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
 		UG_LOG("FVConstantEquationElemDisc::prepare_element:"
@@ -99,17 +99,17 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	if(TFVGeom<TElem, dim>::usesHangingNodes)
 	{
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
-												  geo.num_scvf_local_ips());
+												  geo.num_scvf_ips());
 		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
-												  geo.num_scv_local_ips());
+												  geo.num_scv_ips());
 		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
-												   geo.num_scv_local_ips());
+												   geo.num_scv_ips());
 	}
 
 //	set global positions for rhs
-	m_imVelocity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
-	m_imSource.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
-	m_imMassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_imVelocity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
+	m_imSource.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
+	m_imMassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 
 //	we're done
 	return true;
@@ -147,8 +147,7 @@ FVConstantEquationElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	static TFVGeom<TElem, dim>& geo
-			= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo	= GeomProvider::get<TFVGeom<TElem,dim> >();
 
 //	check if data given
 	if(!m_imVelocity.data_given()) return true;
@@ -180,8 +179,7 @@ FVConstantEquationElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	static TFVGeom<TElem, dim>& geo
-		= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -219,8 +217,8 @@ assemble_f(local_vector_type& d)
 	if(!m_imSource.data_given()) return true;
 
 // 	get finite volume geometry
-	static TFVGeom<TElem, dim>& geo
-		= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo
+		= GeomProvider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -248,7 +246,7 @@ FVConstantEquationElemDisc<TDomain, TAlgebra>::
 lin_defect_velocity(const local_vector_type& u)
 {
 //  get finite volume geometry
-	static TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 //	reset the values for the linearized defect
 	m_imVelocity.clear_lin_defect();
@@ -279,7 +277,7 @@ FVConstantEquationElemDisc<TDomain, TAlgebra>::
 lin_defect_source(const local_vector_type& u)
 {
 //  get finite volume geometry
-	static TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -306,8 +304,7 @@ FVConstantEquationElemDisc<TDomain, TAlgebra>::
 lin_defect_mass_scale(const local_vector_type& u)
 {
 // 	get finite volume geometry
-	static TFVGeom<TElem, dim>& geo
-							= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo	= GeomProvider::get<TFVGeom<TElem,dim> >();
 
 //	reset all values
 	m_imMassScale.clear_lin_defect();
@@ -337,8 +334,7 @@ FVConstantEquationElemDisc<TDomain, TAlgebra>::
 compute_concentration_export(const local_vector_type& u, bool compDeriv)
 {
 //  get finite volume geometry
-	static TFVGeom<TElem, dim>& geo
-						= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -418,8 +414,7 @@ FVConstantEquationElemDisc<TDomain, TAlgebra>::
 compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const TFVGeom<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	static const TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 //	get reference element dimension
 	static const size_t refDim = TFVGeom<TElem, dim>::dim;

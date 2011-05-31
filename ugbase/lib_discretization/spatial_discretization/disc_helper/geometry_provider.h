@@ -14,20 +14,25 @@
 
 namespace ug{
 
-// Singleton, holding a Finite Volume Geometry
-class FVGeometryProvider {
+/// Singleton, holding a Geometry for Discretization
+/**
+ * This class is used to wrap discretization geometries into a singleton, such
+ * that every building-block uses the same geometry if they need the same. By
+ * this double computations is avoided.
+ */
+class GeomProvider {
 
-		// private constructor
-		FVGeometryProvider();
+	// 	private constructor
+		GeomProvider();
 
-		// disallow copy and assignment (intentionally left unimplemented)
-		FVGeometryProvider(const FVGeometryProvider&);
-		FVGeometryProvider& operator=(const FVGeometryProvider&);
+	// 	disallow copy and assignment (intentionally left unimplemented)
+		GeomProvider(const GeomProvider&);
+		GeomProvider& operator=(const GeomProvider&);
 
-		// private destructor
-		~FVGeometryProvider(){};
+	// 	private destructor
+		~GeomProvider(){};
 
-		// geometry provider
+	// 	geometry provider, holding the instance
 		template <typename TFVGeom>
 		inline static TFVGeom& inst()
 		{
@@ -36,18 +41,9 @@ class FVGeometryProvider {
 		};
 
 	public:
-		// get the local shape function set for a given reference element and id
-		template <template <class TElem, int TWorldDim> class TFVGeom, typename TElem, int TWorldDim>
-		inline static TFVGeom<TElem, TWorldDim>& get_geom()
-		{
-			return inst<TFVGeom<TElem, TWorldDim> >();
-		}
-
+	///	returns access to the singleton
 		template <typename TFVGeom>
-		inline static TFVGeom& get_geom()
-		{
-			return inst<TFVGeom>();
-		}
+		inline static TFVGeom& get() {	return inst<TFVGeom>();}
 };
 
 } // end namespace ug

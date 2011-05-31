@@ -37,7 +37,7 @@ prepare_element_loop()
 	static const int refDim = ref_elem_type::dim;
 
 //	set local positions for rhs
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 	m_imDiffusion.template 	set_local_ips<refDim>(geo.local_ips(),
 											  geo.num_ip());
 	m_imVelocity.template 	set_local_ips<refDim>(geo.local_ips(),
@@ -96,7 +96,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 	// update Geometry for this element
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 	if(!geo.update(&m_vCornerCoords[0]))
 	{
 		UG_LOG("FE1ConvectionDiffusionElemDisc::prepare_element:"
@@ -121,7 +121,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 
 	MathVector<dim> v, Dgrad;
 
@@ -165,7 +165,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
@@ -200,7 +200,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v, Dgrad_u, grad_u;
 
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
@@ -247,7 +247,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 
 	number shape_u;
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -279,7 +279,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d)
 {
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 
 	if(!m_imSource.data_given()) return true;
 

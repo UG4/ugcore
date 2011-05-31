@@ -200,6 +200,9 @@ class FV1Geometry : public FVGeometryBase {
 			// The computed normal points in direction from->to
 				size_t m_from, m_to;
 
+			//	The normal on the SCVF pointing (from -> to)
+				MathVector<world_dim> Normal; // normal (incl. area)
+
 			// ordering is:
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
@@ -211,7 +214,6 @@ class FV1Geometry : public FVGeometryBase {
 			// scvf part
 				MathVector<dim> localIP; // local integration point
 				MathVector<world_dim> globalIP; // global intergration point
-				MathVector<world_dim> Normal; // normal (incl. area)
 
 			// shapes and derivatives
 				number vShape[nsh]; // shapes at ip
@@ -267,12 +269,19 @@ class FV1Geometry : public FVGeometryBase {
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vGloPos[co];}
 
 			private:
-				size_t nodeId; // node id of associated node
+			//  node id of associated node
+				size_t nodeId;
+
+			//	volume of scv
+				number vol;
+
+			//	number of corners of this element
 				size_t m_numCorners;
+
+			//	local and global positions of this element
 				MathVector<dim> m_vLocPos[maxNumCorners]; // local position of node
 				MathVector<world_dim> m_vGloPos[maxNumCorners]; // global position of node
 				MidID midId[maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
-				number vol;
 		};
 
 	///	boundary face
@@ -387,74 +396,68 @@ class FV1Geometry : public FVGeometryBase {
 		};
 
 	public:
-		/// construct object and initialize local values and sizes
+	/// construct object and initialize local values and sizes
 		FV1Geometry();
 
-		/// update data for given element
+	/// update data for given element
 		bool update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords);
 
-		/// get vector of corners for current element
+	/// get vector of corners for current element
 		const MathVector<world_dim>* corners() const {return m_gloMid[0];}
 
-		/// number of SubControlVolumeFaces
+	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return numSCVF;};
 
-		/// const access to SubControlVolumeFace number i
+	/// const access to SubControlVolumeFace number i
 		inline const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
-		/// number of SubControlVolumes
+	/// number of SubControlVolumes
 		inline size_t num_scv() const {return numSCV;}
 
-		/// const access to SubControlVolume number i
+	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
 	public:
-		/// returns all ips of scvf as they appear in scv loop
-		const MathVector<world_dim>* scvf_global_ips() const {return &m_vGlobSCVFIP[0];}
+	/// returns number of all scvf ips
+		size_t num_scvf_ips() const {return numSCVF;}
 
-		/// returns number of all scvf ips
-		size_t num_scvf_global_ips() const {return m_vGlobSCVFIP.size();}
+	/// returns all ips of scvf as they appear in scv loop
+		const MathVector<dim>* scvf_local_ips() const {return m_vLocSCVF_IP;}
 
-		/// returns all ips of scvf as they appear in scv loop
-		const MathVector<dim>* scvf_local_ips() const {return &m_vLocSCVFIP[0];}
+	/// returns all ips of scvf as they appear in scv loop
+		const MathVector<world_dim>* scvf_global_ips() const {return m_vGlobSCVF_IP;}
 
-		/// returns number of all scvf ips
-		size_t num_scvf_local_ips() const {return m_vLocSCVFIP.size();}
+	/// returns number of all scv ips
+		size_t num_scv_ips() const {return numSCV;}
 
-		/// returns all ips of scv as they appear in scv loop
-		const MathVector<world_dim>* scv_global_ips() const {return &m_vGlobSCVIP[0];}
+	/// returns all ips of scv as they appear in scv loop
+		const MathVector<dim>* scv_local_ips() const {return &(m_locMid[0][0]);}
 
-		/// returns number of all scv ips
-		size_t num_scv_global_ips() const {return m_vGlobSCVIP.size();}
+	/// returns all ips of scv as they appear in scv loop
+		const MathVector<world_dim>* scv_global_ips() const {return &(m_gloMid[0][0]);}
 
-		/// returns all ips of scv as they appear in scv loop
-		const MathVector<dim>* scv_local_ips() const {return &m_vLocSCVIP[0];}
-
-		/// returns number of all scv ips
-		size_t num_scv_local_ips() const {return m_vLocSCVIP.size();}
 
 	protected:
-		std::vector<MathVector<world_dim> > m_vGlobSCVFIP;
-		std::vector<MathVector<dim> > m_vLocSCVFIP;
-		std::vector<MathVector<world_dim> > m_vGlobSCVIP;
-		std::vector<MathVector<dim> > m_vLocSCVIP;
+	//	global and local ips on SCVF
+		MathVector<world_dim> m_vGlobSCVF_IP[numSCVF];
+		MathVector<dim> m_vLocSCVF_IP[numSCVF];
 
 	public:
-		/// add subset that is interpreted as boundary subset.
+	/// add subset that is interpreted as boundary subset.
 		inline void add_boundary_subset(int subsetIndex) {m_mapVectorBF[subsetIndex];}
 
-		/// removes subset that is interpreted as boundary subset.
+	/// removes subset that is interpreted as boundary subset.
 		inline void remove_boundary_subset(int subsetIndex) {m_mapVectorBF.erase(subsetIndex);}
 
-		/// reset all boundary subsets
+	/// reset all boundary subsets
 		inline void clear_boundary_subsets() {m_mapVectorBF.clear();}
 
-		/// number of registered boundary subsets
+	/// number of registered boundary subsets
 		inline size_t num_boundary_subsets() {return m_mapVectorBF.size();}
 
-		/// number of all boundary faces
+	/// number of all boundary faces
 		inline size_t num_bf() const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
@@ -464,7 +467,7 @@ class FV1Geometry : public FVGeometryBase {
 			return num;
 		}
 
-		/// number of boundary faces on subset 'subsetIndex'
+	/// number of boundary faces on subset 'subsetIndex'
 		inline size_t num_bf(int subsetIndex) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
@@ -472,7 +475,7 @@ class FV1Geometry : public FVGeometryBase {
 			return (*it).second.size();
 		}
 
-		/// returns the boundary face i for subsetIndex
+	/// returns the boundary face i for subsetIndex
 		inline const BF& bf(int subsetIndex, size_t i) const
 		{
 			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
@@ -481,7 +484,7 @@ class FV1Geometry : public FVGeometryBase {
 			return (*it).second[i];
 		}
 
-		/// returns reference to vector of boundary faces for subsetIndex
+	/// returns reference to vector of boundary faces for subsetIndex
 		inline const std::vector<BF>& bf(int subsetIndex) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
@@ -554,24 +557,24 @@ class FV1Geometry : public FVGeometryBase {
 		}
 
 	private:
-		// pointer to current element
+	///	pointer to current element
 		TElem* m_pElem;
 
-		// local and global geom object midpoints for each dimension
-		// (most objects in 1 dim, i.e. number of edges, but +1 for 1D)
+	// 	local and global geom object midpoints for each dimension
+	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
 		MathVector<dim> m_locMid[dim+1][numSCVF + 1];
 		MathVector<world_dim> m_gloMid[dim+1][numSCVF +1];
 
-		// SubControlVolumeFaces
+	// 	SubControlVolumeFaces
 		SCVF m_vSCVF[numSCVF];
 
-		// SubControlVolumes
+	// 	SubControlVolumes
 		SCV m_vSCV[numSCV];
 
-		// Reference Mapping
+	// 	Reference Mapping
 		ReferenceMapping<ref_elem_type, world_dim> m_rMapping;
 
-		// Reference Element
+	// 	Reference Element
 		const ref_elem_type& m_rRefElem;
 };
 

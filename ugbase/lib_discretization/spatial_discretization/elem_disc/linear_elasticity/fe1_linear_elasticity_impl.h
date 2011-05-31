@@ -70,7 +70,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	m_corners = this->template get_element_corners<TElem>(elem);
 
 // 	update Geometry for this element
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 	if(!geo.update(m_corners))
 		{UG_LOG("FE1LinearElasticityElemDisc::prepare_element:"
 				" Cannot update Finite Element Geometry.\n"); return false;}
@@ -85,7 +85,7 @@ bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 
 	for(size_t i = 0; i < geo.num_sh(); ++i) // loop corner
 	{
@@ -126,7 +126,7 @@ bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get(1);
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{

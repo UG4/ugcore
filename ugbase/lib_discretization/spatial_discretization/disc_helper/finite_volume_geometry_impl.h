@@ -141,26 +141,14 @@ FV1Geometry()
 	// Copy ip pos in list
 	///////////////////////////
 
-// 	loop Sub Control Volumes (SCV)
-	m_vLocSCVIP.clear();
-	for(size_t i = 0; i < num_scv(); ++i)
-	{
-	//	get current SCV
-		const SCV& rSCV = scv(i);
-
-	// 	loop ips
-		m_vLocSCVIP.push_back(rSCV.local_ip());
-	}
-
 // 	loop Sub Control Volumes Faces (SCVF)
-	m_vLocSCVFIP.clear();
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 	//	get current SCVF
 		const SCVF& rSCVF = scvf(i);
 
 	// 	loop ips
-		m_vLocSCVFIP.push_back(rSCVF.local_ip());
+		m_vLocSCVF_IP[i] = rSCVF.local_ip();
 	}
 }
 
@@ -266,25 +254,13 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 	// Copy ip pos in list
 	///////////////////////////
 
-// 	loop Sub Control Volumes (SCV)
-	m_vGlobSCVIP.clear();
-	for(size_t i = 0; i < num_scv(); ++i)
-	{
-	//	get current SCV
-		const SCV& rSCV = scv(i);
-
-	// 	loop ips
-		m_vGlobSCVIP.push_back(rSCV.global_ip());
-	}
-
 // 	loop Sub Control Volumes Faces (SCVF)
-	m_vGlobSCVFIP.clear();
-	for(size_t i = 0; i < num_scvf(); ++i)
+	for(size_t i = 0; i < numSCVF; ++i)
 	{
 	//	get current SCVF
 		const SCVF& rSCVF = scvf(i);
 
-		m_vGlobSCVFIP.push_back(rSCVF.global_ip());
+		m_vGlobSCVF_IP[i] = rSCVF.global_ip();
 	}
 
 	/////////////////////////

@@ -82,7 +82,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 	// update Geometry for this element
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
+	TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem, dim> >();
 	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
 		UG_LOG("ERROR in 'FVInnerBoundaryElemDisc::prepare_element: "
@@ -102,7 +102,7 @@ FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	// get finite volume geometry
-	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& fvgeom = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
@@ -205,7 +205,7 @@ FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// get finite volume geometry
-	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	static TFVGeom<TElem, dim>& fvgeom = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 	// loop Boundary Faces
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)

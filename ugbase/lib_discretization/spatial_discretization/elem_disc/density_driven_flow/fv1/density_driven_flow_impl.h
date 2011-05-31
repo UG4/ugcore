@@ -102,8 +102,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 compute_darcy_export_std(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -185,8 +184,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -307,8 +305,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 compute_brine_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -388,8 +385,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 compute_brine_grad_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const int refDim = FV1Geometry<TElem, dim>::dim;
@@ -444,8 +440,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 compute_pressure_grad_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const int refDim = FV1Geometry<TElem, dim>::dim;
@@ -613,10 +608,10 @@ prepare_element_loop()
 
 
 //	set local positions for user data
-	FV1Geometry<TElem, dim>& geo = FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	FV1Geometry<TElem, dim>& geo = GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 	const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
-	size_t numSCVFip = geo.num_scvf_local_ips();
+	size_t numSCVFip = geo.num_scvf_ips();
 	m_imBrineScvf.			template set_local_ips<refDim>(vSCVFip, numSCVFip);
 	m_imBrineGradScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip);
 	m_imPressureGradScvf.	template set_local_ips<refDim>(vSCVFip, numSCVFip);
@@ -628,7 +623,7 @@ prepare_element_loop()
 	m_imDarcyVelScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip);
 
 	const MathVector<refDim>* vSCVip = geo.scv_local_ips();
-	size_t numSCVip = geo.num_scv_local_ips();
+	size_t numSCVip = geo.num_scv_ips();
 	m_imPorosityScv.	template set_local_ips<refDim>(vSCVip, numSCVip);
 	m_imDensityScv.		template set_local_ips<refDim>(vSCVip, numSCVip);
 
@@ -682,8 +677,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
-	static FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static FV1Geometry<TElem, dim>& geo = GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
@@ -693,7 +687,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 
 //	set global positions for user data
 	const MathVector<dim>* vSCVFip = geo.scvf_global_ips();
-	size_t numSCVFip = geo.num_scvf_global_ips();
+	size_t numSCVFip = geo.num_scvf_ips();
 	m_imBrineScvf.			set_global_ips(vSCVFip, numSCVFip);
 	m_imBrineGradScvf.		set_global_ips(vSCVFip, numSCVFip);
 	m_imPressureGradScvf.	set_global_ips(vSCVFip, numSCVFip);
@@ -705,7 +699,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	m_imDarcyVelScvf.		set_global_ips(vSCVFip, numSCVFip);
 
 	const MathVector<dim>* vSCVip = geo.scv_global_ips();
-	size_t numSCVip = geo.num_scv_global_ips();
+	size_t numSCVip = geo.num_scv_ips();
 	m_imPorosityScv.		set_global_ips(vSCVip, numSCVip);
 	m_imDensityScv.			set_global_ips(vSCVip, numSCVip);
 
@@ -720,8 +714,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 //	static numbers, known at compile-time
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -864,8 +857,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 //	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-			FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 //	number of subcontrol volume faces
 	static const size_t numScvf = FV1Geometry<TElem, dim>::numSCVF;
@@ -945,8 +937,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -988,8 +979,7 @@ DensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =
-				FVGeometryProvider::get_geom<FV1Geometry, TElem,dim>();
+	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
 
 // 	Loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)

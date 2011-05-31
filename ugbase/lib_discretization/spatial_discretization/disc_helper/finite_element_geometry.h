@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 
 #include "lib_discretization/quadrature/quadrature.h"
+#include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
 #include <cmath>
 
 namespace ug{
@@ -191,7 +192,7 @@ class FEGeometryProvider
 		}
 
 	public:
-		static FEGeometry<TElem, TWorldDim>& get_geom(int order)
+		static FEGeometry<TElem, TWorldDim>& get(int order)
 		{
 			UG_ASSERT(order == 1, "Currently only order 1 implemented.");
 			return geom<1>();

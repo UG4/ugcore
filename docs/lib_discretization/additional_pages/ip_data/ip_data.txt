@@ -90,7 +90,7 @@ prepare_element_loop()
 
 //	set local positions
 	m_Diff.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
-	                                                 geo.num_scvf_local_ips());
+	                                                 geo.num_scvf_ips());
 }
 \endcode
 
@@ -122,7 +122,7 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	}
 
 //	set global positions for rhs
-	m_Diff.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
+	m_Diff.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 }
 \endcode
 

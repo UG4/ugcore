@@ -90,11 +90,11 @@ prepare_element_loop()
 
 	if(!TFVGeom<TElem, dim>::usesHangingNodes)
 	{
-		TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+		TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 		m_imKinViscosity.template set_local_ips<refDim>(geo.scvf_local_ips(),
-		                                                geo.num_scvf_local_ips());
+		                                                geo.num_scvf_ips());
 		m_imSource.template set_local_ips<refDim>(geo.scv_local_ips(),
-		                                          geo.num_scv_local_ips());
+		                                          geo.num_scv_ips());
 	}
 
 //	we're done
@@ -137,7 +137,7 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
+	TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem, dim> >();
 	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
 		UG_LOG("FVNavierStokesElemDisc::prepare_element:"
@@ -154,14 +154,14 @@ prepare_element(TElem* elem, const local_vector_type& u,
 
 	//	request ip series
 		m_imKinViscosity.template set_local_ips<refDim>(geo.scvf_local_ips(),
-		                                                geo.num_scvf_local_ips());
+		                                                geo.num_scvf_ips());
 		m_imSource.template set_local_ips<refDim>(geo.scv_local_ips(),
-		                                          geo.num_scv_local_ips());
+		                                          geo.num_scv_ips());
 	}
 
 //	set global positions for imports
-	m_imKinViscosity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
-	m_imSource.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_imKinViscosity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
+	m_imSource.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 
 //	we're done
 	return true;
@@ -177,7 +177,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
 // 	get finite volume geometry
-	static const TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
+	static const TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem, dim> >();
 
 //	check for source term to pass to the stabilization
 	const DataImport<MathVector<dim>, dim, TAlgebra>* pSource = NULL;
@@ -509,7 +509,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
 // 	get finite volume geometry
-	static const TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
+	static const TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem, dim> >();
 
 //	check for source term to pass to the stabilization
 	const DataImport<MathVector<dim>, dim, TAlgebra>* pSource = NULL;
@@ -708,7 +708,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
 // 	get finite volume geometry
-	static TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0; i < geo.num_scv(); ++i)
@@ -742,7 +742,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
 // 	get finite volume geometry
-	static TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0; i < geo.num_scv(); ++i)
@@ -779,8 +779,7 @@ assemble_f(local_vector_type& d)
 	if(!m_imSource.data_given()) return true;
 
 // 	get finite volume geometry
-	static TFVGeom<TElem, dim>& geo
-		= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ep = 0; ep < geo.num_scv(); ++ep)
