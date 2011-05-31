@@ -150,6 +150,48 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
+-- creates FV1ConvDiff
+function util.CreateFV1ThermohalineFlow(approxSpace, functions, subsets)
+	local domain = approxSpace:get_domain()
+	local dim = domain:get_dim()
+	local elemDisc
+	if dim == 1 then
+		elemDisc = FV1ThermohalineFlow1d()
+	elseif dim == 2 then
+		elemDisc = FV1ThermohalineFlow2d()
+	elseif dim == 3 then
+		elemDisc = FV1ThermohalineFlow3d()
+	else
+	return nil
+	end
+	
+	elemDisc:set_approximation_space(approxSpace)
+	elemDisc:set_subsets(subsets)
+	elemDisc:set_functions(functions)
+	return elemDisc
+end
+
+-- creates FV1ConstEq
+function util.CreateFV1ConstEq(approxSpace, functions, subsets)
+	local domain = approxSpace:get_domain()
+	local dim = domain:get_dim()
+	local elemDisc
+	if dim == 1 then
+		elemDisc = FV1ConstantEquation1d()
+	elseif dim == 2 then
+		elemDisc = FV1ConstantEquation2d()
+	elseif dim == 3 then
+		elemDisc = FV1ConstantEquation3d()
+	else
+	return nil
+	end
+	
+	elemDisc:set_approximation_space(approxSpace)
+	elemDisc:set_subsets(subsets)
+	elemDisc:set_functions(functions)
+	return elemDisc
+end
+
 function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
 	local dim = domain:get_dim()
@@ -168,6 +210,37 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc
+end
+
+function util.CreateUpwind(type, dim)
+	local upwind
+	
+	if type == "no" then
+		if 		dim == 1 then upwind = NoUpwind1d()
+		elseif	dim == 2 then upwind = NoUpwind2d()
+		elseif 	dim == 3 then upwind = NoUpwind3d()
+		else return nil end
+	elseif type == "full" then
+		if 		dim == 1 then upwind = FullUpwind1d()
+		elseif	dim == 2 then upwind = FullUpwind2d()
+		elseif 	dim == 3 then upwind = FullUpwind3d()
+		else return nil end
+	elseif type == "part" then
+		if 		dim == 1 then upwind = PartialUpwind1d()
+		elseif	dim == 2 then upwind = PartialUpwind2d()
+		elseif 	dim == 3 then upwind = PartialUpwind3d()
+		else return nil end
+	elseif type == "weighted" then
+		if 		dim == 1 then upwind = WeightedUpwind1d()
+		elseif	dim == 2 then upwind = WeightedUpwind2d()
+		elseif 	dim == 3 then upwind = WeightedUpwind3d()
+		else return nil end
+	else
+		print("Type of Upwind not recognized. Aborting.")
+		exit();
+	end
+		
+	return upwind
 end
 
 -- create Geometric Multigrid
@@ -467,6 +540,18 @@ function util.CreateNavierStokesFIELDSStabilization(dim)
 
 	return stab
 end
+
+-- creates DarcyVelocityLinker
+function util.CreateDarcyVelocityLinker(dim)
+	local vel
+	if     dim == 1 then vel = DarcyVelocityLinker1d()
+	elseif dim == 2 then vel = DarcyVelocityLinker2d()
+	elseif dim == 3 then vel = DarcyVelocityLinker3d()
+	else return nil end
+
+	return vel
+end
+
 
 --- util.CheckSubsets
 -- checks if all required subsets are contained in the SubsetHandler

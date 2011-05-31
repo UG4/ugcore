@@ -139,52 +139,9 @@ end
 -- User Data Functions (end)
 --------------------------------
 
--- create Instance of a Domain
-print("Create Domain.")
-dom = util.CreateDomain(dim)
-
--- load domain
-print("Load Domain from File.")
-if util.LoadDomain(dom, gridName) == false then
-	print("Loading Domain failed.")
-	exit()
-end
-
--- create Refiner
-print("Create Refiner")
-if numPreRefs > numRefs then
-print("numPreRefs must be smaller/equal than numRefs");
-exit();
-end
-
-refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
-for i=1,numPreRefs do
-refiner:refine()
-end
-
-if DistributeDomain(dom) == false then
-print("Error while Distributing Grid.")
-exit()
-end
-
-print("Refine Parallel Grid")
-for i=numPreRefs+1,numRefs do
---refiner:refine()
-util.GlobalRefineParallelDomain(dom)
-end
-
--- get subset handler
-sh = dom:get_subset_handler()
-if sh:num_subsets() ~= 2 then 
-	print("Domain must have 2 Subsets for this problem.")
-	exit()
-end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("Boundary", 1)
-
--- write grid to file for test purpose
-SaveDomain(dom, "refined_grid.ugx")
+-- Create, Load, Refine and Distribute Domain
+neededSubsets = {"Inner", "Boundary"}
+dom = util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubsets)
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -279,13 +236,7 @@ elemDisc:set_boussinesq_flow(true)
 
 
 -- Select upwind
-if dim == 2 then 
---upwind = NoUpwind2d()
---upwind = FullUpwind2d()
---upwind = WeightedUpwind2d(); upwind:set_weight(0.5)
-upwind = PartialUpwind2d()
-else print("Dim not supported for upwind"); exit() end
-
+upwind = util.CreateUpwind("part", dim)
 if elemDisc:set_upwind(upwind) == false then exit() end
 
 

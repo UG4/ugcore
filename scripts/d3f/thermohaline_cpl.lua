@@ -58,15 +58,13 @@ end
 --  Constants
 --------------------------------------------------------------------------------
 
-local scale = 1 / 1e8
-
 local phi = 0.1
 local permeability = 5e-12
 local molDiffusion = 1e-8
-local thermalConductivity = 1.8 * scale
+local thermalConductivity = 1.8
 
-local C_s = 1e3  * scale
-local C_f = 4.184e3 * scale
+local C_s = 1e3
+local C_f = 4.184e3
 
 local rho_ref = 1e3
 local rho_s = 2.650e3
@@ -79,6 +77,8 @@ local alpha_b = 8.13e-4
 
 local theta_w = 523.15
 local theta_b = 563.15
+
+local mass_scale = phi * rho_ref * C_f + (1-phi)* rho_s * C_s
 
 wQ = 0.0
 tQ = 473.15
@@ -106,6 +106,9 @@ Porosity = util.CreateConstUserNumber(phi, dim)
 -- Diffusion
 --MolecularDiffusion = util.CreateConstDiagUserMatrix(molDiffusion, dim)
 DiffDisp = util.CreateConstDiagUserMatrix(molDiffusion, dim)
+
+-- Mass Scale
+TempMassScale = util.CreateConstUserNumber(mass_scale, dim);
 
 --------------------------------------------------------------------------------
 --  Density
@@ -150,6 +153,8 @@ Density:set_lua_value_callback("DensityFct", 2);
 Density:set_lua_deriv_callback(0, "DDensityFct_c");
 Density:set_lua_deriv_callback(1, "DDensityFct_T");
 
+--Density = ElderDensityLinker2d()
+
 --------------------------------------------------------------------------------
 --  Darcy Velocity
 --------------------------------------------------------------------------------
@@ -170,6 +175,11 @@ DarcyVelocity:set_viscosity(Viscosity)
 DarcyVelocity:set_density(Density)
 DarcyVelocity:set_gravity(Gravity)
 
+-- set the product Density * Porosity (only Porosity for Bussinesq)
+rhophi = Porosity
+--rhophi = ScaleAddLinkerNumber2d()
+--rhophi:add(Porosity, RefDensity)
+
 --------------------------------------------------------------------------------
 --  Coefficients for Heat Equation
 --------------------------------------------------------------------------------
@@ -177,35 +187,39 @@ DarcyVelocity:set_gravity(Gravity)
 -- Diffusion
 ThermoDisp = util.CreateConstDiagUserMatrix(thermalConductivity, dim)
 
+C_fValue = util.CreateConstUserNumber(C_f * rho_ref, dim)
+C_f_DarcyVel = ScaleAddLinkerVector2d()
+C_f_DarcyVel:add(C_fValue, DarcyVelocity)
+
 --------------------------------------------------------------------------------
 --  Setup FV Element Discretization
 --------------------------------------------------------------------------------
 
-upwindBrineTransport = util.CreateUpwind("part", dim)
-upwindTempTransport = util.CreateUpwind("no", dim)
+FlowEq = util.CreateFV1ConstEq(approxSpace, "p", "Inner")
+FlowEq:set_mass_scale(rhophi)
+FlowEq:set_velocity(DarcyVelocity)
+print("Flow Equation created.")
 
-ThermohalineEq = util.CreateFV1ThermohalineFlow(approxSpace, "c, p, T", "Inner")
-ThermohalineEq:set_upwind(upwindBrineTransport)
-ThermohalineEq:set_upwind_energy(upwindTempTransport)
-ThermohalineEq:set_consistent_gravity(true)
-ThermohalineEq:set_boussinesq_transport(true)
-ThermohalineEq:set_boussinesq_flow(true)
-ThermohalineEq:set_boussinesq_density(rho_ref)
-ThermohalineEq:set_porosity(Porosity)
-ThermohalineEq:set_gravity(Gravity)
-ThermohalineEq:set_permeability(Permeability)
-ThermohalineEq:set_thermal_conductivity(ThermoDisp)
-ThermohalineEq:set_molecular_diffusion(DiffDisp)
-ThermohalineEq:set_density(Density)
-ThermohalineEq:set_viscosity(Viscosity)
-ThermohalineEq:set_heat_capacity_fluid(C_f)
-ThermohalineEq:set_heat_capacity_solid(C_s)
-ThermohalineEq:set_mass_density_solid(rho_s)
+TransportEq = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
+upwind = util.CreateUpwind("part", dim)
+TransportEq:set_upwind(upwind)
+TransportEq:set_mass_scale(rhophi)
+TransportEq:set_velocity_field(DarcyVelocity)
+TransportEq:set_diffusion_tensor(DiffDisp)
+print("Transport Equation created.")
+
+EnergyEq = util.CreateFV1ConvDiff(approxSpace, "T", "Inner")
+upwindTemp = util.CreateUpwind("part", dim)
+EnergyEq:set_upwind(upwindTemp)
+EnergyEq:set_mass_scale(TempMassScale)
+EnergyEq:set_velocity_field(C_f_DarcyVel)
+EnergyEq:set_diffusion_tensor(ThermoDisp)
+print("Transport Equation created.")
 
 
-Density:set_input(0, ThermohalineEq:get_brine())
-Density:set_input(1, ThermohalineEq:get_temperature())
-DarcyVelocity:set_pressure_gradient(ThermohalineEq:get_pressure_grad())
+Density:set_input(0, TransportEq:get_concentration())
+Density:set_input(1, EnergyEq:get_concentration())
+DarcyVelocity:set_pressure_gradient(FlowEq:get_concentration_grad())
 
 --------------------------------------------------------------------------------
 --  Boundary Conditions
@@ -240,7 +254,9 @@ dirichletBND:add_boundary_value(PressureDirichlet, "p", "Top")
 domainDisc = DomainDiscretization()
 
 -- add Element Discretization to discretization
-domainDisc:add_elem_disc(ThermohalineEq)
+domainDisc:add_elem_disc(TransportEq)
+domainDisc:add_elem_disc(FlowEq)
+domainDisc:add_elem_disc(EnergyEq)
 domainDisc:add_post_process(dirichletBND)
 
 --------------------------------------------------------------------------------
@@ -352,9 +368,9 @@ bicgstabSolver:set_convergence_check(convCheck)
 
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()
-newtonConvCheck:set_maximum_steps(15)
+newtonConvCheck:set_maximum_steps(10)
 newtonConvCheck:set_minimum_defect(5e-8)
-newtonConvCheck:set_reduction(1e-20)
+newtonConvCheck:set_reduction(1e-10)
 newtonConvCheck:set_verbose_level(true)
 
 newtonLineSearch = StandardLineSearch()
@@ -363,8 +379,8 @@ newtonLineSearch = StandardLineSearch()
 newtonSolver = NewtonSolver()
 newtonSolver:set_linear_solver(bicgstabSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
---newtonSolver:set_line_search(newtonLineSearch)
---newtonSolver:set_debug(dbgWriter)
+newtonSolver:set_line_search(newtonLineSearch)
+newtonSolver:set_debug(dbgWriter)
 
 newtonSolver:init(op)
 

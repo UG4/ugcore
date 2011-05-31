@@ -1,12 +1,12 @@
 /*
- * density_driven_flow.h
+ * thermohaline_flow.h
  *
- *  Created on: 26.02.2010
+ *  Created on: 20.05.2011
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__DENSITY_DRIVEN_FLOW__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__DENSITY_DRIVEN_FLOW__
+#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__THERMOHALINE_FLOW__FV1__THERMOHALINE_FLOW__
+#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__THERMOHALINE_FLOW__FV1__THERMOHALINE_FLOW__
 
 // other ug4 modules
 #include "common/common.h"
@@ -29,19 +29,23 @@ namespace ug{
 /// \ingroup lib_disc_elem_disc
 /// @{
 
-/// Finite Volume Element Discretization for Density Driven Flow
+/// Finite Volume Element Discretization for Thermohaline Flow
 /**
- * This class implements the IElemDisc interface for the density driven
- * flow equations. It is a system of two coupled equations of the form.
+ * This class implements the IElemDisc interface for the thermohaline
+ * flow equations. It is a system of three coupled equations of the form.
  * \f{align*}
  * 	\partial_t (\phi \rho) + \nabla(\rho \vec{q}) &= 0\\
  * 	\partial_t (\phi \rho c) - \nabla(\rho D \nabla c -\rho c \vec{q}) &= 0\\
+ * 	\vec{q} &:= - \frac{K}{\mu}(\nabla p - \rho \vec{g})
+ * 	\partial_t \left( (\phi \rho C_f + (1-\phi) \rho_s C_s) \theta \right)
+ *  - \nabla( \Lambda_c \nabla \theta - \rho C_f \vec{q} \theta) &= 0\\
  * 	\vec{q} &:= - \frac{K}{\mu}(\nabla p - \rho \vec{g})
  * \f}
  * with
  * <ul>
  * <li> \f$ c \f$		unknown brine mass fraction
  * <li>	\f$ p \f$ 		unknown pressure
+ * <li>	\f$ \theta \f$ 		unknown temperature
  * </ul>
  * and given data
  * <ul>
@@ -54,6 +58,10 @@ namespace ug{
  * <li>	\f$ D_d(\vec{x}, t) \f$	molecular Diffusion tensor (prop. to Tortuosity)
  * <li>	\f$ \mu(c) \f$		Viscosity
  * <li>	\f$ \rho(c)\f$	Density
+ * <li>	\f$ \Lambda_c(\vec{x}, t) \f$	thermal Conductivity
+ * <li> \f$ C_s \f$		heat capacity of the solid-phase (rock)
+ * <li> \f$ C_f \f$		heat capacity of the fluid-phase
+ * <li> \f$ \rho_s \f$	mass density of the solid-phase (rock)
  * </ul>
  * as well as the abbreviation
  * <ul>
@@ -61,14 +69,14 @@ namespace ug{
  * </ul>
  *
  * The first equation is usually referred to as the flow equation. The second
- * equation is known as the transport equation.
+ * equation is known as the transport equation. The third equation is related
+ * to the conservation of energy.
  *
- * \tparam	TFVGeom		Finite Volume Geometry
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
 template<typename TDomain, typename TAlgebra>
-class DensityDrivenFlowElemDisc
+class ThermohalineFlowElemDisc
 	: public IDomainElemDisc<TDomain, TAlgebra>
 {
 	private:
@@ -99,11 +107,13 @@ class DensityDrivenFlowElemDisc
 
 	public:
 	///	Constructor
-		DensityDrivenFlowElemDisc() :
-			m_pUpwind(NULL), m_bConsGravity(true),
+		ThermohalineFlowElemDisc() :
+			m_pUpwind(NULL), m_pUpwindEnergy(NULL), m_bConsGravity(true),
 			m_BoussinesqTransport(true), m_BoussinesqFlow(true),
+			m_BoussinesqEnergy(false),
 			m_imBrineScvf(false), m_imBrineGradScvf(false),
 			m_imPressureGradScvf(false),
+			m_imTemperatureGradScvf(false),
 			m_imDensityScv(false), m_imDensityScvf(false),
 			m_imDarcyVelScvf(false)
 		{
@@ -117,6 +127,8 @@ class DensityDrivenFlowElemDisc
 			register_export(m_exBrine);
 			register_export(m_exBrineGrad);
 			register_export(m_exPressureGrad);
+			register_export(m_exTemperature);
+			register_export(m_exTemperatureGrad);
 
 		//	register import
 			register_import(m_imBrineScvf);
@@ -126,15 +138,18 @@ class DensityDrivenFlowElemDisc
 			register_import(m_imPorosityScv);
 			register_import(m_imPermeabilityScvf);
 			register_import(m_imMolDiffusionScvf);
+			register_import(m_imThermalCondictivityScvf);
 			register_import(m_imViscosityScvf);
 			register_import(m_imDensityScv);
 			register_import(m_imDensityScvf);
 			register_import(m_imDarcyVelScvf);
+			register_import(m_imTemperatureGradScvf);
 
 		//	connect to own export
 			m_imBrineScvf.set_data(m_exBrine);
 			m_imBrineGradScvf.set_data(m_exBrineGrad);
 			m_imPressureGradScvf.set_data(m_exPressureGrad);
+			m_imTemperatureGradScvf.set_data(m_exTemperatureGrad);
 			m_imDarcyVelScvf.set_data(m_exDarcyVel);
 		}
 
@@ -148,8 +163,15 @@ class DensityDrivenFlowElemDisc
 	///	sets usage of boussinesq approximation for transport equation
 		void set_boussinesq_transport(bool bUse) {m_BoussinesqTransport = bUse;}
 
-	///	sets usage of boussinesq approcimation for flow equation
+	///	sets usage of boussinesq approximation for flow equation
 		void set_boussinesq_flow(bool bUse) {m_BoussinesqFlow = bUse;}
+
+	///	sets reference density used for boussinesq flow
+		void set_boussinesq_density(number den)
+		{
+			m_BoussinesqDensity = den;
+			m_BoussinesqEnergy = true;
+		}
 
 	///	sets the type of upwind
 	/**
@@ -158,6 +180,15 @@ class DensityDrivenFlowElemDisc
 		void set_upwind(IConvectionShapes<dim>& shape)
 		{
 			m_pUpwind = &shape;
+		}
+
+	///	sets the type of upwind for the energy equation
+	/**
+	 * This method sets the procedure that compute the upwinded flux.
+	 */
+		void set_upwind_energy(IConvectionShapes<dim>& shape)
+		{
+			m_pUpwindEnergy = &shape;
 		}
 
 	///	sets the porosity
@@ -186,6 +217,15 @@ class DensityDrivenFlowElemDisc
 		void set_molecular_diffusion(IPData<MathMatrix<dim, dim>, dim>& user)
 		{
 			m_imMolDiffusionScvf.set_data(user);
+		}
+
+	///	sets the thermal conductivity tensor
+	/**
+	 * This method sets the thermal conductivity tensor.
+	 */
+		void set_thermal_conductivity(IPData<MathMatrix<dim, dim>, dim>& user)
+		{
+			m_imThermalCondictivityScvf.set_data(user);
 		}
 
 	///	sets the permeability tensor
@@ -225,9 +265,36 @@ class DensityDrivenFlowElemDisc
 			m_exDarcyVel.add_needed_data(data);
 		}
 
+	///	sets the heat capacity of the solid-phase
+	/**
+	 * This method sets the heat capacity of the solid-phase.
+	 */
+		void set_heat_capacity_solid(number data)
+		{
+			m_imHeatCapacitySolid = data;
+		}
+
+	///	sets the heat capacity of the fluid-phase
+	/**
+	 * This method sets the heat capacity of the fluid-phase.
+	 */
+		void set_heat_capacity_fluid(number data)
+		{
+			m_imHeatCapacityFluid = data;
+		}
+
+	///	sets the mass density of the solid-phase
+	/**
+	 * This method sets the mass density of the solid-phase.
+	 */
+		void set_mass_density_solid(number data)
+		{
+			m_imMassDensitySolid = data;
+		}
+
 	public:
 	///	number of functions used
-		virtual size_t num_fct() {return 2;}
+		virtual size_t num_fct() {return 3;}
 
 	///	trial space for functions
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct)
@@ -241,7 +308,7 @@ class DensityDrivenFlowElemDisc
 		//	switch, which assemble functions to use.
 			if(bNonRegular)
 			{
-				UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::treat_non_regular_grid':"
+				UG_LOG("ERROR in 'ThermohalineFlowElemDisc::treat_non_regular_grid':"
 						" Non-regular grid not implemented.\n");
 				return false;
 			}
@@ -290,6 +357,9 @@ class DensityDrivenFlowElemDisc
 	///	strategy to compute the upwind shapes
 		IConvectionShapes<dim>* m_pUpwind;
 
+	///	strategy to compute the upwind shapes
+		IConvectionShapes<dim>* m_pUpwindEnergy;
+
 	///	flag if using Consistent Gravity
 		bool m_bConsGravity;
 
@@ -298,6 +368,9 @@ class DensityDrivenFlowElemDisc
 
 	///	flag if using boussinesq flow
 		bool m_BoussinesqFlow;
+
+	///	flag if using boussinesq flow
+		bool m_BoussinesqEnergy;
 
 	///	Corner Coordinates
 		const position_type* m_vCornerCoords;
@@ -311,6 +384,9 @@ class DensityDrivenFlowElemDisc
 	///	abbreviation for local function: pressure
 		static const size_t _P_ = 1;
 
+	///	abbreviation for local function: temperature
+		static const size_t _T_ = 2;
+
 	private:
 	///	Data import for brine mass fraction at scvf ips
 		DataImport<number, dim, algebra_type> m_imBrineScvf;
@@ -318,6 +394,9 @@ class DensityDrivenFlowElemDisc
 
 	///	Data import for pressure gradient at scvf ips
 		DataImport<MathVector<dim>, dim, algebra_type> m_imPressureGradScvf;
+
+	///	Data import for temperature gradient at scvf ips
+		DataImport<MathVector<dim>, dim, algebra_type> m_imTemperatureGradScvf;
 
 	///	Data import for the reaction term
 		DataImport<number, dim, algebra_type> m_imPorosityScv;
@@ -332,6 +411,9 @@ class DensityDrivenFlowElemDisc
 	///	Data import for molecular diffusion tensor
 		DataImport<MathMatrix<dim, dim>, dim, algebra_type> m_imMolDiffusionScvf;
 
+	///	Data import for thermal conductivity
+		DataImport<MathMatrix<dim, dim>, dim, algebra_type> m_imThermalCondictivityScvf;
+
 	///	Data import for viscosity
 		DataImport<number, dim, algebra_type> m_imViscosityScvf;
 
@@ -342,6 +424,16 @@ class DensityDrivenFlowElemDisc
 	///	Data import for Darcy Velocity
 		DataImport<MathVector<dim>, dim, algebra_type> m_imDarcyVelScvf;
 
+	///	Data import for Heat capacities
+		number m_imHeatCapacitySolid;
+		number m_imHeatCapacityFluid;
+
+	///	Data import for mass density of solid-phase
+		number m_imMassDensitySolid;
+
+	///	Reference Density for the Boussinesq flow case (needed in Energy eq)
+		number m_BoussinesqDensity;
+
 	public:
 	///	returns the export of the darcy velocity
 		IPData<MathVector<dim>, dim>& get_darcy_velocity() {return m_exDarcyVel;}
@@ -349,8 +441,14 @@ class DensityDrivenFlowElemDisc
 	///	returns the export of brine mass fracture
 		IPData<number, dim>& get_brine() {return m_exBrine;}
 
-	///	returns the export of brine mass fracture
+	///	returns the export of brine mass fracture gradient
 		IPData<MathVector<dim>, dim>& get_brine_grad() {return m_exBrineGrad;}
+
+	///	returns the export of temperature
+		IPData<number, dim>& get_temperature() {return m_exTemperature;}
+
+	///	returns the export of temperature gradient
+		IPData<MathVector<dim>, dim>& get_temperature_grad() {return m_exTemperatureGrad;}
 
 	///	returns the export of brine mass fracture
 		IPData<MathVector<dim>, dim>& get_pressure_grad() {return m_exPressureGrad;}
@@ -365,7 +463,9 @@ class DensityDrivenFlowElemDisc
 		                                   bool compDeriv,
 		                                   MathVector<dim>* DarcyVel_c,
 		                                   MathVector<dim>* DarcyVel_p,
+		                                   MathVector<dim>* DarcyVel_T,
 		                                   const MathVector<dim>* DensityTimesGravity_c,
+		                                   const MathVector<dim>* DensityTimesGravity_T,
 		                                   const number* Viscosity_c,
 		                                   const MathVector<dim>* PressureGrad_p,
 		                                   size_t numSh);
@@ -386,6 +486,14 @@ class DensityDrivenFlowElemDisc
 		template <typename TElem>
 		bool compute_brine_grad_export(const local_vector_type& u, bool compDeriv);
 
+	///	computes the value of the temperature
+		template <typename TElem>
+		bool compute_temperature_export(const local_vector_type& u, bool compDeriv);
+
+	///	computes the value of the temperature
+		template <typename TElem>
+		bool compute_temperature_grad_export(const local_vector_type& u, bool compDeriv);
+
 	///	computes the value of the gradient of the pressure
 		template <typename TElem>
 		bool compute_pressure_grad_export(const local_vector_type& u, bool compDeriv);
@@ -401,6 +509,12 @@ class DensityDrivenFlowElemDisc
 
 	///	Export for the gradient of brine mass fraction
 		DataExport<MathVector<dim>, dim, algebra_type> m_exPressureGrad;
+
+	///	Export for the temperature
+		DataExport<number, dim, algebra_type> m_exTemperature;
+
+	///	Export for the gradient of temperature
+		DataExport<MathVector<dim>, dim, algebra_type> m_exTemperatureGrad;
 
 	private:
 		// register for 1D
@@ -431,7 +545,7 @@ class DensityDrivenFlowElemDisc
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			typedef DensityDrivenFlowElemDisc T;
+			typedef ThermohalineFlowElemDisc T;
 
 			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
 			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
@@ -471,7 +585,7 @@ class DensityDrivenFlowElemDisc
 		template <typename TElem>
 		void register_all_export_functions(int id)
 		{
-			typedef DensityDrivenFlowElemDisc T;
+			typedef ThermohalineFlowElemDisc T;
 
 			if(m_bConsGravity)
 				m_exDarcyVel.register_export_func(id, this, &T::template compute_darcy_export_cons_grav<TElem>);
@@ -481,6 +595,8 @@ class DensityDrivenFlowElemDisc
 			m_exBrine.register_export_func(id, this, &T::template compute_brine_export<TElem>);
 			m_exBrineGrad.register_export_func(id, this, &T::template compute_brine_grad_export<TElem>);
 			m_exPressureGrad.register_export_func(id, this, &T::template compute_pressure_grad_export<TElem>);
+			m_exTemperature.register_export_func(id, this, &T::template compute_temperature_export<TElem>);
+			m_exTemperatureGrad.register_export_func(id, this, &T::template compute_temperature_grad_export<TElem>);
 		}
 
 };
@@ -489,6 +605,6 @@ class DensityDrivenFlowElemDisc
 
 } // end namespace ug
 
-#include "density_driven_flow_impl.h"
+#include "thermohaline_flow_impl.h"
 
-#endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__DENSITY_DRIVEN_FLOW__*/
+#endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__THERMOHALINE_FLOW__FV1__THERMOHALINE_FLOW__*/

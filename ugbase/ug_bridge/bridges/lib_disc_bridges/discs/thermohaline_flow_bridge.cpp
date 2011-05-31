@@ -1,7 +1,7 @@
 /*
- * density_driven_flow_bridge.cpp
+ * thermohaline_flow_bridge.cpp
  *
- *  Created on: 22.09.2010
+ *  Created on: 20.05.2011
  *      Author: andreasvogel
  */
 
@@ -26,7 +26,9 @@
 #include "lib_discretization/function_spaces/grid_function_space.h"
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/density_driven_flow.h"
+#include "lib_discretization/spatial_discretization/elem_disc/thermohaline_flow/fv1/thermohaline_flow.h"
+#include "lib_discretization/spatial_discretization/disc_helper/conv_shape_interface.h"
+#include "lib_discretization/spatial_discretization/disc_helper/conv_shape.h"
 
 
 namespace ug
@@ -36,7 +38,7 @@ namespace bridge
 {
 
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
-void RegisterDensityDrivenFlowObjects(Registry& reg, const char* parentGroup)
+void RegisterThermohalineFlowObjects(Registry& reg, const char* parentGroup)
 {
 //	typedef domain
 	typedef TDomain domain_type;
@@ -61,38 +63,50 @@ void RegisterDensityDrivenFlowObjects(Registry& reg, const char* parentGroup)
 
 //	Density Driven Flow
 	{
-		typedef DensityDrivenFlowElemDisc<domain_type, algebra_type> T2;
+		typedef ThermohalineFlowElemDisc<domain_type, algebra_type> T2;
 		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
-		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
+		std::stringstream ss; ss << "FV1ThermohalineFlow" << dim << "d";
 		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_upwind|interactive=false", &T2::set_upwind,
+			.add_method("set_upwind", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
-			.add_method("set_boussinesq_transport|interactive=false", &T2::set_boussinesq_transport,
+			.add_method("set_upwind_energy", &T2::set_upwind_energy,
+						"", "Upwind (no, part, full)")
+			.add_method("set_boussinesq_transport", &T2::set_boussinesq_transport,
 						"", "Boussinesq Transport")
-			.add_method("set_boussinesq_flow|interactive=false", &T2::set_boussinesq_flow,
+			.add_method("set_boussinesq_flow", &T2::set_boussinesq_flow,
 						"", "Boussinesq Flow")
-			.add_method("set_porosity|interactive=false", &T2::set_porosity,
+			.add_method("set_boussinesq_density", &T2::set_boussinesq_density,
+						"", "Boussinesq Density")
+			.add_method("set_porosity", &T2::set_porosity,
 						"", "Porosity")
-			.add_method("set_gravity|interactive=false", &T2::set_gravity,
+			.add_method("set_gravity", &T2::set_gravity,
 						"", "Gravity")
-			.add_method("set_permeability|interactive=false", &T2::set_permeability,
+			.add_method("set_permeability", &T2::set_permeability,
 						"", "Permeability")
-			.add_method("set_viscosity|interactive=false", &T2::set_viscosity,
+			.add_method("set_viscosity", &T2::set_viscosity,
 						"", "Viscosity")
-			.add_method("set_molecular_diffusion|interactive=false", &T2::set_molecular_diffusion,
+			.add_method("set_thermal_conductivity", &T2::set_thermal_conductivity,
 						"", "Molecular Diffusion")
-			.add_method("set_density|interactive=false", &T2::set_density,
+			.add_method("set_molecular_diffusion", &T2::set_molecular_diffusion,
+						"", "Molecular Diffusion")
+			.add_method("set_density", &T2::set_density,
 						"", "Density")
-			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
+			.add_method("set_consistent_gravity", &T2::set_consistent_gravity,
 						"", "Consistent Gravity")
+			.add_method("set_heat_capacity_fluid", &T2::set_heat_capacity_fluid)
+			.add_method("set_heat_capacity_solid", &T2::set_heat_capacity_solid)
+			.add_method("set_mass_density_solid", &T2::set_mass_density_solid)
 			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
+			.add_method("get_pressure_grad", &T2::get_pressure_grad)
+			.add_method("get_temperature", &T2::get_temperature)
 			.add_method("get_brine", &T2::get_brine);
 	}
 }
 
+
 template <typename TAlgebra, typename TDoFDistribution>
-bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
+bool RegisterThermohalineFlowDisc(Registry& reg, const char* parentGroup)
 {
 	typedef TDoFDistribution dof_distribution_type;
 	typedef TAlgebra algebra_type;
@@ -108,7 +122,7 @@ bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
 	//	Domain dependend part 1D
 		{
 			typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterDensityDrivenFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterThermohalineFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
 #endif
 
@@ -116,7 +130,7 @@ bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
 	//	Domain dependend part 2D
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterDensityDrivenFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterThermohalineFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
 #endif
 
@@ -124,13 +138,13 @@ bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
 	//	Domain dependend part 3D
 		{
 			typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterDensityDrivenFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterThermohalineFlowObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
 #endif
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterDensityDrivenFlowDiscs: "
+		UG_LOG("### ERROR in RegisterThermohalineFlowDiscs: "
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}
@@ -138,17 +152,17 @@ bool RegisterDensityDrivenFlowDisc(Registry& reg, const char* parentGroup)
 	return true;
 }
 
-bool RegisterDynamicDensityDrivenFlowDisc(Registry& reg, int algebra_type, const char* parentGroup)
+bool RegisterDynamicThermohalineFlowDisc(Registry& reg, int algebra_type, const char* parentGroup)
 {
 	bool bReturn = true;
 
 	switch(algebra_type)
 	{
-	case eCPUAlgebra:		 		bReturn &= RegisterDensityDrivenFlowDisc<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterDensityDrivenFlowDisc<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterDensityDrivenFlowDisc<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterDensityDrivenFlowDisc<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterDensityDrivenFlowDisc<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUAlgebra:		 		bReturn &= RegisterThermohalineFlowDisc<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterThermohalineFlowDisc<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterThermohalineFlowDisc<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterThermohalineFlowDisc<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterThermohalineFlowDisc<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;
