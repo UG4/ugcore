@@ -75,36 +75,36 @@ class QuadratureRule{
 
 	public:
 	///	number of integration points
-		inline size_t size() const {return m_num_points;}
+		inline size_t size() const {return m_numPoints;}
 
 	///	returns i'th integration point
 		inline const position_type& point(size_t i) const
 		{
-			UG_ASSERT(i < m_num_points, "Wrong index");
-			return m_points[i];
+			UG_ASSERT(i < size(), "Wrong index");
+			return m_pvPoint[i];
 		}
 
 	///	returns all positions in an array of size()
-		inline position_type* points() const {return m_points;}
+		inline const position_type* points() const {return m_pvPoint;}
 
 	///	return the i'th weight
 		inline weight_type weight(size_t i) const
 		{
-			UG_ASSERT(i < m_num_points, "Wrong index");
-			return m_weights[i];
+			UG_ASSERT(i < size(), "Wrong index");
+			return m_pvWeight[i];
 		}
 
 	/// returns all weights in an array of size()
-		inline weight_type* weights() const	{return m_weights;}
+		inline const weight_type* weights() const	{return m_pvWeight;}
 
 	///	returns the order
 		inline size_t order() const {return m_order;}
 
 	protected:
-		position_type* m_points;	///< Integration points
-		weight_type* m_weights;	 	///< Weights
-		size_t m_num_points;		///< number of points
-		int m_order;				///< Order of rule
+		const position_type* m_pvPoint;	///< Integration points
+		const weight_type* m_pvWeight; 	///< Weights
+		size_t m_numPoints;				///< number of points
+		int m_order;					///< Order of rule
 };
 
 /// provides quadrature rules for an element type
@@ -196,27 +196,66 @@ class QuadratureRuleProvider{
 		}
 };
 
+// Init static member
+template <typename TRefElem>
+std::vector<const QuadratureRule<TRefElem>*> QuadratureRuleProvider<TRefElem>::m_vRule
+	= std::vector<const QuadratureRule<TRefElem>*>();
 
-/// gauss quadrature
+
+/// Singleton, holding a single Quadrature rule
+/**
+ * This class is used to wrap quadrature rules into a singleton, such
+ * that construction computations is avoided, if the rule is used several times.
+ */
+class QuadRuleProvider {
+
+	// 	private constructor
+		QuadRuleProvider();
+
+	// 	disallow copy and assignment (intentionally left unimplemented)
+		QuadRuleProvider(const QuadRuleProvider&);
+		QuadRuleProvider& operator=(const QuadRuleProvider&);
+
+	// 	private destructor
+		~QuadRuleProvider(){};
+
+	// 	geometry provider, holding the instance
+		template <typename TRule>
+		inline static TRule& inst()
+		{
+			static TRule myInst;
+			return myInst;
+		};
+
+	public:
+	///	returns access to the singleton
+		template <typename TRule>
+		inline static TRule& get() {	return inst<TRule>();}
+};
+
+/// flexible order gauss quadrature
 /**
  * Providing gauss quadrature for an reference element
  * \tparam 		TRefElem		Reference Element Type
  */
 template <typename TRefElem>
-class GaussQuadrature
+class FlexGaussQuadrature
 	: public QuadratureRule<TRefElem>
 {
 	public:
-		GaussQuadrature(int order);
-		~GaussQuadrature();
-	protected:
-		inline bool allocate_memory(std::size_t n);
+	///	Constructor
+		FlexGaussQuadrature(int order);
+
+	///	Destructor
+		~FlexGaussQuadrature() {}
 };
+
+/// fixed order gauss quadrature
+template <typename TRefElem, int order>
+class GaussQuadrature;
 
 /// @}
 
 } // namespace ug
-
-#include "quadrature_impl.h"
 
 #endif /* __H__LIBDISCRETIZATION__QUADRATURE__ */

@@ -23,13 +23,13 @@ set(srcDiscretization	common/function_group.cpp
 
 						reference_element/reference_element.cpp
 						
-						quadrature/gauss_quadratures_ReferenceEdge.cpp
-						quadrature/gauss_quadratures_ReferenceTriangle.cpp
-						quadrature/gauss_quadratures_ReferenceQuadrilateral.cpp
-						quadrature/gauss_quadratures_ReferenceTetrahedron.cpp
-						quadrature/gauss_quadratures_ReferencePrism.cpp
-						quadrature/gauss_quadratures_ReferencePyramid.cpp
-						quadrature/gauss_quadratures_ReferenceHexahedron.cpp
+						quadrature/gauss_quad/gauss_quad_edge.cpp
+						quadrature/gauss_quad/gauss_quad_triangle.cpp
+						quadrature/gauss_quad/gauss_quad_quadrilateral.cpp
+						quadrature/gauss_quad/gauss_quad_tetrahedron.cpp
+						quadrature/gauss_quad/gauss_quad_prism.cpp
+						quadrature/gauss_quad/gauss_quad_pyramid.cpp
+						quadrature/gauss_quad/gauss_quad_hexahedron.cpp
 
 						local_shape_function_set/local_shape_function_set_provider.cpp
 						local_shape_function_set/local_dof_pattern.cpp
