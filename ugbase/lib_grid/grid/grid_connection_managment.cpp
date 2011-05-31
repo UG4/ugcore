@@ -238,9 +238,12 @@ void Grid::unregister_vertex(VertexBase* v)
 	{
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 		{
-		//	remove associated volumes
-			AssociatedVolumeIterator iterEnd = associated_volumes_end(v);
-			for(AssociatedVolumeIterator iter = associated_volumes_begin(v); iter != iterEnd;)
+		//	remove associated volumes. Make sure that there are no problems
+		//	when volumes try to unregister from the vertex.
+			VolumeContainer vols;
+			vols.swap(m_aaVolumeContainerVERTEX[v]);
+
+			for(VolumeContainer::iterator iter = vols.begin(); iter != vols.end();)
 			{
 				Volume* eraseVol = *iter;
 				++iter;
@@ -254,9 +257,11 @@ void Grid::unregister_vertex(VertexBase* v)
 	{
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
 		{
-		//	remove all associated faces.
-			AssociatedFaceIterator iterEnd = associated_faces_end(v);
-			for(AssociatedFaceIterator iter = associated_faces_begin(v); iter != iterEnd;)
+		//	remove all associated faces. Make sure that there are no problems
+		//	when faces try to unregister from the vertex.
+			FaceContainer faces;
+			faces.swap(m_aaFaceContainerVERTEX[v]);
+			for(FaceContainer::iterator iter = faces.begin(); iter != faces.end();)
 			{
 				Face* eraseFace = *iter;
 				++iter;
@@ -269,9 +274,11 @@ void Grid::unregister_vertex(VertexBase* v)
 	if(num_edges() > 0)
 	{
 		assert(option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES) && "unexpected internal error in Grid::unregister_vertex - rae.");
-	//	remove all associated edges.
-		AssociatedEdgeIterator iterEnd = associated_edges_end(v);
-		for(AssociatedEdgeIterator iter = associated_edges_begin(v); iter != iterEnd;)
+	//	remove all associated edges. Make sure that there are no problems
+	//	when edges try to unregister from the vertex.
+		EdgeContainer edges;
+		edges.swap(m_aaEdgeContainerVERTEX[v]);
+		for(EdgeContainer::iterator iter = edges.begin(); iter != edges.end();)
 		{
 			EdgeBase* eraseEdge = *iter;
 			++iter;
@@ -648,8 +655,11 @@ void Grid::unregister_edge(EdgeBase* e)
 				CollectVolumes(vVolumes, *this, e);
 				vector<Volume*>::iterator vIter = vVolumes.begin();
 
-				if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+				if(option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
 				{
+					if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
+						m_aaVolumeContainerEDGE[e].clear();
+
 				//	erase the collected volumes
 					while(vIter != vVolumes.end())
 					{
@@ -687,6 +697,9 @@ void Grid::unregister_edge(EdgeBase* e)
 
 			if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 			{
+				if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+					m_aaFaceContainerEDGE[e].clear();
+
 			//	erase the collected faces.
 				while(fIter != vFaces.end())
 				{
@@ -1080,6 +1093,9 @@ void Grid::unregister_face(Face* f)
 
 			if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 			{
+				if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
+					m_aaVolumeContainerFACE[f].clear();
+
 			//	delete the collected volumes
 				while(vIter != vVolumes.end())
 				{

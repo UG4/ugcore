@@ -75,6 +75,7 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				tools/partition_map.cpp
 				geometric_objects/geometric_objects_2d.cpp
 				geometric_objects/geometric_objects_3d.cpp
+				geometric_objects/tetrahedron_rules.cpp
 				common_attachments.cpp
 				multi_grid.cpp
 				)

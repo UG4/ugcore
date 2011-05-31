@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "geometric_objects.h"
 #include "common/common.h"
+#include "tetrahedron_rules.h"
 //#include "../algorithms/geom_obj_util/geom_obj_util.h"
 
 using namespace std;
@@ -93,6 +94,11 @@ EdgeDescriptor Tetrahedron::edge(int index) const
 
 void Tetrahedron::edge(int index, EdgeDescriptor& edOut) const
 {
+	using namespace tet_rules;
+	assert(index >= 0 && index <= NUM_EDGES);
+	edOut.set_vertices(m_vertices[EDGE_VRT_INDS[index][0]],
+					   m_vertices[EDGE_VRT_INDS[index][1]]);
+/*
 	switch(index)
 	{
 		case 0: edOut.set_vertices(m_vertices[0], m_vertices[1]);
@@ -107,7 +113,7 @@ void Tetrahedron::edge(int index, EdgeDescriptor& edOut) const
 				return;
 		case 5: edOut.set_vertices(m_vertices[3], m_vertices[2]);
 				return;
-	}
+*/
 }
 
 uint Tetrahedron::num_edges() const
@@ -124,7 +130,15 @@ FaceDescriptor Tetrahedron::face(int index) const
 
 void Tetrahedron::face(int index, FaceDescriptor& fdOut) const
 {
+	using namespace tet_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
 	fdOut.set_num_vertices(3);
+	fdOut.set_vertex(0, m_vertices[FACE_VRT_INDS[index][0]]);
+	fdOut.set_vertex(1, m_vertices[FACE_VRT_INDS[index][1]]);
+	fdOut.set_vertex(2, m_vertices[FACE_VRT_INDS[index][2]]);
+
+/*
 	switch(index)
 		{
 			case 0:
@@ -148,6 +162,7 @@ void Tetrahedron::face(int index, FaceDescriptor& fdOut) const
 				fdOut.set_vertex(2, m_vertices[3]);
 				return;
 		}
+*/
 }
 
 uint Tetrahedron::num_faces() const
@@ -174,6 +189,10 @@ get_local_vertex_indices_of_edge(size_t& ind1Out,
 								  size_t& ind2Out,
 								  size_t edgeInd)
 {
+	assert(edgeInd >= 0 && edgeInd < 6);
+	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][0];
+	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][1];
+/*
 	switch(edgeInd)
 	{
 		case 0: ind1Out = 0; ind2Out = 1;
@@ -189,13 +208,19 @@ get_local_vertex_indices_of_edge(size_t& ind1Out,
 		case 5: ind1Out = 3; ind2Out = 2;
 				return;
 	}
+*/
 }
 											  
 void Tetrahedron::
 get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 								 size_t side)
 {
+	assert(side >= 0 && side < 4);
 	indsOut.resize(3);
+	indsOut[0] = tet_rules::FACE_VRT_INDS[side][0];
+	indsOut[1] = tet_rules::FACE_VRT_INDS[side][1];
+	indsOut[2] = tet_rules::FACE_VRT_INDS[side][2];
+/*
 	switch(side)
 	{
 		case 0:
@@ -221,6 +246,7 @@ get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 		default:
 			throw(UGError("Bad side index"));
 	}
+*/
 }
 
 bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -251,106 +277,90 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	else
 		vrts = &BaseClass::m_vertices.front();
 
-//	check which edges have to be refined and perform the required operations.
-	{
-	//	get the number of new vertices.
-		uint numNewVrts = 0;
-		for(uint i = 0; i < 6; ++i)
-		{
-			if(newEdgeVertices[i] != NULL)
-				++numNewVrts;
-		}
+//	allVrts is an array holding both, the vertices and the new edge-vertices.
+//	we will index it with the results later on to create the new elements.
+	const int allVrtsSize = tet_rules::NUM_VERTICES + tet_rules::NUM_EDGES + 1;
+	VertexBase* allVrts[allVrtsSize];
+	for(int i = 0; i < tet_rules::NUM_VERTICES; ++i)
+		allVrts[i] = vrts[i];
 
-		int cornerStatus[4] = {0, 0, 0, 0};
-		vector<size_t> inds;
-		
-		switch(numNewVrts)
-		{
-			case 1:
-			{
-			//	get the index of the edge that is to be refined
-				size_t edgeInd = 999;
-				for(size_t i = 0; i < 6; ++i)
-				{
-					if(newEdgeVertices[i] != NULL){
-						edgeInd = i;
-						break;
-					}
-				}
-				
-				assert((edgeInd != 999) && "couldn't find marked edge");
-			
-			//	get the associated vertex indices and set their status to 1
-				size_t vi1, vi2;
-				get_local_vertex_indices_of_edge(vi1, vi2, edgeInd);
-				cornerStatus[vi1] = cornerStatus[vi2] = 1;
-				
-			//	find the two faces that are connected to only one marked corner
-			//	and create a new tetrahedron for each.
-				inds.reserve(3);
-				
-				for(size_t i_face = 0; i_face < 4; ++i_face){
-					size_t numMarked = 0;
-					get_local_vertex_indices_of_face(inds, i_face);
-					for(size_t i_ind = 0; i_ind < inds.size(); ++i_ind){
-						if(cornerStatus[inds[i_ind]] == 1)
-							++numMarked;
-					}
-					
-					if(numMarked == 1){
-						vNewVolumesOut.push_back(new Tetrahedron(vrts[inds[2]], vrts[inds[1]], vrts[inds[0]], newEdgeVertices[edgeInd]));
-					}
-				}
-				
-				return true;
-			}
+//	check which edge has to be refined, and which not
+	int newEdgeVrts[tet_rules::NUM_EDGES];
+	for(int i = 0; i < tet_rules::NUM_EDGES; ++i){
+		allVrts[tet_rules::NUM_VERTICES + i] = newEdgeVertices[i];
+		if(newEdgeVertices[i])
+			newEdgeVrts[i] = 1;
+		else
+			newEdgeVrts[i] = 0;
+	}
 
-			case 2:
-			{
-				assert(!"PROBLEM in Tetrahedron::refine(...): refine with 2 new edge vertices not yet implemented.");
-				return false;
-			}
+//	in this array we'll receive the new indices
+	int newElemInds[tet_rules::MAX_NUM_INDS_OUT];
 
-			case 3:
-			{
-				assert(!"PROBLEM in Tetrahedron::refine(...): refine with 3 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 4:
-			{
-				assert(!"PROBLEM in Tetrahedron::refine(...): refine with 4 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 5:
-			{
-				assert(!"PROBLEM in Tetrahedron::refine(...): refine with 5 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 6:
-			{
-				if(!newVolumeVertex)
-				{
-					vNewVolumesOut.reserve(8);
-					vNewVolumesOut.push_back(new Tetrahedron(vrts[0], newEdgeVertices[0], newEdgeVertices[2], newEdgeVertices[3]));
-					vNewVolumesOut.push_back(new Tetrahedron(vrts[1], newEdgeVertices[1], newEdgeVertices[0], newEdgeVertices[4]));
-					vNewVolumesOut.push_back(new Tetrahedron(vrts[2], newEdgeVertices[2], newEdgeVertices[1], newEdgeVertices[5]));
-					vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2], newEdgeVertices[4]));
-					vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[2], newEdgeVertices[0], newEdgeVertices[4], newEdgeVertices[3]));
-					vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[3], newEdgeVertices[2], newEdgeVertices[5], newEdgeVertices[4]));
-					vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[2], newEdgeVertices[1], newEdgeVertices[5], newEdgeVertices[4]));
-					vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[3], newEdgeVertices[4], newEdgeVertices[5], vrts[3]));
-					return true;
-				}
-				else
-				{
-					assert(!"PROBLEM in Tetrahedron::refine(...): refine with 4 new edge vertices and new new volume vertex not yet implemented.");
-					return false;
-				}
-			}
+//	perform refine
+	bool centerVrtRequired = false;
+	int numElemInds = tet_rules::Refine(newElemInds, newEdgeVrts, centerVrtRequired);
+	assert(numElemInds != 0 && "PROBLEM in Tetrahedron::refine(...): "
+								"refine with 1 new edge vertex failed.");
+
+	if(numElemInds == 0)
+		return false;
+
+//	if a new center vertex is required, then we'll create one now.
+	if(centerVrtRequired){
+		if(!newVolumeVertex)
+			newVolumeVertex = static_cast<VertexBase*>(
+								prototypeVertex.create_empty_instance());
+		*ppNewVertexOut = newVolumeVertex;
+		allVrts[allVrtsSize - 1] = *ppNewVertexOut;
+	}
+
+//	debug log of inds
+/*
+	UG_LOG("newElemInds:");
+	for(int i = 0; i < numElemInds; ++i){
+		UG_LOG(" " << newElemInds[i]);
+	}
+	UG_LOG(endl);
+
+	UG_LOG("allVrts:");
+	for(int i = 0; i < allVrtsSize; ++i){
+		UG_LOG(" " << allVrts[i]);
+	}
+	UG_LOG(endl);
+*/
+//	the VolumeDescriptor will be used to create new volumes
+	VolumeDescriptor vd;
+
+//	create the elements from the given indices (there should be 2 tets)
+	for(int i = 0; i < numElemInds;){
+		int num = newElemInds[i++];
+		vd.set_num_vertices(num);
+		for(int j = 0; j < num; ++j)
+			vd.set_vertex(j, allVrts[newElemInds[i++]]);
+
+		switch(num){
+			case 4:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
+			case 5:	vNewVolumesOut.push_back(new Pyramid(vd));		break;
+			case 6:	vNewVolumesOut.push_back(new Prism(vd));		break;
+			case 7:	vNewVolumesOut.push_back(new Hexahedron(vd));	break;
 		}
 	}
 
-	return false;
+/* Using the code given below would lead to a minimal performance boost if
+ * used for regular refinement.
+	vNewVolumesOut.reserve(8);
+	vNewVolumesOut.push_back(new Tetrahedron(vrts[0], newEdgeVertices[0], newEdgeVertices[2], newEdgeVertices[3]));
+	vNewVolumesOut.push_back(new Tetrahedron(vrts[1], newEdgeVertices[1], newEdgeVertices[0], newEdgeVertices[4]));
+	vNewVolumesOut.push_back(new Tetrahedron(vrts[2], newEdgeVertices[2], newEdgeVertices[1], newEdgeVertices[5]));
+	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2], newEdgeVertices[4]));
+	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[2], newEdgeVertices[0], newEdgeVertices[4], newEdgeVertices[3]));
+	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[3], newEdgeVertices[2], newEdgeVertices[5], newEdgeVertices[4]));
+	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[2], newEdgeVertices[1], newEdgeVertices[5], newEdgeVertices[4]));
+	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[3], newEdgeVertices[4], newEdgeVertices[5], vrts[3]));
+	return true;
+ */
+	return true;
 }
 
 void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
