@@ -2,7 +2,10 @@
 //  It provides the Gauss Quadratures for a reference triangle.
 
 
-#include "../quadrature.h"
+#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceTriangle__
+#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceTriangle__
+
+#include "gauss_quad.h"
 
 namespace ug{
 
@@ -534,5 +537,10 @@ class GaussQuadrature<ReferenceTriangle, 12>
 		number m_vWeight[nip];
 };
 
+template <>
+class GaussQuadrature<ReferenceTriangle, 0> : public GaussQuadrature<ReferenceTriangle, 1>{};
+
 }; // namespace ug
+
+#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceTriangle__ */
 

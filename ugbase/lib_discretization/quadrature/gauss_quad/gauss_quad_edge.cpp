@@ -2,6 +2,7 @@
 //  It provides the Gauss Quadratures for a reference edge.
 
 
+#include "../quadrature.h"
 #include "gauss_quad_edge.h"
 
 namespace ug{

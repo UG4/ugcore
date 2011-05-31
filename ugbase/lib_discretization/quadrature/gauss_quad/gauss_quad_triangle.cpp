@@ -2,6 +2,7 @@
 //  It provides the Gauss Quadratures for a reference triangle.
 
 
+#include "../quadrature.h"
 #include "gauss_quad_triangle.h"
 
 namespace ug{

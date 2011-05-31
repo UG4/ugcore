@@ -2,6 +2,7 @@
 //  It provides the Gauss Quadratures for a reference hexahedron.
 
 
+#include "../quadrature.h"
 #include "gauss_quad_hexahedron.h"
 
 namespace ug{

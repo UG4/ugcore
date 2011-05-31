@@ -89,6 +89,39 @@ class LocalShapeFunctionSetProvider {
 		get(LocalShapeFunctionSetID id);
 };
 
+
+/// Singleton, holding a single local shape function set
+/**
+ * This class is used to wrap local shape function set into a singleton, such
+ * that construction computations is avoided, if the rule is used several times.
+ */
+class LSFSProvider {
+
+	// 	private constructor
+		LSFSProvider();
+
+	// 	disallow copy and assignment (intentionally left unimplemented)
+		LSFSProvider(const LSFSProvider&);
+		LSFSProvider& operator=(const LSFSProvider&);
+
+	// 	private destructor
+		~LSFSProvider(){};
+
+	// 	geometry provider, holding the instance
+		template <typename TLSFS>
+		inline static TLSFS& inst()
+		{
+			static TLSFS myInst;
+			return myInst;
+		};
+
+	public:
+	///	returns access to the singleton
+		template <typename TLSFS>
+		inline static TLSFS& get() {return inst<TLSFS>();}
+};
+
+
 }
 
 #include "local_shape_function_set_provider_impl.h"

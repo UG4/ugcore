@@ -2,6 +2,7 @@
 //  It provides the Gauss Quadratures for a reference prism.
 
 
+#include "../quadrature.h"
 #include "gauss_quad_prism.h"
 
 namespace ug{

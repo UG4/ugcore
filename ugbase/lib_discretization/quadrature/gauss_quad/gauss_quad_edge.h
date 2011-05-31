@@ -2,7 +2,10 @@
 //  It provides the Gauss Quadratures for a reference edge.
 
 
-#include "../quadrature.h"
+#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__
+#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__
+
+#include "gauss_quad.h"
 
 namespace ug{
 
@@ -446,5 +449,37 @@ class GaussQuadrature<ReferenceEdge, 19>
 		number m_vWeight[nip];
 };
 
+template <>
+class GaussQuadrature<ReferenceEdge, 18> : public GaussQuadrature<ReferenceEdge, 19>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 16> : public GaussQuadrature<ReferenceEdge, 17>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 14> : public GaussQuadrature<ReferenceEdge, 15>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 12> : public GaussQuadrature<ReferenceEdge, 13>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 10> : public GaussQuadrature<ReferenceEdge, 11>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 8> : public GaussQuadrature<ReferenceEdge, 9>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 6> : public GaussQuadrature<ReferenceEdge, 7>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 4> : public GaussQuadrature<ReferenceEdge, 5>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 2> : public GaussQuadrature<ReferenceEdge, 3>{};
+
+template <>
+class GaussQuadrature<ReferenceEdge, 0> : public GaussQuadrature<ReferenceEdge, 1>{};
+
 }; // namespace ug
+
+#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__ */
 

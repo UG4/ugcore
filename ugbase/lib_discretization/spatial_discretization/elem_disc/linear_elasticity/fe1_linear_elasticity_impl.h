@@ -1,5 +1,5 @@
 /*
- * linear_elastictiy_impl.h
+ * linear_elasticity_impl.h
  *
  *  Created on: 05.08.2010
  *      Author: andreasvogel
@@ -10,6 +10,8 @@
 
 #include "fe1_linear_elasticity.h"
 #include "lib_discretization/spatial_discretization/disc_helper/finite_element_geometry.h"
+#include "lib_discretization/local_shape_function_set/lagrange/lagrange.h"
+#include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
 
 namespace ug{
 
@@ -70,7 +72,9 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	m_corners = this->template get_element_corners<TElem>(elem);
 
 // 	update Geometry for this element
-	FEGeometry<TElem, dim>& geo = GeomProvider::get<FEGeometry<TElem, dim> >();
+	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
+		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+
 	if(!geo.update(m_corners))
 		{UG_LOG("FE1LinearElasticityElemDisc::prepare_element:"
 				" Cannot update Finite Element Geometry.\n"); return false;}
@@ -85,7 +89,8 @@ bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim>& geo = GeomProvider::get<FEGeometry<TElem, dim> >();
+	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
+		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	for(size_t i = 0; i < geo.num_sh(); ++i) // loop corner
 	{
@@ -126,7 +131,8 @@ bool
 FE1LinearElasticityElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim>& geo = GeomProvider::get<FEGeometry<TElem, dim> >();
+	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
+		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{

@@ -2,6 +2,7 @@
 //  It provides the Gauss Quadratures for a reference tetrahedron.
 
 
+#include "../quadrature.h"
 #include "gauss_quad_tetrahedron.h"
 
 namespace ug{

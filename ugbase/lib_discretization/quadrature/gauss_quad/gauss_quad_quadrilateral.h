@@ -2,7 +2,10 @@
 //  It provides the Gauss Quadratures for a reference quadrilateral.
 
 
-#include "../quadrature.h"
+#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__
+#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__
+
+#include "gauss_quad.h"
 
 namespace ug{
 
@@ -490,5 +493,16 @@ class GaussQuadrature<ReferenceQuadrilateral, 13>
 		number m_vWeight[nip];
 };
 
+template <>
+class GaussQuadrature<ReferenceQuadrilateral, 12> : public GaussQuadrature<ReferenceQuadrilateral, 13>{};
+
+template <>
+class GaussQuadrature<ReferenceQuadrilateral, 10> : public GaussQuadrature<ReferenceQuadrilateral, 11>{};
+
+template <>
+class GaussQuadrature<ReferenceQuadrilateral, 0> : public GaussQuadrature<ReferenceQuadrilateral, 1>{};
+
 }; // namespace ug
+
+#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__ */
 

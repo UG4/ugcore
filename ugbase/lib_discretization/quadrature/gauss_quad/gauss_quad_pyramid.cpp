@@ -2,6 +2,7 @@
 //  It provides the Gauss Quadratures for a reference pyramid.
 
 
+#include "../quadrature.h"
 #include "gauss_quad_pyramid.h"
 
 namespace ug{

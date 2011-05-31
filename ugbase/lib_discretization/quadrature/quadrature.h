@@ -250,10 +250,6 @@ class FlexGaussQuadrature
 		~FlexGaussQuadrature() {}
 };
 
-/// fixed order gauss quadrature
-template <typename TRefElem, int order>
-class GaussQuadrature;
-
 /// @}
 
 } // namespace ug

@@ -2,7 +2,10 @@
 //  It provides the Gauss Quadratures for a reference pyramid.
 
 
-#include "../quadrature.h"
+#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferencePyramid__
+#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferencePyramid__
+
+#include "gauss_quad.h"
 
 namespace ug{
 
@@ -50,5 +53,13 @@ class GaussQuadrature<ReferencePyramid, 2>
 		number m_vWeight[nip];
 };
 
+template <>
+class GaussQuadrature<ReferencePyramid, 1> : public GaussQuadrature<ReferencePyramid, 2>{};
+
+template <>
+class GaussQuadrature<ReferencePyramid, 0> : public GaussQuadrature<ReferencePyramid, 2>{};
+
 }; // namespace ug
+
+#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferencePyramid__ */
 

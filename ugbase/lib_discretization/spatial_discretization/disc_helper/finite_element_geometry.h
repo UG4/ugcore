@@ -15,7 +15,11 @@
 namespace ug{
 
 template <	typename TElem,
-			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
+			int TWorldDim,
+			template <class TRefElem, int p> class TTrialSpace,
+			int TOrderTrialSpace,
+			template <class TRefElem, int p> class TQuadRule,
+			int TOrderQuadRule>
 class FEGeometry
 {
 	public:
@@ -28,118 +32,105 @@ class FEGeometry
 	/// world dimension
 		static const int world_dim = TWorldDim;
 
+	///	type of trial space
+		typedef TTrialSpace<ref_elem_type, TOrderTrialSpace> trial_space_type;
+
+	///	type of quadrature rule
+		typedef TQuadRule<ref_elem_type, TOrderQuadRule> quad_rule_type;
+
+	///	number of shape functions
+		static const size_t nsh = trial_space_type::nsh;
+
+	///	number of integration points
+		static const size_t nip = quad_rule_type::nip;
+
 	public:
+	///	Constructor
 		FEGeometry()
-		//	note: for quadratic elements we need a higher integration than the trial space
-			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_rule(2))
-			{
-				LocalShapeFunctionSetID id
-					= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
-
-				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-							LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
-
-				// number of ips
-				m_numIP = m_rQuadRule.size();
-				m_numSH = TrialSpace.num_sh();
-
-				// resize
-				m_vIPLocal.resize(m_numIP);
-				m_vIPGlobal.resize(m_numIP);
-				m_JTInv.resize(m_numIP);
-				m_detJ.resize(m_numIP);
-				m_vvShape.resize(m_numIP);
-				m_vvGradLocal.resize(m_numIP);
-				m_vvGradGlobal.resize(m_numIP);
-				for(size_t ip = 0; ip < m_numIP; ++ip)
-				{
-					m_vvShape[ip].resize(m_numSH);
-					m_vvGradLocal[ip].resize(m_numSH);
-					m_vvGradGlobal[ip].resize(m_numSH);
-				}
-
-				// write local Data
-				for(size_t ip = 0; ip < m_numIP; ++ip)
-				{
-					m_vIPLocal[ip] = m_rQuadRule.point(ip);
-					for(size_t sh = 0; sh < m_numSH; ++sh)
-					{
-						m_vvShape[ip][sh] = TrialSpace.shape(sh, m_vIPLocal[ip]);
-						m_vvGradLocal[ip][sh] = TrialSpace.grad(sh, m_vIPLocal[ip]);
-					}
-				}
-			}
-
-		// number of integration points
-		size_t num_ip() const {return m_numIP;}
-
-		// number of shape functions
-		size_t num_sh() const {return m_numSH;}
-
-		// weight for integration point
-		number weight(size_t ip) const
+			: m_rQuadRule(QuadRuleProvider::get<quad_rule_type>()),
+			  m_rTrialSpace(LSFSProvider::get<trial_space_type>())
 		{
-			UG_ASSERT(ip < m_detJ.size(), "Wrong ip.");
-			return fabs(m_detJ[ip]) * m_rQuadRule.weight(ip);
+		//	evaluate local shapes and gradients
+			for(size_t ip = 0; ip < nip; ++ip)
+				for(size_t sh = 0; sh < nsh; ++sh)
+				{
+					m_vvShape[ip][sh] = m_rTrialSpace.shape(sh, m_rQuadRule.point(ip));
+					m_vvGradLocal[ip][sh] = m_rTrialSpace.grad(sh, m_rQuadRule.point(ip));
+				}
 		}
 
-		/// local integration point
-		const MathVector<dim>& ip_local(size_t ip) const
-		{
-			UG_ASSERT(ip < m_vIPLocal.size(), "Wrong ip.");
-			return m_vIPLocal[ip];
-		}
+	/// number of integration points
+		size_t num_ip() const {return nip;}
 
-		/// global integration point
+	/// number of shape functions
+		size_t num_sh() const {return nsh;}
+
+	/// weight for integration point
+		number weight(size_t ip) const {return fabs(m_detJ[ip]) * m_rQuadRule.weight(ip);}
+
+	/// local integration point
+		const MathVector<dim>& ip_local(size_t ip) const {return m_rQuadRule.point(ip);}
+
+	/// global integration point
 		const MathVector<world_dim>& ip_global(size_t ip) const
 		{
 			UG_ASSERT(ip < m_vIPGlobal.size(), "Wrong ip.");
 			return m_vIPGlobal[ip];
 		}
 
-		/// local integration point
-		const MathVector<dim>* local_ips() const {return &m_vIPLocal[0];}
+	/// local integration point
+		const MathVector<dim>* local_ips() const {return m_rQuadRule.points();}
 
-		/// global integration point
+	/// global integration point
 		const MathVector<world_dim>* global_ips() const{return &m_vIPGlobal[0];}
-
-		/// global gradient at ip
-		const MathVector<world_dim>& grad_global(size_t ip, size_t sh) const
-		{
-			UG_ASSERT(ip < m_vvGradGlobal.size(), "Wrong ip.");
-			UG_ASSERT(sh < m_vvGradGlobal[ip].size(), "Wrong sh.");
-			return m_vvGradGlobal[ip][sh];
-		}
 
 		/// shape function at ip
 		number shape(size_t ip, size_t sh) const
 		{
-			UG_ASSERT(ip < m_vvShape.size(), "Wrong ip.");
-			UG_ASSERT(sh < m_vvShape[ip].size(), "Wrong sh.");
+			UG_ASSERT(ip < nip, "Wrong index"); UG_ASSERT(sh < nsh, "Wrong index");
 			return m_vvShape[ip][sh];
 		}
 
-		/// update Geometry for corners
-		bool update(const MathVector<world_dim> corners[])
+	/// local gradient at ip
+		const MathVector<dim>& grad_local(size_t ip, size_t sh) const
 		{
-			m_mapping.update(corners);
+			UG_ASSERT(ip < nip, "Wrong index"); UG_ASSERT(sh < nsh, "Wrong index");
+			return m_vvGradLocal[ip][sh];
+		}
 
-			// write local Data
-			for(size_t ip = 0; ip < m_numIP; ++ip)
+	/// global gradient at ip
+		const MathVector<world_dim>& grad_global(size_t ip, size_t sh) const
+		{
+			UG_ASSERT(ip < nip, "Wrong index"); UG_ASSERT(sh < nsh, "Wrong index");
+			return m_vvGradGlobal[ip][sh];
+		}
+
+	/// update Geometry for corners
+		bool update(const MathVector<world_dim>* vCorner)
+		{
+		//	update the mapping for the new corners
+			m_mapping.update(vCorner);
+
+		//	evaluate global data
+			for(size_t ip = 0; ip < nip; ++ip)
 			{
-				// compute transformation inverse and determinate at ip
+			// 	compute transformation inverse and determinate at ip
 				if(!m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]))
 				{
 					UG_LOG("FE1Geometry:update(..): "
 							"Cannot compute jacobian transposed inverse.\n");
 					return false;
 				}
+
+			//	compute determinant
 				if(!m_mapping.jacobian_det(m_vIPLocal[ip], m_detJ[ip]))
 				{
 					UG_LOG("FE1Geometry:update(..): "
 							"Cannot compute jacobian determinante.\n");
 					return false;
 				}
+
+			//	compute global integration points
 				if(!m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]))
 				{
 					UG_LOG("FE1Geometry:update(..):"
@@ -147,31 +138,47 @@ class FEGeometry
 					return false;
 				}
 
-				// compute global gradients
-				for(size_t sh = 0; sh < m_numSH; ++sh)
+			// 	compute global gradients
+				for(size_t sh = 0; sh < nsh; ++sh)
 				{
 					MatVecMult(m_vvGradGlobal[ip][sh], m_JTInv[ip], m_vvGradLocal[ip][sh]);
 				}
 			}
+
+		//	we're done
 			return true;
 		}
 
 	protected:
-		const QuadratureRule<ref_elem_type>& m_rQuadRule;
+	///	Quadrature rule
+		const quad_rule_type& m_rQuadRule;
 
+	///	Quadrature rule
+		const trial_space_type& m_rTrialSpace;
+
+	///	reference mapping
 		ReferenceMapping<ref_elem_type, world_dim> m_mapping;
 
-		size_t m_numIP;
-		size_t m_numSH;
-		std::vector<MathVector<dim> > m_vIPLocal;
-		std::vector<MathVector<world_dim> > m_vIPGlobal;
+	///	local integration points
+		MathVector<dim> m_vIPLocal[nip];
 
-		std::vector<std::vector<number> > m_vvShape;
-		std::vector<std::vector<MathVector<dim> > > m_vvGradLocal;
-		std::vector<std::vector<MathVector<world_dim> > > m_vvGradGlobal;
+	///	global integration points
+		MathVector<world_dim> m_vIPGlobal[nip];
 
-		std::vector<MathMatrix<world_dim,dim> > m_JTInv;
-		std::vector<number> m_detJ;
+	///	shape functions evaluated at ip
+		number m_vvShape[nip][nsh];
+
+	///	global gradient evaluated at ip
+		MathVector<dim> m_vvGradLocal[nip][nsh];
+
+	///	local gradient evaluated at ip
+		MathVector<world_dim> m_vvGradGlobal[nip][nsh];
+
+	///	jacobian of transformation at ip
+		MathMatrix<world_dim,dim> m_JTInv[nip];
+
+	///	determinate of transformation at ip
+		number m_detJ[nip];
 };
 
 } // end namespace ug

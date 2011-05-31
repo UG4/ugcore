@@ -20,11 +20,11 @@ namespace ug{
 //////////////////////////////////////////////////////////////////////
 
 /// Lagrange Shape Function Set without virtual functions
-template <typename TRefElem, size_t TOrder>
+template <typename TRefElem, int TOrder>
 struct LagrangeLSFS{};
 
 /// Lagrange DoF Pattern
-template <typename TRefElem, size_t TOrder>
+template <typename TRefElem, int TOrder>
 struct LagrangeLDP{};
 
 /// specialization for Edges
@@ -33,7 +33,7 @@ struct LagrangeLDP{};
  * \tparam 	TOrder		requested order
  */
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLSFS<ReferenceEdge, TOrder>
 {
 	private:
@@ -146,7 +146,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
  * \tparam 	TOrder		requested order
  */
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLDP<ReferenceEdge, TOrder>
 {
 	protected:
@@ -210,7 +210,7 @@ class LagrangeLDP<ReferenceEdge, TOrder>
 
 
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLSFS<ReferenceTriangle, TOrder>
 {
 	private:
@@ -402,7 +402,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 
 
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 {
 	private:
@@ -558,7 +558,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 
 
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 {
 	private:
@@ -778,7 +778,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 
 
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLSFS<ReferencePrism, TOrder>
 {
 	public:
@@ -1018,7 +1018,7 @@ struct NumberOfDoFsOfPyramid<1>
 
 // todo: Implement
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLSFS<ReferencePyramid, TOrder>
 {
 	private:
@@ -1232,7 +1232,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 
 
 template <>
-template <size_t TOrder>
+template <int TOrder>
 class LagrangeLSFS<ReferenceHexahedron, TOrder>
 {
 	private:
