@@ -766,14 +766,14 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 		{
 		//	Compute Derivative of Convective Flux
-			vDFlux_c[sh] = convShape.conv_shape(ip, sh);
+			vDFlux_c[sh] = convShape(ip, sh);
 			vDFlux_p[sh] = 0.0;
 
 		//	Derivative w.r.t. Velocity
 			for(size_t sh1 = 0; sh1 < scvf.num_sh(); ++sh1)
 			{
-				vDFlux_c[sh] += u(_C_, sh1) * VecDot(convShape.conv_shape_vel(ip, sh1), vDDarcyVel_c[sh]);
-				vDFlux_p[sh] += u(_C_, sh1) * VecDot(convShape.conv_shape_vel(ip, sh1), vDDarcyVel_p[sh]);
+				vDFlux_c[sh] += u(_C_, sh1) * VecDot(convShape.D_vel(ip, sh1), vDDarcyVel_c[sh]);
+				vDFlux_p[sh] += u(_C_, sh1) * VecDot(convShape.D_vel(ip, sh1), vDDarcyVel_p[sh]);
 			}
 
 			//todo: Derivative of Dispersion
@@ -791,7 +791,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		//	Convective Flux
 			number flux = 0;
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				flux += convShape.conv_shape(ip, sh) * u(_C_, sh);
+				flux += convShape(ip, sh) * u(_C_, sh);
 
 		//	Diffusive Flux
 			MatVecMult(Dgrad, Diffusion[ip], m_imBrineGradScvf[ip]);
@@ -898,7 +898,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	//	Compute Convective Flux
 		number flux = 0;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			flux += convShape.conv_shape(ip, sh) * u(_C_, sh);
+			flux += convShape(ip, sh) * u(_C_, sh);
 
 	//	Compute Diffusive Flux
 		MatVecMult(Dgrad_c_ip, Diffusion[ip], m_imBrineGradScvf[ip]);

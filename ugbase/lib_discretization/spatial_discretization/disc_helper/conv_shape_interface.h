@@ -71,7 +71,7 @@ class IConvectionShapes
 		size_t num_scvf() const {return m_numScvf;}
 
 	/// shape value
-		number conv_shape(size_t scvf, size_t sh) const
+		number operator()(size_t scvf, size_t sh) const
 		{
 			UG_ASSERT(scvf < m_vUpShape.size(), "Invalid index");
 			UG_ASSERT(sh < m_vUpShape[scvf].size(), "Invalid index");
@@ -79,7 +79,7 @@ class IConvectionShapes
 		}
 
 	///	upwind shape for corner vel
-		const MathVector<dim>& conv_shape_vel(size_t scvf, size_t sh) const
+		const MathVector<dim>& D_vel(size_t scvf, size_t sh) const
 		{
 			UG_ASSERT(scvf < m_vUpShapeVel.size(), "Invalid index");
 			UG_ASSERT(sh < m_vUpShapeVel[scvf].size(), "Invalid index");
@@ -90,7 +90,7 @@ class IConvectionShapes
 		bool non_zero_deriv_diffusion() const {return m_bNonZeroDerivDiffusion;}
 
 	///	upwind shapes for ip vel
-		const MathMatrix<dim,dim>& conv_shape_diffusion(size_t scvf, size_t sh) const
+		const MathMatrix<dim,dim>& D_diffusion(size_t scvf, size_t sh) const
 		{
 			UG_ASSERT(scvf < m_vUpShapeDiffusion.size(), "Invalid index");
 			UG_ASSERT(sh < m_vUpShapeDiffusion[scvf].size(), "Invalid index");
@@ -123,7 +123,7 @@ class IConvectionShapes
 		}
 
 	///	non-const access to upwind shapes for corner vel
-		MathVector<dim>& conv_shape_vel(size_t scvf, size_t sh)
+		MathVector<dim>& D_vel(size_t scvf, size_t sh)
 		{
 			UG_ASSERT(scvf < m_vUpShapeVel.size(), "Invalid index");
 			UG_ASSERT(sh < m_vUpShapeVel[scvf].size(), "Invalid index");

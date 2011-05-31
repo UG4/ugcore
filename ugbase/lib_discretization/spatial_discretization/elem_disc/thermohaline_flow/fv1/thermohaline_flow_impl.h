@@ -964,7 +964,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwind);
 
 //	get a const (!!) reference to the upwind
-	const IConvectionShapes<dim>& convShapeEnergy
+	const IConvectionShapes<dim>& convShapeT
 		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwindEnergy);
 
 //	Loop Sub Control Volume Faces (SCVF)
@@ -989,16 +989,19 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 		{
 		//	Compute Derivative of Convective Flux
-			vDFlux_c[sh] = convShape.conv_shape(ip, sh);
+			vDFlux_c[sh] = convShape(ip, sh);
 			vDFlux_p[sh] = 0.0;
 			vDFlux_T[sh] = 0.0;
 
 		//	Derivative w.r.t. Velocity
 			for(size_t sh1 = 0; sh1 < scvf.num_sh(); ++sh1)
 			{
-				vDFlux_c[sh] += u(_C_, sh1) * VecDot(convShape.conv_shape_vel(ip, sh1), vDDarcyVel_c[sh]);
-				vDFlux_p[sh] += u(_C_, sh1) * VecDot(convShape.conv_shape_vel(ip, sh1), vDDarcyVel_p[sh]);
-				vDFlux_T[sh] += u(_C_, sh1) * VecDot(convShape.conv_shape_vel(ip, sh1), vDDarcyVel_T[sh]);
+				vDFlux_c[sh] += u(_C_, sh1) * VecDot(convShape.D_vel(ip, sh1),
+				                                     	 	 vDDarcyVel_c[sh]);
+				vDFlux_p[sh] += u(_C_, sh1) * VecDot(convShape.D_vel(ip, sh1),
+				                                     	 	 vDDarcyVel_p[sh]);
+				vDFlux_T[sh] += u(_C_, sh1) * VecDot(convShape.D_vel(ip, sh1),
+				                                     	 	 vDDarcyVel_T[sh]);
 			}
 
 			//todo: Derivative of Dispersion
@@ -1016,7 +1019,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		//	Convective Flux
 			number flux = 0;
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				flux += convShape.conv_shape(ip, sh) * u(_C_, sh);
+				flux += convShape(ip, sh) * u(_C_, sh);
 
 		//	Diffusive Flux
 			MatVecMult(Dgrad, m_imMolDiffusionScvf[ip], m_imBrineGradScvf[ip]);
@@ -1089,15 +1092,22 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		//	Compute Derivative of Convective Flux
 			vDFlux_c[sh] = 0.0;
 			vDFlux_p[sh] = 0.0;
-			vDFlux_T[sh] = convShapeEnergy.conv_shape(ip, sh) * m_imHeatCapacityFluid;
+			vDFlux_T[sh] = convShapeT(ip, sh);
 
 		//	Derivative w.r.t. Velocity
 			for(size_t sh1 = 0; sh1 < scvf.num_sh(); ++sh1)
 			{
-				vDFlux_c[sh] += u(_T_, sh1) * VecDot(convShapeEnergy.conv_shape_vel(ip, sh1), vDDarcyVel_c[sh]) * m_imHeatCapacityFluid;
-				vDFlux_p[sh] += u(_T_, sh1) * VecDot(convShapeEnergy.conv_shape_vel(ip, sh1), vDDarcyVel_p[sh]) * m_imHeatCapacityFluid;
-				vDFlux_T[sh] += u(_T_, sh1) * VecDot(convShapeEnergy.conv_shape_vel(ip, sh1), vDDarcyVel_T[sh]) * m_imHeatCapacityFluid;
+				vDFlux_c[sh] += u(_T_, sh1) * VecDot(convShapeT.D_vel(ip, sh1),
+				                                     	 	 vDDarcyVel_c[sh]);
+				vDFlux_p[sh] += u(_T_, sh1) * VecDot(convShapeT.D_vel(ip, sh1),
+				                                     	 	 vDDarcyVel_p[sh]);
+				vDFlux_T[sh] += u(_T_, sh1) * VecDot(convShapeT.D_vel(ip, sh1),
+				                                     	 	 vDDarcyVel_T[sh]);
 			}
+
+			vDFlux_c[sh] *= m_imHeatCapacityFluid;
+			vDFlux_p[sh] *= m_imHeatCapacityFluid;
+			vDFlux_T[sh] *= m_imHeatCapacityFluid;
 		}
 
 		if(!m_BoussinesqEnergy)
@@ -1105,7 +1115,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 		//	prepare flux in case of full equation
 			number flux = 0;
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				flux += convShapeEnergy.conv_shape(ip, sh) * u(_T_, sh);
+				flux += convShapeT(ip, sh) * u(_T_, sh);
 			flux *= m_imHeatCapacityFluid;
 
 		//	Derivative of product
@@ -1196,7 +1206,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwind);
 
 //	get a const (!!) reference to the upwind
-	const IConvectionShapes<dim>& convShapeEnergy
+	const IConvectionShapes<dim>& convShapeT
 		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwindEnergy);
 
 // 	Loop Sub Control Volume Faces (SCVF)
@@ -1212,7 +1222,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	//	Compute Convective Flux
 		number flux = 0;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			flux += convShape.conv_shape(ip, sh) * u(_C_, sh);
+			flux += convShape(ip, sh) * u(_C_, sh);
 
 	//	Compute Diffusive Flux
 		MatVecMult(Dgrad, m_imMolDiffusionScvf[ip], m_imBrineGradScvf[ip]);
@@ -1245,7 +1255,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	//	Compute Convective Flux
 		flux = 0;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			flux += convShapeEnergy.conv_shape(ip, sh) * u(_T_, sh);
+			flux += convShapeT(ip, sh) * u(_T_, sh);
 		flux *= m_imHeatCapacityFluid;
 
 		if(m_BoussinesqEnergy) 	flux *= m_BoussinesqDensity;

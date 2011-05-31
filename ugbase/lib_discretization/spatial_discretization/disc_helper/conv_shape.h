@@ -34,7 +34,7 @@ class ConvectionShapesNoUpwind
 	//	explicitly forward some function
 		using base_type::set_non_zero_deriv_diffusion_flag;
 		using base_type::conv_shape;
-		using base_type::conv_shape_vel;
+		using base_type::D_vel;
 		using base_type::conv_shape_diffusion;
 		using base_type::non_zero_deriv_diffusion;
 		using base_type::register_update_func;
@@ -116,7 +116,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 	//	Write Derivatives if wanted
 		if(computeDeriv)
 			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
-				VecScale(conv_shape_vel(ip, sh),
+				VecScale(D_vel(ip, sh),
 				         scvf.normal(), scvf.shape(sh));
 
 	//	The shapes do not depend of the diffusion tensor
@@ -148,7 +148,7 @@ class ConvectionShapesFullUpwind
 	//	explicitly forward some function
 		using base_type::set_non_zero_deriv_diffusion_flag;
 		using base_type::conv_shape;
-		using base_type::conv_shape_vel;
+		using base_type::D_vel;
 		using base_type::conv_shape_diffusion;
 		using base_type::non_zero_deriv_diffusion;
 		using base_type::register_update_func;
@@ -234,8 +234,8 @@ update(const FV1Geometry<TElem, dim>* geo,
 		if(computeDeriv)
 		{
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecSet(conv_shape_vel(ip, sh), 0.0);
-			conv_shape_vel(ip, up) = scvf.normal();
+				VecSet(D_vel(ip, sh), 0.0);
+			D_vel(ip, up) = scvf.normal();
 		}
 
 	//	The shapes do not depend of the diffusion tensor
@@ -267,7 +267,7 @@ class ConvectionShapesWeightedUpwind
 	//	explicitly forward some function
 		using base_type::set_non_zero_deriv_diffusion_flag;
 		using base_type::conv_shape;
-		using base_type::conv_shape_vel;
+		using base_type::D_vel;
 		using base_type::conv_shape_diffusion;
 		using base_type::non_zero_deriv_diffusion;
 		using base_type::register_update_func;
@@ -364,11 +364,11 @@ update(const FV1Geometry<TElem, dim>* geo,
 		{
 		//	write no upwind part of derivatives
 			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
-				VecScale(conv_shape_vel(ip, sh), scvf.normal(),
+				VecScale(D_vel(ip, sh), scvf.normal(),
 				         	 	 	 	 	 (1.-m_weight)*scvf.shape(sh));
 
 		//	add full upwind part of derivatives
-			VecScaleAppend(conv_shape_vel(ip, up), m_weight, scvf.normal());
+			VecScaleAppend(D_vel(ip, up), m_weight, scvf.normal());
 		}
 
 	//	The shapes do not depend of the diffusion tensor
@@ -401,7 +401,7 @@ class ConvectionShapesPartialUpwind
 	//	explicitly forward some function
 		using base_type::set_non_zero_deriv_diffusion_flag;
 		using base_type::conv_shape;
-		using base_type::conv_shape_vel;
+		using base_type::D_vel;
 		using base_type::conv_shape_diffusion;
 		using base_type::non_zero_deriv_diffusion;
 		using base_type::register_update_func;
@@ -509,7 +509,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 			conv_shape(i, sh) = 0.0;
 		if(computeDeriv)
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecSet(conv_shape_vel(i, sh), 0.0);
+				VecSet(D_vel(i, sh), 0.0);
 
 	///////////////////////////////////////////////////////////////////
 	//	Case 1:
@@ -527,7 +527,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 			if(computeDeriv)
 			{
 			//	set derivative
-				conv_shape_vel(i, up) = scvf.normal();
+				D_vel(i, up) = scvf.normal();
 
 			//	does not depend on diffusion
 				set_non_zero_deriv_diffusion_flag(false);
@@ -550,8 +550,8 @@ update(const FV1Geometry<TElem, dim>* geo,
 			{
 				set_non_zero_deriv_diffusion_flag(false);
 
-				VecScale(conv_shape_vel(i,from), scvf.normal(), 1.0/2.0);
-				VecScale(conv_shape_vel(i, to), scvf.normal(), 1.0/2.0);
+				VecScale(D_vel(i,from), scvf.normal(), 1.0/2.0);
+				VecScale(D_vel(i, to), scvf.normal(), 1.0/2.0);
 			}
 
 		//	everything done
@@ -569,7 +569,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 			conv_shape(i, to) = lambda;
 
 			if(computeDeriv)
-				conv_shape_vel(i,from) = scvf.normal();
+				D_vel(i,from) = scvf.normal();
 		}
 		else
 		{
@@ -577,7 +577,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 			conv_shape(i, to) = flux + lambda;
 
 			if(computeDeriv)
-				conv_shape_vel(i,to) = scvf.normal();
+				D_vel(i,to) = scvf.normal();
 		}
 
 		if (computeDeriv)

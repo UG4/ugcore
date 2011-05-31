@@ -204,7 +204,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 			//	Add Flux contribution
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				{
-					const number D_conv_flux = convShape.conv_shape(ip, sh);
+					const number D_conv_flux = convShape(ip, sh);
 
 				//	Add fkux term to local matrix
 					J(_C_, scvf.from(), _C_, sh) += D_conv_flux;
@@ -327,7 +327,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 			//	sum up convective flux using convection shapes
 				number conv_flux = 0.0;
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					conv_flux += u(_C_, sh) * convShape.conv_shape(ip, sh);
+					conv_flux += u(_C_, sh) * convShape(ip, sh);
 
 			//  add to local defect
 				d(_C_, scvf.from()) += conv_flux;
@@ -452,7 +452,7 @@ lin_defect_velocity(const local_vector_type& u)
 		MathVector<dim> linDefect;
 		VecSet(linDefect, 0.0);
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			VecScaleAppend(linDefect, u(_C_,sh), convShape.conv_shape_vel(ip, sh));
+			VecScaleAppend(linDefect, u(_C_,sh), convShape.D_vel(ip, sh));
 
 	//	add parts for both sides of scvf
 		vLinDef[scvf.from()] += linDefect;
@@ -501,7 +501,7 @@ lin_defect_diffusion(const local_vector_type& u)
 	//	add contribution from convection shapes
 		if(convShape.non_zero_deriv_diffusion())
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				MatAdd(linDefect, convShape.conv_shape_diffusion(ip, sh), u(_C_, sh));
+				MatAdd(linDefect, convShape.D_diffusion(ip, sh), u(_C_, sh));
 
 	//	add contributions
 		m_imDiffusion.lin_defect(ip, _C_, scvf.from()) -= linDefect;
