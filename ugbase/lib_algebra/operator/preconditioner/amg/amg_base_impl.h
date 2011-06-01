@@ -90,6 +90,16 @@ bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 	return true;
 }
 
+
+template<typename TLayout>
+size_t GetNrOfInterfaceElements(TLayout &layout)
+{
+	size_t nr=0;
+	for(typename TLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+		nr += layout.interface(iter).size();
+	return nr;
+}
+
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::init()
 {
@@ -149,32 +159,34 @@ bool amg_base<TAlgebra>::init()
 		m_SMO[level].setmatrix(m_A[level]);
 
 
+		LevelInformation li;
 #ifdef UG_PARALLEL
 		pcl::ProcessCommunicator &comm = m_A[level]->get_process_communicator();
-		size_t nrOfCoarseMin = comm.allreduce(nrOfCoarse, PCL_RO_MIN);
-		size_t nrOfCoarseMax = comm.allreduce(nrOfCoarse, PCL_RO_MAX);
+
+		li.m_dCreationTimeMS = createAMGlevelTiming;
 		nrOfCoarseSum = comm.allreduce(nrOfCoarse, PCL_RO_SUM);
-
-		size_t nnzCoarseMin = comm.allreduce(nnzCoarse, PCL_RO_MIN);
-		size_t nnzCoarseMax = comm.allreduce(nnzCoarse, PCL_RO_MAX);
-		size_t nnzCoarseSum = comm.allreduce(nnzCoarse, PCL_RO_SUM);
-
-		m_levelInformation.push_back(LevelInformation(createAMGlevelTiming, nrOfCoarseMin, nrOfCoarseMax, nrOfCoarseSum,
-				nnzCoarseMin, nnzCoarseMax, nnzCoarseSum));
+		li.set_nr_of_nodes(comm.allreduce(nrOfCoarse, PCL_RO_MIN), comm.allreduce(nrOfCoarse, PCL_RO_MAX), nrOfCoarseSum);
+		li.set_nnz(comm.allreduce(nnzCoarse, PCL_RO_MIN), comm.allreduce(nnzCoarse, PCL_RO_MAX), comm.allreduce(nnzCoarse, PCL_RO_SUM));
+		li.m_iInterfaceElements =
+				comm.allreduce(GetNrOfInterfaceElements(m_A[level]->get_master_layout()) + GetNrOfInterfaceElements(m_A[level]->get_slave_layout()), PCL_RO_SUM);
 #else
 		nrOfCoarseSum = nrOfCoarse;
-		m_levelInformation.push_back(LevelInformation(createAMGlevelTiming, nrOfCoarse, nnzCoarse));
+		li.set_nr_of_nodes(nrOfCoarse, nrOfCoarse, nrOfCoarse);
+		li.set_nnz(nnzCoarse, nnzCoarse, nnzCoarse);
+		li.m_iInterfaceElements = 0;
 #endif
+		m_levelInformation.push_back(li);
+
 		UG_LOG("nrOfCoarse: " << nrOfCoarse << "\n");
 		IF_DEBUG(LIB_ALG_AMG, 1)
 		{
-			UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << m_levelInformation[level].get_nnz() << " Density: " <<
-					m_levelInformation[level].get_fill_in()*100.0 << "%, avg. nnz pre row: " <<
-					m_levelInformation[level].get_avg_nnz_per_row()  << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << li.get_nnz() << " Density: " <<
+					li.get_fill_in()*100.0 << "%, avg. nnz pre row: " <<
+					li.get_avg_nnz_per_row()  << std::endl);
 			if(level>0)
 			{
 				UG_DLOG(LIB_ALG_AMG, 1, "Coarsening rate: " <<
-					(100.0*m_levelInformation[level].get_nr_of_nodes()) / m_levelInformation[level-1].get_nr_of_nodes() <<
+					(100.0*li.get_nr_of_nodes()) / m_levelInformation[level-1].get_nr_of_nodes() <<
 					"%" << std::endl);
 				UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
 			}

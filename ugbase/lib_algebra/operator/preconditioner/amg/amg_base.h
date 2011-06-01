@@ -56,13 +56,6 @@ public:
 	class LevelInformation
 	{
 	public:
-		LevelInformation(double creationTimeMS, size_t iNrOfNodes, size_t nnzs) : m_dCreationTimeMS(creationTimeMS),
-			m_iNrOfNodesMin(iNrOfNodes), m_iNrOfNodesMax(iNrOfNodes), m_iNrOfNodesSum(iNrOfNodes),
-			m_iNNZsMin(nnzs), m_iNNZsMax(nnzs), m_iNNZsSum(nnzs) { }
-		LevelInformation(double creationTimeMS, size_t iNrOfNodesMin, size_t iNrOfNodesMax, size_t iNrOfNodesSum, size_t nnzsMin, size_t nnzsMax, size_t nnzsSum)
-			: m_dCreationTimeMS(creationTimeMS),
-			  m_iNrOfNodesMin(iNrOfNodesMin), m_iNrOfNodesMax(iNrOfNodesMax), m_iNrOfNodesSum(iNrOfNodesSum),
-		  			m_iNNZsMin(nnzsMin), m_iNNZsMax(nnzsMax), m_iNNZsSum(nnzsSum) { }
 		double get_creation_time_ms() { return m_dCreationTimeMS; }
 
 		size_t get_nr_of_nodes_min() { return m_iNrOfNodesMin; }
@@ -72,10 +65,24 @@ public:
 		size_t get_nnz_min() { return m_iNNZsMin; }
 		size_t get_nnz_max() { return m_iNNZsMax; }
 
+		// nr of elements in master/slave interfaces (including multiplicities)
+		size_t get_nr_of_interface_elements() { return m_iInterfaceElements; }
+
 		double get_fill_in() { return ((double)m_iNNZsSum)/(((double)m_iNrOfNodesSum)*((double)m_iNrOfNodesSum)); }
 		double get_avg_nnz_per_row() { return m_iNNZsSum/(double)m_iNrOfNodesSum; }
 		bool is_valid() { return this != NULL; }
-	private:
+
+	public:
+		void set_nr_of_nodes(size_t nrOfNodesMin, size_t nrOfNodesMax, size_t nrOfNodesSum)
+		{
+			m_iNrOfNodesMin = nrOfNodesMin;	m_iNrOfNodesMax = nrOfNodesMax;	m_iNrOfNodesSum = nrOfNodesSum;
+		}
+		void set_nnz(size_t nnzMin, size_t nnzMax, size_t nnzSum)
+		{
+			m_iNNZsMin = nnzMin; m_iNNZsMax = nnzMax; m_iNNZsSum= nnzSum;
+		}
+
+	public:
 		double m_dCreationTimeMS;
 		size_t m_iNrOfNodesMin;
 		size_t m_iNrOfNodesMax;
@@ -83,6 +90,7 @@ public:
 		size_t m_iNNZsMin;
 		size_t m_iNNZsMax;
 		size_t m_iNNZsSum;
+		size_t m_iInterfaceElements;
 	};
 
 
