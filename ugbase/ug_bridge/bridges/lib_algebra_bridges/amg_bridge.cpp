@@ -57,7 +57,8 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("get_nnz_min", &amg_base<algebra_type>::LevelInformation::get_nnz_min, "nr of non-zeros, minimum over all processors")
 			.add_method("get_nnz_max", &amg_base<algebra_type>::LevelInformation::get_nnz_max, "nr of non-zeros, maximum over all processors")
 			.add_method("get_fill_in", &amg_base<algebra_type>::LevelInformation::get_fill_in, "nr of non-zeros / (nr of nodes)^2")
-			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information");
+			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information")
+			.add_method("get_nr_of_interface_elements", &amg_base<algebra_type>::LevelInformation::get_nr_of_interface_elements, "nr of interface elements (including multiplicites)");
 
 	//todo: existance of AMGPreconditioner class should not depend on defines.
 		reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > ("AMGBase", grp2.c_str())
