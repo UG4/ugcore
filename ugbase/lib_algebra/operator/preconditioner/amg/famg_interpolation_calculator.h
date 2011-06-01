@@ -106,7 +106,7 @@ public:
 	{
 		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
-		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << "\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " [" << rating.get_original_index(i) << "]\n");
 
 		UG_ASSERT(rating[i].is_valid_rating(), "node " << i << " has no valid rating " << rating[i].rating);
 
@@ -276,9 +276,6 @@ public:
 
 		if(coarse_neighbors.size() >= 1)
 		{
-			rating.set_coarse(i);
-			return;
-#if 0
 			if(coarse_neighbors.size() == 1)
 			{
 				/*UG_LOG("only 1 coarse neighbor (" << rating.get_original_index(onlyN1[coarse_neighbors[0]]) << " for " << rating.get_original_index(i) << "?\n")
@@ -333,19 +330,19 @@ public:
 
 				if(F > m_delta)
 				{
-					UG_LOG("coarse neighbors, had to set node " << i << " coarse!");
+					UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, had to set node " << i << " coarse!");
 					rating.set_coarse(i);
 
 				}
 				else
 				{
-					UG_LOG("coarse neighbors, Interpolating from ");
+					UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, Interpolating from ");
 					for(size_t j=0; j<N; j++)
 					{
 						int jj = coarse_neighbors[j];
 						size_t node = onlyN1[jj];
-						UG_LOG(node << ": " << q[jj] << ", ");
-						P(i, node) = -q[jj];
+						UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
+						P(i, node) = -q[j];
 					}
 					rating.set_fine(i);
 				}
@@ -355,7 +352,6 @@ public:
 				rating.set_coarse(i);
 				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system (coarse neighbors).\n");
 			}
-#endif
 		}
 		else
 		{
@@ -411,7 +407,7 @@ public:
 						for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
 							P(i, it.index()) += -q[j] * it.value();
 					}
-					rating.set_fine(i);
+					rating.set_aggressive_fine(i);
 				}
 			}
 			else
@@ -613,7 +609,10 @@ private:
 				s += localTestvector[k][j] * SF[j];
 
 			localTestvector[k][onlyN1.size()] = s;
+			IF_DEBUG(LIB_ALG_AMG, 5) print_vector(localTestvector[k], "\nlocalTestvector");
 		}
+
+
 	}
 
 	void calculate_EV_testvectors(size_t node)

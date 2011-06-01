@@ -14,12 +14,16 @@
 namespace ug {
 
 //  structs
-#define FAMG_UNINTERPOLATEABLE			(-11)
-#define FAMG_FINE_RATING				(-12)
-#define FAMG_COARSE_RATING				(-13)
-#define FAMG_DIRICHLET_RATING			(-13)
+// fine is the smallest (see is_fine)
+#define FAMG_FINE_RATING				(-30)
+#define FAMG_AGGRESSIVE_FINE_RATING		(-31)
+#define FAMG_UNCALCULATED_FINE_RATING	(-32)
+
+#define FAMG_UNINTERPOLATEABLE			(-10)
+#define FAMG_COARSE_RATING				(-11)
+#define FAMG_DIRICHLET_RATING			(-11)
 // those are border-nodes which are fine on another processor. we need to calculate ratings for them
-#define FAMG_UNCALCULATED_FINE_RATING	(-14)
+
 
 
 class FAMGNode
@@ -28,17 +32,21 @@ class FAMGNode
 
 private:
 	inline void set_fine(){rating = FAMG_FINE_RATING;}
-	inline void set_coarse(){rating = FAMG_COARSE_RATING;}
-	inline void set_uninterpolateable()
-	{	rating = FAMG_UNINTERPOLATEABLE;	}
-	inline void set_dirichlet() { rating = FAMG_DIRICHLET_RATING; }
+	inline void set_aggressive_fine(){rating = FAMG_AGGRESSIVE_FINE_RATING;}
 	inline void set_uncalculated_fine() { rating = FAMG_UNCALCULATED_FINE_RATING; }
+
+	inline void set_coarse(){rating = FAMG_COARSE_RATING;}
+	inline void set_uninterpolateable()	{ rating = FAMG_UNINTERPOLATEABLE;	}
+	inline void set_dirichlet() { rating = FAMG_DIRICHLET_RATING; }
+
 
 public:
 	FAMGNode() { rating = 0.0; }
 	double rating;
 	
-	inline bool is_fine() const { return rating == FAMG_FINE_RATING || rating == FAMG_UNCALCULATED_FINE_RATING; }
+	// is_fine is true if node is fine OR uncalculated_fine OR aggressive_fine
+	inline bool is_fine() const { return rating <= FAMG_FINE_RATING; }
+	inline bool is_aggressive_fine() const { return rating == FAMG_AGGRESSIVE_FINE_RATING; }
 	inline bool is_uncalculated_fine() const { return rating == FAMG_UNCALCULATED_FINE_RATING; }
 	inline bool is_coarse() const { return rating == FAMG_COARSE_RATING; }
 	inline bool is_uninterpolateable() const { return rating == FAMG_UNINTERPOLATEABLE; }
@@ -76,8 +84,9 @@ public:
 	{
 		out << "Rating: " << n.rating;
 		if(n.rating == FAMG_FINE_RATING) out << " (fine)";
-		else if(n.is_coarse()) out << " (coarse)";
+		else if(n.rating == FAMG_AGGRESSIVE_FINE_RATING) out << " (AC fine)";
 		else if(n.rating == FAMG_UNCALCULATED_FINE_RATING) out << " (fine u)";
+		else if(n.is_coarse()) out << " (coarse)";
 		else if(n.rating == 0.0) out << "(unassigned)";
 		else if(n.is_uninterpolateable()) out << " (uninterpolateable)";
 		return out;
@@ -98,6 +107,8 @@ public:
 	void create(size_t size)
 	{
 		m_iNrOfCoarse = 0;
+		m_iNrOfFine = 0;
+		m_iNrOfAggressiveFine = 0;
 		nodes.clear(); 		nodes.resize(size);
 #ifdef UG_PARALLEL
 		OLtype.clear();		OLtype.resize(size, 0);
@@ -277,7 +288,6 @@ public:
 		{
 			if(i_must_assign(i))
 				m_iUnassigned++;
-
 		}
 	}
 	stdvector<int> OLtype;
@@ -335,14 +345,30 @@ public:
 	void set_fine(size_t index)
 	{
 		UG_ASSERT(nodes[index].is_coarse() == false, "try to set node " << index << " fine, but is coarse???");
-		if(nodes[index].is_fine() == false && i_must_assign(index))
-			m_iUnassigned--;
+		if(nodes[index].is_fine() == false)
+		{
+			if(i_must_assign(index))
+				m_iUnassigned--;
+			m_iNrOfFine++;
+		}
 		nodes[index].set_fine();
+	}
+
+	void set_aggressive_fine(size_t index)
+	{
+		UG_ASSERT(nodes[index].is_fine() == false, "node " << index << " is already fine");
+		if(i_must_assign(index))
+			m_iUnassigned--;
+		m_iNrOfAggressiveFine++;
+		nodes[index].set_aggressive_fine();
 	}
 
 	void external_set_uncalculated_fine(size_t index)
 	{
 		UG_ASSERT(!is_inner_node(index), "node " << index << " can not be set uncalculated_fine, since it is an inner node");
+		UG_ASSERT(!nodes[index].is_fine(), "node " << index << " is already fine?");
+		if(nodes[index].is_fine() == false)
+			m_iNrOfFine++;
 		nodes[index].set_uncalculated_fine();
 		m_iUnassigned--;
 	}
@@ -352,10 +378,10 @@ public:
 		if(nodes[index].is_coarse() == false)
 		{
 			nodes[index].set_coarse();
+			m_iNrOfCoarse ++;
 
 			if(i_must_assign(index))
 				m_iUnassigned--;
-			m_iNrOfCoarse++;
 			P(index, index) = 1.0;
 		}
 	}
@@ -383,6 +409,16 @@ public:
 		return m_iUnassigned;
 	}
 
+	size_t get_nr_of_fine()
+	{
+		return m_iNrOfFine;
+	}
+
+	size_t get_nr_of_aggressive_fine()
+	{
+		return m_iNrOfAggressiveFine;
+	}
+
 	size_t get_original_index(size_t i)
 	{
 		UG_ASSERT(m_level != (size_t)-1, "");
@@ -396,6 +432,8 @@ public:
 private:
 	size_t m_iNrOfCoarse;			// number of coarse nodes so far
 	size_t m_iUnassigned;			// number of still unassigned nodes
+	size_t m_iNrOfAggressiveFine; 	// number of aggressive fine nodes
+	size_t m_iNrOfFine; 			// number of fine nodes
 
 	SparseMatrix<double> &P;
 	size_t m_level;

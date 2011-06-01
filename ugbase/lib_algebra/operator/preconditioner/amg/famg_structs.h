@@ -16,7 +16,7 @@ struct neighborstruct2
 	{
 		UG_LOG(parents.size() << " parents, F = " << F << ": ");
 		for(size_t i=0; i<parents.size(); i++)
-			UG_LOG((i>0 ? "," : "") << "p" << i << ": [" << rating.get_original_index(parents[i].from) << "] -> " << parents[i].value);
+			UG_LOG((i>0 ? "," : "") << "p" << i << ": " << parents[i].from << " [" << rating.get_original_index(parents[i].from) << "] -> " << parents[i].value);
 		UG_LOG(std::endl);
 	}
 	FixedArray1<s_interpolation<double>, 2> parents;
@@ -29,7 +29,7 @@ struct neighborstruct_var
 	{
 		UG_LOG(parents.size() << " parents, F = " << F << ": ");
 		for(size_t i=0; i<parents.size(); i++)
-			UG_LOG((i>0 ? "," : "") << "p" << i << ": [" << rating.get_original_index(parents[i].from) << "] -> " << parents[i].value);
+			UG_LOG((i>0 ? "," : "") << "p" << i << ": " << parents[i].from << " [" << rating.get_original_index(parents[i].from) << "] -> " << parents[i].value);
 		UG_LOG(std::endl);
 	}
 	stdvector<s_interpolation<double> > parents;

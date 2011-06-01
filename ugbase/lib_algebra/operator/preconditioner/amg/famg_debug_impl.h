@@ -55,14 +55,21 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::wr
 	{
 		AMG_PROFILE_FUNC();
 		std::fstream ffine(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_fine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+		ffine << "1 0 0 1 0\n";
+		std::fstream ffine2(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_aggfine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+		ffine2 << "1 0.2 1 1 0\n";
 		std::fstream fcoarse(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_coarse_L") + ToString(level), ".marks").c_str(), std::ios::out);
+		fcoarse << "0 0 1 1 2\n";
 		std::fstream fother(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_other_L") + ToString(level), ".marks").c_str(), std::ios::out);
+		fother << "1 1 0 1 0\n";
 		std::fstream fdirichlet(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_dirichlet_L") + ToString(level), ".marks").c_str(), std::ios::out);
+		fdirichlet << "0 1 1 1 0\n";
 		for(size_t i=0; i < rating.size(); i++)
 		{
 			//int o = m_famg.m_amghelper.GetOriginalIndex(level, i);
 			int o=i;
-			if(rating[i].is_fine()) ffine << o << "\n";
+			if(rating[i].is_aggressive_fine()) ffine2 << o << "\n";
+			else if(rating[i].is_fine()) ffine << o << "\n";
 			else if(rating[i].is_coarse()) fcoarse << o << "\n";
 			else if(rating[i].is_dirichlet()) fdirichlet << o << "\n";
 			else fother << o << "\n";
@@ -82,6 +89,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::wr
 		AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_famg.m_amghelper);
 		std::fstream f2(filename.c_str(), std::ios::out | std::ios::app);
 		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_fine_L") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_aggfine_L") + ToString(level), ".marks") << "\n";
 		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_coarse_L") + ToString(level), ".marks") << "\n";
 		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_other_L") + ToString(level), ".marks") << "\n";
 		f2 << "c " << GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_dirichlet_L") + ToString(level), ".marks") << "\n";

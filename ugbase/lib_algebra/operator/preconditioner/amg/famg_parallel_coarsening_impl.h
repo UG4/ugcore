@@ -141,7 +141,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 			int state = states[i][j++];
 
-			if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING)
+			if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING || state == FAMG_AGGRESSIVE_FINE_RATING)
 				rating.external_set_uncalculated_fine(index);
 			else if(state == FAMG_COARSE_RATING)
 				rating.external_set_coarse(index);

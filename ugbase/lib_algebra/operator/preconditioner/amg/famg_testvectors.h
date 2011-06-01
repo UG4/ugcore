@@ -70,8 +70,10 @@ double EnergyProd(const vector_type &v1, const matrix_type &M)
 	UG_ASSERT(v1.size() == M.num_rows() && M.num_cols() == v1.size(), "size mismatch");
 	for(size_t i=0; i < v1.size(); ++i)
 	{
+		double s=0.0;
 		for(typename matrix_type::const_row_iterator it = M.begin_row(i); it != M.end_row(i); ++it)
-			sum += (v1[i]*v1[i]) * it.value();
+			s += v1[it.index()] * it.value();
+		sum += v1[i]*s;
 	}
 	return sum;
 }
