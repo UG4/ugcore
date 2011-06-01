@@ -47,9 +47,6 @@ class AssembledMultiGridCycle :
 	///	Approximation Space
 		typedef TApproximationSpace approximation_space_type;
 
-	///	Function type this preconditioner works on
-		typedef typename TApproximationSpace::function_type function_type;
-
 	///	DoFDistribution Type
 		typedef typename TApproximationSpace::dof_distribution_type dof_distribution_type;
 
@@ -169,7 +166,7 @@ class AssembledMultiGridCycle :
 		bool lmgc(size_t lev);
 
 	/// performs smoothing on level l, nu times
-		bool smooth(function_type& d, function_type& c, size_t lev, int nu);
+		bool smooth(vector_type& d, vector_type& c, size_t lev, int nu);
 
 	///	returns the number of allocated levels
 		size_t num_levels() const {return m_A.size();}
@@ -205,12 +202,12 @@ class AssembledMultiGridCycle :
 		bool init_projection();
 
 	///	projects a grid function from the surface to the levels
-		bool project_surface_to_level(std::vector<function_type*>& vLevelFunc,
+		bool project_surface_to_level(std::vector<vector_type*>& vLevelFunc,
 		                              const vector_type& surfFunc);
 
 	///	projects a grid function from the levels to the surface
 		bool project_level_to_surface(vector_type& surfFunc,
-		                              const std::vector<function_type*>& vLevelFunc);
+		                              const std::vector<vector_type*>& vLevelFunc);
 
 	///	assembles the missing matrix part on the coarse level, that must be
 	///	added if the correction has been computed to ensure a correctly updated
@@ -268,16 +265,16 @@ class AssembledMultiGridCycle :
 		prolongation_operator_type* m_pProlongationPrototype;
 
 	///	solution for each grid level
-		std::vector<function_type*> m_u;
+		std::vector<vector_type*> m_u;
 
 	///	correction for each grid level
-		std::vector<function_type*> m_c;
+		std::vector<vector_type*> m_c;
 
 	///	defect for each grid level
-		std::vector<function_type*> m_d;
+		std::vector<vector_type*> m_d;
 
 	///	help vector (correction) for each grid level
-		std::vector<function_type*> m_t;
+		std::vector<vector_type*> m_t;
 
 	///	flag indicating if grid is full refined
 		bool m_bFullRefined;

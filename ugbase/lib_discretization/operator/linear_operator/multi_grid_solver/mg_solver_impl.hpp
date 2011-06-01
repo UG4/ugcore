@@ -13,6 +13,8 @@
 #include "lib_discretization/function_spaces/grid_function_util.h"
 #include "lib_discretization/dof_manager/dof_manager_util.h"
 
+#include "mg_solver.h"
+
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -38,7 +40,7 @@ namespace ug{
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-smooth(function_type& d, function_type& c, size_t lev, int nu)
+smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 {
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
@@ -172,7 +174,7 @@ lmgc(size_t lev)
 	//	send vertical-slaves -> vertical-masters
 	//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 		GMG_PROFILE_BEGIN(GMG_SendVerticalDefect);
-		ComPol_VecAdd<typename function_type::vector_type> cpVecAdd(m_d[lev-1]);
+		ComPol_VecAdd<vector_type> cpVecAdd(m_d[lev-1]);
 		if(!m_d[lev-1]->get_vertical_slave_layout().empty())
 		{
 		//	do not resume if vertical slaves are present
@@ -224,7 +226,7 @@ lmgc(size_t lev)
 	//	send vertical-masters -> vertical-slaves
 	//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 		GMG_PROFILE_BEGIN(GMG_SendVerticalCorrection);
-		ComPol_VecCopy<typename function_type::vector_type> cpVecCopy(m_c[lev-1]);
+		ComPol_VecCopy<vector_type> cpVecCopy(m_c[lev-1]);
 		if(!m_c[lev-1]->get_vertical_slave_layout().empty())
 		{
 			UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
@@ -944,7 +946,7 @@ template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_level_to_surface(vector_type& surfFunc,
-                         const std::vector<function_type*>& vLevelFunc)
+                         const std::vector<vector_type*>& vLevelFunc)
 {
   GMG_PROFILE_FUNC();
 //	level dof distributions
@@ -978,7 +980,8 @@ project_level_to_surface(vector_type& surfFunc,
 	std::vector<const vector_type*> cvLevelVec;
 
 //	create std::vector of const level vectors
-	ExtractVectorsFromGridFunction(cvLevelVec, vLevelFunc);
+	for(size_t i = 0; i < vLevelFunc.size(); ++i)
+		cvLevelVec.push_back(vLevelFunc[i]);
 
 //	project
 	if(!ProjectLevelToSurface(surfFunc, surfDD, *surfView, cvLevelVec, vLevelDD, m_baseLev))
@@ -995,7 +998,7 @@ project_level_to_surface(vector_type& surfFunc,
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-project_surface_to_level(std::vector<function_type*>& vLevelFunc,
+project_surface_to_level(std::vector<vector_type*>& vLevelFunc,
                          const vector_type& surfFunc)
 {
   GMG_PROFILE_FUNC();
@@ -1026,14 +1029,8 @@ project_surface_to_level(std::vector<function_type*>& vLevelFunc,
 		return false;
 	}
 
-//	std::vector of algebra level vectors
-	std::vector<vector_type*> vLevelVec;
-
-//	create std::vector of level vectors
-	ExtractVectorsFromGridFunction(vLevelVec, vLevelFunc);
-
 //	project
-	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfFunc, surfDD, *surfView))
+	if(!ProjectSurfaceToLevel(vLevelFunc, vLevelDD, surfFunc, surfDD, *surfView))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level': "
 				"Projection of function from surface to level failed.\n");
@@ -1084,7 +1081,7 @@ allocate_level(size_t level)
 	if(m_d[level] == NULL)
 		m_d[level] = m_pApproxSpace->create_level_function(level);
 
-//	allocate coarse grid operators
+//	allocate level grid operators
 	if(m_A.size() <= level) m_A.resize(level+1, NULL);
 	if(m_A[level] == NULL)
 		m_A[level] = new operator_type(*m_pAss);
@@ -1182,6 +1179,9 @@ write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 //	if no debug writer set, we're done
 	if(m_pDebugWriter == NULL) return true;
 
+//	typedef function type
+	typedef typename approximation_space_type::function_type function_type;
+
 //	create level function
 	function_type* dbgFunc = m_pApproxSpace->create_level_function(lev);
 
@@ -1220,6 +1220,9 @@ write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 {
 //	if no debug writer set, we're done
 	if(m_pDebugWriter == NULL) return true;
+
+//	typedef function type
+	typedef typename approximation_space_type::function_type function_type;
 
 //	create level function
 	function_type* dbgFunc = m_pApproxSpace->create_level_function(lev);
@@ -1260,6 +1263,9 @@ write_surface_debug(const vector_type& vec, const char* filename)
 //	if no debug writer set, we're done
 	if(m_pDebugWriter == NULL) return true;
 
+//	typedef function type
+	typedef typename approximation_space_type::function_type function_type;
+
 //	create level function
 	function_type* dbgFunc = m_pApproxSpace->create_surface_function();
 
@@ -1299,6 +1305,9 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 {
 //	if no debug writer set, we're done
 	if(m_pDebugWriter == NULL) return true;
+
+//	typedef function type
+	typedef typename approximation_space_type::function_type function_type;
 
 //	create level function
 	function_type* dbgFunc = m_pApproxSpace->create_surface_function();
