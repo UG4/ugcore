@@ -40,13 +40,54 @@ namespace lua
 }
 
 
+int LuaGetNumber(lua_State *L, const char *name, int notAvailable)
+{
+	LUA_STACK_CHECK(L, 0);
+	if(GetLuaNamespace(L, name)==false || !lua_isnumber(L, -1))
+	{
+		lua_pop(L, 1);
+		return notAvailable;
+	}
+	int i = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	return i;
+}
+
+string LuaGetString(lua_State *L, const char *name, const char *notAvailable)
+{
+	LUA_STACK_CHECK(L, 0);
+	if(GetLuaNamespace(L, name)==false || !lua_isstring(L, -1))
+	{
+		lua_pop(L, 1);
+		return notAvailable;
+	}
+	string str = lua_tostring(L, -1);
+	lua_pop(L, 1);
+	return str;
+}
+
+bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable)
+{
+	LUA_STACK_CHECK(L, 0);
+	if(GetLuaNamespace(L, name)==false || !lua_isboolean(L, -1))
+	{
+		lua_pop(L, 1);
+		return notAvailable;
+	}
+	bool b = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	return b;
+}
+
+
+
 string GetFileLine(const char *filename, size_t line);
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
 void LuaPrintTable(lua_State *L, size_t iSpace);
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
 bool ClassInstantiations(const char *classname);
 
-bool GetLuaNamespace(lua_State* L, string &name)
+bool GetLuaNamespace(lua_State* L, string name)
 {
 	LUA_STACK_CHECK(L, 1);
 	vector<string> tokens;

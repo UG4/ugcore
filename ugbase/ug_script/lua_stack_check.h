@@ -39,7 +39,7 @@ private:
 #define LUA_STACK_CHECK_STRINGIFY(x) #x
 #define LUA_STACK_CHECK_TOSTRING(x) LUA_STACK_CHECK_STRINGIFY(x)
 
-#define LUA_STACK_CHECK(L, growth) LuaStackCheck check##__LINE__(L, __FILE__ ":" LUA_STACK_CHECK_TOSTRING(__LINE__), growth)
+#define LUA_STACK_CHECK(L, growth) ::ug::bridge::LuaStackCheck check##__LINE__(L, __FILE__ ":" LUA_STACK_CHECK_TOSTRING(__LINE__), growth)
 
 #else
 

@@ -27,7 +27,12 @@ int PrintFunctionInfo(lua_State *L, bool bComplete);
 
 int UGTypeInfo(const char *p);
 
-bool GetLuaNamespace(lua_State* L, std::string &name);
+bool GetLuaNamespace(lua_State* L, std::string name);
+
+int LuaGetNumber(lua_State *L, const char *name, int notAvailable);
+std::string LuaGetString(lua_State *L, const char *name, const char *notAvailable);
+bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
+
 
 }
 }
