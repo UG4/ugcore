@@ -253,7 +253,7 @@ ilut = ILUT()
 	gmg:set_num_postsmooth(3)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
-	--gmg:set_debug(dbgWriter)
+	gmg:set_debug(dbgWriter)
 
 
 amg = AMGPreconditioner()
