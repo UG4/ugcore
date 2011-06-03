@@ -5,6 +5,7 @@
 #include <cassert>
 #include <iostream>
 #include "tetrahedron_rules.h"
+#include "rule_util.h"
 
 using namespace std;
 
@@ -274,76 +275,11 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 	}
 
 	if(fillCount == 0){
-	//	no refinement rule was found. We'll thus insert a new vertex in the
-	//	center and split the tetrahedron into 4 sub-tetrahedrons.
-	//	we'll then recursively call this method for each sub-tetrahedron.
-	//	since all refinement rules for one side are given, one recursion will
-	//	always suffice.
-		int tmpInds[MAX_NUM_INDS_OUT];
-		int tmpNewEdgeVrts[NUM_EDGES];
+	//	call recursive refine
+		fillCount = shared_rules::RecursiveRefine(newIndsOut, newEdgeVrts,
+									FACE_VRT_INDS, FACE_EDGE_INDS, NUM_VERTICES,
+									NUM_EDGES, NUM_FACES);
 
-	//	the indMap is used to map the generated temporary indices to the
-	//	indices of the main tetrahedron.
-		const int indMapSize = NUM_VERTICES + NUM_EDGES;
-		int indMap[indMapSize];
-
-		for(int i_face = 0; i_face < NUM_FACES; ++i_face){
-		//	fill indMap and tmpNewEdgeVrts.
-			for(int i_ind = 0; i_ind < indMapSize; ++i_ind)
-				indMap[i_ind] = -1;
-
-			for(int i = 0; i < 3; ++i)
-				indMap[i] = FACE_VRT_INDS[i_face][i];
-
-			for(int i_edge = 0; i_edge < NUM_EDGES; ++i_edge)
-				tmpNewEdgeVrts[i_edge] = 0;
-
-			for(int i_edge = 0; i_edge < 3; ++i_edge){
-				const int edgeInd = FACE_EDGE_INDS[i_face][i_edge];
-				if(newEdgeVrts[edgeInd]){
-					tmpNewEdgeVrts[i_edge] = 1;
-					indMap[NUM_VERTICES + i_edge] = edgeInd + NUM_VERTICES;
-				}
-			}
-
-		//	the 4-th entry is the inner vertex
-			indMap[NUM_VERTICES - 1] = NUM_VERTICES + NUM_EDGES;
-
-		//	call refine
-			bool centerVrtRequired = false;
-			int count = Refine(tmpInds, tmpNewEdgeVrts, centerVrtRequired);
-		//	No center vertex should be created during this recudsion.
-			assert(!centerVrtRequired);
-/*
-			cout << "tmpInds:";
-			for(int i = 0; i < count; ++i)
-				cout << " " << tmpInds[i];
-			cout << endl;
-
-			cout << "indMap:";
-			for(int i = 0; i < indMapSize; ++i)
-				cout << " " << indMap[i];
-			cout << endl;
-*/
-		//	copy the new indices to the output array
-			for(int i = 0; i < count;){
-				int numElemInds = tmpInds[i];
-				newIndsOut[fillCount + i] = numElemInds;
-				++i;
-			//	the elements are inverted. we have to adjust that by inverting
-			//	the order of the base vertices.
-			//todo:	One could probably solve this in a more elegant way...
-				for(int j = 0; j < (int)((numElemInds - 1) / 2); ++j)
-					swap(tmpInds[i + j], tmpInds[i + numElemInds - 2 - j]);
-
-				for(int j = 0; j < numElemInds; ++j, ++i){
-					assert(indMap[tmpInds[i]] != -1);
-					newIndsOut[fillCount + i] = indMap[tmpInds[i]];
-				}
-			}
-
-			fillCount += count;
-		}
 	//	the rule requires a new center vertex
 		newCenterOut = true;
 	}

@@ -7,12 +7,57 @@
 #include "geometric_objects.h"
 #include "common/common.h"
 #include "tetrahedron_rules.h"
+#include "pyramid_rules.h"
+#include "prism_rules.h"
+#include "hexahedron_rules.h"
+
 //#include "../algorithms/geom_obj_util/geom_obj_util.h"
 
 using namespace std;
 
 namespace ug
 {
+
+class TetrahedronClass{
+	public:
+		enum{
+			NUM_VERTICES = tet_rules::NUM_VERTICES,
+			NUM_EDGES = tet_rules::NUM_EDGES,
+			NUM_FACES = tet_rules::NUM_FACES,
+			MAX_NUM_INDS_OUT = tet_rules::MAX_NUM_INDS_OUT
+		};
+};
+
+class PyramidClass{
+	public:
+		enum{
+			NUM_VERTICES = pyra_rules::NUM_VERTICES,
+			NUM_EDGES = pyra_rules::NUM_EDGES,
+			NUM_FACES = pyra_rules::NUM_FACES,
+			MAX_NUM_INDS_OUT = pyra_rules::MAX_NUM_INDS_OUT
+		};
+};
+
+class PrismClass{
+	public:
+		enum{
+			NUM_VERTICES = prism_rules::NUM_VERTICES,
+			NUM_EDGES = prism_rules::NUM_EDGES,
+			NUM_FACES = prism_rules::NUM_FACES,
+			MAX_NUM_INDS_OUT = prism_rules::MAX_NUM_INDS_OUT
+		};
+};
+
+class HexahedronClass{
+	public:
+		enum{
+			NUM_VERTICES = hex_rules::NUM_VERTICES,
+			NUM_EDGES = hex_rules::NUM_EDGES,
+			NUM_FACES = hex_rules::NUM_FACES,
+			MAX_NUM_INDS_OUT = hex_rules::MAX_NUM_INDS_OUT
+		};
+};
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	TOOLS
@@ -31,6 +76,109 @@ bool ReorderCornersCCW(VertexBase** cornersOut, VertexBase** const cornersIn,
 	cornersOut[0] = cornersIn[firstCorner];
 	for(int i = 1; i < numCorners; ++i)
 		cornersOut[i] = cornersIn[(firstCorner + i) % numCorners];
+	return true;
+}
+
+/**	This refinement helper is called by the different refine implementations.
+ * The last parameter is the actual refinement procedure as defined in
+ * ug::tet_rules, ug::pyra_rules, ug::hex_rules or ug::prism_rules.
+ */
+template <class TElemClass>
+static bool Refine(std::vector<Volume*>& vNewVolumesOut,
+					VertexBase** ppNewVertexOut,
+					VertexBase** newEdgeVertices,
+					VertexBase** newFaceVertices,
+					VertexBase* newVolumeVertex,
+					const VertexBase& prototypeVertex,
+					VertexBase** vrts,
+					int (*funcRefine)(int*, int*, bool&))
+{
+	vNewVolumesOut.clear();
+	*ppNewVertexOut = NULL;
+
+//	allVrts is an array holding both, the vertices and the new edge-vertices.
+//	we will index it with the results later on to create the new elements.
+	const int allVrtsSize = TElemClass::NUM_VERTICES + TElemClass::NUM_EDGES
+							+ TElemClass::NUM_FACES + 1;
+	VertexBase* allVrts[allVrtsSize];
+	for(int i = 0; i < TElemClass::NUM_VERTICES; ++i)
+		allVrts[i] = vrts[i];
+
+//	check which edge has to be refined, and which not
+	int newEdgeVrts[TElemClass::NUM_EDGES];
+	for(int i = 0; i < TElemClass::NUM_EDGES; ++i){
+		allVrts[TElemClass::NUM_VERTICES + i] = newEdgeVertices[i];
+		if(newEdgeVertices[i])
+			newEdgeVrts[i] = 1;
+		else
+			newEdgeVrts[i] = 0;
+	}
+
+//	copy new face vertices to the allVrts array
+	if(newFaceVertices){
+		for(int i = 0; i < TElemClass::NUM_FACES; ++i){
+			allVrts[TElemClass::NUM_VERTICES + TElemClass::NUM_EDGES + i] =
+					newFaceVertices[i];
+		}
+	}
+
+//	in this array we'll receive the new indices
+	int newElemInds[TElemClass::MAX_NUM_INDS_OUT];
+
+//	perform refine
+	bool centerVrtRequired = false;
+	int numElemInds = funcRefine(newElemInds, newEdgeVrts, centerVrtRequired);
+
+	assert(numElemInds != 0 && "PROBLEM in Refine(...): "
+								"refine with 1 new edge vertex failed.");
+
+	if(numElemInds == 0)
+		return false;
+
+//	if a new center vertex is required, then we'll create one now.
+	if(centerVrtRequired){
+		if(!newVolumeVertex)
+			newVolumeVertex = static_cast<VertexBase*>(
+								prototypeVertex.create_empty_instance());
+		*ppNewVertexOut = newVolumeVertex;
+		allVrts[allVrtsSize - 1] = *ppNewVertexOut;
+	}
+
+//	debug log of inds
+
+	UG_LOG("newElemInds:");
+	for(int i = 0; i < numElemInds; ++i){
+		UG_LOG(" " << newElemInds[i]);
+	}
+	UG_LOG(endl);
+
+	UG_LOG("allVrts:");
+	for(int i = 0; i < allVrtsSize; ++i){
+		UG_LOG(" " << allVrts[i]);
+	}
+	UG_LOG(endl);
+
+
+//	the VolumeDescriptor will be used to create new volumes
+	VolumeDescriptor vd;
+
+//	create the elements from the given indices (there should be 2 tets)
+	for(int i = 0; i < numElemInds;){
+		int num = newElemInds[i++];
+		vd.set_num_vertices(num);
+		for(int j = 0; j < num; ++j){
+			assert(allVrts[newElemInds[i]]);
+			vd.set_vertex(j, allVrts[newElemInds[i++]]);
+		}
+
+		switch(num){
+			case 4:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
+			case 5:	vNewVolumesOut.push_back(new Pyramid(vd));		break;
+			case 6:	vNewVolumesOut.push_back(new Prism(vd));		break;
+			case 8:	vNewVolumesOut.push_back(new Hexahedron(vd));	break;
+		}
+	}
+
 	return true;
 }
 
@@ -98,22 +246,6 @@ void Tetrahedron::edge(int index, EdgeDescriptor& edOut) const
 	assert(index >= 0 && index <= NUM_EDGES);
 	edOut.set_vertices(m_vertices[EDGE_VRT_INDS[index][0]],
 					   m_vertices[EDGE_VRT_INDS[index][1]]);
-/*
-	switch(index)
-	{
-		case 0: edOut.set_vertices(m_vertices[0], m_vertices[1]);
-				return;
-		case 1: edOut.set_vertices(m_vertices[1], m_vertices[2]);
-				return;
-		case 2: edOut.set_vertices(m_vertices[2], m_vertices[0]);
-				return;
-		case 3: edOut.set_vertices(m_vertices[3], m_vertices[0]);
-				return;
-		case 4: edOut.set_vertices(m_vertices[3], m_vertices[1]);
-				return;
-		case 5: edOut.set_vertices(m_vertices[3], m_vertices[2]);
-				return;
-*/
 }
 
 uint Tetrahedron::num_edges() const
@@ -137,32 +269,6 @@ void Tetrahedron::face(int index, FaceDescriptor& fdOut) const
 	fdOut.set_vertex(0, m_vertices[FACE_VRT_INDS[index][0]]);
 	fdOut.set_vertex(1, m_vertices[FACE_VRT_INDS[index][1]]);
 	fdOut.set_vertex(2, m_vertices[FACE_VRT_INDS[index][2]]);
-
-/*
-	switch(index)
-		{
-			case 0:
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[2]);
-				fdOut.set_vertex(2, m_vertices[1]);
-				return;
-			case 1:
-				fdOut.set_vertex(0, m_vertices[1]);
-				fdOut.set_vertex(1, m_vertices[2]);
-				fdOut.set_vertex(2, m_vertices[3]);
-				return;
-			case 2:
-				fdOut.set_vertex(0, m_vertices[2]);
-				fdOut.set_vertex(1, m_vertices[0]);
-				fdOut.set_vertex(2, m_vertices[3]);
-				return;
-			case 3:
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[1]);
-				fdOut.set_vertex(2, m_vertices[3]);
-				return;
-		}
-*/
 }
 
 uint Tetrahedron::num_faces() const
@@ -172,16 +278,19 @@ uint Tetrahedron::num_faces() const
 
 EdgeBase* Tetrahedron::create_edge(int index)
 {
-	EdgeDescriptor ed;
-	edge(index, ed);
-	return new Edge(ed);
+	using namespace tet_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Tetrahedron::create_face(int index)
 {
-	FaceDescriptor fd;
-	face(index, fd);
-	return new Triangle(fd.vertex(0), fd.vertex(1), fd.vertex(2));
+	using namespace tet_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+	return new Triangle(m_vertices[f[0]], m_vertices[f[1]], m_vertices[f[2]]);
 }
 
 void Tetrahedron::
@@ -192,23 +301,6 @@ get_local_vertex_indices_of_edge(size_t& ind1Out,
 	assert(edgeInd >= 0 && edgeInd < 6);
 	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][0];
 	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][1];
-/*
-	switch(edgeInd)
-	{
-		case 0: ind1Out = 0; ind2Out = 1;
-				return;
-		case 1: ind1Out = 1; ind2Out = 2;
-				return;
-		case 2: ind1Out = 2; ind2Out = 0;
-				return;
-		case 3: ind1Out = 3; ind2Out = 0;
-				return;
-		case 4: ind1Out = 3; ind2Out = 1;
-				return;
-		case 5: ind1Out = 3; ind2Out = 2;
-				return;
-	}
-*/
 }
 											  
 void Tetrahedron::
@@ -220,33 +312,6 @@ get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 	indsOut[0] = tet_rules::FACE_VRT_INDS[side][0];
 	indsOut[1] = tet_rules::FACE_VRT_INDS[side][1];
 	indsOut[2] = tet_rules::FACE_VRT_INDS[side][2];
-/*
-	switch(side)
-	{
-		case 0:
-			indsOut[0] = 0;
-			indsOut[1] = 2;
-			indsOut[2] = 1;
-			return;
-		case 1:
-			indsOut[0] = 1;
-			indsOut[1] = 2;
-			indsOut[2] = 3;
-			return;
-		case 2:
-			indsOut[0] = 2;
-			indsOut[1] = 0;
-			indsOut[2] = 3;
-			return;
-		case 3:
-			indsOut[0] = 0;
-			indsOut[1] = 1;
-			indsOut[2] = 3;
-			return;
-		default:
-			throw(UGError("Bad side index"));
-	}
-*/
 }
 
 bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -266,10 +331,6 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 							const VertexBase& prototypeVertex,
 							VertexBase** pSubstituteVertices)
 {
-//TODO: complete this refine method.
-	vNewVolumesOut.clear();
-	*ppNewVertexOut = NULL;
-
 //	handle substitute vertices.
 	VertexBase** vrts;
 	if(pSubstituteVertices)
@@ -277,90 +338,10 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	else
 		vrts = &BaseClass::m_vertices.front();
 
-//	allVrts is an array holding both, the vertices and the new edge-vertices.
-//	we will index it with the results later on to create the new elements.
-	const int allVrtsSize = tet_rules::NUM_VERTICES + tet_rules::NUM_EDGES + 1;
-	VertexBase* allVrts[allVrtsSize];
-	for(int i = 0; i < tet_rules::NUM_VERTICES; ++i)
-		allVrts[i] = vrts[i];
-
-//	check which edge has to be refined, and which not
-	int newEdgeVrts[tet_rules::NUM_EDGES];
-	for(int i = 0; i < tet_rules::NUM_EDGES; ++i){
-		allVrts[tet_rules::NUM_VERTICES + i] = newEdgeVertices[i];
-		if(newEdgeVertices[i])
-			newEdgeVrts[i] = 1;
-		else
-			newEdgeVrts[i] = 0;
-	}
-
-//	in this array we'll receive the new indices
-	int newElemInds[tet_rules::MAX_NUM_INDS_OUT];
-
-//	perform refine
-	bool centerVrtRequired = false;
-	int numElemInds = tet_rules::Refine(newElemInds, newEdgeVrts, centerVrtRequired);
-	assert(numElemInds != 0 && "PROBLEM in Tetrahedron::refine(...): "
-								"refine with 1 new edge vertex failed.");
-
-	if(numElemInds == 0)
-		return false;
-
-//	if a new center vertex is required, then we'll create one now.
-	if(centerVrtRequired){
-		if(!newVolumeVertex)
-			newVolumeVertex = static_cast<VertexBase*>(
-								prototypeVertex.create_empty_instance());
-		*ppNewVertexOut = newVolumeVertex;
-		allVrts[allVrtsSize - 1] = *ppNewVertexOut;
-	}
-
-//	debug log of inds
-/*
-	UG_LOG("newElemInds:");
-	for(int i = 0; i < numElemInds; ++i){
-		UG_LOG(" " << newElemInds[i]);
-	}
-	UG_LOG(endl);
-
-	UG_LOG("allVrts:");
-	for(int i = 0; i < allVrtsSize; ++i){
-		UG_LOG(" " << allVrts[i]);
-	}
-	UG_LOG(endl);
-*/
-//	the VolumeDescriptor will be used to create new volumes
-	VolumeDescriptor vd;
-
-//	create the elements from the given indices (there should be 2 tets)
-	for(int i = 0; i < numElemInds;){
-		int num = newElemInds[i++];
-		vd.set_num_vertices(num);
-		for(int j = 0; j < num; ++j)
-			vd.set_vertex(j, allVrts[newElemInds[i++]]);
-
-		switch(num){
-			case 4:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
-			case 5:	vNewVolumesOut.push_back(new Pyramid(vd));		break;
-			case 6:	vNewVolumesOut.push_back(new Prism(vd));		break;
-			case 7:	vNewVolumesOut.push_back(new Hexahedron(vd));	break;
-		}
-	}
-
-/* Using the code given below would lead to a minimal performance boost if
- * used for regular refinement.
-	vNewVolumesOut.reserve(8);
-	vNewVolumesOut.push_back(new Tetrahedron(vrts[0], newEdgeVertices[0], newEdgeVertices[2], newEdgeVertices[3]));
-	vNewVolumesOut.push_back(new Tetrahedron(vrts[1], newEdgeVertices[1], newEdgeVertices[0], newEdgeVertices[4]));
-	vNewVolumesOut.push_back(new Tetrahedron(vrts[2], newEdgeVertices[2], newEdgeVertices[1], newEdgeVertices[5]));
-	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2], newEdgeVertices[4]));
-	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[2], newEdgeVertices[0], newEdgeVertices[4], newEdgeVertices[3]));
-	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[3], newEdgeVertices[2], newEdgeVertices[5], newEdgeVertices[4]));
-	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[2], newEdgeVertices[1], newEdgeVertices[5], newEdgeVertices[4]));
-	vNewVolumesOut.push_back(new Tetrahedron(newEdgeVertices[3], newEdgeVertices[4], newEdgeVertices[5], vrts[3]));
-	return true;
- */
-	return true;
+	return Refine<TetrahedronClass>(vNewVolumesOut, ppNewVertexOut,
+									newEdgeVertices, newFaceVertices,
+									newVolumeVertex, prototypeVertex,
+									vrts, tet_rules::Refine);
 }
 
 void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
@@ -452,12 +433,11 @@ EdgeDescriptor Hexahedron::edge(int index) const
 
 void Hexahedron::edge(int index, EdgeDescriptor& edOut) const
 {
-	if(index < 4)//base edges
-		edOut.set_vertices(m_vertices[index], m_vertices[(index + 1) % 4]);
-	else if(index < 8)//side edges
-		edOut.set_vertices(m_vertices[index - 4], m_vertices[index]);
-	else//top edges
-		edOut.set_vertices(m_vertices[index - 4], m_vertices[(index - 7) % 4 + 4]);
+	using namespace hex_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	edOut.set_vertices(m_vertices[e[0]],
+					   m_vertices[e[1]]);
 }
 
 uint Hexahedron::num_edges() const
@@ -474,46 +454,16 @@ FaceDescriptor Hexahedron::face(int index) const
 
 void Hexahedron::face(int index, FaceDescriptor& fdOut) const
 {
+	using namespace hex_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+
 	fdOut.set_num_vertices(4);
-	switch(index)
-		{
-			case 0://bottom
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[3]);
-				fdOut.set_vertex(2, m_vertices[2]);
-				fdOut.set_vertex(3, m_vertices[1]);
-				break;
-			case 1:
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[1]);
-				fdOut.set_vertex(2, m_vertices[5]);
-				fdOut.set_vertex(3, m_vertices[4]);
-				break;
-			case 2:
-				fdOut.set_vertex(0, m_vertices[1]);
-				fdOut.set_vertex(1, m_vertices[2]);
-				fdOut.set_vertex(2, m_vertices[6]);
-				fdOut.set_vertex(3, m_vertices[5]);
-				break;
-			case 3:
-				fdOut.set_vertex(0, m_vertices[2]);
-				fdOut.set_vertex(1, m_vertices[3]);
-				fdOut.set_vertex(2, m_vertices[7]);
-				fdOut.set_vertex(3, m_vertices[6]);
-				break;
-			case 4:
-				fdOut.set_vertex(0, m_vertices[3]);
-				fdOut.set_vertex(1, m_vertices[0]);
-				fdOut.set_vertex(2, m_vertices[4]);
-				fdOut.set_vertex(3, m_vertices[7]);
-				break;
-			case 5:
-				fdOut.set_vertex(0, m_vertices[4]);
-				fdOut.set_vertex(1, m_vertices[5]);
-				fdOut.set_vertex(2, m_vertices[6]);
-				fdOut.set_vertex(3, m_vertices[7]);
-				break;
-		}
+	fdOut.set_vertex(0, m_vertices[f[0]]);
+	fdOut.set_vertex(1, m_vertices[f[1]]);
+	fdOut.set_vertex(2, m_vertices[f[2]]);
+	fdOut.set_vertex(3, m_vertices[f[3]]);
 }
 
 uint Hexahedron::num_faces() const
@@ -523,16 +473,20 @@ uint Hexahedron::num_faces() const
 
 EdgeBase* Hexahedron::create_edge(int index)
 {
-	EdgeDescriptor ed;
-	edge(index, ed);
-	return new Edge(ed);
+	using namespace hex_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Hexahedron::create_face(int index)
 {
-	FaceDescriptor fd;
-	face(index, fd);
-	return new Quadrilateral(fd.vertex(0), fd.vertex(1), fd.vertex(2), fd.vertex(3));
+	using namespace hex_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+	return new Quadrilateral(m_vertices[f[0]], m_vertices[f[1]],
+							 m_vertices[f[2]], m_vertices[f[3]]);
 }
 
 bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -553,10 +507,6 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 						const VertexBase& prototypeVertex,
 						VertexBase** pSubstituteVertices)
 {
-//TODO: complete this refine method.
-	vNewVolumesOut.clear();
-	*ppNewVertexOut = NULL;
-
 //	handle substitute vertices.
 	VertexBase** vrts;
 	if(pSubstituteVertices)
@@ -564,131 +514,10 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	else
 		vrts = &BaseClass::m_vertices.front();
 
-//	check which edges have to be refined and perform the required operations.
-	{
-		VertexBase** evrts = newEdgeVertices;
-		VertexBase** fvrts = newFaceVertices;
-
-	//	get the number of new vertices.
-		uint numNewEdgeVrts = 0;
-		for(uint i = 0; i < 12; ++i)
-		{
-			if(newEdgeVertices[i] != NULL)
-				++numNewEdgeVrts;
-		}
-
-		uint numNewFaceVrts = 0;
-		if(newFaceVertices){
-			for(uint i = 0; i < 6; ++i)
-			{
-				if(newFaceVertices[i] != NULL)
-					++numNewFaceVrts;
-			}
-		}
-
-		switch(numNewEdgeVrts)
-		{
-			case 1:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 1 new edge vertex not yet implemented.");
-				return false;
-			}
-
-			case 2:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 2 new edge vertices not yet implemented.");
-				return false;
-			}
-
-			case 3:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 3 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 4:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 4 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 5:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 5 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 6:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 6 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 7:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 7 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 8:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 8 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 9:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 9 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 10:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 10 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 11:
-			{
-				UG_LOG("PROBLEM in Hexahedron::refine(...): refine with 11 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 12:
-			{
-				if(numNewFaceVrts != 6){
-					assert(!"PROBLEM in Hexahedron::refine(...): All faces have to contain an inner vertex if all edges are marked.");
-					return false;
-				}
-
-				if(!newVolumeVertex)
-					newVolumeVertex = reinterpret_cast<VertexBase*>(prototypeVertex.create_empty_instance());
-
-				VertexBase* vvrt = newVolumeVertex;
-				*ppNewVertexOut = vvrt;
-
-				vNewVolumesOut.reserve(8);
-			//	left bottom front
-				vNewVolumesOut.push_back(new Hexahedron(vrts[0], evrts[0], fvrts[0], evrts[3],
-														evrts[4], fvrts[1], vvrt, fvrts[4]));
-			//	right bottom front
-				vNewVolumesOut.push_back(new Hexahedron(evrts[0], vrts[1], evrts[1], fvrts[0],
-														fvrts[1], evrts[5], fvrts[2], vvrt));
-			//	right bottom back
-				vNewVolumesOut.push_back(new Hexahedron(fvrts[0], evrts[1], vrts[2], evrts[2],
-														vvrt, fvrts[2], evrts[6], fvrts[3]));
-			//	left bottom back
-				vNewVolumesOut.push_back(new Hexahedron(evrts[3], fvrts[0], evrts[2], vrts[3],
-														fvrts[4], vvrt, fvrts[3], evrts[7]));
-			//	left top front
-				vNewVolumesOut.push_back(new Hexahedron(evrts[4], fvrts[1], vvrt, fvrts[4],
-														vrts[4], evrts[8], fvrts[5], evrts[11]));
-			//	right top front
-				vNewVolumesOut.push_back(new Hexahedron(fvrts[1], evrts[5], fvrts[2], vvrt,
-														evrts[8], vrts[5], evrts[9], fvrts[5]));
-			//	right top back
-				vNewVolumesOut.push_back(new Hexahedron(vvrt, fvrts[2], evrts[6], fvrts[3],
-														fvrts[5], evrts[9], vrts[6], evrts[10]));
-			//	left top back
-				vNewVolumesOut.push_back(new Hexahedron(fvrts[4], vvrt, fvrts[3], evrts[7],
-														evrts[11], fvrts[5], evrts[10], vrts[7]));
-				return true;
-			}
-		}
-	}
-
-	return false;
+	return Refine<HexahedronClass>(vNewVolumesOut, ppNewVertexOut,
+								   newEdgeVertices, newFaceVertices,
+								   newVolumeVertex, prototypeVertex,
+								   vrts, hex_rules::Refine);
 }
 
 void Hexahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
@@ -777,12 +606,11 @@ EdgeDescriptor Prism::edge(int index) const
 
 void Prism::edge(int index, EdgeDescriptor& edOut) const
 {
-	if(index < 3)//base edges
-		edOut.set_vertices(m_vertices[index], m_vertices[(index + 1) % 3]);
-	else if(index < 6)//side edges
-		edOut.set_vertices(m_vertices[index - 3], m_vertices[index]);
-	else//top edges
-		edOut.set_vertices(m_vertices[index - 3], m_vertices[(index - 5) % 3 + 3]);
+	using namespace prism_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	edOut.set_vertices(m_vertices[e[0]],
+					   m_vertices[e[1]]);
 }
 
 uint Prism::num_edges() const
@@ -799,42 +627,23 @@ FaceDescriptor Prism::face(int index) const
 
 void Prism::face(int index, FaceDescriptor& fdOut) const
 {
-	switch(index)
-		{
-			case 0://bottom
-				fdOut.set_num_vertices(3);
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[2]);
-				fdOut.set_vertex(2, m_vertices[1]);
-				break;
-			case 1:
-				fdOut.set_num_vertices(4);
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[1]);
-				fdOut.set_vertex(2, m_vertices[4]);
-				fdOut.set_vertex(3, m_vertices[3]);
-				break;
-			case 2:
-				fdOut.set_num_vertices(4);
-				fdOut.set_vertex(0, m_vertices[1]);
-				fdOut.set_vertex(1, m_vertices[2]);
-				fdOut.set_vertex(2, m_vertices[5]);
-				fdOut.set_vertex(3, m_vertices[4]);
-				break;
-			case 3:
-				fdOut.set_num_vertices(4);
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[3]);
-				fdOut.set_vertex(2, m_vertices[5]);
-				fdOut.set_vertex(3, m_vertices[2]);
-				break;
-			case 4:
-				fdOut.set_num_vertices(3);
-				fdOut.set_vertex(0, m_vertices[3]);
-				fdOut.set_vertex(1, m_vertices[4]);
-				fdOut.set_vertex(2, m_vertices[5]);
-				break;
-		}
+	using namespace prism_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+	if(f[3] == -1){
+		fdOut.set_num_vertices(3);
+		fdOut.set_vertex(0, m_vertices[f[0]]);
+		fdOut.set_vertex(1, m_vertices[f[1]]);
+		fdOut.set_vertex(2, m_vertices[f[2]]);
+	}
+	else{
+		fdOut.set_num_vertices(4);
+		fdOut.set_vertex(0, m_vertices[f[0]]);
+		fdOut.set_vertex(1, m_vertices[f[1]]);
+		fdOut.set_vertex(2, m_vertices[f[2]]);
+		fdOut.set_vertex(3, m_vertices[f[3]]);
+	}
 }
 
 uint Prism::num_faces() const
@@ -844,19 +653,26 @@ uint Prism::num_faces() const
 
 EdgeBase* Prism::create_edge(int index)
 {
-	EdgeDescriptor ed;
-	edge(index, ed);
-	return new Edge(ed);
+	using namespace prism_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Prism::create_face(int index)
 {
-	FaceDescriptor fd;
-	face(index, fd);
-	if(fd.num_vertices() == 3)
-		return new Triangle(fd.vertex(0), fd.vertex(1), fd.vertex(2));
-	else
-		return new Quadrilateral(fd.vertex(0), fd.vertex(1), fd.vertex(2), fd.vertex(3));
+	using namespace prism_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+	if(f[3] == -1){
+		return new Triangle(m_vertices[f[0]], m_vertices[f[1]],
+							m_vertices[f[2]]);
+	}
+	else{
+		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[1]],
+								 m_vertices[f[2]], m_vertices[f[3]]);
+	}
 }
 
 bool Prism::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -877,10 +693,6 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 					const VertexBase& prototypeVertex,
 					VertexBase** pSubstituteVertices)
 {
-//TODO: complete this refine method.
-	vNewVolumesOut.clear();
-	*ppNewVertexOut = NULL;
-
 //	handle substitute vertices.
 	VertexBase** vrts;
 	if(pSubstituteVertices)
@@ -888,113 +700,10 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 	else
 		vrts = &BaseClass::m_vertices.front();
 
-//	check which edges have to be refined and perform the required operations.
-	{
-		VertexBase** evrts = newEdgeVertices;
-		VertexBase** fvrts = newFaceVertices;
-
-	//	get the number of new vertices.
-		uint numNewEdgeVrts = 0;
-		for(uint i = 0; i < 9; ++i)
-		{
-			if(newEdgeVertices[i] != NULL)
-				++numNewEdgeVrts;
-		}
-
-	//	ignore face 0 and face 4, since they are triangles. No inner point is needed here.
-		uint numNewFaceVrts = 0;
-		if(newFaceVertices){
-			for(uint i = 1; i < 4; ++i)
-			{
-				if(newFaceVertices[i] != NULL)
-					++numNewFaceVrts;
-			}
-		}
-
-		switch(numNewEdgeVrts)
-		{
-			case 1:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 1 new edge vertex not yet implemented.");
-				return false;
-			}
-
-			case 2:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 2 new edge vertices not yet implemented.");
-				return false;
-			}
-
-			case 3:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 3 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 4:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 4 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 5:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 5 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 6:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 6 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 7:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 7 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 8:
-			{
-				UG_LOG("PROBLEM in Prism::refine(...): refine with 8 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 9:
-			{
-				if(numNewFaceVrts != 3){
-					assert(!"PROBLEM in Prism::refine(...): All quad-faces have to contain an inner vertex if all edges are marked.");
-					return false;
-				}
-
-				vNewVolumesOut.reserve(8);
-			//	left bottom front
-				vNewVolumesOut.push_back(new Prism(vrts[0], evrts[0], evrts[2],
-												   evrts[3], fvrts[1], fvrts[3]));
-			//	right bottom front
-				vNewVolumesOut.push_back(new Prism(evrts[0], vrts[1], evrts[1],
-												   fvrts[1], evrts[4], fvrts[2]));
-			//	bottom back
-				vNewVolumesOut.push_back(new Prism(evrts[2], evrts[1], vrts[2],
-												   fvrts[3], fvrts[2], evrts[5]));
-			//	bottom center
-				vNewVolumesOut.push_back(new Prism(evrts[1], evrts[2], evrts[0],
-												   fvrts[2], fvrts[3], fvrts[1]));
-
-			//	left top front
-				vNewVolumesOut.push_back(new Prism(evrts[3], fvrts[1], fvrts[3],
-												   vrts[3], evrts[6], evrts[8]));
-			//	right top front
-				vNewVolumesOut.push_back(new Prism(fvrts[1], evrts[4], fvrts[2],
-												   evrts[6], vrts[4], evrts[7]));
-			//	top back
-				vNewVolumesOut.push_back(new Prism(fvrts[3], fvrts[2], evrts[5],
-												   evrts[8], evrts[7], vrts[5]));
-			//	top center
-				vNewVolumesOut.push_back(new Prism(fvrts[2], fvrts[3], fvrts[1],
-												   evrts[7], evrts[8], evrts[6]));
-
-				return true;
-			}
-		}
-	}
-
-	return false;
+	return Refine<PrismClass>(vNewVolumesOut, ppNewVertexOut,
+							  newEdgeVertices, newFaceVertices,
+							  newVolumeVertex, prototypeVertex,
+							  vrts, prism_rules::Refine);
 }
 
 void Prism::get_flipped_orientation(VolumeDescriptor& vdOut) const
@@ -1075,10 +784,11 @@ EdgeDescriptor Pyramid::edge(int index) const
 
 void Pyramid::edge(int index, EdgeDescriptor& edOut) const
 {
-	if(index < 4)//base edges
-		edOut.set_vertices(m_vertices[index], m_vertices[(index + 1) % 4]);
-	else
-		edOut.set_vertices(m_vertices[index - 4], m_vertices[4]);
+	using namespace pyra_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	edOut.set_vertices(m_vertices[e[0]],
+					   m_vertices[e[1]]);
 }
 
 uint Pyramid::num_edges() const
@@ -1095,39 +805,22 @@ FaceDescriptor Pyramid::face(int index) const
 
 void Pyramid::face(int index, FaceDescriptor& fdOut) const
 {
-	switch(index)
-	{
-		case 0://bottom
-			fdOut.set_num_vertices(4);
-			fdOut.set_vertex(0, m_vertices[0]);
-			fdOut.set_vertex(1, m_vertices[3]);
-			fdOut.set_vertex(2, m_vertices[2]);
-			fdOut.set_vertex(3, m_vertices[1]);
-			break;
-		case 1:
-			fdOut.set_num_vertices(3);
-			fdOut.set_vertex(0, m_vertices[0]);
-			fdOut.set_vertex(1, m_vertices[1]);
-			fdOut.set_vertex(2, m_vertices[4]);
-			break;
-		case 2:
-			fdOut.set_num_vertices(3);
-			fdOut.set_vertex(0, m_vertices[1]);
-			fdOut.set_vertex(1, m_vertices[2]);
-			fdOut.set_vertex(2, m_vertices[4]);
-			break;
-		case 3:
-			fdOut.set_num_vertices(3);
-			fdOut.set_vertex(0, m_vertices[2]);
-			fdOut.set_vertex(1, m_vertices[3]);
-			fdOut.set_vertex(2, m_vertices[4]);
-			break;
-		case 4:
-			fdOut.set_num_vertices(3);
-			fdOut.set_vertex(0, m_vertices[3]);
-			fdOut.set_vertex(1, m_vertices[0]);
-			fdOut.set_vertex(2, m_vertices[4]);
-			break;
+	using namespace pyra_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+	if(f[3] == -1){
+		fdOut.set_num_vertices(3);
+		fdOut.set_vertex(0, m_vertices[f[0]]);
+		fdOut.set_vertex(1, m_vertices[f[1]]);
+		fdOut.set_vertex(2, m_vertices[f[2]]);
+	}
+	else{
+		fdOut.set_num_vertices(4);
+		fdOut.set_vertex(0, m_vertices[f[0]]);
+		fdOut.set_vertex(1, m_vertices[f[1]]);
+		fdOut.set_vertex(2, m_vertices[f[2]]);
+		fdOut.set_vertex(3, m_vertices[f[3]]);
 	}
 }
 
@@ -1138,19 +831,26 @@ uint Pyramid::num_faces() const
 
 EdgeBase* Pyramid::create_edge(int index)
 {
-	EdgeDescriptor ed;
-	edge(index, ed);
-	return new Edge(ed);
+	using namespace pyra_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Pyramid::create_face(int index)
 {
-	FaceDescriptor fd;
-	face(index, fd);
-	if(fd.num_vertices() == 3)
-		return new Triangle(fd.vertex(0), fd.vertex(1), fd.vertex(2));
-	else
-		return new Quadrilateral(fd.vertex(0), fd.vertex(1), fd.vertex(2), fd.vertex(3));
+	using namespace pyra_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+	if(f[3] == -1){
+		return new Triangle(m_vertices[f[0]], m_vertices[f[1]],
+							m_vertices[f[2]]);
+	}
+	else{
+		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[1]],
+								 m_vertices[f[2]], m_vertices[f[3]]);
+	}
 }
 
 bool Pyramid::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -1171,10 +871,6 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 						const VertexBase& prototypeVertex,
 						VertexBase** pSubstituteVertices)
 {
-//TODO: complete this refine method.
-	vNewVolumesOut.clear();
-	*ppNewVertexOut = NULL;
-
 //	handle substitute vertices.
 	VertexBase** vrts;
 	if(pSubstituteVertices)
@@ -1182,102 +878,10 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 	else
 		vrts = &BaseClass::m_vertices.front();
 
-//	check which edges have to be refined and perform the required operations.
-	{
-		VertexBase** evrts = newEdgeVertices;
-		
-//	ignore face 1, 2, 3, 4, since they are triangles. No inner point is needed here.
-		uint numNewFaceVrts = 0;
-		VertexBase* fvrt = NULL;
-		if(newFaceVertices){
-			numNewFaceVrts = 1;
-			fvrt = newFaceVertices[0];
-		}
-
-	//	get the number of new vertices.
-		uint numNewEdgeVrts = 0;
-		for(uint i = 0; i < 8; ++i)
-		{
-			if(newEdgeVertices[i] != NULL)
-				++numNewEdgeVrts;
-		}
-
-		switch(numNewEdgeVrts)
-		{
-			case 1:
-			{
-				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 1 new edge vertex not yet implemented.");
-				return false;
-			}
-
-			case 2:
-			{
-				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 2 new edge vertices not yet implemented.");
-				return false;
-			}
-
-			case 3:
-			{
-				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 3 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 4:
-			{
-				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 4 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 5:
-			{
-				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 5 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 6:
-			{
-				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 6 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 7:
-			{
-				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 7 new edge vertices not yet implemented.");
-				return false;
-			}
-			case 8:
-			{
-				if(numNewFaceVrts != 1){
-					assert(!"PROBLEM in Pyramid::refine(...): All quad-faces have to contain an inner vertex if all edges are marked.");
-					return false;
-				}
-
-				vNewVolumesOut.reserve(10);
-
-			//	left bottom front
-				vNewVolumesOut.push_back(new Pyramid(vrts[0], evrts[0], fvrt, evrts[3], evrts[4]));
-			//	right bottom front
-				vNewVolumesOut.push_back(new Pyramid(evrts[0], vrts[1], evrts[1], fvrt, evrts[5]));
-			//	right bottom back
-				vNewVolumesOut.push_back(new Pyramid(fvrt, evrts[1], vrts[2], evrts[2], evrts[6]));
-			//	left bottom back
-				vNewVolumesOut.push_back(new Pyramid(evrts[3], fvrt, evrts[2], vrts[3], evrts[7]));
-			//	central
-				vNewVolumesOut.push_back(new Pyramid(evrts[7], evrts[6], evrts[5], evrts[4], fvrt));
-			//	top
-				vNewVolumesOut.push_back(new Pyramid(evrts[4], evrts[5], evrts[6], evrts[7], vrts[4]));
-
-			//	tet front
-				vNewVolumesOut.push_back(new Tetrahedron(evrts[4], evrts[0], evrts[5], fvrt));
-			//	tet right
-				vNewVolumesOut.push_back(new Tetrahedron(evrts[5], evrts[1], evrts[6], fvrt));
-			//	tet back
-				vNewVolumesOut.push_back(new Tetrahedron(evrts[6], evrts[2], evrts[7], fvrt));
-			//	tet left
-				vNewVolumesOut.push_back(new Tetrahedron(evrts[7], evrts[3], evrts[4], fvrt));
-
-				return true;
-			}
-		}
-	}
-
-	return false;
+	return Refine<PyramidClass>(vNewVolumesOut, ppNewVertexOut,
+									newEdgeVertices, newFaceVertices,
+									newVolumeVertex, prototypeVertex,
+									vrts, pyra_rules::Refine);
 }
 
 void Pyramid::get_flipped_orientation(VolumeDescriptor& vdOut) const

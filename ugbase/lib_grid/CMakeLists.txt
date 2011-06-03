@@ -76,6 +76,10 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				geometric_objects/geometric_objects_2d.cpp
 				geometric_objects/geometric_objects_3d.cpp
 				geometric_objects/tetrahedron_rules.cpp
+				geometric_objects/pyramid_rules.cpp
+				geometric_objects/prism_rules.cpp
+				geometric_objects/hexahedron_rules.cpp
+				geometric_objects/rule_util.cpp
 				common_attachments.cpp
 				multi_grid.cpp
 				)

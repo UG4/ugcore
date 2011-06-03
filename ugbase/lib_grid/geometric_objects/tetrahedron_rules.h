@@ -31,12 +31,15 @@ const int FACE_VRT_INDS[][4] = {	{0, 2, 1, -1}, {1, 2, 3, -1},
 const int OPPOSED_EDGE[] = {5, 3, 4, 1, 2, 0};
 
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	NOTE: The lists below are all generated automatically
+
 ///	returns the j-th edge of the i-th face
 const int FACE_EDGE_INDS[4][4] =	{{2, 1, 0, -1}, {1, 5, 4, -1},
 									 {2, 3, 5, -1}, {0, 4, 3, -1}};
 
 ///	tells whether the i-th face contains the j-th edge
-// Note: This lookup table has been generated automatically.
 const int FACE_CONTAINS_EDGE[][6] = {{1, 1, 1, 0, 0, 0}, {0, 1, 0, 0, 1, 1},
 									 {0, 0, 1, 1, 0, 1}, {1, 0, 0, 1, 1, 0}};
 
@@ -44,7 +47,6 @@ const int FACE_CONTAINS_EDGE[][6] = {{1, 1, 1, 0, 0, 0}, {0, 1, 0, 0, 1, 1},
 /**	Use two vertex indices to index into this table to retrieve the index
  * of their connecting edge.
  */
-// Note: This lookup table has been generated automatically.
 const int EDGE_FROM_VRTS[4][4] =  {{-1, 0, 2, 3}, {0, -1, 1, 4},
 									 {2, 1, -1, 5}, {3, 4, 5, -1}};
 
@@ -52,7 +54,6 @@ const int EDGE_FROM_VRTS[4][4] =  {{-1, 0, 2, 3}, {0, -1, 1, 4},
 /**	Use three vertex indices to index into this table to retrieve the index
  * of their connecting face.
  */
-// Note: This lookup table has been generated automatically.
 const int FACE_FROM_VRTS[4][4][4] = {{{-1, -1, -1, -1}, {-1, -1, 0, 3},
 									  {-1, 0, -1, 2}, {-1, 3, 2, -1}},
 									 {{-1, -1, 0, 3}, {-1, -1, -1, -1},
@@ -62,19 +63,17 @@ const int FACE_FROM_VRTS[4][4][4] = {{{-1, -1, -1, -1}, {-1, -1, 0, 3},
 									 {{-1, 3, 2, -1}, {3, -1, 1, -1},
 									  {2, 1, -1, -1}, {-1, -1, -1, -1}}};
 
-//	given two edges, the table returns the face, which contains both (or -1)
+///	given two edges, the table returns the face, which contains both (or -1)
 const int FACE_FROM_EDGES[][6] =	{{0, 0, 0, 3, 3, -1}, {0, 0, 0, -1, 1, 1},
 									 {0, 0, 0, 2, -1, 2}, {3, -1, 2, 2, 3, 2},
 									 {3, 1, -1, 3, 1, 1}, {-1, 1, 2, 2, 1, 1}};
 
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 /**	returns an array of integers, which contains the indices of the objects
  * resulting from the refinement of a tetrahedron.
- *
- * Depending on the number of entries != 0 in newEdgeVrts, you may expect the
- * following elements in newEdgeVrtsOut:
- *
- * 	- 1: 2 tetrahedrons
- *
  *
  *
  * \param newIndsOut	Array which has to be of size MAX_NUM_INDS_OUT.
@@ -83,7 +82,7 @@ const int FACE_FROM_EDGES[][6] =	{{0, 0, 0, 3, 3, -1}, {0, 0, 0, -1, 1, 1},
  * 						Old vertices are referenced by their local index. Vertices
  * 						created on an edge are indexed by the index of the edge +
  * 						NUM_VERTICES. If an inner vertex has to be created, it is
- * 						referenced by NUM_VERTICES + NUM_EDGES.
+ * 						referenced by NUM_VERTICES + NUM_EDGES + NUM_FACES.
  *
  * \param newEdgeVrts	Array of size NUM_EDGES, which has to contain 1 for each
  * 						edge, which shall be refined and 0 for each edge, which
