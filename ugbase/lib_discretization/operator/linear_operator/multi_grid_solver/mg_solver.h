@@ -56,6 +56,9 @@ class AssembledMultiGridCycle :
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
+	///	type of assembling
+		typedef IAssemble<dof_distribution_impl_type, algebra_type> assemble_type;
+
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
@@ -86,22 +89,19 @@ class AssembledMultiGridCycle :
 			m_pAss(NULL), m_pApproxSpace(NULL),
 			m_topLev(0), m_baseLev(0), m_cycleType(1),
 			m_numPreSmooth(1), m_numPostSmooth(1),
-			m_pSmootherPrototype(NULL), m_pBaseSolver(NULL),
-			m_pProjectionPrototype(NULL), m_pProlongationPrototype(NULL),
 			m_bFullRefined(false),
+			m_pSmootherPrototype(NULL),
+			m_pProjectionPrototype(NULL), m_pProlongationPrototype(NULL),
+			m_pBaseSolver(NULL),
 			m_pDebugWriter(NULL), m_dbgIterCnt(0)
-		{
-			m_vSmoother.clear();
-			m_vProlongation.clear();
-			m_vProjection.clear();
-		};
+		{};
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Setup
 	///////////////////////////////////////////////////////////////////////////
 
 	/// sets the assembling procedure that is used to compute coarse grid matrices
-		void set_discretization(IAssemble<dof_distribution_impl_type, algebra_type>& ass)
+		void set_discretization(assemble_type& ass)
 			{m_pAss = &ass;}
 
 	///	sets the approximation space that is used to build up the grid hierarchy
@@ -159,26 +159,20 @@ class AssembledMultiGridCycle :
 		base_type* clone();
 
 	///	Destructor
-		~AssembledMultiGridCycle();
+		~AssembledMultiGridCycle() {};
 
  	protected:
  	/// smooth on level l, restrict defect, call lmgc (..., l-1) and interpolate correction
-		bool lmgc(size_t lev);
+		bool lmgc(vector_type& c, vector_type& d, size_t lev);
 
 	/// performs smoothing on level l, nu times
-		bool smooth(vector_type& d, vector_type& c, size_t lev, int nu);
+		bool smooth(vector_type& c, vector_type& d, size_t lev, int nu);
 
 	///	returns the number of allocated levels
-		size_t num_levels() const {return m_A.size();}
+		size_t num_levels() const {return m_vLevData.size();}
 
 	///	allocates the memory
 		bool top_level_required(size_t topLevel);
-
-	///	allocates memory for one level
-		bool allocate_level(size_t level);
-
-	///	frees the memory
-		void free_level(size_t level);
 
 	///	initializes common part
 		bool init_common(bool nonlinear);
@@ -202,12 +196,12 @@ class AssembledMultiGridCycle :
 		bool init_projection();
 
 	///	projects a grid function from the surface to the levels
-		bool project_surface_to_level(std::vector<vector_type*>& vLevelFunc,
+		bool project_surface_to_level(std::vector<vector_type*> vLevelFunc,
 		                              const vector_type& surfFunc);
 
 	///	projects a grid function from the levels to the surface
 		bool project_level_to_surface(vector_type& surfFunc,
-		                              const std::vector<vector_type*>& vLevelFunc);
+		                              std::vector<vector_type*> vLevelFunc);
 
 	///	assembles the missing matrix part on the coarse level, that must be
 	///	added if the correction has been computed to ensure a correctly updated
@@ -219,7 +213,7 @@ class AssembledMultiGridCycle :
 		operator_type* m_pSurfaceOp;
 
 	///	assembling routine for coarse grid matrices
-		IAssemble<dof_distribution_impl_type, algebra_type>* m_pAss;
+		assemble_type* m_pAss;
 
 	///	approximation space for level and surface grid
 		approximation_space_type* m_pApproxSpace;
@@ -240,47 +234,127 @@ class AssembledMultiGridCycle :
 	///	number of Postsmooth steps
 		int m_numPostSmooth;
 
-	///	coarse grid operator for each grid level
-		std::vector<operator_type*> m_A;
-
-	///	smoothing iterator for every grid level
-		std::vector<smoother_type*> m_vSmoother;
+	///	flag indicating if grid is full refined
+		bool m_bFullRefined;
 
 	///	prototype for smoother
 		smoother_type* m_pSmootherPrototype;
 
-	///	base solver for the coarse problem
-		base_solver_type* m_pBaseSolver;
-
-	///	projection operator between grid levels
-		std::vector<projection_operator_type*> m_vProjection;
-
 	///	prototype for projection operator
 		projection_operator_type* m_pProjectionPrototype;
-
-	///	prolongation/restriction operator between grid levels
-		std::vector<prolongation_operator_type*> m_vProlongation;
 
 	///	prototype for prolongation operator
 		prolongation_operator_type* m_pProlongationPrototype;
 
-	///	solution for each grid level
-		std::vector<vector_type*> m_u;
+		////////////////////////////////////
+		// Storage for each grid level
+		////////////////////////////////////
 
-	///	correction for each grid level
-		std::vector<vector_type*> m_c;
+		struct LevData
+		{
+			LevData() : A(0), Smoother(0), Projection(0), Prolongation(0),
+						u(0), c(0), d(0), t(0), CoarseGridContribution(0)
+			{};
 
-	///	defect for each grid level
-		std::vector<vector_type*> m_d;
+			void allocate(size_t lev,
+			              approximation_space_type& approxSpace,
+			              assemble_type& ass,
+			              smoother_type& smoother,
+			              projection_operator_type& projection,
+			              prolongation_operator_type& prolongation)
+			{
+			//	free operators if already allocated
+				free();
 
-	///	help vector (correction) for each grid level
-		std::vector<vector_type*> m_t;
+			//	create vectors and matrix
+				u = approxSpace.create_level_function(lev);
+				c = approxSpace.create_level_function(lev);
+				d = approxSpace.create_level_function(lev);
+				t = approxSpace.create_level_function(lev);
+				CoarseGridContribution = new matrix_type;
 
-	///	flag indicating if grid is full refined
-		bool m_bFullRefined;
+			//	allocate level operator
+				A = new operator_type(ass);
+				Smoother = smoother.clone();
+				Projection = projection.clone();
+				Prolongation = prolongation.clone();
+			}
 
-	///	matrix storing missing contribution
-		std::vector<matrix_type*> m_vCoarseContributionMat;
+			void free()
+			{
+			//	free operators if allocated
+				if(A) delete A;
+				if(Smoother) delete Smoother;
+				if(Projection) delete Projection;
+				if(Prolongation) delete Prolongation;
+
+			//	free algebra
+				if(u) delete u;
+				if(c) delete c;
+				if(d) delete d;
+				if(t) delete t;
+				if(CoarseGridContribution) delete CoarseGridContribution;
+			}
+
+			~LevData()
+			{}
+
+		//	operator
+			operator_type* A;
+
+		//	smoother
+			smoother_type* Smoother;
+
+		//	projection operator
+			projection_operator_type* Projection;
+
+		//	prolongation operator
+			prolongation_operator_type* Prolongation;
+
+		//	vectors needed
+			vector_type *u, *c, *d, *t;
+
+		//	missing coarse grid correction
+			matrix_type *CoarseGridContribution;
+		};
+
+	///	storage for all level
+		std::vector<LevData> m_vLevData;
+
+	///	base solver for the coarse problem
+		base_solver_type* m_pBaseSolver;
+
+		std::vector<vector_type*> level_defects()
+		{
+			std::vector<vector_type*> vVec;
+			for(size_t i = 0; i < m_vLevData.size(); ++i)
+				vVec.push_back(m_vLevData[i].d);
+			return vVec;
+		}
+
+		std::vector<const vector_type*> level_defects() const
+		{
+			std::vector<vector_type*> vVec;
+			for(size_t i = 0; i < m_vLevData.size(); ++i)
+				vVec.push_back(m_vLevData[i].d);
+			return vVec;
+		}
+
+		std::vector<vector_type*> level_corrections()
+		{
+			std::vector<vector_type*> vVec;
+			for(size_t i = 0; i < m_vLevData.size(); ++i)
+				vVec.push_back(m_vLevData[i].c);
+			return vVec;
+		}
+
+		std::vector<vector_type*> level_solutions()
+		{
+			std::vector<vector_type*> vVec;
+			for(size_t i = 0; i < m_vLevData.size(); ++i)
+				vVec.push_back(m_vLevData[i].u);
+			return vVec;
+		}
 
 #ifdef UG_PARALLEL
 	/// communicator

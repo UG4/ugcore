@@ -36,12 +36,111 @@
 
 namespace ug{
 
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+apply(vector_type &c, const vector_type& d)
+{
+//	temporary vector for defect
+	vector_type d_copy; d_copy.resize(d.size());
+
+//	copy defect
+	d_copy = d;
+
+//	work on copy
+	return apply_update_defect(c, d_copy);
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+apply_update_defect(vector_type &c, vector_type& d)
+{
+//	get MultiGrid for some checks
+	typename TApproximationSpace::domain_type::grid_type& mg =
+				m_pApproxSpace->get_domain().get_grid();
+
+// 	Check if grid type is a Multigrid.
+	if(dynamic_cast<MultiGrid*>(&mg) == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
+				"MultiGridSolver requires a Multigrid. Please use MultiGrid structure.\n");
+		return false;
+	}
+
+// 	Check if surface level has been choosen correctly
+	if(m_topLev >= mg.num_levels())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
+				" SurfaceLevel " << m_topLev << " does not exist.\n");
+		return false;
+	}
+
+// 	Check if base level has been choose correctly
+	if(m_baseLev > m_topLev)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
+				"Base level must be smaller or equal to surface Level.\n");
+		return false;
+	}
+
+//	project defect from surface to level
+	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromSurface);
+	if(!project_surface_to_level(level_defects(), d))
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
+				"Projection of defect to level failed.\n");
+		return false;
+	}
+	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
+
+// 	Perform one multigrid cycle
+	GMG_PROFILE_BEGIN(GMGApply_lmgc);
+	if(!lmgc(*m_vLevData[m_topLev].c, *m_vLevData[m_topLev].d, m_topLev))
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
+				"Cannot perform multi grid cycle.\n");
+		return false;
+	}
+	GMG_PROFILE_END(); //GMGApply_lmgc
+
+//	project defect from level to surface
+	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromLevelToSurface);
+	if(!project_level_to_surface(d, level_defects()))
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
+				"Projection of defect to surface failed.\n");
+		return false;
+	}
+	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromLevelToSurface
+
+//	project correction from level to surface
+	GMG_PROFILE_BEGIN(GMGApply_ProjectCorrectionFromLevelToSurface);
+	if(!project_level_to_surface(c, level_corrections()))
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
+				"Projection of correction to surface failed.\n");
+		return false;
+	}
+	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
+
+//	increase dbg counter
+	if(m_pDebugWriter) m_dbgIterCnt++;
+
+//	we're done
+	return true;
+}
+
 // perform the smoothing
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-smooth(vector_type& d, vector_type& c, size_t lev, int nu)
+smooth(vector_type& c, vector_type& d, size_t lev, int nu)
 {
+//	get a reference to a help vector
+	vector_type& t = *m_vLevData[lev].t;
+
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
@@ -51,7 +150,7 @@ smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 		// 	Compute Correction of one smoothing step:
 		//	a)  Compute t = B*d with some iterator B
 		//	b) 	Update Defect d := d - A * t
-			if(!m_vSmoother[lev]->apply_update_defect(*m_t[lev], d))
+			if(!m_vLevData[lev].Smoother->apply_update_defect(t, d))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
 						<< i+1 << " on level " << lev << " failed.\n");
@@ -62,7 +161,7 @@ smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 		//	(Note: we do not work on c directly here, since we update the defect
 		//	       after every smoothing step. The summed up correction corresponds
 		//		   to the total correction of the whole smoothing.)
-			c += *m_t[lev];
+			c += t;
 		}
 		else
 	//	This is the adaptive case. Here, we must ensure, that the added correction
@@ -70,7 +169,7 @@ smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 		{
 		// 	Compute Correction of one smoothing step, but do not update defect
 		//	a)  Compute t = B*d with some iterator B
-			if(!m_vSmoother[lev]->apply(*m_t[lev], d))
+			if(!m_vLevData[lev].Smoother->apply(t, d))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
 						<< i+1 << " on level " << lev << " failed.\n");
@@ -78,7 +177,7 @@ smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 			}
 
 		//	First we reset the correction to zero on the patch boundary.
-			if(!SetZeroOnShadowingVertex(*m_t[lev], *m_pApproxSpace, lev))
+			if(!SetZeroOnShadowingVertex(t, *m_pApproxSpace, lev))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Could not "
 						" reset the values to zero on patch boundary for correction "
@@ -87,7 +186,7 @@ smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 			}
 
 		//	now, we can update the defect with this correction ...
-			if(!m_A[lev]->apply_sub(d, *m_t[lev]))
+			if(!m_vLevData[lev].A->apply_sub(d, t))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Could not "
 						" update defect for patch correction in smooth step "
@@ -96,7 +195,7 @@ smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 			}
 
 		//	... and add the correction to to overall correction
-			c += *m_t[lev];
+			c += t;
 		}
 	}
 
@@ -108,11 +207,11 @@ smooth(vector_type& d, vector_type& c, size_t lev, int nu)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-lmgc(size_t lev)
+lmgc(vector_type& c, vector_type& d, size_t lev)
 {
   GMG_PROFILE_FUNC();
 // 	reset correction to zero on this level
-	m_c[lev]->set(0.0);
+  	c.set(0.0);
 
 //	switch, if base level is reached. If so, call base Solver, else we will
 //	perform smoothing, restrict the defect and call the lower level; then,
@@ -120,11 +219,17 @@ lmgc(size_t lev)
 //	used as coarse grid correction. Finally a post-smooth is performed.
 	if(lev > m_baseLev)
 	{
+	//	Lets get a reference to the coarser level correction, defect, help vector
+		vector_type& cc = *m_vLevData[lev-1].c;
+		vector_type& dc = *m_vLevData[lev-1].d;
+		vector_type& tc = *m_vLevData[lev-1].t;
+		vector_type& t = *m_vLevData[lev].t;
+
 	// 	PRE-SMOOTHING
 	//	We start the multi grid cycle on this level by smoothing the defect. This
 	//	means that we compute a correction c, such that the defect is "smoother".
 		GMG_PROFILE_BEGIN(GMG_PreSmooth);
-		if(!smooth(*m_d[lev], *m_c[lev], lev, m_numPreSmooth))
+		if(!smooth(c, d, lev, m_numPreSmooth))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
 					"level " << lev << " failed. "
@@ -139,9 +244,9 @@ lmgc(size_t lev)
 	//	slave values after restriction.
 		#ifdef UG_PARALLEL
 		GMG_PROFILE_BEGIN(GMG_PreSmConsistentToUnique);
-		if(!m_d[lev-1]->get_vertical_master_layout().empty())
+		if(!dc.get_vertical_master_layout().empty())
 		{
-			ConsistentToUnique(m_d[lev-1], m_d[lev-1]->get_vertical_master_layout());
+			ConsistentToUnique(&dc, dc.get_vertical_master_layout());
 		}
 		GMG_PROFILE_END(); // GMG_PreSmConsistentToUnique
 		#endif
@@ -150,7 +255,7 @@ lmgc(size_t lev)
 	//	Now we can restrict the defect from the fine level to the coarser level.
 	//	This is done using the transposed prolongation.
 		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
-		if(!m_vProlongation[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
+		if(!m_vLevData[lev].Prolongation->apply_transposed(dc, d))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Restriction of "
 					"Defect from level "<<lev<<" to "<<lev-1<<" failed. "
@@ -174,24 +279,24 @@ lmgc(size_t lev)
 	//	send vertical-slaves -> vertical-masters
 	//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 		GMG_PROFILE_BEGIN(GMG_SendVerticalDefect);
-		ComPol_VecAdd<vector_type> cpVecAdd(m_d[lev-1]);
-		if(!m_d[lev-1]->get_vertical_slave_layout().empty())
+		ComPol_VecAdd<vector_type> cpVecAdd(&dc);
+		if(!dc.get_vertical_slave_layout().empty())
 		{
 		//	do not resume if vertical slaves are present
 			resume = false;
 			UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-			  " Going down: SENDS vertical dofs on level " << lev -1 << ".\n");
+			  " Going down: SENDS vert. dofs on level " << lev -1 << ".\n");
 
 		//	schedule Sending of DoFs of vertical slaves
-			m_Com.send_data(m_d[lev-1]->get_vertical_slave_layout(), cpVecAdd);
+			m_Com.send_data(dc.get_vertical_slave_layout(), cpVecAdd);
 		}
-		else if(!m_d[lev-1]->get_vertical_master_layout().empty())
+		else if(!dc.get_vertical_master_layout().empty())
 		{
 			UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-			 " Going down:  WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
+			 " Going down:  WAITS FOR RECIEVE of vert. dofs on level "<<lev-1<<".\n");
 
 		//	schedule Receive of DoFs on vertical masters
-			m_Com.receive_data(m_d[lev-1]->get_vertical_master_layout(), cpVecAdd);
+			m_Com.receive_data(dc.get_vertical_master_layout(), cpVecAdd);
 		}
 
 	//	perform communication
@@ -209,7 +314,7 @@ lmgc(size_t lev)
 	//	the coarser level.
 		for(int i = 0; i < m_cycleType; ++i)
 		{
-			if(!lmgc(lev-1))
+			if(!lmgc(cc, dc, lev-1))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
 						" grid cycle on level " << lev-1 << " failed. "
@@ -226,28 +331,28 @@ lmgc(size_t lev)
 	//	send vertical-masters -> vertical-slaves
 	//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 		GMG_PROFILE_BEGIN(GMG_SendVerticalCorrection);
-		ComPol_VecCopy<vector_type> cpVecCopy(m_c[lev-1]);
-		if(!m_c[lev-1]->get_vertical_slave_layout().empty())
+		ComPol_VecCopy<vector_type> cpVecCopy(&cc);
+		if(!cc.get_vertical_slave_layout().empty())
 		{
 			UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-			 " Going up: WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
+			 " Going up: WAITS FOR RECIEVE of vert. dofs on level "<<lev-1<<".\n");
 
 		//	schedule slaves to receive correction
-			m_Com.receive_data(m_c[lev-1]->get_vertical_slave_layout(),	cpVecCopy);
+			m_Com.receive_data(cc.get_vertical_slave_layout(),	cpVecCopy);
 
 		//	the correction is consistent then
-			m_c[lev-1]->set_storage_type(PST_CONSISTENT);
+			cc.set_storage_type(PST_CONSISTENT);
 		}
-		else if(!m_c[lev-1]->get_vertical_master_layout().empty())
+		else if(!cc.get_vertical_master_layout().empty())
 		{
 			UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-			 " Going up: SENDS vertical dofs on level " << lev -1 << ".\n");
+			 " Going up: SENDS vert. dofs on level " << lev -1 << ".\n");
 
 		//	schedule masters to send correction
-			m_Com.send_data(m_c[lev-1]->get_vertical_master_layout(), cpVecCopy);
+			m_Com.send_data(cc.get_vertical_master_layout(), cpVecCopy);
 
 		//	the correction is consistent then
-			m_c[lev-1]->set_storage_type(PST_CONSISTENT);
+			cc.set_storage_type(PST_CONSISTENT);
 		}
 	//	communicate
 		m_Com.communicate();
@@ -258,7 +363,7 @@ lmgc(size_t lev)
 	//	now we can interpolate the coarse grid correction from the coarse level
 	//	to the fine level
 		GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
-		if(!m_vProlongation[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
+		if(!m_vLevData[lev].Prolongation->apply(t, cc))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Prolongation from"
 					" level " << lev-1 << " to " << lev << " failed. "
@@ -270,14 +375,14 @@ lmgc(size_t lev)
 
 	// 	ADD COARSE GRID CORRECTION
 		GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
-		*m_c[lev] += *m_t[lev];
+		c += t;
 		GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
 	//	UPDATE DEFECT FOR COARSE GRID CORRECTION
 	//	the correction has changed c := c + t. Thus, we also have to update
 	//	the defect d := d - A*t
 		GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
-		if(!m_A[lev]->apply_sub(*m_d[lev], *m_t[lev]))
+		if(!m_vLevData[lev].A->apply_sub(d, t))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Updating of defect"
 					" on level " << lev << " failed.\n");
@@ -294,19 +399,18 @@ lmgc(size_t lev)
 		//	defect on this level still corresponds to the updated defect, we need
 		//	to add if here. This is done in three steps:
 		//	a) Compute the coarse update of the defect induced by missing coupling
-			m_t[lev-1]->set(0.0);
-			if(!m_vCoarseContributionMat[lev-1]->apply(*m_t[lev-1], *m_c[lev-1]))
+			tc.set(0.0);
+			if(!m_vLevData[lev-1].CoarseGridContribution->apply(tc, cc))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Could not compute"
 						" missing update defect contribution on level "<<lev-1<<".\n");
 				return false;
 			}
 
-			*m_t[lev-1] *= -1.0;
+			tc *= -1.0;
 
 		//	b) interpolate the coarse defect up
-			if(!AddProjectionOfVertexShadows(*m_d[lev], *m_t[lev-1], *m_pApproxSpace,
-			                                 lev-1, lev))
+			if(!AddProjectionOfVertexShadows(d, tc, *m_pApproxSpace, lev-1, lev))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Could not add"
 						" missing update defect contribution to level "<<lev<<".\n");
@@ -318,7 +422,7 @@ lmgc(size_t lev)
 	//	We smooth the updated defect againt. This means that we compute a
 	//	correction c, such that the defect is "smoother".
 		GMG_PROFILE_BEGIN(GMG_PostSmooth);
-		if(!smooth(*m_d[lev], *m_c[lev], lev, m_numPostSmooth))
+		if(!smooth(c, d, lev, m_numPostSmooth))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
 					" level " << lev << " failed. "
@@ -336,21 +440,13 @@ lmgc(size_t lev)
 	{
 	// 	PARALLEL CASE: the d is additive
 		#ifdef UG_PARALLEL
-		GMG_PROFILE_BEGIN(GMG_SetStorageTypeBeforeBS);
-		m_d[lev]->set_storage_type(PST_ADDITIVE);
-		GMG_PROFILE_END(); // GMG_SetStorageTypeBeforeBS
-		#endif
-
-	//	begin profiling
-		GMG_PROFILE_BEGIN(GMG_BaseSolver);
-
-	//	some debug output
-		#ifdef UG_PARALLEL
+		d.set_storage_type(PST_ADDITIVE);
 		UG_DLOG(LIB_DISC_MULTIGRID, 2, " Starting Base solver on level "<<lev<< ".\n");
 		#endif
 
 	//	SOLVE BASE PROBLEM
-		if(!m_pBaseSolver->apply(*m_c[lev], *m_d[lev]))
+		GMG_PROFILE_BEGIN(GMG_BaseSolver);
+		if(!m_pBaseSolver->apply(c, d))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
 					" base level " << lev << " failed. "
@@ -360,15 +456,13 @@ lmgc(size_t lev)
 		}
 
 	//	UPDATE DEFECT
-		if(!m_A[lev]->apply_sub(*m_d[lev], *m_c[lev]))
+		if(!m_vLevData[lev].A->apply_sub(d, c))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Updating defect "
 					" on base level " << lev << ". "
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 			return false;
 		}
-
-	//	end profiling
 		GMG_PROFILE_END();
 
 	//	some debug output
@@ -442,7 +536,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 
 //	project
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionFromSurface);
-	if(!project_surface_to_level(m_u, u))
+	if(!project_surface_to_level(level_solutions(), u))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
 				"Projection of solution to level failed.\n");
@@ -454,7 +548,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 	for(size_t lev = m_topLev; lev != m_baseLev; --lev)
 	{
-		if(!m_vProjection[lev-1]->apply(*m_u[lev-1], *m_u[lev]))
+		if(!m_vLevData[lev].Projection->apply(*m_vLevData[lev-1].u, *m_vLevData[lev].u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Cannot project "
 					"solution to coarse grid function of level "<<lev-1<<".\n");
@@ -611,8 +705,8 @@ init_common(bool nonlinear)
 	}
 	GMG_PROFILE_END();
 
-	for(size_t lev = m_baseLev; lev < m_A.size(); ++lev)
-		write_level_debug(m_A[lev]->get_matrix(), "LevelMatrix", lev);
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+		write_level_debug(m_vLevData[lev].A->get_matrix(), "LevelMatrix", lev);
 
 //	Init smoother for coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
@@ -655,11 +749,8 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_linear_level_operator()
 {
 // 	Create coarse level operators
-	for(size_t lev = m_baseLev; lev < m_A.size(); ++lev)
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip if no operator needed
-		if(m_A[lev] == NULL) continue;
-
 	//	get dof distribution
 		const dof_distribution_type& levelDD =
 							m_pApproxSpace->get_level_dof_distribution(lev);
@@ -669,7 +760,7 @@ init_linear_level_operator()
 			continue;
 
 	//	set dof distribution to level operator
-		if(!m_A[lev]->set_dof_distribution(levelDD))
+		if(!m_vLevData[lev].A->set_dof_distribution(levelDD))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator': "
 					"Cannot set dof distribution on level "<< lev << ".\n");
@@ -677,10 +768,10 @@ init_linear_level_operator()
 		}
 
 	//	force grid to be considered as regular
-		m_A[lev]->force_regular_grid(true);
+		m_vLevData[lev].A->force_regular_grid(true);
 
 	//	init level operator
-		if(!m_A[lev]->init())
+		if(!m_vLevData[lev].A->init())
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 					" Cannot init operator for level "<< lev << ".\n");
@@ -688,7 +779,7 @@ init_linear_level_operator()
 		}
 
 	//	remove force flag
-		m_A[lev]->force_regular_grid(false);
+		m_vLevData[lev].A->force_regular_grid(false);
 	}
 
 //	we're done
@@ -701,17 +792,14 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_non_linear_level_operator()
 {
 // 	Create coarse level operators
-	for(size_t lev = m_baseLev; lev < m_A.size(); ++lev)
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip if no operator needed
-		if(m_A[lev] == NULL) continue;
-
 	//	get dof distribution
 		const dof_distribution_type& levelDD =
 							m_pApproxSpace->get_level_dof_distribution(lev);
 
 	//	set correct dof distribution
-		if(!m_A[lev]->set_dof_distribution(levelDD))
+		if(!m_vLevData[lev].A->set_dof_distribution(levelDD))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_non_linear_level_operator':"
 					" Cannot set dof distribution for coarse operator on level "
@@ -720,10 +808,10 @@ init_non_linear_level_operator()
 		}
 
 	//	force grid to be considered as regular
-		m_A[lev]->force_regular_grid(true);
+		m_vLevData[lev].A->force_regular_grid(true);
 
 	//	init operator (i.e. assemble matrix)
-		if(!m_A[lev]->init(*m_u[lev]))
+		if(!m_vLevData[lev].A->init(*m_vLevData[lev].u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_non_linear_level_operator':"
 					" Cannot init coarse grid operator for level "<< lev << ".\n");
@@ -731,7 +819,7 @@ init_non_linear_level_operator()
 		}
 
 	//	remove force flag
-		m_A[lev]->force_regular_grid(false);
+		m_vLevData[lev].A->force_regular_grid(false);
 	}
 
 //	we're done
@@ -744,13 +832,10 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_prolongation()
 {
 //	loop all levels
-	for(size_t lev = m_baseLev; lev < m_topLev; ++lev)
+	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip if no prolongation needed
-		if(m_vProlongation[lev] == NULL) continue;
-
 	//	set levels
-		if(!m_vProlongation[lev]->set_levels(lev, lev+1))
+		if(!m_vLevData[lev].Prolongation->set_levels(lev-1, lev))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_prolongation':"
 					" Cannot set level in interpolation matrices for level "
@@ -759,7 +844,7 @@ init_prolongation()
 		}
 
 	//	init prolongation
-		if(!m_vProlongation[lev]->init())
+		if(!m_vLevData[lev].Prolongation->init())
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_prolongation':"
 					" Cannot init interpolation operator for level "
@@ -778,13 +863,10 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_projection()
 {
 //	loop all levels
-	for(size_t lev = m_baseLev; lev < m_topLev; ++lev)
+	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip if no projection needed
-		if(m_vProjection[lev] == NULL) continue;
-
 	//	set levels
-		if(!m_vProjection[lev]->set_levels(lev, lev+1))
+		if(!m_vLevData[lev].Projection->set_levels(lev-1, lev))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_projection':"
 					" Cannot set level in projection matrices for level "
@@ -793,7 +875,7 @@ init_projection()
 		}
 
 	//	init projection
-		if(!m_vProjection[lev]->init())
+		if(!m_vLevData[lev].Projection->init())
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_projection':"
 					" Cannot init projection operator for level "
@@ -812,12 +894,9 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_smoother()
 {
 // 	Init smoother
-	for(size_t lev = m_baseLev; lev < m_vSmoother.size(); ++lev)
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip if no smoother needed
-		if(m_vSmoother[lev] == NULL) continue;
-
-		if(!m_vSmoother[lev]->init(*m_A[lev], *m_u[lev]))
+		if(!m_vLevData[lev].Smoother->init(*m_vLevData[lev].A, *m_vLevData[lev].u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
 					" Cannot init smoother for level "<< lev << ".\n");
@@ -836,7 +915,7 @@ init_base_solver()
 {
 // 	Prepare base solver
 	if(m_pApproxSpace->get_level_dof_distribution(m_baseLev).num_dofs() != 0)
-		if(!m_pBaseSolver->init(*m_A[m_baseLev], *m_u[m_baseLev]))
+		if(!m_pBaseSolver->init(*m_vLevData[m_baseLev].A, *m_vLevData[m_baseLev].u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
 					" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
@@ -850,103 +929,8 @@ init_base_solver()
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-apply(vector_type &c, const vector_type& d)
-{
-//	temporary vector for defect
-	vector_type d_copy; d_copy.resize(d.size());
-
-//	copy defect
-	d_copy = d;
-
-//	work on copy
-	return apply_update_defect(c, d_copy);
-}
-
-template <typename TApproximationSpace, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-apply_update_defect(vector_type &c, vector_type& d)
-{
-//	get MultiGrid for some checks
-	typename TApproximationSpace::domain_type::grid_type& mg =
-				m_pApproxSpace->get_domain().get_grid();
-
-// 	Check if grid type is a Multigrid.
-	if(dynamic_cast<MultiGrid*>(&mg) == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
-				"MultiGridSolver requires a Multigrid. Please use MultiGrid structure.\n");
-		return false;
-	}
-
-// 	Check if surface level has been choosen correctly
-	if(m_topLev >= mg.num_levels())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
-				" SurfaceLevel " << m_topLev << " does not exist.\n");
-		return false;
-	}
-
-// 	Check if base level has been choose correctly
-	if(m_baseLev > m_topLev)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
-				"Base level must be smaller or equal to surface Level.\n");
-		return false;
-	}
-
-//	project defect from surface to level
-	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromSurface);
-	if(!project_surface_to_level(m_d, d))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Projection of defect to level failed.\n");
-		return false;
-	}
-	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
-
-// 	Perform one multigrid cycle
-	GMG_PROFILE_BEGIN(GMGApply_lmgc);
-	if(!lmgc(m_topLev))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Cannot perform multi grid cycle.\n");
-		return false;
-	}
-	GMG_PROFILE_END(); //GMGApply_lmgc
-
-//	project defect from level to surface
-	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromLevelToSurface);
-	if(!project_level_to_surface(d, m_d))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Projection of defect to surface failed.\n");
-		return false;
-	}
-	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromLevelToSurface
-
-//	project correction from level to surface
-	GMG_PROFILE_BEGIN(GMGApply_ProjectCorrectionFromLevelToSurface);
-	if(!project_level_to_surface(c, m_c))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Projection of correction to surface failed.\n");
-		return false;
-	}
-	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
-
-//	increase dbg counter
-	if(m_pDebugWriter) m_dbgIterCnt++;
-
-//	we're done
-	return true;
-}
-
-template <typename TApproximationSpace, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-project_level_to_surface(vector_type& surfFunc,
-                         const std::vector<vector_type*>& vLevelFunc)
+project_level_to_surface(vector_type& surfVec,
+                         std::vector<vector_type*> vLevelVec)
 {
   GMG_PROFILE_FUNC();
 //	level dof distributions
@@ -980,11 +964,11 @@ project_level_to_surface(vector_type& surfFunc,
 	std::vector<const vector_type*> cvLevelVec;
 
 //	create std::vector of const level vectors
-	for(size_t i = 0; i < vLevelFunc.size(); ++i)
-		cvLevelVec.push_back(vLevelFunc[i]);
+	for(size_t i = 0; i < vLevelVec.size(); ++i)
+		cvLevelVec.push_back(vLevelVec[i]);
 
 //	project
-	if(!ProjectLevelToSurface(surfFunc, surfDD, *surfView, cvLevelVec, vLevelDD, m_baseLev))
+	if(!ProjectLevelToSurface(surfVec, surfDD, *surfView, cvLevelVec, vLevelDD, m_baseLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': "
 				"Projection of function from level to surface failed.\n");
@@ -998,8 +982,8 @@ project_level_to_surface(vector_type& surfFunc,
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-project_surface_to_level(std::vector<vector_type*>& vLevelFunc,
-                         const vector_type& surfFunc)
+project_surface_to_level(std::vector<vector_type*> vLevelVec,
+                         const vector_type& surfVec)
 {
   GMG_PROFILE_FUNC();
 //	level dof distributions
@@ -1030,7 +1014,7 @@ project_surface_to_level(std::vector<vector_type*>& vLevelFunc,
 	}
 
 //	project
-	if(!ProjectSurfaceToLevel(vLevelFunc, vLevelDD, surfFunc, surfDD, *surfView))
+	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfVec, surfDD, *surfView))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level': "
 				"Projection of function from surface to level failed.\n");
@@ -1048,128 +1032,26 @@ top_level_required(size_t topLevel)
 {
 //	allocated level if needed
 	while(num_levels() <= topLevel)
-		if(!allocate_level(num_levels()))
-			return false;
+	{
+		m_vLevData.resize(m_vLevData.size()+1);
+		m_vLevData.back().allocate(m_vLevData.size()-1,
+		                           *m_pApproxSpace,
+		                           *m_pAss,
+		                           *m_pSmootherPrototype,
+		                           *m_pProjectionPrototype,
+		                           *m_pProlongationPrototype);
+	}
 
 //	free level if needed
 	while(num_levels() > topLevel+1)
-		free_level(num_levels());
+	{
+		m_vLevData.back().free();
+		m_vLevData.pop_back();
+	}
 
 //	we're done
 	return true;
 }
-
-template <typename TApproximationSpace, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-allocate_level(size_t level)
-{
-//	allocate grid functions
-	if(m_u.size() <= level) m_u.resize(level+1, NULL);
-	if(m_u[level] == NULL)
-		m_u[level] = m_pApproxSpace->create_level_function(level);
-
-	if(m_c.size() <= level) m_c.resize(level+1, NULL);
-	if(m_c[level] == NULL)
-		m_c[level] = m_pApproxSpace->create_level_function(level);
-
-	if(m_t.size() <= level) m_t.resize(level+1, NULL);
-	if(m_t[level] == NULL)
-		m_t[level] = m_pApproxSpace->create_level_function(level);
-
-	if(m_d.size() <= level) m_d.resize(level+1, NULL);
-	if(m_d[level] == NULL)
-		m_d[level] = m_pApproxSpace->create_level_function(level);
-
-//	allocate level grid operators
-	if(m_A.size() <= level) m_A.resize(level+1, NULL);
-	if(m_A[level] == NULL)
-		m_A[level] = new operator_type(*m_pAss);
-
-//	allocate prolongation
-	if(m_vProlongation.size() <= level) m_vProlongation.resize(level+1, NULL);
-	if(m_vProlongation[level] == NULL)
-		m_vProlongation[level] = m_pProlongationPrototype->clone();
-
-//	allocate projection
-	if(m_vProjection.size() <= level) m_vProjection.resize(level+1, NULL);
-	if(m_vProjection[level] == NULL)
-		m_vProjection[level] = m_pProjectionPrototype->clone();
-
-//	allocate smoother
-	if(m_vSmoother.size() <= level) m_vSmoother.resize(level+1, NULL);
-	if(m_vSmoother[level] == NULL)
-		m_vSmoother[level] = m_pSmootherPrototype->clone();
-
-//	check success
-	if(m_A[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for coarse grid operator on level "<<level<<".\n"); return false;}
-	if(m_vProlongation[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for prolongation operator on level "<<level<<".\n"); return false;}
-	if(m_vProjection[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for projection operator on level "<<level<<".\n"); return false;}
-	if(m_vSmoother[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for smoother operator on level "<<level<<".\n"); return false;}
-
-	if(m_u[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for solution on level "<<level<<".\n"); return false;}
-	if(m_c[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for correction on level "<<level<<".\n"); return false;}
-	if(m_t[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for help correction on level "<<level<<".\n"); return false;}
-	if(m_d[level] == NULL)
-	{UG_LOG("ERROR in 'AssembledMultiGridCycle::allocate_level': Cannot allocate"
-			" memory for defect on level "<<level<<".\n"); return false;}
-
-//	we're done
-	return true;
-}
-
-template <typename TApproximationSpace, typename TAlgebra>
-void
-AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-free_level(size_t level)
-{
-//	free operator
-	if(m_A[level] != NULL) delete m_A[level];
-	if(m_vProlongation[level] != NULL) delete m_vProlongation[level];
-	if(m_vProjection[level] != NULL) delete m_vProjection[level];
-	if(m_vSmoother[level] != NULL) delete m_vSmoother[level];
-
-//	free grid functions
-	if(m_u[level] != NULL) {delete m_u[level]; m_u[level] = NULL;}
-	if(m_c[level] != NULL) {delete m_c[level]; m_c[level] = NULL;}
-	if(m_t[level] != NULL) {delete m_t[level]; m_t[level] = NULL;}
-	if(m_d[level] != NULL) {delete m_d[level]; m_d[level] = NULL;}
-
-//	free unused elements from vectors
-	while(m_A.back() == NULL) m_A.pop_back();
-	while(m_vProlongation.back() == NULL) m_vProlongation.pop_back();
-	while(m_vProjection.back() == NULL) m_vProjection.pop_back();
-	while(m_vSmoother.back() == NULL) m_vSmoother.pop_back();
-
-	while(m_u.back() == NULL) m_u.pop_back();
-	while(m_c.back() == NULL) m_c.pop_back();
-	while(m_t.back() == NULL) m_t.pop_back();
-	while(m_d.back() == NULL) m_d.pop_back();
-}
-
-
-template <typename TApproximationSpace, typename TAlgebra>
-AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-~AssembledMultiGridCycle()
-{
-	top_level_required(0);
-	free_level(0);
-}
-
 
 template <typename TApproximationSpace, typename TAlgebra>
 bool
@@ -1356,9 +1238,9 @@ clone()
 	clone->set_discretization(*m_pAss);
 	clone->set_num_postsmooth(m_numPostSmooth);
 	clone->set_num_presmooth(m_numPreSmooth);
-	clone->set_projection_operator(*(m_vProjection[0]));
-	clone->set_prolongation_operator(*(m_vProlongation[0]));
-	clone->set_smoother(*(m_vSmoother[0]));
+	clone->set_projection_operator(*m_pProjectionPrototype);
+	clone->set_prolongation_operator(*m_pProlongationPrototype);
+	clone->set_smoother(*m_pSmootherPrototype);
 
 	return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
 }
@@ -1370,21 +1252,9 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_missing_coarse_grid_coupling(const vector_type* u)
 {
-//	create storage for matrix (one matrix for each level, except top level)
-	size_t oldSize = m_vCoarseContributionMat.size();
-//	a) delete not need matrices
-	for(size_t i = m_topLev+1; i < m_vCoarseContributionMat.size(); ++i)
-		if(m_vCoarseContributionMat[i])
-			delete m_vCoarseContributionMat[i];
-	m_vCoarseContributionMat.resize(m_topLev+1);
-
-//	b) create needed storage
-	for(size_t i = oldSize; i < m_vCoarseContributionMat.size(); ++i)
-		m_vCoarseContributionMat[i] = new matrix_type;
-
 //	clear matrices
-	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
-		m_vCoarseContributionMat[lev]->resize(0,0);
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+		m_vLevData[lev].CoarseGridContribution->resize(0,0);
 
 //	if the grid is fully refined, nothing to do
 	if(m_bFullRefined) return true;
@@ -1401,14 +1271,15 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	}
 
 //	create storage for matrices on the grid levels
-	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
 	//	get dof distributions on levels
-		const dof_distribution_type& dofDistr = m_pApproxSpace->get_level_dof_distribution(lev);
+		const dof_distribution_type& dofDistr
+							= m_pApproxSpace->get_level_dof_distribution(lev);
 
 	//	resize the matrix
-		m_vCoarseContributionMat[lev]->resize(dofDistr.num_dofs(),
-											   dofDistr.num_dofs());
+		m_vLevData[lev].CoarseGridContribution->resize(dofDistr.num_dofs(),
+		                                               dofDistr.num_dofs());
 	}
 
 ///////////////////////////////////////
@@ -1446,7 +1317,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	loop all levels to compute the missing contribution
 //	\todo: this is implemented very resource consuming, re-think arrangement
-	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
 	//	select all elements, that have a shadow as a subelement, but are not itself
 	//	a shadow
@@ -1479,7 +1350,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		m_pAss->set_selector(NULL);
 
 	//	project
-		if(!CopyMatrixSurfaceToLevel(*m_vCoarseContributionMat[lev],
+		if(!CopyMatrixSurfaceToLevel(*m_vLevData[lev].CoarseGridContribution,
 		                             vSurfLevelMapping[lev],
 		                             surfMat))
 		{
@@ -1490,8 +1361,8 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	}
 
 //	write matrix for debug purpose
-	for(size_t lev = 0; lev < m_vCoarseContributionMat.size(); ++lev)
-		write_level_debug(*m_vCoarseContributionMat[lev], "MissingLevelMat", lev);
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+		write_level_debug(*m_vLevData[lev].CoarseGridContribution, "MissingLevelMat", lev);
 
 /////////////
 // end project
