@@ -105,11 +105,6 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 			int numElemInds = tmpInds[i];
 			newIndsOut[fillCount + i] = numElemInds;
 			++i;
-		//	the elements are inverted. we have to adjust that by inverting
-		//	the order of the base vertices.
-		//todo:	One could probably solve this in a more elegant way...
-			for(int j = 0; j < (int)((numElemInds - 1) / 2); ++j)
-				swap(tmpInds[i + j], tmpInds[i + numElemInds - 2 - j]);
 
 			for(int j = 0; j < numElemInds; ++j, ++i){
 				assert(indMap[tmpInds[i]] != -1);

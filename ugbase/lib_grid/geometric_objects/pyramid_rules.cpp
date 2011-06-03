@@ -3,6 +3,7 @@
 // 31.05.2011 (m,d,y)
 
 #include <iostream>
+#include <cassert>
 #include "pyramid_rules.h"
 #include "rule_util.h"
 
@@ -97,14 +98,14 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 					if(f[3] == -1){
 					//	create a tet
 						inds[fi++] = 4;
-						inds[fi++] = f[2];	inds[fi++] = f[1];
-						inds[fi++] = f[0];	inds[fi++] = nVrt;
+						inds[fi++] = f[0];	inds[fi++] = f[1];
+						inds[fi++] = f[2];	inds[fi++] = nVrt;
 					}
 					else{
 					//	create a pyramid
 						inds[fi++] = 5;
-						inds[fi++] = f[3];	inds[fi++] = f[2];
-						inds[fi++] = f[1];	inds[fi++] = f[0];
+						inds[fi++] = f[0];	inds[fi++] = f[1];
+						inds[fi++] = f[2];	inds[fi++] = f[3];
 						inds[fi++] = nVrt;
 					}
 				}

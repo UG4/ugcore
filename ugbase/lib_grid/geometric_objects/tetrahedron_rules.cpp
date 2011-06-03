@@ -68,9 +68,9 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 					const int* fvi = FACE_VRT_INDS[i_face];
 
 					newIndsOut[fillCount++] = 4;
-					newIndsOut[fillCount++] = fvi[2];
-					newIndsOut[fillCount++] = fvi[1];
 					newIndsOut[fillCount++] = fvi[0];
+					newIndsOut[fillCount++] = fvi[1];
+					newIndsOut[fillCount++] = fvi[2];
 					newIndsOut[fillCount++] = NUM_VERTICES + refEdgeInd;
 				}
 			}
@@ -119,14 +119,14 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 				inds[fi++] = 5;
-				inds[fi++] = v1;	inds[fi++] = v0;
-				inds[fi++] = v2v0;	inds[fi++] = v1v2;
+				inds[fi++] = v0;	inds[fi++] = v1;
+				inds[fi++] = v1v2; 	inds[fi++] = v2v0;
 				inds[fi++] = vtop;
 
 			//	and now the terahedron
 				inds[fi++] = 4;
-				inds[fi++] = v2;	inds[fi++] = v1v2;
-				inds[fi++] = v2v0;	inds[fi++] = vtop;
+				inds[fi++] = v2;	inds[fi++] = vtop;
+				inds[fi++] = v2v0;	inds[fi++] = v1v2;
 			}
 		}break;
 
@@ -159,17 +159,17 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 				inds[fi++] = 4;
-				inds[fi++] = v0;	inds[fi++] = v2v0;
-				inds[fi++] = v0v1;	inds[fi++] = vtop;
-				inds[fi++] = 4;
-				inds[fi++] = v1;	inds[fi++] = v0v1;
-				inds[fi++] = v1v2;	inds[fi++] = vtop;
-				inds[fi++] = 4;
-				inds[fi++] = v2;	inds[fi++] = v1v2;
-				inds[fi++] = v2v0;	inds[fi++] = vtop;
-				inds[fi++] = 4;
+				inds[fi++] = v0;	inds[fi++] = vtop;
 				inds[fi++] = v0v1;	inds[fi++] = v2v0;
-				inds[fi++] = v1v2;	inds[fi++] = vtop;
+				inds[fi++] = 4;
+				inds[fi++] = v1;	inds[fi++] = vtop;
+				inds[fi++] = v1v2;	inds[fi++] = v0v1;
+				inds[fi++] = 4;
+				inds[fi++] = v2;	inds[fi++] = vtop;
+				inds[fi++] = v2v0;	inds[fi++] = v1v2;
+				inds[fi++] = 4;
+				inds[fi++] = v0v1;	inds[fi++] = vtop;
+				inds[fi++] = v1v2;	inds[fi++] = v2v0;
 			}
 			else{
 			//	we have to further distinguish.
@@ -202,12 +202,12 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 					int& fi = fillCount;
 					int* inds = newIndsOut;
 					inds[fi++] = 6;
-					inds[fi++] = f[2]; inds[fi++] = f[1]; inds[fi++] = f[0];
-					inds[fi++] = v2v3; inds[fi++] = v1v3; inds[fi++] = v0v3;
+					inds[fi++] = f[0]; inds[fi++] = f[1]; inds[fi++] = f[2];
+					inds[fi++] = v0v3; inds[fi++] = v1v3; inds[fi++] = v2v3;
 
 					inds[fi++] = 4;
-					inds[fi++] = v2v3; inds[fi++] = v1v3; inds[fi++] = v0v3;
-					inds[fi++] = corner3;
+					inds[fi++] = v2v3; inds[fi++] = corner3; inds[fi++] = v0v3;
+					inds[fi++] = v1v3;
 				}
 			}
 		}break;

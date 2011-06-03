@@ -267,8 +267,8 @@ void Tetrahedron::face(int index, FaceDescriptor& fdOut) const
 
 	fdOut.set_num_vertices(3);
 	fdOut.set_vertex(0, m_vertices[FACE_VRT_INDS[index][0]]);
-	fdOut.set_vertex(1, m_vertices[FACE_VRT_INDS[index][1]]);
-	fdOut.set_vertex(2, m_vertices[FACE_VRT_INDS[index][2]]);
+	fdOut.set_vertex(1, m_vertices[FACE_VRT_INDS[index][2]]);
+	fdOut.set_vertex(2, m_vertices[FACE_VRT_INDS[index][1]]);
 }
 
 uint Tetrahedron::num_faces() const
@@ -290,7 +290,7 @@ Face* Tetrahedron::create_face(int index)
 	assert(index >= 0 && index < NUM_FACES);
 
 	const int* f = FACE_VRT_INDS[index];
-	return new Triangle(m_vertices[f[0]], m_vertices[f[1]], m_vertices[f[2]]);
+	return new Triangle(m_vertices[f[0]], m_vertices[f[2]], m_vertices[f[1]]);
 }
 
 void Tetrahedron::
@@ -310,8 +310,8 @@ get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 	assert(side >= 0 && side < 4);
 	indsOut.resize(3);
 	indsOut[0] = tet_rules::FACE_VRT_INDS[side][0];
-	indsOut[1] = tet_rules::FACE_VRT_INDS[side][1];
-	indsOut[2] = tet_rules::FACE_VRT_INDS[side][2];
+	indsOut[1] = tet_rules::FACE_VRT_INDS[side][2];
+	indsOut[2] = tet_rules::FACE_VRT_INDS[side][1];
 }
 
 bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -461,9 +461,9 @@ void Hexahedron::face(int index, FaceDescriptor& fdOut) const
 
 	fdOut.set_num_vertices(4);
 	fdOut.set_vertex(0, m_vertices[f[0]]);
-	fdOut.set_vertex(1, m_vertices[f[1]]);
+	fdOut.set_vertex(1, m_vertices[f[3]]);
 	fdOut.set_vertex(2, m_vertices[f[2]]);
-	fdOut.set_vertex(3, m_vertices[f[3]]);
+	fdOut.set_vertex(3, m_vertices[f[1]]);
 }
 
 uint Hexahedron::num_faces() const
@@ -485,8 +485,8 @@ Face* Hexahedron::create_face(int index)
 	assert(index >= 0 && index < NUM_FACES);
 
 	const int* f = FACE_VRT_INDS[index];
-	return new Quadrilateral(m_vertices[f[0]], m_vertices[f[1]],
-							 m_vertices[f[2]], m_vertices[f[3]]);
+	return new Quadrilateral(m_vertices[f[0]], m_vertices[f[3]],
+							 m_vertices[f[2]], m_vertices[f[1]]);
 }
 
 bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -634,15 +634,15 @@ void Prism::face(int index, FaceDescriptor& fdOut) const
 	if(f[3] == -1){
 		fdOut.set_num_vertices(3);
 		fdOut.set_vertex(0, m_vertices[f[0]]);
-		fdOut.set_vertex(1, m_vertices[f[1]]);
-		fdOut.set_vertex(2, m_vertices[f[2]]);
+		fdOut.set_vertex(1, m_vertices[f[2]]);
+		fdOut.set_vertex(2, m_vertices[f[1]]);
 	}
 	else{
 		fdOut.set_num_vertices(4);
 		fdOut.set_vertex(0, m_vertices[f[0]]);
-		fdOut.set_vertex(1, m_vertices[f[1]]);
+		fdOut.set_vertex(1, m_vertices[f[3]]);
 		fdOut.set_vertex(2, m_vertices[f[2]]);
-		fdOut.set_vertex(3, m_vertices[f[3]]);
+		fdOut.set_vertex(3, m_vertices[f[1]]);
 	}
 }
 
@@ -666,12 +666,12 @@ Face* Prism::create_face(int index)
 
 	const int* f = FACE_VRT_INDS[index];
 	if(f[3] == -1){
-		return new Triangle(m_vertices[f[0]], m_vertices[f[1]],
-							m_vertices[f[2]]);
+		return new Triangle(m_vertices[f[0]], m_vertices[f[2]],
+							m_vertices[f[1]]);
 	}
 	else{
-		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[1]],
-								 m_vertices[f[2]], m_vertices[f[3]]);
+		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[3]],
+								 m_vertices[f[2]], m_vertices[f[1]]);
 	}
 }
 
@@ -812,15 +812,15 @@ void Pyramid::face(int index, FaceDescriptor& fdOut) const
 	if(f[3] == -1){
 		fdOut.set_num_vertices(3);
 		fdOut.set_vertex(0, m_vertices[f[0]]);
-		fdOut.set_vertex(1, m_vertices[f[1]]);
-		fdOut.set_vertex(2, m_vertices[f[2]]);
+		fdOut.set_vertex(1, m_vertices[f[2]]);
+		fdOut.set_vertex(2, m_vertices[f[1]]);
 	}
 	else{
 		fdOut.set_num_vertices(4);
 		fdOut.set_vertex(0, m_vertices[f[0]]);
-		fdOut.set_vertex(1, m_vertices[f[1]]);
+		fdOut.set_vertex(1, m_vertices[f[3]]);
 		fdOut.set_vertex(2, m_vertices[f[2]]);
-		fdOut.set_vertex(3, m_vertices[f[3]]);
+		fdOut.set_vertex(3, m_vertices[f[1]]);
 	}
 }
 
@@ -844,12 +844,12 @@ Face* Pyramid::create_face(int index)
 
 	const int* f = FACE_VRT_INDS[index];
 	if(f[3] == -1){
-		return new Triangle(m_vertices[f[0]], m_vertices[f[1]],
-							m_vertices[f[2]]);
+		return new Triangle(m_vertices[f[0]], m_vertices[f[2]],
+							m_vertices[f[1]]);
 	}
 	else{
-		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[1]],
-								 m_vertices[f[2]], m_vertices[f[3]]);
+		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[3]],
+								 m_vertices[f[2]], m_vertices[f[1]]);
 	}
 }
 

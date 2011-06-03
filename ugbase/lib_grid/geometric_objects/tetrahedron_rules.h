@@ -24,8 +24,8 @@ const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 0},
 									{3, 0}, {3, 1}, {3,2}};
 
 ///	the local vertex indices of the given face
-const int FACE_VRT_INDS[][4] = {	{0, 2, 1, -1}, {1, 2, 3, -1},
-									{2, 0, 3, -1}, {0, 1, 3, -1}};
+const int FACE_VRT_INDS[][4] = {	{0, 1, 2, -1}, {1, 3, 2, -1},
+									{0, 2, 3, -1}, {0, 3, 1, -1}};
 
 ///	for each edge the local index of the opposed edge
 const int OPPOSED_EDGE[] = {5, 3, 4, 1, 2, 0};
@@ -36,8 +36,8 @@ const int OPPOSED_EDGE[] = {5, 3, 4, 1, 2, 0};
 //	NOTE: The lists below are all generated automatically
 
 ///	returns the j-th edge of the i-th face
-const int FACE_EDGE_INDS[4][4] =	{{2, 1, 0, -1}, {1, 5, 4, -1},
-									 {2, 3, 5, -1}, {0, 4, 3, -1}};
+const int FACE_EDGE_INDS[4][4] = 	{{0, 1, 2, -1}, {4, 5, 1, -1},
+									 {2, 5, 3, -1}, {3, 4, 0, -1}};
 
 ///	tells whether the i-th face contains the j-th edge
 const int FACE_CONTAINS_EDGE[][6] = {{1, 1, 1, 0, 0, 0}, {0, 1, 0, 0, 1, 1},
@@ -47,26 +47,24 @@ const int FACE_CONTAINS_EDGE[][6] = {{1, 1, 1, 0, 0, 0}, {0, 1, 0, 0, 1, 1},
 /**	Use two vertex indices to index into this table to retrieve the index
  * of their connecting edge.
  */
-const int EDGE_FROM_VRTS[4][4] =  {{-1, 0, 2, 3}, {0, -1, 1, 4},
+const int EDGE_FROM_VRTS[4][4] =	{{-1, 0, 2, 3}, {0, -1, 1, 4},
 									 {2, 1, -1, 5}, {3, 4, 5, -1}};
 
 ///	Associates the index of the connecting face with each triple of vertices.
 /**	Use three vertex indices to index into this table to retrieve the index
  * of their connecting face.
  */
-const int FACE_FROM_VRTS[4][4][4] = {{{-1, -1, -1, -1}, {-1, -1, 0, 3},
-									  {-1, 0, -1, 2}, {-1, 3, 2, -1}},
-									 {{-1, -1, 0, 3}, {-1, -1, -1, -1},
-									  {0, -1, -1, 1}, {3, -1, 1, -1}},
-									 {{-1, 0, -1, 2}, {0, -1, -1, 1},
-									  {-1, -1, -1, -1}, {2, 1, -1, -1}},
-									 {{-1, 3, 2, -1}, {3, -1, 1, -1},
-									  {2, 1, -1, -1}, {-1, -1, -1, -1}}};
+const int FACE_FROM_VRTS[4][4][4] =
+			{{{-1, -1, -1, -1}, {-1, -1, 0, 3}, {-1, 0, -1, 2}, {-1, 3, 2, -1}},
+			 {{-1, -1, 0, 3}, {-1, -1, -1, -1}, {0, -1, -1, 1}, {3, -1, 1, -1}},
+			 {{-1, 0, -1, 2}, {0, -1, -1, 1}, {-1, -1, -1, -1}, {2, 1, -1, -1}},
+			 {{-1, 3, 2, -1}, {3, -1, 1, -1}, {2, 1, -1, -1}, {-1, -1, -1, -1}}};
 
 ///	given two edges, the table returns the face, which contains both (or -1)
 const int FACE_FROM_EDGES[][6] =	{{0, 0, 0, 3, 3, -1}, {0, 0, 0, -1, 1, 1},
 									 {0, 0, 0, 2, -1, 2}, {3, -1, 2, 2, 3, 2},
 									 {3, 1, -1, 3, 1, 1}, {-1, 1, 2, 2, 1, 1}};
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

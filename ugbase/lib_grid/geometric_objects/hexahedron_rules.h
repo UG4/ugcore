@@ -24,9 +24,9 @@ const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 3}, {3, 0},
 									{4, 5}, {5, 6}, {6, 7}, {7, 4}};
 
 ///	the local vertex indices of the given face
-const int FACE_VRT_INDS[][4] = {	{0, 3, 2, 1},	{0, 1, 5, 4},
-									{1, 2, 6, 5},	{2, 3, 7, 6},
-									{3, 0, 4, 7},	{4, 5, 6, 7}};
+const int FACE_VRT_INDS[][4] = {	{0, 1, 2, 3},	{0, 4, 5, 1},
+									{1, 5, 6, 2},	{2, 6, 7, 3},
+									{0, 3, 7, 4},	{4, 7, 6, 5}};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -34,8 +34,9 @@ const int FACE_VRT_INDS[][4] = {	{0, 3, 2, 1},	{0, 1, 5, 4},
 //	NOTE: The lists below are all generated automatically
 
 ///	returns the j-th edge of the i-th face
-const int FACE_EDGE_INDS[6][4] = {{3, 2, 1, 0}, {0, 5, 8, 4}, {1, 6, 9, 5},
-								  {2, 7, 10, 6}, {3, 4, 11, 7}, {8, 9, 10, 11}};
+const int FACE_EDGE_INDS[6][4] =
+					{{0, 1, 2, 3}, {4, 8, 5, 0}, {5, 9, 6, 1},
+					 {6, 10, 7, 2}, {3, 7, 11, 4}, {11, 10, 9, 8}};
 
 ///	tells whether the i-th face contains the j-th edge
 const int FACE_CONTAINS_EDGE[][12] =	{{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},

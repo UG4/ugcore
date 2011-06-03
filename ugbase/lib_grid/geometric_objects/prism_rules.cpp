@@ -97,14 +97,14 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 					if(f[3] == -1){
 					//	create a tetrahedron
 						inds[fi++] = 4;
-						inds[fi++] = f[0];	inds[fi++] = f[2];
-						inds[fi++] = f[1];	inds[fi++] = nVrt;
+						inds[fi++] = f[0];	inds[fi++] = f[1];
+						inds[fi++] = f[2];	inds[fi++] = nVrt;
 					}
 					else{
 					//	create a prism
 						inds[fi++] = 5;
-						inds[fi++] = f[0];	inds[fi++] = f[3];
-						inds[fi++] = f[2];	inds[fi++] = f[1];
+						inds[fi++] = f[0];	inds[fi++] = f[1];
+						inds[fi++] = f[2];	inds[fi++] = f[3];
 						inds[fi++] = nVrt;
 					}
 				}
