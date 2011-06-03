@@ -22,9 +22,8 @@ namespace ug{
  * Reference Element.
  * \tparam 	TRefElem		Reference Element Type
  */
-template <typename TRefElem>
+template <typename TRefElem, int TOrder>
 class LagrangeP1
-	: public ug::LocalShapeFunctionSet<TRefElem>
 {
 	public:
 	///	Reference Element type
@@ -50,22 +49,22 @@ class LagrangeP1
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		virtual size_t num_sh() const { return nsh;}
+		size_t num_sh() const { return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		virtual bool position(size_t i, position_type& pos) const;
+		bool position(size_t i, position_type& pos) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		virtual shape_type shape(size_t i, const position_type& x) const;
+		shape_type shape(size_t i, const position_type& x) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(shape_type* sOut, const position_type& x) const;
+		void shapes(shape_type* sOut, const position_type& x) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		virtual grad_type grad(size_t i, const position_type& x) const;
+		grad_type grad(size_t i, const position_type& x) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(grad_type* gOut, const position_type& x) const;
+		void grads(grad_type* gOut, const position_type& x) const;
 
 	protected:
 	///	evaluate gradient of i'th shape function at position x

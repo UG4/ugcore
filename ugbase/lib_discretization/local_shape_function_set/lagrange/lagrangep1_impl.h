@@ -12,9 +12,9 @@
 
 namespace ug{
 
-template <typename TRefElem>
+template <typename TRefElem, int TOrder>
 void
-LagrangeP1<TRefElem>::
+LagrangeP1<TRefElem,TOrder>::
 shapes(shape_type* sOut, const position_type& x) const
 {
 //	loop shapes
@@ -22,9 +22,9 @@ shapes(shape_type* sOut, const position_type& x) const
 		sOut[sh] = shape(sh, x);
 }
 
-template <typename TRefElem>
-typename LagrangeP1<TRefElem>::grad_type
-LagrangeP1<TRefElem>::
+template <typename TRefElem, int TOrder>
+typename LagrangeP1<TRefElem,TOrder>::grad_type
+LagrangeP1<TRefElem,TOrder>::
 grad(size_t i, const position_type& x) const
 {
 //	tmp gradient
@@ -37,9 +37,9 @@ grad(size_t i, const position_type& x) const
 	return tmpGrad;
 }
 
-template <typename TRefElem>
+template <typename TRefElem, int TOrder>
 void
-LagrangeP1<TRefElem>::
+LagrangeP1<TRefElem,TOrder>::
 grads(grad_type* gOut, const position_type& x) const
 {
 //	loop shapes

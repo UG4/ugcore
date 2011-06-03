@@ -29,7 +29,7 @@ init_standard_local_shape_function_sets()
 	bool success = true;
 
 //	create static Sets
-	static LagrangeP1<TRefElem> sSetLagrangeP1;
+	static LocalShapeFunctionSetWrapper<LagrangeP1<TRefElem, 1> > sSetLagrangeP1;
 	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 2> > sSetLagrangeP2;
 
 	if(!init)

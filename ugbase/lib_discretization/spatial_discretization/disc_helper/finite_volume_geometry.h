@@ -77,7 +77,7 @@ class FV1Geometry : public FVGeometryBase {
 		static const size_t numSCVF = ref_elem_type::num_edges;
 
 	//	type of Shape function used
-		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
+		typedef LagrangeP1<ref_elem_type, 1> local_shape_fct_set_type;
 
 	//	number of shape functions
 		static const size_t nsh = local_shape_fct_set_type::nsh;
