@@ -148,9 +148,6 @@ set_random(number from, number to, ParallelStorageType type)
 	if(!TVector::set_random(from, to)) return false;
 	set_storage_type(PST_ADDITIVE);
 
-	// consistent required
-	if(type & PST_CONSISTENT) return true;
-
 	// additive or additive unique
 	return change_storage_type(type);
 }
