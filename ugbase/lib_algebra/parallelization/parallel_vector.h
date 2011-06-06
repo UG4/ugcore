@@ -182,7 +182,11 @@ class ParallelVector : public TVector
 		bool set(number w){return set(w, PST_CONSISTENT);}
 
 	/// set all entries to a random number (overwrites TVector::set_random(number from, number to))
-		bool set_random(number from, number to, ParallelStorageType type=PST_CONSISTENT);
+		bool set_random(number from, number to, ParallelStorageType type);
+		bool set_random(number from, number to)
+		{
+			return set_random(from, to, PST_CONSISTENT);
+		}
 
 	///	assignment
 		this_type &operator =(const this_type &v)
