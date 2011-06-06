@@ -801,7 +801,7 @@ bool amg_base<TAlgebra>::check2(const vector_type &const_c, const vector_type &c
 		double prenorm = d.two_norm();
 		add_correction_and_update_defect(c, d, 0, i);
 		double postnorm = d.two_norm();
-		UG_LOG("Reduction is " << postnorm/prenorm << "\n");
+		UG_LOG("Reduction is " << postnorm/prenorm << "\n\n");
 	}
 
 	m_vec1[0] = oC;
@@ -867,8 +867,9 @@ bool amg_base<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector
 		}
 		else
 		{
-			UG_LOG("\n");
-			for(int k=0; k<100; k++)
+			UG_LOG("using normal MG cycle from level " << level+1 << "on: ");
+			int k;
+			for(k=0; k<100; k++)
 			{
 				for(int i=0; i< m_cycleType; i++)
 					add_correction_and_update_defect(cH, dH, level+1);
@@ -876,8 +877,8 @@ bool amg_base<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector
 				if(dH.two_norm() < 1e-12)
 					break;
 			}
-			if(dH.two_norm() > 1e-12) UG_LOG("\nnot converged!\n")
-			else UG_LOG("\n");
+			if(dH.two_norm() > 1e-12) { UG_LOG("not converged after " << k << " steps\n"); }
+			else { UG_LOG("took " << k << " steps\n") }
 		}
 	}
 
