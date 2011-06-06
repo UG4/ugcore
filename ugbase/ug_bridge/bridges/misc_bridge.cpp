@@ -104,6 +104,7 @@ bool RegisterMiscFunctions(Registry &reg, const char* parentGroup)
 
 		reg.add_function("DefinedUG_DEBUG", &DefinedUG_DEBUG, group.str().c_str(), "");
 		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &DefinedUG_ENABLE_DEBUG_LOGS, group.str().c_str(), "");
+		reg.add_function("srand", srand, "", "seed", "The pseudo-random number generator is initialized using the argument passed as seed.");
 	}
 
 	return true;
