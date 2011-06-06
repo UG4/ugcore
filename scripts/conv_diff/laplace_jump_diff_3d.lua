@@ -39,56 +39,16 @@ print("    numRefs    = " .. numRefs)
 print("    numPreRefs = " .. numPreRefs)
 print("    grid       = " .. gridName)
 
--- create Instance of a Domain
-print("Create Domain.")
-dom = util.CreateDomain(dim)
-
--- load domain
-print("Load Domain from File.")
-if util.LoadDomain(dom, gridName) == false then
-   print("Loading Domain failed.")
-   exit()
-end
-
--- create Refiner
-print("Create Refiner")
-if numPreRefs > numRefs then
-	print("numPreRefs must be smaller than numRefs");
-	exit();
-end
-
--- Create a refiner instance. This is a factory method
--- which automatically creates a parallel refiner if required.
-refiner = GlobalDomainRefiner(dom)
-
--- Performing pre-refines
-for i=1,numPreRefs do
-	refiner:refine()
-end
-
--- Distribute the domain to all involved processes
-if DistributeDomain(dom) == false then
-	print("Error while Distributing Grid.")
-	exit()
-end
-
--- Perform post-refine
-print("Refine Parallel Grid")
-for i=numPreRefs+1,numRefs do
-	refiner:refine()
-end
+--------------------------------------------------------------------------------
+--  Domain setup
+--------------------------------------------------------------------------------
 
 -- Lets define a list of all subsets that we need
 neededSubsets = {"Inner", "Top", "Bottom", "Front", "Back", "Left", "Right"}
 
--- Now we loop all subsets an search for it in the SubsetHandler of the domain
-sh = dom:get_subset_handler()
-for i, tval in ipairs(neededSubsets) do
-	if sh:get_subset_index(tval) == -1 then
-		print("Domain does not contain subset '"..tval.."'. Aborting.")
-		exit()
-	end
-end
+-- Create, Load, Refine and Distribute Domain
+neededSubsets = {"Inner", "Boundary"}
+dom = util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubsets)
 
 -- write grid to file for test purpose
 print("saving refined domain to refined_grid.ugx")
@@ -102,9 +62,9 @@ approxSpace:init()
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup User Functions
--------------------------------------------
+--------------------------------------------------------------------------------
 
 function jumpDiffTensor3d(x, y, z, t)
 
@@ -116,7 +76,6 @@ function jumpDiffTensor3d(x, y, z, t)
 			0, d, 0,
 			0, 0, d
 end
-	
 
 -- Diffusion Tensor setup
 luaDiffusionMatrix = util.CreateLuaUserMatrix("jumpDiffTensor"..dim.."d", dim)
@@ -126,33 +85,33 @@ luaDiffusionMatrix = util.CreateLuaUserMatrix("jumpDiffTensor"..dim.."d", dim)
 constLeftDirichlet = util.CreateConstBoundaryNumber(1.0, dim)
 constRightDirichlet = util.CreateConstBoundaryNumber(0.0, dim)
 	
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(luaDiffusionMatrix)
 
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup Dirichlet Boundary
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(constLeftDirichlet, "c", "Left")
 dirichletBND:add_boundary_value(constRightDirichlet, "c", "Right")
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup Domain Discretization
--------------------------------------------
+--------------------------------------------------------------------------------
 
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc)
 domainDisc:add_post_process(dirichletBND)
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Algebra
--------------------------------------------
+--------------------------------------------------------------------------------
 print ("Setting up Algebra Solver")
 
 -- create operator from discretization
@@ -241,9 +200,9 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- choose some solver
 solver = linSolver
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Apply Solver
--------------------------------------------
+--------------------------------------------------------------------------------
 
 for i=1,numLoop do
 	
@@ -280,8 +239,11 @@ for i=1,numLoop do
 	if solver:apply_return_defect(u,b) == false then print("Solver failed."); exit(); end
 	tSolveEnd = os.clock()
 	print("Solving took " .. tSolveEnd - tSolveStart .. " seconds.");
+	
 end
--------------------------------------------
+
+--------------------------------------------------------------------------------
 --  Output
--------------------------------------------
+--------------------------------------------------------------------------------
+
 WriteGridFunctionToVTK(u, "Solution")
