@@ -406,8 +406,8 @@ bool amg_base<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t l
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t level)
 {
-	const matrix_type &Ah = *(m_A[level]);
 #ifdef UG_PARALLEL
+	const matrix_type &Ah = *(m_A[level]);
 	vector_type collC;
 	vector_type collD;
 	if(pcl::GetProcRank() == 0)
