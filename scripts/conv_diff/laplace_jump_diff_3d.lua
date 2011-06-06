@@ -235,9 +235,17 @@ for i=1,numLoop do
 	
 	-- 3. apply solver
 	print("Apply solver.")
+	
+	-- Start some energy consumption measurement
+	--ExecuteSystemCommand("echo \"Start script\"")
+	
 	tSolveStart = os.clock() 
 	if solver:apply_return_defect(u,b) == false then print("Solver failed."); exit(); end
 	tSolveEnd = os.clock()
+
+	-- Stop some energy consumption measurement
+	--ExecuteSystemCommand("echo \"Stop script\"")
+	
 	print("Solving took " .. tSolveEnd - tSolveStart .. " seconds.");
 	
 end

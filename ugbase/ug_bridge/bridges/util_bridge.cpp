@@ -6,6 +6,8 @@
 #include "../registry.h"
 #include "../ug_bridge.h"
 
+#include <cstdlib>
+
 namespace ug{
 namespace bridge{
 
@@ -21,6 +23,20 @@ static std::string GetScriptPath()
 static std::string GetCurrentPath()
 {return PathProvider::get_current_path();}
 
+/**
+ * This function executes the given string in a system shell (if available)
+ *
+ * \param[in]	cmd		The shell command to execute
+ * \returns 	1 		if no shell available
+ */
+static int ExecuteSystemCommand(const char* cmd)
+{
+//	check that some shell exists
+	if(!system(NULL)) return 1;
+
+//	run the command
+	return system(cmd);
+}
 
 
 bool RegisterUtilInterface(Registry& reg, const char* parentGroup)
@@ -39,6 +55,9 @@ bool RegisterUtilInterface(Registry& reg, const char* parentGroup)
 
 	reg.add_function("ug_get_current_path", &GetCurrentPath, grpStr.c_str(),
 					 "pathName", "", "Returns the current path");
+
+	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grpStr.c_str(),
+					 "success", "command", "Executes a command in the system shell");
 
 	return true;
 }
