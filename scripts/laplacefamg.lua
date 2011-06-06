@@ -50,7 +50,8 @@ print("    dim = "..dim)
 print("    gridName = "..gridName)
 print("    RAepsilon = "..RAepsilon)
 print("    RAalpha = "..RAalpha.." degree")
-
+RAalpha = RAalpha * (2*math.pi/360)
+print("    RAalpha = "..RAalpha.." grad")
 
 --------------------------------
 -- User Data Functions (begin)
@@ -192,8 +193,8 @@ print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
-approxSpace:print_layout_statistic()
-approxSpace:print_statistic()
+-- approxSpace:print_layout_statistic()
+-- approxSpace:print_statistic()
 
 -------------------------------------------
 --  Setup User Functions
@@ -510,9 +511,10 @@ output:write("\tprocs\t"..GetNumProcesses())
 -- output:write("\tgridName\t"..gridName)
 -- output:write("\tnumPreRefs\t"..numPreRefs)
 output:write("\tnumRefs\t".. numRefs)
-output:write("\ttanisotropy\t".. RAepsilon)
+output:write("\tanisotropy\t".. RAepsilon)
+output:write("\talpha\t"..(RAalpha * (180/math.pi)))
 output:write("\tsteps\t"..convCheck:step())
-output:write("\treduction\t".. convCheck:reduction())
+output:write("\tlast reduction\t".. convCheck:defect()/convCheck:previous_defect())
 output:write("\tamg_timing_whole_setup\t".. amg:get_timing_whole_setup_ms())
 output:write("\tc_A\t".. amg:get_operator_complexity())
 output:write("\tc_G\t".. amg:get_grid_complexity())
@@ -520,7 +522,7 @@ output:write("\tusedLevels\t"..amg:get_used_levels())
 output:write("\ttSolve [ms]\t".. tSolve)
 output:write("\n")
 print(s)
-end
+else
 
 print("AMG Information:")
 printf("Setup took %.2f ms",amg:get_timing_whole_setup_ms())
@@ -580,6 +582,7 @@ else
 end	
 	
 
+end
 -- print("-----------------------------------------------")
 -- amg:check2(u, b);
 
