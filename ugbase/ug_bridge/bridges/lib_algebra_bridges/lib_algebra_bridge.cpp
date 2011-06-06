@@ -63,7 +63,7 @@ struct cRegisterAlgebraType
 										"Success", "Number")
 				.add_method("size|hide=true", (size_t (vector_type::*)())&vector_type::size,
 										"Size", "")
-				.add_method("set_random|hide=true", (bool (vector_type::*)(number))&vector_type::set_random,
+				.add_method("set_random|hide=true", (bool (vector_type::*)(number, number))&vector_type::set_random,
 										"Success", "Number")
 				.add_method("print|hide=true", &vector_type::p);
 
@@ -428,7 +428,11 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 			.add_method("set_reduction|interactive=false", &StandardConvCheck::set_reduction,
 					"", "Reduction")
 			.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
-					"", "Verbose");
+					"", "Verbose")
+			.add_method("defect|interactive=false", &StandardConvCheck::defect, "defect", "", "returns the current defect")
+			.add_method("step|interactive=false", &StandardConvCheck::step, "step", "", "returns the current number of steps")
+			.add_method("reduction|interactive=false", &StandardConvCheck::reduction, "reduction", "", "returns the current relative reduction")
+			.add_method("iteration_ended|interactive=false", &StandardConvCheck::iteration_ended);
 				
 	}
 
