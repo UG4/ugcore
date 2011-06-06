@@ -180,10 +180,11 @@ SparseMatrix<T>::destroy()
 			delete [] pRowStart;
 			pRowStart = NULL;
 		}
-		if(pRowEnd) delete [] pRowStart; pRowStart = NULL;
+		if(pRowEnd) delete [] pRowEnd; pRowEnd = NULL;
 	}
 
 	if(consmem)	delete [] consmem; consmem = NULL;
+	if(iMaxNrOfConnections) delete[] iMaxNrOfConnections; iMaxNrOfConnections = NULL;
 	rows = cols = 0;
 	return true;
 }
