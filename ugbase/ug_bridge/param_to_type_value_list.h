@@ -83,6 +83,23 @@ struct PLStack<size_t>
 };
 
 template <>
+struct PLStack<unsigned int>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_integer();
+	}
+	static void write(ParameterStack& ps, unsigned int data, int index)
+	{
+		ps.set_integer(index, (int)data);
+	}
+	static unsigned int read(const ParameterStack& ps, int index)
+	{
+		return (unsigned int)ps.to_integer(index);
+	}
+};
+
+template <>
 struct PLStack<float>
 {
 	static void push(ParameterStack& ps)
