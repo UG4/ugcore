@@ -32,19 +32,19 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::wr
 			m_famg.m_amghelper.positions[level+1][i] = m_famg.m_amghelper.positions[level][m_famg.m_parentIndex[level+1][i]];
 	}
 
-	if(m_famg.m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
+	if(m_famg.m_writeMatrices) // && A.num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
 		AMG_PROFILE_FUNC();
-		UG_DLOG(LIB_ALG_AMG, 1, "write matrices");
+		UG_LOG("write matrices");
 
-		write_debug_matrix(A, level, level, "AMG_A_L");			UG_DLOG(LIB_ALG_AMG, 1, ".");
-		write_debug_matrix(PoldIndices, level, level, "AMG_P_L");			UG_DLOG(LIB_ALG_AMG, 1, ".");
-		write_debug_matrix(R, level, level+1, "AMG_R_L");			UG_DLOG(LIB_ALG_AMG, 1, ".");
+		write_debug_matrix(A, level, level, "AMG_A_L");				UG_LOG(".");
+		write_debug_matrix(PoldIndices, level, level, "AMG_P_L");	UG_LOG(".");
+		write_debug_matrix(R, level, level+1, "AMG_R_L");			UG_LOG(".");
 
 		AMGWriteToFile(AH, level+1, level+1, GetProcFilename(m_famg.m_writeMatrixPath,
 				ToString("AMG_A_L") + ToString(level+1),".mat").c_str(), m_famg.m_amghelper);
 
-		UG_DLOG(LIB_ALG_AMG, 1, ". done.\n");
+		UG_LOG(". done\n");
 	}
 }
 
