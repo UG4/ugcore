@@ -29,14 +29,27 @@ if dim == 3 then
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = util.GetParamNumber("-numPreRefs", 3)
+numPreRefs = util.GetParamNumber("-numPreRefs", 2)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 6)
+numRefs = util.GetParamNumber("-numRefs", 3)
+
+maxBase = util.GetParamNumber("-maxBase", 1000)
+
+RAepsilon = util.GetParamNumber("-RAepsilon", 1)
+RAalpha = util.GetParamNumber("-RAalpha", 0)
+
+bFileOutput = true
+bOutput = false
 
 print("Parameters: ")
-print("    numRefs = "..numRefs)
 print("    numPreRefs = "..numPreRefs)
+print("    numRefs = "..numRefs)
+print("    maxBase = "..maxBase)
+print("    dim = "..dim)
+print("    gridName = "..gridName)
+print("    RAepsilon = "..RAepsilon)
+print("    RAalpha = "..RAalpha.." degree")
 
 
 --------------------------------
@@ -46,6 +59,17 @@ print("    numPreRefs = "..numPreRefs)
 		return	1, 0, 
 				0, 1
 	end
+	
+	function CreateRotatedAnisotropyMatrix2d(alpha, epsilon)
+		local sinalpha = math.sin(alpha)
+		local cosalpha = math.cos(alpha)
+		RAmat = ConstUserMatrix2d()
+		RAmat:set_entry(0, 0, sinalpha*sinalpha + epsilon*cosalpha*cosalpha)
+		RAmat:set_entry(0, 1, (1-epsilon)*sinalpha*cosalpha)
+		RAmat:set_entry(1, 0, (1-epsilon)*sinalpha*cosalpha)
+		RAmat:set_entry(1, 1, epsilon*sinalpha*sinalpha + cosalpha*cosalpha)
+		return RAmat
+	end		
 	
 	function ourVelocityField2d(x, y, t)
 		return	0, 0
@@ -70,7 +94,8 @@ print("    numPreRefs = "..numPreRefs)
 	
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
-		return true, math.sin(s*x) + math.sin(s*y)
+		--return true, math.sin(s*x) + math.sin(s*y)
+		return true, 0
 		--return true, x*x*y
 		--return true, 2.5
 	end
@@ -109,7 +134,6 @@ print("    numPreRefs = "..numPreRefs)
 --------------------------------
 -- User Data Functions (end)
 --------------------------------
-
 
 -- create Instance of a Domain
 print("Create Domain.")
@@ -179,7 +203,8 @@ print ("Setting up Assembling")
 -- depending on the dimension we're choosing the appropriate callbacks.
 -- we're using the .. operator to assemble the names (dim = 2 -> "ourDiffTensor2d")
 -- Diffusion Tensor setup
-diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
+-- diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
+diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
 --diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
@@ -252,9 +277,8 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
-
 -- set initial value
-u:set(1.0)
+u:set_random(-1.0, 1.0)
 
 -- init Operator
 print ("Assemble Operator ... ")
@@ -265,10 +289,13 @@ print ("done")
 print ("set dirichlet... ")
 linOp:set_dirichlet_values(u)
 b:assign(linOp:get_rhs())
+
 print ("done")
 -- write matrix for test purpose
--- SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
--- SaveVectorForConnectionViewer(b, "Rhs.mat")
+if bOutput then
+SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+SaveVectorForConnectionViewer(b, "Rhs.mat")
+end
 
 -- create algebraic Preconditioners
 
@@ -301,8 +328,10 @@ end
 
 -- create AMG ---
 -----------------
+
 bUseFAMG = 1
 if bUseFAMG == 1 then
+	print ("create FAMG... ")
 	-- Testvectors for FAMG ---
 	--------------------------	
 	function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
@@ -352,7 +381,7 @@ if bUseFAMG == 1 then
 	amg = FAMGPreconditioner()	
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
-	amg:set_aggressive_coarsening(false)
+	amg:set_aggressive_coarsening(true)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
 	
 	-- add testvectors with lua callbacks (see ourTestvector2d_1_1)
@@ -378,6 +407,7 @@ if bUseFAMG == 1 then
 	
 
 else
+	print ("create AMG... ")
 	amg = AMGPreconditioner()
 	amg:enable_aggressive_coarsening_A(2)
 end
@@ -386,24 +416,24 @@ end
 vectorWriter = GridFunctionPositionProvider2d()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
+if bOutput then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
- 
-amg:set_num_presmooth(3)
-amg:set_num_postsmooth(3)
+end
+
+amg:set_num_presmooth(1)
+amg:set_num_postsmooth(1)
 amg:set_cycle_type(1)
-amg:set_presmoother(jac)
-amg:set_postsmoother(jac)
+amg:set_presmoother(gs)
+amg:set_postsmoother(gs)
 amg:set_base_solver(base)
 amg:set_max_levels(20)
 
-amg:set_min_nodes_on_one_processor(200)
-amg:set_max_nodes_for_base(3200)
+-- amg:set_min_nodes_on_one_processor(200) not functional
+amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.7)
-amg:set_fsmoothing(false)
-amg:set_epsilon_truncation(0.3)
+amg:set_fsmoothing(true)
+amg:set_epsilon_truncation(0)
 amg:tostring()
-
-
 
 
 -- create Convergence Check
@@ -421,8 +451,7 @@ linSolver:set_convergence_check(convCheck)
 -- Apply Solver
 
 log = GetLogAssistant();
-
-log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 4)
+-- log:set_debug_level(GetLogAssistantTag("LIB_ALG_AMG"), 0)
 -- log:set_debug_level(GetLogAssistantTag("LIB_ALG_MATRIX"), 2)
 
 -------------------------------------------
@@ -437,11 +466,34 @@ print("Init solver for operator.")
 linSolver:init(linOp)
 
 -- 3. apply solver
+if true then
 print("Apply solver.")
+tBefore = os.clock()
 linSolver:apply_return_defect(u,b)
----------------------------------------------
+tSolve = os.clock()-tBefore
+WriteGridFunctionToVTK(u, "Solution")
+else
+
+for i = 30, 30 do
+convCheck:set_maximum_steps(i)
+srand(0)
+u:set_random(-1.0, 1.0)
+linOp:set_dirichlet_values(u)
+b:assign(linOp:get_rhs())
+linSolver:apply_return_defect(u,b)
+WriteGridFunctionToVTK(u, "Solution"..i)
+end
+
+end
+
+print("done")
+
+if bOutput then
+WriteGridFunctionToVTK(u, "Solution")
+end
 
 -- amg:check(u, b)
+-- amg:check2(u, b)
 
 log:set_debug_levels(0)
 
@@ -450,6 +502,26 @@ printf = function(s,...)
 end -- function
 
 
+if bFileOutput then
+output = io.open("output.txt", "a")
+
+output:write("dim\t"..dim)
+output:write("\tprocs\t"..GetNumProcesses())
+-- output:write("\tgridName\t"..gridName)
+-- output:write("\tnumPreRefs\t"..numPreRefs)
+output:write("\tnumRefs\t".. numRefs)
+output:write("\ttanisotropy\t".. RAepsilon)
+output:write("\tsteps\t"..convCheck:step())
+output:write("\treduction\t".. convCheck:reduction())
+output:write("\tamg_timing_whole_setup\t".. amg:get_timing_whole_setup_ms())
+output:write("\tc_A\t".. amg:get_operator_complexity())
+output:write("\tc_G\t".. amg:get_grid_complexity())
+output:write("\tusedLevels\t"..amg:get_used_levels())
+output:write("\ttSolve [ms]\t".. tSolve)
+output:write("\n")
+print(s)
+end
+
 print("AMG Information:")
 printf("Setup took %.2f ms",amg:get_timing_whole_setup_ms())
 printf("Coarse solver setup took %.2f ms",amg:get_timing_coarse_solver_setup_ms())
@@ -457,58 +529,60 @@ printf("Operator complexity c_A = %.2f", amg:get_operator_complexity())
 printf("Grid complexity c_G = %.2f", amg:get_grid_complexity())
 
 LI = amg:get_level_information(0)
-printf("Level 0: number of nodes: %d. fill in %.2f%%", LI:get_nr_of_nodes(), LI:get_fill_in()*100)
+printf("Level 0: number of nodes: %d. fill in %.2f%%, nr of interface elements: %d (%.2f%%)", LI:get_nr_of_nodes(), LI:get_fill_in()*100, LI:get_nr_of_interface_elements(), LI:get_nr_of_interface_elements()/LI:get_nr_of_nodes()*100)
 for i = 1, amg:get_used_levels()-1 do
 	LI = amg:get_level_information(i)
-	printf("Level %d: creation time: %.2f ms. number of nodes: %d. fill in %.2f%%. coarsening rate: %.2f%%", i, 
+	printf("Level %d: creation time: %.2f ms. number of nodes: %d. fill in %.2f%%. coarsening rate: %.2f%%, nr of interface elements: %d (%.2f%%)", i, 
 		LI:get_creation_time_ms(),  LI:get_nr_of_nodes(), LI:get_fill_in()*100,
-		LI:get_nr_of_nodes()*100/amg:get_level_information(i-1):get_nr_of_nodes())
+		LI:get_nr_of_nodes()*100/amg:get_level_information(i-1):get_nr_of_nodes(), LI:get_nr_of_interface_elements(), LI:get_nr_of_interface_elements()/LI:get_nr_of_nodes()*100)
+		
 end
 
 
 if GetProfilerAvailable() == true then
+	
+	create_levelPN = GetProfileNode("c_create_AMG_level")
+	
+	function PrintParallelProfileNode(name)
+		pn = GetProfileNode(name)
+		t = pn:get_avg_total_time_ms()/to100 * 100
+		tmin = ParallelMin(t)
+		tmax = ParallelMax(t)
+		printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
+	end
+	
+	if create_levelPN:is_valid() then
+		if false then
+			print(create_levelPN:call_tree())
+			print(create_levelPN:child_self_time_sorted())
+		end
+		to100 = create_levelPN:get_avg_total_time_ms()
+		PrintParallelProfileNode("create_OL2_matrix")
+		PrintParallelProfileNode("CalculateTestvector")
+		PrintParallelProfileNode("CreateSymmConnectivityGraph")
+		PrintParallelProfileNode("calculate_all_possible_parent_pairs")
+		PrintParallelProfileNode("color_process_graph")
+		PrintParallelProfileNode("FAMG_recv_coarsening_communicate")
+		PrintParallelProfileNode("update_rating")
+		PrintParallelProfileNode("precalculate_coarsening")
+		PrintParallelProfileNode("send_coarsening_data_to_processes_with_higher_color")
+		PrintParallelProfileNode("communicate_prolongation")
+		PrintParallelProfileNode("create_new_index")
+		PrintParallelProfileNode("create_parent_index")
+		PrintParallelProfileNode("create_interfaces")
+		PrintParallelProfileNode("create_fine_marks")
+		PrintParallelProfileNode("FAMGCreateAsMultiplyOf")
+		PrintParallelProfileNode("CalculateNextTestvector")
+	end
 
-if false then
-
-print("c_create_AMG_level call tree:")
-print(GetProfileNode("c_create_AMG_level"):call_tree())
-print(GetProfileNode("c_create_AMG_level"):child_self_time_sorted())
 else
 	print("Profiler not available.")
 end	
-
-function PrintParallelProfileNode(name)
-	pn = GetProfileNode(name)
-	t = pn:get_avg_total_time_ms()/to100 * 100
-	tmin = ParallelMin(t)
-	tmax = ParallelMax(t)
-	printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
-end
-
-to100 = GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()
-PrintParallelProfileNode("create_OL2_matrix")
-PrintParallelProfileNode("CalculateTestvector")
-PrintParallelProfileNode("CreateSymmConnectivityGraph")
-PrintParallelProfileNode("calculate_all_possible_parent_pairs")
-PrintParallelProfileNode("color_process_graph")
-PrintParallelProfileNode("FAMG_recv_coarsening_communicate")
-PrintParallelProfileNode("update_rating")
-PrintParallelProfileNode("precalculate_coarsening")
-PrintParallelProfileNode("send_coarsening_data_to_processes_with_higher_color")
-PrintParallelProfileNode("communicate_prolongation")
-PrintParallelProfileNode("create_new_index")
-PrintParallelProfileNode("create_parent_index")
-PrintParallelProfileNode("create_interfaces")
-PrintParallelProfileNode("create_fine_marks")
-PrintParallelProfileNode("FAMGCreateAsMultiplyOf")
-PrintParallelProfileNode("CalculateNextTestvector")
-end
-
+	
 
 -- print("-----------------------------------------------")
-amg:check(u, b);
+-- amg:check2(u, b);
 
--- SaveVectorForConnectionViewer(u, "u.mat")
+
 
 -- Output
--- WriteGridFunctionToVTK(u, "Solution")
