@@ -88,7 +88,7 @@ void print_vector(const vector_type &vec, const char *p)
 //const double damping = 0.5;
 
 
-#define AMG_WRITE_MATRICES_MAX (200*200)
+#define AMG_WRITE_MATRICES_MAX (2000*2000)
 #if 1
 
 //#define AMG_WRITE_GRAPH
@@ -448,7 +448,7 @@ public:
 
 		// AH = R A P
 		PROFILE_BEGIN(FAMGCreateAsMultiplyOf)
-			CreateAsMultiplyOf(AH, R, A, PnewIndices, 0.01);
+			CreateAsMultiplyOf(AH, R, A, PnewIndices);
 		PROFILE_END();
 
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
@@ -595,7 +595,9 @@ private:
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 
 		AMG_PROFILE_NEXT(create_parent_index)
+#ifndef UG_DEBUG
 		if(m_famg.m_writeMatrices)
+#endif
 		{
 			if(bTiming) { SW.start(); UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create parentIndex... "); }
 
