@@ -8,7 +8,7 @@
 namespace ug{
 namespace shared_rules{
 
-const int MAX_NUM_INDS_OUT = 128;
+const int MAX_NUM_INDS_OUT = 256;
 
 int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 					const int faceVrtInds[][4],

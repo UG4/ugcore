@@ -3,7 +3,6 @@
 // 31.05.2011 (m,d,y)
  
 #include <cassert>
-#include <iostream>
 #include "prism_rules.h"
 #include "rule_util.h"
 

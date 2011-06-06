@@ -145,7 +145,7 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 	}
 
 //	debug log of inds
-
+/*
 	UG_LOG("newElemInds:");
 	for(int i = 0; i < numElemInds; ++i){
 		UG_LOG(" " << newElemInds[i]);
@@ -157,7 +157,7 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 		UG_LOG(" " << allVrts[i]);
 	}
 	UG_LOG(endl);
-
+*/
 
 //	the VolumeDescriptor will be used to create new volumes
 	VolumeDescriptor vd;

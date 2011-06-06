@@ -3,7 +3,6 @@
 // 27.05.2011 (m,d,y)
 
 #include <cassert>
-#include <iostream>
 #include "tetrahedron_rules.h"
 #include "rule_util.h"
 

@@ -2,7 +2,6 @@
 // s.b.reiter@googlemail.com
 // 31.05.2011 (m,d,y)
 
-#include <iostream>
 #include <cassert>
 #include "pyramid_rules.h"
 #include "rule_util.h"
