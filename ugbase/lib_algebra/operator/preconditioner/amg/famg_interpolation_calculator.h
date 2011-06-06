@@ -94,6 +94,17 @@ public:
 		testvectorsExtern = (m_testvectors.size() > 0);
 	}
 
+	template<typename prolongation_matrix_type>
+	void check_weights(prolongation_matrix_type &P, size_t i)
+	{
+#ifdef UG_DEBUG
+		for(typename matrix_type::row_iterator it = P.begin_row(i); it != P.end_row(i); ++it)
+		{
+			if(it.value() < 0.01 || it.value() > 1)
+				UG_LOG("P(" << i << ", " << it.index() << ") = " << it.value() << "\n");
+		}
+#endif
+	}
 
 	// get_possible_parent_pairs:
 	//---------------------------------------
@@ -344,6 +355,7 @@ public:
 						UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
 						P(i, node) = -q[j];
 					}
+					check_weights(P, i);
 					rating.set_fine(i);
 				}
 			}
@@ -407,6 +419,7 @@ public:
 						for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
 							P(i, it.index()) += -q[j] * it.value();
 					}
+					check_weights(P, i);
 					rating.set_aggressive_fine(i);
 				}
 			}
@@ -473,8 +486,7 @@ private:
 
 		GetLocalMatrix(A_OL2, S, &N2[0], &N2[0]);
 
-		//IF_DEBUG(LIB_ALG_AMG, 5)
-		//S.maple_print("\nsubA");
+		IF_DEBUG(LIB_ALG_AMG, 5) S.maple_print("\nsubA");
 
 		//AMG_PROFILE_END();
 		// 3. calculate H from submatrix A
@@ -510,7 +522,8 @@ private:
 		// get SF = 1-wDF^{-1} A  (F-smoothing)
 		AMG_PROFILE_BEGIN(AMG_HA_calculate_SF);
 		SF.resize(N);
-		double diaginv = m_damping/S(i_index, i_index);
+		// bei f-smoothing nie und nimmer damping (arne 3.juni)
+		double diaginv = 1/S(i_index, i_index);
 		for(size_t j=0; j < N; j++)
 			SF[j] = - diaginv * S(i_index, j);
 		SF[i_index] += 1.0;
