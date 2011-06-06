@@ -265,6 +265,7 @@ class StandardConvCheck : public IConvergenceCheck
 
 		number reduction() {return m_currentDefect/m_initialDefect;};
 		number defect() {return m_currentDefect;};
+		number previous_defect() { return m_lastDefect; }
 		int step() {return m_currentStep;}
 
 		int get_offset() const {return m_offset;}

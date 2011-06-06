@@ -432,7 +432,8 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 			.add_method("defect|interactive=false", &StandardConvCheck::defect, "defect", "", "returns the current defect")
 			.add_method("step|interactive=false", &StandardConvCheck::step, "step", "", "returns the current number of steps")
 			.add_method("reduction|interactive=false", &StandardConvCheck::reduction, "reduction", "", "returns the current relative reduction")
-			.add_method("iteration_ended|interactive=false", &StandardConvCheck::iteration_ended);
+			.add_method("iteration_ended|interactive=false", &StandardConvCheck::iteration_ended)
+			.add_method("previous_defect|interactive=false", &StandardConvCheck::previous_defect);
 				
 	}
 
