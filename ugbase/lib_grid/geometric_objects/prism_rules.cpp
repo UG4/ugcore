@@ -288,6 +288,13 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 			}
 		}break;
 
+		case 7:
+		{
+		//	only the case in which two quads are completly refined is regarded.
+
+		//	todo ...
+		}break;
+
 		case 9:	// regular refine
 		{
 		//	we have to create 8 new prisms

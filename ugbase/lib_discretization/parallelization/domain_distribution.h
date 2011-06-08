@@ -29,13 +29,24 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 										int numCellsX, int numCellsY,
 										bool surfaceOnly);
 
+///	partitions a domain by using graph-based partitioning by METIS
+template <typename TDomain>
+static bool
+PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
+						  int numPartitions);
+
+
+///	distributes a already distributed domain onto the specified processes
 template <typename TDomain>
 static bool RedistributeDomain(TDomain& domainOut,
 							   PartitionMap& partitionMap,
 							   bool createVerticalInterfaces);
 
 
-
+///	distributes the domain on process 0 to all active processes...
+/**	DEPRECIATED. This method should at least take a partition map.
+ * In the near future however we will probably replace DistributeDomain
+ * with RedistributeDomain completely.*/
 template <typename TDomain>
 static bool DistributeDomain(TDomain& domainOut);
 

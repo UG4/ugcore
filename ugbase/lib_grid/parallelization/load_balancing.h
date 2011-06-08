@@ -9,6 +9,11 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "util/parallel_callbacks.h"
+#include "lib_grid/algorithms/graph/dual_graph.h"
+
+extern "C" {
+#include "lib_grid/externals/metis/metis.h"
+}
 
 namespace ug
 {
@@ -66,6 +71,51 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 									= (bool(*)(TElem*))ConsiderAll,
 								int bucketSubset = -1);
 
+////////////////////////////////////////////////////////////////////////////////
+///	Partitions the elements in the grid using the METIS library
+/**	This method calls METIS_PartGraphKway. Note that METIS is an external library
+ * developed at Karypis Labs (http://glaros.dtc.umn.edu/gkhome/)
+ *
+ * Note that this method is best suited for partitions with more than 8 procs.
+ * For less than 8 procs metis features other, better suited methods.
+ */
+template <class TGeomBaseObj>
+void PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
+							Grid& grid, int numParts)
+{
+	using namespace std;
+
+	if(numParts == 1){
+		shPartitionOut.assign_subset(grid.begin<TGeomBaseObj>(),
+									grid.end<TGeomBaseObj>(), 0);
+		return;
+	}
+
+//	construct the dual graph to the grid
+	vector<idxtype> adjacencyMapStructure;
+	vector<idxtype> adjacencyMap;
+	ConstructDualGraph<TGeomBaseObj, idxtype>(adjacencyMapStructure, adjacencyMap, grid);
+
+//	partition the graph using metis
+	int n = (int)adjacencyMapStructure.size() - 1;
+	int wgtflag = 0;
+	int numflag = 0;
+	int options[5]; options[0] = 0;
+	int edgeCut;
+	vector<idxtype> partitionMap(n);
+
+	METIS_PartGraphKway(&n, &adjacencyMapStructure.front(), &adjacencyMap.front(),
+						NULL, NULL, &wgtflag, &numflag, &numParts, options, &edgeCut, &partitionMap.front());
+
+//	assign the subsets to the subset-handler
+	int counter = 0;
+	typedef typename geometry_traits<TGeomBaseObj>::iterator iterator;
+	for(iterator iter = grid.begin<TGeomBaseObj>();
+		iter != grid.end<TGeomBaseObj>(); ++iter)
+	{
+		shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
+	}
+}
 }//	end of namespace
 
 

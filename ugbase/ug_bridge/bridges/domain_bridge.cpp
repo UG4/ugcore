@@ -226,6 +226,9 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	reg.add_function("PartitionDomain_Bisection",
 					 &PartitionDomain_Bisection<domain_type>, grp.c_str());
 
+	reg.add_function("PartitionDomain_MetisKWay",
+					 &PartitionDomain_MetisKWay<domain_type>, grp.c_str());
+
 	reg.add_function("RedistributeDomain",
 					 &RedistributeDomain<domain_type>, grp.c_str());
 

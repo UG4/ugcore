@@ -164,6 +164,33 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 }
 
 template <typename TDomain>
+static bool
+PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
+						  int numPartitions)
+{
+//	prepare the partition map
+	MultiGrid& mg = domain.get_grid();
+	partitionMap.assign_grid(mg);
+
+//	call the actual partitioning routine
+	if(mg.num<Volume>() > 0){
+		PartitionGrid_MetisKway<Volume>(partitionMap.get_partition_handler(),
+										mg, numPartitions);
+	}
+	else if(mg.num<Face>() > 0){
+		PartitionGrid_MetisKway<Face>(partitionMap.get_partition_handler(),
+										mg, numPartitions);
+	}
+	else if(mg.num<EdgeBase>() > 0){
+		PartitionGrid_MetisKway<EdgeBase>(partitionMap.get_partition_handler(),
+										  mg, numPartitions);
+	}
+	return true;
+}
+
+
+
+template <typename TDomain>
 static bool RedistributeDomain(TDomain& domainOut,
 							   PartitionMap& partitionMap,
 							   bool createVerticalInterfaces)

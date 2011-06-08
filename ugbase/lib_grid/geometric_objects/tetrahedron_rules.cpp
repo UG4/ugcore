@@ -12,6 +12,19 @@ namespace ug{
 namespace tet_rules
 {
 
+///	Output are the vertices of a tetrahedron rotated around its vertical axis
+void RotateTetrahedron(int vrtsOut[NUM_VERTICES], int steps)
+{
+	if(steps < 0)
+		steps = (3 - ((-steps) % 3));
+
+	for(int i = 0; i < 3; ++i)
+		vrtsOut[(i + steps) % 3] = i;
+
+	vrtsOut[3] = 3;
+}
+
+
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 {
 	newCenterOut = false;
@@ -213,7 +226,6 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 
 		case 4:
 		{
-		/*THIS IS COMPLICATED!!!
 		//	multiple settings with 4 refined edges exist.
 		//	currently only one is directly supported.
 
@@ -227,11 +239,39 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 			}
 
 			if(all2){
-				cout << "CASE_4_straight cut\n";
+			//	we've got a straight cut.
+			//	we'll rotate the tetrahedron so, that edge 2 won't be refined.
+				int steps = 0;
+				if(!newEdgeVrts[EDGE_FROM_VRTS[0][1]])
+					steps = 2;
+				else if(!newEdgeVrts[EDGE_FROM_VRTS[1][2]])
+					steps = 1;
+
+				int t[NUM_VERTICES];
+				RotateTetrahedron(t, steps);
+
+				const int v0v1 = EDGE_FROM_VRTS[t[0]][t[1]] + NUM_VERTICES;
+				const int v1v2 = EDGE_FROM_VRTS[t[1]][t[2]] + NUM_VERTICES;
+				const int v0v3 = EDGE_FROM_VRTS[t[0]][t[3]] + NUM_VERTICES;
+				const int v2v3 = EDGE_FROM_VRTS[t[2]][t[3]] + NUM_VERTICES;
+
+				assert(newEdgeVrts[v0v1 - NUM_VERTICES]);
+				assert(newEdgeVrts[v1v2 - NUM_VERTICES]);
+				assert(newEdgeVrts[v0v3 - NUM_VERTICES]);
+				assert(newEdgeVrts[v2v3 - NUM_VERTICES]);
+
+			//	now build two prisms
+				int& fi = fillCount;
+				int* inds = newIndsOut;
+
+				inds[fi++] = 6;
+				inds[fi++] = t[0];	inds[fi++] = v0v3;	inds[fi++] = v0v1;
+				inds[fi++] = t[2];	inds[fi++] = v2v3;	inds[fi++] = v1v2;
+
+				inds[fi++] = 6;
+				inds[fi++] = t[1];	inds[fi++] = v1v2;	inds[fi++] = v0v1;
+				inds[fi++] = t[3];	inds[fi++] = v2v3;	inds[fi++] = v0v3;
 			}
-			else
-				cout << "CASE_4_UNKNOWN\n";
-		*/
 		}break;
 
 	//	REGULAR REFINEMENT

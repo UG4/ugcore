@@ -95,6 +95,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	# include ug header and library path
 	get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 	include_directories(${UG_ROOT_PATH}/ugbase)
+	include_directories(${UG_ROOT_PATH}/ugbase/lib_grid/externals/metis)
 	link_directories(${UG_ROOT_PATH}/lib)
 
 	#######################

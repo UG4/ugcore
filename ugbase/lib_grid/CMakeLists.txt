@@ -202,9 +202,10 @@ set(srcTokstream
 #the grid library					
 
 set(Sources
-                                        ${srcParallelization}
+                    ${srcParallelization}
 					${srcGrid} ${srcLibGrid}
 					${srcAlgorithms} ${srcFileIO}
+					${srcMetis}
 					${srcTokstream} ${srcTetgen} ${srcLgm} ${srcNg})
 
 EXPORTSOURCES("lib_grid" ${Sources})
