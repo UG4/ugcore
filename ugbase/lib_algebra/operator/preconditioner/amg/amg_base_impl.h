@@ -738,7 +738,8 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	// d = d - Ah*corr
 	Ah.matmul_minus(d, corr);
 
-	n2 = d.two_norm();	UG_LOG("complete coarse correction " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+	n2 = d.two_norm();
+	UG_LOG("complete coarse correction " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 
 	if(m_writeMatrices) writevec("AMG_dc_L", d, level);
 

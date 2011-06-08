@@ -92,6 +92,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	UG_DLOG(LIB_ALG_AMG, 4, "\n********** communicate_prolongation **************\n\n")
 	AMG_PROFILE_FUNC();
 
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelCommunicateProlongation);
+
 	//UG_DLOG(LIB_ALG_AMG, 1, "\n\n\nOL2Layout:\n")
 	//PrintLayout(A_OL2.get_communicator(), OL2MasterLayout, OL2SlaveLayout);
 

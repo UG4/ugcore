@@ -21,7 +21,11 @@ namespace ug
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_all_possible_parent_pairs()
 {
+	stopwatch SW;
+	UG_DLOG(LIB_ALG_AMG, 1, "\ncreating possible parent list... "); if(bTiming) SW.start();
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelCalculateParentPairs);
 	AMG_PROFILE_FUNC();
+
 	possible_parents.clear();
 	possible_parents.resize(A.num_rows());
 	prolongation_calculated.resize(A.num_rows(), false);
@@ -36,6 +40,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 		calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 		prolongation_calculated[i] = true;
 	}
+
+
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 }
 
 
@@ -44,6 +51,9 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::precalculate_coarsening()
 {
 	AMG_PROFILE_FUNC();
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelPrecalculateCoarsening);
+	stopwatch SW;
+	UG_DLOG(LIB_ALG_AMG, 1, std::endl << "coarsening... "); if(bTiming) SW.start();
 
 	size_t N = rating.size();
 	for(size_t j=0; j<N; j++)
@@ -89,6 +99,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::pr
 		}
 	}
 
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 }
 
 }

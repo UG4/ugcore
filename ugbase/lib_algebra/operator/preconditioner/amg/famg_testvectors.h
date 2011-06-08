@@ -112,6 +112,37 @@ void CalculateNextTestvector(const matrix_type &R, vector_type &big_testvector)
 	big_testvector = t;
 }
 
+
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_testvectors()
+{
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelTestvectorCalc);
+
+	// todo: all global?
+	UG_DLOG(LIB_ALG_AMG, 1, "\ncalculating testvector... ");
+	stopwatch SW;
+	if(bTiming) SW.start();
+
+	for(size_t i=0; i<m_testvectors.size(); i++)
+	{
+#ifdef UG_PARALLEL
+		m_testvectors[i].set_storage_type(PST_CONSISTENT);
+#endif
+		CalculateTestvector(A_OL2,
+				m_testvectors[i], m_famg.get_testvector_damps());
+	}
+
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 }
 
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_next_testvectors()
+{
+	// todo: remove dynamic cast, change big_testvector to parallel
+	for(size_t i=0; i<m_testvectors.size(); i++)
+		CalculateNextTestvector(R, m_testvectors[i]);
+
+}
+
+}
 #endif // __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_TESTVECTORS_H__

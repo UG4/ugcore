@@ -49,6 +49,14 @@ famg<TAlgebra>::famg() : amg_base<TAlgebra>()
 	m_dDampingForSmootherInInterpolationCalculation = 0.8;
 	m_bAggressiveCoarsening = false;
 	m_writeTestvectors = false;
+
+
+	m_bExternalCoarsening = false;
+	m_bUsePrecalculate = false;
+
+	iDebugLevelOverlapAMG = iDebugLevelOverlapMatrix = iDebugLevelTestvectorCalc = iDebugLevelPhase3,
+	iDebugLevelCalculateParentPairs = iDebugLevelRecvCoarsening = iDebugLevelGetRatings = iDebugLevelPrecalculateCoarsening =
+				iDebugLevelAggressiveCoarsening = iDebugLevelSendCoarsening = iDebugLevelCommunicateProlongation = iDebugLevelAfterCommunicateProlongation = 0;
 }
 
 template<typename TAlgebra>

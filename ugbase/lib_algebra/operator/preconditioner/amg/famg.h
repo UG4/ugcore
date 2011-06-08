@@ -91,6 +91,30 @@ public:
 	{
 		m_dDampingForSmootherInInterpolationCalculation = dDampingForSmootherInInterpolationCalculation;
 	}
+
+
+	bool m_bExternalCoarsening;
+	bool m_bUsePrecalculate;
+	void set_external_coarsening(bool bUse) { m_bExternalCoarsening = bUse; }
+	void set_use_precalculate(bool bUse) { m_bUsePrecalculate = bUse; }
+
+
+	size_t iDebugLevelOverlapAMG, iDebugLevelOverlapMatrix, iDebugLevelTestvectorCalc, iDebugLevelPhase3,
+			iDebugLevelCalculateParentPairs, iDebugLevelRecvCoarsening, iDebugLevelGetRatings, iDebugLevelPrecalculateCoarsening,
+			iDebugLevelAggressiveCoarsening, iDebugLevelSendCoarsening, iDebugLevelCommunicateProlongation, iDebugLevelAfterCommunicateProlongation;
+	void set_debug_level_overlap(size_t amg, size_t matrix) { iDebugLevelOverlapAMG = amg; iDebugLevelOverlapMatrix = matrix; }
+	void set_debug_level_testvector_calc(size_t lvl) { iDebugLevelTestvectorCalc = lvl; }
+	void set_debug_level_phase_3(size_t lvl) { iDebugLevelPhase3 = lvl; }
+	void set_debug_level_calculate_parent_pairs(size_t lvl) { iDebugLevelCalculateParentPairs = lvl; }
+	void set_debug_level_recv_coarsening(size_t lvl) { iDebugLevelRecvCoarsening = lvl; }
+	void set_debug_level_get_ratings(size_t lvl) { iDebugLevelGetRatings = lvl; }
+	void set_debug_level_precalculate_coarsening(size_t lvl) { iDebugLevelPrecalculateCoarsening = lvl; }
+	void set_debug_level_aggressive_coarsening(size_t lvl) { iDebugLevelAggressiveCoarsening = lvl; }
+	void set_debug_level_send_coarsening(size_t lvl) { iDebugLevelSendCoarsening = lvl; }
+	void set_debug_level_communicate_prolongation(size_t lvl) { iDebugLevelCommunicateProlongation = lvl; }
+	void set_debug_level_after_communciate_prolongation(size_t lvl) { iDebugLevelAfterCommunicateProlongation = lvl; }
+
+
 	double get_damping_for_smoother_in_interpolation_calculation() const { return m_dDampingForSmootherInInterpolationCalculation; }
 
 	void set_delta(double delta) { m_delta = delta; }

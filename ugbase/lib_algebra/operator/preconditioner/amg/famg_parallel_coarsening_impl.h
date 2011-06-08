@@ -40,6 +40,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	color_process_graph()
 {
 	AMG_PROFILE_FUNC();
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelColoring)
 	stopwatch SW;
 
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
@@ -91,6 +92,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	receive_coarsening_from_processes_with_lower_color()
 {
 	AMG_PROFILE_FUNC();
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelRecvCoarsening);
+
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*** receive coarsening data from processes with lower color ***\n");
 	if(processesWithLowerColor.size() == 0)
 	{
@@ -170,6 +173,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	send_coarsening_data_to_processes_with_higher_color()
 {
 	AMG_PROFILE_FUNC();
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelSendCoarsening);
+
 	stopwatch SW; if(bTiming) SW.start();
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*** send coarsening data to processes ***\n");
 	if(processesWithHigherColor.size() == 0)
@@ -290,6 +295,10 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
+	int iDebugLevelMatrixPre = GET_DEBUG_LEVEL(LIB_ALG_MATRIX);
+	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelOverlapMatrix);
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelOverlapAMG);
+
 	AMG_PROFILE_FUNC();
 	stopwatch SW;
 
@@ -417,7 +426,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	//-------------------------------
 	AMG_PROFILE_NEXT(AMG_get_famg_helper_pos);
 
-	if(m_famg.m_amghelper.has_positions())
+	if(pcl::GetProcRank() > 1 && m_famg.m_amghelper.has_positions())
 	{
 		std::vector<MathVector<3> > &vec2 = m_famg.m_amghelper.positions[level];
 		vec2.resize(A_OL2.num_rows());
@@ -430,8 +439,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 		AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
 		if(m_famg.m_writeMatrices)
-			WriteMatrixToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_A_OL2_L") + ToString(level), ".mat").c_str(),
-					A_OL2, &vec2[0], 2);
+				WriteMatrixToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_A_OL2_L") + ToString(level), ".mat").c_str(),
+						A_OL2, &vec2[0], 2);
 	}
 
 	IF_DEBUG(LIB_ALG_AMG, 4)
@@ -450,6 +459,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 			PrintLayout(masterLayouts[i]);
 		}
 	}
+
+	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, DebugLevelMatrixPre);
 }
 
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>

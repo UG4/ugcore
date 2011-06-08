@@ -167,14 +167,27 @@ template<typename TAlgebra>
 void amg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level, const AMGNodes &nodes)
 {
+	if(m_amghelper.positions[level].size() > 0)
+	{
+		m_amghelper.positions.resize(level+2);
+		m_amghelper.positions[level+1].resize(AH.num_rows());
+		for(size_t i=0; i < AH.num_rows(); i++)
+			m_amghelper.positions[level+1][i] = m_amghelper.positions[level][m_parentIndex[level+1][i]];
+	}
+
 	AMG_PROFILE_FUNC();
 	std::fstream ffine((std::string(m_writeMatrixPath) + "AMG_fine_L" + ToString(level) + ".marks").c_str(), std::ios::out);
+	ffine << "1 0 0 1 0\n";
+	//ffine2 << "1 0.2 1 1 0\n";
 	std::fstream fcoarse((std::string(m_writeMatrixPath) + "AMG_coarse_L" + ToString(level) + ".marks").c_str(), std::ios::out);
+	fcoarse << "0 0 1 1 2\n";
 	std::fstream fother((std::string(m_writeMatrixPath) + "AMG_other_L" + ToString(level) + ".marks").c_str(), std::ios::out);
+	fother << "1 1 0 1 0\n";
 	std::fstream fdirichlet((std::string(m_writeMatrixPath) + "AMG_dirichlet_L" + ToString(level) + ".marks").c_str(), std::ios::out);
+	fdirichlet << "0 1 1 1 0\n";
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		int o = m_amghelper.GetOriginalIndex(level, i);
+		int o = i; //m_amghelper.GetOriginalIndex(level, i);
 		if(nodes[i].is_fine_direct()) ffine << o << "\n";
 		else if(nodes[i].is_coarse()) fcoarse << o << "\n";
 		else fother << o << "\n";
@@ -407,6 +420,8 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 #ifdef UG_PARALLEL
 	AH.set_storage_type(PST_ADDITIVE);
 	AH.set_layouts(A.get_master_layout(), A.get_slave_layout());
+	AH.set_communicator((const_cast<matrix_type&>(A)).get_communicator());
+	AH.set_process_communicator((const_cast<matrix_type&>(A)).get_process_communicator());
 #endif
 
 #ifdef AMG_PRINT_AH

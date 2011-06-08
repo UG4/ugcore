@@ -348,8 +348,12 @@ public:
 				else
 				{
 					UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, Interpolating from ");
+					double dmax = -q[0];
+					for(size_t j=1; j<N; j++)
+						if(dmax < -q[j]) dmax = -q[j];
 					for(size_t j=0; j<N; j++)
 					{
+						if(-q[j] < dmax*0.3) continue;
 						int jj = coarse_neighbors[j];
 						size_t node = onlyN1[jj];
 						UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
@@ -412,12 +416,22 @@ public:
 				}
 				else
 				{
+					std::map<size_t, double> localP;
 					for(size_t j=0; j<N; j++)
 					{
 						int jj = innerNodes[j];
 						size_t node = onlyN1[jj];
 						for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
-							P(i, it.index()) += -q[j] * it.value();
+							localP[it.index()] += -q[j] * it.value();
+					}
+					double dmax = -1000;
+					for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
+						if(dmax < (*it).second) dmax = (*it).second;
+
+					for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
+					{
+						if((*it).second > dmax*0.3)
+							P(i, (*it).first) = (*it).second;
 					}
 					check_weights(P, i);
 					rating.set_aggressive_fine(i);
