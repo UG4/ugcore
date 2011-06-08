@@ -82,6 +82,7 @@ struct PLStack<size_t>
 	}
 };
 
+/* on SOME systems, size_t is not equal to unsigned int...
 template <>
 struct PLStack<unsigned int>
 {
@@ -98,7 +99,7 @@ struct PLStack<unsigned int>
 		return (unsigned int)ps.to_integer(index);
 	}
 };
-
+*/
 template <>
 struct PLStack<float>
 {
