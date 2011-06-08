@@ -100,28 +100,6 @@ else(NOT NO_MPI)
 	set(srcParallelization )
 endif(NOT NO_MPI)
 
-				
-################################################
-# EXTERNALS - TetGen
-add_definitions(-DTETLIBRARY -DSELF_CHECK)
-
-set_source_files_properties(externals/src/tetgen/predicates.cxx
-	PROPERTIES COMPILE_FLAGS -O0)
-
-set_source_files_properties(externals/src/tetgen/tetgen.cxx
-	PROPERTIES COMPILE_FLAGS -w)
-
-if(NOT UG_DEBUG)
-	# Tetgen seems to crash on some geometries if compiled with O3â
-	set_source_files_properties(externals/src/tetgen/tetgen.cxx
-		PROPERTIES COMPILE_FLAGS "-O2 -w")
-endif(NOT UG_DEBUG)
-
-set(srcTetgen
-	externals/src/tetgen/tetgen.cxx
-	externals/src/tetgen/predicates.cxx
-)
-
 ################################################
 # EXTERNALS - liblgm
 set(srcLgm

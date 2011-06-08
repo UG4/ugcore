@@ -5,8 +5,11 @@
 #include <vector>
 #include <sstream>
 #include "tetrahedralization.h"
-#include "lib_grid/externals/include/tetgen/tetgen.h"
 #include "../geom_obj_util/geom_obj_util.h"
+
+#ifdef UG_TETGEN
+	#include "tetgen.h"
+#endif
 
 using namespace std;
 
@@ -20,6 +23,7 @@ static bool PerformTetrahedralization(Grid& grid,
 										bool preserveAll,
 										APosition& aPos)
 {
+#ifdef UG_TETGEN
 	if(!grid.has_vertex_attachment(aPos))
 		return false;
 
@@ -201,6 +205,13 @@ static bool PerformTetrahedralization(Grid& grid,
 	}
 
 	return true;
+
+#else
+	UG_LOG("WARNING in PerformTetrahedralization: Tetgen is not available in the "
+			"current build. Please consider recompiling with Tetgen support enabled.\n");
+	return false;
+#endif
+
 }
 
 

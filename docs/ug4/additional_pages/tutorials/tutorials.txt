@@ -1,0 +1,19 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y11 m06 d08
+
+/** \page pageTutorials - Tutorials
+
+On this site you'll find links to different tutorials. Some are targetted at
+all users of ug, like the scripting tutorials or the ugshell tutorial, others
+are aimed primarily at developers - e.g. the 'install eclipse' and
+'compile ug4' tutorials. Some are aimed at both - e.g. the profiling tutorial.
+
+	- \ref pageUG4Shell "ugshell"
+	- \ref pageScriptTutorial "Script Tutorial"
+	
+	- \ref pageUG4Profiling "Profiling"
+	
+	- \ref pageInstallEclipse "Install Eclipse"
+	- \ref pageInstallUG4 "Compile ug4"
+ */

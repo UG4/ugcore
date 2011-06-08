@@ -1,7 +1,0 @@
-
-
-/**	\page pageImportantClasses ug - Important Classes
-
- [ ... some important classes are to be placed here ... ]
-
-*/

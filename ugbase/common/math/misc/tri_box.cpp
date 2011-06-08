@@ -11,7 +11,7 @@
  * This Code has been modified by Sebastian Reiter.
  * Changes were made to the underlying types and to the 
  * return-value of TriangleBoxIntersection.
- * The original source-code was distributed with the bool
+ * The original source-code was distributed with the book
  * 'Game Programming Gems'.
  */
 

@@ -10,13 +10,8 @@
 \section secUserManual User Manual:
 	- \ref pageCopyrights "Copyrights and Licenses"
 	- \ref pageUG4Introduction "Introduction"
-	- \ref pageUG4Overview "Overview"
-	- \ref pageImportantClasses "Important Classes"
-	- \ref pageInstallEclipse "Install Eclipse"
-	- \ref pageInstallUG4 "Install ug4"
 	- \ref pageUG4CodingStyle "Coding Style"
-	- \ref pageScriptTutorial "Script Tutorial"
 	- \ref pageTeamCommunication "Developer Team Communication"
-	- \ref pageUG4Profiling "Profiling"
-	- \ref pageUG4Shell "ugshell" 
+	- \ref pageTutorials "Tutorials"
+	- \ref pageExternalLibraries "External Libraries"
  */

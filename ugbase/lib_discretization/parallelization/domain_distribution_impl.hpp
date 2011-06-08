@@ -172,6 +172,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	MultiGrid& mg = domain.get_grid();
 	partitionMap.assign_grid(mg);
 
+#ifdef UG_PARALLEL
 //	call the actual partitioning routine
 	if(mg.num<Volume>() > 0){
 		PartitionGrid_MetisKway<Volume>(partitionMap.get_partition_handler(),
@@ -186,6 +187,10 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 										  mg, numPartitions);
 	}
 	return true;
+#else
+	UG_LOG("WARNING in PartitionDomain_MetisKWay: Only available in parallel builds.\n");
+	return false;
+#endif
 }
 
 

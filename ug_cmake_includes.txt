@@ -42,7 +42,8 @@
 # - PROFILE_PCL: Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.
 # - USE_METIS: Sets the path in which the METIS lib can be found.
 # - USE_PARMETIS: Sets the path in which the PARMETIS lib can be found.
-
+# - USE_TETGEN: Sets the path in which the Tetgen libraries can be found.
+#
 # To enable or disable options during the cmake call, call cmake like this:
 # cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
 #
@@ -95,6 +96,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	
 	OPTION(USE_METIS "specify the path in which the metis libraries are located (headers are assumed to be in PATH_TO_METIS/Lib).")
 	OPTION(USE_PARMETIS "specify the path in which the parmetis header and libraries are located.")
+	OPTION(USE_TETGEN "specify the path in which the tetgen header and libraries are located.")
 	
 	#######################
 	# include ug header and library path
@@ -371,7 +373,22 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		message(STATUS "INFO: Not using PARMETIS. (Enable with -DUSE_PARMETIS=path_to_parmetis).")
 	endif(USE_PARMETIS)
 	
-
+	if(USE_TETGEN)
+		find_library(TETGEN_LIBS NAMES tet PATHS ${USE_TETGEN})
+		
+		if(TETGEN_LIBS-NOTFOUND)
+			message(STATUS "WARNING: TETGEN lib could not be found.")
+		else(TETGEN_LIBS-NOTFOUND)
+			message(STATUS "INFO: Using TETGEN. Please check the TETGEN license!")
+			ADD_DEFINITIONS(-DUG_TETGEN)
+			ADD_DEFINITIONS(-DTETLIBRARY)
+			include_directories(${USE_TETGEN})
+			set(UG_LIBRARIES ${UG_LIBRARIES} ${TETGEN_LIBS})
+		endif(TETGEN_LIBS-NOTFOUND)
+	else(USE_TETGEN)
+		message(STATUS "INFO: Not using TETGEN. (Enable with -DUSE_TETGEN=path_to_tetgen).")
+	endif(USE_TETGEN)
+	
     if(UG_SHARED)
     #   if we're building a shared library, only mpi has to be linked.
     #   this is important for the shared library
