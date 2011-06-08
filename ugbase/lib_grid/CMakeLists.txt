@@ -94,66 +94,13 @@ if(NOT NO_MPI)
 							parallelization/parallel_grid_layout.cpp
 							# (unmaintained) parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
 							parallelization/util/distribution_util.cpp
-							parallelization/util/redistribution_util.cpp)
-							
-	set(srcMetis	externals/metis/coarsen.c
-					externals/metis/fm.c 
-					externals/metis/initpart.c
-					externals/metis/match.c 
-					externals/metis/ccgraph.c 
-					externals/metis/memory.c
-					externals/metis/pmetis.c 
-					externals/metis/pqueue.c
-					externals/metis/refine.c
-					externals/metis/util.c 
-					externals/metis/timing.c 
-					externals/metis/debug.c
-					externals/metis/bucketsort.c 
-					externals/metis/graph.c 
-					externals/metis/stat.c 
-					externals/metis/kmetis.c 
-					externals/metis/kwayrefine.c
-					externals/metis/kwayfm.c 
-					externals/metis/balance.c 
-					externals/metis/ometis.c
-					externals/metis/srefine.c
-					externals/metis/sfm.c
-					externals/metis/separator.c
-					externals/metis/mincover.c
-					externals/metis/mmd.c 
-					externals/metis/mesh.c 
-					externals/metis/meshpart.c 
-					externals/metis/frename.c 
-					externals/metis/fortran.c
-					externals/metis/myqsort.c
-					externals/metis/compress.c
-					externals/metis/parmetis.c
-					externals/metis/estmem.c
-					externals/metis/mpmetis.c
-					externals/metis/mcoarsen.c
-					externals/metis/mmatch.c
-					externals/metis/minitpart.c
-					externals/metis/mbalance.c
-					externals/metis/mrefine.c
-					externals/metis/mutil.c
-					externals/metis/mfm.c
-					externals/metis/mkmetis.c
-					externals/metis/mkwayrefine.c
-					externals/metis/mkwayfmh.c
-					externals/metis/mrefine2.c
-					externals/metis/minitpart2.c
-					externals/metis/mbalance2.c
-					externals/metis/mfm2.c
-					externals/metis/kvmetis.c
-					externals/metis/kwayvolrefine.c
-					externals/metis/kwayvolfm.c
-					externals/metis/subdomains.c)
-
+							parallelization/util/redistribution_util.cpp)	
 else(NOT NO_MPI)
 	# give a warning that pcl will not be compiled.
 	set(srcParallelization )
 endif(NOT NO_MPI)
 
+				
 ################################################
 # EXTERNALS - TetGen
 add_definitions(-DTETLIBRARY -DSELF_CHECK)
@@ -205,7 +152,6 @@ set(Sources
                     ${srcParallelization}
 					${srcGrid} ${srcLibGrid}
 					${srcAlgorithms} ${srcFileIO}
-					${srcMetis}
 					${srcTokstream} ${srcTetgen} ${srcLgm} ${srcNg})
 
 EXPORTSOURCES("lib_grid" ${Sources})

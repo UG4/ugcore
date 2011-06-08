@@ -40,7 +40,9 @@
 # - UG_PROFILER: Enables the ug-profiler.
 # - DIM: Dimension to be build (1,2,3,ALL)
 # - PROFILE_PCL: Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.
-#
+# - USE_METIS: Sets the path in which the METIS lib can be found.
+# - USE_PARMETIS: Sets the path in which the PARMETIS lib can be found.
+
 # To enable or disable options during the cmake call, call cmake like this:
 # cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
 #
@@ -90,12 +92,14 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(GENERATE_DEBUG_SYMBOLS "adds -g to gcc. Generates debug symbols in release mode (for profilers etc)")
 	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
 	OPTION(PROFILE_PCL "Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.")
-
+	
+	OPTION(USE_METIS "specify the path in which the metis libraries are located (headers are assumed to be in PATH_TO_METIS/Lib).")
+	OPTION(USE_PARMETIS "specify the path in which the parmetis header and libraries are located.")
+	
 	#######################
 	# include ug header and library path
 	get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 	include_directories(${UG_ROOT_PATH}/ugbase)
-	include_directories(${UG_ROOT_PATH}/ugbase/lib_grid/externals/metis)
 	link_directories(${UG_ROOT_PATH}/lib)
 
 	#######################
@@ -302,11 +306,11 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	# clear UG_LIBRARIES
 	# THE ORDER OF THE LIBRARIES IN UG_LIBRARIES IS CRUCIAL FOR THE LINKER
 
-        set(UG_LIBRARIES)
+    set(UG_LIBRARIES)
 
-        if(NOT NO_UGBRIDGE)
-            set(UG_LIBRARIES ugscript ugbridge)
-        endif(NOT NO_UGBRIDGE)
+    if(NOT NO_UGBRIDGE)
+        set(UG_LIBRARIES ugscript ugbridge)
+    endif(NOT NO_UGBRIDGE)
 
 	if(NOT NO_ALGEBRA)
 		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
@@ -337,6 +341,36 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		set(UG_LIBRARIES ${UG_LIBRARIES} ${MPI_LIBS})
 	endif(MPI_FOUND)
 
+	if(USE_METIS)
+		find_library(METIS_LIBS NAMES metis PATHS ${USE_METIS})
+		
+		if(METIS_LIBS-NOTFOUND)
+			message(STATUS "WARNING: METIS lib could not be found.")
+		else(METIS_LIBS-NOTFOUND)
+			message(STATUS "INFO: Using METIS. Please check the METIS license!")
+			ADD_DEFINITIONS(-DUG_METIS)
+			include_directories(${USE_METIS}/Lib)
+			set(UG_LIBRARIES ${UG_LIBRARIES} ${METIS_LIBS})
+		endif(METIS_LIBS-NOTFOUND)
+	else(USE_METIS)
+		message(STATUS "INFO: Not using METIS. (Enable with -DUSE_METIS=path_to_metis).")
+	endif(USE_METIS)
+	
+	if(USE_PARMETIS)
+		find_library(PARMETIS_LIBS NAMES metis parmetis PATHS ${USE_PARMETIS})
+		
+		if(PARMETIS_LIBS-NOTFOUND)
+			message(STATUS "WARNING: PARMETIS lib could not be found.")
+		else(PARMETIS_LIBS-NOTFOUND)
+			message(STATUS "INFO: Using PARMETIS. Please check the PARMETIS license!")
+			ADD_DEFINITIONS(-DUG_PARMETIS)
+			include_directories(${USE_PARMETIS})
+			set(UG_LIBRARIES ${UG_LIBRARIES} ${PARMETIS_LIBS})
+		endif(PARMETIS_LIBS-NOTFOUND)
+	else(USE_PARMETIS)
+		message(STATUS "INFO: Not using PARMETIS. (Enable with -DUSE_PARMETIS=path_to_parmetis).")
+	endif(USE_PARMETIS)
+	
 
     if(UG_SHARED)
     #   if we're building a shared library, only mpi has to be linked.
