@@ -29,6 +29,7 @@
 #include "common/assert.h"
 #include "maxheap.h"
 #include "famg.h"
+#include "amg.h"
 #include <set>
 #include <string>
 #include <stack>
@@ -81,8 +82,6 @@ void print_vector(const vector_type &vec, const char *p)
 
 //const double damping = 0.5;
 
-
-#define AMG_WRITE_MATRICES_MAX (2000*2000)
 #if 1
 
 //#define AMG_WRITE_GRAPH
@@ -145,9 +144,6 @@ void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 #endif
 }
 
-
-template<typename matrix_type>
-void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_dTheta);
 
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 class FAMGLevelCalculator

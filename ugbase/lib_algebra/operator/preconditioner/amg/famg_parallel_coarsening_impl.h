@@ -295,9 +295,11 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
+#ifdef UG_DEBUG
 	int iDebugLevelMatrixPre = GET_DEBUG_LEVEL(LIB_ALG_MATRIX);
 	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelOverlapMatrix);
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelOverlapAMG);
+#endif
 
 	AMG_PROFILE_FUNC();
 	stopwatch SW;
@@ -460,7 +462,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		}
 	}
 
-	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, DebugLevelMatrixPre);
+	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelMatrixPre);
 }
 
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
