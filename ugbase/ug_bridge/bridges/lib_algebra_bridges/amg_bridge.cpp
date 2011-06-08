@@ -131,6 +131,21 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("add_vector_writer", &famg<algebra_type>::add_vector_writer)
 			.add_method("set_epsilon_truncation", &famg<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
 			.add_method("get_epsilon_truncation", &famg<algebra_type>::get_epsilon_truncation, "epsilon_tr")
+
+			.add_method("set_external_coarsening", &famg<algebra_type>::set_external_coarsening)
+			.add_method("set_use_precalculate", &famg<algebra_type>::set_use_precalculate)
+
+			.add_method("set_debug_level_overlap", &famg<algebra_type>::set_debug_level_overlap)
+			.add_method("set_debug_level_testvector_calc", &famg<algebra_type>::set_debug_level_testvector_calc)
+			.add_method("set_debug_level_phase_3", &famg<algebra_type>::set_debug_level_phase_3)
+			.add_method("set_debug_level_calculate_parent_pairs", &famg<algebra_type>::set_debug_level_calculate_parent_pairs)
+			.add_method("set_debug_level_recv_coarsening", &famg<algebra_type>::set_debug_level_recv_coarsening)
+			.add_method("set_debug_level_get_ratings", &famg<algebra_type>::set_debug_level_get_ratings)
+			.add_method("set_debug_level_precalculate_coarsening", &famg<algebra_type>::set_debug_level_precalculate_coarsening)
+			.add_method("set_debug_level_aggressive_coarsening", &famg<algebra_type>::set_debug_level_aggressive_coarsening)
+			.add_method("set_debug_level_send_coarsening", &famg<algebra_type>::set_debug_level_send_coarsening)
+			.add_method("set_debug_level_communicate_prolongation", &famg<algebra_type>::set_debug_level_communicate_prolongation)
+			.add_method("set_debug_level_after_communciate_prolongation", &famg<algebra_type>::set_debug_level_after_communciate_prolongation)
 			;
 
 		return true;
