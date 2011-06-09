@@ -228,7 +228,8 @@ struct cRegisterAlgebraType
 			reg.add_class_<	ILUPreconditioner<algebra_type>,
 							IPreconditioner<algebra_type> >("ILU", grp2.c_str(), "Incomplete LU Decomposition")
 				.add_constructor()
-				.add_method("set_debug", &ILUPreconditioner<algebra_type>::set_debug, "", "d");
+				.add_method("set_debug", &ILUPreconditioner<algebra_type>::set_debug, "", "d")
+			    .add_method("set_beta", &ILUPreconditioner<algebra_type>::set_beta, "", "beta");
 
 
 		//	ILU Threshold

@@ -17,6 +17,9 @@
 
 namespace ug{
 
+
+// ILU(0) solver, i.e. static pattern ILU w/ P=P(A)
+// (cf. Y Saad, Iterative methods for Sparse Linear Systems, p. 270)
 template<typename Matrix_type>
 bool FactorizeILU(Matrix_type &A)
 {
@@ -25,7 +28,7 @@ bool FactorizeILU(Matrix_type &A)
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		typename Matrix_type::row_iterator rowEnd = A.end_row(i);
+		const typename Matrix_type::row_iterator rowEnd = A.end_row(i);
 		for(typename Matrix_type::row_iterator it_k = A.begin_row(i); it_k != rowEnd && (it_k.index() < i); ++it_k)
 		{
 			const size_t k = it_k.index();
@@ -47,10 +50,67 @@ bool FactorizeILU(Matrix_type &A)
 				if(bFound)
 				{
 					const block_type a_kj = p.value();
-					a_ij -= a_kj * a_ik;
+					a_ij -= a_ik *a_kj;
 				}
 			}
 		}
+	}
+
+	return true;
+}
+
+
+// TODO: This is an untested version of the ILU-beta-scheme
+// This does not work, as the fill-in is not determined correctly
+// should use an kij variant, not an ikj-version
+template<typename Matrix_type>
+bool FactorizeILUBeta(Matrix_type &A, number beta)
+{
+	assert(0);
+	typedef typename Matrix_type::value_type block_type;
+
+	// for all rows i=1:n do
+	for(size_t i=1; i < A.num_rows(); i++)
+	{
+		// for k=1:(i-1) do
+		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
+		block_type &Aii = A(i,i);
+		block_type Nii (Aii); Nii*=0.0;
+		const typename Matrix_type::row_iterator rowEnd = A.end_row(i);
+		for(typename Matrix_type::row_iterator it_k = A.begin_row(i); it_k != rowEnd && (it_k.index() < i); ++it_k)
+		{
+
+			// add row k to row i by A(i, .) -=  [A(i,k) / A(k,k)] A(k,.)
+			// so that A(i,k) is zero.
+			// store A(i,k)/A(k,k) in A(i,k)
+			const size_t k = it_k.index();
+			block_type &a_ik = it_k.value();
+
+
+			a_ik /= A(k,k);
+			if(BlockNorm(a_ik) < 1e-7)	continue;
+
+			// for j=(k+1):n do
+			typename Matrix_type::row_iterator it_j = it_k;
+			for(++it_j; it_j != rowEnd; ++it_j)
+			{
+				const size_t j = it_j.index();
+				block_type& a_ij = it_j.value();
+				bool bFound;
+				typename Matrix_type::row_iterator p = A.get_connection(k,j, bFound);
+				if(bFound)
+				{
+					const block_type a_kj = p.value();
+					a_ij -= a_ik *a_kj ;
+				}
+				else
+				{
+					// add to diagonal
+					Nii +=  it_k.value() ;
+				}
+			}
+		}
+		AddMult(Aii, beta, Nii);
 	}
 
 	return true;
@@ -92,7 +152,7 @@ bool FactorizeILUSorted(Matrix_type &A)
 				{
 					block_type &a_ij = it_ij.value();
 					const block_type &a_kj = it_kj.value();
-					a_ij -= a_kj * a_ik;
+					a_ij -= a_ik * a_kj;
 					++it_kj; ++it_ij;
 				}
 			}
@@ -161,23 +221,29 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILUPreconditioner() : m_pDebugWriter(NULL) {};
+		ILUPreconditioner() : m_beta(0.0), m_pDebugWriter(NULL) {};
 
-	// 	Clone
+	// 		Clone
 		ILinearIterator<vector_type,vector_type>* clone()
 		{
 			return new ILUPreconditioner<algebra_type>();
 		}
 
-	//	set debug output
+		//	Destructor
+		virtual ~ILUPreconditioner()
+		{
+		}
+
+		//	set debug output
 		void set_debug(IDebugWriter<algebra_type>* debugWriter)
 		{
 			m_pDebugWriter = debugWriter;
 		}
 
-	//	Destructor
-		virtual ~ILUPreconditioner()
+		// set factor for ILU_{\beta}
+		void set_beta(double beta)
 		{
+			m_beta = beta;
 		}
 
 	protected:
@@ -216,8 +282,12 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		//	resize help vector
 			m_h.resize(A.num_cols());
 
+
 		// 	Compute ILU Factorization
-		if(matrix_type::rows_sorted)
+		if (m_beta!=0.0)
+			FactorizeILUBeta(m_ILU, m_beta);
+
+		else if(matrix_type::rows_sorted)
 		{
 			FactorizeILUSorted(m_ILU);
 		}
@@ -246,14 +316,15 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			static bool first = true;
 
 		//	make defect unique
-			vector_type h;
-			h.resize(d.size()); h = d;
-			h.change_storage_type(PST_UNIQUE);
+			vector_type dhelp;
+			dhelp.resize(d.size()); dhelp = d;
+			dhelp.change_storage_type(PST_UNIQUE);
 
 		// 	apply iterator: c = LU^{-1}*d (damp is not used)
-			invert_L(m_ILU, m_h, h); // h := L^-1 d
+			invert_L(m_ILU, m_h, dhelp); // h := L^-1 d
 
-			if(first) write_debug(m_h, "ILU_mh");
+			// TODO: m_h does not have a storage type???
+			//if(first) write_debug(m_h, "ILU_mh");
 
 			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
 
@@ -296,8 +367,12 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		matrix_type m_ILU;
 		vector_type m_h;
 
+		
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
+		
+		// Factor for ILU-beta
+		number m_beta;
 
 };
 
