@@ -176,7 +176,7 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	//	Destructor
-		~ILUPreconditioner()
+		virtual ~ILUPreconditioner()
 		{
 		}
 
