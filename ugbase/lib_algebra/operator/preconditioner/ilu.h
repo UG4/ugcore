@@ -221,7 +221,7 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILUPreconditioner() : m_beta(0.0), m_pDebugWriter(NULL) {};
+		ILUPreconditioner() : m_pDebugWriter(NULL), m_beta(0.0) {};
 
 	// 		Clone
 		ILinearIterator<vector_type,vector_type>* clone()
