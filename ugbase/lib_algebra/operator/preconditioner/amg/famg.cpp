@@ -19,6 +19,7 @@
 //#include "sparsematrix_util.h"
 
 #include "common/assert.h"
+#include "common/log.h"
 
 #include "famg.h"
 #include "lib_algebra/lib_algebra.h"
