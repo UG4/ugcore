@@ -266,6 +266,14 @@ class ProcessCommunicator
 			return ret;
 		}
 
+	///	overload for size_t
+		size_t allreduce(const size_t &t, pcl::ReduceOperation op)
+		{
+			int ret, tt = (int)t;
+			allreduce(&tt, &ret, 1, PCL_DT_INT, op);
+			return (size_t)ret;
+		}
+
 	/**
 	 * simplified allreduce for buffers.
 	 * \param pSendBuff the input buffer
