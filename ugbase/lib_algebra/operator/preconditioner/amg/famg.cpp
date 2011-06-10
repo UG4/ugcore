@@ -392,7 +392,7 @@ public:
 		bool bUsePrecalculate = m_famg.m_bUsePrecalculate;
 		if(bExternalCoarsening == false)
 		{
-			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelPhase3);
+//			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelPhase3);
 			heap.create(rating.nodes);
 
 			IF_DEBUG(LIB_ALG_AMG, 3)
@@ -433,7 +433,7 @@ public:
 			if(bUsePrecalculate)
 			{
 				// calculate ratings (not precalculateable because of coarse/uninterpolateable)
-				UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelGetRatings);
+//				UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelGetRatings);
 				UG_DLOG(LIB_ALG_AMG, 1, std::endl << "calculate ratings... "); if(bTiming) SW.start();
 				GetRatings(possible_parents, rating, heap);
 				if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
@@ -452,7 +452,7 @@ public:
 			// this has to be BEFORE communication of coarse/fine markers
 			//
 
-			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelAggressiveCoarsening);
+//			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelAggressiveCoarsening);
 			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "second coarsening... "); if(bTiming) SW.start();
 			if(m_famg.get_aggressive_coarsening() == true)
 				get_aggressive_coarsening_interpolation();
@@ -495,7 +495,7 @@ public:
 			//write_debug_matrix_markers();
 		// ]
 
-		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelAfterCommunicateProlongation);
+//		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelAfterCommunicateProlongation);
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{	rating.print(); 	}
 
