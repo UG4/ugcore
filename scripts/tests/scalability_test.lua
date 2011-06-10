@@ -1,4 +1,4 @@
-----------------------------------------------------------
+--------------------------------------------------------------------------------
 --
 --   Lua - Script for scalability studies solving the
 --   Laplace-Problem.
@@ -6,9 +6,9 @@
 --   For some flexibility several definitions concerning
 --   the solver can also be given via command line parameters
 --
---   Author: Andreas Vogel
+--   Authors: Ingo Heppner, Sebastian Reiter, Andreas Vogel
 --
-----------------------------------------------------------
+--------------------------------------------------------------------------------
 
 ug_load_script("ug_util.lua")
 
@@ -20,16 +20,15 @@ activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time me
 						    -- >= 1 for debug output: this sets
 						    -- 'fetiSolver:set_debug(dbgWriter)'
 
-----------------------------------
+--------------------------------------------------------------------------------
 -- Checking for parameters (begin)
-----------------------------------
+--------------------------------------------------------------------------------
 -- Several definitions which can be changed by command line parameters
 -- space dimension and grid file:
 dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	--gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
 	--gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 
@@ -76,85 +75,13 @@ print("    lsMaxIter  = " .. lsMaxIter)
 print("    baseSolverType = " .. baseSolverType)
 print("    baseLevel      = " .. baseLevel)
 
-----------------------------------
+--------------------------------------------------------------------------------
 -- Checking for parameters (end)
-----------------------------------
+--------------------------------------------------------------------------------
 
 
 -- choose algebra
 InitAlgebra(CPUAlgebraSelector());
-
-
---------------------------------
--- User Data Functions (begin)
---------------------------------
-	function ourDiffTensor2d(x, y, t)
-		return	1, 0, 
-				0, 1
-	end
-	
-	function ourVelocityField2d(x, y, t)
-		return	0, 0
-	end
-	
-	function ourReaction2d(x, y, t)
-		return	0
-	end
-	
-	function ourRhs2d(x, y, t)
-		local s = 2*math.pi
-		return	s*s*(math.sin(s*x) + math.sin(s*y))
-		--return -2*y
-		--return 0;
-	end
-	
-	function ourNeumannBnd2d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
-		return true, -2*x*y
-	end
-	
-	function ourDirichletBnd2d(x, y, t)
-		local s = 2*math.pi
-		return true, math.sin(s*x) + math.sin(s*y)
-		--return true, x*x*y
-		--return true, 2.5
-	end
-
-	function ourDiffTensor3d(x, y, z, t)
-		return	1, 0, 0,
-				0, 1, 0,
-				0, 0, 1
-	end
-	
-	function ourVelocityField3d(x, y, z, t)
-		return	0, 0, 0
-	end
-	
-	function ourReaction3d(x, y, z, t)
-		return	0
-	end
-	
-	function ourRhs3d(x, y, z, t)
-		--local s = 2*math.pi
-		--return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
-		return 0;
-	end
-	
-	function ourNeumannBnd3d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
-		return true, -2*x*y*z
-	end
-	
-	function ourDirichletBnd3d(x, y, z, t)
-		--local s = 2*math.pi
-		--return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
-		return true, x
-	end
---------------------------------
--- User Data Functions (end)
---------------------------------
 
 -- create Instance of a Domain
 print("Create Domain.")
@@ -273,42 +200,50 @@ if OrderCuthillMcKee(approxSpace, true) == false then
 	print("ERROR when ordering Cuthill-McKee"); exit();
 end
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup User Functions
--------------------------------------------
-print ("Setting up Assembling")
+--------------------------------------------------------------------------------
 
--- depending on the dimension we're choosing the appropriate callbacks.
--- we're using the .. operator to assemble the names (dim = 2 -> "ourDiffTensor2d")
--- Diffusion Tensor setup
-diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
---diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
+function ourRhs2d(x, y, t)
+	local s = 2*math.pi
+	return	s*s*(math.sin(s*x) + math.sin(s*y))
+	--return -2*y
+	--return 0;
+end
 
--- Velocity Field setup
-velocityField = util.CreateLuaUserVector("ourVelocityField"..dim.."d", dim)
---velocityField = util.CreateConstUserVector(0.0, dim)
+function ourDirichletBnd2d(x, y, t)
+	local s = 2*math.pi
+	return true, math.sin(s*x) + math.sin(s*y)
+	--return true, x*x*y
+	--return true, 2.5
+end
 
--- Reaction setup
-reaction = util.CreateLuaUserNumber("ourReaction"..dim.."d", dim)
---reaction = util.CreateConstUserNumber(0.0, dim)
+function ourRhs3d(x, y, z, t)
+	--local s = 2*math.pi
+	--return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
+	return 0;
+end
 
--- rhs setup
+function ourDirichletBnd3d(x, y, z, t)
+	--local s = 2*math.pi
+	--return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
+	return true, x
+end
+
+-- We need a constant Identity matrix for the Diffusion.
+diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
+
+-- The right hand side is given by a lua function
 rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
---rhs = util.CreateConstUserNumber(0.0, dim)
 
--- neumann setup
-neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
---neumann = util.CreateConstUserNumber(0.0, dim)
-
--- dirichlet setup
+-- The Dirichlet values are also given by lua values
 dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
---dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 	
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
--- Select upwind
+-- Select upwind 
 if dim == 2 then 
 --upwind = NoUpwind2d()
 --upwind = FullUpwind2d()
@@ -320,36 +255,18 @@ else print("Dim not supported for upwind"); exit() end
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_diffusion_tensor(diffusionMatrix)
-elemDisc:set_velocity_field(velocityField)
-elemDisc:set_reaction(reaction)
 elemDisc:set_source(rhs)
-
------------------------------------------------------------------
---  Setup Neumann Boundary
------------------------------------------------------------------
-
---neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
---neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
-
------------------------------------------------------------------
---  Setup Dirichlet Boundary
------------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
--------------------------------------------
---  Setup Domain Discretization
--------------------------------------------
-
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc)
---domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Algebra
--------------------------------------------
+--------------------------------------------------------------------------------
 print ("Setting up Algebra Solver")
 
 -- create operator from discretization
@@ -501,9 +418,9 @@ bicgstabSolver:set_convergence_check(convCheck)
 solver = linSolver
 --solver = cgSolver
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h', to get separate profiling for assemble and solve (05042011ih)
--------------------------------------------
+--------------------------------------------------------------------------------
 -- 1. init operator
 --print("Init operator (i.e. assemble matrix).")
 --linOp:init() -- really necessary? Already done above!
@@ -523,9 +440,9 @@ tBefore = os.clock()
 ApplyLinearSolver(linOp, u, b, solver)
 tAfter = os.clock()
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Output
--------------------------------------------
+--------------------------------------------------------------------------------
 if verbosity >= 1 then
 	WriteGridFunctionToVTK(u, "Solution")
 end
