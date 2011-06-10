@@ -1066,7 +1066,9 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_base_solver()
 {
 // 	Prepare base solver
-	if(m_pApproxSpace->get_level_dof_distribution(m_baseLev).num_dofs() != 0)
+	if(m_pApproxSpace->get_level_dof_distribution(m_baseLev).num_dofs() == 0)
+		return true;
+
 	if(m_bBaseParallel){
 		if(!m_pBaseSolver->init(*m_vLevData[m_baseLev].A, *m_vLevData[m_baseLev].u))
 		{

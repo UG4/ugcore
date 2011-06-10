@@ -264,7 +264,10 @@ class AssembledMultiGridCycle :
 						u(0), c(0), d(0), t(0), CoarseGridContribution(0),
 						SmoothMat(0),
 						su(0), sc(0), sd(0), st(0),
-						masterLayout(0), slaveLayout(0), sel(0)
+#ifdef UG_PARALLEL
+						masterLayout(0), slaveLayout(0),
+#endif
+						sel(0)
 			{};
 
 			void allocate(size_t lev,
@@ -315,8 +318,10 @@ class AssembledMultiGridCycle :
 		//	vectors needed for smoothing
 			vector_type *su, *sc, *sd, *st;
 
+#ifdef UG_PARALLEL
 		//	interfaces needed for smoothing
 			IndexLayout *masterLayout, *slaveLayout;
+#endif
 
 		//	map for smoothing
 			std::vector<size_t> vMap;
