@@ -42,7 +42,7 @@ numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
 -- way the domain / the grid will be distributed to the processes:
-distributionType = util.GetParam("-distType", "grid2d") -- [grid2d | bisect]
+distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect]
 
 -- parameters concerning the linear solver:
 lsIterator = util.GetParam("-lsIterator",     "gmg")
