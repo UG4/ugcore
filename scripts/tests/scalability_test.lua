@@ -96,8 +96,8 @@ end
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs >= numRefs then
-	print("numPreRefs must be smaller than numRefs");
+if numPreRefs > numRefs then
+	print("It must be choosen: numPreRefs <= numRefs");
 	exit();
 end
 
@@ -354,7 +354,8 @@ end
 	gmg:set_base_level(baseLevel) -- new variable defining baselevel, set from script (default 0; 14042011ih)
 --        gmg:set_base_level(numRefs-1) -- two grid method for testing (29032011ih)
 	gmg:set_base_solver(base)
-ilusmoother = ILU()
+	gmg:set_parallel_base_solver(true)
+	ilusmoother = ILU()
 	gmg:set_smoother(jac)
 --	gmg:set_smoother(ilusmoother) -- jac (29932911ih)
 	gmg:set_cycle_type(1)
@@ -457,7 +458,7 @@ if GetProfilerAvailable() == true then
     pn = GetProfileNode("main")
     -- check if node is valid
     if pn:is_valid() then
-        print(pn:total_time_sorted())
+        print(pn:call_tree())
     else
         print("main is not known to the profiler.")
     end
