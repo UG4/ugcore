@@ -875,6 +875,7 @@ inline bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 	return bRes;
 }
 
+#ifdef UG_PARALLEL
 template <typename TElemBase>
 void SelectNonGhosts(ISelector& sel,
                      DistributedGridManager& dstGrMgr,
@@ -891,6 +892,7 @@ void SelectNonGhosts(ISelector& sel,
 		if(!dstGrMgr.is_ghost(elem)) sel.select(elem);
 	}
 }
+#endif
 
 /// projects surface function to level functions
 template <typename TMatrix>
