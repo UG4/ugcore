@@ -103,6 +103,44 @@ inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 	pcl::SetOutputProcRank(outproc);
 }
 
+/// replaces the indices in the layout based on a passed mapping
+/**
+ * This function replaces the indices in the layout by new indices. The mapping
+ * between old and new indices is passed as newIndex = vMap[oldIndex]. The size
+ * of the new index set must be smaller or equal to the old index set. If the
+ * entry in the map is negative, the old index is removed from the layout.
+ */
+inline void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap)
+{
+//	interface iterators
+	IndexLayout::iterator interfaceIter = layout.begin();
+	IndexLayout::iterator interfaceEnd = layout.end();
+
+//	iterate over interfaces
+	for(; interfaceIter != interfaceEnd; ++interfaceIter)
+	{
+	//	get interface
+		IndexLayout::Interface& interface = layout.interface(interfaceIter);
+
+	//	loop over indices
+		for(IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		//  get index
+			size_t& index = interface.get_element(iter);
+
+		//	get new index
+			const int newIndex = vMap[index];
+
+		//	erase index if negative
+			if(newIndex < 0)
+				iter = interface.erase(iter);
+		//	else replace index
+			else
+				index = newIndex;
+		}
+	}
+}
 
 } // end namespace ug
 

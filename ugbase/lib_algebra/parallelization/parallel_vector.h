@@ -49,6 +49,14 @@ class ParallelVector : public TVector
 			m_pCommunicator(NULL)
 		{}
 
+	/// Resizing constructor
+		ParallelVector(size_t length)
+		: TVector(length), m_type(PST_UNDEFINED),
+			m_pSlaveLayout(NULL), m_pMasterLayout(NULL),
+			m_pVerticalSlaveLayout(NULL), m_pVerticalMasterLayout(NULL),
+			m_pCommunicator(NULL)
+		{}
+
 	///	Constructor setting the Layouts
 		ParallelVector(	IndexLayout& slaveLayout, IndexLayout masterLayout,
 						IndexLayout& verticalSlaveLayout,

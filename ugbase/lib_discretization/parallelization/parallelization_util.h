@@ -13,6 +13,8 @@
 #include "lib_grid/parallelization/util/compol_interface_status.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_algebra/parallelization/communication_policies.h"
+#include "lib_algebra/parallelization/parallel_vector.h"
+#include "lib_algebra/parallelization/parallel_matrix.h"
 
 namespace ug
 {
@@ -318,14 +320,50 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 }
 
 
-
+/// copies all needed parallel informations into a parallel matrix
+/**
+ * This function copies the layouts and the communicators of a dof distribution
+ * into a matrix.
+ *
+ * \param[in]	dd		DoFDistribution to copy the infos from
+ * \param[out]	mat		Matrix filled with infos
+ *
+ * \tparam	TMatrix 	Sequential Matrix type
+ */
 template <typename TMatrix, typename TDoFDistr>
-void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, TDoFDistr& dofDistr)
+void CopyLayoutsAndCommunicatorIntoMatrix(ParallelMatrix<TMatrix>& mat,
+                                          TDoFDistr& dd)
 {
-	mat.set_layouts(dofDistr.get_master_layout(), dofDistr.get_slave_layout());
+	mat.set_layouts(dd.get_master_layout(), dd.get_slave_layout());
 
-	mat.set_communicator(dofDistr.get_communicator());
-	mat.set_process_communicator(dofDistr.get_process_communicator());
+	mat.set_communicator(dd.get_communicator());
+	mat.set_process_communicator(dd.get_process_communicator());
+}
+
+/// copies all needed parallel informations into a parallel vector
+/**
+ * This function copies the layouts and the communicators of a dof distribution
+ * into a vector.
+ *
+ * \param[in]	dd		DoFDistribution to copy the infos from
+ * \param[out]	vec		Vector filled with infos
+ *
+ * \tparam 	TVector		Sequential vector type
+ */
+template <typename TVector, typename TDoFDistr>
+void CopyLayoutsAndCommunicatorIntoVector(ParallelVector<TVector>& vec,
+                                          TDoFDistr& dd)
+{
+	//	copy all horizontal layouts (for all domain decomps)
+		vec.set_layouts(dd.get_master_layout(), dd.get_slave_layout());
+
+	//	copy vertical layouts
+		vec.set_vertical_layouts(dd.get_vertical_master_layout(),
+		                         dd.get_vertical_slave_layout());
+
+	//	copy communicator
+		vec.set_communicator(dd.get_communicator());
+		vec.set_process_communicator(dd.get_process_communicator());
 }
 
 

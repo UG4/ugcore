@@ -183,6 +183,39 @@ void AdditiveToUnique(	TVector* pVec,
 		com.communicate();
 }
 
+/// sets the values of a vector to a given number only on the layout indices
+/**
+ * \param[in,out]		pVec			Vector
+ * \param[in]			layout			Layout
+ * \param[in]			val				Value to set on layout indices
+ */
+template <typename TVector>
+void SetLayoutValues(	TVector* pVec,
+                     	IndexLayout& layout,
+                     	number val)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = layout.begin();
+	typename IndexLayout::iterator end = layout.end();
+
+//	iterate over interfaces
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = layout.interface(iter);
+
+	//	loop over indices
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		//  get index
+			const size_t index = interface.get_element(iter);
+
+		//	set value of vector to zero
+			(*pVec)[index] = val;
+		}
+	}
+}
 
 /// changes parallel storage type from consistent to unique
 /**
@@ -196,27 +229,7 @@ template <typename TVector>
 void ConsistentToUnique(	TVector* pVec,
 							IndexLayout& slaveLayout)
 {
-//	interface iterators
-	typename IndexLayout::iterator iter = slaveLayout.begin();
-	typename IndexLayout::iterator end = slaveLayout.end();
-
-//	iterate over interfaces
-	for(; iter != end; ++iter)
-	{
-	//	get interface
-		typename IndexLayout::Interface& interface = slaveLayout.interface(iter);
-
-	//	loop over indices
-		for(typename IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-		{
-		//  get index
-			const size_t index = interface.get_element(iter);
-
-		//	set value of vector to zero
-			(*pVec)[index] = 0.0;
-		}
-	}
+	SetLayoutValues(pVec, slaveLayout, 0.0);
 }
 
 /// subtracts values of slave layout from master layout and sets slave layouts to negative of difference

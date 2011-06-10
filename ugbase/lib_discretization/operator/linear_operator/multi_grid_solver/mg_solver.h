@@ -87,7 +87,7 @@ class AssembledMultiGridCycle :
 	/// default Constructor
 		AssembledMultiGridCycle() :
 			m_pAss(NULL), m_pApproxSpace(NULL),
-			m_topLev(0), m_baseLev(0), m_cycleType(1),
+			m_topLev(0), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
 			m_numPreSmooth(1), m_numPostSmooth(1),
 			m_bFullRefined(false),
 			m_pSmootherPrototype(NULL),
@@ -114,6 +114,9 @@ class AssembledMultiGridCycle :
 	///	sets the base solver that is used
 		void set_base_solver(base_solver_type& baseSolver)
 			{m_pBaseSolver = &baseSolver;}
+
+	///	sets if the base solver is applied in parallel
+		void set_parallel_base_solver(bool bParallel) {m_bBaseParallel = bParallel;}
 
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(int type) {m_cycleType = type;}
@@ -166,7 +169,9 @@ class AssembledMultiGridCycle :
 		bool lmgc(vector_type& c, vector_type& d, size_t lev);
 
 	/// performs smoothing on level l, nu times
-		bool smooth(vector_type& c, vector_type& d, size_t lev, int nu);
+		bool smooth(vector_type& c, vector_type& d, vector_type& t,
+		            IMatrixOperator<vector_type, vector_type, matrix_type>& A,
+		            smoother_type& S, size_t lev, int nu);
 
 	///	returns the number of allocated levels
 		size_t num_levels() const {return m_vLevData.size();}
@@ -225,6 +230,9 @@ class AssembledMultiGridCycle :
 	///	base level (where exact inverse is computed)
 		size_t m_baseLev;
 
+	///	flag, if to solve base problem in parallel
+		bool m_bBaseParallel;
+
 	///	cylce type (1 = V-cycle, 2 = W-cylcle, ...)
 		int m_cycleType;
 
@@ -252,52 +260,36 @@ class AssembledMultiGridCycle :
 
 		struct LevData
 		{
-			LevData() : A(0), Smoother(0), Projection(0), Prolongation(0),
-						u(0), c(0), d(0), t(0), CoarseGridContribution(0)
+			LevData() : pLevDD(0), A(0), Smoother(0), Projection(0), Prolongation(0),
+						u(0), c(0), d(0), t(0), CoarseGridContribution(0),
+						SmoothMat(0),
+						su(0), sc(0), sd(0), st(0),
+						masterLayout(0), slaveLayout(0), sel(0)
 			{};
 
 			void allocate(size_t lev,
-			              approximation_space_type& approxSpace,
+						  approximation_space_type& approxSpace,
 			              assemble_type& ass,
 			              smoother_type& smoother,
 			              projection_operator_type& projection,
-			              prolongation_operator_type& prolongation)
+			              prolongation_operator_type& prolongation);
+
+			bool has_ghosts() const
 			{
-			//	free operators if already allocated
-				free();
-
-			//	create vectors and matrix
-				u = approxSpace.create_level_function(lev);
-				c = approxSpace.create_level_function(lev);
-				d = approxSpace.create_level_function(lev);
-				t = approxSpace.create_level_function(lev);
-				CoarseGridContribution = new matrix_type;
-
-			//	allocate level operator
-				A = new operator_type(ass);
-				Smoother = smoother.clone();
-				Projection = projection.clone();
-				Prolongation = prolongation.clone();
+				#ifdef UG_PARALLEL
+					return !pLevDD->get_vertical_master_layout().empty();
+				#else
+					return false;
+				#endif
 			}
 
-			void free()
-			{
-			//	free operators if allocated
-				if(A) delete A;
-				if(Smoother) delete Smoother;
-				if(Projection) delete Projection;
-				if(Prolongation) delete Prolongation;
-
-			//	free algebra
-				if(u) delete u;
-				if(c) delete c;
-				if(d) delete d;
-				if(t) delete t;
-				if(CoarseGridContribution) delete CoarseGridContribution;
-			}
+			void free();
 
 			~LevData()
 			{}
+
+		//	level DoF Distribution
+			dof_distribution_type* pLevDD;
 
 		//	operator
 			operator_type* A;
@@ -316,6 +308,22 @@ class AssembledMultiGridCycle :
 
 		//	missing coarse grid correction
 			matrix_type *CoarseGridContribution;
+
+		//	smaller matrix for smoothing
+			PureMatrixOperator<vector_type, vector_type, matrix_type> *SmoothMat;
+
+		//	vectors needed for smoothing
+			vector_type *su, *sc, *sd, *st;
+
+		//	interfaces needed for smoothing
+			IndexLayout *masterLayout, *slaveLayout;
+
+		//	map for smoothing
+			std::vector<size_t> vMap;
+			std::vector<int> vMapMat;
+
+		//	selector for smoothing elements
+			Selector *sel;
 		};
 
 	///	storage for all level
@@ -323,6 +331,9 @@ class AssembledMultiGridCycle :
 
 	///	base solver for the coarse problem
 		base_solver_type* m_pBaseSolver;
+
+	///	operator for base solver
+		operator_type m_BaseOperator;
 
 		std::vector<vector_type*> level_defects()
 		{
@@ -357,6 +368,17 @@ class AssembledMultiGridCycle :
 		}
 
 #ifdef UG_PARALLEL
+	/**
+	 *	gathers the vector using vertical interfaces, returns if this proc
+	 *  will still have dofs on the next level (iff has no vertical slaves)
+	 */
+		bool gather_vertical(vector_type& d);
+
+	/**
+	 *	broadcasts the vector using vertical interfaces.
+	 */
+		void broadcast_vertical(vector_type& t);
+
 	/// communicator
 		pcl::ParallelCommunicator<IndexLayout> m_Com;
 #endif

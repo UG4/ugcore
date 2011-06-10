@@ -446,3 +446,21 @@ tAfter = os.clock()
 if verbosity >= 1 then
 	WriteGridFunctionToVTK(u, "Solution")
 end
+
+--------------------------------------------------------------------------------
+--  Print Profiling
+--------------------------------------------------------------------------------
+
+-- check if profiler is available
+if GetProfilerAvailable() == true then
+    -- get node
+    pn = GetProfileNode("root")
+    -- check if node is valid
+    if pn:is_valid() then
+        print(pn:total_time_sorted())
+    else
+        print("root is not known to the profiler.")
+    end
+else
+    print("Profiler not available.")
+end 

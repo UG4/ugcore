@@ -239,6 +239,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 						"", "Approximation Space")
 			.add_method("set_base_level|interactive=false", &T::set_base_level,
 						"", "Base Level")
+			.add_method("set_parallel_base_solver", &T::set_parallel_base_solver,
+						"", "Specifies if base solver works in parallel")
 			.add_method("set_base_solver|interactive=false", &T::set_base_solver,
 						"","Base Solver")
 			.add_method("set_smoother|interactive=false", &T::set_smoother,

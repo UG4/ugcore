@@ -875,6 +875,65 @@ inline bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 	return bRes;
 }
 
+template <typename TElemBase>
+void SelectNonGhosts(ISelector& sel,
+                     DistributedGridManager& dstGrMgr,
+                     typename geometry_traits<TElemBase>::iterator iter,
+                     typename geometry_traits<TElemBase>::iterator iterEnd)
+{
+//	loop all base elems
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get element
+		TElemBase* elem = *iter;
+
+	//	select ghosts
+		if(!dstGrMgr.is_ghost(elem)) sel.select(elem);
+	}
+}
+
+/// projects surface function to level functions
+template <typename TMatrix>
+bool CopySmoothingMatrix(TMatrix& smoothMat,
+                         const std::vector<int>& vMap,
+                         const TMatrix& origMat)
+{
+//	type of matrix row iterator
+	typedef typename TMatrix::const_row_iterator const_row_iterator;
+
+//	loop all mapped indices
+	for(size_t origInd = 0; origInd < vMap.size(); ++origInd)
+	{
+	//	get mapped level index
+		const int smoothInd = vMap[origInd];
+
+	//	skipped non-mapped indices (indicated by -1)
+		if(smoothInd < 0) continue;
+
+	//	loop all connections of the surface dof to other surface dofs and copy
+	//	the matrix coupling into the level matrix
+
+		for(const_row_iterator conn = origMat.begin_row(origInd);
+						conn != origMat.end_row(origInd); ++conn)
+		{
+		//	get corresponding level connection index
+			const int origConnIndex = vMap[conn.index()];
+
+		//	check that index is from same level, too
+			if(origConnIndex < 0) continue;
+
+		//	copy connection to level matrix
+			smoothMat(smoothInd, origConnIndex) = conn.value();
+		}
+	}
+
+#ifdef UG_PARALLEL
+	smoothMat.copy_storage_type(origMat);
+#endif
+
+	return true;
+}
+
 
 } // end namespace ug
 #endif

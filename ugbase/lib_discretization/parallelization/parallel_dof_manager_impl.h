@@ -78,6 +78,7 @@ create_level_index_layouts(size_t numGlobalLevels)
 //	a vertical master with another vertical master, or no.
 //	this data is then passed to CreateLevelIndexLayout, so that only necessary
 //	interfaces will be build.
+/*
 	ComPol_InterfaceStatus<TLayout>
 		comPol_MasterStatus(m_pDistGridManager, INT_V_SLAVE);
 	ComPol_InterfaceStatus<TLayout>
@@ -88,6 +89,7 @@ create_level_index_layouts(size_t numGlobalLevels)
 	com.exchange_data(m_pDistGridManager->grid_layout_map(),
 					  INT_H_MASTER, INT_H_SLAVE, comPol_SlaveStatus);
 	com.communicate();
+*/
 
 	GridLayoutMap& layoutMap = m_pDistGridManager->grid_layout_map();
 
@@ -105,13 +107,13 @@ create_level_index_layouts(size_t numGlobalLevels)
 		//	create horizontal index layouts
 			bRet &= AddEntriesToLevelIndexLayout(distr.get_master_layout(), distr,
 						  	  	  layoutMap.get_layout<TElem>(INT_H_MASTER).
-						  	  	  	  layout_on_level(l),
-						  	  	  &comPol_MasterStatus.get_result_map(l));
+						  	  	  	  layout_on_level(l)/*,
+						  	  	  &comPol_MasterStatus.get_result_map(l)*/);
 
 			bRet &= AddEntriesToLevelIndexLayout(distr.get_slave_layout(), distr,
 						  	  	  layoutMap.get_layout<TElem>(INT_H_SLAVE).
-						  	  	  	  layout_on_level(l),
-						  	  	  &comPol_SlaveStatus.get_result_map(l));
+						  	  	  	  layout_on_level(l)/*,
+						  	  	  &comPol_SlaveStatus.get_result_map(l)*/);
 
 		//	create vertical layouts
 			bRet &= AddEntriesToLevelIndexLayout(distr.get_vertical_master_layout(),
@@ -175,8 +177,8 @@ create_level_index_layouts(size_t numGlobalLevels)
 	//	In those cases the process votes false for the subcommunicator.
 
 	//TODO: perform a more precise check
-		if(!distr.get_vertical_slave_layout().empty())
-			no_cut = false;
+//		if(!distr.get_vertical_slave_layout().empty())
+//			no_cut = false;
 
 	// 	choose if this process participates
 		bool participate = no_cut

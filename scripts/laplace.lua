@@ -55,7 +55,7 @@ print("    dostType   = " .. distributionType)
 		local s = 2*math.pi
 		return	s*s*(math.sin(s*x) + math.sin(s*y))
 		--return -2*y
-		--return 0;
+--		return 0;
 	end
 	
 	function ourNeumannBnd2d(x, y, t)
@@ -68,7 +68,7 @@ print("    dostType   = " .. distributionType)
 		local s = 2*math.pi
 		return true, math.sin(s*x) + math.sin(s*y)
 		--return true, x*x*y
-		--return true, 2.5
+--		return true, 2.5
 	end
 
 	function ourDiffTensor3d(x, y, z, t)
@@ -332,11 +332,11 @@ ilut = ILUT()
 
 	-- Base Solver
 	baseConvCheck = StandardConvergenceCheck()
-	baseConvCheck:set_maximum_steps(500)
-	baseConvCheck:set_minimum_defect(1e-8)
+	baseConvCheck:set_maximum_steps(1000)
+	baseConvCheck:set_minimum_defect(1e-11)
 	baseConvCheck:set_reduction(1e-30)
 	baseConvCheck:set_verbose_level(false)
-	-- base = LapackLUSolver()
+	--base = LU()
 	base = LinearSolver()
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
@@ -351,13 +351,14 @@ ilut = ILUT()
 	gmg:set_discretization(domainDisc)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
+	gmg:set_parallel_base_solver(true)
 	gmg:set_smoother(jac)
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
-	--gmg:set_debug(dbgWriter)
+	gmg:set_debug(dbgWriter)
 
 -- create AMG ---
 -----------------
@@ -405,6 +406,8 @@ solver = linSolver
 -------------------------------------------
 --  Apply Solver
 -------------------------------------------
+--SetDebugLevel("LIB_DISC_MULTIGRID", 2);
+
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
 tAssembleStart = os.clock() 
