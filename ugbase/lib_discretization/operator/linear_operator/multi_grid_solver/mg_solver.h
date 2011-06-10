@@ -15,6 +15,7 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
+#include "lib_grid/parallelization/distributed_grid.h"
 #include "lib_algebra/operator/operator_iterator_interface.h"
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/operator/operator_interface.h"
