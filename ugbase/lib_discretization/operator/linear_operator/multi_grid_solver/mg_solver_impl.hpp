@@ -1792,8 +1792,10 @@ free()
 	if(sd) delete sd;
 	if(st) delete st;
 
+#ifdef UG_PARALLEL
 	if(masterLayout) delete masterLayout;
 	if(slaveLayout) delete slaveLayout;
+#endif
 
 	if(sel) delete sel;
 }
