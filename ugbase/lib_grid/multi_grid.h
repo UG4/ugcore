@@ -359,6 +359,10 @@ class MultiGrid : public Grid, public GridObserver
 
 	////////////////////////////////
 	//	CHILD QUANTITIES
+	///	returns the number of children of the given child-type
+		template <class TChild, class TElem>
+		inline size_t num_children(TElem* elem)		{return num_children(elem, TChild());}
+
 	///	Returns the number of child vertices
 		template <class TElem>
 		inline size_t num_child_vertices(TElem* elem)	{return get_info(elem).m_pVrtChild ? 1 : 0;}
@@ -388,6 +392,10 @@ class MultiGrid : public Grid, public GridObserver
 
 	////////////////////////////////
 	//	CHILD ACCESS
+	///	returns the i-th child of the given child-type
+		template <class TChild, class TElem>
+		inline TChild* get_child(TElem* elem, size_t ind)	{return get_child(elem, ind, TChild());}
+
 	///	Returns the child vertex of the given element or NULL if there is none
 		template <class TElem>
 		inline VertexBase* get_child_vertex(TElem* elem)	{return get_info(elem).m_pVrtChild;}
@@ -542,6 +550,45 @@ class MultiGrid : public Grid, public GridObserver
 
 		//template <class TElem>
 		//void element_to_be_replaced(TElem* elemOld, TElem* elemNew);
+
+
+	///	returning the number of children of the type of the dummy-argument.
+	/**	\{ */
+		template <class TElem>
+		inline size_t num_children(TElem* elem, const VertexBase&)
+			{return num_child_vertices(elem);}
+
+		template <class TElem>
+		inline size_t num_children(TElem* elem, const EdgeBase&)
+			{return num_child_edges(elem);}
+
+		template <class TElem>
+		inline size_t num_children(TElem* elem, const Face&)
+			{return num_child_faces(elem);}
+
+		template <class TElem>
+		inline size_t num_children(TElem* elem, const Volume&)
+			{return num_child_volumes(elem);}
+	/**	\} */
+
+	///	returning the i-th child of the type of the dummy-argument.
+	/**	\{ */
+		template <class TElem>
+		inline VertexBase* get_child(TElem* elem, size_t ind, const VertexBase&)
+			{return get_child_vertex(elem);}
+
+		template <class TElem>
+		inline EdgeBase* get_child(TElem* elem, size_t ind, const EdgeBase&)
+			{return get_child_edge(elem, ind);}
+
+		template <class TElem>
+		inline Face* get_child(TElem* elem, size_t ind, const Face&)
+			{return get_child_face(elem, ind);}
+
+		template <class TElem>
+		inline Volume* get_child(TElem* elem, size_t ind, const Volume&)
+			{return get_child_volume(elem, ind);}
+	/**	\} */
 
 	protected:
 	//	hierarchy

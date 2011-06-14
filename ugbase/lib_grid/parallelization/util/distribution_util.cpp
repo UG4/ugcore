@@ -105,13 +105,83 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 	}
 }
 
+
 ////////////////////////////////////////////////////////////////////////
-/**	Creates vertical interfaces for all elements which are moved away
- * from this process and which do not have a parent or whose parent
- * is not moved along with them.
+///	Selects all elements that shall reside on the current process as ghosts
+/**	This method uses Grid::mark.
+ *
+ * The method is useful to find all elements to which vertical interfaces shall
+ * be build. One should use SelectAssociatedGeometricObjects to select all associated
+ * lower dimensional elements. Only then all elements for vertical interfaces
+ * are selected.
+ */
+template <class TDistLayout>
+void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
+					 MGSelector& msel, std::vector<int>* processMap = NULL)
+{
+	typedef typename TDistLayout::NodeVec			NodeVec;
+	typedef typename TDistLayout::NodeType			Node;
+	typedef typename TDistLayout::Interface			Interface;
+	typedef typename TDistLayout::InterfaceEntry	InterfaceEntry;
+	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
+
+//	we have to find the local LayoutIndex
+	int locProcRank = pcl::GetProcRank();
+	int locLayoutInd = -1;
+	if(processMap){
+		vector<int>& procMap = *processMap;
+		for(size_t i = 0; i < procMap.size(); ++i){
+			if(procMap[i] == locProcRank){
+				locLayoutInd = i;
+				break;
+			}
+		}
+	}
+	else if(locProcRank < (int)distLayouts.size()){
+		locLayoutInd = locProcRank;
+	}
+
+	msel.clear<Elem>();
+
+//	iterate over all distLayouts but the local one
+	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
+	{
+		if((int)i_layout == locLayoutInd)
+			continue;
+
+		int curProcRank = i_layout;
+		if(processMap)
+			curProcRank = processMap->at(i_layout);
+
+		TDistLayout& curLayout = distLayouts[i_layout];
+
+	//	mark all nodes in curLayout
+		mg.begin_marking();
+		MarkNodesInLayout(mg, curLayout);
+
+	//	select all nodes, which have no parent in the same layout
+		NodeVec& curNodes = curLayout.node_vec();
+		for(size_t i_node = 0; i_node < curNodes.size(); ++i_node)
+		{
+			Node node = curNodes[i_node];
+			GeometricObject* parent = mg.get_parent(node);
+
+			if(!parent || !mg.is_marked(parent))
+				msel.select(node);
+		}
+
+	//	end marking
+		mg.end_marking();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+/**	Creates vertical interfaces for all selected elements.
  *
  * Note that this method may add a new distLayout, a new process-map entry
  * and a new empty subset to shPart.
+ *
+ * Elements which already are in vertical interfaces won't be added to new ones.
  */
 template <class TDistLayout, class TAAInt>
 void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
@@ -162,11 +232,14 @@ void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 	TDistLayout& locLayout = distLayouts[locLayoutInd];
 	NodeVec& locNodes = locLayout.node_vec();
 
-//	msel will always hold all nodes in localLayout
-//	aaInt will be used to store the local index of each selected node
-	msel.clear();
+//	mark all nodes, which stay here on this process (this may get more during
+//	the algorithm).
+//	aaInt will be used to store the local index of each marked node
+	mg.begin_marking();
+	MarkNodesInLayout(mg, locLayout);
+
 	for(size_t i = 0; i < locNodes.size(); ++i){
-		msel.select(locNodes[i]);
+		mg.mark(locNodes[i]);
 		aaInt[locNodes[i]] = i;
 	}
 
@@ -182,18 +255,14 @@ void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 
 		TDistLayout& curLayout = distLayouts[i_layout];
 
-	//	mark all nodes in curLayout
-		mg.begin_marking();
-		MarkNodesInLayout(mg, curLayout);
-
 	//	we wont access the interfaces directly. Instead we'll cache them
 	//	for efficient reuse
 		Interface* locInterface = NULL;
 		Interface* curInterface = NULL;
 		int interfaceLevel = -1;
 
-	//	check for each node whether its parent is not marked or if it has
-	//	no parent at all
+	//	check for each node whether it is selected. If so, we have to create
+	//	an interface entry (if none already exists).
 		NodeVec& curNodes = curLayout.node_vec();
 		for(size_t i_node = 0; i_node < curNodes.size(); ++i_node)
 		{
@@ -206,9 +275,7 @@ void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 			  || pDistGridMgr->contains_status(node, INT_V_SLAVE))
 				continue;
 
-			GeometricObject* parent = mg.get_parent(node);
-		//	!mg.is_marked(parent) is only executed if a parent exists.
-			if((!parent) || !mg.is_marked(parent)){
+			if(msel.is_selected(node)){
 			//	the element has to be put into a vertical interface
 			//	get the level and check whether we have to access the interfaces again
 				int lvl = mg.get_level(node);
@@ -221,8 +288,8 @@ void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 
 			//	before we can insert node into locInterface, we first have to
 			//	make sure, that it is contained in locLayout.
-				if(!msel.is_selected(node)){
-					msel.select(node);
+				if(!mg.is_marked(node)){
+					mg.mark(node);
 					aaInt[node] = (int)locNodes.size();
 					locNodes.push_back(node);
 				}
@@ -232,9 +299,9 @@ void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 				curInterface->push_back(InterfaceEntry(i_node, INT_V_SLAVE));
 			}
 		}
-
-		mg.end_marking();
 	}
+
+	mg.end_marking();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -396,6 +463,14 @@ void CreateDistributionLayouts(
 //	are contained in layout i at this point.
 //	we can now use this information to add vertical interfaces
 	if(createVerticalInterfaces){
+		msel.clear();
+		SelectNewGhosts(vertexLayoutsOut, mg, msel, processMap);
+		SelectNewGhosts(edgeLayoutsOut, mg, msel, processMap);
+		SelectNewGhosts(faceLayoutsOut, mg, msel, processMap);
+		SelectNewGhosts(volumeLayoutsOut, mg, msel, processMap);
+
+		SelectAssociatedGeometricObjects(msel);
+
 	//	we'll reuse aaFirstProc... for a different purpose here.
 		CreateVerticalInterfaces(vertexLayoutsOut, mg, msel, sh, aaFirstProcVRT,
 								pDistGridMgr, processMap);

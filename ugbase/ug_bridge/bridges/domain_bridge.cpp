@@ -216,11 +216,17 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	}
 
 //	DistributeDomain
-	reg.add_function("DistributeDomain", &DistributeDomain<domain_type>, grp.c_str());
+	reg.add_function("DistributeDomain", (bool (*)(TDomain&))
+					 &DistributeDomain<domain_type>, grp.c_str());
+
+	reg.add_function("DistributeDomain", (bool (*)(TDomain&, PartitionMap&))
+					 &DistributeDomain<domain_type>, grp.c_str());
+
 //	todo: remove this
 	{
 		std::stringstream ss; ss << "DistributeDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>, grp.c_str());
+		reg.add_function(ss.str().c_str(), (bool (*)(TDomain&))
+						 &DistributeDomain<domain_type>, grp.c_str());
 	}
 
 	reg.add_function("PartitionDomain_Bisection",

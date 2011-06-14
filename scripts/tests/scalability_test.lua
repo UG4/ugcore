@@ -10,6 +10,15 @@
 --
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-- Execute on cekon via e.g.
+-- salloc -n  8 mpirun ./ugshell  -ex ../scripts/mylaplace2.lua -dim 2 -grid unit_square_quads_8x8.ugx -numPreRefs 0 -numRefs 8
+-- With "second stage":
+-- salloc -n 32 mpirun ./ugshell  -ex ../scripts/mylaplace2.lua -dim 2 -grid unit_square_quads_8x8.ugx -numPreRefs 0 -numRefs 8
+-- Execute on JuGene:
+-- mpirun -np   32 -exe ./ugshell -mode VN -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/laplace_jacobi-fixed-it.lua -outproc 0 -grid unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs  8"
+--------------------------------------------------------------------------------
+
 ug_load_script("ug_util.lua")
 
 verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
@@ -44,6 +53,10 @@ numRefs    = util.GetParamNumber("-numRefs",    3)
 -- way the domain / the grid will be distributed to the processes:
 distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect]
 
+-- number of processes per node (only used if distType == grid2d)
+-- should be a square number
+numProcsPerNode = util.GetParamNumber("-numProcsPerNode", 1)
+
 -- parameters concerning the linear solver:
 lsIterator = util.GetParam("-lsIterator",     "gmg")
 lsMaxIter  = util.GetParamNumber("-lsMaxIter", 100)
@@ -57,6 +70,7 @@ else
 	baseLevel      = numRefs -- no meaning here, just to leave gmg stuff untouched
 end
 
+-- TODO: Adjust names on the left side to parameter names. (sr)
 print(" General parameters chosen:")
 print("    dim        = " .. dim)
 print("    numRefs    = " .. numRefs)
@@ -65,15 +79,15 @@ print("    grid       = " .. gridName)
 
 print("    distType   = " .. distributionType)
 
-print("    verbosity  =        " .. verbosity)
-print("    activateDbgWriter = " .. activateDbgWriter)
+print("    verb (verbosity) =        " .. verbosity)
+print("    dbgw (activateDbgWriter) = " .. activateDbgWriter)
 
 print(" Linear solver related parameters chosen:")
 print("    lsIterator = " .. lsIterator)
 print("    lsMaxIter  = " .. lsMaxIter)
 
-print("    baseSolverType = " .. baseSolverType)
-print("    baseLevel      = " .. baseLevel)
+print("    bs (baseSolverType) = " .. baseSolverType)
+print("    bl (baseLevel)      = " .. baseLevel)
 
 --------------------------------------------------------------------------------
 -- Checking for parameters (end)
@@ -116,46 +130,37 @@ end
 -- get number of processes
 numProcs = GetNumProcesses()
 
---------------------------------------------------------------------------------
--- New lexicographic partitioning (cf. 'tutorials/tut06_flexible_domain_distribution.lua',
--- first stage; 04052011ih)
--- Execute on cekon via e.g.
--- salloc -n  8 mpirun ./ugshell  -ex ../scripts/mylaplace2.lua -dim 2 -grid unit_square_quads_8x8.ugx -numPreRefs 0 -numRefs 8
--- With "second stage":
--- salloc -n 32 mpirun ./ugshell  -ex ../scripts/mylaplace2.lua -dim 2 -grid unit_square_quads_8x8.ugx -numPreRefs 0 -numRefs 8
--- Execute on JuGene:
--- mpirun -np   32 -exe ./ugshell -mode VN -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/laplace_jacobi-fixed-it.lua -outproc 0 -grid unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs  8"
-
---------------------------------------------------------------------------------
 -- Distribute the domain to all involved processes
-if distributionType == "bisect" then
-	if DistributeDomain(dom) == false then
-		print("Error while Distributing Grid.")
-		exit()
+-- Since only process 0 loaded the grid, it is the only one which has to
+-- fill a partitionMap.
+partitionMap = PartitionMap()
+
+if GetProcessRank() == 0 then
+	if distributionType == "bisect" then
+		util.PartitionMapBisection(partitionMap, dom, numProcs)
+	elseif distributionType == "grid2d" then
+		local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numProcs / numProcsPerNode)
+		util.PartitionMapLexicographic2D(partitionMap, dom, numNodesX,
+										 numNodesY, numProcsPerNode)
+	else
+	    print( "distributionType not known, aborting!")
+	    exit()
 	end
--- it would be nice to also have the partition map as output in this case for comparison ...
---	-- We'll save the partition map. This should only be done for debugging.
---	if verbosity >= 1 then
---		SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(), -- how to get these parameters?
---			"partitionMap_bisect.ugx")
---	end
-elseif distributionType == "grid2d" then
+	
+-- save the partition map for debug purposes
+	if verbosity >= 1 then
+		SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
+	end
+end
 
---	ug_load_script("lexmap_processes.lua")
-	ug_load_script("lexmap_processes2.lua")
-	print(" lexicographic right up partitioning done!")
-
-else
-
-        print( "distributionType not known, aborting!")
-        exit()
-
+if RedistributeDomain(dom, partitionMap, true) == false then
+	print("Redistribution failed. Please check your partitionMap.")
+	exit()
 end
 
 --------------------------------------------------------------------------------
--- Ende Partitionierung (04052011ih)
+-- end of partitioning
 --------------------------------------------------------------------------------
---exit() -- TMP break
 
 -- Perform post-refine
 print("Refine Parallel Grid")

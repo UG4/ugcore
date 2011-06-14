@@ -1,6 +1,8 @@
 -- Create util namespace
 util = util or {}
 
+ug_load_script("util/partition_maps.lua")
+
 -- Creates a domain for the given dimension. 1, 2, 3 are supported.
 function util.CreateDomain(dim)
 	if dim == 1 then
@@ -625,7 +627,7 @@ end
 -- some auxiliary functions
 --------------------------------------------------------------------------------
 -- function returns true if the number is a power of two
-function util.isPowerOfTwo(n)
+function util.IsPowerOfTwo(n)
 	local number compare = 1
 
 	while (compare < n) do
@@ -636,12 +638,32 @@ function util.isPowerOfTwo(n)
 end
 
 -- function returns true if the number is a natural number
-function util.isNaturalNumber(n)
+function util.IsNaturalNumber(n)
 	if n-math.floor(n) == 0 then
 		return true
 	else
 		return false
 	end
+end
+
+-- function to factorise number which has to be a power of 2 in two factors
+-- which differ at most by a factor of 2 and returns both
+-- (first the smaller one, then the larger one).
+function util.FactorizeInPowersOfTwo(n)
+	if not util.IsPowerOfTwo(n) then
+		print("Number to factorise must be a power of 2. Aborting.")
+		exit()
+	end
+
+	local number firstFactor = n
+	local number secFactor = 1
+
+	while (firstFactor > 2*secFactor) do
+		firstFactor = firstFactor/2
+		secFactor = secFactor*2
+	end
+
+	return secFactor, firstFactor
 end
 
 --------------------------------------------------------------------------------

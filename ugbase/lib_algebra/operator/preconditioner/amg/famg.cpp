@@ -40,7 +40,7 @@
 std::stack<int> g_DebugLevelStack;
 
 #ifdef UG_DEBUG
-#define GET_DEBUG_LEVEL(tag) ug::GetLogAssistant().get_debug_level(tag)
+#define GET_DEBUG_LEVEL(tag) ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag)
 #else
 #define GET_DEBUG_LEVEL(tag) 0
 #endif

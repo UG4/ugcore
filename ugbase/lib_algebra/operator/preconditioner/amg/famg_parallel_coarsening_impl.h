@@ -296,7 +296,7 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
 #ifdef UG_DEBUG
-	int iDebugLevelMatrixPre = GET_DEBUG_LEVEL(ug::LogAssistant::LIB_ALG_MATRIX);
+	//int iDebugLevelMatrixPre = GET_DEBUG_LEVEL(LIB_ALG_MATRIX);
 //	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelOverlapMatrix);
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelOverlapAMG);
 #endif

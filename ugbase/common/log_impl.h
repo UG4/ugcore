@@ -17,7 +17,7 @@ std::ostream&
 LogAssistant::
 debug_logger()
 {
-	return std::clog;
+	return std::cout;
 }
 
 inline
@@ -25,7 +25,7 @@ std::ostream&
 LogAssistant::
 logger()
 {
-	return std::clog;
+	return std::cout;
 }
 
 inline

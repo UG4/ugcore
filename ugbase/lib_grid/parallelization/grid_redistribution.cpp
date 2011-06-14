@@ -215,6 +215,20 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	//	first write the infos of all serializers
 		serializer.write_infos(out);
 	//	now serialize data associated with vertices, edges, faces and volumes
+		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl)
+			serializer.serialize(out, msel.begin<VertexBase>(lvl),
+								 msel.end<VertexBase>(lvl));
+		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl)
+			serializer.serialize(out, msel.begin<EdgeBase>(lvl),
+								 msel.end<EdgeBase>(lvl));
+		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl)
+			serializer.serialize(out, msel.begin<Face>(lvl),
+								 msel.end<Face>(lvl));
+		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl)
+			serializer.serialize(out, msel.begin<Volume>(lvl),
+								 msel.end<Volume>(lvl));
+
+	/*
 		serializer.serialize(out, vertexLayouts[partInd].node_vec().begin(),
 							 vertexLayouts[partInd].node_vec().end());
 		serializer.serialize(out, edgeLayouts[partInd].node_vec().begin(),
@@ -223,7 +237,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							 faceLayouts[partInd].node_vec().end());
 		serializer.serialize(out, volumeLayouts[partInd].node_vec().begin(),
 							 volumeLayouts[partInd].node_vec().end());
-
+	 */
 	//	write a magic number for debugging purposes
 		out.write((char*)&magicNumber2, sizeof(int));
 
@@ -384,10 +398,12 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 			UG_LOG("DeserializeMultiGridElements failed.\n");
 		}
 */
+		UG_LOG("Deserializing into tmg...\n");
 		tmg.clear_geometry();
 		DeserializeMultiGridElements(tmg, in, &vrtLayout.node_vec(),
 							&edgeLayout.node_vec(), &faceLayout.node_vec(),
 							&volLayout.node_vec());
+		UG_LOG("done.\n");
 
 		DeserializeDistributionLayoutInterfaces(vrtLayout, in);
 		DeserializeDistributionLayoutInterfaces(edgeLayout, in);
@@ -582,7 +598,7 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
  * the corresponding node entry in the layout is replaced by the
  * existing one.
  *
- * The given attachment accessors have to be associated with mgDest.
+ * The given attachment accessors have to be associated with mgSrc.
  */
 static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 							RedistributionVertexLayout& vrtLayout,
@@ -611,6 +627,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 	FaceDescriptor fd;
 	VolumeDescriptor vd;
 
+	UG_LOG("Copy new elements begins...\n");
 	for(size_t lvl = 0; lvl < mgSrc.num_levels(); ++lvl){
 	//	create hashes for existing geometric objects
 		Hash<VertexBase*, GeomObjID>	vrtHash((int)(1.5f * (float)(mgDest.num<VertexBase>(lvl)
@@ -659,6 +676,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 				nVrt = *findIter;
 			}
 			else{
+				//UG_LOG("  creating new vertex... ");
 			//	the vertex didn't yet exist. create it.
 				GeometricObject* parent = mgSrc.get_parent(vrt);
 				if(parent){
@@ -680,6 +698,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 				}
 				else
 					nVrt = *mgDest.create_by_cloning(vrt, lvl);
+				//UG_LOG("done.\n");
 			}
 
 			UG_ASSERT(nVrt, "Vertex couldn't be created.");
@@ -713,6 +732,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 			}
 			else{
 			//	the edge didn't yet exist. create it.
+				//UG_LOG("  creating new edge... ");
 				ed.set_vertices(aaVrt[e->vertex(0)], aaVrt[e->vertex(1)]);
 				GeometricObject* parent = mgSrc.get_parent(e);
 				if(parent){
@@ -731,6 +751,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 				}
 				else
 					ne = *mgDest.create_by_cloning(e, ed, lvl);
+				//UG_LOG("done.\n");
 			}
 
 		//	update the edge layout
@@ -760,6 +781,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 				nf = *findIter;
 			}
 			else{
+				//UG_LOG("  creating new face... ");
 			//	the face didn't yet exist. create it.
 				fd.set_num_vertices(f->num_vertices());
 				for(size_t i = 0; i < fd.num_vertices(); ++i)
@@ -779,6 +801,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 				}
 				else
 					nf = *mgDest.create_by_cloning(f, fd, lvl);
+				//UG_LOG("done.\n");
 			}
 
 		//	update the face layout
@@ -832,6 +855,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 			aaVol[v] = nv;
 		}
 	}
+	UG_LOG("Copy new elements done.\n");
 }
 
 }// end of namespace

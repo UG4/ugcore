@@ -265,6 +265,7 @@ class AttachedElementList
 
 			m_pipe = pipe;
 			m_aEntry = aEntry;
+			m_bSharedAttachment = true;
 
 			if(m_pipe){
 			//	since we use a shared attachment in this case, it may already be

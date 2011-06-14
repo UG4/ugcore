@@ -9,10 +9,11 @@ UG uses some external libraries. Some of them are inculded in the ug sources,
 some have to be downloaded and compiled separately.
 
 Here is a short overview of the libraries included in the sources. All those
-libraries have a license, which allow to use and distribute them even for
+libraries have a license, which allows to use and distribute them even for
 commercial purposes.
 
 	- linenoise			(BSD-like License)
+	- lua				(BSD-like License)
 	- rapidxml 			(Boost Software License - Version 1.0)
 	- shiny profiler	(zlib/libpng License)
 	- tribox			(custom license)
@@ -36,7 +37,6 @@ Please note that those licenses only apply to the respective libraries.
 
 <br>
 	\subsection subLinenoise Linenoise
-		
 		* Copyright (c) 2010, Salvatore Sanfilippo <antirez at gmail dot com>
 		* All rights reserved.
 		*
@@ -65,7 +65,30 @@ Please note that those licenses only apply to the respective libraries.
 		* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 		* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 		* POSSIBILITY OF SUCH DAMAGE.
-		
+
+<br>
+	\subsection subLua Lua
+		* Copyright (C) 1994-2008 Lua.org, PUC-Rio.  All rights reserved.
+		*
+		* Permission is hereby granted, free of charge, to any person obtaining
+		* a copy of this software and associated documentation files (the
+		* "Software"), to deal in the Software without restriction, including
+		* without limitation the rights to use, copy, modify, merge, publish,
+		* distribute, sublicense, and/or sell copies of the Software, and to
+		* permit persons to whom the Software is furnished to do so, subject to
+		* the following conditions:
+		*
+		* The above copyright notice and this permission notice shall be
+		* included in all copies or substantial portions of the Software.
+		*
+		* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+		* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+		* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+		* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+		* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+		* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+		* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 <br>
 	\subsection subRapidXML	RapidXML
 		Boost Software License - Version 1.0 - August 17th, 2003

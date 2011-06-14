@@ -560,7 +560,8 @@ erase_subset(int subsetIndex)
 		uint numNewSubsets = num_subsets() - 1;
 		erase_subset_lists(subsetIndex);
 		m_subsetInfos.resize(numNewSubsets);
-		resize_attachment_pipes(numNewSubsets);
+		if(subset_attachments_are_enabled())
+			resize_attachment_pipes(numNewSubsets);
 	}
 	else
 		LOG("WARNING in SubsetHandler::erase_subset(...): bad subset index: " << subsetIndex << endl);

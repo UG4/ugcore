@@ -12,19 +12,23 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	GridSubsetHandler implementation
 GridSubsetHandler::
-GridSubsetHandler(uint supportedElements) : ISubsetHandler(supportedElements)
+GridSubsetHandler(uint supportedElements) :
+	ISubsetHandler(supportedElements),
+	m_aSharedEntry(false)
 {
 }
 
 GridSubsetHandler::
 GridSubsetHandler(Grid& grid, uint supportedElements) :
-ISubsetHandler(supportedElements)
+	ISubsetHandler(supportedElements),
+	m_aSharedEntry(false)
 {
 	assign_grid(grid);
 }
 
 GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
-	ISubsetHandler(sh.m_supportedElements)
+	ISubsetHandler(sh.m_supportedElements),
+	m_aSharedEntry(false)
 {
 	Grid* pGrid = sh.get_assigned_grid();
 

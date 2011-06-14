@@ -9,14 +9,6 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "util/parallel_callbacks.h"
-#include "lib_grid/algorithms/graph/dual_graph.h"
-
-//	if we're using metis, then include the header now
-#ifdef UG_METIS
-	extern "C" {
-		#include "metis.h"
-	}
-#endif
 
 
 namespace ug
@@ -82,53 +74,39 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
  *
  * Note that this method is best suited for partitions with more than 8 procs.
  * For less than 8 procs metis features other, better suited methods.
+ *
+ * Valid template arguments are EdgeBase, Face, Volume and derived types.
  */
 template <class TGeomBaseObj>
 bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
-							 Grid& grid, int numParts)
-{
-	#ifdef UG_METIS
-		using namespace std;
+							 Grid& grid, int numParts);
 
-		if(numParts == 1){
-			shPartitionOut.assign_subset(grid.begin<TGeomBaseObj>(),
-										grid.end<TGeomBaseObj>(), 0);
-			return true;
-		}
+////////////////////////////////////////////////////////////////////////////////
+///	Partitions the elements in the multi-grid using the METIS library
+/**	This method calls METIS_PartGraphKway. Note that METIS is an external library
+ * developed at Karypis Labs (http://glaros.dtc.umn.edu/gkhome/)
+ *
+ * Note that this method is best suited for partitions with more than 8 procs.
+ * For less than 8 procs metis features other, better suited methods.
+ *
+ * All elements in baseLevel and higher levels will be partitioned. elements
+ * below baseLevel will stay where they are and are completly ignored during
+ * load balancing.
+ *
+ * hWeight determines, how important it is to keep horizontal neighbors
+ * on one process compared to the importance of keeping vertical neighbors
+ * together. The bigger hWeight, the more attention is spend to keep horizontal
+ * neighbors together.
+ *
+ * Valid template arguments are EdgeBase, Face, Volume and derived types.
+ */
+template <class TGeomBaseObj>
+bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
+							 	  MultiGrid& grid, int numParts,
+							 	  int hWeight = 1,
+							 	  int baseLevel = 0);
 
-	//	construct the dual graph to the grid
-		vector<idxtype> adjacencyMapStructure;
-		vector<idxtype> adjacencyMap;
-		ConstructDualGraph<TGeomBaseObj, idxtype>(adjacencyMapStructure, adjacencyMap, grid);
 
-	//	partition the graph using metis
-		int n = (int)adjacencyMapStructure.size() - 1;
-		int wgtflag = 0;
-		int numflag = 0;
-		int options[5]; options[0] = 0;
-		int edgeCut;
-		vector<idxtype> partitionMap(n);
-
-		METIS_PartGraphKway(&n, &adjacencyMapStructure.front(), &adjacencyMap.front(),
-							NULL, NULL, &wgtflag, &numflag, &numParts, options, &edgeCut, &partitionMap.front());
-
-	//	assign the subsets to the subset-handler
-		int counter = 0;
-		typedef typename geometry_traits<TGeomBaseObj>::iterator iterator;
-		for(iterator iter = grid.begin<TGeomBaseObj>();
-			iter != grid.end<TGeomBaseObj>(); ++iter)
-		{
-			shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
-		}
-
-		return true;
-	#else
-		UG_LOG("WARNING in PartitionGrid_MetisKway: METIS is not available in "
-				"the current build. Please consider recompiling with METIS "
-				"support enabled.\n");
-		return false;
-	#endif
-}
 }//	end of namespace
 
 

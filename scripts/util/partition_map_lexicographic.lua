@@ -6,13 +6,21 @@
 --
 ----------------------------------------------------------
 
+----------------------------------------------------------
+-- ATTENTION - DEPRECIATED!
+----------------------------------------------------------
+-- This script served as base for "partition_maps.lua". Parts were transfered
+-- to ug_util.lua. Please use "partition_maps.lua" instead of this script, since
+-- it may no longer be updated.
+
+
 --------------------------------------------------------------------------------
 -- auxiliary functions - maybe to be added to 'ug_util.lua' sometimes
 --------------------------------------------------------------------------------
 -- function to factorise number which has to be a power of 2 in two factors
 -- which differ by a factor of 2 and returns the larger one
 function util.factoriseInPowersOfTwo(n)
-	if not util.isPowerOfTwo(n) then
+	if not util.IsPowerOfTwo(n) then
 		print("Number to factorise must be a power of 2. Aborting.")
 		exit()
 	end
@@ -51,31 +59,31 @@ function util.lexicographicMapping(numProcs, numCoresPerCNode, gridName, verbosi
 	local number p0, p1, p2, p3 = 0, 1, 2, 3
 
 	-- get number of compute nodes ("CNodes; this equals number of "cells")
-	numCNodes = math.ceil(numProcs/numCoresPerCNode)
+	local numCNodes = math.ceil(numProcs/numCoresPerCNode)
 
 	print("NumProcs is " .. numProcs .. ", NumCoresPerNode is " .. numCoresPerCNode .. ", numCNodes = " .. numCNodes .. " (= number of cells)")
 	print("numPreRefs = " .. numPreRefs .. ", numRefs = " .. numRefs .. ", grid = " .. gridName)
 
 
 	-- number of cells in x direction
-	numCellCols = util.factoriseInPowersOfTwo(numCNodes) -- returns larger factor
+	local numCellCols = util.factoriseInPowersOfTwo(numCNodes) -- returns larger factor
 	-- number of cells in y direction
-	numCellRows = numCNodes/numCellCols
+	local numCellRows = numCNodes/numCellCols
 
 	-- check
-	if not numProcs == (numCellRows*numCellCols*numCoresPerCNode) then
+	if numProcs ~= (numCellRows*numCellCols*numCoresPerCNode) then
 		print("Factorisation in cells failed. Aborting.")
 		exit()
 	end
 
-	print("   Partitioning divides domain in '" .. numCellCols*numCellRows .. "' cells, organised in '" .. numCellCols .. "' columns and '" .. numCellRows .. "' rows")
+	print("   Partitioning divides domain in '" .. numCellCols * numCellRows .. "' cells, organised in '" .. numCellCols .. "' columns and '" .. numCellRows .. "' rows")
 
 	--	First we'll create a partition map. This is done on all processes, even
 	--	though the grid is currently only on process 0.
 	local partitionMap = PartitionMap()
 
 	--	We'll also store the rank of the current process
-	procRank = GetProcessRank()
+	local procRank = GetProcessRank()
 
 	--	Since only process 0 has a grid at the moment, we'll only fill the
 	--	partition map on him.
@@ -90,10 +98,10 @@ function util.lexicographicMapping(numProcs, numCoresPerCNode, gridName, verbosi
 		-- add procs to map
 		--numProcsInX = numCellCols*4
 
-		p0 = 0;
-		p1 = 1;
-		p2 = 2;
-		p3 = 3;
+		local p0 = 0;
+		local p1 = 1;
+		local p2 = 2;
+		local p3 = 3;
 
 		for jy = 1, numCellRows, 1 do
 			if verbosity >= 1 then
@@ -170,6 +178,3 @@ function util.lexicographicMapping(numProcs, numCoresPerCNode, gridName, verbosi
 		print("Saved domain to " .. outFileName)
 	end
 end
-
--- Aufruf der Funktion - erstmal direkt hier:
-util.lexicographicMapping(numProcs, numCoresPerCNode, gridName, verbosity)

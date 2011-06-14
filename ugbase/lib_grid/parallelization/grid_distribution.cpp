@@ -522,10 +522,11 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 //	receive the buffer
 	BinaryStream binaryStream(streamSize);
 	pcl::ReceiveData(binaryStream.buffer(), srcProcID, streamSize, 39);
-
+UG_LOG("deserialization begins...\n");
 //	fill the grid and the layout
 	DeserializeGridAndDistributionLayouts(mgOut, gridLayoutMapOut,
 											binaryStream);
+UG_LOG("deserialization done...\n");
 
 //	if vertical layouts shall be created, do it now.
 //	note that only surface-nodes are assigned to vertical interfaces.

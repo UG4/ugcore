@@ -41,8 +41,8 @@ class PartitionMap{
 		int find_target_proc(int procRank);
 
 	private:
-		std::vector<int>	m_targetProcs;
 		SubsetHandler		m_shPartitions;
+		std::vector<int>	m_targetProcs;
 };
 
 ///	Save the partition map to a file.

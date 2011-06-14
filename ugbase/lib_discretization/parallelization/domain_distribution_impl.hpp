@@ -15,37 +15,62 @@ template <typename TDomain>
 static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMap,
 									  int firstAxisToCut)
 {
+//	we need a process to which elements which are not considered will be send.
+//	Those elements should stay on the current process.
+	int localProc = 0;
+	localProc = pcl::GetProcRank();
+
+	int bucketSubset = partitionMap.find_target_proc(localProc);
+	if(bucketSubset == -1)
+		bucketSubset = (int)partitionMap.num_target_procs();
+
 	MultiGrid& mg = domain.get_grid();
 	partitionMap.assign_grid(mg);
 	#ifdef UG_PARALLEL
-		if(mg.num<Volume>() > 0)
+		if(mg.num<Volume>() > 0){
+			partitionMap.get_partition_handler().assign_subset(
+							mg.begin<Volume>(), mg.end<Volume>(), bucketSubset);
+
 			PartitionElementsByRepeatedIntersection<Volume, TDomain::dim>(
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.get_position_attachment(),
 												firstAxisToCut);
-		else if(mg.num<Face>() > 0)
+		}
+		else if(mg.num<Face>() > 0){
+			partitionMap.get_partition_handler().assign_subset(
+							mg.begin<Face>(), mg.end<Face>(), bucketSubset);
+
 			PartitionElementsByRepeatedIntersection<Face, TDomain::dim>(
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.get_position_attachment(),
 												firstAxisToCut);
-		else if(mg.num<EdgeBase>() > 0)
+		}
+		else if(mg.num<EdgeBase>() > 0){
+			partitionMap.get_partition_handler().assign_subset(
+							mg.begin<EdgeBase>(), mg.end<EdgeBase>(), bucketSubset);
+
 			PartitionElementsByRepeatedIntersection<EdgeBase, TDomain::dim>(
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.get_position_attachment(),
 												firstAxisToCut);
-		else if(mg.num<VertexBase>() > 0)
+		}
+		else if(mg.num<VertexBase>() > 0){
+			partitionMap.get_partition_handler().assign_subset(
+							mg.begin<VertexBase>(), mg.end<VertexBase>(), bucketSubset);
+
 			PartitionElementsByRepeatedIntersection<VertexBase, TDomain::dim>(
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.get_position_attachment(),
 												firstAxisToCut);
+		}
 		else{
 			LOG("partitioning could not be performed - "
 				<< "grid doesn't contain any elements!\n");
@@ -175,16 +200,16 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 #ifdef UG_PARALLEL
 //	call the actual partitioning routine
 	if(mg.num<Volume>() > 0){
-		PartitionGrid_MetisKway<Volume>(partitionMap.get_partition_handler(),
-										mg, numPartitions);
+		PartitionMultiGrid_MetisKway<Volume>(partitionMap.get_partition_handler(),
+											mg, numPartitions);
 	}
 	else if(mg.num<Face>() > 0){
-		PartitionGrid_MetisKway<Face>(partitionMap.get_partition_handler(),
-										mg, numPartitions);
+		PartitionMultiGrid_MetisKway<Face>(partitionMap.get_partition_handler(),
+											mg, numPartitions);
 	}
 	else if(mg.num<EdgeBase>() > 0){
-		PartitionGrid_MetisKway<EdgeBase>(partitionMap.get_partition_handler(),
-										  mg, numPartitions);
+		PartitionMultiGrid_MetisKway<EdgeBase>(partitionMap.get_partition_handler(),
+										  	  mg, numPartitions);
 	}
 	return true;
 #else
@@ -326,6 +351,85 @@ static bool DistributeDomain(TDomain& domainOut)
 //	perform distribution
 	AdjustAndDistributeGrid(distGridMgrOut, sh, mg, sh, numProcs, true,
 							funcAdjustGrid, funcPartitionGrid);
+
+	if(tmpPosAttachment)
+	{
+	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
+       ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, domPosition);
+       mg.detach_from_vertices(aPosition);
+
+       UG_LOG("DistributeDomain: removing temporary Position Attachment.\n");
+ 	}
+
+#endif
+
+//	in serial case: do nothing
+	return true;
+}
+
+template <typename TDomain>
+static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
+{
+#ifdef UG_PARALLEL
+//	typedefs
+	typedef typename TDomain::subset_handler_type subset_handler_type;
+	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
+
+//	get distributed grid manager
+	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
+
+//	check that manager exists
+	if(!pDistGridMgr)
+	{
+		UG_LOG("DistibuteDomain: Cannot find Distributed Grid Manager.\n");
+		return false;
+	}
+	distributed_grid_manager_type& distGridMgrOut = *pDistGridMgr;
+
+//	get subset handler
+	subset_handler_type& sh = domainOut.get_subset_handler();
+
+//	get number of processes
+	const int numProcs = pcl::GetNumProcesses();
+	if(numProcs == 1) return true;
+
+//	check, that grid is a multigrid
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid());
+	if(pMG == NULL)
+	{
+		UG_LOG("DistibuteDomain: MultiGrid-Domain required in current implementation.\n");
+		return false;
+	}
+	MultiGrid& mg = *pMG;
+
+//	get Grid Layout
+	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
+
+//	make sure that each grid has a position attachment - even if no data
+//	will be received.
+	typedef typename TDomain::position_attachment_type position_attachment_type;
+	position_attachment_type& domPosition = domainOut.get_position_attachment();
+	bool tmpPosAttachment = false;
+	if(!mg.has_vertex_attachment(aPosition))
+	{
+	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
+       mg.attach_to_vertices(aPosition);
+       ConvertMathVectorAttachmentValues<VertexBase>(mg, domPosition, aPosition);
+
+       UG_LOG("DistributeDomain: temporarily adding Position Attachment.\n");
+       tmpPosAttachment = true;
+	}
+
+	if(pcl::GetProcRank() == 0){
+		DistributeGrid_KeepSrcGrid(mg, sh, glmOut,
+								   partitionMap.get_partition_handler(),
+								   0, false);
+	}
+	else{
+		UG_LOG("receiving grid...\n");
+			ReceiveGrid(mg, sh, glmOut, 0, true);
+		UG_LOG("receive done.\n");
+	}
 
 	if(tmpPosAttachment)
 	{

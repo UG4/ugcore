@@ -92,6 +92,7 @@ if(NOT NO_MPI)
 							parallelization/distributed_grid.cpp
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
+							parallelization/load_balancing.cpp
 							# (unmaintained) parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
 							parallelization/util/distribution_util.cpp
 							parallelization/util/redistribution_util.cpp)	
