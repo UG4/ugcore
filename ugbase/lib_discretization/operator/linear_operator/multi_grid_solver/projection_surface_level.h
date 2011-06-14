@@ -16,62 +16,6 @@
 
 namespace ug{
 
-/// creates a list of vectors from list of grid_functions
-/**
- * This function extracts an std::vector of vectors from a std::vector of
- * Grid Functions. The out vector is cleared, if requested.
- *
- * \param[in,out]	vVectorInOut	vector of algebra Vectors
- * \param[in]		vGridFunc		vector of GridFunctions
- * \param[in]		clearCont		flag, if vector should be clear before extracting
- */
-template <typename TGridFunction>
-void ExtractVectorsFromGridFunction(std::vector<typename TGridFunction::vector_type*>& vVectorInOut,
-                                    const std::vector<TGridFunction*>& vGridFunc,
-                                    bool clearCont = true)
-{
-//	type of vector
-	typedef typename TGridFunction::vector_type vector_type;
-
-//	clear container iff required
-	if(clearCont) vVectorInOut.clear();
-
-//	loop grid functions
-	for(size_t i = 0; i < vGridFunc.size(); ++i)
-	{
-	//	cast Grid Function and add to vector
-		vVectorInOut.push_back(dynamic_cast<vector_type*>(vGridFunc[i]));
-	}
-}
-
-/// creates a list of const vectors from list of const grid_functions
-/**
- * This function extracts an std::vector of vectors from a std::vector of
- * Grid Functions. The out vector is cleared, if requested.
- *
- * \param[in,out]	vVectorInOut	vector of algebra Vectors
- * \param[in]		vGridFunc		vector of GridFunctions
- * \param[in]		clearCont		flag, if vector should be clear before extracting
- */
-template <typename TGridFunction>
-void ExtractVectorsFromGridFunction(std::vector<const typename TGridFunction::vector_type*>& vVectorInOut,
-                                    const std::vector<TGridFunction*>& vGridFunc,
-                                    bool clearCont = true)
-{
-//	type of vector
-	typedef typename TGridFunction::vector_type vector_type;
-
-//	clear container iff required
-	if(clearCont) vVectorInOut.clear();
-
-//	loop grid functions
-	for(size_t i = 0; i < vGridFunc.size(); ++i)
-	{
-	//	cast Grid Function and add to vector
-		vVectorInOut.push_back(dynamic_cast<const vector_type*>(vGridFunc[i]));
-	}
-}
-
 /// projects surface function to level functions
 template <typename TElem, typename TVector, typename TDoFDistributionImpl>
 bool ProjectSurfaceToLevel(int si,
