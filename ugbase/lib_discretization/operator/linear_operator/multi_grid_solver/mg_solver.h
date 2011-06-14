@@ -209,7 +209,7 @@ class AssembledMultiGridCycle :
 
 	///	projects a grid function from the levels to the surface
 		bool project_level_to_surface(vector_type& surfFunc,
-		                              std::vector<vector_type*> vLevelFunc);
+		                              std::vector<const vector_type*> vLevelFunc);
 
 	///	assembles the missing matrix part on the coarse level, that must be
 	///	added if the correction has been computed to ensure a correctly updated
@@ -351,9 +351,9 @@ class AssembledMultiGridCycle :
 			return vVec;
 		}
 
-		std::vector<const vector_type*> level_defects() const
+		std::vector<const vector_type*> const_level_defects() const
 		{
-			std::vector<vector_type*> vVec;
+			std::vector<const vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 				vVec.push_back(m_vLevData[i].d);
 			return vVec;
@@ -362,6 +362,14 @@ class AssembledMultiGridCycle :
 		std::vector<vector_type*> level_corrections()
 		{
 			std::vector<vector_type*> vVec;
+			for(size_t i = 0; i < m_vLevData.size(); ++i)
+				vVec.push_back(m_vLevData[i].c);
+			return vVec;
+		}
+
+		std::vector<const vector_type*> const_level_corrections() const
+		{
+			std::vector<const vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 				vVec.push_back(m_vLevData[i].c);
 			return vVec;

@@ -107,7 +107,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 
 //	project defect from level to surface
 	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromLevelToSurface);
-	if(!project_level_to_surface(d, level_defects()))
+	if(!project_level_to_surface(d, const_level_defects()))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of defect to surface failed.\n");
@@ -117,7 +117,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 
 //	project correction from level to surface
 	GMG_PROFILE_BEGIN(GMGApply_ProjectCorrectionFromLevelToSurface);
-	if(!project_level_to_surface(c, level_corrections()))
+	if(!project_level_to_surface(c, const_level_corrections()))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
 				"Projection of correction to surface failed.\n");
@@ -1109,7 +1109,7 @@ template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_level_to_surface(vector_type& surfVec,
-                         std::vector<vector_type*> vLevelVec)
+                         std::vector<const vector_type*> vLevelVec)
 {
   GMG_PROFILE_FUNC();
 //	level dof distributions
@@ -1119,14 +1119,6 @@ project_level_to_surface(vector_type& surfVec,
 //	surface dof distribution
 	const dof_distribution_type& surfDD =
 								m_pApproxSpace->get_surface_dof_distribution();
-
-//	check that surface dof distribution exists
-	if(&surfDD == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface':"
-				"Surface DoF Distribution missing.\n");
-		return false;
-	}
 
 //	surface view
 	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
@@ -1139,15 +1131,8 @@ project_level_to_surface(vector_type& surfVec,
 		return false;
 	}
 
-//	std::vector of algebra level vectors
-	std::vector<const vector_type*> cvLevelVec;
-
-//	create std::vector of const level vectors
-	for(size_t i = 0; i < vLevelVec.size(); ++i)
-		cvLevelVec.push_back(vLevelVec[i]);
-
 //	project
-	if(!ProjectLevelToSurface(surfVec, surfDD, *surfView, cvLevelVec, vLevelDD, m_baseLev))
+	if(!ProjectLevelToSurface(surfVec, surfDD, *surfView, vLevelVec, vLevelDD, m_baseLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': "
 				"Projection of function from level to surface failed.\n");
@@ -1173,14 +1158,6 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 	const dof_distribution_type& surfDD =
 								m_pApproxSpace->get_surface_dof_distribution();
 
-//	check that surface dof distribution exists
-	if(&surfDD == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level':"
-				"Surface DoF Distribution missing.\n");
-		return false;
-	}
-
 //	surface view
 	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
 
@@ -1196,7 +1173,6 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 	for(size_t lev = 0; lev < vLevelVec.size(); ++lev)
 		if(vLevelVec[lev] != NULL)
 			vLevelVec[lev]->set(0.0);
-
 
 //	project
 	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfVec, surfDD, *surfView))
