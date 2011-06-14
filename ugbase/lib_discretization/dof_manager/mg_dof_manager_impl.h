@@ -290,7 +290,7 @@ print_statistic() const
 //	Write Infos for Levels
 	for(size_t l = 0; l < m_vLevelDD.size(); ++l)
 	{
-		UG_LOG("    " << l << "    |");
+		UG_LOG("  " << std::setw(5) << l << "  |");
 		print_statistic(*m_vLevelDD[l]);
 		UG_LOG(std::endl);
 	}
