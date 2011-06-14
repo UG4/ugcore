@@ -27,6 +27,10 @@ template <typename TMGDoFManager>
 class ParallelMGDoFManager : public TMGDoFManager
 {
 	public:
+	//	type of serial dof distribution
+		typedef typename TMGDoFManager::dof_distribution_type serial_dd_type;
+
+	public:
 	///	Default Constructor
 		ParallelMGDoFManager()
 		: TMGDoFManager(), m_pDistGridManager(NULL), m_pLayoutMap(NULL)

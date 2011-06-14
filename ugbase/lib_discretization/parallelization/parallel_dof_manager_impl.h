@@ -69,72 +69,66 @@ bool
 ParallelMGDoFManager<TMGDoFManager>::
 create_level_index_layouts(size_t numGlobalLevels)
 {
-	typedef typename GridLayoutMap::Types<TElem>::Layout	TLayout;
+//	type of layout for element type
+	typedef typename GridLayoutMap::Types<TElem>::Layout TLayout;
 
+//	set the return flag to true (initially)
 	bool bRet = true;
 
-//	in order to correctly build horizontal interfaces at vertical master
-//	nodes, we have to exchange whether a horizontal interface connects
-//	a vertical master with another vertical master, or no.
-//	this data is then passed to CreateLevelIndexLayout, so that only necessary
-//	interfaces will be build.
-/*
-	ComPol_InterfaceStatus<TLayout>
-		comPol_MasterStatus(m_pDistGridManager, INT_V_SLAVE);
-	ComPol_InterfaceStatus<TLayout>
-		comPol_SlaveStatus(m_pDistGridManager, INT_V_SLAVE);
-	pcl::ParallelCommunicator<TLayout> com;
-	com.exchange_data(m_pDistGridManager->grid_layout_map(),
-					  INT_H_SLAVE, INT_H_MASTER, comPol_MasterStatus);
-	com.exchange_data(m_pDistGridManager->grid_layout_map(),
-					  INT_H_MASTER, INT_H_SLAVE, comPol_SlaveStatus);
-	com.communicate();
-*/
-
+//	get the grid layout map
 	GridLayoutMap& layoutMap = m_pDistGridManager->grid_layout_map();
 
-	for(size_t l = numGlobalLevels - 1; ; --l)
+//	loop all (global) number of levels
+	for(size_t l = 0; l < numGlobalLevels; ++l)
 	{
-	//	get dof distribution
-		typename TMGDoFManager::dof_distribution_type& distr =
-			*const_cast<typename TMGDoFManager::dof_distribution_type*>
-				(TMGDoFManager::get_level_dof_distribution(l));
+	//	get serial dof distribution
+		serial_dd_type* pDD = TMGDoFManager::get_level_dof_distribution(l);
 
-		UG_ASSERT(&distr != NULL, "No level dof distribution.");
+	//	check serial DoF Distribution
+		if(pDD == NULL)
+		{
+			UG_LOG("ERROR in 'ParallelMGDoFManager::create_level_index_layouts':"
+					" Level DoF Distribution is missing on level "<<l<<".\n");
+			bRet = false;
+			continue;
+		}
 
+	//	get a reference for convenience
+		serial_dd_type& dd = *pDD;
+
+	//	only in case that this proc really has a grid on the requested level
+	//	we have to build up the interfaces
 		if(l < TMGDoFManager::num_levels())
 		{
 		//	create horizontal index layouts
-			bRet &= AddEntriesToLevelIndexLayout(distr.get_master_layout(), distr,
+			bRet &= AddEntriesToLevelIndexLayout(dd.get_master_layout(), dd,
 						  	  	  layoutMap.get_layout<TElem>(INT_H_MASTER).
-						  	  	  	  layout_on_level(l)/*,
-						  	  	  &comPol_MasterStatus.get_result_map(l)*/);
+						  	  	  	  layout_on_level(l));
 
-			bRet &= AddEntriesToLevelIndexLayout(distr.get_slave_layout(), distr,
+			bRet &= AddEntriesToLevelIndexLayout(dd.get_slave_layout(), dd,
 						  	  	  layoutMap.get_layout<TElem>(INT_H_SLAVE).
-						  	  	  	  layout_on_level(l)/*,
-						  	  	  &comPol_SlaveStatus.get_result_map(l)*/);
+						  	  	  	  layout_on_level(l));
 
 		//	create vertical layouts
-			bRet &= AddEntriesToLevelIndexLayout(distr.get_vertical_master_layout(),
-								distr, layoutMap.get_layout<TElem>(INT_V_MASTER).
+			bRet &= AddEntriesToLevelIndexLayout(dd.get_vertical_master_layout(),
+								dd, layoutMap.get_layout<TElem>(INT_V_MASTER).
 						  	  				layout_on_level(l));
 
-			bRet &= AddEntriesToLevelIndexLayout(distr.get_vertical_slave_layout(),
-								distr, layoutMap.get_layout<TElem>(INT_V_SLAVE).
+			bRet &= AddEntriesToLevelIndexLayout(dd.get_vertical_slave_layout(),
+								dd, layoutMap.get_layout<TElem>(INT_V_SLAVE).
 						  	  				layout_on_level(l));
 		}
 		else
 		{
-			distr.get_master_layout().clear();
-			distr.get_slave_layout().clear();
-			distr.get_vertical_master_layout().clear();
-			distr.get_vertical_slave_layout().clear();
+		//	if no grid given, we can simply clear the layouts
+			dd.get_master_layout().clear();
+			dd.get_slave_layout().clear();
+			dd.get_vertical_master_layout().clear();
+			dd.get_vertical_slave_layout().clear();
 		}
-
-		if(l==0) break;
 	}
 
+//	return the success
 	return bRet;
 }
 
@@ -149,53 +143,51 @@ create_level_index_layouts(size_t numGlobalLevels)
 //	return flag
 	bool bRet = true;
 
-// 	if no cut level has appeared
-	bool no_cut = true;
-
 //	if no levels given, we're done
 	if(numGlobalLevels == 0) return true;
 
+//	create the index layouts
 	bRet &= create_level_index_layouts<VertexBase>(numGlobalLevels);
 	bRet &= create_level_index_layouts<EdgeBase>(numGlobalLevels);
 	bRet &= create_level_index_layouts<Face>(numGlobalLevels);
 	bRet &= create_level_index_layouts<Volume>(numGlobalLevels);
 
-	for(size_t l = numGlobalLevels - 1; ; --l)
+//	loop all levels to create the communicator
+	for(size_t l = 0; l < numGlobalLevels; ++l)
 	{
-	//	get dof distribution
-		typename TMGDoFManager::dof_distribution_type& distr =
-			*const_cast<typename TMGDoFManager::dof_distribution_type*>
-				(TMGDoFManager::get_level_dof_distribution(l));
+	//	get serial dof distribution
+		serial_dd_type* pDD = TMGDoFManager::get_level_dof_distribution(l);
 
-		UG_ASSERT(&distr != NULL, "No level dof distribution.");
+	//	check serial DoF Distribution
+		if(pDD == NULL)
+		{
+			UG_LOG("ERROR in 'ParallelMGDoFManager::create_level_index_layouts':"
+					" Level DoF Distribution is missing on level "<<l<<".\n");
+			bRet = false;
+			continue;
+		}
+
+	//	get a reference for convenience
+		serial_dd_type& dd = *pDD;
 
 	//	create local process communicator
 	//	The idea  of local processes is to exclude processes from
 	//	e.g. norm computation that does not have a grid on a given
-	//	level. If a grid exist, but all dofs are vertical slaves
-	//	this process is also reguarded as empty for norm computations.
-	//	In those cases the process votes false for the subcommunicator.
-
-	//TODO: perform a more precise check
-//		if(!distr.get_vertical_slave_layout().empty())
-//			no_cut = false;
+	//	level. If no DoFs exist on the level, that level is excluded from
+	//	norm computations. In those cases the process votes false for
+	//	the subcommunicator.
 
 	// 	choose if this process participates
-		bool participate = no_cut
-						   && !commWorld.empty()
-						   && (distr.num_dofs() > 0);
+		bool participate = !commWorld.empty() && (dd.num_dofs() > 0);
 
 		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 						  ": Participate = "<< participate <<
-						  " for level " << l << " (num_dofs=" <<
-						  distr.num_dofs() << ",no_cut=" << no_cut
-						  << ",!empty=" << !commWorld.empty() << ").\n");
+						  " for level "<<l<<" (num_dofs="<<dd.num_dofs()<<
+						  ",!empty=" << !commWorld.empty() << ").\n");
 
 	//	create process communicator for interprocess layouts
-		distr.get_process_communicator()
+		dd.get_process_communicator()
 				= commWorld.create_sub_communicator(participate);
-
-		if(l==0) break;
 	}
 
 //	we're done
@@ -271,10 +263,19 @@ bool
 ParallelMGDoFManager<TMGDoFManager>::
 create_surface_index_layouts()
 {
-//	get dof distribution
-	typename TMGDoFManager::dof_distribution_type& distr =
-		*const_cast<typename TMGDoFManager::dof_distribution_type*>
-			(TMGDoFManager::get_surface_dof_distribution());
+//	get serial dof distribution
+	serial_dd_type* pDD = TMGDoFManager::get_surface_dof_distribution();
+
+//	check serial DoF Distribution
+	if(pDD == NULL)
+	{
+		UG_LOG("ERROR in 'ParallelMGDoFManager::create_level_index_layouts':"
+				" Surface DoF Distribution is missing.\n");
+		return false;
+	}
+
+//	get a reference for convenience
+	serial_dd_type& dd = *pDD;
 
 //	if no levels given, error
 	if(TMGDoFManager::num_levels() == 0) return false;
@@ -283,45 +284,36 @@ create_surface_index_layouts()
 	bool bRet = true;
 
 //	create index layouts
-	distr.get_master_layout().clear();
-	distr.get_slave_layout().clear();
+	dd.get_master_layout().clear();
+	dd.get_slave_layout().clear();
 
 //	create surface index layouts
-	bRet &= CreateSurfaceIndexLayout(distr.get_master_layout(),
-	                                 distr, *m_pLayoutMap, INT_H_MASTER,
+	bRet &= CreateSurfaceIndexLayout(dd.get_master_layout(),
+	                                 dd, *m_pLayoutMap, INT_H_MASTER,
 									 *this->m_pMultiGrid,
 									 *m_pDistGridManager);
-	bRet &= CreateSurfaceIndexLayout(distr.get_slave_layout(),
-	                                 distr, *m_pLayoutMap, INT_H_SLAVE,
+	bRet &= CreateSurfaceIndexLayout(dd.get_slave_layout(),
+	                                 dd, *m_pLayoutMap, INT_H_SLAVE,
 	                                 *this->m_pMultiGrid,
 	                                 *m_pDistGridManager);
-// 	INFO: THIS MUST NOT BE USED AND WILL SOON BE DELETED AFTER SOME TESTS
-/*	bRet &= CreateSurfaceIndexLayout(distr.get_master_layout(),
-	                                 distr, *m_pLayoutMap, INT_V_MASTER,
-									 *this->m_pMultiGrid,
-									 *m_pDistGridManager);
-	bRet &= CreateSurfaceIndexLayout(distr.get_slave_layout(),
-	                                 distr, *m_pLayoutMap, INT_V_SLAVE,
-	                                 *this->m_pMultiGrid,
-	                                 *m_pDistGridManager);
-*/
 
 //	check
 //	pcl::ParallelCommunicator<IndexLayout> comTmp;
 //	pcl::PrintLayout(comTmp, distr.get_master_layout(), distr.get_slave_layout());
 
 //	on the surface view, there are no vertical layouts.
-	distr.get_vertical_master_layout().clear();
-	distr.get_vertical_slave_layout().clear();
+	dd.get_vertical_master_layout().clear();
+	dd.get_vertical_slave_layout().clear();
 
 //	TODO:	this communicator should be specified from the application
 	pcl::ProcessCommunicator commWorld;
 
+//	only those procs are included, that have DoFs on the surface level
+	bool participate = true;
+	if(dd.num_dofs() == 0) participate = false;
+
 //	create communicator
-//	\todo: Here we assume, that all procs are involved in the surface grid,
-//			but this must not be true
-	distr.get_process_communicator()
-			= commWorld.create_sub_communicator(true);
+	dd.get_process_communicator() = commWorld.create_sub_communicator(participate);
 
 //	we're done
 	return bRet;
