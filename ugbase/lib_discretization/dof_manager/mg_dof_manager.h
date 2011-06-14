@@ -109,19 +109,22 @@ class MGDoFManager : public GridObserver
 	///	returns Level DoF Distribution
 		dof_distribution_type* get_level_dof_distribution(size_t level)
 		{
-			if(level < m_vLevelDD.size())
-				return m_vLevelDD[level];
-			else
-				return NULL;
+			if(!level_distribution_required(level))
+			{
+				UG_LOG("Cannot update level distribution.\n");
+				throw(UGFatalError("Level DoF Distribution missing but requested."));
+			}
+
+			return m_vLevelDD[level];
 		}
 
 	///	returns Level DoF Distribution
 		const dof_distribution_type* get_level_dof_distribution(size_t level) const
 		{
-			if(level < m_vLevelDD.size())
-				return m_vLevelDD[level];
-			else
-				return NULL;
+			if(!(level < m_vLevelDD.size()))
+				throw(UGFatalError("Level DoF Distribution missing"));
+
+			return m_vLevelDD[level];
 		}
 
 	///	returns the Level DoF Distributions in a vector
