@@ -328,7 +328,7 @@ ilut = ILUT()
 -- choose base solver
 if baseSolverType == "exact" then
 	base = LU()
-elseif baseSolverType = "jac" then
+elseif baseSolverType == "jac" then
 	base = LinearSolver()
 	baseJac = Jacobi()
 	base:set_preconditioner(baseJac)
