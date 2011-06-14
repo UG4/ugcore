@@ -1137,7 +1137,7 @@ project_level_to_surface(vector_type& surfVec,
 //	of the surface have to be projected to the corresponding grid level
 	if(m_bFullRefined){
 		UG_ASSERT(vLevelVec.back()->size() == surfVec.size(), "Wrong size.");
-		VecCopy(surfVec, *(vLevelVec.back()));
+		surfVec = *(vLevelVec.back());
 	}
 	else{
 		if(!ProjectLevelToSurface(surfVec, surfDD, *surfView,
@@ -1191,7 +1191,7 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 //	of the surface have to be projected to the corresponding grid level
 	if(m_bFullRefined){
 		UG_ASSERT(vLevelVec.back()->size() == surfVec.size(), "Wrong size.");
-		VecCopy(*(vLevelVec.back()), surfVec);
+		*(vLevelVec.back()) = surfVec;
 	}
 	else{
 		if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD,
