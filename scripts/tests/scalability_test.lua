@@ -50,7 +50,7 @@ lsMaxIter  = util.GetParamNumber("-lsMaxIter", 100)
 
 -- MG solver related parameters
 if lsIterator == "gmg" then
-	baseSolverType = util.GetParam("-bs", "exact") -- choose one in ["exact" | "cg" ]
+	baseSolverType = util.GetParam("-bs", "exact") -- choose one in ["exact" | "cg"  |Ê"jac"]
 	baseLevel      = util.GetParamNumber("-bl",    0)
 else
 	baseSolverType = "exact" -- no meaning here, just to leave gmg stuff untouched
@@ -327,16 +327,14 @@ ilut = ILUT()
 
 -- choose base solver
 if baseSolverType == "exact" then
-
-	-- base = LapackLUSolver()
+	base = LU()
+elseif baseSolverType = "jac" then
 	base = LinearSolver()
-	base:set_preconditioner(jac)
-
+	baseJac = Jacobi()
+	base:set_preconditioner(baseJac)
 elseif baseSolverType == "cg" then
-
-	base = CG() -- parallel solver on baselevel for testing two grid method (29032011ih) - or as parallel solver on baselevel 'numPreRefs+1' (13042011ih)
+	base = CG() 
 	base:set_preconditioner(jac)
-
 else
 	print ("base solver not specified ==> exit")
 	exit()
@@ -351,13 +349,10 @@ end
 	-- Gemoetric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_base_level(baseLevel) -- new variable defining baselevel, set from script (default 0; 14042011ih)
---        gmg:set_base_level(numRefs-1) -- two grid method for testing (29032011ih)
+	gmg:set_base_level(baseLevel) -- variable defining baselevel, set from script
 	gmg:set_base_solver(base)
-	gmg:set_parallel_base_solver(true)
-	ilusmoother = ILU()
+	gmg:set_parallel_base_solver(false)
 	gmg:set_smoother(jac)
---	gmg:set_smoother(ilusmoother) -- jac (29932911ih)
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
@@ -367,43 +362,20 @@ end
 		gmg:set_debug(dbgWriter)
 	end
 
--- create AMG ---
------------------
-
-	if false then
-	amg = AMGPreconditioner()
-	amg:set_nu1(2)
-	amg:set_nu2(2)
-	amg:set_gamma(1)
-	amg:set_presmoother(jac)
-	amg:set_postsmoother(jac)
-	amg:set_base_solver(base)
-	--amg:set_debug(u)
-	end
-
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(lsMaxIter) -- until 18042011: literal '100'
+convCheck:set_maximum_steps(lsMaxIter)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
---convCheck:set_verbose_level(true) -- added 28032011ih
+--convCheck:set_verbose_level(true)
 
 -- create Linear Solver
 linSolver = LinearSolver()
-if lsIterator == "gmg" then
-	linSolver:set_preconditioner(gmg) -- until 09062011: literal 'gmg'
-elseif lsIterator == "jac" then
-	linSolver:set_preconditioner(jac) -- until 09062011: literal 'gmg'
-else
-	print ("linear solver iterator not specified ==> exit")
-	exit()
-end
-linSolver:set_convergence_check(convCheck)
+if lsIterator == "gmg" then 	linSolver:set_preconditioner(gmg) 
+elseif lsIterator == "jac" then	linSolver:set_preconditioner(jac) 
+else print ("linear solver iterator not specified ==> exit"); exit(); end
 
--- create ILU Solver
-iluSolver = LinearSolver()
-iluSolver:set_preconditioner(ilu)
-iluSolver:set_convergence_check(convCheck)
+linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
 cgSolver = CG()
@@ -420,7 +392,8 @@ solver = linSolver
 --solver = cgSolver
 
 --------------------------------------------------------------------------------
---  Apply Solver - using method defined in 'operator_util.h', to get separate profiling for assemble and solve (05042011ih)
+--  Apply Solver - using method defined in 'operator_util.h',
+--  to get separate profiling for assemble and solve
 --------------------------------------------------------------------------------
 -- 1. init operator
 --print("Init operator (i.e. assemble matrix).")
@@ -442,7 +415,7 @@ ApplyLinearSolver(linOp, u, b, solver)
 tAfter = os.clock()
 
 --------------------------------------------------------------------------------
---  Output
+--  Output of computed solution
 --------------------------------------------------------------------------------
 if verbosity >= 1 then
 	WriteGridFunctionToVTK(u, "Solution")
@@ -458,7 +431,8 @@ if GetProfilerAvailable() == true then
     pn = GetProfileNode("main")
     -- check if node is valid
     if pn:is_valid() then
-        print(pn:call_tree())
+	    --print(pn:call_tree())
+        print(pn:total_time_sorted())
     else
         print("main is not known to the profiler.")
     end
