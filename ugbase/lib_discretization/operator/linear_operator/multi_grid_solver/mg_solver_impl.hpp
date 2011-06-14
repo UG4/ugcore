@@ -1131,12 +1131,22 @@ project_level_to_surface(vector_type& surfVec,
 		return false;
 	}
 
-//	project
-	if(!ProjectLevelToSurface(surfVec, surfDD, *surfView, vLevelVec, vLevelDD, m_baseLev))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': "
-				"Projection of function from level to surface failed.\n");
-		return false;
+//	In case of full refinement, we can simply copy the surface vector to the
+//	level vector of the top level since they represent the same region. But
+//	in case of adaptive refinement, we have to work a bit, since all values
+//	of the surface have to be projected to the corresponding grid level
+	if(m_bFullRefined){
+		UG_ASSERT(vLevelVec.back()->size() == surfVec.size(), "Wrong size.");
+		VecCopy(surfVec, *(vLevelVec.back()));
+	}
+	else{
+		if(!ProjectLevelToSurface(surfVec, surfDD, *surfView,
+		                          vLevelVec, vLevelDD, m_baseLev))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': "
+					"Projection of function from level to surface failed.\n");
+			return false;
+		}
 	}
 
 //	we're done
@@ -1170,16 +1180,27 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 	}
 
 //	reset vectors
+//	\todo: Is this really necessary ?
 	for(size_t lev = 0; lev < vLevelVec.size(); ++lev)
 		if(vLevelVec[lev] != NULL)
 			vLevelVec[lev]->set(0.0);
 
-//	project
-	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfVec, surfDD, *surfView))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level': "
-				"Projection of function from surface to level failed.\n");
-		return false;
+//	In case of full refinement, we can simply copy the surface vector to the
+//	level vector of the top level since they represent the same region. But
+//	in case of adaptive refinement, we have to work a bit, since all values
+//	of the surface have to be projected to the corresponding grid level
+	if(m_bFullRefined){
+		UG_ASSERT(vLevelVec.back()->size() == surfVec.size(), "Wrong size.");
+		VecCopy(*(vLevelVec.back()), surfVec);
+	}
+	else{
+		if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD,
+		                          surfVec, surfDD, *surfView))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level': "
+					"Projection of function from surface to level failed.\n");
+			return false;
+		}
 	}
 
 //	we're done
