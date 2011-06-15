@@ -109,10 +109,10 @@ class MGDoFManager : public GridObserver
 	///	returns Level DoF Distribution
 		dof_distribution_type* get_level_dof_distribution(size_t level)
 		{
-			if(!level_distribution_required(level))
+			if(!level_distribution_required(level+1))
 			{
 				UG_LOG("Cannot update level distribution.\n");
-				throw(UGFatalError("Level DoF Distribution missing but requested."));
+				throw(UGFatalError("Cannot update level distribution.\n"));
 			}
 
 			return m_vLevelDD[level];
