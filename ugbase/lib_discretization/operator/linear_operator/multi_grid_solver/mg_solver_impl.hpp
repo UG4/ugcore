@@ -1125,7 +1125,6 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_level_to_surface(vector_type& surfVec,
                          std::vector<const vector_type*> vLevelVec)
 {
-  GMG_PROFILE_FUNC();
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
 								m_pApproxSpace->get_level_dof_distributions();
@@ -1184,7 +1183,6 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 project_surface_to_level(std::vector<vector_type*> vLevelVec,
                          const vector_type& surfVec)
 {
-  GMG_PROFILE_FUNC();
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
 								m_pApproxSpace->get_level_dof_distributions();
