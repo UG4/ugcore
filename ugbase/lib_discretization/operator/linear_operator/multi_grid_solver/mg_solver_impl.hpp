@@ -209,9 +209,6 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 lmgc(vector_type& c, vector_type& d, size_t lev)
 {
-//	start profiling
-	GMG_PROFILE_FUNC();
-
 // 	reset correction to zero on this level
   	c.set(0.0);
 
@@ -757,7 +754,7 @@ init_common(bool nonlinear)
 		m_bFullRefined =false;
 
 //	Assemble coarse grid operators
-	GMG_PROFILE_BEGIN(GMG_AssembleCoarseGridOperator);
+	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	if(nonlinear){
 		if(!init_non_linear_level_operator()){
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
