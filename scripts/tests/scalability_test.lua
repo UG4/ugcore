@@ -418,7 +418,7 @@ print("Apply solver.")
 tStart = os.clock()
 if solver:apply_return_defect(u,b) == false then print("Could not apply solver"); exit(); end
 tStop = os.clock()
-print("TIME for SOLVERING:  " .. tStop - tStart .. " s.");
+print("TIME for SOLVING:  " .. tStop - tStart .. " s.");
 
 --------------------------------------------------------------------------------
 --  Output of computed solution
