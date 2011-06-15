@@ -462,7 +462,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		}
 	}
 
-	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelMatrixPre);
+//	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelMatrixPre);
 }
 
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
