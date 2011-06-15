@@ -9,7 +9,7 @@
 #define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 
 #include "common/profiler/profiler.h"
-#include "projection_surface_level.h"
+#include "mg_solver_util.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
 #include "lib_discretization/dof_manager/dof_manager_util.h"
 

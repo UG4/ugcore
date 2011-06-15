@@ -1,12 +1,12 @@
 /*
- * projection_surface_level.h
+ * mg_solver_util.h
  *
  *  Created on: 01.10.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__PROJECTION_SURFACE_LEVEL__
-#define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__PROJECTION_SURFACE_LEVEL__
+#ifndef __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_UTIL__
+#define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_UTIL__
 
 // extern header
 #include <vector>
