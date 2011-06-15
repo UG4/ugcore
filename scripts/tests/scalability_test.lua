@@ -12,11 +12,12 @@
 
 --------------------------------------------------------------------------------
 -- Execute on cekon via e.g.
--- salloc -n  8 mpirun ./ugshell  -ex ../scripts/mylaplace2.lua -dim 2 -grid unit_square_quads_8x8.ugx -numPreRefs 0 -numRefs 8
--- With "second stage":
--- salloc -n 32 mpirun ./ugshell  -ex ../scripts/mylaplace2.lua -dim 2 -grid unit_square_quads_8x8.ugx -numPreRefs 0 -numRefs 8
--- Execute on JuGene:
--- mpirun -np   32 -exe ./ugshell -mode VN -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/laplace_jacobi-fixed-it.lua -outproc 0 -grid unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs  8"
+-- salloc -n 32 mpirun ./ugshell  -ex ../scripts/tests/scalability_test.lua -dim 2 -grid unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs 8
+
+-- Execute on JuGene via e.g.('mpirun' call has to be specified in a LoadLeveler script!):
+-- mpirun -np 32 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs  8"
+-- Or the same job interactively:
+-- llrun -v -np 32 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid  unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs 8"
 --------------------------------------------------------------------------------
 
 ug_load_script("ug_util.lua")
@@ -50,13 +51,6 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
--- way the domain / the grid will be distributed to the processes:
-distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect]
-
--- number of processes per node (only used if distType == grid2d)
--- should be a square number
-numProcsPerNode = util.GetParamNumber("-numProcsPerNode", 1)
-
 -- parameters concerning the linear solver:
 lsIterator = util.GetParam("-lsIterator",     "gmg")
 lsMaxIter  = util.GetParamNumber("-lsMaxIter", 100)
@@ -70,16 +64,23 @@ else
 	baseLevel      = numRefs -- no meaning here, just to leave gmg stuff untouched
 end
 
--- TODO: Adjust names on the left side to parameter names. (sr)
+-- parallelisation related stuff
+-- way the domain / the grid will be distributed to the processes:
+distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect]
+
+-- number of processes per node (only used if distType == grid2d)
+-- should be a square number
+numProcsPerNode = util.GetParamNumber("-numPPN", 1)
+
+
+-- Display parameters (or defaults):
 print(" General parameters chosen:")
 print("    dim        = " .. dim)
+print("    grid       = " .. gridName)
 print("    numRefs    = " .. numRefs)
 print("    numPreRefs = " .. numPreRefs)
-print("    grid       = " .. gridName)
 
-print("    distType   = " .. distributionType)
-
-print("    verb (verbosity) =        " .. verbosity)
+print("    verb (verbosity)         = " .. verbosity)
 print("    dbgw (activateDbgWriter) = " .. activateDbgWriter)
 
 print(" Linear solver related parameters chosen:")
@@ -88,6 +89,10 @@ print("    lsMaxIter  = " .. lsMaxIter)
 
 print("    bs (baseSolverType) = " .. baseSolverType)
 print("    bl (baseLevel)      = " .. baseLevel)
+
+print(" Parallelisation related parameters chosen:")
+print("    distType   = " .. distributionType)
+print("    numPPN (numProcsPerNode) = " .. numProcsPerNode)
 
 --------------------------------------------------------------------------------
 -- Checking for parameters (end)
