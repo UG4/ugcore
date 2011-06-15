@@ -390,8 +390,10 @@ print( "   baseSolverType is " .. baseSolverType .. ",  baseLevel is " .. baseLe
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
+SynchronizeProcesses()
 tStart = os.clock()
 if linOp:init() == false then print("Could not assemble operator"); exit(); end
+SynchronizeProcesses()
 tStop = os.clock()
 print("TIME for ASSEMBLING: " .. tStop - tStart .. " s.");
 
@@ -408,15 +410,19 @@ end
 
 -- 2. init solver for linear Operator
 print("Init solver for operator (i.e. prepare solver).")
+SynchronizeProcesses()
 tStart = os.clock()
 if solver:init(linOp) == false then print("Could not init solver"); exit(); end
+SynchronizeProcesses()
 tStop = os.clock()
 print("TIME for PREPARATION OF SOLVER: " .. tStop - tStart .. " s.");
 
 -- 3. apply solver
 print("Apply solver.")
+SynchronizeProcesses()
 tStart = os.clock()
 if solver:apply_return_defect(u,b) == false then print("Could not apply solver"); exit(); end
+SynchronizeProcesses()
 tStop = os.clock()
 print("TIME for SOLVING:  " .. tStop - tStart .. " s.");
 
