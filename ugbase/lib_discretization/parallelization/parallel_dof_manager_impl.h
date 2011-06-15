@@ -116,9 +116,6 @@ create_level_index_layouts(size_t numGlobalLevels)
 //	TODO:	this communicator should be specified from the application
 	pcl::ProcessCommunicator commWorld;
 
-//	if no levels given, we're done
-	if(numGlobalLevels == 0) return true;
-
 //	return flag
 	bool bRet = true;
 
@@ -270,9 +267,6 @@ create_surface_index_layouts()
 
 //	get a reference for convenience
 	serial_dd_type& dd = *pDD;
-
-//	if no levels given, error
-	if(TMGDoFManager::num_levels() == 0) return false;
 
 //	return flag
 	bool bRet = true;
