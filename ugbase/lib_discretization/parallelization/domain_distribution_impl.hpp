@@ -7,6 +7,10 @@
 
 #include "domain_distribution.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl.h"
+#endif
+
 namespace ug
 {
 
@@ -15,18 +19,19 @@ template <typename TDomain>
 static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMap,
 									  int firstAxisToCut)
 {
-//	we need a process to which elements which are not considered will be send.
-//	Those elements should stay on the current process.
-	int localProc = 0;
-	localProc = pcl::GetProcRank();
-
-	int bucketSubset = partitionMap.find_target_proc(localProc);
-	if(bucketSubset == -1)
-		bucketSubset = (int)partitionMap.num_target_procs();
 
 	MultiGrid& mg = domain.get_grid();
 	partitionMap.assign_grid(mg);
 	#ifdef UG_PARALLEL
+	//	we need a process to which elements which are not considered will be send.
+	//	Those elements should stay on the current process.
+		int localProc = 0;
+		localProc = pcl::GetProcRank();
+
+		int bucketSubset = partitionMap.find_target_proc(localProc);
+		if(bucketSubset == -1)
+			bucketSubset = (int)partitionMap.num_target_procs();
+
 		if(mg.num<Volume>() > 0){
 			partitionMap.get_partition_handler().assign_subset(
 							mg.begin<Volume>(), mg.end<Volume>(), bucketSubset);
@@ -76,9 +81,13 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 				<< "grid doesn't contain any elements!\n");
 			return false;
 		}
+
+		return true;
 	#endif
 
-	return true;
+	UG_LOG("WARNING: PartitionDomain_Bisection is currently only implemented for");
+	UG_LOG(" parallel environments.\n");
+	return false;
 }
 
 ///	partitions a domain by sorting all elements into a regular grid
@@ -183,9 +192,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 			if(bucketSubset >= (int)partitionMap.num_target_procs())
 				partitionMap.add_target_proc(localProc);
 		}
+
+		return true;
 	#endif
 
-	return true;
+	UG_LOG("WARNING: PartitionDomain_RegularGrid is currently only implemented for");
+	UG_LOG(" parallel environments.\n");
+	return false;
 }
 
 template <typename TDomain>
