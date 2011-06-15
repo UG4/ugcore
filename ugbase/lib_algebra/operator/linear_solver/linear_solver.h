@@ -77,6 +77,7 @@ class LinearSolver
 			m_A = &J;
 
 		//	init the preconditioner
+			LS_PROFILE_BEGIN(LS_InitPrecond);
 			if(m_pPrecond != NULL)
 				if(!m_pPrecond->init(J, u))
 				{
@@ -84,6 +85,7 @@ class LinearSolver
 							"Iterator Operator for Operator J.\n");
 					return false;
 				}
+			LS_PROFILE_END();
 
 		//	we're done
 			return true;
@@ -96,6 +98,7 @@ class LinearSolver
 			m_A = &L;
 
 		// 	init Preconditioner for operator A
+			LS_PROFILE_BEGIN(LS_InitPrecond);
 			if(m_pPrecond != NULL)
 				if(!m_pPrecond->init(L))
 				{
@@ -103,6 +106,7 @@ class LinearSolver
 							"Cannot init Iterator Operator for Operator L.\n");
 					return false;
 				}
+			LS_PROFILE_END();
 
 		//	we're done
 			return true;
@@ -152,10 +156,14 @@ class LinearSolver
 		// 	create correction
 		// 	todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
 		//			without initializing the values
+			LS_PROFILE_BEGIN(LS_CreateCorrection);
 			vector_type c; c.create(x.size()); c = x;
+			LS_PROFILE_END();
 
+			LS_PROFILE_BEGIN(LS_ComputeStartDefect);
 			prepare_conv_check();
 			m_pConvCheck->start(d);
+			LS_PROFILE_END();
 
 		// 	Iteration loop
 			while(!m_pConvCheck->iteration_ended())
