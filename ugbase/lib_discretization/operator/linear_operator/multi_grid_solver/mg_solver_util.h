@@ -16,6 +16,89 @@
 
 namespace ug{
 
+/// creates a mapping levIndex = vMap[surfIndex];
+template <typename TElem, typename TDoFDistribution>
+bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
+                                const IDoFDistribution<TDoFDistribution>& surfDD,
+                                const IDoFDistribution<TDoFDistribution>& topDD)
+{
+//	type of element iterator
+	typedef typename geometry_traits<TElem>::const_iterator iter_type;
+
+//	vector of indices
+	typedef typename IDoFDistribution<TDoFDistribution>::algebra_index_vector_type ind_vec_type;
+	ind_vec_type surfaceInd, levelInd;
+
+	for(int si = 0; si < surfDD.num_subsets(); ++si)
+	{
+	//	iterators for subset
+		iter_type iter = surfDD.template begin<TElem>(si);
+		iter_type iterEnd = surfDD.template end<TElem>(si);
+
+	//	loop all elements of type
+		for( ; iter != iterEnd; ++iter)
+		{
+		//	get elem
+			TElem* elem = *iter;
+
+		//	extract all algebra indices for the element on surface
+			surfDD.get_inner_algebra_indices(elem, surfaceInd);
+
+		//	extract all algebra indices for the element on level
+			topDD.get_inner_algebra_indices(elem, levelInd);
+
+		//	check that index sets have same cardinality
+			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
+
+		//	copy all elements of the vector
+			for(size_t i = 0; i < surfaceInd.size(); ++i)
+			{
+			//	copy entries into level vector
+				vMap[surfaceInd[i]] = levelInd[i];
+			}
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+template <typename TDoFDistribution>
+bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
+                                const IDoFDistribution<TDoFDistribution>& surfDD,
+                                const IDoFDistribution<TDoFDistribution>& topDD)
+{
+//	check full refinement
+	if(surfDD.num_dofs() != topDD.num_dofs())
+	{
+		UG_LOG("ERROR in 'CreateSurfaceToToplevelMap': This function can only"
+				" be applied to a full refined grid, where the surface is the "
+				" top level.\n");
+		return false;
+	}
+
+//	success flag
+	bool bRetVal = true;
+
+//	resize mapping
+	vMap.resize(surfDD.num_dofs(), 10000555);
+
+// 	add dofs on elements
+	if(surfDD.template has_dofs_on<VertexBase>())
+		bRetVal &= CreateSurfaceToToplevelMap<VertexBase, TDoFDistribution>(vMap, surfDD, topDD);
+
+	// TODO: Use all DoF types
+/*
+	if(surfDD.template has_dofs_on<EdgeBase>())
+		bRetVal &= CreateSurfaceToToplevelMap<EdgeBase, TDoFDistribution>(vMap, surfDD, topDD);
+	if(surfDD.template has_dofs_on<Face>())
+		bRetVal &= CreateSurfaceToToplevelMap<Face, TDoFDistribution>(vMap, surfDD, topDD);
+	if(surfDD.template has_dofs_on<Volume>())
+		bRetVal &= CreateSurfaceToToplevelMap<Volume, TDoFDistribution>(vMap, surfDD, topDD);
+*/
+	return bRetVal;
+}
+
 /// projects surface function to level functions
 /**
  * This function copies the values of a vector defined for the surface grid

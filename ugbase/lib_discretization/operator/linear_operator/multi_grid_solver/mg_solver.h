@@ -248,6 +248,9 @@ class AssembledMultiGridCycle :
 	///	flag indicating if grid is full refined
 		bool m_bFullRefined;
 
+	///	mapping from surface to top level (only valid in case of full refinement)
+		std::vector<size_t> m_vSurfToTopMap;
+
 	///	prototype for smoother
 		smoother_type* m_pSmootherPrototype;
 

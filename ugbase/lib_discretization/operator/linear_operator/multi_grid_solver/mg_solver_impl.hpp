@@ -807,6 +807,19 @@ init_common(bool nonlinear)
 	}
 	GMG_PROFILE_END();
 
+//	init mapping from surface level to top level in case of full refinement
+	if(m_bFullRefined)
+	{
+		if(!CreateSurfaceToToplevelMap(m_vSurfToTopMap,
+		                               m_pApproxSpace->get_surface_dof_distribution(),
+		                               m_pApproxSpace->get_level_dof_distribution(m_topLev)))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
+					"Cannot init Mapping Surface -> TopLevel (full refinement case).\n");
+			return false;
+		}
+	}
+
 //	we're done
 	return true;
 }
@@ -1134,12 +1147,30 @@ project_level_to_surface(vector_type& surfVec,
 //	Now we can project the surface vector to the levels
 //	Note: even in case of full refinement this is necessary, since the ordering
 //		  of DoFs may differ between surface grid and top level
-	if(!ProjectLevelToSurface(surfVec, surfDD, *surfView,
-							  vLevelVec, vLevelDD, m_baseLev))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': "
-				"Projection of function from level to surface failed.\n");
-		return false;
+	if(m_bFullRefined){
+		const vector_type& topVec = *(vLevelVec[m_topLev]);
+		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
+		{
+		//	get corresponding level index
+			const size_t levIndex = m_vSurfToTopMap[surfIndex];
+
+		//	write value
+			surfVec[surfIndex] = topVec[levIndex];
+
+#ifdef UG_PARALLEL
+		//	copy storage type into all vectors
+			surfVec.copy_storage_type(topVec);
+#endif
+		}
+	}
+	else {
+		if(!ProjectLevelToSurface(surfVec, surfDD, *surfView,
+								  vLevelVec, vLevelDD, m_baseLev))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::project_level_to_surface': "
+					"Projection of function from level to surface failed.\n");
+			return false;
+		}
 	}
 
 //	we're done
@@ -1181,12 +1212,33 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 //	Now we can project the surface vector to the levels
 //	Note: even in case of full refinement this is necessary, since the ordering
 //		  of DoFs may differ between surface grid and top level
-	if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD,
-							  surfVec, surfDD, *surfView))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level': "
-				"Projection of function from surface to level failed.\n");
-		return false;
+	if(m_bFullRefined){
+		vector_type& topVec = *(vLevelVec[m_topLev]);
+		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
+		{
+		//	get corresponding level index
+			const size_t levIndex = m_vSurfToTopMap[surfIndex];
+
+		//	write value
+			topVec[levIndex] = surfVec[surfIndex];
+
+#ifdef UG_PARALLEL
+		//	copy storage type into all vectors
+			for(size_t lev = 0; lev < vLevelVec.size(); ++lev)
+				if(vLevelVec[lev] != NULL)
+					vLevelVec[lev]->copy_storage_type(surfVec);
+#endif
+
+		}
+	}
+	else{
+		if(!ProjectSurfaceToLevel(vLevelVec, vLevelDD,
+								  surfVec, surfDD, *surfView))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::project_surface_to_level': "
+					"Projection of function from surface to level failed.\n");
+			return false;
+		}
 	}
 
 //	we're done
