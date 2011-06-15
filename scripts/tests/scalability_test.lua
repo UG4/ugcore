@@ -290,27 +290,6 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
-print ("Reset initial value")
--- set initial value
-u:set(0.0)
-
--- init Operator
-print ("Assemble Operator ... ")
-tAssembleStart = os.clock() 
-if linOp:init() == false then print("Could assemble operator"); exit(); end
-tAssembleEnd = os.clock()
-print("Assembling took " .. tAssembleEnd - tAssembleStart .. " seconds.");
-
--- set dirichlet values in start iterate
-linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
-
--- write matrix for test purpose
-if verbosity >= 1 then
-	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-	SaveVectorForConnectionViewer(b, "Rhs.mat")
-end
-
 -- debug writer
 dbgWriter = util.CreateGridFunctionDebugWriter(dim)
 dbgWriter:set_reference_grid_function(u)
@@ -406,24 +385,41 @@ solver = linSolver
 --  Apply Solver - using method defined in 'operator_util.h',
 --  to get separate profiling for assemble and solve
 --------------------------------------------------------------------------------
--- 1. init operator
---print("Init operator (i.e. assemble matrix).")
---linOp:init() -- really necessary? Already done above!
-
--- 2. init solver for linear Operator
---print("Init solver for operator.")
---solver:init(linOp)
-
--- 3. apply solver
---print("Apply solver.")
---solver:apply_return_defect(u,b)
 
 print( "   baseSolverType is " .. baseSolverType .. ",  baseLevel is " .. baseLevel )
 
-print("Init operator and solver, then apply solver.")
-tBefore = os.clock()
-ApplyLinearSolver(linOp, u, b, solver)
-tAfter = os.clock()
+-- 1. init operator
+print("Init operator (i.e. assemble matrix).")
+tStart = os.clock()
+if linOp:init() == false then print("Could not assemble operator"); exit(); end
+tStop = os.clock()
+print("Assembling took " .. tStart - tStop .. " seconds.");
+
+-- 1.b set dirichlet values in start iterate
+u:set(0.0)
+linOp:set_dirichlet_values(u)
+b:assign(linOp:get_rhs())
+
+-- 1.c write matrix for test purpose
+if verbosity >= 1 then
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.mat")
+end
+
+-- 2. init solver for linear Operator
+print("Init solver for operator (i.e. prepare solver).")
+tStart = os.clock()
+if solver:init(linOp) == false then print("Could not init solver"); exit(); end
+tStop = os.clock()
+print("Init Solver took " .. tStart - tStop .. " seconds.");
+
+-- 3. apply solver
+print("Apply solver.")
+tStart = os.clock()
+if solver:apply_return_defect(u,b) == false then print("Could not apply solver"); exit(); end
+tStop = os.clock()
+print("Apply Solver took " .. tStart - tStop .. " seconds.");
+solver:apply_return_defect(u,b)
 
 --------------------------------------------------------------------------------
 --  Output of computed solution
@@ -442,7 +438,7 @@ if GetProfilerAvailable() == true then
     pn = GetProfileNode("main")
     -- check if node is valid
     if pn:is_valid() then
-	    --print(pn:call_tree())
+	    print(pn:call_tree())
         print(pn:total_time_sorted())
     else
         print("main is not known to the profiler.")
