@@ -14,10 +14,11 @@
 -- Execute on cekon via e.g.
 -- salloc -n 32 mpirun ./ugshell  -ex ../scripts/tests/scalability_test.lua -dim 2 -grid unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs 8
 
--- Execute on JuGene via e.g.('mpirun' call has to be specified in a LoadLeveler script!):
+-- Execute on JuGene via e.g. ('mpirun' call has to be specified in a LoadLeveler script!):
 -- mpirun -np 32 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs  8"
 -- Or the same job interactively:
 -- llrun -v -np 32 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid  unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs 8"
+
 --------------------------------------------------------------------------------
 
 ug_load_script("ug_util.lua")
