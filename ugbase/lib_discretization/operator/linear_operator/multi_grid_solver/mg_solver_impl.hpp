@@ -86,7 +86,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 
 //	project defect from surface to level
-	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromSurface);
+	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
 	if(!project_surface_to_level(level_defects(), d))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
@@ -96,7 +96,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
 
 // 	Perform one multigrid cycle
-	GMG_PROFILE_BEGIN(GMGApply_lmgc);
+	GMG_PROFILE_BEGIN(GMG_lmgc);
 	if(!lmgc(*m_vLevData[m_topLev].c, *m_vLevData[m_topLev].d, m_topLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
@@ -106,7 +106,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	GMG_PROFILE_END(); //GMGApply_lmgc
 
 //	project defect from level to surface
-	GMG_PROFILE_BEGIN(GMGApply_ProjectDefectFromLevelToSurface);
+	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromLevelToSurface);
 	if(!project_level_to_surface(d, const_level_defects()))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
@@ -116,7 +116,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromLevelToSurface
 
 //	project correction from level to surface
-	GMG_PROFILE_BEGIN(GMGApply_ProjectCorrectionFromLevelToSurface);
+	GMG_PROFILE_BEGIN(GMG_ProjectCorrectionFromLevelToSurface);
 	if(!project_level_to_surface(c, const_level_corrections()))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
@@ -409,7 +409,7 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 		}
 
 	// 	POST-SMOOTHING
-	//	We smooth the updated defect againt. This means that we compute a
+	//	We smooth the updated defect again. This means that we compute a
 	//	correction c, such that the defect is "smoother".
 		GMG_PROFILE_BEGIN(GMG_PostSmooth);
 		if(!smooth(*sc, *sd, *st, *A, *S, lev, m_numPostSmooth))
@@ -844,12 +844,14 @@ init_linear_level_operator()
 		m_vLevData[lev].A->force_regular_grid(true);
 
 	//	init level operator
+		GMG_PROFILE_BEGIN(GMG_AssLevOp);
 		if(!m_vLevData[lev].A->init())
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 					" Cannot init operator for level "<< lev << ".\n");
 			return false;
 		}
+		GMG_PROFILE_END();
 
 	//	remove force flag
 		m_vLevData[lev].A->force_regular_grid(false);
@@ -858,12 +860,14 @@ init_linear_level_operator()
 	//	now we copy the matrix into a new (smaller) one
 		if(m_vLevData[lev].sel != NULL)
 		{
+			GMG_PROFILE_BEGIN(GMG_CopySmoothMatrix);
 			UG_ASSERT(m_vLevData[lev].SmoothMat != NULL, "SmoothMat missing");
 			matrix_type& mat = m_vLevData[lev].A->get_matrix();
 			matrix_type& smoothMat = m_vLevData[lev].SmoothMat->get_matrix();
 
 			smoothMat.resize( m_vLevData[lev].vMap.size(), m_vLevData[lev].vMap.size());
 			CopySmoothingMatrix(smoothMat, m_vLevData[lev].vMapMat, mat);
+			GMG_PROFILE_END();
 		}
 	}
 
