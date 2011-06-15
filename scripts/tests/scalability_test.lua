@@ -393,7 +393,7 @@ print("Init operator (i.e. assemble matrix).")
 tStart = os.clock()
 if linOp:init() == false then print("Could not assemble operator"); exit(); end
 tStop = os.clock()
-print("Assembling took " .. tStop - tStart .. " seconds.");
+print("TIME for ASSEMBLING: " .. tStop - tStart .. " s.");
 
 -- 1.b set dirichlet values in start iterate
 u:set(0.0)
@@ -411,14 +411,14 @@ print("Init solver for operator (i.e. prepare solver).")
 tStart = os.clock()
 if solver:init(linOp) == false then print("Could not init solver"); exit(); end
 tStop = os.clock()
-print("Init Solver took " .. tStop - tStart .. " seconds.");
+print("TIME for PREPARATION OF SOLVER: " .. tStop - tStart .. " s.");
 
 -- 3. apply solver
 print("Apply solver.")
 tStart = os.clock()
 if solver:apply_return_defect(u,b) == false then print("Could not apply solver"); exit(); end
 tStop = os.clock()
-print("Apply Solver took " .. tStop - tStart .. " seconds.");
+print("TIME for SOLVERING:  " .. tStop - tStart .. " s.");
 solver:apply_return_defect(u,b)
 
 --------------------------------------------------------------------------------
