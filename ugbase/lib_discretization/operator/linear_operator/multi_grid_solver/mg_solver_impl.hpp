@@ -672,12 +672,14 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_topLev = m_pApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level
+	GMG_PROFILE_BEGIN(GMG_CreateLevelStorage);
 	if(!top_level_required(m_topLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
 				" Cannot allocate memory. Aborting.\n");
 		return false;
 	}
+	GMG_PROFILE_END();
 
 //	init common
 	if(!init_common(false))
@@ -688,6 +690,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	}
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
+	GMG_PROFILE_BEGIN(GMG_AssMissingCoarseMat);
 	if(!m_bFullRefined)
 		if(!init_missing_coarse_grid_coupling(NULL))
 		{
@@ -695,6 +698,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 					"Cannot init missing coarse grid coupling.\n");
 			return false;
 		}
+	GMG_PROFILE_END();
 
 //	we're done
 	return true;
@@ -807,6 +811,7 @@ init_common(bool nonlinear)
 //	init mapping from surface level to top level in case of full refinement
 	if(m_bFullRefined)
 	{
+		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 		if(!CreateSurfaceToToplevelMap(m_vSurfToTopMap,
 		                               m_pApproxSpace->get_surface_dof_distribution(),
 		                               m_pApproxSpace->get_level_dof_distribution(m_topLev)))
@@ -815,6 +820,7 @@ init_common(bool nonlinear)
 					"Cannot init Mapping Surface -> TopLevel (full refinement case).\n");
 			return false;
 		}
+		GMG_PROFILE_END();
 	}
 
 //	we're done
