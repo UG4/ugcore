@@ -111,6 +111,8 @@ class LinearSolver
 	///	solves the system and returns the last defect
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
+			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
+
 			if(m_A == NULL)
 			{
 				UG_LOG("ERROR in 'LinearSolver::apply': "
@@ -189,6 +191,9 @@ class LinearSolver
 						"signaled failure. Aborting.\n");
 				return false;
 			}
+
+		//	end profiling of whole function
+			LS_PROFILE_END(); //LS_ApplyReturnDefect
 
 		//	we're done
 			return true;
