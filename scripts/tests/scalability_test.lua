@@ -441,10 +441,11 @@ end
 if GetProfilerAvailable() == true then
     -- get node
     pn = GetProfileNode("main")
+    pn2 = GetProfileNode("GMG_lmgc")
     -- check if node is valid
-    if pn:is_valid() then
+    if pn:is_valid() and pn2:is_valid() then
 	    print(pn:call_tree())
-        print(pn:total_time_sorted())
+        print(pn2:total_time_sorted())
     else
         print("main is not known to the profiler.")
     end
