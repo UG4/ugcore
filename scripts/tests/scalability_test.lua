@@ -388,41 +388,32 @@ solver = linSolver
 
 print( "   baseSolverType is " .. baseSolverType .. ",  baseLevel is " .. baseLevel )
 
+-- 0. Reset start solution
+u:set(0.0)
+
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-SynchronizeProcesses()
 tStart = os.clock()
-if linOp:init() == false then print("Could not assemble operator"); exit(); end
-SynchronizeProcesses()
+if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
+	print("Could not assemble operator"); exit(); 
+end
 tStop = os.clock()
 print("TIME for ASSEMBLING: " .. tStop - tStart .. " s.");
 
--- 1.b set dirichlet values in start iterate
-u:set(0.0)
-linOp:set_dirichlet_values(u)
 b:assign(linOp:get_rhs())
 
--- 1.c write matrix for test purpose
+-- 1.b write matrix for test purpose
 if verbosity >= 1 then
-	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-	SaveVectorForConnectionViewer(b, "Rhs.mat")
+SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+SaveVectorForConnectionViewer(b, "Rhs.mat")
 end
 
--- 2. init solver for linear Operator
-print("Init solver for operator (i.e. prepare solver).")
-SynchronizeProcesses()
-tStart = os.clock()
-if solver:init(linOp) == false then print("Could not init solver"); exit(); end
-SynchronizeProcesses()
-tStop = os.clock()
-print("TIME for PREPARATION OF SOLVER: " .. tStop - tStart .. " s.");
-
--- 3. apply solver
+-- 2. apply solver
 print("Apply solver.")
-SynchronizeProcesses()
 tStart = os.clock()
-if solver:apply_return_defect(u,b) == false then print("Could not apply solver"); exit(); end
-SynchronizeProcesses()
+if ApplyLinearSolver(linOp, u, b, solver) == false then
+	print("Could not apply linear solver.");
+end
 tStop = os.clock()
 print("TIME for SOLVING:  " .. tStop - tStart .. " s.");
 

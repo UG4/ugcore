@@ -293,25 +293,6 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
-print ("Reset initial value")
--- set initial value
-u:set(0.0)
-
--- init Operator
-print ("Assemble Operator ... ")
-tAssembleStart = os.clock() 
-if linOp:init() == false then print("Could assemble operator"); exit(); end
-tAssembleEnd = os.clock()
-print("Assembling took " .. tAssembleEnd - tAssembleStart .. " seconds.");
-
--- set dirichlet values in start iterate
-linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
-
--- write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
-
 -- debug writer
 dbgWriter = util.CreateGridFunctionDebugWriter(dim)
 dbgWriter:set_reference_grid_function(u)
@@ -346,7 +327,7 @@ ilut = ILUT()
 	transfer:set_dirichlet_post_process(dirichletBND)
 	projection = util.CreateP1Projection(approxSpace)
 	
-	-- Gemoetric Multi Grid
+	-- Geometric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_base_level(0)
@@ -406,24 +387,53 @@ solver = linSolver
 -------------------------------------------
 --  Apply Solver
 -------------------------------------------
---SetDebugLevel("LIB_DISC_MULTIGRID", 2);
+-- 0. Reset start solution
+u:set(0.0)
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-tAssembleStart = os.clock() 
-if linOp:init() == false then print("Could assemble operator"); exit(); end
-tAssembleEnd = os.clock()
-print("Assembling took " .. tAssembleEnd - tAssembleStart .. " seconds.");
+tStart = os.clock()
+if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
+	print("Could not assemble operator"); exit(); 
+end
+tStop = os.clock()
+print("TIME for ASSEMBLING: " .. tStop - tStart .. " s.");
 
--- 2. init solver for linear Operator
-print("Init solver for operator.")
-solver:init(linOp)
+b:assign(linOp:get_rhs())
 
--- 3. apply solver
+-- 1.c write matrix for test purpose
+SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+SaveVectorForConnectionViewer(b, "Rhs.mat")
+
+-- 2. apply solver
 print("Apply solver.")
-solver:apply_return_defect(u,b)
+tStart = os.clock()
+if ApplyLinearSolver(linOp, u, b, solver) == false then
+	print("Could not apply linear solver.");
+end
+tStop = os.clock()
+print("TIME for SOLVING:  " .. tStop - tStart .. " s.");
 
 -------------------------------------------
 --  Output
 -------------------------------------------
 WriteGridFunctionToVTK(u, "Solution")
+
+--------------------------------------------------------------------------------
+--  Print Profiling
+--------------------------------------------------------------------------------
+
+-- check if profiler is available
+if GetProfilerAvailable() == true then
+    -- get node
+    pn = GetProfileNode("main")
+    -- check if node is valid
+    if pn:is_valid() then
+	    print(pn:call_tree())
+    else
+        print("main is not known to the profiler.")
+    end
+else
+    print("Profiler not available.")
+end 
+

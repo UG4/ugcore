@@ -165,6 +165,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 			reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>);
 			reg.add_function("MatScale", &MatScale<vector_type, vector_type, matrix_type>);
 
+			reg.add_function("AssembleLinearOperatorRhsAndSolution", &AssembleLinearOperatorRhsAndSolution<dof_distribution_type, algebra_type>);
 		}
 
 

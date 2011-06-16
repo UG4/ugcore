@@ -9,9 +9,21 @@
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 
 #include "lib_algebra/operator/operator_interface.h"
+#include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
 #include "lib_discretization/parallelization/parallelization_util.h"
+#endif
+
+#define PROFILE_ASS
+#ifdef PROFILE_ASS
+	#define ASS_PROFILE_FUNC()		PROFILE_FUNC()
+	#define ASS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define ASS_PROFILE_END()		PROFILE_END()
+#else
+	#define ASS_PROFILE_FUNC()
+	#define ASS_PROFILE_BEGIN(name)
+	#define ASS_PROFILE_END()
 #endif
 
 namespace ug{
@@ -113,6 +125,43 @@ class AssembledLinearOperator :
 	// 	vector storage
 		vector_type m_rhs;
 };
+
+/// help function to assemble a linear operator
+template <typename TDoFDistribution, typename TAlgebra>
+bool AssembleLinearOperatorRhsAndSolution
+		(AssembledLinearOperator<TDoFDistribution, TAlgebra>& op,
+		 typename TAlgebra::vector_type& u,
+		 typename TAlgebra::vector_type& b)
+{
+//	initialize operator
+	ASS_PROFILE_BEGIN(ASS_InitOperator);
+	if(!op.init())
+	{
+		UG_LOG("ERROR in 'AssembleLinearOperatorRhsAndSolution': Cannot init"
+				" the operator (assembling failed).\n");
+		return false;
+	}
+	ASS_PROFILE_END();
+
+//	sets the dirichlet values in the solution
+	ASS_PROFILE_BEGIN(ASS_SetDirValues);
+	if(!op.set_dirichlet_values(u))
+	{
+		UG_LOG("ERROR in 'AssembleLinearOperatorRhsAndSolution': Cannot set"
+				" the dirichlet values in the solution.\n");
+		return false;
+	}
+	ASS_PROFILE_END();
+
+//	sets the rhs
+	ASS_PROFILE_BEGIN(ASS_SetRhs);
+	b = op.get_rhs();
+	ASS_PROFILE_END();
+
+//	done
+	return true;
+}
+
 
 } // namespace ug
 
