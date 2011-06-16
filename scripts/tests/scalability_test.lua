@@ -400,6 +400,14 @@ end
 tStop = os.clock()
 print("TIME for ASSEMBLING: " .. tStop - tStart .. " s.");
 
+tStart = os.clock()
+if AssembleLinearOperatorRhsAndSolutionDUMMY(linOp, u, b) == false then 
+	print("Could not assemble operator"); exit(); 
+end
+tStop = os.clock()
+print("TIME for CALLING FROM LUA SCRIPT: " .. tStop - tStart .. " s.");
+
+
 b:assign(linOp:get_rhs())
 
 -- 1.b write matrix for test purpose

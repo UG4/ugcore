@@ -162,6 +162,17 @@ bool AssembleLinearOperatorRhsAndSolution
 	return true;
 }
 
+/// help function to assemble a linear operator
+template <typename TDoFDistribution, typename TAlgebra>
+bool AssembleLinearOperatorRhsAndSolutionDUMMY
+		(AssembledLinearOperator<TDoFDistribution, TAlgebra>& op,
+		 typename TAlgebra::vector_type& u,
+		 typename TAlgebra::vector_type& b)
+{
+//	done
+	return true;
+}
+
 
 } // namespace ug
 
