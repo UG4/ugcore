@@ -133,6 +133,8 @@ bool AssembleLinearOperatorRhsAndSolution
 		 typename TAlgebra::vector_type& u,
 		 typename TAlgebra::vector_type& b)
 {
+	ASS_PROFILE_BEGIN(ASS_AssembleLinearOperatorRhsAndSolution);
+
 //	initialize operator
 	ASS_PROFILE_BEGIN(ASS_InitOperator);
 	if(!op.init())
@@ -158,6 +160,7 @@ bool AssembleLinearOperatorRhsAndSolution
 	b = op.get_rhs();
 	ASS_PROFILE_END();
 
+	ASS_PROFILE_END();
 //	done
 	return true;
 }
