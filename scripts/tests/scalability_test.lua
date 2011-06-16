@@ -407,6 +407,9 @@ end
 tStop = os.clock()
 print("TIME for CALLING FROM LUA SCRIPT: " .. tStop - tStart .. " s.");
 
+tStart = os.clock()
+tStop = os.clock()
+print("TIME for START/STOP: " .. tStop - tStart .. " s.");
 
 b:assign(linOp:get_rhs())
 
