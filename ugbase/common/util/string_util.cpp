@@ -78,6 +78,13 @@ void AppendCounterToString(std::string& str, std::string indicator,
 	str.append(ss.str());
 }
 
+std::string FilenameWithoutPath(const std::string& str)
+{
+	size_t pos = str.find_last_of("/");
+	if( std::string::npos != pos ) return str.substr( pos+1 );
+	else return str;
+}
+
 
 //sreiter - Implementation is copied from some book or website. Can't remember...
 template <> unsigned long hash_key(const std::string& key)

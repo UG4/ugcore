@@ -46,6 +46,9 @@ void AppendCounterToString(std::string& str, std::string indicator,
 ///	this template function creates a hash key for a string value.
 template <> unsigned long hash_key(const std::string& key);
 
+/// returns the part of the string after the last '/' character
+std::string FilenameWithoutPath(const std::string& str);
+
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/
