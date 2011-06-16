@@ -900,12 +900,12 @@ init_linear_level_operator()
 	const dof_distribution_type& levelDD =
 						m_pApproxSpace->get_level_dof_distribution(m_baseLev);
 
-//	assemble base operator
-	if(levelDD.num_dofs() != 0)
-	{
 #ifdef UG_PARALLEL
 	pcl::SynchronizeProcesses();
 #endif
+//	assemble base operator
+	if(levelDD.num_dofs() != 0)
+	{
 		GMG_PROFILE_BEGIN(GMG_AssBaseSolver);
 		m_BaseOperator.set_discretization(*m_pAss);
 
@@ -930,11 +930,11 @@ init_linear_level_operator()
 
 	//	remove force flag
 		m_BaseOperator.force_regular_grid(false);
+		GMG_PROFILE_END();
+	}
 #ifdef UG_PARALLEL
 	pcl::SynchronizeProcesses();
 #endif
-		GMG_PROFILE_END();
-	}
 
 //	we're done
 	return true;
