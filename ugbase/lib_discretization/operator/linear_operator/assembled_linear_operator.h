@@ -172,6 +172,21 @@ bool AssembleLinearOperatorRhsAndSolutionDUMMY
 		 typename TAlgebra::vector_type& u,
 		 typename TAlgebra::vector_type& b)
 {
+	ASS_PROFILE_BEGIN(ASS_AssembleLinearOperatorRhsAndSolution);
+
+//	initialize operator
+	ASS_PROFILE_BEGIN(ASS_InitOperator);
+	ASS_PROFILE_END();
+
+//	sets the dirichlet values in the solution
+	ASS_PROFILE_BEGIN(ASS_SetDirValues);
+	ASS_PROFILE_END();
+
+//	sets the rhs
+	ASS_PROFILE_BEGIN(ASS_SetRhs);
+	ASS_PROFILE_END();
+
+	ASS_PROFILE_END();
 //	done
 	return true;
 }
