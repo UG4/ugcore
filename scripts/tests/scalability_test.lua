@@ -397,9 +397,7 @@ local tStart = os.clock()
 if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
 	print("Could not assemble operator"); exit(); 
 end
-local tStop = os.clock()
-print("TIME for ASSEMBLING: " .. tStop - tStart .. " s.");
-print(string.format("elapsed time: %.4f\n", tStop - tStart))
+print("TIME for ASSEMBLING: " ..  os.clock() - tStart .. " s.");
 
 tStart = os.clock()
 if AssembleLinearOperatorRhsAndSolutionDUMMY(linOp, u, b) == false then 
