@@ -839,6 +839,7 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_linear_level_operator()
 {
+	GMG_PROFILE_FUNC();
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -856,6 +857,9 @@ init_linear_level_operator()
 		m_vLevData[lev].A->force_regular_grid(true);
 
 	//	init level operator
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
 		GMG_PROFILE_BEGIN(GMG_AssLevOp);
 		if(!m_vLevData[lev].A->init())
 		{
@@ -863,6 +867,9 @@ init_linear_level_operator()
 					" Cannot init operator for level "<< lev << ".\n");
 			return false;
 		}
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
 		GMG_PROFILE_END();
 
 	//	remove force flag
@@ -872,6 +879,9 @@ init_linear_level_operator()
 	//	now we copy the matrix into a new (smaller) one
 		if(m_vLevData[lev].sel != NULL)
 		{
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
 			GMG_PROFILE_BEGIN(GMG_CopySmoothMatrix);
 			UG_ASSERT(m_vLevData[lev].SmoothMat != NULL, "SmoothMat missing");
 			matrix_type& mat = m_vLevData[lev].A->get_matrix();
@@ -879,7 +889,10 @@ init_linear_level_operator()
 
 			smoothMat.resize( m_vLevData[lev].vMap.size(), m_vLevData[lev].vMap.size());
 			CopySmoothingMatrix(smoothMat, m_vLevData[lev].vMapMat, mat);
-			GMG_PROFILE_END();
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
+		GMG_PROFILE_END();
 		}
 	}
 
