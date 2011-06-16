@@ -187,9 +187,9 @@ sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
---refinedGridOutName = "refined_grid_p" .. GetProcessRank() .. ".ugx"
---print("saving domain to " .. refinedGridOutName)
---SaveDomain(dom, refinedGridOutName)
+refinedGridOutName = "refined_grid_p" .. GetProcessRank() .. ".ugx"
+print("saving domain to " .. refinedGridOutName)
+SaveDomain(dom, refinedGridOutName)
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -392,37 +392,21 @@ u:set(0.0)
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-local tStart = os.clock()
 if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
 	print("Could not assemble operator"); exit(); 
 end
-print("TIME for ASSEMBLING: " ..  os.clock() - tStart .. " s.");
-
-tStart = os.clock()
-if AssembleLinearOperatorRhsAndSolutionDUMMY(linOp, u, b) == false then 
-	print("Could not assemble operator"); exit(); 
-end
-tStop = os.clock()
-print("TIME for CALLING FROM LUA SCRIPT: " .. tStop - tStart .. " s.");
-
-tStart = os.clock()
-tStop = os.clock()
-print("TIME for START/STOP: " .. tStop - tStart .. " s.");
 
 b:assign(linOp:get_rhs())
 
 -- 1.c write matrix for test purpose
---SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
---SaveVectorForConnectionViewer(b, "Rhs.mat")
+SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- 2. apply solver
 print("Apply solver.")
-tStart = os.clock()
 if ApplyLinearSolver(linOp, u, b, solver) == false then
 	print("Could not apply linear solver.");
 end
-tStop = os.clock()
-print("TIME for SOLVING:  " .. tStop - tStart .. " s.");
 
 -------------------------------------------
 --  Output
