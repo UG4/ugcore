@@ -758,6 +758,9 @@ init_common(bool nonlinear)
 		m_bFullRefined =false;
 
 //	Assemble coarse grid operators
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	if(nonlinear){
 		if(!init_non_linear_level_operator()){
@@ -773,6 +776,9 @@ init_common(bool nonlinear)
 			return false;
 		}
 	}
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
 	GMG_PROFILE_END();
 
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
