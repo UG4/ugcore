@@ -393,12 +393,13 @@ u:set(0.0)
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-tStart = os.clock()
+local tStart = os.clock()
 if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
 	print("Could not assemble operator"); exit(); 
 end
-tStop = os.clock()
+local tStop = os.clock()
 print("TIME for ASSEMBLING: " .. tStop - tStart .. " s.");
+print(string.format("elapsed time: %.2f\n", tStop - tStart))
 
 tStart = os.clock()
 if AssembleLinearOperatorRhsAndSolutionDUMMY(linOp, u, b) == false then 
