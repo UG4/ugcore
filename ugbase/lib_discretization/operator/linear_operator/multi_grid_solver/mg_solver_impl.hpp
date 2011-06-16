@@ -877,11 +877,11 @@ init_linear_level_operator()
 		m_pAss->set_selector(NULL);
 
 	//	now we copy the matrix into a new (smaller) one
-		if(m_vLevData[lev].sel != NULL)
-		{
 #ifdef UG_PARALLEL
 	pcl::SynchronizeProcesses();
 #endif
+		if(m_vLevData[lev].sel != NULL)
+		{
 			GMG_PROFILE_BEGIN(GMG_CopySmoothMatrix);
 			UG_ASSERT(m_vLevData[lev].SmoothMat != NULL, "SmoothMat missing");
 			matrix_type& mat = m_vLevData[lev].A->get_matrix();
@@ -889,10 +889,7 @@ init_linear_level_operator()
 
 			smoothMat.resize( m_vLevData[lev].vMap.size(), m_vLevData[lev].vMap.size());
 			CopySmoothingMatrix(smoothMat, m_vLevData[lev].vMapMat, mat);
-#ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
-#endif
-		GMG_PROFILE_END();
+			GMG_PROFILE_END();
 		}
 	}
 
