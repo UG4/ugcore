@@ -612,7 +612,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSub
 	
 	-- Now we loop all subsets an search for it in the SubsetHandler of the domain
 	if neededSubsets ~= nil then
-		if util.CheckSubsets(dom, neededSubsets) then 
+		if util.CheckSubsets(dom, neededSubsets) == false then 
 			print("Wrong subsets detected.") 
 		end
 	end
