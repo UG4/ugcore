@@ -848,6 +848,9 @@ init_linear_level_operator()
 							m_pApproxSpace->get_level_dof_distribution(lev);
 
 	//	skip assembling if no dofs given
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
 		if(levelDD.num_dofs() == 0)
 			continue;
 
@@ -857,9 +860,6 @@ init_linear_level_operator()
 		m_vLevData[lev].A->force_regular_grid(true);
 
 	//	init level operator
-#ifdef UG_PARALLEL
-//	pcl::SynchronizeProcesses();
-#endif
 		GMG_PROFILE_BEGIN(GMG_AssLevOp);
 		if(!m_vLevData[lev].A->init())
 		{
@@ -867,9 +867,6 @@ init_linear_level_operator()
 					" Cannot init operator for level "<< lev << ".\n");
 			return false;
 		}
-#ifdef UG_PARALLEL
-//	pcl::SynchronizeProcesses();
-#endif
 		GMG_PROFILE_END();
 
 	//	remove force flag
@@ -877,9 +874,6 @@ init_linear_level_operator()
 		m_pAss->set_selector(NULL);
 
 	//	now we copy the matrix into a new (smaller) one
-#ifdef UG_PARALLEL
-//	pcl::SynchronizeProcesses();
-#endif
 		if(m_vLevData[lev].sel != NULL)
 		{
 			GMG_PROFILE_BEGIN(GMG_CopySmoothMatrix);
@@ -898,7 +892,7 @@ init_linear_level_operator()
 						m_pApproxSpace->get_level_dof_distribution(m_baseLev);
 
 #ifdef UG_PARALLEL
-//	pcl::SynchronizeProcesses();
+	pcl::SynchronizeProcesses();
 #endif
 //	assemble base operator
 	if(levelDD.num_dofs() != 0)
