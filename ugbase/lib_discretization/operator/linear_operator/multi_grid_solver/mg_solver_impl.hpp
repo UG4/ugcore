@@ -839,7 +839,6 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_linear_level_operator()
 {
-	GMG_PROFILE_FUNC();
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -848,9 +847,6 @@ init_linear_level_operator()
 							m_pApproxSpace->get_level_dof_distribution(lev);
 
 	//	skip assembling if no dofs given
-#ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
-#endif
 		if(levelDD.num_dofs() == 0)
 			continue;
 
@@ -860,14 +856,12 @@ init_linear_level_operator()
 		m_vLevData[lev].A->force_regular_grid(true);
 
 	//	init level operator
-		GMG_PROFILE_BEGIN(GMG_AssLevOp);
 		if(!m_vLevData[lev].A->init())
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 					" Cannot init operator for level "<< lev << ".\n");
 			return false;
 		}
-		GMG_PROFILE_END();
 
 	//	remove force flag
 		m_vLevData[lev].A->force_regular_grid(false);
@@ -876,14 +870,12 @@ init_linear_level_operator()
 	//	now we copy the matrix into a new (smaller) one
 		if(m_vLevData[lev].sel != NULL)
 		{
-			GMG_PROFILE_BEGIN(GMG_CopySmoothMatrix);
 			UG_ASSERT(m_vLevData[lev].SmoothMat != NULL, "SmoothMat missing");
 			matrix_type& mat = m_vLevData[lev].A->get_matrix();
 			matrix_type& smoothMat = m_vLevData[lev].SmoothMat->get_matrix();
 
 			smoothMat.resize( m_vLevData[lev].vMap.size(), m_vLevData[lev].vMap.size());
 			CopySmoothingMatrix(smoothMat, m_vLevData[lev].vMapMat, mat);
-			GMG_PROFILE_END();
 		}
 	}
 
@@ -891,13 +883,9 @@ init_linear_level_operator()
 	const dof_distribution_type& levelDD =
 						m_pApproxSpace->get_level_dof_distribution(m_baseLev);
 
-#ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
-#endif
 //	assemble base operator
 	if(levelDD.num_dofs() != 0)
 	{
-		GMG_PROFILE_BEGIN(GMG_AssBaseSolver);
 		m_BaseOperator.set_discretization(*m_pAss);
 
 	//	set dof distribution to level operator
@@ -921,7 +909,6 @@ init_linear_level_operator()
 
 	//	remove force flag
 		m_BaseOperator.force_regular_grid(false);
-		GMG_PROFILE_END();
 	}
 
 //	we're done
