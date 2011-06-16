@@ -95,7 +95,11 @@ template<typename T>
 bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 {
 	if(cols == 0 && rows == 0)
+	{
+		delete[] pRowStart;
+		delete[] pRowEnd;
 		return create(newRows, newCols);
+	}
 	if(newCols < cols)
 	{
 		definalize();
@@ -150,6 +154,12 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 			pRowStart[newRows] = NULL;
 		}
 
+		/* TODO why alloc array with 0 bytes?
+		 * call causing this:
+		 * Init operator (i.e. assemble matrix).
+		 * resize(0,0)
+		 * this->cols: 289 this->rows289
+		* alloced new max nr of connections with size: 0 */
 		size_t *iNewMaxNrOfConnections = new size_t[newRows];
 		UG_ASSERT(iNewMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*newRows);
 		memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t) * std::min(rows, newRows));
