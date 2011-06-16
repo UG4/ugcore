@@ -393,22 +393,9 @@ u:set(0.0)
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-local tStart = os.clock()
 if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
 	print("Could not assemble operator"); exit(); 
 end
-print("TIME for ASSEMBLING: " ..  os.clock() - tStart .. " s.");
-
-tStart = os.clock()
-if AssembleLinearOperatorRhsAndSolutionDUMMY(linOp, u, b) == false then 
-	print("Could not assemble operator"); exit(); 
-end
-tStop = os.clock()
-print("TIME for CALLING FROM LUA SCRIPT: " .. tStop - tStart .. " s.");
-
-tStart = os.clock()
-tStop = os.clock()
-print("TIME for START/STOP: " .. tStop - tStart .. " s.");
 
 b:assign(linOp:get_rhs())
 
@@ -420,12 +407,9 @@ end
 
 -- 2. apply solver
 print("Apply solver.")
-tStart = os.clock()
 if ApplyLinearSolver(linOp, u, b, solver) == false then
 	print("Could not apply linear solver.");
 end
-tStop = os.clock()
-print("TIME for SOLVING:  " .. tStop - tStart .. " s.");
 
 --------------------------------------------------------------------------------
 --  Output of computed solution
