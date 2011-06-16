@@ -929,9 +929,6 @@ init_linear_level_operator()
 		m_BaseOperator.force_regular_grid(false);
 		GMG_PROFILE_END();
 	}
-#ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
-#endif
 
 //	we're done
 	return true;
