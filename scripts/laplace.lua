@@ -413,21 +413,3 @@ end
 -------------------------------------------
 WriteGridFunctionToVTK(u, "Solution")
 
---------------------------------------------------------------------------------
---  Print Profiling
---------------------------------------------------------------------------------
-
--- check if profiler is available
-if GetProfilerAvailable() == true then
-    -- get node
-    pn = GetProfileNode("main")
-    -- check if node is valid
-    if pn:is_valid() then
-	    print(pn:call_tree())
-    else
-        print("main is not known to the profiler.")
-    end
-else
-    print("Profiler not available.")
-end 
-
