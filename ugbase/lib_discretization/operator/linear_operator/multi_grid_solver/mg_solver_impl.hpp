@@ -858,7 +858,7 @@ init_linear_level_operator()
 
 	//	init level operator
 #ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
+//	pcl::SynchronizeProcesses();
 #endif
 		GMG_PROFILE_BEGIN(GMG_AssLevOp);
 		if(!m_vLevData[lev].A->init())
@@ -868,7 +868,7 @@ init_linear_level_operator()
 			return false;
 		}
 #ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
+//	pcl::SynchronizeProcesses();
 #endif
 		GMG_PROFILE_END();
 
@@ -878,7 +878,7 @@ init_linear_level_operator()
 
 	//	now we copy the matrix into a new (smaller) one
 #ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
+//	pcl::SynchronizeProcesses();
 #endif
 		if(m_vLevData[lev].sel != NULL)
 		{
@@ -898,7 +898,7 @@ init_linear_level_operator()
 						m_pApproxSpace->get_level_dof_distribution(m_baseLev);
 
 #ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
+//	pcl::SynchronizeProcesses();
 #endif
 //	assemble base operator
 	if(levelDD.num_dofs() != 0)
