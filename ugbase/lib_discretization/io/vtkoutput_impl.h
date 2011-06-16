@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <iostream>
 #include <cstring>
+#include <string>
 
 // ug4 libraries
 #include "common/log.h"
@@ -24,9 +25,8 @@
 
 namespace ug{
 
-
-	enum{OSIZE=32,            /* must be a multiple of 16 */
-		 BSIZE=(3*OSIZE/4)};  /* will be just right then  */
+enum{OSIZE=32,            /* must be a multiple of 16 */
+	 BSIZE=(3*OSIZE/4)};  /* will be just right then  */
 
 static struct {
     char buffer[BSIZE];
@@ -663,50 +663,44 @@ count_sizes(function_type& u, int si,
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
 
-//	check if looping over whole domain. Then all numbers are available without
-//	counting and we do not loop the vertices.
-	if(si < 0){
-	//	count number of vertices, elements and number of connections
-		numVert = u.template num<VertexBase>();
-		numElem += u.template num<TElem>();
-		numConn += u.template num<TElem>() * ref_elem_type::num_corners;
-
-	//	everything done, since number of vertices must not be counted.
-		return;
-	}
-
 //	iterator for the elements
 	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
-
-//	get iterators
-	iterBegin = u.template begin<TElem>(si);
-	iterEnd = u.template end<TElem>(si);
-
-//	count number of elements and number of connections
-	numElem += u.template num<TElem>(si);
-	numConn += u.template num<TElem>(si) * ref_elem_type::num_corners;
 
 //	reset all marks
 	m_pGrid->begin_marking();
 
-//	loop over elements of this subset
-	for( ; iterBegin != iterEnd; ++iterBegin)
+//	loop all subsets for whole domain, only the given subset if si >= 0
+	int sistart = si, siend = si+1;
+	if(si < 0) {sistart = 0; siend = u.num_subsets();}
+	for(int si = sistart; si < siend; ++si)
 	{
-	//	get the element
-		TElem *elem = *iterBegin;
+	//	get iterators
+		iterBegin = u.template begin<TElem>(si);
+		iterEnd = u.template end<TElem>(si);
 
-	//	loop vertices of the element
-		for(size_t i = 0; i < (size_t) ref_elem_type::num_corners; ++i)
+	//	count number of elements and number of connections
+		numElem += u.template num<TElem>(si);
+		numConn += u.template num<TElem>(si) * ref_elem_type::num_corners;
+
+	//	loop over elements of this subset
+		for( ; iterBegin != iterEnd; ++iterBegin)
 		{
-		//	get vertex of the element
-			VertexBase* v = elem->vertex(i);
+		//	get the element
+			TElem *elem = *iterBegin;
 
-		//	if this vertex has already been counted, skip it
-			if(m_pGrid->is_marked(v)) continue;
+		//	loop vertices of the element
+			for(size_t i = 0; i < (size_t) ref_elem_type::num_corners; ++i)
+			{
+			//	get vertex of the element
+				VertexBase* v = elem->vertex(i);
 
-		// count vertex and mark it
-			++numVert;
-			m_pGrid->mark(v);
+			//	if this vertex has already been counted, skip it
+				if(m_pGrid->is_marked(v)) continue;
+
+			// count vertex and mark it
+				++numVert;
+				m_pGrid->mark(v);
+			}
 		}
 	}
 
@@ -744,58 +738,57 @@ write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 //	get iterators
 	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
 
-	if(si >= 0){
-		iterBegin = u.template begin<TElem>(si);
-		iterEnd = u.template end<TElem>(si);
-	}
-	else{
-		iterBegin = u.template begin<TElem>();
-		iterEnd = u.template end<TElem>();
-	}
-
 //	start marking of vertices
 	m_pGrid->begin_marking();
 
-//	loop all elements of the subset
-	for( ; iterBegin != iterEnd; ++iterBegin)
+//	loop all subsets for whole domain, only the given subset if si >= 0
+	int sistart = si, siend = si+1;
+	if(si < 0) {sistart = 0; siend = u.num_subsets();}
+	for(int si = sistart; si < siend; ++si)
 	{
-	//	get the element
-		TElem *elem = *iterBegin;
+		iterBegin = u.template begin<TElem>(si);
+		iterEnd = u.template end<TElem>(si);
 
-	//	loop vertices of the element
-		for(size_t i = 0; i < (size_t) ref_elem_type::num_corners; ++i)
+	//	loop all elements of the subset
+		for( ; iterBegin != iterEnd; ++iterBegin)
 		{
-		//	get vertex of element
-			VertexBase* v = GetVertex(elem, i);
+		//	get the element
+			TElem *elem = *iterBegin;
 
-		//	if vertex has already be handled, skip it
-			if(m_pGrid->is_marked(v)) continue;
-
-		//	mark the vertex as processed
-			m_pGrid->mark(v);
-
-		//	number vertex
-			m_aaDOFIndexVRT[v] = n++;
-
-		//	get position of vertex
-			Pos = aaPos[v];
-
-		//	write position to stream
-			for(int i = 0; i < domain_type::dim; ++i)
+		//	loop vertices of the element
+			for(size_t i = 0; i < (size_t) ref_elem_type::num_corners; ++i)
 			{
-				co = Pos[i];
-				BStreamWrite(File, &co);
-			}
+			//	get vertex of element
+				VertexBase* v = GetVertex(elem, i);
 
-		//	fill with missing zeros (if dim < 3)
-			for(int i = domain_type::dim; i < 3; ++i)
-			{
-				co = 0.0;
-				BStreamWrite(File, &co);
+			//	if vertex has already be handled, skip it
+				if(m_pGrid->is_marked(v)) continue;
+
+			//	mark the vertex as processed
+				m_pGrid->mark(v);
+
+			//	number vertex
+				m_aaDOFIndexVRT[v] = n++;
+
+			//	get position of vertex
+				Pos = aaPos[v];
+
+			//	write position to stream
+				for(int i = 0; i < domain_type::dim; ++i)
+				{
+					co = Pos[i];
+					BStreamWrite(File, &co);
+				}
+
+			//	fill with missing zeros (if dim < 3)
+				for(int i = domain_type::dim; i < 3; ++i)
+				{
+					co = 0.0;
+					BStreamWrite(File, &co);
+				}
 			}
 		}
 	}
-
 
 	if(n > 0){
 		UG_DLOG(LIB_DISC_OUTPUT, 3, " ---- " << n <<
@@ -830,39 +823,41 @@ write_cell_connectivity(FILE* File, function_type& u, int si)
 
 //	get iterators
 	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
-	if(si >= 0){
+
+//	loop all subsets for whole domain, only the given subset if si >= 0
+	int sistart = si, siend = si+1;
+	if(si < 0) {sistart = 0; siend = u.num_subsets();}
+	for(int si = sistart; si < siend; ++si)
+	{
+	//	get iterators
 		iterBegin = u.template begin<TElem>(si);
 		iterEnd = u.template end<TElem>(si);
-	}
-	else{
-		iterBegin = u.template begin<TElem>();
-		iterEnd = u.template end<TElem>();
-	}
 
-//	loop all elements
-	for( ; iterBegin != iterEnd; iterBegin++)
-	{
-	//	get element
-		TElem* elem = *iterBegin;
-
-	//	write ids of the element
-		if(refID != ROID_PRISM)
+	//	loop all elements
+		for( ; iterBegin != iterEnd; iterBegin++)
 		{
-			for(size_t i=0; i< (size_t) ref_elem_type::num_corners; i++)
+		//	get element
+			TElem* elem = *iterBegin;
+
+		//	write ids of the element
+			if(refID != ROID_PRISM)
 			{
-				VertexBase* vert = elem->vertex(i);
-				int id = m_aaDOFIndexVRT[vert];
-				BStreamWrite(File, &id);
+				for(size_t i=0; i< (size_t) ref_elem_type::num_corners; i++)
+				{
+					VertexBase* vert = elem->vertex(i);
+					int id = m_aaDOFIndexVRT[vert];
+					BStreamWrite(File, &id);
+				}
 			}
-		}
-		else
-		{
-			int id = m_aaDOFIndexVRT[elem->vertex(0)]; BStreamWrite(File, &id);
-			id = m_aaDOFIndexVRT[elem->vertex(2)]; BStreamWrite(File, &id);
-			id = m_aaDOFIndexVRT[elem->vertex(1)]; BStreamWrite(File, &id);
-			id = m_aaDOFIndexVRT[elem->vertex(3)]; BStreamWrite(File, &id);
-			id = m_aaDOFIndexVRT[elem->vertex(5)]; BStreamWrite(File, &id);
-			id = m_aaDOFIndexVRT[elem->vertex(4)]; BStreamWrite(File, &id);
+			else
+			{
+				int id = m_aaDOFIndexVRT[elem->vertex(0)]; BStreamWrite(File, &id);
+				id = m_aaDOFIndexVRT[elem->vertex(2)]; BStreamWrite(File, &id);
+				id = m_aaDOFIndexVRT[elem->vertex(1)]; BStreamWrite(File, &id);
+				id = m_aaDOFIndexVRT[elem->vertex(3)]; BStreamWrite(File, &id);
+				id = m_aaDOFIndexVRT[elem->vertex(5)]; BStreamWrite(File, &id);
+				id = m_aaDOFIndexVRT[elem->vertex(4)]; BStreamWrite(File, &id);
+			}
 		}
 	}
 }
@@ -879,23 +874,25 @@ write_cell_offsets(	FILE* File, function_type& u, int si, int& n)
 
 //	get iterators
 	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
-	if(si >= 0){
+
+//	loop all subsets for whole domain, only the given subset if si >= 0
+	int sistart = si, siend = si+1;
+	if(si < 0) {sistart = 0; siend = u.num_subsets();}
+	for(int si = sistart; si < siend; ++si)
+	{
+	//	get iterators
 		iterBegin = u.template begin<TElem>(si);
 		iterEnd = u.template end<TElem>(si);
-	}
-	else{
-		iterBegin = u.template begin<TElem>();
-		iterEnd = u.template end<TElem>();
-	}
 
-//	loop all elements
-	for( ; iterBegin != iterEnd; ++iterBegin)
-	{
-	//	increase counter of vertices
-		n += ref_elem_type::num_corners;
+	//	loop all elements
+		for( ; iterBegin != iterEnd; ++iterBegin)
+		{
+		//	increase counter of vertices
+			n += ref_elem_type::num_corners;
 
-	//	write offset
-		BStreamWrite(File, &n);
+		//	write offset
+			BStreamWrite(File, &n);
+		}
 	}
 
 //	flush stream
@@ -930,21 +927,25 @@ write_cell_types(FILE* File, function_type& u, int si)
 		default: throw(UGFatalError("Element Type not known."));
 	}
 
+	BStream.size = sizeof(char);
+
 //	get iterators
 	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
-	if(si >= 0){
+
+//	loop all subsets for whole domain, only the given subset if si >= 0
+	int sistart = si, siend = si+1;
+	if(si < 0) {sistart = 0; siend = u.num_subsets();}
+	for(int si = sistart; si < siend; ++si)
+	{
+	//	get iterators
 		iterBegin = u.template begin<TElem>(si);
 		iterEnd = u.template end<TElem>(si);
-	}
-	else{
-		iterBegin = u.template begin<TElem>();
-		iterEnd = u.template end<TElem>();
+
+	//	loop all elements, write type for each element to stream
+		for( ; iterBegin != iterEnd; ++iterBegin)
+			BStreamWrite(File, &type);
 	}
 
-//	loop all elements, write type for each element to stream
-	BStream.size = sizeof(char);
-	for( ; iterBegin != iterEnd; ++iterBegin)
-	    BStreamWrite(File, &type);
 	BStreamFlush(File);
 }
 
@@ -971,65 +972,67 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 
 //	get iterators
 	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
-	if(si >= 0){
+
+//	loop all subsets for whole domain, only the given subset if si >= 0
+	int sistart = si, siend = si+1;
+	if(si < 0) {sistart = 0; siend = u.num_subsets();}
+	for(int si = sistart; si < siend; ++si)
+	{
+	//	get iterators
 		iterBegin = u.template begin<TElem>(si);
 		iterEnd = u.template end<TElem>(si);
-	}
-	else{
-		iterBegin = u.template begin<TElem>();
-		iterEnd = u.template end<TElem>();
-	}
 
-//	loop all elements
-	for( ; iterBegin != iterEnd; ++iterBegin)
-	{
-	//	get element
-		TElem *elem = *iterBegin;
-
-	//	loop vertices of element
-		for(size_t co = 0; co < (size_t) ref_elem_type::num_corners; ++co)
+	//	loop all elements
+		for( ; iterBegin != iterEnd; ++iterBegin)
 		{
-		//	get vertex of element
-			VertexBase* v = GetVertex(elem, co);
+		//	get element
+			TElem *elem = *iterBegin;
 
-		//	if vertex has been handled before, skip
-			if(m_pGrid->is_marked(v)) continue;
-
-		//	mark as used
-			m_pGrid->mark(v);
-
-		//	loop all compenents
-			for(size_t i = 0; i < vFct.num_fct(); ++i)
+		//	loop vertices of element
+			for(size_t co = 0; co < (size_t) ref_elem_type::num_corners; ++co)
 			{
-			//	get multi index of vertex for the function
-				if(u.get_inner_multi_indices(v, vFct[i], vMultInd) != 1)
+			//	get vertex of element
+				VertexBase* v = GetVertex(elem, co);
+
+			//	if vertex has been handled before, skip
+				if(m_pGrid->is_marked(v)) continue;
+
+			//	mark as used
+				m_pGrid->mark(v);
+
+			//	loop all compenents
+				for(size_t i = 0; i < vFct.num_fct(); ++i)
 				{
-					UG_LOG("ERROR in 'VTK:write_nodal_values_elementwise': "
-							"The function component "<<vFct[i]<<" has "<<
-							vMultInd.size()<<" DoFs in  a vertex. To write a "
-							"component to vtk, exactly one DoF must be "
-							"given in a vertex.\n");
-					return false;
-				}
+				//	get multi index of vertex for the function
+					if(u.get_inner_multi_indices(v, vFct[i], vMultInd) != 1)
+					{
+						UG_LOG("ERROR in 'VTK:write_nodal_values_elementwise': "
+								"The function component "<<vFct[i]<<" has "<<
+								vMultInd.size()<<" DoFs in  a vertex. To write a "
+								"component to vtk, exactly one DoF must be "
+								"given in a vertex.\n");
+						return false;
+					}
 
-			//	get index and subindex
-				const size_t index = vMultInd[0][0];
-				const size_t alpha = vMultInd[0][1];
+				//	get index and subindex
+					const size_t index = vMultInd[0][0];
+					const size_t alpha = vMultInd[0][1];
 
-			//	read value from vector
-				valf = (float) BlockRef(u[index], alpha);
+				//	read value from vector
+					valf = (float) BlockRef(u[index], alpha);
 
-			//	flush stream
-				BStreamWrite(File, &valf);
-			}
-
-		//	fill with zeros up to 3d if vector type
-			if(vFct.num_fct() != 1)
-				for(size_t i = vFct.num_fct(); i < 3; ++i)
-				{
-					valf = (float) 0.0;
+				//	flush stream
 					BStreamWrite(File, &valf);
 				}
+
+			//	fill with zeros up to 3d if vector type
+				if(vFct.num_fct() != 1)
+					for(size_t i = vFct.num_fct(); i < 3; ++i)
+					{
+						valf = (float) 0.0;
+						BStreamWrite(File, &valf);
+					}
+			}
 		}
 	}
 
@@ -1221,6 +1224,7 @@ write_pvtu(function_type& u, const std::string& filename,
 	// 	include files from all procs
 		for (int i = 0; i < numProcs; i++) {
 			vtu_filename(name, filename, i, si, maxSi, step);
+			name = FilenameWithoutPath(name);
 			fprintf(file, "    <Piece Source=\"%s\"/>\n", name.c_str());
 		}
 
@@ -1293,6 +1297,7 @@ write_time_pvd(const char* filename, function_type& u)
 #ifdef UG_PARALLEL
 				if(numProcs > 1) pvtu_filename(name, filename, -1, 0, step);
 #endif
+				name = FilenameWithoutPath(name);
 				fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
 				        		vTimestep[step], 0, name.c_str());
 			}
@@ -1306,6 +1311,7 @@ write_time_pvd(const char* filename, function_type& u)
 #ifdef UG_PARALLEL
 					if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 #endif
+					name = FilenameWithoutPath(name);
 					fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
 					        	vTimestep[step], si, name.c_str());
 				}
@@ -1346,6 +1352,7 @@ write_time_pvd(const char* filename, function_type& u)
 #ifdef UG_PARALLEL
 					if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 #endif
+					name = FilenameWithoutPath(name);
 					fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
 					        vTimestep[step], rank, name.c_str());
 				}
@@ -1414,6 +1421,7 @@ write_subset_pvd(function_type& u, const std::string& filename, int step, number
 #ifdef UG_PARALLEL
 			if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 #endif
+			name = FilenameWithoutPath(name);
 			fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
 			        		time, si, name.c_str());
 		}
@@ -1458,6 +1466,7 @@ write_subset_pvd(function_type& u, const std::string& filename, int step, number
 #ifdef UG_PARALLEL
 				if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 #endif
+				name = FilenameWithoutPath(name);
 				fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
 				        	time, r, name.c_str());
 			}
