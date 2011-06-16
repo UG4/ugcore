@@ -903,6 +903,10 @@ init_linear_level_operator()
 //	assemble base operator
 	if(levelDD.num_dofs() != 0)
 	{
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
+		GMG_PROFILE_BEGIN(GMG_AssBaseSolver);
 		m_BaseOperator.set_discretization(*m_pAss);
 
 	//	set dof distribution to level operator
@@ -926,6 +930,10 @@ init_linear_level_operator()
 
 	//	remove force flag
 		m_BaseOperator.force_regular_grid(false);
+#ifdef UG_PARALLEL
+	pcl::SynchronizeProcesses();
+#endif
+		GMG_PROFILE_END();
 	}
 
 //	we're done
