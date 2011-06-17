@@ -121,7 +121,7 @@ apply(vector_type& d, const vector_type& c)
 		}
 #endif
 
-	if(c.size() != m_J.num_cols() || d.size() == m_J.num_rows())
+	if(c.size() != m_J.num_cols() || d.size() != m_J.num_rows())
 	{
 		UG_LOG("ERROR in 'AssembledLinearOperator::apply': Size of matrix A ["<<
 		        m_J.num_rows() << " x " << m_J.num_cols() << "] must match the "
@@ -156,7 +156,7 @@ apply_sub(vector_type& d, const vector_type& c)
 #endif
 
 //	check sizes
-	if(c.size() != m_J.num_cols() || d.size() == m_J.num_rows())
+	if(c.size() != m_J.num_cols() || d.size() != m_J.num_rows())
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::apply_sub: Size of matrix A ["<<
 		        m_J.num_rows() << " x " << m_J.num_cols() << "] must match the "
