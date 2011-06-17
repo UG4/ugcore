@@ -11,7 +11,7 @@
 #include <vector>
 #include "dof_distribution.h"
 #include "mg_dof_manager.h"
-#include "../function_spaces/grid_function_space.h"
+#include "lib_discretization/function_spaces/approximation_space.h"
 
 namespace ug{
 

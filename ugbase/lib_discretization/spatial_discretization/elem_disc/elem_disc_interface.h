@@ -28,7 +28,7 @@ enum IElemDiscNeed {
 #include "lib_discretization/assemble_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/time_discretization/solution_time_series.h"
-#include "lib_discretization/function_spaces/grid_function_space.h"
+#include "lib_discretization/function_spaces/approximation_space.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
 

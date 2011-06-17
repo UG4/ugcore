@@ -23,7 +23,7 @@
 // lib_disc includes
 #include "lib_discretization/domain.h"
 #include "lib_discretization/function_spaces/grid_function.h"
-#include "lib_discretization/function_spaces/grid_function_space.h"
+#include "lib_discretization/function_spaces/approximation_space.h"
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/constant_equation/fv1/constant_equation.h"

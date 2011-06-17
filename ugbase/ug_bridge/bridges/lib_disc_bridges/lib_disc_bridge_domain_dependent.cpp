@@ -22,7 +22,7 @@
 // lib_disc includes
 #include "lib_discretization/domain.h"
 #include "lib_discretization/function_spaces/grid_function.h"
-#include "lib_discretization/function_spaces/grid_function_space.h"
+#include "lib_discretization/function_spaces/approximation_space.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
 #include "lib_discretization/function_spaces/interpolate.h"
 #include "lib_discretization/function_spaces/integrate.h"
