@@ -529,6 +529,13 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
 	}
 
+//	Tensor4IPData
+	{
+		typedef IPData<MathTensor<4,dim>, dim> T;
+		std::stringstream ss; ss << "Tensor4IPData" << dim << "d";
+		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
+	}
+
 //	IUserNumber
 	{
 		typedef IUserData<number, dim> T;
@@ -550,6 +557,14 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 		typedef IUserData<MathMatrix<dim, dim>, dim> T;
 		typedef IPData<MathMatrix<dim, dim>, dim> TBase;
 		std::stringstream ss; ss << "IUserMatrix" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str());
+	}
+
+//	IUserTensor4
+	{
+		typedef IUserData<MathTensor<4, dim>, dim> T;
+		typedef IPData<MathTensor<4, dim>, dim> TBase;
+		std::stringstream ss; ss << "IUserTensor4" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str());
 	}
 

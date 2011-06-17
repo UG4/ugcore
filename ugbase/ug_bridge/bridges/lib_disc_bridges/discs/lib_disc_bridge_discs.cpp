@@ -19,6 +19,7 @@
 #include "convection_diffusion_bridge.h"
 #include "constant_equation_bridge.h"
 #include "thermohaline_flow_bridge.h"
+#include "nonlinear_elasticity_bridge.h"
 
 #include "lib_discretization/spatial_discretization/disc_helper/conv_shape_interface.h"
 #include "lib_discretization/spatial_discretization/disc_helper/conv_shape.h"
@@ -93,6 +94,7 @@ bool RegisterDynamicLibDiscInterfaceDiscs(Registry& reg, int algebra_type, const
 	bReturn &= RegisterDynamicConvectionDiffusionDisc(reg, algebra_type, parentGroup);
 	bReturn &= RegisterDynamicConstantEquationDisc(reg, algebra_type, parentGroup);
 	bReturn &= RegisterDynamicThermohalineFlowDisc(reg, algebra_type, parentGroup);
+	bReturn &= RegisterDynamicNonlinearElasticityDisc(reg, algebra_type, parentGroup);
 
 #ifdef UG_DIM_1
 	RegisterConvectionShapes<1>(reg, parentGroup);

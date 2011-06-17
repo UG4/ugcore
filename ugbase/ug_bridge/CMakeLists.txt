@@ -42,6 +42,7 @@ if(NOT NO_ALGEBRA)
 					bridges/lib_disc_bridges/discs/thermohaline_flow_bridge.cpp
 					bridges/lib_disc_bridges/discs/convection_diffusion_bridge.cpp
 					bridges/lib_disc_bridges/discs/constant_equation_bridge.cpp
+					bridges/lib_disc_bridges/discs/nonlinear_elasticity_bridge.cpp
 					bridges/user_data_bridge.cpp)
 else(NOT NO_ALGEBRA)
 
