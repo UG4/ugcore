@@ -282,7 +282,6 @@ print ("Setting up Algebra Solver")
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
-linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
@@ -396,8 +395,6 @@ print("Init operator (i.e. assemble matrix).")
 if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
 	print("Could not assemble operator"); exit(); 
 end
-
-b:assign(linOp:get_rhs())
 
 -- 1.b write matrix for test purpose
 if verbosity >= 1 then

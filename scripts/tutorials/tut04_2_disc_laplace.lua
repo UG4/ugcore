@@ -59,7 +59,7 @@ ug_load_script("../ug_util.lua")
 --	 * AssembledLinearOperator: The assembled Linear operator A.
 --   * ApproximationSpace: The underlying approximation space.
 --
-function AssembleLaplace(dom, innerSubsets, boundarySubsets,
+function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 						cbDiffTensorName, cbRhsName, cbDirichletBndName)
 --	init some local variables
 	local dim = dom:get_dim()
@@ -115,11 +115,10 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets,
 	
 --	create the linear operator
 	local linOp = AssembledLinearOperator()
-	linOp:export_rhs(true)	
 	linOp:set_discretization(domainDisc)
 	linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
-	linOp:init()
+	linOp:init_op_and_rhs(b)
 
 	return linOp, approxSpace, domainDisc, dirichletBnd
 end

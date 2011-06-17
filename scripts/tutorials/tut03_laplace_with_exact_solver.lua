@@ -231,18 +231,12 @@ domainDisc:add_post_process(dirichletBnd)
 -- create a matrix but a linear operator which represents an assembled system
 -- (in most cases of course this will be a matrix).
 linOp = AssembledLinearOperator()
--- we want that the rhs is assembled on the fly
-linOp:export_rhs(true)	
 -- the discretization object from which the operator is assembled
 linOp:set_discretization(domainDisc)
 -- since we do not use a multi-grid method here, we want to operate on the
 -- unknowns (degrees of freedom - dofs) of the surface grid. Since we
 -- didn't refine in this example, this of course is the same as the base grid.
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
-
--- the linear operator is now complete. To perform the discretization call init.
-linOp:init()
-
 
 -- Now lets solve the problem. Create a vector of unknowns and a vector
 -- which contains the right hand side. We will use the approximation space
@@ -252,13 +246,14 @@ linOp:init()
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
+
+-- the linear operator is now complete. To perform the discretization call init.
+-- Here we assemble the rhs in one loop to save resources.
+linOp:init_op_and_rhs(b)
+
 -- Init the vector representing the unknowns with 0 to obtain
 -- reproducable results.
 u:set(0)
-
--- obtain the right hand side b from the linear operator
-b:assign(linOp:get_rhs())
-
 
 -- We need a solver to solve the system. Since we want an exact solution,
 -- we simply use the LU solver.

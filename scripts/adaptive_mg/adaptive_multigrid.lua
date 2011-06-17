@@ -200,7 +200,6 @@ domainDisc:add_post_process(constraints)
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
-linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
@@ -325,13 +324,10 @@ u:set(1.0)
 for i = 1,1 do
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-if linOp:init() ~= true then print("Cannot init operator"); exit() end
+if linOp:init_op_and_rhs(b) ~= true then print("Cannot init operator"); exit() end
 
 -- 2. set dirichlet values in solution
 linOp:set_dirichlet_values(u)
-
--- 3. set right hand side (assembled together with Operator for performance reasons)
-b:assign(linOp:get_rhs())
 
 -- write matrix for test purpose
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")

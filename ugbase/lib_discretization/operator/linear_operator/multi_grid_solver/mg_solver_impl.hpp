@@ -906,15 +906,9 @@ init_linear_level_operator()
 //	assemble base operator
 	if(levelDD.num_dofs() != 0)
 	{
-		m_BaseOperator.set_discretization(*m_pAss);
-
 	//	set dof distribution to level operator
-		if(!m_BaseOperator.set_dof_distribution(levelDD))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator': "
-					"Cannot set dof distribution on baselevel.\n");
-			return false;
-		}
+		m_BaseOperator.set_discretization(*m_pAss);
+		m_BaseOperator.set_dof_distribution(levelDD);
 
 	//	force grid to be considered as regular
 		m_BaseOperator.force_regular_grid(true);
@@ -983,14 +977,7 @@ init_non_linear_level_operator()
 	if(levelDD.num_dofs() != 0)
 	{
 		m_BaseOperator.set_discretization(*m_pAss);
-
-	//	set dof distribution to level operator
-		if(!m_BaseOperator.set_dof_distribution(levelDD))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator': "
-					"Cannot set dof distribution on baselevel.\n");
-			return false;
-		}
+		m_BaseOperator.set_dof_distribution(levelDD);
 
 	//	force grid to be considered as regular
 		m_BaseOperator.force_regular_grid(true);

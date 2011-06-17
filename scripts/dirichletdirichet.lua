@@ -266,7 +266,6 @@ print ("Setting up Algebra Solver")
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
-linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
@@ -279,12 +278,11 @@ u:set(0.0)
 
 -- init Operator
 print ("Assemble Operator ... ")
-linOp:init()
+linOp:init_op_and_rhs(b)
 print ("done")
 
 -- set dirichlet values in start iterate
 linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
 
 -- write matrix for test purpose
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")

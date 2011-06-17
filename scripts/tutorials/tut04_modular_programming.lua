@@ -41,6 +41,9 @@ outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 -- which we created in tut04_1_domain_util.lua
 dom = CreateAndDistributeDomain(gridName, dim, outFileNamePrefix) 
 
+-- Create surface functions (vectors) for Au=b (where A=linOp) and initialize them
+u = approxSpace:create_surface_function()
+b = approxSpace:create_surface_function()
 
 -- Using the AssembleLaplace method which we created in
 -- tut04_2_disc_laplace.lua, we now create the linear operator.
@@ -50,15 +53,9 @@ dom = CreateAndDistributeDomain(gridName, dim, outFileNamePrefix)
 -- You could of course create your callbacks analogous to tutorial 3 and
 -- pass their names (as strings) to AssembleLaplace.
 -- Make sure that you use the ones with the right dimension!
-linOp, approxSpace = AssembleLaplace(dom, "Inner", "Boundary", nil, nil, nil, nil)
-
--- Create surface functions (vectors) for Au=b (where A=linOp) and initialize them
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
+linOp, approxSpace = AssembleLaplace(dom, "Inner", "Boundary", b, nil, nil, nil, nil)
 
 u:set(0)
-b:assign(linOp:get_rhs())
-
 
 -- We again choose the LU solver and make sure that it is only used in a
 -- serial environment

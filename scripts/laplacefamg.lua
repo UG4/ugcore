@@ -270,26 +270,25 @@ print ("Setting up Algebra Solver")
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
-linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
 -- get grid function
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
+b2 = approxSpace:create_surface_function()
 
 -- set initial value
 u:set_random(-1.0, 1.0)
 
 -- init Operator
 print ("Assemble Operator ... ")
-linOp:init()
+linOp:init_op_and_rhs(b)
 print ("done")
 
 -- set dirichlet values in start iterate
 print ("set dirichlet... ")
 linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
 
 print ("done")
 -- write matrix for test purpose
@@ -460,7 +459,7 @@ log = GetLogAssistant();
 -------------------------------------------
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-linOp:init()
+linOp:init_op_and_rhs(b2)
 
 -- 2. init solver for linear Operator
 print("Init solver for operator.")
@@ -480,7 +479,7 @@ convCheck:set_maximum_steps(i)
 srand(0)
 u:set_random(-1.0, 1.0)
 linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
+b:assign(b2)
 linSolver:apply_return_defect(u,b)
 WriteGridFunctionToVTK(u, "Solution"..i)
 end

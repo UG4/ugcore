@@ -115,7 +115,6 @@ if util.LoadDomain(dom, gridName) == true then
 	print("creating linear operator...")	
 	-- create operator from discretization
 	linOp = AssembledLinearOperator()
-	linOp:export_rhs(true)
 	linOp:set_discretization(domainDisc)
 	linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
@@ -127,14 +126,13 @@ if util.LoadDomain(dom, gridName) == true then
 	u:set(1.0)
 
 	-- init Operator
-	linOp:init()
+	linOp:init_op_and_rhs(b)
 
 	-- write matrix for test purpose
 	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 
 	-- set dirichlet values in start iterate
 	linOp:set_dirichlet_values(u)
-	b:assign(linOp:get_rhs())
 
 	-- create algebraic Preconditioner
 	jac = JacobiPreconditioner()

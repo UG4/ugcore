@@ -165,7 +165,6 @@ domainDisc:add_post_process(dirichletBND)
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
-linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
@@ -177,11 +176,10 @@ b = approxSpace:create_surface_function()
 u:set(1.0)
 
 -- init Operator
-linOp:init()
+linOp:init_op_and_rhs(b)
 
 -- set dirichlet values in start iterate
 linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
 
 -- write matrix for test purpose
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")

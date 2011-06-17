@@ -9,18 +9,18 @@
 #define __H__LIB_DISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR_IMPL__
 
 #include "assembled_linear_operator.h"
+#include "common/profiler/profiler.h"
 
-//#define PROFILE_LIN_ASS
-#ifdef PROFILE_LIN_ASS
-	#define LINASS_PROFILE_FUNC()		PROFILE_FUNC()
-	#define LINASS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
-	#define LINASS_PROFILE_END()		PROFILE_END()
+#define PROFILE_ASS
+#ifdef PROFILE_ASS
+	#define ASS_PROFILE_FUNC()		PROFILE_FUNC()
+	#define ASS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define ASS_PROFILE_END()		PROFILE_END()
 #else
-	#define LINASS_PROFILE_FUNC()
-	#define LINASS_PROFILE_BEGIN(name)
-	#define LINASS_PROFILE_END()
+	#define ASS_PROFILE_FUNC()
+	#define ASS_PROFILE_BEGIN(name)
+	#define ASS_PROFILE_END()
 #endif
-
 
 namespace ug{
 
@@ -61,6 +61,41 @@ bool
 AssembledLinearOperator<TDoFDistribution, TAlgebra>::
 init()
 {
+//	check if DoF Distribution is set
+	if(m_pDoFDistribution == NULL)
+	{
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
+				" DoF Distribution not set.\n");
+		return false;
+	}
+	if(m_pAss == NULL)
+	{
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
+				" Assembling routine not set.\n");
+		return false;
+	}
+
+//	create vector dummy
+	vector_type dummy; dummy.resize(m_pDoFDistribution->num_dofs());
+
+//	assemble only matrix
+	if(!m_pAss->assemble_jacobian(m_J, dummy, *m_pDoFDistribution))
+	{
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
+				" Cannot assemble Matrix.\n");
+		return false;
+	}
+
+//	were done
+	return true;
+}
+
+//	Initialize the operator
+template <typename TDoFDistribution, typename TAlgebra>
+bool
+AssembledLinearOperator<TDoFDistribution, TAlgebra>::
+init_op_and_rhs(vector_type& b)
+{
 //	todo: check that assembling is linear
 
 //	check if DoF Distribution is set
@@ -78,29 +113,14 @@ init()
 	}
 
 //	resize rhs, since used as u dummy
-	m_rhs.resize(m_pDoFDistribution->num_dofs());
+	b.resize(m_pDoFDistribution->num_dofs());
 
-//	Compute matrix (and rhs if needed)
-	if(m_bAssembleRhs)
+//	assemble matrix and rhs in one loop
+	if(!m_pAss->assemble_linear(m_J, b, b, *m_pDoFDistribution))
 	{
-	//	assemble matrix and rhs in one loop
-		if(!m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution))
-		{
-			UG_LOG("ERROR in AssembledLinearOperator::init:"
-					" Cannot assemble Matrix and Rhs.\n");
-			return false;
-		}
-
-	}
-	else
-	{
-	//	assemble only matrix
-		if(!m_pAss->assemble_jacobian(m_J, m_rhs, *m_pDoFDistribution))
-		{
-			UG_LOG("ERROR in AssembledLinearOperator::init:"
-					" Cannot assemble Matrix.\n");
-			return false;
-		}
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
+				" Cannot assemble Matrix and Rhs.\n");
+		return false;
 	}
 
 //	were done
@@ -121,6 +141,7 @@ apply(vector_type& d, const vector_type& c)
 		}
 #endif
 
+//	perform check of sizes
 	if(c.size() != m_J.num_cols() || d.size() != m_J.num_rows())
 	{
 		UG_LOG("ERROR in 'AssembledLinearOperator::apply': Size of matrix A ["<<
@@ -175,6 +196,7 @@ bool
 AssembledLinearOperator<TDoFDistribution, TAlgebra>::
 set_dirichlet_values(vector_type& u)
 {
+//	checks
 	if(m_pAss == NULL)
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
@@ -188,6 +210,7 @@ set_dirichlet_values(vector_type& u)
 		return false;
 	}
 
+//	set dirichlet values etc.
 	if(m_pAss->assemble_solution(u, *m_pDoFDistribution) != true)
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
@@ -195,6 +218,43 @@ set_dirichlet_values(vector_type& u)
 		return false;
 	}
 
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/// help function to assemble a linear operator
+template <typename TDoFDistribution, typename TAlgebra>
+bool AssembleLinearOperatorRhsAndSolution
+		(AssembledLinearOperator<TDoFDistribution, TAlgebra>& op,
+		 typename TAlgebra::vector_type& u,
+		 typename TAlgebra::vector_type& b)
+{
+	ASS_PROFILE_BEGIN(ASS_AssembleLinearOperatorRhsAndSolution);
+
+//	initialize operator
+	ASS_PROFILE_BEGIN(ASS_InitOperatorAndRhs);
+	if(!op.init_op_and_rhs(b))
+	{
+		UG_LOG("ERROR in 'AssembleLinearOperatorRhsAndSolution': Cannot init"
+				" the operator (assembling failed).\n");
+		return false;
+	}
+	ASS_PROFILE_END();
+
+//	sets the dirichlet values in the solution
+	ASS_PROFILE_BEGIN(ASS_SetDirValues);
+	if(!op.set_dirichlet_values(u))
+	{
+		UG_LOG("ERROR in 'AssembleLinearOperatorRhsAndSolution': Cannot set"
+				" the dirichlet values in the solution.\n");
+		return false;
+	}
+	ASS_PROFILE_END();
+
+	ASS_PROFILE_END();
+//	done
 	return true;
 }
 

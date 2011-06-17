@@ -198,6 +198,10 @@ end
 print("subsets checked")
 ug_load_script("tut04_2_disc_laplace.lua")
 
+-- Create surface functions (vectors) for Au=b (where A=linOp) and initialize them
+u = approxSpace:create_surface_function()
+b = approxSpace:create_surface_function()
+
 -- Using the AssembleLaplace method which we created in
 -- tut04_2_disc_laplace.lua, we now create the linear operator.
 -- Note that we use the default callbacks defined in tut04_2_disc_laplace.lua
@@ -206,18 +210,14 @@ ug_load_script("tut04_2_disc_laplace.lua")
 -- You could of course create your callbacks analogous to tutorial 3 and
 -- pass their names (as strings) to AssembleLaplace.
 -- Make sure that you use the ones with the right dimension!
-linOp, approxSpace, domainDisc, dirichletBnd = AssembleLaplace(dom, "Inner", "Boundary", nil, nil, nil, nil)
+linOp, approxSpace, domainDisc, dirichletBnd = AssembleLaplace(dom, "Inner", "Boundary", b, nil, nil, nil, nil)
 
 approxSpace:print_layout_statistic()
 
 print("Domain created.")
--- Create surface functions (vectors) for Au=b (where A=linOp) and initialize them
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
 
 -- set initial value
 u:set(0)
-b:assign(linOp:get_rhs())
 linOp:set_dirichlet_values(u)
 
 -----------------

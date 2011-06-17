@@ -166,7 +166,6 @@ domainDisc:add_post_process(constraints)
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
-linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 
 -------------------------------------------
@@ -283,15 +282,11 @@ u:set(0.0)
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-if linOp:init() ~= true then print("Cannot init operator"); exit() end
+if linOp:init_op_and_rhs(b) ~= true then print("Cannot init operator"); exit() end
 
 -- 2. set dirichlet values in solution
 print("Setting Dirichlet values.")
 linOp:set_dirichlet_values(u)
-
--- 3. set right hand side (assembled together with Operator for performance reasons)
-print("Setting rhs values.")
-b:assign(linOp:get_rhs())
 
 -- debug output
 print("Saving for debug.")

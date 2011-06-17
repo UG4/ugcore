@@ -106,7 +106,6 @@ domainDisc:add_post_process(dirichletBND)
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
-linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
@@ -202,14 +201,13 @@ solver = linSolver
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
 tAssembleStart = os.clock() 
-if linOp:init() == false then print("Could assemble operator"); exit(); end
+if linOp:init_op_and_rhs(b) == false then print("Could assemble operator"); exit(); end
 tAssembleEnd = os.clock()
 print("Assembling took " .. tAssembleEnd - tAssembleStart .. " seconds.");
 
 -- set dirichlet values in start iterate
 u:set(0.0)
 linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
 
 -- write matrix for test purpose
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")

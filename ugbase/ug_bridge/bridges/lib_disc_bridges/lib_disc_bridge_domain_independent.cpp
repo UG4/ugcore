@@ -151,13 +151,9 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 			reg.add_class_<T, IMatrixOperator<vector_type, vector_type, matrix_type> >
 							("AssembledLinearOperator", grp.c_str())
 				.add_constructor()
-//				.add_method("init", (bool (T::*)())&T::init)
 				.add_method("set_discretization", &T::set_discretization)
-				.add_method("export_rhs", &T::export_rhs)
 				.add_method("set_dof_distribution", &T::set_dof_distribution)
-				.add_method("set_dirichlet_values", &T::set_dirichlet_values)
-				.add_method("get_rhs", &T::get_rhs)
-				.add_method("get_matrix",&T::get_matrix);
+				.add_method("set_dirichlet_values", &T::set_dirichlet_values);
 
 
 			//reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>);
