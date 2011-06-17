@@ -55,7 +55,6 @@ static bool InitPaths(const char* argv0) {
 	}
 
 //	log the paths
-	UG_LOG("UG4_ROOT path: " << PathProvider::get_path(ROOT_PATH) << std::endl);
 	UG_DLOG(MAIN, 0, "app path set to: " << PathProvider::get_path(APP_PATH) <<
 			std::endl << "script path set to: " << PathProvider::get_path(SCRIPT_PATH) <<
 			std::endl << "data path set to: " << PathProvider::get_path(DATA_PATH) <<
