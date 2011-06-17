@@ -35,27 +35,28 @@ class AssembledLinearOperator :
 									typename TAlgebra::matrix_type>
 {
 	public:
-	// 	Type of algebra
+	///	Type of Algebra
 		typedef TAlgebra algebra_type;
 
-	//	Type of Vector
+	///	Type of Vector
 		typedef typename TAlgebra::vector_type vector_type;
 
-	//	Type of Matrix
+	///	Type of Matrix
 		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Type of DoFDistribution
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	public:
 	///	default Constructor
 		AssembledLinearOperator() :
-			m_bInit(false), m_bAssembleRhs(false),
-			m_pAss(NULL), m_pDoFDistribution(NULL)
+			m_bAssembleRhs(false), m_pAss(NULL), m_pDoFDistribution(NULL)
 			{};
 
 	///	Constructor
 		AssembledLinearOperator(IAssemble<TDoFDistribution, algebra_type>& ass,
 		                        bool assemble_rhs = false)
-		:	m_bInit(false), m_bAssembleRhs(assemble_rhs),
-			m_pAss(&ass), m_pDoFDistribution(NULL)
+		:	m_bAssembleRhs(assemble_rhs), m_pAss(&ass), m_pDoFDistribution(NULL)
 		{};
 
 	///	sets the discretization to be used
@@ -66,11 +67,11 @@ class AssembledLinearOperator :
 		void export_rhs(bool assemble_rhs) {m_bAssembleRhs = assemble_rhs;}
 
 	///	sets the dof distribution used for assembling
-		bool set_dof_distribution(const IDoFDistribution<TDoFDistribution>& dofDistr)
+		bool set_dof_distribution(const dof_distribution_type& dofDistr)
 			{m_pDoFDistribution = &dofDistr; return true;}
 
 	///	returns the dof distribution
-		const IDoFDistribution<TDoFDistribution>* get_dof_distribution()
+		const dof_distribution_type* get_dof_distribution()
 				{return m_pDoFDistribution;}
 
 	///	initializes the operator that may depend on the current solution
@@ -102,14 +103,9 @@ class AssembledLinearOperator :
 		}
 
 	///	Destructor
-		virtual ~AssembledLinearOperator()
-		{
-		};
+		virtual ~AssembledLinearOperator() {};
 
 	protected:
-	// 	init flag
-		bool m_bInit;
-
 	// 	assemble rhs flag
 		bool m_bAssembleRhs;
 
@@ -117,7 +113,7 @@ class AssembledLinearOperator :
 		IAssemble<TDoFDistribution, algebra_type>* m_pAss;
 
 	// 	DoF Distribution used
-		const IDoFDistribution<TDoFDistribution>* m_pDoFDistribution;
+		const dof_distribution_type* m_pDoFDistribution;
 
 	// 	matrix storage
 		matrix_type m_J;

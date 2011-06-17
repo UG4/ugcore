@@ -31,28 +31,25 @@ init(const vector_type& u)
 {
 	if(m_pDoFDistribution == NULL)
 	{
-		UG_LOG("ERROR in AssembledLinearizedOperator::init: "
+		UG_LOG("ERROR in AssembledLinearOperator::init: "
 				"DoF Distribution not set.\n");
 		return false;
 	}
 
 	if(m_pAss == NULL)
 	{
-		UG_LOG("ERROR in AssembledLinearizedOperator::init:"
-				" Assembling rountine not set.\n");
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
+				" Assembling routine not set.\n");
 		return false;
 	}
 
 //	assemble matrix (depending on u, i.e. J(u))
-	if(m_pAss->assemble_jacobian(m_J, u, *m_pDoFDistribution) != true)
+	if(!m_pAss->assemble_jacobian(m_J, u, *m_pDoFDistribution))
 	{
-		UG_LOG("ERROR in AssembledLinearizedOperator::init:"
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
 				" Cannot assemble Jacobi matrix.\n");
 		return false;
 	}
-
-//	remember that operator is initialized
-	m_bInit = true;
 
 //  we're done
 	return true;
@@ -69,8 +66,14 @@ init()
 //	check if DoF Distribution is set
 	if(m_pDoFDistribution == NULL)
 	{
-		UG_LOG("ERROR in AssembledLinearOperator::prepare:"
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
 				" DoF Distribution not set.\n");
+		return false;
+	}
+	if(m_pAss == NULL)
+	{
+		UG_LOG("ERROR in AssembledLinearOperator::init:"
+				" Assembling routine not set.\n");
 		return false;
 	}
 
@@ -81,7 +84,7 @@ init()
 	if(m_bAssembleRhs)
 	{
 	//	assemble matrix and rhs in one loop
-		if(m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution) != true)
+		if(!m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution))
 		{
 			UG_LOG("ERROR in AssembledLinearOperator::init:"
 					" Cannot assemble Matrix and Rhs.\n");
@@ -92,16 +95,13 @@ init()
 	else
 	{
 	//	assemble only matrix
-		if(m_pAss->assemble_jacobian(m_J, m_rhs, *m_pDoFDistribution) != true)
+		if(!m_pAss->assemble_jacobian(m_J, m_rhs, *m_pDoFDistribution))
 		{
 			UG_LOG("ERROR in AssembledLinearOperator::init:"
 					" Cannot assemble Matrix.\n");
 			return false;
 		}
 	}
-
-//	Remember that operator has been initialized
-	m_bInit = true;
 
 //	were done
 	return true;
@@ -112,28 +112,23 @@ bool
 AssembledLinearOperator<TDoFDistribution, TAlgebra>::
 apply(vector_type& d, const vector_type& c)
 {
-	if(!m_bInit)
-	{
-		UG_LOG("ERROR in AssembledLinearizedOperator::apply: "
-				"Operator not initialized.\n");
-		return false;
-	}
-
-	#ifdef UG_PARALLEL
+#ifdef UG_PARALLEL
 	if(!c.has_storage_type(PST_CONSISTENT))
 		{
-			UG_LOG("WARNING: In 'AssembledLinearizedOperator::apply':"
+			UG_LOG("WARNING: In 'AssembledLinearOperator::apply':"
 					"Inadequate storage format of Vector c.");
 			return false;
 		}
-	#endif
+#endif
 
-	UG_ASSERT(c.size() == m_J.num_rows(),
-	          "Row size '" << m_J.num_rows() << "' of Matrix J and size '"
-	          << c.size() << "' of Vector x do not match. Cannot calculate L*x.");
-	UG_ASSERT(d.size() == m_J.num_cols(),
-	          "Column size '" << m_J.num_rows() << "' of Matrix J and size  '"
-	          << d.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
+	if(c.size() != m_J.num_cols() || d.size() == m_J.num_rows())
+	{
+		UG_LOG("ERROR in 'AssembledLinearOperator::apply': Size of matrix A ["<<
+		        m_J.num_rows() << " x " << m_J.num_cols() << "] must match the "
+		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
+		        " operation b = A*x. Maybe the operator is not initialized ?\n";)
+		return false;
+	}
 
 //	Apply Matrix
 	return m_J.apply(d, c);
@@ -145,34 +140,30 @@ bool
 AssembledLinearOperator<TDoFDistribution, TAlgebra>::
 apply_sub(vector_type& d, const vector_type& c)
 {
-	if(!m_bInit)
-	{
-		UG_LOG("ERROR in AssembledLinearizedOperator::apply_sub: "
-				"Operator not initialized.\n");
-		return false;
-	}
-
 #ifdef UG_PARALLEL
 	if(!d.has_storage_type(PST_ADDITIVE))
 	{
-		UG_LOG("ERROR: In 'AssembledLinearizedOperator::apply_sub':"
+		UG_LOG("ERROR: In 'AssembledLinearOperator::apply_sub':"
 				"Inadequate storage format of Vector d.\n");
 		return false;
 	}
 	if(!c.has_storage_type(PST_CONSISTENT))
 	{
-		UG_LOG("ERROR: In 'AssembledLinearizedOperator::apply_sub':"
+		UG_LOG("ERROR: In 'AssembledLinearOperator::apply_sub':"
 				"Inadequate storage format of Vector c.\n");
 		return false;
 	}
 #endif
 
-	UG_ASSERT(c.size() == m_J.num_rows(),
-	          "Row size '" << m_J.num_rows() << "' of Matrix J and size '"
-	          << c.size() << "' of Vector x do not match. Cannot calculate L*x.");
-	UG_ASSERT(d.size() == m_J.num_cols(),
-	          "Column size '" << m_J.num_rows() << "' of Matrix J and size  '"
-	          << d.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
+//	check sizes
+	if(c.size() != m_J.num_cols() || d.size() == m_J.num_rows())
+	{
+		UG_LOG("ERROR in AssembledLinearOperator::apply_sub: Size of matrix A ["<<
+		        m_J.num_rows() << " x " << m_J.num_cols() << "] must match the "
+		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
+		        " operation b -= A*x. Maybe the operator is not initialized ?\n";)
+		return false;
+	}
 
 //	Apply Matrix
 	return m_J.matmul_minus(d,c);
@@ -184,10 +175,16 @@ bool
 AssembledLinearOperator<TDoFDistribution, TAlgebra>::
 set_dirichlet_values(vector_type& u)
 {
-	if(!m_bInit)
+	if(m_pAss == NULL)
 	{
-		UG_LOG("ERROR in AssembledLinearizedOperator::set_dirichlet_values:"
-				" Operator not initialized.\n");
+		UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
+				" Assembling routine not set.\n");
+		return false;
+	}
+	if(m_pDoFDistribution == NULL)
+	{
+		UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
+				" DoF Distribution not set.\n");
 		return false;
 	}
 
@@ -197,6 +194,7 @@ set_dirichlet_values(vector_type& u)
 				" Cannot assemble solution.\n");
 		return false;
 	}
+
 	return true;
 }
 
