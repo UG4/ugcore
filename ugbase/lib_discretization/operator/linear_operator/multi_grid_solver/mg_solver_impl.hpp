@@ -849,14 +849,17 @@ init_linear_level_operator()
 	//	in case of full refinement we simply copy the matrix (with correct numbering)
 		if(lev == m_vLevData.size() && m_bFullRefined)
 		{
+			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 			matrix_type& levMat = m_vLevData[lev].A->get_matrix();
 			matrix_type& surfMat = m_pSurfaceOp->get_matrix();
 
 			levMat.resize( surfMat.num_rows(), surfMat.num_cols());
 			CopySurfaceMatToLevelMat(levMat, m_vSurfToTopMap, surfMat);
+			GMG_PROFILE_END();
 			continue;
 		}
 
+		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled and force grid to be considered as regular
 		m_pAss->set_selector(m_vLevData[lev].sel);
@@ -873,6 +876,7 @@ init_linear_level_operator()
 	//	remove force flag
 		m_vLevData[lev].A->force_regular_grid(false);
 		m_pAss->set_selector(NULL);
+		GMG_PROFILE_END();
 
 	//	now we copy the matrix into a new (smaller) one
 		if(m_vLevData[lev].sel != NULL)
