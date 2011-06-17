@@ -849,7 +849,7 @@ init_linear_level_operator()
 		if(levelDD.num_dofs() != 0)
 		{
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
-			if(lev == m_vLevData.size() && m_bFullRefined)
+			if(lev == m_vLevData.size() - 1 && m_bFullRefined)
 			{
 #ifdef UG_PARALLEL
 			pcl::SynchronizeProcesses();
