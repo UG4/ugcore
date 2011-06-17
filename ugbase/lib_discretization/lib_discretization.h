@@ -36,7 +36,7 @@
 #include "dof_manager/p1conform/p1conform.h"
 
 // Function Spaces
-#include "function_spaces/grid_function_space.h"
+#include "function_spaces/approximation_space.h"
 #include "function_spaces/grid_function_util.h"
 #include "function_spaces/grid_function.h"
 #include "function_spaces/interpolate.h"
