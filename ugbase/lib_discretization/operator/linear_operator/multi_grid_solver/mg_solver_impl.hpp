@@ -838,55 +838,64 @@ init_linear_level_operator()
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
+#ifdef UG_PARALLEL
+			pcl::SynchronizeProcesses();
+#endif
 	//	get dof distribution
 		const dof_distribution_type& levelDD =
 							m_pApproxSpace->get_level_dof_distribution(lev);
 
 	//	skip assembling if no dofs given
-		if(levelDD.num_dofs() == 0)
-			continue;
-
-	//	in case of full refinement we simply copy the matrix (with correct numbering)
-		if(lev == m_vLevData.size() && m_bFullRefined)
+		if(levelDD.num_dofs() != 0)
 		{
-			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
-			matrix_type& levMat = m_vLevData[lev].A->get_matrix();
-			matrix_type& surfMat = m_pSurfaceOp->get_matrix();
+		//	in case of full refinement we simply copy the matrix (with correct numbering)
+			if(lev == m_vLevData.size() && m_bFullRefined)
+			{
+#ifdef UG_PARALLEL
+			pcl::SynchronizeProcesses();
+#endif
+				GMG_PROFILE_BEGIN(GMG_CopySurfMat);
+				matrix_type& levMat = m_vLevData[lev].A->get_matrix();
+				matrix_type& surfMat = m_pSurfaceOp->get_matrix();
 
-			levMat.resize( surfMat.num_rows(), surfMat.num_cols());
-			CopySurfaceMatToLevelMat(levMat, m_vSurfToTopMap, surfMat);
+				levMat.resize( surfMat.num_rows(), surfMat.num_cols());
+				CopySurfaceMatToLevelMat(levMat, m_vSurfToTopMap, surfMat);
+#ifdef UG_PARALLEL
+			pcl::SynchronizeProcesses();
+#endif
+				GMG_PROFILE_END();
+				continue;
+			}
+
+			GMG_PROFILE_BEGIN(GMG_AssLevelMat);
+		//	now set this selector to the assembling, such that only those elements
+		//	will be assembled and force grid to be considered as regular
+			m_pAss->set_selector(m_vLevData[lev].sel);
+			m_vLevData[lev].A->force_regular_grid(true);
+
+		//	init level operator
+			if(!m_vLevData[lev].A->init())
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+						" Cannot init operator for level "<< lev << ".\n");
+				return false;
+			}
+
+		//	remove force flag
+			m_vLevData[lev].A->force_regular_grid(false);
+			m_pAss->set_selector(NULL);
 			GMG_PROFILE_END();
-			continue;
-		}
 
-		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
-	//	now set this selector to the assembling, such that only those elements
-	//	will be assembled and force grid to be considered as regular
-		m_pAss->set_selector(m_vLevData[lev].sel);
-		m_vLevData[lev].A->force_regular_grid(true);
+		//	now we copy the matrix into a new (smaller) one
+			if(m_vLevData[lev].sel != NULL)
+			{
+				UG_ASSERT(m_vLevData[lev].SmoothMat != NULL, "SmoothMat missing");
+				matrix_type& mat = m_vLevData[lev].A->get_matrix();
+				matrix_type& smoothMat = m_vLevData[lev].SmoothMat->get_matrix();
 
-	//	init level operator
-		if(!m_vLevData[lev].A->init())
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-					" Cannot init operator for level "<< lev << ".\n");
-			return false;
-		}
-
-	//	remove force flag
-		m_vLevData[lev].A->force_regular_grid(false);
-		m_pAss->set_selector(NULL);
-		GMG_PROFILE_END();
-
-	//	now we copy the matrix into a new (smaller) one
-		if(m_vLevData[lev].sel != NULL)
-		{
-			UG_ASSERT(m_vLevData[lev].SmoothMat != NULL, "SmoothMat missing");
-			matrix_type& mat = m_vLevData[lev].A->get_matrix();
-			matrix_type& smoothMat = m_vLevData[lev].SmoothMat->get_matrix();
-
-			smoothMat.resize( m_vLevData[lev].vMap.size(), m_vLevData[lev].vMap.size());
-			CopySmoothingMatrix(smoothMat, m_vLevData[lev].vMapMat, mat);
+				smoothMat.resize( m_vLevData[lev].vMap.size(), m_vLevData[lev].vMap.size());
+				CopySmoothingMatrix(smoothMat, m_vLevData[lev].vMapMat, mat);
+			}
 		}
 	}
 
@@ -922,6 +931,9 @@ init_linear_level_operator()
 		m_BaseOperator.force_regular_grid(false);
 	}
 
+#ifdef UG_PARALLEL
+			pcl::SynchronizeProcesses();
+#endif
 //	we're done
 	return true;
 }
