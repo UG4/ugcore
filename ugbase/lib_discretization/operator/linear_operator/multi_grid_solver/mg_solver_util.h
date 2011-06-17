@@ -979,6 +979,42 @@ bool CopySmoothingMatrix(TMatrix& smoothMat,
 	return true;
 }
 
+/// projects surface function to level functions
+template <typename TMatrix>
+bool CopySurfaceMatToLevelMat(TMatrix& levMat,
+                              const std::vector<size_t>& vMap,
+                              const TMatrix& surfMat)
+{
+//	type of matrix row iterator
+	typedef typename TMatrix::const_row_iterator const_row_iterator;
+
+//	loop all mapped indices
+	for(size_t surfInd = 0; surfInd < vMap.size(); ++surfInd)
+	{
+	//	get mapped level index
+		const size_t levelInd = vMap[surfInd];
+
+	//	loop all connections of the surface dof to other surface dofs and copy
+	//	the matrix coupling into the level matrix
+
+		for(const_row_iterator conn = surfMat.begin_row(surfInd);
+									conn != surfMat.end_row(surfInd); ++conn)
+		{
+		//	get corresponding level connection index
+			const size_t origConnIndex = vMap[conn.index()];
+
+		//	copy connection to level matrix
+			levMat(levelInd, origConnIndex) = conn.value();
+		}
+	}
+
+#ifdef UG_PARALLEL
+	levMat.copy_storage_type(surfMat);
+#endif
+
+	return true;
+}
+
 
 } // end namespace ug
 #endif

@@ -757,10 +757,23 @@ init_common(bool nonlinear)
 	else
 		m_bFullRefined =false;
 
+
+//	init mapping from surface level to top level in case of full refinement
+	if(m_bFullRefined)
+	{
+		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+		if(!CreateSurfaceToToplevelMap(m_vSurfToTopMap,
+									   m_pApproxSpace->get_surface_dof_distribution(),
+									   m_pApproxSpace->get_level_dof_distribution(m_topLev)))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
+					"Cannot init Mapping Surface -> TopLevel (full refinement case).\n");
+			return false;
+		}
+		GMG_PROFILE_END();
+	}
+
 //	Assemble coarse grid operators
-#ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
-#endif
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	if(nonlinear){
 		if(!init_non_linear_level_operator()){
@@ -776,11 +789,9 @@ init_common(bool nonlinear)
 			return false;
 		}
 	}
-#ifdef UG_PARALLEL
-	pcl::SynchronizeProcesses();
-#endif
 	GMG_PROFILE_END();
 
+//	write computed level matrices for debug purpose
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 		write_level_debug(m_vLevData[lev].A->get_matrix(), "LevelMatrix", lev);
 
@@ -814,21 +825,6 @@ init_common(bool nonlinear)
 	}
 	GMG_PROFILE_END();
 
-//	init mapping from surface level to top level in case of full refinement
-	if(m_bFullRefined)
-	{
-		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
-		if(!CreateSurfaceToToplevelMap(m_vSurfToTopMap,
-		                               m_pApproxSpace->get_surface_dof_distribution(),
-		                               m_pApproxSpace->get_level_dof_distribution(m_topLev)))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-					"Cannot init Mapping Surface -> TopLevel (full refinement case).\n");
-			return false;
-		}
-		GMG_PROFILE_END();
-	}
-
 //	we're done
 	return true;
 }
@@ -849,6 +845,17 @@ init_linear_level_operator()
 	//	skip assembling if no dofs given
 		if(levelDD.num_dofs() == 0)
 			continue;
+
+	//	in case of full refinement we simply copy the matrix (with correct numbering)
+		if(lev == m_vLevData.size() && m_bFullRefined)
+		{
+			matrix_type& levMat = m_vLevData[lev].A->get_matrix();
+			matrix_type& surfMat = m_pSurfaceOp->get_matrix();
+
+			levMat.resize( surfMat.num_rows(), surfMat.num_cols());
+			CopySurfaceMatToLevelMat(levMat, m_vSurfToTopMap, surfMat);
+			continue;
+		}
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled and force grid to be considered as regular
