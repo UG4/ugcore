@@ -2,6 +2,8 @@
 //	s.b.reiter@googlemail.com
 //	y09 m11 d17
 
+#include <utility>
+#include <vector>
 #include "lib_grid/lib_grid.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
@@ -27,8 +29,8 @@ void PrintData(int* data, int size)
 /**	The InfoVec will be associated with each element and stores where
  * in which distribution layout the element can be found.
  */
-static typedef vector<pair<int, int> > 			InfoVec;
-static typedef Attachment<InfoVec>		AInfoVec;
+typedef vector<pair<int, int> > InfoVec;
+typedef Attachment<InfoVec>		AInfoVec;
 
 
 
