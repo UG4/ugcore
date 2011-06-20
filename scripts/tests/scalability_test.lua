@@ -89,8 +89,10 @@ print(" Linear solver related parameters chosen:")
 print("    lsIterator = " .. lsIterator)
 print("    lsMaxIter  = " .. lsMaxIter)
 
-print("    bs (baseSolverType) = " .. baseSolverType)
-print("    bl (baseLevel)      = " .. baseLevel)
+if lsIterator == "gmg" then
+	print("    bs (baseSolverType) = " .. baseSolverType)
+	print("    bl (baseLevel)      = " .. baseLevel)
+end
 
 print(" Parallelisation related parameters chosen:")
 print("    distType   = " .. distributionType)
@@ -398,7 +400,9 @@ solver = linSolver
 --  to get separate profiling for assemble and solve
 --------------------------------------------------------------------------------
 
-print( "   baseSolverType is " .. baseSolverType .. ",  baseLevel is " .. baseLevel )
+if lsIterator == "gmg" then
+	print( "   baseSolverType is " .. baseSolverType .. ",  baseLevel is " .. baseLevel )
+end
 
 -- 0. Reset start solution
 u:set(0.0)
