@@ -389,20 +389,20 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 		Deserialize(in, faceLayout.m_globalIDs);
 		Deserialize(in, volLayout.m_globalIDs);
 
-/*delete this
-		if(!DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
-							&edgeLayout.node_vec(), &faceLayout.node_vec(),
-							&volLayout.node_vec()))
-		{
-			UG_LOG("DeserializeMultiGridElements failed.\n");
+	//	If only one process sends data, then we can directly deserialize into
+	//	the original multigrid. If not, then we'll serialize into a temporary
+	//	grid and insert the elements into our local grid later on.
+		if(recvFromRanks.size() == 1){
+			DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
+								&edgeLayout.node_vec(), &faceLayout.node_vec(),
+								&volLayout.node_vec());
 		}
-*/
-	//todo:	If only one process sends data, then we can directly deserialize into
-	//		the original multigrid.
-		tmg.clear_geometry();
-		DeserializeMultiGridElements(tmg, in, &vrtLayout.node_vec(),
-							&edgeLayout.node_vec(), &faceLayout.node_vec(),
-							&volLayout.node_vec());
+		else{
+			tmg.clear_geometry();
+			DeserializeMultiGridElements(tmg, in, &vrtLayout.node_vec(),
+								&edgeLayout.node_vec(), &faceLayout.node_vec(),
+								&volLayout.node_vec());
+		}
 
 		DeserializeDistributionLayoutInterfaces(vrtLayout, in);
 		DeserializeDistributionLayoutInterfaces(edgeLayout, in);
@@ -412,9 +412,11 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 	//	before we'll deserialize the associated data, we'll create the new
 	//	elements in the target grid.
 	//	copy elements - layouts are upadted to the new elements on the fly.
-	//todo:	If only one process sends data then this step is not required.
-		CopyNewElements(mg, tmg, vrtLayout, edgeLayout, faceLayout, volLayout,
-						aaVrt, aaEdge, aaFace, aaVol);
+	//	If only one process sends data then this step is not required.
+		if(recvFromRanks.size() > 1){
+			CopyNewElements(mg, tmg, vrtLayout, edgeLayout, faceLayout, volLayout,
+							aaVrt, aaEdge, aaFace, aaVol);
+		}
 
 
 	//	now deserialize the data associated with the elements in the layouts node-vecs
