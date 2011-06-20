@@ -182,7 +182,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						std::vector<TIndexType>* pEdgeWeightsOut,
 						MultiGrid& mg,
-						int hWeight = 1,
+						int hWeight = 1, int vWeight = 1,
 						Attachment<TIndexType>* paIndex = NULL,
 						TGeomBaseObj** pGeomObjsOut = NULL,
 						NeighbourhoodType nbhType = NHT_DEFAULT)
@@ -252,7 +252,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 				if(parent && Elem::type_match(parent)){
 					adjacencyMapOut.push_back(aaInd[parent]);
 					if(pEdgeWeightsOut)
-						pEdgeWeightsOut->push_back(1);
+						pEdgeWeightsOut->push_back(vWeight);
 				}
 
 			//	add children to the list

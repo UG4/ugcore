@@ -23,6 +23,15 @@ void PrintData(int* data, int size)
 }
 */
 
+///	The InfoVec is used to store pairs of (layoutIndex, indexInLayout).
+/**	The InfoVec will be associated with each element and stores where
+ * in which distribution layout the element can be found.
+ */
+static typedef vector<pair<int, int> > 			InfoVec;
+static typedef Attachment<InfoVec>		AInfoVec;
+
+
+
 ////////////////////////////////////////////////////////////////////////
 //	AddNodesToLayout
 ///	adds nodes to a layout and to interfaces if required.
@@ -31,14 +40,21 @@ void PrintData(int* data, int size)
  * by layoutIndex, but all layouts that share a node with this
  * layout. For each node that is referenced by multiple layouts,
  * corresponding interface entries are automatically generated.
+ *
+ * aInfoVec has to be attachmed at all elements.
  */
-template <class TNodeLayout, class TIterator, class TAIntAccessor>
+//	Implementation note: Instead of aaInfoVec we previously used
+//	aaFirstProc and aaFirstProcLocalIndex attachments. This resulted in less
+//	memory usage and still worked perfectly fine. However, during the creation
+//	of vertical interfaces the InfoVecs are required. Since vertical
+//	interfaces occur in all ug-multi-grid applications, we consider this
+//	to be the standard case and try to optimize the code for this.
+template <class TNodeLayout, class TIterator>
 static
 void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 						int layoutIndex,
 						TIterator nodesBegin, TIterator nodesEnd,
-						TAIntAccessor& aaFirstLayout,
-						TAIntAccessor& aaFirstProcLocalInd,
+						Grid& grid, AInfoVec& aInfoVec,
 						std::vector<int>* processMap = NULL,
 						int level = 0,
 						int interfacesOnLevelOnly = -1,
@@ -46,20 +62,25 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 {
 	typedef typename TNodeLayout::Interface			Interface;
 	typedef typename TNodeLayout::InterfaceEntry	InterfaceEntry;
+	typedef typename TNodeLayout::NodeType			Node;
+	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
+
+	assert(grid.has_attachment<Elem>(aInfoVec));
+	Grid::AttachmentAccessor<Elem, AInfoVec> aaInfoVec(grid, aInfoVec);
 
 	TNodeLayout& layout = layouts[layoutIndex];
 
 	for(TIterator iter = nodesBegin; iter != nodesEnd; ++iter)
 	{
 		typename TNodeLayout::NodeType node = *iter;
-		int masterLayoutIndex = aaFirstLayout[node];
-		if(masterLayoutIndex == -1)
+		InfoVec& infoVec = aaInfoVec[node];
+
+		if(infoVec.empty())
 		{
 		//	the node has been encountered for the first time.
-		//	add it to the layout and set aaFirstLayout and
-		//	aaLocalIndex accordingly.
-			aaFirstLayout[node] = layoutIndex;
-			aaFirstProcLocalInd[node] = (int)layout.node_vec().size();
+		//	add it to the layout and the info-vec
+			infoVec.push_back(make_pair(layoutIndex,
+										(int)layout.node_vec().size()));
 			layout.node_vec().push_back(node);
 		}
 		else
@@ -71,9 +92,13 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 		//	the node has already been added to another layout.
 		//	add it to the new layout and create interface entries
 		//	on both sides.
-			int localMasterID = aaFirstProcLocalInd[node];
-			int localID = (int)layout.node_vec().size();
+			int masterLayoutIndex = infoVec.front().first;
 			TNodeLayout& masterLayout = layouts[masterLayoutIndex];
+
+			int localMasterID = infoVec.front().second;
+			int localID = (int)layout.node_vec().size();
+
+			infoVec.push_back(make_pair(layoutIndex, localID));
 			layout.node_vec().push_back(node);
 
 		//	access the interfaces
@@ -143,12 +168,8 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 
 	msel.clear<Elem>();
 
-//	iterate over all distLayouts but the local one
 	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
 	{
-		if((int)i_layout == locLayoutInd)
-			continue;
-
 		int curProcRank = i_layout;
 		if(processMap)
 			curProcRank = processMap->at(i_layout);
@@ -166,6 +187,13 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 			Node node = curNodes[i_node];
 			GeometricObject* parent = mg.get_parent(node);
 
+		//	only consider parents of the same type.
+		//	Other parents can be ignored, since we will adjust the selection
+		//	after having executed this method for all object-types.
+		//todo	This only holds true for regular grids...
+			if(parent && !Elem::type_match(parent))
+				continue;
+
 			if(!parent || !mg.is_marked(parent))
 				msel.select(node);
 		}
@@ -177,78 +205,108 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 
 ////////////////////////////////////////////////////////////////////////
 /**	Creates vertical interfaces for all selected elements.
- *
- * Note that this method may add a new distLayout, a new process-map entry
- * and a new empty subset to shPart.
+ * Make sure to call this method first for volumes, then for faces,
+ * edges and vertices. Make sure to copy associated elements of the elements in
+ * copiedElemsOut to the corresponding distribution layouts before calling the
+ * method for the next element type.
  *
  * Elements which already are in vertical interfaces won't be added to new ones.
+ *
+ * Make sure that aInfoVec is attached to the elements of the grid and that it
+ * stores (layout / local-index) pairs for each layout in which an element is
+ * located.
+ *
+ * All elements which have been copied to a new layout are pushed to
+ * copiedElemsOut. Make sure that all sides, edges and vertices are assigned
+ * to the same distribution layouts, too.
  */
-template <class TDistLayout, class TAAInt>
-void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
-								MultiGrid& mg, MGSelector& msel,
-								SubsetHandler& shPart, TAAInt& aaInt,
-								DistributedGridManager* pDistGridMgr = NULL,
-								std::vector<int>* processMap = NULL)
+template <class TDistLayout>
+bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
+						MultiGrid& mg, MGSelector& msel,
+						SubsetHandler& shPart,
+						AInfoVec& aInfoVec,
+						vector<pair<typename TDistLayout::NodeType, int> >& copiedElemsOut,
+						DistributedGridManager* pDistGridMgr = NULL,
+						std::vector<int>* processMap = NULL)
 {
 //	all elements which do not have a parent on their associated proc
-//	have to be added to a vertical interface to localProc. An associated
-//	vertical master has to be added in the associated interface on
-//	localProc.
-
+//	have to be added to a vertical interface. An associated
+//	vertical master has to be added in the associated interface somewhere.
 	typedef typename TDistLayout::NodeVec			NodeVec;
 	typedef typename TDistLayout::NodeType			Node;
 	typedef typename TDistLayout::Interface			Interface;
 	typedef typename TDistLayout::InterfaceEntry	InterfaceEntry;
+	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
 
-	int locProcRank = pcl::GetProcRank();
+	assert(mg.has_attachment<Volume>(aInfoVec));
+	assert(mg.has_attachment<Face>(aInfoVec));
+	assert(mg.has_attachment<EdgeBase>(aInfoVec));
+	assert(mg.has_attachment<VertexBase>(aInfoVec));
 
-//	we have to find the local LayoutIndex
-	int locLayoutInd = -1;
-	if(processMap){
-		vector<int>& procMap = *processMap;
-		for(size_t i = 0; i < distLayouts.size(); ++i){
-			if(procMap[i] == locProcRank){
-				locLayoutInd = i;
+	Grid::AttachmentAccessor<Elem, AInfoVec> aaInfoVec(mg, aInfoVec);
+
+//	Those accessors are required to access info-vecs of parents of different type.
+	Grid::AttachmentAccessor<Volume, AInfoVec> aaInfoVecVOL(mg, aInfoVec);
+	Grid::AttachmentAccessor<Face, AInfoVec> aaInfoVecFACE(mg, aInfoVec);
+	Grid::AttachmentAccessor<EdgeBase, AInfoVec> aaInfoVecEDGE(mg, aInfoVec);
+	Grid::AttachmentAccessor<VertexBase, AInfoVec> aaInfoVecVRT(mg, aInfoVec);
+
+//	the base-layout index is used to create ghosts for elements which do not
+//	have a parent at all.
+//	the lowest subset of the highest-dimensional elements in the lowest level
+//	of the grid determines the base layout.
+	int baseLayoutInd = -1;
+
+	if(mg.num<Volume>() > 0){
+		for(int i = 0; i < shPart.num_subsets(); ++i){
+			if(shPart.num<Volume>() > 0){
+				baseLayoutInd = i;
 				break;
 			}
 		}
-	//	if no layout was found for the local proc, we have to add a new one
-		if(locLayoutInd == -1){
-			locLayoutInd = (int)distLayouts.size();
-			shPart.subset_required(shPart.num_subsets());
-			distLayouts.push_back(TDistLayout());
-			procMap.push_back(locProcRank);
+	}
+	if((baseLayoutInd == -1) && (mg.num<Face>() > 0)){
+		for(int i = 0; i < shPart.num_subsets(); ++i){
+			if(shPart.num<Face>() > 0){
+				baseLayoutInd = i;
+				break;
+			}
 		}
 	}
-	else{
-		locLayoutInd = locProcRank;
-	//	if no layout exists for the local proc, we have to add new ones
-		if(locLayoutInd >= (int)distLayouts.size()){
-			distLayouts.resize(locLayoutInd + 1);
-			shPart.subset_required(locLayoutInd);
+	if((baseLayoutInd == -1) && (mg.num<EdgeBase>() > 0)){
+		for(int i = 0; i < shPart.num_subsets(); ++i){
+			if(shPart.num<EdgeBase>() > 0){
+				baseLayoutInd = i;
+				break;
+			}
+		}
+	}
+	if((baseLayoutInd == -1) && (mg.num<VertexBase>() > 0)){
+		for(int i = 0; i < shPart.num_subsets(); ++i){
+			if(shPart.num<VertexBase>() > 0){
+				baseLayoutInd = i;
+				break;
+			}
 		}
 	}
 
-	TDistLayout& locLayout = distLayouts[locLayoutInd];
-	NodeVec& locNodes = locLayout.node_vec();
+	if(baseLayoutInd == -1)
+		return false;
 
-//	mark all nodes, which stay here on this process (this may get more during
-//	the algorithm).
-//	aaInt will be used to store the local index of each marked node
-	mg.begin_marking();
-	MarkNodesInLayout(mg, locLayout);
-
-	for(size_t i = 0; i < locNodes.size(); ++i){
-		mg.mark(locNodes[i]);
-		aaInt[locNodes[i]] = i;
+	TDistLayout& baseLayout = distLayouts[baseLayoutInd];
+	NodeVec& baseNodes = baseLayout.node_vec();
+/*
+//	DEBUG: print content of baseNodes
+	Grid::VertexAttachmentAccessor<APosition2> aaPos(mg, aPosition2);
+	UG_LOG("baseNodes-before:");
+	for(size_t i = 0; i < baseNodes.size(); ++i){
+		UG_LOG(" " << aaPos[baseNodes[i]])
 	}
-
-//	iterate over all distLayouts but the local one
+	UG_LOG(endl);
+*/
+//	Now create the interfaces. Iterate over all distLayouts
 	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
 	{
-		if((int)i_layout == locLayoutInd)
-			continue;
-
 		int curProcRank = i_layout;
 		if(processMap)
 			curProcRank = processMap->at(i_layout);
@@ -257,9 +315,10 @@ void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 
 	//	we wont access the interfaces directly. Instead we'll cache them
 	//	for efficient reuse
-		Interface* locInterface = NULL;
+		Interface* masterInterface = NULL;
 		Interface* curInterface = NULL;
 		int interfaceLevel = -1;
+		int lastMasterLayoutInd = -1;
 
 	//	check for each node whether it is selected. If so, we have to create
 	//	an interface entry (if none already exists).
@@ -276,32 +335,199 @@ void CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 				continue;
 
 			if(msel.is_selected(node)){
-			//	the element has to be put into a vertical interface
+			//	the element has to be put into a vertical interface. If it
+			//	hasn't got a parent, we'll create an interface to baseLayout.
+			//	If it has a parent, we'll have to create an interface to the
+			//	first copy, which has a parent on the same proc.
+				int masterLayoutInd = -1;
+				int masterLocalInd = -1;
+
+			//	info vec of node
+				InfoVec& nivec = aaInfoVec[node];
+			//	pointer to info-vec of parent
+				InfoVec* ppivec = NULL;
+
+				GeometricObject* parent = mg.get_parent(node);
+
+			//	access the parents info vec.
+				if(parent){
+					int parentType = parent->base_object_type_id();
+					switch(parentType){
+						case VOLUME:
+							ppivec = &aaInfoVecVOL[parent];
+							break;
+						case FACE:
+							ppivec = &aaInfoVecFACE[parent];
+							break;
+						case EDGE:
+							ppivec = &aaInfoVecEDGE[parent];
+							break;
+						case VERTEX:
+							ppivec = &aaInfoVecVRT[parent];
+							break;
+					}
+				}
+
+			//	now find the master-layout-index for the element. If required
+			//	create copies of the elements on processes where a parent lies.
+				if(parent && !ppivec->empty()){
+				//	we have to find a copy of elem whose parent is in the same
+				//	layout as the copy.
+				//	If none can be found, we'll create a copy of elem on the
+				//	first proc on which parent lies and make it a vertical master.
+					InfoVec& pivec = *ppivec;
+
+					for(size_t i_ni = 0; i_ni < nivec.size(); ++i_ni){
+						int tLayoutInd = nivec[i_ni].first;
+						for(size_t i_pi = 0; i_pi < pivec.size(); ++i_pi){
+							if(tLayoutInd == pivec[i_pi].first){
+								masterLayoutInd = tLayoutInd;
+								masterLocalInd = nivec[i_ni].second;
+								break;
+							}
+						}
+
+						if(masterLocalInd != -1)
+							break;
+					}
+
+				//	if we didn't find one, we have to create a copy.
+				//	use the first layout in which parent lies and create the
+				//	copy.
+				//todo: always using the first one can lead to a slight imbalance.
+					if(masterLocalInd == -1){
+						masterLayoutInd = pivec[0].first;
+						NodeVec& masterNodes = distLayouts[masterLayoutInd].node_vec();
+					//	we want the new entry to be the first in the vector to
+					//	optimize search performance.
+						if(!nivec.empty()){
+							nivec.push_back(nivec.front());
+							nivec.front() = make_pair((int)masterLayoutInd,
+													  (int)masterNodes.size());
+						}
+						else{
+							nivec.push_back(make_pair((int)masterLayoutInd,
+														(int)masterNodes.size()));
+						}
+						masterNodes.push_back(node);
+						masterLocalInd = (int)masterNodes.size() - 1;
+
+						copiedElemsOut.push_back(make_pair(node, masterLayoutInd));
+					}
+
+				}
+				else{
+					if(baseLayoutInd == (int)i_layout)
+						continue;
+
+					masterLayoutInd = baseLayoutInd;
+				//	check whether a copy already lies in base-layout
+				//	if so, assign the local index.
+					for(size_t i = 0; i < nivec.size(); ++i){
+						if(nivec[i].first == baseLayoutInd){
+							masterLocalInd = nivec[i].second;
+							break;
+						}
+					}
+
+					if(masterLocalInd == -1){
+					//	we have to create a new entry in the base-layout
+					//	we want the new entry to be the first in the vector to
+					//	optimize search performance.
+						if(!nivec.empty()){
+							nivec.push_back(nivec.front());
+							nivec.front() = make_pair((int)baseLayoutInd,
+													  (int)baseNodes.size());
+						}
+						else{
+							nivec.push_back(make_pair((int)baseLayoutInd,
+														(int)baseNodes.size()));
+						}
+
+						baseNodes.push_back(node);
+						masterLocalInd = (int)baseNodes.size() - 1;
+						copiedElemsOut.push_back(make_pair(node, baseLayoutInd));
+					}
+				}
+
+			//	if masterLayoutInd and curLayoutInd are the same, there is
+			//	of course nothing to do.
+				if(masterLayoutInd == (int)i_layout)
+					continue;
+
+				int masterProcRank = masterLayoutInd;
+				if(processMap)
+					masterProcRank = processMap->at(masterLayoutInd);
+
 			//	get the level and check whether we have to access the interfaces again
 				int lvl = mg.get_level(node);
-				if(lvl != interfaceLevel){
-				//	we have to access the interfaces
+				if((lvl != interfaceLevel)
+					|| (lastMasterLayoutInd != masterLayoutInd))
+				{
+					lastMasterLayoutInd = masterLayoutInd;
+				//	we have to update the interfaces
 					interfaceLevel = lvl;
-					locInterface = &locLayout.interface(curProcRank, lvl);
-					curInterface = &curLayout.interface(locProcRank, lvl);
+					masterInterface = &distLayouts[masterLayoutInd].
+													interface(curProcRank, lvl);
+					curInterface = &curLayout.interface(masterProcRank, lvl);
 				}
 
-			//	before we can insert node into locInterface, we first have to
-			//	make sure, that it is contained in locLayout.
-				if(!mg.is_marked(node)){
-					mg.mark(node);
-					aaInt[node] = (int)locNodes.size();
-					locNodes.push_back(node);
-				}
-
-			//	finally insert the node into the interfaces
-				locInterface->push_back(InterfaceEntry(aaInt[node], INT_V_MASTER));
+			//	insert the node into the interfaces
+				masterInterface->push_back(InterfaceEntry(masterLocalInd, INT_V_MASTER));
 				curInterface->push_back(InterfaceEntry(i_node, INT_V_SLAVE));
 			}
 		}
 	}
 
 	mg.end_marking();
+	return true;
+}
+
+///	A helper method that copies associated lower dim elems to required distLayouts.
+/**	This is important since each layout has to contain a complete grid with all
+ * vertices, edges and sides...
+ * Please check the calling context (shouldn't be many) for more insight.
+ */
+template <class TDistLayoutDest, class TElemSrc>
+static void CopyAssociatedElemsToDistLayouts(std::vector<TDistLayoutDest>& distLayouts,
+									MultiGrid& mg, AInfoVec& aInfoVec,
+									vector<pair<TElemSrc*, int> >& copiedSrcElems)
+{
+	typedef typename TDistLayoutDest::NodeType			NodeDest;
+	typedef typename PtrTypeToGeomObjBaseType<NodeDest>::base_type	ElemDest;
+
+	assert(mg.has_attachment<ElemDest>(aInfoVec));
+	Grid::AttachmentAccessor<ElemDest, AInfoVec> aaInfoVec(mg, aInfoVec);
+
+	vector<ElemDest*> elems;
+
+	for(size_t i_src = 0; i_src < copiedSrcElems.size(); ++i_src){
+		TElemSrc* src = copiedSrcElems[i_src].first;
+		int destLayoutInd = copiedSrcElems[i_src].second;
+		TDistLayoutDest& destLayout = distLayouts[destLayoutInd];
+
+		CollectAssociated(elems, mg, src);
+		for(size_t i_elem = 0; i_elem < elems.size(); ++i_elem){
+			ElemDest* dest = elems[i_elem];
+		//	check whether destLayout already contains dest
+			InfoVec& infoVec = aaInfoVec[dest];
+
+			bool gotOne = false;
+			for(size_t i = 0; i < infoVec.size(); ++i){
+				if(infoVec[i].first == destLayoutInd){
+					gotOne = true;
+					break;
+				}
+			}
+
+			if(!gotOne){
+			//	copy dest to destLayout. Add an entry to infoVec
+				infoVec.push_back(make_pair(destLayoutInd,
+											(int)destLayout.node_vec().size()));
+				destLayout.node_vec().push_back(dest);
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -339,33 +565,14 @@ void CreateDistributionLayouts(
 	faceLayoutsOut = std::vector<TFaceDistributionLayout>(sh.num_subsets());
 	volumeLayoutsOut = std::vector<TVolumeDistributionLayout>(sh.num_subsets());
 
-//	attach first-proc-indices and local-ids to the elements of the grid.
-	AInt aFirstProc;
-	AInt aFirstProcLocalInd;
-	mg.attach_to_vertices(aFirstProc);
-	mg.attach_to_edges(aFirstProc);
-	mg.attach_to_faces(aFirstProc);
-	mg.attach_to_volumes(aFirstProc);
-	mg.attach_to_vertices(aFirstProcLocalInd);
-	mg.attach_to_edges(aFirstProcLocalInd);
-	mg.attach_to_faces(aFirstProcLocalInd);
-	mg.attach_to_volumes(aFirstProcLocalInd);
+//	We attach vectors to all elements, which store where in which layout an
+//	element is located.
+	AInfoVec aInfoVec;
 
-//	the attachment accessors
-	Grid::VertexAttachmentAccessor<AInt> aaFirstProcVRT(mg, aFirstProc);
-	Grid::EdgeAttachmentAccessor<AInt> aaFirstProcEDGE(mg, aFirstProc);
-	Grid::FaceAttachmentAccessor<AInt> aaFirstProcFACE(mg, aFirstProc);
-	Grid::VolumeAttachmentAccessor<AInt> aaFirstProcVOL(mg, aFirstProc);
-	Grid::VertexAttachmentAccessor<AInt> aaFirstProcLocalIndVRT(mg, aFirstProcLocalInd);
-	Grid::EdgeAttachmentAccessor<AInt> aaFirstProcLocalIndEDGE(mg, aFirstProcLocalInd);
-	Grid::FaceAttachmentAccessor<AInt> aaFirstProcLocalIndFACE(mg, aFirstProcLocalInd);
-	Grid::VolumeAttachmentAccessor<AInt> aaFirstProcLocalIndVOL(mg, aFirstProcLocalInd);
-
-//	initialise first-proc attachments
-	SetAttachmentValues(aaFirstProcVRT, mg.vertices_begin(), mg.vertices_end(), -1);
-	SetAttachmentValues(aaFirstProcEDGE, mg.edges_begin(), mg.edges_end(), -1);
-	SetAttachmentValues(aaFirstProcFACE, mg.faces_begin(), mg.faces_end(), -1);
-	SetAttachmentValues(aaFirstProcVOL, mg.volumes_begin(), mg.volumes_end(), -1);
+	mg.attach_to_vertices(aInfoVec);
+	mg.attach_to_edges(aInfoVec);
+	mg.attach_to_faces(aInfoVec);
+	mg.attach_to_volumes(aInfoVec);
 
 //	iterate through the subsets and and create the packs.
 //	we have to do this in two steps to make sure that all
@@ -379,20 +586,16 @@ void CreateDistributionLayouts(
 	//	by passing -1 we can assert that no interface is accessed.
 		AddNodesToLayout(vertexLayoutsOut, i,
 							sh.begin<VertexBase>(i), sh.end<VertexBase>(i),
-							aaFirstProcVRT, aaFirstProcLocalIndVRT,
-							processMap, -1);
+							mg, aInfoVec, processMap, -1);
 		AddNodesToLayout(edgeLayoutsOut, i,
 							sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i),
-							aaFirstProcEDGE, aaFirstProcLocalIndEDGE,
-							processMap, -1);
+							mg, aInfoVec, processMap, -1);
 		AddNodesToLayout(faceLayoutsOut, i,
 							sh.begin<Face>(i), sh.end<Face>(i),
-							aaFirstProcFACE, aaFirstProcLocalIndFACE,
-							processMap, -1);
+							mg, aInfoVec, processMap, -1);
 		AddNodesToLayout(volumeLayoutsOut, i,
 							sh.begin<Volume>(i), sh.end<Volume>(i),
-							aaFirstProcVOL, aaFirstProcLocalIndVOL,
-							processMap, -1);
+							mg, aInfoVec, processMap, -1);
 	}
 
 //	step 2: add all the associated elements to the distribution groups, which
@@ -421,9 +624,10 @@ void CreateDistributionLayouts(
 			SelectAssociatedGeometricObjects(msel);
 
 		int interfacesOnLevelOnly = -1;
+		/*
 		if(distributeGenealogy)
 			interfacesOnLevelOnly = mg.num_levels() - 1;
-
+		*/
 	//	now add the missing horizontal interfaces
 	//	make sure that we won't add elements twice.
 		msel.deselect(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
@@ -438,23 +642,19 @@ void CreateDistributionLayouts(
 		{
 			AddNodesToLayout(vertexLayoutsOut, i,
 								msel.begin<VertexBase>(level), msel.end<VertexBase>(level),
-								aaFirstProcVRT, aaFirstProcLocalIndVRT,
-								processMap, level,
+								mg, aInfoVec, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(edgeLayoutsOut, i,
 								msel.begin<EdgeBase>(level), msel.end<EdgeBase>(level),
-								aaFirstProcEDGE, aaFirstProcLocalIndEDGE,
-								processMap, level,
+								mg, aInfoVec, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(faceLayoutsOut, i,
 								msel.begin<Face>(level), msel.end<Face>(level),
-								aaFirstProcFACE, aaFirstProcLocalIndFACE,
-								processMap, level,
+								mg, aInfoVec, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(volumeLayoutsOut, i,
 								msel.begin<Volume>(level), msel.end<Volume>(level),
-								aaFirstProcVOL, aaFirstProcLocalIndVOL,
-								processMap, level,
+								mg, aInfoVec, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 		}
 	}
@@ -471,29 +671,48 @@ void CreateDistributionLayouts(
 
 		SelectAssociatedGeometricObjects(msel);
 
-	//	we'll reuse aaFirstProc... for a different purpose here.
-		CreateVerticalInterfaces(vertexLayoutsOut, mg, msel, sh, aaFirstProcVRT,
-								pDistGridMgr, processMap);
-		CreateVerticalInterfaces(edgeLayoutsOut, mg, msel, sh, aaFirstProcEDGE,
-								pDistGridMgr, processMap);
-		CreateVerticalInterfaces(faceLayoutsOut, mg, msel, sh, aaFirstProcFACE,
-								pDistGridMgr, processMap);
-		CreateVerticalInterfaces(volumeLayoutsOut, mg, msel, sh, aaFirstProcVOL,
-								pDistGridMgr, processMap);
+	//	we'll call higher dim elems first, since lower dim-elems
+	//	may be added to dist-groups during this operation
+		vector<pair<Volume*, int> > copiedVols;
+		CreateVerticalInterfaces(volumeLayoutsOut, mg, msel, sh, aInfoVec,
+								copiedVols, pDistGridMgr, processMap);
+
+	//	now copy missing sides, edges and vertices of newly copied volumes
+	//	to the distribution layouts (those elements are already selected...).
+		CopyAssociatedElemsToDistLayouts(faceLayoutsOut, mg, aInfoVec, copiedVols);
+		CopyAssociatedElemsToDistLayouts(edgeLayoutsOut, mg, aInfoVec, copiedVols);
+		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedVols);
+
+		vector<pair<Face*, int> > copiedFaces;
+		CreateVerticalInterfaces(faceLayoutsOut, mg, msel, sh, aInfoVec,
+								copiedFaces, pDistGridMgr, processMap);
+
+	//	now copy missing edges and vertices of newly copied volumes
+	//	to the distribution layouts (those elements are already selected...).
+		CopyAssociatedElemsToDistLayouts(edgeLayoutsOut, mg, aInfoVec, copiedFaces);
+		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedFaces);
+
+		vector<pair<EdgeBase*, int> > copiedEdges;
+		CreateVerticalInterfaces(edgeLayoutsOut, mg, msel, sh, aInfoVec,
+								copiedEdges, pDistGridMgr, processMap);
+
+	//	now copy missing edges of newly copied volumes to the distribution layouts.
+	//	(those elements are already selected...)
+		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedEdges);
+
+		vector<pair<VertexBase*, int> > copiedVrts;
+		CreateVerticalInterfaces(vertexLayoutsOut, mg, msel, sh, aInfoVec,
+								copiedVrts, pDistGridMgr, processMap);
 	}
 
 //	The layouts are now complete.
 //	we're done in here.
 
 //	clean up
-	mg.detach_from_vertices(aFirstProc);
-	mg.detach_from_edges(aFirstProc);
-	mg.detach_from_faces(aFirstProc);
-	mg.detach_from_volumes(aFirstProc);
-	mg.detach_from_vertices(aFirstProcLocalInd);
-	mg.detach_from_edges(aFirstProcLocalInd);
-	mg.detach_from_faces(aFirstProcLocalInd);
-	mg.detach_from_volumes(aFirstProcLocalInd);
+	mg.detach_from_vertices(aInfoVec);
+	mg.detach_from_edges(aInfoVec);
+	mg.detach_from_faces(aInfoVec);
+	mg.detach_from_volumes(aInfoVec);
 }
 
 //	explicit template instantiation
@@ -593,10 +812,10 @@ void SerializeGridAndDistributionLayouts(
 						aLocalIndFACE, aLocalIndVOL, out);
 
 //	write the layouts
-	SerializeDistributionLayoutInterfaces(out, vrtLayout);
-	SerializeDistributionLayoutInterfaces(out, edgeLayout);
-	SerializeDistributionLayoutInterfaces(out, faceLayout);
-	SerializeDistributionLayoutInterfaces(out, volLayout);
+	SerializeDistributionLayoutInterfaces(out, vrtLayout, mg, aLocalIndVRT);
+	SerializeDistributionLayoutInterfaces(out, edgeLayout, mg, aLocalIndEDGE);
+	SerializeDistributionLayoutInterfaces(out, faceLayout, mg, aLocalIndFACE);
+	SerializeDistributionLayoutInterfaces(out, volLayout, mg, aLocalIndVOL);
 
 //	done. Please note that no attachments have been serialized in this method.
 }

@@ -6,6 +6,13 @@ function util.PartitionMapBisection(partitionMapOut, dom, numProcs)
 	PartitionDomain_Bisection(dom, partitionMapOut, 0)
 end
 
+-- create a partition map by using metis graph partitioning.
+-- This only works if Metis is available in the current build.
+function util.PartitionMapMetis(partitionMapOut, dom, numProcs)
+	partitionMapOut:add_target_procs(0, numProcs)
+	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs)
+end
+
 
 -- performs lexicographic ordering from the lower left to the upper right.
 -- Since each node can consist of multiple processes, we can further

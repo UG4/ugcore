@@ -80,7 +80,7 @@ template bool PartitionGrid_MetisKway<Volume>(SubsetHandler&, Grid&, int);
 template <class TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts,
-							 	  int hWeight = 1,
+							 	  int hWeight = 1, int vWeight = 1,
 							 	  int baseLevel = 0)
 {
 #ifdef UG_METIS
@@ -95,7 +95,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 //todo	add baseLevel to ConstructDualGraphMG.
 	ConstructDualGraphMG<TGeomBaseObj, idxtype>(adjacencyMapStructure,
 												adjacencyMap, &edgeWeightMap,
-												mg, hWeight);
+												mg, hWeight, vWeight);
 
 //	partition the graph using metis
 	int n = (int)adjacencyMapStructure.size() - 1;
@@ -134,10 +134,10 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 //////////////////////////////
 //	explicit instantiation
 template bool PartitionMultiGrid_MetisKway<EdgeBase>(SubsetHandler&, MultiGrid&,
-													 int, int, int);
+													 int, int, int, int);
 template bool PartitionMultiGrid_MetisKway<Face>(SubsetHandler&, MultiGrid&,
-												 int, int, int);
+												 int, int, int, int);
 template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&,
-												   int, int, int);
+												   int, int, int, int);
 
 }// end of namespace

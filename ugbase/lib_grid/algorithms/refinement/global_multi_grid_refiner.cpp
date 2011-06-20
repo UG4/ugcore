@@ -211,10 +211,34 @@ void GlobalMultiGridRefiner::refine()
 	{
 		if(!refinement_is_allowed(*iter))
 			continue;
-			
+
 	//	collect_objects_for_refine removed all edges that already were
 	//	refined. No need to check that again.
 		EdgeBase* e = *iter;
+
+	//	debug: make sure that both vertices may be refined
+		#ifdef UG_DEBUG
+			if(!refinement_is_allowed(e->vertex(0))
+				|| !refinement_is_allowed(e->vertex(1)))
+			{
+				UG_LOG("Can't refine edge between vertices ");
+				if(mg.has_vertex_attachment(aPosition)){
+					Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+					UG_LOG(aaPos[e->vertex(0)] << " and " << aaPos[e->vertex(1)] << endl);
+				}
+				else if(mg.has_vertex_attachment(aPosition2)){
+					Grid::VertexAttachmentAccessor<APosition2> aaPos(mg, aPosition2);
+					UG_LOG(aaPos[e->vertex(0)] << " and " << aaPos[e->vertex(1)] << endl);
+				}
+				else if(mg.has_vertex_attachment(aPosition1)){
+					Grid::VertexAttachmentAccessor<APosition1> aaPos(mg, aPosition1);
+					UG_LOG(aaPos[e->vertex(0)] << " and " << aaPos[e->vertex(1)] << endl);
+				}
+			}
+		#endif // UG_DEBUG
+
+		assert(refinement_is_allowed(e->vertex(0))
+				&& refinement_is_allowed(e->vertex(1)));
 
 		GMGR_PROFILE(GMGR_Refine_CreatingEdgeVertices);
 	//	create two new edges by edge-split

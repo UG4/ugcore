@@ -90,20 +90,20 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
  * For less than 8 procs metis features other, better suited methods.
  *
  * All elements in baseLevel and higher levels will be partitioned. elements
- * below baseLevel will stay where they are and are completly ignored during
+ * below baseLevel will stay where they are and are completely ignored during
  * load balancing.
  *
- * hWeight determines, how important it is to keep horizontal neighbors
- * on one process compared to the importance of keeping vertical neighbors
- * together. The bigger hWeight, the more attention is spend to keep horizontal
- * neighbors together.
+ * hWeight and vWeight determine, how important it is to keep horizontal
+ * and vertical neighbors on the same process as the element itself.
+ * The bigger hWeight, the more attention is spend to keep neighbors together.
+ * Both parameters have to be > 0. Default is 1.
  *
  * Valid template arguments are EdgeBase, Face, Volume and derived types.
  */
 template <class TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& grid, int numParts,
-							 	  int hWeight = 1,
+							 	  int hWeight = 1, int vWeight = 1,
 							 	  int baseLevel = 0);
 
 

@@ -7,15 +7,26 @@
 
 #include <iostream>
 #include <vector>
+#include <cassert>
 
 namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void SerializeDistributionLayoutInterfaces(
-								std::ostream& out, TLayout& layout)
+void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
+											Grid& grid, AInt& aLocalInd)
 {
+	typedef typename TLayout::NodeType			Node;
+	typedef typename TLayout::NodeVec			NodeVec;
+	typedef typename TLayout::InterfaceEntry		InterfaceEntry;
+	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
+
+	assert(grid.has_attachment<Elem>(aLocalInd));
+	Grid::AttachmentAccessor<Elem, AInt> aaLocalInd(grid, aLocalInd);
+
+	NodeVec nodes = layout.node_vec();
+
 //	write source-proc and the number of levels
 //	then for each level the number of interfaces
 //	then for each interface the number of nodes and the local-ids of the nodes.
@@ -51,8 +62,13 @@ void SerializeDistributionLayoutInterfaces(
 			out.write((char*)&tmp, sizeof(int));
 			
 		//	write the interface-entries
+		//	redirect the local index to the index where the associated
+		//	element was serialized.
+			InterfaceEntry entry;
 			for(size_t i = 0; i < interface.size(); ++i){
-				out.write((char*)&interface[i], sizeof(typename TLayout::InterfaceEntry));
+				entry.localID = aaLocalInd[nodes[interface[i].localID]];
+				entry.type = interface[i].type;
+				out.write((char*)&entry, sizeof(InterfaceEntry));
 			}
 		}
 	}

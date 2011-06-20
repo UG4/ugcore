@@ -21,11 +21,6 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 
 	vReceiveFromRanksOut.clear();
 
-//	if there is only one process in the communicator, there's
-//	nothing to do.
-	if(procComm.size() < 2)
-		return;
-
 	const int localProcRank = GetProcRank();
 
 //	we'll use an array in which we'll store the number of

@@ -40,6 +40,7 @@ dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 	--gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 
@@ -67,7 +68,7 @@ end
 
 -- parallelisation related stuff
 -- way the domain / the grid will be distributed to the processes:
-distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect]
+distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect | metis]
 
 -- number of processes per node (only used if distType == grid2d)
 -- should be a square number
@@ -144,10 +145,15 @@ partitionMap = PartitionMap()
 if GetProcessRank() == 0 then
 	if distributionType == "bisect" then
 		util.PartitionMapBisection(partitionMap, dom, numProcs)
+		
 	elseif distributionType == "grid2d" then
 		local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numProcs / numProcsPerNode)
 		util.PartitionMapLexicographic2D(partitionMap, dom, numNodesX,
 										 numNodesY, numProcsPerNode)
+
+	elseif distributionType == "metis" then
+		util.PartitionMapMetis(partitionMap, dom, numProcs)
+										 
 	else
 	    print( "distributionType not known, aborting!")
 	    exit()
@@ -192,6 +198,13 @@ if verbosity >= 1 then
 	print("saving domain to " .. refinedGridOutName)
 	if SaveDomain(dom, refinedGridOutName) == false then
 		print("Saving of domain to " .. refinedGridOutName .. " failed. Aborting.")
+		    exit()
+	end
+	
+	hierarchyOutName = "hierachy_p" .. GetProcessRank() .. ".ugx"
+	print("saving hierachy to " .. hierarchyOutName)
+	if SaveGridHierarchy(dom:get_grid(), hierarchyOutName) == false then
+		print("Saving of domain to " .. hierarchyOutName .. " failed. Aborting.")
 		    exit()
 	end
 end

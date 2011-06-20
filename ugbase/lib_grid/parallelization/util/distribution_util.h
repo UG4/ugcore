@@ -294,11 +294,20 @@ void SerializeGridAndDistributionLayouts(
 /**	Make sure to only pass a process-map if your layouts do not already
  * reference the final processes.
  *
+ * aLocalInd has to be attached to the elements in the distrbution-layout.
+ * They have to store the index for each element, where it was written to
+ * the stream during serialization of the grid.
+ * This is important, since the nodes in the node-vec of layout are not
+ * necessarily ordered by their mg-level. This however is the order in which
+ * elements are serialized. We thus have to redirect the indices stored in
+ * the distribution-interfaces to the real indices of the elements.
+ *
  * \todo	layouts should already reference the real target procs -
  * 			pProcessMap should thus be removed.
  */
 template <class TLayout>
-void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout);
+void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
+											Grid& grid, AInt& aLocalInd);
 
 ////////////////////////////////////////////////////////////////////////
 ///	deserializes a DistributionLayoutInterface.

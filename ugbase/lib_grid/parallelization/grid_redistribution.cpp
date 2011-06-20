@@ -174,7 +174,6 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //END - ONLY FOR DEBUG
 */
 
-
 ////////////////////////////////
 //	SERIALIZATION
 //	For each send-to-process (except the local process itself) we'll fill
@@ -398,12 +397,12 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 			UG_LOG("DeserializeMultiGridElements failed.\n");
 		}
 */
-		UG_LOG("Deserializing into tmg...\n");
+	//todo:	If only one process sends data, then we can directly deserialize into
+	//		the original multigrid.
 		tmg.clear_geometry();
 		DeserializeMultiGridElements(tmg, in, &vrtLayout.node_vec(),
 							&edgeLayout.node_vec(), &faceLayout.node_vec(),
 							&volLayout.node_vec());
-		UG_LOG("done.\n");
 
 		DeserializeDistributionLayoutInterfaces(vrtLayout, in);
 		DeserializeDistributionLayoutInterfaces(edgeLayout, in);
@@ -413,6 +412,7 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 	//	before we'll deserialize the associated data, we'll create the new
 	//	elements in the target grid.
 	//	copy elements - layouts are upadted to the new elements on the fly.
+	//todo:	If only one process sends data then this step is not required.
 		CopyNewElements(mg, tmg, vrtLayout, edgeLayout, faceLayout, volLayout,
 						aaVrt, aaEdge, aaFace, aaVol);
 
@@ -627,7 +627,6 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 	FaceDescriptor fd;
 	VolumeDescriptor vd;
 
-	UG_LOG("Copy new elements begins...\n");
 	for(size_t lvl = 0; lvl < mgSrc.num_levels(); ++lvl){
 	//	create hashes for existing geometric objects
 		Hash<VertexBase*, GeomObjID>	vrtHash((int)(1.5f * (float)(mgDest.num<VertexBase>(lvl)
@@ -855,7 +854,6 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 			aaVol[v] = nv;
 		}
 	}
-	UG_LOG("Copy new elements done.\n");
 }
 
 }// end of namespace
