@@ -174,6 +174,7 @@ numProcs = GetNumProcesses()
 -- fill a partitionMap (but every process needs one and has to return his map
 -- by calling 'RedistributeDomain()', even if in this case the map is empty
 -- for all processes but process 0).
+print("Distribute domain with 'distributionType' = " .. distributionType .. "...")
 partitionMap = PartitionMap()
 
 if GetProcessRank() == 0 then
@@ -203,6 +204,7 @@ if RedistributeDomain(dom, partitionMap, true) == false then
 	print("Redistribution failed. Please check your partitionMap.")
 	exit()
 end
+print("... domain distributed!")
 
 --------------------------------------------------------------------------------
 -- end of partitioning
