@@ -158,6 +158,8 @@ for _, fileName in ipairs(inFiles) do
 			end
 		end
 		
+		f:close()
+		
 	--	add the timings of this file to the global timings
 		timings[fileCounter] = fileTimings
 		fileCounter = fileCounter + 1
@@ -165,8 +167,6 @@ for _, fileName in ipairs(inFiles) do
 		print("  file " .. fileName .. " not found. Ignoring file.")
 
 	end
-	
-	f:close()
 end
 
 
