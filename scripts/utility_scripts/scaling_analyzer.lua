@@ -12,10 +12,13 @@
 --
 --	The script outputs the timings of associated profiler node in the different
 --	files in one row, together with the speedup factor between neigbored runs.
+--
+--	Note - if the timings do not exactly match and if some nodes in each run
+--	have the same name, then this script may give you unexpected results.
 --------------------------------------------------------------------------------
 
 --	the files which will be processed
-inFiles = {"stest_1_proc.txt", "stest_4_proc.txt", "stest_16_proc.txt", "stest_64_proc.txt"}
+inFiles = {"stest_1_proc.txt", "stest_4_proc.txt", "stest_16_proc.txt"}
 
 
 
@@ -42,6 +45,62 @@ function FillSpaces(str, minSize)
 	end
 	return str
 end
+
+--	Returns an entry in entryList, where entry.name == name.
+--	Search starts at guessInd, and then continues in both directions
+--	until both search indices point to an invalid entry.
+--	If no entry was found, the method then starts a new straight forward
+--	search over all entries in entryList
+function FindEntry(entryList, name, guessInd)
+	guessInd = math.floor(guessInd)
+	local doSearch = true
+	local offset = 0
+	while doSearch == true do
+		ind1 = guessInd - offset
+		ind2 = guessInd + offset
+
+		ind1Valid = false
+		ind2Valid = false
+				
+		if ind1 >= 0 then
+			local entry = entryList[ind1]
+			if entry ~= nil then
+				ind1Valid = true
+				if entry.name == name then
+					return entry
+				end
+			end
+		end
+		
+		if ind2 >= 0 then
+			local entry = entryList[ind2]
+			if entry ~= nil then
+				ind2Valid = true
+				if entry.name == name then
+					return entry
+				end
+			end
+		end
+		
+		if ind1Valid == false and ind2Valid == false then
+			break
+		end
+		
+		offset = offset + 1
+	end
+	
+--	if we reach this point we didn't find anything. Now perform
+--	a straight search in all entries of entryList, in case the
+--	list contained some nil entries
+	for _, entry in ipairs(entryList) do
+		if entry.name == name then
+			return entry
+		end
+	end
+	
+	return nil
+end
+
 
 
 --	we'll add timings to this list.
@@ -129,7 +188,7 @@ else
 	print(title)
 	
 --	iterate over all entries of mainTimings
-	for _, mainEntry in ipairs(mainTimings) do
+	for mainEntryInd, mainEntry in ipairs(mainTimings) do
 	--	print the line
 		local line = FillSpaces(mainEntry.spaces .. mainEntry.name, 48)
 		
@@ -141,26 +200,18 @@ else
 			local timings1 = timings[timingInd1]
 			local timings2 = timings[timingInd2]
 
-		-- find entries with the same names in timings1 and timings2 and
-		-- store the times
+		-- find entries with the same names as mainEntry in timings1 and timings2 and
+		-- store the times in seconds.
 			local time1 = nil
-			local curEntry1 = nil
-			for _, entry in ipairs(timings1) do
-				if entry.name == mainEntry.name then
-					curEntry1 = entry
-					time1 = entry.time * timeFactors[entry.timeUnit]	
-					break
-				end
+			local curEntry1 = FindEntry(timings1, mainEntry.name, mainEntryInd)
+			if curEntry1 ~= nil then
+				time1 = curEntry1.time * timeFactors[curEntry1.timeUnit]
 			end
 			
 			local time2 = nil
-			local curEntry2 = nil
-			for _, entry in ipairs(timings2) do
-				if entry.name == mainEntry.name then
-					curEntry2 = entry
-					time2 = entry.time * timeFactors[entry.timeUnit]	
-					break
-				end
+			local curEntry2 = FindEntry(timings2, mainEntry.name, mainEntryInd)
+			if curEntry2 ~= nil then
+				time2 = curEntry2.time * timeFactors[curEntry2.timeUnit]
 			end
 			
 			local tStr = ""

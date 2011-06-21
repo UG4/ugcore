@@ -18,7 +18,7 @@ LogAssistant() :
 	set_debug_levels(-1);
 	m_emptyBuf = &m_emptyBufInst;
 	m_splitBuf = &m_splitBufInst;
-	m_logBuf = clog.rdbuf();
+	m_logBuf = cout.rdbuf();
 	m_fileBuf = m_fileStream.rdbuf();
 
 	m_splitBufInst.set_buffers(m_logBuf, m_fileBuf);
@@ -65,16 +65,16 @@ update_ostream()
 {
 	if(m_terminalOutputEnabled){
 		if(m_fileOutputEnabled)
-			clog.rdbuf(m_splitBuf);
+			cout.rdbuf(m_splitBuf);
 		else
-			clog.rdbuf(m_logBuf);
+			cout.rdbuf(m_logBuf);
 	}
 	else{
 		if(m_fileOutputEnabled){
-			clog.rdbuf(m_fileBuf);
+			cout.rdbuf(m_fileBuf);
 		}
 		else{
-			clog.rdbuf(m_emptyBuf);
+			cout.rdbuf(m_emptyBuf);
 		}
 	}
 }
