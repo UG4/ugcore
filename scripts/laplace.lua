@@ -8,11 +8,12 @@
 
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
--- constants
-dim = 2
+--------------------------------------------------------------------------------
+-- Checking for parameters (begin)
+--------------------------------------------------------------------------------
+-- Several definitions which can be changed by command line parameters
+-- space dimension and grid file:
+dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
@@ -24,16 +25,45 @@ if dim == 3 then
 	--gridName = "unit_square/unit_cube_tets_regular.ugx"
 end
 
+-- refinements:
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
-distributionType = util.GetParam("-distType", "bisect")
+-- parallelisation related stuff
+-- way the domain / the grid will be distributed to the processes:
+distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect | metis]
 
-print(" Choosen Parater:")
+-- amount of output
+verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
+						    -- >= 1 for writing matrix files etc.
+
+activateDbgWriter = 0	  
+activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
+						    -- >= 1 for debug output: this sets
+						    -- 'fetiSolver:set_debug(dbgWriter)'
+
+
+-- Display parameters (or defaults):
+print(" General parameters chosen:")
+print("    dim        = " .. dim)
+print("    grid       = " .. gridName)
 print("    numRefs    = " .. numRefs)
 print("    numPreRefs = " .. numPreRefs)
-print("    grid       = " .. gridName)
-print("    dostType   = " .. distributionType)
+
+print("    verb (verbosity)         = " .. verbosity)
+print("    dbgw (activateDbgWriter) = " .. activateDbgWriter)
+
+print(" Parallelisation related parameters chosen:")
+print("    distType   = " .. distributionType)
+
+--------------------------------------------------------------------------------
+-- Checking for parameters (end)
+--------------------------------------------------------------------------------
+
+
+-- choose algebra
+InitAlgebra(CPUAlgebraSelector());
+
 
 --------------------------------
 -- User Data Functions (begin)
@@ -120,7 +150,7 @@ end
 -- create Refiner
 print("Create Refiner")
 if numPreRefs > numRefs then
-	print("numPreRefs must be smaller than numRefs");
+	print("It must be choosen: numPreRefs <= numRefs");
 	exit();
 end
 
@@ -129,51 +159,61 @@ end
 refiner = GlobalDomainRefiner(dom)
 
 -- Performing pre-refines
+print("Perform (non parallel) pre-refinements of grid")
 for i=1,numPreRefs do
+	print( "PreRefinement step " .. i .. " ...")
 	refiner:refine()
+	print( "... done!")
 end
 
+-- get number of processes
+numProcs = GetNumProcesses()
+
 -- Distribute the domain to all involved processes
-if distributionType == "bisect" then
-	if DistributeDomain(dom) == false then
-		print("Error while Distributing Grid.")
-		exit()
-	end
-elseif distributionType == "grid2d" then
-	local partitionMap = PartitionMap()
-	
---	only process 0 has a content to partition
-	if GetProcessRank() == 0 then
-		partitionMap:add_target_procs(0, GetNumProcesses())
+-- Since only process 0 loaded the grid, it is the only one which has to
+-- fill a partitionMap (but every process needs one and has to return his map
+-- by calling 'RedistributeDomain()', even if in this case the map is empty
+-- for all processes but process 0).
+partitionMap = PartitionMap()
+
+if GetProcessRank() == 0 then
+	if distributionType == "bisect" then
+		util.PartitionMapBisection(partitionMap, dom, numProcs)
 		
-	--	calculate the number of cells in x and y direction
-		local numCellsX = math.ceil(math.sqrt(GetNumProcesses()))
-		if numCellsX == 0 then
-		--	this is a problem. abort.
-			print("Can't distribute grid with option grid2d. Bad number of processes.")
-			exit()
-		end
-		local numCellsY = math.ceil(GetNumProcesses() / numCellsX)
-		print("num cells: (" .. numCellsX .. "," .. numCellsY .. ")")
-	--	create partitions (only partition surface elements)
-		PartitionDomain_RegularGrid(dom, partitionMap, numCellsX, numCellsY, true)
+	elseif distributionType == "grid2d" then
+		local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numProcs / numProcsPerNode)
+		util.PartitionMapLexicographic2D(partitionMap, dom, numNodesX,
+										 numNodesY, numProcsPerNode)
+
+	elseif distributionType == "metis" then
+		util.PartitionMapMetis(partitionMap, dom, numProcs)
+										 
+	else
+	    print( "distributionType not known, aborting!")
+	    exit()
 	end
 	
---	distribute the domain
-	if RedistributeDomain(dom, partitionMap, true) == false then
-		print("Distribution with option grid2d failed. Please check your partitionMap.")
-		exit()
+-- save the partition map for debug purposes
+	if verbosity >= 1 then
+		SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
 	end
-else
-	print("unknown distribution type. Valid options are 'bisect' and 'grid2d'")
+end
+
+if RedistributeDomain(dom, partitionMap, true) == false then
+	print("Redistribution failed. Please check your partitionMap.")
 	exit()
 end
 
+--------------------------------------------------------------------------------
+-- end of partitioning
+--------------------------------------------------------------------------------
 
 -- Perform post-refine
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
+	print( "Refinement step " .. i .. " ...")
 	refiner:refine()
+	print( "... done!")
 end
 
 -- get subset handler
@@ -187,9 +227,23 @@ sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
-refinedGridOutName = "refined_grid_p" .. GetProcessRank() .. ".ugx"
-print("saving domain to " .. refinedGridOutName)
-SaveDomain(dom, refinedGridOutName)
+if verbosity >= 1 then
+	refinedGridOutName = "refined_grid_p" .. GetProcessRank() .. ".ugx"
+	print("saving domain to " .. refinedGridOutName)
+	if SaveDomain(dom, refinedGridOutName) == false then
+		print("Saving of domain to " .. refinedGridOutName .. " failed. Aborting.")
+		    exit()
+	end
+	
+	hierarchyOutName = "hierachy_p" .. GetProcessRank() .. ".ugx"
+	print("saving hierachy to " .. hierarchyOutName)
+	if SaveGridHierarchy(dom:get_grid(), hierarchyOutName) == false then
+		print("Saving of domain to " .. hierarchyOutName .. " failed. Aborting.")
+		    exit()
+	end
+end
+
+print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRefs = " .. numRefs .. ", grid = " .. gridName)
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -204,8 +258,9 @@ if OrderCuthillMcKee(approxSpace, true) == false then
 	print("ERROR when ordering Cuthill-McKee"); exit();
 end
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup User Functions
+--------------------------------------------------------------------------------
 -------------------------------------------
 print ("Setting up Assembling")
 
@@ -235,9 +290,9 @@ neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
 dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 --dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 	
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- Select upwind
 if dim == 2 then 
@@ -278,9 +333,9 @@ domainDisc:add_elem_disc(elemDisc)
 --domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 
--------------------------------------------
+--------------------------------------------------------------------------------
 --  Algebra
--------------------------------------------
+--------------------------------------------------------------------------------
 print ("Setting up Algebra Solver")
 
 -- create operator from discretization
@@ -338,7 +393,9 @@ ilut = ILUT()
 	gmg:set_num_postsmooth(3)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
-	gmg:set_debug(dbgWriter)
+	if activateDbgWriter >= 1 then
+		gmg:set_debug(dbgWriter)
+	end
 
 -- create AMG ---
 -----------------
@@ -359,6 +416,7 @@ convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(100)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
+--convCheck:set_verbose_level(true)
 
 -- create Linear Solver
 linSolver = LinearSolver()
@@ -383,9 +441,11 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- choose some solver
 solver = linSolver
 
--------------------------------------------
---  Apply Solver
--------------------------------------------
+--------------------------------------------------------------------------------
+--  Apply Solver - using method defined in 'operator_util.h',
+--  to get separate profiling for assemble and solve
+--------------------------------------------------------------------------------
+
 -- 0. Reset start solution
 u:set(0.0)
 
@@ -395,9 +455,11 @@ if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then
 	print("Could not assemble operator"); exit(); 
 end
 
--- 1.c write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+-- 1.b write matrix for test purpose
+if verbosity >= 1 then
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.mat")
+end
 
 -- 2. apply solver
 print("Apply solver.")
@@ -405,8 +467,29 @@ if ApplyLinearSolver(linOp, u, b, solver) == false then
 	print("Could not apply linear solver.");
 end
 
--------------------------------------------
---  Output
--------------------------------------------
-WriteGridFunctionToVTK(u, "Solution")
+--------------------------------------------------------------------------------
+--  Output of computed solution
+--------------------------------------------------------------------------------
+if verbosity >= 1 then
+	WriteGridFunctionToVTK(u, "Solution")
+end
 
+--------------------------------------------------------------------------------
+--  Print Profiling
+--------------------------------------------------------------------------------
+
+-- check if profiler is available
+if GetProfilerAvailable() == true then
+    -- get node
+    pn = GetProfileNode("main")
+--    pn2 = GetProfileNode("GMG_lmgc")
+    -- check if node is valid
+    if pn:is_valid() then
+	    print(pn:call_tree())
+--        print(pn2:total_time_sorted())
+    else
+        print("main is not known to the profiler.")
+    end
+else
+    print("Profiler not available.")
+end 

@@ -23,14 +23,6 @@
 
 ug_load_script("ug_util.lua")
 
-verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
-						    -- >= 1 for writing matrix files etc.
-
-activateDbgWriter = 0	  
-activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
-						    -- >= 1 for debug output: this sets
-						    -- 'fetiSolver:set_debug(dbgWriter)'
-
 --------------------------------------------------------------------------------
 -- Checking for parameters (begin)
 --------------------------------------------------------------------------------
@@ -43,7 +35,6 @@ if dim == 2 then
 	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 	--gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
-
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
 	--gridName = "unit_square/unit_cube_tets_regular.ugx"
@@ -73,6 +64,15 @@ distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect | me
 -- number of processes per node (only used if distType == grid2d)
 -- should be a square number
 numProcsPerNode = util.GetParamNumber("-numPPN", 1)
+
+-- amount of output
+verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
+						    -- >= 1 for writing matrix files etc.
+
+activateDbgWriter = 0	  
+activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
+						    -- >= 1 for debug output: this sets
+						    -- 'fetiSolver:set_debug(dbgWriter)'
 
 
 -- Display parameters (or defaults):
@@ -141,7 +141,9 @@ numProcs = GetNumProcesses()
 
 -- Distribute the domain to all involved processes
 -- Since only process 0 loaded the grid, it is the only one which has to
--- fill a partitionMap.
+-- fill a partitionMap (but every process needs one and has to return his map
+-- by calling 'RedistributeDomain()', even if in this case the map is empty
+-- for all processes but process 0).
 partitionMap = PartitionMap()
 
 if GetProcessRank() == 0 then
@@ -269,7 +271,7 @@ dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 --  Setup FV Convection-Diffusion Element Discretization
 --------------------------------------------------------------------------------
 
--- Select upwind 
+-- Select upwind
 if dim == 2 then 
 --upwind = NoUpwind2d()
 --upwind = FullUpwind2d()
@@ -285,6 +287,10 @@ elemDisc:set_source(rhs)
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
+
+-------------------------------------------
+--  Setup Domain Discretization
+-------------------------------------------
 
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc)
@@ -350,7 +356,7 @@ end
 	transfer:set_dirichlet_post_process(dirichletBND)
 	projection = util.CreateP1Projection(approxSpace)
 	
-	-- Gemoetric Multi Grid
+	-- Geometric Multi Grid
 	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_base_level(baseLevel) -- variable defining baselevel, set from script
@@ -415,8 +421,8 @@ end
 
 -- 1.b write matrix for test purpose
 if verbosity >= 1 then
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.mat")
 end
 
 -- 2. apply solver
