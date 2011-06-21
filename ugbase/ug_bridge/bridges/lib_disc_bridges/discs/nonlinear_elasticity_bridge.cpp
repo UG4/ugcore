@@ -85,7 +85,7 @@ class ElasticityTensorUserData
 				v[2] = z;
 
 			this->operator()(C, v, t);
-			UG_LOG("Tensor: " << C);
+			//UG_LOG("Tensor: " << C);
 
 		}
 	///	implement as a IPData

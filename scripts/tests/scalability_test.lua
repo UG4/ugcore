@@ -211,7 +211,7 @@ if verbosity >= 1 then
 	end
 end
 
-print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRefs = " .. numRefs .. ", grid = " .. gridName)
+print("#ANALYZER INFO: NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRefs = " .. numRefs .. ", grid = " .. gridName)
 
 -- create Approximation Space
 print("Create ApproximationSpace")

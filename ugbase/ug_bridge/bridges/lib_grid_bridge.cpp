@@ -57,8 +57,6 @@ bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 //	return true;
 }
 
-
-
 ///	Saves a grid hierarchy by offsetting levels along the z-axis.
 /**	Note that this method might better be implemented for domains.*/
 void SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
@@ -785,15 +783,43 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_method("num_vertices", &Grid::num_vertices)
 			.add_method("num_edges", &Grid::num_edges)
 			.add_method("num_faces", &Grid::num_faces)
-			.add_method("num_volumes", &Grid::num_volumes);
+			.add_method("num_triangles", &Grid::num<Triangle>)
+			.add_method("num_quadrilaterals", &Grid::num<Quadrilateral>)
+			.add_method("num_volumes", &Grid::num_volumes)
+			.add_method("num_tetrahedrons", &Grid::num<Tetrahedron>)
+			.add_method("num_pyramids", &Grid::num<Pyramid>)
+			.add_method("num_prisms", &Grid::num<Prism>)
+			.add_method("num_hexahedrons", &Grid::num<Hexahedron>)
+			.add_method("reserve_vertices", &Grid::reserve<VertexBase>)
+			.add_method("reserve_edges", &Grid::reserve<EdgeBase>)
+			.add_method("reserve_faces", &Grid::reserve<Face>)
+			.add_method("reserve_volumes", &Grid::reserve<Volume>);
 
 	//	MultiGrid
 		reg.add_class_<MultiGrid, Grid>("MultiGrid", grp.c_str())
 			.add_constructor()
-			.add_method("num_vertices_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<VertexBase>)
-			.add_method("num_edges_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
-			.add_method("num_faces_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Face>)
-			.add_method("num_volumes_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Volume>);
+			.add_method("num_levels", &MultiGrid::num_levels)
+
+			.add_method("num_vertices", (size_t (MultiGrid::*)() const) &MultiGrid::num<VertexBase>)
+			.add_method("num_edges", (size_t (MultiGrid::*)() const) &MultiGrid::num<EdgeBase>)
+			.add_method("num_faces", (size_t (MultiGrid::*)() const) &MultiGrid::num<Face>)
+			.add_method("num_triangles", (size_t (MultiGrid::*)() const) &MultiGrid::num<Triangle>)
+			.add_method("num_quadrilaterals", (size_t (MultiGrid::*)() const) &MultiGrid::num<Quadrilateral>)
+			.add_method("num_volumes", (size_t (MultiGrid::*)() const) &MultiGrid::num<Volume>)
+			.add_method("num_tetrahedrons", (size_t (MultiGrid::*)() const) &MultiGrid::num<Tetrahedron>)
+			.add_method("num_pyramids", (size_t (MultiGrid::*)() const) &MultiGrid::num<Pyramid>)
+			.add_method("num_prisms", (size_t (MultiGrid::*)() const) &MultiGrid::num<Prism>)
+
+			.add_method("num_vertices", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<VertexBase>)
+			.add_method("num_edges", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
+			.add_method("num_faces", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Face>)
+			.add_method("num_triangles", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Triangle>)
+			.add_method("num_quadrilaterals", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Quadrilateral>)
+			.add_method("num_volumes", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Volume>)
+			.add_method("num_tetrahedrons", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Tetrahedron>)
+			.add_method("num_pyramids", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Pyramid>)
+			.add_method("num_prisms", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Prism>)
+			.add_method("num_hexahedrons", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Hexahedron>);
 
 
 	////////////////////////

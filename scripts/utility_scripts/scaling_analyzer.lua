@@ -15,11 +15,14 @@
 --
 --	Note - if the timings do not exactly match and if some nodes in each run
 --	have the same name, then this script may give you unexpected results.
+--
+--	If an input-file contains lines beginning with "#ANALYZER INFO:", the rest
+--	of each such line will be printed during parsing of the file.
 --------------------------------------------------------------------------------
 
 --	the files which will be processed
-inFiles = {"stest_1_proc.txt", "stest_4_proc.txt",
-		   "stest_16_proc.txt", "stest_64_proc.txt"}
+inFiles = {"log_refs_7.txt", "log_refs_8.txt",
+		   "log_refs_9.txt", "log_refs_10.txt"}
 
 
 
@@ -104,9 +107,9 @@ end
 
 
 
---	we'll add timings to this list.
---	for each file we'll write a list into timings.
---	This list again contains pairs of {name, totalTime} for each profiling entry
+--	for each file we'll add a list to timings.
+--	This list again contains tuples of {name, time, timeUnit, spaces}
+--	for each profiling entry
 timings = {}
 
 
@@ -119,6 +122,7 @@ for _, fileName in ipairs(inFiles) do
 
 	local f = io.open(fileName, "r")
 	if f ~= nil then
+		local printedInfo = false
 		local readingProfilerOutput = false
 		local fileTimings = {}
 		
@@ -129,6 +133,12 @@ for _, fileName in ipairs(inFiles) do
 				local i, j = string.find(line, "call tree")
 				if i ~= nil then
 					readingProfilerOutput = true
+				else
+					local str = string.match(line, "#ANALYZER INFO:%s*(.+)")
+					if str ~= nil then
+						print("", "  - " .. str)
+						printedInfo = true
+					end
 				end
 			else
 			--	get entries for each line through pattern matching
@@ -139,12 +149,9 @@ for _, fileName in ipairs(inFiles) do
 										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%")		-- total
 										   
 				if name == nil then
-				--	we reached the end of the output
-					break
+				--	we reached the end of the profiler output
+					readingProfilerOutput = false
 				else
-					
-					--print(name, hits, selfTime, selfUnit, selfPerc, totalTime, totalUnit, totalPerc)
-							
 				--	add the timing to the fileTimings list
 					local entry = {}
 					entry.spaces = spaces
@@ -158,6 +165,11 @@ for _, fileName in ipairs(inFiles) do
 			end
 		end
 		
+	--	add an empty line if info has been printed
+		if printedInfo == true then
+			print()
+		end
+		
 		f:close()
 		
 	--	add the timings of this file to the global timings
@@ -165,7 +177,6 @@ for _, fileName in ipairs(inFiles) do
 		fileCounter = fileCounter + 1
 	else
 		print("  file " .. fileName .. " not found. Ignoring file.")
-
 	end
 end
 
