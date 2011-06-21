@@ -18,7 +18,8 @@
 --------------------------------------------------------------------------------
 
 --	the files which will be processed
-inFiles = {"stest_1_proc.txt", "stest_4_proc.txt", "stest_16_proc.txt"}
+inFiles = {"stest_1_proc.txt", "stest_4_proc.txt",
+		   "stest_16_proc.txt", "stest_64_proc.txt"}
 
 
 
