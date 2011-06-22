@@ -246,8 +246,8 @@ void Grid::assign_grid(const Grid& grid)
 				IAttachmentDataContainer& conDest = *apDest.get_data_container(*ae.m_pAttachment);
 
 			//	we use the containers copy-method
-				conSrc.copy_to_buffer(conDest.get_data_buffer(), &vSrcDataIndex[i].front(),
-										(int)vSrcDataIndex[i].size());
+				conSrc.copy_to_container(&conDest, &vSrcDataIndex[i].front(),
+										 (int)vSrcDataIndex[i].size());
 			}
 		}
 	}

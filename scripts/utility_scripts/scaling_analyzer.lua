@@ -144,6 +144,7 @@ for _, fileName in ipairs(inFiles) do
 			--	get entries for each line through pattern matching
 				local 	spaces, name, hits, selfTime, selfUnit, selfPerc,
 						totalTime, totalUnit, totalPerc
+					--	todo: support big numbers containing e+ for hits
 						= string.match(line, "(%s*)(%a[_%w]+)%s+(%d+)%s+"		-- name and hits
 										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%%s+"	-- self
 										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%")		-- total

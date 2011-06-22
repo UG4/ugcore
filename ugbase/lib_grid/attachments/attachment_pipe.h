@@ -8,6 +8,7 @@
 #include <list>
 #include <vector>
 #include <stack>
+#include <cassert>
 #include "common/static_assert.h"
 #include "common/types.h"
 #include "common/util/uid.h"
@@ -48,17 +49,16 @@ class IAttachmentDataContainer
 		virtual void copy_data(size_t indFrom, size_t indTo) = 0;///< copy data from entry indFrom to entry indTo.
 		virtual void reset_entry(size_t index) = 0;///< resets the entry to its default value.
 		
-	///	returns a pointer to the data-buffer. Only use this method if not avoidable.
-		virtual void* get_data_buffer() = 0;
-
-	/**	copies entrys from the this-container to the buffer
-	 *	specified by pDest.
-	 *	For the i-th entry in the buffer, pIndexMap has to contain
-	 *	the index of the source entry in this container.
-	 *	num specifies the number of entries to be copied.
-	 *	Nake sure, that pDest can hold 'num' elementes of the
-	 *	correct size.*/
-		virtual void copy_to_buffer(void* pDest, int* indexMap, int num) const = 0;
+	/**	copies entrys from the this-container to the specified target container.
+	 *	For the i-th entry in the dest-container, pIndexMap has to contain
+	 *	the index of the associated source entry in this container.
+	 *	Num specifies the number of entries to be copied.
+	 *	Make sure, that pDest can hold 'num' elements.
+	 *
+	 *	pDestCon has to have the same or a derived dynamic type as the container
+	 *	on which this method is called.*/
+		virtual void copy_to_container(IAttachmentDataContainer* pDestCon,
+									   int* indexMap, int num) const = 0;
 		
 	/**
 	*	defragment should clear the containers data from unused entries.
@@ -86,6 +86,9 @@ class IAttachmentDataContainer
 */
 template <class T> class AttachmentDataContainer : public IAttachmentDataContainer
 {
+	private:
+		typedef AttachmentDataContainer<T>	ClassType;
+
 	public:
 		typedef T	ValueType;
 
@@ -132,16 +135,26 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 				}
 			}
 	
-	/**	copies entrys from the this-container to the buffer
-	 *	specified by pDest.
-	 *	For the i-th entry in the buffer, pIndexMap has to contain
-	 *	the index of the source entry in this container.
-	 *	num specifies the number of entries to be copied.
-	 *	Nake sure, that pDest can hold 'num' elementes of the
-	 *	correct size.*/
-		virtual void copy_to_buffer(void* pDest, int* indexMap, int num) const
+	/**	copies entrys from the this-container to the container
+	 *	specified by pDestCon.
+	 *	For the i-th entry in the target container, pIndexMap has to contain
+	 *	the index of the associated source entry in this container.
+	 *	Num specifies the number of entries to be copied.
+	 *	Make sure, that pDest can hold 'num' elements.
+	 *
+	 *	pDestCon has to have the same or a derived dynamic type as the container
+	 *	on which this method is called.*/
+		virtual void copy_to_container(IAttachmentDataContainer* pDestCon,
+										int* indexMap, int num) const
 			{
-				ValueType* dest = static_cast<ValueType*>(pDest);
+				ClassType* destConT = dynamic_cast<ClassType*>(pDestCon);
+				assert(destConT && "Type of pDestBuf has to be the same as the"
+						"type of this buffer");
+
+				if(!destConT)
+					return;
+
+				ValueType* dest = destConT->get_ptr();
 				for(int i = 0; i < num; ++i)
 					dest[i] = m_vData[indexMap[i]];
 			}
@@ -152,13 +165,12 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 		inline const T& operator[] (size_t index) const	{return m_vData[index];}
 		inline T& operator[] (size_t index)				{return m_vData[index];}
 
-		inline const T* get_ptr() const			{return &m_vData.front();}
-		inline T* get_ptr()						{return &m_vData.front();}
-
-		virtual void* get_data_buffer()			{return get_ptr();}
-
 	///	swaps the buffer content of associated data
 		void swap(AttachmentDataContainer<T>& container)	{m_vData.swap(container.m_vData);}
+
+	protected:
+		inline const T* get_ptr() const			{return &m_vData.front();}
+		inline T* get_ptr()						{return &m_vData.front();}
 		
 	protected:
 		std::vector<T>	m_vData;

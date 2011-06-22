@@ -23,6 +23,21 @@
 
 ug_load_script("ug_util.lua")
 
+-- output command line arguments
+line = "#ANALYZER INFO: cmd args:"
+for _, arg in ipairs(ugargv) do
+	line = line .. " " .. arg
+end
+print(line)
+
+verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
+						    -- >= 1 for writing matrix files etc.
+
+activateDbgWriter = 0	  
+activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
+						    -- >= 1 for debug output: this sets
+						    -- 'fetiSolver:set_debug(dbgWriter)'
+						    
 --------------------------------------------------------------------------------
 -- Checking for parameters (begin)
 --------------------------------------------------------------------------------
@@ -31,7 +46,8 @@ ug_load_script("ug_util.lua")
 dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_8x8.ugx")
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
 	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 	--gridName = "unit_square/unit_square_quads_8x8.ugx"
 end

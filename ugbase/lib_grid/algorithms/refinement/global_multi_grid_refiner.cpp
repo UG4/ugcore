@@ -9,7 +9,7 @@
 
 //define PROFILE_GLOBAL_MULTI_GRID_REFINER if you want to profile
 //the refinement code.
-//#define PROFILE_GLOBAL_MULTI_GRID_REFINER
+#define PROFILE_GLOBAL_MULTI_GRID_REFINER
 #ifdef PROFILE_GLOBAL_MULTI_GRID_REFINER
 	#define GMGR_PROFILE_FUNC()	PROFILE_FUNC()
 	#define GMGR_PROFILE(name)	PROFILE_BEGIN(name)
@@ -193,13 +193,13 @@ void GlobalMultiGridRefiner::refine()
 		VertexBase* v = *iter;
 
 	//	create a new vertex in the next layer.
-		GMGR_PROFILE(GMGR_Refine_CreatingVertices);
+		//GMGR_PROFILE(GMGR_Refine_CreatingVertices);
 		VertexBase* nVrt = *mg.create_by_cloning(v, v);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
 			m_refCallback->new_vertex(nVrt, v);
-		GMGR_PROFILE_END();
+		//GMGR_PROFILE_END();
 	}
 
 
@@ -240,17 +240,17 @@ void GlobalMultiGridRefiner::refine()
 		assert(refinement_is_allowed(e->vertex(0))
 				&& refinement_is_allowed(e->vertex(1)));
 
-		GMGR_PROFILE(GMGR_Refine_CreatingEdgeVertices);
+		//GMGR_PROFILE(GMGR_Refine_CreatingEdgeVertices);
 	//	create two new edges by edge-split
 		Vertex* nVrt = *mg.create<Vertex>(e);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
 			m_refCallback->new_vertex(nVrt, e);
-		GMGR_PROFILE_END();
+		//GMGR_PROFILE_END();
 
 	//	split the edge
-		GMGR_PROFILE(GMGR_Refine_CreatingEdges);
+		//GMGR_PROFILE(GMGR_Refine_CreatingEdges);
 		VertexBase* substituteVrts[2];
 		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
@@ -259,7 +259,7 @@ void GlobalMultiGridRefiner::refine()
 		assert((vEdges.size() == 2) && "Edge refine produced wrong number of edges.");
 		mg.register_element(vEdges[0], e);
 		mg.register_element(vEdges[1], e);
-		GMGR_PROFILE_END();
+		//GMGR_PROFILE_END();
 	}
 
 
@@ -284,7 +284,7 @@ void GlobalMultiGridRefiner::refine()
 		for(uint j = 0; j < f->num_edges(); ++j)
 			vEdgeVrts.push_back(mg.get_child_vertex(mg.get_edge(f, j)));
 
-		GMGR_PROFILE(GMGR_Refine_CreatingFaces);
+		//GMGR_PROFILE(GMGR_Refine_CreatingFaces);
 		VertexBase* newVrt;
 		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
 		//	if a new vertex was generated, we have to register it
@@ -304,7 +304,7 @@ void GlobalMultiGridRefiner::refine()
 		else{
 			LOG("  WARNING in Refine: could not refine face.\n");
 		}
-		GMGR_PROFILE_END();
+		//GMGR_PROFILE_END();
 	}
 
 
@@ -318,7 +318,7 @@ void GlobalMultiGridRefiner::refine()
 			continue;
 
 		Volume* v = *iter;
-		GMGR_PROFILE(GMGR_Refining_Volume);
+		//GMGR_PROFILE(GMGR_Refining_Volume);
 
 	//	collect child-vertices
 		//GMGR_PROFILE(GMGR_CollectingVolumeVertices);
@@ -360,7 +360,7 @@ void GlobalMultiGridRefiner::refine()
 		else{
 			LOG("  WARNING in Refine: could not refine volume.\n");
 		}
-		GMGR_PROFILE_END();
+		//GMGR_PROFILE_END();
 	}
 
 //	done - clean up
