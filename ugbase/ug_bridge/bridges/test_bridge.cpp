@@ -7,6 +7,9 @@
 #include <iostream>
 #include <sstream>
 
+//	temporary include
+#include "lib_grid/attachments/page_container.h"
+
 using namespace std;
 
 namespace ug
@@ -285,6 +288,41 @@ std::string StdStringTest()
 	return std::string("stdJooik");
 }
 
+
+void TestPageContainer()
+{
+	UG_LOG("Testing page container whith maxPageSize 64.\n");
+
+	UG_LOG("  size of PageContainer: " << sizeof(PageContainer<double, 64>) << endl);
+	UG_LOG("  size of allocator:     " << sizeof(std::allocator<double>) << endl);
+	UG_LOG("  size of vector:        " << sizeof(std::vector<double*>) << endl);
+	UG_LOG("  size of size_t:        " << sizeof(size_t) << endl);
+
+	typedef PageContainer<double, 64> PageCon;
+	PageCon* ppc = new PageCon;
+	PageCon& pc = *ppc;
+
+	UG_LOG("resizing...\n");
+	pc.resize(20);
+
+	UG_LOG("pushing doubles...\n");
+	for(size_t i = 0; i < 20; ++i){
+		pc[i] = 3300. + (double)i;
+	}
+
+	UG_LOG("resizing to 8\n");
+	pc.resize(8);
+
+	UG_LOG("PageContainer content:");
+	for(size_t i = 0; i < pc.size(); ++i){
+		UG_LOG(" " << pc[i]);
+	}
+	UG_LOG(endl);
+	UG_LOG("Releasing PageContainer...\n");
+	delete ppc;
+	UG_LOG("done.\n");
+}
+
 void PostRegisteredFunction()
 {
 	UG_LOG("PostRegisteredFunction successfully executed.\n");
@@ -395,8 +433,9 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_function("ConstTestFunc", ConstTestFunc, grp.c_str())
 			.add_function("ToConst", ToConst, grp.c_str())
 			.add_function("StringTest", StringTest, grp.c_str())
-			.add_function("StdStringTest", StdStringTest, grp.c_str());
-			
+			.add_function("StdStringTest", StdStringTest, grp.c_str())
+			.add_function("TestPageContainer", TestPageContainer, grp.c_str());
+
 		reg.add_function("PostRegisterTest", &PostRegisterTest);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)

@@ -16,6 +16,7 @@ static int OUTPUT_PROC_RANK = 0;
 //void Init(int argc, char* argv[])
 void Init(int *argcp, char ***argvp)
 {
+	PCL_PROFILE(pclInit);
 //	init mpi
 //	MPI_Init(&argc, &argv);
 	MPI_Init(argcp, argvp);
@@ -24,6 +25,7 @@ void Init(int *argcp, char ***argvp)
 ////////////////////////////////////////////////////////////////////////
 void Finalize()
 {
+	PCL_PROFILE(pclFinalize);
 	MPI_Finalize();
 }
 

@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <memory>
+#include "common/types.h"
+
 namespace ug
 {
 
@@ -14,12 +16,15 @@ template <class T, int MAX_PAGE_SIZE = 4096,
 		  class Allocator = std::allocator<T> >
 class PageContainer
 {
-	using namespace std;
+	public:
+		typedef Allocator allocator_type;
+		typedef typename Allocator::size_type size_type;
+		typedef typename Allocator::difference_type difference_type;
+		typedef typename Allocator::reference reference;
+		typedef typename Allocator::const_reference const_reference;
 
 	public:
-		PageContainer() :
-			m_numPageEntries((size_t)(MAX_PAGE_SIZE / sizeof(T)))
-		{}
+		PageContainer();
 
 		PageContainer(const PageContainer& pc);
 
@@ -45,20 +50,20 @@ class PageContainer
 		void assign_container(const PageContainer& pc);
 
 	///	returns the page in which the data for the given index lies
-		inline T* get_page(size_t ind);
+		inline T* get_page(size_t ind) const;
 
 	///	returns the index of the page in which the data for the given index lies
-		inline size_t get_page_index(size_t ind);
+		inline size_t get_page_index(size_t ind) const;
 
 	///	returns the offset that a index has in its page
-		inline size_t get_page_offset(size_t ind);
+		inline size_t get_page_offset(size_t ind) const;
 
 	private:
-		static Allocator	m_alloc;
-		vector<T*>		m_pages;
+		Allocator		m_alloc;
+		std::vector<T*>	m_pages;
 		const size_t	m_numPageEntries;
-		const size_t	m_size;
-		const size_t	m_capacity;
+		size_t			m_size;
+		size_t			m_capacity;
 };
 
 }//	end of namespace

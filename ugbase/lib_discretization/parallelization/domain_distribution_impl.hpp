@@ -268,6 +268,8 @@ static bool RedistributeDomain(TDomain& domainOut,
 //todo:	check whether all target-processes in partitionMap are in the valid range.
 
 #ifdef UG_PARALLEL
+	PCL_PROFILE(RedistributeDomain);
+
 //	make sure that manager exists
 	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
 	if(!pDistGridMgr)
@@ -295,6 +297,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 	RedistributeGrid(distGridMgr, shPart, serializer, serializer,
 					 createVerticalInterfaces, &partitionMap.get_target_proc_vec());
 
+	PCL_PROFILE_END();
 #endif
 
 //	in the serial case there's nothing to do.
