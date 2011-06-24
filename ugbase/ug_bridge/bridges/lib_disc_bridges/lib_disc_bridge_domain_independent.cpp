@@ -153,7 +153,8 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 				.add_constructor()
 				.add_method("set_discretization", &T::set_discretization)
 				.add_method("set_dof_distribution", &T::set_dof_distribution)
-				.add_method("set_dirichlet_values", &T::set_dirichlet_values);
+				.add_method("set_dirichlet_values", &T::set_dirichlet_values)
+				.add_method("init_op_and_rhs", &T::init_op_and_rhs);
 
 
 			//reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>);
