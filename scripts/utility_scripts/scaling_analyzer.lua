@@ -113,8 +113,9 @@ end
 timings = {}
 
 
---	iterate over all input files
-
+-- parse all input files and extract profiling information.
+-- This information will be written to lists which are then
+-- added to the timings array.
 fileCounter = 1
 print("Files:")
 for _, fileName in ipairs(inFiles) do
@@ -145,9 +146,9 @@ for _, fileName in ipairs(inFiles) do
 				local 	spaces, name, hits, selfTime, selfUnit, selfPerc,
 						totalTime, totalUnit, totalPerc
 					--	todo: support big numbers containing e+ for hits
-						= string.match(line, "(%s*)(%a[_%w]+)%s+(%d+)%s+"		-- name and hits
-										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%%s+"	-- self
-										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%")		-- total
+						= string.match(line, "(%s*)(<*%a[_%w]+>*)%s+([%.%w]+)%s+"	-- name and hits
+										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%%s+"		-- self
+										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%")			-- total
 										   
 				if name == nil then
 				--	we reached the end of the profiler output
@@ -178,6 +179,40 @@ for _, fileName in ipairs(inFiles) do
 		fileCounter = fileCounter + 1
 	else
 		print("  file " .. fileName .. " not found. Ignoring file.")
+	end
+end
+
+
+--	If the profilings contain a "main" entry, we will subtract all timings
+--	from direct child entries of "main" and store the result in an additional
+--	entry named "unknown"
+for _, timing in ipairs(timings) do
+	local mainEntry = nil
+	local childTimingSum = 0
+	local highestIndex = 0
+	local spaces = "  "
+	for ind, entry in ipairs(timing) do
+		if entry.name == "main" then
+			mainEntry = entry
+			spaces = entry.spaces.."  "
+		elseif mainEntry ~=nil and entry.spaces == spaces then
+			childTimingSum = childTimingSum + entry.time * timeFactors[entry.timeUnit]		
+		end
+		highestIndex = ind
+	end
+	
+--	if a "main" entry was found, we will now add a new child entry called "unknown"
+	if mainEntry ~= nil then
+		local entry = {}
+		entry.spaces = spaces
+		entry.name = "unknown"
+		entry.time = mainEntry.time * timeFactors[mainEntry.timeUnit] - childTimingSum
+		entry.timeUnit = "s"
+		
+	--	make the time 'nice'
+		
+		
+		timing[highestIndex + 1] = entry
 	end
 end
 
