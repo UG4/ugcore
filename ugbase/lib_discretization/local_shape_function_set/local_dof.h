@@ -1,12 +1,12 @@
 /*
- * local_dof_pattern.h
+ * local_dof.h
  *
  *  Created on: 17.02.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__LOCAL_DOF_PATTERN__
-#define __H__LIBDISCRETIZATION__LOCAL_DOF_PATTERN__
+#ifndef __H__LIBDISCRETIZATION__LOCAL_DOF__
+#define __H__LIBDISCRETIZATION__LOCAL_DOF__
 
 #include "../reference_element/reference_element.h"
 
@@ -18,11 +18,11 @@ namespace ug{
  * associated with a sub-geometric object of the element itself (e.g. a vertex).
  * This can be requested from this class.
  */
-class LocalDoFStorage
+class LocalDoF
 {
 	public:
 	///	constructor
-		LocalDoFStorage(int dim, size_t id, size_t offset)
+		LocalDoF(int dim, size_t id, size_t offset)
 			: m_dim(dim), m_id(id), m_offset(offset)
 		{}
 
@@ -60,7 +60,7 @@ class ILocalDoFPattern
 		virtual size_t num_sh() const;
 
 	///	returns the DoFs storage
-		virtual const LocalDoFStorage& storage(size_t sh) const;
+		virtual const LocalDoF& storage(size_t sh) const;
 
 	///	returns if DoFs are associated with objects of the dimension
 		virtual bool storage_use(int dim) const;
@@ -88,7 +88,7 @@ class ILocalDoFPatternWrapper
 		}
 
 	///	\copydoc ug::ILocalDoFPattern::storage()
-		virtual const LocalDoFStorage& storage(size_t sh) const
+		virtual const LocalDoF& storage(size_t sh) const
 		{
 			return ImplType::storage(sh);
 		}
@@ -101,9 +101,6 @@ class ILocalDoFPatternWrapper
 
 };
 
+} // end namespace ug
 
-}
-
-#include "local_dof_pattern_impl.h"
-
-#endif /* __H__LIBDISCRETIZATION__LOCAL_DOF_PATTERN__ */
+#endif /* __H__LIBDISCRETIZATION__LOCAL_DOF__ */

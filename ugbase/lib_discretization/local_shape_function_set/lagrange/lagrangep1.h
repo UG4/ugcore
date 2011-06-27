@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__LAGRANGEP1__LAGRANGEP1__
 
 #include "../local_shape_function_set.h"
-#include "../local_dof_pattern.h"
+#include "../local_dof.h"
 
 namespace ug{
 

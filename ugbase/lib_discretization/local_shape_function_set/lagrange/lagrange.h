@@ -10,7 +10,7 @@
 
 #include "../common/lagrange1d.h"
 #include "../local_shape_function_set.h"
-#include "../local_dof_pattern.h"
+#include "../local_dof.h"
 #include "lib_discretization/common/multi_index.h"
 #include "common/util/metaprogramming_util.h"
 
@@ -166,12 +166,12 @@ class LagrangeLDP<ReferenceEdge, TOrder>
 
 			//	on vertex
 				if(m[0] == 0)
-					m_vLocalDoFStorage[sh] = LocalDoFStorage(0, 1, 0);
+					m_vLocalDoFStorage[sh] = LocalDoF(0, 1, 0);
 				if(m[0] == nsh-1)
-					m_vLocalDoFStorage[sh] = LocalDoFStorage(0, 0, 0);
+					m_vLocalDoFStorage[sh] = LocalDoF(0, 0, 0);
 			//	on edge
 				else
-					m_vLocalDoFStorage[sh] = LocalDoFStorage(1, 0, sh-1);
+					m_vLocalDoFStorage[sh] = LocalDoF(1, 0, sh-1);
 			}
 		}
 
@@ -179,7 +179,7 @@ class LagrangeLDP<ReferenceEdge, TOrder>
 		static inline size_t num_sh() {return nsh;};
 
 	///	returns the dof storage
-		inline const LocalDoFStorage& storage(size_t sh) const
+		inline const LocalDoF& storage(size_t sh) const
 			{return m_vLocalDoFStorage[sh];}
 
 	///	returns if the storage needs objects of a given dimension
@@ -205,7 +205,7 @@ class LagrangeLDP<ReferenceEdge, TOrder>
 
 	protected:
 	///	association to elements
-		LocalDoFStorage m_vLocalDoFStorage[nsh];
+		LocalDoF m_vLocalDoFStorage[nsh];
 };
 
 

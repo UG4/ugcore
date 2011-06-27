@@ -18,7 +18,6 @@
 
 // library intern headers
 #include "../reference_element/reference_element.h"
-#include "./local_dof_pattern.h"
 
 namespace ug {
 

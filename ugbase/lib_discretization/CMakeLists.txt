@@ -32,7 +32,6 @@ set(srcDiscretization	common/function_group.cpp
 						quadrature/gauss_quad/gauss_quad_hexahedron.cpp
 
 						local_shape_function_set/local_shape_function_set_provider.cpp
-						local_shape_function_set/local_dof_pattern.cpp
 						local_shape_function_set/lagrange/lagrangep1.cpp)
 
 # add parallelization
