@@ -45,7 +45,6 @@
 #include "io/vtkoutput.h"
 
 // local shape function set
-#include "local_shape_function_set/local_dof_pattern.h"
 #include "local_shape_function_set/local_shape_function_set.h"
 #include "local_shape_function_set/local_shape_function_set_provider.h"
 #include "local_shape_function_set/local_shape_function_set_id.h"
