@@ -285,7 +285,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 	std::vector<EdgeBase*> vEdges;
 
 // 	Grid
-	Grid* grid = m_pStorageManager->m_pSH->get_assigned_grid();
+	Grid* grid = m_pStorageManager->get_assigned_grid();
 
 // 	Iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
@@ -657,7 +657,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 	std::vector<EdgeBase*> vEdges;
 
 // 	Grid
-	Grid* grid = m_pStorageManager->m_pSH->get_assigned_grid();
+	Grid* grid = m_pStorageManager->get_assigned_grid();
 
 // 	Iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;

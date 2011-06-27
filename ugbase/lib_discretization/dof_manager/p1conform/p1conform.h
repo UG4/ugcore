@@ -22,6 +22,15 @@ namespace ug{
 class P1StorageManager
 {
 	public:
+	///	type of DoF attachment
+		typedef ug::Attachment<size_t> ADoF;
+
+	///	type of accessor
+		typedef Grid::AttachmentAccessor<VertexBase, ADoF>
+				vertex_attachment_accessor_type;
+
+	public:
+	///	Constructor
 		P1StorageManager() : m_pSH(NULL), m_pGrid(NULL) {}
 
 	/// set subset handler
@@ -33,23 +42,30 @@ class P1StorageManager
 	/// destructor
 		~P1StorageManager() {clear();};
 
-	public:
 	/// attach dofs
 		void update_attachments();
 
+	///	returns the associated grid
+		Grid* get_assigned_grid() {return m_pGrid;}
+
+	///	returns the underlying subset handler
+		ISubsetHandler* get_subset_handler() {return m_pSH;}
+
+	///	returns the attachment accessor
+		vertex_attachment_accessor_type& get_vertex_attachment_accessor()
+			{return m_aaDoFVRT;}
+
+	protected:
 	/// subset handler
 		ISubsetHandler* m_pSH;
 
 	///	assosicated grid
 		Grid* m_pGrid;
 
-	//	typedefs
-		typedef ug::Attachment<size_t> ADoF;
-		typedef Grid::AttachmentAccessor<VertexBase, ADoF>
-				attachment_accessor_type;
+	///	Attachment Accessor
+		vertex_attachment_accessor_type m_aaDoFVRT;
 
-	//	Attachments
-		attachment_accessor_type m_aaDoFVRT;
+	///	Attachment (for vertices)
 		ADoF m_aDoF;
 };
 
@@ -72,12 +88,17 @@ class P1ConformDoFDistribution
 	/// Storage Manager type
 		typedef P1StorageManager storage_manager_type;
 
+	///	type of attachment for vertex dofs
+		typedef storage_manager_type::vertex_attachment_accessor_type
+				vertex_attachment_accessor_type;
+
 	public:
 		P1ConformDoFDistribution(GeometricObjectCollection goc,
 		                         ISubsetHandler& sh, storage_manager_type& sm,
 		                         FunctionPattern& fp)
 		: base_type(goc, fp), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
+		  m_pStorageManager(&sm), m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
+		  m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
@@ -94,7 +115,8 @@ class P1ConformDoFDistribution
 		                         FunctionPattern& fp,
 		                         const SurfaceView& surfView)
 		: base_type(goc, fp, surfView), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
+		  m_pStorageManager(&sm), m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
+		  m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
@@ -251,7 +273,7 @@ class P1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_aaDoFVRT[vrt];
+			return m_raaVrtDoF[vrt];
 		}
 
 	///	const access to first algebra index of a vertex
@@ -259,7 +281,7 @@ class P1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_aaDoFVRT[vrt];
+			return m_raaVrtDoF[vrt];
 		}
 
 	///	returns the next free index
@@ -315,6 +337,9 @@ class P1ConformDoFDistribution
 	// 	Storage Manager for dofs
 		storage_manager_type* m_pStorageManager;
 
+	///	attachment accessor for dof vertices
+		vertex_attachment_accessor_type& m_raaVrtDoF;
+
 	/// number of distributed dofs on whole domain
 		size_t m_numDoFs;
 
@@ -352,13 +377,18 @@ class GroupedP1ConformDoFDistribution
 	/// Storage Manager type
 		typedef P1StorageManager storage_manager_type;
 
+	///	type of attachment for vertex dofs
+		typedef storage_manager_type::vertex_attachment_accessor_type
+				vertex_attachment_accessor_type;
+
 	public:
 		GroupedP1ConformDoFDistribution(GeometricObjectCollection goc,
 		                                ISubsetHandler& sh,
 		                                storage_manager_type& sm,
 		                                FunctionPattern& dp)
 		: base_type(goc, dp), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
+		  m_pStorageManager(&sm), m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
+		  m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
@@ -373,7 +403,9 @@ class GroupedP1ConformDoFDistribution
 		                                FunctionPattern& dp,
 		                                const SurfaceView& surfView)
 		: base_type(goc, dp, surfView), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_numDoFs(0), m_sizeIndexSet(0)
+		  m_pStorageManager(&sm),
+		  m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
+		  m_numDoFs(0), m_sizeIndexSet(0)
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
@@ -536,7 +568,7 @@ class GroupedP1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_aaDoFVRT[vrt];
+			return m_raaVrtDoF[vrt];
 		}
 
 	///	const access to algebra index of a vertex
@@ -544,7 +576,7 @@ class GroupedP1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_aaDoFVRT[vrt];
+			return m_raaVrtDoF[vrt];
 		}
 
 	///	returns the next free index
@@ -599,6 +631,9 @@ class GroupedP1ConformDoFDistribution
 
 	/// Storage Manager for dofs
 		storage_manager_type* m_pStorageManager;
+
+	///	attachment accessor for dof vertices
+		vertex_attachment_accessor_type& m_raaVrtDoF;
 
 	/// number of distributed dofs on whole domain
 		size_t m_numDoFs;
