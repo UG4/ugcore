@@ -15,54 +15,51 @@ void
 P1StorageManager::
 set_subset_handler(ISubsetHandler& sh)
 {
-	if(m_pSH != NULL) clear();
+//	clear first if already subset handler set
+	if(m_pSH != NULL || m_pGrid != NULL) clear();
 
+//	set SubsetHandler and grid
 	m_pSH = &sh;
-	m_pSH->enable_subset_attachments(true);
-}
-
-void
-P1StorageManager::
-clear_subset_handler()
-{
-	if(m_pSH != NULL) clear();
-	m_pSH->enable_subset_attachments(false);
-	m_pSH = NULL;
+	m_pGrid = m_pSH->get_assigned_grid();
 }
 
 void
 P1StorageManager::
 clear()
 {
+//	if no subsethandler given, nothing is attached
 	if(m_pSH == NULL) return;
 
-	for(size_t si = 0; si < m_vSubsetInfo.size(); ++si)
-	{
-		m_pSH->detach_from<VertexBase>(m_vSubsetInfo[si].aDoF, si);
-		m_vSubsetInfo[si].aaDoFVRT.invalidate();
-	}
-	m_vSubsetInfo.clear();
+//	detach DoFs
+	m_pGrid->detach_from<VertexBase>(m_aDoF);
+	m_aaDoFVRT.invalidate();
+
+//	reset SubsetHandler
+	m_pSH = NULL;
+	m_pGrid = NULL;
 }
 
 void
 P1StorageManager::
 update_attachments()
 {
+//	check, that everything has been set
 	if(m_pSH == NULL)
 	{
 		UG_LOG("WARNING: Updating indices, but no SubsetHandler set.\n");
 		return;
 	}
-
-	size_t num_subsets =  m_pSH->num_subsets();
-
-	// Create level dof distributors
-	for(size_t si = m_vSubsetInfo.size(); si < num_subsets; ++si)
+	if(m_pGrid == NULL)
 	{
-		m_vSubsetInfo.push_back(SubsetInfo());
-		m_pSH->attach_to<VertexBase>(m_vSubsetInfo[si].aDoF, si);
-		m_vSubsetInfo[si].aaDoFVRT.access(*m_pSH, m_vSubsetInfo[si].aDoF, si);
+		UG_LOG("WARNING: Updating indices, but no Grid in SubsetHandler set.\n");
+		return;
 	}
+
+//	attach DoFs to vertices
+	m_pGrid->attach_to<VertexBase>(m_aDoF);
+
+//	access the
+	m_aaDoFVRT.access(*m_pGrid, m_aDoF);
 }
 
 

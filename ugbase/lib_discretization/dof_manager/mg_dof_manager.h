@@ -148,8 +148,8 @@ class MGDoFManager : public GridObserver
 	///	Destructor
 		virtual ~MGDoFManager()
 		{
-			m_levelStorageManager.clear_subset_handler();
-			m_surfaceStorageManager.clear_subset_handler();
+			m_levelStorageManager.clear();
+			m_surfaceStorageManager.clear();
 
 			disable_level_dofs();
 			disable_surface_dofs();

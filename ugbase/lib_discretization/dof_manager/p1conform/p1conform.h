@@ -18,17 +18,14 @@
 
 namespace ug{
 
+/// accesses storage for DoFs and handles grid attachment process
 class P1StorageManager
 {
-//	for DofManager
 	public:
-		P1StorageManager() : m_pSH(NULL) {m_vSubsetInfo.clear();}
+		P1StorageManager() : m_pSH(NULL), m_pGrid(NULL) {}
 
 	/// set subset handler
 		void set_subset_handler(ISubsetHandler& sh);
-
-	/// remove subset handler
-		void clear_subset_handler();
 
 	/// clear all dofs
 		void clear();
@@ -43,19 +40,17 @@ class P1StorageManager
 	/// subset handler
 		ISubsetHandler* m_pSH;
 
-	/// Subset Infos
-		struct SubsetInfo
-		{
-			typedef ug::Attachment<size_t> ADoF;
-			typedef ISubsetHandler::AttachmentAccessor<VertexBase, ADoF>
-					attachment_accessor_type;
+	///	assosicated grid
+		Grid* m_pGrid;
 
-			attachment_accessor_type aaDoFVRT;
-			ADoF aDoF;
-		};
+	//	typedefs
+		typedef ug::Attachment<size_t> ADoF;
+		typedef Grid::AttachmentAccessor<VertexBase, ADoF>
+				attachment_accessor_type;
 
-	// informations about Subsets
-		std::vector<SubsetInfo> m_vSubsetInfo;
+	//	Attachments
+		attachment_accessor_type m_aaDoFVRT;
+		ADoF m_aDoF;
 };
 
 class P1ConformDoFDistribution
@@ -256,7 +251,7 @@ class P1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			return m_pStorageManager->m_aaDoFVRT[vrt];
 		}
 
 	///	const access to first algebra index of a vertex
@@ -264,7 +259,7 @@ class P1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			return m_pStorageManager->m_aaDoFVRT[vrt];
 		}
 
 	///	returns the next free index
@@ -541,7 +536,7 @@ class GroupedP1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			return m_pStorageManager->m_aaDoFVRT[vrt];
 		}
 
 	///	const access to algebra index of a vertex
@@ -549,7 +544,7 @@ class GroupedP1ConformDoFDistribution
 		{
 			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
 			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			return m_pStorageManager->m_aaDoFVRT[vrt];
 		}
 
 	///	returns the next free index
