@@ -14,6 +14,7 @@
 
 // Lagrange Function Space
 #include "lib_discretization/local_shape_function_set/lagrange/lagrange.h"
+#include "lib_discretization/local_shape_function_set/lagrange/lagrange_local_dof.h"
 
 // P1ConformFunctionPattern
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
