@@ -36,7 +36,7 @@ struct UserDataWrapper{
 	byte type;
 
 	bool is_const()		{return (type & IS_CONST) == IS_CONST;}
-	bool is_raw_ptr()		{return (type & RAW_POINTER) == RAW_POINTER;}
+	bool is_raw_ptr()	{return (type & RAW_POINTER) == RAW_POINTER;}
 	bool is_smart_ptr()	{return (type & SMART_POINTER) == SMART_POINTER;}
 };
 
@@ -53,6 +53,7 @@ struct ConstSmartUserDataWrapper : public UserDataWrapper
 struct RawUserDataWrapper : public UserDataWrapper
 {
 	void*	obj;
+	void (*deleteFunc)(void*);
 };
 
 
@@ -104,6 +105,7 @@ static ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSma
 
 static RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 										  const char* metatableName,
+										  void (*deleteFunc)(void*),
 										  bool is_const)
 {
 //	create the userdata
@@ -114,6 +116,7 @@ static RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 
 //	associate the object with the userdata.
 	udata->obj = ptr;
+	udata->deleteFunc = deleteFunc;
 	udata->type = RAW_POINTER;
 	if(is_const)
 		udata->type |= IS_CONST;
@@ -507,13 +510,13 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 			}break;
 			case PT_POINTER:{
 				void* obj = params.to_pointer(i);
-				CreateNewUserData(L, obj, params.class_name(i), false);
+				CreateNewUserData(L, obj, params.class_name(i), NULL, false);
 			}break;
 			case PT_CONST_POINTER:{
 			//	we're removing const with a cast. However, it was made sure that
 			//	obj is treated as a const value.
 				void* obj = (void*)params.to_const_pointer(i);
-				CreateNewUserData(L, obj, params.class_name(i), true);
+				CreateNewUserData(L, obj, params.class_name(i), NULL, true);
 			}break;
 			case PT_SMART_POINTER:{
 				CreateNewUserData(L, params.to_smart_pointer(i), params.class_name(i));
@@ -642,7 +645,7 @@ static int LuaProxyConstructor(lua_State* L)
 {
 	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
 	
-	CreateNewUserData(L, c->create(), c->name(), false);
+	CreateNewUserData(L, c->create(), c->name(), c->get_delete_function(), false);
 
 	return 1;
 }
@@ -884,6 +887,31 @@ static int LuaProxyRelease(lua_State* L)
 	return 0;
 }
 
+static int LuaProxyDelete(lua_State* L)
+{
+	void* ptr = lua_touserdata(L, 1);
+//	we perform delete if the user-data is a raw pointer
+	if(((UserDataWrapper*)ptr)->is_raw_ptr()){
+		RawUserDataWrapper* udata = (RawUserDataWrapper*)ptr;
+		if(udata->deleteFunc){
+			udata->deleteFunc(udata->obj);
+			((RawUserDataWrapper*)ptr)->obj = NULL;
+		}
+		else{
+			UG_LOG("WARNING in LuaProxyDelete: Can't delete object, since"
+					"object was not created from script.\n");
+		}
+	}
+	else if(((UserDataWrapper*)ptr)->is_smart_ptr()){
+	//	invalidate the associated smart-pointer
+		if(((UserDataWrapper*)ptr)->is_const())
+			((ConstSmartUserDataWrapper*)ptr)->smartPtr.invalidate();
+		else
+			((SmartUserDataWrapper*)ptr)->smartPtr.invalidate();
+	}
+	return 0;
+}
+
 bool CreateBindings_LUA(lua_State* L, Registry& reg)
 {
 //	registers a meta-object for each object found in the ObjectRegistry.
@@ -897,6 +925,21 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 //	set the name of the table
 	lua_setglobal(L, "ug");
 	*/
+
+////////////////////////////////
+//	create some common methods
+	lua_getglobal(L, "delete");
+	if(!lua_isnil(L, -1)){
+	//	the method already exists. Don't recreate it.
+		lua_pop(L, 1);
+	}
+	else{
+	//	the method doesn't exist yet. Create it.
+		lua_pop(L, 1);
+		lua_pushcfunction(L, LuaProxyDelete);
+		lua_setglobal(L, "delete");
+	}
+
 ////////////////////////////////
 //	create a method for each global function, which calls LuaProxyFunction with
 //	a an index to the function.

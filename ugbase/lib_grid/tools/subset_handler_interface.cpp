@@ -22,7 +22,9 @@ SubsetInfo::SubsetInfo()
 ////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler implementation
 ISubsetHandler::
-ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false)
+ISubsetHandler(uint supportedElements) :
+	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false),
+	m_aDataIndex("ISubsetHandler_DataIndex", false)
 {
 	m_pGrid = NULL;
 	m_supportedElements = supportedElements;
@@ -38,7 +40,8 @@ ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false)
 
 ISubsetHandler::
 ISubsetHandler(Grid& grid, uint supportedElements) :
-	m_aSubsetIndex(false)
+	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false),
+	m_aDataIndex("ISubsetHandler_DataIndex", false)
 {
 	m_pGrid = &grid;
 	m_supportedElements = SHE_NONE;

@@ -291,30 +291,24 @@ std::string StdStringTest()
 
 void TestPageContainer()
 {
-	UG_LOG("Testing page container whith maxPageSize 64.\n");
+	UG_LOG("Testing page container whith default maxPageSize.\n");
 
-	UG_LOG("  size of PageContainer: " << sizeof(PageContainer<double, 64>) << endl);
-	UG_LOG("  size of allocator:     " << sizeof(std::allocator<double>) << endl);
-	UG_LOG("  size of vector:        " << sizeof(std::vector<double*>) << endl);
-	UG_LOG("  size of size_t:        " << sizeof(size_t) << endl);
-
-	typedef PageContainer<double, 64> PageCon;
+	typedef PageContainer<double> PageCon;
 	PageCon* ppc = new PageCon;
 	PageCon& pc = *ppc;
 
+	size_t testSize = 10000;
+
 	UG_LOG("resizing...\n");
-	pc.resize(20);
+	pc.resize(testSize);
 
 	UG_LOG("pushing doubles...\n");
-	for(size_t i = 0; i < 20; ++i){
+	for(size_t i = 0; i < testSize; ++i){
 		pc[i] = 3300. + (double)i;
 	}
 
-	UG_LOG("resizing to 8\n");
-	pc.resize(8);
-
 	UG_LOG("PageContainer content:");
-	for(size_t i = 0; i < pc.size(); ++i){
+	for(size_t i = testSize - 10; i < testSize; ++i){
 		UG_LOG(" " << pc[i]);
 	}
 	UG_LOG(endl);

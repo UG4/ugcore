@@ -91,9 +91,10 @@ void
 AttachmentPipe<TElem, TElemHandler>::
 reserve(size_t numElems)
 {
+//UG_LOG("reserving entries\n");
 	if(numElems > m_vEntries.size())
 		m_vEntries.reserve(numElems);
-
+//UG_LOG("done\n");
 	if(numElems > get_container_size())
 		resize_attachment_containers(numElems);
 }
@@ -327,6 +328,7 @@ void
 AttachmentPipe<TElem, TElemHandler>::
 resize_attachment_containers(size_t newSize)
 {
+//UG_LOG("resizing attachment containers\n");
 	//PROFILE_BEGIN(AttachmentResize);
 	m_containerSize = newSize;
 	for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
@@ -335,6 +337,7 @@ resize_attachment_containers(size_t newSize)
 		(*iter).m_pContainer->resize(newSize);
 	}
 	//PROFILE_END();
+//UG_LOG("done\n");
 }
 
 template <class TElem, class TElemHandler>

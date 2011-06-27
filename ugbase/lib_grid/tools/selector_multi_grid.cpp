@@ -11,13 +11,15 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 MGSelector::MGSelector(uint supportedElements) :
-	ISelector(supportedElements)
+	ISelector(supportedElements),
+	m_aSharedEntry("MGSelector_SharedListEntry")
 {
 	m_pMultiGrid = NULL;
 }
 
 MGSelector::MGSelector(MultiGrid& grid, uint supportedElements) :
-	ISelector(supportedElements), m_pMultiGrid(NULL)
+	ISelector(supportedElements), m_pMultiGrid(NULL),
+	m_aSharedEntry("MGSelector_SharedListEntry")
 {
 	assign_grid(&grid);
 }

@@ -10,12 +10,21 @@ using namespace std;
 namespace ug
 {
 
-MultiGrid::MultiGrid()
+MultiGrid::MultiGrid() :
+	m_aVertexInfo("MultiGrid_VertexInfo"),
+	m_aEdgeInfo("MultiGrid_EdgeInfo"),
+	m_aFaceInfo("MultiGrid_FaceInfo"),
+	m_aVolumeInfo("MultiGrid_VolumeInfo")
 {
 	init();
 }
 
-MultiGrid::MultiGrid(uint options) : Grid(options)
+MultiGrid::MultiGrid(uint options) :
+	Grid(options),
+	m_aVertexInfo("MultiGrid_VertexInfo"),
+	m_aEdgeInfo("MultiGrid_EdgeInfo"),
+	m_aFaceInfo("MultiGrid_FaceInfo"),
+	m_aVolumeInfo("MultiGrid_VolumeInfo")
 {
 	init();
 }

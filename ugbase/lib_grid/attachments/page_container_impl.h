@@ -18,14 +18,14 @@ template <class T, int MAX_PAGE_SIZE, class Allocator>
 PageContainer<T, MAX_PAGE_SIZE, Allocator>::
 PageContainer() :
 	m_numPageEntries((size_t)(MAX_PAGE_SIZE / sizeof(T))),
-	m_size(0),
-	m_capacity(0)
+	m_size(0)
 {
 }
 
 template <class T, int MAX_PAGE_SIZE, class Allocator>
 PageContainer<T, MAX_PAGE_SIZE, Allocator>::
-PageContainer(const PageContainer& pc)
+PageContainer(const PageContainer& pc) :
+	m_numPageEntries((size_t)(MAX_PAGE_SIZE / sizeof(T)))
 {
 	assign_container(pc);
 }
@@ -60,7 +60,7 @@ template <class T, int MAX_PAGE_SIZE, class Allocator>
 size_t PageContainer<T, MAX_PAGE_SIZE, Allocator>::
 capacity() const
 {
-	return m_capacity;
+	return m_pages.size() * m_numPageEntries;
 }
 
 template <class T, int MAX_PAGE_SIZE, class Allocator>
@@ -68,10 +68,10 @@ void PageContainer<T, MAX_PAGE_SIZE, Allocator>::
 resize(size_t size, const T& val)
 {
 	using namespace std;
-
+//UG_LOG("    reserving...\n");
 //	allocate memory
 	reserve(size);
-
+//UG_LOG("    constructing...\n");
 //	call constructor on new objects
 //	to do this with optimal performance,
 //	we'll iterate over the pages directly
@@ -83,9 +83,9 @@ resize(size_t size, const T& val)
 		for(size_t i = offset; i < maxI; ++i)
 			m_alloc.construct(page + i, val);
 
-		m_size += maxI;
+		m_size += maxI - offset;
 	}
-
+//UG_LOG("    destroying...\n");
 //	if resize shrinks the data array, we have to call the destructors of
 //	deleted objects. At this point size <= m_size.
 	while(m_size > size){
@@ -101,6 +101,7 @@ resize(size_t size, const T& val)
 
 		m_size -= (maxI - minI);
 	}
+//UG_LOG("    done...\n");
 }
 
 template <class T, int MAX_PAGE_SIZE, class Allocator>
@@ -109,13 +110,14 @@ reserve(size_t size)
 {
 	using namespace std;
 
+	//UG_LOG("*num page entries: " << m_numPageEntries << ", required size: " << size << endl);
 	while(m_pages.size() * m_numPageEntries < size){
-		UG_LOG("PC: aquiring new page\n");
+		//UG_LOG("**allocating " << m_numPageEntries << " elems of size " << sizeof(T) << endl);
 		T* buf = m_alloc.allocate(m_numPageEntries);
+		//UG_LOG("**adding a new page (current num pages: " << m_pages.size() << ")\n");
 		m_pages.push_back(buf);
 	}
-
-	m_capacity = max(m_capacity, size);
+	//UG_LOG("*done\n");
 }
 
 template <class T, int MAX_PAGE_SIZE, class Allocator>
@@ -145,20 +147,22 @@ template <class T, int MAX_PAGE_SIZE, class Allocator>
 void PageContainer<T, MAX_PAGE_SIZE, Allocator>::
 swap(PageContainer& pc)
 {
-	using namespace std;
 	m_pages.swap(pc.m_pages);
-	swap(m_numPageEntries, pc.m_numPageEntries);
-	swap(m_size, pc.m_size);
-	swap(m_capacity, pc.m_capacity);
+	Allocator talloc = m_alloc;
+	m_alloc = pc.m_alloc;
+	pc.m_alloc = talloc;
+
+	size_t tmp = m_size;
+	m_size = pc.m_size;
+	pc.m_size = tmp;
 }
 
 template <class T, int MAX_PAGE_SIZE, class Allocator>
 void PageContainer<T, MAX_PAGE_SIZE, Allocator>::
 assign_container(const PageContainer& pc)
 {
+	using namespace std;
 	clear();
-
-	m_numPageEntries = pc.m_numPageEntries;
 
 	reserve(pc.m_size);
 

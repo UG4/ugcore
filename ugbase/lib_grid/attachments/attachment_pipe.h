@@ -13,6 +13,7 @@
 #include "common/types.h"
 #include "common/util/uid.h"
 #include "common/util/hash.h"
+#include "page_container.h"
 
 namespace ug
 {
@@ -68,6 +69,12 @@ class IAttachmentDataContainer
 	*	numValidElements has to specify the size of the defragmented container - it thus has to equal the number of valid indices in pNewIndices.
 	*/
 		virtual void defragment(size_t* pNewIndices, size_t numValidElements) = 0;
+
+	///	returns the size in bytes, which the container occupies
+	/**
+	 * Mainly for debugging purposes.
+	 */
+		virtual size_t occupied_memory() = 0;
 };
 
 
@@ -88,6 +95,8 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 {
 	private:
 		typedef AttachmentDataContainer<T>	ClassType;
+		//typedef PageContainer<T>			DataContainer;
+		typedef std::vector<T>				DataContainer;
 
 	public:
 		typedef T	ValueType;
@@ -125,7 +134,7 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 		virtual void defragment(size_t* pNewIndices, size_t numValidElements)
 			{
 				size_t numOldElems = size();
-				std::vector<T> vDataOld = m_vData;
+				DataContainer vDataOld = m_vData;
 				m_vData.resize(numValidElements);
 				for(size_t i = 0; i < numOldElems; ++i)
 				{
@@ -154,11 +163,17 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 				if(!destConT)
 					return;
 
-				ValueType* dest = destConT->get_ptr();
+				DataContainer& dest = destConT->get_data_container();
 				for(int i = 0; i < num; ++i)
 					dest[i] = m_vData[indexMap[i]];
 			}
 
+
+	///	returns the memory occupied by the container
+		virtual size_t occupied_memory()
+		{
+			return m_vData.capacity() * sizeof(T);
+		}
 
 		inline const T& get_elem(size_t index) const      {return m_vData[index];}
 		inline T& get_elem(size_t index)                  {return m_vData[index];}
@@ -169,11 +184,12 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 		void swap(AttachmentDataContainer<T>& container)	{m_vData.swap(container.m_vData);}
 
 	protected:
-		inline const T* get_ptr() const			{return &m_vData.front();}
-		inline T* get_ptr()						{return &m_vData.front();}
+		DataContainer& get_data_container()			{return m_vData;}
+		//inline const T* get_ptr() const			{return &m_vData.front();}
+		//inline T* get_ptr()						{return &m_vData.front();}
 		
 	protected:
-		std::vector<T>	m_vData;
+		DataContainer	m_vData;
 		bool			m_bDefaultValueSet;
 		T				m_defaultValue;
 };
@@ -192,7 +208,8 @@ class IAttachment : public UID
 {
 	public:
 		IAttachment() : m_name("")   {}
-		IAttachment(const char* name) : m_name(name)   {}
+		IAttachment(const char* name) : m_name(name)
+			{assert(m_name);}
 
 		virtual ~IAttachment()  {}
 		virtual IAttachment* clone() = 0;

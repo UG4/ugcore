@@ -59,11 +59,10 @@ class PageContainer
 		inline size_t get_page_offset(size_t ind) const;
 
 	private:
-		Allocator		m_alloc;
 		std::vector<T*>	m_pages;
 		const size_t	m_numPageEntries;
 		size_t			m_size;
-		size_t			m_capacity;
+		Allocator		m_alloc;
 };
 
 }//	end of namespace

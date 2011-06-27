@@ -14,21 +14,21 @@ namespace ug
 GridSubsetHandler::
 GridSubsetHandler(uint supportedElements) :
 	ISubsetHandler(supportedElements),
-	m_aSharedEntry(false)
+	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
 {
 }
 
 GridSubsetHandler::
 GridSubsetHandler(Grid& grid, uint supportedElements) :
 	ISubsetHandler(supportedElements),
-	m_aSharedEntry(false)
+	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
 {
 	assign_grid(grid);
 }
 
 GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
 	ISubsetHandler(sh.m_supportedElements),
-	m_aSharedEntry(false)
+	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
 {
 	Grid* pGrid = sh.get_assigned_grid();
 

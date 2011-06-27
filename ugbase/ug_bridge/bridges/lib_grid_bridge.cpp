@@ -8,6 +8,7 @@
 #include "../ug_bridge.h"
 #include "lib_grid/lib_grid.h"
 #include "common/profiler/profiler.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 using namespace std;
 
@@ -887,7 +888,8 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_method("get_subset_handler", &GridObject::get_subset_handler);
 
 	//	Grid functions
-		reg.add_function("CreateFractal", &CreateFractal, grp.c_str());
+		reg.add_function("CreateFractal", &CreateFractal, grp.c_str())
+			.add_function("PrintAttachmentInfo", &PrintAttachmentInfo, grp.c_str());
 
 	//  GridObject functions
 		reg.add_function("LoadGrid", (bool (*)(Grid&, ISubsetHandler&, const char*))&LoadGrid, grp.c_str())

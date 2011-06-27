@@ -192,6 +192,9 @@ if RedistributeDomain(dom, partitionMap, true) == false then
 end
 print("... domain distributed!")
 
+-- clean up
+delete(partitionMap)
+
 --------------------------------------------------------------------------------
 -- end of partitioning
 --------------------------------------------------------------------------------

@@ -12,7 +12,9 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	MultiGridSubsetHandler implementation
 MultiGridSubsetHandler::
-MultiGridSubsetHandler(uint supportedElements) : ISubsetHandler(supportedElements)
+MultiGridSubsetHandler(uint supportedElements) :
+	ISubsetHandler(supportedElements),
+	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
 {
 	m_numSubsets = 0;
 	m_pMG = NULL;
@@ -20,7 +22,8 @@ MultiGridSubsetHandler(uint supportedElements) : ISubsetHandler(supportedElement
 
 MultiGridSubsetHandler::
 MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements) :
-ISubsetHandler(supportedElements)
+	ISubsetHandler(supportedElements),
+	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
 {
 	m_numSubsets = 0;
 	m_pMG = NULL;
@@ -29,7 +32,8 @@ ISubsetHandler(supportedElements)
 
 MultiGridSubsetHandler::
 MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
-	ISubsetHandler(sh.m_supportedElements)
+	ISubsetHandler(sh.m_supportedElements),
+	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
 {
 	MultiGrid* pGrid = sh.m_pMG;
 

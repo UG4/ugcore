@@ -8,7 +8,8 @@
 namespace ug
 {
 	
-ISelector::ISelector(uint supportedElements)
+ISelector::ISelector(uint supportedElements) :
+	m_aSelected("ISelector_IsSelected")
 {
 	m_pGrid = NULL;
 	m_supportedElements = supportedElements;
@@ -17,7 +18,8 @@ ISelector::ISelector(uint supportedElements)
 	m_bStrictInheritanceEnabled = false;
 }
 
-ISelector::ISelector(Grid& grid, uint supportedElements)
+ISelector::ISelector(Grid& grid, uint supportedElements) :
+	m_aSelected("ISelector_IsSelected")
 {
 	m_pGrid = &grid;
 	m_supportedElements = SE_NONE;

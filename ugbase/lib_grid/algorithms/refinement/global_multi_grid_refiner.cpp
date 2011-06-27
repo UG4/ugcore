@@ -73,6 +73,8 @@ void GlobalMultiGridRefiner::assign_grid(MultiGrid* mg)
 ////////////////////////////////////////////////////////////////////////
 void GlobalMultiGridRefiner::refine()
 {
+	UG_DLOG(LIB_GRID, 1, "GlobalMultiGridRefiner\n");
+
 	GMGR_PROFILE_FUNC();
 		
 	assert(m_pMG && "refiner has to be assigned to a multi-grid!");
@@ -119,6 +121,7 @@ void GlobalMultiGridRefiner::refine()
 
 //	the old top level
 	int oldTopLevel = mg.num_levels() - 1;
+	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
 //	reserve enough memory to speed up the algo
 	GMGR_PROFILE(GMGR_Reserve);
@@ -153,7 +156,9 @@ void GlobalMultiGridRefiner::refine()
 		GMGR_PROFILE_END();
 	}
 	GMGR_PROFILE_END();
+	UG_DLOG(LIB_GRID, 1, " done.\n");
 
+	UG_DLOG(LIB_GRID, 1, " refinement begins.\n");
 //	notify derivates that refinement begins
 	refinement_step_begins();
 	
@@ -178,8 +183,6 @@ void GlobalMultiGridRefiner::refine()
 	EdgeDescriptor ed;
 	FaceDescriptor fd;
 	VolumeDescriptor vd;
-	
-	UG_DLOG(LIB_GRID, 1, "GlobalMultiGridRefiner\n");
 
 	UG_DLOG(LIB_GRID, 1, "  creating new vertices\n");
 

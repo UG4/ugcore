@@ -19,8 +19,12 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	constructors
-Grid::Grid() : m_aVertexContainer(false), m_aEdgeContainer(false),
-				m_aFaceContainer(false), m_aVolumeContainer(false)
+Grid::Grid() :
+	m_aVertexContainer("Grid_VertexContainer", false),
+	m_aEdgeContainer("Grid_EdgeContainer", false),
+	m_aFaceContainer("Grid_FaceContainer", false),
+	m_aVolumeContainer("Grid_VolumeContainer", false),
+	m_aMark("Grid_Mark", false)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
@@ -28,8 +32,12 @@ Grid::Grid() : m_aVertexContainer(false), m_aEdgeContainer(false),
 	change_options(GRIDOPT_DEFAULT);
 }
 
-Grid::Grid(uint options) : m_aVertexContainer(false), m_aEdgeContainer(false),
-							m_aFaceContainer(false), m_aVolumeContainer(false)
+Grid::Grid(uint options) :
+	m_aVertexContainer("Grid_VertexContainer", false),
+	m_aEdgeContainer("Grid_EdgeContainer", false),
+	m_aFaceContainer("Grid_FaceContainer", false),
+	m_aVolumeContainer("Grid_VolumeContainer", false),
+	m_aMark("Grid_Mark", false)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
@@ -37,8 +45,12 @@ Grid::Grid(uint options) : m_aVertexContainer(false), m_aEdgeContainer(false),
 	change_options(options);
 }
 
-Grid::Grid(const Grid& grid) : m_aVertexContainer(false), m_aEdgeContainer(false),
-							m_aFaceContainer(false), m_aVolumeContainer(false)
+Grid::Grid(const Grid& grid) :
+	m_aVertexContainer("Grid_VertexContainer", false),
+	m_aEdgeContainer("Grid_EdgeContainer", false),
+	m_aFaceContainer("Grid_FaceContainer", false),
+	m_aVolumeContainer("Grid_VolumeContainer", false),
+	m_aMark("Grid_Mark", false)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;

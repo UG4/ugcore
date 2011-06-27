@@ -12,7 +12,11 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	constructor / destructor
 DistributedGridManager::
-DistributedGridManager()
+DistributedGridManager() :
+	m_aElemInfoVrt("DistributedGridManager_ElemInfoVrt", false),
+	m_aElemInfoEdge("DistributedGridManager_ElemInfoEdge", false),
+	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
+	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false)
 {
 	m_bOrderedInsertionEnabled = true;
 	m_bOrderedInsertionMode = false;
@@ -20,7 +24,11 @@ DistributedGridManager()
 }
 
 DistributedGridManager::
-DistributedGridManager(MultiGrid& grid)
+DistributedGridManager(MultiGrid& grid) :
+	m_aElemInfoVrt("DistributedGridManager_ElemInfoVrt", false),
+	m_aElemInfoEdge("DistributedGridManager_ElemInfoEdge", false),
+	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
+	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false)
 {
 	m_bOrderedInsertionEnabled = true;
 	m_bOrderedInsertionMode = false;

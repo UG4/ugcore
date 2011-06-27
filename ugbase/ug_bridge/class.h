@@ -51,6 +51,12 @@ class MethodPtrWrapper
 		int		size;
 };
 
+///	Performs a reinterpret cast on the given pointer, then calls delete on it
+template <class TClass> void CastAndDelete(void* ptr)
+{
+	delete reinterpret_cast<TClass*>(ptr);
+}
+
 /** function exported from ug
  * This class describes a wrapper for a c++ - function, that is exported by ug
  */
@@ -263,6 +269,9 @@ void DestructorProxy(void* obj)
 class IExportedClass
 {
 	public:
+		typedef void (*DeleteFunction)(void*);
+
+	public:
 	///  name of class
 		virtual const char* name() const = 0;
 
@@ -319,7 +328,8 @@ class IExportedClass
 	///	destructur for object
 		virtual void destroy(void* obj) const = 0;
 
-
+	///	returns a function which will call delete on the object
+		virtual DeleteFunction get_delete_function() const = 0;
 
 	///  virtual destructor
 		virtual ~IExportedClass() {};
@@ -502,6 +512,12 @@ class ExportedClass_ : public IExportedClass
 		{
 			if(m_destructor != NULL)
 				(*m_destructor)(obj);
+		}
+
+	///	return pointer to the delete method
+		virtual DeleteFunction get_delete_function() const
+		{
+			return CastAndDelete<TClass>;
 		}
 
 	/// destructor

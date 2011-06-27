@@ -29,7 +29,12 @@ void PrintGridElementNumbers(MultiGrid& mg);
 ///	prints how many elements of each type exist in the subset handler.
 void PrintGridElementNumbers(GridSubsetHandler& sh);
 
+
+///	prints information on all attachments of the specified grid
+void PrintAttachmentInfo(Grid& grid);
+
 /**@}*/ // end of doxygen defgroup command
+
 
 }//	end of namespace
 

@@ -168,6 +168,7 @@ class AttachedElementList
 	public:
 		AttachedElementList(TAttachmentPipe* pipe = NULL) :
 			m_pipe(NULL),
+			m_aEntry("AttachedElementList_Entry", false),
 			m_front(NULL),
 			m_back(NULL),
 			m_bSharedAttachment(false)
@@ -179,6 +180,7 @@ class AttachedElementList
 	///	Note that auto-copy on aEntry has to be disabled.
 		AttachedElementList(AEntry aEntry) :
 			m_pipe(NULL),
+			m_aEntry("AttachedElementList_Entry", false),
 			m_aEntry(aEntry),
 			m_front(NULL),
 			m_back(NULL),
@@ -188,6 +190,7 @@ class AttachedElementList
 	///	Note that auto-copy on aEntry has to be disabled.
 		AttachedElementList(TAttachmentPipe* pipe, AEntry aEntry) :
 			m_pipe(NULL),
+			m_aEntry("AttachedElementList_Entry", false),
 			m_aEntry(aEntry),
 			m_front(NULL),
 			m_back(NULL),

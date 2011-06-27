@@ -54,4 +54,46 @@ void PrintGridElementNumbers(GridSubsetHandler& sh)
 	PrintElementNumbers(sh.get_geometric_object_collection());
 }
 
+template <class TGeomObj>
+void PrintAttachmentInfo(Grid& grid)
+{
+	typedef Grid::AttachmentPipe::ConstAttachmentEntryIterator AttIter;
+
+//	iterate over all attachments of the grid
+	Grid::AttachmentPipe& pipe = grid.get_attachment_pipe<TGeomObj>();
+
+	int counter = 1;
+	size_t totalSize = 0;
+	for(AttIter iter = pipe.attachments_begin();
+		iter != pipe.attachments_end(); ++iter, ++counter)
+	{
+	//	name
+		IAttachment* att = iter->m_pAttachment;
+		UG_LOG("Attachment " << counter << " (" << att->get_name() << "): ");
+
+	//	size
+		IAttachmentDataContainer* con = iter->m_pContainer;
+		UG_LOG(con->occupied_memory() << " bytes\n");
+		totalSize += con->occupied_memory();
+	}
+
+	UG_LOG(counter - 1 << " attachments with a total size of "
+			<< totalSize << " bytes.\n");
+}
+
+void PrintAttachmentInfo(Grid& grid)
+{
+	UG_LOG("Vertex Attachments:\n");
+	PrintAttachmentInfo<VertexBase>(grid);
+
+	UG_LOG("\nEdge Attachments:\n");
+	PrintAttachmentInfo<EdgeBase>(grid);
+
+	UG_LOG("\nFace Attachments:\n");
+	PrintAttachmentInfo<Face>(grid);
+
+	UG_LOG("\nVolume Attachments:\n");
+	PrintAttachmentInfo<Volume>(grid);
+}
+
 }// end of namespace
