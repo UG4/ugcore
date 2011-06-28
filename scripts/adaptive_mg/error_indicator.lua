@@ -267,7 +267,6 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- choose some solver
 solver = linSolver
 
-approxSpace:init()
 approxSpace:print_statistic()
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
