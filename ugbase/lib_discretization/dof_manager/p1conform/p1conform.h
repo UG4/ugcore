@@ -43,7 +43,7 @@ class P1StorageManager
 		~P1StorageManager() {clear();};
 
 	/// attach dofs
-		void update_attachments();
+		bool update_attachments();
 
 	///	returns the associated grid
 		Grid* get_assigned_grid() {return m_pGrid;}
@@ -104,7 +104,8 @@ class P1ConformDoFDistribution
 			m_vNumDoFs.resize(this->num_subsets(), 0);
 
 		// 	Attach indices
-			m_pStorageManager->update_attachments();
+			if(!m_pStorageManager->update_attachments())
+				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
 
 		// 	create offsets
 			create_offsets();
@@ -122,7 +123,8 @@ class P1ConformDoFDistribution
 			m_vNumDoFs.resize(this->num_subsets(), 0);
 
 		// 	Attach indices
-			m_pStorageManager->update_attachments();
+			if(!m_pStorageManager->update_attachments())
+				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
 
 		// 	create offsets
 			create_offsets();
@@ -394,7 +396,8 @@ class GroupedP1ConformDoFDistribution
 			m_vNumDoFs.resize(this->num_subsets(), 0);
 
 		// 	Attach indices
-			m_pStorageManager->update_attachments();
+			if(!m_pStorageManager->update_attachments())
+				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
 		}
 
 		GroupedP1ConformDoFDistribution(GeometricObjectCollection goc,
@@ -411,7 +414,8 @@ class GroupedP1ConformDoFDistribution
 			m_vNumDoFs.resize(this->num_subsets(), 0);
 
 		// 	Attach indices
-			m_pStorageManager->update_attachments();
+			if(!m_pStorageManager->update_attachments())
+				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
 		}
 
 		///////////////////////////

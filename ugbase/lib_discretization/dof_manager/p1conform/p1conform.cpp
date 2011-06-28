@@ -39,20 +39,22 @@ clear()
 	m_pGrid = NULL;
 }
 
-void
+bool
 P1StorageManager::
 update_attachments()
 {
 //	check, that everything has been set
 	if(m_pSH == NULL)
 	{
-		UG_LOG("WARNING: Updating indices, but no SubsetHandler set.\n");
-		return;
+		UG_LOG("ERROR in 'P1StorageManager::update_attachments':"
+				" Updating indices, but no SubsetHandler set.\n");
+		return false;
 	}
 	if(m_pGrid == NULL)
 	{
-		UG_LOG("WARNING: Updating indices, but no Grid in SubsetHandler set.\n");
-		return;
+		UG_LOG("ERROR in 'P1StorageManager::update_attachments':"
+				" Updating indices, but no Grid in SubsetHandler set.\n");
+		return false;
 	}
 
 //	attach DoFs to vertices
@@ -60,6 +62,9 @@ update_attachments()
 
 //	access the
 	m_aaDoFVRT.access(*m_pGrid, m_aDoF);
+
+//	done
+	return true;
 }
 
 
@@ -118,7 +123,8 @@ distribute_dofs()
 	}
 
 // 	Attach indices
-	m_pStorageManager->update_attachments();
+	if(!m_pStorageManager->update_attachments())
+		return false;
 
 // 	iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
@@ -539,7 +545,8 @@ distribute_dofs()
 	}
 
 // 	Attach indices
-	m_pStorageManager->update_attachments();
+	if(!m_pStorageManager->update_attachments())
+		return false;
 
 // 	iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
