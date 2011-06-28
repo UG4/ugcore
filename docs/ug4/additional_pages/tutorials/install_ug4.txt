@@ -15,12 +15,15 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <hr>
 
 <ul>
-<li> <b>Boost</b>: Download latest release of Boost from "www.boost.org".
-<li> Copy the library to some folder on your computer. The folder is arbitrary. 
+<li> <b>Boost</b>: Download latest release of Boost from <a href="http://www.boost.org/users/download/">http://www.boost.org/users/download/</a> .
+<li> Extract/Copy the library to some folder on your computer. The folder is arbitrary. 
 	(e.g. home/lib/boost_1_46_0)
 <li> Add the path of the folder, where boost is located, to the environment 
-	variable PATH
-	(e.g. 	export BOOST_ROOT = $HOME/lib/boost_1_46_0)
+	variable <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, e.g.: 
+	<ul>
+	<li> in bash: add <i>PATH=$PATH:$HOME/lib/boost_1_46_0</i> to the end of the file ~/.bashrc 
+	<li> in tcsh/csh: add <i>set PATH = ($PATH $HOME/lib/boost_1_46_0)</i> to the end of the file ~/.tcshrc
+	</ul>
 </ul> 
 
 <hr>
@@ -28,9 +31,9 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <hr>
 
 <ul>
-<li> <b>CMake</b>: Download Cmake from "www.cmake.org" (min Release 2.6)
-<li> Install cmake on your computer. Install the command line tools, when requested 
-	during installation.
+<li> <b>CMake</b>: Download CMake from <a href="http://www.cmake.org/cmake/resources/software.html">http://www.cmake.org/cmake/resources/software.html</a> (min Release 2.6)
+<li> Install cmake on your computer. Install the command line tools, when requested during installation.
+<li> Open a terminal window. Enter cmake<Enter>. If you see some output "cmake version ..." cmake has been installed correctly.
 </ul>
 
 <hr>
@@ -43,7 +46,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 </ul>
 
 <hr>
-\section secInstallUG4RunCmake Run Cmake
+\section secInstallUG4RunCmake Run CMake
 <hr>
 
 <ol>

@@ -47,7 +47,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <hr>
 
 <ul>
-<li> Choose "New" -> "Other" -> "SVN" -> "Project from SVN"
+<li> In Eclipse's Menu, choose "File" -> "New" -> "Other...", and there "SVN" -> "Project from SVN"
 <li> URL is: "svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk"
 <li> Choose "Use a custom label: ug4-trunk"
 <li> Fill in your "User" and "Password" as received by (currently) Sebastian Reiter.
@@ -55,8 +55,8 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <li> Click "Next" (Click always yes when problems occure)
 <li> Choose "Head Revision"
 <li> Click "Finish"
-<li> Choose "Check out as a project configured using the the New Project Wizard". Confirm.
-<li> Choose "C/C++" -> "C++ Project"
+<li> Choose "Check out as a project configured using the the New Project Wizard". Click "Finish".
+<li> Choose "C/C++" -> "C++ Project". Click "Next".
 <li> Choose "Project name: ug4" and "Empty Project". Click "Finish"
 </ul>
 
@@ -65,7 +65,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <hr>
 
 In order to build the ug libraries via Eclipse, you first must create the 
-Makefiles. This is done using "cmake" in the terminal:
+Makefiles. This is done using "cmake" in the terminal (go \ref secInstallUG4CMake "here" if you did not already install CMake).
 
 <ol>
 <li> Open a terminal/shell window
