@@ -30,9 +30,9 @@ void MatAdd(	IMatrixOperator<X, Y, M>& opOut,
 */
 
 template <typename X, typename Y, typename M>
-void MatIdentity(	IMatrixOperator<X, Y, M>& opOut)
+void MatIdentity(	MatrixOperator<X, Y, M>& opOut)
 {
-	typedef IMatrixOperator<X, Y, M> MatrixOperator;
+	typedef MatrixOperator<X, Y, M> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
 
@@ -44,14 +44,14 @@ void MatIdentity(	IMatrixOperator<X, Y, M>& opOut)
 	matOut.resize(numRows, numCols);
 
 	for(size_t i = 0; i < numRows; ++i)
-		matOut(i, i) = 2.0;
+		matOut(i, i) = 1.0;
 }
 
 
 template <typename X, typename Y, typename M>
-void MatAdd( IMatrixOperator<X, Y, M>& res, number alpha1, IMatrixOperator<X, Y, M>& A1, number alpha2, IMatrixOperator<X, Y, M>& A2)
+void MatAdd( MatrixOperator<X, Y, M>& res, number alpha1, MatrixOperator<X, Y, M>& A1, number alpha2, MatrixOperator<X, Y, M>& A2)
 {
-	typedef IMatrixOperator<X, Y, M> MatrixOperator;
+	typedef MatrixOperator<X, Y, M> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
 
@@ -62,9 +62,9 @@ void MatAdd( IMatrixOperator<X, Y, M>& res, number alpha1, IMatrixOperator<X, Y,
 }
 
 template <typename X, typename Y, typename M>
-void MatScale( IMatrixOperator<X, Y, M>& A, number alpha)
+void MatScale( MatrixOperator<X, Y, M>& A, number alpha)
 {
-	typedef IMatrixOperator<X, Y, M> MatrixOperator;
+	typedef MatrixOperator<X, Y, M> MatrixOperator;
 	typedef typename MatrixOperator::matrix_type Matrix;
 	Matrix& matA = A.get_matrix();
 

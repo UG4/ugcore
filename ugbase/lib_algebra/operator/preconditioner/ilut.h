@@ -28,6 +28,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
 	private:
 		typedef typename matrix_type::value_type block_type;
 
@@ -59,12 +62,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ILUTPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_type& mat)
+		virtual bool preprocess(matrix_operator_type& mat)
 		{
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
 		//	Prepare Inverse Matrix
-			matrix_type* A = this->m_pMatrix;
+			matrix_type* A = &mat;
 			m_L.resize(A->num_rows(), A->num_cols());
 			m_U.resize(A->num_rows(), A->num_cols());
 
@@ -166,7 +169,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
 			// apply iterator: c = LU^{-1}*d (damp is not used)
 			// L

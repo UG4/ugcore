@@ -103,7 +103,7 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		}
 
 	///	initializes the solver for operator A
-		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
+		virtual bool init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 		{
 		//	save current operator
 			m_pOperator = &A;
@@ -430,13 +430,13 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		number m_theta;
 
 	// 	Operator that is inverted by this Inverse Operator
-		IMatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
+		MatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
 
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
 
 	//	Copy of matrix
-		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
+		MatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
 
 	// 	Linear Solver to invert the local Neumann problems
 		ILinearOperatorInverse<vector_type,vector_type>* m_pNeumannSolver;

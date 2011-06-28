@@ -101,8 +101,8 @@ public:
 
 	bool set_linear_operator_A(ILinearOperator<vector_type, vector_type> &A)
 	{
-		IMatrixOperator<vector_type, vector_type, matrix_type>* Op =
-					dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
+		MatrixOperator<vector_type, vector_type, matrix_type>* Op =
+					dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
 
 	//	Check that matrix if of correct type
 		if(Op == NULL)
@@ -117,8 +117,8 @@ public:
 
 	bool set_linear_operator_B(ILinearOperator<vector_type, vector_type> &B)
 	{
-		IMatrixOperator<vector_type, vector_type, matrix_type>* Op =
-							dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
+		MatrixOperator<vector_type, vector_type, matrix_type>* Op =
+							dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
 
 		//	Check that matrix if of correct type
 		if(Op == NULL)

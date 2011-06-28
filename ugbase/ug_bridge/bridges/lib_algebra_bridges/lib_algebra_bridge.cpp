@@ -122,24 +122,11 @@ struct cRegisterAlgebraType
 			}
 
 			{
-			//	IMatrixOperator
+			// 	MatrixOperator
 				typedef ILinearOperator<vector_type, vector_type> TBase;
-				typedef IMatrixOperator<vector_type, vector_type, matrix_type> T;
-				reg.add_class_<T, TBase>("IMatrixOperator", grp.c_str())
-					.add_method("resize", &T::resize)
-					.add_method("num_rows", &T::num_rows, "rows")
-					.add_method("num_cols", &T::num_cols, "cols")
-					.add_method("apply", &TBase::apply);
-
-			}
-
-			{
-			//	PureMatrixOperator
-				typedef IMatrixOperator<vector_type, vector_type, matrix_type> TBase;
-				typedef PureMatrixOperator<vector_type, vector_type, matrix_type> T;
-				reg.add_class_<T, TBase>("PureMatrixOperator", grp.c_str())
-					.add_constructor()
-					.add_method("get_matrix", &T::get_matrix);
+				typedef MatrixOperator<vector_type, vector_type, matrix_type> T;
+				reg.add_class_<T, TBase, matrix_type>("MatrixOperator", grp.c_str())
+					.add_constructor();
 			}
 
 			{

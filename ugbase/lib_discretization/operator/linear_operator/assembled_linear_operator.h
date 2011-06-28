@@ -28,7 +28,7 @@ namespace ug{
  */
 template <typename TDoFDistribution, typename TAlgebra>
 class AssembledLinearOperator :
-	public virtual IMatrixOperator<	typename TAlgebra::vector_type,
+	public virtual MatrixOperator<	typename TAlgebra::vector_type,
 									typename TAlgebra::vector_type,
 									typename TAlgebra::matrix_type>
 {
@@ -45,9 +45,13 @@ class AssembledLinearOperator :
 	///	Type of DoFDistribution
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
+	///	Type of base class
+		typedef MatrixOperator<vector_type,vector_type,matrix_type> base_type;
+
 	public:
 	///	Default Constructor
-		AssembledLinearOperator() : m_pAss(NULL), m_pDoFDistribution(NULL)
+		AssembledLinearOperator() :
+			m_pAss(NULL), m_pDoFDistribution(NULL)
 			{};
 
 	///	Constructor
@@ -82,9 +86,6 @@ class AssembledLinearOperator :
 	///	Compute d := d - J(u)*c
 		virtual bool apply_sub(vector_type& d, const vector_type& c);
 
-	///	Export matrix
-		virtual matrix_type& get_matrix() {return m_J;}
-
 	///	Set Dirichlet values
 		bool set_dirichlet_values(vector_type& u);
 
@@ -101,9 +102,6 @@ class AssembledLinearOperator :
 
 	// 	DoF Distribution used
 		const dof_distribution_type* m_pDoFDistribution;
-
-	// 	matrix storage
-		matrix_type m_J;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

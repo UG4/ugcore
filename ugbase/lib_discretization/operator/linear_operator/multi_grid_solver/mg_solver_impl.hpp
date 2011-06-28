@@ -137,7 +137,7 @@ template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 smooth(vector_type& c, vector_type& d, vector_type& t,
-       IMatrixOperator<vector_type, vector_type, matrix_type>& A,
+       MatrixOperator<vector_type, vector_type, matrix_type>& A,
        smoother_type& S,
        size_t lev, int nu)
 {
@@ -234,7 +234,7 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 	{
 	//	get smomother on this level and corresponding operator
 		smoother_type* S = m_vLevData[lev].Smoother;
-		IMatrixOperator<vector_type, vector_type, matrix_type>* A = m_vLevData[lev].A;
+		MatrixOperator<vector_type, vector_type, matrix_type>* A = m_vLevData[lev].A;
 
 	//	LIFTING c,d TO SMOOTHING AREA
 		#ifdef UG_PARALLEL
@@ -1801,7 +1801,7 @@ allocate(size_t lev,
 		                         pLevDD->template begin<Volume>(),
 		                         pLevDD->template end<Volume>());
 
-		if(!SmoothMat) SmoothMat = new PureMatrixOperator<vector_type, vector_type, matrix_type>;
+		if(!SmoothMat) SmoothMat = new MatrixOperator<vector_type, vector_type, matrix_type>;
 		SmoothMat->get_matrix().set_master_layout(*masterLayout);
 		SmoothMat->get_matrix().set_slave_layout(*slaveLayout);
 	}

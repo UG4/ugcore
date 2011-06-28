@@ -148,7 +148,7 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 		}
 
 	//	set operator L, that will be inverted
-		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& Op)
+		virtual bool init(MatrixOperator<vector_type, vector_type, matrix_type>& Op)
 		{
 		// 	remember operator
 			m_pOperator = &Op;
@@ -223,7 +223,7 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 
 	protected:
 		// Operator to invert
-		IMatrixOperator<vector_type, vector_type, matrix_type>* m_pOperator;
+		MatrixOperator<vector_type, vector_type, matrix_type>* m_pOperator;
 
 		// matrix to invert
 		matrix_type* m_pMatrix;

@@ -253,7 +253,7 @@ class IMatrixOperatorInverse
 	 * \param[in]	A		linear matrix-basewd operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(IMatrixOperator<Y,X,M>& A) = 0;
+		virtual bool init(MatrixOperator<Y,X,M>& A) = 0;
 
 	/// applies the inverse operator, i.e. returns u = A^{-1} * f
 	/**
@@ -310,7 +310,7 @@ class IMatrixOperatorInverse
 		virtual bool init(ILinearOperator<Y,X>& A)
 		{
 		//	cast operator
-			IMatrixOperator<Y,X,M>* op = dynamic_cast<IMatrixOperator<Y,X,M>*>(&A);
+			MatrixOperator<Y,X,M>* op = dynamic_cast<MatrixOperator<Y,X,M>*>(&A);
 
 		//	check if correct types are present
 			if(op == NULL)

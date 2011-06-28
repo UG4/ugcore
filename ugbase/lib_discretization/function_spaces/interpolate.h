@@ -372,17 +372,19 @@ bool AssignP1GridFunctionOnSubset(TGridFunction& uDest, const TGridFunction& uSr
 //	read subsets
 	ConvertStringToSubsetGroup(ssGrp, *approxSpace.get_subset_handler(), subsetNames);
 
+
 //	loop subsets
 	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
 	{
 	//	get subset index
 		const int si = ssGrp[i];
 
+
 	//	loop vertices
 		typename geometry_traits<VertexBase>::const_iterator iter
 									= uDest.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd
-									= uDest.template begin<VertexBase>(si);
+									= uDest.template end<VertexBase>(si);
 
 		for(; iter != iterEnd; ++iter)
 		{
@@ -401,6 +403,7 @@ bool AssignP1GridFunctionOnSubset(TGridFunction& uDest, const TGridFunction& uSr
 
 			//	assign values
 				uDest[index] = uSrc[index];
+
 			}
 		}
 	}
@@ -409,6 +412,142 @@ bool AssignP1GridFunctionOnSubset(TGridFunction& uDest, const TGridFunction& uSr
 	return true;
 }
 
+/////////////////////////////////////////////////////
+// Vertices only section
+/////////////////////////////////////////////////////
+
+/// interpolates a function on vertices
+template <typename TGridFunction>
+bool InterpolateFunctionOnVertices( boost::function<void (
+									number& res,
+									const MathVector<TGridFunction::domain_type::dim>& x,
+									number time)> InterpolFunction,
+									TGridFunction& u, size_t fct, int si, number time)
+{
+//	domain type and position_type
+	typedef typename TGridFunction::domain_type domain_type;
+	typedef typename domain_type::position_type position_type;
+
+//	id of shape functions used
+	LocalShapeFunctionSetID id = u.local_shape_function_set_id(fct);
+
+// get position accessor
+	const typename domain_type::position_accessor_type& aaPos
+										= u.get_domain().get_position_accessor();
+
+// 	iterate over all elements
+	typename geometry_traits<VertexBase>::const_iterator iterEnd, iter;
+	iterEnd = u.template end<VertexBase>(si);
+	for(iter = u.template begin<VertexBase>(si); iter != iterEnd; ++iter)
+	{
+	//	get element
+		VertexBase* vrt = *iter;
+
+	//	global position
+		position_type glob_pos = aaPos[vrt];
+
+	//	value at position
+		number val;
+		InterpolFunction(val, glob_pos, time);
+
+	//	get multiindices of element
+		typename TGridFunction::multi_index_vector_type ind;
+		u.get_multi_indices(vrt, fct, ind);
+
+	// 	loop all dofs
+		for(size_t i = 0; i < ind.size(); ++i)
+		{
+		//	set value
+			BlockRef(u[ind[i][0]], ind[i][1]) = val;
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+
+
+/// interpolates a function on subsets, only for vertex dofs
+/**
+ * This function interpolates a GridFunction. To evaluate the function on every
+ * point a IUserData must be passed.
+ *
+ * \param[out]		u			interpolated grid function
+ * \param[in]		data		data evaluator
+ * \param[in]		name		symbolic name of function
+ * \param[in]		time		time point
+ * \param[in]		subsets		subsets, where to interpolate
+ */
+template <typename TGridFunction>
+bool InterpolateFunctionOnVertices(	IUserData<number, TGridFunction::domain_type::dim>& data,
+									TGridFunction& u, const char* name, number time,
+									const char* subsets)
+{
+//	world dimension
+	static const int dim = TGridFunction::domain_type::dim;
+
+//	extract functor
+	typedef typename IUserData<number, dim>::functor_type functor_type;
+	functor_type InterpolFunction = data.get_functor();
+
+//	get Function Pattern
+	const typename TGridFunction::approximation_space_type& approxSpace
+				= u.get_approximation_space();
+
+//	get function id of name
+	const size_t fct = approxSpace.fct_id_by_name(name);
+
+//	check that function found
+	if(fct == (size_t)-1)
+	{
+		UG_LOG("ERROR in InterpolateFunctionOnVertices: Name of function not found.\n");
+		return false;
+	}
+
+//	check that function exists
+	if(fct >= u.num_fct())
+	{
+		UG_LOG("ERROR in InterpolateFunctionOnVertices: Function space does not contain"
+				" a function with index " << fct << ".\n");
+		return false;
+	}
+
+//	create subset group
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(*approxSpace.get_subset_handler());
+
+//	read subsets
+	if(subsets != NULL)
+		ConvertStringToSubsetGroup(ssGrp, *approxSpace.get_subset_handler(), subsets);
+	else // add all if no subset specified
+		ssGrp.add_all();
+
+//	loop subsets
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+		if(!InterpolateFunctionOnVertices<TGridFunction>
+							(InterpolFunction, u, fct, si, time))
+		{
+			UG_LOG("ERROR in InterpolateFunctionOnVertices: "
+					"Cannot interpolate on elements.\n");
+			return false;
+		}
+	}
+
+//	adjust parallel storage state
+#ifdef UG_PARALLEL
+	u.set_storage_type(PST_CONSISTENT);
+#endif
+
+//	we're done
+	return true;
+}
 
 
 } // namespace ug

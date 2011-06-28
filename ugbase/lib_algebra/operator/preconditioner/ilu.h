@@ -230,6 +230,9 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
 	public:
 	//	Constructor
 		ILUPreconditioner(double beta=0.0) : m_pDebugWriter(NULL), m_beta(beta) {};
@@ -263,12 +266,12 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ILUPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_type& mat)
+		virtual bool preprocess(matrix_operator_type& mat)
 		{
 		//	TODO: error handling / memory check
 
 		//  Rename Matrix for convenience
-			matrix_type& A = *this->m_pMatrix;
+			matrix_type& A = mat;
 
 #ifdef 	UG_PARALLEL
 		//	copy original matrix
@@ -320,7 +323,7 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
 		//	todo: Think about how to use ilu in parallel.
 

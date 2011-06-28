@@ -51,6 +51,9 @@ public:
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef typename TAlgebra::matrix_type prolongation_matrix_type;
 
+///	Matrix Operator type
+	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
 	typedef typename matrix_type::value_type value_type;
 
 	class LevelInformation
@@ -107,13 +110,13 @@ protected:
 	virtual const char* name() const = 0;
 
 //	Preprocess routine
-	virtual bool preprocess(matrix_type& mat);
+	virtual bool preprocess(matrix_operator_type& mat);
 
 //	Postprocess routine
 	virtual bool postprocess() {return true;}
 
 //	Stepping routine
-	virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+	virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 	{
 		UG_ASSERT(m_bInited, "not inited?");
 		return get_correction(c, d);
@@ -252,15 +255,14 @@ protected:
 
 	stdvector<prolongation_matrix_type *> m_R; 	///< R Restriction Matrices
 	stdvector<prolongation_matrix_type *> m_P; 	///< P Prolongation Matrices
-	stdvector<matrix_type *> m_A;				///< A Matrices
-	stdvector< IndirectPureMatrixOperator<vector_type, vector_type, matrix_type> > m_SMO;
+	stdvector<MatrixOperator<vector_type,vector_type,matrix_type> *> m_A;				///< A Matrices
 
 #ifdef UG_PARALLEL
 	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
 	stdvector<IndexLayout> slaveLayouts, masterLayouts;				///< Pseudo-IndexLayout for the created ParallelVectors.
 
 
-	matrix_type collectedBaseA;
+	MatrixOperator<vector_type,vector_type,matrix_type> collectedBaseA;
 	IndexLayout masterColl, slaveColl;
 	vector_type collC;
 	vector_type collD;

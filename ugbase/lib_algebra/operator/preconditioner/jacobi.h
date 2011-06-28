@@ -30,6 +30,9 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
 	public:
 		JacobiPreconditioner() :
 			m_damp(1.0), m_bOpChanged(true)
@@ -58,7 +61,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Jacobi";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_type& mat)
+		virtual bool preprocess(matrix_operator_type& mat)
 		{
 		//	Currently remember that Operator has changed
 			m_bOpChanged = true;
@@ -66,7 +69,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
 			// todo: 	this should be done in 'init'. It is currently placed here, since a

@@ -27,7 +27,7 @@ namespace ug{
 //! creates MG Hierachy for with matrix_type A and temporary vectors for higher levels
 //! @param A	matrix A.
 template<typename TAlgebra>
-bool amg_base<TAlgebra>::preprocess(matrix_type& mat)
+bool amg_base<TAlgebra>::preprocess(matrix_operator_type& mat)
 {
 	cleanup();
 	m_A.resize(1);
@@ -155,9 +155,6 @@ bool amg_base<TAlgebra>::init()
 	double createAMGlevelTiming=0;
 	for(; ; level++)
 	{
-		m_SMO.resize(level+1);
-		m_SMO[level].setmatrix(m_A[level]);
-
 
 		LevelInformation li;
 #ifdef UG_PARALLEL
@@ -198,7 +195,7 @@ bool amg_base<TAlgebra>::init()
 
 		m_presmoothers.resize(level+1);
 		m_presmoothers[level] = m_presmoother->clone();
-		m_presmoothers[level]->init(m_SMO[level]);
+		m_presmoothers[level]->init(*m_A[level]);
 
 		m_postsmoothers.resize(level+1);
 		if(m_presmoother == m_postsmoother)
@@ -206,11 +203,11 @@ bool amg_base<TAlgebra>::init()
 		else
 		{
 			m_postsmoothers[level] = m_postsmoother->clone();
-			m_postsmoothers[level]->init(m_SMO[level]);
+			m_postsmoothers[level]->init(*m_A[level]);
 		}
 
 		m_A.resize(level+2);
-		m_A[level+1] = new matrix_type;
+		m_A[level+1] = new MatrixOperator<vector_type,vector_type,matrix_type>;
 
 		m_P.resize(level+1);
 		m_P[level] = new matrix_type;
@@ -281,7 +278,6 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 	(void) static_nrUnknowns;
 	stopwatch SW; SW.start();
 
-	m_SMO.resize(level+1);
 #ifdef UG_PARALLEL
 	// create basesolver
 	collect_matrix(*(m_A[level]), collectedBaseA, masterColl, slaveColl);
@@ -302,13 +298,9 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 		}
 	}
 	if(pcl::GetProcRank() == 0)
-	{
-		m_SMO[level].setmatrix(&collectedBaseA);
-		m_basesolver->init(m_SMO[level]);
-	}
+		m_basesolver->init(collectedBaseA);
 #else
-	m_SMO[level].setmatrix(m_A[level]);
-	m_basesolver->init(m_SMO[level]);
+	m_basesolver->init(*m_A[level]);
 #endif
 
 	m_dTimingCoarseSolverSetupMS = SW.ms();

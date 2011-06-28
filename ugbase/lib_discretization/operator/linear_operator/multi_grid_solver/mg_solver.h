@@ -173,7 +173,7 @@ class AssembledMultiGridCycle :
 
 	/// performs smoothing on level l, nu times
 		bool smooth(vector_type& c, vector_type& d, vector_type& t,
-		            IMatrixOperator<vector_type, vector_type, matrix_type>& A,
+		            MatrixOperator<vector_type, vector_type, matrix_type>& A,
 		            smoother_type& S, size_t lev, int nu);
 
 	///	returns the number of allocated levels
@@ -319,7 +319,7 @@ class AssembledMultiGridCycle :
 			matrix_type *CoarseGridContribution;
 
 		//	smaller matrix for smoothing
-			PureMatrixOperator<vector_type, vector_type, matrix_type> *SmoothMat;
+			MatrixOperator<vector_type, vector_type, matrix_type> *SmoothMat;
 
 		//	vectors needed for smoothing
 			vector_type *su, *sc, *sd, *st;

@@ -401,7 +401,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 //	AssembleDirichletBoundary
 	{
 	//todo: This should work for all IDirichletPostProcess
-		typedef IMatrixOperator<vector_type, vector_type, matrix_type> mat_op_type;
+		typedef MatrixOperator<vector_type, vector_type, matrix_type> mat_op_type;
 		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> dirichlet_type;
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 

@@ -28,6 +28,9 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
 	public:
 	//	Constructor
 		GSPreconditioner() {};
@@ -44,13 +47,13 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_type& mat) {return true;}
+		virtual bool preprocess(matrix_operator_type& mat) {return true;}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
 
 	//	Stepping routine
-		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
 			// 	set the computed correction to additive
 			//	todo: handle parallel case
@@ -74,6 +77,9 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
 	public:
 	//	Constructor
 		BGSPreconditioner() {};
@@ -90,13 +96,13 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Backward Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_type& mat) {return true;}
+		virtual bool preprocess(matrix_operator_type& mat) {return true;}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
 
 	//	Stepping routine
-		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
 			// 	set the computed correction to additive
 			//	todo: handle parallel case
@@ -120,6 +126,9 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
 	public:
 	//	Constructor
 		SGSPreconditioner() {};
@@ -136,13 +145,13 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Symmetric Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_type& mat) {return true;}
+		virtual bool preprocess(matrix_operator_type& mat) {return true;}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
 
 	//	Stepping routine
-		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
 			// 	set the computed correction to additive
 			//	todo: handle parallel case

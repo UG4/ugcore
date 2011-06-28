@@ -44,7 +44,7 @@ init(const vector_type& u)
 	}
 
 //	assemble matrix (depending on u, i.e. J(u))
-	if(!m_pAss->assemble_jacobian(m_J, u, *m_pDoFDistribution))
+	if(!m_pAss->assemble_jacobian(*this, u, *m_pDoFDistribution))
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::init:"
 				" Cannot assemble Jacobi matrix.\n");
@@ -79,7 +79,7 @@ init()
 	vector_type dummy; dummy.resize(m_pDoFDistribution->num_dofs());
 
 //	assemble only matrix
-	if(!m_pAss->assemble_jacobian(m_J, dummy, *m_pDoFDistribution))
+	if(!m_pAss->assemble_jacobian(*this, dummy, *m_pDoFDistribution))
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::init:"
 				" Cannot assemble Matrix.\n");
@@ -116,7 +116,7 @@ init_op_and_rhs(vector_type& b)
 	b.resize(m_pDoFDistribution->num_dofs());
 
 //	assemble matrix and rhs in one loop
-	if(!m_pAss->assemble_linear(m_J, b, b, *m_pDoFDistribution))
+	if(!m_pAss->assemble_linear(*this, b, b, *m_pDoFDistribution))
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::init:"
 				" Cannot assemble Matrix and Rhs.\n");
@@ -142,17 +142,17 @@ apply(vector_type& d, const vector_type& c)
 #endif
 
 //	perform check of sizes
-	if(c.size() != m_J.num_cols() || d.size() != m_J.num_rows())
+	if(c.size() != this->num_cols() || d.size() != this->num_rows())
 	{
 		UG_LOG("ERROR in 'AssembledLinearOperator::apply': Size of matrix A ["<<
-		        m_J.num_rows() << " x " << m_J.num_cols() << "] must match the "
+		        this->num_rows() << " x " << this->num_cols() << "] must match the "
 		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
 		        " operation b = A*x. Maybe the operator is not initialized ?\n";)
 		return false;
 	}
 
 //	Apply Matrix
-	return m_J.apply(d, c);
+	return base_type::apply(d, c);
 }
 
 //	Compute d := d - J(u)*c
@@ -177,17 +177,17 @@ apply_sub(vector_type& d, const vector_type& c)
 #endif
 
 //	check sizes
-	if(c.size() != m_J.num_cols() || d.size() != m_J.num_rows())
+	if(c.size() != this->num_cols() || d.size() != this->num_rows())
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::apply_sub: Size of matrix A ["<<
-		        m_J.num_rows() << " x " << m_J.num_cols() << "] must match the "
+		        this->num_rows() << " x " << this->num_cols() << "] must match the "
 		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
 		        " operation b -= A*x. Maybe the operator is not initialized ?\n";)
 		return false;
 	}
 
 //	Apply Matrix
-	return m_J.matmul_minus(d,c);
+	return base_type::matmul_minus(d,c);
 }
 
 

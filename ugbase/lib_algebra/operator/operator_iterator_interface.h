@@ -200,10 +200,13 @@ class IPreconditioner :
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Matrix Operator type
+		typedef MatrixOperator<vector_type, vector_type, matrix_type> matrix_operator_type;
+
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_pOperator(NULL), m_pMatrix(NULL), m_bInit(false)
+			m_pOperator(NULL), m_bInit(false)
 		{};
 
 	protected:
@@ -227,7 +230,7 @@ class IPreconditioner :
 	 * \param[in]	mat			underlying matrix (i.e. L in L*u = f)
 	 * \returns		bool		success flag
 	 */
-		virtual bool preprocess(matrix_type& mat) = 0;
+		virtual bool preprocess(matrix_operator_type& mat) = 0;
 
 	///	computes a new correction c = B*d
 	/**
@@ -239,7 +242,7 @@ class IPreconditioner :
 	 * \param[in]	d			defect
 	 * \returns		bool		success flag
 	 */
-		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)  = 0;
+		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)  = 0;
 
 	///	cleans the operator
 		virtual bool postprocess() = 0;
@@ -260,8 +263,8 @@ class IPreconditioner :
 		                  const vector_type& u)
 		{
 		//	cast to matrix based operator
-			IMatrixOperator<vector_type, vector_type, matrix_type>* pOp =
-			dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
+			MatrixOperator<vector_type, vector_type, matrix_type>* pOp =
+			dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
 
 		//	Check that matrix if of correct type
 			if(pOp == NULL)
@@ -289,8 +292,8 @@ class IPreconditioner :
 		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
 		{
 		//	cast to matrix based operator
-			IMatrixOperator<vector_type, vector_type, matrix_type>* pOp =
-			dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
+			MatrixOperator<vector_type, vector_type, matrix_type>* pOp =
+			dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
 
 		//	Check that matrix if of correct type
 			if(pOp == NULL)
@@ -314,16 +317,13 @@ class IPreconditioner :
 	 * \param[in]	Op		matrix based operator
 	 * \returns		bool	success flag
 	 */
-		bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& Op)
+		bool init(MatrixOperator<vector_type, vector_type, matrix_type>& Op)
 		{
 		// 	Remember operator
 			m_pOperator = &Op;
 
-		//	Remember matrix
-			m_pMatrix = &m_pOperator->get_matrix();
-
 		//	Check that matrix exists
-			if(m_pMatrix == NULL)
+			if(m_pOperator == NULL)
 			{
 				UG_LOG("ERROR in '"<< name() << "::init': Matrix not found, "
 						"though matrix-based operator given.\n");
@@ -331,7 +331,7 @@ class IPreconditioner :
 			}
 
 		//	Preprocess
-			if(!preprocess(*m_pMatrix))
+			if(!preprocess(*m_pOperator))
 			{
 				UG_LOG("ERROR in '"<< name() << "::init': Preprocess failed.\n");
 				return false;
@@ -377,17 +377,17 @@ class IPreconditioner :
 		//	Some Assertions
 		//  \todo: (optinal) Should we always perform this check (using if(...))
 		//			since it it not very expensive and in the outer loop?
-			UG_ASSERT(d.size() == m_pMatrix->num_rows(), "Vector [size= " <<
-			          d.size() << "] and Row [size= " << m_pMatrix->num_rows()
+			UG_ASSERT(d.size() == m_pOperator->num_rows(), "Vector [size= " <<
+			          d.size() << "] and Row [size= " << m_pOperator->num_rows()
 			          <<"] sizes have to match!");
-			UG_ASSERT(c.size() == m_pMatrix->num_cols(), "Vector [size= " <<
-			          c.size() << "] and Column [size= " << m_pMatrix->num_cols()
+			UG_ASSERT(c.size() == m_pOperator->num_cols(), "Vector [size= " <<
+			          c.size() << "] and Column [size= " << m_pOperator->num_cols()
 			          <<"] sizes have to match!");
 			UG_ASSERT(d.size() == c.size(), "Vector [d size= " << d.size() <<
 			          ", c size = " << c.size() << "] sizes have to match!");
 
 		// 	apply iterator: c = B*d
-			if(!step(*m_pMatrix, c, d))
+			if(!step(*m_pOperator, c, d))
 			{
 				UG_LOG("ERROR in '" << name() << "::apply': "
 						"Step Routine failed.\n");
@@ -424,7 +424,7 @@ class IPreconditioner :
 			if(!apply(c, d)) return false;
 
 		// 	update defect d := d - A*c
-			if(!m_pMatrix->matmul_minus(d, c))
+			if(!m_pOperator->matmul_minus(d, c))
 			{
 				UG_LOG("ERROR in 'IPreconditioner::apply_update_defect': "
 						"Cannot execute matmul_minus to compute d:=d-A*c.\n");
@@ -440,10 +440,7 @@ class IPreconditioner :
 
 	protected:
 	///	underlying matrix based operator
-		IMatrixOperator<vector_type, vector_type, matrix_type>* m_pOperator;
-
-	///	underlying matrix
-		matrix_type* m_pMatrix;
+		matrix_operator_type* m_pOperator;
 
 	/// init flag indicating if init has been called
 		bool m_bInit;

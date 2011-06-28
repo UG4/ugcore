@@ -115,7 +115,7 @@ bool WriteMatrixToConnectionViewer(const char *filename,
 
 template <typename TGridFunction>
 bool SaveMatrixForConnectionViewer(	TGridFunction& u,
-									IMatrixOperator<typename TGridFunction::vector_type,
+									MatrixOperator<typename TGridFunction::vector_type,
 													typename TGridFunction::vector_type,
 													typename TGridFunction::algebra_type::matrix_type>& A,
 									const char* filename)

@@ -148,7 +148,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 		{
 			typedef AssembledLinearOperator<dof_distribution_type, algebra_type> T;
 
-			reg.add_class_<T, IMatrixOperator<vector_type, vector_type, matrix_type> >
+			reg.add_class_<T, MatrixOperator<vector_type, vector_type, matrix_type> >
 							("AssembledLinearOperator", grp.c_str())
 				.add_constructor()
 				.add_method("set_discretization", &T::set_discretization)
