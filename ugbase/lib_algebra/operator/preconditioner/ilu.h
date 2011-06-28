@@ -33,7 +33,7 @@ bool FactorizeILU(Matrix_type &A)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
-			if(BlockNorm(a_ik) < 1e-7)	continue;
+			if(BlockNorm(a_ik) < 1e-7)	continue; //Nae: this may be dangerous
 
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
 			// so that A(i,k) is zero.
@@ -59,57 +59,68 @@ bool FactorizeILU(Matrix_type &A)
 	return true;
 }
 
-
-// TODO: This is an untested version of the ILU-beta-scheme
-// This does not work, as the fill-in is not determined correctly
-// should use an kij variant, not an ikj-version
+// ILU(0)-beta solver, i.e.
+// -> static pattern ILU w/ P=P(A)
+// -> Fill-in is computed and lumped onto the diagonal
 template<typename Matrix_type>
 bool FactorizeILUBeta(Matrix_type &A, number beta)
 {
-	assert(0);
+	//assert(0);
 	typedef typename Matrix_type::value_type block_type;
 
 	// for all rows i=1:n do
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
+		block_type &Aii = A(i,i);
+		block_type Nii(Aii); Nii*=0.0;
+
 		// for k=1:(i-1) do
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		block_type &Aii = A(i,i);
-		block_type Nii (Aii); Nii*=0.0;
-		const typename Matrix_type::row_iterator rowEnd = A.end_row(i);
-		for(typename Matrix_type::row_iterator it_k = A.begin_row(i); it_k != rowEnd && (it_k.index() < i); ++it_k)
+		const typename Matrix_type::row_iterator it_iEnd = A.end_row(i);
+		for(typename Matrix_type::row_iterator it_ik = A.begin_row(i); it_ik != it_iEnd && (it_ik.index() < i); ++it_ik)
 		{
 
 			// add row k to row i by A(i, .) -=  [A(i,k) / A(k,k)] A(k,.)
-			// so that A(i,k) is zero.
+			// such that A(i,k) is zero.
+
+			// 1) Contribution to L part:
 			// store A(i,k)/A(k,k) in A(i,k)
-			const size_t k = it_k.index();
-			block_type &a_ik = it_k.value();
-
-
+			const size_t k = it_ik.index();
+			block_type &a_ik = it_ik.value();
 			a_ik /= A(k,k);
-			if(BlockNorm(a_ik) < 1e-7)	continue;
 
-			// for j=(k+1):n do
-			typename Matrix_type::row_iterator it_j = it_k;
-			for(++it_j; it_j != rowEnd; ++it_j)
+			if(BlockNorm(a_ik) < 1e-7)	continue; //Nae: this may be dangerous
+
+			// 2) Contribution to U part:
+			// compute contributions from row k for j=k:N
+			const typename Matrix_type::row_iterator it_kEnd = A.end_row(k);
+			for (typename Matrix_type::row_iterator it_kj=A.begin_row(k); it_kj != it_kEnd ;++it_kj)
 			{
-				const size_t j = it_j.index();
-				block_type& a_ij = it_j.value();
-				bool bFound;
-				typename Matrix_type::row_iterator p = A.get_connection(k,j, bFound);
-				if(bFound)
-				{
-					const block_type a_kj = p.value();
+				const size_t j = it_kj.index();
+				if (j<i) continue;  // index j belongs L part?
+
+				// this index j belongs U part
+				const block_type& a_kj = it_kj.value();
+
+				bool aijFound;
+				typename Matrix_type::row_iterator pij = A.get_connection(i,j, aijFound);
+				if(aijFound) {
+					// entry belongs to pattern
+					// -> proceed with standard elimination
+					block_type a_ij = pij.value();
 					a_ij -= a_ik *a_kj ;
+
+				} else {
+					// entry DOES NOT belong to pattern
+					// -> we lump it onto the diagonal
+					// TODO : non square matrices!!!
+					Nii -=  a_ik * a_kj;
 				}
-				else
-				{
-					// add to diagonal
-					Nii +=  it_k.value() ;
-				}
+
 			}
 		}
+
+		// add fill-in to diagonal
 		AddMult(Aii, beta, Nii);
 	}
 
@@ -221,12 +232,13 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILUPreconditioner() : m_pDebugWriter(NULL), m_beta(0.0) {};
+		ILUPreconditioner(double beta=0.0) : m_pDebugWriter(NULL), m_beta(beta) {};
+
 
 	// 		Clone
 		ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new ILUPreconditioner<algebra_type>();
+			return new ILUPreconditioner<algebra_type>(m_beta);
 		}
 
 		//	Destructor
