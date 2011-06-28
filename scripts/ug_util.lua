@@ -724,9 +724,11 @@ end
 function util.PrintTableHelper(indexPar, valuePar)
 	if type(valuePar) == "table" then
 		print(util.PrintTableHelperIntend .. tostring(indexPar)  .. " = {")
-		util.PrintTableHelperIntend = util.PrintTableHelperIntend .. " "
-		table.foreachi (valuePar, util.PrintTableHelper)
-		util.PrintTableHelperIntend = string.sub(util.PrintTableHelperIntend, 2)
+		util.PrintTableHelperIntend = util.PrintTableHelperIntend .. "  "
+		
+		for i,v in pairs(valuePar) do util.PrintTableHelper(i, v) end
+		
+		util.PrintTableHelperIntend = string.sub(util.PrintTableHelperIntend, 3)
 		print(util.PrintTableHelperIntend .. "}")
 	else
 		print(util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar)
