@@ -26,6 +26,15 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 		return false;
 	}
 
+//	check, if already initialized
+	if(m_bInit)
+	{
+		UG_LOG("WARNING in 'ApproximationSpace::init':"
+				" Approximation Space already initialized. You cannot alter"
+				" the pattern. This call was useless.\n");
+		return true;
+	}
+
 //	lock function pattern
 	this->lock();
 
