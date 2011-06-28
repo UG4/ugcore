@@ -33,11 +33,17 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
 ///	finalizes ug
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Finalize.
+ *
+ *	Use ug::UGOutputProfileStatsOnExit to enable profiling output
+ *	during finalize.
  */
-int UGFinalize(bool outputProfilerStats = false);
+int UGFinalize();
 
 ///	Calls UGFinalize and terminates the application.
 void UGForceExit();
+
+///	Call with true, if profiling output is desired at the end of the show.
+void UGOutputProfileStatsOnExit(bool bEnable);
 
 }//	end of namespace
 

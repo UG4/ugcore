@@ -17,6 +17,10 @@
 #include "pcl/pcl.h"
 #endif
 
+/** Tells whether profile-output is desired on exit.*/
+//	only visible in this file!
+static bool outputProfileStats = false;
+
 namespace ug {
 
 /**
@@ -107,8 +111,8 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Finalize.
  */
-int UGFinalize(bool outputProfilerStats) {
-	if (outputProfilerStats) {
+int UGFinalize() {
+	if (outputProfileStats) {
 	//	output the profiled data.
 		PROFILER_UPDATE();
 		#ifdef UG_PARALLEL
@@ -132,8 +136,13 @@ int UGFinalize(bool outputProfilerStats) {
 void UGForceExit()
 {
 	UG_LOG("--- ABORTING UG EXECUTION ---\n");
-	UGFinalize(true);
+	UGFinalize();
 	exit(0);
+}
+
+void UGOutputProfileStatsOnExit(bool bEnable)
+{
+	outputProfileStats = bEnable;
 }
 
 } //end of namespace ug

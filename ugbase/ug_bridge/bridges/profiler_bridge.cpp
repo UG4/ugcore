@@ -11,18 +11,16 @@
 #include "../ug_bridge.h"
 #include "common/profiler/profiler.h"
 #include <iomanip>
-#include <math.h> // für floor
+#include <cmath> // für floor
+#include "ug.h" // Required for UGOutputProfileStatsOnExit.
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
 
 
-
-
 namespace ug
 {
-extern bool g_bOutputProfileStats;
 
 namespace bridge
 {
@@ -237,10 +235,6 @@ bool GetProfilerAvailable()
 	return true;
 }
 
-void SetOutputProfileStats(bool bOutput)
-{
-	g_bOutputProfileStats = bOutput;
-}
 #else
 
 // dummy profiler node
@@ -318,10 +312,6 @@ bool GetProfilerAvailable()
 	return false;
 }
 
-void SetOutputProfileStats(bool bOutput)
-{
-}
-
 #endif
 
 
@@ -348,7 +338,7 @@ bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 		.add_method("__add", &UGProfilerNode::add, "add");*/
 	reg.add_function("GetProfileNode", &GetProfileNode, group.str().c_str());
 	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, group.str().c_str(), "true if profiler available");
-	reg.add_function("SetOutputProfileStats", &SetOutputProfileStats, group.str().c_str(), "", "bOutput",
+	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, group.str().c_str(), "", "bOutput",
 			"if set to true and profiler available, profile stats are printed at the end of the program. true is default");
 
 	return true;

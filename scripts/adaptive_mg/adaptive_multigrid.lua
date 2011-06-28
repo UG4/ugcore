@@ -10,6 +10,10 @@
 --	the laplace problem.
 ----------------------------------------------------------
 
+-- Use this to enable or disable profiler output at the end of the run
+SetOutputProfileStats(false)
+
+-- Load common util scripts.
 ug_load_script("ug_util.lua")
 
 -- choose algebra
@@ -100,7 +104,12 @@ print("Load Domain from File.")
 if util.LoadDomain(dom, gridName) == false then print("Loading Domain failed."); exit() end
 
 -- Distribute the domain to all involved processes
-if DistributeDomain(dom) == false then print("Error while Distributing Grid."); exit() end
+print("Distributing Domain.")
+partitionMap = PartitionMap()
+if GetProcessRank() == 0 then
+	util.PartitionMapBisection(partitionMap, dom, GetNumProcesses())
+end
+if RedistributeDomain(dom, partitionMap, true) == false then print("Error while Distributing Grid."); exit() end
 
 -- get subset handler and make sure that the right number of subsets is contained.
 sh = dom:get_subset_handler()
@@ -135,8 +144,8 @@ end
 
 -- write grid to file for test purpose
 print("Saving domain grid and hierarchy.")
-SaveDomain(dom, "refined_grid.ugx")
-SaveGridHierarchy(dom:get_grid(), "refined_grid_hierarchy.ugx")
+SaveDomain(dom, "refined_grid_p" .. GetProcessRank() .. ".ugx")
+SaveGridHierarchy(dom:get_grid(), "refined_grid_hierarchy_p" .. GetProcessRank() .. ".ugx")
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -144,7 +153,7 @@ approxSpace = util.CreateApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 
-SaveGridHierarchyTransformed(dom:get_grid(), approxSpace:get_surface_view(), "surface_view_extrude.ugx", 0.25)
+SaveGridHierarchyTransformed(dom:get_grid(), approxSpace:get_surface_view(), "surface_view_extrude_p" .. GetProcessRank() .. ".ugx", 0.25)
 
 -------------------------------------------
 --  Setup User Functions
