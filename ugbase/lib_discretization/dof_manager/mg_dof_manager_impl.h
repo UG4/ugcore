@@ -22,9 +22,6 @@ assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh)
 	m_pMGSubsetHandler = &mgsh;
 	m_pMultiGrid = m_pMGSubsetHandler->get_assigned_multi_grid();
 
-// 	Get StorageManager for levels
-	m_levelStorageManager.set_subset_handler(mgsh);
-
 // 	Set Function pattern if already assigned
 	if(m_pFuncPattern != NULL)
 		if(!assign_function_pattern(*m_pFuncPattern))
@@ -380,9 +377,6 @@ surface_view_required()
 // 	Create surface view for all elements
 	CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler);
 
-// 	set storage manager
-	m_surfaceStorageManager.set_subset_handler(*m_pSurfaceView);
-
 //	we're done
 	return true;
 }
@@ -395,6 +389,9 @@ surface_distribution_required()
 //	Create surface view iff needed
 	if(!surface_view_required())
 		return false;
+
+// 	set storage manager
+	m_surfaceStorageManager.set_subset_handler(*m_pSurfaceView);
 
 // 	Create surface dof distributions
 	if(m_pSurfDD == NULL)
@@ -423,6 +420,9 @@ bool
 MGDoFManager<TDoFDistribution>::
 level_distribution_required(size_t numLevel)
 {
+// 	set StorageManager for levels
+	m_levelStorageManager.set_subset_handler(*m_pMGSubsetHandler);
+
 // 	Create level dof distributions
 	for(size_t l = m_vLevelDD.size(); l < numLevel; ++l)
 	{

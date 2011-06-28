@@ -15,8 +15,11 @@ void
 P1StorageManager::
 set_subset_handler(ISubsetHandler& sh)
 {
+//	do nothing if same subset handler
+	if(m_pSH == &sh) return;
+
 //	clear first if already subset handler set
-	if(m_pSH != NULL || m_pGrid != NULL) clear();
+	clear();
 
 //	set SubsetHandler and grid
 	m_pSH = &sh;
