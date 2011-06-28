@@ -24,7 +24,7 @@ ugshell has the following build-in command-line options:
 
 You can also use the command line to pass arguments to your scripts:
 \verbatim
-ugshell -ex tutorials/tut02_loading_a_domain.lua -grid unit_square/unit_square_quads_2x2.ugx  
+./ugshell -ex tutorials/tut02_loading_a_domain.lua -grid unit_square/unit_square_quads_2x2.ugx  
 \endverbatim
 
 You can access command line parameters by using the lua function from ug_util.lua:
@@ -32,8 +32,11 @@ You can access command line parameters by using the lua function from ug_util.lu
 function util.GetParam(name, return_if_unavailable)
 \endcode
 
+For that, you have to include the ug_util.lua file using ug_load_script("ug_util.lua").
+
 Example:
 \code
+ug_load_script("ug_util.lua")
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 \endcode
 
@@ -56,6 +59,8 @@ dim = util.GetParamNumber("-dim", 2)
 useAggressiveCoarsening = util.HasParamOption("-AC")
 \endcode
 
+
+
 <hr>
 \section secInteractiveShell Interactive Shell
 <hr>
@@ -68,6 +73,9 @@ ug:>
 
 and a blinking cursor: This is called the interactive shell. Interactive shell is disabled
 when you use -ex without -noquit and if UG is running in parallel.
+
+You can abort the execution of UG out of lua scripts by using exit(). If you want to stop the execution of a script, but you want to use the interactive shell thereafter, 
+you can use error("break").
 
 <hr>
 \section secAutoCompletion Auto Completion

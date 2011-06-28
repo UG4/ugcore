@@ -5,10 +5,25 @@
 
 /**	\page pageUG4Profiling ug - Profiling
 
+	- \ref secEnableProfiling "Enable Profiling in UG4"
 	- \ref secProfilingYourCode "Adding profiling to your code"
 	- \ref secViewProfilingNodes "View profiling statistics"
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de or sebastian.reiter@gcsc.uni-frankfurt.de .
+
+
+<hr>
+\section secEnableProfiling Enable Profiling in UG4
+<hr>
+
+You enable profiling in UG4 by setting the CMake flag -DUG_PROFILER=ON. So if have a shell open in your subdirectory build_debug 
+(as explained \ref pageInstallUG4 "here" or \ref secInstallEcpliseUseMakefiles "here"), you enter
+\code
+cmake -DUG_PROFILER=ON ..
+\endcode
+Note that cmake "remembers" the flags you set. You can see the flags set in the output (for not changing any flags just enter "cmake .."). 
+To enable profiling of the PCL (Parallel Communication Layer), set -DPROFILE_PCL=ON. Check the output of "cmake .." for changes and additional flags.
+
 
 <hr>
 \section secProfilingYourCode Adding profiling to your code
@@ -103,26 +118,40 @@ You can also nest Profiling:
 Internally we use the <a href="http://sourceforge.net/projects/shinyprofiler/">Shiny Profiler</a> for profiling. Shiny is fast, but not priceless. 
 Be aware that PROFILE_BEGIN has a small overhead, so dont use it in functions which do only very little.  
 </ul>
+
 <hr>
 \section secViewProfilingNodes View profiling statistics
 <hr>
 
 <ul>
 <li>
+Profiler statistics are output at the end of the execution of ugshell, there you will see the total call tree (from main on) and a flat list with timings.
+This can be pretty much information, and that is why there is also a direct way of accessing timing information for a specific Profiler Node 
+(Profiler Nodes are all nodes which got created with PROFILE_BEGIN or PROFILE_FUNC. Note that if that part of code never got executed, the profiler nodes in there do not exist).
+If you want to disable the standard profiler output at the end of ugshell's execution, you can use SetOutputProfileStats(false) at the beginning of your lua script.
+</ul>
+
+<ul>
+<li>
 You can access the profiling nodes directly from the script with
 \code
-bool GetProfilerAvailable();
 UGProfileNode *GetProfileNode(const char *str);
-class UGProfileNode
+\endcode
+
+With GetProfilerAvailable() == true you can check if a profiler is available.
+
+The UGProfilerNode has the following functions:
+\code
+class UGProfilerNode
 {
-	double get_avg_entry_count() const;
-	double get_avg_self_time_ms() const;
-	double get_avg_total_time_ms() const;
-	string call_tree() const;
-	string child_self_time_sorted() const;
-	string total_time_sorted() const;
-	string entry_count_sorted() const;
-	bool is_valid() const; 
+	double get_avg_entry_count() const;	  	// number of entries in this profiler node
+	double get_avg_self_time_ms() const;  	// time in milliseconds spend in this node excluding subnodes
+	double get_avg_total_time_ms() const; 	// time in milliseconds spend in this node including subnodes
+	string call_tree() const;				// returns string with call tree
+	string child_self_time_sorted() const;	// string with sorted childs (sorted by self time)
+	string total_time_sorted() const;		// string with sorted childs (sorted by total time)
+	string entry_count_sorted() const;		// string with sorted childs (sorted by entry count)
+	bool is_valid() const; 					// true if this is a valid node (i.e. != NULL)
 }
 \endcode
 
@@ -254,5 +283,6 @@ FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 
 
 Here we see that FunctionA_bad takes six times as long as FunctionA, even though they both perform the same task. This is because the small overhead of PROFILE_BEGIN accumulated to a 
 measureable time when it was executed two million times.
+
 </ul>
 */
