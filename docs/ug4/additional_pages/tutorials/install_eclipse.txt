@@ -69,7 +69,8 @@ Makefiles. This is done using "cmake" in the terminal (go \ref secInstallUG4CMak
 
 <ol>
 <li> Open a terminal/shell window
-<li> move to ug4/trunk/
+<li> move into your workspace directory you chose before
+<li> "cd ug4"
 <li> "mkdir build_debug"
 <li> "cd build_debug"
 <li> "cmake -DUG_DEBUG=ON .." --> Makefiles are generated
