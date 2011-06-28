@@ -20,9 +20,11 @@ You enable profiling in UG4 by setting the CMake flag -DUG_PROFILER=ON. So if ha
 (as explained \ref pageInstallUG4 "here" or \ref secInstallEcpliseUseMakefiles "here"), you enter
 \code
 cmake -DUG_PROFILER=ON ..
+make
 \endcode
 Note that cmake "remembers" the flags you set. You can see the flags set in the output (for not changing any flags just enter "cmake .."). 
 To enable profiling of the PCL (Parallel Communication Layer), set -DPROFILE_PCL=ON. Check the output of "cmake .." for changes and additional flags.
+Keep in mind that you have to do a make when changing cmake flags.
 
 
 <hr>
