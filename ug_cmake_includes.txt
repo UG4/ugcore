@@ -40,6 +40,7 @@
 # - UG_PROFILER: Enables the ug-profiler.
 # - DIM: Dimension to be build (1,2,3,ALL)
 # - PROFILE_PCL: Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.
+# - PCL_DEBUG_BARRIER: Enables Barriers ('pcl:SynchronizeProcesses()') for debugging/profiling.
 # - USE_METIS: Sets the path in which the METIS lib can be found.
 # - USE_PARMETIS: Sets the path in which the PARMETIS lib can be found.
 # - USE_TETGEN: Sets the path in which the Tetgen libraries can be found.
@@ -93,7 +94,8 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(GENERATE_DEBUG_SYMBOLS "adds -g to gcc. Generates debug symbols in release mode (for profilers etc)")
 	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
 	OPTION(PROFILE_PCL "Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.")
-	
+	OPTION(PCL_DEBUG_BARRIER "Enables Barriers for debugging/profiling.")
+
 	OPTION(USE_METIS "specify the path in which the metis libraries are located (headers are assumed to be in PATH_TO_METIS/Lib).")
 	OPTION(USE_PARMETIS "specify the path in which the parmetis header and libraries are located.")
 	OPTION(USE_TETGEN "specify the path in which the tetgen header and libraries are located.")
@@ -216,6 +218,14 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	else(PROFILE_PCL)
 		message(STATUS "INFO: Not profiling pcl (Enable by defining -DPROFILE_PCL=ON)")
 	endif(PROFILE_PCL)
+
+	#check whether debug barriers are activated
+	if(PCL_DEBUG_BARRIER)
+		message(STATUS "INFO: debug barriers enabled (Disable by defining -DPCL_DEBUG_BARRIER=OFF)")
+		add_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
+	else(PCL_DEBUG_BARRIER)
+		message(STATUS "INFO: No debug barriers enabled (Enable by defining -DPCL_DEBUG_BARRIER=ON)")
+	endif(PCL_DEBUG_BARRIER)
 	
 	#######################
 	# MPI - find include-path and link-libraries
