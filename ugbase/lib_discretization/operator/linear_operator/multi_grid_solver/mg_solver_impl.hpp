@@ -458,9 +458,24 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 		   (d.get_vertical_slave_layout().empty() &&
 			d.get_vertical_master_layout().empty()))
 		{
+		//	LIFTING c,d TO SOLVING AREA
+			if(m_vLevData[lev].SmoothMat != NULL)
+			{
+				sc = m_vLevData[lev].sc;
+				sd = m_vLevData[lev].sd;
+				st = m_vLevData[lev].st;
+				for(size_t i = 0; i < m_vLevData[lev].vMap.size(); ++i)
+				{
+					const size_t oldIndex =  m_vLevData[lev].vMap[i];
+					(*sc)[i] = c[oldIndex];
+					(*sd)[i] = d[oldIndex];
+				}
+				sc->copy_storage_type(c);
+				sd->copy_storage_type(d);
+			}
 		#endif
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
-			if(!m_pBaseSolver->apply(c, d))
+			if(!m_pBaseSolver->apply(*sc, *sd))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
 						" base level " << lev << " failed. "
@@ -468,6 +483,20 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 
 				return false;
 			}
+
+			#ifdef UG_PARALLEL
+			//	PROJECT CORRECTION BACK TO WHOLE GRID FOR PROLONGATION
+			if(m_vLevData[lev].SmoothMat != NULL)
+			{
+				c.set(0.0);
+				for(size_t i = 0; i < m_vLevData[lev].vMap.size(); ++i)
+				{
+					const size_t oldIndex =  m_vLevData[lev].vMap[i];
+					c[oldIndex] = (*sc)[i];
+				}
+				c.copy_storage_type(*sc);
+			}
+			#endif
 
 		//	UPDATE DEFECT
 			if(!m_vLevData[lev].A->apply_sub(d, c))
@@ -478,7 +507,8 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 				return false;
 			}
 			GMG_PROFILE_END();
-		#ifdef UG_PARALLEL
+
+			#ifdef UG_PARALLEL
 		}
 
 	//	CASE b): We gather the processes, solve on one proc and distribute again
@@ -1070,7 +1100,7 @@ init_smoother()
 	{
 		if(m_vLevData[lev].SmoothMat == NULL)
 		{
-			if(!m_vLevData[lev].Smoother->init(*m_vLevData[lev].A, *m_vLevData[lev].su))
+			if(!m_vLevData[lev].Smoother->init(*m_vLevData[lev].A, *m_vLevData[lev].u))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
 						" Cannot init smoother for level "<< lev << ".\n");
@@ -1079,7 +1109,7 @@ init_smoother()
 		}
 		else
 		{
-			if(!m_vLevData[lev].Smoother->init(*m_vLevData[lev].SmoothMat, *m_vLevData[lev].u))
+			if(!m_vLevData[lev].Smoother->init(*m_vLevData[lev].SmoothMat, *m_vLevData[lev].su))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
 						" Cannot init smoother for level "<< lev << ".\n");
@@ -1102,11 +1132,23 @@ init_base_solver()
 		return true;
 
 	if(m_bBaseParallel){
-		if(!m_pBaseSolver->init(*m_vLevData[m_baseLev].A, *m_vLevData[m_baseLev].u))
+		if(m_vLevData[m_baseLev].SmoothMat == NULL)
 		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
-					" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
-			return false;
+			if(!m_pBaseSolver->init(*m_vLevData[m_baseLev].A, *m_vLevData[m_baseLev].u))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
+						" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
+				return false;
+			}
+		}
+		else
+		{
+			if(!m_pBaseSolver->init(*m_vLevData[m_baseLev].SmoothMat, *m_vLevData[m_baseLev].su))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
+						" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
+				return false;
+			}
 		}
 	}
 	else{
