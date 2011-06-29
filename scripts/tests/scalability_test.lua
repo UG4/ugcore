@@ -66,7 +66,7 @@ lsMaxIter  = util.GetParamNumber("-lsMaxIter", 100)
 
 -- MG solver related parameters
 if lsIterator == "gmg" then
-	baseSolverType = util.GetParam("-bs", "exact") -- choose one in ["exact" | "cg"  |Ê"jac"]
+	baseSolverType = util.GetParam("-bs", "exact") -- choose one in ["exact" | "cg"  | "jac"]
 	baseLevel      = util.GetParamNumber("-bl",    0)
 else
 	baseSolverType = "exact" -- no meaning here, just to leave gmg stuff untouched
@@ -352,11 +352,12 @@ ilut = ILUT()
 	-- Base Solver
 	baseConvCheck = StandardConvergenceCheck()
 	baseConvCheck:set_maximum_steps(500)
-	baseConvCheck:set_minimum_defect(1e-8)
+	baseConvCheck:set_minimum_defect(1e-12)
 	baseConvCheck:set_reduction(1e-30)
 	baseConvCheck:set_verbose_level(false)
 
 -- choose base solver
+isBaseSolverParallel = false
 if baseSolverType == "exact" then
 	base = LU()
 elseif baseSolverType == "jac" then
@@ -366,6 +367,7 @@ elseif baseSolverType == "jac" then
 elseif baseSolverType == "cg" then
 	base = CG() 
 	base:set_preconditioner(jac)
+	isBaseSolverParallel = true
 else
 	print ("base solver not specified ==> exit")
 	exit()
@@ -382,7 +384,7 @@ end
 	gmg:set_discretization(domainDisc)
 	gmg:set_base_level(baseLevel) -- variable defining baselevel, set from script
 	gmg:set_base_solver(base)
-	gmg:set_parallel_base_solver(false)
+	gmg:set_parallel_base_solver(isBaseSolverParallel)
 	gmg:set_smoother(jac)
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
