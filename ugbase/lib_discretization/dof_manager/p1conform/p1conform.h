@@ -271,66 +271,16 @@ class P1ConformDoFDistribution
 		void create_offsets();
 
 	///	returns first algebra index of a vertex
-		size_t& first_index(VertexBase* vrt, size_t si)
-		{
-			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
-			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_raaVrtDoF[vrt];
-		}
+		size_t& first_index(VertexBase* vrt, size_t si) {return m_raaVrtDoF[vrt];}
 
 	///	const access to first algebra index of a vertex
-		const size_t& first_index(VertexBase* vrt, size_t si) const
-		{
-			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
-			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_raaVrtDoF[vrt];
-		}
+		const size_t& first_index(VertexBase* vrt, size_t si) const {return m_raaVrtDoF[vrt];}
 
 	///	returns the next free index
-		size_t get_free_index(size_t si)
-		{
-		//	The idea is as follows:
-		//	- 	If a free index is left, the a free index is returned. This
-		//		changes the number of (used) dofs, but the index set remains
-		//		the same. (one hole less)
-		// 	-	If no free index is left (i.e. no holes in index set and therefore
-		//		m_numDoFs == m_sizeIndexSet), the index set is increased and
-		//		the newly created index is returned. This changes the size of
-		//		the index set and the number of dofs.
-
-		//	start with default index to be returned
-			size_t freeIndex = m_sizeIndexSet;
-
-		//	check if free index available
-			if(!m_vFreeIndex.empty())
-			{
-			//	return free index instead and pop index from free index list
-				freeIndex = m_vFreeIndex.back(); m_vFreeIndex.pop_back();
-			}
-			else
-			{
-			//	if using new index, increase size of index set
-				m_sizeIndexSet += num_fct(si);
-			}
-
-		//	adjust counters
-			m_numDoFs += num_fct(si);
-			m_vNumDoFs[si] += num_fct(si);
-
-		//	return new index
-			return freeIndex;
-		}
+		size_t get_free_index(size_t si);
 
 	///	remembers a free index
-		void push_free_index(size_t freeIndex, size_t si)
-		{
-		//	remember index
-			m_vFreeIndex.push_back(freeIndex);
-
-		//	decrease number of distributed indices
-			m_numDoFs -= num_fct(si);
-			m_vNumDoFs[si] -= num_fct(si);
-		}
+		void push_free_index(size_t freeIndex, size_t si);
 
 	protected:
 	/// subset handler for this distributor
@@ -568,66 +518,16 @@ class GroupedP1ConformDoFDistribution
 
 	protected:
 	///	returns algebra index attached to a vertex
-		size_t& alg_index(VertexBase* vrt, size_t si)
-		{
-			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
-			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_raaVrtDoF[vrt];
-		}
+		size_t& alg_index(VertexBase* vrt, size_t si) {return m_raaVrtDoF[vrt];}
 
 	///	const access to algebra index of a vertex
-		const size_t& alg_index(VertexBase* vrt, size_t si) const
-		{
-			UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
-			UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
-			return m_raaVrtDoF[vrt];
-		}
+		const size_t& alg_index(VertexBase* vrt, size_t si) const {return m_raaVrtDoF[vrt];}
 
 	///	returns the next free index
-		size_t get_free_index(size_t si)
-		{
-		//	The idea is as follows:
-		//	- 	If a free index is left, the a free index is returned. This
-		//		changes the number of (used) dofs, but the index set remains
-		//		the same. (one hole less)
-		// 	-	If no free index is left (i.e. no holes in index set and therefore
-		//		m_numDoFs == m_sizeIndexSet), the index set is increased and
-		//		the newly created index is returned. This changes the size of
-		//		the index set and the number of dofs.
-
-		//	strat with default index to be returned
-			size_t freeIndex = m_sizeIndexSet;
-
-		//	check if free index available
-			if(!m_vFreeIndex.empty())
-			{
-			//	return free index instead and pop index from free index list
-				freeIndex = m_vFreeIndex.back(); m_vFreeIndex.pop_back();
-			}
-			else
-			{
-			//	if using new index, increase size of index set
-				++m_sizeIndexSet;
-			}
-
-		//	adjust counters
-			++ m_numDoFs;
-			++ (m_vNumDoFs[si]);
-
-		//	return new index
-			return freeIndex;
-		}
+		size_t get_free_index(size_t si);
 
 	///	remembers a free index
-		void push_free_index(size_t freeIndex, size_t si)
-		{
-		//	remember index
-			m_vFreeIndex.push_back(freeIndex);
-
-		//	decrease number of distributed indices
-			-- m_numDoFs;
-			-- (m_vNumDoFs[si]);
-		}
+		void push_free_index(size_t freeIndex, size_t si);
 
 	protected:
 	/// subset handler for this distributor

@@ -78,6 +78,54 @@ update_attachments()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+size_t
+P1ConformDoFDistribution::
+get_free_index(size_t si)
+{
+//	The idea is as follows:
+//	- 	If a free index is left, the a free index is returned. This
+//		changes the number of (used) dofs, but the index set remains
+//		the same. (one hole less)
+// 	-	If no free index is left (i.e. no holes in index set and therefore
+//		m_numDoFs == m_sizeIndexSet), the index set is increased and
+//		the newly created index is returned. This changes the size of
+//		the index set and the number of dofs.
+
+//	start with default index to be returned
+	size_t freeIndex = m_sizeIndexSet;
+
+//	check if free index available
+	if(!m_vFreeIndex.empty())
+	{
+	//	return free index instead and pop index from free index list
+		freeIndex = m_vFreeIndex.back(); m_vFreeIndex.pop_back();
+	}
+	else
+	{
+	//	if using new index, increase size of index set
+		m_sizeIndexSet += num_fct(si);
+	}
+
+//	adjust counters
+	m_numDoFs += num_fct(si);
+	m_vNumDoFs[si] += num_fct(si);
+
+//	return new index
+	return freeIndex;
+}
+
+void
+P1ConformDoFDistribution::
+push_free_index(size_t freeIndex, size_t si)
+{
+//	remember index
+	m_vFreeIndex.push_back(freeIndex);
+
+//	decrease number of distributed indices
+	m_numDoFs -= num_fct(si);
+	m_vNumDoFs[si] -= num_fct(si);
+}
+
 void
 P1ConformDoFDistribution::
 create_offsets()
@@ -527,7 +575,54 @@ defragment()
 ///////////////////////////////////////////////////////////////////////////////
 
 
-///////// Creation /////////////
+size_t
+GroupedP1ConformDoFDistribution::
+get_free_index(size_t si)
+{
+//	The idea is as follows:
+//	- 	If a free index is left, the a free index is returned. This
+//		changes the number of (used) dofs, but the index set remains
+//		the same. (one hole less)
+// 	-	If no free index is left (i.e. no holes in index set and therefore
+//		m_numDoFs == m_sizeIndexSet), the index set is increased and
+//		the newly created index is returned. This changes the size of
+//		the index set and the number of dofs.
+
+//	strat with default index to be returned
+	size_t freeIndex = m_sizeIndexSet;
+
+//	check if free index available
+	if(!m_vFreeIndex.empty())
+	{
+	//	return free index instead and pop index from free index list
+		freeIndex = m_vFreeIndex.back(); m_vFreeIndex.pop_back();
+	}
+	else
+	{
+	//	if using new index, increase size of index set
+		++m_sizeIndexSet;
+	}
+
+//	adjust counters
+	++ m_numDoFs;
+	++ (m_vNumDoFs[si]);
+
+//	return new index
+	return freeIndex;
+}
+
+void
+GroupedP1ConformDoFDistribution::
+push_free_index(size_t freeIndex, size_t si)
+{
+//	remember index
+	m_vFreeIndex.push_back(freeIndex);
+
+//	decrease number of distributed indices
+	-- m_numDoFs;
+	-- (m_vNumDoFs[si]);
+}
+
 
 bool
 GroupedP1ConformDoFDistribution::
