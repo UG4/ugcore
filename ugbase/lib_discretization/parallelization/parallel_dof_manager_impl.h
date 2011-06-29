@@ -358,13 +358,51 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const
 //	Get Process communicator;
 	pcl::ProcessCommunicator pCom = dd.get_process_communicator();
 
+//	compute local dof numbers of all masters; this the number of all dofs
+//	minus the number of all slave dofs (double counting of slaves can not
+//	occur, since each slave is only slave of one master), minus the number of
+//	all vertical master dofs (double counting can occure, since a vertical master
+//	can be in a horizontal slave interface.
+//	Therefore: 	if there are no vert. master dofs, we can simply calculate the
+//				number of DoFs by counting. If there are vert. master dofs
+//				we need to remove doubles when counting.
+	int numMasterDoF;
+	if(dd.num_vertical_master_dofs() > 0)
+	{
+	//	create vector of vertical masters and horiz. slaves, since those are
+	//	not reguarded as masters on the dd. All others are masters. (Especially,
+	//	also vertical slaves are masters w.r.t. computing like smoothing !!)
+		std::vector<IndexLayout::Element> vIndex;
+		CollectElements(vIndex, dd.get_vertical_master_layout());
+		CollectElements(vIndex, dd.get_slave_layout(), false);
+
+	//	sort vector and remove doubles
+		std::sort(vIndex.begin(), vIndex.end());
+		vIndex.erase(std::unique(vIndex.begin(), vIndex.end()),
+		                         vIndex.end());
+
+	//	now remove all horizontal masters, since they are still master though
+	//	in the vert master interface
+		std::vector<IndexLayout::Element> vIndex2;
+		CollectElements(vIndex2, dd.get_master_layout());
+		for(size_t i = 0; i < vIndex2.size(); ++i)
+			vIndex.erase(std::remove(vIndex.begin(), vIndex.end(), vIndex2[i]),
+			             vIndex.end());
+
+	//	the remaining DoFs are the "slaves"
+		numMasterDoF = dd.num_dofs() - vIndex.size();
+	}
+	else
+	{
+	//	easy case: only subtract masters from slaves
+		numMasterDoF = dd.num_dofs() - dd.num_slave_dofs();
+	}
+
 //	global and local values
 	std::vector<int> tNumGlobal, tNumLocal;
 
-//	write local dof numbers of all masters; this the number of all dofs
-//	minus the number of all slave dofs (double counting of slaves can not
-//	occur, since each slave is only slave of one master
-	tNumLocal.push_back(dd.num_dofs() - dd.num_slave_dofs());
+//	write number of Masters on this process
+	tNumLocal.push_back(numMasterDoF);
 
 //	write local number of dof in a subset for all subsets. For simplicity, we
 //	only communicate the total number of dofs (i.e. master+slave)
