@@ -314,7 +314,7 @@ class HFV1Geometry : public FVGeometryBase{
 			gloSideMid = m_gloMid[0][coID0];
 
 			// add corner coordinates of the corners of the geometric object
-			for(size_t j = 1; j < m_rRefElem.num_obj_of_obj(2, i, 0); ++j)
+			for(size_t j = 1; j < m_rRefElem.num(2, i, 0); ++j)
 			{
 				const size_t coID = m_rRefElem.id(2, i, 0, j);
 				locSideMid += m_locMid[0][coID];
@@ -322,8 +322,8 @@ class HFV1Geometry : public FVGeometryBase{
 			}
 
 			// scale for correct averaging
-			locSideMid *= 1./(m_rRefElem.num_obj_of_obj(2, i, 0));
-			gloSideMid *= 1./(m_rRefElem.num_obj_of_obj(2, i, 0));
+			locSideMid *= 1./(m_rRefElem.num(2, i, 0));
+			gloSideMid *= 1./(m_rRefElem.num(2, i, 0));
 		}
 
 		// i, j, k, l = number nodes

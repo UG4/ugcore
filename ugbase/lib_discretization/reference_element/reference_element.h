@@ -26,6 +26,13 @@ namespace ug{
  * coordinates the structure an element type. Physical elements of a grid are
  * thought to be constructed by a mapping from a reference element into the
  * real world space.
+ *
+ * Each ReferenceElement may be constructed from other (lower dimensional)
+ * geometric objects, that are themselves a mapping from a (lower dimensional)
+ * reference element. (E.g. a triangle is constructed by three edges and
+ * three vertices) Thus, these relationships are also specified by the reference
+ * element and methods of this function provide the number of constructing
+ * sub-geometric objects and the relationship between those.
  */
 class ReferenceElement
 {
@@ -36,7 +43,7 @@ class ReferenceElement
 	/// returns the dimension where reference element lives
 		virtual int dimension() const = 0;
 
-	/// returns the size of reference element
+	/// returns the size (e.g. area or volume) of the reference element
 		virtual number size() const = 0;
 
 	/// returns the number of geometric objects of dim
@@ -49,7 +56,7 @@ class ReferenceElement
 	 * \param[in]	dim		dimension
 	 * \returns		number of objects of the dimension contained in the ref elem
 	 */
-		virtual size_t num_obj(int dim) const = 0;
+		virtual size_t num(int dim) const = 0;
 
 	/// returns the number of object of dim for a sub-geometric object
 	/**
@@ -64,7 +71,7 @@ class ReferenceElement
 	 * \returns		number of objects of the dimension dim_j that are
 	 * 				contained in the i*th (sub-)geom object of dimension dim_i
 	 */
-		virtual size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const = 0;
+		virtual size_t num(int dim_i, size_t i, int dim_j) const = 0;
 
 	/// id of object j in dimension dim_j of obj i in dimension dim_i
 	/**
@@ -111,8 +118,8 @@ class DimReferenceElement : public ReferenceElement
 		static const int dim = d;
 
 	public:
-	/// coordinates of reference corner (i = 0 ... num_obj(0))
-		virtual const MathVector<dim>& corner(int i) const = 0;
+	/// coordinates of reference corner (i = 0 ... num(0))
+		virtual const MathVector<dim>& corner(size_t i) const = 0;
 
 	/// print informations about the reference element
 		virtual void print_info() const;
@@ -140,12 +147,12 @@ class ReferenceElementWrapper
 	/// \copydoc ug::ReferenceElement::size()
 		number size() const {return TRefElem::size();}
 
-	/// \copydoc ug::ReferenceElement::num_obj()
-		size_t num_obj(int dim) const {return TRefElem::num_obj(dim);}
+	/// \copydoc ug::ReferenceElement::num(int)
+		size_t num(int dim) const {return TRefElem::num(dim);}
 
-	/// \copydoc ug::ReferenceElement::num_obj_of_obj()
-		size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const
-			{return TRefElem::num_obj_of_obj(dim_i, i, dim_j);}
+	/// \copydoc ug::ReferenceElement::num(int, size_t, int)
+		size_t num(int dim_i, size_t i, int dim_j) const
+			{return TRefElem::num(dim_i, i, dim_j);}
 
 	/// \copydoc ug::ReferenceElement::id()
 		int id(int dim_i, size_t i, int dim_j, size_t j) const
@@ -186,12 +193,12 @@ class DimReferenceElementWrapper
 	///	\copydoc ug::DimReferenceElement<d>::size()
 		number size() const {return TRefElem::size();}
 
-	///	\copydoc ug::DimReferenceElement<d>::num_obj()
-		size_t num_obj(int dim) const {return TRefElem::num_obj(dim);}
+	///	\copydoc ug::DimReferenceElement<d>::num()
+		size_t num(int dim) const {return TRefElem::num(dim);}
 
-	///	\copydoc ug::DimReferenceElement<d>::num_obj_of_obj()
-		size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const
-			{return TRefElem::num_obj_of_obj(dim_i, i, dim_j);}
+	///	\copydoc ug::DimReferenceElement<d>::num()
+		size_t num(int dim_i, size_t i, int dim_j) const
+			{return TRefElem::num(dim_i, i, dim_j);}
 
 	///	\copydoc ug::DimReferenceElement<d>::id()
 		int id(int dim_i, size_t i, int dim_j, size_t j) const
@@ -206,7 +213,7 @@ class DimReferenceElementWrapper
 			{return TRefElem::ref_elem_type(dim_i, i);}
 
 	///	\copydoc ug::DimReferenceElement<d>::corner()
-		const MathVector<dim>& corner(int i) const {return TRefElem::corner(i);}
+		const MathVector<dim>& corner(size_t i) const {return TRefElem::corner(i);}
 };
 
 
@@ -242,13 +249,9 @@ class DimReferenceElementFactory{
 		bool init()
 		{
 			static bool isInit = false;
-			if(!isInit)
-			{
-				return RegisterStandardDimReferenceElements();
-			}
+			if(!isInit) return RegisterStandardDimReferenceElements();
 			else return true;
 		}
-
 
 		static std::vector<const DimReferenceElement<d>*> m_vElem;
 
@@ -302,10 +305,7 @@ class ReferenceElementFactory{
 		bool init()
 		{
 			static bool isInit = false;
-			if(!isInit)
-			{
-				return RegisterStandardDimReferenceElements();
-			}
+			if(!isInit) return RegisterStandardDimReferenceElements();
 			else return true;
 		}
 

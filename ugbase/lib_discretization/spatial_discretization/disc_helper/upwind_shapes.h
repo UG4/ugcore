@@ -40,10 +40,10 @@ bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 	number min = std::numeric_limits<number>::max();
 
 	// loop corners of side
-	for(size_t i = 0; i < rRefElem.num_obj_of_obj(dim-1, side, 0); ++i)
+	for(size_t i = 0; i < rRefElem.num(dim-1, side, 0); ++i)
 	{
 		// get corner
-		const size_t co = rRefElem.num_obj_of_obj(dim-1, side, 0, i);
+		const size_t co = rRefElem.num(dim-1, side, 0, i);
 
 		// Compute Distance to intersection
 		number dist = VecDistanceSq(globalIntersection, vCornerCoords[co]);
@@ -214,10 +214,10 @@ bool GetLinearProfileSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCV
 	static typename TSCVF::ref_elem_type& rRefElem;
 
 	// loop corners of side
-	for(size_t i = 0; i < rRefElem.num_obj_of_obj(dim-1, side, 0); ++i)
+	for(size_t i = 0; i < rRefElem.num(dim-1, side, 0); ++i)
 	{
 		// get corner
-		const size_t co = rRefElem.num_obj_of_obj(dim-1, side, 0, i);
+		const size_t co = rRefElem.num(dim-1, side, 0, i);
 
 		if(!TrialSpace.evaluate(co, localIntersection, shape[co]))
 		{

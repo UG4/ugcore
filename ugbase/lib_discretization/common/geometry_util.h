@@ -434,7 +434,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 		size_t p0 = 0, p1 = 0;
 
 		// find side
-		for(sideOut = 0; sideOut < rRefElem.num_obj(dim-1); ++sideOut)
+		for(sideOut = 0; sideOut < rRefElem.num(dim-1); ++sideOut)
 		{
 			// get corners
 			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
@@ -450,7 +450,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 			}
 		}
 		// if not found
-		if(sideOut >= rRefElem.num_obj(dim-1)) return false;
+		if(sideOut >= rRefElem.num(dim-1)) return false;
 
 		// Compute local intersection
 		VecScaleAdd(LocalIntersectionPoint, bc, rRefElem.corner(p0), 1.-bc, rRefElem.corner(p1));
@@ -482,7 +482,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 		size_t p0 = 0, p1 = 0, p2 = 0;
 
 		// find side
-		for(sideOut = 0; sideOut < rRefElem.num_obj(dim-1); ++sideOut)
+		for(sideOut = 0; sideOut < rRefElem.num(dim-1); ++sideOut)
 		{
 			// get corners
 			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
@@ -499,7 +499,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 			}
 
 			// second triangle (only if 4 corners)
-			if(rRefElem.num_obj_of_obj(dim-1, sideOut, 0) == 3) continue;
+			if(rRefElem.num(dim-1, sideOut, 0) == 3) continue;
 
 			// get corner number 4
 			p2 = rRefElem.id(dim-1, sideOut, 0, 3);
@@ -515,7 +515,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 		}
 
 		// if not found
-		if(sideOut >= rRefElem.num_obj(dim-1)) return false;
+		if(sideOut >= rRefElem.num(dim-1)) return false;
 
 		// Compute local intersection
 		VecScaleAdd(LocalIntersectionPoint,

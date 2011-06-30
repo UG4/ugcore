@@ -19,28 +19,28 @@ FV1Geometry()
 	: m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
 {
 	// set corners of element as local centers of nodes
-	for(size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
+	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
 		m_locMid[0][i] = m_rRefElem.corner(i);
 
 	// compute local midpoints for all geometric objects with  0 < d <= dim
 	for(int d = 1; d <= dim; ++d)
 	{
 		// loop geometric objects of dimension d
-		for(size_t i = 0; i < m_rRefElem.num_obj(d); ++i)
+		for(size_t i = 0; i < m_rRefElem.num(d); ++i)
 		{
 			// set first node
 			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
 			m_locMid[d][i] = m_locMid[0][coID0];
 
 			// add corner coordinates of the corners of the geometric object
-			for(size_t j = 1; j < m_rRefElem.num_obj_of_obj(d, i, 0); ++j)
+			for(size_t j = 1; j < m_rRefElem.num(d, i, 0); ++j)
 			{
 				const size_t coID = m_rRefElem.id(d, i, 0, j);
 				m_locMid[d][i] += m_locMid[0][coID];
 			}
 
 			// scale for correct averaging
-			m_locMid[d][i] *= 1./(m_rRefElem.num_obj_of_obj(d, i, 0));
+			m_locMid[d][i] *= 1./(m_rRefElem.num(d, i, 0));
 		}
 	}
 
@@ -164,28 +164,28 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 	else m_pElem = elem;
 
 // 	remember global position of nodes
-	for(size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
+	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
 		m_gloMid[0][i] = vCornerCoords[i];
 
 // 	compute global midpoints for all geometric objects with  0 < d <= dim
 	for(int d = 1; d <= dim; ++d)
 	{
 	// 	loop geometric objects of dimension d
-		for(size_t i = 0; i < m_rRefElem.num_obj(d); ++i)
+		for(size_t i = 0; i < m_rRefElem.num(d); ++i)
 		{
 		// 	set first node
 			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
 			m_gloMid[d][i] = m_gloMid[0][coID0];
 
 		// 	add corner coordinates of the corners of the geometric object
-			for(size_t j = 1; j < m_rRefElem.num_obj_of_obj(d, i, 0); ++j)
+			for(size_t j = 1; j < m_rRefElem.num(d, i, 0); ++j)
 			{
 				const size_t coID = m_rRefElem.id(d, i, 0, j);
 				m_gloMid[d][i] += m_gloMid[0][coID];
 			}
 
 		// 	scale for correct averaging
-			m_gloMid[d][i] *= 1./(m_rRefElem.num_obj_of_obj(d, i, 0));
+			m_gloMid[d][i] *= 1./(m_rRefElem.num(d, i, 0));
 		}
 	}
 
@@ -328,7 +328,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 		///////////////////////////
 
 		//	number of corners of side
-			const int coOfSide = m_rRefElem.num_obj_of_obj(dim-1, side, 0);
+			const int coOfSide = m_rRefElem.num(dim-1, side, 0);
 
 		//	resize vector
 			vBF.resize(curr_bf + coOfSide);
@@ -406,28 +406,28 @@ FV1ManifoldBoundary<TElem, TWorldDim>::
 FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
 {
 	// set corners of element as local centers of nodes
-	for (size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
+	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
 		m_locMid[0][i] = m_rRefElem.corner(i);
 
 	// compute local midpoints for all geometric objects with  0 < d <= dim
 	for (int d = 1; d <= dim; ++d)
 	{
 		// loop geometric objects of dimension d
-		for(size_t i = 0; i < m_rRefElem.num_obj(d); ++i)
+		for(size_t i = 0; i < m_rRefElem.num(d); ++i)
 		{
 			// set first node
 			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
 			m_locMid[d][i] = m_locMid[0][coID0];
 
 			// add corner coordinates of the corners of the geometric object
-			for(size_t j = 1; j < m_rRefElem.num_obj_of_obj(d, i, 0); ++j)
+			for(size_t j = 1; j < m_rRefElem.num(d, i, 0); ++j)
 			{
 				const size_t coID = m_rRefElem.id(d, i, 0, j);
 				m_locMid[d][i] += m_locMid[0][coID];
 			}
 
 			// scale for correct averaging
-			m_locMid[d][i] *= 1./(m_rRefElem.num_obj_of_obj(d, i, 0));
+			m_locMid[d][i] *= 1./(m_rRefElem.num(d, i, 0));
 		}
 	}
 
@@ -516,28 +516,28 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 	else m_pElem = elem;
 
 	// 	remember global position of nodes
-	for (size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
+	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
 		m_gloMid[0][i] = vCornerCoords[i];
 
 	// 	compute global midpoints for all the other geometric objects (with  0 < d <= dim)
 	for (int d = 1; d <= dim; ++d)
 	{
 		// 	loop geometric objects of dimension d
-		for (size_t i = 0; i < m_rRefElem.num_obj(d); ++i)
+		for (size_t i = 0; i < m_rRefElem.num(d); ++i)
 		{
 			// set first node
 			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
 			m_gloMid[d][i] = m_gloMid[0][coID0];
 
 		// 	add corner coordinates of the corners of the geometric object
-			for (size_t j = 1; j < m_rRefElem.num_obj_of_obj(d, i, 0); ++j)
+			for (size_t j = 1; j < m_rRefElem.num(d, i, 0); ++j)
 			{
 				const size_t coID = m_rRefElem.id(d, i, 0, j);
 				m_gloMid[d][i] += m_gloMid[0][coID];
 			}
 
 		// 	scale for correct averaging
-			m_gloMid[d][i] *= 1./(m_rRefElem.num_obj_of_obj(d, i, 0));
+			m_gloMid[d][i] *= 1./(m_rRefElem.num(d, i, 0));
 		}
 	}
 	

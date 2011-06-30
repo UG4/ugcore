@@ -47,11 +47,11 @@ class ReferenceTriangle{
 	/// \copydoc ug::ReferenceElement::size()
 		number size() const	{return 0.5;}
 
-	/// \copydoc ug::ReferenceElement::num_obj()
-		size_t num_obj(int dim) const	{return m_vNum[dim];}
+	/// \copydoc ug::ReferenceElement::num(int)
+		size_t num(int dim) const	{return m_vNum[dim];}
 
-	/// \copydoc ug::ReferenceElement::num_obj_of_obj()
-		size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const
+	/// \copydoc ug::ReferenceElement::num(int, size_t, int)
+		size_t num(int dim_i, size_t i, int dim_j) const
 			{return m_vSubNum[dim_i][i][dim_j];}
 
 	/// \copydoc ug::ReferenceElement::id()
@@ -65,15 +65,15 @@ class ReferenceTriangle{
 		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_vRefElemType[dim_i][i];}
 
 	/// \copydoc ug::DimReferenceElement::corner()
-		const MathVector<dim>& corner(int i) const {return m_vCorner[i];}
+		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}
 
 	private:
 	/// to make it more readable
 		enum{POINT = 0, EDGE = 1, FACE = 2};
 		enum{MAXOBJECTS = 3};
 
-	/// number of Geometric Objects of Reference Element
-	//  (m_num_obj[dim] = number of GeomObjects of dimension dim)
+	/// number of Geometric Objects of a dimension
+	
 		size_t m_vNum[dim+1];
 
 	/// number of Geometric Objects contained in a (Sub-)Geometric Object of the Element

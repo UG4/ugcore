@@ -255,7 +255,7 @@ bool GetNodeNextToCut(size_t& coOut,
 	number min = std::numeric_limits<number>::max();
 
 // 	loop corners of side
-	for(size_t i = 0; i < rRefElem.num_obj_of_obj(dim-1, side, 0); ++i)
+	for(size_t i = 0; i < rRefElem.num(dim-1, side, 0); ++i)
 	{
 	// 	get corner
 		const size_t co = rRefElem.id(dim-1, side, 0, i);
@@ -390,7 +390,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
  			= ReferenceElementProvider::get<ref_elem_type>();
 
  	// 	loop corners of side
- 		for(size_t j = 0; j < rRefElem.num_obj_of_obj(dim-1, side, 0); ++j)
+ 		for(size_t j = 0; j < rRefElem.num(dim-1, side, 0); ++j)
  		{
  		// 	get corner
  			const size_t co = rRefElem.id(dim-1, side, 0, j);

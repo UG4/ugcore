@@ -183,7 +183,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 				compute_side_midpoints(i, m_locMid[0][newNodeId], m_gloMid[0][newNodeId]);
 
 				// loop constrained faces
-				for(size_t j = 0; j < m_rRefElem.num_obj_of_obj(2, i, 1); ++j)
+				for(size_t j = 0; j < m_rRefElem.num(2, i, 1); ++j)
 				{
 					const size_t jplus1 = (j+1)%4;
 
@@ -241,7 +241,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 				compute_side_midpoints(i, locSideMid, gloSideMid);
 
 				// loop constrained faces
-				for(size_t j = 0; j < m_rRefElem.num_obj_of_obj(2, i, 1); ++j)
+				for(size_t j = 0; j < m_rRefElem.num(2, i, 1); ++j)
 				{
 					const size_t jplus1 = (j+1)%3;
 
@@ -297,7 +297,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 				compute_side_midpoints(i, locSideMid, gloSideMid);
 
 				// connect all edges with side midpoint
-				for(size_t j = 0; j < m_rRefElem.num_obj_of_obj(2, i, 1); ++j)
+				for(size_t j = 0; j < m_rRefElem.num(2, i, 1); ++j)
 				{
 					const size_t natEdgeId = m_rRefElem.id(2, i, 1, j);
 					for(size_t e = 0; e < m_vNatEdgeInfo[natEdgeId].num_child_edges(); ++e)
