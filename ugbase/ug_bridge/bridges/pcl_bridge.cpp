@@ -16,6 +16,15 @@ namespace bridge{
 
 #ifdef UG_PARALLEL
 
+static bool PclDebugBarrierEnabled()
+{
+#ifdef PCL_DEBUG_BARRIER_ENABLED
+	return true;
+#else
+	return false;
+#endif
+}
+
 template<typename T>
 T ParallelMin(T t)
 {
@@ -41,6 +50,9 @@ bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 {
 	std::string grpStr(parentGroup);
 	grpStr.append("/pcl");
+
+	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabled, grpStr.c_str(),
+					"Enabled", "", "Returns the whether debug barriers are enabled.");
 
 	reg.add_function("GetNumProcesses", &pcl::GetNumProcesses, grpStr.c_str(),
 					"NumProcs", "", "Returns the number of active processes.");
@@ -68,6 +80,11 @@ bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 }
 
 #else // UG_PARALLEL
+
+static bool PclDebugBarrierEnabledDUMMY()
+{
+	return false;
+}
 
 ///	Dummy method for serial compilation always returning 1
 static int GetNumProcessesDUMMY()	{return 1;}
@@ -111,6 +128,9 @@ bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 {
 	std::string grpStr(parentGroup);
 	grpStr.append("/pcl");
+
+	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabledDUMMY, grpStr.c_str(),
+					"Enabled", "", "Returns the whether debug barriers are enabled.");
 
 	reg.add_function("GetNumProcesses", &GetNumProcessesDUMMY, grpStr.c_str(),
 					"NumProcs", "", "Returns the number of active processes.");

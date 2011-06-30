@@ -8,6 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 #define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 
+#include <iostream>
+#include <sstream>
 #include "common/profiler/profiler.h"
 #include "mg_solver_util.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
@@ -17,11 +19,15 @@
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
+
+//	the debug barrier is used to eliminate synchronization overhead from
+//	profiling stats. Only used for parallel builds.
+//	PCL_DEBUG_BARRIER only has an effect if PCL_DEBUG_BARRIER_ENABLED is defined.
+	#define GMG_PARALLEL_DEBUG_BARRIER(comm) PCL_DEBUG_BARRIER(comm)
+
+#else
+	#define GMG_PARALLEL_DEBUG_BARRIER(comm)
 #endif
-
-#include <iostream>
-#include <sstream>
-
 
 #define PROFILE_GMG
 #ifdef PROFILE_GMG
@@ -260,6 +266,7 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 	//	We start the multi grid cycle on this level by smoothing the defect. This
 	//	means that we compute a correction c, such that the defect is "smoother".
 		GMG_PROFILE_BEGIN(GMG_PreSmooth);
+		GMG_PARALLEL_DEBUG_BARRIER(d.get_process_communicator());
 		if(!smooth(*sc, *sd, *st, *A, *S, lev, m_numPreSmooth))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
@@ -412,6 +419,7 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 	//	We smooth the updated defect again. This means that we compute a
 	//	correction c, such that the defect is "smoother".
 		GMG_PROFILE_BEGIN(GMG_PostSmooth);
+		GMG_PARALLEL_DEBUG_BARRIER(d.get_process_communicator());
 		if(!smooth(*sc, *sd, *st, *A, *S, lev, m_numPostSmooth))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"

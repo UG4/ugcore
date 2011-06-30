@@ -30,6 +30,10 @@ for _, arg in ipairs(ugargv) do
 end
 print(line)
 
+if PclDebugBarrierEnabled() then
+	print("#ANALYZER INFO: PCLDebugBarrier is enabled. Expect slowdowns.")
+end
+
 verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
 						    -- >= 1 for writing matrix files etc.
 
@@ -81,6 +85,11 @@ distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect | me
 -- should be a square number
 numProcsPerNode = util.GetParamNumber("-numPPN", 1)
 
+-- defines the number of refinements between hierarchical redistributions
+-- if < 1 the hierarchical redistribution is disabled.
+-- After s steps, the grid will be redistributed to (2^d)^s processes.
+hierarchicalRedistStepSize = util.GetParamNumber("-hRedistStepSize", 0)
+
 -- amount of output
 verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
 						    -- >= 1 for writing matrix files etc.
@@ -90,6 +99,28 @@ activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time me
 						    -- >= 1 for debug output: this sets
 						    -- 'fetiSolver:set_debug(dbgWriter)'
 
+-- the number of processes to which we will distribute the grid during
+-- initial distribution has to be calculated now.
+-- It depends on whether we perform hierarchical redistribution or not.
+numInitialDistProcs = GetNumProcesses()
+if hierarchicalRedistStepSize >= 1 then
+	local newProcsPerStep = math.pow(math.pow(2, dim), hierarchicalRedistStepSize)
+	
+	local procs = GetNumProcesses()
+	local refinements = numRefs - numPreRefs
+	while refinements - hierarchicalRedistStepSize > 0 do
+		refinements = refinements - hierarchicalRedistStepSize
+		if procs / newProcsPerStep < 1 then
+			break
+		else
+			procs = math.floor(procs / newProcsPerStep)
+		end
+	end
+	
+	numInitialDistProcs = procs
+	print("#ANALYZER INFO: hierarchical redistribution: initial distribution at level "
+			.. numPreRefs .. " to " .. procs .. " processes.")
+end
 
 -- Display parameters (or defaults):
 print(" General parameters chosen:")
@@ -113,6 +144,7 @@ end
 print(" Parallelisation related parameters chosen:")
 print("    distType   = " .. distributionType)
 print("    numPPN (numProcsPerNode) = " .. numProcsPerNode)
+print("    hRedistStepSize = " .. hierarchicalRedistStepSize)
 
 --------------------------------------------------------------------------------
 -- Checking for parameters (end)
@@ -149,48 +181,80 @@ print("Perform (non parallel) pre-refinements of grid")
 for i=1,numPreRefs do
 	print( "PreRefinement step " .. i .. " ...")
 	refiner:refine()
-	print( "... done!")
+	print( "  ... done.")
 end
 
--- get number of processes
+
+-- redistribution... the optional hierarchical approach makes it somewhat complicated.
 numProcs = GetNumProcesses()
+numDistProcs = numInitialDistProcs
+numProcsWithGrid = 1
+numCurRefs = numPreRefs
 
 -- Distribute the domain to all involved processes
--- Since only process 0 loaded the grid, it is the only one which has to
--- fill a partitionMap (but every process needs one and has to return his map
--- by calling 'RedistributeDomain()', even if in this case the map is empty
--- for all processes but process 0).
-print("Distribute domain with 'distributionType' = '" .. distributionType .. "' ...")
+-- Only processes which already have a grid will fill their partition maps.
 partitionMap = PartitionMap()
 
-if GetProcessRank() == 0 then
-	if distributionType == "bisect" then
-		util.PartitionMapBisection(partitionMap, dom, numProcs)
+while numDistProcs > 0 do
+	partitionMap:clear()
+	if GetProcessRank() < numProcsWithGrid then
+		if distributionType == "bisect" then
+			util.PartitionMapBisection(partitionMap, dom, numDistProcs)
+	
+		elseif distributionType == "grid2d" then
+			local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numDistProcs / numProcsPerNode)
+			util.PartitionMapLexicographic2D(partitionMap, dom, numNodesX,
+											 numNodesY, numProcsPerNode)
+	
+		elseif distributionType == "metis" then
+			util.PartitionMapMetis(partitionMap, dom, numDistProcs, numPreRefs)
+	
+		else
+		    print( "distributionType not known, aborting!")
+		    exit()
+		end
 		
-	elseif distributionType == "grid2d" then
-		local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numProcs / numProcsPerNode)
-		util.PartitionMapLexicographic2D(partitionMap, dom, numNodesX,
-										 numNodesY, numProcsPerNode)
-
-	elseif distributionType == "metis" then
-		util.PartitionMapMetis(partitionMap, dom, numProcs, numPreRefs)
-										 
-	else
-	    print( "distributionType not known, aborting!")
-	    exit()
+	-- save the partition map for debug purposes
+		if verbosity >= 1 then
+			SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
+		end
 	end
 	
--- save the partition map for debug purposes
-	if verbosity >= 1 then
-		SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
+	print("Distribute domain with 'distributionType' = '" .. distributionType .. "' ...")
+	if RedistributeDomain(dom, partitionMap, true) == false then
+		print("Redistribution failed. Please check your partitionMap.")
+		exit()
 	end
-end
+	print("  ... domain distributed.")
 
-if RedistributeDomain(dom, partitionMap, true) == false then
-	print("Redistribution failed. Please check your partitionMap.")
-	exit()
+	numProcsWithGrid = numProcsWithGrid * numDistProcs
+	numDistProcs = 0
+	
+	-- check whether we have to perform another hierarchical distribution.
+	-- calculate the number of required refinements in this step.
+	maxRefsInThisStep = numRefs
+	if hierarchicalRedistStepSize >= 1 then
+		maxRefsInThisStep = numCurRefs + hierarchicalRedistStepSize
+		if maxRefsInThisStep >= numRefs then
+			numDistProcs = 0
+			maxRefsInThisStep = numRefs
+		else
+			numDistProcs = math.pow(math.pow(2, dim), hierarchicalRedistStepSize)
+			if numDistProcs > numProcs then
+				numDistProcs = 0
+			end
+		end
+	end
+	
+	-- Perform post-refine
+	print("Refine Parallel Grid")
+	for i = numCurRefs + 1, maxRefsInThisStep do
+		print( "Refinement step " .. i .. " ...")
+		refiner:refine()
+		print( "  ... done.")
+	end
+	numCurRefs = maxRefsInThisStep
 end
-print("... domain distributed!")
 
 -- clean up
 delete(partitionMap)
@@ -198,14 +262,6 @@ delete(partitionMap)
 --------------------------------------------------------------------------------
 -- end of partitioning
 --------------------------------------------------------------------------------
-
--- Perform post-refine
-print("Refine Parallel Grid")
-for i=numPreRefs+1,numRefs do
-	print( "Refinement step " .. i .. " ...")
-	refiner:refine()
-	print( "... done!")
-end
 
 -- get subset handler
 sh = dom:get_subset_handler()
