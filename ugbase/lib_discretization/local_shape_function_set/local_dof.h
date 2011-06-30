@@ -22,6 +22,16 @@ class LocalDoF
 {
 	public:
 	///	constructor
+	/**
+	 * Create a pair describing the position of a DoF within the reference element.
+	 *
+	 * \param[in]	dim		dimension of sub-geometric object
+	 * \param[in]	id		number of sub-geometric object (in the numbering
+	 * 						used by the reference element)
+	 * \param[in]	offset	if several DoFs are associated with the same
+	 * 						sub-geometric object the offset specifies the number
+	 * 						within all DoFs on that geometric object
+	 */
 		LocalDoF(int dim, size_t id, size_t offset)
 			: m_dim(dim), m_id(id), m_offset(offset)
 		{}
@@ -36,10 +46,10 @@ class LocalDoF
 		inline size_t offset(size_t sh) const {return m_offset;}
 
 	protected:
-	///	dimension
+	///	dimension of sub-geometric object
 		int m_dim;
 
-	///	id of sub geom obj in counting of reference element
+	///	id of sub-geometric object in counting of reference element
 		size_t m_id;
 
 	///	offset if several DoFs associated to the same geometric object

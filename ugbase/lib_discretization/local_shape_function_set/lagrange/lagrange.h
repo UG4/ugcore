@@ -13,15 +13,17 @@
 #include "../local_dof.h"
 #include "lib_discretization/common/multi_index.h"
 #include "common/util/metaprogramming_util.h"
+#include "lib_grid/grid/geometric_base_objects.h"
 
 namespace ug{
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
 
 /// Lagrange Shape Function Set without virtual functions
 template <typename TRefElem, int TOrder>
 struct LagrangeLSFS{};
+
+///////////////////////////////////////////////////////////////////////////////
+// Edge
+///////////////////////////////////////////////////////////////////////////////
 
 /// specialization for Edges
 /**
@@ -125,6 +127,28 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 			return ind[0];
 		}
 
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		bool has_sh_on(int d) const
+		{
+			return (d==0) || (d==1 && p>1);
+		}
+
+	///	returns the number of DoFs on a given sub-geometric object
+		size_t num_sh(int d, size_t id) const
+		{
+			if(d==0) return 1;
+			if(d==1) return (p-1);
+			else return 0;
+		}
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_sh(ReferenceObjectID type) const
+		{
+			if(type == ROID_VERTEX) return 1;
+			if(type == ROID_EDGE) return (p-1);
+			else return 0;
+		}
+
 	protected:
 		void eval_grad(grad_type& grad, size_t i, const position_type& x) const
 		{
@@ -135,6 +159,10 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		Polynomial1D m_vPolynom[p+1];	///< Shape Polynomials
 		Polynomial1D m_vDPolynom[p+1];	///< Derivative of Shape Polynomial
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// Triangle
+///////////////////////////////////////////////////////////////////////////////
 
 template <>
 template <int TOrder>
@@ -277,6 +305,31 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			return MultiIndex<dim>( i0, i1 );
 		}
 
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		bool has_sh_on(int d) const
+		{
+			return (d==0) || (d==1 && p>1) || (d==2 && p>2);
+		}
+
+	///	returns the number of DoFs on a given sub-geometric object
+		size_t num_sh(int d, size_t id) const
+		{
+			if(d==0) return 1;
+			if(d==1) return (p-1);
+			if(d==2) return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
+			else return 0;
+		}
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_sh(ReferenceObjectID type) const
+		{
+			if(type == ROID_VERTEX) return 1;
+			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_TRIANGLE)
+				return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
+			else return 0;
+		}
+
 	protected:
 		inline void check_multi_index(const MultiIndex<dim>& ind) const
 		{
@@ -327,6 +380,9 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		Polynomial1D m_vDPolynom[p+1];
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Quadrilateral
+///////////////////////////////////////////////////////////////////////////////
 
 template <>
 template <int TOrder>
@@ -444,6 +500,30 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 			return MultiIndex<dim>( i%(p+1), i/(p+1) );
 		}
 
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		bool has_sh_on(int d) const
+		{
+			return (d==0) || (d==1 && p>1) || (d==2 && p>1);
+		}
+
+	///	returns the number of DoFs on a given sub-geometric object
+		size_t num_sh(int d, size_t id) const
+		{
+			if(d==0) return 1;
+			if(d==1) return (p-1);
+			if(d==2) return (p-1)*(p-1);
+			else return 0;
+		}
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_sh(ReferenceObjectID type) const
+		{
+			if(type == ROID_VERTEX) return 1;
+			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
+			else return 0;
+		}
+
 	protected:
 		inline void check_multi_index(const MultiIndex<dim>& ind) const
 		{
@@ -483,6 +563,9 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		Polynomial1D m_vDPolynom[p+1];
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Tetrahedron
+///////////////////////////////////////////////////////////////////////////////
 
 template <>
 template <int TOrder>
@@ -652,6 +735,37 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			return MultiIndex<dim>( i0, i1, i2);
 		}
 
+		///	returns if DoFs are assigned to geometric objects of the dimension
+			bool has_sh_on(int d) const
+			{
+				return (d==0) || (d==1 && p>1) || (d==2 && p>2) || (d==3 && p>3);
+			}
+
+		///	returns the number of DoFs on a given sub-geometric object
+			size_t num_sh(int d, size_t id) const
+			{
+				if(d==0) return 1;
+			//	number of shapes on edge is same as for edge with p-1
+				if(d==1) return (p-1);
+			//	number of shapes on faces is same as for triangles in 2d
+				if(d==2) return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
+			//	number of shapes on interior is same as for tetrahedra with p-4
+				if(d==3) return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
+				else return 0;
+			}
+
+		///	returns the number of DoFs on a sub-geometric object type
+			size_t num_sh(ReferenceObjectID type) const
+			{
+				if(type == ROID_VERTEX) return 1;
+				if(type == ROID_EDGE) return (p-1);
+				if(type == ROID_TRIANGLE)
+					return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
+				if(type == ROID_TETRAHEDRON)
+					return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
+				else return 0;
+			}
+
 	protected:
 		inline void check_multi_index(const MultiIndex<dim>& ind) const
 		{
@@ -703,6 +817,9 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		Polynomial1D m_vDPolynom[p+1];
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Prism
+///////////////////////////////////////////////////////////////////////////////
 
 template <>
 template <int TOrder>
@@ -857,6 +974,43 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 			return MultiIndex<dim>( i0, i1, i2);
 		}
 
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		bool has_sh_on(int d) const
+		{
+			return (d==0) || (d==1 && p>1) || (d==2 && p>1) || (d==3 && p >2);
+		}
+
+	///	returns the number of DoFs on a given sub-geometric object
+		size_t num_sh(int d, size_t id) const
+		{
+		//	get reference element
+			static const ReferencePrism& rRef
+						= ReferenceElementProvider::get<ReferencePrism>();
+
+		//	get type of subelement
+			const ReferenceObjectID type = rRef.ref_elem_type(d, id);
+
+		//	forward request
+			return num_sh(type);
+		}
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_sh(ReferenceObjectID type) const
+		{
+			if(type == ROID_VERTEX) return 1;
+			if(type == ROID_EDGE) return (p-1);
+		//	same as for a 2d triangle of order p-3
+			if(type == ROID_TRIANGLE)
+				return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
+		//	same as for a 2d quadrilateral of order p-2
+			if(type == ROID_QUADRILATERAL)
+				return ((p>1) ? ((p-1)*(p-1)) : 0);
+		//	same as for a 3d prism of order p-2
+			if(type == ROID_PRISM)
+				return ((p>2) ? (LagrangeLSFS<ReferencePrism, p-2>::nsh) : 0);
+			else return 0;
+		}
+
 	protected:
 		inline void check_multi_index(const MultiIndex<dim>& ind) const
 		{
@@ -919,6 +1073,10 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		Polynomial1D m_vDTruncPolynom[p+1];
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Pyramid
+///////////////////////////////////////////////////////////////////////////////
+
 namespace {
 
 template <int p>
@@ -935,29 +1093,40 @@ struct NumberOfDoFsOfPyramid
 template <>
 struct NumberOfDoFsOfPyramid<1>
 {
-	enum
-	{
-		value = 5
-	};
+	enum {value = 5};
+};
+template <>
+struct NumberOfDoFsOfPyramid<0>
+{
+	enum {value = 0};
+};
+template <>
+struct NumberOfDoFsOfPyramid<-1>
+{
+	enum {value = 0};
 };
 
 } // end empty namespace
 
-// todo: Implement
+// todo: Implement higher order (impossible ?)
+//	NOTE:	Currently only 1st order is implemented. There is no shape function
+//			set for pyramids, that is continuous and allows a continuous
+//			derivative in the inner of the pyramid. This is basically, since
+//			one reguards the pyramid as two tetrahedrons, glued together.
 template <>
 template <int TOrder>
 class LagrangeLSFS<ReferencePyramid, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static const size_t p = 1;
 
 	public:
 	///	Reference Element type
 		typedef ReferencePyramid reference_element_type;
 
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static const size_t order = 1;
 
 	///	Dimension, where shape functions are defined
 		static const int dim = reference_element_type::dim;
@@ -1097,6 +1266,43 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			return MultiIndex<dim>( iTmp%(p+1-i2), iTmp/(p+1-i2), i2);
 		}
 
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		bool has_sh_on(int d) const
+		{
+			return (d==0) || (d==1 && p>1) || (d==2 && p>1) || (d==3 && p >2);
+		}
+
+	///	returns the number of DoFs on a given sub-geometric object
+		size_t num_sh(int d, size_t id) const
+		{
+		//	get reference element
+			static const ReferencePrism& rRef
+						= ReferenceElementProvider::get<ReferencePrism>();
+
+		//	get type of subelement
+			const ReferenceObjectID type = rRef.ref_elem_type(d, id);
+
+		//	forward request
+			return num_sh(type);
+		}
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_sh(ReferenceObjectID type) const
+		{
+			if(type == ROID_VERTEX) return 1;
+			if(type == ROID_EDGE) return (p-1);
+		//	same as for a 2d triangle of order p-3
+			if(type == ROID_TRIANGLE)
+				return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
+		//	same as for a 2d quadrilateral of order p-2
+			if(type == ROID_QUADRILATERAL)
+				return ((p>1) ? ((p-1)*(p-1)) : 0);
+		//	same as for a 3d pyramid of order p-2
+			if(type == ROID_PYRAMID)
+				return ((p>2) ? (NumberOfDoFsOfPyramid<p-2>::value) : 0);
+			else return 0;
+		}
+
 	protected:
 		inline void check_multi_index(const MultiIndex<dim>& ind) const
 		{
@@ -1157,6 +1363,9 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		std::vector<std::vector<Polynomial1D> > m_vvDPolynom;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Hexahedron
+///////////////////////////////////////////////////////////////////////////////
 
 template <>
 template <int TOrder>
@@ -1273,6 +1482,32 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 
 			return MultiIndex<dim>( i%(p+1), i/(p+1)%(p+1), i/((p+1)*(p+1)));
+		}
+
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		bool has_sh_on(int d) const
+		{
+			return (d==0) || (d==1 && p>1) || (d==2 && p>1) || (d==3 && p>1);
+		}
+
+	///	returns the number of DoFs on a given sub-geometric object
+		size_t num_sh(int d, size_t id) const
+		{
+			if(d==0) return 1;
+			if(d==1) return (p-1);
+			if(d==2) return (p-1)*(p-1);
+			if(d==3) return (p-1)*(p-1)*(p-1);
+			else return 0;
+		}
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_sh(ReferenceObjectID type) const
+		{
+			if(type == ROID_VERTEX) return 1;
+			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
+			if(type == ROID_HEXAHEDRON) return (p-1)*(p-1)*(p-1);
+			else return 0;
 		}
 
 	protected:
