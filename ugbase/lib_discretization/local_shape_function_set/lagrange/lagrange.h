@@ -280,7 +280,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 	///	evaluates the gradient
 		void grad(grad_type& g, const size_t i,	const position_type& x) const
 		{
-			return grad(g, multi_index(i), x);
+			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
@@ -496,7 +496,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	/// evaluates the gradient
 		void grad(grad_type& g, const size_t i, const position_type& x) const
 		{
-			return grad(g, multi_index(i), x);
+			grad(g, multi_index(i), x);
 		}
 
 	/// evaluates the gradient
@@ -691,7 +691,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	///	evaluates the gradient
 		void grad(grad_type& g, const size_t i, const position_type& x) const
 		{
-			return grad(g, multi_index(i), x);
+			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
@@ -959,7 +959,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 	///	evaluates the gradient
 		void grad(grad_type& g, const size_t i, const position_type& x) const
 		{
-			return grad(g, multi_index(i), x);
+			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
@@ -1253,7 +1253,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 	///	evaluates the gradient
 		void grad(grad_type& g, const size_t i, const position_type& x) const
 		{
-			return grad(g, multi_index(i), x);
+			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
@@ -1498,7 +1498,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	///	evaluates the gradient
 		void grad(grad_type& g, const size_t i, const position_type& x) const
 		{
-			return grad(g, multi_index(i), x);
+			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
