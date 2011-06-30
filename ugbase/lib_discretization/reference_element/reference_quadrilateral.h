@@ -103,12 +103,16 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 		static const int dim = ReferenceQuadrilateral::dim;
 
 	public:
-		ReferenceMapping() : m_vCo(NULL)
-		{}
+	///	Default Constructor
+		ReferenceMapping() : m_vCo(NULL) {}
 
-		void update(const MathVector<worldDim>* corners)
+	///	Constructor setting the corners
+		ReferenceMapping(const MathVector<worldDim>* vCorner) {update(vCorner);}
+
+	///	update the mapping for a new set of corners
+		void update(const MathVector<worldDim>* vCorner)
 		{
-			m_vCo = corners;
+			m_vCo = vCorner;
 		}
 
 		void local_to_global(	const MathVector<dim>& locPos,

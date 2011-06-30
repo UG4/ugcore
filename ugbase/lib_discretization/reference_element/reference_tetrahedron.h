@@ -104,11 +104,16 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 		static const int dim = ReferenceTetrahedron::dim;
 
 	public:
+	///	Default Constructor
 		ReferenceMapping() : m_vCo(NULL) {}
 
-		void update(const MathVector<worldDim>* corners)
+	///	Constructor setting the corners
+		ReferenceMapping(const MathVector<worldDim>* vCorner) {update(vCorner);}
+
+	///	update the mapping for a new set of corners
+		void update(const MathVector<worldDim>* vCornr)
 		{
-			m_vCo = corners;
+			m_vCo = vCornr;
 			VecSubtract(a10, m_vCo[1], m_vCo[0]);
 			VecSubtract(a20, m_vCo[2], m_vCo[0]);
 			VecSubtract(a30, m_vCo[3], m_vCo[0]);

@@ -105,11 +105,16 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 		static const int dim = ReferenceTriangle::dim;
 
 	public:
+	///	Default Constructor
 		ReferenceMapping() : m_vCo(NULL) {}
 
-		void update(const MathVector<worldDim>* corners)
+	///	Constructor setting the corners
+		ReferenceMapping(const MathVector<worldDim>* vCorner) {update(vCorner);}
+
+	///	update the mapping for a new set of corners
+		void update(const MathVector<worldDim>* vCorner)
 		{
-			m_vCo = corners;
+			m_vCo = vCorner;
 			VecSubtract(a10, m_vCo[1], m_vCo[0]);
 			VecSubtract(a20, m_vCo[2], m_vCo[0]);
 		}

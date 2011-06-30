@@ -42,11 +42,14 @@ class ReferenceMapping
 		static const int dim = TRefElem::dim;
 
 	public:
-	///	Constructor
+	///	Default Constructor
 		ReferenceMapping();
 
+	///	Constructor setting the corners of the element
+		ReferenceMapping(const MathVector<worldDim>* vCorner);
+
 	///	refresh mapping for new set of corners
-		void update(const MathVector<worldDim>* corners);
+		void update(const MathVector<worldDim>* vCorner);
 
 	///	map local coordinate to global coordinate
 		void local_to_global(	const MathVector<dim> locPos,
