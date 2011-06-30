@@ -5,12 +5,6 @@
 #ifndef __H__PCL__PCL_BASE__
 #define __H__PCL__PCL_BASE__
 
-#ifdef PCL_DEBUG_BARRIER_ENABLED
-#define PCL_DEBUG_BARRIER pcl:SynchronizeProcesses();
-#else
-#define PCL_DEBUG_BARRIER
-#endif
-
 namespace pcl
 {
 
@@ -41,9 +35,6 @@ inline bool IsOutputProc()
 	int opr = GetOutputProcRank();
 	return (GetProcRank() == opr) || (opr == -1);
 }
-
-/// synchronizes all processes
-void SynchronizeProcesses();
 
 }//	end of namespace
 #endif

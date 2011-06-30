@@ -149,6 +149,8 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
  * that first all adjacent nodes of the first node appear, then the
  * adjacent nodes of the second node and so forth.
  *
+ * Note that the elements are processed one level after another.
+ *
  * Let n be the number of nodes in the graph, m be the number of edges.
  * Then adjacencyMapStructureOut will contain n+1 entries (the last one
  * is a convenience entry), and adjacencyMapOut will contain 2m entries
@@ -181,7 +183,7 @@ template <class TGeomBaseObj, class TIndexType>
 void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						std::vector<TIndexType>* pEdgeWeightsOut,
-						MultiGrid& mg,
+						MultiGrid& mg, size_t baseLevel = 0,
 						int hWeight = 1, int vWeight = 1,
 						Attachment<TIndexType>* paIndex = NULL,
 						TGeomBaseObj** pGeomObjsOut = NULL,
@@ -204,8 +206,10 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 
 //	init the indices
 	TIndexType ind = 0;
-	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl)
+	size_t numElems = 0;
+	for(size_t lvl = baseLevel; lvl < mg.num_levels(); ++lvl)
 	{
+		numElems += mg.num<Elem>(lvl);
 		for(ElemIterator iter = mg.begin<Elem>(lvl); iter != mg.end<Elem>(lvl);
 			++iter, ++ind)
 		{
@@ -214,7 +218,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 	}
 
 //	init the adjacencyMapStructure
-	adjacencyMapStructureOut.resize(mg.num<Elem>() + 1);
+	adjacencyMapStructureOut.resize(numElems + 1);
 	adjacencyMapOut.clear();
 	if(pEdgeWeightsOut)
 		pEdgeWeightsOut->clear();
@@ -225,7 +229,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 		int ind = 0;
 
 	//	iterate through all elements
-		for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl)
+		for(size_t lvl = baseLevel; lvl < mg.num_levels(); ++lvl)
 		{
 			for(ElemIterator iter = mg.begin<Elem>(lvl);
 				iter != mg.end<Elem>(lvl); ++iter, ++ind)
@@ -277,7 +281,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 	if(pGeomObjsOut)
 	{
 		int ind = 0;
-		for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		for(size_t lvl = baseLevel; lvl < mg.num_levels(); ++lvl){
 			for(ElemIterator iter = mg.begin<Elem>(lvl);
 				iter != mg.end<Elem>(lvl); ++iter, ++ind)
 			{

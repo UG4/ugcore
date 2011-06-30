@@ -609,6 +609,7 @@ void CreateDistributionLayouts(
 		msel.select(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
 		msel.select(sh.begin<Face>(i), sh.end<Face>(i));
 		msel.select(sh.begin<Volume>(i), sh.end<Volume>(i));
+
 //TODO: overlap can be easily handled here! simply increase the selection.
 //		eventually we first would have to select all associated elements.
 	//	the hierarchy has to be complete. make sure the whole genealogy
@@ -620,10 +621,61 @@ void CreateDistributionLayouts(
 	//	If however vertical interfaces shall be created, the genealogy
 	//	shouldn't be distributed. In this case only associated geometric
 	//	objects have to be selected.
-		if(distributeGenealogy)
-			SelectAssociatedGenealogy(msel, true);
-		else
-			SelectAssociatedGeometricObjects(msel);
+
+	//todo:	replace the loop with a more efficient structure
+		bool foundConstraining;
+		do{
+			if(distributeGenealogy)
+				SelectAssociatedGenealogy(msel, true);
+			else
+				SelectAssociatedGeometricObjects(msel);
+
+			foundConstraining = false;
+
+		//	we have to make sure that constraining objects are sent to all
+		//	processes to which their constrained objects are sent.
+			for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+				for(HangingVertexIterator iter = msel.begin<HangingVertex>(lvl);
+					iter != msel.end<HangingVertex>(lvl); ++iter)
+				{
+					GeometricObject* cobj = (*iter)->get_parent();
+					if(cobj && !msel.is_selected(cobj)){
+						foundConstraining = true;
+						msel.select(cobj);
+					}
+				}
+
+				for(ConstrainedEdgeIterator iter = msel.begin<ConstrainedEdge>(lvl);
+					iter != msel.end<ConstrainedEdge>(lvl); ++iter)
+				{
+					GeometricObject* cobj = (*iter)->get_constraining_object();
+					if(cobj && !msel.is_selected(cobj)){
+						foundConstraining = true;
+						msel.select(cobj);
+					}
+				}
+
+				for(ConstrainedTriangleIterator iter = msel.begin<ConstrainedTriangle>(lvl);
+					iter != msel.end<ConstrainedTriangle>(lvl); ++iter)
+				{
+					GeometricObject* cobj = (*iter)->get_constraining_object();
+					if(cobj && !msel.is_selected(cobj)){
+						foundConstraining = true;
+						msel.select(cobj);
+					}
+				}
+
+				for(ConstrainedQuadrilateralIterator iter = msel.begin<ConstrainedQuadrilateral>(lvl);
+					iter != msel.end<ConstrainedQuadrilateral>(lvl); ++iter)
+				{
+					GeometricObject* cobj = (*iter)->get_constraining_object();
+					if(cobj && !msel.is_selected(cobj)){
+						foundConstraining = true;
+						msel.select(cobj);
+					}
+				}
+			}
+		}while(foundConstraining == true);
 
 		int interfacesOnLevelOnly = -1;
 		/*

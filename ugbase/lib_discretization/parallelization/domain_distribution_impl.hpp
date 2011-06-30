@@ -204,26 +204,55 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 template <typename TDomain>
 static bool
 PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
-						  int numPartitions)
+						  int numPartitions, size_t baseLevel,
+						  int hWeight, int vWeight)
 {
 //	prepare the partition map
 	MultiGrid& mg = domain.get_grid();
 	partitionMap.assign_grid(mg);
 
 #ifdef UG_PARALLEL
+//	we need a process to which elements which are not considered will be send.
+//	Those elements should stay on the current process.
+	int localProc = 0;
+	localProc = pcl::GetProcRank();
+
+	int bucketSubset = partitionMap.find_target_proc(localProc);
+	if(bucketSubset == -1)
+		bucketSubset = (int)partitionMap.num_target_procs();
+
+	SubsetHandler& shPart = partitionMap.get_partition_handler();
 //	call the actual partitioning routine
 	if(mg.num<Volume>() > 0){
-		PartitionMultiGrid_MetisKway<Volume>(partitionMap.get_partition_handler(),
-											mg, numPartitions);
+		PartitionMultiGrid_MetisKway<Volume>(shPart, mg, numPartitions,
+											baseLevel, hWeight, vWeight);
+	//	assign all elements below baseLevel to bucketSubset
+		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
+			shPart.assign_subset(mg.begin<Volume>(lvl), mg.end<Volume>(lvl),
+								 bucketSubset);
 	}
 	else if(mg.num<Face>() > 0){
-		PartitionMultiGrid_MetisKway<Face>(partitionMap.get_partition_handler(),
-											mg, numPartitions);
+		PartitionMultiGrid_MetisKway<Face>(shPart, mg, numPartitions,
+											baseLevel, hWeight, vWeight);
+	//	assign all elements below baseLevel to bucketSubset
+		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
+			shPart.assign_subset(mg.begin<Face>(lvl), mg.end<Face>(lvl),
+								 bucketSubset);
 	}
 	else if(mg.num<EdgeBase>() > 0){
-		PartitionMultiGrid_MetisKway<EdgeBase>(partitionMap.get_partition_handler(),
-										  	  mg, numPartitions);
+		PartitionMultiGrid_MetisKway<EdgeBase>(shPart, mg, numPartitions,
+												baseLevel, hWeight, vWeight);
+	//	assign all elements below baseLevel to bucketSubset
+		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
+			shPart.assign_subset(mg.begin<EdgeBase>(lvl), mg.end<EdgeBase>(lvl),
+								 bucketSubset);
 	}
+
+	if(!partitionMap.get_partition_handler().empty(bucketSubset)){
+		if(bucketSubset >= (int)partitionMap.num_target_procs())
+			partitionMap.add_target_proc(localProc);
+	}
+
 	return true;
 #else
 	UG_LOG("WARNING in PartitionDomain_MetisKWay: Only available in parallel builds.\n");

@@ -372,6 +372,12 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 					sendToRanks, numSendTos, 3458);
 }
 
+void ProcessCommunicator::
+barrier() const
+{
+	PCL_PROFILE(pcl_ProcCom_barrier);
+	MPI_Barrier(m_comm->m_mpiComm);
+}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

@@ -33,7 +33,8 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 template <typename TDomain>
 static bool
 PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
-						  int numPartitions);
+						  int numPartitions, size_t baseLevel = 0,
+						  int hWeight = 1, int vWeight = 1);
 
 
 ///	distributes a already distributed domain onto the specified processes

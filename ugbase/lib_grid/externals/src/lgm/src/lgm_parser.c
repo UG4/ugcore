@@ -132,7 +132,8 @@ int lgm_parse(const char* file, struct lgm* l, struct lgm_info* fileinfo)
     $(lgm_parse_domain_info(ts, l, fileinfo));
     $(lgm_parse_subdomain_info(ts, l, fileinfo));
     $(lgm_parse_line_info(ts, l, fileinfo));
-	$(lgm_parse_surface_info(ts, l, fileinfo));
+	if(l->dim == 3)
+    	$(lgm_parse_surface_info(ts, l, fileinfo));
     $(lgm_parse_point_info(ts, l, fileinfo));
 
     /* make sure whole file was read */
@@ -402,6 +403,7 @@ int lgm_parse_line(tokstream* ts, int id, struct lgm_line* line, struct lgm_info
 {
     const char* tok;
     int line_id;
+    int left, right;
 
     /* check that this is a line */
     tok = ts_tok(ts);
@@ -423,8 +425,50 @@ int lgm_parse_line(tokstream* ts, int id, struct lgm_line* line, struct lgm_info
     /* read entries */
     while((tok = ts_get(ts)))
     {
+    	/* check for left / right*/
+    	if(is_token(tok, "left"))
+    	{
+    		tok = ts_get(ts);
+            if(!is_token(tok, "="))
+                return lgm_error_parse(fileinfo, err_msg_neq, ts);
+
+            /* read left property */
+            tok = ts_get(ts);
+            if(lgm_parser_strtoi(tok, &left))
+                return lgm_error_parse(fileinfo, err_msg_sle, ts);
+            //todo: add line->left
+            //line->left = left;
+
+            /* read delimiter */
+            tok = ts_get(ts);
+            if(!is_token(tok, ";"))
+                return lgm_error_parse(fileinfo, err_msg_nsc, ts);
+
+            continue;
+    	}
+    	else if(is_token(tok, "right"))
+    	{
+    		/* read equal sign */
+            tok = ts_get(ts);
+            if(!is_token(tok, "="))
+                return lgm_error_parse(fileinfo, err_msg_neq, ts);
+
+            /* read left property */
+            tok = ts_get(ts);
+            if(lgm_parser_strtoi(tok, &right))
+                return lgm_error_parse(fileinfo, err_msg_sri, ts);
+            //todo: add line->right
+            //line->right = right;
+
+            /* read delimiter */
+            tok = ts_get(ts);
+            if(!is_token(tok, ";"))
+                return lgm_error_parse(fileinfo, err_msg_nsc, ts);
+
+            continue;
+    	}
         /* check for points */
-        if(is_token(tok, "points"))
+    	else if(is_token(tok, "points"))
         {
             /* read points */
             $(lgm_parse_line_points(ts, line, fileinfo));
@@ -504,8 +548,10 @@ int lgm_parse_line_points(tokstream* ts, struct lgm_line* line, struct lgm_info*
 
     /* read delimiter */
     tok = ts_get(ts);
-    if(!is_token(tok, ";"))
-        return lgm_error_parse(fileinfo, err_msg_end, ts);
+    if(!is_token(tok, ";")){
+        //return lgm_error_parse(fileinfo, err_msg_end, ts);
+        $(ts_unget(ts));
+    }
 
     /* success */
     return 0;

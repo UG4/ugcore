@@ -8,9 +8,9 @@ end
 
 -- create a partition map by using metis graph partitioning.
 -- This only works if Metis is available in the current build.
-function util.PartitionMapMetis(partitionMapOut, dom, numProcs)
+function util.PartitionMapMetis(partitionMapOut, dom, numProcs, baseLevel)
 	partitionMapOut:add_target_procs(0, numProcs)
-	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs)
+	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs, baseLevel, 1, 1)
 end
 
 

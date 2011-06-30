@@ -287,6 +287,9 @@ class ProcessCommunicator
 			allreduce(pSendBuff, pReceiveBuff, count, get_data_type(T()), op);
 		}
 
+	///	this method will not return until all processes in the communicator have called it.
+		void barrier() const;
+
 	private:
 	/**
 	 * \{

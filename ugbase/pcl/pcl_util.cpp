@@ -11,10 +11,39 @@ using namespace std;
 
 namespace pcl{
 
+////////////////////////////////////////////////////////////////////////////////
+void SynchronizeProcesses()
+{
+	ProcessCommunicator().barrier();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+bool AllProcsTrue(bool bFlag, ProcessCommunicator comm)
+{
+	PCL_DEBUG_BARRIER(comm);
+	PCL_PROFILE(pclAllProcsTrue);
+
+//	local int bool flag
+	int boolFlag = (bFlag) ? 1 : 0;
+
+// 	local return flag
+	int retBoolFlag;
+
+//	all reduce
+	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LAND);
+
+//	return global flag
+	if(retBoolFlag != 0)
+		return true;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 								  const std::vector<int>& vSendToRanks,
 								  const ProcessCommunicator& procComm)
 {
+	PCL_DEBUG_BARRIER(procComm);
 	PCL_PROFILE(pcl_CommunicateInvolvedProcesses);
 
 	using namespace std;
@@ -77,7 +106,6 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 //	vProcRanksInOut should now contain all process-ranks with which
 //	the local proc should communicate.
 }
-
 
 bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 						const std::vector<int>& sendTo,

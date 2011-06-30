@@ -36,26 +36,28 @@ bool ImportGridFromLGM(Grid& grid,
 	
 //	load 3d
 	if(lgm_read(filename, l, linfo))
-	{
+	{/*
 		LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
 		lgm_delete(l);
 		lgm_info_delete(linfo);
-		return false;
+		return false;*/
 
 	//	3d could not be loaded. Try 2d.
 	//TODO: add full 2d support to lgm_parser. There are problems
 	//		with line left and line right (They are not yet parsed).
 	//		This leads to an error in the current implementation.
-	/*
+		lgm_info_delete(linfo);
+		lgm_delete(l);
 		l = lgm_new();
 		l->dim = 2;
 		linfo = lgm_info_new();
+
 		if(lgm_read(filename, l, linfo)){
 			LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
+			lgm_info_delete(linfo);
 			lgm_delete(l);
 			return false;
 		}
-	*/
 	}
 	lgm_info_delete(linfo);
 
@@ -121,6 +123,10 @@ bool ImportGridFromLGM(Grid& grid,
 				vVertices[v2]
 			));
 
+			// add line to line subset
+			if(pSurfaceHandler)
+				pSurfaceHandler->assign_subset(e, i);
+
 			// store edge
 			vEdges.push_back(e);
 		}
@@ -131,7 +137,7 @@ bool ImportGridFromLGM(Grid& grid,
 	{
 		// get surface
 		lgm_surface* s = &l->surfaces[i];
-
+		/*
 		// read points
 		for(int j = 0; j < s->num_points; ++j)
 		{
@@ -152,7 +158,7 @@ bool ImportGridFromLGM(Grid& grid,
 			// add edge to surface subset
 			if(pSurfaceHandler)
 				pSurfaceHandler->assign_subset(vEdges[e], i);
-		}
+		}*/
 
 		// read triangles
 		for(int j = 0; j < s->num_triangles; ++j)

@@ -399,7 +399,9 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
 			}
 		}
+
 	//TODO: add support for hanging edges.
+
 	}
 
 //	faces
@@ -839,6 +841,8 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 //	we have to mark all elements which were already written
 	mg.begin_marking();
 
+////////////////////////////////
+//	vertices
 	for(uint iLevel = 0; iLevel < numLevels; ++iLevel)
 	{
 	//	write the level
@@ -847,124 +851,208 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 		out.write((char*)&iLevel, sizeof(uint));
 
 	//	prepare vertices and set num-vertices and num-hanging-vertices.
-		{		
-		//	write vertices
-			if(mgoc.num<Vertex>(iLevel) > 0)
+	//	write vertices
+		if(mgoc.num<Vertex>(iLevel) > 0)
+		{
+			tInt = GOID_VERTEX;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Vertex>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(VertexIterator iter = mgoc.begin<Vertex>(iLevel);
+				iter != mgoc.end<Vertex>(iLevel); ++iter)
 			{
-				tInt = GOID_VERTEX;
-				out.write((char*)&tInt, sizeof(int));
-				tInt = (int)mgoc.num<Vertex>(iLevel);
-				out.write((char*)&tInt, sizeof(int));
-				
-				for(VertexIterator iter = mgoc.begin<Vertex>(iLevel);
-					iter != mgoc.end<Vertex>(iLevel); ++iter)
-				{
-					aaIntVRT[*iter] = vrtInd++;
-					mg.mark(*iter);
-				//	write the parent
-					WriteParent(mg, *iter, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
-				}
-			}
-			
-		//	write hanging vertices
-			if(mgoc.num<HangingVertex>(iLevel) > 0)
-			{
-				tInt = GOID_HANGING_VERTEX;
-				out.write((char*)&tInt, sizeof(int));
-				tInt = mgoc.num<HangingVertex>(iLevel);
-				out.write((char*)&tInt, sizeof(int));
-				
-			//	write local-coords and assign indices
-			//	we need a number stream for that
-				for(HangingVertexIterator iter = mgoc.begin<HangingVertex>(iLevel);
-					iter != mgoc.end<HangingVertex>(iLevel); ++iter)
-				{
-					mg.mark(*iter);
-					tNumber = (*iter)->get_local_coordinate_1();
-					out.write((char*)&tNumber, sizeof(number));
-					tNumber = (*iter)->get_local_coordinate_2();
-					out.write((char*)&tNumber, sizeof(number));
-					aaIntVRT[*iter] = vrtInd++;
-				//	write the parent
-					WriteParent(mg, *iter, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
-				}
+				aaIntVRT[*iter] = vrtInd++;
+				mg.mark(*iter);
+			//	write the parent
+				WriteParent(mg, *iter, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
 			}
 		}
 
+	//	write hanging vertices
+		if(mgoc.num<HangingVertex>(iLevel) > 0)
+		{
+			tInt = GOID_HANGING_VERTEX;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = mgoc.num<HangingVertex>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+			
+		//	write local-coords and assign indices
+		//	we need a number stream for that
+			for(HangingVertexIterator iter = mgoc.begin<HangingVertex>(iLevel);
+				iter != mgoc.end<HangingVertex>(iLevel); ++iter)
+			{
+				HangingVertex* v = *iter;
+				mg.mark(v);
+				tNumber = (v)->get_local_coordinate_1();
+				out.write((char*)&tNumber, sizeof(number));
+				tNumber = (v)->get_local_coordinate_2();
+				out.write((char*)&tNumber, sizeof(number));
+				aaIntVRT[v] = vrtInd++;
+			//	write the parent
+				WriteParent(mg, v, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+
+			//	write constraining object
+				int type = -1;
+				int ind = -1;
+				if(GeometricObject* cobj = v->get_parent()){
+					if(!mg.is_marked(cobj)){
+						UG_LOG("constrainig object not serialized: ");
+						UG_LOG(" lvl: " << mg.get_level(cobj) << ", type: "
+								<< cobj->base_object_type_id() << endl);
+						UG_LOG("current level: " << iLevel << endl);
+					}
+					assert(mg.is_marked(cobj) && "constraining object has to be serialized already.");
+					type = cobj->base_object_type_id();
+					switch(type){
+						case EDGE:
+							ind = aaIntEDGE[cobj];
+							break;
+						case FACE:
+							ind = aaIntFACE[cobj];
+							break;
+					}
+				}
+
+				out.write((char*)&type, sizeof(int));
+				out.write((char*)&ind, sizeof(int));
+			}
+		}
+
+////////////////////////////////
 	//	iterate through the edges and set up the edgeStream.
 	//int EDGE_GOID, int vrtInd1, int vrtInd2, [int numConstrainedVertices, {int constrainedVertexIndex}, int numConstrainedEdges, {int constrainedEdgeIndex}]
-		{
-		//	fill the stream
-		//	normal edges first.
-			if(mgoc.num<Edge>(iLevel) > 0)
-			{
-				tInt = GOID_EDGE;
-				out.write((char*)&tInt, sizeof(int));
-				tInt = (int)mgoc.num<Edge>(iLevel);
-				out.write((char*)&tInt, sizeof(int));
 
-				for(EdgeIterator iter = mgoc.begin<Edge>(iLevel);
-					iter != mgoc.end<Edge>(iLevel); ++iter)
-				{
-					Edge* e = *iter;
-					mg.mark(e);
-					out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
-					out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
-					aaIntEDGE[*iter] = edgeInd++;
-				//	write the parent
-					WriteParent(mg, e, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
-				}
+	//	fill the stream
+	//	normal edges first.
+		if(mgoc.num<Edge>(iLevel) > 0)
+		{
+			tInt = GOID_EDGE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Edge>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(EdgeIterator iter = mgoc.begin<Edge>(iLevel);
+				iter != mgoc.end<Edge>(iLevel); ++iter)
+			{
+				Edge* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
+				aaIntEDGE[*iter] = edgeInd++;
+			//	write the parent
+				WriteParent(mg, e, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
 			}
-		//TODO: add support for hanging edges.
 		}
 
-	//	faces
+	//	now constraining edges
+		if(mgoc.num<ConstrainingEdge>(iLevel) > 0)
 		{
-		//TODO: add support for constrained faces etc...
-			if(mgoc.num<Triangle>(iLevel) > 0)
-			{
-				tInt = GOID_TRIANGLE;
-				out.write((char*)&tInt, sizeof(int));
-				tInt = (int)mgoc.num<Triangle>(iLevel);
-				out.write((char*)&tInt, sizeof(int));
-				
-				for(TriangleIterator iter = mgoc.begin<Triangle>(iLevel);
-					iter != mgoc.end<Triangle>(iLevel); ++iter)
-				{
-					Triangle* t = *iter;
-					mg.mark(t);
-					out.write((char*)&aaIntVRT[t->vertex(0)], sizeof(int));
-					out.write((char*)&aaIntVRT[t->vertex(1)], sizeof(int));
-					out.write((char*)&aaIntVRT[t->vertex(2)], sizeof(int));
-					aaIntFACE[*iter] = faceInd++;
-				//	write the parent
-					WriteParent(mg, t, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
-				}
-			}
-			
-			if(mgoc.num<Quadrilateral>(iLevel) > 0)
-			{
-				tInt = GOID_QUADRILATERAL;
-				out.write((char*)&tInt, sizeof(int));
-				tInt = (int)mgoc.num<Quadrilateral>(iLevel);
-				out.write((char*)&tInt, sizeof(int));
+			tInt = GOID_CONSTRAINING_EDGE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainingEdge>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
 
-				for(QuadrilateralIterator iter = mgoc.begin<Quadrilateral>(iLevel);
-					iter != mgoc.end<Quadrilateral>(iLevel); ++iter)
-				{
-					Quadrilateral* q = *iter;
-					mg.mark(q);
-					out.write((char*)&aaIntVRT[q->vertex(0)], sizeof(int));
-					out.write((char*)&aaIntVRT[q->vertex(1)], sizeof(int));
-					out.write((char*)&aaIntVRT[q->vertex(2)], sizeof(int));
-					out.write((char*)&aaIntVRT[q->vertex(3)], sizeof(int));
-					aaIntFACE[*iter] = faceInd++;
-				//	write the parent
-					WriteParent(mg, q, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+			for(ConstrainingEdgeIterator iter = mgoc.begin<ConstrainingEdge>(iLevel);
+				iter != mgoc.end<ConstrainingEdge>(iLevel); ++iter)
+			{
+				ConstrainingEdge* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
+				aaIntEDGE[*iter] = edgeInd++;
+			//	write the parent
+				WriteParent(mg, e, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+			}
+		}
+
+	//	now constrained edges
+		if(mgoc.num<ConstrainedEdge>(iLevel) > 0)
+		{
+			tInt = GOID_CONSTRAINED_EDGE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainedEdge>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(ConstrainedEdgeIterator iter = mgoc.begin<ConstrainedEdge>(iLevel);
+				iter != mgoc.end<ConstrainedEdge>(iLevel); ++iter)
+			{
+				ConstrainedEdge* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
+				aaIntEDGE[*iter] = edgeInd++;
+			//	write the parent
+				WriteParent(mg, e, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+
+			//	write constraining object
+				int type = -1;
+				int ind = -1;
+				if(GeometricObject* cobj = e->get_constraining_object()){
+					assert(mg.is_marked(cobj) && "constraining object has to be serialized already.");
+					type = cobj->base_object_type_id();
+					switch(type){
+						case EDGE:
+							ind = aaIntEDGE[cobj];
+							break;
+						case FACE:
+							ind = aaIntFACE[cobj];
+							break;
+					}
 				}
+
+				out.write((char*)&type, sizeof(int));
+				out.write((char*)&ind, sizeof(int));
+			}
+		}
+
+////////////////////////////////
+	//	faces
+	//TODO: add support for constrained faces etc...
+		if(mgoc.num<Triangle>(iLevel) > 0)
+		{
+			tInt = GOID_TRIANGLE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Triangle>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(TriangleIterator iter = mgoc.begin<Triangle>(iLevel);
+				iter != mgoc.end<Triangle>(iLevel); ++iter)
+			{
+				Triangle* t = *iter;
+				mg.mark(t);
+				out.write((char*)&aaIntVRT[t->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(2)], sizeof(int));
+				aaIntFACE[*iter] = faceInd++;
+			//	write the parent
+				WriteParent(mg, t, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+			}
+		}
+
+		if(mgoc.num<Quadrilateral>(iLevel) > 0)
+		{
+			tInt = GOID_QUADRILATERAL;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Quadrilateral>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(QuadrilateralIterator iter = mgoc.begin<Quadrilateral>(iLevel);
+				iter != mgoc.end<Quadrilateral>(iLevel); ++iter)
+			{
+				Quadrilateral* q = *iter;
+				mg.mark(q);
+				out.write((char*)&aaIntVRT[q->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[q->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[q->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[q->vertex(3)], sizeof(int));
+				aaIntFACE[*iter] = faceInd++;
+			//	write the parent
+				WriteParent(mg, q, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
 			}
 		}
 	
+////////////////////////////////
 	//	volumes
 		if(mgoc.num<Tetrahedron>(iLevel) > 0)
 		{
@@ -1244,6 +1332,26 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							hv->set_local_coordinate_1(coord1);
 							hv->set_local_coordinate_2(coord2);
 							vVrts.push_back(hv);
+
+						//	read the constraining object
+							int type;
+							int ind;
+							in.read((char*)&type, sizeof(int));
+							in.read((char*)&ind, sizeof(int));
+							switch(type){
+								case EDGE:
+									assert(ind < (int)vEdges.size());
+									hv->set_parent(vEdges[ind]);
+									if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(vEdges[ind]))
+										ce->add_constrained_object(hv);
+									break;
+								case FACE:
+									assert(ind < (int)vFaces.size());
+									hv->set_parent(vFaces[ind]);
+									if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(vFaces[ind]))
+										cf->add_constrained_object(hv);
+									break;
+							}
 						}
 					}break;
 				case GOID_EDGE:
@@ -1260,6 +1368,58 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							else
 								e = *mg.create<Edge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
 							vEdges.push_back(e);
+						}
+					}break;
+				case GOID_CONSTRAINING_EDGE:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
+							ConstrainingEdge* e;
+							if(parent)
+								e = *mg.create<ConstrainingEdge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
+							else
+								e = *mg.create<ConstrainingEdge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
+							vEdges.push_back(e);
+						}
+					}break;
+				case GOID_CONSTRAINED_EDGE:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
+							ConstrainedEdge* e;
+							if(parent)
+								e = *mg.create<ConstrainedEdge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
+							else
+								e = *mg.create<ConstrainedEdge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
+							vEdges.push_back(e);
+
+						//	read the constraining object
+							int type;
+							int ind;
+							in.read((char*)&type, sizeof(int));
+							in.read((char*)&ind, sizeof(int));
+							switch(type){
+								case EDGE:
+									assert(ind < (int)vEdges.size());
+									e->set_constraining_object(vEdges[ind]);
+									if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(vEdges[ind]))
+										ce->add_constrained_object(e);
+									break;
+								case FACE:
+									assert(ind < (int)vFaces.size());
+									e->set_constraining_object(vFaces[ind]);
+									if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(vFaces[ind]))
+										cf->add_constrained_object(e);
+									break;
+							}
 						}
 					}break;
 				case GOID_TRIANGLE:

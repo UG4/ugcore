@@ -14,8 +14,30 @@
 #include "common/util/binary_buffer.h"
 #include "pcl_process_communicator.h"
 
+#ifdef PCL_DEBUG_BARRIER_ENABLED
+///	A debug barrier. Halts program execution until all processes of the communicator
+///	have called the barrier function.
+/**	Note that this barrier is only has effect, if the define PCL_DEBUG_BARRIER_ENABLED
+ * is enabled.*/
+#define PCL_DEBUG_BARRIER(communicator) communicator.barrier()
+#else
+#define PCL_DEBUG_BARRIER(communicator)
+#endif
+
 namespace pcl
 {
+
+/// synchronizes all processes.
+///	This is just a shortcut if all processes have to be synchronized.
+/**	This is equivalent to calling pcl::ProcessCommunicator()::barrier().
+ * \sa pcl::ProcessCommunicator::barrier
+ */
+void SynchronizeProcesses();
+
+/// performs an allreduce and returns true if and only if all procs called the
+/// function with bFlag = true
+bool AllProcsTrue(bool bFlag, ProcessCommunicator comm = ProcessCommunicator());
+
 
 ///	removes all empty interfaces from the given layout.
 template <class TLayout>
@@ -352,26 +374,6 @@ class SelectionCommPol : public ICommunicationPolicy<TLayout>
 		TSelectorIn&	m_selIn;
 		TSelectorOut&	m_selOut;
 };
-
-/// performs an allreduce and returns true if and only if all procs called the
-/// function with bFlag = true
-inline bool AllProcsTrue(bool bFlag,
-						ProcessCommunicator comm = ProcessCommunicator())
-{
-//	local int bool flag
-	int boolFlag = (bFlag) ? 1 : 0;
-
-// 	local return flag
-	int retBoolFlag;
-
-//	all reduce
-	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LAND);
-
-//	return global flag
-	if(retBoolFlag != 0)
-		return true;
-	return false;
-}
 
 
 ///	checks whether proc-entries in send- and recv-lists on participating processes match

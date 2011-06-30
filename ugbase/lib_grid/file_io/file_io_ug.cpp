@@ -1034,7 +1034,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 						
 						curSec = nextSec;
 					}
-					out << endl;
+					out << ";" << endl;
 					++numLines;
 					
 				//	make sure that all edges in the subset have been written to the line

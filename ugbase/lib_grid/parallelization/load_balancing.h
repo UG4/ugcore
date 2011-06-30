@@ -103,8 +103,8 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 template <class TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& grid, int numParts,
-							 	  int hWeight = 1, int vWeight = 1,
-							 	  int baseLevel = 0);
+							 	  size_t baseLevel = 0,
+							 	  int hWeight = 1, int vWeight = 1);
 
 
 }//	end of namespace

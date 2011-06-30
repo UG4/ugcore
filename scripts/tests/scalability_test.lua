@@ -173,7 +173,7 @@ if GetProcessRank() == 0 then
 										 numNodesY, numProcsPerNode)
 
 	elseif distributionType == "metis" then
-		util.PartitionMapMetis(partitionMap, dom, numProcs)
+		util.PartitionMapMetis(partitionMap, dom, numProcs, numPreRefs)
 										 
 	else
 	    print( "distributionType not known, aborting!")
