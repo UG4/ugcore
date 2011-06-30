@@ -69,6 +69,13 @@ class ReferenceEdge
 	/// \copydoc ug::DimReferenceElement::corner()
 		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}
 
+	///	\copydoc ug::DimReferenceElement::check_position()
+		inline static void check_position(const MathVector<dim>& pos)
+		{
+			UG_ASSERT(pos[0] >= 0.0 && pos[0] <= 1.0,
+			          "Local position "<<pos<<" outside Reference Element");
+		}
+
 	private:
 	/// to make it more readable
 		enum{POINT = 0, EDGE = 1};

@@ -123,6 +123,9 @@ class DimReferenceElement : public ReferenceElement
 
 	/// print informations about the reference element
 		virtual void print_info() const;
+
+	///	checks in debug mode if a local position is inside of the reference element
+		virtual void check_position(const MathVector<dim>& pos) const = 0;
 };
 
 /// wrapper class for reference elements
@@ -214,6 +217,10 @@ class DimReferenceElementWrapper
 
 	///	\copydoc ug::DimReferenceElement<d>::corner()
 		const MathVector<dim>& corner(size_t i) const {return TRefElem::corner(i);}
+
+	///	\copydoc ug::DimReferenceElement::check_position()
+		void check_position(const MathVector<dim>& pos) const
+			{TRefElem::check_position(pos);}
 };
 
 

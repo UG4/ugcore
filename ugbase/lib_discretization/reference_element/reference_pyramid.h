@@ -68,6 +68,12 @@ class ReferencePyramid{
 	/// \copydoc ug::DimReferenceElement::corner()
 		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}
 
+	///	\copydoc ug::DimReferenceElement::check_position()
+		inline static void check_position(const MathVector<dim>& pos)
+		{
+			//\todo: add check
+		}
+
 	private:
 	/// to make it more readable
 		enum{POINT = 0, EDGE = 1, FACE = 2, VOLUME= 3};
