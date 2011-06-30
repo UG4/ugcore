@@ -30,7 +30,7 @@ namespace ug{
  * assemblings for the equation:
  * The Equation has the form
  * \f[
- * 	\partial_t m - \nabla \left( \vec{v} right) = f
+ * 	\partial_t m - \nabla \left( \vec{v} \right) = f
  * \f]
  * with
  * <ul>
