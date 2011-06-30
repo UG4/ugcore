@@ -116,14 +116,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	///	return Multi index for index i
 		inline static MultiIndex<dim> multi_index(size_t i)
 		{
-			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+			check_index(i);
 			return MultiIndex<1>(i);
 		}
 
 	///	return the index for a multi_index
 		inline static size_t index(const MultiIndex<dim>& ind)
 		{
-			UG_ASSERT(ind[0] < nsh, "ind[0] must be smaller than Number of DoFs.");
+			check_multi_index(ind);
 			return ind[0];
 		}
 
@@ -150,6 +150,15 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	protected:
+		inline static void check_index(size_t i)
+		{
+			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+		}
+		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		{
+			UG_ASSERT(ind[0] < nsh, "ind[0] must be smaller than Number of DoFs.");
+		}
+
 		void eval_grad(grad_type& grad, size_t i, const position_type& x) const
 		{
 			grad[0] = m_vDPolynom[i].value(x[0]);
@@ -279,15 +288,14 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			for(size_t i = 0; i < ind[1]; ++i)
 				res += (p+1-i);
 
-			UG_ASSERT(res < nsh, "Wrong index computation. Internal error.");
-
+			check_index(res);
 			return res;
 		}
 
 	///	return the multi_index for an index
 		inline MultiIndex<dim> multi_index(size_t i) const
 		{
-			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+			check_index(i);
 
 		//	todo: replace by explicit formula (iff possible)
 			int i0 = i;
@@ -331,7 +339,11 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	protected:
-		inline void check_multi_index(const MultiIndex<dim>& ind) const
+		inline static void check_index(size_t i)
+		{
+			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+		}
+		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
@@ -495,7 +507,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	///	return the multi_index for an index
 		inline MultiIndex<dim> multi_index(size_t i) const
 		{
-			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+			check_index(i);
 
 			return MultiIndex<dim>( i%(p+1), i/(p+1) );
 		}
@@ -525,7 +537,11 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	protected:
-		inline void check_multi_index(const MultiIndex<dim>& ind) const
+		inline static void check_index(size_t i)
+		{
+			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+		}
+		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p && ind[1] >= 0, "Wrong Multiindex.");
@@ -690,15 +706,14 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			for(size_t i2 = 0; i2 < ind[2]; ++i2)
 				res += BinomCoeff(p+2-i2, p-i2);
 
-			UG_ASSERT(res < nsh, "Wrong index computation. Internal error.");
-
+			check_index(res);
 			return res;
 		}
 
 	///	return the multi_index for an index
 		inline MultiIndex<dim> multi_index(size_t i) const
 		{
-			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+			check_index(i);
 
 		//	todo: replace by explicit formula (iff possible)
 			int i0 = i;
@@ -767,7 +782,11 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			}
 
 	protected:
-		inline void check_multi_index(const MultiIndex<dim>& ind) const
+		inline static void check_index(size_t i)
+		{
+			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+		}
+		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
@@ -957,7 +976,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 	///	return the multi_index for an index
 		inline MultiIndex<dim> multi_index(size_t i) const
 		{
-			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+			check_index(i);
 
 			const size_t i2 = i / dofPerLayer;
 
@@ -1012,7 +1031,11 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	protected:
-		inline void check_multi_index(const MultiIndex<dim>& ind) const
+		inline static void check_index(size_t i)
+		{
+			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+		}
+		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
@@ -1242,15 +1265,14 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		//	add dofs of top z-layer
 			res += ind[1] * (p+1-ind[2]) + ind[0];
 
-			UG_ASSERT(res < nsh, "Wrong index computation. Internal error.");
-
+			check_index(res);
 			return res;
 		}
 
 	///	return the multi_index for an index
 		inline MultiIndex<dim> multi_index(size_t i) const
 		{
-			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+			check_index(i);
 
 		//	get z layer
 			int iTmp = i;
@@ -1304,7 +1326,11 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	protected:
-		inline void check_multi_index(const MultiIndex<dim>& ind) const
+		inline static void check_index(size_t i)
+		{
+			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+		}
+		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p-ind[2] && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p-ind[2] && ind[1] >= 0, "Wrong Multiindex.");
@@ -1479,7 +1505,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	///	return the multi_index for an index
 		inline MultiIndex<dim> multi_index(size_t i) const
 		{
-			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+			check_index(i);
 
 			return MultiIndex<dim>( i%(p+1), i/(p+1)%(p+1), i/((p+1)*(p+1)));
 		}
@@ -1511,7 +1537,11 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	protected:
-		inline void check_multi_index(const MultiIndex<dim>& ind) const
+		inline static void check_index(size_t i)
+		{
+			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
+		}
+		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p && ind[1] >= 0, "Wrong Multiindex.");
