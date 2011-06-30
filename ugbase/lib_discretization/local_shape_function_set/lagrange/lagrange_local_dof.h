@@ -38,19 +38,13 @@ class LagrangeLDP<ReferenceEdge, TOrder>
 	///	constructor
 		LagrangeLDP()
 		{
-			for(size_t sh = 0; sh < nsh; ++sh)
-			{
-				typename LSFS::multi_index_type m = LSFS::multi_index(sh);
+		//	on vertex
+			m_vLocalDoF[0] = LocalDoF(0, 1, 0);
+			m_vLocalDoF[nsh-1] = LocalDoF(0, 0, 0);
 
-			//	on vertex
-				if(m[0] == 0)
-					m_vLocalDoF[sh] = LocalDoF(0, 1, 0);
-				if(m[0] == nsh-1)
-					m_vLocalDoF[sh] = LocalDoF(0, 0, 0);
-			//	on edge
-				else
-					m_vLocalDoF[sh] = LocalDoF(1, 0, sh-1);
-			}
+		//	on edge
+			for(size_t sh = 1; sh < nsh-1; ++sh)
+				m_vLocalDoF[sh] = LocalDoF(1, 0, sh-1);
 		}
 
 	///	returns the total number of DoFs on the finite element
