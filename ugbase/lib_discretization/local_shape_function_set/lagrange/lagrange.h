@@ -101,16 +101,20 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		grad_type grad(size_t i, const position_type& x) const
 		{
-			grad_type tmpGrad;
-			eval_grad(tmpGrad, i, x);
-			return tmpGrad;
+			grad_type tmpGrad; grad(tmpGrad, i, x); return tmpGrad;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const
 		{
 			for(size_t sh = 0; sh < num_sh(); ++sh)
-				eval_grad(gOut[sh], sh, x);
+				grad(gOut[sh], sh, x);
+		}
+
+	///	evaluates the gradient
+		void grad(grad_type& g, size_t i, const position_type& x) const
+		{
+			g[0] = m_vDPolynom[i].value(x[0]);
 		}
 
 	///	return Multi index for index i
@@ -149,19 +153,16 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 			else return 0;
 		}
 
-	protected:
+	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 		}
+
+	///	checks in debug mode that multi-index is valid
 		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] < nsh, "ind[0] must be smaller than Number of DoFs.");
-		}
-
-		void eval_grad(grad_type& grad, size_t i, const position_type& x) const
-		{
-			grad[0] = m_vDPolynom[i].value(x[0]);
 		}
 
 	protected:
@@ -266,25 +267,60 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		grad_type grad(size_t i, const position_type& x) const
 		{
-			grad_type tmpGrad;
-			eval_grad(tmpGrad, i, x);
-			return tmpGrad;
+			grad_type tmpGrad; grad(tmpGrad, i, x); return tmpGrad;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const
 		{
 			for(size_t sh = 0; sh < num_sh(); ++sh)
-				eval_grad(gOut[sh], sh, x);
+				grad(gOut[sh], sh, x);
 		}
 
+	///	evaluates the gradient
+		void grad(grad_type& g, const size_t i,	const position_type& x) const
+		{
+			return grad(g, multi_index(i), x);
+		}
+
+	///	evaluates the gradient
+		void grad(grad_type& g, const MultiIndex<dim> ind,
+		               	   	   	   	   	   const position_type& x) const
+		{
+			check_multi_index(ind);
+			ReferenceTriangle::check_position(x);
+
+		//	get adjoint barycentric index and position
+			const size_t i0 = p - ind[0] - ind[1];
+			const number x0 = 1.0 - x[0] - x[1];
+
+			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
+			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+
+		//	loop dimensions
+			for(int d = 0; d < dim; ++d)
+			{
+				g[d] = m_vDPolynom[ind[d]].value(x[d])
+						* m_vPolynom[i0].value(x0);
+				g[d] += (-1) * m_vDPolynom[i0].value(x0)
+						   * m_vPolynom[ind[d]].value(x[d]);
+
+			//	multiply by all functions not depending on x[d]
+				for(int d2 = 0; d2 < dim; ++d2)
+				{
+				// 	skip own value
+					if(d2 == d) continue;
+
+					g[d] *= m_vPolynom[ind[d2]].value(x[d2]);
+				}
+			}
+		}
 
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
-		//	todo: Replace loop by explicit formula
 			size_t res = ind[0];
 			for(size_t i = 0; i < ind[1]; ++i)
 				res += (p+1-i);
@@ -298,9 +334,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		{
 			check_index(i);
 
-		//	todo: replace by explicit formula (iff possible)
-			int i0 = i;
-			int i1;
+			int i0 = i, i1;
 			for(i1 = 0; i1 < (int)p; ++i1)
 			{
 				const int diff = i0 - (p+1-i1);
@@ -310,7 +344,6 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 
 			UG_ASSERT(i0 >= 0, "i0 is negative ("<<i0<<")");
 			UG_ASSERT(i1 >= 0, "i1 is negative ("<<i1<<")");
-
 			return MultiIndex<dim>( i0, i1 );
 		}
 
@@ -339,54 +372,18 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			else return 0;
 		}
 
-	protected:
+	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 		}
+
+	///	checks in debug mode that multi-index is valid
 		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[0] + ind[1] <= p, "Wrong Multiindex.");
-		}
-
-		void eval_grad(grad_type& grad, const size_t i,
-		               	   	   	   	   	   const position_type& x) const
-		{
-			return eval_grad(grad, multi_index(i), x);
-		}
-
-		void eval_grad(grad_type& grad, const MultiIndex<dim> ind,
-		               	   	   	   	   	   const position_type& x) const
-		{
-			check_multi_index(ind);
-			ReferenceTriangle::check_position(x);
-
-		//	get adjoint barycentric index and position
-			const size_t i0 = p - ind[0] - ind[1];
-			const number x0 = 1.0 - x[0] - x[1];
-
-			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
-
-		//	loop dimensions
-			for(int d = 0; d < dim; ++d)
-			{
-				grad[d] = m_vDPolynom[ind[d]].value(x[d])
-						* m_vPolynom[i0].value(x0);
-				grad[d] += (-1) * m_vDPolynom[i0].value(x0)
-						   * m_vPolynom[ind[d]].value(x[d]);
-
-			//	multiply by all functions not depending on x[d]
-				for(int d2 = 0; d2 < dim; ++d2)
-				{
-				// 	skip own value
-					if(d2 == d) continue;
-
-					grad[d] *= m_vPolynom[ind[d2]].value(x[d2]);
-				}
-			}
 		}
 
 	private:
@@ -486,18 +483,44 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		grad_type grad(size_t i, const position_type& x) const
 		{
-			grad_type tmpGrad;
-			eval_grad(tmpGrad, i, x);
-			return tmpGrad;
+			grad_type tmpGrad; grad(tmpGrad, i, x); return tmpGrad;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const
 		{
 			for(size_t sh = 0; sh < num_sh(); ++sh)
-				eval_grad(gOut[sh], sh, x);
+				grad(gOut[sh], sh, x);
 		}
 
+	/// evaluates the gradient
+		void grad(grad_type& g, const size_t i, const position_type& x) const
+		{
+			return grad(g, multi_index(i), x);
+		}
+
+	/// evaluates the gradient
+		void grad(grad_type& g, const MultiIndex<dim> ind,
+		               	   	   	const position_type& x) const
+		{
+			check_multi_index(ind);
+			ReferenceQuadrilateral::check_position(x);
+
+		//	loop dimensions
+			for(int d = 0; d < dim; ++d)
+			{
+				g[d] = m_vDPolynom[ind[d]].value(x[d]);
+
+			//	multiply by all functions not depending on x[d]
+				for(int d2 = 0; d2 < dim; ++d2)
+				{
+				// 	skip own value
+					if(d2 == d) continue;
+
+					g[d] *= m_vPolynom[ind[d2]].value(x[d2]);
+				}
+			}
+		}
 
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
@@ -539,43 +562,17 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 			else return 0;
 		}
 
-	protected:
+	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 		}
+
+	///	checks in debug mode that multi-index is valid
 		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p && ind[1] >= 0, "Wrong Multiindex.");
-		}
-
-		void eval_grad(grad_type& grad, const size_t i,
-		               	   	   	   	    const position_type& x) const
-		{
-			return eval_grad(grad, multi_index(i), x);
-		}
-
-		void eval_grad(grad_type& grad, const MultiIndex<dim> ind,
-		               	   	   	   	   	   const position_type& x) const
-		{
-			check_multi_index(ind);
-			ReferenceQuadrilateral::check_position(x);
-
-		//	loop dimensions
-			for(int d = 0; d < dim; ++d)
-			{
-				grad[d] = m_vDPolynom[ind[d]].value(x[d]);
-
-			//	multiply by all functions not depending on x[d]
-				for(int d2 = 0; d2 < dim; ++d2)
-				{
-				// 	skip own value
-					if(d2 == d) continue;
-
-					grad[d] *= m_vPolynom[ind[d2]].value(x[d2]);
-				}
-			}
 		}
 
 	private:
@@ -681,25 +678,60 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		grad_type grad(size_t i, const position_type& x) const
 		{
-			grad_type tmpGrad;
-			eval_grad(tmpGrad, i, x);
-			return tmpGrad;
+			grad_type tmpGrad; grad(tmpGrad, i, x); return tmpGrad;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const
 		{
 			for(size_t sh = 0; sh < num_sh(); ++sh)
-				eval_grad(gOut[sh], sh, x);
+				grad(gOut[sh], sh, x);
 		}
 
+	///	evaluates the gradient
+		void grad(grad_type& g, const size_t i, const position_type& x) const
+		{
+			return grad(g, multi_index(i), x);
+		}
+
+	///	evaluates the gradient
+		void grad(grad_type& g, const MultiIndex<dim> ind,
+		               	   	   	   	    const position_type& x) const
+		{
+			check_multi_index(ind);
+			ReferenceTetrahedron::check_position(x);
+
+		//	get adjoint barycentric index and position
+			const size_t i0 = p - ind[0] - ind[1] - ind[2];
+			const number x0 = 1 - x[0] - x[1] - x[2];
+
+			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
+			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+
+		//	loop dimensions
+			for(int d = 0; d < dim; ++d)
+			{
+				g[d] = m_vDPolynom[ind[d]].value(x[d])
+						* m_vPolynom[i0].value(x0);
+				g[d] += (-1) * m_vDPolynom[i0].value(x0)
+						   * m_vPolynom[ind[d]].value(x[d]);
+
+			//	multiply by all functions not depending on x[d]
+				for(int d2 = 0; d2 < dim; ++d2)
+				{
+				// 	skip own value
+					if(d2 == d) continue;
+
+					g[d] *= m_vPolynom[ind[d2]].value(x[d2]);
+				}
+			}
+		}
 
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
-		//	todo: Replace loop by explicit formula
 		//	add x range
 			size_t res = ind[0];
 
@@ -720,9 +752,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		{
 			check_index(i);
 
-		//	todo: replace by explicit formula (iff possible)
-			int i0 = i;
-			int i1 = 0, i2 = 0;
+			int i0 = i, i1 = 0, i2 = 0;
 			for(i2 = 0; i2 <= (int)p; ++i2)
 			{
 				const int binom = BinomCoeff(p+2-i2, p-i2);
@@ -786,55 +816,19 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 				else return 0;
 			}
 
-	protected:
+	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 		}
+
+	///	checks in debug mode that multi-index is valid
 		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[2] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[0] + ind[1] + ind[2] <= p, "Wrong Multiindex.");
-		}
-
-		void eval_grad(grad_type& grad, const size_t i,
-		               	   	   	   	    const position_type& x) const
-		{
-			return eval_grad(grad, multi_index(i), x);
-		}
-
-		void eval_grad(grad_type& grad, const MultiIndex<dim> ind,
-		               	   	   	   	   	   const position_type& x) const
-		{
-			check_multi_index(ind);
-			ReferenceTetrahedron::check_position(x);
-
-		//	get adjoint barycentric index and position
-			const size_t i0 = p - ind[0] - ind[1] - ind[2];
-			const number x0 = 1 - x[0] - x[1] - x[2];
-
-			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
-
-		//	loop dimensions
-			for(int d = 0; d < dim; ++d)
-			{
-				grad[d] = m_vDPolynom[ind[d]].value(x[d])
-						* m_vPolynom[i0].value(x0);
-				grad[d] += (-1) * m_vDPolynom[i0].value(x0)
-						   * m_vPolynom[ind[d]].value(x[d]);
-
-			//	multiply by all functions not depending on x[d]
-				for(int d2 = 0; d2 < dim; ++d2)
-				{
-				// 	skip own value
-					if(d2 == d) continue;
-
-					grad[d] *= m_vPolynom[ind[d2]].value(x[d2]);
-				}
-			}
 		}
 
 	private:
@@ -952,18 +946,63 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		grad_type grad(size_t i, const position_type& x) const
 		{
-			grad_type tmpGrad;
-			eval_grad(tmpGrad, i, x);
-			return tmpGrad;
+			grad_type tmpGrad; grad(tmpGrad, i, x); return tmpGrad;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const
 		{
 			for(size_t sh = 0; sh < num_sh(); ++sh)
-				eval_grad(gOut[sh], sh, x);
+				grad(gOut[sh], sh, x);
 		}
 
+	///	evaluates the gradient
+		void grad(grad_type& g, const size_t i, const position_type& x) const
+		{
+			return grad(g, multi_index(i), x);
+		}
+
+	///	evaluates the gradient
+		void grad(grad_type& g, const MultiIndex<dim> ind,
+		               	   	   	   	   	const position_type& x) const
+		{
+			check_multi_index(ind);
+			ReferencePrism::check_position(x);
+
+		//	get adjoint barycentric index and position
+			const size_t i0 = p - ind[0] - ind[1];
+			const number x0 = 1 - x[0] - x[1];
+
+			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
+			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+
+		//	x-y gradient
+			for(size_t d = 0; d < 2; ++d)
+			{
+				g[d] = m_vDTruncPolynom[ind[d]].value(x[d])
+						* m_vTruncPolynom[i0].value(x0);
+				g[d] += (-1) * m_vDTruncPolynom[i0].value(x0)
+						   * m_vTruncPolynom[ind[d]].value(x[d]);
+
+			//	multiply by all functions not depending on x[d]
+				for(size_t d2 = 0; d2 < 2; ++d2)
+				{
+				// 	skip own value
+					if(d2 == d) continue;
+
+					g[d] *= m_vTruncPolynom[ind[d2]].value(x[d2]);
+				}
+
+			//	multiply by z coordinate
+				g[d] *= m_vPolynom[ind[2]].value(x[2]);
+			}
+
+		//	z gradient
+			g[2] = m_vDPolynom[ind[2]].value(x[2]);
+			g[2] *=   m_vTruncPolynom[ ind[0] ].value(x[0])
+					   * m_vTruncPolynom[ ind[1] ].value(x[1])
+					   * m_vTruncPolynom[   i0   ].value( x0 );
+		}
 
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
@@ -987,8 +1026,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 
 			const size_t i2 = i / dofPerLayer;
 
-			int i0 = i - i2*dofPerLayer;
-			int i1;
+			int i0 = i - i2*dofPerLayer, i1;
 			for(i1 = 0; i1 < (int)p; ++i1)
 			{
 				const int diff = i0 - (p+1-i1);
@@ -1037,64 +1075,19 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 			else return 0;
 		}
 
-	protected:
+	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 		}
+
+	///	checks in debug mode that multi-index is valid
 		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[0] + ind[1] <= p, "Wrong Multiindex.");
 			UG_ASSERT(ind[2] <= p && ind[2] >= 0, "Wrong Multiindex.");
-		}
-
-		void eval_grad(grad_type& grad, const size_t i,
-		               	   	   	   	    const position_type& x) const
-		{
-			return eval_grad(grad, multi_index(i), x);
-		}
-
-		void eval_grad(grad_type& grad, const MultiIndex<dim> ind,
-		               	   	   	   	   	   const position_type& x) const
-		{
-			check_multi_index(ind);
-			ReferencePrism::check_position(x);
-
-		//	get adjoint barycentric index and position
-			const size_t i0 = p - ind[0] - ind[1];
-			const number x0 = 1 - x[0] - x[1];
-
-			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
-
-		//	x-y gradient
-			for(size_t d = 0; d < 2; ++d)
-			{
-				grad[d] = m_vDTruncPolynom[ind[d]].value(x[d])
-						* m_vTruncPolynom[i0].value(x0);
-				grad[d] += (-1) * m_vDTruncPolynom[i0].value(x0)
-						   * m_vTruncPolynom[ind[d]].value(x[d]);
-
-			//	multiply by all functions not depending on x[d]
-				for(size_t d2 = 0; d2 < 2; ++d2)
-				{
-				// 	skip own value
-					if(d2 == d) continue;
-
-					grad[d] *= m_vTruncPolynom[ind[d2]].value(x[d2]);
-				}
-
-			//	multiply by z coordinate
-				grad[d] *= m_vPolynom[ind[2]].value(x[2]);
-			}
-
-		//	z gradient
-			grad[2] = m_vDPolynom[ind[2]].value(x[2]);
-			grad[2] *=   m_vTruncPolynom[ ind[0] ].value(x[0])
-					   * m_vTruncPolynom[ ind[1] ].value(x[1])
-					   * m_vTruncPolynom[   i0   ].value( x0 );
 		}
 
 	private:
@@ -1247,18 +1240,64 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		grad_type grad(size_t i, const position_type& x) const
 		{
-			grad_type tmpGrad;
-			eval_grad(tmpGrad, i, x);
-			return tmpGrad;
+			grad_type tmpGrad; grad(tmpGrad, i, x); return tmpGrad;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const
 		{
 			for(size_t sh = 0; sh < num_sh(); ++sh)
-				eval_grad(gOut[sh], sh, x);
+				grad(gOut[sh], sh, x);
 		}
 
+	///	evaluates the gradient
+		void grad(grad_type& g, const size_t i, const position_type& x) const
+		{
+			return grad(g, multi_index(i), x);
+		}
+
+	///	evaluates the gradient
+		void grad(grad_type& g, const MultiIndex<dim> ind,
+		               	   	   	   	   	   const position_type& x) const
+		{
+			check_multi_index(ind);
+			ReferencePyramid::check_position(x);
+
+		//	loop x,y
+			if(ind[2] == 0)
+			{
+				for(int d = 0; d < 2; ++d)
+				{
+					g[d] = m_vvDPolynom[ 0 ][ ind[d] ].value(x[d]);
+
+				//	multiply by all functions not depending on x[d]
+					for(int d2 = 0; d2 < 2; ++d2)
+					{
+					// 	skip own value
+						if(d2 == d) continue;
+
+						g[d] *= m_vvPolynom[ 0 ][ ind[d2] ].value(x[d2]);
+					}
+
+				//	multiply by z factor
+					//grad[d] *= m_vvPolynom[ 0 ][ ind[2] ].value(x[2]);
+				}
+
+				if(ind[2] == 0 && ind[0]==0 && ind[1] == 0)
+					g[2] = - m_vvDPolynom[ 0 ][ 1 ].value(x[2]);
+				else
+					g[2] = 0.0;
+			}
+			else
+			{
+				g[0] = 0.0; g[1] = 0.0; g[2] = 1.0; return;
+			}
+		//	do z
+/*			for(int d2 = 0; d2 < 2; ++d2)
+			{
+				grad[2] *= m_vvPolynom[ ind[2] ][ ind[d2] ].value(x[d2]);
+			}
+*/		}
 
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
@@ -1334,65 +1373,19 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			else return 0;
 		}
 
-	protected:
+	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 		}
+
+	///	checks in debug mode that multi-index is valid
 		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p-ind[2] && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p-ind[2] && ind[1] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[2] <= p && ind[2] >= 0, "Wrong Multiindex.");
 		}
-
-		void eval_grad(grad_type& grad, const size_t i,
-		               	   	   	   	    const position_type& x) const
-		{
-			return eval_grad(grad, multi_index(i), x);
-		}
-
-		void eval_grad(grad_type& grad, const MultiIndex<dim> ind,
-		               	   	   	   	   	   const position_type& x) const
-		{
-			check_multi_index(ind);
-			ReferencePyramid::check_position(x);
-
-		//	loop x,y
-			if(ind[2] == 0)
-			{
-				for(int d = 0; d < 2; ++d)
-				{
-					grad[d] = m_vvDPolynom[ 0 ][ ind[d] ].value(x[d]);
-
-				//	multiply by all functions not depending on x[d]
-					for(int d2 = 0; d2 < 2; ++d2)
-					{
-					// 	skip own value
-						if(d2 == d) continue;
-
-						grad[d] *= m_vvPolynom[ 0 ][ ind[d2] ].value(x[d2]);
-					}
-
-				//	multiply by z factor
-					//grad[d] *= m_vvPolynom[ 0 ][ ind[2] ].value(x[2]);
-				}
-
-				if(ind[2] == 0 && ind[0]==0 && ind[1] == 0)
-					grad[2] = - m_vvDPolynom[ 0 ][ 1 ].value(x[2]);
-				else
-					grad[2] = 0.0;
-			}
-			else
-			{
-				grad[0] = 0.0; grad[1] = 0.0; grad[2] = 1.0; return;
-			}
-		//	do z
-/*			for(int d2 = 0; d2 < 2; ++d2)
-			{
-				grad[2] *= m_vvPolynom[ ind[2] ][ ind[d2] ].value(x[d2]);
-			}
-*/		}
 
 	private:
 		std::vector<std::vector<Polynomial1D> > m_vvPolynom;
@@ -1492,18 +1485,44 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		grad_type grad(size_t i, const position_type& x) const
 		{
-			grad_type tmpGrad;
-			eval_grad(tmpGrad, i, x);
-			return tmpGrad;
+			grad_type tmpGrad; grad(tmpGrad, i, x); return tmpGrad;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const
 		{
 			for(size_t sh = 0; sh < num_sh(); ++sh)
-				eval_grad(gOut[sh], sh, x);
+				grad(gOut[sh], sh, x);
 		}
 
+	///	evaluates the gradient
+		void grad(grad_type& g, const size_t i, const position_type& x) const
+		{
+			return grad(g, multi_index(i), x);
+		}
+
+	///	evaluates the gradient
+		void grad(grad_type& g, const MultiIndex<dim> ind,
+		          	  	  	  	const position_type& x) const
+		{
+			check_multi_index(ind);
+			ReferenceHexahedron::check_position(x);
+
+		//	loop dimensions
+			for(int d = 0; d < dim; ++d)
+			{
+				g[d] = m_vDPolynom[ind[d]].value(x[d]);
+
+			//	multiply by all functions not depending on x[d]
+				for(int d2 = 0; d2 < dim; ++d2)
+				{
+				// 	skip own value
+					if(d2 == d) continue;
+
+					g[d] *= m_vPolynom[ind[d2]].value(x[d2]);
+				}
+			}
+		}
 
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
@@ -1547,44 +1566,18 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 			else return 0;
 		}
 
-	protected:
+	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
 			UG_ASSERT(i < nsh, "i must be smaller than Number of DoFs.");
 		}
+
+	///	checks in debug mode that multi-index is valid
 		inline static void check_multi_index(const MultiIndex<dim>& ind)
 		{
 			UG_ASSERT(ind[0] <= p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= p && ind[1] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[2] <= p && ind[2] >= 0, "Wrong Multiindex.");
-		}
-
-		void eval_grad(grad_type& grad, const size_t i,
-		               	   	   	   	    const position_type& x) const
-		{
-			return eval_grad(grad, multi_index(i), x);
-		}
-
-		void eval_grad(grad_type& grad, const MultiIndex<dim> ind,
-		               	   	   	   	   	   const position_type& x) const
-		{
-			check_multi_index(ind);
-			ReferenceHexahedron::check_position(x);
-
-		//	loop dimensions
-			for(int d = 0; d < dim; ++d)
-			{
-				grad[d] = m_vDPolynom[ind[d]].value(x[d]);
-
-			//	multiply by all functions not depending on x[d]
-				for(int d2 = 0; d2 < dim; ++d2)
-				{
-				// 	skip own value
-					if(d2 == d) continue;
-
-					grad[d] *= m_vPolynom[ind[d2]].value(x[d2]);
-				}
-			}
 		}
 
 	private:
