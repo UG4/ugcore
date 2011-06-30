@@ -43,6 +43,19 @@ class MultiIndex
 			return m_indices[i];
 		}
 
+		///	comparison operator
+		bool operator==(const MultiIndex& o) const
+		{
+			for(size_t i=0; i < N; ++i)
+				if(m_indices[i] != o[i]) return false;
+			return true;
+		}
+
+		bool operator!=(const MultiIndex& o) const
+		{
+			return !(*this==o);
+		}
+
 	private:
 		single_index_type m_indices[N];
 };
@@ -78,6 +91,17 @@ class MultiIndex<1, size_t>
 		{
 			UG_ASSERT(i == 0, "Index invalid");
 			return m_indices;
+		}
+
+		///	comparison operator
+		bool operator==(const MultiIndex& o) const
+		{
+			return m_indices == o[0];
+		}
+
+		bool operator!=(const MultiIndex& o) const
+		{
+			return !(*this==o);
 		}
 
 	private:
@@ -116,6 +140,18 @@ class MultiIndex<2, size_t>
 			UG_ASSERT(i < 2, "Index invalid");
 			return m_indices[i];
 		}
+
+		///	comparison operator
+		bool operator==(const MultiIndex& o) const
+		{
+			return (m_indices[0] == o[0]) && (m_indices[1] == o[1]);
+		}
+
+		bool operator!=(const MultiIndex& o) const
+		{
+			return !(*this==o);
+		}
+
 
 	private:
 		union
@@ -159,6 +195,19 @@ class MultiIndex<3, size_t>
 		{
 			UG_ASSERT(i < 3, "Index invalid");
 			return m_indices[i];
+		}
+
+		///	comparison operator
+		bool operator==(const MultiIndex& o) const
+		{
+			return 	(m_indices[0] == o[0]) &&
+					(m_indices[1] == o[1]) &&
+					(m_indices[2] == o[2]);
+		}
+
+		bool operator!=(const MultiIndex& o) const
+		{
+			return !(*this==o);
 		}
 
 	private:
