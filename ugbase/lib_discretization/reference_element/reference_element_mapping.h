@@ -20,30 +20,33 @@ template <typename TRefElem, int TWorldDim>
 class ReferenceMapping
 {
 	public:
-		static const int world_dim = TWorldDim;
+	///	world dimension (range space dimension)
+		static const int worldDim = TWorldDim;
+
+	///	reference dimension (domain space dimension)
 		static const int dim = TRefElem::dim;
 
 	public:
-		ReferenceMapping()
-		{}
+	///	Constructor
+		ReferenceMapping() {}
 
-		void update(const MathVector<world_dim>* corners)
-		{}
+	///	refresh mapping for new set of corners
+		void update(const MathVector<worldDim>* corners) {}
 
-		bool local_to_global(	const MathVector<dim> loc_pos,
-								MathVector<world_dim>& glob_pos) const
-		{return false;}
+	///	map local coordinate to global coordinate
+		void local_to_global(	const MathVector<dim> locPos,
+								MathVector<worldDim>& globPos) const {}
 
-		bool jacobian_transposed(	const MathVector<dim> loc_pos,
-									MathMatrix<dim, world_dim>& JT) const
-		{return false;}
+	///	returns transposed of jacobian
+		void jacobian_transposed(	const MathVector<dim> locPos,
+									MathMatrix<dim, worldDim>& JT) const {}
 
-		bool jacobian_transposed_inverse(	const MathVector<dim> loc_pos,
-											MathMatrix<world_dim, dim>& JTInv) const
-		{return false;}
+	///	returns transposed of the inverse of the jacobian
+		void jacobian_transposed_inverse(	const MathVector<dim> locPos,
+											MathMatrix<worldDim, dim>& JTInv) const {}
 
-		bool jacobian_det(const MathVector<dim> loc_pos, number& det) const
-		{return false;}
+	///	returns the determinate of the jacobian
+		number jacobian_det(const MathVector<dim> locPos) const {return 0.0;}
 };
 
 

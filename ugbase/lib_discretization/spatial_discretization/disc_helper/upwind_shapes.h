@@ -61,7 +61,7 @@ bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 */
 template <typename TFVGeometry>
 bool GetNoUpwindShapes(	const TFVGeometry& geo,
-                       	const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
+                       	const MathVector<TFVGeometry::worldDim> vCornerVels[TFVGeometry::m_numSCV],
                        	number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
                        	number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
                        	number ConvectionLength[TFVGeometry::m_numSCV])
@@ -87,13 +87,13 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 
 template <typename TFVGeometry>
 bool GetFullUpwindShapes(	const TFVGeometry& geo,
-                         	const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
+                         	const MathVector<TFVGeometry::worldDim> vCornerVels[TFVGeometry::m_numSCV],
                          	number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
                          	number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
                          	number ConvectionLength[TFVGeometry::m_numSCV])
 {
    	static const size_t numCo = TFVGeometry::m_numSCV;
-	static const size_t dim   = TFVGeometry::world_dim;
+	static const size_t dim   = TFVGeometry::worldDim;
     MathVector<dim> dist;
     MathVector<dim> vIPVelCurrent;
 
@@ -145,7 +145,7 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
 }
 /*
 template <typename TSCVF>
-bool GetSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::world_dim>& IPVel, number* shape)
+bool GetSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::worldDim>& IPVel, number* shape)
 {
 	// reset shapes to zero
 	for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
@@ -155,13 +155,13 @@ bool GetSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::world_dim>
 	typename TSCVF::geometry_type& geo = scvf.geometry();
 
 	// corners of geometry
-	const MathVector<TSCVF::world_dim>* vCornerCoords = geo.corners();
+	const MathVector<TSCVF::worldDim>* vCornerCoords = geo.corners();
 
 	// upwind corner
 	size_t co = 0;
 
 	// find upwind node
-	if(!GetNodeNextToCut<typename TSCVF::ref_elem_type, TSCVF::world_dim>(co, scvf.global_ip(0), IPVel, vCornerCoords))
+	if(!GetNodeNextToCut<typename TSCVF::ref_elem_type, TSCVF::worldDim>(co, scvf.global_ip(0), IPVel, vCornerCoords))
 	{
 		UG_LOG("ERROR in GetSkewedUpwindShapes: Cannot find upwind node.\n");
 		return false;
@@ -175,7 +175,7 @@ bool GetSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::world_dim>
 
 // Linear Profile Skewed Upwind
 template <typename TSCVF>
-bool GetLinearProfileSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::world_dim>& IPVel, number* shape)
+bool GetLinearProfileSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::worldDim>& IPVel, number* shape)
 {
 	// reset shapes to zero
 	for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
@@ -185,18 +185,18 @@ bool GetLinearProfileSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCV
 	typename TSCVF::geometry_type& geo = scvf.geometry();
 
 	// corners of geometry
-	const MathVector<TSCVF::world_dim>* vCornerCoords = geo.corners();
+	const MathVector<TSCVF::worldDim>* vCornerCoords = geo.corners();
 
 	// reference dimension
 	const int dim = TSCVF::dim;
 
 	// side and intersection vectors
 	size_t side;
-	MathVector<TSCVF::world_dim> globalIntersection;
+	MathVector<TSCVF::worldDim> globalIntersection;
 	MathVector<dim> localIntersection;
 
 	// find local intersection and side
-	if(!ElementSideRayIntersection<TSCVF::ref_elem_type, TSCVF::world_dim>
+	if(!ElementSideRayIntersection<TSCVF::ref_elem_type, TSCVF::worldDim>
 		(	side, globalIntersection, localIntersection,*/
 //			scvf.global_ip(0), IPVel, false /* search upwind */, vCornerCoords))
 /*	{

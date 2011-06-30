@@ -555,7 +555,7 @@ bool CreateGridOfSubControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPo
 		if(!ConstructGridOfSCV<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
 			{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
 	}
-	// if no subset selected, construct dual grid for all subsets with dim == world_dim
+	// if no subset selected, construct dual grid for all subsets with dim == worldDim
 	else
 	{
 		for(si = 0; si < sh.num_subsets(); ++si)
@@ -610,7 +610,7 @@ bool CreateGridOfControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPosit
 		if(!ConstructGridOfSCV<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
 			{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
 	}
-	// if no subset selected, construct dual grid for all subsets with dim == world_dim
+	// if no subset selected, construct dual grid for all subsets with dim == worldDim
 	else
 	{
 		for(si = 0; si < sh.num_subsets(); ++si)
@@ -668,7 +668,7 @@ bool CreateGridOfSubControlVolumeFaces(SubsetHandler& shOut, SubsetHandler& sh, 
 		if(!ConstructGridOfSCVF<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
 			{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
 	}
-	// if no subset selected, construct dual grid for all subsets with dim == world_dim
+	// if no subset selected, construct dual grid for all subsets with dim == worldDim
 	else
 	{
 		for(si = 0; si < sh.num_subsets(); ++si)

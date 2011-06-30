@@ -30,7 +30,7 @@ class FEGeometry
 		static const int dim = ref_elem_type::dim;
 
 	/// world dimension
-		static const int world_dim = TWorldDim;
+		static const int worldDim = TWorldDim;
 
 	///	type of trial space
 		typedef TTrialSpace<ref_elem_type, TOrderTrialSpace> trial_space_type;
@@ -72,7 +72,7 @@ class FEGeometry
 		const MathVector<dim>& ip_local(size_t ip) const {return m_rQuadRule.point(ip);}
 
 	/// global integration point
-		const MathVector<world_dim>& ip_global(size_t ip) const
+		const MathVector<worldDim>& ip_global(size_t ip) const
 		{
 			UG_ASSERT(ip < m_vIPGlobal.size(), "Wrong ip.");
 			return m_vIPGlobal[ip];
@@ -82,7 +82,7 @@ class FEGeometry
 		const MathVector<dim>* local_ips() const {return m_rQuadRule.points();}
 
 	/// global integration point
-		const MathVector<world_dim>* global_ips() const{return &m_vIPGlobal[0];}
+		const MathVector<worldDim>* global_ips() const{return &m_vIPGlobal[0];}
 
 		/// shape function at ip
 		number shape(size_t ip, size_t sh) const
@@ -99,14 +99,14 @@ class FEGeometry
 		}
 
 	/// global gradient at ip
-		const MathVector<world_dim>& grad_global(size_t ip, size_t sh) const
+		const MathVector<worldDim>& grad_global(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < nip, "Wrong index"); UG_ASSERT(sh < nsh, "Wrong index");
 			return m_vvGradGlobal[ip][sh];
 		}
 
 	/// update Geometry for corners
-		bool update(const MathVector<world_dim>* vCorner)
+		bool update(const MathVector<worldDim>* vCorner)
 		{
 		//	update the mapping for the new corners
 			m_mapping.update(vCorner);
@@ -115,34 +115,17 @@ class FEGeometry
 			for(size_t ip = 0; ip < nip; ++ip)
 			{
 			// 	compute transformation inverse and determinate at ip
-				if(!m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]))
-				{
-					UG_LOG("FE1Geometry:update(..): "
-							"Cannot compute jacobian transposed inverse.\n");
-					return false;
-				}
+				m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]);
 
 			//	compute determinant
-				if(!m_mapping.jacobian_det(m_vIPLocal[ip], m_detJ[ip]))
-				{
-					UG_LOG("FE1Geometry:update(..): "
-							"Cannot compute jacobian determinante.\n");
-					return false;
-				}
+				m_detJ[ip] = m_mapping.jacobian_det(m_vIPLocal[ip]);
 
 			//	compute global integration points
-				if(!m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]))
-				{
-					UG_LOG("FE1Geometry:update(..):"
-							" Cannot compute global ip pos.\n");
-					return false;
-				}
+				m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]);
 
 			// 	compute global gradients
 				for(size_t sh = 0; sh < nsh; ++sh)
-				{
 					MatVecMult(m_vvGradGlobal[ip][sh], m_JTInv[ip], m_vvGradLocal[ip][sh]);
-				}
 			}
 
 		//	we're done
@@ -157,13 +140,13 @@ class FEGeometry
 		const trial_space_type& m_rTrialSpace;
 
 	///	reference mapping
-		ReferenceMapping<ref_elem_type, world_dim> m_mapping;
+		ReferenceMapping<ref_elem_type, worldDim> m_mapping;
 
 	///	local integration points
 		MathVector<dim> m_vIPLocal[nip];
 
 	///	global integration points
-		MathVector<world_dim> m_vIPGlobal[nip];
+		MathVector<worldDim> m_vIPGlobal[nip];
 
 	///	shape functions evaluated at ip
 		number m_vvShape[nip][nsh];
@@ -172,10 +155,10 @@ class FEGeometry
 		MathVector<dim> m_vvGradLocal[nip][nsh];
 
 	///	local gradient evaluated at ip
-		MathVector<world_dim> m_vvGradGlobal[nip][nsh];
+		MathVector<worldDim> m_vvGradGlobal[nip][nsh];
 
 	///	jacobian of transformation at ip
-		MathMatrix<world_dim,dim> m_JTInv[nip];
+		MathMatrix<worldDim,dim> m_JTInv[nip];
 
 	///	determinate of transformation at ip
 		number m_detJ[nip];

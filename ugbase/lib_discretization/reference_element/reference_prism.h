@@ -98,23 +98,26 @@ template <int TWorldDim>
 class ReferenceMapping<ReferencePrism, TWorldDim>
 {
 	public:
-		static const int world_dim = TWorldDim;
+	///	world dimension
+		static const int worldDim = TWorldDim;
+
+	///	reference dimension
 		static const int dim = ReferencePrism::dim;
 
 	public:
-		ReferenceMapping() : m_corners(NULL)
+		ReferenceMapping() : m_vCo(NULL)
 		{}
 
-		void update(const MathVector<world_dim>* corners)
+		void update(const MathVector<worldDim>* corners)
 		{
-			m_corners = corners;
+			m_vCo = corners;
 		}
 
-		bool local_to_global(	const MathVector<dim>& local,
-								MathVector<world_dim>& global) const
+		void local_to_global(	const MathVector<dim>& local,
+								MathVector<worldDim>& global) const
 		{
 			number a,b, a0,a1,a2,a3,a4,a5;
-			const MathVector<world_dim>* x = m_corners;
+			const MathVector<worldDim>* x = m_vCo;
 
 			a = 1.0 - (local)[0] - (local)[1];
 			b = 1.0 - (local)[2];
@@ -133,14 +136,13 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 			(global)[2] =
 					a0*(x)[0][2]+a1*(x)[1][2]+a2*(x)[2][2]+a3*(x)[3][2]+
 					a4*(x)[4][2]+a5*(x)[5][2];
-			return true;
 		}
 
-		bool jacobian_transposed(	const MathVector<dim>& local,
-									MathMatrix<dim, world_dim>& JT) const
+		void jacobian_transposed(	const MathVector<dim>& local,
+									MathMatrix<dim, worldDim>& JT) const
 	   {
 	        number a0,a1,a2,b0,b1,b2;
-			const MathVector<world_dim>* x = m_corners;
+			const MathVector<worldDim>* x = m_vCo;
 	          a0 = (x)[0][0]-(x)[1][0]-(x)[3][0]+(x)[4][0];
 	          a1 = (x)[0][1]-(x)[1][1]-(x)[3][1]+(x)[4][1];
 	          a2 = (x)[0][2]-(x)[1][2]-(x)[3][2]+(x)[4][2];
@@ -156,41 +158,41 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 	          JT(2,0) = (x)[3][0]-(x)[0][0]+(local)[0]*a0+(local)[1]*b0;
 	          JT(2,1) = (x)[3][1]-(x)[0][1]+(local)[0]*a1+(local)[1]*b1;
 	          JT(2,2) = (x)[3][2]-(x)[0][2]+(local)[0]*a2+(local)[1]*b2;
-			return true;
 		}
 
-		bool jacobian_transposed_inverse(	const MathVector<dim>& loc_pos,
-											MathMatrix<world_dim, dim>& JTInv) const
+		void jacobian_transposed_inverse(	const MathVector<dim>& locPos,
+											MathMatrix<worldDim, dim>& JTInv) const
 		{
-			MathMatrix<dim, world_dim> JT;
+			MathMatrix<dim, worldDim> JT;
 
-			if(!jacobian_transposed(loc_pos, JT)) return false;
+			jacobian_transposed(locPos, JT);
 
 			// compute right inverse
 			RightInverse(JTInv, JT);
-
-			return true;
 		}
 
-		bool jacobian_det(const MathVector<dim>& loc_pos, number& det) const
+		number jacobian_det(const MathVector<dim>& locPos) const
 		{
-			MathMatrix<dim, world_dim> JT;
-			if(!jacobian_transposed(loc_pos, JT)) return false;
-			if((dim==3) && (world_dim==3))
+			MathMatrix<dim, worldDim> JT;
+			jacobian_transposed(locPos, JT);
+			if((dim==3) && (worldDim==3))
 			{
-				det = JT(0,0)*JT(1,1)*JT(2,2)
+				const number det
+				= JT(0,0)*JT(1,1)*JT(2,2)
 				+ JT(0,1)*JT(1,2)*JT(2,0)
 				+ JT(0,2)*JT(1,0)*JT(2,1)
 				- JT(0,0)*JT(1,2)*JT(2,1)
 				- JT(0,1)*JT(1,0)*JT(2,2)
 				- JT(0,2)*JT(1,1)*JT(2,0);
-				return true;
+				return det;
 			}
-			return false;
+
+			UG_ASSERT(0, "Not implemented");
+			return 0.0;
 		}
 
 	private:
-		const MathVector<world_dim>* m_corners;
+		const MathVector<worldDim>* m_vCo;
 };
 
 }

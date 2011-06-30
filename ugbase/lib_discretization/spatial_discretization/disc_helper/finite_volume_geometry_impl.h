@@ -157,7 +157,7 @@ FV1Geometry()
 template <typename TElem, int TWorldDim>
 bool
 FV1Geometry<TElem, TWorldDim>::
-update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords)
+update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCornerCoords)
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == elem) return true;
@@ -202,14 +202,14 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 			m_vSCVF[i].globalIP = m_gloMid[1][0];
 
 	// 	normal on scvf
-		if(ref_elem_type::dim == world_dim)
+		if(ref_elem_type::dim == worldDim)
 		{
-			NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
+			NormalOnSCVF<ref_elem_type, worldDim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
 		}
 		else
 		{
 			if(ref_elem_type::dim == 1)
-				NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, vCornerCoords);
+				NormalOnSCVF<ref_elem_type, worldDim>(m_vSCVF[i].Normal, vCornerCoords);
 			else
 				throw(UGError("Not Implemented"));
 		}
@@ -224,7 +224,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 	// 	compute volume of scv
 		if(m_vSCV[i].m_numCorners != 10)
 		{
-			m_vSCV[i].vol = ElementSize<scv_type, world_dim>(m_vSCV[i].m_vGloPos);
+			m_vSCV[i].vol = ElementSize<scv_type, worldDim>(m_vSCV[i].m_vGloPos);
 		}
 		else
 		{
@@ -241,10 +241,8 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
-		if(!m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv))
-			{UG_LOG("Cannot compute jacobian transposed.\n"); return false;}
-		if(!m_rMapping.jacobian_det(m_vSCVF[i].localIP, m_vSCVF[i].detj))
-			{UG_LOG("Cannot compute jacobian determinate.\n"); return false;}
+		m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv);
+		m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
 
 		for(size_t sh = 0 ; sh < num_scv(); ++sh)
 			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
@@ -365,7 +363,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 				AveragePositions(bf.globalIP, bf.m_vGloPos, SCVF::numCorners);
 
 			// 	normal on scvf
-				NormalOnSCVF<ref_elem_type, world_dim>(bf.Normal, bf.m_vGloPos);
+				NormalOnSCVF<ref_elem_type, worldDim>(bf.Normal, bf.m_vGloPos);
 
 			//	compute volume
 				bf.m_volume = VecTwoNorm(bf.Normal);
@@ -381,10 +379,8 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
 				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);
 
-				if(!m_rMapping.jacobian_transposed_inverse(bf.localIP, bf.JtInv))
-					{UG_LOG("Cannot compute jacobian transposed.\n"); return false;}
-				if(!m_rMapping.jacobian_det(bf.localIP, bf.detj))
-					{UG_LOG("Cannot compute jacobian determinate.\n"); return false;}
+				m_rMapping.jacobian_transposed_inverse(bf.localIP, bf.JtInv);
+				bf.detj = m_rMapping.jacobian_det(bf.localIP);
 
 				for(size_t sh = 0 ; sh < num_scv(); ++sh)
 					MatVecMult((bf.globalGrad)[sh], bf.JtInv, (bf.localGrad)[sh]);
@@ -509,7 +505,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<
 template <typename TElem, int TWorldDim>
 bool
 FV1ManifoldBoundary<TElem, TWorldDim>::
-update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords)
+update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCornerCoords)
 {
 	// 	If already update for this element, do nothing
 	if (m_pElem == elem) return true;
@@ -561,7 +557,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 		copy_global_corners(m_vBF[i]);
 
 	// 	compute volume of bf
-		m_vBF[i].vol = ElementSize<bf_type, world_dim>(m_vBF[i].m_vGloPos);
+		m_vBF[i].vol = ElementSize<bf_type, worldDim>(m_vBF[i].m_vGloPos);
 	}
 	
 	///////////////////////////

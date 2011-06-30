@@ -42,7 +42,7 @@ HFV1Geometry()
 template <typename TElem, int TWorldDim>
 bool
 HFV1Geometry<TElem, TWorldDim>::
-update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords)
+update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCornerCoords)
 {
 	// If already update for this element, do nothing
 	if(m_pElem == elem) return true;
@@ -166,7 +166,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 
 		// compute Nodes
 		MathVector<dim> locSideMid;
-		MathVector<world_dim> gloSideMid;
+		MathVector<worldDim> gloSideMid;
 		for(size_t i = 0; i < vFaces.size(); ++i)
 		{
 			///////////
@@ -257,7 +257,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 					const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
 
 					MathVector<dim> locSmallSideMid;
-					MathVector<world_dim> gloSmallSideMid;
+					MathVector<worldDim> gloSmallSideMid;
 
 					// mid point of hanging side
 					compute_side_midpoints(	cornerId, hangEdNodeId1, hangEdNodeId2,
@@ -354,7 +354,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
 
 		// normal
-		HangingNormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, &(m_vSCVF[i].m_vGloPos[0]));
+		HangingNormalOnSCVF<ref_elem_type, worldDim>(m_vSCVF[i].Normal, &(m_vSCVF[i].m_vGloPos[0]));
 
 		// TODO: In 3D check orientation
 		if(dim == 3)
@@ -362,7 +362,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 			const size_t from = m_vSCVF[i].m_from;
 			const size_t to = m_vSCVF[i].m_to;
 
-			MathVector<world_dim> diff;
+			MathVector<worldDim> diff;
 			VecSubtract(diff, m_gloMid[0][to], m_gloMid[0][from]);
 
 			if(VecDot(diff, m_vSCVF[i].Normal) < 0)
@@ -411,7 +411,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 				m_vSCV[i].m_vGloPos[2] = m_gloMid[dim][0];
 			}
 
-           m_vSCV[i].vol = ElementSize<typename SCV::scv_type, world_dim>(&(m_vSCV[i].m_vGloPos[0]));;
+           m_vSCV[i].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[i].m_vGloPos[0]));;
 		}
 	}
 
@@ -441,8 +441,8 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 			m_vSCV[2*i + 1].nodeId = to;
 			m_vSCV[2*i + 1].m_numCorners = 4;
 
-			m_vSCV[2*i + 0].vol = ElementSize<typename SCV::scv_type, world_dim>(&(m_vSCV[2*i + 0].m_vGloPos[0]));;
-			m_vSCV[2*i + 1].vol = ElementSize<typename SCV::scv_type, world_dim>(&(m_vSCV[2*i + 1].m_vGloPos[0]));;
+			m_vSCV[2*i + 0].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 0].m_vGloPos[0]));;
+			m_vSCV[2*i + 1].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 1].m_vGloPos[0]));;
 		}
 	}
 
@@ -453,10 +453,8 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
-		if(!m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv))
-			{UG_LOG("Cannot compute jacobian transposed.\n"); return false;}
-		if(!m_rMapping.jacobian_det(m_vSCVF[i].localIP, m_vSCVF[i].detj))
-			{UG_LOG("Cannot compute jacobian determinate.\n"); return false;}
+		m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv);
+		m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
 
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::

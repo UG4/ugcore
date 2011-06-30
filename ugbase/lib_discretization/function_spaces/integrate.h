@@ -106,12 +106,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 			position_type globIP;
 
 		//  map local dof position to global position
-			if(!mapping.local_to_global(locIP, globIP))
-			{
-				UG_LOG("ERROR in 'L2ErrorOnElem': Cannot compute"
-						" global dof position.\n");
-				return false;
-			}
+			mapping.local_to_global(locIP, globIP);
 
 		//	compute exact solution at integration point
 			number exactSolIP;
@@ -138,8 +133,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 			const number weightIP = rQuadRule.weight(ip);
 
 		//	get determinate of mapping
-			number det = 0.0;
-			mapping.jacobian_det(locIP, det);
+			const number det = mapping.jacobian_det(locIP);
 
 		//	add contribution of integration point
 			intValElem += diffVal * weightIP * det;

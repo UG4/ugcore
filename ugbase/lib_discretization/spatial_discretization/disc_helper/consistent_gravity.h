@@ -55,20 +55,12 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 
    	/* compute the local gravity at local corner (0,0) */
 		LocalPoint.x = 0.0; LocalPoint.y = 0.0;
-		if(!QuadMapping.jacobian_transposed(LocalPoint, JT))
-		{
-			UG_LOG("Cannot compute jacobian transposed.\n");
-			return false;
-		}
+		QuadMapping.jacobian_transposed(LocalPoint, JT);
 		MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 	/* compute the local gravity at local corner (1,1) */
 		LocalPoint.x = 1.0; LocalPoint.y = 1.0;
-   		if(!QuadMapping.jacobian_transposed(LocalPoint, JT))
-   		{
-   			UG_LOG("Cannot compute jacobian transposed.\n");
-   			return false;
-   		}
+   		QuadMapping.jacobian_transposed(LocalPoint, JT);
    		MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
 
 		vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
@@ -87,11 +79,7 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 
 		/* compute the local gravity at local corner (0,0) */
 		LocalPoint.x = 0.0; LocalPoint.y = 0.0;
-		if(!TriangleMapping.jacobian_transposed(LocalPoint, JT))
-		{
-			UG_LOG("Cannot compute jacobian transposed.\n");
-			return false;
-		}
+		TriangleMapping.jacobian_transposed(LocalPoint, JT);
 		MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 		vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
@@ -144,38 +132,22 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
 			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			if(!HexMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			HexMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,1,0) */
 			LocalPoint.x = 1.0; LocalPoint.y = 1.0; LocalPoint.z = 0.0;
-			if(!HexMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			HexMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,0,1) */
 			LocalPoint.x = 1.0; LocalPoint.y = 0.0; LocalPoint.z = 1.0;
-			if(!HexMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			HexMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt101, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (0,1,1) */
 			LocalPoint.x = 0.0; LocalPoint.y = 1.0; LocalPoint.z = 1.0;
-			if(!HexMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			HexMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt011, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
@@ -208,29 +180,17 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
 			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			if(!PrismMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			PrismMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,0,1) */
 			LocalPoint.x = 1.0; LocalPoint.y = 0.0; LocalPoint.z = 1.0;
-			if(!PrismMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			PrismMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt101, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (0,1,1) */
 			LocalPoint.x = 0.0; LocalPoint.y = 1.0; LocalPoint.z = 1.0;
-			if(!PrismMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			PrismMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt011, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
@@ -256,20 +216,12 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
  			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			if(!TetMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			TetMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,1,0) */
 			LocalPoint.x = 1.0; LocalPoint.y = 1.0; LocalPoint.z = 0.0;
-			if(!TetMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			TetMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0; vConsGravity[4][_X_] = 0.0;
@@ -292,11 +244,7 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
 			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			if(!TetMapping.jacobian_transposed(LocalPoint, JT))
-			{
-				UG_LOG("Cannot compute jacobian transposed.\n");
-				return false;
-			}
+			TetMapping.jacobian_transposed(LocalPoint, JT);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;

@@ -30,7 +30,7 @@ bool ComputeGradient(TFunction& u,
 	static const int dim = ref_elem_type::dim;
 
 //	get world dimension
-	static const int world_dim = TFunction::domain_type::dim;
+	static const int worldDim = TFunction::domain_type::dim;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
@@ -43,7 +43,7 @@ bool ComputeGradient(TFunction& u,
 				(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 //	create a reference mapping
-	ReferenceMapping<ref_elem_type, world_dim> mapping;
+	ReferenceMapping<ref_elem_type, worldDim> mapping;
 
 //	number of shape functions
 	size_t num_sh = (size_t)ref_elem_type::num_corners;
@@ -53,8 +53,8 @@ bool ComputeGradient(TFunction& u,
 
 //	some storage
 	std::vector<MathVector<dim> > localGrad(num_sh);
-	std::vector<MathVector<world_dim> > globalGrad(num_sh);
-	std::vector<MathVector<world_dim> > vCorner(num_sh);
+	std::vector<MathVector<worldDim> > globalGrad(num_sh);
+	std::vector<MathVector<worldDim> > vCorner(num_sh);
 	MathMatrix<dim, dim> JTInv;
 	number detJ;
 
@@ -83,21 +83,13 @@ bool ComputeGradient(TFunction& u,
 		mapping.update(&vCorner[0]);
 
 	//	compute jacobian
-		if(!mapping.jacobian_transposed_inverse(localIP, JTInv))
-		{
-			UG_LOG("Cannot compute jacobian transposed.\n");
-			return false;
-		}
+		mapping.jacobian_transposed_inverse(localIP, JTInv);
 
 	//	compute size (volume) of element
 		number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);
 
 	//	compute determinate
-		if(!mapping.jacobian_det(localIP, detJ))
-		{
-			UG_LOG("Cannot compute jacobian determinate.\n");
-			return false;
-		}
+		detJ = mapping.jacobian_det(localIP);
 
 	//	compute gradient at mid point by summing contributions of all shape fct
 		MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
