@@ -22,6 +22,7 @@ set(srcDiscretization	common/function_group.cpp
 						dof_manager/p1conform/p1conform.cpp
 
 						reference_element/reference_element.cpp
+			            reference_element/reference_element_init.cpp
 						
 						quadrature/gauss_quad/gauss_quad_edge.cpp
 						quadrature/gauss_quad/gauss_quad_triangle.cpp

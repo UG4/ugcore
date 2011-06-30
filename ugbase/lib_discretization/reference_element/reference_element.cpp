@@ -8,8 +8,64 @@
 #include "reference_element.h"
 
 
-// register elements at factory
 namespace ug{
+
+///////////////////////////////////////////////////////////////////////////////
+// Reference Element
+///////////////////////////////////////////////////////////////////////////////
+void ReferenceElement::print_info() const
+{
+	using namespace std;
+
+	string GeomObjects[4] ={"Corner", "Edge", "Face", "Volume"};
+
+	cout << "Reference Element Info: " << endl;
+	cout << "----------------------- " << endl;
+
+	cout << "Size: " << size() << endl;
+	cout << "Dimension where Reference Element lives: " << dimension() << endl;
+
+	for(int i = dimension(); i>=0 ;i--)
+		cout << "Number of " << GeomObjects[i] << "s: " << num_obj(i) << endl;
+
+	for(int dim_i = dimension(); dim_i>=0 ;dim_i--)
+	{
+		for(size_t i=0; i < num_obj(dim_i); i++)
+		{
+			cout << GeomObjects[dim_i] << " with id '" << i << "' contains the following GeomObjects:" << endl;
+			for(int dim_j=dim_i; dim_j>= 0; dim_j--)
+			{
+				cout << num_obj_of_obj(dim_i,i,dim_j) << " " << GeomObjects[dim_j] << "s with id: ";
+				for(size_t j=0; j< num_obj_of_obj(dim_i,i,dim_j); j++)
+				{
+					cout << id(dim_i,i,dim_j,j) << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
+}
+
+template <int d>
+void DimReferenceElement<d>::print_info() const
+{
+	using namespace std;
+
+	ReferenceElement::print_info();
+
+	cout << "corners:\n";
+	for(size_t i = 0; i< num_obj(0); i++)
+	{
+		cout << i << ":" << corner(i) << "\n";
+	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Reference Element Factory
+///////////////////////////////////////////////////////////////////////////////
+
+// register elements at factory
 std::vector<const ReferenceElement* > ReferenceElementFactory::m_vElem =
 	std::vector<const ReferenceElement* >();
 
@@ -105,4 +161,12 @@ return (registered_1 &&
 		registered_16);
 }
 
-};
+///////////////////////////////////////////////////////////////////////////////
+// Explicit instantiations
+///////////////////////////////////////////////////////////////////////////////
+template class DimReferenceElement<1>;
+template class DimReferenceElement<2>;
+template class DimReferenceElement<3>;
+
+}; // end namespace ug
+

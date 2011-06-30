@@ -8,168 +8,88 @@
 #ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TRIANGLE__
 #define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TRIANGLE__
 
-namespace ug{
+#include "common/math/ugmath.h"
+#include "lib_grid/grid/geometric_base_objects.h"
+#include "reference_element_mapping.h"
 
+namespace ug{
 
 class ReferenceTriangle{
 	public:
+	///	type of reference element
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
+
+	///	dimension of reference element
 		static const int dim = 2;
+
+	///	number of corners
 		static const int num_corners = 3;
+
+	///	number of eges
 		static const int num_edges = 3;
+
+	///	number of faces
 		static const int num_faces = 1;
+
+	///	number of volumes
 		static const int num_volumes = 0;
 
 	public:
-		ReferenceTriangle(){initializeArrays();}
+	///	Constructor filling the arrays
+		ReferenceTriangle();
 
-		/// reference object id
+	/// \copydoc ug::ReferenceElement::reference_object_id()
 		ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
-		/// Dimension where reference element lives
+	/// \copydoc ug::ReferenceElement::dimension()
 		int dimension() const {return dim;}
 
-		/// size of reference triangle
+	/// \copydoc ug::ReferenceElement::size()
 		number size() const	{return 0.5;}
 
-		/// number of objects of dim
-		size_t num_obj(int dim) const	{return m_num_obj[dim];}
+	/// \copydoc ug::ReferenceElement::num_obj()
+		size_t num_obj(int dim) const	{return m_vNum[dim];}
 
-		/// number of object of dim
+	/// \copydoc ug::ReferenceElement::num_obj_of_obj()
 		size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const
-			{return m_num_obj_of_obj[dim_i][i][dim_j];}
+			{return m_vSubNum[dim_i][i][dim_j];}
 
-		/// id of object j in dimension dim_j of obj i in dimension dim_i
+	/// \copydoc ug::ReferenceElement::id()
 		int id(int dim_i, size_t i, int dim_j, size_t j) const
 			{return m_id[dim_i][i][dim_j][j];}
 
-		/// number of reference elements this element is contained of
-		size_t num_ref_elem(ReferenceObjectID type) const {return m_ref_elem[type];}
+	/// \copydoc ug::ReferenceElement::num_ref_elem()
+		size_t num_ref_elem(ReferenceObjectID type) const {return m_vNumRefElem[type];}
 
-		/// reference element type of obj nr i in dimension dim_i */
-		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_ref_elem_type[dim_i][i];}
+	/// \copydoc ug::ReferenceElement::ref_elem_type()
+		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_vRefElemType[dim_i][i];}
 
-		/// coordinates of reference corner (i = 0 ... num_obj(0))
-		const MathVector<dim>& corner(int i) const {return m_corner[i];}
+	/// \copydoc ug::DimReferenceElement::corner()
+		const MathVector<dim>& corner(int i) const {return m_vCorner[i];}
 
 	private:
-		// to make it more readable
+	/// to make it more readable
 		enum{POINT = 0, EDGE = 1, FACE = 2};
 		enum{MAXOBJECTS = 3};
 
-		/* number of Geometric Objects of Reference Element
-		 * (m_num_obj[dim] = number of GeomObjects of dimension dim) */
-		size_t m_num_obj[dim+1];
-		/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
-		size_t m_num_obj_of_obj[dim+1][MAXOBJECTS][dim+1];
-		/* coordinates of Reference Corner */
-		MathVector<dim> m_corner[num_corners];
-		// indices of GeomObjects
+	/// number of Geometric Objects of Reference Element
+	//  (m_num_obj[dim] = number of GeomObjects of dimension dim)
+		size_t m_vNum[dim+1];
+
+	/// number of Geometric Objects contained in a (Sub-)Geometric Object of the Element
+		size_t m_vSubNum[dim+1][MAXOBJECTS][dim+1];
+
+	///	coordinates of Reference Corner
+		MathVector<dim> m_vCorner[num_corners];
+
+	/// indices of GeomObjects
 		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];
 
-		size_t m_ref_elem[NUM_REFERENCE_OBJECTS];
-		ReferenceObjectID m_ref_elem_type[dim+1][MAXOBJECTS];
+	///	number of reference elements
+		size_t m_vNumRefElem[NUM_REFERENCE_OBJECTS];
 
-		void initializeArrays()
-		{
-			//number of Geometric Objects
-		 	m_num_obj[POINT] = 3;
-		 	m_num_obj[EDGE] = 3;
-		 	m_num_obj[FACE] = 1;
-
-			// number of Geometric Objects
-		 	m_num_obj_of_obj[FACE][0][POINT] = 3;
-		 	m_num_obj_of_obj[FACE][0][EDGE] = 3;
-		 	m_num_obj_of_obj[FACE][0][FACE] = 1;
-
-		 	m_ref_elem_type[FACE][0] = ROID_TRIANGLE;
-
-		 	for(size_t i = 0; i < m_num_obj[EDGE]; ++i)
-		 	{
-			 	m_num_obj_of_obj[EDGE][i][POINT] = 2;
-			 	m_num_obj_of_obj[EDGE][i][EDGE] = 1;
-			 	m_num_obj_of_obj[EDGE][i][FACE] = 1;
-
-			 	m_ref_elem_type[EDGE][i] = ROID_EDGE;
-		 	}
-
-		 	for(size_t i = 0; i < m_num_obj[POINT]; ++i)
-		 	{
-			 	m_num_obj_of_obj[POINT][i][POINT] = 1;
-			 	m_num_obj_of_obj[POINT][i][EDGE] = 2;
-			 	m_num_obj_of_obj[POINT][i][FACE] = 1;
-
-			 	m_ref_elem_type[POINT][i] = ROID_VERTEX;
-		 	}
-
-			//reset m_id to -1
-			for(int i=0; i<=dim; ++i)
-				for(size_t j=0; j<MAXOBJECTS; ++j)
-					for(int k=0; k<=dim; ++k)
-						for(size_t l=0; l<MAXOBJECTS; l++)
-						{
-						 	m_id[i][j][k][l] = -1;
-						}
-
-			//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
-			for(int i=0; i<=dim; ++i)
-				for(size_t j=0; j<m_num_obj[i]; ++j)
-				{
-				 	m_id[i][j][i][0] = j;
-				}
-
-			//Edges <-> Face
-			for(size_t i=0; i<m_num_obj[EDGE]; ++i)
-			{
-			 	m_id[FACE][0][EDGE][i] = i;
-			 	m_id[EDGE][i][FACE][0] = 0;
-			}
-
-			// Points <-> Face
-			for(size_t i=0; i<m_num_obj[POINT]; ++i)
-			{
-			 	m_id[FACE][0][POINT][i] = i;
-			 	m_id[POINT][i][FACE][0] = 0;
-			}
-
-			// Points of Edges
-			// edge 0 = (0,1)
-		 	m_id[EDGE][0][POINT][0] = 0;
-		 	m_id[EDGE][0][POINT][1] = 1;
-		 	// edge 1 = (1,2)
-		 	m_id[EDGE][1][POINT][0] = 1;
-		 	m_id[EDGE][1][POINT][1] = 2;
-			// edge 2 = (2,0)
-		 	m_id[EDGE][2][POINT][0] = 2;
-		 	m_id[EDGE][2][POINT][1] = 0;
-
-		 	// Edges of Point
-		 	m_id[POINT][0][EDGE][0] = 2;
-		 	m_id[POINT][0][EDGE][1] = 0;
-
-		 	m_id[POINT][1][EDGE][0] = 0;
-		 	m_id[POINT][1][EDGE][1] = 1;
-
-		 	m_id[POINT][2][EDGE][0] = 1;
-		 	m_id[POINT][2][EDGE][1] = 2;
-
-
-			// Reference Corners
-		 	m_corner[0] = MathVector<dim>(0.0, 0.0);
-		 	m_corner[1] = MathVector<dim>(1.0, 0.0);
-		 	m_corner[2] = MathVector<dim>(0.0, 1.0);
-
-		 	// Reference Element Types
-		 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
-		 	{
-				m_ref_elem[i] = 0;
-		 	}
-		 	m_ref_elem[ROID_VERTEX] = 3;
-		 	m_ref_elem[ROID_EDGE] = 3;
-		 	m_ref_elem[ROID_TRIANGLE] = 1;
-		}
-
-
+	///	type of reference elements
+		ReferenceObjectID m_vRefElemType[dim+1][MAXOBJECTS];
 };
 
 
@@ -237,15 +157,6 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 		MathVector<world_dim> a10, a20;
 
 };
-
-
-template <>
-class reference_element_traits<Triangle>
-{
-	public:
-		typedef ReferenceTriangle reference_element_type;
-};
-
 
 }
 

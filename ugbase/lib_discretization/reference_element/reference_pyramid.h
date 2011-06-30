@@ -8,318 +8,89 @@
 #ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PYRAMID__
 #define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PYRAMID__
 
+#include "common/math/ugmath.h"
+#include "lib_grid/grid/geometric_base_objects.h"
+#include "reference_element_mapping.h"
+
 namespace ug{
 
-
+///	reference element for a pyramid
 class ReferencePyramid{
 	public:
+	///	type of reference element
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
+
+	///	dimension of reference element
 		static const int dim = 3;
+
+	///	number of corners
 		static const int num_corners = 5;
+
+	///	number of eges
 		static const int num_edges = 8;
+
+	///	number of faces
 		static const int num_faces = 5;
+
+	///	number of volumes
 		static const int num_volumes = 1;
 
 	public:
-		ReferencePyramid(){initializeArrays();}
+	///	Constructor
+		ReferencePyramid();
 
-		/// reference object id
+	/// \copydoc ug::ReferenceElement::reference_object_id()
 		ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
-		/// Dimension where reference element lives
+	/// \copydoc ug::ReferenceElement::dimension()
 		int dimension() const {return dim;}
 
-		/// size of reference triangle
+	/// \copydoc ug::ReferenceElement::size()
 		number size() const	{return 1.0/3.0;}
 
-		/// number of objects of dim
-		size_t num_obj(int dim) const	{return m_num_obj[dim];}
+	/// \copydoc ug::ReferenceElement::num_obj()
+		size_t num_obj(int dim) const	{return m_vNum[dim];}
 
-		/// number of object of dim
+	/// \copydoc ug::ReferenceElement::num_obj_of_obj()
 		size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const
-			{return m_num_obj_of_obj[dim_i][i][dim_j];}
+			{return m_vSubNum[dim_i][i][dim_j];}
 
-		/// id of object j in dimension dim_j of obj i in dimension dim_i
+	/// \copydoc ug::ReferenceElement::id()
 		int id(int dim_i, size_t i, int dim_j, size_t j) const
 			{return m_id[dim_i][i][dim_j][j];}
 
-		/// number of reference elements this element is contained of
-		size_t num_ref_elem(ReferenceObjectID type) const {return m_ref_elem[type];}
+	/// \copydoc ug::ReferenceElement::num_ref_elem()
+		size_t num_ref_elem(ReferenceObjectID type) const {return m_vNumRefElem[type];}
 
-		/// reference element type of obj nr i in dimension dim_i */
-		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_ref_elem_type[dim_i][i];}
+	/// \copydoc ug::ReferenceElement::ref_elem_type()
+		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_vRefElemType[dim_i][i];}
 
-		/// coordinates of reference corner (i = 0 ... num_obj(0))
-		const MathVector<dim>& corner(int i) const {return m_corner[i];}
+	/// \copydoc ug::DimReferenceElement::corner()
+		const MathVector<dim>& corner(int i) const {return m_vCorner[i];}
 
 	private:
-		// to make it more readable
+	/// to make it more readable
 		enum{POINT = 0, EDGE = 1, FACE = 2, VOLUME= 3};
 		enum{MAXOBJECTS = 8};
 
-		/* number of Geometric Objects of Reference Element
-		 * (m_num_obj[dim] = number of GeomObjects of dimension dim) */
-		size_t m_num_obj[dim+1];
-		/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
-		size_t m_num_obj_of_obj[dim+1][MAXOBJECTS][dim+1];
-		/* coordinates of Reference Corner */
-		MathVector<dim> m_corner[num_corners];
-		// indices of GeomObjects
+	/// number of Geometric Objects of Reference Element
+	//  (m_num_obj[dim] = number of GeomObjects of dimension dim)
+		size_t m_vNum[dim+1];
+
+	/// number of Geometric Objects contained in a (Sub-)Geometric Object of the Element
+		size_t m_vSubNum[dim+1][MAXOBJECTS][dim+1];
+
+	///	coordinates of Reference Corner
+		MathVector<dim> m_vCorner[num_corners];
+
+	/// indices of GeomObjects
 		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];
 
-		size_t m_ref_elem[NUM_REFERENCE_OBJECTS];
-		ReferenceObjectID m_ref_elem_type[dim+1][MAXOBJECTS];
+	///	number of reference elements
+		size_t m_vNumRefElem[NUM_REFERENCE_OBJECTS];
 
-		void initializeArrays()
-		{
-			//number of Geometric Objects
-		 	m_num_obj[POINT] = 5;
-		 	m_num_obj[EDGE] = 8;
-		 	m_num_obj[FACE] = 5;
-		 	m_num_obj[VOLUME] = 1;
-
-			// number of Geometric Objects
-		 	m_num_obj_of_obj[VOLUME][0][POINT] = 5;
-		 	m_num_obj_of_obj[VOLUME][0][EDGE] = 8;
-		 	m_num_obj_of_obj[VOLUME][0][FACE] = 5;
-		 	m_num_obj_of_obj[VOLUME][0][VOLUME] = 1;
-
-			m_num_obj_of_obj[FACE][0][POINT] = 4;
-			m_num_obj_of_obj[FACE][0][EDGE] = 4;
-			m_num_obj_of_obj[FACE][0][FACE] = 1;
-			m_num_obj_of_obj[FACE][0][VOLUME] = 1;
-			m_ref_elem_type[FACE][0] = ROID_QUADRILATERAL;
-
-			for(size_t i = 1; i < m_num_obj[FACE]; ++i)
-		 	{
-				m_num_obj_of_obj[FACE][i][POINT] = 3;
-				m_num_obj_of_obj[FACE][i][EDGE] = 3;
-				m_num_obj_of_obj[FACE][i][FACE] = 1;
-				m_num_obj_of_obj[FACE][i][VOLUME] = 1;
-
-				m_ref_elem_type[FACE][i] = ROID_TRIANGLE;
-		 	}
-
-		 	for(size_t i = 0; i < m_num_obj[EDGE]; ++i)
-		 	{
-			 	m_num_obj_of_obj[EDGE][i][POINT] = 2;
-			 	m_num_obj_of_obj[EDGE][i][EDGE] = 1;
-			 	m_num_obj_of_obj[EDGE][i][FACE] = 2;
-			 	m_num_obj_of_obj[EDGE][i][VOLUME] = 1;
-
-			 	m_ref_elem_type[EDGE][i] = ROID_EDGE;
-		 	}
-
-		 	for(size_t i = 0; i < m_num_obj[POINT] - 1; ++i)
-		 	{
-			 	m_num_obj_of_obj[POINT][i][POINT] = 1;
-			 	m_num_obj_of_obj[POINT][i][EDGE] = 3;
-			 	m_num_obj_of_obj[POINT][i][FACE] = 3;
-			 	m_num_obj_of_obj[POINT][i][VOLUME] = 1;
-
-			 	m_ref_elem_type[POINT][i] = ROID_VERTEX;
-		 	}
-		 	m_num_obj_of_obj[POINT][4][POINT] = 1;
-		 	m_num_obj_of_obj[POINT][4][EDGE] = 4;
-		 	m_num_obj_of_obj[POINT][4][FACE] = 4;
-		 	m_num_obj_of_obj[POINT][4][VOLUME] = 1;
-
-		 	m_ref_elem_type[POINT][4] = ROID_VERTEX;
-
-			//reset m_id to -1
-			for(int i=0; i<=dim; ++i)
-				for(size_t j=0; j<MAXOBJECTS; ++j)
-					for(int k=0; k<=dim; ++k)
-						for(size_t l=0; l<MAXOBJECTS; l++)
-						{
-						 	m_id[i][j][k][l] = -1;
-						}
-
-			//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
-			for(int i=0; i<=dim; ++i)
-				for(size_t j=0; j<m_num_obj[i]; ++j)
-				{
-				 	m_id[i][j][i][0] = j;
-				}
-
-			// Face <-> Volume
-			for(size_t i=0; i<m_num_obj[VOLUME]; ++i)
-			{
-			 	m_id[VOLUME][0][FACE][i] = i;
-			 	m_id[FACE][i][VOLUME][0] = 0;
-			}
-
-			// Edge <-> Volume
-			for(size_t i=0; i<m_num_obj[EDGE]; ++i)
-			{
-			 	m_id[VOLUME][0][EDGE][i] = i;
-			 	m_id[EDGE][i][VOLUME][0] = 0;
-			}
-
-			// Point <-> Volume
-			for(size_t i=0; i<m_num_obj[POINT]; ++i)
-			{
-			 	m_id[VOLUME][0][POINT][i] = i;
-			 	m_id[POINT][i][VOLUME][0] = 0;
-			}
-
-			// Points <-> Faces
-		 	m_id[FACE][0][POINT][0] = 0;
-		 	m_id[FACE][0][POINT][1] = 3;
-		 	m_id[FACE][0][POINT][2] = 2;
-		 	m_id[FACE][0][POINT][3] = 1;
-
-		 	m_id[FACE][1][POINT][0] = 0;
-		 	m_id[FACE][1][POINT][1] = 1;
-		 	m_id[FACE][1][POINT][2] = 4;
-
-		 	m_id[FACE][2][POINT][0] = 1;
-		 	m_id[FACE][2][POINT][1] = 2;
-		 	m_id[FACE][2][POINT][2] = 4;
-
-		 	m_id[FACE][3][POINT][0] = 2;
-		 	m_id[FACE][3][POINT][1] = 3;
-		 	m_id[FACE][3][POINT][2] = 4;
-
-		 	m_id[FACE][4][POINT][0] = 3;
-		 	m_id[FACE][4][POINT][1] = 0;
-		 	m_id[FACE][4][POINT][2] = 4;
-
-		 	m_id[POINT][0][FACE][0] = 0;
-		 	m_id[POINT][0][FACE][1] = 1;
-		 	m_id[POINT][0][FACE][2] = 4;
-
-		 	m_id[POINT][1][FACE][0] = 0;
-		 	m_id[POINT][1][FACE][1] = 1;
-		 	m_id[POINT][1][FACE][2] = 2;
-
-		 	m_id[POINT][2][FACE][0] = 0;
-		 	m_id[POINT][2][FACE][1] = 2;
-		 	m_id[POINT][2][FACE][2] = 3;
-
-		 	m_id[POINT][3][FACE][0] = 0;
-		 	m_id[POINT][3][FACE][1] = 3;
-		 	m_id[POINT][3][FACE][2] = 4;
-
-		 	m_id[POINT][4][FACE][0] = 1;
-		 	m_id[POINT][4][FACE][1] = 2;
-		 	m_id[POINT][4][FACE][2] = 3;
-		 	m_id[POINT][4][FACE][3] = 4;
-
-		 	// Edges <-> Faces
-		 	m_id[FACE][0][EDGE][0] = 3;
-		 	m_id[FACE][0][EDGE][1] = 2;
-		 	m_id[FACE][0][EDGE][2] = 1;
-		 	m_id[FACE][0][EDGE][3] = 0;
-
-		 	m_id[FACE][1][EDGE][0] = 0;
-		 	m_id[FACE][1][EDGE][1] = 5;
-		 	m_id[FACE][1][EDGE][2] = 4;
-
-		 	m_id[FACE][2][EDGE][0] = 5;
-		 	m_id[FACE][2][EDGE][1] = 6;
-		 	m_id[FACE][2][EDGE][2] = 1;
-
-		 	m_id[FACE][3][EDGE][0] = 2;
-		 	m_id[FACE][3][EDGE][1] = 7;
-		 	m_id[FACE][3][EDGE][2] = 6;
-
-		 	m_id[FACE][4][EDGE][0] = 3;
-		 	m_id[FACE][4][EDGE][1] = 4;
-		 	m_id[FACE][4][EDGE][2] = 7;
-
-		 	m_id[EDGE][0][FACE][0] = 0;
-		 	m_id[EDGE][0][FACE][1] = 1;
-
-		 	m_id[EDGE][1][FACE][0] = 0;
-		 	m_id[EDGE][1][FACE][1] = 2;
-
-		 	m_id[EDGE][2][FACE][0] = 0;
-		 	m_id[EDGE][2][FACE][1] = 3;
-
-		 	m_id[EDGE][3][FACE][0] = 0;
-		 	m_id[EDGE][3][FACE][1] = 4;
-
-		 	m_id[EDGE][4][FACE][0] = 1;
-		 	m_id[EDGE][4][FACE][1] = 4;
-
-		 	m_id[EDGE][5][FACE][0] = 2;
-		 	m_id[EDGE][5][FACE][1] = 1;
-
-		 	m_id[EDGE][6][FACE][0] = 3;
-		 	m_id[EDGE][6][FACE][1] = 2;
-
-		 	m_id[EDGE][7][FACE][0] = 4;
-		 	m_id[EDGE][7][FACE][1] = 3;
-
-		 	// Points of Edges
-			// edge 0 = (0,1)
-		 	m_id[EDGE][0][POINT][0] = 0;
-		 	m_id[EDGE][0][POINT][1] = 1;
-		 	// edge 1 = (1,2)
-		 	m_id[EDGE][1][POINT][0] = 1;
-		 	m_id[EDGE][1][POINT][1] = 2;
-			// edge 2 = (2,3)
-		 	m_id[EDGE][2][POINT][0] = 2;
-		 	m_id[EDGE][2][POINT][1] = 3;
-			// edge 3 = (3,0)
-		 	m_id[EDGE][3][POINT][0] = 3;
-		 	m_id[EDGE][3][POINT][1] = 0;
-			// edge 4 = (0,4)
-		 	m_id[EDGE][4][POINT][0] = 0;
-		 	m_id[EDGE][4][POINT][1] = 4;
-			// edge 5 = (1,4)
-		 	m_id[EDGE][5][POINT][0] = 1;
-		 	m_id[EDGE][5][POINT][1] = 4;
-			// edge 6 = (2,4)
-		 	m_id[EDGE][6][POINT][0] = 2;
-		 	m_id[EDGE][6][POINT][1] = 4;
-			// edge 7 = (3,4)
-		 	m_id[EDGE][7][POINT][0] = 3;
-		 	m_id[EDGE][7][POINT][1] = 4;
-
-		 	// Edges of Point
-		 	m_id[POINT][0][EDGE][0] = 3;
-		 	m_id[POINT][0][EDGE][1] = 0;
-		 	m_id[POINT][0][EDGE][2] = 4;
-
-		 	m_id[POINT][1][EDGE][0] = 0;
-		 	m_id[POINT][1][EDGE][1] = 5;
-		 	m_id[POINT][1][EDGE][2] = 1;
-
-		 	m_id[POINT][2][EDGE][0] = 1;
-		 	m_id[POINT][2][EDGE][1] = 6;
-		 	m_id[POINT][2][EDGE][2] = 2;
-
-		 	m_id[POINT][3][EDGE][0] = 2;
-		 	m_id[POINT][3][EDGE][1] = 7;
-		 	m_id[POINT][3][EDGE][2] = 3;
-
-		 	m_id[POINT][4][EDGE][0] = 4;
-		 	m_id[POINT][4][EDGE][1] = 5;
-		 	m_id[POINT][4][EDGE][2] = 6;
-		 	m_id[POINT][4][EDGE][3] = 7;
-
-		 	// Reference Corners
-		 	m_corner[0] = MathVector<dim>(0.0, 0.0, 0.0);
-		 	m_corner[1] = MathVector<dim>(1.0, 0.0, 0.0);
-		 	m_corner[2] = MathVector<dim>(1.0, 1.0, 0.0);
-		 	m_corner[3] = MathVector<dim>(0.0, 1.0, 0.0);
-		 	m_corner[4] = MathVector<dim>(0.0, 0.0, 1.0);
-
-		 	// Reference Element Types
-		 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
-		 	{
-				m_ref_elem[i] = 0;
-		 	}
-		 	m_ref_elem[ROID_VERTEX] = 5;
-		 	m_ref_elem[ROID_EDGE] = 18;
-		 	m_ref_elem[ROID_QUADRILATERAL] = 1;
-		 	m_ref_elem[ROID_TRIANGLE] = 4;
-		 	m_ref_elem[ROID_PYRAMID] = 1;
-		}
-
-
+	///	type of reference elements
+		ReferenceObjectID m_vRefElemType[dim+1][MAXOBJECTS];
 };
 
 template <>
@@ -436,15 +207,6 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 	private:
 		const MathVector<world_dim>* m_corners;
 };
-
-
-template <>
-class reference_element_traits<Pyramid>
-{
-	public:
-		typedef ReferencePyramid reference_element_type;
-};
-
 
 }
 
