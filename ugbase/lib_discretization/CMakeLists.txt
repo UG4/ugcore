@@ -33,7 +33,8 @@ set(srcDiscretization	common/function_group.cpp
 						quadrature/gauss_quad/gauss_quad_hexahedron.cpp
 
 						local_shape_function_set/local_shape_function_set_provider.cpp
-						local_shape_function_set/lagrange/lagrangep1.cpp)
+						local_shape_function_set/lagrange/lagrangep1.cpp
+						local_shape_function_set/lagrange/lagrange.cpp)
 
 # add parallelization
 if(NOT NO_MPI)
