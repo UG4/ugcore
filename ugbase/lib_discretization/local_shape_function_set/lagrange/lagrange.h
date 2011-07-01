@@ -65,15 +65,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS()
-		{
-			for(size_t i = 0; i < nsh; ++i)
-			{
-			//	create equidistant polynomials and its derivatives
-				m_vPolynom[i] = EquidistantLagrange1D(i, p);
-				m_vDPolynom[i] = m_vPolynom[i].derivative();
-			}
-		}
+		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
@@ -117,15 +109,38 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 			g[0] = m_vDPolynom[i].value(x[0]);
 		}
 
+	///	returns the local dof storage for the shape
+		const LocalDoF& local_dof(size_t i)
+		{
+			check_index(i);
+			return m_vLocalDoF[i];
+		}
+
 	///	return Multi index for index i
-		inline static MultiIndex<dim> multi_index(size_t i)
+		inline const MultiIndex<dim>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
+	///	return the index for a multi_index
+		inline size_t index(const MultiIndex<dim>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			throw(UGFatalError("Index not found in LagrangeLSFS"));
+		}
+
+	///	return Multi index for index i
+		inline static MultiIndex<dim> mapped_multi_index(size_t i)
 		{
 			check_index(i);
 			return MultiIndex<1>(i);
 		}
 
 	///	return the index for a multi_index
-		inline static size_t index(const MultiIndex<dim>& ind)
+		inline static size_t mapped_index(const MultiIndex<dim>& ind)
 		{
 			check_multi_index(ind);
 			return ind[0];
@@ -168,6 +183,9 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	protected:
 		Polynomial1D m_vPolynom[p+1];	///< Shape Polynomials
 		Polynomial1D m_vDPolynom[p+1];	///< Derivative of Shape Polynomial
+
+		LocalDoF m_vLocalDoF[nsh];
+		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,15 +227,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS()
-		{
-			for(size_t i = 0; i <= p; ++i)
-			{
-			//	create trancated equidistant polynomials and its derivatives
-				m_vPolynom[i] = TruncatedEquidistantLagrange1D(i, p);
-				m_vDPolynom[i] = m_vPolynom[i].derivative();
-			}
-		}
+		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -316,8 +326,31 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			}
 		}
 
+	///	returns the local dof storage for the shape
+		const LocalDoF& local_dof(size_t i)
+		{
+			check_index(i);
+			return m_vLocalDoF[i];
+		}
+
+	///	return Multi index for index i
+		inline const MultiIndex<dim>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			throw(UGFatalError("Index not found in LagrangeLSFS"));
+		}
+
+	///	return the index for a multi_index
+		inline size_t mapped_index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -330,7 +363,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> multi_index(size_t i) const
+		inline MultiIndex<dim> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -389,6 +422,9 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
+
+		LocalDoF m_vLocalDoF[nsh];
+		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -430,15 +466,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS()
-		{
-			for(size_t i = 0; i <= p; ++i)
-			{
-			//	create trancated equidistant polynomials and its derivatives
-				m_vPolynom[i] = EquidistantLagrange1D(i, p);
-				m_vDPolynom[i] = m_vPolynom[i].derivative();
-			}
-		}
+		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -522,8 +550,31 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 			}
 		}
 
+	///	returns the local dof storage for the shape
+		const LocalDoF& local_dof(size_t i)
+		{
+			check_index(i);
+			return m_vLocalDoF[i];
+		}
+
+	///	return Multi index for index i
+		inline const MultiIndex<dim>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			throw(UGFatalError("Index not found in LagrangeLSFS"));
+		}
+
+	///	return the index for a multi_index
+		inline size_t mapped_index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -531,7 +582,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> multi_index(size_t i) const
+		inline MultiIndex<dim> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -578,6 +629,9 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
+
+		LocalDoF m_vLocalDoF[nsh];
+		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -619,15 +673,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS()
-		{
-			for(size_t i = 0; i <= p; ++i)
-			{
-			//	create trancated equidistant polynomials and its derivatives
-				m_vPolynom[i] = TruncatedEquidistantLagrange1D(i, p);
-				m_vDPolynom[i] = m_vPolynom[i].derivative();
-			}
-		}
+		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -879,19 +925,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS()
-		{
-			for(size_t i = 0; i <= p; ++i)
-			{
-			//	create truncated equidistant polynomials and its derivatives
-				m_vTruncPolynom[i] = TruncatedEquidistantLagrange1D(i, p);
-				m_vDTruncPolynom[i] = m_vTruncPolynom[i].derivative();
-
-			//	create equidistant polynomials and its derivatives
-				m_vPolynom[i] = EquidistantLagrange1D(i, p);
-				m_vDPolynom[i] = m_vPolynom[i].derivative();
-			}
-		}
+		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -1071,7 +1105,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 				return ((p>1) ? ((p-1)*(p-1)) : 0);
 		//	same as for a 3d prism of order p-2
 			if(type == ROID_PRISM)
-				return ((p>2) ? (LagrangeLSFS<ReferencePrism, p-2>::nsh) : 0);
+				return ((p>2) ? (BinomialCoefficient<2 + p-2, p-2>::value)*(p-1) : 0);
 			else return 0;
 		}
 
@@ -1172,23 +1206,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS()
-		{
-			m_vvPolynom.resize(p+1);
-			m_vvDPolynom.resize(p+1);
-
-			for(size_t i2 = 0; i2 <= p; ++i2)
-			{
-				m_vvPolynom[i2].resize(p+1);
-				m_vvDPolynom[i2].resize(p+1);
-
-				for(size_t i = 0; i <= p-i2; ++i)
-				{
-					m_vvPolynom[i2][i] = BoundedEquidistantLagrange1D(i, p, p-i2);
-					m_vvDPolynom[i2][i] = m_vvPolynom[i2][i].derivative();
-				}
-			}
-		}
+		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -1431,15 +1449,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS()
-		{
-			for(size_t i = 0; i <= p; ++i)
-			{
-			//	create trancated equidistant polynomials and its derivatives
-				m_vPolynom[i] = EquidistantLagrange1D(i, p);
-				m_vDPolynom[i] = m_vPolynom[i].derivative();
-			}
-		}
+		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -1524,8 +1534,31 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 			}
 		}
 
+	///	returns the local dof storage for the shape
+		const LocalDoF& local_dof(size_t i)
+		{
+			check_index(i);
+			return m_vLocalDoF[i];
+		}
+
+	///	return Multi index for index i
+		inline const MultiIndex<dim>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			throw(UGFatalError("Index not found in LagrangeLSFS"));
+		}
+
+	///	return the index for a multi_index
+		inline size_t mapped_index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1533,7 +1566,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> multi_index(size_t i) const
+		inline MultiIndex<dim> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -1583,6 +1616,9 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
+
+		LocalDoF m_vLocalDoF[nsh];
+		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
 } //namespace ug
