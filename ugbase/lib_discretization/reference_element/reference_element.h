@@ -121,6 +121,9 @@ class DimReferenceElement : public ReferenceElement
 	/// coordinates of reference corner (i = 0 ... num(0))
 		virtual const MathVector<dim>& corner(size_t i) const = 0;
 
+	/// coordinates of reference corner as integer
+		virtual const MathVector<dim,int>* corner() const = 0;
+
 	/// print informations about the reference element
 		virtual void print_info() const;
 
@@ -217,6 +220,9 @@ class DimReferenceElementWrapper
 
 	///	\copydoc ug::DimReferenceElement<d>::corner()
 		const MathVector<dim>& corner(size_t i) const {return TRefElem::corner(i);}
+
+	/// \copydoc ug::DimReferenceElement::corner()
+		const MathVector<dim,int>* corner() const {return TRefElem::corner();}
 
 	///	\copydoc ug::DimReferenceElement::check_position()
 		void check_position(const MathVector<dim>& pos) const

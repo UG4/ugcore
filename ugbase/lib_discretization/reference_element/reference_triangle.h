@@ -67,6 +67,9 @@ class ReferenceTriangle{
 	/// \copydoc ug::DimReferenceElement::corner()
 		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}
 
+	/// \copydoc ug::DimReferenceElement::corner()
+		const MathVector<dim,int>* corner() const {return m_vCoInt;}
+
 	///	\copydoc ug::DimReferenceElement::check_position()
 		inline static void check_position(const MathVector<dim>& pos)
 		{
@@ -90,6 +93,7 @@ class ReferenceTriangle{
 
 	///	coordinates of Reference Corner
 		MathVector<dim> m_vCorner[num_corners];
+		MathVector<dim, int> m_vCoInt[num_corners];
 
 	/// indices of GeomObjects
 		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];

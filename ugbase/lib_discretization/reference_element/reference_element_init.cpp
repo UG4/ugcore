@@ -104,6 +104,9 @@ ReferenceEdge::ReferenceEdge()
 	m_vCorner[0][0] = 0.0;
 	m_vCorner[1][0] = 1.0;
 
+	m_vCoInt[0][0] = 0;
+	m_vCoInt[1][0] = 1;
+
 	// Reference Element Types
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
@@ -205,6 +208,10 @@ ReferenceTriangle::ReferenceTriangle()
  	m_vCorner[0] = MathVector<dim>(0.0, 0.0);
  	m_vCorner[1] = MathVector<dim>(1.0, 0.0);
  	m_vCorner[2] = MathVector<dim>(0.0, 1.0);
+
+ 	m_vCoInt[0] = MathVector<dim,int>(0, 0);
+ 	m_vCoInt[1] = MathVector<dim,int>(1, 0);
+ 	m_vCoInt[2] = MathVector<dim,int>(0, 1);
 
  	// Reference Element Types
  	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
@@ -314,6 +321,11 @@ ReferenceQuadrilateral::ReferenceQuadrilateral()
  	m_vCorner[2] = MathVector<dim>(1.0, 1.0);
  	m_vCorner[3] = MathVector<dim>(0.0, 1.0);
 
+ 	m_vCoInt[0] = MathVector<dim,int>(0, 0);
+ 	m_vCoInt[1] = MathVector<dim,int>(1, 0);
+ 	m_vCoInt[2] = MathVector<dim,int>(1, 1);
+ 	m_vCoInt[3] = MathVector<dim,int>(0, 1);
+
  	// Reference Element Types
  	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
  	{
@@ -341,6 +353,7 @@ ReferenceTetrahedron::ReferenceTetrahedron()
  	m_vSubNum[VOLUME][0][EDGE] = 6;
  	m_vSubNum[VOLUME][0][FACE] = 4;
  	m_vSubNum[VOLUME][0][VOLUME] = 1;
+	m_vRefElemType[VOLUME][0] = ROID_TETRAHEDRON;
 
  	for(size_t i = 0; i < m_vNum[FACE]; ++i)
  	{
@@ -522,6 +535,11 @@ ReferenceTetrahedron::ReferenceTetrahedron()
  	m_vCorner[2] = MathVector<dim>(0.0, 1.0, 0.0);
  	m_vCorner[3] = MathVector<dim>(0.0, 0.0, 1.0);
 
+	m_vCoInt[0] = MathVector<dim,int>(0, 0, 0);
+ 	m_vCoInt[1] = MathVector<dim,int>(1, 0, 0);
+ 	m_vCoInt[2] = MathVector<dim,int>(0, 1, 0);
+ 	m_vCoInt[3] = MathVector<dim,int>(0, 0, 1);
+
  	// Reference Element Types
  	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
  	{
@@ -550,6 +568,7 @@ ReferencePyramid::ReferencePyramid()
  	m_vSubNum[VOLUME][0][EDGE] = 8;
  	m_vSubNum[VOLUME][0][FACE] = 5;
  	m_vSubNum[VOLUME][0][VOLUME] = 1;
+	m_vRefElemType[VOLUME][0] = ROID_PYRAMID;
 
 	m_vSubNum[FACE][0][POINT] = 4;
 	m_vSubNum[FACE][0][EDGE] = 4;
@@ -774,7 +793,13 @@ ReferencePyramid::ReferencePyramid()
  	m_vCorner[3] = MathVector<dim>(0.0, 1.0, 0.0);
  	m_vCorner[4] = MathVector<dim>(0.0, 0.0, 1.0);
 
- 	// Reference Element Types
+ 	m_vCoInt[0] = MathVector<dim,int>(0, 0, 0);
+ 	m_vCoInt[1] = MathVector<dim,int>(1, 0, 0);
+ 	m_vCoInt[2] = MathVector<dim,int>(1, 1, 0);
+ 	m_vCoInt[3] = MathVector<dim,int>(0, 1, 0);
+ 	m_vCoInt[4] = MathVector<dim,int>(0, 0, 1);
+
+	// Reference Element Types
  	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
  	{
 		m_vNumRefElem[i] = 0;
@@ -803,6 +828,7 @@ ReferencePrism::ReferencePrism()
  	m_vSubNum[VOLUME][0][EDGE] = 9;
  	m_vSubNum[VOLUME][0][FACE] = 5;
  	m_vSubNum[VOLUME][0][VOLUME] = 1;
+	m_vRefElemType[VOLUME][0] = ROID_PRISM;
 
  	m_vSubNum[FACE][0][POINT] = 3;
  	m_vSubNum[FACE][0][EDGE] = 3;
@@ -1053,6 +1079,13 @@ ReferencePrism::ReferencePrism()
  	m_vCorner[4] = MathVector<dim>(1.0, 0.0, 1.0);
  	m_vCorner[5] = MathVector<dim>(0.0, 1.0, 1.0);
 
+ 	m_vCoInt[0] = MathVector<dim,int>(0, 0, 0);
+ 	m_vCoInt[1] = MathVector<dim,int>(1, 0, 0);
+ 	m_vCoInt[2] = MathVector<dim,int>(0, 1, 0);
+ 	m_vCoInt[3] = MathVector<dim,int>(0, 0, 1);
+ 	m_vCoInt[4] = MathVector<dim,int>(1, 0, 1);
+ 	m_vCoInt[5] = MathVector<dim,int>(0, 1, 1);
+
  	// Reference Element Types
  	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
  	{
@@ -1082,6 +1115,7 @@ ReferenceHexahedron::ReferenceHexahedron()
  	m_vSubNum[VOLUME][0][EDGE] = 12;
  	m_vSubNum[VOLUME][0][FACE] = 6;
  	m_vSubNum[VOLUME][0][VOLUME] = 1;
+	m_vRefElemType[VOLUME][0] = ROID_HEXAHEDRON;
 
  	for(size_t i = 0; i < m_vNum[FACE]; ++i)
  	{
@@ -1360,6 +1394,15 @@ ReferenceHexahedron::ReferenceHexahedron()
  	m_vCorner[5] = MathVector<dim>(1.0, 0.0, 1.0);
  	m_vCorner[6] = MathVector<dim>(1.0, 1.0, 1.0);
  	m_vCorner[7] = MathVector<dim>(0.0, 1.0, 1.0);
+
+	m_vCoInt[0] = MathVector<dim,int>(0, 0, 0);
+ 	m_vCoInt[1] = MathVector<dim,int>(1, 0, 0);
+ 	m_vCoInt[2] = MathVector<dim,int>(1, 1, 0);
+ 	m_vCoInt[3] = MathVector<dim,int>(0, 1, 0);
+ 	m_vCoInt[4] = MathVector<dim,int>(0, 0, 1);
+ 	m_vCoInt[5] = MathVector<dim,int>(1, 0, 1);
+ 	m_vCoInt[6] = MathVector<dim,int>(1, 1, 1);
+ 	m_vCoInt[7] = MathVector<dim,int>(0, 1, 1);
 
  	// Reference Element Types
  	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
