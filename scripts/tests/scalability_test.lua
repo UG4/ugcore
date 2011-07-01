@@ -85,18 +85,6 @@ distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect | me
 -- should be a square number
 numProcsPerNode = util.GetParamNumber("-numPPN", 1)
 
--- if this is set to a level > numPreRefs and <= numRefs then hierarchical
--- redistribution is enabled. If it is set to -1, it is disabled (default).
--- Defines the level in which hierarchical redistribution starts.
--- Note that hierarchical redistribution is only performed, if a refinement follows.
-hierarchicalRedistFirstLevel = util.GetParamNumber("-hRedistFirstLevel", -1)
-
--- defines the number of refinements between hierarchical redistributions
--- if < 1 the hierarchical redistribution is disabled.
--- After s steps, the grid will be redistributed to (2^d)^s processes.
--- Only has effect, if hierarchicalRedistFirstLevel ~= -1
-hierarchicalRedistStepSize = util.GetParamNumber("-hRedistStepSize", 1)
-
 -- amount of output
 verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
 						    -- >= 1 for writing matrix files etc.
@@ -106,31 +94,60 @@ activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time me
 						    -- >= 1 for debug output: this sets
 						    -- 'fetiSolver:set_debug(dbgWriter)'
 
+
+--------------------------------------------------------------------------------
+-- HIERARCHICAL REDISTRIBUTION
+-- Note that hierarchical redistribution is not compatible with
+-- distributionType == "grid2d"
+-- If this is set to a level > numPreRefs and <= numRefs then hierarchical
+-- redistribution is enabled. If it is set to -1, it is disabled (default).
+-- Defines the level in which hierarchical redistribution starts.
+-- Note that hierarchical redistribution is only performed, if a refinement follows.
+hRedistFirstLevel = util.GetParamNumber("-hRedistFirstLevel", -1)
+
+-- The number of processes to which a grid is redistributed in a
+-- hierarchical redistribution step.
+hRedistNewProcsPerStep = util.GetParamNumber("-hRedistNewProcsPerStep", math.pow(2, dim))
+
+-- defines the number of refinements between hierarchical redistributions
+-- if < 1 the hierarchical redistribution is disabled.
+-- After s steps, the grid will be redistributed to
+-- hRedistNewProcsPerStep processes.
+-- Only has effect, if hierarchicalRedistFirstLevel ~= -1.
+hRedistStepSize = util.GetParamNumber("-hRedistStepSize", 1)
+
 -- the number of processes to which we will distribute the grid during
 -- initial distribution has to be calculated now.
 -- It depends on whether we perform hierarchical redistribution or not.
 numInitialDistProcs = GetNumProcesses()
-hierarchicalRedistEnabled = false
-if hierarchicalRedistFirstLevel > numPreRefs then
-	hierarchicalRedistEnabled = true
+hRedistEnabled = false
+if hRedistFirstLevel ~= -1 then
+--	make sure that all parameters are valid
+	if hRedistFirstLevel <= numPreRefs or hRedistFirstLevel >= numRefs then
+		print("HORIZONTAL REDISTRIBUTION ERROR:")
+		print("  Make sure that numPreRefs < hRedistFirstLevel < numRefs")
+		exit()
+	end
+
 --	make sure that distribution type grid2d is not used (the util-script is
 --	not suited for hierarchical redistribution)
 	if distributionType == "grid2d" then
-		print("ERROR: distributionType 'grid2d' is not supported for hierarchical"
-			  .. " redistribution (hRedistStepSize > 0).")
+		print("HORIZONTAL REDISTRIBUTION ERROR:")
+		print("  distributionType 'grid2d' is not supported for hierarchical"
+			  .. " redistribution.")
 		exit()
 	end
 	
-	local newProcsPerStep = math.pow(math.pow(2, dim), hierarchicalRedistStepSize)
+	hRedistEnabled = true
 	
 	local procs = GetNumProcesses()
-	local refinements = numRefs - hierarchicalRedistFirstLevel
-	while refinements - hierarchicalRedistStepSize >= 0 do
-		refinements = refinements - hierarchicalRedistStepSize
-		if procs / newProcsPerStep < 1 then
+	local refinements = numRefs - hRedistFirstLevel
+	while refinements > 0 do
+		refinements = refinements - hRedistStepSize
+		if procs / hRedistNewProcsPerStep < 1 then
 			break
 		else
-			procs = math.floor(procs / newProcsPerStep)
+			procs = math.floor(procs / hRedistNewProcsPerStep)
 		end
 	end
 	
@@ -142,6 +159,8 @@ elseif hierarchicalRedistFirstLevel ~= -1 then
 		  .. "set hierarchicalRedistFirstLevel to a value > numPreRefs and <= numRefs.")
 end
 
+
+--------------------------------------------------------------------------------
 -- Display parameters (or defaults):
 print(" General parameters chosen:")
 print("    dim        = " .. dim)
@@ -164,7 +183,9 @@ end
 print(" Parallelisation related parameters chosen:")
 print("    distType   = " .. distributionType)
 print("    numPPN (numProcsPerNode) = " .. numProcsPerNode)
-print("    hRedistStepSize = " .. hierarchicalRedistStepSize)
+print("    hRedistFirstLevel = " .. hRedistFirstLevel)
+print("    hRedistNewProcsPerStep = " .. hRedistNewProcsPerStep)
+print("    hRedistStepSize = " .. hRedistStepSize)
 
 --------------------------------------------------------------------------------
 -- Checking for parameters (end)
@@ -261,19 +282,20 @@ while numDistProcs > 0 do
 	-- check whether we have to perform another hierarchical distribution.
 	-- calculate the number of required refinements in this step.
 	maxRefsInThisStep = numRefs
-	if hierarchicalRedistEnabled == true then
-		if numCurRefs < hierarchicalRedistFirstLevel then
-			maxRefsInThisStep = hierarchicalRedistFirstLevel
+	if hRedistEnabled == true then
+		if numCurRefs < hRedistFirstLevel then
+			maxRefsInThisStep = hRedistFirstLevel
 		else
-			maxRefsInThisStep = numCurRefs + hierarchicalRedistStepSize
+			maxRefsInThisStep = numCurRefs + hRedistStepSize
 		end
 		if maxRefsInThisStep >= numRefs then
 			numDistProcs = 0
 			maxRefsInThisStep = numRefs
 		else
-			numDistProcs = math.pow(math.pow(2, dim), hierarchicalRedistStepSize)
-			if numDistProcs > numProcs then
+			numDistProcs = hRedistNewProcsPerStep
+			if numProcsWithGrid * numDistProcs > numProcs then
 				numDistProcs = 0
+				maxRefsInThisStep = numRefs
 			end
 		end
 	end

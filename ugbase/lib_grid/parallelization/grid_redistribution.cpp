@@ -9,6 +9,7 @@
 #include "util/distribution_util.h"
 #include "parallelization_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "pcl/pcl_profiling.h"
 
 using namespace std;
 
@@ -110,11 +111,13 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 ////////////////////////////////
 //	GLOBAL IDS
+	PCL_PROFILE(redist_CreateGlobalIDs);
 //todo:	only create global ids if they aren't already present
 	CreateAndDistributeGlobalIDs<VertexBase>(mg, glm);
 	CreateAndDistributeGlobalIDs<EdgeBase>(mg, glm);
 	CreateAndDistributeGlobalIDs<Face>(mg, glm);
 	CreateAndDistributeGlobalIDs<Volume>(mg, glm);
+	PCL_PROFILE_END();
 
 ////////////////////////////////
 //	REDISTRIBITION LAYOUTS
@@ -124,6 +127,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	vector<RedistributionFaceLayout> faceLayouts;
 	vector<RedistributionVolumeLayout> volumeLayouts;
 
+	PCL_PROFILE(redist_CreateRedistLayouts);
 //	create the redistribution layouts. Note that this involves
 //	some communication in order to synchronize interfaces between
 //	connected procs.
@@ -131,6 +135,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					volumeLayouts, distGridMgrInOut, shPartition,
 					!createVerticalInterfaces,
 					createVerticalInterfaces, &msel, processMap);
+	PCL_PROFILE_END();
 
 //BEGIN - ONLY FOR DEBUG
 	//TestRedistributionLayouts(vertexLayouts);
@@ -176,6 +181,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 ////////////////////////////////
 //	SERIALIZATION
+	PCL_PROFILE(redist_Serialization);
 //	For each send-to-process (except the local process itself) we'll fill
 //	a binary stream with the data that shall be sent.
 //	a temporary int-attachment is required at all geometric objects
@@ -245,7 +251,9 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		//		<< out.size() - oldSize << endl);
 		outSegSizes.push_back((int)(out.size() - oldSize));
 	}
+	PCL_PROFILE_END();
 
+	PCL_PROFILE(redist_SendSerializedData);
 //	now distribute the packs between involved processes
 	BinaryStream in;
 	vector<int> inSegSizes(recvFromRanks.size());
@@ -255,25 +263,32 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							out.buffer(), &outSegSizes.front(),
 							&sendToRanks.front(), (int)sendToRanks.size());
 
+	PCL_PROFILE_END();
 	//UG_LOG("Size of in buffer: " << in.size() << endl);
 
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
+	PCL_PROFILE(redist_ClearLocalGrid);
 //	we'll erase everything and deserialize even the local grid from stream
 	mg.clear_geometry();
 	glm.clear();
+	PCL_PROFILE_END();
 
 ////////////////////////////////
 //	DESERILAIZATION
+	PCL_PROFILE(redist_DeserializeData);
 	//UG_LOG("\ndeserializing...\n");
 	DeserializeRedistributedGrid(mg, glm, in, recvFromRanks, deserializer);
 	//UG_LOG("deserialization done\n\n");
+	PCL_PROFILE_END();
 
 ////////////////////////////////
 //	UPDATE THE DISTRIBUTED GRID MANAGER
+	PCL_PROFILE(redist_UpdateDistGridManager);
 	glm.remove_empty_interfaces();
 	distGridMgrInOut.enable_ordered_element_insertion(true);
 	distGridMgrInOut.grid_layouts_changed(false);
+	PCL_PROFILE_END();
 
 
 //BEGIN - ONLY FOR DEBUG
