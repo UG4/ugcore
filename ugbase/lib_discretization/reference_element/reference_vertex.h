@@ -65,15 +65,6 @@ class ReferenceVertex
 	/// \copydoc ug::ReferenceElement::ref_elem_type()
 		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_vRefElemType[dim_i][i];}
 
-	/// \copydoc ug::DimReferenceElement::corner()
-		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}
-
-	///	\copydoc ug::DimReferenceElement::check_position()
-		inline static void check_position(const MathVector<dim>& pos)
-		{
-			UG_ASSERT(pos[0] == 0.0, "Local position "<<pos<<" outside Reference Element");
-		}
-
 	private:
 	/// to make it more readable
 		enum{POINT = 0, EDGE = 1};
@@ -85,9 +76,6 @@ class ReferenceVertex
 
 	/// number of Geometric Objects contained in a (Sub-)Geometric Object of the Element
 		size_t m_vSubNum[dim+1][MAXOBJECTS][dim+1];
-
-	///	coordinates of Reference Corner
-		MathVector<dim> m_vCorner[num_corners];
 
 	/// indices of GeomObjects
 		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];

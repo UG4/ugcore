@@ -288,7 +288,7 @@ print("Setting Dirichlet values.")
 linOp:set_dirichlet_values(u)
 
 -- debug output
-print("Saving for debug.")
+--print("Saving for debug.")
 --SaveMatrixForConnectionViewer(u, linOp, "Stiffness".. i ..".mat")
 --SaveVectorForConnectionViewer(b, "Rhs".. i ..".mat")
 

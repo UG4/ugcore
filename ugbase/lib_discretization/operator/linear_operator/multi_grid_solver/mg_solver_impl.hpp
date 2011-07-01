@@ -789,6 +789,14 @@ init_common(bool nonlinear)
 	}
 
 //	check, if grid is full-refined
+//todo:	make sure that there are no vertical masters in topLevel. Otherwise
+//		the grid can not be considered fully refined.
+//todo:	The name m_bFullRefined is a little misleading, since if topLevel
+//		contains vrtMasters (and thus #topLevDofs != #surfDofs) the grid
+//		might still be fully refined (yet m_bFullRefined would be false).
+//		It should probably be renamed to something like m_bIdenticalSurfAndTopLev...
+//todo: Even if there are vrtMasters and m_bFullRefined is false and the top
+//		level matrix can't be copied, an injective SurfToTopLevMap might be useful...
 	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
 		m_pApproxSpace->get_surface_dof_distribution().num_dofs())
 		m_bFullRefined = true;
@@ -876,9 +884,6 @@ init_linear_level_operator()
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
-#ifdef UG_PARALLEL
-			pcl::SynchronizeProcesses();
-#endif
 	//	get dof distribution
 		const dof_distribution_type& levelDD =
 							m_pApproxSpace->get_level_dof_distribution(lev);
@@ -889,18 +894,13 @@ init_linear_level_operator()
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
 			if(lev == m_vLevData.size() - 1 && m_bFullRefined)
 			{
-#ifdef UG_PARALLEL
-			pcl::SynchronizeProcesses();
-#endif
 				GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 				matrix_type& levMat = m_vLevData[lev].A->get_matrix();
 				matrix_type& surfMat = m_pSurfaceOp->get_matrix();
 
 				levMat.resize( surfMat.num_rows(), surfMat.num_cols());
 				CopySurfaceMatToLevelMat(levMat, m_vSurfToTopMap, surfMat);
-#ifdef UG_PARALLEL
-			pcl::SynchronizeProcesses();
-#endif
+
 				GMG_PROFILE_END();
 				continue;
 			}

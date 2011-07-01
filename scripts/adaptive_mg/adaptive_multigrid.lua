@@ -107,7 +107,7 @@ if util.LoadDomain(dom, gridName) == false then print("Loading Domain failed.");
 print("Distributing Domain.")
 partitionMap = PartitionMap()
 if GetProcessRank() == 0 then
-	util.PartitionMapBisection(partitionMap, dom, GetNumProcesses())
+	util.PartitionMapBisection(dom, partitionMap, GetNumProcesses())
 end
 if RedistributeDomain(dom, partitionMap, true) == false then print("Error while Distributing Grid."); exit() end
 

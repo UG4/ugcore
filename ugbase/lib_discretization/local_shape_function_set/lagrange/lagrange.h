@@ -1187,7 +1187,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		static const size_t order = 1;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static const int dim = 3;	//reference_element_type::dim; (compile error on OSX 10.5)
 
 	///	Domain position type
 		typedef MathVector<dim> position_type;
