@@ -7,6 +7,7 @@
 
 #include <list>
 #include <cassert>
+#include <iostream>
 #include "common/types.h"
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "lib_grid/attachments/attached_list.h"
@@ -48,6 +49,25 @@ enum ReferenceObjectID
 	ROID_PRISM,
 	ROID_PYRAMID,
 	NUM_REFERENCE_OBJECTS
+};
+
+inline
+std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
+{
+	switch(type)
+	{
+		case ROID_INVALID: outStream << "(invalid)"; break;
+		case ROID_VERTEX: outStream << "Vertex"; break;
+		case ROID_EDGE: outStream << "Edge"; break;
+		case ROID_TRIANGLE: outStream << "Triangle"; break;
+		case ROID_QUADRILATERAL: outStream << "Quadrilateral"; break;
+		case ROID_TETRAHEDRON: outStream << "Tetrahedron"; break;
+		case ROID_HEXAHEDRON: outStream << "Hexahedron"; break;
+		case ROID_PRISM: outStream << "Prism"; break;
+		case ROID_PYRAMID: outStream << "Pyramid"; break;
+		default: throw(int(1));
+	}
+	return outStream;
 };
 
 
