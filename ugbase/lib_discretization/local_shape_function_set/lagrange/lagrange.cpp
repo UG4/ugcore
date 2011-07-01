@@ -250,6 +250,9 @@ LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 
 template class LagrangeLSFS<ReferencePrism, 1>;
 template class LagrangeLSFS<ReferencePrism, 2>;
+template class LagrangeLSFS<ReferencePrism, 3>;
+template class LagrangeLSFS<ReferencePrism, 4>;
+template class LagrangeLSFS<ReferencePrism, 5>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Pyramid
@@ -277,9 +280,6 @@ LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
 
 template class LagrangeLSFS<ReferencePyramid, 1>;
 template class LagrangeLSFS<ReferencePyramid, 2>;
-template class LagrangeLSFS<ReferencePyramid, 3>;
-template class LagrangeLSFS<ReferencePyramid, 4>;
-template class LagrangeLSFS<ReferencePyramid, 5>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hexahedron
