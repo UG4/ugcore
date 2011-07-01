@@ -773,8 +773,31 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			}
 		}
 
+	///	returns the local dof storage for the shape
+		const LocalDoF& local_dof(size_t i)
+		{
+			check_index(i);
+			return m_vLocalDoF[i];
+		}
+
+	///	return Multi index for index i
+		inline const MultiIndex<dim>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			throw(UGFatalError("Index not found in LagrangeLSFS"));
+		}
+
+	///	return the index for a multi_index
+		inline size_t mapped_index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -794,7 +817,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> multi_index(size_t i) const
+		inline MultiIndex<dim> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -831,36 +854,36 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			return MultiIndex<dim>( i0, i1, i2);
 		}
 
-		///	returns if DoFs are assigned to geometric objects of the dimension
-			bool has_sh_on(int d) const
-			{
-				return (d==0) || (d==1 && p>1) || (d==2 && p>2) || (d==3 && p>3);
-			}
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		bool has_sh_on(int d) const
+		{
+			return (d==0) || (d==1 && p>1) || (d==2 && p>2) || (d==3 && p>3);
+		}
 
-		///	returns the number of DoFs on a given sub-geometric object
-			size_t num_sh(int d, size_t id) const
-			{
-				if(d==0) return 1;
-			//	number of shapes on edge is same as for edge with p-1
-				if(d==1) return (p-1);
-			//	number of shapes on faces is same as for triangles in 2d
-				if(d==2) return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
-			//	number of shapes on interior is same as for tetrahedra with p-4
-				if(d==3) return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
-				else return 0;
-			}
+	///	returns the number of DoFs on a given sub-geometric object
+		size_t num_sh(int d, size_t id) const
+		{
+			if(d==0) return 1;
+		//	number of shapes on edge is same as for edge with p-1
+			if(d==1) return (p-1);
+		//	number of shapes on faces is same as for triangles in 2d
+			if(d==2) return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
+		//	number of shapes on interior is same as for tetrahedra with p-4
+			if(d==3) return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
+			else return 0;
+		}
 
-		///	returns the number of DoFs on a sub-geometric object type
-			size_t num_sh(ReferenceObjectID type) const
-			{
-				if(type == ROID_VERTEX) return 1;
-				if(type == ROID_EDGE) return (p-1);
-				if(type == ROID_TRIANGLE)
-					return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
-				if(type == ROID_TETRAHEDRON)
-					return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
-				else return 0;
-			}
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_sh(ReferenceObjectID type) const
+		{
+			if(type == ROID_VERTEX) return 1;
+			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_TRIANGLE)
+				return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
+			if(type == ROID_TETRAHEDRON)
+				return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
+			else return 0;
+		}
 
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
@@ -880,6 +903,9 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
+
+		LocalDoF m_vLocalDoF[nsh];
+		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1038,8 +1064,31 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 					   * m_vTruncPolynom[   i0   ].value( x0 );
 		}
 
+	///	returns the local dof storage for the shape
+		const LocalDoF& local_dof(size_t i)
+		{
+			check_index(i);
+			return m_vLocalDoF[i];
+		}
+
+	///	return Multi index for index i
+		inline const MultiIndex<dim>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			throw(UGFatalError("Index not found in LagrangeLSFS"));
+		}
+
+	///	return the index for a multi_index
+		inline size_t mapped_index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1054,7 +1103,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> multi_index(size_t i) const
+		inline MultiIndex<dim> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -1129,6 +1178,9 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		Polynomial1D m_vDPolynom[p+1];
 		Polynomial1D m_vTruncPolynom[p+1];
 		Polynomial1D m_vDTruncPolynom[p+1];
+
+		LocalDoF m_vLocalDoF[nsh];
+		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1317,8 +1369,31 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			}
 */		}
 
+	///	returns the local dof storage for the shape
+		const LocalDoF& local_dof(size_t i)
+		{
+			check_index(i);
+			return m_vLocalDoF[i];
+		}
+
+	///	return Multi index for index i
+		inline const MultiIndex<dim>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
 	///	return the index for a multi_index
 		inline size_t index(const MultiIndex<dim>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			throw(UGFatalError("Index not found in LagrangeLSFS"));
+		}
+
+	///	return the index for a multi_index
+		inline size_t mapped_index(const MultiIndex<dim>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1336,7 +1411,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> multi_index(size_t i) const
+		inline MultiIndex<dim> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -1408,6 +1483,9 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 	private:
 		std::vector<std::vector<Polynomial1D> > m_vvPolynom;
 		std::vector<std::vector<Polynomial1D> > m_vvDPolynom;
+
+		LocalDoF m_vLocalDoF[nsh];
+		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////

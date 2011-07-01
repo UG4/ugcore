@@ -6,8 +6,239 @@
  */
 
 #include "lagrange.h"
+#include <sstream>
 
 namespace ug{
+
+template <typename TRefElem>
+void SetVertexLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
+                        	LocalDoF* vLocalDoF,
+                        	const TRefElem& rRef,
+                        	size_t p,
+                        	size_t& index)
+{
+//	dimension of Reference element
+	static const int dim = TRefElem::dim;
+
+//	get corner position integer
+	const MathVector<dim,int>* vCo = rRef.corner();
+
+//	loop all vertices
+	for(size_t i = 0; i< rRef.num(0); ++i)
+	{
+		vLocalDoF[index] = LocalDoF(0, i, 0);
+
+	//	set multi index
+		for(int d = 0; d<dim; ++d)
+			vMultiIndex[index][d] = p*vCo[i][d];
+
+	//	next index
+		++index;
+	}
+}
+
+template <typename TRefElem>
+void SetEdgeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
+                      	LocalDoF* vLocalDoF,
+                      	const TRefElem& rRef,
+                      	size_t p,
+                      	size_t& index)
+{
+//	dimension of Reference element
+	static const int dim = TRefElem::dim;
+
+//	only for 2d,3d elems we do something
+	if(dim < 1) return;
+
+//	get corner position integer
+	const MathVector<dim,int>* vCo = rRef.corner();
+
+//	loop all edges
+	for(size_t e = 0; e< rRef.num(1); ++e)
+	{
+	//	get ids of corners of edge
+		const size_t co0 = rRef.id(1,e, 0,0);
+		const size_t co1 = rRef.id(1,e, 0,1);
+
+	//	add dofs on the edge
+		for(size_t i = 1; i < p; ++i)
+		{
+		//	set: dim=1, id=e, offset=i-1
+			vLocalDoF[index] = LocalDoF(1, e, i-1);
+
+		//	compute multi index
+			MathVector<dim,int> m;
+			VecScaleAdd(m, i, vCo[co1], (p-i), vCo[co0]);
+
+		//	set multi index
+			for(int d = 0; d<dim; ++d)
+				vMultiIndex[index][d] = m[d];
+
+		//	next index
+			index++;
+		}
+	}
+}
+
+template <typename TRefElem>
+void SetFaceLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
+                      	LocalDoF* vLocalDoF,
+                      	const TRefElem& rRef,
+                      	size_t p,
+                      	size_t& index)
+{
+//	dimension of Reference element
+	static const int dim = TRefElem::dim;
+
+//	only for 2d,3d elems we do something
+	if(dim < 2) return;
+
+//	get corner position integer
+	const MathVector<dim,int>* vCo = rRef.corner();
+
+//	add dof on quadrilateral
+	for(size_t f = 0; f< rRef.num(2); ++f)
+	{
+	//	get ids of corners of edge
+		const size_t co0 = rRef.id(2,f, 0,0);
+		const size_t co1 = rRef.id(2,f, 0,1);
+		size_t co2 = rRef.id(2,f, 0,2);
+		if(rRef.num(2,f,0)==4) co2 = rRef.id(2,f, 0,3);
+
+	//	directions of counting
+		MathVector<dim,int> d1, d2;
+		VecSubtract(d1, vCo[co1], vCo[co0]);
+		VecSubtract(d2, vCo[co2], vCo[co0]);
+
+	//	reset counter
+		size_t cnt = 0;
+
+	//	loop 'y'-direction
+		for(size_t j = 1; j < p; ++j)
+		{
+		//	for a quadrilateral we have a quadratic loop, but for a
+		//	triangle we need to stop at the diagonal
+			const size_t off = ((rRef.num(2,f,0)==3) ? j : 0);
+
+		//	loop 'x'-direction
+			for(size_t i = 1; i < p-off; ++i)
+			{
+			//	set: dim=2, id=f, offset=cnt
+				vLocalDoF[index] = LocalDoF(2, f, cnt++);
+
+			//	compute multi index
+				MathVector<dim,int> m = vCo[co0];
+				VecScaleAppend(m, i, d1, j, d2);
+
+			//	set multi index
+				for(int d = 0; d<dim; ++d)
+					vMultiIndex[index][d] = m[d];
+
+			//	next index
+				++index;
+			}
+		}
+	}
+}
+
+template <typename TRefElem>
+void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
+                        	LocalDoF* vLocalDoF,
+                        	const TRefElem& rRef,
+                        	size_t p,
+                        	size_t& index)
+{
+//	dimension of Reference element
+	static const int dim = TRefElem::dim;
+
+//	only for 3d elems we do something
+	if(dim < 3) return;
+
+//	get corner position integer
+//	const MathVector<dim,int>* vCo = rRef.corner();
+
+//	get type of reference element
+	ReferenceObjectID type = rRef.ref_elem_type(dim, 0);
+
+//	handle elems
+	size_t cnt = 0;
+	switch(type)
+	{
+	case ROID_TETRAHEDRON:
+		for(size_t m2 = 1; m2 < p; ++m2)
+			for(size_t m1 = 1; m1 < p-m2; ++m1)
+				for(size_t m0 = 1; m0 < p-m2-m1; ++m0)
+				{
+				//	set: dim=2, id=0, offset=i
+					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
+
+				//	use regular mapping for inner DoFs
+					vMultiIndex[index][0] = m0;
+					vMultiIndex[index][1] = m1;
+					vMultiIndex[index++][2] = m2;
+				}
+		break;
+
+	case ROID_PYRAMID:
+		if(p>1) throw(UGFatalError("LagrangeLSFS: Higher order Pyramid not implemented."));
+		break;
+
+	case ROID_PRISM:
+		for(size_t m2 = 1; m2 < p; ++m2)
+			for(size_t m1 = 1; m1 < p; ++m1)
+				for(size_t m0 = 1; m0 < p-m1; ++m0)
+				{
+				//	set: dim=2, id=0, offset=i
+					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
+
+				//	use regular mapping for inner DoFs
+					vMultiIndex[index][0] = m0;
+					vMultiIndex[index][1] = m1;
+					vMultiIndex[index++][2] = m2;
+				}
+		break;
+
+	case ROID_HEXAHEDRON:
+		for(size_t m2 = 1; m2 < p; ++m2)
+			for(size_t m1 = 1; m1 < p; ++m1)
+				for(size_t m0 = 1; m0 < p; ++m0)
+				{
+				//	set: dim=2, id=0, offset=i
+					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
+
+				//	use regular mapping for inner DoFs
+					vMultiIndex[index][0] = m0;
+					vMultiIndex[index][1] = m1;
+					vMultiIndex[index++][2] = m2;
+				}
+		break;
+	default: std::stringstream ss;
+		ss << "LagrangeLSFS: Missing 3d mapping for type '"<<type<<"'.";
+		throw(UGFatalError(ss.str().c_str()));
+	}
+}
+
+template <typename TRefElem>
+void SetLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
+                  	LocalDoF* vLocalDoF,
+                  	const TRefElem& rRef,
+                  	size_t p)
+{
+//	init shape -> multi-index mapping
+	size_t index = 0;
+
+//	vertices
+	SetVertexLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+
+//	edge
+	SetEdgeLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+
+//	faces
+	SetFaceLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+
+//	volumes
+	SetVolumeLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Edge
@@ -30,22 +261,7 @@ LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceEdge>();
 
 //	init shape -> multi-index mapping
-	size_t index = 0;
-
-//	vertices
-	for(size_t i = 0; i< rRef.num(0); ++i)
-		m_vLocalDoF[index++] = LocalDoF(0, i, 0);
-	m_vMultiIndex[0] = MultiIndex<dim>(0);
-	m_vMultiIndex[1] = MultiIndex<dim>(p);
-
-//	edge
-	for(size_t i = 1; i < p; ++i)
-	{
-		m_vLocalDoF[index] = LocalDoF(1, 0, i-1);
-		m_vMultiIndex[index++] = MultiIndex<dim>(i);
-	}
-
-	UG_ASSERT(index == nsh, "Not all indices distributed.");
+	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceEdge, 1>;
@@ -75,53 +291,7 @@ LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceTriangle>();
 
 //	init shape -> multi-index mapping
-	size_t index = 0;
-
-	int vCo[3][dim] = {{0,0}, {1,0}, {0,1}};
-
-//	vertices
-	for(size_t i = 0; i< rRef.num(0); ++i)
-	{
-		m_vLocalDoF[index] = LocalDoF(0, i, 0);
-		m_vMultiIndex[index++] = MultiIndex<dim>(p*vCo[i][0],p*vCo[i][1]);
-	}
-
-//	edge
-	for(size_t e = 0; e< rRef.num(1); ++e)
-	{
-	//	get ids of corners of edge
-		const size_t co0 = rRef.id(1,e, 0,0);
-		const size_t co1 = rRef.id(1,e, 0,1);
-
-	//	add dofs on the edge
-		for(size_t i = 1; i < p; ++i)
-		{
-		//	set: dim=1, id=e, offset=i-1
-			m_vLocalDoF[index] = LocalDoF(1, e, i-1);
-
-		//	compute multi index
-			const size_t m0 = i*vCo[co0][0] + (p-i)*vCo[co1][0];
-			const size_t m1 = i*vCo[co0][1] + (p-i)*vCo[co1][1];
-
-			m_vMultiIndex[index++] = MultiIndex<dim>(m0, m1);
-		}
-	}
-
-//	add dof on triangle
-	const size_t used = index;
-	for(size_t m1 = 1; m1 < p; ++m1)
-	{
-		for(size_t m0 = 1; m0 < p-m1; ++m0)
-		{
-		//	set: dim=2, id=0, offset=i
-			m_vLocalDoF[index] = LocalDoF(2, 0, index-used);
-
-		//	use regular mapping for inner DoFs
-			m_vMultiIndex[index++] = MultiIndex<dim>(m0,m1);
-		}
-	}
-
-	UG_ASSERT(index == nsh, "Not all indices distributed.");
+	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceTriangle, 1>;
@@ -151,53 +321,7 @@ LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceQuadrilateral>();
 
 //	init shape -> multi-index mapping
-	size_t index = 0;
-
-	int vCo[4][dim] = {{0,0}, {1,0}, {1,1}, {0,1}};
-
-//	vertices
-	for(size_t i = 0; i< rRef.num(0); ++i)
-	{
-		m_vLocalDoF[index] = LocalDoF(0, i, 0);
-		m_vMultiIndex[index++] = MultiIndex<dim>(p*vCo[i][0],p*vCo[i][1]);
-	}
-
-//	edge
-	for(size_t e = 0; e< rRef.num(1); ++e)
-	{
-	//	get ids of corners of edge
-		const size_t co0 = rRef.id(1,e, 0,0);
-		const size_t co1 = rRef.id(1,e, 0,1);
-
-	//	add dofs on the edge
-		for(size_t i = 1; i < p; ++i)
-		{
-		//	set: dim=1, id=e, offset=i-1
-			m_vLocalDoF[index] = LocalDoF(1, e, i-1);
-
-		//	compute multi index
-			const size_t m0 = i*vCo[co0][0] + (p-i)*vCo[co1][0];
-			const size_t m1 = i*vCo[co0][1] + (p-i)*vCo[co1][1];
-
-			m_vMultiIndex[index++] = MultiIndex<dim>(m0, m1);
-		}
-	}
-
-//	add dof on triangle
-	const size_t used = index;
-	for(size_t m1 = 1; m1 < p; ++m1)
-	{
-		for(size_t m0 = 1; m0 < p; ++m0)
-		{
-		//	set: dim=2, id=0, offset=i
-			m_vLocalDoF[index] = LocalDoF(2, 0, index-used);
-
-		//	use regular mapping for inner DoFs
-			m_vMultiIndex[index++] = MultiIndex<dim>(m0,m1);
-		}
-	}
-
-	UG_ASSERT(index == nsh, "Not all indices distributed.");
+	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceQuadrilateral, 1>;
@@ -220,6 +344,13 @@ LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
 		m_vPolynom[i] = TruncatedEquidistantLagrange1D(i, p);
 		m_vDPolynom[i] = m_vPolynom[i].derivative();
 	}
+
+//	reference element
+	const ReferenceTetrahedron& rRef =
+			ReferenceElementProvider::get<ReferenceTetrahedron>();
+
+//	init shape -> multi-index mapping
+	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceTetrahedron, 1>;
@@ -246,6 +377,13 @@ LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 		m_vPolynom[i] = EquidistantLagrange1D(i, p);
 		m_vDPolynom[i] = m_vPolynom[i].derivative();
 	}
+
+//	reference element
+	const ReferencePrism& rRef =
+			ReferenceElementProvider::get<ReferencePrism>();
+
+//	init shape -> multi-index mapping
+	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
 }
 
 template class LagrangeLSFS<ReferencePrism, 1>;
@@ -276,6 +414,13 @@ LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
 			m_vvDPolynom[i2][i] = m_vvPolynom[i2][i].derivative();
 		}
 	}
+
+	//	reference element
+		const ReferencePyramid& rRef =
+				ReferenceElementProvider::get<ReferencePyramid>();
+
+	//	init shape -> multi-index mapping
+		SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
 }
 
 template class LagrangeLSFS<ReferencePyramid, 1>;
@@ -302,102 +447,7 @@ LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceHexahedron>();
 
 //	init shape -> multi-index mapping
-	size_t index = 0;
-
-	int vCo[8][dim] = {{0,0,0}, {1,0,0}, {1,1,0}, {0,1,0},
-	                   {0,0,1}, {1,0,1}, {1,1,1}, {0,1,1}};
-
-//	vertices
-	for(size_t i = 0; i< rRef.num(0); ++i)
-	{
-		m_vLocalDoF[index] = LocalDoF(0, i, 0);
-		m_vMultiIndex[index++] = MultiIndex<dim>(p*vCo[i][0],p*vCo[i][1],p*vCo[i][2]);
-	}
-
-//	edge
-	for(size_t e = 0; e< rRef.num(1); ++e)
-	{
-	//	get ids of corners of edge
-		const size_t co0 = rRef.id(1,e, 0,0);
-		const size_t co1 = rRef.id(1,e, 0,1);
-
-	//	add dofs on the edge
-		for(size_t i = 1; i < p; ++i)
-		{
-		//	set: dim=1, id=e, offset=i-1
-			m_vLocalDoF[index] = LocalDoF(1, e, i-1);
-
-		//	compute multi index
-			const size_t m0 = i*vCo[co0][0] + (p-i)*vCo[co1][0];
-			const size_t m1 = i*vCo[co0][1] + (p-i)*vCo[co1][1];
-			const size_t m2 = i*vCo[co0][2] + (p-i)*vCo[co1][2];
-
-			m_vMultiIndex[index++] = MultiIndex<dim>(m0, m1, m2);
-		}
-	}
-
-//	add dof on quadrilateral
-	for(size_t f = 0; f< rRef.num(2); ++f)
-	{
-	//	get ids of corners of edge
-		const size_t co0 = rRef.id(2,f, 0,0);
-		const size_t co1 = rRef.id(2,f, 0,1);
-		const size_t co2 = rRef.id(2,f, 0,2);
-		//const size_t co3 = rRef.id(2,f, 0,3);
-
-		int p0[dim], d1[dim], d2[dim];
-
-	//	origin of counting
-		p0[0] = vCo[co0][0];
-		p0[1] = vCo[co0][1];
-		p0[2] = vCo[co0][2];
-
-	//	directions of counting
-		d1[0] = vCo[co1][0] - vCo[co0][0];
-		d1[1] = vCo[co1][1] - vCo[co0][1];
-		d1[2] = vCo[co1][2] - vCo[co0][2];
-
-		d2[0] = vCo[co2][0] - vCo[co0][0];
-		d2[1] = vCo[co2][1] - vCo[co0][1];
-		d2[2] = vCo[co2][2] - vCo[co0][2];
-
-	//	add dofs on the edge
-		size_t cnt = 0;
-		for(size_t j = 1; j < p; ++j)
-		{
-			for(size_t i = 1; i < p; ++i)
-			{
-			//	set: dim=2, id=f, offset=cnt
-				m_vLocalDoF[index] = LocalDoF(2, f, cnt++);
-
-			//	compute multi index
-				const size_t m0 = p0[0] + i*d1[0] + j*d2[0];
-				const size_t m1 = p0[1] + i*d1[1] + j*d2[1];
-				const size_t m2 = p0[2] + i*d1[2] + j*d2[2];
-
-				m_vMultiIndex[index++] = MultiIndex<dim>(m0, m1, m2);
-			}
-		}
-	}
-
-//	add dof on hexahedron
-	const size_t used = index;
-	for(size_t m2 = 1; m2 < p; ++m2)
-	{
-		for(size_t m1 = 1; m1 < p; ++m1)
-		{
-			for(size_t m0 = 1; m0 < p; ++m0)
-			{
-			//	set: dim=2, id=0, offset=i
-				m_vLocalDoF[index] = LocalDoF(3, 0, index-used);
-
-			//	use regular mapping for inner DoFs
-				m_vMultiIndex[index++] = MultiIndex<dim>(m0,m1,m2);
-			}
-		}
-	}
-
-	UG_ASSERT(index == nsh, "Not all indices distributed.");
+	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceHexahedron, 1>;
