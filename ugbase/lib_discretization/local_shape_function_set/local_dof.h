@@ -21,6 +21,9 @@ namespace ug{
 class LocalDoF
 {
 	public:
+	///	default constructor
+		LocalDoF() : m_dim(-1), m_id(0), m_offset(0) {}
+
 	///	constructor
 	/**
 	 * Create a pair describing the position of a DoF within the reference element.
@@ -35,6 +38,12 @@ class LocalDoF
 		LocalDoF(int dim, size_t id, size_t offset)
 			: m_dim(dim), m_id(id), m_offset(offset)
 		{}
+
+	///	sets the values
+		void set(int dim, size_t id, size_t offset)
+		{
+			m_dim = dim; m_id = id; m_offset = offset;
+		}
 
 	///	returns the dimension of associated geometric object
 		inline int dim(size_t sh) const {return m_dim;}
