@@ -57,7 +57,18 @@ int* PartitionMap::get_target_procs()
 std::vector<int>& PartitionMap::get_target_proc_vec()
 {return m_targetProcs;}
 
-///	returns the index at which the given process lies. -1 if it doesn't exist.
+bool PartitionMap::change_target_proc(size_t index, int newRank)
+{
+//	make sure that the given index is valid
+	if(index >= num_target_procs()){
+		UG_LOG("WARNING in PartitionMap::change_target_proc: Bad index given.\n");
+		return false;
+	}
+
+	m_targetProcs[index] = newRank;
+	return true;
+}
+
 int PartitionMap::find_target_proc(int procRank)
 {
 	for(size_t i = 0; i < m_targetProcs.size(); ++i){
@@ -65,6 +76,13 @@ int PartitionMap::find_target_proc(int procRank)
 			return i;
 	}
 	return -1;
+}
+
+void PartitionMap::shift_target_procs(int offset)
+{
+	for(size_t i = 0; i < m_targetProcs.size(); ++i){
+		m_targetProcs[i] += offset;
+	}
 }
 
 }// end of namespace

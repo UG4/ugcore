@@ -37,8 +37,14 @@ class PartitionMap{
 
 		std::vector<int>& get_target_proc_vec();
 
+	///	changes an existing target process. Make sure that index < num_target_procs
+		bool change_target_proc(size_t index, int newRank);
+
 	///	returns the index at which the given process lies. -1 if it doesn't exist.
 		int find_target_proc(int procRank);
+
+	///	adds the given offset to all target-proc-ranks
+		void shift_target_procs(int offset);
 
 	private:
 		SubsetHandler		m_shPartitions;

@@ -25,6 +25,10 @@ static bool PclDebugBarrierEnabled()
 #endif
 }
 
+bool PclAllProcsTrue(bool bTrue){
+	return pcl::AllProcsTrue(bTrue);
+}
+
 template<typename T>
 T ParallelMin(T t)
 {
@@ -71,6 +75,9 @@ bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 
 	reg.add_function("SynchronizeProcesses", &pcl::SynchronizeProcesses, grpStr.c_str(),
 					"", "", "Waits until all active processes reached this point.");
+
+	reg.add_function("AllProcsTrue", &PclAllProcsTrue, grpStr.c_str(),
+					 "boolean", "boolean", "Returns true if all processes call the method with true.");
 
 	reg.add_function("ParallelMin", &ParallelMin<double>, grpStr.c_str(), "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelMax", &ParallelMax<double>, grpStr.c_str(), "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
@@ -123,6 +130,10 @@ T ParallelSumDUMMY(T t)
 	return t;
 }
 
+bool AllProcsTrueDUMMY(bool bTrue)
+{
+	return bTrue;
+}
 
 bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 {
@@ -150,6 +161,8 @@ bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 	reg.add_function("SynchronizeProcesses", &SynchronizeProcessesDUMMY, grpStr.c_str(),
 					"", "", "Waits until all active processes reached this point.");
 
+	reg.add_function("AllProcsTrue", &AllProcsTrueDUMMY, grpStr.c_str(),
+					 "boolean", "boolean", "Returns true if all processes call the method with true.");
 
 	reg.add_function("ParallelMinDUMMY", &ParallelMinDUMMY<double>, grpStr.c_str(), "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelMaxDUMMY", &ParallelMaxDUMMY<double>, grpStr.c_str(), "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");

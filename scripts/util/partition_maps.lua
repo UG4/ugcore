@@ -4,14 +4,22 @@
 -- creates partition maps of different structure
 
 -- create a partition map by performing repeated bisection
-function util.PartitionMapBisection(partitionMapOut, dom, numProcs)
+-- This method automatically adds target procs 0, ..., numProcs - 1.
+-- It is thus not suited for hierarchical redistribution.
+-- Use PartitionDomain_Bisection directly in this case.
+function util.PartitionMapBisection(dom, partitionMapOut,numProcs)
+	partitionMapOut:clear()
 	partitionMapOut:add_target_procs(0, numProcs)
 	PartitionDomain_Bisection(dom, partitionMapOut, 0)
 end
 
 -- create a partition map by using metis graph partitioning.
 -- This only works if Metis is available in the current build.
-function util.PartitionMapMetis(partitionMapOut, dom, numProcs, baseLevel)
+-- This method automatically adds target procs 0, ..., numProcs - 1.
+-- It is thus not suited for hierarchical redistribution.
+-- Use PartitionDomain_MetisKWay directly in this case.
+function util.PartitionMapMetis(dom, partitionMapOut, numProcs, baseLevel)
+	partitionMapOut:clear()
 	partitionMapOut:add_target_procs(0, numProcs)
 	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs, baseLevel, 1, 1)
 end
@@ -24,8 +32,11 @@ end
 -- Set it to any square of n (n = 2, 3, ...) to retrieve lexicographic ordered
 -- subgrids in each node (a node is considered to be a square grid itself).
 -- If numProcsPerNode is not a square-number, then it will be defaulted to 1.
-function util.PartitionMapLexicographic2D(partitionMapOut, dom, numNodesX,
+-- Since this method adds target procs 0, ..., numNodesX * numNodesY * numProcsPerNode
+-- to the given partitionMap, it is not suited for redistribution.
+function util.PartitionMapLexicographic2D(dom, partitionMapOut, numNodesX,
 										  numNodesY, numProcsPerNode)
+	partitionMapOut:clear()
 	local strWarning = "WARNING in util.PartitionMap_Lexicographic: "
 	
 --	get the subgrid width and make sure that numProcsPerNode is a square number.

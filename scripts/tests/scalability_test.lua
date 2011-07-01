@@ -104,6 +104,14 @@ activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time me
 -- It depends on whether we perform hierarchical redistribution or not.
 numInitialDistProcs = GetNumProcesses()
 if hierarchicalRedistStepSize >= 1 then
+--	make sure that distribution type grid2d is not used (the util-script is
+--	not suited for hierarchical redistribution)
+	if distributionType == "grid2d" then
+		print("ERROR: distributionType 'grid2d' is not supported for hierarchical"
+			  .. " redistribution (hRedistStepSize > 0).")
+		exit()
+	end
+	
 	local newProcsPerStep = math.pow(math.pow(2, dim), hierarchicalRedistStepSize)
 	
 	local procs = GetNumProcesses()
@@ -198,22 +206,30 @@ partitionMap = PartitionMap()
 while numDistProcs > 0 do
 	partitionMap:clear()
 	if GetProcessRank() < numProcsWithGrid then
+	--	add target procs. Make sure to keep a portion on the local process
+		partitionMap:add_target_proc(GetProcessRank())
+		if numDistProcs > 1 then
+			local firstNewProc = numProcsWithGrid + GetProcessRank() * (numDistProcs - 1)
+			partitionMap:add_target_procs(firstNewProc, numDistProcs - 1)
+		end
+	
 		if distributionType == "bisect" then
-			util.PartitionMapBisection(partitionMap, dom, numDistProcs)
+			PartitionDomain_Bisection(dom, partitionMap, 0)
 	
 		elseif distributionType == "grid2d" then
+		--	Note that grid2d can not be used if hierarchical redistribution is active.
 			local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numDistProcs / numProcsPerNode)
-			util.PartitionMapLexicographic2D(partitionMap, dom, numNodesX,
+			util.PartitionMapLexicographic2D(dom, partitionMap, numNodesX,
 											 numNodesY, numProcsPerNode)
 	
 		elseif distributionType == "metis" then
-			util.PartitionMapMetis(partitionMap, dom, numDistProcs, numPreRefs)
+			PartitionDomain_MetisKWay(dom, partitionMap, numProcs, baseLevel, 1, 1)
 	
 		else
 		    print( "distributionType not known, aborting!")
 		    exit()
 		end
-		
+
 	-- save the partition map for debug purposes
 		if verbosity >= 1 then
 			SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
@@ -265,13 +281,13 @@ delete(partitionMap)
 
 -- get subset handler
 sh = dom:get_subset_handler()
-if sh:num_subsets() ~= 2 then 
-print("Domain must have 2 Subsets for this problem.")
-exit()
+subsetsFine = (sh:num_subsets() == 2)
+if subsetsFine == true then subsetsFine = util.CheckSubsets(dom, {"Inner", "Boundary"}) end
+if AllProcsTrue(subsetsFine) == false then 
+	print("Domain must have 2 Subsets for this problem ('Inner' and 'Boundary').")
+	print("Make sure that every process received a part of the grid during distribution!")
+	exit()
 end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("DirichletBoundary", 1)
---sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
 if verbosity >= 1 then
@@ -363,7 +379,7 @@ elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_source(rhs)
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
+dirichletBND:add_boundary_value(dirichlet, "c", "Boundary")
 
 -------------------------------------------
 --  Setup Domain Discretization

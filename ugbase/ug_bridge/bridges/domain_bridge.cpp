@@ -276,16 +276,6 @@ bool RegisterDomainInterface(Registry& reg, const char* parentGroup)
 {
 	bool bSuccess = true;
 
-	reg.add_class_<PartitionMap>("PartitionMap", "ug4")
-		.add_constructor()
-		.add_method("clear", &PartitionMap::clear)
-		.add_method("get_partition_handler", &PartitionMap::get_partition_handler)
-		.add_method("add_target_proc", &PartitionMap::add_target_proc)
-		.add_method("add_target_procs", &PartitionMap::add_target_procs)
-		.add_method("num_target_procs", &PartitionMap::num_target_procs)
-		.add_method("get_target_proc", &PartitionMap::get_target_proc);
-
-
 #ifdef UG_DIM_1
 	bSuccess &= RegisterDomainInterface_<Domain<1, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
 #endif

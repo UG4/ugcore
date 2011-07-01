@@ -9,6 +9,7 @@
 #include "lib_grid/lib_grid.h"
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/tools/partition_map.h"
 
 using namespace std;
 
@@ -926,6 +927,17 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_function("AdjustSubsetsForSimulation",
 						(void (*)(MGSubsetHandler&, bool, bool, bool))
 						&AdjustSubsetsForSimulation<MGSubsetHandler>);
+
+	//	PartitionMap
+		reg.add_class_<PartitionMap>("PartitionMap", "ug4")
+			.add_constructor()
+			.add_method("clear", &PartitionMap::clear)
+			.add_method("get_partition_handler", &PartitionMap::get_partition_handler)
+			.add_method("add_target_proc", &PartitionMap::add_target_proc)
+			.add_method("add_target_procs", &PartitionMap::add_target_procs)
+			.add_method("num_target_procs", &PartitionMap::num_target_procs)
+			.add_method("get_target_proc", &PartitionMap::get_target_proc)
+			.add_method("shift_target_procs", &PartitionMap::shift_target_procs);
 
 	//	tests:
 		reg.add_function("TestAttachedLinkedList", &TestAttachedLinkedList);
