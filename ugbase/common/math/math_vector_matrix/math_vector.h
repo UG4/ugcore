@@ -160,7 +160,7 @@ class MathVector<2, T>
 			m_data[0] = x;
 			m_data[1] = y;
 		}
-		MathVector(const MathVector<2>& v)	{assign(v);}
+		MathVector(const MathVector<2,T>& v)	{assign(v);}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
@@ -198,7 +198,7 @@ class MathVector<2, T>
 		};
 
 	protected:
-		inline void assign(const MathVector<2>& v)	{m_data[0] = v.coord(0);m_data[1] = v.coord(1);}
+		inline void assign(const MathVector<2,T>& v)	{m_data[0] = v.coord(0);m_data[1] = v.coord(1);}
 
 };
 
@@ -222,7 +222,7 @@ class MathVector<3, T>
 			m_data[1] = y;
 			m_data[2] = z;
 		}
-		MathVector(const MathVector<3>& v)	{assign(v);}
+		MathVector(const MathVector<3,T>& v)	{assign(v);}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
@@ -260,7 +260,7 @@ class MathVector<3, T>
 			value_type m_data[3];
 		};
 	protected:
-		inline void assign(const MathVector<3>& v)	{m_data[0] = v.coord(0);
+		inline void assign(const MathVector<3,T>& v)	{m_data[0] = v.coord(0);
 												 m_data[1] = v.coord(1);
 												 m_data[2] = v.coord(2);}
 
@@ -287,7 +287,7 @@ class MathVector<4, T>
 			m_data[2] = z;
 			m_data[3] = w;
 		}
-		MathVector(const MathVector<4>& v)	{assign(v);}
+		MathVector(const MathVector<4,T>& v)	{assign(v);}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
@@ -327,15 +327,15 @@ class MathVector<4, T>
 		};
 
 	protected:
-		inline void assign(const MathVector<4>& v)	{m_data[0] = v.coord(0);
+		inline void assign(const MathVector<4,T>& v)	{m_data[0] = v.coord(0);
 												 m_data[1] = v.coord(1);
 												 m_data[2] = v.coord(2);
 												 m_data[3] = v.coord(3);}
 
 };
 
-template <std::size_t N>
-bool operator== (const MathVector<N>& v, const MathVector<N>& w)
+template <std::size_t N, typename T>
+bool operator== (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
 	for(std::size_t i = 0; i < N; ++i)
 	{
@@ -344,14 +344,14 @@ bool operator== (const MathVector<N>& v, const MathVector<N>& w)
 	return true;
 }
 
-template <std::size_t N>
-bool operator!= (const MathVector<N>& v, const MathVector<N>& w)
+template <std::size_t N, typename T>
+bool operator!= (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
 	return !(v == w);
 }
 
-template <std::size_t N>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N>& v)
+template <std::size_t N, typename T>
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N,T>& v)
 {
 	for(std::size_t i = 0; i < N; ++i)
 		outStream << "[" << i << "]: " << v.coord(i) << std::endl;
