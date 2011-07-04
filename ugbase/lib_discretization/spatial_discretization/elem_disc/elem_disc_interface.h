@@ -32,7 +32,13 @@ class IDataImport;
 /// \ingroup lib_disc_elem_disc
 /// @{
 
-
+///	base class for all element-wise discretizations
+/**
+ * This class is the base class for element-wise discretizations. An
+ * implementation of this class must provide local stiffness/mass-matrix
+ * contribution of one element to the global jacobian and local contributions
+ * of one element to the local defect.
+ */
 class IElemDisc{
 	public:
 	///	Local matrix type
@@ -46,10 +52,7 @@ class IElemDisc{
 
 	public:
 	///	Constructor
-		IElemDisc()
-			: 	m_bTimeDependent(false), m_time(0.0),
-			  	m_pLocalVectorTimeSeries(NULL), m_id(-1)
-		{}
+		IElemDisc();
 
 	////////////////////////////
 	// Functions and Subsets

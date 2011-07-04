@@ -9,6 +9,11 @@
 
 namespace ug{
 
+IElemDisc::IElemDisc()
+	: 	m_bTimeDependent(false), m_time(0.0),
+	  	m_pLocalVectorTimeSeries(NULL), m_id(-1)
+{}
+
 bool IElemDisc::set_functions(const char* functions)
 {
 //	get strings
