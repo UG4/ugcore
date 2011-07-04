@@ -117,6 +117,9 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 	///	reference dimension
 		static const int dim = ReferenceEdge::dim;
 
+	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
+		static const bool isLinear = true;
+
 	public:
 	///	Default Constructor
 		ReferenceMapping() : m_vCo(NULL) {}

@@ -117,6 +117,9 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 	///	reference dimension
 		static const int dim = ReferenceHexahedron::dim;
 
+	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
+		static const bool isLinear = false;
+
 	public:
 	///	Default Constructor
 		ReferenceMapping() : m_vCo(NULL) {}

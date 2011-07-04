@@ -41,6 +41,9 @@ class ReferenceMapping
 	///	reference dimension (domain space dimension)
 		static const int dim = TRefElem::dim;
 
+	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
+		static const bool isLinear = false;
+
 	public:
 	///	Default Constructor
 		ReferenceMapping();
