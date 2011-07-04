@@ -16,8 +16,8 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/operator_impl.h"
 
-#include "lib_algebra/operator/preconditioner/amg/amg.h"
-#include "lib_algebra/operator/preconditioner/amg/famg.h"
+#include "lib_algebra/operator/preconditioner/amg/rsamg/rsamg.h"
+#include "lib_algebra/operator/preconditioner/amg/famg/famg.h"
 
 namespace ug
 {
@@ -104,25 +104,27 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_position_provider3d", &amg_base<algebra_type>::set_position_provider3d, "", "prov", "needed for connectionviewer output")
 			;
 
-		reg.add_class_<	amg<algebra_type>, amg_base<algebra_type> > ("AMGPreconditioner", grp2.c_str(), "Ruge-Stueben Algebraic Multigrid Preconditioner")
+		reg.add_class_<	rsamg<algebra_type>, amg_base<algebra_type> > ("RSAMGPreconditioner", grp2.c_str(), "Ruge-Stueben Algebraic Multigrid Preconditioner")
 			.add_constructor()
-			.add_method("set_epsilon_strong", &amg<algebra_type>::set_epsilon_strong, "", "epsilon_str", "sets epsilon_strong, a measure for strong connectivity")
-			.add_method("get_epsilon_strong", &amg<algebra_type>::get_epsilon_strong, "epsilon_strong", "")
-			.add_method("set_epsilon_truncation", &amg<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
-			.add_method("get_epsilon_truncation", &amg<algebra_type>::get_epsilon_truncation, "epsilon_tr")
+			.add_method("set_epsilon_strong", &rsamg<algebra_type>::set_epsilon_strong, "", "epsilon_str", "sets epsilon_strong, a measure for strong connectivity")
+			.add_method("get_epsilon_strong", &rsamg<algebra_type>::get_epsilon_strong, "epsilon_strong", "")
+			.add_method("set_epsilon_truncation", &rsamg<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
+			.add_method("get_epsilon_truncation", &rsamg<algebra_type>::get_epsilon_truncation, "epsilon_tr")
 
-			.add_method("tostring", &amg<algebra_type>::tostring)
-			.add_method("enable_aggressive_coarsening_A", &amg<algebra_type>::enable_aggressive_coarsening_A, "", "nrOfPaths", "enables aggressive coarsening (A1 or A2) on the first level.")
-			.add_method("disable_aggressive_coarsening", &amg<algebra_type>::disable_aggressive_coarsening, "", "", "disables aggressive coarsening")
-			.add_method("is_aggressive_coarsening", &amg<algebra_type>::is_aggressive_coarsening)
-			.add_method("is_aggressive_coarsening_A", &amg<algebra_type>::is_aggressive_coarsening_A);
+			.add_method("tostring", &rsamg<algebra_type>::tostring)
+			.add_method("enable_aggressive_coarsening_A", &rsamg<algebra_type>::enable_aggressive_coarsening_A, "", "nrOfPaths", "enables aggressive coarsening (A1 or A2) on the first level.")
+			.add_method("disable_aggressive_coarsening", &rsamg<algebra_type>::disable_aggressive_coarsening, "", "", "disables aggressive coarsening")
+			.add_method("is_aggressive_coarsening", &rsamg<algebra_type>::is_aggressive_coarsening)
+			.add_method("is_aggressive_coarsening_A", &rsamg<algebra_type>::is_aggressive_coarsening_A);
 
 		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > ("FAMGPreconditioner", grp2.c_str(), "Filtering Algebraic Multigrid")
 			.add_constructor()
 			.add_method("tostring", &famg<algebra_type>::tostring)
 			.add_method("set_aggressive_coarsening", &famg<algebra_type>::set_aggressive_coarsening)
 			.add_method("set_delta", &famg<algebra_type>::set_delta, "", "delta", "\"Interpolation quality\" F may not be worse than this (F < m_delta)")
-			.add_method("set_theta", &famg<algebra_type>::set_theta, "" , "theta", "clip all interpolations with m_theta * F > min F.")
+			.add_method("get_delta", &famg<algebra_type>::get_delta, "delta")
+			.add_method("set_theta", &famg<algebra_type>::set_theta, "" , "theta", "with multiple parents paris, discard pairs with m_theta * F > min F.")
+			.add_method("get_theta", &famg<algebra_type>::get_theta, "theta")
 			.add_method("set_damping_for_smoother_in_interpolation_calculation",
 					&famg<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
 			.add_method("set_testvector_damps", &famg<algebra_type>::set_testvector_damps)
