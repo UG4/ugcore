@@ -12,53 +12,9 @@
 #include "lib_grid/lg_base.h"
 
 // other lib_discretization headers
-#include "./domain.h"
+#include "domain.h"
 
 namespace ug{
-
-/// \ingroup lib_disc_domain
-/// @{
-
-////////////////////////////////////////////////////////////////////////
-///	creates a domain from a grid-file and distributes it over multiple processes.
-/** After the grid is loaded it will be distributed to the specified processes.
- *
- *	\param domainOut	prepared Domain
- *	\param shTopViewOut	prepared Surface View
- *	\param filename		File to reas Domain from
- *	\param numProcs		number of processes
- *
- *	\param keepSrcGrid: If set to true a copy of the whole grid
- *		(including pre-refinement) will be kept on process 0.
- *		Vertical interfaces will be created.
- *
- *	\param numPreRefinements: you may specify the amount of refinement
- *		performed before the grid is distributed.
- *
- *	\param numPostRefinements: you may specify the amount of refinement
- *		performed after the grid was distributed.
- *
- *	\param writeProcessGrids: specify if distributed grids should be written
- *		to file
- *
- *	\param autoAssignInnerObjectsToSubset, autoAssignBoundaryObjectsToSubset:
- *		if both are > -2, inner and boundary elements will automatically be
- *		assigned to the given subsets.
- *
- *	\todo: add a parameter by which the grid-partitioning algorithm can be
- *		selected.
- */
-template <class TDomain>
-bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
-					const char* filename,
-					int numProcs,
-					bool keepSrcGrid,
-					size_t numPreRefinements = 0,
-					size_t numPostRefinements = 0,
-					bool writeProcessGrids = true,
-					int autoAssignInnerObjectsToSubset = -2,
-					int autoAssignBoundaryObjectsToSubset = -2);
-
 
 ////////////////////////////////////////////////////////////////////////
 /// returns if a subset is a regular grid
