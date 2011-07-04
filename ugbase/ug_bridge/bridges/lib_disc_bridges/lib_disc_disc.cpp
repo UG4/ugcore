@@ -16,23 +16,23 @@
 // lib_disc includes
 #include "lib_discretization/domain.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/thermohaline_flow/fv1/thermohaline_flow.h"
+#include "lib_discretization/spatial_discretization/elem_disc/thermohaline_flow/thermohaline_flow.h"
 #include "lib_discretization/spatial_discretization/disc_helper/conv_shape_interface.h"
 #include "lib_discretization/spatial_discretization/disc_helper/conv_shape.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/navier_stokes.h"
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/upwind.h"
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/fv/stabilization.h"
+#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/navier_stokes.h"
+#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/upwind.h"
+#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/stabilization.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/fv1/density_driven_flow.h"
+#include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/density_driven_flow.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fe1/fe1_convection_diffusion.h"
-#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fv1/convection_diffusion.h"
+#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fe1_convection_diffusion.h"
+#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/convection_diffusion.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/constant_equation/fv1/constant_equation.h"
+#include "lib_discretization/spatial_discretization/elem_disc/constant_equation/constant_equation.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/neumann_boundary/fv/neumann_boundary.h"
-#include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/fv/inner_boundary.h"
+#include "lib_discretization/spatial_discretization/elem_disc/neumann_boundary/neumann_boundary.h"
+#include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/inner_boundary.h"
 #include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 // fe1_nonlinear_elasticity includes
