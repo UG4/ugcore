@@ -149,7 +149,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.add_coupl_JA(locA, ind);
 
 	// 	send local to global matrix
-		AddLocalMatrix(A, locA);
+		AddLocalMatrixToGlobal(A, locA);
 	}
 
 // 	finish element loop
@@ -276,7 +276,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.add_coupl_JM(locM, ind);
 
 	// 	send local to global matrix
-		AddLocalMatrix(M, locM);
+		AddLocalMatrixToGlobal(M, locM);
 	}
 
 // 	finish element loop
@@ -404,7 +404,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.add_coupl_JA(locJ, ind);
 
 	// 	send local to global matrix
-		AddLocalMatrix(J, locJ);
+		AddLocalMatrixToGlobal(J, locJ);
 	}
 
 // 	finish element loop
@@ -564,7 +564,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.add_coupl_JM(locJ, ind);
 
 	// 	send local to global matrix
-		AddLocalMatrix(J, locJ);
+		AddLocalMatrixToGlobal(J, locJ);
 	}
 
 // 	finish element loop
@@ -970,7 +970,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	// 	send local to global matrix
-		AddLocalMatrix(A, locA);
+		AddLocalMatrixToGlobal(A, locA);
 
 	// 	send local to global rhs
 		AddLocalVector(rhs, locRhs);
@@ -1124,7 +1124,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		locRhs *= s_a;
 
 	// 	send local to global matrix
-		AddLocalMatrix(A, locA);
+		AddLocalMatrixToGlobal(A, locA);
 
 	// 	send local to global rhs
 		AddLocalVector(rhs, locRhs);
