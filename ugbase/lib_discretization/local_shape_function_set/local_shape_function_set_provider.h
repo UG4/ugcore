@@ -48,7 +48,7 @@ class LocalShapeFunctionSetProvider {
 
 	// 	return a map of element_trial_spaces
 		template <typename TRefElem>
-		static std::map<LocalShapeFunctionSetID, const LocalShapeFunctionSet<TRefElem>* >&
+		static std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* >&
 			get_map();
 
 	public:
@@ -62,7 +62,7 @@ class LocalShapeFunctionSetProvider {
 	 */
 		template <typename TRefElem>
 		static bool
-		register_local_shape_function_set(LocalShapeFunctionSetID id,
+		register_local_shape_function_set(LSFSID id,
 		                                  const LocalShapeFunctionSet<TRefElem>& set);
 
 	/** unregister a local shape function set for a given reference element type
@@ -73,7 +73,7 @@ class LocalShapeFunctionSetProvider {
 	 * \return			bool	true iff removal successful
 	 */
 		template <typename TRefElem>
-		static bool unregister_local_shape_function_set(LocalShapeFunctionSetID id);
+		static bool unregister_local_shape_function_set(LSFSID id);
 
 	/**	returns the Local Shape Function Set
 	 * This function returns the Local Shape Function Set for a reference element
@@ -86,7 +86,7 @@ class LocalShapeFunctionSetProvider {
 		// get the local shape function set for a given reference element and id
 		template <typename TRefElem>
 		static const LocalShapeFunctionSet<TRefElem>&
-		get(LocalShapeFunctionSetID id);
+		get(LSFSID id);
 };
 
 

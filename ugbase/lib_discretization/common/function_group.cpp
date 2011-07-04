@@ -166,7 +166,7 @@ const char* FunctionGroup::name(size_t i) const
 
 
 /// returns the trial space of the discrete function fct
-LocalShapeFunctionSetID FunctionGroup::local_shape_function_set_id(size_t i) const
+LSFSID FunctionGroup::local_shape_function_set_id(size_t i) const
 {
 	if(!is_init())
 	{

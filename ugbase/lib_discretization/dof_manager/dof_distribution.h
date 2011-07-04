@@ -73,7 +73,7 @@ class IDoFDistribution
 		// Support Info
 		///////////////////////////
 
-		static bool supports_trial_space(LocalShapeFunctionSetID& id)
+		static bool supports_trial_space(LSFSID& id)
 		{
 			return implementation_type::supports_trial_space(id);
 		}
@@ -92,7 +92,7 @@ class IDoFDistribution
 		size_t num_fct(int si) const {return m_pFuncPattern->num_fct(si);}
 
 	/// returns the trial space of the discrete function fct
-		LocalShapeFunctionSetID local_shape_function_set_id(size_t fct) const
+		LSFSID local_shape_function_set_id(size_t fct) const
 			{return m_pFuncPattern->local_shape_function_set_id(fct);}
 
 	/// name of discrete function

@@ -382,7 +382,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
  		const LocalShapeFunctionSet<typename FV1Geometry<TElem, dim>::ref_elem_type>& TrialSpace =
  				LocalShapeFunctionSetProvider::
  					get<typename FV1Geometry<TElem, dim>::ref_elem_type>
- 					(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
+ 					(LSFSID(LSFSID::LAGRANGE, 1));
 
  	// 	get Reference Element
  		typedef typename FV1Geometry<TElem, dim>::ref_elem_type ref_elem_type;

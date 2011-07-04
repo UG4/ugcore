@@ -38,7 +38,7 @@ bool InterpolateFunctionOnElem( boost::function<void (
 	typedef typename domain_type::position_type position_type;
 
 //	id of shape functions used
-	LocalShapeFunctionSetID id = u.local_shape_function_set_id(fct);
+	LSFSID id = u.local_shape_function_set_id(fct);
 
 //	get trial space
 	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
@@ -424,7 +424,7 @@ bool InterpolateFunctionOnVertices( boost::function<void (
 	typedef typename domain_type::position_type position_type;
 
 //	id of shape functions used
-	LocalShapeFunctionSetID id = u.local_shape_function_set_id(fct);
+	LSFSID id = u.local_shape_function_set_id(fct);
 
 // get position accessor
 	const typename domain_type::position_accessor_type& aaPos

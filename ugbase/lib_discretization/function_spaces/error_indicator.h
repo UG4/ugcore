@@ -40,7 +40,7 @@ bool ComputeGradient(TFunction& u,
 	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 			LocalShapeFunctionSetProvider::
 				get<ref_elem_type>
-				(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
+				(LSFSID(LSFSID::LAGRANGE, 1));
 
 //	create a reference mapping
 	ReferenceMapping<ref_elem_type, worldDim> mapping;

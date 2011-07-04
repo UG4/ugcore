@@ -134,9 +134,9 @@ class P1ConformDoFDistribution
 		// Support Info
 		///////////////////////////
 
-		static bool supports_trial_space(LocalShapeFunctionSetID& id)
+		static bool supports_trial_space(LSFSID& id)
 		{
-			return id == LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
+			return id == LSFSID(LSFSID::LAGRANGE, 1);
 		}
 
 		///////////////////////////
@@ -375,9 +375,9 @@ class GroupedP1ConformDoFDistribution
 		// Support Info
 		///////////////////////////
 
-		static bool supports_trial_space(LocalShapeFunctionSetID& id)
+		static bool supports_trial_space(LSFSID& id)
 		{
-			return id == LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
+			return id == LSFSID(LSFSID::LAGRANGE, 1);
 		}
 
 		///////////////////////////

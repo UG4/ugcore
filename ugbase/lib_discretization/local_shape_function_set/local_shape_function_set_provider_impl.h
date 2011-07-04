@@ -35,23 +35,23 @@ init_standard_local_shape_function_sets()
 	if(!init)
 	{
 	//	get type of map
-		typedef std::map<	LocalShapeFunctionSetID,
+		typedef std::map<	LSFSID,
 							const LocalShapeFunctionSet<TRefElem>* > Map;
 
 	//	get map
 		Map& map = get_map<TRefElem>();
 
 	//	insert into map: P1 Lagrange
-		LocalShapeFunctionSetID type1(LocalShapeFunctionSetID::LAGRANGE, 1);
+		LSFSID type1(LSFSID::LAGRANGE, 1);
 		success &= map.insert(
-					std::pair<LocalShapeFunctionSetID,
+					std::pair<LSFSID,
 						  const LocalShapeFunctionSet<TRefElem>*>
 							(type1, &sSetLagrangeP1)).second;
 
 	//	insert into map: P2 Lagrange
-		LocalShapeFunctionSetID type2(LocalShapeFunctionSetID::LAGRANGE, 2);
+		LSFSID type2(LSFSID::LAGRANGE, 2);
 		success &= map.insert(
-					std::pair<LocalShapeFunctionSetID,
+					std::pair<LSFSID,
 						  const LocalShapeFunctionSet<TRefElem>*>
 							(type2, &sSetLagrangeP2)).second;
 
@@ -63,13 +63,13 @@ init_standard_local_shape_function_sets()
 }
 
 template <typename TRefElem>
-std::map<	LocalShapeFunctionSetID,
+std::map<	LSFSID,
 			const LocalShapeFunctionSet<TRefElem>* >&
 LocalShapeFunctionSetProvider::
 get_map()
 {
 //	get type of map
-	typedef std::map<	LocalShapeFunctionSetID,
+	typedef std::map<	LSFSID,
 						const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	create static map
@@ -82,11 +82,11 @@ get_map()
 template <typename TRefElem>
 bool
 LocalShapeFunctionSetProvider::
-register_local_shape_function_set(	LocalShapeFunctionSetID id,
+register_local_shape_function_set(	LSFSID id,
 									const LocalShapeFunctionSet<TRefElem>& set)
 {
 //	get type of map
-	typedef std::map<	LocalShapeFunctionSetID,
+	typedef std::map<	LSFSID,
 						const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	get map
@@ -96,7 +96,7 @@ register_local_shape_function_set(	LocalShapeFunctionSetID id,
 
 //	insert into map
 	return map.insert(
-			std::pair<LocalShapeFunctionSetID,
+			std::pair<LSFSID,
 					  const LocalShapeFunctionSet<TRefElem>*>(id, &set)).second;
 }
 
@@ -104,10 +104,10 @@ register_local_shape_function_set(	LocalShapeFunctionSetID id,
 template <typename TRefElem>
 bool
 LocalShapeFunctionSetProvider::
-unregister_local_shape_function_set(LocalShapeFunctionSetID id)
+unregister_local_shape_function_set(LSFSID id)
 {
 //	get type of map
-	typedef std::map<	LocalShapeFunctionSetID,
+	typedef std::map<	LSFSID,
 						const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	get map
@@ -120,10 +120,10 @@ unregister_local_shape_function_set(LocalShapeFunctionSetID id)
 template <typename TRefElem>
 const LocalShapeFunctionSet<TRefElem>&
 LocalShapeFunctionSetProvider::
-get(LocalShapeFunctionSetID id)
+get(LSFSID id)
 {
 //	get type of map
-	typedef std::map<	LocalShapeFunctionSetID,
+	typedef std::map<	LSFSID,
 						const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	get map

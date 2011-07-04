@@ -110,7 +110,7 @@ class FunctionGroup
 		int dim() const;
 
 	/// returns the trial space of the discrete function fct
-		LocalShapeFunctionSetID local_shape_function_set_id(size_t i) const;
+		LSFSID local_shape_function_set_id(size_t i) const;
 
 	/// returns true if unique id is contained in this group
 		bool contains(size_t uniqueID) const;

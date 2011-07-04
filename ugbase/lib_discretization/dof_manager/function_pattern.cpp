@@ -17,7 +17,7 @@ namespace ug{
 
 bool
 FunctionPattern::
-add_fct(const char* name, LocalShapeFunctionSetID id, int dim)
+add_fct(const char* name, LSFSID id, int dim)
 {
 // 	if already locked, return false
 	if(m_bLocked)
@@ -70,7 +70,7 @@ add_fct(const char* name, LocalShapeFunctionSetID id, int dim)
 bool
 FunctionPattern::
 add_fct(const char* name,
-                      LocalShapeFunctionSetID id,
+                      LSFSID id,
                       const SubsetGroup& SubsetIndices,
                       int dim)
 {
@@ -131,7 +131,7 @@ add_fct(const char* name,
 bool
 FunctionPattern::
 add_fct(const char* name,
-                      LocalShapeFunctionSetID id,
+                      LSFSID id,
                       const char* subsets,
                       int dim)
 {

@@ -46,7 +46,7 @@ class FunctionPattern
 		const ISubsetHandler* get_subset_handler() const {return m_pSH;}
 
 	//	returns if ansatz space is supported
-		virtual bool supports_trial_space(LocalShapeFunctionSetID& id) const = 0;
+		virtual bool supports_trial_space(LSFSID& id) const = 0;
 
 	/// add a single solution of LocalShapeFunctionSetID to the entire domain
 	/**
@@ -55,7 +55,7 @@ class FunctionPattern
 	 * \param[in]	dim			Dimension (optional)
 	 */
 		virtual bool add_fct(const char* name,
-		                     LocalShapeFunctionSetID id,
+		                     LSFSID id,
 		                     int dim = -1);
 
 	/// add a single solution of LocalShapeFunctionSetID to selected subsets
@@ -66,7 +66,7 @@ class FunctionPattern
 	 * \param[in] dim			Dimension
 	 */
 		virtual bool add_fct(const char* name,
-		                     LocalShapeFunctionSetID id,
+		                     LSFSID id,
 		                     const SubsetGroup& SubsetIndices,
 		                     int dim = -1);
 
@@ -78,7 +78,7 @@ class FunctionPattern
 	 * \param[in] dim			Dimension
 	 */
 		virtual bool add_fct(const char* name,
-		                     LocalShapeFunctionSetID id,
+		                     LSFSID id,
 		                     const char* subsets,
 		                     int dim = -1);
 
@@ -89,7 +89,7 @@ class FunctionPattern
 			std::string strType(type);
 			if(strType != "Lagrange" || order != 1) return false;
 
-			return add_fct(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE,1));
+			return add_fct(name, LSFSID(LSFSID::LAGRANGE,1));
 		}
 
 		virtual bool add_fct_on_subset(const char* name,
@@ -100,7 +100,7 @@ class FunctionPattern
 			std::string strType(type);
 			if(strType != "Lagrange" || order != 1) return false;
 
-			return add_fct(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE,1), subsets);
+			return add_fct(name, LSFSID(LSFSID::LAGRANGE,1), subsets);
 		}
 
 	///	lock pattern (i.e. can not be changed then)
@@ -150,7 +150,7 @@ class FunctionPattern
 		}
 
 	/// returns the trial space of a discrete function
-		LocalShapeFunctionSetID local_shape_function_set_id(size_t fct) const
+		LSFSID local_shape_function_set_id(size_t fct) const
 		{
 			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
@@ -220,14 +220,14 @@ class FunctionPattern
 		struct Function
 		{
 			Function(const char* name_, int dim_,
-			         LocalShapeFunctionSetID id_, bool everywhere_,
+			         LSFSID id_, bool everywhere_,
 			         const SubsetGroup& subsetIndices_)
 				: name(name_), dim(dim_), id(id_),
 				  everywhere(everywhere_), subsetIndices(subsetIndices_){};
 
 			std::string name;
 			int dim;
-			LocalShapeFunctionSetID id;
+			LSFSID id;
 			bool everywhere;
 			SubsetGroup subsetIndices;
 
