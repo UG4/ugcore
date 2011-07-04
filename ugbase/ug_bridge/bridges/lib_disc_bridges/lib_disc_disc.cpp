@@ -35,11 +35,88 @@
 #include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/fv/inner_boundary.h"
 #include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
+// fe1_nonlinear_elasticity includes
+#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
+#include "lib_discretization/spatial_discretization/elem_disc/nonlinear_elasticity/fe1_nonlinear_elasticity.h"
+
 namespace ug
 {
 
 namespace bridge
 {
+
+////////////////////////////////////////////////////////////////////////////////
+//	Some classes for Non-Linear Elastictity
+////////////////////////////////////////////////////////////////////////////////
+
+template <int dim>
+class ElasticityTensorUserData
+	: public IUserData<MathTensor<4,dim>, dim>
+{
+	///	Base class type
+		typedef IUserData<MathTensor<4,dim>, dim> base_type;
+
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::ip;
+		using base_type::time;
+		using base_type::value;
+
+	public:
+	//	Functor Type
+		typedef typename base_type::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
+	public:
+	///	Constructor
+		ElasticityTensorUserData() {}
+
+	///	virtual destructor
+		virtual ~ElasticityTensorUserData()	{}
+
+	///	evaluates the data at a given point and time
+		void operator() (MathTensor<4,dim>& C, const MathVector<dim>& x, number time = 0.0)
+		{
+			//filling the ElasticityTensor
+			C.set(0.0);
+
+			C[0][0][0][0] = 5.;
+			C[0][0][1][2] = 12.;
+		}
+	///	prints Elasticity Tensor C at point x and time t
+		void test_evaluate(number x, number y, number z, number t)
+		{
+			MathTensor<4,dim> C;
+			MathVector<dim> v;
+			v.x = x;
+			if(v.size() > 1)
+				v[1] = y;
+			if(v.size() > 2)
+				v[2] = z;
+
+			this->operator()(C, v, t);
+			//UG_LOG("Tensor: " << C);
+
+		}
+	///	implement as a IPData
+		virtual void compute(bool computeDeriv = false)
+		{
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t i = 0; i < num_ip(s); ++i)
+				{
+					this->operator() (	value(s,i),
+										ip(s, i),
+										time());
+				}
+		}
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	Registering for all implementations of IElemDisc
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
 void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
@@ -50,10 +127,6 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 
 	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
 	std::string grp = grpSS.str();
-
-/////////////////////////////////////////////////////////////////////////////
-// Elem Disc
-/////////////////////////////////////////////////////////////////////////////
 
 //	DomainElemDisc base class
 	{
@@ -217,6 +290,19 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 			.add_method("set_exact_jacobian", &T::set_exact_jacobian);
 	}
 
+
+//	Non-Linear Elastictity
+	{
+		typedef FE1NonlinearElasticityElemDisc<domain_type> T;
+		typedef IDomainElemDisc<domain_type> TBase;
+		std::stringstream ss; ss << "FE1NonlinearElasticity" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_elasticity_tensor", &T::set_elasticity_tensor);
+			//methods, which are used in script-file
+	}
+
+
 /////////////////////////////////////////////////////////////////////////////
 // Upwind
 /////////////////////////////////////////////////////////////////////////////
@@ -343,6 +429,20 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 		std::stringstream ss; ss << "PartialUpwind" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor();
+	}
+
+/////////////////////////////////////////////////////////////////////////////
+// ElasticityTensorUserData
+/////////////////////////////////////////////////////////////////////////////
+	{
+		typedef ElasticityTensorUserData<dim> T;
+		typedef IUserData<MathTensor<4,dim>, dim> TBase;
+		std::stringstream ss; ss << "ElasticityTensorUserData" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("operator", &T::operator ())
+			.add_method("test_evaluate", &T::test_evaluate);
+			//methods, which are used in script-file
 	}
 
 }

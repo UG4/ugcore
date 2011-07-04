@@ -39,8 +39,6 @@ if(NOT NO_ALGEBRA)
 					bridges/lib_disc_bridges/lib_disc_domain.cpp
 					bridges/lib_disc_bridges/lib_disc_disc.cpp
 					
-					bridges/lib_disc_bridges/discs/nonlinear_elasticity_bridge.cpp
-
 					bridges/user_data_bridge.cpp)
 else(NOT NO_ALGEBRA)
 
