@@ -111,22 +111,41 @@ class FEGeometry
 		//	update the mapping for the new corners
 			m_mapping.update(vCorner);
 
-		//	evaluate global data
+		//	compute global integration points
 			for(size_t ip = 0; ip < nip; ++ip)
-			{
-			// 	compute transformation inverse and determinate at ip
-				m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]);
-
-			//	compute determinant
-				m_detJ[ip] = m_mapping.jacobian_det(m_vIPLocal[ip]);
-
-			//	compute global integration points
 				m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]);
 
-			// 	compute global gradients
+		//	evaluate global data
+		//	if reference mapping is linear,
+			if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
+			{
+			// 	compute transformation inverse and determinate at first ip
+				m_mapping.jacobian_transposed_inverse(m_vIPLocal[0], m_JTInv[0]);
+				m_detJ[0] = m_mapping.jacobian_det(m_vIPLocal[0]);
+
+			//	copy values
+				for(size_t ip = 1; ip < nip; ++ip)
+				{
+					m_JTInv[ip] = m_JTInv[0];
+					m_detJ[ip] = m_detJ[0];
+				}
+			}
+		//	else compute jacobian for each point
+			{
+				for(size_t ip = 0; ip < nip; ++ip)
+				{
+				// 	compute transformation inverse and determinate at ip
+					m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]);
+
+				//	compute determinant
+					m_detJ[ip] = m_mapping.jacobian_det(m_vIPLocal[ip]);
+				}
+			}
+
+		// 	compute global gradients
+			for(size_t ip = 0; ip < nip; ++ip)
 				for(size_t sh = 0; sh < nsh; ++sh)
 					MatVecMult(m_vvGradGlobal[ip][sh], m_JTInv[ip], m_vvGradLocal[ip][sh]);
-			}
 
 		//	we're done
 			return true;

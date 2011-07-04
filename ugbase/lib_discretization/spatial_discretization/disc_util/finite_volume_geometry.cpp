@@ -237,13 +237,33 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 
 	m_rMapping.update(vCornerCoords);
 
-	for(size_t i = 0; i < num_scvf(); ++i)
+//	if mapping is linear, compute jacobian only once and copy
+	if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
 	{
-		m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv);
-		m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
+		m_rMapping.jacobian_transposed_inverse(m_vSCVF[0].localIP, m_vSCVF[0].JtInv);
+		m_vSCVF[0].detj = m_rMapping.jacobian_det(m_vSCVF[0].localIP);
+		for(size_t i = 1; i < num_scvf(); ++i)
+		{
+			m_vSCVF[i].JtInv = m_vSCVF[0].JtInv;
+			m_vSCVF[i].detj = m_vSCVF[0].detj;
+		}
 
-		for(size_t sh = 0 ; sh < num_scv(); ++sh)
-			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
+		for(size_t i = 0; i < num_scvf(); ++i)
+			for(size_t sh = 0 ; sh < num_scv(); ++sh)
+				MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[0].JtInv, (m_vSCVF[i].localGrad)[sh]);
+
+	}
+//	else compute jacobian for each integration point
+	else
+	{
+		for(size_t i = 0; i < num_scvf(); ++i)
+		{
+			m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv);
+			m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
+
+			for(size_t sh = 0 ; sh < num_scv(); ++sh)
+				MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
+		}
 	}
 
 	///////////////////////////
