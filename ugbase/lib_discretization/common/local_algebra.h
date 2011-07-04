@@ -590,7 +590,7 @@ void AddLocalVector(TVector& vec, const LocalVector& lvec)
 }
 
 template <typename TMatrix>
-void AddLocalMatrix(TMatrix& mat, const LocalMatrix& lmat)
+void AddLocalMatrixToGlobal(TMatrix& mat, const LocalMatrix& lmat)
 {
 	const LocalIndices& rowInd = lmat.get_row_indices();
 	const LocalIndices& colInd = lmat.get_col_indices();
