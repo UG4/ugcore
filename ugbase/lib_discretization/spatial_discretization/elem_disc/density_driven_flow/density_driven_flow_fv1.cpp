@@ -6,7 +6,7 @@
  */
 
 #include "density_driven_flow.h"
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
 
 //#define PROFILE_D3F
 #ifdef PROFILE_D3F

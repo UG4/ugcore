@@ -7,8 +7,8 @@
 
 #include "fe1_nonlinear_elasticity.h"
 
-#include "lib_discretization/spatial_discretization/disc_helper/finite_element_geometry.h"
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_util/finite_element_geometry.h"
+#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
 #include "lib_discretization/local_shape_function_set/lagrange/lagrange.h"
 #include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
 

@@ -37,8 +37,8 @@ set(srcDiscretization	common/function_group.cpp
 						local_shape_function_set/lagrange/lagrange.cpp
 						
 						spatial_discretization/elem_disc/elem_disc_interface.cpp
-						spatial_discretization/disc_helper/finite_volume_geometry.cpp
-						spatial_discretization/disc_helper/hanging_finite_volume_geometry.cpp
+						spatial_discretization/disc_util/finite_volume_geometry.cpp
+						spatial_discretization/disc_util/hanging_finite_volume_geometry.cpp
 						spatial_discretization/ip_data/data_evaluator.cpp
 						
 						spatial_discretization/elem_disc/constant_equation/constant_equation_fv1.cpp

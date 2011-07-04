@@ -17,8 +17,8 @@
 #include "lib_discretization/domain.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/thermohaline_flow/thermohaline_flow.h"
-#include "lib_discretization/spatial_discretization/disc_helper/conv_shape_interface.h"
-#include "lib_discretization/spatial_discretization/disc_helper/conv_shape.h"
+#include "lib_discretization/spatial_discretization/disc_util/conv_shape_interface.h"
+#include "lib_discretization/spatial_discretization/disc_util/conv_shape.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/navier_stokes.h"
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/upwind.h"

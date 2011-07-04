@@ -9,8 +9,8 @@
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE_INTERFACE__
 
 #include "common/common.h"
-#include "lib_discretization/spatial_discretization/disc_helper/finite_volume_geometry.h"
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
+#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
 
 namespace ug{
 

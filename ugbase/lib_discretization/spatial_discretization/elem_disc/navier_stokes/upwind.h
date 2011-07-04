@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/spatial_discretization/disc_helper/finite_volume_geometry.h"
+#include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
 
 namespace ug{
 

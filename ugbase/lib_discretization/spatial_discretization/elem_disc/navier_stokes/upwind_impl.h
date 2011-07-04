@@ -16,7 +16,7 @@
 #include "lib_discretization/common/geometry_util.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
 
 #include "upwind.h"
 #include "lib_algebra/algebra_selector.h"

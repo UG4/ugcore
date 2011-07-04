@@ -19,7 +19,7 @@
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
 
-#include "lib_discretization/spatial_discretization/disc_helper/conv_shape_interface.h"
+#include "lib_discretization/spatial_discretization/disc_util/conv_shape_interface.h"
 
 namespace ug{
 
