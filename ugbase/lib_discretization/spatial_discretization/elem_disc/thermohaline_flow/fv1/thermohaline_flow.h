@@ -14,8 +14,7 @@
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
-#include "lib_discretization/common/local_algebra.h"
+
 #include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
@@ -74,13 +73,16 @@ namespace ug{
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 class ThermohalineFlowElemDisc
-	: public IDomainElemDisc<TDomain, TAlgebra>
+	: public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+		typedef IDomainElemDisc<TDomain> base_type;
+
+	///	own type
+		typedef ThermohalineFlowElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -91,9 +93,6 @@ class ThermohalineFlowElemDisc
 
 	///	Position type
 		typedef typename base_type::position_type position_type;
-
-	///	Algebra type
-		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
 		typedef typename base_type::local_matrix_type local_matrix_type;
@@ -106,57 +105,13 @@ class ThermohalineFlowElemDisc
 
 	public:
 	///	Constructor
-		ThermohalineFlowElemDisc() :
-			m_pUpwind(NULL), m_pUpwindEnergy(NULL), m_bConsGravity(true),
-			m_BoussinesqTransport(true), m_BoussinesqFlow(true),
-			m_BoussinesqEnergy(false),
-			m_imBrineScvf(false), m_imBrineGradScvf(false),
-			m_imPressureGradScvf(false),
-			m_imTemperatureGradScvf(false),
-			m_imDensityScv(false), m_imDensityScvf(false),
-			m_imDarcyVelScvf(false)
-		{
-		//	register assemble functions
-			register_assemble_functions(Int2Type<dim>());
-			register_export_functions(Int2Type<dim>());
-
-		//	register export
-			m_exDarcyVel.add_needed_data(m_exBrine);
-			register_export(m_exDarcyVel);
-			register_export(m_exBrine);
-			register_export(m_exBrineGrad);
-			register_export(m_exPressureGrad);
-			register_export(m_exTemperature);
-			register_export(m_exTemperatureGrad);
-
-		//	register import
-			register_import(m_imBrineScvf);
-			register_import(m_imBrineGradScvf);
-			register_import(m_imPressureGradScvf);
-			register_import(m_imPorosityScvf);
-			register_import(m_imPorosityScv);
-			register_import(m_imPermeabilityScvf);
-			register_import(m_imMolDiffusionScvf);
-			register_import(m_imThermalCondictivityScvf);
-			register_import(m_imViscosityScvf);
-			register_import(m_imDensityScv);
-			register_import(m_imDensityScvf);
-			register_import(m_imDarcyVelScvf);
-			register_import(m_imTemperatureGradScvf);
-
-		//	connect to own export
-			m_imBrineScvf.set_data(m_exBrine);
-			m_imBrineGradScvf.set_data(m_exBrineGrad);
-			m_imPressureGradScvf.set_data(m_exPressureGrad);
-			m_imTemperatureGradScvf.set_data(m_exTemperatureGrad);
-			m_imDarcyVelScvf.set_data(m_exDarcyVel);
-		}
+		ThermohalineFlowElemDisc();
 
 	///	sets usage of consistent gravity
 		void set_consistent_gravity(bool bUse)
 		{
 			m_bConsGravity = bUse;
-			register_export_functions(Int2Type<dim>());
+			register_all_fv1_funcs();
 		}
 
 	///	sets usage of boussinesq approximation for transport equation
@@ -388,40 +343,40 @@ class ThermohalineFlowElemDisc
 
 	private:
 	///	Data import for brine mass fraction at scvf ips
-		DataImport<number, dim, algebra_type> m_imBrineScvf;
-		DataImport<MathVector<dim>, dim, algebra_type> m_imBrineGradScvf;
+		DataImport<number, dim> m_imBrineScvf;
+		DataImport<MathVector<dim>, dim> m_imBrineGradScvf;
 
 	///	Data import for pressure gradient at scvf ips
-		DataImport<MathVector<dim>, dim, algebra_type> m_imPressureGradScvf;
+		DataImport<MathVector<dim>, dim> m_imPressureGradScvf;
 
 	///	Data import for temperature gradient at scvf ips
-		DataImport<MathVector<dim>, dim, algebra_type> m_imTemperatureGradScvf;
+		DataImport<MathVector<dim>, dim> m_imTemperatureGradScvf;
 
 	///	Data import for the reaction term
-		DataImport<number, dim, algebra_type> m_imPorosityScv;
-		DataImport<number, dim, algebra_type> m_imPorosityScvf;
+		DataImport<number, dim> m_imPorosityScv;
+		DataImport<number, dim> m_imPorosityScvf;
 
 	///	Data import for gravity (must be constant in current implementation)
-		DataImport<MathVector<dim>, dim, algebra_type> m_imConstGravity;
+		DataImport<MathVector<dim>, dim> m_imConstGravity;
 
 	///	Data import for permeability tensor
-		DataImport<MathMatrix<dim, dim>, dim, algebra_type> m_imPermeabilityScvf;
+		DataImport<MathMatrix<dim, dim>, dim> m_imPermeabilityScvf;
 
 	///	Data import for molecular diffusion tensor
-		DataImport<MathMatrix<dim, dim>, dim, algebra_type> m_imMolDiffusionScvf;
+		DataImport<MathMatrix<dim, dim>, dim> m_imMolDiffusionScvf;
 
 	///	Data import for thermal conductivity
-		DataImport<MathMatrix<dim, dim>, dim, algebra_type> m_imThermalCondictivityScvf;
+		DataImport<MathMatrix<dim, dim>, dim> m_imThermalCondictivityScvf;
 
 	///	Data import for viscosity
-		DataImport<number, dim, algebra_type> m_imViscosityScvf;
+		DataImport<number, dim> m_imViscosityScvf;
 
 	///	Data import for density
-		DataImport<number, dim, algebra_type> m_imDensityScv;
-		DataImport<number, dim, algebra_type> m_imDensityScvf;
+		DataImport<number, dim> m_imDensityScv;
+		DataImport<number, dim> m_imDensityScvf;
 
 	///	Data import for Darcy Velocity
-		DataImport<MathVector<dim>, dim, algebra_type> m_imDarcyVelScvf;
+		DataImport<MathVector<dim>, dim> m_imDarcyVelScvf;
 
 	///	Data import for Heat capacities
 		number m_imHeatCapacitySolid;
@@ -498,105 +453,36 @@ class ThermohalineFlowElemDisc
 		bool compute_pressure_grad_export(const local_vector_type& u, bool compDeriv);
 
 	///	Export for the Darcy velocity
-		DataExport<MathVector<dim>, dim, algebra_type> m_exDarcyVel;
+		DataExport<MathVector<dim>, dim> m_exDarcyVel;
 
 	///	Export for the brine mass fraction
-		DataExport<number, dim, algebra_type> m_exBrine;
+		DataExport<number, dim> m_exBrine;
 
 	///	Export for the gradient of brine mass fraction
-		DataExport<MathVector<dim>, dim, algebra_type> m_exBrineGrad;
+		DataExport<MathVector<dim>, dim> m_exBrineGrad;
 
 	///	Export for the gradient of brine mass fraction
-		DataExport<MathVector<dim>, dim, algebra_type> m_exPressureGrad;
+		DataExport<MathVector<dim>, dim> m_exPressureGrad;
 
 	///	Export for the temperature
-		DataExport<number, dim, algebra_type> m_exTemperature;
+		DataExport<number, dim> m_exTemperature;
 
 	///	Export for the gradient of temperature
-		DataExport<MathVector<dim>, dim, algebra_type> m_exTemperatureGrad;
+		DataExport<MathVector<dim>, dim> m_exTemperatureGrad;
 
 	private:
-		// register for 1D
-		void register_assemble_functions(Int2Type<1>)
-		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-		}
 
-		// register for 2D
-		void register_assemble_functions(Int2Type<2>)
-		{
-			//register_assemble_functions(Int2Type<1>());
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-		}
+		void register_all_fv1_funcs();
 
-		// register for 3D
-		void register_assemble_functions(Int2Type<3>)
-		{
-			//register_assemble_functions(Int2Type<2>());
-			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_assemble_functions<Pyramid>(ROID_PYRAMID);
-			register_all_assemble_functions<Prism>(ROID_PRISM);
-			register_all_assemble_functions<Hexahedron>(ROID_HEXAHEDRON);
-		}
+		struct RegisterFV1 {
+				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{m_pThis->register_fv1_func<TElem>();}
+		};
 
-		// help function
 		template <typename TElem>
-		void register_all_assemble_functions(int id)
-		{
-			typedef ThermohalineFlowElemDisc T;
-
-			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &T::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &T::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
-		}
-
-	// register for 1D
-		void register_export_functions(Int2Type<1>)
-		{
-			register_all_export_functions<Edge>(ROID_EDGE);
-		}
-
-		// register for 2D
-		void register_export_functions(Int2Type<2>)
-		{
-			//register_export_functions(Int2Type<1>());
-			register_all_export_functions<Triangle>(ROID_TRIANGLE);
-			register_all_export_functions<Quadrilateral>(ROID_QUADRILATERAL);
-		}
-
-		// register for 3D
-		void register_export_functions(Int2Type<3>)
-		{
-			//register_export_functions(Int2Type<2>());
-			register_all_export_functions<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_export_functions<Pyramid>(ROID_PYRAMID);
-			register_all_export_functions<Prism>(ROID_PRISM);
-			register_all_export_functions<Hexahedron>(ROID_HEXAHEDRON);
-		}
-
-		// help function
-		template <typename TElem>
-		void register_all_export_functions(int id)
-		{
-			typedef ThermohalineFlowElemDisc T;
-
-			if(m_bConsGravity)
-				m_exDarcyVel.register_export_func(id, this, &T::template compute_darcy_export_cons_grav<TElem>);
-			else
-				m_exDarcyVel.register_export_func(id, this, &T::template compute_darcy_export_std<TElem>);
-
-			m_exBrine.register_export_func(id, this, &T::template compute_brine_export<TElem>);
-			m_exBrineGrad.register_export_func(id, this, &T::template compute_brine_grad_export<TElem>);
-			m_exPressureGrad.register_export_func(id, this, &T::template compute_pressure_grad_export<TElem>);
-			m_exTemperature.register_export_func(id, this, &T::template compute_temperature_export<TElem>);
-			m_exTemperatureGrad.register_export_func(id, this, &T::template compute_temperature_grad_export<TElem>);
-		}
+		void register_fv1_func();
 
 };
 
@@ -604,6 +490,5 @@ class ThermohalineFlowElemDisc
 
 } // end namespace ug
 
-#include "thermohaline_flow_impl.h"
 
 #endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__THERMOHALINE_FLOW__FV1__THERMOHALINE_FLOW__*/

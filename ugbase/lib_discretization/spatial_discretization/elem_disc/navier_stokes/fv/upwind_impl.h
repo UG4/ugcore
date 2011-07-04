@@ -28,10 +28,10 @@ namespace ug {
 /////////////////////////////////////////////////////////////////////////////
 
 //	register a update function for a Geometry
-template <int dim, typename TAlgebra>
+template <int dim>
 template <typename TFVGeom, typename TAssFunc>
 void
-INavierStokesUpwind<dim, TAlgebra>::
+INavierStokesUpwind<dim>::
 register_update_func(TAssFunc func)
 {
 //	get unique geometry id
@@ -46,10 +46,10 @@ register_update_func(TAssFunc func)
 }
 
 //	set the Geometry type to use for next updates
-template <int dim, typename TAlgebra>
+template <int dim>
 template <typename TFVGeom>
 bool
-INavierStokesUpwind<dim, TAlgebra>::
+INavierStokesUpwind<dim>::
 set_geometry_type()
 {
 //	get unique geometry id
@@ -75,9 +75,9 @@ set_geometry_type()
 }
 
 //	resize the data arrays
-template <int dim, typename TAlgebra>
+template <int dim>
 void
-INavierStokesUpwind<dim, TAlgebra>::
+INavierStokesUpwind<dim>::
 set_sizes(size_t numScvf, size_t numSh)
 {
 //	remember sizes
@@ -98,9 +98,9 @@ set_sizes(size_t numScvf, size_t numSh)
 }
 
 ///	upwind velocity
-template <int dim, typename TAlgebra>
+template <int dim>
 MathVector<dim>
-INavierStokesUpwind<dim, TAlgebra>::
+INavierStokesUpwind<dim>::
 upwind_vel(size_t scvf) const
 {
 	UG_ASSERT(m_pCornerValue != NULL, "corner vals not set.");
@@ -128,10 +128,10 @@ upwind_vel(size_t scvf) const
 // No Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-NavierStokesNoUpwind<TDim, TAlgebra>::
+NavierStokesNoUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue)
 {
 //	set shapes
@@ -168,10 +168,10 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 // Full Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-NavierStokesFullUpwind<TDim, TAlgebra>::
+NavierStokesFullUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue)
 {
 //	two help vectors
@@ -275,10 +275,10 @@ bool GetNodeNextToCut(size_t& coOut,
 	return true;
 }
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-NavierStokesSkewedUpwind<TDim, TAlgebra>::
+NavierStokesSkewedUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue)
 {
 // 	corners of geometry
@@ -323,10 +323,10 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 	return true;
 }
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-NavierStokesLinearProfileSkewedUpwind<TDim, TAlgebra>::
+NavierStokesLinearProfileSkewedUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue)
 {
 // 	corners of geometry
@@ -411,10 +411,10 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
 
 
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-NavierStokesPositiveUpwind<TDim, TAlgebra>::
+NavierStokesPositiveUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue)
 {
 

@@ -28,6 +28,14 @@ ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& sh,
                            const char* subsets, const char separator = ',');
 
 /**
+ * Passing a vector of subset names this function returns
+ * a subset group containing the subsets.
+ */
+bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
+                                	const ISubsetHandler& sh,
+									const std::vector<std::string>& vSS);
+
+/**
  * Passing a string of subset names separated by ',' this function returns
  * a subset group containing the subsets.
  */
@@ -37,11 +45,19 @@ ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& patt
 
 /**
  * Passing a string of function names separated by ',' this function returns
- * a function group containing the subsets.
+ * a function group containing the functions.
  */
 bool
 ConvertStringToFunctionGroup(FunctionGroup&functionGroup, const FunctionPattern& pattern,
                              const char* functions, const char separator = ',');
+
+/**
+ * Passing a vector of function names this function returns
+ * a function group containing the functions.
+ */
+bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
+                                  	const FunctionPattern& pattern,
+									const std::vector<std::string>& vFct);
 
 /**
  * Creates a function index mapping that maps all local indices from the one

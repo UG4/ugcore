@@ -114,48 +114,41 @@ class SolutionTimeSeries
 };
 
 
-template <typename TVector>
 class LocalVectorTimeSeries
 {
 	public:
-	///	Vector type
-		typedef TVector vector_type;
-
-	///	Entry type
-		typedef typename vector_type::value_type value_type;
-
-	public:
 	///	constructor
-		LocalVectorTimeSeries(const SolutionTimeSeries<TVector>& solTimeSeries)
-			: m_rSolTimeSeries(solTimeSeries)
-		{}
+		LocalVectorTimeSeries() {}
 
 	///	returns number of time points
-		size_t size() const {return m_rSolTimeSeries.size();}
+		size_t size() const {return m_vLocalVector.size();}
 
 	///	returns time point i
-		number time(size_t i) const {return m_rSolTimeSeries.time(i);}
+		number time(size_t i) const {return m_vTime.at(i);}
 
 	///	returns the local vector for the i'th time point
-		const LocalVector<value_type>& solution(size_t i) const
-			{return m_vLocalVector.at(i);}
+		const LocalVector& solution(size_t i) const {return m_vLocalVector.at(i);}
 
 	///	update for indices
-		void read_values(LocalIndices& ind)
+		template <typename TVector>
+		void read_values(const SolutionTimeSeries<TVector>& solTimeSeries, LocalIndices& ind)
 		{
+			m_vLocalVector.resize(solTimeSeries.size());
+			m_vTime.resize(solTimeSeries.size());
 			for(size_t i = 0; i < m_vLocalVector.size(); ++i)
 			{
-				m_vLocalVector[i].set_indices(ind);
-				m_vLocalVector[i].read_values(m_rSolTimeSeries.solution(i));
+				m_vLocalVector[i].resize(ind);
+				GetLocalVector(m_vLocalVector[i], solTimeSeries.solution(i));
+				m_vTime[i] = solTimeSeries.time(i);
 			}
 		}
 
 	protected:
 	///	time series
-		const SolutionTimeSeries<TVector>& m_rSolTimeSeries;
+		std::vector<number> m_vTime;
 
 	///	vector of local vectors (one for each time point)
-		std::vector<LocalVector<value_type> > m_vLocalVector;
+		std::vector<LocalVector> m_vLocalVector;
 };
 
 /// @}

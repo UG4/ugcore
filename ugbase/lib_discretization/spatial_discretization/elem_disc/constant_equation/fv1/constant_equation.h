@@ -13,9 +13,8 @@
 #include "lib_grid/lg_base.h"
 
 // library intern headers
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/common/local_algebra.h"
+
 #include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
 
@@ -43,14 +42,15 @@ namespace ug{
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
-template<	typename TDomain,
-			typename TAlgebra>
-class FVConstantEquationElemDisc
-: public IDomainElemDisc<TDomain, TAlgebra>
+template<	typename TDomain>
+class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+		typedef IDomainElemDisc<TDomain> base_type;
+
+	///	Own type
+		typedef FVConstantEquationElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -61,9 +61,6 @@ class FVConstantEquationElemDisc
 
 	///	Position type
 		typedef typename base_type::position_type position_type;
-
-	///	Algebra type
-		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
 		typedef typename base_type::local_matrix_type local_matrix_type;
@@ -76,22 +73,7 @@ class FVConstantEquationElemDisc
 
 	public:
 	///	Constructor
-		FVConstantEquationElemDisc()
-		{
-		//	register assemling functions
-			register_ass_funcs(Int2Type<dim>());
-
-		//	register exports
-			register_export(m_exConcentration);
-			register_export(m_exConcentrationGrad);
-
-		//	register imports
-			register_import(m_imVelocity);
-			register_import(m_imSource);
-			register_import(m_imMassScale);
-
-			m_imMassScale.set_mass_part(true);
-		}
+		FVConstantEquationElemDisc();
 
 	///	sets the velocity field
 	/**
@@ -128,10 +110,7 @@ class FVConstantEquationElemDisc
 		virtual bool treat_non_regular_grid(bool bNonRegular)
 		{
 		//	switch, which assemble functions to use.
-			if(bNonRegular)
-				register_non_regular_ass_funcs(Int2Type<dim>());
-			else
-				register_ass_funcs(Int2Type<dim>());
+			register_all_fv1_funcs(bNonRegular);
 
 		//	this disc supports both grids
 			return true;
@@ -215,13 +194,13 @@ class FVConstantEquationElemDisc
 		static const size_t _C_ = 0;
 
 	///	Data import for the Velocity field
-		DataImport<MathVector<dim>, dim, algebra_type > m_imVelocity;
+		DataImport<MathVector<dim>, dim > m_imVelocity;
 
 	///	Data import for the right-hand side
-		DataImport<number, dim, algebra_type> m_imSource;
+		DataImport<number, dim> m_imSource;
 
 	///	Data import for the mass scale
-		DataImport<number, dim, algebra_type> m_imMassScale;
+		DataImport<number, dim> m_imMassScale;
 
 	public:
 	///	returns the export of the concentration
@@ -240,123 +219,29 @@ class FVConstantEquationElemDisc
 		bool compute_concentration_grad_export(const local_vector_type& u, bool compDeriv);
 
 	///	Export for the concentration
-		DataExport<number, dim, algebra_type> m_exConcentration;
+		DataExport<number, dim> m_exConcentration;
 
 	///	Export for the gradient of concentration
-		DataExport<MathVector<dim>, dim, algebra_type> m_exConcentrationGrad;
+		DataExport<MathVector<dim>, dim> m_exConcentrationGrad;
 
 	private:
-		////////////////////////////////////
-		//	regular elements
-		////////////////////////////////////
+		void register_all_fv1_funcs(bool bHang);
 
-	/// register for 1D
-		void register_ass_funcs(Int2Type<1>)
-		{
-			register_all_ass_funcs<Edge>(ROID_EDGE);
-		}
+		template <template <class Elem, int WorldDim> class TFVGeom>
+		struct RegisterFV1 {
+				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{m_pThis->register_fv1_func<TElem, TFVGeom>();}
+		};
 
-	/// register for 2D
-		void register_ass_funcs(Int2Type<2>)
-		{
-			register_ass_funcs(Int2Type<1>());
-			register_all_ass_funcs<Triangle>(ROID_TRIANGLE);
-			register_all_ass_funcs<Quadrilateral>(ROID_QUADRILATERAL);
-		}
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		void register_fv1_func();
 
-	/// register for 3D
-		void register_ass_funcs(Int2Type<3>)
-		{
-			register_ass_funcs(Int2Type<2>());
-			register_all_ass_funcs<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_ass_funcs<Pyramid>(ROID_PYRAMID);
-			register_all_ass_funcs<Prism>(ROID_PRISM);
-			register_all_ass_funcs<Hexahedron>(ROID_HEXAHEDRON);
-		}
-
-	///	register all functions for on element type
-		template <typename TElem>
-		void register_all_ass_funcs(int id)
-		{
-			typedef FVConstantEquationElemDisc T;
-
-			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem, FV1Geometry>);
-			register_prepare_element_function(		id, &T::template prepare_element<TElem, FV1Geometry>);
-			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem, FV1Geometry>);
-			register_assemble_JA_function(			id, &T::template assemble_JA<TElem, FV1Geometry>);
-			register_assemble_JM_function(			id, &T::template assemble_JM<TElem, FV1Geometry>);
-			register_assemble_A_function(			id, &T::template assemble_A<TElem, FV1Geometry>);
-			register_assemble_M_function(			id, &T::template assemble_M<TElem, FV1Geometry>);
-			register_assemble_f_function(			id, &T::template assemble_f<TElem, FV1Geometry>);
-
-		//	set computation of linearized defect w.r.t velocity
-			m_imVelocity.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, FV1Geometry>);
-			m_imSource.register_lin_defect_func(id, this, &T::template lin_defect_source<TElem, FV1Geometry>);
-			m_imMassScale.register_lin_defect_func(id, this, &T::template lin_defect_mass_scale<TElem, FV1Geometry>);
-
-		//	exports
-			m_exConcentration.register_export_func(id, this, &T::template compute_concentration_export<TElem, FV1Geometry>);
-			m_exConcentrationGrad.register_export_func(id, this, &T::template compute_concentration_grad_export<TElem, FV1Geometry>);
-		}
-
-	////////////////////////////////////
-	//	non-regular elements
-	////////////////////////////////////
-
-	/// register for 1D
-		void register_non_regular_ass_funcs(Int2Type<1>)
-		{
-			register_all_non_regular_ass_funcs<Edge>(ROID_EDGE);
-		}
-
-	/// register for 2D
-		void register_non_regular_ass_funcs(Int2Type<2>)
-		{
-			register_non_regular_ass_funcs(Int2Type<1>());
-			register_all_non_regular_ass_funcs<Triangle>(ROID_TRIANGLE);
-			register_all_non_regular_ass_funcs<Quadrilateral>(ROID_QUADRILATERAL);
-		}
-
-	/// register for 3D
-		void register_non_regular_ass_funcs(Int2Type<3>)
-		{
-			register_non_regular_ass_funcs(Int2Type<2>());
-			register_all_non_regular_ass_funcs<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_non_regular_ass_funcs<Pyramid>(ROID_PYRAMID);
-			register_all_non_regular_ass_funcs<Prism>(ROID_PRISM);
-			register_all_non_regular_ass_funcs<Hexahedron>(ROID_HEXAHEDRON);
-		}
-
-	///	register all functions for on element type
-		template <typename TElem>
-		void register_all_non_regular_ass_funcs(int id)
-		{
-			typedef FVConstantEquationElemDisc T;
-
-			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem, HFV1Geometry>);
-			register_prepare_element_function(		id, &T::template prepare_element<TElem, HFV1Geometry>);
-			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem, HFV1Geometry>);
-			register_assemble_JA_function(			id, &T::template assemble_JA<TElem, HFV1Geometry>);
-			register_assemble_JM_function(			id, &T::template assemble_JM<TElem, HFV1Geometry>);
-			register_assemble_A_function(			id, &T::template assemble_A<TElem, HFV1Geometry>);
-			register_assemble_M_function(			id, &T::template assemble_M<TElem, HFV1Geometry>);
-			register_assemble_f_function(			id, &T::template assemble_f<TElem, HFV1Geometry>);
-
-		//	set computation of linearized defect w.r.t velocity
-			m_imVelocity.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, HFV1Geometry>);
-			m_imSource.register_lin_defect_func(id, this, &T::template lin_defect_source<TElem, HFV1Geometry>);
-			m_imMassScale.register_lin_defect_func(id, this, &T::template lin_defect_mass_scale<TElem, HFV1Geometry>);
-
-		//	exports
-			m_exConcentration.register_export_func(id, this, &T::template compute_concentration_export<TElem, HFV1Geometry>);
-			m_exConcentrationGrad.register_export_func(id, this, &T::template compute_concentration_grad_export<TElem, HFV1Geometry>);
-		}
 };
 
 /// @}
 
 } // end namespace ug
-
-#include "constant_equation_impl.h"
 
 #endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONSTANT_EQUATION__FV1__CONSTANT_EQUATION__*/

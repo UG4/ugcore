@@ -14,18 +14,20 @@
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 class FE1LinearElasticityElemDisc
-	: public IDomainElemDisc<TDomain, TAlgebra>
+	: public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+		typedef IDomainElemDisc<TDomain> base_type;
+
+	///	own type
+		typedef FE1LinearElasticityElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -36,9 +38,6 @@ class FE1LinearElasticityElemDisc
 
 	///	Position type
 		typedef typename base_type::position_type position_type;
-
-	///	Algebra type
-		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
 		typedef typename base_type::local_matrix_type local_matrix_type;
@@ -103,61 +102,19 @@ class FE1LinearElasticityElemDisc
 		MathTensor<4, dim> m_ElasticityTensor;
 
 	private:
-		///////////////////////////////////////
-		// registering for reference elements
-		///////////////////////////////////////
-		template <int dim> class numType{};
+		void register_all_fe1_funcs();
 
-		void register_assemble_functions()
-		{
-			numType<TDomain::dim> dummy;
-			register_assemble_functions(dummy);
-		}
+		struct RegisterFE1 {
+				RegisterFE1(this_type* pThis) : m_pThis(pThis){}
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{m_pThis->register_fe1_func<TElem>();}
+		};
 
-		// register for 1D
-		void register_assemble_functions(numType<1> dummy)
-		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-		}
-
-		// register for 2D
-		void register_assemble_functions(numType<2> dummy)
-		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-		}
-
-		// register for 3D
-		void register_assemble_functions(numType<3> dummy)
-		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_assemble_functions<Prism>(ROID_PYRAMID);
-			register_all_assemble_functions<Prism>(ROID_PRISM);
-			register_all_assemble_functions<Prism>(ROID_HEXAHEDRON);
-		}
-
-		// help function
 		template <typename TElem>
-		void register_all_assemble_functions(int id)
-		{
-			register_prepare_element_loop_function(	id, &FE1LinearElasticityElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &FE1LinearElasticityElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &FE1LinearElasticityElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &FE1LinearElasticityElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &FE1LinearElasticityElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &FE1LinearElasticityElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &FE1LinearElasticityElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &FE1LinearElasticityElemDisc::template assemble_f<TElem>);
-		}
-
+		void register_fe1_func();
 };
 
 }
-
-#include "fe1_linear_elasticity_impl.h"
 
 #endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__LINEAR_ELASTICITY__FE1_LINEAR_ELASTICITY__*/

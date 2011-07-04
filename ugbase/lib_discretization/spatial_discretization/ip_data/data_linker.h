@@ -166,23 +166,22 @@ class DataLinker
 			if(!CreateUnionOfFunctionGroups(m_commonFctGroup, vFctGrp, true))
 			{
 				UG_LOG("ERROR in 'DataLinker::update_function_group': Cannot create"
-						"common function group.\n");
+						" common function group.\n");
 				return false;
 			}
 
 		//	create FunctionIndexMapping for each Disc
-			m_vMap.resize(m_vpIDependData.size());
-			for(size_t i = 0; i < m_vpIDependData.size(); ++i)
+			m_vMap.resize(vFctGrp.size());
+			for(size_t i = 0; i < vFctGrp.size(); ++i)
 			{
-				if(m_vpIDependData[i] != NULL)
-				if(!CreateFunctionIndexMapping(m_vMap[i],
-											   (m_vpIDependData[i]->get_function_group()),
-											   m_commonFctGroup))
-				{
-					UG_LOG("ERROR in 'DataLinker::update_function_group':"
-							"Cannot create Function Index Mapping.\n");
-					return false;
-				}
+				if(vFctGrp[i] != NULL)
+					if(!CreateFunctionIndexMapping(m_vMap[i], *vFctGrp[i],
+												   m_commonFctGroup))
+					{
+						UG_LOG("ERROR in 'DataLinker::update_function_group':"
+								"Cannot create Function Index Mapping for input "<<i<<".\n");
+						return false;
+					}
 			}
 
 		//	set common function group as the function group the data depends on

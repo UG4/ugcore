@@ -124,7 +124,7 @@ template<typename TAlgebra>
 template<typename TAssFunc>
 void
 IDirichletPostProcess<TAlgebra>::
-register_prepare_element_loop_function(int id, TAssFunc func)
+reg_prepare_vol_loop_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
 	if((size_t)id >= m_vPrepareElementLoopFunc.size())
@@ -155,7 +155,7 @@ template<typename TAlgebra>
 template<typename TAssFunc>
 void
 IDirichletPostProcess<TAlgebra>::
-register_prepare_element_function(int id, TAssFunc func)
+reg_prepare_vol_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
 	if((size_t)id >= m_vPrepareElementFunc.size())
@@ -186,7 +186,7 @@ template<typename TAlgebra>
 template<typename TAssFunc>
 void
 IDirichletPostProcess<TAlgebra>::
-register_finish_element_loop_function(int id, TAssFunc func)
+reg_finish_vol_loop_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
 	if((size_t)id >= m_vFinishElementLoopFunc.size())

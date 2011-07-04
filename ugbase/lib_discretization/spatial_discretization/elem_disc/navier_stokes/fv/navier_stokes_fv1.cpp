@@ -1,12 +1,14 @@
 /*
- * navier_stokes_impl.h
+ * navier_stokes_fv1.cpp
  *
  *  Created on: 20.09.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
+#include "navier_stokes.h"
+
+#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_helper/finite_volume_geometry.h"
 
 namespace ug{
 
@@ -18,10 +20,10 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 prepare_element_loop()
 {
 // 	Only first order implementation
@@ -101,10 +103,10 @@ prepare_element_loop()
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 finish_element_loop()
 {
 //	nothing to do
@@ -112,9 +114,9 @@ finish_element_loop()
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 time_point_changed(number time)
 {
 //	set new time point at imports
@@ -126,10 +128,10 @@ time_point_changed(number time)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 prepare_element(TElem* elem, const local_vector_type& u,
 								const local_index_type& glob_ind)
 {
@@ -167,10 +169,10 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 // 	Only first order implementation
@@ -180,7 +182,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 	static const TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem, dim> >();
 
 //	check for source term to pass to the stabilization
-	const DataImport<MathVector<dim>, dim, TAlgebra>* pSource = NULL;
+	const DataImport<MathVector<dim>, dim>* pSource = NULL;
 	if(m_imSource.data_given())	pSource = &m_imSource;
 
 //	check for solutions to pass to stabilization in time-dependent case
@@ -189,8 +191,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 	if(this->is_time_dependent())
 	{
 	//	get and check current and old solution
-		const LocalVectorTimeSeries<typename TAlgebra::vector_type>* vLocSol
-			= this->local_time_solutions();
+		const LocalVectorTimeSeries* vLocSol = this->local_time_solutions();
 		if(vLocSol->size() != 2)
 		{
 			UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
@@ -233,16 +234,16 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 			}
 
 //	get a const (!!) reference to the stabilization
-	const INavierStokesStabilization<dim, algebra_type>& stab
-		= *const_cast<const INavierStokesStabilization<dim, algebra_type>*>(m_pStab);
+	const INavierStokesStabilization<dim>& stab
+		= *const_cast<const INavierStokesStabilization<dim>*>(m_pStab);
 
 //	get a const (!!) reference to the stabilization of Convective Term
-	const INavierStokesStabilization<dim, algebra_type>& convStab
-		= *const_cast<const INavierStokesStabilization<dim, algebra_type>*>(m_pConvStab);
+	const INavierStokesStabilization<dim>& convStab
+		= *const_cast<const INavierStokesStabilization<dim>*>(m_pConvStab);
 
 //	get a const (!!) reference to the upwind of Convective Term
-	const INavierStokesUpwind<dim, algebra_type>& upwind
-		= *const_cast<const INavierStokesUpwind<dim, algebra_type>*>(m_pConvUpwind);
+	const INavierStokesUpwind<dim>& upwind
+		= *const_cast<const INavierStokesUpwind<dim>*>(m_pConvUpwind);
 
 // 	loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -499,10 +500,10 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 // 	Only first order implemented
@@ -512,7 +513,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	static const TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem, dim> >();
 
 //	check for source term to pass to the stabilization
-	const DataImport<MathVector<dim>, dim, TAlgebra>* pSource = NULL;
+	const DataImport<MathVector<dim>, dim>* pSource = NULL;
 	if(m_imSource.data_given())	pSource = &m_imSource;
 
 //	check for solutions to pass to stabilization in time-dependent case
@@ -521,8 +522,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	if(this->is_time_dependent())
 	{
 	//	get and check current and old solution
-		const LocalVectorTimeSeries<typename TAlgebra::vector_type>* vLocSol
-			= this->local_time_solutions();
+		const LocalVectorTimeSeries* vLocSol = this->local_time_solutions();
 		if(vLocSol->size() != 2)
 		{
 			UG_LOG("ERROR in 'FVNavierStokesElemDisc::assemble_A': "
@@ -566,12 +566,12 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 			}
 
 //	get a const (!!) reference to the stabilization
-	const INavierStokesStabilization<dim, algebra_type>& stab
-		= *const_cast<const INavierStokesStabilization<dim, algebra_type>*>(m_pStab);
+	const INavierStokesStabilization<dim>& stab
+		= *const_cast<const INavierStokesStabilization<dim>*>(m_pStab);
 
 //	get a const (!!) reference to the stabilization of Convective Term
-	const INavierStokesStabilization<dim, algebra_type>& convStab
-		= *const_cast<const INavierStokesStabilization<dim, algebra_type>*>(m_pConvStab);
+	const INavierStokesStabilization<dim>& convStab
+		= *const_cast<const INavierStokesStabilization<dim>*>(m_pConvStab);
 
 // 	loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -698,10 +698,10 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 // 	Only first order implementation
@@ -732,10 +732,10 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	Only first order implementation
@@ -766,10 +766,10 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 assemble_f(local_vector_type& d)
 {
 // 	Only first order implementation
@@ -799,11 +799,11 @@ assemble_f(local_vector_type& d)
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename SCVF>
 inline
 number
-FVNavierStokesElemDisc<TDomain, TAlgebra>::
+FVNavierStokesElemDisc<TDomain>::
 peclet_blend(MathVector<dim>& UpwindVel, const SCVF& scvf,
              const local_vector_type& u, number kinVisco)
 {
@@ -831,7 +831,72 @@ peclet_blend(MathVector<dim>& UpwindVel, const SCVF& scvf,
 	return w;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+//	Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+FVNavierStokesElemDisc<TDomain>::FVNavierStokesElemDisc()
+: m_bExactJacobian(true), m_pStab(NULL),
+  m_pConvStab(NULL), m_pConvUpwind(NULL)
+{
+//	set default options
+	set_peclet_blend(false);
+
+//	register imports
+	register_import(m_imSource);
+	register_import(m_imKinViscosity);
+
+//	register assemble functions
+	register_all_fv1_funcs(false);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	register assemble functions
+////////////////////////////////////////////////////////////////////////////////
+
+// register for 1D
+template<typename TDomain>
+void
+FVNavierStokesElemDisc<TDomain>::
+register_all_fv1_funcs(bool bHang)
+{
+//	get all grid element types in this dimension and below
+	typedef typename GridElemTypes<dim>::AllElemList ElemList;
+
+//	switch assemble functions
+	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
+	else throw(UGFatalError("Not implemented."));
+}
+
+template<typename TDomain>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+void
+FVNavierStokesElemDisc<TDomain>::
+register_fv1_func()
+{
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	typedef this_type T;
+
+	reg_prepare_vol_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
+	reg_prepare_vol_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
+	reg_finish_vol_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
+	reg_ass_JA_vol_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
+	reg_ass_JM_vol_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
+	reg_ass_dA_vol_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
+	reg_ass_dM_vol_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
+	reg_ass_rhs_vol_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+template class FVNavierStokesElemDisc<Domain1d>;
+template class FVNavierStokesElemDisc<Domain2d>;
+template class FVNavierStokesElemDisc<Domain3d>;
+
+
 } // namespace ug
-
-
-#endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__*/

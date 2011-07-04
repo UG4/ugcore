@@ -1,21 +1,18 @@
 /*
- * convection_diffusion_impl.h
+ * convection_diffusion_fe1.cpp
  *
  *  Created on: 02.08.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONVECTION_DIFFUSION__FE1__CONVECTION_DIFFUSION_IMPL__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONVECTION_DIFFUSION__FE1__CONVECTION_DIFFUSION_IMPL__
-
 #include "fe1_convection_diffusion.h"
+
 #include "lib_discretization/spatial_discretization/disc_helper/finite_element_geometry.h"
 #include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
 #include "lib_discretization/local_shape_function_set/lagrange/lagrange.h"
 #include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
 
 namespace ug{
-
 
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -25,11 +22,11 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem >
 inline
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -56,10 +53,10 @@ prepare_element_loop()
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem >
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 finish_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -68,9 +65,9 @@ finish_element_loop()
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 time_point_changed(number time)
 {
 //	set new time point at imports
@@ -85,11 +82,11 @@ time_point_changed(number time)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 
 template<typename TElem >
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 	// this loop will be performed inside the loop over the elements.
@@ -121,11 +118,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem >
 inline
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
@@ -166,11 +163,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem >
 inline
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
@@ -196,11 +193,11 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem >
 inline
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	static const int dim = TDomain::dim;
@@ -250,11 +247,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem >
 inline
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
@@ -283,11 +280,11 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem >
 inline
 bool
-FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
+FE1ConvectionDiffusionElemDisc<TDomain>::
 assemble_f(local_vector_type& d)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
@@ -305,8 +302,69 @@ assemble_f(local_vector_type& d)
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//	Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+FE1ConvectionDiffusionElemDisc<TDomain>::
+FE1ConvectionDiffusionElemDisc()
+{
+//	register assemling functions
+	register_all_fe1_funcs();
+
+//	register imports
+	register_import(m_imDiffusion);
+	register_import(m_imVelocity);
+	register_import(m_imReaction);
+	register_import(m_imSource);
+	register_import(m_imMassScale);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	register assemble functions
+////////////////////////////////////////////////////////////////////////////////
+
+// register for 1D
+template<typename TDomain>
+void
+FE1ConvectionDiffusionElemDisc<TDomain>::
+register_all_fe1_funcs()
+{
+//	get all grid element types in this dimension and below
+	typedef typename GridElemTypes<dim>::AllElemList ElemList;
+
+//	assemble functions
+	boost::mpl::for_each<ElemList>( RegisterFE1(this) );
+}
+
+template<typename TDomain>
+template<typename TElem>
+void
+FE1ConvectionDiffusionElemDisc<TDomain>::
+register_fe1_func()
+{
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	typedef this_type T;
+
+	reg_prepare_vol_loop_fct(id, &T::template prepare_element_loop<TElem>);
+	reg_prepare_vol_fct(	 id, &T::template prepare_element<TElem>);
+	reg_finish_vol_loop_fct( id, &T::template finish_element_loop<TElem>);
+	reg_ass_JA_vol_fct(		 id, &T::template assemble_JA<TElem>);
+	reg_ass_JM_vol_fct(		 id, &T::template assemble_JM<TElem>);
+	reg_ass_dA_vol_fct(		 id, &T::template assemble_A<TElem>);
+	reg_ass_dM_vol_fct(		 id, &T::template assemble_M<TElem>);
+	reg_ass_rhs_vol_fct(	 id, &T::template assemble_f<TElem>);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+template class FE1ConvectionDiffusionElemDisc<Domain1d>;
+template class FE1ConvectionDiffusionElemDisc<Domain2d>;
+template class FE1ConvectionDiffusionElemDisc<Domain3d>;
+
 
 } // namespace ug
 
-
-#endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONVECTION_DIFFUSION__FE1__CONVECTION_DIFFUSION_IMPL__*/

@@ -16,561 +16,492 @@
 
 namespace ug{
 
-/** Local index set
- *
- * The class LocalIndices is used to represent a local index set. It is intended to suit
- * for local index sets arising in Finite Element/Finite Volume assemblings. Thus, one
- * can load the LocalIndices for a FunctionGroup, representing the set of functions in
- * the discretization. It is also possible to select only a SubGroup of the Function Group.
- * This is done by adding a SubFunctionMap. By default, the SubFunctionMap is identity.
- * The access form discretization side is thus by a pair (fct, dof) representing the selected
- * function (0 <= fct <= \#Selected Functions - 1) and local dof indices (0 <= dof <= \#DoFs -1).
- * The access from algebra side is only an access to the algebra i-index. Using
- *  - local_index(size_t fct, size_t dof)
- *  - comp(size_t fct, size_t dof)
- *  will return the correspinding (i,alpha) entry for a (fct, dof) pair.
- */
+
 class LocalIndices
 {
 	public:
-	//	Index type used by algebra
+	///	Index type used by algebra
 		typedef size_t index_type;
 
-	// 	Component type used by algebra
-		typedef size_t comp_type;
+	///	Component type used by algebra
+		typedef index_type comp_type;
 
-	//  Multi Indix type used by discretization
-		typedef MultiIndex<2> multi_index_type;
+	///	Type of multi index
+		typedef MathVector<2, size_t> multi_index_type;
 
 	public:
-	//	Constructor
-		LocalIndices() :
-			m_pFuncGroup(NULL), m_pFuncMap(NULL)
+	///	Default Constructor
+		LocalIndices() {};
+
+	///	sets the number of functions
+		void resize_fct(size_t numFct) {m_vvIndex.resize(numFct);}
+
+	///	sets the number of dofs of a function
+		void resize_dof(size_t fct, size_t numDoF)
 		{
-			m_vAlgIndices.clear();
-			m_vvDofIndices.clear();
-		};
-
-		///////////////////////////
-		// setup
-		///////////////////////////
-
-	/// adjust for the function group
-		void set_function_group(const FunctionGroup& funcGroup)
-		{
-			m_pFuncGroup = &funcGroup;
-
-		// resize vectors
-			resize_dof_indices();
-
-		//	update identity map
-			for(size_t i = 0; i < m_pFuncGroup->num_fct(); ++i)
-				m_IdentityMap.add(i,i);
-
-		//	access all by default
-			access_all();
+			check_fct(fct);
+			m_vvIndex[fct].resize(numDoF);
 		}
 
-	/// access only part of the function group using mapping
-		void access_by_map(const FunctionIndexMapping& funcMap){m_pFuncMap = &funcMap;}
-
-	/// access all functions in FunctionGroup
-		void access_all(){m_pFuncMap = &m_IdentityMap;}
-
-	/// get current mapping
-		const FunctionIndexMapping* get_map() const {return m_pFuncMap;}
-
-	/// clear all dofs and indices
-		void clear()
+	/// reserves memory for the number of dofs
+		void reserve_dof(size_t fct, size_t numDoF)
 		{
-			m_vAlgIndices.clear();
-			for(size_t i = 0; i < m_vvDofIndices.size(); ++i)
-				m_vvDofIndices[i].clear();
+			check_fct(fct);
+			m_vvIndex[fct].reserve(numDoF);
 		}
 
-	/// add local dof index for local function
-		void add_dof(size_t fct, const multi_index_type& dofIndex)
+	///	adds an index (increases size)
+		void push_back_index(size_t fct, size_t index) {push_back_multi_index(fct,index,0);}
+
+	///	adds an index (increases size)
+		void push_back_multi_index(size_t fct, size_t index, size_t comp)
 		{
-			UG_ASSERT(fct < num_fct(), "Local function index not valid.");
-			m_vvDofIndices[fct].push_back(dofIndex);
+			check_fct(fct);
+			m_vvIndex[fct].push_back(multi_index_type(index,comp));
 		}
 
-	/// set number of algebra indices
-		void set_num_indices(size_t numInd) {m_vAlgIndices.resize(numInd);}
+	///	clears all fct
+		void clear() {m_vvIndex.clear();}
 
-	/// set algebra index
-		void set_index(size_t i, index_type ind)
+	///	number of functions
+		size_t num_fct() const {return m_vvIndex.size();}
+
+	/// number of dofs for accessible function
+		size_t num_dof(size_t fct) const
 		{
-			UG_ASSERT(i < num_indices(), "Algebra index not valid. (i="<<i<<", "
-			          	  	  	  	  	  "num_indices="<<num_indices()<<")");
-			m_vAlgIndices[i] = ind;
-		}
-
-		///////////////////////////
-		// Discretization access
-		///////////////////////////
-
-	/// number of accessible functions
-		size_t num_fct() const {return m_pFuncMap->num_fct();}
-
-	/// return unique function id
-		size_t unique_id(size_t fct) const
-		{
-			UG_ASSERT(fct < num_fct(), "Local fct index '"<<fct<<"' not valid."
-			          	  	  	  	   " (num_fct = "<<num_fct()<<")");
-			const size_t accFct = (*m_pFuncMap)[fct];
-			return m_pFuncGroup->unique_id(accFct);
+			check_fct(fct);
+			return m_vvIndex[fct].size();
 		}
 
 	/// number of dofs of all accessible (sum)
-		size_t num_dofs() const
+		size_t num_dof() const
 		{
 			size_t num = 0;
-			for(size_t fct = 0; fct < num_fct(); ++fct)
-				num += num_dofs(fct);
+			for(size_t fct = 0; fct < num_fct(); ++fct) num += num_dof(fct);
 			return num;
 		}
 
-	/// number of dofs for accessible function
-		size_t num_dofs(size_t fct) const
+	/// global algebra multi-index for (fct, dof)
+		const multi_index_type& multi_index(size_t fct, size_t dof) const
 		{
-			UG_ASSERT(fct < num_fct(), "local fct index '"<<fct<<"' not valid."
-			          	  	  	  	   " (num_fct = "<<num_fct()<<")");
-			const size_t accFct = (*m_pFuncMap)[fct];
-			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index "<<accFct<<
-			          	  " not valid. (Size = "<<m_vvDofIndices.size()<<")\n");
-			return m_vvDofIndices[accFct].size();
+			check_dof(fct, dof);
+			return m_vvIndex[fct][dof];
 		}
 
 	/// global algebra index for (fct, dof)
-		index_type global_index(size_t fct, size_t dof) const{return index(local_index(fct, dof));}
-
-	/// local algebra index for (fct, dof)
-		index_type local_index(size_t fct, size_t dof) const {return local_multi_index(fct,dof)[0];}
+		index_type index(size_t fct, size_t dof) const
+		{
+			check_dof(fct, dof);
+			return m_vvIndex[fct][dof][0];
+		}
 
 	/// algebra comp for (fct, dof)
-		comp_type comp(size_t fct, size_t dof) const {return local_multi_index(fct,dof)[1];}
-
-	///	return local multi index for (fct, dof)
-		const multi_index_type& local_multi_index(size_t fct, size_t dof) const
+		comp_type comp(size_t fct, size_t dof) const
 		{
-			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<
-			          	  	  	  "' not valid. (num_fct = "<<num_fct()<<")");
-			const size_t accFct = (*m_pFuncMap)[fct];
-			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index " << accFct
-			          << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
-			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "Local dof "<< dof <<
-			          " not valid. (Size = "<<m_vvDofIndices[accFct].size()<<")");
-			return m_vvDofIndices[accFct][dof];
-		}
-
-		///////////////////////////
-		// Algebra access
-		///////////////////////////
-
-	/// number of all dof indices used by matrix
-		size_t num_indices() const {return m_vAlgIndices.size();}
-
-	/// algebra index
-		index_type index(size_t i) const
-		{
-			UG_ASSERT(i < num_indices(), "Algebra index not valid");
-			return m_vAlgIndices[i];
+			check_dof(fct, dof);
+			return m_vvIndex[fct][dof][1];
 		}
 
 	protected:
-		// resize the dof_index arrays for the current function group
-		void resize_dof_indices()
+	///	checks correct fct index in debug mode
+		inline void check_fct(size_t fct) const
 		{
-			m_vvDofIndices.resize(m_pFuncGroup->num_fct());
-			for(size_t fct = 0; fct < m_vvDofIndices.size(); ++fct)
-			{
-				m_vvDofIndices[fct].clear();
-			}
+			UG_ASSERT(fct < num_fct(), "Wrong index.");
+		}
+	///	checks correct dof index in debug mode
+		inline void check_dof(size_t fct, size_t dof) const
+		{
+			check_fct(fct);
+			UG_ASSERT(dof < num_dof(fct), "Wrong index.");
 		}
 
 	protected:
-	///	underlying function group
-		const FunctionGroup* m_pFuncGroup;
-
-	///	default Function map, accessing all
-		FunctionIndexMapping m_IdentityMap;
-
-	/// flag iff all functions are accessed
-		bool m_bAccessAll;
-
-	/// Access Mapping
-		const FunctionIndexMapping* m_pFuncMap;
-
 	// 	Mapping (fct, dof) -> local index
-		std::vector<std::vector<multi_index_type> > m_vvDofIndices;
-
-	// 	Algebra indices
-		std::vector<index_type> m_vAlgIndices;
+		std::vector<std::vector<multi_index_type> > m_vvIndex;
 };
 
-template <typename TEntry>
 class LocalVector
 {
 	public:
 	///	own type
-		typedef LocalVector<TEntry> this_type;
+		typedef LocalVector this_type;
 
-	/// Index type used by algebra
-		typedef size_t index_type;
-
-	// 	Component type used by algebra
-		typedef size_t comp_type;
-
-	// 	Entry type used by algebra
-		typedef TEntry value_type;
-
-	protected:
-		typedef typename std::vector<value_type>::iterator iterator;
+	///	Type to store DoF values
+		typedef number value_type;
 
 	public:
-	///	Constructor
-		LocalVector() : m_pIndex(NULL) {m_entries.clear();}
+	///	default Constructor
+		LocalVector() : m_pIndex(NULL) {m_vvValue.clear();}
 
 	///	Constructor
-		LocalVector(LocalIndices& ind)
-			: m_pIndex(NULL)
-		{m_entries.clear(); set_indices(ind);}
-
-		///////////////////////////
-		// setup
-		///////////////////////////
-
-	/// set new local indices
-		void set_indices(LocalIndices& ind)
-		{
-			if(ind.num_indices() != size()) m_entries.resize(ind.num_indices());
-			m_pIndex = &ind;
-		}
-
-	/// get current local indices
-		LocalIndices& get_indices() {return *m_pIndex;}
-
-	///	read values from a vector
-		template <typename TDiscreteFunction>
-		void read_values(const TDiscreteFunction& v)
-		{
-			for(size_t i = 0; i < size(); ++i)
-				m_entries[i] = v[index(i)];
-		}
+		LocalVector(const LocalIndices& ind) {resize(ind);}
 
 		///////////////////////////
 		// vector functions
 		///////////////////////////
 
-	/// size
-		size_t size() const {return m_entries.size();}
-
-	/// access to entry
-		value_type& operator[](size_t i)
-		{
-			UG_ASSERT(i < size(), "Index not valid");
-			return m_entries[i];
-		}
-
-	/// const access to entry
-		const value_type& operator[](size_t i) const
-		{
-			UG_ASSERT(i < size(), "Index not valid");
-			return m_entries[i];
-		}
-
 	/// set all components of the vector
-		void set(number val)
+		this_type& operator=(number val)
 		{
-			iterator iterEnd = m_entries.end();
-			for(iterator iter = m_entries.begin(); iter != iterEnd; ++iter)
-				(*iter) = val;
+			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
+					m_vvValue[fct][dof] = val;
+				return *this;
 		}
 
 	/// multiply all components of the vector
 		this_type& operator*(number val)
 		{
-			iterator iterEnd = m_entries.end();
-			for(iterator iter = m_entries.begin(); iter != iterEnd; ++iter)
-				(*iter) *= val;
-			return *this;
+			return this->operator*=(val);
 		}
 
 	/// multiply all components of the vector
 		this_type& operator*=(number val)
 		{
-			iterator iterEnd = m_entries.end();
-			for(iterator iter = m_entries.begin(); iter != iterEnd; ++iter)
-				(*iter) *= val;
+			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
+					m_vvValue[fct][dof] *= val;
 			return *this;
 		}
 
 	/// add a local vector
 		this_type& operator+=(const this_type& rhs)
 		{
-			UG_ASSERT(size() == rhs.size(), "Size does not match.");
-			for(size_t i = 0; i < size(); ++i)
-				m_entries[i] += rhs[i];
+			UG_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
+			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
+					m_vvValue[fct][dof] += rhs.m_vvValue[fct][dof];
 			return *this;
 		}
 
 	/// subtract a local vector
 		this_type& operator-=(const this_type& rhs)
 		{
-			UG_ASSERT(size() == rhs.size(), "Size does not match.");
-			for(size_t i = 0; i < size(); ++i)
-				m_entries[i] -= rhs[i];
+			UG_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
+			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
+					m_vvValue[fct][dof] -= rhs.m_vvValue[fct][dof];
+			return *this;
+		}
+
+	///	add a scaled vector
+		this_type& scale_append(number s, const this_type& rhs)
+		{
+			UG_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
+			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
+					m_vvValue[fct][dof] += s * rhs.m_vvValue[fct][dof];
 			return *this;
 		}
 
 		///////////////////////////
-		// algebra access
+		// DoF access
 		///////////////////////////
 
-	/// global index of component
-		index_type index(size_t i) const {return m_pIndex->index(i);}
+	///	resize for current local indices
+		void resize(const LocalIndices& ind)
+		{
+			m_pIndex = &ind;
+			m_vvValue.resize(ind.num_fct());
+			m_vvValueAcc.resize(m_vvValue.size());
+			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+				m_vvValue[fct].resize(ind.num_dof(fct));
+			access_all();
+		}
 
-		///////////////////////////
-		// discretization access
-		///////////////////////////
+	/// get current local indices
+		const LocalIndices& get_indices() const {return *m_pIndex;}
 
-	/// number of accessible functions
-		size_t num_fct() const {return m_pIndex->num_fct();}
+	/// access only part of the functions using mapping
+		void access_by_map(const FunctionIndexMapping& funcMap)
+		{
+			m_pFuncMap = &funcMap;
+			for(size_t i = 0; i < funcMap.num_fct(); ++i)
+			{
+				const size_t mapFct = funcMap[i];
+				m_vvValueAcc[i] = &(m_vvValue[mapFct][0]);
+			}
+		}
 
-	/// return global function id for accessible functions
-		size_t unique_id(size_t fct) const	{return m_pIndex->unique_id(fct);}
+	///	access all functions
+		void access_all()
+		{
+			m_pFuncMap = NULL;
 
-	/// number of dofs of accessible functions (sum)
-		size_t num_dofs() const {return m_pIndex->num_dofs();}
+			if(m_pIndex==NULL) {m_vvValueAcc.clear(); return;}
 
-	/// number of dofs per accessible function
-		size_t num_dofs(size_t fct) const {return m_pIndex->num_dofs(fct);}
+			for(size_t i = 0; i < m_pIndex->num_fct(); ++i)
+				m_vvValueAcc[i] = &(m_vvValue[i][0]);
+		}
+
+	///	returns the number of currently accessible functions
+		size_t num_fct() const
+		{
+			if(m_pFuncMap == NULL) return m_vvValue.size();
+			return m_pFuncMap->num_fct();
+		}
+
+	///	returns the number of dofs for the currently accessible function
+		size_t num_dof(size_t fct) const
+		{
+			check_fct(fct);
+			if(m_pFuncMap == NULL) return m_vvValue[fct].size();
+			else return m_vvValue[ (*m_pFuncMap)[fct] ].size();
+		}
 
 	/// access to dof of accessible function fct
 		number& operator()(size_t fct, size_t dof)
 		{
-			const typename LocalIndices::multi_index_type& ind
-										= m_pIndex->local_multi_index(fct, dof);
-			UG_ASSERT(ind[0] < size(), "Index not valid");
-			return BlockRef(m_entries[ind[0]], ind[1]);
+			check_dof(fct,dof);
+			return m_vvValueAcc[fct][dof];
 		}
 
 	/// const access to dof of accessible function fct
-		const number& operator()(size_t fct, size_t dof) const
+		const number operator()(size_t fct, size_t dof) const
 		{
-			const typename LocalIndices::multi_index_type& ind
-										= m_pIndex->local_multi_index(fct, dof);
-			UG_ASSERT(ind[0] < size(), "Index not valid");
-			return BlockRef(m_entries[ind[0]], ind[1]);
+			check_dof(fct,dof);
+			return m_vvValueAcc[fct][dof];
+		}
+
+	protected:
+	///	checks correct fct index in debug mode
+		inline void check_fct(size_t fct) const
+		{
+			UG_ASSERT(fct < num_fct(), "Wrong index.");
+		}
+	///	checks correct dof index in debug mode
+		inline void check_dof(size_t fct, size_t dof) const
+		{
+			check_fct(fct);
+			UG_ASSERT(dof < num_dof(fct), "Wrong index.");
 		}
 
 	protected:
 	/// Indices
-		LocalIndices* m_pIndex;
+		const LocalIndices* m_pIndex;
 
-	/// Entries
-		std::vector<value_type> m_entries;
+	/// Access Mapping
+		const FunctionIndexMapping* m_pFuncMap;
+
+	/// Entries (fct, dof)
+		std::vector<value_type*> m_vvValueAcc;
+
+	/// Entries (fct, dof)
+		std::vector<std::vector<value_type> > m_vvValue;
 };
 
-class LocalMatrixBase{
-public:
-	virtual ~LocalMatrixBase(){};
-};
-
-template <typename TEntry>
-class LocalMatrix : public LocalMatrixBase
+class LocalMatrix
 {
 	public:
-		typedef LocalMatrix<TEntry> this_type;
+	///	own type
+		typedef LocalMatrix this_type;
 
-	/// Index type used by algebra
-		typedef size_t index_type;
-
-	//  Component type used by algebra
-		typedef size_t comp_type;
-
-	// 	Entry type used by algebra
-		typedef TEntry value_type;
-
-	protected:
-		typedef typename std::vector<std::vector<value_type> >::iterator   row_iterator;
-		typedef typename std::vector<value_type>::iterator col_iterator;
+	///	Entry type used by algebra
+		typedef number value_type;
 
 	public:
 	///	Constructor
-		LocalMatrix() : m_pRowIndex(NULL), m_pColIndex(NULL) {}
+		LocalMatrix() :
+			m_pRowIndex(NULL), m_pColIndex(NULL) ,
+			m_pRowFuncMap(NULL), m_pColFuncMap(NULL)
+		{}
 
 	///	Constructor
 		LocalMatrix(const LocalIndices& rowInd, const LocalIndices& colInd)
-			: m_pRowIndex(NULL), m_pColIndex(NULL)
+			: m_pRowFuncMap(NULL), m_pColFuncMap(NULL)
 		{
-			set_row_indices(rowInd);
-			set_col_indices(colInd);
-		}
-
-		///////////////////////////
-		// Setup
-		///////////////////////////
-
-	/// set new local row indices
-		void set_row_indices(const LocalIndices& ind)
-		{
-			m_pRowIndex = &ind;
-			resize();
-		}
-
-	/// set new local column indices
-		void set_col_indices(const LocalIndices& ind)
-		{
-			m_pColIndex = &ind;
-			resize();
-		}
-
-	/// set new local column indices but do not resize
-		void set_col_indices_no_resize(const LocalIndices& ind)
-		{
-			m_pColIndex = &ind;
-		}
-
-	/// set new local indices
-		void set_indices(const LocalIndices& rowInd, const LocalIndices& colInd)
-		{
-			set_row_indices(rowInd);
-			set_col_indices(colInd);
-		}
-
-	///	read entries from a matrix
-		template <typename TMatrix>
-		void read_values(const TMatrix& mat)
-		{
-			for(size_t i = 0; i < num_rows(); ++i)
-				for(size_t j = 0; j < num_cols(); ++j)
-					m_entries(i,j) = mat(row_index(i), col_index(j));
+			resize(rowInd, colInd);
 		}
 
 		///////////////////////////
 		// Matrix functions
 		///////////////////////////
 
-	/// number of rows
-		size_t num_rows() const	{return m_entries.num_rows();}
-
-	/// number of columns
-		size_t num_cols() const{return m_entries.num_cols();}
-
-	/// access to entry
-		value_type& operator() (size_t i, size_t j)
-		{
-			UG_ASSERT(i < num_rows(), "Row does not exist.");
-			UG_ASSERT(j < num_cols(), "Column does not exist.");
-			return m_entries(i,j);
-		}
-
-	/// const access to entry
-		const value_type& operator() (size_t i, size_t j) const
-		{
-			UG_ASSERT(i < num_rows(), "Row does not exist.");
-			UG_ASSERT(j < num_cols(), "Column does not exist.");
-			return m_entries(i,j);
-		}
-
 	/// set all entries
-		void set(number val){m_entries = val;}
+		this_type& operator=(number val)
+		{
+			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
+				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
+					m_CplMat(fct1,fct2) = val;
+			return *this;
+		}
 
 	/// multiply all entries
 		this_type& operator*(number val)
 		{
-			m_entries *= val;
-			return *this;
+			return this->operator*=(val);
 		}
 
 	/// multiply matrix
 		this_type& operator*=(number val)
 		{
-			m_entries *= val;
+			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
+				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
+					m_CplMat(fct1,fct2) *= val;
 			return *this;
 		}
 
 	/// add matrix
 		this_type& operator+=(const this_type& rhs)
 		{
-			UG_ASSERT(num_rows() == rhs.num_rows(), "Row size does not match");
-			UG_ASSERT(num_cols() == rhs.num_cols(), "Column size does not match");
-
-			m_entries += rhs.m_entries;
+			UG_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
+			          m_pColIndex==rhs.m_pColIndex, "Not same indices.");
+			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
+				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
+					m_CplMat(fct1,fct2) += rhs.m_CplMat(fct1,fct2);
 			return *this;
 		}
 
 	/// subtract matrix
 		this_type& operator-=(const this_type& rhs)
 		{
-			UG_ASSERT(num_rows() == rhs.num_rows(), "Row size does not match");
-			UG_ASSERT(num_cols() == rhs.num_cols(), "Column size does not match");
-
-			m_entries -= rhs.m_entries;
+			UG_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
+			          m_pColIndex==rhs.m_pColIndex, "Not same indices.");
+			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
+				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
+					m_CplMat(fct1,fct2) -= rhs.m_CplMat(fct1,fct2);
 			return *this;
 		}
 
-		///////////////////////////
-		// algebra access
-		///////////////////////////
-
-	/// global algebra index of local algebra component
-		index_type row_index(size_t i) const {return m_pRowIndex->index(i);}
-
-	/// global algebra index of local algebra component
-		index_type col_index(size_t j) const {return m_pColIndex->index(j);}
-
-	/// algebra component index for row (fct,dof)
-		comp_type row_sub_index(size_t rowFct, size_t rowDoF) const
-			{return m_pRowIndex->comp(rowFct, rowDoF);}
-
-	/// algebra component index for column (fct,dof)
-		comp_type col_sub_index(size_t colFct, size_t colDoF) const
-			{return m_pColIndex->comp(colFct, colDoF);}
+	/// add scaled matrix
+		this_type& scale_append(number s, const this_type& rhs)
+		{
+			UG_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
+					  m_pColIndex==rhs.m_pColIndex, "Not same indices.");
+			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
+				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
+					MatScaleAppend(m_CplMat(fct1,fct2), s, rhs.m_CplMat(fct1,fct2));
+			return *this;
+		}
 
 		///////////////////////////
 		// Discretization access
 		///////////////////////////
 
-	/// access to coupling (rowFct, rowDoF) x (colFct, colDoF)
-		number& operator()(size_t rowFct, size_t rowDoF, size_t colFct, size_t colDoF)
-		{
-			const typename LocalIndices::multi_index_type& rowInd
-				= m_pRowIndex->local_multi_index(rowFct, rowDoF);
-			const typename LocalIndices::multi_index_type& colInd
-				= m_pColIndex->local_multi_index(colFct, colDoF);
-			UG_ASSERT(rowInd[0] < num_rows(), "Row does not exist.");
-			UG_ASSERT(colInd[0] < num_cols(), "Column does not exist.");
+	///	resize for same ind in row and column
+		void resize(const LocalIndices& ind) {resize(ind, ind);}
 
-			return BlockRef(m_entries(rowInd[0],colInd[0]), rowInd[1], colInd[1]);
+	///	resize for current local indices
+		void resize(const LocalIndices& rowInd, const LocalIndices& colInd)
+		{
+			m_pRowIndex = &rowInd;
+			m_pColIndex = &colInd;
+
+			m_CplMat.resize(rowInd.num_fct(), colInd.num_fct());
+			m_CplMatAcc.resize(rowInd.num_fct(), colInd.num_fct());
+
+			for(size_t fct1 = 0; fct1 < m_CplMat.num_rows(); ++fct1)
+				for(size_t fct2 = 0; fct2 < m_CplMat.num_cols(); ++fct2)
+				{
+					m_CplMat(fct1, fct2).resize(colInd.num_dof(fct1),
+					                            rowInd.num_dof(fct2));
+				}
+
+			access_all();
+		}
+
+	/// get current local indices
+		const LocalIndices& get_row_indices() const {return *m_pRowIndex;}
+
+	/// get current local indices
+		const LocalIndices& get_col_indices() const {return *m_pColIndex;}
+
+	/// access only part of the functions using mapping
+		void access_by_map(const FunctionIndexMapping& funcMap)
+		{
+			access_by_map(funcMap, funcMap);
+		}
+
+	/// access only part of the functions using mapping
+		void access_by_map(const FunctionIndexMapping& rowFuncMap,
+		                   const FunctionIndexMapping& colFuncMap)
+		{
+			m_pRowFuncMap = &rowFuncMap;
+			m_pColFuncMap = &colFuncMap;
+
+			for(size_t i = 0; i < m_pRowIndex->num_fct(); ++i)
+				for(size_t j = 0; j < m_pColIndex->num_fct(); ++j)
+				{
+					const size_t rowMapFct = rowFuncMap[i];
+					const size_t colMapFct = colFuncMap[j];
+
+					m_CplMatAcc(i,j) = &(m_CplMat(rowMapFct, colMapFct));
+				}
+		}
+
+	///	access all functions
+		void access_all()
+		{
+			m_pRowFuncMap = NULL;
+			m_pColFuncMap = NULL;
+
+			if(m_pRowIndex==NULL) {m_CplMatAcc.resize(0,0); return;}
+
+			for(size_t i = 0; i < m_pRowIndex->num_fct(); ++i)
+				for(size_t j = 0; j < m_pColIndex->num_fct(); ++j)
+					m_CplMatAcc(i,j) = &(m_CplMat(i,j));
+		}
+
+	///	returns the number of currently accessible functions
+		size_t num_row_fct() const
+		{
+			if(m_pRowFuncMap == NULL) return m_pRowFuncMap->num_fct();
+			return m_CplMatAcc.num_rows();
+		}
+
+	///	returns the number of currently accessible functions
+		size_t num_col_fct() const
+		{
+			if(m_pColFuncMap == NULL) return m_pColFuncMap->num_fct();
+			return m_CplMatAcc.num_cols();
+		}
+
+	///	returns the number of dofs for the currently accessible function
+		size_t num_row_dof(size_t fct) const
+		{
+			if(m_CplMat.num_rows()==0) return 0;
+			if(m_pRowFuncMap == NULL) return m_CplMat(fct, 0).num_rows();
+			else return m_CplMat( (*m_pRowFuncMap)[fct], 0).num_rows();
+		}
+
+	///	returns the number of dofs for the currently accessible function
+		size_t num_col_dof(size_t fct) const
+		{
+			if(m_CplMat.num_cols()==0) return 0;
+			if(m_pRowFuncMap == NULL) return m_CplMat(0, fct).num_cols();
+			else return m_CplMat( 0, (*m_pColFuncMap)[fct]).num_cols();
+		}
+
+	/// access to coupling (rowFct, rowDoF) x (colFct, colDoF)
+		number& operator()(size_t rowFct, size_t rowDoF,
+		                   size_t colFct, size_t colDoF)
+		{
+			check_dof(rowFct, rowDoF, colFct, colDoF);
+			return (*m_CplMatAcc(rowFct,colFct))(rowDoF, colDoF);
 		}
 
 	/// const access to coupling (rowFct, rowDoF) x (colFct, colDoF)
-		const number& operator()(size_t rowFct, size_t rowDoF, size_t colFct, size_t colDoF) const
+		const number operator()(size_t rowFct, size_t rowDoF,
+		                        size_t colFct, size_t colDoF) const
 		{
-			const typename LocalIndices::multi_index_type& rowInd
-				= m_pRowIndex->local_multi_index(rowFct, rowDoF);
-			const typename LocalIndices::multi_index_type& colInd
-				= m_pColIndex->local_multi_index(colFct, colDoF);
-			UG_ASSERT(rowInd[0] < num_rows(), "Row does not exist.");
-			UG_ASSERT(colInd[0] < num_cols(), "Column does not exist.");
-
-			return BlockRef(m_entries(rowInd[0],colInd[0]), rowInd[1], colInd[1]);
+			check_dof(rowFct, rowDoF, colFct, colDoF);
+			return (*m_CplMatAcc(rowFct,colFct))(rowDoF, colDoF);
 		}
 
 	protected:
-		void resize()
+	///	checks correct (fct1,fct2) index in debug mode
+		inline void check_fct(size_t rowFct, size_t colFct) const
 		{
-			m_entries.resize(0,0);
-
-			if(m_pRowIndex == NULL || m_pColIndex == NULL) return;
-
-			const size_t num_rows = m_pRowIndex->num_indices();
-			const size_t num_cols = m_pColIndex->num_indices();
-
-			m_entries.resize(num_rows, num_cols);
+			UG_ASSERT(rowFct < num_row_fct(), "Wrong index.");
+			UG_ASSERT(colFct < num_col_fct(), "Wrong index.");
+		}
+	///	checks correct (dof1,dof2) index in debug mode
+		inline void check_dof(size_t rowFct, size_t rowDoF,
+		                      size_t colFct, size_t colDoF) const
+		{
+			check_fct(rowFct, colFct);
+			UG_ASSERT(rowDoF < num_row_dof(rowFct), "Wrong index.");
+			UG_ASSERT(colDoF < num_col_dof(colFct), "Wrong index.");
 		}
 
 	protected:
@@ -580,30 +511,105 @@ class LocalMatrix : public LocalMatrixBase
 	//	Column indices
 		const LocalIndices* m_pColIndex;
 
-	// 	Entries of local matrix
-		DenseMatrix<VariableArray2<value_type> > m_entries;
+	/// Row Access Mapping
+		const FunctionIndexMapping* m_pRowFuncMap;
+
+	/// Column Access Mapping
+		const FunctionIndexMapping* m_pColFuncMap;
+
+	//	\todo: Think of a better (faster) storage (one plain array?)
+
+	//	type of cpl matrices between two functions
+		typedef DenseMatrix<VariableArray2<value_type> > LocalCplMatrix;
+
+	//	type of Func-Coupling matrices
+		typedef DenseMatrix<VariableArray2<LocalCplMatrix> > FctCplMatrix;
+
+	//	type of Func-Coupling pointer matrices
+		typedef DenseMatrix<VariableArray2<LocalCplMatrix*> > FctCplAccMatrix;
+
+	// 	Entries (fct1, fct2, dof1, dof2)
+		FctCplMatrix m_CplMat;
+
+	// 	Entries (fct1, fct2, dof1, dof2)
+		FctCplAccMatrix m_CplMatAcc;
 };
 
-template <typename Entry>
-std::ostream& operator<< (std::ostream& outStream, const ug::LocalMatrix<Entry>& mat)
+inline
+std::ostream& operator<< (std::ostream& outStream, const ug::LocalMatrix& mat)
 {
-	for(size_t i = 0; i < mat.num_rows(); ++i)
-		for(size_t j = 0; j < mat.num_cols(); ++j)
+	for(size_t fct1 = 0; fct1 < mat.num_row_fct(); ++fct1)
+		for(size_t fct2 = 0; fct2 < mat.num_col_fct(); ++fct2)
+			for(size_t dof1 = 0; dof1 < mat.num_row_dof(fct1); ++dof1)
+				for(size_t dof2 = 0; dof2 < mat.num_col_dof(fct2); ++dof2)
+				{
+					outStream << "[("<< fct1 << "," << dof1 << ") x ("
+							  	     << fct2 << "," << dof2 << ")]: "
+							  	     << mat(fct1, dof1, fct2, dof2) << "\n";
+				}
+	return outStream;
+}
+
+inline
+std::ostream& operator<< (std::ostream& outStream, const ug::LocalVector& vec)
+{
+	for(size_t fct = 0; fct < vec.num_fct(); ++fct)
+		for(size_t dof = 0; dof < vec.num_dof(fct); ++dof)
 		{
-			outStream << "["<<i<<","<<j<<"]: (" << mat.row_index(i) << " -> " << mat.col_index(j) << ") : " << mat(i,j) << "\n";
+			outStream << "["<<fct<<","<<dof<<"]:" << vec(fct, dof) << "\n";
 		}
 	return outStream;
 }
 
-template <typename Entry>
-std::ostream& operator<< (std::ostream& outStream, const ug::LocalVector<Entry>& vec)
+template <typename TVector>
+void GetLocalVector(LocalVector& lvec, const TVector& vec)
 {
-	for(size_t i = 0; i < vec.size(); ++i)
-	{
-		outStream << "["<<i<<"]: (" << vec.index(i) << ") : " << vec[i] << "\n";
-	}
-	return outStream;
+	const LocalIndices& ind = lvec.get_indices();
+
+	for(size_t fct=0; fct < lvec.num_fct(); ++fct)
+		for(size_t dof=0; dof < lvec.num_dof(fct); ++dof)
+		{
+			const size_t index = ind.index(fct,dof);
+			const size_t comp = ind.comp(fct,dof);
+			lvec(fct,dof) = BlockRef(vec[index], comp);
+		}
 }
+
+template <typename TVector>
+void AddLocalVector(TVector& vec, const LocalVector& lvec)
+{
+	const LocalIndices& ind = lvec.get_indices();
+
+	for(size_t fct=0; fct < lvec.num_fct(); ++fct)
+		for(size_t dof=0; dof < lvec.num_dof(fct); ++dof)
+		{
+			const size_t index = ind.index(fct,dof);
+			const size_t comp = ind.comp(fct,dof);
+			BlockRef(vec[index], comp) += lvec(fct,dof);
+		}
+}
+
+template <typename TMatrix>
+void AddLocalMatrix(TMatrix& mat, const LocalMatrix& lmat)
+{
+	const LocalIndices& rowInd = lmat.get_row_indices();
+	const LocalIndices& colInd = lmat.get_col_indices();
+
+	for(size_t fct1=0; fct1 < lmat.num_row_fct(); ++fct1)
+		for(size_t fct2=0; fct2 < lmat.num_col_fct(); ++fct2)
+			for(size_t dof1=0; dof1 < lmat.num_row_dof(fct1); ++dof1)
+				for(size_t dof2=0; dof2 < lmat.num_col_dof(fct2); ++dof2)
+				{
+					const size_t rowIndex = rowInd.index(fct1,dof1);
+					const size_t rowComp = rowInd.comp(fct1,dof1);
+					const size_t colIndex = colInd.index(fct2,dof2);
+					const size_t colComp = colInd.comp(fct2,dof2);
+
+					BlockRef(mat(rowIndex, colIndex), rowComp, colComp)
+								+= lmat(fct1,dof1,fct2,dof2);
+				}
+}
+
 
 } // end namespace ug
 

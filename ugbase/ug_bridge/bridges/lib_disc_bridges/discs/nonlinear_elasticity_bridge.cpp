@@ -27,6 +27,7 @@
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
 // fe1_nonlinear_elasticity includes
+#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 #include "lib_discretization/spatial_discretization/elem_disc/nonlinear_elasticity/fe1_nonlinear_elasticity.h"
 
 
@@ -127,8 +128,8 @@ void RegisterNonlinearElasticityObjects(Registry& reg, const char* parentGroup)
 /////////////////////////////////////////////////////////////////////////////
 
 
-	typedef FE1NonlinearElasticityElemDisc<domain_type, algebra_type> T;
-	typedef IDomainElemDisc<domain_type, algebra_type> TBase;
+	typedef FE1NonlinearElasticityElemDisc<domain_type> T;
+	typedef IDomainElemDisc<domain_type> TBase;
 	std::stringstream ss; ss << "FE1NonlinearElasticity" << dim << "d";
 	reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 		.add_constructor()

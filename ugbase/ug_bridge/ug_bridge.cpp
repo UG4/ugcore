@@ -24,33 +24,33 @@ Registry & GetUGRegistry()
 
 
 #ifdef UG_ALGEBRA
-	bool InitAlgebra(IAlgebraTypeSelector *algebra_type)
-	{
-		bridge::Registry& reg = bridge::GetUGRegistry();
-		bool bResult = true;
-		try
-		{
-			bResult &= RegisterDynamicLibAlgebraInterface(reg, algebra_type->get_algebra_type());
-			bResult &= RegisterDynamicLibDiscretizationInterface(reg, algebra_type->get_algebra_type());
-		}
-		catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-		{
-			UG_LOG("### ERROR in RegisterStandardInterfaces: "
-					"Registration failed (using name " << ex.name << ").\n");
-			return false;
-		}
-		reg.registry_changed();
-		return true;
-	}
 
-	bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup)
+bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup)
+{
+	bool bResult = true;
+	bResult &= RegisterDynamicLibDiscAlgebra(reg, algebra_type, parentGroup);
+	bResult &= RegisterDynamicLibDiscDomain(reg, algebra_type, parentGroup);
+	return bResult;
+}
+
+bool InitAlgebra(IAlgebraTypeSelector *algebra_type)
+{
+	bridge::Registry& reg = bridge::GetUGRegistry();
+	bool bResult = true;
+	try
 	{
-		bool bResult = true;
-		bResult &= RegisterDynamicLibDiscretizationInterfaceDomainIndependent(reg, algebra_type, parentGroup);
-		bResult &= RegisterDynamicLibDiscretizationInterfaceDomainDependent(reg, algebra_type, parentGroup);
-		bResult &= RegisterDynamicLibDiscInterfaceDiscs(reg, algebra_type, parentGroup);
-		return bResult;
+		bResult &= RegisterDynamicLibAlgebraInterface(reg, algebra_type->get_algebra_type(), "/ug4");
+		bResult &= RegisterDynamicLibDiscretizationInterface(reg, algebra_type->get_algebra_type(), "/ug4");
 	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterStandardInterfaces: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
+	reg.registry_changed();
+	return true;
+}
 
 #endif
 
@@ -70,10 +70,12 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 
 		bResult &= RegisterDomainInterface(reg, parentGroup);
 
+		bResult &= RegisterLibDiscElemDisc(reg, parentGroup);
+
 		#ifdef UG_ALGEBRA
 			bResult &= RegisterUserData(reg, parentGroup);
 			bResult &= RegisterStaticLibAlgebraInterface(reg, parentGroup);
-			bResult &= RegisterStaticLibDiscretizationInterface(reg, parentGroup);
+			bResult &= RegisterStaticLibDiscInterface(reg, parentGroup);
 			// InitAlgebra
 			reg.add_function("InitAlgebra", &InitAlgebra);
 		#endif

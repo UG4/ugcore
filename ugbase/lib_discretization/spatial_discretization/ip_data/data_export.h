@@ -14,21 +14,20 @@
 namespace ug{
 
 // predeclaration
-template <typename TAlgebra> class IElemDisc;
+class IElemDisc;
 
 /// Base class for Data Export
 /**
  * An base class for all data exports
  */
-template <typename TAlgebra>
 class IDataExport : virtual public IDependentIPData
 {
 	protected:
 	///	type of local vector
-		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
+		typedef IElemDisc::local_vector_type local_vector_type;
 
 	///	type of evaluation function
-		typedef bool (IElemDisc<TAlgebra>::*ExportFunc)(const local_vector_type& u,
+		typedef bool (IElemDisc::*ExportFunc)(const local_vector_type& u,
 														bool compDeriv);
 
 	public:
@@ -52,7 +51,7 @@ class IDataExport : virtual public IDependentIPData
 
 	///	register evaluation of linear defect for a element
 		template <typename TFunc>
-		void register_export_func(int id, IElemDisc<TAlgebra>* obj, TFunc func)
+		void reg_export_fct(int id, IElemDisc* obj, TFunc func)
 		{
 		//	make sure that there is enough space
 			if((size_t)id >= m_vExportFunc.size())
@@ -75,7 +74,7 @@ class IDataExport : virtual public IDependentIPData
 		}
 
 	///	get corresponding element disc
-		IElemDisc<TAlgebra>* get_elem_disc() {return m_pObj;}
+		IElemDisc* get_elem_disc() {return m_pObj;}
 
 	///	virtual destructor
 		virtual ~IDataExport() {}
@@ -88,16 +87,16 @@ class IDataExport : virtual public IDependentIPData
 		int m_id;
 
 	///	elem disc
-		IElemDisc<TAlgebra>* m_pObj;
+		IElemDisc* m_pObj;
 };
 
 /// Data export
 /**
  * A DataExport is user data produced by an element discretization.
  */
-template <typename TData, int dim, typename TAlgebra>
+template <typename TData, int dim>
 class DataExport : 	public DependentIPData<TData, dim>,
-					public IDataExport<TAlgebra>
+					public IDataExport
 {
 	public:
 		virtual void compute(bool computeDeriv)
@@ -107,10 +106,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		virtual bool zero_derivative() const {return false;}
 
 	/// clear ips
-		virtual void clear_export_ips()
-		{
-			this->clear_ips();
-		}
+		virtual void clear_export_ips() {this->clear_ips();}
 
 	///	clear dependent data
 		void clear() {m_vDependData.clear();}

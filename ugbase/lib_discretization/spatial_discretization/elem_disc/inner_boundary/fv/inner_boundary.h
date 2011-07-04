@@ -13,9 +13,8 @@
 #include "lib_grid/lg_base.h"
 
 // library intern headers
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/common/local_algebra.h"
+
 #include "lib_discretization/spatial_discretization/ip_data/user_data.h"
 
 namespace ug{
@@ -31,13 +30,16 @@ namespace ug{
  */
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 class FVInnerBoundaryElemDisc
-: public IDomainElemDisc<TDomain, TAlgebra>
+: public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+		typedef IDomainElemDisc<TDomain> base_type;
+
+	///	own type
+		typedef FVInnerBoundaryElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -48,9 +50,6 @@ class FVInnerBoundaryElemDisc
 
 	///	Position type
 		typedef typename base_type::position_type position_type;
-
-	///	Algebra type
-		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
 		typedef typename base_type::local_matrix_type local_matrix_type;
@@ -67,7 +66,7 @@ class FVInnerBoundaryElemDisc
 	public:
 		FVInnerBoundaryElemDisc()
 		{
-			register_assemble_functions(Int2Type<dim>());
+			register_all_fv1_funcs();
 		}
 		
 	private:
@@ -152,53 +151,21 @@ class FVInnerBoundaryElemDisc
 		const position_type* m_vCornerCoords;
 
 	private:
-		///////////////////////////////////////
-		// registering for reference elements
-		///////////////////////////////////////
-		// register for 1D
-		void register_assemble_functions(Int2Type<1>)
-		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-		}
+		void register_all_fv1_funcs();
 
-		// register for 2D
-		void register_assemble_functions(Int2Type<2>)
-		{
-			register_assemble_functions(Int2Type<1>());
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-		}
+		template <template <class Elem, int WorldDim> class TFVGeom>
+		struct RegisterFV1 {
+				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{m_pThis->register_fv1_func<TElem, TFVGeom>();}
+		};
 
-		// register for 3D
-		void register_assemble_functions(Int2Type<3>)
-		{
-			register_assemble_functions(Int2Type<2>());
-			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_assemble_functions<Pyramid>(ROID_PYRAMID);
-			register_all_assemble_functions<Prism>(ROID_PRISM);
-			register_all_assemble_functions<Hexahedron>(ROID_HEXAHEDRON);
-		}
-
-		///	register all functions for on element type
-		template<typename TElem>
-		void register_all_assemble_functions(int id)
-		{
-			typedef FVInnerBoundaryElemDisc T;
-
-			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem, FV1ManifoldBoundary>);
-			register_prepare_element_function(		id, &T::template prepare_element<TElem, FV1ManifoldBoundary>);
-			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem, FV1ManifoldBoundary>);
-			register_assemble_JA_function(			id, &T::template assemble_JA<TElem, FV1ManifoldBoundary>);
-			register_assemble_JM_function(			id, &T::template assemble_JM<TElem, FV1ManifoldBoundary>);
-			register_assemble_A_function(			id, &T::template assemble_A<TElem, FV1ManifoldBoundary>);
-			register_assemble_M_function(			id, &T::template assemble_M<TElem, FV1ManifoldBoundary>);
-			register_assemble_f_function(			id, &T::template assemble_f<TElem, FV1ManifoldBoundary>);
-		}
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		void register_fv1_func();
 
 };
 
 }
-
-#include "inner_boundary_impl.h"
 
 #endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__*/

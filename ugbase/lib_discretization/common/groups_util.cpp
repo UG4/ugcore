@@ -47,6 +47,26 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& 
 	return true;
 }
 
+bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
+                                	const ISubsetHandler& sh,
+									const std::vector<std::string>& vSS)
+{
+//	create Function Group and Subset Group
+	subsetGroup.set_subset_handler(sh);
+
+//	tokenize strings and select functions
+	for(size_t i = 0; i < vSS.size(); ++i)
+		if(!subsetGroup.add(vSS[i].c_str()))
+		{
+			UG_LOG("ERROR in 'ConvertStringToSubsetGroup': Name of subset ('"
+					<< vSS[i] << "') not found in Subset Handler.\n");
+			return false;
+		}
+
+//	done
+	return true;
+}
+
 
 bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionPattern& pattern,
 									const char* functions, const char separator)
@@ -67,11 +87,32 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionP
 
 		if(!functionGroup.add(tokens[i].c_str()))
 		{
-			UG_LOG("Name of function ('" << tokens[i] << "') not found in Function Pattern.\n");
+			UG_LOG("Name of function ('" << tokens[i] << "') not found in"
+					" Function Pattern.\n");
 			return false;
 		}
 	}
 
+	return true;
+}
+
+bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
+                                  	const FunctionPattern& pattern,
+									const std::vector<std::string>& vFct)
+{
+//	create Function Group and Subset Group
+	functionGroup.set_function_pattern(pattern);
+
+//	tokenize strings and select functions
+	for(size_t i = 0; i < vFct.size(); ++i)
+		if(!functionGroup.add(vFct[i].c_str()))
+		{
+			UG_LOG("ERROR in 'ConvertStringToFunctionGroup': Name of function ('"
+					<< vFct[i] << "') not found in Function Pattern.\n");
+			return false;
+		}
+
+//	done
 	return true;
 }
 
@@ -85,7 +126,13 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 	map.clear();
 
 //	check that from group is contained in to group
-	if(!grpToLarge.contains(grpFromSmall)) return false;
+	if(!grpToLarge.contains(grpFromSmall))
+	{
+		UG_LOG("ERROR in 'CreateFunctionIndexMapping': smaller FunctionGroup "
+				<< grpFromSmall << " is not contained in larger Group " <<
+				grpToLarge<<". Cannot create Mapping.\n");
+		return false;
+	}
 
 //	loop all functions on grpFrom
 	for(size_t from = 0; from < grpFromSmall.num_fct(); ++from)
@@ -154,11 +201,17 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	size_t grp = 0;
 	for(; grp < vFctGrp.size(); ++grp)
 	{
-		if(vFctGrp[grp] != NULL)
+		if(vFctGrp[grp] == NULL) continue;
+
+		const FunctionPattern* pFctPat = vFctGrp[grp]->get_function_pattern();
+		if(pFctPat == NULL)
 		{
-			fctGrp.set_function_pattern(*(vFctGrp[grp]->get_function_pattern()));
-			break;
+			UG_LOG("ERROR in 'CreateUnionOfFunctionGroups': Function group "
+					<<grp<<" has NULL as underlying FunctionPattern.\n");
+			return false;
 		}
+		fctGrp.set_function_pattern(*pFctPat);
+		break;
 	}
 
 //	if no function group given
@@ -171,8 +224,8 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 		if(vFctGrp[i] != NULL)
 			if(!fctGrp.add(*vFctGrp[i]))
 			{
-				UG_LOG("ERROR in 'CreateUnionOfFunctionGroups': Cannot add functions of the "
-					   "Function Group "<< i << ".\n");
+				UG_LOG("ERROR in 'CreateUnionOfFunctionGroups': Cannot add "
+						"functions of the Function Group "<< i << ".\n");
 				return false;
 			}
 	}

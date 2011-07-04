@@ -1,14 +1,15 @@
 /*
- * constant_equation_impl.h
+ * constant_equation_fv1.cpp
  *
  *  Created on: 13.05.2011
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONSTANT_EQUATION__FV1__CONSTANT_EQUATION_IMPL__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONSTANT_EQUATION__FV1__CONSTANT_EQUATION_IMPL__
-
 #include "constant_equation.h"
+
+#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_helper/finite_volume_geometry.h"
+#include "lib_discretization/spatial_discretization/disc_helper/hanging_finite_volume_geometry.h"
 
 namespace ug{
 
@@ -20,11 +21,11 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -47,20 +48,20 @@ prepare_element_loop()
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 finish_element_loop()
 {
 //	nothing to do
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 time_point_changed(number time)
 {
 //	set new time point at imports
@@ -73,11 +74,11 @@ time_point_changed(number time)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 prepare_element(TElem* elem, const local_vector_type& u,
 								const local_index_type& glob_ind)
 {
@@ -115,11 +116,11 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
@@ -127,11 +128,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
@@ -139,11 +140,11 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
@@ -171,11 +172,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
@@ -206,11 +207,11 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 assemble_f(local_vector_type& d)
 {
 //	if zero data given, return
@@ -239,10 +240,10 @@ assemble_f(local_vector_type& d)
 
 
 //	computes the linearized defect w.r.t to the velocity
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 lin_defect_velocity(const local_vector_type& u)
 {
 //  get finite volume geometry
@@ -270,10 +271,10 @@ lin_defect_velocity(const local_vector_type& u)
 }
 
 //	computes the linearized defect w.r.t to the source
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 lin_defect_source(const local_vector_type& u)
 {
 //  get finite volume geometry
@@ -297,10 +298,10 @@ lin_defect_source(const local_vector_type& u)
 }
 
 //	computes the linearized defect w.r.t to the mass scale
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 lin_defect_mass_scale(const local_vector_type& u)
 {
 // 	get finite volume geometry
@@ -327,10 +328,10 @@ lin_defect_mass_scale(const local_vector_type& u)
 }
 
 //	computes the linearized defect w.r.t to the velocity
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 compute_concentration_export(const local_vector_type& u, bool compDeriv)
 {
 //  get finite volume geometry
@@ -407,10 +408,10 @@ compute_concentration_export(const local_vector_type& u, bool compDeriv)
 }
 
 //	computes the linearized defect w.r.t to the velocity
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConstantEquationElemDisc<TDomain, TAlgebra>::
+FVConstantEquationElemDisc<TDomain>::
 compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
@@ -463,8 +464,84 @@ compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
 	return true;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+//	Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+FVConstantEquationElemDisc<TDomain>::
+FVConstantEquationElemDisc()
+{
+//	register assemling functions
+	register_all_fv1_funcs(false);
+
+//	register exports
+	register_export(m_exConcentration);
+	register_export(m_exConcentrationGrad);
+
+//	register imports
+	register_import(m_imVelocity);
+	register_import(m_imSource);
+	register_import(m_imMassScale);
+
+	m_imMassScale.set_mass_part(true);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	register assemble functions
+////////////////////////////////////////////////////////////////////////////////
+
+// register for 1D
+template<typename TDomain>
+void
+FVConstantEquationElemDisc<TDomain>::
+register_all_fv1_funcs(bool bHang)
+{
+//	get all grid element types in this dimension and below
+	typedef typename GridElemTypes<dim>::AllElemList ElemList;
+
+//	switch assemble functions
+	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
+	else boost::mpl::for_each<ElemList>( RegisterFV1<HFV1Geometry>(this) );
+}
+
+template<typename TDomain>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+void
+FVConstantEquationElemDisc<TDomain>::
+register_fv1_func()
+{
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	typedef this_type T;
+
+	reg_prepare_vol_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
+	reg_prepare_vol_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
+	reg_finish_vol_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
+	reg_ass_JA_vol_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
+	reg_ass_JM_vol_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
+	reg_ass_dA_vol_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
+	reg_ass_dM_vol_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
+	reg_ass_rhs_vol_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+
+//	set computation of linearized defect w.r.t velocity
+	m_imVelocity. reg_lin_defect_fct(id, this, &T::template lin_defect_velocity<TElem, TFVGeom>);
+	m_imSource.	  reg_lin_defect_fct(id, this, &T::template lin_defect_source<TElem, TFVGeom>);
+	m_imMassScale.reg_lin_defect_fct(id, this, &T::template lin_defect_mass_scale<TElem, TFVGeom>);
+
+//	exports
+	m_exConcentration.	  reg_export_fct(id, this, &T::template compute_concentration_export<TElem, TFVGeom>);
+	m_exConcentrationGrad.reg_export_fct(id, this, &T::template compute_concentration_grad_export<TElem, TFVGeom>);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+template class FVConstantEquationElemDisc<Domain1d>;
+template class FVConstantEquationElemDisc<Domain2d>;
+template class FVConstantEquationElemDisc<Domain3d>;
+
 
 } // namespace ug
 
-
-#endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONSTANT_EQUATION__FV1__CONSTANT_EQUATION_IMPL__*/

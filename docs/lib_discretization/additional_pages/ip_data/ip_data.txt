@@ -238,7 +238,7 @@ void register_all_assemble_functions(int id)
 {
 	typedef DensityDrivenFlowElemDisc T;
 
-	m_DarcyVelExport.register_export_func(id, this, &T::template compute_darcy_export<TElem>);
+	m_DarcyVelExport.reg_export_fct(id, this, &T::template compute_darcy_export<TElem>);
 }
 \endcode
 

@@ -28,24 +28,42 @@ namespace ug {
  * \param[in]		vElemDisc	Vector of element discs, defined for subsets
  * \param[in]		clearGroup	flag if group should be cleared
  */
-template <typename TAlgebra>
-bool CreateUnionOfSubsets(SubsetGroup& ssGrp,
-                          const std::vector<IElemDisc<TAlgebra>*>& vElemDisc)
+inline
+bool CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
+                        SubsetGroup& unionSSGrp,
+                        std::vector<IElemDisc* > vElemDisc,
+                        const ISubsetHandler& sh)
 {
+//	resize subset group vector
+	vSSGrp.resize(vElemDisc.size());
+
 //	if empty, nothing to do
-	if(vElemDisc.empty()) {ssGrp.clear(); return true;}
+	if(vSSGrp.empty()) {unionSSGrp.clear(); return true;}
+
+//	create subset group for each elem disc
+	for(size_t i = 0; i < vSSGrp.size(); ++i)
+	{
+	//	create subset group for elem disc i
+		if(!ConvertStringToSubsetGroup(vSSGrp[i], sh,
+		                           vElemDisc[i]->symb_subsets()))
+		{
+			UG_LOG("ERROR in 'CreateUnionOfSubsets': Cannot find symbolic "
+					" subset name for IElemDisc "<<i<<".\n");
+			return false;
+		}
+	}
 
 //	set underlying subsetHandler
-	ssGrp.set_subset_handler(*vElemDisc[0]->get_subset_group().get_subset_handler());
+	unionSSGrp.set_subset_handler(sh);
 
 //	add all Subset groups of the element discs
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
+	for(size_t i = 0; i < vSSGrp.size(); ++i)
 	{
 	//	add subset group of elem disc
-		if(!ssGrp.add(vElemDisc[i]->get_subset_group()))
+		if(!unionSSGrp.add(vSSGrp[i]))
 		{
 			UG_LOG("ERROR in 'CreateUnionOfSubsets': Cannot add subsets of the "
-				   "Elem Disc "<< i << ".\n");
+				   "Elem Disc "<< i << " to union of Subsets.\n");
 			return false;
 		}
 	}
@@ -53,46 +71,6 @@ bool CreateUnionOfSubsets(SubsetGroup& ssGrp,
 //	we're done
 	return true;
 }
-
-/**
- * This function create the union of functions on which the Element Discretizations
- * work.
- *
- * \param[out]		fctGrp		Union of Functions
- * \param[in]		vElemDisc	Vector of element discs
- * \param[in]		clearGroup	flag if group should be cleared
- * \param[in]		clearGroup	flag if group should be sorted after adding
- */
-template <typename TAlgebra>
-bool CreateUnionOfFunctions(FunctionGroup& fctGrp,
-                            const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
-                            bool sortFct = false)
-{
-//	if empty, nothing to do
-	if(vElemDisc.empty()) {fctGrp.clear(); return true;}
-
-//	set underlying subsetHandler
-	fctGrp.set_function_pattern(*vElemDisc[0]->get_function_group().get_function_pattern());
-
-//	add all Subset groups of the element discs
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-	{
-	//	add subset group of elem disc
-		if(!fctGrp.add(vElemDisc[i]->get_function_group()))
-		{
-			UG_LOG("ERROR in 'CreateUnionOfSubsets': Cannot add functions of the "
-				   "Elem Disc "<< i << ".\n");
-			return false;
-		}
-	}
-
-//	sort iff required
-	if(sortFct) fctGrp.sort();
-
-//	we're done
-	return true;
-}
-
 
 /**
  * This function selects from a given set of element discretizations those
@@ -103,9 +81,10 @@ bool CreateUnionOfFunctions(FunctionGroup& fctGrp,
  * \param[in]		si					Subset index
  * \param[in]		clearVec			flag if vector should be cleared
  */
-template <typename TAlgebra>
-bool GetElemDiscOnSubset(std::vector<IElemDisc<TAlgebra>*>& vSubsetElemDisc,
-                         const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+inline
+bool GetElemDiscOnSubset(std::vector<IElemDisc*>& vSubsetElemDisc,
+                         const std::vector<IElemDisc*>& vElemDisc,
+                         const std::vector<SubsetGroup>& vSSGrp,
                          int si, bool clearVec = true)
 {
 //	clear Vector
@@ -114,11 +93,8 @@ bool GetElemDiscOnSubset(std::vector<IElemDisc<TAlgebra>*>& vSubsetElemDisc,
 //	loop elem discs
 	for(size_t i = 0; i < vElemDisc.size(); ++i)
 	{
-	//	get subset group of elem disc
-		const SubsetGroup& ssGrp = vElemDisc[i]->get_subset_group();
-
 	//	if subset is used, add elem disc to Subset Elem Discs
-		if(ssGrp.contains(si))
+		if(vSSGrp[i].contains(si))
 			vSubsetElemDisc.push_back(vElemDisc[i]);
 	}
 

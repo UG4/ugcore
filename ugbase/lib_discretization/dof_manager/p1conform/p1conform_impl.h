@@ -56,7 +56,7 @@ num_indices(int si, const FunctionGroup& fctGrp) const
 //	return number of algebraic indices
 	return numFct * numCo;
 }
-
+ /*
 template<typename TElem>
 bool
 P1ConformDoFDistribution::
@@ -378,6 +378,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 	return;
 }
 
+
 template<typename TElem>
 void
 P1ConformDoFDistribution::
@@ -392,6 +393,139 @@ update_inner_indices(TElem* elem, LocalIndices& ind) const
 		return update_indices(elem, ind);
 	else
 		return;
+}
+*/
+template<typename TElem>
+void
+P1ConformDoFDistribution::
+indices(TElem* elem, LocalIndices& ind, bool bHang) const
+{
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+//	compile-time number of DoFs
+	static const size_t numCo = ref_elem_type::num_corners;
+
+//	resize the number of functions
+	ind.resize_fct(num_fct());
+	for(size_t fct = 0; fct < num_fct(); ++fct)
+		ind.resize_dof(fct, 0);
+
+//	add normal dofs
+	for(size_t i = 0; i < numCo; ++i)
+	{
+	//	get vertex
+		VertexBase* vrt = GetVertex(elem, i);
+
+	//	get subset index
+		int si = m_pISubsetHandler->get_subset_index(vrt);
+		UG_ASSERT(si >= 0, "Invalid subset index " << si);
+
+	//	read algebra index
+		const size_t firstindex = first_index(vrt, si);
+
+	//	loop all functions
+		for(size_t fct = 0; fct < num_fct(); ++fct)
+		{
+		//	check if function is defined on the subset
+			if(!is_def_in_subset(fct, si)) continue;
+
+		//	compute index
+			const size_t index = firstindex + m_vvOffsets[si][fct];
+
+		//	add dof to local indices
+			ind.push_back_index(fct, index);
+		}
+	}
+
+//	If no hanging dofs are required, we're done
+	if(!bHang) return;
+
+// 	Handle Hanging DoFs on Natural edges
+//	collect all edges
+	std::vector<EdgeBase*> vEdges;
+	CollectEdgesSorted(vEdges, *(m_pISubsetHandler->get_assigned_grid()), elem);
+
+//	loop all edges
+	for(size_t ed = 0; ed < vEdges.size(); ++ed)
+	{
+	//	only constraining edges are of interest
+		ConstrainingEdge* edge = dynamic_cast<ConstrainingEdge*>(vEdges[ed]);
+		if(edge == NULL) continue;
+
+	//	loop constraining vertices
+		for(size_t i = 0; i != edge->num_constrained_vertices(); ++i)
+		{
+		//	get vertex
+			VertexBase* vrt = edge->constrained_vertex(i);
+
+		//	get subset index
+			int si = m_pISubsetHandler->get_subset_index(vrt);
+			UG_ASSERT(si >= 0, "Invalid subset index " << si);
+
+		//	read algebra index
+			const size_t firstindex = first_index(vrt, si);
+
+		//	loop functions
+			for(size_t fct = 0; fct < num_fct(); ++fct)
+			{
+			//	check that function is defined on subset
+				if(!is_def_in_subset(fct, si)) continue;
+
+			//	compute algebra index
+				const size_t index = firstindex + m_vvOffsets[si][fct];
+
+			//	increase number of indices
+				ind.push_back_index(fct, index);
+			}
+		}
+	}
+
+// 	Handle Hanging DoFs on Natural faces
+
+//	Collect all faces
+	std::vector<Face*> vFaces;
+	CollectFacesSorted(vFaces, *(m_pISubsetHandler->get_assigned_grid()), elem);
+
+//	loop faces
+	for(size_t fa = 0; fa < vFaces.size(); ++fa)
+	{
+	//	only constraining quads are of interest
+		ConstrainingQuadrilateral* quad =
+				dynamic_cast<ConstrainingQuadrilateral*>(vFaces[fa]);
+		if(quad == NULL) continue;
+
+	//	loop hanging vertices
+		for(size_t i = 0; i < quad->num_constrained_vertices(); ++i)
+		{
+		//	get vertex
+			VertexBase* vrt = quad->constrained_vertex(i);
+
+		//	get subset index
+			int si = m_pISubsetHandler->get_subset_index(vrt);
+			UG_ASSERT(si >= 0, "Invalid subset index " << si);
+
+		//	read algebraic index
+			const size_t firstindex = first_index(vrt, si);
+
+		//	loop functions
+			for(size_t fct = 0; fct < num_fct(); ++fct)
+			{
+			//	check that function is defined on subset
+				if(!is_def_in_subset(fct, si)) continue;
+
+			//	compute algebra index
+				const size_t index = firstindex + m_vvOffsets[si][fct];
+
+			//	increase number of algebraic indices
+				ind.push_back_index(fct, index);
+			}
+		}
+	}
+
+//	we're done
+	return;
 }
 
 ///////////// Multi index access /////////////////
@@ -644,7 +778,7 @@ num_indices(int si, const FunctionGroup& fctGrp) const
 
 	return 0;
 }
-
+/*
 template<typename TElem>
 bool
 GroupedP1ConformDoFDistribution::
@@ -776,7 +910,7 @@ update_inner_indices(TElem* elem, LocalIndices& ind) const
 	else
 		return;
 }
-
+*/
 
 ///////////// Multi Index access /////////////////
 

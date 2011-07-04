@@ -15,10 +15,9 @@
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 
-#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
-#include "lib_discretization/spatial_discretization/disc_helper/finite_volume_geometry.h"
-#include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_export.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_import.h"
 
 #include "upwind.h"
 #include "stabilization.h"
@@ -119,14 +118,16 @@ namespace ug{
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
-template<	typename TDomain,
-			typename TAlgebra>
+template<	typename TDomain>
 class FVNavierStokesElemDisc
-	: public IDomainElemDisc<TDomain, TAlgebra>
+	: public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+		typedef IDomainElemDisc<TDomain> base_type;
+
+	///	own type
+		typedef FVNavierStokesElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -137,9 +138,6 @@ class FVNavierStokesElemDisc
 
 	///	Position type
 		typedef typename base_type::position_type position_type;
-
-	///	Algebra type
-		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
 		typedef typename base_type::local_matrix_type local_matrix_type;
@@ -152,20 +150,7 @@ class FVNavierStokesElemDisc
 
 	public:
 	///	Constructor (setting default values)
-		FVNavierStokesElemDisc()
-			: m_bExactJacobian(true), m_pStab(NULL),
-			  m_pConvStab(NULL), m_pConvUpwind(NULL)
-		{
-		//	set default options
-			set_peclet_blend(false);
-
-		//	register imports
-			register_import(m_imSource);
-			register_import(m_imKinViscosity);
-
-		//	register assemble functions
-			register_assemble_functions(Int2Type<dim>());
-		}
+		FVNavierStokesElemDisc();
 
 	///	sets the kinematic viscosity
 	/**
@@ -188,15 +173,15 @@ class FVNavierStokesElemDisc
 	/**
 	 * \param[in]	stab		Stabilization
 	 */
-		void set_stabilization(INavierStokesStabilization<dim, algebra_type>& stab)
+		void set_stabilization(INavierStokesStabilization<dim>& stab)
 			{m_pStab = & stab;}
 
 	///	sets a stabilization for upwinding (Physical Advection Correction)
-        void set_conv_upwind(INavierStokesStabilization<dim, algebra_type>& stab)
+        void set_conv_upwind(INavierStokesStabilization<dim>& stab)
         	{m_pConvStab = &stab; m_pConvUpwind = NULL;}
 
 	///	sets an upwinding for the convective term of momentum equation
-		void set_conv_upwind(INavierStokesUpwind<dim, algebra_type>& upwind)
+		void set_conv_upwind(INavierStokesUpwind<dim>& upwind)
 			{m_pConvStab = NULL; m_pConvUpwind = &upwind;}
 
     ///	sets if peclet blending is used in momentum equation
@@ -534,20 +519,20 @@ class FVNavierStokesElemDisc
 		bool m_bExactJacobian;
 
 	///	Data import for source
-		DataImport<MathVector<dim>, dim, algebra_type> m_imSource;
+		DataImport<MathVector<dim>, dim> m_imSource;
 
 	///	Data import for kinematic viscosity
-		DataImport<number, dim, algebra_type> m_imKinViscosity;
+		DataImport<number, dim> m_imKinViscosity;
 
 	///	Stabilization for velocity in continuity equation
-		INavierStokesStabilization<dim, algebra_type>* m_pStab;
+		INavierStokesStabilization<dim>* m_pStab;
 
 	///	Stabilization for velocity in convective term of momentum equation
 	///	Here, the stabilization is used as an upwinding
-		INavierStokesStabilization<dim, algebra_type>* m_pConvStab;
+		INavierStokesStabilization<dim>* m_pConvStab;
 
 	///	Upwinding for velocity in convective term of momentum equation
-		INavierStokesUpwind<dim, algebra_type>* m_pConvUpwind;
+		INavierStokesUpwind<dim>* m_pConvUpwind;
 
 	/// position access
 		const position_type* m_vCornerCoords;
@@ -556,51 +541,22 @@ class FVNavierStokesElemDisc
 		static const size_t _P_ = dim;
 
 	private:
-		///////////////////////////////////////
-		// registering for reference elements
-		///////////////////////////////////////
-	/// register for 1D
-		void register_assemble_functions(Int2Type<1>)
-		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-		}
+		void register_all_fv1_funcs(bool bHang);
 
-	/// register for 2D
-		void register_assemble_functions(Int2Type<2>)
-		{
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-		}
+		template <template <class Elem, int WorldDim> class TFVGeom>
+		struct RegisterFV1 {
+				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{m_pThis->register_fv1_func<TElem, TFVGeom>();}
+		};
 
-	/// register for 3D
-		void register_assemble_functions(Int2Type<3>)
-		{
-			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_assemble_functions<Pyramid>(ROID_PYRAMID);
-			register_all_assemble_functions<Prism>(ROID_PRISM);
-			register_all_assemble_functions<Hexahedron>(ROID_HEXAHEDRON);
-		}
-
-	/// help function to register assemble functions for one element
-		template <typename TElem>
-		void register_all_assemble_functions(int id)
-		{
-			register_prepare_element_loop_function(	id, &FVNavierStokesElemDisc::template prepare_element_loop<TElem, FV1Geometry>);
-			register_prepare_element_function(		id, &FVNavierStokesElemDisc::template prepare_element<TElem, FV1Geometry>);
-			register_finish_element_loop_function(	id, &FVNavierStokesElemDisc::template finish_element_loop<TElem, FV1Geometry>);
-			register_assemble_JA_function(			id, &FVNavierStokesElemDisc::template assemble_JA<TElem, FV1Geometry>);
-			register_assemble_JM_function(			id, &FVNavierStokesElemDisc::template assemble_JM<TElem, FV1Geometry>);
-			register_assemble_A_function(			id, &FVNavierStokesElemDisc::template assemble_A<TElem, FV1Geometry>);
-			register_assemble_M_function(			id, &FVNavierStokesElemDisc::template assemble_M<TElem, FV1Geometry>);
-			register_assemble_f_function(			id, &FVNavierStokesElemDisc::template assemble_f<TElem, FV1Geometry>);
-		}
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		void register_fv1_func();
 };
 
 /// @}
 
 } // end namespace ug
-
-// include implementation
-#include "navier_stokes_impl.h"
 
 #endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES__*/

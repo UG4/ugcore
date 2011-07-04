@@ -175,7 +175,7 @@ class IGridFunction
 		size_t num_inner_indices(int si, const FunctionGroup& funcGroup) const
 			{check(); return m_pDD->num_inner_indices<TElem>(si, funcGroup);}
 
-	/// fill local informations in LocalIndex
+/*	/// fill local informations in LocalIndex
 		template<typename TElem>
 		bool prepare_indices(int si, LocalIndices& ind, bool useHanging = false) const
 			{check(); return m_pDD->prepare_indices<TElem>(si, ind, useHanging);}
@@ -194,7 +194,7 @@ class IGridFunction
 		template<typename TElem>
 		void update_inner_indices(TElem* elem, LocalIndices& ind) const
 			{check(); m_pDD->update_inner_indices(elem, ind);}
-
+*/
 		////////// Multi indices ////////////
 
 	/// number of multi indices on an finite element in canonical order
@@ -285,7 +285,7 @@ class GridFunction
 		typedef typename algebra_type::vector_type vector_type;
 
 	///	Local vector type
-		typedef LocalVector<typename vector_type::value_type> local_vector_type;
+		typedef LocalVector local_vector_type;
 
 	///	Local index type
 		typedef LocalIndices local_index_type;

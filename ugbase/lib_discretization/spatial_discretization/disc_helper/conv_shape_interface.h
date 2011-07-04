@@ -213,7 +213,7 @@ set_geometry_type()
 //	check that function exists
 	if(id >= m_vUpdateFunc.size() || m_vUpdateFunc[id] == NULL)
 	{
-		UG_LOG("ERROR in 'INavierStokesStabilization::set_geometry_type':"
+		UG_LOG("ERROR in 'IConvectionShapes::set_geometry_type':"
 				" No update function registered for this Geometry.\n");
 		return false;
 	}

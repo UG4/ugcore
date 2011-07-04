@@ -14,7 +14,7 @@
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/common/local_algebra.h"
+
 #include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_export.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_import.h"
@@ -22,13 +22,16 @@
 namespace ug{
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 class FE1ConvectionDiffusionElemDisc
-: public IDomainElemDisc<TDomain, TAlgebra>
+	: public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain, TAlgebra> base_type;
+		typedef IDomainElemDisc<TDomain> base_type;
+
+	/// own type
+		typedef FE1ConvectionDiffusionElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -39,9 +42,6 @@ class FE1ConvectionDiffusionElemDisc
 
 	///	Position type
 		typedef typename base_type::position_type position_type;
-
-	///	Algebra type
-		typedef typename base_type::algebra_type algebra_type;
 
 	///	Local matrix type
 		typedef typename base_type::local_matrix_type local_matrix_type;
@@ -54,18 +54,7 @@ class FE1ConvectionDiffusionElemDisc
 
 	public:
 	///	Constructor
-		FE1ConvectionDiffusionElemDisc()
-		{
-		//	register assemling functions
-			register_ass_funcs(Int2Type<dim>());
-
-		//	register imports
-			register_import(m_imDiffusion);
-			register_import(m_imVelocity);
-			register_import(m_imReaction);
-			register_import(m_imSource);
-			register_import(m_imMassScale);
-		}
+		FE1ConvectionDiffusionElemDisc();
 
 	///	sets the diffusion tensor
 	/**
@@ -165,69 +154,35 @@ class FE1ConvectionDiffusionElemDisc
 		static const size_t _C_ = 0;
 
 	///	Data import for Diffusion
-		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_imDiffusion;
+		DataImport<MathMatrix<dim,dim>, dim> m_imDiffusion;
 
 	///	Data import for the Velocity field
-		DataImport<MathVector<dim>, dim, algebra_type > m_imVelocity;
+		DataImport<MathVector<dim>, dim > m_imVelocity;
 
 	///	Data import for the reaction term
-		DataImport<number, dim, algebra_type> m_imReaction;
+		DataImport<number, dim> m_imReaction;
 
 	///	Data import for the right-hand side
-		DataImport<number, dim, algebra_type> m_imSource;
+		DataImport<number, dim> m_imSource;
 
 	///	Data import for the right-hand side
-		DataImport<number, dim, algebra_type> m_imMassScale;
+		DataImport<number, dim> m_imMassScale;
 
 	private:
-		///////////////////////////////////////
-		// registering for reference elements
-		///////////////////////////////////////
+		void register_all_fe1_funcs();
 
-	/// register for 1D
-		void register_ass_funcs(Int2Type<1>)
-		{
-			register_all_ass_funcs<Edge>(ROID_EDGE);
-		}
+		struct RegisterFE1 {
+				RegisterFE1(this_type* pThis) : m_pThis(pThis){}
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{m_pThis->register_fe1_func<TElem>();}
+		};
 
-	/// register for 2D
-		void register_ass_funcs(Int2Type<2>)
-		{
-			register_ass_funcs(Int2Type<1>());
-			register_all_ass_funcs<Triangle>(ROID_TRIANGLE);
-			register_all_ass_funcs<Quadrilateral>(ROID_QUADRILATERAL);
-		}
-
-	/// register for 3D
-		void register_ass_funcs(Int2Type<3>)
-		{
-			register_ass_funcs(Int2Type<2>());
-			register_all_ass_funcs<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_ass_funcs<Pyramid>(ROID_PYRAMID);
-			register_all_ass_funcs<Prism>(ROID_PRISM);
-			register_all_ass_funcs<Hexahedron>(ROID_HEXAHEDRON);
-		}
-
-	///	register all functions for on element type
 		template <typename TElem>
-		void register_all_ass_funcs(int id)
-		{
-			typedef FE1ConvectionDiffusionElemDisc T;
-
-			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &T::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &T::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
-		}
+		void register_fe1_func();
 
 };
 
 }
-
-#include "fe1_convection_diffusion_impl.h"
 
 #endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__CONVECTION_DIFFUSION__FE1__CONVECTION_DIFFUSION__*/

@@ -53,7 +53,7 @@ namespace bridge
 {
 
 template <typename TAlgebra, typename TDoFDistribution>
-bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg, const char* parentGroup)
+bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 {
 	typedef TDoFDistribution dof_distribution_type;
 	typedef TAlgebra algebra_type;
@@ -90,17 +90,6 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 				.add_constructor();
 		}
 
-	//	Elem Discs
-		{
-		//	Base class
-			typedef IElemDisc<algebra_type> T;
-			reg.add_class_<T>("IElemDisc", grp.c_str())
-				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions,
-							"", "Functions (sep. by ',')")
-				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets,
-							"", "Subsets (sep. by ',')");
-		}
-
 	//	DomainDiscretization
 		{
 			typedef DomainDiscretization<dof_distribution_type, algebra_type> T;
@@ -113,7 +102,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 				.add_constructor()
 				.add_method("add_post_process|interactive=false", &T::add_post_process,
 							"", "Post Process")
-				.add_method("add_elem_disc|interactive=false", (bool (T::*)(IElemDisc<algebra_type>&)) &T::add_elem_disc,
+				.add_method("add_elem_disc|interactive=false", (bool (T::*)(IElemDisc&)) &T::add_elem_disc,
 							"", "Discretization")
 				.add_method("assemble_mass_matrix", &T::assemble_mass_matrix)
 				.add_method("assemble_stiffness_matrix", &T::assemble_stiffness_matrix)
@@ -236,17 +225,17 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 	return true;
 }
 
-bool RegisterDynamicLibDiscretizationInterfaceDomainIndependent(Registry& reg, int algebra_type, const char* parentGroup)
+bool RegisterDynamicLibDiscAlgebra(Registry& reg, int algebra_type, const char* parentGroup)
 {
 	bool bReturn = true;
 
 	switch(algebra_type)
 	{
-	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;

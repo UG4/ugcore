@@ -115,7 +115,8 @@ class IDoFDistribution
 			{return m_pFuncPattern->fct_id(loc_fct, si);}
 
 	///	returns the function pattern
-		const FunctionPattern& get_function_pattern() {return *m_pFuncPattern;}
+		const FunctionPattern& get_function_pattern() const
+			{return *m_pFuncPattern;}
 
 		///////////////////////////////////////
 		// Elements where dofs are distributed
@@ -206,7 +207,7 @@ class IDoFDistribution
 		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const
 			{return getImpl().num_inner_indices<TElem>(si, fctGrp);}
 
-	/// fill local informations in LocalIndex (Element + Closure of Element)
+/*	/// fill local informations in LocalIndex (Element + Closure of Element)
 		template<typename TElem>
 		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const
 			{return getImpl().prepare_indices<TElem>(si, ind, withHanging);}
@@ -225,6 +226,10 @@ class IDoFDistribution
 		template<typename TElem>
 		void update_inner_indices(TElem* elem, LocalIndices& ind) const
 			{getImpl().update_inner_indices(elem, ind);}
+*/
+		template<typename TElem>
+		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
+			{getImpl().indices(elem, ind, bHang);}
 
 		///////////////////////////////////////
 		// Multi index access

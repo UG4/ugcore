@@ -20,16 +20,15 @@ namespace ug{
 /////////////////////////////////////////////////////////////////////////////
 
 
-template <int dim, typename TAlgebra>
+template <int dim>
 class INavierStokesUpwind
 {
 	public:
 	/// Local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type>
-				local_vector_type;
+		typedef LocalVector local_vector_type;
 
 	/// Abbreviation for own type
-		typedef INavierStokesUpwind<dim, TAlgebra> this_type;
+		typedef INavierStokesUpwind<dim> this_type;
 
 	///	type of update function
 		typedef bool (this_type::*UpdateFunc)(	const FVGeometryBase* obj,
@@ -185,16 +184,16 @@ class INavierStokesUpwind
 // No Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class NavierStokesNoUpwind
-	: public INavierStokesUpwind<TDim, TAlgebra>
+	: public INavierStokesUpwind<TDim>
 {
 	public:
 	///	Base class
-		typedef INavierStokesUpwind<TDim, TAlgebra> base_type;
+		typedef INavierStokesUpwind<TDim> base_type;
 
 	///	This class
-		typedef NavierStokesNoUpwind<TDim, TAlgebra> this_type;
+		typedef NavierStokesNoUpwind<TDim> this_type;
 
 	/// Local vector type
 		typedef typename base_type::local_vector_type local_vector_type;
@@ -258,16 +257,16 @@ class NavierStokesNoUpwind
 // Full Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class NavierStokesFullUpwind
-	: public INavierStokesUpwind<TDim, TAlgebra>
+	: public INavierStokesUpwind<TDim>
 {
 	public:
 	///	Base class
-		typedef INavierStokesUpwind<TDim, TAlgebra> base_type;
+		typedef INavierStokesUpwind<TDim> base_type;
 
 	///	This class
-		typedef NavierStokesFullUpwind<TDim, TAlgebra> this_type;
+		typedef NavierStokesFullUpwind<TDim> this_type;
 
 	/// Local vector type
 		typedef typename base_type::local_vector_type local_vector_type;
@@ -331,16 +330,16 @@ class NavierStokesFullUpwind
 // Skewed Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class NavierStokesSkewedUpwind
-	: public INavierStokesUpwind<TDim, TAlgebra>
+	: public INavierStokesUpwind<TDim>
 {
 	public:
 	///	Base class
-		typedef INavierStokesUpwind<TDim, TAlgebra> base_type;
+		typedef INavierStokesUpwind<TDim> base_type;
 
 	///	This class
-		typedef NavierStokesSkewedUpwind<TDim, TAlgebra> this_type;
+		typedef NavierStokesSkewedUpwind<TDim> this_type;
 
 	/// Local vector type
 		typedef typename base_type::local_vector_type local_vector_type;
@@ -404,16 +403,16 @@ class NavierStokesSkewedUpwind
 // Linear Profile Skewed Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class NavierStokesLinearProfileSkewedUpwind
-	: public INavierStokesUpwind<TDim, TAlgebra>
+	: public INavierStokesUpwind<TDim>
 {
 	public:
 	///	Base class
-		typedef INavierStokesUpwind<TDim, TAlgebra> base_type;
+		typedef INavierStokesUpwind<TDim> base_type;
 
 	///	This class
-		typedef NavierStokesLinearProfileSkewedUpwind<TDim, TAlgebra> this_type;
+		typedef NavierStokesLinearProfileSkewedUpwind<TDim> this_type;
 
 	/// Local vector type
 		typedef typename base_type::local_vector_type local_vector_type;
@@ -478,16 +477,16 @@ class NavierStokesLinearProfileSkewedUpwind
 // Positive Upwind
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class NavierStokesPositiveUpwind
-	: public INavierStokesUpwind<TDim, TAlgebra>
+	: public INavierStokesUpwind<TDim>
 {
 	public:
 	///	Base class
-		typedef INavierStokesUpwind<TDim, TAlgebra> base_type;
+		typedef INavierStokesUpwind<TDim> base_type;
 
 	///	This class
-		typedef NavierStokesPositiveUpwind<TDim, TAlgebra> this_type;
+		typedef NavierStokesPositiveUpwind<TDim> this_type;
 
 	/// Local vector type
 		typedef typename base_type::local_vector_type local_vector_type;

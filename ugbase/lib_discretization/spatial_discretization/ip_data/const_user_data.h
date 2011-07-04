@@ -42,19 +42,13 @@ class ConstUserNumber
 
 	public:
 	///	creates empty user number
-		ConstUserNumber() {m_Number = 0.0;}
+		ConstUserNumber() { set(0.0);}
 
 	///	set constant value
-		void set(number val)
-		{
-			m_Number = val;
-		}
+		void set(number val) {m_Number = val;}
 
 	///	print current setting
-		void print() const
-		{
-			UG_LOG("ConstUserNumber:" << m_Number << "\n");
-		}
+		void print() const {UG_LOG("ConstUserNumber:" << m_Number << "\n");}
 
 	///	evaluate
 		void operator() (number& c, const MathVector<dim>& x,
@@ -107,16 +101,10 @@ class ConstUserVector
 		void set_all_entries(number val) { m_Vector = val;}
 
 	///	set i'th vector entry
-		void set_entry(size_t i, number val)
-		{
-			m_Vector[i] = val;
-		}
+		void set_entry(size_t i, number val){m_Vector[i] = val;}
 
 	///	print current setting
-		void print() const
-		{
-			UG_LOG("ConstUserVector:" << m_Vector << "\n");
-		}
+		void print() const {UG_LOG("ConstUserVector:" << m_Vector << "\n");}
 
 	/// evaluate
 		void operator() (MathVector<dim>& v, const MathVector<dim>& x,
@@ -187,16 +175,10 @@ class ConstUserMatrix
 		}
 
 	///	sets a single entry
-		void set_entry(size_t i, size_t j, number val)
-		{
-			m_Tensor[i][j] = val;
-		}
+		void set_entry(size_t i, size_t j, number val){m_Tensor[i][j] = val;}
 
 	///	print current setting
-		void print() const
-		{
-			UG_LOG("ConstUserMatrix:\n" << m_Tensor << "\n");
-		}
+		void print() const{UG_LOG("ConstUserMatrix:\n" << m_Tensor << "\n");}
 
 	///	evaluate
 		void operator() (MathMatrix<dim, dim>& D, const MathVector<dim>& x,
@@ -233,19 +215,13 @@ class ConstBoundaryNumber : public IBoundaryData<number, dim>
 
 	public:
 	///	Constructor
-		ConstBoundaryNumber() {m_Number = 0.0;}
+		ConstBoundaryNumber() {set(0.0);}
 
 	///	set value
-		void set(number val)
-		{
-			m_Number = val;
-		}
+		void set(number val) {m_Number = val;}
 
 	///	print current setting
-		void print() const
-		{
-			UG_LOG("ConstBoundaryNumber:" << m_Number << "\n");
-		}
+		void print() const{UG_LOG("ConstBoundaryNumber:" << m_Number << "\n");}
 
 	///	evaluate and return true for dirichlet value
 		bool operator() (number& c, const MathVector<dim>& x,

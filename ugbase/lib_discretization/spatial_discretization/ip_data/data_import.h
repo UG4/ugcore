@@ -14,23 +14,18 @@
 
 namespace ug{
 
-// predeclaration
-template <typename TAlgebra> class IElemDisc;
-
 /// Base class for data import
 /**
  * An IDataImport is the base class for importing data to ElemDiscs
  */
-template <typename TAlgebra>
 class IDataImport
 {
-	typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
+	typedef IElemDisc::local_matrix_type local_matrix_type;
 
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_pIDataExport(NULL), m_pIDependentIPData(NULL),
-			  m_bInMassPart(false),
+			: m_pIDependentIPData(NULL), m_bInMassPart(false),
 			  m_id(-1), m_bCompLinDefect(compLinDefect)
 		{}
 		virtual ~IDataImport()	{}
@@ -64,42 +59,34 @@ class IDataImport
 		virtual IIPData* get_data() = 0;
 
 	///	set function group for linearization of defect
-		void set_function_group(const FunctionGroup& fctGrp){m_pFctGrp = &fctGrp;}
+		void set_function_group(const FunctionGroup& fctGrp){m_fctGrp = fctGrp;}
 
 	///	get funtion group
-		const FunctionGroup& get_function_group() const
-		{
-			UG_ASSERT(m_pFctGrp != NULL, "No func group set.");
-			return *m_pFctGrp;
-		}
+		const FunctionGroup& get_function_group() const{return m_fctGrp;}
 
 	/// number of functions
-		size_t num_fct() const
-		{
-			UG_ASSERT(m_pFctGrp != NULL, "No func group set.");
-			return m_pFctGrp->num_fct();
-		}
+		size_t num_fct() const {return m_fctGrp.num_fct();}
 
 	///	resize arrays
-		virtual void resize(const LocalIndices& ind) = 0;
+		virtual void resize(const LocalIndices& ind,
+		                    const FunctionIndexMapping& map) = 0;
 
 	///	add jacobian entries introduced by this import
 		virtual void assemble_jacobian(local_matrix_type& J) = 0;
 
 	protected:
 	/// connected iexport
-		IDataExport<TAlgebra>* m_pIDataExport;
 		IDependentIPData* m_pIDependentIPData;
 
 	///	function group for linear defect
-		const FunctionGroup* m_pFctGrp;
+		FunctionGroup m_fctGrp;
 
 	protected:
 	///	type of local vector
-		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
+		typedef IElemDisc::local_vector_type local_vector_type;
 
 	///	type of evaluation function
-		typedef bool (IElemDisc<TAlgebra>::*LinDefectFunc)(const local_vector_type& u);
+		typedef bool (IElemDisc::*LinDefectFunc)(const local_vector_type& u);
 
 	///	function pointers for all elem types
 		std::vector<LinDefectFunc>	m_vLinDefectFunc;
@@ -111,7 +98,7 @@ class IDataImport
 		int m_id;
 
 	///	elem disc
-		IElemDisc<TAlgebra>* m_pObj;
+		IElemDisc* m_pObj;
 
 	///	indicates iff lin defect should be computed
 		bool m_bCompLinDefect;
@@ -140,7 +127,7 @@ class IDataImport
 
 	///	register evaluation of linear defect for a element
 		template <typename TFunc>
-		void register_lin_defect_func(int id, IElemDisc<TAlgebra>* obj, TFunc func)
+		void reg_lin_defect_fct(int id, IElemDisc* obj, TFunc func)
 		{
 		//	make sure that there is enough space
 			if((size_t)id >= m_vLinDefectFunc.size())
@@ -163,16 +150,15 @@ class IDataImport
  *
  * \todo some data could be cached to allow faster access than using virtual fct
  */
-template <typename TData, int dim, typename TAlgebra>
-class DataImport : public IDataImport<TAlgebra>
+template <typename TData, int dim>
+class DataImport : public IDataImport
 {
-	typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
-	using IDataImport<TAlgebra>::num_fct;
+	typedef IElemDisc::local_matrix_type local_matrix_type;
 
 	public:
 	/// Constructor
 		DataImport(bool compLinDefect = true) :
-			IDataImport<TAlgebra>(compLinDefect),
+			IDataImport(compLinDefect),
 			m_seriesID(-1),	m_pIPData(NULL), m_pDependentIPData(NULL)
 		{}
 
@@ -183,7 +169,6 @@ class DataImport : public IDataImport<TAlgebra>
 			m_pIPData = &data;
 
 		//	remember iexport
-			this->m_pIDataExport = dynamic_cast<IDataExport<TAlgebra>*>(&data);
 			this->m_pIDependentIPData = dynamic_cast<IDependentIPData*>(&data);
 
 		//	remember dependent data (i.e. is NULL iff no dependent data given)
@@ -374,7 +359,8 @@ class DataImport : public IDataImport<TAlgebra>
 		}
 
 	///	resize lin defect arrays
-		virtual void resize(const LocalIndices& ind)
+		virtual void resize(const LocalIndices& ind,
+		                    const FunctionIndexMapping& map)
 		{
 		//	resize ips
 			m_vvvLinDefect.resize(num_ip());
@@ -383,11 +369,11 @@ class DataImport : public IDataImport<TAlgebra>
 			for(size_t ip = 0; ip < num_ip(); ++ip)
 			{
 			//	resize num fct
-				m_vvvLinDefect[ip].resize(ind.num_fct());
+				m_vvvLinDefect[ip].resize(map.num_fct());
 
 			//	resize dofs
-				for(size_t fct = 0; fct < ind.num_fct(); ++fct)
-					m_vvvLinDefect[ip][fct].resize(ind.num_dofs(fct));
+				for(size_t fct = 0; fct < map.num_fct(); ++fct)
+					m_vvvLinDefect[ip][fct].resize(ind.num_dof(map[fct]));
 			}
 		}
 

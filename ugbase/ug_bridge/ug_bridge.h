@@ -43,26 +43,27 @@ bool RegisterMiscFunctions(Registry &reg, const char* parentGroup = "/ug4");
 ///	Registers the domain object and related methods
 bool RegisterDomainInterface(Registry& reg, const char* parentGroup = "/ug4");
 
+/// Registers the element discretizations
+bool RegisterLibDiscElemDisc(Registry& reg, const char* parentGroup = "/ug4");
+
 
 #ifdef UG_ALGEBRA
-	///	registers lib-algebra interface methods at the registry.
-	/**	This method is automatically invoked during the creation of the Registry.*/
-	bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup = "/ug4");
-	bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
+///	registers lib-algebra interface methods at the registry.
+/**	This method is automatically invoked during the creation of the Registry.*/
+bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup = "/ug4");
+bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
-	///	registers lib-discretization interface methods at the registry.
-	/**	This method is automatically invoked during the creation of the Registry.*/
-	bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup = "/ug4");
-	bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
-	bool RegisterDynamicLibDiscretizationInterfaceDomainDependent(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
-	bool RegisterDynamicLibDiscretizationInterfaceDomainIndependent(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
-	bool RegisterDynamicLibDiscInterfaceDiscs(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
+///	registers lib-discretization interface methods at the registry.
+/**	This method is automatically invoked during the creation of the Registry.*/
+bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup = "/ug4");
+bool RegisterDynamicLibDiscDomain(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
+bool RegisterDynamicLibDiscAlgebra(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
-	/// registers user data
-	bool RegisterUserData(Registry& reg, const char* parentGroup = "/ug4");
+/// registers user data
+bool RegisterUserData(Registry& reg, const char* parentGroup = "/ug4");
 
-	///	registers user functions for the elder problem.
-	void RegisterElderUserFunctions(Registry& reg, const char* parentGroup);
+///	registers user functions for the elder problem.
+void RegisterElderUserFunctions(Registry& reg, const char* parentGroup);
 #endif
 
 }//	end of namespace 

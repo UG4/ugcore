@@ -19,6 +19,7 @@
 
 // library intern includes
 #include "../../reference_element/reference_element.h"
+#include "../../reference_element/reference_element_traits.h"
 #include "../../local_shape_function_set/local_shape_function_set_provider.h"
 #include "../../local_shape_function_set/lagrange/lagrangep1.h"
 #include "./finite_volume_util.h"
@@ -167,8 +168,8 @@ class FV1Geometry : public FVGeometryBase {
 			/// value of shape function i in integration point
 				inline number shape(size_t sh) const {return vShape[sh];}
 
-			/// vector of local gradients in ip point
-				inline const std::vector<number>& shape_vector() const {return vShape;}
+			/// vector of shape functions in ip point
+				inline const number* shape_vector() const {return vShape;}
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
@@ -329,7 +330,7 @@ class FV1Geometry : public FVGeometryBase {
 				inline number volume() const {return m_volume;}
 
 			/// Transposed Inverse of Jacobian in integration point
-				inline const MathMatrix<dim,worldDim>& JTInv() const {return JtInv;}
+				inline const MathMatrix<worldDim, dim>& JTInv() const {return JtInv;}
 
 			/// Determinant of Jacobian in integration point
 				inline number detJ() const {return detj;}
@@ -767,7 +768,5 @@ class FV1ManifoldBoundary
 };
 
 }
-
-#include "./finite_volume_geometry_impl.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_VOLUME_GEOMETRY__ */

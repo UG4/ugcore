@@ -34,9 +34,6 @@
 
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/spatial_discretization/post_process/dirichlet_boundary/p1_dirichlet_boundary.h"
-#include "lib_discretization/spatial_discretization/elem_disc/neumann_boundary/fv/neumann_boundary.h"
-#include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/fv/inner_boundary.h"
-#include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 #include "lib_discretization/operator/linear_operator/projection_operator.h"
 #include "lib_discretization/operator/linear_operator/prolongation_operator.h"
@@ -166,35 +163,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
 						"Success", "Constant Value#Function#Subsets")
 			.add_method("clear", &T::clear);
-	}
-
-//	DomainElemDisc base class
-	{
-		typedef IDomainElemDisc<domain_type, algebra_type> T;
-		typedef IElemDisc<algebra_type> TBase;
-
-		std::stringstream ss; ss << "IDomainElemDisc" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_method("set_approximation_space", &T::set_approximation_space);
-	}
-
-//	Neumann Boundary
-	{
-		typedef FV1NeumannBoundaryElemDisc<domain_type, algebra_type> T;
-		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
-		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("add_boundary_value", (bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*))&T::add_boundary_value);
-	}
-
-//	Inner Boundary
-	{
-		typedef FVInnerBoundaryElemDisc<domain_type, algebra_type> T;
-		typedef IDomainElemDisc<domain_type, algebra_type> TBase;
-		std::stringstream ss; ss << "FV1InnerBoundary" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_constructor();
 	}
 
 //	ProlongationOperator
@@ -425,7 +393,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 }
 
 template <typename TAlgebra, typename TDoFDistribution>
-bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg, const char* parentGroup)
+bool RegisterLibDiscForDomain(Registry& reg, const char* parentGroup)
 {
 	typedef TDoFDistribution dof_distribution_type;
 	typedef TAlgebra algebra_type;
@@ -474,17 +442,17 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg
 	return true;
 }
 
-bool RegisterDynamicLibDiscretizationInterfaceDomainDependent(Registry& reg, int algebra_type, const char* parentGroup)
+bool RegisterDynamicLibDiscDomain(Registry& reg, int algebra_type, const char* parentGroup)
 {
 	bool bReturn = true;
 
 	switch(algebra_type)
 	{
-	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForDomain<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForDomain<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;

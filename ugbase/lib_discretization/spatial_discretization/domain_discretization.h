@@ -159,7 +159,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	elem		Element Discretization to be added
 	 */
-		bool add_elem_disc(IElemDisc<TAlgebra>& elem)
+		bool add_elem_disc(IElemDisc& elem)
 		{
 		//	check that not already registered
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -173,7 +173,7 @@ class DomainDiscretization :
 
 	protected:
 	///	vector holding all registered elem discs
-		std::vector<IElemDisc<TAlgebra>*> m_vElemDisc;
+		std::vector<IElemDisc*> m_vElemDisc;
 
 	public:
 	/// adds a post process to the assembling process

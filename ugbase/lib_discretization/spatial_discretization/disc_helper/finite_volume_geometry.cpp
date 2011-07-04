@@ -1,17 +1,15 @@
 /*
- * finite_volume_geometry_impl.h
+ * finite_volume_geometry.cpp
  *
  *  Created on: 04.09.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_VOLUME_GEOMETRY_IMPL__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_VOLUME_GEOMETRY_IMPL__
 
-#include "./finite_volume_geometry.h"
+#include "finite_volume_geometry.h"
+#include "lib_discretization/reference_element/reference_element.h"
 
 namespace ug{
-
 
 template <typename TElem, int TWorldDim>
 FV1Geometry<TElem, TWorldDim>::
@@ -582,8 +580,29 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 }
 
 
+template class FV1Geometry<Edge, 1>;
+template class FV1Geometry<Edge, 2>;
+template class FV1Geometry<Edge, 3>;
 
+template class FV1Geometry<Triangle, 2>;
+template class FV1Geometry<Triangle, 3>;
+
+template class FV1Geometry<Quadrilateral, 2>;
+template class FV1Geometry<Quadrilateral, 3>;
+
+template class FV1Geometry<Tetrahedron, 3>;
+template class FV1Geometry<Prism, 3>;
+template class FV1Geometry<Pyramid, 3>;
+template class FV1Geometry<Hexahedron, 3>;
+
+
+template class FV1ManifoldBoundary<Edge, 1>;
+template class FV1ManifoldBoundary<Edge, 2>;
+template class FV1ManifoldBoundary<Triangle, 2>;
+template class FV1ManifoldBoundary<Quadrilateral, 2>;
+template class FV1ManifoldBoundary<Tetrahedron, 3>;
+template class FV1ManifoldBoundary<Prism, 3>;
+template class FV1ManifoldBoundary<Pyramid, 3>;
+template class FV1ManifoldBoundary<Hexahedron, 3>;
 
 } // end namespace ug
-
-#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_VOLUME_GEOMETRY_IMPL__ */

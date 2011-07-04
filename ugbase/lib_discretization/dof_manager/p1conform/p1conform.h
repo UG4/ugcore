@@ -171,7 +171,7 @@ class P1ConformDoFDistribution
 		template<typename TElem>
 		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const;
 
-	/// \copydoc IDoFDistribution::prepare_indices()
+/*	/// \copydoc IDoFDistribution::prepare_indices()
 		template<typename TElem>
 		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const;
 
@@ -186,7 +186,10 @@ class P1ConformDoFDistribution
 	/// \copydoc IDoFDistribution::update_inner_indices()
 		template<typename TElem>
 		void update_inner_indices(TElem* elem, LocalIndices& ind) const;
-
+*/
+	/// \copydoc IDoFDistribution::indices()
+		template<typename TElem>
+		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const;
 
 		///////////////////////////////////////
 		// Multi index access
@@ -422,7 +425,7 @@ class GroupedP1ConformDoFDistribution
 		template<typename TElem>
 		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const;
 
-	/// \copydoc IDoFDistribution::prepare_indices()
+/*	/// \copydoc IDoFDistribution::prepare_indices()
 		template<typename TElem>
 		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const;
 
@@ -437,7 +440,7 @@ class GroupedP1ConformDoFDistribution
 	/// \copydoc IDoFDistribution::update_inner_indices()
 		template<typename TElem>
 		void update_inner_indices(TElem* elem, LocalIndices& ind) const;
-
+*/
 		///////////////////////////////////////
 		// Multi index access
 		///////////////////////////////////////

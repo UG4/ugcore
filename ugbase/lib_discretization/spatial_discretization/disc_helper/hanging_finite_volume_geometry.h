@@ -20,12 +20,11 @@
 #include "../../reference_element/reference_element.h"
 #include "../../local_shape_function_set/local_shape_function_set_provider.h"
 #include "./finite_volume_util.h"
-#include "finite_element_geometry.h"
+#include "finite_volume_geometry.h"
 
 namespace ug{
 
-template <	typename TElem,
-			int TWorldDim>
+template <	typename TElem, int TWorldDim>
 class HFV1Geometry : public FVGeometryBase{
 	private:
 	/// type of reference element
@@ -98,7 +97,7 @@ class HFV1Geometry : public FVGeometryBase{
 				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
 
 			/// Transposed Inverse of Jacobian in integration point
-				inline const MathMatrix<dim,worldDim>& JTInv() const {return JtInv;}
+				inline const MathMatrix<worldDim,dim>& JTInv() const {return JtInv;}
 
 			/// Determinante of Jacobian in integration point
 				inline number detJ() const {return detj;}
@@ -418,8 +417,5 @@ class HFV1Geometry : public FVGeometryBase{
 };
 
 }
-
-// include implementation
-#include "hanging_finite_volume_geometry_impl.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__HANGING_FINITE_VOLUME_GEOMETRY__ */

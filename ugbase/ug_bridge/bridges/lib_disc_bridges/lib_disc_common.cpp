@@ -19,6 +19,8 @@
 // P1ConformFunctionPattern
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
+
 namespace ug
 {
 namespace bridge
@@ -329,7 +331,7 @@ void SetDebugLevel(const char* t, int level)
 	}
 }*/
 
-bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup)
+bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 {
 	try
 	{
@@ -354,6 +356,17 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 				.add_method("add_fct", (bool (T::*)(const char*, const char*, int))&T::add_fct,
 				            "Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
 				            "currently no help available");
+		}
+
+	//	Elem Discs
+		{
+		//	Base class
+			typedef IElemDisc T;
+			reg.add_class_<T>("IElemDisc", grp.c_str())
+				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions,
+							"", "Functions (sep. by ',')")
+				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets,
+							"", "Subsets (sep. by ',')");
 		}
 
 	//  Debug function

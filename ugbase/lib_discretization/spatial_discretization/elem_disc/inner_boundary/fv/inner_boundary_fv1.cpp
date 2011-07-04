@@ -9,6 +9,8 @@
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY_IMPL__
 
 #include "inner_boundary.h"
+#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_helper/finite_volume_geometry.h"
 
 
 // constants (all according to De Young & Keizer)
@@ -47,10 +49,10 @@ namespace ug{
 
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 prepare_element_loop()
 {
 //	we're done
@@ -58,11 +60,11 @@ prepare_element_loop()
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 finish_element_loop()
 {
 //	we're done
@@ -70,12 +72,12 @@ finish_element_loop()
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 //	get corners
@@ -94,11 +96,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 
 
 // assemble stiffness part of Jacobian
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	// get finite volume geometry
@@ -184,11 +186,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	// nothing to be done
@@ -197,11 +199,11 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// get finite volume geometry
@@ -262,11 +264,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	// nothing to be done
@@ -275,16 +277,62 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain>::
 assemble_f(local_vector_type& d)
 {
 	// nothing to be done
 	return true;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	register assemble functions
+////////////////////////////////////////////////////////////////////////////////
+
+// register for 1D
+template<typename TDomain>
+void
+FVInnerBoundaryElemDisc<TDomain>::
+register_all_fv1_funcs()
+{
+//	get all grid element types in this dimension and below
+	typedef typename GridElemTypes<dim>::DimElemList ElemList;
+
+//	switch assemble functions
+	boost::mpl::for_each<ElemList>( RegisterFV1<FV1ManifoldBoundary>(this) );
+}
+
+template<typename TDomain>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+void
+FVInnerBoundaryElemDisc<TDomain>::
+register_fv1_func()
+{
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	typedef this_type T;
+
+	reg_prepare_vol_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
+	reg_prepare_vol_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
+	reg_finish_vol_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
+	reg_ass_JA_vol_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
+	reg_ass_JM_vol_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
+	reg_ass_dA_vol_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
+	reg_ass_dM_vol_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
+	reg_ass_rhs_vol_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+template class FVInnerBoundaryElemDisc<Domain1d>;
+template class FVInnerBoundaryElemDisc<Domain2d>;
+template class FVInnerBoundaryElemDisc<Domain3d>;
+
 
 
 } // namespace ug

@@ -34,7 +34,23 @@ set(srcDiscretization	common/function_group.cpp
 
 						local_shape_function_set/local_shape_function_set_provider.cpp
 						local_shape_function_set/lagrange/lagrangep1.cpp
-						local_shape_function_set/lagrange/lagrange.cpp)
+						local_shape_function_set/lagrange/lagrange.cpp
+						
+						spatial_discretization/elem_disc/elem_disc_interface.cpp
+						spatial_discretization/disc_helper/finite_volume_geometry.cpp
+						spatial_discretization/disc_helper/hanging_finite_volume_geometry.cpp
+						spatial_discretization/ip_data/data_evaluator.cpp
+						
+						spatial_discretization/elem_disc/constant_equation/fv1/constant_equation_fv1.cpp
+						spatial_discretization/elem_disc/convection_diffusion/fv1/convection_diffusion_fv1.cpp
+						spatial_discretization/elem_disc/convection_diffusion/fe1/convection_diffusion_fe1.cpp
+						spatial_discretization/elem_disc/density_driven_flow/fv1/density_driven_flow_fv1.cpp
+						spatial_discretization/elem_disc/inner_boundary/fv/inner_boundary_fv1.cpp
+						spatial_discretization/elem_disc/linear_elasticity/linear_elasticity_fe1.cpp
+						spatial_discretization/elem_disc/navier_stokes/fv/navier_stokes_fv1.cpp
+						spatial_discretization/elem_disc/neumann_boundary/fv/neumann_boundary_fv1.cpp
+						spatial_discretization/elem_disc/nonlinear_elasticity/nonlinear_elasticity_fe1.cpp
+						spatial_discretization/elem_disc/thermohaline_flow/fv1/thermohaline_flow_fv1.cpp)
 
 # add parallelization
 if(NOT NO_MPI)

@@ -1,42 +1,33 @@
 /*
- * neumann_boundary_impl.h
+ * neumann_boundary_fv1.cpp
  *
  *  Created on: 14.10.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__NEUMANN_BOUNDARY_IMPL__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__NEUMANN_BOUNDARY_IMPL__
-
 #include "neumann_boundary.h"
+#include "lib_discretization/spatial_discretization/disc_helper/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/disc_helper/finite_volume_geometry.h"
 
 namespace ug{
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const char* subsets)
 {
-//	check that function pattern exists
-	if(this->m_pPattern == NULL)
-	{
-		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add_boundary_value':"
-				" Function Pattern not set.\n");
-		return false;
-	}
-
 //	create Function Group and Subset Group
 	FunctionGroup functionGroup;
 	SubsetGroup subsetGroup;
 
 //	convert strings
-	if(!ConvertStringToSubsetGroup(subsetGroup, *this->m_pPattern, subsets))
+	if(!ConvertStringToSubsetGroup(subsetGroup, this->get_fct_pattern(), subsets))
 	{
 		UG_LOG("ERROR while parsing Subsets.\n");
 		return false;
 	}
-	if(!ConvertStringToFunctionGroup(functionGroup, *this->m_pPattern, function))
+	if(!ConvertStringToFunctionGroup(functionGroup, this->get_fct_pattern(), function))
 	{
 		UG_LOG("ERROR while parsing Functions.\n");
 		return false;
@@ -50,62 +41,33 @@ add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const
 		return false;
 	}
 
+//	set name of function
+	m_numFct = 1;
+	this->set_functions(function);
+
 //	forward request
 	return add_boundary_value(user, functionGroup.unique_id(0), subsetGroup);
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bndSubsetGroup)
 {
-//	check that function pattern exists
-	if(this->m_pPattern == NULL)
-	{
-		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add_boundary_value': "
-				"Function Pattern not set.\n");
-		return false;
-	}
-
 //	get subsethandler
-	const ISubsetHandler* pSH = this->m_pPattern->get_subset_handler();
+	const ISubsetHandler* pSH = this->get_fct_pattern().get_subset_handler();
 
 // 	check if function exist
-	if(fct >= this->m_pPattern->num_fct())
+	if(fct >= this->get_fct_pattern().num_fct())
 	{
 		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add_boundary_value': Function "
 				<< fct << " does not exist in pattern.\n");
 		return false;
 	}
 
-//	add function to function group if needed
-//	this will force, that the local vector contains the function
-//	note: 	The local indices for allready contained functions are not changed.
-//			Therefore an update in the UserDataFunctions is not necessary
-	if(!this->m_FunctionGroup.contains(fct))
-	{
-		this->m_FunctionGroup.add(fct);
-		m_numFct = this->m_FunctionGroup.num_fct();
-	}
-
+	//\TODO: THIS IS NOW BROKEN, HANDLE WHEN POSSIBLE  !!!!!!
 //	get position of function in function group
-	const size_t index = this->m_FunctionGroup.local_index(fct);
-
-// 	check that function is defined on inner subset
-	if(!this->m_SubsetGroup.empty())
-	{
-		for(size_t si = 0; si < this->m_SubsetGroup.num_subsets(); ++si)
-		{
-			const int subsetIndex = this->m_SubsetGroup[si];
-			if(!this->m_pPattern->is_def_in_subset(fct, subsetIndex))
-			{
-				UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add_boundary_value':"
-						" Function " << fct << " not defined in subset "
-						<< subsetIndex << ".\n");
-				return false;
-			}
-		}
-	}
+	const size_t index = 0;
 
 // 	loop subsets
 	for(size_t si = 0; si < bndSubsetGroup.num_subsets(); ++si)
@@ -134,11 +96,11 @@ add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bnd
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 prepare_element_loop()
 {
 //	register subsetIndex at Geometry
@@ -157,10 +119,10 @@ prepare_element_loop()
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 finish_element_loop()
 {
 //	remove subsetIndex from Geometry
@@ -179,12 +141,12 @@ finish_element_loop()
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 //	get corners
@@ -203,11 +165,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	return true;
 }
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	// we're done
@@ -215,11 +177,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	// we're done
@@ -227,11 +189,11 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// we're done
@@ -239,11 +201,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 	// we're done
@@ -251,11 +213,11 @@ assemble_M(local_vector_type& d, const local_vector_type& u)
 }
 
 
-template<typename TDomain, typename TAlgebra>
+template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 inline
 bool
-FV1NeumannBoundaryElemDisc<TDomain, TAlgebra>::
+FV1NeumannBoundaryElemDisc<TDomain>::
 assemble_f(local_vector_type& d)
 {
 	// get finite volume geometry
@@ -294,7 +256,63 @@ assemble_f(local_vector_type& d)
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//	Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+FV1NeumannBoundaryElemDisc<TDomain>::FV1NeumannBoundaryElemDisc()
+: m_numFct(0)
+{
+	m_mBoundarySegment.clear();
+	register_all_fv1_funcs(false);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	register assemble functions
+////////////////////////////////////////////////////////////////////////////////
+
+// register for 1D
+template<typename TDomain>
+void
+FV1NeumannBoundaryElemDisc<TDomain>::
+register_all_fv1_funcs(bool bHang)
+{
+//	get all grid element types in this dimension and below
+	typedef typename GridElemTypes<dim>::AllElemList ElemList;
+
+//	switch assemble functions
+	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
+	else throw (UGFatalError("Not implemented."));
+}
+
+template<typename TDomain>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+void
+FV1NeumannBoundaryElemDisc<TDomain>::
+register_fv1_func()
+{
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	typedef this_type T;
+
+	reg_prepare_vol_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
+	reg_prepare_vol_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
+	reg_finish_vol_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
+	reg_ass_JA_vol_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
+	reg_ass_JM_vol_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
+	reg_ass_dA_vol_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
+	reg_ass_dM_vol_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
+	reg_ass_rhs_vol_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+template class FV1NeumannBoundaryElemDisc<Domain1d>;
+template class FV1NeumannBoundaryElemDisc<Domain2d>;
+template class FV1NeumannBoundaryElemDisc<Domain3d>;
+
 } // namespace ug
 
-
-#endif /*__H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__NEUMANN_BOUNDARY_IMPL__*/

@@ -9,6 +9,8 @@
 #define __H__UG__LIB_DISCRETIZATION__DOMAIN__
 
 #include "lib_grid/lg_base.h"
+#include <boost/mpl/list.hpp>
+#include <boost/mpl/for_each.hpp>
 
 namespace ug{
 
@@ -148,6 +150,45 @@ class Domain {
 	//	for parallelization only. NULL in serial mode.
 		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
 };
+
+typedef Domain<1, MultiGrid, MGSubsetHandler> Domain1d;
+typedef Domain<2, MultiGrid, MGSubsetHandler> Domain2d;
+typedef Domain<3, MultiGrid, MGSubsetHandler> Domain3d;
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	Element types for different dimensions
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * This Class provides boost::mpl::lists storing the type of elements used in
+ * for the Domain. It can be used to control dimension dependent builds, where
+ * not all template instantiations are available (e.g. a Hexahedron in 1d,2d, etc)
+ * While DimElemList returns the Element Types in the dimenion of the domain,
+ * the list AllElemList returns all elements contained in the Domain-dimension
+ * and the dimensions below.
+ */
+template <int dim> struct GridElemTypes;
+
+// 1d
+template <> struct GridElemTypes<1> {
+typedef boost::mpl::list<Edge> DimElemList;
+typedef boost::mpl::list<Edge> AllElemList;
+};
+
+// 2d
+template <> struct GridElemTypes<2> {
+typedef boost::mpl::list<Triangle, Quadrilateral> DimElemList;
+typedef boost::mpl::list<Edge, Triangle, Quadrilateral> AllElemList;
+};
+
+// 3d
+template <> struct GridElemTypes<3> {
+typedef boost::mpl::list<Tetrahedron, Prism, Pyramid, Hexahedron> DimElemList;
+typedef boost::mpl::list<Edge, Triangle, Quadrilateral,
+								 Tetrahedron, Prism, Pyramid, Hexahedron> AllElemList;
+};
+
 
 } // end namespace ug
 

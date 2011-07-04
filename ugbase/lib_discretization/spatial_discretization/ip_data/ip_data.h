@@ -20,11 +20,9 @@ namespace ug{
 class IIPData
 {
 	public:
-		IIPData() :
-			m_time(0.0)
+		IIPData() : m_locPosDim(-1), m_time(0.0)
 		{
 			m_vNumIP.clear();
-			m_locPosDim = -1;
 			m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
 		}
 
@@ -252,40 +250,47 @@ class IPData : public IIPDimData<dim>
 	///	returns the value at ip
 		const TData& value(size_t s, size_t ip) const
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id "<<s);
-			UG_ASSERT(s < m_vvValue.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvValue[s].size(), "Invalid index "<<ip);
+			check_series_ip(s,ip);
 			return m_vvValue[s][ip];
 		}
 
 	///	returns all values for a series
 		const TData* values(size_t s) const
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id");
-			UG_ASSERT(s < m_vvValue.size(), "Invalid index");
+			check_series(s);
 			return &(m_vvValue[s][0]);
 		}
 
 	///	returns the value at ip
 		TData& value(size_t s, size_t ip)
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvValue.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvValue[s].size(), "Invalid index "<<ip);
+			check_series_ip(s,ip);
 			return m_vvValue[s][ip];
 		}
 
 	///	returns all values for a series
 		TData* values(size_t s)
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id");
-			UG_ASSERT(s < m_vvValue.size(), "Invalid index");
+			check_series(s);
 			return &(m_vvValue[s][0]);
 		}
 
 	protected:
+	///	checks in debug mode the correct index
+		inline void check_series(size_t s) const
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+			UG_ASSERT(s < m_vvValue.size(), "Invalid index "<<s);
+		}
+
+	///	checks in debug mode the correct index
+		inline void check_series_ip(size_t s, size_t ip) const
+		{
+			check_series(s);
+			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+			UG_ASSERT(ip < m_vvValue[s].size(), "Invalid index "<<ip);
+		}
+
 		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
 		{
 		//	adjust data arrays
@@ -312,11 +317,11 @@ class IDependentIPData
 {
 	public:
 	///	resize arrays
-		virtual void resize(const LocalIndices& ind) = 0;
+		virtual void resize(const LocalIndices& ind,
+		                    const FunctionIndexMapping& map) = 0;
 
 	/// set	Function Group of functions (by copy)
-		void set_function_group(const FunctionGroup& fctGrp)
-			{m_fctGrp = fctGrp;}
+		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
 
 	///	Function Group of functions
 		const FunctionGroup& get_function_group() const {return m_fctGrp;}
@@ -333,7 +338,6 @@ class IDependentIPData
 	protected:
 	/// functions the data depends on
 		FunctionGroup m_fctGrp;
-
 };
 
 /// Dependent IP Data
@@ -358,74 +362,55 @@ class DependentIPData : public IPData<TData, dim>,
 	/// number of shapes for local function
 		size_t num_sh(size_t s, size_t fct) const
 		{
-			const size_t ip = 0;
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			const size_t ip = 0; check_s_ip_fct(s,ip,fct);
 			return m_vvvDeriv[s][ip][fct].size();
 		}
 
 	///	returns the derivative of the local function, at ip and for a dof
 		const TData& deriv(size_t s, size_t ip, size_t fct, size_t dof) const
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
-			UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
+			check_s_ip_fct_dof(s,ip,fct,dof);
 			return m_vvvDeriv[s][ip][fct][dof];
 		}
 
 	///	returns the derivative of the local function, at ip and for a dof
 		TData& deriv(size_t s, size_t ip, size_t fct, size_t dof)
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
-			UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
+			check_s_ip_fct_dof(s,ip,fct,dof);
 			return m_vvvDeriv[s][ip][fct][dof];
 		}
 
 	///	returns the derivatives of the local function, at ip
 		TData* deriv(size_t s, size_t ip, size_t fct)
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			check_s_ip_fct(s,ip,fct);
 			return &(m_vvvDeriv[s][ip][fct][0]);
 		}
 
 	///	returns the derivatives of the local function, at ip
 		const TData* deriv(size_t s, size_t ip, size_t fct) const
 		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			check_s_ip_fct(s,ip,fct);
 			return &(m_vvvDeriv[s][ip][fct][0]);
 		}
 
 	///	resize lin defect arrays
-		virtual void resize(const LocalIndices& ind)
+		virtual void resize(const LocalIndices& ind,
+		                    const FunctionIndexMapping& map)
 		{
 		//	resize num fct
 			for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
 				for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
 				{
+				//	number of functions
+					const size_t numFct = map.num_fct();
+
 				//	resize num fct
-					m_vvvDeriv[s][ip].resize(ind.num_fct());
+					m_vvvDeriv[s][ip].resize(numFct);
 
 				//	resize dofs
-					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
-						m_vvvDeriv[s][ip][fct].resize(ind.num_dofs(fct));
+					for(size_t fct = 0; fct < numFct; ++fct)
+						m_vvvDeriv[s][ip][fct].resize(ind.num_dof(map[fct]));
 				}
 		}
 
@@ -443,6 +428,29 @@ class DependentIPData : public IPData<TData, dim>,
 		}
 
 	protected:
+	///	checks in debug mode the correct usage of indices
+		inline void check_s_ip(size_t s, size_t ip) const
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
+			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
+		}
+
+	///	checks in debug mode the correct usage of indices
+		inline void check_s_ip_fct(size_t s, size_t ip, size_t fct) const
+		{
+			check_s_ip(s,ip);
+			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+		}
+
+	///	checks in debug mode the correct usage of indices
+		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const
+		{
+			check_s_ip_fct(s,ip,fct);
+			UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
+		}
+
 		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
 		{
 		//	adjust data arrays

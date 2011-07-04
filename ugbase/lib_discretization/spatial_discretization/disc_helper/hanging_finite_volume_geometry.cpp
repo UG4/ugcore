@@ -1,12 +1,9 @@
 /*
- * hanging_finite_volume_geometry_impl.h
+ * hanging_finite_volume_geometry.cpp
  *
  *  Created on: 31.05.2011
  *      Author: andreasvogel
  */
-
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__HANGING_FINITE_VOLUME_GEOMETRY_IMPL__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__HANGING_FINITE_VOLUME_GEOMETRY_IMPL__
 
 #include "hanging_finite_volume_geometry.h"
 
@@ -518,7 +515,7 @@ void
 HFV1Geometry<TElem, TWorldDim>::
 print()
 {
-	UG_LOG("\nFVG hanging debug output\n");
+/*	UG_LOG("\nFVG hanging debug output\n");
 	UG_LOG("LocalCenter=" << m_locMid << ", globalCenter="<<m_gloMid<<"\n");
 	for(size_t i = 0; i < m_vSCV.size(); ++i)
 	{
@@ -555,10 +552,24 @@ print()
 			UG_LOG("\n");
 		}
 	}
-	UG_LOG("\n");
+	UG_LOG("\n");*/
 }
+
+template class HFV1Geometry<Edge, 1>;
+template class HFV1Geometry<Edge, 2>;
+template class HFV1Geometry<Edge, 3>;
+
+template class HFV1Geometry<Triangle, 2>;
+template class HFV1Geometry<Triangle, 3>;
+
+template class HFV1Geometry<Quadrilateral, 2>;
+template class HFV1Geometry<Quadrilateral, 3>;
+
+template class HFV1Geometry<Tetrahedron, 3>;
+template class HFV1Geometry<Prism, 3>;
+template class HFV1Geometry<Pyramid, 3>;
+template class HFV1Geometry<Hexahedron, 3>;
 
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__HANGING_FINITE_VOLUME_GEOMETRY_IMPL__ */

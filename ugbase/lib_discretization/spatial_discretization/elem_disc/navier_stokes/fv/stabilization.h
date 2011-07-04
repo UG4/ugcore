@@ -19,22 +19,21 @@ enum DIFFUSION_LENGTH
     NS_COR
 };
 
-template <int dim, typename TAlgebra>
+template <int dim>
 class INavierStokesStabilization
 {
 	public:
 	/// Local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type>
-				local_vector_type;
+		typedef LocalVector local_vector_type;
 
 	/// Abbreviation for own type
-		typedef INavierStokesStabilization<dim, TAlgebra> this_type;
+		typedef INavierStokesStabilization<dim> this_type;
 
 	///	type of update function
 		typedef bool (this_type::*UpdateFunc)(	const FVGeometryBase* geo,
 												const local_vector_type& vCornerValue,
-												const DataImport<number, dim, TAlgebra>& kinVisco,
-									            const DataImport<MathVector<dim>, dim, TAlgebra>* pSource,
+												const DataImport<number, dim>& kinVisco,
+									            const DataImport<MathVector<dim>, dim>* pSource,
 												const local_vector_type* pvCornerValueOldTime, number dt);
 
 	public:
@@ -53,14 +52,14 @@ class INavierStokesStabilization
 		bool set_diffusion_length(std::string diffLength);
 
 	///	sets the upwind method
-		void set_upwind(INavierStokesUpwind<dim, TAlgebra>& upwind)
+		void set_upwind(INavierStokesUpwind<dim>& upwind)
 		{
 			m_pUpwind = &upwind;
-			m_pConstUpwind = const_cast<const INavierStokesUpwind<dim, TAlgebra>*>(m_pUpwind);
+			m_pConstUpwind = const_cast<const INavierStokesUpwind<dim>*>(m_pUpwind);
 		}
 
 	///	returns the upwind
-		const INavierStokesUpwind<dim, TAlgebra>* get_upwind() const
+		const INavierStokesUpwind<dim>* get_upwind() const
 			{return m_pConstUpwind;}
 
 	///	diff length
@@ -104,8 +103,8 @@ class INavierStokesStabilization
 	///	compute values for new geometry and corner velocities
 		bool update(const FVGeometryBase* geo,
 		            const local_vector_type& vCornerValue,
-		            const DataImport<number, dim, TAlgebra>& kinVisco,
-		            const DataImport<MathVector<dim>, dim, TAlgebra>* pSource,
+		            const DataImport<number, dim>& kinVisco,
+		            const DataImport<MathVector<dim>, dim>* pSource,
 		            const local_vector_type* pvCornerValueOldTime, number dt)
 			{return (this->*(m_vUpdateFunc[m_id]))(	geo, vCornerValue,
 													kinVisco, pSource,
@@ -158,8 +157,8 @@ class INavierStokesStabilization
 		void set_sizes(size_t numScvf, size_t numSh);
 
 	///	Upwind values
-		INavierStokesUpwind<dim, TAlgebra>* m_pUpwind;
-		const INavierStokesUpwind<dim, TAlgebra>* m_pConstUpwind;
+		INavierStokesUpwind<dim>* m_pUpwind;
+		const INavierStokesUpwind<dim>* m_pConstUpwind;
 
 	///	computes the diffusion length
 		template <typename TFVGeom>
@@ -244,16 +243,16 @@ class INavierStokesStabilization
 // FIELDS
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 class NavierStokesFIELDSStabilization
-	: public INavierStokesStabilization<TDim, TAlgebra>
+	: public INavierStokesStabilization<TDim>
 {
 	public:
 	///	Base class
-		typedef INavierStokesStabilization<TDim, TAlgebra> base_type;
+		typedef INavierStokesStabilization<TDim> base_type;
 
 	///	This class
-		typedef NavierStokesFIELDSStabilization<TDim, TAlgebra> this_type;
+		typedef NavierStokesFIELDSStabilization<TDim> this_type;
 
 	/// Local vector type
 		typedef typename base_type::local_vector_type local_vector_type;
@@ -291,8 +290,8 @@ class NavierStokesFIELDSStabilization
 		template <typename TElem>
 		bool update(const FV1Geometry<TElem, dim>* geo,
 		            const local_vector_type& vCornerValue,
-		            const DataImport<number, dim, TAlgebra>& kinVisco,
-		            const DataImport<MathVector<dim>, dim, TAlgebra>* pSource,
+		            const DataImport<number, dim>& kinVisco,
+		            const DataImport<MathVector<dim>, dim>* pSource,
 		            const local_vector_type* pvCornerValueOldTime, number dt);
 
 	private:
@@ -317,8 +316,8 @@ class NavierStokesFIELDSStabilization
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)(const TGeom* geo,
 											 const local_vector_type& vCornerValue,
-											 const DataImport<number, dim, TAlgebra>& kinVisco,
-											 const DataImport<MathVector<dim>, dim, TAlgebra>* pSource,
+											 const DataImport<number, dim>& kinVisco,
+											 const DataImport<MathVector<dim>, dim>* pSource,
 											 const local_vector_type* pvCornerValueOldTime, number dt);
 
 			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);

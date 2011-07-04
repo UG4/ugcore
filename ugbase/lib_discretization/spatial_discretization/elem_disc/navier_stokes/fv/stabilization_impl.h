@@ -22,11 +22,11 @@ namespace ug{
 /////////////////////////////////////////////////////////////////////////////
 
 //	register a update function for a Geometry
-template <int dim, typename TAlgebra>
+template <int dim>
 
 template <typename TFVGeom, typename TAssFunc>
 void
-INavierStokesStabilization<dim, TAlgebra>::
+INavierStokesStabilization<dim>::
 register_update_func(TAssFunc func)
 {
 //	get unique geometry id
@@ -41,10 +41,10 @@ register_update_func(TAssFunc func)
 }
 
 //	set the Geometry type to use for next updates
-template <int dim, typename TAlgebra>
+template <int dim>
 template <typename TFVGeom>
 bool
-INavierStokesStabilization<dim, TAlgebra>::
+INavierStokesStabilization<dim>::
 set_geometry_type()
 {
 //	get unique geometry id
@@ -75,9 +75,9 @@ set_geometry_type()
 
 
 //	resize the data arrays
-template <int dim, typename TAlgebra>
+template <int dim>
 void
-INavierStokesStabilization<dim, TAlgebra>::
+INavierStokesStabilization<dim>::
 set_sizes(size_t numScvf, size_t numSh)
 {
 //	remember sizes
@@ -106,9 +106,9 @@ set_sizes(size_t numScvf, size_t numSh)
 	}
 }
 
-template <int dim, typename TAlgebra>
+template <int dim>
 bool
-INavierStokesStabilization<dim, TAlgebra>::
+INavierStokesStabilization<dim>::
 set_diffusion_length(std::string diffLength)
 {
 	if      (diffLength == "NS_RAW")        m_diffLengthType = NS_RAW;
@@ -122,10 +122,10 @@ set_diffusion_length(std::string diffLength)
 	return true;
 }
 
-template <int dim, typename TAlgebra>
+template <int dim>
 template <typename TFVGeom>
 bool
-INavierStokesStabilization<dim, TAlgebra>::
+INavierStokesStabilization<dim>::
 compute_diff_length(const TFVGeom& geo)
 {
 // 	Compute Diffusion Length in corresponding IPs
@@ -142,10 +142,10 @@ compute_diff_length(const TFVGeom& geo)
 	return true;
 }
 
-template <int dim, typename TAlgebra>
+template <int dim>
 template <typename TFVGeom>
 bool
-INavierStokesStabilization<dim, TAlgebra>::
+INavierStokesStabilization<dim>::
 compute_upwind(const TFVGeom& geo, const local_vector_type& vCornerValue)
 {
 //	check, that upwind has been set
@@ -164,13 +164,13 @@ compute_upwind(const TFVGeom& geo, const local_vector_type& vCornerValue)
 // FIELDS
 /////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, typename TAlgebra>
+template <int TDim>
 template <typename TElem>
 bool
-NavierStokesFIELDSStabilization<TDim, TAlgebra>::
+NavierStokesFIELDSStabilization<TDim>::
 update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue,
-       const DataImport<number, dim, TAlgebra>& kinVisco,
-       const DataImport<MathVector<dim>, dim, TAlgebra>* pSource,
+       const DataImport<number, dim>& kinVisco,
+       const DataImport<MathVector<dim>, dim>* pSource,
        const local_vector_type* pvCornerValueOldTime, number dt)
 {
 //	abbreviation for pressure

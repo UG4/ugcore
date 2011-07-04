@@ -8,10 +8,6 @@
 #ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__GEOMETRY_PROVIDER__
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__GEOMETRY_PROVIDER__
 
-#include "./upwind_shapes.h"
-#include "./finite_volume_output.h"
-#include "./finite_volume_geometry.h"
-
 namespace ug{
 
 /// Singleton, holding a Geometry for Discretization
