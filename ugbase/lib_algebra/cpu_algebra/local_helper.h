@@ -139,7 +139,11 @@ private:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+// \todo: I comment this out, since it leads to an ambiguity. AddLocalMatrix
+//		  is now defined in lib_discretization/common/local_algebra.h. I will
+//		  talk to Martin, if this is ok. We cannot move those functions here,
+//		  since ug::LocalMatrix is defined in lib_discretization and should
+//		  stay there to keep code separation.
 /** Add a local matrix
  *
  * The local matrix type must declare the following members:
@@ -151,7 +155,7 @@ private:
  * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
  * \param mat the whole local matrix type
  */
-template<typename TValueType, typename TLocalMatrix>
+/*template<typename TValueType, typename TLocalMatrix>
 inline bool AddLocalMatrix(SparseMatrix<TValueType> &mat, const TLocalMatrix &localMat)
 {
 	mat.add(localMat);
@@ -190,7 +194,7 @@ inline bool GetLocalMatrix(const SparseMatrix<TValueType> &mat, TLocalMatrix &lo
 	localMatrix_from_mat_and_array<TLocalMatrix> loc(localMat, rowIndices, colIndices);
 	return GetLocalMatrix(mat, loc);
 }
-
+*/
 
 }
 
