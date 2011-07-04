@@ -191,6 +191,10 @@ bool amg_base<TAlgebra>::init()
 		if(nrOfCoarseSum < m_maxNodesForBase // nnzCoarseMin < m_minNodesOnOneProcessor &&
 				|| level >= m_maxLevels-1)   // || m_A[level]->total_num_connections()/(L*L) > m_dMaxFillBeforeBase)
 			break;
+
+		//agglomerate(nnzCoarse, level);
+		if(nnzCoarse < m_minNodesOnOneProcessor)
+			break;
 		//smoothem_R[level].init(*m_A[level]);
 
 		m_presmoothers.resize(level+1);
@@ -236,12 +240,14 @@ bool amg_base<TAlgebra>::init()
 		create_level_vectors(level);
 	}
 
-	// agglomerate
+	//if(nrOfCoarseSum < m_maxNodesForBase)
+	//{
+		// agglomerate
 
-	AMG_PROFILE_BEGIN(amg_createDirectSolver);
-	create_direct_solver(level);
-	AMG_PROFILE_END();
-
+		AMG_PROFILE_BEGIN(amg_createDirectSolver);
+		create_direct_solver(level);
+		AMG_PROFILE_END();
+//	}
 	m_usedLevels = level+1;
 	UG_LOG("AMG Setup finished. Used Levels: " << m_usedLevels << ". ");
 	m_dTimingWholeSetupMS = SWwhole.ms();
@@ -266,6 +272,131 @@ bool amg_base<TAlgebra>::init()
 	return true;
 }
 
+/*
+void agglomeration2(std::vector<size_t> sizes, std::vector<std::map<int, size_t> > connections, std::vector<int> &mergeWith)
+{
+	// while(there are processors which have not enough elements)
+	// get the smallest of them and merge it with a neighbor so that the least amount of new interface is produced
+
+	struct supernode
+	{
+		std::vector<int> components; // [0] is master
+		size_t size;
+		std::vector<std::map<int, size_t> > connections;
+	};
+	std::vector<supernode> supernodes;
+	supernodes.resize(sizes.size());
+	for(size_t i=0; i<sizes.size(); i++)
+	{
+		supernodes[i].size = sizes[i];
+		supernodes[i].components[0] = i;
+		supernodes[i].connections = connections[i];
+	}
+
+	do
+	{
+		// get smallest supernode
+		size_t smallest=-1; size_t ismallest;
+		for(size_t i=0; i<sizes.size(); i++)
+		{
+			if(supernodes[i].size < smallest)
+			{
+				smallest = supernodes[i].size;
+				ismallest = i;
+			}
+		}
+
+		if(smallest > 10000) break;
+
+		// get the biggest connection
+
+
+	} while (1);
+}
+*/
+/*
+template<typename TAlgebra>
+void amg_base<TAlgebra>::agglomerate(size_t level)
+{
+	// 1. ein prozessor erhŠlt alle daten
+	// 2. ein ma§ definiert, wie leicht man agglomerieren kann:
+	// - reduktion des interfaces
+
+	matrix_type &A = *m_A[level];
+
+	if(pcl::GetProcRank() != 0)
+	{
+		BinaryBuffer stream;
+		Serialize(stream, A.num_rows());
+		for(typename TLayout::iterator iter = A.get_master_layout.begin(); iter != A.get_master_layout.end(); ++iter)
+		{
+			int pid = layout.proc_id(iter);
+			size_t s = layout.interface(iter).size();
+			Serialize(stream, pid);
+			Serialize(stream, s);
+		}
+		communicator.send_raw(0, stream.buffer(), stream.write_pos(), false);
+		communicator.communicate();
+
+		// receive informations
+		// 1. - should i merge and i am master? -> list of merging processors
+		//    - should i merge and i am slave? -> master processor
+		//    - i shouldnt merge
+		// 2. which processors are active afterwards
+	}
+	else
+	{
+		// receive interface information and
+		typedef std::map<int, BinaryBuffer> BufferMap;
+		std::vector<BinaryBuffer> receivepack;
+		receivepack.resize(pcl::GetNumProcesses());
+		for(int i=1; i<pcl::GetNumProcesses(); i++)
+			communicator.receive_raw(i, receivepack[i]);
+
+		communicator.communicate();
+
+		std::vector<size_t> sizes;
+		sizes.resize(pcl::GetNumProcesses());
+		std::vector<std::map<int, size_t> > connections;
+
+		sizes[0] = A.num_rows();
+		for(typename TLayout::iterator iter = A.get_master_layout.begin(); iter != A.get_master_layout.end(); ++iter)
+		{
+			size_t s = layout.interface(iter).size();
+			int pid = layout.proc_id(iter);
+			connections[0][pid] += s;
+			connections[pid][0] += s;
+		}
+
+		for(int i=1; i<pcl::GetNumProcesses(); i++)
+		{
+			BinaryStream &stream = receivepack[i];
+
+			size_t s; int pid;
+			Deserialize(stream, s);
+			sizes[i] = s;
+			while(!stream.eof())
+			{
+				Deserialize(stream, pid);
+				Deserialize(stream, s);
+				connections[pid][i] += s;
+				connections[i][pid] += s;
+			}
+		}
+
+		// output info
+		for(int i=0; i<pcl::GetNumProcesses(); i++)
+		{
+			UG_LOG("Processor " << i << " has " << sizes[i] << " nodes and connections to ");
+			for(std::map<int, size_t>::iterator it = connections[i].begin(); it != connections[i].end(); ++it)
+				UG_LOG("processor " << (*it).first << " (" << (*it).second << " connections) ")
+		}
+
+		std::vector<int> mergeWith(pcl::GetNumProcesses(), -1);
+		agglomeration2(sizes, connections, mergeWith)
+	}
+}
+*/
 template<typename TAlgebra>
 void amg_base<TAlgebra>::create_direct_solver(size_t level)
 {
@@ -279,29 +410,32 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 	stopwatch SW; SW.start();
 
 #ifdef UG_PARALLEL
-	// create basesolver
-	collect_matrix(*(m_A[level]), collectedBaseA, masterColl, slaveColl);
-
-	if(m_writeMatrices && m_amghelper.has_positions())
+	if(pcl::GetNumProcesses()>1)
 	{
-		std::vector<MathVector<3> > vec = m_amghelper.positions[level];
-		vec.resize(collectedBaseA.num_rows());
-		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
-		pcl::ParallelCommunicator<IndexLayout> &communicator = m_A[level]->get_communicator();
-		communicator.send_data(slaveColl, copyPol);
-		communicator.receive_data(masterColl, copyPol);
-		communicator.communicate();
-		if(pcl::GetProcRank() == 0)
+		// create basesolver
+		collect_matrix(*(m_A[level]), collectedBaseA, masterColl, slaveColl);
+
+		if(m_writeMatrices && m_amghelper.has_positions())
 		{
-			std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
-			WriteMatrixToConnectionViewer(name.c_str(), collectedBaseA, &vec[0], m_amghelper.dimension);
+			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
+			vec.resize(collectedBaseA.num_rows());
+			ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
+			pcl::ParallelCommunicator<IndexLayout> &communicator = m_A[level]->get_communicator();
+			communicator.send_data(slaveColl, copyPol);
+			communicator.receive_data(masterColl, copyPol);
+			communicator.communicate();
+			if(pcl::GetProcRank() == 0)
+			{
+				std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
+				WriteMatrixToConnectionViewer(name.c_str(), collectedBaseA, &vec[0], m_amghelper.dimension);
+			}
 		}
+		if(pcl::GetProcRank() == 0)
+			m_basesolver->init(collectedBaseA);
 	}
-	if(pcl::GetProcRank() == 0)
-		m_basesolver->init(collectedBaseA);
-#else
-	m_basesolver->init(*m_A[level]);
+	else
 #endif
+		m_basesolver->init(*m_A[level]);
 
 	m_dTimingCoarseSolverSetupMS = SW.ms();
 	UG_DLOG(LIB_ALG_AMG, 1, "Coarse Solver Setup took " << m_dTimingCoarseSolverSetupMS << "ms." << std::endl);
@@ -399,51 +533,52 @@ template<typename TAlgebra>
 bool amg_base<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t level)
 {
 #ifdef UG_PARALLEL
-	const matrix_type &Ah = *(m_A[level]);
-	vector_type collC;
-	vector_type collD;
-	if(pcl::GetProcRank() == 0)
+	if(pcl::GetNumProcesses()>1)
 	{
-		size_t N = collectedBaseA.num_rows();
-		collC.resize(N);
-		collC.set(0.0);
+		const matrix_type &Ah = *(m_A[level]);
+		vector_type collC;
+		vector_type collD;
+		if(pcl::GetProcRank() == 0)
+		{
+			size_t N = collectedBaseA.num_rows();
+			collC.resize(N);
+			collC.set(0.0);
 
-		collD = d;
-		collD.resize(N);
-		for(size_t i=Ah.num_rows(); i<N; i++)
-			collD[i] = 0.0;
-	}
-	// send d -> collD
-	ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
-	pcl::ParallelCommunicator<IndexLayout> &com = m_A[level]->get_communicator();
-	com.send_data(slaveColl, compolAdd);
-	com.receive_data(masterColl, compolAdd);
-	com.communicate();
+			collD = d;
+			collD.resize(N);
+			for(size_t i=Ah.num_rows(); i<N; i++)
+				collD[i] = 0.0;
+		}
+		// send d -> collD
+		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
+		pcl::ParallelCommunicator<IndexLayout> &com = m_A[level]->get_communicator();
+		com.send_data(slaveColl, compolAdd);
+		com.receive_data(masterColl, compolAdd);
+		com.communicate();
 
-	if(pcl::GetProcRank() == 0)
-		m_basesolver->apply_return_defect(collC, collD);
+		if(pcl::GetProcRank() == 0)
+			m_basesolver->apply_return_defect(collC, collD);
 
-	// send c -> collC
-	ComPol_VecCopy<vector_type> compolCopy(&c, &collC);
-	com.send_data(masterColl, compolCopy);
-	com.receive_data(slaveColl, compolCopy);
-	com.communicate();
+		// send c -> collC
+		ComPol_VecCopy<vector_type> compolCopy(&c, &collC);
+		com.send_data(masterColl, compolCopy);
+		com.receive_data(slaveColl, compolCopy);
+		com.communicate();
 
-	if(pcl::GetProcRank() == 0)
-	{
-		for(size_t i=0; i<Ah.num_rows(); i++)
-			d[i] = collD[i];
-		for(size_t i=0; i<Ah.num_rows(); i++)
-			c[i] = collC[i];
+		if(pcl::GetProcRank() == 0)
+		{
+			for(size_t i=0; i<Ah.num_rows(); i++)
+				d[i] = collD[i];
+			for(size_t i=0; i<Ah.num_rows(); i++)
+				c[i] = collC[i];
+		}
+		else
+			Ah.matmul_minus(d, c);
+		d.set(0.0);
 	}
 	else
-		Ah.matmul_minus(d, c);
-	d.set(0.0);
-
-#else
-	m_basesolver->apply_return_defect(c, d);
 #endif
-
+		m_basesolver->apply_return_defect(c, d);
 	return true;
 }
 

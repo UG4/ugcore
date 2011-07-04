@@ -15,9 +15,11 @@ namespace ug {
 
 //  structs
 // fine is the smallest (see is_fine)
-#define FAMG_FINE_RATING				(-30)
+#define FAMG_SMALLEST_FINE_RATING		(-30)
 #define FAMG_AGGRESSIVE_FINE_RATING		(-31)
 #define FAMG_UNCALCULATED_FINE_RATING	(-32)
+#define FAMG_FINE_RATING				(-33)
+
 
 #define FAMG_UNINTERPOLATEABLE			(-10)
 #define FAMG_COARSE_RATING				(-11)
@@ -32,6 +34,7 @@ class FAMGNode
 
 private:
 	inline void set_fine(){rating = FAMG_FINE_RATING;}
+	inline void set_fine_indirect_level(int level){rating = FAMG_FINE_RATING-level;}
 	inline void set_aggressive_fine(){rating = FAMG_AGGRESSIVE_FINE_RATING;}
 	inline void set_uncalculated_fine() { rating = FAMG_UNCALCULATED_FINE_RATING; }
 
@@ -45,7 +48,8 @@ public:
 	double rating;
 	
 	// is_fine is true if node is fine OR uncalculated_fine OR aggressive_fine
-	inline bool is_fine() const { return rating <= FAMG_FINE_RATING; }
+	inline bool is_fine() const { return rating <= FAMG_SMALLEST_FINE_RATING; }
+	inline bool is_fine_direct() const { return rating == FAMG_FINE_RATING; }
 	inline bool is_aggressive_fine() const { return rating == FAMG_AGGRESSIVE_FINE_RATING; }
 	inline bool is_uncalculated_fine() const { return rating == FAMG_UNCALCULATED_FINE_RATING; }
 	inline bool is_coarse() const { return rating == FAMG_COARSE_RATING; }

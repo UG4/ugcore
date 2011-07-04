@@ -15,12 +15,12 @@
 
 using namespace std;
 
-#include "graph.h"
-#include "amg_nodeinfo.h"
-#include "maxheap.h"
+#include "../graph.h"
+#include "rsamg_nodeinfo.h"
+#include "../maxheap.h"
 
 #include "lib_algebra/common/stl_debug.h"
-#include "amg_profiling.h"
+#include "../amg_profiling.h"
 
 //#define AMG_PRINT_COARSEN
 

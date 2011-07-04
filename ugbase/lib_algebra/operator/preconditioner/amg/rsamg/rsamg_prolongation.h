@@ -13,9 +13,24 @@
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_RS_PROLONGATION_H__
 
 #include <vector>
-#include "amg_nodeinfo.h"
+#include "rsamg_nodeinfo.h"
 
 namespace ug {
+
+inline void SetRSInterpolation(SparseMatrix<double> &P, size_t i,
+		std::vector<SparseMatrix<double>::connection > &con,
+		double sumNeighbors, double sumInterpolatory, double diag)
+{
+	// calculate alpha_i
+	double alpha = - (sumNeighbors / sumInterpolatory) / diag;
+	// set w_ij = alpha * w'_ij = alpha * a_ij/a_jj.
+
+	for(size_t j=0; j<con.size(); j++)
+		con[j].dValue *= alpha;
+
+	// set w_ij in matrix row P[i] forall j.
+	P.set_matrix_row(i, &con[0], con.size());
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CreateProlongation:
@@ -27,10 +42,12 @@ namespace ug {
  * \param	A				Matrix A: matrix for which to calculate prolongation on next level
  * \param	nodes			fine/coarse marks of the nodes.
  * \param	theta			\f$\epsilon_{str}\f$.
+ * \param   epsilonTruncation if != 0.0, truncates all entries from interpolation with p_ij < epsilonTruncation*max_j p_ij
  */
+
 template<typename Matrix_type>
 void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, AMGNodes &nodes,
-		stdvector<int> &newIndex, double theta)
+		stdvector<int> &newIndex, double theta, double epsilonTruncation=0.0)
 {
 	AMG_PROFILE_FUNC();
 	UG_ASSERT(newIndex.size() == nodes.size(), "");
@@ -58,7 +75,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			// a non-interpolated fine node. calculate interpolation weights
 
 			// calc min off-diag-entry, and sum of Neighbors
-			double dmax = 0, connValue, maxConnValue = 0;
+			double dmax = 0, connValue, maxCoarseConnValue = 0;
 			double sumNeighbors =0, sumInterpolatory=0;
 
 			double diag = amg_diag_value(A(i, i));
@@ -78,16 +95,16 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 				if(dmax > connValue)
 					dmax = connValue;
-				if(nodes[conn.index()].is_coarse() && maxConnValue > connValue)
-					maxConnValue = connValue;
+				if(nodes[conn.index()].is_coarse() && maxCoarseConnValue > connValue)
+					maxCoarseConnValue = connValue;
 
 			}
 
 			double barrier;
 			// todo: check if it is ok to do it THIS way:
-			/*if(eps_truncation_of_interpolation > 0)  // [AMGKS99] 7.2.4 truncation of interpolation
-				barrier = min(theta*dmax, eps_truncation_of_interpolation*maxConnValue);
-			else*/
+			if(epsilonTruncation > 0)  // [AMGKS99] 7.2.4 truncation of interpolation
+				barrier = std::min(theta*dmax, epsilonTruncation*maxCoarseConnValue);
+			else
 				barrier = theta*dmax;
 
 			con.clear();
@@ -110,17 +127,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			}
 
 			if(con.size() > 0)
-			{
-				// step 2: calculate alpha_i
-				double alpha = - (sumNeighbors / sumInterpolatory) / diag;
-				// step 3: set w_ij = alpha * w'_ij = alpha * a_ii/a_jj.
-				for(size_t j=0; j<con.size(); j++)
-					con[j].dValue *= alpha;
-
-				//UG_ASSERT(con.size() > 0, "0 connections in point i = " << i << " ?");
-				// set w_ij in matrix row P[i] forall j.
-				P.set_matrix_row(i, &con[0], con.size());
-			}
+				SetRSInterpolation(P, i, con, sumNeighbors, sumInterpolatory, diag);
 			else
 			{
 				// no suitable interpolating nodes for node i,
@@ -260,19 +267,7 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 #endif
 			//cout << endl;
 
-			UG_ASSERT(sumInterpolatory != 0.0, " numerical unstable?");
-
-			double alpha = - (sumNeighbors / sumInterpolatory)/diag;
-
-			for(size_t j=0; j<con.size(); j++)
-			{
-				// set w(i,j) = alpha * w'(i,j)
-				//cout << con[j].dValue << " - N:" << sumNeighbors << " I: " << sumInterpolatory << " alpha: " << alpha << ". " << con[j].dValue*alpha << " : " << A.get_diag(i) << endl;
-				con[j].dValue *= alpha;
-			}
-
-			// add connections
-			P.set_matrix_row(i, &con[0], con.size());
+			SetRSInterpolation(P, i, con, sumNeighbors, sumInterpolatory, diag);
 		}
 
 

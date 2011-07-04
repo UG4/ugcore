@@ -116,7 +116,7 @@ void CalculateNextTestvector(const matrix_type &R, vector_type &big_testvector)
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_testvectors()
 {
-//	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelTestvectorCalc);
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelTestvectorCalc);
 
 	// todo: all global?
 	UG_DLOG(LIB_ALG_AMG, 1, "\ncalculating testvector... ");

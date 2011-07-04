@@ -23,7 +23,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 {
 	stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 1, "\ncreating possible parent list... "); if(bTiming) SW.start();
-//	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelCalculateParentPairs);
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelCalculateParentPairs);
 	AMG_PROFILE_FUNC();
 
 	possible_parents.clear();
@@ -51,7 +51,7 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::precalculate_coarsening()
 {
 	AMG_PROFILE_FUNC();
-//	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelPrecalculateCoarsening);
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelPrecalculateCoarsening);
 	stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 1, std::endl << "coarsening... "); if(bTiming) SW.start();
 

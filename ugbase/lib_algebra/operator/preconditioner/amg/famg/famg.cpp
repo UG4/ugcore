@@ -24,18 +24,19 @@
 #include "famg.h"
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/common/stl_debug.h"
-#include "amg_debug_helper.h"
+#include "../amg_debug_helper.h"
 
-#include "stopwatch.h"
+#include "../stopwatch.h"
 #include "common/assert.h"
-#include "maxheap.h"
+#include "../maxheap.h"
 #include "famg.h"
-#include "amg.h"
 #include <set>
 #include <string>
 #include <stack>
 
-#include "amg_coarsening.h"
+// for external coarsening
+#include "../rsamg/rsamg.h"
+#include "../rsamg/rsamg_coarsening.h"
 
 std::stack<int> g_DebugLevelStack;
 
@@ -145,7 +146,6 @@ void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 #endif
 }
 
-
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 class FAMGLevelCalculator
 {
@@ -218,6 +218,8 @@ private:
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "external coarsening... "); if(bTiming) SW.start();
 		nodeinfo_pq_type PQ;
 		size_t N = A.num_rows();
+
+		// use RSAMG's methods to do standard rs coarsening
 		AMGNodes nodes(N);
 		cgraph graphS, graphST;
 		CreateStrongConnectionGraph(A, graphS, 0.3);
@@ -227,16 +229,11 @@ private:
 		Coarsen(graphST, PQ, nodes);
 		PreventFFConnections(graphS, graphST, nodes);
 
-		for(size_t i=0; i<N; i++)
-		{
-			if(nodes[i].is_coarse())
-				rating.set_coarse(i);
-			if(nodes[i].is_coarse())
-				rating.set_coarse(i);
-		}
+
 		if(m_famg.m_writeMatrices)
 			write_debug_matrix_markers();
 
+		// aggressive coarsening
 		if(0 && m_famg.get_aggressive_coarsening() == true && level == 0)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, std::endl << "building graph2... ");
@@ -263,6 +260,8 @@ private:
 				//PreventFFConnections(graphS, graphST, nodes);
 			}
 		}
+
+		// coarsening done. transfer AMG nodeinfo -> FAMG nodeinfo
 		for(size_t i=0; i<N; i++)
 		{
 			if(nodes[i].is_coarse())
@@ -315,14 +314,24 @@ private:
 		UG_DLOG(LIB_ALG_AMG, 1, "\ngalerkin product... "); if(bTiming) SW.start();
 		// AH = R A P
 
-		CreateAsMultiplyOf(AH, R, A, PnewIndices);
+		/* matrix_type AH2;
+		matrix_type RoldIndices;
+		RoldIndices.set_as_transpose_of(PoldIndices);
+		CreateAsMultiplyOf2(AH2, RoldIndices, A, PoldIndices); */
 
+		// R.print("R");
+		// A.print("A");
+		// PnewIndices.print("P");
+		CreateAsMultiplyOf(AH, R, A, PnewIndices);
+		// AH.print();
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 		// finalize
 		if(bTiming) { UG_DLOG(LIB_ALG_AMG, 1, std::endl << "Finalizing.."); SW.start(); }
 		AH.defragment();
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, " took " << SW.ms() << " ms\n");
+
+
 
 	#ifdef UG_PARALLEL
 		AH.set_storage_type(PST_ADDITIVE);
@@ -349,8 +358,12 @@ public:
 			prolongation_matrix_type &_P, size_t _level,
 			stdvector< vector_type > &testvectors, stdvector<double> &omega)
 	: m_famg(f), AH(_AH), A(_A), R(_R), PnewIndices(_P), level(_level),
-			calculator(A, A_OL2, m_famg.get_delta(), m_famg.get_theta(),
-					m_famg.get_damping_for_smoother_in_interpolation_calculation(), testvectors, omega),
+				calculator(A, A_OL2,
+					m_famg.get_delta(),
+					m_famg.get_theta(),
+					m_famg.get_damping_for_smoother_in_interpolation_calculation(),
+					m_famg.get_epsilon_truncation(),
+					testvectors, omega),
 			rating(PoldIndices, _level, m_famg.m_amghelper),
 			m_testvectors(testvectors)
 #ifndef UG_PARALLEL
@@ -384,6 +397,7 @@ public:
 		//-----------------------------------------------
 
 		calculate_testvectors();
+		calculator.init();
 
 		// 3. create heap, P, SymmNeighGraph
 		//-------------------------------------
@@ -392,7 +406,7 @@ public:
 		bool bUsePrecalculate = m_famg.m_bUsePrecalculate;
 		if(bExternalCoarsening == false)
 		{
-//			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelPhase3);
+			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelPhase3);
 			heap.create(rating.nodes);
 
 			IF_DEBUG(LIB_ALG_AMG, 3)
@@ -433,7 +447,7 @@ public:
 			if(bUsePrecalculate)
 			{
 				// calculate ratings (not precalculateable because of coarse/uninterpolateable)
-//				UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelGetRatings);
+				UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelGetRatings);
 				UG_DLOG(LIB_ALG_AMG, 1, std::endl << "calculate ratings... "); if(bTiming) SW.start();
 				GetRatings(possible_parents, rating, heap);
 				if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
@@ -452,7 +466,7 @@ public:
 			// this has to be BEFORE communication of coarse/fine markers
 			//
 
-//			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelAggressiveCoarsening);
+			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelAggressiveCoarsening);
 			UG_DLOG(LIB_ALG_AMG, 1, std::endl << "second coarsening... "); if(bTiming) SW.start();
 			if(m_famg.get_aggressive_coarsening() == true)
 				get_aggressive_coarsening_interpolation();
@@ -486,16 +500,16 @@ public:
 			#ifdef UG_PARALLEL
 				communicate_prolongation();
 			#endif
+
+			// [ debug output
+			if(m_famg.m_writeMatrices)
+				write_debug_matrix_markers();
+			// ]
 		}
 		else
 			rs_amg_external_coarsening();
 
-		// [ debug output
-		//if(m_famg.m_writeMatrices)
-			//write_debug_matrix_markers();
-		// ]
-
-//		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, iDebugLevelAfterCommunicateProlongation);
+		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelAfterCommunicateProlongation);
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{	rating.print(); 	}
 

@@ -1,8 +1,8 @@
 #ifndef __H__LIB_ALGEBRA__AMG__AMG_COARSENING_H__
 #define __H__LIB_ALGEBRA__AMG__AMG_COARSENING_H__
 
-#include "graph.h"
-#include "amg_nodeinfo.h"
+#include "../graph.h"
+#include "rsamg_nodeinfo.h"
 
 namespace ug
 {

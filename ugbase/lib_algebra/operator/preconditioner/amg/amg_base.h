@@ -259,13 +259,17 @@ protected:
 
 #ifdef UG_PARALLEL
 	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
-	stdvector<IndexLayout> slaveLayouts, masterLayouts;				///< Pseudo-IndexLayout for the created ParallelVectors.
+	stdvector<IndexLayout> slaveLayouts, masterLayouts; // todo: use in FAMG
 
 
 	MatrixOperator<vector_type,vector_type,matrix_type> collectedBaseA;
 	IndexLayout masterColl, slaveColl;
 	vector_type collC;
 	vector_type collD;
+
+	size_t agglomerationLevel;
+	stdvector<IndexLayout> agglomerationMasterLayout;
+	IndexLayout agglomerationSlaveLayout;
 #endif
 
 	bool 	m_writeMatrices;
@@ -291,6 +295,8 @@ protected:
 	double m_dGridComplexity;
 	double m_dTimingWholeSetupMS;
 	double m_dTimingCoarseSolverSetupMS;
+
+
 
 	stdvector<LevelInformation> m_levelInformation;
 

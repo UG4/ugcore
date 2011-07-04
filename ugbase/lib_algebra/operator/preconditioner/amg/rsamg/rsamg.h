@@ -19,8 +19,8 @@
 #include <vector>
 #include <iostream>
 
-#include "amg_base.h"
-
+#include "../amg_base.h"
+#include "rsamg_nodeinfo.h"
 /**
  * \brief Algebraic Multigrid Functions.
  *
@@ -44,7 +44,7 @@ namespace ug{
  *
  */
 template <typename TAlgebra>
-class amg:
+class rsamg:
 	public amg_base< TAlgebra >
 {
 public:
@@ -70,13 +70,13 @@ public:
 	typedef typename matrix_type::value_type value_type;
 	
 //  functions
-	amg() ;
+	rsamg() ;
 	virtual ILinearIterator<vector_type,vector_type>* clone()
 	{
-		amg<algebra_type>* clone = new amg<algebra_type>();
+		rsamg<algebra_type>* clone = new rsamg<algebra_type>();
 		return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
 	}
-	virtual ~amg() { }
+	virtual ~rsamg() { }
 
 	virtual const char* name() const {return "AMGPreconditioner";}
 
@@ -135,6 +135,6 @@ private:
 } // namespace ug
 
 
-#include "amg_impl.h"
+#include "rsamg_impl.h"
 
 #endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_H__

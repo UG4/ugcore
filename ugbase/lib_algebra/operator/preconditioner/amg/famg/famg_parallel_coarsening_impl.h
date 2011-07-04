@@ -17,7 +17,7 @@
 
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #include "lib_algebra/parallelization/parallel_coloring.h"
-#include "stopwatch.h"
+#include "../stopwatch.h"
 
 
 namespace ug
@@ -40,7 +40,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	color_process_graph()
 {
 	AMG_PROFILE_FUNC();
-//	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelColoring)
+	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelColoring)
 	stopwatch SW;
 
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
@@ -297,7 +297,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 {
 #ifdef UG_DEBUG
 	//int iDebugLevelMatrixPre = GET_DEBUG_LEVEL(LIB_ALG_MATRIX);
-//	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelOverlapMatrix);
+	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, m_famg.iDebugLevelOverlapMatrix);
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelOverlapAMG);
 #endif
 

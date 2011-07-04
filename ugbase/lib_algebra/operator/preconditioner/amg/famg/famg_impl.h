@@ -16,7 +16,7 @@
 //#include "sparsematrix_util.h"
 
 //#include "famg_nodeinfo.h"
-#include "stopwatch.h"
+#include "../stopwatch.h"
 #include "common/assert.h"
 //#include "maxheap.h"
 
@@ -52,10 +52,10 @@ famg<TAlgebra>::famg() : amg_base<TAlgebra>()
 
 
 	m_bExternalCoarsening = false;
-	m_bUsePrecalculate = false;
+	m_bUsePrecalculate = true;
 
-	iDebugLevelOverlapAMG = iDebugLevelOverlapMatrix = iDebugLevelTestvectorCalc = iDebugLevelPhase3,
-	iDebugLevelCalculateParentPairs = iDebugLevelRecvCoarsening = iDebugLevelGetRatings = iDebugLevelPrecalculateCoarsening =
+	iDebugLevelOverlapAMG = iDebugLevelOverlapMatrix = iDebugLevelTestvectorCalc = iDebugLevelPhase3 =
+	iDebugLevelCalculateParentPairs = iDebugLevelColoring = iDebugLevelRecvCoarsening = iDebugLevelGetRatings = iDebugLevelPrecalculateCoarsening =
 				iDebugLevelAggressiveCoarsening = iDebugLevelSendCoarsening = iDebugLevelCommunicateProlongation = iDebugLevelAfterCommunicateProlongation = 0;
 }
 
@@ -72,7 +72,7 @@ void famg<TAlgebra>::tostring() const
 	UG_LOG("FAMG Preconditioner:\n");
 
 	UG_LOG(" Delta: " << m_delta << " (forces interpolation quality measure F < delta.) " << std::endl);
-	UG_LOG(" Theta: " << m_theta << " (forces theta * F < minimimum F in this node) " << std::endl);
+	UG_LOG(" Theta: " << m_theta << " (with multiple parents paris, discard pairs with m_theta * F > min F.) " << std::endl);
 	UG_LOG(" Damping for Smoother in interpolation calculation: " << m_dDampingForSmootherInInterpolationCalculation << std::endl);
 	UG_LOG(" Aggressive Coarsening is " << (m_bAggressiveCoarsening ? "[ON]\n" : "OFF\n"));
 	UG_LOG(" epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << std::endl);

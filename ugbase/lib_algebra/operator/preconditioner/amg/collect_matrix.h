@@ -105,7 +105,8 @@ size_t DeserializeRow(BinaryStream &stream, stdvector<TConnectionType> &cons, co
 	return localRowIndex;
 }
 template<typename matrix_type>
-void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLayout, IndexLayout &slaveLayout)
+void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLayout, IndexLayout &slaveLayout,
+		int srcproc, const std::vector<int> &destprocs)
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** collect_matrix ************\n\n");
 
@@ -117,8 +118,8 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 	/*UG_DLOG(LIB_ALG_AMG, 4, "\n** the matrix A: \n\n");
 	A.print();
 	UG_LOG("\n");*/
-;;
-	if(pcl::GetProcRank() != 0)
+
+	if(pcl::GetProcRank() != srcproc)
 	{
 		BinaryBuffer stream;
 		for(size_t i=0; i<A.num_rows(); i++)
@@ -140,17 +141,18 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 		typedef std::map<int, BinaryBuffer> BufferMap;
 		BufferMap streams;
 
-		for(int i=1; i<pcl::GetNumProcesses(); i++)
-			communicator.receive_raw(i, streams[i]);
+		for(size_t i=0; i<destprocs.size(); i++)
+			communicator.receive_raw(i, streams[destprocs[i]]);
 		communicator.communicate();
 
-		for(int i=1; i<pcl::GetNumProcesses(); i++)
+		for(size_t i=0; i<destprocs.size(); i++)
 		{
+			int pid = destprocs[i];
 			// copy stream (bug in BinaryStream, otherwise I would use stream.seekg(ios::begin)
-			BinaryBuffer stream; stream.write((const char*)streams[i].buffer(), streams[i].write_pos());
+			BinaryBuffer stream; stream.write((const char*)streams[pid].buffer(), streams[pid].write_pos());
 
-			UG_DLOG(LIB_ALG_AMG, 4, "received " << stream.write_pos() << " bytes of data from process " << i << "\n");
-			IndexLayout::Interface &interface = masterLayout.interface(i);
+			UG_DLOG(LIB_ALG_AMG, 4, "received " << stream.write_pos() << " bytes of data from process " << pid << "\n");
+			IndexLayout::Interface &interface = masterLayout.interface(pid);
 			stdvector<typename matrix_type::connection> cons;
 			while(!stream.eof())
 			{
@@ -171,13 +173,13 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 				UG_DLOG(LIB_ALG_AMG, 4, num_connections << " connections: ")
 
 				cons.resize(num_connections);
-				for(size_t i =0; i<num_connections; i++)
+				for(size_t pid =0; pid<num_connections; pid++)
 				{
 					AlgebraID globalColIndex;
 					Deserialize(stream, globalColIndex);
-					cons[i].iIndex = globalToLocal.get_index_or_create_new(globalColIndex);
-					Deserialize(stream, cons[i].dValue);
-					UG_DLOG(LIB_ALG_AMG, 4, cons[i].iIndex << " (" << globalColIndex << ") -> " << cons[i].dValue << " ");
+					cons[pid].iIndex = globalToLocal.get_index_or_create_new(globalColIndex);
+					Deserialize(stream, cons[pid].dValue);
+					UG_DLOG(LIB_ALG_AMG, 4, cons[pid].iIndex << " (" << globalColIndex << ") -> " << cons[pid].dValue << " ");
 				}
 				UG_DLOG(LIB_ALG_AMG, 4, "\n");
 			}
@@ -185,10 +187,10 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 
 		M.resize(globalToLocal.get_new_indices_size(),  globalToLocal.get_new_indices_size());
 
-		for(int i=1; i<pcl::GetNumProcesses(); i++)
+		for(size_t i=0; i<destprocs.size(); i++)
 		{
-			// copy stream (bug in BinaryStream, otherwise I would use stream.seekg(ios::begin)
-			BinaryBuffer &stream = streams[i];
+			int pid = destprocs[i];
+			BinaryBuffer &stream = streams[pid];
 			stdvector<typename matrix_type::connection> cons;
 			while(!stream.eof())
 			{
@@ -205,6 +207,15 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 
 	//UG_LOG("COLLECTED LAYOUT:\n");
 	//PrintLayout(communicator, masterLayout, slaveLayout);
+}
+
+template<typename matrix_type>
+void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLayout, IndexLayout &slaveLayout)
+{
+	std::vector<int> destprocs;
+	destprocs.resize(pcl::GetNumProcesses()-1);
+	for(int i=1; i<pcl::GetNumProcesses(); i++) destprocs[i] = i;
+	collect_matrix(A, M, masterLayout, slaveLayout, 0, destprocs);
 }
 
 } // namespace ug

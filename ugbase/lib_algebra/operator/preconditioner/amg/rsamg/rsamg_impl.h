@@ -1,5 +1,5 @@
 /**
- * \file amg_impl.h
+ * \file rsamg_impl.h
  *
  * \author Martin Rupp
  *
@@ -10,23 +10,23 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_IMPL_H__
-#define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_IMPL_H__
+#ifndef __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_IMPL_H__
+#define __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_IMPL_H__
 
 //#include "sparsematrix_util.h"
 
-#include "amg.h"
-#include "graph.h"
+#include "rsamg.h"
+#include "../graph.h"
 
-#include "amg_rs_prolongation.h"
-#include "amg_debug.h"
-#include "amg_debug_helper.h"
-#include "amg_nodeinfo.h"
+#include "rsamg_prolongation.h"
+#include "rsamg_debug.h"
+#include "../amg_debug_helper.h"
+#include "rsamg_nodeinfo.h"
 
-#include "amg_coarsening.h"
+#include "rsamg_coarsening.h"
 
-#include "stopwatch.h"
-#include "amg_profiling.h"
+#include "../stopwatch.h"
+#include "../amg_profiling.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -123,13 +123,13 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_d
 
 
 /*template<typename TAlgebra>
-void amg<TAlgebra>::FullSubdomainBlocking(matrix_type &AH, IndexLayout &nextMasterLevelLayout, IndexLayout &nextSlaveMasterLayout)
+void rsamg<TAlgebra>::FullSubdomainBlocking(matrix_type &AH, IndexLayout &nextMasterLevelLayout, IndexLayout &nextSlaveMasterLayout)
 {
 
 }*/
 
 template<typename TAlgebra>
-void amg<TAlgebra>::create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
+void rsamg<TAlgebra>::create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
 {
 	AMG_PROFILE_FUNC();
 	is_fine.resize(level+1);
@@ -151,7 +151,7 @@ void amg<TAlgebra>::create_new_indices(stdvector<int> &newIndex, const AMGNodes 
 }
 
 template<typename TAlgebra>
-void amg<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
+void rsamg<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
 {
 	AMG_PROFILE_FUNC();
 	m_parentIndex.resize(level+2);
@@ -164,7 +164,7 @@ void amg<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const AMG
 
 
 template<typename TAlgebra>
-void amg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+void rsamg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level, const AMGNodes &nodes)
 {
 	if(m_amghelper.positions[level].size() > 0)
@@ -235,7 +235,7 @@ void amg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type
  * \param level
  */
 template<typename TAlgebra>
-void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+void rsamg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
 	AMG_PROFILE_FUNC();
@@ -357,7 +357,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 
 
 	if(bTiming) SW.start();
-	CreateRugeStuebenProlongation(P, A, nodes, newIndex, m_dTheta);
+	CreateRugeStuebenProlongation(P, A, nodes, newIndex, m_dTheta, m_dEpsilonTr);
 	UG_ASSERT(nodes.get_unassigned() == 0 || (m_bAggressiveCoarsening && level == 0),
 			"no aggressive coarsening, but indirect interpolation of " << nodes.get_unassigned() << " nodes ?");
 	if(nodes.get_unassigned() > 0)
@@ -439,7 +439,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &
 //!
 //! amg constructor
 template<typename TAlgebra>
-amg<TAlgebra>::amg() :
+rsamg<TAlgebra>::rsamg() :
 	amg_base<TAlgebra>(),
 	m_dEpsilonTr(0.3),
 	m_dTheta(0.3),
@@ -452,7 +452,7 @@ amg<TAlgebra>::amg() :
 
 
 template<typename TAlgebra>
-void amg<TAlgebra>::tostring() const
+void rsamg<TAlgebra>::tostring() const
 {
 	amg_base<TAlgebra>::tostring();
 
@@ -467,4 +467,4 @@ void amg<TAlgebra>::tostring() const
 
 } // namespace ug
 
-#endif //  __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_IMPL_H__
+#endif //  __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_IMPL_H__

@@ -1,5 +1,5 @@
 /**
- * \file amg_debug.h
+ * \file rsamg_debug.h
  *
  * \author Martin Rupp
  *
@@ -9,12 +9,12 @@
  */
 
 
-#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
-#define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
+#ifndef __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_NODEINFO_H__
+#define __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_NODEINFO_H__
 
 //#include "maxheap.h"
-#include "boxsort.h"
-#include "amg_debug_helper.h"
+#include "../boxsort.h"
+#include "../amg_debug_helper.h"
 
 namespace ug {
 
@@ -221,4 +221,4 @@ typedef BoxSort<AMGNode> nodeinfo_pq_type;
 }
 
 
-#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
+#endif // __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_NODEINFO_H__

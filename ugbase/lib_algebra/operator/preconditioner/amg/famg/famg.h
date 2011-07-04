@@ -17,8 +17,8 @@
 #include <vector>
 #include <iostream>
 
-#include "amg_base.h"
-#include "amg_profiling.h"
+#include "../amg_base.h"
+#include "../amg_profiling.h"
 /**
  * \brief Filtering Algebraic Multigrid Functions.
  *
@@ -100,12 +100,13 @@ public:
 
 
 	size_t iDebugLevelOverlapAMG, iDebugLevelOverlapMatrix, iDebugLevelTestvectorCalc, iDebugLevelPhase3,
-			iDebugLevelCalculateParentPairs, iDebugLevelRecvCoarsening, iDebugLevelGetRatings, iDebugLevelPrecalculateCoarsening,
+			iDebugLevelCalculateParentPairs, iDebugLevelColoring, iDebugLevelRecvCoarsening, iDebugLevelGetRatings, iDebugLevelPrecalculateCoarsening,
 			iDebugLevelAggressiveCoarsening, iDebugLevelSendCoarsening, iDebugLevelCommunicateProlongation, iDebugLevelAfterCommunicateProlongation;
 	void set_debug_level_overlap(size_t amg, size_t matrix) { iDebugLevelOverlapAMG = amg; iDebugLevelOverlapMatrix = matrix; }
 	void set_debug_level_testvector_calc(size_t lvl) { iDebugLevelTestvectorCalc = lvl; }
 	void set_debug_level_phase_3(size_t lvl) { iDebugLevelPhase3 = lvl; }
 	void set_debug_level_calculate_parent_pairs(size_t lvl) { iDebugLevelCalculateParentPairs = lvl; }
+	void set_debug_level_coloring(size_t lvl) { iDebugLevelColoring = lvl; }
 	void set_debug_level_recv_coarsening(size_t lvl) { iDebugLevelRecvCoarsening = lvl; }
 	void set_debug_level_get_ratings(size_t lvl) { iDebugLevelGetRatings = lvl; }
 	void set_debug_level_precalculate_coarsening(size_t lvl) { iDebugLevelPrecalculateCoarsening = lvl; }
@@ -173,9 +174,9 @@ private:
 // data
 	bool m_bAggressiveCoarsening;
 	double m_dDampingForSmootherInInterpolationCalculation;
-	double m_delta;								///< "Interpolation quality" F may not be worse than this (F < m_delta)
-	double m_theta;								///< clip all interpolations with m_theta * F > min F.
-	double m_dEpsilonTr;						///< parameter used for truncation of interpolation
+	double m_delta;				///< "Interpolation quality" F may not be worse than this (F < m_delta)
+	double m_theta;				///< with multiple parents, discard pairs with m_theta * F > min F.
+	double m_dEpsilonTr;		///< parameter used for truncation of interpolation
 
 	size_t m_iTestvectorDamps;
 	bool m_bTestvectorZeroAtDirichlet;

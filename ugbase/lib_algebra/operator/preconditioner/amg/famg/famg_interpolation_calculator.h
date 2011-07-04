@@ -22,7 +22,7 @@ void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1)
 	onlyN1.clear();
 	for(typename matrix_type::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
-		if(it.value() != 0.0)
+		if(it.value() != 0.0 && it.index() != node)
 			onlyN1.push_back(it.index());
 	}
 }
@@ -85,13 +85,22 @@ private:
 public:
 	FAMGInterpolationCalculator(const matrix_type &A_,
 			const matrix_type &A_OL2_, double delta, double theta, double damping,
+			double truncation,
 			stdvector< vector_type > &testvectors, stdvector<double> &omega)
 	: A(A_), A_OL2(A_OL2_), m_testvectors(testvectors), m_omega(omega)
 	{
 		m_delta = delta;
 		m_theta = theta;
 		m_damping = damping;
+		m_dEpsilonTr = truncation;
+
 		testvectorsExtern = (m_testvectors.size() > 0);
+	}
+
+
+	void init()
+	{
+		bvisited.resize(A_OL2.num_rows(), false);
 	}
 
 	template<typename prolongation_matrix_type>
@@ -128,7 +137,8 @@ public:
 			return;
 		}
 
-		if(get_H(i, rating) == false)
+		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
+		if(onlyN1.size() == 0)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "node has no connections, set as fine\n");
 			rating.set_fine(i);
@@ -136,6 +146,9 @@ public:
 		}
 
 		size_t i_index = onlyN1.size();
+
+		// get H on onlyN1,i_index,onlyN2.
+		get_H(i, rating);
 
 		// calculate testvector
 		calculate_testvectors(i);
@@ -258,116 +271,252 @@ public:
 		}
 	}
 
+	inline bool solve_KKT()
+	{
+		size_t N = onlyN1.size();
+		size_t i_index = N;
+		vKKT.resize(N+1, N+1);
+
+		for(size_t r=0; r<N; r++)
+			for(size_t c=0; c<N; c++)
+				vKKT(r, c) = H(r, c);
+
+		for(size_t j=0; j < N; j++)
+			vKKT(j, N) = vKKT(N, j) = localTestvector[0][j];
+
+		vKKT(N, N) = 0;
+
+		rhs.resize(N+1);
+		for(size_t j=0; j < N; j++)
+			rhs[j] = -H(i_index, j);
+		rhs[N] = -localTestvector[0][i_index];
+
+		IF_DEBUG(LIB_ALG_AMG, 5) vKKT.maple_print("KKT");
+		IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
+
+		q.resize(N+1);
+		if(InverseMatMult(q, 1.0, vKKT, rhs))
+			return true;
+		else
+			return false;
+	}
+
+	inline bool solve_KKT_on_subset(const std::vector<size_t> &indices)
+	{
+		size_t i_index = onlyN1.size();
+		size_t N = indices.size();
+		vKKT.resize(N+1, N+1);
+
+		for(size_t r=0; r<N; r++)
+			for(size_t c=0; c<N; c++)
+				vKKT(r, c) = H(indices[r], indices[c]);
+
+		for(size_t j=0; j < N; j++)
+			vKKT(j, N) = vKKT(N, j) = localTestvector[0][indices[j]];
+
+		vKKT(N, N) = 0;
+
+		rhs.resize(N+1);
+		for(size_t j=0; j < N; j++)
+			rhs[j] = -H(i_index, indices[j]);
+		rhs[N] = -localTestvector[0][i_index];
+
+		IF_DEBUG(LIB_ALG_AMG, 5) vKKT.maple_print("KKT");
+		IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
+
+		q.resize(N+1);
+		if(InverseMatMult(q, 1.0, vKKT, rhs))
+			return true;
+		else
+			return false;
+	}
+
+	bool get_N2(size_t i, std::vector<size_t> &myN1)
+	{
+		swap(onlyN1, myN1);
+
+		for(size_t j=0; j<bvisited.size(); j++)
+			bvisited[j] = false;
+		bvisited[i] = true;
+		for(size_t j=0; j<onlyN1.size(); j++)
+			bvisited[onlyN1[j]] = true;
+
+		onlyN2.clear();
+		for(size_t j=0; j<onlyN1.size(); j++)
+		{
+			UG_LOG("Neighbhors of " << onlyN1[j] << ": ");
+			size_t k=onlyN2.size();
+			GetNeighborhoodRec(A_OL2, onlyN1[j], onlyN2, bvisited);
+			for(; k<onlyN2.size(); k++)
+				UG_LOG(onlyN2[k] << " ");
+		}
+
+		for(size_t j=0; j<onlyN1.size(); j++)
+			bvisited[onlyN1[j]] = false;
+		for(size_t j=0; j<onlyN2.size(); j++)
+			bvisited[onlyN2[j]] = false;
+		bvisited[i] = false;
+		return true;
+	}
+
+	template<typename prolongation_matrix_type>
+	bool indirect_interpolation(size_t i, prolongation_matrix_type &P,	FAMGNodes &rating,
+			std::vector<size_t> &coarseNeighbors)
+	{
+		if(coarseNeighbors.size() == 1)
+		{
+			/*UG_LOG("only 1 coarse neighbor (" << rating.get_original_index(onlyN1[coarse_neighbors[0]]) << " for " << rating.get_original_index(i) << "?\n")
+			UG_LOG("coarse neighbors: ")
+			for(int j=0; j<onlyN1.size(); j++)
+			{
+				if(j>0) UG_LOG(", ");
+				UG_LOG(rating.get_original_index(onlyN1[j]));
+			}
+			UG_LOG("\n");*/
+			// todo: change this
+			if(rating.i_can_set_coarse(i))
+				rating.set_coarse(i);
+			else
+			{
+				P(i, onlyN1[coarseNeighbors[0]]) = 1.0;
+				rating.set_fine(i);
+			}
+			return true;
+		}
+
+		get_H(i, rating);
+		calculate_testvectors(i);
+
+		if(solve_KKT_on_subset(coarseNeighbors))
+		{
+			IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
+
+			t.resize(q.size());
+			// todo: calc F
+			//MatMult(t, 1.0, H, q);
+			double F = 0; //aii * VecDot(q, t);
+
+			if(F > m_delta)
+			{
+				UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, had to set node " << i << " coarse!");
+				rating.set_coarse(i);
+			}
+			else
+			{
+				UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, Interpolating from ");
+				double dmax = -q[0];
+				size_t N = coarseNeighbors.size();
+				for(size_t j=1; j<N; j++)
+					if(dmax < -q[j]) dmax = -q[j];
+				for(size_t j=0; j<N; j++)
+				{
+					if(-q[j] < dmax*m_dEpsilonTr) continue;
+					size_t node = onlyN1[coarseNeighbors[j]];
+					UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
+					P(i, node) = -q[j];
+				}
+				check_weights(P, i);
+				rating.set_fine(i);
+			}
+		}
+		else
+		{
+			rating.set_coarse(i);
+			UG_DLOG(LIB_ALG_AMG, 3, "indirect_interpolation: could not invert KKT system (coarse neighbors).\n");
+		}
+		return true;
+	}
+
+	template<typename prolongation_matrix_type>
+	bool direct_interpolation(size_t i, prolongation_matrix_type &P, FAMGNodes &rating,
+			std::vector<size_t> &interpolateNeighbors)
+	{
+		get_H(i, rating);
+		calculate_testvectors(i);
+
+		if(solve_KKT_on_subset(interpolateNeighbors))
+		{
+			IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
+
+			t.resize(q.size());
+			// todo: calc F
+			//MatMult(t, 1.0, H, q);
+			double F = 0; //aii * VecDot(q, t);
+
+			if(F > m_delta)
+			{
+				UG_LOG("had to set node " << i << " coarse!");
+				rating.set_coarse(i);
+			}
+			else
+			{
+				std::map<size_t, double> localP;
+				for(size_t j=0; j<onlyN1.size(); j++)
+				{
+					size_t node = onlyN1[interpolateNeighbors[j]];
+					for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
+						localP[it.index()] += -q[j] * it.value();
+				}
+				double dmax = -1000;
+				for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
+					if(dmax < (*it).second) dmax = (*it).second;
+
+				for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
+				{
+					if((*it).second > dmax*m_dEpsilonTr)
+						P(i, (*it).first) = (*it).second;
+				}
+				check_weights(P, i);
+				rating.set_aggressive_fine(i);
+			}
+		}
+		else
+		{
+			rating.set_coarse(i);
+			UG_DLOG(LIB_ALG_AMG, 3, "direct_interpolation: could not invert KKT system.\n");
+		}
+		return true;
+	}
+
 	// get_all_neighbors_interpolation:
 	//---------------------------------------
 	/** calculates an interpolation of the node i, when i is interpolating by all his neighbors
 	 * if neighbors are fine, their interpolation form coarse nodes is used (indirect)
-	 * \param i			node index for which to calculate possible parent pairs
-	 * \param P			matrix for the interpolation
-	 * \param rating	fine/coarse infos of the nodes
+	 * \param i					node index for which to calculate possible parent pairs
+	 * \param P					matrix for the interpolation
+	 * \param rating			fine/coarse infos of the nodes
+	 * \param indirectInterpolationLevel	if true, only use coarse neighbors
 	 */
 	template<typename prolongation_matrix_type>
-	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	FAMGNodes &rating)
+	bool get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	FAMGNodes &rating,
+			int indirectInterpolationLevel=-1)
 	{
 		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << rating.get_original_index(i) << "\n")
 
-		get_H(i, rating);
-
-		size_t i_index = onlyN1.size();
-		// get testvector
-		calculate_testvectors(i);
+		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
+		if(onlyN1.size() == 0)
+		{
+			UG_DLOG(LIB_ALG_AMG, 3, "no neighbors -> gets fine");
+			rating.set_fine(i);
+			return true;
+		}
 
 		//const double &aii = A_OL2(i,i);
 
-		std::vector<size_t> coarse_neighbors;
+		std::vector<size_t> coarseNeighbors;
 		for(size_t j=0; j<onlyN1.size(); j++)
-			if(rating[onlyN1[j]].is_coarse())
-				coarse_neighbors.push_back(j);
-
-		if(coarse_neighbors.size() >= 1)
 		{
-			if(coarse_neighbors.size() == 1)
-			{
-				/*UG_LOG("only 1 coarse neighbor (" << rating.get_original_index(onlyN1[coarse_neighbors[0]]) << " for " << rating.get_original_index(i) << "?\n")
-				UG_LOG("coarse neighbors: ")
-				for(int j=0; j<onlyN1.size(); j++)
-				{
-					if(j>0) UG_LOG(", ");
-					UG_LOG(rating.get_original_index(onlyN1[j]));
-				}
-				UG_LOG("\n");*/
-				// todo: change this
-				if(rating.i_can_set_coarse(i))
-					rating.set_coarse(i);
-				else
-				{
-					P(i, onlyN1[coarse_neighbors[0]]) = 1.0;
-					rating.set_fine(i);
-				}
-				return;
+			if(rating[onlyN1[j]].is_coarse())
+				coarseNeighbors.push_back(j);
+		}
 
-			}
-
-			size_t N = coarse_neighbors.size();
-			vKKT.resize(N+1, N+1);
-
-			for(size_t r=0; r<N; r++)
-				for(size_t c=0; c<N; c++)
-					vKKT(r, c) = H(coarse_neighbors[r], coarse_neighbors[c]);
-
-			for(size_t j=0; j < N; j++)
-				vKKT(j, N) = vKKT(N, j) = localTestvector[0][coarse_neighbors[j]];
-
-			vKKT(N, N) = 0;
-
-			rhs.resize(N+1);
-			for(size_t j=0; j < N; j++)
-				rhs[j] = -H(i_index, coarse_neighbors[j]);
-			rhs[N] = -localTestvector[0][i_index];
-
-			IF_DEBUG(LIB_ALG_AMG, 5) vKKT.maple_print("KKT");
-			IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
-
-			q.resize(N+1);
-			if(InverseMatMult(q, 1.0, vKKT, rhs))
-			{
-				IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
-
-				t.resize(q.size());
-				// todo: calc F
-				//MatMult(t, 1.0, H, q);
-				double F = 0; //aii * VecDot(q, t);
-
-				if(F > m_delta)
-				{
-					UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, had to set node " << i << " coarse!");
-					rating.set_coarse(i);
-
-				}
-				else
-				{
-					UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, Interpolating from ");
-					double dmax = -q[0];
-					for(size_t j=1; j<N; j++)
-						if(dmax < -q[j]) dmax = -q[j];
-					for(size_t j=0; j<N; j++)
-					{
-						if(-q[j] < dmax*0.3) continue;
-						int jj = coarse_neighbors[j];
-						size_t node = onlyN1[jj];
-						UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
-						P(i, node) = -q[j];
-					}
-					check_weights(P, i);
-					rating.set_fine(i);
-				}
-			}
-			else
-			{
-				rating.set_coarse(i);
-				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system (coarse neighbors).\n");
-			}
+		if(coarseNeighbors.size() >= 1)
+			return indirect_interpolation(i, P, rating, coarseNeighbors);
+		else if(indirectInterpolationLevel >= 0)
+		{
+			UG_DLOG(LIB_ALG_AMG, 3, "indirectInterpolationLevel = " << indirectInterpolationLevel << ", but no coarse neighbors of this level");
+			return false;
 		}
 		else
 		{
@@ -375,76 +524,8 @@ public:
 			for(size_t j=0; j<onlyN1.size(); j++)
 				if(rating.is_inner_node(onlyN1[j]) || rating.is_master(onlyN1[j]))
 					innerNodes.push_back(j);
-			size_t N = innerNodes.size();
-			vKKT.resize(N+1, N+1);
-			for(size_t r=0; r<N; r++)
-				for(size_t c=0; c<N; c++)
-					vKKT(r, c) = H(innerNodes[r], innerNodes[c]);
-
-			for(size_t j=0; j < N; j++)
-				vKKT(j, N) = vKKT(N, j) = localTestvector[0][innerNodes[j]];
-
-
-			 /*  KKT = 	( H     t ) ( q_i,nm )    ( -H e_i )
-			  *			( t^T   0 ) ( lambda )  = ( t[i]  ) */
-
-
-			vKKT(N, N) = 0;
-
-			rhs.resize(N+1);
-			for(size_t j=0; j < N; j++)
-				rhs[j] = -H(i_index, innerNodes[j]);
-			rhs[N] = -localTestvector[0][i_index];
-
-			IF_DEBUG(LIB_ALG_AMG, 5) vKKT.maple_print("KKT");
-			IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
-
-			q.resize(N+1);
-			if(InverseMatMult(q, 1.0, vKKT, rhs))
-			{
-				IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
-
-				t.resize(q.size());
-				// todo: calc F
-				//MatMult(t, 1.0, H, q);
-				double F = 0; //aii * VecDot(q, t);
-
-				if(F > m_delta)
-				{
-					UG_LOG("had to set node " << i << " coarse!");
-					rating.set_coarse(i);
-				}
-				else
-				{
-					std::map<size_t, double> localP;
-					for(size_t j=0; j<N; j++)
-					{
-						int jj = innerNodes[j];
-						size_t node = onlyN1[jj];
-						for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
-							localP[it.index()] += -q[j] * it.value();
-					}
-					double dmax = -1000;
-					for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
-						if(dmax < (*it).second) dmax = (*it).second;
-
-					for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
-					{
-						if((*it).second > dmax*0.3)
-							P(i, (*it).first) = (*it).second;
-					}
-					check_weights(P, i);
-					rating.set_aggressive_fine(i);
-				}
-			}
-			else
-			{
-				rating.set_coarse(i);
-				UG_DLOG(LIB_ALG_AMG, 3, "get_all_neighbors_interpolation: could not invert KKT system.\n");
-			}
-
+			return direct_interpolation(i, P, rating, innerNodes);
 		}
-
 	}
 
 
@@ -465,15 +546,10 @@ private:
 
 		// 1. Get Neighborhood N1 and N2 of i.
 		//AMG_PROFILE_BEGIN(AMG_H_GetNeighborhood);
-		bvisited.resize(A_OL2.num_rows(), false);
 
-		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
 
-		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN1, "\nn1-neighbors");
-		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN2, "n2-neighbors");
-
-		if(onlyN1.size() == 0)
-			return false;
+		IF_DEBUG(LIB_ALG_AMG, 5) print_vector(onlyN1, "\nn1-neighbors");
+		IF_DEBUG(LIB_ALG_AMG, 5) print_vector(onlyN2, "n2-neighbors");
 
 		//AMG_PROFILE_NEXT(AMG_H_CreateN2);
 		N2 = onlyN1;
@@ -482,14 +558,9 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 2)
 		{
-			UG_LOG("\nN1 ");
-			for(size_t i=0; i<onlyN1.size(); i++)
-			{
-				if(i>0) UG_LOG(", ");
-				UG_LOG(rating.get_original_index(onlyN1[i]));
-			}
-			UG_LOG("\n");
-			//print_vector(onlyN2, "\nN2");
+			print_vector(onlyN1, "\nonlyN1");
+			print_vector(onlyN2, "\nonlyN2");
+			print_vector(N2, "\nN2");
 		}
 
 		// 2. get submatrix in A_OL2 on N2
@@ -506,7 +577,7 @@ private:
 		// 3. calculate H from submatrix A
 		calculate_H_from_local_A();
 
-		//IF_DEBUG(LIB_ALG_AMG, 5) H.maple_print("\nsubH");
+		IF_DEBUG(LIB_ALG_AMG, 5) H.maple_print("\nsubH");
 
 		return true;
 	}
@@ -638,7 +709,6 @@ private:
 			localTestvector[k][onlyN1.size()] = s;
 			IF_DEBUG(LIB_ALG_AMG, 5) print_vector(localTestvector[k], "\nlocalTestvector");
 		}
-
 
 	}
 
@@ -789,6 +859,7 @@ private:
 	double m_delta;
 	double m_theta;
 	double m_damping;
+	double m_dEpsilonTr;
 	stdvector< vector_type > &m_testvectors;
 	stdvector<double> &m_omega;
 
