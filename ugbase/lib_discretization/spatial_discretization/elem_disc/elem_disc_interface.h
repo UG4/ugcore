@@ -216,8 +216,8 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool prepare_element_loop()
-			{return (this->*(m_vPrepareElemLoopFunc[m_id]))();}
+		bool prepare_elem_loop()
+			{return (this->*(m_vPrepareElemLoopFct[m_id]))();}
 
 	///	prepare one elements for assembling
 	/**
@@ -230,10 +230,10 @@ class IElemDisc{
 	 * \param[in]		u			The current local solution
 	 * \param[in]		glob_ind	The global indices of the local solution
 	 */
-		bool prepare_element(GeometricObject* obj,
+		bool prepare_elem(GeometricObject* obj,
 		                     const local_vector_type& u,
 		                     const local_index_type& glob_ind)
-			{return (this->*(m_vPrepareElemFunc[m_id]))(obj, u, glob_ind);}
+			{return (this->*(m_vPrepareElemFct[m_id]))(obj, u, glob_ind);}
 
 	///	postprocesses the loop over all elements of one type
 	/**
@@ -243,8 +243,8 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool finish_element_loop()
-			{return (this->*(m_vFinishElemLoopFunc[m_id]))();}
+		bool finish_elem_loop()
+			{return (this->*(m_vFinishElemLoopFct[m_id]))();}
 
 	/// Assembling of Jacobian (Stiffness part)
 	/**
@@ -253,8 +253,8 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_JA(local_matrix_type& J, const local_vector_type& u)
-			{return (this->*(m_vAssJAFunc[m_id]))(J, u);}
+		bool ass_JA_elem(local_matrix_type& J, const local_vector_type& u)
+			{return (this->*(m_vElemJAFct[m_id]))(J, u);}
 
 	/// Assembling of Jacobian (Mass part)
 	/**
@@ -263,8 +263,8 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_JM(local_matrix_type& J, const local_vector_type& u)
-			{return (this->*(m_vAssJMFunc[m_id]))(J, u);}
+		bool ass_JM_elem(local_matrix_type& J, const local_vector_type& u)
+			{return (this->*(m_vElemJMFct[m_id]))(J, u);}
 
 	/// Assembling of Defect (Stiffness part)
 	/**
@@ -273,8 +273,8 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_A(local_vector_type& d, const local_vector_type& u)
-			{return (this->*(m_vAssAFunc[m_id]))(d, u);}
+		bool ass_dA_elem(local_vector_type& d, const local_vector_type& u)
+			{return (this->*(m_vElemdAFct[m_id]))(d, u);}
 
 
 	/// Assembling of Defect (Mass part)
@@ -284,8 +284,8 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_M(local_vector_type& d, const local_vector_type& u)
-			{return (this->*(m_vAssMFunc[m_id]))(d, u);}
+		bool ass_dM_elem(local_vector_type& d, const local_vector_type& u)
+			{return (this->*(m_vElemdMFct[m_id]))(d, u);}
 
 	/// Assembling of Right-Hand Side
 	/**
@@ -293,8 +293,8 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_geometric_object_type must have been called to set the elem type.
 	 */
-		bool assemble_f(local_vector_type& rhs)
-			{return (this->*(m_vAssFFunc[m_id]))(rhs);}
+		bool ass_rhs_elem(local_vector_type& rhs)
+			{return (this->*(m_vElemRHSFct[m_id]))(rhs);}
 
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
@@ -311,74 +311,74 @@ class IElemDisc{
 
 	protected:
 	// 	register the functions
-		template <typename TAssFunc> void reg_prepare_vol_loop_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_prepare_vol_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_finish_vol_loop_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_prepare_elem_loop_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_prepare_elem_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_finish_elem_loop_fct(int id, TAssFunc func);
 
-		template <typename TAssFunc> void reg_ass_JA_vol_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_JM_vol_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_dA_vol_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_dM_vol_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_rhs_vol_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_JA_elem_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_JM_elem_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_dA_elem_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_dM_elem_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_rhs_elem_fct(int id, TAssFunc func);
 
 	protected:
 	// 	checks if the needed functions are registered for the id type
 		bool function_registered(int id);
 
 	// 	checks if the functions are present
-		bool prepare_element_loop_fct_registered(int id);
-		bool prepare_element_fct_registered(int id);
-		bool finish_element_loop_fct_registered(int id);
+		bool prepare_elem_loop_fct_registered(int id);
+		bool prepare_elem_fct_registered(int id);
+		bool finish_elem_loop_fct_registered(int id);
 
 	// 	checks if the functions are present
-		bool ass_JA_vol_fct_registered(int id);
-		bool ass_JM_vol_fct_registered(int id);
-		bool ass_dA_vol_fct_registered(int id);
-		bool ass_dM_vol_fct_registered(int id);
-		bool ass_rhs_vol_fct_registered(int id);
+		bool ass_JA_elem_fct_registered(int id);
+		bool ass_JM_elem_fct_registered(int id);
+		bool ass_dA_elem_fct_registered(int id);
+		bool ass_dM_elem_fct_registered(int id);
+		bool ass_rhs_elem_fct_registered(int id);
 
 	private:
 	//	abbreviation for own type
 		typedef IElemDisc T;
 
 	// 	types of loop function pointers
-		typedef bool (T::*PrepareElementLoopFunc)();
-		typedef bool (T::*PrepareElementFunc)(	GeometricObject* obj,
-												const local_vector_type& u,
-												const local_index_type& glob_ind);
-		typedef bool (T::*FinishElementLoopFunc)();
+		typedef bool (T::*PrepareElemLoopFct)();
+		typedef bool (T::*PrepareElemFct)(	GeometricObject* obj,
+											const local_vector_type& u,
+											const local_index_type& glob_ind);
+		typedef bool (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions
-		typedef bool (T::*AssembleJAFunc)(	local_matrix_type& J,
-											const local_vector_type& u);
-		typedef bool (T::*AssembleJMFunc)(	local_matrix_type& J,
-											const local_vector_type& u);
+		typedef bool (T::*ElemJAFct)(	local_matrix_type& J,
+										const local_vector_type& u);
+		typedef bool (T::*ElemJMFct)(	local_matrix_type& J,
+										const local_vector_type& u);
 
 	// 	types of Defect assemble functions
-		typedef bool (T::*AssembleAFunc)( 	local_vector_type& d,
-											const local_vector_type& u);
-		typedef bool (T::*AssembleMFunc)(	local_vector_type& d,
+		typedef bool (T::*ElemdAFct)( 	local_vector_type& d,
+										const local_vector_type& u);
+		typedef bool (T::*ElemdMFct)(	local_vector_type& d,
 											const local_vector_type& u);
 
 	// 	types of right hand side assemble functions
-		typedef bool (T::*AssembleFFunc)(local_vector_type& d);
+		typedef bool (T::*ElemRHSFct)(local_vector_type& d);
 
 	private:
 	// 	loop function pointers
-		std::vector<PrepareElementLoopFunc> m_vPrepareElemLoopFunc;
-		std::vector<PrepareElementFunc> 	m_vPrepareElemFunc;
-		std::vector<FinishElementLoopFunc> 	m_vFinishElemLoopFunc;
+		std::vector<PrepareElemLoopFct> m_vPrepareElemLoopFct;
+		std::vector<PrepareElemFct> 	m_vPrepareElemFct;
+		std::vector<FinishElemLoopFct> 	m_vFinishElemLoopFct;
 
 	// 	Jacobian function pointers
-		std::vector<AssembleJAFunc> 	m_vAssJAFunc;
-		std::vector<AssembleJMFunc> 	m_vAssJMFunc;
+		std::vector<ElemJAFct> 	m_vElemJAFct;
+		std::vector<ElemJMFct> 	m_vElemJMFct;
 
 	// 	Defect function pointers
-		std::vector<AssembleAFunc> 	m_vAssAFunc;
-		std::vector<AssembleMFunc> 	m_vAssMFunc;
+		std::vector<ElemdAFct> 	m_vElemdAFct;
+		std::vector<ElemdMFct> 	m_vElemdMFct;
 
 	// 	Rhs function pointers
-		std::vector<AssembleFFunc> 	m_vAssFFunc;
+		std::vector<ElemRHSFct> 	m_vElemRHSFct;
 
 	protected:
 		// current Geometric Object

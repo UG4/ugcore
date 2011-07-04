@@ -121,9 +121,9 @@ class IDirichletPostProcess{
 
 	protected:
 		// register the functions
-		template <typename TAssFunc> void reg_prepare_vol_loop_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_prepare_vol_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_finish_vol_loop_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_prepare_elem_loop_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_prepare_elem_fct(int id, TAssFunc func);
+		template <typename TAssFunc> void reg_finish_elem_loop_fct(int id, TAssFunc func);
 
 		template <typename TAssFunc> void register_post_process_J_function(int id, TAssFunc func);
 		template <typename TAssFunc> void register_post_process_d_function(int id, TAssFunc func);

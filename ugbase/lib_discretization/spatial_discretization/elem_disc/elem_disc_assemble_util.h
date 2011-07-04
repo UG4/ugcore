@@ -114,7 +114,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
 					"Cannot prepare element.\n");
@@ -139,7 +139,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JA
 		locA = 0.0;
-		if(!Eval.assemble_JA(locA, locU))
+		if(!Eval.ass_JA_elem(locA, locU))
 		{
 			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -154,7 +154,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
 				"Cannot finish element loop.\n");
@@ -241,7 +241,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in 'AssembleMassMatrix': "
 					"Cannot prepare element.\n");
@@ -266,7 +266,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JM
 		locM = 0.0;
-		if(!Eval.assemble_JM(locM, locU))
+		if(!Eval.ass_JM_elem(locM, locU))
 		{
 			UG_LOG("ERROR in 'AssembleMassMatrix': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -281,7 +281,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in 'AssembleMassMatrix': "
 				"Cannot finish element loop.\n");
@@ -369,7 +369,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
 					"Cannot prepare element.\n");
@@ -394,7 +394,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JA
 		locJ = 0.0;
-		if(!Eval.assemble_JA(locJ, locU))
+		if(!Eval.ass_JA_elem(locJ, locU))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -409,7 +409,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in '(stationary) AssembleJacobian': "
 				"Cannot finish element loop.\n");
@@ -507,7 +507,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 					"Cannot prepare element.\n");
@@ -540,7 +540,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JA
 		locJ = 0.0;
-		if(!Eval.assemble_JA(locJ, locU))
+		if(!Eval.ass_JA_elem(locJ, locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -554,7 +554,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		locJ *= s_a0;
 
 	// 	Assemble JM
-		if(!Eval.assemble_JM(locJ, locU))
+		if(!Eval.ass_JM_elem(locJ, locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -569,7 +569,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 				"Cannot finish element loop.\n");
@@ -658,7 +658,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleDefect': "
 					"Cannot prepare element.\n");
@@ -675,7 +675,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble A
 		locD = 0.0;
-		if(!Eval.assemble_A(locD, locU))
+		if(!Eval.ass_dA_elem(locD, locU))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleDefect': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -684,7 +684,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble rhs
 		tmpLocD = 0.0;
-		if(!Eval.assemble_rhs(tmpLocD))
+		if(!Eval.ass_rhs_elem(tmpLocD))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleDefect': "
 					"Cannot compute element contribution to Rhs.\n");
@@ -697,7 +697,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in '(stationary) AssembleDefect': "
 				"Cannot finish element loop.\n");
@@ -796,7 +796,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleDefect': "
 					"Cannot prepare element.\n");
@@ -813,7 +813,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble M
 		locD = 0.0;
-		if(!Eval.assemble_M(locD, locU))
+		if(!Eval.ass_dM_elem(locD, locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleDefect': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -823,7 +823,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble A
 		tmpLocD = 0.0;
-		if(!Eval.assemble_A(tmpLocD, locU))
+		if(!Eval.ass_dA_elem(tmpLocD, locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleDefect': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -833,7 +833,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble rhs
 		tmpLocD = 0.0;
-		if(!Eval.assemble_rhs(tmpLocD))
+		if(!Eval.ass_rhs_elem(tmpLocD))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleDefect': "
 					"Cannot compute element contribution to Rhs.\n");
@@ -846,7 +846,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in '(instationary) AssembleDefect': "
 				"Cannot finish element loop.\n");
@@ -937,7 +937,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleLinear': "
 					"Cannot prepare element.\n");
@@ -954,7 +954,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JA
 		locA = 0.0;
-		if(!Eval.assemble_JA(locA, locU))
+		if(!Eval.ass_JA_elem(locA, locU))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleLinear': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -963,7 +963,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble rhs
 		locRhs = 0.0;
-		if(!Eval.assemble_rhs(locRhs))
+		if(!Eval.ass_rhs_elem(locRhs))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleLinear': "
 					"Cannot compute element contribution to Rhs.\n");
@@ -978,7 +978,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in '(stationary) AssembleLinear': "
 				"Cannot finish element loop.\n");
@@ -1079,7 +1079,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleLinear': "
 					"Cannot prepare element.\n");
@@ -1096,7 +1096,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JM
 		locA = 0.0;
-		if(!Eval.assemble_JA(locA, locU))
+		if(!Eval.ass_JA_elem(locA, locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleLinear': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -1106,7 +1106,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JA
 		tmpLocA = 0.0;
-		if(!Eval.assemble_JA(tmpLocA, locU))
+		if(!Eval.ass_JA_elem(tmpLocA, locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleLinear': "
 					"Cannot compute element contribution to Jacobian (A).\n");
@@ -1116,7 +1116,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble rhs
 		locRhs = 0.0;
-		if(!Eval.assemble_rhs(locRhs))
+		if(!Eval.ass_rhs_elem(locRhs))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleLinear': "
 					"Cannot compute element contribution to Rhs.\n");
@@ -1132,7 +1132,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in '(instationary) AssembleLinear': "
 				"Cannot finish element loop.\n");
@@ -1221,7 +1221,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_element(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind))
 		{
 			UG_LOG("ERROR in 'AssembleRhs': "
 					"Cannot prepare element.\n");
@@ -1238,7 +1238,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble rhs
 		locRhs = 0.0;
-		if(!Eval.assemble_rhs(locRhs))
+		if(!Eval.ass_rhs_elem(locRhs))
 		{
 			UG_LOG("ERROR in 'AssembleRhs': "
 					"Cannot compute element contribution to Rhs.\n");
@@ -1250,7 +1250,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_element_loop())
+	if(!Eval.finish_elem_loop())
 	{
 		UG_LOG("ERROR in 'AssembleRhs': "
 				"Cannot finish element loop.\n");

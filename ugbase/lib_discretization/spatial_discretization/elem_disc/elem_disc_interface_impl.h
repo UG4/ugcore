@@ -15,83 +15,83 @@
 namespace ug{
 
 template<typename TAssFunc>
-void IElemDisc::reg_prepare_vol_loop_fct(int id, TAssFunc func)
+void IElemDisc::reg_prepare_elem_loop_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vPrepareElemLoopFunc.size())
-		m_vPrepareElemLoopFunc.resize(id+1, 0);
+	if((size_t)id >= m_vPrepareElemLoopFct.size())
+		m_vPrepareElemLoopFct.resize(id+1, 0);
 
-	m_vPrepareElemLoopFunc[id] = (PrepareElementLoopFunc)func;
+	m_vPrepareElemLoopFct[id] = (PrepareElemLoopFct)func;
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_prepare_vol_fct(int id, TAssFunc func)
+void IElemDisc::reg_prepare_elem_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vPrepareElemFunc.size())
-		m_vPrepareElemFunc.resize(id+1, 0);
+	if((size_t)id >= m_vPrepareElemFct.size())
+		m_vPrepareElemFct.resize(id+1, 0);
 
-	m_vPrepareElemFunc[id] = (PrepareElementFunc)func;
+	m_vPrepareElemFct[id] = (PrepareElemFct)func;
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_finish_vol_loop_fct(int id, TAssFunc func)
+void IElemDisc::reg_finish_elem_loop_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vFinishElemLoopFunc.size())
-		m_vFinishElemLoopFunc.resize(id+1, 0);
+	if((size_t)id >= m_vFinishElemLoopFct.size())
+		m_vFinishElemLoopFct.resize(id+1, 0);
 
-	m_vFinishElemLoopFunc[id] = (FinishElementLoopFunc)func;
+	m_vFinishElemLoopFct[id] = (FinishElemLoopFct)func;
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_JA_vol_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_JA_elem_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssJAFunc.size())
-		m_vAssJAFunc.resize(id+1, 0);
+	if((size_t)id >= m_vElemJAFct.size())
+		m_vElemJAFct.resize(id+1, 0);
 
-	m_vAssJAFunc[id] = (AssembleJAFunc)func;
+	m_vElemJAFct[id] = (ElemJAFct)func;
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_JM_vol_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_JM_elem_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssJMFunc.size())
-		m_vAssJMFunc.resize(id+1, 0);
+	if((size_t)id >= m_vElemJMFct.size())
+		m_vElemJMFct.resize(id+1, 0);
 
-	m_vAssJMFunc[id] = (AssembleJMFunc)func;
+	m_vElemJMFct[id] = (ElemJMFct)func;
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_dA_vol_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_dA_elem_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssAFunc.size())
-		m_vAssAFunc.resize(id+1, 0);
+	if((size_t)id >= m_vElemdAFct.size())
+		m_vElemdAFct.resize(id+1, 0);
 
-	m_vAssAFunc[id] = (AssembleAFunc)func;
+	m_vElemdAFct[id] = (ElemdAFct)func;
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_dM_vol_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_dM_elem_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssMFunc.size())
-		m_vAssMFunc.resize(id+1, 0);
+	if((size_t)id >= m_vElemdMFct.size())
+		m_vElemdMFct.resize(id+1, 0);
 
-	m_vAssMFunc[id] = (AssembleMFunc)func;
+	m_vElemdMFct[id] = (ElemdMFct)func;
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_rhs_vol_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_rhs_elem_fct(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssFFunc.size())
-		m_vAssFFunc.resize(id+1, 0);
+	if((size_t)id >= m_vElemRHSFct.size())
+		m_vElemRHSFct.resize(id+1, 0);
 
-	m_vAssFFunc[id] = (AssembleFFunc)func;
+	m_vElemRHSFct[id] = (ElemRHSFct)func;
 };
 
 }

@@ -43,7 +43,7 @@ prepare_elem_loop(local_index_type& ind, number time)
 
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
-		if(!(*m_pvElemDisc)[i]->prepare_element_loop())
+		if(!(*m_pvElemDisc)[i]->prepare_elem_loop())
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 					"Cannot prepare element loop.\n");
@@ -97,7 +97,7 @@ prepare_elem_loop(local_index_type& ind, number time)
 template <typename TElem>
 bool
 DataEvaluator::
-prepare_element(TElem* elem, local_vector_type& u, const local_index_type& ind)
+prepare_elem(TElem* elem, local_vector_type& u, const local_index_type& ind)
 {
 //	prepare data imports
 //	adjust lin defect array
@@ -121,7 +121,7 @@ prepare_element(TElem* elem, local_vector_type& u, const local_index_type& ind)
 		u.access_by_map(map(i));
 
 	//	prepare for elem disc
-		if(!(*m_pvElemDisc)[i]->prepare_element(elem, u, ind))
+		if(!(*m_pvElemDisc)[i]->prepare_elem(elem, u, ind))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_element': "
 					"Cannot prepare element for IElemDisc "<<i<<".\n");

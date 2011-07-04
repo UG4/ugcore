@@ -438,7 +438,7 @@ add_coupl_JM(local_matrix_type& J, local_index_type& indRow)
 
 bool
 DataEvaluator::
-assemble_JA(local_matrix_type& A, local_vector_type& u)
+ass_JA_elem(local_matrix_type& A, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -447,7 +447,7 @@ assemble_JA(local_matrix_type& A, local_vector_type& u)
 		A.access_by_map(map(i));
 
 	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->assemble_JA(A, u))
+		if(!(*m_pvElemDisc)[i]->ass_JA_elem(A, u))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::assemble_JA': "
 					"Cannot assemble JA for IElemDisc "<<i<<".\n");
@@ -462,7 +462,7 @@ assemble_JA(local_matrix_type& A, local_vector_type& u)
 
 bool
 DataEvaluator::
-assemble_JM(local_matrix_type& M, local_vector_type& u)
+ass_JM_elem(local_matrix_type& M, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -471,7 +471,7 @@ assemble_JM(local_matrix_type& M, local_vector_type& u)
 		M.access_by_map(map(i));
 
 	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->assemble_JM(M, u))
+		if(!(*m_pvElemDisc)[i]->ass_JM_elem(M, u))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::assemble_JM': "
 					"Cannot assemble JM for IElemDisc "<<i<<".\n");
@@ -486,7 +486,7 @@ assemble_JM(local_matrix_type& M, local_vector_type& u)
 
 bool
 DataEvaluator::
-assemble_A(local_vector_type& d, local_vector_type& u)
+ass_dA_elem(local_vector_type& d, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -495,7 +495,7 @@ assemble_A(local_vector_type& d, local_vector_type& u)
 		d.access_by_map(map(i));
 
 	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->assemble_A(d, u))
+		if(!(*m_pvElemDisc)[i]->ass_dA_elem(d, u))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::assemble_A': "
 					"Cannot assemble Defect (A) for IElemDisc "<<i<<".\n");
@@ -510,7 +510,7 @@ assemble_A(local_vector_type& d, local_vector_type& u)
 
 bool
 DataEvaluator::
-assemble_M(local_vector_type& d, local_vector_type& u)
+ass_dM_elem(local_vector_type& d, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -519,7 +519,7 @@ assemble_M(local_vector_type& d, local_vector_type& u)
 		d.access_by_map(map(i));
 
 	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->assemble_M(d, u))
+		if(!(*m_pvElemDisc)[i]->ass_dM_elem(d, u))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::assemble_M': "
 					"Cannot assemble Defect (M) for IElemDisc "<<i<<".\n");
@@ -535,7 +535,7 @@ assemble_M(local_vector_type& d, local_vector_type& u)
 
 bool
 DataEvaluator::
-assemble_rhs(local_vector_type& rhs)
+ass_rhs_elem(local_vector_type& rhs)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -543,7 +543,7 @@ assemble_rhs(local_vector_type& rhs)
 		rhs.access_by_map(map(i));
 
 	//	assemble rhs
-		if(!(*m_pvElemDisc)[i]->assemble_f(rhs))
+		if(!(*m_pvElemDisc)[i]->ass_rhs_elem(rhs))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::assemble_rhs': "
 					"Cannot assemble rhs for IElemDisc "<<i<<".\n");
@@ -599,10 +599,10 @@ set_non_regular_grid(bool bNonRegularGrid)
 
 bool
 DataEvaluator::
-finish_element_loop()
+finish_elem_loop()
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
-		if(!(*m_pvElemDisc)[i]->finish_element_loop())
+		if(!(*m_pvElemDisc)[i]->finish_elem_loop())
 		{
 			UG_LOG("ERROR in 'DataEvaluator::finish_element_loop': "
 					"Cannot finish element loop for IElemDisc "<<i<<".\n");

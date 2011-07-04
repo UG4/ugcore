@@ -109,17 +109,17 @@ bool IElemDisc::set_geometric_object_type(int id)
 bool IElemDisc::function_registered(int id)
 {
 	// loop functions must exist in any case
-	if(!prepare_element_loop_fct_registered(id))
+	if(!prepare_elem_loop_fct_registered(id))
 	{
 		UG_LOG("prepare_element_loop() function not registered for id " << id <<".\n");
 		return false;
 	}
-	if(!prepare_element_fct_registered(id))
+	if(!prepare_elem_fct_registered(id))
 	{
 		UG_LOG("prepare_element(...) function not registered for id " << id <<".\n");
 		return false;
 	}
-	if(!finish_element_loop_fct_registered(id))
+	if(!finish_elem_loop_fct_registered(id))
 	{
 		UG_LOG("finish_element_loop() function not registered for id " << id <<".\n");
 		return false;
@@ -128,82 +128,82 @@ bool IElemDisc::function_registered(int id)
 	return true;
 };
 
-bool IElemDisc::prepare_element_loop_fct_registered(int id)
+bool IElemDisc::prepare_elem_loop_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vPrepareElemLoopFunc.size())
+	if(id >= 0 && (size_t)id < m_vPrepareElemLoopFct.size())
 	{
-		if(m_vPrepareElemLoopFunc[id] != 0)
+		if(m_vPrepareElemLoopFct[id] != 0)
 			return true;
 	}
 	return false;
 }
 
-bool IElemDisc::prepare_element_fct_registered(int id)
+bool IElemDisc::prepare_elem_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vPrepareElemFunc.size())
+	if(id >= 0 && (size_t)id < m_vPrepareElemFct.size())
 	{
-		if(m_vPrepareElemFunc[id] != 0)
+		if(m_vPrepareElemFct[id] != 0)
 			return true;
 	}
 	return false;
 }
 
-bool IElemDisc::finish_element_loop_fct_registered(int id)
+bool IElemDisc::finish_elem_loop_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vFinishElemLoopFunc.size())
+	if(id >= 0 && (size_t)id < m_vFinishElemLoopFct.size())
 	{
-		if(m_vFinishElemLoopFunc[id] != 0)
+		if(m_vFinishElemLoopFct[id] != 0)
 			return true;
 	}
 	return false;
 }
 
-bool IElemDisc::ass_JA_vol_fct_registered(int id)
+bool IElemDisc::ass_JA_elem_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssJAFunc.size())
+	if(id >= 0 && (size_t)id < m_vElemJAFct.size())
 	{
-		if(m_vAssJAFunc[id] != 0)
+		if(m_vElemJAFct[id] != 0)
 			return true;
 	}
 	return false;
 }
 
-bool IElemDisc::ass_JM_vol_fct_registered(int id)
+bool IElemDisc::ass_JM_elem_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssJMFunc.size())
+	if(id >= 0 && (size_t)id < m_vElemJMFct.size())
 	{
-		if(m_vAssJMFunc[id] != 0)
+		if(m_vElemJMFct[id] != 0)
 			return true;
 	}
 	return false;
 }
 
-bool IElemDisc::ass_dA_vol_fct_registered(int id)
+bool IElemDisc::ass_dA_elem_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssAFunc.size())
+	if(id >= 0 && (size_t)id < m_vElemdAFct.size())
 	{
-		if(m_vAssAFunc[id] != 0)
+		if(m_vElemdAFct[id] != 0)
 			return true;
 	}
 	return false;
 }
 
-bool IElemDisc::ass_dM_vol_fct_registered(int id)
+bool IElemDisc::ass_dM_elem_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssMFunc.size())
+	if(id >= 0 && (size_t)id < m_vElemdMFct.size())
 	{
-		if(m_vAssMFunc[id] != 0)
+		if(m_vElemdMFct[id] != 0)
 			return true;
 	}
 	return false;
 }
 
 
-bool IElemDisc::ass_rhs_vol_fct_registered(int id)
+bool IElemDisc::ass_rhs_elem_fct_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssFFunc.size())
+	if(id >= 0 && (size_t)id < m_vElemRHSFct.size())
 	{
-		if(m_vAssFFunc[id] != 0)
+		if(m_vElemRHSFct[id] != 0)
 			return true;
 	}
 	return false;

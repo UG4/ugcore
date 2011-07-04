@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_EVALUATOR__
 
 #include "const_user_data.h"
-#include "../elem_disc/elem_disc_interface.h"
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "data_import_export.h"
 
 namespace ug{
@@ -53,6 +53,7 @@ class DataEvaluator
 
 		bool extract_imports_and_ipdata();
 
+	///	returns if one of the element discs needs hanging dofs
 		bool use_hanging() const {return m_bUseHanging;}
 
 		////////////////////////////////////////////
@@ -68,23 +69,21 @@ class DataEvaluator
 		bool prepare_elem_loop(local_index_type& ind, number time = 0.0);
 
 		template <typename TElem>
-		bool prepare_element(TElem* elem,
-		                     local_vector_type& u,
-		                     const local_index_type& ind);
+		bool prepare_elem(TElem* elem, local_vector_type& u,
+		                  const local_index_type& ind);
 
-		bool compute_elem_data(local_vector_type & u,
-		                       local_index_type& ind,
+		bool compute_elem_data(local_vector_type & u, local_index_type& ind,
 		                       bool computeDeriv = false);
 
-		bool assemble_JA(local_matrix_type& A, local_vector_type& u);
-		bool assemble_JM(local_matrix_type& M, local_vector_type& u);
+		bool ass_JA_elem(local_matrix_type& A, local_vector_type& u);
+		bool ass_JM_elem(local_matrix_type& M, local_vector_type& u);
 
-		bool assemble_A(local_vector_type& d, local_vector_type& u);
-		bool assemble_M(local_vector_type& d, local_vector_type& u);
+		bool ass_dA_elem(local_vector_type& d, local_vector_type& u);
+		bool ass_dM_elem(local_vector_type& d, local_vector_type& u);
 
-		bool assemble_rhs(local_vector_type& rhs);
+		bool ass_rhs_elem(local_vector_type& rhs);
 
-		bool finish_element_loop();
+		bool finish_elem_loop();
 
 		////////////////////////////////////////////
 		// Coupling
@@ -118,7 +117,7 @@ class DataEvaluator
 	//	constant data
 		std::vector<IIPData*> m_vConstData;
 
-	//	position dependend data
+	//	position dependent data
 		std::vector<IIPData*> m_vPosData;
 
 	//	all dependent data
