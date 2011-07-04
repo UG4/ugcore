@@ -8,7 +8,9 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__
 
+#include <vector>
 #include "lib_discretization/common/local_algebra.h"
+#include "lib_discretization/common/function_group.h"
 
 namespace ug{
 
@@ -20,11 +22,8 @@ namespace ug{
 class IIPData
 {
 	public:
-		IIPData() : m_locPosDim(-1), m_time(0.0)
-		{
-			m_vNumIP.clear();
-			m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
-		}
+	///	default constructor
+		IIPData();
 
 	///	set evaluation time
 		void set_time(number time) {m_time = time;}
@@ -36,85 +35,25 @@ class IIPData
 		size_t num_series() const {return m_vNumIP.size();}
 
 	/// returns the number of integration points
-		size_t num_ip(size_t s) const
-		{
-			UG_ASSERT(s < num_series(), "Invalid series");
-			return m_vNumIP[s];
-		}
+		size_t num_ip(size_t s) const {UG_ASSERT(s < num_series(), "Invalid series"); return m_vNumIP[s];}
 
 	///	clear all data
-		void clear_ips()
-		{
-			m_vNumIP.clear();
-			m_locPosDim = -1;
-			m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
-			adjust_global_ips_and_data(m_vNumIP);
-		}
+		void clear_ips();
 
-	///	set local positions
-	/**
-	 *
-	 * \return returns the series id, that is needed for access
-	 */
+	///	set local positions, returns series id
 		template <int ldim>
-		size_t register_local_ip_series(const MathVector<ldim>* vPos, size_t numIP)
-		{
-		//	check, that dimension is ok.
-			if(m_locPosDim == -1) m_locPosDim = ldim;
-			else if(m_locPosDim != ldim)
-				throw(UGFatalError("Local IP dimension conflict"));
-
-		//	get local positions
-			std::vector<const MathVector<ldim>*>& vvIP = get_local_ips(Int2Type<ldim>());
-
-		//	search for ips
-			for(size_t s = 0; s < vvIP.size(); ++s)
-			{
-			//	return series number iff exists
-				if(vvIP[s] == vPos && m_vNumIP[s] == numIP) return s;
-			}
-
-		//	if series not yet registered, add it
-			vvIP.push_back(vPos);
-			m_vNumIP.push_back(numIP);
-
-		//	resize global ips and data
-			adjust_global_ips_and_data(m_vNumIP);
-
-		//	return new series id
-			return m_vNumIP.size() - 1;
-		}
+		size_t register_local_ip_series(const MathVector<ldim>* vPos, size_t numIP);
 
 	///	returns current local ip dimension
 		int dim_local_ips() const {return m_locPosDim;}
 
 	///	returns local ips
 		template <int ldim>
-		const MathVector<ldim>* local_ips(size_t s) const
-		{
-		//	check, that dimension is ok.
-			if(m_locPosDim != ldim)
-				throw(UGFatalError("Local IP dimension conflict"));
-
-			UG_ASSERT(s < num_series(), "Wrong series id");
-			UG_ASSERT( (const_cast<IIPData*>(this)->get_local_ips(Int2Type<ldim>()))[s] != NULL, "Zero local ip pointer.");
-
-			return (const_cast<IIPData*>(this)->get_local_ips(Int2Type<ldim>()))[s];
-		}
+		const MathVector<ldim>* local_ips(size_t s) const;
 
 	/// returns local ip
 		template <int ldim>
-		const MathVector<ldim>& local_ip(size_t s, size_t ip) const
-		{
-		//	check, that dimension is ok.
-			if(m_locPosDim != ldim)
-				throw(UGFatalError("Local IP dimension conflict"));
-
-			UG_ASSERT(s < num_series(), "Wrong series id");
-			UG_ASSERT(ip < num_ip(s), "Invalid index.");
-
-			return get_local_ips(Int2Type<ldim>())[s][ip];
-		}
+		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
 
 	///	returns if data is constant
 		virtual bool constant_data() const {return false;}
@@ -142,6 +81,9 @@ class IIPData
 		std::vector<const MathVector<1>*>& get_local_ips(Int2Type<1>) {return m_pvLocIP1d;}
 		std::vector<const MathVector<2>*>& get_local_ips(Int2Type<2>) {return m_pvLocIP2d;}
 		std::vector<const MathVector<3>*>& get_local_ips(Int2Type<3>) {return m_pvLocIP3d;}
+		const std::vector<const MathVector<1>*>& get_local_ips(Int2Type<1>) const {return m_pvLocIP1d;}
+		const std::vector<const MathVector<2>*>& get_local_ips(Int2Type<2>) const {return m_pvLocIP2d;}
+		const std::vector<const MathVector<3>*>& get_local_ips(Int2Type<3>) const {return m_pvLocIP3d;}
 
 	protected:
 	/// number of evaluation points (-1 indicates no ips set)
@@ -172,48 +114,24 @@ class IIPDimData : public IIPData
 {
 	public:
 	///	set global positions
-		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id");
-
-		//	check number of ips (must match local ip number)
-			if(numIP != num_ip(s))
-			{
-				UG_LOG("ERROR in 'IPData::set_global_ips':"
-						" Num Local IPs is " << num_ip(s)  << ", but trying to set"
-						" Num Global IPs: " << numIP << " for series "<< s<< ".\n");
-				throw(UGFatalError("Num ip does not match."));
-			}
-
-		//	remember global positions
-			m_vvGlobPos[s] = vPos;
-
-		//	invoke callback
-			global_ips_changed(s, vPos, numIP);
-		}
+		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP);
 
 	///	returns global ips
-		const MathVector<dim>* ips(size_t s) const
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id");
-			return m_vvGlobPos[s];
-		}
+		const MathVector<dim>* ips(size_t s) const {check_s(s); return m_vvGlobPos[s];}
 
 	/// returns global ip
-		const MathVector<dim>& ip(size_t s, size_t ip) const
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id.");
-			UG_ASSERT(s < m_vvGlobPos.size(), "Invalid index.");
-			UG_ASSERT(ip < num_ip(s), "Invalid index.");
-			UG_ASSERT(m_vvGlobPos[s] != NULL, "Local IP not set.");
-
-			return m_vvGlobPos[s][ip];
-		}
+		const MathVector<dim>& ip(size_t s, size_t ip) const{check_s_ip(s,ip); return m_vvGlobPos[s][ip];}
 
 	///	callback, that is called when global ips changed
 		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP) {}
 
 	protected:
+	///	checks in debug mode the correct usage of indices
+		inline void check_s(size_t s) const;
+
+	///	checks in debug mode the correct usage of indices
+		inline void check_s_ip(size_t s, size_t ip) const;
+
 	///	implement callback, called when num of local IPs changes
 		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
 		{
@@ -249,57 +167,28 @@ class IPData : public IIPDimData<dim>
 	public:
 	///	returns the value at ip
 		const TData& value(size_t s, size_t ip) const
-		{
-			check_series_ip(s,ip);
-			return m_vvValue[s][ip];
-		}
+			{check_series_ip(s,ip); return m_vvValue[s][ip];}
 
 	///	returns all values for a series
 		const TData* values(size_t s) const
-		{
-			check_series(s);
-			return &(m_vvValue[s][0]);
-		}
+			{check_series(s); return &(m_vvValue[s][0]);}
 
 	///	returns the value at ip
 		TData& value(size_t s, size_t ip)
-		{
-			check_series_ip(s,ip);
-			return m_vvValue[s][ip];
-		}
+			{check_series_ip(s,ip);return m_vvValue[s][ip];}
 
 	///	returns all values for a series
 		TData* values(size_t s)
-		{
-			check_series(s);
-			return &(m_vvValue[s][0]);
-		}
+			{check_series(s); return &(m_vvValue[s][0]);}
 
 	protected:
 	///	checks in debug mode the correct index
-		inline void check_series(size_t s) const
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvValue.size(), "Invalid index "<<s);
-		}
+		inline void check_series(size_t s) const;
 
 	///	checks in debug mode the correct index
-		inline void check_series_ip(size_t s, size_t ip) const
-		{
-			check_series(s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvValue[s].size(), "Invalid index "<<ip);
-		}
+		inline void check_series_ip(size_t s, size_t ip) const;
 
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
-		{
-		//	adjust data arrays
-			m_vvValue.resize(vNumIP.size());
-			for(size_t s = 0; s < vNumIP.size(); ++s)
-				m_vvValue[s].resize(vNumIP[s]);
-
-			base_type::adjust_global_ips_and_data(vNumIP);
-		}
+		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP);
 
 	protected:
 	/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
@@ -368,109 +257,47 @@ class DependentIPData : public IPData<TData, dim>,
 
 	///	returns the derivative of the local function, at ip and for a dof
 		const TData& deriv(size_t s, size_t ip, size_t fct, size_t dof) const
-		{
-			check_s_ip_fct_dof(s,ip,fct,dof);
-			return m_vvvDeriv[s][ip][fct][dof];
-		}
+			{check_s_ip_fct_dof(s,ip,fct,dof);return m_vvvDeriv[s][ip][fct][dof];}
 
 	///	returns the derivative of the local function, at ip and for a dof
 		TData& deriv(size_t s, size_t ip, size_t fct, size_t dof)
-		{
-			check_s_ip_fct_dof(s,ip,fct,dof);
-			return m_vvvDeriv[s][ip][fct][dof];
-		}
+			{check_s_ip_fct_dof(s,ip,fct,dof);return m_vvvDeriv[s][ip][fct][dof];}
 
 	///	returns the derivatives of the local function, at ip
 		TData* deriv(size_t s, size_t ip, size_t fct)
-		{
-			check_s_ip_fct(s,ip,fct);
-			return &(m_vvvDeriv[s][ip][fct][0]);
-		}
+			{check_s_ip_fct(s,ip,fct);return &(m_vvvDeriv[s][ip][fct][0]);}
 
 	///	returns the derivatives of the local function, at ip
 		const TData* deriv(size_t s, size_t ip, size_t fct) const
-		{
-			check_s_ip_fct(s,ip,fct);
-			return &(m_vvvDeriv[s][ip][fct][0]);
-		}
+			{check_s_ip_fct(s,ip,fct);return &(m_vvvDeriv[s][ip][fct][0]);}
 
 	///	resize lin defect arrays
-		virtual void resize(const LocalIndices& ind,
-		                    const FunctionIndexMapping& map)
-		{
-		//	resize num fct
-			for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
-				for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
-				{
-				//	number of functions
-					const size_t numFct = map.num_fct();
-
-				//	resize num fct
-					m_vvvDeriv[s][ip].resize(numFct);
-
-				//	resize dofs
-					for(size_t fct = 0; fct < numFct; ++fct)
-						m_vvvDeriv[s][ip][fct].resize(ind.num_dof(map[fct]));
-				}
-		}
+		virtual void resize(const LocalIndices& ind, const FunctionIndexMapping& map);
 
 	///	sets all derivative values to zero
-		void clear_derivative_values()
-		{
-			for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
-				for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
-					for(size_t fct = 0; fct <  m_vvvDeriv[s][ip].size(); ++fct)
-						for(size_t sh = 0; sh <  m_vvvDeriv[s][ip][fct].size(); ++sh)
-						{
-							m_vvvDeriv[s][ip][fct][sh] = 0.0;
-						}
-
-		}
+		void clear_derivative_values();
 
 	protected:
 	///	checks in debug mode the correct usage of indices
-		inline void check_s_ip(size_t s, size_t ip) const
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-		}
+		inline void check_s_ip(size_t s, size_t ip) const;
 
 	///	checks in debug mode the correct usage of indices
-		inline void check_s_ip_fct(size_t s, size_t ip, size_t fct) const
-		{
-			check_s_ip(s,ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
-		}
+		inline void check_s_ip_fct(size_t s, size_t ip, size_t fct) const;
 
 	///	checks in debug mode the correct usage of indices
-		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const
-		{
-			check_s_ip_fct(s,ip,fct);
-			UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
-		}
+		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const;
 
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
-		{
-		//	adjust data arrays
-			m_vvvDeriv.resize(vNumIP.size());
-			for(size_t s = 0; s < vNumIP.size(); ++s)
-				m_vvvDeriv[s].resize(vNumIP[s]);
-
-		//	resize values
-			IPData<TData, dim>::adjust_global_ips_and_data(vNumIP);
-		}
+		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP);
 
 	protected:
-
+	// 	Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
 	///	Derivatives
-	// Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
 		std::vector<std::vector<std::vector<std::vector<TData> > > > m_vvvDeriv;
 };
 
-
-
 } // end namespace ug
+
+//include implementation
+#include "ip_data_impl.h"
 
 #endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__ */
