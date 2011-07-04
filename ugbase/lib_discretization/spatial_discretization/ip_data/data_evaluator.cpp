@@ -9,12 +9,9 @@
 
 namespace ug{
 
-
-bool
-DataEvaluator::
-set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
-               const FunctionPattern& fctPat,
-               bool bNonRegularGrid)
+bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
+                                   const FunctionPattern& fctPat,
+                                   bool bNonRegularGrid)
 {
 //	remember current elem discs
 	m_pvElemDisc = &vElemDisc;
@@ -66,7 +63,6 @@ set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 	return extract_imports_and_ipdata();
 }
 
-
 void
 DataEvaluator::
 clear()
@@ -91,11 +87,8 @@ clear()
 	m_vLinkerData.clear();
 }
 
-
-bool
-DataEvaluator::
-add_data_to_eval_data(std::vector<IIPData*>& vEvalData,
-                      std::vector<IIPData*>& vTryingToAdd)
+bool DataEvaluator::add_data_to_eval_data(std::vector<IIPData*>& vEvalData,
+                                          std::vector<IIPData*>& vTryingToAdd)
 {
 //	if empty, we're done
 	if(vTryingToAdd.empty()) return true;
@@ -145,10 +138,7 @@ add_data_to_eval_data(std::vector<IIPData*>& vEvalData,
 	return true;
 }
 
-
-bool
-DataEvaluator::
-extract_imports_and_ipdata()
+bool DataEvaluator::extract_imports_and_ipdata()
 {
 //	clear imports and ipdata
 	clear();
@@ -296,11 +286,7 @@ extract_imports_and_ipdata()
 	return true;
 }
 
-
-
-bool
-DataEvaluator::
-compute_elem_data(local_vector_type & u,
+bool DataEvaluator::compute_elem_data(local_vector_type & u,
                   local_index_type& ind,
                   bool computeDeriv)
 {
@@ -335,10 +321,7 @@ compute_elem_data(local_vector_type & u,
 	return true;
 }
 
-
-bool
-DataEvaluator::
-compute_lin_defect_JA(local_vector_type & u, local_index_type& ind)
+bool DataEvaluator::compute_lin_defect_JA(local_vector_type & u, local_index_type& ind)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vIDataImport.size(); ++i)
@@ -362,10 +345,7 @@ compute_lin_defect_JA(local_vector_type & u, local_index_type& ind)
 	return true;
 }
 
-
-bool
-DataEvaluator::
-compute_lin_defect_JM(local_vector_type & u, local_index_type& ind)
+bool DataEvaluator::compute_lin_defect_JM(local_vector_type & u, local_index_type& ind)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vIDataImport.size(); ++i)
@@ -389,10 +369,7 @@ compute_lin_defect_JM(local_vector_type & u, local_index_type& ind)
 	return true;
 }
 
-
-bool
-DataEvaluator::
-add_coupl_JA(local_matrix_type& J, local_index_type& indRow)
+bool DataEvaluator::add_coupl_JA(local_matrix_type& J, local_index_type& indRow)
 {
 
 	for(size_t i = 0; i < m_vIDataImport.size(); ++i)
@@ -412,10 +389,7 @@ add_coupl_JA(local_matrix_type& J, local_index_type& indRow)
 	return true;
 }
 
-
-bool
-DataEvaluator::
-add_coupl_JM(local_matrix_type& J, local_index_type& indRow)
+bool DataEvaluator::add_coupl_JM(local_matrix_type& J, local_index_type& indRow)
 {
 	for(size_t i = 0; i < m_vIDataImport.size(); ++i)
 	{
@@ -434,11 +408,7 @@ add_coupl_JM(local_matrix_type& J, local_index_type& indRow)
 	return true;
 }
 
-
-
-bool
-DataEvaluator::
-ass_JA_elem(local_matrix_type& A, local_vector_type& u)
+bool DataEvaluator::ass_JA_elem(local_matrix_type& A, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -459,10 +429,7 @@ ass_JA_elem(local_matrix_type& A, local_vector_type& u)
 	return true;
 }
 
-
-bool
-DataEvaluator::
-ass_JM_elem(local_matrix_type& M, local_vector_type& u)
+bool DataEvaluator::ass_JM_elem(local_matrix_type& M, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -484,9 +451,7 @@ ass_JM_elem(local_matrix_type& M, local_vector_type& u)
 }
 
 
-bool
-DataEvaluator::
-ass_dA_elem(local_vector_type& d, local_vector_type& u)
+bool DataEvaluator::ass_dA_elem(local_vector_type& d, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -508,9 +473,7 @@ ass_dA_elem(local_vector_type& d, local_vector_type& u)
 }
 
 
-bool
-DataEvaluator::
-ass_dM_elem(local_vector_type& d, local_vector_type& u)
+bool DataEvaluator::ass_dM_elem(local_vector_type& d, local_vector_type& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -531,11 +494,7 @@ ass_dM_elem(local_vector_type& d, local_vector_type& u)
 	return true;
 }
 
-
-
-bool
-DataEvaluator::
-ass_rhs_elem(local_vector_type& rhs)
+bool DataEvaluator::ass_rhs_elem(local_vector_type& rhs)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -556,9 +515,8 @@ ass_rhs_elem(local_vector_type& rhs)
 }
 
 
-bool
-DataEvaluator::
-set_time_dependent(bool bTimeDep, number time, LocalVectorTimeSeries* locTimeSeries)
+bool DataEvaluator::set_time_dependent(bool bTimeDep, number time,
+                                       LocalVectorTimeSeries* locTimeSeries)
 {
 	bool bNeedLocTimeSeries = false;
 
@@ -570,9 +528,7 @@ set_time_dependent(bool bTimeDep, number time, LocalVectorTimeSeries* locTimeSer
 }
 
 
-bool
-DataEvaluator::
-set_non_regular_grid(bool bNonRegularGrid)
+bool DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -596,10 +552,7 @@ set_non_regular_grid(bool bNonRegularGrid)
 	return true;
 }
 
-
-bool
-DataEvaluator::
-finish_elem_loop()
+bool DataEvaluator::finish_elem_loop()
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 		if(!(*m_pvElemDisc)[i]->finish_elem_loop())
@@ -612,7 +565,6 @@ finish_elem_loop()
 //	we're done
 	return true;
 }
-
 
 } // end namespace ug
 
