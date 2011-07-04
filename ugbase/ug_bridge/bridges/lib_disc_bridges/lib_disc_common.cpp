@@ -8,17 +8,9 @@
 // include brigde
 #include "../../ug_bridge.h"
 
-// common includes
-#include "common/math/ugmath.h"
-#include "common/math/misc/math_util.h"
-
-// Lagrange Function Space
-#include "lib_discretization/local_shape_function_set/lagrange/lagrange.h"
-#include "lib_discretization/local_shape_function_set/lagrange/lagrange_local_dof.h"
-
-// P1ConformFunctionPattern
-#include "lib_discretization/dof_manager/p1conform/p1conform.h"
-
+// includes of lib_discretization
+#include "lib_discretization/common/function_group.h"
+#include "lib_discretization/dof_manager/function_pattern.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 
 namespace ug
