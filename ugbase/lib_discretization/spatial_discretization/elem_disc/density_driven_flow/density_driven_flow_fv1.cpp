@@ -7,6 +7,7 @@
 
 #include "density_driven_flow.h"
 #include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 
 //#define PROFILE_D3F
 #ifdef PROFILE_D3F

@@ -1,18 +1,21 @@
 /*
- * data_import.h
+ * data_import_export.h
  *
  *  Created on: 17.12.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_IMPORT__
-#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_IMPORT__
+#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_IMPORT_EXPORT__
+#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_IMPORT_EXPORT__
 
-#include "user_data.h"
-#include "../elem_disc/elem_disc_interface.h"
-#include "data_export.h"
+#include "ip_data.h"
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 
 namespace ug{
+
+////////////////////////////////////////////////////////////////////////////////
+// Data Import
+////////////////////////////////////////////////////////////////////////////////
 
 /// Base class for data import
 /**
@@ -105,37 +108,11 @@ class IDataImport
 
 	public:
 	///	sets the geometric object type
-		bool set_geometric_object_type(int id)
-		{
-		//	if lin defect is not supposed to be computed, we're done
-			if(!m_bCompLinDefect) return true;
-
-		//	Check for evaluation function and choose it if present
-			if(id < (int)m_vLinDefectFunc.size() && m_vLinDefectFunc[id] != NULL)
-			{
-				m_id = id;
-				return true;
-			}
-		//	return error else
-			else
-			{
-				UG_LOG("No or not all lin defect functions registered "
-						"for object with reference object id " << id << ".\n");
-				m_id = -1; return false;
-			}
-		}
+		bool set_geometric_object_type(int id);
 
 	///	register evaluation of linear defect for a element
 		template <typename TFunc>
-		void reg_lin_defect_fct(int id, IElemDisc* obj, TFunc func)
-		{
-		//	make sure that there is enough space
-			if((size_t)id >= m_vLinDefectFunc.size())
-				m_vLinDefectFunc.resize(id+1, NULL);
-
-			m_vLinDefectFunc[id] = (LinDefectFunc)func;
-			m_pObj = obj;
-		}
+		void reg_lin_defect_fct(int id, IElemDisc* obj, TFunc func);
 
 	///	compute lin defect
 		bool compute_lin_defect(const local_vector_type& u)
@@ -163,17 +140,7 @@ class DataImport : public IDataImport
 		{}
 
 	///	set the user data
-		void set_data(IPData<TData, dim>& data)
-		{
-		//	remember IPData
-			m_pIPData = &data;
-
-		//	remember iexport
-			this->m_pIDependentIPData = dynamic_cast<IDependentIPData*>(&data);
-
-		//	remember dependent data (i.e. is NULL iff no dependent data given)
-			m_pDependentIPData = dynamic_cast<DependentIPData<TData, dim>*>(&data);
-		}
+		void set_data(IPData<TData, dim>& data);
 
 	/// returns the connected IIPData
 		IIPData* get_data(){return m_pIPData;}
@@ -216,7 +183,7 @@ class DataImport : public IDataImport
 	///	return the derivative w.r.t to local function at ip
 		const TData* deriv(size_t ip, size_t fct) const
 		{
-			UG_ASSERT((dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)) != NULL, "No Data set");
+			UG_ASSERT(m_pIPData != NULL, "No Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
 			return dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)->deriv(m_seriesID, ip, fct);
 		}
@@ -224,7 +191,7 @@ class DataImport : public IDataImport
 	///	return the derivative w.r.t to local function and dof at ip
 		const TData& deriv(size_t ip, size_t fct, size_t dof) const
 		{
-			UG_ASSERT((dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)) != NULL, "No Data set");
+			UG_ASSERT(m_pIPData != NULL, "No Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
 			return dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)->deriv(m_seriesID, ip, fct, dof);
 		}
@@ -237,42 +204,20 @@ class DataImport : public IDataImport
 		size_t num_ip() const
 		{
 			if(m_pIPData == NULL) return 0;
-			else
-			{
-				UG_ASSERT(m_seriesID >= 0, "No series ticket set");
-				return m_pIPData->num_ip(m_seriesID);
-			}
+			else return m_pIPData->num_ip(m_seriesID);
 		}
 
 	///	set the local integration points
 		template <int ldim>
-		void set_local_ips(const MathVector<ldim>* vPos, size_t numIP)
-		{
-		//	if no data set, skip
-			if(m_pIPData == NULL) return;
-
-		//	request series
-			m_seriesID = m_pIPData->template
-						register_local_ip_series<ldim>(vPos,numIP);
-		}
+		void set_local_ips(const MathVector<ldim>* vPos, size_t numIP);
 
 	///	sets the global positions
-		void set_global_ips(const MathVector<dim>* vPos, size_t numIP)
-		{
-		//  if no data set, skip
-			if(m_pIPData == NULL) return;
-
-		//	set global ips for series ID
-			UG_ASSERT(m_seriesID >= 0, "Wrong series id.");
-			m_pIPData->set_global_ips(m_seriesID,vPos,numIP);
-		}
+		void set_global_ips(const MathVector<dim>* vPos, size_t numIP);
 
 	///	position of ip
 		const MathVector<dim>& position(size_t i) const
 		{
-			if(m_pIPData == NULL)
-				throw(UGFatalError("No Data set"));
-
+			if(m_pIPData == NULL) throw(UGFatalError("No Data set"));
 			return m_pIPData->ip(m_seriesID, i);
 		}
 
@@ -283,101 +228,42 @@ class DataImport : public IDataImport
 	/// number of shapes for local function
 		size_t num_sh(size_t fct) const
 		{
-			const size_t ip = 0;
-			UG_ASSERT(ip < m_vvvLinDefect.size(), "Invalid index.");
-			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
+			const size_t ip = 0; check_ip_fct(ip,fct);
 			return m_vvvLinDefect[ip][fct].size();
 		}
 
 	///	returns the pointer to all  linearized defects at one ip
 		TData* lin_defect(size_t ip, size_t fct)
-		{
-			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
-			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
-			return &(m_vvvLinDefect[ip][fct][0]);
-		}
+			{check_ip_fct(ip,fct);return &(m_vvvLinDefect[ip][fct][0]);}
 
 	///	returns the pointer to all  linearized defects at one ip
 		const TData* lin_defect(size_t ip, size_t fct) const
-		{
-			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
-			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
-			return &(m_vvvLinDefect[ip][fct][0]);
-		}
+			{check_ip_fct(ip,fct);return &(m_vvvLinDefect[ip][fct][0]);}
 
 	///	returns the linearized defect
 		TData& lin_defect(size_t ip, size_t fct, size_t sh)
-		{
-			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
-			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
-			UG_ASSERT(sh < m_vvvLinDefect[ip][fct].size(), "Invalid index.");
-			return m_vvvLinDefect[ip][fct][sh];
-		}
+			{check_ip_fct_sh(ip,fct,sh);return m_vvvLinDefect[ip][fct][sh];}
 
 	/// const access to lin defect
 		const TData& lin_defect(size_t ip, size_t fct, size_t sh) const
-		{
-			UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
-			UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
-			UG_ASSERT(sh < m_vvvLinDefect[ip][fct].size(), "Invalid index.");
-			return m_vvvLinDefect[ip][fct][sh];
-		}
+			{check_ip_fct_sh(ip,fct,sh);return m_vvvLinDefect[ip][fct][sh];}
 
 	///	resets all values of the linearized defect to zero
-		void clear_lin_defect()
-		{
-			for(size_t ip = 0; ip < m_vvvLinDefect.size(); ++ip)
-				for(size_t fct = 0; fct < m_vvvLinDefect[ip].size(); ++fct)
-					for(size_t sh = 0; sh < m_vvvLinDefect[ip][fct].size(); ++sh)
-						m_vvvLinDefect[ip][fct][sh] = 0.0;
-		}
+		void clear_lin_defect();
 
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
-		void assemble_jacobian(local_matrix_type& J)
-		{
-			UG_ASSERT(m_pDependentIPData != NULL, "No Export set.");
-
-		//	loop integration points
-			for(size_t ip = 0; ip < num_ip(); ++ip)
-			{
-		//	loop all functions
-			for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
-				for(size_t fct2 = 0; fct2 < m_pDependentIPData->num_fct(); ++fct2)
-				{
-		//	get array of linearized defect and derivative
-			const TData* LinDef = lin_defect(ip, fct1);
-			const TData* Deriv = m_pDependentIPData->deriv(m_seriesID, ip, fct2);
-
-		//	loop shapes of functions
-			for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-				for(size_t sh2 = 0; sh2 < m_pDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
-				{
-					J(fct1, sh1, fct2, sh2) += LinDef[sh1]*Deriv[sh2];
-				}
-				}
-			}
-		}
+		void assemble_jacobian(local_matrix_type& J);
 
 	///	resize lin defect arrays
-		virtual void resize(const LocalIndices& ind,
-		                    const FunctionIndexMapping& map)
-		{
-		//	resize ips
-			m_vvvLinDefect.resize(num_ip());
-
-		//	resize num fct
-			for(size_t ip = 0; ip < num_ip(); ++ip)
-			{
-			//	resize num fct
-				m_vvvLinDefect[ip].resize(map.num_fct());
-
-			//	resize dofs
-				for(size_t fct = 0; fct < map.num_fct(); ++fct)
-					m_vvvLinDefect[ip][fct].resize(ind.num_dof(map[fct]));
-			}
-		}
+		virtual void resize(const LocalIndices& ind, const FunctionIndexMapping& map);
 
 	protected:
+	///	checks in debug mode the correct index
+		inline void check_ip_fct(size_t ip, size_t fct) const;
+
+	///	checks in debug mode the correct index
+		inline void check_ip_fct_sh(size_t ip, size_t fct, size_t sh) const;
+
 	///	series number provided by export
 		int m_seriesID;
 
@@ -391,6 +277,107 @@ class DataImport : public IDataImport
 		std::vector<std::vector<std::vector<TData> > > m_vvvLinDefect;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Data Export
+////////////////////////////////////////////////////////////////////////////////
+
+
+/// Base class for Data Export
+/**
+ * An base class for all data exports
+ */
+class IDataExport : virtual public IDependentIPData
+{
+	protected:
+	///	type of local vector
+		typedef IElemDisc::local_vector_type local_vector_type;
+
+	///	type of evaluation function
+		typedef bool (IElemDisc::*ExportFunc)(const local_vector_type& u,
+														bool compDeriv);
+
+	public:
+	///	Constructor
+		IDataExport() : m_id(-1), m_pObj(NULL) {}
+
+	/// clear ips
+		virtual void clear_export_ips() = 0;
+
+	///	sets the geometric object type
+		bool set_geometric_object_type(int id);
+
+	///	register evaluation of linear defect for a element
+		template <typename TFunc>
+		void reg_export_fct(int id, IElemDisc* obj, TFunc func);
+
+	///	compute export
+		bool compute_export(const local_vector_type& u, bool compDeriv)
+		{
+			UG_ASSERT(m_id >=0, "ElemType id is not set correctly.");
+			UG_ASSERT((size_t)m_id < m_vExportFunc.size(), "id "<<m_id<<" not registered");
+			UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
+			return (m_pObj->*(m_vExportFunc[m_id]))(u, compDeriv);
+		}
+
+	///	get corresponding element disc
+		IElemDisc* get_elem_disc() {return m_pObj;}
+
+	///	virtual destructor
+		virtual ~IDataExport() {}
+
+	protected:
+	///	function pointers for all elem types
+		std::vector<ExportFunc>	m_vExportFunc;
+
+	/// current Geom Object
+		int m_id;
+
+	///	elem disc
+		IElemDisc* m_pObj;
+};
+
+/// Data export
+/**
+ * A DataExport is user data produced by an element discretization.
+ */
+template <typename TData, int dim>
+class DataExport : 	public DependentIPData<TData, dim>,
+					public IDataExport
+{
+	public:
+		virtual void compute(bool computeDeriv)
+			{throw(UGFatalError("Should not be called."));}
+
+	///	returns if data depends on solution
+		virtual bool zero_derivative() const {return false;}
+
+	/// clear ips
+		virtual void clear_export_ips() {this->clear_ips();}
+
+	///	clear dependent data
+		void clear() {m_vDependData.clear();}
+
+	///	add data dependency
+		void add_needed_data(IIPData& data) {m_vDependData.push_back(&data);}
+
+	///	remove needed data
+		void remove_needed_data(IIPData& data) {remove(m_vDependData.begin(),
+		                                               m_vDependData.end(),
+		                                               &data);}
+
+	///	number of other Data this data depends on
+		virtual size_t num_needed_data() const {return m_vDependData.size();}
+
+	///	return needed data
+		virtual IIPData* needed_data(size_t i) {return m_vDependData.at(i);}
+
+	protected:
+		std::vector<IIPData*> m_vDependData;
+};
+
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_IMPORT__ */
+// include implementation
+#include "data_import_export_impl.h"
+
+#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_IMPORT_EXPORT__ */

@@ -14,9 +14,7 @@
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-
-#include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
-#include "lib_discretization/spatial_discretization/ip_data/data_import.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_import_export.h"
 
 namespace ug{
 

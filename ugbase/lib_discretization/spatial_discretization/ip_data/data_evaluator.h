@@ -10,8 +10,7 @@
 
 #include "user_data.h"
 #include "../elem_disc/elem_disc_interface.h"
-#include "data_export.h"
-#include "data_import.h"
+#include "data_import_export.h"
 
 namespace ug{
 

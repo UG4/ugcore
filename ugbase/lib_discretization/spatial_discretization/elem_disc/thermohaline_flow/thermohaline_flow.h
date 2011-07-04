@@ -14,10 +14,7 @@
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-
-#include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
-#include "lib_discretization/spatial_discretization/ip_data/data_export.h"
-#include "lib_discretization/spatial_discretization/ip_data/data_import.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_import_export.h"
 
 #include "lib_discretization/spatial_discretization/disc_util/conv_shape_interface.h"
 #include "lib_discretization/spatial_discretization/disc_util/consistent_gravity.h"
