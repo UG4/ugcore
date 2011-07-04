@@ -16,7 +16,7 @@
 #include "lib_discretization/domain_util.h"
 #include "lib_discretization/quadrature/quadrature.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include <boost/function.hpp>
 
 namespace ug{

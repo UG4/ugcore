@@ -3,11 +3,11 @@
 #include "ug_bridge/ug_bridge.h"
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include "ug_script/ug_script.h"
 #include <iostream>
 #include <sstream>
-#include "./user_data.h"
+#include "user_data.h"
 
 namespace ug
 {

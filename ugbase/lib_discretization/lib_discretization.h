@@ -99,7 +99,7 @@
 #include "spatial_discretization/elem_disc/neumann_boundary/neumann_boundary.h"
 
 #include "spatial_discretization/ip_data/user_data_interface.h"
-#include "spatial_discretization/ip_data/user_data.h"
+#include "spatial_discretization/ip_data/const_user_data.h"
 #include "spatial_discretization/ip_data/ip_data.h"
 #include "spatial_discretization/ip_data/const_user_data.h"
 #include "spatial_discretization/ip_data/data_import_export.h"

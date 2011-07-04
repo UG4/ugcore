@@ -1,5 +1,5 @@
 /* 
- * File:   user_data.h
+ * File:   const_user_data.h
  * Author: miho
  *
  * Created on 15. April 2011, 11:11
