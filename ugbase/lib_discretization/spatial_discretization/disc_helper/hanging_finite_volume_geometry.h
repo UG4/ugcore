@@ -288,7 +288,8 @@ class HFV1Geometry : public FVGeometryBase{
 				const size_t dim_ = scv.m_midId[i].dim;
 				const size_t id = scv.m_midId[i].id;
 				UG_ASSERT(dim_ >= 0 && dim_ <= (size_t)dim, "Dimension wrong");
-				UG_ASSERT(id < m_locMid[dim_].size(), "id " << id << " in dim="<<dim_<<" wrong. (size is "<< m_locMid[dim_].size()<<")\n");
+				UG_ASSERT(id < m_locMid[dim_].size(), "id " << id << " in dim="
+				          <<dim_<<" wrong. (size is "<< m_locMid[dim_].size()<<")\n");
 				scv.m_vLocPos[i] = m_locMid[dim_][id];
 			}
 		}
@@ -300,34 +301,41 @@ class HFV1Geometry : public FVGeometryBase{
 				const size_t dim_ = scv.m_midId[i].dim;
 				const size_t id = scv.m_midId[i].id;
 				UG_ASSERT(dim_ >= 0 && dim_ <= (size_t)dim, "Dimension wrong");
-				UG_ASSERT(id < m_gloMid[dim_].size(), "id " << id << " in dim="<<dim_<<" wrong. (size is "<< m_gloMid[dim_].size()<<")\n");
+				UG_ASSERT(id < m_gloMid[dim_].size(), "id " << id << " in dim="
+				          <<dim_<<" wrong. (size is "<< m_gloMid[dim_].size()<<")\n");
 				scv.m_vGloPos[i] = m_gloMid[dim_][id];
 			}
 		}
 
 		// i = number of side
-		void compute_side_midpoints(size_t i, MathVector<dim>& locSideMid, MathVector<worldDim>& gloSideMid)
+		void compute_side_midpoints(size_t i,
+		                            MathVector<dim>& locSideMid,
+		                            MathVector<worldDim>& gloSideMid)
 		{
-			const size_t coID0 = m_rRefElem.id(2, i, 0, 0);
-			locSideMid = m_locMid[0][coID0];
-			gloSideMid = m_gloMid[0][coID0];
-
-			// add corner coordinates of the corners of the geometric object
-			for(size_t j = 1; j < m_rRefElem.num(2, i, 0); ++j)
+			if(dim>1)
 			{
-				const size_t coID = m_rRefElem.id(2, i, 0, j);
-				locSideMid += m_locMid[0][coID];
-				gloSideMid += m_gloMid[0][coID];
-			}
+				const size_t coID0 = m_rRefElem.id(2, i, 0, 0);
+				locSideMid = m_locMid[0][coID0];
+				gloSideMid = m_gloMid[0][coID0];
 
-			// scale for correct averaging
-			locSideMid *= 1./(m_rRefElem.num(2, i, 0));
-			gloSideMid *= 1./(m_rRefElem.num(2, i, 0));
+				// add corner coordinates of the corners of the geometric object
+				for(size_t j = 1; j < m_rRefElem.num(2, i, 0); ++j)
+				{
+					const size_t coID = m_rRefElem.id(2, i, 0, j);
+					locSideMid += m_locMid[0][coID];
+					gloSideMid += m_gloMid[0][coID];
+				}
+
+				// scale for correct averaging
+				locSideMid *= 1./(m_rRefElem.num(2, i, 0));
+				gloSideMid *= 1./(m_rRefElem.num(2, i, 0));
+			}
 		}
 
 		// i, j, k, l = number nodes
 		void compute_side_midpoints(size_t i, size_t j, size_t k, size_t l,
-									MathVector<dim>& locSideMid, MathVector<worldDim>& gloSideMid)
+									MathVector<dim>& locSideMid,
+									MathVector<worldDim>& gloSideMid)
 		{
 			VecAdd(locSideMid, m_locMid[0][i], m_locMid[0][j], m_locMid[0][k], m_locMid[0][l]);
 			VecAdd(gloSideMid, m_gloMid[0][i], m_gloMid[0][j], m_gloMid[0][k], m_gloMid[0][l]);
