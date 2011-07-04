@@ -20,6 +20,7 @@
 #include "../../reference_element/reference_element.h"
 #include "./elem_disc_interface.h"
 #include "lib_discretization/common/function_group.h"
+#include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_evaluator.h"
 
 #define PROFILE_ELEM_LOOP
