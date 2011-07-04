@@ -12,7 +12,6 @@
 #include <vector>
 
 // intern headers
-#include "lib_discretization/assemble_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/time_discretization/solution_time_series.h"
 #include "lib_discretization/function_spaces/approximation_space.h"
