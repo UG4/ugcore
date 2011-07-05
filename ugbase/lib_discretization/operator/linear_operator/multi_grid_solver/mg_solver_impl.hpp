@@ -238,6 +238,12 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 //	used as coarse grid correction. Finally a post-smooth is performed.
 	if(lev > m_baseLev)
 	{
+/*
+// used for debugging adaptive mg.
+UG_LOG("  lmgc lev " << lev << " start: ");
+number norm = d.two_norm();
+UG_LOG(" d: " << norm << "\n");
+*/
 	//	get smomother on this level and corresponding operator
 		smoother_type* S = m_vLevData[lev].Smoother;
 		MatrixOperator<vector_type, vector_type, matrix_type>* A = m_vLevData[lev].A;
@@ -262,6 +268,13 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 		}
 		#endif
 
+/*
+// used for debugging adaptive mg.
+UG_LOG("  lmgc lev " << lev << " after lifting: ");
+norm = d.two_norm();
+UG_LOG(" d: " << norm << "\n");
+*/
+
 	// 	PRE-SMOOTHING
 	//	We start the multi grid cycle on this level by smoothing the defect. This
 	//	means that we compute a correction c, such that the defect is "smoother".
@@ -276,6 +289,12 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 		}
 		GMG_PROFILE_END();
 
+/*
+// used for debugging adaptive mg.
+UG_LOG("  lmgc lev " << lev << " after presmooth: ");
+norm = d.two_norm();
+UG_LOG(" d: " << norm << "\n");
+*/
 	//	PROJECT DEFECT BACK TO WHOLE GRID FOR RESTRICTION
 		#ifdef UG_PARALLEL
 		if(m_vLevData[lev].SmoothMat != NULL)

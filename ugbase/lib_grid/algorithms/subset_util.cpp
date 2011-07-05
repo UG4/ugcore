@@ -353,10 +353,24 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 	//	now we have to assign the interface edges to subsets.
 		AssignFaceInterfaceEdgesToSubsets(grid, sh);
 		
-	//	make sure that all edge-subsets are regular poly-chains	
+	//	make sure that all edge-subsets are regular poly-chains
+		int firstFree = GetMaxSubsetIndex<EdgeBase>(sh) + 1;
 		for(int i = 0; i < sh.num_subsets(); ++i){
-			int firstFree = GetMaxSubsetIndex<EdgeBase>(sh) + 1;
-			SplitIrregularPolyChain(sh, i, firstFree);
+			if(SplitIrregularPolyChain(sh, i, firstFree))
+				++firstFree;
+		}
+
+	//	Since ug3 does not support loops, we have to remove those.
+		for(int i = 0; i < sh.num_subsets(); ++i){
+			size_t chainType = GetPolyChainType(grid, sh.begin<EdgeBase>(i),
+												sh.end<EdgeBase>(i),
+												IsInSubset(sh, i));
+			if(chainType == PCT_CLOSED){
+			//	since the chain is regular (see loop above) and since it is
+			//	closed, it is enough to simply move the first edge of the
+			//	chain to a new subset.
+				sh.assign_subset(*sh.begin<EdgeBase>(i), firstFree++);
+			}
 		}
 		
 	//	fix orientation

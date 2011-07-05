@@ -374,7 +374,7 @@ bool ProjectLevelToSurface(TVector& surfVector,
 //	copy storage type into surf vector
 	if(vLevelVector.size() > 0)
 	{
-		ParallelStorageType type = vLevelVector[vLevelVector.size()-1]->get_storage_mask();
+		uint type = vLevelVector[vLevelVector.size()-1]->get_storage_mask();
 
 	//	get intersection of types
 		for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)

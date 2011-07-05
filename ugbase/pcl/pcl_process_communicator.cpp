@@ -149,7 +149,7 @@ allreduce(const void* sendBuf, void* recBuf, int count,
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
 	}
-	
+
 	MPI_Allreduce(const_cast<void*>(sendBuf), recBuf, count, type, op, m_comm->m_mpiComm);
 }
 

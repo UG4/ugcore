@@ -142,22 +142,26 @@ class ParallelVector : public TVector
 		/////////////////////////
 
 	/// sets the storage type
-		void set_storage_type(ParallelStorageType type) {m_type = type;}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		void set_storage_type(uint type) {m_type = type;}
 
 	/// adds a storage type
-		void add_storage_type(ParallelStorageType type) {m_type |= type;}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		void add_storage_type(uint type) {m_type |= type;}
 
 	/// removes a storage type
-		void remove_storage_type(ParallelStorageType type) {m_type &= ~type;}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		void remove_storage_type(uint type) {m_type &= ~type;}
 
 	/// changes to the requested storage type if possible
 		bool change_storage_type(ParallelStorageType type);
 
 	/// returns if the current storage type has a given representation
-		bool has_storage_type(ParallelStorageType type) const {return (bool)(m_type & type);}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		bool has_storage_type(uint type) const {return type == PST_UNDEFINED ? m_type == PST_UNDEFINED : (m_type & type) == type;}
 
 	/// returns storage type mask
-		ParallelStorageType get_storage_mask() const { return (ParallelStorageType) m_type; }
+		uint get_storage_mask() const { return m_type; }
 
 	/// copies the storage type from another vector
 		void copy_storage_type(const this_type& v) {m_type = v.m_type;}
@@ -213,7 +217,7 @@ class ParallelVector : public TVector
 		this_type &operator -=(const this_type &v)
 		{
 		//	compute storage mask
-			ParallelStorageType mask = get_storage_mask() & v.get_storage_mask();
+			uint mask = get_storage_mask() & v.get_storage_mask();
 
 		//	check mask
 			UG_ASSERT(mask != 0, "cannot substract vector v");
@@ -222,7 +226,7 @@ class ParallelVector : public TVector
 						get_storage_mask(), v.get_storage_mask()));
 
 		//	set this vector to mask
-			set_storage_type(mask);
+			m_type = mask;
 
 		//	forward
 			TVector::operator-=(*dynamic_cast<const TVector*>(&v));
@@ -235,7 +239,7 @@ class ParallelVector : public TVector
 		this_type &operator +=(const this_type &v)
 		{
 		//	compute parallel storage mask
-			ParallelStorageType mask = get_storage_mask() & v.get_storage_mask();
+			uint mask = get_storage_mask() & v.get_storage_mask();
 
 		//	check mask
 			UG_ASSERT(mask != 0, "cannot add vector v");
@@ -244,7 +248,7 @@ class ParallelVector : public TVector
 						get_storage_mask(), v.get_storage_mask()));
 
 		//	set to new mask
-			set_storage_type(mask);
+			m_type = mask;
 
 		// 	forward to sequential vector
 			TVector::operator+=(*dynamic_cast<const TVector*>(&v));
@@ -268,7 +272,8 @@ class ParallelVector : public TVector
 	protected:
 	private:
 	// 	type of storage  (i.e. consistent, additiv, additiv unique)
-		int m_type;
+	//	holds or-combiation of constants enumerated in ug::ParallelStorageType.
+		uint m_type;
 
 	// 	index layout for slave dofs (0 is process-wise (finest grained) partition)
 		IndexLayout* m_pSlaveLayout;

@@ -157,24 +157,24 @@ inline
 number
 ParallelVector<TVector>::
 two_norm()
-{
+{/*
 	// step 1: make vector d additive unique
 	if(!change_storage_type(PST_UNIQUE)) {
 		UG_ASSERT(0, "Cannot change to unique representation.");
 		UG_LOG("ERROR in ParallelVector: Cannot change to unique representation.\n");
 		return -1;
-	}
+	}*/
 
 	// step 2: compute new defect norm
 	double tNormLocal = (double)TVector::two_norm();
 	tNormLocal *= tNormLocal;
 
 	// step 3: sum local norms
-	double tNormGlobal;
 
 	PARVEC_PROFILE_BEGIN(ParVec_two_norm_allreduce); // added 14042011ih
-	m_processCommunicator.allreduce(&tNormLocal, &tNormGlobal, 1,
-									PCL_DT_DOUBLE, PCL_RO_SUM);
+
+	double tNormGlobal = m_processCommunicator.allreduce(tNormLocal, PCL_RO_SUM);
+
 	PARVEC_PROFILE_END(); //ParVec_two_norm_allreduce // added 14042011ih
 	/* TMP (VERY TEMPORARY ...) 29032011ih
 	UG_LOG_ALL_PROCS("'two_norm()' on Proc " << std::setw(3) << pcl::GetProcRank() <<
@@ -263,7 +263,7 @@ inline void VecScaleAdd(ParallelVector<T>  &dest,
 		double alpha1, const ParallelVector<T> &v1,
 		double alpha2, const ParallelVector<T> &v2)
 {
-	ParallelStorageType mask = v1.get_storage_mask() & v2.get_storage_mask();
+	uint mask = v1.get_storage_mask() & v2.get_storage_mask();
 	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
 	dest.set_storage_type(mask);
 
@@ -278,7 +278,7 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 		double alpha2, const ParallelVector<T> &v2,
 		double alpha3, const ParallelVector<T> &v3)
 {
-	ParallelStorageType mask = 	v1.get_storage_mask() &
+	uint mask = 	v1.get_storage_mask() &
 								v2.get_storage_mask() &
 								v3.get_storage_mask();
 	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");

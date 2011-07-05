@@ -52,12 +52,12 @@ inline ParallelStorageType operator & (const ParallelStorageType &a, const Paral
 struct UG_ERROR_IncompatibleParallelStorageType
 {
 		UG_ERROR_IncompatibleParallelStorageType
-			(ParallelStorageType a_, ParallelStorageType b_) :
+			(uint a_, uint b_) :
 			a(a_), b(b_)
 		{}
 
-		ParallelStorageType a;
-		ParallelStorageType b;
+		uint a;
+		uint b;
 };
 
 inline std::ostream& operator<< (std::ostream& outStream, const ParallelStorageType& type)

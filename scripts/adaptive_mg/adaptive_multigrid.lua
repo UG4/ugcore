@@ -264,7 +264,7 @@ ilut = ILUT()
 	gmg:set_debug(dbgWriter)
 
 
-amg = AMGPreconditioner()
+amg = RSAMGPreconditioner()
 --amg:enable_aggressive_coarsening_A(2)
 
 amg:set_num_presmooth(3)
