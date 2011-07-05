@@ -27,7 +27,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-prepare_element_loop()
+elem_loop_prepare_fe()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
@@ -57,7 +57,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-finish_element_loop()
+elem_loop_finish_fe()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
@@ -87,7 +87,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u)
+elem_prepare_fe(TElem* elem, const local_vector_type& u)
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL
@@ -123,7 +123,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u)
+elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
 		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
@@ -168,7 +168,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u)
+elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
 		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
@@ -198,7 +198,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-assemble_A(local_vector_type& d, const local_vector_type& u)
+elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 {
 	static const int dim = TDomain::dim;
 
@@ -252,7 +252,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-assemble_M(local_vector_type& d, const local_vector_type& u)
+elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
 		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
@@ -285,7 +285,7 @@ template<typename TElem >
 inline
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-assemble_f(local_vector_type& d)
+elem_rhs_fe(local_vector_type& d)
 {
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
 		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
@@ -347,14 +347,14 @@ register_fe1_func()
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	reg_prepare_elem_loop_fct(id, &T::template prepare_element_loop<TElem>);
-	reg_prepare_elem_fct(	 id, &T::template prepare_element<TElem>);
-	reg_finish_elem_loop_fct( id, &T::template finish_element_loop<TElem>);
-	reg_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem>);
-	reg_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem>);
-	reg_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem>);
-	reg_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem>);
-	reg_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem>);
+	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem>);
+	reg_prepare_elem_fct(	 id, &T::template elem_prepare_fe<TElem>);
+	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem>);
+	reg_ass_JA_elem_fct(		 id, &T::template elem_JA_fe<TElem>);
+	reg_ass_JM_elem_fct(		 id, &T::template elem_JM_fe<TElem>);
+	reg_ass_dA_elem_fct(		 id, &T::template elem_dA_fe<TElem>);
+	reg_ass_dM_elem_fct(		 id, &T::template elem_dM_fe<TElem>);
+	reg_ass_rhs_elem_fct(	 id, &T::template elem_rhs_fe<TElem>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

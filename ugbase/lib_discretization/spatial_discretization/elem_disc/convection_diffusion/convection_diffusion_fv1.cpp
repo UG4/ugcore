@@ -26,7 +26,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-prepare_element_loop()
+elem_loop_prepare_fv1()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
@@ -75,7 +75,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-finish_element_loop()
+elem_loop_finish_fv1()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
@@ -105,7 +105,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u)
+elem_prepare_fv1(TElem* elem, const local_vector_type& u)
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL
@@ -156,7 +156,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u)
+elem_JA_fv1(local_matrix_type& J, const local_vector_type& u)
 {
 // get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -244,7 +244,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u)
+elem_JM_fv1(local_matrix_type& J, const local_vector_type& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -279,7 +279,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-assemble_A(local_vector_type& d, const local_vector_type& u)
+elem_dA_fv1(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -362,7 +362,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-assemble_M(local_vector_type& d, const local_vector_type& u)
+elem_dM_fv1(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -397,7 +397,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-assemble_f(local_vector_type& d)
+elem_rhs_fv1(local_vector_type& d)
 {
 //	if zero data given, return
 	if(!m_imSource.data_given()) return true;
@@ -428,7 +428,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-lin_defect_velocity(const local_vector_type& u)
+lin_defect_velocity_fv1(const local_vector_type& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -468,7 +468,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-lin_defect_diffusion(const local_vector_type& u)
+lin_defect_diffusion_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -517,7 +517,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-lin_defect_reaction(const local_vector_type& u)
+lin_defect_reaction_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -544,7 +544,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-lin_defect_source(const local_vector_type& u)
+lin_defect_source_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -571,7 +571,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-lin_defect_mass_scale(const local_vector_type& u)
+lin_defect_mass_scale_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -598,7 +598,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-compute_concentration_export(const local_vector_type& u, bool compDeriv)
+comp_export_concentration_fv1(const local_vector_type& u, bool bDeriv)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -631,7 +631,7 @@ compute_concentration_export(const local_vector_type& u, bool compDeriv)
 					cIP += u(_C_, sh) * scvf.shape(sh);
 
 			//	compute derivative w.r.t. to unknowns iff needed
-				if(compDeriv)
+				if(bDeriv)
 				{
 				//	get field of derivatives
 					number* cIP_c = m_exConcentration.deriv(s, ip, _C_);
@@ -652,7 +652,7 @@ compute_concentration_export(const local_vector_type& u, bool compDeriv)
 				m_exConcentration.value(s, sh) = u(_C_, sh);
 
 			//	set derivatives if needed
-				if(compDeriv)
+				if(bDeriv)
 				{
 					number* cIP_c = m_exConcentration.deriv(s, sh, _C_);
 
@@ -678,7 +678,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
+comp_export_concentration_grad_fv1(const local_vector_type& u, bool bDeriv)
 {
 // 	Get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
@@ -709,7 +709,7 @@ compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh));
 
-				if(compDeriv)
+				if(bDeriv)
 				{
 					MathVector<dim>* cIP_c = m_exConcentrationGrad.deriv(s, ip, _C_);
 
@@ -811,25 +811,25 @@ register_fv1_func()
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	reg_prepare_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
-	reg_prepare_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
-	reg_finish_elem_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
-	reg_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
-	reg_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
-	reg_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
-	reg_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
-	reg_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fv1<TElem, TFVGeom>);
+	reg_prepare_elem_fct(	  id, &T::template elem_prepare_fv1<TElem, TFVGeom>);
+	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fv1<TElem, TFVGeom>);
+	reg_ass_JA_elem_fct(	  id, &T::template elem_JA_fv1<TElem, TFVGeom>);
+	reg_ass_JM_elem_fct(	  id, &T::template elem_JM_fv1<TElem, TFVGeom>);
+	reg_ass_dA_elem_fct(	  id, &T::template elem_dA_fv1<TElem, TFVGeom>);
+	reg_ass_dM_elem_fct(	  id, &T::template elem_dM_fv1<TElem, TFVGeom>);
+	reg_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fv1<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
-	m_imVelocity. reg_lin_defect_fct(id, this, &T::template lin_defect_velocity<TElem, TFVGeom>);
-	m_imDiffusion.reg_lin_defect_fct(id, this, &T::template lin_defect_diffusion<TElem, TFVGeom>);
-	m_imReaction. reg_lin_defect_fct(id, this, &T::template lin_defect_reaction<TElem, TFVGeom>);
-	m_imSource.	  reg_lin_defect_fct(id, this, &T::template lin_defect_source<TElem, TFVGeom>);
-	m_imMassScale.reg_lin_defect_fct(id, this, &T::template lin_defect_mass_scale<TElem, TFVGeom>);
+	m_imVelocity. reg_lin_defect_fct(id, this, &T::template lin_defect_velocity_fv1<TElem, TFVGeom>);
+	m_imDiffusion.reg_lin_defect_fct(id, this, &T::template lin_defect_diffusion_fv1<TElem, TFVGeom>);
+	m_imReaction. reg_lin_defect_fct(id, this, &T::template lin_defect_reaction_fv1<TElem, TFVGeom>);
+	m_imSource.	  reg_lin_defect_fct(id, this, &T::template lin_defect_source_fv1<TElem, TFVGeom>);
+	m_imMassScale.reg_lin_defect_fct(id, this, &T::template lin_defect_mass_scale_fv1<TElem, TFVGeom>);
 
 //	exports
-	m_exConcentration.	  reg_export_fct(id, this, &T::template compute_concentration_export<TElem, TFVGeom>);
-	m_exConcentrationGrad.reg_export_fct(id, this, &T::template compute_concentration_grad_export<TElem, TFVGeom>);
+	m_exConcentration.	  reg_export_fct(id, this, &T::template comp_export_concentration_fv1<TElem, TFVGeom>);
+	m_exConcentrationGrad.reg_export_fct(id, this, &T::template comp_export_concentration_grad_fv1<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

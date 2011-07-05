@@ -120,28 +120,28 @@ class FE1ConvectionDiffusionElemDisc
 		virtual bool time_point_changed(number time);
 
 		template <typename TElem>
-		bool prepare_element_loop();
+		bool elem_loop_prepare_fe();
 
 		template <typename TElem>
-		bool prepare_element(TElem* elem, const local_vector_type& u);
+		bool elem_prepare_fe(TElem* elem, const local_vector_type& u);
 
 		template <typename TElem>
-		bool finish_element_loop();
+		bool elem_loop_finish_fe();
 
 		template <typename TElem>
-		bool assemble_JA(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JA_fe(local_matrix_type& J, const local_vector_type& u);
 
 		template <typename TElem>
-		bool assemble_JM(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JM_fe(local_matrix_type& J, const local_vector_type& u);
 
 		template <typename TElem>
-		bool assemble_A(local_vector_type& d, const local_vector_type& u);
+		bool elem_dA_fe(local_vector_type& d, const local_vector_type& u);
 
 		template <typename TElem>
-		bool assemble_M(local_vector_type& d, const local_vector_type& u);
+		bool elem_dM_fe(local_vector_type& d, const local_vector_type& u);
 
 		template <typename TElem>
-		bool assemble_f(local_vector_type& d);
+		bool elem_rhs_fe(local_vector_type& d);
 
 	private:
 	///	Corner Coordinates
