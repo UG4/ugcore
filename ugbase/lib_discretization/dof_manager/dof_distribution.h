@@ -125,33 +125,9 @@ class IDoFDistribution
 	/// number of subsets where dofs are defined
 		int num_subsets() const {return m_goc.num_levels();}
 
-	/// number of elements where dofs are defined
-		template<typename TElem>
-		size_t num() const {return m_goc.num<TElem>();}
-
 	/// number of elements in a subset where dofs are defined
 		template<typename TElem>
 		size_t num(int si) const {return m_goc.num<TElem>(si);}
-
-	///	iterator for elements where dofs are defined
-		template <typename TElem>
-		typename geometry_traits<TElem>::iterator begin()
-			{return m_goc.begin<TElem>();}
-
-	/// iterator for elements where dofs are defined
-		template <typename TElem>
-		typename geometry_traits<TElem>::iterator end()
-			{return m_goc.end<TElem>();}
-
-	/// iterator for elements where dofs are defined
-		template <typename TElem>
-		typename geometry_traits<TElem>::const_iterator begin() const
-			{return m_goc.begin<TElem>();}
-
-	/// iterator for elements where dofs are defined
-		template <typename TElem>
-		typename geometry_traits<TElem>::const_iterator end() const
-			{return m_goc.end<TElem>();}
 
 	/// iterator for elements where dofs are defined
 		template <typename TElem>

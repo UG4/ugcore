@@ -1857,18 +1857,21 @@ allocate(size_t lev,
 			= approxSpace.get_domain().get_distributed_grid_manager();
 
 	//	select all ghost geometric objects
-		SelectNonGhosts<VertexBase>(*sel, *pDstGrdMgr,
-		                         pLevDD->template begin<VertexBase>(),
-		                         pLevDD->template end<VertexBase>());
-		SelectNonGhosts<EdgeBase>(*sel, *pDstGrdMgr,
-		                         pLevDD->template begin<EdgeBase>(),
-		                         pLevDD->template end<EdgeBase>());
-		SelectNonGhosts<Face>(*sel, *pDstGrdMgr,
-		                         pLevDD->template begin<Face>(),
-		                         pLevDD->template end<Face>());
-		SelectNonGhosts<Volume>(*sel, *pDstGrdMgr,
-		                         pLevDD->template begin<Volume>(),
-		                         pLevDD->template end<Volume>());
+		for(int si = 0; si < pLevDD->num_subsets(); ++si)
+		{
+			SelectNonGhosts<VertexBase>(*sel, *pDstGrdMgr,
+									 pLevDD->template begin<VertexBase>(si),
+									 pLevDD->template end<VertexBase>(si));
+			SelectNonGhosts<EdgeBase>(*sel, *pDstGrdMgr,
+									 pLevDD->template begin<EdgeBase>(si),
+									 pLevDD->template end<EdgeBase>(si));
+			SelectNonGhosts<Face>(*sel, *pDstGrdMgr,
+									 pLevDD->template begin<Face>(si),
+									 pLevDD->template end<Face>(si));
+			SelectNonGhosts<Volume>(*sel, *pDstGrdMgr,
+									 pLevDD->template begin<Volume>(si),
+									 pLevDD->template end<Volume>(si));
+		}
 
 		if(!SmoothMat) SmoothMat = new MatrixOperator<vector_type, vector_type, matrix_type>;
 		SmoothMat->get_matrix().set_master_layout(*masterLayout);

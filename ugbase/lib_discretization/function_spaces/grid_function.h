@@ -133,21 +133,6 @@ class IGridFunction
 	/// return the number of dofs distributed on subset si
 		size_t num_dofs(int si) const {check(); return m_pDD->num_dofs(si);}
 
-	/// number of elements for a subset
-		template <typename TElem>
-		size_t num() const
-			{check(); return m_pDD->template num<TElem>();}
-
-	/// iterator for elements where this grid function is defined
-		template <typename TElem>
-		typename geometry_traits<TElem>::const_iterator begin() const
-			{check(); return const_cast<const dof_distribution_type*>(m_pDD)->template begin<TElem>();}
-
-	/// iterator for elements where this grid function is defined
-		template <typename TElem>
-		typename geometry_traits<TElem>::const_iterator end() const
-			{check(); return const_cast<const dof_distribution_type*>(m_pDD)->template end<TElem>();}
-
 	/// number of elements of this type for a subset
 		template <typename TElem>
 		size_t num(int si) const

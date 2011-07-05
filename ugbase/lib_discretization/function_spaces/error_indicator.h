@@ -67,54 +67,58 @@ bool ComputeGradient(TFunction& u,
 //	evaluate reference gradient at local midpoint
 	TrialSpace.grads(&localGrad[0], localIP);
 
-//	get iterator over elements
-	typename geometry_traits<TElem>::const_iterator iter = u.template begin<TElem>();
-
-//	loop elements
-	for(; iter != u.template end<TElem>(); ++iter)
+//	loop subsets
+	for(int si = 0; si < u.num_subsets(); ++si)
 	{
-	//	get the element
-		TElem* elem = *iter;
+	//	get iterator over elements
+		typename geometry_traits<TElem>::const_iterator iter = u.template begin<TElem>(si);
 
-	//	get corners of element
-		CollectCornerCoordinates(vCorner, *elem, aaPos);
-
-	//	update mapping
-		mapping.update(&vCorner[0]);
-
-	//	compute jacobian
-		mapping.jacobian_transposed_inverse(localIP, JTInv);
-
-	//	compute size (volume) of element
-		number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);
-
-	//	compute determinate
-		detJ = mapping.jacobian_det(localIP);
-
-	//	compute gradient at mid point by summing contributions of all shape fct
-		MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
-		for(size_t sh = 0 ; sh < num_sh; ++sh)
+	//	loop elements
+		for(; iter != u.template end<TElem>(si); ++iter)
 		{
-		//	get global Gradient
-			MatVecMult(globalGrad[sh], JTInv,localGrad[sh]);
+		//	get the element
+			TElem* elem = *iter;
 
-		//	get vertex
-			VertexBase* vert = elem->vertex(sh);
+		//	get corners of element
+			CollectCornerCoordinates(vCorner, *elem, aaPos);
 
-		//	get of of vertex
-			//\todo: this is for fct=0 only
-			typename TFunction::multi_index_vector_type ind;
-			u.get_inner_multi_indices(vert, 0, ind);
+		//	update mapping
+			mapping.update(&vCorner[0]);
 
-		//	scale global gradient
-			globalGrad[sh] *= (u.get_dof_value(ind[0][0], ind[0][1]));
+		//	compute jacobian
+			mapping.jacobian_transposed_inverse(localIP, JTInv);
 
-		//	sum up
-			MidGrad += globalGrad[sh];
+		//	compute size (volume) of element
+			number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);
+
+		//	compute determinate
+			detJ = mapping.jacobian_det(localIP);
+
+		//	compute gradient at mid point by summing contributions of all shape fct
+			MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
+			for(size_t sh = 0 ; sh < num_sh; ++sh)
+			{
+			//	get global Gradient
+				MatVecMult(globalGrad[sh], JTInv,localGrad[sh]);
+
+			//	get vertex
+				VertexBase* vert = elem->vertex(sh);
+
+			//	get of of vertex
+				//\todo: this is for fct=0 only
+				typename TFunction::multi_index_vector_type ind;
+				u.get_inner_multi_indices(vert, 0, ind);
+
+			//	scale global gradient
+				globalGrad[sh] *= (u.get_dof_value(ind[0][0], ind[0][1]));
+
+			//	sum up
+				MidGrad += globalGrad[sh];
+			}
+
+		//	write result in array storage
+			aaError[elem] = VecTwoNorm(MidGrad) * pow(elemSize, 2./dim);
 		}
-
-	//	write result in array storage
-		aaError[elem] = VecTwoNorm(MidGrad) * pow(elemSize, 2./dim);
 	}
 
 //	we're done
@@ -145,18 +149,24 @@ bool MarkElements(IRefiner& refiner,
 //	reset maximum of error
 	number max = 0.0;
 
-//	get element iterator
-	typename geometry_traits<TElemBase>::const_iterator iter = u.template begin<TElemBase>();
+	typename geometry_traits<TElemBase>::const_iterator iter;
 
-//	loop all elements to find the maximum of the error
-	for( ;iter != u.template end<TElemBase>(); ++iter)
+//	loop subsets
+	for(int si = 0; si < u.num_subsets(); ++si)
 	{
-	//	get element
-		TElemBase* elem = *iter;
+	//	get element iterator
+		iter = u.template begin<TElemBase>(si);
 
-	//	search for maximum
-		if(aaError[elem] > max)
-			max = aaError[elem];
+	//	loop all elements to find the maximum of the error
+		for( ;iter != u.template end<TElemBase>(si); ++iter)
+		{
+		//	get element
+			TElemBase* elem = *iter;
+
+		//	search for maximum
+			if(aaError[elem] > max)
+				max = aaError[elem];
+		}
 	}
 
 #ifdef UG_PARALLEL
@@ -180,18 +190,22 @@ bool MarkElements(IRefiner& refiner,
 //	reset counter
 	int numMarked = 0;
 
-//	loop elements for marking
-	for(iter = u.template begin<TElemBase>(); iter != u.template end<TElemBase>(); ++iter)
+//	loop subsets
+	for(int si = 0; si < u.num_subsets(); ++si)
 	{
-	//	get element
-		TElemBase* elem = *iter;
-
-	//	check if element error is in range
-		if(aaError[elem] >= min)
+	//	loop elements for marking
+		for(iter = u.template begin<TElemBase>(si); iter != u.template end<TElemBase>(si); ++iter)
 		{
-		//	mark element and increase counter
-			refiner.mark(elem);
-			numMarked++;
+		//	get element
+			TElemBase* elem = *iter;
+
+		//	check if element error is in range
+			if(aaError[elem] >= min)
+			{
+			//	mark element and increase counter
+				refiner.mark(elem);
+				numMarked++;
+			}
 		}
 	}
 

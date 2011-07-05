@@ -409,9 +409,11 @@ count_piece_sizes(function_type& u, int si, int dim,
 	switch(dim)
 	{
 		case 0: if(si>=0) numVert = u.template num<VertexBase>(si);
-				else numVert = u.template num<VertexBase>();
-				numElem = 0;
-				numConn = 0;
+				else {
+					numVert = 0.0;
+					for(si = 0; si < u.num_subsets(); ++si)
+						numVert += u.template num<VertexBase>(si);
+				}
 				break;
 		case 1: count_sizes<Edge>(u, si, numVert, numElem, numConn);
 				break;
