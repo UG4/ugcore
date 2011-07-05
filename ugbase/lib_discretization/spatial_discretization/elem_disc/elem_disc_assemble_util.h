@@ -114,7 +114,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind, true))
 		{
 			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
 					"Cannot prepare element.\n");
@@ -122,7 +122,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, true))
+		if(!Eval.compute_elem_data(locU, true))
 		{
 			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
 					"Cannot compute element data.\n");
@@ -130,7 +130,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Evaluate lin defect A
-		if(!Eval.compute_lin_defect_JA(locU, ind))
+		if(!Eval.compute_lin_defect_JA(locU))
 		{
 			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
 					"Cannot compute lin_defect_JA.\n");
@@ -147,7 +147,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	add couplings
-		Eval.add_coupl_JA(locA, ind);
+		Eval.add_coupl_JA(locA);
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(A, locA);
@@ -197,7 +197,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in 'AssembleMassMatrix': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -210,7 +210,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU; LocalMatrix locM;
 
 //	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind))
+	if(!Eval.template prepare_elem_loop<TElem>(ind, 0.0, true))
 	{
 		UG_LOG("ERROR in 'AssembleMassMatrix': "
 				"Cannot prepare element loop.\n");
@@ -241,7 +241,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind, true, true))
 		{
 			UG_LOG("ERROR in 'AssembleMassMatrix': "
 					"Cannot prepare element.\n");
@@ -249,7 +249,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, true))
+		if(!Eval.compute_elem_data(locU, true))
 		{
 			UG_LOG("ERROR in 'AssembleMassMatrix': "
 					"Cannot compute element data.\n");
@@ -257,7 +257,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Evaluate lin defect M
-		if(!Eval.compute_lin_defect_JM(locU, ind))
+		if(!Eval.compute_lin_defect_JM(locU))
 		{
 			UG_LOG("ERROR in 'AssembleMassMatrix': "
 					"Cannot compute lin_defect_JA.\n");
@@ -274,7 +274,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	add couplings
-		Eval.add_coupl_JM(locM, ind);
+		Eval.add_coupl_JM(locM);
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(M, locM);
@@ -369,7 +369,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind, true))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
 					"Cannot prepare element.\n");
@@ -377,7 +377,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, true))
+		if(!Eval.compute_elem_data(locU, true))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
 					"Cannot compute element data.\n");
@@ -385,7 +385,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Evaluate lin defect A
-		if(!Eval.compute_lin_defect_JA(locU, ind))
+		if(!Eval.compute_lin_defect_JA(locU))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
 					"Cannot compute lin_defect_JA.\n");
@@ -402,7 +402,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	add couplings
-		Eval.add_coupl_JA(locJ, ind);
+		Eval.add_coupl_JA(locJ);
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(J, locJ);
@@ -458,7 +458,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -473,7 +473,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
 
 //	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time))
+	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 				"Cannot prepare element loop.\n");
@@ -507,7 +507,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind, true, true))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 					"Cannot prepare element.\n");
@@ -515,7 +515,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, true))
+		if(!Eval.compute_elem_data(locU, true))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 					"Cannot compute element data.\n");
@@ -523,7 +523,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Evaluate lin defect A
-		if(!Eval.compute_lin_defect_JA(locU, ind))
+		if(!Eval.compute_lin_defect_JA(locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 					"Cannot compute lin_defect_JA.\n");
@@ -531,7 +531,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Evaluate lin defect M
-		if(!Eval.compute_lin_defect_JM(locU, ind))
+		if(!Eval.compute_lin_defect_JM(locU))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 					"Cannot compute lin_defect_JM.\n");
@@ -548,7 +548,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	add couplings
-		Eval.add_coupl_JA(locJ, ind);
+		Eval.add_coupl_JA(locJ);
 
 	//	scale stiffness part
 		locJ *= s_a0;
@@ -562,7 +562,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	add couplings
-		Eval.add_coupl_JM(locJ, ind);
+		Eval.add_coupl_JM(locJ);
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(J, locJ);
@@ -666,7 +666,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, false))
+		if(!Eval.compute_elem_data(locU, false))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleDefect': "
 					"Cannot compute element data.\n");
@@ -746,7 +746,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleDefect': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -761,7 +761,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU, locD, tmpLocD;
 
 //	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time))
+	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleDefect': "
 				"Cannot prepare element loop.\n");
@@ -796,7 +796,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind, false, true))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleDefect': "
 					"Cannot prepare element.\n");
@@ -804,7 +804,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, false))
+		if(!Eval.compute_elem_data(locU, false))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleDefect': "
 					"Cannot compute element data.\n");
@@ -945,7 +945,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, false))
+		if(!Eval.compute_elem_data(locU, false))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleLinear': "
 					"Cannot compute element data.\n");
@@ -1029,7 +1029,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleLinear': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -1044,7 +1044,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU, locRhs; LocalMatrix locA, tmpLocA;
 
 //	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time))
+	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleLinear': "
 				"Cannot prepare element loop.\n");
@@ -1079,7 +1079,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locU, ind, false, true))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleLinear': "
 					"Cannot prepare element.\n");
@@ -1087,7 +1087,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, false))
+		if(!Eval.compute_elem_data(locU, false))
 		{
 			UG_LOG("ERROR in '(instationary) AssembleLinear': "
 					"Cannot compute element data.\n");
@@ -1229,7 +1229,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, ind, false))
+		if(!Eval.compute_elem_data(locU, false))
 		{
 			UG_LOG("ERROR in 'AssembleRhs': "
 					"Cannot compute element data.\n");

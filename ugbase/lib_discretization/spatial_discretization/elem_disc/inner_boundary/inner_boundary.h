@@ -120,7 +120,7 @@ class FVInnerBoundaryElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
+		bool prepare_element(TElem* elem, const local_vector_type& u);
 
 	///	finishes the loop over all elements
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>

@@ -79,9 +79,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConstantEquationElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u,
-								const local_index_type& glob_ind)
-{
+prepare_element(TElem* elem, const local_vector_type& u){
 //	get dimension of reference element
 	static const int refDim = TFVGeom<TElem, dim>::dim;
 

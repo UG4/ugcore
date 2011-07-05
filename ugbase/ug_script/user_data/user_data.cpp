@@ -176,7 +176,7 @@ class LuaUserData
 		}
 
 	///	implement as a IPData
-		virtual void compute(bool computeDeriv = false)
+		virtual bool compute(bool bDeriv = false)
 		{
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t i = 0; i < num_ip(s); ++i)
@@ -185,6 +185,7 @@ class LuaUserData
 										ip(s, i),
 										time());
 				}
+			return true;
 		}
 
 	protected:
@@ -453,7 +454,7 @@ class LuaUserFunction
 		}
 
 	///	computes the value
-		virtual void compute(bool compDeriv)
+		virtual bool compute(bool bDeriv)
 		{
 		//	vector of data for all inputs
 			std::vector<TDataIn> vDataIn(num_input());
@@ -470,7 +471,7 @@ class LuaUserFunction
 				}
 
 		//	check if derivative is required
-			if(!compDeriv || this->zero_derivative()) return;
+			if(!bDeriv || this->zero_derivative()) return true;
 
 		//	clear all derivative values
 			this->clear_derivative_values();
@@ -511,6 +512,8 @@ class LuaUserFunction
 						}
 					}
 			}
+
+			return true;
 		}
 
 	///	evaluates the data

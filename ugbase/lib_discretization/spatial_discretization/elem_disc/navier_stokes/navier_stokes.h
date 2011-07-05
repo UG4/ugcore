@@ -252,7 +252,7 @@ class FVNavierStokesElemDisc
 	 * \param[in]	glob_ind	global indices of the local vector components
 	 */
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
+		bool prepare_element(TElem* elem, const local_vector_type& u);
 
 	///	finishes the element loop
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>

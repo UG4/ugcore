@@ -134,8 +134,7 @@ class DataImport : public IDataImport
 
 	public:
 	/// Constructor
-		DataImport(bool compLinDefect = true) :
-			IDataImport(compLinDefect),
+		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
 			m_seriesID(-1),	m_pIPData(NULL), m_pDependentIPData(NULL)
 		{}
 
@@ -286,41 +285,34 @@ class DataImport : public IDataImport
 /**
  * An base class for all data exports
  */
-class IDataExport : virtual public IDependentIPData
+class IDataExport
 {
 	protected:
 	///	type of local vector
 		typedef IElemDisc::local_vector_type local_vector_type;
 
 	///	type of evaluation function
-		typedef bool (IElemDisc::*ExportFunc)(const local_vector_type& u,
-														bool compDeriv);
+		typedef bool (IElemDisc::*ExportFunc)(const local_vector_type& u, bool bDeriv);
 
 	public:
 	///	Constructor
 		IDataExport() : m_id(-1), m_pObj(NULL) {}
 
-	/// clear ips
-		virtual void clear_export_ips() = 0;
-
 	///	sets the geometric object type
 		bool set_geometric_object_type(int id);
+
+	///	sets the function group
+		virtual void set_function_group(const FunctionGroup& fctGrp) = 0;
 
 	///	register evaluation of linear defect for a element
 		template <typename TFunc>
 		void reg_export_fct(int id, IElemDisc* obj, TFunc func);
 
-	///	compute export
-		bool compute_export(const local_vector_type& u, bool compDeriv)
-		{
-			UG_ASSERT(m_id >=0, "ElemType id is not set correctly.");
-			UG_ASSERT((size_t)m_id < m_vExportFunc.size(), "id "<<m_id<<" not registered");
-			UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
-			return (m_pObj->*(m_vExportFunc[m_id]))(u, compDeriv);
-		}
-
 	///	get corresponding element disc
 		IElemDisc* get_elem_disc() {return m_pObj;}
+
+	///	returns if the dependent data is ready for evaluation
+		virtual bool is_ready() const;
 
 	///	virtual destructor
 		virtual ~IDataExport() {}
@@ -345,14 +337,28 @@ class DataExport : 	public DependentIPData<TData, dim>,
 					public IDataExport
 {
 	public:
-		virtual void compute(bool computeDeriv)
-			{throw(UGFatalError("Should not be called."));}
+	///	default constructor
+		DataExport() {this->m_bCompNeedsSol = true;}
+
+	//	implement compute() method: Not available
+		virtual bool compute(bool bDeriv)
+		{
+			UG_LOG("ERROR in 'DataExport::compute()': Computation of Export "
+				 	 "without current solution called. Cannot evaluate.\n");
+			return false;
+		}
+
+	///	compute export
+		virtual bool compute(const local_vector_type& u, bool bDeriv)
+		{
+			UG_ASSERT(m_id >=0, "ElemType id is not set correctly.");
+			UG_ASSERT((size_t)m_id < m_vExportFunc.size(), "id "<<m_id<<" not registered");
+			UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
+			return (m_pObj->*(m_vExportFunc[m_id]))(u, bDeriv);
+		}
 
 	///	returns if data depends on solution
 		virtual bool zero_derivative() const {return false;}
-
-	/// clear ips
-		virtual void clear_export_ips() {this->clear_ips();}
 
 	///	clear dependent data
 		void clear() {m_vDependData.clear();}
@@ -370,6 +376,13 @@ class DataExport : 	public DependentIPData<TData, dim>,
 
 	///	return needed data
 		virtual IIPData* needed_data(size_t i) {return m_vDependData.at(i);}
+
+	///	returns if the dependent data is ready for evaluation
+		virtual bool is_ready() const {return IDataExport::is_ready();}
+
+	///	sets the function group
+		virtual void set_function_group(const FunctionGroup& fctGrp)
+			{return IDependentIPData::set_function_group(fctGrp);}
 
 	protected:
 		std::vector<IIPData*> m_vDependData;

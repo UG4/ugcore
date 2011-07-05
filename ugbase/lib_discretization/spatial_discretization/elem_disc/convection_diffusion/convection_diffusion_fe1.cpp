@@ -87,7 +87,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 FE1ConvectionDiffusionElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
+prepare_element(TElem* elem, const local_vector_type& u)
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL

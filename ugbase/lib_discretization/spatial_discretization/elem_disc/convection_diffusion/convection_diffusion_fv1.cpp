@@ -105,8 +105,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConvectionDiffusionElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u,
-								const local_index_type& glob_ind)
+prepare_element(TElem* elem, const local_vector_type& u)
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL

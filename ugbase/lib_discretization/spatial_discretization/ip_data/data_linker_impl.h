@@ -35,24 +35,16 @@ bool DataLinker<TData,dim>::zero_derivative() const
 }
 
 template <typename TData, int dim>
-bool DataLinker<TData,dim>::make_ready()
+bool DataLinker<TData,dim>::is_ready() const
 {
 //	check, that all inputs are set
 	for(size_t i = 0; i < num_input(); ++i)
 		if(m_vpIIPData[i] == NULL)
 		{
-			UG_LOG("ERROR in 'DataLinker::make_ready': Input number "<<
+			UG_LOG("ERROR in 'DataLinker::is_ready': Input number "<<
 					i << " missing.\n");
 			return false;
 		}
-
-//	if data is dependent, forward function group
-	if(!update_function_group())
-	{
-		UG_LOG("ERROR in 'DataLinker::set_input': Cannot build function"
-				" group of linker.\n");
-		return false;
-	}
 
 //	everything ok
 	return true;
@@ -241,7 +233,7 @@ add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data)
 }
 
 template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::compute(bool compDeriv)
+bool ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
 {
 //	check that size of Scalings and inputs is equal
 	UG_ASSERT(m_vpIPData.size() == m_vpScaleData.size(), "Wrong num Scales.");
@@ -264,7 +256,7 @@ void ScaleAddLinker<TData,dim,TDataScale>::compute(bool compDeriv)
 		}
 
 //	check if derivative is required
-	if(!compDeriv || this->zero_derivative()) return;
+	if(!bDeriv || this->zero_derivative()) return true;
 
 //	check sizes
 	UG_ASSERT(m_vpDependData.size() == m_vpScaleDependData.size(),
@@ -324,6 +316,8 @@ void ScaleAddLinker<TData,dim,TDataScale>::compute(bool compDeriv)
 				}
 		}
 	}
+
+	return true;
 }
 
 

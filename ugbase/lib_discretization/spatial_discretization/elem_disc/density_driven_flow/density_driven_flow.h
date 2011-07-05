@@ -223,8 +223,7 @@ class DensityDrivenFlowElemDisc
 		bool prepare_element_loop();
 
 		template <typename TElem>
-		bool prepare_element(TElem* elem, const local_vector_type& u,
-		                            const local_index_type& glob_ind);
+		bool prepare_element(TElem* elem, const local_vector_type& u);
 
 		template <typename TElem>
 		bool finish_element_loop();

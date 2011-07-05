@@ -78,7 +78,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
+prepare_element(TElem* elem, const local_vector_type& u)
 {
 //	get corners
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);

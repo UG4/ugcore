@@ -126,6 +126,7 @@ template <typename TData, int dim>
 void DataImport<TData,dim>::resize(const LocalIndices& ind, const FunctionIndexMapping& map)
 {
 //	resize ips
+	//\todo: Move this call to some place, where num_ip is changed.
 	m_vvvLinDefect.resize(num_ip());
 
 //	resize num fct
@@ -181,6 +182,28 @@ void IDataExport::reg_export_fct(int id, IElemDisc* obj, TFunc func)
 	if(m_pObj == NULL) m_pObj = obj;
 	else if(m_pObj != obj)
 		throw(UGFatalError("Exports assume to be used by on object for all functions."));
+}
+
+inline bool IDataExport::is_ready() const
+{
+	if(m_id < 0) {
+		UG_LOG("ERROR in 'IDataExport::is_ready':"
+				"ElemType id is not set correctly."); return false;
+	}
+	if((size_t)m_id >= m_vExportFunc.size()) {
+		UG_LOG("ERROR in 'IDataExport::is_ready': There is no evaluation "
+				"function registered for export and elem type "<<m_id<<".\n");
+		return false;
+	}
+	if(m_vExportFunc[m_id] == NULL) {
+		UG_LOG("ERROR in 'IDataExport::is_ready': There is a evaluation "
+				"function registered for export and elem type "<<m_id<<
+				", but function pointer is zero. \n");
+		return false;
+	}
+
+//	everything is ok
+	return true;
 }
 
 } // end namespace ug

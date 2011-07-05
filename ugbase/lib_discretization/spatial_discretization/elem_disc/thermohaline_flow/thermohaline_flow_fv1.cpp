@@ -878,7 +878,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
+prepare_element(TElem* elem, const local_vector_type& u)
 {
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;

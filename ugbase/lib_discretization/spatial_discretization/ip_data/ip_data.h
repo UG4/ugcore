@@ -11,8 +11,13 @@
 #include <vector>
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/common/function_group.h"
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 
 namespace ug{
+
+////////////////////////////////////////////////////////////////////////////////
+//	IP Data
+////////////////////////////////////////////////////////////////////////////////
 
 /// Base class for IP Data
 /**
@@ -68,7 +73,7 @@ class IIPData
 		virtual IIPData* needed_data(size_t i) {return NULL;}
 
 	/// compute values (and derivatives iff compDeriv == true)
-		virtual void compute(bool compDeriv = false) = 0;
+		virtual bool compute(bool bDeriv = false) = 0;
 
 	///	virtual desctructor
 		virtual ~IIPData() {};
@@ -110,7 +115,7 @@ class IIPData
  * \tparam	dim		world dimension
  */
 template <int dim>
-class IIPDimData : public IIPData
+class IIPDimData : virtual public IIPData
 {
 	public:
 	///	set global positions
@@ -195,19 +200,48 @@ class IPData : public IIPDimData<dim>
 		std::vector<std::vector<TData> > m_vvValue;
 };
 
-
+////////////////////////////////////////////////////////////////////////////////
+//	Dependent IP Data
+////////////////////////////////////////////////////////////////////////////////
 
 /// Base class for solution dependent Data
 /**
  * All classes that derive from this class may depend on the unknwon numerical
  * solution, when computing the data.
  */
-class IDependentIPData
+class IDependentIPData : virtual public IIPData
 {
+	protected:
+	///	type of local vector
+		typedef IElemDisc::local_vector_type local_vector_type;
+
 	public:
+	///	default constructor
+		IDependentIPData() : m_bCompNeedsSol(false) {};
+
 	///	resize arrays
 		virtual void resize(const LocalIndices& ind,
 		                    const FunctionIndexMapping& map) = 0;
+
+	///	computation of data depending on current solution
+		virtual bool compute(bool bDeriv)
+		{
+			UG_LOG("ERROR in 'IDependentIPData::compute': No implementation found.\n");
+			return false;
+		}
+
+	///	computation of data depending on current solution
+		virtual bool compute(const local_vector_type& u, bool bDeriv)
+		{
+			UG_LOG("ERROR in 'IDependentIPData::compute': No implementation found.\n");
+			return false;
+		}
+
+	///	returns if the computation needs the current solution
+		bool comp_needs_sol() const {return m_bCompNeedsSol;}
+
+	///	updates the function group (needed for Linker)
+		virtual bool update_function_group() {return true;}
 
 	/// set	Function Group of functions (by copy)
 		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
@@ -218,8 +252,8 @@ class IDependentIPData
 	///	number of fuctions this export depends on
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
-	///	returns if the dependent data is ok
-		virtual bool make_ready() {return true;}
+	///	returns if the dependent data is ready for evaluation
+		virtual bool is_ready() const = 0;
 
 	///	virtual destructor
 		virtual ~IDependentIPData() {}
@@ -227,6 +261,9 @@ class IDependentIPData
 	protected:
 	/// functions the data depends on
 		FunctionGroup m_fctGrp;
+
+	///	flag if computation needs the solution
+		bool m_bCompNeedsSol;
 };
 
 /// Dependent IP Data
@@ -236,7 +273,7 @@ class IDependentIPData
  */
 template <typename TData, int dim>
 class DependentIPData : public IPData<TData, dim>,
-						virtual public IDependentIPData
+						public IDependentIPData
 {
 	public:
 	///	Base class type
@@ -276,6 +313,9 @@ class DependentIPData : public IPData<TData, dim>,
 
 	///	sets all derivative values to zero
 		void clear_derivative_values();
+
+	///	returns if the dependent data is ready for evaluation
+		virtual bool is_ready() const = 0;
 
 	protected:
 	///	checks in debug mode the correct usage of indices

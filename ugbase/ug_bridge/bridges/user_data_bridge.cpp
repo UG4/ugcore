@@ -176,7 +176,7 @@ class ElderDensityLinker
 			set_num_input(1);
 		}
 
-		virtual void compute(bool compDeriv)
+		virtual bool compute(bool bDeriv)
 		{
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
@@ -184,7 +184,7 @@ class ElderDensityLinker
 					value(s, ip) = 1e3 + 0.2e3 * input_value(0, s, ip);
 				}
 
-			if(!compDeriv || this->zero_derivative()) return;
+			if(!bDeriv || this->zero_derivative()) return true;
 
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
@@ -194,6 +194,7 @@ class ElderDensityLinker
 							deriv(s, ip, fct, dof) = 0.2e3 * input_deriv(0, s, ip, fct, dof);
 						}
 
+			return true;
 		}
 };
 
@@ -239,7 +240,7 @@ class DarcyVelocityLinker
 			set_num_input(5);
 		}
 
-		virtual void compute(bool compDeriv)
+		virtual bool compute(bool bDeriv)
 		{
 		//	Compute the Darcy velocity at all ips  //
 		/////////////////////////////////////////////
@@ -278,7 +279,7 @@ class DarcyVelocityLinker
 			/////////////////////////////////////////////
 
 		//	check if something to do
-			if(!compDeriv || this->zero_derivative()) return;
+			if(!bDeriv || this->zero_derivative()) return true;
 
 		//	clear all derivative values
 			this->clear_derivative_values();
@@ -432,6 +433,8 @@ class DarcyVelocityLinker
 					}
 
 			}
+
+			return true;
 		}
 
 	public:

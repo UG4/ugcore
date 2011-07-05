@@ -101,7 +101,7 @@ class ElasticityTensorUserData
 
 		}
 	///	implement as a IPData
-		virtual void compute(bool computeDeriv = false)
+		virtual bool compute(bool bDeriv = false)
 		{
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t i = 0; i < num_ip(s); ++i)
@@ -110,6 +110,7 @@ class ElasticityTensorUserData
 										ip(s, i),
 										time());
 				}
+			return true;
 		}
 };
 

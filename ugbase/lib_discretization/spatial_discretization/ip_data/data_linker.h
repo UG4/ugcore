@@ -43,7 +43,7 @@ class DataLinker
 		DataLinker() {m_vpIIPData.clear(); m_vpIDependData.clear();}
 
 	///	compute method
-		virtual void compute(bool compDeriv) = 0;
+		virtual bool compute(bool bDeriv) = 0;
 
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
@@ -85,7 +85,10 @@ class DataLinker
 		}
 
 	///	returns if data is ok
-		virtual bool make_ready();
+		virtual bool is_ready() const;
+
+	///	updates the function group
+		bool update_function_group();
 
 	protected:
 	///	returns number of functions the input depends on
@@ -111,9 +114,6 @@ class DataLinker
 			UG_ASSERT(s < m_vvSeriesID[i].size(), "invalid index");
 			return m_vvSeriesID[i][s];
 		}
-
-	///	updates the function group
-		bool update_function_group();
 
 	///	get series id's from input data and resize data
 		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP);
@@ -179,7 +179,7 @@ class DataLinkerEqualData
 		}
 
 	///	compute method
-		virtual void compute(bool compDeriv) = 0;
+		virtual bool compute(bool bDeriv) = 0;
 
 	///	set number of needed inputs
 		void set_num_input(size_t num);
@@ -335,7 +335,7 @@ class ScaleAddLinker
 		bool add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data);
 
 	///	computes the value
-		virtual void compute(bool compDeriv);
+		virtual bool compute(bool bDeriv);
 
 	protected:
 	///	resizes the scaling arrays

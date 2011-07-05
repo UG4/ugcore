@@ -230,10 +230,8 @@ class IElemDisc{
 	 * \param[in]		u			The current local solution
 	 * \param[in]		glob_ind	The global indices of the local solution
 	 */
-		bool prepare_elem(GeometricObject* obj,
-		                     const local_vector_type& u,
-		                     const local_index_type& glob_ind)
-			{return (this->*(m_vPrepareElemFct[m_id]))(obj, u, glob_ind);}
+		bool prepare_elem(GeometricObject* obj, const local_vector_type& u)
+			{return (this->*(m_vPrepareElemFct[m_id]))(obj, u);}
 
 	///	postprocesses the loop over all elements of one type
 	/**
@@ -343,9 +341,7 @@ class IElemDisc{
 
 	// 	types of loop function pointers
 		typedef bool (T::*PrepareElemLoopFct)();
-		typedef bool (T::*PrepareElemFct)(	GeometricObject* obj,
-											const local_vector_type& u,
-											const local_index_type& glob_ind);
+		typedef bool (T::*PrepareElemFct)(GeometricObject* obj, const local_vector_type& u);
 		typedef bool (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions

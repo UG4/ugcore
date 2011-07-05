@@ -13,7 +13,7 @@ namespace ug{
 template <typename TElem>
 bool
 DataEvaluator::
-prepare_elem_loop(local_index_type& ind, number time)
+prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -23,14 +23,9 @@ prepare_elem_loop(local_index_type& ind, number time)
 	const ReferenceObjectID id = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	remove ip series for all used IPData
-	for(size_t i = 0; i < m_vConstData.size(); ++i)
-		m_vConstData[i]->clear_ips();
-	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->clear_ips();
-	for(size_t i = 0; i < m_vIDataExport.size(); ++i)
-		m_vIDataExport[i]->clear_export_ips();
-	for(size_t i = 0; i < m_vLinkerData.size(); ++i)
-		m_vLinkerData[i]->clear_ips();
+	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear_ips();
+	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear_ips();
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear_ips();
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
@@ -38,6 +33,34 @@ prepare_elem_loop(local_index_type& ind, number time)
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 					"Cannot set geometric object type for Disc " << i <<".\n");
+			return false;
+		}
+
+//	set geometric type at imports
+	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
+		if(!m_vStiffDataImport[i]->set_geometric_object_type(id))
+		{
+			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': Cannot set "
+					" geometric object type "<<id<<" for Import " << i <<
+					" (Stiffness part).\n");
+			return false;
+		}
+	if(bMassPart)
+		for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
+			if(!m_vMassDataImport[i]->set_geometric_object_type(id))
+			{
+				UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': Cannot set "
+						" geometric object type "<<id<<" for Import " << i <<
+						" (Mass part).\n");
+				return false;
+			}
+
+//	set geometric type at exports
+	for(size_t i = 0; i < m_vDataExport.size(); ++i)
+		if(!m_vDataExport[i]->set_geometric_object_type(id))
+		{
+			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
+					"Cannot set geometric object type for Export " << i <<".\n");
 			return false;
 		}
 
@@ -50,40 +73,14 @@ prepare_elem_loop(local_index_type& ind, number time)
 			return false;
 		}
 
-//	prepare data imports
-	for(size_t i = 0; i < m_vIDataImport.size(); ++i)
-	{
-	//	set id for imports
-		if(!m_vIDataImport[i]->set_geometric_object_type(id))
+//	check, that all dependent data is ready for evaluation
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
+		if(!m_vDependentIPData[i]->is_ready())
 		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-					"Cannot set geometric object type for Import " << i <<".\n");
+			UG_LOG("ERROR in 'DataEvaluator::prepare_element': Dependent IPData "
+					"(e.g. Linker or Export) is not ready for evaluation.\n");
 			return false;
 		}
-	}
-
-//	prepare data exports
-	for(size_t i = 0; i < m_vIDataExport.size(); ++i)
-	{
-	//	set id for imports
-		if(!m_vIDataExport[i]->set_geometric_object_type(id))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-					"Cannot set geometric object type for Export " << i <<".\n");
-			return false;
-		}
-	}
-
-//	prepare data linker
-	for(size_t i = 0; i < m_vLinkerDepend.size(); ++i)
-	{
-		if(!m_vLinkerDepend[i]->make_ready())
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_element': "
-					"Linker not ready.\n");
-			return false;
-		}
-	}
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
@@ -97,22 +94,22 @@ prepare_elem_loop(local_index_type& ind, number time)
 template <typename TElem>
 bool
 DataEvaluator::
-prepare_elem(TElem* elem, local_vector_type& u, const local_index_type& ind)
+prepare_elem(TElem* elem, local_vector_type& u, const local_index_type& ind,
+             bool bDeriv, bool bMassPart)
 {
-//	prepare data imports
-//	adjust lin defect array
-	for(size_t i = 0; i < m_vIDataImport.size(); ++i)
-		m_vIDataImport[i]->resize(ind, m_vMapImp[i]);
+//	adjust lin defect array of imports
+	if(bDeriv)
+	{
+		for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
+			m_vStiffDataImport[i]->resize(ind, m_vStiffImpMap[i]);
+		if(bMassPart)
+			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
+				m_vMassDataImport[i]->resize(ind, m_vMassImpMap[i]);
+	}
 
-//	prepare data exports
-//	adjust derivative array
-	for(size_t i = 0; i < m_vIDataExport.size(); ++i)
-		m_vIDataExport[i]->resize(ind, m_vMapExp[i]);
-
-//	prepare data linker
-//	adjust derivative array
-	for(size_t i = 0; i < m_vLinkerDepend.size(); ++i)
-		m_vLinkerDepend[i]->resize(ind, m_vMapLinker[i]);
+//	adjust derivative array of exports
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
+		m_vDependentIPData[i]->resize(ind, m_vDependentMap[i]);
 
 // 	prepare element
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
@@ -121,7 +118,7 @@ prepare_elem(TElem* elem, local_vector_type& u, const local_index_type& ind)
 		u.access_by_map(map(i));
 
 	//	prepare for elem disc
-		if(!(*m_pvElemDisc)[i]->prepare_elem(elem, u, ind))
+		if(!(*m_pvElemDisc)[i]->prepare_elem(elem, u))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_element': "
 					"Cannot prepare element for IElemDisc "<<i<<".\n");
