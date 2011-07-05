@@ -182,7 +182,7 @@ elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 				number val = geo.shape(ip, i) *geo.shape(ip, j) * geo.weight(ip);
 
 				if(m_imMassScale.data_given())
-					val *= m_imMassScale[ip++];
+					val *= m_imMassScale[ip];
 
 				J(_C_, i, _C_, j) += val;
 			}
