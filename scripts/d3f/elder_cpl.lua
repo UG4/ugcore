@@ -237,26 +237,12 @@ dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
 dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
--- create Finite-Volume Element Discretization for Convection Diffusion Equation
-if 		dim == 2 then FlowEq = FV1ConstantEquation2d()
-elseif dim == 3 then FlowEq = FV1ConstantEquation3d() 
-else print("Dimension not supported"); exit() end
-
-FlowEq:set_approximation_space(approxSpace)
-FlowEq:set_functions("p")
-FlowEq:set_subsets("Inner")
-
+FlowEq = util.CreateFV1ConstEq(approxSpace, "p", "Inner")
 FlowEq:set_mass_scale(rhophi)
 FlowEq:set_velocity(DarcyVelocity)
 print("Flow Equation created.")
 
-if 		dim == 2 then TransportEq = FV1ConvectionDiffusion2d()
-elseif dim == 3 then TransportEq = FV1ConvectionDiffusion3d() 
-else print("Dimension not supported"); exit() end
-
-TransportEq:set_approximation_space(approxSpace)
-TransportEq:set_functions("c")
-TransportEq:set_subsets("Inner")
+TransportEq = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 TransportEq:set_upwind(upwind)
 TransportEq:set_mass_scale(rhophi)
 TransportEq:set_velocity_field(DarcyVelocity)

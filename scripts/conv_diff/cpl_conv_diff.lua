@@ -151,10 +151,7 @@ scalarDiff = util.CreateConstUserNumber(-eps / numSys , dim)
 
 elemDisc = {}
 for i=1, numSys do
-	elemDisc[i] = FV1ConstantEquation2d()
-	elemDisc[i]:set_approximation_space(approxSpace)
-	elemDisc[i]:set_functions("c"..i)
-	elemDisc[i]:set_subsets("Inner")
+	elemDisc[i] = util.CreateFV1ConstEq(approxSpace, "c"..i, "Inner")
 
 	Flux:add(elemDisc[i]:get_concentration(), velocityField)
 	Flux:add(scalarDiff, elemDisc[i]:get_concentration_grad())
