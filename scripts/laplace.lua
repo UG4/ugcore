@@ -179,15 +179,15 @@ partitionMap = PartitionMap()
 
 if GetProcessRank() == 0 then
 	if distributionType == "bisect" then
-		util.PartitionMapBisection(partitionMap, dom, numProcs)
+		util.PartitionMapBisection(dom, partitionMap, numProcs)
 		
 	elseif distributionType == "grid2d" then
 		local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numProcs / numProcsPerNode)
-		util.PartitionMapLexicographic2D(partitionMap, dom, numNodesX,
+		util.PartitionMapLexicographic2D(dom, partitionMap, numNodesX,
 										 numNodesY, numProcsPerNode)
 
 	elseif distributionType == "metis" then
-		util.PartitionMapMetis(partitionMap, dom, numProcs)
+		util.PartitionMapMetis(dom, partitionMap, numProcs)
 										 
 	else
 	    print( "distributionType not known, aborting!")
