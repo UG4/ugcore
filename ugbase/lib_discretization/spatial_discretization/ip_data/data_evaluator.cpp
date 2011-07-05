@@ -455,6 +455,10 @@ bool DataEvaluator::compute_elem_data(local_vector_type & u, bool bDeriv)
 	//	check if current solution is needed
 		if(m_vDependentIPData[i]->comp_needs_sol())
 		{
+		//	access needed components
+			u.access_by_map(m_vDependentMap[i]);
+
+		//	compute the data
 			if(!m_vDependentIPData[i]->compute(u, bDeriv))
 			{
 				UG_LOG("ERROR in 'DataEvaluator::compute_elem_data':"
