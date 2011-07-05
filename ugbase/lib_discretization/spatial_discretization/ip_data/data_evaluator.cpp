@@ -384,7 +384,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 				m_vStiffImpMap.push_back(m_vElemDiscMap[d]);
 
 			//  Remember FuncMap for connected data
-				m_vMassImpConnMap.push_back(map);
+				m_vStiffImpConnMap.push_back(map);
 			}
 		}
 	}
