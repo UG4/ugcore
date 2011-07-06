@@ -331,7 +331,7 @@ gmg:set_num_postsmooth(2)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
-amg = AMGPreconditioner()
+amg = RSAMGPreconditioner()
 --amg:enable_aggressive_coarsening_A(2)
 amg:set_num_presmooth(3)
 amg:set_num_postsmooth(3)

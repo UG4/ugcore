@@ -289,7 +289,7 @@ gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
 if false then
-amg = AMGPreconditioner()
+amg = RSAMGPreconditioner()
 amg:set_nu1(2)
 amg:set_nu2(2)
 amg:set_gamma(1)
