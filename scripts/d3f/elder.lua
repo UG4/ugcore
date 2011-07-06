@@ -150,6 +150,7 @@ approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:add_fct("p", "Lagrange", 1)
 approxSpace:init()
 approxSpace:print_statistic()
+approxSpace:print_layout_statistic()
 
 -- lets order indices using Cuthill-McKee
 if OrderCuthillMcKee(approxSpace, false) == false then
