@@ -130,35 +130,42 @@ elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 
 	MathVector<dim> v, Dgrad;
 
+//	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
+	//	loop trial space
 		for(size_t j = 0; j < geo.num_sh(); ++j)
 		{
-			// diffusion
+		//	Diffusion
 			if(m_imDiffusion.data_given())
 				MatVecMult(Dgrad, m_imDiffusion[ip], geo.grad_global(ip, j));
 			else
 				VecSet(Dgrad, 0.0);
 
-			// convection
+		//  Convection
 			if(m_imVelocity.data_given())
 				VecScaleAppend(Dgrad, -1*geo.shape(ip,j), m_imVelocity[ip]);
 
+		//	loop test space
 			for(size_t i = 0; i < geo.num_sh(); ++i)
 			{
+			//	compute integrand
 				number integrand = VecDot(Dgrad, geo.grad_global(ip, i));
 
-				// reaction
+			// 	Reaction
 				if(m_imReaction.data_given())
 					integrand += m_imReaction[ip] * geo.shape(ip, j) * geo.shape(ip, i);
 
+			//	multiply by weight
 				integrand *= geo.weight(ip);
 
+			//	add to local matrix
 				J(_C_, i, _C_, j) += integrand;
 			}
 		}
 	}
 
+//	done
 	return true;
 }
 
@@ -173,22 +180,29 @@ elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
 		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
 
+//	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
+	//	loop test space
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
+		//	loop trial space
 			for(size_t j= 0; j < geo.num_sh(); ++j)
 			{
+			//	compute integrand
 				number val = geo.shape(ip, i) *geo.shape(ip, j) * geo.weight(ip);
 
+			//	add MassScale
 				if(m_imMassScale.data_given())
 					val *= m_imMassScale[ip];
 
+			//	add to local matrix
 				J(_C_, i, _C_, j) += val;
 			}
 		}
 	}
 
+//	done
 	return true;
 }
 
@@ -209,9 +223,10 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
 		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
 
+//	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
-		// get current u and grad_u
+	// 	get current u and grad_u
 		VecSet(grad_u, 0.0);
 		shape_u = 0.0;
 		for(size_t j = 0; j < geo.num_sh(); ++j)
@@ -220,25 +235,30 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 			shape_u += u(_C_,j) * geo.shape(ip, j);
 		}
 
-		// diffusion
+	// 	Diffusion
 		if(m_imDiffusion.data_given())
 			MatVecMult(Dgrad_u, m_imDiffusion[ip], grad_u);
 		else
 			VecSet(Dgrad_u, 0.0);
 
-		// convection
+	// 	Convection
 		if(m_imReaction.data_given())
 			VecScaleAppend(Dgrad_u, -1*shape_u, m_imVelocity[ip]);
 
+	//	loop test spaces
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
+		//	compute integrand
 			integrand = VecDot(Dgrad_u, geo.grad_global(ip, i));
-			// reaction
+
+		// 	add Reaction
 			if(m_imReaction.data_given())
 				integrand += m_imReaction[ip] * shape_u * geo.shape(ip, i);
 
+		//	multiply by integration weight
 			integrand *= geo.weight(ip);
 
+		//	add to local defect
 			d(_C_, i) += integrand;
 		}
 	}
@@ -258,24 +278,31 @@ elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
 
 	number shape_u;
+
+//	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
+	//	compute value of current solution at ip
 		shape_u = 0.0;
 		for(size_t j = 0; j < geo.num_sh(); ++j)
-		{
 			shape_u += u(_C_,j) * geo.shape(ip, j);
-		}
 
+	//	loop test spaces
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
+		//	compute contribution
 			number val = shape_u * geo.shape(ip, i) * geo.weight(ip);
+
+		//	add MassScaling
 			if(m_imMassScale.data_given())
 				val *= m_imMassScale[ip];
 
+		//	add to local defect
 			d(_C_, i) +=  val;
 		}
 	}
 
+//	done
 	return true;
 }
 
@@ -292,13 +319,18 @@ elem_rhs_fe(local_vector_type& d)
 
 	if(!m_imSource.data_given()) return true;
 
+//	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
+	//	loop test spaces
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
+		//	add contribution to local defect
 			d(_C_, i) +=  m_imSource[ip] * geo.shape(ip, i) * geo.weight(ip);
 		}
 	}
+
+//	done
 	return true;
 }
 
