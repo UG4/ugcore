@@ -290,7 +290,7 @@ gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
 ilu = ILU()
-ilu:set_debug(dbgWriter)
+--ilu:set_debug(dbgWriter)
 ilut = ILUT()
 
 -- exact Soler
@@ -305,8 +305,9 @@ baseConvCheck:set_verbose_level(false)
 
 -- base = LapackLUSolver()
 base = BiCGStab()
+baseJac = Jacobi();
 base:set_convergence_check(baseConvCheck)
-base:set_preconditioner(jac)
+base:set_preconditioner(baseJac)
 
 baseLU = LU()
 
@@ -320,7 +321,7 @@ gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
 gmg:set_base_level(0)
 gmg:set_base_solver(baseLU)
-gmg:set_smoother(ilu)
+gmg:set_smoother(jac)
 gmg:set_cycle_type(1)
 gmg:set_num_presmooth(2)
 gmg:set_num_postsmooth(2)
@@ -357,7 +358,7 @@ cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(gmg)
+bicgstabSolver:set_preconditioner(ilu)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- convergence check
