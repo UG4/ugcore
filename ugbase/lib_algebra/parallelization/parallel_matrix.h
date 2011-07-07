@@ -172,6 +172,15 @@ class ParallelMatrix : public TMatrix
 		template<typename TPVector>
 		bool matmul_minus(TPVector &res, const TPVector &x) const;
 
+	///	copy layouts from another parallel matrix
+		void copy_layouts(const this_type &v)
+		{
+			m_pSlaveLayout = v.m_pSlaveLayout;
+			m_pMasterLayout = v.m_pMasterLayout;
+
+			m_pCommunicator = v.m_pCommunicator;
+			m_processCommunicator = v.m_processCommunicator;
+		}
 
 	private:
 	//  type of storage  (i.e. consistent, additiv, additiv unique)
