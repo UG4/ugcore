@@ -183,6 +183,8 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 			.add_method("get_subset_handler|hide=true", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
 			.add_method("get_grid|hide=true", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
 			.add_method("get_dim|hide=true", (int (domain_type::*)()) &domain_type::get_dim);
+
+		reg.add_class_to_group(ss.str().c_str(), "Domain");
 	}
 
 // 	LoadDomain

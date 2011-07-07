@@ -289,12 +289,12 @@ UG_LOG(" d: " << norm << "\n");
 		}
 		GMG_PROFILE_END();
 
-/*
+
 // used for debugging adaptive mg.
 UG_LOG("  lmgc lev " << lev << " after presmooth: ");
-norm = d.two_norm();
+number norm = d.two_norm();
 UG_LOG(" d: " << norm << "\n");
-*/
+
 	//	PROJECT DEFECT BACK TO WHOLE GRID FOR RESTRICTION
 		#ifdef UG_PARALLEL
 		if(m_vLevData[lev].SmoothMat != NULL)

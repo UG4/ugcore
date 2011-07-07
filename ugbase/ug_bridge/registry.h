@@ -1,3 +1,4 @@
+//	Authors: Andreas Vogel, Sebastian Reiter
 
 #ifndef __H__UG_BRIDGE__REGISTRY__
 #define __H__UG_BRIDGE__REGISTRY__
@@ -31,6 +32,32 @@ class Registry;
  * (Have a look at boost::bind in the second case).
  */
 typedef boost::function<void (Registry* pReg)> FuncRegistryChanged;
+
+///	groups classes. One of the members is the default member.
+class ClassGroupDesc
+{
+	public:
+		ClassGroupDesc() : m_defaultClass(NULL)	{}
+
+		void set_name(const char* name)		{m_name = name;}
+		const char* name() const			{return m_name.c_str();}
+
+		void add_class(IExportedClass* c)	{m_classes.push_back(c);}
+		size_t num_classes() const			{return m_classes.size();}
+		bool empty() const					{return num_classes() != 0;}
+		IExportedClass* get_class(size_t i)	{return m_classes[i];}
+		const IExportedClass* get_class(size_t i) const	{return m_classes[i];}
+
+		void set_default_class(size_t i)	{m_defaultClass = m_classes[i];}
+
+	///	if no default class is set, this method returns NULL.â
+		IExportedClass* get_default_class()	const {return m_defaultClass;}
+
+	private:
+		std::string						m_name;
+		std::vector<IExportedClass*>	m_classes;
+		IExportedClass* 				m_defaultClass;
+};
 
 // Registry
 /** registers functions and classes that are exported to scripts and visualizations
@@ -363,6 +390,18 @@ class Registry {
 	/// returns an exported function
 		const IExportedClass& get_class(size_t ind)	const {return *m_vClass.at(ind);}
 
+		IExportedClass* get_class(const char* name)
+		{
+		//todo:	use a map to access classes by name.
+			for(size_t i = 0; i < m_vClass.size(); ++i)
+			{
+			//  compare strings
+				if(strcmp(name, m_vClass[i]->name()) == 0)
+					return m_vClass[i];
+			}
+			return NULL;
+		}
+
 		bool check_consistency()
 		{
 			size_t found = 0;
@@ -388,6 +427,49 @@ class Registry {
 			else return true;
 		}
 
+	///	adds the given class to the given group.
+	/**	Groups are constructed automatically if required.*/
+		void add_class_to_group(const char* className, const char* groupName)
+		{
+		//todo: make sure that no class with groupName exists.
+			ClassGroupDesc& groupDesc = get_class_group(groupName);
+		//todo:	make sure that groupDesc does not already contain className.
+			IExportedClass* expClass = get_class(className);
+			UG_ASSERT(expClass, "The given class has to be registered before "
+								"adding it to a group: " << className);
+			if(expClass)
+				groupDesc.add_class(expClass);
+		}
+
+	///	Sets the default class for the given group.
+	/**	Make sure that the specified class is a member of the specified group,
+	 * i.e. has already been added to the group.*/
+		void set_groups_default_class(const char* groupName, const char* className)
+		{
+			ClassGroupDesc& groupDesc = get_class_group(groupName);
+			UG_ASSERT(!groupDesc.empty(), "Can't set default class '" << className
+					  << "' for empty group '" << groupName << "'");
+
+			bool gotOne = false;
+			for(size_t i = 0; i < groupDesc.num_classes(); ++i){
+				IExportedClass* c = groupDesc.get_class(i);
+				if(strcmp(c->name(), className) == 0){
+					groupDesc.set_default_class(i);
+					gotOne = true;
+					break;
+				}
+			}
+
+			UG_ASSERT(gotOne, "group '" << groupName << "' does not contain class '" << className << "'");
+		}
+
+	///	returns the number of available class groups
+		size_t num_class_groups() const			{return m_vClassGroups.size();}
+
+	///	returns a const pointer to the i-th class group
+		ClassGroupDesc* get_class_group(size_t i)	{return m_vClassGroups[i];}
+
+
 	/// destructor
 		~Registry()
 		{
@@ -403,19 +485,17 @@ class Registry {
 				if(m_vClass[i] != NULL)
 					delete m_vClass[i];
 			}
+		//	delete registered class groups
+			for(size_t i = 0; i < m_vClassGroups.size(); ++i){
+				delete m_vClassGroups[i];
+			}
 		}
 
 	protected:
-		// returns true if classname is already used by a class in this registry
+	// returns true if classname is already used by a class in this registry
 		bool classname_registered(const char* name)
 		{
-			for(size_t i = 0; i < m_vClass.size(); ++i)
-			{
-			//  compare strings
-				if(strcmp(name, m_vClass[i]->name()) == 0)
-					return true;
-			}
-			return false;
+			return get_class(name) != NULL;
 		}
 
 		// returns true if functionname is already used by a function in this registry
@@ -441,6 +521,25 @@ class Registry {
 			return NULL;
 		}
 
+		ClassGroupDesc& get_class_group(const char* name)
+		{
+		//todo:	use a map to quickly access classGroups by name
+			ClassGroupDesc* classGroup = NULL;
+			for(size_t i = 0; i < m_vClassGroups.size(); ++i){
+				if(strcmp(m_vClassGroups[i]->name(), name) == 0){
+					classGroup = m_vClassGroups[i];
+					break;
+				}
+			}
+
+			if(!classGroup){
+				classGroup = new ClassGroupDesc();
+				classGroup->set_name(name);
+				m_vClassGroups.push_back(classGroup);
+			}
+
+			return *classGroup;
+		}
 	private:
 	//	disallow copy
 		Registry(const Registry& reg)	{}
@@ -450,6 +549,9 @@ class Registry {
 
 	//	registered classes
 		std::vector<IExportedClass*> m_vClass;
+
+	//	class groups
+		std::vector<ClassGroupDesc*> m_vClassGroups;
 
 	//	Callback, that are called when registry changed is invoked
 		std::vector<FuncRegistryChanged> m_callbacksRegChanged;

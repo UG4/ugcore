@@ -22,6 +22,33 @@ Registry & GetUGRegistry()
 	return ugReg;
 }
 
+///	Sets the default classes of class-groups based on a dimension suffix
+/**	Only classes which end with 1d, 2d, ... are considered.
+ * Note that this method only has effect onto methods which are currently
+ * registered at the registry.
+ */
+static void SetDefaultDimension(int dim)
+{
+//	iterate over all groups in the registry and check whether they contain
+//	a class which ends with the dim-suffix
+	char suffix[8];
+	sprintf(suffix, "%dd", dim);
+
+	bridge::Registry& reg = bridge::GetUGRegistry();
+
+	for(size_t i_grp = 0; i_grp < reg.num_class_groups(); ++i_grp){
+		ClassGroupDesc* grp = reg.get_class_group(i_grp);
+		for(size_t i = 0; i < grp->num_classes(); ++i){
+			const IExportedClass* c = grp->get_class(i);
+			size_t len = strlen(c->name());
+			const char* ending = c->name() + len - 2;
+			if(strcmp(ending, suffix) == 0){
+				grp->set_default_class(i);
+				break;
+			}
+		}
+	}
+}
 
 #ifdef UG_ALGEBRA
 
@@ -71,6 +98,8 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 		bResult &= RegisterDomainInterface(reg, parentGroup);
 
 		bResult &= RegisterLibDiscElemDisc(reg, parentGroup);
+
+		reg.add_function("SetDefaultDimension", &SetDefaultDimension);
 
 		#ifdef UG_ALGEBRA
 			bResult &= RegisterUserData(reg, parentGroup);

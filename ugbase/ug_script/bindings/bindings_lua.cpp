@@ -912,6 +912,36 @@ static int LuaProxyDelete(lua_State* L)
 	return 0;
 }
 
+//	creates the class which is set as default class for the specified group.
+//	we assume that the first upvalue is a ClassGroupDesc*
+static int LuaProxyGroupCreate(lua_State* L)
+{
+//	get the group and make sure that it contains data
+	const ClassGroupDesc* group = (ClassGroupDesc*)lua_touserdata(L, lua_upvalueindex(1));
+
+	if(!group->empty()){
+		UG_LOG("ERROR: Can't create default instance of group " << group->name());
+		UG_LOG(": Group is empty!\n");
+		lua_pushnil(L);
+		return 1;
+	}
+
+//	get the associated default class
+	IExportedClass* c = group->get_default_class();
+
+	if(!c){
+		UG_LOG("ERROR: Can't create default instance of group " << group->name());
+		UG_LOG(": No default class set!\n");
+		lua_pushnil(L);
+		return 1;
+	}
+
+//	now create an instance of the associated class
+	CreateNewUserData(L, c->create(), c->name(), c->get_delete_function(), false);
+
+	return 1;
+}
+
 bool CreateBindings_LUA(lua_State* L, Registry& reg)
 {
 //	registers a meta-object for each object found in the ObjectRegistry.
@@ -1034,6 +1064,26 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		lua_pop(L, 1);
 	}
 	
+//	now register constructors for class-groups
+	size_t numClassGroups = reg.num_class_groups();
+	for(size_t i = 0; i < numClassGroups; ++i){
+		const ClassGroupDesc* cg = reg.get_class_group(i);
+
+	//	check whether the class-group already exists
+		lua_getglobal(L, cg->name());
+		if(!lua_isnil(L, -1)){
+		//	the class-group already exists. Don't recreate it.
+			lua_pop(L, 1);
+			continue;
+		}
+		lua_pop(L, 1);
+
+	//	The class-group is new. Register the proxy-constructor.
+		lua_pushlightuserdata(L, (void*)cg);
+		lua_pushcclosure(L, LuaProxyGroupCreate, 1);
+		lua_setglobal(L, cg->name());
+	}
+
 	return true;
 }
 
