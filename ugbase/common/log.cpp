@@ -4,7 +4,7 @@
  *  Created on: 10.03.2010
  *      Author: andreasvogel, sebastianreiter
  */
-
+#include <iostream>
 #include "common/log.h"
 using namespace std;
 
@@ -15,14 +15,24 @@ LogAssistant() :
 	m_terminalOutputEnabled(true),
 	m_fileOutputEnabled(false)
 {
+}
+
+LogAssistant::LogAssistant(const LogAssistant&)
+{
+}
+
+void LogAssistant::init()
+{
+//	originally this was placed in the constructor.
+//	However, an internal compiler error in MinGW (windows)
+//	appears then. Having moved the stuff here into this init
+//	method seems to have helped.
 	set_debug_levels(-1);
 	m_emptyBuf = &m_emptyBufInst;
 	m_splitBuf = &m_splitBufInst;
 	m_logBuf = cout.rdbuf();
 	m_fileBuf = m_fileStream.rdbuf();
-
 	m_splitBufInst.set_buffers(m_logBuf, m_fileBuf);
-
 	update_ostream();
 }
 
@@ -30,6 +40,16 @@ LogAssistant& LogAssistant::
 instance()
 {
 	static LogAssistant log;
+	
+//	This special initialization is performed to avoid an internal compiler error
+//	with MinGW. I don't know what causes that error, however using a init method
+//	instead of the constructor seems to help.
+	static bool initialized = false;
+	if(!initialized){
+		initialized = true;
+		log.init();
+	}
+	
 	return log;
 }
 

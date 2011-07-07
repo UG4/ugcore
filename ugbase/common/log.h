@@ -110,8 +110,10 @@ class LogAssistant
 		LogAssistant();
 
 	///	Prevent copying through private copy constructor.
-		LogAssistant(const LogAssistant& la)	{}
+		LogAssistant(const LogAssistant&);
 
+	///	Performs some initialization
+		void init();
 	private:
 	//	streams
 		std::streambuf*	m_emptyBuf;

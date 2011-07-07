@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(P_COMMON)
 
-include_directories(${P_UGBASE_SOURCE_DIR})
+include("../../ug_cmake_includes.txt")
 
 set(srcCommon	log.cpp
 				serialization.cpp
