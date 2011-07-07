@@ -341,7 +341,7 @@ end
 -- create Convergence Check
 print("Creating Solver.")
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(20)
+convCheck:set_maximum_steps(40)
 convCheck:set_minimum_defect(1e-8)
 convCheck:set_reduction(1e-8)
 
