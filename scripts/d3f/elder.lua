@@ -343,7 +343,7 @@ end
 print("Creating Solver.")
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(1000)
-convCheck:set_minimum_defect(0.5e-10)
+convCheck:set_minimum_defect(0.5e-8)
 convCheck:set_reduction(1e-8)
 
 -- create Linear Solver
@@ -364,7 +364,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()
 newtonConvCheck:set_maximum_steps(10)
-newtonConvCheck:set_minimum_defect(5e-8)
+newtonConvCheck:set_minimum_defect(5e-6)
 newtonConvCheck:set_reduction(1e-10)
 newtonConvCheck:set_verbose_level(true)
 
