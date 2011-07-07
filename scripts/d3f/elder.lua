@@ -374,7 +374,7 @@ newtonSolver = NewtonSolver()
 newtonSolver:set_linear_solver(bicgstabSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
 --newtonSolver:set_line_search(newtonLineSearch)
-newtonSolver:set_debug(dbgWriter)
+--newtonSolver:set_debug(dbgWriter)
 
 newtonSolver:init(op)
 
