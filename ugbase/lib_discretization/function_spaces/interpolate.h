@@ -146,6 +146,7 @@ static number invoke(	boost::function<void (
 #endif
 		switch(dim)
 		{
+		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
 			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
@@ -213,6 +214,7 @@ static number invoke(	boost::function<void (
 #endif
 		switch(dim)
 		{
+		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
 			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
@@ -274,6 +276,7 @@ static number invoke(	boost::function<void (
 #endif
 		switch(dim)
 		{
+		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
 			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
