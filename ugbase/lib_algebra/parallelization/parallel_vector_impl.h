@@ -157,34 +157,26 @@ inline
 number
 ParallelVector<TVector>::
 two_norm()
-{/*
-	// step 1: make vector d additive unique
-	if(!change_storage_type(PST_UNIQUE)) {
-		UG_ASSERT(0, "Cannot change to unique representation.");
-		UG_LOG("ERROR in ParallelVector: Cannot change to unique representation.\n");
-		return -1;
-	}*/
+{
+// 	step 1: make vector d additive unique
+	if(!change_storage_type(PST_UNIQUE))
+	{
+		UG_LOG("ERROR in 'ParallelVector::two_norm()': "
+				"Cannot change to unique representation, but required.\n");
+		throw(UGFatalError("ERROR in ParallelVector::two_norm(): Cannot change"
+							" ParallelStorageType to unique."));
+	}
 
-	// step 2: compute new defect norm
+// 	step 2: compute process-local defect norm, square them
 	double tNormLocal = (double)TVector::two_norm();
 	tNormLocal *= tNormLocal;
 
-	// step 3: sum local norms
-
-	PARVEC_PROFILE_BEGIN(ParVec_two_norm_allreduce); // added 14042011ih
-
+// 	step 3: sum squared local norms
+	PARVEC_PROFILE_BEGIN(ParVec_two_norm_allreduce);
 	double tNormGlobal = m_processCommunicator.allreduce(tNormLocal, PCL_RO_SUM);
+	PARVEC_PROFILE_END();
 
-	PARVEC_PROFILE_END(); //ParVec_two_norm_allreduce // added 14042011ih
-	/* TMP (VERY TEMPORARY ...) 29032011ih
-	UG_LOG_ALL_PROCS("'two_norm()' on Proc " << std::setw(3) << pcl::GetProcRank() <<
-			 ": tNormLocal  = " << std::setprecision(4) << tNormLocal <<
-			 ", tNormGlobal = " << std::setprecision(4) << tNormGlobal << ".\n");
-	UG_LOG("'two_norm()': tNormGlobal = " << std::setprecision(4) << tNormGlobal << ".\n");
-	*/
-	/* TMP END (VERY TEMPORARY ...) 29032011ih */
-
-	// step 4: return global norm
+// 	step 4: return global norm ( = square root of summed squared local norms)
 	return sqrt((number)tNormGlobal);
 }
 
@@ -194,18 +186,19 @@ number
 ParallelVector<TVector>::
 dotprod(const this_type& v)
 {
-	// step 0: check that storage type is given
+// 	step 0: check that storage type is given
 	if(this->has_storage_type(PST_UNDEFINED) || v.has_storage_type(PST_UNDEFINED))
 	{
-		// TODO: rethink this arrangement, should throw an error
-		UG_ASSERT(0, "Parallel storage type not given.\n");
-		UG_LOG("ERROR in ParallelVector: Parallel storage type not given.\n");
+		UG_LOG("ERROR in 'ParallelVector::dotprod': "
+				"Parallel storage type of vector not given.\n");
+		throw(UGFatalError("ERROR in ParallelVector::dotprod(): No parallel "
+				"Storage type given."));
 	}
 
+//	step 1: Check if good storage type are given (no communication needed)
+//         - additive (unique) <-> consistent is ok
+//         - unique <-> unique is ok
 	bool check = false;
-	// step 1: Check if good storage type are given (no communication needed)
-	//         - additive (unique) <-> consistent is ok
-	//         - unique <-> unique is ok
 	if(this->has_storage_type(PST_ADDITIVE)
 			&& v.has_storage_type(PST_CONSISTENT)) check = true;
 	if(this->has_storage_type(PST_CONSISTENT)
@@ -213,10 +206,10 @@ dotprod(const this_type& v)
 	if(this->has_storage_type(PST_UNIQUE)
 			&& v.has_storage_type(PST_UNIQUE))     check = true;
 
-	// step 2: fall back
-	//         	if storage type not as in the upper cases, communicate to
-	//			correct solution a user of this function should ideally avoid
-	//			such a change and do it outside of this function
+// 	step 2: fall back
+//         	if storage type not as in the upper cases, communicate to
+//			correct solution a user of this function should ideally avoid
+//			such a change and do it outside of this function
 	if(!check)
 	{
 		// unique <-> additive => consistent <-> additive
@@ -231,15 +224,15 @@ dotprod(const this_type& v)
 		else {this->change_storage_type(PST_UNIQUE);}
 	}
 
-	// step 3: compute local dot product
+// 	step 3: compute local dot product
 	double tSumLocal = (double)TVector::dotprod(v);
 	double tSumGlobal;
 
-	// step 4: sum global contributions
+// 	step 4: sum global contributions
 	m_processCommunicator.allreduce(&tSumLocal, &tSumGlobal, 1,
 									PCL_DT_DOUBLE, PCL_RO_SUM);
 
-	// step 5: return result
+// 	step 5: return result
 	return tSumGlobal;
 }
 
