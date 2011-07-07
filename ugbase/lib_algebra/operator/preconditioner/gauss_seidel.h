@@ -47,7 +47,21 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat) {return true;}
+		virtual bool preprocess(matrix_operator_type& mat)
+		{
+#ifdef UG_PARALLEL
+			if(pcl::GetNumProcesses() > 1)
+			{
+				//	copy original matrix
+				MakeConsistent(mat, m_A);
+				//	set zero on slaves
+				std::vector<IndexLayout::Element> vIndex;
+				CollectUniqueElements(vIndex,  m_A.get_slave_layout());
+				SetDirichletRow(m_A, vIndex);
+			}
+#endif
+			return true;
+		}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -55,13 +69,31 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
-			// 	set the computed correction to additive
-			//	todo: handle parallel case
 #ifdef UG_PARALLEL
-				c.set_storage_type(PST_ADDITIVE);
+			if(pcl::GetNumProcesses() > 1)
+			{
+				//	make defect unique
+				// todo: change that copying
+				vector_type dhelp;
+				dhelp.resize(d.size()); dhelp = d;
+				dhelp.change_storage_type(PST_UNIQUE);
+
+				if(!gs_step_LL(m_A, c, dhelp)) return false;
+				c.set_storage_type(PST_UNIQUE);
+				return true;
+			}
+			else
 #endif
-			return gs_step_LL(mat, c, d);
+			{
+				return gs_step_LL(mat, c, d);
+			}
 		}
+
+	protected:
+#ifdef UG_PARALLEL
+		matrix_type m_A;
+#endif
+
 };
 
 template <typename TAlgebra>
@@ -96,7 +128,21 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Backward Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat) {return true;}
+		virtual bool preprocess(matrix_operator_type& mat)
+		{
+#ifdef UG_PARALLEL
+			if(pcl::GetNumProcesses() > 1)
+			{
+				//	copy original matrix
+				MakeConsistent(mat, m_A);
+				//	set zero on slaves
+				std::vector<IndexLayout::Element> vIndex;
+				CollectUniqueElements(vIndex,  m_A.get_slave_layout());
+				SetDirichletRow(m_A, vIndex);
+			}
+#endif
+			return true;
+		}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -104,13 +150,30 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
-			// 	set the computed correction to additive
-			//	todo: handle parallel case
 #ifdef UG_PARALLEL
-				c.set_storage_type(PST_ADDITIVE);
+			if(pcl::GetNumProcesses() > 1)
+			{
+				//	make defect unique
+				// todo: change that copying
+				vector_type dhelp;
+				dhelp.resize(d.size()); dhelp = d;
+				dhelp.change_storage_type(PST_UNIQUE);
+
+				if(!gs_step_UR(m_A, c, dhelp)) return false;
+				c.set_storage_type(PST_UNIQUE);
+				return true;
+			}
+			else
 #endif
-			return gs_step_UR(mat, c, d);
+			{
+				return gs_step_UR(mat, c, d);
+			}
 		}
+
+	protected:
+#ifdef UG_PARALLEL
+		matrix_type m_A;
+#endif
 };
 
 template <typename TAlgebra>
@@ -145,7 +208,21 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Symmetric Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat) {return true;}
+		virtual bool preprocess(matrix_operator_type& mat)
+		{
+#ifdef UG_PARALLEL
+			if(pcl::GetNumProcesses() > 1)
+			{
+				//	copy original matrix
+				MakeConsistent(mat, m_A);
+				//	set zero on slaves
+				std::vector<IndexLayout::Element> vIndex;
+				CollectUniqueElements(vIndex,  m_A.get_slave_layout());
+				SetDirichletRow(m_A, vIndex);
+			}
+#endif
+			return true;
+		}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -153,14 +230,32 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
-			// 	set the computed correction to additive
-			//	todo: handle parallel case
 #ifdef UG_PARALLEL
-				c.set_storage_type(PST_ADDITIVE);
+			if(pcl::GetNumProcesses() > 1)
+			{
+				//	make defect unique
+				// todo: change that copying
+				vector_type dhelp;
+				dhelp.resize(d.size()); dhelp = d;
+				dhelp.change_storage_type(PST_UNIQUE);
+
+				if(!sgs_step(m_A, c, dhelp)) return false;
+				c.set_storage_type(PST_UNIQUE);
+				return true;
+			}
+			else
 #endif
-			return sgs_step(mat, c, d);
+			{
+				return sgs_step(mat, c, d);
+			}
 		}
+
+	protected:
+#ifdef UG_PARALLEL
+		matrix_type m_A;
+#endif
 };
+
 
 } // end namespace ug
 
