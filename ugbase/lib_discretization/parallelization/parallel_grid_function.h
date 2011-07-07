@@ -166,23 +166,23 @@ class ParallelGridFunction : public TGridFunction
 			{return get_vector().change_storage_type(type);}
 
 	/// returns if the current storage type has a given representation
-		bool has_storage_type(ParallelStorageType type) const
+		bool has_storage_type(uint type) const
 			{return get_vector().has_storage_type(type);}
 
 	/// returns storage type mask
-		ParallelStorageType get_storage_mask() const
+		uint get_storage_mask() const
 			{return get_vector().get_storage_mask(); }
 
 	/// sets the storage type
-		void set_storage_type(ParallelStorageType type)
+		void set_storage_type(uint type)
 			{get_vector().set_storage_type(type);}
 
 	/// adds the storage type
-		void add_storage_type(ParallelStorageType type)
+		void add_storage_type(uint type)
 			{get_vector().add_storage_type(type);}
 
 	/// removes the storage type
-		void remove_storage_type(ParallelStorageType type)
+		void remove_storage_type(uint type)
 			{get_vector().remove_storage_type(type);}
 
 	/// copies the storage type from another vector

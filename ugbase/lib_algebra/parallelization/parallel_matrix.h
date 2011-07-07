@@ -89,10 +89,18 @@ class ParallelMatrix : public TMatrix
 		}
 
 	///	returns the slave layout
-		IndexLayout& get_slave_layout() const {return *m_pSlaveLayout;}
+		IndexLayout& get_slave_layout() const
+		{
+			UG_ASSERT(m_pSlaveLayout != NULL, "No Slave Layout set, but requested.");
+			return *m_pSlaveLayout;
+		}
 
 	///	returns the master layout
-		IndexLayout& get_master_layout() const {return *m_pMasterLayout;}
+		IndexLayout& get_master_layout() const
+		{
+			UG_ASSERT(m_pMasterLayout != NULL, "No Slave Layout set, but requested.");
+			return *m_pMasterLayout;
+		}
 
 	///	sets a communicator
 		void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc)
@@ -102,7 +110,11 @@ class ParallelMatrix : public TMatrix
 
 	///	returns the communicator
 		pcl::ParallelCommunicator<IndexLayout>&
-		get_communicator() {return *m_pCommunicator;}
+		get_communicator()
+		{
+			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
+			return *m_pCommunicator;
+		}
 
 	///	sets a process communicator
 		void set_process_communicator(const pcl::ProcessCommunicator& pc)
@@ -119,22 +131,27 @@ class ParallelMatrix : public TMatrix
 		/////////////////////////
 
 	/// sets the storage type
-		void set_storage_type(ParallelStorageType type) {m_type = type;}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		void set_storage_type(uint type) {m_type = type;}
 
 	/// adds a storage type
-		void add_storage_type(ParallelStorageType type) {m_type |= type;}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		void add_storage_type(uint type) {m_type |= type;}
 
 	/// removes a storage type
-		void remove_storage_type(ParallelStorageType type) {m_type &= ~type;}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		void remove_storage_type(uint type) {m_type &= ~type;}
 
 	/// changes to the requested storage type if possible
 		bool change_storage_type(ParallelStorageType type);
 
 	/// returns if the current storage type has a given representation
-		bool has_storage_type(ParallelStorageType type) const {return (bool)(m_type & type);}
+	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
+		bool has_storage_type(uint type) const
+			{return type == PST_UNDEFINED ? m_type == PST_UNDEFINED : (m_type & type) == type;}
 
 	/// returns storage type mask
-		ParallelStorageType get_storage_mask() const { return (ParallelStorageType) m_type; }
+		uint get_storage_mask() const { return m_type; }
 
 	/// copies the storage type from another vector
 		void copy_storage_type(const this_type& v) {m_type = v.m_type;}
@@ -158,7 +175,7 @@ class ParallelMatrix : public TMatrix
 
 	private:
 	//  type of storage  (i.e. consistent, additiv, additiv unique)
-		int m_type;
+		uint m_type;
 
 	// 	index layout for slave dofs (0 is process-wise (finest grained) partition)
 		IndexLayout* m_pSlaveLayout;

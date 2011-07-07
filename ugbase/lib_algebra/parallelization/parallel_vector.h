@@ -102,16 +102,36 @@ class ParallelVector : public TVector
 		}
 
 	///	returns the slave layout
-		IndexLayout& get_slave_layout() const {return *m_pSlaveLayout;}
+		IndexLayout& get_slave_layout() const
+		{
+			UG_ASSERT(m_pSlaveLayout != NULL,
+			          "No Horizontal Slave Layout set, but requested.");
+			return *m_pSlaveLayout;
+		}
 
 	///	returns the master layout
-		IndexLayout& get_master_layout() const {return *m_pMasterLayout;}
+		IndexLayout& get_master_layout() const
+		{
+			UG_ASSERT(m_pMasterLayout != NULL,
+			          "No Horizontal Master Layout set, but requested.");
+			return *m_pMasterLayout;
+		}
 
 	///	returns the vertical slave layout
-		IndexLayout& get_vertical_slave_layout()	{return *m_pVerticalSlaveLayout;}
+		IndexLayout& get_vertical_slave_layout()
+		{
+			UG_ASSERT(m_pVerticalSlaveLayout != NULL,
+			          "No Vertical Slave Layout set, but requested.");
+			return *m_pVerticalSlaveLayout;
+		}
 
 	///	returns the vertical slave layout
-		IndexLayout& get_vertical_master_layout() {return *m_pVerticalMasterLayout;}
+		IndexLayout& get_vertical_master_layout()
+		{
+			UG_ASSERT(m_pVerticalMasterLayout != NULL,
+			          "No Vertical Master Layout set, but requested.");
+			return *m_pVerticalMasterLayout;
+		}
 
 	///	sets a communicator
 		void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc)
@@ -120,8 +140,12 @@ class ParallelVector : public TVector
 		}
 
 	///	returns the communicator
-		pcl::ParallelCommunicator<IndexLayout>&
-		get_communicator() {return *m_pCommunicator;}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator()
+		{
+			UG_ASSERT(m_pCommunicator != NULL,
+			          "No Parallel Communicator set, but requested.");
+			return *m_pCommunicator;
+		}
 
 	///	sets a process communicator
 		void set_process_communicator(const pcl::ProcessCommunicator& pc)
@@ -158,7 +182,8 @@ class ParallelVector : public TVector
 
 	/// returns if the current storage type has a given representation
 	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
-		bool has_storage_type(uint type) const {return type == PST_UNDEFINED ? m_type == PST_UNDEFINED : (m_type & type) == type;}
+		bool has_storage_type(uint type) const
+			{return type == PST_UNDEFINED ? m_type == PST_UNDEFINED : (m_type & type) == type;}
 
 	/// returns storage type mask
 		uint get_storage_mask() const { return m_type; }
