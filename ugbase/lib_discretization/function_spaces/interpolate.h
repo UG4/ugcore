@@ -139,8 +139,14 @@ static number invoke(	boost::function<void (
 
 	//	switch dimensions
 		bool bRes = true;
-		switch(ssGrp.dim(i))
+#ifdef UG_PARALLEL
+		const int dim = ssGrp.dim(i);
+#else
+		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+#endif
+		switch(dim)
 		{
+		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
 			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
@@ -154,7 +160,7 @@ static number invoke(	boost::function<void (
 			bRes &= InterpolateFunctionOnElem<Prism, TGridFunction>(InterpolFunction, u, fct, si, time);
 			bRes &= InterpolateFunctionOnElem<Pyramid, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<
+		default: UG_LOG("InterpolateFunction: Dimension " <<dim<<
 		                " not possible for world dim "<<3<<".\n"); return false;
 		}
 
@@ -200,8 +206,14 @@ static number invoke(	boost::function<void (
 
 	//	switch dimensions
 		bool bRes = true;
-		switch(ssGrp.dim(i))
+#ifdef UG_PARALLEL
+		const int dim = ssGrp.dim(i);
+#else
+		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+#endif
+		switch(dim)
 		{
+		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
 			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
@@ -209,7 +221,7 @@ static number invoke(	boost::function<void (
 			bRes &= InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time);
 			bRes &= InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<
+		default: UG_LOG("InterpolateFunction: Dimension " << dim <<
 		                " not possible for world dim "<<2<<".\n"); return false;
 		}
 
@@ -255,12 +267,18 @@ static number invoke(	boost::function<void (
 
 	//	switch dimensions
 		bool bRes = true;
-		switch(ssGrp.dim(i))
+#ifdef UG_PARALLEL
+		const int dim = ssGrp.dim(i);
+#else
+		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+#endif
+		switch(dim)
 		{
+		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
 			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension " <<ssGrp.dim(i)<<
+		default: UG_LOG("InterpolateFunction: Dimension " <<dim<<
 		                " not possible for world dim "<<1<<".\n"); return false;
 		}
 

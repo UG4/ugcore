@@ -10,6 +10,9 @@
 
 #include <vector>
 #include "lib_grid/tools/subset_handler_interface.h"
+#ifdef UG_PARALLEL
+#include "pcl/pcl_process_communicator.h"
+#endif
 
 namespace ug{
 
@@ -109,31 +112,26 @@ class SubsetGroup
 	 * Returns the dimension of the subset. The dimension of the subset
 	 * is defined as the highest dimension of geometric objects contained in
 	 * the subset.
+	 * If a ProcessCommunicator is passed, the maximum among all procs
+	 * is returned.
 	 */
-		int dim(size_t i) const;
-
-	/// common dimension of all subset
-	/**
-	 * Returns the common dimension of all subset. The dimension of a subset
-	 * is defined as the highest dimension of geometric objects contained in
-	 * the subset. If the dimension is not equal for all subsets, no common
-	 * domain is available and a -1 is returned.
-	 *
-	 * \return 		-1			if no common dimension available
-	 * 				dim	>= 0	common dimension of all subsets in this group
-	 */
-		int dim() const;
+		int dim(size_t i
+#ifdef UG_PARALLEL
+                     ,pcl::ProcessCommunicator* pProcCom = NULL
+#endif
+				) const;
 
 	/// highest dimension of all subset
 	/**
 	 * Returns the highest dimension of all subset. The dimension of a subset
 	 * is defined as the highest dimension of geometric objects contained in
 	 * the subset.
+	 * No check between different processes is performed in parallel.
 	 *
 	 * \return 		-1			if no dimension available
 	 * 				dim	>= 0	highest dimension of all subsets in this group
 	 */
-		int get_highest_subset_dimension() const;
+		int get_local_highest_subset_dimension() const;
 
 	/// returns true if subset is contained in this group
 		bool contains(int si) const;

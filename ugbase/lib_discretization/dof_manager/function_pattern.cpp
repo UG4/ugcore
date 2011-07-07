@@ -101,7 +101,7 @@ add_fct(const char* name,
 //	if no dimension passed, try to get dimension
 	if(dim == -1)
 	{
-		dim = SubsetIndices.get_highest_subset_dimension();
+		dim = SubsetIndices.get_local_highest_subset_dimension();
 	}
 
 #ifdef UG_PARALLEL

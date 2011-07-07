@@ -14,6 +14,10 @@
 // other lib_discretization headers
 #include "domain.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_process_communicator.h"
+#endif
+
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
@@ -64,6 +68,8 @@ inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si);
  */
 inline bool SubsetIsRegularGrid(const ISubsetHandler& sh, int si);
 
+/// abbreviations for return types
+enum {DIM_SUBSET_EMPTY_GRID = -1};
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the current dimension of the subset
@@ -72,14 +78,21 @@ inline bool SubsetIsRegularGrid(const ISubsetHandler& sh, int si);
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
+ * If a ParallelCommunicator is passed, the highest dimension within all
+ * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	sh			SubsetHandler
  * \param[in]	si			Subset Index
+ * \param[in]	pProcCom	ParallelCommunicator (optinal)
  *
- * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessible
+ * \return		dimension					Dimension of Subset
+ * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
-inline int DimensionOfSubset(const SubsetHandler& sh, int si);
+inline int DimensionOfSubset(const SubsetHandler& sh, int si
+#ifdef UG_PARALLEL
+                             ,pcl::ProcessCommunicator* pProcCom = NULL
+#endif
+							);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the current dimension of the subset
@@ -88,14 +101,21 @@ inline int DimensionOfSubset(const SubsetHandler& sh, int si);
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
+ * If a ParallelCommunicator is passed, the highest dimension within all
+ * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	sh			MultiGridSubsetHandler
  * \param[in]	si			Subset Index
+ * \param[in]	pProcCom	ParallelCommunicator (optinal)
  *
- * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessible
+ * \return		dimension					Dimension of Subset
+ * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
-inline int DimensionOfSubset(const MGSubsetHandler& sh, int si);
+inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
+#ifdef UG_PARALLEL
+                             ,pcl::ProcessCommunicator* pProcCom = NULL
+#endif
+							);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the current dimension of the subset
@@ -104,14 +124,21 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si);
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
+ * If a ParallelCommunicator is passed, the highest dimension within all
+ * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	sh			ISubsetHandler
  * \param[in]	si			Subset Index
+ * \param[in]	pProcCom	ParallelCommunicator (optinal)
  *
- * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessible
+ * \return		dimension					Dimension of Subset
+ * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
-inline int DimensionOfSubset(const ISubsetHandler& sh, int si);
+inline int DimensionOfSubset(const ISubsetHandler& sh, int si
+#ifdef UG_PARALLEL
+                             ,pcl::ProcessCommunicator* pProcCom = NULL
+#endif
+							);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the current dimension for all subset
@@ -120,13 +147,20 @@ inline int DimensionOfSubset(const ISubsetHandler& sh, int si);
  * This function returns the dimension of the subsets. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained the union of all subset
+ * If a ParallelCommunicator is passed, the highest dimension within all
+ * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	sh			ISubsetHandler
+ * \param[in]	pProcCom	ParallelCommunicator (optinal)
  *
- * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessible
+ * \return		dimension					Dimension of Subset
+ * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
-inline int DimensionOfSubsets(const ISubsetHandler& sh);
+inline int DimensionOfSubsets(const ISubsetHandler& sh
+#ifdef UG_PARALLEL
+                             ,pcl::ProcessCommunicator* pProcCom = NULL
+#endif
+							);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the current dimension of the subset
@@ -135,15 +169,22 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh);
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
+ * If a ParallelCommunicator is passed, the highest dimension within all
+ * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	domain		Domain
  * \param[in]	si			Subset Index
+ * \param[in]	pProcCom	ParallelCommunicator (optinal)
  *
- * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessible
+ * \return		dimension					Dimension of Subset
+ * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
 template <typename TDomain>
-inline int DimensionOfSubset(const TDomain& domain, int si);
+inline int DimensionOfSubset(const TDomain& domain, int si
+#ifdef UG_PARALLEL
+                             ,pcl::ProcessCommunicator* pProcCom = NULL
+#endif
+							);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the current dimension of the domain
@@ -151,15 +192,22 @@ inline int DimensionOfSubset(const TDomain& domain, int si);
  *
  * This function returns the dimension of the domain. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
- * contained in the domain
+ * contained in the domain.
+ * If a ParallelCommunicator is passed, the highest dimension within all
+ * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	domain		Domain
+ * \param[in]	pProcCom	ParallelCommunicator (optinal)
  *
- * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessible
+ * \return		dimension					Dimension of Subset
+ * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
 template <typename TDomain>
-inline int DimensionOfDomain(const TDomain& domain);
+inline int DimensionOfDomain(const TDomain& domain
+#ifdef UG_PARALLEL
+                             ,pcl::ProcessCommunicator* pProcCom = NULL
+#endif
+							);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the corner coordinates of a geometric object

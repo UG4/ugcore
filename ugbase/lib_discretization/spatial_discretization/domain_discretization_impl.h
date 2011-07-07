@@ -121,7 +121,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -253,7 +253,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -397,7 +397,7 @@ assemble_jacobian(matrix_type& J,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -537,7 +537,7 @@ assemble_defect(vector_type& d,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -674,7 +674,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -815,7 +815,7 @@ assemble_rhs(vector_type& rhs,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -990,7 +990,7 @@ assemble_jacobian(matrix_type& J,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -1122,7 +1122,7 @@ assemble_defect(vector_type& d,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}
@@ -1252,7 +1252,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			}
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
-				"Dimension " << dim << " not supported.\n");
+				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 				return false;
 		}
 	}

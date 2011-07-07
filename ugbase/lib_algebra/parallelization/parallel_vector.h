@@ -246,7 +246,7 @@ class ParallelVector : public TVector
 
 		//	check mask
 			UG_ASSERT(mask != 0, "ERROR in 'ParallelVector::operator-=': Storage"
-					"types not compatible. This: "<< get_storage_mask() <<
+					" types not compatible. This: "<< get_storage_mask() <<
 					" and other: " << v.get_storage_mask() << ".");
 			if(mask == 0)
 				throw(UG_ERROR_IncompatibleParallelStorageType(
@@ -270,7 +270,7 @@ class ParallelVector : public TVector
 
 		//	check mask
 			UG_ASSERT(mask != 0, "ERROR in 'ParallelVector::operator+=': Storage"
-					"types not compatible. This: "<< get_storage_mask() <<
+					" types not compatible. This: "<< get_storage_mask() <<
 					" and other: " << v.get_storage_mask() << ".");
 			if(mask == 0)
 				throw(UG_ERROR_IncompatibleParallelStorageType(
