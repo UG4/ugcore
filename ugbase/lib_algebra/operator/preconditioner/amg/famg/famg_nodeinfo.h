@@ -370,7 +370,7 @@ public:
 	void external_set_uncalculated_fine(size_t index)
 	{
 		UG_ASSERT(!is_inner_node(index), "node " << index << " can not be set uncalculated_fine, since it is an inner node");
-		UG_ASSERT(!nodes[index].is_fine(), "node " << index << " is already fine?");
+		//UG_ASSERT(!nodes[index].is_fine(), "node " << index << " is already fine?");
 		if(nodes[index].is_fine() == false)
 			m_iNrOfFine++;
 		nodes[index].set_uncalculated_fine();
