@@ -25,7 +25,7 @@ else
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = util.GetParamNumber("-numPreRefs", 0)
+numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 
 -- choose number of total Refinements (incl. pre-Refinements)
 numRefs = util.GetParamNumber("-numRefs", 2)
@@ -358,7 +358,7 @@ cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(ilu)
+bicgstabSolver:set_preconditioner(gmg)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- convergence check
