@@ -63,44 +63,56 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
-#ifdef UG_PARALLEL
-			// create help vector to apply diagonal
-			size_t size = mat.num_rows();
-			if(size != mat.num_cols())
-			{
-				UG_LOG("Square Matrix needed for Jacobi Iteration.\n");
-				return false;
-			}
+		//	Currently remember that Operator has changed
+			m_bOpChanged = true;
 
-			ParallelVector<Vector< typename matrix_type::value_type > > m_diag;
-
-			m_diagInv.resize(size);
-			m_diag.resize(size);
-
-			m_diag.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
-			m_diag.set_communicator(mat.get_communicator());
-
-			// copy diagonal
-			for(size_t i = 0; i < m_diag.size(); ++i){
-				m_diag[i] = mat(i, i);
-			}
-
-			//	make diagonal consistent
-			m_diag.set_storage_type(PST_ADDITIVE);
-			m_diag.change_storage_type(PST_CONSISTENT);
-
-			// invert diagonal and multiply by damping
-			for(size_t i = 0; i < m_diag.size(); ++i)
-			{
-				m_diag[i] *= 1/m_damp;
-				GetInverse(m_diagInv[i], m_diag[i]);
-			}
-#endif
 			return true;
 		}
 
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
+#ifdef UG_PARALLEL
+			// todo: 	this should be done in 'init'. It is currently placed here, since a
+			//			ParallelMatrix is not yet implemented and we have no possibility to
+			//			access the communicator needed below
+			if(m_bOpChanged)
+			{
+				// create help vector to apply diagonal
+				size_t size = mat.num_rows();
+				if(size != mat.num_cols())
+				{
+					UG_LOG("Square Matrix needed for Jacobi Iteration.\n");
+					return false;
+				}
+
+				ParallelVector<Vector< typename matrix_type::value_type > > m_diag;
+
+				m_diagInv.resize(size);
+				m_diag.resize(size);
+
+				m_diag.set_layouts(c.get_master_layout(), c.get_slave_layout());
+				m_diag.set_communicator(c.get_communicator());
+
+				// copy diagonal
+				for(size_t i = 0; i < m_diag.size(); ++i){
+					m_diag[i] = mat(i, i);
+				}
+
+				//	make diagonal consistent
+				m_diag.set_storage_type(PST_ADDITIVE);
+				m_diag.change_storage_type(PST_CONSISTENT);
+
+				// invert diagonal and multiply by damping
+				for(size_t i = 0; i < m_diag.size(); ++i)
+				{
+					m_diag[i] *= 1/m_damp;
+					GetInverse(m_diagInv[i], m_diag[i]);
+				}
+
+				m_bOpChanged = false;
+			}
+#endif
+
 #ifdef UG_PARALLEL
 			// multiply defect with diagonal, c = damp * D^{-1} * d
 			for(size_t i = 0; i < m_diagInv.size(); ++i)
