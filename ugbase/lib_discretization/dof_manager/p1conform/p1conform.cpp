@@ -261,7 +261,7 @@ distribute_dofs()
 
 bool
 P1ConformDoFDistribution::
-permute_indices(const std::vector<size_t>& vIndNew)
+permute_indices(std::vector<size_t>& vIndNew)
 {
 //	check, that storage is initialized
 	if(m_pStorageManager == NULL)
@@ -304,6 +304,10 @@ permute_indices(const std::vector<size_t>& vIndNew)
 
 		//	replace old index by new one
 			first_index(vrt, si) = vIndNew[oldIndex];
+
+		//	set correct permutation in permuting vector
+			for(size_t fct = 0; fct < num_fct(si); ++fct)
+				vIndNew[oldIndex+fct] = vIndNew[oldIndex] + fct;
 		}
 	}
 
@@ -691,7 +695,7 @@ distribute_dofs()
 
 bool
 GroupedP1ConformDoFDistribution::
-permute_indices(const std::vector<size_t>& vIndNew)
+permute_indices(std::vector<size_t>& vIndNew)
 {
 //	check, that storage is initialized
 	if(m_pStorageManager == NULL)

@@ -243,7 +243,7 @@ class P1ConformDoFDistribution
 		bool distribute_dofs();
 
 	/// \copydoc IDoFDistribution::permute_indices()
-		bool permute_indices(const std::vector<size_t>& vIndNew);
+		bool permute_indices(std::vector<size_t>& vIndNew);
 
 	/// \copydoc IDoFDistribution::get_connections()
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
@@ -493,7 +493,7 @@ class GroupedP1ConformDoFDistribution
 		bool distribute_dofs();
 
 	/// \copydoc IDoFDistribution::permute_indices()
-		bool permute_indices(const std::vector<size_t>& vIndNew);
+		bool permute_indices(std::vector<size_t>& vIndNew);
 
 	/// \copydoc IDoFDistribution::get_connections()
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);

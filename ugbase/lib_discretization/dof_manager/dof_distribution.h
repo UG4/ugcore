@@ -297,8 +297,17 @@ class IDoFDistribution
 	 * \param[in]	vIndNew		mapping for each index
 	 * \returns 	success flag
 	 */
-		bool permute_indices(const std::vector<size_t>& vIndNew)
+		bool permute_indices(std::vector<size_t>& vIndNew)
 		{
+		//	check size of permuting array. Must have same size as index set
+			if(vIndNew.size() != num_dofs())
+			{
+				UG_LOG("ERROR in 'IDoFDistribution::permute_indices': Passed "
+						" permutation does not have the size of the index set "
+						<<num_dofs()<<", but has size "<<vIndNew.size()<<"\n");
+				return false;
+			}
+
 		//	swap indices as implemented
 			if(!getImpl().permute_indices(vIndNew)) return false;
 
