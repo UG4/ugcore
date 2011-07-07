@@ -96,8 +96,9 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 {
 	if(cols == 0 && rows == 0)
 	{
-		delete[] pRowStart;
-		delete[] pRowEnd;
+	// 	\todo: verify: A matrix could not be created, but is resized
+		if(pRowStart) delete[] pRowStart;
+		if(pRowEnd) delete[] pRowEnd;
 		return create(newRows, newCols);
 	}
 	if(newCols < cols)
