@@ -59,11 +59,7 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup = "/u
 bool RegisterDynamicLibDiscDomain(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 bool RegisterDynamicLibDiscAlgebra(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
-bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4")
-{
-	RegisterDynamicLibDiscDomain(reg, algebra_type, parentGroup);
-	RegisterDynamicLibDiscAlgebra(reg, algebra_type, parentGroup);
-}
+bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
 /// registers user data
 bool RegisterUserData(Registry& reg, const char* parentGroup = "/ug4");
