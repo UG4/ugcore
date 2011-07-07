@@ -108,7 +108,10 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 		{
 			size_t nr;
 			if(get_connection_nr(r, newCols, nr, GREATER_EQUAL))
+			{
+				iTotalNrOfConnections -= num_connections(r)-nr;
 				pRowEnd[r] = pRowStart[r]+nr;
+			}
 		}
 		cols = newCols;
 	}
@@ -119,7 +122,10 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 	{
 		// safe delete rows with r >= newRows.
 		for(size_t r=newRows; r<rows; r++)
+		{
+			iTotalNrOfConnections -= num_connections(r);
 			safe_set_connections(r, NULL);
+		}
 	}
 
 	if(newRows != rows)
@@ -891,6 +897,7 @@ typename SparseMatrix<T>::row_iterator SparseMatrix<T>::get_connection(size_t r,
 		definalize();
 		safe_set_connections(r, con);
 		pRowEnd[r] = pRowStart[r]+numConnections+1;
+		iTotalNrOfConnections++;
 	}
 
 	row_iterator it = begin_row(r);
