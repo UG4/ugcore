@@ -10,36 +10,33 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# This include directory is required by lib_grid.
-include_directories(${P_UGBASE_SOURCE_DIR})
+include("../../ug_cmake_includes.txt")
 
-set(srcUGBridge    	class_name_provider.cpp
-					class_helper.cpp
-					ug_bridge.cpp
-					bridges/lib_grid_bridge.cpp
-					bridges/test_bridge.cpp
-					bridges/profiler_bridge.cpp
-					bridges/util_bridge.cpp
-					bridges/misc_bridge.cpp
-					bridges/domain_bridge.cpp)
+set(srcUGBridge    	ug_bridge.cpp
+					lib_grid_bridge.cpp
+					test_bridge.cpp
+					profiler_bridge.cpp
+					util_bridge.cpp
+					misc_bridge.cpp
+					domain_bridge.cpp)
 
 set(srcUGBridge     ${srcUGBridge}
-					bridges/pcl_bridge.cpp)
+					pcl_bridge.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
 if(NOT NO_ALGEBRA)
 	# add source files that depend on the algebra and discretization system here.
 	set(srcUGBridge ${srcUGBridge}
-					bridges/lib_algebra_bridges/lib_algebra_bridge.cpp
-					bridges/lib_algebra_bridges/amg_bridge.cpp
+					lib_algebra_bridges/lib_algebra_bridge.cpp
+					lib_algebra_bridges/amg_bridge.cpp
 					
-					bridges/lib_disc_bridges/lib_disc_common.cpp
-					bridges/lib_disc_bridges/lib_disc_algebra.cpp
-					bridges/lib_disc_bridges/lib_disc_domain.cpp
-					bridges/lib_disc_bridges/lib_disc_disc.cpp
+					lib_disc_bridges/lib_disc_common.cpp
+					lib_disc_bridges/lib_disc_algebra.cpp
+					lib_disc_bridges/lib_disc_domain.cpp
+					lib_disc_bridges/lib_disc_disc.cpp
 					
-					bridges/user_data_bridge.cpp)
+					user_data_bridge.cpp)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)

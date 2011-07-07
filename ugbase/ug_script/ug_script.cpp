@@ -15,7 +15,7 @@
 #include "common/util/path_provider.h"
 #include "bindings/bindings_lua.h"
 #include "ug_bridge/ug_bridge.h"
-#include "ug_bridge/class_helper.h"
+#include "registry/class_helper.h"
 #include "info_commands.h"
 #include "user_data/user_data.h"
 #include "extensions/algebra_extensions.h"

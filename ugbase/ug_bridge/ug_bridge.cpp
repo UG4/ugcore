@@ -3,7 +3,6 @@
 //	y10 m09 d20
 
 #include "ug_bridge.h"
-#include "registry.h"
 
 #ifdef UG_ALGEBRA
 	#include "lib_algebra/algebra_selector.h"

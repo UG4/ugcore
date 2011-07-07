@@ -14,7 +14,7 @@
 #include <iomanip>
 #include "ug_script/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
-#include "ug_bridge/class_helper.h"
+#include "registry/class_helper.h"
 #include "common/util/sort_util.h"
 #include "common/util/string_util.h"
 #include "lua_stack_check.h"

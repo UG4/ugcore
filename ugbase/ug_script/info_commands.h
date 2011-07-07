@@ -1,5 +1,5 @@
 
-#include "ug_bridge/registry.h"
+#include "registry/registry.h"
 #include <string>
 
 #ifndef __H__UG_SCRIPT__INFO_COMMANDS__

@@ -321,7 +321,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     set(UG_LIBRARIES)
 
     if(NOT NO_UGBRIDGE)
-        set(UG_LIBRARIES ugscript ugbridge)
+        set(UG_LIBRARIES ugscript ugbridge registry)
     endif(NOT NO_UGBRIDGE)
 
 	if(NOT NO_ALGEBRA)

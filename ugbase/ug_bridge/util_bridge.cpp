@@ -3,8 +3,8 @@
 // 22.03.2011 (m,d,y)
 
 #include "common/util/path_provider.h"
-#include "../registry.h"
-#include "../ug_bridge.h"
+#include "registry/registry.h"
+#include "ug_bridge.h"
 
 #include <cstdlib>
 

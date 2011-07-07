@@ -8,7 +8,7 @@
 #include <queue>
 #include "bindings_lua.h"
 #include "ug_script/ug_script.h"
-#include "ug_bridge/registry.h"
+#include "registry/registry.h"
 #include "common/common.h"
 #include "../info_commands.h"
 

@@ -8,7 +8,7 @@
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
-#include "ug_bridge/class_helper.h"
+#include "class_helper.h"
 #include <iostream>
 
 namespace ug

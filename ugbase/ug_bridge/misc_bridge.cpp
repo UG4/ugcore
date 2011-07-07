@@ -5,10 +5,8 @@
  *      Author: Martin Rupp
  */
 
-
-#include "ug_script/ug_script.h"
-#include "../registry.h"
-#include "../ug_bridge.h"
+#include "registry/registry.h"
+#include "ug_bridge.h"
 
 namespace ug
 {

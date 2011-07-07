@@ -6,7 +6,7 @@
  */
 
 // include brigde
-#include "../../ug_bridge.h"
+#include "../ug_bridge.h"
 
 // includes of lib_discretization
 #include "lib_discretization/common/function_group.h"

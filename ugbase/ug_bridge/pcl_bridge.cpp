@@ -4,8 +4,8 @@
  
 #include <iostream>
 #include <string>
-#include "../registry.h"
-#include "../ug_bridge.h"
+#include "registry/registry.h"
+#include "ug_bridge.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"

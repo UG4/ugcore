@@ -10,8 +10,8 @@
 #include <sstream>
 
 // include bridge
-#include "../../ug_bridge.h"
-#include "../../registry.h"
+#include "../ug_bridge.h"
+#include "registry/registry.h"
 
 // lib_disc includes
 #include "lib_discretization/domain.h"

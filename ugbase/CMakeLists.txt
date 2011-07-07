@@ -31,7 +31,11 @@ add_subdirectory(node_tree)
 add_subdirectory(lib_grid)
 
 ########################
-# lib_interface
+# lib_registry
+add_subdirectory(registry)
+
+########################
+# lib_ugbridge
 add_subdirectory(ug_bridge)
 
 ########################

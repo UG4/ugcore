@@ -6,8 +6,8 @@
 #include <sstream>
 #include <vector>
 
-#include "../registry.h"
-#include "../ug_bridge.h"
+#include "registry/registry.h"
+#include "ug_bridge.h"
 
 #include "common/profiler/profiler.h"
 #include "lib_grid/lib_grid.h"

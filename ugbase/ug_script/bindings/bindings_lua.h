@@ -16,7 +16,7 @@ extern "C" {
 
 
 #include "common/common.h"
-#include "../../ug_bridge/registry.h"
+#include "registry/registry.h"
 
 namespace ug
 {

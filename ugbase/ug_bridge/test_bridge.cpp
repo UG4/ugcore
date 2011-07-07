@@ -2,8 +2,8 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
-#include "../registry.h"
-#include "../ug_bridge.h"
+#include "registry/registry.h"
+#include "ug_bridge.h"
 #include <iostream>
 #include <sstream>
 

@@ -5,7 +5,7 @@
 #ifndef __H__UG_BRIDGE__UG_BRIDGE__
 #define __H__UG_BRIDGE__UG_BRIDGE__
 
-#include "registry.h"
+#include "registry/registry.h"
 
 namespace ug
 {
