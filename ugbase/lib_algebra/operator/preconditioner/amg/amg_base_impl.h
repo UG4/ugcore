@@ -812,7 +812,7 @@ bool amg_base<TAlgebra>::writevec(std::string filename, const vector_type &d, si
 {
 	UG_ASSERT(m_writeMatrices, "");
 #ifdef UG_PARALLEL
-	size_t pid = ToString(pcl::GetProcRank());
+	size_t pid = pcl::GetProcRank();
 #else
 	size_t pid = 0;
 #endif
