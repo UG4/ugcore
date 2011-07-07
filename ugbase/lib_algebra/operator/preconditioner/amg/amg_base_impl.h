@@ -176,7 +176,6 @@ bool amg_base<TAlgebra>::init()
 		m_levelInformation.push_back(li);
 
 		UG_LOG("nrOfCoarse: " << nrOfCoarse << "\n");
-		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1);
 		IF_DEBUG(LIB_ALG_AMG, 1)
 		{
 			UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << li.get_nnz() << " Density: " <<
@@ -190,7 +189,6 @@ bool amg_base<TAlgebra>::init()
 				UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
 			}
 		}
-		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 0);
 		if(nrOfCoarseSum < m_maxNodesForBase // nnzCoarseMin < m_minNodesOnOneProcessor &&
 				|| level >= m_maxLevels-1)   // || m_A[level]->total_num_connections()/(L*L) > m_dMaxFillBeforeBase)
 			break;
