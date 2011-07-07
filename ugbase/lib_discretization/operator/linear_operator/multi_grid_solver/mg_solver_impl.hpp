@@ -1887,6 +1887,7 @@ allocate(size_t lev,
 	if(!A) A = new operator_type;
 	A->set_discretization(ass);
 	A->set_dof_distribution(*pLevDD);
+	CopyLayoutsAndCommunicatorIntoMatrix(*A, *pLevDD);
 
 	if(!Smoother) Smoother = smoother.clone();
 	if(!Projection) Projection = projection.clone();
