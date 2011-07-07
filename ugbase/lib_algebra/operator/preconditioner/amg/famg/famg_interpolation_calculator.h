@@ -592,7 +592,7 @@ private:
 	 */
 	void calculate_H_from_local_A()
 	{
-		//AMG_PROFILE_FUNC();
+		AMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
 		UG_ASSERT(S.num_cols() == S.num_rows(), "");
 		UG_ASSERT(S.num_cols() == onlyN1.size()+1+onlyN2.size(), "");
@@ -605,7 +605,7 @@ private:
 			GetInverse(Dinv[j], S(j,j));
 
 		// get SF = 1-wDF^{-1} A  (F-smoothing)
-		AMG_PROFILE_BEGIN(AMG_HA_calculate_SF);
+		//AMG_PROFILE_BEGIN(AMG_HA_calculate_SF);
 		SF.resize(N);
 		// bei f-smoothing nie und nimmer damping (arne 3.juni)
 		double diaginv = 1/S(i_index, i_index);
