@@ -150,6 +150,7 @@ bool amg_base<TAlgebra>::init()
 	size_t level=0;
 
 	size_t nrOfCoarseSum;
+	m_A[0]->defragment();
 	size_t nnzCoarse = m_A[0]->total_num_connections();
 	size_t nrOfCoarse = m_A[0]->num_rows();
 	double createAMGlevelTiming=0;
