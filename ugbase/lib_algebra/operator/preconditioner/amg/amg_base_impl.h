@@ -175,6 +175,7 @@ bool amg_base<TAlgebra>::init()
 		m_levelInformation.push_back(li);
 
 		UG_LOG("nrOfCoarse: " << nrOfCoarse << "\n");
+		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1);
 		IF_DEBUG(LIB_ALG_AMG, 1)
 		{
 			UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << li.get_nnz() << " Density: " <<
@@ -188,6 +189,7 @@ bool amg_base<TAlgebra>::init()
 				UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
 			}
 		}
+		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 0);
 		if(nrOfCoarseSum < m_maxNodesForBase // nnzCoarseMin < m_minNodesOnOneProcessor &&
 				|| level >= m_maxLevels-1)   // || m_A[level]->total_num_connections()/(L*L) > m_dMaxFillBeforeBase)
 			break;
@@ -514,6 +516,7 @@ amg_base<TAlgebra>::~amg_base()
 template<typename TAlgebra>
 void amg_base<TAlgebra>::init_fsmoothing()
 {
+#ifdef UG_PARALLEL
 	m_diagInv.resize(m_A.size());
 	for(size_t k=0; k<m_A.size(); k++)
 	{
@@ -538,6 +541,7 @@ void amg_base<TAlgebra>::init_fsmoothing()
 		for(size_t i = 0; i < m_diag.size(); ++i)
 			GetInverse(m_diagInv[k][i], m_diag[i]);
 	}
+#endif
 }
 
 
@@ -546,6 +550,7 @@ bool amg_base<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t l
 {
 	UG_ASSERT(level < is_fine.size(), "fine markers not available for level " << level);
 
+#ifdef UG_PARALLEL
 	UG_ASSERT(m_diagInv[level].size() == is_fine[level].size(), "fine markers do not match in size on level " << level);
 	for(size_t i=0; i<m_diagInv[level].size(); i++)
 	{
@@ -554,10 +559,18 @@ bool amg_base<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t l
 		else
 			corr[i] = 0.0;
 	}
-
-#ifdef UG_PARALLEL
 	corr.set_storage_type(PST_ADDITIVE);
 	corr.change_storage_type(PST_CONSISTENT);
+#else
+	matrix_type &mat = *m_A[level];
+	UG_ASSERT(mat.num_rows() == is_fine[level].size(), "fine markers do not match in size on level " << level);
+	for(size_t i=0; i<mat.num_rows(); i++)
+	{
+		if(is_fine[level][i])
+			corr[i] = d[i] / mat(i,i);
+		else
+			corr[i] = 0.0;
+	}
 #endif
 	m_A[level]->matmul_minus(d, corr);
 
@@ -798,11 +811,16 @@ template<typename TAlgebra>
 bool amg_base<TAlgebra>::writevec(std::string filename, const vector_type &d, size_t level)
 {
 	UG_ASSERT(m_writeMatrices, "");
-	std::string name = (std::string(m_writeMatrixPath) + filename + ToString(level) + "_" + ToString(pcl::GetProcRank()) + ".mat");
+#ifdef UG_PARALLEL
+	size_t pid = ToString(pcl::GetProcRank());
+#else
+	size_t pid = 0;
+#endif
+	std::string name = (std::string(m_writeMatrixPath) + filename + ToString(level) + "_" + ToString(pid) + ".mat");
 	AMGWriteToFile(*m_A[level], level, level, name.c_str(), m_amghelper);
 	std::fstream f(name.c_str(), std::ios::out | std::ios::app);
 
-	std::string name2 = (std::string(m_writeMatrixPath) + filename + ToString(level) + "_" + ToString(pcl::GetProcRank())  + ".values");
+	std::string name2 = (std::string(m_writeMatrixPath) + filename + ToString(level) + "_" + ToString(pid)  + ".values");
 	f << "v " << name2 << "\n";
 
 	std::fstream file(name2.c_str(), std::ios::out);
