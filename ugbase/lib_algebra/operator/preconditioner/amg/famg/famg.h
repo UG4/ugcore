@@ -93,8 +93,6 @@ public:
 	}
 
 
-	bool m_bExternalCoarsening;
-	bool m_bUsePrecalculate;
 	void set_external_coarsening(bool bUse) { m_bExternalCoarsening = bUse; }
 	void set_use_precalculate(bool bUse) { m_bUsePrecalculate = bUse; }
 
@@ -172,15 +170,19 @@ private:
 
 private:
 // data
-	bool m_bAggressiveCoarsening;
 	double m_dDampingForSmootherInInterpolationCalculation;
 	double m_delta;				///< "Interpolation quality" F may not be worse than this (F < m_delta)
 	double m_theta;				///< with multiple parents, discard pairs with m_theta * F > min F.
 	double m_dEpsilonTr;		///< parameter used for truncation of interpolation
 
 	size_t m_iTestvectorDamps;
-	bool m_bTestvectorZeroAtDirichlet;
 	bool m_writeTestvectors;
+
+
+	bool m_bAggressiveCoarsening;
+	bool m_bExternalCoarsening;
+	bool m_bUsePrecalculate;
+
 
 	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;
 

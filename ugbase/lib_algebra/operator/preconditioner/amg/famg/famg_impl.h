@@ -72,13 +72,15 @@ void famg<TAlgebra>::tostring() const
 	UG_LOG("FAMG Preconditioner:\n");
 
 	UG_LOG(" Delta: " << m_delta << " (forces interpolation quality measure F < delta.) " << std::endl);
-	UG_LOG(" Theta: " << m_theta << " (with multiple parents paris, discard pairs with m_theta * F > min F.) " << std::endl);
+	UG_LOG(" Theta: " << m_theta << " (with multiple parents pairs, discard pairs with m_theta * F > min F.) " << std::endl);
 	UG_LOG(" Damping for Smoother in interpolation calculation: " << m_dDampingForSmootherInInterpolationCalculation << std::endl);
-	UG_LOG(" Aggressive Coarsening is " << (m_bAggressiveCoarsening ? "[ON]\n" : "OFF\n"));
-	UG_LOG(" epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << std::endl);
+	UG_LOG(" Aggressive Coarsening is " << (m_bAggressiveCoarsening ? "[ON]" : "OFF"));
+	UG_LOG(", external Coarsening is " << (m_bExternalCoarsening ? "[ON]" : "OFF"));
+	UG_LOG(", precalculate Coarsening is " << (m_bUsePrecalculate ? "[ON]" : "OFF"));
+	UG_LOG(" epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << "\n");
+
 	UG_LOG(" \n");
-	UG_LOG(" testvector is " << (m_bTestvectorZeroAtDirichlet ? "0" : "1") << " at dirichlet nodes" << std::endl);
-	UG_LOG(" Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);
+	UG_LOG(m_testvectors.size() + m_vVectorWriters.size() << " test vectors. Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);
 	if(m_writeMatrices && m_writeTestvectors)
 		UG_LOG(" Write Testvectors is on.\n")
 	UG_LOG(" \n");

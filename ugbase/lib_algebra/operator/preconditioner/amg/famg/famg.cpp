@@ -322,7 +322,7 @@ private:
 		// R.print("R");
 		// A.print("A");
 		// PnewIndices.print("P");
-		CreateAsMultiplyOf(AH, R, A, PnewIndices);
+		CreateAsMultiplyOf(AH, R, A, PnewIndices, 1e-12);
 		// AH.print();
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
@@ -650,7 +650,6 @@ private:
 		for(size_t r=A.num_rows(); r<A_OL2.num_rows(); r++)
 			UG_ASSERT(rating[r].is_fine() == false || rating[r].is_uncalculated_fine(), rating.info(r));
 #endif
-		PnewIndices.resize(A.num_rows(), nrOfCoarse);
 		UG_DLOG(LIB_ALG_AMG, 1, "rating.get_nr_of_coarse() = " << rating.get_nr_of_coarse() << ", nrOfCoarse = " << nrOfCoarse << "\n");
 		PnewIndices.defragment();
 #ifdef UG_PARALLEL

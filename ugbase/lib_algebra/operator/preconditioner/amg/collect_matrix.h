@@ -118,9 +118,9 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 	/*UG_DLOG(LIB_ALG_AMG, 4, "\n** the matrix A: \n\n");
 	A.print();
 	UG_LOG("\n");*/
-
 	if(pcl::GetProcRank() != srcproc)
 	{
+
 		BinaryBuffer stream;
 		for(size_t i=0; i<A.num_rows(); i++)
 			SerializeRow(stream, A, i, localToGlobal);
@@ -129,11 +129,9 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 		for(size_t i=0; i<A.num_rows(); i++)
 			interface.push_back(i);
 
-		UG_DLOG(LIB_ALG_AMG, 4, "sending " << stream.write_pos() << " size to 0\n");
-		communicator.send_raw(0, stream.buffer(), stream.write_pos(), false);
+		UG_DLOG(LIB_ALG_AMG, 3, "Destproc " << pcl::GetProcRank() << " is sending " << stream.write_pos() << " bytes of data to sourceproc " <<  srcproc << "\n");
+		communicator.send_raw(srcproc, stream.buffer(), stream.write_pos(), false);
 		communicator.communicate();
-
-
 	}
 	else
 	{
@@ -141,8 +139,13 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 		typedef std::map<int, BinaryBuffer> BufferMap;
 		BufferMap streams;
 
+		UG_DLOG(LIB_ALG_AMG, 3, "SourceProc " << srcproc << " is waiting on data from ");
 		for(size_t i=0; i<destprocs.size(); i++)
-			communicator.receive_raw(i, streams[destprocs[i]]);
+		{
+			UG_DLOG(LIB_ALG_AMG, 3, destprocs[i] << " ");
+			communicator.receive_raw(destprocs[i], streams[destprocs[i]]);
+		}
+		UG_LOG("\n");
 		communicator.communicate();
 
 		for(size_t i=0; i<destprocs.size(); i++)
@@ -214,7 +217,7 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 {
 	std::vector<int> destprocs;
 	destprocs.resize(pcl::GetNumProcesses()-1);
-	for(int i=1; i<pcl::GetNumProcesses(); i++) destprocs[i] = i;
+	for(int i=1; i<pcl::GetNumProcesses(); i++) destprocs[i-1] = i;
 	collect_matrix(A, M, masterLayout, slaveLayout, 0, destprocs);
 }
 

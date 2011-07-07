@@ -222,6 +222,7 @@ public:
 	void tostring() const;
 
 protected:
+	void init_fsmoothing();
 	bool writevec(std::string filename, const vector_type &d, size_t level);
 	void update_positions();
 
@@ -230,7 +231,7 @@ protected:
 			prolongation_matrix_type &P, size_t level) = 0;
 	virtual bool init();
 	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
-
+	stdvector<stdvector< typename block_traits<typename matrix_type::value_type>::inverse_type > > m_diagInv;
 // data
 	size_t 	m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
 	size_t 	m_numPostSmooth;					///< nu_2: nr. of post-smoothing steps

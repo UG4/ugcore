@@ -193,7 +193,7 @@ bool amg_base<TAlgebra>::init()
 			break;
 
 		//agglomerate(nnzCoarse, level);
-		if(nnzCoarse < m_minNodesOnOneProcessor)
+		if(nrOfCoarse < m_minNodesOnOneProcessor)
 			break;
 		//smoothem_R[level].init(*m_A[level]);
 
@@ -247,6 +247,8 @@ bool amg_base<TAlgebra>::init()
 		AMG_PROFILE_BEGIN(amg_createDirectSolver);
 		create_direct_solver(level);
 		AMG_PROFILE_END();
+
+		init_fsmoothing();
 //	}
 	m_usedLevels = level+1;
 	UG_LOG("AMG Setup finished. Used Levels: " << m_usedLevels << ". ");
@@ -509,23 +511,57 @@ amg_base<TAlgebra>::~amg_base()
 	cleanup();
 }
 
+template<typename TAlgebra>
+void amg_base<TAlgebra>::init_fsmoothing()
+{
+	m_diagInv.resize(m_A.size());
+	for(size_t k=0; k<m_A.size(); k++)
+	{
+		matrix_type &mat = *m_A[k];
+		ParallelVector<Vector< typename matrix_type::value_type > > m_diag;
+		size_t size = mat.num_rows();
+		m_diagInv[k].resize(size);
+		m_diag.resize(size);
+
+		m_diag.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
+		m_diag.set_communicator(mat.get_communicator());
+
+		// copy diagonal
+		for(size_t i = 0; i < m_diag.size(); ++i){
+			m_diag[i] = mat(i, i);
+		}
+
+		//	make diagonal consistent
+		m_diag.set_storage_type(PST_ADDITIVE);
+		m_diag.change_storage_type(PST_CONSISTENT);
+
+		for(size_t i = 0; i < m_diag.size(); ++i)
+			GetInverse(m_diagInv[k][i], m_diag[i]);
+	}
+}
+
 
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t level)
 {
 	UG_ASSERT(level < is_fine.size(), "fine markers not available for level " << level);
 
-	matrix_type &M = *m_A[level];
-	UG_ASSERT(M.num_rows() == is_fine[level].size(), "fine markers do not match in size on level " << level);
-	for(size_t i=0; i<M.num_rows(); i++)
+	UG_ASSERT(m_diagInv[level].size() == is_fine[level].size(), "fine markers do not match in size on level " << level);
+	for(size_t i=0; i<m_diagInv[level].size(); i++)
 	{
 		if(is_fine[level][i])
-			corr[i] = d[i]/M(i,i);
+			corr[i] = d[i] * m_diagInv[level][i];
 		else
 			corr[i] = 0.0;
 	}
 
-	M.matmul_minus(d, corr);
+#ifdef UG_PARALLEL
+	corr.set_storage_type(PST_ADDITIVE);
+	corr.change_storage_type(PST_CONSISTENT);
+#endif
+	m_A[level]->matmul_minus(d, corr);
+
+
 	return true;
 }
 
@@ -762,11 +798,11 @@ template<typename TAlgebra>
 bool amg_base<TAlgebra>::writevec(std::string filename, const vector_type &d, size_t level)
 {
 	UG_ASSERT(m_writeMatrices, "");
-	std::string name = (std::string(m_writeMatrixPath) + filename + ToString(level) + ".mat");
+	std::string name = (std::string(m_writeMatrixPath) + filename + ToString(level) + "_" + ToString(pcl::GetProcRank()) + ".mat");
 	AMGWriteToFile(*m_A[level], level, level, name.c_str(), m_amghelper);
 	std::fstream f(name.c_str(), std::ios::out | std::ios::app);
 
-	std::string name2 = (std::string(m_writeMatrixPath) + filename + ToString(level) + ".values");
+	std::string name2 = (std::string(m_writeMatrixPath) + filename + ToString(level) + "_" + ToString(pcl::GetProcRank())  + ".values");
 	f << "v " << name2 << "\n";
 
 	std::fstream file(name2.c_str(), std::ios::out);
@@ -1039,6 +1075,7 @@ void amg_base<TAlgebra>::tostring() const
 	UG_LOG("AMGBase:\n");
 	UG_LOG(" nr of pre smoothing steps (nu1)  = " << m_numPreSmooth<< std::endl);
 	UG_LOG(" nr of post smoothing steps (nu2) = " << m_numPostSmooth << std::endl);
+	UG_LOG("F-Smoothing is " << (m_bFSmoothing ? "[ON]" : "[OFF]") << std::endl);
 
 	UG_LOG(" cycle type = ");
 	if(m_cycleType == 1) { UG_LOG("V-cycle\n"); }
