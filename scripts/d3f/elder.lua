@@ -31,7 +31,6 @@ numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs = util.GetParamNumber("-numRefs", 2)
 
 -- choose number of time steps
-NumPreTimeSteps = util.GetParamNumber("-numPreTimeSteps", 1)
 NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 100)
 
 --------------------------------
@@ -333,8 +332,8 @@ amg = RSAMGPreconditioner()
 amg:set_nu1(2)
 amg:set_nu2(2)
 amg:set_gamma(1)
-amg:set_presmoother(jac)
-amg:set_postsmoother(jac)
+amg:set_presmoother(ilu)
+amg:set_postsmoother(ilu)
 amg:set_base_solver(base)
 --amg:set_debug(u)
 end
@@ -342,7 +341,7 @@ end
 -- create Convergence Check
 print("Creating Solver.")
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(3000)
+convCheck:set_maximum_steps(20)
 convCheck:set_minimum_defect(1e-8)
 convCheck:set_reduction(1e-8)
 
@@ -372,15 +371,17 @@ newtonLineSearch = StandardLineSearch()
 
 -- create Newton Solver
 newtonSolver = NewtonSolver()
-newtonSolver:set_linear_solver(bicgstabSolver)
+newtonSolver:set_linear_solver(linSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
---newtonSolver:set_line_search(newtonLineSearch)
+newtonSolver:set_line_search(newtonLineSearch)
 --newtonSolver:set_debug(dbgWriter)
 
 newtonSolver:init(op)
 
 -- timestep in seconds: 3153600 sec = 0.1 year
 dt = 3.1536e6
+minStepSize = dt / 100;
+stepReductionFactor = 0.25;
 
 time = 0.0
 step = 0
@@ -403,7 +404,7 @@ out:print(filename, u, step, time)
 
 -- some info output
 print( "   numPreRefs is   " .. numPreRefs ..     ",  numRefs is         " .. numRefs)
-print( "   NumTimeSteps is " .. NumTimeSteps   .. ",  NumPreTimeSteps is " .. NumPreTimeSteps )
+print( "   NumTimeSteps is " .. NumTimeSteps)
 
 -- create new grid function for old value
 uOld = u:clone()
@@ -416,19 +417,34 @@ for step = 1, NumTimeSteps do
 	print("++++++ TIMESTEP " .. step .. " BEGIN ++++++")
 
 	-- choose time step
-	if step <= NumPreTimeSteps then do_dt = dt/100
-	else do_dt = dt
+	do_dt = dt
+
+	bSuccess = false;
+	
+	while bSuccess == false do
+		
+		-- setup time Disc for old solutions and timestep
+		timeDisc:prepare_step(solTimeSeries, do_dt)
+		
+		-- prepare newton solver
+		if newtonSolver:prepare(u) == false then 
+			print ("Newton solver failed at step "..step.."."); exit();
+		end 
+		
+		-- apply newton solver
+		if newtonSolver:apply(u) == false then 
+			do_dt = do_dt * stepReductionFactor;
+			print("\n++++++ Newton solver failed. Trying decreased stepsize " .. do_dt);
+		else
+			bSuccess = true; 
+		end
+		
+		if(do_dt < minStepSize) then
+			print("++++++ Time Step to small. Cannot solve problem.");
+			exit();
+		end
 	end
 	
-	-- setup time Disc for old solutions and timestep
-	timeDisc:prepare_step(solTimeSeries, do_dt)
-	
-	-- prepare newton solver
-	if newtonSolver:prepare(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
-	
-	-- apply newton solver
-	if newtonSolver:apply(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
-
 	-- update new time
 	time = solTimeSeries:time(0) + do_dt
 	
