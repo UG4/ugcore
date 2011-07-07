@@ -1861,7 +1861,7 @@ allocate(size_t lev,
 		{
 			SelectNonGhosts<VertexBase>(*sel, *pDstGrdMgr,
 									 pLevDD->template begin<VertexBase>(si),
-									 pLevDD->template end<VertexBase>(si));
+						 			 pLevDD->template end<VertexBase>(si));
 			SelectNonGhosts<EdgeBase>(*sel, *pDstGrdMgr,
 									 pLevDD->template begin<EdgeBase>(si),
 									 pLevDD->template end<EdgeBase>(si));
@@ -1876,6 +1876,8 @@ allocate(size_t lev,
 		if(!SmoothMat) SmoothMat = new MatrixOperator<vector_type, vector_type, matrix_type>;
 		SmoothMat->get_matrix().set_master_layout(*masterLayout);
 		SmoothMat->get_matrix().set_slave_layout(*slaveLayout);
+		SmoothMat->get_matrix().set_communicator(pLevDD->get_communicator());
+		SmoothMat->get_matrix().set_process_communicator(pLevDD->get_process_communicator());
 	}
 #endif
 
