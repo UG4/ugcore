@@ -140,9 +140,9 @@ static number invoke(	boost::function<void (
 	//	switch dimensions
 		bool bRes = true;
 #ifdef UG_PARALLEL
-		const int dim = ssGrp.dim(i);
-#else
 		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+#else
+		const int dim = ssGrp.dim(i);
 #endif
 		switch(dim)
 		{
@@ -207,9 +207,9 @@ static number invoke(	boost::function<void (
 	//	switch dimensions
 		bool bRes = true;
 #ifdef UG_PARALLEL
-		const int dim = ssGrp.dim(i);
-#else
 		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+#else
+		const int dim = ssGrp.dim(i);
 #endif
 		switch(dim)
 		{
@@ -268,9 +268,9 @@ static number invoke(	boost::function<void (
 	//	switch dimensions
 		bool bRes = true;
 #ifdef UG_PARALLEL
-		const int dim = ssGrp.dim(i);
-#else
 		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+#else
+		const int dim = ssGrp.dim(i);
 #endif
 		switch(dim)
 		{
