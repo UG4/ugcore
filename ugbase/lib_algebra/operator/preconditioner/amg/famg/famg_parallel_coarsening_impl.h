@@ -428,7 +428,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	//-------------------------------
 	AMG_PROFILE_NEXT(AMG_get_famg_helper_pos);
 
-	if(pcl::GetProcRank() > 1 && m_famg.m_amghelper.has_positions())
+	if(pcl::GetNumProcesses() > 1 && m_famg.m_amghelper.has_positions())
 	{
 		std::vector<MathVector<3> > &vec2 = m_famg.m_amghelper.positions[level];
 		vec2.resize(A_OL2.num_rows());
