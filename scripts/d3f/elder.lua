@@ -15,14 +15,12 @@ InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
 -- choose dimension
-dim = 2
+dim = util.GetParamNumber("-dim", 2)
 
 -- choose grid
-if dim == 2 then
-	gridName = "grids/elder_quads_8x2.ugx"
-else
-	gridName = "grids/elder_hex_8x8x2.ugx"
-end
+if 		dim == 2 then gridName = "grids/elder_quads_8x2.ugx"
+elseif dim == 3 then gridName = "grids/elder_hex_8x8x2.ugx"
+else print("Dimension "..dim.." not supported"); exit(); end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)
