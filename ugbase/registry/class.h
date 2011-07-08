@@ -331,6 +331,41 @@ class IExportedClass
 	///	returns a function which will call delete on the object
 		virtual DeleteFunction get_delete_function() const = 0;
 
+	///	returns false is consistency-check failed
+		virtual bool check_consistency() const
+		{
+		//	get class name vector of all parents
+			const std::vector<const char*>* vClassNames = class_names();
+
+		//	check if class name vector correct
+			if(vClassNames==NULL)
+			{
+				UG_LOG("ERROR in 'IExportedClass::check_consistency':"
+						" Class name vector of parent classes missing for "
+						"class '"<<this->name()<<"'.\n");
+				return false;
+			}
+
+		//	loop all base classes
+			for(size_t i = 0; i < (*vClassNames).size(); ++i)
+			{
+			//	get name of base class
+				const char* baseName = (*vClassNames)[i];
+
+			//	check the name
+				if(baseName == NULL || strlen(baseName) == 0 || baseName[0] == '[')
+				{
+					UG_LOG("ERROR in 'IExportedClass::check_consistency':"
+							" base class "<<i<<" of class '"<<this->name()<<
+							"' has not been named.\n");
+						return false;
+				}
+			}
+
+		//	everything ok
+			return true;
+		}
+
 	///  virtual destructor
 		virtual ~IExportedClass() {};
 };

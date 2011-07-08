@@ -147,11 +147,13 @@ class Registry {
 	/// number of classes registered at the Registry
 		size_t num_classes() const;
 
-	/// returns an exported function
+	/// returns an exported class
 		const IExportedClass& get_class(size_t ind)	const;
 
+	/// returns an exported class
 		IExportedClass* get_class(const char* name);
 
+	///	returns true if everything well-declared, else false
 		bool check_consistency();
 
 

@@ -115,25 +115,46 @@ IExportedClass* Registry::get_class(const char* name)
 bool Registry::check_consistency()
 {
 	size_t found = 0;
-	for(size_t i=0; i<num_functions(); i++){
+//	check global functions
+	for(size_t i=0; i<num_functions(); i++)
+	{
+	//	get function
 		ExportedFunctionGroup& funcGrp = get_function_group(i);
+
+	//	check all overloads
 		for(size_t j = 0; j < funcGrp.num_overloads(); ++j){
 			if(funcGrp.get_overload(j)->check_consistency()) found++;
 		}
 	}
 
-	// check classes
+// 	check classes
+	size_t baseClassUndef = 0;
 	for(size_t i=0; i<num_classes(); i++)
 	{
+	//	get class
 		const bridge::IExportedClass &c = get_class(i);
+
+	//	check class (e.g. that base classes have been named)
+		if(!c.check_consistency())
+			baseClassUndef++;
+
+	//	check methods
 		for(size_t j=0; j<c.num_methods(); j++)
 			if(c.get_method(j).check_consistency(c.name())) found++;
 		for(size_t j=0; j<c.num_const_methods(); j++)
 			if(c.get_const_method(j).check_consistency(c.name())) found++;
 	}
 
-	UG_ASSERT(found == 0, "ERROR: " << found << " functions are using undeclared classes\n");
+	UG_ASSERT(found == 0, "ERROR: " << found <<
+	          	  	  	  " functions are using undeclared classes\n");
+	UG_ASSERT(baseClassUndef == 0, "ERROR: " << baseClassUndef <<
+	          	  	  " base classes are using undeclared classes\n");
+
+//	return false if undefined classes have been found
 	if(found > 0) return false;
+	if(baseClassUndef > 0) return false;
+
+//	everything fine
 	else return true;
 }
 
