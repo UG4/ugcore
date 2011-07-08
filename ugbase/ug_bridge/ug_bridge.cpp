@@ -94,16 +94,22 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 		
 		bResult &= RegisterMiscFunctions(reg, parentGroup);
 
-		bResult &= RegisterDomainInterface(reg, parentGroup);
-
-		bResult &= RegisterLibDiscElemDisc(reg, parentGroup);
-
 		reg.add_function("SetDefaultDimension", &SetDefaultDimension);
 
 		#ifdef UG_ALGEBRA
+		//	does not depend on lib_algebra
+			bResult &= RegisterDomainInterface(reg, parentGroup);
+
+		//	depends on lib_algebra
+			bResult &= RegisterStaticLibDiscInterface(reg, parentGroup);
+
+		//	does not depend on lib_algebra
+			bResult &= RegisterLibDiscElemDisc(reg, parentGroup);
+
+		//	depends on lib_algebra
 			bResult &= RegisterUserData(reg, parentGroup);
 			bResult &= RegisterStaticLibAlgebraInterface(reg, parentGroup);
-			bResult &= RegisterStaticLibDiscInterface(reg, parentGroup);
+
 			// InitAlgebra
 			reg.add_function("InitAlgebra", &InitAlgebra);
 		#endif
