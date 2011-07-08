@@ -143,12 +143,8 @@ global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP)
 	//	skip unset data
 		UG_ASSERT(m_vpIIPData[i] != NULL, "No Input set, but requested.");
 
-	//	request local ips for all series at input data
-		for(size_t s = 0; s < m_vvSeriesID[i].size(); ++s)
-		{
-		//	adjust global ids of imported data
-			m_vpIIPData[i]->set_global_ips(m_vvSeriesID[i][s], vPos, numIP);
-		}
+	//	adjust global ids of imported data
+		m_vpIIPData[i]->set_global_ips(m_vvSeriesID[i][s], vPos, numIP);
 	}
 }
 
