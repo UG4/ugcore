@@ -157,6 +157,7 @@ add_class_(const char* className, const char* group, const char *tooltip)
 	catch(ug::bridge::REGISTRY_ERROR_Message ex)
 	{
 		std::cout << "### Registry ERROR: " << ex.msg << "\n";
+		throw(UG_REGISTRY_ERROR_RegistrationFailed("(unknown)"));
 	}
 
 //	add new class to list of classes
@@ -187,6 +188,7 @@ add_class_(const char* className, const char* group, const char *tooltip)
 	catch(ug::bridge::REGISTRY_ERROR_Message ex)
 	{
 		std::cout << "### Registry ERROR: " << ex.msg << "\n";
+		throw(UG_REGISTRY_ERROR_RegistrationFailed("(unknown)"));
 	}
 
 
@@ -224,6 +226,7 @@ add_class_(const char* className, const char* group)
 	catch(ug::bridge::REGISTRY_ERROR_Message ex)
 	{
 		std::cout << "### Registry ERROR: " << ex.msg << "\n";
+		throw(UG_REGISTRY_ERROR_RegistrationFailed("(unknown)"));
 	}
 
 // 	set base class names
