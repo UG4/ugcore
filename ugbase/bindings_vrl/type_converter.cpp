@@ -524,7 +524,7 @@ void jobjectArray2ParamStack(
 
 	//	iterate through the parameter list and copy the value in the
 	//  associated stack entry.
-	for (size_t i = 0; i < (size_t)paramsTemplate.size(); ++i) {
+	for (size_t i = 0; i < (size_t) paramsTemplate.size(); ++i) {
 
 		int type = paramsTemplate.get_type(i);
 
@@ -734,6 +734,19 @@ jobjectArray params2NativeParams(JNIEnv *env,
 		//		"setTooltip", "(Ljava/lang/String;)V");
 		jmethodID setParamInfo = env->GetMethodID(cls,
 				"setParamInfo", "([Ljava/lang/String;)V");
+
+
+		// check for emptyness
+		bool pointerType = params.get_type(i) == ug::bridge::PT_CONST_POINTER ||
+				params.get_type(i) == ug::bridge::PT_POINTER ||
+				params.get_type(i) == ug::bridge::PT_SMART_POINTER ||
+				params.get_type(i) == ug::bridge::PT_CONST_SMART_POINTER;
+
+		if (pointerType && strlen(params.class_name(i)) == 0) {
+			std::cerr << func.name() << ", param(" << i << ")==EMPTY" << std::endl;
+			exit(1);
+		}
+
 
 		using namespace ug::bridge;
 
@@ -1046,11 +1059,42 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 				"([Ledu/gcsc/vrl/ug/NativeMethodGroupInfo;)V");
 
 		std::string name = eCls.name(); // TODO pre-rpocessing necessary
+
+		if (name.length() == 0) {
+			std::cerr << " empty2: " << name << std::endl;
+			exit(1);
+		}
+
+		if (name == " ") {
+			std::cerr << " empty2: " << name << std::endl;
+			exit(1);
+		}
+		//		
+		std::vector<std::string> baseClasses;
+
+		for (size_t j = 0; j < eCls.class_names()->size(); j++) {
+
+			if (eCls.class_names()->at(j) == NULL) {
+				std::cerr << name << ", baseCls(" << j << ")==NULL" << std::endl;
+				exit(1);
+			}
+
+			if (strlen(eCls.class_names()->at(j)) == 0) {
+				std::cerr << name << ", baseCls(" << j << ")==empty" << std::endl;
+				exit(1);
+			}
+
+
+			baseClasses.push_back(std::string(eCls.class_names()->at(j)));
+		}
+
 		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
 		env->CallVoidMethod(obj, setCategory,
 				stringC2J(env, eCls.group().c_str()));
 		env->CallVoidMethod(obj, setClassNames,
 				stringArrayC2J(env, eCls.class_names()));
+		//		env->CallVoidMethod(obj, setClassNames,
+		//				stringArrayC2J(env, baseClasses));
 		env->CallVoidMethod(obj, setInstantiable,
 				boolC2J(eCls.is_instantiable()));
 		env->CallVoidMethod(obj, setMethods,
@@ -1133,7 +1177,7 @@ jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
 	jmethodID setFunctions = env->GetMethodID(cls, "setFunctions",
 			"([Ledu/gcsc/vrl/ug/NativeFunctionGroupInfo;)V");
 
-	env->CallVoidMethod(obj, setClassGroups, classGroups2NativeClassGroups(env, reg));
+	//	env->CallVoidMethod(obj, setClassGroups, classGroups2NativeClassGroups(env, reg));
 	env->CallVoidMethod(obj, setClasses, classes2NativeClasses(env, reg));
 	env->CallVoidMethod(obj, setFunctions, functions2NativeGroups(env, reg));
 

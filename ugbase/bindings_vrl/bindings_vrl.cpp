@@ -65,7 +65,7 @@ void registerMessaging(ug::bridge::Registry & reg) {
 //* JNI METHODS
 //*********************************************************
 
-JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
+JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 (JNIEnv *env, jobject obj, jobjectArray args) {
 
 	ug::vrl::initJavaVM(env);
@@ -99,9 +99,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(
 			reg, selector.get_algebra_type());
 
-	ug::vrl::RegisterUserData(reg, "UG4/VRL");
+//	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 
-	ug::vrl::registerMessaging(reg);
+//	ug::vrl::registerMessaging(reg);
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");
@@ -113,7 +113,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	return (jint) retVal;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 (JNIEnv *env, jobject obj,
 		jstring exportedClassName, jlong objPtr, jboolean readOnly,
 		jstring methodName, jobjectArray params) {
@@ -183,7 +183,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 	return result;
 }
 
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 (JNIEnv *env, jobject obj, jlong objPtr) {
 
 	long result = 0;
@@ -207,7 +207,7 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
 	return result;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 (JNIEnv *env, jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
 
 	const ug::bridge::ExportedFunction* func =
@@ -252,24 +252,24 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 	return result;
 }
 
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_getExportedClassPtrByName
 (JNIEnv *env, jobject obj, jstring name) {
 	return (long) ug::vrl::invocation::getExportedClassPtrByName(
 			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getSvnRevision
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getSvnRevision
 (JNIEnv *env, jobject obj) {
 	std::string revision = ug::vrl::svnRevision();
 	return ug::vrl::stringC2J(env, revision.c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getCompileDate
 (JNIEnv *env, jobject obj) {
 	return ug::vrl::stringC2J(env, COMPILE_DATE);
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_delete
 (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
 	if (((void*) objPtr) != NULL && ((void*) exportedClsPtr) != NULL) {
@@ -279,7 +279,7 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 	}
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_invalidate
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_invalidate
 (JNIEnv * env, jclass cls, jobject smartPtr) {
 
 	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
@@ -289,7 +289,7 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_invalidate
 	}
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_convertRegistryInfo
 (JNIEnv * env, jobject obj) {
 	ug::vrl::invocation::initClasses(*ug::vrl::vrlRegistry);
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
@@ -297,7 +297,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
 
 
 
-//JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
+//JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG_attachCanvas
 //(JNIEnv *env, jobject obj, jobject canvas) {
 //	ug::vrl::Canvas::getInstance()->setJObject(env, canvas);
 //
