@@ -7,7 +7,7 @@
 
 #include <map>
 #include <sstream>
-#include "ug_bridge/registry.h"
+#include "registry/registry.h"
 #include <jni.h>
 
 #ifndef INVOKATION_H

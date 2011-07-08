@@ -1,5 +1,5 @@
 #include "type_converter.h"
-#include "ug_bridge/registry.h"
+#include "registry/registry.h"
 #include "messaging.h"
 #include "invocation.h"
 #include <sstream>
@@ -27,14 +27,14 @@ std::string stringJ2C(JNIEnv *env, jstring const& s) {
 jobjectArray stringArrayC2J(
 		JNIEnv *env,
 		const std::string* strings,
-		const unsigned int array_length) {
+		const size_t array_length) {
 	jclass stringClass = env->FindClass("java/lang/String");
 
 	jobjectArray result =
 			env->NewObjectArray(array_length, stringClass, 0);
 
 	// convert array elements
-	for (unsigned int i = 0; i < array_length; i++) {
+	for (size_t i = 0; i < array_length; i++) {
 		std::string s = strings[ i ];
 		jstring javaString = env->NewStringUTF(s.c_str());
 		env->SetObjectArrayElement(result, i, javaString);
@@ -53,7 +53,7 @@ jobjectArray stringArrayC2J(
 			env->NewObjectArray(array_length, stringClass, 0);
 
 	// convert array elements
-	for (unsigned int i = 0; i < array_length; i++) {
+	for (size_t i = 0; i < array_length; i++) {
 		const char* s = strings[ i ];
 		jstring javaString = env->NewStringUTF(s);
 		env->SetObjectArrayElement(result, i, javaString);
@@ -124,11 +124,11 @@ std::vector<std::string> stringArrayJ2C(
 
 	std::vector<std::string> result;
 
-	unsigned int length = env->GetArrayLength(array);
+	size_t length = env->GetArrayLength(array);
 
 	// convert each element of the java object array to a std string
 	// and add it to the result vector
-	for (unsigned int i = 0; i < length; i++) {
+	for (size_t i = 0; i < length; i++) {
 		result.push_back(stringJ2C(env,
 				(jstring) env->GetObjectArrayElement(array, i)));
 	}
@@ -142,7 +142,7 @@ const std::vector<const ug::bridge::IExportedClass*> getParentClasses(
 	std::vector<const ug::bridge::IExportedClass*> result;
 	// search registered classes by name as specified in the
 	// class_names vector and add them to the result vector
-	for (unsigned int i = 0; i < clazz->class_names()->size(); i++) {
+	for (size_t i = 0; i < clazz->class_names()->size(); i++) {
 		const ug::bridge::IExportedClass* baseCls =
 				ug::vrl::invocation::getExportedClassPtrByName(
 				reg, (*clazz->class_names())[i]);
@@ -302,13 +302,13 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj) {
 }
 
 jobject pointer2JObject(JNIEnv *env, void* value) {
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Pointer");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(JZ)V");
 	return env->NewObject(cls, methodID, (jlong) value, boolC2J(false));
 }
 
 jobject constPointer2JObject(JNIEnv *env, void* value) {
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Pointer");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(JZ)V");
 	return env->NewObject(cls, methodID, (jlong) value, boolC2J(true));
 }
@@ -328,7 +328,7 @@ jobject smartPointer2JObject(JNIEnv *env, SmartPtr<void> value) {
 	// release the memory to write it back to the jvm
 	env->ReleaseByteArrayElements(mem, memPtr, 0);
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/SmartPointer");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/SmartPointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(J[BZ)V");
 	jobject result = env->NewObject(cls, methodID, (jlong) value.get_impl(),
 			mem, boolC2J(false));
@@ -351,7 +351,7 @@ jobject constSmartPointer2JObject(JNIEnv *env, ConstSmartPtr<void> value) {
 	// release the memory to write it back to the jvm
 	env->ReleaseByteArrayElements(mem, memPtr, 0);
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/SmartPointer");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/SmartPointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(J[BZ)V");
 	jobject result = env->NewObject(cls, methodID, (jlong) value.get_impl(),
 			mem, boolC2J(true));
@@ -360,7 +360,7 @@ jobject constSmartPointer2JObject(JNIEnv *env, ConstSmartPtr<void> value) {
 }
 
 bool isJSmartPointerConst(JNIEnv *env, jobject ptr) {
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/SmartPointer");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/SmartPointer");
 	jmethodID methodID = env->GetMethodID(cls, "isConst", "()Z");
 	jboolean result = env->CallBooleanMethod(ptr, methodID);
 	return boolJ2C(result);
@@ -403,7 +403,7 @@ std::string getClassName(JNIEnv *env, jobject obj) {
 
 std::string getParamClassName(JNIEnv *env, jobject obj) {
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Pointer");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
 
 	if (env->ExceptionCheck()) {
 		env->ExceptionDescribe();
@@ -449,9 +449,9 @@ uint paramClass2ParamType(JNIEnv *env, jobject obj) {
 		result = ug::bridge::PT_NUMBER;
 	} else if (className.compare("java.lang.String") == 0) {
 		result = ug::bridge::PT_STRING;
-	} else if (className.compare("edu.gcsc.vrl.ug4.Pointer") == 0) {
+	} else if (className.compare("edu.gcsc.vrl.ug.Pointer") == 0) {
 		result = ug::bridge::PT_POINTER;
-	} else if (className.compare("edu.gcsc.vrl.ug4.SmartPointer") == 0) {
+	} else if (className.compare("edu.gcsc.vrl.ug.SmartPointer") == 0) {
 		result = ug::bridge::PT_SMART_POINTER;
 	}
 
@@ -478,7 +478,7 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 
 	// iterate over all param stack elements and compare their type with
 	// the corresponding elements in the specified Java array
-	for (unsigned int i = 0; i < (unsigned int) paramStack.size(); i++) {
+	for (size_t i = 0; i < (size_t) paramStack.size(); i++) {
 		jobject param = env->GetObjectArrayElement(params, i);
 		uint paramType = paramClass2ParamType(env, param);
 
@@ -524,7 +524,7 @@ void jobjectArray2ParamStack(
 
 	//	iterate through the parameter list and copy the value in the
 	//  associated stack entry.
-	for (int i = 0; i < paramsTemplate.size(); ++i) {
+	for (size_t i = 0; i < (size_t)paramsTemplate.size(); ++i) {
 
 		int type = paramsTemplate.get_type(i);
 
@@ -707,14 +707,14 @@ int paramType2Int(const ug::bridge::ParameterStack& params, int index) {
 jobjectArray params2NativeParams(JNIEnv *env,
 		const ug::bridge::ExportedFunctionBase& func) {
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeParamInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeParamInfo");
 
 	jobjectArray result =
 			env->NewObjectArray(func.num_parameter(), cls, 0);
 
 	const ug::bridge::ParameterStack& params = func.params_in();
 
-	for (unsigned int i = 0; i < func.num_parameter(); i++) {
+	for (size_t i = 0; i < func.num_parameter(); i++) {
 
 		// create instance
 		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
@@ -762,7 +762,7 @@ jobjectArray params2NativeParams(JNIEnv *env,
 jobject retVal2NativeParam(JNIEnv *env,
 		const ug::bridge::ExportedFunctionBase& func) {
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeParamInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeParamInfo");
 
 	unsigned int i = 0; // C/C++/Java only allow one return value
 
@@ -821,7 +821,7 @@ jobject retVal2NativeParam(JNIEnv *env,
 
 jobject method2NativeMethod(JNIEnv *env,
 		const ug::bridge::ExportedMethod* method) {
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeMethodInfo");
 
 	// create instance
 
@@ -839,9 +839,9 @@ jobject method2NativeMethod(JNIEnv *env,
 	jmethodID setOptions = env->GetMethodID(cls,
 			"setOptions", "(Ljava/lang/String;)V");
 	jmethodID setRetValue = env->GetMethodID(cls,
-			"setReturnValue", "(Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+			"setReturnValue", "(Ledu/gcsc/vrl/ug/NativeParamInfo;)V");
 	jmethodID setParameters = env->GetMethodID(cls,
-			"setParameters", "([Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+			"setParameters", "([Ledu/gcsc/vrl/ug/NativeParamInfo;)V");
 
 	using namespace ug::bridge;
 	std::string name = method->name(); // TODO pre-rpocessing necessary
@@ -861,10 +861,10 @@ jobject method2NativeMethod(JNIEnv *env,
 
 jobjectArray methods2NativeGroups(JNIEnv *env,
 		const ug::bridge::IExportedClass& eCls, bool constMethods) {
-	jclass groupCls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodGroupInfo");
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodInfo");
+	jclass groupCls = env->FindClass("edu/gcsc/vrl/ug/NativeMethodGroupInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeMethodInfo");
 
-	unsigned int numMethodGroups = 0;
+	size_t numMethodGroups = 0;
 
 	if (constMethods) {
 		numMethodGroups = eCls.num_const_methods();
@@ -877,7 +877,7 @@ jobjectArray methods2NativeGroups(JNIEnv *env,
 
 	unsigned int numberOfMethodsInGroup = 1;
 
-	for (unsigned int i = 0; i < numMethodGroups; i++) {
+	for (size_t i = 0; i < numMethodGroups; i++) {
 
 		if (constMethods) {
 			numberOfMethodsInGroup = eCls.num_const_overloads(i);
@@ -891,9 +891,9 @@ jobjectArray methods2NativeGroups(JNIEnv *env,
 		jmethodID methodID = env->GetMethodID(groupCls, "<init>", "()V");
 		jobject groupObj = env->NewObject(groupCls, methodID);
 		jmethodID setOverloads = env->GetMethodID(groupCls,
-				"setOverloads", "([Ledu/gcsc/vrl/ug4/NativeMethodInfo;)V");
+				"setOverloads", "([Ledu/gcsc/vrl/ug/NativeMethodInfo;)V");
 
-		for (unsigned int j = 0; j < numberOfMethodsInGroup; j++) {
+		for (size_t j = 0; j < numberOfMethodsInGroup; j++) {
 
 			//--------- METHOD GROUP ---------
 
@@ -921,7 +921,7 @@ jobjectArray methods2NativeGroups(JNIEnv *env,
 
 jobject function2NativeFunction(JNIEnv *env,
 		const ug::bridge::ExportedFunction& func) {
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeFunctionInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeFunctionInfo");
 
 	// create instance
 
@@ -943,9 +943,9 @@ jobject function2NativeFunction(JNIEnv *env,
 	jmethodID setOptions = env->GetMethodID(cls,
 			"setOptions", "(Ljava/lang/String;)V");
 	jmethodID setRetValue = env->GetMethodID(cls,
-			"setReturnValue", "(Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+			"setReturnValue", "(Ledu/gcsc/vrl/ug/NativeParamInfo;)V");
 	jmethodID setParameters = env->GetMethodID(cls,
-			"setParameters", "([Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+			"setParameters", "([Ledu/gcsc/vrl/ug/NativeParamInfo;)V");
 
 	using namespace ug::bridge;
 	std::string name = func.name(); // TODO pre-rpocessing necessary
@@ -968,7 +968,7 @@ jobject function2NativeFunction(JNIEnv *env,
 
 jobjectArray functions2NativeGroups(JNIEnv *env, ug::bridge::Registry* reg) {
 	jclass groupArrayCls =
-			env->FindClass("edu/gcsc/vrl/ug4/NativeFunctionGroupInfo");
+			env->FindClass("edu/gcsc/vrl/ug/NativeFunctionGroupInfo");
 
 	unsigned int numFunctions = reg->num_functions();
 
@@ -976,20 +976,20 @@ jobjectArray functions2NativeGroups(JNIEnv *env, ug::bridge::Registry* reg) {
 	jobjectArray result =
 			env->NewObjectArray(numFunctions, groupArrayCls, 0);
 
-	for (unsigned int i = 0; i < numFunctions; i++) {
+	for (size_t i = 0; i < numFunctions; i++) {
 
 		const ug::bridge::ExportedFunctionGroup& group =
 				reg->get_function_group(i);
 
-		unsigned int numOverloads = group.num_overloads();
+		size_t numOverloads = group.num_overloads();
 
 		jclass functionsCls =
-				env->FindClass("edu/gcsc/vrl/ug4/NativeFunctionInfo");
+				env->FindClass("edu/gcsc/vrl/ug/NativeFunctionInfo");
 
 		jobjectArray functions =
 				env->NewObjectArray(numOverloads, functionsCls, 0);
 
-		for (unsigned int j = 0; j < numOverloads; j++) {
+		for (size_t j = 0; j < numOverloads; j++) {
 			const ug::bridge::ExportedFunction& func = *group.get_overload(j);
 
 			env->SetObjectArrayElement(functions, j,
@@ -1002,7 +1002,7 @@ jobjectArray functions2NativeGroups(JNIEnv *env, ug::bridge::Registry* reg) {
 		jobject obj = env->NewObject(groupArrayCls, methodID);
 
 		jmethodID setOverloads = env->GetMethodID(groupArrayCls,
-				"setOverloads", "([Ledu/gcsc/vrl/ug4/NativeFunctionInfo;)V");
+				"setOverloads", "([Ledu/gcsc/vrl/ug/NativeFunctionInfo;)V");
 
 		env->CallVoidMethod(obj, setOverloads, functions);
 
@@ -1015,12 +1015,12 @@ jobjectArray functions2NativeGroups(JNIEnv *env, ug::bridge::Registry* reg) {
 jobjectArray classes2NativeClasses(JNIEnv *env,
 		const ug::bridge::Registry* reg) {
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeClassInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeClassInfo");
 
 	jobjectArray result =
 			env->NewObjectArray(reg->num_classes(), cls, 0);
 
-	for (unsigned int i = 0; i < reg->num_classes(); i++) {
+	for (size_t i = 0; i < reg->num_classes(); i++) {
 
 		const ug::bridge::IExportedClass& eCls = reg->get_class(i);
 
@@ -1040,12 +1040,11 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 		jmethodID setInstantiable = env->GetMethodID(cls,
 				"setInstantiable", "(Z)V");
 		jmethodID setMethods = env->GetMethodID(cls,
-				"setMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodGroupInfo;)V");
+				"setMethods", "([Ledu/gcsc/vrl/ug/NativeMethodGroupInfo;)V");
 		jmethodID setConstMethods = env->GetMethodID(cls,
 				"setConstMethods",
-				"([Ledu/gcsc/vrl/ug4/NativeMethodGroupInfo;)V");
+				"([Ledu/gcsc/vrl/ug/NativeMethodGroupInfo;)V");
 
-		//		using namespace ug::bridge;
 		std::string name = eCls.name(); // TODO pre-rpocessing necessary
 		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
 		env->CallVoidMethod(obj, setCategory,
@@ -1069,8 +1068,56 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 	return result;
 }
 
+jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
+		const ug::bridge::Registry* reg) {
+
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeClassGroupInfo");
+
+	jobjectArray result =
+			env->NewObjectArray(reg->num_class_groups(), cls, 0);
+
+	for (size_t i = 0; i < reg->num_class_groups(); i++) {
+
+		const ug::bridge::ClassGroupDesc* clsGrp = reg->get_class_group(i);
+
+		// create string list containing class names of group i
+		std::vector<std::string> class_names;
+
+		for (size_t j = 0; j < clsGrp->num_classes(); j++) {
+			class_names.push_back(std::string(clsGrp->name()));
+		}
+
+		// create instance
+
+		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+		jobject obj = env->NewObject(cls, methodID);
+
+		// assign values
+
+		jmethodID setName = env->GetMethodID(cls,
+				"setName", "(Ljava/lang/String;)V");
+
+		jmethodID setClassNames = env->GetMethodID(
+				cls, "setClasses", "([Ljava/lang/String;)V");
+
+		std::string name = clsGrp->name();
+		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
+
+		env->CallVoidMethod(obj, setClassNames,
+				stringArrayC2J(env, class_names));
+
+		// set array element
+		env->SetObjectArrayElement(result, i, obj);
+	}
+
+	//	env->ExceptionCheck();
+	//	env->ExceptionDescribe();
+
+	return result;
+}
+
 jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeAPIInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeAPIInfo");
 
 	// create instance
 
@@ -1079,11 +1126,14 @@ jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
 
 	//assign values
 
+	jmethodID setClassGroups = env->GetMethodID(cls, "setClassGroups",
+			"([Ledu/gcsc/vrl/ug/NativeClassGroupInfo;)V");
 	jmethodID setClasses = env->GetMethodID(cls, "setClasses",
-			"([Ledu/gcsc/vrl/ug4/NativeClassInfo;)V");
+			"([Ledu/gcsc/vrl/ug/NativeClassInfo;)V");
 	jmethodID setFunctions = env->GetMethodID(cls, "setFunctions",
-			"([Ledu/gcsc/vrl/ug4/NativeFunctionGroupInfo;)V");
+			"([Ledu/gcsc/vrl/ug/NativeFunctionGroupInfo;)V");
 
+	env->CallVoidMethod(obj, setClassGroups, classGroups2NativeClassGroups(env, reg));
 	env->CallVoidMethod(obj, setClasses, classes2NativeClasses(env, reg));
 	env->CallVoidMethod(obj, setFunctions, functions2NativeGroups(env, reg));
 

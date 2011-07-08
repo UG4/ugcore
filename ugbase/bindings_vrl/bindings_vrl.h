@@ -8,7 +8,7 @@
 #ifndef BINDINGS_VRL_H
 #define	BINDINGS_VRL_H
 
-#include "ug_bridge/registry.h"
+#include "registry/registry.h"
 #include <jni.h>
 #include "messaging.h"
 #include "svnrevision.h"

@@ -50,7 +50,7 @@ class ClassGroupDesc
 
 		void set_default_class(size_t i)	{m_defaultClass = m_classes[i];}
 
-	///	if no default class is set, this method returns NULL.â
+	///	if no default class is set, this method returns NULL.ï¿½
 		IExportedClass* get_default_class()	const {return m_defaultClass;}
 
 	private:
@@ -467,7 +467,10 @@ class Registry {
 		size_t num_class_groups() const			{return m_vClassGroups.size();}
 
 	///	returns a const pointer to the i-th class group
-		ClassGroupDesc* get_class_group(size_t i)	{return m_vClassGroups[i];}
+		const ClassGroupDesc* get_class_group(size_t i) const	{return m_vClassGroups[i];}
+        
+    ///	returns a pointer to the i-th class group
+		ClassGroupDesc* get_class_group(size_t i) {return m_vClassGroups[i];}
 
 
 	/// destructor

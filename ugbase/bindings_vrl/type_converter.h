@@ -11,8 +11,8 @@
 #include<jni.h>
 #include<string>
 #include<vector>
-#include "ug_bridge/class.h"
-#include "ug_bridge/registry.h"
+#include "registry/class.h"
+#include "registry/registry.h"
 #include "messaging.h"
 
 namespace ug {

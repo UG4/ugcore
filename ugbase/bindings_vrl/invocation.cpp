@@ -1,5 +1,5 @@
 #include "invocation.h"
-#include "ug_bridge/class.h"
+#include "registry/class.h"
 #include "type_converter.h"
 #include <string>
 
@@ -64,13 +64,13 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 	//	}
 
 	// we allow invocation of methods defined in parent classes
-	std::vector<const ug::bridge::IExportedClass*> classes =
+	std::vector<const ug::bridge::IExportedClass*> classList =
 			getParentClasses(reg, clazz);
 
 	// iterate over all classes of the inheritance path
-	for (unsigned i = 0; i < classes.size(); i++) {
+	for (unsigned i = 0; i < classList.size(); i++) {
 
-		const ug::bridge::IExportedClass* cls = classes[i];
+		const ug::bridge::IExportedClass* cls = classList[i];
 		unsigned int numMethods = 0;
 
 		// check whether to search const or non-const methods

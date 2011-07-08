@@ -4,8 +4,8 @@
 
 #include "ug.h"
 #include "ugbase.h"
-#include "ug_bridge/registry.h"
-#include "ug_bridge/class.h"
+#include "registry/registry.h"
+#include "registry/class.h"
 
 
 #include "type_converter.h"
@@ -16,7 +16,9 @@
 
 #include "lib_grid/lib_grid.h"
 #include "compiledate.h"
-#include "const_user_data.h"
+#include "user_data.h"
+#include "../lib_discretization/spatial_discretization/ip_data/const_user_data.h"
+
 #include "invocation.h"
 #include "playground.h"
 
