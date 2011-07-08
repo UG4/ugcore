@@ -22,12 +22,12 @@ inline IIPData::IIPData() : m_locPosDim(-1), m_time(0.0)
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
 }
 
-inline void IIPData::clear_ips()
+inline void IIPData::clear()
 {
+	local_ips_to_be_cleared();
 	m_vNumIP.clear();
 	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
-	local_ips_changed();
 }
 
 template <int ldim>
@@ -58,7 +58,7 @@ size_t IIPData::register_local_ip_series(const MathVector<ldim>* vPos, size_t nu
 //	linker must himself request local_ip_series from the data inputs of
 //	the linker. In addition value fields and derivative fields must be adjusted
 //	in IPData<TData, dim> etc.
-	local_ips_changed();
+	local_ips_added();
 
 //	return new series id
 	return m_vNumIP.size() - 1;
@@ -147,19 +147,48 @@ inline void IPData<TData,dim>::check_series_ip(size_t s, size_t ip) const
 {
 	check_series(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-	UG_ASSERT(ip < m_vvValue[s].size(), "Invalid index "<<ip);
 }
 
 template <typename TData, int dim>
-void IPData<TData,dim>::local_ips_changed()
+void IPData<TData,dim>::local_ips_added()
 {
-//	adjust data arrays
+//	find out currently allocated series
+	const size_t numOldSeries = m_vvValue.size();
+
+//	check, that only increasing the data, this is important to guarantee,
+//	that the allocated memory pointer remain valid. They are used outside of
+//	the class as well to allow fast access to the data.
+	UG_ASSERT(num_series() >= numOldSeries, "Decrease is not implemented.");
+
+//	increase number of series if needed
 	m_vvValue.resize(num_series());
-	for(size_t s = 0; s < m_vvValue.size(); ++s)
-		m_vvValue[s].resize(num_ip(s));
+
+//	allocate new storage
+	for(size_t s = numOldSeries; s < m_vvValue.size(); ++s)
+	{
+		if(num_ip(s) > 0)
+			m_vvValue[s] = new TData[num_ip(s)];
+	}
 
 //	call base class callback
-	base_type::local_ips_changed();
+	base_type::local_ips_added();
+}
+
+template <typename TData, int dim>
+void IPData<TData,dim>::local_ips_to_be_cleared()
+{
+//	free the memory
+	for(size_t s = 0; s < m_vvValue.size(); ++s)
+	{
+		if(num_ip(s) > 0)
+			delete[] m_vvValue[s];
+	}
+
+//	clear all series
+	m_vvValue.clear();
+
+//	call base class callback
+	base_type::local_ips_to_be_cleared();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -223,7 +252,7 @@ inline void DependentIPData<TData,dim>::check_s_ip_fct_dof(size_t s, size_t ip, 
 }
 
 template <typename TData, int dim>
-void DependentIPData<TData,dim>::local_ips_changed()
+void DependentIPData<TData,dim>::local_ips_added()
 {
 //	adjust data arrays
 	m_vvvDeriv.resize(num_series());
@@ -231,7 +260,7 @@ void DependentIPData<TData,dim>::local_ips_changed()
 		m_vvvDeriv[s].resize(num_ip(s));
 
 //	forward change signal to base class
-	IPData<TData, dim>::local_ips_changed();
+	IPData<TData, dim>::local_ips_added();
 }
 
 

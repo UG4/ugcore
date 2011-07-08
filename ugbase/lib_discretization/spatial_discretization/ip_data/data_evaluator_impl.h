@@ -23,9 +23,9 @@ prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
 	const ReferenceObjectID id = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	remove ip series for all used IPData
-	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear_ips();
-	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear_ips();
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear_ips();
+	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
+	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear();
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)

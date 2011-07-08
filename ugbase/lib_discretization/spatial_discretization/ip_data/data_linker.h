@@ -116,7 +116,7 @@ class DataLinker
 		}
 
 	///	requests series id's from input data
-		virtual void local_ips_changed();
+		virtual void local_ips_added();
 
 	///	forwards the global positions to the data inputs
 		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP);

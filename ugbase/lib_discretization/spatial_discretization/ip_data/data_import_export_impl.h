@@ -74,6 +74,19 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 //	request series
 	m_seriesID = m_pIPData->template
 				register_local_ip_series<ldim>(vPos,numIP);
+
+//	cache the pointer to the data field. This is possible, since once a
+//	local ip series is registered it can not be removed ot altered. In the same
+//	way the memory starge is not changed but always only increased. Therefore,
+//	we can request the data now and it will remain valid until IIPData::clear()
+//	is called.
+	m_vValue = m_pIPData->values(m_seriesID);
+
+//	in addition we cache the number of ips
+	m_numIP = m_pIPData->num_ip(m_seriesID);
+
+//	check that num ip is correct
+	UG_ASSERT(m_numIP == numIP, "Different number of ips than requested.");
 }
 
 template <typename TData, int dim>
@@ -144,6 +157,7 @@ void DataImport<TData,dim>::resize(const LocalIndices& ind, const FunctionIndexM
 template <typename TData, int dim>
 inline void DataImport<TData,dim>::check_ip_fct(size_t ip, size_t fct) const
 {
+	check_ip(ip);
 	UG_ASSERT(ip  < m_vvvLinDefect.size(), "Invalid index.");
 	UG_ASSERT(fct < m_vvvLinDefect[ip].size(), "Invalid index.");
 }
@@ -153,6 +167,18 @@ inline void DataImport<TData,dim>::check_ip_fct_sh(size_t ip, size_t fct, size_t
 {
 	check_ip_fct(ip, fct);
 	UG_ASSERT(sh < m_vvvLinDefect[ip][fct].size(), "Invalid index.");
+}
+
+template <typename TData, int dim>
+inline void DataImport<TData,dim>::check_ip(size_t ip) const
+{
+	UG_ASSERT(ip < m_numIP, "Invalid index.");
+}
+
+template <typename TData, int dim>
+inline void DataImport<TData,dim>::check_values() const
+{
+	UG_ASSERT(m_vValue != NULL, "Data Value field not set.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

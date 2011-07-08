@@ -90,7 +90,7 @@ bool DataLinker<TData,dim>::update_function_group()
 
 template <typename TData, int dim>
 void DataLinker<TData,dim>::
-local_ips_changed()
+local_ips_added()
 {
 //	 we need a series id for all inputs
 	m_vvSeriesID.resize(m_vpIIPData.size());
@@ -130,7 +130,7 @@ local_ips_changed()
 	}
 
 //	resize data fields
-	DependentIPData<TData, dim>::local_ips_changed();
+	DependentIPData<TData, dim>::local_ips_added();
 }
 
 template <typename TData, int dim>

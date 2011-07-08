@@ -135,7 +135,8 @@ class DataImport : public IDataImport
 	public:
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
-			m_seriesID(-1),	m_pIPData(NULL), m_pDependentIPData(NULL)
+			m_seriesID(-1),	m_pIPData(NULL), m_vValue(NULL),
+			m_numIP(0), m_pDependentIPData(NULL)
 		{}
 
 	///	set the user data
@@ -163,21 +164,10 @@ class DataImport : public IDataImport
 		}
 
 	///	returns the data value at ip
-		const TData& operator[](size_t ip) const
-		{
-			UG_ASSERT(m_pIPData != NULL, "No Data set");
-			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
-			UG_ASSERT(ip < num_ip(), "Invalid index");
-			return const_cast<const IPData<TData, dim>*>(m_pIPData)->value(m_seriesID, ip);
-		}
+		const TData& operator[](size_t ip) const{check_ip(ip); return m_vValue[ip];}
 
 	///	returns the data value at ip
-		const TData* values() const
-		{
-			UG_ASSERT(m_pIPData != NULL, "No Data set");
-			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
-			return const_cast<const IPData<TData, dim>*>(m_pIPData)->values(m_seriesID);
-		}
+		const TData* values() const {check_values(); return m_vValue;}
 
 	///	return the derivative w.r.t to local function at ip
 		const TData* deriv(size_t ip, size_t fct) const
@@ -200,11 +190,7 @@ class DataImport : public IDataImport
 	/////////////////////////////////////////
 
 	/// number of integration points
-		size_t num_ip() const
-		{
-			if(m_pIPData == NULL) return 0;
-			else return m_pIPData->num_ip(m_seriesID);
-		}
+		size_t num_ip() const {return m_numIP;}
 
 	///	set the local integration points
 		template <int ldim>
@@ -263,11 +249,23 @@ class DataImport : public IDataImport
 	///	checks in debug mode the correct index
 		inline void check_ip_fct_sh(size_t ip, size_t fct, size_t sh) const;
 
+	///	checks in debug mode the correct index
+		inline void check_ip(size_t ip) const;
+
+	///	checks in debug mode the correct index
+		inline void check_values() const;
+
 	///	series number provided by export
 		int m_seriesID;
 
 	/// connected IP Data
 		IPData<TData, dim>* m_pIPData;
+
+	///	cached access to the IPData field
+		const TData* m_vValue;
+
+	///	number of ips
+		size_t m_numIP;
 
 	/// connected export (if depended data)
 		DependentIPData<TData, dim>* m_pDependentIPData;
