@@ -152,7 +152,10 @@ class Base
 {
 	public:
 		virtual ~Base()	{}
-		virtual void print() = 0;
+		virtual void print()
+		{
+			UG_LOG("Base::print() called\n");
+		}
 };
 
 // Some Derived class
@@ -163,6 +166,17 @@ class Derived : public Base
 		virtual void print()
 		{
 			UG_LOG("Derived::print() called\n");
+		}
+};
+
+// Some Derived class
+class FurtherDerived : public Derived
+{
+	public:
+		virtual ~FurtherDerived()	{}
+		virtual void print()
+		{
+			UG_LOG("FurtherDerived::print() called\n");
 		}
 };
 
@@ -360,11 +374,18 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 
 	//	registering base class (without constructor)
 		reg.add_class_<Base>("Base", grp.c_str())
+			.add_constructor()
 			.add_method("print", &Base::print);
 
 	//	registering derived class
 		reg.add_class_<Derived, Base>("Derived", grp.c_str())
-			.add_constructor();
+			.add_constructor()
+			.add_method("print", &Derived::print);
+
+	//	registering derived class
+		reg.add_class_<FurtherDerived, Derived>("FurtherDerived", grp.c_str())
+			.add_constructor()
+			.add_method("print", &FurtherDerived::print);
 
 
 		reg.add_class_<Base0>("Base0", grp.c_str())
