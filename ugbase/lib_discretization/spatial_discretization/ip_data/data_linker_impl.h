@@ -90,7 +90,7 @@ bool DataLinker<TData,dim>::update_function_group()
 
 template <typename TData, int dim>
 void DataLinker<TData,dim>::
-adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
+local_ips_changed()
 {
 //	 we need a series id for all inputs
 	m_vvSeriesID.resize(m_vpIIPData.size());
@@ -99,13 +99,13 @@ adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
 	for(size_t i = 0; i < m_vpIIPData.size(); ++i)
 	{
 	//	resize series ids
-		m_vvSeriesID[i].resize(vNumIP.size());
+		m_vvSeriesID[i].resize(this->num_series());
 
 	//	skip unset data
 		UG_ASSERT(m_vpIIPData[i] != NULL, "No Input set, but requested.");
 
 	//	request local ips for all series at input data
-		for(size_t s = 0; s < vNumIP.size(); ++s)
+		for(size_t s = 0; s < m_vvSeriesID[i].size(); ++s)
 		{
 			switch(this->dim_local_ips())
 			{
@@ -130,7 +130,7 @@ adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
 	}
 
 //	resize data fields
-	DependentIPData<TData, dim>::adjust_global_ips_and_data(vNumIP);
+	DependentIPData<TData, dim>::local_ips_changed();
 }
 
 template <typename TData, int dim>

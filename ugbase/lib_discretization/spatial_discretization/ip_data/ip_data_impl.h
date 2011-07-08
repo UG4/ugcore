@@ -27,7 +27,7 @@ inline void IIPData::clear_ips()
 	m_vNumIP.clear();
 	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
-	adjust_global_ips_and_data(m_vNumIP);
+	local_ips_changed();
 }
 
 template <int ldim>
@@ -52,8 +52,13 @@ size_t IIPData::register_local_ip_series(const MathVector<ldim>* vPos, size_t nu
 	vvIP.push_back(vPos);
 	m_vNumIP.push_back(numIP);
 
-//	resize global ips and data
-	adjust_global_ips_and_data(m_vNumIP);
+//	invoke callback:
+//	This callback is called, whenever the local_ip_series have changed. It
+//	allows derived classes to react on this changes. For example, the data
+//	linker must himself request local_ip_series from the data inputs of
+//	the linker. In addition value fields and derivative fields must be adjusted
+//	in IPData<TData, dim> etc.
+	local_ips_changed();
 
 //	return new series id
 	return m_vNumIP.size() - 1;
@@ -104,7 +109,10 @@ void IIPDimData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size
 //	remember global positions
 	m_vvGlobPos[s] = vPos;
 
-//	invoke callback
+//	invoke callback:
+//	this callback is called every time the global position changes. It gives
+//	derived classes the possibility to react on this fact. E.g. the data
+//	linker must forward the global positions to its own imports.
 	global_ips_changed(s, vPos, numIP);
 }
 
@@ -143,14 +151,15 @@ inline void IPData<TData,dim>::check_series_ip(size_t s, size_t ip) const
 }
 
 template <typename TData, int dim>
-void IPData<TData,dim>::adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
+void IPData<TData,dim>::local_ips_changed()
 {
 //	adjust data arrays
-	m_vvValue.resize(vNumIP.size());
-	for(size_t s = 0; s < vNumIP.size(); ++s)
-		m_vvValue[s].resize(vNumIP[s]);
+	m_vvValue.resize(num_series());
+	for(size_t s = 0; s < m_vvValue.size(); ++s)
+		m_vvValue[s].resize(num_ip(s));
 
-	base_type::adjust_global_ips_and_data(vNumIP);
+//	call base class callback
+	base_type::local_ips_changed();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -214,15 +223,15 @@ inline void DependentIPData<TData,dim>::check_s_ip_fct_dof(size_t s, size_t ip, 
 }
 
 template <typename TData, int dim>
-void DependentIPData<TData,dim>::adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
+void DependentIPData<TData,dim>::local_ips_changed()
 {
 //	adjust data arrays
-	m_vvvDeriv.resize(vNumIP.size());
-	for(size_t s = 0; s < vNumIP.size(); ++s)
-		m_vvvDeriv[s].resize(vNumIP[s]);
+	m_vvvDeriv.resize(num_series());
+	for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
+		m_vvvDeriv[s].resize(num_ip(s));
 
-//	resize values
-	IPData<TData, dim>::adjust_global_ips_and_data(vNumIP);
+//	forward change signal to base class
+	IPData<TData, dim>::local_ips_changed();
 }
 
 

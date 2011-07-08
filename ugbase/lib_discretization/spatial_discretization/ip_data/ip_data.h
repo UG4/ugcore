@@ -79,8 +79,13 @@ class IIPData
 		virtual ~IIPData() {};
 
 	protected:
-	///	callback to adjust global ips and data
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP) = 0;
+	///	callback invoked after local ips have been changed
+	/**
+	 * This callback is invoked when the local ips have been changed. It can
+	 * be used by derived classes to react on this fact, e.g. to forward the
+	 * local_ips or to adapt data field sizes.
+	 */
+		virtual void local_ips_changed() = 0;
 
 	///	help function to get local ips
 		std::vector<const MathVector<1>*>& get_local_ips(Int2Type<1>) {return m_pvLocIP1d;}
@@ -127,22 +132,27 @@ class IIPDimData : virtual public IIPData
 	/// returns global ip
 		const MathVector<dim>& ip(size_t s, size_t ip) const{check_s_ip(s,ip); return m_vvGlobPos[s][ip];}
 
-	///	callback, that is called when global ips changed
+	protected:
+	///	callback invoked after global ips have been changed
+	/**
+	 * This callback is invoked when the global ips have been changed. It can
+	 * be used by derived classes to react on this fact, e.g. to forward the
+	 * global_ips.
+	 */
 		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP) {}
 
-	protected:
+	///	implement callback, called when num of local IPs changes
+		virtual void local_ips_changed()
+		{
+		//	adjust Global positions pointer to current number of series
+			m_vvGlobPos.resize(num_series());
+		}
+
 	///	checks in debug mode the correct usage of indices
 		inline void check_s(size_t s) const;
 
 	///	checks in debug mode the correct usage of indices
 		inline void check_s_ip(size_t s, size_t ip) const;
-
-	///	implement callback, called when num of local IPs changes
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
-		{
-		//	adjust Global positions pointer
-			m_vvGlobPos.resize(vNumIP.size());
-		}
 
 	/// global ips
 		std::vector<const MathVector<dim>*> m_vvGlobPos;
@@ -193,7 +203,8 @@ class IPData : public IIPDimData<dim>
 	///	checks in debug mode the correct index
 		inline void check_series_ip(size_t s, size_t ip) const;
 
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP);
+	///	resizes the data field, when local ip changed signaled
+		virtual void local_ips_changed();
 
 	protected:
 	/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
@@ -327,7 +338,8 @@ class DependentIPData : public IPData<TData, dim>,
 	///	checks in debug mode the correct usage of indices
 		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const;
 
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP);
+	///	resizes the derivative field when local ip change is signaled
+		virtual void local_ips_changed();
 
 	protected:
 	// 	Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )

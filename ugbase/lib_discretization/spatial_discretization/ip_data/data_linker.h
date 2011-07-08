@@ -115,10 +115,10 @@ class DataLinker
 			return m_vvSeriesID[i][s];
 		}
 
-	///	get series id's from input data and resize data
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP);
+	///	requests series id's from input data
+		virtual void local_ips_changed();
 
-	/// implement callback, that is called when global ips changed
+	///	forwards the global positions to the data inputs
 		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP);
 
 	protected:
