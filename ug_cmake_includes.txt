@@ -321,7 +321,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     set(UG_LIBRARIES)
 
     if(NOT NO_UGBRIDGE)
-        set(UG_LIBRARIES ugscript ugbridge registry)
+        set(UG_LIBRARIES ugscript ugbridge)
     endif(NOT NO_UGBRIDGE)
 
 	if(NOT NO_ALGEBRA)
@@ -347,7 +347,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		message(STATUS "INFO: NOT compiling parallel (NO_PCL=${NO_PCL}, NO_MPI=${NO_MPI}, MPI_FOUND=${MPI_FOUND})")
 	endif(NOT NO_PCL AND MPI_FOUND)
 
-	set(UG_LIBRARIES ${UG_LIBRARIES} node_tree common)
+	set(UG_LIBRARIES ${UG_LIBRARIES} node_tree registry common)
 
 	if(MPI_FOUND)
 		set(UG_LIBRARIES ${UG_LIBRARIES} ${MPI_LIBS})

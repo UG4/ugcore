@@ -25,7 +25,8 @@ enum PolyChainTypes
 	PCT_CLOSED = 1,
 	PCT_OPEN = 1 << 1,
 	PCT_SEPARATED = 1 << 2,
-	PCT_IRREGULAR = 1 << 3
+	PCT_IRREGULAR = 1 << 3,
+	PCT_EMPTY = 1 << 4
 };
 
 ////////////////////////////////////////////////////////////////////////

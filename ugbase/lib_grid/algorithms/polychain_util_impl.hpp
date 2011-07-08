@@ -17,6 +17,10 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 				  TEdgeIterator edgesEnd,
 				  CB_ConsiderEdge cbEdgeIsInPolyChain)
 {
+//	if the chain is empty, there's nothing to do
+	if(edgesBegin == edgesEnd)
+		return PCT_EMPTY;
+
 //	check for each vertex to how many chain-edges it is connected
 	size_t numBnd = 0;
 	bool irregular = false;
