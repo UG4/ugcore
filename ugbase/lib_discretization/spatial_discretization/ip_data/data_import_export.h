@@ -149,7 +149,7 @@ class DataImport : public IDataImport
 		virtual bool data_given() const {return !(m_pIPData == NULL);}
 
 	///	sets the evaluation time point
-		void set_time(number time) {if(m_pIPData != NULL) m_pIPData->set_time(time);}
+		void set_time(number time) {if(m_pIPData) m_pIPData->set_time(time);}
 
 
 	/////////////////////////////////////////
@@ -159,8 +159,8 @@ class DataImport : public IDataImport
 	/// \copydoc IDataImport::constant_data()
 		virtual bool constant_data() const
 		{
-			if(m_pIPData == NULL) return true;
-			else return m_pIPData->constant_data();
+			if(m_pIPData) return m_pIPData->constant_data();
+			else return false;
 		}
 
 	///	returns the data value at ip
@@ -202,8 +202,9 @@ class DataImport : public IDataImport
 	///	position of ip
 		const MathVector<dim>& position(size_t i) const
 		{
-			if(m_pIPData == NULL) throw(UGFatalError("No Data set"));
-			return m_pIPData->ip(m_seriesID, i);
+			if(m_pIPData) return m_pIPData->ip(m_seriesID, i);
+			 throw(UGFatalError("ERROR in DataLinker::position: "
+					 	 	 	 "No Data set, but positions requested."));
 		}
 
 	/////////////////////////////////////////
