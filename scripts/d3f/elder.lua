@@ -316,7 +316,7 @@ projection = util.CreateP1Projection(approxSpace)
 gmg = util.CreateGeometricMultiGrid(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
-gmg:set_base_level(0)
+gmg:set_base_level(1)
 gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
 gmg:set_cycle_type(1)
@@ -339,7 +339,7 @@ end
 -- create Convergence Check
 print("Creating Solver.")
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(40)
+convCheck:set_maximum_steps(60)
 convCheck:set_minimum_defect(1e-8)
 convCheck:set_reduction(1e-8)
 
@@ -369,7 +369,7 @@ newtonLineSearch = StandardLineSearch()
 
 -- create Newton Solver
 newtonSolver = NewtonSolver()
-newtonSolver:set_linear_solver(linSolver)
+newtonSolver:set_linear_solver(bicgstabSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
 newtonSolver:set_line_search(newtonLineSearch)
 --newtonSolver:set_debug(dbgWriter)
