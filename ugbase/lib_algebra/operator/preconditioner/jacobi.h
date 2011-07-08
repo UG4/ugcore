@@ -15,109 +15,100 @@
 
 namespace ug{
 
-/* This Operator type behaves different on application. It not only computes v = L*u, but also changes u. */
-/* It is used in iterative schemes. */
+///	Jacobi Preconditioner
 template <typename TAlgebra>
 class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 {
 	public:
-	//	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	//	Vector type
+	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
-	//	Matrix type
+	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
 	public:
-		JacobiPreconditioner() :
-			m_damp(1.0), m_bOpChanged(true)
-		{};
+	///	default constructor
+		JacobiPreconditioner() : m_damp(1.0) {};
 
-		JacobiPreconditioner(number damp) :
-			m_damp(damp), m_bOpChanged(true)
-		{};
+	///	constructor setting the damping parameter
+		JacobiPreconditioner(number damp) :	m_damp(damp){};
 
+	///	sets the damping parameter
 		void set_damp(number damp) {m_damp = damp;}
 
-	//	Clone
+	///	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			JacobiPreconditioner<TAlgebra>* clone = new JacobiPreconditioner<TAlgebra>(m_damp);
+			JacobiPreconditioner<TAlgebra>* clone
+								= new JacobiPreconditioner<TAlgebra>(m_damp);
 
-			return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+			return dynamic_cast<ILinearIterator<vector_type,vector_type>*>(clone);
 		}
 
-	// 	Destructor
+	///	Destructor
 		virtual ~JacobiPreconditioner()
 		{};
 
 	protected:
-	//	Name of preconditioner
+	///	Name of preconditioner
 		virtual const char* name() const {return "Jacobi";}
 
-	//	Preprocess routine
+	///	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
-		//	Currently remember that Operator has changed
-			m_bOpChanged = true;
+#ifdef UG_PARALLEL
+		// 	create help vector to apply diagonal
+			size_t size = mat.num_rows();
+			if(size != mat.num_cols())
+			{
+				UG_LOG("Square Matrix needed for Jacobi Iteration.\n");
+				return false;
+			}
 
+		//	temporary vector for the diagonal
+			ParallelVector<Vector< typename matrix_type::value_type > > diag;
+
+		//	resize
+			m_diagInv.resize(size);
+			diag.resize(size);
+
+		//	copy the layouts+communicator into the vector
+			diag.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
+			diag.set_communicator(mat.get_communicator());
+
+		// 	copy diagonal
+			for(size_t i = 0; i < diag.size(); ++i){
+				diag[i] = mat(i, i);
+			}
+
+		//	make diagonal consistent
+			diag.set_storage_type(PST_ADDITIVE);
+			diag.change_storage_type(PST_CONSISTENT);
+
+		// 	invert diagonal and multiply by damping
+			for(size_t i = 0; i < diag.size(); ++i)
+			{
+				diag[i] *= 1/m_damp;
+				GetInverse(m_diagInv[i], diag[i]);
+			}
+#endif
+		//	done
 			return true;
 		}
 
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
-			// todo: 	this should be done in 'init'. It is currently placed here, since a
-			//			ParallelMatrix is not yet implemented and we have no possibility to
-			//			access the communicator needed below
-			if(m_bOpChanged)
-			{
-				// create help vector to apply diagonal
-				size_t size = mat.num_rows();
-				if(size != mat.num_cols())
-				{
-					UG_LOG("Square Matrix needed for Jacobi Iteration.\n");
-					return false;
-				}
-
-				ParallelVector<Vector< typename matrix_type::value_type > > m_diag;
-
-				m_diagInv.resize(size);
-				m_diag.resize(size);
-
-				m_diag.set_layouts(c.get_master_layout(), c.get_slave_layout());
-				m_diag.set_communicator(c.get_communicator());
-
-				// copy diagonal
-				for(size_t i = 0; i < m_diag.size(); ++i){
-					m_diag[i] = mat(i, i);
-				}
-
-				//	make diagonal consistent
-				m_diag.set_storage_type(PST_ADDITIVE);
-				m_diag.change_storage_type(PST_CONSISTENT);
-
-				// invert diagonal and multiply by damping
-				for(size_t i = 0; i < m_diag.size(); ++i)
-				{
-					m_diag[i] *= 1/m_damp;
-					GetInverse(m_diagInv[i], m_diag[i]);
-				}
-
-				m_bOpChanged = false;
-			}
-#endif
-
-#ifdef UG_PARALLEL
-			// multiply defect with diagonal, c = damp * D^{-1} * d
+		// 	multiply defect with diagonal, c = damp * D^{-1} * d
 			for(size_t i = 0; i < m_diagInv.size(); ++i)
 			{
-				// c[i] = m_diagInv[i] * d[i];
+			// 	c[i] = m_diagInv[i] * d[i];
 				MatMult(c[i], 1.0, m_diagInv[i], d[i]);
 			}
 
@@ -132,26 +123,31 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 				return false;
 			}
 #else
-			// apply iterator: c = B*d (damp is not used)
+		// 	apply iterator: c = B*d (damp is not used)
 			for(size_t i = 0; i < c.size(); ++i)
 			{
-				// c[i] = m_damp * d[i] / mat(i,i)
+			// 	c[i] = m_damp * d[i] / mat(i,i)
 				InverseMatMult(c[i], m_damp, mat(i,i), d[i]);
 			}
 #endif
 			return true;
 		}
 
-	//	Postprocess routine
+	///	Postprocess routine
 		virtual bool postprocess() {return true;}
 
 	protected:
-#ifdef UG_PARALLEL
-		std::vector< typename block_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;
-#endif
+	///	damping parameter
 		number m_damp;
 
-		bool m_bOpChanged;
+#ifdef UG_PARALLEL
+	///	type of block-inverse
+		typedef typename block_traits<typename matrix_type::value_type>::inverse_type inverse_type;
+
+	///	storage of the inverse diagonal in parallel
+		std::vector<inverse_type> m_diagInv;
+#endif
+
 };
 
 
