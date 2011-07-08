@@ -209,6 +209,9 @@ class IPData : public IIPDimData<dim>
 		TData* values(size_t s)
 			{check_series(s); return &(m_vvValue[s][0]);}
 
+	///	destructor
+		~IPData() {local_ips_to_be_cleared();}
+
 	protected:
 	///	checks in debug mode the correct index
 		inline void check_series(size_t s) const;

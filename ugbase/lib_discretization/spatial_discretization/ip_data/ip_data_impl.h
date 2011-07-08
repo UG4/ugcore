@@ -19,6 +19,7 @@ namespace ug{
 inline IIPData::IIPData() : m_locPosDim(-1), m_time(0.0)
 {
 	m_vNumIP.clear();
+	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
 }
 
@@ -161,7 +162,7 @@ void IPData<TData,dim>::local_ips_added()
 	UG_ASSERT(num_series() >= numOldSeries, "Decrease is not implemented.");
 
 //	increase number of series if needed
-	m_vvValue.resize(num_series());
+	m_vvValue.resize(num_series(), NULL);
 
 //	allocate new storage
 	for(size_t s = numOldSeries; s < m_vvValue.size(); ++s)
@@ -180,7 +181,7 @@ void IPData<TData,dim>::local_ips_to_be_cleared()
 //	free the memory
 	for(size_t s = 0; s < m_vvValue.size(); ++s)
 	{
-		if(num_ip(s) > 0)
+		if(num_ip(s) > 0 && m_vvValue[s] != NULL)
 			delete[] m_vvValue[s];
 	}
 
