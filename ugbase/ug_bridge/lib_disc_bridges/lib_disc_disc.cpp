@@ -441,7 +441,7 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 		std::stringstream ss; ss << "ElasticityTensorUserData" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("operator", &T::operator ())
+			//.add_method("operator", &T::operator ())
 			.add_method("test_evaluate", &T::test_evaluate);
 			//methods, which are used in script-file
 	}
