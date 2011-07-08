@@ -378,7 +378,7 @@ newtonSolver:init(op)
 
 -- timestep in seconds: 3153600 sec = 0.1 year
 dt = 3.1536e6
-minStepSize = dt / 100;
+minStepSize = dt / 500;
 stepReductionFactor = 0.25;
 
 time = 0.0
@@ -416,6 +416,9 @@ for step = 1, NumTimeSteps do
 
 	-- choose time step
 	do_dt = dt
+	
+	-- start with smaller timestep for first step
+	if step == 1 then do_dt = do_dt / 10; end
 
 	bSuccess = false;
 	
