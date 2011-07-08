@@ -12,7 +12,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include("../../ug_cmake_includes.txt")
 
-set(srcRegistry    	class_name_provider.cpp
+set(srcRegistry    	registry.cpp
+					class_name_provider.cpp
 					class_helper.cpp)
 
 set(Sources ${srcRegistry})

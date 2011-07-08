@@ -594,11 +594,20 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG("Error message: " << err.get_msg() << endl);
 				if(err.terminate())
 				{
-					UG_LOG("Call stack:\n"); lua_stacktrace(L);
+					UG_LOG("Call stack:\n");
+					lua_stacktrace(L);
 					UG_LOG("terminating..." << endl);
 					exit(err.get_code());
 				}
 				UG_LOG(". continuing execution...\n");
+			}
+			catch(bad_alloc& ba)
+			{
+				UG_LOG("ERROR: bad_alloc: " << ba.what() << endl);
+				UG_LOG("Call stack:\n");
+				lua_stacktrace(L);
+				UG_LOG("terminating..." << endl);
+				exit(0);
 			}
 			catch(...)
 			{
@@ -616,7 +625,8 @@ static int LuaProxyFunction(lua_State* L)
 
 		if(!bLuaError && badParam != 0)
 		{
-			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during trying to call " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
+			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during trying to call "
+					<< funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
 			UG_LOG("No matching overload found! Candidates are:\n");
 			for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
 			{
