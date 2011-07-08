@@ -172,17 +172,17 @@ class DataImport : public IDataImport
 	///	return the derivative w.r.t to local function at ip
 		const TData* deriv(size_t ip, size_t fct) const
 		{
-			UG_ASSERT(m_pIPData != NULL, "No Data set");
+			UG_ASSERT(m_pDependentIPData != NULL, "No Dependent Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
-			return dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)->deriv(m_seriesID, ip, fct);
+			return m_pDependentIPData->deriv(m_seriesID, ip, fct);
 		}
 
 	///	return the derivative w.r.t to local function and dof at ip
 		const TData& deriv(size_t ip, size_t fct, size_t dof) const
 		{
-			UG_ASSERT(m_pIPData != NULL, "No Data set");
+			UG_ASSERT(m_pDependentIPData != NULL, "No Dependent Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
-			return dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)->deriv(m_seriesID, ip, fct, dof);
+			return m_pDependentIPData->deriv(m_seriesID, ip, fct, dof);
 		}
 
 	/////////////////////////////////////////
