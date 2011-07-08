@@ -20,315 +20,392 @@
 namespace ug{
 
 template <typename TAlgebra>
-class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector_type,
-														typename TAlgebra::vector_type>
+class BiCGStabSolver :
+	public ILinearOperatorInverse< 	typename TAlgebra::vector_type,
+									typename TAlgebra::vector_type>
 {
 	public:
-	//	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	//	Vector type
+	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
 	public:
-		BiCGStabSolver() :
-			m_pPrecond(NULL), m_pConvCheck(NULL)
-		{};
+	///	default constructor
+		BiCGStabSolver() : m_pPrecond(NULL), m_pConvCheck(NULL){};
 
+	///	constructor setting the preconditioner and the convergence check
 		BiCGStabSolver	( 	ILinearIterator<vector_type,vector_type>* Precond,
 							IConvergenceCheck& ConvCheck) :
 							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
-						{};
+		{};
 
+	///	name of solver
 		virtual const char* name() const {return "BiCGStabSolver";}
 
+	///	set the convergence check
 		void set_convergence_check(IConvergenceCheck& convCheck)
 		{
 			m_pConvCheck = &convCheck;
 			m_pConvCheck->set_offset(3);
 		}
+
+	///	returns the convergence check
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
+
+	///	sets the preconditioner
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
 		{
 			m_pPrecond = &precond;
 		}
 
+	///	initializes the solver
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		{
+		//	remember operator
 			m_A = &J;
 
-			// init Preconditioner for operator J
+		// 	init Preconditioner for operator J
 			if(m_pPrecond != NULL)
 				if(!m_pPrecond->init(J, u))
 				{
 					UG_LOG("ERROR in 'BiCGStabSolver::prepare': Cannot init "
-							"Iterator Operator for Operator J.\n"); return false;
+							"Iterator Operator for Operator J.\n");
+					return false;
 				}
 
+		//	done
 			return true;
 		}
 
+	///	initializes the solver
 		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
 		{
+		//	remember operator
 			m_A = &L;
 
-			// init Preconditioner for operator L
+		// 	init Preconditioner for operator L
 			if(m_pPrecond != NULL)
 				if(!m_pPrecond->init(L))
 				{
-					UG_LOG("ERROR in 'CGSolver::prepare': "
+					UG_LOG("ERROR in 'BiCGStabSolver::prepare': "
 							"Cannot init Iterator Operator for Operator L.\n");
 					return false;
 				}
 
+		//	done
 			return true;
 		}
 
-		// Solve J(u)*x = b, such that x = J(u)^{-1} b
-		virtual bool apply_return_defect(vector_type& xOut, vector_type& bIn)
+	// 	Solve J(u)*x = b, such that x = J(u)^{-1} b
+		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
+		//	convergence check is required
 			if(m_pConvCheck == NULL)
 			{
-				UG_LOG("ERROR: In 'BiCGStabSolver::apply': Convergence check not set.\n");
+				UG_LOG("ERROR: In 'BiCGStabSolver::apply_return_defect': "
+						"Convergence check not set.\n");
 				return false;
 			}
 
+		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
-			if(!bIn.has_storage_type(PST_ADDITIVE) || !xOut.has_storage_type(PST_CONSISTENT))
+			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 				{
-					UG_LOG("ERROR: In 'BiCGStabSolver::apply':Inadequate storage format of Vectors.\n");
+					UG_LOG("ERROR: In 'BiCGStabSolver::apply_return_defect':"
+							"Inadequate storage format of Vectors.\n");
 					return false;
 				}
 			#endif
 
-			// build defect:  b := b - J(u)*x
-			if(!m_A->apply_sub(bIn, xOut))
-				{UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-						"Unable to build defect. Aborting.\n");return false;}
+		// 	build defect:  b := b - A*x
+			if(!m_A->apply_sub(b, x))
+			{
+				UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+						"Unable to build defect. Aborting.\n");
+				return false;
+			}
 
 			// create start r_0^* vector
 		//	todo: 	It would be sufficient to copy only the pattern and
 		//			without initializing
-			vector_type r; r.create(bIn.size()); r = bIn;
-			vector_type p; p.create(bIn.size()); p = bIn;
-			vector_type v; v.create(bIn.size()); v = bIn;
-			vector_type t; t.create(bIn.size()); t = bIn;
-			vector_type s; s.create(bIn.size()); s = bIn;
-			vector_type q; q.create(xOut.size()); q = xOut;
+			vector_type r; r.create(b.size()); r = b;
+			vector_type p; p.create(b.size()); p = b;
+			vector_type v; v.create(b.size()); v = b;
+			vector_type t; t.create(b.size()); t = b;
+			vector_type s; s.create(b.size()); s = b;
+			vector_type q; q.create(x.size()); q = x;
 
+		//	prepare convergence check
 			prepare_conv_check();
-			m_pConvCheck->start(bIn);
 
+		//	compute start defect norm
+			m_pConvCheck->start(b);
+
+		//	convert b to unique (should already be unique due to norm calculation)
 			#ifdef UG_PARALLEL
-			// convert b to unique (should already be unique due to norm calculation)
-			if(!bIn.change_storage_type(PST_UNIQUE))
-				{UG_LOG("Cannot convert b to unique vector.\n"); return false;}
+			if(!b.change_storage_type(PST_UNIQUE))
+			{
+				UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+						"Cannot convert b to unique vector.\n");
+				return false;
+			}
 			#endif
 
-			number rho, rho_new, alpha, omega, beta, tt;
-			tt = rho = alpha = omega = 0;
+		//	needed variables
+			number rhoOld, rho, alpha, omega;
 
 		// 	Iteration loop
 			while(!m_pConvCheck->iteration_ended())
 			{
+			//	check if start values have to be set
 				if(m_pConvCheck->step() == 0 /*or restart*/)
 				{
+				//	if at restart recompute start defect
 					if(m_pConvCheck->step() != 0)
 					{
-						m_pConvCheck->update(bIn);
+						m_pConvCheck->update(b);
 						if(m_pConvCheck->iteration_ended()) break;
 					}
 
-					// reset vectors
-					r = bIn;
+				// 	reset vectors
+					r = b;
 
-					// make r additive unique
-				#ifdef UG_PARALLEL
+				// 	make r additive unique
+					#ifdef UG_PARALLEL
 					if(!r.change_storage_type(PST_UNIQUE))
-						{UG_LOG("Cannot convert r to unique vector.\n"); return false;}
-				#endif
+					{
+						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+								"Cannot convert r to unique vector.\n");
+						return false;
+					}
+					#endif
+
+				//	set start vectors
 					p.set(0.0);
 					v.set(0.0);
-					rho = alpha = omega = 1.0;
+
+				//	set start values
+					rhoOld = alpha = omega = 1.0;
 				}
 
 			// 	Compute rho new
-				rho_new = VecProd(bIn, r);
+				rho = VecProd(b, r);
+
+			//	check values
+				if(rhoOld == 0.0 || omega == 0.0)
+				{
+					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+							"rho= "<<rhoOld<<" and omega= "<<omega<<" are invalid "
+							"values. Aborting iteration.\n");
+					return false;
+				}
 
 			// 	Compute new beta
-				if(rho != 0.0 && omega != 0.0) beta = (rho_new/rho) * (alpha/omega);
-				else {UG_LOG("rho= " << rho << " and omega= " << omega << " are invalid values. Aborting.\n"); return false;}
+				const number beta = (rho/rhoOld) * (alpha/omega);
 
 			// 	scale p := beta * p
 				p *= beta;
 
 			// 	add b to p (p:= p + b)
-				p += bIn;
+				p += b;
 
 			// 	subtract: p := p - beta * omega * v
 				VecScaleAppend(p, v, (-1)*beta*omega);
 
-
-			// 	if preconditioner given
-				if(m_pPrecond != NULL)
+			// 	Precondition
+				if(m_pPrecond)
 				{
 				// 	apply q = M^-1 * p
 					if(!m_pPrecond->apply(q, p))
-						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
-
-				// 	compute v := A*q
-					if(!m_A->apply(v, q))
-						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
-
-					#ifdef UG_PARALLEL
-					// make v unique
-					if(!v.change_storage_type(PST_UNIQUE))
-						{UG_LOG("Cannot convert v to unique vector.\n"); return false;}
-					#endif
-
-					alpha = VecProd(v, r);
-
-					if(alpha != 0.0) alpha = rho_new/alpha;
-					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
-
-				// 	add: x := x + alpha * q
-					VecScaleAppend(xOut, q, alpha);
+					{
+						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+								"Cannot apply preconditioner. Aborting.\n");
+						return false;
+					}
 				}
 				else
 				{
-					// copy q = p
+				// 	copy q = p
 					q = p;
 
+				// 	make q consistent
 					#ifdef UG_PARALLEL
-					// make q consistent
 					if(!q.change_storage_type(PST_CONSISTENT))
-						{UG_LOG("Cannot convert q to consistent vector.\n"); return false;}
+					{
+						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+								"Cannot convert q to consistent vector.\n");
+						return false;
+					}
 					#endif
-
-					// compute v := A*q
-					if(m_A->apply(v, q) != true)
-						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
-
-					#ifdef UG_PARALLEL
-					// make v unique
-					if(!v.change_storage_type(PST_UNIQUE))
-						{UG_LOG("Cannot convert v to unique vector.\n"); return false;}
-					#endif
-
-					alpha = VecProd(v, r);
-
-					if(alpha != 0.0) alpha = rho_new/alpha;
-					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
-
-					// add: x := x + alpha * q
-					VecScaleAppend(xOut, q, alpha);
 				}
 
+			// 	compute v := A*q
+				if(!m_A->apply(v, q))
+				{
+					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+							"Cannot apply Operator A. Aborting.\n");
+					return false;
+				}
 
-				// set s := b
-				s = bIn;
+			// 	make v unique
+				#ifdef UG_PARALLEL
+				if(!v.change_storage_type(PST_UNIQUE))
+				{
+					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+							"Cannot convert v to unique vector.\n");
+					return false;
+				}
+				#endif
 
-				// update s := s - alpha*v
+			//	alpha = v*r
+				alpha = VecProd(v, r);
+
+			//	check validity of alpha
+				if(alpha == 0.0)
+				{
+					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+							"alpha= "<<alpha<<" is an invalid value."
+							" Aborting iteration.\n");
+					return false;
+				}
+
+			//	alpha = rho/(v,r)
+				alpha = rho/alpha;
+
+			// 	add: x := x + alpha * q
+				VecScaleAppend(x, q, alpha);
+
+			// 	set s := b
+				s = b;
+
+			// 	update s := s - alpha*v
 				VecScaleAppend(s, v, (-1)*alpha);
 
-				// check convergence
-				// todo: Should we check convergence here? (That is done in ug3.9)
-/*				m_pConvCheck->update(s);
+			// 	check convergence
+				m_pConvCheck->update(s);
 				if(m_pConvCheck->iteration_ended())
 				{
-					bIn = s;
-					break;
+				//	set output to last defect
+					b = s; break;
 				}
-*/
-				// if preconditioner given
-				if(m_pPrecond != NULL)
+
+			//	apply preconditioner
+				if(m_pPrecond)
 				{
-					// apply q = M^-1 * t
+				// 	apply q = M^-1 * t
 					if(!m_pPrecond->apply(q, s))
-						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
+					{
+						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+								"Cannot apply preconditioner. Aborting.\n");
+						return false;
+					}
 				}
 				else
 				{
-					// set q:=s
+				// 	set q:=s
 					q = s;
 
+				// 	make q consistent
 					#ifdef UG_PARALLEL
-					// make q consistent
 					if(!q.change_storage_type(PST_CONSISTENT))
-						{UG_LOG("Cannot convert q to consistent vector.\n"); return false;}
-					#endif
+					{
+						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+								"Cannot convert q to consistent vector.\n");
+						return false;
 					}
+					#endif
+				}
 
-				// compute t := A*q
-				if(m_A->apply(t, q) != true)
-					{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
+			// 	compute t := A*q
+				if(!m_A->apply(t, q))
+				{
+						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+								"Cannot apply Operator A. Aborting.\n");
+						return false;
+				}
 
+			// 	make t unique
 				#ifdef UG_PARALLEL
-				// make t unique
 				if(!t.change_storage_type(PST_UNIQUE))
-					{UG_LOG("Cannot convert v to unique vector.\n"); return false;}
+				{
+					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+							"Cannot convert t to unique vector.\n");
+					return false;
+				}
 				#endif
 
-				// tt = (t,t)
-				tt = VecProd(t, t);
+			// 	tt = (t,t)
+				const number tt = VecProd(t, t);
 
-				// omega = (s,t)
+			// 	omega = (s,t)
 				omega = VecProd(s, t);
 
-				// omega = omega/tt
-				if(tt != 0.0) omega = omega/tt;
-				else {UG_LOG("tt= " << tt << " is an invalid value. Aborting.\n"); return false;}
+			//	check tt
+				if(tt == 0.0)
+				{
+					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+							"tt= "<<tt<<" is an invalid value. "
+							"Aborting iteration.\n");
+					return false;
+				}
 
-				// add: x := x + omega * q
-				VecScaleAppend(xOut, q, omega);
+			// 	omega = (s,t)/(t,t)
+				omega = omega/tt;
 
-				// set b := s
-				bIn = s;
+			// 	add: x := x + omega * q
+				VecScaleAppend(x, q, omega);
 
-				// 2. update of b:  b:= b - omega*t
-				VecScaleAppend(bIn, t, (-1)*omega);
+			// 	set b := s
+				b = s;
 
-				// check convergence
-				m_pConvCheck->update(bIn);
+			// 	update of b:  b:= b - omega*t
+				VecScaleAppend(b, t, (-1)*omega);
 
-				// remember current rho
-				rho = rho_new;
+			// 	check convergence
+				m_pConvCheck->update(b);
+
+			// 	remember current rho
+				rhoOld = rho;
 			}
 
+		//	print ending output
 			return m_pConvCheck->post();
 		}
 
-		virtual bool apply(vector_type& cNLOut, const vector_type& dNLIn)
+	///	apply the solver
+		virtual bool apply(vector_type& x, const vector_type& b)
 		{
 		//	copy defect
-			vector_type d; d.resize(dNLIn.size());
-			d = dNLIn;
+			vector_type bTmp; bTmp.resize(b.size()); bTmp = b;
 
 		//	solve on copy of defect
-			return apply_return_defect(cNLOut, d);
+			return apply_return_defect(x, bTmp);
 		}
 
 
-		// destructor
+	/// destructor
 		virtual ~BiCGStabSolver() {};
 
 	protected:
+	///	prepares the output of the convergence check
 		void prepare_conv_check()
 		{
+		//	set iteration symbol an name
 			m_pConvCheck->set_name(name());
 			m_pConvCheck->set_symbol('%');
 			m_pConvCheck->set_name(name());
-			if(m_pPrecond != NULL)
-			{
-				std::stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
-			else
-			{
-				m_pConvCheck->set_info(" (No Preconditioner) ");
-			}
+
+		//	set preconditioner string
+			std::stringstream ss;
+			if(m_pPrecond) ss<<" (Precond: "<<m_pPrecond->name()<<")";
+			else ss << " (No Preconditioner) ";
+			m_pConvCheck->set_info(ss.str());
 		}
+
 	protected:
+	///	adds a scaled vector to a second one
 		bool VecScaleAppend(vector_type& a, vector_type& b, number s)
 		{
 			#ifdef UG_PARALLEL
@@ -350,23 +427,21 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
             return true;
 		}
 
+	///	computes the vector product
 		number VecProd(vector_type& a, vector_type& b)
 		{
 			return a.dotprod(b);
 		}
 
 	protected:
-		// Operator that is inverted by this Inverse Operator
+	/// Operator that is inverted by this Inverse Operator
 		ILinearOperator<vector_type,vector_type>* m_A;
 
-		// Iterator used in the iterative scheme to compute the correction and update the defect
+	/// Preconditioner
 		ILinearIterator<vector_type,vector_type>* m_pPrecond;
 
-		// Convergence Check
+	/// Convergence Check
 		IConvergenceCheck* m_pConvCheck;
-
-		// current solution
-		vector_type* m_pCurrentU;
 };
 
 } // end namespace ug
