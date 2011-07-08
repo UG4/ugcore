@@ -5,6 +5,23 @@ namespace ug
 namespace bridge
 {
 
+void ClassNameNode::set_name(const char* name)
+{
+	m_name = std::string(name);
+	if(m_name.size()==0)
+		throw(UGFatalError("ERROR in 'ClassNameNode::set_name':"
+							"Name must be longer than 0"));
+}
+
+
+void ClassNameNode::add_base_class(const ClassNameNode& node)
+{
+	std::vector<const ClassNameNode*>::iterator it
+		= std::find(m_vBaseClass.begin(), m_vBaseClass.end(), &node);
+	if(it == m_vBaseClass.end())
+		m_vBaseClass.push_back(&node);
+}
+
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name)
 {
 	//  return true if pointers are equal
@@ -65,6 +82,67 @@ bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node, cons
 //	return if found in parents
 	return false;
 }
+
+void* ClassCastProvider::
+cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const char* baseName)
+{
+//	find way to base class
+	std::vector<size_t> vWay;
+	if(!ClassNameTreeWay(vWay, *node, baseName))
+	{
+		UG_LOG("ERROR in ClassCastProvider::cast_to_base_class: Request"
+				" to cast from derived class '"<< node->name()<<"' to "
+				" base class '"<<baseName<<"', but no such base class in"
+				" registered class hierarchy.\n");
+		return NULL;
+	}
+
+	void* currPtr = pDerivVoid;
+	const ClassNameNode* pCurrNode = node;
+
+//	cast all the way down
+	while(!vWay.empty())
+	{
+	//	get base class to cast to
+		const ClassNameNode* pBaseClassNode = &pCurrNode->base_class(vWay.back());
+
+	//	get name pair
+		std::pair<const ClassNameNode*, const ClassNameNode*> namePair(pBaseClassNode, pCurrNode);
+
+	//	find in map
+		std::map<std::pair<const ClassNameNode*, const ClassNameNode*>, CastFunc>::iterator it;
+		it = m_mmCast.find(namePair);
+
+		if(it == m_mmCast.end())
+		{
+			UG_LOG("ERROR in ClassCastProvider::cast_to_base_class:"
+					" Request intermediate cast from derived class '" <<
+					pCurrNode->name() <<"' to direct base class '"
+					<<pBaseClassNode->name()<<"', but no such cast "
+					" function registered.\n");
+			return NULL;
+		}
+
+	//	get cast function
+		CastFunc pCastFunc = it->second;
+
+	//	cast
+		currPtr = (*pCastFunc)(currPtr);
+
+	//	set node to base class
+		pCurrNode = pBaseClassNode;
+
+	//	pop way
+		vWay.pop_back();
+	}
+
+//	write current node on exit
+	node = pCurrNode;
+
+//	return current pointer
+	return currPtr;
+}
+
 
 std::map<std::pair<const ClassNameNode*, const ClassNameNode*>, void* (*)(void*)>
 	ClassCastProvider::m_mmCast = std::map<std::pair<const ClassNameNode*, const ClassNameNode*>,  void* (*)(void*)> ();

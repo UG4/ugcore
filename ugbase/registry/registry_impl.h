@@ -147,12 +147,16 @@ add_class_(const char* className, const char* group, const char *tooltip)
 	{
 		newClass = new ExportedClass_<TClass>(className, group, tooltip);
 	}
-	catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
+	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
 	{
 		std::cout << "### Registry ERROR: Trying to register class with name '" << className
 				<< "', that has already been named. This is not allowed. "
 				<< "\n### Please change register process. Aborting ..." << std::endl;
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+	}
+	catch(ug::bridge::REGISTRY_ERROR_Message ex)
+	{
+		std::cout << "### Registry ERROR: " << ex.msg << "\n";
 	}
 
 //	add new class to list of classes
@@ -173,26 +177,21 @@ add_class_(const char* className, const char* group, const char *tooltip)
 
 //	try creation of new class
 	try { newClass = new ExportedClass_<TClass>(className, group, tooltip);}
-	catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
+	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
 	{
 		std::cout << "### Registry ERROR: Trying to register class with name '" << className
 				<< "', that has already been named. This is not allowed. "
 				<< "\n### Please change register process. Aborting ..." << std::endl;
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}
+	catch(ug::bridge::REGISTRY_ERROR_Message ex)
+	{
+		std::cout << "### Registry ERROR: " << ex.msg << "\n";
+	}
+
 
 // 	set base class names
-	try
-	{
-		ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
-	}
-	catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
-	{
-		std::cout <<"### Registry ERROR: Trying to register class with name '" << className
-				<< "', that derives from class, that has not yet been registered to this Registry."
-				<< "\n### Please change register process. Aborting ..." << std::endl;
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
-	}
+	ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
 
 //	add cast function
 	ClassCastProvider::add_cast_func<TBaseClass, TClass>();
@@ -215,26 +214,20 @@ add_class_(const char* className, const char* group)
 
 //	try creation of new class
 	try { newClass = new ExportedClass_<TClass>(className, group);}
-	catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
+	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
 	{
 		std::cout << "### Registry ERROR: Trying to register class with name '" << className
 				<< "', that has already been named. This is not allowed. "
 				<< "\n### Please change register process. Aborting ..." << std::endl;
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}
+	catch(ug::bridge::REGISTRY_ERROR_Message ex)
+	{
+		std::cout << "### Registry ERROR: " << ex.msg << "\n";
+	}
 
 // 	set base class names
-	try
-	{
-		ClassNameProvider<TClass>::template set_name<TBaseClass1, TBaseClass2>(className, group);
-	}
-	catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
-	{
-		std::cout <<"### Registry ERROR: Trying to register class with name '" << className
-				<< "', that derives from class, that has not yet been registered to this Registry."
-				<< "\n### Please change register process. Aborting ..." << std::endl;
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
-	}
+	ClassNameProvider<TClass>::template set_name<TBaseClass1, TBaseClass2>(className, group);
 
 //	add cast function
 	ClassCastProvider::add_cast_func<TBaseClass1, TClass>();
@@ -249,19 +242,8 @@ template <typename TClass>
 ExportedClass_<TClass>& Registry::
 get_class_()
 {
-	const char* name;
-// get class names
-	try
-	{
-		name = ClassNameProvider<TClass>::name();
-	}
-	catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
-	{
-		std::cout <<"### Registry ERROR: Trying to get class "
-				<< "that has not yet been named."
-				<< "\n### Please change register process. Aborting ..." << std::endl;
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(""));
-	}
+// 	get class names
+	const char* name = ClassNameProvider<TClass>::name();
 
 //	look for class in this registry
 	for(size_t i = 0; i < m_vClass.size(); ++i)

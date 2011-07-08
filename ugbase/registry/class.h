@@ -355,10 +355,17 @@ class IExportedClass
 			//	check the name
 				if(baseName == NULL || strlen(baseName) == 0 || baseName[0] == '[')
 				{
+					if(i>0){
 					UG_LOG("ERROR in 'IExportedClass::check_consistency':"
 							" base class "<<i<<" of class '"<<this->name()<<
 							"' has not been named.\n");
 						return false;
+					}
+					else{
+					UG_LOG("ERROR in 'IExportedClass::check_consistency':"
+							" Class '"<<this->name()<<"' has not been named.\n");
+						return false;
+					}
 				}
 			}
 
@@ -490,26 +497,17 @@ class ExportedClass_ : public IExportedClass
 					m_vMethod.push_back(methodGrp);
 			}
 
-			try{
-				bool success = methodGrp->add_overload(func, &MethodProxy<TClass, TMethod>::apply,
-				                                       ClassNameProvider<TClass>::name(),
-														methodOptions.c_str(), retValInfos, paramInfos,
-														tooltip, help);
+			bool success = methodGrp->add_overload(func, &MethodProxy<TClass, TMethod>::apply,
+												   ClassNameProvider<TClass>::name(),
+													methodOptions.c_str(), retValInfos, paramInfos,
+													tooltip, help);
 
-				if(!success)
-				{
-					std::cout << "### Registry ERROR: Trying to register method name '" << strippedMethodName
-							<< "' to class '" << name() << "', but another method with this name "
-							<< " and the same function signature is already registered for this class."
-							<< "\n### Please change register process. Aborting ..." << std::endl;
-					throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
-				}
-			}
-			catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
+			if(!success)
 			{
-				UG_LOG("###  Registering method '" << strippedMethodName << "' for class '");
-				UG_LOG( name() << "' requires argument of user-defined type,\n");
-				UG_LOG("###  that has not yet been registered to this Registry.\n");
+				std::cout << "### Registry ERROR: Trying to register method name '" << strippedMethodName
+						<< "' to class '" << name() << "', but another method with this name "
+						<< " and the same function signature is already registered for this class."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
 			}
 

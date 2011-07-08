@@ -1,3 +1,4 @@
+//	authors: Sebastian Reiter, Andreas Vogel
 
 #ifndef __H__UG_BRIDGE__PARAM_TO_TYPE_VALUE_LIST__
 #define __H__UG_BRIDGE__PARAM_TO_TYPE_VALUE_LIST__
