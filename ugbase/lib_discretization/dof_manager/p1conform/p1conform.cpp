@@ -578,6 +578,35 @@ defragment()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+void
+GroupedP1ConformDoFDistribution::
+create_offsets()
+{
+//	clear offsets
+	m_vvOffsets.clear();
+
+//	resize for all subsets
+	m_vvOffsets.resize(num_subsets());
+
+// 	loop subsets
+	for(int si = 0; si < num_subsets(); ++si)
+	{
+	// 	counter
+		size_t count = 0;
+
+	//	resize for each function
+		m_vvOffsets[si].resize(num_fct());
+
+	//	loop functions
+		for(size_t fct = 0; fct < num_fct(); ++fct)
+		{
+		//	set offset for each function defined in the subset
+			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
+			else m_vvOffsets[si][fct] = count++;
+		}
+	}
+}
+
 
 size_t
 GroupedP1ConformDoFDistribution::

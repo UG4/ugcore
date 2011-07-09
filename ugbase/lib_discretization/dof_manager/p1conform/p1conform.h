@@ -171,22 +171,6 @@ class P1ConformDoFDistribution
 		template<typename TElem>
 		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const;
 
-/*	/// \copydoc IDoFDistribution::prepare_indices()
-		template<typename TElem>
-		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const;
-
-	/// \copydoc IDoFDistribution::prepare_inner_indices()
-		template<typename TElem>
-		bool prepare_inner_indices(int si, LocalIndices& ind) const;
-
-	/// \copydoc IDoFDistribution::update_indices()
-		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind, bool withHanging = false) const;
-
-	/// \copydoc IDoFDistribution::update_inner_indices()
-		template<typename TElem>
-		void update_inner_indices(TElem* elem, LocalIndices& ind) const;
-*/
 	/// \copydoc IDoFDistribution::indices()
 		template<typename TElem>
 		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const;
@@ -351,6 +335,9 @@ class GroupedP1ConformDoFDistribution
 		// 	Attach indices
 			if(!m_pStorageManager->update_attachments())
 				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
+
+		// 	create offsets
+			create_offsets();
 		}
 
 		GroupedP1ConformDoFDistribution(GeometricObjectCollection goc,
@@ -369,6 +356,9 @@ class GroupedP1ConformDoFDistribution
 		// 	Attach indices
 			if(!m_pStorageManager->update_attachments())
 				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
+
+		// 	create offsets
+			create_offsets();
 		}
 
 		///////////////////////////
@@ -425,22 +415,10 @@ class GroupedP1ConformDoFDistribution
 		template<typename TElem>
 		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const;
 
-/*	/// \copydoc IDoFDistribution::prepare_indices()
+	/// \copydoc IDoFDistribution::indices()
 		template<typename TElem>
-		bool prepare_indices(int si, LocalIndices& ind, bool withHanging = false) const;
+		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const;
 
-	/// \copydoc IDoFDistribution::prepare_inner_indices()
-		template<typename TElem>
-		bool prepare_inner_indices(int si, LocalIndices& ind) const;
-
-	/// \copydoc IDoFDistribution::update_indices()
-		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind, bool withHanging = false) const;
-
-	/// \copydoc IDoFDistribution::update_inner_indices()
-		template<typename TElem>
-		void update_inner_indices(TElem* elem, LocalIndices& ind) const;
-*/
 		///////////////////////////////////////
 		// Multi index access
 		///////////////////////////////////////
@@ -520,6 +498,9 @@ class GroupedP1ConformDoFDistribution
 		bool defragment();
 
 	protected:
+	///	creates the offset array
+		void create_offsets();
+
 	///	returns algebra index attached to a vertex
 		size_t& alg_index(VertexBase* vrt, size_t si) {return m_raaVrtDoF[vrt];}
 
@@ -551,6 +532,9 @@ class GroupedP1ConformDoFDistribution
 
 	/// number of distributed dofs on each subset
 		std::vector<size_t> m_vNumDoFs;
+
+	/// number offsetmap
+		std::vector<std::vector<size_t> > m_vvOffsets;
 
 	///	vector to store free algebraic indices
 		std::vector<size_t> m_vFreeIndex;
