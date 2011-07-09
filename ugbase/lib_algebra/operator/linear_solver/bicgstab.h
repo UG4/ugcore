@@ -1,12 +1,12 @@
 /*
- * bicgstab_solver.h
+ * bicgstab.h
  *
  *  Created on: 05.07.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB_SOLVER__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB_SOLVER__
+#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB__
+#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB__
 
 #include <iostream>
 #include <sstream>
@@ -20,7 +20,7 @@
 namespace ug{
 
 template <typename TAlgebra>
-class BiCGStabSolver :
+class BiCGStab :
 	public ILinearOperatorInverse< 	typename TAlgebra::vector_type,
 									typename TAlgebra::vector_type>
 {
@@ -33,16 +33,16 @@ class BiCGStabSolver :
 
 	public:
 	///	default constructor
-		BiCGStabSolver() : m_pPrecond(NULL), m_pConvCheck(NULL){};
+		BiCGStab() : m_pPrecond(NULL), m_pConvCheck(NULL){};
 
 	///	constructor setting the preconditioner and the convergence check
-		BiCGStabSolver	( 	ILinearIterator<vector_type,vector_type>* Precond,
+		BiCGStab	( 	ILinearIterator<vector_type,vector_type>* Precond,
 							IConvergenceCheck& ConvCheck) :
 							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
 		{};
 
 	///	name of solver
-		virtual const char* name() const {return "BiCGStabSolver";}
+		virtual const char* name() const {return "BiCGStab";}
 
 	///	set the convergence check
 		void set_convergence_check(IConvergenceCheck& convCheck)
@@ -259,7 +259,7 @@ class BiCGStabSolver :
 				}
 				#endif
 
-			//	alpha = v*r
+			//	alpha = (v,r)
 				alpha = VecProd(v, r);
 
 			//	check validity of alpha
@@ -386,7 +386,7 @@ class BiCGStabSolver :
 
 
 	/// destructor
-		virtual ~BiCGStabSolver() {};
+		virtual ~BiCGStab() {};
 
 	protected:
 	///	prepares the output of the convergence check
@@ -446,4 +446,4 @@ class BiCGStabSolver :
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB_SOLVER__ */
+#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB__ */

@@ -21,8 +21,8 @@
 #include "linear_solver/lu_operator.h"
 
 // solvers
-#include "linear_solver/cg_solver.h"
-#include "linear_solver/bicgstab_solver.h"
+#include "linear_solver/cg.h"
+#include "linear_solver/bicgstab.h"
 #include "linear_solver/linear_solver.h"
 
 // preconditioner

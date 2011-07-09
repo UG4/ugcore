@@ -275,21 +275,21 @@ struct cRegisterAlgebraType
 							"", "Check");
 
 		// 	CG Solver
-			reg.add_class_<	CGSolver<algebra_type>,
+			reg.add_class_<	CG<algebra_type>,
 							ILinearOperatorInverse<vector_type, vector_type> >("CG", grp3.c_str(), "Conjugate Gradient")
 				.add_constructor()
-				.add_method("set_preconditioner|interactive=false", &CGSolver<algebra_type>::set_preconditioner,
+				.add_method("set_preconditioner|interactive=false", &CG<algebra_type>::set_preconditioner,
 							"", "Preconditioner")
-				.add_method("set_convergence_check|interactive=false", &CGSolver<algebra_type>::set_convergence_check,
+				.add_method("set_convergence_check|interactive=false", &CG<algebra_type>::set_convergence_check,
 							"", "Check");
 
 		// 	BiCGStab Solver
-			reg.add_class_<	BiCGStabSolver<algebra_type>,
+			reg.add_class_<	BiCGStab<algebra_type>,
 							ILinearOperatorInverse<vector_type, vector_type> >("BiCGStab", grp3.c_str())
 				.add_constructor()
-				.add_method("set_preconditioner|interactive=false", &BiCGStabSolver<algebra_type>::set_preconditioner,
+				.add_method("set_preconditioner|interactive=false", &BiCGStab<algebra_type>::set_preconditioner,
 							"", "Preconditioner")
-				.add_method("set_convergence_check|interactive=false", &BiCGStabSolver<algebra_type>::set_convergence_check,
+				.add_method("set_convergence_check|interactive=false", &BiCGStab<algebra_type>::set_convergence_check,
 							"", "Check");
 
 		// 	LUSolver

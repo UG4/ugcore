@@ -1,12 +1,13 @@
 /*
- * cg_solver.h
+ * cg.h
  *
  *  Created on: 22.02.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
+#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_SOLVER__CG__
+#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_SOLVER__CG__
+
 #include <iostream>
 #include <sstream>
 
@@ -19,129 +20,157 @@
 namespace ug{
 
 template <typename TAlgebra>
-class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
+class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 													typename TAlgebra::vector_type>
 {
 	public:
-	//	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	//	Vector type
+	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
 	public:
-		CGSolver() :
-			m_pPrecond(NULL), m_pConvCheck(NULL)
-		{}
+	///	default constructor
+		CG() : m_pPrecond(NULL), m_pConvCheck(NULL){}
 
-		CGSolver( 	ILinearIterator<vector_type,vector_type>* Precond,
-						IConvergenceCheck& ConvCheck) :
-							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
-			{};
+	///	constructor setting preconditioner and convergence check
+		CG( ILinearIterator<vector_type,vector_type>* Precond,
+		    IConvergenceCheck& ConvCheck) :
+		m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
+		{};
 
-		virtual const char* name() const {return "CGSolver";}
+	///	name of solver
+		virtual const char* name() const {return "CG";}
 
+	///	sets the convergence check
 		void set_convergence_check(IConvergenceCheck& convCheck)
 		{
 			m_pConvCheck = &convCheck;
 			m_pConvCheck->set_offset(3);
 		}
+
+	///	returns the convergence check
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
+
+	///	sets the preconditioner
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
 		{
 			m_pPrecond = &precond;
 		}
 
+	///	initializes the solver
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		{
+		//	remember operator
 			m_A = &J;
 
-			// init Preconditioner for operator A
-			if(m_pPrecond != NULL)
+		// 	init Preconditioner for operator A
+			if(m_pPrecond)
 				if(!m_pPrecond->init(J, u))
 				{
-					UG_LOG("ERROR in 'CGSolver::prepare': "
+					UG_LOG("ERROR in 'CG::init': "
 							"Cannot init Iterator Operator for Operator A.\n");
 					return false;
 				}
 
+		//	done
 			return true;
 		}
 
+	///	initializes the solver
 		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
 		{
+		//	remember operator
 			m_A = &L;
 
-			// init Preconditioner for operator A
-			if(m_pPrecond != NULL)
+		// 	init Preconditioner for operator A
+			if(m_pPrecond)
 				if(!m_pPrecond->init(L))
 				{
-					UG_LOG("ERROR in 'CGSolver::prepare': "
+					UG_LOG("ERROR in 'CG::init': "
 							"Cannot init Iterator Operator for Operator A.\n");
 					return false;
 				}
 
+		//	done
 			return true;
 		}
 
-		// Solve J(u)*x = b, such that x = J(u)^{-1} b
-		virtual bool apply_return_defect(vector_type& xOut, vector_type& bIn)
+	///	Solve J(u)*x = b, such that x = J(u)^{-1} b
+		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
+		//	convergence check required
 			if(m_pConvCheck == NULL)
 			{
-				UG_LOG("ERROR: In 'CGSolver::apply': Convergence check not set.\n");
+				UG_LOG("ERROR: In 'CG::apply_return_defect': "
+						"Convergence check not set.\n");
 				return false;
 			}
 
+		//	check parallel storage types
 			#ifdef UG_PARALLEL
-			if(!bIn.has_storage_type(PST_ADDITIVE) || !xOut.has_storage_type(PST_CONSISTENT))
+			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 				{
-					UG_LOG("ERROR: In 'CGSolver::apply':Inadequate storage format of Vectors.\n");
+					UG_LOG("ERROR: In 'CG::apply_return_defect':"
+							"Inadequate storage format of Vectors.\n");
 					return false;
 				}
 			#endif
 
 		// 	rename r as b (for convenience)
-			vector_type& r = bIn;
+			vector_type& r = b;
 
 		// 	Build defect:  r := b - J(u)*x
-			if(!m_A->apply_sub(r, xOut))
-				{UG_LOG("ERROR in 'CGSolver::apply': "
-						"Unable to build defect. Aborting.\n");return false;}
+			if(!m_A->apply_sub(r, x))
+			{
+				UG_LOG("ERROR in 'CG::apply_return_defect': "
+						"Unable to build defect. Aborting.\n");
+				return false;
+			}
 
 		// 	create help vector (h will be consistent r)
 		//	todo: 	It would be sufficient to copy only the pattern and
 		//			without initializing, but in parallel we have to copy communicators
 			vector_type t; t.create(r.size()); t = r;
-			vector_type z; z.create(xOut.size()); z = xOut;
-			vector_type p; p.create(xOut.size()); p = xOut;
+			vector_type z; z.create(x.size()); z = x;
+			vector_type p; p.create(x.size()); p = x;
 
 		// 	Preconditioning
-			if(m_pPrecond != NULL)
+			if(m_pPrecond)
 			{
 				// apply z = M^-1 * s
 				if(!m_pPrecond->apply(z, r))
-					{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
+				{
+					UG_LOG("ERROR in 'CG::apply_return_defect': "
+							"Cannot apply preconditioner. Aborting.\n");
+					return false;
+				}
 			}
 			else z = r;
 
 
+		// 	make z consistent
 			#ifdef UG_PARALLEL
-			// make z consistent
 			if(!z.change_storage_type(PST_CONSISTENT))
-				{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
+			{
+				UG_LOG("ERROR in 'CG::apply_return_defect': "
+						"Cannot convert z to consistent vector.\n");
+				return false;
+			}
 			#endif
 
+		//	compute start defect
 			prepare_conv_check();
 			m_pConvCheck->start(r);
 
 			number rho, rho_new, beta, alpha, lambda;
 			rho = rho_new = beta = alpha = lambda = 0.0;
 
-			// start search direction
+		// 	start search direction
 			p = z;
 
-			// start rho
+		// 	start rho
 			rho = VecProd(z, r);
 
 		// 	Iteration loop
@@ -149,15 +178,18 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			{
 			// 	Build t = A*p (t is additive afterwards)
 				if(!m_A->apply(t, p))
-					{UG_LOG("ERROR in 'CGSolver::apply': Unable "
-								"to build t = A*p. Aborting.\n"); return false;}
+				{
+					UG_LOG("ERROR in 'CG::apply_return_defect': Unable "
+								"to build t = A*p. Aborting.\n");
+					return false;
+				}
 
 			// 	Compute alpha
 				lambda = VecProd(t, p);
 				alpha = rho/lambda;
 
-			// 	Update xOut := xOut + alpha*p
-				VecScaleAdd(xOut, 1.0, xOut, alpha, p);
+			// 	Update x := x + alpha*p
+				VecScaleAdd(x, 1.0, x, alpha, p);
 
 			// 	Update r := r - alpha*t
 				VecScaleAdd(r, 1.0, r, -alpha, t);
@@ -166,19 +198,26 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				m_pConvCheck->update(r);
 
 			// 	Preconditioning
-				if(m_pPrecond != NULL)
+				if(m_pPrecond)
 				{
 				// 	apply z = M^-1 * r
 					if(!m_pPrecond->apply(z, r))
-						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
+					{
+						UG_LOG("ERROR in 'CG::apply_return_defect': "
+								"Cannot apply preconditioner. Aborting.\n");
+						return false;
+					}
 				}
 				else z = r;
-
 
 				#ifdef UG_PARALLEL
 			// 	make z consistent
 				if(!z.change_storage_type(PST_CONSISTENT))
-					{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
+				{
+					UG_LOG("ERROR in 'CG::apply_return_defect': "
+							"Cannot convert z to consistent vector.\n");
+					return false;
+				}
 				#endif
 
 			// 	new rho
@@ -194,38 +233,40 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				rho = rho_new;
 			}
 
+		//	post output
 			return m_pConvCheck->post();
 		}
 
-		virtual bool apply(vector_type& cNLOut, const vector_type& dNLIn)
+	///	solves J(u)*x = b
+		virtual bool apply(vector_type& x, const vector_type& b)
 		{
 		//	copy defect
-			vector_type d; d.create(dNLIn.size());
-			d = dNLIn;
+			vector_type bTmp; bTmp.create(b.size());
+			bTmp = b;
 
 		//	solve on copy of defect
-			return apply_return_defect(cNLOut, d);
+			return apply_return_defect(x, bTmp);
 		}
 
-		// destructor
-		virtual ~CGSolver() {};
+	/// destructor
+		virtual ~CG() {};
 
 	protected:
+	///	adjust output of convergence check
 		void prepare_conv_check()
 		{
+		//	set iteration symbol an name
 			m_pConvCheck->set_name(name());
 			m_pConvCheck->set_symbol('%');
 			m_pConvCheck->set_name(name());
-			if(m_pPrecond != NULL)
-			{
-				std::stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
-			else
-			{
-				m_pConvCheck->set_info(" (No Preconditioner) ");
-			}
+
+		//	set preconditioner string
+			std::stringstream ss;
+			if(m_pPrecond) ss<<" (Precond: "<<m_pPrecond->name()<<")";
+			else ss << " (No Preconditioner) ";
+			m_pConvCheck->set_info(ss.str());
 		}
+
 	protected:
 		number VecProd(vector_type& a, vector_type& b)
 		{
@@ -233,19 +274,16 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		}
 
 	protected:
-		// Operator that is inverted by this Inverse Operator
+	/// Operator that is inverted by this Inverse Operator
 		ILinearOperator<vector_type,vector_type>* m_A;
 
-		// Iterator used in the iterative scheme to compute the correction and update the defect
+	///	Preconditioner
 		ILinearIterator<vector_type,vector_type>* m_pPrecond;
 
-		// Convergence Check
+	/// Convergence Check
 		IConvergenceCheck* m_pConvCheck;
-
-		// current solution
-		vector_type* m_pCurrentU;
 };
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__ */
+#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_SOLVER__CG__ */
