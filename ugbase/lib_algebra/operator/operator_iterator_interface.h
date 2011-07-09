@@ -9,6 +9,8 @@
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_ITERATOR_INTERFACE__
 
 #include "operator_interface.h"
+#include "debug_writer.h"
+
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -206,7 +208,12 @@ class IPreconditioner :
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_pOperator(NULL), m_bInit(false)
+			m_pOperator(NULL), m_bInit(false), m_pDebugWriter(NULL)
+		{};
+
+	///	constructor setting debug writer
+		IPreconditioner(IDebugWriter<algebra_type>* pDebugWriter) :
+			m_pOperator(NULL), m_bInit(false), m_pDebugWriter(pDebugWriter)
 		{};
 
 	protected:
@@ -438,12 +445,45 @@ class IPreconditioner :
 	/// virtual destructor
 		virtual ~IPreconditioner() {};
 
+	///	set debug writer
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
+		}
+
+	///	returns the debug writer
+		IDebugWriter<algebra_type>* debug_writer() {return m_pDebugWriter;}
+
+	protected:
+	///	writing debug output for a vector (if debug writer set)
+		bool write_debug_vector(const vector_type& vec, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(!m_pDebugWriter) return true;
+
+		//	write
+			return m_pDebugWriter->write_vector(vec, filename);
+		}
+
+	///	write debug output for a matrix (if debug writer set)
+		bool write_debug_matrix(const matrix_type& mat, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(!m_pDebugWriter) return true;
+
+		//	write
+			return m_pDebugWriter->write_matrix(mat, filename);
+		}
+
 	protected:
 	///	underlying matrix based operator
 		matrix_operator_type* m_pOperator;
 
 	/// init flag indicating if init has been called
 		bool m_bInit;
+
+	///	Debug Writer
+		IDebugWriter<algebra_type>* m_pDebugWriter;
 };
 
 } // end namespace ug

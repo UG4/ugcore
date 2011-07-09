@@ -54,187 +54,207 @@ struct cRegisterAlgebraType
 		typedef typename algebra_type::vector_type vector_type;
 		typedef typename algebra_type::matrix_type matrix_type;
 
-
-		//	Vector
+	//	Vector
 		{
-				reg.add_class_<vector_type>("Vector", grp.c_str())
-				.add_constructor()
-				.add_method("set|hide=true", (bool (vector_type::*)(number))&vector_type::set,
-										"Success", "Number")
-				.add_method("size|hide=true", (size_t (vector_type::*)())&vector_type::size,
-										"Size", "")
-				.add_method("set_random|hide=true", (bool (vector_type::*)(number, number))&vector_type::set_random,
-										"Success", "Number")
-				.add_method("print|hide=true", &vector_type::p);
+			reg.add_class_<vector_type>("Vector", grp.c_str())
+			.add_constructor()
+			.add_method("set|hide=true", (bool (vector_type::*)(number))&vector_type::set,
+									"Success", "Number")
+			.add_method("size|hide=true", (size_t (vector_type::*)())&vector_type::size,
+									"Size", "")
+			.add_method("set_random|hide=true", (bool (vector_type::*)(number, number))&vector_type::set_random,
+									"Success", "Number")
+			.add_method("print|hide=true", &vector_type::p);
 
-				reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
-				reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
-						&VecScaleAdd2<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
-						"dest#alpha1#vec1#alpha2#vec2");
-				reg.add_function("VecScaleAdd3", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))*/
-						&VecScaleAdd3<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
-						"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");
+			reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
+			reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
+					&VecScaleAdd2<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
+					"dest#alpha1#vec1#alpha2#vec2");
+			reg.add_function("VecScaleAdd3", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))*/
+					&VecScaleAdd3<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
+					"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");
 		}
 
-		//	Matrix
+	//	Matrix
 		{
 			reg.add_class_<matrix_type>("Matrix", grp.c_str())
 				.add_constructor()
 				.add_method("print|hide=true", &matrix_type::p);
 		}
 
-
-		//	ApplyLinearSolver
+	//	ApplyLinearSolver
 		{
 			reg.add_function( "ApplyLinearSolver",
 							  &ApplyLinearSolver<vector_type>, grp.c_str());
 		}
 
+	// Debug Writer (abstract base class)
+		{
+			typedef IDebugWriter<algebra_type> T;
+			reg.add_class_<T>("IDebugWriter", grp.c_str());
+		}
 
-		// Debug Writer (abstract base class)
-			{
-				typedef IDebugWriter<algebra_type> T;
-				reg.add_class_<T>("IDebugWriter", grp.c_str());
-			}
-
-		// IPositionProvider (abstract base class)
+	// IPositionProvider (abstract base class)
 		{
 			reg.add_class_<IPositionProvider<1> >("IPositionProvider1d", grp.c_str());
 			reg.add_class_<IPositionProvider<2> >("IPositionProvider2d", grp.c_str());
 			reg.add_class_<IPositionProvider<3> >("IPositionProvider3d", grp.c_str());
 		}
 
-		// IVectorWriter (abstract base class)
+	// IVectorWriter (abstract base class)
 		{
 			typedef IVectorWriter<vector_type> T;
 			reg.add_class_<T>("IVectorWriter", grp.c_str())
 					.add_method("update", &T::update, "", "v", "updates the vector v");
 		}
 
+	/////////////////////////
+	//	Base Classes
+	/////////////////////////
 
-		// Base Classes
+	//	ILinearOperator
 		{
-			{
-			//	ILinearOperator
-				typedef ILinearOperator<vector_type, vector_type> T;
-				reg.add_class_<T>("ILinearOperator", grp.c_str())
-					.add_method("init", (bool(T::*)())&T::init);
-			}
-
-			{
-			// 	MatrixOperator
-				typedef ILinearOperator<vector_type, vector_type> TBase;
-				typedef MatrixOperator<vector_type, vector_type, matrix_type> T;
-				reg.add_class_<T, TBase, matrix_type>("MatrixOperator", grp.c_str())
-					.add_constructor();
-			}
-
-			{
-			//	ILinearIterator
-				typedef ILinearIterator<vector_type, vector_type> T;
-				reg.add_class_<T>("ILinearIterator", grp.c_str());
-			}
-
-			{
-			//	IPreconditioner
-				typedef ILinearIterator<vector_type, vector_type>  TBase;
-				typedef IPreconditioner<algebra_type> T;
-				reg.add_class_<T, TBase>("IPreconditioner", grp.c_str());
-			}
-
-			{
-			//	ILinearOperatorInverse
-				typedef ILinearOperatorInverse<vector_type, vector_type> T;
-				reg.add_class_<T>("ILinearOperatorInverse", grp.c_str())
-					.add_method("init", (bool(T::*)(ILinearOperator<vector_type,vector_type>&))&T::init)
-					.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",
-							"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
-					.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant");
-			}
-
-			{
-			//	IMatrixOperatorInverse
-				typedef ILinearOperatorInverse<vector_type, vector_type>  TBase;
-				typedef IMatrixOperatorInverse<vector_type, vector_type, matrix_type> T;
-				reg.add_class_<T, TBase>("IMatrixOperatorInverse", grp.c_str());
-			}
-
-			{
-			//	IOperator
-				typedef IOperator<vector_type, vector_type> T;
-				reg.add_class_<T>("IOperator", grp.c_str());
-			}
-
-			{
-			//	IOperatorInverse
-				typedef IOperatorInverse<vector_type, vector_type> T;
-				reg.add_class_<T>("IOperatorInverse", grp.c_str());
-			}
-
-			{
-			//	IProlongationOperator
-				typedef IProlongationOperator<vector_type, vector_type> T;
-				reg.add_class_<T>("IProlongationOperator", grp.c_str());
-			}
-
-			{
-			//	IProjectionOperator
-				typedef IProjectionOperator<vector_type, vector_type> T;
-				reg.add_class_<T>("IProjectionOperator", grp.c_str());
-			}
+			typedef ILinearOperator<vector_type, vector_type> T;
+			reg.add_class_<T>("ILinearOperator", grp.c_str())
+				.add_method("init", (bool(T::*)())&T::init);
 		}
 
-		// Preconditioner
+	// 	MatrixOperator
+		{
+			typedef ILinearOperator<vector_type, vector_type> TBase;
+			typedef MatrixOperator<vector_type, vector_type, matrix_type> T;
+			reg.add_class_<T, TBase, matrix_type>("MatrixOperator", grp.c_str())
+				.add_constructor();
+		}
+
+	//	ILinearIterator
+		{
+			typedef ILinearIterator<vector_type, vector_type> T;
+			reg.add_class_<T>("ILinearIterator", grp.c_str());
+		}
+
+	//	IPreconditioner
+		{
+			typedef IPreconditioner<algebra_type> T;
+			typedef ILinearIterator<vector_type, vector_type>  TBase;
+			reg.add_class_<T, TBase>("IPreconditioner", grp.c_str())
+				.add_method("set_debug", &T::set_debug, "sets a debug writer", "d");
+		}
+
+	//	ILinearOperatorInverse
+		{
+			typedef ILinearOperatorInverse<vector_type, vector_type> T;
+			reg.add_class_<T>("ILinearOperatorInverse", grp.c_str())
+				.add_method("init", (bool(T::*)(ILinearOperator<vector_type,vector_type>&))&T::init)
+				.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",
+						"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
+				.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant");
+		}
+
+	//	IMatrixOperatorInverse
+		{
+			typedef ILinearOperatorInverse<vector_type, vector_type>  TBase;
+			typedef IMatrixOperatorInverse<vector_type, vector_type, matrix_type> T;
+			reg.add_class_<T, TBase>("IMatrixOperatorInverse", grp.c_str());
+		}
+
+	//	IOperator
+		{
+			typedef IOperator<vector_type, vector_type> T;
+			reg.add_class_<T>("IOperator", grp.c_str());
+		}
+
+	//	IOperatorInverse
+		{
+			typedef IOperatorInverse<vector_type, vector_type> T;
+			reg.add_class_<T>("IOperatorInverse", grp.c_str());
+		}
+
+	//	IProlongationOperator
+		{
+			typedef IProlongationOperator<vector_type, vector_type> T;
+			reg.add_class_<T>("IProlongationOperator", grp.c_str());
+		}
+
+	//	IProjectionOperator
+		{
+			typedef IProjectionOperator<vector_type, vector_type> T;
+			reg.add_class_<T>("IProjectionOperator", grp.c_str());
+		}
+
+	//////////////////////
+	// Preconditioner
+	//////////////////////
 		{
 		//	get group string
 			std::stringstream grpSS2; grpSS2 << grp << "/Preconditioner";
 			std::string grp2 = grpSS2.str();
 
 		//	Jacobi
-			reg.add_class_<	JacobiPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("Jacobi", grp2.c_str(), "Jacobi Preconditioner")
-				.add_constructor()
-				.add_method("set_damp", &JacobiPreconditioner<algebra_type>::set_damp, "", "damp");
+			{
+				typedef JacobiPreconditioner<algebra_type> T;
+				typedef IPreconditioner<algebra_type> TBase;
+				reg.add_class_<T,TBase>("Jacobi", grp2.c_str(), "Jacobi Preconditioner")
+					.add_constructor()
+					.add_method("set_damp", &T::set_damp, "", "damp");
+			}
 
 		//	GaussSeidel
-			reg.add_class_<	GSPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("GaussSeidel", grp2.c_str(), "Gauss-Seidel Preconditioner")
+			{
+				typedef GSPreconditioner<algebra_type> T;
+				typedef IPreconditioner<algebra_type> TBase;
+				reg.add_class_<T,TBase>("GaussSeidel", grp2.c_str(), "Gauss-Seidel Preconditioner")
 				.add_constructor();
+			}
 
 		//	Symmetric GaussSeidel
-			reg.add_class_<	SGSPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("SymmetricGaussSeidel", grp2.c_str())
-				.add_constructor();
+			{
+				typedef SGSPreconditioner<algebra_type> T;
+				typedef IPreconditioner<algebra_type> TBase;
+				reg.add_class_<T,TBase>("SymmetricGaussSeidel", grp2.c_str())
+					.add_constructor();
+			}
 
 		//	Backward GaussSeidel
-			reg.add_class_<	BGSPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("BackwardGaussSeidel", grp2.c_str())
-				.add_constructor();
+			{
+				typedef BGSPreconditioner<algebra_type> T;
+				typedef IPreconditioner<algebra_type> TBase;
+				reg.add_class_<T,TBase>("BackwardGaussSeidel", grp2.c_str())
+					.add_constructor();
+			}
 
 		//	ILU
-			reg.add_class_<	ILUPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("ILU", grp2.c_str(), "Incomplete LU Decomposition")
-				.add_constructor()
-				.add_method("set_debug", &ILUPreconditioner<algebra_type>::set_debug, "", "d")
-			    .add_method("set_beta", &ILUPreconditioner<algebra_type>::set_beta, "", "beta");
-
+			{
+				typedef ILUPreconditioner<algebra_type> T;
+				typedef IPreconditioner<algebra_type> TBase;
+				reg.add_class_<T,TBase>("ILU", grp2.c_str(), "Incomplete LU Decomposition")
+					.add_constructor()
+					.add_method("set_beta", &T::set_beta, "", "beta");
+			}
 
 		//	ILU Threshold
-			reg.add_class_<	ILUTPreconditioner<algebra_type>,
-							IPreconditioner<algebra_type> >("ILUT", grp2.c_str(), "Incomplete LU Decomposition with threshold")
-				.add_constructor()
-				.add_method("set_threshold", &ILUTPreconditioner<algebra_type>::set_threshold,
-							"", "threshold", "sets threshold of incomplete LU factorisation");
-
+			{
+				typedef ILUTPreconditioner<algebra_type> T;
+				typedef IPreconditioner<algebra_type> TBase;
+				reg.add_class_<T,TBase>("ILUT", grp2.c_str(), "Incomplete LU Decomposition with threshold")
+					.add_constructor()
+					.add_method("set_threshold", &T::set_threshold,
+								"", "threshold", "sets threshold of incomplete LU factorisation");
+			}
 		}
 
+		//////////////////////
+		//	Linear Solver
+		//////////////////////
+
+	//	LinearIteratorProduct
 		{
-			//	LinearIteratorProduct
-				reg.add_class_<	LinearIteratorProduct<vector_type, vector_type>,
-						ILinearIterator<vector_type, vector_type> >("LinearIteratorProduct", grp.c_str(),
-								"Linear Iterator consisting of several LinearIterations")
-						.add_constructor()
-						.add_method("add_iteration", &LinearIteratorProduct<vector_type, vector_type>::add_iterator, "Add an iterator");
+			typedef LinearIteratorProduct<vector_type, vector_type> T;
+			typedef ILinearIterator<vector_type, vector_type> TBase;
+			reg.add_class_<T,TBase>("LinearIteratorProduct", grp.c_str(),
+							"Linear Iterator consisting of several LinearIterations")
+					.add_constructor()
+					.add_method("add_iteration", &T::add_iterator, "Add an iterator");
 		}
 	/*
 		{
@@ -259,45 +279,58 @@ struct cRegisterAlgebraType
 	#endif
 		}
 	*/
-		// todo: Solvers should be independent of type and placed in general section
+
+	//	Solver
 		{
 		//	get group string
 			std::stringstream grpSS3; grpSS3 << grp << "/Solver";
 			std::string grp3 = grpSS3.str();
 
 		// 	LinearSolver
-			reg.add_class_<	LinearSolver<algebra_type>,
-							ILinearOperatorInverse<vector_type, vector_type> >("LinearSolver", grp3.c_str())
-				.add_constructor()
-				.add_method("set_preconditioner|interactive=false", &LinearSolver<algebra_type>::set_preconditioner,
-							"", "Preconditioner")
-				.add_method("set_convergence_check|interactive=false", &LinearSolver<algebra_type>::set_convergence_check,
-							"", "Check");
+			{
+				typedef LinearSolver<algebra_type> T;
+				typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+				reg.add_class_<T,TBase>("LinearSolver", grp3.c_str())
+					.add_constructor()
+					.add_method("set_preconditioner|interactive=false", &T::set_preconditioner,
+								"", "Preconditioner")
+					.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+								"", "Check");
+			}
 
 		// 	CG Solver
-			reg.add_class_<	CG<algebra_type>,
-							ILinearOperatorInverse<vector_type, vector_type> >("CG", grp3.c_str(), "Conjugate Gradient")
-				.add_constructor()
-				.add_method("set_preconditioner|interactive=false", &CG<algebra_type>::set_preconditioner,
-							"", "Preconditioner")
-				.add_method("set_convergence_check|interactive=false", &CG<algebra_type>::set_convergence_check,
-							"", "Check");
+			{
+				typedef CG<algebra_type> T;
+				typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+				reg.add_class_<T,TBase>("CG", grp3.c_str(), "Conjugate Gradient")
+					.add_constructor()
+					.add_method("set_preconditioner|interactive=false", &T::set_preconditioner,
+								"", "Preconditioner")
+					.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+								"", "Check");
+			}
 
 		// 	BiCGStab Solver
-			reg.add_class_<	BiCGStab<algebra_type>,
-							ILinearOperatorInverse<vector_type, vector_type> >("BiCGStab", grp3.c_str())
-				.add_constructor()
-				.add_method("set_preconditioner|interactive=false", &BiCGStab<algebra_type>::set_preconditioner,
-							"", "Preconditioner")
-				.add_method("set_convergence_check|interactive=false", &BiCGStab<algebra_type>::set_convergence_check,
-							"", "Check");
+			{
+				typedef BiCGStab<algebra_type> T;
+				typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+				reg.add_class_<T,TBase>("BiCGStab", grp3.c_str())
+					.add_constructor()
+					.add_method("set_preconditioner|interactive=false", &T::set_preconditioner,
+								"", "Preconditioner")
+					.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+								"", "Check");
+			}
 
 		// 	LUSolver
-			reg.add_class_<	LUSolver<algebra_type>,
-							ILinearOperatorInverse<vector_type, vector_type> >("LU", grp3.c_str(), "LU-Decomposition exact solver")
-				.add_constructor()
-				.add_method("set_convergence_check|interactive=false", &LUSolver<algebra_type>::set_convergence_check,
-							"", "Check");
+			{
+				typedef LUSolver<algebra_type> T;
+				typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+				reg.add_class_<T,TBase>("LU", grp3.c_str(), "LU-Decomposition exact solver")
+					.add_constructor()
+					.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+								"", "Check");
+			}
 
 		// 	DirichletDirichletSolver
 	#ifdef UG_PARALLEL

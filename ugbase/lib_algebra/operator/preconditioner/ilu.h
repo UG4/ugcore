@@ -246,22 +246,22 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILUPreconditioner(double beta=0.0) : m_pDebugWriter(NULL), m_beta(beta) {};
+		ILUPreconditioner(double beta=0.0) : m_beta(beta) {};
+
+	//	Constructor setting debug writer
+		ILUPreconditioner(IDebugWriter<algebra_type>* pDebugWriter,
+		                  double beta=0.0) :
+		IPreconditioner<algebra_type>(pDebugWriter), m_beta(beta)
+		{};
 
 	///	Clone
 		ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new ILUPreconditioner<algebra_type>(m_beta);
+			return new ILUPreconditioner<algebra_type>(this->debug_writer(), m_beta);
 		}
 
 	///	Destructor
 		virtual ~ILUPreconditioner(){}
-
-		//	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
 
 	///	set factor for ILU_{\beta}
 		void set_beta(double beta) {m_beta = beta;}
@@ -345,32 +345,11 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		virtual bool postprocess() {return true;}
 
 	protected:
-		bool write_debug_vector(const vector_type& vec, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return true;
-
-		//	write
-			return m_pDebugWriter->write_vector(vec, filename);
-		}
-		bool write_debug_matrix(const matrix_type& mat, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return true;
-
-		//	write
-			return m_pDebugWriter->write_matrix(mat, filename);
-		}
-
-	protected:
 	///	storage for factorization
 		matrix_type m_ILU;
 
 	///	help vector
 		vector_type m_h;
-		
-	///	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
 		
 	/// Factor for ILU-beta
 		number m_beta;
