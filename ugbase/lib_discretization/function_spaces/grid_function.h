@@ -119,10 +119,12 @@ class IGridFunction
 		int dim(size_t fct) const {check(); return m_pDD->dim(fct);}
 
 	/// returns true if the discrete function nr_fct is defined on subset s
-		bool is_def_in_subset(size_t fct, int si) const {check(); return m_pDD->is_def_in_subset(fct, si);}
+		bool is_def_in_subset(size_t fct, int si) const
+			{check(); return m_pDD->is_def_in_subset(fct, si);}
 
 	/// returns true if the discrete function nr_fct is defined everywhere
-		bool is_def_everywhere(size_t fct) const {check(); return m_pDD->is_def_everywhere(fct);}
+		bool is_def_everywhere(size_t fct) const
+			{check(); return m_pDD->is_def_everywhere(fct);}
 
 	/// number of subsets
 		int num_subsets() const {check(); return m_pDD->num_subsets();}
@@ -148,49 +150,9 @@ class IGridFunction
 		typename geometry_traits<TElem>::const_iterator end(int si) const
 			{check(); return const_cast<const dof_distribution_type*>(m_pDD)->template end<TElem>(si);}
 
-		////////// Local Algebra ////////////
-
-	/// number of algebra indices on an element
-		template<typename TElem>
-		size_t num_indices(int si, const FunctionGroup& funcGroup) const
-			{check(); return m_pDD->num_indices<TElem>(si, funcGroup);}
-
-	/// number of algebra indices on an element
-		template<typename TElem>
-		size_t num_inner_indices(int si, const FunctionGroup& funcGroup) const
-			{check(); return m_pDD->num_inner_indices<TElem>(si, funcGroup);}
-
-/*	/// fill local informations in LocalIndex
-		template<typename TElem>
-		bool prepare_indices(int si, LocalIndices& ind, bool useHanging = false) const
-			{check(); return m_pDD->prepare_indices<TElem>(si, ind, useHanging);}
-
-	/// fill local informations in LocalIndex
-		template<typename TElem>
-		bool prepare_inner_indices(int si, LocalIndices& ind) const
-			{check(); return m_pDD->prepare_inner_indices<TElem>(si, ind);}
-
-	/// fill the global algebra indices in LocalIndex
-		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind, bool useHanging = false) const
-			{check(); m_pDD->update_indices(elem, ind, useHanging);}
-
-	/// fill the global algebra indices in LocalIndex
-		template<typename TElem>
-		void update_inner_indices(TElem* elem, LocalIndices& ind) const
-			{check(); m_pDD->update_inner_indices(elem, ind);}
-*/
-		////////// Multi indices ////////////
-
-	/// number of multi indices on an finite element in canonical order
-		template <typename TElem>
-		size_t num_multi_indices(TElem* elem, size_t fct) const
-			{check(); return m_pDD->num_multi_indices(elem, fct);}
-
-	/// number of multi indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		size_t num_inner_multi_indices(TGeomObj* elem, size_t fct) const
-			{check(); return m_pDD->num_inner_multi_indices(elem, fct);}
+	/////////////////////////////
+	// DoF acccess
+	/////////////////////////////
 
 	/// get multi indices on an finite element in canonical order
 		template <typename TElem>
@@ -202,27 +164,15 @@ class IGridFunction
 		size_t inner_multi_indices(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
 			{check(); return m_pDD->inner_multi_indices(elem, fct, ind);}
 
-		////////// Algebra indices ////////////
-
-	/// number of algebra indices on an geometric object in canonical order
+	/// get algebra indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		size_t num_algebra_indices(TGeomObj* elem, size_t fct) const
-			{check(); return m_pDD->num_algebra_indices(elem, fct);}
-
-	/// number of algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		size_t num_inner_algebra_indices(TGeomObj* elem, size_t fct) const
-			{check(); return m_pDD->num_inner_algebra_indices(elem, fct);}
+		size_t algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{check(); return m_pDD->algebra_indices(elem, ind);}
 
 	/// get algebra indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		void algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
-			{check(); m_pDD->algebra_indices(elem, ind);}
-
-	/// get algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		void inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
-			{check(); m_pDD->inner_algebra_indices(elem, ind);}
+		size_t inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{check(); return m_pDD->inner_algebra_indices(elem, ind);}
 
 	protected:
 	//	check that object can be used

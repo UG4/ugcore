@@ -379,14 +379,6 @@ class GroupedP1ConformDoFDistribution
 		// LocalIndex update
 		///////////////////////////////////////
 
-	/// \copydoc IDoFDistribution::num_indices()
-		template<typename TElem>
-		size_t num_indices(int si, const FunctionGroup& fctGrp) const;
-
-	/// \copydoc IDoFDistribution::num_inner_indices()
-		template<typename TElem>
-		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const;
-
 	/// \copydoc IDoFDistribution::indices()
 		template<typename TElem>
 		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const;
@@ -398,22 +390,22 @@ class GroupedP1ConformDoFDistribution
 	/// \copydoc IDoFDistribution::multi_indices()
 		template<typename TElem>
 		size_t multi_indices(TElem* elem, size_t fct,
-		                         multi_index_vector_type& ind) const;
+		                         	 	 	multi_index_vector_type& ind) const;
 
 	/// \copydoc IDoFDistribution::inner_multi_indices()
 		template<typename TElem>
 		size_t inner_multi_indices(TElem* elem, size_t fct,
-		                               multi_index_vector_type& ind) const;
+		                               	   	multi_index_vector_type& ind) const;
 
 	/// \copydoc IDoFDistribution::algebra_indices()
 		template<typename TElem>
 		size_t algebra_indices(TElem* elem,
-		                         algebra_index_vector_type& ind) const;
+		                       	   	   	  algebra_index_vector_type& ind) const;
 
 	/// \copydoc IDoFDistribution::inner_algebra_indices()
 		template<typename TElem>
 		size_t inner_algebra_indices(TElem* elem,
-		                               algebra_index_vector_type& ind) const;
+		                               	  algebra_index_vector_type& ind) const;
 
 		///////////////////////////
 		// Creation
