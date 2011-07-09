@@ -132,7 +132,7 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		// 	create help vector (h will be consistent r)
 		//	todo: 	It would be sufficient to copy only the pattern and
 		//			without initializing, but in parallel we have to copy communicators
-			vector_type t; t.create(r.size()); t = r;
+			vector_type q; q.create(r.size()); q = r;
 			vector_type z; z.create(x.size()); z = x;
 			vector_type p; p.create(x.size()); p = x;
 
@@ -164,38 +164,46 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			prepare_conv_check();
 			m_pConvCheck->start(r);
 
-			number rho, rho_new, beta, alpha, lambda;
-			rho = rho_new = beta = alpha = lambda = 0.0;
-
 		// 	start search direction
 			p = z;
 
 		// 	start rho
-			rho = VecProd(z, r);
+			number rhoOld = VecProd(z, r), rho;
 
 		// 	Iteration loop
 			while(!m_pConvCheck->iteration_ended())
 			{
-			// 	Build t = A*p (t is additive afterwards)
-				if(!m_A->apply(t, p))
+			// 	Build q = A*p (q is additive afterwards)
+				if(!m_A->apply(q, p))
 				{
 					UG_LOG("ERROR in 'CG::apply_return_defect': Unable "
 								"to build t = A*p. Aborting.\n");
 					return false;
 				}
 
-			// 	Compute alpha
-				lambda = VecProd(t, p);
-				alpha = rho/lambda;
+			// 	lambda = (q,p)
+				const number lambda = VecProd(q, p);
+
+			//	check lambda
+				if(lambda == 0.0)
+				{
+					UG_LOG("ERROR in 'CG::apply_return_defect': lambda=" <<
+					       lambda<< " is not admitted. Aborting solver.\n");
+					return false;
+				}
+
+			//	alpha = rho / (q,p)
+				const number alpha = rhoOld/lambda;
 
 			// 	Update x := x + alpha*p
 				VecScaleAdd(x, 1.0, x, alpha, p);
 
 			// 	Update r := r - alpha*t
-				VecScaleAdd(r, 1.0, r, -alpha, t);
+				VecScaleAdd(r, 1.0, r, -alpha, q);
 
 			// 	Check convergence
 				m_pConvCheck->update(r);
+				if(m_pConvCheck->iteration_ended()) break;
 
 			// 	Preconditioning
 				if(m_pPrecond)
@@ -220,17 +228,17 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				}
 				#endif
 
-			// 	new rho
-				rho_new = VecProd(z, r);
+			// 	new rho = (z,r)
+				rho = VecProd(z, r);
 
-			// 	new beta
-				beta = rho_new/rho;
+			// 	new beta = rho / rhoOld
+				const number beta = rho/rhoOld;
 
-			// 	new direction p:= beta*p + z
+			// 	new direction p := beta * p + z
 				VecScaleAdd(p, beta, p, 1.0, z);
 
-			// 	update rho
-				rho = rho_new;
+			// 	remember old rho
+				rhoOld = rho;
 			}
 
 		//	post output
