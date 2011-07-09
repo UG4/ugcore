@@ -18,8 +18,6 @@ namespace ug{
 // P1ConformDoFDistribution
 ///////////////////////////////////////
 
-///////////// LocalIndex access /////////////////
-
 template<typename TElem>
 bool
 P1ConformDoFDistribution::
@@ -31,30 +29,6 @@ has_dofs_on() const
 //	only in case of a Vertex, we have a DoF
 	if(type == VERTEX) return true;
 	else return false;
-}
-
-template<typename TElem>
-size_t
-P1ConformDoFDistribution::
-num_indices(int si, const FunctionGroup& fctGrp) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
-
-//	compile-time number of DoFs
-	static const size_t numCo = ref_elem_type::num_corners;
-
-//	count number of function on this subset
-	size_t numFct = 0;
-	for(size_t fct = 0; fct < fctGrp.num_fct(); ++fct)
-	{
-		if(is_def_in_subset(fctGrp[fct], si))
-			numFct++;
-	}
-
-//	return number of algebraic indices
-	return numFct * numCo;
 }
 
 template<typename TElem>
@@ -190,37 +164,6 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 	return;
 }
 
-///////////// Multi index access /////////////////
-
-template<typename TElem>
-size_t
-P1ConformDoFDistribution::
-num_multi_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	number of multi indices for each function is the number of corners
-	return reference_element_type::num_corners;
-}
-
-template<typename TElem>
-size_t
-P1ConformDoFDistribution::
-num_inner_multi_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	if elem is a vertex, we have a DoF else no DoF
-	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
-		return 1;
-	else
-		return 0;
-}
-
 template<typename TElem>
 size_t
 P1ConformDoFDistribution::
@@ -294,39 +237,8 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 	}
 }
 
-///////////// Algebra index access /////////////////
-
 template<typename TElem>
 size_t
-P1ConformDoFDistribution::
-num_algebra_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	number of multi indices for each function is the number of corners
-	return reference_element_type::num_corners;
-}
-
-template<typename TElem>
-size_t
-P1ConformDoFDistribution::
-num_inner_algebra_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	if elem is a vertex, we have a DoF else no DoF
-	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
-		return 1;
-	else
-		return 0;
-}
-
-template<typename TElem>
-void
 P1ConformDoFDistribution::
 get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
@@ -359,10 +271,12 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			ind.push_back(index);
 		}
 	}
+
+	return ind.size();
 }
 
 template<typename TElem>
-void
+size_t
 P1ConformDoFDistribution::
 get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
@@ -398,6 +312,8 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			ind.push_back(index);
 		}
 	}
+
+	return ind.size();
 }
 
 
@@ -418,27 +334,6 @@ has_dofs_on() const
 //	only in case of a Vertex, we have a DoF
 	if(type == VERTEX) return true;
 	else return false;
-}
-
-template<typename TElem>
-size_t
-GroupedP1ConformDoFDistribution::
-num_indices(int si, const FunctionGroup& fctGrp) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
-
-//	compile-time number of DoFs
-	static const size_t numCo = ref_elem_type::num_corners;
-
-	for(size_t fct = 0; fct < fctGrp.num_fct(); ++fct)
-	{
-		if(is_def_in_subset(fctGrp[fct], si))
-			return numCo;
-	}
-
-	return 0;
 }
 
 template<typename TElem>
@@ -577,37 +472,6 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 	return;
 }
 
-///////////// Multi Index access /////////////////
-
-template<typename TElem>
-size_t
-GroupedP1ConformDoFDistribution::
-num_multi_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	number of multi indices for each function is the number of corners
-	return reference_element_type::num_corners;
-}
-
-template<typename TElem>
-size_t
-GroupedP1ConformDoFDistribution::
-num_inner_multi_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	if elem is a vertex, we have a DoF else no DoF
-	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
-		return 1;
-	else
-		return 0;
-}
-
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
@@ -681,42 +545,8 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 	}
 }
 
-
-///////////// Algebra Index access /////////////////
-
-/// number of algebra indices on element for a function (Element + Closure of Element)
 template<typename TElem>
 size_t
-GroupedP1ConformDoFDistribution::
-num_algebra_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	number of multi indices for each function is the number of corners
-	return reference_element_type::num_corners;
-}
-
-/// number of algebras indices on element for a function (only inner part of Element)
-template<typename TElem>
-size_t
-GroupedP1ConformDoFDistribution::
-num_inner_algebra_indices(TElem* elem, size_t fct) const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				reference_element_type;
-
-//	if elem is a vertex, we have a DoF else no DoF
-	if(reference_element_type::REFERENCE_OBJECT_ID == ROID_VERTEX)
-		return 1;
-	else
-		return 0;
-}
-
-template<typename TElem>
-void
 GroupedP1ConformDoFDistribution::
 get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
@@ -729,13 +559,13 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 
 // 	if no functions, return
 	const int elem_si = m_pISubsetHandler->get_subset_index(elem);
-	if(num_fct(elem_si) == 0) return;
+	if(num_fct(elem_si) == 0) return 0;
 
 //	fill vector of algebraic indices
 	for(size_t i = 0; i < (size_t)ref_elem_type::num_corners; ++i)
 	{
 	//	get vertex
-		VertexBase* vrt = GetVertex(elem, i);;
+		VertexBase* vrt = GetVertex(elem, i);
 
 	//	get subset index
 		int si = m_pISubsetHandler->get_subset_index(vrt);
@@ -747,10 +577,12 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	//	write algebra index
 		ind.push_back(index);
 	}
+
+	return ind.size();
 }
 
 template<typename TElem>
-void
+size_t
 GroupedP1ConformDoFDistribution::
 get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
@@ -771,7 +603,7 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	if no functions given in this subset, nothing to do
-		if(num_fct(si) == 0) return;
+		if(num_fct(si) == 0) return 0;
 
 	//	get algebra index
 		const size_t index = alg_index(vrt, si);
@@ -779,6 +611,8 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	//	write algebra index
 		ind.push_back(index);
 	}
+
+	return ind.size();
 }
 
 

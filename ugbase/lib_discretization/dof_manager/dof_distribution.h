@@ -173,34 +173,14 @@ class IDoFDistribution
 		// LocalIndex update
 		///////////////////////////////////////
 
-	/// number of algebra indices (Element + Closure of Element)
-		template<typename TElem>
-		size_t num_indices(int si, const FunctionGroup& fctGrp) const
-			{return getImpl().num_indices<TElem>(si, fctGrp);}
-
-	/// number of algebra indices (only inner part of Element)
-		template<typename TElem>
-		size_t num_inner_indices(int si, const FunctionGroup& fctGrp) const
-			{return getImpl().num_inner_indices<TElem>(si, fctGrp);}
-
 	///	returns all indices of the element
 		template<typename TElem>
 		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
 			{getImpl().indices(elem, ind, bHang);}
 
 		///////////////////////////////////////
-		// Multi index access
+		// Algebra Index / Multi Index access
 		///////////////////////////////////////
-
-	/// number of multi indices (Element + Closure of Element)
-		template<typename TElem>
-		size_t num_multi_indices(TElem* elem, size_t fct) const
-			{return getImpl().num_multi_indices(elem, fct);}
-
-	/// number of multi indices (only inner part of Element)
-		template<typename TElem>
-		size_t num_inner_multi_indices(TElem* elem, size_t fct) const
-			{return getImpl().num_inner_multi_indices(elem, fct);}
 
 	/// get multi indices (Element + Closure of Element)
 		template<typename TElem>
@@ -214,31 +194,17 @@ class IDoFDistribution
 		                               multi_index_vector_type& ind) const
 			{return getImpl().get_inner_multi_indices(elem, fct, ind);}
 
-		///////////////////////////////////////
-		// Algebra index access
-		///////////////////////////////////////
-
-	/// number of algebra indices (Element + Closure of Element)
-		template<typename TElem>
-		size_t num_algebra_indices(TElem* elem, size_t fct) const
-			{return getImpl().num_algebra_indices(elem, fct);}
-
-	/// number of algebras indices (only inner part of Element)
-		template<typename TElem>
-		size_t num_inner_algebra_indices(TElem* elem, size_t fct) const
-			{return getImpl().num_inner_algebra_indices(elem, fct);}
-
 	/// get algebra indices (Element + Closure of Element)
 		template<typename TElem>
-		void get_algebra_indices(TElem* elem,
+		size_t get_algebra_indices(TElem* elem,
 		                         algebra_index_vector_type& ind) const
-			{getImpl().get_algebra_indices(elem, ind);}
+			{return getImpl().get_algebra_indices(elem, ind);}
 
 	/// get algebra indices (only inner part of Element)
 		template<typename TElem>
-		void get_inner_algebra_indices(TElem* elem,
+		size_t get_inner_algebra_indices(TElem* elem,
 		                               algebra_index_vector_type& ind) const
-			{getImpl().get_inner_algebra_indices(elem,ind);}
+			{return getImpl().get_inner_algebra_indices(elem,ind);}
 
 		///////////////////////////
 		// Creation
