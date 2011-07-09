@@ -19,6 +19,21 @@
 
 namespace ug{
 
+///	the BiCGStab method as a solver for linear operators
+/**
+ * This class implements the BiCGStab - method for the solution of linear
+ * operator problems like A*x = b, where the solution x = A^{-1} b is computed.
+ *
+ * For detailed description of the algorithm, please refer to:
+ *
+ * - Barrett, Berry, Chan, Demmel, Donatom Dongarra, Eijkhout, Pozo, Romine,
+ * 	 Van der Vorst, "Templates for the Solution of Linear Systems: Building
+ * 	 Blocks for Iterative Methods", p.24, Fig, 2.10
+ *
+ * - Saad, "Iterative Methods For Sparse Linear Systems", p246, Alg. 7.7
+ *
+ * \tparam 	TAlgebra		algebra type
+ */
 template <typename TAlgebra>
 class BiCGStab :
 	public ILinearOperatorInverse< 	typename TAlgebra::vector_type,
