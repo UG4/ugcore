@@ -38,8 +38,7 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			GSPreconditioner<algebra_type>* clone = new GSPreconditioner<algebra_type>();
-			return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+			return new GSPreconditioner<algebra_type>();
 		}
 
 	protected:
@@ -119,8 +118,7 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			BGSPreconditioner<algebra_type>* clone = new BGSPreconditioner<algebra_type>();
-			return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+			return new BGSPreconditioner<algebra_type>();
 		}
 
 	protected:
@@ -199,8 +197,7 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			SGSPreconditioner<algebra_type>* clone = new SGSPreconditioner<algebra_type>();
-			return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+			return new SGSPreconditioner<algebra_type>();
 		}
 
 	protected:

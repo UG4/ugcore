@@ -45,10 +45,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 	///	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			JacobiPreconditioner<TAlgebra>* clone
-								= new JacobiPreconditioner<TAlgebra>(m_damp);
-
-			return dynamic_cast<ILinearIterator<vector_type,vector_type>*>(clone);
+			return new JacobiPreconditioner<TAlgebra>(m_damp);
 		}
 
 	///	Destructor
@@ -106,6 +103,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 		{
 #ifdef UG_PARALLEL
 		// 	multiply defect with diagonal, c = damp * D^{-1} * d
+		//	note, that the damping is already included in the inverse diagonal
 			for(size_t i = 0; i < m_diagInv.size(); ++i)
 			{
 			// 	c[i] = m_diagInv[i] * d[i];
@@ -130,6 +128,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 				InverseMatMult(c[i], m_damp, mat(i,i), d[i]);
 			}
 #endif
+		//	done
 			return true;
 		}
 
