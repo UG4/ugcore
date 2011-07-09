@@ -1006,7 +1006,7 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 				for(size_t i = 0; i < vFct.num_fct(); ++i)
 				{
 				//	get multi index of vertex for the function
-					if(u.get_inner_multi_indices(v, vFct[i], vMultInd) != 1)
+					if(u.inner_multi_indices(v, vFct[i], vMultInd) != 1)
 					{
 						UG_LOG("ERROR in 'VTK:write_nodal_values_elementwise': "
 								"The function component "<<vFct[i]<<" has "<<

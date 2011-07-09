@@ -194,13 +194,13 @@ class IGridFunction
 
 	/// get multi indices on an finite element in canonical order
 		template <typename TElem>
-		size_t get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
-			{check(); return m_pDD->get_multi_indices(elem, fct, ind);}
+		size_t multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
+			{check(); return m_pDD->multi_indices(elem, fct, ind);}
 
 	/// get multi indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		size_t get_inner_multi_indices(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
-			{check(); return m_pDD->get_inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
+			{check(); return m_pDD->inner_multi_indices(elem, fct, ind);}
 
 		////////// Algebra indices ////////////
 
@@ -216,13 +216,13 @@ class IGridFunction
 
 	/// get algebra indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		void get_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
-			{check(); m_pDD->get_algebra_indices(elem, ind);}
+		void algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{check(); m_pDD->algebra_indices(elem, ind);}
 
 	/// get algebra indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		void get_inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
-			{check(); m_pDD->get_inner_algebra_indices(elem, ind);}
+		void inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{check(); m_pDD->inner_algebra_indices(elem, ind);}
 
 	protected:
 	//	check that object can be used

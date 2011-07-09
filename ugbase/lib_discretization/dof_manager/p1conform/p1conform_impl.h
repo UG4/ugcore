@@ -167,7 +167,7 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 template<typename TElem>
 size_t
 P1ConformDoFDistribution::
-get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
+multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
 //	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -201,7 +201,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 template<typename TElem>
 size_t
 P1ConformDoFDistribution::
-get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
+inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
 //	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -240,7 +240,7 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 template<typename TElem>
 size_t
 P1ConformDoFDistribution::
-get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
+algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -278,7 +278,7 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 template<typename TElem>
 size_t
 P1ConformDoFDistribution::
-get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
+inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
 //	clear indices
 	ind.clear();
@@ -475,7 +475,7 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
-get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
+multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
 //	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -509,7 +509,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
-get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
+inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
 //	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -548,7 +548,7 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
-get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
+algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -584,7 +584,7 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 template<typename TElem>
 size_t
 GroupedP1ConformDoFDistribution::
-get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
+inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
 //	clear indices
 	ind.clear();

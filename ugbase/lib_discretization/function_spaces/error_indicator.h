@@ -107,7 +107,7 @@ bool ComputeGradient(TFunction& u,
 			//	get of of vertex
 				//\todo: this is for fct=0 only
 				typename TFunction::multi_index_vector_type ind;
-				u.get_inner_multi_indices(vert, 0, ind);
+				u.inner_multi_indices(vert, 0, ind);
 
 			//	scale global gradient
 				globalGrad[sh] *= (u.get_dof_value(ind[0][0], ind[0][1]));

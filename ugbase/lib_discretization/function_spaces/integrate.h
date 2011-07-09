@@ -83,7 +83,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 
 	//	get multiindices of element
 		typename TGridFunction::multi_index_vector_type ind;
-		u.get_multi_indices(elem, fct, ind);
+		u.multi_indices(elem, fct, ind);
 
 	//	check multi indices
 		if(ind.size() != num_sh)

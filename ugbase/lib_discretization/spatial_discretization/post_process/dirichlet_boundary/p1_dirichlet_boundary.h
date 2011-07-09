@@ -313,7 +313,7 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr,
 				const size_t fct = userData[i].fct;
 
 			//	get multi indices
-				if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+				if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 					return;
 
 				const size_t index = multInd[0][0];
@@ -491,7 +491,7 @@ clear_dirichlet_defect(	geometry_traits<VertexBase>::const_iterator iterBegin,
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 		//	set dirichlet value
@@ -536,7 +536,7 @@ clear_dirichlet_jacobian(	geometry_traits<VertexBase>::const_iterator iterBegin,
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 		//	set dirichlet row
@@ -581,7 +581,7 @@ set_dirichlet_solution(	geometry_traits<VertexBase>::const_iterator iterBegin,
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 		//	set dirichlet value
@@ -627,7 +627,7 @@ set_dirichlet_linear(	geometry_traits<VertexBase>::const_iterator iterBegin,
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 			const size_t index = multInd[0][0];
@@ -679,7 +679,7 @@ set_dirichlet_rhs(	geometry_traits<VertexBase>::const_iterator iterBegin,
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 			const size_t index = multInd[0][0];

@@ -42,10 +42,10 @@ bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 			TElem* elem = *iter;
 
 		//	extract all algebra indices for the element on surface
-			surfDD.get_inner_algebra_indices(elem, surfaceInd);
+			surfDD.inner_algebra_indices(elem, surfaceInd);
 
 		//	extract all algebra indices for the element on level
-			topDD.get_inner_algebra_indices(elem, levelInd);
+			topDD.inner_algebra_indices(elem, levelInd);
 
 		//	check that index sets have same cardinality
 			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
@@ -142,7 +142,7 @@ bool ProjectSurfaceToLevel(int si,
 		TElem* elem = *iter;
 
 	//	extract all algebra indices for the element on surface
-		surfaceDD.get_algebra_indices(elem, surfaceInd);
+		surfaceDD.algebra_indices(elem, surfaceInd);
 
 	//	get level of element in hierarchy
 		int level = surfaceView.get_level(elem);
@@ -156,7 +156,7 @@ bool ProjectSurfaceToLevel(int si,
 
 	//	extract all algebra indices for the element on level
 		UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
-		vLevelDD[level]->get_algebra_indices(elem, levelInd);
+		vLevelDD[level]->algebra_indices(elem, levelInd);
 
 	//	check that index sets have same cardinality
 		UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
@@ -275,7 +275,7 @@ bool ProjectLevelToSurface(int si,
 		TElem* elem = *iter;
 
 	//	extract all algebra indices for the element on surface
-		surfaceDD.get_algebra_indices(elem, surfaceInd);
+		surfaceDD.algebra_indices(elem, surfaceInd);
 
 	//	get level of element in hierarchy
 		int level = surfaceView.get_level(elem);
@@ -289,7 +289,7 @@ bool ProjectLevelToSurface(int si,
 
 	//	extract all algebra indices for the element on level
 		UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
-		vLevelDD[level]->get_algebra_indices(elem, levelInd);
+		vLevelDD[level]->algebra_indices(elem, levelInd);
 
 	//	check that index sets have same cardinality
 		UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
@@ -468,12 +468,12 @@ bool AddProjectionOfVertexShadows(TVector& fineVec, const TVector& coarseVec,
 			if(vert != NULL)
 			{
 				// get global indices
-				coarseDoFDistr.get_inner_algebra_indices(vert, coarseInd);
+				coarseDoFDistr.inner_algebra_indices(vert, coarseInd);
 			}
 			else continue;
 
 		// 	get global indices
-			fineDoFDistr.get_inner_algebra_indices(*iter, fineInd);
+			fineDoFDistr.inner_algebra_indices(*iter, fineInd);
 
 		//	add coarse vector entries to fine vector entries
 			for(size_t i = 0; i < coarseInd.size(); ++i)
@@ -550,12 +550,12 @@ bool SetProjectionOfVertexShadowing(TVector& coarseVec, const TVector& fineVec,
 			if(vert != NULL)
 			{
 				// get global indices
-				coarseDoFDistr.get_inner_algebra_indices(vert, coarseInd);
+				coarseDoFDistr.inner_algebra_indices(vert, coarseInd);
 			}
 			else continue;
 
 		// 	get global indices
-			fineDoFDistr.get_inner_algebra_indices(*iter, fineInd);
+			fineDoFDistr.inner_algebra_indices(*iter, fineInd);
 
 		//	add coarse vector entries to fine vector entries
 			for(size_t i = 0; i < coarseInd.size(); ++i)
@@ -622,7 +622,7 @@ bool SetZeroOnShadowingVertex(TVector& vec,
 			if(!surfView.shadows(vrt)) continue;
 
 		// 	get global indices
-			dofDistr.get_inner_algebra_indices(vrt, ind);
+			dofDistr.inner_algebra_indices(vrt, ind);
 
 		//	add coarse vector entries to fine vector entries
 			for(size_t i = 0; i < ind.size(); ++i)
@@ -688,7 +688,7 @@ bool SetZeroOnVertexShadows(TVector& vec,
 			if(!surfView.is_shadow(vrt)) continue;
 
 		// 	get global indices
-			dofDistr.get_inner_algebra_indices(vrt, ind);
+			dofDistr.inner_algebra_indices(vrt, ind);
 
 		//	add coarse vector entries to fine vector entries
 			for(size_t i = 0; i < ind.size(); ++i)

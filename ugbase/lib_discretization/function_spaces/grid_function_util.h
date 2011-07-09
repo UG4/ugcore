@@ -55,7 +55,7 @@ void ExtractPositions(const TFunction &u,
 			typename TFunction::algebra_index_vector_type ind;
 
 		//	load indices associated with vertex
-			u.get_inner_algebra_indices(v, ind);
+			u.inner_algebra_indices(v, ind);
 
 		//	write position
 			for(size_t i = 0; i < ind.size(); ++i)
@@ -417,7 +417,7 @@ class GridFunctionVectorWriter
 					typename TGridFunction::algebra_index_vector_type ind;
 
 				//	load indices associated with vertex
-					u.get_inner_algebra_indices(v, ind);
+					u.inner_algebra_indices(v, ind);
 
 					number t = 0.0;
 

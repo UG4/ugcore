@@ -171,24 +171,24 @@ class P1ConformDoFDistribution
 		// Algebra Index / Multi index access
 		///////////////////////////////////////
 
-	/// \copydoc IDoFDistribution::get_multi_indices()
+	/// \copydoc IDoFDistribution::multi_indices()
 		template<typename TElem>
-		size_t get_multi_indices(TElem* elem, size_t fct,
+		size_t multi_indices(TElem* elem, size_t fct,
 		                         multi_index_vector_type& ind) const;
 
-	/// \copydoc IDoFDistribution::get_inner_multi_indices()
+	/// \copydoc IDoFDistribution::inner_multi_indices()
 		template<typename TElem>
-		size_t get_inner_multi_indices(TElem* elem, size_t fct,
+		size_t inner_multi_indices(TElem* elem, size_t fct,
 		                               multi_index_vector_type& ind) const;
 
-	/// \copydoc IDoFDistribution::get_algebra_indices()
+	/// \copydoc IDoFDistribution::algebra_indices()
 		template<typename TElem>
-		size_t get_algebra_indices(TElem* elem,
+		size_t algebra_indices(TElem* elem,
 		                         algebra_index_vector_type& ind) const;
 
-	/// \copydoc IDoFDistribution::get_inner_algebra_indices()
+	/// \copydoc IDoFDistribution::inner_algebra_indices()
 		template<typename TElem>
-		size_t get_inner_algebra_indices(TElem* elem,
+		size_t inner_algebra_indices(TElem* elem,
 		                               algebra_index_vector_type& ind) const;
 
 		///////////////////////////
@@ -395,24 +395,24 @@ class GroupedP1ConformDoFDistribution
 		// Algebra Index / Multi index access
 		///////////////////////////////////////
 
-	/// \copydoc IDoFDistribution::get_multi_indices()
+	/// \copydoc IDoFDistribution::multi_indices()
 		template<typename TElem>
-		size_t get_multi_indices(TElem* elem, size_t fct,
+		size_t multi_indices(TElem* elem, size_t fct,
 		                         multi_index_vector_type& ind) const;
 
-	/// \copydoc IDoFDistribution::get_inner_multi_indices()
+	/// \copydoc IDoFDistribution::inner_multi_indices()
 		template<typename TElem>
-		size_t get_inner_multi_indices(TElem* elem, size_t fct,
+		size_t inner_multi_indices(TElem* elem, size_t fct,
 		                               multi_index_vector_type& ind) const;
 
-	/// \copydoc IDoFDistribution::get_algebra_indices()
+	/// \copydoc IDoFDistribution::algebra_indices()
 		template<typename TElem>
-		size_t get_algebra_indices(TElem* elem,
+		size_t algebra_indices(TElem* elem,
 		                         algebra_index_vector_type& ind) const;
 
-	/// \copydoc IDoFDistribution::get_inner_algebra_indices()
+	/// \copydoc IDoFDistribution::inner_algebra_indices()
 		template<typename TElem>
-		size_t get_inner_algebra_indices(TElem* elem,
+		size_t inner_algebra_indices(TElem* elem,
 		                               algebra_index_vector_type& ind) const;
 
 		///////////////////////////

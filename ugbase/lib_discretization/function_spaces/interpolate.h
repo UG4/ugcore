@@ -79,7 +79,7 @@ bool InterpolateFunctionOnElem( boost::function<void (
 
 	//	get multiindices of element
 		typename TGridFunction::multi_index_vector_type ind;
-		u.get_multi_indices(elem, fct, ind);
+		u.multi_indices(elem, fct, ind);
 
 	//	check multi indices
 		if(ind.size() != num_sh)
@@ -409,7 +409,7 @@ bool AssignP1GridFunctionOnSubset(TGridFunction& uDest, const TGridFunction& uSr
 
 		//	get algebra indices
 			typename TGridFunction::algebra_index_vector_type vInd;
-			uDest.get_inner_algebra_indices(vrt, vInd);
+			uDest.inner_algebra_indices(vrt, vInd);
 
 		//	loop indices
 			for(size_t k = 0; k < vInd.size(); ++k)
@@ -468,7 +468,7 @@ bool InterpolateFunctionOnVertices( boost::function<void (
 
 	//	get multiindices of element
 		typename TGridFunction::multi_index_vector_type ind;
-		u.get_multi_indices(vrt, fct, ind);
+		u.multi_indices(vrt, fct, ind);
 
 	// 	loop all dofs
 		for(size_t i = 0; i < ind.size(); ++i)

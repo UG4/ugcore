@@ -108,14 +108,14 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 				if(!fineDoFDistr.is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				if(fineDoFDistr.get_inner_multi_indices(*iter, fct, fineMultInd) != 1)
+				if(fineDoFDistr.inner_multi_indices(*iter, fct, fineMultInd) != 1)
 					return false;
 
 			//  Check if father is Vertex
 				if(vert != NULL)
 				{
 				//  get global indices
-					if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
+					if(coarseDoFDistr.inner_multi_indices(vert, fct, coarseMultInd) != 1)
 						return false;
 
 					vIsRestricted[coarseMultInd[0][0]] = true;
@@ -133,7 +133,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 						VertexBase* v = edge->vertex(i);
 
 					//  get global indices
-						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
+						if(coarseDoFDistr.inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						vIsRestricted[coarseMultInd[0][0]] = true;
@@ -152,7 +152,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 						VertexBase* v = face->vertex(i);
 
 					//  get global indices
-						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
+						if(coarseDoFDistr.inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						vIsRestricted[coarseMultInd[0][0]] = true;
@@ -171,7 +171,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 						VertexBase* v = hexaeder->vertex(i);
 
 					//  get global indices
-						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
+						if(coarseDoFDistr.inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						vIsRestricted[coarseMultInd[0][0]] = true;

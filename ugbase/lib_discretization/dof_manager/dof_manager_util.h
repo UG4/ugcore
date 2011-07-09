@@ -37,7 +37,7 @@ bool CreateSurfaceToLevelMapping(int si,
 		TElem* elem = *iter;
 
 	//	extract all algebra indices for the element on surface
-		surfaceDD.get_algebra_indices(elem, surfaceInd);
+		surfaceDD.algebra_indices(elem, surfaceInd);
 
 	//	get level of element in hierarchy
 		int level = surfaceView.get_level(elem);
@@ -52,7 +52,7 @@ bool CreateSurfaceToLevelMapping(int si,
 
 	//	extract all algebra indices for the element on level
 		UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
-		vLevelDD[level]->get_algebra_indices(elem, levelInd);
+		vLevelDD[level]->algebra_indices(elem, levelInd);
 
 	//	check that index sets have same cardinality
 		UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");

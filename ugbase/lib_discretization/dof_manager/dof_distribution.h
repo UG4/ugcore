@@ -184,27 +184,27 @@ class IDoFDistribution
 
 	/// get multi indices (Element + Closure of Element)
 		template<typename TElem>
-		size_t get_multi_indices(TElem* elem, size_t fct,
+		size_t multi_indices(TElem* elem, size_t fct,
 		                         multi_index_vector_type& ind) const
-			{return getImpl().get_multi_indices(elem, fct, ind);}
+			{return getImpl().multi_indices(elem, fct, ind);}
 
 	/// get multi indices (only inner part of Element)
 		template<typename TElem>
-		size_t get_inner_multi_indices(TElem* elem, size_t fct,
+		size_t inner_multi_indices(TElem* elem, size_t fct,
 		                               multi_index_vector_type& ind) const
-			{return getImpl().get_inner_multi_indices(elem, fct, ind);}
+			{return getImpl().inner_multi_indices(elem, fct, ind);}
 
 	/// get algebra indices (Element + Closure of Element)
 		template<typename TElem>
-		size_t get_algebra_indices(TElem* elem,
+		size_t algebra_indices(TElem* elem,
 		                         algebra_index_vector_type& ind) const
-			{return getImpl().get_algebra_indices(elem, ind);}
+			{return getImpl().algebra_indices(elem, ind);}
 
 	/// get algebra indices (only inner part of Element)
 		template<typename TElem>
-		size_t get_inner_algebra_indices(TElem* elem,
+		size_t inner_algebra_indices(TElem* elem,
 		                               algebra_index_vector_type& ind) const
-			{return getImpl().get_inner_algebra_indices(elem,ind);}
+			{return getImpl().inner_algebra_indices(elem,ind);}
 
 		///////////////////////////
 		// Creation

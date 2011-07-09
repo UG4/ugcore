@@ -167,10 +167,10 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
+					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
 
 				// 	Split using indices
 					if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))
@@ -285,10 +285,10 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
+					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
 
 				//	Set interpolation
 					if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
@@ -406,10 +406,10 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
+					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
 
 				// 	Interpolate values
 					if(!InterpolateValues(u, constrainedInd, vConstrainingInd))
@@ -747,10 +747,10 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
+					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
 
 				// 	Split using indices
 					if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))

@@ -91,12 +91,12 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
 			if(vert != NULL)
 			{
 				// get global indices
-				coarseDoFDistr.get_inner_algebra_indices(vert, coarseInd);
+				coarseDoFDistr.inner_algebra_indices(vert, coarseInd);
 			}
 			else continue;
 
 		// 	get global indices
-			fineDoFDistr.get_inner_algebra_indices(*iter, fineInd);
+			fineDoFDistr.inner_algebra_indices(*iter, fineInd);
 
 			for(size_t i = 0; i < coarseInd.size(); ++i)
 				mat(coarseInd[i], fineInd[i]) = 1.0;

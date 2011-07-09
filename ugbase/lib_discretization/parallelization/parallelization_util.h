@@ -85,7 +85,7 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 
 			//	get the algebraic indices on the grid element
 				typename TDoFDistr::algebra_index_vector_type indices;
-				dofDistr.get_inner_algebra_indices(elem, indices);
+				dofDistr.inner_algebra_indices(elem, indices);
 
 			//	add the indices to the interface
 				for(size_t i = 0; i < indices.size(); ++i)
@@ -102,7 +102,7 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 
 			//	get the algebraic indices on the grid element
 				typename TDoFDistr::algebra_index_vector_type indices;
-				dofDistr.get_inner_algebra_indices(elem, indices);
+				dofDistr.inner_algebra_indices(elem, indices);
 
 			//	add the indices to the interface
 				for(size_t i = 0; i < indices.size(); ++i)
@@ -239,7 +239,7 @@ bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
 
 		//	get the algebraic indices on the grid element
 			typename TDoFDistr::algebra_index_vector_type indices;
-			dofDistr.get_inner_algebra_indices(elem, indices);
+			dofDistr.inner_algebra_indices(elem, indices);
 
 		//	add the indices to the interface
 			for(size_t i = 0; i < indices.size(); ++i)
@@ -406,7 +406,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 			{
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 				typename TDoFDistr::algebra_index_vector_type indices;
-				dofDistr.get_inner_algebra_indices(elem, indices);
+				dofDistr.inner_algebra_indices(elem, indices);
 				for(size_t i = 0; i < indices.size(); ++i)
 				{
 					indexInterface.push_back(indices[i]);
@@ -424,7 +424,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 			{
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 				typename TDoFDistr::algebra_index_vector_type indices;
-				dofDistr.get_inner_algebra_indices(elem, indices);
+				dofDistr.inner_algebra_indices(elem, indices);
 				for(size_t i = 0; i < indices.size(); ++i)
 				{
 					indexInterface.push_back(indices[i]);
