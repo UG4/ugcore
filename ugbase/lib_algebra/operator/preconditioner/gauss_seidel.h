@@ -16,7 +16,7 @@
 namespace ug{
 
 template <typename TAlgebra>
-class GSPreconditioner : public IPreconditioner<TAlgebra>
+class GaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -33,12 +33,17 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		GSPreconditioner() {};
+		GaussSeidel() {};
+
+	//	Constructor setting debug writer
+		GaussSeidel(IDebugWriter<algebra_type>* pDebugWriter) :
+			IPreconditioner<algebra_type>(pDebugWriter)
+		{};
 
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new GSPreconditioner<algebra_type>();
+			return new GaussSeidel<algebra_type>(this->debug_writer());
 		}
 
 	protected:
@@ -96,7 +101,7 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 };
 
 template <typename TAlgebra>
-class BGSPreconditioner : public IPreconditioner<TAlgebra>
+class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -113,12 +118,17 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		BGSPreconditioner() {};
+		BackwardGaussSeidel() {};
+
+	//	Constructor setting debug writer
+		BackwardGaussSeidel(IDebugWriter<algebra_type>* pDebugWriter) :
+			IPreconditioner<algebra_type>(pDebugWriter)
+		{};
 
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new BGSPreconditioner<algebra_type>();
+			return new BackwardGaussSeidel<algebra_type>(this->debug_writer());
 		}
 
 	protected:
@@ -175,7 +185,7 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 };
 
 template <typename TAlgebra>
-class SGSPreconditioner : public IPreconditioner<TAlgebra>
+class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -192,12 +202,17 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		SGSPreconditioner() {};
+		SymmetricGaussSeidel() {};
+
+	//	Constructor setting debug writer
+		SymmetricGaussSeidel(IDebugWriter<algebra_type>* pDebugWriter) :
+			IPreconditioner<algebra_type>(pDebugWriter)
+		{};
 
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new SGSPreconditioner<algebra_type>();
+			return new SymmetricGaussSeidel<algebra_type>(this->debug_writer());
 		}
 
 	protected:

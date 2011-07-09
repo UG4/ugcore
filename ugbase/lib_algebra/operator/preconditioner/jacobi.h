@@ -17,7 +17,7 @@ namespace ug{
 
 ///	Jacobi Preconditioner
 template <typename TAlgebra>
-class JacobiPreconditioner : public IPreconditioner<TAlgebra>
+class Jacobi : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Algebra type
@@ -34,10 +34,15 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		JacobiPreconditioner() : m_damp(1.0) {};
+		Jacobi() : m_damp(1.0) {};
 
 	///	constructor setting the damping parameter
-		JacobiPreconditioner(number damp) :	m_damp(damp){};
+		Jacobi(number damp) :	m_damp(damp){};
+
+	//	Constructor setting debug writer
+		Jacobi(IDebugWriter<algebra_type>* pDebugWriter, number damp) :
+			IPreconditioner<algebra_type>(pDebugWriter), m_damp(damp)
+		{};
 
 	///	sets the damping parameter
 		void set_damp(number damp) {m_damp = damp;}
@@ -45,11 +50,11 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 	///	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new JacobiPreconditioner<TAlgebra>(m_damp);
+			return new Jacobi<TAlgebra>(this->debug_writer(), m_damp);
 		}
 
 	///	Destructor
-		virtual ~JacobiPreconditioner()
+		virtual ~Jacobi()
 		{};
 
 	protected:

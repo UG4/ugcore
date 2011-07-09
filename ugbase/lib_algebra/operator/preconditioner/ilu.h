@@ -229,7 +229,7 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 
 ///	ILU / ILU(beta) preconditioner
 template <typename TAlgebra>
-class ILUPreconditioner : public IPreconditioner<TAlgebra>
+class ILU : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Algebra type
@@ -246,22 +246,21 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILUPreconditioner(double beta=0.0) : m_beta(beta) {};
+		ILU(double beta=0.0) : m_beta(beta) {};
 
 	//	Constructor setting debug writer
-		ILUPreconditioner(IDebugWriter<algebra_type>* pDebugWriter,
-		                  double beta=0.0) :
-		IPreconditioner<algebra_type>(pDebugWriter), m_beta(beta)
+		ILU(IDebugWriter<algebra_type>* pDebugWriter, double beta=0.0) :
+			IPreconditioner<algebra_type>(pDebugWriter), m_beta(beta)
 		{};
 
 	///	Clone
 		ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new ILUPreconditioner<algebra_type>(this->debug_writer(), m_beta);
+			return new ILU<algebra_type>(this->debug_writer(), m_beta);
 		}
 
 	///	Destructor
-		virtual ~ILUPreconditioner(){}
+		virtual ~ILU(){}
 
 	///	set factor for ILU_{\beta}
 		void set_beta(double beta) {m_beta = beta;}

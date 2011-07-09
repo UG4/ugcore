@@ -192,7 +192,7 @@ struct cRegisterAlgebraType
 
 		//	Jacobi
 			{
-				typedef JacobiPreconditioner<algebra_type> T;
+				typedef Jacobi<algebra_type> T;
 				typedef IPreconditioner<algebra_type> TBase;
 				reg.add_class_<T,TBase>("Jacobi", grp2.c_str(), "Jacobi Preconditioner")
 					.add_constructor()
@@ -201,7 +201,7 @@ struct cRegisterAlgebraType
 
 		//	GaussSeidel
 			{
-				typedef GSPreconditioner<algebra_type> T;
+				typedef GaussSeidel<algebra_type> T;
 				typedef IPreconditioner<algebra_type> TBase;
 				reg.add_class_<T,TBase>("GaussSeidel", grp2.c_str(), "Gauss-Seidel Preconditioner")
 				.add_constructor();
@@ -209,7 +209,7 @@ struct cRegisterAlgebraType
 
 		//	Symmetric GaussSeidel
 			{
-				typedef SGSPreconditioner<algebra_type> T;
+				typedef SymmetricGaussSeidel<algebra_type> T;
 				typedef IPreconditioner<algebra_type> TBase;
 				reg.add_class_<T,TBase>("SymmetricGaussSeidel", grp2.c_str())
 					.add_constructor();
@@ -217,7 +217,7 @@ struct cRegisterAlgebraType
 
 		//	Backward GaussSeidel
 			{
-				typedef BGSPreconditioner<algebra_type> T;
+				typedef BackwardGaussSeidel<algebra_type> T;
 				typedef IPreconditioner<algebra_type> TBase;
 				reg.add_class_<T,TBase>("BackwardGaussSeidel", grp2.c_str())
 					.add_constructor();
@@ -225,7 +225,7 @@ struct cRegisterAlgebraType
 
 		//	ILU
 			{
-				typedef ILUPreconditioner<algebra_type> T;
+				typedef ILU<algebra_type> T;
 				typedef IPreconditioner<algebra_type> TBase;
 				reg.add_class_<T,TBase>("ILU", grp2.c_str(), "Incomplete LU Decomposition")
 					.add_constructor()
