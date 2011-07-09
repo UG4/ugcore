@@ -31,6 +31,9 @@ numRefs = util.GetParamNumber("-numRefs", 2)
 -- choose number of time steps
 NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 100)
 
+-- choose some solver
+sol = util.GetParam("-sol", "bicgstab")
+
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
@@ -344,19 +347,24 @@ convCheck:set_minimum_defect(1e-8)
 convCheck:set_reduction(1e-8)
 
 -- create Linear Solver
-linSolver = LinearSolver()
-linSolver:set_preconditioner(gmg)
-linSolver:set_convergence_check(convCheck)
+GMGSolver = LinearSolver()
+GMGSolver:set_preconditioner(gmg)
+GMGSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
-cgSolver = CG()
-cgSolver:set_preconditioner(gmg)
-cgSolver:set_convergence_check(convCheck)
+CG = CG()
+CG:set_preconditioner(gmg)
+CG:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
-bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(gmg)
-bicgstabSolver:set_convergence_check(convCheck)
+BiCGStab = BiCGStab()
+BiCGStab:set_preconditioner(gmg)
+BiCGStab:set_convergence_check(convCheck)
+
+-- select some of the created solver
+if 		sol == "gmg" then linSolver = GMGSolver;
+elseif 	sol == "bicgstab" then linSolver = BiCGStab;
+else print("Linear solver not set, use -sol option"); exit(); end
 
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()
@@ -369,7 +377,7 @@ newtonLineSearch = StandardLineSearch()
 
 -- create Newton Solver
 newtonSolver = NewtonSolver()
-newtonSolver:set_linear_solver(bicgstabSolver)
+newtonSolver:set_linear_solver(linSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
 newtonSolver:set_line_search(newtonLineSearch)
 --newtonSolver:set_debug(dbgWriter)
