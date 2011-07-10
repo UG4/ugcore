@@ -70,17 +70,14 @@ class IDoFDistribution
 			m_goc(goc), m_pFuncPattern(&dp), m_pSurfaceView(&surfView) {}
 
 		///////////////////////////
-		// Support Info
+		// Infos
 		///////////////////////////
 
+	///	returns if a trial space is supported
 		static bool supports_trial_space(LSFSID& id)
 		{
 			return implementation_type::supports_trial_space(id);
 		}
-
-		///////////////////////////
-		// Infos
-		///////////////////////////
 
 	/// dimension of subset
 		int dim_subset(int si) const {return m_pFuncPattern->dim_subset(si);}
@@ -170,17 +167,13 @@ class IDoFDistribution
 		int blocksize(int si) const {return getImpl().blocksize(si);}
 
 		///////////////////////////////////////
-		// LocalIndex update
+		// Index Access
 		///////////////////////////////////////
 
 	///	returns all indices of the element
 		template<typename TElem>
 		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
 			{getImpl().indices(elem, ind, bHang);}
-
-		///////////////////////////////////////
-		// Algebra Index / Multi Index access
-		///////////////////////////////////////
 
 	/// get multi indices (Element + Closure of Element)
 		template<typename TElem>
@@ -422,22 +415,22 @@ class IDoFDistribution
 		}
 
 	protected:
-		// index layout for this grid level (an each domain decomposition)
-		IndexLayout m_slaveLayout;
-
-		// index layout for this grid level (an each domain decomposition)
+	//	(horizontal) master index layout
 		IndexLayout m_masterLayout;
 
-		// index layout for each grid level
+	//	(horizontal) slave index layout
+		IndexLayout m_slaveLayout;
+
+	///	vertical master index layout
 		IndexLayout m_verticalMasterLayout;
 
-		// index layout for each grid level
+	///	vertical slave index layout
 		IndexLayout m_verticalSlaveLayout;
 
-		// process communicator
+	// 	process communicator
 		pcl::ProcessCommunicator m_processCommunicator;
 
-		// communicator
+	// 	communicator
 		pcl::ParallelCommunicator<IndexLayout> m_communicator;
 #endif
 };

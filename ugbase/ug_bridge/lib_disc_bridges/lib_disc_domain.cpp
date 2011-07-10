@@ -448,11 +448,11 @@ bool RegisterDynamicLibDiscDomain(Registry& reg, int algebra_type, const char* p
 
 	switch(algebra_type)
 	{
-	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForDomain<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForDomain<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForDomain<CPUAlgebra, P1DoFDistribution<false> >(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<2>, P1DoFDistribution<true> >(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<3>, P1DoFDistribution<true> >(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<4>, P1DoFDistribution<true> >(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForDomain<CPUVariableBlockAlgebra, P1DoFDistribution<true> >(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;
