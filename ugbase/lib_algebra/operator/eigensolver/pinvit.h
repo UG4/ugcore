@@ -14,7 +14,15 @@
 // constructors
 namespace ug{
 
-template<typename mat_type, typename vec_type, typename densematrix_type>
+template<typename T>
+inline std::string ToString(const T &t)
+{
+	std::stringstream out;
+	out << t;
+	return out.str();
+}
+
+/*template<typename mat_type, typename vec_type, typename densematrix_type>
 void MultiEnergyProd(const SparseMatrix<mat_type> &A,
 			Vector<vec_type> **x,
 			DenseMatrix<densematrix_type> &rA, size_t n)
@@ -33,23 +41,17 @@ void MultiEnergyProd(const SparseMatrix<mat_type> &A,
 				rA(c, r) += VecDot((*x[r])[i], Ai_xc);
 		}
 	}
-}
+}*/
 
-template<typename matrix_type, typename vector_type, typename densematrix_type>
-void MultiEnergyProd(const matrix_type &A,
-			vector_type **x,
+template<typename vector_type, typename densematrix_type>
+void MultiScalProd(vector_type **px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
-	typename vector_type::value_type Ai_xc;
-	vector_type t;
-	t.resize(x[0]->size());
-
 	for(size_t r=0; r<n; r++)
 	{
-		A.apply(t, (*x[r]));
 		for(size_t c=r; c<n; c++)
-			rA(r, c) = VecProd((*x[c]), t);
+			rA(r, c) = VecProd((*px[c]), (*px[r]));
 	}
 
 	for(size_t r=0; r<n; r++)
@@ -57,6 +59,55 @@ void MultiEnergyProd(const matrix_type &A,
 			rA(r,c) = rA(c, r);
 }
 
+
+template<typename matrix_type, typename vector_type>
+double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
+{
+	vector_type t;
+	CloneVector(t, v1);
+	v2.change_storage_type(PST_CONSISTENT);
+	A.apply(t, v2);
+	t.change_storage_type(PST_CONSISTENT);
+	return VecProd(v1, t);
+}
+
+template<typename matrix_type, typename vector_type, typename densematrix_type>
+void MultiEnergyProd(matrix_type &A,
+			vector_type **px,
+			DenseMatrix<densematrix_type> &rA, size_t n)
+{
+	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
+	vector_type t;
+	CloneVector(t, *px[0]);
+
+	for(size_t r=0; r<n; r++)
+	{
+		// todo: why is SparseMatrix<T>::apply not const ?!?
+		px[r]->change_storage_type(PST_CONSISTENT);
+		A.apply(t, (*px[r]));
+		t.change_storage_type(PST_CONSISTENT);
+		for(size_t c=r; c<n; c++)
+			rA(r, c) = VecProd((*px[c]), t);
+	}
+
+	for(size_t r=0; r<n; r++)
+		for(size_t c=0; c<r; c++)
+			rA(r,c) = rA(c, r);
+}
+
+
+template<typename tvector>
+void PrintStorageType(const tvector &v)
+{
+	if(v.has_storage_type(PST_UNDEFINED))
+		UG_LOG("PST_UNDEFINED ");
+	if(v.has_storage_type(PST_CONSISTENT))
+		UG_LOG("PST_CONSISTENT ");
+	if(v.has_storage_type(PST_ADDITIVE))
+		UG_LOG("PST_ADDITIVE ");
+	if(v.has_storage_type(PST_UNIQUE))
+		UG_LOG("PST_UNIQUE ");
+}
 
 
 template<typename TAlgebra>
@@ -73,20 +124,24 @@ public:
 private:
 	//ILinearOperator<vector_type,vector_type>* m_pA;
 	//ILinearOperator<vector_type,vector_type>* m_pB;
-	matrix_type *m_pA;
-	matrix_type *m_pB;
+	ILinearOperator<vector_type, vector_type> *m_pA;
+
+	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+	matrix_operator_type *m_pB;
+
+
 
 	std::vector<vector_type*> px;
-	ILinearIterator<vector_type, vector_type> &m_pPrecond;
+	ILinearIterator<vector_type, vector_type> *m_pPrecond;
 
 	size_t m_maxIterations;
-	double m_precision;
+	double m_dPrecision;
 
 public:
 	PINVIT()
 	{
-		m_A = NULL;
-		m_B = NULL;
+		m_pA = NULL;
+		m_pB = NULL;
 	}
 
 	void add_vector(vector_type &vec)
@@ -101,34 +156,14 @@ public:
 
 	bool set_linear_operator_A(ILinearOperator<vector_type, vector_type> &A)
 	{
-		MatrixOperator<vector_type, vector_type, matrix_type>* Op =
-					dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
-
-	//	Check that matrix if of correct type
-		if(Op == NULL)
-		{
-			UG_LOG("ERROR in '" << name() << "::init': Passed Operator is not based on matrix.\n"
-					"This Preconditioner can only handle matrix-based operators. Aborting.\n");
-			return false;
-		}
-
-		m_pA = &Op->get_matrix();
+		m_pA = &A;
+		return true;
 	}
 
-	bool set_linear_operator_B(ILinearOperator<vector_type, vector_type> &B)
+	bool set_linear_operator_B(matrix_operator_type &B)
 	{
-		MatrixOperator<vector_type, vector_type, matrix_type>* Op =
-							dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
-
-		//	Check that matrix if of correct type
-		if(Op == NULL)
-		{
-			UG_LOG("ERROR in '" << name() << "::init': Passed Operator is not based on matrix.\n"
-					"This Preconditioner can only handle matrix-based operators. Aborting.\n");
-			return false;
-		}
-
-		m_pB = &Op->get_matrix();
+		m_pB = &B;
+		return true;
 	}
 
 	void set_max_iterations(size_t maxIterations)
@@ -138,9 +173,8 @@ public:
 
 	void set_precision(double precision)
 	{
-		m_precision = precision;
+		m_dPrecision = precision;
 	}
-
 
 	int apply()
 	{
@@ -149,95 +183,133 @@ public:
 		DenseMatrix<VariableArray2<double> > rB;
 		DenseMatrix<VariableArray2<double> > r_ev;
 		DenseVector<VariableArray1<double> > r_lambda;
+		std::vector<double> lambda;
+
 
 		typedef typename vector_type::value_type value_type;
 		vector_type defect;
-		size_t size = px[0]->size();
+		CloneVector(defect, *px[0]);
 		size_t n = px.size();
-		defect.create(size);
 
+		size_t size = px[0]->size();
+		/*
+		ParallelMatrix<SparseMatrix<double> > B;
+		B.resize(size, size);
+		for(size_t i=0; i<size; i++)
+			B(i,i) = 0.00390625;
+		B.set_storage_type(PST_ADDITIVE);*/
+
+		matrix_operator_type &B = *m_pB;
+
+		vector_type tmp;
+		CloneVector(tmp, *px[0]);
 		std::vector<vector_type> corr;
 		std::vector<vector_type> oldcorr;
+		lambda.resize(n);
+		corr.resize(n);
+		oldcorr.resize(n);
 		for(size_t i=0; i<n; i++)
 		{
-			UG_ASSERT(size == px[i]->size(), "all vectors must have same size");
-			corr[i].create(size);
-			oldcorr[i].create(size);
+			UG_ASSERT(px[0]->size() == px[i]->size(), "all vectors must have same size");
+			CloneVector(corr[i], *px[0]);
+			CloneVector(oldcorr[i], *px[0]);
 		}
 
 		std::vector<vector_type *> pTestVectors;
 
-		std::vector<double> corrnorm(n, m_precision*10);
+		std::vector<double> corrnorm(n, m_dPrecision*10);
 
-		std::vector<string> testVectorDescription;
+		std::vector<std::string> testVectorDescription;
 
 		m_pPrecond->init(*m_pA);
 
-		for(int iteration=0; iteration<m_maxIterations; iteration++)
+		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
 		{
+			UG_LOG("iteration " << iteration << "\n");
 			// 0. normalize
-			if(m_B)
+			if(m_pB)
 			{
-				UG_ASSERT(0, "implement");
-				//for(int i=0; i<n; i++)
-					//(*x[i]) *= 1/ sqrt( EnergyProd(*x[i], m_B, *x[i]));
+				for(size_t i=0; i<n; i++)
+				{
+					UG_LOG(i << ": " << sqrt( EnergyProd(*px[i], B, *px[i])) << " , " << (sqrt(0.00390625)*px[i]->two_norm()) << "\n");
+
+					//(*px[i]) *= 1/ sqrt( EnergyProd(*px[i], *m_pB, *px[i]));
+					(*px[i]) *= 1/ sqrt( EnergyProd(*px[i], B, *px[i]));
+				}
 			}
 			else
 			{
-				for(int i=0; i<n; i++)
-					(*x[i]) *= 1/ x[i]->two_norm();
+				for(size_t i=0; i<n; i++)
+					(*px[i]) *= 1/ (sqrt(0.00390625)*px[i]->two_norm());
 			}
 
 
 
 			// 1. before calculating new correction, save old correction
 			for(size_t i=0; i<n; i++)
-				swap(oldcorr[i], corr[i]);
+				std::swap(oldcorr[i], corr[i]);
 
 			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
 			size_t nrofconverged=0;
+
 			for(size_t i=0; i<n; i++)
 			{
 				// 2a. compute rayleigh quotients
-				MatMult(defect, 1.0, A, *x[i]);
-				lambda[i] = VecProd(*x[i], defect);
+				// lambda = <x, Ax>/<x,x>
+				// todo: replace with MatMult
+//				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(*px[i]); UG_LOG("\n");
+				// px can be set to unique because of two_norm
+				px[i]->set_storage_type(PST_CONSISTENT);
+				m_pA->apply(defect, *px[i]);
+#ifdef UG_PARALLEL
+				defect.change_storage_type(PST_UNIQUE);
+				px[i]->change_storage_type(PST_UNIQUE);
+#endif
+				lambda[i] = VecProd(*px[i], defect); // / <px[i], px[i]> = 1.0.
+				UG_LOG("lambda[" << i << "] = " << lambda[i] << "\n");
 
 				// 2b. calculate residuum
-				// defect = A x[i] - lambda[i] B x[i]
-				if(m_B)
+				// defect = A px[i] - lambda[i] B px[i]
+				if(m_pB)
 				{
-					UG_ASSERT(0, "implement");
-					//MatMultAdd(defect, 1.0, defect, -lambda[i], B, *x[i]);
+					// todo: replace with MatMultAdd
+					//MatMultAddDirect(defect, 1.0, defect, -lambda[i], *m_pB, *px[i]);
+					px[i]->change_storage_type(PST_CONSISTENT);
+					MatMultAddDirect(defect, 1.0, defect, -lambda[i], B, *px[i]);
 				}
 				else
-					VecScaleAdd(defect, 1.0, defect, -lambda[i], *x[i]);
+					VecScaleAdd(defect, 1.0, defect, -0.00390625*lambda[i], *px[i]);
 
 				// 2c. check if converged
-				//corrnorm[i]= defect.two_norm();
 
-				defect.set_storage_type(PST_ADDITIVE);
+#ifdef UG_PARALLEL
+				defect.change_storage_type(PST_UNIQUE);
+#endif
 				corrnorm[i] = defect.two_norm();
-				if(corrnorm[i] < m_precision)
-				{
+				UG_LOG("corrnorm[" << i << "] = " << corrnorm[i] << "\n");
+				if(corrnorm[i] < m_dPrecision)
 					nrofconverged++;
+				if(corrnorm[i] < 1e-12)
 					continue;
-				}
-
 				// 2d. apply preconditioner
-				n_pPrecond->apply(corr[i], defect);
+				m_pPrecond->apply(corr[i], defect);
+#ifdef UG_PARALLEL
+				corr[i].change_storage_type(PST_UNIQUE);
+#endif
 			}
 
 			// output
-			UG_LOG("================================================" << endl);
-			UG_LOG("iteration " << iteration << endl);
+			UG_LOG("================================================\n");
+			UG_LOG("iteration " << iteration << "\n");
 
 			for(size_t i=0; i<n; i++)
-				UG_LOG(i << " lambda: " << setw(14) << lambda[i] << " defect: " << setw(14) << corrnorm[i] << endl);
-			UG_LOG(endl);
+				UG_LOG(i << " lambda: " << std::setw(14) << lambda[i] << " defect: " <<
+						std::setw(14) << corrnorm[i] << "\n");
+			UG_LOG("\n");
 
 			if(nrofconverged==n)
 			{
-				UG_LOG("all eigenvectors converged" << endl);
+				UG_LOG("all eigenvectors converged\n");
 				return true;
 			}
 
@@ -247,12 +319,12 @@ public:
 			testVectorDescription.clear();
 			for(size_t i=0; i<n; i++)
 			{
-				pTestVectors.push_back(x[i]);
-				testVectorDescription.push_back(string("eigenvector [") + ToString(i) + string("]") );
-				if(corrnorm[i] < precision)
+				pTestVectors.push_back(px[i]);
+				testVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
+				if(corrnorm[i] < 1e-12)
 					continue;
 				pTestVectors.push_back(&corr[i]);
-				testVectorDescription.push_back(string("correction [") + ToString(i) + string("]") );
+				testVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
 
 				//pTestVectors.push_back(&oldcorr[i]);
 				//testVectorDescription.push_back(string("old correction [") + ToString(i) + string("]") );
@@ -264,43 +336,41 @@ public:
 			rA.resize(iNrOfTestVectors, iNrOfTestVectors);
 			rB.resize(iNrOfTestVectors, iNrOfTestVectors);
 
-			if(pB)
-				MultiEnergyProd(*pB, &pTestVectors[0], rB, iNrOfTestVectors);
+			if(m_pB)
+				MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
 			else
 				MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
 			// todo: remove doubled corrections by gauss-eliminating rB
 
-			MultiEnergyProd(A, &pTestVectors[0], rA, iNrOfTestVectors);
+			MultiEnergyProd(*m_pA, &pTestVectors[0], rA, iNrOfTestVectors);
 
-			/*cout << "A: " << endl;
-			cout << "A := matrix([";
+			/*UG_LOG("A:\nA := matrix([");
 			for(size_t r=0; r<rA.num_rows(); r++)
 			{
-				cout << "[";
+				UG_LOG("[");
 				for(size_t c=0; c<rA.num_cols(); c++)
 				{
-					cout << rA(r, c);
-					if(c < rA.num_cols()-1) cout << ", ";
+					UG_LOG(rA(r, c));
+					if(c < rA.num_cols()-1) UG_LOG(", ");
 				}
-				cout << "]";
-				if(r < rA.num_rows()-1) cout << ", ";
+				UG_LOG("]");
+				if(r < rA.num_rows()-1) UG_LOG(", ");
 			}
-			cout << "]);" << endl;
+			UG_LOG("]);\n");
 
-			cout << "B: " << endl;
-			cout << "B := matrix([";
+			UG_LOG("B:\n")B := matrix([");
 			for(size_t r=0; r<rB.num_rows(); r++)
 			{
-				cout << "[";
+				UG_LOG("[");
 				for(size_t c=0; c<rB.num_cols(); c++)
 				{
-					cout << rB(r, c);
-					if(c < rB.num_cols()-1) cout << ", ";
+					UG_LOG(rB(r, c));
+					if(c < rB.num_cols()-1) UG_LOG(", ");
 				}
-				cout << "]";
-				if(r < rB.num_rows()-1) cout << ", ";
+				UG_LOG("]");
+				if(r < rB.num_rows()-1) UG_LOG(", ");
 			}
-			cout << "]);" << endl;
+			UG_LOG("]);\n");
 
 			cout.flush();*/
 			// output
@@ -310,6 +380,7 @@ public:
 			r_ev.resize(iNrOfTestVectors, iNrOfTestVectors);
 			r_lambda.resize(iNrOfTestVectors);
 
+			// solve rA x = lambda rB, --> r_ev, r_lambda
 			GeneralizedEigenvalueProblem(rA, r_ev, r_lambda, rB, true);
 
 			size_t nrzero;
@@ -319,26 +390,26 @@ public:
 
 			if(nrzero)
 			{
-				cout << "Lambda < 0: " << endl;
+				UG_LOG("Lambda < 0: \n");
 				for(size_t i=0; i<nrzero; i++)
-					cout << i << ".: " << r_lambda[i] << endl;
+					UG_LOG(i << ".: " << r_lambda[i] << "\n");
 			}
 
-			cout << "Lambda > 0: " << endl;
+			UG_LOG("Lambda > 0: \n");
 			for(size_t i=nrzero; i<r_lambda.size(); i++)
-				cout << i << ".: " << r_lambda[i] << endl;
+				UG_LOG(i << ".: " << r_lambda[i] << "\n");
 
-			cout << endl;
+			UG_LOG("\n");
 
 
-			cout << "evs: " << endl;
-			for(size_t c=nrzero; c < min(nrzero+n, r_ev.num_cols()); c++)
+			UG_LOG("evs: \n");
+			for(size_t c=nrzero; c < std::min(nrzero+n, r_ev.num_cols()); c++)
 			{
-				cout << "ev [" << c << "]:" << endl;
+				UG_LOG("ev [" << c << "]:\n");
 				for(size_t r=0; r<r_ev.num_rows(); r++)
 					if(dabs(r_ev(r, c)) > 1e-5 )
-						cout << setw(14) << r_ev(r, c) << "   " << testVectorDescription[r] << endl;
-				cout << endl << endl;
+						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << testVectorDescription[r] << "\n");
+				UG_LOG("\n\n");
 			}
 
 
@@ -356,12 +427,12 @@ public:
 
 				// now overwrite
 				for(size_t r=0; r<n; r++)
-					(*x[r])[i] = x_tmp[r];
+					(*px[r])[i] = x_tmp[r];
 
 			}
 		}
 
-		UG_LOG("not converged after" << maxIterations << " steps." << endl);
+		UG_LOG("not converged after" << m_maxIterations << " steps.\n");
 		return false;
 	}
 
