@@ -12,10 +12,13 @@ ClassNameNode::ClassNameNode()
 
 void ClassNameNode::set_name(const char* name)
 {
+//	set name
 	m_name = std::string(name);
+
+//	check size
 	if(m_name.size()==0)
-		throw(UGFatalError("ERROR in 'ClassNameNode::set_name':"
-							"Name must be longer than 0"));
+		throw(REGISTRY_ERROR_Message("ERROR in 'ClassNameNode::set_name':"
+									 "Name must be longer than 0 characters."));
 }
 
 void ClassNameNode::add_base_class(const ClassNameNode& node)
