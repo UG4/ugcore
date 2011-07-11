@@ -160,6 +160,7 @@ bool amg_base<TAlgebra>::init()
 		LevelInformation li;
 #ifdef UG_PARALLEL
 		pcl::ProcessCommunicator &comm = m_A[level]->get_process_communicator();
+		nrOfCoarse -= GetNrOfInterfaceElements(m_A[level]->get_slave_layout());
 
 		li.m_dCreationTimeMS = createAMGlevelTiming;
 		nrOfCoarseSum = comm.allreduce(nrOfCoarse, PCL_RO_SUM);
