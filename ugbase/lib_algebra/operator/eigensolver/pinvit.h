@@ -110,6 +110,43 @@ void PrintStorageType(const tvector &v)
 }
 
 
+template<typename matrix_type>
+void PrintMatrix(const matrix_type &mat, const char *name)
+{
+	UG_LOG(name << ":\n" << name << " := matrix([\n");
+	for(size_t r=0; r<mat.num_rows(); r++)
+	{
+		UG_LOG("[");
+		for(size_t c=0; c<mat.num_cols(); c++)
+		{
+			UG_LOG(mat(r, c));
+			if(c < mat.num_cols()-1) UG_LOG(",\t");
+		}
+		UG_LOG("]\n");
+	}
+	UG_LOG("]);\n");
+
+}
+
+template<typename matrix_type>
+void PrintMaple(const matrix_type &mat, const char *name)
+{
+	UG_LOG(name << ":\n" << name << " := matrix([");
+	for(size_t r=0; r<mat.num_rows(); r++)
+	{
+		UG_LOG("[");
+		for(size_t c=0; c<mat.num_cols(); c++)
+		{
+			UG_LOG(mat(r, c));
+			if(c < mat.num_cols()-1) UG_LOG(", ");
+		}
+		UG_LOG("]");
+		if(r < mat.num_rows()-1) UG_LOG(", ");
+	}
+	UG_LOG("]);\n");
+
+}
+
 template<typename TAlgebra>
 class PINVIT
 {
@@ -136,12 +173,14 @@ private:
 
 	size_t m_maxIterations;
 	double m_dPrecision;
+	size_t m_iPINVIT;
 
 public:
 	PINVIT()
 	{
 		m_pA = NULL;
 		m_pB = NULL;
+		m_iPINVIT = 3;
 	}
 
 	void add_vector(vector_type &vec)
@@ -230,17 +269,12 @@ public:
 			if(m_pB)
 			{
 				for(size_t i=0; i<n; i++)
-				{
-					UG_LOG(i << ": " << sqrt( EnergyProd(*px[i], B, *px[i])) << " , " << (sqrt(0.00390625)*px[i]->two_norm()) << "\n");
-
-					//(*px[i]) *= 1/ sqrt( EnergyProd(*px[i], *m_pB, *px[i]));
 					(*px[i]) *= 1/ sqrt( EnergyProd(*px[i], B, *px[i]));
-				}
 			}
 			else
 			{
 				for(size_t i=0; i<n; i++)
-					(*px[i]) *= 1/ (sqrt(0.00390625)*px[i]->two_norm());
+					(*px[i]) *= 1 / px[i]->two_norm();
 			}
 
 
@@ -261,12 +295,13 @@ public:
 				// px can be set to unique because of two_norm
 				px[i]->set_storage_type(PST_CONSISTENT);
 				m_pA->apply(defect, *px[i]);
+
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_UNIQUE);
 				px[i]->change_storage_type(PST_UNIQUE);
 #endif
 				lambda[i] = VecProd(*px[i], defect); // / <px[i], px[i]> = 1.0.
-				UG_LOG("lambda[" << i << "] = " << lambda[i] << "\n");
+				//UG_LOG("lambda[" << i << "] = " << lambda[i] << "\n");
 
 				// 2b. calculate residuum
 				// defect = A px[i] - lambda[i] B px[i]
@@ -278,7 +313,7 @@ public:
 					MatMultAddDirect(defect, 1.0, defect, -lambda[i], B, *px[i]);
 				}
 				else
-					VecScaleAdd(defect, 1.0, defect, -0.00390625*lambda[i], *px[i]);
+					VecScaleAdd(defect, 1.0, defect, -lambda[i], *px[i]);
 
 				// 2c. check if converged
 
@@ -286,13 +321,14 @@ public:
 				defect.change_storage_type(PST_UNIQUE);
 #endif
 				corrnorm[i] = defect.two_norm();
-				UG_LOG("corrnorm[" << i << "] = " << corrnorm[i] << "\n");
+				//UG_LOG("corrnorm[" << i << "] = " << corrnorm[i] << "\n");
 				if(corrnorm[i] < m_dPrecision)
 					nrofconverged++;
 				if(corrnorm[i] < 1e-12)
 					continue;
 				// 2d. apply preconditioner
 				m_pPrecond->apply(corr[i], defect);
+				corr[i] *= 1/ sqrt( EnergyProd(corr[i], B, corr[i]));
 #ifdef UG_PARALLEL
 				corr[i].change_storage_type(PST_UNIQUE);
 #endif
@@ -319,15 +355,32 @@ public:
 			testVectorDescription.clear();
 			for(size_t i=0; i<n; i++)
 			{
-				pTestVectors.push_back(px[i]);
-				testVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
-				if(corrnorm[i] < 1e-12)
-					continue;
-				pTestVectors.push_back(&corr[i]);
-				testVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+				if(m_iPINVIT == 1)
+				{
+					VecScaleAdd(corr[i], -1.0, corr[i], 1.0, *px[i]);
+					testVectorDescription.push_back(std::string("ev - corr [") + ToString(i) + std::string("]") );
+				}
+				else
+				{
+					pTestVectors.push_back(px[i]);
+					testVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
+					if(corrnorm[i] < m_dPrecision)
+							continue;
+					pTestVectors.push_back(&corr[i]);
+					testVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
 
-				//pTestVectors.push_back(&oldcorr[i]);
-				//testVectorDescription.push_back(string("old correction [") + ToString(i) + string("]") );
+					if(m_iPINVIT >= 3)
+					{
+						pTestVectors.push_back(&oldcorr[i]);
+						testVectorDescription.push_back(std::string("old correction [") + ToString(i) + std::string("]") );
+
+						if(iteration == 0)
+						{
+							for(size_t j=0; j<px[i]->size(); j++)
+								oldcorr[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
+						}
+					}
+				}
 			}
 
 			size_t iNrOfTestVectors = pTestVectors.size();
@@ -340,39 +393,65 @@ public:
 				MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
 			else
 				MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
-			// todo: remove doubled corrections by gauss-eliminating rB
+
+
+			/////// Remove linear depended vectors //////////////
+			std::vector<bool> bUse;
+			bUse.resize(iNrOfTestVectors, true);
+
+			{
+				DenseMatrix<VariableArray2<double> > mat = rB;
+
+				for(size_t i=0; i<mat.num_rows(); i++)
+				{
+					for(size_t j=0; j<i; j++)
+					{
+						if(!bUse[i]) continue;
+						double val = mat(i, j)/mat(j,j);
+						mat(i,j) = 0;
+						for(size_t k=j+1; k<mat.num_rows(); k++)
+							mat(i,k) -= val*mat(j, k);
+					}
+					if(mat(i,i) < 1e-8) bUse[i] = false;
+					else bUse[i] = true;
+				}
+
+				//for(size_t i=0; i<iNrOfTestVectors; i++)
+					//UG_LOG("Using " << testVectorDescription[i] << (bUse[i] ?"\n":" NOT\n"));
+				//PrintMatrix(rB, "rB");
+				//PrintMatrix(mat, "mat");
+			}
+
+
+			std::vector<vector_type *> pTestVectors2 = pTestVectors;
+			std::vector<std::string> testVectorDescription2 = testVectorDescription;
+			pTestVectors.clear();
+			testVectorDescription.clear();
+			for(size_t i=0; i<iNrOfTestVectors; i++)
+			{
+				if(bUse[i])
+				{
+					pTestVectors.push_back(pTestVectors2[i]);
+					testVectorDescription.push_back(testVectorDescription[i]);
+				}
+			}
+
+			iNrOfTestVectors = pTestVectors.size();
+
+			// 5. compute reduced Matrices rA, rB
+			rA.resize(iNrOfTestVectors, iNrOfTestVectors);
+			rB.resize(iNrOfTestVectors, iNrOfTestVectors);
+
+			if(m_pB)
+				MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
+			else
+				MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
 
 			MultiEnergyProd(*m_pA, &pTestVectors[0], rA, iNrOfTestVectors);
 
-			/*UG_LOG("A:\nA := matrix([");
-			for(size_t r=0; r<rA.num_rows(); r++)
-			{
-				UG_LOG("[");
-				for(size_t c=0; c<rA.num_cols(); c++)
-				{
-					UG_LOG(rA(r, c));
-					if(c < rA.num_cols()-1) UG_LOG(", ");
-				}
-				UG_LOG("]");
-				if(r < rA.num_rows()-1) UG_LOG(", ");
-			}
-			UG_LOG("]);\n");
+			//PrintMaple(rA, "rA");
+			//PrintMaple(rB, "rB");
 
-			UG_LOG("B:\n")B := matrix([");
-			for(size_t r=0; r<rB.num_rows(); r++)
-			{
-				UG_LOG("[");
-				for(size_t c=0; c<rB.num_cols(); c++)
-				{
-					UG_LOG(rB(r, c));
-					if(c < rB.num_cols()-1) UG_LOG(", ");
-				}
-				UG_LOG("]");
-				if(r < rB.num_rows()-1) UG_LOG(", ");
-			}
-			UG_LOG("]);\n");
-
-			cout.flush();*/
 			// output
 
 			// 6. solve reduced eigenvalue problem
@@ -388,7 +467,7 @@ public:
 				if(r_lambda[nrzero] > 1e-15)
 					break;
 
-			if(nrzero)
+			/*if(nrzero)
 			{
 				UG_LOG("Lambda < 0: \n");
 				for(size_t i=0; i<nrzero; i++)
@@ -407,10 +486,10 @@ public:
 			{
 				UG_LOG("ev [" << c << "]:\n");
 				for(size_t r=0; r<r_ev.num_rows(); r++)
-					if(dabs(r_ev(r, c)) > 1e-5 )
+					if(dabs(r_ev(r, c)) > 1e-9 )
 						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << testVectorDescription[r] << "\n");
 				UG_LOG("\n\n");
-			}
+			}*/
 
 
 			// assume r_lambda is sorted
@@ -436,7 +515,11 @@ public:
 		return false;
 	}
 
-
+	void set_pinvit(size_t iPINVIT)
+	{
+		m_iPINVIT = iPINVIT;
+		UG_ASSERT(iPINVIT >=1 && iPINVIT <= 3, "i has to be >= 1 and <= 3, but is " << iPINVIT);
+	}
 
 };
 
