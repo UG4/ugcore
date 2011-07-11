@@ -204,103 +204,20 @@ class IDoFDistribution
 		///////////////////////////
 
 	///	schedule grid function for adaption
-		void manage_grid_function(IGridFunction<TImpl>& gf)
-		{
-		//	search for grid function in list
-			typename std::vector<IGridFunction<TImpl>*>::iterator it;
-			it = find(m_vManagedGridFunc.begin(), m_vManagedGridFunc.end(), &gf);
-
-		//	add if not found
-			if(it == m_vManagedGridFunc.end())
-				m_vManagedGridFunc.push_back(&gf);
-		}
+		void manage_grid_function(IGridFunction<TImpl>& gf);
 
 	///	unschedule grid function for adaption
-		void unmanage_grid_function(IGridFunction<TImpl>& gf)
-		{
-		//	search for grid function in list
-			typename std::vector<IGridFunction<TImpl>*>::iterator it;
-			it = find(m_vManagedGridFunc.begin(), m_vManagedGridFunc.end(), &gf);
-
-		//	remove if found
-			if(it != m_vManagedGridFunc.end())
-				m_vManagedGridFunc.erase(it);
-		}
-
-	///	permutes all indices
-	/**
-	 * This method swaps the indices according to the passed mapping vector, i.e.
-	 * it performs a permutation of the whole index set. The vector vIndNew must
-	 * have the size of the number of indices and for each index it must return
-	 * the new index, i.e. newIndex = vIndNew[oldIndex].
-	 *
-	 * \param[in]	vIndNew		mapping for each index
-	 * \returns 	success flag
-	 */
-		bool permute_indices(std::vector<size_t>& vIndNew)
-		{
-		//	check size of permuting array. Must have same size as index set
-			if(vIndNew.size() != num_dofs())
-			{
-				UG_LOG("ERROR in 'IDoFDistribution::permute_indices': Passed "
-						" permutation does not have the size of the index set "
-						<<num_dofs()<<", but has size "<<vIndNew.size()<<"\n");
-				return false;
-			}
-
-		//	swap indices as implemented
-			if(!getImpl().permute_indices(vIndNew)) return false;
-
-		//	in parallel adjust also the layouts
-#ifdef UG_PARALLEL
-			PermuteIndicesInIndexLayout(m_slaveLayout, vIndNew);
-			PermuteIndicesInIndexLayout(m_masterLayout, vIndNew);
-			PermuteIndicesInIndexLayout(m_verticalSlaveLayout, vIndNew);
-			PermuteIndicesInIndexLayout(m_verticalMasterLayout, vIndNew);
-#endif
-
-		//	swap values of handled grid functions
-			for(size_t i = 0; i < m_vManagedGridFunc.size(); ++i)
-				m_vManagedGridFunc[i]->permute_values(vIndNew);
-
-		//	we're done
-			return true;
-		}
-
-	///	compress indices
-		bool defragment() {return getImpl().defragment();}
+		void unmanage_grid_function(IGridFunction<TImpl>& gf);
 
 	///	add indices to elements
-		void grid_obj_added(GeometricObject* obj)
-		{
-			uint type = obj->base_object_type_id();
-			switch(type)
-			{
-				case VERTEX:grid_obj_added(reinterpret_cast<VertexBase*>(obj)); return;
-				case EDGE: 	grid_obj_added(reinterpret_cast<EdgeBase*>(obj)); return;
-				case FACE:	grid_obj_added(reinterpret_cast<Face*>(obj)); return;
-				case VOLUME:grid_obj_added(reinterpret_cast<Volume*>(obj)); return;
-			}
-			throw(UGFatalError("GeomObject type not known."));
-		}
+		void grid_obj_added(GeometricObject* obj);
 		void grid_obj_added(VertexBase* vrt){getImpl().grid_obj_added(vrt);}
 		void grid_obj_added(EdgeBase* edge) {getImpl().grid_obj_added(edge);}
 		void grid_obj_added(Face* face) 	{getImpl().grid_obj_added(face);}
 		void grid_obj_added(Volume* vol) 	{getImpl().grid_obj_added(vol);}
 
 	///	remove indices from elements
-		void grid_obj_to_be_removed(GeometricObject* obj)
-		{
-			uint type = obj->base_object_type_id();
-			switch(type)
-			{
-				case VERTEX:grid_obj_to_be_removed(reinterpret_cast<VertexBase*>(obj)); return;
-				case EDGE: 	grid_obj_to_be_removed(reinterpret_cast<EdgeBase*>(obj)); return;
-				case FACE:	grid_obj_to_be_removed(reinterpret_cast<Face*>(obj)); return;
-				case VOLUME:grid_obj_to_be_removed(reinterpret_cast<Volume*>(obj)); return;
-			}
-			throw(UGFatalError("GeomObject type not known."));
-		}
+		void grid_obj_to_be_removed(GeometricObject* obj);
 		void grid_obj_to_be_removed(VertexBase* vrt){getImpl().grid_obj_to_be_removed(vrt);}
 		void grid_obj_to_be_removed(EdgeBase* edge) {getImpl().grid_obj_to_be_removed(edge);}
 		void grid_obj_to_be_removed(Face* face) 	{getImpl().grid_obj_to_be_removed(face);}
@@ -315,6 +232,21 @@ class IDoFDistribution
 	/// distribute dofs
 		bool distribute_dofs(){return getImpl().distribute_dofs();}
 
+	///	permutes all indices
+	/**
+	 * This method swaps the indices according to the passed mapping vector, i.e.
+	 * it performs a permutation of the whole index set. The vector vIndNew must
+	 * have the size of the number of indices and for each index it must return
+	 * the new index, i.e. newIndex = vIndNew[oldIndex].
+	 *
+	 * \param[in]	vIndNew		mapping for each index
+	 * \returns 	success flag
+	 */
+		bool permute_indices(std::vector<size_t>& vIndNew);
+
+	///	compress indices
+		bool defragment() {return getImpl().defragment();}
+
 	///	returns the connectivity for the indices
 	/**
 	 * This method returns a vector, that contains for each index a list of
@@ -326,7 +258,6 @@ class IDoFDistribution
 	 */
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection)
 			{return  getImpl().get_connections(vvConnection);}
-
 
 	protected:
 	///	copy values in managed grid functions for pairs of indices
@@ -340,15 +271,7 @@ class IDoFDistribution
 	 * \returns 	success flag
 	 */
 		bool indices_swaped(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
-							bool bDisjunct = false)
-		{
-		//	swap values of handled grid functions
-			for(size_t i = 0; i < m_vManagedGridFunc.size(); ++i)
-				m_vManagedGridFunc[i]->copy_values(vIndexMap, bDisjunct);
-
-		//	we're done
-			return true;
-		}
+							bool bDisjunct = false);
 
 	///	resizes managed grid functions when number of indices changed
 	/**
@@ -357,12 +280,7 @@ class IDoFDistribution
 	 *
 	 * \param[in]	newSize			new vector size
 	 */
-		void num_indices_changed(size_t newSize)
-		{
-		//	swap values of handled grid functions
-			for(size_t i = 0; i < m_vManagedGridFunc.size(); ++i)
-				m_vManagedGridFunc[i]->resize_values(newSize);
-		}
+		void num_indices_changed(size_t newSize);
 
 	protected:
 	///	access to implementation
@@ -435,8 +353,8 @@ class IDoFDistribution
 #endif
 };
 
-
-
 } // end namespace ug
+
+#include "dof_distribution_impl.h"
 
 #endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION__ */
