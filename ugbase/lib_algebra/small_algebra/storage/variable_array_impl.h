@@ -38,7 +38,7 @@ VariableArray1<T>::VariableArray1(const VariableArray1<T> &other)
 {
 	if(this == &other) return;
 	n = 0;
-	if(values) { delete[] values; values = NULL; }
+	values = NULL;
 	resize(other.size(), false);
 	for(size_type i=0; i<n; i++)
 		values[i] = other[i];
@@ -174,7 +174,7 @@ template<typename T, eMatrixOrdering T_ordering>
 VariableArray2<T, T_ordering>::VariableArray2(const VariableArray2<T, T_ordering> &other)
 {
 	if(this == &other) return;
-	if(values) { delete[] values; values = NULL; }
+	values = NULL;
 	rows = 0;
 	cols = 0;
 	resize(other.num_rows(), other.num_cols(), false);
