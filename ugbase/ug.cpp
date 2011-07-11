@@ -95,7 +95,12 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 #endif
 
 		//	initialize ug-interfaces
-		bridge::RegisterStandardInterfaces(bridge::GetUGRegistry());
+		if(!bridge::RegisterStandardInterfaces(bridge::GetUGRegistry()))
+		{
+			std::cout<<"ERROR in 'UGInit': Cannot register standard interfaces "
+					"using RegisterStandardInterfaces. Check registration process.\n";
+			return -1;
+		}
 	}
 
 //	bool pathsCorrect = InitPaths(argv[0]);
