@@ -134,7 +134,9 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 		typedef IApproximationSpace<domain_type> T;
 		typedef FunctionPattern TBase;
 		std::stringstream ss; ss << "IApproximationSpace" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+			.add_method("assign_domain|hide=true", &T::assign_domain)
+			.add_method("get_domain|hide=true", (domain_type& (T::*)())&T::get_domain);
 	}
 
 //	DomainElemDisc base class
