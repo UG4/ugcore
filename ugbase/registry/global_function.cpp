@@ -45,6 +45,7 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 	{
 		if(!params_in().parameter_named(j))
 		{
+		//	print error output, indicate parameter by 1, ..., NumParams
 			if(!bUndeclaredParameterFound)
 			{
 				bUndeclaredParameterFound = true;
@@ -52,18 +53,20 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 				if(classname) {UG_LOG("Method: '");}
 				else {UG_LOG("global Function: '");}
 				PrintFunctionInfo(*this, false, classname);
-				UG_LOG("': Parameter " << j);
+				UG_LOG("': Parameter " << j+1);
 			}
 			else
-			{	UG_LOG(", " << j);	}
+			{	UG_LOG(", " << j+1);	}
 		}
 	}
 
 //	loop return values
 	for(int j=0; j<params_out().size(); j++)
 	{
+	//	print error output
 		if(!params_out().parameter_named(j))
 		{
+			UG_ASSERT(j == 0, "Not more than one return value can appear.");
 			if(!bUndeclaredParameterFound)
 			{
 				bUndeclaredParameterFound = true;
@@ -71,10 +74,10 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 				if(classname) {UG_LOG("Method: '");}
 				else {UG_LOG("global Function: '");}
 				PrintFunctionInfo(*this, false, classname);
-				UG_LOG("': Return value " << j);
+				UG_LOG("': Return value ");
 			}
 			else
-			{	UG_LOG(", Return value " << j);	}
+			{	UG_LOG(", Return value ");	}
 		}
 	}
 
