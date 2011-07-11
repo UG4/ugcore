@@ -343,6 +343,17 @@ void PostRegisterTest()
 	reg.registry_changed();
 }
 
+
+class Unregistered{
+	private:
+		string	m_emptyString;
+};
+
+void UnregisteredParameterTest(Unregistered& unregistered)
+{
+}
+
+
 bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 {
 	try
@@ -452,6 +463,10 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_function("TestPageContainer", TestPageContainer, grp.c_str());
 
 		reg.add_function("PostRegisterTest", &PostRegisterTest);
+
+	//	if the following registration is performed, the app should fail on startup,
+	//	since the registered method takes an argument of an unregistered type.
+		//reg.add_function("UnregisteredParameterTest", UnregisteredParameterTest);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
