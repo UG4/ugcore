@@ -19,7 +19,7 @@ Registry::Registry()
 	add_class_<float>("float");
 	add_class_<double>("double");
 	add_class_<char>("char");
-	add_class_<std::string>("std::string");
+	add_class_<std::string>("string");
 }
 
 Registry::Registry(const Registry& reg)
