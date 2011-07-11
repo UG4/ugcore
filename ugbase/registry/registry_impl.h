@@ -27,7 +27,7 @@ add_function(const char* funcName, TFunc func, const char* group,
 	if(pos != std::string::npos){
 		methodOptions = strippedMethodName.substr(pos + 1, strippedMethodName.length() - pos);
 		strippedMethodName = strippedMethodName.substr(0, pos);
-		UG_LOG(strippedMethodName << " ... | ... " << methodOptions << std::endl);
+		std::cout<<strippedMethodName << " ... | ... " << methodOptions << std::endl;
 	}
 
 //	trim whitespaces

@@ -6,6 +6,7 @@
  */
 
 #include "global_function.h"
+#include <iostream>
 
 namespace ug
 {
@@ -49,14 +50,14 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 			if(!bUndeclaredParameterFound)
 			{
 				bUndeclaredParameterFound = true;
-				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
-				if(classname) {UG_LOG("Method: '");}
-				else {UG_LOG("global Function: '");}
+				std::cout<<"#### Registry ERROR: Unregistered Class used in ";
+				if(classname) std::cout<<"Method: '";
+				else std::cout<<"global Function: '";
 				PrintFunctionInfo(*this, false, classname);
-				UG_LOG("': Parameter " << j+1);
+				std::cout<<"': Parameter " << j+1;
 			}
 			else
-			{	UG_LOG(", " << j+1);	}
+			{	std::cout<<", " << j+1;	}
 		}
 	}
 
@@ -70,19 +71,19 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 			if(!bUndeclaredParameterFound)
 			{
 				bUndeclaredParameterFound = true;
-				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
-				if(classname) {UG_LOG("Method: '");}
-				else {UG_LOG("global Function: '");}
+				std::cout<<"#### Registry ERROR: Unregistered Class used in ";
+				if(classname) std::cout<<"Method: '";
+				else std::cout<<"global Function: '";
 				PrintFunctionInfo(*this, false, classname);
-				UG_LOG("': Return value ");
+				std::cout<<"': Return value ";
 			}
 			else
-			{	UG_LOG(", Return value ");	}
+			{	std::cout<<", Return value ";	}
 		}
 	}
 
 //	check if undeclared parameter has been found
-	if(bUndeclaredParameterFound) {UG_LOG("\n"); return false;}
+	if(bUndeclaredParameterFound) {std::cout<<"\n"; return false;}
 
 //	everything ok
 	return true;

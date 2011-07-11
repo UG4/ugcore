@@ -8,6 +8,7 @@
 #include <map>
 #include <cstring>
 #include <typeinfo>
+#include <iostream>
 #include <boost/function.hpp>
 #include <boost/type_traits.hpp>
 

@@ -110,10 +110,10 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const char* bas
 	std::vector<size_t> vWay;
 	if(!ClassNameTreeWay(vWay, *node, baseName))
 	{
-		UG_LOG("ERROR in ClassCastProvider::cast_to_base_class: Request"
+		std::cout<<"ERROR in ClassCastProvider::cast_to_base_class: Request"
 				" to cast from derived class '"<< node->name()<<"' to "
 				" base class '"<<baseName<<"', but no such base class in"
-				" registered class hierarchy.\n");
+				" registered class hierarchy.\n";
 		return NULL;
 	}
 
@@ -135,11 +135,11 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const char* bas
 
 		if(it == m_mmCast.end())
 		{
-			UG_LOG("ERROR in ClassCastProvider::cast_to_base_class:"
+			std::cout<<"ERROR in ClassCastProvider::cast_to_base_class:"
 					" Request intermediate cast from derived class '" <<
 					pCurrNode->name() <<"' to direct base class '"
 					<<pBaseClassNode->name()<<"', but no such cast "
-					" function registered.\n");
+					" function registered.\n";
 			return NULL;
 		}
 

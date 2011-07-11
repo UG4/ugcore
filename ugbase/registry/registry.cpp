@@ -167,14 +167,14 @@ bool Registry::check_consistency()
 
 //	log error messages
 	if(globFctUndef > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<globFctUndef<<
-		       " global Functions are using undeclared Classes.\n");
+		std::cout<<"#### ERROR in 'Registry::check_consistency': "<<globFctUndef<<
+		       " global Functions are using undeclared Classes.\n";
 	if(methodUndef > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<methodUndef<<
-		       " Methods are using undeclared Classes.\n");
+		std::cout<<"#### ERROR in 'Registry::check_consistency': "<<methodUndef<<
+		       " Methods are using undeclared Classes.\n";
 	if(baseClassUndef > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<baseClassUndef<<
-		       " Base-Classes are using undeclared Classes.\n");
+		std::cout<<"#### ERROR in 'Registry::check_consistency': "<<baseClassUndef<<
+		       " Base-Classes are using undeclared Classes.\n";
 
 //	return false if undefined classes have been found
 	if(globFctUndef > 0) return false;

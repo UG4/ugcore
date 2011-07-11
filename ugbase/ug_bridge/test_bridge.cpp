@@ -354,6 +354,10 @@ Unregistered* UnregisteredParameterTest(Unregistered& unregistered)
 	return &unregistered;
 }
 
+class NonAllowedName1 {};
+class NonAllowedName2 {};
+class NonAllowedName3 {};
+class NonAllowedName4 {};
 
 bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 {
@@ -468,6 +472,13 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered method takes an argument of an unregistered type.
 		//reg.add_function("UnregisteredParameterTest", UnregisteredParameterTest);
+
+	//	if the following registration is performed, the app should fail on startup,
+	//	since the registered class is ill named (only [a-zA-Z_][a-zA-Z_0-9]* allowed).
+		//reg.add_class_<NonAllowedName1>("BlimBlim$tshe");
+		//reg.add_class_<NonAllowedName2>("5BlimBlimtshe");
+		//reg.add_class_<NonAllowedName3>("Blim::Blimtshe");
+		//reg.add_class_<NonAllowedName4>("Blim Blimtshe");
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

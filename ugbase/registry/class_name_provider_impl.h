@@ -8,6 +8,9 @@
 #ifndef __H__UG_BRIDGE__CLASS_NAME_PROVIDER_IMPL__
 #define __H__UG_BRIDGE__CLASS_NAME_PROVIDER_IMPL__
 
+#include <algorithm>
+#include <string>
+
 #include "class_name_provider.h"
 
 namespace ug{
@@ -37,6 +40,38 @@ set_name(const char* nameIn, const char* group, bool newName)
 
 	if(nameIn[0] == '[')
 		throw(REGISTRY_ERROR_Message("Registered class name must not begin with '['"));
+
+//	create help string
+	std::string nameStr = std::string(nameIn);
+
+//	check for non-allowed character
+	size_t found = nameStr.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
+											 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+											 "_"
+											 "0123456789");
+	if (found!=std::string::npos)
+	{
+	//	info: do not use UG_LOG here, since in parallel MPI_Init has not been
+	//		  called, but UG_LOG checks proc rank.
+		std::cout<<"Non-allowed character '"<<nameStr[found]<<"' "<<
+		       "contained at position "<<int(found)<<" in registered Class Name "
+		       "'"<<nameStr<<"'.\nClass names must match the regular expression: "
+		       "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
+		       " and '_' are allowed; no numbers at the beginning.\n";
+		throw(REGISTRY_ERROR_Message("Class Name must only contain [a-zA-Z0-9]."));
+	}
+
+//	check that no number at the beginning
+	 found = nameStr.find_first_of("0123456789");
+	if (found!=std::string::npos && found == 0)
+	{
+	//	info: do not use UG_LOG here, since in parallel MPI_Init has not been
+	//		  called, but UG_LOG checks proc rank.
+		std::cout<<"Class Name "<<nameStr<<" starts with a number.\nThis is "
+				" not allowed. Please change naming.\n";
+		throw(REGISTRY_ERROR_Message("Class Name must not start with number."));
+	}
+
 
 //	copy name into static string
 	m_ClassNameNode.set_name(nameIn);
