@@ -7,6 +7,9 @@
 
 #include "global_function.h"
 #include <iostream>
+#include <algorithm>
+#include <string>
+#include "class_name_provider.h"
 
 namespace ug
 {
@@ -33,6 +36,36 @@ ExportedFunctionBase(	const char* funcName, const char* funcOptions,
 	for(size_t i = 0; i < vParamInfoTmp.size(); ++i)
 	{
 		tokenize(vParamInfoTmp[i], m_vvParamInfo[i], '|');
+	}
+
+//	check name   //
+///////////////////
+
+//	create help string
+	std::string nameStr = std::string(funcName);
+
+//	check for non-allowed character
+	size_t found = nameStr.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
+											 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+											 "_"
+											 "0123456789");
+	if (found!=std::string::npos)
+	{
+		std::cout<<"Non-allowed character '"<<nameStr[found]<<"' "<<
+			   "contained at position "<<int(found)<<" in registered function/method "
+			   "'"<<nameStr<<"'.\nFunction names must match the regular expression: "
+			   "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
+			   " and '_' are allowed; no numbers at the beginning.\n";
+		throw(REGISTRY_ERROR_Message("Function Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
+	}
+
+//	check that no number at the beginning
+	found = nameStr.find_first_of("0123456789");
+	if (found!=std::string::npos && found == 0)
+	{
+		std::cout<<"Function Name "<<nameStr<<" starts with a number.\nThis is "
+				" not allowed. Please change naming.\n";
+		throw(REGISTRY_ERROR_Message("Function Name must not start with number."));
 	}
 };
 

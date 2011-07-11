@@ -358,6 +358,11 @@ class NonAllowedName1 {};
 class NonAllowedName2 {};
 class NonAllowedName3 {};
 class NonAllowedName4 {};
+class AllowName{public: void non_allowed_method(){};};
+
+void NonAllowedFct1() {};
+void NonAllowedFct2() {};
+void NonAllowedFct3() {};
 
 bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 {
@@ -474,16 +479,27 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		//reg.add_function("UnregisteredParameterTest", UnregisteredParameterTest);
 
 	//	if the following registration is performed, the app should fail on startup,
-	//	since the registered class is ill named (only [a-zA-Z_][a-zA-Z_0-9]* allowed).
+	//	since the registered class/functon is ill named (only [a-zA-Z_][a-zA-Z_0-9]* allowed).
 		//reg.add_class_<NonAllowedName1>("BlimBlim$tshe");
 		//reg.add_class_<NonAllowedName2>("5BlimBlimtshe");
 		//reg.add_class_<NonAllowedName3>("Blim::Blimtshe");
 		//reg.add_class_<NonAllowedName4>("Blim Blimtshe");
+		//reg.add_class_<AllowName>("AllowName").add_method("$liadsf", &AllowName::non_allowed_method);
+		//reg.add_function("Blub%brrr", &NonAllowedFct1);
+		//reg.add_function("5Blubbrrr", &NonAllowedFct2);
+		//reg.add_function("Blub_brr r", &NonAllowedFct3);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
 		UG_LOG("### ERROR in RegisterTestInterface: "
 				"Registration failed (using name " << ex.name << ").\n");
+		throw(UG_REGISTRY_ERROR_RegistrationFailed(ex.name.c_str()));
+		return false;
+	}
+	catch(REGISTRY_ERROR_Message ex)
+	{
+		UG_LOG("### ERROR in RegisterTestInterface: " << ex.msg << "\n");
+		throw(UG_REGISTRY_ERROR_RegistrationFailed(""));
 		return false;
 	}
 

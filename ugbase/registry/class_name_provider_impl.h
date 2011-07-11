@@ -58,7 +58,7 @@ set_name(const char* nameIn, const char* group, bool newName)
 		       "'"<<nameStr<<"'.\nClass names must match the regular expression: "
 		       "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
 		       " and '_' are allowed; no numbers at the beginning.\n";
-		throw(REGISTRY_ERROR_Message("Class Name must only contain [a-zA-Z0-9]."));
+		throw(REGISTRY_ERROR_Message("Class Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
 	}
 
 //	check that no number at the beginning
