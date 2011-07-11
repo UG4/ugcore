@@ -43,6 +43,9 @@ struct REGISTRY_ERROR_Message
 class ClassNameNode
 {
 	public:
+	///	constructor
+		ClassNameNode();
+
 	///	set name
 		void set_name(const char* name);
 
@@ -54,6 +57,9 @@ class ClassNameNode
 
 	///	returns if a name has been set
 		bool empty() const {return m_name.empty();}
+
+	///	returns if a name has been set by the user
+		bool named() const;
 
 	///	returns number of parents
 		size_t num_base_classes() const {return m_vBaseClass.size();}

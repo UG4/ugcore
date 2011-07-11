@@ -81,8 +81,9 @@ class Registry {
 
 	///	adds a callback which is triggered whenever Registry::registry_changed is called.
 		void add_callback(FuncRegistryChanged callback);
+
 	///	call this method if to forward changes of the registry to its listeners
-		void registry_changed();
+		bool registry_changed();
 
 	//////////////////////
 	// global functions
@@ -158,7 +159,7 @@ class Registry {
 
 
 	///////////////////
-	// classe-groups
+	// class-groups
 	///////////////////
 
 	///	returns the number of available class groups

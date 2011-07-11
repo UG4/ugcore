@@ -349,8 +349,9 @@ class Unregistered{
 		string	m_emptyString;
 };
 
-void UnregisteredParameterTest(Unregistered& unregistered)
+Unregistered* UnregisteredParameterTest(Unregistered& unregistered)
 {
+	return &unregistered;
 }
 
 

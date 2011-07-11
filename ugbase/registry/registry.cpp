@@ -2,6 +2,8 @@
 // s.b.reiter@googlemail.com
 // 08.07.2011 (m,d,y)
  
+#include <string>
+
 #include "registry.h"
 
 namespace ug{
@@ -10,6 +12,14 @@ namespace bridge
 
 Registry::Registry()
 {
+//	register native types as provided in ParameterStack
+	add_class_<bool>("bool");
+	add_class_<int>("int");
+	add_class_<size_t>("size_t");
+	add_class_<float>("float");
+	add_class_<double>("double");
+	add_class_<char>("char");
+	add_class_<std::string>("std::string");
 }
 
 Registry::Registry(const Registry& reg)
@@ -46,13 +56,18 @@ void Registry::add_callback(FuncRegistryChanged callback)
 	m_callbacksRegChanged.push_back(callback);
 }
 
-void Registry::registry_changed()
+bool Registry::registry_changed()
 {
-	check_consistency();
+//	check that the registered components are correct
+	if(!check_consistency()) return false;
+
 //	iterate through all callbacks and call them
 	for(size_t i = 0; i < m_callbacksRegChanged.size(); ++i){
 		m_callbacksRegChanged[i](this);
 	}
+
+//	ok
+	return true;
 }
 
 //////////////////////
@@ -114,7 +129,7 @@ IExportedClass* Registry::get_class(const char* name)
 
 bool Registry::check_consistency()
 {
-	size_t found = 0;
+	size_t globFctUndef = 0;
 //	check global functions
 	for(size_t i=0; i<num_functions(); i++)
 	{
@@ -123,12 +138,14 @@ bool Registry::check_consistency()
 
 	//	check all overloads
 		for(size_t j = 0; j < funcGrp.num_overloads(); ++j){
-			if(funcGrp.get_overload(j)->check_consistency()) found++;
+			if(!funcGrp.get_overload(j)->check_consistency())
+				globFctUndef++;
 		}
 	}
 
-// 	check classes
+// 	check classes and their methods
 	size_t baseClassUndef = 0;
+	size_t methodUndef = 0;
 	for(size_t i=0; i<num_classes(); i++)
 	{
 	//	get class
@@ -140,22 +157,32 @@ bool Registry::check_consistency()
 
 	//	check methods
 		for(size_t j=0; j<c.num_methods(); j++)
-			if(c.get_method(j).check_consistency(c.name())) found++;
+			if(!c.get_method(j).check_consistency(c.name()))
+				methodUndef++;
+
 		for(size_t j=0; j<c.num_const_methods(); j++)
-			if(c.get_const_method(j).check_consistency(c.name())) found++;
+			if(!c.get_const_method(j).check_consistency(c.name()))
+				methodUndef++;
 	}
 
-	UG_ASSERT(found == 0, "ERROR: " << found <<
-	          	  	  	  " functions are using undeclared classes\n");
-	UG_ASSERT(baseClassUndef == 0, "ERROR: " << baseClassUndef <<
-	          	  	  " base classes are using undeclared classes\n");
+//	log error messages
+	if(globFctUndef > 0)
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<globFctUndef<<
+		       " global Functions are using undeclared Classes.\n");
+	if(methodUndef > 0)
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<methodUndef<<
+		       " Methods are using undeclared Classes.\n");
+	if(baseClassUndef > 0)
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<baseClassUndef<<
+		       " Base-Classes are using undeclared Classes.\n");
 
 //	return false if undefined classes have been found
-	if(found > 0) return false;
+	if(globFctUndef > 0) return false;
+	if(methodUndef > 0) return false;
 	if(baseClassUndef > 0) return false;
 
 //	everything fine
-	else return true;
+	return true;
 }
 
 

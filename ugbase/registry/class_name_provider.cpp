@@ -5,6 +5,11 @@ namespace ug
 namespace bridge
 {
 
+ClassNameNode::ClassNameNode()
+{
+	m_name.clear();
+}
+
 void ClassNameNode::set_name(const char* name)
 {
 	m_name = std::string(name);
@@ -13,7 +18,6 @@ void ClassNameNode::set_name(const char* name)
 							"Name must be longer than 0"));
 }
 
-
 void ClassNameNode::add_base_class(const ClassNameNode& node)
 {
 	std::vector<const ClassNameNode*>::iterator it
@@ -21,6 +25,19 @@ void ClassNameNode::add_base_class(const ClassNameNode& node)
 	if(it == m_vBaseClass.end())
 		m_vBaseClass.push_back(&node);
 }
+
+bool ClassNameNode::named() const
+{
+//	if string is empty, then has not been named
+	if(empty()) return false;
+
+//	if string starts with '[' then has only been predeclared
+	if(m_name.c_str()[0] == '[') return false;
+
+//	has been named
+	return true;
+}
+
 
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name)
 {

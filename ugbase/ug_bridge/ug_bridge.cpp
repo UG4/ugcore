@@ -74,8 +74,10 @@ bool InitAlgebra(IAlgebraTypeSelector *algebra_type)
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}
-	reg.registry_changed();
-	return true;
+
+	bResult &= reg.registry_changed();
+
+	return bResult;
 }
 
 #endif
@@ -121,8 +123,11 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 		return false;
 	}
 
+	bResult &= reg.registry_changed();
+
 	return bResult;
 }
+
 
 }//	end of namespace 
 }//	end of namespace 

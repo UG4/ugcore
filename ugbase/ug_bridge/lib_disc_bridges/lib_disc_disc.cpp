@@ -129,6 +129,14 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
 	std::string grp = grpSS.str();
 
+//	IApproximationSpace
+	{
+		typedef IApproximationSpace<domain_type> T;
+		typedef FunctionPattern TBase;
+		std::stringstream ss; ss << "IApproximationSpace" << dim << "d";
+		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
+	}
+
 //	DomainElemDisc base class
 	{
 		typedef IDomainElemDisc<domain_type> T;

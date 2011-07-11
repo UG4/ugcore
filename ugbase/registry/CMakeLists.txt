@@ -14,6 +14,7 @@ include("../../ug_cmake_includes.txt")
 
 set(srcRegistry    	registry.cpp
 					class_name_provider.cpp
+					global_function.cpp
 					class_helper.cpp)
 
 set(Sources ${srcRegistry})

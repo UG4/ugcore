@@ -188,12 +188,12 @@ class ParameterStack
 				char* tstr = new char[strSize];
 				memcpy(tstr, str, strSize);
 				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY,
-				                    &ClassNameProvider<const char*>::class_name_node());
+				                    &ClassNameProvider<char>::class_name_node());
 				m_bHasStringCopies = true;
 			}
 			else{
 				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING,
-				                    &ClassNameProvider<const char*>::class_name_node());
+				                    &ClassNameProvider<char>::class_name_node());
 			}
 		}
 
@@ -253,8 +253,8 @@ class ParameterStack
 		const char* class_name(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			if(m_entries[index].pClassNameNode == NULL) return "";
-			else if (m_entries[index].pClassNameNode->empty()) return "";
+			if(m_entries[index].pClassNameNode == NULL)
+				throw(UGFatalError("ClassNameNode missing in Parameter stack."));
 			return (*m_entries[index].pClassNameNode).name().c_str();
 		}
 
@@ -262,6 +262,8 @@ class ParameterStack
 		const ClassNameNode* class_name_node(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			if(m_entries[index].pClassNameNode == NULL)
+				throw(UGFatalError("ClassNameNode missing in Parameter stack."));
 			return m_entries[index].pClassNameNode;
 		}
 
@@ -607,11 +609,10 @@ class ParameterStack
 				throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
 		}
 
-		bool is_parameter_undeclared(int index) const
+	///	returns true if a parameter of the stack has been named by user
+		bool parameter_named(int index) const
 		{
-			if(class_name(index) == NULL || strlen(class_name(index)) == 0)
-				return false;
-			return class_name(index)[0] == '[';
+			return class_name_node(index)->named();
 		}
 
 	private:
