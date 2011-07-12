@@ -256,7 +256,7 @@ bool P1DoFDistribution<bGrouped>::distribute_dofs()
 				if(!this->m_pSurfaceView->is_shadow(vrt)) continue;
 
 			//	get child
-				VertexBase* vrtChild = this->m_pSurfaceView->get_child(vrt);
+				VertexBase* vrtChild = this->m_pSurfaceView->template get_shadow_child<VertexBase>(vrt);
 
 			//	get indices of child
 				const size_t indexChild = first_index(vrtChild);
@@ -475,7 +475,7 @@ void P1DoFDistribution<bGrouped>::grid_obj_added(VertexBase* vrt)
 	{
 		UG_LOG("ERROR in 'P1DoFDistribution::get_connections':"
 				" No Subset Handler");
-		throw(UGFatalError("Subset Handler missng."));
+		throw(UGFatalError("Subset Handler missing."));
 	}
 
 //	for newly created vertices, we have to add the integers
@@ -488,7 +488,7 @@ void P1DoFDistribution<bGrouped>::grid_obj_added(VertexBase* vrt)
 	if(this->m_pSurfaceView != NULL && this->m_pSurfaceView->is_shadow(vrt))
 	{
 	//	get child
-		VertexBase* vrtChild = this->m_pSurfaceView->get_child(vrt);
+		VertexBase* vrtChild = this->m_pSurfaceView->template get_shadow_child<VertexBase>(vrt);
 
 	//	get indices of child
 		const size_t indexChild = first_index(vrtChild);
@@ -518,10 +518,8 @@ template <bool bGrouped>
 void P1DoFDistribution<bGrouped>::
 grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld)
 {
-//	get subset index
-	const int si = m_pISubsetHandler->get_subset_index(vrtOld);
-
-	UG_ASSERT(m_pISubsetHandler->get_subset_index(vrtNew) == si,
+	UG_ASSERT(	m_pISubsetHandler->get_subset_index(vrtNew) ==
+				m_pISubsetHandler->get_subset_index(vrtOld),
 	          "New vertex does not have same subset as replaced on.");
 
 //	copy index

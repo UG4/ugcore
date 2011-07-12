@@ -64,8 +64,18 @@ class SurfaceView : public SubsetHandler
 		inline GeometricObject* get_parent(TGeomObj* obj) const {return m_pMG->get_parent(obj);}
 
 	///	returns child for shadow
-		inline VertexBase* get_child(VertexBase* vrt) const {return m_pMG->get_child_vertex<VertexBase>(vrt);}
-		
+		template <class TElem>
+		inline TElem* get_shadow_child(TElem* elem) const
+		{
+				typedef typename geometry_traits<Edge>::geometric_base_object
+						baseType;
+				baseType* pBase = dynamic_cast<baseType*>(elem);
+				TElem* pChild = dynamic_cast<TElem*>(m_pMG->get_child<baseType,baseType>(pBase, 0));
+				if(pChild == NULL)
+					throw(UGFatalError("Child of shadow not of same type."));
+				return pChild;
+		}
+
 	///	returns the level in grid hierarchy of an element in the surface
 		template <class TGeomObj>
 		inline int get_level(TGeomObj* obj) const	{return m_pMG->get_level(obj);}
