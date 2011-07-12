@@ -1168,6 +1168,7 @@ jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 }
 
 jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
+	
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeAPIInfo");
 
 	// create instance
@@ -1187,7 +1188,7 @@ jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
 	env->CallVoidMethod(obj, setClassGroups, classGroups2NativeClassGroups(env, reg));
 	env->CallVoidMethod(obj, setClasses, classes2NativeClasses(env, reg));
 	env->CallVoidMethod(obj, setFunctions, functions2NativeGroups(env, reg));
-
+	
 	return obj;
 }
 

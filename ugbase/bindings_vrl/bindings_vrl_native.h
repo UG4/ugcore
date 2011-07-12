@@ -34,9 +34,17 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 /*
  * Class:     edu_gcsc_vrl_ug_UG
  * Method:    getExportedClassPtrByName
- * Signature: (Ljava/lang/String;)J
+ * Signature: (Ljava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_getExportedClassPtrByName
+  (JNIEnv *, jobject, jstring, jboolean);
+
+/*
+ * Class:     edu_gcsc_vrl_ug_UG
+ * Method:    getDefaultClassNameFromGroup
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
   (JNIEnv *, jobject, jstring);
 
 /*

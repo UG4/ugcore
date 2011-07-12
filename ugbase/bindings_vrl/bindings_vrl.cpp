@@ -53,8 +53,8 @@ void Logln(std::string s) {
 }
 
 void registerMessaging(ug::bridge::Registry & reg) {
-	reg.add_function("print",&Log,"UG4/Messaging");
-	reg.add_function("println",&Logln,"UG4/Messaging");
+	reg.add_function("print", &Log, "UG4/Messaging");
+	reg.add_function("println", &Logln, "UG4/Messaging");
 }
 
 }// end vrl::
@@ -99,9 +99,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(
 			reg, selector.get_algebra_type());
 
-//	ug::vrl::RegisterUserData(reg, "UG4/VRL");
+	//	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 
-//	ug::vrl::registerMessaging(reg);
+	//	ug::vrl::registerMessaging(reg);
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");
@@ -253,9 +253,43 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 }
 
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_getExportedClassPtrByName
-(JNIEnv *env, jobject obj, jstring name) {
-	return (long) ug::vrl::invocation::getExportedClassPtrByName(
-			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
+(JNIEnv *env, jobject obj, jstring name, jboolean classGrp) {
+
+	if (ug::vrl::boolJ2C(classGrp)) {
+
+		const ug::bridge::ClassGroupDesc* grpDesc =
+				ug::vrl::vrlRegistry->get_class_group(
+				ug::vrl::stringJ2C(env, name).c_str());
+
+		if (grpDesc == NULL || grpDesc->get_default_class() == NULL) {
+			return (long) NULL;
+		}
+
+		return (long) grpDesc->get_default_class();
+
+	} else {
+		return (long) ug::vrl::invocation::getExportedClassPtrByName(
+				ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
+	}
+
+	return (long) NULL;
+}
+
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
+(JNIEnv *env, jobject obj, jstring grpName) {
+	const ug::bridge::ClassGroupDesc* grpDesc =
+			ug::vrl::vrlRegistry->get_class_group(
+			ug::vrl::stringJ2C(env, grpName).c_str());
+
+	if (grpDesc == NULL) {
+		return ug::vrl::stringC2J(env, "");
+	}
+
+	if (grpDesc->get_default_class() == NULL) {
+		return ug::vrl::stringC2J(env, "");
+	}
+
+	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name());
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getSvnRevision
