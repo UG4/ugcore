@@ -257,8 +257,8 @@ public:
 
 	bool i_can_set_coarse(size_t i) const
 	{
-		return nodes[i].is_coarse() ||	// node already coarse
-			((i_must_assign(i) || is_slave(i, 0)) && nodes[i].could_be_coarse());  // or i can set coarse
+		return nodes[i].could_be_coarse() &&
+			(is_inner_node(i) || is_master(i)|| is_slave(i, 0));
 	}
 
 	std::string OL_type(size_t i) const
