@@ -30,6 +30,7 @@ if(NOT NO_ALGEBRA)
 	set(srcUGBridge ${srcUGBridge}
 					lib_algebra_bridges/lib_algebra_bridge.cpp
 					lib_algebra_bridges/amg_bridge.cpp
+					lib_algebra_bridges/eigensolver_bridge.cpp
 					
 					lib_disc_bridges/lib_disc_common.cpp
 					lib_disc_bridges/lib_disc_algebra.cpp
