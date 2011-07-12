@@ -40,21 +40,37 @@ init_standard_local_shape_function_sets()
 
 	//	get map
 		Map& map = get_map<TRefElem>();
-		BaseMap& baseMap = get_base_map();
+//		BaseMap& baseMap = get_base_map();
 
 	//	insert into map: P1 Lagrange
 		LSFSID type1(LSFSID::LAGRANGE, 1);
-		success &= map.insert(std::pair<LSFSID,const LocalShapeFunctionSet<TRefElem>*>
+		success &= map.insert(std::pair<LSFSID, const LocalShapeFunctionSet<TRefElem>*>
 													(type1, &sSetLagrangeP1)).second;
-		success &= baseMap.insert(std::pair<LSFSID,const LocalShapeFunctionSetBase*>
-													(type1, &sSetLagrangeP1)).second;
+//		success &= baseMap.insert(std::pair<LSFSID,const LocalShapeFunctionSetBase*>
+//													(type1, &sSetLagrangeP1)).second;
+
+		if(!success)
+		{
+			UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::"
+					"init_standard_local_shape_function_sets()': "
+					"Cannot init trial space: "<<type1<<".\n");
+			return false;
+		}
 
 	//	insert into map: P2 Lagrange
 		LSFSID type2(LSFSID::LAGRANGE, 2);
 		success &= map.insert(std::pair<LSFSID, const LocalShapeFunctionSet<TRefElem>*>
 													(type2, &sSetLagrangeP2)).second;
-		success &= baseMap.insert(std::pair<LSFSID, const LocalShapeFunctionSetBase*>
-													(type2, &sSetLagrangeP2)).second;
+//		success &= baseMap.insert(std::pair<LSFSID, const LocalShapeFunctionSetBase*>
+//													(type2, &sSetLagrangeP2)).second;
+
+		if(!success)
+		{
+			UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::"
+					"init_standard_local_shape_function_sets()': "
+					"Cannot init trial space: "<<type2<<".\n");
+			return false;
+		}
 
 		init = true;
 	}

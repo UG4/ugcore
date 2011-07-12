@@ -9,25 +9,23 @@
 
 namespace ug{
 
-struct UG_ERROR_CannotRegisterLocalShapeFunctionSet{};
-
 LocalShapeFunctionSetProvider::
 LocalShapeFunctionSetProvider()
 {
 	if(!init_standard_local_shape_function_sets<ReferenceEdge>())
-		throw(UG_ERROR_CannotRegisterLocalShapeFunctionSet());
+		throw(UGFatalError("Cannot register standard Edge trial spaces."));
 	if(!init_standard_local_shape_function_sets<ReferenceTriangle>())
-		throw(UG_ERROR_CannotRegisterLocalShapeFunctionSet());
+		throw(UGFatalError("Cannot register standard Triangle trial spaces."));
 	if(!init_standard_local_shape_function_sets<ReferenceQuadrilateral>())
-		throw(UG_ERROR_CannotRegisterLocalShapeFunctionSet());
+		throw(UGFatalError("Cannot register standard Quadrilateral trial spaces."));
 	if(!init_standard_local_shape_function_sets<ReferenceTetrahedron>())
-		throw(UG_ERROR_CannotRegisterLocalShapeFunctionSet());
+		throw(UGFatalError("Cannot register standard Tetrahedron trial spaces."));
 	if(!init_standard_local_shape_function_sets<ReferencePyramid>())
-		throw(UG_ERROR_CannotRegisterLocalShapeFunctionSet());
+		throw(UGFatalError("Cannot register standard Pyramid trial spaces."));
 	if(!init_standard_local_shape_function_sets<ReferencePrism>())
-		throw(UG_ERROR_CannotRegisterLocalShapeFunctionSet());
+		throw(UGFatalError("Cannot register standard Prism trial spaces."));
 	if(!init_standard_local_shape_function_sets<ReferenceHexahedron>())
-		throw(UG_ERROR_CannotRegisterLocalShapeFunctionSet());
+		throw(UGFatalError("Cannot register standard Hexahedron trial spaces."));
 };
 
 } // namespace ug

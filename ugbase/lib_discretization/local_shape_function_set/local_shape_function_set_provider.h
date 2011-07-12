@@ -48,7 +48,8 @@ class LocalShapeFunctionSetProvider {
 		static std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* >&
 		get_map();
 
-		inline
+	//	returns map holding all registered lsfs base classes
+		inline static
 		std::map<LSFSID,const LocalShapeFunctionSetBase*>&
 		get_base_map();
 
