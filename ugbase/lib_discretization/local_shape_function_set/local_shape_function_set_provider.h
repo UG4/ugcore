@@ -13,9 +13,6 @@
 
 namespace ug {
 
-// Error handling
-struct UG_ERROR_TrialSpaceNotRegistered{};
-
 // LocalShapeFunctionSetProvider
 /** class to provide local shape function sets
  *
@@ -49,7 +46,11 @@ class LocalShapeFunctionSetProvider {
 	// 	return a map of element_trial_spaces
 		template <typename TRefElem>
 		static std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* >&
-			get_map();
+		get_map();
+
+		inline
+		std::map<LSFSID,const LocalShapeFunctionSetBase*>&
+		get_base_map();
 
 	public:
 	/** register a local shape function set for a given reference element type
@@ -63,7 +64,8 @@ class LocalShapeFunctionSetProvider {
 		template <typename TRefElem>
 		static bool
 		register_local_shape_function_set(LSFSID id,
-		                                  const LocalShapeFunctionSet<TRefElem>& set);
+		                                  const LocalShapeFunctionSet<TRefElem>& set,
+		                                  const LocalShapeFunctionSetBase& baseSet);
 
 	/** unregister a local shape function set for a given reference element type
 	 * This function is used to unregister a Local Shape Function set for an element
@@ -87,6 +89,9 @@ class LocalShapeFunctionSetProvider {
 		template <typename TRefElem>
 		static const LocalShapeFunctionSet<TRefElem>&
 		get(LSFSID id);
+
+	///	returns the local shape function set base for an id
+		inline static const LocalShapeFunctionSetBase& get(LSFSID id);
 };
 
 

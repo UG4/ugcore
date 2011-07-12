@@ -45,6 +45,24 @@ struct UG_ERROR_InvalidShapeFunctionIndex
 /// \ingroup lib_discretization_local_shape_function_set
 /// @{
 
+/// base class for all reference element dependent local shape function sets
+class LocalShapeFunctionSetBase
+{
+	public:
+	///	returns if DoFs are assigned to geometric objects of the dimension
+		virtual bool has_sh_on(int d) const = 0;
+
+	///	returns the number of DoFs on a given sub-geometric object
+		virtual size_t num_sh(int d, size_t id) const = 0;
+
+	///	returns the number of DoFs on a sub-geometric object type
+		virtual size_t num_sh(ReferenceObjectID type) const = 0;
+
+	///	virtual destructor
+		virtual ~LocalShapeFunctionSetBase() {};
+};
+
+
 // LocalShapeFunctionSet
 /** base class for local shape functions
  *
@@ -61,7 +79,7 @@ struct UG_ERROR_InvalidShapeFunctionIndex
  * \tparam 	TRefElem	Reference Element Type
  */
 template <typename TRefElem>
-class LocalShapeFunctionSet
+class LocalShapeFunctionSet : public LocalShapeFunctionSetBase
 {
 	public:
 	///	Reference Element type
