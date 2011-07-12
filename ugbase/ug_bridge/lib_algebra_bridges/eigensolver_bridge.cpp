@@ -14,7 +14,7 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/operator_impl.h"
 
-#ifdef UG_PARALLEL
+#ifdef UG_PARALLEL11
 #include "lib_algebra/operator/eigensolver/pinvit.h"
 
 namespace ug
@@ -28,9 +28,9 @@ struct RegisterEigensolverClass
 	static bool reg(Registry &reg, const char *parentGroup)
 	{
 	//	typedefs for this algebra
-		typedef CPUAlgebra algebra_type;
-		typedef algebra_type::vector_type vector_type;
-		typedef algebra_type::matrix_type matrix_type;
+		typedef TAlgebra algebra_type;
+		typedef typename algebra_type::vector_type vector_type;
+		typedef typename algebra_type::matrix_type matrix_type;
 
 		//	get group string (use same as parent)
 		std::string grp = std::string(parentGroup);
