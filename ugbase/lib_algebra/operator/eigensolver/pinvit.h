@@ -65,9 +65,13 @@ double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
 {
 	vector_type t;
 	CloneVector(t, v1);
+#ifdef UG_PARALLEL
 	v2.change_storage_type(PST_CONSISTENT);
+#endif
 	A.apply(t, v2);
+#ifdef UG_PARALLEL
 	t.change_storage_type(PST_CONSISTENT);
+#endif
 	return VecProd(v1, t);
 }
 
@@ -83,9 +87,13 @@ void MultiEnergyProd(matrix_type &A,
 	for(size_t r=0; r<n; r++)
 	{
 		// todo: why is SparseMatrix<T>::apply not const ?!?
+#ifdef UG_PARALLEL
 		px[r]->change_storage_type(PST_CONSISTENT);
+#endif
 		A.apply(t, (*px[r]));
+#ifdef UG_PARALLEL
 		t.change_storage_type(PST_CONSISTENT);
+#endif
 		for(size_t c=r; c<n; c++)
 			rA(r, c) = VecProd((*px[c]), t);
 	}
@@ -99,6 +107,7 @@ void MultiEnergyProd(matrix_type &A,
 template<typename tvector>
 void PrintStorageType(const tvector &v)
 {
+#ifdef UG_PARALLEL
 	if(v.has_storage_type(PST_UNDEFINED))
 		UG_LOG("PST_UNDEFINED ");
 	if(v.has_storage_type(PST_CONSISTENT))
@@ -107,6 +116,9 @@ void PrintStorageType(const tvector &v)
 		UG_LOG("PST_ADDITIVE ");
 	if(v.has_storage_type(PST_UNIQUE))
 		UG_LOG("PST_UNIQUE ");
+#else
+	UG_LOG("serial ");
+#endif
 }
 
 
@@ -224,7 +236,6 @@ public:
 		DenseVector<VariableArray1<double> > r_lambda;
 		std::vector<double> lambda;
 
-
 		typedef typename vector_type::value_type value_type;
 		vector_type defect;
 		CloneVector(defect, *px[0]);
@@ -252,6 +263,10 @@ public:
 			UG_ASSERT(px[0]->size() == px[i]->size(), "all vectors must have same size");
 			CloneVector(corr[i], *px[0]);
 			CloneVector(oldcorr[i], *px[0]);
+
+			//PrintStorageType(*px[i]);
+			//PrintStorageType(corr[i]);
+			//PrintStorageType(oldcorr[i]);
 		}
 
 		std::vector<vector_type *> pTestVectors;
@@ -278,7 +293,6 @@ public:
 			}
 
 
-
 			// 1. before calculating new correction, save old correction
 			for(size_t i=0; i<n; i++)
 				std::swap(oldcorr[i], corr[i]);
@@ -293,7 +307,10 @@ public:
 				// todo: replace with MatMult
 //				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(*px[i]); UG_LOG("\n");
 				// px can be set to unique because of two_norm
-				px[i]->set_storage_type(PST_CONSISTENT);
+#ifdef UG_PARALLEL
+				px[i]->change_storage_type(PST_CONSISTENT);
+				defect.set_storage_type(PST_ADDITIVE);
+#endif
 				m_pA->apply(defect, *px[i]);
 
 #ifdef UG_PARALLEL
@@ -309,7 +326,9 @@ public:
 				{
 					// todo: replace with MatMultAdd
 					//MatMultAddDirect(defect, 1.0, defect, -lambda[i], *m_pB, *px[i]);
+#ifdef UG_PARALLEL
 					px[i]->change_storage_type(PST_CONSISTENT);
+#endif
 					MatMultAddDirect(defect, 1.0, defect, -lambda[i], B, *px[i]);
 				}
 				else
@@ -449,8 +468,8 @@ public:
 
 			MultiEnergyProd(*m_pA, &pTestVectors[0], rA, iNrOfTestVectors);
 
-			//PrintMaple(rA, "rA");
-			//PrintMaple(rB, "rB");
+			PrintMaple(rA, "rA");
+			PrintMaple(rB, "rB");
 
 			// output
 
