@@ -92,13 +92,26 @@ bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 
 	//	DomainDiscretization
 		{
+			typedef IAssemble<dof_distribution_type, algebra_type> TBase;
+			typedef IDomainDiscretization<dof_distribution_type, algebra_type>	TIDomDisc;
 			typedef DomainDiscretization<dof_distribution_type, algebra_type> T;
 
-			reg.add_class_<IAssemble<dof_distribution_type, algebra_type> >("IAssemble", grp.c_str());
-			reg.add_class_<IDomainDiscretization<dof_distribution_type, algebra_type>,
-							IAssemble<dof_distribution_type, algebra_type> >("IDomainDiscretization", grp.c_str());
+			reg.add_class_<TBase>("IAssemble", grp.c_str());
+//				.add_method("assemble_jacobian", static_cast<bool (TBase::*)(matrix_type&, const vector_type&,
+//									const IDoFDistribution<TDoFDistribution>&)>(&TBase::assemble_jacobian));
 
-			reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization", grp.c_str())
+			reg.add_class_<TIDomDisc, TBase>("IDomainDiscretization", grp.c_str());
+//				.add_method("assemble_jacobian", static_cast<bool (TIDomDisc::*)(matrix_type&, const vector_type&,
+//												const IDoFDistribution<TDoFDistribution>&)>(&TIDomDisc::assemble_jacobian))
+//				.add_method("assemble_jacobian", static_cast<bool (TIDomDisc::*)(matrix_type&, const vector_type&,
+//								number, const SolutionTimeSeries<vector_type>&, const IDoFDistribution<TDoFDistribution>&, number, number)>(&TIDomDisc::assemble_jacobian));
+
+
+		//	\TODO: There seems to be an error in the Lua-Skript parsing of
+		//		   overloaded functions, or an error in the registry process
+		//		   when virtual functions are in the game and are implemented
+		//		   on several levels of the class hierarchy.
+			reg.add_class_<T, TIDomDisc>("DomainDiscretization", grp.c_str())
 				.add_constructor()
 				.add_method("add_post_process|interactive=false", &T::add_post_process,
 							"", "Post Process")
@@ -106,7 +119,12 @@ bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 							"", "Discretization")
 				.add_method("assemble_mass_matrix", &T::assemble_mass_matrix)
 				.add_method("assemble_stiffness_matrix", &T::assemble_stiffness_matrix)
-				.add_method("assemble_rhs", &T::assemble_rhs);
+				.add_method("assemble_rhs", &T::assemble_rhs)
+				.add_method("assemble_jacobian", (bool (T::*)(matrix_type&, const vector_type&,
+													const IDoFDistribution<TDoFDistribution>&))&T::assemble_jacobian)
+				.add_method("assemble_jacobian", (bool (T::*)(matrix_type&, const vector_type&,
+							number, const SolutionTimeSeries<vector_type>&, const IDoFDistribution<TDoFDistribution>&, number, number )) &T::assemble_jacobian);
+
 		}
 
 	//	ITimeDiscretization
