@@ -29,7 +29,7 @@ class LSFSID
 		enum SpaceType
 		{
 			NONE = -1,
-			LAGRANGE,
+			LAGRANGE = 0,
 			DG,
 			NUM_SPACE_TYPES
 		};
