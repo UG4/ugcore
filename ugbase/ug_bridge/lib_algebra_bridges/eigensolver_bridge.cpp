@@ -14,6 +14,7 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/operator_impl.h"
 
+#ifdef UG_PARALLEL
 #include "lib_algebra/operator/eigensolver/pinvit.h"
 
 namespace ug
@@ -64,7 +65,12 @@ bool RegisterEigensolver(Registry& reg, int algebra_type, const char* parentGrou
 {
 	return RegisterAlgebraClass<RegisterEigensolverClass>(reg, algebra_type, parentGroup);
 }
+#else
+bool RegisterEigensolver(Registry& reg, int algebra_type, const char* parentGroup)
+{
+}
 
+}
 
 }
 }
