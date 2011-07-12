@@ -380,22 +380,22 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen);
 
 	//	registering add
-		reg.add_function("add", (int (*)(int, int))
-								&Add, grp.c_str(), "c", "a#b");
-		reg.add_function("add", (int (*)(int, int, int))
-								&Add, grp.c_str(), "d", "a#b#c");
-		reg.add_function("add", (string (*)(const char*, const char*))
-								&Add, grp.c_str(), "c", "a#b");
+		reg.add_function("add", static_cast<int (*)(int, int)>(
+								&Add), grp.c_str(), "c", "a#b");
+		reg.add_function("add", static_cast<int (*)(int, int, int)>(
+								&Add), grp.c_str(), "d", "a#b#c");
+		reg.add_function("add", static_cast<string (*)(const char*, const char*)>(
+								&Add), grp.c_str(), "c", "a#b");
 
 	//	register class "Test"
 		reg.add_class_<Test>("Test", grp.c_str())
 			.add_constructor()
-			.add_method("add", (int (Test::*)(int, int))&Test::add, "c", "a#b")
-			.add_method("add", (int (Test::*)(int, int, int))&Test::add, "d", "a#b#c")
-			.add_method("add", (string (Test::*)(const char*, const char*))&Test::add, "d", "a#b#c")
+			.add_method("add", static_cast<int (Test::*)(int, int)>(&Test::add), "c", "a#b")
+			.add_method("add", static_cast<int (Test::*)(int, int, int)>(&Test::add), "d", "a#b#c")
+			.add_method("add", static_cast<string (Test::*)(const char*, const char*)>(&Test::add), "d", "a#b#c")
 			.add_method("print_name", &Test::print_name)
-			.add_method("print", (int(Test::*)()) &Test::print)
-			.add_method("print", (int(Test::*)() const) &Test::print);
+			.add_method("print", static_cast<int(Test::*)()>(&Test::print))
+			.add_method("print", static_cast<int(Test::*)() const>(&Test::print));
 
 	//	registering base class (without constructor)
 		reg.add_class_<Base>("Base", grp.c_str())
@@ -444,13 +444,13 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 
 		reg.add_function("SmartMultipleDerivedImpl", SmartMultipleDerivedImpl);
 
-		reg.add_function("PrintFunctionIntermediate", (void (*)(SmartPtr<Intermediate1>))&PrintFunctionIntermediate);
+		reg.add_function("PrintFunctionIntermediate", static_cast<void (*)(SmartPtr<Intermediate1>)>(&PrintFunctionIntermediate));
 //		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base3>))&PrintFunction); // nasty example!
-		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base2>))&PrintFunction);
-		reg.add_function("PrintFunction", (void (*)(Base&))&PrintFunction);
+		reg.add_function("PrintFunction", static_cast<void (*)(SmartPtr<Base2>)>(&PrintFunction));
+		reg.add_function("PrintFunction", static_cast<void (*)(Base&)>(&PrintFunction));
 //		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate1&))&PrintFunctionIntermediate); // nasty example!
-		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate0&))&PrintFunctionIntermediate);
-		reg.add_function("PrintFunction", (void (*)(Base3&))&PrintFunction);
+		reg.add_function("PrintFunctionIntermediate", static_cast<void (*)(Intermediate0&)>(&PrintFunctionIntermediate));
+		reg.add_function("PrintFunction", static_cast<void (*)(Base3&)>(&PrintFunction));
 
 		reg.add_class_<ConstClass>("ConstClass", grp.c_str())
 			.add_constructor()

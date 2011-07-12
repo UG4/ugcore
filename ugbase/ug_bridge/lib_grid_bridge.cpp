@@ -781,7 +781,7 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 	//	Grid
 		reg.add_class_<Grid>("Grid", grp.c_str())
 			.add_constructor()
-			.add_method("clear", (void (Grid::*)()) &Grid::clear)
+			.add_method("clear", static_cast<void (Grid::*)()>(&Grid::clear))
 			.add_method("num_vertices", &Grid::num_vertices)
 			.add_method("num_edges", &Grid::num_edges)
 			.add_method("num_faces", &Grid::num_faces)
@@ -801,16 +801,6 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		reg.add_class_<MultiGrid, Grid>("MultiGrid", grp.c_str())
 			.add_constructor()
 			.add_method("num_levels", &MultiGrid::num_levels)
-
-			.add_method("num_vertices", (size_t (MultiGrid::*)() const) &MultiGrid::num<VertexBase>)
-			.add_method("num_edges", (size_t (MultiGrid::*)() const) &MultiGrid::num<EdgeBase>)
-			.add_method("num_faces", (size_t (MultiGrid::*)() const) &MultiGrid::num<Face>)
-			.add_method("num_triangles", (size_t (MultiGrid::*)() const) &MultiGrid::num<Triangle>)
-			.add_method("num_quadrilaterals", (size_t (MultiGrid::*)() const) &MultiGrid::num<Quadrilateral>)
-			.add_method("num_volumes", (size_t (MultiGrid::*)() const) &MultiGrid::num<Volume>)
-			.add_method("num_tetrahedrons", (size_t (MultiGrid::*)() const) &MultiGrid::num<Tetrahedron>)
-			.add_method("num_pyramids", (size_t (MultiGrid::*)() const) &MultiGrid::num<Pyramid>)
-			.add_method("num_prisms", (size_t (MultiGrid::*)() const) &MultiGrid::num<Prism>)
 
 			.add_method("num_vertices", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<VertexBase>)
 			.add_method("num_edges", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
@@ -832,8 +822,8 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_method("num_subsets", &ISubsetHandler::num_subsets)
 			.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
 			.add_method("set_subset_name", &ISubsetHandler::set_subset_name)
-			.add_method("get_subset_index", (int (ISubsetHandler::*)(const char*) const)
-											&ISubsetHandler::get_subset_index);
+			.add_method("get_subset_index", static_cast<int (ISubsetHandler::*)(const char*) const>(
+											&ISubsetHandler::get_subset_index));
 		
 	//	SubsetHandler
 		reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp.c_str())
@@ -848,7 +838,7 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 	//	SurfaceView
 		reg.add_class_<SurfaceView, SubsetHandler>("SurfaceView", grp.c_str())
 			.add_constructor()
-			.add_method("assign_grid", (void (SurfaceView::*)(MultiGrid&)) &SurfaceView::assign_grid);
+			.add_method("assign_grid", static_cast<void (SurfaceView::*)(MultiGrid&)>(&SurfaceView::assign_grid));
 
 		reg.add_function("CheckSurfaceView", &CheckSurfaceView, grp.c_str());
 
@@ -873,7 +863,7 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 	//	GlobalMultiGridRefiner
 		reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp.c_str())
 			.add_constructor()
-			.add_method("assign_grid", (void (GlobalMultiGridRefiner::*)(MultiGrid&)) &GlobalMultiGridRefiner::assign_grid);
+			.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid));
 	
 	//	parallel refinement
 	#ifdef UG_PARALLEL
@@ -893,17 +883,17 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_function("PrintAttachmentInfo", &PrintAttachmentInfo, grp.c_str());
 
 	//  GridObject functions
-		reg.add_function("LoadGrid", (bool (*)(Grid&, ISubsetHandler&, const char*))&LoadGrid, grp.c_str())
-			.add_function("LoadGrid", (bool (*)(Grid&, const char*))&LoadGrid, grp.c_str())
-			.add_function("SaveGrid", (bool (*)(Grid&, const SubsetHandler&, const char*))&SaveGrid, grp.c_str())
-			.add_function("SaveGrid", (bool (*)(Grid&, SubsetHandler&, const char*))&SaveGrid, grp.c_str())
-			.add_function("SaveGrid", (bool (*)(Grid&, const char*))&SaveGrid, grp.c_str())
+		reg.add_function("LoadGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&LoadGrid), grp.c_str())
+			.add_function("LoadGrid", static_cast<bool (*)(Grid&, const char*)>(&LoadGrid), grp.c_str())
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const SubsetHandler&, const char*)>(&SaveGrid), grp.c_str())
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, SubsetHandler&, const char*)>(&SaveGrid), grp.c_str())
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const char*)>(&SaveGrid), grp.c_str())
 			.add_function("LoadGridObject", &LoadGridObject, grp.c_str())
 			.add_function("SaveGridObject", &SaveGridObject, grp.c_str())
 			.add_function("SaveGridHierarchyTransformed", &SaveGridHierarchyTransformed, grp.c_str())
 			.add_function("CreateGridObject", &CreateGridObject, grp.c_str())
-			.add_function("PrintGridElementNumbers", (void (*)(MultiGrid&))&PrintGridElementNumbers, grp.c_str())
-			.add_function("PrintGridElementNumbers", (void (*)(Grid&))&PrintGridElementNumbers, grp.c_str());
+			.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp.c_str())
+			.add_function("PrintGridElementNumbers", static_cast<void (*)(Grid&)>(&PrintGridElementNumbers), grp.c_str());
 
 	//	refinement
 		reg.add_function("TestSubdivision", &TestSubdivision)
@@ -911,22 +901,22 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 			.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
 			.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
 			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str())
-			.add_function("MarkForRefinement_VerticesInSphere", (void (*)(IRefiner&, number, number, number, number))
-																&MarkForRefinement_VerticesInSphere, grp.c_str())
-			.add_function("MarkForRefinement_FacesInSphere", (void (*)(IRefiner&, number, number, number, number))
-																&MarkForRefinement_FacesInSphere, grp.c_str())
-			.add_function("MarkForRefinement_VerticesInSquare", (void (*)(IRefiner&, number, number, number, number, number, number))
-																&MarkForRefinement_VerticesInSquare, grp.c_str())
+			.add_function("MarkForRefinement_VerticesInSphere", static_cast<void (*)(IRefiner&, number, number, number, number)>(
+																&MarkForRefinement_VerticesInSphere), grp.c_str())
+			.add_function("MarkForRefinement_FacesInSphere", static_cast<void (*)(IRefiner&, number, number, number, number)>(
+																&MarkForRefinement_FacesInSphere), grp.c_str())
+			.add_function("MarkForRefinement_VerticesInSquare", static_cast<void (*)(IRefiner&, number, number, number, number, number, number)>(
+																&MarkForRefinement_VerticesInSquare), grp.c_str())
 			.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp.c_str())
 			.add_function("TestGridRedistribution", &TestGridRedistribution);
 		
 	//	subset util
 		reg.add_function("AdjustSubsetsForSimulation",
-						(void (*)(SubsetHandler&, bool, bool, bool))
-						&AdjustSubsetsForSimulation<SubsetHandler>)
+						static_cast<void (*)(SubsetHandler&, bool, bool, bool)>(
+						&AdjustSubsetsForSimulation<SubsetHandler>))
 			.add_function("AdjustSubsetsForSimulation",
-						(void (*)(MGSubsetHandler&, bool, bool, bool))
-						&AdjustSubsetsForSimulation<MGSubsetHandler>);
+						static_cast<void (*)(MGSubsetHandler&, bool, bool, bool)>(
+						&AdjustSubsetsForSimulation<MGSubsetHandler>));
 
 	//	PartitionMap
 		reg.add_class_<PartitionMap>("PartitionMap", "ug4")

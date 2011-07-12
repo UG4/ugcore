@@ -58,15 +58,15 @@ struct cRegisterAlgebraType
 		{
 			reg.add_class_<vector_type>("Vector", grp.c_str())
 			.add_constructor()
-			.add_method("set|hide=true", (bool (vector_type::*)(number))&vector_type::set,
+			.add_method("set|hide=true", static_cast<bool (vector_type::*)(number)>(&vector_type::set),
 									"Success", "Number")
-			.add_method("size|hide=true", (size_t (vector_type::*)())&vector_type::size,
+			.add_method("size|hide=true", static_cast<size_t (vector_type::*)() const>(&vector_type::size),
 									"Size", "")
-			.add_method("set_random|hide=true", (bool (vector_type::*)(number, number))&vector_type::set_random,
+			.add_method("set_random|hide=true", static_cast<bool (vector_type::*)(number, number)>(&vector_type::set_random),
 									"Success", "Number")
 			.add_method("print|hide=true", &vector_type::p);
 
-			reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
+			reg.add_function("VecScaleAssign", static_cast<void (*)(vector_type&, number, const vector_type &)>(&VecScaleAssign<vector_type>));
 			reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
 					&VecScaleAdd2<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
 					"dest#alpha1#vec1#alpha2#vec2");
@@ -116,7 +116,7 @@ struct cRegisterAlgebraType
 		{
 			typedef ILinearOperator<vector_type, vector_type> T;
 			reg.add_class_<T>("ILinearOperator", grp.c_str())
-				.add_method("init", (bool(T::*)())&T::init);
+				.add_method("init", static_cast<bool(T::*)()>(&T::init));
 		}
 
 	// 	MatrixOperator
@@ -145,7 +145,7 @@ struct cRegisterAlgebraType
 		{
 			typedef ILinearOperatorInverse<vector_type, vector_type> T;
 			reg.add_class_<T>("ILinearOperatorInverse", grp.c_str())
-				.add_method("init", (bool(T::*)(ILinearOperator<vector_type,vector_type>&))&T::init)
+				.add_method("init", static_cast<bool(T::*)(ILinearOperator<vector_type,vector_type>&)>(&T::init))
 				.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",
 						"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
 				.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant");

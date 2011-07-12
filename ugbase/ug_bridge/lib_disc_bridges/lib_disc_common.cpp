@@ -31,7 +31,7 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 				.add_constructor()
 				.add_method("clear", &FunctionGroup::clear)
 				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
-				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add);
+				.add_method("add_function", static_cast<bool (FunctionGroup::*)(const char*)>(&FunctionGroup::add));
 		}
 
 	//	FunctionPattern
@@ -39,8 +39,8 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 			typedef FunctionPattern T;
 			reg.add_class_<T>("FunctionPattern", grp.c_str())
 				.add_method("clear", &T::clear)
-				.add_method("add_fct_on_subset", (bool (T::*)(const char*, const char*, int, const char*))&T::add_fct_on_subset)
-				.add_method("add_fct", (bool (T::*)(const char*, const char*, int))&T::add_fct,
+				.add_method("add_fct_on_subset", static_cast<bool (T::*)(const char*, const char*, int, const char*)>(&T::add_fct_on_subset))
+				.add_method("add_fct", static_cast<bool (T::*)(const char*, const char*, int)>(&T::add_fct),
 				            "Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
 				            "currently no help available");
 		}

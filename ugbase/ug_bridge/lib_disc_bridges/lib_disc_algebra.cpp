@@ -115,7 +115,7 @@ bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 				.add_constructor()
 				.add_method("add_post_process|interactive=false", &T::add_post_process,
 							"", "Post Process")
-				.add_method("add_elem_disc|interactive=false", (bool (T::*)(IElemDisc&)) &T::add_elem_disc,
+				.add_method("add_elem_disc|interactive=false", static_cast<bool (T::*)(IElemDisc&)>(&T::add_elem_disc),
 							"", "Discretization")
 				.add_method("assemble_mass_matrix", &T::assemble_mass_matrix)
 				.add_method("assemble_stiffness_matrix", &T::assemble_stiffness_matrix)
@@ -210,9 +210,9 @@ bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 				.add_method("size", &T::size)
 				.add_method("push_discard_oldest", &T::push_discard_oldest)
 				.add_method("push", &T::push)
-				.add_method("solution", (const vector_type&(T::*)(size_t) const)&T::solution)
-				.add_method("oldest", (vector_type& (T::*)()) &T::oldest)
-				.add_method("latest", (vector_type& (T::*)()) &T::latest)
+				.add_method("solution", static_cast<const vector_type&(T::*)(size_t) const>(&T::solution))
+				.add_method("oldest", static_cast<vector_type& (T::*)()>(&T::oldest))
+				.add_method("latest", static_cast<vector_type& (T::*)()>(&T::latest))
 				.add_method("time", &T::time);
 
 		}

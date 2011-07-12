@@ -105,7 +105,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		std::stringstream ss; ss << "GridFunction" << dim << "d";
 		reg.add_class_<function_type, vector_type>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("assign", (bool (function_type::*)(const vector_type&))&function_type::assign,
+			.add_method("assign", static_cast<bool (function_type::*)(const vector_type&)>(&function_type::assign),
 						"Success", "Vector")
 			.add_method("assign_dof_distribution|hide=true", &function_type::assign_dof_distribution)
 			.add_method("get_dim|hide=true", &function_type::get_dim)
@@ -129,14 +129,14 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("defragment|hide=true", &T::defragment)
 			.add_method("get_surface_view|hide=true", &T::get_surface_view)
 			.add_method("print_layout_statistic|hide=true", &T::print_layout_statistic)
-			.add_method("get_surface_dof_distribution|hide=true",  (const typename T::dof_distribution_type& (T::*)() const) &T::get_surface_dof_distribution)
+			.add_method("get_surface_dof_distribution|hide=true",  static_cast<const typename T::dof_distribution_type& (T::*)() const>(&T::get_surface_dof_distribution))
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
 	}
 
 //	Order Cuthill-McKee
 	{
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
-		reg.add_function("OrderCuthillMcKee", (bool (*)(T&, bool))&OrderCuthillMcKee);
+		reg.add_function("OrderCuthillMcKee", static_cast<bool (*)(T&, bool)>(&OrderCuthillMcKee));
 	}
 
 //	DirichletBNDValues
@@ -149,7 +149,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_pattern|hide=true", &T::set_pattern)
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
-			.add_method("add_boundary_value", (bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*))&T::add_boundary_value,
+			.add_method("add_boundary_value", static_cast<bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*)>(&T::add_boundary_value),
 						"Success", "Value#Function#Subsets")
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
 						"Success", "Constant Value#Function#Subsets")
@@ -225,8 +225,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("select_all", &T::select_all)
 			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
 			.add_method("select_nodal_vector", &T::select_nodal_vector)
-			.add_method("print", (bool (T::*)(const char*, function_type&, int, number))&T::print)
-			.add_method("print", (bool (T::*)(const char*, function_type&))&T::print);
+			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number)>(&T::print))
+			.add_method("print", static_cast<bool (T::*)(const char*, function_type&)>(&T::print));
 	}
 
 
@@ -329,14 +329,14 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		typedef bool (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
 									function_type& , const char* , number);
 		reg.add_function(ss.str().c_str(),
-						 (fct_type)&InterpolateFunction<function_type>,
+						 static_cast<fct_type>(&InterpolateFunction<function_type>),
 						 grp.c_str());
 
 		typedef bool (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
 									function_type& , const char* , number ,
 									const char*);
 		reg.add_function(ss.str().c_str(),
-						 (fct_type_subset)&InterpolateFunction<function_type>,
+						 static_cast<fct_type_subset>(&InterpolateFunction<function_type>),
 						 grp.c_str());
 	}
 
@@ -346,14 +346,14 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		typedef number (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
 									function_type& , const char* , number);
 		reg.add_function(ss.str().c_str(),
-						 (fct_type)&L2Error<function_type>,
+						 static_cast<fct_type>(&L2Error<function_type>),
 						 grp.c_str());
 
 		typedef number (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
 									function_type& , const char* , number ,
 									const char*);
 		reg.add_function(ss.str().c_str(),
-						 (fct_type_subset)&L2Error<function_type>,
+						 static_cast<fct_type_subset>(&L2Error<function_type>),
 						 grp.c_str());
 	}
 
@@ -369,7 +369,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 									approximation_space_type&);
 
 		reg.add_function("AssembleDirichletRows",
-						(fct_type)&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>,
+						static_cast<fct_type>(&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>),
 						grp.c_str());
 
 		typedef void (*fct_type2)(	mat_op_type&,
@@ -378,7 +378,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 									number);
 
 		reg.add_function("AssembleDirichletRows",
-				(fct_type2)&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>,
+				static_cast<fct_type2>(&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>),
 				grp.c_str());
 	}
 }

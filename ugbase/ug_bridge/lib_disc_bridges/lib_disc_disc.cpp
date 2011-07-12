@@ -136,7 +136,7 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 		std::stringstream ss; ss << "IApproximationSpace" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_method("assign_domain|hide=true", &T::assign_domain)
-			.add_method("get_domain|hide=true", (domain_type& (T::*)())&T::get_domain);
+			.add_method("get_domain|hide=true", static_cast<domain_type& (T::*)()>(&T::get_domain));
 	}
 
 //	DomainElemDisc base class
@@ -156,7 +156,7 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("add_boundary_value", (bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*))&T::add_boundary_value);
+			.add_method("add_boundary_value", static_cast<bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*)>(&T::add_boundary_value));
 	}
 
 //	Inner Boundary
@@ -295,8 +295,8 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set_kinematic_viscosity", &T::set_kinematic_viscosity)
 			.add_method("set_stabilization", &T::set_stabilization)
-			.add_method("set_conv_upwind",  (void (T::*)(INavierStokesStabilization<dim>&))&T::set_conv_upwind)
-			.add_method("set_conv_upwind",  (void (T::*)(INavierStokesUpwind<dim>&))&T::set_conv_upwind)
+			.add_method("set_conv_upwind",  static_cast<void (T::*)(INavierStokesStabilization<dim>&)>(&T::set_conv_upwind))
+			.add_method("set_conv_upwind",  static_cast<void (T::*)(INavierStokesUpwind<dim>&)>(&T::set_conv_upwind))
 			.add_method("set_peclet_blend", &T::set_peclet_blend)
 			.add_method("set_exact_jacobian", &T::set_exact_jacobian);
 	}

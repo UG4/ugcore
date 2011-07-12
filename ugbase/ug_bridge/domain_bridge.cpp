@@ -180,9 +180,9 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 		std::stringstream ss; ss << "Domain" << dim << "d";
 		reg.add_class_<domain_type>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("get_subset_handler|hide=true", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
-			.add_method("get_grid|hide=true", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
-			.add_method("get_dim|hide=true", (int (domain_type::*)()) &domain_type::get_dim);
+			.add_method("get_subset_handler|hide=true", static_cast<MGSubsetHandler& (domain_type::*)()>(&domain_type::get_subset_handler))
+			.add_method("get_grid|hide=true", static_cast<MultiGrid& (domain_type::*)()>(&domain_type::get_grid))
+			.add_method("get_dim|hide=true", static_cast<int (domain_type::*)() const>(&domain_type::get_dim));
 
 		reg.add_class_to_group(ss.str().c_str(), "Domain");
 	}
@@ -218,17 +218,17 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	}
 
 //	DistributeDomain
-	reg.add_function("DistributeDomain", (bool (*)(TDomain&))
-					 &DistributeDomain<domain_type>, grp.c_str());
+	reg.add_function("DistributeDomain", static_cast<bool (*)(TDomain&)>(
+					 &DistributeDomain<domain_type>), grp.c_str());
 
-	reg.add_function("DistributeDomain", (bool (*)(TDomain&, PartitionMap&))
-					 &DistributeDomain<domain_type>, grp.c_str());
+	reg.add_function("DistributeDomain", static_cast<bool (*)(TDomain&, PartitionMap&)>(
+					 &DistributeDomain<domain_type>), grp.c_str());
 
 //	todo: remove this
 	{
 		std::stringstream ss; ss << "DistributeDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), (bool (*)(TDomain&))
-						 &DistributeDomain<domain_type>, grp.c_str());
+		reg.add_function(ss.str().c_str(), static_cast<bool (*)(TDomain&)>(
+						 &DistributeDomain<domain_type>), grp.c_str());
 	}
 
 	reg.add_function("PartitionDomain_Bisection",
