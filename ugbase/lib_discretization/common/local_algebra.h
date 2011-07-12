@@ -43,6 +43,9 @@ class LocalIndices
 			m_vvIndex[fct].resize(numDoF);
 		}
 
+	///	clears the dofs of a function
+		void clear_dof(size_t fct) {resize_dof(fct, 0);}
+
 	/// reserves memory for the number of dofs
 		void reserve_dof(size_t fct, size_t numDoF)
 		{
