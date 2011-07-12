@@ -660,24 +660,14 @@ static int LuaProxyConstructor(lua_State* L)
 	return 1;
 }
 
-//	member methods of classes are handled here
-static int LuaProxyMethod(lua_State* L)
+//	This method is not called by lua, but a helper to LuaProxyMethod.
+//	It recursivly calls itself until a matching overload was found.
+static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
+						UserDataWrapper* self, const ClassNameNode* classNameNode,
+						bool errorOutput)
 {
 	bool bLuaError=false;
 	{
-		const ExportedMethodGroup* methodGrp = (const ExportedMethodGroup*)
-												lua_touserdata(L, lua_upvalueindex(1));
-
-		if(!lua_isuserdata(L, 1))
-		{
-			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR in call to LuaProxyMethod: No object specified in call to ");
-			PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(0));
-			UG_LOG(".\n");
-			return 0;
-		}
-
-		UserDataWrapper* self = (UserDataWrapper*)lua_touserdata(L, 1);
-
 		ParameterStack paramsIn;;
 		ParameterStack paramsOut;
 
@@ -701,21 +691,13 @@ static int LuaProxyMethod(lua_State* L)
 	
 			try
 			{
-			//	get metatable of object and extract the class name node
-				lua_getmetatable(L, 1);
-				lua_pushstring(L, "class_name_node");
-				lua_rawget(L, -2);
-				const ClassNameNode* pClassNameNode
-					= (const ClassNameNode*) lua_touserdata(L, -1);
-				lua_pop(L, 2);
-
 			//	raw pointer
 				if(self->is_raw_ptr())
 				{
 				//	cast to the needed base class
 					void* objPtr = ClassCastProvider::cast_to_base_class(
 												((RawUserDataWrapper*)self)->obj,
-												pClassNameNode, m->class_name());
+												classNameNode, m->class_name());
 
 					m->execute(objPtr, paramsIn, paramsOut);
 				}
@@ -727,7 +709,7 @@ static int LuaProxyMethod(lua_State* L)
 					//	cast to the needed base class
 						void* objPtr = ClassCastProvider::cast_to_base_class(
 													(void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(),
-													pClassNameNode, m->class_name());
+													classNameNode, m->class_name());
 
 						m->execute(objPtr, paramsIn, paramsOut);
 					}
@@ -736,7 +718,7 @@ static int LuaProxyMethod(lua_State* L)
 					//	cast to the needed base class
 						void* objPtr = ClassCastProvider::cast_to_base_class(
 													((SmartUserDataWrapper*)self)->smartPtr.get_impl(),
-													pClassNameNode, m->class_name());
+													classNameNode, m->class_name());
 
 						m->execute(objPtr, paramsIn, paramsOut);
 					}
@@ -769,48 +751,181 @@ static int LuaProxyMethod(lua_State* L)
 				return ParamsToLuaStack(paramsOut, L);
 		}
 
-	//	check whether the parameter was correct
-
+	//	check whether the parameters were correct
 		if(!bLuaError && badParam != 0)
 		{
-			const ClassNameNode* classNameNode = GetClassNameNode(L, 1);
-			const char *classname = "(unknown class)";
-			if(classNameNode != NULL)
-				classname = classNameNode->name().c_str();
+		//	they were not. If the class has a base class, then we can try to
+		//	to find a method-group in one of the base classes and recursively
+		//	call this method.
+			if(classNameNode != NULL){
+			//	check whether a base-class contains overloads of this method-group
+			//	push all base classes to this queue of class name nodes
+				std::queue<const ClassNameNode*> qClassNameNodes;
+				for(size_t i = 0; i < classNameNode->num_base_classes(); ++i)
+					qClassNameNodes.push(&classNameNode->base_class(i));
 
-			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function "
-			       << classname << ":" << methodGrp->name() << "(" <<
-			       GetLuaParametersString(L, 1) << "):\n");
+			//	now visit the whole base-class hierarchy to find overloads of
+			//	this method. Stop if one was successfully executed.
+				while(!qClassNameNodes.empty()){
+					const ClassNameNode* curClassName = qClassNameNodes.front();
+					qClassNameNodes.pop();
 
-			UG_LOG("No matching overload found! Candidates in class "
-					<< classname << " are:\n");
+				//	get the metatable of this class
+					luaL_getmetatable(L, curClassName->name().c_str());
 
-			for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
-			{
-				const ExportedMethod* func = methodGrp->get_overload(i);
-				ParameterStack paramsIn;
-				badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
-				UG_LOG("- ");
-				PrintFunctionInfo(*func);
-				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
+				//	check whether the metatable contains a method-group with
+				//	the given name
+					const ExportedMethodGroup* newMethodGrp = NULL;
+					if(!self->is_const()){
+					//	access the table which stores method-groups
+						lua_pushstring(L, "__method_grps");
+						lua_rawget(L, -2);
+
+						if(lua_istable(L, -1)){
+							lua_pushstring(L, methodGrp->name().c_str());
+							lua_rawget(L, -2);
+
+						//	if we retrieved something != nil, we've found one.
+							if(!lua_isnil(L, -1)){
+								newMethodGrp = (const ExportedMethodGroup*)
+												lua_touserdata(L, -1);
+							}
+
+						//	pop the result
+							lua_pop(L, 1);
+						}
+					//	pop the table
+						lua_pop(L, 1);
+					}
+
+				//	if the object is const or if no non-const member was found,
+				//	we'll check the const methods
+					if(!newMethodGrp){
+					//	the method is const
+						lua_pushstring(L, "__const_method_grps");
+						lua_rawget(L, -2);
+
+						if(lua_istable(L, -1)){
+						//	check whether the entry is contained in the table
+							lua_pushstring(L, methodGrp->name().c_str());
+							lua_rawget(L, -2);
+
+						//	if we retrieved something != nil, we're done.
+							if(!lua_isnil(L, -1)){
+								newMethodGrp = (const ExportedMethodGroup*)
+												lua_touserdata(L, -1);
+							}
+
+						//	remove result from stack
+							lua_pop(L, 1);
+						}
+					//	remove __const table from stack
+						lua_pop(L, 1);
+					}
+
+				//	remove metatable from stack
+					lua_pop(L, 1);
+
+				//	if we found a base-implementation, call it now.
+				//	if not, add all base-classes to the queue again.
+				//	NOTE: If a base class contains the implementation, we
+				//	don't have to add it to the queue, since the method
+				//	is recursive.
+					if(newMethodGrp){
+						int retVal = ExecuteMethod(L, newMethodGrp, self,
+													curClassName, errorOutput);
+						if(retVal >= 0)
+							return retVal;
+					}
+					else{
+						for(size_t i = 0; i < curClassName->num_base_classes(); ++i)
+							qClassNameNodes.push(&curClassName->base_class(i));
+					}
+				}
+
 			}
-			UG_LOG("Call stack:\n"); lua_stacktrace(L);
 
-			lua_pushstring (L, "Unknown member function overload.");
-			bLuaError=true;
+		//	neither the given class nor one of its base classes contains a matching
+		//	overload of the given method. We thus have to output errors.
+		//	Here we only print the overload-infos. The rest is done in LuaProxyMethod.
+			if(errorOutput){
+				for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
+				{
+					const ExportedMethod* func = methodGrp->get_overload(i);
+					ParameterStack paramsIn;
+					badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
+					UG_LOG("- ");
+					PrintFunctionInfo(*func);
+					UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
+				}
+			}
 		}
 	}
 	
-	// pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
-	if(bLuaError)
-		lua_error(L);
+	return -1;
+}
+
+//	member methods of classes are handled here
+static int LuaProxyMethod(lua_State* L)
+{
+	const ExportedMethodGroup* methodGrp = (const ExportedMethodGroup*)
+											lua_touserdata(L, lua_upvalueindex(1));
+
+	if(!lua_isuserdata(L, 1))
+	{
+		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR in call to LuaProxyMethod: No object specified in call to ");
+		PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(0));
+		UG_LOG(".\n");
+		return 0;
+	}
+
+	UserDataWrapper* self = (UserDataWrapper*)lua_touserdata(L, 1);
+
+//	get metatable of object and extract the class name node
+	lua_getmetatable(L, 1);
+	lua_pushstring(L, "class_name_node");
+	lua_rawget(L, -2);
+	const ClassNameNode* classNameNode
+		= (const ClassNameNode*) lua_touserdata(L, -1);
+	lua_pop(L, 2);
+
+	int retVal = ExecuteMethod(L, methodGrp, self, classNameNode, false);
+	if(retVal >= 0)
+		return retVal;
+
+//	The call failed. We have to output errors
+	const char *classname = "(unknown class)";
+	if(classNameNode != NULL)
+		classname = classNameNode->name().c_str();
+
+	UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function "
+		   << classname << ":" << methodGrp->name() << "(" <<
+		   GetLuaParametersString(L, 1) << "):\n");
+
+	UG_LOG("No matching overload found! Candidates in class "
+			<< classname << " are:\n");
+
+//	since no matching method was found, we'll run ExecuteMethod again, this
+//	time outputting the errors
+	ExecuteMethod(L, methodGrp, self, classNameNode, true);
+
+	UG_LOG("Call stack:\n"); lua_stacktrace(L);
+	lua_pushstring (L, "Unknown member function overload.");
+
+//	If we reach this point, an error has occured. Force lua to stop execution.
+//	pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
+	lua_error(L);
 
 	return 0;
 }
 
+//TODO:	The metatable indexer could probably be integrated into ExecuteMethod,
+//		(called by LuaProxyMethod) and thus be avoided completely.
+//		Note that a recursion over the base classes is performed in
+//		ExecuteMethod, too.
 static int MetatableIndexer(lua_State*L)
 {
-//	the stack contains the object and the requested key.
+//	the stack contains the object and the requested key (the method name).
 //	we have to make sure to only call const methods on const objects
 	bool is_const = ((UserDataWrapper*)lua_touserdata(L, 1))->is_const();
 	
@@ -1047,6 +1162,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		lua_settable(L, -3);
 
 	//	register methods
+	//	NOTE: A C-Closure is registered (a function-pointer with default argument)
 		for(size_t j = 0; j < c->num_methods(); ++j){
 			const ExportedMethodGroup& m = c->get_method_group(j);
 			lua_pushstring(L, m.name().c_str());
@@ -1056,6 +1172,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		}
 
 	//	register const-methods
+	//	NOTE: A C-Closure is registered (a function-pointer with default argument)
 		if(c->num_const_methods() > 0)
 		{
 		//	create a new table in the meta-table and store it in the entry __const
@@ -1070,6 +1187,33 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			lua_setfield(L, -2, "__const");
 		}
 
+	//	register method-groups
+	//	NOTE: Pointers to ExportedMethodGroups are registered (lua userdatas)
+		if(c->num_methods() > 0){
+			lua_newtable(L);
+			for(size_t j = 0; j < c->num_methods(); ++j){
+				const ExportedMethodGroup& m = c->get_method_group(j);
+				lua_pushstring(L, m.name().c_str());
+				lua_pushlightuserdata(L, (void*)&m);
+				lua_settable(L, -3);
+			}
+			lua_setfield(L, -2, "__method_grps");
+		}
+
+	//	register const-methods-groups
+	//	NOTE: Pointers to ExportedMethodGroups are registered (lua userdatas)
+		if(c->num_const_methods() > 0)
+		{
+		//	create a new table in the meta-table and store it in the entry __const
+			lua_newtable(L);
+			for(size_t j = 0; j < c->num_const_methods(); ++j){
+				const ExportedMethodGroup& m = c->get_const_method_group(j);
+				lua_pushstring(L, m.name().c_str());
+				lua_pushlightuserdata(L, (void*)&m);
+				lua_settable(L, -3);
+			}
+			lua_setfield(L, -2, "__const_method_grps");
+		}
 	//	pop the metatable from the stack.
 		lua_pop(L, 1);
 	}

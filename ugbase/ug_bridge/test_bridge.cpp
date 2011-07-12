@@ -152,7 +152,7 @@ class Base
 {
 	public:
 		virtual ~Base()	{}
-		virtual void print()
+		virtual void print() const
 		{
 			UG_LOG("Base::print() called\n");
 		}
@@ -163,9 +163,9 @@ class Derived : public Base
 {
 	public:
 		virtual ~Derived()	{}
-		virtual void print()
+		virtual void print(int arg1) const
 		{
-			UG_LOG("Derived::print() called\n");
+			UG_LOG("Derived::print() called with " << arg1 << "\n");
 		}
 };
 
@@ -174,12 +174,16 @@ class FurtherDerived : public Derived
 {
 	public:
 		virtual ~FurtherDerived()	{}
-		virtual void print()
+		virtual void print(int arg1, int arg2) const
 		{
-			UG_LOG("FurtherDerived::print() called\n");
+			UG_LOG("FurtherDerived::print() called with " << arg1 << ", " << arg2 << "\n");
 		}
 };
 
+const FurtherDerived* CreateConstFurtherDerived()
+{
+	return new FurtherDerived();
+}
 
 class Base0
 {
@@ -408,6 +412,7 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("print", &FurtherDerived::print);
 
+		reg.add_function("CreateConstFurtherDerived", &CreateConstFurtherDerived, grp.c_str());
 
 		reg.add_class_<Base0>("Base0", grp.c_str())
 			.add_method("virt_print_base0", &Base0::virt_print_base0)

@@ -300,7 +300,7 @@ get_local_vertex_indices_of_edge(size_t& ind1Out,
 {
 	assert(edgeInd >= 0 && edgeInd < 6);
 	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][0];
-	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][1];
+	ind2Out = tet_rules::EDGE_VRT_INDS[edgeInd][1];
 }
 											  
 void Tetrahedron::
