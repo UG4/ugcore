@@ -65,12 +65,20 @@ bool RegisterEigensolver(Registry& reg, int algebra_type, const char* parentGrou
 {
 	return RegisterAlgebraClass<RegisterEigensolverClass>(reg, algebra_type, parentGroup);
 }
+
+}
+}
 #else
+namespace ug
+{
+namespace bridge
+{
 bool RegisterEigensolver(Registry& reg, int algebra_type, const char* parentGroup)
 {
+	return true;
 }
 
 }
+}
 
-}
-}
+#endif
