@@ -470,6 +470,7 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 
 
 bool RegisterAMG(Registry& reg, int algebra_type, const char* parentGroup);
+bool RegisterEigensolver(Registry& reg, int algebra_type, const char* parentGroup);
 
 bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const char* parentGroup)
 {
@@ -477,6 +478,7 @@ bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const c
 	RegisterAlgebraClass<cRegisterAlgebraType>(reg, algebra_type, parentGroup);
 
 	RegisterAMG(reg, algebra_type, parentGroup);
+	RegisterEigensolver(reg, algebra_type, parentGroup);
 
 	return true;
 }
