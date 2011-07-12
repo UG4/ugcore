@@ -46,7 +46,7 @@ class ClassGroupDesc
 
 		void add_class(IExportedClass* c)	{m_classes.push_back(c);}
 		size_t num_classes() const			{return m_classes.size();}
-		bool empty() const					{return num_classes() != 0;}
+		bool empty() const					{return num_classes() == 0;}
 		IExportedClass* get_class(size_t i)	{return m_classes[i];}
 		const IExportedClass* get_class(size_t i) const	{return m_classes[i];}
 

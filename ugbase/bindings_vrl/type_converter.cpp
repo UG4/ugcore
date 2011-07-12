@@ -1060,16 +1060,9 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 
 		std::string name = eCls.name(); // TODO pre-rpocessing necessary
 
-		if (name.length() == 0) {
-			std::cerr << " empty2: " << name << std::endl;
-			exit(1);
-		}
-
-		if (name == " ") {
-			std::cerr << " empty2: " << name << std::endl;
-			exit(1);
-		}
-		//		
+		
+		// these lines check for empty class names. we really want this exit()
+		// command as empty names will mess up everything.
 		std::vector<std::string> baseClasses;
 
 		for (size_t j = 0; j < eCls.class_names()->size(); j++) {
@@ -1114,7 +1107,7 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 
 jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 		const ug::bridge::Registry* reg) {
-
+	
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeClassGroupInfo");
 
 	jobjectArray result =
@@ -1123,39 +1116,53 @@ jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 	for (size_t i = 0; i < reg->num_class_groups(); i++) {
 
 		const ug::bridge::ClassGroupDesc* clsGrp = reg->get_class_group(i);
+		
+		// we ignore empty groups. actually, empty groups shouldn't exist.
+		if (clsGrp->empty()) {
+			continue;
+		}
 
 		// create string list containing class names of group i
 		std::vector<std::string> class_names;
 
 		for (size_t j = 0; j < clsGrp->num_classes(); j++) {
-			class_names.push_back(std::string(clsGrp->name()));
+			class_names.push_back(std::string(clsGrp->get_class(j)->name()));
+		}
+		
+		// initialize default class name with empty string. when trying to
+		// instanciate from java we have to check that!
+		std::string defaultClassName = "";
+		
+		if (clsGrp->get_default_class()!=NULL) {
+			defaultClassName = clsGrp->get_default_class()->name();
 		}
 
 		// create instance
-
 		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
 		jobject obj = env->NewObject(cls, methodID);
 
 		// assign values
-
 		jmethodID setName = env->GetMethodID(cls,
 				"setName", "(Ljava/lang/String;)V");
-
-		jmethodID setClassNames = env->GetMethodID(
+		jmethodID setClasses = env->GetMethodID(
 				cls, "setClasses", "([Ljava/lang/String;)V");
+		jmethodID setDefaultClass = env->GetMethodID(
+				cls, "setDefaultClass", "(Ljava/lang/String;)V");
 
+		// calls the java methods
 		std::string name = clsGrp->name();
 		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
-
-		env->CallVoidMethod(obj, setClassNames,
+		env->CallVoidMethod(obj, setClasses,
 				stringArrayC2J(env, class_names));
+		env->CallVoidMethod(obj, setDefaultClass,
+				stringC2J(env, defaultClassName.c_str()));
 
 		// set array element
 		env->SetObjectArrayElement(result, i, obj);
 	}
 
-	//	env->ExceptionCheck();
-	//	env->ExceptionDescribe();
+//		env->ExceptionCheck();
+//		env->ExceptionDescribe();
 
 	return result;
 }
@@ -1177,7 +1184,7 @@ jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
 	jmethodID setFunctions = env->GetMethodID(cls, "setFunctions",
 			"([Ledu/gcsc/vrl/ug/NativeFunctionGroupInfo;)V");
 
-	//	env->CallVoidMethod(obj, setClassGroups, classGroups2NativeClassGroups(env, reg));
+	env->CallVoidMethod(obj, setClassGroups, classGroups2NativeClassGroups(env, reg));
 	env->CallVoidMethod(obj, setClasses, classes2NativeClasses(env, reg));
 	env->CallVoidMethod(obj, setFunctions, functions2NativeGroups(env, reg));
 
