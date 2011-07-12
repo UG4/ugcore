@@ -142,6 +142,7 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_phase_3", &famg<algebra_type>::set_debug_level_phase_3)
 			.add_method("set_debug_level_calculate_parent_pairs", &famg<algebra_type>::set_debug_level_calculate_parent_pairs)
 			.add_method("set_debug_level_recv_coarsening", &famg<algebra_type>::set_debug_level_recv_coarsening)
+			.add_method("set_debug_level_coloring", &famg<algebra_type>::set_debug_level_coloring)
 			.add_method("set_debug_level_get_ratings", &famg<algebra_type>::set_debug_level_get_ratings)
 			.add_method("set_debug_level_precalculate_coarsening", &famg<algebra_type>::set_debug_level_precalculate_coarsening)
 			.add_method("set_debug_level_aggressive_coarsening", &famg<algebra_type>::set_debug_level_aggressive_coarsening)
