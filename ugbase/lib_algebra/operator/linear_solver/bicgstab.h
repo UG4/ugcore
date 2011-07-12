@@ -169,7 +169,7 @@ class BiCGStab :
 			#endif
 
 		//	needed variables
-			number rhoOld, rho, alpha, omega;
+			number rhoOld=1,rho=1,alpha=1, omega=1;
 
 		// 	Iteration loop
 			while(!m_pConvCheck->iteration_ended())
