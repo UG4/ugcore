@@ -48,10 +48,12 @@ class LocalShapeFunctionSetProvider {
 		static std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* >&
 		get_map();
 
-	//	returns map holding all registered lsfs base classes
-		inline static
-		std::map<LSFSID,const LocalShapeFunctionSetBase*>&
-		get_base_map();
+	//	type of map holding base trialspaces
+		typedef std::map<LSFSID, std::vector<const LocalShapeFunctionSetBase*> >
+				BaseMap;
+
+	//	map holding all base trialspaces
+		static BaseMap m_baseMap;
 
 	public:
 	/** register a local shape function set for a given reference element type
@@ -65,8 +67,7 @@ class LocalShapeFunctionSetProvider {
 		template <typename TRefElem>
 		static bool
 		register_local_shape_function_set(LSFSID id,
-		                                  const LocalShapeFunctionSet<TRefElem>& set,
-		                                  const LocalShapeFunctionSetBase& baseSet);
+		                                  const LocalShapeFunctionSet<TRefElem>& set);
 
 	/** unregister a local shape function set for a given reference element type
 	 * This function is used to unregister a Local Shape Function set for an element
@@ -92,7 +93,8 @@ class LocalShapeFunctionSetProvider {
 		get(LSFSID id);
 
 	///	returns the local shape function set base for an id
-		inline static const LocalShapeFunctionSetBase& get(LSFSID id);
+		inline static
+		const LocalShapeFunctionSetBase& get(LSFSID id, ReferenceObjectID type);
 };
 
 
