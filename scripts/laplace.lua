@@ -302,6 +302,11 @@ if dim == 2 then
 --upwind = FullUpwind2d()
 upwind = WeightedUpwind2d(); upwind:set_weight(0.0)
 --upwind = PartialUpwind2d()
+elseif dim == 3 then 
+--upwind = NoUpwind3d()
+--upwind = FullUpwind3d()
+upwind = WeightedUpwind3d(); upwind:set_weight(0.0)
+--upwind = PartialUpwind3d()
 else print("Dim not supported for upwind"); exit() end
 
 
