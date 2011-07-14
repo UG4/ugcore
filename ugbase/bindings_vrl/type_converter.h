@@ -15,6 +15,10 @@
 #include "registry/registry.h"
 #include "messaging.h"
 
+// we are not sure whether NULL is equivalent to null object in Java.
+// thus, we use this define that allows us to change that easily in the future
+#define JNULL NULL;
+
 namespace ug {
 namespace vrl {
 

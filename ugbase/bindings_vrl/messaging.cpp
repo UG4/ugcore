@@ -13,7 +13,7 @@ namespace vrl {
 void MessageBuffer::addMessage(std::string msg) {
 
 	JNIEnv* env = threading::attachThread(getJavaVM());
-	jclass clazz = env->FindClass("edu/gcsc/vrl/ug4/UG4");
+	jclass clazz = env->FindClass("edu/gcsc/vrl/ug/UG");
 	jmethodID addMessage =
 			env->GetStaticMethodID(clazz, "addMessage", "(Ljava/lang/String;)V");
 

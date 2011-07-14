@@ -175,9 +175,10 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 				ex.m_from << " : " << ex.m_to << std::endl
 				<< VRL_CRITICAL_ERROR);
 	} catch (...) {
+		
 		UG_LOG("Unknown exception thrown while"
 				<< " trying to invoke method!" << std::endl
-				<< VRL_CRITICAL_ERROR);
+				<< std::endl);
 	}
 
 	return result;

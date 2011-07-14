@@ -302,12 +302,22 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj) {
 }
 
 jobject pointer2JObject(JNIEnv *env, void* value) {
+	
+	if (value == NULL) {
+		return 0; // exception occured
+	}
+	
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(JZ)V");
 	return env->NewObject(cls, methodID, (jlong) value, boolC2J(false));
 }
 
 jobject constPointer2JObject(JNIEnv *env, void* value) {
+	
+	if (value == NULL) {
+		return 0; // exception occured
+	}
+	
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(JZ)V");
 	return env->NewObject(cls, methodID, (jlong) value, boolC2J(true));
