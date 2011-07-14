@@ -843,7 +843,7 @@ inner_multi_indices(multi_index_vector_type& ind,
 
 	//	get trial space
 		const LocalShapeFunctionSetBase& lsfs =
-									LocalShapeFunctionSetProvider::get(lsfsID);
+						LocalShapeFunctionSetProvider::get(lsfsID, type);
 
 	//	get number of DoFs in this sub-geometric object
 		const size_t numDoFsOnSub = lsfs.num_sh(type);
@@ -892,7 +892,7 @@ DoFDistribution::inner_algebra_indices(algebra_index_vector_type& ind,
 
 			//	get trial space
 				const LocalShapeFunctionSetBase& lsfs =
-									LocalShapeFunctionSetProvider::get(lsfsID);
+							LocalShapeFunctionSetProvider::get(lsfsID, type);
 
 			//	get number of DoFs in this sub-geometric object
 				const size_t numDoFsOnSub = lsfs.num_sh(type);
