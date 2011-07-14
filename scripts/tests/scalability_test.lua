@@ -56,7 +56,7 @@ if dim == 2 then
 	--gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
-	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_hex_2x2x2.ugx")
 	--gridName = "unit_square/unit_cube_tets_regular.ugx"
 end
 
@@ -408,6 +408,7 @@ if dim == 2 then
 --upwind = FullUpwind2d()
 upwind = WeightedUpwind2d(); upwind:set_weight(0.0)
 --upwind = PartialUpwind2d()
+elseif dim == 3 then upwind = NoUpwind3d()
 else print("Dim not supported for upwind"); exit() end
 
 
