@@ -9,6 +9,41 @@
 
 namespace ug{
 
+template <typename TRefElem>
+bool
+LocalShapeFunctionSetProvider::
+init_standard_local_shape_function_sets()
+{
+//	create static Sets
+	static LocalShapeFunctionSetWrapper<LagrangeP1<TRefElem, 1> > sSetLagrangeP1;
+	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 2> > sSetLagrangeP2;
+	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 3> > sSetLagrangeP3;
+	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 4> > sSetLagrangeP4;
+
+//	insert into map: P1 Lagrange
+	LSFSID type1(LSFSID::LAGRANGE, 1);
+	if(!register_local_shape_function_set(type1, sSetLagrangeP1))
+		return false;
+
+//	insert into map: P2 Lagrange
+	LSFSID type2(LSFSID::LAGRANGE, 2);
+	if(!register_local_shape_function_set(type2, sSetLagrangeP2))
+		return false;
+
+//	insert into map: P3 Lagrange
+	LSFSID type3(LSFSID::LAGRANGE, 3);
+	if(!register_local_shape_function_set(type3, sSetLagrangeP3))
+		return false;
+
+//	insert into map: P4 Lagrange
+	LSFSID type4(LSFSID::LAGRANGE, 4);
+	if(!register_local_shape_function_set(type4, sSetLagrangeP4))
+		return false;
+
+//	return success
+	return true;
+}
+
 LocalShapeFunctionSetProvider::
 LocalShapeFunctionSetProvider()
 {
@@ -16,7 +51,10 @@ LocalShapeFunctionSetProvider()
 
 	if(!init)
 	{
+	//	remember initialization
 		init = true;
+
+	//	register all element types that allow higher orders
 		if(!init_standard_local_shape_function_sets<ReferenceEdge>())
 			throw(UGFatalError("Cannot register standard Edge trial spaces."));
 		if(!init_standard_local_shape_function_sets<ReferenceTriangle>())
@@ -25,12 +63,17 @@ LocalShapeFunctionSetProvider()
 			throw(UGFatalError("Cannot register standard Quadrilateral trial spaces."));
 		if(!init_standard_local_shape_function_sets<ReferenceTetrahedron>())
 			throw(UGFatalError("Cannot register standard Tetrahedron trial spaces."));
-		if(!init_standard_local_shape_function_sets<ReferencePyramid>())
-			throw(UGFatalError("Cannot register standard Pyramid trial spaces."));
 		if(!init_standard_local_shape_function_sets<ReferencePrism>())
 			throw(UGFatalError("Cannot register standard Prism trial spaces."));
 		if(!init_standard_local_shape_function_sets<ReferenceHexahedron>())
 			throw(UGFatalError("Cannot register standard Hexahedron trial spaces."));
+
+	//	register 1st order pyramid
+		LSFSID type1(LSFSID::LAGRANGE, 1);
+		static LocalShapeFunctionSetWrapper<LagrangeP1<ReferencePyramid, 1> > sSetLagrangeP1;
+		if(!register_local_shape_function_set(type1, sSetLagrangeP1))
+			throw(UGFatalError("Cannot register Pyramid P1 Lagrange trial spaces."));
+
 	}
 };
 

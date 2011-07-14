@@ -21,29 +21,6 @@ namespace ug{
 ///////////////////////////////////////////
 
 template <typename TRefElem>
-bool
-LocalShapeFunctionSetProvider::
-init_standard_local_shape_function_sets()
-{
-//	create static Sets
-	static LocalShapeFunctionSetWrapper<LagrangeP1<TRefElem, 1> > sSetLagrangeP1;
-	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 2> > sSetLagrangeP2;
-
-//	insert into map: P1 Lagrange
-	LSFSID type1(LSFSID::LAGRANGE, 1);
-	if(!register_local_shape_function_set(type1, sSetLagrangeP1))
-		return false;
-
-//	insert into map: P2 Lagrange
-	LSFSID type2(LSFSID::LAGRANGE, 2);
-	if(!register_local_shape_function_set(type2, sSetLagrangeP2))
-		return false;
-
-//	return success
-	return true;
-}
-
-template <typename TRefElem>
 std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* >&
 LocalShapeFunctionSetProvider::get_map()
 {
