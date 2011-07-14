@@ -226,7 +226,6 @@ class LinearSolver
 		{
 			m_pConvCheck->set_name(name());
 			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
 			if(m_pPrecond != NULL)
 			{
 				std::stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
