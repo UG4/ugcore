@@ -109,6 +109,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	}
 
 	ug::vrl::SetVRLRegistry(&reg);
+	
+	ug::vrl::invocation::initClasses(*ug::vrl::vrlRegistry);
 
 	return (jint) retVal;
 }
@@ -175,7 +177,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 				ex.m_from << " : " << ex.m_to << std::endl
 				<< VRL_CRITICAL_ERROR);
 	} catch (...) {
-		
+
 		UG_LOG("Unknown exception thrown while"
 				<< " trying to invoke method!" << std::endl
 				<< std::endl);
@@ -191,9 +193,12 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 	ug::bridge::IExportedClass* clazz = NULL;
 
 	try {
+
 		ug::bridge::IExportedClass* clazz =
 				(ug::bridge::IExportedClass*) objPtr;
+
 		result = (long) clazz->create();
+
 	} catch (...) {
 		std::string className = "Unknown class";
 		if (clazz != NULL) {
@@ -326,7 +331,6 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_invalidate
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_convertRegistryInfo
 (JNIEnv * env, jobject obj) {
-	ug::vrl::invocation::initClasses(*ug::vrl::vrlRegistry);
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 
