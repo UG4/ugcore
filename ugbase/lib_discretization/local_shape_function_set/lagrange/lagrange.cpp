@@ -30,7 +30,10 @@ void SetVertexLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 
 	//	set multi index
 		for(int d = 0; d<dim; ++d)
+		{
+			UG_ASSERT(p*vCo[i][d] >= 0, "Wrong multi index m["<<d<<"]="<<p*vCo[i][d]);
 			vMultiIndex[index][d] = p*vCo[i][d];
+		}
 
 	//	next index
 		++index;
@@ -72,7 +75,10 @@ void SetEdgeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 
 		//	set multi index
 			for(int d = 0; d<dim; ++d)
+			{
+				UG_ASSERT(m[d] >= 0, "Wrong multi index m["<<d<<"]="<<m[d]);
 				vMultiIndex[index][d] = m[d];
+			}
 
 		//	next index
 			index++;
@@ -127,12 +133,15 @@ void SetFaceLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 				vLocalDoF[index] = LocalDoF(2, f, cnt++);
 
 			//	compute multi index
-				MathVector<dim,int> m = vCo[co0];
+				MathVector<dim,int> m = vCo[co0]; m *= p;
 				VecScaleAppend(m, i, d1, j, d2);
 
 			//	set multi index
 				for(int d = 0; d<dim; ++d)
+				{
+					UG_ASSERT(m[d] >= 0, "Wrong multi index m["<<d<<"]="<<m[d]);
 					vMultiIndex[index][d] = m[d];
+				}
 
 			//	next index
 				++index;
@@ -172,6 +181,10 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 				//	set: dim=2, id=0, offset=i
 					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
 
+					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
+					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
+					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
+
 				//	use regular mapping for inner DoFs
 					vMultiIndex[index][0] = m0;
 					vMultiIndex[index][1] = m1;
@@ -191,6 +204,10 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 				//	set: dim=2, id=0, offset=i
 					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
 
+					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
+					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
+					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
+
 				//	use regular mapping for inner DoFs
 					vMultiIndex[index][0] = m0;
 					vMultiIndex[index][1] = m1;
@@ -205,6 +222,10 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 				{
 				//	set: dim=2, id=0, offset=i
 					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
+
+					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
+					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
+					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
 
 				//	use regular mapping for inner DoFs
 					vMultiIndex[index][0] = m0;
