@@ -41,7 +41,7 @@ class SurfaceView : public SubsetHandler
 		
 	///	returns if the element is a shadow, i.e. has children
 		template <class TGeomObj>
-		inline bool is_shadow(TGeomObj* obj) const	{return m_pMG->has_children(obj);}
+		inline bool is_shadow(TGeomObj* obj) const {return m_pMG->has_children(obj);}
 
 	///	returns if the element shadows another
 		template <class TGeomObj>
@@ -67,13 +67,21 @@ class SurfaceView : public SubsetHandler
 		template <class TElem>
 		inline TElem* get_shadow_child(TElem* elem) const
 		{
-				typedef typename geometry_traits<Edge>::geometric_base_object
-						baseType;
-				baseType* pBase = dynamic_cast<baseType*>(elem);
-				TElem* pChild = dynamic_cast<TElem*>(m_pMG->get_child<baseType,baseType>(pBase, 0));
-				if(pChild == NULL)
-					throw(UGFatalError("Child of shadow not of same type."));
-				return pChild;
+		//	get the type of the geometric base object
+			typedef typename geometry_traits<TElem>::geometric_base_object baseType;
+
+		//	downcast the element to the base class
+			baseType* pBase = static_cast<baseType*>(elem);
+
+		//	get the child of the element
+			TElem* pChild = dynamic_cast<TElem*>(m_pMG->get_child<baseType,baseType>(pBase, 0));
+
+		//	if the element has been a shadow, then the child is of same type,
+		//	thus the cast must work. If not, it has not been a child.
+			if(pChild == NULL) throw(UGFatalError("Child of shadow not of same type."));
+
+		//	return the child
+			return pChild;
 		}
 
 	///	returns the level in grid hierarchy of an element in the surface
