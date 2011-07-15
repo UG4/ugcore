@@ -49,6 +49,9 @@ struct UG_ERROR_InvalidShapeFunctionIndex
 class LocalShapeFunctionSetBase
 {
 	public:
+	///	returns the reference dimension
+		virtual int ref_dim() const = 0;
+
 	///	returns if DoFs are assigned to geometric objects of the dimension
 		virtual bool has_sh_on(int d) const = 0;
 
@@ -98,6 +101,9 @@ class LocalShapeFunctionSet : public LocalShapeFunctionSetBase
 		typedef MathVector<dim> grad_type;
 
 	public:
+	///	returns the reference dimension
+		virtual int ref_dim() const {return dim;}
+
 	///	Number of DoFs (shapes) on finite element
 		virtual size_t num_sh() const = 0;
 

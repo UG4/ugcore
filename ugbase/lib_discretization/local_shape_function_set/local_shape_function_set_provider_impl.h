@@ -40,26 +40,26 @@ LocalShapeFunctionSetProvider::
 register_local_shape_function_set(LSFSID type, const LocalShapeFunctionSet<TRefElem>& set)
 {
 //	reference object id
-	const ReferenceObjectID id = TRefElem::REFERENCE_OBJECT_ID;
+	const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
 
 //	get vector of types
 	std::vector<const LocalShapeFunctionSetBase*>& vBase = m_baseMap[type];
 
 //	resize vector
-	vBase.resize(id+1, NULL);
+	vBase.resize(roid+1, NULL);
 
 //	check that no space has been previously registered to this place
-	if(vBase[id])
+	if(vBase[roid])
 	{
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::"
 				"register_local_shape_function_set()': "
 				"Base type already registered for trial space: "<<type<<" and "
-				" Reference element type "<<id<<".\n");
+				" Reference element type "<<roid<<".\n");
 		return false;
 	}
 
 //	if ok, add
-	vBase[id] = &set;
+	vBase[roid] = &set;
 
 //	get type of map
 	typedef std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* > Map;
@@ -72,7 +72,7 @@ register_local_shape_function_set(LSFSID type, const LocalShapeFunctionSet<TRefE
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::"
 				"register_local_shape_function_set()': "
 				"Reference type already registered for trial space: "<<type<<" and "
-				" Reference element type "<<id<<".\n");
+				" Reference element type "<<roid<<".\n");
 		return false;
 	}
 
@@ -106,6 +106,7 @@ get(LSFSID id)
 {
 //	get type of map
 	typedef std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* > Map;
+	const static ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
 
 //	init provider and get map
 	static Map& map = inst().get_map<TRefElem>();
@@ -117,7 +118,8 @@ get(LSFSID id)
 	if(iter == map.end())
 	{
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
-				"Unknown Trial Space Type "<<id<<" requested.\n");
+				"Unknown Trial Space Type "<<id<<" requested for Element"
+				" type: "<<roid<<".\n");
 		throw(UGFatalError("Trial Space type unknown"));
 	}
 
@@ -127,7 +129,7 @@ get(LSFSID id)
 
 inline
 const LocalShapeFunctionSetBase&
-LocalShapeFunctionSetProvider::get(LSFSID id, ReferenceObjectID type)
+LocalShapeFunctionSetProvider::get(LSFSID id, ReferenceObjectID roid)
 {
 //	init provider and search for identifier
 	BaseMap::const_iterator iter = inst().m_baseMap.find(id);
@@ -136,7 +138,8 @@ LocalShapeFunctionSetProvider::get(LSFSID id, ReferenceObjectID type)
 	if(iter == m_baseMap.end())
 	{
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
-				"Unknown Base Trial Space Type "<<id<<" requested.\n");
+				"Unknown Base Trial Space Type "<<id<<" requested for"
+				" Reference Element type " <<roid<<".\n");
 		throw(UGFatalError("Trial Space type unknown"));
 	}
 
@@ -144,16 +147,16 @@ LocalShapeFunctionSetProvider::get(LSFSID id, ReferenceObjectID type)
 	const std::vector<const LocalShapeFunctionSetBase*>& vBase = iter->second;
 
 //	check that space registered
-	if(vBase[type] == NULL)
+	if(vBase[roid] == NULL)
 	{
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
 				"Unknown Base Trial Space  for Type "<<id<<" and Reference"
-				" element "<<type<<" requested.\n");
+				" element type "<<roid<<" requested.\n");
 		throw(UGFatalError("Trial Space type unknown"));
 	}
 
 //	return shape function set
-	return *(vBase[type]);
+	return *(vBase[roid]);
 }
 
 
