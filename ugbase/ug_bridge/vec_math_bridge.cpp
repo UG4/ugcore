@@ -41,7 +41,7 @@ static bool RegisterVecMathBridge(Registry& reg, const char* parentGroup)
 	{
 	//	get group string
 		std::stringstream groupString; groupString << parentGroup << "/VecMath";
-		string strGrp = groupString.str();
+		std::string strGrp = groupString.str();
 		const char* grp = strGrp.c_str();
 
 	//	register the class
@@ -67,7 +67,7 @@ static bool RegisterVecMathBridge_DimIndep(Registry& reg, const char* parentGrou
 	{
 	//	get group string
 		std::stringstream groupString; groupString << parentGroup << "/VecMath";
-		string strGrp = groupString.str();
+		std::string strGrp = groupString.str();
 		const char* grp = strGrp.c_str();
 
 	//	register make-methods
