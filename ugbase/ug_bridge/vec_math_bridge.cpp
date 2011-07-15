@@ -72,13 +72,13 @@ static bool RegisterVecMathBridge_DimIndep(Registry& reg, const char* parentGrou
 		const char* grp = strGrp.c_str();
 
 	//	register make-methods
-		reg.add_function("make_vec", static_cast<SmartPtr<vector1> (*)(number)>(
+		reg.add_function("MakeVec", static_cast<SmartPtr<vector1> (*)(number)>(
 							&MakeVec), grp)
-			.add_function("make_vec", static_cast<SmartPtr<vector2> (*)(number, number)>(
+			.add_function("MakeVec", static_cast<SmartPtr<vector2> (*)(number, number)>(
 							&MakeVec), grp)
-			.add_function("make_vec", static_cast<SmartPtr<vector3> (*)(number, number, number)>(
+			.add_function("MakeVec", static_cast<SmartPtr<vector3> (*)(number, number, number)>(
 							&MakeVec), grp)
-			.add_function("make_vec", static_cast<SmartPtr<vector4> (*)(number, number, number, number)>(
+			.add_function("MakeVec", static_cast<SmartPtr<vector4> (*)(number, number, number, number)>(
 							&MakeVec), grp);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)

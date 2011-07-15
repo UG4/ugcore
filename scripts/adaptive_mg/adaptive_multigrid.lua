@@ -39,11 +39,11 @@ numRefs    = util.GetParamNumber("-numRefs",    1)
 
 -- all elements connected to vertices in this sphere will be refined
 if dim == 1 then
-	refCenter = make_vec(0)
+	refCenter = MakeVec(0)
 elseif dim == 2 then
-	refCenter = make_vec(0, 0)
+	refCenter = MakeVec(0, 0)
 elseif dim == 3 then
-	refCenter = make_vec(0, 0, 0)
+	refCenter = MakeVec(0, 0, 0)
 end
 initialRadius = 0.5
 -- in every refinement iteration the radius shrinks with this factor
