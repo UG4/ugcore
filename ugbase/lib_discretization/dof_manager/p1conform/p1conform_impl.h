@@ -20,20 +20,6 @@ namespace ug{
 
 template <bool bGrouped>
 template<typename TElem>
-bool
-P1DoFDistribution<bGrouped>::
-has_dofs_on() const
-{
-//	get base obj type
-	uint type = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-
-//	only in case of a Vertex, we have a DoF
-	if(type == VERTEX) return true;
-	else return false;
-}
-
-template <bool bGrouped>
-template<typename TElem>
 void
 P1DoFDistribution<bGrouped>::
 indices(TElem* elem, LocalIndices& ind, bool bHang) const

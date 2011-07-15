@@ -127,24 +127,27 @@ DoFDistribution(GeometricObjectCollection goc,
 	create_offsets();
 }
 
-bool DoFDistribution::has_dofs_on(int dim) const
+bool DoFDistribution::has_dofs_on(GeometricBaseObject gbo) const
 {
 //	return if at least on dof on that type
-	return (m_vMaxDoFsInDim[dim] > 0);
+	return (m_vMaxDoFsInDim[gbo] > 0);
 }
 
-template <typename TRefElem>
-void DoFDistribution::create_offsets_of_type()
+bool DoFDistribution::has_dofs_on(ReferenceObjectID roid) const
 {
-	ReferenceObjectID type = TRefElem::REFERENCE_OBJECT_ID;
+//	return if at least on dof on that type
+	return (m_vMaxDoFsOnROID[roid] > 0);
+}
 
+void DoFDistribution::create_offsets(ReferenceObjectID roid)
+{
 //	clear offsets
-	m_vvvOffsets[type].clear();
-	m_vvNumDoFsOnType[type].clear();
+	m_vvvOffsets[roid].clear();
+	m_vvNumDoFsOnROID[roid].clear();
 
 //	resize for all subsets
-	m_vvvOffsets[type].resize(num_subsets());
-	m_vvNumDoFsOnType[type].resize(num_subsets(), 0);
+	m_vvvOffsets[roid].resize(num_subsets());
+	m_vvNumDoFsOnROID[roid].resize(num_subsets(), 0);
 
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
@@ -153,30 +156,30 @@ void DoFDistribution::create_offsets_of_type()
 		size_t count = 0;
 
 	//	resize for each function
-		m_vvvOffsets[type][si].resize(num_fct());
+		m_vvvOffsets[roid][si].resize(num_fct());
 
 	//	loop functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
 		//	if function is not defined, we set the offset as invalid.
 			if(!is_def_in_subset(fct, si))
-				m_vvvOffsets[type][si][fct] = NOT_DEF_ON_SUBSET;
+				m_vvvOffsets[roid][si][fct] = NOT_DEF_ON_SUBSET;
 
 		//	get local shape function id
 			LSFSID lsfsID = local_shape_function_set_id(fct);
 
 		//	get trial space
-			const LocalShapeFunctionSet<TRefElem>& lsfs =
-						LocalShapeFunctionSetProvider::get<TRefElem>(lsfsID);
+			const LocalShapeFunctionSetBase& lsfs =
+							LocalShapeFunctionSetProvider::get(lsfsID, roid);
 
 		//	get number of DoFs on the reference element need for the space
-			const size_t numDoF = lsfs.num_sh(type);
+			const size_t numDoF = lsfs.num_sh(roid);
 
 		//	set offset for each function defined in the subset
-			m_vvvOffsets[type][si][fct] = count;
+			m_vvvOffsets[roid][si][fct] = count;
 
 		//	increase number of DoFs per type on this subset
-			m_vvNumDoFsOnType[type][si] += numDoF;
+			m_vvNumDoFsOnROID[roid][si] += numDoF;
 
 		//	increase the count
 			count += numDoF;
@@ -184,17 +187,17 @@ void DoFDistribution::create_offsets_of_type()
 	}
 
 // 	lets find out the maximum number for a type on all subsets
-	m_vMaxDoFsOnType[type] = 0;
+	m_vMaxDoFsOnROID[roid] = 0;
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-		m_vMaxDoFsOnType[type] = std::max(m_vMaxDoFsOnType[type],
-		                                  m_vvNumDoFsOnType[type][si]);
+		m_vMaxDoFsOnROID[roid] = std::max(m_vMaxDoFsOnROID[roid],
+		                                  m_vvNumDoFsOnROID[roid][si]);
 	}
 
 //	lets find out the maximum number of DoFs for objects in dimension
-	const int d = TRefElem::dim;
+	const int d = ReferenceElementDimension(roid);
 	m_vMaxDoFsInDim[d] = std::max(m_vMaxDoFsInDim[d],
-	                              m_vMaxDoFsOnType[type]);
+	                              m_vMaxDoFsOnROID[roid]);
 }
 
 void DoFDistribution::create_offsets()
@@ -202,17 +205,12 @@ void DoFDistribution::create_offsets()
 //	reset dimension maximum
 	for(size_t d=0; d <= 3; ++d) m_vMaxDoFsInDim[d] = 0;
 
-	create_offsets_of_type<ReferenceVertex>();
-	create_offsets_of_type<ReferenceEdge>();
-	create_offsets_of_type<ReferenceTriangle>();
-	create_offsets_of_type<ReferenceQuadrilateral>();
-	create_offsets_of_type<ReferenceTetrahedron>();
-	create_offsets_of_type<ReferencePrism>();
-	create_offsets_of_type<ReferencePyramid>();
-	create_offsets_of_type<ReferenceHexahedron>();
+//	loop all reference element, but not vertices (no disc there)
+	for(int roid=ROID_EDGE; roid < NUM_REFERENCE_OBJECTS; ++roid)
+		create_offsets((ReferenceObjectID) roid);
 }
 
-size_t DoFDistribution::get_free_index(size_t si, ReferenceObjectID type)
+size_t DoFDistribution::get_free_index(size_t si, ReferenceObjectID roid)
 {
 //	The idea is as follows:
 //	- 	If a free index is left, the a free index is returned. This
@@ -235,15 +233,15 @@ size_t DoFDistribution::get_free_index(size_t si, ReferenceObjectID type)
 	else
 	{
 	//	if using new index, increase size of index set
-		if(!m_bGrouped) m_sizeIndexSet += m_vvNumDoFsOnType[type][si];
+		if(!m_bGrouped) m_sizeIndexSet += m_vvNumDoFsOnROID[roid][si];
 		else ++m_sizeIndexSet;
 	}
 
 //	adjust counters
 	if(!m_bGrouped)
 	{
-		m_numIndex += m_vvNumDoFsOnType[type][si];
-		m_vNumIndex[si] += m_vvNumDoFsOnType[type][si];
+		m_numIndex += m_vvNumDoFsOnROID[roid][si];
+		m_vNumIndex[si] += m_vvNumDoFsOnROID[roid][si];
 	}
 	else
 	{
@@ -255,7 +253,7 @@ size_t DoFDistribution::get_free_index(size_t si, ReferenceObjectID type)
 	return freeIndex;
 }
 
-void DoFDistribution::push_free_index(size_t freeIndex, size_t si, ReferenceObjectID type)
+void DoFDistribution::push_free_index(size_t freeIndex, size_t si, ReferenceObjectID roid)
 {
 //	remember index
 	m_vFreeIndex.push_back(freeIndex);
@@ -263,8 +261,8 @@ void DoFDistribution::push_free_index(size_t freeIndex, size_t si, ReferenceObje
 //	decrease number of distributed indices
 	if(!m_bGrouped)
 	{
-		m_numIndex -= m_vvNumDoFsOnType[type][si];
-		m_vNumIndex[si] -= m_vvNumDoFsOnType[type][si];
+		m_numIndex -= m_vvNumDoFsOnROID[roid][si];
+		m_vNumIndex[si] -= m_vvNumDoFsOnROID[roid][si];
 	}
 	else
 	{
@@ -284,13 +282,13 @@ bool DoFDistribution::distribute_dofs()
 			reference_element_type;
 
 //	get reference object id
-	ReferenceObjectID type = reference_element_type::REFERENCE_OBJECT_ID;
+	ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
 	// 	skip if no dofs to be distributed
-		if(m_vvNumDoFsOnType[type][si] == 0) continue;
+		if(m_vvNumDoFsOnROID[roid][si] == 0) continue;
 
 	//	get iterators of elems
 		iterator iter = this->template begin<TElem>(si);
@@ -313,8 +311,8 @@ bool DoFDistribution::distribute_dofs()
 		//	increase number of DoFs and DoFs on subset
 			if(!m_bGrouped)
 			{
-				m_numIndex += m_vvNumDoFsOnType[type][si];
-				m_vNumIndex[si] += m_vvNumDoFsOnType[type][si];
+				m_numIndex += m_vvNumDoFsOnROID[roid][si];
+				m_vNumIndex[si] += m_vvNumDoFsOnROID[roid][si];
 			}
 			else
 			{
@@ -410,7 +408,7 @@ bool DoFDistribution::permute_indices(std::vector<size_t>& vIndNew)
 			reference_element_type;
 
 //	get reference object id
-	ReferenceObjectID type = reference_element_type::REFERENCE_OBJECT_ID;
+	ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
@@ -434,7 +432,7 @@ bool DoFDistribution::permute_indices(std::vector<size_t>& vIndNew)
 
 		//	set correct permutation in permuting vector
 			if(!m_bGrouped)
-				for(size_t fct = 0; fct < m_vvNumDoFsOnType[type][si]; ++fct)
+				for(size_t fct = 0; fct < m_vvNumDoFsOnROID[roid][si]; ++fct)
 					vIndNew[oldIndex+fct] = vIndNew[oldIndex] + fct;
 		}
 	}
@@ -617,11 +615,11 @@ bool DoFDistribution::get_connections(std::vector<std::vector<size_t> >& vvConne
 	{
 		size_t numDoFs = 0;
 		for(int si = 0; si < num_subsets(); ++si)
-			for(int type = 0; type < NUM_REFERENCE_OBJECTS; ++type)
+			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
 		{
-			if(m_vvNumDoFsOnType[type][si] == 0) continue;
-			if(numDoFs == 0) {numDoFs = m_vvNumDoFsOnType[type][si]; continue;}
-			if(m_vvNumDoFsOnType[type][si] != numDoFs)
+			if(m_vvNumDoFsOnROID[roid][si] == 0) continue;
+			if(numDoFs == 0) {numDoFs = m_vvNumDoFsOnROID[roid][si]; continue;}
+			if(m_vvNumDoFsOnROID[roid][si] != numDoFs)
 			{
 				UG_LOG("ERROR in 'P1DoFDistribution::get_connections':"
 						" Currently only implemented iff same number of DoFs on"
@@ -680,10 +678,10 @@ void DoFDistribution::grid_obj_added(TBaseElem* elem)
 		const int si = m_pISubsetHandler->get_subset_index(elem);
 
 	//	get type
-		ReferenceObjectID type = elem->reference_object_id();
+		ReferenceObjectID roid = elem->reference_object_id();
 
 	// 	write next free index
-		first_index(elem) = get_free_index(si, type);
+		first_index(elem) = get_free_index(si, roid);
 	}
 }
 
@@ -694,10 +692,10 @@ void DoFDistribution::grid_obj_to_be_removed(TBaseElem* elem)
 	const int si = m_pISubsetHandler->get_subset_index(elem);
 
 //	get type
-	ReferenceObjectID type = elem->reference_object_id();
+	ReferenceObjectID roid = elem->reference_object_id();
 
 // 	remember free index
-	push_free_index(first_index(elem), si, type);
+	push_free_index(first_index(elem), si, roid);
 }
 
 template <typename TBaseElem>
@@ -722,13 +720,13 @@ bool DoFDistribution::defragment(std::vector<std::pair<size_t, size_t> >& vRepla
 			reference_element_type;
 
 //	get reference object id
-	ReferenceObjectID type = reference_element_type::REFERENCE_OBJECT_ID;
+	ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
 	// 	skip if no DoFs to be distributed
-		if(m_vvNumDoFsOnType[type][si]) continue;
+		if(m_vvNumDoFsOnROID[roid][si]) continue;
 
 		typename geometry_traits<TElem>::iterator iter, iterBegin, iterEnd;
 		iterBegin = this->begin<TElem>(si);
@@ -747,7 +745,7 @@ bool DoFDistribution::defragment(std::vector<std::pair<size_t, size_t> >& vRepla
 			if(first_index(elem) < m_numIndex) continue;
 
 		//	get free index
-			const size_t newIndex = get_free_index(si, type);
+			const size_t newIndex = get_free_index(si, roid);
 
 		//	remember replacement
 			vReplaced.push_back(std::pair<size_t,size_t>(oldIndex, newIndex));
@@ -758,9 +756,9 @@ bool DoFDistribution::defragment(std::vector<std::pair<size_t, size_t> >& vRepla
 		//	adjust counters, since this was an replacement
 			if(!m_bGrouped)
 			{
-				m_numIndex -= m_vvNumDoFsOnType[type][si];
-				m_sizeIndexSet -= m_vvNumDoFsOnType[type][si];
-				m_vNumIndex[si] -= m_vvNumDoFsOnType[type][si];
+				m_numIndex -= m_vvNumDoFsOnROID[roid][si];
+				m_sizeIndexSet -= m_vvNumDoFsOnROID[roid][si];
+				m_vNumIndex[si] -= m_vvNumDoFsOnROID[roid][si];
 			}
 			else
 			{
@@ -830,28 +828,28 @@ bool DoFDistribution::defragment()
 size_t DoFDistribution::
 inner_multi_indices(multi_index_vector_type& ind,
                     const size_t firstIndex, const int si, const size_t fct,
-                    const ReferenceObjectID type) const
+                    const ReferenceObjectID roid) const
 {
 //	check that function is def on subset
 	if(!is_def_in_subset(fct, si)) return ind.size();
 
 //	only in case of vertex, we have DoFs
-	if(m_vvNumDoFsOnType[type][si] > 0)
+	if(m_vvNumDoFsOnROID[roid][si] > 0)
 	{
 	//	get local shape function id
 		LSFSID lsfsID = local_shape_function_set_id(fct);
 
 	//	get trial space
 		const LocalShapeFunctionSetBase& lsfs =
-						LocalShapeFunctionSetProvider::get(lsfsID, type);
+						LocalShapeFunctionSetProvider::get(lsfsID, roid);
 
 	//	get number of DoFs in this sub-geometric object
-		const size_t numDoFsOnSub = lsfs.num_sh(type);
+		const size_t numDoFsOnSub = lsfs.num_sh(roid);
 
 		if(!m_bGrouped)
 		{
 		//	compute index
-			const size_t index = firstIndex + m_vvvOffsets[type][si][fct];
+			const size_t index = firstIndex + m_vvvOffsets[roid][si][fct];
 
 		//	add dof to local indices
 			for(size_t j = 0; j < numDoFsOnSub; ++j)
@@ -860,7 +858,7 @@ inner_multi_indices(multi_index_vector_type& ind,
 		else
 		{
 		//	compute index
-			const size_t comp = m_vvvOffsets[type][si][fct];
+			const size_t comp = m_vvvOffsets[roid][si][fct];
 
 		//	add dof to local indices
 			for(size_t j = 0; j < numDoFsOnSub; ++j)
@@ -875,10 +873,10 @@ inner_multi_indices(multi_index_vector_type& ind,
 size_t
 DoFDistribution::inner_algebra_indices(algebra_index_vector_type& ind,
                                        const size_t firstIndex, const int si,
-                                       const ReferenceObjectID type) const
+                                       const ReferenceObjectID roid) const
 {
 //	only in case of vertex, we have DoFs
-	if(m_vvNumDoFsOnType[type][si] > 0)
+	if(m_vvNumDoFsOnROID[roid][si] > 0)
 	{
 		if(!m_bGrouped)
 		{
@@ -892,13 +890,13 @@ DoFDistribution::inner_algebra_indices(algebra_index_vector_type& ind,
 
 			//	get trial space
 				const LocalShapeFunctionSetBase& lsfs =
-							LocalShapeFunctionSetProvider::get(lsfsID, type);
+							LocalShapeFunctionSetProvider::get(lsfsID, roid);
 
 			//	get number of DoFs in this sub-geometric object
-				const size_t numDoFsOnSub = lsfs.num_sh(type);
+				const size_t numDoFsOnSub = lsfs.num_sh(roid);
 
 			//	compute index
-				const size_t index = firstIndex + m_vvvOffsets[type][si][fct];
+				const size_t index = firstIndex + m_vvvOffsets[roid][si][fct];
 
 			//	add dof to local indices
 				for(size_t j = 0; j < numDoFsOnSub; ++j)

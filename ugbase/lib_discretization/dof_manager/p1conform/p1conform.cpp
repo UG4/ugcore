@@ -67,6 +67,23 @@ bool P1StorageManager::update_attachments()
 ///////////////////////////////////////////////////////////////////////////////
 
 template <bool bGrouped>
+bool P1DoFDistribution<bGrouped>::has_dofs_on(GeometricBaseObject gbo) const
+{
+//	only in case of a Vertex, we have a DoF
+	if(gbo == VERTEX) return true;
+	else return false;
+}
+
+template <bool bGrouped>
+bool P1DoFDistribution<bGrouped>::has_dofs_on(ReferenceObjectID roid) const
+{
+//	only in case of a Vertex, we have a DoF
+	if(roid == ROID_VERTEX) return true;
+	else return false;
+}
+
+
+template <bool bGrouped>
 void P1DoFDistribution<bGrouped>::create_offsets()
 {
 //	clear offsets

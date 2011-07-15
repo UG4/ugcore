@@ -84,7 +84,7 @@ bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 	vMap.resize(surfDD.num_dofs(), 10000555);
 
 // 	add dofs on elements
-	if(surfDD.template has_dofs_on<VertexBase>())
+	if(surfDD.has_dofs_on(VERTEX))
 		bRetVal &= CreateSurfaceToToplevelMap<VertexBase, TDoFDistribution>(vMap, surfDD, topDD);
 
 	// TODO: Use all DoF types

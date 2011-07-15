@@ -15,20 +15,6 @@
 
 namespace ug{
 
-template<typename TElem>
-bool DoFDistribution::has_dofs_on() const
-{
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
-
-//	get roid type
-	static const ReferenceObjectID type = ref_elem_type::REFERENCE_OBJECT_ID;
-
-//	return if at least on dof on that type
-	return (m_vMaxDoFsOnType[type] > 0);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //	Local Indices
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +32,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 	static const int d = ref_elem_type::dim;
 
 //	get roid type
-	static const ReferenceObjectID type = ref_elem_type::REFERENCE_OBJECT_ID;
+	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	add normal dofs
 	for(size_t i = 0; i < numNatural; ++i)
@@ -80,7 +66,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 			if(!m_bGrouped)
 			{
 			//	compute index
-				const size_t index = firstIndex + m_vvvOffsets[type][si][fct];
+				const size_t index = firstIndex + m_vvvOffsets[roid][si][fct];
 
 			//	add dof to local indices
 			// \TODO: ORIENTATION !!!
@@ -91,7 +77,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 			{
 			//	compute index
 				const size_t index = firstIndex;
-				const size_t comp = m_vvvOffsets[type][si][fct];
+				const size_t comp = m_vvvOffsets[roid][si][fct];
 
 			//	add dof to local indices
 			// \TODO: ORIENTATION !!!
@@ -122,7 +108,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind, bool bHang) const
 	{
 		std::vector<VertexBase*> vElem;
 		CollectVertices(vElem, *grid, elem);
-		const size_t numNatural = ref_elem_type::num_vertices;
+		const size_t numNatural = ref_elem_type::num_corners;
 		indices<TElem, VertexBase>(elem, ind, vElem, numNatural, bHang);
 	}
 
@@ -195,7 +181,7 @@ size_t DoFDistribution::multi_indices(std::vector<TBaseElem*> vElem, size_t fct,
 	for(size_t i = 0; i < vElem.size(); ++i)
 	{
 	//	get reference object type
-		const ReferenceObjectID type = vElem[i]->reference_object_id();
+		const ReferenceObjectID roid = static_cast<ReferenceObjectID>(vElem[i]->reference_object_id());
 
 	//	get subset index
 		const int si = m_pISubsetHandler->get_subset_index(vElem[i]);
@@ -205,7 +191,7 @@ size_t DoFDistribution::multi_indices(std::vector<TBaseElem*> vElem, size_t fct,
 		const size_t firstIndex = first_index(vElem[i]);
 
 	//	forward request to inner element
-		inner_multi_indices(ind, firstIndex, si, fct, type);
+		inner_multi_indices(ind, firstIndex, si, fct, roid);
 	}
 
 //	return number of indices
@@ -222,7 +208,7 @@ size_t DoFDistribution::inner_multi_indices(TElem* elem, size_t fct,
 			ref_elem_type;
 
 //	get roid type
-	static const ReferenceObjectID type = ref_elem_type::REFERENCE_OBJECT_ID;
+	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	get subset index
 	const int si = m_pISubsetHandler->get_subset_index(elem);
@@ -235,7 +221,7 @@ size_t DoFDistribution::inner_multi_indices(TElem* elem, size_t fct,
 	if(bClear) ind.clear();
 
 //	forward request to inner element
-	return inner_multi_indices(ind, firstIndex, si, fct, type);
+	return inner_multi_indices(ind, firstIndex, si, fct, roid);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -291,7 +277,7 @@ size_t DoFDistribution::algebra_indices(std::vector<TBaseElem*> vElem,
 	for(size_t i = 0; i < vElem.size(); ++i)
 	{
 	//	get reference object type
-		const ReferenceObjectID type = vElem[i]->reference_object_id();
+		const ReferenceObjectID roid = static_cast<ReferenceObjectID>(vElem[i]->reference_object_id());
 
 	//	get subset index
 		const int si = m_pISubsetHandler->get_subset_index(vElem[i]);
@@ -301,7 +287,7 @@ size_t DoFDistribution::algebra_indices(std::vector<TBaseElem*> vElem,
 		const size_t firstIndex = first_index(vElem[i]);
 
 	//	forward request to inner element
-		inner_algebra_indices(ind, firstIndex, si, type);
+		inner_algebra_indices(ind, firstIndex, si, roid);
 	}
 
 //	return number of indices
@@ -318,7 +304,7 @@ size_t DoFDistribution::inner_algebra_indices(TElem* elem,
 			ref_elem_type;
 
 //	get roid type
-	static const ReferenceObjectID type = ref_elem_type::REFERENCE_OBJECT_ID;
+	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	get subset index
 	const int si = m_pISubsetHandler->get_subset_index(elem);
@@ -331,7 +317,7 @@ size_t DoFDistribution::inner_algebra_indices(TElem* elem,
 	if(bClear) ind.clear();
 
 //	return
-	return inner_algebra_indices(ind, firstIndex, si, type);
+	return inner_algebra_indices(ind, firstIndex, si, roid);
 }
 
 } // end namespace ug

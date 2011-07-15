@@ -151,8 +151,8 @@ class IDoFDistribution
 		///////////////////////////
 
 	///	returns if the dof distribution distributes dofs on a given element type
-		template <typename TElem>
-		bool has_dofs_on() const {return getImpl().has_dofs_on<TElem>();}
+		bool has_dofs_on(ReferenceObjectID roid) const {return getImpl().has_dofs_on(roid);}
+		bool has_dofs_on(GeometricBaseObject gbo) const {return getImpl().has_dofs_on(gbo);}
 
 	/// return the number of dofs distributed
 		size_t num_dofs() const {return getImpl().num_dofs();}
@@ -175,29 +175,60 @@ class IDoFDistribution
 		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
 			{getImpl().indices(elem, ind, bHang);}
 
+	//	overloads for base types, forwarding call to concrete type
+		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const;
+		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const;
+		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const;
+		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const;
+		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const;
+
 	/// get multi indices (Element + Closure of Element)
 		template<typename TElem>
-		size_t multi_indices(TElem* elem, size_t fct,
-		                         multi_index_vector_type& ind) const
+		size_t multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 			{return getImpl().multi_indices(elem, fct, ind);}
+
+	//	overloads for base types, forwarding call to concrete type
+		size_t multi_indices(GeometricObject* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t multi_indices(VertexBase* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t multi_indices(EdgeBase* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t multi_indices(Face* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t multi_indices(Volume* elem, size_t fct, multi_index_vector_type& ind) const;
 
 	/// get multi indices (only inner part of Element)
 		template<typename TElem>
-		size_t inner_multi_indices(TElem* elem, size_t fct,
-		                               multi_index_vector_type& ind) const
+		size_t inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 			{return getImpl().inner_multi_indices(elem, fct, ind);}
+
+	//	overloads for base types, forwarding call to concrete type
+		size_t inner_multi_indices(GeometricObject* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t inner_multi_indices(VertexBase* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t inner_multi_indices(EdgeBase* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t inner_multi_indices(Face* elem, size_t fct, multi_index_vector_type& ind) const;
+		size_t inner_multi_indices(Volume* elem, size_t fct, multi_index_vector_type& ind) const;
 
 	/// get algebra indices (Element + Closure of Element)
 		template<typename TElem>
-		size_t algebra_indices(TElem* elem,
-		                         algebra_index_vector_type& ind) const
+		size_t algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			{return getImpl().algebra_indices(elem, ind);}
+
+	//	overloads for base types, forwarding call to concrete type
+		size_t algebra_indices(GeometricObject* elem, algebra_index_vector_type& ind) const;
+		size_t algebra_indices(VertexBase* elem, algebra_index_vector_type& ind) const;
+		size_t algebra_indices(EdgeBase* elem, algebra_index_vector_type& ind) const;
+		size_t algebra_indices(Face* elem, algebra_index_vector_type& ind) const;
+		size_t algebra_indices(Volume* elem, algebra_index_vector_type& ind) const;
 
 	/// get algebra indices (only inner part of Element)
 		template<typename TElem>
-		size_t inner_algebra_indices(TElem* elem,
-		                               algebra_index_vector_type& ind) const
+		size_t inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			{return getImpl().inner_algebra_indices(elem,ind);}
+
+	//	overloads for base types, forwarding call to concrete type
+		size_t inner_algebra_indices(GeometricObject* elem, algebra_index_vector_type& ind) const;
+		size_t inner_algebra_indices(VertexBase* elem, algebra_index_vector_type& ind) const;
+		size_t inner_algebra_indices(EdgeBase* elem, algebra_index_vector_type& ind) const;
+		size_t inner_algebra_indices(Face* elem, algebra_index_vector_type& ind) const;
+		size_t inner_algebra_indices(Volume* elem, algebra_index_vector_type& ind) const;
 
 		///////////////////////////
 		// Creation

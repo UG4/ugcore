@@ -155,8 +155,8 @@ class P1DoFDistribution
 		}
 
 	/// \copydoc ug::IDoFDistribution::has_dofs_on()
-		template <typename TElem>
-		bool has_dofs_on() const;
+		bool has_dofs_on(ReferenceObjectID roid) const;
+		bool has_dofs_on(GeometricBaseObject gbo) const;
 
 	/// \copydoc ug::IDoFDistribution::num_dofs()
 		size_t num_dofs() const {return m_numDoFs;}

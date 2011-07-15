@@ -145,9 +145,8 @@ class DoFDistribution
 		}
 
 	/// \copydoc ug::IDoFDistribution::has_dofs_on()
-		template <typename TElem> bool has_dofs_on() const;
-
-		bool has_dofs_on(int dim) const;
+		bool has_dofs_on(ReferenceObjectID roid) const;
+		bool has_dofs_on(GeometricBaseObject gbo) const;
 
 	/// \copydoc ug::IDoFDistribution::num_dofs()
 		size_t num_dofs() const {return m_numIndex;}
@@ -215,20 +214,22 @@ class DoFDistribution
 	/// \copydoc IDoFDistribution::distribute_dofs()
 		bool distribute_dofs();
 
+		// \TODO: THE grid_obj_... methods must be implemented !!!!
+
 	/// \copydoc IDoFDistribution::vertices_created()
-		void grid_obj_added(VertexBase* vrt);
+		void grid_obj_added(VertexBase* vrt) {};
 		void grid_obj_added(EdgeBase* edge) {}
 		void grid_obj_added(Face* face) {}
 		void grid_obj_added(Volume* vol) {}
 
 	/// \copydoc IDoFDistribution::vertices_to_be_erased()
-		void grid_obj_to_be_removed(VertexBase* vrt);
+		void grid_obj_to_be_removed(VertexBase* vrt) {};
 		void grid_obj_to_be_removed(EdgeBase* edge) {}
 		void grid_obj_to_be_removed(Face* face) {}
 		void grid_obj_to_be_removed(Volume* vol) {}
 
 	/// \copydoc IDoFDistribution::grid_obj_replaced()
-		void grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld);
+		void grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld) {};
 		void grid_obj_replaced(EdgeBase* edgeNew, EdgeBase* edgeOld) {}
 		void grid_obj_replaced(Face* faceNew, Face* faceOld) 	{}
 		void grid_obj_replaced(Volume* volNew, Volume* volOld) 	{}
@@ -296,8 +297,7 @@ class DoFDistribution
 		void create_offsets();
 
 	///	creates the offset array for a reference element type
-		template <typename TRefElem>
-		void create_offsets_of_type();
+		void create_offsets(ReferenceObjectID roid);
 
 	///	returns first algebra index of a vertex
 		size_t& first_index(VertexBase* vrt) {return m_raaIndexVRT[vrt];}
@@ -312,10 +312,10 @@ class DoFDistribution
 		const size_t& first_index(Volume* vol)     const {return m_raaIndexVOL[vol];}
 
 	///	returns the next free index
-		size_t get_free_index(size_t si, ReferenceObjectID type);
+		size_t get_free_index(size_t si, ReferenceObjectID roid);
 
 	///	remembers a free index
-		void push_free_index(size_t freeIndex, size_t si, ReferenceObjectID type);
+		void push_free_index(size_t freeIndex, size_t si, ReferenceObjectID roid);
 
 	protected:
 	/// subset handler for this distributor
@@ -360,10 +360,10 @@ class DoFDistribution
 		std::vector<std::vector<size_t> > m_vvvOffsets[NUM_REFERENCE_OBJECTS];
 
 	///	number of DoFs on a reference element type on a subset
-		std::vector<size_t> m_vvNumDoFsOnType[NUM_REFERENCE_OBJECTS];
+		std::vector<size_t> m_vvNumDoFsOnROID[NUM_REFERENCE_OBJECTS];
 
 	///	maximum number of DoFs on a reference type
-		size_t m_vMaxDoFsOnType[NUM_REFERENCE_OBJECTS];
+		size_t m_vMaxDoFsOnROID[NUM_REFERENCE_OBJECTS];
 
 	///	maximum number of DoFs on geometric objects in a dimension
 		size_t m_vMaxDoFsInDim[4];
