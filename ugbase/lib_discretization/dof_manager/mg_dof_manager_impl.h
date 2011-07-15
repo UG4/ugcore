@@ -44,10 +44,10 @@ assign_function_pattern(FunctionPattern& dp)
 		size_t num_level = m_vLevelDD.size();
 
 	//	update level dofs
-		if(level_dofs_enabled())
+		if(level_indices_enabled())
 		{
 		// free memory
-			disable_level_dofs();
+			disable_level_indices();
 
 		// reallocate for new pattern
 		if(!level_distribution_required(num_level))
@@ -55,10 +55,10 @@ assign_function_pattern(FunctionPattern& dp)
 		}
 
 	//	update surface dofs
-		if(surface_dofs_enabled())
+		if(surface_indices_enabled())
 		{
 		// free memory
-			disable_surface_dofs();
+			disable_surface_indices();
 
 		// reallocate for new pattern
 			if(!surface_distribution_required())
@@ -73,13 +73,13 @@ assign_function_pattern(FunctionPattern& dp)
 template <typename TDoFDistribution>
 bool
 MGDoFManager<TDoFDistribution>::
-enable_dofs()
+enable_indices()
 {
 //	distribute level dofs
-	if(!enable_level_dofs()) return false;
+	if(!enable_level_indices()) return false;
 
 // 	distribute surface dofs
-	if(!enable_surface_dofs()) return false;
+	if(!enable_surface_indices()) return false;
 
 //	we're done
 	return true;
@@ -88,7 +88,7 @@ enable_dofs()
 template <typename TDoFDistribution>
 bool
 MGDoFManager<TDoFDistribution>::
-enable_level_dofs()
+enable_level_indices()
 {
 //	Checks
 	if(m_pMGSubsetHandler == NULL)
@@ -106,7 +106,7 @@ enable_level_dofs()
 //	check, that all geom objects are assigned to a subset
 	if(	m_pMGSubsetHandler->num<VertexBase>() != m_pMultiGrid->num<VertexBase>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Vertices "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -114,7 +114,7 @@ enable_level_dofs()
 	}
 	if(	m_pMGSubsetHandler->num<EdgeBase>() != m_pMultiGrid->num<EdgeBase>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Edges "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Edges "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -122,7 +122,7 @@ enable_level_dofs()
 	}
 	if(	m_pMGSubsetHandler->num<Face>() != m_pMultiGrid->num<Face>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Faces "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Faces "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -130,7 +130,7 @@ enable_level_dofs()
 	}
 	if(	m_pMGSubsetHandler->num<Volume>() != m_pMultiGrid->num<Volume>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Volumes "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Volumes "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -147,7 +147,7 @@ enable_level_dofs()
 // 	distribute on level grids
 	for(size_t l = 0; l < num_levels(); ++l)
 	{
-		if(!m_vLevelDD[l]->distribute_dofs())
+		if(!m_vLevelDD[l]->distribute_indices())
 		{
 			UG_LOG("Cannot distribute dofs on level "<<l<<".\n");
 			return false;
@@ -165,7 +165,7 @@ enable_level_dofs()
 template <typename TDoFDistribution>
 bool
 MGDoFManager<TDoFDistribution>::
-enable_surface_dofs()
+enable_surface_indices()
 {
 	if(m_pMGSubsetHandler == NULL)
 	{
@@ -181,7 +181,7 @@ enable_surface_dofs()
 //	check, that all geom objects are assigned to a subset
 	if(	m_pMGSubsetHandler->num<VertexBase>() != m_pMultiGrid->num<VertexBase>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Vertices "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -189,7 +189,7 @@ enable_surface_dofs()
 	}
 	if(	m_pMGSubsetHandler->num<EdgeBase>() != m_pMultiGrid->num<EdgeBase>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Edges "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Edges "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -197,7 +197,7 @@ enable_surface_dofs()
 	}
 	if(	m_pMGSubsetHandler->num<Face>() != m_pMultiGrid->num<Face>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Faces "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Faces "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -205,7 +205,7 @@ enable_surface_dofs()
 	}
 	if(	m_pMGSubsetHandler->num<Volume>() != m_pMultiGrid->num<Volume>())
 	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_dofs': All Volumes "
+		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Volumes "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.\n");
@@ -220,7 +220,7 @@ enable_surface_dofs()
 	}
 
 // 	distribute on surface grid
-	if(!m_pSurfDD->distribute_dofs())
+	if(!m_pSurfDD->distribute_indices())
 	{
 		UG_LOG("Cannot distribute dofs on surface.\n");
 		return false;
@@ -250,7 +250,7 @@ MGDoFManager<TDoFDistribution>::
 print_statistic(const dof_distribution_type& dd) const
 {
 //	Total number of DoFs
-	UG_LOG(std::setw(10) << dd.num_dofs() <<" | ");
+	UG_LOG(std::setw(10) << dd.num_indices() <<" | ");
 
 //	Overall block size
 	if(dd.blocksize() != -1){
@@ -264,7 +264,7 @@ print_statistic(const dof_distribution_type& dd) const
 	{
 		UG_LOG( " (" << si << ",");
 		UG_LOG(dd.blocksize(si) <<",");
-		UG_LOG(std::setw(8) << dd.num_dofs(si) << ") ");
+		UG_LOG(std::setw(8) << dd.num_indices(si) << ") ");
 	}
 }
 
@@ -309,13 +309,13 @@ print_layout_statistic(const dof_distribution_type& dd) const
 {
 #ifdef UG_PARALLEL
 //	Total number of DoFs
-	UG_LOG(std::setw(8) << dd.num_master_dofs() <<" | ");
+	UG_LOG(std::setw(8) << dd.num_master_indices() <<" | ");
 
-	UG_LOG(std::setw(8) << dd.num_slave_dofs() <<" | ");
+	UG_LOG(std::setw(8) << dd.num_slave_indices() <<" | ");
 
-	UG_LOG(std::setw(12) << dd.num_vertical_master_dofs() <<" | ");
+	UG_LOG(std::setw(12) << dd.num_vertical_master_indices() <<" | ");
 
-	UG_LOG(std::setw(12) << dd.num_vertical_slave_dofs());
+	UG_LOG(std::setw(12) << dd.num_vertical_slave_indices());
 #endif
 }
 
@@ -444,7 +444,7 @@ level_distribution_required(size_t numLevel)
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-disable_surface_dofs()
+disable_surface_indices()
 {
 // 	Delete surface dof distributions
 	m_surfaceStorageManager.clear();
@@ -461,7 +461,7 @@ disable_surface_dofs()
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-disable_level_dofs()
+disable_level_indices()
 {
 // 	Delete level dof distributions
 	m_levelStorageManager.clear();
@@ -872,11 +872,11 @@ MGDoFManager<TDoFDistribution>::
 vertex_created(Grid* grid, VertexBase* vrt,	GeometricObject* pParent, bool replacesParent)
 {
 //	if level dofs enabled, add the element to level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		add_to_level_dof_distribution(vrt);
 
 //	if surface dofs enabled, add the element to surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	handle: we have two possibilities here, what the creation could be:
 	//		1. a regular refinement, thus we exclude the parent from SurfaceView
@@ -941,11 +941,11 @@ MGDoFManager<TDoFDistribution>::
 edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replacesParent)
 {
 //	if level dofs enabled, add the element to level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		add_to_level_dof_distribution(edge);
 
 //	if surface dofs enabled, add the element to surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	handle: we have two possibilities here, what the creation could be:
 	//		1. a regular refinement, thus we exclude the parent from SurfaceView
@@ -1019,11 +1019,11 @@ MGDoFManager<TDoFDistribution>::
 face_created(Grid* grid, Face* face,	GeometricObject* pParent, bool replacesParent)
 {
 //	if level dofs enabled, add the element to level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		add_to_level_dof_distribution(face);
 
 //	if surface dofs enabled, add the element to surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	handle: we have two possibilities here, what the creation could be:
 	//		1. a regular refinement, thus we exclude the parent from SurfaceView
@@ -1102,11 +1102,11 @@ MGDoFManager<TDoFDistribution>::
 volume_created(Grid* grid, Volume* vol,	GeometricObject* pParent, bool replacesParent)
 {
 //	if level dofs enabled, add the element to level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		add_to_level_dof_distribution(vol);
 
 //	if surface dofs enabled, add the element to surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	1. case: regular element creation
 		if(!replacesParent)
@@ -1151,11 +1151,11 @@ vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
 	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
 
 //	if level dofs enabled, remove element from level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		remove_from_level_dof_distribution(vrt);
 
 //	if surface dofs enabled, remove element from surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	The case of replaced objects has been handled in create part
 		if(replacedBy != NULL) return;
@@ -1184,11 +1184,11 @@ edge_to_be_erased(Grid* grid, EdgeBase* edge, EdgeBase* replacedBy)
 	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
 
 //	if level dofs enabled, remove element from level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		remove_from_level_dof_distribution(edge);
 
 //	if surface dofs enabled, remove element from surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	The case of replaced objects has been handled in create part
 		if(replacedBy != NULL) return;
@@ -1217,11 +1217,11 @@ face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
 	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
 
 //	if level dofs enabled, remove element from level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		remove_from_level_dof_distribution(face);
 
 //	if surface dofs enabled, remove element from surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	The case of replaced objects has been handled in create part
 		if(replacedBy != NULL) return;
@@ -1250,11 +1250,11 @@ volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 	UG_ASSERT(m_pMultiGrid != NULL, "No MultiGrid.");
 
 //	if level dofs enabled, remove element from level dofs
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		remove_from_level_dof_distribution(vol);
 
 //	if surface dofs enabled, remove element from surface dofs
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 	//	The case of replaced objects has been handled in create part
 		if(replacedBy == NULL) return;
@@ -1306,7 +1306,7 @@ defragment()
 	}
 
 //	add missing shadows to surface view
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 	{
 		add_associated_sides_to_surface_view<Volume>();
 		add_associated_sides_to_surface_view<Face>();
@@ -1314,9 +1314,9 @@ defragment()
 	}
 
 //	defragment dof distributions
-	if(surface_dofs_enabled())
+	if(surface_indices_enabled())
 		get_surface_dof_distribution()->defragment();
-	if(level_dofs_enabled())
+	if(level_indices_enabled())
 		for(size_t lev = 0; lev < num_levels(); ++lev)
 			get_level_dof_distribution(lev)->defragment();
 

@@ -35,7 +35,7 @@ void ExtractPositions(const TFunction &u,
 			= u.get_approximation_space().get_domain().get_position_accessor();
 
 //	number of total dofs
-	int nr = u.num_dofs();
+	int nr = u.num_indices();
 
 //	resize positions
 	vPositions.resize(nr);
@@ -396,7 +396,7 @@ class GridFunctionVectorWriter
 					= u.get_approximation_space().get_domain().get_position_accessor();
 
 		//	number of total dofs
-			int nr = u.num_dofs();
+			int nr = u.num_indices();
 
 		//	resize positions
 			vec.resize(nr);
@@ -492,7 +492,7 @@ class GridFunctionVectorWriterDirichlet0
 			else
 				pDOF = &m_pApproxSpace->get_level_dof_distribution(m_level) ;
 
-			vec.resize(pDOF->num_dofs());
+			vec.resize(pDOF->num_indices());
 			vec.set(1.0);
 
 			return m_pPostProcess->post_process_defect(vec, vec, *pDOF);

@@ -144,15 +144,15 @@ class DoFDistribution
 			return id == LSFSID(LSFSID::LAGRANGE, 1);
 		}
 
-	/// \copydoc ug::IDoFDistribution::has_dofs_on()
-		bool has_dofs_on(ReferenceObjectID roid) const;
-		bool has_dofs_on(GeometricBaseObject gbo) const;
+	/// \copydoc ug::IDoFDistribution::has_indices_on()
+		bool has_indices_on(ReferenceObjectID roid) const;
+		bool has_indices_on(GeometricBaseObject gbo) const;
 
-	/// \copydoc ug::IDoFDistribution::num_dofs()
-		size_t num_dofs() const {return m_numIndex;}
+	/// \copydoc ug::IDoFDistribution::num_indices()
+		size_t num_indices() const {return m_numIndex;}
 
-	/// \copydoc ug::IDoFDistribution::num_dofs(int) const
-		size_t num_dofs(int si) const {return m_vNumIndex[si];}
+	/// \copydoc ug::IDoFDistribution::num_indices(int) const
+		size_t num_indices(int si) const {return m_vNumIndex[si];}
 
 	/// \copydoc IDoFDistribution::blocksize()
 		int blocksize() const
@@ -211,8 +211,8 @@ class DoFDistribution
 		// Creation
 		///////////////////////////
 
-	/// \copydoc IDoFDistribution::distribute_dofs()
-		bool distribute_dofs();
+	/// \copydoc IDoFDistribution::distribute_indices()
+		bool distribute_indices();
 
 		// \TODO: THE grid_obj_... methods must be implemented !!!!
 
@@ -268,7 +268,7 @@ class DoFDistribution
 
 	///	distributes the dofs on an element type
 		template <typename TElem>
-		bool distribute_dofs();
+		bool distribute_indices();
 
 	///	permutes indices on an element type
 		template <typename TElem>

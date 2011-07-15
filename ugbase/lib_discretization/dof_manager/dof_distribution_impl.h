@@ -40,11 +40,11 @@ template <typename TImpl>
 bool IDoFDistribution<TImpl>::permute_indices(std::vector<size_t>& vIndNew)
 {
 //	check size of permuting array. Must have same size as index set
-	if(vIndNew.size() != num_dofs())
+	if(vIndNew.size() != num_indices())
 	{
 		UG_LOG("ERROR in 'IDoFDistribution<TImpl>::permute_indices': Passed "
 				" permutation does not have the size of the index set "
-				<<num_dofs()<<", but has size "<<vIndNew.size()<<"\n");
+				<<num_indices()<<", but has size "<<vIndNew.size()<<"\n");
 		return false;
 	}
 

@@ -56,13 +56,13 @@ class ParallelMGDoFManager : public TMGDoFManager
 		}
 
 	///	distribute dofs on levels and surface
-		bool enable_dofs();
+		bool enable_indices();
 
 	///	distribute dofs on levels
-		bool enable_level_dofs();
+		bool enable_level_indices();
 
 	///	distribute dofs on surface
-		bool enable_surface_dofs();
+		bool enable_surface_indices();
 
 	///	print a statistic on dof distribution
 		void print_statistic() const;

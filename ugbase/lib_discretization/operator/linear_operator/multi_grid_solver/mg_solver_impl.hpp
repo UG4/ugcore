@@ -816,8 +816,8 @@ init_common(bool nonlinear)
 //		It should probably be renamed to something like m_bIdenticalSurfAndTopLev...
 //todo: Even if there are vrtMasters and m_bFullRefined is false and the top
 //		level matrix can't be copied, an injective SurfToTopLevMap might be useful...
-	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
-		m_pApproxSpace->get_surface_dof_distribution().num_dofs())
+	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_indices() ==
+		m_pApproxSpace->get_surface_dof_distribution().num_indices())
 		m_bFullRefined = true;
 	else
 		m_bFullRefined =false;
@@ -908,7 +908,7 @@ init_linear_level_operator()
 							m_pApproxSpace->get_level_dof_distribution(lev);
 
 	//	skip assembling if no dofs given
-		if(levelDD.num_dofs() != 0)
+		if(levelDD.num_indices() != 0)
 		{
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
 			if(lev == m_vLevData.size() - 1 && m_bFullRefined)
@@ -961,7 +961,7 @@ init_linear_level_operator()
 						m_pApproxSpace->get_level_dof_distribution(m_baseLev);
 
 //	assemble base operator
-	if(levelDD.num_dofs() != 0)
+	if(levelDD.num_indices() != 0)
 	{
 	//	set dof distribution to level operator
 		m_BaseOperator.set_discretization(*m_pAss);
@@ -1031,7 +1031,7 @@ init_non_linear_level_operator()
 						m_pApproxSpace->get_level_dof_distribution(m_baseLev);
 
 //	assemble base operator
-	if(levelDD.num_dofs() != 0)
+	if(levelDD.num_indices() != 0)
 	{
 		m_BaseOperator.set_discretization(*m_pAss);
 		m_BaseOperator.set_dof_distribution(levelDD);
@@ -1155,7 +1155,7 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_base_solver()
 {
 // 	Prepare base solver
-	if(m_pApproxSpace->get_level_dof_distribution(m_baseLev).num_dofs() == 0)
+	if(m_pApproxSpace->get_level_dof_distribution(m_baseLev).num_indices() == 0)
 		return true;
 
 	if(m_bBaseParallel){
@@ -1589,8 +1589,8 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 							= m_pApproxSpace->get_level_dof_distribution(lev);
 
 	//	resize the matrix
-		m_vLevData[lev].CoarseGridContribution->resize(dofDistr.num_dofs(),
-		                                               dofDistr.num_dofs());
+		m_vLevData[lev].CoarseGridContribution->resize(dofDistr.num_indices(),
+		                                               dofDistr.num_indices());
 	}
 
 ///////////////////////////////////////
@@ -1649,7 +1649,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		{
 		// \todo: Currently assemble_linear needs a solution. Remove this and do
 		//	not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_pApproxSpace->get_surface_dof_distribution().num_dofs());
+			vector_type tmpVec; tmpVec.resize(m_pApproxSpace->get_surface_dof_distribution().num_indices());
 			m_pAss->assemble_jacobian(surfMat, tmpVec, m_pApproxSpace->get_surface_dof_distribution());
 		}
 
@@ -1776,7 +1776,7 @@ allocate(size_t lev,
 	if(!t) t = new vector_type;
 
 //	create vectors and matrix
-	const size_t numDoFs = pLevDD->num_dofs();
+	const size_t numDoFs = pLevDD->num_indices();
 	u->resize(numDoFs);
 	c->resize(numDoFs);
 	d->resize(numDoFs);
@@ -1795,7 +1795,7 @@ allocate(size_t lev,
 	}
 	else
 	{
-		vMapMat.resize(pLevDD->num_dofs(), 1);
+		vMapMat.resize(pLevDD->num_indices(), 1);
 
 		SetLayoutValues(&vMapMat, pLevDD->get_vertical_master_layout(), -1);
 		SetLayoutValues(&vMapMat, pLevDD->get_master_layout(), 1);

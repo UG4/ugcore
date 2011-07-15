@@ -57,8 +57,8 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
 	MultiGrid& grid = approxSpace.get_domain().get_grid();
 
 // 	get number of dofs on different levels
-	const size_t numFineDoFs = fineDoFDistr.num_dofs();
-	const size_t numCoarseDoFs = coarseDoFDistr.num_dofs();
+	const size_t numFineDoFs = fineDoFDistr.num_indices();
+	const size_t numCoarseDoFs = coarseDoFDistr.num_indices();
 
 // 	resize matrix
 	if(!mat.resize(numCoarseDoFs, numFineDoFs))

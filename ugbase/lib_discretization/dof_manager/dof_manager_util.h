@@ -80,7 +80,7 @@ bool CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMappi
 	vSurfLevelMapping.clear();
 	vSurfLevelMapping.resize(vLevelDD.size());
 	for(size_t lev = 0; lev < vSurfLevelMapping.size(); ++lev)
-		vSurfLevelMapping[lev].resize(surfDD.num_dofs(), -1);
+		vSurfLevelMapping[lev].resize(surfDD.num_indices(), -1);
 
 //	return flag
 	bool bRet = true;

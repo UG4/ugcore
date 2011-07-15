@@ -130,10 +130,10 @@ class IGridFunction
 		int num_subsets() const {check(); return m_pDD->num_subsets();}
 
 	/// return the number of dofs distributed
-		size_t num_dofs() const {check(); return m_pDD->num_dofs();}
+		size_t num_indices() const {check(); return m_pDD->num_indices();}
 
 	/// return the number of dofs distributed on subset si
-		size_t num_dofs(int si) const {check(); return m_pDD->num_dofs(si);}
+		size_t num_indices(int si) const {check(); return m_pDD->num_indices(si);}
 
 	/// number of elements of this type for a subset
 		template <typename TElem>

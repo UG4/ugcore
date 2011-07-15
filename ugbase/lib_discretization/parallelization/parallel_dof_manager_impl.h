@@ -18,19 +18,19 @@ namespace ug{
 template <typename TMGDoFManager>
 bool
 ParallelMGDoFManager<TMGDoFManager>::
-enable_dofs()
+enable_indices()
 {
 //	distribute level dofs
-	if(!enable_level_dofs()) return false;
+	if(!enable_level_indices()) return false;
 
 // 	distribute surface dofs
-	return enable_surface_dofs();
+	return enable_surface_indices();
 }
 
 template <typename TMGDoFManager>
 bool
 ParallelMGDoFManager<TMGDoFManager>::
-enable_level_dofs()
+enable_level_indices()
 {
 //	check that layout map has been set
 	if(!m_pLayoutMap)
@@ -40,7 +40,7 @@ enable_level_dofs()
 	}
 
 // 	distribute dofs in sequential
-	if(!TMGDoFManager::enable_dofs()) return false;
+	if(!TMGDoFManager::enable_indices()) return false;
 
 //	proc local number of level
 	int numLevLocal = 0;
@@ -147,11 +147,11 @@ create_level_index_layouts(size_t numGlobalLevels)
 	//	the subcommunicator.
 
 	// 	choose if this process participates
-		bool participate = !commWorld.empty() && (dd.num_dofs() > 0);
+		bool participate = !commWorld.empty() && (dd.num_indices() > 0);
 
 		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 						  ": Participate = "<< participate <<
-						  " for level "<<l<<" (num_dofs="<<dd.num_dofs()<<
+						  " for level "<<l<<" (num_indices="<<dd.num_indices()<<
 						  ",!empty=" << !commWorld.empty() << ").\n");
 
 	//	create process communicator for interprocess layouts
@@ -204,18 +204,18 @@ defragment()
 									PCL_DT_INT, PCL_RO_MAX);
 
 //	request global number of levels
-	if(this->level_dofs_enabled())
+	if(this->level_indices_enabled())
 		this->level_distribution_required(numLevGlobal);
 
 //	build up interfaces
 	bool bRet = true;
 
-	if(this->level_dofs_enabled())
+	if(this->level_indices_enabled())
 	{
 		bRet = create_level_index_layouts(numLevGlobal);
 	}
 
-	if(this->surface_dofs_enabled())
+	if(this->surface_indices_enabled())
 	{
 		bRet &= create_surface_index_layouts();
 	}
@@ -227,7 +227,7 @@ defragment()
 template <typename TMGDoFManager>
 bool
 ParallelMGDoFManager<TMGDoFManager>::
-enable_surface_dofs()
+enable_surface_indices()
 {
 	if(!m_pLayoutMap){
 		UG_LOG("  no layout map specified. aborting.\n");
@@ -235,7 +235,7 @@ enable_surface_dofs()
 	}
 
 //	create dofs on each process
-	TMGDoFManager::enable_surface_dofs();
+	TMGDoFManager::enable_surface_indices();
 
 //	build up interfaces
 	bool bRet = create_surface_index_layouts();
@@ -298,7 +298,7 @@ create_surface_index_layouts()
 
 //	only those procs are included, that have DoFs on the surface level
 	bool participate = true;
-	if(dd.num_dofs() == 0) participate = false;
+	if(dd.num_indices() == 0) participate = false;
 
 //	create communicator
 	dd.get_process_communicator() = commWorld.create_sub_communicator(participate);
@@ -367,7 +367,7 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const
 //				number of DoFs by counting. If there are vert. master dofs
 //				we need to remove doubles when counting.
 	int numMasterDoF;
-	if(dd.num_vertical_master_dofs() > 0)
+	if(dd.num_vertical_master_indices() > 0)
 	{
 	//	create vector of vertical masters and horiz. slaves, since those are
 	//	not reguarded as masters on the dd. All others are masters. (Especially,
@@ -390,12 +390,12 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const
 			             vIndex.end());
 
 	//	the remaining DoFs are the "slaves"
-		numMasterDoF = dd.num_dofs() - vIndex.size();
+		numMasterDoF = dd.num_indices() - vIndex.size();
 	}
 	else
 	{
 	//	easy case: only subtract masters from slaves
-		numMasterDoF = dd.num_dofs() - dd.num_slave_dofs();
+		numMasterDoF = dd.num_indices() - dd.num_slave_indices();
 	}
 
 //	global and local values
@@ -408,7 +408,7 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const
 //	only communicate the total number of dofs (i.e. master+slave)
 //	\todo: count slaves in subset and subtract them to get only masters
 	for(int si = 0; si < dd.num_subsets(); ++si)
-		tNumLocal.push_back(dd.num_dofs(si));
+		tNumLocal.push_back(dd.num_indices(si));
 
 //	resize receive array
 	tNumGlobal.resize(tNumLocal.size());

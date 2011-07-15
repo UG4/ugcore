@@ -23,9 +23,9 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      const dof_distribution_type& dofDistr)
 {
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
+	const size_t numIndex = dofDistr.num_indices();
 	M.resize(0,0);
-	M.resize(numDoFs, numDoFs);
+	M.resize(numIndex, numIndex);
 	M.set(0.0);
 
 //	Union of Subsets
@@ -133,9 +133,9 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           const dof_distribution_type& dofDistr)
 {
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
+	const size_t numIndex = dofDistr.num_indices();
 	A.resize(0,0);
-	A.resize(numDoFs, numDoFs);
+	A.resize(numIndex, numIndex);
 	A.set(0.0);
 
 //	Union of Subsets
@@ -255,9 +255,9 @@ assemble_jacobian(matrix_type& J,
                   const dof_distribution_type& dofDistr)
 {
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
+	const size_t numIndex = dofDistr.num_indices();
 	J.resize(0,0);
-	J.resize(numDoFs, numDoFs);
+	J.resize(numIndex, numIndex);
 	J.set(0.0);
 
 //	Union of Subsets
@@ -374,8 +374,8 @@ assemble_defect(vector_type& d,
                 const dof_distribution_type& dofDistr)
 {
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
-	d.resize(numDoFs);
+	const size_t numIndex = dofDistr.num_indices();
+	d.resize(numIndex);
 	d.set(0.0);
 
 //	Union of Subsets
@@ -485,12 +485,12 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const dof_distribution_type& dofDistr)
 {
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
+	const size_t numIndex = dofDistr.num_indices();
 	mat.resize(0,0);
-	mat.resize(numDoFs, numDoFs);
+	mat.resize(numIndex, numIndex);
 	mat.set(0.0);
 
-	rhs.resize(numDoFs);
+	rhs.resize(numIndex);
 	rhs.set(0.0);
 
 //	Union of Subsets
@@ -607,8 +607,8 @@ assemble_rhs(vector_type& rhs,
 			const dof_distribution_type& dofDistr)
 {
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
-	rhs.resize(numDoFs);
+	const size_t numIndex = dofDistr.num_indices();
+	rhs.resize(numIndex);
 	rhs.set(0.0);
 
 //	Union of Subsets

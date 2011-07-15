@@ -127,13 +127,13 @@ DoFDistribution(GeometricObjectCollection goc,
 	create_offsets();
 }
 
-bool DoFDistribution::has_dofs_on(GeometricBaseObject gbo) const
+bool DoFDistribution::has_indices_on(GeometricBaseObject gbo) const
 {
 //	return if at least on dof on that type
 	return (m_vMaxDoFsInDim[gbo] > 0);
 }
 
-bool DoFDistribution::has_dofs_on(ReferenceObjectID roid) const
+bool DoFDistribution::has_indices_on(ReferenceObjectID roid) const
 {
 //	return if at least on dof on that type
 	return (m_vMaxDoFsOnROID[roid] > 0);
@@ -272,7 +272,7 @@ void DoFDistribution::push_free_index(size_t freeIndex, size_t si, ReferenceObje
 }
 
 template <typename TElem>
-bool DoFDistribution::distribute_dofs()
+bool DoFDistribution::distribute_indices()
 {
 //	iterator type
 	typedef typename geometry_traits<TElem>::iterator iterator;
@@ -357,12 +357,12 @@ bool DoFDistribution::distribute_dofs()
 	return true;
 }
 
-bool DoFDistribution::distribute_dofs()
+bool DoFDistribution::distribute_indices()
 {
 //	storage manage required
 	if(m_pStorageManager == NULL)
 	{
-		UG_LOG("In 'DoFDistribution::distribute_dofs:"
+		UG_LOG("In 'DoFDistribution::distribute_indices:"
 				"Storage Manager not set. Aborting.\n");
 		return false;
 	}
@@ -370,7 +370,7 @@ bool DoFDistribution::distribute_dofs()
 //	function pattern required
 	if(this->m_pFuncPattern == NULL)
 	{
-		UG_LOG("In 'DoFDistribution::distribute_dofs:"
+		UG_LOG("In 'DoFDistribution::distribute_indices:"
 				"Function Pattern not set. Aborting.\n");
 		return false;
 	}
@@ -389,8 +389,8 @@ bool DoFDistribution::distribute_dofs()
 
 //	add dofs on all elems
 	bool bSuccess = true;
-	bSuccess &= distribute_dofs<Vertex>();
-	bSuccess &= distribute_dofs<Edge>();
+	bSuccess &= distribute_indices<Vertex>();
+	bSuccess &= distribute_indices<Edge>();
 	// \todo: more....
 
 //	the size of the index set is the number of DoFs
@@ -459,7 +459,7 @@ bool DoFDistribution::permute_indices(std::vector<size_t>& vIndNew)
 	}
 
 //	check, that passed index fields have the same size
-	if(this->num_dofs() != vIndNew.size())
+	if(this->num_indices() != vIndNew.size())
 	{
 		UG_LOG("ERROR in 'DoFDistribution::permute_indices': New index set"
 				" must have same cardinality for swap indices.\n");

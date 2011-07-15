@@ -76,7 +76,7 @@ init()
 	}
 
 //	create vector dummy
-	vector_type dummy; dummy.resize(m_pDoFDistribution->num_dofs());
+	vector_type dummy; dummy.resize(m_pDoFDistribution->num_indices());
 
 //	assemble only matrix
 	if(!m_pAss->assemble_jacobian(*this, dummy, *m_pDoFDistribution))
@@ -113,7 +113,7 @@ init_op_and_rhs(vector_type& b)
 	}
 
 //	resize rhs, since used as u dummy
-	b.resize(m_pDoFDistribution->num_dofs());
+	b.resize(m_pDoFDistribution->num_indices());
 
 //	assemble matrix and rhs in one loop
 	if(!m_pAss->assemble_linear(*this, b, b, *m_pDoFDistribution))

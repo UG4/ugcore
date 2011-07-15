@@ -61,7 +61,7 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 #endif
 
 //	enable all dofs
-	if(!m_MGDoFManager.enable_dofs())
+	if(!m_MGDoFManager.enable_indices())
 	{
 		UG_LOG("In 'ApproximationSpace::init':"
 				" Cannot distribute dofs.\n");

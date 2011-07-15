@@ -151,14 +151,14 @@ class IDoFDistribution
 		///////////////////////////
 
 	///	returns if the dof distribution distributes dofs on a given element type
-		bool has_dofs_on(ReferenceObjectID roid) const {return getImpl().has_dofs_on(roid);}
-		bool has_dofs_on(GeometricBaseObject gbo) const {return getImpl().has_dofs_on(gbo);}
+		bool has_indices_on(ReferenceObjectID roid) const {return getImpl().has_indices_on(roid);}
+		bool has_indices_on(GeometricBaseObject gbo) const {return getImpl().has_indices_on(gbo);}
 
 	/// return the number of dofs distributed
-		size_t num_dofs() const {return getImpl().num_dofs();}
+		size_t num_indices() const {return getImpl().num_indices();}
 
 	/// return the number of dofs distributed on subset si
-		size_t num_dofs(int si) const {return getImpl().num_dofs(si);}
+		size_t num_indices(int si) const {return getImpl().num_indices(si);}
 
 	///	Size algebra block on all subset
 		int blocksize() const {return getImpl().blocksize();}
@@ -261,7 +261,7 @@ class IDoFDistribution
 		void grid_obj_replaced(Volume* volNew, Volume* volOld) 	{getImpl().grid_obj_replaced(volNew, volOld);}
 
 	/// distribute dofs
-		bool distribute_dofs(){return getImpl().distribute_dofs();}
+		bool distribute_indices(){return getImpl().distribute_indices();}
 
 	///	permutes all indices
 	/**
@@ -347,14 +347,14 @@ class IDoFDistribution
 		pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
 		pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
 
-		size_t num_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_masterLayout));}
-		size_t num_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_slaveLayout));}
+		size_t num_master_indices() const {return num_indices(*const_cast<IndexLayout*>(&m_masterLayout));}
+		size_t num_slave_indices() const {return num_indices(*const_cast<IndexLayout*>(&m_slaveLayout));}
 
-		size_t num_vertical_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalMasterLayout));}
-		size_t num_vertical_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalSlaveLayout));}
+		size_t num_vertical_master_indices() const {return num_indices(*const_cast<IndexLayout*>(&m_verticalMasterLayout));}
+		size_t num_vertical_slave_indices() const {return num_indices(*const_cast<IndexLayout*>(&m_verticalSlaveLayout));}
 
 	protected:
-		size_t num_dofs(IndexLayout& Layout) const
+		size_t num_indices(IndexLayout& Layout) const
 		{
 			size_t sum = 0;
 			for(IndexLayout::iterator iter = Layout.begin();

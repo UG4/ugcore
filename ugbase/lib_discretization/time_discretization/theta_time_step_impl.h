@@ -67,9 +67,9 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
 
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
+	const size_t numIndex = dofDistr.num_indices();
 	J.resize(0,0);
-	J.resize(numDoFs, numDoFs);
+	J.resize(numIndex, numIndex);
 	J.set(0.0);
 
 //	assemble jacobian using current iterate
@@ -107,8 +107,8 @@ assemble_defect(vector_type& d, const vector_type& u,
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
 
 //	reset matrix to zero and resize
-	const size_t numDoFs = dofDistr.num_dofs();
-	d.resize(numDoFs);
+	const size_t numIndex = dofDistr.num_indices();
+	d.resize(numIndex);
 	d.set(0.0);
 
 // 	future solution part

@@ -67,7 +67,7 @@ bool P1StorageManager::update_attachments()
 ///////////////////////////////////////////////////////////////////////////////
 
 template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::has_dofs_on(GeometricBaseObject gbo) const
+bool P1DoFDistribution<bGrouped>::has_indices_on(GeometricBaseObject gbo) const
 {
 //	only in case of a Vertex, we have a DoF
 	if(gbo == VERTEX) return true;
@@ -75,7 +75,7 @@ bool P1DoFDistribution<bGrouped>::has_dofs_on(GeometricBaseObject gbo) const
 }
 
 template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::has_dofs_on(ReferenceObjectID roid) const
+bool P1DoFDistribution<bGrouped>::has_indices_on(ReferenceObjectID roid) const
 {
 //	only in case of a Vertex, we have a DoF
 	if(roid == ROID_VERTEX) return true;
@@ -142,13 +142,13 @@ size_t P1DoFDistribution<bGrouped>::get_free_index(size_t si)
 //	adjust counters
 	if(!bGrouped)
 	{
-		m_numDoFs += num_fct(si);
-		m_vNumDoFs[si] += num_fct(si);
+		m_numIndex += num_fct(si);
+		m_vNumIndex[si] += num_fct(si);
 	}
 	else
 	{
-		++ m_numDoFs;
-		++ (m_vNumDoFs[si]);
+		++ m_numIndex;
+		++ (m_vNumIndex[si]);
 	}
 
 //	return new index
@@ -164,23 +164,23 @@ void P1DoFDistribution<bGrouped>::push_free_index(size_t freeIndex, size_t si)
 //	decrease number of distributed indices
 	if(!bGrouped)
 	{
-		m_numDoFs -= num_fct(si);
-		m_vNumDoFs[si] -= num_fct(si);
+		m_numIndex -= num_fct(si);
+		m_vNumIndex[si] -= num_fct(si);
 	}
 	else
 	{
-		-- m_numDoFs;
-		-- (m_vNumDoFs[si]);
+		-- m_numIndex;
+		-- (m_vNumIndex[si]);
 	}
 }
 
 template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::distribute_dofs()
+bool P1DoFDistribution<bGrouped>::distribute_indices()
 {
 //	storage manage required
 	if(m_pStorageManager == NULL)
 	{
-		UG_LOG("In 'P1DoFDistribution::distribute_dofs:"
+		UG_LOG("In 'P1DoFDistribution::distribute_indices:"
 				"Storage Manager not set. Aborting.\n");
 		return false;
 	}
@@ -188,7 +188,7 @@ bool P1DoFDistribution<bGrouped>::distribute_dofs()
 //	function pattern required
 	if(this->m_pFuncPattern == NULL)
 	{
-		UG_LOG("In 'P1DoFDistribution::distribute_dofs:"
+		UG_LOG("In 'P1DoFDistribution::distribute_indices:"
 				"Function Pattern not set. Aborting.\n");
 		return false;
 	}
@@ -203,10 +203,10 @@ bool P1DoFDistribution<bGrouped>::distribute_dofs()
 	create_offsets();
 
 // 	reset counter for all dofs
-	m_numDoFs = 0;
+	m_numIndex = 0;
 
 // 	reset number of dofs
-	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
+	m_vNumIndex.clear(); m_vNumIndex.resize(num_subsets(), 0);
 
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
@@ -222,7 +222,7 @@ bool P1DoFDistribution<bGrouped>::distribute_dofs()
 		const size_t numFct = num_fct(si);
 
 	// 	loop Vertices
-		m_vNumDoFs[si] = 0;
+		m_vNumIndex[si] = 0;
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 		// 	get vertex
@@ -234,24 +234,24 @@ bool P1DoFDistribution<bGrouped>::distribute_dofs()
 					continue;
 
 		// 	write index
-			first_index(vrt) = m_numDoFs;
+			first_index(vrt) = m_numIndex;
 
 		//	increase number of DoFs and DoFs on subset
 			if(!bGrouped)
 			{
-				m_numDoFs += numFct;
-				m_vNumDoFs[si] += numFct;
+				m_numIndex += numFct;
+				m_vNumIndex[si] += numFct;
 			}
 			else
 			{
-				++ m_numDoFs;
-				++ (m_vNumDoFs[si]);
+				++ m_numIndex;
+				++ (m_vNumIndex[si]);
 			}
 		}
 	}
 
 //	the size of the index set is the number of DoFs
-	m_sizeIndexSet = m_numDoFs;
+	m_sizeIndexSet = m_numIndex;
 
 //	post process shadows.
 	if(this->m_pSurfaceView != NULL)
@@ -309,7 +309,7 @@ permute_indices(std::vector<size_t>& vIndNew)
 	}
 
 //	check, that passed index fields have the same size
-	if(this->num_dofs() != vIndNew.size())
+	if(this->num_indices() != vIndNew.size())
 	{
 		UG_LOG("ERROR in 'P1DoFDistribution::permute_indices': New index set"
 				" must have same cardinality for swap indices.\n");
@@ -368,7 +368,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 	}
 
 //	clear neighbours
-	vvConnection.clear(); vvConnection.resize(m_numDoFs);
+	vvConnection.clear(); vvConnection.resize(m_numIndex);
 
 //	if no subset given, we're done
 	if(num_subsets() == 0) return true;
@@ -555,7 +555,7 @@ bool P1DoFDistribution<bGrouped>::defragment()
 	if(m_vFreeIndex.empty())
 	{
 	//	the index set might have been increased. Thus resize grid functions
-		num_indices_changed(m_numDoFs);
+		num_indices_changed(m_numIndex);
 
 	//	we're done
 		return true;
@@ -583,7 +583,7 @@ bool P1DoFDistribution<bGrouped>::defragment()
 			const size_t oldIndex = first_index(vrt);
 
 		// 	check if index must be replaced by lower one
-			if(first_index(vrt) < m_numDoFs) continue;
+			if(first_index(vrt) < m_numIndex) continue;
 
 		//	get free index
 			const size_t newIndex = get_free_index(si);
@@ -597,21 +597,21 @@ bool P1DoFDistribution<bGrouped>::defragment()
 		//	adjust counters, since this was an replacement
 			if(!bGrouped)
 			{
-				m_numDoFs -= num_fct(si);
+				m_numIndex -= num_fct(si);
 				m_sizeIndexSet -= num_fct(si);
-				m_vNumDoFs[si] -= num_fct(si);
+				m_vNumIndex[si] -= num_fct(si);
 			}
 			else
 			{
-				--m_numDoFs;
+				--m_numIndex;
 				--m_sizeIndexSet;
-				--(m_vNumDoFs[si]);
+				--(m_vNumIndex[si]);
 			}
 		}
 	}
 
 //	check that all holes have been removed
-	if(m_numDoFs != m_sizeIndexSet)
+	if(m_numIndex != m_sizeIndexSet)
 	{
 		UG_LOG("ERROR in 'P1DoFDistribution::defragment': Still holes in index "
 				"set after compression. Check implementation.\n");
@@ -622,7 +622,7 @@ bool P1DoFDistribution<bGrouped>::defragment()
 	if(!indices_swaped(m_vReplaced, true)) return false;
 
 //	cut of unused tail of managed grid functions
-	num_indices_changed(m_numDoFs);
+	num_indices_changed(m_numIndex);
 
 //	we're done
 	return true;

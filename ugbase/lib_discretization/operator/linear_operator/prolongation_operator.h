@@ -60,8 +60,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 	MultiGrid& grid = approxSpace.get_domain().get_grid();
 
 //  get number of dofs on different levels
-	const size_t numFineDoFs = fineDoFDistr.num_dofs();
-	const size_t numCoarseDoFs = coarseDoFDistr.num_dofs();
+	const size_t numFineDoFs = fineDoFDistr.num_indices();
+	const size_t numCoarseDoFs = coarseDoFDistr.num_indices();
 
 //	check if grid distribution has dofs, otherwise skip creation since father
 //	elements may not exist in parallel.

@@ -29,7 +29,7 @@ assign_dof_distribution(typename IGridFunction<TDoFDistribution>::dof_distributi
 		m_pDD->manage_grid_function(*this);
 
 //	resize the vector
-	resize_values(num_dofs());
+	resize_values(num_indices());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

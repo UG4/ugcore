@@ -66,19 +66,19 @@ class MGDoFManager : public GridObserver
 		}
 
 	/// distribute dofs on all levels + surface level
-		bool enable_dofs();
+		bool enable_indices();
 
 	/// distribute dofs on all levels
-		bool enable_level_dofs();
+		bool enable_level_indices();
 
 	///	distribute dofs on surface grid
-		bool enable_surface_dofs();
+		bool enable_surface_indices();
 
 	///	returns if level dofs are enabled
-		bool level_dofs_enabled() const {return m_vLevelDD.size() != 0;}
+		bool level_indices_enabled() const {return m_vLevelDD.size() != 0;}
 
 	///	returns if surface dofs are enabled
-		bool surface_dofs_enabled() const {return m_pSurfDD != NULL;}
+		bool surface_indices_enabled() const {return m_pSurfDD != NULL;}
 
 	///	returns Surface DoF Distribution
 		dof_distribution_type* get_surface_dof_distribution()
@@ -151,8 +151,8 @@ class MGDoFManager : public GridObserver
 			m_levelStorageManager.clear();
 			m_surfaceStorageManager.clear();
 
-			disable_level_dofs();
-			disable_surface_dofs();
+			disable_level_indices();
+			disable_surface_indices();
 		}
 
 	public:
@@ -237,7 +237,7 @@ class MGDoFManager : public GridObserver
 		bool level_distribution_required(size_t numLevel);
 
 	///	deletes all level distributions
-		void disable_level_dofs();
+		void disable_level_indices();
 
 	///	adds an element to to level dof distribution
 		void add_to_level_dof_distribution(GeometricObject* vrt);
@@ -257,7 +257,7 @@ class MGDoFManager : public GridObserver
 		bool surface_distribution_required();
 
 	///	deletes the surface distributions
-		void disable_surface_dofs();
+		void disable_surface_indices();
 
 	/// print statistic for a DoFDistribution
 		void print_statistic(const dof_distribution_type& dd) const;

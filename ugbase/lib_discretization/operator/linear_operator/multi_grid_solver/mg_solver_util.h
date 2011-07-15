@@ -69,7 +69,7 @@ bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
                                 const IDoFDistribution<TDoFDistribution>& topDD)
 {
 //	check full refinement
-	if(surfDD.num_dofs() != topDD.num_dofs())
+	if(surfDD.num_indices() != topDD.num_indices())
 	{
 		UG_LOG("ERROR in 'CreateSurfaceToToplevelMap': This function can only"
 				" be applied to a full refined grid, where the surface is the "
@@ -81,19 +81,19 @@ bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 	bool bRetVal = true;
 
 //	resize mapping
-	vMap.resize(surfDD.num_dofs(), 10000555);
+	vMap.resize(surfDD.num_indices(), 10000555);
 
 // 	add dofs on elements
-	if(surfDD.has_dofs_on(VERTEX))
+	if(surfDD.has_indices_on(VERTEX))
 		bRetVal &= CreateSurfaceToToplevelMap<VertexBase, TDoFDistribution>(vMap, surfDD, topDD);
 
 	// TODO: Use all DoF types
 /*
-	if(surfDD.template has_dofs_on<EdgeBase>())
+	if(surfDD.template has_indices_on<EdgeBase>())
 		bRetVal &= CreateSurfaceToToplevelMap<EdgeBase, TDoFDistribution>(vMap, surfDD, topDD);
-	if(surfDD.template has_dofs_on<Face>())
+	if(surfDD.template has_indices_on<Face>())
 		bRetVal &= CreateSurfaceToToplevelMap<Face, TDoFDistribution>(vMap, surfDD, topDD);
-	if(surfDD.template has_dofs_on<Volume>())
+	if(surfDD.template has_indices_on<Volume>())
 		bRetVal &= CreateSurfaceToToplevelMap<Volume, TDoFDistribution>(vMap, surfDD, topDD);
 */
 	return bRetVal;
