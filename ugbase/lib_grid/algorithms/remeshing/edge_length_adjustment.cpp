@@ -272,8 +272,9 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	return true;
 }
 
+/**	returns the resulting vertex or NULL, if no collapse was performed.*/
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
-bool TryCollapse(Grid& grid, EdgeBase* e, 
+VertexBase* TryCollapse(Grid& grid, EdgeBase* e,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
 				TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
 				EdgeSelector* pCandidates = NULL)
@@ -283,7 +284,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		SubsetHandler& shMarks = *pshMarks;
 	//	collapses are not allowed for fixed edges
 		if(shMarks.get_subset_index(e) == REM_FIXED)
-			return false;
+			return NULL;
 			
 	//	if both endpoints of are fixed vertices then
 	//	we may not collapse
@@ -291,13 +292,13 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		vrtSI[0] = shMarks.get_subset_index(e->vertex(0));
 		vrtSI[1] = shMarks.get_subset_index(e->vertex(1));
 		if((vrtSI[0] == REM_FIXED) && (vrtSI[1] == REM_FIXED))
-			return false;
+			return NULL;
 
 	//	if both endpoints are somehow marked, e has to be a
 	//	crease edge
 		if((vrtSI[0] != REM_NONE) && (vrtSI[1] != REM_NONE)
 			&&	(shMarks.get_subset_index(e) != REM_CREASE))
-			return false;
+			return NULL;
 	}
 
 //	check whether the edge can be collapsed
@@ -309,7 +310,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 							aaPos, aaNorm, aaInt))
 		{
 			LOG("ObtainSimpleGrid failed. ignoring edge...\n");
-			return false;
+			return NULL;
 		}
 		
 	//	calculate geometric-approximation-degree and triangle quality
@@ -322,7 +323,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 									1, aaPos, aaNorm, aaInt))
 		{
 			LOG("collapse edge failed...\n");
-			return false;
+			return NULL;
 		}
 
 	//	get the positions of the old endpoints
@@ -361,7 +362,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 				newShapeDeg[1] = ShapeQualityDegree(sgDest);
 			}
 		}
-		
+
 		if(bestIndex == -1){
 		//	check all three approximation degrees
 			for(int i = 0; i < numTestPositions; ++i){
@@ -384,18 +385,18 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 					bestIndex = i;
 			}
 		}
-					
+
 	//	if the shape-degree of the collapsed region is too bad, we'll skip the collapse
 		if(newShapeDeg[bestIndex] < 0.5 * shapeDeg)
-			return false;
-
+			return NULL;
+/*
 	//	the approximation degree is only interesting if both endpoints of the
 	//	edge are regular surface vertices
 		bool regularNeighbourhood = IsRegularSurfaceVertex(grid, e->vertex(0)) &&	
 									IsRegularSurfaceVertex(grid, e->vertex(1));
-		
+*/
 	//	if the best approximation degree is not too bad, we'll perform the collapse
-		if(!regularNeighbourhood || (newApproxDeg[bestIndex] > 0.8 * approxDeg))
+		if(/*!regularNeighbourhood || */(newApproxDeg[bestIndex] > 0.95 * approxDeg))
 		{						
 		//	pick one of the endpoints to be the one that resides
 		//	This has to be done with care, since the residing vertex
@@ -450,7 +451,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 						}
 					
 						if(numMarked == 3){
-							return false;	//	case (a) applies
+							return NULL;	//	case (a) applies
 						}
 						else if(numMarked == 2){
 						//	check which of the vrts is connected to two
@@ -487,15 +488,15 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 			aaPos[vrt] = v[bestIndex];
 		//	assign the normal
 			aaNorm[vrt] = sgDest.vertexNormals[newInd];
-
+/*
 			if(pCandidates){
 //TODO: all edges that belong to associated faces are new candidates.						
 			//	associated edges of vrt are possible new candidates
 				pCandidates->select(grid.associated_edges_begin(vrt),
 							grid.associated_edges_end(vrt));
-			}
+			}*/
 
-			return true;
+			return vrt;
 		}
 	}
 
@@ -510,6 +511,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 {	
 	PROFILE_FUNC();
 	LOG("  performing collapses\n");
+	vector<EdgeBase*>	edges;
 	int numCollapses = 0;
 //	compare squares
 	minEdgeLen *= minEdgeLen;
@@ -528,8 +530,14 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	//	check whether the edge is short enough
 		if(VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]) < lenFac * minEdgeLen)
 		{
-			if(TryCollapse(grid, e, aaPos, aaNorm, aaInt, &shMarks, &esel))
+			VertexBase* vrt = TryCollapse(grid, e, aaPos, aaNorm, aaInt, &shMarks, &esel);
+			if(vrt){
 				++numCollapses;
+
+			//	we'll deselect associated edges of vrt, to avoid cascade-collapses
+				CollectAssociated(edges, grid, vrt);
+				esel.deselect(edges.begin(), edges.end());
+			}
 		}
 	}
 	LOG("  collapses performed: " << numCollapses << endl);
@@ -779,6 +787,7 @@ void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 	vector<vector3> vNodes;
 	vector<VertexBase*> vNeighbours;
 	for(size_t i = 0; i < numIterations; ++i){
+		CalculateVertexNormals(grid, aaPos, aaNorm);
 		for(VertexBaseIterator iter = grid.begin<VertexBase>();
 			iter != grid.end<VertexBase>(); ++iter)
 		{
@@ -786,8 +795,10 @@ void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 		//	if the vertex is fixed then leave it where it is.
 			if(shMarks.get_subset_index(vrt) == REM_FIXED)
 				continue;
+/*
 if(shMarks.get_subset_index(vrt) == REM_CREASE)
 	continue;
+*/
 		//	collect the neighbours and project them to the plane
 		//	that is defined by vrt and its normal
 			vector3 v = aaPos[vrt];
@@ -859,68 +870,28 @@ void CopySelectionStatus(Selector& selOut, Grid& gridOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMarksOut,
-					  Grid& gridIn, SubsetHandler& shIn, SubsetHandler& shMarksIn,
+bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 					  number minEdgeLen, number maxEdgeLen, int numIterations,
 					  bool projectPoints, bool adaptive)
 {
 	PROFILE_FUNC();
-//TODO: check crease-marks and fixed marks.
-//		make sure that edge-collapse leaves the grid regular.
-//		swaps should be the final operation
-//		separate collapses, swaps and splits
+
+//TODO:	replace this by a template parameter
+	APosition aPos = aPosition;
 
 //	we have to make sure that the mesh consist of triangles only,
 //	since the algorithm would produce bad results if not.
-	if(gridIn.num<Quadrilateral>() > 0)
+	if(grid.num<Quadrilateral>() > 0)
 	{
 		UG_LOG("  INFO: grid contains quadrilaterals. Converting to triangles...\n");
 				
 //TODO:	not gridIn but a copy of gridIn (pRefGrid) should be triangulated.
-		Triangulate(gridIn, gridIn.begin<Quadrilateral>(),
-					gridIn.end<Quadrilateral>());
+		Triangulate(grid, grid.begin<Quadrilateral>(),
+					grid.end<Quadrilateral>());
 	}
-
-//	replace this by a template parameter
-	APosition aPos = aPosition;
-	
-//	we need a reference grid and reference marks
-	Grid* pRefGrid = &gridIn;
-	SubsetHandler* pRefMarks = &shMarksIn;
-
-//	if the input grid and the output grid are the same, we'll need
-//	a temporary reference grid.
-//	same goes for marks
-	Grid tmpRefGrid;
-	SubsetHandler tmpRefMarks;
-	if(&gridOut == &gridIn){
-		tmpRefGrid = gridIn;
-		pRefGrid = &tmpRefGrid;
-		
-		if(&shMarksOut == &shMarksIn){
-			tmpRefMarks.assign_grid(tmpRefGrid);
-			tmpRefMarks = shMarksIn;
-			pRefMarks = &tmpRefMarks;
-		}
-	}
-	else{
-		gridOut = gridIn;
-	}
-
-	if(&shMarksOut != &shMarksIn){
-		shMarksOut = shMarksIn;
-	}
-
-//	initialize shOut
-	if(&shOut != &shIn){
-		shOut = shIn;
-	}
-
-	Grid& grid = gridOut;
-	SubsetHandler& shMarks = shMarksOut;
 		
 //	make sure that grid and pRefGrid have position-attachments
-	if(!(grid.has_vertex_attachment(aPos) && pRefGrid->has_vertex_attachment(aPos))){
+	if(!grid.has_vertex_attachment(aPos)){
 		UG_LOG("  vertex-position-attachment missing in AdjustEdgeLength. Aborting.\n");
 		return false;
 	}
@@ -932,11 +903,8 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 
-	LOG("adjusting edge length\n");
-
 //	position attachment
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
-	Grid::VertexAttachmentAccessor<APosition> aaPosRef(*pRefGrid, aPos);
 
 //	we need an integer attachment (a helper for ObtainSimpleGrid)
 	AInt aInt;
@@ -953,25 +921,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 //	assign vertex marks
 	AssignFixedVertices(grid, shMarks);
 	AssignCreaseVertices(grid, shMarks);
-/*
-//	we need one selector that holds candidates and automatically selects all new
-//	edges.
-	Selector candidates(grid);
-	candidates.enable_autoselection(true);
-	if(pCandidates){
-	//	make sure that pCandidates is registered at the correct grid
-		if(pCandidates->get_assigned_grid() != &gridIn){
-			throw(UG_ERROR("pCandidates has to be registered at gridIn")); 
-		}
-	//	copy candidates from pCandidates to candidates.
-	//	this is possible since elements in grid directly correspond to
-	//	elements in pCandidates.
-		CopySelectionStatus<EdgeBase>(candidates, grid, *pCandidates, gridIn);
-		CopySelectionStatus<EdgeBase>(candidates, grid, *pCandidates, gridIn);
-	}
-	else
-		candidates.select(grid.edges_begin(), grid.edges_end());
-*/
+
 //	we need an selector that holds all edges that are candidates for a operation
 	EdgeSelector esel(grid);
 	esel.enable_selection_inheritance(false);
@@ -981,8 +931,8 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	node_tree::Traverser_ProjectPoint pojectionTraverser;
 	if(projectPoints){
 		//PROFILE_BEGIN(octree_construction);
-		octree = CreateOctree(*pRefGrid, pRefGrid->begin<Triangle>(),
-									pRefGrid->end<Triangle>(),
+		octree = CreateOctree(grid, grid.begin<Triangle>(),
+									grid.end<Triangle>(),
 									10, 30, false, aPos);
 
 		//PROFILE_END();
@@ -1026,6 +976,9 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		PerformSmoothing(grid, shMarks, aaPos, aaNorm, 10, 0.1);
 		LOG(" done\n");
 
+		LOG("  updating normals...");
+		CalculateVertexNormals(grid, aPos, aNorm);
+
 	//	project points back on the surface
 		if(projectPoints)
 		{
@@ -1035,30 +988,21 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 				iter != grid.vertices_end(); ++iter)
 			{
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
-
 				vector3 vNew;
-				if(pojectionTraverser.project(aaPos[*iter], octree/*, &aaNorm[*iter]*/)){
+				if(pojectionTraverser.project(aaPos[*iter], octree, &aaNorm[*iter])){
 					aaPos[*iter] = pojectionTraverser.get_closest_point();
 				}
 				else{
 					LOG("f");
 				}
-
-/*
-				vector3 vNew;
-				if(ProjectPointToSurface(vNew, aaPos[*iter], aaNorm[*iter],
-										pRefGrid->begin<Triangle>(),
-										pRefGrid->end<Triangle>(), aaPosRef, false))
-				{
-					aaPos[*iter] = vNew;
-				}
-				else{
-					LOG("f");
-				}
-*/
 			}
 			//PROFILE_END();
 			LOG(" done\n");
+		}
+
+		if(iteration < numIterations - 1){
+			LOG("  updating normals...");
+			CalculateVertexNormals(grid, aPos, aNorm);
 		}
 	}
 

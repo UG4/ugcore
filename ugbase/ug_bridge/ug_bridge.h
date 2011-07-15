@@ -21,6 +21,9 @@ Registry & GetUGRegistry();
  */
 bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup = "/ug4");
 
+///	Registers types and functions for 1, 2, 3 and 4 dimensional vector math.
+bool RegisterVecMathBridge(Registry& reg, const char* parentGroup = "/ug4");
+
 ///	registers some util methods like path-access and script-parsing.
 bool RegisterUtilInterface(Registry& reg, const char* parentGroup = "/ug4");
 
@@ -42,6 +45,9 @@ bool RegisterMiscFunctions(Registry &reg, const char* parentGroup = "/ug4");
 
 ///	Registers the domain object and related methods
 bool RegisterDomainInterface(Registry& reg, const char* parentGroup = "/ug4");
+
+///	Registers refiners and marking methods.
+bool RegisterRefinementBridge(Registry& reg, const char* parentGroup = "/ug4");
 
 /// Registers the element discretizations
 bool RegisterLibDiscElemDisc(Registry& reg, const char* parentGroup = "/ug4");

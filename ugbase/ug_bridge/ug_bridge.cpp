@@ -87,21 +87,21 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 	bool bResult = true;
 	try
 	{
+		bResult &= RegisterVecMathBridge(reg, parentGroup);
 		bResult &= RegisterUtilInterface(reg, parentGroup);
 		bResult &= RegisterLibGridInterface(reg, parentGroup);
 		bResult &= RegisterTestInterface(reg, parentGroup);
 		bResult &= RegisterPCLInterface(reg, parentGroup);
+		bResult &= RegisterDomainInterface(reg, parentGroup);
+		bResult &= RegisterRefinementBridge(reg, parentGroup);
 
 		bResult &= RegisterProfileFunctions(reg, parentGroup);
-		
 		bResult &= RegisterMiscFunctions(reg, parentGroup);
 
 		reg.add_function("SetDefaultDimension", &SetDefaultDimension);
 
-		#ifdef UG_ALGEBRA
-		//	does not depend on lib_algebra
-			bResult &= RegisterDomainInterface(reg, parentGroup);
 
+		#ifdef UG_ALGEBRA
 		//	depends on lib_algebra
 			bResult &= RegisterStaticLibDiscInterface(reg, parentGroup);
 

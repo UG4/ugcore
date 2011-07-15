@@ -120,8 +120,15 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt,
 /**
  * aPos has to be attached to grid.
  * If some attachments were not attached correctly, the method returns false.
+ * \{
  */
 bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm);
+
+bool CalculateVertexNormals(Grid& grid,
+							Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
+							Grid::AttachmentAccessor<VertexBase, ANormal>& aaNorm);
+
+/** \} */
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateBoundingBox
@@ -166,6 +173,14 @@ vector3 CalculateBarycenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrt
  * old elements are passed on to the new ones using grid::pass_on_values.
  */
 void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2);
+
+////////////////////////////////////////////////////////////////////////
+///	Merges all vertices between the given iterators into a single vertex.
+/**	Note that connected elements may be removed or replaced during this process.
+ * The method returns the remaining vertex in the given list (*vrtsBegin).*/
+template <class TVrtIterator>
+VertexBase* MergeVertices(Grid& grid, TVrtIterator vrtsBegin,
+						  TVrtIterator vrtsEnd);
 
 ////////////////////////////////////////////////////////////////////////
 //	RemoveDoubles

@@ -213,8 +213,8 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e)
 
 ////////////////////////////////////////////////////////////////////////
 int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
-					Grid::VertexAttachmentAccessor<APosition>& aaPos,
-					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE)
+					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
+					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE)
 {
 	Face* f[2];
 	

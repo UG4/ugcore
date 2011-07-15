@@ -40,9 +40,13 @@ end
 numRefs    = util.GetParamNumber("-numRefs",    1)
 
 -- all elements connected to vertices in this sphere will be refined
-refCenterX = 0.0
-refCenterY = 0.0
-refCenterZ = 0
+if dim == 1 then
+	refCenter = make_vec(0)
+elseif dim == 2 then
+	refCenter = make_vec(0, 0)
+elseif dim == 3 then
+	refCenter = make_vec(0, 0, 0)
+end
 initialRadius = 0.5
 -- in every refinement iteration the radius shrinks with this factor
 radiusFalloff = 0.75
@@ -132,7 +136,7 @@ local TriagCenterY = 1/6
 local TriagScale = 0.5;
 local TriagRadius = 0.4;
 for i = 1, numRefs do
-	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
+	MarkForRefinement_VerticesInSphere(dom, refiner, refCenter, radius)
 --	MarkForRefinement_VerticesInSquare(refiner, refCurr, 1, -1, 1, 0, 0)
 --	MarkForRefinement_VerticesInSquare(refiner, 0.2*i, 1, -1, 1, 0, 0)
 --	MarkForRefinement_FacesInSphere(refiner, TriagCenterX, TriagCenterY, 0.0, TriagRadius)

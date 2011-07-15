@@ -274,22 +274,34 @@ static int LuaStackToParams(ParameterStack& params,
 				}
 			}break;
 			case PT_POINTER:{
+			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
+			//	This can cause severe problems in regard to reference-counting.
+			//	This behaviour was introduced, since the registry does not
+			//	allow by-value arguments. (Small temporary objects profit from
+			//	this strategy).
 				if(lua_isuserdata(L, index)){
-				//	Check whether this is really a raw pointer
-					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_raw_ptr()){
+					void* obj = NULL;
+					UserDataWrapper* udata =
+						reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+
+					if(udata->is_const()){
 						badParam = (int)i + 1;
 						break;
 					}
 
-				//	if the object is a const object, we can't use it here.
-					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
+				//	extract the pointer to the object.
+				//	udata is either a RawUserData or a SmartUserDataWrapper
+					if(udata->is_raw_ptr())
+						obj = static_cast<RawUserDataWrapper*>(udata)->obj;
+					else if(udata->is_smart_ptr())
+						obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get_impl();
+					else{
 						badParam = (int)i + 1;
 						break;
 					}
 					
 				//	get the object and its metatable. Make sure that obj can be cast to
 				//	the type that is expected by the paramsTemplate.
-					void* obj = ((RawUserDataWrapper*)lua_touserdata(L, index))->obj;
 					if(lua_getmetatable(L, index) != 0){
 
 						lua_pushstring(L, "class_name_node");
@@ -323,16 +335,33 @@ static int LuaStackToParams(ParameterStack& params,
 				}
 			}break;
 			case PT_CONST_POINTER:{
+			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
+			//	This can cause severe problems in regard to reference-counting.
+			//	This behaviour was introduced, since the registry does not
+			//	allow by-value arguments. (Small temporary objects profit from
+			//	this strategy).
 				if(lua_isuserdata(L, index)){
-				//	Check whether this is really a raw pointer
-					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_raw_ptr()){
+				//	extract the object-pointer from the user-data
+					const void* obj = NULL;
+					UserDataWrapper* udata =
+						reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+
+					if(udata->is_raw_ptr())
+						obj = static_cast<RawUserDataWrapper*>(udata)->obj;
+					else if(udata->is_smart_ptr()){
+					//	we have to distinguish between const and non-const smart pointers.
+						if(udata->is_const())
+							obj = static_cast<ConstSmartUserDataWrapper*>(udata)->smartPtr.get_impl();
+						else
+							obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get_impl();
+					}
+					else{
 						badParam = (int)i + 1;
 						break;
 					}
 
-				//	get the object and its metatable. Make sure that obj can be cast to
+				//	get the objects metatable. Make sure that obj can be cast to
 				//	the type that is expected by the paramsTemplate.
-					const void* obj = ((RawUserDataWrapper*)lua_touserdata(L, index))->obj;
 					if(lua_getmetatable(L, index) != 0){
 
 						lua_pushstring(L, "class_name_node");

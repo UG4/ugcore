@@ -74,6 +74,22 @@ CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
 	return aaPosVRT[v];
 }
 
+template <class TVrtIterator>
+VertexBase* MergeVertices(Grid& grid, TVrtIterator vrtsBegin,
+						  TVrtIterator vrtsEnd)
+{
+	if(vrtsBegin == vrtsEnd)
+		return NULL;
+
+	VertexBase* v = vrtsBegin;
+	++vrtsBegin;
+	while(vrtsBegin != vrtsEnd){
+		VertexBase* v2 = *vrtsBegin;
+		++vrtsBegin;
+		MergeVertices(grid, v, v2);
+	}
+	return v;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //TODO:	replace KDTreeStatic by a dynamic kd-tree.

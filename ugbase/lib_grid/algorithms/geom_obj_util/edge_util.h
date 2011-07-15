@@ -114,8 +114,8 @@ inline number EdgeLength(EdgeBase* e, TAAPosVRT& aaPos);
  * \returns the number of faces that are associated with the edge.
  */
 int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
-					Grid::VertexAttachmentAccessor<APosition>& aaPos,
-					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE = NULL);
+					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
+					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal

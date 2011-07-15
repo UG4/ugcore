@@ -45,7 +45,7 @@ int GetFaceIndex(Volume* vol, Face* f);
  * Performs normalization on the calcluated normals.
  */
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,
-					Grid::VertexAttachmentAccessor<APosition>& aaPos);
+					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
@@ -64,7 +64,7 @@ void CalculateNormal(vector3& vNormOut, FaceVertices* face,
  * performs no normalization on the calculated normals
  */
 void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
-						Grid::VertexAttachmentAccessor<APosition>& aaPos);
+						Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
 					
 ////////////////////////////////////////////////////////////////////////
 //	CalculateFaceNormals

@@ -30,7 +30,7 @@ int GetFaceIndex(Volume* vol, Face* f)
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,
-					Grid::VertexAttachmentAccessor<APosition>& aaPos)
+					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos)
 {
 	if(face->num_vertices() == 3)
 	{
@@ -62,7 +62,7 @@ void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 }
 
 void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
-								Grid::VertexAttachmentAccessor<APosition>& aaPos)
+								Grid::AttachmentAccessor<VertexBase, APosition>& aaPos)
 {
 	if(face->num_vertices() == 3)
 	{

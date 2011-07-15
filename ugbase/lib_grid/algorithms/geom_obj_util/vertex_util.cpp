@@ -372,16 +372,10 @@ void CalculateBoundingBox(vector1& vMinOut, vector1& vMaxOut, VertexBaseIterator
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateVertexNormals
-bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
+bool CalculateVertexNormals(Grid& grid,
+							Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
+							Grid::AttachmentAccessor<VertexBase, ANormal>& aaNorm)
 {
-	if(!grid.has_attachment<VertexBase>(aPos))
-		return false;
-	if(!grid.has_attachment<VertexBase>(aNorm))
-		grid.attach_to<VertexBase>(aNorm);
-
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
-	Grid::VertexAttachmentAccessor<ANormal> aaNorm(grid, aNorm);
-
 //	set all normals to zero
 	{
 		for(VertexBaseIterator iter = grid.begin<VertexBase>();
@@ -409,6 +403,19 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 	}
 //	done
 	return true;
+}
+
+bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
+{
+	if(!grid.has_attachment<VertexBase>(aPos))
+		return false;
+	if(!grid.has_attachment<VertexBase>(aNorm))
+		grid.attach_to<VertexBase>(aNorm);
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor<ANormal> aaNorm(grid, aNorm);
+
+	return CalculateVertexNormals(grid, aaPos, aaNorm);
 }
 
 template <class TAPosition>

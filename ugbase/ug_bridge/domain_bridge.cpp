@@ -93,61 +93,6 @@ static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 	return SavePartitionMapToFile(pmap, filename, domain.get_position_attachment());
 }
 
-template <typename TDomain>
-static void GlobalRefineParallelDomain(TDomain& domain)
-{
-#ifdef UG_PARALLEL
-//	get distributed grid manager
-	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
-	distributed_grid_manager_type* pDistGridMgr = domain.get_distributed_grid_manager();
-
-//	check that manager exists
-	if(!pDistGridMgr)
-	{
-		UG_LOG("GlobalRefineParallelDomain: Cannot find Distributed Grid Manager.\n");
-		throw(int(1));
-	}
-	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
-
-//	create Refiner
-	ParallelGlobalRefiner_MultiGrid refiner(distGridMgr);
-#else
-	GlobalMultiGridRefiner refiner;
-	refiner.assign_grid(domain.get_grid());
-#endif
-
-//	perform refinement.
-	refiner.refine();
-}
-
-
-template <typename TDomain>
-static IRefiner* GlobalDomainRefiner(TDomain* dom)
-{
-//todo: support normal grids, too!
-	#ifdef UG_PARALLEL
-		if(pcl::GetNumProcesses() > 1){
-			return new ParallelGlobalRefiner_MultiGrid(*dom->get_distributed_grid_manager());
-		}
-	#endif
-
-	return new GlobalMultiGridRefiner(dom->get_grid());
-}
-
-
-template <typename TDomain>
-static IRefiner* HangingNodeDomainRefiner(TDomain* dom)
-{
-//todo: support normal grids, too!
-	#ifdef UG_PARALLEL
-		if(pcl::GetNumProcesses() > 1){
-			return new ParallelHangingNodeRefiner_MultiGrid(*dom->get_distributed_grid_manager());
-		}
-	#endif
-
-	return new HangingNodeRefiner_MultiGrid(dom->get_grid());
-}
-
 
 template <typename TDomain>
 static bool TestDomainInterfaces(TDomain* dom)
@@ -158,9 +103,6 @@ static bool TestDomainInterfaces(TDomain* dom)
 	#endif
 	return true;
 }
-
-
-
 
 
 namespace bridge{
@@ -191,13 +133,6 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	reg.add_function("LoadDomain", &LoadDomain<domain_type>, grp.c_str(),
 					"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 					"Loads a domain", "No help");
-//	todo: remove this
-	{
-		std::stringstream ss; ss << "LoadDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
-						"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
-						"Loads a domain", "No help");
-	}
 
 //	SaveDomain
 	reg.add_function("SaveDomain", &SaveDomain<domain_type>, grp.c_str(),
@@ -208,14 +143,6 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	reg.add_function("SavePartitionMap", &SavePartitionMap<domain_type>, grp.c_str(),
 					"Success", "PartitionMap # Domain # Filename|save-dialog",
 					"Saves a partition map", "No help");
-
-//	todo: remove this
-	{
-		std::stringstream ss; ss << "SaveDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
-						"Success", "Domain # Filename|save-dialog",
-						"Saves a domain", "No help");
-	}
 
 //	DistributeDomain
 	reg.add_function("DistributeDomain", static_cast<bool (*)(TDomain&)>(
@@ -239,17 +166,6 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 
 	reg.add_function("RedistributeDomain",
 					 &RedistributeDomain<domain_type>, grp.c_str());
-
-//	GlobalRefineParallelDomain
-//	todo: remove this
-	{
-		std::stringstream ss; ss << "GlobalRefineParallelDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &GlobalRefineParallelDomain<domain_type>, grp.c_str());
-	}
-
-//	refiner registration
-	reg.add_function("GlobalDomainRefiner", &GlobalDomainRefiner<domain_type>, grp.c_str());
-	reg.add_function("HangingNodeDomainRefiner", &HangingNodeDomainRefiner<domain_type>, grp.c_str());
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<domain_type>, grp.c_str());
