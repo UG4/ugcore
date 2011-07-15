@@ -13,13 +13,14 @@ namespace bridge
 Registry::Registry()
 {
 //	register native types as provided in ParameterStack
-	add_class_<bool>("bool");
-	add_class_<int>("int");
-	add_class_<size_t>("size_t");
-	add_class_<float>("float");
-	add_class_<double>("double");
-	add_class_<char>("char");
-	add_class_<std::string>("string");
+//	we use the c_ prefix to avoid clashes with java native types in java bindings.
+	add_class_<bool>("c_bool");
+	add_class_<int>("c_int");
+	add_class_<size_t>("c_size_t");
+	add_class_<float>("c_float");
+	add_class_<double>("c_double");
+	add_class_<char>("c_char");
+	add_class_<std::string>("c_string");
 }
 
 Registry::Registry(const Registry& reg)
