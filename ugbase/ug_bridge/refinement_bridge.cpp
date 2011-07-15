@@ -223,7 +223,8 @@ static bool RegisterRefinementBridge_DomIndep(Registry& reg, const char* parentG
 	{
 	//	get group string
 		std::stringstream groupString; groupString << parentGroup << "/Refinement";
-		const char* grp = groupString.str().c_str();
+		string strGrp = groupString.str();
+		const char* grp = strGrp.c_str();
 
 	//	register domain independent mark methods
 		reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp);
@@ -249,7 +250,8 @@ static bool RegisterRefinementBridge_DomDep(Registry& reg, const char* parentGro
 	{
 	//	get group string
 		std::stringstream groupString; groupString << parentGroup << "/Refinement";
-		const char* grp = groupString.str().c_str();
+		string strGrp = groupString.str();
+		const char* grp = strGrp.c_str();
 
 	//	refiner factory-method registration
 	//	Note that the refiners themselfs have already been registered in lib_grid_bridge.
