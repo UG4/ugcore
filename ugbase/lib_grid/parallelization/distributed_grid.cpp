@@ -440,6 +440,14 @@ perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 				add_element_to_interface(static_cast<EdgeBase*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
+			case FACE:
+				add_element_to_interface(static_cast<Face*>(schedElem.geomObj),
+										schedElem.connectedProcID);
+				break;
+			case VOLUME:
+				add_element_to_interface(static_cast<Volume*>(schedElem.geomObj),
+										schedElem.connectedProcID);
+				break;
 		}
 	}
 }
@@ -452,9 +460,8 @@ end_ordered_element_insertion()
 	//TODO: support all elements
 		perform_ordered_element_insertion(m_vrtMap);
 		perform_ordered_element_insertion(m_edgeMap);
-
-	//	testing
 		perform_ordered_element_insertion(m_faceMap);
+		perform_ordered_element_insertion(m_volMap);
 
 		clear_scheduled_elements();
 	}
@@ -565,7 +572,6 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 	{
 		switch(parentType)
 		{
-//TODO: add support for all elements
 			case VERTEX:
 				UG_DLOG(LIB_GRID, 3, "scheduling element with vertex-parent to interfaces ");
 				schedule_element_for_insertion(m_vrtMap,
@@ -581,11 +587,17 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 				UG_DLOG(LIB_GRID, 3, endl);
 				break;
 
-			// testing
 			case FACE:
 				UG_DLOG(LIB_GRID, 3, "scheduling element with face-parent to interfaces ");
 				schedule_element_for_insertion(m_faceMap, pElem,
 												(Face*)pParent);
+				UG_DLOG(LIB_GRID, 3, endl);
+				break;
+
+			case VOLUME:
+				UG_DLOG(LIB_GRID, 3, "scheduling element with volume-parent to interfaces ");
+				schedule_element_for_insertion(m_volMap, pElem,
+												(Volume*)pParent);
 				UG_DLOG(LIB_GRID, 3, endl);
 				break;
 		}
@@ -665,6 +677,19 @@ edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
 	handle_created_element(e, pParent, replacesParent);
 }
 
+void DistributedGridManager::
+face_created(Grid* grid, Face* f, GeometricObject* pParent,
+			 bool replacesParent)
+{
+	handle_created_element(f, pParent, replacesParent);
+}
+
+void DistributedGridManager::
+volume_created(Grid* grid, Volume* v, GeometricObject* pParent,
+			   bool replacesParent)
+{
+	handle_created_element(v, pParent, replacesParent);
+}
 
 
 

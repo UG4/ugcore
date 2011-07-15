@@ -153,6 +153,14 @@ class DistributedGridManager : public GridObserver
 									GeometricObject* pParent = NULL,
 									bool replacesParent = false);
 		
+		virtual void face_created(Grid* grid, Face* f,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
+
+		virtual void volume_created(Grid* grid, Volume* v,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
+
 	protected:
 	///	performs registration and deregistration at a grid.
 	/**	call set_grid(NULL) to unregister the observer from a grid.*/
