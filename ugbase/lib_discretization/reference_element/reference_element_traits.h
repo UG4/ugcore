@@ -19,6 +19,23 @@
 
 namespace ug{
 
+/// returns the reference element dimension at run-time
+inline int ReferenceElementDimension(ReferenceObjectID roid)
+{
+	switch(roid)
+	{
+		case ROID_VERTEX: return 0;
+		case ROID_EDGE: return 1;
+		case ROID_TRIANGLE: return 2;
+		case ROID_QUADRILATERAL: return 2;
+		case ROID_TETRAHEDRON: return 3;
+		case ROID_PYRAMID: return 3;
+		case ROID_PRISM: return 3;
+		case ROID_HEXAHEDRON: return 3;
+		default: throw(UGFatalError("ReferenceObjectId not found."));
+	}
+}
+
 /// traits for reference elements
 /**
  * The traits class provides for a Grid-element type the corresponding
@@ -65,6 +82,20 @@ class reference_element_traits<Edge>
 		typedef ReferenceEdge reference_element_type;
 };
 
+template <>
+class reference_element_traits<ConstrainedEdge>
+{
+	public:
+		typedef ReferenceEdge reference_element_type;
+};
+
+template <>
+class reference_element_traits<ConstrainingEdge>
+{
+	public:
+		typedef ReferenceEdge reference_element_type;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // Triangle
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,12 +107,40 @@ class reference_element_traits<Triangle>
 		typedef ReferenceTriangle reference_element_type;
 };
 
+template <>
+class reference_element_traits<ConstrainedTriangle>
+{
+	public:
+		typedef ReferenceTriangle reference_element_type;
+};
+
+template <>
+class reference_element_traits<ConstrainingTriangle>
+{
+	public:
+		typedef ReferenceTriangle reference_element_type;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // Quadrilateral
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
 class reference_element_traits<Quadrilateral>
+{
+	public:
+		typedef ReferenceQuadrilateral reference_element_type;
+};
+
+template <>
+class reference_element_traits<ConstrainedQuadrilateral>
+{
+	public:
+		typedef ReferenceQuadrilateral reference_element_type;
+};
+
+template <>
+class reference_element_traits<ConstrainingQuadrilateral>
 {
 	public:
 		typedef ReferenceQuadrilateral reference_element_type;
