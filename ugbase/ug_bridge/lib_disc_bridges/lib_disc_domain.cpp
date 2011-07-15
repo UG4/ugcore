@@ -27,8 +27,9 @@
 #include "lib_discretization/function_spaces/interpolate.h"
 #include "lib_discretization/function_spaces/integrate.h"
 #include "lib_discretization/function_spaces/error_indicator.h"
-#include "lib_discretization/dof_manager/p1conform/p1conform.h"
 #include "lib_discretization/dof_manager/cuthill_mckee.h"
+#include "lib_discretization/dof_manager/p1conform/p1conform.h"
+#include "lib_discretization/dof_manager/conform/conform.h"
 
 #include "lib_discretization/io/vtkoutput.h"
 
@@ -437,13 +438,19 @@ bool RegisterDynamicLibDiscDomain(Registry& reg, int algebra_type, const char* p
 {
 	bool bReturn = true;
 
+	typedef P1DoFDistribution<false> dd_type_single;
+	typedef P1DoFDistribution<true> dd_type_grouped;
+
+//	typedef DoFDistribution dd_type_single;
+//	typedef DoFDistribution dd_type_grouped;
+
 	switch(algebra_type)
 	{
-	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForDomain<CPUAlgebra, P1DoFDistribution<false> >(reg, parentGroup); break;
-//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<2>, P1DoFDistribution<true> >(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<3>, P1DoFDistribution<true> >(reg, parentGroup); break;
-//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<4>, P1DoFDistribution<true> >(reg, parentGroup); break;
-//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForDomain<CPUVariableBlockAlgebra, P1DoFDistribution<true> >(reg, parentGroup); break;
+	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForDomain<CPUAlgebra, dd_type_single>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<2>, dd_type_groupded>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<3>, dd_type_grouped>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForDomain<CPUBlockAlgebra<4>, dd_type_grouped>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForDomain<CPUVariableBlockAlgebra, dd_type_grouped>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;

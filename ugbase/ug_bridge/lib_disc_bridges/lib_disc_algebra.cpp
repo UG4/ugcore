@@ -19,6 +19,8 @@
 
 // lib_discretization part
 #include "lib_discretization/dof_manager/dof_distribution.h"
+#include "lib_discretization/dof_manager/p1conform/p1conform.h"
+#include "lib_discretization/dof_manager/conform/conform.h"
 
 // discretization interfaces
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
@@ -42,8 +44,6 @@
 // newton solver
 #include "lib_discretization/operator/non_linear_operator/line_search.h"
 #include "lib_discretization/operator/non_linear_operator/newton_solver/newton.h"
-
-#include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
 namespace ug
 {
@@ -247,13 +247,19 @@ bool RegisterDynamicLibDiscAlgebra(Registry& reg, int algebra_type, const char* 
 {
 	bool bReturn = true;
 
+	typedef P1DoFDistribution<false> dd_type_single;
+	typedef P1DoFDistribution<true> dd_type_grouped;
+
+//	typedef DoFDistribution dd_type_single;
+//	typedef DoFDistribution dd_type_grouped;
+
 	switch(algebra_type)
 	{
-	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForAlgebra<CPUAlgebra, P1DoFDistribution<false> >(reg, parentGroup); break;
-//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<2>, P1DoFDistribution<true> >(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<3>, P1DoFDistribution<true> >(reg, parentGroup); break;
-//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<4>, P1DoFDistribution<true> >(reg, parentGroup); break;
-//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForAlgebra<CPUVariableBlockAlgebra, P1DoFDistribution<true> >(reg, parentGroup); break;
+	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscForAlgebra<CPUAlgebra, dd_type_single>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<2>, dd_type_grouped>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<3>, dd_type_grouped>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscForAlgebra<CPUBlockAlgebra<4>, dd_type_grouped>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscForAlgebra<CPUVariableBlockAlgebra, dd_type_grouped>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;
