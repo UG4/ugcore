@@ -51,11 +51,11 @@ ExportedFunctionBase(	const char* funcName, const char* funcOptions,
 											 "0123456789");
 	if (found!=std::string::npos)
 	{
-		std::cout<<"Non-allowed character '"<<nameStr[found]<<"' "<<
+		UG_LOG("Non-allowed character '"<<nameStr[found]<<"' "<<
 			   "contained at position "<<int(found)<<" in registered function/method "
 			   "'"<<nameStr<<"'.\nFunction names must match the regular expression: "
 			   "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
-			   " and '_' are allowed; no numbers at the beginning.\n";
+			   " and '_' are allowed; no numbers at the beginning.\n");
 		throw(REGISTRY_ERROR_Message("Function Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
 	}
 
@@ -63,8 +63,8 @@ ExportedFunctionBase(	const char* funcName, const char* funcOptions,
 	found = nameStr.find_first_of("0123456789");
 	if (found!=std::string::npos && found == 0)
 	{
-		std::cout<<"Function Name "<<nameStr<<" starts with a number.\nThis is "
-				" not allowed. Please change naming.\n";
+		UG_LOG("Function Name "<<nameStr<<" starts with a number.\nThis is "
+				" not allowed. Please change naming.\n");
 		throw(REGISTRY_ERROR_Message("Function Name must not start with number."));
 	}
 };
@@ -83,14 +83,14 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 			if(!bUndeclaredParameterFound)
 			{
 				bUndeclaredParameterFound = true;
-				std::cout<<"#### Registry ERROR: Unregistered Class used in ";
-				if(classname) std::cout<<"Method: '";
-				else std::cout<<"global Function: '";
+				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
+				if(classname){ UG_LOG("Method: '");}
+				else UG_LOG("global Function: '")
 				PrintFunctionInfo(*this, false, classname);
-				std::cout<<"': Parameter " << j+1;
+				UG_LOG("': Parameter " << j+1);
 			}
 			else
-			{	std::cout<<", " << j+1;	}
+			{	UG_LOG(", " << j+1);	}
 		}
 	}
 
@@ -104,19 +104,19 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 			if(!bUndeclaredParameterFound)
 			{
 				bUndeclaredParameterFound = true;
-				std::cout<<"#### Registry ERROR: Unregistered Class used in ";
-				if(classname) std::cout<<"Method: '";
-				else std::cout<<"global Function: '";
+				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
+				if(classname){UG_LOG("Method: '");}
+				else UG_LOG("global Function: '");
 				PrintFunctionInfo(*this, false, classname);
-				std::cout<<"': Return value ";
+				UG_LOG("': Return value ");
 			}
 			else
-			{	std::cout<<", Return value ";	}
+			{	UG_LOG(", Return value ");	}
 		}
 	}
 
 //	check if undeclared parameter has been found
-	if(bUndeclaredParameterFound) {std::cout<<"\n"; return false;}
+	if(bUndeclaredParameterFound) {UG_LOG("\n"); return false;}
 
 //	everything ok
 	return true;

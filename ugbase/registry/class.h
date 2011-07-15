@@ -476,8 +476,8 @@ class ExportedClass_ : public IExportedClass
 		// 	check that name is not empty
 			if(strippedMethodName.empty())
 			{
-				std::cout << "### Registry ERROR: Trying to register empty method name."
-						<< "\n### Please change register process. Aborting ..." << std::endl;
+				UG_LOG("### Registry ERROR: Trying to register empty method name."
+						<< "\n### Please change register process. Aborting ..." << std::endl);
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName.c_str()));
 			}
 
@@ -504,10 +504,10 @@ class ExportedClass_ : public IExportedClass
 
 			if(!success)
 			{
-				std::cout << "### Registry ERROR: Trying to register method name '" << strippedMethodName
+				UG_LOG("### Registry ERROR: Trying to register method name '" << strippedMethodName
 						<< "' to class '" << name() << "', but another method with this name "
 						<< " and the same function signature is already registered for this class."
-						<< "\n### Please change register process. Aborting ..." << std::endl;
+						<< "\n### Please change register process. Aborting ..." << std::endl);
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
 			}
 

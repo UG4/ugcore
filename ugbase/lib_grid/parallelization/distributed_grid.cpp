@@ -433,14 +433,13 @@ perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 		switch(objType)
 		{
 			case VERTEX:
-				add_element_to_interface((VertexBase*)schedElem.geomObj,
+				add_element_to_interface(static_cast<VertexBase*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
 			case EDGE:
-				add_element_to_interface((EdgeBase*)schedElem.geomObj,
+				add_element_to_interface(static_cast<EdgeBase*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
-//TODO: add support for faces and volumes
 		}
 	}
 }

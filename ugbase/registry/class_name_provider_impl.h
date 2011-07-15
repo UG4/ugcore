@@ -51,13 +51,11 @@ set_name(const char* nameIn, const char* group, bool newName)
 											 "0123456789");
 	if (found!=std::string::npos)
 	{
-	//	info: do not use UG_LOG here, since in parallel MPI_Init has not been
-	//		  called, but UG_LOG checks proc rank.
-		std::cout<<"Non-allowed character '"<<nameStr[found]<<"' "<<
+		UG_LOG("Non-allowed character '"<<nameStr[found]<<"' "<<
 		       "contained at position "<<int(found)<<" in registered Class Name "
 		       "'"<<nameStr<<"'.\nClass names must match the regular expression: "
 		       "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
-		       " and '_' are allowed; no numbers at the beginning.\n";
+		       " and '_' are allowed; no numbers at the beginning.\n");
 		throw(REGISTRY_ERROR_Message("Class Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
 	}
 
@@ -65,10 +63,8 @@ set_name(const char* nameIn, const char* group, bool newName)
 	 found = nameStr.find_first_of("0123456789");
 	if (found!=std::string::npos && found == 0)
 	{
-	//	info: do not use UG_LOG here, since in parallel MPI_Init has not been
-	//		  called, but UG_LOG checks proc rank.
-		std::cout<<"Class Name "<<nameStr<<" starts with a number.\nThis is "
-				" not allowed. Please change naming.\n";
+		UG_LOG("Class Name "<<nameStr<<" starts with a number.\nThis is "
+				" not allowed. Please change naming.\n");
 		throw(REGISTRY_ERROR_Message("Class Name must not start with number."));
 	}
 

@@ -45,11 +45,11 @@ static bool RegisterVecMathBridge(Registry& reg, const char* parentGroup)
 		const char* grp = strGrp.c_str();
 
 	//	register the class
-		std::stringstream vecName; vecName << "vector" << dim << "d";
+		std::stringstream vecName; vecName << "Vector" << dim << "d";
 		reg.add_class_<vec_type>(vecName.str().c_str(), grp)
 			.add_method("coord",
 					static_cast<const number& (vec_type::*)(size_t) const>(&vec_type::coord));
-		reg.add_class_to_group(vecName.str().c_str(), "vector");
+		reg.add_class_to_group(vecName.str().c_str(), "Vector_d");
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

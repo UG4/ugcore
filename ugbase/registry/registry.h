@@ -194,6 +194,9 @@ class Registry {
 	// returns true if classname is already used by a class in this registry
 		bool classname_registered(const char* name);
 
+	// returns true if groupname is already used by a class in this registry
+		bool groupname_registered(const char* name);
+
 		// returns true if functionname is already used by a function in this registry
 		bool functionname_registered(const char* name);
 

@@ -167,14 +167,14 @@ bool Registry::check_consistency()
 
 //	log error messages
 	if(globFctUndef > 0)
-		std::cout<<"#### ERROR in 'Registry::check_consistency': "<<globFctUndef<<
-		       " global Functions are using undeclared Classes.\n";
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<globFctUndef<<
+		       " global Functions are using undeclared Classes.\n");
 	if(methodUndef > 0)
-		std::cout<<"#### ERROR in 'Registry::check_consistency': "<<methodUndef<<
-		       " Methods are using undeclared Classes.\n";
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<methodUndef<<
+		       " Methods are using undeclared Classes.\n");
 	if(baseClassUndef > 0)
-		std::cout<<"#### ERROR in 'Registry::check_consistency': "<<baseClassUndef<<
-		       " Base-Classes are using undeclared Classes.\n";
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<baseClassUndef<<
+		       " Base-Classes are using undeclared Classes.\n");
 
 //	return false if undefined classes have been found
 	if(globFctUndef > 0) return false;
@@ -230,7 +230,13 @@ const ClassGroupDesc* Registry::get_class_group(const char* name) const
 
 void Registry::add_class_to_group(const char* className, const char* groupName)
 {
-//todo: make sure that no class with groupName exists.
+//	make sure that no class with groupName exists.
+	if(classname_registered(groupName)){
+		UG_LOG("#### ERROR in 'Registry::add_class_to_group': A class with the "
+				<< "given group name '" << groupName << "' already exists.\n");
+		return;
+	}
+
 	ClassGroupDesc* groupDesc = get_class_group(groupName);
 //todo:	make sure that groupDesc does not already contain className.
 	IExportedClass* expClass = get_class(className);
@@ -244,6 +250,16 @@ void Registry::add_class_to_group(const char* className, const char* groupName)
 bool Registry::classname_registered(const char* name)
 {
 	return get_class(name) != NULL;
+}
+
+bool Registry::groupname_registered(const char* name)
+{
+//todo:	use a map to quickly access classGroups by name
+	for(size_t i = 0; i < m_vClassGroups.size(); ++i){
+		if(strcmp(m_vClassGroups[i]->name(), name) == 0)
+			return true;
+	}
+	return false;
 }
 
 // returns true if functionname is already used by a function in this registry
