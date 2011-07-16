@@ -116,7 +116,7 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 			reg.add_function("InitAlgebra", &InitAlgebra);
 		#endif
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	catch(UG_REGISTRY_ERROR_RegistrationFailed& ex)
 	{
 		UG_LOG("### ERROR in RegisterStandardInterfaces: "
 				"Registration failed (using name " << ex.name << ").\n");
