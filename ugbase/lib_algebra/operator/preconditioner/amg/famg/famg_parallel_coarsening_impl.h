@@ -286,6 +286,28 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 	return b;
 }*/
 
+
+// TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
+template<typename matrix_type>
+bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
+		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
+		size_t overlapDepthMaster, size_t overlapDepthSlave, std::vector<size_t> &overlapSize, bool masterDirichletLast, bool slaveDirichletLast)
+{
+	PROFILE_FUNC();
+	// pcl does not use const much
+	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
+	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
+
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts);
+	c.m_overlapDepthMaster = overlapDepthMaster;
+	c.m_overlapDepthSlave = overlapDepthSlave;
+	c.m_masterDirichletLast = masterDirichletLast;
+	c.m_slaveDirichletLast = slaveDirichletLast;
+	bool b = c.calculate();
+	overlapSize = c.m_overlapSize;
+	return b;
+}
+
 // FAMGLevelCalculator::create_OL2_matrix
 //---------------------------------------------------------------------------
 /**
@@ -316,15 +338,12 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OL2MasterLayout, A.get_master_layout());
 	AddLayout(OL2SlaveLayout, A.get_slave_layout());
 
-	GenerateOverlap(A, A_OL2, OL2MasterLayout, OL2SlaveLayout, masterLayouts, slaveLayouts, overlapSize, 2);
-
+	GenerateOverlap2(A, A_OL2, OL2MasterLayout, OL2SlaveLayout, masterLayouts, slaveLayouts,
+			2, 1, overlapSize, false, false);
 
 	// OL1
 	AddLayout(OL1MasterLayout, masterLayouts[0]);
-	AddLayout(OL1MasterLayout, masterLayouts[1]);
 	AddLayout(OL1SlaveLayout, slaveLayouts[0]);
-	AddLayout(OL1SlaveLayout, slaveLayouts[1]);
-
 
 
 	/*UG_DLOG(LIB_ALG_AMG, 1, "\n\n\nOL1Layout:\n")
@@ -421,7 +440,6 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		}
 	}
 
-
 	// debug: write overlap 2 matrix as debug output
 
 	// 2. get famg helper positions
@@ -461,6 +479,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 			PrintLayout(masterLayouts[i]);
 		}
 	}
+
 
 //	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelMatrixPre);
 }

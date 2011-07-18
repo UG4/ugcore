@@ -211,7 +211,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		UG_DLOG(LIB_ALG_AMG, 4, "\n");
 	}
 
-	// 2. add all slave masters to slave interface
+	// 2. add all coarse slaves to slave interface
 	for(IndexLayout::iterator iter = A.get_slave_layout().begin(); iter != A.get_slave_layout().end(); ++iter)
 	{
 		IndexLayout::Interface &interface = A.get_slave_layout().interface(iter);
@@ -231,7 +231,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		UG_DLOG(LIB_ALG_AMG, 4, "\n");
 	}
 
-	// 3. if we interpolate our node from a node which is on another processor (in OL1),
+	// 3. if we interpolate our node from a node which is on another processor (in OL1) and not
+	// a original slave0,
 	// we need to add this connection to the slave interface and inform this processor
 	BufferMap sendpack;
 	stdvector<bool> bInLayout(overlapSize[1], false);
@@ -240,8 +241,10 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		for(typename prolongation_matrix_type::row_iterator conn = PoldIndices.begin_row(i); conn != PoldIndices.end_row(i); ++conn)
 		{
 			size_t localIndex = conn.index();
-			UG_ASSERT(localIndex < overlapSize[1], "interpolating from " << localIndex << " which is on OL2 (" << localToGlobal[localIndex] << ")?");
+			// master0 and
 			if(localIndex < overlapSize[0] || bInLayout[localIndex]) continue;
+			//UG_ASSERT(!rating.is_master(i) ||
+				//				rating.is_slave(localIndex, 1), "master nodes may only be interpolated by slave0 nodes");
 
 			AlgebraID &globalID = localToGlobal[localIndex];
 			UG_ASSERT(globalID.first != pcl::GetProcRank(), globalID);
@@ -250,22 +253,26 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			size_t s = globalID.second;
 			Serialize(sendpack[globalID.first], s);
 			nextLevelSlaveLayout.interface(globalID.first).push_back(localIndex);
-			//UG_LOG("informing processor " << globalID.first << " that we have a connection to " << globalID << " (local " << localIndex << ")");
+			// ug_assert localIndex < overlapSize[1]
+			UG_ASSERT(localIndex < overlapSize[1], localIndex << " " << overlapSize[1]);
+			UG_DLOG(LIB_ALG_AMG, 2, "informing processor " << globalID.first << " that we have a connection to " << globalID << " (local " << localIndex << ")\n");
 		}
 	}
 
-
-	for(IndexLayout::iterator iter = OL1SlaveLayout.begin(); iter != OL1SlaveLayout.end(); ++iter)
+	// eigentlich OL1. ne doch OL2, da 
+	// ein slave-knoten von einem knoten interpolieren kann,
+	// der quasi im OL2 liegt (slave = OL1)
+	for(IndexLayout::iterator iter = OL2SlaveLayout.begin(); iter != OL2SlaveLayout.end(); ++iter)
 	{
-		int pid = OL1SlaveLayout.proc_id(iter);
+		int pid = OL2SlaveLayout.proc_id(iter);
 		BinaryBuffer &stream = sendpack[pid];
 		communicator.send_raw(pid, stream.buffer(), stream.write_pos(), false);
 	}
 
 	BufferMap receivepack2;
-	for(IndexLayout::iterator iter = OL1MasterLayout.begin(); iter != OL1MasterLayout.end(); ++iter)
+	for(IndexLayout::iterator iter = OL2MasterLayout.begin(); iter != OL2MasterLayout.end(); ++iter)
 	{
-		int pid = OL1MasterLayout.proc_id(iter);
+		int pid = OL2MasterLayout.proc_id(iter);
 		communicator.receive_raw(pid, receivepack2[pid]);
 	}
 
@@ -274,9 +281,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	communicator.communicate();
 
 	// process receive buffers
-	for(IndexLayout::iterator iter = OL1MasterLayout.begin(); iter != OL1MasterLayout.end(); ++iter)
+	for(IndexLayout::iterator iter = OL2MasterLayout.begin(); iter != OL2MasterLayout.end(); ++iter)
 	{
-		int pid = OL1MasterLayout.proc_id(iter);
+		int pid = OL2MasterLayout.proc_id(iter);
 		BinaryBuffer &stream = receivepack2[pid];
 		if(stream.eof()) continue;
 		IndexLayout::Interface &nextLevelMasterInterface = nextLevelMasterLayout.interface(pid);
@@ -284,7 +291,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		{
 			size_t localIndex;
 			Deserialize(stream, localIndex);
-			//UG_LOG("got information from processor " << pid << " that he has a slave of my " << localIndex << "\n");
+			UG_DLOG(LIB_ALG_AMG, 4, "got information from processor " << pid << " that he has a slave of my " << localIndex << "\n");
 			nextLevelMasterInterface.push_back(localIndex);
 		}
 	}
@@ -293,6 +300,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	{
 		UG_LOG("\n\nnextLevelMasterLayout:\n");
 		PrintLayout(nextLevelMasterLayout);
+		UG_LOG("\n\nnextLevelSlaveLayout:\n");
+		PrintLayout(nextLevelSlaveLayout);
 		UG_LOG("\n\n nextLevel Layouts:\n")
 		UG_ASSERT(PrintLayout(communicator, nextLevelMasterLayout, nextLevelSlaveLayout), "layout broken");
 	}
