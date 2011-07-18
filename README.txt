@@ -63,6 +63,7 @@ The following options can be enabled / disabled:
 - NO_BOOST: Disables support for boost (should only be disabled if required).
 - NO_PCL: Disables creation of the pcl-library.
 - HLIBRO: Enables coupling with HLibPro.
+- FOR_VRL: Enables VRL support (needs Java SDK 1.6.x).
 
 To enable or disable options during the cmake call, call cmake like this:
 cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
