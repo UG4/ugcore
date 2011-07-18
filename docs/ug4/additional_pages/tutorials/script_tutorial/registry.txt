@@ -285,7 +285,7 @@ style identifier: <code>load-dialog</code> or <code>save-dialog</code>
 possible options: endings, description
 
 example string: <code>"File Name|load-dialog|
-                endings=[\"png\",\"jpg\"];description=\"Image-Files\""</code>
+                endings=[\"png\\",\"jpg\\"];description=\"Image-Files\\""</code>
 
 \image html img/vrl/load-dialog-01.png
 <br>
@@ -296,7 +296,7 @@ style identifier: <code>selection</code>
 
 possible options: value
 
-example string: <code>"String|default|value=[\"string1\",\"string2\"]"</code>
+example string: <code>"String|default|value=[\"string1\\",\"string2\\"]"</code>
 
 \image html img/vrl/selection-string-01.png
 
