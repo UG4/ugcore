@@ -38,6 +38,10 @@
 #include "../rsamg/rsamg.h"
 #include "../rsamg/rsamg_coarsening.h"
 
+#ifdef UG_PARALLEL
+#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+#endif
+
 std::stack<int> g_DebugLevelStack;
 
 #ifdef UG_DEBUG

@@ -164,6 +164,15 @@ public:
 		int i_min = -1;
 		double f_min = 1e12;
 
+	
+		IF_DEBUG(LIB_ALG_AMG, 5)
+		{
+			for(size_t n=0; n < onlyN1.size(); n++)
+				UG_DLOG(LIB_ALG_AMG, 4, onlyN1[n] << " = " << rating.info(onlyN1[n]) << " ");
+			UG_DLOG(LIB_ALG_AMG, 4, "\n");
+		}
+
+
 		const double &aii = A_OL2(i,i);
 		for(size_t n=0; n < onlyN1.size(); n++)
 		{

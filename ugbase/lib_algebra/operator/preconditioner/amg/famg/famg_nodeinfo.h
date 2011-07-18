@@ -242,13 +242,13 @@ public:
 		return OLtype[i] & (1 << (OLlevel+1));
 	}
 
-	bool is_master_on(size_t i, int pid)
+	/*bool is_master_on(size_t i, int pid)
 	{
 		if(is_slave(i, 0))
 			return m_masterOn[i] == pid;
 		else
 			return false;
-	}
+	}*/
 
 	bool i_must_assign(size_t i) const
 	{
