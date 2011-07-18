@@ -791,7 +791,7 @@ public:
 					bool bCreateNewNodes = (current_overlap == m_overlapDepthMaster ? false : true);
 					communicate(*send_layout, *receive_layout, bCreateNewNodes,
 						slaveOLLayouts[current_overlap], masterOLLayouts[current_overlap], pids,
-						nodeNummerator, false, current_overlap+1);
+						nodeNummerator, false, current_overlap);
 				}
 			}
 
