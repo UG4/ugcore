@@ -1,4 +1,3 @@
-
 /**	\page pageSTRegistry ug-Registry Tutorial
 
 In order to make functionality (such as c++ classes, methods and functions) 
@@ -96,7 +95,7 @@ Now, just type the function:
 ug:> PrintHelloWorld()
 Hello World !
 ug:> 
-\endverbatim
+\endverbatim/
 
 <hr>
 \section secSTHowToRegisterClasses 	How to register Classes and Methods
@@ -131,7 +130,7 @@ This class is registered by
 //	register class "Test"
 	reg.add_class_<Test>("Test", grp.c_str())
 		.add_constructor()
-		.add_method("add", &Test::add, "c", "a,b")
+		.add_method("add", &Test::add, "c", "a#b")
 		.add_method("print_name", &Test::print_name);
 \endcode
 
@@ -157,6 +156,150 @@ Calling a method of the class is done by using the ":"-operator
 ug:> myClass:print_name()
 Name is Test
 \endverbatim
+
+<hr>
+\section secSTHowToSpecifyParameterInformation 	How to specify parameter information
+<hr>
+
+As shown in the last example, the <code>.add_method()</code> method allows to specify
+additional parameter related information. The first string after the method pointer 
+specifies properties of the return value: <code>"c"</code>.The second string specifies
+properties of the parameters of the registered method:
+<code>"a#b"</code>.
+
+These properties allow VRL and the Script to provide additional information for the
+registered methods. Apart from the \em name, in this case <code>c</code>,
+VRL uses a so called \em style identifier to choose between
+several possible type representations. Additional \em options allow to specify
+range conditions, default values etc.
+
+<hr>
+\subsection secParamStrings Syntax
+<hr>
+
+Parameter properties can be specified as follows:
+
+\code
+name | style | options
+\endcode
+
+The short form <code>"name"</code> is also valid if no additional option shall be
+specified.
+
+An example for return value properties: <code>"c|default|min=1;max=10"</code>.
+
+For the parameter string an additional separator is used to split the
+individual parameter properties. Parameters can be separated as follows
+(seperating two parameters):
+
+\code
+name1 | style1 | options1 # name2 | style2 | options2
+\endcode
+
+<hr>
+\subsection secParamStringsAvaliableOptions Available styles and options
+<hr>
+
+\subsubsection secParamStringsName Name
+
+For the name it is safe to specify ASCII strings.
+Roughly speaking, it is safe to specify strings consisting of letters from
+the latin alphabet, numbers and the these characters:
+<code>^!"§$%&/()=?*,.-;:_<>\@</code> (list may be not complete).
+
+VRL supports simple HTML syntax (most tags from HTML 3.x are supported).
+Thus, it is possible to request bold or underlined names. Using colors and other
+enhanced stylings should not be used as this will most likely conflict with the VRL
+interface styles because in this case VRL cannot automatically change the text color
+accordingly.
+
+\note Special characters and control characters, such as <code>\\n</code> are not
+supported. The characters <code>|</code> and <code>#</code> must not be used either.
+
+<hr>
+\subsubsection secParamStringsStyle Style
+
+VRL uses a so called \em style \em identifier to choose between type representations.
+The most relevant type representations for UG are listed below 
+(more deltails can be found in the VRL API documentation):
+
+<hr>
+<b>Type representations for the \em number type:</b>
+<hr>
+
+
+style identifier: <code>default</code>
+
+possible options: min, max, value
+
+example string: <code>"Double|default|min=1D;max=10D,value=5D"</code>
+
+\image html img/vrl/double-default-01.png
+
+<hr>
+<b>Type representations for the \em integer type:</b>
+<hr>
+
+
+style identifier: <code>default</code>
+
+possible options: min, max, value
+
+example string: <code>"Integer|default|min=1;max=10,value=50"</code>
+
+\image html img/vrl/integer-default-01.png
+<hr>
+
+style identifier: <code>slider</code>
+
+possible options: min, max
+
+example string: <code>"Integer|default|min=1;max=255"</code>
+
+\image html img/vrl/integer-slider-01.png
+<hr>
+
+style identifier: <code>selection</code>
+
+possible options: min, max
+
+example string: <code>"Integer|default|value=[1,2,3]"</code>
+
+\image html img/vrl/selection-integer-01.png
+
+<hr>
+<b>Type representations for the \em string type:</b>
+<hr>
+
+style identifier: <code>default</code>
+
+possible options: - none -
+
+example string: <code>"String|default"</code>
+
+\image html img/vrl/string-default-01.png
+<hr>
+
+style identifier: <code>load-dialog</code> or <code>save-dialog</code> 
+
+possible options: endings, description
+
+example string: <code>"File Name|load-dialog|
+                endings=[\"png\",\"jpg\"];description=\"Image-Files\""</code>
+
+\image html img/vrl/load-dialog-01.png
+<br>
+\image html img/vrl/load-dialog-02.png
+<hr>
+
+style identifier: <code>selection</code>
+
+possible options: value
+
+example string: <code>"String|default|value=[\"string1\",\"string2\"]"</code>
+
+\image html img/vrl/selection-string-01.png
+
 
 <hr>
 \section secSTHowToRegisterBaseClasses 	How to register Base Classes
