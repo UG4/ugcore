@@ -144,8 +144,10 @@ class DoFDistribution
 			return id == LSFSID(LSFSID::LAGRANGE, 1);
 		}
 
-	/// \copydoc ug::IDoFDistribution::has_indices_on()
+	/// \copydoc ug::IDoFDistribution::has_indices_on(ReferenceObjectID)
 		bool has_indices_on(ReferenceObjectID roid) const;
+
+	/// \copydoc ug::IDoFDistribution::has_indices_on(GeometricBaseObject)
 		bool has_indices_on(GeometricBaseObject gbo) const;
 
 	/// \copydoc ug::IDoFDistribution::num_indices()
@@ -214,26 +216,6 @@ class DoFDistribution
 	/// \copydoc IDoFDistribution::distribute_indices()
 		bool distribute_indices();
 
-		// \TODO: THE grid_obj_... methods must be implemented !!!!
-
-	/// \copydoc IDoFDistribution::vertices_created()
-		void grid_obj_added(VertexBase* vrt) {};
-		void grid_obj_added(EdgeBase* edge) {}
-		void grid_obj_added(Face* face) {}
-		void grid_obj_added(Volume* vol) {}
-
-	/// \copydoc IDoFDistribution::vertices_to_be_erased()
-		void grid_obj_to_be_removed(VertexBase* vrt) {};
-		void grid_obj_to_be_removed(EdgeBase* edge) {}
-		void grid_obj_to_be_removed(Face* face) {}
-		void grid_obj_to_be_removed(Volume* vol) {}
-
-	/// \copydoc IDoFDistribution::grid_obj_replaced()
-		void grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld) {};
-		void grid_obj_replaced(EdgeBase* edgeNew, EdgeBase* edgeOld) {}
-		void grid_obj_replaced(Face* faceNew, Face* faceOld) 	{}
-		void grid_obj_replaced(Volume* volNew, Volume* volOld) 	{}
-
 	/// \copydoc IDoFDistribution::compress()
 		bool defragment();
 
@@ -242,6 +224,24 @@ class DoFDistribution
 
 	/// \copydoc IDoFDistribution::get_connections()
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
+
+	/// \copydoc IDoFDistribution::vertices_created()
+		void grid_obj_added(VertexBase* vrt);
+		void grid_obj_added(EdgeBase* edge);
+		void grid_obj_added(Face* face);
+		void grid_obj_added(Volume* vol);
+
+	/// \copydoc IDoFDistribution::vertices_to_be_erased()
+		void grid_obj_to_be_removed(VertexBase* vrt);
+		void grid_obj_to_be_removed(EdgeBase* edge);
+		void grid_obj_to_be_removed(Face* face);
+		void grid_obj_to_be_removed(Volume* vol);
+
+	/// \copydoc IDoFDistribution::grid_obj_replaced()
+		void grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld);
+		void grid_obj_replaced(EdgeBase* edgeNew, EdgeBase* edgeOld);
+		void grid_obj_replaced(Face* faceNew, Face* faceOld);
+		void grid_obj_replaced(Volume* volNew, Volume* volOld);
 
 	protected:
 		template<typename TElem, typename TBaseElem>
@@ -252,19 +252,17 @@ class DoFDistribution
 		size_t multi_indices(std::vector<TBaseElem*> vElem, size_t fct,
 		                     multi_index_vector_type& ind) const;
 
-		size_t
-		inner_multi_indices(multi_index_vector_type& ind,
-		                    const size_t firstIndex, const int si, const size_t fct,
-		                    const ReferenceObjectID type) const;
+		size_t inner_multi_indices(multi_index_vector_type& ind,
+		                           const size_t firstIndex, const int si,
+		                           const size_t fct, const ReferenceObjectID type) const;
 
 		template<typename TBaseElem>
 		size_t algebra_indices(std::vector<TBaseElem*> vElem,
 		                       algebra_index_vector_type& ind) const;
 
-		size_t
-		inner_algebra_indices(algebra_index_vector_type& ind,
-		                      const size_t firstIndex, const int si,
-		                      const ReferenceObjectID type) const;
+		size_t	inner_algebra_indices(algebra_index_vector_type& ind,
+		      	                      const size_t firstIndex, const int si,
+		      	                      const ReferenceObjectID type) const;
 
 	///	distributes the dofs on an element type
 		template <typename TElem>
@@ -276,20 +274,25 @@ class DoFDistribution
 
 		template <typename TElem, typename TBaseElem>
 		bool add_connections_for_adjacent(std::vector<std::vector<size_t> >& vvConnection,
-		                                          TElem* elem, std::vector<TBaseElem*> vConnElem);
+		                                  TElem* elem, std::vector<TBaseElem*> vConnElem);
 
+	///	fills the connections of an element type
 		template <typename TBaseElem>
 		bool get_connections(std::vector<std::vector<size_t> >& vvConnection);
 
+	///	replaces the indices on an element type
 		template <typename TElem>
 		bool defragment(std::vector<std::pair<size_t, size_t> >& vReplaced);
 
+	///	callback when an element is added to grid for an element type
 		template <typename TBaseElem>
 		void grid_obj_added(TBaseElem* elem);
 
+	///	callback when an element is removed from grid for an element type
 		template <typename TBaseElem>
 		void grid_obj_to_be_removed(TBaseElem* elem);
 
+	///	callback when an element is replaced in grid for an element type
 		template <typename TBaseElem>
 		void grid_obj_replaced(TBaseElem* elemNew, TBaseElem* elemOld);
 

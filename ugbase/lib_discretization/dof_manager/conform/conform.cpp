@@ -141,22 +141,11 @@ bool DoFDistribution::has_indices_on(ReferenceObjectID roid) const
 
 void DoFDistribution::create_offsets(ReferenceObjectID roid)
 {
-//	clear offsets
-	m_vvvOffsets[roid].clear();
-	m_vvNumDoFsOnROID[roid].clear();
-
-//	resize for all subsets
-	m_vvvOffsets[roid].resize(num_subsets());
-	m_vvNumDoFsOnROID[roid].resize(num_subsets(), 0);
-
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
 	// 	counter
 		size_t count = 0;
-
-	//	resize for each function
-		m_vvvOffsets[roid][si].resize(num_fct());
 
 	//	loop functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
@@ -185,29 +174,49 @@ void DoFDistribution::create_offsets(ReferenceObjectID roid)
 			count += numDoF;
 		}
 	}
-
-// 	lets find out the maximum number for a type on all subsets
-	m_vMaxDoFsOnROID[roid] = 0;
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-		m_vMaxDoFsOnROID[roid] = std::max(m_vMaxDoFsOnROID[roid],
-		                                  m_vvNumDoFsOnROID[roid][si]);
-	}
-
-//	lets find out the maximum number of DoFs for objects in dimension
-	const int d = ReferenceElementDimension(roid);
-	m_vMaxDoFsInDim[d] = std::max(m_vMaxDoFsInDim[d],
-	                              m_vMaxDoFsOnROID[roid]);
 }
 
 void DoFDistribution::create_offsets()
 {
-//	reset dimension maximum
-	for(size_t d=0; d <= 3; ++d) m_vMaxDoFsInDim[d] = 0;
+//	loop all reference element to resize the arrays
+	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
+	{
+	//	clear offsets
+		m_vvvOffsets[roid].clear();
+		m_vvNumDoFsOnROID[roid].clear();
+
+	//	resize for all subsets
+		m_vvvOffsets[roid].resize(num_subsets());
+		m_vvNumDoFsOnROID[roid].resize(num_subsets(), 0);
+
+	//	resize for each function
+		for(int si = 0; si < num_subsets(); ++si)
+			m_vvvOffsets[roid][si].resize(num_fct());
+	}
 
 //	loop all reference element, but not vertices (no disc there)
 	for(int roid=ROID_EDGE; roid < NUM_REFERENCE_OBJECTS; ++roid)
 		create_offsets((ReferenceObjectID) roid);
+
+//	reset dimension maximum
+	for(size_t d=0; d <= 3; ++d) m_vMaxDoFsInDim[d] = 0;
+
+//	get max number of dofs per roid
+	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
+	{
+	// 	lets find out the maximum number for a type on all subsets
+		m_vMaxDoFsOnROID[roid] = 0;
+		for(int si = 0; si < num_subsets(); ++si)
+		{
+			m_vMaxDoFsOnROID[roid] = std::max(m_vMaxDoFsOnROID[roid],
+			                                  m_vvNumDoFsOnROID[roid][si]);
+		}
+
+	//	lets find out the maximum number of DoFs for objects in dimension
+		const int d = ReferenceElementDimension((ReferenceObjectID)roid);
+		m_vMaxDoFsInDim[d] = std::max(m_vMaxDoFsInDim[d],
+		                              m_vMaxDoFsOnROID[roid]);
+	}
 }
 
 size_t DoFDistribution::get_free_index(size_t si, ReferenceObjectID roid)
@@ -376,7 +385,12 @@ bool DoFDistribution::distribute_indices()
 	}
 
 // 	Attach indices
-	if(!m_pStorageManager->update_attachments()) return false;
+	if(!m_pStorageManager->update_attachments())
+	{
+		UG_LOG("In 'DoFDistribution::distribute_indices:"
+				"Cannot update index attachments. Aborting.\n");
+		return false;
+	}
 
 // 	create offsets
 	create_offsets();
@@ -428,6 +442,8 @@ bool DoFDistribution::permute_indices(std::vector<size_t>& vIndNew)
 			const size_t oldIndex = first_index(elem);
 
 		//	replace old index by new one
+			UG_ASSERT(oldIndex < vIndNew.size(), "Index ("<<oldIndex<<") not "
+			          	  	  	  	  "in vector of size "<<vIndNew.size());
 			first_index(elem) = vIndNew[oldIndex];
 
 		//	set correct permutation in permuting vector
@@ -520,7 +536,6 @@ template <typename TBaseElem>
 bool DoFDistribution::
 get_connections(std::vector<std::vector<size_t> >& vvConnection)
 {
-
 //	Adjacent geometric objects
 	std::vector<VertexBase*> vVrts;
 	std::vector<EdgeBase*> vEdges;
@@ -555,10 +570,10 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 					continue;
 
 		//	Get connected elements
-			CollectVertices(vVrts, *grid, elem);
-			CollectEdges(vEdges, *grid, elem);
-			CollectFaces(vFaces, *grid, elem);
-			CollectVolumes(vVols, *grid, elem);
+			if(m_vMaxDoFsInDim[VERTEX] > 0) CollectVertices(vVrts, *grid, elem);
+			if(m_vMaxDoFsInDim[EDGE] > 0)	CollectEdges(vEdges, *grid, elem);
+			if(m_vMaxDoFsInDim[FACE] > 0)	CollectFaces(vFaces, *grid, elem);
+			if(m_vMaxDoFsInDim[VOLUME] > 0) CollectVolumes(vVols, *grid, elem);
 
 		//	Get connections via shadow
 			if(m_pSurfaceView)
@@ -572,19 +587,23 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 
 				//	Get connected elements
 					if(elemParent != NULL){
-						CollectVertices(vVrts, *grid, elemParent, false);
-						CollectEdges(vEdges, *grid, elemParent, false);
-						CollectFaces(vFaces, *grid, elemParent, false);
-						CollectVolumes(vVols, *grid, elemParent, false);
+						if(m_vMaxDoFsInDim[VERTEX] > 0) CollectVertices(vVrts, *grid, elemParent, false);
+						if(m_vMaxDoFsInDim[EDGE] > 0) CollectEdges(vEdges, *grid, elemParent, false);
+						if(m_vMaxDoFsInDim[FACE] > 0) CollectFaces(vFaces, *grid, elemParent, false);
+						if(m_vMaxDoFsInDim[VOLUME] > 0) CollectVolumes(vVols, *grid, elemParent, false);
 					}
 				}
 			}
 
 		//	add indices of connected elems to the connection list
-			bRet &= add_connections_for_adjacent<TBaseElem, VertexBase>(vvConnection, elem, vVrts);
-			bRet &= add_connections_for_adjacent<TBaseElem, EdgeBase>(vvConnection, elem, vEdges);
-			bRet &= add_connections_for_adjacent<TBaseElem, Face>(vvConnection, elem, vFaces);
-			bRet &= add_connections_for_adjacent<TBaseElem, Volume>(vvConnection, elem, vVols);
+			if(m_vMaxDoFsInDim[VERTEX] > 0)
+				bRet &= add_connections_for_adjacent<TBaseElem, VertexBase>(vvConnection, elem, vVrts);
+			if(m_vMaxDoFsInDim[EDGE] > 0)
+				bRet &= add_connections_for_adjacent<TBaseElem, EdgeBase>(vvConnection, elem, vEdges);
+			if(m_vMaxDoFsInDim[FACE] > 0)
+				bRet &= add_connections_for_adjacent<TBaseElem, Face>(vvConnection, elem, vFaces);
+			if(m_vMaxDoFsInDim[VOLUME] > 0)
+				bRet &= add_connections_for_adjacent<TBaseElem, Volume>(vvConnection, elem, vVols);
 		}
 	}
 
@@ -638,79 +657,19 @@ bool DoFDistribution::get_connections(std::vector<std::vector<size_t> >& vvConne
 //	success flag
 	bool bRet = true;
 
-	bRet &= get_connections<VertexBase>(vvConnection);
-	bRet &= get_connections<EdgeBase>(vvConnection);
-	bRet &= get_connections<Face>(vvConnection);
-	bRet &= get_connections<Volume>(vvConnection);
+	if(m_vMaxDoFsInDim[VERTEX] > 0)
+		bRet &= get_connections<VertexBase>(vvConnection);
+	if(m_vMaxDoFsInDim[EDGE] > 0)
+		bRet &= get_connections<EdgeBase>(vvConnection);
+	if(m_vMaxDoFsInDim[FACE] > 0)
+		bRet &= get_connections<Face>(vvConnection);
+	if(m_vMaxDoFsInDim[VOLUME] > 0)
+		bRet &= get_connections<Volume>(vvConnection);
 
 //	we're done
 	return bRet;
 }
 
-template <typename TBaseElem>
-void DoFDistribution::grid_obj_added(TBaseElem* elem)
-{
-//	subset handler required
-	if(m_pISubsetHandler == NULL)
-	{
-		UG_LOG("ERROR in 'DoFDistribution::grid_obj_added':"
-				" No Subset Handler");
-		throw(UGFatalError("Subset Handler missng."));
-	}
-
-//	Only for the surface dof manager:
-//	If the added elem is a shadow, use index of child (shadowing) elem
-	if(m_pSurfaceView && m_pSurfaceView->is_shadow(elem))
-	{
-	//	get child
-		TBaseElem* elemChild = m_pSurfaceView->get_shadow_child<TBaseElem>(elem);
-
-	//	get indices of child
-		const size_t indexChild = first_index(elemChild);
-
-	//	set index of shadow to index of child
-		first_index(elem) = indexChild;
-	}
-//	normally, we can set a new free index
-	else
-	{
-	//	get subset index
-		const int si = m_pISubsetHandler->get_subset_index(elem);
-
-	//	get type
-		ReferenceObjectID roid = elem->reference_object_id();
-
-	// 	write next free index
-		first_index(elem) = get_free_index(si, roid);
-	}
-}
-
-template <typename TBaseElem>
-void DoFDistribution::grid_obj_to_be_removed(TBaseElem* elem)
-{
-//	get subset index
-	const int si = m_pISubsetHandler->get_subset_index(elem);
-
-//	get type
-	ReferenceObjectID roid = elem->reference_object_id();
-
-// 	remember free index
-	push_free_index(first_index(elem), si, roid);
-}
-
-template <typename TBaseElem>
-void DoFDistribution::
-grid_obj_replaced(TBaseElem* elemNew, TBaseElem* elemOld)
-{
-//	get subset index
-	const int si = m_pISubsetHandler->get_subset_index(elemOld);
-
-	UG_ASSERT(m_pISubsetHandler->get_subset_index(elemNew) == si,
-	          "New elem does not have same subset as replaced on.");
-
-//	copy index
-	first_index(elemNew) = first_index(elemOld);
-}
 
 template <typename TElem>
 bool DoFDistribution::defragment(std::vector<std::pair<size_t, size_t> >& vReplaced)
@@ -913,6 +872,124 @@ DoFDistribution::inner_algebra_indices(algebra_index_vector_type& ind,
 //	return number of indices
 	return ind.size();
 }
+
+
+template <typename TBaseElem>
+void DoFDistribution::grid_obj_added(TBaseElem* elem)
+{
+//	subset handler required
+	if(m_pISubsetHandler == NULL)
+	{
+		UG_LOG("ERROR in 'DoFDistribution::grid_obj_added':"
+				" No Subset Handler");
+		throw(UGFatalError("Subset Handler missng."));
+	}
+
+//	Only for the surface dof manager:
+//	If the added elem is a shadow, use index of child (shadowing) elem
+	if(m_pSurfaceView && m_pSurfaceView->is_shadow(elem))
+	{
+	//	get child
+		TBaseElem* elemChild = m_pSurfaceView->get_shadow_child<TBaseElem>(elem);
+
+	//	get indices of child
+		const size_t indexChild = first_index(elemChild);
+
+	//	set index of shadow to index of child
+		first_index(elem) = indexChild;
+	}
+//	normally, we can set a new free index
+	else
+	{
+	//	get subset index
+		const int si = m_pISubsetHandler->get_subset_index(elem);
+
+	//	get type
+		ReferenceObjectID roid = (ReferenceObjectID) elem->reference_object_id();
+
+	// 	write next free index
+		first_index(elem) = get_free_index(si, roid);
+	}
+}
+
+template <typename TBaseElem>
+void DoFDistribution::grid_obj_to_be_removed(TBaseElem* elem)
+{
+//	get subset index
+	const int si = m_pISubsetHandler->get_subset_index(elem);
+
+//	get type
+	ReferenceObjectID roid = (ReferenceObjectID) elem->reference_object_id();
+
+// 	remember free index
+	push_free_index(first_index(elem), si, roid);
+}
+
+template <typename TBaseElem>
+void DoFDistribution::
+grid_obj_replaced(TBaseElem* elemNew, TBaseElem* elemOld)
+{
+//	check subset index
+	UG_ASSERT(m_pISubsetHandler->get_subset_index(elemNew) ==
+			  m_pISubsetHandler->get_subset_index(elemOld),
+	          "New elem does not have same subset as replaced on.");
+
+//	copy index
+	first_index(elemNew) = first_index(elemOld);
+}
+
+
+void DoFDistribution::grid_obj_added(VertexBase* vrt)
+{
+	grid_obj_added<VertexBase>(vrt);
+}
+void DoFDistribution::grid_obj_added(EdgeBase* edge)
+{
+	grid_obj_added<EdgeBase>(edge);
+}
+void DoFDistribution::grid_obj_added(Face* face)
+{
+	grid_obj_added<Face>(face);
+}
+void DoFDistribution::grid_obj_added(Volume* vol)
+{
+	grid_obj_added<Volume>(vol);
+}
+
+void DoFDistribution::grid_obj_to_be_removed(VertexBase* vrt)
+{
+	grid_obj_to_be_removed<VertexBase>(vrt);
+}
+void DoFDistribution::grid_obj_to_be_removed(EdgeBase* edge)
+{
+	grid_obj_to_be_removed<EdgeBase>(edge);
+}
+void DoFDistribution::grid_obj_to_be_removed(Face* face)
+{
+	grid_obj_to_be_removed<Face>(face);
+}
+void DoFDistribution::grid_obj_to_be_removed(Volume* vol)
+{
+	grid_obj_to_be_removed<Volume>(vol);
+}
+
+void DoFDistribution::grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld)
+{
+	grid_obj_replaced<VertexBase>(vrtNew, vrtOld);
+}
+void DoFDistribution::grid_obj_replaced(EdgeBase* edgeNew, EdgeBase* edgeOld)
+{
+	grid_obj_replaced<EdgeBase>(edgeNew, edgeOld);
+}
+void DoFDistribution::grid_obj_replaced(Face* faceNew, Face* faceOld)
+{
+	grid_obj_replaced<Face>(faceNew, faceOld);
+}
+void DoFDistribution::grid_obj_replaced(Volume* volNew, Volume* volOld)
+{
+	grid_obj_replaced<Volume>(volNew, volOld);
+}
+
 
 } // end namespace ug
 
