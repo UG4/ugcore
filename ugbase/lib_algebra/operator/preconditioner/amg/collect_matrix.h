@@ -7,7 +7,7 @@
 
 #ifndef __H__LIB_ALGEBRA__COLLECT_MATRIX_H_
 #define __H__LIB_ALGEBRA__COLLECT_MATRIX_H_
-
+#include "lib_algebra/parallelization/new_nodes_nummerator.h"
 namespace ug{
 
 template<typename matrix_type, typename TLocalToGlobal>

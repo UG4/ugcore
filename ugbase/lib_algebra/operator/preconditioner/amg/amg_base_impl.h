@@ -653,6 +653,7 @@ bool amg_base<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector
 
 	vector_type &corr = *m_vec3[level];
 	corr.set(0.0);
+	c.set(0.0);
 #ifdef UG_PARALLEL
 	corr.set_storage_type(PST_CONSISTENT);
 #endif
