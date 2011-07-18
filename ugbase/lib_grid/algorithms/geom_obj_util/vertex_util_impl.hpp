@@ -75,13 +75,13 @@ CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
 }
 
 template <class TVrtIterator>
-VertexBase* MergeVertices(Grid& grid, TVrtIterator vrtsBegin,
-						  TVrtIterator vrtsEnd)
+VertexBase* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
+						  	  	  TVrtIterator vrtsEnd)
 {
 	if(vrtsBegin == vrtsEnd)
 		return NULL;
 
-	VertexBase* v = vrtsBegin;
+	VertexBase* v = *vrtsBegin;
 	++vrtsBegin;
 	while(vrtsBegin != vrtsEnd){
 		VertexBase* v2 = *vrtsBegin;

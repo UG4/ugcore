@@ -179,8 +179,8 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2);
 /**	Note that connected elements may be removed or replaced during this process.
  * The method returns the remaining vertex in the given list (*vrtsBegin).*/
 template <class TVrtIterator>
-VertexBase* MergeVertices(Grid& grid, TVrtIterator vrtsBegin,
-						  TVrtIterator vrtsEnd);
+VertexBase* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
+						  	  	  TVrtIterator vrtsEnd);
 
 ////////////////////////////////////////////////////////////////////////
 //	RemoveDoubles
