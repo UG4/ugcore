@@ -1,5 +1,5 @@
 /*
- * trialspacefactory.cpp
+ * local_shape_function_set.cpp
  *
  *  Created on: 17.02.2010
  *      Author: andreasvogel
@@ -7,7 +7,42 @@
 
 #include "local_shape_function_set_provider.h"
 
+// include spaces
+#include "lagrange/lagrangep1.h"
+#include "lagrange/lagrange.h"
+
 namespace ug{
+
+const LocalShapeFunctionSetBase&
+LocalShapeFunctionSetProvider::get(LSFSID id, ReferenceObjectID roid)
+{
+//	init provider and search for identifier
+	BaseMap::const_iterator iter = inst().m_baseMap.find(id);
+
+//	if not found
+	if(iter == m_baseMap.end())
+	{
+		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
+				"Unknown Base Trial Space Type "<<id<<" requested for"
+				" Reference Element type " <<roid<<".\n");
+		throw(UGFatalError("Trial Space type unknown"));
+	}
+
+//	get vector
+	const std::vector<const LocalShapeFunctionSetBase*>& vBase = iter->second;
+
+//	check that space registered
+	if(vBase[roid] == NULL)
+	{
+		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
+				"Unknown Base Trial Space for Type "<<id<<" and Reference"
+				" element type "<<roid<<" requested.\n");
+		throw(UGFatalError("Trial Space type unknown"));
+	}
+
+//	return shape function set
+	return *(vBase[roid]);
+}
 
 template <typename TRefElem>
 bool

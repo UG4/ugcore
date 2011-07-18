@@ -1,5 +1,5 @@
 /*
- * trialspacefactory_impl.h
+ * local_shape_function_set_impl.h
  *
  *  Created on: 17.02.2010
  *      Author: andreasvogel
@@ -8,11 +8,8 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET_FACTORY_IMPL__
 #define __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET_FACTORY_IMPL__
 
-// include instances
+#include "common/common.h"
 #include "local_shape_function_set_id.h"
-#include "lagrange/lagrangep1.h"
-#include "lagrange/lagrange.h"
-
 
 namespace ug{
 
@@ -46,7 +43,7 @@ register_local_shape_function_set(LSFSID type, const LocalShapeFunctionSet<TRefE
 	std::vector<const LocalShapeFunctionSetBase*>& vBase = m_baseMap[type];
 
 //	resize vector
-	vBase.resize(roid+1, NULL);
+	vBase.resize(NUM_REFERENCE_OBJECTS, NULL);
 
 //	check that no space has been previously registered to this place
 	if(vBase[roid])
@@ -126,39 +123,6 @@ get(LSFSID id)
 //	return shape function set
 	return *(iter->second);
 }
-
-inline
-const LocalShapeFunctionSetBase&
-LocalShapeFunctionSetProvider::get(LSFSID id, ReferenceObjectID roid)
-{
-//	init provider and search for identifier
-	BaseMap::const_iterator iter = inst().m_baseMap.find(id);
-
-//	if not found
-	if(iter == m_baseMap.end())
-	{
-		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
-				"Unknown Base Trial Space Type "<<id<<" requested for"
-				" Reference Element type " <<roid<<".\n");
-		throw(UGFatalError("Trial Space type unknown"));
-	}
-
-//	get vector
-	const std::vector<const LocalShapeFunctionSetBase*>& vBase = iter->second;
-
-//	check that space registered
-	if(vBase[roid] == NULL)
-	{
-		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
-				"Unknown Base Trial Space  for Type "<<id<<" and Reference"
-				" element type "<<roid<<" requested.\n");
-		throw(UGFatalError("Trial Space type unknown"));
-	}
-
-//	return shape function set
-	return *(vBase[roid]);
-}
-
 
 }
 #endif /* __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET_FACTORY_IMPL__ */

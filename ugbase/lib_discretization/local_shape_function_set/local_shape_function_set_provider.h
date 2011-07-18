@@ -1,5 +1,5 @@
 /*
- * local_shape_function_set
+ * local_shape_function_set.h
  *
  *  Created on: 17.02.2010
  *      Author: andreasvogel
@@ -93,7 +93,7 @@ class LocalShapeFunctionSetProvider {
 		get(LSFSID id);
 
 	///	returns the local shape function set base for an id
-		inline static
+		static
 		const LocalShapeFunctionSetBase& get(LSFSID id, ReferenceObjectID type);
 };
 
@@ -128,7 +128,6 @@ class LSFSProvider {
 		template <typename TLSFS>
 		inline static TLSFS& get() {return inst<TLSFS>();}
 };
-
 
 }
 
