@@ -152,12 +152,14 @@ class IDoFDistribution
 
 	///	returns if the dof distribution distributes dofs on a given element type
 		bool has_indices_on(ReferenceObjectID roid) const {return getImpl().has_indices_on(roid);}
+
+	///	returns if the dof distribution distributes dofs on a base element type
 		bool has_indices_on(GeometricBaseObject gbo) const {return getImpl().has_indices_on(gbo);}
 
-	/// return the number of dofs distributed
+	/// return the number of distributed indices
 		size_t num_indices() const {return getImpl().num_indices();}
 
-	/// return the number of dofs distributed on subset si
+	/// return the number of distributed indices on subset si
 		size_t num_indices(int si) const {return getImpl().num_indices(si);}
 
 	///	Size algebra block on all subset
