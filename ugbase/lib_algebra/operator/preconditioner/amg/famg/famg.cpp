@@ -569,7 +569,15 @@ private:
 			//UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating, but has not been processed yet?");
 			if(rating[i].is_uninterpolateable() == false || rating.i_must_assign(i) == false) continue;
 
-			calculator.get_all_neighbors_interpolation(i, PoldIndices, rating);
+			// we have problems with nodes on the interface:
+			// suppose i is a master node
+			// 1. we would need the prolongation of the neighbors of i, which are slave0 nodes
+			// 2. we could then indirectly interpolate from slave1 and master2 nodes
+			// 3. on the slave side, we do not have the slave2 nodes, so we would have to add them somehow
+			if(rating.is_inner_node(i))
+				calculator.get_all_neighbors_interpolation(i, PoldIndices, rating);
+			else
+				rating.set_coarse(i);
 		}
 	}
 
@@ -768,11 +776,34 @@ void famg<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdv
 	}
 }
 
+#ifdef UG_PARALLEL
+void eh( MPI_Comm *comm, int *err, ... )
+{
+	UG_LOG("MPI ERROR!\n");
+
+	char error_string[256];
+	int length_of_error_string=256, error_class;
+
+	MPI_Error_class(*err, &error_class);
+	MPI_Error_string(error_class, error_string, &length_of_error_string);
+	UG_ASSERT(0,"MPI Error: " << error_string << "\n" );
+	return;
+}
+#endif
+
 
 template<>
 void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
+#ifdef UG_PARALLEL
+    MPI_Errhandler newerr;
+
+	MPI_Comm_create_errhandler( eh, &newerr );
+	MPI_Comm_set_errhandler( MPI_COMM_WORLD, newerr );
+	  //MPI_Comm_call_errhandler( MPI_COMM_WORLD, MPI_ERR_OTHER );
+#endif
+
 	AMG_PROFILE_FUNC();
 	stdvector< vector_type > testvectors;
 	stdvector<double> omega;
