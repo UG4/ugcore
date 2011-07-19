@@ -44,20 +44,22 @@ class ClassGroupDesc
 		void set_name(const char* name)		{m_name = name;}
 		const char* name() const			{return m_name.c_str();}
 
-		void add_class(IExportedClass* c)	{m_classes.push_back(c);}
+		void add_class(IExportedClass* c, const char* tag = "")	{m_classes.push_back(c); m_classTags.push_back(tag);}
 		size_t num_classes() const			{return m_classes.size();}
 		bool empty() const					{return num_classes() == 0;}
 		IExportedClass* get_class(size_t i)	{return m_classes[i];}
 		const IExportedClass* get_class(size_t i) const	{return m_classes[i];}
+		const char* get_class_tag(size_t i) const		{return m_classTags[i].c_str();}
 
 		void set_default_class(size_t i)	{m_defaultClass = m_classes[i];}
 
-	///	if no default class is set, this method returns NULL.�
+	///	if no default class is set, this method returns NULL.
 		IExportedClass* get_default_class()	const {return m_defaultClass;}
 
 	private:
 		std::string						m_name;
 		std::vector<IExportedClass*>	m_classes;
+		std::vector<std::string>		m_classTags;	///< tags can be used to describe classes. One tag for each class.
 		IExportedClass* 				m_defaultClass;
 };
 
@@ -183,8 +185,9 @@ class Registry {
 	///	adds the given class to the given group.
 	/**	Groups are constructed automatically if required.
 	 * This method is just for conveniance. It is effectively the same as:
-	 * get_class_group(groupName).add_class(reg.get_class(className))*/
-		void add_class_to_group(const char* className, const char* groupName);
+	 * get_class_group(groupName).add_class(reg.get_class(className), classTag).*/
+		void add_class_to_group(const char* className, const char* groupName,
+								const char* classTag = "");
 
 	protected:
 	///	performs some checks, throws error if something wrong

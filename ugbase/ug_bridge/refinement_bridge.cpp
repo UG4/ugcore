@@ -73,8 +73,8 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, IRefiner& refiner,
 
 //	make sure that the refiner was created for the given domain
 	if(refiner.get_associated_grid() != &dom.get_grid()){
-		UG_LOG("ERROR in MarkForRefinement_VerticesInCube: "
-				<< "Refiner was not created for the specified domain. Aborting.\n");
+		throw(UGError("ERROR in MarkForRefinement_VerticesInSphere: "
+					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 	Grid& grid = *refiner.get_associated_grid();
@@ -119,8 +119,8 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, IRefiner& refiner,
 
 //	make sure that the refiner was created for the given domain
 	if(refiner.get_associated_grid() != &dom.get_grid()){
-		UG_LOG("ERROR in MarkForRefinement_VerticesInCube: "
-				<< "Refiner was not created for the specified domain. Aborting.\n");
+		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
+					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 	Grid& grid = *refiner.get_associated_grid();
@@ -172,8 +172,8 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 
 //	make sure that the refiner was created for the given domain
 	if(refiner.get_associated_grid() != &dom.get_grid()){
-		UG_LOG("ERROR in MarkForRefinement_VerticesInCube: "
-				<< "Refiner was not created for the specified domain. Aborting.\n");
+		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
+					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 	Grid& grid = *refiner.get_associated_grid();

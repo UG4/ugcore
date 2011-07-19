@@ -1073,7 +1073,7 @@ static int LuaProxyGroupCreate(lua_State* L)
 //	get the group and make sure that it contains data
 	const ClassGroupDesc* group = (ClassGroupDesc*)lua_touserdata(L, lua_upvalueindex(1));
 
-	if(!group->empty()){
+	if(group->empty()){
 		UG_LOG("ERROR: Can't create default instance of group " << group->name());
 		UG_LOG(": Group is empty!\n");
 		lua_pushnil(L);

@@ -39,7 +39,7 @@ function util.LoadDomain(domain, gridName)
 		end
 	end
 
-	return LoadDomain(domain, tname, 0)
+	return LoadDomain(domain, tname)
 end
 
 

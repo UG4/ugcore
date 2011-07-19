@@ -27,7 +27,7 @@ using namespace std;
 namespace ug{
 
 template <typename TDomain>
-static bool LoadDomain(TDomain& domain, const char* filename, int numRefs)
+static bool LoadDomain(TDomain& domain, const char* filename)
 {
 #ifdef UG_PARALLEL
 	if(pcl::GetProcRank() != 0)
@@ -45,15 +45,6 @@ static bool LoadDomain(TDomain& domain, const char* filename, int numRefs)
 	{
 		UG_LOG("Cannot load grid.\n");
 		return false;
-	}
-
-	if(numRefs <= 0) return true;
-
-	GlobalMultiGridRefiner refiner;
-	refiner.assign_grid(domain.get_grid());
-	for(int i = 0; i < numRefs; ++i)
-	{
-		refiner.refine();
 	}
 
 	return true;
@@ -113,20 +104,28 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	typedef TDomain domain_type;
 	static const int dim = domain_type::dim;
 
+//	the dimension suffix
+	std::stringstream ss;	ss << dim << "d";
+	std::string dimSuffix = ss.str();
+
+//	the dimension tag
+	std::string dimTag = "dim=";
+	dimTag.append(dimSuffix);
+
 //	get group string
-	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
-	std::string grp = grpSS.str();
+	std::string grp = parentGroup;
+	grp.append("/").append(dimSuffix);
 
 //	Domain
 	{
-		std::stringstream ss; ss << "Domain" << dim << "d";
-		reg.add_class_<domain_type>(ss.str().c_str(), grp.c_str())
+		std::string name = string("Domain").append(dimSuffix);
+		reg.add_class_<domain_type>(name.c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("get_subset_handler|hide=true", static_cast<MGSubsetHandler& (domain_type::*)()>(&domain_type::get_subset_handler))
 			.add_method("get_grid|hide=true", static_cast<MultiGrid& (domain_type::*)()>(&domain_type::get_grid))
 			.add_method("get_dim|hide=true", static_cast<int (domain_type::*)() const>(&domain_type::get_dim));
 
-		reg.add_class_to_group(ss.str().c_str(), "Domain");
+		reg.add_class_to_group(name.c_str(), "Domain", dimTag.c_str());
 	}
 
 // 	LoadDomain
@@ -153,8 +152,8 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 
 //	todo: remove this
 	{
-		std::stringstream ss; ss << "DistributeDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), static_cast<bool (*)(TDomain&)>(
+		std::string name = string("DistributeDomain").append(dimSuffix);
+		reg.add_function(name.c_str(), static_cast<bool (*)(TDomain&)>(
 						 &DistributeDomain<domain_type>), grp.c_str());
 	}
 

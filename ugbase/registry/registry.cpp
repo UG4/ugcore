@@ -229,7 +229,8 @@ const ClassGroupDesc* Registry::get_class_group(const char* name) const
 	return NULL;
 }
 
-void Registry::add_class_to_group(const char* className, const char* groupName)
+void Registry::add_class_to_group(const char* className, const char* groupName,
+								  const char* classTag)
 {
 //	make sure that no class with groupName exists.
 	if(classname_registered(groupName)){
@@ -244,7 +245,7 @@ void Registry::add_class_to_group(const char* className, const char* groupName)
 	UG_ASSERT(expClass, "The given class has to be registered before "
 						"adding it to a group: " << className);
 	if(expClass)
-		groupDesc->add_class(expClass);
+		groupDesc->add_class(expClass, classTag);
 }
 
 

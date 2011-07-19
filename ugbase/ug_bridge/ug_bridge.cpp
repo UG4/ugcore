@@ -8,6 +8,7 @@
 	#include "lib_algebra/algebra_selector.h"
 #endif
 
+using namespace std;
 
 namespace ug
 {
@@ -29,19 +30,17 @@ Registry & GetUGRegistry()
 static void SetDefaultDimension(int dim)
 {
 //	iterate over all groups in the registry and check whether they contain
-//	a class which ends with the dim-suffix
-	char suffix[8];
-	sprintf(suffix, "%dd", dim);
+//	a classTag "dim=nd", where n is the given dimension.
+	char dimTag[16];
+	sprintf(dimTag, "dim=%dd", dim);
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
 	for(size_t i_grp = 0; i_grp < reg.num_class_groups(); ++i_grp){
 		ClassGroupDesc* grp = reg.get_class_group(i_grp);
 		for(size_t i = 0; i < grp->num_classes(); ++i){
-			const IExportedClass* c = grp->get_class(i);
-			size_t len = strlen(c->name());
-			const char* ending = c->name() + len - 2;
-			if(strcmp(ending, suffix) == 0){
+			const char* tag = grp->get_class_tag(i);
+			if(strstr(tag, dimTag) != NULL){
 				grp->set_default_class(i);
 				break;
 			}
