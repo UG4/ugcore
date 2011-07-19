@@ -228,23 +228,35 @@ inline int DimensionOfDomain(const TDomain& domain
 //	returns the corner coordinates of a geometric object
 template <typename TElem, typename TAAPos>
 void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerCoordsOut,
-								const TElem& elem, const TAAPos& aaPos, bool clearContainer)
+								TElem* elem, const TAAPos& aaPos, bool clearContainer)
 {
 	if(clearContainer)
 		vCornerCoordsOut.clear();
 
 	// number of vertices of element
-	const size_t numVertices = elem.num_vertices();
+	const size_t numVertices = NumVertices(elem);
 
 	// loop vertices
 	for(size_t i = 0; i < numVertices; ++i)
 	{
 		// get element
-		VertexBase* vert = elem.vertex(i);
+		VertexBase* vert = GetVertex(elem, i);
 
 		// write corner coordinates
 		vCornerCoordsOut.push_back(aaPos[vert]);
 	}
+}
+
+//	returns the corner coordinates of a geometric object
+template <typename TElem, typename TAAPos>
+void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerCoordsOut,
+								const TElem& elem, const TAAPos& aaPos, bool clearContainer)
+{
+//	cast constness away
+	TElem* pElem = const_cast<TElem*>(&elem);
+
+//	forward
+	return CollectCornerCoordinates(vCornerCoordsOut, pElem, aaPos, clearContainer);
 }
 
 ///	returns the corner coordinates of a geometric object
