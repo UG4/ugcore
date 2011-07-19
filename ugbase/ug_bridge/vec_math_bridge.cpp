@@ -58,7 +58,7 @@ static bool RegisterVecMathBridge(Registry& reg, const char* parentGroup)
 		reg.add_class_<vec_type>(vecName.c_str(), grp.c_str())
 			.add_method("coord",
 					static_cast<const number& (vec_type::*)(size_t) const>(&vec_type::coord));
-		reg.add_class_to_group(vecName.c_str(), "Vector_d", dimSuffix.c_str());
+		reg.add_class_to_group(vecName.c_str(), "Vector_d", dimTag.c_str());
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
