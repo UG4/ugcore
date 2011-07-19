@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "common/common.h"
+#include "lib_discretization/local_finite_element/local_finite_element_id.h"
 #include "lib_discretization/dof_manager/function_pattern.h"
 
 namespace ug{
@@ -110,7 +111,7 @@ class FunctionGroup
 		int dim() const;
 
 	/// returns the trial space of the discrete function fct
-		LSFSID local_shape_function_set_id(size_t i) const;
+		LFEID local_finite_element_id(size_t i) const;
 
 	/// returns true if unique id is contained in this group
 		bool contains(size_t uniqueID) const;

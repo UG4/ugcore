@@ -93,9 +93,9 @@ class FE1ConvectionDiffusionElemDisc
 		virtual size_t num_fct(){return 1;}
 
 	///	type of trial space for each function used
-		virtual LSFSID local_shape_function_set_id(size_t loc_fct)
+		virtual LFEID local_finite_element_id(size_t loc_fct)
 		{
-			return LSFSID(LSFSID::LAGRANGE, 1);
+			return LFEID(LFEID::LAGRANGE, 1);
 		}
 
 	///	switches between non-regular and regular grids

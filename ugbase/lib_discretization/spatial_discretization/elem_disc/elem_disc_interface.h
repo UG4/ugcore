@@ -115,7 +115,7 @@ class IElemDisc{
 		virtual size_t num_fct() = 0;
 
 	/// shape function set of the functions handled by this discretization
-		virtual LSFSID local_shape_function_set_id(size_t i) = 0;
+		virtual LFEID local_finite_element_id(size_t i) = 0;
 
 	///	informs the assembling, that hanging nodes must be taken into account
 	/**

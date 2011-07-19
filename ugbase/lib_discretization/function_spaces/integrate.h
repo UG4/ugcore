@@ -15,7 +15,7 @@
 #include "lib_discretization/common/subset_group.h"
 #include "lib_discretization/domain_util.h"
 #include "lib_discretization/quadrature/quadrature.h"
-#include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set_provider.h"
 #include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include <boost/function.hpp>
 
@@ -50,7 +50,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	typedef typename domain_type::position_type position_type;
 
 //	id of shape functions used
-	LSFSID id = u.local_shape_function_set_id(fct);
+	LFEID id = u.local_finite_element_id(fct);
 
 //	get trial space
 	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =

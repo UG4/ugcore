@@ -109,8 +109,8 @@ class IGridFunction
 		size_t num_fct(int si) const {check(); return m_pDD->num_fct(si);}
 
 	/// returns the trial space of the discrete function fct
-		LSFSID local_shape_function_set_id(size_t fct) const
-			{check(); return m_pDD->local_shape_function_set_id(fct);}
+		LFEID local_finite_element_id(size_t fct) const
+			{check(); return m_pDD->local_finite_element_id(fct);}
 
 	/// returns the name of the discrete function nr_fct
 		std::string name(size_t fct) const {check(); return m_pDD->name(fct);}

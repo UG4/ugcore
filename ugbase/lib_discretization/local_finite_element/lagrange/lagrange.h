@@ -10,7 +10,7 @@
 
 #include "../common/lagrange1d.h"
 #include "../local_shape_function_set.h"
-#include "../local_dof.h"
+#include "../local_dof_set.h"
 #include "lib_discretization/common/multi_index.h"
 #include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -109,13 +109,6 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 			g[0] = m_vDPolynom[i].value(x[0]);
 		}
 
-	///	returns the local dof storage for the shape
-		const LocalDoF& local_dof(size_t i)
-		{
-			check_index(i);
-			return m_vLocalDoF[i];
-		}
-
 	///	return Multi index for index i
 		inline const MultiIndex<dim>& multi_index(size_t i) const
 		{
@@ -146,28 +139,6 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 			return ind[0];
 		}
 
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		bool has_sh_on(int d) const
-		{
-			return (d==0) || (d==1 && p>1);
-		}
-
-	///	returns the number of DoFs on a given sub-geometric object
-		size_t num_sh(int d, size_t id) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			else return 0;
-		}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_sh(ReferenceObjectID type) const
-		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-			else return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
@@ -184,7 +155,6 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		Polynomial1D m_vPolynom[p+1];	///< Shape Polynomials
 		Polynomial1D m_vDPolynom[p+1];	///< Derivative of Shape Polynomial
 
-		LocalDoF m_vLocalDoF[nsh];
 		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
@@ -326,13 +296,6 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			}
 		}
 
-	///	returns the local dof storage for the shape
-		const LocalDoF& local_dof(size_t i)
-		{
-			check_index(i);
-			return m_vLocalDoF[i];
-		}
-
 	///	return Multi index for index i
 		inline const MultiIndex<dim>& multi_index(size_t i) const
 		{
@@ -380,31 +343,6 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			return MultiIndex<dim>( i0, i1 );
 		}
 
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		bool has_sh_on(int d) const
-		{
-			return (d==0) || (d==1 && p>1) || (d==2 && p>2);
-		}
-
-	///	returns the number of DoFs on a given sub-geometric object
-		size_t num_sh(int d, size_t id) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
-			else return 0;
-		}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_sh(ReferenceObjectID type) const
-		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
-			else return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
@@ -423,7 +361,6 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		LocalDoF m_vLocalDoF[nsh];
 		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
@@ -550,13 +487,6 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 			}
 		}
 
-	///	returns the local dof storage for the shape
-		const LocalDoF& local_dof(size_t i)
-		{
-			check_index(i);
-			return m_vLocalDoF[i];
-		}
-
 	///	return Multi index for index i
 		inline const MultiIndex<dim>& multi_index(size_t i) const
 		{
@@ -589,30 +519,6 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 			return MultiIndex<dim>( i%(p+1), i/(p+1) );
 		}
 
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		bool has_sh_on(int d) const
-		{
-			return (d==0) || (d==1 && p>1) || (d==2 && p>1);
-		}
-
-	///	returns the number of DoFs on a given sub-geometric object
-		size_t num_sh(int d, size_t id) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return (p-1)*(p-1);
-			else return 0;
-		}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_sh(ReferenceObjectID type) const
-		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
-			else return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
@@ -630,7 +536,6 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		LocalDoF m_vLocalDoF[nsh];
 		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
@@ -773,13 +678,6 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			}
 		}
 
-	///	returns the local dof storage for the shape
-		const LocalDoF& local_dof(size_t i)
-		{
-			check_index(i);
-			return m_vLocalDoF[i];
-		}
-
 	///	return Multi index for index i
 		inline const MultiIndex<dim>& multi_index(size_t i) const
 		{
@@ -854,37 +752,6 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			return MultiIndex<dim>( i0, i1, i2);
 		}
 
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		bool has_sh_on(int d) const
-		{
-			return (d==0) || (d==1 && p>1) || (d==2 && p>2) || (d==3 && p>3);
-		}
-
-	///	returns the number of DoFs on a given sub-geometric object
-		size_t num_sh(int d, size_t id) const
-		{
-			if(d==0) return 1;
-		//	number of shapes on edge is same as for edge with p-1
-			if(d==1) return (p-1);
-		//	number of shapes on faces is same as for triangles in 2d
-			if(d==2) return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
-		//	number of shapes on interior is same as for tetrahedra with p-4
-			if(d==3) return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
-			else return 0;
-		}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_sh(ReferenceObjectID type) const
-		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<dim-1 + p-3, p-3>::value) : 0);
-			if(type == ROID_TETRAHEDRON)
-				return ((p>3) ? (BinomialCoefficient<dim + p-4, p-4>::value) : 0);
-			else return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
@@ -904,7 +771,6 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		LocalDoF m_vLocalDoF[nsh];
 		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
@@ -1064,13 +930,6 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 					   * m_vTruncPolynom[   i0   ].value( x0 );
 		}
 
-	///	returns the local dof storage for the shape
-		const LocalDoF& local_dof(size_t i)
-		{
-			check_index(i);
-			return m_vLocalDoF[i];
-		}
-
 	///	return Multi index for index i
 		inline const MultiIndex<dim>& multi_index(size_t i) const
 		{
@@ -1121,43 +980,6 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 			return MultiIndex<dim>( i0, i1, i2);
 		}
 
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		bool has_sh_on(int d) const
-		{
-			return (d==0) || (d==1 && p>1) || (d==2 && p>1) || (d==3 && p >2);
-		}
-
-	///	returns the number of DoFs on a given sub-geometric object
-		size_t num_sh(int d, size_t id) const
-		{
-		//	get reference element
-			static const ReferencePrism& rRef
-						= ReferenceElementProvider::get<ReferencePrism>();
-
-		//	get type of subelement
-			const ReferenceObjectID type = rRef.ref_elem_type(d, id);
-
-		//	forward request
-			return num_sh(type);
-		}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_sh(ReferenceObjectID type) const
-		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-		//	same as for a 2d triangle of order p-3
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
-		//	same as for a 2d quadrilateral of order p-2
-			if(type == ROID_QUADRILATERAL)
-				return ((p>1) ? ((p-1)*(p-1)) : 0);
-		//	same as for a 3d prism of order p-2
-			if(type == ROID_PRISM)
-				return ((p>2) ? (BinomialCoefficient<2 + p-2, p-2>::value)*(p-1) : 0);
-			else return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
@@ -1179,7 +1001,6 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		Polynomial1D m_vTruncPolynom[p+1];
 		Polynomial1D m_vDTruncPolynom[p+1];
 
-		LocalDoF m_vLocalDoF[nsh];
 		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
@@ -1369,13 +1190,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			}
 */		}
 
-	///	returns the local dof storage for the shape
-		const LocalDoF& local_dof(size_t i)
-		{
-			check_index(i);
-			return m_vLocalDoF[i];
-		}
-
 	///	return Multi index for index i
 		inline const MultiIndex<dim>& multi_index(size_t i) const
 		{
@@ -1429,43 +1243,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			return MultiIndex<dim>( iTmp%(p+1-i2), iTmp/(p+1-i2), i2);
 		}
 
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		bool has_sh_on(int d) const
-		{
-			return (d==0) || (d==1 && p>1) || (d==2 && p>1) || (d==3 && p >2);
-		}
-
-	///	returns the number of DoFs on a given sub-geometric object
-		size_t num_sh(int d, size_t id) const
-		{
-		//	get reference element
-			static const ReferencePrism& rRef
-						= ReferenceElementProvider::get<ReferencePrism>();
-
-		//	get type of subelement
-			const ReferenceObjectID type = rRef.ref_elem_type(d, id);
-
-		//	forward request
-			return num_sh(type);
-		}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_sh(ReferenceObjectID type) const
-		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-		//	same as for a 2d triangle of order p-3
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<dim + p-3, p-3>::value) : 0);
-		//	same as for a 2d quadrilateral of order p-2
-			if(type == ROID_QUADRILATERAL)
-				return ((p>1) ? ((p-1)*(p-1)) : 0);
-		//	same as for a 3d pyramid of order p-2
-			if(type == ROID_PYRAMID)
-				return ((p>2) ? (NumberOfDoFsOfPyramid<p-2>::value) : 0);
-			else return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
@@ -1484,7 +1261,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		std::vector<std::vector<Polynomial1D> > m_vvPolynom;
 		std::vector<std::vector<Polynomial1D> > m_vvDPolynom;
 
-		LocalDoF m_vLocalDoF[nsh];
 		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 
@@ -1612,13 +1388,6 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 			}
 		}
 
-	///	returns the local dof storage for the shape
-		const LocalDoF& local_dof(size_t i)
-		{
-			check_index(i);
-			return m_vLocalDoF[i];
-		}
-
 	///	return Multi index for index i
 		inline const MultiIndex<dim>& multi_index(size_t i) const
 		{
@@ -1651,32 +1420,6 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 			return MultiIndex<dim>( i%(p+1), i/(p+1)%(p+1), i/((p+1)*(p+1)));
 		}
 
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		bool has_sh_on(int d) const
-		{
-			return (d==0) || (d==1 && p>1) || (d==2 && p>1) || (d==3 && p>1);
-		}
-
-	///	returns the number of DoFs on a given sub-geometric object
-		size_t num_sh(int d, size_t id) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return (p-1)*(p-1);
-			if(d==3) return (p-1)*(p-1)*(p-1);
-			else return 0;
-		}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_sh(ReferenceObjectID type) const
-		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
-			if(type == ROID_HEXAHEDRON) return (p-1)*(p-1)*(p-1);
-			else return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline static void check_index(size_t i)
 		{
@@ -1695,7 +1438,6 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		LocalDoF m_vLocalDoF[nsh];
 		MultiIndex<dim> m_vMultiIndex[nsh];
 };
 

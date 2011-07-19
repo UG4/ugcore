@@ -166,7 +166,7 @@ const char* FunctionGroup::name(size_t i) const
 
 
 /// returns the trial space of the discrete function fct
-LSFSID FunctionGroup::local_shape_function_set_id(size_t i) const
+LFEID FunctionGroup::local_finite_element_id(size_t i) const
 {
 	if(!is_init())
 	{
@@ -179,7 +179,7 @@ LSFSID FunctionGroup::local_shape_function_set_id(size_t i) const
 	if(i >= num_fct())
 		throw(ERROR_BadIndexInFunctionGroup(i));
 
-	return m_pFunctionPattern->local_shape_function_set_id(m_vFunction[i]);
+	return m_pFunctionPattern->local_finite_element_id(m_vFunction[i]);
 }
 
 ///	dimension of function

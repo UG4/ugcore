@@ -6,6 +6,7 @@
 
 //	header
 #include "conform.h"
+#include "lib_discretization/local_finite_element/local_dof_set.h"
 
 namespace ug{
 
@@ -91,7 +92,7 @@ DoFDistribution(GeometricObjectCollection goc,
   m_raaIndexEDGE(sm.edge_attachment_accessor()),
   m_raaIndexFACE(sm.face_attachment_accessor()),
   m_raaIndexVOL(sm.volume_attachment_accessor()),
-  m_numIndex(0), m_sizeIndexSet(0)
+  m_numIndex(0), m_sizeIndexSet(0), m_bGrouped(false)
 {
 	m_vNumIndex.clear();
 	m_vNumIndex.resize(num_subsets(), 0);
@@ -114,7 +115,7 @@ DoFDistribution(GeometricObjectCollection goc,
   m_raaIndexEDGE(sm.edge_attachment_accessor()),
   m_raaIndexFACE(sm.face_attachment_accessor()),
   m_raaIndexVOL(sm.volume_attachment_accessor()),
-  m_numIndex(0), m_sizeIndexSet(0)
+  m_numIndex(0), m_sizeIndexSet(0), m_bGrouped(false)
 {
 	m_vNumIndex.clear();
 	m_vNumIndex.resize(this->num_subsets(), 0);
@@ -147,22 +148,29 @@ void DoFDistribution::create_offsets(ReferenceObjectID roid)
 	// 	counter
 		size_t count = 0;
 
+	//	get dimension of subset
+		int dim = dim_subset(si);
+
 	//	loop functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
-		//	if function is not defined, we set the offset as invalid.
-			if(!is_def_in_subset(fct, si))
-				m_vvvOffsets[roid][si][fct] = NOT_DEF_ON_SUBSET;
+		//	reset to not defined (initially)
+			m_vvvOffsets[roid][si][fct] = NOT_DEF_ON_SUBSET;
+
+		//	if function is not defined, we leave the offset as invalid.
+			if(!is_def_in_subset(fct, si))	continue;
 
 		//	get local shape function id
-			LSFSID lsfsID = local_shape_function_set_id(fct);
+			LFEID lfeID = local_finite_element_id(fct);
 
 		//	get trial space
-			const LocalShapeFunctionSetBase& lsfs =
-							LocalShapeFunctionSetProvider::get(lsfsID, roid);
+			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(lfeID, dim);
 
 		//	get number of DoFs on the reference element need for the space
-			const size_t numDoF = lsfs.num_sh(roid);
+			const int numDoF = clds.num_dof(roid);
+
+		//	check that numDoFs specified by this roid
+			if(numDoF == -1) continue;
 
 		//	set offset for each function defined in the subset
 			m_vvvOffsets[roid][si][fct] = count;
@@ -195,7 +203,7 @@ void DoFDistribution::create_offsets()
 	}
 
 //	loop all reference element, but not vertices (no disc there)
-	for(int roid=ROID_EDGE; roid < NUM_REFERENCE_OBJECTS; ++roid)
+	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
 		create_offsets((ReferenceObjectID) roid);
 
 //	reset dimension maximum
@@ -615,7 +623,7 @@ bool DoFDistribution::get_connections(std::vector<std::vector<size_t> >& vvConne
 //	storage manager required
 	if(m_pStorageManager == NULL)
 	{
-		UG_LOG("ERROR in 'P1DoFDistribution::get_connections':"
+		UG_LOG("ERROR in 'DoFDistribution::get_connections':"
 				" No Storage Manager");
 		return false;
 	}
@@ -623,13 +631,13 @@ bool DoFDistribution::get_connections(std::vector<std::vector<size_t> >& vvConne
 //	subset handler required
 	if(m_pISubsetHandler == NULL)
 	{
-		UG_LOG("ERROR in 'P1DoFDistribution::get_connections':"
+		UG_LOG("ERROR in 'DoFDistribution::get_connections':"
 				" No Subset Handler");
 		return false;
 	}
 
 //	check that in all subsets same number of functions and at least one
-//	if this is not the case for ungrouped DoFs, we cannot allow reordering
+//	if this is not the case for non-grouped DoFs, we cannot allow reordering
 	if(!m_bGrouped)
 	{
 		size_t numDoFs = 0;
@@ -640,7 +648,7 @@ bool DoFDistribution::get_connections(std::vector<std::vector<size_t> >& vvConne
 			if(numDoFs == 0) {numDoFs = m_vvNumDoFsOnROID[roid][si]; continue;}
 			if(m_vvNumDoFsOnROID[roid][si] != numDoFs)
 			{
-				UG_LOG("ERROR in 'P1DoFDistribution::get_connections':"
+				UG_LOG("ERROR in 'DoFDistribution::get_connections':"
 						" Currently only implemented iff same number of DoFs on"
 						" all geometric objects in all subsets.\n");
 				return false;
@@ -648,7 +656,7 @@ bool DoFDistribution::get_connections(std::vector<std::vector<size_t> >& vvConne
 		}
 	}
 
-//	clear neighbours
+//	clear neighbors
 	vvConnection.clear(); vvConnection.resize(m_numIndex);
 
 //	if no subset given, we're done
@@ -796,14 +804,13 @@ inner_multi_indices(multi_index_vector_type& ind,
 	if(m_vvNumDoFsOnROID[roid][si] > 0)
 	{
 	//	get local shape function id
-		LSFSID lsfsID = local_shape_function_set_id(fct);
+		LFEID lsfsID = local_finite_element_id(fct);
 
 	//	get trial space
-		const LocalShapeFunctionSetBase& lsfs =
-						LocalShapeFunctionSetProvider::get(lsfsID, roid);
+		const ILocalDoFSet& lsfs = LocalDoFSetProvider::get(lsfsID, roid);
 
 	//	get number of DoFs in this sub-geometric object
-		const size_t numDoFsOnSub = lsfs.num_sh(roid);
+		const size_t numDoFsOnSub = lsfs.num_dof(roid);
 
 		if(!m_bGrouped)
 		{
@@ -845,14 +852,13 @@ DoFDistribution::inner_algebra_indices(algebra_index_vector_type& ind,
 				if(!is_def_in_subset(fct, si)) continue;
 
 			//	get local shape function id
-				LSFSID lsfsID = local_shape_function_set_id(fct);
+				LFEID lsfsID = local_finite_element_id(fct);
 
 			//	get trial space
-				const LocalShapeFunctionSetBase& lsfs =
-							LocalShapeFunctionSetProvider::get(lsfsID, roid);
+				const ILocalDoFSet& lsfs = LocalDoFSetProvider::get(lsfsID, roid);
 
 			//	get number of DoFs in this sub-geometric object
-				const size_t numDoFsOnSub = lsfs.num_sh(roid);
+				const size_t numDoFsOnSub = lsfs.num_dof(roid);
 
 			//	compute index
 				const size_t index = firstIndex + m_vvvOffsets[roid][si][fct];

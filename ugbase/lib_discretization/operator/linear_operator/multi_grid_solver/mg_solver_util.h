@@ -431,8 +431,8 @@ bool AddProjectionOfVertexShadows(TVector& fineVec, const TVector& coarseVec,
 
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_shape_function_set_id(fct)
-				!= LSFSID(LSFSID::LAGRANGE, 1))
+		if(fineDoFDistr.local_finite_element_id(fct)
+				!= LFEID(LFEID::LAGRANGE, 1))
 		{
 			UG_LOG("ERROR in 'AssembleVertexProjection': "
 					"Interpolation only implemented for Lagrange P1 functions.\n");
@@ -513,8 +513,8 @@ bool SetProjectionOfVertexShadowing(TVector& coarseVec, const TVector& fineVec,
 
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_shape_function_set_id(fct)
-				!= LSFSID(LSFSID::LAGRANGE, 1))
+		if(fineDoFDistr.local_finite_element_id(fct)
+				!= LFEID(LFEID::LAGRANGE, 1))
 		{
 			UG_LOG("ERROR in 'AssembleVertexProjection': "
 					"Interpolation only implemented for Lagrange P1 functions.\n");
@@ -592,8 +592,8 @@ bool SetZeroOnShadowingVertex(TVector& vec,
 
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
-		if(dofDistr.local_shape_function_set_id(fct)
-				!= LSFSID(LSFSID::LAGRANGE, 1))
+		if(dofDistr.local_finite_element_id(fct)
+				!= LFEID(LFEID::LAGRANGE, 1))
 		{
 			UG_LOG("ERROR in 'AssembleVertexProjection': "
 					"Interpolation only implemented for Lagrange P1 functions.\n");
@@ -658,8 +658,8 @@ bool SetZeroOnVertexShadows(TVector& vec,
 
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
-		if(dofDistr.local_shape_function_set_id(fct)
-				!= LSFSID(LSFSID::LAGRANGE, 1))
+		if(dofDistr.local_finite_element_id(fct)
+				!= LFEID(LFEID::LAGRANGE, 1))
 		{
 			UG_LOG("ERROR in 'AssembleVertexProjection': "
 					"Interpolation only implemented for Lagrange P1 functions.\n");

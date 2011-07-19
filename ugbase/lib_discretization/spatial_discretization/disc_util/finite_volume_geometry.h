@@ -18,11 +18,11 @@
 #include "lib_grid/lg_base.h"
 
 // library intern includes
-#include "../../reference_element/reference_element.h"
-#include "../../reference_element/reference_element_traits.h"
-#include "../../local_shape_function_set/local_shape_function_set_provider.h"
-#include "../../local_shape_function_set/lagrange/lagrangep1.h"
-#include "./finite_volume_util.h"
+#include "lib_discretization/reference_element/reference_element.h"
+#include "lib_discretization/reference_element/reference_element_traits.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set_provider.h"
+#include "lib_discretization/local_finite_element/lagrange/lagrangep1.h"
+#include "finite_volume_util.h"
 
 namespace ug{
 

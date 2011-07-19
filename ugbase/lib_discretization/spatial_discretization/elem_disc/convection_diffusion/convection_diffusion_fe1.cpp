@@ -9,8 +9,8 @@
 
 #include "lib_discretization/spatial_discretization/disc_util/finite_element_geometry.h"
 #include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
-#include "lib_discretization/local_shape_function_set/lagrange/lagrange.h"
-#include "lib_discretization/local_shape_function_set/lagrange/lagrangep1.h"
+#include "lib_discretization/local_finite_element/lagrange/lagrange.h"
+#include "lib_discretization/local_finite_element/lagrange/lagrangep1.h"
 #include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
 
 namespace ug{

@@ -17,9 +17,9 @@
 #include "lib_grid/lib_grid.h"
 
 // library intern includes
-#include "../../reference_element/reference_element.h"
-#include "../../local_shape_function_set/local_shape_function_set_provider.h"
-#include "./finite_volume_util.h"
+#include "lib_discretization/reference_element/reference_element.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set_provider.h"
+#include "finite_volume_util.h"
 #include "finite_volume_geometry.h"
 
 namespace ug{

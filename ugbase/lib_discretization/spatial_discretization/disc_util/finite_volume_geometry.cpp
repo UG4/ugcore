@@ -128,7 +128,7 @@ FV1Geometry()
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::
 					get<ref_elem_type>
-					(LSFSID(LSFSID::LAGRANGE, 1));
+					(LFEID(LFEID::LAGRANGE, 1));
 
 		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
 		TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
@@ -392,7 +392,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 						LocalShapeFunctionSetProvider::
 							get<ref_elem_type>
-								(LSFSID(LSFSID::LAGRANGE, 1));
+								(LFEID(LFEID::LAGRANGE, 1));
 
 				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
 				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);
@@ -488,7 +488,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::
 					get<ref_elem_type>
-					(LSFSID(LSFSID::LAGRANGE, 1));
+					(LFEID(LFEID::LAGRANGE, 1));
 
 		const size_t num_sh = m_numBF;
 		m_vBF[i].vShape.resize(num_sh);

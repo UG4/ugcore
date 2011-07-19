@@ -456,7 +456,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::
 					get<ref_elem_type>
-						(LSFSID(LSFSID::LAGRANGE, 1));
+						(LFEID(LFEID::LAGRANGE, 1));
 
 		const size_t num_sh = ref_elem_type::num_corners;
 		m_vSCVF[i].vShape.resize(num_sh);

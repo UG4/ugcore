@@ -131,7 +131,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		bool init();
 
 	///	returns if ansatz space is supported
-		virtual bool supports_trial_space(LSFSID& id) const
+		virtual bool supports_trial_space(LFEID& id) const
 			{return TDoFDistribution::supports_trial_space(id);}
 
 	///	prints statistic about DoF Distribution

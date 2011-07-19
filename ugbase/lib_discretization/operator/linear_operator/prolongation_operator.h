@@ -48,8 +48,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_shape_function_set_id(fct)
-				!= LSFSID(LSFSID::LAGRANGE, 1))
+		if(fineDoFDistr.local_finite_element_id(fct)
+				!= LFEID(LFEID::LAGRANGE, 1))
 	{
 		UG_LOG("ERROR in 'AssembleVertexProlongation':"
 				"Interpolation only implemented for Lagrange P1 functions.\n");

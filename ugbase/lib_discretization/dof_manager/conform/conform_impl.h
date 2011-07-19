@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "conform.h"
-#include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
+#include "lib_discretization/local_finite_element/local_dof_set.h"
 
 namespace ug{
 
@@ -29,7 +29,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 			ref_elem_type;
 
 //	get dimension
-	static const int d = ref_elem_type::dim;
+	static const int d = geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID;
 
 //	get roid type
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
@@ -41,11 +41,14 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 		TBaseElem* subElem = vElem[i];
 
 	//	get subset index
-		int si = m_pISubsetHandler->get_subset_index(subElem);
+		const int si = m_pISubsetHandler->get_subset_index(subElem);
 		UG_ASSERT(si >= 0, "Invalid subset index " << si);
 
 	//	read algebra index
 		const size_t firstIndex = first_index(subElem);
+
+	//	get reference object id for subselement
+		const int baseRoid = subElem->reference_object_id();
 
 	//	loop all functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
@@ -54,19 +57,18 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 			if(!is_def_in_subset(fct, si)) continue;
 
 		//	get local shape function id
-			LSFSID lsfsID = local_shape_function_set_id(fct);
+			LFEID lsfsID = local_finite_element_id(fct);
 
 		//	get trial space
-			const LocalShapeFunctionSet<ref_elem_type>& lsfs =
-						LocalShapeFunctionSetProvider::get<ref_elem_type>(lsfsID);
+			const ILocalDoFSet& lds = LocalDoFSetProvider::get(lsfsID, roid);
 
 		//	get number of DoFs in this sub-geometric object
-			const size_t numDoFsOnSub = lsfs.num_sh(d, i);
+			const size_t numDoFsOnSub = lds.num_dof(d, i);
 
 			if(!m_bGrouped)
 			{
 			//	compute index
-				const size_t index = firstIndex + m_vvvOffsets[roid][si][fct];
+				const size_t index = firstIndex + m_vvvOffsets[baseRoid][si][fct];
 
 			//	add dof to local indices
 			// \TODO: ORIENTATION !!!
@@ -104,18 +106,34 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind, bool bHang) const
 	Grid* grid = m_pStorageManager->get_assigned_grid();
 
 //	get all sub-elements and add indices on those
-	if(m_vMaxDoFsInDim[0] > 0)
+	if(m_vMaxDoFsInDim[VERTEX] > 0)
 	{
 		std::vector<VertexBase*> vElem;
 		CollectVertices(vElem, *grid, elem);
 		const size_t numNatural = ref_elem_type::num_corners;
 		indices<TElem, VertexBase>(elem, ind, vElem, numNatural, bHang);
 	}
-
-	// \todo: more ...
-	//CollectEdgesSorted(vEdges, *grid, elem);
-	//CollectFacesSorted(vFaces, *grid, elem);
-	//CollectVolumes(vVols, *grid, elem);
+	if(m_vMaxDoFsInDim[EDGE] > 0)
+	{
+		std::vector<EdgeBase*> vElem;
+		CollectEdgesSorted(vElem, *grid, elem);
+		const size_t numNatural = ref_elem_type::num_edges;
+		indices<TElem, EdgeBase>(elem, ind, vElem, numNatural, bHang);
+	}
+	if(m_vMaxDoFsInDim[FACE] > 0)
+	{
+		std::vector<Face*> vElem;
+		CollectFacesSorted(vElem, *grid, elem);
+		const size_t numNatural = ref_elem_type::num_faces;
+		indices<TElem, Face>(elem, ind, vElem, numNatural, bHang);
+	}
+	if(m_vMaxDoFsInDim[VOLUME] > 0)
+	{
+		std::vector<Volume*> vElem;
+		CollectVolumes(vElem, *grid, elem);
+		const size_t numNatural = ref_elem_type::num_volumes;
+		indices<TElem, Volume>(elem, ind, vElem, numNatural, bHang);
+	}
 
 //	If no hanging dofs are required, we're done
 	if(!bHang) return;

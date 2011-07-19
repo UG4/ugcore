@@ -45,26 +45,6 @@ struct UG_ERROR_InvalidShapeFunctionIndex
 /// \ingroup lib_discretization_local_shape_function_set
 /// @{
 
-/// base class for all reference element dependent local shape function sets
-class LocalShapeFunctionSetBase
-{
-	public:
-	///	returns the reference dimension
-		virtual int ref_dim() const = 0;
-
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		virtual bool has_sh_on(int d) const = 0;
-
-	///	returns the number of DoFs on a given sub-geometric object
-		virtual size_t num_sh(int d, size_t id) const = 0;
-
-	///	returns the number of DoFs on a sub-geometric object type
-		virtual size_t num_sh(ReferenceObjectID type) const = 0;
-
-	///	virtual destructor
-		virtual ~LocalShapeFunctionSetBase() {};
-};
-
 
 // LocalShapeFunctionSet
 /** base class for local shape functions
@@ -82,7 +62,7 @@ class LocalShapeFunctionSetBase
  * \tparam 	TRefElem	Reference Element Type
  */
 template <typename TRefElem>
-class LocalShapeFunctionSet : public LocalShapeFunctionSetBase
+class LocalShapeFunctionSet
 {
 	public:
 	///	Reference Element type
@@ -101,9 +81,6 @@ class LocalShapeFunctionSet : public LocalShapeFunctionSetBase
 		typedef MathVector<dim> grad_type;
 
 	public:
-	///	returns the reference dimension
-		virtual int ref_dim() const {return dim;}
-
 	///	Number of DoFs (shapes) on finite element
 		virtual size_t num_sh() const = 0;
 
@@ -153,15 +130,6 @@ class LocalShapeFunctionSet : public LocalShapeFunctionSetBase
 	 * \param[in]	x		Position on reference element (evaluation point)
 	 */
 		virtual void grads(grad_type* gOut, const position_type& x) const = 0;
-
-	///	returns if DoFs are assigned to geometric objects of the dimension
-		virtual bool has_sh_on(int d) const = 0;
-
-	///	returns the number of DoFs on a given sub-geometric object
-		virtual size_t num_sh(int d, size_t id) const = 0;
-
-	///	returns the number of DoFs on a sub-geometric object type
-		virtual size_t num_sh(ReferenceObjectID type) const = 0;
 
 	///	virtual destructor
 		virtual ~LocalShapeFunctionSet() {};
@@ -244,24 +212,6 @@ class LocalShapeFunctionSetWrapper
 		virtual void grads(grad_type* gOut, const position_type& x) const
 		{
 			ImplType::grads(gOut, x);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::has_sh_on()
-		virtual bool has_sh_on(int dim) const
-		{
-			return ImplType::has_sh_on(dim);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh(int, size_t)
-		virtual size_t num_sh(int dim, size_t id) const
-		{
-			return ImplType::num_sh(dim, id);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh(ReferenceObjectID)
-		virtual size_t num_sh(ReferenceObjectID type) const
-		{
-			return ImplType::num_sh(type);
 		}
 };
 

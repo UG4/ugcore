@@ -11,8 +11,7 @@
 namespace ug{
 
 template <typename TRefElem>
-void SetVertexLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
-                        	LocalDoF* vLocalDoF,
+void SetLagrangeVertexMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
                         	const TRefElem& rRef,
                         	size_t p,
                         	size_t& index)
@@ -26,12 +25,11 @@ void SetVertexLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 //	loop all vertices
 	for(size_t i = 0; i< rRef.num(0); ++i)
 	{
-		vLocalDoF[index] = LocalDoF(0, i, 0);
-
 	//	set multi index
 		for(int d = 0; d<dim; ++d)
 		{
-			UG_ASSERT(p*vCo[i][d] >= 0, "Wrong multi index m["<<d<<"]="<<p*vCo[i][d]);
+			UG_ASSERT(p*vCo[i][d] >= 0,
+			          "Wrong multi index m["<<d<<"]="<<p*vCo[i][d]);
 			vMultiIndex[index][d] = p*vCo[i][d];
 		}
 
@@ -41,8 +39,7 @@ void SetVertexLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetEdgeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
-                      	LocalDoF* vLocalDoF,
+void SetLagrangeEdgeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
                       	const TRefElem& rRef,
                       	size_t p,
                       	size_t& index)
@@ -66,9 +63,6 @@ void SetEdgeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 	//	add dofs on the edge
 		for(size_t i = 1; i < p; ++i)
 		{
-		//	set: dim=1, id=e, offset=i-1
-			vLocalDoF[index] = LocalDoF(1, e, i-1);
-
 		//	compute multi index
 			MathVector<dim,int> m;
 			VecScaleAdd(m, i, vCo[co1], (p-i), vCo[co0]);
@@ -87,8 +81,7 @@ void SetEdgeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetFaceLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
-                      	LocalDoF* vLocalDoF,
+void SetLagrangeFaceMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
                       	const TRefElem& rRef,
                       	size_t p,
                       	size_t& index)
@@ -116,9 +109,6 @@ void SetFaceLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 		VecSubtract(d1, vCo[co1], vCo[co0]);
 		VecSubtract(d2, vCo[co2], vCo[co0]);
 
-	//	reset counter
-		size_t cnt = 0;
-
 	//	loop 'y'-direction
 		for(size_t j = 1; j < p; ++j)
 		{
@@ -129,9 +119,6 @@ void SetFaceLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 		//	loop 'x'-direction
 			for(size_t i = 1; i < p-off; ++i)
 			{
-			//	set: dim=2, id=f, offset=cnt
-				vLocalDoF[index] = LocalDoF(2, f, cnt++);
-
 			//	compute multi index
 				MathVector<dim,int> m = vCo[co0]; m *= p;
 				VecScaleAppend(m, i, d1, j, d2);
@@ -142,7 +129,7 @@ void SetFaceLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 					UG_ASSERT(m[d] >= 0, "Wrong multi index m["<<d<<"]="<<m[d]);
 					vMultiIndex[index][d] = m[d];
 				}
-
+				
 			//	next index
 				++index;
 			}
@@ -151,8 +138,7 @@ void SetFaceLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
-                        	LocalDoF* vLocalDoF,
+void SetLagrangeVolumeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
                         	const TRefElem& rRef,
                         	size_t p,
                         	size_t& index)
@@ -170,7 +156,6 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 	ReferenceObjectID type = rRef.ref_elem_type(dim, 0);
 
 //	handle elems
-	size_t cnt = 0;
 	switch(type)
 	{
 	case ROID_TETRAHEDRON:
@@ -178,9 +163,6 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 			for(size_t m1 = 1; m1 < p-m2; ++m1)
 				for(size_t m0 = 1; m0 < p-m2-m1; ++m0)
 				{
-				//	set: dim=2, id=0, offset=i
-					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
-
 					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
 					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
 					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
@@ -201,9 +183,6 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 			for(size_t m1 = 1; m1 < p; ++m1)
 				for(size_t m0 = 1; m0 < p-m1; ++m0)
 				{
-				//	set: dim=2, id=0, offset=i
-					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
-
 					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
 					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
 					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
@@ -220,9 +199,6 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 			for(size_t m1 = 1; m1 < p; ++m1)
 				for(size_t m0 = 1; m0 < p; ++m0)
 				{
-				//	set: dim=2, id=0, offset=i
-					vLocalDoF[index] = LocalDoF(3, 0, cnt++);
-
 					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
 					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
 					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
@@ -240,8 +216,7 @@ void SetVolumeLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
-                  	LocalDoF* vLocalDoF,
+void SetLagrangeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
                   	const TRefElem& rRef,
                   	size_t p)
 {
@@ -249,16 +224,16 @@ void SetLocalDoFs(	MultiIndex<TRefElem::dim>* vMultiIndex,
 	size_t index = 0;
 
 //	vertices
-	SetVertexLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+	SetLagrangeVertexMultiIndex(vMultiIndex, rRef, p, index);
 
 //	edge
-	SetEdgeLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+	SetLagrangeEdgeMultiIndex(vMultiIndex, rRef, p, index);
 
 //	faces
-	SetFaceLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+	SetLagrangeFaceMultiIndex(vMultiIndex, rRef, p, index);
 
 //	volumes
-	SetVolumeLocalDoFs(vMultiIndex, vLocalDoF, rRef, p, index);
+	SetLagrangeVolumeMultiIndex(vMultiIndex, rRef, p, index);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -282,7 +257,7 @@ LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceEdge>();
 
 //	init shape -> multi-index mapping
-	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
+	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceEdge, 1>;
@@ -312,7 +287,7 @@ LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceTriangle>();
 
 //	init shape -> multi-index mapping
-	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
+	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceTriangle, 1>;
@@ -342,7 +317,7 @@ LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceQuadrilateral>();
 
 //	init shape -> multi-index mapping
-	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
+	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceQuadrilateral, 1>;
@@ -371,7 +346,7 @@ LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceTetrahedron>();
 
 //	init shape -> multi-index mapping
-	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
+	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceTetrahedron, 1>;
@@ -404,7 +379,7 @@ LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferencePrism>();
 
 //	init shape -> multi-index mapping
-	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
+	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
 }
 
 template class LagrangeLSFS<ReferencePrism, 1>;
@@ -441,7 +416,7 @@ LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
 				ReferenceElementProvider::get<ReferencePyramid>();
 
 	//	init shape -> multi-index mapping
-		SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
+		SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
 }
 
 template class LagrangeLSFS<ReferencePyramid, 1>;
@@ -468,7 +443,7 @@ LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
 			ReferenceElementProvider::get<ReferenceHexahedron>();
 
 //	init shape -> multi-index mapping
-	SetLocalDoFs(m_vMultiIndex, m_vLocalDoF, rRef, p);
+	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceHexahedron, 1>;

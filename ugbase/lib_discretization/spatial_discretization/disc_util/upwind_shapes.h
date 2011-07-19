@@ -11,8 +11,8 @@
 #include <limits>
 
 #include "lib_discretization/common/geometry_util.h"
-#include "lib_discretization/local_shape_function_set/local_shape_function_set.h"
-#include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set_provider.h"
 
 namespace ug{
 /*

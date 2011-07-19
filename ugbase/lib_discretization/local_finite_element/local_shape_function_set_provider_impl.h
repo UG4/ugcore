@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET_FACTORY_IMPL__
 
 #include "common/common.h"
-#include "local_shape_function_set_id.h"
+#include "local_shape_function_set_provider.h"
 
 namespace ug{
 
@@ -18,58 +18,35 @@ namespace ug{
 ///////////////////////////////////////////
 
 template <typename TRefElem>
-std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* >&
+std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* >&
 LocalShapeFunctionSetProvider::get_map()
 {
 //	get type of map
-	typedef std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* > Map;
+	typedef std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	create static map
-	static Map shape_function_set_map;
+	static Map sShapeFunctionSetMap;
 
 //	return map
-	return shape_function_set_map;
+	return sShapeFunctionSetMap;
 };
 
 template <typename TRefElem>
 bool
 LocalShapeFunctionSetProvider::
-register_local_shape_function_set(LSFSID type, const LocalShapeFunctionSet<TRefElem>& set)
+register_set(LFEID type, const LocalShapeFunctionSet<TRefElem>& set)
 {
-//	reference object id
-	const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
-
-//	get vector of types
-	std::vector<const LocalShapeFunctionSetBase*>& vBase = m_baseMap[type];
-
-//	resize vector
-	vBase.resize(NUM_REFERENCE_OBJECTS, NULL);
-
-//	check that no space has been previously registered to this place
-	if(vBase[roid])
-	{
-		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::"
-				"register_local_shape_function_set()': "
-				"Base type already registered for trial space: "<<type<<" and "
-				" Reference element type "<<roid<<".\n");
-		return false;
-	}
-
-//	if ok, add
-	vBase[roid] = &set;
-
 //	get type of map
-	typedef std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* > Map;
+	typedef std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* > Map;
 	static Map& map = get_map<TRefElem>();
-	typedef std::pair<LSFSID,const LocalShapeFunctionSet<TRefElem>*> MapPair;
+	typedef std::pair<LFEID,const LocalShapeFunctionSet<TRefElem>*> MapPair;
 
 //	insert into map
 	if(map.insert(MapPair(type, &set)).second == false)
 	{
-		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::"
-				"register_local_shape_function_set()': "
+		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::register_set()': "
 				"Reference type already registered for trial space: "<<type<<" and "
-				" Reference element type "<<roid<<".\n");
+				" Reference element type "<<TRefElem::REFERENCE_OBJECT_ID<<".\n");
 		return false;
 	}
 
@@ -81,28 +58,25 @@ register_local_shape_function_set(LSFSID type, const LocalShapeFunctionSet<TRefE
 template <typename TRefElem>
 bool
 LocalShapeFunctionSetProvider::
-unregister_local_shape_function_set(LSFSID id)
+unregister_set(LFEID id)
 {
 //	get type of map
-	typedef std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* > Map;
+	typedef std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* > Map;
 
 //	init provider and get map
 	static Map& map = inst().get_map<TRefElem>();
 
 //	erase element
-	bool bRet = true;
-	bRet &= (map.erase(id) == 1);
-	bRet &= (m_baseMap.erase(id) == 1);
-	return bRet;
+	return (map.erase(id) == 1);
 }
 
 template <typename TRefElem>
 const LocalShapeFunctionSet<TRefElem>&
 LocalShapeFunctionSetProvider::
-get(LSFSID id)
+get(LFEID id)
 {
 //	get type of map
-	typedef std::map<LSFSID, const LocalShapeFunctionSet<TRefElem>* > Map;
+	typedef std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* > Map;
 	const static ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
 
 //	init provider and get map
