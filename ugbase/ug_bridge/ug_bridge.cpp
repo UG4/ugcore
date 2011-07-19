@@ -22,13 +22,16 @@ Registry & GetUGRegistry()
 	return ugReg;
 }
 
-///	Sets the default classes of class-groups based on a dimension suffix
-/**	Only classes which end with 1d, 2d, ... are considered.
- * Note that this method only has effect onto methods which are currently
- * registered at the registry.
+///	Sets the default classes of class-groups based on a dimension tag
+/**	If a class has a tag "dim=1", "dim=2" or "dim=3" then it will be set
+ * as default - depending on the given dim.
  */
 static void SetDefaultDimension(int dim)
 {
+	if(dim < 0 || dim > 3){
+		throw(UGError("ERROR in SetDefaultDimension: Only dimensions 1, 2, 3 are supported."));
+	}
+
 //	iterate over all groups in the registry and check whether they contain
 //	a classTag "dim=nd", where n is the given dimension.
 	char dimTag[16];

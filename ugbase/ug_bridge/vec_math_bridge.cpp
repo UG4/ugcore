@@ -39,17 +39,26 @@ static bool RegisterVecMathBridge(Registry& reg, const char* parentGroup)
 
 	try
 	{
+	//	the dimension suffix
+		std::stringstream ss;	ss << dim << "d";
+		std::string dimSuffix = ss.str();
+
+	//	the dimension tag
+		std::string dimTag = "dim=";
+		dimTag.append(dimSuffix);
+
 	//	get group string
-		std::stringstream groupString; groupString << parentGroup << "/VecMath";
-		std::string strGrp = groupString.str();
-		const char* grp = strGrp.c_str();
+		std::string grp = parentGroup;
+		grp.append("/VecMath");
 
 	//	register the class
-		std::stringstream vecName; vecName << "Vector" << dim << "d";
-		reg.add_class_<vec_type>(vecName.str().c_str(), grp)
+		std::string vecName = "Vector";
+		vecName.append(dimSuffix);
+
+		reg.add_class_<vec_type>(vecName.c_str(), grp.c_str())
 			.add_method("coord",
 					static_cast<const number& (vec_type::*)(size_t) const>(&vec_type::coord));
-		reg.add_class_to_group(vecName.str().c_str(), "Vector_d");
+		reg.add_class_to_group(vecName.c_str(), "Vector_d", dimSuffix.c_str());
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
