@@ -207,8 +207,6 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 //	bool flag if position is exact, or no exact position available for shapes
 	bool bExact = true;
 
-	UG_LOG("INNERPOS: num_sh="<<lsfs.num_sh()<<"\n");
-
 //	loop all shape functions
 	for(size_t sh = 0; sh < lsfs.num_sh(); ++sh)
 	{
@@ -225,8 +223,6 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 
 	//	add
 		vPos.push_back(globPos);
-
-		UG_LOG("INNERPOS: sh="<<sh<<", locPos="<<locPos<<", globPos="<<globPos<<"\n");
 	}
 
 //	return if positions are given exactly
