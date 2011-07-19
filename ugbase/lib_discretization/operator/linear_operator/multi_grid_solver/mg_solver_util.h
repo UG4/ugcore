@@ -86,16 +86,13 @@ bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 // 	add dofs on elements
 	if(surfDD.has_indices_on(VERTEX))
 		bRetVal &= CreateSurfaceToToplevelMap<VertexBase, TDoFDistribution>(vMap, surfDD, topDD);
-
-	// TODO: Use all DoF types
-/*
-	if(surfDD.template has_indices_on<EdgeBase>())
+	if(surfDD.has_indices_on(EDGE))
 		bRetVal &= CreateSurfaceToToplevelMap<EdgeBase, TDoFDistribution>(vMap, surfDD, topDD);
-	if(surfDD.template has_indices_on<Face>())
+	if(surfDD.has_indices_on(FACE))
 		bRetVal &= CreateSurfaceToToplevelMap<Face, TDoFDistribution>(vMap, surfDD, topDD);
-	if(surfDD.template has_indices_on<Volume>())
+	if(surfDD.has_indices_on(VOLUME))
 		bRetVal &= CreateSurfaceToToplevelMap<Volume, TDoFDistribution>(vMap, surfDD, topDD);
-*/
+
 	return bRetVal;
 }
 
