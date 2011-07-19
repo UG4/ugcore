@@ -5,11 +5,11 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET_FACTORY_IMPL__
-#define __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET_FACTORY_IMPL__
+#ifndef __H__UG__LIB_DISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUNCTION_SET_IMPL__
+#define __H__UG__LIB_DISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUNCTION_SET_IMPL__
 
 #include "common/common.h"
-#include "local_shape_function_set_provider.h"
+#include "local_shape_function_set.h"
 
 namespace ug{
 
@@ -99,4 +99,4 @@ get(LFEID id)
 }
 
 }
-#endif /* __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET_FACTORY_IMPL__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUNCTION_SET_IMPL__ */

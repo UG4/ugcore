@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__LOCAL_DOF__
-#define __H__LIBDISCRETIZATION__LOCAL_DOF__
+#ifndef __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
+#define __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
 
 #include <vector>
 #include <map>
@@ -17,11 +17,17 @@
 
 namespace ug{
 
+/// \ingroup lib_disc_local_finite_elements
+/// @{
+
 /**
  * This class is used to store for a single degree of freedom (DoF) the location
  * within an element. For continuous finite elements the DoFs are usually
  * associated with a sub-geometric object of the element itself (e.g. a vertex).
- * This can be requested from this class.
+ * This can be requested from this class, which stores the dimension of the
+ * sub-element the DoF is located on, the id of the sub-element (w.r.t. to the
+ * numbering in the reference elements) and an offset > 0 if there are more than
+ * one DoFs associated with the same sub-element.
  */
 class LocalDoF
 {
@@ -101,6 +107,8 @@ class ILocalDoFSet
 	///	virtual destructor
 		virtual ~ILocalDoFSet() {};
 };
+
+/// @}
 
 /// writes to the output stream
 std::ostream& operator<<(std::ostream& out,	const ILocalDoFSet& v);
@@ -269,4 +277,4 @@ class LocalDoFSetProvider {
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__LOCAL_DOF__ */
+#endif /* __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__ */

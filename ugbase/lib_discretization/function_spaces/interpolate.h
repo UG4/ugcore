@@ -12,7 +12,7 @@
 
 #include "lib_discretization/common/subset_group.h"
 #include "lib_discretization/domain_util.h"
-#include "lib_discretization/local_finite_element/local_shape_function_set_provider.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set.h"
 #include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include <boost/function.hpp>
 

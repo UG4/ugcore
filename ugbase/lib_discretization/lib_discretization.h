@@ -46,7 +46,7 @@
 
 // local shape function set
 #include "local_finite_element/local_shape_function_set.h"
-#include "local_finite_element/local_shape_function_set_provider.h"
+#include "local_finite_element/local_shape_function_set.h"
 #include "local_finite_element/local_finite_element_id.h"
 #include "local_finite_element/lagrange/lagrange.h"
 #include "local_finite_element/lagrange/lagrangep1.h"

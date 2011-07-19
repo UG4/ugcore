@@ -18,7 +18,7 @@
 
 // library intern includes
 #include "lib_discretization/reference_element/reference_element.h"
-#include "lib_discretization/local_finite_element/local_shape_function_set_provider.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set.h"
 #include "finite_volume_util.h"
 #include "finite_volume_geometry.h"
 

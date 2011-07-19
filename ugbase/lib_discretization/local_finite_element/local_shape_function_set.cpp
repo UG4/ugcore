@@ -5,7 +5,7 @@
  *      Author: andreasvogel
  */
 
-#include "local_shape_function_set_provider.h"
+#include "local_shape_function_set.h"
 
 // include spaces
 #include "lagrange/lagrangep1.h"

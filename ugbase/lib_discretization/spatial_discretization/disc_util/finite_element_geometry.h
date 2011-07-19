@@ -9,7 +9,7 @@
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 
 #include "lib_discretization/quadrature/quadrature.h"
-#include "lib_discretization/local_finite_element/local_shape_function_set_provider.h"
+#include "lib_discretization/local_finite_element/local_shape_function_set.h"
 #include <cmath>
 
 namespace ug{

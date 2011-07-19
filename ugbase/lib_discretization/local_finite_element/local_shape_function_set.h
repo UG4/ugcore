@@ -1,12 +1,12 @@
 /*
- * trialspace.h
+ * local_shape_function_set.h
  *
  *  Created on: 12.05.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__LOCAL_SHAPE_FUCNTION_SET__
-#define __H__LIBDISCRETIZATION__LOCAL_SHAPE_FUCNTION_SET__
+#ifndef __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__
+#define __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__
 
 // extern libraries
 #include <cassert>
@@ -17,7 +17,8 @@
 #include "lib_grid/lg_base.h"
 
 // library intern headers
-#include "../reference_element/reference_element.h"
+#include "lib_discretization/reference_element/reference_element.h"
+#include "local_finite_element_id.h"
 
 namespace ug {
 
@@ -30,35 +31,15 @@ struct UG_ERROR_InvalidShapeFunctionIndex
 	size_t index;
 };
 
-// Doxygen group
-////////////////////////////////////////////////////////////////////////
-/**
- * \brief provides local shape function sets.
- *
- * The Local Shape Function Set section contains the shape functions that
- * can be used in discretization.
- *
- * \defgroup lib_discretization_local_shape_function_set Local Shape Function Sets
- * \ingroup lib_discretization
- */
-
-/// \ingroup lib_discretization_local_shape_function_set
+/// \ingroup lib_disc_local_finite_elements
 /// @{
 
-
-// LocalShapeFunctionSet
-/** base class for local shape functions
+/// base class for local shape function sets
+/**
+ * This class is a base class for the supply of local shape functions on finite
+ * elements. The class provides evaluation of the shape functions and the
+ * gradients at arbitrary points in the interior of a reference element.
  *
- * This class is a base class for the supply of shape functions
- * on finite elements. It can evaluate all trial functions for a
- * given Geometric Object. We call a 'finite element' a geometric
- * entity, that contains degrees of freedoms (DoF). DoFs can be
- * located in the inner or at the boundary of the geometric object.
- * (E.g in vertices, edges on a triangle) In contrast a geometric
- * object is a grid entity. It can contain DoFs, induced by the
- * finite element it belongs to. We distinguish between shape functions
- * on different element types by a Reference Element template
- * argument.
  * \tparam 	TRefElem	Reference Element Type
  */
 template <typename TRefElem>
@@ -137,7 +118,8 @@ class LocalShapeFunctionSet
 
 /// @}
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 /// wrapper class implementing the LocalShapeFunctionSet interface
 /**
@@ -215,7 +197,113 @@ class LocalShapeFunctionSetWrapper
 		}
 };
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/// Singleton, holding a single local shape function set
+/**
+ * This class is used to wrap local shape function set into a singleton, such
+ * that construction computations is avoided, if the rule is used several times.
+ */
+class LSFSProvider {
+
+	// 	private constructor
+		LSFSProvider();
+
+	// 	disallow copy and assignment (intentionally left unimplemented)
+		LSFSProvider(const LSFSProvider&);
+		LSFSProvider& operator=(const LSFSProvider&);
+
+	// 	private destructor
+		~LSFSProvider(){};
+
+	// 	geometry provider, holding the instance
+		template <typename TLSFS>
+		inline static TLSFS& inst()
+		{
+			static TLSFS myInst;
+			return myInst;
+		};
+
+	public:
+	///	returns access to the singleton
+		template <typename TLSFS>
+		inline static TLSFS& get() {return inst<TLSFS>();}
+};
+
+// LocalShapeFunctionSetProvider
+/** class to provide local shape function sets
+ *
+ *	This class provides references to Local Shape functions sets.
+ *	It is implemented as a Singleton.
+ */
+class LocalShapeFunctionSetProvider {
+	private:
+	// 	disallow private constructor
+		LocalShapeFunctionSetProvider();
+
+	// disallow copy and assignment (intentionally left unimplemented)
+		LocalShapeFunctionSetProvider(const LocalShapeFunctionSetProvider&);
+		LocalShapeFunctionSetProvider& operator=(const LocalShapeFunctionSetProvider&);
+
+	// 	private destructor
+		~LocalShapeFunctionSetProvider(){};
+
+	// 	Singleton provider
+		static LocalShapeFunctionSetProvider& inst()
+		{
+			static LocalShapeFunctionSetProvider myInst;
+			return myInst;
+		};
+
+	private:
+	// 	initialize the standard trialspaces (called during construction)
+		template <typename TRefElem>
+		bool init_standard_sets();
+
+	// 	return a map of element_trial_spaces
+		template <typename TRefElem>
+		static std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* >&
+		get_map();
+
+	public:
+	/** register a local shape function set for a given reference element type
+	 * This function is used to register a Local Shape Function set for an element
+	 * type and the corresponding local shape function set id.
+	 *
+	 * \param[in]		id 		Identifier for local shape function set
+	 * \param[in]		set		Local Shape Function Set to register
+	 * \return			bool	true iff registration successful
+	 */
+		template <typename TRefElem>
+		static bool
+		register_set(LFEID id, const LocalShapeFunctionSet<TRefElem>& set);
+
+	/** unregister a local shape function set for a given reference element type
+	 * This function is used to unregister a Local Shape Function set for an element
+	 * type and the corresponding local shape function set id from this Provider.
+	 *
+	 * \param[in]		id 		Identifier for local shape function set
+	 * \return			bool	true iff removal successful
+	 */
+		template <typename TRefElem>
+		static bool unregister_set(LFEID id);
+
+	/**	returns the Local Shape Function Set
+	 * This function returns the Local Shape Function Set for a reference element
+	 * type and an Identifier if a set has been registered for the identifier.
+	 * Else an exception is thrown.
+	 *
+	 * \param[in]	id		Identifier for local shape function set
+	 * \return 		set		A const reference to the shape function set
+	 */
+		// get the local shape function set for a given reference element and id
+		template <typename TRefElem>
+		static const LocalShapeFunctionSet<TRefElem>& get(LFEID id);
+};
 
 } // namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__LOCAL_SHAPE_FUCNTION_SET__ */
+#include "local_shape_function_set_impl.h"
+
+#endif /* __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__ */

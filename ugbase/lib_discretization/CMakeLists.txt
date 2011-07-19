@@ -33,7 +33,7 @@ set(srcDiscretization	common/function_group.cpp
 						quadrature/gauss_quad/gauss_quad_pyramid.cpp
 						quadrature/gauss_quad/gauss_quad_hexahedron.cpp
 
-						local_finite_element/local_shape_function_set_provider.cpp
+						local_finite_element/local_shape_function_set.cpp
 						local_finite_element/local_dof_set.cpp
 						local_finite_element/lagrange/lagrangep1.cpp
 						local_finite_element/lagrange/lagrange.cpp
