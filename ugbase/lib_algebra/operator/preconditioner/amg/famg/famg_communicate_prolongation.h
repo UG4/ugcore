@@ -231,9 +231,12 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		UG_DLOG(LIB_ALG_AMG, 4, "\n");
 	}
 
-	// 3. if we interpolate our node from a node which is on another processor (in OL1) and not
-	// a original slave0,
+	// 3. if we interpolate our node from a node which is master on another processor
 	// we need to add this connection to the slave interface and inform this processor
+	// this can happen on an number of ways:
+	// 1. master0 node interpolating from slave0 node
+	// 2. slave0 (original slave) node interpolating from slave1 node
+
 	BufferMap sendpack;
 	stdvector<bool> bInLayout(overlapSize[1], false);
 	for(size_t i=0; i<overlapSize[0]; i++)
