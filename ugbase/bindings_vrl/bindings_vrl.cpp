@@ -295,7 +295,8 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
 		return ug::vrl::stringC2J(env, "");
 	}
 
-	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name());
+//\todo: @Michi: not using c_str()
+	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getSvnRevision

@@ -684,7 +684,7 @@ static int LuaProxyConstructor(lua_State* L)
 {
 	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
 	
-	CreateNewUserData(L, c->create(), c->name(), c->get_delete_function(), false);
+	CreateNewUserData(L, c->create(), c->name().c_str(), c->get_delete_function(), false);
 
 	return 1;
 }
@@ -726,7 +726,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				//	cast to the needed base class
 					void* objPtr = ClassCastProvider::cast_to_base_class(
 												((RawUserDataWrapper*)self)->obj,
-												classNameNode, m->class_name());
+												classNameNode, m->class_name().c_str());
 
 					m->execute(objPtr, paramsIn, paramsOut);
 				}
@@ -738,7 +738,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 					//	cast to the needed base class
 						void* objPtr = ClassCastProvider::cast_to_base_class(
 													(void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(),
-													classNameNode, m->class_name());
+													classNameNode, m->class_name().c_str());
 
 						m->execute(objPtr, paramsIn, paramsOut);
 					}
@@ -747,7 +747,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 					//	cast to the needed base class
 						void* objPtr = ClassCastProvider::cast_to_base_class(
 													((SmartUserDataWrapper*)self)->smartPtr.get_impl(),
-													classNameNode, m->class_name());
+													classNameNode, m->class_name().c_str());
 
 						m->execute(objPtr, paramsIn, paramsOut);
 					}
@@ -1091,7 +1091,7 @@ static int LuaProxyGroupCreate(lua_State* L)
 	}
 
 //	now create an instance of the associated class
-	CreateNewUserData(L, c->create(), c->name(), c->get_delete_function(), false);
+	CreateNewUserData(L, c->create(), c->name().c_str(), c->get_delete_function(), false);
 
 	return 1;
 }
@@ -1153,7 +1153,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		const IExportedClass* c = &reg.get_class(i);
 		
 	//	check whether the class already exists
-		lua_getglobal(L, c->name());
+		lua_getglobal(L, c->name().c_str());
 		if(!lua_isnil(L, -1)){
 		//	the class already exists. Don't recreate it.
 			lua_pop(L, 1);
@@ -1167,12 +1167,12 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		//	set the constructor-function
 			lua_pushlightuserdata(L, (void*)c);
 			lua_pushcclosure(L, LuaProxyConstructor, 1);
-			lua_setglobal(L, c->name());
+			lua_setglobal(L, c->name().c_str());
 		}
 		
 	//	create the meta-table for the object
 	//	overwrite index and store the class-name
-		luaL_newmetatable(L, c->name());
+		luaL_newmetatable(L, c->name().c_str());
 	//	we use our custom indexing method to allow method-derivation
 		lua_pushcfunction(L, MetatableIndexer);
 		lua_setfield(L, -2, "__index");
@@ -1253,7 +1253,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		const ClassGroupDesc* cg = reg.get_class_group(i);
 
 	//	check whether the class-group already exists
-		lua_getglobal(L, cg->name());
+		lua_getglobal(L, cg->name().c_str());
 		if(!lua_isnil(L, -1)){
 		//	the class-group already exists. Don't recreate it.
 			lua_pop(L, 1);
@@ -1264,7 +1264,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 	//	The class-group is new. Register the proxy-constructor.
 		lua_pushlightuserdata(L, (void*)cg);
 		lua_pushcclosure(L, LuaProxyGroupCreate, 1);
-		lua_setglobal(L, cg->name());
+		lua_setglobal(L, cg->name().c_str());
 	}
 
 	return true;

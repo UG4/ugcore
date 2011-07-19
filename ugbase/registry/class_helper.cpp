@@ -177,7 +177,7 @@ bool PrintClassHierarchy(Registry &reg, const char *classname)
 const IExportedClass *FindClass(Registry &reg, const char* classname)
 {
 	for(size_t j=0; j<reg.num_classes(); ++j)
-		if(strcmp(classname, reg.get_class(j).name()) == 0)
+		if(strcmp(classname, reg.get_class(j).name().c_str()) == 0)
 		{
 			return &reg.get_class(j);
 			break;
@@ -409,7 +409,7 @@ bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters)
 					(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
 			{
 				UG_LOG(" ");
-				PrintFunctionInfo(thefunc, false, c.name(), classname);
+				PrintFunctionInfo(thefunc, false, c.name().c_str(), classname);
 				UG_LOG(endl);
 			}
 		}
@@ -421,7 +421,7 @@ bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters)
 					(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
 			{
 				UG_LOG(" ");
-				PrintFunctionInfo(thefunc, false, c.name(), classname);
+				PrintFunctionInfo(thefunc, false, c.name().c_str(), classname);
 				UG_LOG(endl);
 			}
 		}

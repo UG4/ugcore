@@ -49,12 +49,12 @@ struct ERROR_BadConversion{
 };
 
 struct ERROR_IncompatibleClasses{
-	ERROR_IncompatibleClasses(int index, const char* from, const char* to) :
+	ERROR_IncompatibleClasses(int index, const std::string& from, const std::string& to) :
 		m_index(index), m_from(from), m_to(to)	{}
 
 	int	m_index;
-	const char* m_from;
-	const char* m_to;
+	std::string m_from;
+	std::string m_to;
 };
 
 
@@ -249,6 +249,7 @@ class ParameterStack
 			return m_entries[index].type & PT_RANGE;
 		}
 		
+	//\todo: return const std::string&
 	///	returns the class name for an element in the param stack
 		const char* class_name(int index) const
 		{

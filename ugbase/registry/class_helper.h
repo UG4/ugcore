@@ -34,31 +34,36 @@ class Registry;
  */
 class ClassHierarchy
 {
-public:
-	ClassHierarchy() : name(), bGroup(false), subclasses() {}
-	/**
-	 * adds the class c to the class hierarchy by attaching it to its base hierarchy
-	 * (base hierarchy taken from c->class_names()). automatically creates nonexisting base hierarchy.
-	 * \param	c		Class to be inserted
-	 */
-	void insert_class(const IExportedClass &c);
-	/**
-	 * searches the hierarchy for the classname name.
-	 * \param	name	class name to be searched
-	 * \return NULL if class name not found, otherwise ClassHierarchy with the class as base (find_class(name)->name() == name)
-	 */
-	ClassHierarchy *find_class(const char *name);
+	public:
+		ClassHierarchy() : name(), bGroup(false), subclasses() {}
 
-	bool operator < (const ClassHierarchy &other) const
-	{
-		return name < other.name;
-	}
+		/**
+		 * adds the class c to the class hierarchy by attaching it to its base
+		 * hierarchy (base hierarchy taken from c->class_names()). automatically
+		 * creates nonexisting base hierarchy.
+		 * \param	c		Class to be inserted
+		 */
+		void insert_class(const IExportedClass &c);
 
-	void sort();
+		/**
+		 * searches the hierarchy for the classname name.
+		 * \param	name	class name to be searched
+		 * \return NULL if class name not found,
+		 * 				otherwise ClassHierarchy with the class as base
+		 * 				(find_class(name)->name() == name)
+		 */
+		ClassHierarchy *find_class(const char *name);
 
-	std::string name;
-	bool bGroup;
-	std::vector<ClassHierarchy> subclasses;
+		bool operator < (const ClassHierarchy &other) const
+		{
+			return name < other.name;
+		}
+
+		void sort();
+
+		std::string name;
+		bool bGroup;
+		std::vector<ClassHierarchy> subclasses;
 };
 /**
  * inits hierarchy with all classes of UGBridge
@@ -66,10 +71,13 @@ public:
 void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
 
 /**
- * Finds the class classname in the default ug registry and returns IExportedClass pointer if found, otherwise NULL
+ * Finds the class classname in the default ug registry and returns
+ * IExportedClass pointer if found, otherwise NULL
  */
 bool PrintFunctionInfo(Registry &reg, const char *functionname);
-void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false, const char *classname=NULL, const char *highlightclassname=NULL);
+
+void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
+                       const char *classname=NULL, const char *highlightclassname=NULL);
 
 const IExportedClass *FindClass(bridge::Registry &reg, const char* classname);
 bool PrintClassHierarchy(Registry &reg, const char *classname);
@@ -78,7 +86,8 @@ bool PrintClassInfo(Registry &reg, const char *classname);
 bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters);
 const IExportedClass *FindClass(Registry &reg, const char* classname);
 const ExportedFunction *FindFunction(Registry &reg, const char *functionname);
-}
-}
+
+} // end namespace
+} // end namespace
 
 #endif

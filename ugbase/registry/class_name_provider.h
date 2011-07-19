@@ -22,16 +22,15 @@ namespace bridge
 /// exception throw if a class is registered twice
 struct REGISTRY_ERROR_ClassAlreadyNamed
 {
-		REGISTRY_ERROR_ClassAlreadyNamed(const char* name_)
-			: name(name_) {}
-		std::string name;
+	REGISTRY_ERROR_ClassAlreadyNamed(const std::string& name_) : name(name_) {}
+	std::string name;
 };
 
 /// exception with message
 struct REGISTRY_ERROR_Message
 {
-		REGISTRY_ERROR_Message(const char* msg_): msg(msg_) {}
-		std::string msg;
+	REGISTRY_ERROR_Message(const std::string& msg_): msg(msg_) {}
+	std::string msg;
 };
 
 /// node for class names
@@ -47,7 +46,7 @@ class ClassNameNode
 		ClassNameNode();
 
 	///	set name
-		void set_name(const char* name);
+		void set_name(const std::string& name);
 
 	///	add a base class
 		void add_base_class(const ClassNameNode& node);
@@ -81,17 +80,17 @@ class ClassNameProvider
 {
 	public:
 	/// set name of class and copy parent names
-		static void set_name(const char* nameIn, const char* group = "",
+		static void set_name(const std::string& nameIn, const std::string& group,
 		                     bool newName = false);
 
 	/// set name of class and copy parent names
 		template <typename TParent1>
-		static void set_name(const char* name, const char* group = "",
+		static void set_name(const std::string& nameIn, const std::string& group,
 		                     bool newName = false);
 
 	/// set name of class and copy parent names
 		template <typename TParent1, typename TParent2>
-		static void set_name(const char* name, const char* group = "",
+		static void set_name(const std::string& nameIn, const std::string& group,
 		                     bool newName = false);
 
 	/** check if a given class name is equal
@@ -100,10 +99,10 @@ class ClassNameProvider
 	 * If it is set to false, also parent names (of the class hierarchy) are checked
 	 * and if this class inherits from the parent class true is returned.
 	 */
-		static bool is_a(const char* parent, bool strict = false);
+		static bool is_a(const std::string& parent, bool strict = false);
 
 	/// name of this class
-		static const char* name();
+		static const std::string& name();
 
 	/// groups
 		static const std::string& group(){return m_group;}
@@ -164,7 +163,7 @@ class ClassCastProvider
 	 */
 		static void* cast_to_base_class(void* pDerivVoid,
 		                                const ClassNameNode*& node,
-		                                const char* baseName);
+		                                const std::string& baseName);
 
 	protected:
 	//	type of cast pointer
@@ -181,14 +180,14 @@ void ExtractClassNameVec(std::vector<const char*>& names,
                          bool clearVec = true);
 
 ///	returns if a name is contained in the name vector
-bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
+bool ClassNameVecContains(const std::vector<const char*>& names, const std::string& name);
 
 ///	returns if a name is contained in the name tree at node or in base classes
-bool ClassNameTreeContains(const ClassNameNode& node, const char* name);
+bool ClassNameTreeContains(const ClassNameNode& node, const std::string& name);
 
 /// returns an std::vector that contains in reverse order the base class that
 ///	must be used in the Class Hierarchy to get to the base class
-bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node, const char* name);
+bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node, const std::string& name);
 
 } // end namespace
 } // end namespace

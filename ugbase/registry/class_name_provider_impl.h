@@ -22,48 +22,42 @@ namespace bridge{
 
 template <typename TClass>
 void ClassNameProvider<TClass>::
-set_name(const char* nameIn, const char* group, bool newName)
+set_name(const std::string& nameIn, const std::string& group, bool newName)
 {
 //	if class already named throw error
 	if(newName == true && m_bForwardDeclared==false && !m_ClassNameNode.empty())
 	{
-		if(strcmp(nameIn, name()) != 0)
+		if(nameIn != name())
 			throw(REGISTRY_ERROR_ClassAlreadyNamed(nameIn));
 	}
 
 //	check name
-	if(nameIn == NULL)
-		throw(REGISTRY_ERROR_Message("Registered class name is NULL"));
-
-	if(strlen(nameIn) == 0)
+	if(nameIn.empty())
 		throw(REGISTRY_ERROR_Message("Registered class name has length zero"));
 
-	if(nameIn[0] == '[')
+	if(nameIn.c_str()[0] == '[')
 		throw(REGISTRY_ERROR_Message("Registered class name must not begin with '['"));
 
-//	create help string
-	std::string nameStr = std::string(nameIn);
-
 //	check for non-allowed character
-	size_t found = nameStr.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
+	size_t found = nameIn.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
 											 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											 "_"
 											 "0123456789");
 	if (found!=std::string::npos)
 	{
-		UG_LOG("Non-allowed character '"<<nameStr[found]<<"' "<<
+		UG_LOG("Non-allowed character '"<<nameIn[found]<<"' "<<
 		       "contained at position "<<int(found)<<" in registered Class Name "
-		       "'"<<nameStr<<"'.\nClass names must match the regular expression: "
+		       "'"<<nameIn<<"'.\nClass names must match the regular expression: "
 		       "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
 		       " and '_' are allowed; no numbers at the beginning.\n");
 		throw(REGISTRY_ERROR_Message("Class Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
 	}
 
 //	check that no number at the beginning
-	 found = nameStr.find_first_of("0123456789");
+	 found = nameIn.find_first_of("0123456789");
 	if (found!=std::string::npos && found == 0)
 	{
-		UG_LOG("Class Name "<<nameStr<<" starts with a number.\nThis is "
+		UG_LOG("Class Name "<<nameIn<<" starts with a number.\nThis is "
 				" not allowed. Please change naming.\n");
 		throw(REGISTRY_ERROR_Message("Class Name must not start with number."));
 	}
@@ -82,7 +76,7 @@ set_name(const char* nameIn, const char* group, bool newName)
 template <typename TClass>
 template <typename TParent1>
 void ClassNameProvider<TClass>::
-set_name(const char* name, const char* group, bool newName)
+set_name(const std::string& name, const std::string& group, bool newName)
 {
 //	set own name
 	set_name(name, group, newName);
@@ -94,7 +88,7 @@ set_name(const char* name, const char* group, bool newName)
 template <typename TClass>
 template <typename TParent1, typename TParent2>
 void ClassNameProvider<TClass>::
-set_name(const char* name, const char* group,bool newName)
+set_name(const std::string& name, const std::string& group,bool newName)
 {
 //	set own name
 	set_name(name, group, newName);
@@ -105,7 +99,7 @@ set_name(const char* name, const char* group,bool newName)
 }
 
 template <typename TClass>
-bool ClassNameProvider<TClass>::is_a(const char* parent, bool strict)
+bool ClassNameProvider<TClass>::is_a(const std::string& parent, bool strict)
 {
 //	check if class is forward declared
 	if(m_bForwardDeclared)
@@ -115,11 +109,8 @@ bool ClassNameProvider<TClass>::is_a(const char* parent, bool strict)
 //  strict comparison: must match this class name, parents are not allowed
 	if(strict)
 	{
-	//  check pointer
-		if(parent == name()) return true;
-
 	//  compare strings
-		if(strcmp(parent, name()) == 0) return true;
+		if(parent == name()) return true;
 
 	//  names does not match
 		return false;
@@ -130,13 +121,13 @@ bool ClassNameProvider<TClass>::is_a(const char* parent, bool strict)
 }
 
 template <typename TClass>
-const char* ClassNameProvider<TClass>::name()
+const std::string& ClassNameProvider<TClass>::name()
 {
 //	if name has not been set, set temporary forward declaration
 	if(m_ClassNameNode.empty()) set_foreward_declared();
 
 //	return the name of this class as stored in ClassNameNode
-	return m_ClassNameNode.name().c_str();
+	return m_ClassNameNode.name();
 }
 
 template <typename TClass>
@@ -162,7 +153,7 @@ void ClassNameProvider<TClass>::set_foreward_declared()
 	name.append(" (undeclared) ]]");
 
 //	set this as current name, but remember pre-declaration
-	m_ClassNameNode.set_name(name.c_str());
+	m_ClassNameNode.set_name(name);
 	m_bForwardDeclared = true;
 }
 

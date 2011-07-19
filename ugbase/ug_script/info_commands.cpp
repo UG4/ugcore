@@ -84,7 +84,7 @@ bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable)
 string GetFileLine(const char *filename, size_t line);
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
 void LuaPrintTable(lua_State *L, size_t iSpace);
-bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
+bool ClassNameVecContains(const std::vector<const char*>& names, const std::string& name);
 bool ClassInstantiations(const char *classname);
 
 bool GetLuaNamespace(lua_State* L, string name)
@@ -217,8 +217,8 @@ int UGTypeInfo(const char *p)
 		for(size_t i=0; i < names->size(); ++i)
 			PrintClassInfo(reg, names->at(i));
 		UG_LOG(endl);
-		PrintClassHierarchy(reg, c->name());
-		ClassInstantiations(c->name());
+		PrintClassHierarchy(reg, c->name().c_str());
+		ClassInstantiations(c->name().c_str());
 		return true;
 	}
 

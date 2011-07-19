@@ -116,22 +116,20 @@ const IExportedClass& Registry::get_class(size_t ind) const
 	return *m_vClass.at(ind);
 }
 
-IExportedClass* Registry::get_class(const char* name)
+IExportedClass* Registry::get_class(const std::string& name)
 {
 //todo:	use a map to access classes by name.
 	for(size_t i = 0; i < m_vClass.size(); ++i)
-	{
-	//  compare strings
-		if(strcmp(name, m_vClass[i]->name()) == 0)
+		if(name == m_vClass[i]->name())
 			return m_vClass[i];
-	}
+
 	return NULL;
 }
 
 bool Registry::check_consistency()
 {
-	size_t globFctUndef = 0;
 //	check global functions
+	size_t globFctUndef = 0;
 	for(size_t i=0; i<num_functions(); i++)
 	{
 	//	get function
@@ -202,13 +200,12 @@ ClassGroupDesc* Registry::get_class_group(size_t i)
 	return m_vClassGroups[i];
 }
 
-ClassGroupDesc* Registry::get_class_group(const char* name)
+ClassGroupDesc* Registry::get_class_group(const std::string& name)
 {
 //todo:	use a map to quickly access classGroups by name
-	for(size_t i = 0; i < m_vClassGroups.size(); ++i){
-		if(strcmp(m_vClassGroups[i]->name(), name) == 0)
+	for(size_t i = 0; i < m_vClassGroups.size(); ++i)
+		if(name == m_vClassGroups[i]->name())
 			return m_vClassGroups[i];
-	}
 
 //	since we reached this point, no class-group with the given name exists.
 	ClassGroupDesc* classGroup = new ClassGroupDesc();
@@ -218,19 +215,19 @@ ClassGroupDesc* Registry::get_class_group(const char* name)
 	return classGroup;
 }
 
-const ClassGroupDesc* Registry::get_class_group(const char* name) const
+const ClassGroupDesc* Registry::get_class_group(const std::string& name) const
 {
 //todo:	use a map to quickly access classGroups by name
-	for(size_t i = 0; i < m_vClassGroups.size(); ++i){
-		if(strcmp(m_vClassGroups[i]->name(), name) == 0)
+	for(size_t i = 0; i < m_vClassGroups.size(); ++i)
+		if(name == m_vClassGroups[i]->name())
 			return m_vClassGroups[i];
-	}
+
 //	since we reached this point, no class-group with the given name exists.
 	return NULL;
 }
 
-void Registry::add_class_to_group(const char* className, const char* groupName,
-								  const char* classTag)
+void Registry::add_class_to_group(std::string className, std::string groupName,
+								  std::string classTag)
 {
 //	make sure that no class with groupName exists.
 	if(classname_registered(groupName)){
@@ -249,41 +246,37 @@ void Registry::add_class_to_group(const char* className, const char* groupName,
 }
 
 
-bool Registry::classname_registered(const char* name)
+bool Registry::classname_registered(const std::string& name)
 {
 	return get_class(name) != NULL;
 }
 
-bool Registry::groupname_registered(const char* name)
+bool Registry::groupname_registered(const std::string& name)
 {
 //todo:	use a map to quickly access classGroups by name
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i){
-		if(strcmp(m_vClassGroups[i]->name(), name) == 0)
+		if(name == m_vClassGroups[i]->name())
 			return true;
 	}
 	return false;
 }
 
 // returns true if functionname is already used by a function in this registry
-bool Registry::functionname_registered(const char* name)
+bool Registry::functionname_registered(const std::string& name)
 {
 	for(size_t i = 0; i < m_vFunction.size(); ++i)
-	{
-	//  compare strings
-		if(strcmp(name, (m_vFunction[i]->name()).c_str()) == 0)
+		if(name == m_vFunction[i]->name())
 			return true;
-	}
+
 	return false;
 }
 
-ExportedFunctionGroup* Registry::get_exported_function_group(const char* name)
+ExportedFunctionGroup* Registry::get_exported_function_group(const std::string& name)
 {
 	for(size_t i = 0; i < m_vFunction.size(); ++i)
-	{
-	//  compare strings
-		if(strcmp(name, (m_vFunction[i]->name()).c_str()) == 0)
+		if(name == m_vFunction[i]->name())
 			return m_vFunction[i];
-	}
+
 	return NULL;
 }
 

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <string>
 #include "class_name_provider.h"
+#include "common/util/string_util.h"
 
 namespace ug
 {
@@ -17,9 +18,9 @@ namespace bridge
 {
 
 ExportedFunctionBase::
-ExportedFunctionBase(	const char* funcName, const char* funcOptions,
-						const char* retValInfos, const char* paramInfos,
-						const char* tooltip, const char* help)
+ExportedFunctionBase(	const std::string& funcName, const std::string& funcOptions,
+						const std::string& retValInfos, const std::string& paramInfos,
+						const std::string& tooltip, const std::string& help)
 : m_name(funcName), m_methodOptions(funcOptions),
   m_retValInfos(retValInfos), m_paramInfos(paramInfos),
   m_tooltip(tooltip), m_help(help)
@@ -34,42 +35,37 @@ ExportedFunctionBase(	const char* funcName, const char* funcOptions,
 
 //	Tokenize each info-string of one parameter into single infos (separated by '|')
 	for(size_t i = 0; i < vParamInfoTmp.size(); ++i)
-	{
 		tokenize(vParamInfoTmp[i], m_vvParamInfo[i], '|');
-	}
 
 //	check name   //
 ///////////////////
 
-//	create help string
-	std::string nameStr = std::string(funcName);
-
 //	check for non-allowed character
-	size_t found = nameStr.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
+	size_t found = m_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
 											 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											 "_"
 											 "0123456789");
 	if (found!=std::string::npos)
 	{
-		UG_LOG("Non-allowed character '"<<nameStr[found]<<"' "<<
+		UG_LOG("Non-allowed character '"<<m_name[found]<<"' "<<
 			   "contained at position "<<int(found)<<" in registered function/method "
-			   "'"<<nameStr<<"'.\nFunction names must match the regular expression: "
+			   "'"<<m_name<<"'.\nFunction names must match the regular expression: "
 			   "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
 			   " and '_' are allowed; no numbers at the beginning.\n");
 		throw(REGISTRY_ERROR_Message("Function Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
 	}
 
 //	check that no number at the beginning
-	found = nameStr.find_first_of("0123456789");
+	found = m_name.find_first_of("0123456789");
 	if (found!=std::string::npos && found == 0)
 	{
-		UG_LOG("Function Name "<<nameStr<<" starts with a number.\nThis is "
+		UG_LOG("Function Name "<<m_name<<" starts with a number.\nThis is "
 				" not allowed. Please change naming.\n");
 		throw(REGISTRY_ERROR_Message("Function Name must not start with number."));
 	}
 };
 
-bool ExportedFunctionBase::check_consistency(const char *classname) const
+bool ExportedFunctionBase::check_consistency(std::string classname) const
 {
 //	flag to indicate, that unnamed parameter is found
 	bool bUndeclaredParameterFound = false;
@@ -84,9 +80,9 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 			{
 				bUndeclaredParameterFound = true;
 				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
-				if(classname){ UG_LOG("Method: '");}
+				if(!classname.empty()){ UG_LOG("Method: '");}
 				else UG_LOG("global Function: '")
-				PrintFunctionInfo(*this, false, classname);
+				PrintFunctionInfo(*this, false, classname.c_str());
 				UG_LOG("': Parameter " << j+1);
 			}
 			else
@@ -105,9 +101,9 @@ bool ExportedFunctionBase::check_consistency(const char *classname) const
 			{
 				bUndeclaredParameterFound = true;
 				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
-				if(classname){UG_LOG("Method: '");}
+				if(!classname.empty()){UG_LOG("Method: '");}
 				else UG_LOG("global Function: '");
-				PrintFunctionInfo(*this, false, classname);
+				PrintFunctionInfo(*this, false, classname.c_str());
 				UG_LOG("': Return value ");
 			}
 			else
@@ -133,16 +129,8 @@ void ExportedFunctionBase::tokenize(const std::string& str,
 
 	while ( std::getline (tokenstream, token, delimiter ) )
 	{
-		tokens.push_back(trim(token));
+		tokens.push_back(TrimString(token));
 	}
-}
-
-std::string ExportedFunctionBase::trim(const std::string& str)
-{
-	const size_t start = str.find_first_not_of(" \t");
-	const size_t end = str.find_last_not_of(" \t");
-	if(start == std::string::npos || end == std::string::npos) return "";
-	return str.substr(start, end - start + 1);
 }
 
 } // end namespace bridge

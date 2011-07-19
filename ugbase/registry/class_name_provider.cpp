@@ -10,13 +10,13 @@ ClassNameNode::ClassNameNode()
 	m_name.clear();
 }
 
-void ClassNameNode::set_name(const char* name)
+void ClassNameNode::set_name(const std::string& name)
 {
 //	set name
 	m_name = std::string(name);
 
 //	check size
-	if(m_name.size()==0)
+	if(m_name.empty())
 		throw(REGISTRY_ERROR_Message("ERROR in 'ClassNameNode::set_name':"
 									 "Name must be longer than 0 characters."));
 }
@@ -42,15 +42,15 @@ bool ClassNameNode::named() const
 }
 
 
-bool ClassNameVecContains(const std::vector<const char*>& names, const char* name)
+bool ClassNameVecContains(const std::vector<const char*>& names, const std::string& name)
 {
 	//  return true if pointers are equal
 		for(size_t i = 0; i < names.size(); ++i)
-			if(name == names[i]) return true;
+			if(name.c_str() == names[i]) return true;
 
 	//  security fallback: if pointers not equal, compare also strings
 		for(size_t i = 0; i < names.size(); ++i)
-			if(strcmp(name, names[i]) == 0) return true;
+			if(name == names[i]) return true;
 
 	//  both comparisons fail. Name is not this class, nor on of its parents
 		return false;
@@ -70,10 +70,10 @@ void ExtractClassNameVec(std::vector<const char*>& names, const ClassNameNode& n
 		ExtractClassNameVec(names, node.base_class(i), false);
 }
 
-bool ClassNameTreeContains(const ClassNameNode& node, const char* name)
+bool ClassNameTreeContains(const ClassNameNode& node, const std::string& name)
 {
 //	if the node is the name, return true
-	if(strcmp(node.name().c_str(), name) == 0) return true;
+	if(node.name() == name) return true;
 
 //	else search in parents
 	bool bContains = false;
@@ -85,10 +85,11 @@ bool ClassNameTreeContains(const ClassNameNode& node, const char* name)
 	return bContains;
 }
 
-bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node, const char* name)
+bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node,
+                      const std::string& name)
 {
 //	if the node is the name, return true
-	if(strcmp(node.name().c_str(), name) == 0) return true;
+	if(node.name() == name) return true;
 
 //	look in parents
 	for(size_t i = 0; i < node.num_base_classes(); ++i)
@@ -104,7 +105,7 @@ bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node, cons
 }
 
 void* ClassCastProvider::
-cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const char* baseName)
+cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::string& baseName)
 {
 //	find way to base class
 	std::vector<size_t> vWay;

@@ -9,6 +9,7 @@
 #include "function_traits.h"
 #include "global_function.h"
 #include "common/common.h"
+#include "common/util/string_util.h"
 
 namespace ug
 {
@@ -18,10 +19,8 @@ namespace bridge
 
 struct UG_REGISTRY_ERROR_RegistrationFailed
 {
-		UG_REGISTRY_ERROR_RegistrationFailed(const char* name_)
-			: name(name_)
-		{}
-		std::string name;
+	UG_REGISTRY_ERROR_RegistrationFailed(const std::string& name_) : name(name_) {}
+	std::string name;
 };
 
 class MethodPtrWrapper
@@ -64,14 +63,15 @@ class ExportedMethod : public ExportedFunctionBase
 {
 	public:
 	// all c++ functions are wrapped by a proxy function of the following type
-		typedef void (*ProxyFunc)(const MethodPtrWrapper& func, void* obj, const ParameterStack& in, ParameterStack& out);
+		typedef void (*ProxyFunc)(const MethodPtrWrapper& func, void* obj,
+								  const ParameterStack& in, ParameterStack& out);
 
 	public:
 		ExportedMethod(	const MethodPtrWrapper& m, ProxyFunc pf,
-						const char* name, const char* className,
-						const char* methodOptions,
-						const char* retValInfos, const char* paramInfos,
-						const char* tooltip, const char* help)
+						const std::string& name, const std::string& className,
+						const std::string& methodOptions,
+						const std::string& retValInfos, const std::string& paramInfos,
+						const std::string& tooltip, const std::string& help)
 		: ExportedFunctionBase(name, methodOptions, retValInfos, paramInfos, tooltip, help),
 		  m_ptrWrapper(m), m_proxy_func(pf), m_className(className)
 		{}
@@ -90,17 +90,17 @@ class ExportedMethod : public ExportedFunctionBase
 		}
 		
 	///	returns the class name this method belongs to
-		const char* class_name() const {return m_className;}
+		const std::string& class_name() const {return m_className;}
 
 	private:
-		// pointer to function (stored in a wrapper)
+	/// pointer to function (stored in a wrapper)
 		MethodPtrWrapper m_ptrWrapper;
 	
-		// proxy function to call method
+	/// proxy function to call method
 		ProxyFunc m_proxy_func;
 
-		// name of class this method belongs to
-		const char* m_className;
+	/// name of class this method belongs to
+		std::string m_className;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ class ExportedMethodGroup
 	typedef ExportedMethod::ProxyFunc ProxyFunc;
 
 	public:
-		ExportedMethodGroup(const char* name) : m_name(name)
+		ExportedMethodGroup(const std::string& name) : m_name(name)
 		{}
 
 		~ExportedMethodGroup()
@@ -121,15 +121,15 @@ class ExportedMethodGroup
 		}
 
 	///	name of function group
-		const std::string& name() const 							{return m_name;}
+		const std::string& name() const {return m_name;}
 
 	///	adds an overload. Returns false if the overload already existed.
 		template <class TFunc>
 		bool add_overload(	const TFunc& m, ProxyFunc pf,
-		                  	const char* className,
-							const char* methodOptions, const char* retValInfos,
-							const char* paramInfos, const char* tooltip,
-							const char* help)
+		                  	const std::string& className,
+							const std::string& methodOptions, const std::string& retValInfos,
+							const std::string& paramInfos, const std::string& tooltip,
+							const std::string& help)
 		{
 			size_t typeID = GetUniqueTypeID<TFunc>();
 
@@ -139,7 +139,7 @@ class ExportedMethodGroup
 
 		//	create a new overload
 			ExportedMethod* func = new ExportedMethod(MethodPtrWrapper(m),
-												pf, m_name.c_str(), className,
+												pf, m_name, className,
 												methodOptions, retValInfos,
 												paramInfos, tooltip, help);
 
@@ -152,54 +152,52 @@ class ExportedMethodGroup
 			return true;
 		}
 
-		size_t num_overloads() const
-			{return m_overloads.size();}
+		size_t num_overloads() const {return m_overloads.size();}
 
-		ExportedMethod* get_overload(size_t index)
-			{return m_overloads.at(index).m_func;}
+		ExportedMethod* get_overload(size_t index) {return m_overloads.at(index).m_func;}
 
-		const ExportedMethod* get_overload(size_t index) const
-			{return m_overloads.at(index).m_func;}
+		const ExportedMethod* get_overload(size_t index) const {return m_overloads.at(index).m_func;}
 
 		template <class TType>
 		ExportedMethod* get_overload_by_type()
-			{
-				size_t typeID = GetUniqueTypeID<TType>();
-				return get_overload_by_type_id(typeID);
-			}
+		{
+			size_t typeID = GetUniqueTypeID<TType>();
+			return get_overload_by_type_id(typeID);
+		}
 
 		template <class TType>
 		const ExportedMethod* get_overload_by_type() const
-			{
-				size_t typeID = GetUniqueTypeID<TType>();
-				return get_overload_by_type_id(typeID);
-			}
+		{
+			size_t typeID = GetUniqueTypeID<TType>();
+			return get_overload_by_type_id(typeID);
+		}
 
 		ExportedMethod* get_overload_by_type_id(size_t typeID)
-			{
-				for(size_t i = 0; i < m_overloads.size(); ++i){
-					if(m_overloads[i].m_typeID == typeID)
-						return m_overloads[i].m_func;
-				}
-				return NULL;
+		{
+			for(size_t i = 0; i < m_overloads.size(); ++i){
+				if(m_overloads[i].m_typeID == typeID)
+					return m_overloads[i].m_func;
 			}
+			return NULL;
+		}
 
 		const ExportedMethod* get_overload_by_type_id(size_t typeID) const
-			{
-				for(size_t i = 0; i < m_overloads.size(); ++i){
-					if(m_overloads[i].m_typeID == typeID)
-						return m_overloads[i].m_func;
-				}
-				return NULL;
+		{
+			for(size_t i = 0; i < m_overloads.size(); ++i){
+				if(m_overloads[i].m_typeID == typeID)
+					return m_overloads[i].m_func;
 			}
+			return NULL;
+		}
 
-		size_t get_overload_type_id(size_t index) const
-			{return m_overloads.at(index).m_typeID;}
+		size_t get_overload_type_id(size_t index) const {return m_overloads.at(index).m_typeID;}
 
 	private:
 		struct Overload{
 			Overload()	{}
-			Overload(ExportedMethod* func, size_t typeID) : m_func(func), m_typeID(typeID) {}
+			Overload(ExportedMethod* func, size_t typeID)
+				: m_func(func), m_typeID(typeID)
+			{}
 			ExportedMethod* 	m_func;
 			size_t				m_typeID;
 		};
@@ -273,7 +271,7 @@ class IExportedClass
 
 	public:
 	///  name of class
-		virtual const char* name() const = 0;
+		virtual const std::string& name() const = 0;
 
 	///	get groups
 		virtual const std::string& group() const = 0;
@@ -388,7 +386,8 @@ class ExportedClass_ : public IExportedClass
 
 	public:
 	//  contructor
-		ExportedClass_(const char* name, const char* group = "", const char *tooltip = "")
+		ExportedClass_(const std::string& name, const std::string& group,
+		               const std::string& tooltip)
 				: m_constructor(NULL), m_destructor(NULL), m_tooltip(tooltip)
 		{
 			ClassNameProvider<TClass>::set_name(name, group, true);
@@ -396,7 +395,7 @@ class ExportedClass_ : public IExportedClass
 		}
 
 	/// name of class
-		virtual const char* name() const {return ClassNameProvider<TClass>::name();}
+		virtual const std::string& name() const {return ClassNameProvider<TClass>::name();}
 
 	///	name node of class
 		virtual const ClassNameNode& class_name_node() const {return ClassNameProvider<TClass>::class_name_node();}
@@ -407,6 +406,7 @@ class ExportedClass_ : public IExportedClass
 	///	get groups
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
+	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
 
@@ -443,9 +443,9 @@ class ExportedClass_ : public IExportedClass
 
 	/// Method registration
 		template <typename TMethod>
-		ExportedClass_<TClass>& add_method (	const char* methodName, TMethod func,
-												const char* retValInfos = "", const char* paramInfos = "",
-												const char* tooltip = "", const char* help = "")
+		ExportedClass_<TClass>& add_method (std::string methodName, TMethod func,
+		                                    std::string retValInfos = "", std::string paramInfos = "",
+		                                    std::string tooltip = "", std::string help = "")
 		{
 		//	At this point the method name contains parameters (name|param1=...).
 		//todo: they should be removed and specified with an extra parameter.
@@ -459,38 +459,27 @@ class ExportedClass_ : public IExportedClass
 			}
 
 		//	trim whitespaces
-			{
-				const size_t start = strippedMethodName.find_first_not_of(" \t");
-				const size_t end = strippedMethodName.find_last_not_of(" \t");
-				if(start != std::string::npos && end != std::string::npos)
-					strippedMethodName = strippedMethodName.substr(start, end - start + 1);
-			}
-			{
-				const size_t start = methodOptions.find_first_not_of(" \t");
-				const size_t end = methodOptions.find_last_not_of(" \t");
-				if(start != std::string::npos && end != std::string::npos)
-					methodOptions = methodOptions.substr(start, end - start + 1);
-			}
-
+			strippedMethodName = TrimString(strippedMethodName);
+			methodOptions = TrimString(methodOptions);
 
 		// 	check that name is not empty
 			if(strippedMethodName.empty())
 			{
 				UG_LOG("### Registry ERROR: Trying to register empty method name."
-						<< "\n### Please change register process. Aborting ..." << std::endl);
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName.c_str()));
+						<< "\n### Please change register process. Aborting ...\n");
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
 			}
 
 		//	if the method is already in use, we have to add an overload.
 		//	If not, we have to create a new method group
 			ExportedMethodGroup* methodGrp = NULL;
 			if(func_traits<TMethod>::const_method)
-				methodGrp = get_const_exported_method_group(strippedMethodName.c_str());
+				methodGrp = get_const_exported_method_group(strippedMethodName);
 			else
-				methodGrp = get_exported_method_group(strippedMethodName.c_str());
+				methodGrp = get_exported_method_group(strippedMethodName);
 
 			if(!methodGrp){
-				methodGrp = new ExportedMethodGroup(strippedMethodName.c_str());
+				methodGrp = new ExportedMethodGroup(strippedMethodName);
 				if(func_traits<TMethod>::const_method)
 					m_vConstMethod.push_back(methodGrp);
 				else
@@ -499,15 +488,15 @@ class ExportedClass_ : public IExportedClass
 
 			bool success = methodGrp->add_overload(func, &MethodProxy<TClass, TMethod>::apply,
 												   ClassNameProvider<TClass>::name(),
-													methodOptions.c_str(), retValInfos, paramInfos,
-													tooltip, help);
+												   methodOptions, retValInfos, paramInfos,
+												   tooltip, help);
 
 			if(!success)
 			{
 				UG_LOG("### Registry ERROR: Trying to register method name '" << strippedMethodName
 						<< "' to class '" << name() << "', but another method with this name "
 						<< " and the same function signature is already registered for this class."
-						<< "\n### Please change register process. Aborting ..." << std::endl);
+						<< "\n### Please change register process. Aborting ...\n");
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
 			}
 
@@ -565,48 +554,41 @@ class ExportedClass_ : public IExportedClass
 		}
 
 	protected:
-		// returns true if methodname is already used by a method in this class
-		bool constmethodname_registered(const char* name)
+	/// returns true if methodname is already used by a method in this class
+		bool constmethodname_registered(const std::string& name)
 		{
 			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
-			{
-			//  compare strings
-				if(strcmp(name, (m_vConstMethod[i]->name()).c_str()) == 0)
+				if(name == m_vConstMethod[i]->name())
 					return true;
-			}
-			return false;
-		}
-		// returns true if methodname is already used by a method in this class
-		bool methodname_registered(const char* name)
-		{
-			for(size_t i = 0; i < m_vMethod.size(); ++i)
-			{
-			//  compare strings
-				if(strcmp(name, (m_vMethod[i]->name()).c_str()) == 0)
-					return true;
-			}
+
 			return false;
 		}
 
-		ExportedMethodGroup* get_exported_method_group(const char* name)
+	/// returns true if methodname is already used by a method in this class
+		bool methodname_registered(const std::string& name)
 		{
 			for(size_t i = 0; i < m_vMethod.size(); ++i)
-			{
-			//  compare strings
-				if(strcmp(name, (m_vMethod[i]->name()).c_str()) == 0)
+				if(name == m_vMethod[i]->name())
+					return true;
+
+			return false;
+		}
+
+		ExportedMethodGroup* get_exported_method_group(const std::string& name)
+		{
+			for(size_t i = 0; i < m_vMethod.size(); ++i)
+				if(name == m_vMethod[i]->name())
 					return m_vMethod[i];
-			}
+
 			return NULL;
 		}
 
-		ExportedMethodGroup* get_const_exported_method_group(const char* name)
+		ExportedMethodGroup* get_const_exported_method_group(const std::string& name)
 		{
 			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
-			{
-			//  compare strings
-				if(strcmp(name, (m_vConstMethod[i]->name()).c_str()) == 0)
+				if(name == m_vConstMethod[i]->name())
 					return m_vConstMethod[i];
-			}
+
 			return NULL;
 		}
 

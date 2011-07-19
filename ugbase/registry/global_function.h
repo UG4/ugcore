@@ -37,9 +37,9 @@ struct UG_REGISTRY_ERROR_FunctionOrMethodNameMissing {};
 class ExportedFunctionBase
 {
 	public:
-		ExportedFunctionBase(	const char* funcName, const char* funcOptions,
-								const char* retValInfos, const char* paramInfos,
-								const char* tooltip, const char* help);
+		ExportedFunctionBase(const std::string& funcName, const std::string& funcOptions,
+		                     const std::string& retValInfos, const std::string& paramInfos,
+		                     const std::string& tooltip, const std::string& help);
 
 	///	name of function
 		const std::string& name() const {return m_name;}
@@ -91,7 +91,7 @@ class ExportedFunctionBase
 		ParameterStack& params_in() {return m_paramsIn;}
 
 	/// returns true if all parameters of the function are correctly declared
-		bool check_consistency(const char *classname=NULL) const;
+		bool check_consistency(std::string classname = "") const;
 
 	protected:
 		template <typename TFunc>
@@ -130,9 +130,6 @@ class ExportedFunctionBase
 		void tokenize(const std::string& str, std::vector<std::string>& tokens,
 		              const char delimiter);
 
-	//	help function to remove white space from begin and end of string
-		std::string trim(const std::string& str);
-
 	protected:
 		std::string m_name;
 		std::string m_methodOptions;
@@ -163,10 +160,10 @@ class ExportedFunction : public ExportedFunctionBase
 	public:
 		template <typename TFunc>
 		ExportedFunction(	TFunc f, ProxyFunc pf,
-							const char* name, const char* funcOptions,
-							const char* group,
-							const char* retValInfos, const char* paramInfos,
-							const char* tooltip, const char* help)
+							const std::string& name, const std::string& funcOptions,
+							const std::string& group,
+							const std::string& retValInfos, const std::string& paramInfos,
+							const std::string& tooltip, const std::string& help)
 			: ExportedFunctionBase(name, funcOptions, retValInfos,
 			                       paramInfos, tooltip, help),
 			  m_group(group), m_func((void*)f), m_proxy_func(pf)
@@ -201,7 +198,7 @@ class ExportedFunctionGroup
 {
 	public:
 	///	constructor
-		ExportedFunctionGroup(const char* name) : m_name(name){}
+		ExportedFunctionGroup(const std::string& name) : m_name(name){}
 
 	///	destructor
 		~ExportedFunctionGroup()
@@ -216,9 +213,9 @@ class ExportedFunctionGroup
 	///	adds an overload. Returns false if the overload already existed.
 		template <class TFunc>
 		bool add_overload(TFunc f, ExportedFunction::ProxyFunc pf,
-						const char* funcOptions, const char* group,
-						const char* retValInfos, const char* paramInfos,
-						const char* tooltip, const char* help)
+		                  const std::string& funcOptions, const std::string& group,
+		                  const std::string& retValInfos, const std::string& paramInfos,
+		                  const std::string& tooltip, const std::string& help)
 		{
 			size_t typeID = GetUniqueTypeID<TFunc>();
 
@@ -226,7 +223,7 @@ class ExportedFunctionGroup
 			if(get_overload_by_type_id(typeID))return false;
 
 		//	create a new overload
-			ExportedFunction* func = new ExportedFunction(f, pf, m_name.c_str(),
+			ExportedFunction* func = new ExportedFunction(f, pf, m_name,
 												funcOptions, group, retValInfos,
 												paramInfos, tooltip, help);
 
