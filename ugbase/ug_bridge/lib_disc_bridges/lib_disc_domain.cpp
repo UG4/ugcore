@@ -438,11 +438,11 @@ bool RegisterDynamicLibDiscDomain(Registry& reg, int algebra_type, const char* p
 {
 	bool bReturn = true;
 
-//	typedef P1DoFDistribution<false> dd_type_single;
-//	typedef P1DoFDistribution<true> dd_type_grouped;
+	typedef P1DoFDistribution<false> dd_type_single;
+	typedef P1DoFDistribution<true> dd_type_grouped;
 
-	typedef DoFDistribution dd_type_single;
-	typedef DoFDistribution dd_type_grouped;
+//	typedef DoFDistribution dd_type_single;
+//	typedef DoFDistribution dd_type_grouped;
 
 	switch(algebra_type)
 	{
