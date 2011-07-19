@@ -127,6 +127,10 @@ static bool PerformTetrahedralization(Grid& grid,
 		}
 	}
 
+//	the aInd attachment is no longer required
+	grid.detach_from_vertices(aInd);
+	aaInd.invalidate();
+
 //	call tetrahedralization
 	try{
 		stringstream ss;

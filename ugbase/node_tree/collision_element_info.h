@@ -29,6 +29,8 @@ struct CollisionElementID{
 
 	inline bool is_valid()	{return m_intID != -1;}
 	
+	bool operator == (const CollisionElementID& id)	{return m_ptrID == id.m_ptrID;}
+
 	union{
 		void* 	m_ptrID;
 		int		m_intID;

@@ -29,8 +29,15 @@ handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode)
 {
 	//std::cout << "handling collision tree root" << std::endl;
 
-//	handle the boxed group
+//	put the rootNode on top of the stack.
+//	All CollisionEdgeNodes children will index it's points
+	m_stackRootNodes.push(colTreeRootNode);
+
+//	traverse the node
 	handle_boxed_group(colTreeRootNode);
+
+//	pop the rootNode from the stack
+	m_stackRootNodes.pop();
 }
 
 void Traverser_CollisionTree::
@@ -43,6 +50,14 @@ void Traverser_CollisionTree::
 handle_collision_triangles(CollisionTrianglesNode* colTrisNode)
 {
 	//std::cout << "handling collision edges" << std::endl;
+}
+
+CollisionTreeRootNode* Traverser_CollisionTree::
+get_current_root_node()
+{
+	assert(!m_stackRootNodes.empty() && "Make sure that your collision tree"
+			" contains a CollisionTreeRootNode!");
+	return m_stackRootNodes.top();
 }
 
 }//	end of namespace node_tree

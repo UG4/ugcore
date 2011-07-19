@@ -150,23 +150,9 @@ void Traverser_ProjectPoint::handle_boxed_group(BoxedGroupNode* boxedGroup)
 }
 
 void Traverser_ProjectPoint::
-handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode)
-{
-//	put the rootNode on top of the stack.
-//	All CollisionEdgeNodes children will index it's points
-	m_stackRootNodes.push(colTreeRootNode);
-
-//	traverse the node
-	handle_group(colTreeRootNode);
-
-//	pop the rootNode from the stack
-	m_stackRootNodes.pop();
-}
-
-void Traverser_ProjectPoint::
 handle_collision_edges(CollisionEdgesNode* colEdgesNode)
 {
-	CollisionTreeRootNode* root = m_stackRootNodes.top();
+	CollisionTreeRootNode* root = get_current_root_node();
 	const vector3* pPoints = root->get_points();
 	int numIndices = colEdgesNode->num_edges() * 2;
 	const int* indices = colEdgesNode->get_edges();
@@ -204,7 +190,7 @@ handle_collision_edges(CollisionEdgesNode* colEdgesNode)
 void Traverser_ProjectPoint::
 handle_collision_triangles(CollisionTrianglesNode* colTrisNode)
 {
-	CollisionTreeRootNode* root = m_stackRootNodes.top();
+	CollisionTreeRootNode* root = get_current_root_node();
 	const vector3* pPoints = root->get_points();
 	int numIndices = colTrisNode->num_triangles() * 3;
 	const int* indices = colTrisNode->get_triangles();

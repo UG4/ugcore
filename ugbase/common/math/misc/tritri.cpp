@@ -24,7 +24,7 @@ using namespace ug;
    else no check is done (which is less robust)
 */
 #define USE_EPSILON_TEST TRUE  
-#define EPSILON 0.000001
+#define EPSILON 1.e-20
 
 
 /* some macros */

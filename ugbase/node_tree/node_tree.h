@@ -15,6 +15,7 @@
 
 #include "traverser.h"
 #include "traversers/traverser_project_point.h"
+#include "traversers/traverser_intersect_faces.h"
 
 #include "octree.h"
 

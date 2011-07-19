@@ -5,7 +5,9 @@
 #ifndef __H__UG__NODE_TREE__TRAVERSER_COLLISION_TREE__
 #define __H__UG__NODE_TREE__TRAVERSER_COLLISION_TREE__
 
+#include <stack>
 #include "../traverser.h"
+#include "../collision_element_info.h"
 
 namespace ug{
 namespace node_tree
@@ -35,9 +37,14 @@ class Traverser_CollisionTree : public Traverser
 		virtual ~Traverser_CollisionTree();
 
 	protected:
-		virtual void handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode) = 0;
-		virtual void handle_collision_edges(CollisionEdgesNode* colEdgesNode) = 0;
-		virtual void handle_collision_triangles(CollisionTrianglesNode* colTrisNode) = 0;
+		virtual void handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode);
+		virtual void handle_collision_edges(CollisionEdgesNode* colEdgesNode);
+		virtual void handle_collision_triangles(CollisionTrianglesNode* colTrisNode);
+
+		CollisionTreeRootNode* get_current_root_node();
+
+	private:
+		std::stack<CollisionTreeRootNode*>	m_stackRootNodes;
 };
 
 }//	end of namespace node_tree

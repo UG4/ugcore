@@ -5,10 +5,8 @@
 #ifndef __H__UG__NODE_TREE__TRAVERSER_PROJECT_POINT__
 #define __H__UG__NODE_TREE__TRAVERSER_PROJECT_POINT__
 
-#include <stack>
 #include "common/math/ugmath.h"
 #include "traverser_collision_tree.h"
-#include "../collision_element_info.h"
 
 namespace ug{
 namespace node_tree
@@ -41,8 +39,6 @@ class Traverser_ProjectPoint : protected Traverser_CollisionTree
 	protected:
 		virtual void handle_group(GroupNode* group);
 		virtual void handle_boxed_group(BoxedGroupNode* boxedGroup);
-		
-		virtual void handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode);
 		virtual void handle_collision_edges(CollisionEdgesNode* colTrisNode);
 		virtual void handle_collision_triangles(CollisionTrianglesNode* colTrisNode);
 		
@@ -70,8 +66,6 @@ class Traverser_ProjectPoint : protected Traverser_CollisionTree
 		int						m_closestElemType;
 		CollisionElementID		m_closestElemID;
 		CollisionTreeRootNode*	m_closestRootNode;
-
-		std::stack<CollisionTreeRootNode*>	m_stackRootNodes;
 };
 
 }//	end of namespace node_tree

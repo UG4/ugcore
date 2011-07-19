@@ -17,7 +17,8 @@ set(srcNodeTree	boxed_group_node.cpp
 				octree.cpp)
 
 set(srcTraversers	traversers/traverser_collision_tree.cpp
-				traversers/traverser_project_point.cpp)
+					traversers/traverser_project_point.cpp
+					traversers/traverser_intersect_faces.cpp)
 
 
 
