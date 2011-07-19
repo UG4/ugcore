@@ -45,13 +45,13 @@
 #include "io/vtkoutput.h"
 
 // local shape function set
-#include "local_shape_function_set/local_shape_function_set.h"
-#include "local_shape_function_set/local_shape_function_set_provider.h"
-#include "local_shape_function_set/local_finite_element_id.h"
-#include "local_shape_function_set/lagrange/lagrange.h"
-#include "local_shape_function_set/lagrange/lagrangep1.h"
-#include "local_shape_function_set/common/lagrange1d.h"
-#include "local_shape_function_set/common/polynomial1d.h"
+#include "local_finite_element/local_shape_function_set.h"
+#include "local_finite_element/local_shape_function_set_provider.h"
+#include "local_finite_element/local_finite_element_id.h"
+#include "local_finite_element/lagrange/lagrange.h"
+#include "local_finite_element/lagrange/lagrangep1.h"
+#include "local_finite_element/common/lagrange1d.h"
+#include "local_finite_element/common/polynomial1d.h"
 
 // Operator
 #include "operator/linear_operator/assembled_linear_operator.h"
