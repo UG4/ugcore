@@ -57,13 +57,13 @@ class LocalDoF
 		}
 
 	///	returns the dimension of associated geometric object
-		inline int dim(size_t sh) const {return m_dim;}
+		inline int dim() const {return m_dim;}
 
 	///	returns the index for the geometric object (w.r.t reference element numbering)
-		inline size_t id(size_t sh) const {return m_id;}
+		inline size_t id() const {return m_id;}
 
 	///	returns the offset for the geometric object
-		inline size_t offset(size_t sh) const {return m_offset;}
+		inline size_t offset() const {return m_offset;}
 
 	protected:
 	///	dimension of sub-geometric object
