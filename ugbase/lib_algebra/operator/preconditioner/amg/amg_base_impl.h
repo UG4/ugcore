@@ -446,10 +446,7 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 			m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(false);
 	}
 	else
-	{
-		m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(true);
-
-	}
+		m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD);
 #else
 	m_basesolver->init(*m_A[level]);
 #endif
