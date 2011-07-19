@@ -72,9 +72,8 @@ inline bool SubsetIsRegularGrid(const ISubsetHandler& sh, int si);
 enum {DIM_SUBSET_EMPTY_GRID = -1};
 
 ////////////////////////////////////////////////////////////////////////
-///	returns the current dimension of the subset
-/** Returns the dimension of geometric objects, that are contained in the subset
- *
+///	Returns the dimension of geometric objects, that are contained in the subset
+/**
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
@@ -95,9 +94,8 @@ inline int DimensionOfSubset(const SubsetHandler& sh, int si
 							);
 
 ////////////////////////////////////////////////////////////////////////
-///	returns the current dimension of the subset
-/** Returns the dimension of geometric objects, that are contained in the subset
- *
+/// Returns the dimension of geometric objects, that are contained in the subset
+/**
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
@@ -118,9 +116,8 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
 							);
 
 ////////////////////////////////////////////////////////////////////////
-///	returns the current dimension of the subset
-/** Returns the dimension of geometric objects, that are contained in the subset
- *
+///	Returns the dimension of geometric objects, that are contained in the subset
+/**
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
@@ -141,9 +138,8 @@ inline int DimensionOfSubset(const ISubsetHandler& sh, int si
 							);
 
 ////////////////////////////////////////////////////////////////////////
-///	returns the current dimension for all subset
-/** Returns the dimension of geometric objects, that are contained in the subset handler
- *
+///	Returns the dimension of geometric objects, that are contained in the subset handler
+/**
  * This function returns the dimension of the subsets. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained the union of all subset
@@ -163,9 +159,8 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh
 							);
 
 ////////////////////////////////////////////////////////////////////////
-///	returns the current dimension of the subset
-/** Returns the dimension of geometric objects, that are contained in the subset
- *
+/// Returns the dimension of geometric objects, that are contained in the subset
+/**
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
@@ -187,9 +182,8 @@ inline int DimensionOfSubset(const TDomain& domain, int si
 							);
 
 ////////////////////////////////////////////////////////////////////////
-///	returns the current dimension of the domain
-/** Returns the dimension of geometric objects, that are contained in the domain
- *
+///	Returns the dimension of geometric objects, that are contained in the domain
+/**
  * This function returns the dimension of the domain. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the domain.
