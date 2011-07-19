@@ -195,8 +195,8 @@ bool amg_base<TAlgebra>::init()
 			break;
 
 		//agglomerate(nnzCoarse, level);
-		if(nrOfCoarse < m_minNodesOnOneProcessor)
-			break;
+		//if(nrOfCoarse < m_minNodesOnOneProcessor)
+			//break;
 		//smoothem_R[level].init(*m_A[level]);
 
 		m_presmoothers.resize(level+1);
@@ -436,14 +436,14 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 		}
 		if(pcl::GetProcRank() == 0)
 		{
-			m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(true);
+			m_emptyPC = pcl::ProcessCommunicator(m_A[level]->get_process_communicator()).create_sub_communicator(true);
 			collectedBaseA.set_master_layout(m_emptyLayout);
 			collectedBaseA.set_slave_layout(m_emptyLayout);
 			collectedBaseA.set_process_communicator(m_emptyPC);
 			m_basesolver->init(collectedBaseA);
 		}
 		else
-			m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(false);
+			m_emptyPC = pcl::ProcessCommunicator(m_A[level]->get_process_communicator()).create_sub_communicator(false);
 	}
 	else
 		m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD);
