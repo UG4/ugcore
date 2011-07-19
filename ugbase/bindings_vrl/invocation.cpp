@@ -40,6 +40,7 @@ void initClasses(ug::bridge::Registry &reg) {
 	classes = ug::Hash<const ug::bridge::IExportedClass*,
 			std::string > (reg.num_classes()*2);
 
+	// only classes, no groups !
 	for (unsigned int i = 0; i < reg.num_classes(); i++) {
 		const ug::bridge::IExportedClass* c = &reg.get_class(i);
 		classes.add(c, c->name());

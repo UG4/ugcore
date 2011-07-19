@@ -302,22 +302,22 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj) {
 }
 
 jobject pointer2JObject(JNIEnv *env, void* value) {
-	
+
 	if (value == NULL) {
 		return 0; // exception occured
 	}
-	
+
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(JZ)V");
 	return env->NewObject(cls, methodID, (jlong) value, boolC2J(false));
 }
 
 jobject constPointer2JObject(JNIEnv *env, void* value) {
-	
+
 	if (value == NULL) {
 		return 0; // exception occured
 	}
-	
+
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
 	jmethodID methodID = env->GetMethodID(cls, "<init>", "(JZ)V");
 	return env->NewObject(cls, methodID, (jlong) value, boolC2J(true));
@@ -446,6 +446,64 @@ std::string getParamClassName(JNIEnv *env, jobject obj) {
 	return "";
 }
 
+// used for debugging only
+
+void printParamType(const uint type, size_t index) {
+	using namespace ug::bridge;
+	//	iterate through the parameter list and return corresponding int
+
+	switch (type) {
+		case PT_UNKNOWN:
+		{
+			UG_LOG("Param " << index << " = PT_UNKNOWN" << std::endl)
+		}
+			break;
+		case PT_BOOL:
+		{
+			UG_LOG("Param " << index << " = PT_BOOL" << std::endl)
+		}
+			break;
+		case PT_INTEGER:
+		{
+			UG_LOG("Param " << index << " = PT_INTEGER" << std::endl)
+		}
+			break;
+		case PT_NUMBER:
+		{
+			UG_LOG("Param " << index << " = PT_NUMBER" << std::endl)
+		}
+			break;
+		case PT_STRING:
+		{
+			UG_LOG("Param " << index << " = PT_STRING" << std::endl)
+		}
+			break;
+		case PT_POINTER:
+		{
+			UG_LOG("Param " << index << " = PT_POINTER" << std::endl)
+		}
+			break;
+		case PT_CONST_POINTER:
+		{
+			UG_LOG("Param " << index << " = PT_CONST_POINTER" << std::endl)
+		}
+			break;
+		case PT_SMART_POINTER:
+		{
+			UG_LOG("Param " << index << " = PT_SMART_POINTER" << std::endl)
+		}
+			break;
+		case PT_CONST_SMART_POINTER:
+		{
+			UG_LOG("Param " << index <<
+					" = PT_CONST_SMART_POINTER" << std::endl)
+		}
+			break;
+		default:
+			break;
+	}
+}
+
 uint paramClass2ParamType(JNIEnv *env, jobject obj) {
 	int result = ug::bridge::PT_UNKNOWN;
 
@@ -479,6 +537,10 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		ug::bridge::Registry *reg,
 		ug::bridge::ParameterStack const& paramStack) {
 
+//#ifdef UG_DEBUG
+//	UG_LOG("\n -- BEGIN COMPARE --\n")
+//#endif
+
 	// compare array lengths
 	jsize len = env->GetArrayLength(params);
 
@@ -504,7 +566,31 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			paramType = ug::bridge::PT_CONST_SMART_POINTER;
 		}
 
+		// allow non-const-smart* to non const*
+		if (paramType == ug::bridge::PT_SMART_POINTER &&
+				paramStack.get_type(i) == ug::bridge::PT_POINTER) {
+			paramType = ug::bridge::PT_POINTER;
+		}
+
+		// allow non-const-smart* to const*
+		if (paramType == ug::bridge::PT_SMART_POINTER &&
+				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+			paramType = ug::bridge::PT_CONST_POINTER;
+		}
+
+		// allow const smart* to const*
+		if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
+				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+			paramType = ug::bridge::PT_CONST_POINTER;
+		}
+
 		if (paramType != paramStack.get_type(i)) {
+#ifdef UG_DEBUG
+			UG_LOG("requested by method:\n")
+			printParamType(paramStack.get_type(i), i);
+			UG_LOG("given as parameter:\n")
+			printParamType(paramType, i);
+#endif
 			return false;
 		}
 
@@ -522,6 +608,10 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			}
 		}
 	}
+//
+//#ifdef UG_DEBUG
+//	UG_LOG(" -- ALL TRUE --\n" << std::endl)
+//#endif
 
 	return true;
 }
@@ -584,15 +674,30 @@ void jobjectArray2ParamStack(
 				break;
 			case PT_SMART_POINTER:
 			{
-				paramsOut.push_smart_pointer(jObject2SmartPointer(env, value),
-						paramsTemplate.class_name_node(i));
+				if (paramsOut.get_type(i) == PT_POINTER) {
+					paramsOut.push_pointer(
+							jObject2SmartPointer(env, value).get_impl());
+				} else if (paramsOut.get_type(i) == PT_CONST_POINTER) {
+					paramsOut.push_const_pointer(
+							jObject2SmartPointer(env, value).get_impl());
+				} else {
+					paramsOut.push_smart_pointer(
+							jObject2SmartPointer(env, value),
+							paramsTemplate.class_name_node(i));
+				}
 			}
 				break;
 			case PT_CONST_SMART_POINTER:
 			{
-				paramsOut.push_const_smart_pointer(
-						jObject2ConstSmartPointer(env, value),
-						paramsTemplate.class_name_node(i));
+				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
+					paramsOut.push_const_pointer(
+							jObject2ConstSmartPointer(env, value).get_impl(),
+							paramsTemplate.class_name_node(i));
+				} else {
+					paramsOut.push_const_smart_pointer(
+							jObject2ConstSmartPointer(env, value),
+							paramsTemplate.class_name_node(i));
+				}
 			}
 				break;
 		}
@@ -601,7 +706,7 @@ void jobjectArray2ParamStack(
 }
 
 jobject param2JObject(
-		JNIEnv *env, ug::bridge::ParameterStack& params, int index) {
+		JNIEnv *env, ug::bridge::ParameterStack& params, size_t index) {
 	using namespace ug::bridge;
 	//	iterate through the parameter list and copy the value in the
 	//	associated stack entry.
@@ -655,7 +760,7 @@ jobject param2JObject(
 	return jobject();
 }
 
-int paramType2Int(const ug::bridge::ParameterStack& params, int index) {
+int paramType2Int(const ug::bridge::ParameterStack& params, size_t index) {
 	using namespace ug::bridge;
 	//	iterate through the parameter list and return corresponding int
 	int type = params.get_type(index);
@@ -1070,7 +1175,7 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 
 		std::string name = eCls.name(); // TODO pre-rpocessing necessary
 
-		
+
 		// these lines check for empty class names. we really want this exit()
 		// command as empty names will mess up everything.
 		std::vector<std::string> baseClasses;
@@ -1117,7 +1222,7 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 
 jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 		const ug::bridge::Registry* reg) {
-	
+
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeClassGroupInfo");
 
 	jobjectArray result =
@@ -1126,7 +1231,7 @@ jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 	for (size_t i = 0; i < reg->num_class_groups(); i++) {
 
 		const ug::bridge::ClassGroupDesc* clsGrp = reg->get_class_group(i);
-		
+
 		// we ignore empty groups. actually, empty groups shouldn't exist.
 		if (clsGrp->empty()) {
 			continue;
@@ -1138,12 +1243,12 @@ jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 		for (size_t j = 0; j < clsGrp->num_classes(); j++) {
 			class_names.push_back(std::string(clsGrp->get_class(j)->name()));
 		}
-		
+
 		// initialize default class name with empty string. when trying to
 		// instanciate from java we have to check that!
 		std::string defaultClassName = "";
-		
-		if (clsGrp->get_default_class()!=NULL) {
+
+		if (clsGrp->get_default_class() != NULL) {
 			defaultClassName = clsGrp->get_default_class()->name();
 		}
 
@@ -1171,14 +1276,14 @@ jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 		env->SetObjectArrayElement(result, i, obj);
 	}
 
-//		env->ExceptionCheck();
-//		env->ExceptionDescribe();
+	//		env->ExceptionCheck();
+	//		env->ExceptionDescribe();
 
 	return result;
 }
 
 jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
-	
+
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeAPIInfo");
 
 	// create instance
@@ -1198,7 +1303,7 @@ jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg) {
 	env->CallVoidMethod(obj, setClassGroups, classGroups2NativeClassGroups(env, reg));
 	env->CallVoidMethod(obj, setClasses, classes2NativeClasses(env, reg));
 	env->CallVoidMethod(obj, setFunctions, functions2NativeGroups(env, reg));
-	
+
 	return obj;
 }
 

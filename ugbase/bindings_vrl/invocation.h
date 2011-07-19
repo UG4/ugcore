@@ -10,6 +10,8 @@
 #include "registry/registry.h"
 #include <jni.h>
 
+#include"bindings_vrl.h"
+
 #ifndef INVOKATION_H
 #define	INVOKATION_H
 

@@ -243,7 +243,7 @@ jobjectArray createEmptyJavaArray(
  * @return a Java object (jobject)
  */
 jobject param2JObject(JNIEnv *env,
-		ug::bridge::ParameterStack& params, int index);
+		ug::bridge::ParameterStack& params, size_t index);
 
 /**
  * Returns the class object of the specified Java object.
