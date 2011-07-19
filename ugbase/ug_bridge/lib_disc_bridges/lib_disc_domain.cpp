@@ -126,10 +126,14 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		reg.add_class_<T,  IApproximationSpace<domain_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("init|hide=true", &T::init)
-			.add_method("print_statistic|hide=true", &T::print_statistic)
+			.add_method("print_statistic|hide=true", static_cast<void (T::*)(int) const>(&T::print_statistic))
+			.add_method("print_statistic|hide=true", static_cast<void (T::*)() const>(&T::print_statistic))
+			.add_method("print_layout_statistic|hide=true", static_cast<void (T::*)(int) const>(&T::print_layout_statistic))
+			.add_method("print_layout_statistic|hide=true", static_cast<void (T::*)() const>(&T::print_layout_statistic))
+			.add_method("print_local_dof_statistic|hide=true", static_cast<void (T::*)(int) const>(&T::print_local_dof_statistic))
+			.add_method("print_local_dof_statistic|hide=true", static_cast<void (T::*)() const>(&T::print_local_dof_statistic))
 			.add_method("defragment|hide=true", &T::defragment)
 			.add_method("get_surface_view|hide=true", &T::get_surface_view)
-			.add_method("print_layout_statistic|hide=true", &T::print_layout_statistic)
 			.add_method("get_surface_dof_distribution|hide=true",  static_cast<const typename T::dof_distribution_type& (T::*)() const>(&T::get_surface_dof_distribution))
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
 	}

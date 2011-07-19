@@ -353,7 +353,8 @@ surface_view_required()
 template <typename TMGDoFManager>
 void
 ParallelMGDoFManager<TMGDoFManager>::
-print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const
+print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
+                int verboseLev) const
 {
 //	Get Process communicator;
 	pcl::ProcessCommunicator pCom = dd.get_process_communicator();
@@ -441,31 +442,35 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const
 	UG_LOG("  | " );
 
 //	Subset informations
-	for(int si = 0; si < dd.num_subsets(); ++si)
+	if(verboseLev>=1)
 	{
-		UG_LOG( " (" << si << ",");
-		UG_LOG(dd.blocksize(si) <<",");
-		UG_LOG(std::setw(8) << tNumGlobal[si+1] << ") ");
+		for(int si = 0; si < dd.num_subsets(); ++si)
+		{
+			UG_LOG( " (" << dd.subset_name(si) << ",");
+			UG_LOG(dd.blocksize(si) <<",");
+			UG_LOG(std::setw(8) << tNumGlobal[si+1] << ") ");
+		}
 	}
 }
 
 template <typename TMGDoFManager>
 void
 ParallelMGDoFManager<TMGDoFManager>::
-print_statistic() const
+print_statistic(int verboseLev) const
 {
 //	Write info
 	UG_LOG("DoFDistribution on all Processes (m= master, s=slave):\n");
 
 //	Write header line
-	UG_LOG("  Level  | Total (m) | BlockSize | "
-			"(SubsetIndex (m+s), BlockSize, DoFs per Subset) \n");
+	UG_LOG("  Level  | Total (m) | BlockSize | ");
+	if(verboseLev>=1) UG_LOG("(Subset, BlockSize, DoFs (m+s) ) ");
+	UG_LOG("\n");
 
 //	Write Infos for Levels
 	for(size_t l = 0; l < this->m_vLevelDD.size(); ++l)
 	{
 		UG_LOG("  " << std::setw(5) << l << "  |");
-		print_statistic(*this->m_vLevelDD[l]);
+		print_statistic(*this->m_vLevelDD[l], verboseLev);
 		UG_LOG(std::endl);
 	}
 
@@ -473,12 +478,58 @@ print_statistic() const
 	if(this->m_pSurfDD != NULL)
 	{
 		UG_LOG("  surf   |");
-		print_statistic(*this->m_pSurfDD);
+		print_statistic(*this->m_pSurfDD, verboseLev);
 		UG_LOG(std::endl);
 	}
 
-	TMGDoFManager::print_statistic();
+	TMGDoFManager::print_statistic(verboseLev);
 }
+
+
+template <typename TMGDoFManager>
+void
+ParallelMGDoFManager<TMGDoFManager>::
+print_layout_statistic(const typename TMGDoFManager::dof_distribution_type& dd, int verboseLev) const
+{
+//	Total number of DoFs
+	UG_LOG(std::setw(8) << dd.num_master_indices() <<" | ");
+
+	UG_LOG(std::setw(8) << dd.num_slave_indices() <<" | ");
+
+	UG_LOG(std::setw(12) << dd.num_vertical_master_indices() <<" | ");
+
+	UG_LOG(std::setw(12) << dd.num_vertical_slave_indices());
+}
+
+template <typename TMGDoFManager>
+void
+ParallelMGDoFManager<TMGDoFManager>::
+print_layout_statistic(int verboseLev) const
+{
+//	Write info
+	UG_LOG("Layouts on Process " <<  pcl::GetOutputProcRank() << ":\n");
+
+//	Write header line
+	UG_LOG(" Level |  Master  |  Slave   | vert. Master | vert. Slave\n");
+	UG_LOG("----------------------------------------------------------\n");
+
+//	Write Infos for Levels
+	for(size_t l = 0; l < this->m_vLevelDD.size(); ++l)
+	{
+		UG_LOG(" " << std::setw(5)<< l << " | ");
+		print_layout_statistic(*this->m_vLevelDD[l], verboseLev);
+		UG_LOG("\n");
+	}
+
+//	Write Infos for Surface Grid
+	if(this->m_pSurfDD != NULL)
+	{
+		UG_LOG("  surf | ");
+		print_layout_statistic(*this->m_pSurfDD, verboseLev);
+		UG_LOG(std::endl);
+	}
+}
+
 
 } // end namespace ug
 

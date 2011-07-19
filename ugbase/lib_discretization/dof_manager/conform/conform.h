@@ -144,10 +144,10 @@ class DoFDistribution
 			return id == LFEID(LFEID::LAGRANGE, 1);
 		}
 
-	/// \copydoc ug::IDoFDistribution::has_indices_on(ReferenceObjectID)
+	/// \copydoc ug::IDoFDistribution::has_indices_on( ReferenceObjectID ) const
 		bool has_indices_on(ReferenceObjectID roid) const;
 
-	/// \copydoc ug::IDoFDistribution::has_indices_on(GeometricBaseObject)
+	/// \copydoc ug::IDoFDistribution::has_indices_on( GeometricBaseObject ) const
 		bool has_indices_on(GeometricBaseObject gbo) const;
 
 	/// \copydoc ug::IDoFDistribution::num_indices()
@@ -180,6 +180,9 @@ class DoFDistribution
 			if(!m_bGrouped) return 1;
 			else return this->m_pFuncPattern->num_fct(si);
 		}
+
+	/// \copydoc IDoFDistribution::print_local_dof_statistic(int) const
+		void print_local_dof_statistic(int verboseLev = 1) const;
 
 		///////////////////////////////////////
 		// Index Access

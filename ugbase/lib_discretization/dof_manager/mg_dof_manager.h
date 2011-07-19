@@ -140,10 +140,13 @@ class MGDoFManager : public GridObserver
 		const SurfaceView* get_surface_view() const {return m_pSurfaceView;}
 
 	///	print a statistic on dof distribution
-		void print_statistic() const;
+		virtual void print_statistic(int verboseLev = 1) const;
 
 	///	print a statistic on layout informations
-		void print_layout_statistic() const;
+		virtual void print_layout_statistic(int verboseLev = 1) const;
+
+	///	print a statistic on local dofs
+		virtual void print_local_dof_statistic(int verboseLev = 1) const;
 
 	///	Destructor
 		virtual ~MGDoFManager()
@@ -260,10 +263,10 @@ class MGDoFManager : public GridObserver
 		void disable_surface_indices();
 
 	/// print statistic for a DoFDistribution
-		void print_statistic(const dof_distribution_type& dd) const;
+		void print_statistic(const dof_distribution_type& dd, int verboseLev = 1) const;
 
-	/// print statistic on layouts for a DoFDistribution
-		void print_layout_statistic(const dof_distribution_type& dd) const;
+	/// print statistic on local dof distribution
+		void print_local_dof_statistic(const dof_distribution_type& dd, int verboseLev = 1) const;
 
 	protected:
 	// 	MultiGridSubsetHandler this DofManager works on

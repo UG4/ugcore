@@ -227,6 +227,61 @@ void DoFDistribution::create_offsets()
 	}
 }
 
+
+void DoFDistribution::print_local_dof_statistic(int verboseLev) const
+{
+//	write info for subset/fct -> localFEId info
+	UG_LOG("\n\t\t\t Subsets\n");
+	UG_LOG(" "<<std::setw(14)<<"Function"<<" |");
+	for(int si = 0; si < num_subsets(); ++si)
+		UG_LOG(std::setw(11)<<si<<std::setw(8)<<" "<<"|")
+	UG_LOG("\n");
+	for(size_t fct = 0; fct < num_fct(); ++fct)
+	{
+		UG_LOG(" "<<std::setw(14)<<name(fct)<<" |");
+		for(int si = 0; si < num_subsets(); ++si)
+		{
+			if(!is_def_in_subset(fct,si))
+				 {UG_LOG(std::setw(8)<<"---"<<std::setw(8)<<" "<<"|");}
+			else {UG_LOG(std::setw(16)<<local_finite_element_id(fct)<<" |");}
+		}
+		UG_LOG("\n");
+	}
+
+//	write info about DoFs on ROID
+	UG_LOG("\n");
+	UG_LOG("                  | "<<"        "<<"  |  Subsets \n");
+	UG_LOG(" ReferenceElement |");
+	UG_LOG("   "<<std::setw(4)<<"max"<<"    |");
+	for(int si = 0; si < num_subsets(); ++si)
+		UG_LOG("   "<<std::setw(4)<<si<<"    |");
+	UG_LOG("\n")
+	UG_LOG("-------------------");
+	for(int si = 0; si <= num_subsets(); ++si)
+		UG_LOG("-------------");
+	UG_LOG("\n")
+
+	for(int i=ROID_VERTEX; i < NUM_REFERENCE_OBJECTS; ++i)
+	{
+		ReferenceObjectID roid = (ReferenceObjectID) i;
+
+		UG_LOG(" " << std::setw(16) << roid << " |");
+		UG_LOG("   "<<std::setw(4) << m_vMaxDoFsOnROID[roid] << "    |");
+		for(int si = 0; si < num_subsets(); ++si)
+			UG_LOG("   "<<std::setw(4) << m_vvNumDoFsOnROID[roid][si] << "    |");
+
+		UG_LOG("\n");
+	}
+	for(int d = 0; d <= 3; ++d)
+	{
+		UG_LOG(std::setw(14) << " all " <<std::setw(2)<< d << "d |");
+		UG_LOG("   "<<std::setw(4) << m_vMaxDoFsInDim[d] << "    |");
+		UG_LOG("\n");
+	}
+	UG_LOG("\n");
+}
+
+
 size_t DoFDistribution::get_free_index(size_t si, ReferenceObjectID roid)
 {
 //	The idea is as follows:

@@ -65,7 +65,10 @@ class ParallelMGDoFManager : public TMGDoFManager
 		bool enable_surface_indices();
 
 	///	print a statistic on dof distribution
-		void print_statistic() const;
+		void print_statistic(int verboseLev = 1) const;
+
+	///	print a statistic on layouts
+		void print_layout_statistic(int verboseLev = 1) const;
 
 	///	defragments the index set
 		void defragment();
@@ -85,7 +88,12 @@ class ParallelMGDoFManager : public TMGDoFManager
 		virtual bool surface_view_required();
 
 	/// print statistic for a DoFDistribution
-		void print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const;
+		void print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
+		                     int verboseLev = 1) const;
+
+	/// print layout statistic for a DoFDistribution
+		void print_layout_statistic(const typename TMGDoFManager::dof_distribution_type& dd,
+		                            int verboseLev = 1) const;
 
 	private:
 	/// Distributed Grid Manager

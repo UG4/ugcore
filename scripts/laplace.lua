@@ -250,10 +250,11 @@ print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRef
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:add_fct("c", "Lagrange", 2)
 approxSpace:init()
+approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
-approxSpace:print_statistic()
+approxSpace:print_statistic(0)
 
 -- lets order indices using Cuthill-McKee
 if OrderCuthillMcKee(approxSpace, true) == false then

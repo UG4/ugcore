@@ -82,6 +82,9 @@ class IDoFDistribution
 	/// dimension of subset
 		int dim_subset(int si) const {return m_pFuncPattern->dim_subset(si);}
 
+	/// name of subset
+		const char* subset_name(int si) const {return m_pFuncPattern->subset_name(si);}
+
 	/// number of discrete functions
 		size_t num_fct() const {return m_pFuncPattern->num_fct();}
 
@@ -167,6 +170,10 @@ class IDoFDistribution
 
 	///	Size algebra block on subset
 		int blocksize(int si) const {return getImpl().blocksize(si);}
+
+	///	prints information about the local dof pattern
+		void print_local_dof_statistic(int verboseLev = 1) const
+			{return getImpl().print_local_dof_statistic(verboseLev);}
 
 		///////////////////////////////////////
 		// Index Access

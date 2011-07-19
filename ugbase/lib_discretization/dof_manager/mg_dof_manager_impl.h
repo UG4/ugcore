@@ -247,7 +247,7 @@ enable_surface_indices()
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-print_statistic(const dof_distribution_type& dd) const
+print_statistic(const dof_distribution_type& dd, int verboseLev) const
 {
 //	Total number of DoFs
 	UG_LOG(std::setw(10) << dd.num_indices() <<" | ");
@@ -260,18 +260,21 @@ print_statistic(const dof_distribution_type& dd) const
 	UG_LOG("  | " );
 
 //	Subset informations
-	for(int si = 0; si < dd.num_subsets(); ++si)
+	if(verboseLev >= 1)
 	{
-		UG_LOG( " (" << si << ",");
-		UG_LOG(dd.blocksize(si) <<",");
-		UG_LOG(std::setw(8) << dd.num_indices(si) << ") ");
+		for(int si = 0; si < dd.num_subsets(); ++si)
+		{
+			UG_LOG( " (" << dd.subset_name(si) << ",");
+			UG_LOG(dd.blocksize(si) <<",");
+			UG_LOG(std::setw(8) << dd.num_indices(si) << ") ");
+		}
 	}
 }
 
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-print_statistic() const
+print_statistic(int verboseLev) const
 {
 //	Write info
 	UG_LOG("DoFDistribution");
@@ -281,14 +284,15 @@ print_statistic() const
 	UG_LOG(":\n");
 
 //	Write header line
-	UG_LOG("  Level  |   Total   | BlockSize | "
-			"(SubsetIndex, BlockSize, DoFs per Subset) \n");
+	UG_LOG("  Level  |   Total   | BlockSize | ");
+	if(verboseLev >= 1) UG_LOG("(Subset, BlockSize, DoFs) ");
+	UG_LOG("\n");
 
 //	Write Infos for Levels
 	for(size_t l = 0; l < m_vLevelDD.size(); ++l)
 	{
 		UG_LOG("  " << std::setw(5) << l << "  |");
-		print_statistic(*m_vLevelDD[l]);
+		print_statistic(*m_vLevelDD[l], verboseLev);
 		UG_LOG(std::endl);
 	}
 
@@ -296,63 +300,89 @@ print_statistic() const
 	if(m_pSurfDD != NULL)
 	{
 		UG_LOG("  surf   |");
-		print_statistic(*m_pSurfDD);
+		print_statistic(*m_pSurfDD, verboseLev);
 		UG_LOG(std::endl);
 	}
 
 }
 
-template <typename TDoFDistribution>
-void
-MGDoFManager<TDoFDistribution>::
-print_layout_statistic(const dof_distribution_type& dd) const
-{
-#ifdef UG_PARALLEL
-//	Total number of DoFs
-	UG_LOG(std::setw(8) << dd.num_master_indices() <<" | ");
-
-	UG_LOG(std::setw(8) << dd.num_slave_indices() <<" | ");
-
-	UG_LOG(std::setw(12) << dd.num_vertical_master_indices() <<" | ");
-
-	UG_LOG(std::setw(12) << dd.num_vertical_slave_indices());
-#endif
-}
 
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-print_layout_statistic() const
+print_local_dof_statistic(const dof_distribution_type& dd, int verboseLev) const
 {
-//	Write info
-#ifndef UG_PARALLEL
-	UG_LOG(" No Layouts in sequential code.\n");
-#else
-	UG_LOG("Layouts on Process " <<  pcl::GetOutputProcRank() << ":\n");
-
-//	Write header line
-	UG_LOG(" Level |  Master  |  Slave   | vert. Master | vert. Slave\n");
-	UG_LOG("----------------------------------------------------------\n");
-
-//	Write Infos for Levels
-	for(size_t l = 0; l < m_vLevelDD.size(); ++l)
+//	Subset informations
+	UG_LOG(dd.num_subsets() << " Subset(s) used (Subset Name, dim): ");
+	for(int si = 0; si < dd.num_subsets(); ++si)
 	{
-		UG_LOG(" " << std::setw(5)<< l << " | ");
-		print_layout_statistic(*m_vLevelDD[l]);
+		if(si > 0) UG_LOG(", ");
+		UG_LOG("(" << dd.subset_name(si) << ", " << dd.dim_subset(si) << ")");
+	}
+	UG_LOG("\n");
+
+//	Function informations
+	UG_LOG(dd.num_fct() << " Function(s) defined (Symbolic Name, dim): ");
+	for(size_t fct = 0; fct < dd.num_fct(); ++fct)
+	{
+		if(fct > 0) UG_LOG(", ");
+		UG_LOG("(" << dd.name(fct) << ", " << dd.dim(fct) << ")");
+	}
+	UG_LOG("\n");
+
+//	print subsets of functions
+	if(verboseLev >= 2)
+	{
+		UG_LOG("Function definition on subsets: \n");
+		for(size_t fct = 0; fct < dd.num_fct(); ++fct)
+		{
+			UG_LOG("   "<<dd.name(fct) << ": ");
+			if(dd.is_def_everywhere(fct)) UG_LOG("[everywhere] ");
+			bool bFirst = true;
+			for(int si = 0; si < dd.num_subsets(); ++si)
+			{
+				if(bFirst) bFirst = false; else UG_LOG(", ");
+				if(!dd.is_def_in_subset(fct, si)) continue;
+				UG_LOG(dd.subset_name(si));
+			}
+		}
 		UG_LOG("\n");
 	}
 
-//	Write Infos for Surface Grid
-	if(m_pSurfDD != NULL)
-	{
-		UG_LOG("  surf | ");
-		print_layout_statistic(*m_pSurfDD);
-		UG_LOG(std::endl);
-	}
-#endif
+//	print info of dofdistribution
+	dd.print_local_dof_statistic(verboseLev);
 }
 
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+print_local_dof_statistic(int verboseLev) const
+{
+	if(surface_indices_enabled())
+	{
+		UG_LOG("\nLocal DoF Statistic for Surface DoFDistribution:");
+		UG_LOG("\n-----------------------------------------------\n");
+		print_local_dof_statistic(*m_pSurfDD, verboseLev);
+	}
 
+	if(level_indices_enabled())
+	{
+		const int topLev = (int)num_levels() - 1;
+		if(topLev < 0) return;
+		UG_LOG("\nLocal DoF Statistic for Level DoFDistribution on Level "<<topLev<<":");
+		UG_LOG("\n----------------------------------------------------------\n");
+		print_local_dof_statistic(*m_vLevelDD[topLev], verboseLev);
+	}
+}
+
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+print_layout_statistic(int verboseLev) const
+{
+//	Write info
+	UG_LOG(" No Layouts in sequential code.\n");
+}
 
 template <typename TDoFDistribution>
 bool

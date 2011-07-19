@@ -189,6 +189,12 @@ class P1DoFDistribution
 			else return this->m_pFuncPattern->num_fct(si);
 		}
 
+	/// \copydoc IDoFDistribution::print_local_dof_statistic(int) const
+		void print_local_dof_statistic(int verboseLev = 1) const
+		{
+			UG_LOG("P1ConformDoFManager: print_local_dof_statistic not implemented.\n");
+		}
+
 		///////////////////////////////////////
 		// Index Access
 		///////////////////////////////////////

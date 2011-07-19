@@ -108,6 +108,13 @@ class FunctionPattern
 			return DimensionOfSubset(*m_pSH, si);
 		}
 
+	///	returns the name of a subset
+		const char* subset_name(int si) const
+		{
+			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
+			return m_pSH->subset_info(si).name.c_str();
+		}
+
 	/// number of discrete functions this dof distributor handles
 		size_t num_fct() const {return m_vFunction.size();}
 
