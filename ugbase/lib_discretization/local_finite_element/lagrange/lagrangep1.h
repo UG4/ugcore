@@ -66,17 +66,6 @@ class LagrangeP1
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		void grads(grad_type* gOut, const position_type& x) const;
 
-	///	\copydoc ug::LocalShapeFunctionSet::has_sh_on()
-		bool has_sh_on(int d) const {return d == 0;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh(int,size_t)
-		size_t num_sh(int d, size_t id) const
-			{if(d==0)return 1; else return 0;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh(ReferenceObjectID)
-		size_t num_sh(ReferenceObjectID type) const
-			{if(type==ROID_VERTEX)return 1; else return 0;}
-
 	protected:
 	///	evaluate gradient of i'th shape function at position x
 		void evaluate_grad(size_t i, const position_type& x,
