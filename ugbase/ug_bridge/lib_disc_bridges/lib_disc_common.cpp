@@ -39,7 +39,9 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 			typedef FunctionPattern T;
 			reg.add_class_<T>("FunctionPattern", grp.c_str())
 				.add_method("clear", &T::clear)
-				.add_method("add_fct_on_subset", static_cast<bool (T::*)(const char*, const char*, int, const char*)>(&T::add_fct_on_subset))
+				.add_method("add_fct", static_cast<bool (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
+				            "Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
+				            "currently no help available")
 				.add_method("add_fct", static_cast<bool (T::*)(const char*, const char*, int)>(&T::add_fct),
 				            "Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
 				            "currently no help available");
