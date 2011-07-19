@@ -129,22 +129,10 @@ class LFEID
 };
 
 /// writes the Identifier to the output stream
-inline std::ostream& operator<<(std::ostream& out,	const LFEID& v)
-{
-	std::stringstream ss;
-	if(v.m_order >= 0) ss << v.m_order;
-	else if(v.m_order == LFEID::ADAPTIV) ss << "adaptive";
-	else ss << "invalid";
+std::ostream& operator<<(std::ostream& out,	const LFEID& v);
 
-	switch(v.m_type)
-	{
-		case LFEID::LAGRANGE: out << "(Lagrange, " << ss.str() << ")"; break;
-		case LFEID::DG: out << "(DG, " << ss.str() << ")"; break;
-		case LFEID::USER_DEFINED: out << "(User defined, " << ss.str() << ")"; break;
-		default: out << "(unknown, " << ss.str() << ")";
-	}
-	return out;
-}
+///	returns the LFEID for a combination of Space and order
+LFEID ConvertStringToLFEID(const char* type, int order);
 
 /// @}
 

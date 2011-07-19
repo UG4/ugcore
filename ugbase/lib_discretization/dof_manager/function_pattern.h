@@ -54,9 +54,7 @@ class FunctionPattern
 	 * \param[in] 	id			Shape Function set id
 	 * \param[in]	dim			Dimension (optional)
 	 */
-		virtual bool add_fct(const char* name,
-		                     LFEID id,
-		                     int dim = -1);
+		virtual bool add_fct(const char* name, LFEID id, int dim = -1);
 
 	/// add a single solution of LocalShapeFunctionSetID to selected subsets
 	/**
@@ -65,10 +63,8 @@ class FunctionPattern
 	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
 	 * \param[in] dim			Dimension
 	 */
-		virtual bool add_fct(const char* name,
-		                     LFEID id,
-		                     const SubsetGroup& SubsetIndices,
-		                     int dim = -1);
+		virtual bool add_fct(const char* name, LFEID id,
+		                     const SubsetGroup& SubsetIndices, int dim = -1);
 
 	/// add a single solution of LocalShapeFunctionSetID to selected subsets
 	/**
@@ -77,37 +73,19 @@ class FunctionPattern
 	 * \param[in] subsets		Subsets separated by ','
 	 * \param[in] dim			Dimension
 	 */
-		virtual bool add_fct(const char* name,
-		                     LFEID id,
-		                     const char* subsets,
+		virtual bool add_fct(const char* name, LFEID id, const char* subsets,
 		                     int dim = -1);
 
-		virtual bool add_fct(const char* name,
-		                     const char* type,
-		                     int order)
-		{
-			std::string strType(type);
-			if(strType != "Lagrange" || order != 1) return false;
+		virtual bool add_fct(const char* name, const char* type, int order);
 
-			return add_fct(name, LFEID(LFEID::LAGRANGE,1));
-		}
-
-		virtual bool add_fct_on_subset(const char* name,
-		                               const char* type,
-		                               int order,
-		                               const char* subsets)
-		{
-			std::string strType(type);
-			if(strType != "Lagrange" || order != 1) return false;
-
-			return add_fct(name, LFEID(LFEID::LAGRANGE,1), subsets);
-		}
+		virtual bool add_fct(const char* name, const char* type,
+		                     int order, const char* subsets);
 
 	///	lock pattern (i.e. can not be changed then)
-		inline void lock()	{m_bLocked = true;}
+		void lock()	{m_bLocked = true;}
 
 	///	returns if pattern is locked
-		inline bool is_locked() const {return m_bLocked;}
+		bool is_locked() const {return m_bLocked;}
 
 	/// clear all functions
 		void clear()
@@ -131,11 +109,7 @@ class FunctionPattern
 		}
 
 	/// number of discrete functions this dof distributor handles
-		size_t num_fct() const
-		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
-			return m_vFunction.size();
-		}
+		size_t num_fct() const {return m_vFunction.size();}
 
 	/// number of discrete functions on a subset
 		size_t num_fct(int si) const
@@ -152,7 +126,6 @@ class FunctionPattern
 	/// returns the trial space of a discrete function
 		LFEID local_finite_element_id(size_t fct) const
 		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].id;
 		}
@@ -160,7 +133,6 @@ class FunctionPattern
 	/// returns the name of a discrete function
 		const char* name(size_t fct) const
 		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].name.c_str();
 		}
@@ -191,7 +163,6 @@ class FunctionPattern
 	/// returns the dimension in which solution lives
 		int dim(size_t fct) const
 		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].dim;
 		}

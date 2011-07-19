@@ -17,12 +17,21 @@ namespace ug{
 
 bool
 FunctionPattern::
-add_fct(const char* name, LFEID id, int dim)
+add_fct(const char* name, LFEID lfeID, int dim)
 {
 // 	if already locked, return false
 	if(m_bLocked)
 	{
 		UG_LOG("Already fixed. Cannot change Distributor.\n");
+		return false;
+	}
+
+//	check that space type has been passed
+	if(lfeID.type() == LFEID::NONE || lfeID.order() < LFEID::ADAPTIV)
+	{
+		UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
+				" Specified Local Finite Element Space "<<lfeID<< " is not "
+				" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
 		return false;
 	}
 
@@ -35,16 +44,12 @@ add_fct(const char* name, LFEID id, int dim)
 	}
 
 //	if no dimension passed, try to get dimension
-	if(dim == -1)
-		dim = DimensionOfSubsets(*m_pSH);
+	if(dim == -1) dim = DimensionOfSubsets(*m_pSH);
 
 #ifdef UG_PARALLEL
 //	some processes may not have an element of the subset at all. They can not
-//	out the dimension of the subset. Therefore we have to broadcast it.
-	pcl::ProcessCommunicator ProcCom;
-	int dimGlob;
-	ProcCom.allreduce(&dim, &dimGlob, 1, PCL_DT_INT, PCL_RO_MAX);
-	dim = dimGlob;
+//	know the dimension of the subset. Therefore we have to broadcast it.
+	pcl::ProcessCommunicator ProcCom; dim = ProcCom.allreduce(dim, PCL_RO_MAX);
 #endif
 
 //	if still no dimension available, return false
@@ -56,28 +61,37 @@ add_fct(const char* name, LFEID id, int dim)
 	}
 
 //	create temporary subset group
-	SubsetGroup tmpSubsetGroup;
-	tmpSubsetGroup.set_subset_handler(*m_pSH);
-	tmpSubsetGroup.add_all();
+	SubsetGroup tmpSSGrp;
+	tmpSSGrp.set_subset_handler(*m_pSH);
+	tmpSSGrp.add_all();
 
 // 	add to function list, everywhere = true, copy SubsetGroup
-	m_vFunction.push_back(Function(name, dim, id, true, tmpSubsetGroup));
+	m_vFunction.push_back(Function(name, dim, lfeID, true, tmpSSGrp));
+
+//	write info
+	UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
+			"local finite element type " <<lfeID<<" on whole domain (dim="<<dim<<").\n");
 
 //	we're done
 	return true;
 }
 
-bool
-FunctionPattern::
-add_fct(const char* name,
-                      LFEID id,
-                      const SubsetGroup& SubsetIndices,
-                      int dim)
+bool FunctionPattern::add_fct(const char* name, LFEID lfeID,
+                              const SubsetGroup& ssGrp, int dim)
 {
 // 	if already locked, return false
 	if(m_bLocked)
 	{
 		UG_LOG("Already fixed. Cannot change Distributor.\n");
+		return false;
+	}
+
+//	check that space type has been passed
+	if(lfeID.type() == LFEID::NONE || lfeID.order() < LFEID::ADAPTIV)
+	{
+		UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
+				" Specified Local Finite Element Space "<<lfeID<< " is not "
+				" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
 		return false;
 	}
 
@@ -90,7 +104,7 @@ add_fct(const char* name,
 	}
 
 //	check that subset handler are equal
-	if(m_pSH != SubsetIndices.get_subset_handler())
+	if(m_pSH != ssGrp.get_subset_handler())
 	{
 		UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
 				"SubsetHandler of SubsetGroup does "
@@ -99,18 +113,12 @@ add_fct(const char* name,
 	}
 
 //	if no dimension passed, try to get dimension
-	if(dim == -1)
-	{
-		dim = SubsetIndices.get_local_highest_subset_dimension();
-	}
+	if(dim == -1) dim = ssGrp.get_local_highest_subset_dimension();
 
 #ifdef UG_PARALLEL
 //	some processes may not have an element of the subset at all. They can not
-//	out the dimension of the subset. Therefore we have to broadcast it.
-	pcl::ProcessCommunicator ProcCom;
-	int dimGlob;
-	ProcCom.allreduce(&dim, &dimGlob, 1, PCL_DT_INT, PCL_RO_MAX);
-	dim = dimGlob;
+//	know the dimension of the subset. Therefore we have to broadcast it.
+	pcl::ProcessCommunicator ProcCom; dim = ProcCom.allreduce(dim, PCL_RO_MAX);
 #endif
 
 //	if still no dimension available, return false
@@ -121,27 +129,26 @@ add_fct(const char* name,
 		return false;
 	}
 
-
 // 	add to function list, everywhere = false, copy SubsetGroup as given
-	m_vFunction.push_back(Function(name, dim, id, false, SubsetIndices));
+	m_vFunction.push_back(Function(name, dim, lfeID, false, ssGrp));
 
+//	write info
+	UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
+			"local finite element type " <<lfeID<<" defined on subsets [");
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+		if(i>0) UG_LOG(", ");
+		UG_LOG(ssGrp.name(i));
+	}
+	UG_LOG("](dim="<<dim<<").\n");
+
+//	done
 	return true;
 }
 
-bool
-FunctionPattern::
-add_fct(const char* name,
-                      LFEID id,
-                      const char* subsets,
-                      int dim)
+bool FunctionPattern::add_fct(const char* name, LFEID lfeID,
+                              const char* subsets, int dim)
 {
-// 	if already locked, return false
-	if(m_bLocked)
-	{
-		UG_LOG("Already fixed. Cannot change Distributor.\n");
-		return false;
-	}
-
 //	check that subset handler exists
 	if(m_pSH == NULL)
 	{
@@ -151,17 +158,30 @@ add_fct(const char* name,
 	}
 
 //	create Function Group
-	SubsetGroup subsetGroup;
+	SubsetGroup ssGrp;
 
-//	convert string
-	if(!ConvertStringToSubsetGroup(subsetGroup, *m_pSH, subsets))
+//	convert string to subset group
+	if(!ConvertStringToSubsetGroup(ssGrp, *m_pSH, subsets))
 	{
 		UG_LOG("ERROR while parsing Subsets.\n");
 		return false;
 	}
 
 //	forward request
-	return add_fct(name, id, subsetGroup, dim);
+	return add_fct(name, lfeID, ssGrp, dim);
+}
+
+bool FunctionPattern::add_fct(const char* name, const char* fetype, int order)
+{
+//	convert type to LFEID and forward
+	return add_fct(name, ConvertStringToLFEID(fetype, order));
+}
+
+bool FunctionPattern::add_fct(const char* name, const char* fetype,
+                                        int order, const char* subsets)
+{
+//	convert type to LFEID and forward
+	return add_fct(name, ConvertStringToLFEID(fetype, order), subsets);
 }
 
 
