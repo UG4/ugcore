@@ -448,9 +448,11 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 	else
 	{
 		m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(true);
-#endif
-		m_basesolver->init(*m_A[level]);
+
 	}
+#else
+	m_basesolver->init(*m_A[level]);
+#endif
 
 	m_dTimingCoarseSolverSetupMS = SW.ms();
 	UG_DLOG(LIB_ALG_AMG, 1, "Coarse Solver Setup took " << m_dTimingCoarseSolverSetupMS << "ms." << std::endl);
