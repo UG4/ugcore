@@ -26,33 +26,34 @@ namespace ug{
 
 ///	writes positions of vertex dofs into a std::vector
 template <typename TFunction>
-void ExtractPositions(const TFunction &u,
-                      std::vector<MathVector<TFunction::domain_type::dim> >& vPositions)
+void ExtractPositionsVertex(const TFunction &u,
+                           std::vector<MathVector<TFunction::domain_type::dim> >& vPos)
 {
-//	get position accessor
+//	domain type
 	typedef typename TFunction::domain_type domain_type;
+
+//	get position accessor
 	const typename domain_type::position_accessor_type& aaPos
 			= u.get_approximation_space().get_domain().get_position_accessor();
 
-//	number of total dofs
-	int nr = u.num_indices();
+//	iterator
+	geometry_traits<VertexBase>::const_iterator iter, iterEnd;
 
-//	resize positions
-	vPositions.resize(nr);
+//	algebra indices vector
+	typename TFunction::algebra_index_vector_type ind;
 
 //	loop all subsets
 	for(int si = 0; si < u.num_subsets(); ++si)
 	{
+	//	get iterators
+		iter = u.template begin<VertexBase>(si);
+		iterEnd = u.template end<VertexBase>(si);
+
 	//	loop all vertices
-		geometry_traits<VertexBase>::const_iterator iter
-											= u.template begin<VertexBase>(si);
-		for(;iter != u.template end<VertexBase>(si); ++iter)
+		for(;iter != iterEnd; ++iter)
 		{
 		//	get vertex
 			VertexBase* v = *iter;
-
-		//	algebra indices vector
-			typename TFunction::algebra_index_vector_type ind;
 
 		//	load indices associated with vertex
 			u.inner_algebra_indices(v, ind);
@@ -61,10 +62,80 @@ void ExtractPositions(const TFunction &u,
 			for(size_t i = 0; i < ind.size(); ++i)
 			{
 				const size_t index = ind[i];
-				vPositions[index] = aaPos[v];
+				vPos[index] = aaPos[v];
 			}
 		}
 	}
+}
+
+///	writes positions of element dofs into a std::vector
+template <typename TFunction, typename TElem>
+void ExtractPositionsElem(const TFunction &u,
+                          std::vector<MathVector<TFunction::domain_type::dim> >& vPos)
+{
+	typename geometry_traits<TElem>::const_iterator iter, iterEnd;
+
+//	vector for positions
+	std::vector<MathVector<TFunction::domain_type::dim> > vElemPos;
+
+//	algebra indices vector
+	typename TFunction::multi_index_vector_type ind;
+
+//	loop all subsets
+	for(int si = 0; si < u.num_subsets(); ++si)
+	{
+	//	get iterators
+		iter = u.template begin<TElem>(si);
+		iterEnd = u.template end<TElem>(si);
+
+	//	loop all functions
+		for(size_t fct = 0; fct < u.num_fct(); ++fct)
+		{
+		//	skip non-used function
+			if(!u.is_def_in_subset(fct,si)) continue;
+
+		//	loop all elements
+			for(;iter != iterEnd; ++iter)
+			{
+			//	get vertex
+				TElem* elem = *iter;
+
+			//	load indices associated with element function
+				u.inner_multi_indices(elem, fct, ind);
+
+			//	load positions associated with element and function
+				u.inner_dof_positions(elem, fct, vElemPos);
+
+			//	check correct size
+				UG_ASSERT(ind.size() == vElemPos.size(), "Num MultiIndex ("<<ind.size()
+						  <<") and Num Position ("<<vElemPos.size()<<") must match.");
+
+			//	write position
+				for(size_t sh = 0; sh < ind.size(); ++sh)
+				{
+					const size_t index = ind[sh][0];
+					vPos[index] = vElemPos[sh];
+				}
+			}
+		}
+	}
+}
+
+template <typename TFunction>
+void ExtractPositions(const TFunction &u,
+                      std::vector<MathVector<TFunction::domain_type::dim> >& vPos)
+{
+//	number of total dofs
+	int nr = u.num_indices();
+
+//	resize positions
+	vPos.resize(nr);
+
+//	extract for all element types
+	ExtractPositionsVertex<TFunction>(u, vPos);
+	ExtractPositionsElem<TFunction, EdgeBase>(u, vPos);
+	ExtractPositionsElem<TFunction, Face>(u, vPos);
+	ExtractPositionsElem<TFunction, Volume>(u, vPos);
 }
 
 template <class TFunction>

@@ -91,7 +91,8 @@ class IGridFunction
 	/**
 	 * This method resizes the length of the vector.
 	 *
-	 * \param[in]	s		new size
+	 * \param[in]	s				new size
+	 * \param[in]	defaultValue	default value for new entries
 	 */
 		virtual void resize_values(size_t s, number defaultValue = 0.0) = 0;
 
@@ -160,18 +161,18 @@ class IGridFunction
 			{check(); return m_pDD->multi_indices(elem, fct, ind);}
 
 	/// get multi indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		size_t inner_multi_indices(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
+		template <typename TElem>
+		size_t inner_multi_indices(TElem* elem, size_t fct,	multi_index_vector_type& ind) const
 			{check(); return m_pDD->inner_multi_indices(elem, fct, ind);}
 
 	/// get algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		size_t algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+		template <typename TElem>
+		size_t algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			{check(); return m_pDD->algebra_indices(elem, ind);}
 
 	/// get algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		size_t inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+		template <typename TElem>
+		size_t inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			{check(); return m_pDD->inner_algebra_indices(elem, ind);}
 
 	protected:
@@ -296,6 +297,23 @@ class GridFunction
 	/// access dof values
 		inline number get_dof_value(size_t i, size_t comp) const
 			{return BlockRef( (vector_type::operator[](i)), comp);}
+
+	///	returns the position of the dofs of a function if available
+		template <typename TElem>
+		bool dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool dof_positions(VertexBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool dof_positions(EdgeBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool dof_positions(Face* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool dof_positions(Volume* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool dof_positions(GeometricObject* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+
+		template <typename TElem>
+		bool inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool inner_dof_positions(VertexBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool inner_dof_positions(EdgeBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool inner_dof_positions(Face* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool inner_dof_positions(Volume* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
+		bool inner_dof_positions(GeometricObject* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
 
 	protected:
 	/// Approximation Space
