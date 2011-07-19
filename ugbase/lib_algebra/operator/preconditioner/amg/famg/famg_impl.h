@@ -77,7 +77,7 @@ void famg<TAlgebra>::tostring() const
 	UG_LOG(" Aggressive Coarsening is " << (m_bAggressiveCoarsening ? "[ON]" : "OFF"));
 	UG_LOG(", external Coarsening is " << (m_bExternalCoarsening ? "[ON]" : "OFF"));
 	UG_LOG(", precalculate Coarsening is " << (m_bUsePrecalculate ? "[ON]" : "OFF"));
-	UG_LOG(" epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << "\n");
+	UG_LOG(", epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << "\n");
 
 	UG_LOG(" \n");
 	UG_LOG(m_testvectors.size() + m_vVectorWriters.size() << " test vectors. Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);
