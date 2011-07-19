@@ -17,8 +17,7 @@ dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	--gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
-	--gridName = "unit_square/unit_square_quads_8x8.ugx"
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -250,7 +249,7 @@ print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRef
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", 2)
+approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
