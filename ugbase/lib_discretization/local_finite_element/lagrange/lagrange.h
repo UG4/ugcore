@@ -73,14 +73,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::position()
 		bool position(size_t i, position_type& pos) const
 		{
-			pos = EquidistantLagrange1D::position(i, p);
+			pos = EquidistantLagrange1D::position(multi_index(i)[0], p);
 			return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		shape_type shape(size_t i, const position_type& x) const
 		{
-			return m_vPolynom[i].value(x[0]);
+			return m_vPolynom[multi_index(i)[0]].value(x[0]);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
@@ -106,7 +106,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	///	evaluates the gradient
 		void grad(grad_type& g, size_t i, const position_type& x) const
 		{
-			g[0] = m_vDPolynom[i].value(x[0]);
+			g[0] = m_vDPolynom[multi_index(i)[0]].value(x[0]);
 		}
 
 	///	return Multi index for index i
