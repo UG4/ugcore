@@ -136,6 +136,9 @@ void collect_matrix(const matrix_type &A, matrix_type &M, IndexLayout &masterLay
 	else
 	{
 		M = A;
+		IndexLayout *pNull=NULL;
+		M.set_master_layout(*pNull);
+		M.set_slave_layout(*pNull);
 		typedef std::map<int, BinaryBuffer> BufferMap;
 		BufferMap streams;
 

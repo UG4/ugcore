@@ -435,11 +435,22 @@ void amg_base<TAlgebra>::create_direct_solver(size_t level)
 			}
 		}
 		if(pcl::GetProcRank() == 0)
+		{
+			m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(true);
+			collectedBaseA.set_master_layout(m_emptyLayout);
+			collectedBaseA.set_slave_layout(m_emptyLayout);
+			collectedBaseA.set_process_communicator(m_emptyPC);
 			m_basesolver->init(collectedBaseA);
+		}
+		else
+			m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(false);
 	}
 	else
+	{
+		m_emptyPC = pcl::ProcessCommunicator(pcl::PCD_WORLD).create_sub_communicator(true);
 #endif
 		m_basesolver->init(*m_A[level]);
+	}
 
 	m_dTimingCoarseSolverSetupMS = SW.ms();
 	UG_DLOG(LIB_ALG_AMG, 1, "Coarse Solver Setup took " << m_dTimingCoarseSolverSetupMS << "ms." << std::endl);
@@ -592,11 +603,18 @@ bool amg_base<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t le
 			size_t N = collectedBaseA.num_rows();
 			collC.resize(N);
 			collC.set(0.0);
+			collC.set_master_layout(m_emptyLayout);
+			collC.set_slave_layout(m_emptyLayout);
+			collC.set_process_communicator(m_emptyPC);
 
 			collD = d;
 			collD.resize(N);
 			for(size_t i=Ah.num_rows(); i<N; i++)
 				collD[i] = 0.0;
+
+			collD.set_master_layout(m_emptyLayout);
+			collD.set_slave_layout(m_emptyLayout);
+			collD.set_process_communicator(m_emptyPC);
 		}
 		// send d -> collD
 		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
@@ -604,6 +622,10 @@ bool amg_base<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t le
 		com.send_data(slaveColl, compolAdd);
 		com.receive_data(masterColl, compolAdd);
 		com.communicate();
+
+
+
+
 
 		if(pcl::GetProcRank() == 0)
 			m_basesolver->apply_return_defect(collC, collD);

@@ -258,21 +258,6 @@ protected:
 	stdvector<prolongation_matrix_type *> m_P; 	///< P Prolongation Matrices
 	stdvector<MatrixOperator<vector_type,vector_type,matrix_type> *> m_A;				///< A Matrices
 
-#ifdef UG_PARALLEL
-	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
-	stdvector<IndexLayout> slaveLayouts, masterLayouts; // todo: use in FAMG
-
-
-	MatrixOperator<vector_type,vector_type,matrix_type> collectedBaseA;
-	IndexLayout masterColl, slaveColl;
-	vector_type collC;
-	vector_type collD;
-
-	size_t agglomerationLevel;
-	stdvector<IndexLayout> agglomerationMasterLayout;
-	IndexLayout agglomerationSlaveLayout;
-#endif
-
 	bool 	m_writeMatrices;
 
 	std::string m_writeMatrixPath;
@@ -304,6 +289,22 @@ protected:
 	IPositionProvider<2> *m_pPositionProvider2d;
 	IPositionProvider<3> *m_pPositionProvider3d;
 
+#ifdef UG_PARALLEL
+	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
+	stdvector<IndexLayout> slaveLayouts, masterLayouts; // todo: use in FAMG
+
+
+	MatrixOperator<vector_type,vector_type,matrix_type> collectedBaseA;
+	IndexLayout masterColl, slaveColl, m_emptyLayout;
+	vector_type collC;
+	vector_type collD;
+	pcl::ProcessCommunicator m_emptyPC;
+
+
+	size_t agglomerationLevel;
+	stdvector<IndexLayout> agglomerationMasterLayout;
+	IndexLayout agglomerationSlaveLayout;
+#endif
 
 public:
 	//! \return c_A = total nnz of all matrices divided by nnz of matrix A
