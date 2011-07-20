@@ -39,11 +39,11 @@ endif(NOT UG_SHARED)
 ####
 # make global svn revision available as C++ macro
 ####
-
+IF(SVN)
 include(FindSubversion)
 
 IF(Subversion_FOUND)
-        MESSAGE(STATUS "Looking for Subversion - found")
+	MESSAGE(STATUS "Looking for Subversion - found (disable SVN with -DSVN=OFF)")
         Subversion_WC_INFO(${CMAKE_SOURCE_DIR} "svn")
         EXECUTE_PROCESS(
                 COMMAND "svnversion" "--no-newline" ${CMAKE_SOURCE_DIR}
@@ -57,11 +57,15 @@ IF(Subversion_FOUND)
         file(WRITE svnrevision.h "#define SVN_REVISION \"${svn_version}\"\n")
 
 ELSE(Subversion_FOUND)
-        MESSAGE(STATUS "Looking for Subversion - not found")
+	MESSAGE(STATUS "Looking for Subversion - not found (disable SVN with -DSVN=OFF)")
         # write a file with the SVN_REVISION define
         file(WRITE svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
 ENDIF(Subversion_FOUND)
-
+ELSE(SVN)
+	MESSAGE(STATUS "Not looking for Subversion - (Enable SVN with -DSVN=ON)")
+        # write a file with the SVN_REVISION define
+        file(WRITE svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+ENDIF(SVN)
 ####
 # make compile date stamp available as C++ macro
 ####
