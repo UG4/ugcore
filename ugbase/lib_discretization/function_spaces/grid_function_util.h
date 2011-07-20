@@ -108,7 +108,8 @@ void ExtractPositionsElem(const TFunction &u,
 
 			//	check correct size
 				UG_ASSERT(ind.size() == vElemPos.size(), "Num MultiIndex ("<<ind.size()
-						  <<") and Num Position ("<<vElemPos.size()<<") must match.");
+						  <<") and Num Position ("<<vElemPos.size()<<") must match."
+						 "GeomObject dim="<<geometry_traits<TElem>::BASE_OBJECT_TYPE_ID);
 
 			//	write position
 				for(size_t sh = 0; sh < ind.size(); ++sh)
