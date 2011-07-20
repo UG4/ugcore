@@ -292,7 +292,7 @@ class DimFEGeometry
 
 			//	request for trial space
 //				const LocalShapeFunctionSet<reference_element>& lsfs
-				 	 = LocalShapeFunctionSetProvider::get(m_lfeID);
+//				 	 = LocalShapeFunctionSetProvider::get(m_lfeID);
 
 				for(size_t ip = 0; ip < m_nip; ++ip)
 					for(size_t sh = 0; sh < m_nsh; ++sh)
