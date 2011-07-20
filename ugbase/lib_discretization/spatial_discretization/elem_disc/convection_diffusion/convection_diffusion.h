@@ -144,6 +144,9 @@ class ConvectionDiffusionElemDisc
 	///	current type of disc scheme
 		std::string m_discScheme;
 
+	///	current order of disc scheme
+		int m_order;
+
 	///	current regular grid flag
 		bool m_bNonRegularGrid;
 
@@ -208,28 +211,44 @@ class ConvectionDiffusionElemDisc
 		//	Finite Element assemblings
 		/////////////////////////////////////
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_loop_prepare_fe();
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_prepare_fe(TElem* elem, const local_vector_type& u);
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_loop_finish_fe();
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_JA_fe(local_matrix_type& J, const local_vector_type& u);
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_JM_fe(local_matrix_type& J, const local_vector_type& u);
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_dA_fe(local_vector_type& d, const local_vector_type& u);
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_dM_fe(local_vector_type& d, const local_vector_type& u);
 
-		template <typename TElem>
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
 		bool elem_rhs_fe(local_vector_type& d);
 
 	protected:
@@ -324,17 +343,18 @@ class ConvectionDiffusionElemDisc
 		void register_fv1_func();
 
 	// 	FE Assemblings
-		void register_all_fe1_funcs();
+		void register_all_fe_funcs(int order);
 
-		struct RegisterFE1 {
-				RegisterFE1(this_type* pThis);
-				this_type* m_pThis;
-				template< typename TElem > void operator()(TElem&)
-				{m_pThis->register_fe1_func<TElem>();}
+		struct RegisterFE {
+				RegisterFE(this_type* pThis, int p);
+				this_type* m_pThis; int m_p;
+				template< typename TElem > void operator()(TElem&);
 		};
 
-		template <typename TElem>
-		void register_fe1_func();
+		template<typename TElem,
+				 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+				 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+		void register_fe_func();
 
 };
 

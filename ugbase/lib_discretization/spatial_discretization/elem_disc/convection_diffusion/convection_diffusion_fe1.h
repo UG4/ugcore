@@ -24,10 +24,10 @@ namespace ug{
 
 
 template<typename TDomain>
-template<typename TElem >
-inline
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_prepare_fe()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -37,10 +37,13 @@ elem_loop_prepare_fe()
 																ref_elem_type;
 	static const int refDim = ref_elem_type::dim;
 
-//	set local positions for rhs
-	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
+//	typedef geometry
+	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
+//	request geometry
+	static const GeomType& geo = GeomProvider::get<GeomType>();
+
+//	set local positions
 	m_imDiffusion.template 	set_local_ips<refDim>(geo.local_ips(),
 											  geo.num_ip());
 	m_imVelocity.template 	set_local_ips<refDim>(geo.local_ips(),
@@ -55,9 +58,10 @@ elem_loop_prepare_fe()
 }
 
 template<typename TDomain>
-template<typename TElem >
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_finish_fe()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -67,10 +71,10 @@ elem_loop_finish_fe()
 }
 
 template<typename TDomain>
-
-template<typename TElem >
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_prepare_fe(TElem* elem, const local_vector_type& u)
 {
 	// this loop will be performed inside the loop over the elements.
@@ -81,9 +85,11 @@ elem_prepare_fe(TElem* elem, const local_vector_type& u)
 //	get corners
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
-	// update Geometry for this element
-	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
+//	typedef geometry
+	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
+
+//	request geometry
+	static GeomType& geo = GeomProvider::get<GeomType>();
 
 	if(!geo.update(&m_vCornerCoords[0]))
 	{
@@ -103,14 +109,17 @@ elem_prepare_fe(TElem* elem, const local_vector_type& u)
 }
 
 template<typename TDomain>
-template<typename TElem >
-inline
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
+//	typedef geometry
+	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
+
+//	request geometry
+	static const GeomType& geo = GeomProvider::get<GeomType>();
 
 	MathVector<dim> v, Dgrad;
 
@@ -155,14 +164,17 @@ elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem >
-inline
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
+//	typedef geometry
+	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
+
+//	request geometry
+	static const GeomType& geo = GeomProvider::get<GeomType>();
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -192,20 +204,21 @@ elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem >
-inline
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 {
-	static const int dim = TDomain::dim;
+//	typedef geometry
+	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
+
+//	request geometry
+	static const GeomType& geo = GeomProvider::get<GeomType>();
 
 	number integrand, shape_u;
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v, Dgrad_u, grad_u;
-
-	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -252,14 +265,17 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem >
-inline
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
+//	typedef geometry
+	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
+
+//	request geometry
+	static const GeomType& geo = GeomProvider::get<GeomType>();
 
 	number shape_u;
 
@@ -288,19 +304,22 @@ elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 
 //	done
 	return true;
-}
-
+};
 
 template<typename TDomain>
-template<typename TElem >
-inline
-bool
-ConvectionDiffusionElemDisc<TDomain>::
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+bool ConvectionDiffusionElemDisc<TDomain>::
 elem_rhs_fe(local_vector_type& d)
 {
-	FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeP1, 1, GaussQuadrature, 2> >();
+//	typedef geometry
+	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
+//	request geometry
+	static const GeomType& geo = GeomProvider::get<GeomType>();
+
+//	skip if no source present
 	if(!m_imSource.data_given()) return true;
 
 //	loop integration points
@@ -323,39 +342,82 @@ elem_rhs_fe(local_vector_type& d)
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-ConvectionDiffusionElemDisc<TDomain>::RegisterFE1::
-RegisterFE1(this_type* pThis) : m_pThis(pThis){}
+ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+RegisterFE(this_type* pThis, int p) : m_pThis(pThis), m_p(p) {}
 
-// register for 1D
+template <int dim> struct FEConvDiffElemTypes;
+
+// 1d
+template <> struct FEConvDiffElemTypes<1> {
+typedef boost::mpl::list<Edge> DimElemList;
+typedef boost::mpl::list<Edge> AllElemList;
+};
+
+// 2d
+template <> struct FEConvDiffElemTypes<2> {
+typedef boost::mpl::list<Triangle, Quadrilateral> DimElemList;
+typedef boost::mpl::list<Edge, Triangle, Quadrilateral> AllElemList;
+};
+
+// 3d
+template <> struct FEConvDiffElemTypes<3> {
+typedef boost::mpl::list<Tetrahedron, Hexahedron> DimElemList;
+typedef boost::mpl::list<Edge, Triangle, Quadrilateral,
+								 Tetrahedron, Hexahedron> AllElemList;
+};
+
+// register for all dim
 template<typename TDomain>
-void
-ConvectionDiffusionElemDisc<TDomain>::
-register_all_fe1_funcs()
+void ConvectionDiffusionElemDisc<TDomain>::
+register_all_fe_funcs(int order)
 {
 //	get all grid element types in this dimension and below
-	typedef typename GridElemTypes<dim>::AllElemList ElemList;
+	typedef typename FEConvDiffElemTypes<dim>::AllElemList ElemList;
 
 //	assemble functions
-	boost::mpl::for_each<ElemList>( RegisterFE1(this) );
+	boost::mpl::for_each<ElemList>( RegisterFE(this, order) );
 }
 
 template<typename TDomain>
-template<typename TElem>
-void
-ConvectionDiffusionElemDisc<TDomain>::
-register_fe1_func()
+template< typename TElem>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+operator()(TElem&)
+{
+	switch(m_p)
+	{
+		case 1:
+			m_pThis->register_fe_func<TElem, LagrangeP1, 1, GaussQuadrature, 2>();
+			break;
+		case 2:
+			m_pThis->register_fe_func<TElem, LagrangeLSFS, 2, GaussQuadrature, 4>();
+			break;
+		case 3:
+			m_pThis->register_fe_func<TElem, LagrangeLSFS, 3, GaussQuadrature, 6>();
+			break;
+		default:
+			throw(UGFatalError("FE ConvDiff order not implemented,"));
+	}
+}
+
+
+template<typename TDomain>
+template<typename TElem,
+		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
+		 template <class Elem, int WorldDim> class TQuadRule, int TOrderQuad>
+void ConvectionDiffusionElemDisc<TDomain>::
+register_fe_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem>);
-	reg_prepare_elem_fct(	 id, &T::template elem_prepare_fe<TElem>);
-	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem>);
-	reg_ass_JA_elem_fct(		 id, &T::template elem_JA_fe<TElem>);
-	reg_ass_JM_elem_fct(		 id, &T::template elem_JM_fe<TElem>);
-	reg_ass_dA_elem_fct(		 id, &T::template elem_dA_fe<TElem>);
-	reg_ass_dM_elem_fct(		 id, &T::template elem_dM_fe<TElem>);
-	reg_ass_rhs_elem_fct(	 id, &T::template elem_rhs_fe<TElem>);
+	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
+	reg_prepare_elem_fct(	  id, &T::template elem_prepare_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
+	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
+	reg_ass_JA_elem_fct(	  id, &T::template elem_JA_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
+	reg_ass_JM_elem_fct(	  id, &T::template elem_JM_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
+	reg_ass_dA_elem_fct(	  id, &T::template elem_dA_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
+	reg_ass_dM_elem_fct(	  id, &T::template elem_dM_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
+	reg_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fe<TElem, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad>);
 }
 
 } // namespace ug

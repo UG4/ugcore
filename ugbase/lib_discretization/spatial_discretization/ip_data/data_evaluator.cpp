@@ -68,7 +68,7 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		std::vector<LFEID> vLfeID(discFctGrp.num_fct());
 		for(size_t f = 0; f < vLfeID.size(); ++f)
 			vLfeID[f] = discFctGrp.local_finite_element_id(f);
-		if(!(*m_pvElemDisc)[i]->request_finite_element_id(vLfeID))
+		if(!((*m_pvElemDisc)[i]->request_finite_element_id(vLfeID)))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
 					" can not assemble the specified local finite element space set:\n");

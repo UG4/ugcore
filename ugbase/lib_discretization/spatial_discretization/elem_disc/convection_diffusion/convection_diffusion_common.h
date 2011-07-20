@@ -72,9 +72,6 @@ ConvectionDiffusionElemDisc<TDomain>::
 ConvectionDiffusionElemDisc()
  : m_pConvShape(NULL)
 {
-//	register assemling functions
-	register_all_fv1_funcs(false);
-
 //	register exports
 	register_export(m_exConcentration);
 	register_export(m_exConcentrationGrad);
@@ -88,8 +85,13 @@ ConvectionDiffusionElemDisc()
 
 	m_imMassScale.set_mass_part(true);
 
-//	set default assembling to fe
-	set_disc_scheme("fe");
+//	set defaults
+	m_order = 1;
+	m_bNonRegularGrid = false;
+	m_discScheme = "fe";
+
+//	update assemble functions
+	set_assemble_funcs();
 }
 
 template<typename TDomain>
@@ -101,10 +103,45 @@ bool ConvectionDiffusionElemDisc<TDomain>::
 request_finite_element_id(const std::vector<LFEID>& vLfeID)
 {
 //	check number
-	if(vLfeID.size() != num_fct()) return false;
+	if(vLfeID.size() != num_fct())
+	{
+		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+				" Wrong number of functions given. Need exactly "<<num_fct()<<"\n");
+		return false;
+	}
 
-//	check that Lagrange 1st order
-	return vLfeID[0] == LFEID(LFEID::LAGRANGE, 1);
+//	check that Lagrange order
+	if(vLfeID[0].type() != LFEID::LAGRANGE)
+	{
+		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+				" Lagrange trial space needed.\n");
+		return false;
+	}
+
+//	for fv only 1st order
+	if(m_discScheme == "fv" && vLfeID[0].order() != 1)
+	{
+		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+				" FV Scheme only implemented for 1st order.\n");
+		return false;
+	}
+
+//	check that not ADAPTIVE
+	if(vLfeID[0].order() < 1)
+	{
+		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+				" Adaptive or invalid order not implemented.\n");
+		return false;
+	}
+
+//	set order
+	m_order = vLfeID[0].order();
+
+//	update assemble functions
+	set_assemble_funcs();
+
+//	is supported
+	return true;
 }
 
 template<typename TDomain>
@@ -157,7 +194,7 @@ set_assemble_funcs()
 {
 //	switch, which assemble functions to use; both supported.
 	if(m_discScheme == "fv") register_all_fv1_funcs(m_bNonRegularGrid);
-	else if(m_discScheme == "fe") register_all_fe1_funcs();
+	else if(m_discScheme == "fe") register_all_fe_funcs(m_order);
 	else throw(UGFatalError("Disc Scheme not recognized. Internal error."));
 }
 
