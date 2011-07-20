@@ -66,9 +66,15 @@ class FE1NonlinearElasticityElemDisc
 		virtual size_t num_fct(){return dim;}
 
 	///	type of trial space for each function used
-		virtual LFEID local_finite_element_id(size_t loc_fct)
+		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
-			return LFEID(LFEID::LAGRANGE, 1);
+		//	check number
+			if(vLfeID.size() != num_fct()) return false;
+
+		//	check that Lagrange 1st order
+			for(size_t i = 0; i < vLfeID.size(); ++i)
+				if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
+			return true;
 		}
 
 	///	switches between non-regular and regular grids

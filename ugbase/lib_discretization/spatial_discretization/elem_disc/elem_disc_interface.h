@@ -15,6 +15,7 @@
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/time_discretization/solution_time_series.h"
 #include "lib_discretization/function_spaces/approximation_space.h"
+#include "lib_discretization/local_finite_element/local_finite_element_id.h"
 
 namespace ug{
 
@@ -114,8 +115,19 @@ class IElemDisc{
 	/// number of functions this discretization handles
 		virtual size_t num_fct() = 0;
 
-	/// shape function set of the functions handled by this discretization
-		virtual LFEID local_finite_element_id(size_t i) = 0;
+	/// requests assembling for a finite element id
+	/**
+	 * This function is called before the assembling starts. In the vector
+	 * exactly this->num_fct() Local Finite Element IDs must be passed. The
+	 * IElemDisc-Implementation checks if it can assemble the set of LFEID and
+	 * registers the corresponding assembling functions. If this is not the
+	 * case instead false is returned.
+	 *
+	 * \param[in]		vLfeID		vector of Local Finite Element IDs
+	 * \returns			true		if assemble routines are present and selected
+	 * 					false		if no assembling for those Spaces available
+	 */
+		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID) = 0;
 
 	///	informs the assembling, that hanging nodes must be taken into account
 	/**

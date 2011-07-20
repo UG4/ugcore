@@ -99,9 +99,13 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 		virtual size_t num_fct(){return 1;}
 
 	///	type of trial space for each function used
-		virtual LFEID local_finite_element_id(size_t loc_fct)
+		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
-			return LFEID(LFEID::LAGRANGE, 1);
+		//	check number
+			if(vLfeID.size() != num_fct()) return false;
+
+		//	check that Lagrange 1st order
+			return vLfeID[0] == LFEID(LFEID::LAGRANGE, 1);
 		}
 
 	///	switches between non-regular and regular grids

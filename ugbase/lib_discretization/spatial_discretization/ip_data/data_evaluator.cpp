@@ -30,27 +30,67 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 	{
 	//	a function group for the elem disc
-		FunctionGroup elemFctGrp;
+		FunctionGroup discFctGrp;
 
 	//	create function group of this elem disc
-		if(!ConvertStringToFunctionGroup(elemFctGrp, fctPat,
+		if(!ConvertStringToFunctionGroup(discFctGrp, fctPat,
 		                                 (*m_pvElemDisc)[i]->symb_fcts()))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Cannot find "
-					"some symbolic Function Name for disc "<<i<<".\n");
+					"some symbolic Function Name for disc "<<i<<". (Incorrect"
+					" function specification in: '");
+			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
+			{
+				if(f > 0) UG_LOG(", ");
+				UG_LOG((*m_pvElemDisc)[i]->symb_fcts()[f]);
+			}
+			UG_LOG("').\n");
 			return false;
 		}
 
+	//	check that number of functions is correct
+		if(discFctGrp.num_fct() != (*m_pvElemDisc)[i]->num_fct())
+		{
+			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
+					" requires "<<(*m_pvElemDisc)[i]->num_fct()<<" symbolic "
+					"Function Name, but "<<discFctGrp.num_fct()<<" Functions "
+					" specified: ");
+			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
+			{
+				if(f > 0) UG_LOG(", ");
+				UG_LOG((*m_pvElemDisc)[i]->symb_fcts()[f]);
+			}
+			UG_LOG(".\n");
+			return false;
+		}
+
+	//	request assembling for local finite element id
+		std::vector<LFEID> vLfeID(discFctGrp.num_fct());
+		for(size_t f = 0; f < vLfeID.size(); ++f)
+			vLfeID[f] = discFctGrp.local_finite_element_id(f);
+		if(!(*m_pvElemDisc)[i]->request_finite_element_id(vLfeID))
+		{
+			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
+					" can not assemble the specified local finite element space set:\n");
+			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
+			{
+				UG_LOG("  Fct "<<f<<": '"<<(*m_pvElemDisc)[i]->symb_fcts()[f]);
+				UG_LOG("' using "<< vLfeID[f] << "\n");
+			}
+			return false;
+		}
+
+
 	//	copy function group in import/export of element discs
 		for(size_t imp = 0; imp < (*m_pvElemDisc)[i]->num_imports(); ++imp)
-			(*m_pvElemDisc)[i]->get_import(imp).set_function_group(elemFctGrp);
+			(*m_pvElemDisc)[i]->get_import(imp).set_function_group(discFctGrp);
 
 		for(size_t exp = 0; exp < (*m_pvElemDisc)[i]->num_exports(); ++exp)
-			(*m_pvElemDisc)[i]->get_export(exp).set_function_group(elemFctGrp);
+			(*m_pvElemDisc)[i]->get_export(exp).set_function_group(discFctGrp);
 
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
-		if(!CreateFunctionIndexMapping(m_vElemDiscMap[i], elemFctGrp,
+		if(!CreateFunctionIndexMapping(m_vElemDiscMap[i], discFctGrp,
 		                               	   	   	   	   	   	   m_commonFctGroup))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Cannot create "
