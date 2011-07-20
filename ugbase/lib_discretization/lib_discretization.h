@@ -91,7 +91,6 @@
 #include "spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "spatial_discretization/elem_disc/elem_disc_assemble_util.h"
 #include "spatial_discretization/elem_disc/convection_diffusion/convection_diffusion.h"
-#include "spatial_discretization/elem_disc/convection_diffusion/fe1_convection_diffusion.h"
 #include "spatial_discretization/elem_disc/density_driven_flow/density_driven_flow.h"
 #include "spatial_discretization/elem_disc/inner_boundary/inner_boundary.h"
 #include "spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
