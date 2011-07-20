@@ -141,7 +141,7 @@ class DoFDistribution
 	///	returns if trial space is supported
 		static bool supports_trial_space(LFEID& id)
 		{
-			return id == LFEID(LFEID::LAGRANGE, 1);
+			return (id.type() == LFEID::LAGRANGE && id.order() >= 1);
 		}
 
 	/// \copydoc ug::IDoFDistribution::has_indices_on( ReferenceObjectID ) const
