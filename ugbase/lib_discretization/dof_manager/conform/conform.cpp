@@ -468,7 +468,13 @@ bool DoFDistribution::distribute_indices()
 	bool bSuccess = true;
 	bSuccess &= distribute_indices<Vertex>();
 	bSuccess &= distribute_indices<Edge>();
-	// \todo: more....
+	bSuccess &= distribute_indices<Triangle>();
+	bSuccess &= distribute_indices<Quadrilateral>();
+	bSuccess &= distribute_indices<Tetrahedron>();
+	bSuccess &= distribute_indices<Prism>();
+	bSuccess &= distribute_indices<Pyramid>();
+	bSuccess &= distribute_indices<Hexahedron>();
+	// \todo: DO WE ALSO NEED CONSTRAINED OBJECTS ?!
 
 //	the size of the index set is the number of DoFs
 	m_sizeIndexSet = m_numIndex;
@@ -547,7 +553,13 @@ bool DoFDistribution::permute_indices(std::vector<size_t>& vIndNew)
 
 	permute_indices<Vertex>(vIndNew);
 	permute_indices<Edge>(vIndNew);
-	//\todo: more
+	permute_indices<Triangle>(vIndNew);
+	permute_indices<Quadrilateral>(vIndNew);
+	permute_indices<Tetrahedron>(vIndNew);
+	permute_indices<Prism>(vIndNew);
+	permute_indices<Pyramid>(vIndNew);
+	permute_indices<Hexahedron>(vIndNew);
+	//\todo: DO WE ALSO NEED CONSTRAINED ELEMENTS ?!
 
 //	we're done
 	return true;
@@ -819,7 +831,14 @@ bool DoFDistribution::defragment()
 
 //	replace for all element type
 	bSuc &= defragment<Vertex>(vReplaced);
-	//\todo: more ...
+	bSuc &= defragment<Edge>(vReplaced);
+	bSuc &= defragment<Triangle>(vReplaced);
+	bSuc &= defragment<Quadrilateral>(vReplaced);
+	bSuc &= defragment<Tetrahedron>(vReplaced);
+	bSuc &= defragment<Prism>(vReplaced);
+	bSuc &= defragment<Pyramid>(vReplaced);
+	bSuc &= defragment<Hexahedron>(vReplaced);
+	//\todo: DO WE ALSO NEED CONSTRAINED ELEMENTS ?!
 
 //	check success
 	if(!bSuc)
