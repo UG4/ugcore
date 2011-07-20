@@ -12,24 +12,6 @@
 
 namespace ug{
 
-/// Exception thrown when quadrature rule not found
-struct UG_ERROR_QuadratureRuleNotRegistered
-{
-		UG_ERROR_QuadratureRuleNotRegistered(size_t order_)
-			: order(order_)
-		{}
-
-		size_t order;
-};
-
-// predeclaration
-template <typename TRefElem>
-class QuadratureRuleProvider;
-
-// registering function
-template <typename TRefElem>
-bool RegisterQuadratureRule(QuadratureRuleProvider<TRefElem>& factory);
-
 // Doxygen group
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -45,7 +27,7 @@ bool RegisterQuadratureRule(QuadratureRuleProvider<TRefElem>& factory);
 /// \addtogroup lib_discretization_quadrature_rules
 /// @{
 
-/// provides quadrature rule for a given Reference Element
+/// provides quadrature rule for a Reference Dimension
 /**
  * A Quadrature Rule provides for a given Reference Element integration points
  * and weights. An Integral over the Reference Element T is approximated by
@@ -56,16 +38,13 @@ bool RegisterQuadratureRule(QuadratureRuleProvider<TRefElem>& factory);
  * with the \f$n\f$ integration points \f$\mathbf{x}_i\f$ and weights
  * \f$ w_i \f$.
  *
- * \tparam 		TRefElem 		Reference Element Type
+ * \tparam 		TDim 		Dimension of Reference Element
  */
-template <typename TRefElem>
+template <int TDim>
 class QuadratureRule{
 	public:
-	///	Reference Element Type
-		typedef TRefElem reference_element_type;
-
 	///	Dimension of Reference Element
-		static const int dim = TRefElem::dim;
+		static const int dim = TDim;
 
 	/// Position Type in Reference Element Space
 		typedef MathVector<dim> position_type;
@@ -107,20 +86,88 @@ class QuadratureRule{
 		int m_order;					///< Order of rule
 };
 
-/// provides quadrature rules for an element type
+// predeclaration
+template <int TDim>
+class QuadratureRuleProvider;
+
+// registering function
+template <typename TRefElem>
+bool RegisterQuadratureRule(QuadratureRuleProvider<TRefElem::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferenceTriangle>(QuadratureRuleProvider<ReferenceTriangle::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferenceQuadrilateral>(QuadratureRuleProvider<ReferenceQuadrilateral::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferenceTetrahedron>(QuadratureRuleProvider<ReferenceTetrahedron::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferencePrism>(QuadratureRuleProvider<ReferencePrism::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferencePyramid>(QuadratureRuleProvider<ReferencePyramid::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferenceHexahedron>(QuadratureRuleProvider<ReferenceHexahedron::dim>& factory);
+
+// registering function
+template <int dim>
+bool RegisterQuadratureRuleDim(QuadratureRuleProvider<dim>& factory);
+
+// implementation 1d
+template <>
+inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<1>& factory)
+{
+	bool bRet = true;
+	bRet &= RegisterQuadratureRule<ReferenceEdge>(factory);
+	return bRet;
+}
+// implementation 2d
+template <>
+inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<2>& factory)
+{
+	bool bRet = true;
+	bRet &= RegisterQuadratureRule<ReferenceTriangle>(factory);
+	bRet &= RegisterQuadratureRule<ReferenceQuadrilateral>(factory);
+	return bRet;
+}
+// implementation 3d
+template <>
+inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<3>& factory)
+{
+	bool bRet = true;
+	bRet &= RegisterQuadratureRule<ReferenceTetrahedron>(factory);
+	bRet &= RegisterQuadratureRule<ReferencePrism>(factory);
+	bRet &= RegisterQuadratureRule<ReferencePyramid>(factory);
+	bRet &= RegisterQuadratureRule<ReferenceHexahedron>(factory);
+	return bRet;
+}
+
+
+/// Exception thrown when quadrature rule not found
+struct UG_ERROR_QuadratureRuleNotRegistered
+	: public UGFatalError
+{
+		UG_ERROR_QuadratureRuleNotRegistered(ReferenceObjectID roid_, size_t order_)
+			: UGFatalError("QuadRule Not Registered"), roid(roid_), order(order_)
+		{}
+		ReferenceObjectID roid;
+		size_t order;
+};
+
+/// provides quadrature rules for a reference dimension
 /**
  * This class serves as a provider for quadrature rules. It is templated for a
- * reference element type.
- * \tparam 	TRefElem	Reference Element Type
+ * reference element dimension.
+ *
+ * \tparam 	TDim	Reference Element Dimension
  */
-template <typename TRefElem>
-class QuadratureRuleProvider{
+template <int TDim>
+class QuadratureRuleProvider
+{
+	public:
+	///	dimension of reference element
+		static const int dim = TDim;
+
 	private:
 	///	private constructor performing standard registering
 		QuadratureRuleProvider()
 		{
+			m_vRule.resize(NUM_REFERENCE_OBJECTS);
+
 		//	register standard rules
-			RegisterQuadratureRule<TRefElem>(*this);
+			RegisterQuadratureRuleDim<dim>(*this);
 		}
 
 	//	disallow copy
@@ -128,39 +175,38 @@ class QuadratureRuleProvider{
 		QuadratureRuleProvider& operator=(const QuadratureRuleProvider&);
 
 	//	provide rule
-		static const QuadratureRule<TRefElem>& get_quad_rule(size_t order)
+		static const QuadratureRule<dim>& get_quad_rule(ReferenceObjectID roid,
+		                                                size_t order)
 		{
 		//	check if order or higerh order registered
-			if(order >= m_vRule.size())
-				throw(UG_ERROR_QuadratureRuleNotRegistered(order));
+			if(order >= m_vRule[roid].size())
+				throw(UG_ERROR_QuadratureRuleNotRegistered(roid, order));
 
 		//	look for rule of order or next higher one
-			if(m_vRule[order] == 0)
+			if(m_vRule[roid][order] == NULL)
 			{
-				for(size_t i = order + 1; i < m_vRule.size(); ++i)
+				for(size_t i = order + 1; i < m_vRule[roid].size(); ++i)
 				{
 				//	return higher order than requested
-					if(m_vRule[i] != 0)
-						return *m_vRule[i];
+					if(m_vRule[roid][i] != NULL) return *m_vRule[roid][i];
 				}
-				throw(UG_ERROR_QuadratureRuleNotRegistered(order));
+				throw(UG_ERROR_QuadratureRuleNotRegistered(roid, order));
 			}
 
 		//	return correct order
-			return *m_vRule[order];
+			return *m_vRule[roid][order];
 		}
 
 	///	singleton provider
-		static QuadratureRuleProvider<TRefElem>& instance()
+		static QuadratureRuleProvider<dim>& instance()
 		{
-			static QuadratureRuleProvider<TRefElem> inst;
+			static QuadratureRuleProvider<dim> inst;
 			return inst;
 		}
 
 	private:
 	///	Vector, holding all registered rules
-		static std::vector<const QuadratureRule<TRefElem>*> m_vRule;
-		static bool m_initialized;
+		static std::vector<std::vector<const QuadratureRule<TDim>*> > m_vRule;
 
 	public:
 	///	register rule at this provider
@@ -168,19 +214,42 @@ class QuadratureRuleProvider{
 	 * This function registers a quadrature rule at the Provider. If there is
 	 * already a rule registered for the order, the rule is overwritten.
 	 */
-		static bool register_rule(const QuadratureRule<TRefElem>& rule)
+		static bool register_rule(ReferenceObjectID roid,
+		                          const QuadratureRule<dim>& rule)
 		{
+			m_vRule.resize(NUM_REFERENCE_OBJECTS);
+
 		//	get order of rule to register
 			size_t order = rule.order();
 
 		//	resize vector if needed
-			if(m_vRule.size() <= order) m_vRule.resize(order+1, 0);
+			if(m_vRule[roid].size() <= order) m_vRule[roid].resize(order+1, NULL);
 
 		//	set or override rule
-			m_vRule[order] = &rule;
+			m_vRule[roid][order] = &rule;
 
 		//	we're done
 			return true;
+		}
+
+	///	register rule at this provider
+	/**
+	 * This function registers a quadrature rule at the Provider. If there is
+	 * already a rule registered for the order, the rule is overwritten.
+	 */
+		template <typename TRefElem>
+		static bool register_rule(const QuadratureRule<dim>& rule)
+		{
+		//	check that dimension is correct
+			if(TRefElem::dim != dim)
+				throw(UGFatalError("QuadratureRuleProvider: registering by reference"
+						" element, but at provider of different dimension."));
+
+		//	get reference object id
+			ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+
+		//	forward request
+			return register_rule(roid, rule);
 		}
 
 	///	gets quadrature rule of requested order
@@ -188,18 +257,48 @@ class QuadratureRuleProvider{
 	 * This function returns the next quadrature rule of order >= 'order'
 	 * that is registered to this Provider. If no rule is found an
 	 * Exception is thrown.
+	 *
+	 * \param[in]	order		Order of requested quadrature rule
+	 * \tparam		TRefElem	Reference element type
+	 */
+		template <typename TRefElem>
+		inline static const QuadratureRule<dim>& get_rule(size_t order)
+		{
+		//	check that dimension is correct
+			if(TRefElem::dim != dim)
+				throw(UGFatalError("QuadratureRuleProvider: requesting by reference"
+						" element, but at provider of different dimension."));
+
+		//	get reference object id
+			ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+
+		//	forward request
+			return instance().get_quad_rule(roid, order);
+		}
+
+	///	gets quadrature rule of requested order
+	/**
+	 * This function returns the next quadrature rule of order >= 'order'
+	 * that is registered to this Provider. If no rule is found an
+	 * Exception is thrown.
+	 *
+	 * \param[in]	roid		Reference Object id
 	 * \param[in]	order		Order of requested quadrature rule
 	 */
-		inline static const QuadratureRule<TRefElem>& get_rule(size_t order)
+		template <typename TRefElem>
+		inline static const QuadratureRule<dim>& get_rule(ReferenceObjectID roid,
+		                                                  size_t order)
 		{
-			return instance().get_quad_rule(order);
+		//	forward request
+			return instance().get_quad_rule(roid, order);
 		}
+
 };
 
 // Init static member
-template <typename TRefElem>
-std::vector<const QuadratureRule<TRefElem>*> QuadratureRuleProvider<TRefElem>::m_vRule
-	= std::vector<const QuadratureRule<TRefElem>*>();
+template <int dim>
+std::vector<std::vector<const QuadratureRule<dim>*> > QuadratureRuleProvider<dim>::m_vRule
+	= std::vector<std::vector<const QuadratureRule<dim>*> >();
 
 
 /// Singleton, holding a single Quadrature rule
@@ -240,7 +339,7 @@ class QuadRuleProvider {
  */
 template <typename TRefElem>
 class FlexGaussQuadrature
-	: public QuadratureRule<TRefElem>
+	: public QuadratureRule<TRefElem::dim>
 {
 	public:
 	///	Constructor

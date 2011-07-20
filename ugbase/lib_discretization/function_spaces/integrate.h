@@ -43,7 +43,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 				ref_elem_type;
 
 //	dimension of reference element
-	const int dim = ref_elem_type::dim;
+	static const int dim = ref_elem_type::dim;
 
 //	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;
@@ -60,8 +60,8 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	const size_t num_sh = trialSpace.num_sh();
 
 //	get quadrature Rule
-	const QuadratureRule<ref_elem_type>& rQuadRule
-			= QuadratureRuleProvider<ref_elem_type>::get_rule(order);
+	const QuadratureRule<dim>& rQuadRule
+			= QuadratureRuleProvider<dim>::template get_rule<ref_elem_type>(order);
 
 //	create a reference mapping
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;

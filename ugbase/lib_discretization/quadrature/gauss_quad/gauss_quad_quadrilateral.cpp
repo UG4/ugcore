@@ -713,7 +713,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceQuadrilateral>& factory)
+bool RegisterQuadratureRule<ReferenceQuadrilateral>(QuadratureRuleProvider<ReferenceQuadrilateral::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_1(1);
 	static FlexGaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_2(2);
@@ -728,17 +728,17 @@ bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceQuadrilateral>& fact
 	static FlexGaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_13(13);
 
 	bool success = true;
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_1);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_2);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_3);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_4);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_5);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_6);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_7);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_8);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_9);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_11);
-	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_13);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_1);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_2);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_3);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_4);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_5);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_6);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_7);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_8);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_9);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_11);
+	success &= factory.register_rule<ReferenceQuadrilateral>(gaussQuadratureReferenceQuadrilateral_13);
 
 	return success;
 };

@@ -66,7 +66,7 @@ class FEGeometry
 		size_t num_sh() const {return nsh;}
 
 	/// weight for integration point
-		number weight(size_t ip) const {return fabs(m_detJ[ip]) * m_rQuadRule.weight(ip);}
+		number weight(size_t ip) const {return fabs(m_vDetJ[ip]) * m_rQuadRule.weight(ip);}
 
 	/// local integration point
 		const MathVector<dim>& ip_local(size_t ip) const {return m_rQuadRule.point(ip);}
@@ -74,7 +74,7 @@ class FEGeometry
 	/// global integration point
 		const MathVector<worldDim>& ip_global(size_t ip) const
 		{
-			UG_ASSERT(ip < m_vIPGlobal.size(), "Wrong ip.");
+			UG_ASSERT(ip < nip, "Wrong ip.");
 			return m_vIPGlobal[ip];
 		}
 
@@ -113,6 +113,205 @@ class FEGeometry
 
 		//	compute global integration points
 			for(size_t ip = 0; ip < nip; ++ip)
+				m_mapping.local_to_global(ip_local(ip), m_vIPGlobal[ip]);
+
+		//	evaluate global data
+		//	if reference mapping is linear,
+			if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
+			{
+			// 	compute transformation inverse and determinate at first ip
+				m_mapping.jacobian_transposed_inverse(ip_local(0), m_vJTInv[0]);
+				m_vDetJ[0] = m_mapping.jacobian_det(ip_local(0));
+
+			//	copy values
+				for(size_t ip = 1; ip < nip; ++ip)
+				{
+					m_vJTInv[ip] = m_vJTInv[0];
+					m_vDetJ[ip] = m_vDetJ[0];
+				}
+			}
+		//	else compute jacobian for each point
+			{
+				for(size_t ip = 0; ip < nip; ++ip)
+				{
+				// 	compute transformation inverse and determinate at ip
+					m_mapping.jacobian_transposed_inverse(ip_local(ip), m_vJTInv[ip]);
+
+				//	compute determinant
+					m_vDetJ[ip] = m_mapping.jacobian_det(ip_local(ip));
+				}
+			}
+
+		// 	compute global gradients
+			for(size_t ip = 0; ip < nip; ++ip)
+				for(size_t sh = 0; sh < nsh; ++sh)
+					MatVecMult(m_vvGradGlobal[ip][sh], m_vJTInv[ip], m_vvGradLocal[ip][sh]);
+
+		//	we're done
+			return true;
+		}
+
+	protected:
+	///	Quadrature rule
+		const quad_rule_type& m_rQuadRule;
+
+	///	Quadrature rule
+		const trial_space_type& m_rTrialSpace;
+
+	///	reference mapping
+		ReferenceMapping<ref_elem_type, worldDim> m_mapping;
+
+	///	global integration points
+		MathVector<worldDim> m_vIPGlobal[nip];
+
+	///	shape functions evaluated at ip
+		number m_vvShape[nip][nsh];
+
+	///	global gradient evaluated at ip
+		MathVector<dim> m_vvGradLocal[nip][nsh];
+
+	///	local gradient evaluated at ip
+		MathVector<worldDim> m_vvGradGlobal[nip][nsh];
+
+	///	jacobian of transformation at ip
+		MathMatrix<worldDim,dim> m_vJTInv[nip];
+
+	///	determinate of transformation at ip
+		number m_vDetJ[nip];
+};
+
+
+
+template <int TWorldDim, int TRefDim = TWorldDim>
+class DimFEGeometry
+{
+	public:
+	/// reference element dimension
+		static const int dim = TRefDim;
+
+	/// world dimension
+		static const int worldDim = TWorldDim;
+
+	public:
+	///	Constructor
+		DimFEGeometry() :
+			m_roid(ROID_INVALID), m_order(0),
+			m_vIPLocal(NULL), m_vQuadWeight(NULL)
+		{}
+
+	/// number of integration points
+		size_t num_ip() const {return m_nip;}
+
+	/// number of shape functions
+		size_t num_sh() const {return m_nsh;}
+
+	/// weight for integration point
+		number weight(size_t ip) const
+		{
+			UG_ASSERT(ip < m_nip, "Wrong index");
+			return fabs(m_vDetJ[ip]) * m_vQuadWeight[ip];
+		}
+
+	/// local integration point
+		const MathVector<dim>& ip_local(size_t ip) const
+		{
+			UG_ASSERT(ip < m_nip, "Wrong index");
+			return m_vIPLocal[ip];
+		}
+
+	/// global integration point
+		const MathVector<worldDim>& ip_global(size_t ip) const
+		{
+			UG_ASSERT(ip < m_vIPGlobal.size(), "Wrong ip.");
+			return m_vIPGlobal[ip];
+		}
+
+	/// local integration point
+		const MathVector<dim>* local_ips() const {return m_vIPLocal;}
+
+	/// global integration point
+		const MathVector<worldDim>* global_ips() const{return &m_vIPGlobal[0];}
+
+		/// shape function at ip
+		number shape(size_t ip, size_t sh) const
+		{
+			UG_ASSERT(ip < m_vvShape.size(), "Wrong index");
+			UG_ASSERT(sh < m_vvShape[ip].size(), "Wrong index");
+			return m_vvShape[ip][sh];
+		}
+
+	/// local gradient at ip
+		const MathVector<dim>& grad_local(size_t ip, size_t sh) const
+		{
+			UG_ASSERT(ip < m_vvGradLocal.size(), "Wrong index");
+			UG_ASSERT(sh < m_vvGradLocal[ip].size(), "Wrong index");
+			return m_vvGradLocal[ip][sh];
+		}
+
+	/// global gradient at ip
+		const MathVector<worldDim>& grad_global(size_t ip, size_t sh) const
+		{
+			UG_ASSERT(ip < m_vvGradGlobal.size(), "Wrong index");
+			UG_ASSERT(sh < m_vvGradGlobal[ip].size(), "Wrong index");
+			return m_vvGradGlobal[ip][sh];
+		}
+
+	/// update Geometry for corners
+		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
+		{
+		//	get reference element type
+			ReferenceObjectID roid = pElem->reference_object_id();
+
+			////////////////////////
+			//	local values
+			////////////////////////
+
+		//	if already prepared for this roid, skip update of local values
+			if(m_roid != roid)
+			{
+			//	remember current roid
+				m_roid = roid;
+
+			//	request for quadrature rule
+				const QuadratureRule<dim>& quadRule
+						= QuadratureRuleProvider<dim>::get_rule(roid, m_order);
+
+			//	copy quad informations
+				m_nip = quadRule.size();
+				m_vIPLocal = quadRule.points();
+				m_vQuadWeight = quadRule.weights();
+
+			//	resize
+				m_vIPGlobal.resize(m_nip);
+				m_vJTInv.resize(m_nip);
+				m_vDetJ.resize(m_nip);
+
+				m_vvGradGlobal.resize(m_nip);
+				m_vvGradLocal.resize(m_nip);
+				m_vvShape.resize(m_nip);
+
+			//	request for trial space
+//				const LocalShapeFunctionSet<reference_element>& lsfs
+				 	 = LocalShapeFunctionSetProvider::get(m_lfeID);
+
+				for(size_t ip = 0; ip < m_nip; ++ip)
+					for(size_t sh = 0; sh < m_nsh; ++sh)
+					{
+//						m_vvShape[ip][sh] = m_rTrialSpace.shape(sh, quadRule.point(ip));
+//						m_vvGradLocal[ip][sh] = m_rTrialSpace.grad(sh, quadRule.point(ip));
+					}
+
+			}
+
+			////////////////////////
+			//	global values
+			////////////////////////
+
+/*		//	update the mapping for the new corners
+			m_mapping.update(vCorner);
+
+		//	compute global integration points
+			for(size_t ip = 0; ip < nip; ++ip)
 				m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]);
 
 		//	evaluate global data
@@ -146,42 +345,52 @@ class FEGeometry
 			for(size_t ip = 0; ip < nip; ++ip)
 				for(size_t sh = 0; sh < nsh; ++sh)
 					MatVecMult(m_vvGradGlobal[ip][sh], m_JTInv[ip], m_vvGradLocal[ip][sh]);
-
+*/
 		//	we're done
 			return true;
 		}
 
 	protected:
-	///	Quadrature rule
-		const quad_rule_type& m_rQuadRule;
+	///	current reference object id the local values are prepared for
+		ReferenceObjectID m_roid;
 
-	///	Quadrature rule
-		const trial_space_type& m_rTrialSpace;
+	///	current integration order
+		int m_order;
 
-	///	reference mapping
-		ReferenceMapping<ref_elem_type, worldDim> m_mapping;
+	///	current local finite element id
+		LFEID m_lfeID;
 
-	///	local integration points
-		MathVector<dim> m_vIPLocal[nip];
+	///	number of intergration point
+		size_t m_nip;
 
-	///	global integration points
-		MathVector<worldDim> m_vIPGlobal[nip];
+	///	local quadrature weights
+		const number* m_vQuadWeight;
 
-	///	shape functions evaluated at ip
-		number m_vvShape[nip][nsh];
+	///	local quadrature points
+		const MathVector<dim>* m_vIPLocal;
 
-	///	global gradient evaluated at ip
-		MathVector<dim> m_vvGradLocal[nip][nsh];
+	///	global integration points (size = nip)
+		std::vector<MathVector<worldDim> > m_vIPGlobal;
 
-	///	local gradient evaluated at ip
-		MathVector<worldDim> m_vvGradGlobal[nip][nsh];
+	///	jacobian of transformation at ip (size = nip)
+		std::vector<MathMatrix<worldDim,dim> > m_vJTInv;
 
-	///	jacobian of transformation at ip
-		MathMatrix<worldDim,dim> m_JTInv[nip];
+	///	determinate of transformation at ip (size = nip)
+		std::vector<number> m_vDetJ;
 
-	///	determinate of transformation at ip
-		number m_detJ[nip];
+	///	number of shape functions
+		size_t m_nsh;
+
+	///	shape functions evaluated at ip (size = nip x nsh)
+		std::vector<std::vector<number> > m_vvShape;
+
+	///	global gradient evaluated at ip (size = nip x nsh)
+		std::vector<std::vector<MathVector<dim> > > m_vvGradLocal;
+
+	///	local gradient evaluated at ip (size = nip x nsh)
+		std::vector<std::vector<MathVector<worldDim> > > m_vvGradGlobal;
 };
+
 
 } // end namespace ug
 

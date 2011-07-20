@@ -800,7 +800,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceTetrahedron>& factory)
+bool RegisterQuadratureRule<ReferenceTetrahedron>(QuadratureRuleProvider<ReferenceTetrahedron::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_0(0);
 	static FlexGaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_1(1);
@@ -812,14 +812,14 @@ bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceTetrahedron>& factor
 	static FlexGaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_8(8);
 
 	bool success = true;
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_0);
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_1);
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_2);
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_3);
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_5);
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_6);
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_7);
-	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_8);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_0);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_1);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_2);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_3);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_5);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_6);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_7);
+	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_8);
 
 	return success;
 };

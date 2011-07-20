@@ -111,14 +111,14 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule(QuadratureRuleProvider<ReferencePrism>& factory)
+bool RegisterQuadratureRule<ReferencePrism>(QuadratureRuleProvider<ReferencePrism::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_0(0);
 	static FlexGaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_2(2);
 
 	bool success = true;
-	success &= factory.register_rule(gaussQuadratureReferencePrism_0);
-	success &= factory.register_rule(gaussQuadratureReferencePrism_2);
+	success &= factory.register_rule<ReferencePrism>(gaussQuadratureReferencePrism_0);
+	success &= factory.register_rule<ReferencePrism>(gaussQuadratureReferencePrism_2);
 
 	return success;
 };

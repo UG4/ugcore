@@ -328,7 +328,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceEdge>& factory)
+bool RegisterQuadratureRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_1(1);
 	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_3(3);
@@ -342,16 +342,16 @@ bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceEdge>& factory)
 	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_19(19);
 
 	bool success = true;
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_1);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_3);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_5);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_7);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_9);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_11);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_13);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_15);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_17);
-	success &= factory.register_rule(gaussQuadratureReferenceEdge_19);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_1);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_3);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_5);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_7);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_9);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_11);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_13);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_15);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_17);
+	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_19);
 
 	return success;
 };

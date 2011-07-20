@@ -1391,7 +1391,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceHexahedron>& factory)
+bool RegisterQuadratureRule<ReferenceHexahedron>(QuadratureRuleProvider<ReferenceHexahedron::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceHexahedron> gaussQuadratureReferenceHexahedron_2(2);
 	static FlexGaussQuadrature<ReferenceHexahedron> gaussQuadratureReferenceHexahedron_3(3);
@@ -1402,13 +1402,13 @@ bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceHexahedron>& factory
 	static FlexGaussQuadrature<ReferenceHexahedron> gaussQuadratureReferenceHexahedron_11(11);
 
 	bool success = true;
-	success &= factory.register_rule(gaussQuadratureReferenceHexahedron_2);
-	success &= factory.register_rule(gaussQuadratureReferenceHexahedron_3);
-	success &= factory.register_rule(gaussQuadratureReferenceHexahedron_5);
-	success &= factory.register_rule(gaussQuadratureReferenceHexahedron_7);
-	success &= factory.register_rule(gaussQuadratureReferenceHexahedron_8);
-	success &= factory.register_rule(gaussQuadratureReferenceHexahedron_9);
-	success &= factory.register_rule(gaussQuadratureReferenceHexahedron_11);
+	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_2);
+	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_3);
+	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_5);
+	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_7);
+	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_8);
+	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_9);
+	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_11);
 
 	return success;
 };
