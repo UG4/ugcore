@@ -5,6 +5,8 @@
 #ifndef __H__UG_BRIDGE__UG_BRIDGE__
 #define __H__UG_BRIDGE__UG_BRIDGE__
 
+#include <string>
+#include <sstream>
 #include "registry/registry.h"
 
 namespace ug
@@ -73,6 +75,35 @@ bool RegisterUserData(Registry& reg, const char* parentGroup = "/ug4");
 ///	registers user functions for the elder problem.
 void RegisterElderUserFunctions(Registry& reg, const char* parentGroup);
 #endif
+
+////////////////////////////////////////////////////////////////////////////////
+//	Suffix and Tag - Section
+////////////////////////////////////////////////////////////////////////////////
+
+/// returns the dim-suffix for a domain (e.g. "3d")
+template <typename TDomain>
+std::string GetDomainSuffix()
+{
+//	extract dimension of domain
+	static const int dim = TDomain::dim;
+
+//	the dimension suffix
+	std::stringstream ss; ss << dim << "d";
+
+//	return the suffix
+	return ss.str();
+}
+
+/// returns the dim-tag for a domain (e.g. "dim=3d")
+template <typename TDomain>
+std::string GetDomainTag()
+{
+//	the dimension suffix
+	std::stringstream ss; ss << "dim="<< GetDomainSuffix<TDomain>();
+
+//	return the suffix
+	return ss.str();
+}
 
 }//	end of namespace 
 }//	end of namespace 

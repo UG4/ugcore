@@ -101,73 +101,67 @@ namespace bridge{
 template <typename TDomain>
 static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 {
-	typedef TDomain domain_type;
-	static const int dim = domain_type::dim;
-
 //	the dimension suffix
-	std::stringstream ss;	ss << dim << "d";
-	std::string dimSuffix = ss.str();
+	string dimSuffix = GetDomainSuffix<TDomain>();
 
 //	the dimension tag
-	std::string dimTag = "dim=";
-	dimTag.append(dimSuffix);
+	string dimTag = GetDomainTag<TDomain>();
 
 //	get group string
-	std::string grp = parentGroup;
-	grp.append("/").append(dimSuffix);
+	string grp = parentGroup; grp.append("/").append(dimSuffix);
 
 //	Domain
 	{
-		std::string name = string("Domain").append(dimSuffix);
-		reg.add_class_<domain_type>(name.c_str(), grp.c_str())
+		string name = string("Domain").append(dimSuffix);
+		reg.add_class_<TDomain>(name, grp)
 			.add_constructor()
-			.add_method("get_subset_handler|hide=true", static_cast<MGSubsetHandler& (domain_type::*)()>(&domain_type::get_subset_handler))
-			.add_method("get_grid|hide=true", static_cast<MultiGrid& (domain_type::*)()>(&domain_type::get_grid))
-			.add_method("get_dim|hide=true", static_cast<int (domain_type::*)() const>(&domain_type::get_dim));
+			.add_method("get_subset_handler|hide=true", static_cast<MGSubsetHandler& (TDomain::*)()>(&TDomain::get_subset_handler))
+			.add_method("get_grid|hide=true", static_cast<MultiGrid& (TDomain::*)()>(&TDomain::get_grid))
+			.add_method("get_dim|hide=true", static_cast<int (TDomain::*)() const>(&TDomain::get_dim));
 
-		reg.add_class_to_group(name.c_str(), "Domain", dimTag.c_str());
+		reg.add_class_to_group(name, "Domain", dimTag);
 	}
 
 // 	LoadDomain
-	reg.add_function("LoadDomain", &LoadDomain<domain_type>, grp.c_str(),
+	reg.add_function("LoadDomain", &LoadDomain<TDomain>, grp,
 					"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 					"Loads a domain", "No help");
 
 //	SaveDomain
-	reg.add_function("SaveDomain", &SaveDomain<domain_type>, grp.c_str(),
+	reg.add_function("SaveDomain", &SaveDomain<TDomain>, grp,
 					"Success", "Domain # Filename|save-dialog",
 					"Saves a domain", "No help");
 
 //	SavePartitionMap
-	reg.add_function("SavePartitionMap", &SavePartitionMap<domain_type>, grp.c_str(),
+	reg.add_function("SavePartitionMap", &SavePartitionMap<TDomain>, grp,
 					"Success", "PartitionMap # Domain # Filename|save-dialog",
 					"Saves a partition map", "No help");
 
 //	DistributeDomain
 	reg.add_function("DistributeDomain", static_cast<bool (*)(TDomain&)>(
-					 &DistributeDomain<domain_type>), grp.c_str());
+					 &DistributeDomain<TDomain>), grp);
 
 	reg.add_function("DistributeDomain", static_cast<bool (*)(TDomain&, PartitionMap&)>(
-					 &DistributeDomain<domain_type>), grp.c_str());
+					 &DistributeDomain<TDomain>), grp);
 
 //	todo: remove this
 	{
-		std::string name = string("DistributeDomain").append(dimSuffix);
+		string name = string("DistributeDomain").append(dimSuffix);
 		reg.add_function(name.c_str(), static_cast<bool (*)(TDomain&)>(
-						 &DistributeDomain<domain_type>), grp.c_str());
+						 &DistributeDomain<TDomain>), grp);
 	}
 
 	reg.add_function("PartitionDomain_Bisection",
-					 &PartitionDomain_Bisection<domain_type>, grp.c_str());
+					 &PartitionDomain_Bisection<TDomain>, grp);
 
 	reg.add_function("PartitionDomain_MetisKWay",
-					 &PartitionDomain_MetisKWay<domain_type>, grp.c_str());
+					 &PartitionDomain_MetisKWay<TDomain>, grp);
 
 	reg.add_function("RedistributeDomain",
-					 &RedistributeDomain<domain_type>, grp.c_str());
+					 &RedistributeDomain<TDomain>, grp);
 
 //	debugging
-	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<domain_type>, grp.c_str());
+	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
 
 	return true;
 }
@@ -176,15 +170,14 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 template <typename TDomain>
 static bool RegisterDomainInterface_2d_3d(Registry& reg, const char* parentGroup)
 {
-	typedef TDomain domain_type;
-	static const int dim = domain_type::dim;
+//	the dimension suffix
+	string dimSuffix = GetDomainSuffix<TDomain>();
 
 //	get group string
-	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
-	std::string grp = grpSS.str();
+	string grp = parentGroup; grp.append("/").append(dimSuffix);
 
 	reg.add_function("PartitionDomain_RegularGrid",
-					 &PartitionDomain_RegularGrid<domain_type>, grp.c_str());
+					 &PartitionDomain_RegularGrid<TDomain>, grp);
 
 	return true;
 }
