@@ -300,38 +300,6 @@ template <int dim>
 std::vector<std::vector<const QuadratureRule<dim>*> > QuadratureRuleProvider<dim>::m_vRule
 	= std::vector<std::vector<const QuadratureRule<dim>*> >();
 
-
-/// Singleton, holding a single Quadrature rule
-/**
- * This class is used to wrap quadrature rules into a singleton, such
- * that construction computations is avoided, if the rule is used several times.
- */
-class QuadRuleProvider {
-
-	// 	private constructor
-		QuadRuleProvider();
-
-	// 	disallow copy and assignment (intentionally left unimplemented)
-		QuadRuleProvider(const QuadRuleProvider&);
-		QuadRuleProvider& operator=(const QuadRuleProvider&);
-
-	// 	private destructor
-		~QuadRuleProvider(){};
-
-	// 	geometry provider, holding the instance
-		template <typename TRule>
-		inline static TRule& inst()
-		{
-			static TRule myInst;
-			return myInst;
-		};
-
-	public:
-	///	returns access to the singleton
-		template <typename TRule>
-		inline static TRule& get() {	return inst<TRule>();}
-};
-
 /// flexible order gauss quadrature
 /**
  * Providing gauss quadrature for an reference element

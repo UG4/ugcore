@@ -4,6 +4,7 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_quadrilateral.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -597,7 +598,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 	{
 	case 1:
 		const static GaussQuadrature<ReferenceQuadrilateral, 1>& q1 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 1> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 1> >();
 
 		m_order = q1.order();
 		m_numPoints = q1.size();
@@ -607,7 +608,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 2:
 		const static GaussQuadrature<ReferenceQuadrilateral, 2>& q2 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 2> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 2> >();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();
@@ -617,7 +618,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 3:
 		const static GaussQuadrature<ReferenceQuadrilateral, 3>& q3 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 3> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 3> >();
 
 		m_order = q3.order();
 		m_numPoints = q3.size();
@@ -627,7 +628,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 4:
 		const static GaussQuadrature<ReferenceQuadrilateral, 4>& q4 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 4> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 4> >();
 
 		m_order = q4.order();
 		m_numPoints = q4.size();
@@ -637,7 +638,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 5:
 		const static GaussQuadrature<ReferenceQuadrilateral, 5>& q5 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 5> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 5> >();
 
 		m_order = q5.order();
 		m_numPoints = q5.size();
@@ -647,7 +648,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 6:
 		const static GaussQuadrature<ReferenceQuadrilateral, 6>& q6 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 6> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 6> >();
 
 		m_order = q6.order();
 		m_numPoints = q6.size();
@@ -657,7 +658,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 7:
 		const static GaussQuadrature<ReferenceQuadrilateral, 7>& q7 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 7> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 7> >();
 
 		m_order = q7.order();
 		m_numPoints = q7.size();
@@ -667,7 +668,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 8:
 		const static GaussQuadrature<ReferenceQuadrilateral, 8>& q8 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 8> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 8> >();
 
 		m_order = q8.order();
 		m_numPoints = q8.size();
@@ -677,7 +678,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 9:
 		const static GaussQuadrature<ReferenceQuadrilateral, 9>& q9 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 9> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 9> >();
 
 		m_order = q9.order();
 		m_numPoints = q9.size();
@@ -687,7 +688,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 11:
 		const static GaussQuadrature<ReferenceQuadrilateral, 11>& q11 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 11> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 11> >();
 
 		m_order = q11.order();
 		m_numPoints = q11.size();
@@ -697,7 +698,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 
 	case 13:
 		const static GaussQuadrature<ReferenceQuadrilateral, 13>& q13 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceQuadrilateral, 13> >();
+			= Provider::get<GaussQuadrature<ReferenceQuadrilateral, 13> >();
 
 		m_order = q13.order();
 		m_numPoints = q13.size();

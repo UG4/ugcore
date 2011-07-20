@@ -4,6 +4,7 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_pyramid.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -61,7 +62,7 @@ FlexGaussQuadrature<ReferencePyramid>::FlexGaussQuadrature(int order)
 	{
 	case 2:
 		const static GaussQuadrature<ReferencePyramid, 2>& q2 
-			= QuadRuleProvider::get<GaussQuadrature<ReferencePyramid, 2> >();
+			= Provider::get<GaussQuadrature<ReferencePyramid, 2> >();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();

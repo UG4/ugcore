@@ -4,6 +4,7 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_prism.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -85,7 +86,7 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 	{
 	case 0:
 		const static GaussQuadrature<ReferencePrism, 0>& q0 
-			= QuadRuleProvider::get<GaussQuadrature<ReferencePrism, 0> >();
+			= Provider::get<GaussQuadrature<ReferencePrism, 0> >();
 
 		m_order = q0.order();
 		m_numPoints = q0.size();
@@ -95,7 +96,7 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 
 	case 2:
 		const static GaussQuadrature<ReferencePrism, 2>& q2 
-			= QuadRuleProvider::get<GaussQuadrature<ReferencePrism, 2> >();
+			= Provider::get<GaussQuadrature<ReferencePrism, 2> >();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();

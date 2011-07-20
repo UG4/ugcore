@@ -4,6 +4,7 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_triangle.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -729,7 +730,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 	{
 	case 1:
 		const static GaussQuadrature<ReferenceTriangle, 1>& q1 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 1> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 1> >();
 
 		m_order = q1.order();
 		m_numPoints = q1.size();
@@ -739,7 +740,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 2:
 		const static GaussQuadrature<ReferenceTriangle, 2>& q2 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 2> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 2> >();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();
@@ -749,7 +750,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 3:
 		const static GaussQuadrature<ReferenceTriangle, 3>& q3 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 3> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 3> >();
 
 		m_order = q3.order();
 		m_numPoints = q3.size();
@@ -759,7 +760,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 4:
 		const static GaussQuadrature<ReferenceTriangle, 4>& q4 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 4> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 4> >();
 
 		m_order = q4.order();
 		m_numPoints = q4.size();
@@ -769,7 +770,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 5:
 		const static GaussQuadrature<ReferenceTriangle, 5>& q5 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 5> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 5> >();
 
 		m_order = q5.order();
 		m_numPoints = q5.size();
@@ -779,7 +780,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 6:
 		const static GaussQuadrature<ReferenceTriangle, 6>& q6 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 6> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 6> >();
 
 		m_order = q6.order();
 		m_numPoints = q6.size();
@@ -789,7 +790,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 7:
 		const static GaussQuadrature<ReferenceTriangle, 7>& q7 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 7> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 7> >();
 
 		m_order = q7.order();
 		m_numPoints = q7.size();
@@ -799,7 +800,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 8:
 		const static GaussQuadrature<ReferenceTriangle, 8>& q8 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 8> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 8> >();
 
 		m_order = q8.order();
 		m_numPoints = q8.size();
@@ -809,7 +810,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 9:
 		const static GaussQuadrature<ReferenceTriangle, 9>& q9 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 9> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 9> >();
 
 		m_order = q9.order();
 		m_numPoints = q9.size();
@@ -819,7 +820,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 10:
 		const static GaussQuadrature<ReferenceTriangle, 10>& q10 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 10> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 10> >();
 
 		m_order = q10.order();
 		m_numPoints = q10.size();
@@ -829,7 +830,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 11:
 		const static GaussQuadrature<ReferenceTriangle, 11>& q11 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 11> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 11> >();
 
 		m_order = q11.order();
 		m_numPoints = q11.size();
@@ -839,7 +840,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 12:
 		const static GaussQuadrature<ReferenceTriangle, 12>& q12 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceTriangle, 12> >();
+			= Provider::get<GaussQuadrature<ReferenceTriangle, 12> >();
 
 		m_order = q12.order();
 		m_numPoints = q12.size();

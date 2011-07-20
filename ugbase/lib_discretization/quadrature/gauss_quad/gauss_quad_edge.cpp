@@ -4,6 +4,7 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_edge.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -222,7 +223,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 	{
 	case 1:
 		const static GaussQuadrature<ReferenceEdge, 1>& q1 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 1> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 1> >();
 
 		m_order = q1.order();
 		m_numPoints = q1.size();
@@ -232,7 +233,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 3:
 		const static GaussQuadrature<ReferenceEdge, 3>& q3 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 3> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 3> >();
 
 		m_order = q3.order();
 		m_numPoints = q3.size();
@@ -242,7 +243,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 5:
 		const static GaussQuadrature<ReferenceEdge, 5>& q5 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 5> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 5> >();
 
 		m_order = q5.order();
 		m_numPoints = q5.size();
@@ -252,7 +253,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 7:
 		const static GaussQuadrature<ReferenceEdge, 7>& q7 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 7> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 7> >();
 
 		m_order = q7.order();
 		m_numPoints = q7.size();
@@ -262,7 +263,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 9:
 		const static GaussQuadrature<ReferenceEdge, 9>& q9 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 9> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 9> >();
 
 		m_order = q9.order();
 		m_numPoints = q9.size();
@@ -272,7 +273,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 11:
 		const static GaussQuadrature<ReferenceEdge, 11>& q11 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 11> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 11> >();
 
 		m_order = q11.order();
 		m_numPoints = q11.size();
@@ -282,7 +283,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 13:
 		const static GaussQuadrature<ReferenceEdge, 13>& q13 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 13> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 13> >();
 
 		m_order = q13.order();
 		m_numPoints = q13.size();
@@ -292,7 +293,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 15:
 		const static GaussQuadrature<ReferenceEdge, 15>& q15 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 15> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 15> >();
 
 		m_order = q15.order();
 		m_numPoints = q15.size();
@@ -302,7 +303,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 17:
 		const static GaussQuadrature<ReferenceEdge, 17>& q17 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 17> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 17> >();
 
 		m_order = q17.order();
 		m_numPoints = q17.size();
@@ -312,7 +313,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 	case 19:
 		const static GaussQuadrature<ReferenceEdge, 19>& q19 
-			= QuadRuleProvider::get<GaussQuadrature<ReferenceEdge, 19> >();
+			= Provider::get<GaussQuadrature<ReferenceEdge, 19> >();
 
 		m_order = q19.order();
 		m_numPoints = q19.size();

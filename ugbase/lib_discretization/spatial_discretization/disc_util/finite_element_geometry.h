@@ -10,6 +10,8 @@
 
 #include "lib_discretization/quadrature/quadrature.h"
 #include "lib_discretization/local_finite_element/local_shape_function_set.h"
+#include "common/util/provider.h"
+
 #include <cmath>
 
 namespace ug{
@@ -47,8 +49,8 @@ class FEGeometry
 	public:
 	///	Constructor
 		FEGeometry()
-			: m_rQuadRule(QuadRuleProvider::get<quad_rule_type>()),
-			  m_rTrialSpace(LSFSProvider::get<trial_space_type>())
+			: m_rQuadRule(Provider::get<quad_rule_type>()),
+			  m_rTrialSpace(Provider::get<trial_space_type>())
 		{
 		//	evaluate local shapes and gradients
 			for(size_t ip = 0; ip < nip; ++ip)
