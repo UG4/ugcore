@@ -41,7 +41,7 @@ RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
 
 bFileOutput = true
-bOutput = true
+bOutput = false
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
