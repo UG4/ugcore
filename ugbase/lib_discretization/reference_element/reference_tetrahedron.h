@@ -142,7 +142,7 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 			globPos = m_vCo[0];
 			VecScaleAppend(globPos, locPos[0], a10);
 			VecScaleAppend(globPos, locPos[1], a20);
-			VecScaleAppend(globPos, locPos[1], a30);
+			VecScaleAppend(globPos, locPos[2], a30);
 		}
 
 		void jacobian_transposed(	const MathVector<dim>& locPos,
