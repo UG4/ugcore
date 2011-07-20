@@ -34,6 +34,13 @@ add_fct(const char* name, LFEID lfeID, int dim)
 				" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
 		return false;
 	}
+	if(!supports_trial_space(lfeID))
+	{
+		UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
+				" Specified Local Finite Element Space "<<lfeID<< " is not "
+				" a supported.\n");
+		return false;
+	}
 
 //	check that subset handler exists
 	if(m_pSH == NULL)
@@ -92,6 +99,13 @@ bool FunctionPattern::add_fct(const char* name, LFEID lfeID,
 		UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
 				" Specified Local Finite Element Space "<<lfeID<< " is not "
 				" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
+		return false;
+	}
+	if(!supports_trial_space(lfeID))
+	{
+		UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
+				" Specified Local Finite Element Space "<<lfeID<< " is not "
+				" a supported.\n");
 		return false;
 	}
 
