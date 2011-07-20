@@ -25,7 +25,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_prepare_fv1()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -54,7 +54,7 @@ elem_loop_prepare_fv1()
 //	check, that upwind has been set
 	if(m_pConvShape == NULL)
 	{
-		UG_LOG("ERROR in 'FVConvectionDiffusionElemDisc::prepare_element_loop':"
+		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
 				" Upwind has not been set.\n");
 		return false;
 	}
@@ -62,7 +62,7 @@ elem_loop_prepare_fv1()
 //	init upwind for element type
 	if(!m_pConvShape->template set_geometry_type<TFVGeom<TElem, dim> >())
 	{
-		UG_LOG("ERROR in 'FVConvectionDiffusionElemDisc::prepare_element_loop':"
+		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
 				" Cannot init upwind for element type.\n");
 		return false;
 	}
@@ -74,7 +74,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_finish_fv1()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -84,27 +84,10 @@ elem_loop_finish_fv1()
 }
 
 template<typename TDomain>
-bool
-FVConvectionDiffusionElemDisc<TDomain>::
-time_point_changed(number time)
-{
-//	set new time point at imports
-	m_imDiffusion.set_time(time);
-	m_imVelocity.set_time(time);
-	m_imSource.set_time(time);
-	m_imReaction.set_time(time);
-	m_imMassScale.set_time(time);
-
-//	this disc does not need the old time solutions, thus, return false
-	return false;
-}
-
-
-template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_prepare_fv1(TElem* elem, const local_vector_type& u)
 {
 	// this loop will be performed inside the loop over the elements.
@@ -121,7 +104,7 @@ elem_prepare_fv1(TElem* elem, const local_vector_type& u)
 
 	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
-		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
+		UG_LOG("ConvectionDiffusionElemDisc::prepare_element:"
 				" Cannot update Finite Volume Geometry.\n"); return false;
 	}
 
@@ -155,7 +138,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_JA_fv1(local_matrix_type& J, const local_vector_type& u)
 {
 // get finite volume geometry
@@ -243,7 +226,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_JM_fv1(local_matrix_type& J, const local_vector_type& u)
 {
 // 	get finite volume geometry
@@ -278,7 +261,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_dA_fv1(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
@@ -361,7 +344,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_dM_fv1(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
@@ -396,7 +379,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 elem_rhs_fv1(local_vector_type& d)
 {
 //	if zero data given, return
@@ -427,7 +410,7 @@ elem_rhs_fv1(local_vector_type& d)
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 lin_defect_velocity_fv1(const local_vector_type& u)
 {
 // 	get finite volume geometry
@@ -467,7 +450,7 @@ lin_defect_velocity_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 lin_defect_diffusion_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
@@ -516,7 +499,7 @@ lin_defect_diffusion_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 lin_defect_reaction_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
@@ -543,7 +526,7 @@ lin_defect_reaction_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 lin_defect_source_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
@@ -570,7 +553,7 @@ lin_defect_source_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 lin_defect_mass_scale_fv1(const local_vector_type& u)
 {
 //  get finite volume geometry
@@ -597,7 +580,7 @@ lin_defect_mass_scale_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 comp_export_concentration_fv1(const local_vector_type& u, bool bDeriv)
 {
 //  get finite volume geometry
@@ -677,7 +660,7 @@ comp_export_concentration_fv1(const local_vector_type& u, bool bDeriv)
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 comp_export_concentration_grad_fv1(const local_vector_type& u, bool bDeriv)
 {
 // 	Get finite volume geometry
@@ -732,8 +715,8 @@ comp_export_concentration_grad_fv1(const local_vector_type& u, bool bDeriv)
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-const typename FVConvectionDiffusionElemDisc<TDomain>::conv_shape_type&
-FVConvectionDiffusionElemDisc<TDomain>::
+const typename ConvectionDiffusionElemDisc<TDomain>::conv_shape_type&
+ConvectionDiffusionElemDisc<TDomain>::
 get_updated_conv_shapes(const FVGeometryBase& geo)
 {
 //	compute upwind shapes for transport equation
@@ -759,39 +742,18 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//	Constructor
-////////////////////////////////////////////////////////////////////////////////
-
-template<typename TDomain>
-FVConvectionDiffusionElemDisc<TDomain>::FVConvectionDiffusionElemDisc()
- : m_pConvShape(NULL)
-{
-//	register assemling functions
-	register_all_fv1_funcs(false);
-
-//	register exports
-	register_export(m_exConcentration);
-	register_export(m_exConcentrationGrad);
-
-//	register imports
-	register_import(m_imDiffusion);
-	register_import(m_imVelocity);
-	register_import(m_imReaction);
-	register_import(m_imSource);
-	register_import(m_imMassScale);
-
-	m_imMassScale.set_mass_part(true);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
-// register for 1D
+template<typename TDomain>
+template <template <class Elem, int WorldDim> class TFVGeom>
+ConvectionDiffusionElemDisc<TDomain>::RegisterFV1<TFVGeom>::
+RegisterFV1(this_type* pThis) : m_pThis(pThis){}
+
+// register for all dim
 template<typename TDomain>
 void
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 register_all_fv1_funcs(bool bHang)
 {
 //	get all grid element types in this dimension and below
@@ -805,7 +767,7 @@ register_all_fv1_funcs(bool bHang)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 void
-FVConvectionDiffusionElemDisc<TDomain>::
+ConvectionDiffusionElemDisc<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -831,14 +793,6 @@ register_fv1_func()
 	m_exConcentration.	  reg_export_fct(id, this, &T::template comp_export_concentration_fv1<TElem, TFVGeom>);
 	m_exConcentrationGrad.reg_export_fct(id, this, &T::template comp_export_concentration_grad_fv1<TElem, TFVGeom>);
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//	explicit template instantiations
-////////////////////////////////////////////////////////////////////////////////
-
-template class FVConvectionDiffusionElemDisc<Domain1d>;
-template class FVConvectionDiffusionElemDisc<Domain2d>;
-template class FVConvectionDiffusionElemDisc<Domain3d>;
 
 } // namespace ug
 

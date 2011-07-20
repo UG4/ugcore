@@ -25,10 +25,7 @@
 #include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/stabilization.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/density_driven_flow.h"
-
-#include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/fe1_convection_diffusion.h"
 #include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/convection_diffusion.h"
-
 #include "lib_discretization/spatial_discretization/elem_disc/constant_equation/constant_equation.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/neumann_boundary/neumann_boundary.h"
@@ -182,13 +179,14 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 			.add_method("get_concentration_grad", &T::get_concentration_grad);
 	}
 
-//	Convection Diffusion Finite Volume
+//	Convection Diffusion
 	{
-		typedef FVConvectionDiffusionElemDisc<domain_type> T;
+		typedef ConvectionDiffusionElemDisc<domain_type> T;
 		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FV1ConvectionDiffusion" << dim << "d";
+		std::stringstream ss; ss << "ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
+			.add_method("set_disc_scheme", &T::set_disc_scheme)
 			.add_method("set_diffusion_tensor", &T::set_diffusion)
 			.add_method("set_velocity_field", &T::set_velocity)
 			.add_method("set_reaction", &T::set_reaction)
@@ -197,20 +195,6 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 			.add_method("set_upwind", &T::set_upwind)
 			.add_method("get_concentration", &T::get_concentration)
 			.add_method("get_concentration_grad", &T::get_concentration_grad);
-	}
-
-//	Convection Diffusion Finite Element
-	{
-		typedef FE1ConvectionDiffusionElemDisc<domain_type> T;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FE1ConvectionDiffusion" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_diffusion_tensor", &T::set_diffusion)
-			.add_method("set_velocity_field", &T::set_velocity)
-			.add_method("set_reaction", &T::set_reaction)
-			.add_method("set_source", &T::set_source)
-			.add_method("set_mass_scale", &T::set_mass_scale);
 	}
 
 //	Density Driven Flow

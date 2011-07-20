@@ -45,8 +45,7 @@ set(srcDiscretization	common/function_group.cpp
 						spatial_discretization/ip_data/data_evaluator.cpp
 						
 						spatial_discretization/elem_disc/constant_equation/constant_equation_fv1.cpp
-						spatial_discretization/elem_disc/convection_diffusion/convection_diffusion_fv1.cpp
-						spatial_discretization/elem_disc/convection_diffusion/convection_diffusion_fe1.cpp
+						spatial_discretization/elem_disc/convection_diffusion/convection_diffusion.cpp
 						spatial_discretization/elem_disc/density_driven_flow/density_driven_flow_fv1.cpp
 						spatial_discretization/elem_disc/inner_boundary/inner_boundary_fv1.cpp
 						spatial_discretization/elem_disc/linear_elasticity/linear_elasticity_fe1.cpp

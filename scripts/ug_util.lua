@@ -137,11 +137,11 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	local dim = domain:get_dim()
 	local elemDisc
 	if dim == 1 then
-		elemDisc = FV1ConvectionDiffusion1d()
+		elemDisc = ConvectionDiffusion1d()
 	elseif dim == 2 then
-		elemDisc = FV1ConvectionDiffusion2d()
+		elemDisc = ConvectionDiffusion2d()
 	elseif dim == 3 then
-		elemDisc = FV1ConvectionDiffusion3d()
+		elemDisc = ConvectionDiffusion3d()
 	else
 	return nil
 	end
@@ -149,6 +149,7 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
+	elemDisc:set_disc_scheme("fv")
 	return elemDisc
 end
 
@@ -199,11 +200,11 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	local dim = domain:get_dim()
 	local elemDisc
 	if dim == 1 then
-		elemDisc = FE1ConvectionDiffusion1d()
+		elemDisc = ConvectionDiffusion1d()
 	elseif dim == 2 then
-		elemDisc = FE1ConvectionDiffusion2d()
+		elemDisc = ConvectionDiffusion2d()
 	elseif dim == 3 then
-		elemDisc = FE1ConvectionDiffusion3d()
+		elemDisc = ConvectionDiffusion3d()
 	else
 		return nil
 	end
@@ -211,6 +212,7 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
+	elemDisc:set_disc_scheme("fe")
 	return elemDisc
 end
 

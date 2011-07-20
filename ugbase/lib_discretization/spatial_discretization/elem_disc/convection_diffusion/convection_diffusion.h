@@ -23,7 +23,7 @@ namespace ug{
 /// \ingroup lib_disc_elem_disc
 /// @{
 
-/// Finite Volume Element Discretization for the Convection-Diffusion Equation
+/// Discretization for the Convection-Diffusion Equation
 /**
  * This class implements the IElemDisc interface to provide element local
  * assemblings for the convection diffusion equation.
@@ -46,7 +46,7 @@ namespace ug{
  * \tparam	TAlgebra	Algebra
  */
 template<	typename TDomain>
-class FVConvectionDiffusionElemDisc
+class ConvectionDiffusionElemDisc
 : public IDomainElemDisc<TDomain>
 {
 	private:
@@ -54,7 +54,7 @@ class FVConvectionDiffusionElemDisc
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	Own type
-		typedef FVConvectionDiffusionElemDisc<TDomain> this_type;
+		typedef ConvectionDiffusionElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -77,7 +77,7 @@ class FVConvectionDiffusionElemDisc
 
 	public:
 	///	Constructor
-	FVConvectionDiffusionElemDisc();
+		ConvectionDiffusionElemDisc();
 
 	///	set the upwind method
 	/**
@@ -85,67 +85,67 @@ class FVConvectionDiffusionElemDisc
 	 *
 	 * \param	shapes		upwind method
 	 */
-		void set_upwind(IConvectionShapes<dim>& shapes) {m_pConvShape = &shapes;}
+		void set_upwind(IConvectionShapes<dim>& shapes);
 
 	///	sets the diffusion tensor
 	/**
 	 * This method sets the Diffusion tensor used in computations. If no
 	 * Tensor is set, a zero value is assumed.
 	 */
-		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_imDiffusion.set_data(user);}
+		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user);
 
 	///	sets the velocity field
 	/**
 	 * This method sets the Velocity field. If no field is provided a zero
 	 * value is assumed.
 	 */
-		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_imVelocity.set_data(user);}
+		void set_velocity(IPData<MathVector<dim>, dim>& user);
 
 	///	sets the reaction
 	/**
 	 * This method sets the Reaction. A zero value is assumed as default.
 	 */
-		void set_reaction(IPData<number, dim>& user) {m_imReaction.set_data(user);}
+		void set_reaction(IPData<number, dim>& user);
 
 	///	sets the source / sink term
 	/**
 	 * This method sets the source/sink value. A zero value is assumed as
 	 * default.
 	 */
-		void set_source(IPData<number, dim>& user)	{m_imSource.set_data(user);}
+		void set_source(IPData<number, dim>& user);
 
 	///	sets mass scale
 	/**
 	 * This method sets the mass scale value. A value of 1.0 is assumed as
 	 * default.
 	 */
-		void set_mass_scale(IPData<number, dim>& user)	{m_imMassScale.set_data(user);}
+		void set_mass_scale(IPData<number, dim>& user);
 
 	public:
 	///	number of functions used
-		virtual size_t num_fct(){return 1;}
+		virtual size_t num_fct();
 
 	///	type of trial space for each function used
-		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
-		{
-		//	check number
-			if(vLfeID.size() != num_fct()) return false;
-
-		//	check that Lagrange 1st order
-			return vLfeID[0] == LFEID(LFEID::LAGRANGE, 1);
-		}
+		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID);
 
 	///	switches between non-regular and regular grids
-		virtual bool treat_non_regular_grid(bool bNonRegular)
-		{
-		//	switch, which assemble functions to use; both supported.
-			register_all_fv1_funcs(bNonRegular);
+		virtual bool treat_non_regular_grid(bool bNonRegular);
 
-		//	this disc supports both grids
-			return true;
-		}
+	///	returns if hanging nodes are needed
+		virtual bool use_hanging() const;
 
-		virtual bool use_hanging() const {return true;}
+	///	sets the disc scheme
+		void set_disc_scheme(const char* c_scheme);
+
+	protected:
+	///	sets the requested assembling routines
+		void set_assemble_funcs();
+
+	///	current type of disc scheme
+		std::string m_discScheme;
+
+	///	current regular grid flag
+		bool m_bNonRegularGrid;
 
 	private:
 	///	prepares the discretization for time dependent discretization
@@ -157,6 +157,10 @@ class FVConvectionDiffusionElemDisc
 	 * \returns 	true	indicates, that old values are needed
 	 */
 		virtual bool time_point_changed(number time);
+
+		/////////////////////////////////////
+		//	Finite Volume assemblings
+		/////////////////////////////////////
 
 	///	prepares the loop over all elements
 	/**
@@ -199,6 +203,34 @@ class FVConvectionDiffusionElemDisc
 	///	assembles the local right hand side
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool elem_rhs_fv1(local_vector_type& d);
+
+		/////////////////////////////////////
+		//	Finite Element assemblings
+		/////////////////////////////////////
+
+		template <typename TElem>
+		bool elem_loop_prepare_fe();
+
+		template <typename TElem>
+		bool elem_prepare_fe(TElem* elem, const local_vector_type& u);
+
+		template <typename TElem>
+		bool elem_loop_finish_fe();
+
+		template <typename TElem>
+		bool elem_JA_fe(local_matrix_type& J, const local_vector_type& u);
+
+		template <typename TElem>
+		bool elem_JM_fe(local_matrix_type& J, const local_vector_type& u);
+
+		template <typename TElem>
+		bool elem_dA_fe(local_vector_type& d, const local_vector_type& u);
+
+		template <typename TElem>
+		bool elem_dM_fe(local_vector_type& d, const local_vector_type& u);
+
+		template <typename TElem>
+		bool elem_rhs_fe(local_vector_type& d);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
@@ -247,11 +279,14 @@ class FVConvectionDiffusionElemDisc
 		DataImport<number, dim> m_imMassScale;
 
 	public:
+		typedef IPData<number, dim> NumberExport;
+		typedef IPData<MathVector<dim>, dim> GradExport;
+
 	///	returns the export of the concentration
-		IPData<number, dim>& get_concentration() {return m_exConcentration;}
+		IPData<number, dim>& get_concentration();
 
 	///	returns the export of gradient of the concentration
-		IPData<MathVector<dim>, dim>& get_concentration_grad() {return m_exConcentrationGrad;}
+		IPData<MathVector<dim>, dim>& get_concentration_grad();
 
 	protected:
 		typedef IConvectionShapes<dim> conv_shape_type;
@@ -274,11 +309,12 @@ class FVConvectionDiffusionElemDisc
 		DataExport<MathVector<dim>, dim> m_exConcentrationGrad;
 
 	protected:
+	// 	FV1 Assemblings
 		void register_all_fv1_funcs(bool bHang);
 
 		template <template <class Elem, int WorldDim> class TFVGeom>
 		struct RegisterFV1 {
-				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
+				RegisterFV1(this_type* pThis);
 				this_type* m_pThis;
 				template< typename TElem > void operator()(TElem&)
 				{m_pThis->register_fv1_func<TElem, TFVGeom>();}
@@ -286,6 +322,20 @@ class FVConvectionDiffusionElemDisc
 
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		void register_fv1_func();
+
+	// 	FE Assemblings
+		void register_all_fe1_funcs();
+
+		struct RegisterFE1 {
+				RegisterFE1(this_type* pThis);
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{m_pThis->register_fe1_func<TElem>();}
+		};
+
+		template <typename TElem>
+		void register_fe1_func();
+
 };
 
 /// @}
