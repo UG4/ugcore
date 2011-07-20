@@ -56,7 +56,7 @@ bool LocalDoFSetProvider::init_standard_sets()
 }
 
 
-const ILocalDoFSet& LocalDoFSetProvider::get(LFEID id, ReferenceObjectID roid)
+const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id)
 {
 //	init provider and search for identifier
 	RoidMap::const_iterator iter = inst().m_mRoidDoFSet.find(id);
@@ -85,7 +85,7 @@ const ILocalDoFSet& LocalDoFSetProvider::get(LFEID id, ReferenceObjectID roid)
 	return *(vBase[roid]);
 }
 
-const CommonLocalDoFSet& LocalDoFSetProvider::get(LFEID id, int dim)
+const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id)
 {
 //	init provider and search for identifier
 	CommonMap::const_iterator iter = inst().m_mCommonDoFSet.find(id);

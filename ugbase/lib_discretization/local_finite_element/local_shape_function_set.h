@@ -40,17 +40,14 @@ struct UG_ERROR_InvalidShapeFunctionIndex
  * elements. The class provides evaluation of the shape functions and the
  * gradients at arbitrary points in the interior of a reference element.
  *
- * \tparam 	TRefElem	Reference Element Type
+ * \tparam 	tDim	Reference Element Dimension
  */
-template <typename TRefElem>
+template <int TDim>
 class LocalShapeFunctionSet
 {
 	public:
-	///	Reference Element type
-		typedef TRefElem reference_element_type;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = TRefElem::dim;
+		static const int dim = TDim;
 
 	///	Domain position type
 		typedef MathVector<dim> position_type;
@@ -116,6 +113,15 @@ class LocalShapeFunctionSet
 		virtual ~LocalShapeFunctionSet() {};
 };
 
+template <typename TRefElem>
+class ReferenceElemLocalShapeFunctionSet
+	: public LocalShapeFunctionSet<TRefElem::dim>
+{
+	public:
+	///	Reference Element type
+		typedef TRefElem reference_element_type;
+};
+
 /// @}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +137,7 @@ class LocalShapeFunctionSet
  */
 template <typename TImpl>
 class LocalShapeFunctionSetWrapper
-	: public ug::LocalShapeFunctionSet<typename TImpl::reference_element_type>,
+	: public ReferenceElemLocalShapeFunctionSet<typename TImpl::reference_element_type>,
 	  public TImpl
 {
 	/// Implementation
@@ -232,11 +238,17 @@ class LocalShapeFunctionSetProvider {
 
 	// 	return a map of element_trial_spaces
 		template <typename TRefElem>
-		static std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* >&
+		static std::map<LFEID, const ReferenceElemLocalShapeFunctionSet<TRefElem>* >&
 		get_map();
 
+	// 	return a map of element_trial_spaces
+		template <int dim>
+		static std::map<LFEID, const LocalShapeFunctionSet<dim>* >*
+		get_dim_map();
+
 	public:
-	/** register a local shape function set for a given reference element type
+	/// register a local shape function set for a given reference element type
+	/**
 	 * This function is used to register a Local Shape Function set for an element
 	 * type and the corresponding local shape function set id.
 	 *
@@ -246,10 +258,11 @@ class LocalShapeFunctionSetProvider {
 	 */
 		template <typename TRefElem>
 		static bool
-		register_set(LFEID id, const LocalShapeFunctionSet<TRefElem>& set);
+		register_set(LFEID id, const ReferenceElemLocalShapeFunctionSet<TRefElem>& set);
 
-	/** unregister a local shape function set for a given reference element type
-	 * This function is used to unregister a Local Shape Function set for an element
+	/// unregister a local shape function set for a given reference element type
+	/**
+	 *  This function is used to unregister a Local Shape Function set for an element
 	 * type and the corresponding local shape function set id from this Provider.
 	 *
 	 * \param[in]		id 		Identifier for local shape function set
@@ -258,7 +271,8 @@ class LocalShapeFunctionSetProvider {
 		template <typename TRefElem>
 		static bool unregister_set(LFEID id);
 
-	/**	returns the Local Shape Function Set
+	///	returns the Local Shape Function Set
+	/**
 	 * This function returns the Local Shape Function Set for a reference element
 	 * type and an Identifier if a set has been registered for the identifier.
 	 * Else an exception is thrown.
@@ -268,7 +282,20 @@ class LocalShapeFunctionSetProvider {
 	 */
 		// get the local shape function set for a given reference element and id
 		template <typename TRefElem>
-		static const LocalShapeFunctionSet<TRefElem>& get(LFEID id);
+		static const ReferenceElemLocalShapeFunctionSet<TRefElem>& get(LFEID id);
+
+	///	returns the Local Shape Function Set
+	/**
+	 *  This function returns the Local Shape Function Set for a reference element
+	 * type and an Identifier if a set has been registered for the identifier.
+	 * Else an exception is thrown.
+	 *
+	 * \param[in]	id		Identifier for local shape function set
+	 * \return 		set		A const reference to the shape function set
+	 */
+		template <int dim>
+		static const LocalShapeFunctionSet<dim>& get(ReferenceObjectID roid,
+		                                             LFEID id);
 };
 
 } // namespace ug

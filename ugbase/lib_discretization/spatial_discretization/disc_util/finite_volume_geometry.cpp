@@ -125,7 +125,7 @@ FV1Geometry()
 
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
-		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+		const ReferenceElemLocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::
 					get<ref_elem_type>
 					(LFEID(LFEID::LAGRANGE, 1));
@@ -389,7 +389,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 			/////////////////////////
 			// Shapes and Derivatives
 			/////////////////////////
-				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+				const ReferenceElemLocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 						LocalShapeFunctionSetProvider::
 							get<ref_elem_type>
 								(LFEID(LFEID::LAGRANGE, 1));
@@ -485,7 +485,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<
 	// if the trial space is piecewise linear on tetrahedrons/triangles!
 	for (size_t i = 0; i < num_bf(); ++i)
 	{
-		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+		const ReferenceElemLocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::
 					get<ref_elem_type>
 					(LFEID(LFEID::LAGRANGE, 1));

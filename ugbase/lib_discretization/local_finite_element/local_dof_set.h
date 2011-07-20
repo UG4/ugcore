@@ -174,37 +174,6 @@ std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v);
 //	Provider
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Singleton, holding a single local DoF set
-/**
- * This class is used to wrap local DoF set into a singleton, such
- * that construction computations is avoided, if the rule is used several times.
- */
-class LDSProvider {
-
-	// 	private constructor
-		LDSProvider();
-
-	// 	disallow copy and assignment (intentionally left unimplemented)
-		LDSProvider(const LDSProvider&);
-		LDSProvider& operator=(const LDSProvider&);
-
-	// 	private destructor
-		~LDSProvider(){};
-
-	// 	geometry provider, holding the instance
-		template <typename TLSFS>
-		inline static TLSFS& inst()
-		{
-			static TLSFS myInst;
-			return myInst;
-		};
-
-	public:
-	///	returns access to the singleton
-		template <typename TLSFS>
-		inline static TLSFS& get() {return inst<TLSFS>();}
-};
-
 // LocalDoFSetProvider
 /** class to provide local DoF sets
  *
@@ -268,10 +237,10 @@ class LocalDoFSetProvider {
 		static bool unregister_set(LFEID id);
 
 	///	returns the common dof set for all reference objects of a dimension
-		static const CommonLocalDoFSet& get(LFEID id, int dim);
+		static const CommonLocalDoFSet& get(int dim, LFEID id);
 
 	///	returns the local DoF set base for an id
-		static const ILocalDoFSet& get(LFEID id, ReferenceObjectID type);
+		static const ILocalDoFSet& get(ReferenceObjectID type, LFEID id);
 };
 
 

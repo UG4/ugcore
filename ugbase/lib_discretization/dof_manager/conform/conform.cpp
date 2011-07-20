@@ -164,7 +164,7 @@ void DoFDistribution::create_offsets(ReferenceObjectID roid)
 			LFEID lfeID = local_finite_element_id(fct);
 
 		//	get trial space
-			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(lfeID, dim);
+			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(dim, lfeID);
 
 		//	get number of DoFs on the reference element need for the space
 			const int numDoF = clds.num_dof(roid);
@@ -881,7 +881,7 @@ inner_multi_indices(multi_index_vector_type& ind,
 		LFEID lsfsID = local_finite_element_id(fct);
 
 	//	get trial space
-		const ILocalDoFSet& lsfs = LocalDoFSetProvider::get(lsfsID, roid);
+		const ILocalDoFSet& lsfs = LocalDoFSetProvider::get(roid, lsfsID);
 
 	//	get number of DoFs in this sub-geometric object
 		const size_t numDoFsOnSub = lsfs.num_dof(roid);
@@ -929,7 +929,7 @@ DoFDistribution::inner_algebra_indices(algebra_index_vector_type& ind,
 				LFEID lsfsID = local_finite_element_id(fct);
 
 			//	get trial space
-				const ILocalDoFSet& lsfs = LocalDoFSetProvider::get(lsfsID, roid);
+				const ILocalDoFSet& lsfs = LocalDoFSetProvider::get(roid, lsfsID);
 
 			//	get number of DoFs in this sub-geometric object
 				const size_t numDoFsOnSub = lsfs.num_dof(roid);

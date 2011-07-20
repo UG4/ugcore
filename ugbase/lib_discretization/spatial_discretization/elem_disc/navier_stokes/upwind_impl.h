@@ -379,7 +379,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
  		}
 
  	// 	get linear trial space
- 		const LocalShapeFunctionSet<typename FV1Geometry<TElem, dim>::ref_elem_type>& TrialSpace =
+ 		const ReferenceElemLocalShapeFunctionSet<typename FV1Geometry<TElem, dim>::ref_elem_type>& TrialSpace =
  				LocalShapeFunctionSetProvider::
  					get<typename FV1Geometry<TElem, dim>::ref_elem_type>
  					(LFEID(LFEID::LAGRANGE, 1));

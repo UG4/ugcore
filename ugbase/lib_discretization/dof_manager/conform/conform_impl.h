@@ -60,7 +60,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 			LFEID lsfsID = local_finite_element_id(fct);
 
 		//	get trial space
-			const ILocalDoFSet& lds = LocalDoFSetProvider::get(lsfsID, roid);
+			const ILocalDoFSet& lds = LocalDoFSetProvider::get(roid, lsfsID);
 
 		//	get number of DoFs in this sub-geometric object
 			const size_t numDoFsOnSub = lds.num_dof(d, i);

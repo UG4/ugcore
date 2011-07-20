@@ -53,7 +53,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	LFEID id = u.local_finite_element_id(fct);
 
 //	get trial space
-	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
+	const ReferenceElemLocalShapeFunctionSet<ref_elem_type>& trialSpace =
 			LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
 
 //	number of dofs on element

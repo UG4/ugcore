@@ -48,6 +48,12 @@ dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) cons
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			reference_element_type;
 
+//	reference element dimension
+	static const int refDim = reference_element_type::dim;
+
+//	reference object id
+	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
+
 //	vector for the vertex positions
 	std::vector<MathVector<dim> > vVertPos(reference_element_type::num_corners);
 
@@ -61,12 +67,11 @@ dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) cons
 	LFEID lfeID = this->local_finite_element_id(fct);
 
 //	get local shape function set
-	const LocalShapeFunctionSet<reference_element_type>& lsfs
-		= LocalShapeFunctionSetProvider::get<reference_element_type>(lfeID);
+	const LocalShapeFunctionSet<dim>& lsfs
+		= LocalShapeFunctionSetProvider::get<reference_element_type>(roid, lfeID);
 
 //	typedef local position type
-	typedef typename LocalShapeFunctionSet<reference_element_type>::position_type
-		local_pos_type;
+	typedef typename LocalShapeFunctionSet<dim>::position_type local_pos_type;
 
 //	clear pos
 	vPos.resize(lsfs.num_sh());
@@ -172,11 +177,11 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			reference_element_type;
 
-//	reference object id
-	ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
-
 //	reference element dimension
 	static const int refDim = reference_element_type::dim;
+
+//	reference object id
+	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	vector for the vertex positions
 	std::vector<MathVector<dim> > vVertPos(reference_element_type::num_corners);
@@ -191,14 +196,14 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 	LFEID lfeID = this->local_finite_element_id(fct);
 
 //	get local shape function set
-	const LocalShapeFunctionSet<reference_element_type>& lsfs
-		= LocalShapeFunctionSetProvider::get<reference_element_type>(lfeID);
+	const LocalShapeFunctionSet<refDim>& lsfs
+		= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 //	get local dof set
-	const ILocalDoFSet& lds = LocalDoFSetProvider::get(lfeID, roid);
+	const ILocalDoFSet& lds = LocalDoFSetProvider::get(roid, lfeID);
 
 //	typedef local position type
-	typedef typename LocalShapeFunctionSet<reference_element_type>::position_type
+	typedef typename LocalShapeFunctionSet<refDim>::position_type
 		local_pos_type;
 
 //	clear pos
