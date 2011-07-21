@@ -275,6 +275,7 @@ class DimFEGeometry
 				m_roid = roid;
 
 			//	request for quadrature rule
+				try{
 				const QuadratureRule<dim>& quadRule
 						= QuadratureRuleProvider<dim>::get_rule(roid, m_order);
 
@@ -282,6 +283,11 @@ class DimFEGeometry
 				m_nip = quadRule.size();
 				m_vIPLocal = quadRule.points();
 				m_vQuadWeight = quadRule.weights();
+
+				}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
+					UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+					return false;
+				}
 
 			//	resize
 				m_vIPGlobal.resize(m_nip);
@@ -293,6 +299,7 @@ class DimFEGeometry
 				m_vvShape.resize(m_nip);
 
 			//	request for trial space
+				try{
 				const LocalShapeFunctionSet<dim>& lsfs
 				 	 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
 
@@ -302,51 +309,44 @@ class DimFEGeometry
 					lsfs.shapes(m_vvShape[ip], m_vIPLocal[ip]);
 					lsfs.grads(m_vvGradLocal[ip], m_vIPLocal[ip]);
 				}
+
+				}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+					UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+					return false;
+				}
 			}
 
 			////////////////////////
 			//	global values
 			////////////////////////
 
-/*		//	update the mapping for the new corners
-			m_mapping.update(vCorner);
+		//	get reference element mapping
+			try{
+			DimReferenceMapping<dim, worldDim>& map
+				= ReferenceMappingProvider::get<dim, worldDim>(roid);
+
+		//	update the mapping for the new corners
+			map.update(vCorner);
 
 		//	compute global integration points
-			for(size_t ip = 0; ip < nip; ++ip)
-				m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]);
+			map.local_to_global(m_vIPGlobal, m_vIPLocal, m_nip);
 
-		//	evaluate global data
-		//	if reference mapping is linear,
-			if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
-			{
-			// 	compute transformation inverse and determinate at first ip
-				m_mapping.jacobian_transposed_inverse(m_vIPLocal[0], m_JTInv[0]);
-				m_detJ[0] = m_mapping.jacobian_det(m_vIPLocal[0]);
+		// 	compute transformation inverse and determinate at ip
+			map.jacobian_transposed_inverse(m_vJTInv, m_vIPLocal, m_nip);
 
-			//	copy values
-				for(size_t ip = 1; ip < nip; ++ip)
-				{
-					m_JTInv[ip] = m_JTInv[0];
-					m_detJ[ip] = m_detJ[0];
-				}
-			}
-		//	else compute jacobian for each point
-			{
-				for(size_t ip = 0; ip < nip; ++ip)
-				{
-				// 	compute transformation inverse and determinate at ip
-					m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]);
-
-				//	compute determinant
-					m_detJ[ip] = m_mapping.jacobian_det(m_vIPLocal[ip]);
-				}
-			}
+		//	compute determinant
+			map.jacobian_det(m_vDetJ, m_vIPLocal, m_nip);
 
 		// 	compute global gradients
-			for(size_t ip = 0; ip < nip; ++ip)
-				for(size_t sh = 0; sh < nsh; ++sh)
-					MatVecMult(m_vvGradGlobal[ip][sh], m_JTInv[ip], m_vvGradLocal[ip][sh]);
-*/
+			for(size_t ip = 0; ip < m_nip; ++ip)
+				for(size_t sh = 0; sh < m_nsh; ++sh)
+					MatVecMult(m_vvGradGlobal[ip][sh], m_vJTInv[ip], m_vvGradLocal[ip][sh]);
+
+			}catch(UG_ERROR_ReferenceMappingMissing& ex){
+				UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+				return false;
+			}
+
 		//	we're done
 			return true;
 		}

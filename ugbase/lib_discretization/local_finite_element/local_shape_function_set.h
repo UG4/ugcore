@@ -206,6 +206,23 @@ class LocalShapeFunctionSetWrapper
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+
+/// Exception thrown when local shape function set not found
+struct UG_ERROR_LocalShapeFunctionSetNotRegistered
+	: public UGFatalError
+{
+	UG_ERROR_LocalShapeFunctionSetNotRegistered(int dim_, ReferenceObjectID roid_, LFEID lfeid_)
+	: UGFatalError(""), dim(dim_), roid(roid_), lfeid(lfeid_)
+	{
+		std::stringstream ss; ss << "Local Shape Function Set not found for "
+							<<roid<<" (dim="<<dim<<") and type = "<<lfeid;
+		UGFatalError::set_msg(ss.str());
+	}
+	int dim;
+	ReferenceObjectID roid;
+	LFEID lfeid;
+};
+
 // LocalShapeFunctionSetProvider
 /** class to provide local shape function sets
  *

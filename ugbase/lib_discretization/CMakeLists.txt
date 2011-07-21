@@ -24,6 +24,7 @@ set(srcDiscretization	common/function_group.cpp
 
 						reference_element/reference_element.cpp
 			            reference_element/reference_element_init.cpp
+			            reference_element/reference_element_mapping.cpp
 						
 						quadrature/gauss_quad/gauss_quad_edge.cpp
 						quadrature/gauss_quad/gauss_quad_triangle.cpp

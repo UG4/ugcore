@@ -139,9 +139,14 @@ inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<3>& factory)
 struct UG_ERROR_QuadratureRuleNotRegistered
 	: public UGFatalError
 {
-		UG_ERROR_QuadratureRuleNotRegistered(ReferenceObjectID roid_, size_t order_)
-			: UGFatalError("QuadRule Not Registered"), roid(roid_), order(order_)
-		{}
+		UG_ERROR_QuadratureRuleNotRegistered(int dim_, ReferenceObjectID roid_, size_t order_)
+			: UGFatalError(""), dim(dim_), roid(roid_), order(order_)
+		{
+			std::stringstream ss; ss << "Quadrature Rule not found for "<<roid<<
+										" (dim="<<dim<<") and order "<<order;
+			UGFatalError::set_msg(ss.str());
+		}
+		int dim;
 		ReferenceObjectID roid;
 		size_t order;
 };
@@ -180,7 +185,7 @@ class QuadratureRuleProvider
 		{
 		//	check if order or higerh order registered
 			if(order >= m_vRule[roid].size())
-				throw(UG_ERROR_QuadratureRuleNotRegistered(roid, order));
+				throw(UG_ERROR_QuadratureRuleNotRegistered(dim, roid, order));
 
 		//	look for rule of order or next higher one
 			if(m_vRule[roid][order] == NULL)
@@ -190,7 +195,7 @@ class QuadratureRuleProvider
 				//	return higher order than requested
 					if(m_vRule[roid][i] != NULL) return *m_vRule[roid][i];
 				}
-				throw(UG_ERROR_QuadratureRuleNotRegistered(roid, order));
+				throw(UG_ERROR_QuadratureRuleNotRegistered(dim, roid, order));
 			}
 
 		//	return correct order

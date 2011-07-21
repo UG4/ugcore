@@ -135,7 +135,7 @@ get(LFEID id)
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
 				"Unknown Trial Space Type "<<id<<" requested for Element"
 				" type: "<<roid<<".\n");
-		throw(UGFatalError("Trial Space type unknown"));
+		throw(UG_ERROR_LocalShapeFunctionSetNotRegistered(TRefElem::dim, roid, id));
 	}
 
 //	return shape function set
@@ -165,7 +165,7 @@ get(ReferenceObjectID roid, LFEID id)
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
 				"Unknown Trial Space Type "<<id<<" requested for Element"
 				" type: "<<roid<<".\n");
-		throw(UGFatalError("Trial Space type unknown"));
+		throw(UG_ERROR_LocalShapeFunctionSetNotRegistered(dim, roid, id));
 	}
 
 //	return shape function set
