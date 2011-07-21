@@ -54,9 +54,20 @@ size_t GetUniqueFVGeomID()
 /// base class for all FVGeometries
 class FVGeometryBase {};
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// FV1 Geometry
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 /// Geometry and shape functions for 1st order Vertex-Centered Finite Volume
+/**
+ * \tparam	TElem		Element type
+ * \tparam	TWorldDim	(physical) world dimension
+ */
 template <	typename TElem, int TWorldDim>
-class FV1Geometry : public FVGeometryBase {
+class FV1Geometry : public FVGeometryBase
+{
 	public:
 	// 	type of element
 		typedef TElem elem_type;
@@ -116,24 +127,15 @@ class FV1Geometry : public FVGeometryBase {
 		class SCVF
 		{
 			public:
-			///	type of element
-				typedef TElem elem_type;
-
-			/// type of reference element
-				typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-
-			///	Number of shape functions
-				static const size_t nsh = FV1Geometry<TElem, TWorldDim>::nsh;
-
-			private:
-			// 	let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
-
 			///	Number of integration points
 				static const size_t numIP = 1;
 
 			///	Number of corners of scvf
 				static const size_t numCorners = fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+
+			private:
+			// 	let outer class access private members
+				friend class FV1Geometry<TElem, TWorldDim>;
 
 			public:
 				SCVF() {}
@@ -159,7 +161,7 @@ class FV1Geometry : public FVGeometryBase {
 			/// Transposed Inverse of Jacobian in integration point
 				inline const MathMatrix<worldDim,dim>& JTInv() const {return JtInv;}
 
-			/// Determinante of Jacobian in integration point
+			/// Determinant of Jacobian in integration point
 				inline number detJ() const {return detj;}
 
 			/// number of shape functions
@@ -227,18 +229,16 @@ class FV1Geometry : public FVGeometryBase {
 	///	sub control volume structure
 		class SCV
 		{
-			private:
-			// 	let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
-
+			public:
 			/// Number of integration points
 				static const size_t numIP = 1;
 
 			/// Number of corners of scvf
 				static const size_t maxNumCorners = fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
 
-			///	Number of shape functions
-				static const size_t nsh = FV1Geometry<TElem, TWorldDim>::nsh;
+			private:
+			// 	let outer class access private members
+				friend class FV1Geometry<TElem, TWorldDim>;
 
 			public:
 				SCV() : m_numCorners(maxNumCorners) {};
@@ -289,24 +289,15 @@ class FV1Geometry : public FVGeometryBase {
 		class BF
 		{
 			public:
-			/// type of element
-				typedef TElem elem_type;
-
-			/// type of reference element
-				typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-
-			private:
-			/// let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
-
 			/// number of integration points
 				static const size_t m_numIP = 1;
 
 			/// Number of corners of bf
 				static const size_t m_numCorners = fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
-			///	Number of shape functions
-				static const size_t nsh = FV1Geometry<TElem, TWorldDim>::nsh;
+			private:
+			/// let outer class access private members
+				friend class FV1Geometry<TElem, TWorldDim>;
 
 			public:
 				BF() {}
@@ -579,8 +570,11 @@ class FV1Geometry : public FVGeometryBase {
 		const ref_elem_type& m_rRefElem;
 };
 
-
-
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// FV1 Monifold Boundary
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <	typename TElem,
 			int TWorldDim>
