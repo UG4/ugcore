@@ -72,7 +72,7 @@ class FV1Geometry : public FVGeometryBase {
 		static const size_t numSCV = ref_elem_type::num_corners;
 
 	// 	type of SubControlVolume
-		typedef typename finite_volume_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
+		typedef typename fv1_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
 
 	// 	number of SubControlVolumeFaces
 		static const size_t numSCVF = ref_elem_type::num_edges;
@@ -133,7 +133,7 @@ class FV1Geometry : public FVGeometryBase {
 				static const size_t numIP = 1;
 
 			///	Number of corners of scvf
-				static const size_t numCorners = finite_volume_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+				static const size_t numCorners = fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			public:
 				SCVF() {}
@@ -235,7 +235,7 @@ class FV1Geometry : public FVGeometryBase {
 				static const size_t numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t maxNumCorners = finite_volume_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+				static const size_t maxNumCorners = fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
 
 			///	Number of shape functions
 				static const size_t nsh = FV1Geometry<TElem, TWorldDim>::nsh;
@@ -303,7 +303,7 @@ class FV1Geometry : public FVGeometryBase {
 				static const size_t m_numIP = 1;
 
 			/// Number of corners of bf
-				static const size_t m_numCorners = finite_volume_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+				static const size_t m_numCorners = fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			///	Number of shape functions
 				static const size_t nsh = FV1Geometry<TElem, TWorldDim>::nsh;
@@ -601,7 +601,7 @@ class FV1ManifoldBoundary
 		static const size_t m_numBF = ref_elem_type::num_corners;
 
 		// type of BoundaryFaces
-		typedef typename finite_volume_traits<ref_elem_type, TWorldDim>::scv_type bf_type;
+		typedef typename fv1_traits<ref_elem_type, TWorldDim>::scv_type bf_type;
 
 	public:
 		// dimension of reference element
@@ -633,7 +633,7 @@ class FV1ManifoldBoundary
 				static const size_t m_numIP = 1;
 				
 				// max number of corners of bf
-				static const size_t m_maxNumCorners = finite_volume_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+				static const size_t m_maxNumCorners = fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
 
 			public:
 				BF() : m_numCorners(m_maxNumCorners) {};

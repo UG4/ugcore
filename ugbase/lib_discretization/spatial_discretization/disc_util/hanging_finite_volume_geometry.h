@@ -73,7 +73,7 @@ class HFV1Geometry : public FVGeometryBase{
 				static const size_t m_numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t m_numCorners = finite_volume_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+				static const size_t m_numCorners = fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			public:
 				SCVF() {};
@@ -163,10 +163,10 @@ class HFV1Geometry : public FVGeometryBase{
 				static const size_t m_numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t m_maxNumCorners = hanging_finite_volume_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+				static const size_t m_maxNumCorners = hfv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
 
 			/// type of element the subcontrol volume represents
-				typedef typename hanging_finite_volume_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
+				typedef typename hfv1_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
 
 			public:
 				SCV() : m_numCorners(m_maxNumCorners) {};

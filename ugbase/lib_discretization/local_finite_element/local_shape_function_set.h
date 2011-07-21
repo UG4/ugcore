@@ -43,7 +43,7 @@ struct UG_ERROR_InvalidShapeFunctionIndex
  * \tparam 	tDim	Reference Element Dimension
  */
 template <int TDim>
-class LocalShapeFunctionSet
+class DimLocalShapeFunctionSet
 {
 	public:
 	///	Dimension, where shape functions are defined
@@ -110,12 +110,12 @@ class LocalShapeFunctionSet
 		virtual void grads(grad_type* gOut, const position_type& x) const = 0;
 
 	///	virtual destructor
-		virtual ~LocalShapeFunctionSet() {};
+		virtual ~DimLocalShapeFunctionSet() {};
 };
 
 template <typename TRefElem>
-class ReferenceElemLocalShapeFunctionSet
-	: public LocalShapeFunctionSet<TRefElem::dim>
+class LocalShapeFunctionSet
+	: public DimLocalShapeFunctionSet<TRefElem::dim>
 {
 	public:
 	///	Reference Element type
@@ -137,7 +137,7 @@ class ReferenceElemLocalShapeFunctionSet
  */
 template <typename TImpl>
 class LocalShapeFunctionSetWrapper
-	: public ReferenceElemLocalShapeFunctionSet<typename TImpl::reference_element_type>,
+	: public LocalShapeFunctionSet<typename TImpl::reference_element_type>,
 	  public TImpl
 {
 	/// Implementation
@@ -255,12 +255,12 @@ class LocalShapeFunctionSetProvider {
 
 	// 	return a map of element_trial_spaces
 		template <typename TRefElem>
-		static std::map<LFEID, const ReferenceElemLocalShapeFunctionSet<TRefElem>* >&
+		static std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* >&
 		get_map();
 
 	// 	return a map of element_trial_spaces
 		template <int dim>
-		static std::map<LFEID, const LocalShapeFunctionSet<dim>* >*
+		static std::map<LFEID, const DimLocalShapeFunctionSet<dim>* >*
 		get_dim_map();
 
 	public:
@@ -275,7 +275,7 @@ class LocalShapeFunctionSetProvider {
 	 */
 		template <typename TRefElem>
 		static bool
-		register_set(LFEID id, const ReferenceElemLocalShapeFunctionSet<TRefElem>& set);
+		register_set(LFEID id, const LocalShapeFunctionSet<TRefElem>& set);
 
 	/// unregister a local shape function set for a given reference element type
 	/**
@@ -299,7 +299,7 @@ class LocalShapeFunctionSetProvider {
 	 */
 		// get the local shape function set for a given reference element and id
 		template <typename TRefElem>
-		static const ReferenceElemLocalShapeFunctionSet<TRefElem>& get(LFEID id);
+		static const LocalShapeFunctionSet<TRefElem>& get(LFEID id);
 
 	///	returns the Local Shape Function Set
 	/**
@@ -311,7 +311,7 @@ class LocalShapeFunctionSetProvider {
 	 * \return 		set		A const reference to the shape function set
 	 */
 		template <int dim>
-		static const LocalShapeFunctionSet<dim>& get(ReferenceObjectID roid,
+		static const DimLocalShapeFunctionSet<dim>& get(ReferenceObjectID roid,
 		                                             LFEID id);
 };
 

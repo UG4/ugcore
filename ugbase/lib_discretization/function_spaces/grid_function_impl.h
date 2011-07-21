@@ -67,11 +67,11 @@ dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) cons
 	LFEID lfeID = this->local_finite_element_id(fct);
 
 //	get local shape function set
-	const LocalShapeFunctionSet<dim>& lsfs
+	const DimLocalShapeFunctionSet<dim>& lsfs
 		= LocalShapeFunctionSetProvider::get<reference_element_type>(roid, lfeID);
 
 //	typedef local position type
-	typedef typename LocalShapeFunctionSet<dim>::position_type local_pos_type;
+	typedef typename DimLocalShapeFunctionSet<dim>::position_type local_pos_type;
 
 //	clear pos
 	vPos.resize(lsfs.num_sh());
@@ -196,14 +196,14 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 	LFEID lfeID = this->local_finite_element_id(fct);
 
 //	get local shape function set
-	const LocalShapeFunctionSet<refDim>& lsfs
+	const DimLocalShapeFunctionSet<refDim>& lsfs
 		= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 //	get local dof set
 	const ILocalDoFSet& lds = LocalDoFSetProvider::get(roid, lfeID);
 
 //	typedef local position type
-	typedef typename LocalShapeFunctionSet<refDim>::position_type
+	typedef typename DimLocalShapeFunctionSet<refDim>::position_type
 		local_pos_type;
 
 //	clear pos

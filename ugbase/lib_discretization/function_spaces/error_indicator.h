@@ -37,7 +37,7 @@ bool ComputeGradient(TFunction& u,
 			= u.get_approximation_space().get_domain().get_position_accessor();
 
 //	get trial space
-	const ReferenceElemLocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 			LocalShapeFunctionSetProvider::
 				get<ref_elem_type>
 				(LFEID(LFEID::LAGRANGE, 1));

@@ -453,7 +453,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 		m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
 		m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
 
-		const ReferenceElemLocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::
 					get<ref_elem_type>
 						(LFEID(LFEID::LAGRANGE, 1));
