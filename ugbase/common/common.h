@@ -69,6 +69,8 @@ class UGError
 		
 		virtual ~UGError()	{}
 		
+		void set_msg(const std::string& msg) {m_msg = msg;}
+		void set_msg(const char* msg) 		 {m_msg = msg;}
 		const std::string& get_msg()	{return m_msg;}
 		bool terminate()				{return m_terminate;}
 		int get_code()					{return m_code;}
