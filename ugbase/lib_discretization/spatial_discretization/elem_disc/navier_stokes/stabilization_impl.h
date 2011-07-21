@@ -62,7 +62,7 @@ set_geometry_type()
 	m_id = id;
 
 //	set sizes
-	TFVGeom& geo = GeomProvider::get<TFVGeom>();
+	TFVGeom& geo = Provider::get<TFVGeom>();
 	set_sizes(geo.num_scvf(), geo.num_scv());
 
 //	set sizes in upwind

@@ -8,7 +8,7 @@
 #include "convection_diffusion.h"
 
 #include "lib_discretization/spatial_discretization/disc_util/finite_element_geometry.h"
-#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "common/util/provider.h"
 #include "lib_discretization/local_finite_element/lagrange/lagrange.h"
 #include "lib_discretization/local_finite_element/lagrange/lagrangep1.h"
 #include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
@@ -41,7 +41,7 @@ elem_loop_prepare_fe()
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
 //	request geometry
-	static const GeomType& geo = GeomProvider::get<GeomType>();
+	static const GeomType& geo = Provider::get<GeomType>();
 
 //	set local positions
 	m_imDiffusion.template 	set_local_ips<refDim>(geo.local_ips(),
@@ -89,7 +89,7 @@ elem_prepare_fe(TElem* elem, const local_vector_type& u)
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
 //	request geometry
-	static GeomType& geo = GeomProvider::get<GeomType>();
+	static GeomType& geo = Provider::get<GeomType>();
 
 	if(!geo.update(&m_vCornerCoords[0]))
 	{
@@ -119,7 +119,7 @@ elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
 //	request geometry
-	static const GeomType& geo = GeomProvider::get<GeomType>();
+	static const GeomType& geo = Provider::get<GeomType>();
 
 	MathVector<dim> v, Dgrad;
 
@@ -174,7 +174,7 @@ elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
 //	request geometry
-	static const GeomType& geo = GeomProvider::get<GeomType>();
+	static const GeomType& geo = Provider::get<GeomType>();
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -214,7 +214,7 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
 //	request geometry
-	static const GeomType& geo = GeomProvider::get<GeomType>();
+	static const GeomType& geo = Provider::get<GeomType>();
 
 	number integrand, shape_u;
 	MathMatrix<dim,dim> D;
@@ -275,7 +275,7 @@ elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
 //	request geometry
-	static const GeomType& geo = GeomProvider::get<GeomType>();
+	static const GeomType& geo = Provider::get<GeomType>();
 
 	number shape_u;
 
@@ -317,7 +317,7 @@ elem_rhs_fe(local_vector_type& d)
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
 
 //	request geometry
-	static const GeomType& geo = GeomProvider::get<GeomType>();
+	static const GeomType& geo = Provider::get<GeomType>();
 
 //	skip if no source present
 	if(!m_imSource.data_given()) return true;

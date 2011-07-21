@@ -16,7 +16,7 @@
 #include "lib_discretization/common/geometry_util.h"
 #include "lib_discretization/local_finite_element/local_shape_function_set.h"
 #include "lib_discretization/local_finite_element/local_shape_function_set.h"
-#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "common/util/provider.h"
 
 #include "upwind.h"
 #include "lib_algebra/algebra_selector.h"
@@ -67,7 +67,7 @@ set_geometry_type()
 	m_id = id;
 
 //	set sizes
-	TFVGeom& geo = GeomProvider::get<TFVGeom>();
+	TFVGeom& geo = Provider::get<TFVGeom>();
 	set_sizes(geo.num_scvf(), geo.num_scv());
 
 //	we're done

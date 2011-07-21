@@ -10,7 +10,7 @@
 
 #include "common/common.h"
 #include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
-#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -222,7 +222,7 @@ set_geometry_type()
 	m_id = id;
 
 //	set sizes
-	TFVGeom& geo = GeomProvider::get<TFVGeom>();
+	TFVGeom& geo = Provider::get<TFVGeom>();
 	set_sizes(geo.num_scvf(), geo.num_scv());
 
 //	we're done

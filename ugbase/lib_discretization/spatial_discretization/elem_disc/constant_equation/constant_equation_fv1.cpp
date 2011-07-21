@@ -7,7 +7,7 @@
 
 #include "constant_equation.h"
 
-#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "common/util/provider.h"
 #include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
 #include "lib_discretization/spatial_discretization/disc_util/hanging_finite_volume_geometry.h"
 
@@ -35,7 +35,7 @@ prepare_element_loop()
 //	set local positions for rhs
 	if(!TFVGeom<TElem, dim>::usesHangingNodes)
 	{
-		TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
+		TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                   	                      geo.num_scvf_ips());
 		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
@@ -87,7 +87,7 @@ prepare_element(TElem* elem, const local_vector_type& u){
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
-	TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
+	TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
 		UG_LOG("FVConstantEquationElemDisc::prepare_element:"
@@ -146,7 +146,7 @@ FVConstantEquationElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo	= GeomProvider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo	= Provider::get<TFVGeom<TElem,dim> >();
 
 //	check if data given
 	if(!m_imVelocity.data_given()) return true;
@@ -178,7 +178,7 @@ FVConstantEquationElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -217,7 +217,7 @@ assemble_f(local_vector_type& d)
 
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo
-		= GeomProvider::get<TFVGeom<TElem,dim> >();
+		= Provider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -245,7 +245,7 @@ FVConstantEquationElemDisc<TDomain>::
 lin_defect_velocity(const local_vector_type& u)
 {
 //  get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
 //	reset the values for the linearized defect
 	m_imVelocity.clear_lin_defect();
@@ -276,7 +276,7 @@ FVConstantEquationElemDisc<TDomain>::
 lin_defect_source(const local_vector_type& u)
 {
 //  get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -303,7 +303,7 @@ FVConstantEquationElemDisc<TDomain>::
 lin_defect_mass_scale(const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo	= GeomProvider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo	= Provider::get<TFVGeom<TElem,dim> >();
 
 //	reset all values
 	m_imMassScale.clear_lin_defect();
@@ -333,7 +333,7 @@ FVConstantEquationElemDisc<TDomain>::
 compute_concentration_export(const local_vector_type& u, bool compDeriv)
 {
 //  get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -413,7 +413,7 @@ FVConstantEquationElemDisc<TDomain>::
 compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const TFVGeom<TElem, dim>& geo = GeomProvider::get<TFVGeom<TElem,dim> >();
+	static const TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
 //	get reference element dimension
 	static const size_t refDim = TFVGeom<TElem, dim>::dim;

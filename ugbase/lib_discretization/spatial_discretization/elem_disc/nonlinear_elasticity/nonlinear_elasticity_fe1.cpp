@@ -8,7 +8,7 @@
 #include "fe1_nonlinear_elasticity.h"
 
 #include "lib_discretization/spatial_discretization/disc_util/finite_element_geometry.h"
-#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "common/util/provider.h"
 #include "lib_discretization/local_finite_element/lagrange/lagrange.h"
 #include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
 
@@ -63,7 +63,7 @@ prepare_element(TElem* elem, const local_vector_type& u)
 
 // 	update Geometry for this element
 	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	if(!geo.update(m_corners))
 		{UG_LOG("FE1NonlinearElasticityElemDisc::prepare_element:"
@@ -80,7 +80,7 @@ FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	//using Lagrange description of the linearized equations (cf. Bonet/Wood 1997 chapter 8/9)
 
@@ -197,7 +197,7 @@ FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
@@ -228,7 +228,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 	// to be implemented
 	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 	//TODO: mean Dilatation Term fehlt noch!
 
 	number DE[dim][dim], FT[dim][dim], F[dim][dim];

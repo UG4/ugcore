@@ -6,7 +6,7 @@
  */
 
 #include "density_driven_flow.h"
-#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "common/util/provider.h"
 #include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 
 //#define PROFILE_D3F
@@ -102,7 +102,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 compute_darcy_export_std(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -184,7 +184,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -305,7 +305,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 compute_brine_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -385,7 +385,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 compute_brine_grad_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const int refDim = FV1Geometry<TElem, dim>::dim;
@@ -440,7 +440,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 compute_pressure_grad_export(const local_vector_type& u, bool compDeriv)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const int refDim = FV1Geometry<TElem, dim>::dim;
@@ -608,7 +608,7 @@ prepare_element_loop()
 
 
 //	set local positions for user data
-	FV1Geometry<TElem, dim>& geo = GeomProvider::get<FV1Geometry<TElem,dim> >();
+	FV1Geometry<TElem, dim>& geo = Provider::get<FV1Geometry<TElem,dim> >();
 
 	const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
 	size_t numSCVFip = geo.num_scvf_ips();
@@ -677,7 +677,7 @@ prepare_element(TElem* elem, const local_vector_type& u)
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
-	static FV1Geometry<TElem, dim>& geo = GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static FV1Geometry<TElem, dim>& geo = Provider::get<FV1Geometry<TElem,dim> >();
 
 	if(!geo.update(elem, this->get_subset_handler(), &m_vCornerCoords[0]))
 	{
@@ -714,7 +714,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	static numbers, known at compile-time
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
@@ -857,7 +857,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 //	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	number of subcontrol volume faces
 	static const size_t numScvf = FV1Geometry<TElem, dim>::numSCVF;
@@ -937,7 +937,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -979,7 +979,7 @@ DensityDrivenFlowElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	Get finite volume geometry
-	static const FV1Geometry<TElem, dim>& geo =	GeomProvider::get<FV1Geometry<TElem,dim> >();
+	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 // 	Loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)

@@ -11,7 +11,7 @@
 #include "fe1_linear_elasticity.h"
 
 #include "lib_discretization/spatial_discretization/disc_util/finite_element_geometry.h"
-#include "lib_discretization/spatial_discretization/disc_util/geometry_provider.h"
+#include "common/util/provider.h"
 #include "lib_discretization/local_finite_element/lagrange/lagrange.h"
 #include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
 
@@ -75,7 +75,7 @@ prepare_element(TElem* elem, const local_vector_type& u)
 
 // 	update Geometry for this element
 	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	if(!geo.update(m_corners))
 		{UG_LOG("FE1LinearElasticityElemDisc::prepare_element:"
@@ -92,7 +92,7 @@ FE1LinearElasticityElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	for(size_t i = 0; i < geo.num_sh(); ++i) // loop corner
 	{
@@ -134,7 +134,7 @@ FE1LinearElasticityElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
 	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-		= GeomProvider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
