@@ -195,11 +195,29 @@ class DimFEGeometry
 		static const int worldDim = TWorldDim;
 
 	public:
-	///	Constructor
+	///	default Constructor
 		DimFEGeometry() :
-			m_roid(ROID_INVALID), m_order(0),
+			m_roid(ROID_INVALID), m_order(0), m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
 			m_vIPLocal(NULL), m_vQuadWeight(NULL)
 		{}
+
+	///	Constructor
+		DimFEGeometry(size_t order, LFEID lfeid) :
+			m_roid(ROID_INVALID), m_order(order), m_lfeID(lfeid),
+			m_vIPLocal(NULL), m_vQuadWeight(NULL)
+		{}
+
+	///	Constructor
+		DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid) :
+			m_roid(roid), m_order(order), m_lfeID(lfeid),
+			m_vIPLocal(NULL), m_vQuadWeight(NULL)
+		{}
+
+	///	sets the order of the quadrature rule
+		void set_quad_order(size_t order) {m_order = order;}
+
+	///	sets the local finite element id
+		void set_lfeid(LFEID lfeid) {m_lfeID = lfeid;}
 
 	/// number of integration points
 		size_t num_ip() const {return m_nip;}
