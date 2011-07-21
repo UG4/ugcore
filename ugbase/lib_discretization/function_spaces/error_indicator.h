@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "common/common.h"
+#include "common/util/provider.h"
 #include "lib_grid/algorithms/refinement/refiner_interface.h"
 #include "lib_discretization/common/geometry_util.h"
 
@@ -24,7 +25,7 @@ bool ComputeGradient(TFunction& u,
 {
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	const ref_elem_type& refElem = ReferenceElementProvider::get<ref_elem_type>();
+	const ref_elem_type& refElem = Provider::get<ref_elem_type>();
 
 //	get reference dimension
 	static const int dim = ref_elem_type::dim;

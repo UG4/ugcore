@@ -347,7 +347,7 @@ bool LagrangeP1<ReferencePyramid,1>::
 position(size_t i, position_type& value) const
 {
 	static const DimReferenceElement<3>& refElem
-		= DimReferenceElementFactory<3>::get_reference_element(ROID_PYRAMID);
+		= DimReferenceElementProvider<3>::get(ROID_PYRAMID);
 
 	value = refElem.corner(i);
 	return true;
@@ -420,7 +420,7 @@ bool LagrangeP1<ReferencePrism,1>::
 position(size_t i, position_type& value) const
 {
 	static const DimReferenceElement<3>& refElem
-		= DimReferenceElementFactory<3>::get_reference_element(ROID_PRISM);
+		= DimReferenceElementProvider<3>::get(ROID_PRISM);
 
 	value = refElem.corner(i);
 	return true;
@@ -505,7 +505,7 @@ bool LagrangeP1<ReferenceHexahedron,1>::
 position(size_t i, position_type& value) const
 {
 	static const DimReferenceElement<3>& refElem
-		= DimReferenceElementFactory<3>::get_reference_element(ROID_HEXAHEDRON);
+		= DimReferenceElementProvider<3>::get(ROID_HEXAHEDRON);
 
 	value = refElem.corner(i);
 	return true;

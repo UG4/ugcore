@@ -7,6 +7,7 @@
 
 #include "lagrange.h"
 #include <sstream>
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -254,7 +255,7 @@ LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
 
 //	reference element
 	const ReferenceEdge& rRef =
-			ReferenceElementProvider::get<ReferenceEdge>();
+			Provider::get<ReferenceEdge>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -284,7 +285,7 @@ LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
 
 //	reference element
 	const ReferenceTriangle& rRef =
-			ReferenceElementProvider::get<ReferenceTriangle>();
+			Provider::get<ReferenceTriangle>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -314,7 +315,7 @@ LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
 
 //	reference element
 	const ReferenceQuadrilateral& rRef =
-			ReferenceElementProvider::get<ReferenceQuadrilateral>();
+			Provider::get<ReferenceQuadrilateral>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -343,7 +344,7 @@ LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
 
 //	reference element
 	const ReferenceTetrahedron& rRef =
-			ReferenceElementProvider::get<ReferenceTetrahedron>();
+			Provider::get<ReferenceTetrahedron>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -376,7 +377,7 @@ LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 
 //	reference element
 	const ReferencePrism& rRef =
-			ReferenceElementProvider::get<ReferencePrism>();
+			Provider::get<ReferencePrism>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -413,7 +414,7 @@ LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
 
 	//	reference element
 		const ReferencePyramid& rRef =
-				ReferenceElementProvider::get<ReferencePyramid>();
+				Provider::get<ReferencePyramid>();
 
 	//	init shape -> multi-index mapping
 		SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -440,7 +441,7 @@ LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
 
 //	reference element
 	const ReferenceHexahedron& rRef =
-			ReferenceElementProvider::get<ReferenceHexahedron>();
+			Provider::get<ReferenceHexahedron>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);

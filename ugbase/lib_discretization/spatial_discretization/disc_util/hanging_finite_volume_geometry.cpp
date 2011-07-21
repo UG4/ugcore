@@ -6,13 +6,14 @@
  */
 
 #include "hanging_finite_volume_geometry.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
 template <typename TElem, int TWorldDim>
 HFV1Geometry<TElem, TWorldDim>::
 HFV1Geometry()
-	: m_pElem(NULL),  m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
+	: m_pElem(NULL),  m_rRefElem(Provider::get<ref_elem_type>())
 {
 	// local corners
 	m_vSCV.resize(m_numNaturalSCV);

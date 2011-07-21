@@ -66,7 +66,7 @@ void DimReferenceElement<d>::print_info() const
 ///////////////////////////////////////////////////////////////////////////////
 
 // register elements at factory
-std::vector<const ReferenceElement* > ReferenceElementFactory::m_vElem =
+std::vector<const ReferenceElement* > ReferenceElementProvider::m_vElem =
 	std::vector<const ReferenceElement* >();
 
 bool RegisterStandardDimReferenceElements()
@@ -77,7 +77,7 @@ bool RegisterStandardDimReferenceElements()
 
 static ReferenceElementWrapper<ReferenceVertex> refVertex;
 
-static const bool registered_1 = ReferenceElementFactory::register_reference_element(refVertex);
+static const bool registered_1 = ReferenceElementProvider::add(refVertex);
 
 ///////////////
 // Edge
@@ -86,8 +86,8 @@ static const bool registered_1 = ReferenceElementFactory::register_reference_ele
 static ReferenceElementWrapper<ReferenceEdge> refEdge;
 static DimReferenceElementWrapper<ReferenceEdge, 1> dimRefEdge;
 
-static const bool registered_3 = ReferenceElementFactory::register_reference_element(refEdge);
-static const bool registered_4 = DimReferenceElementFactory<1>::register_reference_element(dimRefEdge);
+static const bool registered_3 = ReferenceElementProvider::add(refEdge);
+static const bool registered_4 = DimReferenceElementProvider<1>::add(dimRefEdge);
 
 ///////////////
 // Triangle
@@ -95,8 +95,8 @@ static const bool registered_4 = DimReferenceElementFactory<1>::register_referen
 static ReferenceElementWrapper<ReferenceTriangle> refTriangle;
 static DimReferenceElementWrapper<ReferenceTriangle, 2> dimRefTriangle;
 
-static const bool registered_5 = ReferenceElementFactory::register_reference_element(refTriangle);
-static const bool registered_6 = DimReferenceElementFactory<2>::register_reference_element(dimRefTriangle);
+static const bool registered_5 = ReferenceElementProvider::add(refTriangle);
+static const bool registered_6 = DimReferenceElementProvider<2>::add(dimRefTriangle);
 
 ///////////////
 // Quadrilateral
@@ -104,8 +104,8 @@ static const bool registered_6 = DimReferenceElementFactory<2>::register_referen
 static ReferenceElementWrapper<ReferenceQuadrilateral> refQuadrilateral;
 static DimReferenceElementWrapper<ReferenceQuadrilateral, 2> dimRefQuadrilateral;
 
-static const bool registered_7 = ReferenceElementFactory::register_reference_element(refQuadrilateral);
-static const bool registered_8 = DimReferenceElementFactory<2>::register_reference_element(dimRefQuadrilateral);
+static const bool registered_7 = ReferenceElementProvider::add(refQuadrilateral);
+static const bool registered_8 = DimReferenceElementProvider<2>::add(dimRefQuadrilateral);
 
 ///////////////
 // Tetrahedron
@@ -113,8 +113,8 @@ static const bool registered_8 = DimReferenceElementFactory<2>::register_referen
 static ReferenceElementWrapper<ReferenceTetrahedron> refTetrahedron;
 static DimReferenceElementWrapper<ReferenceTetrahedron, 3> dimRefTetrahedron;
 
-static const bool registered_9 = ReferenceElementFactory::register_reference_element(refTetrahedron);
-static const bool registered_10 = DimReferenceElementFactory<3>::register_reference_element(dimRefTetrahedron);
+static const bool registered_9 = ReferenceElementProvider::add(refTetrahedron);
+static const bool registered_10 = DimReferenceElementProvider<3>::add(dimRefTetrahedron);
 
 ///////////////
 // Prism
@@ -122,8 +122,8 @@ static const bool registered_10 = DimReferenceElementFactory<3>::register_refere
 static ReferenceElementWrapper<ReferencePrism> refPrism;
 static DimReferenceElementWrapper<ReferencePrism, 3> dimRefPrism;
 
-static const bool registered_15 = ReferenceElementFactory::register_reference_element(refPrism);
-static const bool registered_16 = DimReferenceElementFactory<3>::register_reference_element(dimRefPrism);
+static const bool registered_15 = ReferenceElementProvider::add(refPrism);
+static const bool registered_16 = DimReferenceElementProvider<3>::add(dimRefPrism);
 
 ///////////////
 // Pyramid
@@ -131,8 +131,8 @@ static const bool registered_16 = DimReferenceElementFactory<3>::register_refere
 static ReferenceElementWrapper<ReferencePyramid> refPyramid;
 static DimReferenceElementWrapper<ReferencePyramid, 3> dimRefPyramid;
 
-static const bool registered_11 = ReferenceElementFactory::register_reference_element(refPyramid);
-static const bool registered_12 = DimReferenceElementFactory<3>::register_reference_element(dimRefPyramid);
+static const bool registered_11 = ReferenceElementProvider::add(refPyramid);
+static const bool registered_12 = DimReferenceElementProvider<3>::add(dimRefPyramid);
 
 ///////////////
 // Hexahedron
@@ -140,8 +140,8 @@ static const bool registered_12 = DimReferenceElementFactory<3>::register_refere
 static ReferenceElementWrapper<ReferenceHexahedron> refHexahedron;
 static DimReferenceElementWrapper<ReferenceHexahedron, 3> dimRefHexahedron;
 
-static const bool registered_13 = ReferenceElementFactory::register_reference_element(refHexahedron);
-static const bool registered_14 = DimReferenceElementFactory<3>::register_reference_element(dimRefHexahedron);
+static const bool registered_13 = ReferenceElementProvider::add(refHexahedron);
+static const bool registered_14 = DimReferenceElementProvider<3>::add(dimRefHexahedron);
 
 
 return (registered_1 &&

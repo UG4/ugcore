@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE_LOCAL_DOF__
 #define __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE_LOCAL_DOF__
 
+#include "common/util/provider.h"
 #include "lagrange.h"
 #include "../local_dof_set.h"
 #include "lib_discretization/common/multi_index.h"
@@ -207,7 +208,7 @@ class LagrangeLDS<ReferenceVertex, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferenceVertex>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferenceVertex>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, order);
@@ -281,7 +282,7 @@ class LagrangeLDS<ReferenceEdge, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferenceEdge>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferenceEdge>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
@@ -358,7 +359,7 @@ class LagrangeLDS<ReferenceTriangle, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferenceTriangle>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferenceTriangle>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
@@ -438,7 +439,7 @@ class LagrangeLDS<ReferenceQuadrilateral, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferenceQuadrilateral>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferenceQuadrilateral>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
@@ -516,7 +517,7 @@ class LagrangeLDS<ReferenceTetrahedron, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferenceTetrahedron>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferenceTetrahedron>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
@@ -601,7 +602,7 @@ class LagrangeLDS<ReferencePrism, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferencePrism>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferencePrism>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
@@ -688,7 +689,7 @@ class LagrangeLDS<ReferencePyramid, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferencePyramid>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferencePyramid>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
@@ -776,7 +777,7 @@ class LagrangeLDS<ReferenceHexahedron, TOrder>
 
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(ReferenceElementProvider::get<ReferenceHexahedron>())
+		LagrangeLDS() : m_rRef(Provider::get<ReferenceHexahedron>())
 		{
 		//	create LocalDoF vector
 			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);

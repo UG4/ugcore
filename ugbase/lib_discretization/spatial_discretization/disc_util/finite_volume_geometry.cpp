@@ -6,6 +6,7 @@
  */
 
 
+#include "common/util/provider.h"
 #include "finite_volume_geometry.h"
 #include "lib_discretization/reference_element/reference_element.h"
 
@@ -20,7 +21,7 @@ namespace ug{
 template <typename TElem, int TWorldDim>
 FV1Geometry<TElem, TWorldDim>::
 FV1Geometry()
-	: m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
+	: m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>())
 {
 // 	set corners of element as local centers of nodes
 	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
@@ -845,7 +846,7 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 
 template <typename TElem, int TWorldDim>
 FV1ManifoldBoundary<TElem, TWorldDim>::
-FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
+FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>())
 {
 	// set corners of element as local centers of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
