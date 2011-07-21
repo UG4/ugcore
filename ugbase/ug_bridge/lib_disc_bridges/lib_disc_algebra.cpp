@@ -247,11 +247,11 @@ bool RegisterDynamicLibDiscAlgebra(Registry& reg, int algebra_type, const char* 
 {
 	bool bReturn = true;
 
-	typedef P1DoFDistribution<false> dd_type_single;
-	typedef P1DoFDistribution<true> dd_type_grouped;
+//	typedef P1DoFDistribution<false> dd_type_single;
+//	typedef P1DoFDistribution<true> dd_type_grouped;
 
-//	typedef DoFDistribution dd_type_single;
-//	typedef DoFDistribution dd_type_grouped;
+	typedef DoFDistribution dd_type_single;
+	typedef DoFDistribution dd_type_grouped;
 
 	switch(algebra_type)
 	{

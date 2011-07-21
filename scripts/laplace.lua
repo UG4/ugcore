@@ -16,8 +16,8 @@ ug_load_script("ug_util.lua")
 dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -25,8 +25,8 @@ if dim == 3 then
 end
 
 -- refinements:
-numPreRefs = util.GetParamNumber("-numPreRefs", 1)
-numRefs    = util.GetParamNumber("-numRefs",    3)
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
+numRefs    = util.GetParamNumber("-numRefs",    1)
 
 -- parallelisation related stuff
 -- way the domain / the grid will be distributed to the processes:
@@ -249,16 +249,16 @@ print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRef
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:add_fct("c", "Lagrange", 3)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic(0)
 
 -- lets order indices using Cuthill-McKee
-if OrderCuthillMcKee(approxSpace, true) == false then
-	print("ERROR when ordering Cuthill-McKee"); exit();
-end
+--if OrderCuthillMcKee(approxSpace, true) == false then
+--	print("ERROR when ordering Cuthill-McKee"); exit();
+--end
 
 --------------------------------------------------------------------------------
 --  Setup User Functions
@@ -312,6 +312,7 @@ else print("Dim not supported for upwind"); exit() end
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 if elemDisc:set_upwind(upwind) == false then exit() end
+elemDisc:set_disc_scheme("fe")
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
@@ -446,7 +447,7 @@ bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- choose some solver
-solver = linSolver
+solver = cgSolver
 
 --------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h',

@@ -293,16 +293,15 @@ class DimFEGeometry
 				m_vvShape.resize(m_nip);
 
 			//	request for trial space
-//				const LocalShapeFunctionSet<reference_element>& lsfs
-//				 	 = LocalShapeFunctionSetProvider::get(m_lfeID);
+				const LocalShapeFunctionSet<dim>& lsfs
+				 	 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
 
+			//	get all shapes by on call
 				for(size_t ip = 0; ip < m_nip; ++ip)
-					for(size_t sh = 0; sh < m_nsh; ++sh)
-					{
-//						m_vvShape[ip][sh] = m_rTrialSpace.shape(sh, quadRule.point(ip));
-//						m_vvGradLocal[ip][sh] = m_rTrialSpace.grad(sh, quadRule.point(ip));
-					}
-
+				{
+					lsfs.shapes(m_vvShape[ip], m_vIPLocal[ip]);
+					lsfs.grads(m_vvGradLocal[ip], m_vIPLocal[ip]);
+				}
 			}
 
 			////////////////////////
