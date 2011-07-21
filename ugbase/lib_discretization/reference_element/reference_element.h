@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <sstream>
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lib_grid/lg_base.h"
@@ -180,13 +181,13 @@ class ReferenceElementWrapper
  *
  * \tparam		TRefElem		the reference element to wrap
  */
-template <typename TRefElem, int d>
+template <typename TRefElem>
 class DimReferenceElementWrapper
-	: public DimReferenceElement<d>, protected TRefElem
+	: public DimReferenceElement<TRefElem::dim>, protected TRefElem
 {
 	public:
 	///	\copydoc ug::DimReferenceElement<d>::dim
-		static const int dim = d;
+		static const int dim = TRefElem::dim;
 
 	public:
 	///	\copydoc ug::DimReferenceElement<d>::reference_object_id()
@@ -234,111 +235,80 @@ class DimReferenceElementWrapper
 // Reference Element Providers
 ///////////////////////////////////////////////////////////////////////////////
 
-// predeclaration
-bool RegisterStandardDimReferenceElements();
-
-template <int d>
-class DimReferenceElementProvider{
-	private:
-		DimReferenceElementProvider(){init();};
-		DimReferenceElementProvider(const DimReferenceElementProvider&){};
-		DimReferenceElementProvider& operator=(const DimReferenceElementProvider&);
-
-		static const DimReferenceElement<d>& get_elem(ReferenceObjectID roid)
-		{
-			UG_ASSERT((size_t)roid < m_vElem.size(),
-			          "ReferenceObjectID does not exist.");
-			UG_ASSERT(m_vElem[roid] != 0, "Object does not exist.");
-
-			return *m_vElem[roid];
-		}
-
-		inline static DimReferenceElementProvider<d>& instance()
-		{
-			static DimReferenceElementProvider<d> inst;
-			return inst;
-		}
-
-		bool init()
-		{
-			static bool isInit = false;
-			if(!isInit) return RegisterStandardDimReferenceElements();
-			else return true;
-		}
-
-		static std::vector<const DimReferenceElement<d>*> m_vElem;
-
-	public:
-		static bool add(const DimReferenceElement<d>& elem)
-		{
-			const ReferenceObjectID roid = elem.reference_object_id();
-			if((int) m_vElem.size() <= roid) m_vElem.resize(roid+1, 0);
-			if(m_vElem[roid] != 0)
-			{
-				UG_LOG("Reference element for this ID already registered.\n");
-				return false;
-			}
-
-			m_vElem[roid] = &elem;
-			return true;
-		}
-
-		inline static const DimReferenceElement<d>& get(ReferenceObjectID roid)
-		{
-			return instance().get_elem(roid);
-		}
+/// Exception thrown when reference element not found
+struct UG_ERROR_ReferenceElementMissing
+	: public UGFatalError
+{
+	UG_ERROR_ReferenceElementMissing(int dim_, ReferenceObjectID roid_)
+	: UGFatalError(""), dim(dim_), roid(roid_)
+	{
+		std::stringstream ss; ss << "Refernce Element not found for "
+							<<roid<<" (dim="<<dim<<")";
+		UGFatalError::set_msg(ss.str());
+	}
+	int dim;
+	ReferenceObjectID roid;
 };
 
-template <int d>
-std::vector<const DimReferenceElement<d>* > DimReferenceElementProvider<d>::m_vElem =
-	std::vector<const DimReferenceElement<d>* >();
-
-
-class ReferenceElementProvider{
+/// Provider for Reference Elements
+class ReferenceElementProvider
+{
 	private:
-		ReferenceElementProvider(){init();};
+	///	constructor
+		ReferenceElementProvider();
+
+	//	intentionally left unimplemented
 		ReferenceElementProvider(const ReferenceElementProvider&){};
 		ReferenceElementProvider& operator=(const ReferenceElementProvider&);
 
-		static const ReferenceElement& get_elem(ReferenceObjectID roid)
-		{
-			UG_ASSERT((size_t)roid < m_vElem.size(),
-			          "ReferenceObjectID does not exist.");
-			UG_ASSERT(m_vElem[roid] != 0, "Object does not exist.");
-
-			return *m_vElem[roid];
-		}
-
+	///	provide instance of singleton
 		static ReferenceElementProvider& instance()
 		{
 			static ReferenceElementProvider inst;
 			return inst;
 		}
 
-		bool init()
+	///	adds a Reference Element
+		static bool add_elem(const ReferenceElement& elem);
+
+	///	returns a Reference Element
+		static const ReferenceElement& get_elem(ReferenceObjectID roid);
+
+	///	vector storing all ReferenceElement
+		static const ReferenceElement* m_vElem[NUM_REFERENCE_OBJECTS];
+
+	///	adds a Reference Element
+		template <int dim>
+		static bool add_dim_elem(const DimReferenceElement<dim>& elem);
+
+	///	returns a Reference Element
+		template <int dim>
+		static const DimReferenceElement<dim>& get_dim_elem(ReferenceObjectID roid)
 		{
-			static bool isInit = false;
-			if(!isInit) return RegisterStandardDimReferenceElements();
-			else return true;
+			UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
+			UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
+			static const DimReferenceElement<dim>** vDimElem = get_vector<dim>();
+			UG_ASSERT(vDimElem[roid] != NULL, "Null pointer for roid ="<<roid);
+			return *vDimElem[roid];
 		}
 
-		static std::vector<const ReferenceElement*> m_vElem;
+	///	returns vector of DimReferenceElement
+		template <int dim>
+		static const DimReferenceElement<dim>** get_vector()
+		{
+			static const DimReferenceElement<dim>* sVec[NUM_REFERENCE_OBJECTS];
+			return sVec;
+		}
 
 	public:
-		static bool add(const ReferenceElement& elem)
+	///	returns a dimension dependent Reference Element
+		template <int dim>
+		inline static const DimReferenceElement<dim>& get(ReferenceObjectID roid)
 		{
-			const ReferenceObjectID roid = elem.reference_object_id();
-			if((int) m_vElem.size() <= roid) m_vElem.resize(roid+1, 0);
-			if(m_vElem[roid] != 0)
-			{
-				UG_LOG("Reference element for this ID already registered.\n");
-				return false;
-			}
-
-			m_vElem[roid] = &elem;
-			return true;
+			return instance().get_dim_elem<dim>(roid);
 		}
 
+	///	returns a Reference Element
 		inline static const ReferenceElement& get(ReferenceObjectID roid)
 		{
 			return instance().get_elem(roid);

@@ -6,6 +6,7 @@
  */
 
 #include "reference_element.h"
+#include "common/util/provider.h"
 
 
 namespace ug{
@@ -62,104 +63,74 @@ void DimReferenceElement<d>::print_info() const
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Reference Element Factory
+// Reference Element Provider
 ///////////////////////////////////////////////////////////////////////////////
 
 // register elements at factory
-std::vector<const ReferenceElement* > ReferenceElementProvider::m_vElem =
-	std::vector<const ReferenceElement* >();
+const ReferenceElement* ReferenceElementProvider::m_vElem[NUM_REFERENCE_OBJECTS];
 
-bool RegisterStandardDimReferenceElements()
+ReferenceElementProvider::
+ReferenceElementProvider()
 {
-///////////////
-// Vertex
-///////////////
+	static bool bInit = false;
 
-static ReferenceElementWrapper<ReferenceVertex> refVertex;
+	if(!bInit)
+	{
+		bInit = true;
+		bool bRes = true;
+		bRes &= add_elem(Provider::get<ReferenceElementWrapper<ReferenceVertex> >());
+		// not adding for reference vertex
 
-static const bool registered_1 = ReferenceElementProvider::add(refVertex);
+		bRes &= add_elem(Provider::get<ReferenceElementWrapper<ReferenceTriangle> >());
+		bRes &= add_dim_elem<2>(Provider::get<DimReferenceElementWrapper<ReferenceTriangle> >());
 
-///////////////
-// Edge
-///////////////
+		bRes &= add_elem(Provider::get<ReferenceElementWrapper<ReferenceQuadrilateral> >());
+		bRes &= add_dim_elem<2>(Provider::get<DimReferenceElementWrapper<ReferenceQuadrilateral> >());
 
-static ReferenceElementWrapper<ReferenceEdge> refEdge;
-static DimReferenceElementWrapper<ReferenceEdge, 1> dimRefEdge;
+		bRes &= add_elem(Provider::get<ReferenceElementWrapper<ReferenceTetrahedron> >());
+		bRes &= add_dim_elem<3>(Provider::get<DimReferenceElementWrapper<ReferenceTetrahedron> >());
 
-static const bool registered_3 = ReferenceElementProvider::add(refEdge);
-static const bool registered_4 = DimReferenceElementProvider<1>::add(dimRefEdge);
+		bRes &= add_elem(Provider::get<ReferenceElementWrapper<ReferencePrism> >());
+		bRes &= add_dim_elem<3>(Provider::get<DimReferenceElementWrapper<ReferencePrism> >());
 
-///////////////
-// Triangle
-///////////////
-static ReferenceElementWrapper<ReferenceTriangle> refTriangle;
-static DimReferenceElementWrapper<ReferenceTriangle, 2> dimRefTriangle;
+		bRes &= add_elem(Provider::get<ReferenceElementWrapper<ReferencePyramid > >());
+		bRes &= add_dim_elem<3>(Provider::get<DimReferenceElementWrapper<ReferencePyramid> >());
 
-static const bool registered_5 = ReferenceElementProvider::add(refTriangle);
-static const bool registered_6 = DimReferenceElementProvider<2>::add(dimRefTriangle);
+		bRes &= add_elem(Provider::get<ReferenceElementWrapper<ReferenceHexahedron> >());
+		bRes &= add_dim_elem<3>(Provider::get<DimReferenceElementWrapper<ReferenceHexahedron> >());
 
-///////////////
-// Quadrilateral
-///////////////
-static ReferenceElementWrapper<ReferenceQuadrilateral> refQuadrilateral;
-static DimReferenceElementWrapper<ReferenceQuadrilateral, 2> dimRefQuadrilateral;
-
-static const bool registered_7 = ReferenceElementProvider::add(refQuadrilateral);
-static const bool registered_8 = DimReferenceElementProvider<2>::add(dimRefQuadrilateral);
-
-///////////////
-// Tetrahedron
-///////////////
-static ReferenceElementWrapper<ReferenceTetrahedron> refTetrahedron;
-static DimReferenceElementWrapper<ReferenceTetrahedron, 3> dimRefTetrahedron;
-
-static const bool registered_9 = ReferenceElementProvider::add(refTetrahedron);
-static const bool registered_10 = DimReferenceElementProvider<3>::add(dimRefTetrahedron);
-
-///////////////
-// Prism
-///////////////
-static ReferenceElementWrapper<ReferencePrism> refPrism;
-static DimReferenceElementWrapper<ReferencePrism, 3> dimRefPrism;
-
-static const bool registered_15 = ReferenceElementProvider::add(refPrism);
-static const bool registered_16 = DimReferenceElementProvider<3>::add(dimRefPrism);
-
-///////////////
-// Pyramid
-///////////////
-static ReferenceElementWrapper<ReferencePyramid> refPyramid;
-static DimReferenceElementWrapper<ReferencePyramid, 3> dimRefPyramid;
-
-static const bool registered_11 = ReferenceElementProvider::add(refPyramid);
-static const bool registered_12 = DimReferenceElementProvider<3>::add(dimRefPyramid);
-
-///////////////
-// Hexahedron
-///////////////
-static ReferenceElementWrapper<ReferenceHexahedron> refHexahedron;
-static DimReferenceElementWrapper<ReferenceHexahedron, 3> dimRefHexahedron;
-
-static const bool registered_13 = ReferenceElementProvider::add(refHexahedron);
-static const bool registered_14 = DimReferenceElementProvider<3>::add(dimRefHexahedron);
-
-
-return (registered_1 &&
-		registered_3 &&
-		registered_4 &&
-		registered_5 &&
-		registered_6 &&
-		registered_7 &&
-		registered_8 &&
-		registered_9 &&
-		registered_10 &&
-		registered_11 &&
-		registered_12 &&
-		registered_13 &&
-		registered_14 &&
-		registered_15 &&
-		registered_16);
+		if(!bRes) throw(UGFatalError("Error while registering Reference Elements"));
+	}
 }
+
+bool ReferenceElementProvider::add_elem(const ReferenceElement& elem)
+{
+	const ReferenceObjectID roid = elem.reference_object_id();
+	UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
+	UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
+	m_vElem[roid] = &elem;
+	return true;
+}
+
+const ReferenceElement& ReferenceElementProvider::get_elem(ReferenceObjectID roid)
+{
+	UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
+	UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
+	UG_ASSERT(m_vElem[roid] != NULL, "Null pointer for roid ="<<roid);
+	return *m_vElem[roid];
+}
+
+template <int dim>
+bool ReferenceElementProvider::add_dim_elem(const DimReferenceElement<dim>& elem)
+{
+	const ReferenceObjectID roid = elem.reference_object_id();
+	UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
+	UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
+	static const DimReferenceElement<dim>** vDimElem = get_vector<dim>();
+	vDimElem[roid] = &elem;
+	return true;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Explicit instantiations
