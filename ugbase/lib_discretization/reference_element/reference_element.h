@@ -103,6 +103,11 @@ class ReferenceElement
 		virtual void print_info() const;
 };
 
+//\todo: Instead of having a virtual base class for the reference elements it
+//		 would be better to have one base with fixed member arrays (of maximal
+//		 needed size) and implementations only fill these arrays in the
+//		 constructor. Thus, access could be inlined on the price of only a
+//		 little more memory consumption.
 /// dimension dependent base class for reference elements
 /**
  * This is the base class for reference elements with their dimension. It
