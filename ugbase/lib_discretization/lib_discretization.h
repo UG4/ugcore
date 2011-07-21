@@ -85,7 +85,6 @@
 #include "spatial_discretization/disc_util/finite_volume_geometry.h"
 #include "spatial_discretization/disc_util/finite_volume_output.h"
 #include "spatial_discretization/disc_util/finite_volume_util.h"
-#include "spatial_discretization/disc_util/geometry_provider.h"
 #include "spatial_discretization/disc_util/hanging_finite_volume_geometry.h"
 
 #include "spatial_discretization/elem_disc/elem_disc_interface.h"
