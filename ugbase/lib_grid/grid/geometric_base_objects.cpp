@@ -89,8 +89,8 @@ VolumeDescriptor& VolumeDescriptor::operator = (const VolumeVertices& vv)
 ///	sums the squared hash-values of associated vertices.
 static inline unsigned long HashKey(const EdgeVertices* key)
 {
-	uint32 a = key->vertex(0)->get_hash_value();
-	uint32 b = key->vertex(1)->get_hash_value();
+	unsigned long a = key->vertex(0)->get_hash_value();
+	unsigned long b = key->vertex(1)->get_hash_value();
 
 	//return (unsigned long)(a + b);
 	return (unsigned long)(a * a + b * b);
@@ -101,12 +101,11 @@ static inline unsigned long HashKey(const EdgeVertices* key)
 ///	sums the squared hash-values of associated vertices.
 static inline unsigned long HashKey(const FaceVertices* key)
 {
-	unsigned long retVal = key->vertex(0)->get_hash_value();
-	retVal *= retVal;
-	uint numVrts = key->num_vertices();
-	for(uint i = 1; i < numVrts; ++i)
+	unsigned long retVal = 0;
+	size_t numVrts = key->num_vertices();
+	for(size_t i = 0; i < numVrts; ++i)
 	{
-		uint32 a = key->vertex(i)->get_hash_value();
+		unsigned long a = key->vertex(i)->get_hash_value();
 		retVal += (a*a);
 	}
 	return retVal;
@@ -115,12 +114,11 @@ static inline unsigned long HashKey(const FaceVertices* key)
 ///	sums the squared hash-values of associated vertices.
 static inline unsigned long HashKey(const VolumeVertices* key)
 {
-	unsigned long retVal = key->vertex(0)->get_hash_value();
-	retVal *= retVal;
-	uint numVrts = key->num_vertices();
-	for(uint i = 1; i < numVrts; ++i)
+	unsigned long retVal = 0;
+	size_t numVrts = key->num_vertices();
+	for(size_t i = 0; i < numVrts; ++i)
 	{
-		uint32 a = key->vertex(i)->get_hash_value();
+		unsigned long a = key->vertex(i)->get_hash_value();
 		retVal += (a*a);
 	}
 
