@@ -136,8 +136,9 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 			VecSubtract(a30, m_vCo[3], m_vCo[0]);
 		}
 
-		void local_to_global(	const MathVector<dim>& locPos,
-								MathVector<worldDim>& globPos) const
+	///	map local coordinate to global coordinate
+		void local_to_global(MathVector<worldDim>& globPos,
+							 const MathVector<dim> locPos) const
 		{
 			globPos = m_vCo[0];
 			VecScaleAppend(globPos, locPos[0], a10);
@@ -145,8 +146,9 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 			VecScaleAppend(globPos, locPos[2], a30);
 		}
 
-		void jacobian_transposed(	const MathVector<dim>& locPos,
-									MathMatrix<dim, worldDim>& JT) const
+	///	returns transposed of jacobian
+		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
+								 const MathVector<dim> locPos) const
 		{
 			for(int i = 0; i < worldDim; ++i)
 			{
@@ -156,23 +158,27 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 			}
 		}
 
-		void jacobian_transposed_inverse(	const MathVector<dim>& locPos,
-											MathMatrix<worldDim, dim>& JTInv) const
+	///	returns transposed of the inverse of the jacobian
+		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+										 const MathVector<dim> locPos) const
 		{
+		//	temporary matrix for jacobian transposed
 			MathMatrix<dim, worldDim> JT;
 
-			jacobian_transposed(locPos, JT);
+		// 	get jacobian transposed
+			jacobian_transposed(JT, locPos);
 
 		// 	compute right inverse
 			RightInverse(JTInv, JT);
 		}
 
-		number jacobian_det(const MathVector<dim>& locPos) const
+	///	returns the determinate of the jacobian
+		number jacobian_det(const MathVector<dim> locPos) const
 		{
 			MathMatrix<dim, worldDim> JT;
 
 		//	compute jacobian transposed
-			jacobian_transposed(locPos, JT);
+			jacobian_transposed(JT, locPos);
 
 		//	only in quad case defined
 			if((dim==3) && (worldDim==3))

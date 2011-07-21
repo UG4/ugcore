@@ -87,7 +87,7 @@ dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) cons
 		bExact &= lsfs.position(sh, locPos);
 
 	//	map to global position
-		map.local_to_global(locPos, vPos[sh]);
+		map.local_to_global(vPos[sh], locPos);
 	}
 
 //	return if positions are given exactly
@@ -224,7 +224,7 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 
 	//	map to global position
 		MathVector<dim> globPos;
-		map.local_to_global(locPos, globPos);
+		map.local_to_global(globPos, locPos);
 
 	//	add
 		vPos.push_back(globPos);

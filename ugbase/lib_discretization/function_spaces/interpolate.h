@@ -96,7 +96,7 @@ bool InterpolateFunctionOnElem( boost::function<void (
 			position_type glob_pos;
 
 		//  map local dof position to global position
-			mapping.local_to_global(loc_pos[i], glob_pos);
+			mapping.local_to_global(glob_pos, loc_pos[i]);
 
 		//	value at position
 			number val;

@@ -55,16 +55,16 @@ class ReferenceMapping
 		void update(const MathVector<worldDim>* vCorner);
 
 	///	map local coordinate to global coordinate
-		void local_to_global(	const MathVector<dim> locPos,
-								MathVector<worldDim>& globPos) const;
+		void local_to_global(MathVector<worldDim>& globPos,
+		                     const MathVector<dim> locPos) const;
 
 	///	returns transposed of jacobian
-		void jacobian_transposed(	const MathVector<dim> locPos,
-									MathMatrix<dim, worldDim>& JT) const;
+		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
+		                         const MathVector<dim> locPos) const;
 
 	///	returns transposed of the inverse of the jacobian
-		void jacobian_transposed_inverse(	const MathVector<dim> locPos,
-											MathMatrix<worldDim, dim>& JTInv) const;
+		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+		                                 const MathVector<dim> locPos) const;
 
 	///	returns the determinate of the jacobian
 		number jacobian_det(const MathVector<dim> locPos) const;

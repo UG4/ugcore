@@ -86,7 +86,7 @@ bool ComputeGradient(TFunction& u,
 			mapping.update(&vCorner[0]);
 
 		//	compute jacobian
-			mapping.jacobian_transposed_inverse(localIP, JTInv);
+			mapping.jacobian_transposed_inverse(JTInv, localIP);
 
 		//	compute size (volume) of element
 			number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);

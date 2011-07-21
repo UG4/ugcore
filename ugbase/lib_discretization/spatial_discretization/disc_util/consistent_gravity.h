@@ -55,12 +55,12 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 
    	/* compute the local gravity at local corner (0,0) */
 		LocalPoint.x = 0.0; LocalPoint.y = 0.0;
-		QuadMapping.jacobian_transposed(LocalPoint, JT);
+		QuadMapping.jacobian_transposed(JT, LocalPoint);
 		MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 	/* compute the local gravity at local corner (1,1) */
 		LocalPoint.x = 1.0; LocalPoint.y = 1.0;
-   		QuadMapping.jacobian_transposed(LocalPoint, JT);
+   		QuadMapping.jacobian_transposed(JT, LocalPoint);
    		MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
 
 		vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
@@ -79,7 +79,7 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 
 		/* compute the local gravity at local corner (0,0) */
 		LocalPoint.x = 0.0; LocalPoint.y = 0.0;
-		TriangleMapping.jacobian_transposed(LocalPoint, JT);
+		TriangleMapping.jacobian_transposed(JT, LocalPoint);
 		MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 		vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
@@ -132,22 +132,22 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
 			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			HexMapping.jacobian_transposed(LocalPoint, JT);
+			HexMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,1,0) */
 			LocalPoint.x = 1.0; LocalPoint.y = 1.0; LocalPoint.z = 0.0;
-			HexMapping.jacobian_transposed(LocalPoint, JT);
+			HexMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,0,1) */
 			LocalPoint.x = 1.0; LocalPoint.y = 0.0; LocalPoint.z = 1.0;
-			HexMapping.jacobian_transposed(LocalPoint, JT);
+			HexMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt101, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (0,1,1) */
 			LocalPoint.x = 0.0; LocalPoint.y = 1.0; LocalPoint.z = 1.0;
-			HexMapping.jacobian_transposed(LocalPoint, JT);
+			HexMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt011, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
@@ -180,17 +180,17 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
 			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			PrismMapping.jacobian_transposed(LocalPoint, JT);
+			PrismMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,0,1) */
 			LocalPoint.x = 1.0; LocalPoint.y = 0.0; LocalPoint.z = 1.0;
-			PrismMapping.jacobian_transposed(LocalPoint, JT);
+			PrismMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt101, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (0,1,1) */
 			LocalPoint.x = 0.0; LocalPoint.y = 1.0; LocalPoint.z = 1.0;
-			PrismMapping.jacobian_transposed(LocalPoint, JT);
+			PrismMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt011, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
@@ -216,12 +216,12 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
  			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			TetMapping.jacobian_transposed(LocalPoint, JT);
+			TetMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,1,0) */
 			LocalPoint.x = 1.0; LocalPoint.y = 1.0; LocalPoint.z = 0.0;
-			TetMapping.jacobian_transposed(LocalPoint, JT);
+			TetMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0; vConsGravity[4][_X_] = 0.0;
@@ -244,7 +244,7 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
 			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x = 0.0; LocalPoint.y = 0.0; LocalPoint.z = 0.0;
-			TetMapping.jacobian_transposed(LocalPoint, JT);
+			TetMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;

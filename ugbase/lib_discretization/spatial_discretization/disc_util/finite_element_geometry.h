@@ -115,14 +115,14 @@ class FEGeometry
 
 		//	compute global integration points
 			for(size_t ip = 0; ip < nip; ++ip)
-				m_mapping.local_to_global(ip_local(ip), m_vIPGlobal[ip]);
+				m_mapping.local_to_global(m_vIPGlobal[ip], ip_local(ip));
 
 		//	evaluate global data
 		//	if reference mapping is linear,
 			if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
 			{
 			// 	compute transformation inverse and determinate at first ip
-				m_mapping.jacobian_transposed_inverse(ip_local(0), m_vJTInv[0]);
+				m_mapping.jacobian_transposed_inverse(m_vJTInv[0], ip_local(0));
 				m_vDetJ[0] = m_mapping.jacobian_det(ip_local(0));
 
 			//	copy values
@@ -137,7 +137,7 @@ class FEGeometry
 				for(size_t ip = 0; ip < nip; ++ip)
 				{
 				// 	compute transformation inverse and determinate at ip
-					m_mapping.jacobian_transposed_inverse(ip_local(ip), m_vJTInv[ip]);
+					m_mapping.jacobian_transposed_inverse(m_vJTInv[ip], ip_local(ip));
 
 				//	compute determinant
 					m_vDetJ[ip] = m_mapping.jacobian_det(ip_local(ip));

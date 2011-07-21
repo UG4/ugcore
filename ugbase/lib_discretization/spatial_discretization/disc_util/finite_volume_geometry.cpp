@@ -240,7 +240,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 //	if mapping is linear, compute jacobian only once and copy
 	if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
 	{
-		m_rMapping.jacobian_transposed_inverse(m_vSCVF[0].localIP, m_vSCVF[0].JtInv);
+		m_rMapping.jacobian_transposed_inverse(m_vSCVF[0].JtInv, m_vSCVF[0].localIP);
 		m_vSCVF[0].detj = m_rMapping.jacobian_det(m_vSCVF[0].localIP);
 		for(size_t i = 1; i < num_scvf(); ++i)
 		{
@@ -258,7 +258,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 	{
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
-			m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv);
+			m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
 			m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
 
 			for(size_t sh = 0 ; sh < num_scv(); ++sh)
@@ -397,7 +397,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
 				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);
 
-				m_rMapping.jacobian_transposed_inverse(bf.localIP, bf.JtInv);
+				m_rMapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
 				bf.detj = m_rMapping.jacobian_det(bf.localIP);
 
 				for(size_t sh = 0 ; sh < num_scv(); ++sh)

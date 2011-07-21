@@ -130,82 +130,98 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 			m_vCo = vCorner;
 		}
 
-		void local_to_global(	const MathVector<dim>& local,
-								MathVector<worldDim>& global) const
+	///	map local coordinate to global coordinate
+		void local_to_global(MathVector<worldDim>& globPos,
+							 const MathVector<dim> locPos) const
 		{
 			number a,b,a0,a1,a2,a3;
 			const MathVector<worldDim>* x = m_vCo;
-			a = 1.0 - (local)[0];
-			b = 1.0 - (local)[1];
-			if ((local)[0] > (local)[1]) {
-			a0 = a * b - (local)[2] * b;
-			a1 = (local)[0] * b - (local)[2]*(local)[1];
-			a2 = (local)[0] * (local)[1] + (local)[2]*(local)[1];
-			a3 = a * (local)[1] - (local)[2] * (local)[1];
-			(global)[0] =
-			        a0*(x)[0][0]+a1*(x)[1][0]+a2*(x)[2][0]+a3*(x)[3][0]+(local)[2]*(x)[4][0];
-			(global)[1] =
-			        a0*(x)[0][1]+a1*(x)[1][1]+a2*(x)[2][1]+a3*(x)[3][1]+(local)[2]*(x)[4][1];
-			(global)[2] =
-			        a0*(x)[0][2]+a1*(x)[1][2]+a2*(x)[2][2]+a3*(x)[3][2]+(local)[2]*(x)[4][2];}
-			else {
-			a0 = a * b - (local)[2] * a;
-			a1 = (local)[0] * b - (local)[2]*(local)[0];
-			a2 = (local)[0] * (local)[1] + (local)[2]*(local)[0];
-			a3 = a * (local)[1] - (local)[2] * (local)[0];
-			(global)[0] =
-			        a0*(x)[0][0]+a1*(x)[1][0]+a2*(x)[2][0]+a3*(x)[3][0]+(local)[2]*(x)[4][0];
-			(global)[1] =
-			        a0*(x)[0][1]+a1*(x)[1][1]+a2*(x)[2][1]+a3*(x)[3][1]+(local)[2]*(x)[4][1];
-			(global)[2] =
-			        a0*(x)[0][2]+a1*(x)[1][2]+a2*(x)[2][2]+a3*(x)[3][2]+(local)[2]*(x)[4][2];}
+			a = 1.0 - locPos[0];
+			b = 1.0 - locPos[1];
+			if (locPos[0] > locPos[1])
+			{
+				a0 = a * b - locPos[2] * b;
+				a1 = locPos[0] * b - locPos[2]*locPos[1];
+				a2 = locPos[0] * locPos[1] + locPos[2]*locPos[1];
+				a3 = a * locPos[1] - locPos[2] * locPos[1];
+				globPos[0] =
+						a0*x[0][0]+a1*x[1][0]+a2*x[2][0]+a3*x[3][0]+locPos[2]*x[4][0];
+				globPos[1] =
+						a0*x[0][1]+a1*x[1][1]+a2*x[2][1]+a3*x[3][1]+locPos[2]*x[4][1];
+				globPos[2] =
+						a0*x[0][2]+a1*x[1][2]+a2*x[2][2]+a3*x[3][2]+locPos[2]*x[4][2];
+			}
+			else
+			{
+				a0 = a * b - locPos[2] * a;
+				a1 = locPos[0] * b - locPos[2]*locPos[0];
+				a2 = locPos[0] * locPos[1] + locPos[2]*locPos[0];
+				a3 = a * locPos[1] - locPos[2] * locPos[0];
+				globPos[0] =
+						a0*x[0][0]+a1*x[1][0]+a2*x[2][0]+a3*x[3][0]+locPos[2]*x[4][0];
+				globPos[1] =
+						a0*x[0][1]+a1*x[1][1]+a2*x[2][1]+a3*x[3][1]+locPos[2]*x[4][1];
+				globPos[2] =
+						a0*x[0][2]+a1*x[1][2]+a2*x[2][2]+a3*x[3][2]+locPos[2]*x[4][2];
+			}
 		}
 
-		void jacobian_transposed(	const MathVector<dim>& local,
-									MathMatrix<dim, worldDim>& JT) const
+	///	returns transposed of jacobian
+		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
+								 const MathVector<dim> locPos) const
 	   {
 			number a,b,c;
 			const MathVector<worldDim>* x = m_vCo;
-			a = (x)[0][0]-(x)[1][0]+(x)[2][0]-(x)[3][0];
-			b = (x)[0][1]-(x)[1][1]+(x)[2][1]-(x)[3][1];
-			c = (x)[0][2]-(x)[1][2]+(x)[2][2]-(x)[3][2];
-			if ((local)[0] > (local)[1]) {
-			JT(0,0) = (x)[1][0]-(x)[0][0]+(local)[1]*a;
-			JT(0,1) = (x)[1][1]-(x)[0][1]+(local)[1]*b;
-			JT(0,2) = (x)[1][2]-(x)[0][2]+(local)[1]*c;
-			JT(1,0) = (x)[3][0]-(x)[0][0]+((local)[0]+(local)[2])*a;
-			JT(1,1) = (x)[3][1]-(x)[0][1]+((local)[0]+(local)[2])*b;
-			JT(1,2) = (x)[3][2]-(x)[0][2]+((local)[0]+(local)[2])*c;
-			JT(2,0) = (x)[4][0]-(x)[0][0]+(local)[1]*a;
-			JT(2,1) = (x)[4][1]-(x)[0][1]+(local)[1]*b;
-			JT(2,2) = (x)[4][2]-(x)[0][2]+(local)[1]*c;}
-			else {
-			JT(0,0) = (x)[1][0]-(x)[0][0]+((local)[1]+(local)[2])*a;
-			JT(0,1) = (x)[1][1]-(x)[0][1]+((local)[1]+(local)[2])*b;
-			JT(0,2) = (x)[1][2]-(x)[0][2]+((local)[1]+(local)[2])*c;
-			JT(1,0) = (x)[3][0]-(x)[0][0]+(local)[0]*a;
-			JT(1,1) = (x)[3][1]-(x)[0][1]+(local)[0]*b;
-			JT(1,2) = (x)[3][2]-(x)[0][2]+(local)[0]*c;
-			JT(2,0) = (x)[4][0]-(x)[0][0]+(local)[0]*a;
-			JT(2,1) = (x)[4][1]-(x)[0][1]+(local)[0]*b;
-			JT(2,2) = (x)[4][2]-(x)[0][2]+(local)[0]*c;}
+
+			a = x[0][0]-x[1][0]+x[2][0]-x[3][0];
+			b = x[0][1]-x[1][1]+x[2][1]-x[3][1];
+			c = x[0][2]-x[1][2]+x[2][2]-x[3][2];
+
+			if (locPos[0] > locPos[1])
+			{
+				JT(0,0) = x[1][0]-x[0][0]+locPos[1]*a;
+				JT(0,1) = x[1][1]-x[0][1]+locPos[1]*b;
+				JT(0,2) = x[1][2]-x[0][2]+locPos[1]*c;
+				JT(1,0) = x[3][0]-x[0][0]+(locPos[0]+locPos[2])*a;
+				JT(1,1) = x[3][1]-x[0][1]+(locPos[0]+locPos[2])*b;
+				JT(1,2) = x[3][2]-x[0][2]+(locPos[0]+locPos[2])*c;
+				JT(2,0) = x[4][0]-x[0][0]+locPos[1]*a;
+				JT(2,1) = x[4][1]-x[0][1]+locPos[1]*b;
+				JT(2,2) = x[4][2]-x[0][2]+locPos[1]*c;
+			}
+			else
+			{
+				JT(0,0) = x[1][0]-x[0][0]+(locPos[1]+locPos[2])*a;
+				JT(0,1) = x[1][1]-x[0][1]+(locPos[1]+locPos[2])*b;
+				JT(0,2) = x[1][2]-x[0][2]+(locPos[1]+locPos[2])*c;
+				JT(1,0) = x[3][0]-x[0][0]+locPos[0]*a;
+				JT(1,1) = x[3][1]-x[0][1]+locPos[0]*b;
+				JT(1,2) = x[3][2]-x[0][2]+locPos[0]*c;
+				JT(2,0) = x[4][0]-x[0][0]+locPos[0]*a;
+				JT(2,1) = x[4][1]-x[0][1]+locPos[0]*b;
+				JT(2,2) = x[4][2]-x[0][2]+locPos[0]*c;
+			}
 		}
 
-		void jacobian_transposed_inverse(	const MathVector<dim>& locPos,
-											MathMatrix<worldDim, dim>& JTInv) const
+	///	returns transposed of the inverse of the jacobian
+		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+										 const MathVector<dim> locPos) const
 		{
+		//	temporary matrix for jacobian transposed
 			MathMatrix<dim, worldDim> JT;
 
-			jacobian_transposed(locPos, JT);
+		// 	get jacobian transposed
+			jacobian_transposed(JT, locPos);
 
 		// 	compute right inverse
 			RightInverse(JTInv, JT);
 		}
 
-		number jacobian_det(const MathVector<dim>& locPos) const
+	///	returns the determinate of the jacobian
+		number jacobian_det(const MathVector<dim> locPos) const
 		{
 			MathMatrix<dim, worldDim> JT;
-			jacobian_transposed(locPos, JT);
+			jacobian_transposed(JT, locPos);
 			if((dim==3) && (worldDim==3))
 			{
 				const number det

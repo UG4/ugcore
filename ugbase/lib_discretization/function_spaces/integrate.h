@@ -106,7 +106,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 			position_type globIP;
 
 		//  map local dof position to global position
-			mapping.local_to_global(locIP, globIP);
+			mapping.local_to_global(globIP, locIP);
 
 		//	compute exact solution at integration point
 			number exactSolIP;
