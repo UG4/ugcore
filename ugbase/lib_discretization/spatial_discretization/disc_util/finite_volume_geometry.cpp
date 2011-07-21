@@ -16,45 +16,45 @@ FV1Geometry<TElem, TWorldDim>::
 FV1Geometry()
 	: m_pElem(NULL), m_rRefElem(ReferenceElementProvider::get<ref_elem_type>())
 {
-	// set corners of element as local centers of nodes
+// 	set corners of element as local centers of nodes
 	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
 		m_locMid[0][i] = m_rRefElem.corner(i);
 
-	// compute local midpoints for all geometric objects with  0 < d <= dim
+// 	compute local midpoints for all geometric objects with  0 < d <= dim
 	for(int d = 1; d <= dim; ++d)
 	{
-		// loop geometric objects of dimension d
+	// 	loop geometric objects of dimension d
 		for(size_t i = 0; i < m_rRefElem.num(d); ++i)
 		{
-			// set first node
+		// 	set first node
 			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
 			m_locMid[d][i] = m_locMid[0][coID0];
 
-			// add corner coordinates of the corners of the geometric object
+		// 	add corner coordinates of the corners of the geometric object
 			for(size_t j = 1; j < m_rRefElem.num(d, i, 0); ++j)
 			{
 				const size_t coID = m_rRefElem.id(d, i, 0, j);
 				m_locMid[d][i] += m_locMid[0][coID];
 			}
 
-			// scale for correct averaging
+		// 	scale for correct averaging
 			m_locMid[d][i] *= 1./(m_rRefElem.num(d, i, 0));
 		}
 	}
 
-	// set up local informations for SubControlVolumeFaces (scvf)
-	// each scvf is associated to one edge of the element
+// 	set up local informations for SubControlVolumeFaces (scvf)
+// 	each scvf is associated to one edge of the element
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 		m_vSCVF[i].m_from = m_rRefElem.id(1, i, 0, 0);
 		m_vSCVF[i].m_to = m_rRefElem.id(1, i, 0, 1);
 
-		// set mid ids
+	//	set mid ids
 		{
-			// start at edge midpoint
+		// 	start at edge midpoint
 			m_vSCVF[i].midId[0] = MidID(1,i);
 
-			// loop up dimension
+		// 	loop up dimension
 			if(dim == 2)
 			{
 				m_vSCVF[i].midId[1] = MidID(dim, 0); // center of element
@@ -67,18 +67,18 @@ FV1Geometry()
 			}
 		}
 
-		// copy local corners of scvf
+	// 	copy local corners of scvf
 		copy_local_corners(m_vSCVF[i]);
 
-		// integration point
+	// 	integration point
 		if(dim != 1)
 			AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::numCorners);
 		else
 			m_vSCVF[i].localIP = m_locMid[1][0];
 	}
 
-	// set up local informations for SubControlVolumes (scv)
-	// each scv is associated to one corner of the element
+// 	set up local informations for SubControlVolumes (scv)
+// 	each scv is associated to one corner of the element
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 		m_vSCV[i].nodeId = i;
@@ -111,11 +111,11 @@ FV1Geometry()
 		{
 			// this scv has 10 corners
 			m_vSCV[i].m_numCorners = 10;
-			UG_ASSERT(0, "Last SCV for Pyramid must be implemented");
+			throw(UGFatalError("Last SCV for Pyramid must be implemented"));
 		}
-		else {UG_ASSERT(0, "Dimension higher that 3 not implemented.");}
+		else {throw(UGFatalError("Dimension higher that 3 not implemented."));}
 
-		// copy local corners of scv
+	// 	copy local corners of scv
 		copy_local_corners(m_vSCV[i]);
 	}
 
@@ -209,7 +209,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 			if(ref_elem_type::dim == 1)
 				NormalOnSCVF<ref_elem_type, worldDim>(m_vSCVF[i].Normal, vCornerCoords);
 			else
-				throw(UGError("Not Implemented"));
+				throw(UGFatalError("Not Implemented"));
 		}
 	}
 
@@ -227,6 +227,7 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 		else
 		{
 			// special case for pyramid, last scv
+			throw(UGFatalError("Pyramid Not Implemented"));
 		}
 	}
 
@@ -413,7 +414,8 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCorn
 }
 
 
-
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TElem, int TWorldDim>
 FV1ManifoldBoundary<TElem, TWorldDim>::

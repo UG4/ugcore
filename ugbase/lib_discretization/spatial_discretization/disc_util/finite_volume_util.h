@@ -41,9 +41,9 @@ void AveragePositions(TPosition& vOut, const TPosition* vCornerCoords, size_t nu
 
 
 
-//////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Finite Volume Traits
-//////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 /// Traits for Finite Volumes (dummy implementation)
 template <typename TRefElem, int TWorldDim> struct fv1_traits
@@ -51,7 +51,7 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 	const static size_t NumCornersOfSCVF;
 	const static size_t MaxNumCornersOfSCV;
 
-	static void NormalOnSCVF(MathVector<1>& outNormal, const MathVector<1>* vCornerCoords);
+	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWorldDim>* vCornerCoords);
 
 	typedef void scv_type;
 };
@@ -60,6 +60,7 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 // 1D Reference Element
 /////////////////////////
 
+// \todo: NumCornersOfSCVF = 2 is to much, handle after checking
 template <> struct fv1_traits<ReferenceEdge, 1>
 {
 	const static size_t NumCornersOfSCVF = 2;
@@ -192,9 +193,9 @@ template <> struct fv1_traits<ReferenceHexahedron, 3>
 };
 
 
-//////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Hanging Finite Volume Traits
-//////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 ///	Traits for hanging finite volume (dummy implementation)
 template <typename TRefElem, int TWorldDim> struct hfv1_traits
@@ -202,7 +203,7 @@ template <typename TRefElem, int TWorldDim> struct hfv1_traits
 	const static size_t NumCornersOfSCVF;
 	const static size_t MaxNumCornersOfSCV;
 
-	static void NormalOnSCVF(MathVector<1>& outNormal, const MathVector<1>* vCornerCoords);
+	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWorldDim>* vCornerCoords);
 
 	typedef void scv_type;
 };
@@ -341,9 +342,9 @@ template <> struct hfv1_traits<ReferenceHexahedron, 3>
 };
 
 
-///////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Functions
-///////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TRefElem, int TWorldDim>
 void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWorldDim>* vCornerCoords)
@@ -356,6 +357,101 @@ void HangingNormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWor
 {
 	hfv1_traits<TRefElem, TWorldDim>::NormalOnSCVF(outNormal, vCornerCoords);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Dimension dependent traits
+////////////////////////////////////////////////////////////////////////////////
+
+template <int TDim, int TWorldDim> struct fv1_dim_traits
+{
+	const static size_t NumCornersOfSCVF;
+	const static size_t MaxNumCornersOfSCV;
+
+	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWorldDim>* vCornerCoords);
+
+	typedef void scv_type;
+};
+
+/////////////////////////
+// 1D
+/////////////////////////
+
+template <> struct fv1_dim_traits<1, 1>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 2;
+
+	static void NormalOnSCVF(MathVector<1>& outNormal, const MathVector<1>* vCornerCoords)
+		{ElementNormal<ReferenceVertex, 1>(outNormal, vCornerCoords);}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+template <> struct fv1_dim_traits<1, 2>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 2;
+
+	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
+	{
+		VecSubtract(outNormal, vCornerCoords[1], vCornerCoords[0]);
+	}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+template <> struct fv1_dim_traits<1, 3>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 2;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{throw(UGFatalError("Not implemented"));}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+/////////////////////////
+// 2D
+/////////////////////////
+
+template <> struct fv1_dim_traits<2, 2>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 4;
+
+	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
+		{ElementNormal<ReferenceEdge, 2>(outNormal, vCornerCoords);}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+template <> struct fv1_dim_traits<2, 3>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 4;
+
+	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
+		{throw(UGFatalError("Not implemented"));}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+/////////////////////////
+// 3D
+/////////////////////////
+
+template <> struct fv1_dim_traits<3, 3>
+{
+	const static size_t NumCornersOfSCVF = 4;
+	const static size_t MaxNumCornersOfSCV = 10;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vCornerCoords);}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
 
 } // end namespace ug
 
