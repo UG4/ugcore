@@ -132,8 +132,16 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v
 
 
 
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //	CollectEdgesSorted
+///////////////////////////////////////////////////////////////////////////////
+
+///	Collects all edges of a vertex, thus, none.
+void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* v, bool clearContainer)
+{
+	vEdgesOut.clear();
+}
+
 ///	Collects all edges. (Returns the edge itself)
 void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)
 {
@@ -176,8 +184,10 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 
 }
 
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //	CollectEdges
+///////////////////////////////////////////////////////////////////////////////
+
 ///	Collects all edges which exist in the given grid and which are part of the given vertex.
 void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
 {
@@ -264,8 +274,16 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 
 }
 
-////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 //	CollectFacesSorted
+////////////////////////////////////////////////////////////////////////////////
+
+///	Collects all Faces of a Vertex, thus, none.
+void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, VertexBase* v, bool clearContainer)
+{
+	vFacesOut.clear();
+}
+
 ///	Collects all faces and returns them in the order prescribed by the reference element.
 void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer)
 {

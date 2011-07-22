@@ -270,6 +270,48 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 	throw(UGFatalError("GeomObject type not known."));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
+                            				GeometricObject* obj, bool clearContainer)
+{
+	switch(obj->base_object_type_id())
+	{
+		case VERTEX:CollectVertices(vVertexOut, grid, static_cast<VertexBase*>(obj), clearContainer); return;
+		case EDGE:	CollectVertices(vVertexOut, grid, static_cast<EdgeBase*>(obj), clearContainer); return;
+		case FACE:	CollectVertices(vVertexOut, grid, static_cast<Face*>(obj), clearContainer); return;
+		case VOLUME:CollectVertices(vVertexOut, grid, static_cast<Volume*>(obj), clearContainer); return;
+	}
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
+                            				GeometricObject* obj, bool clearContainer)
+{
+	switch(obj->base_object_type_id())
+	{
+		case VERTEX:CollectEdgesSorted(vEdgesOut, grid, static_cast<VertexBase*>(obj), clearContainer); return;
+		case EDGE:	CollectEdgesSorted(vEdgesOut, grid, static_cast<EdgeBase*>(obj), clearContainer); return;
+		case FACE:	CollectEdgesSorted(vEdgesOut, grid, static_cast<Face*>(obj), clearContainer); return;
+		case VOLUME:CollectEdgesSorted(vEdgesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
+	}
+	throw(UGFatalError("GeomObject type not known."));
+}
+
+inline void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
+                            				GeometricObject* obj, bool clearContainer)
+{
+	switch(obj->base_object_type_id())
+	{
+		case VERTEX:CollectFacesSorted(vFacesOut, grid, static_cast<VertexBase*>(obj), clearContainer); return;
+		case EDGE:	CollectFacesSorted(vFacesOut, grid, static_cast<EdgeBase*>(obj), clearContainer); return;
+		case FACE:	CollectFacesSorted(vFacesOut, grid, static_cast<Face*>(obj), clearContainer); return;
+		case VOLUME:CollectFacesSorted(vFacesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
+	}
+	throw(UGFatalError("GeomObject type not known."));
+}
+
 }//	end of namespace libGrid
 
 #endif
