@@ -11,6 +11,8 @@
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
 #include "lib_discretization/function_spaces/approximation_space.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
+#include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 
 #include <map>
