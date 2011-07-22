@@ -370,6 +370,9 @@ printf = function(s,...)
 	print(s:format(...))
 end -- function
 
+formatf = function(s, ...)
+	return s:format(...)
+end
 
 function fsize (file)
 	local current = file:seek()      -- get current position
@@ -426,3 +429,43 @@ print("tSolve [s]: "..tSolve)
 print("tGrid [s]: "..tGrid)
 print("tAssemble [s]: "..tAssemble)
 
+
+
+if GetProfilerAvailable() == true then
+	create_levelPN = GetProfileNode("c_create_AMG_level")
+	
+	function PrintParallelProfileNode(name)
+		pn = GetProfileNode(name)
+		t = pn:get_avg_total_time_ms()/to100 * 100
+		tmin = ParallelMin(t)
+		tmax = ParallelMax(t)
+		printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
+	end
+	
+	if create_levelPN:is_valid() then
+		if true then
+			print(create_levelPN:call_tree())
+			print(create_levelPN:child_self_time_sorted())
+		end
+		to100 = create_levelPN:get_avg_total_time_ms()
+		PrintParallelProfileNode("create_OL2_matrix")
+		PrintParallelProfileNode("CalculateTestvector")
+		PrintParallelProfileNode("CreateSymmConnectivityGraph")
+		PrintParallelProfileNode("calculate_all_possible_parent_pairs")
+		PrintParallelProfileNode("color_process_graph")
+		PrintParallelProfileNode("FAMG_recv_coarsening_communicate")
+		PrintParallelProfileNode("update_rating")
+		PrintParallelProfileNode("precalculate_coarsening")
+		PrintParallelProfileNode("send_coarsening_data_to_processes_with_higher_color")
+		PrintParallelProfileNode("communicate_prolongation")
+		PrintParallelProfileNode("create_new_index")
+		PrintParallelProfileNode("create_parent_index")
+		PrintParallelProfileNode("create_interfaces")
+		PrintParallelProfileNode("create_fine_marks")
+		PrintParallelProfileNode("FAMGCreateAsMultiplyOf")
+		PrintParallelProfileNode("CalculateNextTestvector")
+	end
+
+else
+	print("Profiler not available.")
+end	
