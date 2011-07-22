@@ -171,7 +171,7 @@ class ConvectionDiffusionElemDisc
 	 * array for the corner coordinates and schedules the local ip positions
 	 * at the data imports.
 	 */
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		inline bool elem_loop_prepare_fv1();
 
 	///	prepares the element for assembling
@@ -180,31 +180,31 @@ class ConvectionDiffusionElemDisc
 	 * the Element Corners are read and the Finite Volume Geometry is updated.
 	 * The global ip positions are scheduled at the data imports.
 	 */
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool elem_prepare_fv1(TElem* elem, const local_vector_type& u);
 
 	///	finishes the loop over all elements
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		inline bool elem_loop_finish_fv1();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool elem_JA_fv1(local_matrix_type& J, const local_vector_type& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool elem_JM_fv1(local_matrix_type& J, const local_vector_type& u);
 
 	///	assembles the stiffness part of the local defect
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool elem_dA_fv1(local_vector_type& d, const local_vector_type& u);
 
 	///	assembles the mass part of the local defect
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool elem_dM_fv1(local_vector_type& d, const local_vector_type& u);
 
 	///	assembles the local right hand side
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool elem_rhs_fv1(local_vector_type& d);
 
 		/////////////////////////////////////
@@ -253,23 +253,23 @@ class ConvectionDiffusionElemDisc
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool lin_defect_velocity_fv1(const local_vector_type& u);
 
 	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool lin_defect_diffusion_fv1(const local_vector_type& u);
 
 	///	computes the linearized defect w.r.t to the reaction
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool lin_defect_reaction_fv1(const local_vector_type& u);
 
 	///	computes the linearized defect w.r.t to the source term
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool lin_defect_source_fv1(const local_vector_type& u);
 
 	///	computes the linearized defect w.r.t to the mass scale term
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool lin_defect_mass_scale_fv1(const local_vector_type& u);
 
 	private:
@@ -314,11 +314,11 @@ class ConvectionDiffusionElemDisc
 		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo);
 
 	///	computes the concentration
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool comp_export_concentration_fv1(const local_vector_type& u, bool compDeriv);
 
 	///	computes the gradient of the concentration
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		bool comp_export_concentration_grad_fv1(const local_vector_type& u, bool compDeriv);
 
 	///	Export for the concentration
@@ -333,13 +333,24 @@ class ConvectionDiffusionElemDisc
 
 		template <template <class Elem, int WorldDim> class TFVGeom>
 		struct RegisterFV1 {
-				RegisterFV1(this_type* pThis);
+				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
 				this_type* m_pThis;
 				template< typename TElem > void operator()(TElem&)
-				{m_pThis->register_fv1_func<TElem, TFVGeom>();}
+				{m_pThis->register_fv1_func<TElem, TFVGeom<TElem, dim> >();}
 		};
 
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <template <int TDim, int WorldDim> class TFVGeom>
+		struct RegisterDimFV1 {
+				RegisterDimFV1(this_type* pThis) : m_pThis(pThis){}
+				this_type* m_pThis;
+				template< typename TElem > void operator()(TElem&)
+				{
+					static const int refDim = reference_element_traits<TElem>::dim;
+					m_pThis->register_fv1_func<TElem, TFVGeom<refDim, dim> >();
+				}
+		};
+
+		template <typename TElem, typename TFVGeom>
 		void register_fv1_func();
 
 	// 	FE Assemblings
