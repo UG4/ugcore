@@ -287,21 +287,7 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, VertexBase* v, boo
 ///	Collects all faces and returns them in the order prescribed by the reference element.
 void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer)
 {
-	if(clearContainer)
-		vFacesOut.clear();
-
-	VertexBase* v1 = e->vertex(0);
-	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v1);
-	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v1);
-		iter != iterEnd; ++iter)
-	{
-		if(FaceContains(*iter, e))
-			vFacesOut.push_back(*iter);
-	}
-
-	// TODO: Must still be sorted
-	UG_ASSERT(0, "Must be sorted as in reference element.");
-
+	vFacesOut.clear();
 }
 
 ///	Collects all faces and returns them in the order prescribed by the reference element.
