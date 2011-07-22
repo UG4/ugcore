@@ -6,6 +6,7 @@
  */
 
 #include "data_evaluator.h"
+#include "lib_discretization/common/groups_util.h"
 
 namespace ug{
 

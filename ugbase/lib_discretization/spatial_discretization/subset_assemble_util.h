@@ -16,6 +16,7 @@
 #include "common/common.h"
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/common/subset_group.h"
+#include "lib_discretization/common/groups_util.h"
 
 
 namespace ug {
