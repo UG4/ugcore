@@ -16,8 +16,8 @@ ug_load_script("ug_util.lua")
 dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
-	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -26,7 +26,7 @@ end
 
 -- refinements:
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
-numRefs    = util.GetParamNumber("-numRefs",    1)
+numRefs    = util.GetParamNumber("-numRefs",    3)
 
 -- parallelisation related stuff
 -- way the domain / the grid will be distributed to the processes:
@@ -249,7 +249,7 @@ print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRef
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", 3)
+approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
@@ -312,7 +312,7 @@ else print("Dim not supported for upwind"); exit() end
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 if elemDisc:set_upwind(upwind) == false then exit() end
-elemDisc:set_disc_scheme("fe")
+elemDisc:set_disc_scheme("fv")
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
@@ -447,7 +447,7 @@ bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- choose some solver
-solver = cgSolver
+solver = linSolver
 
 --------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h',
