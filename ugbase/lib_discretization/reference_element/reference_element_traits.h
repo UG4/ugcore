@@ -43,7 +43,7 @@ inline int ReferenceElementDimension(ReferenceObjectID roid)
  * at compile time.
  */
 template <class TElem>
-class reference_element_traits;
+struct reference_element_traits;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -51,110 +51,86 @@ class reference_element_traits;
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<VertexBase>
+struct reference_element_traits<VertexBase>
 {
-	public:
-		typedef ReferenceVertex reference_element_type;
+	typedef ReferenceVertex reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 template <>
-class reference_element_traits<Vertex>
-{
-	public:
-		typedef ReferenceVertex reference_element_type;
-};
+struct reference_element_traits<Vertex>
+	: public reference_element_traits<VertexBase> {};
 
 template <>
-class reference_element_traits<HangingVertex>
-{
-	public:
-		typedef ReferenceVertex reference_element_type;
-};
+struct reference_element_traits<HangingVertex>
+	: public reference_element_traits<VertexBase> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Edge
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<Edge>
+struct reference_element_traits<Edge>
 {
-	public:
-		typedef ReferenceEdge reference_element_type;
+	typedef ReferenceEdge reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 template <>
-class reference_element_traits<ConstrainedEdge>
-{
-	public:
-		typedef ReferenceEdge reference_element_type;
-};
+struct reference_element_traits<ConstrainedEdge>
+	: public reference_element_traits<Edge>{};
 
 template <>
-class reference_element_traits<ConstrainingEdge>
-{
-	public:
-		typedef ReferenceEdge reference_element_type;
-};
+struct reference_element_traits<ConstrainingEdge>
+	: public reference_element_traits<Edge>{};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Triangle
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<Triangle>
+struct reference_element_traits<Triangle>
 {
-	public:
-		typedef ReferenceTriangle reference_element_type;
+	typedef ReferenceTriangle reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 template <>
-class reference_element_traits<ConstrainedTriangle>
-{
-	public:
-		typedef ReferenceTriangle reference_element_type;
-};
+struct reference_element_traits<ConstrainedTriangle>
+	: public reference_element_traits<Triangle> {};
 
 template <>
-class reference_element_traits<ConstrainingTriangle>
-{
-	public:
-		typedef ReferenceTriangle reference_element_type;
-};
+struct reference_element_traits<ConstrainingTriangle>
+	: public reference_element_traits<Triangle> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Quadrilateral
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<Quadrilateral>
+struct reference_element_traits<Quadrilateral>
 {
-	public:
-		typedef ReferenceQuadrilateral reference_element_type;
+	typedef ReferenceQuadrilateral reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 template <>
-class reference_element_traits<ConstrainedQuadrilateral>
-{
-	public:
-		typedef ReferenceQuadrilateral reference_element_type;
-};
+struct reference_element_traits<ConstrainedQuadrilateral>
+	: public reference_element_traits<Quadrilateral>{};
 
 template <>
-class reference_element_traits<ConstrainingQuadrilateral>
-{
-	public:
-		typedef ReferenceQuadrilateral reference_element_type;
-};
+struct reference_element_traits<ConstrainingQuadrilateral>
+	: public reference_element_traits<Quadrilateral>{};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Tetrahedron
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<Tetrahedron>
+struct reference_element_traits<Tetrahedron>
 {
-	public:
-		typedef ReferenceTetrahedron reference_element_type;
+	typedef ReferenceTetrahedron reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,10 +138,10 @@ class reference_element_traits<Tetrahedron>
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<Pyramid>
+struct reference_element_traits<Pyramid>
 {
-	public:
-		typedef ReferencePyramid reference_element_type;
+	typedef ReferencePyramid reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -173,10 +149,10 @@ class reference_element_traits<Pyramid>
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<Prism>
+struct reference_element_traits<Prism>
 {
-	public:
-		typedef ReferencePrism reference_element_type;
+	typedef ReferencePrism reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -184,10 +160,10 @@ class reference_element_traits<Prism>
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-class reference_element_traits<Hexahedron>
+struct reference_element_traits<Hexahedron>
 {
-	public:
-		typedef ReferenceHexahedron reference_element_type;
+	typedef ReferenceHexahedron reference_element_type;
+	static const int dim = reference_element_type::dim;
 };
 
 }

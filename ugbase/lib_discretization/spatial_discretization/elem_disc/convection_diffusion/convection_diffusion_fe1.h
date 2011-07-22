@@ -15,14 +15,6 @@
 
 namespace ug{
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-//  Provide a generic implementation for all elements
-//  (since this discretization can be implemented in a generic way)
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-
-
 template<typename TDomain>
 template<typename TElem,
 		 template <class Elem, int WorldDim> class TTrialSpace, int TOrderSpace,
@@ -30,12 +22,8 @@ template<typename TElem,
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_prepare_fe()
 {
-	// all this will be performed outside of the loop over the elements.
-	// Therefore it is not time critical.
-
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
-	static const int refDim = ref_elem_type::dim;
+//	get reference dimension
+	static const int refDim = reference_element_traits<TElem>::dim;
 
 //	typedef geometry
 	typedef FEGeometry<TElem, dim, TTrialSpace, TOrderSpace, TQuadRule, TOrderQuad> GeomType;
@@ -44,16 +32,13 @@ elem_loop_prepare_fe()
 	static const GeomType& geo = Provider::get<GeomType>();
 
 //	set local positions
-	m_imDiffusion.template 	set_local_ips<refDim>(geo.local_ips(),
-											  geo.num_ip());
-	m_imVelocity.template 	set_local_ips<refDim>(geo.local_ips(),
-											  geo.num_ip());
-	m_imSource.template 		set_local_ips<refDim>(geo.local_ips(),
-											  geo.num_ip());
-	m_imReaction.template set_local_ips<refDim>(geo.local_ips(),
-											  geo.num_ip());
-	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(),
-											   geo.num_ip());
+	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
+	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
+	m_imSource.template    set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
+	m_imReaction.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
+	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
+
+//	done
 	return true;
 }
 
@@ -64,9 +49,7 @@ template<typename TElem,
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_finish_fe()
 {
-	// all this will be performed outside of the loop over the elements.
-	// Therefore it is not time critical.
-
+//	nothing to do
 	return true;
 }
 
@@ -77,11 +60,6 @@ template<typename TElem,
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_prepare_fe(TElem* elem, const local_vector_type& u)
 {
-	// this loop will be performed inside the loop over the elements.
-	// Therefore, it is TIME CRITICAL
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
-
 //	get corners
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
@@ -100,11 +78,12 @@ elem_prepare_fe(TElem* elem, const local_vector_type& u)
 
 //	set global positions for rhs
 	m_imDiffusion.set_global_ips(geo.global_ips(), geo.num_ip());
-	m_imVelocity.set_global_ips(geo.global_ips(), geo.num_ip());
-	m_imSource.set_global_ips(geo.global_ips(), geo.num_ip());
-	m_imReaction.set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imVelocity. set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imSource.   set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imReaction. set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imMassScale.set_global_ips(geo.global_ips(), geo.num_ip());
 
+//	done
 	return true;
 }
 
