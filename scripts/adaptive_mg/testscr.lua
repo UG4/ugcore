@@ -263,8 +263,8 @@ ilut = ILUT()
 	gmg:set_base_solver(base)
 	gmg:set_smoother(jac)
 	gmg:set_cycle_type(1)
-	gmg:set_num_presmooth(3)
-	gmg:set_num_postsmooth(3)
+	gmg:set_num_presmooth(1)
+	gmg:set_num_postsmooth(0)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
 	gmg:set_debug(dbgWriter)
@@ -272,7 +272,7 @@ ilut = ILUT()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(5)
+convCheck:set_maximum_steps(1)
 convCheck:set_minimum_defect(1e-12)
 convCheck:set_reduction(1e-12)
 
@@ -309,14 +309,16 @@ dbgWriter:set_reference_grid_function(u)
 
 -- set initial value
 function StartValue(x, y, t)
-	if y > 0 then return y end
-	return -y
+--	if y > 0 then return y end
+--	return -y
+
+return x;
 end
 
 LuaStartValue = util.CreateLuaUserNumber("StartValue", dim)
 
---InterpolateFunction(LuaStartValue, u, "c", 0.0)
-u:set(1.0)
+InterpolateFunction(LuaStartValue, u, "c", 0.0)
+--u:set(1.0)
 
 for i = 1,1 do
 -- 1. init operator
