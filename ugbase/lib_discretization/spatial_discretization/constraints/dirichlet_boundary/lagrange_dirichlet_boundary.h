@@ -120,7 +120,7 @@ class LagrangeDirichletBoundary
 		                     const dof_distribution_type& dd, number time = 0.0);
 
 	/// sets a zero value in the defect for all dirichlet indices
-		bool adjust_defect(vector_type& d, const vector_type& d,
+		bool adjust_defect(vector_type& d, const vector_type& u,
 		                   const dof_distribution_type& dd, number time = 0.0);
 
 	/// sets the dirichlet value in the solution for all dirichlet indices
