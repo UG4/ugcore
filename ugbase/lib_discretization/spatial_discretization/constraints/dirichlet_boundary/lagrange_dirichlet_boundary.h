@@ -60,20 +60,15 @@ class LagrangeDirichletBoundary
 			m_pDomain(NULL), m_pPattern(NULL) {clear();}
 
 	///	destructor
-		~LagrangeDirichletBoundary()
-		{
-			for(size_t i = 0; i < m_vConstBoundaryNumber.size(); ++i)
-				if(m_vConstBoundaryNumber[i] != NULL)
-					delete m_vConstBoundaryNumber[i];
-		}
+		~LagrangeDirichletBoundary() {}
 
-		bool add_boundary_value(BNDNumberFunctor& func,
+		void add_boundary_value(BNDNumberFunctor& func,
 								const char* function, const char* subsets);
 
-		bool add_boundary_value(BNDNumberFunctor func,
-								size_t fct, SubsetGroup subsetGroup);
+		void add_boundary_value(NumberFunctor& func,
+								const char* function, const char* subsets);
 
-		bool add_constant_boundary_value(number value,
+		void add_constant_boundary_value(number value,
 		                                 const char* function, const char* subsets);
 
 	///	sets the approximation space to work on
@@ -88,8 +83,9 @@ class LagrangeDirichletBoundary
 	///	removes all scheduled dirichlet data.
 		void clear()
 		{
-			m_mConditionalBoundarySegment.clear();
-			m_mBoundarySegment.clear();
+			m_vScheduledBNDNumberData.clear();
+			m_vScheduledNumberData.clear();
+			m_vScheduledConstNumberData.clear();
 		}
 
 	///	Sets dirichlet rows for all registered dirichlet values
@@ -139,35 +135,11 @@ class LagrangeDirichletBoundary
 		virtual int type()	{return CT_DIRICHLET;}
 
 	protected:
-	///	grouping for subset and conditional data
-		struct BNDNumberData
-		{
-			const static bool isConditional = true;
-			BNDNumberData(size_t fct_, BNDNumberFunctor functor_)
-				: fct(fct_), functor(functor_) {}
-			bool operator()(number& val, const MathVector<dim> x, number time) const
-			{
-				return functor(val, x, time);
-			}
-			size_t fct;
-			BNDNumberFunctor functor;
-		};
+		bool check_functions_and_subsets(FunctionGroup& functionGroup,
+		                                 SubsetGroup& subsetGroup) const;
 
-	///	grouping for subset and non-conditional data
-		struct NumberData
-		{
-			const static bool isConditional = false;
-			NumberData(size_t fct_, NumberFunctor functor_)
-				: fct(fct_), functor(functor_) {}
-			bool operator()(number& val, const MathVector<dim> x, number time) const
-			{
-				functor(val, x, time); return true;
-			}
-			size_t fct;
-			NumberFunctor functor;
-		};
+		bool extract_scheduled_data();
 
-	protected:
 		template <typename TUserData>
 		bool adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
 		                     matrix_type& J, const vector_type& u,
@@ -217,6 +189,92 @@ class LagrangeDirichletBoundary
 		                const dof_distribution_type& dd, number time);
 
 	protected:
+	///	grouping for subset and conditional data
+		struct BNDNumberData
+		{
+			const static bool isConditional = true;
+			BNDNumberData(size_t fct_, BNDNumberFunctor functor_)
+				: fct(fct_), functor(functor_) {}
+			bool operator()(number& val, const MathVector<dim> x, number time) const
+			{
+				return functor(val, x, time);
+			}
+			size_t fct;
+			BNDNumberFunctor functor;
+		};
+
+	///	grouping for subset and non-conditional data
+		struct NumberData
+		{
+			const static bool isConditional = false;
+			NumberData(size_t fct_, NumberFunctor functor_)
+				: fct(fct_), functor(functor_) {}
+			bool operator()(number& val, const MathVector<dim> x, number time) const
+			{
+				functor(val, x, time); return true;
+			}
+			size_t fct;
+			NumberFunctor functor;
+		};
+
+	///	grouping for subset and conditional data
+		struct ConstNumberData
+		{
+			const static bool isConditional = false;
+			ConstNumberData(size_t fct_, number value_)
+				: fct(fct_), value(value_) {}
+			inline bool operator()(number& val, const MathVector<dim> x, number time) const
+			{
+				val = value; return true;
+			}
+			size_t fct;
+			number value;
+		};
+
+	///	to remember the scheduled data
+		struct ScheduledBNDNumberData
+		{
+			ScheduledBNDNumberData(BNDNumberFunctor functor_,
+								   std::string fctName_, std::string ssName_)
+				: functor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+
+			BNDNumberFunctor functor;
+			std::string fctName;
+			std::string ssName;
+		};
+
+	///	to remember the scheduled data
+		struct ScheduledNumberData
+		{
+			ScheduledNumberData(NumberFunctor functor_,
+			                    std::string fctName_, std::string ssName_)
+				: functor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+
+			NumberFunctor functor;
+			std::string fctName;
+			std::string ssName;
+		};
+
+	///	to remember the scheduled data
+		struct ScheduledConstNumberData
+		{
+			ScheduledConstNumberData(number value_,
+			                         std::string fctName_, std::string ssName_)
+				: value(value_), fctName(fctName_), ssName(ssName_)
+			{}
+
+			number value;
+			std::string fctName;
+			std::string ssName;
+		};
+
+		std::vector<ScheduledBNDNumberData> m_vScheduledBNDNumberData;
+		std::vector<ScheduledNumberData> m_vScheduledNumberData;
+		std::vector<ScheduledConstNumberData> m_vScheduledConstNumberData;
+
+	protected:
 	///	current domain
 		domain_type* m_pDomain;
 
@@ -226,14 +284,14 @@ class LagrangeDirichletBoundary
 	///	current function pattern
 		const FunctionPattern* m_pPattern;
 
-	///	remember created ConstNumbers
-		std::vector<ConstBoundaryNumber<dim>*> m_vConstBoundaryNumber;
+	///	non-conditional boundary values for all subsets
+		std::map<int, std::vector<NumberData> > m_mBoundarySegment;
+
+	///	constant boundary values for all subsets
+		std::map<int, std::vector<ConstNumberData> > m_mConstBoundarySegment;
 
 	///	conditional boundary values for all subsets
 		std::map<int, std::vector<BNDNumberData> > m_mConditionalBoundarySegment;
-
-	///	non-conditional boundary values for all subsets
-		std::map<int, std::vector<NumberData> > m_mBoundarySegment;
 };
 
 
@@ -243,52 +301,42 @@ class LagrangeDirichletBoundary
 
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 add_boundary_value(BNDNumberFunctor& func,
 						const char* function, const char* subsets)
 {
-//	check that function pattern exists
-	if(m_pPattern == NULL)
-	{
-		UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
-		return false;
-	}
+	m_vScheduledBNDNumberData.push_back(ScheduledBNDNumberData(func, function, subsets));
+	extract_scheduled_data();
+}
 
-//	create Function Group and Subset Group
-	FunctionGroup functionGroup;
-	SubsetGroup subsetGroup;
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+add_boundary_value(NumberFunctor& func,
+						const char* function, const char* subsets)
+{
+	m_vScheduledNumberData.push_back(ScheduledNumberData(func, function, subsets));
+	extract_scheduled_data();
+}
 
-//	convert strings
-	if(!ConvertStringToSubsetGroup(subsetGroup, *m_pPattern, subsets))
-	{
-		UG_LOG("ERROR while parsing Subsets.\n");
-		return false;
-	}
-	if(!ConvertStringToFunctionGroup(functionGroup, *m_pPattern, function))
-	{
-		UG_LOG("ERROR while parsing Functions.\n");
-		return false;
-	}
-
-//	only one function allowed
-	if(functionGroup.num_fct() != 1)
-	{
-		UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
-		return false;
-	}
-
-	return add_boundary_value(func, functionGroup.unique_id(0), subsetGroup);
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+add_constant_boundary_value(number value,  const char* function, const char* subsets)
+{
+	m_vScheduledConstNumberData.push_back(ScheduledConstNumberData(value, function, subsets));
+	extract_scheduled_data();
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add_boundary_value(BNDNumberFunctor func,
-						size_t fct, SubsetGroup subsetGroup)
+check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGroup) const
 {
-//	check that function pattern exists
-	if(m_pPattern == NULL)
+//	only one function allowed
+	if(functionGroup.num_fct() != 1)
 	{
-		UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
+		UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+				" Only one function allowed in specification of each"
+				" Dirichlet Value, but the following functions given:"
+				<<functionGroup<<"\n");
 		return false;
 	}
 
@@ -304,46 +352,184 @@ add_boundary_value(BNDNumberFunctor func,
 	//	check that subsetIndex is valid
 		if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
 		{
-			UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Invalid subset Index "
-					<< subsetIndex << ". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Invalid Subset Index " << subsetIndex << ". (Valid is"
+					" 0, .. , " << pSH->num_subsets() <<").\n");
 			return false;
 		}
+
+		const size_t fct = functionGroup[0];
 
 	// 	check if function exist
 		if(fct >= m_pPattern->num_fct())
 		{
-			UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
-					<< fct << " does not exist in pattern.\n");
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Function "<< fct << " does not exist in pattern.\n");
 			return false;
 		}
 
 	// 	check that function is defined for segment
 		if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
 		{
-			UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
-					<< fct << " not defined in subset " << subsetIndex << ".\n");
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+				" Function "<<fct<<" not defined on subset "<<subsetIndex<<".\n");
 			return false;
 		}
-
-	//	get Boundary segment from map
-		std::vector<BNDNumberData>& vSegmentFunction = m_mConditionalBoundarySegment[subsetIndex];
-
-	//	remember functor and function
-		vSegmentFunction.push_back(BNDNumberData(fct, func));
 	}
 
-//	we're done
+//	everything ok
 	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add_constant_boundary_value(number value,  const char* function, const char* subsets)
+extract_scheduled_data()
 {
-	ConstBoundaryNumber<dim>* valProvider = new ConstBoundaryNumber<dim>;
-	valProvider->set(value);
-	m_vConstBoundaryNumber.push_back(valProvider);
-	return add_boundary_value(*valProvider, function, subsets);
+//	check that function pattern exists
+	if(m_pPattern == NULL)
+	{
+		UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+				" Approximation Space not set.\n");
+		return false;
+	}
+
+//	clear data
+	m_vScheduledBNDNumberData.clear();
+	m_vScheduledNumberData.clear();
+	m_vScheduledConstNumberData.clear();
+
+	for(size_t i = 0; i < m_vScheduledBNDNumberData.size(); ++i)
+	{
+	//	create Function Group and Subset Group
+		FunctionGroup fctGrp;
+		SubsetGroup ssGrp;
+
+	//	convert strings
+		if(!ConvertStringToSubsetGroup(ssGrp, *m_pPattern,
+									   m_vScheduledBNDNumberData[i].ssName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Subsets '"<<m_vScheduledBNDNumberData[i].ssName<<"' not"
+					" all contained in ApprocimationSpace.\n");
+			return false;
+		}
+		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
+										 m_vScheduledBNDNumberData[i].fctName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Functions '"<<m_vScheduledBNDNumberData[i].fctName<<"' not"
+					" all contained in ApprocimationSpace.\n");
+			return false;
+		}
+
+	//	check functions and subsets
+		if(!check_functions_and_subsets(fctGrp, ssGrp)) return false;
+
+	// 	loop subsets
+		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
+		{
+		//	get subset index and function
+			const int subsetIndex = ssGrp[si];
+			const size_t fct = fctGrp[0];
+
+		//	get Boundary segment from map
+			std::vector<BNDNumberData>& vSegmentFunction
+									= m_mConditionalBoundarySegment[subsetIndex];
+
+		//	remember functor and function
+			vSegmentFunction.push_back(BNDNumberData(fct, m_vScheduledBNDNumberData[i].functor));
+		}
+	}
+
+
+	for(size_t i = 0; i < m_vScheduledNumberData.size(); ++i)
+	{
+	//	create Function Group and Subset Group
+		FunctionGroup fctGrp;
+		SubsetGroup ssGrp;
+
+	//	convert strings
+		if(!ConvertStringToSubsetGroup(ssGrp, *m_pPattern,
+		                               m_vScheduledNumberData[i].ssName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Subsets '"<<m_vScheduledNumberData[i].ssName<<"' not"
+					" all contained in ApprocimationSpace.\n");
+			return false;
+		}
+		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
+		                                 m_vScheduledNumberData[i].fctName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Functions '"<<m_vScheduledNumberData[i].fctName<<"' not"
+					" all contained in ApprocimationSpace.\n");
+			return false;
+		}
+
+	//	check functions and subsets
+		if(!check_functions_and_subsets(fctGrp, ssGrp)) return false;
+
+	// 	loop subsets
+		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
+		{
+		//	get subset index and function
+			const int subsetIndex = ssGrp[si];
+			const size_t fct = fctGrp[0];
+
+		//	get Boundary segment from map
+			std::vector<NumberData>& vSegmentFunction
+									= m_mBoundarySegment[subsetIndex];
+
+		//	remember functor and function
+			vSegmentFunction.push_back(NumberData(fct, m_vScheduledNumberData[i].functor));
+		}
+	}
+
+	for(size_t i = 0; i < m_vScheduledConstNumberData.size(); ++i)
+	{
+	//	create Function Group and Subset Group
+		FunctionGroup fctGrp;
+		SubsetGroup ssGrp;
+
+	//	convert strings
+		if(!ConvertStringToSubsetGroup(ssGrp, *m_pPattern,
+		                               m_vScheduledConstNumberData[i].ssName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Subsets '"<<m_vScheduledConstNumberData[i].ssName<<"' not"
+					" all contained in ApprocimationSpace.\n");
+			return false;
+		}
+		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
+		                                 m_vScheduledConstNumberData[i].fctName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Functions '"<<m_vScheduledConstNumberData[i].fctName<<"' not"
+					" all contained in ApprocimationSpace.\n");
+			return false;
+		}
+
+	//	check functions and subsets
+		if(!check_functions_and_subsets(fctGrp, ssGrp)) return false;
+
+	// 	loop subsets
+		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
+		{
+		//	get subset index and function
+			const int subsetIndex = ssGrp[si];
+			const size_t fct = fctGrp[0];
+
+		//	get Boundary segment from map
+			std::vector<ConstNumberData>& vSegmentFunction
+									= m_mConstBoundarySegment[subsetIndex];
+
+		//	remember functor and function
+			vSegmentFunction.push_back(ConstNumberData(fct, m_vScheduledConstNumberData[i].value));
+		}
+	}
+
+//	we're done
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -415,6 +601,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_typ
 	bool bRet = true;
 	bRet &= adjust_jacobian<BNDNumberData>(m_mConditionalBoundarySegment, J, u, dd, time);
 	bRet &= adjust_jacobian<NumberData>(m_mBoundarySegment, J, u, dd, time);
+	bRet &= adjust_jacobian<ConstNumberData>(m_mConstBoundarySegment, J, u, dd, time);
 	return bRet;
 }
 
@@ -535,6 +722,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 	bool bRet = true;
 	bRet &= adjust_defect<BNDNumberData>(m_mConditionalBoundarySegment, d, u, dd, time);
 	bRet &= adjust_defect<NumberData>(m_mBoundarySegment, d, u, dd, time);
+	bRet &= adjust_defect<ConstNumberData>(m_mConstBoundarySegment, d, u, dd, time);
 	return bRet;
 }
 
@@ -654,6 +842,7 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd, number time)
 	bool bRet = true;
 	bRet &= adjust_solution<BNDNumberData>(m_mConditionalBoundarySegment, u, dd, time);
 	bRet &= adjust_solution<NumberData>(m_mBoundarySegment, u, dd, time);
+	bRet &= adjust_solution<ConstNumberData>(m_mConstBoundarySegment, u, dd, time);
 	return bRet;
 }
 
@@ -769,6 +958,7 @@ adjust_linear(matrix_type& A, vector_type& b,
 	bool bRet = true;
 	bRet &= adjust_linear<BNDNumberData>(m_mConditionalBoundarySegment, A, b, u, dd, time);
 	bRet &= adjust_linear<NumberData>(m_mBoundarySegment, A, b, u, dd, time);
+	bRet &= adjust_linear<ConstNumberData>(m_mConstBoundarySegment, A, b, u, dd, time);
 	return bRet;
 }
 
@@ -892,6 +1082,7 @@ adjust_rhs(vector_type& b, const vector_type& u,
 	bool bRet = true;
 	bRet &= adjust_rhs<BNDNumberData>(m_mConditionalBoundarySegment, b, u, dd, time);
 	bRet &= adjust_rhs<NumberData>(m_mBoundarySegment, b, u, dd, time);
+	bRet &= adjust_rhs<ConstNumberData>(m_mConstBoundarySegment, b, u, dd, time);
 	return bRet;
 }
 
