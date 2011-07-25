@@ -17,7 +17,7 @@
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/common/subset_group.h"
 #include "lib_discretization/common/groups_util.h"
-
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 
 namespace ug {
 
