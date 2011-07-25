@@ -113,30 +113,30 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	pcl::ParallelCommunicator<FaceLayout> comFACE;
 	pcl::ParallelCommunicator<VolumeLayout> comVOL;
 
-	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
-	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
-	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
-	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+	comVRT.send_data(distGridMgr.grid_layout_map().template get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.send_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
 
-	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
-	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
-	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
-	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+	comVRT.receive_data(distGridMgr.grid_layout_map().template get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
 
 	comVRT.communicate();
 	comEDGE.communicate();
 	comFACE.communicate();
 	comVOL.communicate();
 
-	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
-	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
-	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
-	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+	comVRT.send_data(distGridMgr.grid_layout_map().template get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.send_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
 
-	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
-	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
-	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
-	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+	comVRT.receive_data(distGridMgr.grid_layout_map().template get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
 
 	comVRT.communicate();
 	comEDGE.communicate();
