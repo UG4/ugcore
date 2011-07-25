@@ -301,19 +301,9 @@ class GridFunction
 	///	returns the position of the dofs of a function if available
 		template <typename TElem>
 		bool dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool dof_positions(VertexBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool dof_positions(EdgeBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool dof_positions(Face* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool dof_positions(Volume* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool dof_positions(GeometricObject* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
 
 		template <typename TElem>
 		bool inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool inner_dof_positions(VertexBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool inner_dof_positions(EdgeBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool inner_dof_positions(Face* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool inner_dof_positions(Volume* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
-		bool inner_dof_positions(GeometricObject* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const;
 
 	protected:
 	/// Approximation Space

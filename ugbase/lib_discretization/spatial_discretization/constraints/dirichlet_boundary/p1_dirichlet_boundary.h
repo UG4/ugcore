@@ -204,15 +204,16 @@ class P1DirichletBoundary
 	 *
 	 * If Mr. Vogel decides that this is nonsense, he may of course remove it!!!
 	 */
-		void assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr, number time = 0.0);
+		void assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dd, number time = 0.0);
 
 	public:
 	// 	Implement Interface
-		bool adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool adjust_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool adjust_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool adjust_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dd, number time = 0.0);
+		bool adjust_defect(vector_type& d, const vector_type& d, const dof_distribution_type& dd, number time = 0.0);
+		bool adjust_solution(vector_type& u, const dof_distribution_type& dd, number time = 0.0);
+
+		bool adjust_linear(matrix_type& A, vector_type& b, const vector_type& u, const dof_distribution_type& dd, number time = 0.0);
+		bool adjust_rhs(vector_type& b, const vector_type& u, const dof_distribution_type& dd, number time = 0.0);
 
 		virtual int type()	{return CT_DIRICHLET;}
 
@@ -220,8 +221,13 @@ class P1DirichletBoundary
 	///	grouping for subset and conditional data
 		struct BNDNumberData
 		{
+			const static bool isConditional = true;
 			BNDNumberData(size_t fct_, BNDNumberFunctor functor_)
 				: fct(fct_), functor(functor_) {}
+			bool operator()(number& val, const MathVector<dim> x, number time) const
+			{
+				return functor(val, x, time);
+			}
 			size_t fct;
 			BNDNumberFunctor functor;
 		};
@@ -229,37 +235,65 @@ class P1DirichletBoundary
 	///	grouping for subset and non-conditional data
 		struct NumberData
 		{
+			const static bool isConditional = false;
 			NumberData(size_t fct_, NumberFunctor functor_)
 				: fct(fct_), functor(functor_) {}
+			bool operator()(number& val, const MathVector<dim> x, number time) const
+			{
+				functor(val, x, time); return true;
+			}
 			size_t fct;
 			NumberFunctor functor;
 		};
 
 	protected:
-		bool clear_dirichlet_jacobian(			geometry_traits<VertexBase>::const_iterator iterBegin,
-												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<BNDNumberData>& userData, int si, matrix_type& J,
-												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		template <typename TUserData>
+		bool adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
+		                     matrix_type& J, const vector_type& u,
+		                     const dof_distribution_type& dd, number time);
 
-		bool clear_dirichlet_defect(			geometry_traits<VertexBase>::const_iterator iterBegin,
-												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<BNDNumberData>& userData, int si, vector_type& d,
-												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		template <typename TBaseElem, typename TUserData>
+		bool adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
+		                     matrix_type& J, const vector_type& u,
+		                     const dof_distribution_type& dd, number time);
 
-		bool set_dirichlet_solution( 			geometry_traits<VertexBase>::const_iterator iterBegin,
-												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<BNDNumberData>& userData, int si, vector_type& x,
-												const dof_distribution_type& dofDistr, number time = 0.0);
+		template <typename TUserData>
+		bool adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
+		                   vector_type& d, const vector_type& u,
+		                   const dof_distribution_type& dd, number time);
 
-		bool set_dirichlet_linear(				geometry_traits<VertexBase>::const_iterator iterBegin,
-												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<BNDNumberData>& userData, int si, matrix_type& mat, vector_type& rhs,
-												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		template <typename TBaseElem, typename TUserData>
+		bool adjust_defect(const std::vector<TUserData>& vUserData, int si,
+		                   vector_type& d, const vector_type& u,
+		                   const dof_distribution_type& dd, number time);
 
-		bool set_dirichlet_rhs(				geometry_traits<VertexBase>::const_iterator iterBegin,
-												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<BNDNumberData>& userData, int si, vector_type& rhs,
-												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		template <typename TUserData>
+		bool adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
+		                     vector_type& u, const dof_distribution_type& dd, number time);
+
+		template <typename TBaseElem, typename TUserData>
+		bool adjust_solution(const std::vector<TUserData>& vUserData, int si,
+		                     vector_type& u, const dof_distribution_type& dd, number time);
+
+		template <typename TUserData>
+		bool adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
+		                   matrix_type& A, vector_type& b, const vector_type& u,
+		                   const dof_distribution_type& dd, number time);
+
+		template <typename TBaseElem, typename TUserData>
+		bool adjust_linear(const std::vector<TUserData>& vUserData, int si,
+		                   matrix_type& A, vector_type& b, const vector_type& u,
+		                   const dof_distribution_type& dd, number time);
+
+		template <typename TUserData>
+		bool adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
+		                vector_type& b, const vector_type& u,
+		                const dof_distribution_type& dd, number time);
+
+		template <typename TBaseElem, typename TUserData>
+		bool adjust_rhs(const std::vector<TUserData>& vUserData, int si,
+		                vector_type& b, const vector_type& u,
+		                const dof_distribution_type& dd, number time);
 
 	protected:
 	///	current domain
@@ -281,10 +315,13 @@ class P1DirichletBoundary
 		std::map<int, std::vector<NumberData> > m_mBoundarySegment;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+//	assemble_dirichlet_rows
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr, number time)
+assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
 	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
@@ -293,8 +330,8 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr,
 		const int si = (*iter).first;
 		const std::vector<BNDNumberData>& userData = (*iter).second;
 
-		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dd.template begin<VertexBase>(si);
+		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dd.template end<VertexBase>(si);
 
 	//	create Multiindex
 		multi_index_vector_type multInd;
@@ -322,7 +359,7 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr,
 				const size_t fct = userData[i].fct;
 
 			//	get multi indices
-				if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+				if(dd.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 					return;
 
 				const size_t index = multInd[0][0];
@@ -336,371 +373,599 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr,
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+//	adjust JACOBIAN
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dd, number time)
+{
+	bool bRet = true;
+	bRet &= adjust_jacobian<BNDNumberData>(m_mConditionalBoundarySegment, J, u, dd, time);
+	bRet &= adjust_jacobian<NumberData>(m_mBoundarySegment, J, u, dd, time);
+	return bRet;
+}
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
+                matrix_type& J, const vector_type& u,
+           	    const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
-	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
+	//	get subset index
 		const int si = (*iter).first;
-		const std::vector<BNDNumberData>& userData = (*iter).second;
 
-		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData>& vUserData = (*iter).second;
 
-		if(!clear_dirichlet_jacobian(iterBegin, iterEnd, userData, si, J, u, dofDistr, time))
+	//	adapt jacobian for dofs in each base element type
+		bool bRes = true;
+		if(dd.has_indices_on(VERTEX))
+			bRes &= adjust_jacobian<VertexBase, TUserData>(vUserData, si, J, u, dd, time);
+		if(dd.has_indices_on(EDGE))
+			bRes &= adjust_jacobian<EdgeBase, TUserData>(vUserData, si, J, u, dd, time);
+		if(dd.has_indices_on(FACE))
+			bRes &= adjust_jacobian<Face, TUserData>(vUserData, si, J, u, dd, time);
+		if(dd.has_indices_on(VOLUME))
+			bRes &= adjust_jacobian<Volume, TUserData>(vUserData, si, J, u, dd, time);
+
+	//	check success
+		if(!bRes)
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
-					" while calling 'clear_dirichlet_jacobian', aborting.\n");
+					" While calling 'adapt_jacobian' for TUserData, aborting.\n");
 			return false;
 		}
 	}
 
+//	ok
 	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-adjust_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+template <typename TBaseElem, typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
+                matrix_type& J, const vector_type& u,
+           	    const dof_distribution_type& dd, number time)
+{
+//	create Multiindex
+	multi_index_vector_type multInd;
+
+//	dummy for readin
+	number val;
+
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd.template begin<TBaseElem>(si);
+	iterEnd = dd.template end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		TBaseElem* elem = *iter;
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < vUserData.size(); ++i)
+		{
+		//	get function index
+			const size_t fct = vUserData[i].fct;
+
+		//	get local finite element id
+			const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+		//	get dof position
+			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+
+		//	get multi indices
+			dd.inner_multi_indices(elem, fct, multInd);
+
+			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+		//	loop dofs on element
+			for(size_t j = 0; j < vPos.size(); ++j)
+			{
+			// 	check if function is dirichlet
+				if(TUserData::isConditional){
+					if(!vUserData[i](val, vPos[j], time)) continue;
+				}
+
+			//	set dirichlet row
+				SetDirichletRow(J, multInd[j][0], multInd[j][1]);
+			}
+		}
+	}
+
+//	done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	adjust DEFECT
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_defect(vector_type& d, const vector_type& u,
+              const dof_distribution_type& dd, number time)
+{
+	bool bRet = true;
+	bRet &= adjust_defect<BNDNumberData>(m_mConditionalBoundarySegment, d, u, dd, time);
+	bRet &= adjust_defect<NumberData>(m_mBoundarySegment, d, u, dd, time);
+	return bRet;
+}
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
+               vector_type& d, const vector_type& u,
+               const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
-	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
+	//	get subset index
 		const int si = (*iter).first;
-		const std::vector<BNDNumberData>& userData = (*iter).second;
 
-		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData>& vUserData = (*iter).second;
 
-		if(!clear_dirichlet_defect(iterBegin, iterEnd, userData, si, d, u, dofDistr, time))
+	//	adapt jacobian for dofs in each base element type
+		bool bRes = true;
+		if(dd.has_indices_on(VERTEX))
+			bRes &= adjust_defect<VertexBase, TUserData>(vUserData, si, d, u, dd, time);
+		if(dd.has_indices_on(EDGE))
+			bRes &= adjust_defect<EdgeBase, TUserData>(vUserData, si, d, u, dd, time);
+		if(dd.has_indices_on(FACE))
+			bRes &= adjust_defect<Face, TUserData>(vUserData, si, d, u, dd, time);
+		if(dd.has_indices_on(VOLUME))
+			bRes &= adjust_defect<Volume, TUserData>(vUserData, si, d, u, dd, time);
+
+	//	check success
+		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
-					" while calling 'clear_dirichlet_jacobian', aborting.\n");
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_defect':"
+					" While calling 'adjust_defect' for TUserData, aborting.\n");
 			return false;
 		}
 	}
 
+//	ok
 	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-adjust_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
+template <typename TBaseElem, typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_defect(const std::vector<TUserData>& vUserData, int si,
+              vector_type& d, const vector_type& u,
+              const dof_distribution_type& dd, number time)
+{
+//	create Multiindex
+	multi_index_vector_type multInd;
+
+//	dummy for readin
+	number val;
+
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd.template begin<TBaseElem>(si);
+	iterEnd = dd.template end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		TBaseElem* elem = *iter;
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < vUserData.size(); ++i)
+		{
+		//	get function index
+			const size_t fct = vUserData[i].fct;
+
+		//	get local finite element id
+			const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+		//	get dof position
+			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+
+		//	get multi indices
+			dd.inner_multi_indices(elem, fct, multInd);
+
+			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+		//	loop dofs on element
+			for(size_t j = 0; j < vPos.size(); ++j)
+			{
+			// 	check if function is dirichlet
+				if(TUserData::isConditional){
+					if(!vUserData[i](val, vPos[j], time)) continue;
+				}
+
+			//	set zero for dirichlet values
+				BlockRef(d[multInd[j][0]], multInd[j][1]) = 0.0;
+			}
+		}
+	}
+
+//	done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	adjust SOLUTION
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_solution(vector_type& u, const dof_distribution_type& dd, number time)
+{
+	bool bRet = true;
+	bRet &= adjust_solution<BNDNumberData>(m_mConditionalBoundarySegment, u, dd, time);
+	bRet &= adjust_solution<NumberData>(m_mBoundarySegment, u, dd, time);
+	return bRet;
+}
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
+                vector_type& u, const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
-	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
+	//	get subset index
 		const int si = (*iter).first;
-		const std::vector<BNDNumberData>& userData = (*iter).second;
 
-		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData>& vUserData = (*iter).second;
 
-		if(!set_dirichlet_solution(iterBegin, iterEnd, userData, si, u, dofDistr, time))
+	//	adapt jacobian for dofs in each base element type
+		bool bRes = true;
+		if(dd.has_indices_on(VERTEX))
+			bRes &= adjust_solution<VertexBase, TUserData>(vUserData, si, u, dd, time);
+		if(dd.has_indices_on(EDGE))
+			bRes &= adjust_solution<EdgeBase, TUserData>(vUserData, si, u, dd, time);
+		if(dd.has_indices_on(FACE))
+			bRes &= adjust_solution<Face, TUserData>(vUserData, si, u, dd, time);
+		if(dd.has_indices_on(VOLUME))
+			bRes &= adjust_solution<Volume, TUserData>(vUserData, si, u, dd, time);
+
+	//	check success
+		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
-					" while calling 'clear_dirichlet_jacobian', aborting.\n");
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_solution':"
+					" While calling 'adjust_solution' for TUserData, aborting.\n");
 			return false;
 		}
 	}
+
+//	ok
 	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+template <typename TBaseElem, typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_solution(const std::vector<TUserData>& vUserData, int si,
+                vector_type& u, const dof_distribution_type& dd, number time)
+{
+//	create Multiindex
+	multi_index_vector_type multInd;
+
+//	value readin
+	number val;
+
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd.template begin<TBaseElem>(si);
+	iterEnd = dd.template end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		TBaseElem* elem = *iter;
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < vUserData.size(); ++i)
+		{
+		//	get function index
+			const size_t fct = vUserData[i].fct;
+
+		//	get local finite element id
+			const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+		//	get dof position
+			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+
+		//	get multi indices
+			dd.inner_multi_indices(elem, fct, multInd);
+
+			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+		//	loop dofs on element
+			for(size_t j = 0; j < vPos.size(); ++j)
+			{
+			//  get dirichlet value
+				if(!vUserData[i](val, vPos[j], time)) continue;
+
+			//	set zero for dirichlet values
+				BlockRef(u[multInd[j][0]], multInd[j][1]) = val;
+			}
+		}
+	}
+
+//	done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	adjust LINEAR
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_linear(matrix_type& A, vector_type& b,
+              const vector_type& u, const dof_distribution_type& dd, number time)
+{
+	bool bRet = true;
+	bRet &= adjust_linear<BNDNumberData>(m_mConditionalBoundarySegment, A, b, u, dd, time);
+	bRet &= adjust_linear<NumberData>(m_mBoundarySegment, A, b, u, dd, time);
+	return bRet;
+}
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
+              matrix_type& A, vector_type& b, const vector_type& u,
+           	  const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
-	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
+	//	get subset index
 		const int si = (*iter).first;
-		const std::vector<BNDNumberData>& userData = (*iter).second;
 
-		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData>& vUserData = (*iter).second;
 
-		if(!set_dirichlet_linear(iterBegin, iterEnd, userData, si, mat, rhs, u, dofDistr, time))
+	//	adapt jacobian for dofs in each base element type
+		bool bRes = true;
+		if(dd.has_indices_on(VERTEX))
+			bRes &= adjust_linear<VertexBase, TUserData>(vUserData, si, A, b, u, dd, time);
+		if(dd.has_indices_on(EDGE))
+			bRes &= adjust_linear<EdgeBase, TUserData>(vUserData, si, A, b, u, dd, time);
+		if(dd.has_indices_on(FACE))
+			bRes &= adjust_linear<Face, TUserData>(vUserData, si, A, b, u, dd, time);
+		if(dd.has_indices_on(VOLUME))
+			bRes &= adjust_linear<Volume, TUserData>(vUserData, si, A, b, u, dd, time);
+
+	//	check success
+		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
-					" while calling 'clear_dirichlet_jacobian', aborting.\n");
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_linear':"
+					" While calling 'adjust_linear' for TUserData, aborting.\n");
 			return false;
 		}
 	}
+
+//	ok
 	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-adjust_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+template <typename TBaseElem, typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_linear(const std::vector<TUserData>& vUserData, int si,
+              matrix_type& A, vector_type& b, const vector_type& u,
+              const dof_distribution_type& dd, number time)
+{
+//	create Multiindex
+	multi_index_vector_type multInd;
+
+//	readin value
+	number val;
+
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd.template begin<TBaseElem>(si);
+	iterEnd = dd.template end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		TBaseElem* elem = *iter;
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < vUserData.size(); ++i)
+		{
+		//	get function index
+			const size_t fct = vUserData[i].fct;
+
+		//	get local finite element id
+			const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+		//	get dof position
+			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+
+		//	get multi indices
+			dd.inner_multi_indices(elem, fct, multInd);
+
+			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+		//	loop dofs on element
+			for(size_t j = 0; j < vPos.size(); ++j)
+			{
+			// 	check if function is dirichlet and read value
+				if(!vUserData[i](val, vPos[j], time)) continue;
+
+				const size_t index = multInd[j][0];
+				const size_t alpha = multInd[j][1];
+
+			//	set dirichlet row
+				SetDirichletRow(A, index, alpha);
+
+			//	set dirichlet value in rhs
+				BlockRef(b[index], alpha) = val;
+			}
+		}
+	}
+
+//	done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	adjust RHS
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_rhs(vector_type& b, const vector_type& u,
+           const dof_distribution_type& dd, number time)
+{
+	bool bRet = true;
+	bRet &= adjust_rhs<BNDNumberData>(m_mConditionalBoundarySegment, b, u, dd, time);
+	bRet &= adjust_rhs<NumberData>(m_mBoundarySegment, b, u, dd, time);
+	return bRet;
+}
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
+           vector_type& b, const vector_type& u,
+           const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
-	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
+	//	get subset index
 		const int si = (*iter).first;
-		const std::vector<BNDNumberData>& userData = (*iter).second;
 
-		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData>& vUserData = (*iter).second;
 
-		if(!set_dirichlet_rhs(iterBegin, iterEnd, userData, si, rhs, u, dofDistr, time))
+	//	adapt jacobian for dofs in each base element type
+		bool bRes = true;
+		if(dd.has_indices_on(VERTEX))
+			bRes &= adjust_rhs<VertexBase, TUserData>(vUserData, si, b, u, dd, time);
+		if(dd.has_indices_on(EDGE))
+			bRes &= adjust_rhs<EdgeBase, TUserData>(vUserData, si, b, u, dd, time);
+		if(dd.has_indices_on(FACE))
+			bRes &= adjust_rhs<Face, TUserData>(vUserData, si, b, u, dd, time);
+		if(dd.has_indices_on(VOLUME))
+			bRes &= adjust_rhs<Volume, TUserData>(vUserData, si, b, u, dd, time);
+
+	//	check success
+		if(!bRes)
 		{
 			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_rhs':"
-					" while calling 'clear_dirichlet_rhs', aborting.\n");
+					" While calling 'adjust_rhs' for TUserData, aborting.\n");
 			return false;
 		}
 	}
-	return true;
-}
 
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-clear_dirichlet_defect(	geometry_traits<VertexBase>::const_iterator iterBegin,
-						geometry_traits<VertexBase>::const_iterator iterEnd,
-						const std::vector<BNDNumberData>& userData, int si,
-						vector_type& d,
-						const vector_type& u, const dof_distribution_type& dofDistr, number time)
-{
-//	create Multiindex
-	multi_index_vector_type multInd;
-
-//	for readin
-	number val;
-	position_type corner;
-
-//	loop vertices
-	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-	//	get vertex
-		VertexBase* vertex = *iter;
-
-	//	get corner position
-		corner = m_aaPos[vertex];
-
-	//	loop dirichlet functions on this segment
-		for(size_t i = 0; i < userData.size(); ++i)
-		{
-		// 	check if function is dirichlet
-			if(!userData[i].functor(val, corner, time)) continue;
-
-		//	get function index
-			const size_t fct = userData[i].fct;
-
-		//	get multi indices
-			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
-				return false;
-
-		//	set dirichlet value
-			BlockRef(d[multInd[0][0]], multInd[0][1]) = 0.0;
-		}
-	}
+//	ok
 	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-clear_dirichlet_jacobian(	geometry_traits<VertexBase>::const_iterator iterBegin,
-							geometry_traits<VertexBase>::const_iterator iterEnd,
-							const std::vector<BNDNumberData>& userData, int si,
-							matrix_type& J,
-							const vector_type& u, const dof_distribution_type& dofDistr, number time)
+template <typename TBaseElem, typename TUserData>
+bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+adjust_rhs(const std::vector<TUserData>& vUserData, int si,
+           vector_type& b, const vector_type& u,
+           const dof_distribution_type& dd, number time)
 {
 //	create Multiindex
 	multi_index_vector_type multInd;
 
-//	for readin
+//	readin value
 	number val;
-	position_type corner;
 
-//	loop vertices
-	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd.template begin<TBaseElem>(si);
+	iterEnd = dd.template end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
 	{
 	//	get vertex
-		VertexBase* vertex = *iter;
-
-	//	get corner position
-		corner = m_aaPos[vertex];
+		TBaseElem* elem = *iter;
 
 	//	loop dirichlet functions on this segment
-		for(size_t i = 0; i < userData.size(); ++i)
+		for(size_t i = 0; i < vUserData.size(); ++i)
 		{
-		// 	check if function is dirichlet
-			if(!userData[i].functor(val, corner, time)) continue;
-
 		//	get function index
-			const size_t fct = userData[i].fct;
+			const size_t fct = vUserData[i].fct;
+
+		//	get local finite element id
+			const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+		//	get dof position
+			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
 
 		//	get multi indices
-			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
-				return false;
+			dd.inner_multi_indices(elem, fct, multInd);
 
-		//	set dirichlet row
-			SetDirichletRow(J, multInd[0][0], multInd[0][1]);
+			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+		//	loop dofs on element
+			for(size_t j = 0; j < vPos.size(); ++j)
+			{
+			// 	check if function is dirichlet and read value
+				if(!vUserData[i](val, vPos[j], time)) continue;
+
+				const size_t index = multInd[j][0];
+				const size_t alpha = multInd[j][1];
+
+			//	set dirichlet value in rhs
+				BlockRef(b[index], alpha) = val;
+			}
 		}
 	}
+
+//	done
 	return true;
 }
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-set_dirichlet_solution(	geometry_traits<VertexBase>::const_iterator iterBegin,
-						geometry_traits<VertexBase>::const_iterator iterEnd,
-						const std::vector<BNDNumberData>& userData, int si,
-						vector_type& x,
-						const dof_distribution_type& dofDistr, number time)
-{
-//	create Multiindex
-	multi_index_vector_type multInd;
-
-//	for readin
-	number val;
-	position_type corner;
-
-//	loop vertices
-	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-	//	get vertex
-		VertexBase* vertex = *iter;
-
-	//	get corner position
-		corner = m_aaPos[vertex];
-
-	//	loop dirichlet functions on this segment
-		for(size_t i = 0; i < userData.size(); ++i)
-		{
-		// 	check if function is dirichlet
-			if(!userData[i].functor(val, corner, time)) continue;
-
-		//	get function index
-			const size_t fct = userData[i].fct;
-
-		//	get multi indices
-			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
-				return false;
-
-		//	set dirichlet value
-			BlockRef(x[multInd[0][0]], multInd[0][1]) = val;
-		}
-	}
-	return true;
-}
-
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-set_dirichlet_linear(	geometry_traits<VertexBase>::const_iterator iterBegin,
-						geometry_traits<VertexBase>::const_iterator iterEnd,
-						const std::vector<BNDNumberData>& userData, int si,
-						matrix_type& mat, vector_type& rhs,
-						const vector_type& u, const dof_distribution_type& dofDistr, number time)
-{
-//	create Multiindex
-	multi_index_vector_type multInd;
-
-//	for readin
-	number val;
-	position_type corner;
-
-//	loop vertices
-	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-	//	get vertex
-		VertexBase* vertex = *iter;
-
-	//	get corner position
-		corner = m_aaPos[vertex];
-
-	//	loop dirichlet functions on this segment
-		for(size_t i = 0; i < userData.size(); ++i)
-		{
-		// 	check if function is dirichlet
-			if(!userData[i].functor(val, corner, time)) continue;
-
-		//	get function index
-			const size_t fct = userData[i].fct;
-
-		//	get multi indices
-			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
-				return false;
-
-			const size_t index = multInd[0][0];
-			const size_t alpha = multInd[0][1];
-
-		//	set dirichlet value
-			BlockRef(rhs[index], alpha) = val;
-
-		//	set dirichlet row
-			SetDirichletRow(mat, index, alpha);
-		}
-	}
-	return true;
-}
-
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-set_dirichlet_rhs(	geometry_traits<VertexBase>::const_iterator iterBegin,
-					geometry_traits<VertexBase>::const_iterator iterEnd,
-					const std::vector<BNDNumberData>& userData, int si,
-					vector_type& rhs,
-					const vector_type& u, const dof_distribution_type& dofDistr, number time)
-{
-//	create Multiindex
-	multi_index_vector_type multInd;
-
-//	for readin
-	number val;
-	position_type corner;
-
-//	loop vertices
-	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-	//	get vertex
-		VertexBase* vertex = *iter;
-
-	//	get corner position
-		corner = m_aaPos[vertex];
-
-	//	loop dirichlet functions on this segment
-		for(size_t i = 0; i < userData.size(); ++i)
-		{
-		// 	check if function is dirichlet
-			if(!userData[i].functor(val, corner, time)) continue;
-
-		//	get function index
-			const size_t fct = userData[i].fct;
-
-		//	get multi indices
-			if(dofDistr.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
-				return false;
-
-			const size_t index = multInd[0][0];
-			const size_t alpha = multInd[0][1];
-
-		//	set dirichlet value
-			BlockRef(rhs[index], alpha) = val;
-		}
-	}
-	return true;
-}
-
 
 } // end namespace ug
 

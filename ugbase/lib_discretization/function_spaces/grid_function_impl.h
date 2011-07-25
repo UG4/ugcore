@@ -14,35 +14,13 @@
 
 namespace ug{
 
-template <typename TDoFDistribution>
-void
-IGridFunction<TDoFDistribution>::
-assign_dof_distribution(typename IGridFunction<TDoFDistribution>::dof_distribution_type& DoFDistr, bool adapt)
-{
-//	unregister from dof distribution iff already dd set
-	if(m_pDD != NULL)
-		m_pDD->unmanage_grid_function(*this);
-
-//	remember new dof distribution
-	m_pDD = &DoFDistr;
-
-//	schedule for adaption
-	if(adapt)
-		m_pDD->manage_grid_function(*this);
-
-//	resize the vector
-	resize_values(num_indices());
-}
-
 ////////////////////////////////////////////////////////////////////////////////
-//	dof_positions
+//	DoFPositions
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-template <typename TElem>
+template <typename TElem, typename TDomain>
 bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDomain& domain, LFEID lfeID)
 {
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -51,134 +29,8 @@ dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) cons
 //	reference element dimension
 	static const int refDim = reference_element_type::dim;
 
-//	reference object id
-	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
-
-//	vector for the vertex positions
-	std::vector<MathVector<dim> > vVertPos(reference_element_type::num_corners);
-
-//	get the vertices
-	CollectCornerCoordinates(vVertPos, *elem, get_domain(), true);
-
-//	create a reference mapping
-	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
-
-//	get finite element id
-	LFEID lfeID = this->local_finite_element_id(fct);
-
-//	get local shape function set
-	const DimLocalShapeFunctionSet<dim>& lsfs
-		= LocalShapeFunctionSetProvider::get<reference_element_type>(roid, lfeID);
-
-//	typedef local position type
-	typedef typename DimLocalShapeFunctionSet<dim>::position_type local_pos_type;
-
-//	clear pos
-	vPos.resize(lsfs.num_sh());
-
-//	bool flag if position is exact, or no exact position available for shapes
-	bool bExact = true;
-
-//	loop all shape functions
-	for(size_t sh = 0; sh < lsfs.num_sh(); ++sh)
-	{
-	//	get local position
-		local_pos_type locPos;
-		bExact &= lsfs.position(sh, locPos);
-
-	//	map to global position
-		map.local_to_global(vPos[sh], locPos);
-	}
-
-//	return if positions are given exactly
-	return bExact;
-};
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-dof_positions(GeometricObject* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-	switch(elem->base_object_type_id())
-	{
-		case VERTEX: return dof_positions(static_cast<VertexBase*>(elem), fct, vPos);
-		case EDGE:   return dof_positions(static_cast<EdgeBase*>(elem), fct, vPos);
-		case FACE:   return dof_positions(static_cast<Face*>(elem), fct, vPos);
-		case VOLUME: return dof_positions(static_cast<Volume*>(elem), fct, vPos);
-	}
-	throw(UGFatalError("Base Object type not found."));
-}
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-dof_positions(VertexBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-	switch(elem->shared_pipe_section())
-	{
-		case SPSVRT_VERTEX: 		return dof_positions(static_cast<Vertex*>(elem), fct, vPos);
-		case SPSVRT_HANGING_VERTEX: return dof_positions(static_cast<HangingVertex*>(elem), fct, vPos);
-	}
-	throw(UGFatalError("Vertex type not found."));
-}
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-dof_positions(EdgeBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-	switch(elem->shared_pipe_section())
-	{
-		case SPSEDGE_EDGE: 			   return dof_positions(static_cast<Edge*>(elem), fct, vPos);
-		case SPSEDGE_CONSTRAINED_EDGE: return dof_positions(static_cast<ConstrainedEdge*>(elem), fct, vPos);
-		case SPSEDGE_CONSTRAINING_EDGE:return dof_positions(static_cast<ConstrainingEdge*>(elem), fct, vPos);
-	}
-	throw(UGFatalError("Edge type not found."));
-}
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-dof_positions(Face* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-	switch(elem->shared_pipe_section())
-	{
-		case SPSFACE_TRIANGLE: return dof_positions(static_cast<Triangle*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINED_TRIANGLE: return dof_positions(static_cast<ConstrainedTriangle*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINING_TRIANGLE: return dof_positions(static_cast<ConstrainingTriangle*>(elem), fct, vPos);
-		case SPSFACE_QUADRILATERAL: return dof_positions(static_cast<Quadrilateral*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINED_QUADRILATERAL: return dof_positions(static_cast<ConstrainedQuadrilateral*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINING_QUADRILATERAL: return dof_positions(static_cast<ConstrainingQuadrilateral*>(elem), fct, vPos);
-	}
-	throw(UGFatalError("Face type not found."));
-}
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-dof_positions(Volume* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-	switch(elem->shared_pipe_section())
-	{
-		case SPSVOL_TETRAHEDRON: return dof_positions(static_cast<Tetrahedron*>(elem), fct, vPos);
-		case SPSVOL_PYRAMID: return dof_positions(static_cast<Pyramid*>(elem), fct, vPos);
-		case SPSVOL_PRISM: return dof_positions(static_cast<Prism*>(elem), fct, vPos);
-		case SPSVOL_HEXAHEDRON: return dof_positions(static_cast<Hexahedron*>(elem), fct, vPos);
-	}
-	throw(UGFatalError("Volume type not found."));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//	inner_dof_positions
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-template <typename TElem>
-bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-//	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			reference_element_type;
-
-//	reference element dimension
-	static const int refDim = reference_element_type::dim;
+//	physical world dimension
+	static const int dim = TDomain::dim;
 
 //	reference object id
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
@@ -187,13 +39,10 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 	std::vector<MathVector<dim> > vVertPos(reference_element_type::num_corners);
 
 //	get the vertices
-	CollectCornerCoordinates(vVertPos, *elem, get_domain(), true);
+	CollectCornerCoordinates(vVertPos, *elem, domain, true);
 
 //	create a reference mapping
 	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
-
-//	get finite element id
-	LFEID lfeID = this->local_finite_element_id(fct);
 
 //	get local shape function set
 	const DimLocalShapeFunctionSet<refDim>& lsfs
@@ -234,78 +83,245 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 	return bExact;
 };
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-inner_dof_positions(GeometricObject* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+template <typename TDomain>
+bool
+DoFPositionOnVertex(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID)
+{
+//\todo: handle finite element spaces with more than on DoF in Vertex
+
+//	get the vertices
+	CollectCornerCoordinates(vPos, *elem, domain, true);
+
+//	return if positions are given exactly
+	return true;
+};
+
+template <typename TDomain>
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID)
 {
 	switch(elem->base_object_type_id())
 	{
-		case VERTEX: return inner_dof_positions(static_cast<VertexBase*>(elem), fct, vPos);
-		case EDGE:   return inner_dof_positions(static_cast<EdgeBase*>(elem), fct, vPos);
-		case FACE:   return inner_dof_positions(static_cast<Face*>(elem), fct, vPos);
-		case VOLUME: return inner_dof_positions(static_cast<Volume*>(elem), fct, vPos);
+		case VERTEX: return InnerDoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID);
+		case EDGE:   return InnerDoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID);
+		case FACE:   return InnerDoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID);
+		case VOLUME: return InnerDoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Base Object type not found."));
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-inner_dof_positions(VertexBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+template <typename TDomain>
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->shared_pipe_section())
-	{
-		case SPSVRT_VERTEX: 		return inner_dof_positions(static_cast<Vertex*>(elem), fct, vPos);
-		case SPSVRT_HANGING_VERTEX: return inner_dof_positions(static_cast<HangingVertex*>(elem), fct, vPos);
-	}
-	throw(UGFatalError("Vertex type not found."));
+	return  DoFPositionOnVertex(vPos, elem, domain, lfeID);
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-inner_dof_positions(EdgeBase* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+template <typename TDomain>
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID)
 {
 	switch(elem->shared_pipe_section())
 	{
-		case SPSEDGE_EDGE: 			   return inner_dof_positions(static_cast<Edge*>(elem), fct, vPos);
-		case SPSEDGE_CONSTRAINED_EDGE: return inner_dof_positions(static_cast<ConstrainedEdge*>(elem), fct, vPos);
-		case SPSEDGE_CONSTRAINING_EDGE:return inner_dof_positions(static_cast<ConstrainingEdge*>(elem), fct, vPos);
+		case SPSEDGE_EDGE: 			   return InnerDoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
+		case SPSEDGE_CONSTRAINED_EDGE: return InnerDoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
+		case SPSEDGE_CONSTRAINING_EDGE:return InnerDoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Edge type not found."));
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-inner_dof_positions(Face* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+template <typename TDomain>
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID)
 {
 	switch(elem->shared_pipe_section())
 	{
-		case SPSFACE_TRIANGLE: return inner_dof_positions(static_cast<Triangle*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINED_TRIANGLE: return inner_dof_positions(static_cast<ConstrainedTriangle*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINING_TRIANGLE: return inner_dof_positions(static_cast<ConstrainingTriangle*>(elem), fct, vPos);
-		case SPSFACE_QUADRILATERAL: return inner_dof_positions(static_cast<Quadrilateral*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINED_QUADRILATERAL: return inner_dof_positions(static_cast<ConstrainedQuadrilateral*>(elem), fct, vPos);
-		case SPSFACE_CONSTRAINING_QUADRILATERAL: return inner_dof_positions(static_cast<ConstrainingQuadrilateral*>(elem), fct, vPos);
+		case SPSFACE_TRIANGLE: return InnerDoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINED_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINING_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
+		case SPSFACE_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINED_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINING_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Face type not found."));
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-inner_dof_positions(Volume* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+template <typename TDomain>
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID)
 {
 	switch(elem->shared_pipe_section())
 	{
-		case SPSVOL_TETRAHEDRON: return inner_dof_positions(static_cast<Tetrahedron*>(elem), fct, vPos);
-		case SPSVOL_PYRAMID: return inner_dof_positions(static_cast<Pyramid*>(elem), fct, vPos);
-		case SPSVOL_PRISM: return inner_dof_positions(static_cast<Prism*>(elem), fct, vPos);
-		case SPSVOL_HEXAHEDRON: return inner_dof_positions(static_cast<Hexahedron*>(elem), fct, vPos);
+		case SPSVOL_TETRAHEDRON: return InnerDoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
+		case SPSVOL_PYRAMID: return InnerDoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
+		case SPSVOL_PRISM: return InnerDoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
+		case SPSVOL_HEXAHEDRON: return InnerDoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Volume type not found."));
 }
 
 
+
+
+template <typename TElem, typename TDomain>
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDomain& domain, LFEID lfeID)
+{
+//	reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
+
+//	reference element dimension
+	static const int refDim = reference_element_type::dim;
+
+//	physical world dimension
+	static const int dim = TDomain::dim;
+
+//	reference object id
+	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
+
+//	vector for the vertex positions
+	std::vector<MathVector<TDomain::dim> > vVertPos(reference_element_type::num_corners);
+
+//	get the vertices
+	CollectCornerCoordinates(vVertPos, *elem, domain, true);
+
+//	create a reference mapping
+	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
+
+//	get local shape function set
+	const DimLocalShapeFunctionSet<dim>& lsfs
+		= LocalShapeFunctionSetProvider::get<reference_element_type>(roid, lfeID);
+
+//	typedef local position type
+	typedef typename DimLocalShapeFunctionSet<dim>::position_type local_pos_type;
+
+//	clear pos
+	vPos.resize(lsfs.num_sh());
+
+//	bool flag if position is exact, or no exact position available for shapes
+	bool bExact = true;
+
+//	loop all shape functions
+	for(size_t sh = 0; sh < lsfs.num_sh(); ++sh)
+	{
+	//	get local position
+		local_pos_type locPos;
+		bExact &= lsfs.position(sh, locPos);
+
+	//	map to global position
+		map.local_to_global(vPos[sh], locPos);
+	}
+
+//	return if positions are given exactly
+	return bExact;
+};
+
+template <typename TDomain>
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID)
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return DoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID);
+		case EDGE:   return DoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID);
+		case FACE:   return DoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID);
+		case VOLUME: return DoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID);
+	}
+	throw(UGFatalError("Base Object type not found."));
+}
+
+template <typename TDomain>
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID)
+{
+	return  DoFPositionOnVertex(vPos, elem, domain, lfeID);
+}
+
+template <typename TDomain>
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID)
+{
+	switch(elem->shared_pipe_section())
+	{
+		case SPSEDGE_EDGE: 			   return DoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
+		case SPSEDGE_CONSTRAINED_EDGE: return DoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
+		case SPSEDGE_CONSTRAINING_EDGE:return DoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
+	}
+	throw(UGFatalError("Edge type not found."));
+}
+
+template <typename TDomain>
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID)
+{
+	switch(elem->shared_pipe_section())
+	{
+		case SPSFACE_TRIANGLE: return DoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINED_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINING_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
+		case SPSFACE_QUADRILATERAL: return DoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINED_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
+		case SPSFACE_CONSTRAINING_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
+	}
+	throw(UGFatalError("Face type not found."));
+}
+
+template <typename TDomain>
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID)
+{
+	switch(elem->shared_pipe_section())
+	{
+		case SPSVOL_TETRAHEDRON: return DoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
+		case SPSVOL_PYRAMID: return DoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
+		case SPSVOL_PRISM: return DoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
+		case SPSVOL_HEXAHEDRON: return DoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
+	}
+	throw(UGFatalError("Volume type not found."));
+}
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	IGridFunction
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <typename TDoFDistribution>
+void
+IGridFunction<TDoFDistribution>::
+assign_dof_distribution(typename IGridFunction<TDoFDistribution>::dof_distribution_type& DoFDistr, bool adapt)
+{
+//	unregister from dof distribution iff already dd set
+	if(m_pDD != NULL)
+		m_pDD->unmanage_grid_function(*this);
+
+//	remember new dof distribution
+	m_pDD = &DoFDistr;
+
+//	schedule for adaption
+	if(adapt)
+		m_pDD->manage_grid_function(*this);
+
+//	resize the vector
+	resize_values(num_indices());
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TElem>
+bool
+GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+{
+	return DoFPosition(vPos, elem, get_domain, this->local_finite_element_id(fct));
+};
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TElem>
+bool
+GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
+{
+	return InnerDoFPosition(vPos, elem, get_domain(), this->local_finite_element_id(fct));
+};
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void
