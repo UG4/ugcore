@@ -8,13 +8,14 @@
 #ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__NEUMANN_BOUNDARY__
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__NEUMANN_BOUNDARY__
 
+#include <boost/function.hpp>
+
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 
 namespace ug{
 
@@ -53,17 +54,17 @@ class FV1NeumannBoundaryElemDisc
 
 	protected:
 	///	type of bnd number
-		typedef typename IBoundaryData<number, dim>::functor_type BNDNumberFunctor;
+		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 
 	public:
 	///	default constructor
 		FV1NeumannBoundaryElemDisc();
 
 	///	add a boundary value
-		bool add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const char* subsets);
+		bool add_boundary_value(BNDNumberFunctor& user, const char* function, const char* subsets);
 
 	///	add a boundary value
-		bool add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bndSubsetGroup);
+		bool add_boundary_value(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup);
 
 	private:
 	//	Functor, function grouping

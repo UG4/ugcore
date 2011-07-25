@@ -11,7 +11,6 @@
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
 #include "lib_discretization/function_spaces/approximation_space.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 #include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 
@@ -50,7 +49,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
 
 	public:
-		typedef typename IBoundaryData<number, dim>::functor_type BNDNumberFunctor;
+		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 
 		P1DirichletBoundary() :
 			m_pDomain(NULL), m_pPattern(NULL) {	m_mBoundarySegment.clear();}
@@ -62,7 +61,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 					delete m_vConstBoundaryNumber[i];
 		}
 
-		bool add_boundary_value(typename IBoundaryData<number, dim>::functor_type func,
+		bool add_boundary_value(BNDNumberFunctor& func,
 								const char* function, const char* subsets)
 		{
 		//	check that function pattern exists
@@ -98,14 +97,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 			return add_boundary_value(func, functionGroup.unique_id(0), subsetGroup);
 		}
 
-		bool add_boundary_value(IBoundaryData<number, dim>& user,
-								const char* function, const char* subsets)
-		{
-		//	forward request
-			return add_boundary_value(user.get_functor(), function, subsets);
-		}
-
-		bool add_boundary_value(typename IBoundaryData<number, dim>::functor_type func,
+		bool add_boundary_value(BNDNumberFunctor func,
 								size_t fct, SubsetGroup subsetGroup)
 		{
 		//	check that function pattern exists
@@ -157,13 +149,6 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 		//	we're done
 			return true;
-		}
-
-		bool add_boundary_value(IBoundaryData<number, dim>& user,
-								size_t fct, SubsetGroup subsetGroup)
-		{
-		//	forward request
-			return add_boundary_value(user.get_functor(), fct, subsetGroup);
 		}
 
 		bool add_constant_boundary_value(number value,  const char* function, const char* subsets)

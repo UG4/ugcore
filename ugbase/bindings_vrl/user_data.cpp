@@ -8,6 +8,8 @@
 #include "threading.h"
 #include <iostream>
 #include <sstream>
+#include <boost/function.hpp>
+#include "../lib_discretization/spatial_discretization/ip_data/ip_data.h"
 
 //#include "const_user_data.h"
 
@@ -250,11 +252,16 @@ jmethodID getBoundaryUserDataRunMethod(JNIEnv *env, jclass cls) {
 }
 
 template <int dim>
-class UserNumber : public IUserData<number, dim> {
+class UserNumber
+	: public IPData<number, dim>,
+	  public boost::function<void (number& res, const MathVector<dim>& x,number time)>
+{
 public:
+///	Base class type
+	typedef IPData<number, dim> base_type;
 
-	///	Base class type
-	typedef IUserData<number, dim> base_type;
+///	Functor type
+	typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> func_type;
 
 	using base_type::num_series;
 	using base_type::num_ip;
@@ -262,19 +269,9 @@ public:
 	using base_type::time;
 	using base_type::value;
 
-
-	//	Functor Type
-	typedef typename base_type::functor_type functor_type;
-
-	//	return functor
-
-	virtual functor_type get_functor() const {
-		return *this;
-	}
-
 public:
 
-	UserNumber() {
+	UserNumber() : func_type(boost::ref(*this)) {
 		javaVM = getJavaVM();
 		expression = "";
 		returnValueDim = 0;
@@ -367,11 +364,16 @@ private:
 };
 
 template <int dim>
-class UserVector : public IUserData<MathVector<dim>, dim> {
+class UserVector
+: public IPData<MathVector<dim>, dim>,
+  public boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)>
+{
 public:
+/// Base class type
+	typedef IPData<MathVector<dim>, dim> base_type;
 
-	///	Base class type
-	typedef IUserData<MathVector<dim>, dim> base_type;
+///	Functor type
+	typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> func_type;
 
 	using base_type::num_series;
 	using base_type::num_ip;
@@ -379,19 +381,9 @@ public:
 	using base_type::time;
 	using base_type::value;
 
-
-	//	Functor Type
-	typedef typename base_type::functor_type functor_type;
-
-	//	return functor
-
-	virtual functor_type get_functor() const {
-		return *this;
-	}
-
 public:
 
-	UserVector() {
+	UserVector() : func_type(boost::ref(*this)) {
 		javaVM = getJavaVM();
 		expression = "";
 		returnValueDim = 1;
@@ -502,24 +494,15 @@ private:
 };
 
 template <int dim>
-class BoundaryNumber : public IBoundaryData<number, dim> {
-public:
-
-	///	Base class type
-	typedef IBoundaryData<number, dim> base_type;
-
-	//	Functor Type
-	typedef typename base_type::functor_type functor_type;
-
-	//	return functor
-
-	virtual functor_type get_functor() const {
-		return *this;
-	}
+class BoundaryNumber
+: public boost::function<bool (number& res, const MathVector<dim>& x,number time)>
+{
+/// functor type
+	typedef boost::function<bool (number& res, const MathVector<dim>& x,number time)> func_type;
 
 public:
 
-	BoundaryNumber() {
+	BoundaryNumber() : func_type(boost::ref(*this)) {
 		javaVM = getJavaVM();
 		expression = "";
 
@@ -595,12 +578,13 @@ private:
 
 class PrintUserNumber2d {
 protected:
-	typedef IUserData<number, 2 > ::functor_type NumberFunctor;
+/// functor type
+	typedef boost::function<void (number& res, const MathVector<2>& x,number time)> func_type;
 
 public:
 
-	void set_user_number(IUserData<number, 2 > & user) {
-		m_Number = user.get_functor();
+	void set_user_number(func_type& user) {
+		m_Number = user;
 	}
 
 	number print(number x, number y) {
@@ -619,17 +603,18 @@ public:
 	}
 
 private:
-	NumberFunctor m_Number;
+	func_type m_Number;
 };
 
 class PrintUserVector2d {
 protected:
-	typedef IUserData<MathVector < 2 >, 2 > ::functor_type NumberFunctor;
+/// functor type
+	typedef boost::function<void (MathVector<2>& res, const MathVector<2>& x,number time)> func_type;
 
 public:
 
-	void set_user_vector(IUserData<MathVector < 2 >, 2 > & user) {
-		m_Number = user.get_functor();
+	void set_user_vector(func_type& user) {
+		m_Number = user;
 	}
 
 	void print(number x, number y) {
@@ -650,17 +635,18 @@ public:
 	}
 
 private:
-	NumberFunctor m_Number;
+	func_type m_Number;
 };
 
 class PrintBoundaryNumber2d {
 protected:
-	typedef IBoundaryData<number, 2 > ::functor_type NumberFunctor;
+/// functor type
+	typedef boost::function<bool (number& res, const MathVector<2>& x,number time)> func_type;
 
 public:
 
-	void set_user_number(IBoundaryData<number, 2 > & user) {
-		m_Number = user.get_functor();
+	void set_user_number(func_type& user) {
+		m_Number = user;
 	}
 
 	std::string print(number x, number y) {
@@ -684,7 +670,7 @@ public:
 	}
 
 private:
-	NumberFunctor m_Number;
+	func_type m_Number;
 };
 
 template <int dim>
@@ -730,7 +716,9 @@ void RegisterUserData(ug::bridge::Registry& reg,
 
 		options << "];";
 
-		reg.add_class_<T, IUserData<number, dim> >(
+		typedef IPData<number, dim> TBase;
+		typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> TBase2;
+		reg.add_class_<T, TBase, TBase2>(
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userNumber", &T::set_vrl_callback, "",
@@ -754,7 +742,9 @@ void RegisterUserData(ug::bridge::Registry& reg,
 
 		options << "];";
 
-		reg.add_class_<T, IUserData<MathVector<dim>, dim> >(
+		typedef IPData<MathVector<dim>, dim> TBase;
+		typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> TBase2;
+		reg.add_class_<T, TBase, TBase2>(
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userVector", &T::set_vrl_callback, "",
@@ -778,7 +768,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 
 		options << "];";
 
-		reg.add_class_<T, IBoundaryData<number, dim> >(
+		typedef boost::function<bool (number& res, const MathVector<dim>& x, number time)> TBase;
+		reg.add_class_<T, TBase>(
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("boundaryNumber", &T::set_vrl_callback, "",
@@ -802,25 +793,19 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup) {
 	ug::vrl::RegisterUserData < 2 > (reg, paramNames, parentGroup);
 
 	typedef PrintUserNumber2d T;
-	std::stringstream ss;
-	ss << "PrintUserNumber2d";
-	reg.add_class_<T > (ss.str().c_str(), parentGroup)
+	reg.add_class_<T > ("PrintUserNumber2d", parentGroup)
 			.add_constructor()
 			.add_method("set_user_number", &T::set_user_number, "", "NumberProvider")
 			.add_method("print", &T::print, "Result", "x#y");
 
 	typedef PrintUserVector2d T2;
-	std::stringstream ss2;
-	ss2 << "PrintUserVector2d";
-	reg.add_class_<T2 > (ss2.str().c_str(), parentGroup)
+	reg.add_class_<T2 > ("PrintUserVector2d", parentGroup)
 			.add_constructor()
 			.add_method("set_user_vector", &T2::set_user_vector, "", "NumberProvider")
 			.add_method("print", &T2::print, "Result", "x#y");
 
 	typedef PrintBoundaryNumber2d T3;
-	std::stringstream ss3;
-	ss3 << "PrintBoundaryNumber2d";
-	reg.add_class_<T3 > (ss3.str().c_str(), parentGroup)
+	reg.add_class_<T3 > ("PrintBoundaryNumber2d", parentGroup)
 			.add_constructor()
 			.add_method("set_user_number", &T3::set_user_number, "", "BoundaryNumber")
 			.add_method("print", &T3::print, "Result", "x#y");

@@ -282,6 +282,18 @@ struct linker_traits< MathMatrix<dim,dim>, number >
 	}
 };
 
+template <std::size_t dim>
+struct linker_traits< MathTensor<4,dim>, number >
+{
+	static void mult_add(MathTensor<4,dim>& out,
+	                     const MathTensor<4, dim>& in1,
+						 const number& s)
+	{
+		out = in1;
+		throw(UGFatalError("linker_traits for MathTensor4 not implemented"));
+	}
+};
+
 
 /////////////////////////////////////////////////
 // Scaled adding of Data

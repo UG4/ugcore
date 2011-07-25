@@ -105,6 +105,29 @@ std::string GetDomainTag()
 	return ss.str();
 }
 
+/// returns the dim-suffix for a domain (e.g. "3d")
+template <int dim>
+std::string GetDomainSuffix()
+{
+//	the dimension suffix
+	std::stringstream ss; ss << dim << "d";
+
+//	return the suffix
+	return ss.str();
+}
+
+/// returns the dim-tag for a domain (e.g. "dim=3d")
+template <int dim>
+std::string GetDomainTag()
+{
+//	the dimension suffix
+	std::stringstream ss; ss << "dim="<< GetDomainSuffix<dim>();
+
+//	return the suffix
+	return ss.str();
+}
+
+
 }//	end of namespace 
 }//	end of namespace 
 

@@ -10,11 +10,20 @@
 
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include <boost/function.hpp>
 
-#include "user_data_interface.h"
+#include <boost/function.hpp>
+#include "ip_data.h"
 
 namespace ug {
+
+/**
+ * \brief User Data
+ *
+ * User Data that can be used in assembling routines.
+ *
+ * \defgroup lib_disc_user_data User Data
+ * \ingroup lib_discretization
+ */
 
 /// \addtogroup lib_disc_user_data
 /// @{
@@ -22,10 +31,14 @@ namespace ug {
 /// constant scalar user data
 template <int dim>
 class ConstUserNumber
-	: public IUserData<number, dim>
+	: public IPData<number, dim>,
+	  public boost::function<void (number& res, const MathVector<dim>& x,number time)>
 {
 	///	Base class type
-		typedef IUserData<number, dim> base_type;
+		typedef IPData<number, dim> base_type;
+
+	///	Functor type
+		typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -34,15 +47,8 @@ class ConstUserNumber
 		using base_type::value;
 
 	public:
-	///	Functor Type
-		typedef typename base_type::functor_type functor_type;
-
-	///	return functor
-		virtual functor_type get_functor() const {return boost::ref(*this);}
-
-	public:
 	///	creates empty user number
-		ConstUserNumber() { set(0.0);}
+		ConstUserNumber() : func_type(boost::ref(*this)) {set(0.0);}
 
 	///	set constant value
 		void set(number val) {m_Number = val;}
@@ -76,10 +82,14 @@ class ConstUserNumber
 /// constant vector user data
 template <int dim>
 class ConstUserVector
-	: public IUserData<MathVector<dim>, dim>
+	: public IPData<MathVector<dim>, dim>,
+	  public boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)>
 {
 	/// Base class type
-		typedef IUserData<MathVector<dim>, dim> base_type;
+		typedef IPData<MathVector<dim>, dim> base_type;
+
+	///	Functor type
+		typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -88,15 +98,8 @@ class ConstUserVector
 		using base_type::value;
 
 	public:
-	///	Functor Type
-		typedef typename base_type::functor_type functor_type;
-
-	///	return functor
-		virtual functor_type get_functor() const {return boost::ref(*this);}
-
-	public:
 	///	Constructor
-		ConstUserVector() {set_all_entries(0.0);}
+		ConstUserVector() : func_type(boost::ref(*this)) {set_all_entries(0.0);}
 
 	///	set all vector entries
 		void set_all_entries(number val) { m_Vector = val;}
@@ -133,10 +136,14 @@ class ConstUserVector
 /// constant matrix user data
 template <int dim>
 class ConstUserMatrix
-	: public IUserData<MathMatrix<dim, dim>, dim>
+	: public IPData<MathMatrix<dim, dim>, dim>,
+	  public boost::function<void (MathMatrix<dim, dim>& res, const MathVector<dim>& x,number time)>
 {
 	/// Base class type
-		typedef IUserData<MathMatrix<dim, dim>, dim> base_type;
+		typedef IPData<MathMatrix<dim, dim>, dim> base_type;
+
+	///	Functor type
+		typedef boost::function<void (MathMatrix<dim, dim>& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -145,15 +152,8 @@ class ConstUserMatrix
 		using base_type::value;
 
 	public:
-	///	Functor Type
-		typedef typename base_type::functor_type functor_type;
-
-	///	return functor
-		virtual functor_type get_functor() const {return boost::ref(*this);}
-
-	public:
 	///	Constructor
-		ConstUserMatrix() {set_diag_tensor(1.0);}
+		ConstUserMatrix() : func_type(boost::ref(*this)) {set_diag_tensor(1.0);}
 
 	///	set diagonal of matrix to a vector
 		void set_diag_tensor(number val)
@@ -207,18 +207,15 @@ class ConstUserMatrix
 
 /// constant dirichlet boundary scalar user data
 template <int dim>
-class ConstBoundaryNumber : public IBoundaryData<number, dim>
+class ConstBoundaryNumber
+	 : public boost::function<bool (number& res, const MathVector<dim>& x,number time)>
 {
-	public:
-	///	Functor Type
-		typedef typename IBoundaryData<number, dim>::functor_type functor_type;
-
-	///	return functor
-		virtual functor_type get_functor() const {return boost::ref(*this);}
+	/// functor type
+		typedef boost::function<bool (number& res, const MathVector<dim>& x,number time)> func_type;
 
 	public:
 	///	Constructor
-		ConstBoundaryNumber() {set(0.0);}
+		ConstBoundaryNumber() : func_type(boost::ref(*this)) {set(0.0);}
 
 	///	set value
 		void set(number val) {m_Number = val;}

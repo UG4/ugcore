@@ -7,6 +7,7 @@
 
 #include "neumann_boundary.h"
 #include "common/util/provider.h"
+#include "lib_discretization/common/groups_util.h"
 #include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
 
 namespace ug{
@@ -15,7 +16,7 @@ namespace ug{
 template<typename TDomain>
 bool
 FV1NeumannBoundaryElemDisc<TDomain>::
-add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const char* subsets)
+add_boundary_value(BNDNumberFunctor& user, const char* function, const char* subsets)
 {
 //	create Function Group and Subset Group
 	FunctionGroup functionGroup;
@@ -52,7 +53,7 @@ add_boundary_value(IBoundaryData<number, dim>& user, const char* function, const
 template<typename TDomain>
 bool
 FV1NeumannBoundaryElemDisc<TDomain>::
-add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bndSubsetGroup)
+add_boundary_value(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup)
 {
 //	get subsethandler
 	const ISubsetHandler* pSH = this->get_fct_pattern().get_subset_handler();
@@ -88,7 +89,7 @@ add_boundary_value(IBoundaryData<number, dim>& user, size_t fct, SubsetGroup bnd
 		std::vector<UserDataFunction>& vSegmentFunction = m_mBoundarySegment[subsetIndex];
 
 	//	remember functor and function
-		vSegmentFunction.push_back(UserDataFunction(index, user.get_functor()));
+		vSegmentFunction.push_back(UserDataFunction(index, user));
 	}
 
 //	we're done

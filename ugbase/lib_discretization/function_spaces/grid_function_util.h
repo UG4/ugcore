@@ -8,12 +8,13 @@
 #ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
+#include <boost/function.hpp>
+
 #include "./grid_function.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "lib_algebra/operator/vector_writer.h"
 #include "lib_discretization/io/vtkoutput.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 #include "lib_discretization/spatial_discretization/post_process/post_process_interface.h"
 #include <vector>
 #include <string>
@@ -433,7 +434,9 @@ class GridFunctionVectorWriter
 		typedef typename TVector::value_type value_type;
 		typedef typename TGridFunction::domain_type domain_type;
 		typedef TVector vector_type;
-		typedef IUserData<number, domain_type::dim> userdata_type;
+		typedef boost::function<void (number& value,
+		                              const MathVector<domain_type::dim>& x,
+		                              number time)> NumberFunctor;
 
 	public:
 	///	Constructor
@@ -441,7 +444,7 @@ class GridFunctionVectorWriter
 			m_pGridFunc(NULL)
 		{}
 
-		void set_user_data(userdata_type *userData)
+		void set_user_data(const NumberFunctor& userData)
 		{
 			m_userData = userData;
 		}
@@ -473,7 +476,6 @@ class GridFunctionVectorWriter
 		//	resize positions
 			vec.resize(nr);
 
-			typename userdata_type::functor_type data = m_userData->get_functor();
 		//	loop all subsets
 			for(int si = 0; si < u.num_subsets(); ++si)
 			{
@@ -494,7 +496,7 @@ class GridFunctionVectorWriter
 					number t = 0.0;
 
 					number d;
-					data(d, aaPos[v], t);
+					m_userData(d, aaPos[v], t);
 
 				//	write
 					for(size_t i = 0; i < ind.size(); ++i)
@@ -510,7 +512,7 @@ class GridFunctionVectorWriter
 
 	protected:
 		const TGridFunction *m_pGridFunc;
-		userdata_type *m_userData;
+		NumberFunctor m_userData;
 };
 
 

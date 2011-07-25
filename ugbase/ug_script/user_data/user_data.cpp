@@ -1,18 +1,26 @@
+// author: Andreas Vogel
 
+#include <iostream>
+#include <sstream>
 
 #include "ug_bridge/ug_bridge.h"
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 #include "ug_script/ug_script.h"
-#include <iostream>
-#include <sstream>
 #include "user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_linker.h"
+
+using namespace std;
 
 namespace ug
 {
 namespace bridge
 {
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation
+///////////////////////////////////////////////////////////////////////////////
 
 /// Lua Traits to push/pop on lua stack
 template <typename TData>
@@ -92,10 +100,14 @@ struct lua_traits< MathMatrix<dim, dim> >
  */
 template <typename TData, int dim>
 class LuaUserData
-	: public IUserData<TData, dim>
+	: public IPData<TData, dim>,
+	  public boost::function<void (TData& res, const MathVector<dim>& x,number time)>
 {
 	///	Base class type
-		typedef IUserData<TData, dim> base_type;
+		typedef IPData<TData, dim> base_type;
+
+	///	Functor type
+		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -104,15 +116,8 @@ class LuaUserData
 		using base_type::value;
 
 	public:
-	//	Functor Type
-		typedef typename base_type::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return *this;}
-
-	public:
 	///	Constructor
-		LuaUserData()
+		LuaUserData() : func_type(boost::ref(*this))
 		{
 			m_L = ug::script::GetDefaultLuaState();
 			m_callbackRef = LUA_NOREF;
@@ -210,21 +215,14 @@ class LuaUserData
  */
 template <typename TData, int dim>
 class LuaBoundaryData
-	: public IBoundaryData<TData, dim>
+	: public boost::function<bool (TData& res, const MathVector<dim>& x,number time)>
 {
-	///	Base class type
-		typedef IBoundaryData<TData, dim> base_type;
-
-	public:
-	//	Functor Type
-		typedef typename base_type::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+	///	Functor type
+		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> func_type;
 
 	public:
 	///	Constructor
-		LuaBoundaryData()
+		LuaBoundaryData()  : func_type(boost::ref(*this))
 		{
 			m_L = ug::script::GetDefaultLuaState();
 			m_callbackRef = LUA_NOREF;
@@ -316,11 +314,11 @@ class LuaBoundaryData
  */
 template <typename TData, int dim, typename TDataIn>
 class LuaUserFunction
-	: public IUserFunction<TData, dim, TDataIn>
+	: public DataLinkerEqualData<TData, dim, TDataIn>
 {
 	public:
 	//	type of base class
-		typedef IUserFunction<TData, dim, TDataIn> base_type;
+		typedef DataLinkerEqualData<TData, dim, TDataIn> base_type;
 
 	//	explicitly forward methods of IIPData
 		using base_type::num_series;
@@ -660,53 +658,62 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 	return c;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Registration
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename TData, int dim>
+bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup)
+{
+	string grp = std::string(parentGroup);
+
+	string dimSuffix = GetDomainSuffix<dim>();
+	string dimTag = GetDomainTag<dim>();
+
+//	LuaUser"Type"
+	{
+		typedef LuaUserData<TData, dim> T;
+		typedef IPData<TData, dim> TBase;
+		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> TBase2;
+		string name = string("LuaUser").append(type).append(dimSuffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
+		reg.add_class_to_group(name, string("LuaUser").append(type), dimTag);
+	}
+
+//	LuaBoundary"Type"
+	{
+		typedef LuaBoundaryData<TData, dim> T;
+		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> TBase;
+		string name = string("LuaBoundary").append(type).append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
+		reg.add_class_to_group(name, string("LuaBoundary").append(type), dimTag);
+	}
+
+	return true;
+}
+
 template <int dim>
 void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 {
-	std::string grp = std::string(parentGroup);
+	string grp = std::string(parentGroup);
 
-//	LuaUserNumber
-	{
-		typedef LuaUserData<number, dim> T;
-		std::stringstream ss; ss << "LuaUserNumber" << dim << "d";
-		reg.add_class_<T, IUserData<number, dim> >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
-	}
+	string dimSuffix = GetDomainSuffix<dim>();
+	string dimTag = GetDomainTag<dim>();
 
-//	LuaUserVector
-	{
-		typedef LuaUserData<MathVector<dim>, dim> T;
-		std::stringstream ss; ss << "LuaUserVector" << dim << "d";
-		reg.add_class_<T, IUserData<MathVector<dim>, dim> >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
-	}
-
-//	LuaUserMatrix
-	{
-		typedef LuaUserData<MathMatrix<dim,dim>, dim> T;
-		std::stringstream ss; ss << "LuaUserMatrix" << dim << "d";
-		reg.add_class_<T, IUserData<MathMatrix<dim, dim>, dim> >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
-	}
-
-//	LuaBoundaryNumber
-	{
-		typedef LuaBoundaryData<number, dim> T;
-		std::stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
-		reg.add_class_<T, IBoundaryData<number, dim> >(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
-	}
+	RegisterLuaUserDataType<number, dim>(reg, "Number", parentGroup);
+	RegisterLuaUserDataType<MathVector<dim>, dim>(reg, "Vector", parentGroup);
+	RegisterLuaUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", parentGroup);
 
 //	LuaUserFunctionNumber
 	{
 		typedef LuaUserFunction<number, dim, number> T;
-		typedef IUserFunction<number, dim, number> TBase;
-		std::stringstream ss; ss << "LuaUserFunctionNumber" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), parentGroup)
+		typedef DataLinkerEqualData<number, dim, number> TBase;
+		string name = string("LuaUserFunctionNumber").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
 			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
@@ -715,9 +722,9 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 //	LuaUserFunctionMatrixNumber
 	{
 		typedef LuaUserFunction<MathMatrix<dim,dim>, dim, number> T;
-		typedef IUserFunction<MathMatrix<dim,dim>, dim, number> TBase;
-		std::stringstream ss; ss << "LuaUserFunctionMatrixNumber" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), parentGroup)
+		typedef DataLinkerEqualData<MathMatrix<dim,dim>, dim, number> TBase;
+		string name = string("LuaUserFunctionMatrixNumber").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
 			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
@@ -731,8 +738,7 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 //	LuaUserNumberNumberFunction
 	{
 		typedef LuaUserNumberNumberFunction T;
-		std::stringstream ss; ss << "LuaUserNumberNumberFunction";
-		reg.add_class_<T>(ss.str().c_str(), parentGroup)
+		reg.add_class_<T>("LuaUserNumberNumberFunction", parentGroup)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback);
 	}

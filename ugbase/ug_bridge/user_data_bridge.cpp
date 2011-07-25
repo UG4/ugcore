@@ -1,12 +1,17 @@
+// author: Andreas Vogel
 
+#include <iostream>
+#include <sstream>
+#include <boost/function.hpp>
 
 #include "ug_bridge/ug_bridge.h"
+
 #include "common/common.h"
 #include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_linker.h"
 #include "ug_script/ug_script.h"
-#include <iostream>
-#include <sstream>
+
+using namespace std;
 
 namespace ug
 {
@@ -16,29 +21,17 @@ namespace bridge
 class PrintUserNumber2d
 {
 	protected:
-		typedef IUserData<number, 2>::functor_type NumberFunctor;
+		typedef boost::function<void (number& value, const MathVector<2>& x, number time)> NumberFunctor;
 
 	public:
-		void set_user_number(IUserData<number, 2>& user)
-		{
-			m_Number = user.get_functor();
-		}
+		void set_user_number(const NumberFunctor& data){m_Number = data;}
 
 		number print(number x, number y)
 		{
-			MathVector<2> v(x,y);
-			number time = 0.0;
-			number ret;
-
-			if(m_Number)
-				m_Number(ret, v, time);
-			else
-			{
-				UG_LOG("Functor not set. \n");
-				ret = -1;
-			}
-
-			return ret;
+			MathVector<2> v(x,y); number time = 0.0; number val;
+			if(m_Number) m_Number(val, v, time);
+			else{ UG_LOG("Functor not set. \n"); val = -1;}
+			return val;
 		}
 
 	private:
@@ -52,21 +45,14 @@ class PrintUserNumber2d
  * 		  be done efficiently in script/VRL
  */
 class ElderConcentrationBoundaryData2d
-	: public IBoundaryData<number, 2>
+	: public boost::function<bool (number& value, const MathVector<2>& x, number time)>
 {
 	///	Base class type
-		typedef IBoundaryData<number, 2> base_type;
-
-	public:
-	//	Functor Type
-		typedef base_type::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+		typedef boost::function<bool (number& value, const MathVector<2>& x, number time)> NumberFunctor;
 
 	public:
 	///	Constructor
-		ElderConcentrationBoundaryData2d()
+		ElderConcentrationBoundaryData2d() : NumberFunctor(boost::ref(*this))
 		{}
 
 	///	virtual destructor
@@ -101,21 +87,14 @@ class ElderConcentrationBoundaryData2d
  * 		  be done efficiently in script/VRL
  */
 class ElderPressureBoundaryData2d
-	: public IBoundaryData<number, 2>
+	: public boost::function<bool (number& value, const MathVector<2>& x, number time)>
 {
 	///	Base class type
-		typedef IBoundaryData<number, 2> base_type;
-
-	public:
-	//	Functor Type
-		typedef base_type::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+		typedef boost::function<bool (number& value, const MathVector<2>& x, number time)> NumberFunctor;
 
 	public:
 	///	Constructor
-		ElderPressureBoundaryData2d()
+		ElderPressureBoundaryData2d()  : NumberFunctor(boost::ref(*this))
 		{}
 
 	///	virtual destructor
@@ -506,82 +485,100 @@ class DarcyVelocityLinker
 };
 
 
+template <typename TData, int dim>
+bool RegisterUserDataType(Registry& reg, string type, const char* parentGroup)
+{
+	string grp = std::string(parentGroup);
+
+	string dimSuffix = GetDomainSuffix<dim>();
+	string dimTag = GetDomainTag<dim>();
+
+//	IPData"Type"
+	{
+		typedef IPData<TData, dim> T;
+		string name = string("IPData").append(type).append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, string("IPData").append(type), dimTag);
+	}
+
+//	User"Type"
+	{
+		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> T;
+		string name = string("User").append(type).append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+	    reg.add_class_to_group(name, string("User").append(type), dimTag);
+	}
+
+//	UserBoundary"Type"
+	{
+		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> T;
+		string name = string("UserBoundary").append(type).append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, string("UserBoundary").append(type), dimTag);
+	}
+
+//	DependentIPData"Type"
+	{
+		typedef DependentIPData<TData, dim> T;
+		typedef IPData<TData, dim> TBase;
+		string name = string("DependentIPData").append(type).append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp);
+		reg.add_class_to_group(name, string("DependentIPData").append(type), dimTag);
+	}
+
+//	DataLinker"Type"
+	{
+		typedef DataLinker<TData, dim> T;
+		typedef DependentIPData<TData, dim> TBase;
+		string name = string("DataLinker").append(type).append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp);
+		reg.add_class_to_group(name, string("DataLinker").append(type), dimTag);
+	}
+
+//	DataLinkerEqual"Type"
+	{
+		typedef DataLinkerEqualData<TData, dim, number> T;
+		typedef DataLinker<TData, dim> TBase;
+		string name = string("DataLinkerEqual").append(type).append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.add_method("set_input", &T::set_input);
+		reg.add_class_to_group(name, string("DataLinkerEqual").append(type), dimTag);
+	}
+
+//	ScaleAddLinker"Type"
+	{
+		typedef ScaleAddLinker<TData, dim, number> T;
+		typedef DataLinker<TData, dim> TBase;
+		string name = string("ScaleAddLinker").append(type).append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_method("add", &T::add)
+			.add_constructor();
+		reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
+	}
+
+	return true;
+}
+
 template <int dim>
 bool RegisterUserData(Registry& reg, const char* parentGroup)
 {
-	std::string grp = std::string(parentGroup);
+	string grp = std::string(parentGroup);
 
-//	NumberIPData
-	{
-		typedef IPData<number, dim> T;
-		std::stringstream ss; ss << "NumberIPData" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
-	}
+	string dimSuffix = GetDomainSuffix<dim>();
+	string dimTag = GetDomainTag<dim>();
 
-//	VectorIPData
-	{
-		typedef IPData<MathVector<dim>, dim> T;
-		std::stringstream ss; ss << "VectorIPData" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
-	}
-
-//	MatrixIPData
-	{
-		typedef IPData<MathMatrix<dim,dim>, dim> T;
-		std::stringstream ss; ss << "MatrixIPData" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
-	}
-
-//	Tensor4IPData
-	{
-		typedef IPData<MathTensor<4,dim>, dim> T;
-		std::stringstream ss; ss << "Tensor4IPData" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
-	}
-
-//	IUserNumber
-	{
-		typedef IUserData<number, dim> T;
-		typedef IPData<number, dim> TBase;
-		std::stringstream ss; ss << "IUserNumber" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str());
-	}
-
-//	IUserVector
-	{
-		typedef IUserData<MathVector<dim>, dim> T;
-		typedef IPData<MathVector<dim>, dim> TBase;
-		std::stringstream ss; ss << "IUserVector" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str());
-	}
-
-//	IUserMatrix
-	{
-		typedef IUserData<MathMatrix<dim, dim>, dim> T;
-		typedef IPData<MathMatrix<dim, dim>, dim> TBase;
-		std::stringstream ss; ss << "IUserMatrix" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str());
-	}
-
-//	IUserTensor4
-	{
-		typedef IUserData<MathTensor<4, dim>, dim> T;
-		typedef IPData<MathTensor<4, dim>, dim> TBase;
-		std::stringstream ss; ss << "IUserTensor4" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str());
-	}
-
-//	Base class
-	{
-		std::stringstream ss; ss << "IBoundaryNumber" << dim << "d";
-		reg.add_class_<IBoundaryData<number, dim> >(ss.str().c_str(), grp.c_str());
-	}
+	RegisterUserDataType<number, dim>(reg, "Number", parentGroup);
+	RegisterUserDataType<MathVector<dim>, dim>(reg, "Vector", parentGroup);
+	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", parentGroup);
+	RegisterUserDataType<MathTensor<4,dim>, dim>(reg, "Tensor4", parentGroup);
 
 //	ConstUserNumber
 	{
 		typedef ConstUserNumber<dim> T;
-		std::stringstream ss; ss << "ConstUserNumber" << dim << "d";
-		reg.add_class_<T, IPData<number, dim> >(ss.str().c_str(), grp.c_str())
+		typedef IPData<number, dim> TBase;
+		typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> TBase2;
+		string name = string("ConstUserNumber").append(dimSuffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.add_method("set | interactive=false", &T::set, "", "MyNumber || invokeOnChange=true")
 			.add_method("print", &T::print);
@@ -590,8 +587,10 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //	ConstUserVector
 	{
 		typedef ConstUserVector<dim> T;
-		std::stringstream ss; ss << "ConstUserVector" << dim << "d";
-		reg.add_class_<T, IUserData<MathVector<dim>, dim> >(ss.str().c_str(), grp.c_str())
+		typedef IPData<MathVector<dim>, dim> TBase;
+		typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> TBase2;
+		string name = string("ConstUserVector").append(dimSuffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
@@ -601,8 +600,10 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //	ConstUserMatrix
 	{
 		typedef ConstUserMatrix<dim> T;
-		std::stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-		reg.add_class_<T, IUserData<MathMatrix<dim, dim>, dim> >(ss.str().c_str(), grp.c_str())
+		typedef IPData<MathMatrix<dim, dim>, dim> TBase;
+		typedef boost::function<void (MathMatrix<dim, dim>& res, const MathVector<dim>& x,number time)> TBase2;
+		string name = string("ConstUserMatrix").append(dimSuffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.add_method("set_diag_tensor", &T::set_diag_tensor)
 			.add_method("set_all_entries", &T::set_all_entries)
@@ -613,131 +614,20 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //	ConstBoundaryNumber
 	{
 		typedef ConstBoundaryNumber<dim> T;
-		std::stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
-		reg.add_class_<T, IBoundaryData<number, dim> >(ss.str().c_str(), grp.c_str())
+		typedef boost::function<bool (number& res, const MathVector<dim>& x, number time)> TBase;
+		string name = string("ConstBoundaryNumber").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set", &T::set)
 			.add_method("print", &T::print);
-	}
-
-//	DependentIPDataNumber
-	{
-		typedef DependentIPData<number, dim> T;
-		typedef IPData<number, dim> TBase;
-		std::stringstream ss; ss << "DependentIPDataNumber" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
-	}
-
-//	DependentIPDataVector
-	{
-		typedef DependentIPData<MathVector<dim>, dim> T;
-		typedef IPData<MathVector<dim>, dim> TBase;
-		std::stringstream ss; ss << "DependentIPDataVector" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
-	}
-
-//	DependentIPDataMatrix
-	{
-		typedef DependentIPData<MathMatrix<dim,dim>, dim> T;
-		typedef IPData<MathMatrix<dim,dim>, dim> TBase;
-		std::stringstream ss; ss << "DependentIPDataMatrix" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
-	}
-
-//	DataLinkerNumber
-	{
-		typedef DataLinker<number, dim> T;
-		typedef DependentIPData<number, dim> TBase;
-		std::stringstream ss; ss << "DataLinkerNumber" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
-	}
-
-//	DataLinkerVector
-	{
-		typedef DataLinker<MathVector<dim>, dim> T;
-		typedef DependentIPData<MathVector<dim>, dim> TBase;
-		std::stringstream ss; ss << "DataLinkerVector" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
-	}
-
-//	DataLinkerMatrix
-	{
-		typedef DataLinker<MathMatrix<dim,dim>, dim> T;
-		typedef DependentIPData<MathMatrix<dim,dim>, dim> TBase;
-		std::stringstream ss; ss << "DataLinkerMatrix" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
-	}
-
-//	DataLinkerEqualNumber
-	{
-		typedef DataLinkerEqualData<number, dim, number> T;
-		typedef DataLinker<number, dim> TBase;
-		std::stringstream ss; ss << "DataLinkerEqualNumber" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_method("set_input", &T::set_input);
-	}
-
-//	DataLinkerEqualMatrix
-	{
-		typedef DataLinkerEqualData<MathMatrix<dim,dim>, dim, number> T;
-		typedef DataLinker<MathMatrix<dim,dim>, dim> TBase;
-		std::stringstream ss; ss << "DataLinkerEqualMatrix" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
-			.add_method("set_input", &T::set_input);
-	}
-
-//	IUserFunctionNumber
-	{
-		typedef IUserFunction<number, dim, number> T;
-		typedef DataLinkerEqualData<number, dim, number> TBase;
-		std::stringstream ss; ss << "IUserFunctionNumber" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
-	}
-
-//	IUserFunctionMatrixNumber
-	{
-		typedef IUserFunction<MathMatrix<dim,dim>, dim, number> T;
-		typedef DataLinkerEqualData<MathMatrix<dim,dim>, dim, number> TBase;
-		std::stringstream ss; ss << "IUserFunctionMatrixNumber" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str());
 	}
 
 //	ElderDensityLinker
 	{
 		typedef ElderDensityLinker<dim> T;
 		typedef DataLinkerEqualData<number, dim, number> TBase;
-		std::stringstream ss; ss << "ElderDensityLinker" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
-			.add_constructor();
-	}
-
-//	ScaleAddLinkerNumber
-	{
-		typedef ScaleAddLinker<number, dim, number> T;
-		typedef DataLinker<number, dim> TBase;
-		std::stringstream ss; ss << "ScaleAddLinkerNumber" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
-			.add_method("add", &T::add)
-			.add_constructor();
-	}
-
-//	ScaleAddLinkerVector
-	{
-		typedef ScaleAddLinker<MathVector<dim>, dim, number> T;
-		typedef DataLinker<MathVector<dim>, dim> TBase;
-		std::stringstream ss; ss << "ScaleAddLinkerVector" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
-			.add_method("add", &T::add)
-			.add_constructor();
-	}
-
-//	ScaleAddLinkerMatrix
-	{
-		typedef ScaleAddLinker<MathMatrix<dim,dim>, dim, number> T;
-		typedef DataLinker<MathMatrix<dim,dim>, dim> TBase;
-		std::stringstream ss; ss << "ScaleAddLinkerMatrix" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
-			.add_method("add", &T::add)
+		string name = string("ElderDensityLinker").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
 	}
 
@@ -745,8 +635,8 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef DarcyVelocityLinker<dim> T;
 		typedef DataLinker<MathVector<dim>, dim> TBase;
-		std::stringstream ss; ss << "DarcyVelocityLinker" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("DarcyVelocityLinker").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_method("set_density", &T::set_density)
 			.add_method("set_gravity", &T::set_gravity)
 			.add_method("set_permeability", &T::set_permeability)
@@ -787,16 +677,14 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //	Elder Boundary Data for 2D
 	{
 		typedef ElderConcentrationBoundaryData2d T;
-		typedef IBoundaryData<number, 2> TBase;
-		std::stringstream ss; ss << "ElderConcentrationBoundaryData2d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		typedef boost::function<bool (number& res, const MathVector<2>& x, number time)> TBase;
+		reg.add_class_<T, TBase>("ElderConcentrationBoundaryData2d", grp)
 			.add_constructor();
 	}
 	{
 		typedef ElderPressureBoundaryData2d T;
-		typedef IBoundaryData<number, 2> TBase;
-		std::stringstream ss; ss << "ElderPressureBoundaryData2d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		typedef boost::function<bool (number& res, const MathVector<2>& x, number time)> TBase;
+		reg.add_class_<T, TBase>("ElderPressureBoundaryData2d", grp)
 			.add_constructor();
 	}
 

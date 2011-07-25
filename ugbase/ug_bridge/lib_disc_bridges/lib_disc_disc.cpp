@@ -33,7 +33,8 @@
 #include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 // fe1_nonlinear_elasticity includes
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
+#include <boost/function.hpp>
+#include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
 #include "lib_discretization/spatial_discretization/elem_disc/nonlinear_elasticity/fe1_nonlinear_elasticity.h"
 
 namespace ug
@@ -48,10 +49,16 @@ namespace bridge
 
 template <int dim>
 class ElasticityTensorUserData
-	: public IUserData<MathTensor<4,dim>, dim>
+	: public IPData<MathTensor<4,dim>, dim>,
+	  public boost::function<void (MathTensor<4,dim>& value, const MathVector<dim>& x, number time)>
 {
 	///	Base class type
-		typedef IUserData<MathTensor<4,dim>, dim> base_type;
+		typedef IPData<MathTensor<4,dim>, dim> base_type;
+
+	///	Functor type
+		typedef boost::function<void (MathTensor<4,dim>& value,
+		                              const MathVector<dim>& x,
+		                              number time)> TensorFunctor;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -60,15 +67,8 @@ class ElasticityTensorUserData
 		using base_type::value;
 
 	public:
-	//	Functor Type
-		typedef typename base_type::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return *this;}
-
-	public:
 	///	Constructor
-		ElasticityTensorUserData() {}
+		ElasticityTensorUserData() : TensorFunctor(boost::ref(*this)) {}
 
 	///	virtual destructor
 		virtual ~ElasticityTensorUserData()	{}
@@ -148,12 +148,13 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 
 //	Neumann Boundary
 	{
+		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 		typedef FV1NeumannBoundaryElemDisc<domain_type> T;
 		typedef IDomainElemDisc<domain_type> TBase;
 		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("add_boundary_value", static_cast<bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*)>(&T::add_boundary_value));
+			.add_method("add_boundary_value", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add_boundary_value));
 	}
 
 //	Inner Boundary
@@ -431,9 +432,10 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 /////////////////////////////////////////////////////////////////////////////
 	{
 		typedef ElasticityTensorUserData<dim> T;
-		typedef IUserData<MathTensor<4,dim>, dim> TBase;
+		typedef IPData<MathTensor<4,dim>, dim> TBase;
+		typedef boost::function<void (MathTensor<4,dim>& value, const MathVector<dim>& x, number time)> TBase2;
 		std::stringstream ss; ss << "ElasticityTensorUserData" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, TBase, TBase2>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			//.add_method("operator", &T::operator ())
 			.add_method("test_evaluate", &T::test_evaluate);

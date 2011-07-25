@@ -8,13 +8,14 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
 
+#include <boost/function.hpp>
+
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 
 namespace ug{
 
@@ -58,9 +59,6 @@ class FVInnerBoundaryElemDisc
 
 	///	Local index type
 		typedef typename base_type::local_index_type local_index_type;
-
-	protected:
-		typedef typename IBoundaryData<number, dim>::functor_type BNDNumberFunctor;
 
 	public:
 		FVInnerBoundaryElemDisc()

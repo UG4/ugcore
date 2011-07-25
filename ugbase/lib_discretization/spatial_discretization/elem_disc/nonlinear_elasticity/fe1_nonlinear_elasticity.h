@@ -8,13 +8,14 @@
 #ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NONLINEAR_ELASTICITY__FE1_NONLINEAR_ELASTICITY__
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NONLINEAR_ELASTICITY__FE1_NONLINEAR_ELASTICITY__
 
+#include <boost/function.hpp>
+
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
 
 // library intern headers
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 
 namespace ug{
 
@@ -52,14 +53,17 @@ class FE1NonlinearElasticityElemDisc
 	protected:
 		typedef void (*Elasticity_Tensor_fct)(MathTensor<4,dim>&);
 		typedef void (*Stress_Tensor_fct)(MathTensor<2,dim>&);
+		typedef boost::function<void (MathTensor<4,dim>& value,
+		                              const MathVector<dim>& x,
+		                              number time)> TensorFunctor;
 
 	public:
 		FE1NonlinearElasticityElemDisc();
 
 	///	set the elasticity tensor
-		void set_elasticity_tensor(IUserData<MathTensor<4,dim>, dim>& elast)
+		void set_elasticity_tensor(const TensorFunctor& elast)
 		{
-			m_ElasticityTensorFunctor = elast.get_functor();
+			m_ElasticityTensorFunctor = elast;
 		}
 
 	///	number of functions used
@@ -114,7 +118,7 @@ class FE1NonlinearElasticityElemDisc
 		const position_type* m_corners;
 
 		// User functions
-		typename IUserData<MathTensor<4,dim>, dim>::functor_type m_ElasticityTensorFunctor;
+		TensorFunctor m_ElasticityTensorFunctor;
 
 		Elasticity_Tensor_fct m_ElasticityTensorFct;
 		MathTensor<4, dim> m_ElasticityTensor;

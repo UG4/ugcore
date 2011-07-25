@@ -16,7 +16,6 @@
 #include "lib_discretization/domain_util.h"
 #include "lib_discretization/quadrature/quadrature.h"
 #include "lib_discretization/local_finite_element/local_shape_function_set.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 #include <boost/function.hpp>
 
 namespace ug{
@@ -318,7 +317,7 @@ static number invoke(	boost::function<void (
 /// interpolates a function on a subset
 /**
  * This function interpolates a GridFunction. To evaluate the function on every
- * point a IUserData must be passed.
+ * point a functor must be passed.
  *
  * \param[out]		u			interpolated grid function
  * \param[in]		data		data evaluator
@@ -327,17 +326,10 @@ static number invoke(	boost::function<void (
  * \param[in]		subsets		subsets, where to interpolate
  */
 template <typename TGridFunction>
-number L2Error(	IUserData<number, TGridFunction::domain_type::dim>& data,
-							TGridFunction& u, const char* name, number time,
-							const char* subsets)
+number L2Error(
+		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
+		TGridFunction& u, const char* name, number time, const char* subsets)
 {
-//	world dimension
-	static const int dim = TGridFunction::domain_type::dim;
-
-//	extract functor
-	typedef typename IUserData<number, dim>::functor_type functor_type;
-	functor_type InterpolFunction = data.get_functor();
-
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
 				= u.get_approximation_space();
@@ -376,11 +368,12 @@ number L2Error(	IUserData<number, TGridFunction::domain_type::dim>& data,
 
 /// interpolates a function on the whole domain
 template <typename TGridFunction>
-number L2Error(	IUserData<number, TGridFunction::domain_type::dim>& InterpolFunctionProvider,
-							TGridFunction& u, const char* name, number time)
+number L2Error(
+	const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
+	TGridFunction& u, const char* name, number time)
 {
 //	forward
-	return L2Error(InterpolFunctionProvider, u, name, time, NULL);
+	return L2Error(InterpolFunction, u, name, time, NULL);
 }
 
 } // namespace ug

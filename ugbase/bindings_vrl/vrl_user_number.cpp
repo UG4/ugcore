@@ -3,6 +3,8 @@
 #include "../ug_bridge/ug_bridge.h"
 #include "type_converter.h"
 #include "common/common.h"
+#include <boost/function.hpp>
+#include "../lib_discretization/spatial_discretization/ip_data/ip_data.h"
 #include "../lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 #include "../ug_script/ug_script.h"
 #include "bindings_vrl.h"
@@ -15,11 +17,16 @@ namespace ug {
 namespace vrl {
 
 template <int dim>
-class VRLUserNumber : public IUserData<number, dim> {
+class VRLUserNumber
+: public IPData<number, dim>,
+  public boost::function<void (number& res, const MathVector<dim>& x,number time)>
+{
 public:
+///	Base class type
+	typedef IPData<number, dim> base_type;
 
-	/// Base class type
-	typedef IUserData<number, dim> base_type;
+///	Functor type
+	typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> func_type;
 
 	using base_type::num_series;
 	using base_type::num_ip;
@@ -27,19 +34,9 @@ public:
 	using base_type::time;
 	using base_type::value;
 
-
-	//	Functor Type
-	typedef typename IUserData<number, dim>::functor_type functor_type;
-
-	//	return functor
-
-	virtual functor_type get_functor() const {
-		return boost::ref(*this);
-	}
-
 public:
 
-	VRLUserNumber() {
+	VRLUserNumber() : func_type(boost::ref(*this)) {
 		javaVM = getJavaVM();
 		expression = "";
 	}
@@ -141,9 +138,11 @@ void RegisterVRLUserNumber(ug::bridge::Registry& reg, const char* parentGroup) {
 	//	VRLUserNumber
 	{
 		typedef VRLUserNumber<dim> T;
+		typedef IPData<number, dim> TBase;
+		typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> TBase2;
 		std::stringstream ss;
 		ss << "VRLUserNumber" << dim << "d";
-		reg.add_class_<T, IUserData<number, dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, TBase, TBase2>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_vrl_callback", &T::set_vrl_callback);
 	}

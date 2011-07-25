@@ -49,6 +49,7 @@ class MathTensor
 		inline size_t rank() const {return TRank;}
 
 	///	sets all values of the tensor to a value
+		MathTensor& operator=(T val) {set(val); return *this;}
 		inline void set(T val) {for(size_t i = 0; i < N; ++i) m_data[i].set(val);}
 
 		inline value_type& operator[](size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
@@ -93,6 +94,7 @@ class MathTensor<1, N, T>
 		inline size_t rank() const {return 1;}
 
 	///	sets all values of the tensor to a value
+		MathTensor& operator=(T val) {set(val); return *this;}
 		inline void set(T val) {for(size_t i = 0; i < N; ++i) m_data[i] = val;}
 
 		inline value_type& operator[](size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}

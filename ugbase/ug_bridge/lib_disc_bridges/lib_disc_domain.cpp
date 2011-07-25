@@ -146,6 +146,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	DirichletBNDValues
 	{
+		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
 		std::stringstream ss; ss << "DirichletBND" << dim << "d";
 		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
@@ -154,7 +155,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_pattern|hide=true", &T::set_pattern)
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
-			.add_method("add_boundary_value", static_cast<bool (T::*)(IBoundaryData<number, dim>&, const char*, const char*)>(&T::add_boundary_value),
+			.add_method("add_boundary_value", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add_boundary_value),
 						"Success", "Value#Function#Subsets")
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
 						"Success", "Constant Value#Function#Subsets")
@@ -330,34 +331,34 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 //	InterpolateFunction
 	{
-		std::stringstream ss; ss << "InterpolateFunction";
-		typedef bool (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
-									function_type& , const char* , number);
-		reg.add_function(ss.str().c_str(),
+		typedef bool (*fct_type)(
+				const boost::function<void (number& res,const MathVector<function_type::domain_type::dim>& x, number time)>&,
+				function_type&, const char*, number);
+		reg.add_function("InterpolateFunction",
 						 static_cast<fct_type>(&InterpolateFunction<function_type>),
 						 grp.c_str());
 
-		typedef bool (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
-									function_type& , const char* , number ,
-									const char*);
-		reg.add_function(ss.str().c_str(),
+		typedef bool (*fct_type_subset)(
+				const boost::function<void (number& res,const MathVector<function_type::domain_type::dim>& x, number time)>&,
+				function_type&, const char*, number, const char*);
+		reg.add_function("InterpolateFunction",
 						 static_cast<fct_type_subset>(&InterpolateFunction<function_type>),
 						 grp.c_str());
 	}
 
 //	L2Error
 	{
-		std::stringstream ss; ss << "L2Error";
-		typedef number (*fct_type)(	IUserData<number, function_type::domain_type::dim>&,
-									function_type& , const char* , number);
-		reg.add_function(ss.str().c_str(),
+		typedef number (*fct_type)(
+				const boost::function<void (number& res,const MathVector<function_type::domain_type::dim>& x, number time)>&,
+				function_type&, const char*, number);
+		reg.add_function("L2Error",
 						 static_cast<fct_type>(&L2Error<function_type>),
 						 grp.c_str());
 
-		typedef number (*fct_type_subset)(	IUserData<number, function_type::domain_type::dim>&,
-									function_type& , const char* , number ,
-									const char*);
-		reg.add_function(ss.str().c_str(),
+		typedef number (*fct_type_subset)(
+				const boost::function<void (number& res,const MathVector<function_type::domain_type::dim>& x, number time)>&,
+				function_type&, const char*, number, const char*);
+		reg.add_function("L2Error",
 						 static_cast<fct_type_subset>(&L2Error<function_type>),
 						 grp.c_str());
 	}

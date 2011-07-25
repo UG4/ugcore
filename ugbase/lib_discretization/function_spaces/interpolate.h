@@ -13,7 +13,6 @@
 #include "lib_discretization/common/subset_group.h"
 #include "lib_discretization/domain_util.h"
 #include "lib_discretization/local_finite_element/local_shape_function_set.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data_interface.h"
 #include <boost/function.hpp>
 
 namespace ug{
@@ -303,10 +302,11 @@ static number invoke(	boost::function<void (
 }
 };
 
+
 /// interpolates a function on a subset
 /**
  * This function interpolates a GridFunction. To evaluate the function on every
- * point a IUserData must be passed.
+ * point a functor must be passed.
  *
  * \param[out]		u			interpolated grid function
  * \param[in]		data		data evaluator
@@ -315,17 +315,10 @@ static number invoke(	boost::function<void (
  * \param[in]		subsets		subsets, where to interpolate
  */
 template <typename TGridFunction>
-bool InterpolateFunction(	IUserData<number, TGridFunction::domain_type::dim>& data,
-							TGridFunction& u, const char* name, number time,
-							const char* subsets)
+bool InterpolateFunction(
+		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
+		TGridFunction& u, const char* name, number time, const char* subsets)
 {
-//	world dimension
-	static const int dim = TGridFunction::domain_type::dim;
-
-//	extract functor
-	typedef typename IUserData<number, dim>::functor_type functor_type;
-	functor_type InterpolFunction = data.get_functor();
-
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
 				= u.get_approximation_space();
@@ -365,11 +358,12 @@ bool InterpolateFunction(	IUserData<number, TGridFunction::domain_type::dim>& da
 
 /// interpolates a function on the whole domain
 template <typename TGridFunction>
-bool InterpolateFunction(	IUserData<number, TGridFunction::domain_type::dim>& InterpolFunctionProvider,
-							TGridFunction& u, const char* name, number time)
+bool InterpolateFunction(
+		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
+		TGridFunction& u, const char* name, number time)
 {
 //	forward
-	return InterpolateFunction(InterpolFunctionProvider, u, name, time, NULL);
+	return InterpolateFunction(InterpolFunction, u, name, time, NULL);
 }
 
 
@@ -434,11 +428,9 @@ bool AssignP1GridFunctionOnSubset(TGridFunction& uDest, const TGridFunction& uSr
 
 /// interpolates a function on vertices
 template <typename TGridFunction>
-bool InterpolateFunctionOnVertices( boost::function<void (
-									number& res,
-									const MathVector<TGridFunction::domain_type::dim>& x,
-									number time)> InterpolFunction,
-									TGridFunction& u, size_t fct, int si, number time)
+bool InterpolateFunctionOnVertices(
+		boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)> InterpolFunction,
+		TGridFunction& u, size_t fct, int si, number time)
 {
 //	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;
@@ -487,7 +479,7 @@ bool InterpolateFunctionOnVertices( boost::function<void (
 /// interpolates a function on subsets, only for vertex dofs
 /**
  * This function interpolates a GridFunction. To evaluate the function on every
- * point a IUserData must be passed.
+ * point a functor must be passed.
  *
  * \param[out]		u			interpolated grid function
  * \param[in]		data		data evaluator
@@ -496,17 +488,10 @@ bool InterpolateFunctionOnVertices( boost::function<void (
  * \param[in]		subsets		subsets, where to interpolate
  */
 template <typename TGridFunction>
-bool InterpolateFunctionOnVertices(	IUserData<number, TGridFunction::domain_type::dim>& data,
-									TGridFunction& u, const char* name, number time,
-									const char* subsets)
+bool InterpolateFunctionOnVertices(
+		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
+		TGridFunction& u, const char* name, number time, const char* subsets)
 {
-//	world dimension
-	static const int dim = TGridFunction::domain_type::dim;
-
-//	extract functor
-	typedef typename IUserData<number, dim>::functor_type functor_type;
-	functor_type InterpolFunction = data.get_functor();
-
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
 				= u.get_approximation_space();
