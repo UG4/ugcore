@@ -965,6 +965,15 @@ void DoFDistribution::grid_obj_added(TBaseElem* elem)
 		throw(UGFatalError("Subset Handler missng."));
 	}
 
+//	get subset index
+	const int si = m_pISubsetHandler->get_subset_index(elem);
+
+//	get type
+	ReferenceObjectID roid = (ReferenceObjectID) elem->reference_object_id();
+
+//	check that dofs needed
+	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
+
 //	Only for the surface dof manager:
 //	If the added elem is a shadow, use index of child (shadowing) elem
 	if(m_pSurfaceView && m_pSurfaceView->is_shadow(elem))
@@ -981,12 +990,6 @@ void DoFDistribution::grid_obj_added(TBaseElem* elem)
 //	normally, we can set a new free index
 	else
 	{
-	//	get subset index
-		const int si = m_pISubsetHandler->get_subset_index(elem);
-
-	//	get type
-		ReferenceObjectID roid = (ReferenceObjectID) elem->reference_object_id();
-
 	// 	write next free index
 		first_index(elem) = get_free_index(si, roid);
 	}
@@ -1001,6 +1004,9 @@ void DoFDistribution::grid_obj_to_be_removed(TBaseElem* elem)
 //	get type
 	ReferenceObjectID roid = (ReferenceObjectID) elem->reference_object_id();
 
+//	check that dofs needed
+	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
+
 // 	remember free index
 	push_free_index(first_index(elem), si, roid);
 }
@@ -1013,7 +1019,6 @@ grid_obj_replaced(TBaseElem* elemNew, TBaseElem* elemOld)
 	UG_ASSERT(m_pISubsetHandler->get_subset_index(elemNew) ==
 			  m_pISubsetHandler->get_subset_index(elemOld),
 	          "New elem does not have same subset as replaced on.");
-
 //	copy index
 	first_index(elemNew) = first_index(elemOld);
 }
