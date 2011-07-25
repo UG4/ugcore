@@ -91,6 +91,14 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
+// 	used for debugging adaptive mg.
+/*
+	UG_LOG("  apply before project (surface d)");
+	number norm = d.two_norm();
+	UG_LOG(" d: " << norm << "\n");
+
+	write_surface_debug(d, "GMG_SurfDefectBeforeProj");
+*/
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
 	if(!project_surface_to_level(level_defects(), d))
@@ -101,6 +109,13 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
 
+/*	write_level_debug(*m_vLevData[m_topLev].d, "GMG_TopLevDefectAfterProj", m_topLev);
+
+// 	used for debugging adaptive mg.
+	UG_LOG("  apply after project (topLevel d)");
+	norm = m_vLevData[m_topLev].d->two_norm();
+	UG_LOG(" d: " << norm << "\n");
+*/
 // 	Perform one multigrid cycle
 	GMG_PROFILE_BEGIN(GMG_lmgc);
 	if(!lmgc(*m_vLevData[m_topLev].c, *m_vLevData[m_topLev].d, m_topLev))
@@ -175,12 +190,18 @@ smooth(vector_type& c, vector_type& d, vector_type& t,
 		{
 		// 	Compute Correction of one smoothing step, but do not update defect
 		//	a)  Compute t = B*d with some iterator B
+
+//			write_level_debug(d, "GMG_SmoothDefectBeforeApply", lev);
+
 			if(!S.apply(t, d))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
 						<< i+1 << " on level " << lev << " failed.\n");
 				return false;
 			}
+
+//			write_level_debug(d, "GMG_SmoothDefectBeforeSetZero", lev);
+//			write_level_debug(t, "GMG_SmoothCorrBeforeSetZero", lev);
 
 		//	First we reset the correction to zero on the patch boundary.
 			if(!SetZeroOnShadowingVertex(t, *m_pApproxSpace, lev))
@@ -191,6 +212,8 @@ smooth(vector_type& c, vector_type& d, vector_type& t,
 				return false;
 			}
 
+//			write_level_debug(t, "GMG_SmoothCorrAfterSetZero", lev);
+
 		//	now, we can update the defect with this correction ...
 			if(!A.apply_sub(d, t))
 			{
@@ -199,6 +222,8 @@ smooth(vector_type& c, vector_type& d, vector_type& t,
 						<< i+1 << " on level " << lev << ".\n");
 				return false;
 			}
+
+//			write_level_debug(d, "GMG_SmoothDefectAfterSetZero", lev);
 
 		//	... and add the correction to to overall correction
 			c += t;
@@ -238,8 +263,9 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 //	used as coarse grid correction. Finally a post-smooth is performed.
 	if(lev > m_baseLev)
 	{
-/*
+
 // used for debugging adaptive mg.
+/*
 UG_LOG("  lmgc lev " << lev << " start: ");
 number norm = d.two_norm();
 UG_LOG(" d: " << norm << "\n");
@@ -268,8 +294,9 @@ UG_LOG(" d: " << norm << "\n");
 		}
 		#endif
 
-/*
+
 // used for debugging adaptive mg.
+/*
 UG_LOG("  lmgc lev " << lev << " after lifting: ");
 norm = d.two_norm();
 UG_LOG(" d: " << norm << "\n");
@@ -291,8 +318,9 @@ UG_LOG(" d: " << norm << "\n");
 
 
 // used for debugging adaptive mg.
-/*UG_LOG("  lmgc lev " << lev << " after presmooth: ");
-number norm = d.two_norm();
+/*
+UG_LOG("  lmgc lev " << lev << " after presmooth: ");
+norm = d.two_norm();
 UG_LOG(" d: " << norm << "\n");
 */
 	//	PROJECT DEFECT BACK TO WHOLE GRID FOR RESTRICTION
