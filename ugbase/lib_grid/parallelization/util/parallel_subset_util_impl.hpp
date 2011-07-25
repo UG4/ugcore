@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__PARALLELL_SUBSET_UTIL_IMPL__
 
 #include "../distributed_grid.h"
+#include "compol_subset.h"
 #include "lib_grid/algorithms/subset_util.h"
 
 namespace ug
@@ -100,6 +101,47 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 //	surface grid. But still, num_subsets() has to return the correct number.
 	if(mgsh.num_subsets() > 0)
 		surfaceViewOut.subset_required(mgsh.num_subsets() - 1);
+
+//	for a parallel subset handler we have to copy the subset-indices to
+//	avoid problems at interfaces.
+	ComPol_Subset<VertexLayout> cpSubsetVRT(surfaceViewOut);
+	ComPol_Subset<EdgeLayout> cpSubsetEDGE(surfaceViewOut);
+	ComPol_Subset<FaceLayout> cpSubsetFACE(surfaceViewOut);
+	ComPol_Subset<VolumeLayout> cpSubsetVOL(surfaceViewOut);
+	pcl::ParallelCommunicator<VertexLayout> comVRT;
+	pcl::ParallelCommunicator<EdgeLayout> comEDGE;
+	pcl::ParallelCommunicator<FaceLayout> comFACE;
+	pcl::ParallelCommunicator<VolumeLayout> comVOL;
+
+	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+
+	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+
+	comVRT.communicate();
+	comEDGE.communicate();
+	comFACE.communicate();
+	comVOL.communicate();
+
+	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+
+	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+
+	comVRT.communicate();
+	comEDGE.communicate();
+	comFACE.communicate();
+	comVOL.communicate();
 }
 
 
