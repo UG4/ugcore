@@ -105,11 +105,11 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_jacobian(M, u, dofDistr)
+			if(m_vvPostProcess[type][i]->adjust_jacobian(M, u, dofDistr)
 					!= true)
 				return false;
 		}
@@ -215,11 +215,11 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_jacobian(A, u, dofDistr)
+			if(m_vvPostProcess[type][i]->adjust_jacobian(A, u, dofDistr)
 					!= true)
 				return false;
 		}
@@ -337,11 +337,11 @@ assemble_jacobian(matrix_type& J,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr)
+			if(m_vvPostProcess[type][i]->adjust_jacobian(J, u, dofDistr)
 					!= true)
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
@@ -455,11 +455,11 @@ assemble_defect(vector_type& d,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr)
+			if(m_vvPostProcess[type][i]->adjust_defect(d, u, dofDistr)
 					!= true)
 				return false;
 		}
@@ -569,11 +569,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr)
+			if(m_vvPostProcess[type][i]->adjust_linear(mat, rhs, u, dofDistr)
 					!= true)
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
@@ -687,11 +687,11 @@ assemble_rhs(vector_type& rhs,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_rhs(rhs, u, dofDistr)
+			if(m_vvPostProcess[type][i]->adjust_rhs(rhs, u, dofDistr)
 					!= true)
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
@@ -719,17 +719,17 @@ DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 {
 //	post process dirichlet
-	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
+	for(size_t i = 0; i < m_vvPostProcess[CT_DIRICHLET].size(); ++i)
 	{
-		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr)
+		if(m_vvPostProcess[CT_DIRICHLET][i]->adjust_solution(u, dofDistr)
 				!= true)
 			return false;
 	}
 
 //	post process constraints
-	for(size_t i = 0; i < m_vvPostProcess[PPT_CONSTRAINTS].size(); ++i)
+	for(size_t i = 0; i < m_vvPostProcess[CT_CONSTRAINTS].size(); ++i)
 	{
-		if(m_vvPostProcess[PPT_CONSTRAINTS][i]->post_process_solution(u, dofDistr)
+		if(m_vvPostProcess[CT_CONSTRAINTS][i]->adjust_solution(u, dofDistr)
 				!= true)
 			return false;
 	}
@@ -841,11 +841,11 @@ assemble_jacobian(matrix_type& J,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr, time)
+			if(m_vvPostProcess[type][i]->adjust_jacobian(J, u, dofDistr, time)
 					!= true)
 				return false;
 		}
@@ -950,11 +950,11 @@ assemble_defect(vector_type& d,
 	}
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr, time)
+			if(m_vvPostProcess[type][i]->adjust_defect(d, u, dofDistr, time)
 					!= true)
 				return false;
 		}
@@ -1058,11 +1058,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 
 
 //	post process
-	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr, time)
+			if(m_vvPostProcess[type][i]->adjust_linear(mat, rhs, u, dofDistr, time)
 					!= true)
 				return false;
 		}
@@ -1091,17 +1091,17 @@ DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, number time, const dof_distribution_type& dofDistr)
 {
 //	dirichlet
-	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
+	for(size_t i = 0; i < m_vvPostProcess[CT_DIRICHLET].size(); ++i)
 	{
-		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr, time)
+		if(m_vvPostProcess[CT_DIRICHLET][i]->adjust_solution(u, dofDistr, time)
 				!= true)
 			return false;
 	}
 
 //	constraints
-	for(size_t i = 0; i < m_vvPostProcess[PPT_CONSTRAINTS].size(); ++i)
+	for(size_t i = 0; i < m_vvPostProcess[CT_CONSTRAINTS].size(); ++i)
 	{
-		if(m_vvPostProcess[PPT_CONSTRAINTS][i]->post_process_solution(u, dofDistr, time)
+		if(m_vvPostProcess[CT_CONSTRAINTS][i]->adjust_solution(u, dofDistr, time)
 				!= true)
 			return false;
 	}

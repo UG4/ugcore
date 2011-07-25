@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__
+#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__P1_DIRICHLET_BOUNDARY__
+#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__P1_DIRICHLET_BOUNDARY__
 
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
@@ -19,41 +19,47 @@
 
 namespace ug{
 
-template <	typename TDomain,
-			typename TDoFDistribution,
-			typename TAlgebra>
-class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
+template <	typename TDomain, typename TDoFDistribution, typename TAlgebra>
+class P1DirichletBoundary
+	: public IConstraint<TDoFDistribution, TAlgebra>
+{
 	public:
-	// 	Type of discrete function
+	///	Type of dof distribution
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
-	// 	Type of domain
+	///	Type of domain
 		typedef TDomain domain_type;
 
-	//	Dimension
+	///	world Dimension
 		static const int dim = domain_type::dim;
 
-	// 	Type of position coordinates (e.g. position_type)
+	///	Type of position coordinates (e.g. position_type)
 		typedef typename domain_type::position_type position_type;
 
-	// 	Type of algebra
+	///	Type of algebra
 		typedef TAlgebra algebra_type;
 
-	// 	Type of algebra matrix
+	///	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-	// 	Type of algebra vector
+	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
-	// 	Type of multi index vector
+	///	Type of multi index vector
 		typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
 
-	public:
+	///	Type of conditional boundary functor for a number (bool return value)
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 
-		P1DirichletBoundary() :
-			m_pDomain(NULL), m_pPattern(NULL) {	m_mBoundarySegment.clear();}
+	///	Type of non-conditional boundary functor for a number (always true)
+		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
 
+	public:
+	///	constructor
+		P1DirichletBoundary() :
+			m_pDomain(NULL), m_pPattern(NULL) {	m_mConditionalBoundarySegment.clear();}
+
+	///	destructor
 		~P1DirichletBoundary()
 		{
 			for(size_t i = 0; i < m_vConstBoundaryNumber.size(); ++i)
@@ -141,10 +147,10 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 				}
 
 			//	get Boundary segment from map
-				std::vector<UserDataFunction>& vSegmentFunction = m_mBoundarySegment[subsetIndex];
+				std::vector<BNDNumberData>& vSegmentFunction = m_mConditionalBoundarySegment[subsetIndex];
 
 			//	remember functor and function
-				vSegmentFunction.push_back(UserDataFunction(fct, func));
+				vSegmentFunction.push_back(BNDNumberData(fct, func));
 			}
 
 		//	we're done
@@ -174,12 +180,12 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		void set_pattern(const FunctionPattern& pattern)
 		{
 			m_pPattern = &pattern;
-			m_mBoundarySegment.clear();
+			m_mConditionalBoundarySegment.clear();
 		}
 
 		void clear()
 		{
-			m_mBoundarySegment.clear();
+			m_mConditionalBoundarySegment.clear();
 		}
 
 	///	Sets dirichlet rows for all registered dirichlet values
@@ -188,13 +194,13 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 	 * This method is just an attempt to allow to set dirichlet rows in a matrix.
 	 * It should probably be a virtual method derived from IDirichletPostProcess.
 	 *
-	 * Note that post_process_jacobian does the same (...!!!)
-	 * You should thus use post_process_jacobian.
+	 * Note that adjust_jacobian does the same (...!!!)
+	 * You should thus use adjust_jacobian.
 	 *
 	 * This method is probably removed in the near future!
 	 *
 	 * It could make sense to keep it but implement it as an overload of
-	 * post_process_jacobian...
+	 * adjust_jacobian...
 	 *
 	 * If Mr. Vogel decides that this is nonsense, he may of course remove it!!!
 	 */
@@ -202,61 +208,77 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 	public:
 	// 	Implement Interface
-		bool post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
-		bool post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool adjust_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool adjust_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
+		bool adjust_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
-		virtual int type()	{return PPT_DIRICHLET;}
+		virtual int type()	{return CT_DIRICHLET;}
 
 	protected:
-		struct UserDataFunction
+	///	grouping for subset and conditional data
+		struct BNDNumberData
 		{
-			UserDataFunction(size_t fct_, BNDNumberFunctor functor_)
+			BNDNumberData(size_t fct_, BNDNumberFunctor functor_)
 				: fct(fct_), functor(functor_) {}
-
 			size_t fct;
 			BNDNumberFunctor functor;
+		};
+
+	///	grouping for subset and non-conditional data
+		struct NumberData
+		{
+			NumberData(size_t fct_, NumberFunctor functor_)
+				: fct(fct_), functor(functor_) {}
+			size_t fct;
+			NumberFunctor functor;
 		};
 
 	protected:
 		bool clear_dirichlet_jacobian(			geometry_traits<VertexBase>::const_iterator iterBegin,
 												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<UserDataFunction>& userData, int si, matrix_type& J,
+												const std::vector<BNDNumberData>& userData, int si, matrix_type& J,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
 		bool clear_dirichlet_defect(			geometry_traits<VertexBase>::const_iterator iterBegin,
 												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<UserDataFunction>& userData, int si, vector_type& d,
+												const std::vector<BNDNumberData>& userData, int si, vector_type& d,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
 		bool set_dirichlet_solution( 			geometry_traits<VertexBase>::const_iterator iterBegin,
 												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<UserDataFunction>& userData, int si, vector_type& x,
+												const std::vector<BNDNumberData>& userData, int si, vector_type& x,
 												const dof_distribution_type& dofDistr, number time = 0.0);
 
 		bool set_dirichlet_linear(				geometry_traits<VertexBase>::const_iterator iterBegin,
 												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<UserDataFunction>& userData, int si, matrix_type& mat, vector_type& rhs,
+												const std::vector<BNDNumberData>& userData, int si, matrix_type& mat, vector_type& rhs,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
 		bool set_dirichlet_rhs(				geometry_traits<VertexBase>::const_iterator iterBegin,
 												geometry_traits<VertexBase>::const_iterator iterEnd,
-												const std::vector<UserDataFunction>& userData, int si, vector_type& rhs,
+												const std::vector<BNDNumberData>& userData, int si, vector_type& rhs,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
 	protected:
+	///	current domain
 		domain_type* m_pDomain;
 
-		// remember created ConstNumbers
-		std::vector<ConstBoundaryNumber<dim>*> m_vConstBoundaryNumber;
+	///	current position accessor
+		typename domain_type::position_accessor_type m_aaPos;
 
+	///	current function pattern
 		const FunctionPattern* m_pPattern;
 
-		std::map<int, std::vector<UserDataFunction> > m_mBoundarySegment;
+	///	remember created ConstNumbers
+		std::vector<ConstBoundaryNumber<dim>*> m_vConstBoundaryNumber;
 
-		typename domain_type::position_accessor_type m_aaPos;
+	///	conditional boundary values for all subsets
+		std::map<int, std::vector<BNDNumberData> > m_mConditionalBoundarySegment;
+
+	///	non-conditional boundary values for all subsets
+		std::map<int, std::vector<NumberData> > m_mBoundarySegment;
 };
 
 
@@ -265,11 +287,11 @@ void P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
-	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
+	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
-		const std::vector<UserDataFunction>& userData = (*iter).second;
+		const std::vector<BNDNumberData>& userData = (*iter).second;
 
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
@@ -318,21 +340,21 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dofDistr,
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
-	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
+	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
-		const std::vector<UserDataFunction>& userData = (*iter).second;
+		const std::vector<BNDNumberData>& userData = (*iter).second;
 
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
 		if(!clear_dirichlet_jacobian(iterBegin, iterEnd, userData, si, J, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return false;
 		}
@@ -344,21 +366,21 @@ post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distributi
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+adjust_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
-	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
+	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
-		const std::vector<UserDataFunction>& userData = (*iter).second;
+		const std::vector<BNDNumberData>& userData = (*iter).second;
 
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
 		if(!clear_dirichlet_defect(iterBegin, iterEnd, userData, si, d, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return false;
 		}
@@ -370,21 +392,21 @@ post_process_defect(vector_type& d, const vector_type& u, const dof_distribution
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
+adjust_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
-	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
+	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
-		const std::vector<UserDataFunction>& userData = (*iter).second;
+		const std::vector<BNDNumberData>& userData = (*iter).second;
 
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
 		if(!set_dirichlet_solution(iterBegin, iterEnd, userData, si, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return false;
 		}
@@ -395,21 +417,21 @@ post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, num
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
-	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
+	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
-		const std::vector<UserDataFunction>& userData = (*iter).second;
+		const std::vector<BNDNumberData>& userData = (*iter).second;
 
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
 		if(!set_dirichlet_linear(iterBegin, iterEnd, userData, si, mat, rhs, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return false;
 		}
@@ -420,21 +442,21 @@ post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, co
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-post_process_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
+adjust_rhs(vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<UserDataFunction> >::const_iterator iter;
-	for(iter = m_mBoundarySegment.begin(); iter != m_mBoundarySegment.end(); ++iter)
+	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
+	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
-		const std::vector<UserDataFunction>& userData = (*iter).second;
+		const std::vector<BNDNumberData>& userData = (*iter).second;
 
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
 		if(!set_dirichlet_rhs(iterBegin, iterEnd, userData, si, rhs, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_rhs':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_rhs':"
 					" while calling 'clear_dirichlet_rhs', aborting.\n");
 			return false;
 		}
@@ -448,7 +470,7 @@ bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 clear_dirichlet_defect(	geometry_traits<VertexBase>::const_iterator iterBegin,
 						geometry_traits<VertexBase>::const_iterator iterEnd,
-						const std::vector<UserDataFunction>& userData, int si,
+						const std::vector<BNDNumberData>& userData, int si,
 						vector_type& d,
 						const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -493,7 +515,7 @@ bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 clear_dirichlet_jacobian(	geometry_traits<VertexBase>::const_iterator iterBegin,
 							geometry_traits<VertexBase>::const_iterator iterEnd,
-							const std::vector<UserDataFunction>& userData, int si,
+							const std::vector<BNDNumberData>& userData, int si,
 							matrix_type& J,
 							const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -538,7 +560,7 @@ bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 set_dirichlet_solution(	geometry_traits<VertexBase>::const_iterator iterBegin,
 						geometry_traits<VertexBase>::const_iterator iterEnd,
-						const std::vector<UserDataFunction>& userData, int si,
+						const std::vector<BNDNumberData>& userData, int si,
 						vector_type& x,
 						const dof_distribution_type& dofDistr, number time)
 {
@@ -584,7 +606,7 @@ bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 set_dirichlet_linear(	geometry_traits<VertexBase>::const_iterator iterBegin,
 						geometry_traits<VertexBase>::const_iterator iterEnd,
-						const std::vector<UserDataFunction>& userData, int si,
+						const std::vector<BNDNumberData>& userData, int si,
 						matrix_type& mat, vector_type& rhs,
 						const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -636,7 +658,7 @@ bool
 P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 set_dirichlet_rhs(	geometry_traits<VertexBase>::const_iterator iterBegin,
 					geometry_traits<VertexBase>::const_iterator iterEnd,
-					const std::vector<UserDataFunction>& userData, int si,
+					const std::vector<BNDNumberData>& userData, int si,
 					vector_type& rhs,
 					const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
@@ -682,4 +704,4 @@ set_dirichlet_rhs(	geometry_traits<VertexBase>::const_iterator iterBegin,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__ */
+#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__P1_DIRICHLET_BOUNDARY__ */

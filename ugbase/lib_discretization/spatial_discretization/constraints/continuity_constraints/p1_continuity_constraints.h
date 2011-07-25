@@ -1,12 +1,12 @@
 /*
- * p1_constraints_post_process.h
+ * p1_continuity_constraints.h
  *
  *  Created on: 01.03.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__P1_CONSTRAINTS_POST_PROCESS__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__P1_CONSTRAINTS_POST_PROCESS__
+#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__CONTINUITY_CONSTRAINTS__P1_CONTINUITY_CONSTRAINTS__
+#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__CONTINUITY_CONSTRAINTS__P1_CONTINUITY_CONSTRAINTS__
 
 #include "lib_discretization/assemble_interface.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
@@ -15,7 +15,7 @@ namespace ug {
 
 template <	typename TDoFDistribution,
 			typename TAlgebra>
-class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgebra> {
+class SymP1ConstraintsPostProcess : public IConstraint<TDoFDistribution, TAlgebra> {
 	public:
 	// 	DoF Distribution Type
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
@@ -33,9 +33,25 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
 
 	public:
-		virtual int type() {return PPT_CONSTRAINTS;}
+		virtual int type() {return CT_CONSTRAINTS;}
 
-		virtual bool post_process_jacobian(matrix_type& J,
+		virtual bool adjust_defect(vector_type& d, const vector_type& u,
+		                           const dof_distribution_type& dofDistr,
+		                           number time = 0.0)
+		{
+		//	not implemented
+			return false;
+		}
+
+		virtual bool adjust_rhs(vector_type& rhs, const vector_type& u,
+		                        const dof_distribution_type& dofDistr,
+		                        number time = 0.0)
+		{
+		//	not implemented
+			return false;
+		}
+
+		virtual bool adjust_jacobian(matrix_type& J,
 		                                              const vector_type& u,
 		                                              const dof_distribution_type& dofDistr,
 		                                              number time = 0.0)
@@ -45,10 +61,10 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 			vector_type rhsDummy; rhsDummy.resize(u.size());
 
 
-			return post_process_linear(J, rhsDummy, u, dofDistr, time);
+			return adjust_linear(J, rhsDummy, u, dofDistr, time);
 		}
 
-		virtual bool post_process_linear(matrix_type& mat,
+		virtual bool adjust_linear(matrix_type& mat,
 		                                            vector_type& rhs,
 		                                            const vector_type& u,
 		                                            const dof_distribution_type& dofDistr,
@@ -95,7 +111,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining edge, but is not.\n");
 							return false;
 						}
@@ -110,7 +126,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 						//	check
 							if(constrainedEdge == NULL)
 							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 										" Child element should be constrained edge, but is not.\n");
 								return false;
 							}
@@ -132,7 +148,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					//	check that quad is correct
 						if(bigQuad == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining quad, but is not.\n");
 							return false;
 						}
@@ -157,7 +173,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 						}
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element of hang. vertex wrong.\n");
 							return false;
 					}
@@ -210,7 +226,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining edge, but is not.\n");
 							return false;
 						}
@@ -225,7 +241,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 						//	check
 							if(constrainedEdge == NULL)
 							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 										" Child element should be constrained edge, but is not.\n");
 								return false;
 							}
@@ -247,7 +263,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					//	check that quad is correct
 						if(bigQuad == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining quad, but is not.\n");
 							return false;
 						}
@@ -275,7 +291,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 						}
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element of hang. vertex wrong.\n");
 							return false;
 					}
@@ -303,7 +319,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 			return true;
 		}
 
-		virtual bool post_process_solution(vector_type& u,
+		virtual bool adjust_solution(vector_type& u,
 		                                   const dof_distribution_type& dofDistr,
 		                                   number time = 0.0)
 		{
@@ -348,7 +364,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining edge, but is not.\n");
 							return false;
 						}
@@ -363,7 +379,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 						//	check
 							if(constrainedEdge == NULL)
 							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 										" Child element should be constrained edge, but is not.\n");
 								return false;
 							}
@@ -385,7 +401,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 					//	check that quad is correct
 						if(bigQuad == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining quad, but is not.\n");
 							return false;
 						}
@@ -396,7 +412,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 							vConstrainingVrt.push_back(bigQuad->vertex(i));
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element of hang. vertex wrong.\n");
 							return false;
 					}
@@ -608,7 +624,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 template <	typename TDoFDistribution,
 			typename TAlgebra>
-class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgebra> {
+class OneSideP1ConstraintsPostProcess : public IConstraint<TDoFDistribution, TAlgebra> {
 	public:
 	// 	DoF Distribution Type
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
@@ -626,9 +642,9 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
 
 	public:
-		virtual int type() {return PPT_CONSTRAINTS;}
+		virtual int type() {return CT_CONSTRAINTS;}
 
-		virtual bool post_process_jacobian(matrix_type& J,
+		virtual bool adjust_jacobian(matrix_type& J,
 		                                              const vector_type& u,
 		                                              const dof_distribution_type& dofDistr,
 		                                              number time = 0.0)
@@ -638,10 +654,34 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 			vector_type rhsDummy; rhsDummy.resize(u.size());
 
 
-			return post_process_linear(J, rhsDummy, u, dofDistr, time);
+			return adjust_linear(J, rhsDummy, u, dofDistr, time);
 		}
 
-		virtual bool post_process_linear(matrix_type& mat,
+		virtual bool adjust_defect(vector_type& d, const vector_type& u,
+		                           const dof_distribution_type& dofDistr,
+		                           number time = 0.0)
+		{
+		//	not implemented
+			return false;
+		}
+
+		virtual bool adjust_rhs(vector_type& rhs, const vector_type& u,
+		                        const dof_distribution_type& dofDistr,
+		                        number time = 0.0)
+		{
+		//	not implemented
+			return false;
+		}
+
+		virtual bool adjust_solution(vector_type& u,
+		                                   const dof_distribution_type& dofDistr,
+		                                   number time = 0.0)
+		{
+		//	not implemented
+			return false;
+		}
+
+		virtual bool adjust_linear(matrix_type& mat,
 		                                            vector_type& rhs,
 		                                            const vector_type& u,
 		                                            const dof_distribution_type& dofDistr,
@@ -689,7 +729,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining edge, but is not.\n");
 							return false;
 						}
@@ -704,7 +744,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 						//	check
 							if(constrainedEdge == NULL)
 							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 										" Child element should be constrained edge, but is not.\n");
 								return false;
 							}
@@ -726,7 +766,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 					//	check that quad is correct
 						if(bigQuad == NULL)
 						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element should be constraining quad, but is not.\n");
 							return false;
 						}
@@ -737,7 +777,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 							vConstrainingVrt.push_back(bigQuad->vertex(i));
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
 									" Parent element of hang. vertex wrong.\n");
 							return false;
 					}
@@ -865,4 +905,4 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 
 
 
-#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__P1_CONSTRAINTS_POST_PROCESS__ */
+#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__CONTINUITY_CONSTRAINTS__P1_CONTINUITY_CONSTRAINTS__ */

@@ -128,7 +128,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		{return false;}
 
 		virtual size_t num_post_process() const = 0;
-		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
+		virtual IConstraint<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
 };
 
 \endcode

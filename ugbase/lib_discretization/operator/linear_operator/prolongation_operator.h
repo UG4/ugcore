@@ -15,7 +15,7 @@
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
 #include "lib_algebra/operator/operator_interface.h"
-#include "lib_discretization/spatial_discretization/post_process/post_process_interface.h"
+#include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
 
 #ifdef UG_PARALLEL
 #include "lib_discretization/parallelization/parallelization_util.h"
@@ -225,8 +225,8 @@ class P1ProlongationOperator :
 		};
 
 	//	set dirichlet values
-		// todo: This should be a IPostProcess, indicating dirichlet value, only
-		void set_dirichlet_post_process(IPostProcess<typename dof_distribution_type::implementation_type, algebra_type>& pp)
+		// todo: This should be a IConstraint, indicating dirichlet value, only
+		void set_dirichlet_post_process(IConstraint<typename dof_distribution_type::implementation_type, algebra_type>& pp)
 		{
 			m_vPostProcess.push_back(&pp);
 		}
@@ -334,7 +334,7 @@ class P1ProlongationOperator :
 			{
 				const dof_distribution_type& dofDistr =
 						m_pApproxSpace->get_level_dof_distribution(m_fineLevel);
-				if(m_vPostProcess[i]->post_process_defect(uFineOut, uFineOut, dofDistr) != true)
+				if(m_vPostProcess[i]->adjust_defect(uFineOut, uFineOut, dofDistr) != true)
 				{
 					UG_LOG("ERROR in 'P1ProlongationOperator::apply': "
 							"Error while setting dirichlet defect nr " << i << " to zero.\n");
@@ -386,7 +386,7 @@ class P1ProlongationOperator :
 			{
 				const dof_distribution_type& dofDistr =
 						m_pApproxSpace->get_level_dof_distribution(m_coarseLevel);
-				if(m_vPostProcess[i]->post_process_defect(uCoarseOut, uCoarseOut, dofDistr) != true)
+				if(m_vPostProcess[i]->adjust_defect(uCoarseOut, uCoarseOut, dofDistr) != true)
 				{
 					UG_LOG("ERROR in 'ProjectionOperator::apply_transposed': "
 							"Error while setting dirichlet defect nr " << i << " to zero.\n");
@@ -424,7 +424,7 @@ class P1ProlongationOperator :
 	protected:
 		matrix_type m_matrix;
 
-		std::vector<IPostProcess<typename dof_distribution_type::implementation_type, algebra_type>*> m_vPostProcess;
+		std::vector<IConstraint<typename dof_distribution_type::implementation_type, algebra_type>*> m_vPostProcess;
 		TApproximationSpace* m_pApproxSpace;
 		size_t m_fineLevel;
 		size_t m_coarseLevel;

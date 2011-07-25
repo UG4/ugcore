@@ -15,7 +15,7 @@
 #include "lib_algebra/operator/debug_writer.h"
 #include "lib_algebra/operator/vector_writer.h"
 #include "lib_discretization/io/vtkoutput.h"
-#include "lib_discretization/spatial_discretization/post_process/post_process_interface.h"
+#include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
 #include <vector>
 #include <string>
 
@@ -530,7 +530,7 @@ class GridFunctionVectorWriterDirichlet0
 		typedef typename algebra_type::vector_type vector_type;
 		typedef typename vector_type::value_type value_type;
 
-		typedef IPostProcess<typename dof_distribution_type::implementation_type, algebra_type>
+		typedef IConstraint<typename dof_distribution_type::implementation_type, algebra_type>
 			post_process_type;
 	public:
 	///	Constructor
@@ -569,7 +569,7 @@ class GridFunctionVectorWriterDirichlet0
 			vec.resize(pDOF->num_indices());
 			vec.set(1.0);
 
-			return m_pPostProcess->post_process_defect(vec, vec, *pDOF);
+			return m_pPostProcess->adjust_defect(vec, vec, *pDOF);
 		}
 
 	protected:

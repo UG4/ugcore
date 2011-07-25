@@ -13,11 +13,11 @@
 #include "common/util/string_util.h"
 
 // library intern headers
-#include "./domain_discretization_interface.h"
-#include "./elem_disc/elem_disc_assemble_util.h"
-#include "./post_process/post_process_interface.h"
-#include "./subset_assemble_util.h"
+#include "subset_assemble_util.h"
+#include "domain_discretization_interface.h"
 #include "lib_discretization/common/function_group.h"
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_assemble_util.h"
+#include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
 
 namespace ug {
 
@@ -52,7 +52,7 @@ class DomainDiscretization :
 	///	Empty Constructor
 		DomainDiscretization() : m_bForceRegGrid(false), m_pSelector(NULL)
 		{
-			m_vvPostProcess.resize(PPT_NUM_POST_PROCESS_TYPES);
+			m_vvPostProcess.resize(NUM_CONSTRAINT_TYPES);
 		};
 
 	///////////////////////////
@@ -183,7 +183,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	pp		Post Process to be added
 	 */
-		bool add_post_process(IPostProcess<TDoFDistribution, TAlgebra>& pp)
+		bool add_post_process(IConstraint<TDoFDistribution, TAlgebra>& pp)
 		{
 		// 	get type of post process
 			const int type = pp.type();
@@ -200,20 +200,20 @@ class DomainDiscretization :
 
 	protected:
 	//	vector holding all registered post processes
-		std::vector<std::vector<IPostProcess<TDoFDistribution, TAlgebra>*> >
+		std::vector<std::vector<IConstraint<TDoFDistribution, TAlgebra>*> >
 			m_vvPostProcess;
 
 	protected:
 	///	returns number of registered post processes
 		virtual size_t num_post_process() const
 		{
-			return m_vvPostProcess[PPT_DIRICHLET].size();
+			return m_vvPostProcess[CT_DIRICHLET].size();
 		}
 
 	///	returns the i'th post process
-		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i)
+		virtual IConstraint<TDoFDistribution, TAlgebra>* get_post_process(size_t i)
 		{
-			return m_vvPostProcess[PPT_DIRICHLET].at(i);
+			return m_vvPostProcess[CT_DIRICHLET].at(i);
 		}
 };
 

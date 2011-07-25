@@ -34,7 +34,7 @@
 #include "lib_discretization/io/vtkoutput.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/post_process/dirichlet_boundary/p1_dirichlet_boundary.h"
+#include "lib_discretization/spatial_discretization/constraints/dirichlet_boundary/p1_dirichlet_boundary.h"
 
 #include "lib_discretization/operator/linear_operator/projection_operator.h"
 #include "lib_discretization/operator/linear_operator/prolongation_operator.h"
@@ -149,7 +149,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
 		std::stringstream ss; ss << "DirichletBND" << dim << "d";
-		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IConstraint<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain|hide=true", &T::set_domain)
 			.add_method("set_pattern|hide=true", &T::set_pattern)

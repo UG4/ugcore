@@ -10,7 +10,7 @@
 
 #include "lib_discretization/assemble_interface.h"
 #include "lib_discretization/time_discretization/solution_time_series.h"
-#include "./post_process/post_process_interface.h"
+#include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
 
 namespace ug {
 
@@ -140,7 +140,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		virtual size_t num_post_process() const = 0;
 
 	///	returns the i'th post process
-		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
+		virtual IConstraint<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
 };
 
 /// @}

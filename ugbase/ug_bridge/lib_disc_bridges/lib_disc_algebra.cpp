@@ -25,7 +25,7 @@
 // discretization interfaces
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/post_process/post_process_interface.h"
+#include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
 #include "lib_discretization/time_discretization/time_discretization_interface.h"
 
 // time discretization implementation
@@ -35,7 +35,7 @@
 #include "lib_discretization/spatial_discretization/domain_discretization.h"
 
 // post processes
-#include "lib_discretization/spatial_discretization/post_process/constraints/p1_constraints_post_process.h"
+#include "lib_discretization/spatial_discretization/constraints/continuity_constraints/p1_continuity_constraints.h"
 
 // operator interfaces
 #include "lib_discretization/operator/linear_operator/assembled_linear_operator.h"
@@ -72,12 +72,12 @@ bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 		}
 
 	//	Base class
-		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess", grp.c_str());
+		reg.add_class_<IConstraint<dof_distribution_type, algebra_type> >("IConstraint", grp.c_str());
 
 	//	OneSideP1ConstraintsPostProcess
 		{
 			typedef OneSideP1ConstraintsPostProcess<dof_distribution_type, algebra_type> T;
-			typedef IPostProcess<dof_distribution_type, algebra_type> baseT;
+			typedef IConstraint<dof_distribution_type, algebra_type> baseT;
 			reg.add_class_<T, baseT>("OneSideP1Constraints", grp.c_str())
 				.add_constructor();
 		}
@@ -85,7 +85,7 @@ bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 	//	SymP1ConstraintsPostProcess
 		{
 			typedef SymP1ConstraintsPostProcess<dof_distribution_type, algebra_type> T;
-			typedef IPostProcess<dof_distribution_type, algebra_type> baseT;
+			typedef IConstraint<dof_distribution_type, algebra_type> baseT;
 			reg.add_class_<T, baseT>("SymP1Constraints", grp.c_str())
 				.add_constructor();
 		}
