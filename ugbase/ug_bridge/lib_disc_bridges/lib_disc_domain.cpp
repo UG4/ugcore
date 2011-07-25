@@ -153,7 +153,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_constructor()
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
-			.add_method("add_boundary_value", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add_boundary_value),
+			.add_method("add_boundary_value", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add_boundary_value),
 						"Success", "Value#Function#Subsets")
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
 						"Success", "Constant Value#Function#Subsets")
