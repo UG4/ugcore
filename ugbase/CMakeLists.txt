@@ -77,10 +77,8 @@ else(MPI_FOUND)
 endif(MPI_FOUND)
 
 
-
 ########################
-# lib_bindings_vrl
-
+# vrl_bindings or shell
 if(UG_SHARED)
     if(FOR_VRL)
         add_subdirectory(bindings_vrl)
@@ -92,4 +90,8 @@ if(UG_SHARED)
     get_property(ug4libSources GLOBAL PROPERTY ugSources)
 
     add_library(ug4 SHARED ${ug4libSources})
+else(UG_SHARED)
+	if(NOT NO_SHELL)
+	    add_subdirectory(ugshell)
+	endif(NOT NO_SHELL)
 endif(UG_SHARED)
