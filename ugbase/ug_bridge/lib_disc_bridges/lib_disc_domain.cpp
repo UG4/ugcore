@@ -34,7 +34,7 @@
 #include "lib_discretization/io/vtkoutput.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/constraints/dirichlet_boundary/p1_dirichlet_boundary.h"
+#include "lib_discretization/spatial_discretization/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
 
 #include "lib_discretization/operator/linear_operator/projection_operator.h"
 #include "lib_discretization/operator/linear_operator/prolongation_operator.h"
@@ -46,7 +46,7 @@ namespace ug
 namespace bridge
 {
 
-/**	Calls e.g. P1DirichletBoundary::assemble_dirichlet_rows.
+/**	Calls e.g. LagrangeDirichletBoundary::assemble_dirichlet_rows.
  *
  * This method probably shouldn't be implemented here, but in some util file.
  */
@@ -58,7 +58,7 @@ void AssembleDirichletRows(TMatOp& matOp, TDirichletBnd& dirichletBnd,
 						approxSpace.get_surface_dof_distribution());
 }
 
-/**	Calls e.g. P1DirichletBoundary::assemble_dirichlet_rows.
+/**	Calls e.g. LagrangeDirichletBoundary::assemble_dirichlet_rows.
  * Also takes a time argument.
  *
  * This method probably shouldn't be implemented here, but in some util file.
@@ -147,7 +147,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	DirichletBNDValues
 	{
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
-		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
+		typedef LagrangeDirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
 		std::stringstream ss; ss << "DirichletBND" << dim << "d";
 		reg.add_class_<T, IConstraint<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
@@ -367,7 +367,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 	{
 	//todo: This should work for all IDirichletPostProcess
 		typedef MatrixOperator<vector_type, vector_type, matrix_type> mat_op_type;
-		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> dirichlet_type;
+		typedef LagrangeDirichletBoundary<domain_type, dof_distribution_type, algebra_type> dirichlet_type;
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 
 		typedef void (*fct_type)(	mat_op_type&,

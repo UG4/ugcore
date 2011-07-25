@@ -1,12 +1,12 @@
 /*
- * p1_dirichlet_boundary.h
+ * lagrange_dirichlet_boundary.h
  *
  *  Created on: 08.06.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__P1_DIRICHLET_BOUNDARY__
-#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__P1_DIRICHLET_BOUNDARY__
+#ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__
+#define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__
 
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
@@ -20,7 +20,7 @@
 namespace ug{
 
 template <	typename TDomain, typename TDoFDistribution, typename TAlgebra>
-class P1DirichletBoundary
+class LagrangeDirichletBoundary
 	: public IConstraint<TDoFDistribution, TAlgebra>
 {
 	public:
@@ -56,11 +56,11 @@ class P1DirichletBoundary
 
 	public:
 	///	constructor
-		P1DirichletBoundary() :
+		LagrangeDirichletBoundary() :
 			m_pDomain(NULL), m_pPattern(NULL) {	m_mConditionalBoundarySegment.clear();}
 
 	///	destructor
-		~P1DirichletBoundary()
+		~LagrangeDirichletBoundary()
 		{
 			for(size_t i = 0; i < m_vConstBoundaryNumber.size(); ++i)
 				if(m_vConstBoundaryNumber[i] != NULL)
@@ -73,7 +73,7 @@ class P1DirichletBoundary
 		//	check that function pattern exists
 			if(m_pPattern == NULL)
 			{
-				UG_LOG("P1DirichletBoundary:add_boundary_value: Function Pattern not set.\n");
+				UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
 				return false;
 			}
 
@@ -96,7 +96,7 @@ class P1DirichletBoundary
 		//	only one function allowed
 			if(functionGroup.num_fct() != 1)
 			{
-				UG_LOG("P1DirichletBoundary:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
+				UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
 				return false;
 			}
 
@@ -109,7 +109,7 @@ class P1DirichletBoundary
 		//	check that function pattern exists
 			if(m_pPattern == NULL)
 			{
-				UG_LOG("P1DirichletBoundary:add_boundary_value: Function Pattern not set.\n");
+				UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
 				return false;
 			}
 
@@ -125,7 +125,7 @@ class P1DirichletBoundary
 			//	check that subsetIndex is valid
 				if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
 				{
-					UG_LOG("P1DirichletBoundary:add_boundary_value: Invalid subset Index "
+					UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Invalid subset Index "
 							<< subsetIndex << ". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
 					return false;
 				}
@@ -133,7 +133,7 @@ class P1DirichletBoundary
 			// 	check if function exist
 				if(fct >= m_pPattern->num_fct())
 				{
-					UG_LOG("P1DirichletBoundary:add_boundary_value: Function "
+					UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
 							<< fct << " does not exist in pattern.\n");
 					return false;
 				}
@@ -141,7 +141,7 @@ class P1DirichletBoundary
 			// 	check that function is defined for segment
 				if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
 				{
-					UG_LOG("P1DirichletBoundary:add_boundary_value: Function "
+					UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
 							<< fct << " not defined in subset " << subsetIndex << ".\n");
 					return false;
 				}
@@ -320,7 +320,7 @@ class P1DirichletBoundary
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
@@ -378,7 +378,7 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dd, numbe
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dd, number time)
 {
 	bool bRet = true;
@@ -390,7 +390,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_typ
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
                 matrix_type& J, const vector_type& u,
            	    const dof_distribution_type& dd, number time)
@@ -419,7 +419,7 @@ adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
 	//	check success
 		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_jacobian':"
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary::adjust_jacobian':"
 					" While calling 'adapt_jacobian' for TUserData, aborting.\n");
 			return false;
 		}
@@ -431,7 +431,7 @@ adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
                 matrix_type& J, const vector_type& u,
            	    const dof_distribution_type& dd, number time)
@@ -466,7 +466,8 @@ adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
 			const LFEID& lfeID = dd.local_finite_element_id(fct);
 
 		//	get dof position
-			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+			if(TUserData::isConditional)
+				InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
 
 		//	get multi indices
 			dd.inner_multi_indices(elem, fct, multInd);
@@ -496,7 +497,7 @@ adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
               const dof_distribution_type& dd, number time)
 {
@@ -509,7 +510,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
                vector_type& d, const vector_type& u,
                const dof_distribution_type& dd, number time)
@@ -538,7 +539,7 @@ adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
 	//	check success
 		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_defect':"
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary::adjust_defect':"
 					" While calling 'adjust_defect' for TUserData, aborting.\n");
 			return false;
 		}
@@ -550,7 +551,7 @@ adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_defect(const std::vector<TUserData>& vUserData, int si,
               vector_type& d, const vector_type& u,
               const dof_distribution_type& dd, number time)
@@ -585,7 +586,8 @@ adjust_defect(const std::vector<TUserData>& vUserData, int si,
 			const LFEID& lfeID = dd.local_finite_element_id(fct);
 
 		//	get dof position
-			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+			if(TUserData::isConditional)
+				InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
 
 		//	get multi indices
 			dd.inner_multi_indices(elem, fct, multInd);
@@ -615,7 +617,7 @@ adjust_defect(const std::vector<TUserData>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_solution(vector_type& u, const dof_distribution_type& dd, number time)
 {
 	bool bRet = true;
@@ -627,7 +629,7 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd, number time)
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
                 vector_type& u, const dof_distribution_type& dd, number time)
 {
@@ -655,7 +657,7 @@ adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
 	//	check success
 		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_solution':"
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary::adjust_solution':"
 					" While calling 'adjust_solution' for TUserData, aborting.\n");
 			return false;
 		}
@@ -667,7 +669,7 @@ adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_solution(const std::vector<TUserData>& vUserData, int si,
                 vector_type& u, const dof_distribution_type& dd, number time)
 {
@@ -729,7 +731,7 @@ adjust_solution(const std::vector<TUserData>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_linear(matrix_type& A, vector_type& b,
               const vector_type& u, const dof_distribution_type& dd, number time)
 {
@@ -742,7 +744,7 @@ adjust_linear(matrix_type& A, vector_type& b,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
               matrix_type& A, vector_type& b, const vector_type& u,
            	  const dof_distribution_type& dd, number time)
@@ -771,7 +773,7 @@ adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
 	//	check success
 		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_linear':"
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary::adjust_linear':"
 					" While calling 'adjust_linear' for TUserData, aborting.\n");
 			return false;
 		}
@@ -783,7 +785,7 @@ adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_linear(const std::vector<TUserData>& vUserData, int si,
               matrix_type& A, vector_type& b, const vector_type& u,
               const dof_distribution_type& dd, number time)
@@ -852,7 +854,7 @@ adjust_linear(const std::vector<TUserData>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_rhs(vector_type& b, const vector_type& u,
            const dof_distribution_type& dd, number time)
 {
@@ -865,7 +867,7 @@ adjust_rhs(vector_type& b, const vector_type& u,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
            vector_type& b, const vector_type& u,
            const dof_distribution_type& dd, number time)
@@ -894,7 +896,7 @@ adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
 	//	check success
 		if(!bRes)
 		{
-			UG_LOG("ERROR in 'P1DirichletBoundary::adjust_rhs':"
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary::adjust_rhs':"
 					" While calling 'adjust_rhs' for TUserData, aborting.\n");
 			return false;
 		}
@@ -906,7 +908,7 @@ adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
-bool P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_rhs(const std::vector<TUserData>& vUserData, int si,
            vector_type& b, const vector_type& u,
            const dof_distribution_type& dd, number time)
@@ -969,4 +971,4 @@ adjust_rhs(const std::vector<TUserData>& vUserData, int si,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__P1_DIRICHLET_BOUNDARY__ */
+#endif /* __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__ */

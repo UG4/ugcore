@@ -103,7 +103,7 @@
 
 #include "spatial_discretization/constraints/constraint_interface.h"
 #include "spatial_discretization/constraints/continuity_constraints/p1_continuity_constraints.h"
-#include "spatial_discretization/constraints/dirichlet_boundary/p1_dirichlet_boundary.h"
+#include "spatial_discretization/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
 
 // Time discretization
 #include "time_discretization/time_discretization_interface.h"
