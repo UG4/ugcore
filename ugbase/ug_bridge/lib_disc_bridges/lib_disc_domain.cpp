@@ -147,6 +147,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	DirichletBNDValues
 	{
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
+		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
 		typedef LagrangeDirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
 		std::stringstream ss; ss << "DirichletBND" << dim << "d";
 		reg.add_class_<T, IConstraint<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
@@ -154,6 +155,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
 			.add_method("add_boundary_value", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add_boundary_value),
+						"Success", "Value#Function#Subsets")
+			.add_method("add_boundary_value", static_cast<void (T::*)(NumberFunctor&, const char*, const char*)>(&T::add_boundary_value),
 						"Success", "Value#Function#Subsets")
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
 						"Success", "Constant Value#Function#Subsets")
