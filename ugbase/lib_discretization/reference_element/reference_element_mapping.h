@@ -126,6 +126,9 @@ class DimReferenceMapping
 
 	///	returns the determinate of the jacobian for n local positions
 		virtual void jacobian_det(number* det, const MathVector<dim>* locPos, size_t n) const = 0;
+
+	///	virtual destructor
+		virtual ~DimReferenceMapping() {}
 };
 
 
@@ -239,6 +242,9 @@ class DimReferenceMappingWrapper
 					det[ip] = TRefMapping::jacobian_det(locPos[ip]);
 			}
 		}
+
+	///	virtual destructor
+		virtual ~DimReferenceMappingWrapper() {}
 };
 
 
