@@ -151,8 +151,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		std::stringstream ss; ss << "DirichletBND" << dim << "d";
 		reg.add_class_<T, IConstraint<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_domain|hide=true", &T::set_domain)
-			.add_method("set_pattern|hide=true", &T::set_pattern)
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
 			.add_method("add_boundary_value", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add_boundary_value),

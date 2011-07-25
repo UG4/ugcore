@@ -57,7 +57,7 @@ class LagrangeDirichletBoundary
 	public:
 	///	constructor
 		LagrangeDirichletBoundary() :
-			m_pDomain(NULL), m_pPattern(NULL) {	m_mConditionalBoundarySegment.clear();}
+			m_pDomain(NULL), m_pPattern(NULL) {clear();}
 
 	///	destructor
 		~LagrangeDirichletBoundary()
@@ -68,124 +68,28 @@ class LagrangeDirichletBoundary
 		}
 
 		bool add_boundary_value(BNDNumberFunctor& func,
-								const char* function, const char* subsets)
-		{
-		//	check that function pattern exists
-			if(m_pPattern == NULL)
-			{
-				UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
-				return false;
-			}
-
-		//	create Function Group and Subset Group
-			FunctionGroup functionGroup;
-			SubsetGroup subsetGroup;
-
-		//	convert strings
-			if(!ConvertStringToSubsetGroup(subsetGroup, *m_pPattern, subsets))
-			{
-				UG_LOG("ERROR while parsing Subsets.\n");
-				return false;
-			}
-			if(!ConvertStringToFunctionGroup(functionGroup, *m_pPattern, function))
-			{
-				UG_LOG("ERROR while parsing Functions.\n");
-				return false;
-			}
-
-		//	only one function allowed
-			if(functionGroup.num_fct() != 1)
-			{
-				UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
-				return false;
-			}
-
-			return add_boundary_value(func, functionGroup.unique_id(0), subsetGroup);
-		}
+								const char* function, const char* subsets);
 
 		bool add_boundary_value(BNDNumberFunctor func,
-								size_t fct, SubsetGroup subsetGroup)
-		{
-		//	check that function pattern exists
-			if(m_pPattern == NULL)
-			{
-				UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
-				return false;
-			}
+								size_t fct, SubsetGroup subsetGroup);
 
-		//	get subsethandler
-			const ISubsetHandler* pSH = m_pPattern->get_subset_handler();
+		bool add_constant_boundary_value(number value,
+		                                 const char* function, const char* subsets);
 
-		// 	loop subsets
-			for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
-			{
-			//	get subset index
-				const int subsetIndex = subsetGroup[si];
-
-			//	check that subsetIndex is valid
-				if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
-				{
-					UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Invalid subset Index "
-							<< subsetIndex << ". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
-					return false;
-				}
-
-			// 	check if function exist
-				if(fct >= m_pPattern->num_fct())
-				{
-					UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
-							<< fct << " does not exist in pattern.\n");
-					return false;
-				}
-
-			// 	check that function is defined for segment
-				if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
-				{
-					UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
-							<< fct << " not defined in subset " << subsetIndex << ".\n");
-					return false;
-				}
-
-			//	get Boundary segment from map
-				std::vector<BNDNumberData>& vSegmentFunction = m_mConditionalBoundarySegment[subsetIndex];
-
-			//	remember functor and function
-				vSegmentFunction.push_back(BNDNumberData(fct, func));
-			}
-
-		//	we're done
-			return true;
-		}
-
-		bool add_constant_boundary_value(number value,  const char* function, const char* subsets)
-		{
-			ConstBoundaryNumber<dim>* valProvider = new ConstBoundaryNumber<dim>;
-			valProvider->set(value);
-			m_vConstBoundaryNumber.push_back(valProvider);
-			return add_boundary_value(*valProvider, function, subsets);
-		}
-
+	///	sets the approximation space to work on
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
 		{
-			set_domain(approxSpace.get_domain());
-			set_pattern(approxSpace);
-		}
-
-		void set_domain(domain_type& domain)
-		{
-			m_pDomain = &domain;
+			m_pDomain = &approxSpace.get_domain();
 			m_aaPos = m_pDomain->get_position_accessor();
+			m_pPattern = &approxSpace;
+			clear();
 		}
 
-		void set_pattern(const FunctionPattern& pattern)
-		{
-			m_pPattern = &pattern;
-			m_mConditionalBoundarySegment.clear();
-		}
-
+	///	removes all scheduled dirichlet data.
 		void clear()
 		{
 			m_mConditionalBoundarySegment.clear();
+			m_mBoundarySegment.clear();
 		}
 
 	///	Sets dirichlet rows for all registered dirichlet values
@@ -207,14 +111,31 @@ class LagrangeDirichletBoundary
 		void assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dd, number time = 0.0);
 
 	public:
+	///////////////////////////////
 	// 	Implement Interface
-		bool adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dd, number time = 0.0);
-		bool adjust_defect(vector_type& d, const vector_type& d, const dof_distribution_type& dd, number time = 0.0);
-		bool adjust_solution(vector_type& u, const dof_distribution_type& dd, number time = 0.0);
+	///////////////////////////////
 
-		bool adjust_linear(matrix_type& A, vector_type& b, const vector_type& u, const dof_distribution_type& dd, number time = 0.0);
-		bool adjust_rhs(vector_type& b, const vector_type& u, const dof_distribution_type& dd, number time = 0.0);
+	/// sets a unity row for all dirichlet indices
+		bool adjust_jacobian(matrix_type& J, const vector_type& u,
+		                     const dof_distribution_type& dd, number time = 0.0);
 
+	/// sets a zero value in the defect for all dirichlet indices
+		bool adjust_defect(vector_type& d, const vector_type& d,
+		                   const dof_distribution_type& dd, number time = 0.0);
+
+	/// sets the dirichlet value in the solution for all dirichlet indices
+		bool adjust_solution(vector_type& u,
+		                     const dof_distribution_type& dd, number time = 0.0);
+
+	///	sets unity rows in A and dirichlet values in right-hand side b
+		bool adjust_linear(matrix_type& A, vector_type& b, const vector_type& u,
+		                   const dof_distribution_type& dd, number time = 0.0);
+
+	///	sets the dirichlet value in the right-hand side
+		bool adjust_rhs(vector_type& b, const vector_type& u,
+		                const dof_distribution_type& dd, number time = 0.0);
+
+	///	returns the type of the constraints
 		virtual int type()	{return CT_DIRICHLET;}
 
 	protected:
@@ -314,6 +235,116 @@ class LagrangeDirichletBoundary
 	///	non-conditional boundary values for all subsets
 		std::map<int, std::vector<NumberData> > m_mBoundarySegment;
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	setup
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+add_boundary_value(BNDNumberFunctor& func,
+						const char* function, const char* subsets)
+{
+//	check that function pattern exists
+	if(m_pPattern == NULL)
+	{
+		UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
+		return false;
+	}
+
+//	create Function Group and Subset Group
+	FunctionGroup functionGroup;
+	SubsetGroup subsetGroup;
+
+//	convert strings
+	if(!ConvertStringToSubsetGroup(subsetGroup, *m_pPattern, subsets))
+	{
+		UG_LOG("ERROR while parsing Subsets.\n");
+		return false;
+	}
+	if(!ConvertStringToFunctionGroup(functionGroup, *m_pPattern, function))
+	{
+		UG_LOG("ERROR while parsing Functions.\n");
+		return false;
+	}
+
+//	only one function allowed
+	if(functionGroup.num_fct() != 1)
+	{
+		UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
+		return false;
+	}
+
+	return add_boundary_value(func, functionGroup.unique_id(0), subsetGroup);
+}
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+add_boundary_value(BNDNumberFunctor func,
+						size_t fct, SubsetGroup subsetGroup)
+{
+//	check that function pattern exists
+	if(m_pPattern == NULL)
+	{
+		UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function Pattern not set.\n");
+		return false;
+	}
+
+//	get subsethandler
+	const ISubsetHandler* pSH = m_pPattern->get_subset_handler();
+
+// 	loop subsets
+	for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
+	{
+	//	get subset index
+		const int subsetIndex = subsetGroup[si];
+
+	//	check that subsetIndex is valid
+		if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
+		{
+			UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Invalid subset Index "
+					<< subsetIndex << ". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
+			return false;
+		}
+
+	// 	check if function exist
+		if(fct >= m_pPattern->num_fct())
+		{
+			UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
+					<< fct << " does not exist in pattern.\n");
+			return false;
+		}
+
+	// 	check that function is defined for segment
+		if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
+		{
+			UG_LOG("LagrangeDirichletBoundary:add_boundary_value: Function "
+					<< fct << " not defined in subset " << subsetIndex << ".\n");
+			return false;
+		}
+
+	//	get Boundary segment from map
+		std::vector<BNDNumberData>& vSegmentFunction = m_mConditionalBoundarySegment[subsetIndex];
+
+	//	remember functor and function
+		vSegmentFunction.push_back(BNDNumberData(fct, func));
+	}
+
+//	we're done
+	return true;
+}
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+add_constant_boundary_value(number value,  const char* function, const char* subsets)
+{
+	ConstBoundaryNumber<dim>* valProvider = new ConstBoundaryNumber<dim>;
+	valProvider->set(value);
+	m_vConstBoundaryNumber.push_back(valProvider);
+	return add_boundary_value(*valProvider, function, subsets);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //	assemble_dirichlet_rows
