@@ -394,9 +394,9 @@ extract_scheduled_data()
 	}
 
 //	clear data
-	m_vScheduledBNDNumberData.clear();
-	m_vScheduledNumberData.clear();
-	m_vScheduledConstNumberData.clear();
+	m_mConditionalBoundarySegment.clear();
+	m_mBoundarySegment.clear();
+	m_mConstBoundarySegment.clear();
 
 	for(size_t i = 0; i < m_vScheduledBNDNumberData.size(); ++i)
 	{
