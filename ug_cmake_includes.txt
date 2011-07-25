@@ -159,6 +159,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 			message(STATUS "INFO: Generating debug symbols (-g) (Disable by defining -DGENERATE_DEBUG_SYMBOLS=OFF)")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 		endif(GENERATE_DEBUG_SYMBOLS)
+		remove_definitions(-DUG_DEBUG)
 	endif(UG_DEBUG)
 
 	# Check whether debug output is activated.
