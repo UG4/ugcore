@@ -28,7 +28,7 @@ namespace ug {
 /**
  * This class is an implementation of the IDomainDiscretization interface. It
  * is designed to simply group several discreizations on different subsets and
- * perform element based assemblings and constraints in the same order.
+ * perform element based assemblings and costraints in the same order.
  */
 template <	typename TDoFDistribution,
 			typename TAlgebra>

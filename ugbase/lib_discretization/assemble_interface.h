@@ -79,16 +79,16 @@ template <	typename TDoFDistribution,
 			typename TAlgebra>
 class IAssemble {
 	public:
-	// 	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	// 	Type of algebra matrix
+	///	Type of algebra matrix
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	// 	Type of algebra vector
+	///	Type of algebra vector
 		typedef typename TAlgebra::vector_type vector_type;
 
-	// 	Type of DoF Distribution
+	///	Type of DoF Distribution
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	public:
@@ -102,8 +102,7 @@ class IAssemble {
 		 */
 		virtual bool assemble_jacobian(matrix_type& J,
 		                               const vector_type& u,
-		                               const dof_distribution_type& dofDistr)
-		{return false;}
+		                               const dof_distribution_type& dofDistr) = 0;
 
 		/// assembles Defect
 		/**
@@ -115,8 +114,7 @@ class IAssemble {
 		 */
 		virtual bool assemble_defect(vector_type& d,
 		                             const vector_type& u,
-		                             const dof_distribution_type& dofDistr)
-		{return false;}
+		                             const dof_distribution_type& dofDistr) = 0;
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
@@ -128,14 +126,12 @@ class IAssemble {
 		 * \param[in]	dofDistr	DoF Distribution
 		 *
 		 * \return 	true 		if problem is linear and assembling successful
-		 * 			false 	if problem is linear and an error occurred during assembling
-		 * 			IAssemble_NONLINEAR if problem is non-linear
+		 * 			false 		if problem is non-linear or an error occurred during assembling
 		 */
 		virtual bool assemble_linear(matrix_type& A,
 		                             vector_type& b,
 		                             const vector_type& u,
-		                             const dof_distribution_type& dofDistr)
-		{return false;}
+		                             const dof_distribution_type& dofDistr) = 0;
 
 		/// sets dirichlet values in solution vector
 		/**
@@ -150,8 +146,7 @@ class IAssemble {
 		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
 		virtual bool assemble_solution(vector_type& u,
-		                               const dof_distribution_type& dofDistr)
-		{return false;}
+		                               const dof_distribution_type& dofDistr) = 0;
 
 
 	/// forces the assembling to consider the grid as regular

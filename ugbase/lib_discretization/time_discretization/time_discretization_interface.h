@@ -41,16 +41,16 @@ class ITimeDiscretization
 	: public IAssemble<TDoFDistribution, TAlgebra>
 {
 	public:
-	//	DoF Distribution type
+	///	DoF Distribution type
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
-	//	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	//	Vector type
+	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
-	// 	Domain Discretization type
+	///	Domain Discretization type
 		typedef IDomainDiscretization<TDoFDistribution, algebra_type>
 			domain_discretization_type;
 

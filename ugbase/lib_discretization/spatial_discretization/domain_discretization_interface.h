@@ -34,16 +34,16 @@ template <	typename TDoFDistribution,
 			typename TAlgebra>
 class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	public:
-	// 	DoF Distribution Type
+	///	DoF Distribution Type
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
-	// 	Algebra type
+	/// Algebra type
 		typedef TAlgebra algebra_type;
 
-	// 	Type of algebra matrix
+	/// Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-	// 	Type of algebra vector
+	/// Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
@@ -59,16 +59,13 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
 	 * \return 	true  				if time dependent and successful
-	 * 			false 			if time dependent and error occurred
-	 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
+	 * 			false 				if an error occurred
 	 */
-		virtual
-		bool assemble_jacobian(matrix_type& J,
-		                                  const vector_type& u, number time,
-		                                  const SolutionTimeSeries<vector_type>& solList,
-		                                  const dof_distribution_type& dofDistr,
-		                                  number s_m, number s_a)
-		{return false;}
+		virtual bool assemble_jacobian(matrix_type& J,
+		                               const vector_type& u, number time,
+		                               const SolutionTimeSeries<vector_type>& solList,
+		                               const dof_distribution_type& dofDistr,
+		                               number s_m, number s_a) = 0;
 
 	/// assembles Defect
 	/**
@@ -82,16 +79,13 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
 	 * \return 	true  				if time dependent and successful
-	 * 			false 			if time dependent and error occurred
-	 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
+	 * 			false 				if an error occurred
 	 */
-		virtual
-		bool assemble_defect(vector_type& d,
-		                                const vector_type& u, number time,
-		                                const SolutionTimeSeries<vector_type>& solList,
-		                                const dof_distribution_type& dofDistr,
-		                                number s_m, number s_a)
-		{return false;}
+		virtual	bool assemble_defect(vector_type& d,
+		       	                     const vector_type& u, number time,
+		       	                     const SolutionTimeSeries<vector_type>& solList,
+		       	                     const dof_distribution_type& dofDistr,
+		       	                     number s_m, number s_a) = 0;
 
 	/// Assembles matrix_type and Right-Hand-Side for a linear problem
 	/**
@@ -106,18 +100,14 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  s_a		scaling for stiffness matrix
 	 *
 	 * \return 	true  				if time dependent and linear and successful
-	 * 			false 			if time dependent and linear and error occurred
-	 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent and linear
-	 * 			IAssemble_NONLINEAR			if problem is time dependent, but nonlinear
+	 * 			false 				if an error occurred
 	 */
-		virtual
-		bool assemble_linear(matrix_type& A,
-		                                vector_type& b,
-		                                const vector_type& u, number time,
-		                                const SolutionTimeSeries<vector_type>& solList,
-		                                const dof_distribution_type& dofDistr,
-		                                number s_m, number s_a)
-		{return false;}
+		virtual bool assemble_linear(matrix_type& A,
+		                             vector_type& b,
+		                             const vector_type& u, number time,
+		                             const SolutionTimeSeries<vector_type>& solList,
+		                             const dof_distribution_type& dofDistr,
+		                             number s_m, number s_a) = 0;
 
 	/// sets dirichlet values in solution vector
 	/**
@@ -127,14 +117,12 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \param[in]  time		time of next (to be computed) timestep
 	 * \param[in]  dofDistr DoF Distribution
 	 *
-	 * \return 	true 				if successful
-	 * 			false 	if function has not been implemented
+	 * \return 	true 			if successful
+	 * 			false 			if function has not been implemented
 	 * 			false 			if implemented but error occurred
 	 */
-		virtual
-		bool assemble_solution(vector_type& u, number time,
-		                                  const dof_distribution_type& dofDistr)
-		{return false;}
+		virtual bool assemble_solution(vector_type& u, number time,
+		                               const dof_distribution_type& dofDistr) = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_dirichlet_constraints() const = 0;
