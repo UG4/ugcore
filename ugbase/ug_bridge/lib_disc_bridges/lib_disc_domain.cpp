@@ -40,6 +40,8 @@
 #include "lib_discretization/operator/linear_operator/prolongation_operator.h"
 #include "lib_discretization/operator/linear_operator/multi_grid_solver/mg_solver.h"
 
+#include "lib_discretization/spatial_discretization/elem_disc/level_set/level_set.h"
+
 namespace ug
 {
 
@@ -281,6 +283,26 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_constructor()
 			.add_method("init", &T::init, "", "postProcess#approxSpace#level")
 			.add_method("set_level", &T::set_level, "", "level");
+	}
+
+	// FV1LevelSetDisc
+	{
+		typedef FV1LevelSetDisc<function_type> T;
+		std::stringstream ss; ss << "FV1LevelSetDisc" << dim << "d";
+		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_dt", &T::set_dt)
+			.add_method("set_vel_scale", &T::set_vel_scale)
+			.add_method("set_reinit", &T::set_reinit)
+			.add_method("set_div_bool", &T::set_div_bool)
+			.add_method("set_solution_nr", &T::set_solution_nr)
+			.add_method("set_velocity_nr", &T::set_velocity_nr)
+			.add_method("set_source", &T::set_source)
+			.add_method("set_bool_source", &T::set_bool_source)
+			.add_method("set_static_values_type", &T::set_static_values_type)
+			.add_method("advect_lsf", &T::advect_lsf)
+			.add_method("add_post_process", &T::add_post_process)
+			.add_method("compute_error", &T::compute_error);
 	}
 }
 
