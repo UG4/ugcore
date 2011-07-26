@@ -23,10 +23,10 @@ end
 numRefs    = util.GetParamNumber("-numRefs",    2)
 
 -- Display parameters (or defaults):
-print(" General parameters chosen:\n")
-print("    dim        = " .. dim .. "\n")
-print("    grid       = " .. gridName .. "\n")
-print("    numRefs    = " .. numRefs .. "\n")
+print(" General parameters chosen:")
+print("    dim        = " .. dim)
+print("    grid       = " .. gridName)
+print("    numRefs    = " .. numRefs)
 
 -- choose algebra
 InitAlgebra(CPUAlgebraSelector());
@@ -156,7 +156,7 @@ approxSpace:print_statistic()
 
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
-if linOp:init_op_and_rhs(b) == false then print("Could assemble operator"); exit(); end
+--if linOp:init_op_and_rhs(b) == false then print("Could assemble operator"); exit(); end
 
 -- set dirichlet values in start iterate
 u:set(0.0)
@@ -171,22 +171,22 @@ SaveVectorForConnectionViewer(u, "StartSol.mat")
 
 -- 2. init solver for linear Operator
 print("Init solver for operator.")
-solver:init(linOp)
+--solver:init(linOp)
 
 -- 3. apply solver
 print("Apply solver.")
-solver:apply_return_defect(u,b)
+--solver:apply_return_defect(u,b)
 
 -- 4. compute error
 l2error[i] = L2Error(exactSolution, u, "c", 0.0)
-print("L2Error on Level "..i.." is "..l2error[i] .."\n");
+write("L2Error on Level "..i.." is "..l2error[i] .."\n");
 end
 
 print("L2 Error result:\n")
 for i=1,numRefs do
-print(i..": "..l2error[i].. "  factor: ") 
-if i == 1 then print(" --- \n") 
-else print(l2error[i-1]/l2error[i].."\n") end
+write(i..": "..l2error[i].. "  factor: ") 
+if i == 1 then write(" --- \n") 
+else write(l2error[i-1]/l2error[i].."\n") end
 end
 --------------------------------------------------------------------------------
 --  Output of computed solution
