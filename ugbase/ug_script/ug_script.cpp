@@ -232,4 +232,28 @@ int UGLuaPrint(lua_State *L)
 	return 0;
 }
 
+/// UGLuaWrite. Redirects LUA prints to UG_LOG without adding newline at the end
+int UGLuaWrite(lua_State *L)
+{
+#ifdef UG_PARALLEL
+	if(!pcl::IsOutputProc())
+		return false;
+#endif
+	int nArgs = lua_gettop(L);
+	int i;
+	lua_getglobal(L, "tostring");
+
+	for(i=1; i<=nArgs; i++)
+	{
+		lua_pushvalue(L, -1);
+		lua_pushvalue(L, i);
+		lua_call(L, 1, 1);
+		const char *s = lua_tostring(L, -1);
+		if(s) UG_LOG(s);
+		lua_pop(L, 1);
+	}
+	lua_pop(L,1);
+	return 0;
+}
+
 }}//	end of namespace

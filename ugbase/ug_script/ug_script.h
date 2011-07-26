@@ -64,6 +64,9 @@ bool ParseFile(const char* filename);
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 int UGLuaPrint(lua_State *L);
 
+/// UGLuaWrite. prints LUA output to UG_LOG without adding std::endl automatically
+int UGLuaWrite(lua_State *L);
+
 }//	end of namespace
 }//	end of namespace
 

@@ -150,21 +150,7 @@ int main(int argc, char* argv[])
 	
 	// replace LUAs print function with our own, to use UG_LOG
 	lua_register(L, "print", UGLuaPrint );
-
-//	What is this and why did you load it?
-//	I uncommented this line, since "init.lua" is nowhere to be found...
-	/*try{
-		LoadUGScript("init.lua");
-	}
-	catch(LuaError err)
-	{
-		UG_LOG("PARSE ERROR: " << err.get_msg() << endl);
-		if(err.terminate())
-		{
-			UGFinalize(ug::g_bOutputProfileStats);
-			return err.get_code();
-		}
-	}*/
+	lua_register(L, "write", UGLuaWrite );
 
 //	if a script has been specified, then execute it now
 //	if a script is executed, we won't execute the interactive shell.
