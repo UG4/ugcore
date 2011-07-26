@@ -86,12 +86,12 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 	    bool analytic_velocity(MathVector<dim>&,number, MathVector<dim>);
 
 	///	fills the scvVolume attachment for all element types
-	    bool calculate_vertex_vol(grid_type& grid,domain_type& domain, aaSCV& aaScvVolume);
+	    bool calculate_vertex_vol(TGridFunction& u, aaSCV& aaScvVolume);
 
 //	    template <typename TElem>
 //   	    bool calculate_vertex_grad_vol(grid_type& grid,TGridFunction& u, aaGrad& aaGradient, aaSCV& aaVolume );
 
-	    bool calculate_vertex_grad_vol(grid_type& grid,TGridFunction& u, aaGrad& aaGradient, aaSCV& aaVolume );
+	    bool calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient, aaSCV& aaVolume );
 
 		template <typename TElem>
 		bool assemble_element(TElem& elem,grid_type& grid,TGridFunction& u,aaGrad& aaGradient, aaSCV& aaVolume );

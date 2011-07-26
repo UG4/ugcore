@@ -121,7 +121,7 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem,grid_type& gri
 
 	//	create a reference mapping
 	ReferenceMapping<ref_elem_type,dim> refmapping;
-//	get vertices of the triangle
+//	get vertices of the element
 	std::vector<VertexBase*> vVrt;
 	CollectVertices(vVrt, grid, elem);
 	
@@ -238,284 +238,221 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem,grid_type& gri
 	return true;
 }
 
+/*************************
 
-template <typename TElem, typename TDomain>
-bool CalculateVertexVol(typename TDomain::grid_type& grid,
-					    TDomain& domain,
-					    typename Grid::VertexAttachmentAccessor<Attachment<number> >& aaScvVolume)
-{
-	static const int dim = TDomain::dim;
+COMPUTE VOLUME OF CONTROL VOLUMES
 
-	FV1Geometry<TElem,dim> geo;
-
-	typedef typename geometry_traits<TElem>::iterator ElemIterator;
-
-//	sum up all contributions of the sub control volumes to one vertex in an attachment
-	for(ElemIterator iter = grid.template begin<TElem>();
-						 iter != grid.template end<TElem>(); ++iter)
-	{
-	//	get Triangle
-		TElem* elem = *iter;
-
-	//	get vertices of the triangle
-		std::vector<VertexBase*> vVrt;
-		CollectVertices(vVrt, grid, elem);
-
-	//	get corner coordinates
-		std::vector<MathVector<dim> > vCornerCoord;
-
-		typedef typename TDomain::position_accessor_type position_accessor_type;
-		position_accessor_type& aaPos = domain.get_position_accessor();
-
-	//	resize corners
-		vCornerCoord.clear();
-
-	//	extract corner coordinates
-		for(size_t i = 0; i < vVrt.size(); ++i)
-			vCornerCoord.push_back( aaPos[vVrt[i]] );
-
-	//	evaluate finite volume geometry
-		geo.update(elem, domain.get_subset_handler(), &(vCornerCoord[0]));
-
-	//	loop scv
-		for(size_t i = 0; i < geo.num_scv(); ++i)
-		{
-		//	get size of scv
-			const number volume = geo.scv(i).volume();
-
-		//	add the volume to the corner
-			aaScvVolume[ vVrt[i] ] += volume;
-		}
-	}
-	int count=0;
-	for(VertexBaseIterator iter = grid.vertices_begin();
-						   iter != grid.vertices_end(); ++iter)
-	{
-	//	get vertex
-		VertexBase* vrt = *iter;
-        UG_LOG(count << "vol: " << aaScvVolume[vrt] << "\n");
-        count++;
-	}
-
-	return true;
-}
-
-template <typename TDomain>
-bool CalculateVertexVol_Dim(typename TDomain::grid_type& grid,
-	    					TDomain& domain,
-	    					Grid::VertexAttachmentAccessor<Attachment<number> >& aaScvVolume);
-
-template <>
-bool CalculateVertexVol_Dim<Domain1d>(Domain1d::grid_type& grid,
-									  Domain1d& domain,
-									  Grid::VertexAttachmentAccessor<Attachment<number> >& aaScvVolume)
-{
-	return CalculateVertexVol<Edge, Domain1d>(grid, domain,aaScvVolume);
-}
-
-template <>
-bool CalculateVertexVol_Dim<Domain2d>(Domain2d::grid_type& grid,
-									  Domain2d& domain,
-									  Grid::VertexAttachmentAccessor<Attachment<number> >& aaScvVolume)
-{
-	bool bRes = true;
-	UG_LOG("triangles:\n");
-	bRes &= CalculateVertexVol<Triangle, Domain2d>(grid, domain,aaScvVolume);
-	UG_LOG("quadrilaterals:\n");
-	bRes &= CalculateVertexVol<Quadrilateral, Domain2d>(grid, domain,aaScvVolume);
-	return bRes;
-}
-
-template <>
-bool CalculateVertexVol_Dim<Domain3d>(Domain3d::grid_type& grid,
-									  Domain3d& domain,
-									  Grid::VertexAttachmentAccessor<Attachment<number> >& aaScvVolume)
-{
-	bool bRes = true;
-	bRes &= CalculateVertexVol<Tetrahedron, Domain3d>(grid, domain,aaScvVolume);
-	bRes &= CalculateVertexVol<Pyramid, Domain3d>(grid, domain,aaScvVolume);
-	bRes &= CalculateVertexVol<Prism, Domain3d>(grid, domain,aaScvVolume);
-	bRes &= CalculateVertexVol<Hexahedron, Domain3d>(grid, domain,aaScvVolume);
-	return bRes;
-}
-
-
+**************************/
 template <typename TGridFunction>
 bool FV1LevelSetDisc<TGridFunction>::
-calculate_vertex_vol(typename domain_type::grid_type& grid,domain_type& domain, aaSCV& aaScvVolume)
+calculate_vertex_vol(TGridFunction& u,aaSCV& aaScvVolume)
 {
-//	sum up scv
-	bool bRes = CalculateVertexVol_Dim<domain_type>(grid, domain, aaScvVolume);
-	if(!bRes)
-	{
-		UG_LOG("Error while calculating CV Volume.\n");
-		return false;
-	}
+	//	get domain
+		domain_type& domain = u.get_domain();
+
+	//	get grid of domain
+		typename domain_type::grid_type& grid = domain.get_grid();
+
+	//	create a FV Geometry for the dimension
+		DimFV1Geometry<dim> geo;
+
+	//	get element iterator type
+		typedef typename domain_traits<dim>::const_iterator ElemIterator;
+
+	//	get element type
+		typedef typename domain_traits<dim>::geometric_base_object ElemType;
+
+	//	hard code function (fct=0)
+	//\todo: generalize
+		size_t fct=0;
+
+	//	get position accessor
+		typedef typename domain_type::position_accessor_type position_accessor_type;
+		const position_accessor_type& aaPos = domain.get_position_accessor();
+
+	//	sum up all contributions of the sub control volumes to one vertex in an attachment
+		for(int si = 0; si < u.num_subsets(); ++si)
+		{
+		//	get iterators
+			ElemIterator iter = u.template begin<ElemType>(si);
+			ElemIterator iterEnd = u.template end<ElemType>(si);
+
+		//	loop elements of dimension
+			for(  ;iter !=iterEnd; ++iter)
+			{
+			//	get Elem
+				ElemType* elem = *iter;
+			//	get vertices of the element
+				std::vector<VertexBase*> vVrt;
+				CollectVertices(vVrt, grid, elem);
+			//	resize corners
+				std::vector<MathVector<dim> > vCornerCoord;
+
+			//	extract corner coordinates
+				for(size_t i = 0; i < vVrt.size(); ++i)
+			    	vCornerCoord.push_back( aaPos[vVrt[i]] );
+
+			//	evaluate finite volume geometry
+				geo.update(elem, domain.get_subset_handler(), &(vCornerCoord[0]) );
+
+
+			//	loop corners
+				for (size_t i=0;i < geo.num_scv();i++)
+				{
+					//	get scv for sh
+					const typename DimFV1Geometry<dim>::SCV& scv = geo.scv(i);
+
+					aaScvVolume[vVrt[i]] += scv.volume();
+				};
+			}
+		}
+
 	return true ;
+
 }
 
 /*************************
 
-VERTEX GRAD AND VOLUME
+COMPUTE VERTEX GRAD AND VOLUME OF CONTROL VOLUME 
 
 **************************/
 
-template <typename TGridFunction>
-bool CalculateVertexGradVol(TGridFunction& u,
-							Grid::VertexAttachmentAccessor<Attachment<MathVector<TGridFunction::domain_type::dim> > >& aaGradient,
-							typename Grid::VertexAttachmentAccessor<Attachment<number> >& aaScvVolume)
-{
-//	domain type
-	typedef typename TGridFunction::domain_type domain_type;
-
-/// dof distribution type
-	typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
-
-// 	Type of multi index vector
-	typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
-
-// 	dimension of world (and reference element)
-	static const int dim = domain_type::dim;
-
-//	get domain
-	domain_type& domain = u.get_domain();
-
-//	get grid of domain
-	typename domain_type::grid_type& grid = domain.get_grid();
-
-//	create Multiindex
-	multi_index_vector_type multInd;
-
-//	create a FV Geometry for the dimension
-	DimFV1Geometry<dim> geo;
-
-//	get element iterator type
-	typedef typename domain_traits<dim>::const_iterator ElemIterator;
-
-//	get element type
-	typedef typename domain_traits<dim>::geometric_base_object ElemType;
-
-//	compare with interpolate.h
-//	finite_volume_geometry.cpp
-	UG_LOG("adress " << &u << "\n");
-
-//	hard code function (fct=0)
-//\todo: generalize
-	size_t fct=0;
-
-//	sum up all contributions of the sub control volumes to one vertex in an attachment
-	for(int si = 0; si < u.num_subsets(); ++si)
-	{
-	//	get iterators
-		ElemIterator iter = u.template begin<ElemType>(si);
-		ElemIterator iterEnd = u.template end<ElemType>(si);
-
-	//	loop elements of dimension
-		for(  ;iter !=iterEnd; ++iter)
-		{
-		//	get Elem
-			ElemType* elem = *iter;
-
-		//	get vertices of the Elem
-			std::vector<VertexBase*> vVrt;
-			CollectVertices(vVrt, grid, elem);
-
-		//	get position accessor
-			typedef typename domain_type::position_accessor_type position_accessor_type;
-			const position_accessor_type& aaPos = domain.get_position_accessor();
-
-		//	resize corners
-			std::vector<MathVector<dim> > vCornerCoord;
-
-		//	extract corner coordinates
-			for(size_t i = 0; i < vVrt.size(); ++i)
-				vCornerCoord.push_back( aaPos[vVrt[i]] );
-
-		//	evaluate finite volume geometry
-			geo.update(elem, domain.get_subset_handler(), &(vCornerCoord[0]) );
-
-			UG_LOG("Num Verts loaded: "<<vVrt.size()<<"\n");
-			UG_LOG("Num SCV computed: "<<geo.num_scv()<<"\n");
-			UG_ASSERT(vVrt.size() == geo.num_scv(), "Must match.");
-			for(size_t i = 0; i < vVrt.size(); ++i)
-				if(vVrt[i] == NULL)
-					UG_LOG("Vertex "<<i<<" is NULL.\n");
-
-			std::vector<number> uValue(geo.num_scv());
-
-			typedef typename TGridFunction::multi_index_vector_type index_type;
-
-		//	read indices on vertex
-			typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
-			const dof_distribution_type& dd = u.get_dof_distribution();
-
-			for (size_t i=0;i < geo.num_scv();i++)
-			{
-			//	get indices of function fct on vertex
-				dd.inner_multi_indices(vVrt[i], fct, multInd);
-
-			//	read value of index from vector
-				uValue[i]=BlockRef(u[multInd[0][0]],multInd[0][1]);
-
-			//	debug log
-				UG_LOG("corner " << i << " " << uValue[i] << "\n");
-			}
-
-		//	storage for global gradient
-			MathVector<dim> globalGrad;
-
-		//	loop corners
-			for (size_t i=0;i < geo.num_scv();i++)
-			{
-			//	get scv for sh
-				const typename DimFV1Geometry<dim>::SCV& scv = geo.scv(i);
-
-			//	debug log
-				UG_LOG("gradient for corner " << i << "\n");
-
-			//	reset global gradient
-				globalGrad = 0.0;
-
-			//	sum up gradients of shape functions in corner
-				for(size_t sh = 0 ; sh < geo.num_scv(); ++sh)
-				{
-					UG_LOG("local grad " << sh << " : " << scv.local_grad(sh) << "\n");
-					UG_LOG("unscaled global grad " << sh << " = " << scv.global_grad(sh) << "\n");
-					UG_LOG("uvalue(" << sh << ") =" << uValue[sh] << "\n");
-
-					VecScaleAppend(globalGrad, uValue[sh], scv.global_grad(sh));
-				}
-
-			//	volume of scv
-				number vol = scv.volume();
-
-				UG_LOG("*** global grad " << i << ": " << globalGrad << "\n");
-
-			//	scale gradient by volume
-				globalGrad *= vol;
-
-			//	add both values to attachements
-				aaGradient[vVrt[i]] += globalGrad;
-				aaScvVolume[vVrt[i]] += vol;
-			};
-		}
-	}
-
-//	ok
-    return true;
-}
-
 template<typename TGridFunction>
 bool FV1LevelSetDisc<TGridFunction>::
-calculate_vertex_grad_vol(typename domain_type::grid_type& grid,TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolume)
+calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolume)
 {
-//	sum up scv
-	bool bRes = CalculateVertexGradVol(u, aaGradient, aaScvVolume);
-	if(!bRes)
-	{
-		UG_LOG("Error while calculating CV Volume.\n");
-		return false;
-	}
+	//	domain type
+	//	typedef typename TGridFunction::domain_type domain_type;
+
+	/// dof distribution type
+	//	typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
+
+	// 	dimension of world (and reference element)
+	//	static const int dim = domain_type::dim;
+
+	// 	Type of multi index vector
+		typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
+
+	//	get domain
+		domain_type& domain = u.get_domain();
+
+	//	get grid of domain
+		typename domain_type::grid_type& grid = domain.get_grid();
+
+	//	create Multiindex
+		multi_index_vector_type multInd;
+
+	//	create a FV Geometry for the dimension
+		DimFV1Geometry<dim> geo;
+
+	//	get element iterator type
+		typedef typename domain_traits<dim>::const_iterator ElemIterator;
+
+	//	get element type
+		typedef typename domain_traits<dim>::geometric_base_object ElemType;
+
+	//	hard code function (fct=0)
+	//\todo: generalize
+		size_t fct=0;
+
+	//	sum up all contributions of the sub control volumes to one vertex in an attachment
+		for(int si = 0; si < u.num_subsets(); ++si)
+		{
+		//	get iterators
+			ElemIterator iter = u.template begin<ElemType>(si);
+			ElemIterator iterEnd = u.template end<ElemType>(si);
+
+		//	loop elements of dimension
+			for(  ;iter !=iterEnd; ++iter)
+			{
+			//	get Elem
+				ElemType* elem = *iter;
+
+			//	get vertices of the Elem
+				std::vector<VertexBase*> vVrt;
+				CollectVertices(vVrt, grid, elem);
+
+			//	get position accessor
+				typedef typename domain_type::position_accessor_type position_accessor_type;
+				const position_accessor_type& aaPos = domain.get_position_accessor();
+
+			//	resize corners
+				std::vector<MathVector<dim> > vCornerCoord;
+
+			//	extract corner coordinates
+				for(size_t i = 0; i < vVrt.size(); ++i)
+					vCornerCoord.push_back( aaPos[vVrt[i]] );
+
+			//	evaluate finite volume geometry
+				geo.update(elem, domain.get_subset_handler(), &(vCornerCoord[0]) );
+
+				UG_LOG("Num Verts loaded: "<<vVrt.size()<<"\n");
+				UG_LOG("Num SCV computed: "<<geo.num_scv()<<"\n");
+				UG_ASSERT(vVrt.size() == geo.num_scv(), "Must match.");
+				for(size_t i = 0; i < vVrt.size(); ++i)
+					if(vVrt[i] == NULL)
+						UG_LOG("Vertex "<<i<<" is NULL.\n");
+
+				std::vector<number> uValue(geo.num_scv());
+
+				typedef typename TGridFunction::multi_index_vector_type index_type;
+
+			//	read indices on vertex
+				typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
+				const dof_distribution_type& dd = u.get_dof_distribution();
+
+				for (size_t i=0;i < geo.num_scv();i++)
+				{
+				//	get indices of function fct on vertex
+					dd.inner_multi_indices(vVrt[i], fct, multInd);
+
+				//	read value of index from vector
+					uValue[i]=BlockRef(u[multInd[0][0]],multInd[0][1]);
+
+				//	debug log
+					UG_LOG("corner " << i << " " << uValue[i] << "\n");
+				}
+
+			//	storage for global gradient
+				MathVector<dim> globalGrad;
+
+			//	loop corners
+				for (size_t i=0;i < geo.num_scv();i++)
+				{
+				//	get scv for sh
+					const typename DimFV1Geometry<dim>::SCV& scv = geo.scv(i);
+
+				//	debug log
+					UG_LOG("gradient for corner " << i << "\n");
+
+				//	reset global gradient
+					globalGrad = 0.0;
+
+				//	sum up gradients of shape functions in corner
+					for(size_t sh = 0 ; sh < geo.num_scv(); ++sh)
+					{
+						UG_LOG("local grad " << sh << " : " << scv.local_grad(sh) << "\n");
+						UG_LOG("unscaled global grad " << sh << " = " << scv.global_grad(sh) << "\n");
+						UG_LOG("uvalue(" << sh << ") =" << uValue[sh] << "\n");
+
+						VecScaleAppend(globalGrad, uValue[sh], scv.global_grad(sh));
+					}
+
+				//	volume of scv
+					number vol = scv.volume();
+
+					UG_LOG("*** global grad " << i << ": " << globalGrad << "\n");
+
+				//	scale gradient by volume
+					globalGrad *= vol;
+
+				//	add both values to attachements
+					aaGradient[vVrt[i]] += globalGrad;
+					aaScvVolume[vVrt[i]] += vol;
+				};
+			}
+		}
+
 	int count=0;
 	typedef typename domain_type::position_accessor_type position_accessor_type;
 	position_accessor_type aaPos = u.get_domain().get_position_accessor();
@@ -530,8 +467,10 @@ calculate_vertex_grad_vol(typename domain_type::grid_type& grid,TGridFunction& u
 		    };
 		    MathVector<dim> coord = aaPos[vrt];
 		    MathVector<dim> exact;
-		    exact[0] = cos(coord[0]);// 6*coord[0];
-		    exact[1] = -4*sin(coord[1]);//-4*coord[1];
+		    exact[0] = 1;
+		    exact[1] = -4;
+		    //exact[0] = cos(coord[0]);// 6*coord[0];
+		    //exact[1] = -4*sin(coord[1]);//-4*coord[1];
 		    number gError = sqrt( (exact[0]-aaGradient[vrt][0])*(exact[0]-aaGradient[vrt][0]) + (exact[1]-aaGradient[vrt][1])*(exact[1]-aaGradient[vrt][1]) );
 	        UG_LOG(count << "[ " << coord[0] << "," << coord[1] << " ] vol= " << aaScvVolume[vrt] << " " << "grad= ["
 	        		<< aaGradient[vrt][0] << "," << aaGradient[vrt][1] << "] exact grad = ["
@@ -585,8 +524,7 @@ bool FV1LevelSetDisc<TGridFunction>::compute_error(TGridFunction& numsol,number 
 	calculate_vertex_vol(grid,domain,aaScvVolume);*/
 
 	UG_LOG("----------------------------\n");
-	UG_LOG("adress" << &numsol << "\n");
-	calculate_vertex_grad_vol(grid,numsol,aaGradient,aaScvVolume);
+	calculate_vertex_grad_vol(numsol,aaGradient,aaScvVolume);
 
 /*	calculate_vertex_grad_vol(grid,numsol,aaGradient,aaScvVolume);
 	if(!bRes) {UG_LOG("Error while calculating CV Volume.\n"); return false;}
@@ -663,7 +601,7 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 	SetAttachmentValues(aaGradient, grid.vertices_begin(), grid.vertices_end(), 0);
 
 	// calculate scv size
-	if (calculate_vertex_grad_vol(grid,u,aaGradient, aaScvVolume)){UG_LOG("ERROR: gradient computation failed!"); };
+	if (calculate_vertex_grad_vol(u,aaGradient, aaScvVolume)){UG_LOG("ERROR: gradient computation failed!"); };
 
 	const dof_distribution_type& dd = u.get_dof_distribution();
 
