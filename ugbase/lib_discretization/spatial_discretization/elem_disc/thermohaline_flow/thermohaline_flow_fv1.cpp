@@ -1474,7 +1474,7 @@ ThermohalineFlowElemDisc<TDomain>::
 register_all_fv1_funcs()
 {
 //	get all grid element types in this dimension and below
-	typedef typename GridElemTypes<dim>::DimElemList ElemList;
+	typedef typename domain_traits<dim>::DimElemList ElemList;
 
 //	switch assemble functions
 	boost::mpl::for_each<ElemList>( RegisterFV1(this) );

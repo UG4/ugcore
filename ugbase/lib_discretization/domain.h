@@ -168,25 +168,51 @@ typedef Domain<3, MultiGrid, MGSubsetHandler> Domain3d;
  * the list AllElemList returns all elements contained in the Domain-dimension
  * and the dimensions below.
  */
-template <int dim> struct GridElemTypes;
+template <int dim> struct domain_traits;
+
+// 0d
+template <> struct domain_traits<0> {
+typedef boost::mpl::list<Vertex> DimElemList;
+typedef boost::mpl::list<Vertex> AllElemList;
+
+typedef geometry_traits<VertexBase>::const_iterator const_iterator;
+typedef geometry_traits<VertexBase>::iterator iterator;
+
+typedef geometry_traits<VertexBase>::geometric_base_object geometric_base_object;
+};
 
 // 1d
-template <> struct GridElemTypes<1> {
+template <> struct domain_traits<1> {
 typedef boost::mpl::list<Edge> DimElemList;
 typedef boost::mpl::list<Edge> AllElemList;
+
+typedef geometry_traits<EdgeBase>::const_iterator const_iterator;
+typedef geometry_traits<EdgeBase>::iterator iterator;
+
+typedef geometry_traits<EdgeBase>::geometric_base_object geometric_base_object;
 };
 
 // 2d
-template <> struct GridElemTypes<2> {
+template <> struct domain_traits<2> {
 typedef boost::mpl::list<Triangle, Quadrilateral> DimElemList;
 typedef boost::mpl::list<Edge, Triangle, Quadrilateral> AllElemList;
+
+typedef geometry_traits<Face>::const_iterator const_iterator;
+typedef geometry_traits<Face>::iterator iterator;
+
+typedef geometry_traits<Face>::geometric_base_object geometric_base_object;
 };
 
 // 3d
-template <> struct GridElemTypes<3> {
+template <> struct domain_traits<3> {
 typedef boost::mpl::list<Tetrahedron, Prism, Pyramid, Hexahedron> DimElemList;
 typedef boost::mpl::list<Edge, Triangle, Quadrilateral,
 								 Tetrahedron, Prism, Pyramid, Hexahedron> AllElemList;
+
+typedef geometry_traits<Volume>::const_iterator const_iterator;
+typedef geometry_traits<Volume>::iterator iterator;
+
+typedef geometry_traits<Volume>::geometric_base_object geometric_base_object;
 };
 
 

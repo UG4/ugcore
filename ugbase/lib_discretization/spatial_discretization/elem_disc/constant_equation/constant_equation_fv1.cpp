@@ -497,7 +497,7 @@ FVConstantEquationElemDisc<TDomain>::
 register_all_fv1_funcs(bool bHang)
 {
 //	get all grid element types in this dimension and below
-	typedef typename GridElemTypes<dim>::AllElemList ElemList;
+	typedef typename domain_traits<dim>::AllElemList ElemList;
 
 //	switch assemble functions
 	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
