@@ -38,7 +38,7 @@ dom = util.CreateAndDistributeDomain(gridName, 0, 0, neededSubsets)
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", 2)
+approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
@@ -94,16 +94,16 @@ elemDisc:set_source(rhs)
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(exactSolution, "c", "Boundary")
+dirichletBND:add(exactSolution, "c", "Boundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
---domainDisc:add_elem_disc(neumannDisc)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(elemDisc)
+--domainDisc:add(neumannDisc)
+domainDisc:add(dirichletBND)
 
 --------------------------------------------------------------------------------
 --  Algebra

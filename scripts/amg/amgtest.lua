@@ -161,15 +161,15 @@ elemDisc:set_source(rhs)
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
+dirichletBND:add(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(elemDisc)
+domainDisc:add(dirichletBND)
 
 -------------------------------------------
 --  Algebra

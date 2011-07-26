@@ -62,14 +62,14 @@ class LagrangeDirichletBoundary
 	///	destructor
 		~LagrangeDirichletBoundary() {}
 
-		void add_boundary_value(BNDNumberFunctor& func,
-								const char* function, const char* subsets);
+	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
+		void add(BNDNumberFunctor& func, const char* function, const char* subsets);
 
-		void add_boundary_value(NumberFunctor& func,
-								const char* function, const char* subsets);
+	///	adds a user-defined value as dirichlet condition for a function on subsets
+		void add(NumberFunctor& func, const char* function, const char* subsets);
 
-		void add_constant_boundary_value(number value,
-		                                 const char* function, const char* subsets);
+	///	adds a constant value as dirichlet condition for a function on subsets
+		void add(number value, const char* function, const char* subsets);
 
 	///	sets the approximation space to work on
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
@@ -302,7 +302,7 @@ class LagrangeDirichletBoundary
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add_boundary_value(BNDNumberFunctor& func,
+add(BNDNumberFunctor& func,
 						const char* function, const char* subsets)
 {
 	m_vScheduledBNDNumberData.push_back(ScheduledBNDNumberData(func, function, subsets));
@@ -311,7 +311,7 @@ add_boundary_value(BNDNumberFunctor& func,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add_boundary_value(NumberFunctor& func,
+add(NumberFunctor& func,
 						const char* function, const char* subsets)
 {
 	m_vScheduledNumberData.push_back(ScheduledNumberData(func, function, subsets));
@@ -320,7 +320,7 @@ add_boundary_value(NumberFunctor& func,
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add_constant_boundary_value(number value,  const char* function, const char* subsets)
+add(number value,  const char* function, const char* subsets)
 {
 	m_vScheduledConstNumberData.push_back(ScheduledConstNumberData(value, function, subsets));
 	extract_scheduled_data();

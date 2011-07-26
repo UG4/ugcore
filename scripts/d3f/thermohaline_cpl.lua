@@ -242,9 +242,9 @@ TempDirichlet = util.CreateConstBoundaryNumber(tQ, dim)
 
 -- create dirichlet boundary for concentration
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(ZeroDirichlet, "c", "Top, Bottom")
-dirichletBND:add_boundary_value(TempDirichlet, "T", "Top, Bottom")
-dirichletBND:add_boundary_value(PressureDirichlet, "p", "Top")
+dirichletBND:add(ZeroDirichlet, "c", "Top, Bottom")
+dirichletBND:add(TempDirichlet, "T", "Top, Bottom")
+dirichletBND:add(PressureDirichlet, "p", "Top")
 
 --------------------------------------------------------------------------------
 --  Spacial Problem
@@ -254,10 +254,10 @@ dirichletBND:add_boundary_value(PressureDirichlet, "p", "Top")
 domainDisc = DomainDiscretization()
 
 -- add Element Discretization to discretization
-domainDisc:add_elem_disc(TransportEq)
-domainDisc:add_elem_disc(FlowEq)
-domainDisc:add_elem_disc(EnergyEq)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(TransportEq)
+domainDisc:add(FlowEq)
+domainDisc:add(EnergyEq)
+domainDisc:add(dirichletBND)
 
 --------------------------------------------------------------------------------
 --  Time Discretization

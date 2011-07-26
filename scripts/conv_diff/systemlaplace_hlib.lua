@@ -246,7 +246,7 @@ end
 -----------------------------------------------------------------
 
 --neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
---neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
+--neumannDisc:add(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -254,7 +254,7 @@ end
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 for i=1, nSystems do
-dirichletBND:add_boundary_value(dirichlet, "c"..i, "DirichletBoundary")
+dirichletBND:add(dirichlet, "c"..i, "DirichletBoundary")
 end
 
 -------------------------------------------
@@ -263,10 +263,10 @@ end
 
 domainDisc = DomainDiscretization()
 for i=1, nSystems do
-domainDisc:add_elem_disc(elemDisc[i])
+domainDisc:add(elemDisc[i])
 end
---domainDisc:add_elem_disc(neumannDisc)
-domainDisc:add_post_process(dirichletBND)
+--domainDisc:add(neumannDisc)
+domainDisc:add(dirichletBND)
 
 -------------------------------------------
 --  Algebra

@@ -165,7 +165,7 @@ end
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 for i=1, numSys do
-	dirichletBND:add_boundary_value(dirichlet, "c"..i, "Boundary")
+	dirichletBND:add(dirichlet, "c"..i, "Boundary")
 end
 
 -------------------------------------------
@@ -174,9 +174,9 @@ end
 
 domainDisc = DomainDiscretization()
 for i=1, numSys do
-	domainDisc:add_elem_disc(elemDisc[i])
+	domainDisc:add(elemDisc[i])
 end
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(dirichletBND)
 
 -------------------------------------------
 --  Setup Time Discretization

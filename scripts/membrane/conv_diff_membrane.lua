@@ -173,20 +173,20 @@ membraneElemDisc:set_diffusion_tensor(identityMatrix)
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c", "Boundary, MembraneBnd")
+dirichletBND:add(dirichlet, "c", "Boundary, MembraneBnd")
 
 membraneDirichletBND = util.CreateDirichletBoundary(approxSpace)
-membraneDirichletBND:add_boundary_value(constDirichlet, "c_membrane", "MembraneBnd")
+membraneDirichletBND:add(constDirichlet, "c_membrane", "MembraneBnd")
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_elem_disc(membraneElemDisc)
-domainDisc:add_post_process(dirichletBND)
-domainDisc:add_post_process(membraneDirichletBND)
+domainDisc:add(elemDisc)
+domainDisc:add(membraneElemDisc)
+domainDisc:add(dirichletBND)
+domainDisc:add(membraneDirichletBND)
 
 -------------------------------------------
 --  Setup Time Discretization

@@ -195,7 +195,7 @@ elemDiscIP3:set_source(rhs)
 -----------------------------------------------------------------
 
 neumannDiscCYT = util.CreateNeumannBoundary(approxSpace, "cyt")
-neumannDiscCYT:add_boundary_value(neumann, "ca_cyt", "mem_cyt")
+neumannDiscCYT:add(neumann, "ca_cyt", "mem_cyt")
 
 -- we pass here the function needed to evaluate the flux function. The order in 
 -- which the discrete fct are passed is crutial!
@@ -206,23 +206,23 @@ innerDisc = util.CreateInnerBoundary(approxSpace, "ca_cyt, ca_er, ip3", "mem_er"
 -----------------------------------------------------------------
 
 --dirichletBND = util.CreateDirichletBoundary(approxSpace)
---dirichletBND:add_boundary_value(dirichlet, "c", "Boundary, MembraneBnd")
+--dirichletBND:add(dirichlet, "c", "Boundary, MembraneBnd")
 
 --membraneDirichletBND = util.CreateDirichletBoundary(approxSpace)
---membraneDirichletBND:add_boundary_value(membraneDirichlet, "c_membrane", "MembraneBnd")
+--membraneDirichletBND:add(membraneDirichlet, "c_membrane", "MembraneBnd")
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDiscER)
-domainDisc:add_elem_disc(elemDiscCYT)
-domainDisc:add_elem_disc(elemDiscIP3)
-domainDisc:add_elem_disc(neumannDiscCYT)
-domainDisc:add_elem_disc(innerDisc)
---domainDisc:add_post_process(dirichletBND)
---domainDisc:add_post_process(membraneDirichletBND)
+domainDisc:add(elemDiscER)
+domainDisc:add(elemDiscCYT)
+domainDisc:add(elemDiscIP3)
+domainDisc:add(neumannDiscCYT)
+domainDisc:add(innerDisc)
+--domainDisc:add(dirichletBND)
+--domainDisc:add(membraneDirichletBND)
 
 -------------------------------------------
 --  Setup Time Discretization

@@ -28,7 +28,7 @@ namespace ug {
 /**
  * This class is an implementation of the IDomainDiscretization interface. It
  * is designed to simply group several discreizations on different subsets and
- * perform element based assemblings and post processes in the same order.
+ * perform element based assemblings and constraints in the same order.
  */
 template <	typename TDoFDistribution,
 			typename TAlgebra>
@@ -52,7 +52,7 @@ class DomainDiscretization :
 	///	Empty Constructor
 		DomainDiscretization() : m_bForceRegGrid(false), m_pSelector(NULL)
 		{
-			m_vvPostProcess.resize(NUM_CONSTRAINT_TYPES);
+			m_vvConstraints.resize(NUM_CONSTRAINT_TYPES);
 		};
 
 	///////////////////////////
@@ -159,7 +159,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	elem		Element Discretization to be added
 	 */
-		bool add_elem_disc(IElemDisc& elem)
+		bool add(IElemDisc& elem)
 		{
 		//	check that not already registered
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -176,44 +176,44 @@ class DomainDiscretization :
 		std::vector<IElemDisc*> m_vElemDisc;
 
 	public:
-	/// adds a post process to the assembling process
+	/// adds a constraint to the assembling process
 	/**
-	 * This function adds a Post Process to the assembling. The post process is
+	 * This function adds a IConstraint to the assembling. The constraint is
 	 * called when all element-wise assembling have been performed.
 	 *
-	 * \param[in] 	pp		Post Process to be added
+	 * \param[in] 	pp		Constraint to be added
 	 */
-		bool add_post_process(IConstraint<TDoFDistribution, TAlgebra>& pp)
+		bool add(IConstraint<TDoFDistribution, TAlgebra>& pp)
 		{
-		// 	get type of post process
+		// 	get type of constraint
 			const int type = pp.type();
 
 		//	check that not already registered
-			for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
-				if(m_vvPostProcess[type][i] == &pp)
+			for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
+				if(m_vvConstraints[type][i] == &pp)
 					return true;
 
-		//	add post process
-			m_vvPostProcess[type].push_back(&pp);
+		//	add constraint
+			m_vvConstraints[type].push_back(&pp);
 			return true;
 		}
 
 	protected:
-	//	vector holding all registered post processes
+	//	vector holding all registered constraints
 		std::vector<std::vector<IConstraint<TDoFDistribution, TAlgebra>*> >
-			m_vvPostProcess;
+			m_vvConstraints;
 
 	protected:
-	///	returns number of registered post processes
-		virtual size_t num_post_process() const
+	///	returns number of registered dirichlet constraints
+		virtual size_t num_dirichlet_constraints() const
 		{
-			return m_vvPostProcess[CT_DIRICHLET].size();
+			return m_vvConstraints[CT_DIRICHLET].size();
 		}
 
-	///	returns the i'th post process
-		virtual IConstraint<TDoFDistribution, TAlgebra>* get_post_process(size_t i)
+	///	returns the i'th dirichlet constraint
+		virtual IConstraint<TDoFDistribution, TAlgebra>* get_dirichlet_constraint(size_t i)
 		{
-			return m_vvPostProcess[CT_DIRICHLET].at(i);
+			return m_vvConstraints[CT_DIRICHLET].at(i);
 		}
 };
 

@@ -61,10 +61,10 @@ class FV1NeumannBoundaryElemDisc
 		FV1NeumannBoundaryElemDisc();
 
 	///	add a boundary value
-		bool add_boundary_value(BNDNumberFunctor& user, const char* function, const char* subsets);
+		bool add(BNDNumberFunctor& user, const char* function, const char* subsets);
 
 	///	add a boundary value
-		bool add_boundary_value(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup);
+		bool add(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup);
 
 	private:
 	//	Functor, function grouping

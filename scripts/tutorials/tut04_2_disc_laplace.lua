@@ -106,11 +106,11 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 	elemDisc:set_source(cbRhs)					-- set the right hand side
 	
 	local dirichletBnd = util.CreateDirichletBoundary(approxSpace)
-	dirichletBnd:add_boundary_value(cbBnd, "c", boundarySubsets)
+	dirichletBnd:add(cbBnd, "c", boundarySubsets)
 	
 	local domainDisc = DomainDiscretization()
-	domainDisc:add_elem_disc(elemDisc)
-	domainDisc:add_post_process(dirichletBnd)
+	domainDisc:add(elemDisc)
+	domainDisc:add(dirichletBnd)
 	
 	
 --	create the linear operator

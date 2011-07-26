@@ -315,7 +315,7 @@ dirichletCallback = util.CreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d"
 
 -- lets setup the dirichlet values as explained in the previous tutorials
 dirichletBnd = util.CreateDirichletBoundary(approxSpace)
-dirichletBnd:add_boundary_value(dirichletCallback, "c", "Boundary")
+dirichletBnd:add(dirichletCallback, "c", "Boundary")
 
 ----------------------------------------------------
 -- Adding all Discretizations
@@ -324,8 +324,8 @@ dirichletBnd:add_boundary_value(dirichletCallback, "c", "Boundary")
 -- Finally we create the discretization object which combines all the
 -- separate discretizations into one domain discretization.
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_post_process(dirichletBnd)
+domainDisc:add(elemDisc)
+domainDisc:add(dirichletBnd)
 
 -- Now we create a time discretization. We use the theta-scheme. The time 
 -- stepping scheme gets passed the domain discretization and will assemble

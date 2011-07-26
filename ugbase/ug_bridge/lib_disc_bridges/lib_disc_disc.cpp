@@ -154,7 +154,7 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
 		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("add_boundary_value", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add_boundary_value));
+			.add_method("add", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add));
 	}
 
 //	Inner Boundary

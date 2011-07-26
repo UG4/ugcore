@@ -16,7 +16,7 @@ namespace ug{
 template<typename TDomain>
 bool
 FV1NeumannBoundaryElemDisc<TDomain>::
-add_boundary_value(BNDNumberFunctor& user, const char* function, const char* subsets)
+add(BNDNumberFunctor& user, const char* function, const char* subsets)
 {
 //	create Function Group and Subset Group
 	FunctionGroup functionGroup;
@@ -37,7 +37,7 @@ add_boundary_value(BNDNumberFunctor& user, const char* function, const char* sub
 //	only one function allowed
 	if(functionGroup.num_fct() != 1)
 	{
-		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add_boundary_value':"
+		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add':"
 				" Exactly one function needed, but given '"<<function<<"' as functions.\n");
 		return false;
 	}
@@ -47,13 +47,13 @@ add_boundary_value(BNDNumberFunctor& user, const char* function, const char* sub
 	this->set_functions(function);
 
 //	forward request
-	return add_boundary_value(user, functionGroup.unique_id(0), subsetGroup);
+	return add(user, functionGroup.unique_id(0), subsetGroup);
 }
 
 template<typename TDomain>
 bool
 FV1NeumannBoundaryElemDisc<TDomain>::
-add_boundary_value(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup)
+add(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup)
 {
 //	get subsethandler
 	const ISubsetHandler* pSH = this->get_fct_pattern().get_subset_handler();
@@ -61,7 +61,7 @@ add_boundary_value(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup
 // 	check if function exist
 	if(fct >= this->get_fct_pattern().num_fct())
 	{
-		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add_boundary_value': Function "
+		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add': Function "
 				<< fct << " does not exist in pattern.\n");
 		return false;
 	}
@@ -79,7 +79,7 @@ add_boundary_value(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup
 	//	check that subsetIndex is valid
 		if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
 		{
-			UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add_boundary_value':"
+			UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:add':"
 					" Invalid subset Index " << subsetIndex <<
 					". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
 			return false;

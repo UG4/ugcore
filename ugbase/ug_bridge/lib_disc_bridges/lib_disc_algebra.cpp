@@ -113,9 +113,9 @@ bool RegisterLibDiscForAlgebra(Registry& reg, const char* parentGroup)
 		//		   on several levels of the class hierarchy.
 			reg.add_class_<T, TIDomDisc>("DomainDiscretization", grp.c_str())
 				.add_constructor()
-				.add_method("add_post_process|interactive=false", &T::add_post_process,
+				.add_method("add|interactive=false", static_cast<bool (T::*)(IConstraint<dof_distribution_type, algebra_type>&)>(&T::add),
 							"", "Post Process")
-				.add_method("add_elem_disc|interactive=false", static_cast<bool (T::*)(IElemDisc&)>(&T::add_elem_disc),
+				.add_method("add|interactive=false", static_cast<bool (T::*)(IElemDisc&)>(&T::add),
 							"", "Discretization")
 				.add_method("assemble_mass_matrix", &T::assemble_mass_matrix)
 				.add_method("assemble_stiffness_matrix", &T::assemble_stiffness_matrix)

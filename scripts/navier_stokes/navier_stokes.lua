@@ -247,23 +247,23 @@ end
 
 LuaNeumannPressure = util.CreateLuaBoundaryNumber("inletPressure"..dim.."d", dim)
 neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
-neumannDisc:add_boundary_value(LuaNeumannPressure, "p", "Inlet")
+neumannDisc:add(LuaNeumannPressure, "p", "Inlet")
 
 -- Now we create a Dirichlet Boundary object. At this object all boundary conditions
 -- are registered.
 dirichletBnd = util.CreateDirichletBoundary(approxSpace)
-dirichletBnd:add_boundary_value(LuaInletVelX2d, "u", "Inlet")
-dirichletBnd:add_boundary_value(LuaInletVelY2d, "v", "Inlet")
-dirichletBnd:add_boundary_value(ConstZeroDirichlet, "u", "UpperWall,LowerWall,CylinderWall")
-dirichletBnd:add_boundary_value(ConstZeroDirichlet, "v", "UpperWall,LowerWall,CylinderWall")
-dirichletBnd:add_boundary_value(ConstZeroDirichlet, "p", "Outlet")
+dirichletBnd:add(LuaInletVelX2d, "u", "Inlet")
+dirichletBnd:add(LuaInletVelY2d, "v", "Inlet")
+dirichletBnd:add(ConstZeroDirichlet, "u", "UpperWall,LowerWall,CylinderWall")
+dirichletBnd:add(ConstZeroDirichlet, "v", "UpperWall,LowerWall,CylinderWall")
+dirichletBnd:add(ConstZeroDirichlet, "p", "Outlet")
 
 -- Finally we create the discretization object which combines all the
 -- separate discretizations into one domain discretization.
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_elem_disc(neumannDisc)
-domainDisc:add_post_process(dirichletBnd)
+domainDisc:add(elemDisc)
+domainDisc:add(neumannDisc)
+domainDisc:add(dirichletBnd)
 
 --------------------------------
 --------------------------------

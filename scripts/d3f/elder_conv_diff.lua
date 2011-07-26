@@ -179,8 +179,8 @@ domainDisc = DomainDiscretization()
 
 -- create dirichlet boundary for concentration
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
-dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
+dirichletBND:add(ConcentrationDirichlet, "c", "Boundary")
+dirichletBND:add(PressureDirichlet, "p", "Boundary")
 
 -- Select upwind
 if dim == 2 then 
@@ -221,9 +221,9 @@ CDelemDisc:set_velocity_field(darcyVelocityField)
 CDelemDisc:set_mass_scale(porosityValue)
 
 -- add Element Discretization to discretization
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_elem_disc(CDelemDisc)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(elemDisc)
+domainDisc:add(CDelemDisc)
+domainDisc:add(dirichletBND)
 
 
 -----------------------------------------------------------------

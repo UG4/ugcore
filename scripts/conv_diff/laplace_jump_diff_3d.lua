@@ -98,16 +98,16 @@ elemDisc:set_diffusion_tensor(luaDiffusionMatrix)
 --------------------------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(constLeftDirichlet, "c", "Left")
-dirichletBND:add_boundary_value(constRightDirichlet, "c", "Right")
+dirichletBND:add(constLeftDirichlet, "c", "Left")
+dirichletBND:add(constRightDirichlet, "c", "Right")
 
 --------------------------------------------------------------------------------
 --  Setup Domain Discretization
 --------------------------------------------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(elemDisc)
+domainDisc:add(dirichletBND)
 
 --------------------------------------------------------------------------------
 --  Algebra

@@ -214,13 +214,13 @@ elemDisc:set_source(rhsCallback)						-- set the right hand side
 -- add subsets on which the boundary callback defined above shall be
 -- applied to a given function (as defined in the approximation space).
 dirichletBnd = util.CreateDirichletBoundary(approxSpace)
-dirichletBnd:add_boundary_value(dirichletCallback, "c", "Boundary")
+dirichletBnd:add(dirichletCallback, "c", "Boundary")
 
 -- Finally we create the discretization object which combines all the
 -- separate discretizations into one domain discretization.
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_post_process(dirichletBnd)
+domainDisc:add(elemDisc)
+domainDisc:add(dirichletBnd)
 
 
 -- The discretization itself is now completely prepared. It is now time

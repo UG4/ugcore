@@ -141,23 +141,23 @@ elemDisc:set_source(rhs)
 -----------------------------------------------------------------
 
 neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
-neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
+neumannDisc:add(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
+dirichletBND:add(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_elem_disc(neumannDisc)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(elemDisc)
+domainDisc:add(neumannDisc)
+domainDisc:add(dirichletBND)
 
 -------------------------------------------
 --  Algebra

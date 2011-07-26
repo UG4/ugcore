@@ -221,8 +221,8 @@ domainDisc = DomainDiscretization()
 
 -- create dirichlet boundary for concentration
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
-dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
+dirichletBND:add(ConcentrationDirichlet, "c", "Boundary")
+dirichletBND:add(PressureDirichlet, "p", "Boundary")
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
 if dim == 2 then elemDisc = DensityDrivenFlow2d()
@@ -258,9 +258,9 @@ elemDisc:set_viscosity(viscosityValue)
 
 -- add Element Discretization to discretization
 print("Adding elem disc to global problem.")
-domainDisc:add_elem_disc(elemDisc)
+domainDisc:add(elemDisc)
 print("Adding bnd conds to global problem.")
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(dirichletBND)
 
 -- create time discretization
 timeDisc = ThetaTimeDiscretization()

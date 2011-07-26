@@ -137,10 +137,10 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		{return false;}
 
 	///	returns the number of post processes
-		virtual size_t num_post_process() const = 0;
+		virtual size_t num_dirichlet_constraints() const = 0;
 
 	///	returns the i'th post process
-		virtual IConstraint<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
+		virtual IConstraint<TDoFDistribution, TAlgebra>* get_dirichlet_constraint(size_t i) = 0;
 };
 
 /// @}

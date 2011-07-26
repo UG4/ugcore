@@ -234,8 +234,8 @@ domainDisc = DomainDiscretization()
 
 -- create dirichlet boundary for concentration
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
-dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
+dirichletBND:add(ConcentrationDirichlet, "c", "Boundary")
+dirichletBND:add(PressureDirichlet, "p", "Boundary")
 
 FlowEq = util.CreateFV1ConstEq(approxSpace, "p", "Inner")
 FlowEq:set_mass_scale(rhophi)
@@ -254,9 +254,9 @@ Density:set_input(0, TransportEq:get_concentration())
 DarcyVelocity:set_pressure_gradient(FlowEq:get_concentration_grad())
 
 -- add Element Discretization to discretization
-domainDisc:add_elem_disc(TransportEq)
-domainDisc:add_elem_disc(FlowEq)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(TransportEq)
+domainDisc:add(FlowEq)
+domainDisc:add(dirichletBND)
 
 -- create time discretization
 timeDisc = ThetaTimeDiscretization()

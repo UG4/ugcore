@@ -196,16 +196,16 @@ constraints = SymP1Constraints()
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c", "Boundary")
+dirichletBND:add(dirichlet, "c", "Boundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_post_process(dirichletBND)
-domainDisc:add_post_process(constraints)
+domainDisc:add(elemDisc)
+domainDisc:add(dirichletBND)
+domainDisc:add(constraints)
 
 -------------------------------------------
 --  Setup Operator
