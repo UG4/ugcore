@@ -742,3 +742,9 @@ function util.PrintTable(tablePar)
 	util.PrintTableHelperIntend = ""
 	util.PrintTableHelper("", tablePar)
 end
+
+-- adds writeln 
+function writeln(...)
+	write(...)
+	write("\n")
+end
