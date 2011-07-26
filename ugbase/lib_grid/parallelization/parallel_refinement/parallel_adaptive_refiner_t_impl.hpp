@@ -199,6 +199,42 @@ collect_objects_for_refine()
 	}
 }
 
+template <class TRefiner>
+void TParallelAdaptiveRefiner<TRefiner>::
+assign_hnode_marks()
+{
+//	call base implementation
+	TRefiner::assign_hnode_marks();
+
+//	copy the hnode mark.
+//	note that we're enabling the mark, but never disable it.
+//	first we enable it at the master if one of the slaves is enabled,
+//	then we enable it at the slaves, if the master was enabled.
+	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+
+	ComPol_EnableSelectionStateBits<EdgeLayout> compolEDGE(BaseClass::m_selMarkedElements,
+														 BaseClass::HNRM_REFINE_CONSTRAINED);
+	ComPol_EnableSelectionStateBits<FaceLayout> compolFACE(BaseClass::m_selMarkedElements,
+														 BaseClass::HNRM_REFINE_CONSTRAINED);
+
+	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
+								compolEDGE);
+
+	m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
+								compolFACE);
+
+	m_intfComEDGE.communicate();
+	m_intfComFACE.communicate();
+
+	m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
+								compolEDGE);
+
+	m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
+								compolFACE);
+
+	m_intfComEDGE.communicate();
+	m_intfComFACE.communicate();
+}
 
 template <class TRefiner>
 bool

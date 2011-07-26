@@ -50,12 +50,6 @@ HangingNodeRefinerBase::
 }
 
 void HangingNodeRefinerBase::
-set_refinement_callback(IRefinementCallback* refCallback)
-{
-	m_refCallback = refCallback;
-}
-
-void HangingNodeRefinerBase::
 set_grid(Grid* grid)
 {
 	if(m_pGrid)
@@ -180,6 +174,9 @@ void HangingNodeRefinerBase::refine()
 //	fills the queues with the elements that have to be refined.
 	collect_objects_for_refine();
 
+//	assigns hnode marks
+	assign_hnode_marks();
+
 //	call pre_refine to allow derived classes to perform some actions
 	pre_refine();
 
@@ -216,7 +213,7 @@ void HangingNodeRefinerBase::refine()
 
 			if(!refinement_is_allowed(e))
 				continue;
-
+/*
 		//	check whether all connected elements are marked.
 		//	If so, we can perform a normal refine.
 		//	If not, we'll create a new hanging vertex and new constrained edges.
@@ -248,6 +245,12 @@ void HangingNodeRefinerBase::refine()
 				refine_edge_with_normal_vertex(e);
 			else
 				refine_edge_with_hanging_vertex(e);
+*/
+			if(marked_for_hnode_refinement(e))
+				refine_edge_with_hanging_vertex(e);
+			else
+				refine_edge_with_normal_vertex(e);
+
 		}
 	}
 
@@ -291,7 +294,7 @@ void HangingNodeRefinerBase::refine()
 
 			if(!refinement_is_allowed(f))
 				continue;
-
+/*
 		//	check whether all associated volumes are marked
 			bool bAllMarked = true;
 			if(grid.num_volumes() > 0){
@@ -311,6 +314,11 @@ void HangingNodeRefinerBase::refine()
 			else{
 				refine_face_with_hanging_vertex(f);
 			}
+*/
+			if(marked_for_hnode_refinement(f))
+				refine_face_with_hanging_vertex(f);
+			else
+				refine_face_with_normal_vertex(f);
 		}
 	}
 
@@ -324,7 +332,7 @@ void HangingNodeRefinerBase::refine()
 
 			if(!refinement_is_allowed(f))
 				continue;
-
+/*
 		//	check whether all associated volumes are marked
 			bool bAllMarked = true;
 			if(grid.num_volumes() > 0){
@@ -344,6 +352,12 @@ void HangingNodeRefinerBase::refine()
 			else{
 				refine_face_with_hanging_vertex(f);
 			}
+*/
+			if(marked_for_hnode_refinement(f))
+				refine_face_with_hanging_vertex(f);
+			else
+				refine_face_with_normal_vertex(f);
+
 		}
 	}
 
@@ -746,6 +760,49 @@ collect_associated_unmarked_volumes(std::queue<Volume*>& qVolsOut, Grid& grid,
 			for(size_t i = 0; i < vVols.size(); ++i){
 				if(!is_marked(vVols[i]))
 					qVolsOut.push(vVols[i]);
+			}
+		}
+	}
+}
+
+void HangingNodeRefinerBase::
+assign_hnode_marks()
+{
+//	iterate over all faces and volumes. If the element is not marked, but
+//	a side is marked, the side has to be marked for hnode refinement.
+//	Note that we won't mark any new elements here - we only adjust the marks.
+//	Note also that we won't remove any marks during this algorithm (neither normal
+//	nor hnode marks).
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+
+//	the grid
+	UG_ASSERT(m_pGrid, "A grid is required to perform this operation!");
+	Grid& grid = *m_pGrid;
+
+	for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
+	{
+		Face* f = *iter;
+		if(!m_selMarkedElements.is_selected(f)){
+			CollectAssociated(edges, grid, f);
+			for(size_t i = 0; i < edges.size(); ++i){
+				byte selStatus = m_selMarkedElements.get_selection_status(edges[i]);
+				if(selStatus != 0)
+					mark_for_hnode_refinement(edges[i], true);
+			}
+		}
+	}
+
+	for(VolumeIterator iter = grid.begin<Volume>();
+		iter != grid.end<Volume>(); ++iter)
+	{
+		Volume* v = *iter;
+		if(!m_selMarkedElements.is_selected(v)){
+			CollectAssociated(faces, grid, v);
+			for(size_t i = 0; i < faces.size(); ++i){
+				byte selStatus = m_selMarkedElements.get_selection_status(faces[i]);
+				if(selStatus != 0)
+					mark_for_hnode_refinement(faces[i], true);
 			}
 		}
 	}

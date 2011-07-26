@@ -31,7 +31,7 @@ void ParallelCommunicator<TLayout>::
 send_raw(int targetProc, void* pBuff, int bufferSize,
 	     bool bSizeKnownAtTarget)
 {
-	assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
+	assert((targetProc == -1) || (targetProc >= 0 && targetProc < pcl::GetNumProcesses()));
 
 	ug::BinaryBuffer& buffer = m_bufMapOut[targetProc];
 	m_curOutProcs.insert(targetProc);

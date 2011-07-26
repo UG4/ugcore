@@ -91,6 +91,11 @@ class TParallelAdaptiveRefiner:
 	 *  neighboring processes about refinement marks.*/
 		virtual void collect_objects_for_refine();
 
+	///	distributes hnode marks
+	/**	Calls the base implementation to assign hnode marks and afterwards
+	 * distributes them amongst neighbor processes.*/
+		virtual void assign_hnode_marks();
+
 	///	creates required vertices in higher levels.
 	/**	Notifies the associated distGridMgr that new elements
 	 * may now be created.*/

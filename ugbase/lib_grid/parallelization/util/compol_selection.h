@@ -74,6 +74,65 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		bool m_bDeselectAllowed;
 };
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+/**	Enables only the part of the selection-state for which the specified stateBits
+ * hold 1.
+ */
+template <class TLayout>
+class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout>
+{
+	public:
+		typedef TLayout							Layout;
+		typedef typename Layout::Type			GeomObj;
+		typedef typename Layout::Element		Element;
+		typedef typename Layout::Interface		Interface;
+		typedef typename Interface::iterator	InterfaceIter;
+
+		ComPol_EnableSelectionStateBits(Selector& sel, byte stateBits)
+			 :	m_sel(sel), m_stateBits(stateBits)
+		{}
+
+		virtual int
+		get_required_buffer_size(Interface& interface)		{return interface.size() * sizeof(byte);}
+
+	///	writes writes the selection states of the interface entries
+		virtual bool
+		collect(ug::BinaryBuffer& buff, Interface& interface)
+		{
+		//	write the entry indices of marked elements.
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				Element elem = interface.get_element(iter);
+				byte refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte));
+			}
+
+			return true;
+		}
+
+	///	reads marks from the given stream
+		virtual bool
+		extract(ug::BinaryBuffer& buff, Interface& interface)
+		{
+			byte val;
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				Element elem = interface.get_element(iter);
+				buff.read((char*)&val, sizeof(byte));
+				m_sel.select(elem, m_sel.get_selection_status(elem)
+								   | (val & m_stateBits));
+			}
+			return true;
+		}
+
+		Selector& m_sel;
+		byte m_stateBits;
+};
+
 }//	end of namespace
 
 #endif

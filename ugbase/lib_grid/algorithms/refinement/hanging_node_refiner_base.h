@@ -52,6 +52,10 @@ namespace ug
  * This class can't be instantiated directly. Use one of its
  * specializations instead.
  *
+ * For Developers: Note that HangingNodeRefinerBase stores flags together with
+ * the refinement marks. Precisely the value 128 is used to flag whether an
+ * element has to be refined using hanging-node-rules.
+ *
  * \sa ug::HangingNodeRefiner_Grid, ug::HangingNodeRefiner_MultiGrid
  */
 class HangingNodeRefinerBase : public IRefiner, public GridObserver
@@ -64,10 +68,6 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual ~HangingNodeRefinerBase();
 
 		virtual void grid_to_be_destroyed(Grid* grid);
-
-	///	sets the callback which will be responsible to calculate new vertex positions
-		void set_refinement_callback(IRefinementCallback* refCallback);
-		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
 
 	///	enables or disables node-dependency-order-1.
 	/**	\{
@@ -125,6 +125,31 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		void refine();
 
 	protected:
+	/**	additional mark to RefinementMarks. Used to flag whether an element
+	 * will be refined with constraining.*/
+		enum HNodeRefMarks{
+			HNRM_REFINE_CONSTRAINED = 128
+		};
+
+	///	returns true if an element is marked for hnode refinement.
+		template<class TElem>
+		bool marked_for_hnode_refinement(TElem* elem)
+			{return m_selMarkedElements.get_selection_status(elem) & HNRM_REFINE_CONSTRAINED;}
+
+	///	use this method to set whether an element should be refined with hnode refinement.
+		template<class TElem>
+		void mark_for_hnode_refinement(TElem* elem, bool bMark)
+			{
+				if(bMark)
+					m_selMarkedElements.select(elem,
+								m_selMarkedElements.get_selection_status(elem)
+									| HNRM_REFINE_CONSTRAINED);
+				else
+					m_selMarkedElements.select(elem,
+								m_selMarkedElements.get_selection_status(elem)
+									& ~HNRM_REFINE_CONSTRAINED);
+			}
+
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(VertexBase* elem)	{return true;}
 	///	a callback that allows to deny refinement of special edges
@@ -155,6 +180,16 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * the perform its own operations.
 	 */
 		virtual void collect_objects_for_refine();
+
+	/**	This callback is called during execution of the refine() method after
+	 * collect_objects_for_refine has returned. It is responsible to mark
+	 * elements for hnode refinement. That means all elements on which a hanging
+	 * node or constrained children shall be created have to be marked using
+	 * mark_for_hnode_refinement during this method. The default implementation
+	 * performs this marking for all local elements.
+	 * Make sure to not mark any new elements during this method. Marks may only
+	 * be adjusted!*/
+		virtual void assign_hnode_marks();
 
 	/**	called by refine after collect_objects_for_refine and before
 	 *	actual refinement begins.*/
