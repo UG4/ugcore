@@ -49,84 +49,78 @@ class DomainDiscretization :
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-	///	Empty Constructor
-		DomainDiscretization() : m_bForceRegGrid(false), m_pSelector(NULL)
-		{
-			m_vvConstraints.resize(NUM_CONSTRAINT_TYPES);
-		};
+	///	default Constructor
+		DomainDiscretization() : m_bForceRegGrid(false), m_pSelector(NULL) {};
 
 	///////////////////////////
 	// Time independent part
 	///////////////////////////
 
 	/// \copydoc IAssemble::assemble_jacobian()
-	bool assemble_jacobian(matrix_type& J, const vector_type& u,
-	                                  const dof_distribution_type& dofDistr);
+		bool assemble_jacobian(matrix_type& J, const vector_type& u,
+	                           const dof_distribution_type& dd);
 
 	/// \copydoc IAssemble::assemble_defect()
-	bool assemble_defect(vector_type& d, const vector_type& u,
-	                                const dof_distribution_type& dofDistr);
+		bool assemble_defect(vector_type& d, const vector_type& u,
+		                     const dof_distribution_type& dd);
 
 	/// \copydoc IAssemble::assemble_linear()
-	bool assemble_linear(matrix_type& A, vector_type& b,
-	                                const vector_type& u,
-	                                const dof_distribution_type& dofDistr);
+		bool assemble_linear(matrix_type& A, vector_type& b,
+		                     const vector_type& u,
+		                     const dof_distribution_type& dd);
 
 	/// \copydoc IAssemble::assemble_solution()
-	bool assemble_solution(vector_type& u,
-	                                  const dof_distribution_type& dofDistr);
+		bool assemble_solution(vector_type& u,
+		                       const dof_distribution_type& dd);
 
 	///////////////////////
 	// Time dependent part
 	///////////////////////
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
-	virtual
-	bool assemble_jacobian(	matrix_type& J,
-	                                  	const vector_type& u, number time,
-	                                  	const SolutionTimeSeries<vector_type>& solList,
-	                                  	const dof_distribution_type& dofDistr,
-	                                  	number s_m, number s_a);
+		bool assemble_jacobian(matrix_type& J,
+		                       const vector_type& u, number time,
+		                       const SolutionTimeSeries<vector_type>& solList,
+		                       const dof_distribution_type& dd,
+		                       number s_m, number s_a);
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
-	virtual
-	bool assemble_defect(	vector_type& d,
-		                                const vector_type& u, number time,
-		                                const SolutionTimeSeries<vector_type>& solList,
-		                                const dof_distribution_type& dofDistr,
-		                                number s_m, number s_a);
+		bool assemble_defect(vector_type& d,
+		                     const vector_type& u, number time,
+		                     const SolutionTimeSeries<vector_type>& solList,
+		                     const dof_distribution_type& dd,
+		                     number s_m, number s_a);
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
-	virtual
-	bool assemble_linear(	matrix_type& A, vector_type& b,
-		                                const vector_type& u, number time,
-		                                const SolutionTimeSeries<vector_type>& solList,
-		                                const dof_distribution_type& dofDistr,
-		                                number s_m, number s_a);
+		bool assemble_linear(matrix_type& A, vector_type& b,
+		                     const vector_type& u, number time,
+		                     const SolutionTimeSeries<vector_type>& solList,
+		                     const dof_distribution_type& dd,
+		                     number s_m, number s_a);
 
 	/// \copydoc IDomainDiscretization::assemble_solution()
-	virtual
-	bool assemble_solution(vector_type& u, number time,
-	                                  const dof_distribution_type& dofDistr);
+		bool assemble_solution(vector_type& u, number time,
+		                       const dof_distribution_type& dd);
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
 	///////////////////////////
 
 	/// assembles the mass matrix
-	bool assemble_mass_matrix(matrix_type& M, const vector_type& u,
-	                                     	  const dof_distribution_type& dofDistr);
+		bool assemble_mass_matrix(matrix_type& M, const vector_type& u,
+		                          const dof_distribution_type& dd);
 
 	/// assembles the stiffness matrix
-	bool assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-													const dof_distribution_type& dofDistr);
+		bool assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+		                               const dof_distribution_type& dd);
 
 	/// assembles the stiffness matrix
-	bool assemble_rhs(vector_type& rhs, const vector_type& u,
-										const dof_distribution_type& dofDistr);
+		bool assemble_rhs(vector_type& rhs, const vector_type& u,
+		                  const dof_distribution_type& dd);
 
+	public:
 	/// forces the assembling to consider the grid as regular
-	virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
+		virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
 
 	///	sets a selector to exlude elements from assembling
 	/**
@@ -136,17 +130,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in]	sel		Selector
 	 */
-	virtual void set_selector(ISelector* sel = NULL)
-	{
-		m_pSelector = sel;
-	}
-
-	protected:
-	/// forces the assembling to regard the grid as regular
-		bool m_bForceRegGrid;
-
-	///	selector used to skip elements
-		ISelector* m_pSelector;
+	virtual void set_selector(ISelector* sel = NULL){m_pSelector = sel;}
 
 	public:
 	/// adds an element discretization to the assembling process
@@ -171,11 +155,6 @@ class DomainDiscretization :
 			return true;
 		}
 
-	protected:
-	///	vector holding all registered elem discs
-		std::vector<IElemDisc*> m_vElemDisc;
-
-	public:
 	/// adds a constraint to the assembling process
 	/**
 	 * This function adds a IConstraint to the assembling. The constraint is
@@ -199,11 +178,6 @@ class DomainDiscretization :
 		}
 
 	protected:
-	//	vector holding all registered constraints
-		std::vector<std::vector<IConstraint<TDoFDistribution, TAlgebra>*> >
-			m_vvConstraints;
-
-	protected:
 	///	returns number of registered dirichlet constraints
 		virtual size_t num_dirichlet_constraints() const
 		{
@@ -215,6 +189,19 @@ class DomainDiscretization :
 		{
 			return m_vvConstraints[CT_DIRICHLET].at(i);
 		}
+
+	protected:
+	///	vector holding all registered elem discs
+		std::vector<IElemDisc*> m_vElemDisc;
+
+	//	vector holding all registered constraints
+		std::vector<IConstraint<TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
+
+	/// forces the assembling to regard the grid as regular
+		bool m_bForceRegGrid;
+
+	///	selector used to skip elements
+		ISelector* m_pSelector;
 };
 
 /// @}
