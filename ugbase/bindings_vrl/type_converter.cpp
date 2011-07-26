@@ -1175,7 +1175,6 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 
 		std::string name = eCls.name(); // TODO pre-rpocessing necessary
 
-
 		// these lines check for empty class names. we really want this exit()
 		// command as empty names will mess up everything.
 		std::vector<std::string> baseClasses;
@@ -1191,7 +1190,6 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 				std::cerr << name << ", baseCls(" << j << ")==empty" << std::endl;
 				exit(1);
 			}
-
 
 			baseClasses.push_back(std::string(eCls.class_names()->at(j)));
 		}
