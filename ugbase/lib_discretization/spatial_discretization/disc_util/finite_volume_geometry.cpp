@@ -436,13 +436,8 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 	if(m_pElem == pElem) return true;
 	else m_pElem = pElem;
 
-//	get reference element
-	try{
-	const DimReferenceElement<dim>& rRefElem
-		= ReferenceElementProvider::get<dim>(m_roid);
-
 	//////////////////////////////////
-	// COMPUTATION OF GLOBAL DATA
+	// COMPUTATION OF LOCAL DATA
 	//////////////////////////////////
 
 //	refresh local data, if different roid given
@@ -450,6 +445,11 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 	{
 	//	remember new roid
 		m_roid = (ReferenceObjectID) pElem->reference_object_id();
+
+	//	get reference element
+		try{
+		const DimReferenceElement<dim>& rRefElem
+			= ReferenceElementProvider::get<dim>(m_roid);
 
 	// 	set corners of element as local centers of nodes
 		for(size_t i = 0; i < rRefElem.num(0); ++i)
@@ -476,6 +476,10 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 				m_locMid[d][i] *= 1./(rRefElem.num(d, i, 0));
 			}
 		}
+
+	//	set number of scvf / scv of this roid
+		m_numSCV = rRefElem.num(0); // number of corners
+		m_numSCVF = rRefElem.num(1); // number of edges
 
 	// 	set up local informations for SubControlVolumeFaces (scvf)
 	// 	each scvf is associated to one edge of the element
@@ -564,8 +568,20 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
+		//	remember number of shape functions
+			m_vSCVF[i].m_numSH = TrialSpace.num_sh();
+
 			TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
 			TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
+		}
+
+		for(size_t i = 0; i < num_scv(); ++i)
+		{
+		//	remember number of shape functions
+			m_vSCV[i].m_numSH = TrialSpace.num_sh();
+
+			TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].m_vLocPos[0]);
+			TrialSpace.grads(&(m_vSCV[i].localGrad[0]), m_vSCV[i].m_vLocPos[0]);
 		}
 
 		}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
@@ -587,11 +603,22 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 		// 	loop ips
 			m_vLocSCVF_IP[i] = rSCVF.local_ip();
 		}
+
+		}catch(UG_ERROR_ReferenceElementMissing& ex)
+		{
+			UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
+			return false;
+		}
 	}
 
 	//////////////////////////////////
 	// COMPUTATION OF GLOBAL DATA
 	//////////////////////////////////
+
+//	get reference element
+	try{
+	const DimReferenceElement<dim>& rRefElem
+		= ReferenceElementProvider::get<dim>(m_roid);
 
 // 	remember global position of nodes
 	for(size_t i = 0; i < rRefElem.num(0); ++i)
@@ -678,11 +705,18 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 	if(rMapping.is_linear())
 	{
 		rMapping.jacobian_transposed_inverse(m_vSCVF[0].JtInv, m_vSCVF[0].localIP);
+		rMapping.jacobian_transposed_inverse(m_vSCV[0].JtInv, m_vSCV[0].m_vLocPos[0]);
 		m_vSCVF[0].detj = rMapping.jacobian_det(m_vSCVF[0].localIP);
+		m_vSCV[0].detj = rMapping.jacobian_det(m_vSCV[0].m_vLocPos[0]);
 		for(size_t i = 1; i < num_scvf(); ++i)
 		{
 			m_vSCVF[i].JtInv = m_vSCVF[0].JtInv;
 			m_vSCVF[i].detj = m_vSCVF[0].detj;
+		}
+		for(size_t i = 1; i < num_scv(); ++i)
+		{
+			m_vSCV[i].JtInv = m_vSCV[0].JtInv;
+			m_vSCV[i].detj = m_vSCV[0].detj;
 		}
 	}
 //	else compute jacobian for each integration point
@@ -692,6 +726,11 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 		{
 			rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
 			m_vSCVF[i].detj = rMapping.jacobian_det(m_vSCVF[i].localIP);
+		}
+		for(size_t i = 0; i < num_scv(); ++i)
+		{
+			rMapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].m_vLocPos[0]);
+			m_vSCV[i].detj = rMapping.jacobian_det(m_vSCV[i].m_vLocPos[0]);
 		}
 	}
 
@@ -704,7 +743,11 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
 		for(size_t sh = 0 ; sh < num_scv(); ++sh)
-			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[0].JtInv, (m_vSCVF[i].localGrad)[sh]);
+			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
+
+	for(size_t i = 0; i < num_scv(); ++i)
+		for(size_t sh = 0 ; sh < num_scv(); ++sh)
+			MatVecMult((m_vSCV[i].globalGrad)[sh], m_vSCV[i].JtInv, (m_vSCV[i].localGrad)[sh]);
 
 	///////////////////////////
 	// Copy ip pos in list
@@ -834,6 +877,9 @@ update(GeometricObject* pElem, const ISubsetHandler& ish, const MathVector<world
 				try{
 				const DimLocalShapeFunctionSet<dim>& TrialSpace =
 					LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, 1));
+
+			//	remember number of shape functions
+				bf.m_numSH = TrialSpace.num_sh();
 
 				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
 				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);
