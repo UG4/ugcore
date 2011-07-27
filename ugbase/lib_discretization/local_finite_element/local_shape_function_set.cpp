@@ -56,6 +56,15 @@ LocalShapeFunctionSetProvider()
 	//	remember initialization
 		init = true;
 
+	//	clear all maps
+		clear_maps<ReferenceEdge>();
+		clear_maps<ReferenceTriangle>();
+		clear_maps<ReferenceQuadrilateral>();
+		clear_maps<ReferenceTetrahedron>();
+		clear_maps<ReferencePrism>();
+		clear_maps<ReferencePyramid>();
+		clear_maps<ReferenceHexahedron>();
+
 	//	register all element types that allow higher orders
 		if(!init_standard_sets<ReferenceEdge>())
 			throw(UGFatalError("Cannot register standard Edge trial spaces."));
@@ -75,7 +84,6 @@ LocalShapeFunctionSetProvider()
 		static LocalShapeFunctionSetWrapper<LagrangeP1<ReferencePyramid, 1> > sSetLagrangeP1;
 		if(!register_set(type1, sSetLagrangeP1))
 			throw(UGFatalError("Cannot register Pyramid P1 Lagrange trial spaces."));
-
 	}
 };
 

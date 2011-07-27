@@ -253,6 +253,10 @@ class LocalShapeFunctionSetProvider {
 		template <typename TRefElem>
 		bool init_standard_sets();
 
+	// 	clears all maps
+		template <typename TRefElem>
+		static void clear_maps();
+
 	// 	return a map of element_trial_spaces
 		template <typename TRefElem>
 		static std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* >&
@@ -260,7 +264,7 @@ class LocalShapeFunctionSetProvider {
 
 	// 	return a map of element_trial_spaces
 		template <int dim>
-		static std::map<LFEID, const DimLocalShapeFunctionSet<dim>* >*
+		static std::vector<std::map<LFEID, const DimLocalShapeFunctionSet<dim>* > >&
 		get_dim_map();
 
 	public:
