@@ -809,8 +809,6 @@ assemble_jacobian(matrix_type& J,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
 			bSuc &= AssembleJacobian<Hexahedron,TDoFDistribution,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
-			if(!AssembleJacobian<Tetrahedron,TDoFDistribution,TAlgebra>(vSubsetElemDisc, dd, si, bNonRegularGrid,
-									   J, u, time, solList, s_a0, m_pSelector))
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
 				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
