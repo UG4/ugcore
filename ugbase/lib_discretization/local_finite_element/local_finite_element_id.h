@@ -118,6 +118,25 @@ class LFEID
 			else return m_order < v.m_order;
 		}
 
+	///	operator >
+		bool operator>(const LFEID& v) const
+		{
+			if(m_type != v.m_type) return m_type > v.m_type;
+			else return m_order > v.m_order;
+		}
+
+	///	operator <=
+		bool operator<=(const LFEID& v) const
+		{
+			return (*this < v || *this == v);
+		}
+
+	///	operator >=
+		bool operator>=(const LFEID& v) const
+		{
+			return (*this > v || *this == v);
+		}
+
 		friend std::ostream& operator<<(std::ostream& out,	const LFEID& v);
 
 	private:
