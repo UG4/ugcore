@@ -208,6 +208,7 @@ void DoFDistribution::create_offsets()
 
 //	reset dimension maximum
 	for(size_t d=0; d <= 3; ++d) m_vMaxDoFsInDim[d] = 0;
+	m_maxDimWithDoFs = -1;
 
 //	get max number of dofs per roid
 	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
@@ -224,7 +225,12 @@ void DoFDistribution::create_offsets()
 		const int d = ReferenceElementDimension((ReferenceObjectID)roid);
 		m_vMaxDoFsInDim[d] = std::max(m_vMaxDoFsInDim[d],
 		                              m_vMaxDoFsOnROID[roid]);
+
+	//	set that still dofs in this dimension (if true)
+		if(m_vMaxDoFsInDim[d] > 0) m_maxDimWithDoFs = d;
 	}
+
+	UG_ASSERT(m_maxDimWithDoFs >= 0, "No dofs in DoFManager ?!");
 }
 
 
@@ -864,50 +870,6 @@ bool DoFDistribution::defragment()
 
 //	we're done
 	return true;
-}
-
-size_t DoFDistribution::
-inner_multi_indices(multi_index_vector_type& ind,
-                    const size_t firstIndex, const int si, const size_t fct,
-                    const ReferenceObjectID roid) const
-{
-//	check that function is def on subset
-	if(!is_def_in_subset(fct, si)) return ind.size();
-
-//	only in case of vertex, we have DoFs
-	if(m_vvNumDoFsOnROID[roid][si] > 0)
-	{
-	//	get local shape function id
-		LFEID lsfsID = local_finite_element_id(fct);
-
-	//	get trial space
-		const ILocalDoFSet& lsfs = LocalDoFSetProvider::get(roid, lsfsID);
-
-	//	get number of DoFs in this sub-geometric object
-		const size_t numDoFsOnSub = lsfs.num_dof(roid);
-
-		if(!m_bGrouped)
-		{
-		//	compute index
-			const size_t index = firstIndex + m_vvvOffsets[roid][si][fct];
-
-		//	add dof to local indices
-			for(size_t j = 0; j < numDoFsOnSub; ++j)
-				ind.push_back(index_type(index+j,0));
-		}
-		else
-		{
-		//	compute index
-			const size_t comp = m_vvvOffsets[roid][si][fct];
-
-		//	add dof to local indices
-			for(size_t j = 0; j < numDoFsOnSub; ++j)
-				ind.push_back(index_type(firstIndex, comp+j));
-		}
-	}
-
-//	return number of indices
-	return ind.size();
 }
 
 size_t

@@ -19,11 +19,9 @@ namespace ug{
 
 /// interpolates a function on an element
 template <typename TElem, typename TGridFunction>
-bool InterpolateFunctionOnElem( boost::function<void (
-									number& res,
-									const MathVector<TGridFunction::domain_type::dim>& x,
-									number time)> InterpolFunction,
-								TGridFunction& u, size_t fct, int si, number time)
+bool InterpolateFunctionOnElem(
+	boost::function<void (number& res,const MathVector<TGridFunction::domain_type::dim>& x, number time)> InterpolFunction,
+	TGridFunction& u, size_t fct, int si, number time)
 {
 //	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -44,11 +42,11 @@ bool InterpolateFunctionOnElem( boost::function<void (
 			LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
 
 //	number of dofs on element
-	const size_t num_sh = trialSpace.num_sh();
+	const size_t nsh = trialSpace.num_sh();
 
 // 	load local positions of dofs for the trial space on element
-	std::vector<MathVector<dim> > loc_pos(num_sh);
-	for(size_t i = 0; i < num_sh; ++i)
+	std::vector<MathVector<dim> > loc_pos(nsh);
+	for(size_t i = 0; i < nsh; ++i)
 		if(!trialSpace.position(i, loc_pos[i]))
 		{
 			UG_LOG("ERROR in 'InterpolateFunctionOnElem': Cannot find meaningful"
@@ -59,10 +57,13 @@ bool InterpolateFunctionOnElem( boost::function<void (
 //	create a reference mapping
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
 
-// 	iterate over all elements
+//	get iterators
 	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
 	iterEnd = u.template end<TElem>(si);
-	for(iter = u.template begin<TElem>(si); iter != iterEnd; ++iter)
+	iter = u.template begin<TElem>(si);
+
+// 	iterate over all elements
+	for( ; iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElem* elem = *iter;
@@ -74,22 +75,20 @@ bool InterpolateFunctionOnElem( boost::function<void (
 	//	update the reference mapping for the corners
 		mapping.update(&vCorner[0]);
 
-//		typename TGridFunction::vector_type& v_vec = *dynamic_cast<typename TGridFunction::vector_type*>(&u);
-
 	//	get multiindices of element
 		typename TGridFunction::multi_index_vector_type ind;
 		u.multi_indices(elem, fct, ind);
 
 	//	check multi indices
-		if(ind.size() != num_sh)
+		if(ind.size() != nsh)
 		{
-			UG_LOG("ERROR in 'InterpolateFunctionOnElem': Wrong number of"
-					" multi indices.\n");
+			UG_LOG("ERROR in 'InterpolateFunctionOnElem': Number of shapes is "
+					<<nsh<<", but got "<<ind.size()<<" multi indices.\n");
 			return false;
 		}
 
 	// 	loop all dofs
-		for(size_t i = 0; i < num_sh; ++i)
+		for(size_t i = 0; i < nsh; ++i)
 		{
 		//	global position
 			position_type glob_pos;

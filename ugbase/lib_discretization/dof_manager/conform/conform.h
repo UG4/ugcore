@@ -248,16 +248,13 @@ class DoFDistribution
 
 	protected:
 		template<typename TElem, typename TBaseElem>
-		void indices(TElem* elem, LocalIndices& ind,std::vector<TBaseElem*> vElem,
-		             size_t numNatural, bool bHang) const;
+		void indices(TElem* elem, LocalIndices& ind, const std::vector<TBaseElem*>& vElem,
+		             size_t numNatural, bool bHang, const std::vector<VertexBase*>& vCorner) const;
 
-		template<typename TBaseElem>
-		size_t multi_indices(std::vector<TBaseElem*> vElem, size_t fct,
-		                     multi_index_vector_type& ind) const;
-
-		size_t inner_multi_indices(multi_index_vector_type& ind,
-		                           const size_t firstIndex, const int si,
-		                           const size_t fct, const ReferenceObjectID type) const;
+		template<typename TElem, typename TBaseElem>
+		void multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind,
+		                   const std::vector<TBaseElem*>& vElem, size_t numNatural,
+		                   const std::vector<VertexBase*>& vCorner) const;
 
 		template<typename TBaseElem>
 		size_t algebra_indices(std::vector<TBaseElem*> vElem,
@@ -373,6 +370,9 @@ class DoFDistribution
 
 	///	maximum number of DoFs on geometric objects in a dimension
 		size_t m_vMaxDoFsInDim[4];
+
+	///	maximum dimension where still dofs present
+		int m_maxDimWithDoFs;
 
 	///	flag if parameters are grouped
 		bool m_bGrouped;
