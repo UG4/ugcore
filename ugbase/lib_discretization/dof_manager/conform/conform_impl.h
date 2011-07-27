@@ -48,7 +48,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 		const size_t firstIndex = first_index(subElem);
 
 	//	get reference object id for subselement
-		const int baseRoid = subElem->reference_object_id();
+		const int subRoid = subElem->reference_object_id();
 
 	//	loop all functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
@@ -68,7 +68,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 			if(!m_bGrouped)
 			{
 			//	compute index
-				const size_t index = firstIndex + m_vvvOffsets[baseRoid][si][fct];
+				const size_t index = firstIndex + m_vvvOffsets[subRoid][si][fct];
 
 			//	add dof to local indices
 			// \TODO: ORIENTATION !!!
