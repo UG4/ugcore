@@ -16,12 +16,14 @@ dim = 2
 
 if  dim == 2 then 
 gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
---gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
+gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+gridName = util.GetParam("-grid", "unit_square/unit_square_unstructured_tris_coarse.ugx")
+-- gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 elseif dim == 3 then gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
 end
 
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
-numRefs    = util.GetParamNumber("-numRefs",    3)
+numRefs    = util.GetParamNumber("-numRefs",    6)
 
 print(" Choosen Parater:")
 print("    numRefs    = " .. numRefs)
@@ -43,6 +45,7 @@ approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 approxSpace:print_statistic()
 
+
 --------------------------------------------------------------------------------
 -- User Data Setup
 --------------------------------------------------------------------------------
@@ -61,7 +64,12 @@ rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
 function ExactSolution(x, y, t)
 	local s = 2*math.pi
         local s = 10;
-        return math.sin(x)+4*math.cos(y);
+        return 2*x-y;
+--      return math.sqrt(x*x + y*y) - 0.5;
+--        return x-t;
+        ---
+        -- return x - 4*y;
+        -- return math.sin(x)+4*math.cos(y);
 	-- return math.sin(s*x) + math.sin(s*y)
 end
 
@@ -85,21 +93,38 @@ dirichletBND:add(dirichlet, "c", "Boundary")
 --------------------------------------------------------------------------------
 
 -- get grid function
-u = approxSpace:create_surface_function()
+phiNew = approxSpace:create_surface_function();
+phiOld = approxSpace:create_surface_function();
+phiNew:set(0);
 
 -- set initial value
 print("Interpolation start values")-- start value
 startValue = util.CreateLuaUserNumber("ExactSolution", dim)
 time = 0.0
-InterpolateFunction(startValue, u, "c", time)
+InterpolateFunction(startValue, phiOld, "c", time)
 
-levDisc = FV1LevelSetDisc2d()
-levDisc:set_dt(0.1);
-levDisc:add_post_process(dirichletBND);
-levDisc:compute_error(u,0);
+lsDisc = FV1LevelSetDisc2d()
+lsDisc:set_dt(0.2/2/2/2/1.5/2);
+lsDisc:add_post_process(dirichletBND);
+-- lsDisc:set_info(false);
+------- perform all steps in one call
+------- lsDisc:set_nr_of_steps(40);
+------- lsDisc:advect_lsf(phiNew,phiOld);
+-- choose number of time steps
+NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 40)
+-- lsDisc:compute_error(phiNew);
+
+for step = 1, NumTimeSteps do
+    lsDisc:advect_lsf(phiNew,phiOld);
+    VecScaleAssign(phiOld,1,phiNew);
+end
+lsDisc:compute_error(phiNew);
 --------------------------------------------------------------------------------
 --  Output
 --------------------------------------------------------------------------------
 
-WriteGridFunctionToVTK(u, "Solution")
-SaveVectorForConnectionViewer(u, "u.mat")
+WriteGridFunctionToVTK(phiNew, "Solution")
+SaveVectorForConnectionViewer(phiNew, "u.mat")
+
+
+

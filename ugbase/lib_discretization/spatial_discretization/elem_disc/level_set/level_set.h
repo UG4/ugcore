@@ -57,7 +57,7 @@ class FV1LevelSetDisc
       		m_analyticalVelocity(true), m_analyticalSource(true),
       		m_divergenceFree(false), m_source(false), m_solutionNr(0),
       		m_velocityNr(0),m_sourceNr(0),m_nrOfSteps(1),m_bdryCondition(0),
-      		m_static_values_type(0)
+      		m_static_values_type(0),m_maxCFL(0),m_print(1)
       	{}
 
 void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
@@ -72,10 +72,14 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 		void set_bool_source(bool b){m_source = b;};
 		void set_static_values_type(size_t n){m_static_values_type=n;};
 		void set_time(double t){m_time = t;}
+		void set_info(bool b){m_print=b;};
+		// set nr of time steps to perform in advect_lsf (default is 1)
+		void set_nr_of_steps(size_t n){m_nrOfSteps = n;};
 		///	adds a post process to be used when stepping the level set function
 //		void add_post_process(IConstraint<dof_distribution_type, algebra_type>& pp){m_vPP.push_back(&pp);}
-	    bool compute_error(TGridFunction& numsol,number t);
-		bool advect_lsf(TGridFunction& uNew, TGridFunction& u);
+	    bool compute_error(TGridFunction& numsol);
+		bool advect_lsf(TGridFunction& uNew,TGridFunction& u);
+	//  bool init_function(TGridFunction& u);
 
 	///	adds a post process to be used when stepping the level set function
 		void add_post_process(IConstraint<dof_distribution_impl_type, algebra_type>& pp) {m_vPP.push_back(&pp);}
@@ -94,7 +98,9 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 	    bool calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient, aaSCV& aaVolume );
 
 		template <typename TElem>
-		bool assemble_element(TElem& elem,grid_type& grid,TGridFunction& u,aaGrad& aaGradient, aaSCV& aaVolume );
+		bool assemble_element(TElem& elem,grid_type& grid,TGridFunction& uNew,const TGridFunction& uOld,aaGrad& aaGradient, aaSCV& aaVolume );
+
+		bool assign_dirichlet(TGridFunction&);
 
 	private:
 	///	vector holding all scheduled post processes
@@ -116,6 +122,8 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
     	size_t m_bdryCondition;
 		// keep values static in computation 0 nothing, 1 interface (reinitialization), 2 inside, 3 outside
 		size_t m_static_values_type;
+		number m_maxCFL;
+		bool m_print;
 };
 
 } // end namespace ug

@@ -300,6 +300,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_source", &T::set_source)
 			.add_method("set_bool_source", &T::set_bool_source)
 			.add_method("set_static_values_type", &T::set_static_values_type)
+			.add_method("set_info", &T::set_info)
+			.add_method("set_nr_of_steps", &T::set_nr_of_steps)
 			.add_method("advect_lsf", &T::advect_lsf)
 			.add_method("add_post_process", &T::add_post_process)
 			.add_method("compute_error", &T::compute_error);
