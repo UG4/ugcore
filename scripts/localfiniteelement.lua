@@ -11,16 +11,18 @@ ug_load_script("ug_util.lua")
 dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 end
 if dim == 3 then
-	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
-	--gridName = "unit_square/unit_cube_tets_regular.ugx"
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_hex_1x1x1.ugx")
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_tets.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_prism_2x2x2.ugx")
 end
 
 -- refinements:
-numRefs    = util.GetParamNumber("-numRefs",    2)
+numRefs    = util.GetParamNumber("-numRefs",    0)
+numLoop    = util.GetParamNumber("-numLoop",    0)
 
 -- Display parameters (or defaults):
 print(" General parameters chosen:")
@@ -33,12 +35,12 @@ InitAlgebra(CPUAlgebraSelector());
 	
 -- Create, Load, Refine and Distribute Domain
 neededSubsets = {"Inner", "Boundary"}
-dom = util.CreateAndDistributeDomain(gridName, 0, 0, neededSubsets)
+dom = util.CreateAndDistributeDomain(gridName, numRefs, 0, neededSubsets)
 
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:add_fct("c", "Lagrange", 3)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
@@ -49,11 +51,23 @@ approxSpace:print_statistic()
 --------------------------------------------------------------------------------
 
 function Rhs2d(x, y, t)
-	return	-12.0 *x*x
+--	return	-12.0 *x*x
+	return 0
 end
 
 function ExactSolution2d(x, y, t)
-	return x*x*x*x
+--	return x*x*x*x
+	return x*y
+end
+
+function Rhs3d(x, y, z, t)
+--	return	-12.0 *x*x
+	return 0
+end
+
+function ExactSolution3d(x, y, z, t)
+--	return x*x*x*x
+	return x
 end
 
 --diffusionMatrix = util.CreateLuaUserMatrix("DiffTensor"..dim.."d", dim)
@@ -102,7 +116,6 @@ dirichletBND:add(exactSolution, "c", "Boundary")
 
 domainDisc = DomainDiscretization()
 domainDisc:add(elemDisc)
---domainDisc:add(neumannDisc)
 domainDisc:add(dirichletBND)
 
 --------------------------------------------------------------------------------
@@ -144,49 +157,82 @@ solver = cgSolver
 --  to get separate profiling for assemble and solve
 --------------------------------------------------------------------------------
 
+if numLoop == 0 then
+
+	if linOp:init_op_and_rhs(b) == false then print("Could assemble operator"); exit(); end
+
+	u:set(0.0)
+	linOp:set_dirichlet_values(u)
+		
+	--InterpolateFunction(exactSolution, u, "c", 0.0)
+	
+	-- write matrix for test purpose
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.mat")
+	SaveVectorForConnectionViewer(u, "StartSol.mat")
+
+	solver:init(linOp)
+	
+	-- 3. apply solver
+	print("Apply solver.")
+	solver:apply_return_defect(u,b)
+	
+	-- 4. compute error
+	error = L2Error(exactSolution, u, "c", 0.0, "Inner")
+	write("L2Error is "..error  .."\n");
+	
+	WriteGridFunctionToVTK(u, "Solution")
+	SaveVectorForConnectionViewer(u, "Solution.mat")
+	
+	exit()
+end
+
+
+
+
 l2error = {}
 
-for i=1,numRefs do
-
--- 0. refine space
-local refiner = GlobalDomainRefiner(dom)
-refiner:refine()
-approxSpace:defragment()
-approxSpace:print_statistic()
-
--- 1. init operator
-print("Init operator (i.e. assemble matrix).")
---if linOp:init_op_and_rhs(b) == false then print("Could assemble operator"); exit(); end
-
--- set dirichlet values in start iterate
-u:set(0.0)
-linOp:set_dirichlet_values(u)
-
-InterpolateFunction(exactSolution, u, "c", 0.0)
-
--- write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
-SaveVectorForConnectionViewer(u, "StartSol.mat")
-
--- 2. init solver for linear Operator
-print("Init solver for operator.")
---solver:init(linOp)
-
--- 3. apply solver
-print("Apply solver.")
---solver:apply_return_defect(u,b)
-
--- 4. compute error
-l2error[i] = L2Error(exactSolution, u, "c", 0.0)
-write("L2Error on Level "..i.." is "..l2error[i] .."\n");
+for i=1, numLoop do
+	
+	-- 0. refine space
+	local refiner = GlobalDomainRefiner(dom)
+	refiner:refine()
+	approxSpace:defragment()
+	approxSpace:print_statistic()
+	
+	-- 1. init operator
+	print("Init operator (i.e. assemble matrix).")
+	if linOp:init_op_and_rhs(b) == false then print("Could assemble operator"); exit(); end
+	
+	-- set dirichlet values in start iterate
+	u:set(0.0)
+	linOp:set_dirichlet_values(u)
+	
+	InterpolateFunction(exactSolution, u, "c", 0.0)
+	
+	-- write matrix for test purpose
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.mat")
+	SaveVectorForConnectionViewer(u, "StartSol.mat")
+	
+	-- 2. init solver for linear Operator
+	print("Init solver for operator.")
+	solver:init(linOp)
+	
+	-- 3. apply solver
+	print("Apply solver.")
+	solver:apply_return_defect(u,b)
+	
+	-- 4. compute error
+	l2error[i] = L2Error(exactSolution, u, "c", 0.0)
+	write("L2Error on Level "..i.." is "..l2error[i] .."\n");
 end
 
 print("L2 Error result:\n")
-for i=1,numRefs do
-write(i..": "..l2error[i].. "  factor: ") 
-if i == 1 then write(" --- \n") 
-else write(l2error[i-1]/l2error[i].."\n") end
+for i=1,numLoop do
+	write(i..": "..l2error[i].. "  factor: ") 
+	if i == 1 then write(" --- \n") 
+	else write(l2error[i-1]/l2error[i].."\n") end
 end
 --------------------------------------------------------------------------------
 --  Output of computed solution
