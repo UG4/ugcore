@@ -219,7 +219,7 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem,grid_type& gri
         BlockRef(uNew[multInd[0][0]],multInd[0][1])-=flux/aaVolume[ vVrt[from] ];
         dd.inner_multi_indices(vVrt[to], 0, multInd);
         BlockRef(uNew[multInd[0][0]],multInd[0][1])+=flux/aaVolume[ vVrt[to] ];
-        number localCFL = max(m_dt*abs(ipVelocity[ip]*scvf.normal())/aaVolume[ vVrt[from] ],m_dt*abs(ipVelocity[ip]*scvf.normal())/aaVolume[ vVrt[to] ] );
+        number localCFL = std::max(m_dt*abs(ipVelocity[ip]*scvf.normal())/aaVolume[ vVrt[from] ],m_dt*abs(ipVelocity[ip]*scvf.normal())/aaVolume[ vVrt[to] ] );
         //UG_LOG("localCFL " << localCFL << "\n");
         if (localCFL>m_maxCFL){
             m_maxCFL = localCFL;
