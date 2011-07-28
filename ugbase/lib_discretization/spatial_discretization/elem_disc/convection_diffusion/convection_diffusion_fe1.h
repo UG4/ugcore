@@ -294,7 +294,8 @@ elem_rhs_fe(local_vector_type& d)
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+template <int dim>
+ConvectionDiffusionElemDisc<TDomain>::RegisterFE<dim>::
 RegisterFE(this_type* pThis, int p) : m_pThis(pThis), m_p(p) {}
 
 template <int dim> struct FEConvDiffElemTypes;
@@ -329,12 +330,13 @@ register_all_fe_funcs(int order)
 	m_pFEQuadOrder = 2*order-2;
 
 //	assemble functions
-	boost::mpl::for_each<ElemList>( RegisterFE(this, order) );
+	boost::mpl::for_each<ElemList>( RegisterFE<dim>(this, order) );
 }
 
 template<typename TDomain>
+template<int dim>
 template<typename TElem>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<dim>::
 operator()(TElem&)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -342,9 +344,10 @@ operator()(TElem&)
 	m_pThis->register_fe_func<TElem, DimFEGeometry<dim, ref_elem_type::dim> >();
 	return;
 }
-
+/*
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+template<>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<2>::
 operator()(Triangle&)
 {
 //	order of quad rule must be at least  2*p- 2 to integrate laplacian
@@ -360,7 +363,8 @@ operator()(Triangle&)
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+template<>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<2>::
 operator()(Quadrilateral&)
 {
 //	order of quad rule must be at least 4*p - 2 to integrate laplacian
@@ -376,7 +380,8 @@ operator()(Quadrilateral&)
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+template<>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
 operator()(Tetrahedron&)
 {
 //	order of quad rule must be at least  2*p- 2 to integrate laplacian
@@ -392,7 +397,8 @@ operator()(Tetrahedron&)
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+template<>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
 operator()(Prism&)
 {
 //	order of quad rule must be at least  2*p- 2 to integrate laplacian
@@ -404,7 +410,19 @@ operator()(Prism&)
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+template<>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
+operator()(Pyramid&)
+{
+//	order of quad rule must be at least  2*p- 2 to integrate laplacian
+	switch(m_p) {
+		default: m_pThis->register_fe_func<Pyramid, DimFEGeometry<dim, 3> >();  break;
+	}
+}
+
+template<typename TDomain>
+template<>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
 operator()(Hexahedron&)
 {
 //	order of quad rule must be at least 4*p - 2 to integrate laplacian
@@ -418,7 +436,7 @@ operator()(Hexahedron&)
 		default: m_pThis->register_fe_func<Hexahedron, DimFEGeometry<dim, 3> >();  break;
 	}
 }
-
+*/
 
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
