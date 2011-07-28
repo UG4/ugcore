@@ -5,6 +5,8 @@
  *      Author: andreasvogel
  */
 
+#include <string>
+
 // include brigde
 #include "../ug_bridge.h"
 
@@ -12,6 +14,8 @@
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/dof_manager/function_pattern.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
+
+using namespace std;
 
 namespace ug
 {
@@ -23,11 +27,11 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 	try
 	{
 	//	get group string
-		std::string grp = parentGroup; grp.append("/Discretization");
+		string grp = parentGroup; grp.append("/Discretization");
 
 	//	FunctionGroup
 		{
-			reg.add_class_<FunctionGroup>("FunctionGroup", grp.c_str())
+			reg.add_class_<FunctionGroup>("FunctionGroup", grp)
 				.add_constructor()
 				.add_method("clear", &FunctionGroup::clear)
 				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
@@ -37,7 +41,7 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 	//	FunctionPattern
 		{
 			typedef FunctionPattern T;
-			reg.add_class_<T>("FunctionPattern", grp.c_str())
+			reg.add_class_<T>("FunctionPattern", grp)
 				.add_method("clear", &T::clear)
 				.add_method("add_fct", static_cast<bool (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
 				            "Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
@@ -51,7 +55,7 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 		{
 		//	Base class
 			typedef IElemDisc T;
-			reg.add_class_<T>("IElemDisc", grp.c_str())
+			reg.add_class_<T>("IElemDisc", grp)
 				.add_method("set_functions", &T::set_functions,
 							"", "Functions (sep. by ',')")
 				.add_method("set_subsets",  &T::set_subsets,
@@ -62,9 +66,9 @@ bool RegisterStaticLibDiscInterface(Registry& reg, const char* parentGroup)
 	//	IDomainDecompositionInfo, StandardDomainDecompositionInfo
 		{
 		typedef pcl::IDomainDecompositionInfo Tbase;
-		reg.add_class_<Tbase>("IDomainDecompositionInfo", grp.c_str());
+		reg.add_class_<Tbase>("IDomainDecompositionInfo", grp);
 		typedef pcl::StandardDomainDecompositionInfo T;
-		reg.add_class_<T, Tbase>("StandardDomainDecompositionInfo", grp.c_str())
+		reg.add_class_<T, Tbase>("StandardDomainDecompositionInfo", grp)
 			.add_constructor()
 			.add_method("map_proc_id_to_subdomain_id", &T::map_proc_id_to_subdomain_id)
 			.add_method("set_num_subdomains",          &T::set_num_subdomains)
