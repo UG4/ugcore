@@ -630,7 +630,7 @@ class LagrangeLDS<ReferencePrism, TOrder>
 				return ((p>1) ? ((p-1)*(p-1)) : 0);
 		//	same as for a 3d prism of order p-2
 			if(type == ROID_PRISM)
-				return ((p>2) ? (BinomialCoefficient<2 + p-2, p-2>::value)*(p-1) : 0);
+				return ((p>2) ? (BinomialCoefficient<2 + p-3, p-3>::value)*(p-1) : 0);
 			else return -1;
 		}
 
