@@ -61,11 +61,14 @@ prepare_element(TElem* elem, const local_vector_type& u)
 //	get corners
 	m_corners = this->template get_element_corners<TElem>(elem);
 
-// 	update Geometry for this element
-	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
-	if(!geo.update(m_corners))
+// 	update Geometry for this element
+	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+
+	if(!geo.update(elem, m_corners, LFEID(LFEID::LAGRANGE,1), 2))
 		{UG_LOG("FE1NonlinearElasticityElemDisc::prepare_element:"
 				" Cannot update Finite Element Geometry.\n"); return false;}
 
@@ -79,8 +82,11 @@ bool
 FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
 
 	//using Lagrange description of the linearized equations (cf. Bonet/Wood 1997 chapter 8/9)
 
@@ -196,8 +202,11 @@ bool
 FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
@@ -226,9 +235,12 @@ bool
 FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
 	// to be implemented
-	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
+			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
 	//TODO: mean Dilatation Term fehlt noch!
 
 	number DE[dim][dim], FT[dim][dim], F[dim][dim];

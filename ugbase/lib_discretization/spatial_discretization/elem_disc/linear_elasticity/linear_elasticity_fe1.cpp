@@ -73,11 +73,14 @@ prepare_element(TElem* elem, const local_vector_type& u)
 //	get corners
 	m_corners = this->template get_element_corners<TElem>(elem);
 
-// 	update Geometry for this element
-	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
-	if(!geo.update(m_corners))
+// 	update Geometry for this element
+	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
+		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+
+	if(!geo.update(elem, m_corners, LFEID(LFEID::LAGRANGE,1), 2))
 		{UG_LOG("FE1LinearElasticityElemDisc::prepare_element:"
 				" Cannot update Finite Element Geometry.\n"); return false;}
 
@@ -91,8 +94,11 @@ bool
 FE1LinearElasticityElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
+		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
 
 	for(size_t i = 0; i < geo.num_sh(); ++i) // loop corner
 	{
@@ -133,8 +139,11 @@ bool
 FE1LinearElasticityElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
-	FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2>& geo
-		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS, 1, GaussQuadrature, 2> >();
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
+		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{

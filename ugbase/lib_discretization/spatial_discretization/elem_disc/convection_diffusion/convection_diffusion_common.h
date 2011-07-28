@@ -134,6 +134,9 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		return false;
 	}
 
+//	remember lfeID;
+	m_lfeID = vLfeID[0];
+
 //	set order
 	m_order = vLfeID[0].order();
 

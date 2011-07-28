@@ -68,6 +68,9 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -198,6 +201,9 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 	public:
 	///	Constructor
 		LagrangeLSFS();
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -406,6 +412,9 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -579,6 +588,9 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	public:
 	///	Constructor
 		LagrangeLSFS();
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -818,6 +830,9 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 	public:
 	///	Constructor
 		LagrangeLSFS();
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
@@ -1082,6 +1097,9 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -1304,6 +1322,9 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	public:
 	///	Constructor
 		LagrangeLSFS();
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const {return nsh;}

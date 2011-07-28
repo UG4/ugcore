@@ -16,12 +16,8 @@
 
 namespace ug{
 
-template <	typename TElem,
-			int TWorldDim,
-			template <class TRefElem, int p> class TTrialSpace,
-			int TOrderTrialSpace,
-			template <class TRefElem, int p> class TQuadRule,
-			int TOrderQuadRule>
+template <	typename TElem,	int TWorldDim,
+			typename TTrialSpace, typename TQuadratureRule>
 class FEGeometry
 {
 	public:
@@ -35,10 +31,10 @@ class FEGeometry
 		static const int worldDim = TWorldDim;
 
 	///	type of trial space
-		typedef TTrialSpace<ref_elem_type, TOrderTrialSpace> trial_space_type;
+		typedef TTrialSpace trial_space_type;
 
 	///	type of quadrature rule
-		typedef TQuadRule<ref_elem_type, TOrderQuadRule> quad_rule_type;
+		typedef TQuadratureRule quad_rule_type;
 
 	///	number of shape functions
 		static const size_t nsh = trial_space_type::nsh;
@@ -107,9 +103,50 @@ class FEGeometry
 			return m_vvGradGlobal[ip][sh];
 		}
 
-	/// update Geometry for corners
-		bool update(const MathVector<worldDim>* vCorner)
+	/// update Geometry for roid
+		bool update(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
 		{
+			if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
+			{
+				UG_LOG("ERROR in 'FEGeometry::update': Geometry only for "
+						<<geometry_traits<TElem>::REFERENCE_OBJECT_ID<<", but "
+						<<roid<<" requested.\n");
+				return false;
+			}
+			if(lfeID != m_rTrialSpace.type())
+			{
+				UG_LOG("ERROR in 'FEGeometry::update': Geometry only for "
+						<<m_rTrialSpace.type()<<", but "<<lfeID<<" requested.\n");
+				return false;
+			}
+			if(orderQuad > m_rQuadRule.order())
+			{
+				UG_LOG("ERROR in 'FEGeometry::update': Geometry only for order "
+						<< m_rQuadRule.order()<<", but order "<<orderQuad<<" requested.\n");
+				return false;
+			}
+
+			return true;
+		}
+
+	/// update Geometry for corners
+		bool update(TElem* pElem, const MathVector<worldDim>* vCorner)
+		{
+			return update(pElem, vCorner, m_rTrialSpace.type(), m_rQuadRule.order());
+		}
+
+	/// update Geometry for corners
+		bool update(TElem* pElem, const MathVector<worldDim>* vCorner,
+		            LFEID lfeID, size_t orderQuad)
+		{
+		//	check
+			UG_ASSERT(lfeID == m_rTrialSpace.type(), "Wrong type requested.");
+			UG_ASSERT(orderQuad <= m_rQuadRule.order(), "Wrong order requested.");
+
+		//	check if element changed
+			if(pElem == m_pElem) return true;
+			else m_pElem = pElem;
+
 		//	update the mapping for the new corners
 			m_mapping.update(vCorner);
 
@@ -154,6 +191,9 @@ class FEGeometry
 		}
 
 	protected:
+	///	current element
+		TElem* m_pElem;
+
 	///	Quadrature rule
 		const quad_rule_type& m_rQuadRule;
 
@@ -197,27 +237,21 @@ class DimFEGeometry
 	public:
 	///	default Constructor
 		DimFEGeometry() :
-			m_roid(ROID_INVALID), m_order(0), m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
+			m_roid(ROID_INVALID), m_quadOrder(0), m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
 			m_vIPLocal(NULL), m_vQuadWeight(NULL)
 		{}
 
 	///	Constructor
 		DimFEGeometry(size_t order, LFEID lfeid) :
-			m_roid(ROID_INVALID), m_order(order), m_lfeID(lfeid),
+			m_roid(ROID_INVALID), m_quadOrder(order), m_lfeID(lfeid),
 			m_vIPLocal(NULL), m_vQuadWeight(NULL)
 		{}
 
 	///	Constructor
 		DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid) :
-			m_roid(roid), m_order(order), m_lfeID(lfeid),
+			m_roid(roid), m_quadOrder(order), m_lfeID(lfeid),
 			m_vIPLocal(NULL), m_vQuadWeight(NULL)
 		{}
-
-	///	sets the order of the quadrature rule
-		void set_quad_order(size_t order) {m_order = order;}
-
-	///	sets the local finite element id
-		void set_lfeid(LFEID lfeid) {m_lfeID = lfeid;}
 
 	/// number of integration points
 		size_t num_ip() const {return m_nip;}
@@ -276,63 +310,82 @@ class DimFEGeometry
 			return m_vvGradGlobal[ip][sh];
 		}
 
+	/// update Geometry for roid
+		bool update(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
+		{
+		//	remember current setting
+			m_roid = roid;
+			m_lfeID = lfeID;
+			m_quadOrder = orderQuad;
+
+		//	request for quadrature rule
+			try{
+			const QuadratureRule<dim>& quadRule
+					= QuadratureRuleProvider<dim>::get_rule(roid, orderQuad);
+
+		//	copy quad informations
+			m_nip = quadRule.size();
+			m_vIPLocal = quadRule.points();
+			m_vQuadWeight = quadRule.weights();
+
+			}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
+				UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+				return false;
+			}
+
+		//	resize
+			m_vIPGlobal.resize(m_nip);
+			m_vJTInv.resize(m_nip);
+			m_vDetJ.resize(m_nip);
+
+			m_vvGradGlobal.resize(m_nip);
+			m_vvGradLocal.resize(m_nip);
+			m_vvShape.resize(m_nip);
+
+		//	request for trial space
+			try{
+			const DimLocalShapeFunctionSet<dim>& lsfs
+				 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
+
+		//	get all shapes by on call
+			for(size_t ip = 0; ip < m_nip; ++ip)
+			{
+				lsfs.shapes(&(m_vvShape[ip][0]), m_vIPLocal[ip]);
+				lsfs.grads(&(m_vvGradLocal[ip][0]), m_vIPLocal[ip]);
+			}
+
+			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+				UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+				return false;
+			}
+			return true;
+		}
+
 	/// update Geometry for corners
 		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
 		{
+			return update(pElem, vCorner, m_lfeID, m_quadOrder);
+		}
+
+	/// update Geometry for corners
+		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+					LFEID lfeID, size_t orderQuad)
+		{
+		//	check if same element
+			if(pElem == m_pElem) return true;
+			else m_pElem = pElem;
+
 		//	get reference element type
-			ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID roid = (ReferenceObjectID)pElem->reference_object_id();
 
 			////////////////////////
 			//	local values
 			////////////////////////
 
 		//	if already prepared for this roid, skip update of local values
-			if(m_roid != roid)
-			{
-			//	remember current roid
-				m_roid = roid;
-
-			//	request for quadrature rule
-				try{
-				const QuadratureRule<dim>& quadRule
-						= QuadratureRuleProvider<dim>::get_rule(roid, m_order);
-
-			//	copy quad informations
-				m_nip = quadRule.size();
-				m_vIPLocal = quadRule.points();
-				m_vQuadWeight = quadRule.weights();
-
-				}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-					UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+			if(m_roid != roid || lfeID != m_lfeID || (int)orderQuad != m_quadOrder)
+				if(update(roid, lfeID, orderQuad))
 					return false;
-				}
-
-			//	resize
-				m_vIPGlobal.resize(m_nip);
-				m_vJTInv.resize(m_nip);
-				m_vDetJ.resize(m_nip);
-
-				m_vvGradGlobal.resize(m_nip);
-				m_vvGradLocal.resize(m_nip);
-				m_vvShape.resize(m_nip);
-
-			//	request for trial space
-				try{
-				const DimLocalShapeFunctionSet<dim>& lsfs
-				 	 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
-
-			//	get all shapes by on call
-				for(size_t ip = 0; ip < m_nip; ++ip)
-				{
-					lsfs.shapes(m_vvShape[ip], m_vIPLocal[ip]);
-					lsfs.grads(m_vvGradLocal[ip], m_vIPLocal[ip]);
-				}
-
-				}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
-					UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
-					return false;
-				}
-			}
 
 			////////////////////////
 			//	global values
@@ -347,13 +400,13 @@ class DimFEGeometry
 			map.update(vCorner);
 
 		//	compute global integration points
-			map.local_to_global(m_vIPGlobal, m_vIPLocal, m_nip);
+			map.local_to_global(&(m_vIPGlobal[0]), &(m_vIPLocal[0]), m_nip);
 
 		// 	compute transformation inverse and determinate at ip
-			map.jacobian_transposed_inverse(m_vJTInv, m_vIPLocal, m_nip);
+			map.jacobian_transposed_inverse(&(m_vJTInv[0]), &(m_vIPLocal[0]), m_nip);
 
 		//	compute determinant
-			map.jacobian_det(m_vDetJ, m_vIPLocal, m_nip);
+			map.jacobian_det(&(m_vDetJ[0]), &(m_vIPLocal[0]), m_nip);
 
 		// 	compute global gradients
 			for(size_t ip = 0; ip < m_nip; ++ip)
@@ -373,8 +426,11 @@ class DimFEGeometry
 	///	current reference object id the local values are prepared for
 		ReferenceObjectID m_roid;
 
+	///	current element
+		GeometricObject* m_pElem;
+
 	///	current integration order
-		int m_order;
+		int m_quadOrder;
 
 	///	current local finite element id
 		LFEID m_lfeID;
@@ -382,11 +438,11 @@ class DimFEGeometry
 	///	number of intergration point
 		size_t m_nip;
 
-	///	local quadrature weights
-		const number* m_vQuadWeight;
-
 	///	local quadrature points
 		const MathVector<dim>* m_vIPLocal;
+
+	///	local quadrature weights
+		const number* m_vQuadWeight;
 
 	///	global integration points (size = nip)
 		std::vector<MathVector<worldDim> > m_vIPGlobal;

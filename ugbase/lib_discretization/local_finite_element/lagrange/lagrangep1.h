@@ -48,6 +48,9 @@ class LagrangeP1
 		static const size_t nsh = TRefElem::num_corners;
 
 	public:
+	///	\copydoc ug::LocalShapeFunctionSet::type()
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, 1);}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const { return nsh;}
 

@@ -59,6 +59,9 @@ class DimLocalShapeFunctionSet
 		typedef MathVector<dim> grad_type;
 
 	public:
+	///	type of shape functions
+		virtual LFEID type() const = 0;
+
 	///	Number of DoFs (shapes) on finite element
 		virtual size_t num_sh() const = 0;
 
@@ -168,6 +171,9 @@ class LocalShapeFunctionSetWrapper
 	public:
 	///	constructor
 		LocalShapeFunctionSetWrapper(){}
+
+	///	\copydoc ug::LocalShapeFunctionSet::type()
+		virtual LFEID type() const {return ImplType::type();}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		virtual size_t num_sh() const {return nsh;}

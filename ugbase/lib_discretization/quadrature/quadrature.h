@@ -290,7 +290,6 @@ class QuadratureRuleProvider
 	 * \param[in]	roid		Reference Object id
 	 * \param[in]	order		Order of requested quadrature rule
 	 */
-		template <typename TRefElem>
 		inline static const QuadratureRule<dim>& get_rule(ReferenceObjectID roid,
 		                                                  size_t order)
 		{
