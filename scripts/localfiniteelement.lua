@@ -23,6 +23,7 @@ end
 -- refinements:
 numRefs    = util.GetParamNumber("-numRefs",    0)
 numLoop    = util.GetParamNumber("-numLoop",    0)
+order    = util.GetParamNumber("-order",    1)
 
 -- Display parameters (or defaults):
 print(" General parameters chosen:")
@@ -40,7 +41,7 @@ dom = util.CreateAndDistributeDomain(gridName, numRefs, 0, neededSubsets)
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", 3)
+approxSpace:add_fct("c", "Lagrange", order)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
@@ -159,23 +160,32 @@ solver = cgSolver
 
 if numLoop == 0 then
 
+	write("Assemble Operator...")
 	if linOp:init_op_and_rhs(b) == false then print("Could assemble operator"); exit(); end
+	write("done.\n")
 
+	write("Set Start Solution...")
 	u:set(0.0)
 	linOp:set_dirichlet_values(u)
+	write("done.\n")
 		
 	--InterpolateFunction(exactSolution, u, "c", 0.0)
 	
 	-- write matrix for test purpose
-	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-	SaveVectorForConnectionViewer(b, "Rhs.mat")
+	write("Write Matrix/Vector for debug ...")
+--	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+--	SaveVectorForConnectionViewer(b, "Rhs.mat")
 	SaveVectorForConnectionViewer(u, "StartSol.mat")
+	write("done.\n")
 
+	write("Init solver...")
 	solver:init(linOp)
+	write("done.\n")
 	
 	-- 3. apply solver
-	print("Apply solver.")
+	write("Apply solver...")
 	solver:apply_return_defect(u,b)
+	write("done.\n")
 	
 	-- 4. compute error
 	error = L2Error(exactSolution, u, "c", 0.0, "Inner")
