@@ -34,6 +34,14 @@ bool InterpolateFunctionOnElem(
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef typename domain_type::position_type position_type;
 
+//	get iterators
+	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
+	iterEnd = u.template end<TElem>(si);
+	iter = u.template begin<TElem>(si);
+
+//	check if something to do:
+	if(iter == iterEnd) return true;
+
 //	id of shape functions used
 	LFEID id = u.local_finite_element_id(fct);
 
@@ -56,11 +64,6 @@ bool InterpolateFunctionOnElem(
 
 //	create a reference mapping
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
-
-//	get iterators
-	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
-	iterEnd = u.template end<TElem>(si);
-	iter = u.template begin<TElem>(si);
 
 // 	iterate over all elements
 	for( ; iter != iterEnd; ++iter)

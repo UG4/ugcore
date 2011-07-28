@@ -48,6 +48,12 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef typename domain_type::position_type position_type;
 
+//	check if something to do
+	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
+	iterEnd = u.template end<TElem>(si);
+	iter = u.template begin<TElem>(si);
+	if(iter==iterEnd) return true;
+
 //	id of shape functions used
 	LFEID id = u.local_finite_element_id(fct);
 
@@ -66,9 +72,7 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
 
 // 	iterate over all elements
-	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
-	iterEnd = u.template end<TElem>(si);
-	for(iter = u.template begin<TElem>(si); iter != iterEnd; ++iter)
+	for(; iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElem* elem = *iter;
