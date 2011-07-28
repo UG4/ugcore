@@ -18,44 +18,217 @@ namespace ug{
 
 template <typename TBaseElem, typename TRefElem>
 struct OrientationOffset{
-	static bool get(std::vector<size_t>& vOrientOffset, int p,
+	static bool get(std::vector<size_t>& vOrientOffset, const size_t p,
 	                const TRefElem& rRefElem,
-	                size_t nrObj, std::vector<VertexBase*> vCorner)
+	                const size_t nrObj, const size_t numDoFsOnSub,
+	                const std::vector<VertexBase*>& vCorner)
 	{
 		throw(UGFatalError("GetOrientationOffset not implemented for that type"
 				"of base element."));
 	}
 };
 
+/*
+ * Orientation of an edge:
+ * If DoFs are assigned to a lower-dimensional edge and we have a degree higher
+ * than 2 (i.e. more than one DoF on the edge) orientation is required to
+ * ensure continuity of the shape functions. This means, that each element
+ * that has the edge as a subelement, must number the dofs on the edge equally
+ * in global numbering.
+ *
+ * The idea is as follows: We induce a global ordering of dofs on the edge by
+ * using the storage position of the vertices of the edge. By our own definition
+ * we say, that dofs are always assigned in a line from the vertices with lower
+ * storage position to the vertices with the higher one. Now, in the local ordering
+ * of dofs on the reference element, the edge may have been a different numbering
+ * for the corners.
+ * Thus, we have to distinguish two case:
+ * a) corner 0 in reference element numbering has the smaller storage position: in
+ * 		this case we can simply use the usual offset numbering
+ * b) corner 0 in reference element numbering has a bigger storage position: in
+ * 		this case we have to use the reverse order as offset numbering
+ */
 template <typename TRefElem>
 struct OrientationOffset<EdgeBase, TRefElem>{
-	static bool get(std::vector<size_t>& vOrientOffset, int p,
+	static bool get(std::vector<size_t>& vOrientOffset, const size_t p,
 	                const TRefElem& rRefElem,
-	                size_t nrEdge, std::vector<VertexBase*> vCorner)
+	                const size_t nrEdge, const size_t numDoFsOnSub,
+	                const std::vector<VertexBase*>& vCorner)
 	{
+	//	check
+		UG_ASSERT(p-1 == numDoFsOnSub, "Wrong number of dofs on sub");
+		UG_ASSERT(p > 2, "Orientation only needed for p > 2, but given p="<<p);
+
 	//	compare the two corners of the edge
 		const size_t co0 = rRefElem.id(1, nrEdge, 0, 0);
 		const size_t co1 = rRefElem.id(1, nrEdge, 0, 1);
 
 	//	resize the orientation array
-		vOrientOffset.resize(p-1);
+		vOrientOffset.resize(numDoFsOnSub);
 
 	//	the standard orientation is from co0 -> co1.
 	//	we define to store the dofs that way if co0 has smaller address than
 	//	co1. If this is not the case now, we have to invert the order.
 		if(vCorner[co0] < vCorner[co1])
 		{
-			for(int i = 0; i <= p-2; ++i)
+			for(size_t i = 0; i < numDoFsOnSub; ++i)
 				vOrientOffset[i] = i;
 		}
 		else
 		{
-			for(int i = 0; i <= p-2; ++i)
+			for(size_t i = 0; i < numDoFsOnSub; ++i)
 				vOrientOffset[i] = (p-2)-i;
 		}
 
 	//	done
 		return true;
+	}
+};
+
+/*
+ * Orientation of a Face:
+ * If DoFs are assigned to a lower-dimensional face and we have a degree higher
+ * than 2 (i.e. more than one DoF on the face) orientation is required to
+ * ensure continuity of the shape functions. This means, that each element
+ * that has the face as a subelement, must number the dofs on the face equally
+ * in global numbering.
+ *
+ * The idea of the ordering is as follows:
+ * We define that DoFs are always assigned to the face in a prescribed order.
+ * In ordr to do so, we find the vertex of the face with the smallest storage
+ * position. Then we find the vertex, that is connected to the smallest vertex
+ * by an edge, with the (second) smallest storage position. Thus, we have a
+ * situation like this:
+ *
+ *  	*						*--------*			^ y
+ *  	|  \					|		 |			|
+ *  	|    \				    |	     |			|
+ * 		|      \				|		 |			|-----> x
+ *  	*------*				*--------*
+ *  smallest   second		smallest	second
+ *
+ * In this picture all rotations and mirroring can appear. We define that the
+ * DoFs on the face are always numbered in x direction first, continuing in the
+ * next row in y direction, numbering in x again and continuing in y, etc.
+ * E.g. this gives for a p = 4 element (showing only inner dofs):
+ *
+ *  	*						*-------*			^ y
+ *  	|5 \					| 6	7 8	|			|
+ *  	|3 4 \					| 3 4 5	|			|
+ * 		|0 1 2 \				| 0 1 2 |			|-----> x
+ *  	*-------*				*-------*
+ *  smallest   second		smallest	second
+ *
+ * Now, the face vertices of the given element have a local numbering vCo[] in
+ * the reference element. The DoFs in the reference element meaning are ordered
+ * as if vCo[0] was smallest and vCo[1] was second. Thus, now in real world,
+ * these must not match and we have to find the orientation of the face. Smallest
+ * and second is computed and than a mapping is set up.
+ */
+template <typename TRefElem>
+struct OrientationOffset<Face, TRefElem>{
+	static bool get(std::vector<size_t>& vOrientOffset, const size_t p,
+	                const TRefElem& rRefElem,
+	                const size_t nrFace, const size_t numDoFsOnSub,
+	                const std::vector<VertexBase*>& vCorner)
+	{
+	//	should only be called for p > 2, since else no orientation needed
+		UG_ASSERT(p > 2, "Orientation only needed for p > 2, but given p="<<p);
+
+	//	resize array
+		vOrientOffset.resize(numDoFsOnSub);
+
+	//	get corners of face
+		const int numCo = rRefElem.num(2, nrFace, 0);
+		std::vector<size_t> vCo(numCo);
+		for(int i = 0; i < numCo; ++i)
+			vCo[i] = rRefElem.id(2, nrFace, 0, i);
+
+	//	find smallest
+		int smallest = 0;
+		for(int i = 1; i < numCo; ++i)
+			if(vCorner[i] < vCorner[smallest]) smallest = i;
+
+	//	find second smallest
+		int second = (smallest+numCo-1)%numCo;
+		const int next = (smallest+numCo+1)%numCo;
+		if(vCorner[next] < vCorner[second]) second = next;
+
+	//	map the i,j
+		size_t map_i, map_j;
+
+	//	loop 'y'-direction
+		for(size_t j = 0; j <= p-2; ++j)
+		{
+		//	for a quadrilateral we have a quadratic loop, but for a
+		//	triangle we need to stop at the diagonal
+			const size_t off = ((vCo.size() == 3) ? j : 0);
+
+		//	loop 'x'-direction
+			for(size_t i = 0; i <= p-2-off; ++i)
+			{
+			//	map the index-pair (i,j)
+				map_face(map_i, map_j, i, j, numCo, p-2, smallest, second);
+
+			//	linearize index and mapped index
+				const size_t mappedIndex = (p-2) * map_j + map_i;
+				const size_t index = (p-2) * j + i;
+
+			//	check
+				UG_ASSERT(mappedIndex < numDoFsOnSub, "Wrong mapped index");
+				UG_ASSERT(index < numDoFsOnSub, "Wrong index");
+
+			//	set mapping
+				vOrientOffset[index] = mappedIndex;
+			}
+		}
+
+	//	case not found
+		return false;
+	}
+
+	static void map_face(size_t& map_i, size_t& map_j,
+	                     const size_t i, const size_t j,
+	                     const int numCo, const size_t p,
+	                     const int smallest, const int second)
+	{
+		UG_ASSERT(i <= p, "Wrong index");
+		UG_ASSERT(j <= p, "Wrong index");
+
+	//	handle rotation
+		switch(numCo)
+		{
+			case 3:
+			{
+				switch(smallest)
+				{
+					case 0: map_i = i; map_j = j; break;
+					case 1: map_i = j; map_j = p-i-j; break;
+					case 2: map_i = p-i-j; map_j = i; break;
+					default: throw(UGFatalError("Corner not found."));
+				}
+				break;
+			}
+			case 4:
+			{
+				switch(smallest)
+				{
+					case 0: map_i = i; map_j = j; break;
+					case 1: map_i = j; map_j = p-i; break;
+					case 2: map_i = p-i; map_j = p-j; break;
+					case 3: map_i = p-j; map_j = i; break;
+					default: throw(UGFatalError("Corner not found."));
+				}
+				break;
+			}
+			default: throw(UGFatalError("Num Corners not supported."));
+		}
+
+	//	handle mirroring
+		if(second == (smallest+numCo-1)%numCo)
+		{
+			const size_t h = map_i; map_i = map_j; map_j = h;
+		}
 	}
 };
 
@@ -126,7 +299,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 			{
 				//	get the orientation for this
 					OrientationOffset<TBaseElem, ref_elem_type>::get
-						(vOrientOffset, lsfsID.order(), rRef, i, vCorner);
+						(vOrientOffset, lsfsID.order(), rRef, i, numDoFsOnSub, vCorner);
 
 					UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Number of"
 					          " offsets "<<vOrientOffset.size()<<" != Number of "
@@ -151,7 +324,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 				else
 				{
 					for(size_t j = 0; j < numDoFsOnSub; ++j)
-						ind.push_back_index(fct, vOrientOffset[j]);
+						ind.push_back_index(fct, index+vOrientOffset[j]);
 				}
 			}
 			else
@@ -370,7 +543,7 @@ void DoFDistribution::multi_indices(TElem* elem, size_t fct, multi_index_vector_
 		{
 			//	get the orientation for this
 				OrientationOffset<TBaseElem, ref_elem_type>::get
-					(vOrientOffset, lsfsID.order(), rRef, i, vCorner);
+					(vOrientOffset, lsfsID.order(), rRef, i, numDoFsOnSub, vCorner);
 
 				UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Number of"
 						  " offsets "<<vOrientOffset.size()<<" != Number of "
@@ -481,7 +654,7 @@ size_t DoFDistribution::inner_multi_indices(TElem* elem, size_t fct,
 
 	//	get the orientation for this
 		OrientationOffset<geometric_base_object, ref_elem_type>::get
-			(vOrientOffset, lsfsID.order(), rRef, 0, vCorner);
+			(vOrientOffset, lsfsID.order(), rRef, 0, numDoFsOnSub, vCorner);
 
 		UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Number of"
 				  " offsets "<<vOrientOffset.size()<<" != Number of "
