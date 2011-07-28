@@ -8,6 +8,7 @@
 // extern headers
 #include <iostream>
 #include <sstream>
+#include <string>
 
 // include bridge
 #include "../ug_bridge.h"
@@ -41,6 +42,8 @@
 #include "lib_discretization/operator/linear_operator/multi_grid_solver/mg_solver.h"
 
 #include "lib_discretization/spatial_discretization/elem_disc/level_set/level_set.h"
+
+using namespace std;
 
 namespace ug
 {
@@ -94,8 +97,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	typedef typename algebra_type::matrix_type matrix_type;
 	static const int dim = domain_type::dim;
 
-	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
-	std::string grp = grpSS.str();
+	stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	string grp = grpSS.str();
 
 #ifdef UG_PARALLEL
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
@@ -105,8 +108,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	GridFunction
 	{
-		std::stringstream ss; ss << "GridFunction" << dim << "d";
-		reg.add_class_<function_type, vector_type>(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "GridFunction" << dim << "d";
+		reg.add_class_<function_type, vector_type>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("assign", static_cast<bool (function_type::*)(const vector_type&)>(&function_type::assign),
 						"Success", "Vector")
@@ -124,8 +127,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //  ApproximationSpace
 	{
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
-		std::stringstream ss; ss << "ApproximationSpace" << dim << "d";
-		reg.add_class_<T,  IApproximationSpace<domain_type> >(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "ApproximationSpace" << dim << "d";
+		reg.add_class_<T,  IApproximationSpace<domain_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("init|hide=true", &T::init)
 			.add_method("print_statistic|hide=true", static_cast<void (T::*)(int) const>(&T::print_statistic))
@@ -151,8 +154,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
 		typedef LagrangeDirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
-		std::stringstream ss; ss << "DirichletBND" << dim << "d";
-		reg.add_class_<T, IConstraint<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "DirichletBND" << dim << "d";
+		reg.add_class_<T, IConstraint<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space")
@@ -170,8 +173,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 		typedef P1ProlongationOperator<approximation_space_type, algebra_type> T;
 
-		std::stringstream ss; ss << "P1ProlongationOperator" << dim << "d";
-		reg.add_class_<T, IProlongationOperator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "P1ProlongationOperator" << dim << "d";
+		reg.add_class_<T, IProlongationOperator<vector_type, vector_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space)
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
@@ -184,8 +187,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 		typedef P1ProjectionOperator<approximation_space_type, algebra_type> T;
 
-		std::stringstream ss; ss << "P1ProjectionOperator" << dim << "d";
-		reg.add_class_<T, IProjectionOperator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "P1ProjectionOperator" << dim << "d";
+		reg.add_class_<T, IProjectionOperator<vector_type, vector_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space);
 	}
@@ -195,8 +198,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 		typedef AssembledMultiGridCycle<approximation_space_type, algebra_type> T;
 
-		std::stringstream ss; ss << "GeometricMultiGridPreconditioner" << dim << "d";
-		reg.add_class_<T, ILinearIterator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "GeometricMultiGridPreconditioner" << dim << "d";
+		reg.add_class_<T, ILinearIterator<vector_type, vector_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_discretization|interactive=false", &T::set_discretization,
 						"", "Discretization")
@@ -226,8 +229,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	VTK Output
 	{
 		typedef VTKOutput<function_type> T;
-		std::stringstream ss; ss << "VTKOutput" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "VTKOutput" << dim << "d";
+		reg.add_class_<T>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("write_time_pvd", &T::write_time_pvd)
 			.add_method("clear_selection", &T::clear_selection)
@@ -243,8 +246,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		{
 			typedef GridFunctionDebugWriter<function_type> T;
 			typedef IDebugWriter<typename function_type::algebra_type> TBase;
-			std::stringstream ss; ss << "GridFunctionDebugWriter" << dim << "d";
-			reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			stringstream ss; ss << "GridFunctionDebugWriter" << dim << "d";
+			reg.add_class_<T, TBase>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 				.add_method("set_vtk_output", &T::set_vtk_output, "", "vtkOutput")
@@ -256,8 +259,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	{
 		typedef GridFunctionPositionProvider<function_type> T;
 		typedef IPositionProvider<dim> TBase;
-		std::stringstream ss; ss << "GridFunctionPositionProvider" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "GridFunctionPositionProvider" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction");
 	}
@@ -267,8 +270,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	{
 		typedef GridFunctionVectorWriter<function_type, vector_type> T;
 		typedef IVectorWriter<vector_type> TBase;
-		std::stringstream ss; ss << "GridFunctionVectorWriter" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "GridFunctionVectorWriter" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 			.add_method("set_user_data", &T::set_user_data, "", "userData");
@@ -277,9 +280,9 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	// GridFunctionVectorWriterDirichlet0
 	{
 		typedef GridFunctionVectorWriterDirichlet0<function_type> T;
-		std::stringstream ss; ss << "GridFunctionVectorWriterDirichlet0" << dim << "d";
+		stringstream ss; ss << "GridFunctionVectorWriterDirichlet0" << dim << "d";
 		typedef IVectorWriter<vector_type> TBase;
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("init", &T::init, "", "postProcess#approxSpace#level")
 			.add_method("set_level", &T::set_level, "", "level");
@@ -288,8 +291,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	// FV1LevelSetDisc
 	{
 		typedef FV1LevelSetDisc<function_type> T;
-		std::stringstream ss; ss << "FV1LevelSetDisc" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+		stringstream ss; ss << "FV1LevelSetDisc" << dim << "d";
+		reg.add_class_<T>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_dt", &T::set_dt)
 			.add_method("set_vel_scale", &T::set_vel_scale)
@@ -319,8 +322,8 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 	typedef typename algebra_type::matrix_type matrix_type;
 	static const int dim = domain_type::dim;
 
-	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
-	std::string grp = grpSS.str();
+	stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	string grp = grpSS.str();
 
 #ifdef UG_PARALLEL
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
@@ -331,7 +334,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 //	WriteGridToVTK
 	{
 		reg.add_function("WriteGridFunctionToVTK",
-						 &WriteGridFunctionToVTK<function_type>, grp.c_str(),
+						 &WriteGridFunctionToVTK<function_type>, grp,
 							"Success", "GridFunction#Filename|save-dialog",
 							"Saves GridFunction to *.vtk file", "No help");
 	}
@@ -339,19 +342,19 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 //	SaveMatrixForConnectionViewer
 	{
 		reg.add_function("SaveMatrixForConnectionViewer",
-						 &SaveMatrixForConnectionViewer<function_type>, grp.c_str());
+						 &SaveMatrixForConnectionViewer<function_type>, grp);
 	}
 
 //	SaveVectorForConnectionViewer
 	{
 		reg.add_function("SaveVectorForConnectionViewer",
-						 &SaveVectorForConnectionViewer<function_type>, grp.c_str());
+						 &SaveVectorForConnectionViewer<function_type>, grp);
 	}
 
 //	MarkForRefinement_GradientIndicator
 	{
 		reg.add_function("MarkForRefinement_GradientIndicator",
-						 &MarkForRefinement_GradientIndicator<function_type>, grp.c_str());
+						 &MarkForRefinement_GradientIndicator<function_type>, grp);
 	}
 
 //	InterpolateFunction
@@ -361,14 +364,14 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 				function_type&, const char*, number);
 		reg.add_function("InterpolateFunction",
 						 static_cast<fct_type>(&InterpolateFunction<function_type>),
-						 grp.c_str());
+						 grp);
 
 		typedef bool (*fct_type_subset)(
 				const boost::function<void (number& res,const MathVector<function_type::domain_type::dim>& x, number time)>&,
 				function_type&, const char*, number, const char*);
 		reg.add_function("InterpolateFunction",
 						 static_cast<fct_type_subset>(&InterpolateFunction<function_type>),
-						 grp.c_str());
+						 grp);
 	}
 
 //	L2Error
@@ -378,14 +381,14 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 				function_type&, const char*, number);
 		reg.add_function("L2Error",
 						 static_cast<fct_type>(&L2Error<function_type>),
-						 grp.c_str());
+						 grp);
 
 		typedef number (*fct_type_subset)(
 				const boost::function<void (number& res,const MathVector<function_type::domain_type::dim>& x, number time)>&,
 				function_type&, const char*, number, const char*);
 		reg.add_function("L2Error",
 						 static_cast<fct_type_subset>(&L2Error<function_type>),
-						 grp.c_str());
+						 grp);
 	}
 
 //	AssembleDirichletBoundary
@@ -401,7 +404,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 		reg.add_function("AssembleDirichletRows",
 						static_cast<fct_type>(&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>),
-						grp.c_str());
+						grp);
 
 		typedef void (*fct_type2)(	mat_op_type&,
 									dirichlet_type&,
@@ -410,7 +413,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 		reg.add_function("AssembleDirichletRows",
 				static_cast<fct_type2>(&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>),
-				grp.c_str());
+				grp);
 	}
 }
 
@@ -425,14 +428,14 @@ bool RegisterLibDiscForDomain(Registry& reg, const char* parentGroup)
 	try
 	{
 	//	get group string
-		std::string grp = parentGroup; grp.append("/Discretization");
+		string grp = parentGroup; grp.append("/Discretization");
 
 #ifdef UG_DIM_1
 	//	Domain dependent part 1D
 		{
 			typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
-			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp);
+			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp);
 		}
 #endif
 
@@ -440,8 +443,8 @@ bool RegisterLibDiscForDomain(Registry& reg, const char* parentGroup)
 	//	Domain dependent part 2D
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
-			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp);
+			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp);
 		}
 #endif
 
@@ -449,8 +452,8 @@ bool RegisterLibDiscForDomain(Registry& reg, const char* parentGroup)
 	//	Domain dependent part 3D
 		{
 			typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
-			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp);
+			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp);
 		}
 #endif
 	}
