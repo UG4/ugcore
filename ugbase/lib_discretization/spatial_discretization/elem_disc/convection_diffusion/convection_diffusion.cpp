@@ -15,8 +15,14 @@ namespace ug{
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template class ConvectionDiffusionElemDisc<Domain1d>;
+#endif
+#ifdef UG_DIM_2
 template class ConvectionDiffusionElemDisc<Domain2d>;
+#endif
+#ifdef UG_DIM_3
 template class ConvectionDiffusionElemDisc<Domain3d>;
+#endif
 
 } // end namespace ug

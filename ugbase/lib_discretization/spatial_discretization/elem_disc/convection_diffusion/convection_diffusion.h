@@ -360,6 +360,11 @@ class ConvectionDiffusionElemDisc
 				RegisterFE(this_type* pThis, int p);
 				this_type* m_pThis; int m_p;
 				template< typename TElem > void operator()(TElem&);
+				void operator()(Triangle&);
+				void operator()(Quadrilateral&);
+				void operator()(Tetrahedron&);
+				void operator()(Prism&);
+				void operator()(Hexahedron&);
 		};
 
 		template<typename TElem,

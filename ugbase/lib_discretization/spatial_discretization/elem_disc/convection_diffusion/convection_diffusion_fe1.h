@@ -358,23 +358,80 @@ register_all_fe_funcs(int order)
 }
 
 template<typename TDomain>
-template< typename TElem>
+template<typename TElem>
 void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
 operator()(TElem&)
 {
-	switch(m_p)
-	{
-		case 1:
-			m_pThis->register_fe_func<TElem, LagrangeP1, 1, GaussQuadrature, 2>();
-			break;
-		case 2:
-			m_pThis->register_fe_func<TElem, LagrangeLSFS, 2, GaussQuadrature, 4>();
-			break;
-		case 3:
-			m_pThis->register_fe_func<TElem, LagrangeLSFS, 3, GaussQuadrature, 6>();
-			break;
-		default:
-			throw(UGFatalError("FE ConvDiff order not implemented,"));
+	switch(m_p) {
+	case 2:
+	case 3: // \todo: Handle this
+	case 1:	m_pThis->register_fe_func<TElem, LagrangeP1, 1, GaussQuadrature, 2>(); return;
+	default:throw(UGFatalError("FE ConvDiff order not implemented,"));
+	}
+}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+operator()(Triangle&)
+{
+//	order of quad rule must be at least  2*p- 2 to integrate laplacian
+	switch(m_p) {
+	case 1:	m_pThis->register_fe_func<Triangle, LagrangeP1, 1, GaussQuadrature, 2>(); return;
+	case 2: m_pThis->register_fe_func<Triangle, LagrangeLSFS, 2, GaussQuadrature, 4>(); return;
+	case 3: m_pThis->register_fe_func<Triangle, LagrangeLSFS, 3, GaussQuadrature, 6>(); return;
+	default:throw(UGFatalError("FE ConvDiff order not implemented,"));
+	}
+}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+operator()(Quadrilateral&)
+{
+//	order of quad rule must be at least 4*p - 2 to integrate laplacian
+	switch(m_p) {
+	case 1:	m_pThis->register_fe_func<Quadrilateral, LagrangeP1, 1, GaussQuadrature, 2>(); return;
+	case 2: m_pThis->register_fe_func<Quadrilateral, LagrangeLSFS, 2, GaussQuadrature, 6>(); return;
+	case 3: m_pThis->register_fe_func<Quadrilateral, LagrangeLSFS, 3, GaussQuadrature, 10>(); return;
+	default:throw(UGFatalError("FE ConvDiff order not implemented,"));
+	}
+}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+operator()(Tetrahedron&)
+{
+//	order of quad rule must be at least  2*p- 2 to integrate laplacian
+	switch(m_p) {
+	case 1:	m_pThis->register_fe_func<Tetrahedron, LagrangeP1, 1, GaussQuadrature, 2>(); return;
+	case 2: m_pThis->register_fe_func<Tetrahedron, LagrangeLSFS, 2, GaussQuadrature, 4>(); return;
+	case 3: m_pThis->register_fe_func<Tetrahedron, LagrangeLSFS, 3, GaussQuadrature, 6>(); return;
+	default:throw(UGFatalError("FE ConvDiff order not implemented,"));
+	}
+}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+operator()(Prism&)
+{
+//	order of quad rule must be at least  2*p- 2 to integrate laplacian
+	switch(m_p) {
+	case 2:
+	case 3: //\todo: handle these cases appropriately
+	case 1:	m_pThis->register_fe_func<Prism, LagrangeP1, 1, GaussQuadrature, 2>(); return;
+	default:throw(UGFatalError("FE ConvDiff order not implemented,"));
+	}
+}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::RegisterFE::
+operator()(Hexahedron&)
+{
+//	order of quad rule must be at least 4*p - 2 to integrate laplacian
+	switch(m_p) {
+	case 1:	m_pThis->register_fe_func<Hexahedron, LagrangeP1, 1, GaussQuadrature, 2>(); return;
+	case 2: m_pThis->register_fe_func<Hexahedron, LagrangeLSFS, 2, GaussQuadrature, 6>(); return;
+	case 3: m_pThis->register_fe_func<Hexahedron, LagrangeLSFS, 3, GaussQuadrature, 10>(); return;
+	default:throw(UGFatalError("FE ConvDiff order not implemented,"));
 	}
 }
 
