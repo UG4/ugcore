@@ -488,7 +488,7 @@ class DarcyVelocityLinker
 template <typename TData, int dim>
 bool RegisterUserDataType(Registry& reg, string type, const char* parentGroup)
 {
-	string grp = std::string(parentGroup);
+	string grp = string(parentGroup);
 
 	string dimSuffix = GetDomainSuffix<dim>();
 	string dimTag = GetDomainTag<dim>();

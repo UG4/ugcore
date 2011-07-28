@@ -8,6 +8,7 @@
 // extern headers
 #include <iostream>
 #include <sstream>
+#include <string>
 
 // include bridge
 #include "../ug_bridge.h"
@@ -36,6 +37,8 @@
 #include <boost/function.hpp>
 #include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
 #include "lib_discretization/spatial_discretization/elem_disc/nonlinear_elasticity/fe1_nonlinear_elasticity.h"
+
+using namespace std;
 
 namespace ug
 {
@@ -117,75 +120,79 @@ class ElasticityTensorUserData
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
+void RegisterIElemDiscs(Registry& reg, string grp)
 {
-//	typedef domain
-	typedef TDomain domain_type;
-	static const int dim = domain_type::dim;
+//	dimension of domain
+	static const int dim = TDomain::dim;
 
-	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
-	std::string grp = grpSS.str();
+//	suffix and tag
+	string dimSuffix = GetDomainSuffix<dim>();
+	string dimTag = GetDomainTag<dim>();
 
 //	IApproximationSpace
 	{
-		typedef IApproximationSpace<domain_type> T;
+		typedef IApproximationSpace<TDomain> T;
 		typedef FunctionPattern TBase;
-		std::stringstream ss; ss << "IApproximationSpace" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		string name = string("IApproximationSpace").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_method("assign_domain|hide=true", &T::assign_domain)
-			.add_method("get_domain|hide=true", static_cast<domain_type& (T::*)()>(&T::get_domain));
+			.add_method("get_domain|hide=true", static_cast<TDomain& (T::*)()>(&T::get_domain));
+		reg.add_class_to_group(name, "IApproximationSpace", dimTag);
 	}
 
 //	DomainElemDisc base class
 	{
-		typedef IDomainElemDisc<domain_type> T;
+		typedef IDomainElemDisc<TDomain> T;
 		typedef IElemDisc TBase;
-
-		std::stringstream ss; ss << "IDomainElemDisc" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		string name = string("IDomainElemDisc").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_method("set_approximation_space", &T::set_approximation_space);
+		reg.add_class_to_group(name, "IDomainElemDisc", dimTag);
 	}
 
 //	Neumann Boundary
 	{
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
-		typedef FV1NeumannBoundaryElemDisc<domain_type> T;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		typedef FV1NeumannBoundaryElemDisc<TDomain> T;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("FV1NeumannBoundary").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor()
 			.add_method("add", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add));
+		reg.add_class_to_group(name, "IDomainElemDisc", dimTag);
 	}
 
 //	Inner Boundary
 	{
-		typedef FVInnerBoundaryElemDisc<domain_type> T;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FV1InnerBoundary" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		typedef FVInnerBoundaryElemDisc<TDomain> T;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("FV1InnerBoundary").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "FV1InnerBoundary", dimTag);
 	}
 
 //	Constant Equation Finite Volume
 	{
-		typedef FVConstantEquationElemDisc<domain_type> T;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FV1ConstantEquation" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		typedef FVConstantEquationElemDisc<TDomain> T;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("FV1ConstantEquation").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor()
 			.add_method("set_velocity", &T::set_velocity)
 			.add_method("set_source", &T::set_source)
 			.add_method("set_mass_scale", &T::set_mass_scale)
 			.add_method("get_concentration", &T::get_concentration)
 			.add_method("get_concentration_grad", &T::get_concentration_grad);
+		reg.add_class_to_group(name, "FV1ConstantEquation", dimTag);
 	}
 
 //	Convection Diffusion
 	{
-		typedef ConvectionDiffusionElemDisc<domain_type> T;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "ConvectionDiffusion" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		typedef ConvectionDiffusionElemDisc<TDomain> T;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("ConvectionDiffusion").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor()
 			.add_method("set_disc_scheme", &T::set_disc_scheme)
 			.add_method("set_diffusion_tensor", &T::set_diffusion)
@@ -196,14 +203,15 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 			.add_method("set_upwind", &T::set_upwind)
 			.add_method("get_concentration", &T::get_concentration)
 			.add_method("get_concentration_grad", &T::get_concentration_grad);
+		reg.add_class_to_group(name, "ConvectionDiffusion", dimTag);
 	}
 
 //	Density Driven Flow
 	{
-		typedef DensityDrivenFlowElemDisc<domain_type> T2;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
-		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
+		typedef DensityDrivenFlowElemDisc<TDomain> T2;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("DensityDrivenFlow").append(dimSuffix);
+		reg.add_class_<T2, TBase >(name, grp)
 			.add_constructor()
 			.add_method("set_upwind|interactive=false", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
@@ -227,14 +235,15 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 						"", "Consistent Gravity")
 			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
 			.add_method("get_brine", &T2::get_brine);
+		reg.add_class_to_group(name, "DensityDrivenFlow", dimTag);
 	}
 
 //	Thermohaline Flow
 	{
-		typedef ThermohalineFlowElemDisc<domain_type> T2;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FV1ThermohalineFlow" << dim << "d";
-		reg.add_class_<T2, TBase >(ss.str().c_str(), grp.c_str())
+		typedef ThermohalineFlowElemDisc<TDomain> T2;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("FV1ThermohalineFlow").append(dimSuffix);
+		reg.add_class_<T2, TBase >(name, grp)
 			.add_constructor()
 			.add_method("set_upwind", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
@@ -269,14 +278,15 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 			.add_method("get_pressure_grad", &T2::get_pressure_grad)
 			.add_method("get_temperature", &T2::get_temperature)
 			.add_method("get_brine", &T2::get_brine);
+		reg.add_class_to_group(name, "FV1ThermohalineFlow", dimTag);
 	}
 
 //	Navier-Stokes
 	{
-		typedef FVNavierStokesElemDisc<domain_type> T;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FV1NavierStokes" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		typedef FVNavierStokesElemDisc<TDomain> T;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("FV1NavierStokes").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor()
 			.add_method("set_kinematic_viscosity", &T::set_kinematic_viscosity)
 			.add_method("set_stabilization", &T::set_stabilization)
@@ -284,18 +294,20 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 			.add_method("set_conv_upwind",  static_cast<void (T::*)(INavierStokesUpwind<dim>&)>(&T::set_conv_upwind))
 			.add_method("set_peclet_blend", &T::set_peclet_blend)
 			.add_method("set_exact_jacobian", &T::set_exact_jacobian);
+		reg.add_class_to_group(name, "FV1NavierStokes", dimTag);
 	}
 
 
 //	Non-Linear Elastictity
 	{
-		typedef FE1NonlinearElasticityElemDisc<domain_type> T;
-		typedef IDomainElemDisc<domain_type> TBase;
-		std::stringstream ss; ss << "FE1NonlinearElasticity" << dim << "d";
-		reg.add_class_<T, TBase >(ss.str().c_str(), grp.c_str())
+		typedef FE1NonlinearElasticityElemDisc<TDomain> T;
+		typedef IDomainElemDisc<TDomain> TBase;
+		string name = string("FE1NonlinearElasticity").append(dimSuffix);
+		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor()
 			.add_method("set_elasticity_tensor", &T::set_elasticity_tensor);
 			//methods, which are used in script-file
+		reg.add_class_to_group(name, "FE1NonlinearElasticity", dimTag);
 	}
 
 
@@ -307,53 +319,59 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 //	INavierStokesUpwind
 	{
 		typedef INavierStokesUpwind<dim> T;
-		std::stringstream ss; ss << "INavierStokesUpwind" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
+		string name = string("INavierStokesUpwind").append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "INavierStokesUpwind", dimTag);
 	}
 
 //	NavierStokesNoUpwind
 	{
 		typedef NavierStokesNoUpwind<dim> T;
 		typedef INavierStokesUpwind<dim> TBase;
-		std::stringstream ss; ss << "NavierStokesNoUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("NavierStokesNoUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "NavierStokesNoUpwind", dimTag);
 	}
 
 //	NavierStokesFullUpwind
 	{
 		typedef NavierStokesFullUpwind<dim> T;
 		typedef INavierStokesUpwind<dim> TBase;
-		std::stringstream ss; ss << "NavierStokesFullUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("NavierStokesFullUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "NavierStokesFullUpwind", dimTag);
 	}
 
 //	NavierStokesSkewedUpwind
 	{
 		typedef NavierStokesSkewedUpwind<dim> T;
 		typedef INavierStokesUpwind<dim> TBase;
-		std::stringstream ss; ss << "NavierStokesSkewedUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("NavierStokesSkewedUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "NavierStokesSkewedUpwind", dimTag);
 	}
 
 //	NavierStokesLinearProfileSkewedUpwind
 	{
 		typedef NavierStokesLinearProfileSkewedUpwind<dim> T;
 		typedef INavierStokesUpwind<dim> TBase;
-		std::stringstream ss; ss << "NavierStokesLinearProfileSkewedUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("NavierStokesLinearProfileSkewedUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "NavierStokesLinearProfileSkewedUpwind", dimTag);
 	}
 
 //	NavierStokesPositiveUpwind
 	{
 		typedef NavierStokesPositiveUpwind<dim> T;
 		typedef INavierStokesUpwind<dim> TBase;
-		std::stringstream ss; ss << "NavierStokesPositiveUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("NavierStokesPositiveUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "NavierStokesPositiveUpwind", dimTag);
 	}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -364,19 +382,21 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 //	INavierStokesStabilization
 	{
 		typedef INavierStokesStabilization<dim> T;
-		std::stringstream ss; ss << "INavierStokesStabilization" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+		string name = string("INavierStokesStabilization").append(dimSuffix);
+		reg.add_class_<T>(name, grp)
 			.add_method("set_upwind", &T::set_upwind)
 			.add_method("set_diffusion_length", &T::set_diffusion_length);
+		reg.add_class_to_group(name, "INavierStokesStabilization", dimTag);
 	}
 
 //	NavierStokesFIELDSStabilization
 	{
 		typedef NavierStokesFIELDSStabilization<dim> T;
 		typedef INavierStokesStabilization<dim> TBase;
-		std::stringstream ss; ss << "NavierStokesFIELDSStabilization" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("NavierStokesFIELDSStabilization").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "NavierStokesFIELDSStabilization", dimTag);
 	}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -386,45 +406,50 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 //	IConvectionShapes
 	{
 		typedef IConvectionShapes<dim> T;
-		std::stringstream ss; ss << "IConvectionShapes" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str());
+		string name = string("IConvectionShapes").append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IConvectionShapes", dimTag);
 	}
 
 //	ConvectionShapesNoUpwind
 	{
 		typedef ConvectionShapesNoUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		std::stringstream ss; ss << "NoUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("NoUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "NoUpwind", dimTag);
 	}
 
 //	ConvectionShapesFullUpwind
 	{
 		typedef ConvectionShapesFullUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		std::stringstream ss; ss << "FullUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("FullUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "FullUpwind", dimTag);
 	}
 
 //	ConvectionShapesWeightedUpwind
 	{
 		typedef ConvectionShapesWeightedUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		std::stringstream ss; ss << "WeightedUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("WeightedUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_method("set_weight", &T::set_weight)
 			.add_constructor();
+		reg.add_class_to_group(name, "WeightedUpwind", dimTag);
 	}
 
 //	ConvectionShapesPartialUpwind
 	{
 		typedef ConvectionShapesPartialUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		std::stringstream ss; ss << "PartialUpwind" << dim << "d";
-		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+		string name = string("PartialUpwind").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "PartialUpwind", dimTag);
 	}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -434,12 +459,13 @@ void RegisterIElemDiscs(Registry& reg, const char* parentGroup)
 		typedef ElasticityTensorUserData<dim> T;
 		typedef IPData<MathTensor<4,dim>, dim> TBase;
 		typedef boost::function<void (MathTensor<4,dim>& value, const MathVector<dim>& x, number time)> TBase2;
-		std::stringstream ss; ss << "ElasticityTensorUserData" << dim << "d";
-		reg.add_class_<T, TBase, TBase2>(ss.str().c_str(), grp.c_str())
+		string name = string("ElasticityTensorUserData").append(dimSuffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			//.add_method("operator", &T::operator ())
 			.add_method("test_evaluate", &T::test_evaluate);
 			//methods, which are used in script-file
+		reg.add_class_to_group(name, "ElasticityTensorUserData", dimTag);
 	}
 
 }
@@ -450,21 +476,21 @@ bool RegisterLibDiscElemDisc(Registry& reg, const char* parentGroup)
 	try
 	{
 	//	get group string
-		std::string grp = parentGroup; grp.append("/Discretization");
+		string grp = parentGroup; grp.append("/Discretization");
 
 #ifdef UG_DIM_1
 	//	Domain dependend part 1D
-			RegisterIElemDiscs<Domain1d>(reg, grp.c_str());
+			RegisterIElemDiscs<Domain1d>(reg, grp);
 #endif
 
 #ifdef UG_DIM_2
 	//	Domain dependend part 2D
-			RegisterIElemDiscs<Domain2d>(reg, grp.c_str());
+			RegisterIElemDiscs<Domain2d>(reg, grp);
 #endif
 
 #ifdef UG_DIM_3
 	//	Domain dependend part 3D
-			RegisterIElemDiscs<Domain3d>(reg, grp.c_str());
+			RegisterIElemDiscs<Domain3d>(reg, grp);
 #endif
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
