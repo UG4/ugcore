@@ -346,31 +346,6 @@ class ConvectionDiffusionElemDisc
 	// 	FE Assemblings
 		void register_all_fe_funcs(int order);
 
-		template <int dim>
-		struct RegisterFE {
-				RegisterFE(this_type* pThis, int p);
-				this_type* m_pThis; int m_p;
-				template< typename TElem > void operator()(TElem&);
-		};
-/*
-		template <>
-		struct RegisterFE<2> {
-				RegisterFE(this_type* pThis, int p);
-				this_type* m_pThis; int m_p;
-				void operator()(Triangle&);
-				void operator()(Quadrilateral&);
-		};
-
-		template <>
-		struct RegisterFE<3> {
-				RegisterFE(this_type* pThis, int p);
-				this_type* m_pThis; int m_p;
-				void operator()(Tetrahedron&);
-				void operator()(Prism&);
-				void operator()(Pyramid&);
-				void operator()(Hexahedron&);
-		};
-*/
 		template<typename TElem, typename TFEGeom>
 		void register_fe_func();
 

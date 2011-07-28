@@ -293,150 +293,93 @@ elem_rhs_fe(local_vector_type& d)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
-template<typename TDomain>
-template <int dim>
-ConvectionDiffusionElemDisc<TDomain>::RegisterFE<dim>::
-RegisterFE(this_type* pThis, int p) : m_pThis(pThis), m_p(p) {}
-
-template <int dim> struct FEConvDiffElemTypes;
-
-// 1d
-template <> struct FEConvDiffElemTypes<1> {
-typedef boost::mpl::list<Edge> DimElemList;
-typedef boost::mpl::list<Edge> AllElemList;
-};
-
-// 2d
-template <> struct FEConvDiffElemTypes<2> {
-typedef boost::mpl::list<Triangle, Quadrilateral> DimElemList;
-typedef boost::mpl::list<Edge, Triangle, Quadrilateral> AllElemList;
-};
-
-// 3d
-template <> struct FEConvDiffElemTypes<3> {
-typedef boost::mpl::list<Tetrahedron, Hexahedron, Prism, Pyramid> DimElemList;
-typedef boost::mpl::list<Edge, Triangle, Quadrilateral,
-						Tetrahedron, Hexahedron, Prism, Pyramid> AllElemList;
-};
-
 // register for all dim
-template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+template<>
+void ConvectionDiffusionElemDisc<Domain1d>::
 register_all_fe_funcs(int order)
 {
-//	get all grid element types in this dimension and below
-	typedef typename FEConvDiffElemTypes<dim>::DimElemList ElemList;
-
 	m_pFEQuadOrder = 2*order-2;
 
-//	assemble functions
-	boost::mpl::for_each<ElemList>( RegisterFE<dim>(this, order) );
+//	Edge
+	register_fe_func<Edge, DimFEGeometry<dim, 1> >();
 }
 
-template<typename TDomain>
-template<int dim>
-template<typename TElem>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<dim>::
-operator()(TElem&)
-{
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-
-	m_pThis->register_fe_func<TElem, DimFEGeometry<dim, ref_elem_type::dim> >();
-	return;
-}
-/*
-template<typename TDomain>
+// register for all dim
 template<>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<2>::
-operator()(Triangle&)
+void ConvectionDiffusionElemDisc<Domain2d>::
+register_all_fe_funcs(int order)
 {
-//	order of quad rule must be at least  2*p- 2 to integrate laplacian
-	switch(m_p) {
+	m_pFEQuadOrder = 2*order-2;
+
+//	Triangle
+	switch(order)
+	{
 		case 1:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 2> > FEGeom;
-				 m_pThis->register_fe_func<Triangle, FEGeom>(); break;}
+				 register_fe_func<Triangle, FEGeom>(); break;}
 		case 2:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 4> > FEGeom;
-				 m_pThis->register_fe_func<Triangle, FEGeom>(); break;}
+				 register_fe_func<Triangle, FEGeom>(); break;}
 		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 6> > FEGeom;
-				 m_pThis->register_fe_func<Triangle, FEGeom>(); break;}
-		default: m_pThis->register_fe_func<Triangle, DimFEGeometry<dim, 2> >();  break;
+				 register_fe_func<Triangle, FEGeom>(); break;}
+		default: register_fe_func<Triangle, DimFEGeometry<dim, 2> >();  break;
 	}
-}
 
-template<typename TDomain>
-template<>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<2>::
-operator()(Quadrilateral&)
-{
-//	order of quad rule must be at least 4*p - 2 to integrate laplacian
-	switch(m_p) {
+//	Quadrilateral
+	switch(order) {
 		case 1:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 2> > FEGeom;
-				 m_pThis->register_fe_func<Quadrilateral, FEGeom>(); break;}
+				 register_fe_func<Quadrilateral, FEGeom>(); break;}
 		case 2:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 6> > FEGeom;
-				 m_pThis->register_fe_func<Quadrilateral, FEGeom>(); break;}
+				 register_fe_func<Quadrilateral, FEGeom>(); break;}
 		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 10> > FEGeom;
-				 m_pThis->register_fe_func<Quadrilateral, FEGeom>(); break;}
-		default: m_pThis->register_fe_func<Quadrilateral, DimFEGeometry<dim, 2> >();  break;
+				 register_fe_func<Quadrilateral, FEGeom>(); break;}
+		default: register_fe_func<Quadrilateral, DimFEGeometry<dim, 2> >();  break;
 	}
 }
 
-template<typename TDomain>
+// register for all dim
 template<>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
-operator()(Tetrahedron&)
+void ConvectionDiffusionElemDisc<Domain3d>::
+register_all_fe_funcs(int order)
 {
-//	order of quad rule must be at least  2*p- 2 to integrate laplacian
-	switch(m_p) {
+	m_pFEQuadOrder = 2*order-2;
+
+//	Tetrahedron
+	switch(order)
+	{
 		case 1:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 2> > FEGeom;
-				 m_pThis->register_fe_func<Tetrahedron, FEGeom>(); break;}
+				 register_fe_func<Tetrahedron, FEGeom>(); break;}
 		case 2:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 4> > FEGeom;
-				 m_pThis->register_fe_func<Tetrahedron, FEGeom>(); break;}
+				 register_fe_func<Tetrahedron, FEGeom>(); break;}
 		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 6> > FEGeom;
-				 m_pThis->register_fe_func<Tetrahedron, FEGeom>(); break;}
-		default: m_pThis->register_fe_func<Tetrahedron, DimFEGeometry<dim, 3> >();  break;
+				 register_fe_func<Tetrahedron, FEGeom>(); break;}
+		default: register_fe_func<Tetrahedron, DimFEGeometry<dim, 3> >();  break;
 	}
-}
 
-template<typename TDomain>
-template<>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
-operator()(Prism&)
-{
-//	order of quad rule must be at least  2*p- 2 to integrate laplacian
-	switch(m_p) {
+//	Prism
+	switch(order) {
 		case 1:	{typedef FEGeometry<Prism, dim, LagrangeLSFS<ReferencePrism, 1>, GaussQuadrature<ReferencePrism, 2> > FEGeom;
-				 m_pThis->register_fe_func<Prism, FEGeom>(); break;}
-		default: m_pThis->register_fe_func<Prism, DimFEGeometry<dim, 3> >();  break;
+				 register_fe_func<Prism, FEGeom>(); break;}
+		default: register_fe_func<Prism, DimFEGeometry<dim, 3> >();  break;
 	}
-}
 
-template<typename TDomain>
-template<>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
-operator()(Pyramid&)
-{
-//	order of quad rule must be at least  2*p- 2 to integrate laplacian
-	switch(m_p) {
-		default: m_pThis->register_fe_func<Pyramid, DimFEGeometry<dim, 3> >();  break;
+//	Pyramid
+	switch(order)
+	{
+		default: register_fe_func<Pyramid, DimFEGeometry<dim, 3> >();  break;
 	}
-}
 
-template<typename TDomain>
-template<>
-void ConvectionDiffusionElemDisc<TDomain>::RegisterFE<3>::
-operator()(Hexahedron&)
-{
-//	order of quad rule must be at least 4*p - 2 to integrate laplacian
-	switch(m_p) {
+//	Hexahedron
+	switch(order)
+	{
 		case 1:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 2> > FEGeom;
-				 m_pThis->register_fe_func<Hexahedron, FEGeom>(); break;}
+				 register_fe_func<Hexahedron, FEGeom>(); break;}
 		case 2:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 6> > FEGeom;
-				 m_pThis->register_fe_func<Hexahedron, FEGeom>(); break;}
+				 register_fe_func<Hexahedron, FEGeom>(); break;}
 		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 10> > FEGeom;
-				 m_pThis->register_fe_func<Hexahedron, FEGeom>(); break;}
-		default: m_pThis->register_fe_func<Hexahedron, DimFEGeometry<dim, 3> >();  break;
+				 register_fe_func<Hexahedron, FEGeom>(); break;}
+		default: register_fe_func<Hexahedron, DimFEGeometry<dim, 3> >();  break;
 	}
 }
-*/
+
 
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
