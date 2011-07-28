@@ -87,7 +87,7 @@ bool WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 }
 
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
-void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGroup)
+void RegisterLibDiscretizationDomainObjects(Registry& reg, string parentGroup)
 {
 //	typedef domain
 	typedef TDomain domain_type;
@@ -312,7 +312,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 }
 
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
-void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentGroup)
+void RegisterLibDiscretizationDomainFunctions(Registry& reg, string parentGroup)
 {
 //	typedef domain
 	typedef TDomain domain_type;
