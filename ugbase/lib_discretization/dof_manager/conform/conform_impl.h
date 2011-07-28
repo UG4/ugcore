@@ -100,11 +100,11 @@ struct OrientationOffset<EdgeBase, TRefElem>{
  * by an edge, with the (second) smallest storage position. Thus, we have a
  * situation like this:
  *
- *  	*						*--------*			^ y
+ *  	*						*--------*			^ j
  *  	|  \					|		 |			|
  *  	|    \				    |	     |			|
- * 		|      \				|		 |			|-----> x
- *  	*------*				*--------*
+ * 		|      \				|		 |			|-----> i
+ *  	*------ *				*--------*
  *  smallest   second		smallest	second
  *
  * In this picture all rotations and mirroring can appear. We define that the
@@ -112,10 +112,10 @@ struct OrientationOffset<EdgeBase, TRefElem>{
  * next row in y direction, numbering in x again and continuing in y, etc.
  * E.g. this gives for a p = 4 element (showing only inner dofs):
  *
- *  	*						*-------*			^ y
+ *  	*						*-------*			^ j
  *  	|5 \					| 6	7 8	|			|
  *  	|3 4 \					| 3 4 5	|			|
- * 		|0 1 2 \				| 0 1 2 |			|-----> x
+ * 		|0 1 2 \				| 0 1 2 |			|-----> i
  *  	*-------*				*-------*
  *  smallest   second		smallest	second
  *
@@ -147,39 +147,43 @@ struct OrientationOffset<Face, TRefElem>{
 	//	find smallest
 		int smallest = 0;
 		for(int i = 1; i < numCo; ++i)
-			if(vCorner[i] < vCorner[smallest]) smallest = i;
+			if(vCorner[ vCo[i] ] < vCorner[ vCo[smallest] ]) smallest = i;
 
 	//	find second smallest
 		int second = (smallest+numCo-1)%numCo;
 		const int next = (smallest+numCo+1)%numCo;
-		if(vCorner[next] < vCorner[second]) second = next;
+		if(vCorner[ vCo[next] ] < vCorner[ vCo[second] ]) second = next;
 
 	//	map the i,j
 		size_t map_i, map_j;
 
+	//	in the inner, the number of dofs is as if it would be an element
+	//	of degree p-2. We cache this here
+		const size_t pInner = p-2;
+
 	//	loop 'y'-direction
-		for(size_t j = 0; j <= p-2; ++j)
+		size_t index = 0;
+		for(size_t j = 0; j <= pInner; ++j)
 		{
 		//	for a quadrilateral we have a quadratic loop, but for a
 		//	triangle we need to stop at the diagonal
 			const size_t off = ((vCo.size() == 3) ? j : 0);
 
 		//	loop 'x'-direction
-			for(size_t i = 0; i <= p-2-off; ++i)
+			for(size_t i = 0; i <= pInner-off; ++i)
 			{
 			//	map the index-pair (i,j)
-				map_face(map_i, map_j, i, j, numCo, p-2, smallest, second);
+				map_face(map_i, map_j, i, j, numCo, pInner, smallest, second);
 
 			//	linearize index and mapped index
-				const size_t mappedIndex = (p-2) * map_j + map_i;
-				const size_t index = (p-2) * j + i;
+				const size_t mappedIndex = (p-1) * map_j + map_i;
 
 			//	check
 				UG_ASSERT(mappedIndex < numDoFsOnSub, "Wrong mapped index");
 				UG_ASSERT(index < numDoFsOnSub, "Wrong index");
 
 			//	set mapping
-				vOrientOffset[index] = mappedIndex;
+				vOrientOffset[index++] = mappedIndex;
 			}
 		}
 
@@ -295,16 +299,10 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 
 		//	check if on subobject or if there are no more than one dof on
 		//	the subobject. If not, just add the dofs, no orientation needed.
+		//	get the orientation for this subelement
 			if(d < m_maxDimWithDoFs && numDoFsOnSub > 1)
-			{
-				//	get the orientation for this
 					OrientationOffset<TBaseElem, ref_elem_type>::get
 						(vOrientOffset, lsfsID.order(), rRef, i, numDoFsOnSub, vCorner);
-
-					UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Number of"
-					          " offsets "<<vOrientOffset.size()<<" != Number of "
-					          "DoFs on subelement "<<numDoFsOnSub);
-			}
 
 			if(!m_bGrouped)
 			{
@@ -361,6 +359,9 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind, bool bHang) const
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
+//	reference dimension
+	static const int dim = ref_elem_type::dim;
+
 //	resize the number of functions
 	ind.resize_fct(num_fct());
 	for(size_t fct = 0; fct < num_fct(); ++fct) ind.clear_dof(fct);
@@ -386,21 +387,21 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind, bool bHang) const
 		const size_t numNatural = ref_elem_type::num_corners;
 		indices<TElem, VertexBase>(elem, ind, vCorner, numNatural, bHang, vCorner);
 	}
-	if(m_vMaxDoFsInDim[EDGE] > 0)
+	if(dim >= EDGE && m_vMaxDoFsInDim[EDGE] > 0)
 	{
 		std::vector<EdgeBase*> vElem;
 		CollectEdgesSorted(vElem, *grid, elem);
 		const size_t numNatural = ref_elem_type::num_edges;
 		indices<TElem, EdgeBase>(elem, ind, vElem, numNatural, bHang, vCorner);
 	}
-	if(m_vMaxDoFsInDim[FACE] > 0)
+	if(dim >= FACE && m_vMaxDoFsInDim[FACE] > 0)
 	{
 		std::vector<Face*> vElem;
 		CollectFacesSorted(vElem, *grid, elem);
 		const size_t numNatural = ref_elem_type::num_faces;
 		indices<TElem, Face>(elem, ind, vElem, numNatural, bHang, vCorner);
 	}
-	if(m_vMaxDoFsInDim[VOLUME] > 0)
+	if(dim >= VOLUME && m_vMaxDoFsInDim[VOLUME] > 0)
 	{
 		std::vector<Volume*> vElem;
 		CollectVolumes(vElem, *grid, elem);
@@ -435,6 +436,9 @@ size_t DoFDistribution::multi_indices(TElem* elem, size_t fct,
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
+//	reference dimension
+	static const int dim = ref_elem_type::dim;
+
 // 	Grid
 	Grid* grid = m_pStorageManager->get_assigned_grid();
 
@@ -453,28 +457,40 @@ size_t DoFDistribution::multi_indices(TElem* elem, size_t fct,
 
 	if(m_vMaxDoFsInDim[VERTEX] > 0)
 	{
-		const size_t numNatural = ref_elem_type::num_corners;
+		static const size_t numNatural = ref_elem_type::num_corners;
+		UG_ASSERT(vCorner.size() == numNatural, "Wrong number of sub-vertices of a "<<
+				  ref_elem_type::REFERENCE_OBJECT_ID <<": num collected="<<vCorner.size()
+				  <<", numNatural="<<numNatural);
 		multi_indices<TElem, VertexBase>(elem, fct, ind, vCorner, numNatural, vCorner);
 	}
-	if(m_vMaxDoFsInDim[EDGE] > 0)
+	if(dim >= EDGE && m_vMaxDoFsInDim[EDGE] > 0)
 	{
 		std::vector<EdgeBase*> vElem;
 		CollectEdgesSorted(vElem, *grid, elem);
-		const size_t numNatural = ref_elem_type::num_edges;
+		static const size_t numNatural = ref_elem_type::num_edges;
+		UG_ASSERT(vElem.size() == numNatural, "Wrong number of sub-edges of a "<<
+				  ref_elem_type::REFERENCE_OBJECT_ID <<": num collected="<<vElem.size()
+				  <<", numNatural="<<numNatural);
 		multi_indices<TElem, EdgeBase>(elem, fct, ind, vElem, numNatural, vCorner);
 	}
-	if(m_vMaxDoFsInDim[FACE] > 0)
+	if(dim >= FACE && m_vMaxDoFsInDim[FACE] > 0)
 	{
 		std::vector<Face*> vElem;
 		CollectFacesSorted(vElem, *grid, elem);
-		const size_t numNatural = ref_elem_type::num_faces;
+		static const size_t numNatural = ref_elem_type::num_faces;
+		UG_ASSERT(vElem.size() == numNatural, "Wrong number of sub-faces of a "<<
+				  ref_elem_type::REFERENCE_OBJECT_ID <<": num collected="<<vElem.size()
+				  <<", numNatural="<<numNatural);
 		multi_indices<TElem, Face>(elem, fct, ind, vElem, numNatural, vCorner);
 	}
-	if(m_vMaxDoFsInDim[VOLUME] > 0)
+	if(dim >= VOLUME && m_vMaxDoFsInDim[VOLUME] > 0)
 	{
 		std::vector<Volume*> vElem;
 		CollectVolumes(vElem, *grid, elem);
-		const size_t numNatural = ref_elem_type::num_volumes;
+		static const size_t numNatural = ref_elem_type::num_volumes;
+		UG_ASSERT(vElem.size() == numNatural, "Wrong number of sub-volumes of a "<<
+				  ref_elem_type::REFERENCE_OBJECT_ID <<": num collected="<<vElem.size()
+				  <<", numNatural="<<numNatural);
 		multi_indices<TElem, Volume>(elem, fct, ind, vElem, numNatural, vCorner);
 	}
 
@@ -539,16 +555,10 @@ void DoFDistribution::multi_indices(TElem* elem, size_t fct, multi_index_vector_
 
 	//	check if on subobject or if there are no more than one dof on
 	//	the subobject. If not, just add the dofs, no orientation needed.
+	//	get the orientation for this subelement
 		if(d < m_maxDimWithDoFs && numDoFsOnSub > 1)
-		{
-			//	get the orientation for this
 				OrientationOffset<TBaseElem, ref_elem_type>::get
 					(vOrientOffset, lsfsID.order(), rRef, i, numDoFsOnSub, vCorner);
-
-				UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Number of"
-						  " offsets "<<vOrientOffset.size()<<" != Number of "
-						  "DoFs on subelement "<<numDoFsOnSub);
-		}
 
 		if(!m_bGrouped)
 		{
@@ -655,10 +665,6 @@ size_t DoFDistribution::inner_multi_indices(TElem* elem, size_t fct,
 	//	get the orientation for this
 		OrientationOffset<geometric_base_object, ref_elem_type>::get
 			(vOrientOffset, lsfsID.order(), rRef, 0, numDoFsOnSub, vCorner);
-
-		UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Number of"
-				  " offsets "<<vOrientOffset.size()<<" != Number of "
-				  "DoFs on subelement "<<numDoFsOnSub);
 	}
 
 	if(!m_bGrouped)
@@ -712,30 +718,37 @@ size_t DoFDistribution::algebra_indices(TElem* elem,
 //	clear indices
 	if(bClear) ind.clear();
 
+//	get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+//	reference dimension
+	static const int dim = ref_elem_type::dim;
+
 // 	Grid
 	Grid* grid = m_pStorageManager->get_assigned_grid();
 
 //	get all sub-elements and add indices on those
 //	\todo: Do we really need them sorted ?!
-	if(m_vMaxDoFsInDim[0] > 0)
+	if(m_vMaxDoFsInDim[VERTEX] > 0)
 	{
 		std::vector<VertexBase*> vElem;
 		CollectVertices(vElem, *grid, elem);
 		algebra_indices<VertexBase>(vElem, ind);
 	}
-	if(m_vMaxDoFsInDim[1] > 0)
+	if(dim >= EDGE && m_vMaxDoFsInDim[EDGE] > 0)
 	{
 		std::vector<EdgeBase*> vElem;
 		CollectEdgesSorted(vElem, *grid, elem);
 		algebra_indices<EdgeBase>(vElem, ind);
 	}
-	if(m_vMaxDoFsInDim[2] > 0)
+	if(dim >= FACE && m_vMaxDoFsInDim[FACE] > 0)
 	{
 		std::vector<Face*> vElem;
 		CollectFacesSorted(vElem, *grid, elem);
 		algebra_indices<Face>(vElem, ind);
 	}
-	if(m_vMaxDoFsInDim[3] > 0)
+	if(dim >= VOLUME && m_vMaxDoFsInDim[VOLUME] > 0)
 	{
 		std::vector<Volume*> vElem;
 		CollectVolumes(vElem, *grid, elem);
