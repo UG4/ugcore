@@ -96,6 +96,14 @@ inline void VecScaleAssign(vector_t &dest, double alpha1, const vector_t &v1)
 		VecScaleAssign(dest[i], alpha1, v1[i]);
 }
 
+//! sets dest = v1 entrywise
+template<typename vector_t>
+inline void VecAssign(vector_t &dest, const vector_t &v1)
+{
+	for(size_t i=0; i<dest.size(); i++)
+		dest[i] = v1[i];
+}
+
 //! calculates dest = alpha1*v1 + alpha2*v2
 template<typename vector_t>
 inline void VecScaleAdd(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2)

@@ -249,6 +249,16 @@ inline void VecScaleAssign(ParallelVector<T> &dest,
 	VecScaleAssign(*dynamic_cast<T*>(&dest), alpha1, *dynamic_cast<const T*>(&v1));
 }
 
+// for template expressions
+// d = v1
+template<typename T>
+inline void VecAssign(ParallelVector<T> &dest,
+		const ParallelVector<T> &v1)
+{
+	dest.copy_storage_type(v1);
+	VecAssign(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v1));
+}
+
 
 // dest = alpha1*v1 + alpha2*v2
 template<typename T>

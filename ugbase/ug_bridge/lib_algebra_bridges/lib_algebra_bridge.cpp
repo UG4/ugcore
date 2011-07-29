@@ -67,6 +67,7 @@ struct cRegisterAlgebraType
 			.add_method("print|hide=true", &vector_type::p);
 
 			reg.add_function("VecScaleAssign", static_cast<void (*)(vector_type&, number, const vector_type &)>(&VecScaleAssign<vector_type>));
+			reg.add_function("VecAssign", static_cast<void (*)(vector_type&,const vector_type &)>(&VecAssign<vector_type>));
 			reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
 					&VecScaleAdd2<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
 					"dest#alpha1#vec1#alpha2#vec2");
