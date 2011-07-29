@@ -219,8 +219,7 @@ bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 
 /// projects surface function to level functions
 template <typename TElem, typename TVector, typename TDoFDistributionImpl>
-bool ProjectLevelToSurface(int si,
-                           TVector& surfaceVector,
+bool ProjectLevelToSurface(TVector& surfaceVector,
                            const IDoFDistribution<TDoFDistributionImpl>& surfaceDD,
                            const SurfaceView& surfaceView,
 						   const std::vector<const TVector*>& vLevelVector,
@@ -230,45 +229,48 @@ bool ProjectLevelToSurface(int si,
 //	type of element iterator
 	typedef typename geometry_traits<TElem>::const_iterator iter_type;
 
-//	iterators for subset
-	iter_type iter = surfaceDD.template begin<TElem>(si);
-	iter_type iterEnd = surfaceDD.template end<TElem>(si);
-
 //	vector of indices
 	typedef typename IDoFDistribution<TDoFDistributionImpl>::algebra_index_vector_type ind_vec_type;
 	ind_vec_type surfaceInd, levelInd;
 
 //	loop all elements of type
-	for( ; iter != iterEnd; ++iter)
+	for(int si = 0; si < surfaceDD.num_subsets(); ++si)
 	{
-	//	get elem
-		TElem* elem = *iter;
+	//	iterators for subset
+		iter_type iter = surfaceDD.template begin<TElem>(si);
+		iter_type iterEnd = surfaceDD.template end<TElem>(si);
 
-	//	extract all algebra indices for the element on surface
-		surfaceDD.algebra_indices(elem, surfaceInd);
-
-	//	get level of element in hierarchy
-		int level = surfaceView.get_level(elem);
-
-	//	get corresponding level vector for element
-		UG_ASSERT(vLevelVector[level] != NULL, "Vector missing");
-		const TVector& levelVector = *(vLevelVector[level]);
-
-	//	check that level is correct
-		UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
-
-	//	extract all algebra indices for the element on level
-		UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
-		vLevelDD[level]->algebra_indices(elem, levelInd);
-
-	//	check that index sets have same cardinality
-		UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
-
-	//	copy all elements of the vector
-		for(size_t i = 0; i < surfaceInd.size(); ++i)
+		for( ; iter != iterEnd; ++iter)
 		{
-		//	copy entries into level vector
-			surfaceVector[surfaceInd[i]] = levelVector[levelInd[i]];
+		//	get elem
+			TElem* elem = *iter;
+
+		//	extract all algebra indices for the element on surface
+			surfaceDD.inner_algebra_indices(elem, surfaceInd);
+
+		//	get level of element in hierarchy
+			int level = surfaceView.get_level(elem);
+
+		//	get corresponding level vector for element
+			UG_ASSERT(vLevelVector[level] != NULL, "Vector missing");
+			const TVector& levelVector = *(vLevelVector[level]);
+
+		//	check that level is correct
+			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
+
+		//	extract all algebra indices for the element on level
+			UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
+			vLevelDD[level]->inner_algebra_indices(elem, levelInd);
+
+		//	check that index sets have same cardinality
+			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
+
+		//	copy all elements of the vector
+			for(size_t i = 0; i < surfaceInd.size(); ++i)
+			{
+			//	copy entries into level vector
+				surfaceVector[surfaceInd[i]] = levelVector[levelInd[i]];
+			}
 		}
 	}
 
@@ -283,7 +285,7 @@ bool ProjectLevelToSurface(TVector& surfVector,
                            const SurfaceView& surfView,
                            const std::vector<const TVector*>& vLevelVector,
                            const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
-			   const int baseLevel) // 'baseLevel' added (13042011ih)
+                           const int baseLevel)
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
@@ -297,48 +299,19 @@ bool ProjectLevelToSurface(TVector& surfVector,
 //	return flag
 	bool bRet = true;
 
-//	loop all subsets
-	for(int si = 0; si < (int)surfDD.num_subsets(); ++si)
-	{
-	//	skip empty subsets (they have no dimension)
-		if(	surfDD.template num<VertexBase>(si) == 0 &&
-			surfDD.template num<EdgeBase>(si) == 0 &&
-			surfDD.template num<Face>(si) == 0 &&
-			surfDD.template num<Volume>(si) == 0 ) continue;
-
-	//	switch dimension of subset
-		switch(surfDD.dim_subset(si))
-		{
-			case 0:
-				bRet &= ProjectLevelToSurface<VertexBase, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				break;
-			case 1:
-				bRet &= ProjectLevelToSurface<Edge, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				break;
-			case 2:
-				bRet &= ProjectLevelToSurface<Triangle, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				bRet &= ProjectLevelToSurface<Quadrilateral, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				break;
-			case 3:
-				bRet &= ProjectLevelToSurface<Tetrahedron, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				bRet &= ProjectLevelToSurface<Pyramid, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				bRet &= ProjectLevelToSurface<Prism, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				bRet &= ProjectLevelToSurface<Hexahedron, TVector, TDoFDistributionImpl>
-							(si, surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-				break;
-			default:
-				UG_LOG("ERROR in 'ProjectLevelToSurface': Dimension of subset ("
-						<< surfDD.dim_subset(si) << ") not supported.\n");
-				return false;
-		}
-	}
+//	forward for all BaseObject types
+	if(surfDD.has_indices_on(VERTEX))
+		bRet &= ProjectLevelToSurface<VertexBase, TVector, TDoFDistributionImpl>
+					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
+	if(surfDD.has_indices_on(EDGE))
+		bRet &= ProjectLevelToSurface<EdgeBase, TVector, TDoFDistributionImpl>
+					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
+	if(surfDD.has_indices_on(FACE))
+		bRet &= ProjectLevelToSurface<Face, TVector, TDoFDistributionImpl>
+					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
+	if(surfDD.has_indices_on(VOLUME))
+		bRet &= ProjectLevelToSurface<Volume, TVector, TDoFDistributionImpl>
+					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
 
 #ifdef UG_PARALLEL
 //	copy storage type into surf vector
@@ -878,12 +851,16 @@ inline bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 //		  no slaves of the highest dimension
 	bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<VertexBase>(sel, surfView, level);
 
+	// this is not needed, since if an edge/face is in the surface view, then
+	//	also its vertices. Thus, the adjacend element is marked already by
+	//	the loop over VertexBase.
+/*
 	if(grid.num<Face>() > 0 || grid.num<Volume>() > 0)
 		bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<EdgeBase>(sel, surfView, level);
 
 	if(grid.num<Volume>() > 0)
 		bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<Face>(sel, surfView, level);
-
+*/
 //	we're done
 	return bRes;
 }

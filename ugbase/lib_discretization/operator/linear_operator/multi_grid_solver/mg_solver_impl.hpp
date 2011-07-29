@@ -247,11 +247,6 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 //	are given by c, d, t
 	vector_type& t = *m_vLevData[lev].t;
 
-//	Lets get a reference to the coarser level correction, defect, help vector
-	vector_type& cc = *m_vLevData[lev-1].c;
-	vector_type& dc = *m_vLevData[lev-1].d;
-	vector_type& tc = *m_vLevData[lev-1].t;
-
 //	if vertical masters present, we have to restrict the smoothing
 	vector_type* sc = &c;
 	vector_type* sd = &d;
@@ -263,6 +258,10 @@ lmgc(vector_type& c, vector_type& d, size_t lev)
 //	used as coarse grid correction. Finally a post-smooth is performed.
 	if(lev > m_baseLev)
 	{
+	//	Lets get a reference to the coarser level correction, defect, help vector
+		vector_type& cc = *m_vLevData[lev-1].c;
+		vector_type& dc = *m_vLevData[lev-1].d;
+		vector_type& tc = *m_vLevData[lev-1].t;
 
 // used for debugging adaptive mg.
 /*
@@ -613,7 +612,7 @@ UG_LOG(" d: " << norm << "\n");
 			c.set_storage_type(PST_CONSISTENT);
 
 		//	if baseLevel == surfaceLevel, we need also d
-			if(m_baseLev == m_topLev){
+			if(m_baseLev == m_topLev || !m_bFullRefined){
 				d.set_storage_type(PST_CONSISTENT);
 				broadcast_vertical(d);
 				d.change_storage_type(PST_ADDITIVE);
@@ -1656,11 +1655,12 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	loop all levels to compute the missing contribution
 //	\todo: this is implemented very resource consuming, re-think arrangement
+	Selector sel(m_pApproxSpace->get_domain().get_grid());
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
 	//	select all elements, that have a shadow as a subelement, but are not itself
 	//	a shadow
-		Selector sel(m_pApproxSpace->get_domain().get_grid());
+		sel.clear();
 		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
 
 	//	now set this selector to the assembling, such that only those elements
