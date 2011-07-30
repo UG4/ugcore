@@ -8,11 +8,11 @@
 
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
 -- Dimension
 dim = 2
+
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
 
 -- Grid
 gridName = "simple_reticulum.ugx"
@@ -79,7 +79,7 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
@@ -366,7 +366,7 @@ filename = "Con"
 
 -- write start solution
 print("Writing start values")
-out = util.CreateVTKWriter(dim)
+out = VTKOutput()
 out:print(filename, u, step, time)
 
 -- some info output

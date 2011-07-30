@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 
 //#define UG_USE_AMG // temporary switch until AMG for systems works again
 
@@ -19,6 +20,8 @@
 #include "lib_algebra/operator/preconditioner/amg/rsamg/rsamg.h"
 #include "lib_algebra/operator/preconditioner/amg/famg/famg.h"
 
+using namespace std;
+
 namespace ug
 {
 namespace bridge
@@ -27,7 +30,7 @@ namespace bridge
 template <typename TAlgebra>
 struct RegisterAMGClass
 {
-	static bool reg(Registry &reg, const char *parentGroup)
+	static bool reg(Registry &reg, string parentGroup)
 	{
 		return true;
 	}
@@ -36,19 +39,26 @@ struct RegisterAMGClass
 template <>
 struct RegisterAMGClass<CPUAlgebra>
 {
-	static bool reg(Registry &reg, const char *parentGroup)
+	static bool reg(Registry &reg, string parentGroup)
 	{
 	//	typedefs for this algebra
 		typedef CPUAlgebra algebra_type;
 		typedef algebra_type::vector_type vector_type;
 		typedef algebra_type::matrix_type matrix_type;
 
-		//	get group string (use same as parent)
+	//	get group string (use same as parent)
 		std::string grp = std::string(parentGroup);
 		std::stringstream grpSS2; grpSS2 << grp << "/Preconditioner";
 		std::string grp2 = grpSS2.str();
+
+	//	suffix and tag
+		string algSuffix = GetAlgebraSuffix<CPUAlgebra>();
+		string algTag = GetAlgebraTag<CPUAlgebra>();
+
 	//	AMG
-		reg.add_class_< amg_base<algebra_type>::LevelInformation > ("AMGLevelInformation", grp2.c_str())
+		{
+		string name = string("AMGLevelInformation").append(algSuffix);
+		reg.add_class_< amg_base<algebra_type>::LevelInformation > (name, grp2.c_str())
 			.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms, "creation time of this level (in ms)")
 			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level, sum over all processors")
 			.add_method("get_nr_of_nodes_min", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes_min, "nr of nodes of this level, minimum over all processors")
@@ -59,9 +69,13 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("get_fill_in", &amg_base<algebra_type>::LevelInformation::get_fill_in, "nr of non-zeros / (nr of nodes)^2")
 			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information")
 			.add_method("get_nr_of_interface_elements", &amg_base<algebra_type>::LevelInformation::get_nr_of_interface_elements, "nr of interface elements (including multiplicites)");
+		reg.add_class_to_group(name, "AMGLevelInformation", algTag);
+		}
 
 	//todo: existance of AMGPreconditioner class should not depend on defines.
-		reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > ("AMGBase", grp2.c_str())
+		{
+		string name = string("AMGBase").append(algSuffix);
+		reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > (name, grp2.c_str())
 			.add_method("set_num_presmooth", &amg_base<algebra_type>::set_num_presmooth, "", "nu1", "sets nr. of presmoothing steps (nu1)")
 			.add_method("get_num_presmooth", &amg_base<algebra_type>::get_num_presmooth, "nr. of presmoothing steps (nu1)")
 
@@ -103,8 +117,12 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_position_provider2d", &amg_base<algebra_type>::set_position_provider2d, "", "prov", "needed for connectionviewer output")
 			.add_method("set_position_provider3d", &amg_base<algebra_type>::set_position_provider3d, "", "prov", "needed for connectionviewer output")
 			;
+		reg.add_class_to_group(name, "AMGBase", algTag);
+		}
 
-		reg.add_class_<	rsamg<algebra_type>, amg_base<algebra_type> > ("RSAMGPreconditioner", grp2.c_str(), "Ruge-Stueben Algebraic Multigrid Preconditioner")
+		{
+		string name = string("RSAMGPreconditioner").append(algSuffix);
+		reg.add_class_<	rsamg<algebra_type>, amg_base<algebra_type> > (name, grp2.c_str(), "Ruge-Stueben Algebraic Multigrid Preconditioner")
 			.add_constructor()
 			.add_method("set_epsilon_strong", &rsamg<algebra_type>::set_epsilon_strong, "", "epsilon_str", "sets epsilon_strong, a measure for strong connectivity")
 			.add_method("get_epsilon_strong", &rsamg<algebra_type>::get_epsilon_strong, "epsilon_strong", "")
@@ -116,8 +134,12 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("disable_aggressive_coarsening", &rsamg<algebra_type>::disable_aggressive_coarsening, "", "", "disables aggressive coarsening")
 			.add_method("is_aggressive_coarsening", &rsamg<algebra_type>::is_aggressive_coarsening)
 			.add_method("is_aggressive_coarsening_A", &rsamg<algebra_type>::is_aggressive_coarsening_A);
+		reg.add_class_to_group(name, "RSAMGPreconditioner", algTag);
+		}
 
-		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > ("FAMGPreconditioner", grp2.c_str(), "Filtering Algebraic Multigrid")
+		{
+		string name = string("FAMGPreconditioner").append(algSuffix);
+		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > (name, grp2.c_str(), "Filtering Algebraic Multigrid")
 			.add_constructor()
 			.add_method("tostring", &famg<algebra_type>::tostring)
 			.add_method("set_aggressive_coarsening", &famg<algebra_type>::set_aggressive_coarsening)
@@ -150,15 +172,17 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_communicate_prolongation", &famg<algebra_type>::set_debug_level_communicate_prolongation)
 			.add_method("set_debug_level_after_communciate_prolongation", &famg<algebra_type>::set_debug_level_after_communciate_prolongation)
 			;
+		reg.add_class_to_group(name, "FAMGPreconditioner", algTag);
+		}
 
 		return true;
 	}
 
 };
 
-bool RegisterAMG(Registry& reg, int algebra_type, const char* parentGroup)
+bool RegisterAMG(Registry& reg, string parentGroup)
 {
-	return RegisterAlgebraClass<RegisterAMGClass>(reg, algebra_type, parentGroup);
+	return RegisterAlgebraClass<RegisterAMGClass>(reg, parentGroup);
 }
 
 

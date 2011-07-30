@@ -43,26 +43,20 @@ namespace bridge
 // add your RegisterMyClass function in lib_algebra_bridge.cpp.
 
 template<template<typename> class TRegister>
-bool RegisterAlgebraClass(Registry& reg, int algebra_type, const char* parentGroup)
+bool RegisterAlgebraClass(Registry& reg, std::string parentGroup)
 {
 	try
 	{
-		//	get group string
+	//	get group string
 		std::stringstream groupString; groupString << parentGroup << "/Algebra";
 		std::string grp = groupString.str();
 
-		// register algebra
-		switch(algebra_type)
-		{
-		case eCPUAlgebra:		 		TRegister<CPUAlgebra >::reg(reg, grp.c_str()); break;
-//		case eCPUBlockAlgebra2x2: 		TRegister<CPUBlockAlgebra<2> >::reg(reg, grp.c_str()); break;
-		case eCPUBlockAlgebra3x3: 		TRegister<CPUBlockAlgebra<3> >::reg(reg, grp.c_str()); break;
-//		case eCPUBlockAlgebra4x4: 		TRegister<CPUBlockAlgebra<4> >::reg(reg, grp.c_str()); break;
-//		case eCPUVariableBlockAlgebra: 	TRegister<CPUVariableBlockAlgebra>::reg(reg, grp.c_str()); break;
-		default: UG_ASSERT(0, "In RegisterAlgebraClass: " << algebra_type << " is unsupported algebra type");
-					UG_LOG("In RegisterAlgebraClass: " << algebra_type << " is unsupported algebra type");
-					return false;
-		}
+	//	register
+		TRegister<CPUAlgebra >::reg(reg, grp);
+//		TRegister<CPUBlockAlgebra<2> >::reg(reg, grp);
+		TRegister<CPUBlockAlgebra<3> >::reg(reg, grp);
+//		TRegister<CPUBlockAlgebra<4> >::reg(reg, grp);
+//		TRegister<CPUVariableBlockAlgebra>::reg(reg, grp);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

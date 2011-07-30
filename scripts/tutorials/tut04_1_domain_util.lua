@@ -26,7 +26,7 @@ ug_load_script("ug_util.lua")
 --
 function CreateAndDistributeDomain(gridName, dim, savePrefix)
 --	Create the domain object
-	local dom = util.CreateDomain(dim)
+	local dom = Domain()
 	
 --	Load the domain from file (Note that this is always performed on
 --	process 0)

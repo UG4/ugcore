@@ -20,11 +20,11 @@ activateDbgWriter = 0	-- set to 0 i.e. for time measurements,
 		        -- 'fetiSolver:set_debug(dbgWriter)'
 activateDbgWriter = util.GetParamNumber("-dbgw", 0)
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
 -- constants
 dim = 2
+
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
 --	gridName = "rect_tri.ugx"
@@ -71,7 +71,7 @@ numRefs    = util.GetParamNumber("-numRefs",    4)
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
@@ -261,7 +261,7 @@ if verbosity >= 1 then
 end
 
 -- debug writer
-dbgWriter = util.CreateGridFunctionDebugWriter(dim)
+dbgWriter = GridFunctionDebugWriter()
 dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 

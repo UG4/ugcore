@@ -66,6 +66,14 @@ bool P1StorageManager::update_attachments()
 // P1DoFDistribution
 ///////////////////////////////////////////////////////////////////////////////
 
+
+template <>
+const DofDistributionType P1DoFDistribution<true>::type = DDT_P1CONFORMGROUPED;
+
+template<>
+const DofDistributionType P1DoFDistribution<false>::type = DDT_P1CONFORMNONGROUPED;
+
+
 template <bool bGrouped>
 bool P1DoFDistribution<bGrouped>::has_indices_on(GeometricBaseObject gbo) const
 {

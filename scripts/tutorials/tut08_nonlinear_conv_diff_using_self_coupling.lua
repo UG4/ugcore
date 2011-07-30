@@ -6,11 +6,6 @@
 --	non-linear since the coefficients are non-linear.
 --------------------------------------------------------------------------------
 
--- Since ug supports a bunch of different algebra modules we will choose one here.
--- This should always be the first thing you do in an ug-script.
--- The cpu-algebra is fine for now.
-InitAlgebra(CPUAlgebraSelector())
-
 -- We will include a script file which defines some methods often used.
 -- Loaded methods are all found in the library util.
 ug_load_script("../ug_util.lua")
@@ -22,6 +17,11 @@ ug_load_script("../ug_util.lua")
 -- (either 1d, 2d or 3d) and associated discretization objects. Note that
 -- we're using some methods defined in "ug_util.lua" here.
 dim = util.GetParamNumber("-dim", 1) -- default dimension is 1.
+
+-- Since ug supports a bunch of different dimensions and algebra modules 
+-- we will choose a combination here. This should always be the first thing 
+-- you do in an ug-script. The cpu-algebra is fine for now.
+InitUG(dim, CPUAlgebraSelector())
 
 -- We also need a filename for the grid that shall be loaded.
 if 		dim == 1 then gridName = util.GetParam("-grid", "unit_square_01/unit_line_01_edge_2.ugx")
@@ -53,7 +53,7 @@ end
 
 -- Now its time to create the domain object. We will use an util method here,
 -- which automatically creates the right domain for the given dimension.
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- Now that we have a domain, we can load a grid into it. We check the return
 -- value whether the loading was successful or not.
@@ -422,7 +422,7 @@ InterpolateFunction(LuaStartValue, u, "c", time);
 -- In order to plot our time steps, we need a VTK writer. For time dependent
 -- problems we start a time series. This is necessary to group the time 
 -- series at the end of the time loop. We write the start solution at the beginning.
-out = util.CreateVTKWriter(dim)
+out = VTKOutput()
 out:begin_timeseries("Solution", u)
 out:print("Solution", u, step, time)
 

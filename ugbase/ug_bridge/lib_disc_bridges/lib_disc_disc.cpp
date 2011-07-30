@@ -159,7 +159,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor()
 			.add_method("add", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add));
-		reg.add_class_to_group(name, "IDomainElemDisc", dimTag);
+		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
 	}
 
 //	Inner Boundary
@@ -471,7 +471,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 }
 
 
-bool RegisterLibDiscElemDisc(Registry& reg, const char* parentGroup)
+bool RegisterLibDisc_ElemDisc(Registry& reg, string parentGroup)
 {
 	try
 	{
@@ -495,7 +495,7 @@ bool RegisterLibDiscElemDisc(Registry& reg, const char* parentGroup)
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterLibDiscretizationIElemDisc: "
+		UG_LOG("### ERROR in RegisterLibDisc_ElemDisc: "
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}

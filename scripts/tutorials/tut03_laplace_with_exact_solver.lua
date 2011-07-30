@@ -12,12 +12,6 @@
 --	The new code can be found below the comment NEW CODE STARTS HERE.
 --------------------------------------------------------------------------------
 
--- Since ug supports a bunch of different algebra modules we will choose one here.
--- This should always be the first thing you do in an ug-script.
--- The cpu-algebra is fine for now.
-InitAlgebra(CPUAlgebraSelector())
-
-
 -- We will include a script file which defines some methods often used.
 -- Loaded methods are all found in the library util.
 ug_load_script("../ug_util.lua")
@@ -29,6 +23,11 @@ ug_load_script("../ug_util.lua")
 -- (either 1d, 2d or 3d) and associated discretization objects. Note that
 -- we're using some methods defined in "ug_util.lua" here.
 dim = util.GetParamNumber("-dim", 2) -- default dimension is 2.
+
+-- Since ug supports a bunch of different dimensions and algebra modules 
+-- we will choose a combination here. This should always be the first thing 
+-- you do in an ug-script. The cpu-algebra is fine for now.
+InitUG(dim, CPUAlgebraSelector())
 
 -- We also need a filename for the grid that shall be loaded.
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
@@ -43,7 +42,7 @@ outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 
 -- Now its time to create the domain object. We will use an util method here,
 -- which automatically creates the right domain for the given dimension.
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- Now that we have a domain, we can load a grid into it. We check the return
 -- value whether the loading was successful or not.

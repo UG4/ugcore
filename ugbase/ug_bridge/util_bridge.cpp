@@ -7,20 +7,23 @@
 #include "ug_bridge.h"
 
 #include <cstdlib>
+#include <string>
+
+using namespace std;
 
 namespace ug{
 namespace bridge{
 
-static std::string GetAppPath()
+static string GetAppPath()
 {return PathProvider::get_path(APP_PATH);}
 
-static std::string GetDataPath()
+static string GetDataPath()
 {return PathProvider::get_path(DATA_PATH);}
 
-static std::string GetScriptPath()
+static string GetScriptPath()
 {return PathProvider::get_path(SCRIPT_PATH);}
 
-static std::string GetCurrentPath()
+static string GetCurrentPath()
 {return PathProvider::get_current_path();}
 
 /**
@@ -39,24 +42,24 @@ static int ExecuteSystemCommand(const char* cmd)
 }
 
 
-bool RegisterUtilInterface(Registry& reg, const char* parentGroup)
+bool RegisterUtilInterface(Registry& reg, string parentGroup)
 {
-	std::string grpStr(parentGroup);
-	grpStr.append("/util");
+	string grp(parentGroup);
+	grp.append("/util");
 
-	reg.add_function("ug_get_app_path", &GetAppPath, grpStr.c_str(),
+	reg.add_function("ug_get_app_path", &GetAppPath, grp,
 					 "pathName", "", "Returns the application path");
 
-	reg.add_function("ug_get_data_path", &GetDataPath, grpStr.c_str(),
+	reg.add_function("ug_get_data_path", &GetDataPath, grp,
 					 "pathName", "", "Returns the data path");
 
-	reg.add_function("ug_get_script_path", &GetScriptPath, grpStr.c_str(),
+	reg.add_function("ug_get_script_path", &GetScriptPath, grp,
 					 "pathName", "", "Returns the script path");
 
-	reg.add_function("ug_get_current_path", &GetCurrentPath, grpStr.c_str(),
+	reg.add_function("ug_get_current_path", &GetCurrentPath, grp,
 					 "pathName", "", "Returns the current path");
 
-	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grpStr.c_str(),
+	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grp,
 					 "success", "command", "Executes a command in the system shell");
 
 	return true;

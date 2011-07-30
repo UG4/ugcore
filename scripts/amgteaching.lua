@@ -75,10 +75,8 @@ print("    ilu-beta = " .. ilubeta)
 -- Checking for parameters (end)
 --------------------------------------------------------------------------------
 
-
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
 
 --------------------------------
 -- User Data Functions 2d (begin)
@@ -216,7 +214,7 @@ InitAlgebra(CPUAlgebraSelector());
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
@@ -704,7 +702,7 @@ for myname,myproblem in pairs(problem) do
 		b = approxSpace:create_surface_function()
 		
 		-- debug writer
-		dbgWriter = util.CreateGridFunctionDebugWriter(dim)
+		dbgWriter = GridFunctionDebugWriter()
 		dbgWriter:set_reference_grid_function(u)
 		dbgWriter:set_vtk_output(false)
 		

@@ -8,8 +8,11 @@
 
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
+-- always 3d
+dim = 3
+
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
 	
 -----------------------------------------------------------------
 --  Setup FE Nonlinear Element Discretization

@@ -717,6 +717,7 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
 			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
+		reg.add_class_to_group(name, "LuaUserFunctionNumber", dimTag);
 	}
 
 //	LuaUserFunctionMatrixNumber
@@ -728,6 +729,7 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
 			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
+		reg.add_class_to_group(name, "LuaUserFunctionMatrixNumber", dimTag);
 	}
 
 }

@@ -147,27 +147,23 @@ lua_State* GetDefaultLuaState()
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
 		
-	//	we use an extra registry to register some lua-only commands
-		static ug::bridge::Registry scriptRegistry;
-
 	//	this define makes sure that no methods are referenced that
 	//	use the algebra, even if no algebra is included.
 		#ifdef UG_ALGEBRA
-		//	Register info commands
-			RegisterInfoCommands(scriptRegistry);
+	//	Register info commands
+		RegisterInfoCommands(*g_pRegistry);
 
-		//	Register user functions
-			RegisterLuaUserData(scriptRegistry, "/ug4");
+	//	Register user functions
+		RegisterLuaUserData(*g_pRegistry, "/ug4");
 
-		//	Register Boundary functions
-		//	RegisterLuaBoundaryNumber(scriptRegistry, "/ug4");
+	//	Register algebra extensions
+		g_pRegistry->add_function("LoadAlgebraExtensions", &LoadAlgebraExtensions);
 
-		//	Register algebra extensions
-			scriptRegistry.add_function("LoadAlgebraExtensions", &LoadAlgebraExtensions);
-
-			ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
+		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
 		#endif
-			scriptRegistry.check_consistency();
+
+		if(!g_pRegistry->check_consistency())
+			throw(UGFatalError("Script-Registry not ok."));
 	}
 	
 	return L;

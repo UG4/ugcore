@@ -13,6 +13,7 @@
 #include "lib_grid/lg_base.h"
 
 #include "../dof_distribution.h"
+#include "../dof_distribution_type.h"
 #include "../function_pattern.h"
 #include "../../reference_element/reference_element.h"
 
@@ -104,6 +105,9 @@ class DoFDistribution
 	: public IDoFDistribution<DoFDistribution>
 {
 	public:
+	///	dof distribution type
+		static const DofDistributionType type = DDT_CONFORM;
+
 	///	own type
 		typedef DoFDistribution this_type;
 

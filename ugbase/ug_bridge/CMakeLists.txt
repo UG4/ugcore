@@ -38,8 +38,7 @@ if(NOT NO_ALGEBRA)
 					lib_disc_bridges/lib_disc_algebra.cpp
 					lib_disc_bridges/lib_disc_domain.cpp
 					lib_disc_bridges/lib_disc_disc.cpp
-					
-					user_data_bridge.cpp)
+					lib_disc_bridges/lib_disc_user_data.cpp)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)

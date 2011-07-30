@@ -32,7 +32,7 @@ print("    grid       = " .. gridName)
 print("    numRefs    = " .. numRefs)
 
 -- choose algebra
-InitAlgebra(CPUAlgebraSelector());
+InitUG(dim, CPUAlgebraSelector());
 	
 -- Create, Load, Refine and Distribute Domain
 neededSubsets = {"Inner", "Boundary"}
@@ -133,7 +133,7 @@ u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
 -- debug writer
-dbgWriter = util.CreateGridFunctionDebugWriter(dim)
+dbgWriter = GridFunctionDebugWriter()
 dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 

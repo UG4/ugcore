@@ -486,7 +486,7 @@ class DarcyVelocityLinker
 
 
 template <typename TData, int dim>
-bool RegisterUserDataType(Registry& reg, string type, const char* parentGroup)
+bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 {
 	string grp = string(parentGroup);
 
@@ -560,7 +560,7 @@ bool RegisterUserDataType(Registry& reg, string type, const char* parentGroup)
 }
 
 template <int dim>
-bool RegisterUserData(Registry& reg, const char* parentGroup)
+bool RegisterUserData(Registry& reg, string parentGroup)
 {
 	string grp = std::string(parentGroup);
 
@@ -582,6 +582,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set | interactive=false", &T::set, "", "MyNumber || invokeOnChange=true")
 			.add_method("print", &T::print);
+		reg.add_class_to_group(name, "ConstUserNumber", dimTag);
 	}
 
 //	ConstUserVector
@@ -595,6 +596,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
 			.add_method("print", &T::print);
+		reg.add_class_to_group(name, "ConstUserVector", dimTag);
 	}
 
 //	ConstUserMatrix
@@ -609,6 +611,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
 			.add_method("print", &T::print);
+		reg.add_class_to_group(name, "ConstUserMatrix", dimTag);
 	}
 
 //	ConstBoundaryNumber
@@ -620,6 +623,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set", &T::set)
 			.add_method("print", &T::print);
+		reg.add_class_to_group(name, "ConstBoundaryNumber", dimTag);
 	}
 
 //	ElderDensityLinker
@@ -629,6 +633,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 		string name = string("ElderDensityLinker").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor();
+		reg.add_class_to_group(name, "ElderDensityLinker", dimTag);
 	}
 
 //	DarcyVelocityLinker
@@ -643,37 +648,28 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_method("set_pressure_gradient", &T::set_pressure_gradient)
 			.add_method("set_viscosity", &T::set_viscosity)
 			.add_constructor();
+		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
 	}
 
 	return true;
 }
 
-bool RegisterUserData(Registry& reg, const char* parentGroup)
+bool RegisterLibDisc_UserData(Registry& reg, string parentGroup)
 {
 //	get group string
 	std::string grp = parentGroup; grp.append("/UserData");
 
 #ifdef UG_DIM_1
-	RegisterUserData<1>(reg, grp.c_str());
+	RegisterUserData<1>(reg, grp);
 #endif
 #ifdef UG_DIM_2
-	RegisterUserData<2>(reg, grp.c_str());
+	RegisterUserData<2>(reg, grp);
 #endif
 #ifdef UG_DIM_3
-	RegisterUserData<3>(reg, grp.c_str());
+	RegisterUserData<3>(reg, grp);
 #endif
 
 #ifdef UG_DIM_2
-//	PrintUserNumber2d
-//	{
-//		typedef PrintUserNumber2d T;
-//		std::stringstream ss; ss << "PrintUserNumber2d";
-//		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
-//			.add_constructor()
-//			.add_method("set_user_number|interactive=false", &T::set_user_number, "", "NumberProvider||invokeOnChange=true")
-//			.add_method("print", &T::print, "Result", "x#y");
-//	}
-
 //	Elder Boundary Data for 2D
 	{
 		typedef ElderConcentrationBoundaryData2d T;

@@ -10,11 +10,11 @@
 -- currently only the path in which you start your application is valid.
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
 -- constants
 dim = 2
+
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
 	gridName = "unit_square_01/unit_square_01_tri_2x2.ugx"
@@ -105,7 +105,7 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
@@ -289,7 +289,7 @@ SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- debug writer
-dbgWriter = util.CreateGridFunctionDebugWriter(dim)
+dbgWriter = GridFunctionDebugWriter()
 dbgWriter:set_reference_grid_function(u)
 
 -- create algebraic Preconditioner

@@ -60,10 +60,8 @@ print("    distType   = " .. distributionType)
 -- Checking for parameters (end)
 --------------------------------------------------------------------------------
 
-
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
 
 --------------------------------
 -- User Data Functions (begin)
@@ -95,7 +93,7 @@ InitAlgebra(CPUAlgebraSelector());
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
@@ -307,7 +305,7 @@ u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
 -- debug writer
-dbgWriter = util.CreateGridFunctionDebugWriter(dim)
+dbgWriter = GridFunctionDebugWriter()
 dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 

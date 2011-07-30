@@ -9,15 +9,15 @@ SetOutputProfileStats(false)
 
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
 -- constants
 if util.HasParamOption("-3d") then
 	dim = 3
 else
 	dim = 2
 end
+
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
@@ -138,7 +138,7 @@ print("    RAalpha = "..RAalpha.." grad")
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")

@@ -11,11 +11,13 @@
 #include <iomanip>
 #include <cmath> // für floor
 #include "ug.h" // Required for UGOutputProfileStatsOnExit.
+#include <string>
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
 
+using namespace std;
 
 namespace ug
 {
@@ -24,14 +26,14 @@ namespace bridge
 {
 #if SHINY_PROFILER
 
-std::string cut(std::string &s, size_t L)
+string cut(string &s, size_t L)
 {
 	return s.substr(0, L);
 }
 
-std::string cut(const char *p, size_t L)
+string cut(const char *p, size_t L)
 {
-	std::string s(p);
+	string s(p);
 	return s.substr(0, L);
 }
 
@@ -80,22 +82,22 @@ public:
 
 
 
-	std::string print_node(double full, size_t offset=0) const
+	string print_node(double full, size_t offset=0) const
 	{
 		if(!is_valid()) return "";
 		double totalTicksAvg = get_avg_total_time();
 		const Shiny::TimeUnit *selfUnit = Shiny::GetTimeUnit(get_avg_self_time());
 		const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(totalTicksAvg);
-		std::stringstream s;
-		if(offset)	s << std::setw(offset) << " ";
+		stringstream s;
+		if(offset)	s << setw(offset) << " ";
 
-		s <<	std::left << std::setw(Shiny::OUTPUT_WIDTH_NAME-offset) << cut(zone->name, Shiny::OUTPUT_WIDTH_NAME-offset) <<
-				std::right << std::setw(Shiny::OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
-				std::setprecision(Shiny::OUTPUT_WIDTH_TIME-1) <<
-				std::setw(Shiny::OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " << selfUnit->suffix << " " <<
-				std::setw(Shiny::OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "% " <<
-				std::setw(Shiny::OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " << totalUnit->suffix << " " <<
-				std::setw(Shiny::OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "% ";
+		s <<	left << setw(Shiny::OUTPUT_WIDTH_NAME-offset) << cut(zone->name, Shiny::OUTPUT_WIDTH_NAME-offset) <<
+				right << setw(Shiny::OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
+				setprecision(Shiny::OUTPUT_WIDTH_TIME-1) <<
+				setw(Shiny::OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " << selfUnit->suffix << " " <<
+				setw(Shiny::OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "% " <<
+				setw(Shiny::OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " << totalUnit->suffix << " " <<
+				setw(Shiny::OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "% ";
 		return s.str();
 	}
 
@@ -114,11 +116,11 @@ public:
 		return reinterpret_cast<const UGProfilerNode*>(nextSibling);
 	}
 
-	std::string call_tree() const
+	string call_tree() const
 	{
 		if(!is_valid()) return "Profile Node not valid!";
 
-		std::stringstream s;
+		stringstream s;
 		UGProfilerNode::log_header(s, "call tree");
 
 		rec_print(get_avg_total_time(), s);
@@ -126,17 +128,17 @@ public:
 		return s.str();
 	}
 
-	std::string child_self_time_sorted() const
+	string child_self_time_sorted() const
 	{
 		return child_sorted("self time sorted", UGProfilerNode::self_time_sort);
 	}
 
-	std::string total_time_sorted() const
+	string total_time_sorted() const
 	{
 		return child_sorted("total time sorted", UGProfilerNode::total_time_sort);
 	}
 
-	std::string entry_count_sorted() const
+	string entry_count_sorted() const
 	{
 		return child_sorted("entry count sorted", UGProfilerNode::entry_count_sort);
 	}
@@ -148,7 +150,7 @@ public:
 	}
 
 private:
-	void rec_print(double full, std::stringstream &s, size_t offset=0) const
+	void rec_print(double full, stringstream &s, size_t offset=0) const
 	{
 		if(!is_valid()) return;
 		s << print_node(full, offset) << "\n";
@@ -160,7 +162,7 @@ private:
 		}
 	}
 
-	void add_nodes(std::vector<const UGProfilerNode*> &nodes) const
+	void add_nodes(vector<const UGProfilerNode*> &nodes) const
 	{
 		nodes.push_back(this);
 		for(const UGProfilerNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
@@ -171,11 +173,11 @@ private:
 		}
 	}
 
-	std::string child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b)) const
+	string child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b)) const
 	{
 		if(!is_valid()) return "";
-		std::stringstream s;
-		std::vector<const UGProfilerNode*> nodes;
+		stringstream s;
+		vector<const UGProfilerNode*> nodes;
 		add_nodes(nodes);
 		sort(nodes.begin(), nodes.end(), sortFunction);
 
@@ -185,13 +187,13 @@ private:
 		return s.str();
 	}
 
-	static void log_header(std::stringstream &s, const char *name)
+	static void log_header(stringstream &s, const char *name)
 	{
 
-		s << 	std::left << std::setw(Shiny::OUTPUT_WIDTH_NAME) << name << " " <<
-				std::right << std::setw(Shiny::OUTPUT_WIDTH_HIT) << "hits" << " " <<
-				std::setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "self time" << " " <<
-				std::setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "total time"  << " \n";
+		s << 	left << setw(Shiny::OUTPUT_WIDTH_NAME) << name << " " <<
+				right << setw(Shiny::OUTPUT_WIDTH_HIT) << "hits" << " " <<
+				setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "self time" << " " <<
+				setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "total time"  << " \n";
 	}
 
 	static bool self_time_sort(const UGProfilerNode *a, const UGProfilerNode *b)
@@ -257,22 +259,22 @@ public:
 		return 0.0;
 	}
 
-	std::string call_tree()
+	string call_tree()
 	{
 		return "Profiler not availabel!";
 	}
 
-	std::string child_self_time_sorted() const
+	string child_self_time_sorted() const
 	{
 		return "Profiler not availabel!";
 	}
 
-	std::string total_time_sorted() const
+	string total_time_sorted() const
 	{
 		return "Profiler not availabel!";
 	}
 
-	std::string entry_count_sorted() const
+	string entry_count_sorted() const
 	{
 		return "Profiler not availabel!";
 	}
@@ -313,11 +315,12 @@ bool GetProfilerAvailable()
 #endif
 
 
-bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
+bool RegisterProfileFunctions(Registry &reg, string parentGroup)
 {
-	std::stringstream group; group << parentGroup << "/Profiler";
+	stringstream ss; ss << parentGroup << "/Profiler";
+	string grp = ss.str();
 
-	reg.add_class_<UGProfilerNode>("UGProfilerNode", group.str().c_str())
+	reg.add_class_<UGProfilerNode>("UGProfilerNode", grp)
 		.add_method("call_tree", &UGProfilerNode::call_tree, "string with call tree")
 		.add_method("child_self_time_sorted", &UGProfilerNode::child_self_time_sorted, "string with sorted childs", "", "childs are sorted by self time")
 		.add_method("total_time_sorted", &UGProfilerNode::total_time_sorted, "string with sorted childs", "", "childs are sorted by total time")
@@ -334,9 +337,9 @@ bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 		/*.add_method("__tostring", &UGProfilerNode::tostring, "tostring")
 		.add_method("__unm", &UGProfilerNode::unm, "unm")
 		.add_method("__add", &UGProfilerNode::add, "add");*/
-	reg.add_function("GetProfileNode", &GetProfileNode, group.str().c_str());
-	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, group.str().c_str(), "true if profiler available");
-	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, group.str().c_str(), "", "bOutput",
+	reg.add_function("GetProfileNode", &GetProfileNode, grp);
+	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, grp, "true if profiler available");
+	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp, "", "bOutput",
 			"if set to true and profiler available, profile stats are printed at the end of the program. true is default");
 
 	return true;

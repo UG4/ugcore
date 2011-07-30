@@ -18,11 +18,6 @@
 --	See the next tutorials for an overview of alternate solvers.
 --------------------------------------------------------------------------------
 
--- Since ug supports a bunch of different algebra modules we will choose one here.
--- This should always be the first thing you do in an ug-script.
--- The cpu-algebra is fine for now.
-InitAlgebra(CPUAlgebraSelector())
-
 -- include the basic util-methods.
 ug_load_script("../ug_util.lua")
 
@@ -33,6 +28,12 @@ ug_load_script("tut04_2_disc_laplace.lua")
 
 -- Get the command line parameters
 dim = util.GetParamNumber("-dim", 2)
+
+-- Since ug supports a bunch of different dimensions and algebra modules 
+-- we will choose a combination here. This should always be the first thing 
+-- you do in an ug-script. The cpu-algebra is fine for now.
+InitUG(dim, CPUAlgebraSelector())
+
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 

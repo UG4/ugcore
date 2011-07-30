@@ -11,6 +11,8 @@
 #include "pcl/pcl.h"
 #endif
 
+using namespace std;
+
 namespace ug{
 namespace bridge{
 
@@ -50,38 +52,38 @@ T ParallelSum(T t)
 	return pc.allreduce(t, PCL_RO_SUM);
 }
 
-bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
+bool RegisterPCLInterface(Registry& reg, string parentGroup)
 {
-	std::string grpStr(parentGroup);
-	grpStr.append("/pcl");
+	string grp(parentGroup);
+	grp.append("/pcl");
 
-	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabled, grpStr.c_str(),
+	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabled, grp,
 					"Enabled", "", "Returns the whether debug barriers are enabled.");
 
-	reg.add_function("GetNumProcesses", &pcl::GetNumProcesses, grpStr.c_str(),
+	reg.add_function("GetNumProcesses", &pcl::GetNumProcesses, grp,
 					"NumProcs", "", "Returns the number of active processes.");
 
-	reg.add_function("GetProcessRank", &pcl::GetProcRank, grpStr.c_str(),
+	reg.add_function("GetProcessRank", &pcl::GetProcRank, grp,
 					"ProcRank", "", "Returns the rank of the current process.");
 
-	reg.add_function("GetOutputProcessRank", &pcl::GetOutputProcRank, grpStr.c_str(),
+	reg.add_function("GetOutputProcessRank", &pcl::GetOutputProcRank, grp,
 					"ProcRank", "", "Returns the rank of the process whose output is logged.");
 
-	reg.add_function("SetOutputProcessRank", &pcl::SetOutputProcRank, grpStr.c_str(),
+	reg.add_function("SetOutputProcessRank", &pcl::SetOutputProcRank, grp,
 					"", "ProcRank", "Sets the rank of the process whose output is logged.");
 
-	reg.add_function("IsOutputProcess", &pcl::IsOutputProc, grpStr.c_str(),
+	reg.add_function("IsOutputProcess", &pcl::IsOutputProc, grp,
 					"", "", "Returns true if the current process is the output process.");
 
-	reg.add_function("SynchronizeProcesses", &pcl::SynchronizeProcesses, grpStr.c_str(),
+	reg.add_function("SynchronizeProcesses", &pcl::SynchronizeProcesses, grp,
 					"", "", "Waits until all active processes reached this point.");
 
-	reg.add_function("AllProcsTrue", &PclAllProcsTrue, grpStr.c_str(),
+	reg.add_function("AllProcsTrue", &PclAllProcsTrue, grp,
 					 "boolean", "boolean", "Returns true if all processes call the method with true.");
 
-	reg.add_function("ParallelMin", &ParallelMin<double>, grpStr.c_str(), "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
-	reg.add_function("ParallelMax", &ParallelMax<double>, grpStr.c_str(), "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
-	reg.add_function("ParallelSum", &ParallelSum<double>, grpStr.c_str(), "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMin", &ParallelMin<double>, grp, "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMax", &ParallelMax<double>, grp, "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelSum", &ParallelSum<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 
 	return true;
 }
@@ -135,38 +137,38 @@ bool AllProcsTrueDUMMY(bool bTrue)
 	return bTrue;
 }
 
-bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
+bool RegisterPCLInterface(Registry& reg, string parentGroup)
 {
-	std::string grpStr(parentGroup);
-	grpStr.append("/pcl");
+	string grpStr(parentGroup);
+	grp.append("/pcl");
 
-	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabledDUMMY, grpStr.c_str(),
+	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabledDUMMY, grp,
 					"Enabled", "", "Returns the whether debug barriers are enabled.");
 
-	reg.add_function("GetNumProcesses", &GetNumProcessesDUMMY, grpStr.c_str(),
+	reg.add_function("GetNumProcesses", &GetNumProcessesDUMMY, grp,
 					"NumProcs", "", "Returns the number of active processes.");
 
-	reg.add_function("GetProcessRank", &GetProcRankDUMMY, grpStr.c_str(),
+	reg.add_function("GetProcessRank", &GetProcRankDUMMY, grp,
 					"ProcRank", "", "Returns the rank of the current process.");
 
-	reg.add_function("GetOutputProcessRank", &GetOutputProcRankDUMMY, grpStr.c_str(),
+	reg.add_function("GetOutputProcessRank", &GetOutputProcRankDUMMY, grp,
 					"ProcRank", "", "Returns the rank of the process whose output is logged.");
 
-	reg.add_function("SetOutputProcessRank", &SetOutputProcRankDUMMY, grpStr.c_str(),
+	reg.add_function("SetOutputProcessRank", &SetOutputProcRankDUMMY, grp,
 					"", "ProcRank", "Sets the rank of the process whose output is logged.");
 
-	reg.add_function("IsOutputProcess", &IsOutputProcDUMMY, grpStr.c_str(),
+	reg.add_function("IsOutputProcess", &IsOutputProcDUMMY, grp,
 					"", "", "Returns true if the current process is the output process.");
 
-	reg.add_function("SynchronizeProcesses", &SynchronizeProcessesDUMMY, grpStr.c_str(),
+	reg.add_function("SynchronizeProcesses", &SynchronizeProcessesDUMMY, grp,
 					"", "", "Waits until all active processes reached this point.");
 
-	reg.add_function("AllProcsTrue", &AllProcsTrueDUMMY, grpStr.c_str(),
+	reg.add_function("AllProcsTrue", &AllProcsTrueDUMMY, grp,
 					 "boolean", "boolean", "Returns true if all processes call the method with true.");
 
-	reg.add_function("ParallelMinDUMMY", &ParallelMinDUMMY<double>, grpStr.c_str(), "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
-	reg.add_function("ParallelMaxDUMMY", &ParallelMaxDUMMY<double>, grpStr.c_str(), "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
-	reg.add_function("ParallelSumDUMMY", &ParallelSumDUMMY<double>, grpStr.c_str(), "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMinDUMMY", &ParallelMinDUMMY<double>, grp, "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMaxDUMMY", &ParallelMaxDUMMY<double>, grp, "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelSumDUMMY", &ParallelSumDUMMY<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 
 	return true;
 }

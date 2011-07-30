@@ -7,6 +7,10 @@
 
 #include "registry/registry.h"
 #include "ug_bridge.h"
+#include <string>
+#include <sstream>
+
+using namespace std;
 
 namespace ug
 {
@@ -81,12 +85,13 @@ void int_srand(int seed)
 	srand((unsigned int)seed);
 }
 
-bool RegisterMiscFunctions(Registry &reg, const char* parentGroup)
+bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 {
-	{
-		std::stringstream group; group << parentGroup << "/log";
+	stringstream ss; ss << parentGroup << "/log";
+	string grp = ss.str();
 
-		reg.add_class_<LogAssistant>("LogAssistant", group.str().c_str())
+	{
+		reg.add_class_<LogAssistant>("LogAssistant", grp)
 			.add_method("enable_file_output", &LogAssistant::enable_file_output,
 					"", "bEnable#filename", "Please note that only the filename given at the first call is considered")
 			.add_method("enable_terminal_output", &LogAssistant::enable_terminal_output,
@@ -96,17 +101,14 @@ bool RegisterMiscFunctions(Registry &reg, const char* parentGroup)
 			.add_method("set_debug_level", &LogAssistant::set_debug_level, "", "tag#lev", "sets the debug level of Tag 'tag' to level 'lev'")
 			.add_method("get_debug_level", &LogAssistant::get_debug_level, "", "tag", "use GetLogAssistantTag to get a tag from a tag-string.")
 			;
-		reg.add_function("GetLogAssistant", &GetLogAssistant, group.str().c_str(), "the log assistant");
-		reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, group.str().c_str(), "integer tag for use int set_debug_level");
-		reg.add_function("SetDebugLevel", &SetDebugLevel, group.str().c_str());
+		reg.add_function("GetLogAssistant", &GetLogAssistant, grp, "the log assistant");
+		reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, grp, "integer tag for use int set_debug_level");
+		reg.add_function("SetDebugLevel", &SetDebugLevel, grp);
 	}
 
 	{
-
-		std::stringstream group; group << parentGroup << "/internal";
-
-		reg.add_function("DefinedUG_DEBUG", &DefinedUG_DEBUG, group.str().c_str(), "");
-		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &DefinedUG_ENABLE_DEBUG_LOGS, group.str().c_str(), "");
+		reg.add_function("DefinedUG_DEBUG", &DefinedUG_DEBUG, grp, "");
+		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &DefinedUG_ENABLE_DEBUG_LOGS, grp, "");
 		reg.add_function("srand", int_srand, "", "seed", "The pseudo-random number generator is initialized using the argument passed as seed.");
 	}
 

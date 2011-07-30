@@ -8,9 +8,6 @@
 
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
 -- constants
 dim = 2
 
@@ -29,6 +26,8 @@ print(" Choosen Parater:")
 print("    numRefs    = " .. numRefs)
 print("    numPreRefs = " .. numPreRefs)
 print("    grid       = " .. gridName)
+
+InitUG(dim, CPUAlgebraSelector());
 
 --------------------------------------------------------------------------------
 -- Domain Setup

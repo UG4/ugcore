@@ -3,6 +3,8 @@
 // 14.07.2011 (m,d,y)
  
 #include <vector>
+#include <string>
+#include <sstream>
 #include "ug_bridge.h"
 #include "lib_discretization/domain.h"
 #include "lib_grid/lib_grid.h"
@@ -217,14 +219,13 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 
 namespace bridge{
 
-static bool RegisterRefinementBridge_DomIndep(Registry& reg, const char* parentGroup)
+static bool RegisterRefinementBridge_DomIndep(Registry& reg, string parentGroup)
 {
 	try
 	{
 	//	get group string
-		std::stringstream groupString; groupString << parentGroup << "/Refinement";
-		string strGrp = groupString.str();
-		const char* grp = strGrp.c_str();
+		stringstream groupString; groupString << parentGroup << "/Refinement";
+		string grp = groupString.str();
 
 	//	register domain independent mark methods
 		reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp);
@@ -241,7 +242,7 @@ static bool RegisterRefinementBridge_DomIndep(Registry& reg, const char* parentG
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class TDomain>
-static bool RegisterRefinementBridge_DomDep(Registry& reg, const char* parentGroup)
+static bool RegisterRefinementBridge_DomDep(Registry& reg, string parentGroup)
 {
 	typedef TDomain 							domain_type;
 	typedef typename TDomain::position_type		pos_type;
@@ -249,9 +250,8 @@ static bool RegisterRefinementBridge_DomDep(Registry& reg, const char* parentGro
 	try
 	{
 	//	get group string
-		std::stringstream groupString; groupString << parentGroup << "/Refinement";
-		string strGrp = groupString.str();
-		const char* grp = strGrp.c_str();
+		stringstream groupString; groupString << parentGroup << "/Refinement";
+		string grp = groupString.str();
 
 	//	refiner factory-method registration
 	//	Note that the refiners themselfs have already been registered in lib_grid_bridge.
@@ -284,7 +284,7 @@ static bool RegisterRefinementBridge_DomDep(Registry& reg, const char* parentGro
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-bool RegisterRefinementBridge(Registry& reg, const char* parentGroup)
+bool RegisterRefinementBridge(Registry& reg, string parentGroup)
 {
 	bool bSuccess = true;
 

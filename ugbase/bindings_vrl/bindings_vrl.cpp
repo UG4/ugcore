@@ -92,13 +92,6 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	//	registerPlayground(reg);
 	//#endif
 
-	// Register algebra
-	CPUAlgebraSelector selector;
-	ug::bridge::RegisterDynamicLibAlgebraInterface(
-			reg, selector.get_algebra_type());
-	ug::bridge::RegisterDynamicLibDiscretizationInterface(
-			reg, selector.get_algebra_type());
-
 	//	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 
 	//	ug::vrl::registerMessaging(reg);

@@ -2,8 +2,13 @@
 // s.b.reiter@googlemail.com
 // 14.07.2011 (m,d,y)
  
+#include <string>
+#include <sstream>
+
 #include "ug_bridge.h"
 #include "common/math/ugmath.h"
+
+using namespace std;
 
 namespace ug{
 
@@ -33,32 +38,32 @@ static SmartPtr<vector4> MakeVec(number x, number y, number z, number w)
 namespace bridge{
 ////////////////////////////////////////////////////////////////////////////////
 template <int dim>
-static bool RegisterVecMathBridge(Registry& reg, const char* parentGroup)
+static bool RegisterVecMathBridge(Registry& reg, string parentGroup)
 {
 	typedef MathVector<dim, number> vec_type;
 
 	try
 	{
 	//	the dimension suffix
-		std::stringstream ss;	ss << dim << "d";
-		std::string dimSuffix = ss.str();
+		stringstream ss;	ss << dim << "d";
+		string dimSuffix = ss.str();
 
 	//	the dimension tag
-		std::string dimTag = "dim=";
+		string dimTag = "dim=";
 		dimTag.append(dimSuffix);
 
 	//	get group string
-		std::string grp = parentGroup;
+		string grp = parentGroup;
 		grp.append("/VecMath");
 
 	//	register the class
-		std::string vecName = "Vector";
+		string vecName = "Vector";
 		vecName.append(dimSuffix);
 
-		reg.add_class_<vec_type>(vecName.c_str(), grp.c_str())
+		reg.add_class_<vec_type>(vecName, grp)
 			.add_method("coord",
 					static_cast<const number& (vec_type::*)(size_t) const>(&vec_type::coord));
-		reg.add_class_to_group(vecName.c_str(), "Vector_d", dimTag.c_str());
+		reg.add_class_to_group(vecName, "Vector_d", dimTag);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
@@ -71,14 +76,13 @@ static bool RegisterVecMathBridge(Registry& reg, const char* parentGroup)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static bool RegisterVecMathBridge_DimIndep(Registry& reg, const char* parentGroup)
+static bool RegisterVecMathBridge_DimIndep(Registry& reg, string parentGroup)
 {
 	try
 	{
 	//	get group string
-		std::stringstream groupString; groupString << parentGroup << "/VecMath";
-		std::string strGrp = groupString.str();
-		const char* grp = strGrp.c_str();
+		stringstream groupString; groupString << parentGroup << "/VecMath";
+		string grp = groupString.str();
 
 	//	register make-methods
 		reg.add_function("MakeVec", static_cast<SmartPtr<vector1> (*)(number)>(
@@ -102,7 +106,7 @@ static bool RegisterVecMathBridge_DimIndep(Registry& reg, const char* parentGrou
 
 
 ////////////////////////////////////////////////////////////////////////////////
-bool RegisterVecMathBridge(Registry& reg, const char* parentGroup)
+bool RegisterVecMathBridge(Registry& reg, string parentGroup)
 {
 	bool bSuccess = true;
 

@@ -8,16 +8,17 @@
 --	it in a call to RedistributeDomain.
 --------------------------------------------------------------------------------
 
--- Since ug supports a bunch of different algebra modules we will choose one here.
--- This should always be the first thing you do in an ug-script.
--- The cpu-algebra is fine for now.
-InitAlgebra(CPUAlgebraSelector())
-
 -- include the basic util-methods.
 ug_load_script("../ug_util.lua")
 
 -- Get the command line parameters
 dim = util.GetParamNumber("-dim", 2)
+
+-- Since ug supports a bunch of different dimensions and algebra modules 
+-- we will choose a combination here. This should always be the first thing 
+-- you do in an ug-script. The cpu-algebra is fine for now.
+InitUG(dim, CPUAlgebraSelector())
+
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_2x2.ugx")
 outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)
@@ -29,7 +30,7 @@ debug = util.HasParamOption("-debug")
 outHierarchyFilePrefix = util.GetParam("-oh", "hierarchy_on_proc_")
 
 -- Create the domain and load a grid
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 if util.LoadDomain(dom, gridName) == false then
 	print("Loading of domain " .. gridName .. " failed. Aborting.")

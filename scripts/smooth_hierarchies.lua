@@ -13,11 +13,12 @@
 -- load it relative to the current path.
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
-
 -- constants
 dim = 2
+
+-- choose dimension and algebra
+InitUG(dim, CPUAlgebraSelector());
+
 gridName = "volgrid_b.ugx"
 numRefs = 4
 useLoopScheme = true
@@ -51,7 +52,7 @@ end
 	
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")

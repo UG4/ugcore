@@ -99,7 +99,7 @@ static bool TestDomainInterfaces(TDomain* dom)
 namespace bridge{
 
 template <typename TDomain>
-static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
+static bool RegisterDomainInterface_(Registry& reg, string parentGroup)
 {
 //	the dimension suffix
 	string dimSuffix = GetDomainSuffix<TDomain>();
@@ -168,7 +168,7 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 
 ///	methods that are only available for 2d and 3d are registered here
 template <typename TDomain>
-static bool RegisterDomainInterface_2d_3d(Registry& reg, const char* parentGroup)
+static bool RegisterDomainInterface_2d_3d(Registry& reg, string parentGroup)
 {
 //	the dimension suffix
 	string dimSuffix = GetDomainSuffix<TDomain>();
@@ -182,7 +182,7 @@ static bool RegisterDomainInterface_2d_3d(Registry& reg, const char* parentGroup
 	return true;
 }
 
-bool RegisterDomainInterface(Registry& reg, const char* parentGroup)
+bool RegisterDomainInterface(Registry& reg, string parentGroup)
 {
 	bool bSuccess = true;
 

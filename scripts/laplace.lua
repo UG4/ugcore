@@ -61,7 +61,7 @@ print("    distType   = " .. distributionType)
 
 
 -- choose algebra
-InitAlgebra(CPUAlgebraSelector());
+InitUG(dim, CPUAlgebraSelector());
 
 
 --------------------------------
@@ -137,7 +137,7 @@ InitAlgebra(CPUAlgebraSelector());
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = util.CreateDomain(dim)
+dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
@@ -300,7 +300,7 @@ dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 if dim == 2 then 
 --upwind = NoUpwind2d()
 --upwind = FullUpwind2d()
-upwind = WeightedUpwind2d(); upwind:set_weight(0.0)
+upwind = WeightedUpwind(); upwind:set_weight(0.0)
 --upwind = PartialUpwind2d()
 elseif dim == 3 then 
 --upwind = NoUpwind3d()
@@ -356,7 +356,7 @@ u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
 -- debug writer
-dbgWriter = util.CreateGridFunctionDebugWriter(dim)
+dbgWriter = GridFunctionDebugWriter()
 dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 

@@ -273,7 +273,7 @@ void PrintFunctionIntermediate(SmartPtr<Intermediate1> b)
 class ConstClass
 {
 	public:
-		std::string const_method() const
+		string const_method() const
 		{
 			return "const_method_called";
 		}
@@ -301,9 +301,9 @@ const char* StringTest()
 	return "Jooik";
 }
 
-std::string StdStringTest()
+string StdStringTest()
 {
-	return std::string("stdJooik");
+	return string("stdJooik");
 }
 
 
@@ -368,27 +368,27 @@ void NonAllowedFct1() {};
 void NonAllowedFct2() {};
 void NonAllowedFct3() {};
 
-bool RegisterTestInterface(Registry& reg, const char* parentGroup)
+bool RegisterTestInterface(Registry& reg, string parentGroup)
 {
 	try
 	{
 	//	get group string
-		std::stringstream groupString; groupString << parentGroup << "/Test";
-		std::string grp = groupString.str();
+		stringstream groupString; groupString << parentGroup << "/Test";
+		string grp = groupString.str();
 
 	//	registering hello world
 		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen);
 
 	//	registering add
 		reg.add_function("add", static_cast<int (*)(int, int)>(
-								&Add), grp.c_str(), "c", "a#b");
+								&Add), grp, "c", "a#b");
 		reg.add_function("add", static_cast<int (*)(int, int, int)>(
-								&Add), grp.c_str(), "d", "a#b#c");
+								&Add), grp, "d", "a#b#c");
 		reg.add_function("add", static_cast<string (*)(const char*, const char*)>(
-								&Add), grp.c_str(), "c", "a#b");
+								&Add), grp, "c", "a#b");
 
 	//	register class "Test"
-		reg.add_class_<Test>("Test", grp.c_str())
+		reg.add_class_<Test>("Test", grp)
 			.add_constructor()
 			.add_method("add", static_cast<int (Test::*)(int, int)>(&Test::add), "c", "a#b")
 			.add_method("add", static_cast<int (Test::*)(int, int, int)>(&Test::add), "d", "a#b#c")
@@ -398,47 +398,47 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_method("print", static_cast<int(Test::*)() const>(&Test::print));
 
 	//	registering base class (without constructor)
-		reg.add_class_<Base>("Base", grp.c_str())
+		reg.add_class_<Base>("Base", grp)
 			.add_constructor()
 			.add_method("print", &Base::print);
 
 	//	registering derived class
-		reg.add_class_<Derived, Base>("Derived", grp.c_str())
+		reg.add_class_<Derived, Base>("Derived", grp)
 			.add_constructor()
 			.add_method("print", &Derived::print);
 
 	//	registering derived class
-		reg.add_class_<FurtherDerived, Derived>("FurtherDerived", grp.c_str())
+		reg.add_class_<FurtherDerived, Derived>("FurtherDerived", grp)
 			.add_constructor()
 			.add_method("print", &FurtherDerived::print);
 
-		reg.add_function("CreateConstFurtherDerived", &CreateConstFurtherDerived, grp.c_str());
+		reg.add_function("CreateConstFurtherDerived", &CreateConstFurtherDerived, grp);
 
-		reg.add_class_<Base0>("Base0", grp.c_str())
+		reg.add_class_<Base0>("Base0", grp)
 			.add_method("virt_print_base0", &Base0::virt_print_base0)
 			.add_method("print_base0", &Base0::print_base0);
 
-		reg.add_class_<Base1>("Base1", grp.c_str())
+		reg.add_class_<Base1>("Base1", grp)
 			.add_method("virt_print_base1", &Base1::virt_print_base1)
 			.add_method("print_base1", &Base1::print_base1);
 
-		reg.add_class_<Base2>("Base2", grp.c_str())
+		reg.add_class_<Base2>("Base2", grp)
 			.add_method("virt_print_base2", &Base2::virt_print_base2)
 			.add_method("print_base2", &Base2::print_base2);
 
-		reg.add_class_<Base3>("Base3", grp.c_str())
+		reg.add_class_<Base3>("Base3", grp)
 			.add_method("virt_print_base3", &Base3::virt_print_base3)
 			.add_method("print_base3", &Base3::print_base3);
 
-		reg.add_class_<Intermediate0, Base1, Base0>("Intermediate0", grp.c_str())
+		reg.add_class_<Intermediate0, Base1, Base0>("Intermediate0", grp)
 			.add_method("virt_print_intermediate0", &Intermediate0::virt_print_intermediate0)
 			.add_method("print_intermediate0", &Intermediate0::print_intermediate0);
 
-		reg.add_class_<Intermediate1, Base2, Base3>("Intermediate1", grp.c_str())
+		reg.add_class_<Intermediate1, Base2, Base3>("Intermediate1", grp)
 			.add_method("virt_print_intermediate1", &Intermediate1::virt_print_intermediate1)
 			.add_method("print_intermediate1", &Intermediate1::print_intermediate1);
 
-		reg.add_class_<MultipleDerived, Intermediate0, Intermediate1>("MultipleDerived", grp.c_str())
+		reg.add_class_<MultipleDerived, Intermediate0, Intermediate1>("MultipleDerived", grp)
 			.add_constructor()
 			.add_method("print_mulitple_derived", &MultipleDerived::print_mulitple_derived);
 
@@ -452,30 +452,30 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		reg.add_function("PrintFunctionIntermediate", static_cast<void (*)(Intermediate0&)>(&PrintFunctionIntermediate));
 		reg.add_function("PrintFunction", static_cast<void (*)(Base3&)>(&PrintFunction));
 
-		reg.add_class_<ConstClass>("ConstClass", grp.c_str())
+		reg.add_class_<ConstClass>("ConstClass", grp)
 			.add_constructor()
 			.add_method("const_method", &ConstClass::const_method);
 
-		reg.add_class_<Piece>("Piece", grp.c_str())
+		reg.add_class_<Piece>("Piece", grp)
 			.add_constructor()
 			.add_method("size", &Piece::size);
 
-		reg.add_class_<Cake>("Cake", grp.c_str())
+		reg.add_class_<Cake>("Cake", grp)
 			.add_constructor()
 			.add_method("take_pieces", &Cake::take_pieces)
 			.add_method("add_pieces", &Cake::add_pieces)
 			.add_method("pieces_left", &Cake::pieces_left);
 
-		reg.add_function("TestFunc", TestFunc, grp.c_str())
-			.add_function("SmartTestImpl", SmartTestImpl, grp.c_str())
-			.add_function("ConstSmartTestImpl", ConstSmartTestImpl, grp.c_str())
-			.add_function("SmartTestFunc", SmartTestFunc, grp.c_str())
-			.add_function("ConstSmartTestFunc", ConstSmartTestFunc, grp.c_str())
-			.add_function("ConstTestFunc", ConstTestFunc, grp.c_str())
-			.add_function("ToConst", ToConst, grp.c_str())
-			.add_function("StringTest", StringTest, grp.c_str())
-			.add_function("StdStringTest", StdStringTest, grp.c_str())
-			.add_function("TestPageContainer", TestPageContainer, grp.c_str());
+		reg.add_function("TestFunc", TestFunc, grp)
+			.add_function("SmartTestImpl", SmartTestImpl, grp)
+			.add_function("ConstSmartTestImpl", ConstSmartTestImpl, grp)
+			.add_function("SmartTestFunc", SmartTestFunc, grp)
+			.add_function("ConstSmartTestFunc", ConstSmartTestFunc, grp)
+			.add_function("ConstTestFunc", ConstTestFunc, grp)
+			.add_function("ToConst", ToConst, grp)
+			.add_function("StringTest", StringTest, grp)
+			.add_function("StdStringTest", StdStringTest, grp)
+			.add_function("TestPageContainer", TestPageContainer, grp);
 
 		reg.add_function("PostRegisterTest", &PostRegisterTest);
 

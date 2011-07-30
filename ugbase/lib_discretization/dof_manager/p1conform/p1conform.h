@@ -15,6 +15,7 @@
 #include "../dof_distribution.h"
 #include "../function_pattern.h"
 #include "../../reference_element/reference_element.h"
+#include "../dof_distribution_type.h"
 
 namespace ug{
 
@@ -78,6 +79,9 @@ class P1DoFDistribution
 	: public IDoFDistribution<P1DoFDistribution<bGrouped> >
 {
 	public:
+	///	dof distribution type
+		static const DofDistributionType type;
+
 	///	own type
 		typedef P1DoFDistribution<bGrouped> this_type;
 
@@ -301,7 +305,6 @@ class P1DoFDistribution
 };
 
 } // end namespace ug
-
 
 #include "./p1conform_impl.h"
 
