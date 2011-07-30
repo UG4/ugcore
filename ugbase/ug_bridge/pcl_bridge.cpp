@@ -139,7 +139,7 @@ bool AllProcsTrueDUMMY(bool bTrue)
 
 bool RegisterPCLInterface(Registry& reg, string parentGroup)
 {
-	string grpStr(parentGroup);
+	string grp(parentGroup);
 	grp.append("/pcl");
 
 	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabledDUMMY, grp,
