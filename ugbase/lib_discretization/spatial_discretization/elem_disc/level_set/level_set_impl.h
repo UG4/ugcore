@@ -128,7 +128,7 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem,grid_type& gri
 	   coCoord.push_back( aaPos[vVrt[i]] );
 
 	//	evaluate finite volume geometry
-	geo.update(elem, domain.get_subset_handler(), &(coCoord[0]) );
+	geo.update(elem, &(coCoord[0]), &domain.get_subset_handler());
     //UG_LOG("geo.num_scvf() " << geo.num_scvf() << "\n");
     //UG_LOG("geo.num_scv() " << geo.num_scv() << "\n");
 		
@@ -295,7 +295,7 @@ calculate_vertex_vol(TGridFunction& u,aaSCV& aaScvVolume)
 			    	vCornerCoord.push_back( aaPos[vVrt[i]] );
 
 			//	evaluate finite volume geometry
-				geo.update(elem, domain.get_subset_handler(), &(vCornerCoord[0]) );
+				geo.update(elem, &(vCornerCoord[0]), &domain.get_subset_handler());
 
 
 			//	loop corners
@@ -390,7 +390,7 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 					vCornerCoord.push_back( aaPos[vVrt[i]] );
 
 			//	evaluate finite volume geometry
-				geo.update(elem, domain.get_subset_handler(), &(vCornerCoord[0]) );
+				geo.update(elem, &(vCornerCoord[0]), &domain.get_subset_handler());
 
 				//UG_LOG("Num Verts loaded: "<<vVrt.size()<<"\n");
 				//UG_LOG("Num SCV computed: "<<geo.num_scv()<<"\n");

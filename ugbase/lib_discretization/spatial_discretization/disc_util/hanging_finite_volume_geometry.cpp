@@ -40,14 +40,14 @@ HFV1Geometry()
 template <typename TElem, int TWorldDim>
 bool
 HFV1Geometry<TElem, TWorldDim>::
-update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCornerCoords)
+update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	// If already update for this element, do nothing
 	if(m_pElem == elem) return true;
 	else m_pElem = elem;
 
 	// get grid
-	Grid& grid = *ish.get_assigned_grid();
+	Grid& grid = *(ish->get_assigned_grid());
 
 	// reset to natural nodes
 	m_gloMid[0].resize(m_numNaturalSCV);

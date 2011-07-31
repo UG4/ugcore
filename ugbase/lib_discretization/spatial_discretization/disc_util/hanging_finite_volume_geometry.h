@@ -214,8 +214,8 @@ class HFV1Geometry : public FVGeometryBase{
 		HFV1Geometry();
 
 	///	update values for an element
-		bool update(TElem* elem, const ISubsetHandler& ish,
-		            			 const MathVector<worldDim>* vCornerCoords);
+		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		            			 const ISubsetHandler* ish = NULL);
 
 	// 	debug output
 		void print();

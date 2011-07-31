@@ -60,6 +60,15 @@ class FVGeometryBase {};
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+/// helper class to store dimnesion and id of a midpoint of a sub-element
+struct MidID
+{
+		MidID() : dim(0), id(0) {};
+		MidID(size_t dim_, size_t id_) : dim(dim_), id(id_) {};
+		size_t dim;
+		size_t id;
+};
+
 /// Geometry and shape functions for 1st order Vertex-Centered Finite Volume
 /**
  * \tparam	TElem		Element type
@@ -104,15 +113,6 @@ class FV1Geometry : public FVGeometryBase
 	// 	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
 
-	protected:
-		struct MidID
-		{
-				MidID() : dim(0), id(0) {};
-				MidID(size_t dim_, size_t id_) : dim(dim_), id(id_) {};
-				size_t dim;
-				size_t id;
-		};
-
 	public:
 	///	Sub-Control Volume Face structure
 	/**
@@ -131,7 +131,8 @@ class FV1Geometry : public FVGeometryBase
 				static const size_t numIP = 1;
 
 			///	Number of corners of scvf
-				static const size_t numCorners = fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+				static const size_t numCorners =
+						fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			private:
 			// 	let outer class access private members
@@ -192,11 +193,11 @@ class FV1Geometry : public FVGeometryBase
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vLocPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
 			/// return glbal corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vGloPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
 			// This scvf separates the scv with the ids given in "from" and "to"
@@ -210,8 +211,8 @@ class FV1Geometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> m_vLocPos[numCorners]; // local corners of scvf
-				MathVector<worldDim> m_vGloPos[numCorners]; // global corners of scvf
+				MathVector<dim> vLocPos[numCorners]; // local corners of scvf
+				MathVector<worldDim> vGloPos[numCorners]; // global corners of scvf
 				MidID midId[numCorners]; // dimension and id of object, that's midpoint bounds the scvf
 
 			// scvf part
@@ -234,7 +235,8 @@ class FV1Geometry : public FVGeometryBase
 				static const size_t numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t maxNumCorners = fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+				static const size_t maxNumCorners =
+						fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
 
 			private:
 			// 	let outer class access private members
@@ -250,10 +252,10 @@ class FV1Geometry : public FVGeometryBase
 				inline size_t num_ip() const {return numIP;}
 
 			/// local integration point of scv
-				inline const MathVector<dim>& local_ip() const {return m_vLocPos[0];}
+				inline const MathVector<dim>& local_ip() const {return vLocPos[0];}
 
 			/// global integration point
-				inline const MathVector<worldDim>& global_ip() const {return m_vGloPos[0];}
+				inline const MathVector<worldDim>& global_ip() const {return vGloPos[0];}
 
 			/// volume of scv
 				inline number volume() const {return vol;}
@@ -263,11 +265,11 @@ class FV1Geometry : public FVGeometryBase
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vLocPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
 			/// return glbal corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vGloPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
 			//  node id of associated node
@@ -280,8 +282,8 @@ class FV1Geometry : public FVGeometryBase
 				size_t m_numCorners;
 
 			//	local and global positions of this element
-				MathVector<dim> m_vLocPos[maxNumCorners]; // local position of node
-				MathVector<worldDim> m_vGloPos[maxNumCorners]; // global position of node
+				MathVector<dim> vLocPos[maxNumCorners]; // local position of node
+				MathVector<worldDim> vGloPos[maxNumCorners]; // global position of node
 				MidID midId[maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
 		};
 
@@ -293,7 +295,8 @@ class FV1Geometry : public FVGeometryBase
 				static const size_t m_numIP = 1;
 
 			/// Number of corners of bf
-				static const size_t m_numCorners = fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+				static const size_t m_numCorners =
+						fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			private:
 			/// let outer class access private members
@@ -355,11 +358,11 @@ class FV1Geometry : public FVGeometryBase
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vLocPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
 			/// return glbal corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vGloPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
 			// 	id of scv this bf belongs to
@@ -369,8 +372,8 @@ class FV1Geometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> m_vLocPos[m_numCorners]; // local corners of bf
-				MathVector<worldDim> m_vGloPos[m_numCorners]; // global corners of bf
+				MathVector<dim> vLocPos[m_numCorners]; // local corners of bf
+				MathVector<worldDim> vGloPos[m_numCorners]; // global corners of bf
 				MidID midId[m_numCorners]; // dimension and id of object, that's midpoint bounds the bf
 
 			// 	scvf part
@@ -391,8 +394,12 @@ class FV1Geometry : public FVGeometryBase
 	/// construct object and initialize local values and sizes
 		FV1Geometry();
 
+	///	update local data
+		bool update_local_data();
+
 	/// update data for given element
-		bool update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCornerCoords);
+		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		            const ISubsetHandler* ish = NULL);
 
 	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
@@ -487,29 +494,6 @@ class FV1Geometry : public FVGeometryBase
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
 
-	protected:
-		template <typename T>
-		void copy_local_corners(T& obj)
-		{
-			for(size_t i = 0; i < obj.num_corners(); ++i)
-			{
-				const size_t dim = obj.midId[i].dim;
-				const size_t id = obj.midId[i].id;
-				obj.m_vLocPos[i] = m_locMid[dim][id];
-			}
-		}
-
-		template <typename T>
-		void copy_global_corners(T& obj)
-		{
-			for(size_t i = 0; i < obj.num_corners(); ++i)
-			{
-				const size_t dim = obj.midId[i].dim;
-				const size_t id = obj.midId[i].id;
-				obj.m_vGloPos[i] = m_gloMid[dim][id];
-			}
-		}
-
 	private:
 	///	pointer to current element
 		TElem* m_pElem;
@@ -571,15 +555,6 @@ class DimFV1Geometry : public FVGeometryBase
 
 	//	number of shape functions
 		static const size_t maxNSH = fv1_dim_traits<dim, worldDim>::maxNSH;
-
-	protected:
-		struct MidID
-		{
-				MidID() : dim(0), id(0) {};
-				MidID(size_t dim_, size_t id_) : dim(dim_), id(id_) {};
-				size_t dim;
-				size_t id;
-		};
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -660,11 +635,11 @@ class DimFV1Geometry : public FVGeometryBase
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vLocPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
 			/// return glbal corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vGloPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
 			// This scvf separates the scv with the ids given in "from" and "to"
@@ -678,8 +653,8 @@ class DimFV1Geometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> m_vLocPos[numCorners]; // local corners of scvf
-				MathVector<worldDim> m_vGloPos[numCorners]; // global corners of scvf
+				MathVector<dim> vLocPos[numCorners]; // local corners of scvf
+				MathVector<worldDim> vGloPos[numCorners]; // global corners of scvf
 				MidID midId[numCorners]; // dimension and id of object, that's midpoint bounds the scvf
 
 			// scvf part
@@ -721,10 +696,10 @@ class DimFV1Geometry : public FVGeometryBase
 				inline size_t num_ip() const {return numIP;}
 
 			/// local integration point of scv
-				inline const MathVector<dim>& local_ip() const {return m_vLocPos[0];}
+				inline const MathVector<dim>& local_ip() const {return vLocPos[0];}
 
 			/// global integration point
-				inline const MathVector<worldDim>& global_ip() const {return m_vGloPos[0];}
+				inline const MathVector<worldDim>& global_ip() const {return vGloPos[0];}
 
 			/// volume of scv
 				inline number volume() const {return vol;}
@@ -734,11 +709,11 @@ class DimFV1Geometry : public FVGeometryBase
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vLocPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
 			/// return glbal corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vGloPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			/// Transposed Inverse of Jacobian in integration point
 				inline const MathMatrix<worldDim,dim>& JTInv() const {return JtInv;}
@@ -783,8 +758,8 @@ class DimFV1Geometry : public FVGeometryBase
 				size_t m_numSH;
 
 			//	local and global positions of this element
-				MathVector<dim> m_vLocPos[maxNumCorners]; // local position of node
-				MathVector<worldDim> m_vGloPos[maxNumCorners]; // global position of node
+				MathVector<dim> vLocPos[maxNumCorners]; // local position of node
+				MathVector<worldDim> vGloPos[maxNumCorners]; // global position of node
 				MidID midId[maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
 
 			// shapes and derivatives
@@ -865,11 +840,11 @@ class DimFV1Geometry : public FVGeometryBase
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vLocPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
 			/// return glbal corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
-					{UG_ASSERT(co < num_corners(), "Invalid index."); return m_vGloPos[co];}
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
 			// 	id of scv this bf belongs to
@@ -879,8 +854,8 @@ class DimFV1Geometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> m_vLocPos[m_numCorners]; // local corners of bf
-				MathVector<worldDim> m_vGloPos[m_numCorners]; // global corners of bf
+				MathVector<dim> vLocPos[m_numCorners]; // local corners of bf
+				MathVector<worldDim> vGloPos[m_numCorners]; // global corners of bf
 				MidID midId[m_numCorners]; // dimension and id of object, that's midpoint bounds the bf
 
 			// 	scvf part
@@ -904,8 +879,12 @@ class DimFV1Geometry : public FVGeometryBase
 	/// construct object and initialize local values and sizes
 		DimFV1Geometry() : m_pElem(NULL), m_roid(ROID_INVALID) {};
 
+	///	update local data
+		bool update_local_data();
+
 	/// update data for given element
-		bool update(GeometricObject* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCornerCoords);
+		bool update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		            const ISubsetHandler* ish = NULL);
 
 	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
@@ -999,29 +978,6 @@ class DimFV1Geometry : public FVGeometryBase
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
-
-	protected:
-		template <typename T>
-		void copy_local_corners(T& obj)
-		{
-			for(size_t i = 0; i < obj.num_corners(); ++i)
-			{
-				const size_t dim = obj.midId[i].dim;
-				const size_t id = obj.midId[i].id;
-				obj.m_vLocPos[i] = m_locMid[dim][id];
-			}
-		}
-
-		template <typename T>
-		void copy_global_corners(T& obj)
-		{
-			for(size_t i = 0; i < obj.num_corners(); ++i)
-			{
-				const size_t dim = obj.midId[i].dim;
-				const size_t id = obj.midId[i].id;
-				obj.m_vGloPos[i] = m_gloMid[dim][id];
-			}
-		}
 
 	private:
 	///	pointer to current element
@@ -1119,11 +1075,11 @@ class FV1ManifoldBoundary
 
 				/// local integration point of bf
 				inline const MathVector<dim>& local_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return m_vLocPos[0];}
+					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vLocPos[0];}
 
 				/// global integration point
 				inline const MathVector<worldDim>& global_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return m_vGloPos[0];}
+					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vGloPos[0];}
 
 				/// volume of bf
 				inline number volume() const {return vol;}
@@ -1133,11 +1089,11 @@ class FV1ManifoldBoundary
 
 				/// return local position of corner number i
 				inline const MathVector<dim>& local_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid index."); return m_vLocPos[i];}
+					{UG_ASSERT(i < num_corners(), "Invalid index."); return vLocPos[i];}
 
 				/// return global position of corner number i
 				inline const MathVector<worldDim>& global_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid index."); return m_vGloPos[i];}
+					{UG_ASSERT(i < num_corners(), "Invalid index."); return vGloPos[i];}
 				
 				/// number of shape functions
 				inline size_t num_sh() const {return vShape.size();}
@@ -1153,8 +1109,8 @@ class FV1ManifoldBoundary
 				// 1D: edgeMidPoint, CenterOfElement
 				// 2D: edgeMidPoint, Side one, CenterOfElement, Side two
 				size_t m_numCorners;
-				MathVector<dim> m_vLocPos[m_maxNumCorners];			// local position of node
-				MathVector<worldDim> m_vGloPos[m_maxNumCorners];	// global position of node
+				MathVector<dim> vLocPos[m_maxNumCorners];			// local position of node
+				MathVector<worldDim> vGloPos[m_maxNumCorners];	// global position of node
 				MidID midId[m_maxNumCorners];			// dimension and id of object, whose midpoint bounds the scv
 				
 				//IPs & shapes
@@ -1172,7 +1128,7 @@ class FV1ManifoldBoundary
 			{
 				const size_t dim = bf.midId[i].dim;
 				const size_t id = bf.midId[i].id;
-				bf.m_vLocPos[i] = m_locMid[dim][id];
+				bf.vLocPos[i] = m_locMid[dim][id];
 			}
 		}
 		
@@ -1182,7 +1138,7 @@ class FV1ManifoldBoundary
 			{
 				const size_t dim = bf.midId[i].dim;
 				const size_t id = bf.midId[i].id;
-				bf.m_vGloPos[i] = m_gloMid[dim][id];
+				bf.vGloPos[i] = m_gloMid[dim][id];
 			}
 		}
 
@@ -1191,32 +1147,33 @@ class FV1ManifoldBoundary
 		
 		
 	public:
-		/// constructor
+	/// constructor
 		FV1ManifoldBoundary();
 		
-		/// update data for given element
-		bool update(TElem* elem, const ISubsetHandler& ish, const MathVector<worldDim>* vCornerCoords);
+	///	update data for given element
+		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		            const ISubsetHandler* ish = NULL);
 			
-		/// get vector of corners for current element
+	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
 
-		/// number of BoundaryFaces
+	/// number of BoundaryFaces
 		inline size_t num_bf() const {return m_numBF;}
 
-		/// const access to Boundary Face number i
+	/// const access to Boundary Face number i
 		inline const BF& bf(size_t i) const
 			{UG_ASSERT(i < num_bf(), "Invalid Index."); return m_vBF[i];}
 	
-		/// returns all ips of scvf as they appear in scv loop
+	/// returns all ips of scvf as they appear in scv loop
 		const MathVector<worldDim>* bf_global_ips() const {return &m_vGlobBFIP[0];}
 
-		/// returns number of all scvf ips
+	/// returns number of all scvf ips
 		size_t num_bf_global_ips() const {return m_vGlobBFIP.size();}
 
-		/// returns all ips of scvf as they appear in scv loop
+	/// returns all ips of scvf as they appear in scv loop
 		const MathVector<dim>* bf_local_ips() const {return &m_vLocBFIP[0];}
 
-		/// returns number of all scvf ips
+	/// returns number of all scvf ips
 		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
 
 	
