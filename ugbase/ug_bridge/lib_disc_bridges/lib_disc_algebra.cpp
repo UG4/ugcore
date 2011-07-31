@@ -8,6 +8,7 @@
 // extern libraries
 #include <iostream>
 #include <sstream>
+#include <string>
 
 // registry
 #include "registry/registry.h"
@@ -45,6 +46,8 @@
 // newton solver
 #include "lib_discretization/operator/non_linear_operator/line_search.h"
 #include "lib_discretization/operator/non_linear_operator/newton_solver/newton.h"
+
+using namespace std;
 
 namespace ug
 {
