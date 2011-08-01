@@ -114,7 +114,7 @@ void ExtractPositions(	const IDoFDistribution<TDoFImpl>& dofDistr,
 						std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPositions)
 {
 //	number of total dofs
-	int nr = dofDistr.num_dofs();
+	int nr = dofDistr.num_indices();
 
 //	resize positions
 	vPositions.resize(nr);
@@ -134,7 +134,7 @@ void ExtractPositions(	const IDoFDistribution<TDoFImpl>& dofDistr,
 			typename TDoFImpl::algebra_index_vector_type ind;
 
 		//	load indices associated with vertex
-			dofDistr.get_inner_algebra_indices(v, ind);
+			dofDistr.inner_algebra_indices(v, ind);
 
 		//	write position
 			for(size_t i = 0; i < ind.size(); ++i)
@@ -161,7 +161,7 @@ bool OrderLexForDofDist(IDoFDistribution<TDoFImpl>& dofDistr,
 	ExtractPositions<TDoFImpl,TDomain>(dofDistr, aaPos, vPositions);
 
 	//	get mapping: old -> new index
-	std::vector<size_t> vNewIndex(dofDistr.num_dofs());
+	std::vector<size_t> vNewIndex(dofDistr.num_indices());
 	if(!ComputeLexicographicOrder<vec_type>(vNewIndex, vPositions, orderflag, 0))
 		return false;
 
