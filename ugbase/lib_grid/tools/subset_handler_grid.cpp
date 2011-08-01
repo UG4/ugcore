@@ -270,6 +270,7 @@ GeometricObjectCollection
 GridSubsetHandler::
 get_geometric_object_collection(int subsetIndex)
 {
+//todo: replace with throw
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) && "invalid subset index!");
 
 	return GeometricObjectCollection(&m_subsets[subsetIndex]->m_elements[VERTEX],
