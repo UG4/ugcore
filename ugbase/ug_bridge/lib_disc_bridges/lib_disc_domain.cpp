@@ -163,7 +163,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 
 //	Order lexicographically
 	{
-		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
+		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> T;
 		reg.add_function("OrderLex", (bool (*)(T&, const char*))&OrderLex);
 	}
 
