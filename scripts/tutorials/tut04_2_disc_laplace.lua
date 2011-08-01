@@ -109,6 +109,7 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 	dirichletBnd:add(cbBnd, "c", boundarySubsets)
 	
 	local domainDisc = DomainDiscretization()
+domainDisc:set_approximation_space(approxSpace)
 	domainDisc:add(elemDisc)
 	domainDisc:add(dirichletBnd)
 	

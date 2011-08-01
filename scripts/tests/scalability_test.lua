@@ -425,6 +425,7 @@ dirichletBND:add(dirichlet, "c", "Boundary")
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
+domainDisc:set_approximation_space(approxSpace)
 domainDisc:add(elemDisc)
 domainDisc:add(dirichletBND)
 

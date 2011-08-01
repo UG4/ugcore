@@ -30,12 +30,16 @@ namespace ug {
  * is designed to simply group several discreizations on different subsets and
  * perform element based assemblings and costraints in the same order.
  */
-template <	typename TDoFDistribution,
+template <	typename TDomain,
+			typename TDoFDistribution,
 			typename TAlgebra>
 class DomainDiscretization :
 	public IDomainDiscretization<TDoFDistribution, TAlgebra>
 {
-	protected:
+	public:
+	///	Type of Domain
+		typedef TDomain domain_type;
+
 	///	Type of DoF Distribution
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
@@ -48,9 +52,20 @@ class DomainDiscretization :
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
+	///	Type of approximation space
+		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>
+					approx_space_type;
+
 	public:
 	///	default Constructor
-		DomainDiscretization() : m_bForceRegGrid(false), m_pSelector(NULL) {};
+		DomainDiscretization() :
+			m_pApproxSpace(NULL), m_bForceRegGrid(false), m_pSelector(NULL) {};
+
+	///	sets the approximation space to use
+		void set_approximation_space(approx_space_type& pApproxSpace)
+		{
+			m_pApproxSpace = & pApproxSpace;
+		}
 
 	///////////////////////////
 	// Time independent part
@@ -60,18 +75,30 @@ class DomainDiscretization :
 		bool assemble_jacobian(matrix_type& J, const vector_type& u,
 	                           const dof_distribution_type& dd);
 
+		bool assemble_jacobian(matrix_type& J, const vector_type& u)
+			{return assemble_jacobian(J, u, get_surface_dd());}
+
 	/// \copydoc IAssemble::assemble_defect()
 		bool assemble_defect(vector_type& d, const vector_type& u,
 		                     const dof_distribution_type& dd);
+
+		bool assemble_defect(vector_type& d, const vector_type& u)
+			{return assemble_defect(d, u, get_surface_dd());}
 
 	/// \copydoc IAssemble::assemble_linear()
 		bool assemble_linear(matrix_type& A, vector_type& b,
 		                     const vector_type& u,
 		                     const dof_distribution_type& dd);
 
+		bool assemble_linear(matrix_type& A, vector_type& b, const vector_type& u)
+			{return assemble_linear(A, b, get_surface_dd());}
+
 	/// \copydoc IAssemble::assemble_solution()
 		bool assemble_solution(vector_type& u,
 		                       const dof_distribution_type& dd);
+
+		bool assemble_solution(vector_type& u)
+			{return assemble_solution(u, get_surface_dd());}
 
 	///////////////////////
 	// Time dependent part
@@ -84,12 +111,24 @@ class DomainDiscretization :
 		                       const dof_distribution_type& dd,
 		                       number s_m, number s_a);
 
+		bool assemble_jacobian(matrix_type& J,
+		                       const vector_type& u, number time,
+		                       const SolutionTimeSeries<vector_type>& solList,
+		                       number s_m, number s_a)
+		{return assemble_jacobian(J, time, solList, get_surface_dd(), s_m, s_a);}
+
 	/// \copydoc IDomainDiscretization::assemble_defect()
 		bool assemble_defect(vector_type& d,
 		                     const vector_type& u, number time,
 		                     const SolutionTimeSeries<vector_type>& solList,
 		                     const dof_distribution_type& dd,
 		                     number s_m, number s_a);
+
+		bool assemble_defect(vector_type& d,
+		                     const vector_type& u, number time,
+		                     const SolutionTimeSeries<vector_type>& solList,
+		                     number s_m, number s_a)
+		{return assemble_defect(d, u, time, solList, get_surface_dd(), s_m, s_a);}
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
 		bool assemble_linear(matrix_type& A, vector_type& b,
@@ -98,9 +137,18 @@ class DomainDiscretization :
 		                     const dof_distribution_type& dd,
 		                     number s_m, number s_a);
 
+		bool assemble_linear(matrix_type& A, vector_type& b,
+		                     const vector_type& u, number time,
+		                     const SolutionTimeSeries<vector_type>& solList,
+		                     number s_m, number s_a)
+		{return assemble_linear(A, b, u, time, solList, get_surface_dd(), s_m, s_a);}
+
 	/// \copydoc IDomainDiscretization::assemble_solution()
 		bool assemble_solution(vector_type& u, number time,
 		                       const dof_distribution_type& dd);
+
+		bool assemble_solution(vector_type& u, number time)
+		{return assemble_solution(u, time, get_surface_dd());}
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
@@ -110,13 +158,22 @@ class DomainDiscretization :
 		bool assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		                          const dof_distribution_type& dd);
 
+		bool assemble_mass_matrix(matrix_type& M, const vector_type& u)
+		{return assemble_mass_matrix(M, u, get_surface_dd());}
+
 	/// assembles the stiffness matrix
 		bool assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		                               const dof_distribution_type& dd);
 
+		bool assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
+		{return assemble_stiffness_matrix(A, u, get_surface_dd());}
+
 	/// assembles the stiffness matrix
 		bool assemble_rhs(vector_type& rhs, const vector_type& u,
 		                  const dof_distribution_type& dd);
+
+		bool assemble_rhs(vector_type& rhs, const vector_type& u)
+		{return assemble_rhs(rhs, u, get_surface_dd());}
 
 	public:
 	/// forces the assembling to consider the grid as regular
@@ -143,15 +200,15 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	elem		Element Discretization to be added
 	 */
-		bool add(IElemDisc& elem)
+		bool add(IDomainElemDisc<domain_type>& elem)
 		{
 		//	check that not already registered
-			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(m_vElemDisc[i] == &elem)
+			for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
+				if(m_vDomainElemDisc[i] == &elem)
 					return true;
 
 		//	add it
-			m_vElemDisc.push_back(&elem);
+			m_vDomainElemDisc.push_back(&elem);
 			return true;
 		}
 
@@ -190,12 +247,24 @@ class DomainDiscretization :
 			return m_vvConstraints[CT_DIRICHLET].at(i);
 		}
 
+	///	set the approximation space in the elem discs and extract IElemDiscs
+		bool update_elem_discs();
+
+	///	returns the surface dof distribution
+		dof_distribution_type& get_surface_dd();
+
 	protected:
+	///	vector holding all registered elem discs
+		std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;
+
 	///	vector holding all registered elem discs
 		std::vector<IElemDisc*> m_vElemDisc;
 
 	//	vector holding all registered constraints
 		std::vector<IConstraint<TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
+
+	///	current approximation space
+		approx_space_type* m_pApproxSpace;
 
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;

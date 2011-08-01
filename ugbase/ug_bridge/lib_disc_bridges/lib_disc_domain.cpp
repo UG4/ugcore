@@ -35,6 +35,7 @@
 
 #include "lib_discretization/io/vtkoutput.h"
 
+#include "lib_discretization/spatial_discretization/domain_discretization.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/spatial_discretization/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
 
@@ -154,6 +155,28 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("get_surface_dof_distribution|hide=true",  static_cast<const typename T::dof_distribution_type& (T::*)() const>(&T::get_surface_dof_distribution))
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
 		reg.add_class_to_group(name, "ApproximationSpace", dimAlgDDTag);
+	}
+
+//	DomainDiscretization
+	{
+		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> TBase;
+		typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra> T;
+		typedef typename T::dof_distribution_type dof_distribution_type;
+		string name = string("DomainDiscretization").append(dimAlgDDSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.add_method("set_approximation_space", &T::set_approximation_space)
+			.add_method("add|interactive=false", static_cast<bool (T::*)(IConstraint<TDoFDistribution, TAlgebra>&)>(&T::add),
+						"", "Post Process")
+			.add_method("add|interactive=false", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
+						"", "Discretization")
+			.add_method("assemble_mass_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&, const dof_distribution_type&)>(&T::assemble_mass_matrix))
+			.add_method("assemble_mass_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&)>(&T::assemble_mass_matrix))
+			.add_method("assemble_stiffness_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&, const dof_distribution_type&)>(&T::assemble_stiffness_matrix))
+			.add_method("assemble_stiffness_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&)>(&T::assemble_stiffness_matrix))
+			.add_method("assemble_rhs", static_cast<bool (T::*)(vector_type&, const vector_type&, const dof_distribution_type&)>(&T::assemble_rhs))
+			.add_method("assemble_rhs", static_cast<bool (T::*)(vector_type&, const vector_type&)>(&T::assemble_rhs));
+		reg.add_class_to_group(name, "DomainDiscretization", dimAlgDDTag);
 	}
 
 //	Order Cuthill-McKee

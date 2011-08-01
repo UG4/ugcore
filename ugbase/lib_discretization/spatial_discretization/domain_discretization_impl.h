@@ -13,14 +13,62 @@
 
 namespace ug{
 
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+update_elem_discs()
+{
+//	check Approximation space
+	if(m_pApproxSpace == NULL)
+	{
+		UG_LOG("ERROR in DomainDiscretization: Before using the "
+				"DomainDiscretization an ApproximationSpace must be set to it. "
+				"Please use DomainDiscretization:set_approximation_space to "
+				"set an appropriate Space.\n");
+		return false;
+	}
+
+//	set approximation space and extract IElemDiscs
+	m_vElemDisc.clear();
+	for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
+	{
+		m_vDomainElemDisc[i]->set_approximation_space(*m_pApproxSpace);
+		m_vElemDisc.push_back(m_vDomainElemDisc[i]);
+	}
+
+//	ok
+	return true;
+}
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+typename DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
+DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+get_surface_dd()
+{
+//	check Approximation space
+	if(m_pApproxSpace == NULL)
+	{
+		UG_LOG("ERROR in DomainDiscretization: Before using the "
+				"DomainDiscretization an ApproximationSpace must be set to it. "
+				"Please use DomainDiscretization:set_approximation_space to "
+				"set an appropriate Space.\n");
+		throw(UGFatalError("ApproximationSpace missing in DomainDiscretization."));
+	}
+
+	return m_pApproxSpace->get_surface_dof_distribution();
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // Mass Matrix
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      const dof_distribution_type& dd)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	M.resize(0,0);
@@ -128,11 +176,14 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 // Stiffness Matrix
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           const dof_distribution_type& dd)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	A.resize(0,0);
@@ -246,12 +297,15 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 ///////////////////////////////////////////////////////////////////////////////
 // Jacobian (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const vector_type& u,
                   const dof_distribution_type& dd)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	J.resize(0,0);
@@ -363,12 +417,15 @@ assemble_jacobian(matrix_type& J,
 ///////////////////////////////////////////////////////////////////////////////
 // Defect (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d,
                 const vector_type& u,
                 const dof_distribution_type& dd)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	d.resize(numIndex);
@@ -472,12 +529,15 @@ assemble_defect(vector_type& d,
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 const vector_type& u,
                 const dof_distribution_type& dd)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	mat.resize(0,0);
@@ -592,12 +652,15 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 // RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_rhs(vector_type& rhs,
 			const vector_type& u,
 			const dof_distribution_type& dd)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	rhs.resize(numIndex);
@@ -704,8 +767,8 @@ assemble_rhs(vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 // set constraints (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, const dof_distribution_type& dd)
 {
 //	post process dirichlet
@@ -735,14 +798,17 @@ assemble_solution(vector_type& u, const dof_distribution_type& dd)
 ///////////////////////////////////////////////////////////////////////////////
 // Jacobian (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const vector_type& u, number time,
                   const SolutionTimeSeries<vector_type>& solList,
                   const dof_distribution_type& dd,
                   number s_m0, number s_a0)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	check that s_m is 1.0
 	if(s_m0 != 1.0)
 	{
@@ -849,14 +915,17 @@ assemble_jacobian(matrix_type& J,
 ///////////////////////////////////////////////////////////////////////////////
 // Defect (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d,
                 const vector_type& u, number time,
                 const SolutionTimeSeries<vector_type>& solList,
                 const dof_distribution_type& dd,
                 number s_m, number s_a)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 	std::vector<SubsetGroup> vSSGrp;
@@ -954,14 +1023,17 @@ assemble_defect(vector_type& d,
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 const vector_type& u, number time,
                 const SolutionTimeSeries<vector_type>& solList,
                 const dof_distribution_type& dd,
                 number s_m, number s_a)
 {
+//	update the elem discs
+	if(!update_elem_discs()) return false;
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 	std::vector<SubsetGroup> vSSGrp;
@@ -1065,8 +1137,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 // set constraint values (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, number time, const dof_distribution_type& dd)
 {
 //	dirichlet

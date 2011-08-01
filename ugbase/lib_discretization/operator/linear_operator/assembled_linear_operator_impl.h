@@ -101,13 +101,13 @@ init_op_and_rhs(vector_type& b)
 //	check if DoF Distribution is set
 	if(m_pDoFDistribution == NULL)
 	{
-		UG_LOG("ERROR in AssembledLinearOperator::init:"
+		UG_LOG("ERROR in AssembledLinearOperator::init_op_and_rhs:"
 				" DoF Distribution not set.\n");
 		return false;
 	}
 	if(m_pAss == NULL)
 	{
-		UG_LOG("ERROR in AssembledLinearOperator::init:"
+		UG_LOG("ERROR in AssembledLinearOperator::init_op_and_rhs:"
 				" Assembling routine not set.\n");
 		return false;
 	}
@@ -118,7 +118,7 @@ init_op_and_rhs(vector_type& b)
 //	assemble matrix and rhs in one loop
 	if(!m_pAss->assemble_linear(*this, b, b, *m_pDoFDistribution))
 	{
-		UG_LOG("ERROR in AssembledLinearOperator::init:"
+		UG_LOG("ERROR in AssembledLinearOperator::init_op_and_rhs:"
 				" Cannot assemble Matrix and Rhs.\n");
 		return false;
 	}

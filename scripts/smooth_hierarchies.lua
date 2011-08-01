@@ -87,6 +87,7 @@ if util.LoadDomain(dom, gridName) == true then
 
 	-- create Discretization
 	domainDisc = DomainDiscretization()
+domainDisc:set_approximation_space(approxSpace)
 
 	print("creating dirichlet boundary...")
 	-- create dirichlet boundary and add it to discretization

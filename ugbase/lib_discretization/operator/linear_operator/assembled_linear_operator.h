@@ -67,10 +67,6 @@ class AssembledLinearOperator :
 		void set_dof_distribution(const dof_distribution_type& dofDistr)
 			{m_pDoFDistribution = &dofDistr;}
 
-	///	returns the dof distribution
-		const dof_distribution_type* get_dof_distribution()
-			{return m_pDoFDistribution;}
-
 	///	initializes the operator that may depend on the current solution
 		virtual bool init(const vector_type& u);
 

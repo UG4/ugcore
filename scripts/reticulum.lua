@@ -216,6 +216,7 @@ innerDisc = util.CreateInnerBoundary(approxSpace, "ca_cyt, ca_er, ip3", "mem_er"
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
+domainDisc:set_approximation_space(approxSpace)
 domainDisc:add(elemDiscER)
 domainDisc:add(elemDiscCYT)
 domainDisc:add(elemDiscIP3)

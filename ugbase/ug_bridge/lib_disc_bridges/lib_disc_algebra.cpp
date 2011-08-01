@@ -33,9 +33,6 @@
 // time discretization implementation
 #include "lib_discretization/time_discretization/theta_time_step.h"
 
-// domain discretization implementation
-#include "lib_discretization/spatial_discretization/domain_discretization.h"
-
 // post processes
 #include "lib_discretization/spatial_discretization/constraints/continuity_constraints/p1_continuity_constraints.h"
 
@@ -121,23 +118,6 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 			.add_method("assemble_jacobian", static_cast<bool (T::*)(matrix_type&, const vector_type&,
 							number, const SolutionTimeSeries<vector_type>&, const IDoFDistribution<TDoFDistribution>&, number, number)>(&T::assemble_jacobian));
 		reg.add_class_to_group(name, "IDomainDiscretization", algDDTag);
-	}
-
-//	DomainDiscretization
-	{
-		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> TBase;
-		typedef DomainDiscretization<TDoFDistribution, TAlgebra> T;
-		string name = string("DomainDiscretization").append(algDDSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.add_method("add|interactive=false", static_cast<bool (T::*)(IConstraint<TDoFDistribution, TAlgebra>&)>(&T::add),
-						"", "Post Process")
-			.add_method("add|interactive=false", static_cast<bool (T::*)(IElemDisc&)>(&T::add),
-						"", "Discretization")
-			.add_method("assemble_mass_matrix", &T::assemble_mass_matrix)
-			.add_method("assemble_stiffness_matrix", &T::assemble_stiffness_matrix)
-			.add_method("assemble_rhs", &T::assemble_rhs);
-		reg.add_class_to_group(name, "DomainDiscretization", algDDTag);
 	}
 
 //	ITimeDiscretization
