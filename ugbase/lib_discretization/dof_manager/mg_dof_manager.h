@@ -33,21 +33,24 @@ class MGDoFManager : public GridObserver
 	public:
 	///	Default Constructor
 		MGDoFManager()
-			: m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL), m_pSurfaceView(NULL),
-				m_pFuncPattern(NULL), m_pSurfDD(NULL)
+			: m_bGrouped(false), m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL),
+			  m_pSurfaceView(NULL), m_pFuncPattern(NULL), m_pSurfDD(NULL)
 		{
 			m_vLevelDD.clear();
 		};
 
 	///	Constructor setting Function Pattern and Multi Grid Subset Handler
 		MGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp)
-			: m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL), m_pSurfaceView(NULL),
-				m_pFuncPattern(NULL), m_pSurfDD(NULL)
+			: m_bGrouped(false), m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL),
+			  m_pSurfaceView(NULL), m_pFuncPattern(NULL), m_pSurfDD(NULL)
 		{
 			m_vLevelDD.clear();
 			assign_multi_grid_subset_handler(mgsh);
 			assign_function_pattern(dp);
 		};
+
+	///	set grouped
+		void set_grouping(bool bGrouped) {m_bGrouped = bGrouped;}
 
 	/// set multi grid subset handler
 		bool assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh);
@@ -269,6 +272,9 @@ class MGDoFManager : public GridObserver
 		void print_local_dof_statistic(const dof_distribution_type& dd, int verboseLev = 1) const;
 
 	protected:
+	//	group flag
+		bool m_bGrouped;
+
 	// 	MultiGridSubsetHandler this DofManager works on
 		MultiGridSubsetHandler* m_pMGSubsetHandler;
 

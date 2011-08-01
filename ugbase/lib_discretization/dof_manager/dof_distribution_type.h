@@ -13,8 +13,7 @@ namespace ug{
 enum DofDistributionType
 {
 	DDT_CONFORM,
-	DDT_P1CONFORMGROUPED,
-	DDT_P1CONFORMNONGROUPED,
+	DDT_P1CONFORM
 };
 
 } // end namespace ug

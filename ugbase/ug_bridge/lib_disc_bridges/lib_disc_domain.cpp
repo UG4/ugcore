@@ -141,6 +141,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("init|hide=true", &T::init)
+			.add_method("set_grouping", &T::set_grouping)
 			.add_method("print_statistic|hide=true", static_cast<void (T::*)(int) const>(&T::print_statistic))
 			.add_method("print_statistic|hide=true", static_cast<void (T::*)() const>(&T::print_statistic))
 			.add_method("print_layout_statistic|hide=true", static_cast<void (T::*)(int) const>(&T::print_layout_statistic))
@@ -459,8 +460,7 @@ template <typename TAlgebra>
 static bool RegisterLibDiscDomain__Algebra(Registry& reg, string parentGroup)
 {
 	bool bReturn = true;
-	bReturn &= RegisterLibDiscDomain__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution<false> >(reg, parentGroup);
-//	bReturn &= RegisterLibDiscDomain__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution<true> >(reg, parentGroup);
+	bReturn &= RegisterLibDiscDomain__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution>(reg, parentGroup);
 //	bReturn &= RegisterLibDiscDomain__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
 
 	return bReturn;

@@ -73,6 +73,9 @@ class IDoFDistribution
 		// Infos
 		///////////////////////////
 
+	///	set grouped
+		void set_grouping(bool bGrouped){getImpl().set_grouping(bGrouped);}
+
 	///	returns if a trial space is supported
 		static bool supports_trial_space(LFEID& id)
 		{

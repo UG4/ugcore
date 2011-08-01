@@ -44,7 +44,7 @@ void InitUG(int dim, const IAlgebraTypeSelector& algebraSel)
 
 //	get DoFDistribution tag
 	//\todo: this is default, make others available
-	std::string ddTag = GetDoFDistributionTag(DDT_P1CONFORMNONGROUPED);
+	std::string ddTag = GetDoFDistributionTag(DDT_P1CONFORM);
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
 

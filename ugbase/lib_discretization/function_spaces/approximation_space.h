@@ -134,6 +134,15 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		virtual bool supports_trial_space(LFEID& id) const
 			{return TDoFDistribution::supports_trial_space(id);}
 
+	///	sets the grouping of indices on the same object
+		void set_grouping(bool bGrouped)
+		{
+			if(m_bInit)
+				throw(UGFatalError("ApproximationSpace: cannot change grouping "
+						"strategy after initialization."));
+			m_MGDoFManager.set_grouping(bGrouped);
+		}
+
 	///	prints statistic about DoF Distribution
 		void print_statistic(int verboseLev) const
 			{m_MGDoFManager.print_statistic(verboseLev);}

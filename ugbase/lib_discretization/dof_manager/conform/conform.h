@@ -142,6 +142,15 @@ class DoFDistribution
 		// Infos
 		///////////////////////////
 
+	///	set grouped
+		void set_grouping(bool bGrouped)
+		{
+			if(num_indices() > 0)
+				throw(UGFatalError("DoFDistribution: Grouping flag can not be "
+						"changed after initialization."));
+			m_bGrouped = bGrouped;
+		}
+
 	///	returns if trial space is supported
 		static bool supports_trial_space(LFEID& id)
 		{

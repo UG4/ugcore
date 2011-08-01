@@ -184,8 +184,7 @@ inline std::string GetAlgebraTag(const AlgebraType& algType)
 inline std::string GetDoFDistributionSuffix(DofDistributionType type)
 {
 	if(type == DDT_CONFORM) return "Conform";
-	else if(type == DDT_P1CONFORMGROUPED) return "P1ConformGrouped";
-	else if(type == DDT_P1CONFORMNONGROUPED) return "P1ConformNonGrouped";
+	else if(type == DDT_P1CONFORM) return "P1Conform";
 	else throw(UGFatalError("Unknown dof distribution type."));
 }
 
@@ -193,8 +192,7 @@ inline std::string GetDoFDistributionSuffix(DofDistributionType type)
 inline std::string GetDoFDistributionTag(DofDistributionType type)
 {
 	if(type == DDT_CONFORM) return "dd=Conform";
-	else if(type == DDT_P1CONFORMGROUPED) return "dd=P1ConformGrouped";
-	else if(type == DDT_P1CONFORMNONGROUPED) return "dd=P1ConformNonGrouped";
+	else if(type == DDT_P1CONFORM) return "dd=P1Conform";
 	else throw(UGFatalError("Unknown dof distribution type."));
 }
 

@@ -18,10 +18,9 @@ namespace ug{
 // P1ConformDoFDistribution
 ///////////////////////////////////////
 
-template <bool bGrouped>
 template<typename TElem>
 void
-P1DoFDistribution<bGrouped>::
+P1DoFDistribution::
 indices(TElem* elem, LocalIndices& ind, bool bHang) const
 {
 //	get reference element type
@@ -55,7 +54,7 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 		//	check if function is defined on the subset
 			if(!is_def_in_subset(fct, si)) continue;
 
-			if(!bGrouped)
+			if(!m_bGrouped)
 			{
 			//	compute index
 				const size_t index = firstindex + m_vvOffsets[si][fct];
@@ -109,7 +108,7 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 			//	check that function is defined on subset
 				if(!is_def_in_subset(fct, si)) continue;
 
-				if(!bGrouped)
+				if(!m_bGrouped)
 				{
 				//	compute index
 					const size_t index = firstindex + m_vvOffsets[si][fct];
@@ -163,7 +162,7 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 			//	check that function is defined on subset
 				if(!is_def_in_subset(fct, si)) continue;
 
-				if(!bGrouped)
+				if(!m_bGrouped)
 				{
 				//	compute index
 					const size_t index = firstindex + m_vvOffsets[si][fct];
@@ -188,10 +187,9 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 	return;
 }
 
-template <bool bGrouped>
 template<typename TElem>
 size_t
-P1DoFDistribution<bGrouped>::
+P1DoFDistribution::
 multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
 //	get reference element type
@@ -218,7 +216,7 @@ multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 		const size_t firstindex = first_index(vrt);
 
 	//	fill algebra index
-		if(!bGrouped)
+		if(!m_bGrouped)
 		{
 			ind[i][0] = firstindex + m_vvOffsets[si][fct];
 			ind[i][1] = 0;
@@ -234,10 +232,9 @@ multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 	return numDoFs;
 }
 
-template <bool bGrouped>
 template<typename TElem>
 size_t
-P1DoFDistribution<bGrouped>::
+P1DoFDistribution::
 inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
 //	get reference element type
@@ -261,7 +258,7 @@ inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 		const size_t firstindex = first_index(vrt);
 
 	//	fill algebra index
-		if(!bGrouped)
+		if(!m_bGrouped)
 		{
 			ind[0][0] = firstindex + m_vvOffsets[si][fct];
 			ind[0][1] = 0;
@@ -285,10 +282,9 @@ inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 	}
 }
 
-template <bool bGrouped>
 template<typename TElem>
 size_t
-P1DoFDistribution<bGrouped>::
+P1DoFDistribution::
 algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
 //	get reference element
@@ -311,7 +307,7 @@ algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	//	get first index
 		const size_t firstindex = first_index(vrt);
 
-		if(!bGrouped)
+		if(!m_bGrouped)
 		{
 			for(size_t fct = 0; fct < num_fct(); ++fct)
 			{
@@ -333,10 +329,9 @@ algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	return ind.size();
 }
 
-template <bool bGrouped>
 template<typename TElem>
 size_t
-P1DoFDistribution<bGrouped>::
+P1DoFDistribution::
 inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
 //	clear indices
@@ -358,7 +353,7 @@ inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	//	get first algebra index
 		const size_t firstIndex = first_index(vrt);
 
-		if(!bGrouped)
+		if(!m_bGrouped)
 		{
 		//	loop functions
 			for(size_t fct = 0; fct < num_fct(); ++fct)

@@ -433,13 +433,15 @@ surface_distribution_required()
 								 m_surfaceStorageManager,
 								 *m_pFuncPattern,
 								 *m_pSurfaceView);
-	}
 
-//	Check success
-	if(m_pSurfDD == NULL)
-	{
-		UG_LOG("Cannot allocate Surface DoF Distribution.\n");
-		return false;
+	//	Check success
+		if(m_pSurfDD == NULL)
+		{
+			UG_LOG("Cannot allocate Surface DoF Distribution.\n");
+			return false;
+		}
+
+		m_pSurfDD->set_grouping(m_bGrouped);
 	}
 
 	return true;
@@ -467,6 +469,8 @@ level_distribution_required(size_t numLevel)
 			UG_LOG("Cannot allocate Level DoF Distribution on Level " << l << ".\n");
 			return false;
 		}
+
+		m_vLevelDD[l]->set_grouping(m_bGrouped);
 	}
 	return true;
 }

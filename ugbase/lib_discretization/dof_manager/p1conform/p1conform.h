@@ -71,19 +71,15 @@ class P1StorageManager
 };
 
 /// DoF Manager for P1 Functions
-/**
- * \tparam	bGrouped	true if dofs are grouped on elements
- */
-template <bool bGrouped>
 class P1DoFDistribution
-	: public IDoFDistribution<P1DoFDistribution<bGrouped> >
+	: public IDoFDistribution<P1DoFDistribution>
 {
 	public:
 	///	dof distribution type
-		static const DofDistributionType type;
+		static const DofDistributionType type = DDT_P1CONFORM;
 
 	///	own type
-		typedef P1DoFDistribution<bGrouped> this_type;
+		typedef P1DoFDistribution this_type;
 
 	///	Base class
 		typedef IDoFDistribution<this_type> base_type;
@@ -114,7 +110,7 @@ class P1DoFDistribution
 		P1DoFDistribution(GeometricObjectCollection goc,
 		                  ISubsetHandler& sh, storage_manager_type& sm,
 		                  FunctionPattern& fp)
-		: base_type(goc, fp), m_pISubsetHandler(&sh),
+		: base_type(goc, fp), m_bGrouped(false), m_pISubsetHandler(&sh),
 		  m_pStorageManager(&sm), m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
 		  m_numIndex(0), m_sizeIndexSet(0)
 		{
@@ -133,7 +129,7 @@ class P1DoFDistribution
 		                  ISubsetHandler& sh, storage_manager_type& sm,
 		                  FunctionPattern& fp,
 		                  const SurfaceView& surfView)
-		: base_type(goc, fp, surfView), m_pISubsetHandler(&sh),
+		: base_type(goc, fp, surfView), m_bGrouped(false), m_pISubsetHandler(&sh),
 		  m_pStorageManager(&sm), m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
 		  m_numIndex(0), m_sizeIndexSet(0)
 		{
@@ -151,6 +147,15 @@ class P1DoFDistribution
 		///////////////////////////
 		// Infos
 		///////////////////////////
+
+	///	set grouped
+		void set_grouping(bool bGrouped)
+		{
+			if(num_indices() > 0)
+				throw(UGFatalError("P1DoFDistribution: Grouping flag can not be "
+						"changed after initialization."));
+			m_bGrouped = bGrouped;
+		}
 
 	///	returns if trial space is supported
 		static bool supports_trial_space(LFEID& id)
@@ -171,7 +176,7 @@ class P1DoFDistribution
 	/// \copydoc IDoFDistribution::blocksize()
 		int blocksize() const
 		{
-			if(!bGrouped) return 1;
+			if(!m_bGrouped) return 1;
 			else{
 				if(this->num_subsets()==0) return -1;
 				int blockSize = this->m_pFuncPattern->num_fct(0);
@@ -189,7 +194,7 @@ class P1DoFDistribution
 	/// \copydoc IDoFDistribution::blocksize(int) const
 		int blocksize(int si) const
 		{
-			if(!bGrouped) return 1;
+			if(!m_bGrouped) return 1;
 			else return this->m_pFuncPattern->num_fct(si);
 		}
 
@@ -278,6 +283,9 @@ class P1DoFDistribution
 		void push_free_index(size_t freeIndex, size_t si);
 
 	protected:
+	///	flag to indicate if dofs should be grouped
+		bool m_bGrouped;
+
 	/// subset handler for this distributor
 		ISubsetHandler* m_pISubsetHandler;
 

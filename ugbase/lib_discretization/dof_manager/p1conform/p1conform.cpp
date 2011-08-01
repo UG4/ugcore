@@ -67,23 +67,14 @@ bool P1StorageManager::update_attachments()
 ///////////////////////////////////////////////////////////////////////////////
 
 
-template <>
-const DofDistributionType P1DoFDistribution<true>::type = DDT_P1CONFORMGROUPED;
-
-template<>
-const DofDistributionType P1DoFDistribution<false>::type = DDT_P1CONFORMNONGROUPED;
-
-
-template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::has_indices_on(GeometricBaseObject gbo) const
+bool P1DoFDistribution::has_indices_on(GeometricBaseObject gbo) const
 {
 //	only in case of a Vertex, we have a DoF
 	if(gbo == VERTEX) return true;
 	else return false;
 }
 
-template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::has_indices_on(ReferenceObjectID roid) const
+bool P1DoFDistribution::has_indices_on(ReferenceObjectID roid) const
 {
 //	only in case of a Vertex, we have a DoF
 	if(roid == ROID_VERTEX) return true;
@@ -91,8 +82,7 @@ bool P1DoFDistribution<bGrouped>::has_indices_on(ReferenceObjectID roid) const
 }
 
 
-template <bool bGrouped>
-void P1DoFDistribution<bGrouped>::create_offsets()
+void P1DoFDistribution::create_offsets()
 {
 //	clear offsets
 	m_vvOffsets.clear();
@@ -119,8 +109,7 @@ void P1DoFDistribution<bGrouped>::create_offsets()
 	}
 }
 
-template <bool bGrouped>
-size_t P1DoFDistribution<bGrouped>::get_free_index(size_t si)
+size_t P1DoFDistribution::get_free_index(size_t si)
 {
 //	The idea is as follows:
 //	- 	If a free index is left, the a free index is returned. This
@@ -143,12 +132,12 @@ size_t P1DoFDistribution<bGrouped>::get_free_index(size_t si)
 	else
 	{
 	//	if using new index, increase size of index set
-		if(!bGrouped) m_sizeIndexSet += num_fct(si);
+		if(!m_bGrouped) m_sizeIndexSet += num_fct(si);
 		else ++m_sizeIndexSet;
 	}
 
 //	adjust counters
-	if(!bGrouped)
+	if(!m_bGrouped)
 	{
 		m_numIndex += num_fct(si);
 		m_vNumIndex[si] += num_fct(si);
@@ -163,14 +152,13 @@ size_t P1DoFDistribution<bGrouped>::get_free_index(size_t si)
 	return freeIndex;
 }
 
-template <bool bGrouped>
-void P1DoFDistribution<bGrouped>::push_free_index(size_t freeIndex, size_t si)
+void P1DoFDistribution::push_free_index(size_t freeIndex, size_t si)
 {
 //	remember index
 	m_vFreeIndex.push_back(freeIndex);
 
 //	decrease number of distributed indices
-	if(!bGrouped)
+	if(!m_bGrouped)
 	{
 		m_numIndex -= num_fct(si);
 		m_vNumIndex[si] -= num_fct(si);
@@ -182,8 +170,7 @@ void P1DoFDistribution<bGrouped>::push_free_index(size_t freeIndex, size_t si)
 	}
 }
 
-template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::distribute_indices()
+bool P1DoFDistribution::distribute_indices()
 {
 //	storage manage required
 	if(m_pStorageManager == NULL)
@@ -223,8 +210,8 @@ bool P1DoFDistribution<bGrouped>::distribute_indices()
 		if(!(num_fct(si)>0)) continue;
 
 	//	get iterators of vertices
-		iterBegin = this->template begin<VertexBase>(si);
-		iterEnd =  this->template end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
 	// 	remember number of functions
 		const size_t numFct = num_fct(si);
@@ -245,7 +232,7 @@ bool P1DoFDistribution<bGrouped>::distribute_indices()
 			first_index(vrt) = m_numIndex;
 
 		//	increase number of DoFs and DoFs on subset
-			if(!bGrouped)
+			if(!m_bGrouped)
 			{
 				m_numIndex += numFct;
 				m_vNumIndex[si] += numFct;
@@ -268,8 +255,8 @@ bool P1DoFDistribution<bGrouped>::distribute_indices()
 		for(int si = 0; si < num_subsets(); ++si)
 		{
 		//	iterators
-			iterBegin = this->template begin<VertexBase>(si);
-			iterEnd =  this->template end<VertexBase>(si);
+			iterBegin = this->begin<VertexBase>(si);
+			iterEnd =  this->end<VertexBase>(si);
 
 		//	loop vertices
 			for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -281,7 +268,7 @@ bool P1DoFDistribution<bGrouped>::distribute_indices()
 				if(!this->m_pSurfaceView->is_shadow(vrt)) continue;
 
 			//	get child
-				VertexBase* vrtChild = this->m_pSurfaceView->template get_shadow_child<VertexBase>(vrt);
+				VertexBase* vrtChild = this->m_pSurfaceView->get_shadow_child<VertexBase>(vrt);
 
 			//	get indices of child
 				const size_t indexChild = first_index(vrtChild);
@@ -296,8 +283,7 @@ bool P1DoFDistribution<bGrouped>::distribute_indices()
 	return true;
 }
 
-template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::
+bool P1DoFDistribution::
 permute_indices(std::vector<size_t>& vIndNew)
 {
 //	storage manager required
@@ -329,8 +315,8 @@ permute_indices(std::vector<size_t>& vIndNew)
 	{
 	//	get iterators
 		geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
-		iterBegin = this->template begin<VertexBase>(si);
-		iterEnd =  this->template end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
 	// 	loop Vertices
 		for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -345,7 +331,7 @@ permute_indices(std::vector<size_t>& vIndNew)
 			first_index(vrt) = vIndNew[oldIndex];
 
 		//	set correct permutation in permuting vector
-			if(!bGrouped)
+			if(!m_bGrouped)
 				for(size_t fct = 0; fct < num_fct(si); ++fct)
 					vIndNew[oldIndex+fct] = vIndNew[oldIndex] + fct;
 		}
@@ -355,8 +341,7 @@ permute_indices(std::vector<size_t>& vIndNew)
 	return true;
 }
 
-template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::
+bool P1DoFDistribution::
 get_connections(std::vector<std::vector<size_t> >& vvConnection)
 {
 //	storage manager required
@@ -384,7 +369,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 	const size_t numFct = num_fct(0);
 //	check that in all subsets same number of functions and at least one
 //	if this is not the case for ungrouped DoFs, we cannot allow reordering
-	if(!bGrouped)
+	if(!m_bGrouped)
 	{
 		for(int si = 0; si < num_subsets(); ++si)
 		{
@@ -413,8 +398,8 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 	for(int si = 0; si < num_subsets(); ++si)
 	{
 	//	iterators
-		iterBegin = this->template begin<VertexBase>(si);
-		iterEnd =  this->template end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
 	//	loop vertices
 		for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -492,8 +477,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 	return true;
 }
 
-template <bool bGrouped>
-void P1DoFDistribution<bGrouped>::grid_obj_added(VertexBase* vrt)
+void P1DoFDistribution::grid_obj_added(VertexBase* vrt)
 {
 //	subset handler required
 	if(m_pISubsetHandler == NULL)
@@ -513,7 +497,7 @@ void P1DoFDistribution<bGrouped>::grid_obj_added(VertexBase* vrt)
 	if(this->m_pSurfaceView != NULL && this->m_pSurfaceView->is_shadow(vrt))
 	{
 	//	get child
-		VertexBase* vrtChild = this->m_pSurfaceView->template get_shadow_child<VertexBase>(vrt);
+		VertexBase* vrtChild = this->m_pSurfaceView->get_shadow_child<VertexBase>(vrt);
 
 	//	get indices of child
 		const size_t indexChild = first_index(vrtChild);
@@ -529,8 +513,7 @@ void P1DoFDistribution<bGrouped>::grid_obj_added(VertexBase* vrt)
 	}
 }
 
-template <bool bGrouped>
-void P1DoFDistribution<bGrouped>::grid_obj_to_be_removed(VertexBase* vrt)
+void P1DoFDistribution::grid_obj_to_be_removed(VertexBase* vrt)
 {
 //	get subset index
 	const int si = m_pISubsetHandler->get_subset_index(vrt);
@@ -539,8 +522,7 @@ void P1DoFDistribution<bGrouped>::grid_obj_to_be_removed(VertexBase* vrt)
 	push_free_index(first_index(vrt), si);
 }
 
-template <bool bGrouped>
-void P1DoFDistribution<bGrouped>::
+void P1DoFDistribution::
 grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld)
 {
 	UG_ASSERT(	m_pISubsetHandler->get_subset_index(vrtNew) ==
@@ -551,9 +533,7 @@ grid_obj_replaced(VertexBase* vrtNew, VertexBase* vrtOld)
 	first_index(vrtNew) = first_index(vrtOld);
 }
 
-
-template <bool bGrouped>
-bool P1DoFDistribution<bGrouped>::defragment()
+bool P1DoFDistribution::defragment()
 {
 //	we loop all indices and those with highest degree are replaced by a free
 //	index. This operation is performed in O(number of Indices)
@@ -578,8 +558,8 @@ bool P1DoFDistribution<bGrouped>::defragment()
 		if(!(num_fct(si)>0)) continue;
 
 		geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
-		iterBegin = this->template begin<VertexBase>(si);
-		iterEnd =  this->template end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
 	// 	loop Vertices
 		for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -603,7 +583,7 @@ bool P1DoFDistribution<bGrouped>::defragment()
 			first_index(vrt) = newIndex;
 
 		//	adjust counters, since this was an replacement
-			if(!bGrouped)
+			if(!m_bGrouped)
 			{
 				m_numIndex -= num_fct(si);
 				m_sizeIndexSet -= num_fct(si);
@@ -635,10 +615,6 @@ bool P1DoFDistribution<bGrouped>::defragment()
 //	we're done
 	return true;
 }
-
-// explicit template instantiations
-template class P1DoFDistribution<true>;
-template class P1DoFDistribution<false>;
 
 } // end namespace ug
 
