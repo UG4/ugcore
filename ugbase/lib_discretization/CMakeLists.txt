@@ -19,6 +19,7 @@ set(srcDiscretization	common/function_group.cpp
 
 						dof_manager/function_pattern.cpp
 						dof_manager/cuthill_mckee.cpp
+						dof_manager/lexorder.cpp
 						dof_manager/p1conform/p1conform.cpp
 						dof_manager/conform/conform.cpp
 
