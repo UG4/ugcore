@@ -376,6 +376,9 @@ class P1ProlongationOperator :
 			uTmp *= m_dampRes;
 
 		//	Copy only restricted values
+		//	This is needed in adaptive situations, where the defect that has been
+		//	projected from the surface should remain and only hidden (i.e.
+		//	indices with children) should be changed.
 			for(size_t i = 0; i < uTmp.size(); ++i)
 				if(m_vIsRestricted[i])
 					uCoarseOut[i] = uTmp[i];
