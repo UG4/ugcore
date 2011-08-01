@@ -47,6 +47,7 @@ class SurfaceView : public SubsetHandler
 		template <class TGeomObj>
 		inline bool shadows(TGeomObj* obj) const
 		{
+//todo: this won't work in a parallel environment! (e.g. if the parent is on another process)
 			GeometricObject* parent = m_pMG->get_parent(obj);
 			if(parent == NULL) return false;
 			else return (get_subset_index(parent) != -1);

@@ -989,7 +989,7 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 			{
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
 				vector3 vNew;
-				if(pojectionTraverser.project(aaPos[*iter], octree, &aaNorm[*iter])){
+				if(pojectionTraverser.project(aaPos[*iter], octree/*, &aaNorm[*iter]*/)){
 					aaPos[*iter] = pojectionTraverser.get_closest_point();
 				}
 				else{

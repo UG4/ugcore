@@ -104,6 +104,9 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 
 //	for a parallel subset handler we have to copy the subset-indices to
 //	avoid problems at interfaces.
+//	This happens e.g. in 2d, where a triangle is an element of the surface view only
+//	on one process. Associated vertices on other processes wouldn't know that
+//	they are surface view element, too. This has to be communicated.
 	ComPol_Subset<VertexLayout> cpSubsetVRT(surfaceViewOut);
 	ComPol_Subset<EdgeLayout> cpSubsetEDGE(surfaceViewOut);
 	ComPol_Subset<FaceLayout> cpSubsetFACE(surfaceViewOut);
