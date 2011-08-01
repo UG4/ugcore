@@ -43,23 +43,20 @@ template<class MVT>
 bool ComparePosDim(const std::pair<MVT, size_t> &p1,
 		const std::pair<MVT, size_t> &p2)
 	{return false;}
+
 template<>
 bool ComparePosDim(const std::pair<MathVector<1>, size_t> &p1,
-		const std::pair<MathVector<1>, size_t> &p2)
-	{return (p1.first[0]<p2.first[0]);};
+                   const std::pair<MathVector<1>, size_t> &p2);
 
 	// Order for 2D
 template<>
 	bool ComparePosDim(const std::pair<MathVector<2>, size_t> &p1,
-			const std::pair<MathVector<2>, size_t> &p2)
-	{ if (p1.first[1]==p2.first[1]) return p1.first[0] < p2.first[0];
-	else return (p1.first[1] < p2.first[1]); };
+	                   const std::pair<MathVector<2>, size_t> &p2);
 
 	// Order for 3D
 template<>
 	bool ComparePosDim(const std::pair<MathVector<3>, size_t> &p1,
-			const std::pair<MathVector<3>, size_t> &p2)
-	{return (p1.first[0]==p2.first[0] && p1.first[1]==p2.first[1] && p1.first[2]<p2.first[2]);};
+	                   const std::pair<MathVector<3>, size_t> &p2);
 
 	// computes ordering using Cuthill-McKee algorithm
 
