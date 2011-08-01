@@ -30,7 +30,8 @@
 #include "lib_discretization/function_spaces/error_indicator.h"
 #include "lib_discretization/dof_manager/cuthill_mckee.h"
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
-#include "lib_discretization/dof_manager/conform/conform.h"
+#include "lib_discretization/dof_manager/cuthill_mckee.h"
+#include "lib_discretization/dof_manager/lexorder.h"
 
 #include "lib_discretization/io/vtkoutput.h"
 
@@ -158,6 +159,12 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 //	Order Cuthill-McKee
 	{
 		reg.add_function("OrderCuthillMcKee", static_cast<bool (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee));
+	}
+
+//	Order lexicographically
+	{
+		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
+		reg.add_function("OrderLex", (bool (*)(T&, const char*))&OrderLex);
 	}
 
 //	DirichletBNDValues
