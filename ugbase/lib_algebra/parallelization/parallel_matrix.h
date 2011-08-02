@@ -182,6 +182,20 @@ class ParallelMatrix : public TMatrix
 			m_processCommunicator = v.m_processCommunicator;
 		}
 
+		///	assignment
+		this_type &operator =(const this_type &M)
+		{
+		//	forward to sequential matrices
+			TMatrix::operator= (*dynamic_cast<const TMatrix*>(&M));
+
+		//	copy storage type and layouts
+			copy_storage_type(M);
+			copy_layouts(M);
+
+		//	we're done
+			return *this;
+		}
+
 	private:
 	//  type of storage  (i.e. consistent, additiv, additiv unique)
 		uint m_type;
