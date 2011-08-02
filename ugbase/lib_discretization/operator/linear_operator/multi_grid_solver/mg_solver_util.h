@@ -334,7 +334,17 @@ bool ProjectLevelToSurface(TVector& surfVector,
 //	copy storage type into surf vector
 	if(vLevelVector.size() > 0)
 	{
-		uint type = vLevelVector[vLevelVector.size()-1]->get_storage_mask();
+	//	flag if at least on vector given
+		bool bFound = false;
+
+		uint type = PST_UNDEFINED;
+	//	find first valid vector and get its type
+		for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
+			if(vLevelVector[lev] != NULL && vLevelVector[lev]->size() > 0)
+			{
+				type = vLevelVector[lev]->get_storage_mask();
+				bFound = true;
+			}
 
 	//	get intersection of types
 		for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
@@ -342,7 +352,7 @@ bool ProjectLevelToSurface(TVector& surfVector,
 				type = type & vLevelVector[lev]->get_storage_mask();
 
 	//	check if union is defined
-		if(type == PST_UNDEFINED)
+		if(type == PST_UNDEFINED && bFound == true)
 		{
 			UG_LOG("ERROR in 'ProjectLevelToSurface': storage type of level"
 					" vectors is not ok. Must have at least on common type."

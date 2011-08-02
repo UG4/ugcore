@@ -74,8 +74,10 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
-// 	Check if surface level has been choosen correctly
-	if(m_topLev >= mg.num_levels())
+// 	Check if surface level has been chosen correctly
+//	Please not, that the approximation space returns the global number of levels,
+//	i.e. the maximum of levels among all processes.
+	if(m_topLev >= m_pApproxSpace->num_levels())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
 				" SurfaceLevel " << m_topLev << " does not exist.\n");
@@ -558,18 +560,28 @@ lmgc(size_t lev)
 //	perform smoothing, restrict the defect and call the lower level; then,
 //	going up again in the level hierarchy the correction is interpolated and
 //	used as coarse grid correction. Finally a post-smooth is performed.
-	if(lev > m_baseLev) return smooth_and_transfer(lev);
+	if(lev > m_baseLev)
+	{
+	//	check if dofs on that level. It not, skip level
+		if(m_vLevData[lev]->num_indices() > 0){
+			return smooth_and_transfer(lev);
+		}
+		else{
+			for(int i = 0; i < m_cycleType; ++i)
+				return lmgc(lev-1);
+		}
+	}
 
 //	if the base level has been reached, the coarse problem is solved exactly
-	else if(lev == m_baseLev) return base_solve(lev);
+	else if(lev == m_baseLev)
+	{
+		return base_solve(lev);
+	}
 
 //	this case should never happen.
-	else
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Level index below "
-				" 'baseLevel' in lmgc. Aborting.\n");
-		return false;
-	}
+	UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Level index below "
+			" 'baseLevel' in lmgc. Aborting.\n");
+	return false;
 }
 
 template <typename TApproximationSpace, typename TAlgebra>
@@ -638,6 +650,10 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 	for(size_t lev = m_topLev; lev != m_baseLev; --lev)
 	{
+	//	skip void level
+		if(m_vLevData[lev]->num_indices() == 0 ||
+			m_vLevData[lev-1]->num_indices() == 0) continue;
+
 		if(!m_vLevData[lev]->Projection->apply(m_vLevData[lev-1]->u, m_vLevData[lev]->u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Cannot project "
@@ -866,7 +882,7 @@ init_linear_level_operator()
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip assembling if no dofs given
+	//	skip void level
 		if(m_vLevData[lev]->num_indices() == 0) continue;
 
 	//	in case of full refinement we simply copy the matrix (with correct numbering)
@@ -884,28 +900,29 @@ init_linear_level_operator()
 		}
 
 		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
-	//	set this selector to the assembling, such that only those elements
-	//	will be assembled and force grid to be considered as regular
-		if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_vLevData[lev]->sel);
-		else m_pAss->set_selector(NULL);
-		m_vLevData[lev]->LevMat.force_regular_grid(true);
-
-	//	init level operator
-		if(!m_vLevData[lev]->LevMat.init())
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-					" Cannot init operator for level "<< lev << ".\n");
-			return false;
-		}
-
-	//	remove force flag
-		m_vLevData[lev]->LevMat.force_regular_grid(false);
-		m_pAss->set_selector(NULL);
-		GMG_PROFILE_END();
-
-	//	if ghosts are present copy the matrix into a new (smaller) one
+	//	if ghosts are present we have to assemble the matrix only on non-ghosts
+	//	for the smoothing matrices
 		if(m_vLevData[lev]->has_ghosts())
 		{
+		//	set this selector to the assembling, such that only those elements
+		//	will be assembled and force grid to be considered as regular
+			if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_vLevData[lev]->sel);
+			else m_pAss->set_selector(NULL);
+			m_vLevData[lev]->LevMat.force_regular_grid(true);
+
+		//	init level operator
+			if(!m_vLevData[lev]->LevMat.init())
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+						" Cannot init operator for level "<< lev << ".\n");
+				return false;
+			}
+
+		//	remove force flag
+			m_vLevData[lev]->LevMat.force_regular_grid(false);
+			m_pAss->set_selector(NULL);
+
+		//	copy the matrix into a new (smaller) one
 			matrix_type& mat = m_vLevData[lev]->LevMat;
 			matrix_type& smoothMat = m_vLevData[lev]->SmoothMat;
 
@@ -913,6 +930,32 @@ init_linear_level_operator()
 			smoothMat.resize(numSmoothIndex, numSmoothIndex);
 			CopyMatrixByMapping(smoothMat, m_vLevData[lev]->vMapFlag, mat);
 		}
+
+	//	if no ghosts are present we can simply use the whole grid. If the base
+	//	solver is carried out in serial (gathering to some processes), we have
+	//	to assemble the assemble the coarse grid matrix on the whole grid as
+	//	well
+		if(!m_vLevData[lev]->has_ghosts() ||
+			(lev == m_baseLev && m_bBaseParallel == false))
+		{
+		//	init level operator
+			m_vLevData[lev]->LevMat.force_regular_grid(true);
+			if(!m_vLevData[lev]->LevMat.init())
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+						" Cannot init operator for level "<< lev << ".\n");
+				return false;
+			}
+			m_vLevData[lev]->LevMat.force_regular_grid(false);
+		}
+	//	else we can forget about the whole-level matrix, since the needed
+	//	smoothing matrix is stored in SmoothMat
+		else
+		{
+			m_vLevData[lev]->LevMat.resize(0,0);
+		}
+
+		GMG_PROFILE_END();
 	}
 
 //	we're done
@@ -927,7 +970,7 @@ init_non_linear_level_operator()
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip assembling if no dofs given
+	//	skip void level
 		if(m_vLevData[lev]->num_indices() == 0) continue;
 
 	//	in case of full refinement we simply copy the matrix (with correct numbering)
@@ -988,6 +1031,10 @@ init_prolongation()
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
+	//	skip void level
+		if(m_vLevData[lev]->num_indices() == 0 ||
+		   m_vLevData[lev-1]->num_indices() == 0) continue;
+
 	//	set levels
 		if(!m_vLevData[lev]->Prolongation->set_levels(lev-1, lev))
 		{
@@ -1019,6 +1066,10 @@ init_projection()
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
+	//	skip void level
+		if(m_vLevData[lev]->num_indices() == 0 ||
+		   m_vLevData[lev-1]->num_indices() == 0) continue;
+
 	//	set levels
 		if(!m_vLevData[lev]->Projection->set_levels(lev-1, lev))
 		{
@@ -1050,6 +1101,9 @@ init_smoother()
 // 	Init smoother
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
+	//	skip void level
+		if(m_vLevData[lev]->num_indices() == 0) continue;
+
 	//	get smooth matrix and vector
 		vector_type& u = m_vLevData[lev]->get_smooth_solution();
 		MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
@@ -1072,7 +1126,7 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_base_solver()
 {
-// 	if no indices given, we're done
+//	skip void level
 	if(m_vLevData[m_baseLev]->num_indices() == 0) return true;
 
 #ifdef UG_PARALLEL

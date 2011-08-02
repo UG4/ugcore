@@ -413,7 +413,11 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(&m_vLevData[i]->d);
+			{
+				if(m_vLevData[i]->num_smooth_indices() > 0)
+					vVec.push_back(&m_vLevData[i]->d);
+				else vVec.push_back(NULL);
+			}
 			return vVec;
 		}
 
@@ -421,7 +425,11 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<const vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(&m_vLevData[i]->d);
+			{
+				if(m_vLevData[i]->num_smooth_indices() > 0)
+					vVec.push_back(&m_vLevData[i]->d);
+				else vVec.push_back(NULL);
+			}
 			return vVec;
 		}
 
@@ -429,7 +437,11 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(&m_vLevData[i]->c);
+			{
+				if(m_vLevData[i]->num_smooth_indices() > 0)
+					vVec.push_back(&m_vLevData[i]->c);
+				else vVec.push_back(NULL);
+			}
 			return vVec;
 		}
 
@@ -437,7 +449,11 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<const vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(&m_vLevData[i]->c);
+			{
+				if(m_vLevData[i]->num_smooth_indices() > 0)
+					vVec.push_back(&m_vLevData[i]->c);
+				else vVec.push_back(NULL);
+			}
 			return vVec;
 		}
 
@@ -445,7 +461,11 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(&m_vLevData[i]->u);
+			{
+				if(m_vLevData[i]->num_smooth_indices() > 0)
+					vVec.push_back(&m_vLevData[i]->u);
+				else vVec.push_back(NULL);
+			}
 			return vVec;
 		}
 

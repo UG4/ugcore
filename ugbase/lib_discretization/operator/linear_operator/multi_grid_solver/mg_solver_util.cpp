@@ -114,8 +114,12 @@ bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 		return false;
 	}
 
+//	if level does not exist in multigrid, no element can be selected and we're done
+	if(level >= (int) mg.num_levels())
+		return true;
+
 //	check level
-	if(level >= (int) mg.num_levels() || level < 0)
+	if(level < 0)
 	{
 		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
 				"level "<<level<<" does not exist in Multigrid.\n");
