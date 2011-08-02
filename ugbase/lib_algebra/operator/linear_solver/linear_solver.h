@@ -51,7 +51,8 @@ class LinearSolver
 	///	Default constructor
 		LinearSolver() :
 			m_A(NULL), m_pPrecond(NULL), m_pConvCheck(NULL),
-			m_bRecomputeDefectWhenFinished(false)
+			m_bRecomputeDefectWhenFinished(false),
+			m_pDebugWriter(NULL)
 		{}
 
 	///	returns the name of the solver
@@ -223,6 +224,8 @@ class LinearSolver
 		//	solve on copy of defect
 			bool bRes = apply_return_defect(x, b2);
 
+			write_debug_vector(b2, "LS_UpdatedDefectEnd");
+
 		//	compute defect again, for debug purpose
 			if(m_bRecomputeDefectWhenFinished)
 			{
@@ -236,6 +239,8 @@ class LinearSolver
 
 				number norm = b2.two_norm();
 				UG_LOG("%%%% DEBUG: (Re)computed defect has norm: "<<norm<<"\n");
+
+				write_debug_vector(b2, "LS_TrueDefectEnd");
 			}
 
 		//	return
@@ -244,6 +249,15 @@ class LinearSolver
 
 		// destructor
 		virtual ~LinearSolver() {};
+
+	///	set debug writer
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
+		}
+
+	///	returns the debug writer
+		IDebugWriter<algebra_type>* debug_writer() {return m_pDebugWriter;}
 
 	protected:
 	///	prepares the convergence check output
@@ -262,6 +276,16 @@ class LinearSolver
 			}
 		}
 
+	///	writing debug output for a vector (if debug writer set)
+		bool write_debug_vector(const vector_type& vec, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(!m_pDebugWriter) return true;
+
+		//	write
+			return m_pDebugWriter->write_vector(vec, filename);
+		}
+
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
 		ILinearOperator<vector_type,vector_type>* m_A;
@@ -274,6 +298,9 @@ class LinearSolver
 
 	//	flag if fresh defect should be computed when finish for debug purpose
 		bool m_bRecomputeDefectWhenFinished;
+
+	///	Debug Writer
+		IDebugWriter<algebra_type>* m_pDebugWriter;
 };
 
 } // end namespace ug

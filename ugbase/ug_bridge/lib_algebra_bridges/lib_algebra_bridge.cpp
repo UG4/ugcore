@@ -310,7 +310,8 @@ static bool reg(Registry& reg, string parentGroup)
 						"", "Preconditioner")
 			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
 						"", "Check")
-			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished);
+			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished)
+			.add_method("set_debug", &T::set_debug);
 		reg.add_class_to_group(name, "LinearSolver", algTag);
 	}
 
