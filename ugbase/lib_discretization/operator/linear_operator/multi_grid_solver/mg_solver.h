@@ -92,7 +92,7 @@ class AssembledMultiGridCycle :
 			m_pAss(NULL), m_pApproxSpace(NULL),
 			m_topLev(0), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
 			m_numPreSmooth(1), m_numPostSmooth(1),
-			m_bFullRefined(false),
+			m_bAdaptive(true),
 			m_pSmootherPrototype(NULL),
 			m_pProjectionPrototype(NULL), m_pProlongationPrototype(NULL),
 			m_pBaseSolver(NULL),
@@ -252,7 +252,7 @@ class AssembledMultiGridCycle :
 		int m_numPostSmooth;
 
 	///	flag indicating if grid is full refined
-		bool m_bFullRefined;
+		bool m_bAdaptive;
 
 	///	mapping from surface to top level (only valid in case of full refinement)
 		std::vector<size_t> m_vSurfToTopMap;

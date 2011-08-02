@@ -42,20 +42,19 @@
 
 namespace ug{
 
-
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 apply(vector_type &c, const vector_type& d)
 {
 //	temporary vector for defect
-	vector_type d_copy; d_copy.resize(d.size());
+	vector_type dTmp; dTmp.resize(d.size());
 
 //	copy defect
-	d_copy = d;
+	dTmp = d;
 
 //	work on copy
-	return apply_update_defect(c, d_copy);
+	return apply_update_defect(c, dTmp);
 }
 
 template <typename TApproximationSpace, typename TAlgebra>
@@ -91,14 +90,6 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
-// 	used for debugging adaptive mg.
-/*
-	UG_LOG("  apply before project (surface d)");
-	number norm = d.two_norm();
-	UG_LOG(" d: " << norm << "\n");
-
-	write_surface_debug(d, "GMG_SurfDefectBeforeProj");
-*/
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
 	if(!project_surface_to_level(level_defects(), d))
@@ -109,13 +100,6 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
 
-/*	write_level_debug(*m_vLevData[m_topLev].d, "GMG_TopLevDefectAfterProj", m_topLev);
-
-// 	used for debugging adaptive mg.
-	UG_LOG("  apply after project (topLevel d)");
-	norm = m_vLevData[m_topLev].d->two_norm();
-	UG_LOG(" d: " << norm << "\n");
-*/
 // 	Perform one multigrid cycle
 //	At this point c, d are valid for m_vLevData[m_topLev]->c, m_vLevData[m_topLev]->d
 	GMG_PROFILE_BEGIN(GMG_lmgc);
@@ -167,7 +151,7 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 	for(int i = 0; i < nu; ++i)
 	{
 	//	switch if adaptive case must be handled
-		if(m_bFullRefined)
+		if(!m_bAdaptive)
 		{
 		// 	Compute Correction of one smoothing step:
 		//	a)  Compute t = B*d with some iterator B
@@ -378,7 +362,7 @@ smooth_and_transfer(size_t lev)
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
 
 //	## Step 11: ADAPTIVE CASE
-	if(!m_bFullRefined)
+	if(m_bAdaptive)
 	{
 	//	in the adaptive case there is a small part of the coarse coupling that
 	//	has not been used to update the defect. In order to ensure, that the
@@ -481,7 +465,7 @@ base_solve(size_t lev)
 	//	*) Only for full refinement and real coarser level, we can forget about
 	//	   the defect on the base level, since only the correction is needed
 	//	   on the higher level
-		if(m_baseLev == m_topLev || !m_bFullRefined)
+		if(m_baseLev == m_topLev || m_bAdaptive)
 		{
 		//	get smoothing matrix
 			MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat
@@ -534,7 +518,7 @@ base_solve(size_t lev)
 			}
 
 		//	update defect
-			if(m_baseLev == m_topLev || !m_bFullRefined)
+			if(m_baseLev == m_topLev || m_bAdaptive)
 				if(!m_vLevData[m_baseLev]->LevMat.apply_sub(d, c))
 				{
 					UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Updating defect "
@@ -551,7 +535,7 @@ base_solve(size_t lev)
 		c.set_storage_type(PST_CONSISTENT);
 
 	//	if baseLevel == surfaceLevel, we need also d
-		if(m_baseLev == m_topLev || !m_bFullRefined)
+		if(m_baseLev == m_topLev || m_bAdaptive)
 		{
 			d.set_storage_type(PST_CONSISTENT);
 			broadcast_vertical(d);
@@ -672,7 +656,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	}
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
-	if(!m_bFullRefined)
+	if(m_bAdaptive)
 		if(!init_missing_coarse_grid_coupling(&u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
@@ -731,7 +715,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
 	GMG_PROFILE_BEGIN(GMG_AssMissingCoarseMat);
-	if(!m_bFullRefined)
+	if(m_bAdaptive)
 		if(!init_missing_coarse_grid_coupling(NULL))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
@@ -793,21 +777,17 @@ init_common(bool nonlinear)
 //	check, if grid is full-refined
 //todo:	make sure that there are no vertical masters in topLevel. Otherwise
 //		the grid can not be considered fully refined.
-//todo:	The name m_bFullRefined is a little misleading, since if topLevel
-//		contains vrtMasters (and thus #topLevDofs != #surfDofs) the grid
-//		might still be fully refined (yet m_bFullRefined would be false).
-//		It should probably be renamed to something like m_bIdenticalSurfAndTopLev...
 //todo: Even if there are vrtMasters and m_bFullRefined is false and the top
 //		level matrix can't be copied, an injective SurfToTopLevMap might be useful...
 	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_indices() ==
 		m_pApproxSpace->get_surface_dof_distribution().num_indices())
-		m_bFullRefined = true;
+		m_bAdaptive = false;
 	else
-		m_bFullRefined =false;
+		m_bAdaptive = true;
 
 
 //	init mapping from surface level to top level in case of full refinement
-	if(m_bFullRefined)
+	if(!m_bAdaptive)
 	{
 		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 		if(!CreateSurfaceToToplevelMap(m_vSurfToTopMap,
@@ -890,7 +870,7 @@ init_linear_level_operator()
 		if(m_vLevData[lev]->num_indices() == 0) continue;
 
 	//	in case of full refinement we simply copy the matrix (with correct numbering)
-		if(lev == m_vLevData.size() - 1 && m_bFullRefined)
+		if(lev == m_vLevData.size() - 1 && !m_bAdaptive)
 		{
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 			matrix_type& levMat = m_vLevData[lev]->LevMat;
@@ -951,7 +931,7 @@ init_non_linear_level_operator()
 		if(m_vLevData[lev]->num_indices() == 0) continue;
 
 	//	in case of full refinement we simply copy the matrix (with correct numbering)
-		if(lev == m_vLevData.size() - 1 && m_bFullRefined)
+		if(lev == m_vLevData.size() - 1 && !m_bAdaptive)
 		{
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 			matrix_type& levMat = m_vLevData[lev]->LevMat;
@@ -1179,7 +1159,7 @@ project_level_to_surface(vector_type& surfVec,
 //	Now we can project the surface vector to the levels
 //	Note: even in case of full refinement this is necessary, since the ordering
 //		  of DoFs may differ between surface grid and top level
-	if(m_bFullRefined){
+	if(!m_bAdaptive){
 		const vector_type& topVec = *(vLevelVec[m_topLev]);
 		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
 		{
@@ -1243,7 +1223,7 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 //	Now we can project the surface vector to the levels
 //	Note: even in case of full refinement this is necessary, since the ordering
 //		  of DoFs may differ between surface grid and top level
-	if(m_bFullRefined){
+	if(!m_bAdaptive){
 		vector_type& topVec = *(vLevelVec[m_topLev]);
 		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
 		{
@@ -1480,7 +1460,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		m_vLevData[lev]->CoarseGridContribution.resize(0,0);
 
 //	if the grid is fully refined, nothing to do
-	if(m_bFullRefined) return true;
+	if(!m_bAdaptive) return true;
 
 //	get the surface view
 	const SurfaceView& surfView = *m_pApproxSpace->get_surface_view();
