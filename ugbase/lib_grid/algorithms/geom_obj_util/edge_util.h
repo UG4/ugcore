@@ -274,7 +274,20 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 template <class TEdgeIterator>
 void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						TEdgeIterator edgesEnd);
-					
+
+////////////////////////////////////////////////////////////////////////////////
+///	Returns the shortest edge in a list of edges
+/**	TEdgeIterator has to point to values of type EdgeBase* and has to be an
+ * stl-iterator compatible iterator. TAAPosVRT has to be an attachment accessor
+ * which provides a position value (vector1, vector2, vector3, ...) for the
+ * vertices of the edge.
+ * If the specified list is empty, NULL is returned.
+ * If multiple shortest edges exist, the first one is returned.
+ */
+template <class TEdgeIterator, class TAAPosVRT>
+EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+							TAAPosVRT& aaPos);
+
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace

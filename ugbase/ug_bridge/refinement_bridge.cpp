@@ -215,8 +215,89 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+///	Marks the long edges in anisotropic faces. Associated faces and volumes are
+///	then refined.
+/**
+ * The edgeRatio determines Whether a face is considered anisotropic.
+ * Make sure that the edgeRatio is in the interval [0, 1]. If the
+ * ratio of the shortest edge to an other edge falls below the given threshold,
+ * then the associated face is considered anisotropic and the other edge will be
+ * marked. Associated faces and volumes will be marked for anisotropic refinement, too.
+ *
+ * Note that this method is not yet completely suited for parallel refinement.
+ **/
+template <class TDomain>
+void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
+											number edgeRatio)
+{
+	typedef typename TDomain::position_type 			position_type;
+	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+//	make sure that the refiner was created for the given domain
+	if(refiner.get_associated_grid() != &dom.get_grid()){
+		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
+					"Refiner was not created for the specified domain. Aborting."));
+	}
+
+//	access the grid and the position attachment
+	Grid& grid = *refiner.get_associated_grid();
+	position_accessor_type& aaPos = dom.get_position_accessor();
+
+//	make sure that the grid automatically generates sides for each element
+	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES)){
+		UG_LOG("WARNING in MarkForRefinement_AnisotropicElements: "
+				"Enabling GRIDOPT_AUTOGENERATE_SIDES.\n");
+		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
+	}
+
+//	we'll store associated edges, faces and volumes in those containers
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+	vector<Volume*> vols;
+
+//	iterate over all faces of the grid.
+	for(FaceIterator iter = grid.begin<Face>();
+		iter != grid.end<Face>(); ++iter)
+	{
+		Face* f = *iter;
+
+	//	collect associated edges
+		CollectAssociated(edges, grid, f);
+
+	//	find the shortest edge
+		EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+		UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
+		number minLen = EdgeLength(minEdge, aaPos);
+
+	//	compare all associated edges of f against minEdge (even minEdge itself,
+	//	if somebody sets edgeRatio to 1 or higher)
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+			EdgeBase* e = edges[i_edge];
+			number len = EdgeLength(e, aaPos);
+		//	to avoid division by 0, we only consider edges with a length > 0
+			if(len > 0){
+				if(minLen / len <= edgeRatio){
+				//	the edge will be refined
+					refiner.mark(e);
+
+				//	if an edge was marked for refinement, then we have to mark
+				//	all associated faces and volumes too. Use the anisotropic mark.
+				//	mark associated faces
+					CollectAssociated(faces, grid, e);
+					refiner.mark(faces.begin(), faces.end(), RM_ANISOTROPIC);
+				//	mark associated volumes
+					CollectAssociated(vols, grid, e);
+					refiner.mark(vols.begin(), vols.end(), RM_ANISOTROPIC);
+				}
+			}
+		}
+	}
+}
 
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 namespace bridge{
 
 static bool RegisterRefinementBridge_DomIndep(Registry& reg, string parentGroup)
@@ -270,8 +351,9 @@ static bool RegisterRefinementBridge_DomDep(Registry& reg, string parentGroup)
 			.add_function("MarkForRefinement_VolumesInSphere",
 					&MarkForRefinement_ElementsInSphere<domain_type, Volume>, grp)
 			.add_function("MarkForRefinement_VerticesInCube",
-					&MarkForRefinement_VerticesInCube<domain_type>, grp);
-
+					&MarkForRefinement_VerticesInCube<domain_type>, grp)
+			.add_function("MarkForRefinement_AnisotropicElements",
+					&MarkForRefinement_AnisotropicElements<domain_type>, grp);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

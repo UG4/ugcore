@@ -70,14 +70,17 @@ enum GridOptions
 											| VRTOPT_STORE_ASSOCIATED_FACES
 											| VRTOPT_STORE_ASSOCIATED_VOLUMES,
 
+///	sides are automatically created
+	GRIDOPT_AUTOGENERATE_SIDES =	  FACEOPT_AUTOGENERATE_EDGES
+									| VOLOPT_AUTOGENERATE_FACES,
+
 ///	All elements store references to associated lower dimensional geometric objects
 /**	Additionally GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is used.*/
 	GRIDOPT_STANDARD_INTERCONNECTION =	  GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
+										| GRIDOPT_AUTOGENERATE_SIDES
 										| FACEOPT_STORE_ASSOCIATED_EDGES
 										| VOLOPT_STORE_ASSOCIATED_EDGES
-										| VOLOPT_STORE_ASSOCIATED_FACES
-										| FACEOPT_AUTOGENERATE_EDGES
-										| VOLOPT_AUTOGENERATE_FACES,
+										| VOLOPT_STORE_ASSOCIATED_FACES,
 
 ///	All elements store references to all associated elements
 /**	This indludes GRIDOPT_VERTEXCENTRIC_INTERCONNECTION and

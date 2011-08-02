@@ -214,7 +214,34 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 	
 	grid.end_marking();
 }
-					
+
+template <class TEdgeIterator, class TAAPosVRT>
+EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+							TAAPosVRT& aaPos)
+{
+//	if edgesBegin equals edgesEnd, then the list is empty and we can
+//	immediately return NULL
+	if(edgesBegin == edgesEnd)
+		return NULL;
+
+//	the first edge is the first candidate for the shortest edge.
+//	We compare squares to avoid computation of the square root.
+	EdgeBase* shortestEdge = *edgesBegin;
+	number shortestLen = EdgeLengthSq(shortestEdge, aaPos);
+	++edgesBegin;
+
+	for(; edgesBegin != edgesEnd; ++edgesBegin){
+		EdgeBase* curEdge = *edgesBegin;
+		number curLen = EdgeLengthSq(curEdge, aaPos);
+		if(curLen < shortestLen){
+			shortestEdge = curEdge;
+			shortestLen = curLen;
+		}
+	}
+
+	return shortestEdge;
+}
+
 }//	end of namespace
 
 #endif
