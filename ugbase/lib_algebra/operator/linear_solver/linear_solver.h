@@ -50,11 +50,18 @@ class LinearSolver
 	public:
 	///	Default constructor
 		LinearSolver() :
-			m_A(NULL), m_pPrecond(NULL), m_pConvCheck(NULL)
+			m_A(NULL), m_pPrecond(NULL), m_pConvCheck(NULL),
+			m_bRecomputeDefectWhenFinished(false)
 		{}
 
 	///	returns the name of the solver
 		virtual const char* name() const {return "Iterative Linear Solver";}
+
+	///	for debug: computes norm again after whole calculation of apply
+		void set_compute_fresh_defect_when_finished(bool bRecomputeDefectWhenFinished)
+		{
+			m_bRecomputeDefectWhenFinished = bRecomputeDefectWhenFinished;
+		}
 
 	///	sets the convergence check
 		void set_convergence_check(IConvergenceCheck& convCheck)
@@ -214,7 +221,25 @@ class LinearSolver
 			b2 = b;
 
 		//	solve on copy of defect
-			return apply_return_defect(x, b2);
+			bool bRes = apply_return_defect(x, b2);
+
+		//	compute defect again, for debug purpose
+			if(m_bRecomputeDefectWhenFinished)
+			{
+				b2 = b;
+				if(!m_A->apply_sub(b2, x))
+				{
+					UG_LOG("ERROR in 'LinearSolver::apply':"
+							" Unable to build defect. Aborting.\n");
+					return false;
+				}
+
+				number norm = b2.two_norm();
+				UG_LOG("%%%% DEBUG: (Re)computed defect has norm: "<<norm<<"\n");
+			}
+
+		//	return
+			return bRes;
 		}
 
 		// destructor
@@ -246,6 +271,9 @@ class LinearSolver
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
+
+	//	flag if fresh defect should be computed when finish for debug purpose
+		bool m_bRecomputeDefectWhenFinished;
 };
 
 } // end namespace ug
