@@ -111,6 +111,21 @@ bool IsBoundaryFace3D(Grid& grid, TFace* f)
 {return IsVolumeBoundaryFace(grid, f);}
 
 ////////////////////////////////////////////////////////////////////////
+//	FaceArea
+///	Returns the area of a convex face
+template <class TAAPosVRT>
+number FaceArea(Face* f, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	Returns the face with the smallest area
+/**
+ * Make sure that TIterator::value_type equals Face* and that aaPos operates
+ * on the grid from which the faces were taken.
+ */
+template <class TIterator, class TAAPosVRT>
+Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 //	FaceQuality
 ///	a simple measure for the quality of a face
 /**

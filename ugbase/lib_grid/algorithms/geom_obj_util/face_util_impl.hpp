@@ -292,6 +292,44 @@ bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold)
 	return false;
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+number FaceArea(Face* f, TAAPosVRT& aaPos)
+{
+	number area = 0;
+	for(size_t i = 2; i < f->num_vertices(); ++i){
+		area += TriangleArea(aaPos[f->vertex(0)],
+							 aaPos[f->vertex(i - 1)],
+							 aaPos[f->vertex(i)]);
+	}
+	return area;
+}
+
+template <class TIterator, class TAAPosVRT>
+Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
+{
+	//	if facesBegin equals facesEnd, then the list is empty and we can
+	//	immediately return NULL
+		if(facesBegin == facesEnd)
+			return NULL;
+
+	//	the first face is the first candidate for the smallest face.
+		Face* smallestFace = *facesBegin;
+		number smallestArea = FaceArea(smallestFace, aaPos);
+		++facesBegin;
+
+		for(; facesBegin != facesEnd; ++facesBegin){
+			Face* curFace = *facesBegin;
+			number curArea = FaceArea(curFace, aaPos);
+			if(curArea < smallestArea){
+				smallestFace = curFace;
+				smallestArea = curArea;
+			}
+		}
+
+		return smallestFace;
+}
+
 }//	end of namespace
 
 #endif

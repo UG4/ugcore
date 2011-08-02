@@ -168,6 +168,7 @@ bool IsVolumeBoundaryFace(Grid& grid, ConstrainingFace* f)
 	return false;
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 //	FaceQuality
 number FaceQuality(Face* f,
@@ -201,7 +202,7 @@ number FaceQuality(Face* f,
 	}
 
 	if(numVrts == 3){
-	//	since at least one angle is <= 60¡, we have to normalize the return value
+	//	since at least one angle is <= 60ï¿½, we have to normalize the return value
 		return quality * 2.;
 	}
 	return quality;
@@ -234,7 +235,7 @@ number TriangleQuality(vector3& v1, vector3& v2, vector3& v3)
 		VecScale(d1, d2, -1);
 	}
 
-//	since at least one angle is <= 60¡, we have to normalize the return value
+//	since at least one angle is <= 60ï¿½, we have to normalize the return value
 	return quality * 2.;
 }
 

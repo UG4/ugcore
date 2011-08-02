@@ -216,20 +216,19 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-///	Marks the long edges in anisotropic faces. Associated faces and volumes are
-///	then refined.
+///	Marks the long edges in anisotropic faces and faces with a big area in anisotropic volumes.
 /**
- * The edgeRatio determines Whether a face is considered anisotropic.
- * Make sure that the edgeRatio is in the interval [0, 1]. If the
+ * The sizeRatio determines Whether a face or a volume is considered anisotropic.
+ * Make sure that the sizeRatio is in the interval [0, 1]. If the
  * ratio of the shortest edge to an other edge falls below the given threshold,
- * then the associated face is considered anisotropic and the other edge will be
- * marked. Associated faces and volumes will be marked for anisotropic refinement, too.
- *
- * Note that this method is not yet completely suited for parallel refinement.
+ * then the associated face is considered anisotropic and the longer edge will be
+ * marked. The face itself will then be marked for anisotropic refinement.
+ * The same technique is applied to volumes, this time however the ratio between
+ * face-areas is considered when judging whether a volume is anisotropic.
  **/
 template <class TDomain>
 void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
-											number edgeRatio)
+											number sizeRatio)
 {
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
@@ -251,10 +250,9 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
 	}
 
-//	we'll store associated edges, faces and volumes in those containers
+//	we'll store associated edges and faces in those containers
 	vector<EdgeBase*> edges;
 	vector<Face*> faces;
-	vector<Volume*> vols;
 
 //	iterate over all faces of the grid.
 	for(FaceIterator iter = grid.begin<Face>();
@@ -277,18 +275,53 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 			number len = EdgeLength(e, aaPos);
 		//	to avoid division by 0, we only consider edges with a length > 0
 			if(len > 0){
-				if(minLen / len <= edgeRatio){
+				if(minLen / len <= sizeRatio){
 				//	the edge will be refined
 					refiner.mark(e);
+				//	we'll also mark the current face, or else just a hanging
+				//	node would be inserted.
+				//	We do not mark other associated objects here since this would
+				//	cause creation of a closure and would also behave differently
+				//	in a parallel environment, compared to a serial environment.
+				//	By using RM_ANISOTROPIC, we avoid that associated edges of
+				//	the marked face will automatically be marked, too.
+					refiner.mark(f, RM_ANISOTROPIC);
+				}
+			}
+		}
+	}
 
-				//	if an edge was marked for refinement, then we have to mark
-				//	all associated faces and volumes too. Use the anisotropic mark.
-				//	mark associated faces
-					CollectAssociated(faces, grid, e);
-					refiner.mark(faces.begin(), faces.end(), RM_ANISOTROPIC);
-				//	mark associated volumes
-					CollectAssociated(vols, grid, e);
-					refiner.mark(vols.begin(), vols.end(), RM_ANISOTROPIC);
+//	now that all faces are marked, we can process volumes. We consider a
+//	volume which has an anisotropic side as an anisotropic volume
+	for(VolumeIterator iter = grid.begin<Volume>();
+		iter != grid.end<Volume>(); ++iter)
+	{
+		Volume* v = *iter;
+
+	//	collect associated faces
+		CollectAssociated(faces, grid, v);
+
+	//	find the smallest face
+		Face* minFace = FindSmallestFace(faces.begin(), faces.end(), aaPos);
+		UG_ASSERT(minFace, "Associated faces of each volume have to exist at this point.");
+		number minArea = FaceArea(minFace, aaPos);
+
+	//	compare all associated faces of v against minArea
+		for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+			Face* f = faces[i_face];
+			number area = FaceArea(f, aaPos);
+		//	avoid division by 0
+			if(area > 0){
+				if(minArea / area <= sizeRatio){
+				//	the face will be refined. If it is already marked, we'll
+				//	leave it at that, to keep the anisotropy.
+				//	If it wasn't marked, we'll mark it for full refinement
+				//	(all anisotropic faces have already been marked).
+					if(refiner.get_mark(f) == RM_NONE)
+						refiner.mark(f);
+
+				//	the volume itself now has to be marked, too.
+					refiner.mark(v, RM_ANISOTROPIC);
 				}
 			}
 		}
