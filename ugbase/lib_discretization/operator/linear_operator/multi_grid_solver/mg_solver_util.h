@@ -262,6 +262,9 @@ bool ProjectLevelToSurface(TVector& surfaceVector,
 		//	get elem
 			TElem* elem = *iter;
 
+		//	skip shadows
+			if(surfaceView.is_shadow(elem)) continue;
+
 		//	extract all algebra indices for the element on surface
 			surfaceDD.inner_algebra_indices(elem, surfaceInd);
 
