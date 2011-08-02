@@ -41,6 +41,8 @@ set(srcDiscretization	common/function_group.cpp
 						local_finite_element/lagrange/lagrangep1.cpp
 						local_finite_element/lagrange/lagrange.cpp
 						
+						operator/linear_operator/multi_grid_solver/mg_solver_util.cpp
+						
 						spatial_discretization/elem_disc/elem_disc_interface.cpp
 						spatial_discretization/disc_util/finite_volume_geometry.cpp
 						spatial_discretization/disc_util/hanging_finite_volume_geometry.cpp

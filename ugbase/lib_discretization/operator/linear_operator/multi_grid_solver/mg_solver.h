@@ -165,11 +165,17 @@ class AssembledMultiGridCycle :
 		base_type* clone();
 
 	///	Destructor
-		~AssembledMultiGridCycle() {};
+		~AssembledMultiGridCycle() {top_level_required(0);};
 
  	protected:
- 	/// smooth on level l, restrict defect, call lmgc (..., l-1) and interpolate correction
-		bool lmgc(vector_type& c, vector_type& d, size_t lev);
+ 	/// compute correction on level and update defect
+		bool lmgc(size_t lev);
+
+	/// smooth on level l, restrict defect, call lmgc (..., l-1) and interpolate correction
+		bool smooth_and_transfer(size_t lev);
+
+	///	compute base solver
+		bool base_solve(size_t lev);
 
 	/// performs smoothing on level l, nu times
 		bool smooth(vector_type& c, vector_type& d, vector_type& t,
@@ -266,42 +272,102 @@ class AssembledMultiGridCycle :
 
 		struct LevData
 		{
-			LevData() : pLevDD(0), A(0), Smoother(0), Projection(0), Prolongation(0),
-						u(0), c(0), d(0), t(0), CoarseGridContribution(0),
-						SmoothMat(0),
-						su(0), sc(0), sd(0), st(0),
-#ifdef UG_PARALLEL
-						masterLayout(0), slaveLayout(0),
-#endif
-						sel(0)
-			{};
+		//	constructor
+			LevData() : pLevDD(0), Smoother(0), Projection(0), Prolongation(0){};
 
-			void allocate(size_t lev,
-						  approximation_space_type& approxSpace,
-			              assemble_type& ass,
-			              smoother_type& smoother,
-			              projection_operator_type& projection,
-			              prolongation_operator_type& prolongation);
+		//	prepares the grid level data for appication
+			void update(size_t lev,
+			            approximation_space_type& approxSpace,
+			            assemble_type& ass,
+			            smoother_type& smoother,
+			            projection_operator_type& projection,
+			            prolongation_operator_type& prolongation);
 
-			bool has_ghosts() const
+		//	returns if ghosts are present on the level
+			bool has_ghosts() const {return num_smooth_indices() != num_indices();}
+
+		//	number of smoothing indices
+			size_t num_smooth_indices() const {return m_numSmoothIndices;}
+
+		//	number of indices on whole level
+			size_t num_indices() const
+				{UG_ASSERT(pLevDD, "Missing LevDD"); return pLevDD->num_indices();}
+
+		//	returns the smoothing matrix (depends if smooth patch needed or not)
+			MatrixOperator<vector_type, vector_type, matrix_type>&
+			get_smooth_mat()
+			{
+				if(has_ghosts()) return SmoothMat;
+				else return LevMat;
+			}
+
+		//	returns the smoother
+			smoother_type& get_smoother() {return *Smoother;}
+
+		//	returns the vectors used for smoothing (patch only vectors)
+			vector_type& get_smooth_solution() {if(has_ghosts()) return su; else return u;}
+			vector_type& get_smooth_defect() {if(has_ghosts()) return sd; else return d;}
+			vector_type& get_smooth_correction(){if(has_ghosts()) return sc; else return c;}
+			vector_type& get_smooth_tmp(){if(has_ghosts()) return st; else return t;}
+
+		//	copies values of defect to smoothing patch
+			void copy_defect_to_smooth_patch()
 			{
 				#ifdef UG_PARALLEL
-					return !pLevDD->get_vertical_master_layout().empty();
-				#else
-					return false;
+				if(has_ghosts()) {
+					for(size_t i = 0; i < vMap.size(); ++i) sd[i] = d[ vMap[i] ];
+					sd.copy_storage_type(d);
+				}
 				#endif
 			}
 
-			void free();
+		//	copies values of tmp to smoothing patch
+			void copy_tmp_to_smooth_patch()
+			{
+				#ifdef UG_PARALLEL
+				if(has_ghosts()) {
+					for(size_t i = 0; i < vMap.size(); ++i) st[i] = t[ vMap[i] ];
+					st.copy_storage_type(t);
+				}
+				#endif
+			}
 
-			~LevData()
-			{}
+		//	copies values of defect from smoothing patch
+			void copy_defect_from_smooth_patch(bool clearGhosts = false)
+			{
+				#ifdef UG_PARALLEL
+				if(has_ghosts()) {
+					if(clearGhosts) d.set(0.0);
+					for(size_t i = 0; i < vMap.size(); ++i) d[ vMap[i] ] = sd[i];
+					d.copy_storage_type(sd);
+				}
+				#endif
+			}
 
+		//	copies values of defect to smoothing patch
+			void copy_correction_from_smooth_patch(bool clearGhosts = false)
+			{
+				#ifdef UG_PARALLEL
+				if(has_ghosts()) {
+					if(clearGhosts) c.set(0.0);
+					for(size_t i = 0; i < vMap.size(); ++i) c[ vMap[i] ] = sc[i];
+					c.copy_storage_type(sc);
+				}
+				#endif
+			}
+
+		//	destructor
+			~LevData();
+
+			public:
 		//	level DoF Distribution
 			dof_distribution_type* pLevDD;
 
-		//	operator
-			operator_type* A;
+		//	matrix operator for whole grid level
+			operator_type LevMat;
+
+		//	matrix for smoothing on smoothing patch of grid level
+			MatrixOperator<vector_type, vector_type, matrix_type> SmoothMat;
 
 		//	smoother
 			smoother_type* Smoother;
@@ -313,44 +379,41 @@ class AssembledMultiGridCycle :
 			prolongation_operator_type* Prolongation;
 
 		//	vectors needed
-			vector_type *u, *c, *d, *t;
-
-		//	missing coarse grid correction
-			matrix_type *CoarseGridContribution;
-
-		//	smaller matrix for smoothing
-			MatrixOperator<vector_type, vector_type, matrix_type> *SmoothMat;
+			vector_type u, c, d, t;
 
 		//	vectors needed for smoothing
-			vector_type *su, *sc, *sd, *st;
+			vector_type su, sc, sd, st;
 
-#ifdef UG_PARALLEL
-		//	interfaces needed for smoothing
-			IndexLayout *masterLayout, *slaveLayout;
-#endif
+		//	missing coarse grid correction
+			matrix_type CoarseGridContribution;
+
+		//	selector for smoothing elements
+			Selector sel;
 
 		//	map for smoothing
 			std::vector<size_t> vMap;
-			std::vector<int> vMapMat;
+			std::vector<int> vMapFlag;
 
-		//	selector for smoothing elements
-			Selector *sel;
+		//	number of smooth indices
+			size_t m_numSmoothIndices;
+
+#ifdef UG_PARALLEL
+		//	interfaces needed for smoothing
+			IndexLayout SmoothMasterLayout, SmoothSlaveLayout;
+#endif
 		};
 
 	///	storage for all level
-		std::vector<LevData> m_vLevData;
+		std::vector<LevData*> m_vLevData;
 
 	///	base solver for the coarse problem
 		base_solver_type* m_pBaseSolver;
-
-	///	operator for base solver
-		operator_type m_BaseOperator;
 
 		std::vector<vector_type*> level_defects()
 		{
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(m_vLevData[i].d);
+				vVec.push_back(&m_vLevData[i]->d);
 			return vVec;
 		}
 
@@ -358,7 +421,7 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<const vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(m_vLevData[i].d);
+				vVec.push_back(&m_vLevData[i]->d);
 			return vVec;
 		}
 
@@ -366,7 +429,7 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(m_vLevData[i].c);
+				vVec.push_back(&m_vLevData[i]->c);
 			return vVec;
 		}
 
@@ -374,7 +437,7 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<const vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(m_vLevData[i].c);
+				vVec.push_back(&m_vLevData[i]->c);
 			return vVec;
 		}
 
@@ -382,7 +445,7 @@ class AssembledMultiGridCycle :
 		{
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				vVec.push_back(m_vLevData[i].u);
+				vVec.push_back(&m_vLevData[i]->u);
 			return vVec;
 		}
 

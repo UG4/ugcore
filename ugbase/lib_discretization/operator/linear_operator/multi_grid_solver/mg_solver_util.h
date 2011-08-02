@@ -13,8 +13,21 @@
 
 // library intern headers
 #include "common/common.h"
+#include "lib_grid/lg_base.h"
+#include "lib_discretization/dof_manager/dof_distribution.h"
+#ifdef UG_PARALLEL
+	#include "lib_grid/parallelization/distributed_grid.h"
+#endif
+#include "lib_algebra/operator/operator_iterator_interface.h"
+#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/operator/operator_interface.h"
+
 
 namespace ug{
+
+////////////////////////////////////////////////////////////////////////////////
+// SurfaceToToplevelMap
+////////////////////////////////////////////////////////////////////////////////
 
 /// creates a mapping levIndex = vMap[surfIndex];
 template <typename TElem, typename TDoFDistribution>
@@ -95,6 +108,10 @@ bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 
 	return bRetVal;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Projections
+////////////////////////////////////////////////////////////////////////////////
 
 /// projects surface function to level functions
 /**
@@ -183,9 +200,9 @@ bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
 	{
-		UG_LOG("In ProjectSurfaceToLevel: Number of level Vectors (" << vLevelVector.size() <<
-		       ") and level DoF Distributions (" << vLevelDD.size() << ") does"
-		       " not match. Aborting.\n");
+		UG_LOG("In ProjectSurfaceToLevel: Number of level Vectors ("
+				<< vLevelVector.size() <<") and level DoF Distributions ("
+				<< vLevelDD.size() << ") does not match. Aborting.\n");
 		return false;
 	}
 
@@ -290,9 +307,9 @@ bool ProjectLevelToSurface(TVector& surfVector,
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
 	{
-		UG_LOG("In ProjectLevelToSurface: Number of level Vectors (" << vLevelVector.size() <<
-		       ") and level DoF Distributions (" << vLevelDD.size() << ") does"
-		       " not match. Aborting.\n");
+		UG_LOG("In ProjectLevelToSurface: Number of level Vectors ("
+				<< vLevelVector.size() <<") and level DoF Distributions ("
+				<< vLevelDD.size() << ") does not match. Aborting.\n");
 		return false;
 	}
 
@@ -333,7 +350,7 @@ bool ProjectLevelToSurface(TVector& surfVector,
 					" Types in levels are:\n");
  			for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
 				if(vLevelVector[lev] != NULL)
-					UG_LOG("  lev " << lev << ": " << vLevelVector[lev]->get_storage_mask() << "\n");
+					UG_LOG("  lev "<<lev<<": "<<vLevelVector[lev]->get_storage_mask()<<"\n");
 			return false;
 		}
 
@@ -347,6 +364,9 @@ bool ProjectLevelToSurface(TVector& surfVector,
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Operation on Shadows/Shadowing
+////////////////////////////////////////////////////////////////////////////////
 
 /**
  * This functions adds the shadow values from a coarser grid to the shadowing
@@ -354,74 +374,56 @@ bool ProjectLevelToSurface(TVector& surfVector,
  *
  * \param[out]	fineVec			fine grid vector
  * \param[out]	coarseVec		coarse grid vector
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	coarseLevel		Coarse Level index
- * \param[in]	fineLevel		Fine Level index
+ * \param[in]	scale			scaling, when adding
+ * \param[in] 	ddFine			dof distribution on fine space
+ * \param[in] 	ddCoarse		dof distribution on coarse space
+ * \param[in]	surfView		surface view
  */
-template <typename TApproximationSpace, typename TVector>
-bool AddProjectionOfVertexShadows(TVector& fineVec, const TVector& coarseVec,
-                                  TApproximationSpace& approxSpace,
-                                  size_t coarseLevel, size_t fineLevel)
+template <typename TBaseElem, typename TVector, typename TDoFDistributionImpl>
+bool AddProjectionOfShadows(TVector& fineVec, const TVector& coarseVec,
+                           const number scale,
+                           const IDoFDistribution<TDoFDistributionImpl>& ddFine,
+                           const IDoFDistribution<TDoFDistributionImpl>& ddCoarse,
+                           const SurfaceView& surfView)
 {
-//	get DoFDistributions
-	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
-		= approxSpace.get_level_dof_distribution(coarseLevel);
-	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
-		= approxSpace.get_level_dof_distribution(fineLevel);
 
-//	get surface view
-	const SurfaceView& surfView = *approxSpace.get_surface_view();
+	typename TDoFDistributionImpl::algebra_index_vector_type fineInd;
+	typename TDoFDistributionImpl::algebra_index_vector_type coarseInd;
 
-//  Allow only lagrange P1 functions
-	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_finite_element_id(fct)
-				!= LFEID(LFEID::LAGRANGE, 1))
-		{
-			UG_LOG("ERROR in 'AssembleVertexProjection': "
-					"Interpolation only implemented for Lagrange P1 functions.\n");
-			return false;
-		}
-
-// 	get MultiGrid
-	MultiGrid& grid = approxSpace.get_domain().get_grid();
-
-	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type fineInd;
-	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type coarseInd;
-
-// 	Vertex iterators
-	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
+// 	iterators
+	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
 
 // 	loop subsets of fine level
-	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
+	for(int si = 0; si < ddCoarse.num_subsets(); ++si)
 	{
-		iterBegin = fineDoFDistr.template begin<VertexBase>(si);
-		iterEnd = fineDoFDistr.template end<VertexBase>(si);
+		iter = ddCoarse.template begin<TBaseElem>(si);
+		iterEnd = ddCoarse.template end<TBaseElem>(si);
 
-	// 	loop nodes of fine subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
+	// 	loop elements of coarse subset
+		for(; iter != iterEnd; ++iter)
 		{
-		//	skip non-shadowing vertices
-			if(!surfView.shadows(*iter)) continue;
+		//	get element
+			TBaseElem* pElem = *iter;
 
-		// 	get father
-			GeometricObject* geomObj = grid.get_parent(*iter);
-			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
+		//	skip non-shadows
+			if(!surfView.is_shadow(pElem)) continue;
 
-		//	Check if father is Vertex
-			if(vert != NULL)
-			{
-				// get global indices
-				coarseDoFDistr.inner_algebra_indices(vert, coarseInd);
-			}
-			else continue;
+		// 	get child (i.e. shadow)
+			TBaseElem* pShadowing = surfView.get_shadow_child(pElem);
+			UG_ASSERT(pShadowing != NULL, "Shadow child does not exist. Error.");
 
 		// 	get global indices
-			fineDoFDistr.inner_algebra_indices(*iter, fineInd);
+			ddCoarse.inner_algebra_indices(pElem, coarseInd);
+
+		// 	get global indices
+			ddFine.inner_algebra_indices(pShadowing, fineInd);
 
 		//	add coarse vector entries to fine vector entries
 			for(size_t i = 0; i < coarseInd.size(); ++i)
 			{
-				fineVec[fineInd[i]] += coarseVec[coarseInd[i]];
+				VecScaleAdd(fineVec[fineInd[i]],
+				            1.0, fineVec[fineInd[i]],
+				            scale, coarseVec[coarseInd[i]]);
 			}
 		}
 	}
@@ -430,144 +432,74 @@ bool AddProjectionOfVertexShadows(TVector& fineVec, const TVector& coarseVec,
 	return true;
 }
 
-/**
- * This functions sets the shadowing values from a finer grid to the shadow
- * DoFs on the coarser grid.
- *
- * \param[out]	coarseVec		coarse grid vector
- * \param[out]	fineVec			fine grid vector
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	coarseLevel		Coarse Level index
- * \param[in]	fineLevel		Fine Level index
- */
-template <typename TApproximationSpace, typename TVector>
-bool SetProjectionOfVertexShadowing(TVector& coarseVec, const TVector& fineVec,
-                                    TApproximationSpace& approxSpace,
-                                    size_t coarseLevel, size_t fineLevel)
+template <typename TVector, typename TDoFDistributionImpl>
+bool AddProjectionOfShadows(TVector& fineVec, const TVector& coarseVec,
+                           const number scale,
+                           const IDoFDistribution<TDoFDistributionImpl>& ddFine,
+                           const IDoFDistribution<TDoFDistributionImpl>& ddCoarse,
+                           const SurfaceView& surfView)
 {
-//	get DoFDistributions
-	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
-		= approxSpace.get_level_dof_distribution(coarseLevel);
-	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
-		= approxSpace.get_level_dof_distribution(fineLevel);
+//	return flag
+	bool bRet = true;
 
-//	get surface view
-	const SurfaceView& surfView = *approxSpace.get_surface_view();
+//	forward for all BaseObject types
+	if(ddFine.has_indices_on(VERTEX))
+		bRet &= AddProjectionOfShadows<VertexBase, TVector, TDoFDistributionImpl>
+					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
+	if(ddFine.has_indices_on(EDGE))
+		bRet &= AddProjectionOfShadows<EdgeBase, TVector, TDoFDistributionImpl>
+					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
+	if(ddFine.has_indices_on(FACE))
+		bRet &= AddProjectionOfShadows<Face, TVector, TDoFDistributionImpl>
+					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
+	if(ddFine.has_indices_on(VOLUME))
+		bRet &= AddProjectionOfShadows<Volume, TVector, TDoFDistributionImpl>
+					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
 
-//  Allow only lagrange P1 functions
-	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_finite_element_id(fct)
-				!= LFEID(LFEID::LAGRANGE, 1))
-		{
-			UG_LOG("ERROR in 'AssembleVertexProjection': "
-					"Interpolation only implemented for Lagrange P1 functions.\n");
-			return false;
-		}
-
-// 	get MultiGrid
-	MultiGrid& grid = approxSpace.get_domain().get_grid();
-
-	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type fineInd;
-	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type coarseInd;
-
-// 	Vertex iterators
-	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
-
-// 	loop subsets of fine level
-	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
-	{
-		iterBegin = fineDoFDistr.template begin<VertexBase>(si);
-		iterEnd = fineDoFDistr.template end<VertexBase>(si);
-
-	// 	loop nodes of fine subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	skip non-shadowing vertices
-			if(!surfView.shadows(*iter)) continue;
-
-		// 	get father
-			GeometricObject* geomObj = grid.get_parent(*iter);
-			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
-
-		//	Check if father is Vertex
-			if(vert != NULL)
-			{
-				// get global indices
-				coarseDoFDistr.inner_algebra_indices(vert, coarseInd);
-			}
-			else continue;
-
-		// 	get global indices
-			fineDoFDistr.inner_algebra_indices(*iter, fineInd);
-
-		//	add coarse vector entries to fine vector entries
-			for(size_t i = 0; i < coarseInd.size(); ++i)
-			{
-				 coarseVec[coarseInd[i]] = fineVec[fineInd[i]];
-			}
-		}
-	}
-
-//	we're done
-	return true;
+//	return success
+	return bRet;
 }
+
 
 /**
  * This functions sets the values of a vector to zero, where the index
- * corresponds to a refine-patch boundary (i.e. the vertex is a shadowing
- * vertex)
+ * corresponds to a refine-patch boundary (i.e. the geomeric object is a
+ * shadowing object) for an element type
  *
  * \param[out]	vec				grid vector
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	level			Level index
+ * \param[in] 	dd				DoFDistribution
+ * \param[in]	surfView		SurfaceView
  */
-template <typename TApproximationSpace, typename TVector>
-bool SetZeroOnShadowingVertex(TVector& vec,
-                            TApproximationSpace& approxSpace,
-                            size_t level)
+template <typename TBaseElem, typename TVector, typename TDoFDistributionImpl>
+bool SetZeroOnShadowing(TVector& vec,
+                        const IDoFDistribution<TDoFDistributionImpl>& dd,
+                        const SurfaceView& surfView)
 {
-//	get DoFDistributions
-	const typename TApproximationSpace::dof_distribution_type& dofDistr
-		= approxSpace.get_level_dof_distribution(level);
-
-//	get surface view
-	const SurfaceView& surfView = *approxSpace.get_surface_view();
-
-//  Allow only lagrange P1 functions
-	for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
-		if(dofDistr.local_finite_element_id(fct)
-				!= LFEID(LFEID::LAGRANGE, 1))
-		{
-			UG_LOG("ERROR in 'AssembleVertexProjection': "
-					"Interpolation only implemented for Lagrange P1 functions.\n");
-			return false;
-		}
-
 //	indices
-	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type ind;
+	typename TDoFDistributionImpl::algebra_index_vector_type ind;
 
 // 	Vertex iterators
-	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
+	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
 
 // 	loop subsets of fine level
-	for(int si = 0; si < dofDistr.num_subsets(); ++si)
+	for(int si = 0; si < dd.num_subsets(); ++si)
 	{
-		iterBegin = dofDistr.template begin<VertexBase>(si);
-		iterEnd = dofDistr.template end<VertexBase>(si);
+		iter = dd.template begin<TBaseElem>(si);
+		iterEnd = dd.template end<TBaseElem>(si);
 
 	// 	loop nodes of fine subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
+		for(; iter != iterEnd; ++iter)
 		{
 		//	get vertex
-			VertexBase* vrt = *iter;
+			TBaseElem* vrt = *iter;
 
 		//	skip non-shadowing vertices
 			if(!surfView.shadows(vrt)) continue;
 
 		// 	get global indices
-			dofDistr.inner_algebra_indices(vrt, ind);
+			dd.inner_algebra_indices(vrt, ind);
 
-		//	add coarse vector entries to fine vector entries
+		//	set vector entries to zero
 			for(size_t i = 0; i < ind.size(); ++i)
 			{
 				vec[ind[i]] = 0.0;
@@ -581,289 +513,50 @@ bool SetZeroOnShadowingVertex(TVector& vec,
 
 /**
  * This functions sets the values of a vector to zero, where the index
- * corresponds to a vertex shadowed by a refine-patch boundary
+ * corresponds to a refine-patch boundary (i.e. the geomeric object is a
+ * shadowing object)
  *
  * \param[out]	vec				grid vector
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	level			Level index
+ * \param[in] 	dd				DoFDistribution
+ * \param[in]	surfView		SurfaceView
  */
-template <typename TApproximationSpace, typename TVector>
-bool SetZeroOnVertexShadows(TVector& vec,
-                            TApproximationSpace& approxSpace,
-                            size_t level)
+template <typename TVector, typename TDoFDistributionImpl>
+bool SetZeroOnShadowing(TVector& vec,
+                        const IDoFDistribution<TDoFDistributionImpl>& dd,
+                        const SurfaceView& surfView)
 {
-//	get DoFDistributions
-	const typename TApproximationSpace::dof_distribution_type& dofDistr
-		= approxSpace.get_level_dof_distribution(level);
+//	return flag
+	bool bRet = true;
 
-//	get surface view
-	const SurfaceView& surfView = *approxSpace.get_surface_view();
+//	forward for all BaseObject types
+	if(dd.has_indices_on(VERTEX))
+		bRet &= SetZeroOnShadowing<VertexBase, TVector, TDoFDistributionImpl>
+					(vec, dd, surfView);
+	if(dd.has_indices_on(EDGE))
+		bRet &= SetZeroOnShadowing<EdgeBase, TVector, TDoFDistributionImpl>
+					(vec, dd, surfView);
+	if(dd.has_indices_on(FACE))
+		bRet &= SetZeroOnShadowing<Face, TVector, TDoFDistributionImpl>
+					(vec, dd, surfView);
+	if(dd.has_indices_on(VOLUME))
+		bRet &= SetZeroOnShadowing<Volume, TVector, TDoFDistributionImpl>
+					(vec, dd, surfView);
 
-//  Allow only lagrange P1 functions
-	for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
-		if(dofDistr.local_finite_element_id(fct)
-				!= LFEID(LFEID::LAGRANGE, 1))
-		{
-			UG_LOG("ERROR in 'AssembleVertexProjection': "
-					"Interpolation only implemented for Lagrange P1 functions.\n");
-			return false;
-		}
-
-//	indices
-	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type ind;
-
-// 	Vertex iterators
-	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
-
-// 	loop subsets of fine level
-	for(int si = 0; si < dofDistr.num_subsets(); ++si)
-	{
-		iterBegin = dofDistr.template begin<VertexBase>(si);
-		iterEnd = dofDistr.template end<VertexBase>(si);
-
-	// 	loop nodes of fine subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	get vertex
-			VertexBase* vrt = *iter;
-
-		//	skip non-shadowing vertices
-			if(!surfView.is_shadow(vrt)) continue;
-
-		// 	get global indices
-			dofDistr.inner_algebra_indices(vrt, ind);
-
-		//	add coarse vector entries to fine vector entries
-			for(size_t i = 0; i < ind.size(); ++i)
-			{
-				vec[ind[i]] = 0.0;
-			}
-		}
-	}
-
-//	we're done
-	return true;
+//	return success
+	return bRet;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Selections
+////////////////////////////////////////////////////////////////////////////////
 
-template <typename TElemBase>
-bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
-{
-//	vectors for associated elements
-	std::vector<VertexBase*> vAssVertex;
-	std::vector<EdgeBase*> vAssEdge;
-	std::vector<Face*> vAssFace;
-	std::vector<Volume*> vAssVolume;
+/// selects all non-shadows, that are adjacent to a shadow in the multigrid
+bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView);
 
-//	get grid
-	Grid& grid = *sel.get_assigned_grid();
-
-//	loop all subsets
-	for(int si = 0; si < surfView.num_subsets(); ++si)
-	{
-	//	iterator type
-		typename geometry_traits<TElemBase>::const_iterator iter, iterEnd;
-		iterEnd = surfView.end<TElemBase>(si);
-
-	//	loop all base elems
-		for(iter = surfView.begin<TElemBase>(si); iter != iterEnd; ++iter)
-		{
-		//	get element
-			TElemBase* elem = *iter;
-
-		//	check if element is a shadow
-			if(surfView.shadows(elem))
-			{
-			//	get shadow
-				GeometricObject* shadow = surfView.get_parent(elem);
-
-			//	get adjacent elemens
-				CollectAssociated(vAssVertex, grid, shadow);
-				CollectAssociated(vAssEdge, grid, shadow);
-				CollectAssociated(vAssFace, grid, shadow);
-				CollectAssociated(vAssVolume, grid, shadow);
-
-			//	select associated elements
-				for(size_t i = 0; i < vAssVertex.size(); ++i)
-					if(surfView.is_contained(vAssVertex[i]))
-						sel.select(vAssVertex[i]);
-				for(size_t i = 0; i < vAssEdge.size(); ++i)
-					if(surfView.is_contained(vAssEdge[i]))
-						sel.select(vAssEdge[i]);
-				for(size_t i = 0; i < vAssFace.size(); ++i)
-					if(surfView.is_contained(vAssFace[i]))
-						sel.select(vAssFace[i]);
-				for(size_t i = 0; i < vAssVolume.size(); ++i)
-					if(surfView.is_contained(vAssVolume[i]))
-						sel.select(vAssVolume[i]);
-			}
-		}
-
-	}
-
-//	we're done
-	return true;
-}
-
-
-inline bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
-{
-//	clear all marks
-	sel.clear();
-
-//	get grid
-	Grid& grid = *sel.get_assigned_grid();
-
-//	select elements
-	bool bRes = true;
-
-//	note: the highest dimension of elements must not be loop, since there are
-//		  no slaves of the highest dimension
-	bRes &= SelectNonShadowsAdjacentToShadows<VertexBase>(sel, surfView);
-
-	if(grid.num<Face>() > 0 || grid.num<Volume>() > 0)
-		bRes &= SelectNonShadowsAdjacentToShadows<EdgeBase>(sel, surfView);
-
-	if(grid.num<Volume>() > 0)
-		bRes &= SelectNonShadowsAdjacentToShadows<Face>(sel, surfView);
-
-//	we're done
-	return bRes;
-}
-
-template <typename TElemBase>
+/// selects all non-shadows, that are adjacent to a shadow on a grid levels
 bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
                                               const SurfaceView& surfView,
-                                              int level)
-{
-//	vectors for associated elements
-	std::vector<VertexBase*> vAssVertex;
-	std::vector<EdgeBase*> vAssEdge;
-	std::vector<Face*> vAssFace;
-	std::vector<Volume*> vAssVolume;
-
-//	get grid
-	Grid& grid = *sel.get_assigned_grid();
-
-//	get multigrid
-	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
-
-//	check multigrid
-	if(&mg == NULL)
-	{
-		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: No "
-				"Multigrid given, selection ob level not possible.\n");
-		return false;
-	}
-
-//	check level
-	if(level >= (int) mg.num_levels() || level < 0)
-	{
-		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
-				"level "<<level<<" does not exist in Multigrid.\n");
-		return false;
-	}
-
-//	loop all subsets
-	for(int si = 0; si < surfView.num_subsets(); ++si)
-	{
-	//	iterator type
-		typename geometry_traits<TElemBase>::const_iterator iter, iterEnd;
-		iterEnd = surfView.end<TElemBase>(si);
-
-	//	loop all base elems
-		for(iter = surfView.begin<TElemBase>(si); iter != iterEnd; ++iter)
-		{
-		//	get element
-			TElemBase* elem = *iter;
-
-		//	check if element is a shadow
-			if(surfView.shadows(elem))
-			{
-			//	get shadow
-				GeometricObject* shadow = surfView.get_parent(elem);
-
-			//	check if this is the correct level
-				if(mg.get_level(shadow) != level) continue;
-
-			//	get adjacent elements
-				CollectAssociated(vAssVertex, grid, shadow);
-				CollectAssociated(vAssEdge, grid, shadow);
-				CollectAssociated(vAssFace, grid, shadow);
-				CollectAssociated(vAssVolume, grid, shadow);
-
-			//	select associated elements
-				for(size_t i = 0; i < vAssVertex.size(); ++i)
-					if(surfView.is_contained(vAssVertex[i]))
-						sel.select(vAssVertex[i]);
-				for(size_t i = 0; i < vAssEdge.size(); ++i)
-					if(surfView.is_contained(vAssEdge[i]))
-						sel.select(vAssEdge[i]);
-				for(size_t i = 0; i < vAssFace.size(); ++i)
-					if(surfView.is_contained(vAssFace[i]))
-						sel.select(vAssFace[i]);
-				for(size_t i = 0; i < vAssVolume.size(); ++i)
-					if(surfView.is_contained(vAssVolume[i]))
-						sel.select(vAssVolume[i]);
-			}
-		}
-
-	}
-
-//	we're done
-	return true;
-}
-
-
-inline bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
-                                              const SurfaceView& surfView,
-                                              int level)
-{
-//	clear all marks
-	sel.clear();
-
-//	get grid
-	Grid& grid = *sel.get_assigned_grid();
-
-//	get multigrid
-	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
-
-//	check multigrid
-	if(&mg == NULL)
-	{
-		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: No "
-				"Multigrid given, selection ob level not possible.\n");
-		return false;
-	}
-
-//	check level
-	if(level >= (int) mg.num_levels() || level < 0)
-	{
-		UG_LOG("ERROR in SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
-				"level "<<level<<" does not exist in Multigrid.\n");
-		return false;
-	}
-
-//	select elements
-	bool bRes = true;
-
-//	note: the highest dimension of elements must not be loop, since there are
-//		  no slaves of the highest dimension
-	bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<VertexBase>(sel, surfView, level);
-
-	// this is not needed, since if an edge/face is in the surface view, then
-	//	also its vertices. Thus, the adjacend element is marked already by
-	//	the loop over VertexBase.
-/*
-	if(grid.num<Face>() > 0 || grid.num<Volume>() > 0)
-		bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<EdgeBase>(sel, surfView, level);
-
-	if(grid.num<Volume>() > 0)
-		bRes &= SelectNonShadowsAdjacentToShadowsOnLevel<Face>(sel, surfView, level);
-*/
-//	we're done
-	return bRes;
-}
+                                              int level);
 
 #ifdef UG_PARALLEL
 template <typename TElemBase>
@@ -884,12 +577,26 @@ void SelectNonGhosts(ISelector& sel,
 }
 #endif
 
-/// projects surface function to level functions
+////////////////////////////////////////////////////////////////////////////////
+// Matrix Copy operations
+////////////////////////////////////////////////////////////////////////////////
+
+/// copies a matrix from a larger one into a smaller one
+/**
+ * This function copies a matrix of a larger index set into a matrix with a
+ * smaller (or equally sized) index set. The copying is performed using a
+ * mapping between the index set, that returns smallIndex = vMap[largeIndex],
+ * and a -1 if the largeIndex is dropped.
+ */
 template <typename TMatrix>
-bool CopySmoothingMatrix(TMatrix& smoothMat,
+void CopyMatrixByMapping(TMatrix& smallMat,
                          const std::vector<int>& vMap,
                          const TMatrix& origMat)
 {
+//	check size
+	UG_ASSERT(vMap.size() == origMat.num_rows(), "Size must match.");
+	UG_ASSERT(vMap.size() == origMat.num_cols(), "Size must match.");
+
 //	type of matrix row iterator
 	typedef typename TMatrix::const_row_iterator const_row_iterator;
 
@@ -897,69 +604,76 @@ bool CopySmoothingMatrix(TMatrix& smoothMat,
 	for(size_t origInd = 0; origInd < vMap.size(); ++origInd)
 	{
 	//	get mapped level index
-		const int smoothInd = vMap[origInd];
+		const int smallInd = vMap[origInd];
 
 	//	skipped non-mapped indices (indicated by -1)
-		if(smoothInd < 0) continue;
+		if(smallInd < 0) continue;
 
 	//	loop all connections of the surface dof to other surface dofs and copy
 	//	the matrix coupling into the level matrix
 
 		for(const_row_iterator conn = origMat.begin_row(origInd);
-						conn != origMat.end_row(origInd); ++conn)
+								conn != origMat.end_row(origInd); ++conn)
 		{
 		//	get corresponding level connection index
-			const int origConnIndex = vMap[conn.index()];
+			const int smallConnIndex = vMap[conn.index()];
 
-		//	check that index is from same level, too
-			if(origConnIndex < 0) continue;
+		//	check that index is in small matrix, too
+			if(smallConnIndex < 0) continue;
 
-		//	copy connection to level matrix
-			smoothMat(smoothInd, origConnIndex) = conn.value();
+		//	copy connection to smaller matrix
+			smallMat(smallInd, smallConnIndex) = conn.value();
 		}
 	}
 
 #ifdef UG_PARALLEL
-	smoothMat.copy_storage_type(origMat);
+	smallMat.copy_storage_type(origMat);
 #endif
-
-	return true;
 }
 
-/// projects surface function to level functions
+/// copies a matrix into a equally sized second one using a mapping
+/**
+ * This function copies a matrix of a index set into a matrix with a
+ * equally sized index set. The copying is performed using a
+ * mapping between the index set, that returns newIndex = vMap[origIndex].
+ */
 template <typename TMatrix>
-bool CopySurfaceMatToLevelMat(TMatrix& levMat,
-                              const std::vector<size_t>& vMap,
-                              const TMatrix& surfMat)
+void CopyMatrixByMapping(TMatrix& newMat,
+                         const std::vector<size_t>& vMap,
+                         const TMatrix& origMat)
 {
+//	check size
+	UG_ASSERT(vMap.size() == newMat.num_rows(), "Size must match.");
+	UG_ASSERT(vMap.size() == newMat.num_cols(), "Size must match.");
+	UG_ASSERT(vMap.size() == origMat.num_rows(), "Size must match.");
+	UG_ASSERT(vMap.size() == origMat.num_cols(), "Size must match.");
+
 //	type of matrix row iterator
 	typedef typename TMatrix::const_row_iterator const_row_iterator;
 
 //	loop all mapped indices
-	for(size_t surfInd = 0; surfInd < vMap.size(); ++surfInd)
+	for(size_t origInd = 0; origInd < vMap.size(); ++origInd)
 	{
 	//	get mapped level index
-		const size_t levelInd = vMap[surfInd];
+		const size_t newInd = vMap[origInd];
 
 	//	loop all connections of the surface dof to other surface dofs and copy
 	//	the matrix coupling into the level matrix
 
-		for(const_row_iterator conn = surfMat.begin_row(surfInd);
-									conn != surfMat.end_row(surfInd); ++conn)
+		for(const_row_iterator conn = origMat.begin_row(origInd);
+									conn != origMat.end_row(origInd); ++conn)
 		{
 		//	get corresponding level connection index
-			const size_t origConnIndex = vMap[conn.index()];
+			const size_t newConnIndex = vMap[conn.index()];
 
 		//	copy connection to level matrix
-			levMat(levelInd, origConnIndex) = conn.value();
+			newMat(newInd, newConnIndex) = conn.value();
 		}
 	}
 
 #ifdef UG_PARALLEL
-	levMat.copy_storage_type(surfMat);
+	newMat.copy_storage_type(origMat);
 #endif
-
-	return true;
 }
 
 
