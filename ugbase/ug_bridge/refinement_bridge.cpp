@@ -225,6 +225,14 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
  * marked. The face itself will then be marked for anisotropic refinement.
  * The same technique is applied to volumes, this time however the ratio between
  * face-areas is considered when judging whether a volume is anisotropic.
+ *
+ * VOLUME MARKS ARE CURRENTLY DISABLED
+ *
+ * Note that this algorithm only really works for a serial environment.
+ * \todo	improve it so that it works in parallel, too. A specialization of
+ * 			HangingNodeRefiner may be required for this.
+ *
+ * \todo	activate and improve volume marks
  **/
 template <class TDomain>
 void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
@@ -291,6 +299,83 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 		}
 	}
 
+//	iterate over all faces again. We have to make sure that faces which have
+//	a marked short edge are refined regular.
+//	first push all marked faces into a queue
+//	we're using grid::mark to make sure that each face lies only once on the queue.
+//	Grid::mark has nothing to do with refinement. It is just a helper for us.
+	grid.begin_marking();
+
+	queue<Face*> queFaces;
+	for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter){
+		if(refiner.get_mark(*iter) == RM_ANISOTROPIC){
+			queFaces.push(*iter);
+			grid.mark(*iter);
+		}
+	}
+
+	while(!queFaces.empty()){
+		Face* f = queFaces.front();
+		queFaces.pop();
+
+	//	collect associated edges
+		CollectAssociated(edges, grid, f);
+
+	//	find the shortest edge
+		EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+		UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
+		number minLen = EdgeLength(minEdge, aaPos);
+
+	//	check if a short edge and a long edge is selected
+		bool longEdgeSelected = false;
+		bool shortEdgeSelected = false;
+
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+			EdgeBase* e = edges[i_edge];
+			if(refiner.get_mark(e) == RM_NONE)
+				continue;
+
+			number len = EdgeLength(e, aaPos);
+		//	to avoid division by 0, we only consider edges with a length > 0
+			if(len > 0){
+				if(minLen / len <= sizeRatio){
+					longEdgeSelected = true;
+				}
+				else{
+					shortEdgeSelected = true;
+				}
+			}
+		}
+
+	//	if a short edge and a long edge was selected, we'll have to mark all
+	//	edges and push associated faces with anisotropic mark to the queue
+		if(longEdgeSelected && shortEdgeSelected){
+			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+				EdgeBase* e = edges[i_edge];
+				if(refiner.get_mark(e) == RM_NONE){
+				//	mark it and push associated anisotropic faces to the queue
+					refiner.mark(e);
+					CollectFaces(faces, grid, e);
+					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+						Face* nbr = faces[i_face];
+						if(!grid.is_marked(nbr)
+						   && (refiner.get_mark(nbr) == RM_ANISOTROPIC))
+						{
+							grid.mark(nbr);
+							queFaces.push(nbr);
+						}
+					}
+				}
+			}
+		}
+
+	//	now unmark the face
+		grid.unmark(f);
+	}
+
+	grid.end_marking();
+
+/*
 //	now that all faces are marked, we can process volumes. We consider a
 //	volume which has an anisotropic side as an anisotropic volume
 	for(VolumeIterator iter = grid.begin<Volume>();
@@ -325,7 +410,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 				}
 			}
 		}
-	}
+	}*/
 }
 
 
