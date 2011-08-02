@@ -18,7 +18,7 @@
 #include "operator_iterator_product.h"
 
 
-#include "linear_solver/lu_operator.h"
+#include "linear_solver/lu.h"
 
 // solvers
 #include "linear_solver/cg.h"

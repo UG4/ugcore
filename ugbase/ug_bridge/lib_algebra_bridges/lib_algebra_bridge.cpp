@@ -341,9 +341,9 @@ static bool reg(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "BiCGStab", algTag);
 	}
 
-// 	LUSolver
+// 	LU Solver
 	{
-		typedef LUSolver<TAlgebra> T;
+		typedef LU<TAlgebra> T;
 		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
 		string name = string("LU").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3, "LU-Decomposition exact solver")

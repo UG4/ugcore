@@ -1,5 +1,5 @@
 /*
- * lu_operator.h
+ * lu.h
  *
  *  Created on: 16.06.2010
  *      Author: mrupp
@@ -19,27 +19,29 @@
 namespace ug{
 
 template <typename TAlgebra>
-class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
-														typename TAlgebra::vector_type,
-														typename TAlgebra::matrix_type>
+class LU
+	: public IMatrixOperatorInverse<typename TAlgebra::vector_type,
+	  	  	  	  	  	  	  	    typename TAlgebra::vector_type,
+	  	  	  	  	  	  	  	    typename TAlgebra::matrix_type>
 {
 	public:
-	// 	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	// 	Vector type
+	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
-	// 	Matrix type
+	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	public:
-		LUSolver() :
-			m_pOperator(NULL), m_mat(), m_pConvCheck(NULL)
-		{};
+	///	constructor
+		LU() : m_pOperator(NULL), m_mat(), m_pConvCheck(NULL) {};
 
-		virtual const char* name() const {return "LUSolver";}
+	///	returns name of solver
+		virtual const char* name() const {return "LU";}
 
+	///	sets the convergence check
 		void set_convergence_check(IConvergenceCheck& convCheck)
 		{
 			m_pConvCheck = &convCheck;
@@ -47,8 +49,11 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 			m_pConvCheck->set_symbol('%');
 			m_pConvCheck->set_name("LU Solver");
 		}
+
+	///	returns the convergence check
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
+	///	initializes the solver for a matrix A
 		bool init_lu(const matrix_type &A)
 		{
 			if(block_traits<typename vector_type::value_type>::is_static)
@@ -147,7 +152,7 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 			return true;
 		}
 
-	//	set operator L, that will be inverted
+	///	set operator L, that will be inverted
 		virtual bool init(MatrixOperator<vector_type, vector_type, matrix_type>& Op)
 		{
 		// 	remember operator
@@ -158,28 +163,36 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 
 		//	check that matrix exist
 			if(m_pMatrix == NULL)
-				{UG_LOG("ERROR in LUOperator::init: No Matrix given,\n"); return false;}
+			{
+				UG_LOG("ERROR in 'LU::init': No Matrix given.\n");
+				return false;
+			}
 
 		//	init LU operator
 			if(!init_lu(*m_pMatrix))
-				{UG_LOG("ERROR in LUOperator::init: Cannot init LU Decomposition.\n"); return false;}
+			{
+				UG_LOG("ERROR in 'LU::init': Cannot init LU Decomposition.\n");
+				return false;
+			}
 
 		//	we're done
 			return true;
 		}
 
-	// 	Compute u = L^{-1} * f
+	///	Compute u = L^{-1} * f
 		virtual bool apply(vector_type& u, const vector_type& f)
 		{
 #ifdef UG_PARALLEL
 			if(!f.has_storage_type(PST_ADDITIVE))
 			{
-				UG_LOG("ERROR: In 'LaplackLUSolver::apply':Inadequate storage format of Vector f.\n");
+				UG_LOG("ERROR: In 'LU::apply': "
+						"Inadequate storage format of Vector f.\n");
 				return false;
 			}
 			if(!u.has_storage_type(PST_CONSISTENT))
 			{
-				UG_LOG("ERROR: In 'LaplackLUSolver::apply':Inadequate storage format of Vector u.\n");
+				UG_LOG("ERROR: In 'LU::apply': "
+						"Inadequate storage format of Vector u.\n");
 				return false;
 			}
 #endif
@@ -187,9 +200,12 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 			UG_ASSERT(u.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
 			UG_ASSERT(f.size() == u.size(), "Vector sizes have to match!");
 
-			// TODO: This must be inverted
 			if(!apply_lu(u, f))
-				{UG_LOG("ERROR in LUOperator::apply: Cannot apply LU decomposition.\n"); return false;}
+			{
+				UG_LOG("ERROR in 'LU::apply': "
+						"Cannot apply LU decomposition.\n");
+				return false;
+			}
 
 #ifdef UG_PARALLEL
 			// todo: we set solution to consistent here, but that is only true for
@@ -201,7 +217,7 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 			return true;
 		}
 
-	// 	Compute u = L^{-1} * f AND return defect f := f - L*u
+	/// Compute u = L^{-1} * f AND return defect f := f - L*u
 		virtual bool apply_return_defect(vector_type& u, vector_type& f)
 		{
 		//	solve u
@@ -210,7 +226,8 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 		//	update defect
 			if(!m_pMatrix->matmul_minus(f, u))
 			{
-				UG_LOG("ERROR in 'LUSolver::apply_return_defect': Cannot apply matmul_minus.\n");
+				UG_LOG("ERROR in 'LU::apply_return_defect': "
+						"Cannot apply matmul_minus.\n");
 				return false;
 			}
 
@@ -218,22 +235,22 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 			return true;
 		}
 
-	// 	Destructor
-		virtual ~LUSolver() {};
+	///	Destructor
+		virtual ~LU() {};
 
 	protected:
-		// Operator to invert
+	/// Operator to invert
 		MatrixOperator<vector_type, vector_type, matrix_type>* m_pOperator;
 
-		// matrix to invert
+	/// matrix to invert
 		matrix_type* m_pMatrix;
 
-		// inverse
+	/// inverse
 		DenseMatrixInverse<DenseMatrix<VariableArray2<double> > > m_mat;
 		DenseVector<VariableArray1<double> > m_tmp;
 		size_t m_size;
 
-		// Convergence Check
+	/// Convergence Check
 		IConvergenceCheck* m_pConvCheck;
 };
 

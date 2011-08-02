@@ -161,7 +161,13 @@ public:
 		interchange.resize(densemat.num_rows());
 
 		bool bLUDecomp = LUDecomp(densemat, &interchange[0]);
-		UG_ASSERT(bLUDecomp==true, "matrix singular");
+
+		if(bLUDecomp!=true)
+		{
+			UG_LOG("ERROR in 'DenseMatrixInverse::invert': Matrix is singular, "
+					"cannot calculate Inverse.\n");
+		}
+
 		return bLUDecomp;
 	}
 

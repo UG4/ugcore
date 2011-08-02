@@ -152,7 +152,7 @@ domainDisc:set_approximation_space(approxSpace)
 	baseConvCheck:set_reduction(1e-30)
 	baseConvCheck:set_verbose_level(false)
 
-	-- base = LapackLUSolver()
+	-- base = LU()
 	base = LinearSolver()
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)

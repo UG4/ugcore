@@ -64,7 +64,14 @@ public:
 		interchange.resize(densemat.num_rows());
 		int info = getrf(densemat.num_rows(), densemat.num_cols(), &densemat(0,0),
 				densemat.num_rows(), &interchange[0]);
-		UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": Matrix singular in U(i,i)" : ": i-th argument had had illegal value"));
+		if(info != 0)
+		{
+			UG_LOG("ERROR in 'DenseMatrixInverse::invert': ");
+			if(info > 0)
+				UG_LOG(" Matrix singular in U(i,i), with i="<<info<<"\n");
+			if(info < 0)
+				UG_LOG(" i-th argument had had illegal value, with i="<<info<<"\n");
+		}
 		return info == 0;
 	}
 
