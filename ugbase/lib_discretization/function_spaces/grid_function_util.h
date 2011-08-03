@@ -18,6 +18,7 @@
 #include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
 #include <vector>
 #include <string>
+#include "lib_algebra/common/connection_viewer_output.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -206,25 +207,22 @@ bool WriteVectorToConnectionViewer(const char *filename,
 	const static int dim = TFunction::domain_type::dim;
 
 //	check name
-	const char * p = strstr(filename, ".mat");
-	if(p == NULL)
+
+	std::string name(filename);
+	size_t iExtPos = name.find_last_of(".");
+	if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
 	{
-		UG_LOG("Currently only '.mat' format supported for vectors.\n");
+		UG_LOG("Only '.vec' format supported for vectors.\n");
 		return false;
 	}
 
 //	extended filename
-	std::string name(filename);
-
 //	add p000X extension in parallel
 #ifdef UG_PARALLEL
-	size_t found = name.find_first_of(".");
-	name.resize(found);
-
+	name.resize(iExtPos);
 	int rank = pcl::GetProcRank();
 	char ext[20];
-	sprintf(ext, "_p%04d.mat", rank);
-
+	sprintf(ext, "_p%04d.vec", rank);
 	name.append(ext);
 #endif
 
