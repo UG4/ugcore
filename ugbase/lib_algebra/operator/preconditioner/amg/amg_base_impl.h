@@ -135,7 +135,9 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 	double createAMGlevelTiming=0;
 
+#ifdef UG_PARALLEL
 	m_agglomerateLevel = -1;
+#endif
 
 	levels.clear();
 	AMGLevel *pL = new AMGLevel;
