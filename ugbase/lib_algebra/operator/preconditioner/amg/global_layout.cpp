@@ -5,13 +5,13 @@
  *      Author: mrupp
  */
 
+#ifdef UG_PARALLEL
 
 #include "global_layout.h"
 
 namespace ug
 {
 
-#ifdef UG_PARALLEL
 void DeserializeAndAddGlobalInterface(BinaryBuffer &stream,	std::vector<AlgebraID> &interface)
 {
 	std::vector<AlgebraID> tmp;
@@ -91,3 +91,5 @@ void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge)
 #endif
 
 }
+
+#endif // UG_PARALLEL

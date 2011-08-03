@@ -8,13 +8,13 @@
 #ifndef GLOBAL_LAYOUT_H_
 #define GLOBAL_LAYOUT_H_
 
-#include <vector>
 #ifdef UG_PARALLEL
+
+#include <vector>
+#include <map>
 #include "pcl/pcl.h"
 #include "parallelization.h"
 #include "lib_algebra/parallelization/parallelization.h"
-#endif
-
 
 namespace ug
 {
@@ -60,7 +60,8 @@ inline void CreateGlobalLayout(GlobalLayout &globalLayout, IndexLayout layout, c
 }
 
 
+} // namespace ug
 
+#endif
 
-}
 #endif /* GLOBAL_LAYOUT_H_ */
