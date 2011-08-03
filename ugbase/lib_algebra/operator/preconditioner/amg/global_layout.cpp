@@ -88,7 +88,6 @@ void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge)
 	// we don't want interfaces to ourselfs
 	globalLayout.erase(pcl::GetProcRank());
 }
-#endif
 
 }
 
