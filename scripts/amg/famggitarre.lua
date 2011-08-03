@@ -21,7 +21,7 @@ else
 end
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "gitarre/gitarre2d_2.ugx")
+	gridName = util.GetParam("-grid", "gitarre/gitarre2d.ugx")
 	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
