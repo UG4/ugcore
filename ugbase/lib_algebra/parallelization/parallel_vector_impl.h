@@ -10,7 +10,7 @@
 
 #include <cmath>
 #include "parallel_vector.h"
-
+#include "common/common.h" // for UGFatalError
 // additions for profiling (14042011ih)
 #include "common/profiler/profiler.h"
 #define PROFILE_PARALLEL_VECTOR
