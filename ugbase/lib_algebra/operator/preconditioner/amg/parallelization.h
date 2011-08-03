@@ -13,6 +13,7 @@
 namespace ug
 {
 
+#ifdef UG_PARALLEL
 template<typename T>
 T Deserialize(BinaryBuffer &stream)
 {
@@ -139,6 +140,7 @@ void MergeInterfaces(TLayout &layout, const std::map<int, int> merge)
 		RemoveInterface(layout, it->first);
 	}
 }
+#endif
 
 }
 #endif /* PARALLELIZATION_H_ */

@@ -10,8 +10,10 @@
 
 #include <vector>
 #include "pcl/pcl.h"
+#ifdef UG_PARALLEL
 #include "parallelization.h"
 #include "lib_algebra/parallelization/parallelization.h"
+#endif
 
 
 namespace ug

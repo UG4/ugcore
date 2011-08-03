@@ -11,6 +11,7 @@
 namespace ug
 {
 
+#ifdef UG_PARALLEL
 void DeserializeAndAddGlobalInterface(BinaryBuffer &stream,	std::vector<AlgebraID> &interface)
 {
 	std::vector<AlgebraID> tmp;
@@ -87,6 +88,6 @@ void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge)
 	// we don't want interfaces to ourselfs
 	globalLayout.erase(pcl::GetProcRank());
 }
-
+#endif
 
 }
