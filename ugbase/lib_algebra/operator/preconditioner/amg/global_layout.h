@@ -9,8 +9,8 @@
 #define GLOBAL_LAYOUT_H_
 
 #include <vector>
-#include "pcl/pcl.h"
 #ifdef UG_PARALLEL
+#include "pcl/pcl.h"
 #include "parallelization.h"
 #include "lib_algebra/parallelization/parallelization.h"
 #endif

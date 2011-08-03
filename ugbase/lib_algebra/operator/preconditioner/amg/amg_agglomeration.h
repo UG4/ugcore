@@ -1,5 +1,7 @@
 #include "agglomeration.h"
+#ifdef UG_PARALLEL
 #include "global_layout.h"
+#endif
 
 namespace ug
 {
