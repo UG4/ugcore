@@ -56,124 +56,118 @@ struct RegisterAMGClass<CPUAlgebra>
 		string algTag = GetAlgebraTag<CPUAlgebra>();
 
 	//	AMG
-		{
-		string name = string("AMGLevelInformation").append(algSuffix);
-		reg.add_class_< amg_base<algebra_type>::LevelInformation > (name, grp2.c_str())
-			.add_method("get_creation_time_ms", &amg_base<algebra_type>::LevelInformation::get_creation_time_ms, "creation time of this level (in ms)")
-			.add_method("get_nr_of_nodes", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level, sum over all processors")
-			.add_method("get_nr_of_nodes_min", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes_min, "nr of nodes of this level, minimum over all processors")
-			.add_method("get_nr_of_nodes_max", &amg_base<algebra_type>::LevelInformation::get_nr_of_nodes_max, "nr of nodes of this level, maximum over all processors")
-			.add_method("get_nnz", &amg_base<algebra_type>::LevelInformation::get_nnz, "nr of non-zeros, sum over all processors")
-			.add_method("get_nnz_min", &amg_base<algebra_type>::LevelInformation::get_nnz_min, "nr of non-zeros, minimum over all processors")
-			.add_method("get_nnz_max", &amg_base<algebra_type>::LevelInformation::get_nnz_max, "nr of non-zeros, maximum over all processors")
-			.add_method("get_fill_in", &amg_base<algebra_type>::LevelInformation::get_fill_in, "nr of non-zeros / (nr of nodes)^2")
-			.add_method("is_valid", &amg_base<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information")
-			.add_method("get_nr_of_interface_elements", &amg_base<algebra_type>::LevelInformation::get_nr_of_interface_elements, "nr of interface elements (including multiplicites)");
-		reg.add_class_to_group(name, "AMGLevelInformation", algTag);
-		}
+
+		reg.add_class_< AMGBase<algebra_type>::LevelInformation > (string("AMGLevelInformation").append(algSuffix), grp2.c_str())
+			.add_method("get_creation_time_ms", &AMGBase<algebra_type>::LevelInformation::get_creation_time_ms, "creation time of this level (in ms)")
+			.add_method("get_nr_of_nodes", &AMGBase<algebra_type>::LevelInformation::get_nr_of_nodes, "nr of nodes of this level, sum over all processors")
+			.add_method("get_nr_of_nodes_min", &AMGBase<algebra_type>::LevelInformation::get_nr_of_nodes_min, "nr of nodes of this level, minimum over all processors")
+			.add_method("get_nr_of_nodes_max", &AMGBase<algebra_type>::LevelInformation::get_nr_of_nodes_max, "nr of nodes of this level, maximum over all processors")
+			.add_method("get_nnz", &AMGBase<algebra_type>::LevelInformation::get_nnz, "nr of non-zeros, sum over all processors")
+			.add_method("get_nnz_min", &AMGBase<algebra_type>::LevelInformation::get_nnz_min, "nr of non-zeros, minimum over all processors")
+			.add_method("get_nnz_max", &AMGBase<algebra_type>::LevelInformation::get_nnz_max, "nr of non-zeros, maximum over all processors")
+			.add_method("get_fill_in", &AMGBase<algebra_type>::LevelInformation::get_fill_in, "nr of non-zeros / (nr of nodes)^2")
+			.add_method("is_valid", &AMGBase<algebra_type>::LevelInformation::is_valid, "true if this is a valid level information")
+			.add_method("get_nr_of_interface_elements", &AMGBase<algebra_type>::LevelInformation::get_nr_of_interface_elements, "nr of interface elements (including multiplicites)");
+
+		reg.add_class_to_group(string("AMGLevelInformation").append(algSuffix), "AMGLevelInformation", algTag);
 
 	//todo: existance of AMGPreconditioner class should not depend on defines.
-		{
-		string name = string("AMGBase").append(algSuffix);
-		reg.add_class_<	amg_base<algebra_type>, IPreconditioner<algebra_type> > (name, grp2.c_str())
-			.add_method("set_num_presmooth", &amg_base<algebra_type>::set_num_presmooth, "", "nu1", "sets nr. of presmoothing steps (nu1)")
-			.add_method("get_num_presmooth", &amg_base<algebra_type>::get_num_presmooth, "nr. of presmoothing steps (nu1)")
+		reg.add_class_<	AMGBase<algebra_type>, IPreconditioner<algebra_type> > (string("AMGBase").append(algSuffix), grp2.c_str())
+			.add_method("set_num_presmooth", &AMGBase<algebra_type>::set_num_presmooth, "", "nu1", "sets nr. of presmoothing steps (nu1)")
+			.add_method("get_num_presmooth", &AMGBase<algebra_type>::get_num_presmooth, "nr. of presmoothing steps (nu1)")
 
-			.add_method("set_num_postsmooth", &amg_base<algebra_type>::set_num_postsmooth, "", "nu2", "sets nr. of postsmoothing steps (nu2)")
-			.add_method("get_num_postsmooth", &amg_base<algebra_type>::get_num_postsmooth, "nr. of postsmoothing steps (nu2)")
+			.add_method("set_num_postsmooth", &AMGBase<algebra_type>::set_num_postsmooth, "", "nu2", "sets nr. of postsmoothing steps (nu2)")
+			.add_method("get_num_postsmooth", &AMGBase<algebra_type>::get_num_postsmooth, "nr. of postsmoothing steps (nu2)")
 
-			.add_method("set_cycle_type", &amg_base<algebra_type>::set_cycle_type, "", "gamma", "sets cycle type in multigrid cycle (gamma)")
-			.add_method("get_cycle_type", &amg_base<algebra_type>::get_cycle_type, "cycle type in multigrid cycle (gamma)")
+			.add_method("set_cycle_type", &AMGBase<algebra_type>::set_cycle_type, "", "gamma", "sets cycle type in multigrid cycle (gamma)")
+			.add_method("get_cycle_type", &AMGBase<algebra_type>::get_cycle_type, "cycle type in multigrid cycle (gamma)")
 
-			.add_method("set_max_levels", &amg_base<algebra_type>::set_max_levels, "", "max_levels", "sets max nr of AMG levels")
-			.add_method("get_max_levels", &amg_base<algebra_type>::get_max_levels,  "max nr of AMG levels")
-			.add_method("get_used_levels", &amg_base<algebra_type>::get_used_levels, "used nr of AMG levels")
+			.add_method("set_max_levels", &AMGBase<algebra_type>::set_max_levels, "", "max_levels", "sets max nr of AMG levels")
+			.add_method("get_max_levels", &AMGBase<algebra_type>::get_max_levels,  "max nr of AMG levels")
+			.add_method("get_used_levels", &AMGBase<algebra_type>::get_used_levels, "used nr of AMG levels")
 
-			.add_method("set_max_nodes_for_base", &amg_base<algebra_type>::set_max_nodes_for_base, "", "maxNrOfNodes", "sets the maximal nr of nodes for base solver")
-			.add_method("get_max_nodes_for_base", &amg_base<algebra_type>::get_max_nodes_for_base, "maximal nr of nodes for base solver")
+			.add_method("set_max_nodes_for_base", &AMGBase<algebra_type>::set_max_nodes_for_base, "", "maxNrOfNodes", "sets the maximal nr of nodes for base solver")
+			.add_method("get_max_nodes_for_base", &AMGBase<algebra_type>::get_max_nodes_for_base, "maximal nr of nodes for base solver")
 
-			.add_method("set_min_nodes_on_one_processor", &amg_base<algebra_type>::set_min_nodes_on_one_processor, "", "minNrOfNodes", "if the node number on one processor falls below this, agglomerate")
-			.add_method("get_min_nodes_on_one_processor", &amg_base<algebra_type>::get_min_nodes_on_one_processor, "minNrOfNodes", "", "if the node number on one processor falls below this, agglomerate")
+			.add_method("set_min_nodes_on_one_processor", &AMGBase<algebra_type>::set_min_nodes_on_one_processor, "", "minNrOfNodes", "if the node number on one processor falls below this, agglomerate")
+			.add_method("get_min_nodes_on_one_processor", &AMGBase<algebra_type>::get_min_nodes_on_one_processor, "minNrOfNodes", "", "if the node number on one processor falls below this, agglomerate")
 
-			.add_method("set_max_fill_before_base", &amg_base<algebra_type>::set_max_fill_before_base, "", "fillrate", "sets maximal fill rate before base solver is used")
-			.add_method("get_max_fill_before_base", &amg_base<algebra_type>::get_max_fill_before_base, "maximal fill rate before base solver is used", "")
+			.add_method("set_preferred_nodes_on_one_processor", &AMGBase<algebra_type>::set_preferred_nodes_on_one_processor, "", "preferredNrOfNodes", "if we need to agglomerate, ensure all nodes have more than this number of unknowns")
+			.add_method("get_preferred_nodes_on_one_processor", &AMGBase<algebra_type>::get_preferred_nodes_on_one_processor, "preferredNrOfNodes", "", "if we need to agglomerate, ensure all nodes have more than this number of unknowns")
 
-			.add_method("get_operator_complexity", &amg_base<algebra_type>::get_operator_complexity, "operator complexity c_A", "", "c_A = total nnz of all matrices divided by nnz of matrix A")
-			.add_method("get_grid_complexity", &amg_base<algebra_type>::get_grid_complexity, "grid complexity c_G", "", "c_G = total number of nodes of all levels divided by number of nodes on level 0")
-			.add_method("get_timing_whole_setup_ms", &amg_base<algebra_type>::get_timing_whole_setup_ms, "the time spent on the whole setup in ms")
-			.add_method("get_timing_coarse_solver_setup_ms", &amg_base<algebra_type>::get_timing_coarse_solver_setup_ms, "the time spent in the coarse solver setup in ms")
+			.add_method("set_max_fill_before_base", &AMGBase<algebra_type>::set_max_fill_before_base, "", "fillrate", "sets maximal fill rate before base solver is used")
+			.add_method("get_max_fill_before_base", &AMGBase<algebra_type>::get_max_fill_before_base, "maximal fill rate before base solver is used", "")
 
-			.add_method("get_level_information", &amg_base<algebra_type>::get_level_information, "information about the level L", "L")
+			.add_method("get_operator_complexity", &AMGBase<algebra_type>::get_operator_complexity, "operator complexity c_A", "", "c_A = total nnz of all matrices divided by nnz of matrix A")
+			.add_method("get_grid_complexity", &AMGBase<algebra_type>::get_grid_complexity, "grid complexity c_G", "", "c_G = total number of nodes of all levels divided by number of nodes on level 0")
+			.add_method("get_timing_whole_setup_ms", &AMGBase<algebra_type>::get_timing_whole_setup_ms, "the time spent on the whole setup in ms")
+			.add_method("get_timing_coarse_solver_setup_ms", &AMGBase<algebra_type>::get_timing_coarse_solver_setup_ms, "the time spent in the coarse solver setup in ms")
 
-			.add_method("set_presmoother", &amg_base<algebra_type>::set_presmoother, "", "presmoother")
-			.add_method("set_postsmoother", &amg_base<algebra_type>::set_postsmoother, "", "postsmoother")
-			.add_method("set_base_solver", &amg_base<algebra_type>::set_base_solver, "", "basesmoother")
-			.add_method("check", &amg_base<algebra_type>::check, "", "x#b", "performs a check of convergence on all levels")
-			.add_method("check2", &amg_base<algebra_type>::check2, "", "x#b", "performs a check of convergence on all levels")
-			.add_method("set_matrix_write_path", &amg_base<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
-			.add_method("set_fsmoothing", &amg_base<algebra_type>::set_fsmoothing, "", "enable", "")
-			.add_method("get_fsmoothing", &amg_base<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
+			.add_method("get_level_information", &AMGBase<algebra_type>::get_level_information, "information about the level L", "L")
 
-			.add_method("set_position_provider2d", &amg_base<algebra_type>::set_position_provider2d, "", "prov", "needed for connectionviewer output")
-			.add_method("set_position_provider3d", &amg_base<algebra_type>::set_position_provider3d, "", "prov", "needed for connectionviewer output")
+			.add_method("set_presmoother", &AMGBase<algebra_type>::set_presmoother, "", "presmoother")
+			.add_method("set_postsmoother", &AMGBase<algebra_type>::set_postsmoother, "", "postsmoother")
+			.add_method("set_base_solver", &AMGBase<algebra_type>::set_base_solver, "", "basesmoother")
+			.add_method("check", &AMGBase<algebra_type>::check, "", "x#b", "performs a check of convergence on all levels")
+			.add_method("check2", &AMGBase<algebra_type>::check2, "", "x#b", "performs a check of convergence on all levels")
+			.add_method("set_matrix_write_path", &AMGBase<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
+			.add_method("set_fsmoothing", &AMGBase<algebra_type>::set_fsmoothing, "", "enable", "")
+			.add_method("get_fsmoothing", &AMGBase<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
+
+			.add_method("set_position_provider2d", &AMGBase<algebra_type>::set_position_provider2d, "", "prov", "needed for connectionviewer output")
+			.add_method("set_position_provider3d", &AMGBase<algebra_type>::set_position_provider3d, "", "prov", "needed for connectionviewer output")
 			;
-		reg.add_class_to_group(name, "AMGBase", algTag);
-		}
+		reg.add_class_to_group(string("AMGBase").append(algSuffix), "AMGBase", algTag);
 
-		{
-		string name = string("RSAMGPreconditioner").append(algSuffix);
-		reg.add_class_<	rsamg<algebra_type>, amg_base<algebra_type> > (name, grp2.c_str(), "Ruge-Stueben Algebraic Multigrid Preconditioner")
+		reg.add_class_<	RSAMG<algebra_type>, AMGBase<algebra_type> > (string("RSAMGPreconditioner").append(algSuffix), grp2.c_str(), "Ruge-Stueben Algebraic Multigrid Preconditioner")
 			.add_constructor()
-			.add_method("set_epsilon_strong", &rsamg<algebra_type>::set_epsilon_strong, "", "epsilon_str", "sets epsilon_strong, a measure for strong connectivity")
-			.add_method("get_epsilon_strong", &rsamg<algebra_type>::get_epsilon_strong, "epsilon_strong", "")
-			.add_method("set_epsilon_truncation", &rsamg<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
-			.add_method("get_epsilon_truncation", &rsamg<algebra_type>::get_epsilon_truncation, "epsilon_tr")
+			.add_method("set_epsilon_strong", &RSAMG<algebra_type>::set_epsilon_strong, "", "epsilon_str", "sets epsilon_strong, a measure for strong connectivity")
+			.add_method("get_epsilon_strong", &RSAMG<algebra_type>::get_epsilon_strong, "epsilon_strong", "")
+			.add_method("set_epsilon_truncation", &RSAMG<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
+			.add_method("get_epsilon_truncation", &RSAMG<algebra_type>::get_epsilon_truncation, "epsilon_tr")
 
-			.add_method("tostring", &rsamg<algebra_type>::tostring)
-			.add_method("enable_aggressive_coarsening_A", &rsamg<algebra_type>::enable_aggressive_coarsening_A, "", "nrOfPaths", "enables aggressive coarsening (A1 or A2) on the first level.")
-			.add_method("disable_aggressive_coarsening", &rsamg<algebra_type>::disable_aggressive_coarsening, "", "", "disables aggressive coarsening")
-			.add_method("is_aggressive_coarsening", &rsamg<algebra_type>::is_aggressive_coarsening)
-			.add_method("is_aggressive_coarsening_A", &rsamg<algebra_type>::is_aggressive_coarsening_A);
-		reg.add_class_to_group(name, "RSAMGPreconditioner", algTag);
-		}
+			.add_method("tostring", &RSAMG<algebra_type>::tostring)
+			.add_method("enable_aggressive_coarsening_A", &RSAMG<algebra_type>::enable_aggressive_coarsening_A, "", "nrOfPaths", "enables aggressive coarsening (A1 or A2) on the first level.")
+			.add_method("disable_aggressive_coarsening", &RSAMG<algebra_type>::disable_aggressive_coarsening, "", "", "disables aggressive coarsening")
+			.add_method("is_aggressive_coarsening", &RSAMG<algebra_type>::is_aggressive_coarsening)
+			.add_method("is_aggressive_coarsening_A", &RSAMG<algebra_type>::is_aggressive_coarsening_A);
+		reg.add_class_to_group(string("RSAMGPreconditioner").append(algSuffix), "RSAMGPreconditioner", algTag);
 
-		{
-		string name = string("FAMGPreconditioner").append(algSuffix);
-		reg.add_class_<	famg<algebra_type>, amg_base<algebra_type> > (name, grp2.c_str(), "Filtering Algebraic Multigrid")
+		reg.add_class_<	FAMG<algebra_type>, AMGBase<algebra_type> > (string("FAMGPreconditioner").append(algSuffix), grp2.c_str(), "Filtering Algebraic Multigrid")
 			.add_constructor()
-			.add_method("tostring", &famg<algebra_type>::tostring)
-			.add_method("set_aggressive_coarsening", &famg<algebra_type>::set_aggressive_coarsening)
-			.add_method("set_delta", &famg<algebra_type>::set_delta, "", "delta", "\"Interpolation quality\" F may not be worse than this (F < m_delta)")
-			.add_method("get_delta", &famg<algebra_type>::get_delta, "delta")
-			.add_method("set_theta", &famg<algebra_type>::set_theta, "" , "theta", "with multiple parents paris, discard pairs with m_theta * F > min F.")
-			.add_method("get_theta", &famg<algebra_type>::get_theta, "theta")
+			.add_method("tostring", &FAMG<algebra_type>::tostring)
+			.add_method("set_aggressive_coarsening", &FAMG<algebra_type>::set_aggressive_coarsening)
+			.add_method("set_delta", &FAMG<algebra_type>::set_delta, "", "delta", "\"Interpolation quality\" F may not be worse than this (F < m_delta)")
+			.add_method("get_delta", &FAMG<algebra_type>::get_delta, "delta")
+			.add_method("set_theta", &FAMG<algebra_type>::set_theta, "" , "theta", "with multiple parents paris, discard pairs with m_theta * F > min F.")
+			.add_method("get_theta", &FAMG<algebra_type>::get_theta, "theta")
 			.add_method("set_damping_for_smoother_in_interpolation_calculation",
-					&famg<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
-			.add_method("set_testvector_damps", &famg<algebra_type>::set_testvector_damps)
-			.add_method("reset_testvectors", &famg<algebra_type>::reset_testvectors)
-			.add_method("add_testvector", &famg<algebra_type>::add_testvector)
-			.add_method("add_vector_writer", &famg<algebra_type>::add_vector_writer)
-			.add_method("set_epsilon_truncation", &famg<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
-			.add_method("get_epsilon_truncation", &famg<algebra_type>::get_epsilon_truncation, "epsilon_tr")
+					&FAMG<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
+			.add_method("set_testvector_damps", &FAMG<algebra_type>::set_testvector_damps)
+			.add_method("reset_testvectors", &FAMG<algebra_type>::reset_testvectors)
+			.add_method("add_testvector", &FAMG<algebra_type>::add_testvector)
+			.add_method("add_vector_writer", &FAMG<algebra_type>::add_vector_writer)
+			.add_method("write_testvectors", &FAMG<algebra_type>::write_testvectors)
+			.add_method("set_epsilon_truncation", &FAMG<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
+			.add_method("get_epsilon_truncation", &FAMG<algebra_type>::get_epsilon_truncation, "epsilon_tr")
 
-			.add_method("set_external_coarsening", &famg<algebra_type>::set_external_coarsening)
-			.add_method("set_use_precalculate", &famg<algebra_type>::set_use_precalculate)
+			.add_method("set_external_coarsening", &FAMG<algebra_type>::set_external_coarsening)
+			.add_method("set_use_precalculate", &FAMG<algebra_type>::set_use_precalculate)
 
-			.add_method("set_debug_level_overlap", &famg<algebra_type>::set_debug_level_overlap)
-			.add_method("set_debug_level_testvector_calc", &famg<algebra_type>::set_debug_level_testvector_calc)
-			.add_method("set_debug_level_phase_3", &famg<algebra_type>::set_debug_level_phase_3)
-			.add_method("set_debug_level_calculate_parent_pairs", &famg<algebra_type>::set_debug_level_calculate_parent_pairs)
-			.add_method("set_debug_level_recv_coarsening", &famg<algebra_type>::set_debug_level_recv_coarsening)
-			.add_method("set_debug_level_coloring", &famg<algebra_type>::set_debug_level_coloring)
-			.add_method("set_debug_level_get_ratings", &famg<algebra_type>::set_debug_level_get_ratings)
-			.add_method("set_debug_level_precalculate_coarsening", &famg<algebra_type>::set_debug_level_precalculate_coarsening)
-			.add_method("set_debug_level_aggressive_coarsening", &famg<algebra_type>::set_debug_level_aggressive_coarsening)
-			.add_method("set_debug_level_send_coarsening", &famg<algebra_type>::set_debug_level_send_coarsening)
-			.add_method("set_debug_level_communicate_prolongation", &famg<algebra_type>::set_debug_level_communicate_prolongation)
-			.add_method("set_debug_level_after_communciate_prolongation", &famg<algebra_type>::set_debug_level_after_communciate_prolongation)
+			.add_method("set_debug_level_overlap", &FAMG<algebra_type>::set_debug_level_overlap)
+			.add_method("set_debug_level_testvector_calc", &FAMG<algebra_type>::set_debug_level_testvector_calc)
+			.add_method("set_debug_level_phase_3", &FAMG<algebra_type>::set_debug_level_phase_3)
+			.add_method("set_debug_level_calculate_parent_pairs", &FAMG<algebra_type>::set_debug_level_calculate_parent_pairs)
+			.add_method("set_debug_level_recv_coarsening", &FAMG<algebra_type>::set_debug_level_recv_coarsening)
+			.add_method("set_debug_level_coloring", &FAMG<algebra_type>::set_debug_level_coloring)
+			.add_method("set_debug_level_get_ratings", &FAMG<algebra_type>::set_debug_level_get_ratings)
+			.add_method("set_debug_level_precalculate_coarsening", &FAMG<algebra_type>::set_debug_level_precalculate_coarsening)
+			.add_method("set_debug_level_aggressive_coarsening", &FAMG<algebra_type>::set_debug_level_aggressive_coarsening)
+			.add_method("set_debug_level_send_coarsening", &FAMG<algebra_type>::set_debug_level_send_coarsening)
+			.add_method("set_debug_level_communicate_prolongation", &FAMG<algebra_type>::set_debug_level_communicate_prolongation)
+			.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
 			;
-		reg.add_class_to_group(name, "FAMGPreconditioner", algTag);
-		}
+		reg.add_class_to_group(string("FAMGPreconditioner").append(algSuffix), "FAMGPreconditioner", algTag);
 
 		return true;
 	}
