@@ -89,6 +89,8 @@ void
 FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	communicate_prolongation()
 {
+	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
+
 	UG_DLOG(LIB_ALG_AMG, 4, "\n********** communicate_prolongation **************\n\n")
 	AMG_PROFILE_FUNC();
 
@@ -108,7 +110,6 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	NewNodesNummerator globalToLocal(localToGlobal);
 
 	// 2. send from master interface of A to slaves rows of P (with global IDs)
-	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
 
 	for(IndexLayout::iterator iter = A.get_master_layout().begin(); iter != A.get_master_layout().end(); ++iter)
 	{

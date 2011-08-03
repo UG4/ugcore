@@ -20,6 +20,8 @@
 #include "amg_profiling.h"
 #include "postscript.h"
 
+#include "lib_algebra/common/connection_viewer_output.h"
+
 namespace ug {
 // WriteToFile
 //--------------------------------------------------

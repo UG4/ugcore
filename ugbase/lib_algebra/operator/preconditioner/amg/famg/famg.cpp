@@ -42,7 +42,11 @@
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
 
+#include "lib_algebra/common/connection_viewer_output.h"
+
 std::stack<int> g_DebugLevelStack;
+
+
 
 #ifdef UG_DEBUG
 #define GET_DEBUG_LEVEL(tag) ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag)
@@ -156,7 +160,7 @@ class FAMGLevelCalculator
 private:
 	// refernce to famg object. this will be done differently in the future
 	// (constructor looks ugly)
-	famg<CPUAlgebra> &m_famg;
+	FAMG<CPUAlgebra> &m_famg;
 
 	// the coarse matrices to be filled
 	matrix_type &AH;
@@ -341,7 +345,7 @@ private:
 		AH.set_storage_type(PST_ADDITIVE);
 		AH.set_communicator(A_OL2.get_communicator());
 		AH.set_process_communicator(A_OL2.get_process_communicator());
-		AH.set_layouts(nextLevelMasterLayout, nextLevelSlaveLayout);
+		// AH.set_layouts(nextLevelMasterLayout, nextLevelSlaveLayout); // is already set
 	#endif
 
 
@@ -357,7 +361,7 @@ private:
 	}
 public:
 	// todo: clean up this mess of constructor
-	FAMGLevelCalculator(famg<CPUAlgebra> &f,
+	FAMGLevelCalculator(FAMG<CPUAlgebra> &f,
 			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A,
 			prolongation_matrix_type &_P, size_t _level,
 			stdvector< vector_type > &testvectors, stdvector<double> &omega)
@@ -373,8 +377,7 @@ public:
 #ifndef UG_PARALLEL
 			, A_OL2(A)
 #else
-			// TODO: fix that, its a memory leak
-			, nextLevelMasterLayout(*(new IndexLayout)), nextLevelSlaveLayout(*(new IndexLayout))
+			, nextLevelMasterLayout(AH.get_master_layout()), nextLevelSlaveLayout(AH.get_slave_layout())
 #endif
 	{
 	}
@@ -544,13 +547,13 @@ public:
 #ifdef UG_PARALLEL
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
-			UG_LOG("nextLevelMasterLayout :\n");
-			PrintLayout(nextLevelMasterLayout);
+			UG_LOG("AH.get_master_layout:\n");
+			PrintLayout(AH.get_master_layout());
 
-			UG_LOG("nextLevelSlaveLayout :\n");
-			PrintLayout(nextLevelSlaveLayout);
-			UG_LOG("nextLevelLayout :\n");
-			PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+			UG_LOG("AH.get_slave_layout :\n");
+			PrintLayout(AH.get_slave_layout());
+			UG_LOG("AH Layouts :\n");
+			PrintLayout(A_OL2.get_communicator(), AH.get_master_layout(), AH.get_slave_layout());
 		}
 #endif
 
@@ -602,8 +605,7 @@ private:
 		AMG_PROFILE_FUNC();
 		stopwatch SW;
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create fine marks... "); if(bTiming) SW.start();
-		m_famg.is_fine.resize(level+1);
-		stdvector<bool> &vFine = m_famg.is_fine[level];
+		stdvector<bool> &vFine = m_famg.levels[level]->is_fine;
 		vFine.resize(A.num_rows());
 
 		for(size_t i=0; i < A.num_rows(); i++)
@@ -700,8 +702,8 @@ private:
 		/// ---- update interfaces with new indices ----
 		if(bTiming) { SW.start();UG_DLOG(LIB_ALG_AMG, 1, std::endl << "update interfaces with new indices... "); }
 		AMG_PROFILE_NEXT(update_interfaces_with_new_indices)
-		update_interface_with_newIndex(A.get_master_layout(), nextLevelMasterLayout, newIndex);
-		update_interface_with_newIndex(A.get_slave_layout(), nextLevelSlaveLayout, newIndex);
+		ReplaceIndicesInLayout(AH.get_master_layout(), newIndex);
+		ReplaceIndicesInLayout(AH.get_slave_layout(), newIndex);
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.\n");
 		//PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 #endif
@@ -741,7 +743,7 @@ private:
 
 
 template<>
-void famg<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega)
+void FAMG<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega)
 {
 	AMG_PROFILE_FUNC();
 	testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
@@ -758,20 +760,6 @@ void famg<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdv
 		size_t index = i+m_testvectors.size();
 		m_vVectorWriters[i]->update(testvectors[index]);
 		omega[index] = m_omegaVectorWriters[i];
-
-
-		if(m_writeMatrices && m_writeTestvectors)
-		{
-			vector_type &vec = testvectors[index];
-			std::fstream file((m_writeMatrixPath + "testvector" + ToString(i) + ".values").c_str(),
-					std::ios::out);
-			for(size_t j=0; j<vec.size(); j++)
-				file << j << " " << (vec[j]) << std::endl;
-
-
-			WriteVectorToConnectionViewer((m_writeMatrixPath + "testvector" + ToString(i) +".mat").c_str(),
-				vec, &m_amghelper.positions[0], 2);
-		}
 
 	}
 }
@@ -793,7 +781,7 @@ void eh( MPI_Comm *comm, int *err, ... )
 
 
 template<>
-void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
 #ifdef UG_PARALLEL
@@ -804,11 +792,21 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	  //MPI_Comm_call_errhandler( MPI_COMM_WORLD, MPI_ERR_OTHER );
 #endif
 
-	AMG_PROFILE_FUNC();
-	stdvector< vector_type > testvectors;
-	stdvector<double> omega;
-	get_testvectors(testvectors, omega);
 
+	if(level == 0)
+	{
+		testvectors.clear();
+		get_testvectors(testvectors, omega);
+	}
+
+	if(m_writeMatrices && m_writeTestvectors)
+	{
+		for(size_t i=0; i<testvectors.size(); i++)
+			WriteVectorToConnectionViewer(GetProcFilename(m_writeMatrixPath, ToString("testvector") + ToString(i) + ToString("_L") + ToString(level), ".vec").c_str(),
+					testvectors[i], &m_amghelper.positions[level][0], m_dbgDimension);
+	}
+
+	AMG_PROFILE_FUNC();
 	//UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
 
 	// testvectors will be altered by FAMGLevelCalculator

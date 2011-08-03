@@ -30,7 +30,7 @@ namespace ug {
 //! writes A to pathAndName + "A" + level + ".mat for all levels, also R
 //! @param pathAndName	path with name of matrix. for example "/Users/username/matrices/mat"
 template<typename Matrix_type, typename Vector_type>
-void rsamg<Matrix_type, Vector_type>::writeMatrices(const char *pathAndName)
+void RSAMG<Matrix_type, Vector_type>::writeMatrices(const char *pathAndName)
 {
 	// only for small matrices
 	if(A[0]->row_size() > 100*100*100*100)
@@ -56,7 +56,7 @@ void rsamg<Matrix_type, Vector_type>::writeMatrices(const char *pathAndName)
 //! Debug output. Writes position of Coarse nodes in coarse<level>.dat, and fine in fine<level>.dat for display in gnuplot
 //! @param level	level which is to be printed
 template<typename Matrix_type, typename Vector_type>
-void rsamg<Matrix_type, Vector_type>::printCoarsening(int level, AMGNodes &nodes)
+void RSAMG<Matrix_type, Vector_type>::printCoarsening(int level, AMGNodes &nodes)
 {  
 	if(h.has_positions() == false)
 	{
@@ -98,7 +98,7 @@ void rsamg<Matrix_type, Vector_type>::printCoarsening(int level, AMGNodes &nodes
 //! for testing. creates only one AMG level without direct solvers
 //! @param A	matrix A.
 template<typename Matrix_type, typename Vector_type>
-bool rsamg<Matrix_type, Vector_type>::onlyOneLevel(const Matrix_type& A_)
+bool RSAMG<Matrix_type, Vector_type>::onlyOneLevel(const Matrix_type& A_)
 {
 	used_levels = 2;
 	const Matrix_type *pA = &A_;
@@ -131,7 +131,7 @@ bool rsamg<Matrix_type, Vector_type>::onlyOneLevel(const Matrix_type& A_)
 //! @param	b	
 //! @param	level	
 template<typename Matrix_type, typename Vector_type>
-void rsamg<Matrix_type, Vector_type>::amgTestLevel(Vector_type &x, const Vector_type &b, int level)
+void RSAMG<Matrix_type, Vector_type>::amgTestLevel(Vector_type &x, const Vector_type &b, int level)
 {
 	cout.flush(); 
 	const Matrix_type &Ah = *(A[level]);
@@ -253,7 +253,7 @@ void rsamg<Matrix_type, Vector_type>::amgTestLevel(Vector_type &x, const Vector_
 //! tests all AMG level calling amgTestLevel for all levels.
 //! Does some iterations of AMG MG before to ensure that we observe convergence rates at the end
 template<typename Matrix_type, typename Vector_type>
-void rsamg<Matrix_type, Vector_type>::amgTest(const Matrix_type& A_, Vector_type &vx, const Vector_type &b)
+void RSAMG<Matrix_type, Vector_type>::amgTest(const Matrix_type& A_, Vector_type &vx, const Vector_type &b)
 {
 	init(A_);
 	

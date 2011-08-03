@@ -100,18 +100,6 @@ void CalculateTestvector(const matrix_type &A_OL2, vector_type &big_testvector,
 	//VecScaleAssign(big_testvector, 1/sqrt(EnergyProd(big_testvector, A_OL2)), big_testvector);
 }
 
-template<typename matrix_type, typename vector_type>
-void CalculateNextTestvector(const matrix_type &R, vector_type &big_testvector)
-{
-	AMG_PROFILE_FUNC();
-	vector_type t;
-	t.resize(R.num_rows());
-
-	MatMult(t, 1.0, R, big_testvector);
-	big_testvector.resize(R.num_rows());
-	big_testvector = t;
-}
-
 
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_testvectors()
@@ -138,10 +126,16 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_next_testvectors()
 {
+	vector_type t;
+	t.resize(AH.num_rows());
 	// todo: remove dynamic cast, change big_testvector to parallel
 	for(size_t i=0; i<m_testvectors.size(); i++)
-		CalculateNextTestvector(R, m_testvectors[i]);
-
+	{
+		vector_type &v = m_testvectors[i];
+		for(size_t j=0; j < AH.num_rows(); j++)
+			t[j] = v[m_famg.m_parentIndex[level+1][j]];
+		v = t;
+	}
 }
 
 }

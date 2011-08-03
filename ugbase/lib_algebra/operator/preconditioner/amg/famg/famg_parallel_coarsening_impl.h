@@ -18,7 +18,7 @@
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #include "lib_algebra/parallelization/parallel_coloring.h"
 #include "../stopwatch.h"
-
+#include "lib_algebra/common/connection_viewer_output.h"
 
 namespace ug
 {
@@ -220,71 +220,6 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	UG_DLOG(LIB_ALG_AMG, 1, "done.");
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 }
-
-
-
-// FAMGLevelCalculator::create_interface
-//---------------------------------------------------------------------------
-/**
- * this function copies the layout 'layout' to 'nextLevelLayout',
- * but skips fine nodes (which have newIndex[i] == -1), and adds the coarse nodes
- * with the new indices.
- * called once with slave and with master, we have our next level layouts.
- * \param layout
- * \param nextLevelLayout
- * \param newIndex
- */
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
-	update_interface_with_newIndex(IndexLayout &, IndexLayout &nextLevelLayout, stdvector<int> &newIndex)
-{
-	AMG_PROFILE_FUNC();
-	UG_DLOG(LIB_ALG_AMG, 3, "*** create_interface ***");
-	//PrintLayout(layout);
-	UG_DLOG(LIB_ALG_AMG, 3, "\n");
-	for(IndexLayout::iterator iter = nextLevelLayout.begin(); iter != nextLevelLayout.end(); ++iter)
-	{
-		IndexLayout::Interface &interface = nextLevelLayout.interface(iter);
-		UG_DLOG(LIB_ALG_AMG, 3, "to processor " << nextLevelLayout.proc_id(iter) << ": ");
-		/*IndexLayout::Interface &nextLevelinterface = nextLevelLayout.interface(pid);*/
-		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
-		{
-			size_t &i = interface.get_element(iter2);
-			UG_DLOG(LIB_ALG_AMG, 3, i << "(new " << newIndex[i] << ")  ");
-			i = newIndex[i];
-			/*if(newIndex[i] != -1)
-			{
-				UG_DLOG(LIB_ALG_AMG, 1, i << "(new " << newIndex[i] << ")  ");
-				nextLevelinterface.push_back(newIndex[i]);
-			}*/
-		}
-		UG_DLOG(LIB_ALG_AMG, 3, "\n");
-	}
-
-	//UG_DLOG(LIB_ALG_AMG, 1, "total layout:\n");
-	//PrintLayout(nextLevelLayout);
-}
-
-
-/*
-template<typename matrix_type>
-bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
-		IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout, size_t overlapDepthMaster, size_t overlapDepthSlave, bool masterDirichletLast, bool slaveDirichletLast)
-{
-	std::vector<IndexLayout> vMasterLayouts;
-	std::vector<IndexLayout> vSlaveLayouts;
-	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
-
-	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts);
-	c.m_overlapDepthMaster = overlapDepthMaster;
-	c.m_overlapDepthSlave = overlapDepthSlave;
-	c.m_masterDirichletLast = masterDirichletLast;
-	c.m_slaveDirichletLast = slaveDirichletLast;
-	bool b = c.calculate();
-	newMat.set_layouts(newMasterLayout, newSlaveLayout);
-	return b;
-}*/
 
 
 // TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
@@ -490,11 +425,13 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	calculate_uncalculated_fine_nodes()
 {
 	AMG_PROFILE_FUNC();
+	size_t iNrOfUncalculated=0;
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
 		if(rating[i].is_uncalculated_fine() == false || rating.i_must_assign(i) == false)
 			continue;
-		if(prolongation_calculated[i])
+		iNrOfUncalculated ++;
+		if(prolongation_calculated[i] == false)
 		{
 			calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 			prolongation_calculated[i] = true;
@@ -510,6 +447,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			PoldIndices(i, node) = n.parents[j].value;
 		}
 	}
+	UG_LOG("calculated " << iNrOfUncalculated << " of uncalculated nodes.\n");
 }
 
 

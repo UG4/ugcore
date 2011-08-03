@@ -44,16 +44,16 @@ namespace ug{
  *
  */
 template <typename TAlgebra>
-class rsamg:
-	public amg_base< TAlgebra >
+class RSAMG:
+	public AMGBase< TAlgebra >
 {
 public:
-	typedef amg_base<TAlgebra> super;
+	typedef AMGBase<TAlgebra> super;
 	using super::m_amghelper;
 	using super::m_parentIndex;
 	using super::m_writeMatrices;
 	using super::m_writeMatrixPath;
-	using super::is_fine;
+	using super::levels;
 
 public:
 //	Algebra type
@@ -70,13 +70,13 @@ public:
 	typedef typename matrix_type::value_type value_type;
 	
 //  functions
-	rsamg() ;
+	RSAMG() ;
 	virtual ILinearIterator<vector_type,vector_type>* clone()
 	{
-		rsamg<algebra_type>* clone = new rsamg<algebra_type>();
+		RSAMG<algebra_type>* clone = new RSAMG<algebra_type>();
 		return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
 	}
-	virtual ~rsamg() { }
+	virtual ~RSAMG() { }
 
 	virtual const char* name() const {return "AMGPreconditioner";}
 

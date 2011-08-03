@@ -45,11 +45,11 @@ class FAMGLevelCalculator;
 //!
 
 template <typename TAlgebra>
-class famg:
-	public amg_base< TAlgebra >
+class FAMG:
+	public AMGBase< TAlgebra >
 {
 public:
-	typedef amg_base<TAlgebra> super;
+	typedef AMGBase<TAlgebra> super;
 	using super::m_amghelper;
 	using super::m_parentIndex;
 	using super::m_writeMatrices;
@@ -71,14 +71,14 @@ public:
 	typedef typename TAlgebra::matrix_type prolongation_matrix_type;
 
 //  functions
-	famg() ;
+	FAMG() ;
 	virtual ILinearIterator<vector_type,vector_type>* clone()
 	{
-		famg<algebra_type>* clone = new famg<algebra_type>();
+		FAMG<algebra_type>* clone = new FAMG<algebra_type>();
 		return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
 	}
 	//	Name of preconditioner
-	virtual ~famg();
+	virtual ~FAMG();
 	void cleanup();
 
 	virtual const char* name() const {return "FAMGPreconditioner";}
@@ -190,6 +190,9 @@ private:
 	stdvector<double> m_omegaVectors; // testvectorWeights
 	stdvector< IVectorWriter<vector_type> * > m_vVectorWriters;
 	stdvector<double> m_omegaVectorWriters; // testvectorWeights
+
+	stdvector< vector_type > testvectors;
+	stdvector<double> omega;
 };
 
 

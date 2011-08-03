@@ -1,44 +1,51 @@
 /*
- *  BoxSort.h
+ *  BoxPriorityQueue.h
  *
  *  Created by Martin Rupp on 24.09.10.
  *  Copyright 2010 . All rights reserved.
  *
  */
 
-#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__BOXSORT_H__
-#define __H__LIB_DISCRETIZATION__AMG_SOLVER__BOXSORT_H__
+#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__BoxPriorityQueue_H__
+#define __H__LIB_DISCRETIZATION__AMG_SOLVER__BoxPriorityQueue_H__
 
+#include <vector>
 
 namespace ug{
 
-//! maximal value for T::get_val(). Keep in mind that memory requirements are O(max get_val()).
-#define BOXSORT_MAXIMAL_VALUE 500
+#ifdef UGASSERT
+#define MYASSERT(a, b) UGASSERT(a, b)
+#else
+#define MYASSERT(a, b) assert(a && ##b)
+#endif
 
-// note: in the current implementation, this is not a "stable" sort
+//! maximal value for T::get_val(). Keep in mind that memory requirements are O(max get_val()).
+const int BOXPRIORITYQUEUE_MAXIMAL_VALUE = 500;
+
 /**
  * \brief updateable priority queue class.
   * this priority queue works on an external array of elements T.
   * \note none of the elements of m_arr[0]..m_arr[size-1] are in the queue at the begining.
-  * You can insert elements by using BoxSort::insert(i);
+  * You can insert elements by using BoxPriorityQueue::insert_item(i);
  *
  * \param T type of elements in the maxheap. Has to support size_t T::get_val() const, and get_val() has to
  * be between 0 and and small number (for example, 500).
  *
- * Elements are put in "boxes" depending on their get_val()-value - this makes sorting extermely easy:
+ * Elements are put in "boxes" depending on their get_val()-value - this makes sorting extremely easy:
  * sorting and accessing is O(1), and inserting is maximal a) creation of enough boxes, and b) inserting
  * into a box, so it is O(maximal get_val()). This algorithm is like a "radical" radix exchange sort.
  * \note memory requirements are O(maximal get_val()) + O(size).
+ * \note: in the current implementation, this is not a "stable" sort
  *
  */
 template<typename T>
-class BoxSort
+class BoxPriorityQueue
 {
 private:
-	BoxSort(const BoxSort<T> &other);
+	BoxPriorityQueue(const BoxPriorityQueue<T> &other);
 
 public:
-	BoxSort() : arr(NULL), m_box(), m_posInBox(), m_values(), m_size(0), m_height(0)
+	BoxPriorityQueue() : arr(NULL), m_box(), m_posInBox(), m_values(), m_size(0), m_height(0)
 	{
 
 	}
@@ -46,17 +53,17 @@ public:
 	 * \param	n		maximal number of elements
 	 * \param	arr_	array with elements which are to compare. note that non of these are in the queue in the beginning
 	 */
-	BoxSort(size_t n, const T *arr_) : m_size(0), m_height(0)
+	BoxPriorityQueue(size_t n, const T *arr_) : m_size(0), m_height(0)
 	{
 		create(n, arr_);
 	}
 
-	BoxSort(const std::vector<T> &v) : m_size(0), m_height(0)
+	BoxPriorityQueue(const std::vector<T> &v) : m_size(0), m_height(0)
 	{
 		create(v.size(), &v[0]);
 	}
 	//! deconstructor
-	~BoxSort()
+	~BoxPriorityQueue()
 	{
 	}
 
@@ -94,7 +101,7 @@ public:
 	{
 		size_check(i);
 		size_t val = arr[i].get_val();
-		UG_ASSERT(val < BOXSORT_MAXIMAL_VALUE, "T::get_val() has to be < " << BOXSORT_MAXIMAL_VALUE << " but is " << val);
+		UG_ASSERT(val < BOXPRIORITYQUEUE_MAXIMAL_VALUE, "T::get_val() has to be < " << BOXPRIORITYQUEUE_MAXIMAL_VALUE << " but is " << val);
 		if(m_box.size() < val+1)
 		{
 			//size_t s = m_box.size();

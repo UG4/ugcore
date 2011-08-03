@@ -34,14 +34,14 @@ namespace ug{
  * \param level
  */
 template<typename TAlgebra>
-void famg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+void FAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
 	c_create_AMG_level(AH, R, A, P, level);
 }
 
 template<typename TAlgebra>
-famg<TAlgebra>::famg() : amg_base<TAlgebra>()
+FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 {
 	m_theta = 0.95;
 	m_delta = 0.5;
@@ -60,15 +60,15 @@ famg<TAlgebra>::famg() : amg_base<TAlgebra>()
 }
 
 template<typename TAlgebra>
-famg<TAlgebra>::~famg()
+FAMG<TAlgebra>::~FAMG()
 {
 
 }
 
 template<typename TAlgebra>
-void famg<TAlgebra>::tostring() const
+void FAMG<TAlgebra>::tostring() const
 {
-	amg_base<TAlgebra>::tostring();
+	AMGBase<TAlgebra>::tostring();
 	UG_LOG("FAMG Preconditioner:\n");
 
 	UG_LOG(" Delta: " << m_delta << " (forces interpolation quality measure F < delta.) " << std::endl);

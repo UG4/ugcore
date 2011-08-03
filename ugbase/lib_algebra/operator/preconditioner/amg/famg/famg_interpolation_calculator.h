@@ -580,6 +580,14 @@ private:
 
 		GetLocalMatrix(A_OL2, S, &N2[0], &N2[0]);
 
+
+		// make S symmetric
+		/*for(size_t r=0; r<S.num_rows(); r++)
+			for(size_t c=0; c<S.num_cols(); c++)
+			{
+				S(r, c) = (S(r,c)+S(c,r))/2
+			}*/
+
 		IF_DEBUG(LIB_ALG_AMG, 5) S.maple_print("\nsubA");
 
 		//AMG_PROFILE_END();

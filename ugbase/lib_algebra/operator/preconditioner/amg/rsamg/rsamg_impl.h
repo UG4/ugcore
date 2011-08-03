@@ -129,29 +129,29 @@ void rsamg<TAlgebra>::FullSubdomainBlocking(matrix_type &AH, IndexLayout &nextMa
 }*/
 
 template<typename TAlgebra>
-void rsamg<TAlgebra>::create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
+void RSAMG<TAlgebra>::create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
 {
 	AMG_PROFILE_FUNC();
-	is_fine.resize(level+1);
-	is_fine[level].resize(nodes.size());
+	std::vector<bool> &vIsFine = levels[level]->is_fine;
+	vIsFine.resize(nodes.size());
 	size_t iNrOfCoarse=0;
 	for(size_t i=0; i < nodes.size(); i++)
 		if(nodes[i].is_coarse())
 		{
 			newIndex[i] = iNrOfCoarse;
-			is_fine[level][i] = false;
+			vIsFine[i] = false;
 			iNrOfCoarse++;
 		}
 		else
 		{
-			is_fine[level][i] = true;
+			vIsFine[i] = true;
 			newIndex[i] = -1;
 		}
 	UG_ASSERT(iNrOfCoarse == nodes.get_nr_of_coarse(), "");
 }
 
 template<typename TAlgebra>
-void rsamg<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
+void RSAMG<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level)
 {
 	AMG_PROFILE_FUNC();
 	m_parentIndex.resize(level+2);
@@ -164,7 +164,7 @@ void rsamg<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const A
 
 
 template<typename TAlgebra>
-void rsamg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+void RSAMG<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level, const AMGNodes &nodes)
 {
 	if(m_amghelper.positions[level].size() > 0)
@@ -235,12 +235,12 @@ void rsamg<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_ty
  * \param level
  */
 template<typename TAlgebra>
-void rsamg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
 	AMG_PROFILE_FUNC();
 #ifdef UG_PARALLEL
-	UG_ASSERT(pcl::GetNumProcesses()==1, "not implemented for procs > 1");
+	//UG_ASSERT(pcl::GetNumProcesses()==1, "not implemented for procs > 1");
 #endif
 	size_t N = A.num_rows();
 	AMGNodes nodes(N);
@@ -439,8 +439,8 @@ void rsamg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 //!
 //! amg constructor
 template<typename TAlgebra>
-rsamg<TAlgebra>::rsamg() :
-	amg_base<TAlgebra>(),
+RSAMG<TAlgebra>::RSAMG() :
+	AMGBase<TAlgebra>(),
 	m_dEpsilonTr(0.3),
 	m_dTheta(0.3),
 	//m_dSigma(0.3),
@@ -452,9 +452,9 @@ rsamg<TAlgebra>::rsamg() :
 
 
 template<typename TAlgebra>
-void rsamg<TAlgebra>::tostring() const
+void RSAMG<TAlgebra>::tostring() const
 {
-	amg_base<TAlgebra>::tostring();
+	AMGBase<TAlgebra>::tostring();
 
 	UG_LOG("Ruge/Stueben AMG Preconditioner:\n");
 	UG_LOG(" theta (epsilon_strong, strong connectivity) = " << m_dTheta << std::endl);

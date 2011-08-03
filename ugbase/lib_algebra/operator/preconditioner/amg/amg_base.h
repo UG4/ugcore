@@ -37,7 +37,7 @@ namespace ug{
 
 
 template <typename TAlgebra>
-class amg_base:
+class AMGBase:
 	public IPreconditioner<	TAlgebra >
 {
 public:
@@ -98,11 +98,11 @@ public:
 
 
 //  functions
-	amg_base();
+	AMGBase();
 	virtual ILinearIterator<vector_type,vector_type>* clone() = 0;
 
 	//	Name of preconditioner
-	virtual ~amg_base();
+	virtual ~AMGBase();
 	void cleanup();
 
 
@@ -130,6 +130,7 @@ public:
 	bool check2(const vector_type &const_c, const vector_type &const_d);
 
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
+	bool add_correction_and_update_defect2(vector_type &c, vector_type &d, size_t level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
 /*
 	size_t get_nr_of_coarse(size_t level)
@@ -177,6 +178,10 @@ public:
 
 	void 	set_min_nodes_on_one_processor(size_t newMinNodes)		{ m_minNodesOnOneProcessor = newMinNodes; }
 	size_t	get_min_nodes_on_one_processor()						{ return m_minNodesOnOneProcessor; }
+
+	void 	set_preferred_nodes_on_one_processor(size_t i)			{ m_preferredNodesOnOneProcessor = i; }
+	size_t	get_preferred_nodes_on_one_processor()					{ return m_preferredNodesOnOneProcessor; }
+
 
 	void 	set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
 	void 	set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
@@ -229,9 +234,12 @@ protected:
 	bool create_level_vectors(size_t level);
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level) = 0;
-	virtual bool init();
 	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
-	stdvector<stdvector< typename block_traits<typename matrix_type::value_type>::inverse_type > > m_diagInv;
+
+#ifdef UG_PARALLEL
+	bool agglomerate(size_t level);
+#endif
+
 // data
 	size_t 	m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
 	size_t 	m_numPostSmooth;					///< nu_2: nr. of post-smoothing steps
@@ -243,25 +251,20 @@ protected:
 	size_t 	m_maxNodesForBase;					///< max nr of coarse nodes before Base solver is used
 	double 	m_dMaxFillBeforeBase;				///< max fill rate before Base solver is used
 	size_t	m_minNodesOnOneProcessor;			///< min nr of nodes on one processor (for agglomeration)
+	size_t	m_preferredNodesOnOneProcessor;		///< preferred nr of nodes on one processor (for agglomeration)
 	bool 	m_bUseCollectedSolver;
 
 	bool	m_bFSmoothing;
 
-	stdvector<vector_type*> m_vec1; 			///< temporary Vector for storing r = Ax -b
-	stdvector<vector_type*> m_vec2; 			///< temporary Vector for storing rH
-	stdvector<vector_type*> m_vec3; 			///< temporary Vector for storing eH
+
 	vector_type *m_vec4;						///< temporary Vector for defect (in get_correction)
 
-	stdvector<stdvector<bool> > is_fine;
 
-	stdvector<prolongation_matrix_type *> m_R; 	///< R Restriction Matrices
-	stdvector<prolongation_matrix_type *> m_P; 	///< P Prolongation Matrices
-	stdvector<MatrixOperator<vector_type,vector_type,matrix_type> *> m_A;				///< A Matrices
+
 
 	bool 	m_writeMatrices;
 
 	std::string m_writeMatrixPath;
-	stdvector< stdvector<int> > m_parentIndex;	///< parentIndex[L][i] is the index of i on level L-1
 	cAMG_helper m_amghelper;					///< helper struct for viewing matrices (optional)
 	stdvector<MathVector<3> > m_dbgPositions;	///< positions of geometric grid (optional)
 	int m_dbgDimension;							///< dimension of geometric grid (optional)
@@ -269,9 +272,6 @@ protected:
 
 	ILinearIterator<vector_type, vector_type> *m_presmoother;	///< presmoother template
 	ILinearIterator<vector_type, vector_type> *m_postsmoother;	///< postsmoother template \note: may be pre=post, is optimized away.
-
-	stdvector<ILinearIterator<vector_type, vector_type> *> m_presmoothers;	///< presmoothers for each level
-	stdvector<ILinearIterator<vector_type, vector_type> *> m_postsmoothers;	///< postsmoothers for each level
 
 	ILinearOperatorInverse<vector_type, vector_type> *m_basesolver; ///< the base solver
 
@@ -283,28 +283,72 @@ protected:
 	double m_dTimingCoarseSolverSetupMS;
 
 
-
-	stdvector<LevelInformation> m_levelInformation;
-
 	IPositionProvider<2> *m_pPositionProvider2d;
 	IPositionProvider<3> *m_pPositionProvider3d;
 
+	stdvector<stdvector<int> > m_parentIndex;		///< parentIndex[i] is the index of i on the finer level
+
+	struct AMGLevel
+	{
+		AMGLevel()
+		{
+			pA = NULL;
+			presmoother = NULL;
+			postsmoother = NULL;
 #ifdef UG_PARALLEL
-	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
-	stdvector<IndexLayout> slaveLayouts, masterLayouts; // todo: use in FAMG
-
-
-	MatrixOperator<vector_type,vector_type,matrix_type> collectedBaseA;
-	IndexLayout masterColl, slaveColl, m_emptyLayout;
-	vector_type collC;
-	vector_type collD;
-	pcl::ProcessCommunicator m_emptyPC;
-
-
-	size_t agglomerationLevel;
-	stdvector<IndexLayout> agglomerationMasterLayout;
-	IndexLayout agglomerationSlaveLayout;
+			slaveLayout.clear();
+			masterLayout.clear();
+			agglomerateMasterLayout.clear();
+			bHasBeenMerged = false;
 #endif
+		}
+		vector_type corr;					///< temporary Vector for storing the correction made on this level
+		vector_type cH;						///< temporary Vector for storing rH
+		vector_type dH; 					///< temporary Vector for storing eH
+
+		ILinearIterator<vector_type, vector_type> *presmoother;	///< presmoothers for each level
+		ILinearIterator<vector_type, vector_type> *postsmoother;	///< postsmoothers for each level
+
+		stdvector<bool> is_fine;
+
+		prolongation_matrix_type R; 	///< R Restriction Matrices
+		prolongation_matrix_type P; 	///< P Prolongation Matrices
+		matrix_operator_type *pA;				///< A Matrices
+
+#ifdef UG_PARALLEL
+		pcl::ParallelCommunicator<IndexLayout> com; ///< the communicator object on this level
+		IndexLayout slaveLayout, masterLayout;
+
+		stdvector< typename block_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;
+
+		// agglomeration
+		bool bHasBeenMerged;
+		// level 0 - m_agglomerateLevel
+		pcl::ProcessCommunicator processCommunicator;
+
+		// level 0 - m_agglomerateLevel-1
+		IndexLayout agglomerateMasterLayout;
+		vector_type collC, collD;
+		matrix_operator_type uncollectedA;
+#endif
+
+
+		LevelInformation m_levelInformation;
+	};
+
+	stdvector<AMGLevel*> levels;
+
+#ifdef UG_PARALLEL
+	// on level m_agglomerateLevel
+	IndexLayout agglomerateSlaveLayout;
+	size_t m_agglomerateLevel;
+
+	// stuff from old level 0 agglomeration
+	pcl::ProcessCommunicator m_emptyPC;
+	IndexLayout m_emptyLayout;
+#endif
+
+	void calculate_level_information(size_t level, double createAMGlevelTiming);
 
 public:
 	//! \return c_A = total nnz of all matrices divided by nnz of matrix A
@@ -321,8 +365,8 @@ public:
 
 	LevelInformation *get_level_information(size_t i)
 	{
-		if(i < m_levelInformation.size())
-			return &m_levelInformation[i];
+		if(i < levels.size())
+			return &levels[i]->m_levelInformation;
 		else return NULL;
 	}
 };

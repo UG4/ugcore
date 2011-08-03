@@ -216,7 +216,7 @@ private:
 };
 
 //	typedef maxheap<AMGNode> nodeinfo_pq_type;
-typedef BoxSort<AMGNode> nodeinfo_pq_type;
+typedef BoxPriorityQueue<AMGNode> nodeinfo_pq_type;
 
 }
 
