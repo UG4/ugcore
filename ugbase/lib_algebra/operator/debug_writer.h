@@ -8,7 +8,8 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__DEBUG_WRITER__
 #define __H__LIB_ALGEBRA__OPERATOR__DEBUG_WRITER__
 
-#include "lib_algebra/cpu_algebra/sparsematrix_print.h"
+#include "common/math/ugmath.h"
+#include "lib_algebra/common/connection_viewer_output.h"
 
 namespace ug{
 
@@ -107,8 +108,7 @@ class AlgebraDebugWriter
 		#endif
 
 		//	add ending
-		//	\todo: Introduce a ending *.vec for Connection Viewer
-			name.append(".mat");
+			name.append(".vec");
 
 		//	write to file
 			WriteVectorToConnectionViewer<vector_type, position_type>
