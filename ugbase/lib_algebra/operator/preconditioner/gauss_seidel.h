@@ -11,6 +11,7 @@
 #include "lib_algebra/operator/operator_interface.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
 
 namespace ug{
