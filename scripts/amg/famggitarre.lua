@@ -10,8 +10,6 @@ SetOutputProfileStats(false)
 
 ug_load_script("ug_util.lua")
 
--- choose algebra
-InitAlgebra(CPUAlgebraSelector());
 
 -- constants
 if util.HasParamOption("-3d") then
@@ -19,6 +17,9 @@ if util.HasParamOption("-3d") then
 else
 	dim = 2
 end
+
+-- choose algebra
+InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "gitarre/gitarre2d.ugx")
@@ -103,7 +104,7 @@ end
 tBefore = os.clock()
 
 -- create Instance of a Domain
-dom = util.CreateDomain(dim)
+dom = Domain()
 if util.LoadDomain(dom, gridName) == false then
 print("Loading Domain failed.")
 exit()
@@ -184,17 +185,18 @@ elemDisc:set_source(rhs)
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c", "OuterZargen")
-dirichletBND:add_boundary_value(dirichlet, "c", "OuterSchallloch")
+dirichletBND:add(dirichlet, "c", "OuterZargen")
+dirichletBND:add(dirichlet, "c", "OuterSchallloch")
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc)
+domainDisc:set_approximation_space(approxSpace)
+domainDisc:add(elemDisc)
 --domainDisc:add_elem_disc(neumannDisc)
-domainDisc:add_post_process(dirichletBND)
+domainDisc:add(dirichletBND)
 
 
 
@@ -264,20 +266,14 @@ if bUseFAMG == 1 then
 	--------------------------	
 	function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
 		local amgTestvector;
-		if dim == 1 then
-			amgTestvector = GridFunctionVectorWriter1d()
-		elseif dim == 2 then
-			amgTestvector = GridFunctionVectorWriter2d()
-		elseif dim == 3 then
-			amgTestvector = GridFunctionVectorWriter3d()
-		end
+		amgTestvector = GridFunctionVectorWriter()
 		amgTestvector:set_reference_grid_function(gridfunction)
 		amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
 		return amgTestvector	
 	end
 		
 	function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
-		local amgDirichlet0 = GridFunctionVectorWriterDirichlet02d()
+		local amgDirichlet0 = GridFunctionVectorWriterDirichlet0()
 		amgDirichlet0:init(dirichletBND, approxSpace)
 		return amgDirichlet0
 	end
@@ -309,7 +305,7 @@ else
 end
 
 
-vectorWriter = GridFunctionPositionProvider2d()
+vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
 if bOutput then

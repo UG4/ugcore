@@ -12,7 +12,7 @@ ug_load_script("ug_util.lua")
 
 -- constants
 if util.HasParamOption("-3d") then
-	dim = 3SaveVectorForConnectionViewer
+	dim = 3
 else
 	dim = 2
 end
@@ -264,20 +264,14 @@ if bUseFAMG == 1 then
 	--------------------------	
 	function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
 		local amgTestvector;
-		if dim == 1 then
-			amgTestvector = GridFunctionVectorWriter1d()
-		elseif dim == 2 then
-			amgTestvector = GridFunctionVectorWriter2d()
-		elseif dim == 3 then
-			amgTestvector = GridFunctionVectorWriter3d()
-		end
+		amgTestvector = GridFunctionVectorWriter()
 		amgTestvector:set_reference_grid_function(gridfunction)
 		amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
 		return amgTestvector	
 	end
 		
 	function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
-		local amgDirichlet0 = GridFunctionVectorWriterDirichlet02d()
+		local amgDirichlet0 = GridFunctionVectorWriterDirichlet0()
 		amgDirichlet0:init(dirichletBND, approxSpace)
 		return amgDirichlet0
 	end
@@ -309,7 +303,7 @@ else
 end
 
 
-vectorWriter = GridFunctionPositionProvider2d()
+vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
 if bOutput then
