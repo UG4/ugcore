@@ -23,7 +23,9 @@ if(NOT NO_ALGEBRA)
 
 	set(src_Algebra	 ${src_Algebra}
 		operator/preconditioner/amg/rsamg/rsamg_coarsening.cpp
-		operator/preconditioner/amg/famg/famg.cpp		
+		operator/preconditioner/amg/famg/famg.cpp
+		operator/preconditioner/amg/agglomeration.cpp
+		operator/preconditioner/amg/global_layout.cpp		
 		 )
 
 if(NOT NO_PCL)
