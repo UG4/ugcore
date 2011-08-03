@@ -1,6 +1,7 @@
 #include "common/common.h"
 #include <vector>
 #include <map>
+#include <algorithm>
 
 namespace ug
 {
@@ -144,7 +145,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 		{
 			size_t k = snSmallest.connections[i];
 			if(k == iAgglo) continue;
-			if(find(snAgglo.connections.begin(), snAgglo.connections.end(), k) == snAgglo.connections.end())
+			if(std::find(snAgglo.connections.begin(), snAgglo.connections.end(), k) == snAgglo.connections.end())
 				snAgglo.connections.push_back(k);
 		}
 
@@ -155,12 +156,12 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 			size_t j = snSmallest.connections[i];
 			supernode &s = supernodes[j];
 
-			std::vector<int>::iterator it = find(s.connections.begin(), s.connections.end(), ismallest);
+			std::vector<int>::iterator it = std::find(s.connections.begin(), s.connections.end(), ismallest);
 			if(it != s.connections.end())
 				s.connections.erase(it);
 
 			if(j != iAgglo)
-				if(find(s.connections.begin(), s.connections.end(), iAgglo) == s.connections.end())
+				if(std::find(s.connections.begin(), s.connections.end(), iAgglo) == s.connections.end())
 					s.connections.push_back(iAgglo);
 		}
 
