@@ -20,11 +20,31 @@
 
 namespace ug{
 
+
+/// Abstract integrand interface (using Barton & Nackman trick)
+template <class Derived, typename TElem, typename TGridFunction>
+class Integrand {
+private:
+	Derived &asLeaf() {return static_cast<Derived&> (*this);}
+
+
+public:
+	/// initialize for element-wise evaluation
+	bool initElem(TElem *elem)
+	{return asLeaf().initElem(elem);}
+
+	/// provide values at IP
+	void getValue(number &diffVal,
+				const MathVector<reference_element_traits<TElem>::reference_element_type::dim>& locIP,
+				typename TGridFunction::domain_type::position_type& globIP)
+	{ asLeaf().getValue(diffVal, locIP, globIP);}
+};
+
+
 /// This class provides the integrand for the L2 error of a grid function.
-/** For each element, it returns the L2 error in the integration points.
- * */
+/** For each element, it returns the L2 error in the integration points.*/
 template <typename TElem, typename TGridFunction>
-class L2ErrorIntegrand {
+class L2ErrorIntegrand : Integrand< L2ErrorIntegrand<TElem, TGridFunction>, TElem, TGridFunction>{
 
 private:
 	// grid function
@@ -41,6 +61,8 @@ private:
 	typename TGridFunction::multi_index_vector_type ind;
 
 public:
+
+	//typedef TElem element_type;
 	/// constructor
 	L2ErrorIntegrand(TGridFunction &f, size_t fctid,
 			boost::function<void (number&, const MathVector<TGridFunction::domain_type::dim>&, number)> e,
@@ -115,10 +137,19 @@ bool SumValuesForSubsetGroup( number& addValue,
 									const MathVector<TGridFunction::domain_type::dim>& x,
 									number time)> ExactSolution,
 								TGridFunction& u, size_t fct, int si, number time)
+
+/*
+ template <typename Derived, typename TElem, typename TGridFunction>
+ bool SumValuesForSubsetGroup( number& addValue,
+					Integrand<Derived, TElem, TGridFunction> integrand, int si)
+
+
+
+ */
 {
 	// initialize local class
 	// NOTE: This is independent of the rest and may be provided as its own class!!!
-	L2ErrorIntegrand<TElem,TGridFunction> localIntegrand = L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution, time);
+	L2ErrorIntegrand<TElem,TGridFunction> integrand= L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution, time);
 
 
 //	order of quadrature rule
@@ -193,7 +224,7 @@ bool SumValuesForSubsetGroup( number& addValue,
 		//		}
 
 	// initialize integrand for a given element
-		if (localIntegrand.initElem(elem) ==false)
+		if (integrand.initElem(elem) ==false)
 		{
 			UG_LOG("ERROR in 'L2ErrorOnElem': Wrong number of"
 								" multi indices.\n");
@@ -215,7 +246,7 @@ bool SumValuesForSubsetGroup( number& addValue,
 
 		//	compute value in integration point
 			number valIP;
-			localIntegrand.getValue(valIP, locIP, globIP);
+			integrand.getValue(valIP, locIP, globIP);
 
 		//	get quadrature weight
 			const number weightIP = rQuadRule.weight(ip);
@@ -236,11 +267,11 @@ bool SumValuesForSubsetGroup( number& addValue,
 }
 
 template <int dim, typename TGridFunction>
-struct L2ErrorLoopHelp
+struct IntegralElementLoopHelp
 {};
 
 template <typename TGridFunction>
-struct L2ErrorLoopHelp<3, TGridFunction>{
+struct IntegralElementLoopHelp<3, TGridFunction>{
 static number invoke(	boost::function<void (
 									number& res,
 									const MathVector<TGridFunction::domain_type::dim>& x,
@@ -269,6 +300,8 @@ static number invoke(	boost::function<void (
 		switch(ssGrp.dim(i))
 		{
 		case 1:
+			// L2ErrorIntegrand<Edge, TGridFunction> integrand(InterpolFunction, u, time);
+			// bRes &= SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, integrand, si);
 			bRes &= SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
 		case 2:
@@ -300,7 +333,7 @@ static number invoke(	boost::function<void (
 };
 
 template <typename TGridFunction>
-struct L2ErrorLoopHelp<1, TGridFunction>{
+struct IntegralElementLoopHelp<1, TGridFunction>{
 static number invoke(boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x,number time)> InterpolFunction,
 					TGridFunction& u, size_t fct, number time, const SubsetGroup& ssGrp)
 {
@@ -343,7 +376,7 @@ static number invoke(boost::function<void (number& res, const MathVector<TGridFu
 };
 
 template <typename TGridFunction>
-struct L2ErrorLoopHelp<2, TGridFunction>{
+struct IntegralElementLoopHelp<2, TGridFunction>{
 static number invoke(	boost::function<void (
 									number& res,
 									const MathVector<TGridFunction::domain_type::dim>& x,
@@ -445,7 +478,7 @@ number L2Error(
 
 
 //	forward
-	return L2ErrorLoopHelp<TGridFunction::dim, TGridFunction>::invoke(InterpolFunction, u, fct, time, ssGrp);
+	return IntegralElementLoopHelp<TGridFunction::dim, TGridFunction>::invoke(InterpolFunction, u, fct, time, ssGrp);
 }
 
 /// interpolates a function on the whole domain
