@@ -145,8 +145,8 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 #ifdef UG_PARALLEL
 	pL->processCommunicator = mat.get_process_communicator();
 	pL->com = mat.get_communicator();
-#endif
 	pL->bHasBeenMerged = false;
+#endif
 	levels.push_back(pL);
 
 	for(; ; level++)
