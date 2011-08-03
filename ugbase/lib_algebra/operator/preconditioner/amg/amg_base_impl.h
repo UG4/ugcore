@@ -142,8 +142,10 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 	levels.clear();
 	AMGLevel *pL = new AMGLevel;
 	pL->pA = &mat;
+#ifdef UG_PARALLEL
 	pL->processCommunicator = mat.get_process_communicator();
 	pL->com = mat.get_communicator();
+#endif
 	pL->bHasBeenMerged = false;
 	levels.push_back(pL);
 
