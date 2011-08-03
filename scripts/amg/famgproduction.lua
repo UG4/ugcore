@@ -12,7 +12,7 @@ ug_load_script("ug_util.lua")
 
 -- constants
 if util.HasParamOption("-3d") then
-	dim = 3
+	dim = 3SaveVectorForConnectionViewer
 else
 	dim = 2
 end
@@ -21,7 +21,7 @@ end
 InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
 	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
@@ -30,18 +30,18 @@ if dim == 3 then
 end
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = util.GetParamNumber("-numRefs", 5)
+numRefs = util.GetParamNumber("-numRefs", 1)
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 
-maxBase = util.GetParamNumber("-maxBase", 3000)
+maxBase = util.GetParamNumber("-maxBase", 800)
 
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
 
 bFileOutput = true
-bOutput = false
+bOutput = true
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
@@ -54,6 +54,10 @@ print("    RAalpha = "..RAalpha.." degree")
 RAalpha = RAalpha * (2*math.pi/360)
 print("    RAalpha = "..RAalpha.." grad")
 
+function writeln(...)
+	write(...)
+	write("\n")
+end
 
 function my_assert(condition, text)
 	if condition == false then
@@ -220,7 +224,7 @@ print ("done")
 -- write matrix for test purpose
 if bOutput then
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
 
 -- create algebraic Preconditioners
@@ -310,6 +314,7 @@ vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
 if bOutput then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
+amg:write_testvectors(true)
 end
 
 amg:set_num_presmooth(2)
@@ -320,7 +325,8 @@ amg:set_postsmoother(jac)
 amg:set_base_solver(base)
 amg:set_max_levels(20)
 
--- amg:set_min_nodes_on_one_processor(200) not functional
+amg:set_min_nodes_on_one_processor(500)
+-- amg:set_preferred_nodes_on_one_processor(1000)
 amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(true)
@@ -330,7 +336,7 @@ amg:tostring()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(9)
+convCheck:set_maximum_steps(100)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
 
@@ -432,7 +438,7 @@ print("tAssemble [s]: "..tAssemble)
 
 
 
-if GetProfilerAvailable() == true then
+if false and GetProfilerAvailable() == true then
 	create_levelPN = GetProfileNode("c_create_AMG_level")
 	
 	function PrintParallelProfileNode(name)
@@ -463,7 +469,7 @@ if GetProfilerAvailable() == true then
 		PrintParallelProfileNode("create_parent_index")
 		PrintParallelProfileNode("create_interfaces")
 		PrintParallelProfileNode("create_fine_marks")
-		PrintParallelProfileNode("FAMGCreateAsMultiplyOf")
+		PrintParallelProfileNode("create_galerkin_product")
 		PrintParallelProfileNode("CalculateNextTestvector")
 	end
 

@@ -298,7 +298,7 @@ else
 	
 	-- your algebraic testvector
 	testvector = approxSpace:create_surface_function()
-	-- SaveVectorForConnectionViewer(testvector, "testvector.mat")
+	-- SaveVectorForConnectionViewer(testvector, "testvector.vec")
 	-- there you write it
 	testvectorwriter:update(testvector)
 	

@@ -123,7 +123,7 @@ lsDisc:compute_error(phiNew);
 --------------------------------------------------------------------------------
 
 WriteGridFunctionToVTK(phiNew, "Solution")
-SaveVectorForConnectionViewer(phiNew, "u.mat")
+SaveVectorForConnectionViewer(phiNew, "u.vec")
 
 
 

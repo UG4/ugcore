@@ -730,7 +730,7 @@ domainDisc:set_approximation_space(approxSpace)
 		-- 1.b write matrix for test purpose
 		if verbosity >= 1 then
 		SaveMatrixForConnectionViewer(u, linOp, myname.."P"..key.."Stiffness.mat")
-		SaveVectorForConnectionViewer(b, myname.."P"..key.."Rhs.mat")
+		SaveVectorForConnectionViewer(b, myname.."P"..key.."Rhs.vec")
 		end
 		
 		-- 2. apply solver

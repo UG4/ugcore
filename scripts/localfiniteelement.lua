@@ -175,8 +175,8 @@ if numLoop == 0 then
 	-- write matrix for test purpose
 	write("Write Matrix/Vector for debug ...")
 --	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
---	SaveVectorForConnectionViewer(b, "Rhs.mat")
-	SaveVectorForConnectionViewer(u, "StartSol.mat")
+--	SaveVectorForConnectionViewer(b, "Rhs.vec")
+	SaveVectorForConnectionViewer(u, "StartSol.vec")
 	write("done.\n")
 
 	write("Init solver...")
@@ -193,7 +193,7 @@ if numLoop == 0 then
 	write("L2Error is "..error  .."\n");
 	
 	WriteGridFunctionToVTK(u, "Solution")
-	SaveVectorForConnectionViewer(u, "Solution.mat")
+	SaveVectorForConnectionViewer(u, "Solution.vec")
 	
 	exit()
 end
@@ -223,8 +223,8 @@ for i=1, numLoop do
 	
 	-- write matrix for test purpose
 	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-	SaveVectorForConnectionViewer(b, "Rhs.mat")
-	SaveVectorForConnectionViewer(u, "StartSol.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.vec")
+	SaveVectorForConnectionViewer(u, "StartSol.vec")
 	
 	-- 2. init solver for linear Operator
 	print("Init solver for operator.")
@@ -249,5 +249,5 @@ end
 --  Output of computed solution
 --------------------------------------------------------------------------------
 WriteGridFunctionToVTK(u, "Solution")
-SaveVectorForConnectionViewer(u, "Solution.mat")
+SaveVectorForConnectionViewer(u, "Solution.vec")
 

@@ -294,7 +294,7 @@ print ("done")
 -- write matrix for test purpose
 if bOutput then
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
 
 -- create algebraic Preconditioners
@@ -397,7 +397,7 @@ if bUseFAMG == 1 then
 	
 	-- your algebraic testvector
 	testvector = approxSpace:create_surface_function()
-	-- SaveVectorForConnectionViewer(testvector, "testvector.mat")
+	-- SaveVectorForConnectionViewer(testvector, "testvector.vec")
 	-- there you write it
 	testvectorwriter:update(testvector)
 	

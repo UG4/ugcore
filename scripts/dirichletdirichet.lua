@@ -287,7 +287,7 @@ linOp:set_dirichlet_values(u)
 
 -- write matrix for test purpose
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+SaveVectorForConnectionViewer(b, "Rhs.vec")
 
 -- debug writer
 dbgWriter = GridFunctionDebugWriter()

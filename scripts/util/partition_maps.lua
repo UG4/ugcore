@@ -7,7 +7,7 @@
 -- This method automatically adds target procs 0, ..., numProcs - 1.
 -- It is thus not suited for hierarchical redistribution.
 -- Use PartitionDomain_Bisection directly in this case.
-function util.PartitionMapBisection(dom, partitionMapOut,numProcs)
+function util.PartitionMapBisection(dom, partitionMapOut, numProcs)
 	partitionMapOut:clear()
 	partitionMapOut:add_target_procs(0, numProcs)
 	PartitionDomain_Bisection(dom, partitionMapOut, 0)

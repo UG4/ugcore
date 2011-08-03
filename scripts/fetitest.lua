@@ -258,7 +258,7 @@ linOp:set_dirichlet_values(u)
 -- write matrix for test purpose
 if verbosity >= 1 then
 	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-	SaveVectorForConnectionViewer(b, "Rhs.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
 
 -- debug writer

@@ -5,7 +5,7 @@
 --   Author: Andreas Vogel
 --
 ----------------------------------------------------------
-
+SetOutputProcessRank(-1)
 ug_load_script("ug_util.lua")
 
 --------------------------------------------------------------------------------
@@ -388,15 +388,16 @@ v:set(1.0)
 linOp:set_dirichlet_values(v)
 SaveVectorForConnectionViewer(v, "v.mat") 
 
-srand(0)
+srand(1)
 nev = 3
 
 eig = EigenSolver()
 eig:set_linear_operator_A(linOp)
 eig:set_linear_operator_B(B)
 eig:set_max_iterations(100)
-eig:set_precision(1e-8)
+eig:set_precision(1e-5)
 eig:set_preconditioner(gmg)
+eig:set_pinvit(3)
 ev = {}
 for i=1,nev do
 	print("adding ev "..i)

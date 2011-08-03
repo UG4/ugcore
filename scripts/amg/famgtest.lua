@@ -21,8 +21,8 @@ end
 InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
-	-- gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	gridName = "unit_square/unit_square_quads_8x8.ugx"
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -42,7 +42,7 @@ RAalpha = util.GetParamNumber("-RAalpha", 0)
 
 bFileOutput = true
 bOutput = true
-
+bUseNestedAMG = true
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
 print("    numRefs = "..numRefs)
@@ -276,7 +276,7 @@ print ("done")
 -- write matrix for test purpose
 if bOutput then
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
 
 -- create algebraic Preconditioners
@@ -373,10 +373,36 @@ amg:set_num_postsmooth(2)
 amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
-amg:set_base_solver(base)
-amg:set_max_levels(20)
+if bUseNestedAMG then
+	amg2 = RSAMGPreconditioner()
+	amg2:set_base_solver(base)
+	amg2:set_num_presmooth(3)
+	amg2:set_num_postsmooth(3)
+	amg2:set_cycle_type(1)
+	amg2:set_presmoother(jac)
+	amg2:set_postsmoother(jac)
+	amg2:set_max_nodes_for_base(1000)
+	amg2:set_max_fill_before_base(0.7)
+	amg2:set_fsmoothing(true)
+	amg2:set_epsilon_truncation(0)
+	-- amg2:set_matrix_write_path("/Users/mrupp/matrices/2/")
+	convCheck2 = StandardConvergenceCheck()
+	convCheck2:set_maximum_steps(30)
+	convCheck2:set_minimum_defect(1e-11)
+	convCheck2:set_reduction(1e-12)
+	convCheck2:set_verbose_level(false)
+	linSolver2 = LinearSolver()
+	linSolver2:set_preconditioner(amg2)
+	linSolver2:set_convergence_check(convCheck2)
+	amg:set_base_solver(linSolver2)
+else
+	amg:set_base_solver(base)
+end
 
--- amg:set_min_nodes_on_one_processor(200) not functional
+amg:set_max_levels(2)
+
+amg:set_min_nodes_on_one_processor(10000)
+amg:set_preferred_nodes_on_one_processor(10000)
 amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(true)
@@ -418,7 +444,7 @@ print("Apply solver.")
 tBefore = os.clock()
 linSolver:apply_return_defect(u,b)
 tSolve = os.clock()-tBefore
-WriteGridFunctionToVTK(u, "Solution")
+-- WriteGridFunctionToVTK(u, "Solution")
 
 print("done")
 else
