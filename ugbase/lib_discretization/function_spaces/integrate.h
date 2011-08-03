@@ -20,26 +20,113 @@
 
 namespace ug{
 
-/// interpolates a function on an element
-/**
- * This function adds to diffValSquared the contributions of all elements on
- * the subset si.
- */
+/// This class provides the integrand for the L2 error of a grid function.
+/** For each element, it returns the L2 error in the integration points.
+ * */
 template <typename TElem, typename TGridFunction>
-bool DiffSquaredOnElems( number& diffValSquared,
-						boost::function<void (
-									number& res,
+class L2ErrorIntegrand {
+
+private:
+	// grid function
+	TGridFunction &u;
+	size_t fct;
+	LFEID id;
+	const LocalShapeFunctionSet<typename reference_element_traits<TElem>::reference_element_type>  &trialSpace;
+
+	// exact solution
+	boost::function<void (number&, const MathVector<TGridFunction::domain_type::dim>&, number)> ExactSolution;
+	number time;
+
+	// aux. index array
+	typename TGridFunction::multi_index_vector_type ind;
+
+public:
+	/// constructor
+	L2ErrorIntegrand(TGridFunction &f, size_t fctid,
+			boost::function<void (number&, const MathVector<TGridFunction::domain_type::dim>&, number)> e,
+			number t) :
+				//	grid function and id of shape functions used
+				u(f), fct(fctid), id(u.local_finite_element_id(fct)),
+				//	trial space
+				trialSpace(LocalShapeFunctionSetProvider::get<typename reference_element_traits<TElem>::reference_element_type>(id)),
+				// exact solution
+				ExactSolution(e), time(t)
+	{};
+
+
+	/// initialize for element-wise evaluation
+	bool initElem(TElem *elem) {
+
+		//	get multiindices of element
+		u.multi_indices(elem, fct, ind);
+
+		//	check multi indices
+		if(ind.size() != trialSpace.num_sh())
+		{
+			UG_LOG("ERROR in 'L2ErrorOnElem': Wrong number of"
+					" multi indices.\n");
+			return false;
+		}
+
+		return true;
+	};
+
+	/// provide values at IP
+	void getValue(number &diffVal,
+			const MathVector<reference_element_traits<TElem>::reference_element_type::dim>& locIP,
+			typename TGridFunction::domain_type::position_type& globIP)
+	{
+
+
+		//	number of dofs on element
+		const size_t num_sh = trialSpace.num_sh();
+
+		//	compute exact solution at integration point
+		number exactSolIP;
+		ExactSolution(exactSolIP, globIP, time);
+
+		//	reset approx solution
+		number approxSolIP = 0.0;
+
+		// 	sum up contributions of all shape functions at ip
+		for(size_t sh = 0; sh < num_sh; ++sh)
+		{
+			//	get value at shape point (e.g. corner for P1 fct)
+			const number valSH = BlockRef(u[ind[sh][0]], ind[sh][1]);
+
+			//	add shape fct at ip * value at shape
+			approxSolIP += valSH * trialSpace.shape(sh, locIP);
+		}
+
+		//	get squared of difference
+		diffVal = (exactSolIP - approxSolIP);
+		diffVal *= diffVal;
+	};
+};
+
+
+/// Integrate some function over a subset group si
+/**
+ * @param
+ * @param si: index for subset group*/
+template <typename TElem, typename TGridFunction>
+bool SumValuesForSubsetGroup( number& addValue,
+					boost::function<void (number& res,
 									const MathVector<TGridFunction::domain_type::dim>& x,
 									number time)> ExactSolution,
 								TGridFunction& u, size_t fct, int si, number time)
 {
+	// initialize local class
+	// NOTE: This is independent of the rest and may be provided as its own class!!!
+	L2ErrorIntegrand<TElem,TGridFunction> localIntegrand = L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution, time);
+
+
 //	order of quadrature rule
 //	\todo: generalize
 	const int order = 1;
 
 //	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 //	dimension of reference element
 	static const int dim = ref_elem_type::dim;
@@ -48,6 +135,13 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef typename domain_type::position_type position_type;
 
+//	get quadrature Rule
+	const QuadratureRule<dim>& rQuadRule
+	= QuadratureRuleProvider<dim>::template get_rule<ref_elem_type>(order);
+
+//	create a reference mapping
+	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
+
 //	check if something to do
 	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
 	iterEnd = u.template end<TElem>(si);
@@ -55,21 +149,24 @@ bool DiffSquaredOnElems( number& diffValSquared,
 	if(iter==iterEnd) return true;
 
 //	id of shape functions used
-	LFEID id = u.local_finite_element_id(fct);
+//	LFEID id = u.local_finite_element_id(fct);
 
 //	get trial space
-	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
-			LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
+
+//	typedef LocalShapeFunctionSet<ref_elem_type> trialspace_type;
+	//const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
+		//	LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
+//	const trialspace_type& trialSpace =
+//			LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
+
 
 //	number of dofs on element
-	const size_t num_sh = trialSpace.num_sh();
+//	const size_t num_sh = trialSpace.num_sh();
 
-//	get quadrature Rule
-	const QuadratureRule<dim>& rQuadRule
-			= QuadratureRuleProvider<dim>::template get_rule<ref_elem_type>(order);
+	// initialize local class
+	// NOTE: This is independent of the rest and may be provided as its own class!!!
+	//L2ErrorIntegrand<TElem,TGridFunction> local = L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution);
 
-//	create a reference mapping
-	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
 
 // 	iterate over all elements
 	for(; iter != iterEnd; ++iter)
@@ -83,54 +180,42 @@ bool DiffSquaredOnElems( number& diffValSquared,
 
 	//	update the reference mapping for the corners
 		mapping.update(&vCorner[0]);
-
 	//	get multiindices of element
-		typename TGridFunction::multi_index_vector_type ind;
-		u.multi_indices(elem, fct, ind);
+	//	typename TGridFunction::multi_index_vector_type ind;
+	//	u.multi_indices(elem, fct, ind);
 
-	//	check multi indices
-		if(ind.size() != num_sh)
+		//	check multi indices
+		//		if(ind.size() != num_sh)
+		//		{
+		//			UG_LOG("ERROR in 'L2ErrorOnElem': Wrong number of"
+		//					" multi indices.\n");
+		//			return false;
+		//		}
+
+	// initialize integrand for a given element
+		if (localIntegrand.initElem(elem) ==false)
 		{
 			UG_LOG("ERROR in 'L2ErrorOnElem': Wrong number of"
-					" multi indices.\n");
+								" multi indices.\n");
 			return false;
 		}
 
 	//	contribution of this element
 		number intValElem = 0;
 
+
 	//	loop integration points
 		for(size_t ip = 0; ip < rQuadRule.size(); ++ip)
 		{
-		//	get local integration point
+
+		//	get local integration point and compute global coordinates
 			const MathVector<dim>& locIP = rQuadRule.point(ip);
-
-		//	compute global integration point
 			position_type globIP;
-
-		//  map local dof position to global position
 			mapping.local_to_global(globIP, locIP);
 
-		//	compute exact solution at integration point
-			number exactSolIP;
-			ExactSolution(exactSolIP, globIP, time);
-
-		//	reset approx solution
-			number approxSolIP = 0;
-
-		// 	sum up contributions of all shape functions at ip
-			for(size_t sh = 0; sh < num_sh; ++sh)
-			{
-			//	get value at shape point (e.g. corner for P1 fct)
-				const number valSH = BlockRef(u[ind[sh][0]], ind[sh][1]);
-
-			//	add shape fct at ip * value at shape
-				approxSolIP += valSH * trialSpace.shape(sh, locIP);
-			}
-
-		//	get squared of difference
-			number diffVal = (exactSolIP - approxSolIP);
-			diffVal *= diffVal;
+		//	compute value in integration point
+			number valIP;
+			localIntegrand.getValue(valIP, locIP, globIP);
 
 		//	get quadrature weight
 			const number weightIP = rQuadRule.weight(ip);
@@ -139,11 +224,11 @@ bool DiffSquaredOnElems( number& diffValSquared,
 			const number det = mapping.jacobian_det(locIP);
 
 		//	add contribution of integration point
-			intValElem += diffVal * weightIP * det;
+			intValElem += valIP * weightIP * det;
 		}
 
 	//	add to global sum
-		diffValSquared += intValElem;
+		addValue += intValElem;
 	}
 
 //	we're done
@@ -184,17 +269,17 @@ static number invoke(	boost::function<void (
 		switch(ssGrp.dim(i))
 		{
 		case 1:
-			bRes &= DiffSquaredOnElems<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
 		case 2:
-			bRes &= DiffSquaredOnElems<Triangle, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
-			bRes &= DiffSquaredOnElems<Quadrilateral, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Triangle, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Quadrilateral, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
 		case 3:
-			bRes &= DiffSquaredOnElems<Tetrahedron, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
-			bRes &= DiffSquaredOnElems<Hexahedron, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
-			bRes &= DiffSquaredOnElems<Prism, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
-			bRes &= DiffSquaredOnElems<Pyramid, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Tetrahedron, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Hexahedron, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Prism, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Pyramid, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
 		default: UG_LOG("ERROR in L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
 		                " not supported in world dimension "<<3<<".");
@@ -216,15 +301,8 @@ static number invoke(	boost::function<void (
 
 template <typename TGridFunction>
 struct L2ErrorLoopHelp<1, TGridFunction>{
-static number invoke(	boost::function<void (
-									number& res,
-									const MathVector<TGridFunction::domain_type::dim>& x,
-									number time)>
-									InterpolFunction,
-								TGridFunction& u,
-								size_t fct,
-								number time,
-								const SubsetGroup& ssGrp)
+static number invoke(boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x,number time)> InterpolFunction,
+					TGridFunction& u, size_t fct, number time, const SubsetGroup& ssGrp)
 {
 //	difference squared on all elements
 	number diffSquared = 0;
@@ -244,7 +322,7 @@ static number invoke(	boost::function<void (
 		switch(ssGrp.dim(i))
 		{
 		case 1:
-			bRes &= DiffSquaredOnElems<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
 		default: UG_LOG("ERROR in L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
 		                " not supported in world dimension "<<1<<".");
@@ -294,11 +372,11 @@ static number invoke(	boost::function<void (
 		switch(ssGrp.dim(i))
 		{
 		case 1:
-			bRes &= DiffSquaredOnElems<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
 		case 2:
-			bRes &= DiffSquaredOnElems<Triangle, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
-			bRes &= DiffSquaredOnElems<Quadrilateral, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Triangle, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
+			bRes &= SumValuesForSubsetGroup<Quadrilateral, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
 		default: UG_LOG("ERROR in L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
 		                " not supported in world dimension "<<2<<".");
