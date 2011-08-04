@@ -92,10 +92,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	Marks a element for refinement.
 	/**	\{ */
-		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
-		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
-		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR);
-		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR);
 	/**	\} */
 
 	///	Returns the mark of a given element.

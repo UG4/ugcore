@@ -73,28 +73,32 @@ set_grid(Grid* grid)
 	}
 }
 
-void HangingNodeRefiner_Grid::mark(VertexBase* v, RefinementMark refMark)
+bool HangingNodeRefiner_Grid::mark(VertexBase* v, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		HangingNodeRefinerBase::mark(v, refMark);
+		return HangingNodeRefinerBase::mark(v, refMark);
+	return false;
 }
 
-void HangingNodeRefiner_Grid::mark(EdgeBase* e, RefinementMark refMark)
+bool HangingNodeRefiner_Grid::mark(EdgeBase* e, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		HangingNodeRefinerBase::mark(e, refMark);
+		return HangingNodeRefinerBase::mark(e, refMark);
+	return false;
 }
 
-void HangingNodeRefiner_Grid::mark(Face* f, RefinementMark refMark)
+bool HangingNodeRefiner_Grid::mark(Face* f, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		HangingNodeRefinerBase::mark(f, refMark);
+		return HangingNodeRefinerBase::mark(f, refMark);
+	return false;
 }
 
-void HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
+bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		HangingNodeRefinerBase::mark(v, refMark);
+		return HangingNodeRefinerBase::mark(v, refMark);
+	return false;
 }
 
 /* pre-refine

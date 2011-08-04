@@ -49,10 +49,10 @@ class IRefiner
 
 	///	Marks a element for refinement. Default implementation is empty
 	/**	\{ */
-		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR)	{}
-		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR)	{}
-		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR)		{}
-		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR)		{}
+		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR)	{return false;}
+		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR)		{return false;}
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR)			{return false;}
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR)		{return false;}
 	/**	\} */
 
 	///	Returns the mark of a given element. Default returns RM_REGULAR

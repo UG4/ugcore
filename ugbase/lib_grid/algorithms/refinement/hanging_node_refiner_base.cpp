@@ -5,7 +5,7 @@
 #include <vector>
 #include "hanging_node_refiner_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
-
+#include "lib_grid/algorithms/debug_util.h"
 
 //define PROFILE_HANGING_NODE_REFINER if you want to profile
 //the refinement code.
@@ -78,28 +78,45 @@ void HangingNodeRefinerBase::clear_marks()
 	m_selMarkedElements.clear();
 }
 
-void HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
+bool HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(v, refMark);
+	if(refinement_is_allowed(v)){
+		m_selMarkedElements.select(v, refMark);
+		return true;
+	}
+	return false;
 }
 
-void HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
+bool HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(e, refMark);
+	if(refinement_is_allowed(e)){
+		m_selMarkedElements.select(e, refMark);
+		return true;
+	}
+	return false;
 }
 
-void HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
+bool HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(f, refMark);
+
+	if(refinement_is_allowed(f)){
+		m_selMarkedElements.select(f, refMark);
+		return true;
+	}
+	return false;
 }
 
-void HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
+bool HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-	m_selMarkedElements.select(v, refMark);
+	if(refinement_is_allowed(v)){
+		m_selMarkedElements.select(v, refMark);
+		return true;
+	}
+	return false;
 }
 
 
@@ -172,6 +189,7 @@ void HangingNodeRefinerBase::refine()
 
 	UG_DLOG(LIB_GRID, 1, "performing hanging-node-refine:\n");
 //	fills the queues with the elements that have to be refined.
+
 	collect_objects_for_refine();
 
 //	assigns hnode marks

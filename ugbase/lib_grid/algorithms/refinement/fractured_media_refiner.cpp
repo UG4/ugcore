@@ -52,7 +52,7 @@ set_position_attachment(TAPosition& aPos)
 }
 
 template <class TGrid, class TAPosition>
-void
+bool
 FracturedMediaRefiner<TGrid, TAPosition>::
 mark(Face* f, RefinementMark refMark)
 {
@@ -60,12 +60,16 @@ mark(Face* f, RefinementMark refMark)
 	UG_ASSERT(m_aaPos.valid(),
 			  "Set a position attachment before refining!");
 
-	if(!BaseClass::is_marked(f)){
+	bool wasMarked = BaseClass::is_marked(f);
+	if(!BaseClass::mark(f, refMark))
+		return false;
+
+	if(!wasMarked){
 		if(IsDegenerated(f, m_aaPos, m_degeneratedEdgeThreshold)){
 			m_queDegeneratedFaces.push(f);
 		}
 	}
-	BaseClass::mark(f, refMark);
+	return true;
 }
 
 template <class TGrid, class TAPosition>

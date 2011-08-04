@@ -41,16 +41,16 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 		virtual Grid* get_associated_grid()		{return m_pGrid;}
 
 	///	Marks a vertex for refinement (ignores RM_COARSEN).
-		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks an edge for refinement (ignores RM_COARSEN).
-		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks a face for refinement (ignores RM_COARSEN).
-		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks a volume for refinement (ignores RM_COARSEN).
-		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR);
 
 	protected:
 	///	performs registration and deregistration at a grid.

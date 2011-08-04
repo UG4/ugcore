@@ -45,19 +45,19 @@ class TParallelAdaptiveRefiner:
 		virtual void clear_marks();
 
 	///	Marks an vertex for refinement.
-		virtual void mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks an edge for refinement.
 	/**	If interface elements are selected a flag will be checked.*/
-		virtual void mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks a face for refinement.
 	/**	If interface elements are selected a flag will be checked.*/
-		virtual void mark(Face* f, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
 
 	///	Marks a volume for refinement.
 	/**	If interface elements are selected a flag will be checked.*/
-		virtual void mark(Volume* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR);
 
 	/**	If not all processes are involved in refinement,
 	 *	one can set the involved processes here. By default
