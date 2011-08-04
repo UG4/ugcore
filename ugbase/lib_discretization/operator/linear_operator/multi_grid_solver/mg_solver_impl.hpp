@@ -621,16 +621,19 @@ lmgc(size_t lev)
 				if(!restriction(lev, &restrictionPerformed))
 					return false;
 
-			//	we're calling lmgc on the next level, even if the restriction
-			//	was not performed. This is important for really mean grid-
-			//	configurations in redistributed adaptive grids in a parallel
-			//	environment.
-				if(!lmgc(lev-1))
-				{
-					UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
-							" grid cycle on level " << lev-1 << " failed. "
-							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-					return false;
+			//todo: It could make sense to call lmgc even if no restriction was
+			//		performed. This could be required in a parallel environment
+			//		where lmgc is applied to an adaptive redistributed grid.
+			//		In that situation an empty level could be located between
+			//		filled ones.
+				if(restrictionPerformed){
+					if(!lmgc(lev-1))
+					{
+						UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
+								" grid cycle on level " << lev-1 << " failed. "
+								"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+						return false;
+					}
 				}
 
 				if(!prolongation(lev, restrictionPerformed))
