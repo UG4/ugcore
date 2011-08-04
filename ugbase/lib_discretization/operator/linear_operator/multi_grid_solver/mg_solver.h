@@ -171,8 +171,26 @@ class AssembledMultiGridCycle :
  	/// compute correction on level and update defect
 		bool lmgc(size_t lev);
 
-	/// smooth on level l, restrict defect, call lmgc (..., l-1) and interpolate correction
-		bool smooth_and_transfer(size_t lev);
+	////////////////////////////////////////////////////////////////
+	//	The methods in this section rely on each other and should be called in sequence
+	///	performs presmoothing on the given level
+		bool presmooth(size_t lev);
+
+	///	performs restriction on to the level below
+	/**	Pass a pointer to a bool variable to restrictionPerformedOut, to find out,
+	 * whether the restriction was performed. The restriction
+	 * won't be performed, if no DoFs are in the level below.*/
+		bool restriction(size_t lev, bool* restrictionPerformedOut);
+
+	///	performs prolongation to the level above
+	/**	We have to let prolongaton know whether the previous restriction
+	 * was performed.*/
+		bool prolongation(size_t lev, bool resumingFromBelow);
+
+	///	performs postsmoothin
+		bool postsmooth(size_t lev);
+	//	end of section
+	////////////////////////////////////////////////////////////////
 
 	///	compute base solver
 		bool base_solve(size_t lev);

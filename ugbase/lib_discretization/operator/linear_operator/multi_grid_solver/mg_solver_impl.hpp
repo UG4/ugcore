@@ -215,17 +215,11 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 	return true;
 }
 
-// performs pre- and postsmooth and transfers to/from coarser grid
 template <typename TApproximationSpace, typename TAlgebra>
 bool AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-smooth_and_transfer(size_t lev)
+presmooth(size_t lev)
 {
-//	## Step 1: Get all needed vectors and operators
-
-//	Get vectors defined on whole grid (including ghosts) on this level
-//	denote by: c = Correction, d = Defect, tmp = Help vector
-	vector_type& d = m_vLevData[lev]->d;
-	vector_type& tmp = m_vLevData[lev]->t;
+//	Get all needed vectors and operators
 
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
@@ -235,21 +229,14 @@ smooth_and_transfer(size_t lev)
 	vector_type& sc = m_vLevData[lev]->get_smooth_correction();
 	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
 
-//	Lets get a reference to the coarser level correction, defect, help vector
-	vector_type& cc = m_vLevData[lev-1]->c;
-	vector_type& cd = m_vLevData[lev-1]->d;
-	vector_type& cTmp = m_vLevData[lev-1]->t;
-
 //	get smoother on this level and corresponding operator
 	smoother_type& Smoother = m_vLevData[lev]->get_smoother();
 	MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
-//	## Step 2: reset correction to zero
 // 	reset correction to zero on this level
 	sc.set(0.0);
 
-//	## Step 3: PRESMOOTH
 //	We start the multi grid cycle on this level by smoothing the defect. This
 //	means that we compute a correction c, such that the defect is "smoother".
 //	If ghosts are present in parallel, we only smooth on a patch. Thus we first
@@ -274,7 +261,25 @@ smooth_and_transfer(size_t lev)
 //	zero.
 	m_vLevData[lev]->copy_defect_from_smooth_patch(true);
 
-//	## Step 3: PARALLEL CASE: gather vertical
+	return true;
+}
+
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+restriction(size_t lev, bool* restrictionPerformedOut)
+{
+//	Get all needed vectors and operators
+
+//	Get vectors defined on whole grid (including ghosts) on this level
+//	denote by: c = Correction, d = Defect, tmp = Help vector
+	vector_type& d = m_vLevData[lev]->d;
+
+//	Lets get a reference to the coarser level correction, defect, help vector
+	UG_ASSERT(lev > 0, "restriction can't be applied on level 0.");
+	vector_type& cd = m_vLevData[lev-1]->d;
+
+//	## PARALLEL CASE: gather vertical
 //	Send vertical slave values to master and check resuming.
 //	If there are vertical slaves/masters on the coarser level, we now copy
 //	the restricted values of the defect from the slave DoFs to the master
@@ -286,13 +291,13 @@ smooth_and_transfer(size_t lev)
 //				 already refined grid level here; "vertical cut") the process
 //				 stops execution until the other processes have performed the
 //				 coarser levels and are back again at this level.
-	bool resume = gather_vertical(d);
-
-//	only continue if levels left
-	if(resume) {
+	if(!gather_vertical(d)){
+	//	only continue if levels left
+		*restrictionPerformedOut = false;
+		return true;
+	}
 	#endif
 
-// 	## Step 4: RESTRICT DEFECT
 //	Now we can restrict the defect from the fine level to the coarser level.
 //	This is done using the transposed prolongation.
 	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
@@ -305,52 +310,72 @@ smooth_and_transfer(size_t lev)
 	}
 	GMG_PROFILE_END();
 
-// 	## Step 5: COMPUTE COARSE GRID CORRECTION
-//	Now, we have to compute the coarse grid correction, i.e. the correction
-//	on the coarser level. This is done iteratively by calling lmgc again for
-//	the coarser level.
-	for(int i = 0; i < m_cycleType; ++i)
-	{
-		if(!lmgc(lev-1))
+//	since we reached this point, the restriction was performed.
+	*restrictionPerformedOut = true;
+
+	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+prolongation(size_t lev, bool restrictionWasPerformed)
+{
+//	Get all needed vectors and operators
+
+//	Get vectors defined on whole grid (including ghosts) on this level
+//	denote by: c = Correction, d = Defect, tmp = Help vector
+	vector_type& d = m_vLevData[lev]->d;
+	vector_type& tmp = m_vLevData[lev]->t;
+
+//	get vectors used in smoothing operations. (This is needed if vertical
+//	masters are present, since no smoothing is performed on those. In that case
+//	only on a smaller part of the grid level - the smoothing patch - the
+//	smoothing is performed)
+	vector_type& sd = m_vLevData[lev]->get_smooth_defect();
+	vector_type& sc = m_vLevData[lev]->get_smooth_correction();
+	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
+
+//	Lets get a reference to the coarser level correction, defect, help vector
+	UG_ASSERT(lev > 0, "prolongatoin can't be applied on level 0.");
+	vector_type& cc = m_vLevData[lev-1]->c;
+	vector_type& cTmp = m_vLevData[lev-1]->t;
+
+//	get smoothing operator on this level
+	MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
+		m_vLevData[lev]->get_smooth_mat();
+
+//	## INTERPOLATE CORRECTION
+	if(restrictionWasPerformed){
+	//	now we can interpolate the coarse grid correction from the coarse level
+	//	to the fine level
+		GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
+		if(!m_vLevData[lev]->Prolongation->apply(tmp, cc))
 		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
-					" grid cycle on level " << lev-1 << " failed. "
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Prolongation from"
+					" level " << lev-1 << " to " << lev << " failed. "
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+
 			return false;
 		}
+		GMG_PROFILE_END();
 	}
 
-//	## Step 6: INTERPOLATE CORRECTION
-//	now we can interpolate the coarse grid correction from the coarse level
-//	to the fine level
-	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
-	if(!m_vLevData[lev]->Prolongation->apply(tmp, cc))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Prolongation from"
-				" level " << lev-1 << " to " << lev << " failed. "
-				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-
-		return false;
-	}
-	GMG_PROFILE_END();
-
-//	## Step 7: PARALLEL CASE: Receive values of correction for vertical slaves
+//	PARALLEL CASE: Receive values of correction for vertical slaves
 //	If there are vertical slaves/masters on the coarser level, we now copy
 //	the correction values from the master DoFs to the slave	DoFs.
 	#ifdef UG_PARALLEL
-	}
 	broadcast_vertical(tmp);
 	#endif
 
-//	## Step 8: PROJECT COARSE GRID CORRECTION ONTO SMOOTH AREA
+//	## PROJECT COARSE GRID CORRECTION ONTO SMOOTH AREA
 	m_vLevData[lev]->copy_tmp_to_smooth_patch();
 
-// 	## Step 9: ADD COARSE GRID CORRECTION
+// 	## ADD COARSE GRID CORRECTION
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
 	sc += sTmp;
 	GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
-//	## Step 10: UPDATE DEFECT FOR COARSE GRID CORRECTION
+//	## UPDATE DEFECT FOR COARSE GRID CORRECTION
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
@@ -363,7 +388,7 @@ smooth_and_transfer(size_t lev)
 	}
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
 
-//	## Step 11: ADAPTIVE CASE
+//	## ADAPTIVE CASE
 	if(m_bAdaptive)
 	{
 	//	in the adaptive case there is a small part of the coarse coupling that
@@ -392,8 +417,28 @@ smooth_and_transfer(size_t lev)
 			return false;
 		}
 	}
+	return true;
+}
 
-// 	## Step 12: POST-SMOOTHING
+template <typename TApproximationSpace, typename TAlgebra>
+bool AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+postsmooth(size_t lev)
+{
+//	get vectors used in smoothing operations. (This is needed if vertical
+//	masters are present, since no smoothing is performed on those. In that case
+//	only on a smaller part of the grid level - the smoothing patch - the
+//	smoothing is performed)
+	vector_type& sd = m_vLevData[lev]->get_smooth_defect();
+	vector_type& sc = m_vLevData[lev]->get_smooth_correction();
+	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
+
+//	get smoother on this level and corresponding operator
+	smoother_type& Smoother = m_vLevData[lev]->get_smoother();
+	MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
+		m_vLevData[lev]->get_smooth_mat();
+
+
+// 	## POST-SMOOTHING
 //	We smooth the updated defect again. This means that we compute a
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
@@ -407,11 +452,10 @@ smooth_and_transfer(size_t lev)
 	}
 	GMG_PROFILE_END();
 
-//	## Step 13: PROJECT DEFECT, CORRECTION BACK TO WHOLE GRID FOR RESTRICTION
+//	## PROJECT DEFECT, CORRECTION BACK TO WHOLE GRID FOR RESTRICTION
 	m_vLevData[lev]->copy_defect_from_smooth_patch();
 	m_vLevData[lev]->copy_correction_from_smooth_patch();
 
-//	we are done on this level
 	return true;
 }
 
@@ -564,11 +608,45 @@ lmgc(size_t lev)
 	{
 	//	check if dofs on that level. It not, skip level
 		if(m_vLevData[lev]->num_indices() > 0){
-			return smooth_and_transfer(lev);
+
+
+			for(int i = 0; i < m_cycleType; ++i)
+			{
+				if(!presmooth(lev))
+					return false;
+
+			//	store whether the restriction was resuming to the level below.
+				bool restrictionPerformed = true;
+
+				if(!restriction(lev, &restrictionPerformed))
+					return false;
+
+			//	we're calling lmgc on the next level, even if the restriction
+			//	was not performed. This is important for really mean grid-
+			//	configurations in redistributed adaptive grids in a parallel
+			//	environment.
+				if(!lmgc(lev-1))
+				{
+					UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
+							" grid cycle on level " << lev-1 << " failed. "
+							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+					return false;
+				}
+
+				if(!prolongation(lev, restrictionPerformed))
+					return false;
+
+				if(!postsmooth(lev))
+					return false;
+			}
+			return true;
 		}
 		else{
-			for(int i = 0; i < m_cycleType; ++i)
-				return lmgc(lev-1);
+			for(int i = 0; i < m_cycleType; ++i){
+				if(!lmgc(lev-1))
+					return false;
+			}
+			return true;
 		}
 	}
 
