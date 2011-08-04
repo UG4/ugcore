@@ -613,14 +613,15 @@ lmgc(size_t lev)
 
 			for(int i = 0; i < m_cycleType; ++i)
 			{
-				//UG_LOG("Before presmooth:\n");	log_level_data(lev);
+			//	m_vLevData[lev]->c.set(0.0); // <<<< only for debug
+			//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
 				if(!presmooth(lev))
 					return false;
 
 			//	store whether the restriction was resuming to the level below.
 				bool restrictionPerformed = true;
 
-				//UG_LOG("Before restriction:\n");	log_level_data(lev);
+			//	UG_LOG("Before restriction:\n");	log_level_data(lev);
 				if(!restriction(lev, &restrictionPerformed))
 					return false;
 
@@ -1575,42 +1576,46 @@ log_level_data(size_t lvl)
 {
 	std::string prefix;
 	if(lvl < m_vLevData.size())
-		prefix.assign(" ", 2 + 2 * (m_vLevData.size() - lvl));
+		prefix.assign(2 + 2 * (m_vLevData.size() - lvl), ' ');
 
 	LevData& ld = *m_vLevData[lvl];
 	UG_LOG(prefix << "local d norm: " << sqrt(VecProd(ld.d, ld.d)) << std::endl);
 	UG_LOG(prefix << "local c norm: " << sqrt(VecProd(ld.c, ld.c)) << std::endl);
-	UG_LOG(prefix << "local sd norm: " << sqrt(VecProd(ld.sd, ld.sd)) << std::endl);
-	UG_LOG(prefix << "local sc norm: " << sqrt(VecProd(ld.sc, ld.sc)) << std::endl);
+	UG_LOG(prefix << "local smooth_d norm: " << sqrt(VecProd(ld.get_smooth_defect(), ld.get_smooth_defect())) << std::endl);
+	UG_LOG(prefix << "local smooth_c norm: " << sqrt(VecProd(ld.get_smooth_correction(), ld.get_smooth_correction())) << std::endl);
 
 	#ifdef UG_PARALLEL
 		uint oldStorageMask = ld.d.get_storage_mask();
-		UG_LOG(prefix << "parallel d norm: " << ld.d.two_norm());
+		number norm = ld.d.two_norm();
+		UG_LOG(prefix << "parallel d norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
 			ld.d.change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
 			ld.d.change_storage_type(PST_CONSISTENT);
 
 		oldStorageMask = ld.c.get_storage_mask();
-		UG_LOG(prefix << "parallel c norm: " << ld.c.two_norm());
+		norm = ld.c.two_norm();
+		UG_LOG(prefix << "parallel c norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
 			ld.c.change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
 			ld.c.change_storage_type(PST_CONSISTENT);
 
-		oldStorageMask = ld.sd.get_storage_mask();
-		UG_LOG(prefix << "parallel sd norm: " << ld.sd.two_norm());
+		oldStorageMask = ld.get_smooth_defect().get_storage_mask();
+		norm = ld.get_smooth_defect().two_norm();
+		UG_LOG(prefix << "parallel smooth defect norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
-			ld.sd.change_storage_type(PST_ADDITIVE);
+			ld.get_smooth_defect().change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
-			ld.sd.change_storage_type(PST_CONSISTENT);
+			ld.get_smooth_defect().change_storage_type(PST_CONSISTENT);
 
-		oldStorageMask = ld.sc.get_storage_mask();
-		UG_LOG(prefix << "parallel sc norm: " << ld.sc.two_norm());
+		oldStorageMask = ld.get_smooth_correction().get_storage_mask();
+		norm = ld.get_smooth_correction().two_norm();
+		UG_LOG(prefix << "parallel smooth correction norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
-			ld.sc.change_storage_type(PST_ADDITIVE);
+			ld.get_smooth_correction().change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
-			ld.sc.change_storage_type(PST_CONSISTENT);
+			ld.get_smooth_correction().change_storage_type(PST_CONSISTENT);
 	#endif
 }
 
