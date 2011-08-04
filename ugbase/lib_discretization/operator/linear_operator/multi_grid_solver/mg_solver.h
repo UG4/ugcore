@@ -559,6 +559,9 @@ class AssembledMultiGridCycle :
 	 */
 		bool write_surface_debug(const matrix_type& mat, const char* filename);
 
+	///	logs a level-data-struct to the terminal
+		void log_level_data(size_t lvl);
+
 	///	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 

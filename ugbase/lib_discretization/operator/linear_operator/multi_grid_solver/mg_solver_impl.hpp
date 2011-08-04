@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "common/profiler/profiler.h"
 #include "mg_solver_util.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
@@ -612,12 +613,14 @@ lmgc(size_t lev)
 
 			for(int i = 0; i < m_cycleType; ++i)
 			{
+				//UG_LOG("Before presmooth:\n");	log_level_data(lev);
 				if(!presmooth(lev))
 					return false;
 
 			//	store whether the restriction was resuming to the level below.
 				bool restrictionPerformed = true;
 
+				//UG_LOG("Before restriction:\n");	log_level_data(lev);
 				if(!restriction(lev, &restrictionPerformed))
 					return false;
 
@@ -627,6 +630,7 @@ lmgc(size_t lev)
 			//		In that situation an empty level could be located between
 			//		filled ones.
 				if(restrictionPerformed){
+					//UG_LOG("Before recursion:\n");	log_level_data(lev);
 					if(!lmgc(lev-1))
 					{
 						UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
@@ -636,11 +640,15 @@ lmgc(size_t lev)
 					}
 				}
 
+				//UG_LOG("Before prolongation:\n");	log_level_data(lev);
 				if(!prolongation(lev, restrictionPerformed))
 					return false;
 
+				//UG_LOG("Before postsmooth:\n");	log_level_data(lev);
 				if(!postsmooth(lev))
 					return false;
+
+				//UG_LOG("After postsmooth:\n");	log_level_data(lev);
 			}
 			return true;
 		}
@@ -1558,6 +1566,52 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 	delete dbgFunc;
 
 	return bRet;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+void
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+log_level_data(size_t lvl)
+{
+	std::string prefix;
+	if(lvl < m_vLevData.size())
+		prefix.assign(" ", 2 + 2 * (m_vLevData.size() - lvl));
+
+	LevData& ld = *m_vLevData[lvl];
+	UG_LOG(prefix << "local d norm: " << sqrt(VecProd(ld.d, ld.d)) << std::endl);
+	UG_LOG(prefix << "local c norm: " << sqrt(VecProd(ld.c, ld.c)) << std::endl);
+	UG_LOG(prefix << "local sd norm: " << sqrt(VecProd(ld.sd, ld.sd)) << std::endl);
+	UG_LOG(prefix << "local sc norm: " << sqrt(VecProd(ld.sc, ld.sc)) << std::endl);
+
+	#ifdef UG_PARALLEL
+		uint oldStorageMask = ld.d.get_storage_mask();
+		UG_LOG(prefix << "parallel d norm: " << ld.d.two_norm());
+		if(oldStorageMask & PST_ADDITIVE)
+			ld.d.change_storage_type(PST_ADDITIVE);
+		else if(oldStorageMask & PST_CONSISTENT)
+			ld.d.change_storage_type(PST_CONSISTENT);
+
+		oldStorageMask = ld.c.get_storage_mask();
+		UG_LOG(prefix << "parallel c norm: " << ld.c.two_norm());
+		if(oldStorageMask & PST_ADDITIVE)
+			ld.c.change_storage_type(PST_ADDITIVE);
+		else if(oldStorageMask & PST_CONSISTENT)
+			ld.c.change_storage_type(PST_CONSISTENT);
+
+		oldStorageMask = ld.sd.get_storage_mask();
+		UG_LOG(prefix << "parallel sd norm: " << ld.sd.two_norm());
+		if(oldStorageMask & PST_ADDITIVE)
+			ld.sd.change_storage_type(PST_ADDITIVE);
+		else if(oldStorageMask & PST_CONSISTENT)
+			ld.sd.change_storage_type(PST_CONSISTENT);
+
+		oldStorageMask = ld.sc.get_storage_mask();
+		UG_LOG(prefix << "parallel sc norm: " << ld.sc.two_norm());
+		if(oldStorageMask & PST_ADDITIVE)
+			ld.sc.change_storage_type(PST_ADDITIVE);
+		else if(oldStorageMask & PST_CONSISTENT)
+			ld.sc.change_storage_type(PST_CONSISTENT);
+	#endif
 }
 
 template <typename TApproximationSpace, typename TAlgebra>
