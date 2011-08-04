@@ -89,6 +89,7 @@ end
 for i = 1, numPostRefs do
 	MarkForRefinement_AnisotropicElements(dom, refiner, edgeRatio)
 	refiner:refine()
+	PrintGridElementNumbers(dom:get_grid())
 end
 
 
@@ -121,3 +122,4 @@ print("Saved hierarchy to " .. outFileName)
 -- we're done.
 print("")
 print("done")
+

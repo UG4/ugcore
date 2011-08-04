@@ -218,6 +218,10 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks the long edges in anisotropic faces and faces with a big area in anisotropic volumes.
 /**
+ * THE NOT HIGHLY SUCCESSFUL IMPLEMENTATION OF THIS METHOD LEAD TO NEW INSIGHT.
+ * A NEW ANISOTROPIC REFINEMENT STRATEGY WILL BE IMPLEMENTED, WHICH WILL ALSO
+ * LEAD TO A REIMPLEMENTATION OF THIS METHOD. BEST NOT TO USE IT UNTIL THEN.
+ *
  * The sizeRatio determines Whether a face or a volume is considered anisotropic.
  * Make sure that the sizeRatio is in the interval [0, 1]. If the
  * ratio of the shortest edge to an other edge falls below the given threshold,
@@ -251,6 +255,10 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 	Grid& grid = *refiner.get_associated_grid();
 	position_accessor_type& aaPos = dom.get_position_accessor();
 
+//	If the grid is a multigrid, we want to avoid marking of elements, which do
+//	have children
+	MultiGrid* pmg = dynamic_cast<MultiGrid*>(&grid);
+
 //	make sure that the grid automatically generates sides for each element
 	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES)){
 		UG_LOG("WARNING in MarkForRefinement_AnisotropicElements: "
@@ -267,6 +275,10 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 		iter != grid.end<Face>(); ++iter)
 	{
 		Face* f = *iter;
+
+	//	ignore faces with children
+		if(pmg && pmg->has_children(f))
+			continue;
 
 	//	collect associated edges
 		CollectAssociated(edges, grid, f);
@@ -286,6 +298,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 				if(minLen / len <= sizeRatio){
 				//	the edge will be refined
 					refiner.mark(e);
+
 				//	we'll also mark the current face, or else just a hanging
 				//	node would be inserted.
 				//	We do not mark other associated objects here since this would
@@ -308,72 +321,133 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 
 	queue<Face*> queFaces;
 	for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter){
-		if(refiner.get_mark(*iter) == RM_ANISOTROPIC){
-			queFaces.push(*iter);
-			grid.mark(*iter);
-		}
+		queFaces.push(*iter);
+		grid.mark(*iter);
 	}
 
 	while(!queFaces.empty()){
 		Face* f = queFaces.front();
 		queFaces.pop();
 
-	//	collect associated edges
-		CollectAssociated(edges, grid, f);
-
-	//	find the shortest edge
-		EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
-		UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
-		number minLen = EdgeLength(minEdge, aaPos);
-
-	//	check if a short edge and a long edge is selected
-		bool longEdgeSelected = false;
-		bool shortEdgeSelected = false;
-
-		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-			EdgeBase* e = edges[i_edge];
-			if(refiner.get_mark(e) == RM_NONE)
-				continue;
-
-			number len = EdgeLength(e, aaPos);
-		//	to avoid division by 0, we only consider edges with a length > 0
-			if(len > 0){
-				if(minLen / len <= sizeRatio){
-					longEdgeSelected = true;
-				}
-				else{
-					shortEdgeSelected = true;
-				}
-			}
+		if(pmg && pmg->has_children(f)){
+			grid.unmark(f);
+			continue;
 		}
 
-	//	if a short edge and a long edge was selected, we'll have to mark all
-	//	edges and push associated faces with anisotropic mark to the queue
-		if(longEdgeSelected && shortEdgeSelected){
+	//	collect associated edges
+		CollectAssociated(edges, grid, f);
+/*
+		if(refiner.get_mark(f) == RM_NONE){
+			bool gotOne = false;
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 				EdgeBase* e = edges[i_edge];
-				if(refiner.get_mark(e) == RM_NONE){
-				//	mark it and push associated anisotropic faces to the queue
-					refiner.mark(e);
-					CollectFaces(faces, grid, e);
-					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
-						Face* nbr = faces[i_face];
-						if(!grid.is_marked(nbr)
-						   && (refiner.get_mark(nbr) == RM_ANISOTROPIC))
-						{
-							grid.mark(nbr);
-							queFaces.push(nbr);
+				if(refiner.get_mark(e) != RM_NONE){
+					gotOne = true;
+					break;
+				}
+			}
+
+			if(gotOne){
+				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+					EdgeBase* e = edges[i_edge];
+					if(refiner.get_mark(e) == RM_NONE){
+						refiner.mark(e);
+						CollectFaces(faces, grid, e);
+						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+							Face* nbr = faces[i_face];
+							if(!grid.is_marked(nbr)
+							   && (refiner.get_mark(nbr) == RM_ANISOTROPIC))
+							{
+								grid.mark(nbr);
+								queFaces.push(nbr);
+							}
+						}
+					}
+				}
+				refiner.mark(f);
+			}
+		}
+		else */if(refiner.get_mark(f) == RM_ANISOTROPIC){
+		//	find the shortest edge
+			EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+			UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
+			number minLen = EdgeLength(minEdge, aaPos);
+
+		//	check if a short edge and a long edge is selected
+			bool longEdgeSelected = false;
+			bool shortEdgeSelected = false;
+
+			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+				EdgeBase* e = edges[i_edge];
+				if(refiner.get_mark(e) == RM_NONE)
+					continue;
+
+				number len = EdgeLength(e, aaPos);
+			//	to avoid division by 0, we only consider edges with a length > 0
+				if(len > 0){
+					if(minLen / len <= sizeRatio){
+						longEdgeSelected = true;
+					}
+					else{
+						shortEdgeSelected = true;
+					}
+				}
+			}
+
+		//	if a short edge and a long edge was selected, we'll have to mark all
+		//	edges and push associated faces with anisotropic mark to the queue
+			if(longEdgeSelected && shortEdgeSelected){
+				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+					EdgeBase* e = edges[i_edge];
+					if(refiner.get_mark(e) == RM_NONE){
+					//	mark it and push associated anisotropic faces to the queue
+						refiner.mark(e);
+	//!!!
+
+	if(ConstrainingEdge::type_match(e)){
+		UG_LOG("CONSTRAINING EDGE MARKED (2)\n");
+	}
+
+						CollectFaces(faces, grid, e);
+						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+							Face* nbr = faces[i_face];
+							if(!grid.is_marked(nbr)
+							   && (refiner.get_mark(nbr) == RM_ANISOTROPIC))
+							{
+								grid.mark(nbr);
+								queFaces.push(nbr);
+							}
 						}
 					}
 				}
 			}
 		}
-
 	//	now unmark the face
 		grid.unmark(f);
 	}
 
 	grid.end_marking();
+
+//	mark unmarked neighbors of marked edges for regular refinement
+/*
+	for(FaceIterator iter = grid.begin<Face>();
+		iter != grid.end<Face>(); ++iter)
+	{
+		Face* f = *iter;
+
+	//	if it is already marked, leave it as it is
+		if(refiner.get_mark(f) != RM_NONE)
+			continue;
+
+	//	ignore faces with children
+		if(pmg && pmg->has_children(f))
+			continue;
+
+		for(size_t i = 0; i < f->num_edges(); ++i){
+			if(refiner.get_mark(grid.get_side(f, i)) != RM_NONE)
+				refiner.mark(f);
+		}
+	}*/
 
 /*
 //	now that all faces are marked, we can process volumes. We consider a

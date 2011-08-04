@@ -798,10 +798,13 @@ assign_hnode_marks()
 	UG_ASSERT(m_pGrid, "A grid is required to perform this operation!");
 	Grid& grid = *m_pGrid;
 
+//todo:	For small selections it might be beneficial to only iterate over the selected
+//		edges and check whether one of the associated faces is unselected...
+//		Same for volumes.
 	for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
 	{
 		Face* f = *iter;
-		if(!m_selMarkedElements.is_selected(f)){
+		if(!m_selMarkedElements.is_selected(f) && refinement_is_allowed(f)){
 			CollectAssociated(edges, grid, f);
 			for(size_t i = 0; i < edges.size(); ++i){
 				byte selStatus = m_selMarkedElements.get_selection_status(edges[i]);
@@ -815,7 +818,7 @@ assign_hnode_marks()
 		iter != grid.end<Volume>(); ++iter)
 	{
 		Volume* v = *iter;
-		if(!m_selMarkedElements.is_selected(v)){
+		if(!m_selMarkedElements.is_selected(v) && refinement_is_allowed(v)){
 			CollectAssociated(faces, grid, v);
 			for(size_t i = 0; i < faces.size(); ++i){
 				byte selStatus = m_selMarkedElements.get_selection_status(faces[i]);
