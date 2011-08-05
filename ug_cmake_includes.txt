@@ -39,6 +39,7 @@
 # - NO_BLAS: Disable BLAS libraries
 # - UG_PROFILER: Enables the ug-profiler.
 # - DIM: Dimension to be build (1,2,3,ALL)
+# - DIM: DoFManager to be build (P1, GEN)
 # - PROFILE_PCL: Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.
 # - PCL_DEBUG_BARRIER: Enables Barriers ('pcl:SynchronizeProcesses()') for debugging/profiling.
 # - USE_METIS: Sets the path in which the METIS lib can be found.
@@ -94,6 +95,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(UG_PROFILER "enables the ug-profiler")
 	OPTION(GENERATE_DEBUG_SYMBOLS "adds -g to gcc. Generates debug symbols in release mode (for profilers etc)")
 	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
+	OPTION(DOF "Specify the DoFManager to build (P1, GEN)")
 	OPTION(PROFILE_PCL "Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.")
 	OPTION(PCL_DEBUG_BARRIER "Enables Barriers for debugging/profiling.")
 
@@ -133,6 +135,30 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
 		endforeach(d)
 	endif("${DIM}" STREQUAL "ALL")
+
+	#######################
+	# DoFManager
+
+	# check if DOF flag has been passed, else set default to "P1"
+	if(NOT DOF)
+		set(DOF "P1")
+	endif(NOT DOF)
+
+	if((NOT ("${DOF}" STREQUAL "GEN")) AND (NOT ("${DOF}" STREQUAL "P1")))
+		message(FATAL_ERROR "ERROR: Specify P1Conform DoFManager correctly. (Choose DoFManager by -DDOF=\"P1|GEN\")")
+	endif((NOT ("${DOF}" STREQUAL "GEN")) AND (NOT ("${DOF}" STREQUAL "P1")))
+	
+	# if DOF is "GEN"
+	if("${DOF}" STREQUAL "GEN")
+		message(STATUS "INFO: Using (general) Conform DoFManager. (Choose DoFManager by -DDOF=\"P1|GEN\")")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_GEN")
+	endif("${DOF}" STREQUAL "GEN")
+		
+	# if DOF is "P1"
+	if("${DOF}" STREQUAL "P1")
+		message(STATUS "INFO: Using P1Conform DoFManager. (Choose DoFManager by -DDOF=\"P1|GEN\")")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_P1")
+	endif("${DOF}" STREQUAL "P1")
 
 	#######################
 	# compiler flags

@@ -19,8 +19,11 @@ namespace bridge
 ///	returns the default registry used in ug
 Registry & GetUGRegistry();
 
-///	Sets the default classes of class-groups based on a tags
+///	Sets the default classes of class-groups based on a tags using default DoFManager
 void InitUG(int dim, const IAlgebraTypeSelector& algebraSel);
+
+///	Sets the default classes of class-groups based on a tags
+void InitUG(int dim, const IAlgebraTypeSelector& algebraSel, const char* ddType);
 
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.

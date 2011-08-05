@@ -297,9 +297,12 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 
 //	add DoFDistributionType
 	bool bReturn = true;
+#ifdef DOF_P1
 	bReturn &= RegisterLibDiscAlgebra__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution>(reg, parentGroup);
-//	bReturn &= RegisterLibDiscAlgebra__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
-
+#endif
+#ifdef DOF_GEN
+	bReturn &= RegisterLibDiscAlgebra__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
+#endif
 	return bReturn;
 }
 
@@ -312,8 +315,12 @@ bool RegisterLibDisc_Algebra(Registry& reg, string parentGroup)
 //	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
 //	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUVariableBlockAlgebra>(reg, parentGroup);
 
+#ifdef DOF_P1
 	bReturn &= RegisterLibDiscAlgebra__DoFDistribution<P1DoFDistribution>(reg, parentGroup);
-//	bReturn &= RegisterLibDiscAlgebra__DoFDistribution<DoFDistribution >(reg, parentGroup);
+#endif
+#ifdef DOF_GEN
+	bReturn &= RegisterLibDiscAlgebra__DoFDistribution<DoFDistribution >(reg, parentGroup);
+#endif
 
 	return bReturn;
 }

@@ -32,6 +32,8 @@
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
 #include "lib_discretization/dof_manager/cuthill_mckee.h"
 #include "lib_discretization/dof_manager/lexorder.h"
+#include "lib_discretization/dof_manager/conform/conform.h"
+#include "lib_discretization/dof_manager/p1conform/p1conform.h"
 
 #include "lib_discretization/io/vtkoutput.h"
 
@@ -490,8 +492,12 @@ template <typename TAlgebra>
 static bool RegisterLibDiscDomain__Algebra(Registry& reg, string parentGroup)
 {
 	bool bReturn = true;
+#ifdef DOF_P1
 	bReturn &= RegisterLibDiscDomain__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution>(reg, parentGroup);
-//	bReturn &= RegisterLibDiscDomain__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
+#endif
+#ifdef DOF_GEN
+	bReturn &= RegisterLibDiscDomain__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
+#endif
 
 	return bReturn;
 }
