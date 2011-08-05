@@ -682,7 +682,8 @@ private:
 		/// ---- create parent index ----
 		AMG_PROFILE_NEXT(create_parent_index)
 #ifndef UG_DEBUG
-		if(m_famg.m_writeMatrices)
+		//if(m_famg.m_writeMatrices)
+		// we need this for restriction of test vectors
 #endif
 		{
 			if(bTiming) { SW.start(); UG_DLOG(LIB_ALG_AMG, 1, std::endl << "create parentIndex... "); }
