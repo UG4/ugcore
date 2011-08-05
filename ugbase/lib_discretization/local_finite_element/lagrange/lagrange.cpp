@@ -12,7 +12,7 @@
 namespace ug{
 
 template <typename TRefElem>
-void SetLagrangeVertexMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
+void SetLagrangeVertexMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                         	const TRefElem& rRef,
                         	size_t p,
                         	size_t& index)
@@ -40,7 +40,7 @@ void SetLagrangeVertexMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetLagrangeEdgeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
+void SetLagrangeEdgeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                       	const TRefElem& rRef,
                       	size_t p,
                       	size_t& index)
@@ -82,7 +82,7 @@ void SetLagrangeEdgeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetLagrangeFaceMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
+void SetLagrangeFaceMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                       	const TRefElem& rRef,
                       	size_t p,
                       	size_t& index)
@@ -139,7 +139,7 @@ void SetLagrangeFaceMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetLagrangeVolumeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
+void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                         	const TRefElem& rRef,
                         	size_t p,
                         	size_t& index)
@@ -217,7 +217,7 @@ void SetLagrangeVolumeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
 }
 
 template <typename TRefElem>
-void SetLagrangeMultiIndex(	MultiIndex<TRefElem::dim>* vMultiIndex,
+void SetLagrangeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                   	const TRefElem& rRef,
                   	size_t p)
 {

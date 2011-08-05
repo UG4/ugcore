@@ -23,7 +23,8 @@ end
 -- refinements:
 numRefs    = util.GetParamNumber("-numRefs",    0)
 numLoop    = util.GetParamNumber("-numLoop",    0)
-order    = util.GetParamNumber("-order",    1)
+trialOrder = util.GetParamNumber("-order",    1)
+discType   = util.GetParam("-type", "fe")
 
 -- Display parameters (or defaults):
 print(" General parameters chosen:")
@@ -41,7 +42,7 @@ dom = util.CreateAndDistributeDomain(gridName, numRefs, 0, neededSubsets)
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = util.CreateApproximationSpace(dom)
-approxSpace:add_fct("c", "Lagrange", order)
+approxSpace:add_fct("c", "Lagrange", trialOrder)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
@@ -100,7 +101,7 @@ else print("Dim not supported for upwind"); exit() end
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 if elemDisc:set_upwind(upwind) == false then exit() end
-elemDisc:set_disc_scheme("fe")
+elemDisc:set_disc_scheme(discType)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_source(rhs)
 
@@ -174,7 +175,7 @@ if numLoop == 0 then
 	
 	-- write matrix for test purpose
 	write("Write Matrix/Vector for debug ...")
---	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 --	SaveVectorForConnectionViewer(b, "Rhs.vec")
 	SaveVectorForConnectionViewer(u, "StartSol.vec")
 	write("done.\n")

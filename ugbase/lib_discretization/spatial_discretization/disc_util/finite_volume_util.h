@@ -68,6 +68,7 @@ struct fv1_traits_ReferenceEdge
 	const static size_t NumCornersOfSCVF = 1;
 	const static size_t MaxNumCornersOfSCV = 2;
 	typedef ReferenceEdge scv_type;
+	typedef ReferenceVertex scvf_type;
 };
 
 template <> struct fv1_traits<ReferenceEdge, 1> : public fv1_traits_ReferenceEdge
@@ -103,6 +104,7 @@ struct fv1_traits_ReferenceFace
 	const static size_t NumCornersOfSCVF = 2;
 	const static size_t MaxNumCornersOfSCV = 4;
 	typedef ReferenceQuadrilateral scv_type;
+	typedef ReferenceEdge scvf_type;
 };
 
 struct fv1_traits_ReferenceFace2d : public fv1_traits_ReferenceFace
@@ -135,6 +137,7 @@ struct fv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 4;
 	typedef ReferenceHexahedron scv_type;
+	typedef ReferenceQuadrilateral scvf_type;
 
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 	                         const MathVector<3>* vSCVFCorner,
@@ -380,11 +383,11 @@ void HangingNormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWor
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Higher Order traits
+// FVHO: Finite Volume for Higher Order traits
 ////////////////////////////////////////////////////////////////////////////////
 
 ///	Traits for Finite Volumes of higher order
-template <typename TRefElem, int TWorldDim, int TOrder> struct fvho_traits
+template <int TOrder, typename TRefElem, int TWorldDim> struct fvho_traits
 {
 //	can be inherited from fv1_traits (since the same)
 	const static size_t NumCornersOfSCVF;
@@ -394,61 +397,54 @@ template <typename TRefElem, int TWorldDim, int TOrder> struct fvho_traits
 
 //	own data
 	const static size_t NumSubElem;
-	const static size_t NumDoFs;
 };
 
 //////// 1d /////////
 
-template < int TWorldDim, int p>
-struct fvho_traits<ReferenceEdge, TWorldDim, p>
+template <int p, int TWorldDim>
+struct fvho_traits<p, ReferenceEdge, TWorldDim>
 	: public fv1_traits<ReferenceEdge, TWorldDim>
 {
 	const static size_t NumSubElem = p;
-	const static size_t NumDoFs = LagrangeLSFS<ReferenceEdge, p>::nsh;
 };
 
 //////// 2d /////////
 
-template < int TWorldDim, int p>
-struct fvho_traits<ReferenceTriangle, TWorldDim, p>
+template <int p, int TWorldDim>
+struct fvho_traits<p, ReferenceTriangle, TWorldDim>
 	: public fv1_traits<ReferenceTriangle, TWorldDim>
 {
 	const static size_t NumSubElem = p*p;
-	const static size_t NumDoFs = LagrangeLSFS<ReferenceTriangle, p>::nsh;
 };
 
-template < int TWorldDim, int p>
-struct fvho_traits<ReferenceQuadrilateral, TWorldDim, p>
+template <int p, int TWorldDim>
+struct fvho_traits<p, ReferenceQuadrilateral, TWorldDim>
 	: public fv1_traits<ReferenceQuadrilateral, TWorldDim>
 {
 	const static size_t NumSubElem = p*p;
-	const static size_t NumDoFs = LagrangeLSFS<ReferenceQuadrilateral, p>::nsh;
 };
 
 //////// 3d /////////
 
-template < int TWorldDim, int p>
-struct fvho_traits<ReferenceTetrahedron, TWorldDim, p>
+template <int p, int TWorldDim>
+struct fvho_traits<p, ReferenceTetrahedron, TWorldDim>
 	: public fv1_traits<ReferenceTetrahedron, TWorldDim>
 {
 	const static size_t NumSubElem = (p*(p+1)*(5*p-2))/6;
-	const static size_t NumDoFs = LagrangeLSFS<ReferenceTetrahedron, p>::nsh;
 };
 
-template < int TWorldDim, int p>
-struct fvho_traits<ReferencePrism, TWorldDim, p>
+template <int p, int TWorldDim>
+struct fvho_traits<p, ReferencePrism, TWorldDim>
 	: public fv1_traits<ReferencePrism, TWorldDim>
 {
 	const static size_t NumSubElem = p*p*p;
-	const static size_t NumDoFs = LagrangeLSFS<ReferencePrism, p>::nsh;
 };
 
-template < int TWorldDim, int p>
-struct fvho_traits<ReferenceHexahedron, TWorldDim, p>
+template <int p, int TWorldDim>
+struct fvho_traits<p, ReferenceHexahedron, TWorldDim>
 	: public fv1_traits<ReferenceHexahedron, TWorldDim>
 {
 	const static size_t NumSubElem = p*p*p;
-	const static size_t NumDoFs = LagrangeLSFS<ReferenceHexahedron, p>::nsh;
 };
 
 } // end namespace ug

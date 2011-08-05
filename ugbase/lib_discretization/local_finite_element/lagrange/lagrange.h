@@ -61,7 +61,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		static const size_t nsh = p+1;
 
 	///	Multi Index type
-		typedef MultiIndex<dim> multi_index_type;
+		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -113,14 +113,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MultiIndex<dim>& multi_index(size_t i) const
+		inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -129,14 +129,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline static MultiIndex<dim> mapped_multi_index(size_t i)
+		inline static MathVector<dim,int> mapped_multi_index(size_t i)
 		{
 			check_index(i);
-			return MultiIndex<1>(i);
+			return MathVector<1,int>(i);
 		}
 
 	///	return the index for a multi_index
-		inline static size_t mapped_index(const MultiIndex<dim>& ind)
+		inline static size_t mapped_index(const MathVector<dim,int>& ind)
 		{
 			check_multi_index(ind);
 			return ind[0];
@@ -149,16 +149,16 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		inline static void check_multi_index(const MathVector<dim,int>& ind)
 		{
-			UG_ASSERT(ind[0] < nsh, "ind[0] must be smaller than Number of DoFs.");
+			UG_ASSERT(ind[0] < (int)nsh, "ind[0] must be smaller than Number of DoFs.");
 		}
 
 	protected:
 		Polynomial1D m_vPolynom[p+1];	///< Shape Polynomials
 		Polynomial1D m_vDPolynom[p+1];	///< Derivative of Shape Polynomial
 
-		MultiIndex<dim> m_vMultiIndex[nsh];
+		MathVector<dim,int> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,7 +196,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		static const size_t nsh = BinomialCoefficient<dim + p, p>::value;
 
 	///	Multi Index type
-		typedef MultiIndex<dim> multi_index_type;
+		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -212,7 +212,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		bool position(size_t i, position_type& pos) const
 		{
 		//	get Multi Index
-			MultiIndex<dim> ind = multi_index(i);
+			MathVector<dim,int> ind = multi_index(i);
 
 		//	set position
 			for(int d = 0; d < dim; ++d)
@@ -236,7 +236,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MultiIndex<dim>& ind, const MathVector<dim>& x) const
+		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			ReferenceTriangle::check_position(x);
@@ -270,7 +270,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	evaluates the gradient
-		void grad(grad_type& g, const MultiIndex<dim> ind,
+		void grad(grad_type& g, const MathVector<dim,int> ind,
 		               	   	   	   	   	   const position_type& x) const
 		{
 			check_multi_index(ind);
@@ -280,7 +280,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			const size_t i0 = p - ind[0] - ind[1];
 			const number x0 = 1.0 - x[0] - x[1];
 
-			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
+			UG_ASSERT(i0 <= (int)p && i0 >= 0, "Wrong Multiindex.");
 			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
 
 		//	loop dimensions
@@ -303,14 +303,14 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MultiIndex<dim>& multi_index(size_t i) const
+		inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -319,12 +319,12 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MultiIndex<dim>& ind) const
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
 			size_t res = ind[0];
-			for(size_t i = 0; i < ind[1]; ++i)
+			for(int i = 0; i < ind[1]; ++i)
 				res += (p+1-i);
 
 			check_index(res);
@@ -332,7 +332,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> mapped_multi_index(size_t i) const
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -346,7 +346,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 
 			UG_ASSERT(i0 >= 0, "i0 is negative ("<<i0<<")");
 			UG_ASSERT(i1 >= 0, "i1 is negative ("<<i1<<")");
-			return MultiIndex<dim>( i0, i1 );
+			return MathVector<dim,int>( i0, i1 );
 		}
 
 	///	checks in debug mode that index is valid
@@ -356,18 +356,18 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		inline static void check_multi_index(const MathVector<dim,int>& ind)
 		{
-			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[0] + ind[1] <= p, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[1] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] + ind[1] <= (int)p, "Wrong Multiindex.");
 		}
 
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		MultiIndex<dim> m_vMultiIndex[nsh];
+		MathVector<dim,int> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -405,7 +405,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		static const size_t nsh = (p+1)*(p+1);
 
 	///	Multi Index type
-		typedef MultiIndex<dim> multi_index_type;
+		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -421,7 +421,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		bool position(size_t i, position_type& pos) const
 		{
 		//	get Multi Index
-			MultiIndex<dim> ind = multi_index(i);
+			MathVector<dim,int> ind = multi_index(i);
 
 		//	set position
 			for(int d = 0; d < dim; ++d)
@@ -445,7 +445,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MultiIndex<dim>& ind, const MathVector<dim>& x) const
+		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			ReferenceQuadrilateral::check_position(x);
@@ -474,7 +474,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	/// evaluates the gradient
-		void grad(grad_type& g, const MultiIndex<dim> ind,
+		void grad(grad_type& g, const MathVector<dim,int> ind,
 		               	   	   	const position_type& x) const
 		{
 			check_multi_index(ind);
@@ -497,14 +497,14 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MultiIndex<dim>& multi_index(size_t i) const
+		inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -513,7 +513,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MultiIndex<dim>& ind) const
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -521,11 +521,11 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> mapped_multi_index(size_t i) const
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
-			return MultiIndex<dim>( i%(p+1), i/(p+1) );
+			return MathVector<dim,int>( i%(p+1), i/(p+1) );
 		}
 
 	///	checks in debug mode that index is valid
@@ -535,17 +535,17 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		inline static void check_multi_index(const MathVector<dim,int>& ind)
 		{
-			UG_ASSERT(ind[0] <= p && ind[0] >= 0, "Wrong Multiindex.");
-			UG_ASSERT(ind[1] <= p && ind[1] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] <= (int)p && ind[0] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[1] <= (int)p && ind[1] >= 0, "Wrong Multiindex.");
 		}
 
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		MultiIndex<dim> m_vMultiIndex[nsh];
+		MathVector<dim,int> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -583,7 +583,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		static const size_t nsh = BinomialCoefficient<dim + p, p>::value;
 
 	///	Multi Index type
-		typedef MultiIndex<dim> multi_index_type;
+		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -599,7 +599,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		bool position(size_t i, position_type& pos) const
 		{
 		//	get Multi Index
-			MultiIndex<dim> ind = multi_index(i);
+			MathVector<dim,int> ind = multi_index(i);
 
 		//	set position
 			for(int d = 0; d < dim; ++d)
@@ -623,7 +623,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MultiIndex<dim>& ind, const MathVector<dim>& x) const
+		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			ReferenceTetrahedron::check_position(x);
@@ -658,7 +658,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	evaluates the gradient
-		void grad(grad_type& g, const MultiIndex<dim> ind,
+		void grad(grad_type& g, const MathVector<dim,int> ind,
 		               	   	   	   	    const position_type& x) const
 		{
 			check_multi_index(ind);
@@ -691,14 +691,14 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MultiIndex<dim>& multi_index(size_t i) const
+		inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -707,7 +707,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MultiIndex<dim>& ind) const
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -715,11 +715,11 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			size_t res = ind[0];
 
 		//	add y range
-			for(size_t i = 0; i < ind[1]; ++i)
+			for(int i = 0; i < ind[1]; ++i)
 				res += (p+1-ind[2]-i);
 
 		//	add z range
-			for(size_t i2 = 0; i2 < ind[2]; ++i2)
+			for(int i2 = 0; i2 < ind[2]; ++i2)
 				res += BinomCoeff(p+2-i2, p-i2);
 
 			check_index(res);
@@ -727,7 +727,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> mapped_multi_index(size_t i) const
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -745,7 +745,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 						// if i1 is correct return values
 						const int diff =  i0 - (p+1-i2-i1);
 						if(diff < 0)
-							return MultiIndex<dim>( i0, i1, i2);
+							return MathVector<dim,int>( i0, i1, i2);
 
 						// else decrease i1
 						i0 = diff;
@@ -761,7 +761,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			UG_ASSERT(i2 >= 0, "i1 is negative ("<<i2<<")");
 
 			UG_ASSERT(0, "Should not reach this line.");
-			return MultiIndex<dim>( i0, i1, i2);
+			return MathVector<dim,int>( i0, i1, i2);
 		}
 
 	///	checks in debug mode that index is valid
@@ -771,19 +771,19 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		inline static void check_multi_index(const MathVector<dim,int>& ind)
 		{
-			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[2] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[0] + ind[1] + ind[2] <= p, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[1] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[2] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] + ind[1] + ind[2] <= (int)p, "Wrong Multiindex.");
 		}
 
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		MultiIndex<dim> m_vMultiIndex[nsh];
+		MathVector<dim,int> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -825,7 +825,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		static const size_t nsh = dofPerLayer*(p+1);
 
 	///	Multi Index type
-		typedef MultiIndex<dim> multi_index_type;
+		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -841,7 +841,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		bool position(size_t i, position_type& pos) const
 		{
 		//	get Multi Index
-			MultiIndex<dim> ind = multi_index(i);
+			MathVector<dim,int> ind = multi_index(i);
 
 		//	set position
 			for(int d = 0; d < 2; ++d)
@@ -867,7 +867,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MultiIndex<dim>& ind, const MathVector<dim>& x) const
+		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			ReferencePrism::check_position(x);
@@ -904,7 +904,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	evaluates the gradient
-		void grad(grad_type& g, const MultiIndex<dim> ind,
+		void grad(grad_type& g, const MathVector<dim,int> ind,
 		               	   	   	   	   	const position_type& x) const
 		{
 			check_multi_index(ind);
@@ -946,14 +946,14 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MultiIndex<dim>& multi_index(size_t i) const
+		inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -962,12 +962,12 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MultiIndex<dim>& ind) const
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
 			size_t res = ind[0];
-			for(size_t i = 0; i < ind[1]; ++i)
+			for(int i = 0; i < ind[1]; ++i)
 				res += (p+1-i);
 
 			// add height
@@ -977,7 +977,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> mapped_multi_index(size_t i) const
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -992,7 +992,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 				i0 = diff;
 			}
 
-			return MultiIndex<dim>( i0, i1, i2);
+			return MathVector<dim,int>( i0, i1, i2);
 		}
 
 	///	checks in debug mode that index is valid
@@ -1002,12 +1002,12 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		inline static void check_multi_index(const MathVector<dim,int>& ind)
 		{
-			UG_ASSERT(ind[0] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[1] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[0] + ind[1] <= p, "Wrong Multiindex.");
-			UG_ASSERT(ind[2] <= p && ind[2] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[1] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] + ind[1] <= (int)p, "Wrong Multiindex.");
+			UG_ASSERT(ind[2] <= (int)p && ind[2] >= 0, "Wrong Multiindex.");
 		}
 
 	private:
@@ -1016,7 +1016,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		Polynomial1D m_vTruncPolynom[p+1];
 		Polynomial1D m_vDTruncPolynom[p+1];
 
-		MultiIndex<dim> m_vMultiIndex[nsh];
+		MathVector<dim,int> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1090,7 +1090,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		static const size_t nsh = NumberOfDoFsOfPyramid<p>::value;
 
 	///	Multi Index type
-		typedef MultiIndex<dim> multi_index_type;
+		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -1106,7 +1106,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		bool position(size_t i, position_type& pos) const
 		{
 		//	get Multi Index
-			MultiIndex<dim> ind = multi_index(i);
+			MathVector<dim,int> ind = multi_index(i);
 
 		//	set position
 			for(int d = 0; d < dim; ++d)
@@ -1130,7 +1130,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MultiIndex<dim>& ind, const MathVector<dim>& x) const
+		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			ReferencePyramid::check_position(x);
@@ -1166,7 +1166,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	evaluates the gradient
-		void grad(grad_type& g, const MultiIndex<dim> ind,
+		void grad(grad_type& g, const MathVector<dim,int> ind,
 		               	   	   	   	   	   const position_type& x) const
 		{
 			check_multi_index(ind);
@@ -1209,14 +1209,14 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 */		}
 
 	///	return Multi index for index i
-		inline const MultiIndex<dim>& multi_index(size_t i) const
+		inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -1225,14 +1225,14 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MultiIndex<dim>& ind) const
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
 			size_t res = 0;
 
 		//	add layers that are completely filled
-			for(size_t i2 = 0; i2 < ind[2]; ++i2)
+			for(int i2 = 0; i2 < ind[2]; ++i2)
 				res += (p+1-i2)*(p+1-i2);
 
 		//	add dofs of top z-layer
@@ -1243,7 +1243,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> mapped_multi_index(size_t i) const
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -1258,7 +1258,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 				iTmp = diff;
 			}
 
-			return MultiIndex<dim>( iTmp%(p+1-i2), iTmp/(p+1-i2), i2);
+			return MathVector<dim,int>( iTmp%(p+1-i2), iTmp/(p+1-i2), i2);
 		}
 
 	///	checks in debug mode that index is valid
@@ -1268,18 +1268,18 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		inline static void check_multi_index(const MathVector<dim,int>& ind)
 		{
-			UG_ASSERT(ind[0] <= p-ind[2] && ind[0] >= 0, "Wrong Multiindex.");
-			UG_ASSERT(ind[1] <= p-ind[2] && ind[1] >= 0, "Wrong Multiindex.");
-			UG_ASSERT(ind[2] <= p && ind[2] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] <= (int)p-ind[2] && ind[0] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[1] <= (int)p-ind[2] && ind[1] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[2] <= (int)p && ind[2] >= 0, "Wrong Multiindex.");
 		}
 
 	private:
 		std::vector<std::vector<Polynomial1D> > m_vvPolynom;
 		std::vector<std::vector<Polynomial1D> > m_vvDPolynom;
 
-		MultiIndex<dim> m_vMultiIndex[nsh];
+		MathVector<dim,int> m_vMultiIndex[nsh];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1317,7 +1317,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		static const size_t nsh = (p+1)*(p+1)*(p+1);
 
 	///	Multi Index type
-		typedef MultiIndex<dim> multi_index_type;
+		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -1333,7 +1333,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		bool position(size_t i, position_type& pos) const
 		{
 		//	get Multi Index
-			MultiIndex<dim> ind = multi_index(i);
+			MathVector<dim,int> ind = multi_index(i);
 
 		//	set position
 			for(int d = 0; d < dim; ++d)
@@ -1357,7 +1357,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MultiIndex<dim>& ind, const MathVector<dim>& x) const
+		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			ReferenceHexahedron::check_position(x);
@@ -1387,7 +1387,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	evaluates the gradient
-		void grad(grad_type& g, const MultiIndex<dim> ind,
+		void grad(grad_type& g, const MathVector<dim,int> ind,
 		          	  	  	  	const position_type& x) const
 		{
 			check_multi_index(ind);
@@ -1410,14 +1410,14 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MultiIndex<dim>& multi_index(size_t i) const
+		inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MultiIndex<dim>& ind) const
+		inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -1426,7 +1426,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MultiIndex<dim>& ind) const
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1434,11 +1434,11 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MultiIndex<dim> mapped_multi_index(size_t i) const
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
-			return MultiIndex<dim>( i%(p+1), i/(p+1)%(p+1), i/((p+1)*(p+1)));
+			return MathVector<dim,int>( i%(p+1), i/(p+1)%(p+1), i/((p+1)*(p+1)));
 		}
 
 	///	checks in debug mode that index is valid
@@ -1448,18 +1448,18 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MultiIndex<dim>& ind)
+		inline static void check_multi_index(const MathVector<dim,int>& ind)
 		{
-			UG_ASSERT(ind[0] <= p && ind[0] >= 0, "Wrong Multiindex.");
-			UG_ASSERT(ind[1] <= p && ind[1] >= 0, "Wrong Multiindex.");
-			UG_ASSERT(ind[2] <= p && ind[2] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[0] <= (int)p && ind[0] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[1] <= (int)p && ind[1] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[2] <= (int)p && ind[2] >= 0, "Wrong Multiindex.");
 		}
 
 	private:
 		Polynomial1D m_vPolynom[p+1];
 		Polynomial1D m_vDPolynom[p+1];
 
-		MultiIndex<dim> m_vMultiIndex[nsh];
+		MathVector<dim,int> m_vMultiIndex[nsh];
 };
 
 } //namespace ug

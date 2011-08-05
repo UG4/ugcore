@@ -162,7 +162,7 @@ class ConvectionDiffusionElemDisc
 		virtual bool time_point_changed(number time);
 
 		/////////////////////////////////////
-		//	Finite Volume assemblings
+		//	Finite Volume assemblings (FV1)
 		/////////////////////////////////////
 
 	///	prepares the loop over all elements
@@ -206,6 +206,52 @@ class ConvectionDiffusionElemDisc
 	///	assembles the local right hand side
 		template <typename TElem, typename TFVGeom>
 		bool elem_rhs_fv1(local_vector_type& d);
+
+		/////////////////////////////////////
+		//	Finite Volume assemblings (FVHO)
+		/////////////////////////////////////
+
+	///	prepares the loop over all elements
+	/**
+	 * This method prepares the loop over all elements. It resizes the Position
+	 * array for the corner coordinates and schedules the local ip positions
+	 * at the data imports.
+	 */
+		template <typename TElem, typename TFVGeom>
+		inline bool elem_loop_prepare_fvho();
+
+	///	prepares the element for assembling
+	/**
+	 * This methods prepares an element for the assembling. The Positions of
+	 * the Element Corners are read and the Finite Volume Geometry is updated.
+	 * The global ip positions are scheduled at the data imports.
+	 */
+		template <typename TElem, typename TFVGeom>
+		bool elem_prepare_fvho(TElem* elem, const local_vector_type& u);
+
+	///	finishes the loop over all elements
+		template <typename TElem, typename TFVGeom>
+		inline bool elem_loop_finish_fvho();
+
+	///	assembles the local stiffness matrix using a finite volume scheme
+		template <typename TElem, typename TFVGeom>
+		bool elem_JA_fvho(local_matrix_type& J, const local_vector_type& u);
+
+	///	assembles the local mass matrix using a finite volume scheme
+		template <typename TElem, typename TFVGeom>
+		bool elem_JM_fvho(local_matrix_type& J, const local_vector_type& u);
+
+	///	assembles the stiffness part of the local defect
+		template <typename TElem, typename TFVGeom>
+		bool elem_dA_fvho(local_vector_type& d, const local_vector_type& u);
+
+	///	assembles the mass part of the local defect
+		template <typename TElem, typename TFVGeom>
+		bool elem_dM_fvho(local_vector_type& d, const local_vector_type& u);
+
+	///	assembles the local right hand side
+		template <typename TElem, typename TFVGeom>
+		bool elem_rhs_fvho(local_vector_type& d);
 
 		/////////////////////////////////////
 		//	Finite Element assemblings
@@ -343,12 +389,19 @@ class ConvectionDiffusionElemDisc
 		template <typename TElem, typename TFVGeom>
 		void register_fv1_func();
 
+
+	// 	FVHO Assemblings
+		void register_all_fvho_funcs(int order);
+
+		template<typename TElem, typename TFEGeom>
+		void register_fvho_func();
+
+
 	// 	FE Assemblings
 		void register_all_fe_funcs(int order);
 
 		template<typename TElem, typename TFEGeom>
 		void register_fe_func();
-
 };
 
 /// @}
