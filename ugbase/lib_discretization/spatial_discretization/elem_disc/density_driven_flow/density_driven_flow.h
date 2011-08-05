@@ -106,7 +106,7 @@ class DensityDrivenFlowElemDisc
 	///	sets usage of boussinesq approximation for transport equation
 		void set_boussinesq_transport(bool bUse) {m_BoussinesqTransport = bUse;}
 
-	///	sets usage of boussinesq approcimation for flow equation
+	///	sets usage of boussinesq approximation for flow equation
 		void set_boussinesq_flow(bool bUse) {m_BoussinesqFlow = bUse;}
 
 	///	sets the type of upwind

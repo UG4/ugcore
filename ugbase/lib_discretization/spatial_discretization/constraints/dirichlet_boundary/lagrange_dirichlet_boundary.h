@@ -410,7 +410,7 @@ extract_scheduled_data()
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Subsets '"<<m_vScheduledBNDNumberData[i].ssName<<"' not"
-					" all contained in ApprocimationSpace.\n");
+					" all contained in ApproximationSpace.\n");
 			return false;
 		}
 		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
@@ -418,7 +418,7 @@ extract_scheduled_data()
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Functions '"<<m_vScheduledBNDNumberData[i].fctName<<"' not"
-					" all contained in ApprocimationSpace.\n");
+					" all contained in ApproximationSpace.\n");
 			return false;
 		}
 
@@ -454,7 +454,7 @@ extract_scheduled_data()
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Subsets '"<<m_vScheduledNumberData[i].ssName<<"' not"
-					" all contained in ApprocimationSpace.\n");
+					" all contained in ApproximationSpace.\n");
 			return false;
 		}
 		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
@@ -462,7 +462,7 @@ extract_scheduled_data()
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Functions '"<<m_vScheduledNumberData[i].fctName<<"' not"
-					" all contained in ApprocimationSpace.\n");
+					" all contained in ApproximationSpace.\n");
 			return false;
 		}
 
@@ -497,7 +497,7 @@ extract_scheduled_data()
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Subsets '"<<m_vScheduledConstNumberData[i].ssName<<"' not"
-					" all contained in ApprocimationSpace.\n");
+					" all contained in ApproximationSpace.\n");
 			return false;
 		}
 		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
@@ -505,7 +505,7 @@ extract_scheduled_data()
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Functions '"<<m_vScheduledConstNumberData[i].fctName<<"' not"
-					" all contained in ApprocimationSpace.\n");
+					" all contained in ApproximationSpace.\n");
 			return false;
 		}
 
