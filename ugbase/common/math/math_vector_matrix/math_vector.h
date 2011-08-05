@@ -358,6 +358,31 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N,T>& v)
 	return outStream;
 }
 
+template <typename T>
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1,T>& v)
+{
+	outStream << "(" << v[0] << ")";
+	return outStream;
+}
+template <typename T>
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2,T>& v)
+{
+	outStream << "("<<v[0]<<", "<<v[1]<<")";
+	return outStream;
+}
+template <typename T>
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3,T>& v)
+{
+	outStream << "("<<v[0]<<", "<<v[1]<<", "<<v[2]<<")";
+	return outStream;
+}
+template <typename T>
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4,T>& v)
+{
+	outStream << "("<<v[0]<<", "<<v[1]<<", "<<v[2]<<", "<<v[3]<<")";
+	return outStream;
+}
+
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1>& v);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v);
