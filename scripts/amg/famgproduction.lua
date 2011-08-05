@@ -35,13 +35,13 @@ numRefs = util.GetParamNumber("-numRefs", 1)
 -- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 
-maxBase = util.GetParamNumber("-maxBase", 800)
+maxBase = util.GetParamNumber("-maxBase", 1000)
 
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
 
 bFileOutput = true
-bOutput = true
+bOutput = false
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
@@ -319,7 +319,7 @@ amg:set_postsmoother(jac)
 amg:set_base_solver(base)
 amg:set_max_levels(20)
 
-amg:set_min_nodes_on_one_processor(500)
+amg:set_min_nodes_on_one_processor(50000)
 -- amg:set_preferred_nodes_on_one_processor(1000)
 amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.7)
