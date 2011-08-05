@@ -829,10 +829,32 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> > vvMulti
                                         int p)
 {
 //	switch for roid
+	int se = 0;
 	switch(roid)
 	{
+		case ROID_TRIANGLE:
+			for(int j = 0; j < p; ++j)
+				for(int i = 0; i < p - j; ++i)
+				{
+					vvMultiIndex[se].resize(3);
+					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
+					vvMultiIndex[se][1] = MathVector<2,int>(i+1, j  );
+					vvMultiIndex[se][2] = MathVector<2,int>(i  , j+1);
+					++se;
+				}
+			for(int j = 1; j <= p; ++j)
+				for(int i = 1; i <= p - j; ++i)
+				{
+					vvMultiIndex[se].resize(3);
+					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
+					vvMultiIndex[se][1] = MathVector<2,int>(i-1, j  );
+					vvMultiIndex[se][2] = MathVector<2,int>(i  , j-1);
+					++se;
+				}
+
+			break;
 		case ROID_QUADRILATERAL:
-			for(int se = 0, j = 0; j < p; ++j)
+			for(int j = 0; j < p; ++j)
 				for(int i = 0; i < p; ++i)
 				{
 					vvMultiIndex[se].resize(4);
@@ -854,14 +876,60 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMulti
                                         int p)
 {
 //	switch for roid
+	int se = 0;
 	switch(roid)
 	{
-		case ROID_HEXAHEDRON:
-			for(int se = 0, j = 0; j < p; ++j)
-				for(int i = 0; i < p; ++i)
-					for(int k = 0; k < p; ++k)
+		case ROID_TETRAHEDRON:
+			for(int k = 0; k < p; ++k)
+				for(int j = 0; j < p -k; ++j)
+					for(int i = 0; i < p -k -j; ++i)
 					{
 						vvMultiIndex[se].resize(4);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j+1, k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j  , k+1);
+						++se;
+					}
+			// \todo: Continue with other subelems
+			throw(int(1));
+			break;
+
+		case ROID_PRISM:
+			for(int k = 0; k < p; ++k)
+				for(int j = 0; j < p; ++j)
+					for(int i = 0; i < p - j; ++i)
+					{
+						vvMultiIndex[se].resize(6);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j+1, k);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  , k+1);
+						vvMultiIndex[se][4] = MathVector<3,int>(i+1, j  , k+1);
+						vvMultiIndex[se][5] = MathVector<3,int>(i  , j+1, k+1);
+						++se;
+					}
+			for(int k = 0; k < p; ++k)
+				for(int j = 1; j <= p; ++j)
+					for(int i = 1; i <= p - j; ++i)
+					{
+						vvMultiIndex[se].resize(6);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  ,k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i-1, j  ,k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j-1,k);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  ,k+1);
+						vvMultiIndex[se][4] = MathVector<3,int>(i-1, j  ,k+1);
+						vvMultiIndex[se][5] = MathVector<3,int>(i  , j-1,k+1);
+						++se;
+					}
+
+			break;
+		case ROID_HEXAHEDRON:
+			for(int k = 0; k < p; ++k)
+				for(int j = 0; j < p; ++j)
+					for(int i = 0; i < p; ++i)
+					{
+						vvMultiIndex[se].resize(8);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
 						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
 						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j+1, k);
@@ -895,6 +963,7 @@ set_corners_of_sub_elem()
 
 //	compute corners of sub elem in local coordinates
 	for(size_t se = 0; se < numSubElem; ++se)
+	{
 		for(int co = 0; co < ref_elem_type::num_corners; ++co)
 		{
 			MathVector<dim> pos; pos = 0.0;
@@ -909,6 +978,7 @@ set_corners_of_sub_elem()
 			 m_vSubElem[se].vDoFID[co] =
 					m_rTrialSpace.index(vMultiIndex[se][co]);
 		}
+	}
 }
 
 
@@ -1108,12 +1178,12 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
 		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
-			for(size_t sh = 0 ; sh < num_scv(); ++sh)
+			for(size_t sh = 0 ; sh < nsh; ++sh)
 				MatVecMult(m_vSCVF[i].vvGlobalGrad[ip][sh], m_vSCVF[i].vJtInv[ip], m_vSCVF[i].vvLocalGrad[ip][sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
-			for(size_t sh = 0 ; sh < num_scv(); ++sh)
+			for(size_t sh = 0 ; sh < nsh; ++sh)
 				MatVecMult(m_vSCV[i].vvGlobalGrad[ip][sh], m_vSCV[i].vJtInv[ip], m_vSCV[i].vvLocalGrad[ip][sh]);
 
 // 	Copy ip pos in list for SCVF
