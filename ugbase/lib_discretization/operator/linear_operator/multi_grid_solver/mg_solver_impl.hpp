@@ -76,7 +76,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 
 // 	Check if surface level has been chosen correctly
-//	Please not, that the approximation space returns the global number of levels,
+//	Please note, that the approximation space returns the global number of levels,
 //	i.e. the maximum of levels among all processes.
 	if(m_topLev >= m_pApproxSpace->num_levels())
 	{
@@ -246,7 +246,7 @@ presmooth(size_t lev)
 
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
-	GMG_PARALLEL_DEBUG_BARRIER(d.get_process_communicator());
+	GMG_PARALLEL_DEBUG_BARRIER(sd.get_process_communicator());
 	if(!smooth(sc, sd, sTmp, SmoothMat, Smoother, lev, m_numPreSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
@@ -443,7 +443,7 @@ postsmooth(size_t lev)
 //	We smooth the updated defect again. This means that we compute a
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
-	GMG_PARALLEL_DEBUG_BARRIER(d.get_process_communicator());
+	GMG_PARALLEL_DEBUG_BARRIER(sd.get_process_communicator());
 	if(!smooth(sc, sd, sTmp, SmoothMat, Smoother, lev, m_numPostSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
