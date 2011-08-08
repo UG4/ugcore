@@ -508,7 +508,8 @@ class FV1Geometry : public FVGeometryBase
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(subsetIndex);
-			return (*it).second.size();
+			if(it == m_mapVectorBF.end()) return 0;
+			else return (*it).second.size();
 		}
 
 	/// returns the boundary face i for subsetIndex
@@ -1589,7 +1590,8 @@ class FVGeometry : public FVGeometryBase
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(subsetIndex);
-			return (*it).second.size();
+			if(it == m_mapVectorBF.end()) return 0;
+			else return (*it).second.size();
 		}
 
 	/// returns the boundary face i for subsetIndex
