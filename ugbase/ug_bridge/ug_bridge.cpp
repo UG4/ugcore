@@ -80,7 +80,7 @@ void InitUG(int dim, const IAlgebraTypeSelector& algebraSel, DofDistributionType
 		for(size_t i = 0; i < grp->num_classes(); ++i)
 		{
 			const std::string& tag = grp->get_class_tag(i);
-			int num = (int) count (tag.begin(), tag.end(), '=');
+			int num = (int) count (tag.begin(), tag.end(), ';');
 			if(numTag == -1) numTag = num;
 			else if(numTag != num)
 				throw(UGFatalError("Class Group with classes of different number"

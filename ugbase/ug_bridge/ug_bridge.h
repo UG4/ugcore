@@ -104,7 +104,7 @@ template <int dim>
 std::string GetDomainTag()
 {
 //	return the suffix
-	return std::string("dim=").append(GetDomainSuffix<dim>());
+	return std::string("dim=").append(GetDomainSuffix<dim>()).append(";");
 }
 
 /// returns the dim-tag for a domain (e.g. "dim=3d")
@@ -115,7 +115,7 @@ std::string GetDomainTag(){return GetDomainTag<TDomain::dim>();}
 inline std::string GetDomainTag(int dim)
 {
 //	the dimension suffix
-	std::stringstream ss; ss << "dim=" << dim << "d";
+	std::stringstream ss; ss << "dim=" << dim << "d;";
 
 //	return the suffix
 	return ss.str();
@@ -160,8 +160,8 @@ std::string GetAlgebraTag()
 	std::stringstream ss; ss << "alg=CPU";
 
 //	add blocktype
-	if(TAlgebra::blockSize == AlgebraType::VariableBlockSize) ss << "Variable";
-	else ss << TAlgebra::blockSize;
+	if(TAlgebra::blockSize == AlgebraType::VariableBlockSize) ss << "Variable;";
+	else ss << TAlgebra::blockSize << ";";
 
 	return ss.str();
 }
@@ -177,8 +177,8 @@ inline std::string GetAlgebraTag(const AlgebraType& algType)
 	else throw(UGFatalError("Unknown algebra type."));
 
 //	add blocktype
-	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable";
-	else ss << algType.blocksize();
+	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable;";
+	else ss << algType.blocksize() << ";";
 
 	return ss.str();
 }
@@ -194,8 +194,8 @@ inline std::string GetDoFDistributionSuffix(DofDistributionType type)
 /// returns the DoFDistribution-suffix (e.g. "dd=P1Conform", "dd=Conform")
 inline std::string GetDoFDistributionTag(DofDistributionType type)
 {
-	if(type == DDT_CONFORM) return "dd=Conform";
-	else if(type == DDT_P1CONFORM) return "dd=P1Conform";
+	if(type == DDT_CONFORM) return "dd=Conform;";
+	else if(type == DDT_P1CONFORM) return "dd=P1Conform;";
 	else throw(UGFatalError("Unknown dof distribution type."));
 }
 
