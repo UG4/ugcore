@@ -254,7 +254,7 @@ style identifier: <code>slider</code>
 
 possible options: min, max
 
-example string: <code>"Integer|default|min=1;max=255"</code>
+example string: <code>"Integer|slider|min=1;max=255"</code>
 
 \image html img/vrl/integer-slider-01.png
 <hr>
@@ -263,7 +263,7 @@ style identifier: <code>selection</code>
 
 possible options: min, max
 
-example string: <code>"Integer|default|value=[1,2,3]"</code>
+example string: <code>"Integer|selection|value=[1,2,3]"</code>
 
 \image html img/vrl/selection-integer-01.png
 
@@ -296,7 +296,7 @@ style identifier: <code>selection</code>
 
 possible options: value
 
-example string: <code>"String|default|value=[\"string1\\",\"string2\\"]"</code>
+example string: <code>"String|selection|value=[\"string1\\",\"string2\\"]"</code>
 
 \image html img/vrl/selection-string-01.png
 
