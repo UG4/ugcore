@@ -44,6 +44,46 @@ class Provider
 		inline static TClass& get() {return inst<TClass>();}
 };
 
+/// Singleton, holding a single instance of an object
+/**
+ * This class is used to wrap an object set into a singleton-like provider, such
+ * that construction computations is avoided, if the object is used several times.
+ *
+ * In addition, the object can be shared between unrelated code parts, if the
+ * same object is intended to be used, but no passing is possible or wanted.
+ */
+template <typename TClass>
+class ClassHolder
+{
+	// 	private constructor
+		ClassHolder();
+
+	// 	disallow copy and assignment (intentionally left unimplemented)
+		ClassHolder(const ClassHolder&);
+		ClassHolder& operator=(const ClassHolder&);
+
+	// 	private destructor
+		~ClassHolder(){};
+
+	// 	holding the instance
+		inline static TClass& inst()
+		{
+			static TClass myInst;
+			return myInst;
+		};
+
+	public:
+	///	type of provided object
+		typedef TClass Type;
+
+	///	returns access to the singleton
+		inline static TClass& get()
+		{
+			static TClass myInst;
+			return myInst;
+		}
+};
+
 } // end namespace ug
 
 #endif /* __H__COMMON__UTIL__PROVIDER__ */
