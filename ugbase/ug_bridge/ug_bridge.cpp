@@ -177,11 +177,11 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		if(!first) {availDofManager << ",";first=false;}; availDofManager << "\"GEN\"";
 #endif
 
-		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG),
+		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG), "/ug4",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra#DoFManager|selection|value=[").
 		                 	 append(availDofManager.str()).append("]"));
-		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG),
+		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG), "/ug4",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra"));
 	}
