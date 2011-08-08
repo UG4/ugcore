@@ -14,7 +14,7 @@
 #include "../ug_bridge.h"
 
 // lib_algebra includes
-#include "lib_algebra/algebra_selector.h"
+#include "lib_algebra/algebra_selector.h"x
 #include "lib_algebra/algebra_types.h"
 #include "lib_algebra/operator/operator_util.h"
 #include "lib_algebra/operator/operator_interface.h"
@@ -349,12 +349,18 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("set_solution_nr", &T::set_solution_nr)
 			.add_method("set_velocity_nr", &T::set_velocity_nr)
 			.add_method("set_source", &T::set_source)
-			.add_method("set_bool_source", &T::set_bool_source)
+			.add_method("set_source_bool", &T::set_source_bool)
 			.add_method("set_static_values_type", &T::set_static_values_type)
 			.add_method("set_info", &T::set_info)
+			.add_method("set_timestep_nr",&T::set_timestep_nr)
 			.add_method("set_nr_of_steps", &T::set_nr_of_steps)
 			.add_method("advect_lsf", &T::advect_lsf)
 			.add_method("add_post_process", &T::add_post_process)
+			.add_method("set_delta", &T::set_delta)
+			.add_method("set_limiter",&T::set_limiter)
+			.add_method("set_neumann_boundary",&T::set_neumann_boundary)
+			.add_method("set_analytical_velocity_bool", &T::set_analytical_velocity_bool)
+			.add_method("init_function", &T::init_function)
 			.add_method("compute_error", &T::compute_error);
 		reg.add_class_to_group(name, "FV1LevelSetDisc", dimAlgDDTag);
 	}
