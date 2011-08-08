@@ -165,7 +165,7 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		if(!first) {availDims << ",";first=false;}; availDims << "2";
 #endif
 #ifdef UG_DIM_3
-		if(!first) {availDims << ",";first=false:}; availDims << "3";
+		if(!first) {availDims << ",";first=false;}; availDims << "3";
 #endif
 
 	//	build a string with all compiled DoFManager
