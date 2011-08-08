@@ -155,10 +155,35 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		bResult &= RegisterLibDisc_UserData(reg, parentGroup);
 		#endif
 
+
+	//	build a string with all compiled dimensions
+		stringstream availDims; bool first = true;
+#ifndef UG_DIM_1
+		if(!first) availDims << ","; availDims << "1";
+#endif
+#ifndef UG_DIM_2
+		if(!first) availDims << ","; availDims << "2";
+#endif
+#ifndef UG_DIM_3
+		if(!first) availDims << ","; availDims << "3";
+#endif
+
+	//	build a string with all compiled DoFManager
+		stringstream availDofManager; first = true;
+#ifndef DOF_P1
+		if(!first) availDofManager << ","; availDofManager << "\"P1\"";
+#endif
+#ifndef DOF_GEN
+		if(!first) availDofManager << ","; availDofManager << "\"GEN\"";
+#endif
+
 		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG),
-		                 "", "Dimension|selection|value=[1,2,3]#Algebra#DoFManager|selection|value=[\"P1\",\"GEN\"]");
+		                 "", string("Dimension|selection|value=[").append(availDims.str()).
+		                 	 append("]#Algebra#DoFManager|selection|value=[").
+		                 	 append(availDofManager.str()).append("]"));
 		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG),
-		                 "", "Dimension|selection|value=[1,2,3]#Algebra");
+		                 "", string("Dimension|selection|value=[").append(availDims.str()).
+		                 	 append("]#Algebra"));
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed& ex)
 	{
