@@ -1131,11 +1131,8 @@ class FVGeometry : public FVGeometryBase
 		class SCVF
 		{
 			public:
-			///	type of quadrature rule
-				typedef GaussQuadrature<scvf_type, quadOrder> quad_rule_type;
-
 			///	Number of integration points
-				static const size_t numIP = quad_rule_type::nip;
+				static const size_t numIP = scvf_quad_rule_type::nip;
 
 			///	Number of corners of scvf
 				static const size_t numCorners =
@@ -1364,6 +1361,123 @@ class FVGeometry : public FVGeometryBase
 				number vDetJ[numIP]; // Jacobian det at ip
 		};
 
+	///	boundary face
+		class BF
+		{
+			public:
+			/// number of integration points
+				static const size_t numIP = scvf_quad_rule_type::nip;
+
+			/// Number of corners of bf
+				static const size_t numCorners =
+						fvho_traits<p, ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+
+			private:
+			/// let outer class access private members
+				friend class FVGeometry<TOrder, TElem, TWorldDim>;
+
+			public:
+				BF() {}
+
+			/// index of SubControlVolume of the bf
+				inline size_t node_id() const {return nodeId;}
+
+			/// outer normal on bf. Norm is equal to area
+				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
+
+			/// volume of bf
+				inline number volume() const {return Vol;}
+
+			/// number of integration points on scvf
+				inline size_t num_ip() const {return numIP;}
+
+			///	integration weight
+				inline number weight(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+
+			/// local integration point of scvf
+				inline const MathVector<dim>& local_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vLocalIP[ip];}
+
+			/// global integration point of scvf
+				inline const MathVector<worldDim>& global_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vGlobalIP[ip];}
+
+			/// Transposed Inverse of Jacobian in integration point
+				inline const MathMatrix<worldDim,dim>& JTInv(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
+
+			/// Determinant of Jacobian in integration point
+				inline number detJ(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
+
+			/// number of shape functions
+				inline size_t num_sh() const {return nsh;}
+
+			/// value of shape function i in integration point
+				inline number shape(size_t sh, size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
+
+			/// vector of shape functions in ip point
+				inline const number* shape_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip];}
+
+			/// value of local gradient of shape function i in integration point
+				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
+
+			/// vector of local gradients in ip point
+				inline const MathVector<dim>* local_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip];}
+
+			/// value of global gradient of shape function i in integration point
+				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
+
+			/// vector of gloabl gradients in ip point
+				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip];}
+
+			/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return numCorners;}
+
+			/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
+
+			/// return glbal corner number i
+				inline const MathVector<worldDim>& global_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
+
+			private:
+			// 	id of scv this bf belongs to
+				size_t nodeId;
+
+			// ordering is:
+			// 1D: edgeMidPoint
+			// 2D: edgeMidPoint, CenterOfElement
+			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
+				MathVector<dim> vLocPos[numCorners]; // local corners of bf
+				MathVector<worldDim> vGloPos[numCorners]; // global corners of bf
+				MidID vMidId[numCorners]; // dimension and id of object, that's midpoint bounds the bf
+
+			// 	scvf part
+				MathVector<dim> vLocalIP[numIP]; // local integration point
+				MathVector<worldDim> vGlobalIP[numIP]; // global intergration point
+				const number* vWeight; // weight at ip
+				MathVector<worldDim> Normal; // normal (incl. area)
+				number Vol; // volume of bf
+
+			// 	shapes and derivatives
+				number vvShape[numIP][nsh]; // shapes at ip
+				MathVector<dim> vvLocalGrad[numIP][nsh]; // local grad at ip
+				MathVector<worldDim> vvGlobalGrad[numIP][nsh]; // global grad at ip
+				MathMatrix<worldDim,dim> vJtInv[numIP]; // Jacobian transposed at ip
+				number vDetJ[numIP]; // Jacobian det at ip
+		};
+
 
 	public:
 	/// construct object and initialize local values and sizes
@@ -1430,6 +1544,12 @@ class FVGeometry : public FVGeometryBase
 		// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
 			MathVector<dim> locMid[dim+1][numSCVF + 1];
 			MathVector<worldDim> gloMid[dim+1][numSCVF +1];
+
+		//	flag is subelement has boundary sides
+			bool isBndElem;
+
+		//	-1 is no bnd side, >= 0 corresponding side of whole element
+			std::vector<int> elemBndSide;
 		};
 
 	///	subelements
@@ -1437,6 +1557,57 @@ class FVGeometry : public FVGeometryBase
 
 	///	sets corners and corresponding DoFIDs
 		void set_corners_of_sub_elem();
+
+	public:
+	/// add subset that is interpreted as boundary subset.
+		inline void add_boundary_subset(int subsetIndex) {m_mapVectorBF[subsetIndex];}
+
+	/// removes subset that is interpreted as boundary subset.
+		inline void remove_boundary_subset(int subsetIndex) {m_mapVectorBF.erase(subsetIndex);}
+
+	/// reset all boundary subsets
+		inline void clear_boundary_subsets() {m_mapVectorBF.clear();}
+
+	/// number of registered boundary subsets
+		inline size_t num_boundary_subsets() {return m_mapVectorBF.size();}
+
+	/// number of all boundary faces
+		inline size_t num_bf() const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			size_t num = 0;
+			for ( it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); it++ )
+				num += (*it).second.size();
+			return num;
+		}
+
+	/// number of boundary faces on subset 'subsetIndex'
+		inline size_t num_bf(int subsetIndex) const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(subsetIndex);
+			return (*it).second.size();
+		}
+
+	/// returns the boundary face i for subsetIndex
+		inline const BF& bf(int subsetIndex, size_t i) const
+		{
+			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(subsetIndex);
+			return (*it).second[i];
+		}
+
+	/// returns reference to vector of boundary faces for subsetIndex
+		inline const std::vector<BF>& bf(int subsetIndex) const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(subsetIndex);
+			return (*it).second;
+		}
+
+	protected:
+		std::map<int, std::vector<BF> > m_mapVectorBF;
 
 	private:
 	///	pointer to current element

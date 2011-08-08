@@ -157,8 +157,6 @@ elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 						const number D_conv_flux = VecDot(m_imVelocity[ipCnt], scvf.normal())
 													* scvf.shape(sh, ip);
 
-						UG_LOG("D_conv_flux = "<< D_conv_flux<<" weight="<<scvf.weight(ip)<<"\n");
-
 					//	Add fkux term to local matrix
 						J(_C_, scvf.from(), _C_, sh) += D_conv_flux * scvf.weight(ip);
 						J(_C_, scvf.to(),   _C_, sh) -= D_conv_flux * scvf.weight(ip);
@@ -273,7 +271,7 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 			const typename TFVGeom::SCVF& scvf = geo.scvf(i);
 
 		//	the flux of the scvf
-			number flux;
+			number flux = 0;
 
 		//	loop integration points
 			for(size_t ip = 0; ip < scvf.num_ip(); ++ip)

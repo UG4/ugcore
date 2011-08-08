@@ -155,6 +155,409 @@ static void CopyCornerByMidID(MathVector<dim> vCorner[],
 	}
 }
 
+
+template <int dim>
+void ComputeMultiIndicesOfSubElement(std::vector<MathVector<dim, int> > vvMultiIndex[],
+                                     bool vIsBndElem[],
+                                     std::vector<int> vElemBndSide[],
+                                     ReferenceObjectID roid,
+                                     int p);
+
+template <>
+void ComputeMultiIndicesOfSubElement<1>(std::vector<MathVector<1, int> > vvMultiIndex[],
+                                        bool vIsBndElem[],
+                                        std::vector<int> vElemBndSide[],
+                                        ReferenceObjectID roid,
+                                        int p)
+{
+//	switch for roid
+	int se = 0;
+	switch(roid)
+	{
+		case ROID_EDGE:
+				for(int i = 0; i < p; ++i)
+				{
+					vvMultiIndex[se].resize(2);
+					vvMultiIndex[se][0] = MathVector<1,int>(i);
+					vvMultiIndex[se][1] = MathVector<1,int>(i+1);
+
+					// reset bnd info
+					vIsBndElem[se] = false;
+					vElemBndSide[se].clear(); vElemBndSide[se].resize(3, -1);
+
+					if(i==0)
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][0] = 0;
+					}
+					if(i==p-1)
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][1] = 1;
+					}
+					++se;
+				}
+
+			break;
+		default: throw(UGFatalError("ReferenceElement not found."));
+	}
+}
+
+template <>
+void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> > vvMultiIndex[],
+                                        bool vIsBndElem[],
+                                        std::vector<int> vElemBndSide[],
+                                        ReferenceObjectID roid,
+                                        int p)
+{
+//	switch for roid
+	int se = 0;
+	switch(roid)
+	{
+		case ROID_TRIANGLE:
+			for(int j = 0; j < p; ++j) // y -direction
+				for(int i = 0; i < p - j; ++i) // x - direction
+				{
+					vvMultiIndex[se].resize(3);
+					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
+					vvMultiIndex[se][1] = MathVector<2,int>(i+1, j  );
+					vvMultiIndex[se][2] = MathVector<2,int>(i  , j+1);
+
+					// reset bnd info
+					vIsBndElem[se] = false;
+					vElemBndSide[se].clear(); vElemBndSide[se].resize(3, -1);
+
+					if(i==0) // left
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][2] = 2;
+					}
+					if(j==0) // bottom
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][0] = 0;
+					}
+					if(i+j==p-1) // diag
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][1] = 1;
+					}
+					++se;
+				}
+
+			for(int j = 1; j <= p; ++j)
+				for(int i = 1; i <= p - j; ++i)
+				{
+					vvMultiIndex[se].resize(3);
+					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
+					vvMultiIndex[se][1] = MathVector<2,int>(i-1, j  );
+					vvMultiIndex[se][2] = MathVector<2,int>(i  , j-1);
+					++se;
+
+					// reset bnd info
+					// all inner elems
+					vIsBndElem[se] = false;
+					vElemBndSide[se].clear(); vElemBndSide[se].resize(3, -1);
+				}
+
+			break;
+		case ROID_QUADRILATERAL:
+			for(int j = 0; j < p; ++j)
+				for(int i = 0; i < p; ++i)
+				{
+					vvMultiIndex[se].resize(4);
+					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
+					vvMultiIndex[se][1] = MathVector<2,int>(i+1, j  );
+					vvMultiIndex[se][2] = MathVector<2,int>(i+1, j+1);
+					vvMultiIndex[se][3] = MathVector<2,int>(i  , j+1);
+
+					// reset bnd info
+					vIsBndElem[se] = false;
+					vElemBndSide[se].clear(); vElemBndSide[se].resize(4, -1);
+
+					if(i==0) // left
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][3] = 3;
+					}
+					if(i==p-1) // right
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][1] = 1;
+					}
+					if(j==0) // bottom
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][0] = 0;
+					}
+					if(j==p-1) // top
+					{
+						vIsBndElem[se] = true;
+						vElemBndSide[se][2] = 2;
+					}
+					++se;
+				}
+			break;
+		default: throw(UGFatalError("ReferenceElement not found."));
+	}
+
+}
+
+template <>
+void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMultiIndex[],
+                                        bool vIsBndElem[],
+                                        std::vector<int> vElemBndSide[],
+                                        ReferenceObjectID roid,
+                                        int p)
+{
+//	switch for roid
+	int se = 0;
+	switch(roid)
+	{
+		case ROID_TETRAHEDRON:
+			for(int k = 0; k < p; ++k)
+				for(int j = 0; j < p -k; ++j)
+					for(int i = 0; i < p -k -j; ++i)
+					{
+						vvMultiIndex[se].resize(4);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j+1, k);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  , k+1);
+						++se;
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(4, -1);
+
+						if(i==0) // left
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][2] = 2;
+						}
+						if(j==0) // front
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][3] = 3;
+						}
+						if(k==0) // bottom
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][0] = 0;
+						}
+						if(i+j+k==p-1) // diag
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][1] = 1;
+						}
+					}
+			//	build 4 tetrahedrons out of the remaining octogons
+			for(int k = 0; k < p; ++k)
+				for(int j = 1; j < p -k; ++j)
+					for(int i = 0; i < p -k -j; ++i)
+					{
+						vvMultiIndex[se].resize(4);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i  , j-1, k+1);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j  , k+1);
+						vvMultiIndex[se][3] = MathVector<3,int>(i+1, j-1, k+1);
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(4, -1);
+
+						if(i==0) // left
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][0] = 2;
+						}
+						++se;
+
+						vvMultiIndex[se].resize(4);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j-1, k+1);
+						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][3] = MathVector<3,int>(i+1, j-1, k);
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(4, -1);
+
+						if(k==0) // bottom
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][2] = 0;
+						}
+						++se;
+
+						vvMultiIndex[se].resize(4);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j-1, k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j-1, k+1);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j-1, k+1);
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(4, -1);
+
+						if(j==1) // front
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][1] = 3;
+						}
+						++se;
+
+						vvMultiIndex[se].resize(4);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j-1, k+1);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  , k+1);
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(4, -1);
+
+						if(i+j+k==p-1) // diag
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][1] = 1;
+						}
+						++se;
+					}
+			break;
+
+		case ROID_PRISM:
+			for(int k = 0; k < p; ++k)
+				for(int j = 0; j < p; ++j)
+					for(int i = 0; i < p - j; ++i)
+					{
+						vvMultiIndex[se].resize(6);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j+1, k);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  , k+1);
+						vvMultiIndex[se][4] = MathVector<3,int>(i+1, j  , k+1);
+						vvMultiIndex[se][5] = MathVector<3,int>(i  , j+1, k+1);
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(5, -1);
+
+						if(i==0) // left
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][3] = 3;
+						}
+						if(j==0) // front
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][1] = 1;
+						}
+						if(i+j==p-1) // diag
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][2] = 2;
+						}
+						if(k==0) // bottom
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][0] = 0;
+						}
+						if(k==p-1) // top
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][4] = 4;
+						}
+						++se;
+					}
+			for(int k = 0; k < p; ++k)
+				for(int j = 1; j <= p; ++j)
+					for(int i = 1; i <= p - j; ++i)
+					{
+						vvMultiIndex[se].resize(6);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  ,k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i-1, j  ,k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j-1,k);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  ,k+1);
+						vvMultiIndex[se][4] = MathVector<3,int>(i-1, j  ,k+1);
+						vvMultiIndex[se][5] = MathVector<3,int>(i  , j-1,k+1);
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(5, -1);
+
+						if(k==0) // bottom
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][0] = 0;
+						}
+						if(k==p-1) // top
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][4] = 4;
+						}
+						++se;
+					}
+
+			break;
+		case ROID_HEXAHEDRON:
+			for(int k = 0; k < p; ++k)
+				for(int j = 0; j < p; ++j)
+					for(int i = 0; i < p; ++i)
+					{
+						vvMultiIndex[se].resize(8);
+						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j+1, k);
+						vvMultiIndex[se][3] = MathVector<3,int>(i  , j+1, k);
+						vvMultiIndex[se][4] = MathVector<3,int>(i  , j  , k+1);
+						vvMultiIndex[se][5] = MathVector<3,int>(i+1, j  , k+1);
+						vvMultiIndex[se][6] = MathVector<3,int>(i+1, j+1, k+1);
+						vvMultiIndex[se][7] = MathVector<3,int>(i  , j+1, k+1);
+
+						// reset bnd info
+						vIsBndElem[se] = false;
+						vElemBndSide[se].clear(); vElemBndSide[se].resize(6, -1);
+
+						if(i==0) // left
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][4] = 4;
+						}
+						if(i==p-1) //right
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][2] = 2;
+						}
+						if(j==0) // front
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][1] = 1;
+						}
+						if(j==p-1) // back
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][3] = 3;
+						}
+						if(k==0) // bottom
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][0] = 0;
+						}
+						 if(k==p-1) // top
+						{
+							vIsBndElem[se] = true;
+							vElemBndSide[se][5] = 5;
+						}
+						++se;
+					}
+			break;
+		default: throw(UGFatalError("ReferenceElement not found."));
+	}
+
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 // FV1 Geometry for Reference Element Type
@@ -818,133 +1221,6 @@ FVGeometry()
 	update_local_data();
 }
 
-template <int dim>
-void ComputeMultiIndicesOfSubElement(std::vector<MathVector<dim, int> > vvMultiIndex[],
-                                     ReferenceObjectID roid,
-									 int p);
-
-template <>
-void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> > vvMultiIndex[],
-                                        ReferenceObjectID roid,
-                                        int p)
-{
-//	switch for roid
-	int se = 0;
-	switch(roid)
-	{
-		case ROID_TRIANGLE:
-			for(int j = 0; j < p; ++j)
-				for(int i = 0; i < p - j; ++i)
-				{
-					vvMultiIndex[se].resize(3);
-					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
-					vvMultiIndex[se][1] = MathVector<2,int>(i+1, j  );
-					vvMultiIndex[se][2] = MathVector<2,int>(i  , j+1);
-					++se;
-				}
-			for(int j = 1; j <= p; ++j)
-				for(int i = 1; i <= p - j; ++i)
-				{
-					vvMultiIndex[se].resize(3);
-					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
-					vvMultiIndex[se][1] = MathVector<2,int>(i-1, j  );
-					vvMultiIndex[se][2] = MathVector<2,int>(i  , j-1);
-					++se;
-				}
-
-			break;
-		case ROID_QUADRILATERAL:
-			for(int j = 0; j < p; ++j)
-				for(int i = 0; i < p; ++i)
-				{
-					vvMultiIndex[se].resize(4);
-					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
-					vvMultiIndex[se][1] = MathVector<2,int>(i+1, j  );
-					vvMultiIndex[se][2] = MathVector<2,int>(i+1, j+1);
-					vvMultiIndex[se][3] = MathVector<2,int>(i  , j+1);
-					++se;
-				}
-			break;
-		default: throw(UGFatalError("ReferenceElement not found."));
-	}
-
-}
-
-template <>
-void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMultiIndex[],
-                                        ReferenceObjectID roid,
-                                        int p)
-{
-//	switch for roid
-	int se = 0;
-	switch(roid)
-	{
-		case ROID_TETRAHEDRON:
-			for(int k = 0; k < p; ++k)
-				for(int j = 0; j < p -k; ++j)
-					for(int i = 0; i < p -k -j; ++i)
-					{
-						vvMultiIndex[se].resize(4);
-						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
-						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
-						vvMultiIndex[se][2] = MathVector<3,int>(i  , j+1, k);
-						vvMultiIndex[se][2] = MathVector<3,int>(i  , j  , k+1);
-						++se;
-					}
-			// \todo: Continue with other subelems
-			throw(int(1));
-			break;
-
-		case ROID_PRISM:
-			for(int k = 0; k < p; ++k)
-				for(int j = 0; j < p; ++j)
-					for(int i = 0; i < p - j; ++i)
-					{
-						vvMultiIndex[se].resize(6);
-						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
-						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
-						vvMultiIndex[se][2] = MathVector<3,int>(i  , j+1, k);
-						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  , k+1);
-						vvMultiIndex[se][4] = MathVector<3,int>(i+1, j  , k+1);
-						vvMultiIndex[se][5] = MathVector<3,int>(i  , j+1, k+1);
-						++se;
-					}
-			for(int k = 0; k < p; ++k)
-				for(int j = 1; j <= p; ++j)
-					for(int i = 1; i <= p - j; ++i)
-					{
-						vvMultiIndex[se].resize(6);
-						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  ,k);
-						vvMultiIndex[se][1] = MathVector<3,int>(i-1, j  ,k);
-						vvMultiIndex[se][2] = MathVector<3,int>(i  , j-1,k);
-						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  ,k+1);
-						vvMultiIndex[se][4] = MathVector<3,int>(i-1, j  ,k+1);
-						vvMultiIndex[se][5] = MathVector<3,int>(i  , j-1,k+1);
-						++se;
-					}
-
-			break;
-		case ROID_HEXAHEDRON:
-			for(int k = 0; k < p; ++k)
-				for(int j = 0; j < p; ++j)
-					for(int i = 0; i < p; ++i)
-					{
-						vvMultiIndex[se].resize(8);
-						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
-						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
-						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j+1, k);
-						vvMultiIndex[se][3] = MathVector<3,int>(i  , j+1, k);
-						vvMultiIndex[se][4] = MathVector<3,int>(i  , j  , k+1);
-						vvMultiIndex[se][5] = MathVector<3,int>(i+1, j  , k+1);
-						vvMultiIndex[se][6] = MathVector<3,int>(i+1, j+1, k+1);
-						vvMultiIndex[se][7] = MathVector<3,int>(i  , j+1, k+1);
-						++se;
-					}
-			break;
-		default: throw(UGFatalError("ReferenceElement not found."));
-	}
-
-}
 
 template <int TOrder, typename TElem, int TWorldDim>
 void FVGeometry<TOrder, TElem, TWorldDim>::
@@ -953,9 +1229,14 @@ set_corners_of_sub_elem()
 //	get reference object id
 	ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
+	bool vIsBndElem[numSubElem];
+	std::vector<int> vElemBndSide[numSubElem];
 	std::vector<MathVector<dim,int> > vMultiIndex[numSubElem];
 
-	ComputeMultiIndicesOfSubElement<dim>(vMultiIndex, roid, p);
+	ComputeMultiIndicesOfSubElement<dim>(vMultiIndex,
+	                                     vIsBndElem,
+	                                     vElemBndSide,
+	                                     roid, p);
 
 //	directions of counting
 	MathVector<dim> direction[dim];
@@ -978,6 +1259,9 @@ set_corners_of_sub_elem()
 			 m_vSubElem[se].vDoFID[co] =
 					m_rTrialSpace.index(vMultiIndex[se][co]);
 		}
+
+		m_vSubElem[se].isBndElem = vIsBndElem[se];
+		m_vSubElem[se].elemBndSide = vElemBndSide[se];
 	}
 }
 
@@ -1197,6 +1481,136 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
 			m_vGlobSCV_IP[allIP++] = scv(i).global_ip(ip);
 
+	/////////////////////////
+	// Boundary Faces
+	/////////////////////////
+
+//	if no boundary subsets required, return
+	if(num_boundary_subsets() == 0 || ish == NULL) return true;
+
+//	get grid
+	Grid& grid = *(ish->get_assigned_grid());
+
+//	vector of subset indices of side
+	std::vector<int> vSubsetIndex;
+
+//	get subset indices for sides (i.e. edge in 2d, faces in 3d)
+	if(dim == 2)
+	{
+		std::vector<EdgeBase*> vEdges;
+		CollectEdgesSorted(vEdges, grid, elem);
+
+		vSubsetIndex.resize(vEdges.size());
+		for(size_t i = 0; i < vEdges.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vEdges[i]);
+	}
+	if(dim == 3)
+	{
+		std::vector<Face*> vFaces;
+		CollectFacesSorted(vFaces, grid, elem);
+
+		vSubsetIndex.resize(vFaces.size());
+		for(size_t i = 0; i < vFaces.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
+	}
+
+//	loop requested subset
+	typename std::map<int, std::vector<BF> >::iterator it;
+	for (it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); ++it)
+	{
+	//	get subset index
+		const int bndIndex = (*it).first;
+
+	//	get vector of BF for element
+		std::vector<BF>& vBF = (*it).second;
+
+	//	clear vector
+		vBF.clear();
+
+	//	current number of bf
+		size_t curr_bf = 0;
+
+	//	loop subelements
+		for(size_t se = 0; se < numSubElem; ++se)
+		{
+		//	skip inner sub elements
+			if(!m_vSubElem[se].isBndElem) continue;
+
+		//	loop sides of element
+			for(size_t side = 0; side < m_vSubElem[se].elemBndSide.size(); ++side)
+			{
+			//	get whole element bnd side
+				const int elemBndSide = m_vSubElem[se].elemBndSide[side];
+
+			//	skip non boundary sides
+				if(elemBndSide == -1 || vSubsetIndex[elemBndSide] != bndIndex) continue;
+
+			//	number of corners of side
+				const int coOfSide = m_rRefElem.num(dim-1, elemBndSide, 0);
+
+			//	resize vector
+				vBF.resize(curr_bf + coOfSide);
+
+			//	loop corners
+				for(int co = 0; co < coOfSide; ++co)
+				{
+				//	get current bf
+					BF& bf = vBF[curr_bf];
+
+				//	set node id == scv this bf belongs to
+					const int refNodeId = m_rRefElem.id(dim-1, elemBndSide, 0, co);
+					bf.nodeId = m_vSubElem[se].vDoFID[refNodeId];
+
+				//	Compute MidID for BF
+					ComputeBFMidID(m_rRefElem, elemBndSide, bf.vMidId, co);
+
+				// 	copy corners of bf
+					CopyCornerByMidID<dim, numSCVF+1>
+						(bf.vLocPos, bf.vMidId, m_vSubElem[se].locMid, BF::numCorners);
+					CopyCornerByMidID<worldDim, numSCVF+1>
+						(bf.vGloPos, bf.vMidId, m_vSubElem[se].gloMid, BF::numCorners);
+
+				// 	normal on scvf
+					fvho_traits<p, ref_elem_type, worldDim>::
+						NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].gloMid[0]);
+
+				//	compute local integration points
+					bf.vWeight = m_rSCVFQuadRule.weights();
+					ReferenceMapping<scvf_type, dim> map(bf.vLocPos);
+					for(size_t ip = 0; ip < m_rSCVFQuadRule.size(); ++ip)
+						map.local_to_global(bf.vLocalIP[ip], m_rSCVFQuadRule.point(ip));
+
+				//	compute global integration points
+					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
+						m_rMapping.local_to_global(bf.vGlobalIP[ip], bf.vLocalIP[ip]);
+
+				//	compute volume
+					bf.Vol = VecTwoNorm(bf.Normal);
+
+				//	compute shapes and gradients
+					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
+					{
+						m_rTrialSpace.shapes(&(bf.vvShape[ip][0]), bf.vLocalIP[ip]);
+						m_rTrialSpace.grads(&(bf.vvLocalGrad[ip][0]), bf.vLocalIP[ip]);
+
+						m_rMapping.jacobian_transposed_inverse(bf.vJtInv[ip], bf.vLocalIP[ip]);
+						bf.vDetJ[ip] = m_rMapping.jacobian_det(bf.vLocalIP[ip]);
+					}
+
+				//	compute global gradient
+					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
+						for(size_t sh = 0 ; sh < num_scv(); ++sh)
+							MatVecMult(bf.vvGlobalGrad[ip][sh],
+							           bf.vJtInv[ip], bf.vvLocalGrad[ip][sh]);
+
+				//	increase curr_bf
+					++curr_bf;
+				}
+			}
+		}
+	}
+
+
 	return true;
 }
 
@@ -1318,9 +1732,6 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>()
 		}
 	}
 }
-
-
-
 
 
 /// update data for given element

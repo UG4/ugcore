@@ -16,7 +16,7 @@
 namespace ug{
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_prepare_fe()
 {
@@ -26,10 +26,10 @@ elem_loop_prepare_fe()
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	request geometry
-	static TFEGeom& geo = Provider::get<TFEGeom>();
+	static typename THolder::Type& geo = THolder::get();
 
 //	prepare geometry for type and order
-	if(!geo.update(roid, m_lfeID, m_pFEQuadOrder))
+	if(!geo.update_local(roid, m_lfeID, m_pFEQuadOrder))
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::elem_loop_prepare_fe':"
 				" Cannot update Finite Element Geometry.\n");
@@ -48,7 +48,7 @@ elem_loop_prepare_fe()
 }
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_finish_fe()
 {
@@ -57,7 +57,7 @@ elem_loop_finish_fe()
 }
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_prepare_fe(TElem* elem, const local_vector_type& u)
 {
@@ -65,7 +65,7 @@ elem_prepare_fe(TElem* elem, const local_vector_type& u)
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 //	request geometry
-	static TFEGeom& geo = Provider::get<TFEGeom>();
+	static typename THolder::Type& geo = THolder::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0]))
 	{
@@ -86,12 +86,12 @@ elem_prepare_fe(TElem* elem, const local_vector_type& u)
 }
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 {
 //	request geometry
-	static const TFEGeom& geo = Provider::get<TFEGeom>();
+	static const typename THolder::Type& geo = THolder::get();
 
 	MathVector<dim> v, Dgrad;
 
@@ -136,12 +136,12 @@ elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 {
 //	request geometry
-	static const TFEGeom& geo = Provider::get<TFEGeom>();
+	static const typename THolder::Type& geo = THolder::get();
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -171,12 +171,12 @@ elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 {
 //	request geometry
-	static const TFEGeom& geo = Provider::get<TFEGeom>();
+	static const typename THolder::Type& geo = THolder::get();
 
 	number integrand, shape_u;
 	MathMatrix<dim,dim> D;
@@ -227,12 +227,12 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 {
 //	request geometry
-	static const TFEGeom& geo = Provider::get<TFEGeom>();
+	static const typename THolder::Type& geo = THolder::get();
 
 	number shape_u;
 
@@ -264,12 +264,12 @@ elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 };
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_rhs_fe(local_vector_type& d)
 {
 //	request geometry
-	static const TFEGeom& geo = Provider::get<TFEGeom>();
+	static const typename THolder::Type& geo = THolder::get();
 
 //	skip if no source present
 	if(!m_imSource.data_given()) return true;
@@ -301,7 +301,7 @@ register_all_fe_funcs(int order)
 	m_pFEQuadOrder = 2*order-2;
 
 //	Edge
-	register_fe_func<Edge, DimFEGeometry<dim, 1> >();
+	register_fe_func<Edge, FlexGeomHolder<DimFEGeometry<dim, 1> > >();
 }
 
 // register for all dim
@@ -315,23 +315,23 @@ register_all_fe_funcs(int order)
 	switch(order)
 	{
 		case 1:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 2> > FEGeom;
-				 register_fe_func<Triangle, FEGeom>(); break;}
+				 register_fe_func<Triangle, ClassHolder<FEGeom> >(); break;}
 		case 2:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 4> > FEGeom;
-				 register_fe_func<Triangle, FEGeom>(); break;}
+				 register_fe_func<Triangle, ClassHolder<FEGeom> >(); break;}
 		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 6> > FEGeom;
-				 register_fe_func<Triangle, FEGeom>(); break;}
-		default: register_fe_func<Triangle, DimFEGeometry<dim, 2> >();  break;
+				 register_fe_func<Triangle, ClassHolder<FEGeom> >(); break;}
+		default: register_fe_func<Triangle, FlexGeomHolder<DimFEGeometry<dim, 2> > >();  break;
 	}
 
 //	Quadrilateral
 	switch(order) {
 		case 1:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 2> > FEGeom;
-				 register_fe_func<Quadrilateral, FEGeom>(); break;}
+				 register_fe_func<Quadrilateral, ClassHolder<FEGeom> >(); break;}
 		case 2:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 6> > FEGeom;
-				 register_fe_func<Quadrilateral, FEGeom>(); break;}
-		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 10> > FEGeom;
-				 register_fe_func<Quadrilateral, FEGeom>(); break;}
-		default: register_fe_func<Quadrilateral, DimFEGeometry<dim, 2> >();  break;
+				 register_fe_func<Quadrilateral, ClassHolder<FEGeom> >(); break;}
+		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 10> > FEGeom;
+				 register_fe_func<Quadrilateral, ClassHolder<FEGeom> >(); break;}
+		default: register_fe_func<Quadrilateral, FlexGeomHolder<DimFEGeometry<dim, 2> > >();  break;
 	}
 }
 
@@ -346,57 +346,57 @@ register_all_fe_funcs(int order)
 	switch(order)
 	{
 		case 1:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 2> > FEGeom;
-				 register_fe_func<Tetrahedron, FEGeom>(); break;}
+				 register_fe_func<Tetrahedron, ClassHolder<FEGeom> >(); break;}
 		case 2:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 4> > FEGeom;
-				 register_fe_func<Tetrahedron, FEGeom>(); break;}
+				 register_fe_func<Tetrahedron, ClassHolder<FEGeom> >(); break;}
 		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 6> > FEGeom;
-				 register_fe_func<Tetrahedron, FEGeom>(); break;}
-		default: register_fe_func<Tetrahedron, DimFEGeometry<dim, 3> >();  break;
+				 register_fe_func<Tetrahedron, ClassHolder<FEGeom> >(); break;}
+		default: register_fe_func<Tetrahedron, FlexGeomHolder<DimFEGeometry<dim, 3> > >();  break;
 	}
 
 //	Prism
 	switch(order) {
 		case 1:	{typedef FEGeometry<Prism, dim, LagrangeLSFS<ReferencePrism, 1>, GaussQuadrature<ReferencePrism, 2> > FEGeom;
-				 register_fe_func<Prism, FEGeom>(); break;}
-		default: register_fe_func<Prism, DimFEGeometry<dim, 3> >();  break;
+				 register_fe_func<Prism, ClassHolder<FEGeom> >(); break;}
+		default: register_fe_func<Prism, FlexGeomHolder<DimFEGeometry<dim, 3> > >();  break;
 	}
 
 //	Pyramid
 	switch(order)
 	{
-		default: register_fe_func<Pyramid, DimFEGeometry<dim, 3> >();  break;
+		default: register_fe_func<Pyramid, FlexGeomHolder<DimFEGeometry<dim, 3> > >();  break;
 	}
 
 //	Hexahedron
 	switch(order)
 	{
 		case 1:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 2> > FEGeom;
-				 register_fe_func<Hexahedron, FEGeom>(); break;}
+				 register_fe_func<Hexahedron, ClassHolder<FEGeom> >(); break;}
 		case 2:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 6> > FEGeom;
-				 register_fe_func<Hexahedron, FEGeom>(); break;}
+				 register_fe_func<Hexahedron, ClassHolder<FEGeom> >(); break;}
 		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 10> > FEGeom;
-				 register_fe_func<Hexahedron, FEGeom>(); break;}
-		default: register_fe_func<Hexahedron, DimFEGeometry<dim, 3> >();  break;
+				 register_fe_func<Hexahedron, ClassHolder<FEGeom> >(); break;}
+		default: register_fe_func<Hexahedron, FlexGeomHolder<DimFEGeometry<dim, 3> > >();  break;
 	}
 }
 
 
 template<typename TDomain>
-template<typename TElem, typename TFEGeom>
+template<typename TElem, typename THolder>
 void ConvectionDiffusionElemDisc<TDomain>::
 register_fe_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, TFEGeom>);
-	reg_prepare_elem_fct(	  id, &T::template elem_prepare_fe<TElem, TFEGeom>);
-	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, TFEGeom>);
-	reg_ass_JA_elem_fct(	  id, &T::template elem_JA_fe<TElem, TFEGeom>);
-	reg_ass_JM_elem_fct(	  id, &T::template elem_JM_fe<TElem, TFEGeom>);
-	reg_ass_dA_elem_fct(	  id, &T::template elem_dA_fe<TElem, TFEGeom>);
-	reg_ass_dM_elem_fct(	  id, &T::template elem_dM_fe<TElem, TFEGeom>);
-	reg_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fe<TElem, TFEGeom>);
+	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, THolder>);
+	reg_prepare_elem_fct(	  id, &T::template elem_prepare_fe<TElem, THolder>);
+	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, THolder>);
+	reg_ass_JA_elem_fct(	  id, &T::template elem_JA_fe<TElem, THolder>);
+	reg_ass_JM_elem_fct(	  id, &T::template elem_JM_fe<TElem, THolder>);
+	reg_ass_dA_elem_fct(	  id, &T::template elem_dA_fe<TElem, THolder>);
+	reg_ass_dM_elem_fct(	  id, &T::template elem_dM_fe<TElem, THolder>);
+	reg_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fe<TElem, THolder>);
 }
 
 } // namespace ug

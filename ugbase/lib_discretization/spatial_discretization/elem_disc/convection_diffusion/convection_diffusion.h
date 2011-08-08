@@ -18,6 +18,9 @@
 
 #include "lib_discretization/spatial_discretization/disc_util/conv_shape_interface.h"
 
+#include "lib_discretization/spatial_discretization/disc_util/finite_element_geometry.h"
+
+
 namespace ug{
 
 /// \ingroup lib_disc_elem_disc
@@ -402,6 +405,13 @@ class ConvectionDiffusionElemDisc
 
 		template<typename TElem, typename TFEGeom>
 		void register_fe_func();
+
+		template<typename TGeom>
+		struct FlexGeomHolder
+		{
+			typedef TGeom Type;
+			static inline TGeom& get(){static TGeom inst; return inst;}
+		};
 };
 
 /// @}

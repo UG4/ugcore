@@ -104,7 +104,7 @@ class FEGeometry
 		}
 
 	/// update Geometry for roid
-		bool update(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
+		bool update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
 		{
 			if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
 			{
@@ -311,7 +311,7 @@ class DimFEGeometry
 		}
 
 	/// update Geometry for roid
-		bool update(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
+		bool update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
 		{
 		//	remember current setting
 			m_roid = roid;
@@ -333,7 +333,7 @@ class DimFEGeometry
 				return false;
 			}
 
-		//	resize
+		//	resize for number of integration points
 			m_vIPGlobal.resize(m_nip);
 			m_vJTInv.resize(m_nip);
 			m_vDetJ.resize(m_nip);
@@ -346,6 +346,17 @@ class DimFEGeometry
 			try{
 			const DimLocalShapeFunctionSet<dim>& lsfs
 				 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
+
+		//	copy shape infos
+			m_nsh = lsfs.num_sh();
+
+		//	resize for number of shape functions
+			for(size_t ip = 0; ip < m_nip; ++ip)
+			{
+				m_vvGradGlobal[ip].resize(m_nsh);
+				m_vvGradLocal[ip].resize(m_nsh);
+				m_vvShape[ip].resize(m_nsh);
+			}
 
 		//	get all shapes by on call
 			for(size_t ip = 0; ip < m_nip; ++ip)
@@ -384,7 +395,7 @@ class DimFEGeometry
 
 		//	if already prepared for this roid, skip update of local values
 			if(m_roid != roid || lfeID != m_lfeID || (int)orderQuad != m_quadOrder)
-				if(update(roid, lfeID, orderQuad))
+				if(!update_local(roid, lfeID, orderQuad))
 					return false;
 
 			////////////////////////
@@ -435,7 +446,7 @@ class DimFEGeometry
 	///	current local finite element id
 		LFEID m_lfeID;
 
-	///	number of intergration point
+	///	number of integration point
 		size_t m_nip;
 
 	///	local quadrature points
@@ -450,7 +461,7 @@ class DimFEGeometry
 	///	jacobian of transformation at ip (size = nip)
 		std::vector<MathMatrix<worldDim,dim> > m_vJTInv;
 
-	///	determinate of transformation at ip (size = nip)
+	///	determinant of transformation at ip (size = nip)
 		std::vector<number> m_vDetJ;
 
 	///	number of shape functions
