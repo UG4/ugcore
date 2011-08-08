@@ -159,22 +159,22 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 	//	build a string with all compiled dimensions
 		stringstream availDims; bool first = true;
 #ifdef UG_DIM_1
-		if(!first) {availDims << ",";first=false}; availDims << "1";
+		if(!first) {availDims << ",";first=false;}; availDims << "1";
 #endif
 #ifdef UG_DIM_2
-		if(!first) {availDims << ",";first=false}; availDims << "2";
+		if(!first) {availDims << ",";first=false;}; availDims << "2";
 #endif
 #ifdef UG_DIM_3
-		if(!first) {availDims << ",";first=false}; availDims << "3";
+		if(!first) {availDims << ",";first=false:}; availDims << "3";
 #endif
 
 	//	build a string with all compiled DoFManager
 		stringstream availDofManager; first = true;
 #ifdef DOF_P1
-		if(!first) {availDofManager << ",";first=false}; availDofManager << "\"P1\"";
+		if(!first) {availDofManager << ",";first=false;}; availDofManager << "\"P1\"";
 #endif
 #ifdef DOF_GEN
-		if(!first) {availDofManager << ",";first=false}; availDofManager << "\"GEN\"";
+		if(!first) {availDofManager << ",";first=false;}; availDofManager << "\"GEN\"";
 #endif
 
 		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG),
