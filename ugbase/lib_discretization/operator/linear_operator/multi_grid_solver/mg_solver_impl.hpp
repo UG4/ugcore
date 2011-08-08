@@ -467,7 +467,6 @@ base_solve(size_t lev)
 {
 //	vector defined on whole grid (including ghosts) on this level
 //	are given by c, d, t
-	vector_type& c = m_vLevData[lev]->c;
 	vector_type& d = m_vLevData[lev]->d;
 
 //	get vectors used in smoothing operations. (This is needed if vertical
@@ -542,6 +541,9 @@ base_solve(size_t lev)
 //	CASE b): We gather the processes, solve on one proc and distribute again
 	else
 	{
+	//	get whole grid correction
+		vector_type& c = m_vLevData[lev]->c;
+
 	//	gather the defect
 		bool resume = gather_vertical(d);
 
