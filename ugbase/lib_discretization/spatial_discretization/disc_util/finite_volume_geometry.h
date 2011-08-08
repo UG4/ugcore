@@ -993,6 +993,7 @@ class DimFV1Geometry : public FVGeometryBase
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(subsetIndex);
+			UG_ASSERT(it != m_mapVectorBF.end(), "Bnd Subset Index not requested.")
 			return (*it).second.size();
 		}
 
@@ -1002,6 +1003,7 @@ class DimFV1Geometry : public FVGeometryBase
 			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(subsetIndex);
+			UG_ASSERT(it != m_mapVectorBF.end(), "Bnd Subset Index not requested.")
 			return (*it).second[i];
 		}
 
@@ -1010,6 +1012,7 @@ class DimFV1Geometry : public FVGeometryBase
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(subsetIndex);
+			UG_ASSERT(it != m_mapVectorBF.end(), "Bnd Subset Index not requested.")
 			return (*it).second;
 		}
 
