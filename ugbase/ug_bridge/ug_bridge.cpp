@@ -155,8 +155,10 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		bResult &= RegisterLibDisc_UserData(reg, parentGroup);
 		#endif
 
-		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG));
-		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG));
+		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG),
+		                 "", "Dimension|selection|value=[1,2,3]#Algebra#DoFManager|selection|value=[\"P1\",\"GEN\"]");
+		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG),
+		                 "", "Dimension|selection|value=[1,2,3]#Algebra");
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed& ex)
 	{
