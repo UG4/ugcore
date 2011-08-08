@@ -158,22 +158,22 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 
 	//	build a string with all compiled dimensions
 		stringstream availDims; bool first = true;
-#ifndef UG_DIM_1
+#ifdef UG_DIM_1
 		if(!first) availDims << ","; availDims << "1";
 #endif
-#ifndef UG_DIM_2
+#ifdef UG_DIM_2
 		if(!first) availDims << ","; availDims << "2";
 #endif
-#ifndef UG_DIM_3
+#ifdef UG_DIM_3
 		if(!first) availDims << ","; availDims << "3";
 #endif
 
 	//	build a string with all compiled DoFManager
 		stringstream availDofManager; first = true;
-#ifndef DOF_P1
+#ifdef DOF_P1
 		if(!first) availDofManager << ","; availDofManager << "\"P1\"";
 #endif
-#ifndef DOF_GEN
+#ifdef DOF_GEN
 		if(!first) availDofManager << ","; availDofManager << "\"GEN\"";
 #endif
 
