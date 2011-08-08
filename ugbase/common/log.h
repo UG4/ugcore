@@ -12,6 +12,20 @@
 #include <fstream>
 #include "util/ostream_util.h"
 
+/* After 'http://www.boost.org/doc/libs/1_47_0/doc/html/boost_units/Examples.html#boost_units.Examples.autoscale': */
+#include <boost/units/io.hpp>
+//#include <boost/units/systems/si/io.hpp> -- inkludiert ebenfalls 'quantity.hpp', sowie 'base.hpp'
+#include <boost/units/quantity.hpp>
+#include <boost/units/systems/si/base.hpp>
+
+struct thing_base_unit : boost::units::base_unit<thing_base_unit, boost::units::dimensionless_type, 4>
+{
+  static const char* name() { return("thing"); }
+  static const char* symbol() { return(""); }
+};
+
+using namespace boost::units;
+
 //	in order to support parallel logs, we're including pcl.h
 //	you can set the output process using pcl::SetOutputProcRank(int rank).
 #ifdef UG_PARALLEL
@@ -26,6 +40,22 @@
 #endif
 
 namespace ug{
+	const uint64_t UNIT_KILO     = 1024;                   // 2^{10}
+	const uint64_t UNIT_MEGA     = UNIT_KILO * 1024;       // 2^{20} =                 1'048'576
+	const uint64_t UNIT_GIGA     = UNIT_MEGA * 1024;       // 2^{30} =             1'073'741'824
+	const uint64_t UNIT_TERA     = UNIT_GIGA * 1024ll;     // 2^{40} =         1'099'511'627'776
+	const uint64_t UNIT_PETA     = UNIT_TERA * 1024ll;     // 2^{50} =     1'125'899'906'842'624 
+	const uint64_t UNIT_EXA      = UNIT_PETA * 1024ll;     // 2^{60} = 1'152'921'504'606'846'976
+	//const uint64_t UNIT_ZETTA    = UNIT_EXA  * 1024ll;   // 2^{70} -- too big for 64 bit 'long long int'!
+	
+	const uint64_t UNIT_KILO_SI  = 1000;                   // 10^{ 3}
+	const uint64_t UNIT_MEGA_SI  = UNIT_KILO_SI * 1000;    // 10^{ 6}
+	const uint64_t UNIT_GIGA_SI  = UNIT_MEGA_SI * 1000;    // 10^{ 9}
+	const uint64_t UNIT_TERA_SI  = UNIT_GIGA_SI * 1000ll;  // 10^{12}
+	const uint64_t UNIT_PETA_SI  = UNIT_TERA_SI * 1000ll;  // 10^{15}
+	const uint64_t UNIT_EXA_SI   = UNIT_PETA_SI * 1000ll;  // 10^{18}
+	//const uint64_t UNIT_ZETTA_SI = UNIT_EXA_SI  * 1000ll;// 10^{21} -- too big for 64 bit 'long long int'!
+
 // LogAssistant
 /**
  * This class provides infrastructure for logging. It separates the log messages in different levels:
@@ -136,6 +166,12 @@ class LogAssistant
 // returns singleton instance of LogAssistant
 inline LogAssistant& GetLogAssistant();
 
+/// returns number 'size' in a more human readable format (using IEC binary prefixes)
+inline std::string ConvertNumber (uint64_t size, unsigned int width, unsigned int numDisplayedDigits);
+
+/// returns number 'size' in a more human readable format (using SI prefixes)
+inline std::string ConvertNumberSI (uint64_t size, unsigned int width, unsigned int numDisplayedDigits);
+
 } // end namespace ug
 
 
@@ -242,7 +278,7 @@ inline LogAssistant& GetLogAssistant();
 	#define UG_LOG(msg) {if(pcl::IsOutputProc())\
 						{ug::GetLogAssistant().logger() << msg; VRL_LOG(msg);\
 						 ug::GetLogAssistant().logger().flush();}}
-	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc " << pcl::GetProcRank() << "]: "; \
+	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc " << std::setw(3) << pcl::GetProcRank() << "]: "; \
 						           ug::GetLogAssistant().logger() << msg;\
 						           VRL_LOG(msg);\
 						           ug::GetLogAssistant().logger().flush();}

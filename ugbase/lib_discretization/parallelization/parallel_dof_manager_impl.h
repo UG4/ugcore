@@ -400,7 +400,7 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
 	}
 
 //	global and local values
-	std::vector<int> tNumGlobal, tNumLocal;
+	std::vector<size_t> tNumGlobal, tNumLocal;
 
 //	write number of Masters on this process
 	tNumLocal.push_back(numMasterDoF);
@@ -431,8 +431,9 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
 		return;
 	}
 
-//	Total number of DoFs
-	UG_LOG(std::setw(10) << tNumGlobal[0] <<" | ");
+//	Total number of DoFs (last arg of 'ConvertNumber()' ("precision") is total
+//  width - 4 (two for binary prefix, two for space and decimal point)
+	UG_LOG(std::setw(10) << ConvertNumber(tNumGlobal[0],10,6) <<" | ");
 
 //	Overall block size
 	if(dd.blocksize() != -1){
@@ -448,7 +449,7 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
 		{
 			UG_LOG( " (" << dd.subset_name(si) << ",");
 			UG_LOG(dd.blocksize(si) <<",");
-			UG_LOG(std::setw(8) << tNumGlobal[si+1] << ") ");
+			UG_LOG(std::setw(8) << ConvertNumber(tNumGlobal[si+1],8,4) << ") ");
 		}
 	}
 }

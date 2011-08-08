@@ -250,7 +250,8 @@ MGDoFManager<TDoFDistribution>::
 print_statistic(const dof_distribution_type& dd, int verboseLev) const
 {
 //	Total number of DoFs
-	UG_LOG(std::setw(10) << dd.num_indices() <<" | ");
+	//UG_LOG(std::setw(10) << dd.num_indices() <<" | "); // orig
+	UG_LOG(std::setw(10) << ConvertNumber(dd.num_indices(),10,6) << " | ");
 
 //	Overall block size
 	if(dd.blocksize() != -1){
@@ -266,7 +267,9 @@ print_statistic(const dof_distribution_type& dd, int verboseLev) const
 		{
 			UG_LOG( " (" << dd.subset_name(si) << ",");
 			UG_LOG(dd.blocksize(si) <<",");
-			UG_LOG(std::setw(8) << dd.num_indices(si) << ") ");
+			//UG_LOG(std::setw(8) << dd.num_indices(si) << ") "); // orig
+			UG_LOG(std::setw(8) << ConvertNumber(dd.num_indices(si),8,4) << ") ");
+
 		}
 	}
 }
