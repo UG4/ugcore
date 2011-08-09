@@ -126,6 +126,11 @@ LocalShapeFunctionSetProvider()
 		clear_maps<ReferencePyramid>();
 		clear_maps<ReferenceHexahedron>();
 
+	//	clear created holder
+		get_dynamic_allocated_vector<1>().clear();
+		get_dynamic_allocated_vector<2>().clear();
+		get_dynamic_allocated_vector<3>().clear();
+
 	//	register all element types that allow higher orders
 		if(!init_standard_sets<ReferenceEdge>())
 			throw(UGFatalError("Cannot register standard Edge trial spaces."));
