@@ -8,7 +8,7 @@
 #include "convection_diffusion_common.h"
 #include "convection_diffusion_fv1.h"
 #include "convection_diffusion_fvho.h"
-#include "convection_diffusion_fe1.h"
+#include "convection_diffusion_fe.h"
 
 namespace ug{
 

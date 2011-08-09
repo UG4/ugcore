@@ -81,7 +81,7 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
-	elemDisc:set_disc_scheme("fv")
+	elemDisc:set_disc_scheme("fv1")
 	return elemDisc
 end
 

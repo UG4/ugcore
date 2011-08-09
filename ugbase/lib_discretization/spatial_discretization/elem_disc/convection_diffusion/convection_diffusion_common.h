@@ -119,7 +119,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 	}
 
 //	for fv only 1st order
-	if(m_discScheme == "fv" && vLfeID[0].order() != 1)
+	if(m_discScheme == "fv1" && vLfeID[0].order() != 1)
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
 				" FV Scheme only implemented for 1st order.\n");
@@ -165,7 +165,8 @@ template<typename TDomain>
 bool ConvectionDiffusionElemDisc<TDomain>::
 use_hanging() const
 {
-	if(m_discScheme == "fv") return true;
+	if(m_discScheme == "fv1") return true;
+	else if(m_discScheme == "fv") return false;
 	else if(m_discScheme == "fe") return false;
 	else throw(UGFatalError("Disc Scheme not recognized. Internal error."));
 }
@@ -179,11 +180,11 @@ set_disc_scheme(const char* c_scheme)
 
 //	check
 	if(scheme != std::string("fe") &&
-	   scheme != std::string("fv") &&
-	   scheme != std::string("fvho"))
+	   scheme != std::string("fv1") &&
+	   scheme != std::string("fv"))
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::set_disc_scheme':"
-				" Only 'fe' and 'fv' supported.\n");
+				" Only 'fe', 'fv' and 'fv1' supported.\n");
 	}
 
 //	remember
@@ -198,8 +199,8 @@ void ConvectionDiffusionElemDisc<TDomain>::
 set_assemble_funcs()
 {
 //	switch, which assemble functions to use; both supported.
-	if(m_discScheme == "fv") register_all_fv1_funcs(m_bNonRegularGrid);
-	else if(m_discScheme == "fvho") register_all_fvho_funcs(m_order);
+	if(m_discScheme == "fv1") register_all_fv1_funcs(m_bNonRegularGrid);
+	else if(m_discScheme == "fv") register_all_fvho_funcs(m_order);
 	else if(m_discScheme == "fe") register_all_fe_funcs(m_order);
 	else throw(UGFatalError("Disc Scheme not recognized. Internal error."));
 }

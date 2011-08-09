@@ -1,5 +1,5 @@
 /*
- * convection_diffusion_fe1.cpp
+ * convection_diffusion_fe.cpp
  *
  *  Created on: 02.08.2010
  *      Author: andreasvogel

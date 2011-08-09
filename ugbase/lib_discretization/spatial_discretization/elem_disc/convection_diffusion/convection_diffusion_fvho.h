@@ -287,7 +287,7 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 		//	loop integration points
 			for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 			{
-				number fluxIP;
+				number fluxIP = 0;
 
 			/////////////////////////////////////////////////////
 			// Diffusive Term
@@ -467,8 +467,20 @@ template<>
 void ConvectionDiffusionElemDisc<Domain1d>::
 register_all_fvho_funcs(int order)
 {
+	m_pFEQuadOrder = order;
+
 //	Edge
-	UG_LOG("NO Edge please.\n");
+	switch(order)
+	{
+/*		case 1:	{typedef FVGeometry<1, Edge, dim> FVGeom;
+				 register_fvho_func<Edge, FVGeom>(); break;}
+		case 2:	{typedef FVGeometry<2, Edge, dim> FVGeom;
+				 register_fvho_func<Edge, FVGeom>(); break;}
+		case 3:	{typedef FVGeometry<3, Edge, dim> FVGeom;
+				 register_fvho_func<Edge, FVGeom>(); break;}
+		default: {typedef DimFVGeometry<1, dim> FVGeom;
+		 	 	 register_fvho_func<Edge, FVGeom>(); break;}
+*/	}
 }
 
 // register for all dim

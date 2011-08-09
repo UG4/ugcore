@@ -312,7 +312,7 @@ else print("Dim not supported for upwind"); exit() end
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 if elemDisc:set_upwind(upwind) == false then exit() end
-elemDisc:set_disc_scheme("fv")
+elemDisc:set_disc_scheme("fv1")
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
