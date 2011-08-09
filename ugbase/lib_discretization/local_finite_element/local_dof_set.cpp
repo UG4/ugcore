@@ -10,53 +10,50 @@
 
 namespace ug{
 
-LocalDoFSetProvider::LocalDoFSetProvider()
+LocalDoFSetProvider::
+~LocalDoFSetProvider()
 {
-	static bool init = false;
+//	free all created sets
+	for(size_t i = 0; i < m_vCreated.size(); ++i)
+		delete m_vCreated[i];
+};
 
-	if(!init)
+template <typename TRefElem>
+void LocalDoFSetProvider::create_lagrange_set(size_t order)
+{
+//	create lagrange set
+	LagrangeLDS<TRefElem>* setLagrange = new LagrangeLDS<TRefElem>(order);
+
+//	remember created set for delete in destructor
+	m_vCreated.push_back(setLagrange);
+
+//	register the set
+	if(!register_set(LFEID(LFEID::LAGRANGE, order), *setLagrange))
+		throw(UGFatalError("Unable to register LagrangeLDS"));
+}
+
+void LocalDoFSetProvider::create_lagrange_sets(size_t order)
+{
+	create_lagrange_set<ReferenceVertex>(order);
+	create_lagrange_set<ReferenceEdge>(order);
+	create_lagrange_set<ReferenceTriangle>(order);
+	create_lagrange_set<ReferenceQuadrilateral>(order);
+	create_lagrange_set<ReferenceTetrahedron>(order);
+	create_lagrange_set<ReferencePyramid>(order);
+	create_lagrange_set<ReferencePrism>(order);
+	create_lagrange_set<ReferenceHexahedron>(order);
+}
+
+void LocalDoFSetProvider::create_set(const LFEID& id)
+{
+	if(id.type() == LFEID::LAGRANGE)
 	{
-	//	remember initialization
-		init = true;
-
-	//	register all element types that allow higher orders
-		if(!init_standard_sets<ReferenceVertex>())
-			throw(UGFatalError("Cannot register standard Edge local dof sets."));
-		if(!init_standard_sets<ReferenceEdge>())
-			throw(UGFatalError("Cannot register standard Edge local dof sets."));
-		if(!init_standard_sets<ReferenceTriangle>())
-			throw(UGFatalError("Cannot register standard Triangle local dof sets."));
-		if(!init_standard_sets<ReferenceQuadrilateral>())
-			throw(UGFatalError("Cannot register standard Quadrilateral local dof sets."));
-		if(!init_standard_sets<ReferenceTetrahedron>())
-			throw(UGFatalError("Cannot register standard Tetrahedron local dof sets."));
-		if(!init_standard_sets<ReferencePrism>())
-			throw(UGFatalError("Cannot register standard Prism local dof sets."));
-		if(!init_standard_sets<ReferenceHexahedron>())
-			throw(UGFatalError("Cannot register standard Hexahedron local dof sets."));
-		if(!init_standard_sets<ReferencePyramid>())
-			throw(UGFatalError("Cannot register standard Pyramid local dof sets."));
+		create_lagrange_sets(id.order());
 	}
 }
 
-template <typename TRefElem>
-bool LocalDoFSetProvider::init_standard_sets()
-{
-	static ILocalDoFSetWrapper<LagrangeLDS<TRefElem, 1> > sLagrangeP1;
-	if(!register_set(LFEID(LFEID::LAGRANGE, 1), sLagrangeP1)) return false;
 
-	static ILocalDoFSetWrapper<LagrangeLDS<TRefElem, 2> > sLagrangeP2;
-	if(!register_set(LFEID(LFEID::LAGRANGE, 2), sLagrangeP2)) return false;
-
-	static ILocalDoFSetWrapper<LagrangeLDS<TRefElem, 3> > sLagrangeP3;
-	if(!register_set(LFEID(LFEID::LAGRANGE, 3), sLagrangeP3)) return false;
-
-//	done
-	return true;
-}
-
-
-const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id)
+const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, bool bCreate)
 {
 //	init provider and search for identifier
 	RoidMap::const_iterator iter = inst().m_mRoidDoFSet.find(id);
@@ -64,6 +61,12 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id)
 //	if not found
 	if(iter == m_mRoidDoFSet.end())
 	{
+		if(bCreate)
+		{
+			create_set(id);
+			return get(roid, id, false);
+		}
+
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" requested.\n");
 		throw(UGFatalError("LocalDoFSet for Finite Element Space unknown"));
@@ -75,6 +78,12 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id)
 //	check that dof set registered
 	if(vBase[roid] == NULL)
 	{
+		if(bCreate)
+		{
+			create_set(id);
+			return get(roid, id, false);
+		}
+
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" requested for"
 				" Reference Element type " <<roid<<".\n");
@@ -85,7 +94,7 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id)
 	return *(vBase[roid]);
 }
 
-const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id)
+const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreate)
 {
 //	init provider and search for identifier
 	CommonMap::const_iterator iter = inst().m_mCommonDoFSet.find(id);
@@ -93,6 +102,12 @@ const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id)
 //	if not found
 	if(iter == m_mCommonDoFSet.end())
 	{
+		if(bCreate)
+		{
+			create_set(id);
+			return get(dim, id, false);
+		}
+
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" and dim "<<dim<<" requested.\n");
 		throw(UGFatalError("LocalDoFSet for Finite Element Space unknown"));
@@ -163,6 +178,9 @@ LocalDoFSetProvider::m_mRoidDoFSet = std::map<LFEID, std::vector<const ILocalDoF
 std::map<LFEID, std::vector<CommonLocalDoFSet> >
 LocalDoFSetProvider::m_mCommonDoFSet = std::map<LFEID, std::vector<CommonLocalDoFSet> >();
 
+std::vector<ILocalDoFSet*>
+LocalDoFSetProvider::m_vCreated = std::vector<ILocalDoFSet*>();
+
 ////////////////////////////////////////////////////////////////////////////////
 // 	CommonLocalDoFSet
 ////////////////////////////////////////////////////////////////////////////////
@@ -219,7 +237,7 @@ std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v)
 	{
 		ReferenceObjectID roid = (ReferenceObjectID) i;
 
-		out << roid << ": \t\t" << v.num_dof(roid) << "\n";
+		out << std::setw(14) << roid << ":   " << v.num_dof(roid) << "\n";
 	}
 	return out;
 }
@@ -231,7 +249,7 @@ std::ostream& operator<<(std::ostream& out,	const ILocalDoFSet& v)
 	{
 		ReferenceObjectID roid = (ReferenceObjectID) i;
 
-		out << roid << ": \t\t" << v.num_dof(roid) << "\n";
+		out << std::setw(14) << roid << ":   " << v.num_dof(roid) << "\n";
 	}
 	return out;
 }

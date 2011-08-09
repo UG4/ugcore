@@ -9,7 +9,6 @@
 #define __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE_LOCAL_DOF__
 
 #include "common/util/provider.h"
-#include "lagrange.h"
 #include "../local_dof_set.h"
 #include "lib_discretization/common/multi_index.h"
 
@@ -20,7 +19,7 @@ namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TRefElem>
-void SetLagrangeVertexLocalDoFs(LocalDoF* vLocalDoF,
+void SetLagrangeVertexLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
                                 const TRefElem& rRef,
                                 size_t p,
                                 size_t& index)
@@ -31,16 +30,13 @@ void SetLagrangeVertexLocalDoFs(LocalDoF* vLocalDoF,
 }
 
 template <typename TRefElem>
-void SetLagrangeEdgeLocalDoFs(LocalDoF* vLocalDoF,
+void SetLagrangeEdgeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
                               const TRefElem& rRef,
                               size_t p,
                               size_t& index)
 {
-//	dimension of Reference element
-	static const int dim = TRefElem::dim;
-
 //	only for 2d,3d elems we do something
-	if(dim < 1) return;
+	if(TRefElem::dim < 1) return;
 
 //	loop all edges
 	for(size_t e = 0; e< rRef.num(1); ++e)
@@ -55,16 +51,13 @@ void SetLagrangeEdgeLocalDoFs(LocalDoF* vLocalDoF,
 }
 
 template <typename TRefElem>
-void SetLagrangeFaceLocalDoFs(LocalDoF* vLocalDoF,
+void SetLagrangeFaceLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
                               const TRefElem& rRef,
                               size_t p,
                               size_t& index)
 {
-//	dimension of Reference element
-	static const int dim = TRefElem::dim;
-
 //	only for 2d,3d elems we do something
-	if(dim < 2) return;
+	if(TRefElem::dim < 2) return;
 
 //	add dof on quadrilateral
 	for(size_t f = 0; f< rRef.num(2); ++f)
@@ -90,22 +83,16 @@ void SetLagrangeFaceLocalDoFs(LocalDoF* vLocalDoF,
 }
 
 template <typename TRefElem>
-void SetLagrangeVolumeLocalDoFs(LocalDoF* vLocalDoF,
+void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
                                 const TRefElem& rRef,
                                 size_t p,
                                 size_t& index)
 {
-//	dimension of Reference element
-	static const int dim = TRefElem::dim;
-
 //	only for 3d elems we do something
-	if(dim < 3) return;
-
-//	get corner position integer
-//	const MathVector<dim,int>* vCo = rRef.corner();
+	if(TRefElem::dim < 3) return;
 
 //	get type of reference element
-	ReferenceObjectID type = rRef.ref_elem_type(dim, 0);
+	ReferenceObjectID type = TRefElem::REFERENCE_OBJECT_ID;
 
 //	handle elems
 	size_t cnt = 0;
@@ -158,7 +145,7 @@ void SetLagrangeVolumeLocalDoFs(LocalDoF* vLocalDoF,
 }
 
 template <typename TRefElem>
-void SetLagrangeLocalDoFs(	LocalDoF* vLocalDoF,
+void SetLagrangeLocalDoFs(	std::vector<LocalDoF>& vLocalDoF,
                           	const TRefElem& rRef,
                           	size_t p)
 {
@@ -176,6 +163,9 @@ void SetLagrangeLocalDoFs(	LocalDoF* vLocalDoF,
 
 //	volumes
 	SetLagrangeVolumeLocalDoFs(vLocalDoF, rRef, p, index);
+
+	UG_ASSERT(index == vLocalDoF.size(), "Wrong number of LocalDoFs ("<<index<<
+	         					") distributed, correct is "<<vLocalDoF.size());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -183,7 +173,7 @@ void SetLagrangeLocalDoFs(	LocalDoF* vLocalDoF,
 ///////////////////////////////////////////////////////////////////////////////
 
 /// Lagrange DoF Set
-template <typename TRefElem, int TOrder>
+template <typename TRefElem>
 struct LagrangeLDS{};
 
 
@@ -193,38 +183,36 @@ struct LagrangeLDS{};
 
 /// specialization for Edges
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferenceVertex, TOrder>
+class LagrangeLDS<ReferenceVertex>
+	: public ILocalDoFSet
 {
 	public:
-	///	number of shapes
-		static const size_t nsh = 1;
-
-	///	dimension of reference element
-		const static int Dim = 0;
-
-	///	order
-		static const size_t order = TOrder;
-
-	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferenceVertex>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, order);
+			p = order;
+			nsh = 1;
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceVertex>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferenceVertex::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferenceVertex::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferenceVertex::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX) return 1;
 			else return -1;
@@ -233,13 +221,13 @@ class LagrangeLDS<ReferenceVertex, TOrder>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferenceVertex>().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
-			if(d == 1) return 1;
+			if(d == 0) return 1;
 			else return 0;
 		}
 
@@ -247,11 +235,14 @@ class LagrangeLDS<ReferenceVertex, TOrder>
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	//	reference element
-		const ReferenceVertex& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -260,45 +251,36 @@ class LagrangeLDS<ReferenceVertex, TOrder>
 
 /// specialization for Edges
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferenceEdge, TOrder>
+class LagrangeLDS<ReferenceEdge>
+: public ILocalDoFSet
 {
-	protected:
-	///	corresponding local shape function set
-		typedef LagrangeLSFS<ReferenceEdge, TOrder> LSFS;
-
-	///	abbreviation for order
-		static const size_t p = TOrder;
-
-	public:
-	///	number of shapes
-		static const size_t nsh = LSFS::nsh;
-
-	///	dimension of reference element
-		const static int Dim = LSFS::dim;
-
-	///	order
-		static const size_t order = TOrder;
-
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferenceEdge>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
+			p = order;
+			nsh = p+1;
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceEdge>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferenceEdge::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferenceEdge::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferenceEdge::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
 				 if(type == ROID_VERTEX) return 1;
 			else if(type == ROID_EDGE) return p-1;
@@ -308,14 +290,14 @@ class LagrangeLDS<ReferenceEdge, TOrder>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferenceEdge>().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
-				 if(d == 1) return 1;
-			else if(d == 2) return p-1;
+				 if(d == 0) return 1;
+			else if(d == 1) return p-1;
 			else return 0;
 		}
 
@@ -323,11 +305,14 @@ class LagrangeLDS<ReferenceEdge, TOrder>
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	//	reference element
-		const ReferenceEdge& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 
@@ -337,65 +322,55 @@ class LagrangeLDS<ReferenceEdge, TOrder>
 
 /// specialization for Triangles
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferenceTriangle, TOrder>
+class LagrangeLDS<ReferenceTriangle>
+: public ILocalDoFSet
 {
-	protected:
-	///	corresponding local shape function set
-		typedef LagrangeLSFS<ReferenceTriangle, TOrder> LSFS;
-
-	///	abbreviation for order
-		static const size_t p = TOrder;
-
-	public:
-	///	number of shapes
-		static const size_t nsh = LSFS::nsh;
-
-	///	dimension of reference element
-		const static int Dim = LSFS::dim;
-
-	///	order
-		static const size_t order = TOrder;
-
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferenceTriangle>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
+			p = order;
+			nsh = BinomCoeff(2 + p, p);
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceTriangle>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferenceTriangle::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferenceTriangle::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferenceTriangle::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<Dim + p-3, p-3>::value) : 0);
+			if(type == ROID_VERTEX)   return 1;
+			if(type == ROID_EDGE) 	  return (p-1);
+			if(type == ROID_TRIANGLE) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 			else return -1;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferenceTriangle>().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
 			if(d==0) return 1;
 			if(d==1) return (p-1);
-			if(d==2) return ((p>2) ? (BinomialCoefficient<Dim + p-3, p-3>::value) : 0);
+			if(d==2) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 			else return 0;
 		}
 
@@ -403,11 +378,14 @@ class LagrangeLDS<ReferenceTriangle, TOrder>
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	///	reference element
-		const ReferenceTriangle& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 
@@ -417,54 +395,45 @@ class LagrangeLDS<ReferenceTriangle, TOrder>
 
 /// specialization for Quadrilateral
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferenceQuadrilateral, TOrder>
+class LagrangeLDS<ReferenceQuadrilateral>
+: public ILocalDoFSet
 {
-	protected:
-	///	corresponding local shape function set
-		typedef LagrangeLSFS<ReferenceQuadrilateral, TOrder> LSFS;
-
-	///	abbreviation for order
-		static const size_t p = TOrder;
-
-	public:
-	///	number of shapes
-		static const size_t nsh = LSFS::nsh;
-
-	///	dimension of reference element
-		const static int Dim = LSFS::dim;
-
-	///	order
-		static const size_t order = TOrder;
-
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferenceQuadrilateral>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
+			p = order;
+			nsh = (p+1)*(p+1);
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceQuadrilateral>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferenceQuadrilateral::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferenceQuadrilateral::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferenceQuadrilateral::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_VERTEX)		   return 1;
+			if(type == ROID_EDGE) 		   return (p-1);
 			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
 			else return -1;
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
 			if(d==0) return 1;
 			if(d==1) return (p-1);
@@ -475,18 +444,21 @@ class LagrangeLDS<ReferenceQuadrilateral, TOrder>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferenceQuadrilateral>().ref_elem_type(d, id));
 		}
 
 	///	returns the dof storage
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	//	reference element
-		const ReferenceQuadrilateral& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -495,71 +467,60 @@ class LagrangeLDS<ReferenceQuadrilateral, TOrder>
 
 /// specialization for Tetrahedron
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferenceTetrahedron, TOrder>
+class LagrangeLDS<ReferenceTetrahedron>
+: public ILocalDoFSet
 {
-	protected:
-	///	corresponding local shape function set
-		typedef LagrangeLSFS<ReferenceTetrahedron, TOrder> LSFS;
-
-	///	abbreviation for order
-		static const size_t p = TOrder;
-
-	public:
-	///	number of shapes
-		static const size_t nsh = LSFS::nsh;
-
-	///	dimension of reference element
-		const static int Dim = LSFS::dim;
-
-	///	order
-		static const size_t order = TOrder;
-
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferenceTetrahedron>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
+			p = order;
+			nsh = BinomCoeff(3 + p, p);
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceTetrahedron>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferenceTetrahedron::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferenceTetrahedron::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferenceTetrahedron::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<Dim-1 + p-3, p-3>::value) : 0);
-			if(type == ROID_TETRAHEDRON)
-				return ((p>3) ? (BinomialCoefficient<Dim + p-4, p-4>::value) : 0);
+			if(type == ROID_VERTEX)      return 1;
+			if(type == ROID_EDGE) 	     return (p-1);
+			if(type == ROID_TRIANGLE)    return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
+			if(type == ROID_TETRAHEDRON) return ((p>3) ? BinomCoeff(p-1, p-4) : 0);
 			else return -1;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferenceTetrahedron>().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
 			if(d==0) return 1;
 		//	number of shapes on edge is same as for edge with p-1
 			if(d==1) return (p-1);
 		//	number of shapes on faces is same as for triangles in 2d
-			if(d==2) return ((p>2) ? (BinomialCoefficient<Dim-1 + p-3, p-3>::value) : 0);
+			if(d==2) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 		//	number of shapes on interior is same as for tetrahedra with p-4
-			if(d==3) return ((p>3) ? (BinomialCoefficient<Dim + p-4, p-4>::value) : 0);
+			if(d==3) return ((p>3) ? BinomCoeff(p-1, p-4) : 0);
 			else return 0;
 		}
 
@@ -567,11 +528,14 @@ class LagrangeLDS<ReferenceTetrahedron, TOrder>
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	///	reference element
-		const ReferenceTetrahedron& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -580,68 +544,56 @@ class LagrangeLDS<ReferenceTetrahedron, TOrder>
 
 /// specialization for Prism
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferencePrism, TOrder>
+class LagrangeLDS<ReferencePrism>
+: public ILocalDoFSet
 {
-	protected:
-	///	corresponding local shape function set
-		typedef LagrangeLSFS<ReferencePrism, TOrder> LSFS;
-
-	///	abbreviation for order
-		static const size_t p = TOrder;
-
-	public:
-	///	number of shapes
-		static const size_t nsh = LSFS::nsh;
-
-	///	dimension of reference element
-		const static int Dim = LSFS::dim;
-
-	///	order
-		static const size_t order = TOrder;
-
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferencePrism>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
+			p = order;
+			nsh = BinomCoeff(2+p,p) * (p+1);
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferencePrism>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferencePrism::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferencePrism::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferencePrism::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_VERTEX)        return 1;
+			if(type == ROID_EDGE)          return (p-1);
 		//	same as for a 2d triangle of order p-3
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<Dim + p-3, p-3>::value) : 0);
+			if(type == ROID_TRIANGLE)      return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 		//	same as for a 2d quadrilateral of order p-2
-			if(type == ROID_QUADRILATERAL)
-				return ((p>1) ? ((p-1)*(p-1)) : 0);
+			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
 		//	same as for a 3d prism of order p-2
-			if(type == ROID_PRISM)
-				return ((p>2) ? (BinomialCoefficient<2 + p-3, p-3>::value)*(p-1) : 0);
+			if(type == ROID_PRISM)		   return ((p>2) ? BinomCoeff(p-1, p-3)*(p-1) : 0);
 			else return -1;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferencePrism>().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
 			if(d==0) return 1;
 			if(d==1) return (p-1);
@@ -654,81 +606,81 @@ class LagrangeLDS<ReferencePrism, TOrder>
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	///	reference element
-		const ReferencePrism& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // Pyramid
 ///////////////////////////////////////////////////////////////////////////////
 
+size_t GetNumberOfDoFsOfPyramid(int p)
+{
+	if(p <= 0) return 0;
+	if(p == 0) return 1;
+	if(p == 1) return 5;
+	else return GetNumberOfDoFsOfPyramid(p-1) + (p+1)*(p+1);
+}
+
+
 /// specialization for Pyramid
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferencePyramid, TOrder>
+class LagrangeLDS<ReferencePyramid>
+: public ILocalDoFSet
 {
-	protected:
-	///	corresponding local shape function set
-		typedef LagrangeLSFS<ReferencePyramid, TOrder> LSFS;
-
-	///	abbreviation for order
-		static const size_t p = TOrder;
-
-	public:
-	///	number of shapes
-		static const size_t nsh = LSFS::nsh;
-
-	///	dimension of reference element
-		const static int Dim = LSFS::dim;
-
-	///	order
-		static const size_t order = TOrder;
-
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferencePyramid>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
+			p = order;
+			nsh = GetNumberOfDoFsOfPyramid(p);
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferencePyramid>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferencePyramid::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferencePyramid::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferencePyramid::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_VERTEX)			return 1;
+			if(type == ROID_EDGE) 			return (p-1);
 		//	same as for a 2d triangle of order p-3
-			if(type == ROID_TRIANGLE)
-				return ((p>2) ? (BinomialCoefficient<Dim + p-3, p-3>::value) : 0);
+			if(type == ROID_TRIANGLE)   	return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 		//	same as for a 2d quadrilateral of order p-2
-			if(type == ROID_QUADRILATERAL)
-				return ((p>1) ? ((p-1)*(p-1)) : 0);
+			if(type == ROID_QUADRILATERAL)	return (p-1)*(p-1);
 		//	same as for a 3d pyramid of order p-2
-			if(type == ROID_PYRAMID)
-				return ((p>2) ? (NumberOfDoFsOfPyramid<p-2>::value) : 0);
+			if(type == ROID_PYRAMID)		return ((p>2) ? GetNumberOfDoFsOfPyramid(p-3) : 0);
 			else return -1;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferencePyramid>().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
 			if(d==0) return 1;
 			if(d==1) return (p-1);
@@ -741,11 +693,14 @@ class LagrangeLDS<ReferencePyramid, TOrder>
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	///	reference element
-		const ReferencePyramid& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 
@@ -755,61 +710,52 @@ class LagrangeLDS<ReferencePyramid, TOrder>
 
 /// specialization for Hexahedron
 template <>
-template <int TOrder>
-class LagrangeLDS<ReferenceHexahedron, TOrder>
+class LagrangeLDS<ReferenceHexahedron>
+: public ILocalDoFSet
 {
-	protected:
-	///	corresponding local shape function set
-		typedef LagrangeLSFS<ReferenceHexahedron, TOrder> LSFS;
-
-	///	abbreviation for order
-		static const size_t p = TOrder;
-
-	public:
-	///	number of shapes
-		static const size_t nsh = LSFS::nsh;
-
-	///	dimension of reference element
-		const static int Dim = LSFS::dim;
-
-	///	order
-		static const size_t order = TOrder;
-
 	public:
 	///	constructor
-		LagrangeLDS() : m_rRef(Provider::get<ReferenceHexahedron>())
+		LagrangeLDS() {set_order(1);}
+
+	///	constructor
+		LagrangeLDS(size_t order) {set_order(order);}
+
+	///	sets the order
+		void set_order(size_t order)
 		{
-		//	create LocalDoF vector
-			SetLagrangeLocalDoFs(m_vLocalDoF, m_rRef, p);
+			p = order;
+			nsh = (p+1)*(p+1)*(p+1);
+			m_vLocalDoF.resize(nsh);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceHexahedron>(), p);
 		}
 
 	///	returns the reference dimension
-		static int dim() {return Dim;}
+		int dim() const {return ReferenceHexahedron::dim;}
 
 	///	returns the type of reference element
-		static ReferenceObjectID roid() {return ReferenceHexahedron::REFERENCE_OBJECT_ID;}
+		ReferenceObjectID roid() const {return ReferenceHexahedron::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		static size_t num_dof() {return nsh;};
+		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		static int num_dof(ReferenceObjectID type)
+		int num_dof(ReferenceObjectID type) const
 		{
-			if(type == ROID_VERTEX) return 1;
-			if(type == ROID_EDGE) return (p-1);
+			if(type == ROID_VERTEX)		   return 1;
+			if(type == ROID_EDGE) 	 	   return (p-1);
 			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
-			if(type == ROID_HEXAHEDRON) return (p-1)*(p-1)*(p-1);
+			if(type == ROID_HEXAHEDRON)    return (p-1)*(p-1)*(p-1);
 			else return -1;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(m_rRef.ref_elem_type(d, id));
+			return num_dof(Provider::get<ReferenceHexahedron>().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
-		static size_t max_num_dof(int d)
+		size_t max_num_dof(int d) const
 		{
 			if(d==0) return 1;
 			if(d==1) return (p-1);
@@ -822,11 +768,14 @@ class LagrangeLDS<ReferenceHexahedron, TOrder>
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	protected:
-	///	association to elements
-		LocalDoF m_vLocalDoF[nsh];
+	///	number of shapes
+		size_t nsh;
 
-	///	reference element
-		const ReferenceHexahedron& m_rRef;
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
 };
 
 } //namespace ug

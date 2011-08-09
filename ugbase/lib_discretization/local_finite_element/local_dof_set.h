@@ -113,34 +113,6 @@ class ILocalDoFSet
 /// writes to the output stream
 std::ostream& operator<<(std::ostream& out,	const ILocalDoFSet& v);
 
-template <typename TImpl>
-class ILocalDoFSetWrapper
- : public ILocalDoFSet, public TImpl
-{
-	public:
-	///	returns the reference dimension
-		virtual int dim() const {return TImpl::dim();}
-
-	///	returns the Reference object id of the corresponding grid object
-		virtual ReferenceObjectID roid() const {return TImpl::roid();}
-
-	///	returns the total number of dofs on the finite element
-		virtual size_t num_dof() const {return TImpl::num_dof();}
-
-	///	returns the number of DoFs on a sub-geometric object type
-		virtual int num_dof(ReferenceObjectID type) const {return TImpl::num_dof(type);}
-
-	///	returns the number of DoFs on a sub-geometric object of dim and id
-		virtual size_t num_dof(int d, size_t id) const {return TImpl::num_dof(d,id);}
-
-	///	returns maximum number of DoFs that are associated with objects of the dimension
-		virtual size_t max_num_dof(int d) const {return TImpl::max_num_dof(d);}
-
-	///	returns the DoFs storage
-		virtual const LocalDoF& local_dof(size_t dof) const {return TImpl::local_dof(dof);}
-};
-
-
 /**
  * Intersection of local dof sets
  */
@@ -183,14 +155,14 @@ std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v);
 class LocalDoFSetProvider {
 	private:
 	// 	disallow private constructor
-		LocalDoFSetProvider();
+		LocalDoFSetProvider(){};
 
 	// disallow copy and assignment (intentionally left unimplemented)
 		LocalDoFSetProvider(const LocalDoFSetProvider&);
 		LocalDoFSetProvider& operator=(const LocalDoFSetProvider&);
 
 	// 	private destructor
-		~LocalDoFSetProvider(){};
+		~LocalDoFSetProvider();
 
 	// 	Singleton provider
 		static LocalDoFSetProvider& inst()
@@ -200,15 +172,24 @@ class LocalDoFSetProvider {
 		};
 
 	private:
-	// 	initialize the standard dof sets (called during construction)
+	//	creation of lagrange set for a reference element
 		template <typename TRefElem>
-		bool init_standard_sets();
+		static void create_lagrange_set(size_t order);
+
+	//	creation of lagrange set for all reference element
+		static void create_lagrange_sets(size_t order);
+
+	// 	creation of set
+		static void create_set(const LFEID& id);
 
 	//	type of map holding dof sets for a reference object id
 		typedef std::map<LFEID, std::vector<const ILocalDoFSet*> > RoidMap;
 
 	//	map holding dof sets for a reference object id
 		static RoidMap m_mRoidDoFSet;
+
+	//	vector holding all created dof sets
+		static std::vector<ILocalDoFSet*> m_vCreated;
 
 	//	type of map holding common dof set for roid of same dimension
 		typedef std::map<LFEID, std::vector<CommonLocalDoFSet> > CommonMap;
@@ -237,10 +218,10 @@ class LocalDoFSetProvider {
 		static bool unregister_set(LFEID id);
 
 	///	returns the common dof set for all reference objects of a dimension
-		static const CommonLocalDoFSet& get(int dim, LFEID id);
+		static const CommonLocalDoFSet& get(int dim, LFEID id, bool bCreate = true);
 
 	///	returns the local DoF set base for an id
-		static const ILocalDoFSet& get(ReferenceObjectID type, LFEID id);
+		static const ILocalDoFSet& get(ReferenceObjectID type, LFEID id, bool bCreate = true);
 };
 
 
