@@ -91,7 +91,7 @@ class DomainDiscretization :
 		                     const dof_distribution_type& dd);
 
 		bool assemble_linear(matrix_type& A, vector_type& b, const vector_type& u)
-			{return assemble_linear(A, b, get_surface_dd());}
+			{return assemble_linear(A, b, u, get_surface_dd());}
 
 	/// \copydoc IAssemble::assemble_solution()
 		bool assemble_solution(vector_type& u,
