@@ -11,8 +11,8 @@ ug_load_script("ug_util.lua")
 dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
-	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 end
 if dim == 3 then
 	--gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_hex_1x1x1.ugx")
@@ -86,18 +86,10 @@ exactSolution = util.CreateLuaUserNumber("ExactSolution"..dim.."d", dim)
 --------------------------------------------------------------------------------
 
 -- Select upwind
-if dim == 2 then 
---upwind = NoUpwind2d()
---upwind = FullUpwind2d()
-upwind = WeightedUpwind2d(); upwind:set_weight(0.0)
---upwind = PartialUpwind2d()
-elseif dim == 3 then 
---upwind = NoUpwind3d()
---upwind = FullUpwind3d()
-upwind = WeightedUpwind3d(); upwind:set_weight(0.0)
---upwind = PartialUpwind3d()
-else print("Dim not supported for upwind"); exit() end
-
+--upwind = NoUpwind()
+--upwind = FullUpwind()
+upwind = WeightedUpwind(); upwind:set_weight(0.0)
+--upwind = PartialUpwind()
 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 if elemDisc:set_upwind(upwind) == false then exit() end
