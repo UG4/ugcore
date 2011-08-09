@@ -1046,7 +1046,8 @@ adjust_linear(const std::vector<TUserData>& vUserData, int si,
 		//	get multi indices
 			dd.inner_multi_indices(elem, fct, multInd);
 
-			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+			UG_ASSERT(multInd.size() == vPos.size(),
+			          "Mismatch: numInd="<<multInd.size()<<", numPos="<<vPos.size());
 
 		//	loop dofs on element
 			for(size_t j = 0; j < vPos.size(); ++j)
