@@ -172,6 +172,8 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						"", "Post Process")
 			.add_method("add|interactive=false", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
 						"", "Discretization")
+			.add_method("assemble_linear", static_cast<bool (T::*)(matrix_type&, vector_type&, const vector_type&)>(&T::assemble_linear))
+			.add_method("assemble_solution", static_cast<bool (T::*)(vector_type&)>(&T::assemble_solution))
 			.add_method("assemble_mass_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&, const dof_distribution_type&)>(&T::assemble_mass_matrix))
 			.add_method("assemble_mass_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&)>(&T::assemble_mass_matrix))
 			.add_method("assemble_stiffness_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&, const dof_distribution_type&)>(&T::assemble_stiffness_matrix))
