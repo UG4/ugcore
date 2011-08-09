@@ -49,14 +49,25 @@ void AveragePositions(TPosition& vOut, const TPosition* vCornerCoords, size_t nu
 /// Traits for Finite Volumes (dummy implementation)
 template <typename TRefElem, int TWorldDim> struct fv1_traits
 {
+//	maximum for dimension
+	static const size_t maxNumSCVF;
+	static const size_t maxNumSCV;
+	static const size_t maxNSH;
+
+//	number of corners of scvf
 	const static size_t NumCornersOfSCVF;
+
+//	maximum of corners of scv
 	const static size_t MaxNumCornersOfSCV;
 
+//	computes the normal to a scvf
 	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal,
 	                         const MathVector<TWorldDim>* vSCVFCorner,
 	                         const MathVector<TWorldDim>* vElemCorner);
 
+//	types of scv and scvf
 	typedef void scv_type;
+	typedef void scvf_type;
 };
 
 /////////////////////////
@@ -65,8 +76,13 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 
 struct fv1_traits_ReferenceEdge
 {
+	static const size_t maxNumSCVF = 1;
+	static const size_t maxNumSCV = 2;
+	static const size_t maxNSH = maxNumSCV;
+
 	const static size_t NumCornersOfSCVF = 1;
 	const static size_t MaxNumCornersOfSCV = 2;
+
 	typedef ReferenceEdge scv_type;
 	typedef ReferenceVertex scvf_type;
 };
@@ -101,6 +117,10 @@ template <> struct fv1_traits<ReferenceEdge, 3> : public fv1_traits_ReferenceEdg
 
 struct fv1_traits_ReferenceFace
 {
+	static const size_t maxNumSCVF = 4;
+	static const size_t maxNumSCV = 4;
+	static const size_t maxNSH = maxNumSCV;
+
 	const static size_t NumCornersOfSCVF = 2;
 	const static size_t MaxNumCornersOfSCV = 4;
 	typedef ReferenceQuadrilateral scv_type;
@@ -135,7 +155,13 @@ template <> struct fv1_traits<ReferenceQuadrilateral, 3> : public fv1_traits_Ref
 
 struct fv1_traits_ReferenceVolume
 {
+	static const size_t maxNumSCVF = 12;
+	static const size_t maxNumSCV = 8;
+	static const size_t maxNSH = maxNumSCV;
+
 	const static size_t NumCornersOfSCVF = 4;
+	const static size_t MaxNumCornersOfSCV = 10;
+
 	typedef ReferenceHexahedron scv_type;
 	typedef ReferenceQuadrilateral scvf_type;
 
@@ -148,7 +174,6 @@ struct fv1_traits_ReferenceVolume
 template <> struct fv1_traits<ReferenceTetrahedron, 3> : public fv1_traits_ReferenceVolume
 {
 	const static size_t MaxNumCornersOfSCV = 8;
-
 };
 
 template <> struct fv1_traits<ReferencePrism, 3> : public fv1_traits_ReferenceVolume
@@ -171,78 +196,16 @@ template <> struct fv1_traits<ReferenceHexahedron, 3> : public fv1_traits_Refere
 ////////////////////////////////////////////////////////////////////////////////
 
 ///	Traits for Finite Volumes in a dimension
-template <int TDim, int TWorldDim> struct fv1_dim_traits
-{
-//	inherited from fv1_traits
-	const static size_t NumCornersOfSCVF;
-	const static size_t MaxNumCornersOfSCV;
-	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal,
-	                         const MathVector<TWorldDim>* vSCVFCorner,
-	                         const MathVector<TWorldDim>* vElemCorner);
-	typedef void scv_type;
+template <int TDim, int TWorldDim> struct fv1_dim_traits;
 
-//	defined only for dimension
-	static const size_t maxNumSCVF;
-	static const size_t maxNumSCV;
-	static const size_t maxNSH;
+template <> struct fv1_dim_traits<1, 1> : public fv1_traits<ReferenceEdge, 1> {};
+template <> struct fv1_dim_traits<1, 2> : public fv1_traits<ReferenceEdge, 2> {};
+template <> struct fv1_dim_traits<1, 3> : public fv1_traits<ReferenceEdge, 3> {};
 
-};
+template <> struct fv1_dim_traits<2, 2> : public fv1_traits_ReferenceFace2d {};
+template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d {};
 
-/////////////////////////
-// 1D
-/////////////////////////
-
-struct fv1_dim_traits_ReferenceEdge
-{
-	static const size_t maxNumSCVF = 1;
-	static const size_t maxNumSCV = 2;
-	static const size_t maxNSH = maxNumSCV;
-};
-
-template <> struct fv1_dim_traits<1, 1>
-	: public fv1_traits<ReferenceEdge, 1>, public fv1_dim_traits_ReferenceEdge {};
-
-template <> struct fv1_dim_traits<1, 2>
-	: public fv1_traits<ReferenceEdge, 2>, public fv1_dim_traits_ReferenceEdge {};
-
-template <> struct fv1_dim_traits<1, 3>
- 	: public fv1_traits<ReferenceEdge, 3>, public fv1_dim_traits_ReferenceEdge {};
-
-/////////////////////////
-// 2D
-/////////////////////////
-
-struct fv1_dim_traits_ReferenceFace
-{
-	static const size_t maxNumSCVF = 4;
-	static const size_t maxNumSCV = 4;
-	static const size_t maxNSH = maxNumSCV;
-};
-
-template <> struct fv1_dim_traits<2, 2>
-	: public fv1_traits_ReferenceFace2d, public fv1_dim_traits_ReferenceFace {};
-
-template <> struct fv1_dim_traits<2, 3>
-	: public fv1_traits_ReferenceFace3d, public fv1_dim_traits_ReferenceFace {};
-
-/////////////////////////
-// 3D
-/////////////////////////
-
-struct fv1_dim_traits_ReferenceVolume
-{
-	static const size_t maxNumSCVF = 12;
-	static const size_t maxNumSCV = 8;
-	static const size_t maxNSH = maxNumSCV;
-};
-
-
-template <> struct fv1_dim_traits<3, 3>
-	: public fv1_traits_ReferenceVolume, public fv1_dim_traits_ReferenceVolume
-{
-	const static size_t MaxNumCornersOfSCV = 10;
-};
-
+template <> struct fv1_dim_traits<3, 3>	: public fv1_traits_ReferenceVolume {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Hanging Finite Volume Traits

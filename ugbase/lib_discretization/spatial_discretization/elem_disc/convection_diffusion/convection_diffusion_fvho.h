@@ -476,7 +476,8 @@ register_all_fvho_funcs(int order)
 				 register_fvho_func<Triangle, FVGeom>(); break;}
 		case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
 				 register_fvho_func<Triangle, FVGeom>(); break;}
-		default: UG_LOG("NO Triangle please.\n"); break;
+		default: {typedef DimFVGeometry<2, dim> FVGeom;
+		 	 	 register_fvho_func<Triangle, FVGeom>(); break;}
 	}
 
 //	Quadrilateral
@@ -487,7 +488,8 @@ register_all_fvho_funcs(int order)
 				 register_fvho_func<Quadrilateral, FVGeom>(); break;}
 		case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
 				 register_fvho_func<Quadrilateral, FVGeom>(); break;}
-		default: UG_LOG("NO Quadrilateral please.\n"); break;
+		default: {typedef DimFVGeometry<2, dim> FVGeom;
+				  register_fvho_func<Quadrilateral, FVGeom>(); break;}
 	}
 }
 

@@ -53,7 +53,7 @@ class FEGeometry
 				for(size_t sh = 0; sh < nsh; ++sh)
 				{
 					m_vvShape[ip][sh] = m_rTrialSpace.shape(sh, m_rQuadRule.point(ip));
-					m_vvGradLocal[ip][sh] = m_rTrialSpace.grad(sh, m_rQuadRule.point(ip));
+					m_rTrialSpace.grad(m_vvGradLocal[ip][sh], sh, m_rQuadRule.point(ip));
 				}
 		}
 

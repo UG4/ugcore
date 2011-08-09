@@ -79,40 +79,46 @@ template <	typename TElem, int TWorldDim>
 class FV1Geometry : public FVGeometryBase
 {
 	public:
-	// 	type of element
+	///	type of element
 		typedef TElem elem_type;
 
-	// 	type of reference element
+	///	type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
-	public:
-	// 	order
-		static const int order = 1;
-
-	// 	number of SubControlVolumes
-		static const size_t numSCV = ref_elem_type::num_corners;
-
-	// 	type of SubControlVolume
-		typedef typename fv1_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
-
-	// 	number of SubControlVolumeFaces
-		static const size_t numSCVF = ref_elem_type::num_edges;
-
-	//	type of Shape function used
-		typedef LagrangeP1<ref_elem_type, 1> local_shape_fct_set_type;
-
-	//	number of shape functions
-		static const size_t nsh = local_shape_fct_set_type::nsh;
+	///	used traits
+		typedef fv1_traits<ref_elem_type, TWorldDim> traits;
 
 	public:
-	// 	dimension of reference element
+	///	dimension of reference element
 		static const int dim = ref_elem_type::dim;
 
-	// 	dimension of world
+	///	dimension of world
 		static const int worldDim = TWorldDim;
 
-	// 	Hanging node flag: this Geometry does not support hanging nodes
+	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
+
+	public:
+	///	order
+		static const int order = 1;
+
+	///	number of SubControlVolumes
+		static const size_t numSCV = ref_elem_type::num_corners;
+
+	///	type of SubControlVolume
+		typedef typename traits::scv_type scv_type;
+
+	///	number of SubControlVolumeFaces
+		static const size_t numSCVF = ref_elem_type::num_edges;
+
+	///	type of Shape function used
+		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
+
+	///	number of shape functions
+		static const size_t nsh = local_shape_fct_set_type::nsh;
+
+	/// number of integration points
+		static const size_t nip = 1;
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -128,37 +134,29 @@ class FV1Geometry : public FVGeometryBase
 		class SCVF
 		{
 			public:
-			///	Number of integration points
-				static const size_t numIP = 1;
-
 			///	Number of corners of scvf
-				static const size_t numCorners =
-						fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
-
-			private:
-			// 	let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
+				static const size_t numCo =	traits::NumCornersOfSCVF;
 
 			public:
 				SCVF() {}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t from() const {return m_from;}
+				inline size_t from() const {return From;}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t to() const {return m_to;}
+				inline size_t to() const {return To;}
+
+			/// normal on scvf (points direction "from"->"to"). Norm is equal to area
+				inline const MathVector<worldDim>& normal() const {return Normal;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip() const {return localIP;}
 
 			/// global integration point of scvf
 				inline const MathVector<worldDim>& global_ip() const {return globalIP;}
-
-			/// normal on scvf (points direction "from"->"to"). Norm is equal to area
-				inline const MathVector<worldDim>& normal() const {return Normal;}
 
 			/// Transposed Inverse of Jacobian in integration point
 				inline const MathMatrix<worldDim,dim>& JTInv() const {return JtInv;}
@@ -177,20 +175,20 @@ class FV1Geometry : public FVGeometryBase
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return localGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vLocalGrad[sh];}
 
 			/// vector of local gradients in ip point
-				inline const MathVector<dim>* local_grad_vector() const {return localGrad;}
+				inline const MathVector<dim>* local_grad_vector() const {return vLocalGrad;}
 
 			/// value of global gradient of shape function i in integration point
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return globalGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
 			/// vector of gloabl gradients in ip point
-				inline const MathVector<worldDim>* global_grad_vector() const {return globalGrad;}
+				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -201,9 +199,12 @@ class FV1Geometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
+			// 	let outer class access private members
+				friend class FV1Geometry<TElem, TWorldDim>;
+
 			// This scvf separates the scv with the ids given in "from" and "to"
 			// The computed normal points in direction from->to
-				size_t m_from, m_to;
+				size_t From, To;
 
 			//	The normal on the SCVF pointing (from -> to)
 				MathVector<worldDim> Normal; // normal (incl. area)
@@ -212,9 +213,9 @@ class FV1Geometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> vLocPos[numCorners]; // local corners of scvf
-				MathVector<worldDim> vGloPos[numCorners]; // global corners of scvf
-				MidID midId[numCorners]; // dimension and id of object, that's midpoint bounds the scvf
+				MathVector<dim> vLocPos[numCo]; // local corners of scvf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of scvf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scvf
 
 			// scvf part
 				MathVector<dim> localIP; // local integration point
@@ -222,8 +223,8 @@ class FV1Geometry : public FVGeometryBase
 
 			// shapes and derivatives
 				number vShape[nsh]; // shapes at ip
-				MathVector<dim> localGrad[nsh]; // local grad at ip
-				MathVector<worldDim> globalGrad[nsh]; // global grad at ip
+				MathVector<dim> vLocalGrad[nsh]; // local grad at ip
+				MathVector<worldDim> vGlobalGrad[nsh]; // global grad at ip
 				MathMatrix<worldDim,dim> JtInv; // Jacobian transposed at ip
 				number detj; // Jacobian det at ip
 		};
@@ -232,25 +233,17 @@ class FV1Geometry : public FVGeometryBase
 		class SCV
 		{
 			public:
-			/// Number of integration points
-				static const size_t numIP = 1;
-
 			/// Number of corners of scvf
-				static const size_t maxNumCorners =
-						fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
-
-			private:
-			// 	let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
+				static const size_t maxNumCo = traits::MaxNumCornersOfSCV;
 
 			public:
-				SCV() : m_numCorners(maxNumCorners) {};
+				SCV() : numCo(maxNumCo) {};
 
 			/// volume of scv
-				inline number volume() const {return vol;}
+				inline number volume() const {return Vol;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -264,7 +257,7 @@ class FV1Geometry : public FVGeometryBase
 				inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			/// local integration point of scv
 				inline const MathVector<dim>& local_ip() const {return vLocPos[0];}
@@ -289,37 +282,40 @@ class FV1Geometry : public FVGeometryBase
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return localGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vLocalGrad[sh];}
 
 			/// vector of local gradients in ip point
-				inline const MathVector<dim>* local_grad_vector() const {return localGrad;}
+				inline const MathVector<dim>* local_grad_vector() const {return vLocalGrad;}
 
 			/// value of global gradient of shape function i in integration point
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return globalGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
 			/// vector of gloabl gradients in ip point
-				inline const MathVector<worldDim>* global_grad_vector() const {return globalGrad;}
+				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			private:
+			// 	let outer class access private members
+				friend class FV1Geometry<TElem, TWorldDim>;
+
 			//  node id of associated node
 				size_t nodeId;
 
 			//	volume of scv
-				number vol;
+				number Vol;
 
 			//	number of corners of this element
-				size_t m_numCorners;
+				size_t numCo;
 
 			//	local and global positions of this element
-				MathVector<dim> vLocPos[maxNumCorners]; // local position of node
-				MathVector<worldDim> vGloPos[maxNumCorners]; // global position of node
-				MidID midId[maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> vLocPos[maxNumCo]; // local position of node
+				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
+				MidID midId[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
 
 			// shapes and derivatives
 				number vShape[nsh]; // shapes at ip
-				MathVector<dim> localGrad[nsh]; // local grad at ip
-				MathVector<worldDim> globalGrad[nsh]; // global grad at ip
+				MathVector<dim> vLocalGrad[nsh]; // local grad at ip
+				MathVector<worldDim> vGlobalGrad[nsh]; // global grad at ip
 				MathMatrix<worldDim,dim> JtInv; // Jacobian transposed at ip
 				number detj; // Jacobian det at ip
 		};
@@ -328,25 +324,17 @@ class FV1Geometry : public FVGeometryBase
 		class BF
 		{
 			public:
-			/// number of integration points
-				static const size_t m_numIP = 1;
-
 			/// Number of corners of bf
-				static const size_t m_numCorners =
-						fv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
-
-			private:
-			/// let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
+				static const size_t numCo =	traits::NumCornersOfSCVF;
 
 			public:
 				BF() {}
 
 			/// index of SubControlVolume of the bf
-				inline size_t node_id() const {return m_nodeId;}
+				inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points on bf
-				inline size_t num_ip() const {return m_numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			/// local integration point of bf
 				inline const MathVector<dim>& local_ip() const {return localIP;}
@@ -358,7 +346,7 @@ class FV1Geometry : public FVGeometryBase
 				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
 
 			/// volume of bf
-				inline number volume() const {return m_volume;}
+				inline number volume() const {return Vol;}
 
 			/// Transposed Inverse of Jacobian in integration point
 				inline const MathMatrix<worldDim, dim>& JTInv() const {return JtInv;}
@@ -378,20 +366,20 @@ class FV1Geometry : public FVGeometryBase
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return localGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vLocalGrad[sh];}
 
 			/// vector of local gradients in ip point
-				inline const MathVector<dim>* local_grad_vector() const {return localGrad;}
+				inline const MathVector<dim>* local_grad_vector() const {return vLocalGrad;}
 
 			/// value of global gradient of shape function i in integration point
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return globalGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
 			/// vector of global gradients in ip point
-				inline const MathVector<worldDim>* global_grad_vector() const {return globalGrad;}
+				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -402,27 +390,30 @@ class FV1Geometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
+			/// let outer class access private members
+				friend class FV1Geometry<TElem, TWorldDim>;
+
 			// 	id of scv this bf belongs to
-				size_t m_nodeId;
+				size_t nodeId;
 
 			// ordering is:
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> vLocPos[m_numCorners]; // local corners of bf
-				MathVector<worldDim> vGloPos[m_numCorners]; // global corners of bf
-				MidID midId[m_numCorners]; // dimension and id of object, that's midpoint bounds the bf
+				MathVector<dim> vLocPos[numCo]; // local corners of bf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of bf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the bf
 
 			// 	scvf part
 				MathVector<dim> localIP; // local integration point
 				MathVector<worldDim> globalIP; // global intergration point
 				MathVector<worldDim> Normal; // normal (incl. area)
-				number m_volume; // volume of bf
+				number Vol; // volume of bf
 
 			// 	shapes and derivatives
 				number vShape[nsh]; // shapes at ip
-				MathVector<dim> localGrad[nsh]; // local grad at ip
-				MathVector<worldDim> globalGrad[nsh]; // global grad at ip
+				MathVector<dim> vLocalGrad[nsh]; // local grad at ip
+				MathVector<worldDim> vGlobalGrad[nsh]; // global grad at ip
 				MathMatrix<worldDim,dim> JtInv; // Jacobian transposed at ip
 				number detj; // Jacobian det at ip
 		};
@@ -438,8 +429,13 @@ class FV1Geometry : public FVGeometryBase
 		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
+	/// update boundary data for given element
+		bool update_boundary_faces(TElem* elem,
+		                           const MathVector<worldDim>* vCornerCoords,
+		                           const ISubsetHandler* ish = NULL);
+
 	/// get vector of corners for current element
-		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
+		const MathVector<worldDim>* corners() const {return m_vvGloMid[0];}
 
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return numSCVF;};
@@ -469,10 +465,10 @@ class FV1Geometry : public FVGeometryBase
 		size_t num_scv_ips() const {return numSCV;}
 
 	/// returns all ips of scv as they appear in scv loop
-		const MathVector<dim>* scv_local_ips() const {return &(m_locMid[0][0]);}
+		const MathVector<dim>* scv_local_ips() const {return &(m_vvLocMid[0][0]);}
 
 	/// returns all ips of scv as they appear in scv loop
-		const MathVector<worldDim>* scv_global_ips() const {return &(m_gloMid[0][0]);}
+		const MathVector<worldDim>* scv_global_ips() const {return &(m_vvGloMid[0][0]);}
 
 
 	protected:
@@ -536,22 +532,28 @@ class FV1Geometry : public FVGeometryBase
 	///	pointer to current element
 		TElem* m_pElem;
 
-	// 	local and global geom object midpoints for each dimension
+	///	max number of geom objects in all dimensions
 	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-		MathVector<dim> m_locMid[dim+1][numSCVF + 1];
-		MathVector<worldDim> m_gloMid[dim+1][numSCVF +1];
+		static const int maxMid = numSCVF + 1;
 
-	// 	SubControlVolumeFaces
+	///	local and global geom object midpoints for each dimension
+		MathVector<dim> m_vvLocMid[dim+1][maxMid];
+		MathVector<worldDim> m_vvGloMid[dim+1][maxMid];
+
+	///	SubControlVolumeFaces
 		SCVF m_vSCVF[numSCVF];
 
-	// 	SubControlVolumes
+	///	SubControlVolumes
 		SCV m_vSCV[numSCV];
 
-	// 	Reference Mapping
-		ReferenceMapping<ref_elem_type, worldDim> m_rMapping;
+	///	Reference Mapping
+		ReferenceMapping<ref_elem_type, worldDim> m_mapping;
 
-	// 	Reference Element
+	///	Reference Element
 		const ref_elem_type& m_rRefElem;
+
+	///	Shape function set
+		const local_shape_fct_set_type& m_rTrialSpace;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -569,30 +571,37 @@ template <int TDim, int TWorldDim = TDim>
 class DimFV1Geometry : public FVGeometryBase
 {
 	public:
-	// 	dimension of reference element
+	///	used traits
+		typedef fv1_dim_traits<TDim, TWorldDim> traits;
+
+	public:
+	///	dimension of reference element
 		static const int dim = TDim;
 
-	// 	dimension of world
+	///	dimension of world
 		static const int worldDim = TWorldDim;
 
-	// 	Hanging node flag: this Geometry does not support hanging nodes
+	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
 
 	public:
-	// 	order
+	///	order
 		static const int order = 1;
 
-	// 	number of SubControlVolumes
-		static const size_t maxNumSCV = fv1_dim_traits<dim, worldDim>::maxNumSCV;
+	///	number of SubControlVolumes
+		static const size_t maxNumSCV = traits::maxNumSCV;
 
-	// 	type of SubControlVolume
-		typedef typename fv1_dim_traits<dim, worldDim>::scv_type scv_type;
+	///	type of SubControlVolume
+		typedef typename traits::scv_type scv_type;
 
-	// 	number of SubControlVolumeFaces
-		static const size_t maxNumSCVF = fv1_dim_traits<dim, worldDim>::maxNumSCVF;
+	///	max number of SubControlVolumeFaces
+		static const size_t maxNumSCVF = traits::maxNumSCVF;
 
-	//	number of shape functions
-		static const size_t maxNSH = fv1_dim_traits<dim, worldDim>::maxNSH;
+	/// max number of shape functions
+		static const size_t maxNSH = traits::maxNSH;
+
+	/// number of integration points
+		static const size_t nip = 1;
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -608,27 +617,20 @@ class DimFV1Geometry : public FVGeometryBase
 		class SCVF
 		{
 			public:
-			///	Number of integration points
-				static const size_t numIP = 1;
-
 			///	Number of corners of scvf
-				static const size_t numCorners = fv1_dim_traits<dim, worldDim>::NumCornersOfSCVF;
-
-			private:
-			// 	let outer class access private members
-				friend class DimFV1Geometry<dim, worldDim>;
+				static const size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
 				SCVF() {}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t from() const {return m_from;}
+				inline size_t from() const {return From;}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t to() const {return m_to;}
+				inline size_t to() const {return To;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip() const {return localIP;}
@@ -646,7 +648,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline number detJ() const {return detj;}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return m_numSH;}
+				inline size_t num_sh() const {return numSH;}
 
 			/// value of shape function i in integration point
 				inline number shape(size_t sh) const {return vShape[sh];}
@@ -656,20 +658,20 @@ class DimFV1Geometry : public FVGeometryBase
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return localGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vLocalGrad[sh];}
 
 			/// vector of local gradients in ip point
-				inline const MathVector<dim>* local_grad_vector() const {return localGrad;}
+				inline const MathVector<dim>* local_grad_vector() const {return vLocalGrad;}
 
 			/// value of global gradient of shape function i in integration point
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return globalGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
 			/// vector of gloabl gradients in ip point
-				inline const MathVector<worldDim>* global_grad_vector() const {return globalGrad;}
+				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -680,9 +682,12 @@ class DimFV1Geometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
+			// 	let outer class access private members
+				friend class DimFV1Geometry<dim, worldDim>;
+
 			// This scvf separates the scv with the ids given in "from" and "to"
 			// The computed normal points in direction from->to
-				size_t m_from, m_to;
+				size_t From, To;
 
 			//	The normal on the SCVF pointing (from -> to)
 				MathVector<worldDim> Normal; // normal (incl. area)
@@ -691,21 +696,19 @@ class DimFV1Geometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> vLocPos[numCorners]; // local corners of scvf
-				MathVector<worldDim> vGloPos[numCorners]; // global corners of scvf
-				MidID midId[numCorners]; // dimension and id of object, that's midpoint bounds the scvf
+				MathVector<dim> vLocPos[numCo]; // local corners of scvf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of scvf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scvf
 
 			// scvf part
 				MathVector<dim> localIP; // local integration point
 				MathVector<worldDim> globalIP; // global intergration point
 
-			///	current number of shape functions
-				size_t m_numSH;
-
 			// shapes and derivatives
+				size_t numSH;
 				number vShape[maxNSH]; // shapes at ip
-				MathVector<dim> localGrad[maxNSH]; // local grad at ip
-				MathVector<worldDim> globalGrad[maxNSH]; // global grad at ip
+				MathVector<dim> vLocalGrad[maxNSH]; // local grad at ip
+				MathVector<worldDim> vGlobalGrad[maxNSH]; // global grad at ip
 				MathMatrix<worldDim,dim> JtInv; // Jacobian transposed at ip
 				number detj; // Jacobian det at ip
 		};
@@ -714,24 +717,17 @@ class DimFV1Geometry : public FVGeometryBase
 		class SCV
 		{
 			public:
-			/// Number of integration points
-				static const size_t numIP = 1;
-
 			/// Number of corners of scvf
-				static const size_t maxNumCorners = fv1_dim_traits<dim, worldDim>::MaxNumCornersOfSCV;
-
-			private:
-			// 	let outer class access private members
-				friend class DimFV1Geometry<dim, worldDim>;
+				static const size_t maxNumCo = traits::MaxNumCornersOfSCV;
 
 			public:
-				SCV() : m_numCorners(maxNumCorners) {};
+				SCV() : numCorners(maxNumCo) {};
 
 			/// volume of scv
-				inline number volume() const {return vol;}
+				inline number volume() const {return Vol;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				inline size_t num_corners() const {return numCorners;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -745,7 +741,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			/// local integration point of scv
 				inline const MathVector<dim>& local_ip() const {return vLocPos[0];}
@@ -760,7 +756,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline number detJ() const {return detj;}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return m_numSH;}
+				inline size_t num_sh() const {return numSH;}
 
 			/// value of shape function i in integration point
 				inline number shape(size_t sh) const {return vShape[sh];}
@@ -770,40 +766,41 @@ class DimFV1Geometry : public FVGeometryBase
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return localGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vLocalGrad[sh];}
 
 			/// vector of local gradients in ip point
-				inline const MathVector<dim>* local_grad_vector() const {return localGrad;}
+				inline const MathVector<dim>* local_grad_vector() const {return vLocalGrad;}
 
 			/// value of global gradient of shape function i in integration point
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return globalGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
 			/// vector of gloabl gradients in ip point
-				inline const MathVector<worldDim>* global_grad_vector() const {return globalGrad;}
+				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			private:
+			// 	let outer class access private members
+				friend class DimFV1Geometry<dim, worldDim>;
+
 			//  node id of associated node
 				size_t nodeId;
 
 			//	volume of scv
-				number vol;
+				number Vol;
 
 			//	number of corners of this element
-				size_t m_numCorners;
-
-			///	current number of shape functions
-				size_t m_numSH;
+				size_t numCorners;
 
 			//	local and global positions of this element
-				MathVector<dim> vLocPos[maxNumCorners]; // local position of node
-				MathVector<worldDim> vGloPos[maxNumCorners]; // global position of node
-				MidID midId[maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> vLocPos[maxNumCo]; // local position of node
+				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
+				MidID vMidID[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
 
 			// shapes and derivatives
+				size_t numSH;
 				number vShape[maxNSH]; // shapes at ip
-				MathVector<dim> localGrad[maxNSH]; // local grad at ip
-				MathVector<worldDim> globalGrad[maxNSH]; // global grad at ip
+				MathVector<dim> vLocalGrad[maxNSH]; // local grad at ip
+				MathVector<worldDim> vGlobalGrad[maxNSH]; // global grad at ip
 				MathMatrix<worldDim,dim> JtInv; // Jacobian transposed at ip
 				number detj; // Jacobian det at ip
 		};
@@ -812,24 +809,17 @@ class DimFV1Geometry : public FVGeometryBase
 		class BF
 		{
 			public:
-			/// number of integration points
-				static const size_t m_numIP = 1;
-
 			/// Number of corners of bf
-				static const size_t m_numCorners = fv1_dim_traits<dim, worldDim>::NumCornersOfSCVF;
-
-			private:
-			/// let outer class access private members
-				friend class DimFV1Geometry<dim, worldDim>;
+				static const size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
 				BF() {}
 
 			/// index of SubControlVolume of the bf
-				inline size_t node_id() const {return m_nodeId;}
+				inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points on bf
-				inline size_t num_ip() const {return m_numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			/// local integration point of bf
 				inline const MathVector<dim>& local_ip() const {return localIP;}
@@ -841,7 +831,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
 
 			/// volume of bf
-				inline number volume() const {return m_volume;}
+				inline number volume() const {return Vol;}
 
 			/// Transposed Inverse of Jacobian in integration point
 				inline const MathMatrix<worldDim, dim>& JTInv() const {return JtInv;}
@@ -850,7 +840,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline number detJ() const {return detj;}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return m_numSH;}
+				inline size_t num_sh() const {return numSH;}
 
 			/// value of shape function i in integration point
 				inline number shape(size_t sh) const
@@ -861,20 +851,20 @@ class DimFV1Geometry : public FVGeometryBase
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return localGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vLocalGrad[sh];}
 
 			/// vector of local gradients in ip point
-				inline const MathVector<dim>* local_grad_vector() const {return localGrad;}
+				inline const MathVector<dim>* local_grad_vector() const {return vLocalGrad;}
 
 			/// value of global gradient of shape function i in integration point
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
-					{UG_ASSERT(sh < num_sh(), "Invalid index"); return globalGrad[sh];}
+					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
 			/// vector of global gradients in ip point
-				inline const MathVector<worldDim>* global_grad_vector() const {return globalGrad;}
+				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -885,30 +875,31 @@ class DimFV1Geometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
+			/// let outer class access private members
+				friend class DimFV1Geometry<dim, worldDim>;
+
 			// 	id of scv this bf belongs to
-				size_t m_nodeId;
+				size_t nodeId;
 
 			// ordering is:
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> vLocPos[m_numCorners]; // local corners of bf
-				MathVector<worldDim> vGloPos[m_numCorners]; // global corners of bf
-				MidID midId[m_numCorners]; // dimension and id of object, that's midpoint bounds the bf
+				MathVector<dim> vLocPos[numCo]; // local corners of bf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of bf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the bf
 
 			// 	scvf part
 				MathVector<dim> localIP; // local integration point
 				MathVector<worldDim> globalIP; // global intergration point
 				MathVector<worldDim> Normal; // normal (incl. area)
-				number m_volume; // volume of bf
-
-			///	current number of shape functions
-				size_t m_numSH;
+				number Vol; // volume of bf
 
 			// 	shapes and derivatives
+				size_t numSH;
 				number vShape[maxNSH]; // shapes at ip
-				MathVector<dim> localGrad[maxNSH]; // local grad at ip
-				MathVector<worldDim> globalGrad[maxNSH]; // global grad at ip
+				MathVector<dim> vLocalGrad[maxNSH]; // local grad at ip
+				MathVector<worldDim> vGlobalGrad[maxNSH]; // global grad at ip
 				MathMatrix<worldDim,dim> JtInv; // Jacobian transposed at ip
 				number detj; // Jacobian det at ip
 		};
@@ -924,8 +915,13 @@ class DimFV1Geometry : public FVGeometryBase
 		bool update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
+	/// update boundary data for given element
+		bool update_boundary_faces(GeometricObject* elem,
+		                           const MathVector<worldDim>* vCornerCoords,
+		                           const ISubsetHandler* ish = NULL);
+
 	/// get vector of corners for current element
-		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
+		const MathVector<worldDim>* corners() const {return m_vvGloMid[0];}
 
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return m_numSCVF;};
@@ -955,10 +951,10 @@ class DimFV1Geometry : public FVGeometryBase
 		size_t num_scv_ips() const {return m_numSCV;}
 
 	/// returns all ips of scv as they appear in scv loop
-		const MathVector<dim>* scv_local_ips() const {return &(m_locMid[0][0]);}
+		const MathVector<dim>* scv_local_ips() const {return &(m_vvLocMid[0][0]);}
 
 	/// returns all ips of scv as they appear in scv loop
-		const MathVector<worldDim>* scv_global_ips() const {return &(m_gloMid[0][0]);}
+		const MathVector<worldDim>* scv_global_ips() const {return &(m_vvGloMid[0][0]);}
 
 
 	protected:
@@ -1027,21 +1023,24 @@ class DimFV1Geometry : public FVGeometryBase
 	///	current reference object id
 		ReferenceObjectID m_roid;
 
-	///	current number of scvf
-		size_t m_numSCVF;
-
 	///	current number of scv
 		size_t m_numSCV;
 
-	// 	local and global geom object midpoints for each dimension
-	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-		MathVector<dim> m_locMid[dim+1][maxNumSCVF + 1];
-		MathVector<worldDim> m_gloMid[dim+1][maxNumSCVF +1];
+	///	current number of scvf
+		size_t m_numSCVF;
 
-	// 	SubControlVolumeFaces
+	///	max number of geometric objects in a dimension
+	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
+		static const int maxMid = maxNumSCVF + 1;
+
+	///	local and global geom object midpoints for each dimension
+		MathVector<dim> m_vvLocMid[dim+1][maxMid];
+		MathVector<worldDim> m_vvGloMid[dim+1][maxMid];
+
+	///	SubControlVolumeFaces
 		SCVF m_vSCVF[maxNumSCVF];
 
-	// 	SubControlVolumes
+	///	SubControlVolumes
 		SCV m_vSCV[maxNumSCV];
 };
 
@@ -1054,11 +1053,13 @@ class DimFV1Geometry : public FVGeometryBase
 
 /// Geometry and shape functions for any order Vertex-Centered Finite Volume
 /**
- * \tparam	TOrder		order
- * \tparam	TElem		Element type
- * \tparam	TWorldDim	(physical) world dimension
+ * \tparam	TOrder			order
+ * \tparam	TElem			Element type
+ * \tparam	TWorldDim		(physical) world dimension
+ * \tparam	TQuadOrderSCVF	integration order for scvf
+ * \tparam	TQuadOrderSCV	integration order for scv
  */
-template <int TOrder, typename TElem, int TWorldDim>
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF = TOrder, int TQuadOrderSCV = TOrder>
 class FVGeometry : public FVGeometryBase
 {
 	private:
@@ -1072,6 +1073,9 @@ class FVGeometry : public FVGeometryBase
 	///	type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
+	///	traits used
+		typedef fvho_traits<TOrder, ref_elem_type, TWorldDim> traits;
+
 	///	dimension of reference element
 		static const int dim = ref_elem_type::dim;
 
@@ -1082,15 +1086,12 @@ class FVGeometry : public FVGeometryBase
 	///	order
 		static const int order = TOrder;
 
-	///	quadrature order
-		static const int quadOrder = TOrder;
-
 	///	number of subelements
-		static const size_t numSubElem = fvho_traits<p, ref_elem_type, worldDim>::NumSubElem;
+		static const size_t numSubElem = traits::NumSubElem;
 
 
 	///	type of SubControlVolumeFace
-		typedef typename fvho_traits<p, ref_elem_type, worldDim>::scvf_type scvf_type;
+		typedef typename traits::scvf_type scvf_type;
 
 	///	number of SCVF per SubElement
 		static const size_t numSCVFPerSubElem = ref_elem_type::num_edges;
@@ -1098,15 +1099,18 @@ class FVGeometry : public FVGeometryBase
 	///	number of SubControlVolumeFaces
 		static const size_t numSCVF = numSubElem * numSCVFPerSubElem;
 
+	///	quadrature order
+		static const int quadOrderSCVF = TQuadOrderSCVF;
+
 	///	type of quadrature rule
-		typedef GaussQuadrature<scvf_type, quadOrder> scvf_quad_rule_type;
+		typedef GaussQuadrature<scvf_type, quadOrderSCVF> scvf_quad_rule_type;
 
 	///	number of scvf ip
 		static const size_t numSCVFIP = scvf_quad_rule_type::nip * numSCVF;
 
 
 	///	type of SubControlVolume
-		typedef typename fvho_traits<p, ref_elem_type, worldDim>::scv_type scv_type;
+		typedef typename traits::scv_type scv_type;
 
 	///	number of SCV per SubElement
 		static const size_t numSCVPerSubElem = ref_elem_type::num_corners;
@@ -1114,8 +1118,11 @@ class FVGeometry : public FVGeometryBase
 	///	number of SubControlVolumes
 		static const size_t numSCV = numSubElem * numSCVPerSubElem;
 
+	///	quadrature order
+		static const int quadOrderSCV = TQuadOrderSCV;
+
 	///	type of quadrature rule
-		typedef GaussQuadrature<scv_type, quadOrder> scv_quad_rule_type;
+		typedef GaussQuadrature<scv_type, quadOrderSCV> scv_quad_rule_type;
 
 	///	number of scv ip
 		static const size_t numSCVIP = scv_quad_rule_type::nip * numSCV;
@@ -1136,27 +1143,22 @@ class FVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of integration points
-				static const size_t numIP = scvf_quad_rule_type::nip;
+				static const size_t nip = scvf_quad_rule_type::nip;
 
 			///	Number of corners of scvf
-				static const size_t numCorners =
-						fvho_traits<p, ref_elem_type, worldDim>::NumCornersOfSCVF;
-
-			private:
-			// 	let outer class access private members
-				friend class FVGeometry<TOrder, TElem, TWorldDim>;
+				static const size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
 				SCVF() {}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t from() const {return m_from;}
+				inline size_t from() const {return From;}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t to() const {return m_to;}
+				inline size_t to() const {return To;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			///	integration weight
 				inline number weight(size_t ip) const
@@ -1211,7 +1213,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -1222,9 +1224,12 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
+			// 	let outer class access private members
+				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>;
+
 			// This scvf separates the scv with the ids given in "from" and "to"
 			// The computed normal points in direction from->to
-				size_t m_from, m_to;
+				size_t From, To;
 
 			//	The normal on the SCVF pointing (from -> to)
 				MathVector<worldDim> Normal; // normal (incl. area)
@@ -1233,21 +1238,21 @@ class FVGeometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> vLocPos[numCorners]; // local corners of scvf
-				MathVector<worldDim> vGloPos[numCorners]; // global corners of scvf
-				MidID midId[numCorners]; // dimension and id of object, that's midpoint bounds the scvf
+				MathVector<dim> vLocPos[numCo]; // local corners of scvf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of scvf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scvf
 
 			// scvf part
-				MathVector<dim> vLocalIP[numIP]; // local integration point
-				MathVector<worldDim> vGlobalIP[numIP]; // global intergration point
+				MathVector<dim> vLocalIP[nip]; // local integration point
+				MathVector<worldDim> vGlobalIP[nip]; // global intergration point
 				const number* vWeight; // weight at ip
 
 			// shapes and derivatives
-				number vvShape[numIP][nsh]; // shapes at ip
-				MathVector<dim> vvLocalGrad[numIP][nsh]; // local grad at ip
-				MathVector<worldDim> vvGlobalGrad[numIP][nsh]; // global grad at ip
-				MathMatrix<worldDim,dim> vJtInv[numIP]; // Jacobian transposed at ip
-				number vDetJ[numIP]; // Jacobian det at ip
+				number vvShape[nip][nsh]; // shapes at ip
+				MathVector<dim> vvLocalGrad[nip][nsh]; // local grad at ip
+				MathVector<worldDim> vvGlobalGrad[nip][nsh]; // global grad at ip
+				MathMatrix<worldDim,dim> vJtInv[nip]; // Jacobian transposed at ip
+				number vDetJ[nip]; // Jacobian det at ip
 		};
 
 	///	sub control volume structure
@@ -1255,24 +1260,19 @@ class FVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of integration points
-				static const size_t numIP = scv_quad_rule_type::nip;
+				static const size_t nip = scv_quad_rule_type::nip;
 
 			/// Number of corners of scvf
-				static const size_t maxNumCorners =
-						fvho_traits<p, ref_elem_type, worldDim>::MaxNumCornersOfSCV;
-
-			private:
-			// 	let outer class access private members
-				friend class FVGeometry<TOrder, TElem, TWorldDim>;
+				static const size_t maxNumCo =	traits::MaxNumCornersOfSCV;
 
 			public:
-				SCV() : m_numCorners(maxNumCorners) {};
+				SCV() : numCo(maxNumCo) {};
 
 			/// volume of scv
-				inline number volume() const {return vol;}
+				inline number volume() const {return Vol;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -1286,7 +1286,7 @@ class FVGeometry : public FVGeometryBase
 				inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			///	weigth of integration point
 				inline number weight(size_t ip) const
@@ -1338,31 +1338,34 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvGlobalGrad[ip];}
 
 			private:
+			// 	let outer class access private members
+				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>;
+
 			//  node id of associated node
 				size_t nodeId;
 
 			//	volume of scv
-				number vol;
+				number Vol;
 
 			//	number of corners of this element
-				size_t m_numCorners;
+				size_t numCo;
 
 			//  scv part
-				MathVector<dim> vLocalIP[numIP]; // local integration point
-				MathVector<worldDim> vGlobalIP[numIP]; // global intergration point
+				MathVector<dim> vLocalIP[nip]; // local integration point
+				MathVector<worldDim> vGlobalIP[nip]; // global intergration point
 				const number* vWeight; // weight at ip
 
 			//	local and global positions of this element
-				MathVector<dim> vLocPos[maxNumCorners]; // local position of node
-				MathVector<worldDim> vGloPos[maxNumCorners]; // global position of node
-				MidID midId[maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> vLocPos[maxNumCo]; // local position of node
+				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
+				MidID vMidID[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
 
 			// shapes and derivatives
-				number vvShape[numIP][nsh]; // shapes at ip
-				MathVector<dim> vvLocalGrad[numIP][nsh]; // local grad at ip
-				MathVector<worldDim> vvGlobalGrad[numIP][nsh]; // global grad at ip
-				MathMatrix<worldDim,dim> vJtInv[numIP]; // Jacobian transposed at ip
-				number vDetJ[numIP]; // Jacobian det at ip
+				number vvShape[nip][nsh]; // shapes at ip
+				MathVector<dim> vvLocalGrad[nip][nsh]; // local grad at ip
+				MathVector<worldDim> vvGlobalGrad[nip][nsh]; // global grad at ip
+				MathMatrix<worldDim,dim> vJtInv[nip]; // Jacobian transposed at ip
+				number vDetJ[nip]; // Jacobian det at ip
 		};
 
 	///	boundary face
@@ -1370,15 +1373,10 @@ class FVGeometry : public FVGeometryBase
 		{
 			public:
 			/// number of integration points
-				static const size_t numIP = scvf_quad_rule_type::nip;
+				static const size_t nip = scvf_quad_rule_type::nip;
 
 			/// Number of corners of bf
-				static const size_t numCorners =
-						fvho_traits<p, ref_elem_type, TWorldDim>::NumCornersOfSCVF;
-
-			private:
-			/// let outer class access private members
-				friend class FVGeometry<TOrder, TElem, TWorldDim>;
+				static const size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
 				BF() {}
@@ -1393,7 +1391,7 @@ class FVGeometry : public FVGeometryBase
 				inline number volume() const {return Vol;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return numIP;}
+				inline size_t num_ip() const {return nip;}
 
 			///	integration weight
 				inline number weight(size_t ip) const
@@ -1445,7 +1443,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCorners;}
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -1456,6 +1454,9 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			private:
+			/// let outer class access private members
+				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>;
+
 			// 	id of scv this bf belongs to
 				size_t nodeId;
 
@@ -1463,23 +1464,23 @@ class FVGeometry : public FVGeometryBase
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
 			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				MathVector<dim> vLocPos[numCorners]; // local corners of bf
-				MathVector<worldDim> vGloPos[numCorners]; // global corners of bf
-				MidID vMidId[numCorners]; // dimension and id of object, that's midpoint bounds the bf
+				MathVector<dim> vLocPos[numCo]; // local corners of bf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of bf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the bf
 
 			// 	scvf part
-				MathVector<dim> vLocalIP[numIP]; // local integration point
-				MathVector<worldDim> vGlobalIP[numIP]; // global intergration point
+				MathVector<dim> vLocalIP[nip]; // local integration point
+				MathVector<worldDim> vGlobalIP[nip]; // global intergration point
 				const number* vWeight; // weight at ip
 				MathVector<worldDim> Normal; // normal (incl. area)
 				number Vol; // volume of bf
 
 			// 	shapes and derivatives
-				number vvShape[numIP][nsh]; // shapes at ip
-				MathVector<dim> vvLocalGrad[numIP][nsh]; // local grad at ip
-				MathVector<worldDim> vvGlobalGrad[numIP][nsh]; // global grad at ip
-				MathMatrix<worldDim,dim> vJtInv[numIP]; // Jacobian transposed at ip
-				number vDetJ[numIP]; // Jacobian det at ip
+				number vvShape[nip][nsh]; // shapes at ip
+				MathVector<dim> vvLocalGrad[nip][nsh]; // local grad at ip
+				MathVector<worldDim> vvGlobalGrad[nip][nsh]; // global grad at ip
+				MathMatrix<worldDim,dim> vJtInv[nip]; // Jacobian transposed at ip
+				number vDetJ[nip]; // Jacobian det at ip
 		};
 
 
@@ -1493,6 +1494,11 @@ class FVGeometry : public FVGeometryBase
 	/// update data for given element
 		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
+
+	/// update boundary data for given element
+		bool update_boundary_faces(TElem* elem,
+		                           const MathVector<worldDim>* vCornerCoords,
+		                           const ISubsetHandler* ish = NULL);
 
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return numSCVF;};
@@ -1538,6 +1544,9 @@ class FVGeometry : public FVGeometryBase
 		MathVector<dim> m_vLocSCV_IP[numSCVIP];
 
 	protected:
+	//	miximum number of geom objects in a dimension
+		static const int maxMid = numSCVF + 1;
+
 	//	subelement
 		struct SubElement
 		{
@@ -1546,21 +1555,18 @@ class FVGeometry : public FVGeometryBase
 
 		// 	local and global geom object midpoints for each dimension
 		// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-			MathVector<dim> locMid[dim+1][numSCVF + 1];
-			MathVector<worldDim> gloMid[dim+1][numSCVF +1];
+			MathVector<dim> vvLocMid[dim+1][maxMid];
+			MathVector<worldDim> vvGloMid[dim+1][maxMid];
 
 		//	flag is subelement has boundary sides
 			bool isBndElem;
 
 		//	-1 is no bnd side, >= 0 corresponding side of whole element
-			std::vector<int> elemBndSide;
+			std::vector<int> vElemBndSide;
 		};
 
 	///	subelements
 		SubElement m_vSubElem[numSubElem];
-
-	///	sets corners and corresponding DoFIDs
-		void set_corners_of_sub_elem();
 
 	public:
 	/// add subset that is interpreted as boundary subset.
@@ -1641,6 +1647,580 @@ class FVGeometry : public FVGeometryBase
 
 	///	Quad Rule scv
 		const scv_quad_rule_type& m_rSCVQuadRule;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Dimension FV Geometry (all orders)   DIM FV
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/// Geometry and shape functions for any order Vertex-Centered Finite Volume
+/**
+ * \tparam	TDim		reference element dim
+ * \tparam	TWorldDim	(physical) world dimension
+ */
+template <int TDim, int TWorldDim = TDim>
+class DimFVGeometry : public FVGeometryBase
+{
+	public:
+	///	traits used
+		typedef fv1_dim_traits<TDim, TWorldDim> traits;
+
+	///	dimension of reference element
+		static const int dim = TDim;
+
+	///	dimension of world
+		static const int worldDim = TWorldDim;
+
+	public:
+	///	type of SubControlVolumeFace
+		typedef typename traits::scvf_type scvf_type;
+
+	///	type of SubControlVolume
+		typedef typename traits::scv_type scv_type;
+
+	///	Hanging node flag: this Geometry does not support hanging nodes
+		static const bool usesHangingNodes = false;
+
+	public:
+	///	Sub-Control Volume Face structure
+		class SCVF
+		{
+			public:
+			///	Number of corners of scvf
+				static const size_t numCo = traits::NumCornersOfSCVF;
+
+			public:
+				SCVF() {}
+
+			/// index of SubControlVolume on one side of the scvf
+				inline size_t from() const {return From;}
+
+			/// index of SubControlVolume on one side of the scvf
+				inline size_t to() const {return To;}
+
+			/// number of integration points on scvf
+				inline size_t num_ip() const {return nip;}
+
+			///	integration weight
+				inline number weight(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+
+			/// local integration point of scvf
+				inline const MathVector<dim>& local_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vLocalIP[ip];}
+
+			/// global integration point of scvf
+				inline const MathVector<worldDim>& global_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vGlobalIP[ip];}
+
+			/// normal on scvf (points direction "from"->"to"). Norm is equal to area
+				inline const MathVector<worldDim>& normal() const {return Normal;}
+
+			/// Transposed Inverse of Jacobian in integration point
+				inline const MathMatrix<worldDim,dim>& JTInv(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
+
+			/// Determinant of Jacobian in integration point
+				inline number detJ(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
+
+			/// number of shape functions
+				inline size_t num_sh() const {return nsh;}
+
+			/// value of shape function i in integration point
+				inline number shape(size_t sh, size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
+
+			/// vector of shape functions in ip point
+				inline const number* shape_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
+
+			/// value of local gradient of shape function i in integration point
+				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
+
+			/// vector of local gradients in ip point
+				inline const MathVector<dim>* local_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvLocalGrad[ip][0];}
+
+			/// value of global gradient of shape function i in integration point
+				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
+
+			/// vector of gloabl gradients in ip point
+				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvGlobalGrad[ip][0];}
+
+			/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return numCo;}
+
+			/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
+
+			/// return glbal corner number i
+				inline const MathVector<worldDim>& global_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
+
+			private:
+			// 	let outer class access private members
+				friend class DimFVGeometry<dim, worldDim>;
+
+			// This scvf separates the scv with the ids given in "from" and "to"
+			// The computed normal points in direction from->to
+				size_t From, To;
+
+			//	The normal on the SCVF pointing (from -> to)
+				MathVector<worldDim> Normal; // normal (incl. area)
+
+			// ordering is:
+			// 1D: edgeMidPoint
+			// 2D: edgeMidPoint, CenterOfElement
+			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
+				MathVector<dim> vLocPos[numCo]; // local corners of scvf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of scvf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scvf
+
+			// scvf part
+				size_t nip;
+				std::vector<MathVector<dim> > vLocalIP; // local integration point (size: nip)
+				std::vector<MathVector<worldDim> > vGlobalIP; // global intergration point (size: nip)
+				const number* vWeight; // weight at ip
+
+			// shapes and derivatives
+				size_t nsh;
+				std::vector<std::vector<number> > vvShape; // shapes at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<dim> > > vvLocalGrad; // local grad at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<worldDim> > > vvGlobalGrad; // global grad at ip (size: nip x nsh)
+				std::vector<MathMatrix<worldDim,dim> > vJtInv; // Jacobian transposed at ip (size: nip)
+				std::vector<number> vDetJ; // Jacobian det at ip (size: nip)
+		};
+
+	///	sub control volume structure
+		class SCV
+		{
+			public:
+			/// Number of corners of scvf
+				static const size_t maxNumCo =	traits::MaxNumCornersOfSCV;
+
+			public:
+				SCV() : numCo(maxNumCo) {};
+
+			/// volume of scv
+				inline number volume() const {return Vol;}
+
+			/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return numCo;}
+
+			/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
+
+			/// return glbal corner number i
+				inline const MathVector<worldDim>& global_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
+
+			/// node id that this scv is associated to
+				inline size_t node_id() const {return nodeId;}
+
+			/// number of integration points
+				inline size_t num_ip() const {return nip;}
+
+			///	weigth of integration point
+				inline number weight(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+
+			/// local integration point of scv
+				inline const MathVector<dim>& local_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vLocalIP[ip];}
+
+			/// global integration point
+				inline const MathVector<worldDim>& global_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vGlobalIP[ip];}
+
+			/// Transposed Inverse of Jacobian in integration point
+				inline const MathMatrix<worldDim,dim>& JTInv(size_t ip) const
+					{UG_ASSERT(ip<num_ip(),"Wring index."); return vJtInv[ip];}
+
+			/// Determinant of Jacobian in integration point
+				inline number detJ(size_t ip) const
+					{UG_ASSERT(ip<num_ip(),"Wring index."); return vDetJ[ip];}
+
+			/// number of shape functions
+				inline size_t num_sh() const {return nsh;}
+
+			/// value of shape function i in integration point
+				inline number shape(size_t sh, size_t ip) const
+					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvShape[ip][sh];}
+
+			/// vector of shape functions in ip point
+				inline const number* shape_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(),"Wring index."); return &vvShape[ip][0];}
+
+			/// value of local gradient of shape function i in integration point
+				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvLocalGrad[ip][sh];}
+
+			/// vector of local gradients in ip point
+				inline const MathVector<dim>* local_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(),"Wring index."); return &vvLocalGrad[ip][0];}
+
+			/// value of global gradient of shape function i in integration point
+				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvGlobalGrad[ip][sh];}
+
+			/// vector of gloabl gradients in ip point
+				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(),"Wring index."); return &vvGlobalGrad[ip][0];}
+
+			private:
+			// 	let outer class access private members
+				friend class DimFVGeometry<dim, worldDim>;
+
+			//  node id of associated node
+				size_t nodeId;
+
+			//	volume of scv
+				number Vol;
+
+			//	number of corners of this element
+				size_t numCo;
+
+			//	local and global positions of this element
+				MathVector<dim> vLocPos[maxNumCo]; // local position of node
+				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
+				MidID vMidID[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
+
+			//  scv part
+				size_t nip;
+				std::vector<MathVector<dim> > vLocalIP; // local integration point (size: nip)
+				std::vector<MathVector<worldDim> > vGlobalIP; // global intergration point (size: nip)
+				const number* vWeight; // weight at ip
+
+			// shapes and derivatives
+				size_t nsh;
+				std::vector<std::vector<number> > vvShape; // shapes at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<dim> > > vvLocalGrad; // local grad at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<worldDim> > > vvGlobalGrad; // global grad at ip (size: nip x nsh)
+				std::vector<MathMatrix<worldDim,dim> > vJtInv; // Jacobian transposed at ip (size: nip)
+				std::vector<number> vDetJ; // Jacobian det at ip (size: nip)
+		};
+
+	///	boundary face
+		class BF
+		{
+			public:
+			/// Number of corners of bf
+				static const size_t numCo = traits::NumCornersOfSCVF;
+
+			public:
+				BF() {}
+
+			/// index of SubControlVolume of the bf
+				inline size_t node_id() const {return nodeId;}
+
+			/// outer normal on bf. Norm is equal to area
+				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
+
+			/// volume of bf
+				inline number volume() const {return Vol;}
+
+			/// number of integration points on scvf
+				inline size_t num_ip() const {return nip;}
+
+			///	integration weight
+				inline number weight(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+
+			/// local integration point of scvf
+				inline const MathVector<dim>& local_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vLocalIP[ip];}
+
+			/// global integration point of scvf
+				inline const MathVector<worldDim>& global_ip(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vGlobalIP[ip];}
+
+			/// Transposed Inverse of Jacobian in integration point
+				inline const MathMatrix<worldDim,dim>& JTInv(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
+
+			/// Determinant of Jacobian in integration point
+				inline number detJ(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
+
+			/// number of shape functions
+				inline size_t num_sh() const {return nsh;}
+
+			/// value of shape function i in integration point
+				inline number shape(size_t sh, size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
+
+			/// vector of shape functions in ip point
+				inline const number* shape_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
+
+			/// value of local gradient of shape function i in integration point
+				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
+
+			/// vector of local gradients in ip point
+				inline const MathVector<dim>* local_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvLocalGrad[ip][0];}
+
+			/// value of global gradient of shape function i in integration point
+				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+					{UG_ASSERT(sh < num_sh(), "Invalid index");
+					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
+
+			/// vector of gloabl gradients in ip point
+				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvGlobalGrad[ip][0];}
+
+			/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return numCo;}
+
+			/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
+
+			/// return glbal corner number i
+				inline const MathVector<worldDim>& global_corner(size_t co) const
+					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
+
+			private:
+			/// let outer class access private members
+				friend class DimFVGeometry<dim, worldDim>;
+
+			// 	id of scv this bf belongs to
+				size_t nodeId;
+
+			// ordering is:
+			// 1D: edgeMidPoint
+			// 2D: edgeMidPoint, CenterOfElement
+			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
+				MathVector<dim> vLocPos[numCo]; // local corners of bf
+				MathVector<worldDim> vGloPos[numCo]; // global corners of bf
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the bf
+
+			// 	scvf part
+				size_t nip;
+				std::vector<MathVector<dim> > vLocalIP; // local integration point (size: nip)
+				std::vector<MathVector<worldDim> > vGlobalIP; // global intergration point (size: nip)
+				const number* vWeight; // weight at ip
+				MathVector<worldDim> Normal; // normal (incl. area)
+				number Vol; // volume of bf
+
+			// 	shapes and derivatives
+				size_t nsh;
+				std::vector<std::vector<number> > vvShape; // shapes at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<dim> > > vvLocalGrad; // local grad at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<worldDim> > > vvGlobalGrad; // global grad at ip (size: nip x nsh)
+				std::vector<MathMatrix<worldDim,dim> > vJtInv; // Jacobian transposed at ip (size: nip)
+				std::vector<number> vDetJ; // Jacobian det at ip (size: nip)
+		};
+
+
+	public:
+	/// construct object and initialize local values and sizes
+		DimFVGeometry();
+
+	///	update local data
+		bool update_local(ReferenceObjectID roid, int orderShape,
+		                  int quadOrderSCVF, int quadOrderSCV);
+
+	/// update data for given element
+		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		            const ISubsetHandler* ish = NULL)
+		{
+			return update(pElem, vCornerCoords,
+			              m_orderShape, m_quadOrderSCVF, m_quadOrderSCV, ish);
+		}
+
+	/// update data for given element
+		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		            int orderShape, int quadOrderSCVF, int quadOrderSCV,
+		            const ISubsetHandler* ish = NULL);
+
+	/// update boundary data for given element
+		bool update_boundary_faces(GeometricObject* pElem,
+		                           const MathVector<worldDim>* vCornerCoords,
+		                           const ISubsetHandler* ish = NULL);
+
+	/// number of SubControlVolumeFaces
+		inline size_t num_scvf() const {return m_numSCVF;};
+
+	/// const access to SubControlVolumeFace number i
+		inline const SCVF& scvf(size_t i) const
+			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
+
+	/// number of SubControlVolumes
+		inline size_t num_scv() const {return m_numSCV;}
+
+	/// const access to SubControlVolume number i
+		inline const SCV& scv(size_t i) const
+			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+
+	public:
+	/// returns number of all scvf ips
+		size_t num_scvf_ips() const {return m_numSCVFIP;}
+
+	/// returns all ips of scvf as they appear in scv loop
+		const MathVector<dim>* scvf_local_ips() const {return &(m_vLocSCVF_IP[0]);}
+
+	/// returns all ips of scvf as they appear in scv loop
+		const MathVector<worldDim>* scvf_global_ips() const {return &(m_vGlobSCVF_IP[0]);}
+
+	/// returns number of all scv ips
+		size_t num_scv_ips() const {return m_numSCVIP;}
+
+	/// returns all ips of scv as they appear in scv loop
+		const MathVector<dim>* scv_local_ips() const {return &(m_vLocSCV_IP[0]);}
+
+	/// returns all ips of scv as they appear in scv loop
+		const MathVector<worldDim>* scv_global_ips() const {return &(m_vGlobSCV_IP[0]);}
+
+
+	protected:
+	//	global and local ips on SCVF (size: numSCVFIP)
+		std::vector<MathVector<worldDim> > m_vGlobSCVF_IP;
+		std::vector<MathVector<dim> > m_vLocSCVF_IP;
+
+	//	global and local ips on SCVF
+		std::vector<MathVector<worldDim> > m_vGlobSCV_IP;
+		std::vector<MathVector<dim> > m_vLocSCV_IP;
+
+	protected:
+	//	miximum number of geom objects in a dimension
+		static const int maxMid = traits::maxNumSCVF +1;
+
+	//	subelement
+		struct SubElement
+		{
+		//	shape number of corners of subelement
+			size_t vDoFID[traits::maxNumSCV];
+
+		// 	local and global geom object midpoints for each dimension
+		// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
+			MathVector<dim> vvLocMid[dim+1][maxMid];
+			MathVector<worldDim> vvGloMid[dim+1][maxMid];
+
+		//	flag is subelement has boundary sides
+			bool isBndElem;
+
+		//	-1 is no bnd side, >= 0 corresponding side of whole element
+			std::vector<int> vElemBndSide;
+		};
+
+	///	subelements (size: numSubElem)
+		std::vector<SubElement> m_vSubElem;
+
+	public:
+	/// add subset that is interpreted as boundary subset.
+		inline void add_boundary_subset(int subsetIndex) {m_mapVectorBF[subsetIndex];}
+
+	/// removes subset that is interpreted as boundary subset.
+		inline void remove_boundary_subset(int subsetIndex) {m_mapVectorBF.erase(subsetIndex);}
+
+	/// reset all boundary subsets
+		inline void clear_boundary_subsets() {m_mapVectorBF.clear();}
+
+	/// number of registered boundary subsets
+		inline size_t num_boundary_subsets() {return m_mapVectorBF.size();}
+
+	/// number of all boundary faces
+		inline size_t num_bf() const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			size_t num = 0;
+			for ( it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); it++ )
+				num += (*it).second.size();
+			return num;
+		}
+
+	/// number of boundary faces on subset 'subsetIndex'
+		inline size_t num_bf(int subsetIndex) const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(subsetIndex);
+			if(it == m_mapVectorBF.end()) return 0;
+			else return (*it).second.size();
+		}
+
+	/// returns the boundary face i for subsetIndex
+		inline const BF& bf(int subsetIndex, size_t i) const
+		{
+			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(subsetIndex);
+			return (*it).second[i];
+		}
+
+	/// returns reference to vector of boundary faces for subsetIndex
+		inline const std::vector<BF>& bf(int subsetIndex) const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(subsetIndex);
+			return (*it).second;
+		}
+
+	protected:
+		std::map<int, std::vector<BF> > m_mapVectorBF;
+
+	private:
+	///	pointer to current element
+		GeometricObject* m_pElem;
+
+	///	current reference object id
+		ReferenceObjectID m_roid;
+
+	///	current order
+		int m_orderShape;
+
+	///	current number of subelements
+		size_t m_numSubElem;
+
+
+	///	number of shape functions
+		size_t m_nsh;
+
+
+	///	current number of scvf
+		size_t m_numSCVF;
+
+	///	current number of SCVF per SubElement
+		size_t m_numSCVFPerSubElem;
+
+	///	SubControlVolumeFaces (size: numSCVF)
+		std::vector<SCVF> m_vSCVF;
+
+	///	quadrature order
+		int m_quadOrderSCVF;
+
+	///	number of scvf ip
+		size_t m_numSCVFIP;
+
+
+	///	current number of scv
+		size_t m_numSCV;
+
+	///	number of SCV per SubElement
+		size_t m_numSCVPerSubElem;
+
+	///	SubControlVolumes (size: numSCV)
+		std::vector<SCV> m_vSCV;
+
+	///	current quadrature order scv
+		int m_quadOrderSCV;
+
+	///	number of scv ip
+		size_t m_numSCVIP;
 };
 
 

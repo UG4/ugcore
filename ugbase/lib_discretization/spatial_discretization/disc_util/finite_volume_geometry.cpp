@@ -9,6 +9,7 @@
 #include "common/util/provider.h"
 #include "finite_volume_geometry.h"
 #include "lib_discretization/reference_element/reference_element.h"
+#include "lib_discretization/quadrature/quadrature.h"
 
 namespace ug{
 
@@ -155,69 +156,102 @@ static void CopyCornerByMidID(MathVector<dim> vCorner[],
 	}
 }
 
+///	returns the number of subelements for a reference element and order
+size_t NumSubElements(ReferenceObjectID roid, int p)
+{
+	switch(roid)
+	{
+		case ROID_EDGE: return p;
+		case ROID_TRIANGLE: return p*p;
+		case ROID_QUADRILATERAL: return p*p;
+		case ROID_TETRAHEDRON: return (p*(p+1)*(5*p-2))/6;
+		case ROID_PRISM: return p*p*p;
+		case ROID_HEXAHEDRON: return p*p*p;
+		default:
+			UG_LOG("ERROR in 'NumSubElements': No subelement specification given"
+					" for "<<roid<<". Aborting.");
+			throw(UGFatalError("Reference Element not supported."));
+	}
+}
+
 
 template <int dim>
-void ComputeMultiIndicesOfSubElement(std::vector<MathVector<dim, int> > vvMultiIndex[],
-                                     bool vIsBndElem[],
-                                     std::vector<int> vElemBndSide[],
+void ComputeMultiIndicesOfSubElement(std::vector<MathVector<dim, int> >* vvMultiIndex,
+                                     bool* vIsBndElem,
+                                     std::vector<int>* vElemBndSide,
+                                     std::vector<size_t>* vIndex,
                                      ReferenceObjectID roid,
                                      int p);
 
 template <>
-void ComputeMultiIndicesOfSubElement<1>(std::vector<MathVector<1, int> > vvMultiIndex[],
-                                        bool vIsBndElem[],
-                                        std::vector<int> vElemBndSide[],
+void ComputeMultiIndicesOfSubElement<1>(std::vector<MathVector<1, int> >* vvMultiIndex,
+                                        bool* vIsBndElem,
+                                        std::vector<int>* vElemBndSide,
+                                        std::vector<size_t>* vIndex,
                                         ReferenceObjectID roid,
                                         int p)
 {
 //	switch for roid
-	int se = 0;
+	size_t se = 0;
 	switch(roid)
 	{
 		case ROID_EDGE:
-				for(int i = 0; i < p; ++i)
+			for(int i = 0; i < p; ++i)
+			{
+				vvMultiIndex[se].resize(2);
+				vvMultiIndex[se][0] = MathVector<1,int>(i);
+				vvMultiIndex[se][1] = MathVector<1,int>(i+1);
+
+				// reset bnd info
+				vIsBndElem[se] = false;
+				vElemBndSide[se].clear(); vElemBndSide[se].resize(3, -1);
+
+				if(i==0)
 				{
-					vvMultiIndex[se].resize(2);
-					vvMultiIndex[se][0] = MathVector<1,int>(i);
-					vvMultiIndex[se][1] = MathVector<1,int>(i+1);
-
-					// reset bnd info
-					vIsBndElem[se] = false;
-					vElemBndSide[se].clear(); vElemBndSide[se].resize(3, -1);
-
-					if(i==0)
-					{
-						vIsBndElem[se] = true;
-						vElemBndSide[se][0] = 0;
-					}
-					if(i==p-1)
-					{
-						vIsBndElem[se] = true;
-						vElemBndSide[se][1] = 1;
-					}
-					++se;
+					vIsBndElem[se] = true;
+					vElemBndSide[se][0] = 0;
 				}
+				if(i==p-1)
+				{
+					vIsBndElem[se] = true;
+					vElemBndSide[se][1] = 1;
+				}
+				++se;
+			}
+			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
+			          " computed, but must be "<<NumSubElements(roid, p));
 
+			{
+				FlexLagrangeLSFS<ReferenceEdge> set(p);
+				for(size_t s = 0; s < se; ++s)
+				{
+					vIndex[s].resize(vvMultiIndex[s].size());
+					for(size_t i = 0; i < vvMultiIndex[s].size(); ++i)
+					{
+						vIndex[s][i] = set.index(vvMultiIndex[s][i]);
+					}
+				}
+			}
 			break;
 		default: throw(UGFatalError("ReferenceElement not found."));
 	}
 }
 
 template <>
-void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> > vvMultiIndex[],
-                                        bool vIsBndElem[],
-                                        std::vector<int> vElemBndSide[],
+void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> >* vvMultiIndex,
+                                        bool* vIsBndElem,
+                                        std::vector<int>* vElemBndSide,
+                                        std::vector<size_t>* vIndex,
                                         ReferenceObjectID roid,
                                         int p)
 {
 //	switch for roid
-	int se = 0;
+	size_t se = 0;
 	switch(roid)
 	{
 		case ROID_TRIANGLE:
-			for(int j = 0; j < p; ++j) // y -direction
-				for(int i = 0; i < p - j; ++i) // x - direction
-				{
+			for(int j = 0; j < p; ++j) { // y -direction
+				for(int i = 0; i < p - j; ++i) { // x - direction
 					vvMultiIndex[se].resize(3);
 					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
 					vvMultiIndex[se][1] = MathVector<2,int>(i+1, j  );
@@ -244,27 +278,41 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> > vvMulti
 					}
 					++se;
 				}
+			}
 
-			for(int j = 1; j <= p; ++j)
-				for(int i = 1; i <= p - j; ++i)
-				{
+			for(int j = 1; j <= p; ++j) {
+				for(int i = 1; i <= p - j; ++i) {
 					vvMultiIndex[se].resize(3);
 					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
 					vvMultiIndex[se][1] = MathVector<2,int>(i-1, j  );
 					vvMultiIndex[se][2] = MathVector<2,int>(i  , j-1);
-					++se;
 
 					// reset bnd info
 					// all inner elems
 					vIsBndElem[se] = false;
 					vElemBndSide[se].clear(); vElemBndSide[se].resize(3, -1);
+					++se;
 				}
+			}
+			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
+			          " computed, but must be "<<NumSubElements(roid, p));
+
+			{
+				FlexLagrangeLSFS<ReferenceTriangle> set(p);
+				for(size_t s = 0; s < se; ++s)
+				{
+					vIndex[s].resize(vvMultiIndex[s].size());
+					for(size_t i = 0; i < vvMultiIndex[s].size(); ++i)
+					{
+						vIndex[s][i] = set.index(vvMultiIndex[s][i]);
+					}
+				}
+			}
 
 			break;
 		case ROID_QUADRILATERAL:
-			for(int j = 0; j < p; ++j)
-				for(int i = 0; i < p; ++i)
-				{
+			for(int j = 0; j < p; ++j) {
+				for(int i = 0; i < p; ++i) {
 					vvMultiIndex[se].resize(4);
 					vvMultiIndex[se][0] = MathVector<2,int>(i  , j  );
 					vvMultiIndex[se][1] = MathVector<2,int>(i+1, j  );
@@ -297,6 +345,21 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> > vvMulti
 					}
 					++se;
 				}
+			}
+			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
+			          " computed, but must be "<<NumSubElements(roid, p));
+
+			{
+				FlexLagrangeLSFS<ReferenceQuadrilateral> set(p);
+				for(size_t s = 0; s < se; ++s)
+				{
+					vIndex[s].resize(vvMultiIndex[s].size());
+					for(size_t i = 0; i < vvMultiIndex[s].size(); ++i)
+					{
+						vIndex[s][i] = set.index(vvMultiIndex[s][i]);
+					}
+				}
+			}
 			break;
 		default: throw(UGFatalError("ReferenceElement not found."));
 	}
@@ -304,27 +367,26 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> > vvMulti
 }
 
 template <>
-void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMultiIndex[],
-                                        bool vIsBndElem[],
-                                        std::vector<int> vElemBndSide[],
+void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMultiIndex,
+                                        bool* vIsBndElem,
+                                        std::vector<int>* vElemBndSide,
+                                        std::vector<size_t>* vIndex,
                                         ReferenceObjectID roid,
                                         int p)
 {
 //	switch for roid
-	int se = 0;
+	size_t se = 0;
 	switch(roid)
 	{
 		case ROID_TETRAHEDRON:
-			for(int k = 0; k < p; ++k)
-				for(int j = 0; j < p -k; ++j)
-					for(int i = 0; i < p -k -j; ++i)
-					{
+			for(int k = 0; k < p; ++k) {
+				for(int j = 0; j < p -k; ++j) {
+					for(int i = 0; i < p -k -j; ++i) {
 						vvMultiIndex[se].resize(4);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
 						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
 						vvMultiIndex[se][2] = MathVector<3,int>(i  , j+1, k);
 						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  , k+1);
-						++se;
 
 						// reset bnd info
 						vIsBndElem[se] = false;
@@ -350,12 +412,14 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMulti
 							vIsBndElem[se] = true;
 							vElemBndSide[se][1] = 1;
 						}
+						++se;
 					}
+				}
+			}
 			//	build 4 tetrahedrons out of the remaining octogons
-			for(int k = 0; k < p; ++k)
-				for(int j = 1; j < p -k; ++j)
-					for(int i = 0; i < p -k -j; ++i)
-					{
+			for(int k = 0; k < p; ++k) {
+				for(int j = 1; j < p -k; ++j) {
+					for(int i = 0; i < p -k -j; ++i) {
 						vvMultiIndex[se].resize(4);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
 						vvMultiIndex[se][1] = MathVector<3,int>(i  , j-1, k+1);
@@ -424,13 +488,28 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMulti
 						}
 						++se;
 					}
+				}
+			}
+			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
+			          " computed, but must be "<<NumSubElements(roid, p));
+
+			{
+				FlexLagrangeLSFS<ReferenceTetrahedron> set(p);
+				for(size_t s = 0; s < se; ++s)
+				{
+					vIndex[s].resize(vvMultiIndex[s].size());
+					for(size_t i = 0; i < vvMultiIndex[s].size(); ++i)
+					{
+						vIndex[s][i] = set.index(vvMultiIndex[s][i]);
+					}
+				}
+			}
 			break;
 
 		case ROID_PRISM:
-			for(int k = 0; k < p; ++k)
-				for(int j = 0; j < p; ++j)
-					for(int i = 0; i < p - j; ++i)
-					{
+			for(int k = 0; k < p; ++k) {
+				for(int j = 0; j < p; ++j) {
+					for(int i = 0; i < p - j; ++i) {
 						vvMultiIndex[se].resize(6);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
 						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
@@ -470,10 +549,11 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMulti
 						}
 						++se;
 					}
-			for(int k = 0; k < p; ++k)
-				for(int j = 1; j <= p; ++j)
-					for(int i = 1; i <= p - j; ++i)
-					{
+				}
+			}
+			for(int k = 0; k < p; ++k) {
+				for(int j = 1; j <= p; ++j) {
+					for(int i = 1; i <= p - j; ++i) {
 						vvMultiIndex[se].resize(6);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  ,k);
 						vvMultiIndex[se][1] = MathVector<3,int>(i-1, j  ,k);
@@ -498,13 +578,28 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMulti
 						}
 						++se;
 					}
+				}
+			}
+			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
+			          " computed, but must be "<<NumSubElements(roid, p));
+
+			{
+				FlexLagrangeLSFS<ReferencePrism> set(p);
+				for(size_t s = 0; s < se; ++s)
+				{
+					vIndex[s].resize(vvMultiIndex[s].size());
+					for(size_t i = 0; i < vvMultiIndex[s].size(); ++i)
+					{
+						vIndex[s][i] = set.index(vvMultiIndex[s][i]);
+					}
+				}
+			}
 
 			break;
 		case ROID_HEXAHEDRON:
-			for(int k = 0; k < p; ++k)
-				for(int j = 0; j < p; ++j)
-					for(int i = 0; i < p; ++i)
-					{
+			for(int k = 0; k < p; ++k) {
+				for(int j = 0; j < p; ++j) {
+					for(int i = 0; i < p; ++i) {
 						vvMultiIndex[se].resize(8);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
 						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
@@ -551,6 +646,23 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMulti
 						}
 						++se;
 					}
+				}
+			}
+			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
+			          " computed, but must be "<<NumSubElements(roid, p));
+
+			{
+				FlexLagrangeLSFS<ReferenceHexahedron> set(p);
+				for(size_t s = 0; s < se; ++s)
+				{
+					vIndex[s].resize(vvMultiIndex[s].size());
+					for(size_t i = 0; i < vvMultiIndex[s].size(); ++i)
+					{
+						vIndex[s][i] = set.index(vvMultiIndex[s][i]);
+					}
+				}
+			}
+
 			break;
 		default: throw(UGFatalError("ReferenceElement not found."));
 	}
@@ -567,7 +679,8 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> > vvMulti
 template <typename TElem, int TWorldDim>
 FV1Geometry<TElem, TWorldDim>::
 FV1Geometry()
-	: m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>())
+	: m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>()),
+	  m_rTrialSpace(Provider::get<local_shape_fct_set_type>())
 {
 	update_local_data();
 }
@@ -578,27 +691,26 @@ update_local_data()
 {
 // 	set corners of element as local centers of nodes
 	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
-		m_locMid[0][i] = m_rRefElem.corner(i);
+		m_vvLocMid[0][i] = m_rRefElem.corner(i);
 
 //	compute local midpoints
-	ComputeMidPoints<dim, ref_elem_type, numSCVF+1>(m_rRefElem, m_locMid[0], m_locMid);
+	ComputeMidPoints<dim, ref_elem_type, maxMid>(m_rRefElem, m_vvLocMid[0], m_vvLocMid);
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
-// 	each scvf is associated to one edge of the element
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 	//	this scvf separates the given nodes
-		m_vSCVF[i].m_from = m_rRefElem.id(1, i, 0, 0);
-		m_vSCVF[i].m_to = m_rRefElem.id(1, i, 0, 1);
+		m_vSCVF[i].From = m_rRefElem.id(1, i, 0, 0);
+		m_vSCVF[i].To = m_rRefElem.id(1, i, 0, 1);
 
 	//	compute mid ids of the scvf
-		ComputeSCVFMidID(m_rRefElem, m_vSCVF[i].midId, i);
+		ComputeSCVFMidID(m_rRefElem, m_vSCVF[i].vMidID, i);
 
 	// 	copy local corners of scvf
-		CopyCornerByMidID<dim, numSCVF+1>(m_vSCVF[i].vLocPos, m_vSCVF[i].midId, m_locMid, SCVF::numCorners);
+		CopyCornerByMidID<dim, maxMid>(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vvLocMid, SCVF::numCo);
 
 	// 	integration point
-		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCorners);
+		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo);
 	}
 
 // 	set up local informations for SubControlVolumes (scv)
@@ -612,26 +724,21 @@ update_local_data()
 		ComputeSCVMidID(m_rRefElem, m_vSCV[i].midId, i);
 
 	// 	copy local corners of scv
-		CopyCornerByMidID<dim, numSCVF+1>(m_vSCV[i].vLocPos, m_vSCV[i].midId, m_locMid, m_vSCV[i].num_corners());
+		CopyCornerByMidID<dim, maxMid>(m_vSCV[i].vLocPos, m_vSCV[i].midId, m_vvLocMid, m_vSCV[i].num_corners());
 	}
 
-	/////////////////////////
-	// Shapes and Derivatives
-	/////////////////////////
 
-	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<ref_elem_type>(LFEID(LFEID::LAGRANGE, 1));
-
+// 	compute Shapes and Derivatives
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
-		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
-		TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
+		m_rTrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].local_ip());
+		m_rTrialSpace.grads(&(m_vSCVF[i].vLocalGrad[0]), m_vSCVF[i].local_ip());
 	}
 
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
-		TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].local_ip());
-		TrialSpace.grads(&(m_vSCV[i].localGrad[0]), m_vSCV[i].local_ip());
+		m_rTrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].local_ip());
+		m_rTrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].local_ip());
 	}
 
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
@@ -648,63 +755,61 @@ FV1Geometry<TElem, TWorldDim>::
 update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == elem) return true;
-	else m_pElem = elem;
+	if(m_pElem == elem) return true; else m_pElem = elem;
 
 // 	remember global position of nodes
 	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
-		m_gloMid[0][i] = vCornerCoords[i];
+		m_vvGloMid[0][i] = vCornerCoords[i];
 
-//	compute local midpoints
-	ComputeMidPoints<worldDim, ref_elem_type, numSCVF+1>(m_rRefElem, m_gloMid[0], m_gloMid);
+//	compute global midpoints
+	ComputeMidPoints<worldDim, ref_elem_type, maxMid>(m_rRefElem, m_vvGloMid[0], m_vvGloMid);
 
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 	// 	copy local corners of scvf
-		CopyCornerByMidID<worldDim, numSCVF+1>(m_vSCVF[i].vGloPos, m_vSCVF[i].midId, m_gloMid, SCVF::numCorners);
+		CopyCornerByMidID<worldDim, maxMid>(m_vSCVF[i].vGloPos, m_vSCVF[i].vMidID, m_vvGloMid, SCVF::numCo);
 
 	// 	integration point
-		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCorners);
+		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCo);
 
 	// 	normal on scvf
-		fv1_traits<ref_elem_type, worldDim>::
-			NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, m_gloMid[0]);
+		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, m_vvGloMid[0]);
 	}
 
 // 	compute size of scv
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 	// 	copy global corners
-		CopyCornerByMidID<worldDim, numSCVF+1>(m_vSCV[i].vGloPos, m_vSCV[i].midId, m_gloMid, m_vSCV[i].num_corners());
+		CopyCornerByMidID<worldDim, maxMid>(m_vSCV[i].vGloPos, m_vSCV[i].midId, m_vvGloMid, m_vSCV[i].num_corners());
 
 	// 	compute volume of scv
-		if(m_vSCV[i].m_numCorners != 10)
-			m_vSCV[i].vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
+		if(m_vSCV[i].numCo != 10)
+			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
 		else throw(UGFatalError("Pyramid Not Implemented"));
 	}
 
 // 	Shapes and Derivatives
-	m_rMapping.update(vCornerCoords);
+	m_mapping.update(vCornerCoords);
 
 //	if mapping is linear, compute jacobian only once and copy
 	if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
 	{
-		m_rMapping.jacobian_transposed_inverse(m_vSCVF[0].JtInv, m_vSCVF[0].localIP);
-		m_vSCVF[0].detj = m_rMapping.jacobian_det(m_vSCVF[0].localIP);
-		for(size_t i = 1; i < num_scvf(); ++i)
+		MathMatrix<worldDim,dim> JtInv;
+		m_mapping.jacobian_transposed_inverse(JtInv, m_vSCVF[0].local_ip());
+		const number detJ = m_mapping.jacobian_det(m_vSCVF[0].local_ip());
+
+		for(size_t i = 0; i < num_scvf(); ++i)
 		{
-			m_vSCVF[i].JtInv = m_vSCVF[0].JtInv;
-			m_vSCVF[i].detj = m_vSCVF[0].detj;
+			m_vSCVF[i].JtInv = JtInv;
+			m_vSCVF[i].detj = detJ;
 		}
 
-		m_rMapping.jacobian_transposed_inverse(m_vSCV[0].JtInv, m_vSCV[0].local_ip());
-		m_vSCV[0].detj = m_rMapping.jacobian_det(m_vSCV[0].local_ip());
-		for(size_t i = 1; i < num_scv(); ++i)
+		for(size_t i = 0; i < num_scv(); ++i)
 		{
-			m_vSCV[i].JtInv = m_vSCV[0].JtInv;
-			m_vSCV[i].detj = m_vSCV[0].detj;
+			m_vSCV[i].JtInv = JtInv;
+			m_vSCV[i].detj = detJ;
 		}
 	}
 //	else compute jacobian for each integration point
@@ -712,36 +817,39 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	{
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
-			m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
-			m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
+			m_mapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].local_ip());
+			m_vSCVF[i].detj = m_mapping.jacobian_det(m_vSCVF[i].local_ip());
 		}
 		for(size_t i = 0; i < num_scv(); ++i)
 		{
-			m_rMapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].local_ip());
-			m_vSCV[i].detj = m_rMapping.jacobian_det(m_vSCV[i].local_ip());
+			m_mapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].local_ip());
+			m_vSCV[i].detj = m_mapping.jacobian_det(m_vSCV[i].local_ip());
 		}
 	}
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
 		for(size_t sh = 0 ; sh < num_scv(); ++sh)
-			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
+			MatVecMult(m_vSCVF[i].vGlobalGrad[sh], m_vSCVF[i].JtInv, m_vSCVF[i].vLocalGrad[sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
 		for(size_t sh = 0 ; sh < num_scv(); ++sh)
-			MatVecMult((m_vSCV[i].globalGrad)[sh], m_vSCV[i].JtInv, (m_vSCV[i].localGrad)[sh]);
+			MatVecMult(m_vSCV[i].vGlobalGrad[sh], m_vSCV[i].JtInv, m_vSCV[i].vLocalGrad[sh]);
 
 // 	Copy ip pos in list for SCVF
-	for(size_t i = 0; i < numSCVF; ++i)
+	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
-
-	/////////////////////////
-	// Boundary Faces
-	/////////////////////////
 
 //	if no boundary subsets required, return
 	if(num_boundary_subsets() == 0 || ish == NULL) return true;
+	else return update_boundary_faces(elem, vCornerCoords, ish);
+}
 
+template <typename TElem, int TWorldDim>
+bool
+FV1Geometry<TElem, TWorldDim>::
+update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
 //	get grid
 	Grid& grid = *(ish->get_assigned_grid());
 
@@ -749,27 +857,27 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	std::vector<int> vSubsetIndex;
 
 //	get subset indices for sides (i.e. edge in 2d, faces in 3d)
-	if(dim == 2)
-	{
+	if(dim == 1) {
+		std::vector<VertexBase*> vVertex;
+		CollectVertices(vVertex, grid, elem);
+		vSubsetIndex.resize(vVertex.size());
+		for(size_t i = 0; i < vVertex.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
+	}
+	if(dim == 2) {
 		std::vector<EdgeBase*> vEdges;
 		CollectEdgesSorted(vEdges, grid, elem);
-
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vEdges[i]);
 	}
-	if(dim == 3)
-	{
+	if(dim == 3) {
 		std::vector<Face*> vFaces;
 		CollectFacesSorted(vFaces, grid, elem);
-
 		vSubsetIndex.resize(vFaces.size());
 		for(size_t i = 0; i < vFaces.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
 	}
-
-	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-			LocalShapeFunctionSetProvider::get<ref_elem_type>(LFEID(LFEID::LAGRANGE, 1));
 
 //	loop requested subset
 	typename std::map<int, std::vector<BF> >::iterator it;
@@ -806,34 +914,33 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 				BF& bf = vBF[curr_bf];
 
 			//	set node id == scv this bf belongs to
-				bf.m_nodeId = m_rRefElem.id(dim-1, side, 0, co);
+				bf.nodeId = m_rRefElem.id(dim-1, side, 0, co);
 
 			//	Compute MidID for BF
-				ComputeBFMidID(m_rRefElem, side, bf.midId, co);
+				ComputeBFMidID(m_rRefElem, side, bf.vMidID, co);
 
 			// 	copy corners of bf
-				CopyCornerByMidID<dim, numSCVF+1>(bf.vLocPos, bf.midId, m_locMid, SCVF::numCorners);
-				CopyCornerByMidID<worldDim, numSCVF+1>(bf.vGloPos, bf.midId, m_gloMid, SCVF::numCorners);
+				CopyCornerByMidID<dim, maxMid>(bf.vLocPos, bf.vMidID, m_vvLocMid, BF::numCo);
+				CopyCornerByMidID<worldDim, maxMid>(bf.vGloPos, bf.vMidID, m_vvGloMid, BF::numCo);
 
 			// 	integration point
-				AveragePositions(bf.localIP, bf.vLocPos, SCVF::numCorners);
-				AveragePositions(bf.globalIP, bf.vGloPos, SCVF::numCorners);
+				AveragePositions(bf.localIP, bf.vLocPos, BF::numCo);
+				AveragePositions(bf.globalIP, bf.vGloPos, BF::numCo);
 
 			// 	normal on scvf
-				fv1_traits<ref_elem_type, worldDim>::
-					NormalOnSCVF(bf.Normal, bf.vGloPos, m_gloMid[0]);
+				traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vvGloMid[0]);
 
 			//	compute volume
-				bf.m_volume = VecTwoNorm(bf.Normal);
+				bf.Vol = VecTwoNorm(bf.Normal);
 
-				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
-				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);
+				m_rTrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
+				m_rTrialSpace.grads(&(bf.vLocalGrad[0]), bf.localIP);
 
-				m_rMapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
-				bf.detj = m_rMapping.jacobian_det(bf.localIP);
+				m_mapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
+				bf.detj = m_mapping.jacobian_det(bf.localIP);
 
 				for(size_t sh = 0 ; sh < num_scv(); ++sh)
-					MatVecMult((bf.globalGrad)[sh], bf.JtInv, (bf.localGrad)[sh]);
+					MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
 
 			//	increase curr_bf
 				++curr_bf;
@@ -862,11 +969,11 @@ update_local_data()
 
 // 	set corners of element as local centers of nodes
 	for(size_t i = 0; i < rRefElem.num(0); ++i)
-		m_locMid[0][i] = rRefElem.corner(i);
+		m_vvLocMid[0][i] = rRefElem.corner(i);
 
 //	compute local midpoints
-	ComputeMidPoints<dim, DimReferenceElement<dim>, maxNumSCVF+1>
-										(rRefElem, m_locMid[0], m_locMid);
+	ComputeMidPoints<dim, DimReferenceElement<dim>, maxMid>
+										(rRefElem, m_vvLocMid[0], m_vvLocMid);
 
 //	set number of scvf / scv of this roid
 	m_numSCV = rRefElem.num(0); // number of corners
@@ -877,17 +984,17 @@ update_local_data()
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 	//	this scvf separates the given nodes
-		m_vSCVF[i].m_from = rRefElem.id(1, i, 0, 0);
-		m_vSCVF[i].m_to = rRefElem.id(1, i, 0, 1);
+		m_vSCVF[i].From = rRefElem.id(1, i, 0, 0);
+		m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
 
 	//	compute mid ids of the scvf
-		ComputeSCVFMidID(rRefElem, m_vSCVF[i].midId, i);
+		ComputeSCVFMidID(rRefElem, m_vSCVF[i].vMidID, i);
 
 	// 	copy local corners of scvf
-		CopyCornerByMidID<dim, maxNumSCVF+1>(m_vSCVF[i].vLocPos, m_vSCVF[i].midId, m_locMid, SCVF::numCorners);
+		CopyCornerByMidID<dim, maxMid>(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vvLocMid, SCVF::numCo);
 
 	// 	integration point
-		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCorners);
+		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo);
 	}
 
 // 	set up local informations for SubControlVolumes (scv)
@@ -898,10 +1005,10 @@ update_local_data()
 		m_vSCV[i].nodeId = i;
 
 	//	compute mid ids scv
-		ComputeSCVMidID(rRefElem, m_vSCV[i].midId, i);
+		ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, i);
 
 	// 	copy local corners of scv
-		CopyCornerByMidID<dim, maxNumSCVF+1>(m_vSCV[i].vLocPos, m_vSCV[i].midId, m_locMid, m_vSCV[i].num_corners());
+		CopyCornerByMidID<dim, maxMid>(m_vSCV[i].vLocPos, m_vSCV[i].vMidID, m_vvLocMid, m_vSCV[i].num_corners());
 	}
 
 	/////////////////////////
@@ -914,20 +1021,16 @@ update_local_data()
 
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
-	//	remember number of shape functions
-		m_vSCVF[i].m_numSH = TrialSpace.num_sh();
-
+		m_vSCVF[i].numSH = TrialSpace.num_sh();
 		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
-		TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
+		TrialSpace.grads(&(m_vSCVF[i].vLocalGrad[0]), m_vSCVF[i].localIP);
 	}
 
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
-	//	remember number of shape functions
-		m_vSCV[i].m_numSH = TrialSpace.num_sh();
-
+		m_vSCV[i].numSH = TrialSpace.num_sh();
 		TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].vLocPos[0]);
-		TrialSpace.grads(&(m_vSCV[i].localGrad[0]), m_vSCV[i].vLocPos[0]);
+		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
 	}
 
 	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
@@ -936,15 +1039,15 @@ update_local_data()
 		return false;
 	}
 
-// 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
-	for(size_t i = 0; i < num_scvf(); ++i)
-		m_vLocSCVF_IP[i] = scvf(i).local_ip();
-
 	}catch(UG_ERROR_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
 	}
+
+// 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
+	for(size_t i = 0; i < num_scvf(); ++i)
+		m_vLocSCVF_IP[i] = scvf(i).local_ip();
 
 	return true;
 }
@@ -957,12 +1060,7 @@ DimFV1Geometry<TDim, TWorldDim>::
 update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == pElem) return true;
-	else m_pElem = pElem;
-
-	//////////////////////////////////
-	// COMPUTATION OF LOCAL DATA
-	//////////////////////////////////
+	if(m_pElem == pElem) return true; else m_pElem = pElem;
 
 //	refresh local data, if different roid given
 	if(m_roid != pElem->reference_object_id())
@@ -974,10 +1072,6 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		if(!update_local_data()) return false;
 	}
 
-	//////////////////////////////////
-	// COMPUTATION OF GLOBAL DATA
-	//////////////////////////////////
-
 //	get reference element
 	try{
 	const DimReferenceElement<dim>& rRefElem
@@ -985,41 +1079,36 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 
 // 	remember global position of nodes
 	for(size_t i = 0; i < rRefElem.num(0); ++i)
-		m_gloMid[0][i] = vCornerCoords[i];
+		m_vvGloMid[0][i] = vCornerCoords[i];
 
 //	compute local midpoints
-	ComputeMidPoints<worldDim, DimReferenceElement<dim>, maxNumSCVF+1>(rRefElem, m_gloMid[0], m_gloMid);
+	ComputeMidPoints<worldDim, DimReferenceElement<dim>, maxMid>(rRefElem, m_vvGloMid[0], m_vvGloMid);
 
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 	// 	copy local corners of scvf
-		CopyCornerByMidID<worldDim, maxNumSCVF+1>(m_vSCVF[i].vGloPos, m_vSCVF[i].midId, m_gloMid, SCVF::numCorners);
+		CopyCornerByMidID<worldDim, maxMid>(m_vSCVF[i].vGloPos, m_vSCVF[i].vMidID, m_vvGloMid, SCVF::numCo);
 
 	// 	integration point
-		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCorners);
+		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCo);
 
 	// 	normal on scvf
-		fv1_dim_traits<dim, worldDim>::
-			NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, m_gloMid[0]);
+		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, m_vvGloMid[0]);
 	}
 
 // 	compute size of scv
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 	// 	copy global corners
-		CopyCornerByMidID<worldDim, maxNumSCVF+1>(m_vSCV[i].vGloPos, m_vSCV[i].midId, m_gloMid, m_vSCV[i].num_corners());
+		CopyCornerByMidID<worldDim, maxMid>(m_vSCV[i].vGloPos, m_vSCV[i].vMidID, m_vvGloMid, m_vSCV[i].num_corners());
 
 	// 	compute volume of scv
-		if(m_vSCV[i].m_numCorners != 10)
-			m_vSCV[i].vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
+		if(m_vSCV[i].numCorners != 10)
+			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	// 	special case for pyramid, last scv
 		else throw(UGFatalError("Pyramid Not Implemented"));
 	}
-
-	/////////////////////////
-	// Shapes and Derivatives
-	/////////////////////////
 
 //	get reference mapping
 	try{
@@ -1030,19 +1119,20 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 //	compute jacobian for linear mapping
 	if(rMapping.is_linear())
 	{
-		rMapping.jacobian_transposed_inverse(m_vSCVF[0].JtInv, m_vSCVF[0].localIP);
-		rMapping.jacobian_transposed_inverse(m_vSCV[0].JtInv, m_vSCV[0].vLocPos[0]);
-		m_vSCVF[0].detj = rMapping.jacobian_det(m_vSCVF[0].localIP);
-		m_vSCV[0].detj = rMapping.jacobian_det(m_vSCV[0].vLocPos[0]);
-		for(size_t i = 1; i < num_scvf(); ++i)
+		MathMatrix<worldDim,dim> JtInv;
+		rMapping.jacobian_transposed_inverse(JtInv, m_vSCVF[0].local_ip());
+		const number detJ = rMapping.jacobian_det(m_vSCVF[0].local_ip());
+
+		for(size_t i = 0; i < num_scvf(); ++i)
 		{
-			m_vSCVF[i].JtInv = m_vSCVF[0].JtInv;
-			m_vSCVF[i].detj = m_vSCVF[0].detj;
+			m_vSCVF[i].JtInv = JtInv;
+			m_vSCVF[i].detj = detJ;
 		}
-		for(size_t i = 1; i < num_scv(); ++i)
+
+		for(size_t i = 0; i < num_scv(); ++i)
 		{
-			m_vSCV[i].JtInv = m_vSCV[0].JtInv;
-			m_vSCV[i].detj = m_vSCV[0].detj;
+			m_vSCV[i].JtInv = JtInv;
+			m_vSCV[i].detj = detJ;
 		}
 	}
 //	else compute jacobian for each integration point
@@ -1050,36 +1140,50 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	{
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
-			rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
-			m_vSCVF[i].detj = rMapping.jacobian_det(m_vSCVF[i].localIP);
+			rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].local_ip());
+			m_vSCVF[i].detj = rMapping.jacobian_det(m_vSCVF[i].local_ip());
 		}
 		for(size_t i = 0; i < num_scv(); ++i)
 		{
-			rMapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].vLocPos[0]);
-			m_vSCV[i].detj = rMapping.jacobian_det(m_vSCV[i].vLocPos[0]);
+			rMapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].local_ip());
+			m_vSCV[i].detj = rMapping.jacobian_det(m_vSCV[i].local_ip());
 		}
 	}
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
-		for(size_t sh = 0 ; sh < num_scv(); ++sh)
-			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
+		for(size_t sh = 0; sh < num_scv(); ++sh)
+			MatVecMult(m_vSCVF[i].vGlobalGrad[sh], m_vSCVF[i].JtInv, m_vSCVF[i].vLocalGrad[sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
-		for(size_t sh = 0 ; sh < num_scv(); ++sh)
-			MatVecMult((m_vSCV[i].globalGrad)[sh], m_vSCV[i].JtInv, (m_vSCV[i].localGrad)[sh]);
+		for(size_t sh = 0; sh < num_scv(); ++sh)
+			MatVecMult(m_vSCV[i].vGlobalGrad[sh], m_vSCV[i].JtInv, m_vSCV[i].vLocalGrad[sh]);
 
 // 	copy ip points in list (SCVF)
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
-	/////////////////////////
-	// Boundary Faces
-	/////////////////////////
+	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	{
+		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
+		return false;
+	}
+	}catch(UG_ERROR_ReferenceMappingMissing& ex)
+	{
+		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
+		return false;
+	}
 
 //	if no boundary subsets required, return
 	if(num_boundary_subsets() == 0 || ish == NULL) return true;
+	else return update_boundary_faces(pElem, vCornerCoords, ish);
+}
 
+template <int TDim, int TWorldDim>
+bool
+DimFV1Geometry<TDim, TWorldDim>::
+update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
 //	get grid
 	Grid& grid = *(ish->get_assigned_grid());
 
@@ -1087,24 +1191,35 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	std::vector<int> vSubsetIndex;
 
 //	get subset indices for sides (i.e. edge in 2d, faces in 3d)
-	if(dim == 2)
-	{
+	if(dim == 1) {
+		std::vector<VertexBase*> vVertex;
+		CollectVertices(vVertex, grid, pElem);
+		vSubsetIndex.resize(vVertex.size());
+		for(size_t i = 0; i < vVertex.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
+	}
+	if(dim == 2) {
 		std::vector<EdgeBase*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
-
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vEdges[i]);
 	}
-	if(dim == 3)
-	{
+	if(dim == 3) {
 		std::vector<Face*> vFaces;
 		CollectFacesSorted(vFaces, grid, pElem);
-
 		vSubsetIndex.resize(vFaces.size());
 		for(size_t i = 0; i < vFaces.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
 	}
+
+	try{
+	const DimReferenceElement<dim>& rRefElem
+		= ReferenceElementProvider::get<dim>(m_roid);
+
+	try{
+	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(m_roid);
+	rMapping.update(vCornerCoords);
 
 	try{
 	const DimLocalShapeFunctionSet<dim>& TrialSpace =
@@ -1145,30 +1260,29 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 				BF& bf = vBF[curr_bf];
 
 			//	set node id == scv this bf belongs to
-				bf.m_nodeId = rRefElem.id(dim-1, side, 0, co);
+				bf.nodeId = rRefElem.id(dim-1, side, 0, co);
 
 			//	Compute MidID for BF
-				ComputeBFMidID(rRefElem, side, bf.midId, co);
+				ComputeBFMidID(rRefElem, side, bf.vMidID, co);
 
 			// 	copy corners of bf
-				CopyCornerByMidID<dim, maxNumSCVF+1>(bf.vLocPos, bf.midId, m_locMid, SCVF::numCorners);
-				CopyCornerByMidID<worldDim, maxNumSCVF+1>(bf.vGloPos, bf.midId, m_gloMid, SCVF::numCorners);
+				CopyCornerByMidID<dim, maxMid>(bf.vLocPos, bf.vMidID, m_vvLocMid, BF::numCo);
+				CopyCornerByMidID<worldDim, maxMid>(bf.vGloPos, bf.vMidID, m_vvGloMid, BF::numCo);
 
 			// 	integration point
-				AveragePositions(bf.localIP, bf.vLocPos, SCVF::numCorners);
-				AveragePositions(bf.globalIP, bf.vGloPos, SCVF::numCorners);
+				AveragePositions(bf.localIP, bf.vLocPos, BF::numCo);
+				AveragePositions(bf.globalIP, bf.vGloPos, BF::numCo);
 
 			// 	normal on scvf
-				fv1_dim_traits<dim, worldDim>::NormalOnSCVF(bf.Normal, bf.vGloPos, m_gloMid[0]);
+				traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vvGloMid[0]);
 
 			//	compute volume
-				bf.m_volume = VecTwoNorm(bf.Normal);
+				bf.Vol = VecTwoNorm(bf.Normal);
 
-			//	remember number of shape functions
-				bf.m_numSH = TrialSpace.num_sh();
-
+			//	compute shapes and grads
+				bf.numSH = TrialSpace.num_sh();
 				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
-				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);
+				TrialSpace.grads(&(bf.vLocalGrad[0]), bf.localIP);
 
 			//	get reference mapping
 				rMapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
@@ -1176,7 +1290,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 
 			//	compute global gradients
 				for(size_t sh = 0 ; sh < num_scv(); ++sh)
-					MatVecMult((bf.globalGrad)[sh], bf.JtInv, (bf.localGrad)[sh]);
+					MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
 
 			//	increase curr_bf
 				++curr_bf;
@@ -1210,8 +1324,8 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-template <int TOrder, typename TElem, int TWorldDim>
-FVGeometry<TOrder, TElem, TWorldDim>::
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
+FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
 FVGeometry()
 	: m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>()),
 	  m_rTrialSpace(Provider::get<local_shape_fct_set_type>()),
@@ -1222,65 +1336,54 @@ FVGeometry()
 }
 
 
-template <int TOrder, typename TElem, int TWorldDim>
-void FVGeometry<TOrder, TElem, TWorldDim>::
-set_corners_of_sub_elem()
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
+bool FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+update_local_data()
 {
 //	get reference object id
 	ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
+//	determine corners of sub elements
 	bool vIsBndElem[numSubElem];
 	std::vector<int> vElemBndSide[numSubElem];
+	std::vector<size_t> vIndex[numSubElem];
 	std::vector<MathVector<dim,int> > vMultiIndex[numSubElem];
 
-	ComputeMultiIndicesOfSubElement<dim>(vMultiIndex,
-	                                     vIsBndElem,
-	                                     vElemBndSide,
-	                                     roid, p);
+	ComputeMultiIndicesOfSubElement<dim>(vMultiIndex, vIsBndElem,
+										 vElemBndSide, vIndex, roid, p);
 
 //	directions of counting
 	MathVector<dim> direction[dim];
 	for(int i = 0; i < dim; ++i){direction[i] = 0.0; direction[i][i] = 1.0;}
 
-//	compute corners of sub elem in local coordinates
 	for(size_t se = 0; se < numSubElem; ++se)
 	{
 		for(int co = 0; co < ref_elem_type::num_corners; ++co)
 		{
+		//	compute corners of sub elem in local coordinates
 			MathVector<dim> pos; pos = 0.0;
 			for(int i = 0; i < dim; ++i)
 			{
 				const number frac = vMultiIndex[se][co][i] / ((number)p);
 				VecScaleAppend(pos, frac, direction[i]);
 			}
+			m_vSubElem[se].vvLocMid[0][co] = pos;
 
-			 m_vSubElem[se].locMid[0][co] = pos;
-
-			 m_vSubElem[se].vDoFID[co] =
-					m_rTrialSpace.index(vMultiIndex[se][co]);
+		//	get multi index for corner
+			m_vSubElem[se].vDoFID[co] = vIndex[se][co];
 		}
 
+	//	remember if boundary element
 		m_vSubElem[se].isBndElem = vIsBndElem[se];
-		m_vSubElem[se].elemBndSide = vElemBndSide[se];
+
+	//	remember boundary sides
+		m_vSubElem[se].vElemBndSide = vElemBndSide[se];
 	}
-}
-
-
-
-template <int TOrder, typename TElem, int TWorldDim>
-bool FVGeometry<TOrder, TElem, TWorldDim>::
-update_local_data()
-{
-//	determine corners of sub elements
-	set_corners_of_sub_elem();
 
 //	compute mid points for all sub elements
 	for(size_t se = 0; se < numSubElem; ++se)
-	{
-		ComputeMidPoints<dim, ref_elem_type, numSCVF+1>
-				(m_rRefElem, m_vSubElem[se].locMid[0], m_vSubElem[se].locMid);
-
-	}
+		ComputeMidPoints<dim, ref_elem_type, maxMid>
+				(m_rRefElem, m_vSubElem[se].vvLocMid[0], m_vSubElem[se].vvLocMid);
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
 // 	each scvf is associated to one edge of the sub-element
@@ -1294,15 +1397,15 @@ update_local_data()
 		const size_t locFrom =  m_rRefElem.id(1, locSCVF, 0, 0);
 		const size_t locTo =  m_rRefElem.id(1, locSCVF, 0, 1);
 
-		m_vSCVF[i].m_from = m_vSubElem[se].vDoFID[locFrom];
-		m_vSCVF[i].m_to = m_vSubElem[se].vDoFID[locTo];
+		m_vSCVF[i].From = m_vSubElem[se].vDoFID[locFrom];
+		m_vSCVF[i].To = m_vSubElem[se].vDoFID[locTo];
 
 	//	compute mid ids of the scvf
-		ComputeSCVFMidID(m_rRefElem, m_vSCVF[i].midId, locSCVF);
+		ComputeSCVFMidID(m_rRefElem, m_vSCVF[i].vMidID, locSCVF);
 
 	// 	copy local corners of scvf
-		CopyCornerByMidID<dim, numSCVF+1>
-			(m_vSCVF[i].vLocPos, m_vSCVF[i].midId, m_vSubElem[se].locMid, SCVF::numCorners);
+		CopyCornerByMidID<dim, maxMid>
+			(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vSubElem[se].vvLocMid, SCVF::numCo);
 
 	// 	compute integration points
 		m_vSCVF[i].vWeight = m_rSCVFQuadRule.weights();
@@ -1324,11 +1427,11 @@ update_local_data()
 		m_vSCV[i].nodeId = m_vSubElem[se].vDoFID[locSCV];;
 
 	//	compute mid ids scv
-		ComputeSCVMidID(m_rRefElem, m_vSCV[i].midId, locSCV);
+		ComputeSCVMidID(m_rRefElem, m_vSCV[i].vMidID, locSCV);
 
 	// 	copy local corners of scv
-		CopyCornerByMidID<dim, numSCVF+1>
-			(m_vSCV[i].vLocPos, m_vSCV[i].midId, m_vSubElem[se].locMid, m_vSCV[i].num_corners());
+		CopyCornerByMidID<dim, maxMid>
+			(m_vSCV[i].vLocPos, m_vSCV[i].vMidID, m_vSubElem[se].vvLocMid, m_vSCV[i].num_corners());
 
 	// 	compute integration points
 		m_vSCV[i].vWeight = m_rSCVQuadRule.weights();
@@ -1341,21 +1444,18 @@ update_local_data()
 	// Shapes and Derivatives
 	/////////////////////////
 
-	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<ref_elem_type>(LFEID(LFEID::LAGRANGE, p));
-
 	for(size_t i = 0; i < num_scvf(); ++i)
 		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
 		{
-			TrialSpace.shapes(&(m_vSCVF[i].vvShape[ip][0]), m_vSCVF[i].vLocalIP[ip]);
-			TrialSpace.grads(&(m_vSCVF[i].vvLocalGrad[ip][0]), m_vSCVF[i].vLocalIP[ip]);
+			m_rTrialSpace.shapes(&(m_vSCVF[i].vvShape[ip][0]), m_vSCVF[i].local_ip(ip));
+			m_rTrialSpace.grads(&(m_vSCVF[i].vvLocalGrad[ip][0]), m_vSCVF[i].local_ip(ip));
 		}
 
 	for(size_t i = 0; i < num_scv(); ++i)
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
 		{
-			TrialSpace.shapes(&(m_vSCV[i].vvShape[ip][0]), m_vSCV[i].local_ip(ip));
-			TrialSpace.grads(&(m_vSCV[i].vvLocalGrad[ip][0]), m_vSCV[i].local_ip(ip));
+			m_rTrialSpace.shapes(&(m_vSCV[i].vvShape[ip][0]), m_vSCV[i].local_ip(ip));
+			m_rTrialSpace.grads(&(m_vSCV[i].vvLocalGrad[ip][0]), m_vSCV[i].local_ip(ip));
 		}
 
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
@@ -1375,14 +1475,13 @@ update_local_data()
 
 
 /// update data for given element
-template <int TOrder, typename TElem, int TWorldDim>
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
 bool
-FVGeometry<TOrder, TElem, TWorldDim>::
-update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == elem) return true;
-	else m_pElem = elem;
+	if(m_pElem == pElem) return true; else m_pElem = pElem;
 
 //	update reference mapping
 	m_rMapping.update(vCornerCoords);
@@ -1396,11 +1495,10 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 
 	//	map local ips of scvf to global
 		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
-			m_rMapping.local_to_global(m_vSCVF[i].vGlobalIP[ip], m_vSCVF[i].vLocalIP[ip]);
+			m_rMapping.local_to_global(m_vSCVF[i].vGlobalIP[ip], m_vSCVF[i].local_ip(ip));
 
 	// 	normal on scvf
-		fvho_traits<p, ref_elem_type, worldDim>::
-			NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, vCornerCoords);
+		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, vCornerCoords);
 	}
 
 // 	compute size of scv
@@ -1412,11 +1510,11 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 
 	//	map local ips of scvf to global
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
-			m_rMapping.local_to_global(m_vSCV[i].vGlobalIP[ip], m_vSCV[i].vLocalIP[ip]);
+			m_rMapping.local_to_global(m_vSCV[i].vGlobalIP[ip], m_vSCV[i].local_ip(ip));
 
 	// 	compute volume of scv
-		if(m_vSCV[i].m_numCorners != 10)
-			m_vSCV[i].vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
+		if(m_vSCV[i].numCo != 10)
+			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
 		else throw(UGFatalError("Pyramid Not Implemented"));
 	}
@@ -1425,17 +1523,17 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
 	{
 		MathMatrix<worldDim,dim> JtInv;
-		m_rMapping.jacobian_transposed_inverse(JtInv, m_vSCVF[0].vLocalIP[0]);
-		const number detJ = m_rMapping.jacobian_det(m_vSCVF[0].vLocalIP[0]);
+		m_rMapping.jacobian_transposed_inverse(JtInv, m_vSCVF[0].local_ip(0));
+		const number detJ = m_rMapping.jacobian_det(m_vSCVF[0].local_ip(0));
 		for(size_t i = 0; i < num_scvf(); ++i)
-			for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
+			for(size_t ip = 0; ip < scvf(i).num_ip(); ++ip)
 			{
 				m_vSCVF[i].vJtInv[ip] = JtInv;
 				m_vSCVF[i].vDetJ[ip] = detJ;
 			}
 
 		for(size_t i = 0; i < num_scv(); ++i)
-			for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
+			for(size_t ip = 0; ip < scv(i).num_ip(); ++ip)
 			{
 				m_vSCV[i].vJtInv[ip] = JtInv;
 				m_vSCV[i].vDetJ[ip] = detJ;
@@ -1447,8 +1545,8 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		for(size_t i = 0; i < num_scvf(); ++i)
 			for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
 			{
-				m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].vJtInv[ip], m_vSCVF[i].vLocalIP[ip]);
-				m_vSCVF[i].vDetJ[ip] = m_rMapping.jacobian_det(m_vSCVF[i].vLocalIP[ip]);
+				m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].vJtInv[ip], m_vSCVF[i].local_ip(ip));
+				m_vSCVF[i].vDetJ[ip] = m_rMapping.jacobian_det(m_vSCVF[i].local_ip(ip));
 			}
 
 		for(size_t i = 0; i < num_scv(); ++i)
@@ -1461,33 +1559,36 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
-		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf(i).num_ip(); ++ip)
 			for(size_t sh = 0 ; sh < nsh; ++sh)
 				MatVecMult(m_vSCVF[i].vvGlobalGrad[ip][sh], m_vSCVF[i].vJtInv[ip], m_vSCVF[i].vvLocalGrad[ip][sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
-		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
+		for(size_t ip = 0; ip < scv(i).num_ip(); ++ip)
 			for(size_t sh = 0 ; sh < nsh; ++sh)
 				MatVecMult(m_vSCV[i].vvGlobalGrad[ip][sh], m_vSCV[i].vJtInv[ip], m_vSCV[i].vvLocalGrad[ip][sh]);
 
 // 	Copy ip pos in list for SCVF
 	size_t allIP = 0;
-	for(size_t i = 0; i < numSCVF; ++i)
-		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
+	for(size_t i = 0; i < num_scvf(); ++i)
+		for(size_t ip = 0; ip < scvf(i).num_ip(); ++ip)
 			m_vGlobSCVF_IP[allIP++] = scvf(i).global_ip(ip);
 
 	allIP = 0;
-	for(size_t i = 0; i < numSCV; ++i)
-		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
+	for(size_t i = 0; i < num_scv(); ++i)
+		for(size_t ip = 0; ip < scv(i).num_ip(); ++ip)
 			m_vGlobSCV_IP[allIP++] = scv(i).global_ip(ip);
-
-	/////////////////////////
-	// Boundary Faces
-	/////////////////////////
 
 //	if no boundary subsets required, return
 	if(num_boundary_subsets() == 0 || ish == NULL) return true;
+	else return update_boundary_faces(pElem, vCornerCoords, ish);
+}
 
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
+bool
+FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
 //	get grid
 	Grid& grid = *(ish->get_assigned_grid());
 
@@ -1495,20 +1596,23 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	std::vector<int> vSubsetIndex;
 
 //	get subset indices for sides (i.e. edge in 2d, faces in 3d)
-	if(dim == 2)
-	{
+	if(dim == 1) {
+		std::vector<VertexBase*> vVertex;
+		CollectVertices(vVertex, grid, pElem);
+		vSubsetIndex.resize(vVertex.size());
+		for(size_t i = 0; i < vVertex.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
+	}
+	if(dim == 2) {
 		std::vector<EdgeBase*> vEdges;
-		CollectEdgesSorted(vEdges, grid, elem);
-
+		CollectEdgesSorted(vEdges, grid, pElem);
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vEdges[i]);
 	}
-	if(dim == 3)
-	{
+	if(dim == 3) {
 		std::vector<Face*> vFaces;
-		CollectFacesSorted(vFaces, grid, elem);
-
+		CollectFacesSorted(vFaces, grid, pElem);
 		vSubsetIndex.resize(vFaces.size());
 		for(size_t i = 0; i < vFaces.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
@@ -1537,10 +1641,10 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			if(!m_vSubElem[se].isBndElem) continue;
 
 		//	loop sides of element
-			for(size_t side = 0; side < m_vSubElem[se].elemBndSide.size(); ++side)
+			for(size_t side = 0; side < m_vSubElem[se].vElemBndSide.size(); ++side)
 			{
 			//	get whole element bnd side
-				const int elemBndSide = m_vSubElem[se].elemBndSide[side];
+				const int elemBndSide = m_vSubElem[se].vElemBndSide[side];
 
 			//	skip non boundary sides
 				if(elemBndSide == -1 || vSubsetIndex[elemBndSide] != bndIndex) continue;
@@ -1562,17 +1666,16 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 					bf.nodeId = m_vSubElem[se].vDoFID[refNodeId];
 
 				//	Compute MidID for BF
-					ComputeBFMidID(m_rRefElem, elemBndSide, bf.vMidId, co);
+					ComputeBFMidID(m_rRefElem, elemBndSide, bf.vMidID, co);
 
 				// 	copy corners of bf
-					CopyCornerByMidID<dim, numSCVF+1>
-						(bf.vLocPos, bf.vMidId, m_vSubElem[se].locMid, BF::numCorners);
-					CopyCornerByMidID<worldDim, numSCVF+1>
-						(bf.vGloPos, bf.vMidId, m_vSubElem[se].gloMid, BF::numCorners);
+					CopyCornerByMidID<dim, maxMid>
+						(bf.vLocPos, bf.vMidID, m_vSubElem[se].vvLocMid, BF::numCo);
+					CopyCornerByMidID<worldDim, maxMid>
+						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);
 
 				// 	normal on scvf
-					fvho_traits<p, ref_elem_type, worldDim>::
-						NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].gloMid[0]);
+					traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].vvGloMid[0]);
 
 				//	compute local integration points
 					bf.vWeight = m_rSCVFQuadRule.weights();
@@ -1590,11 +1693,11 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 				//	compute shapes and gradients
 					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
 					{
-						m_rTrialSpace.shapes(&(bf.vvShape[ip][0]), bf.vLocalIP[ip]);
-						m_rTrialSpace.grads(&(bf.vvLocalGrad[ip][0]), bf.vLocalIP[ip]);
+						m_rTrialSpace.shapes(&(bf.vvShape[ip][0]), bf.local_ip(ip));
+						m_rTrialSpace.grads(&(bf.vvLocalGrad[ip][0]), bf.local_ip(ip));
 
-						m_rMapping.jacobian_transposed_inverse(bf.vJtInv[ip], bf.vLocalIP[ip]);
-						bf.vDetJ[ip] = m_rMapping.jacobian_det(bf.vLocalIP[ip]);
+						m_rMapping.jacobian_transposed_inverse(bf.vJtInv[ip], bf.local_ip(ip));
+						bf.vDetJ[ip] = m_rMapping.jacobian_det(bf.local_ip(ip));
 					}
 
 				//	compute global gradient
@@ -1610,11 +1713,541 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		}
 	}
 
+	return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// FV Geometry (all order, FVHO)   DIM FV
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template <int TDim, int TWorldDim>
+DimFVGeometry<TDim, TWorldDim>::
+DimFVGeometry()	: m_pElem(NULL) {}
+
+
+
+template <int TDim, int TWorldDim>
+bool DimFVGeometry<TDim, TWorldDim>::
+update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quadOrderSCV)
+{
+//	save setting we prepare the local data for
+	m_roid = roid;
+	m_orderShape = orderShape;
+	m_quadOrderSCVF = quadOrderSCVF;
+	m_quadOrderSCV = quadOrderSCV;
+
+//	resize sub elements
+	m_numSubElem = NumSubElements(m_roid, m_orderShape);
+	m_vSubElem.resize(m_numSubElem);
+
+//	get the multi indices for the sub elements and the boundary flags
+	bool* vIsBndElem = new bool[m_numSubElem];
+	std::vector<std::vector<int> > vElemBndSide(m_numSubElem);
+	std::vector<std::vector<MathVector<dim,int> > > vMultiIndex(m_numSubElem);
+	std::vector<std::vector<size_t> > vIndex(m_numSubElem);
+	ComputeMultiIndicesOfSubElement<dim>(&vMultiIndex[0], &vIsBndElem[0],
+	                                     &vElemBndSide[0], &vIndex[0], m_roid, m_orderShape);
+
+//	get reference element
+	try{
+	const DimReferenceElement<dim>& rRefElem
+				= ReferenceElementProvider::get<dim>(m_roid);
+
+//	directions of counting
+	MathVector<dim> direction[dim];
+	for(int i = 0; i < dim; ++i){direction[i] = 0.0; direction[i][i] = 1.0;}
+
+	for(size_t se = 0; se < m_numSubElem; ++se)
+	{
+		for(size_t co = 0; co < vMultiIndex[se].size(); ++co)
+		{
+		//	compute corners of sub elem in local coordinates
+			MathVector<dim> pos; pos = 0.0;
+			for(int i = 0; i < dim; ++i)
+			{
+				const number frac = vMultiIndex[se][co][i] / ((number)m_orderShape);
+				VecScaleAppend(pos, frac, direction[i]);
+			}
+			m_vSubElem[se].vvLocMid[0][co] = pos;
+
+		//	get multi index for corner
+			m_vSubElem[se].vDoFID[co] = vIndex[se][co];
+		}
+
+	//	remember if boundary element
+		m_vSubElem[se].isBndElem = vIsBndElem[se];
+
+	//	remember boundary sides
+		m_vSubElem[se].vElemBndSide = vElemBndSide[se];
+	}
+
+	delete[] vIsBndElem;
+
+//	compute mid points for all sub elements
+	for(size_t se = 0; se < m_numSubElem; ++se)
+		ComputeMidPoints<dim, DimReferenceElement<dim>, maxMid>
+				(rRefElem, m_vSubElem[se].vvLocMid[0], m_vSubElem[se].vvLocMid);
+
+//	number of scvf/scv per subelem
+	m_numSCVFPerSubElem = rRefElem.num(1);
+	m_numSCVPerSubElem = rRefElem.num(0);
+
+	m_numSCVF = m_numSCVFPerSubElem * m_numSubElem;
+	m_numSCV = m_numSCVPerSubElem * m_numSubElem;
+
+	m_vSCVF.resize(m_numSCVF);
+	m_vSCV.resize(m_numSCV);
+
+
+//	get trial space
+	try{
+	const DimLocalShapeFunctionSet<dim>& rTrialSpace =
+		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
+
+//	request for quadrature rule
+	try{
+	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
+	const QuadratureRule<dim-1>& rSCVFQuadRule
+			= QuadratureRuleProvider<dim-1>::get_rule(scvfRoid, m_quadOrderSCVF);
+
+	const int nipSCVF = rSCVFQuadRule.size();
+	m_numSCVFIP = m_numSCVF * nipSCVF;
+
+// 	set up local informations for SubControlVolumeFaces (scvf)
+// 	each scvf is associated to one edge of the sub-element
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+	//	get corresponding subelement
+		const size_t se = i / m_numSCVFPerSubElem;
+		const size_t locSCVF = i % m_numSCVFPerSubElem;
+
+	//	this scvf separates the given nodes
+		const size_t locFrom =  rRefElem.id(1, locSCVF, 0, 0);
+		const size_t locTo =  rRefElem.id(1, locSCVF, 0, 1);
+
+		m_vSCVF[i].From = m_vSubElem[se].vDoFID[locFrom];
+		m_vSCVF[i].To = m_vSubElem[se].vDoFID[locTo];
+
+	//	compute mid ids of the scvf
+		ComputeSCVFMidID(rRefElem, m_vSCVF[i].vMidID, locSCVF);
+
+	// 	copy local corners of scvf
+		CopyCornerByMidID<dim, maxMid>
+			(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vSubElem[se].vvLocMid, SCVF::numCo);
+
+	// 	compute integration points
+		m_vSCVF[i].vWeight = rSCVFQuadRule.weights();
+		m_vSCVF[i].nip = nipSCVF;
+
+		m_vSCVF[i].vLocalIP.resize(nipSCVF);
+		m_vSCVF[i].vGlobalIP.resize(nipSCVF);
+
+		m_vSCVF[i].vvShape.resize(nipSCVF);
+		m_vSCVF[i].vvLocalGrad.resize(nipSCVF);
+		m_vSCVF[i].vvGlobalGrad.resize(nipSCVF);
+		m_vSCVF[i].vJtInv.resize(nipSCVF);
+		m_vSCVF[i].vDetJ.resize(nipSCVF);
+
+		m_vSCV[i].nsh = rTrialSpace.num_sh();
+
+		ReferenceMapping<scvf_type, dim> map(m_vSCVF[i].vLocPos);
+		for(size_t ip = 0; ip < rSCVFQuadRule.size(); ++ip)
+			map.local_to_global(m_vSCVF[i].vLocalIP[ip], rSCVFQuadRule.point(ip));
+	}
+
+	}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
+		UG_LOG("ERROR in DimFVGeometry::update: " << ex.get_msg() << ".\n");
+		return false;
+	}
+
+//	request for quadrature rule
+	try{
+	const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
+	const QuadratureRule<dim>& rSCVQuadRule
+			= QuadratureRuleProvider<dim>::get_rule(scvRoid, m_quadOrderSCV);
+
+	const int nipSCV = rSCVQuadRule.size();
+	m_numSCVIP = m_numSCV * nipSCV;
+
+// 	set up local informations for SubControlVolumes (scv)
+// 	each scv is associated to one corner of the sub-element
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+	//	get corresponding subelement
+		const size_t se = i / m_numSCVPerSubElem;
+		const size_t locSCV = i % m_numSCVPerSubElem;
+
+	//	store associated node
+		m_vSCV[i].nodeId = m_vSubElem[se].vDoFID[locSCV];;
+
+	//	compute mid ids scv
+		ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, locSCV);
+
+	// 	copy local corners of scv
+		CopyCornerByMidID<dim, maxMid>
+			(m_vSCV[i].vLocPos, m_vSCV[i].vMidID, m_vSubElem[se].vvLocMid, m_vSCV[i].num_corners());
+
+	// 	compute integration points
+		m_vSCV[i].vWeight = rSCVQuadRule.weights();
+		m_vSCV[i].nip = nipSCV;
+
+		m_vSCV[i].vLocalIP.resize(nipSCV);
+		m_vSCV[i].vGlobalIP.resize(nipSCV);
+
+		m_vSCV[i].vvShape.resize(nipSCV);
+		m_vSCV[i].vvLocalGrad.resize(nipSCV);
+		m_vSCV[i].vvGlobalGrad.resize(nipSCV);
+		m_vSCV[i].vJtInv.resize(nipSCV);
+		m_vSCV[i].vDetJ.resize(nipSCV);
+
+		m_vSCV[i].nsh = rTrialSpace.num_sh();
+
+		ReferenceMapping<scv_type, dim> map(m_vSCV[i].vLocPos);
+		for(size_t ip = 0; ip < rSCVQuadRule.size(); ++ip)
+			map.local_to_global(m_vSCV[i].vLocalIP[ip], rSCVQuadRule.point(ip));
+	}
+
+	}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
+		UG_LOG("ERROR in DimFVGeometry::update: " << ex.get_msg() << ".\n");
+		return false;
+	}
+
+	/////////////////////////
+	// Shapes and Derivatives
+	/////////////////////////
+
+	for(size_t i = 0; i < num_scvf(); ++i)
+		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
+		{
+			m_vSCVF[i].vvShape[ip].resize(m_vSCVF[i].nsh);
+			m_vSCVF[i].vvLocalGrad[ip].resize(m_vSCVF[i].nsh);
+			m_vSCVF[i].vvGlobalGrad[ip].resize(m_vSCVF[i].nsh);
+
+			rTrialSpace.shapes(&(m_vSCVF[i].vvShape[ip][0]), m_vSCVF[i].local_ip(ip));
+			rTrialSpace.grads(&(m_vSCVF[i].vvLocalGrad[ip][0]), m_vSCVF[i].local_ip(ip));
+		}
+
+	for(size_t i = 0; i < num_scv(); ++i)
+		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
+		{
+			m_vSCV[i].vvShape[ip].resize(m_vSCV[i].nsh);
+			m_vSCV[i].vvLocalGrad[ip].resize(m_vSCV[i].nsh);
+			m_vSCV[i].vvGlobalGrad[ip].resize(m_vSCV[i].nsh);
+
+			rTrialSpace.shapes(&(m_vSCV[i].vvShape[ip][0]), m_vSCV[i].local_ip(ip));
+			rTrialSpace.grads(&(m_vSCV[i].vvLocalGrad[ip][0]), m_vSCV[i].local_ip(ip));
+		}
+
+	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	{
+		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
+		return false;
+	}
+
+	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	{
+		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
+		return false;
+	}
+
+// 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
+	m_vLocSCVF_IP.resize(m_numSCVFIP);
+	size_t allIP = 0;
+	for(size_t i = 0; i < num_scvf(); ++i)
+		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
+			m_vLocSCVF_IP[allIP++] = scvf(i).local_ip(ip);
+
+// 	copy ip positions in a list for Sub Control Volumes (SCV)
+	m_vLocSCV_IP.resize(m_numSCVIP);
+	allIP = 0;
+	for(size_t i = 0; i < num_scv(); ++i)
+		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
+			m_vLocSCV_IP[allIP++] = scv(i).local_ip(ip);
 
 	return true;
 }
 
 
+/// update data for given element
+template <int TDim, int TWorldDim>
+bool
+DimFVGeometry<TDim, TWorldDim>::
+update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+       int orderShape, int quadOrderSCVF, int quadOrderSCV,
+       const ISubsetHandler* ish)
+{
+// 	If already update for this element, do nothing
+	if(m_pElem == pElem) return true; else m_pElem = pElem;
+
+//	get reference element type
+	ReferenceObjectID roid = (ReferenceObjectID)pElem->reference_object_id();
+
+//	if already prepared for this roid, skip update of local values
+	if(m_roid != roid || orderShape != m_orderShape ||
+	   quadOrderSCVF != m_quadOrderSCVF || quadOrderSCV != m_quadOrderSCV)
+		if(!update_local(roid, orderShape, quadOrderSCVF, quadOrderSCV))
+			return false;
+
+//	get reference element mapping
+	try{
+	DimReferenceMapping<dim, worldDim>& rMapping
+		= ReferenceMappingProvider::get<dim, worldDim>(roid);
+
+//	update reference mapping
+	rMapping.update(vCornerCoords);
+
+// 	compute global informations for scvf
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+	//	map local corners of scvf to global
+		for(size_t co = 0; co < m_vSCVF[i].num_corners(); ++co)
+			rMapping.local_to_global(m_vSCVF[i].vGloPos[co], m_vSCVF[i].vLocPos[co]);
+
+	//	map local ips of scvf to global
+		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
+			rMapping.local_to_global(m_vSCVF[i].vGlobalIP[ip], m_vSCVF[i].local_ip(ip));
+
+	// 	normal on scvf
+		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, vCornerCoords);
+	}
+
+// 	compute size of scv
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+	//	map local corners of scvf to global
+		rMapping.local_to_global(&m_vSCV[i].vGloPos[0], &m_vSCV[i].vLocPos[0], m_vSCV[i].num_corners());
+
+	//	map local ips of scvf to global
+			rMapping.local_to_global(&m_vSCV[i].vGlobalIP[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
+
+	// 	compute volume of scv
+		if(m_vSCV[i].numCo != 10)
+			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
+	//	special case for pyramid, last scv
+		else throw(UGFatalError("Pyramid Not Implemented"));
+	}
+
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		rMapping.jacobian_transposed_inverse(&m_vSCVF[i].vJtInv[0], &m_vSCVF[i].vLocalIP[0], m_vSCVF[i].num_ip());
+		rMapping.jacobian_det(&m_vSCVF[i].vDetJ[0], &m_vSCVF[i].vLocalIP[0], m_vSCVF[i].num_ip());
+	}
+
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+		rMapping.jacobian_transposed_inverse(&m_vSCV[i].vJtInv[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
+		rMapping.jacobian_det(&m_vSCV[i].vDetJ[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
+	}
+
+	}catch(UG_ERROR_ReferenceMappingMissing& ex){
+		UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+		return false;
+	}
+
+//	compute global gradients
+	for(size_t i = 0; i < num_scvf(); ++i)
+		for(size_t ip = 0; ip < scvf(i).num_ip(); ++ip)
+			for(size_t sh = 0 ; sh < m_vSCVF[i].nsh; ++sh)
+				MatVecMult(m_vSCVF[i].vvGlobalGrad[ip][sh], m_vSCVF[i].vJtInv[ip], m_vSCVF[i].vvLocalGrad[ip][sh]);
+
+	for(size_t i = 0; i < num_scv(); ++i)
+		for(size_t ip = 0; ip < scv(i).num_ip(); ++ip)
+			for(size_t sh = 0 ; sh < m_vSCV[i].nsh; ++sh)
+				MatVecMult(m_vSCV[i].vvGlobalGrad[ip][sh], m_vSCV[i].vJtInv[ip], m_vSCV[i].vvLocalGrad[ip][sh]);
+
+// 	Copy ip pos in list for SCVF
+	size_t allIP = 0;
+	for(size_t i = 0; i < num_scvf(); ++i)
+		for(size_t ip = 0; ip < scvf(i).num_ip(); ++ip)
+			m_vGlobSCVF_IP[allIP++] = scvf(i).global_ip(ip);
+
+	allIP = 0;
+	for(size_t i = 0; i < num_scv(); ++i)
+		for(size_t ip = 0; ip < scv(i).num_ip(); ++ip)
+			m_vGlobSCV_IP[allIP++] = scv(i).global_ip(ip);
+
+//	if no boundary subsets required, return
+	if(num_boundary_subsets() == 0 || ish == NULL) return true;
+	else return update_boundary_faces(pElem, vCornerCoords, ish);
+}
+
+template <int TDim, int TWorldDim>
+bool
+DimFVGeometry<TDim, TWorldDim>::
+update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
+//	get grid
+	Grid& grid = *(ish->get_assigned_grid());
+
+//	vector of subset indices of side
+	std::vector<int> vSubsetIndex;
+
+//	get subset indices for sides (i.e. edge in 2d, faces in 3d)
+	if(dim == 1) {
+		std::vector<VertexBase*> vVertex;
+		CollectVertices(vVertex, grid, pElem);
+		vSubsetIndex.resize(vVertex.size());
+		for(size_t i = 0; i < vVertex.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
+	}
+	if(dim == 2) {
+		std::vector<EdgeBase*> vEdges;
+		CollectEdgesSorted(vEdges, grid, pElem);
+		vSubsetIndex.resize(vEdges.size());
+		for(size_t i = 0; i < vEdges.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vEdges[i]);
+	}
+	if(dim == 3) {
+		std::vector<Face*> vFaces;
+		CollectFacesSorted(vFaces, grid, pElem);
+		vSubsetIndex.resize(vFaces.size());
+		for(size_t i = 0; i < vFaces.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
+	}
+
+//	get reference element mapping
+	try{
+	DimReferenceMapping<dim, worldDim>& rMapping
+		= ReferenceMappingProvider::get<dim, worldDim>(m_roid);
+
+	try{
+	const DimReferenceElement<dim>& rRefElem
+		= ReferenceElementProvider::get<dim>(m_roid);
+
+	try{
+	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
+	const QuadratureRule<dim-1>& rSCVFQuadRule
+			= QuadratureRuleProvider<dim-1>::get_rule(scvfRoid, m_quadOrderSCVF);
+
+	try{
+	const DimLocalShapeFunctionSet<dim>& rTrialSpace =
+		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
+
+//	update reference mapping
+	rMapping.update(vCornerCoords);
+
+//	loop requested subset
+	typename std::map<int, std::vector<BF> >::iterator it;
+	for (it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); ++it)
+	{
+	//	get subset index
+		const int bndIndex = (*it).first;
+
+	//	get vector of BF for element
+		std::vector<BF>& vBF = (*it).second;
+
+	//	clear vector
+		vBF.clear();
+
+	//	current number of bf
+		size_t curr_bf = 0;
+
+	//	loop subelements
+		for(size_t se = 0; se < m_numSubElem; ++se)
+		{
+		//	skip inner sub elements
+			if(!m_vSubElem[se].isBndElem) continue;
+
+		//	loop sides of element
+			for(size_t side = 0; side < m_vSubElem[se].vElemBndSide.size(); ++side)
+			{
+			//	get whole element bnd side
+				const int elemBndSide = m_vSubElem[se].vElemBndSide[side];
+
+			//	skip non boundary sides
+				if(elemBndSide == -1 || vSubsetIndex[elemBndSide] != bndIndex) continue;
+
+			//	number of corners of side
+				const int coOfSide = rRefElem.num(dim-1, elemBndSide, 0);
+
+			//	resize vector
+				vBF.resize(curr_bf + coOfSide);
+
+			//	loop corners
+				for(int co = 0; co < coOfSide; ++co)
+				{
+				//	get current bf
+					BF& bf = vBF[curr_bf];
+
+				//	set node id == scv this bf belongs to
+					const int refNodeId = rRefElem.id(dim-1, elemBndSide, 0, co);
+					bf.nodeId = m_vSubElem[se].vDoFID[refNodeId];
+
+				//	Compute MidID for BF
+					ComputeBFMidID(rRefElem, elemBndSide, bf.vMidID, co);
+
+				// 	copy corners of bf
+					CopyCornerByMidID<dim, maxMid>
+						(bf.vLocPos, bf.vMidID, m_vSubElem[se].vvLocMid, BF::numCo);
+					CopyCornerByMidID<worldDim, maxMid>
+						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);
+
+				// 	normal on scvf
+					traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].vvGloMid[0]);
+
+				//	compute local integration points
+					bf.vWeight = rSCVFQuadRule.weights();
+					ReferenceMapping<scvf_type, dim> map(bf.vLocPos);
+					for(size_t ip = 0; ip < rSCVFQuadRule.size(); ++ip)
+						map.local_to_global(bf.vLocalIP[ip], rSCVFQuadRule.point(ip));
+
+				//	compute global integration points
+					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
+						rMapping.local_to_global(bf.vGlobalIP[ip], bf.vLocalIP[ip]);
+
+				//	compute volume
+					bf.Vol = VecTwoNorm(bf.Normal);
+
+				//	compute shapes and gradients
+					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
+					{
+						rTrialSpace.shapes(&(bf.vvShape[ip][0]), bf.local_ip(ip));
+						rTrialSpace.grads(&(bf.vvLocalGrad[ip][0]), bf.local_ip(ip));
+					}
+
+					rMapping.jacobian_transposed_inverse(&bf.vJtInv[0], &bf.vLocalIP[0], bf.num_ip());
+					rMapping.jacobian_det(&bf.vDetJ[0], &bf.vLocalIP[0], bf.num_ip());
+
+				//	compute global gradient
+					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
+						for(size_t sh = 0 ; sh < num_scv(); ++sh)
+							MatVecMult(bf.vvGlobalGrad[ip][sh],
+							           bf.vJtInv[ip], bf.vvLocalGrad[ip][sh]);
+
+				//	increase curr_bf
+					++curr_bf;
+				}
+			}
+		}
+	}
+
+	}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
+		UG_LOG("ERROR in DimFVGeometry::update: " << ex.get_msg() << ".\n");
+		return false;
+	}
+
+	}catch(UG_ERROR_ReferenceMappingMissing& ex){
+		UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
+		return false;
+	}
+
+	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	{
+		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
+		return false;
+	}
+
+	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	{
+		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
+		return false;
+	}
+
+	return true;
+}
 
 
 
@@ -1814,6 +2447,8 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	return true;
 }
 
+//////////////////////
+// FV1Geometry
 
 template class FV1Geometry<Edge, 1>;
 template class FV1Geometry<Edge, 2>;
@@ -1830,30 +2465,8 @@ template class FV1Geometry<Prism, 3>;
 template class FV1Geometry<Pyramid, 3>;
 template class FV1Geometry<Hexahedron, 3>;
 
-
-//template class FVGeometry<1, Edge, 1>;
-template class FVGeometry<1, Triangle, 2>;
-template class FVGeometry<1, Quadrilateral, 2>;
-template class FVGeometry<1, Tetrahedron, 3>;
-template class FVGeometry<1, Prism, 3>;
-template class FVGeometry<1, Hexahedron, 3>;
-
-//template class FVGeometry<2, Edge, 1>;
-template class FVGeometry<2, Triangle, 2>;
-template class FVGeometry<2, Quadrilateral, 2>;
-template class FVGeometry<2, Tetrahedron, 3>;
-template class FVGeometry<2, Prism, 3>;
-template class FVGeometry<2, Hexahedron, 3>;
-
-//template class FVGeometry<3, Edge, 1>;
-template class FVGeometry<3, Triangle, 2>;
-template class FVGeometry<3, Quadrilateral, 2>;
-template class FVGeometry<3, Tetrahedron, 3>;
-template class FVGeometry<3, Prism, 3>;
-template class FVGeometry<3, Hexahedron, 3>;
-
-
-
+//////////////////////
+// DimFV1Geometry
 template class DimFV1Geometry<1, 1>;
 template class DimFV1Geometry<1, 2>;
 template class DimFV1Geometry<1, 3>;
@@ -1863,7 +2476,41 @@ template class DimFV1Geometry<2, 3>;
 
 template class DimFV1Geometry<3, 3>;
 
+//////////////////////
+// FVGeometry
 
+template class FVGeometry<1, Triangle, 2>;
+template class FVGeometry<1, Quadrilateral, 2>;
+template class FVGeometry<1, Tetrahedron, 3>;
+template class FVGeometry<1, Prism, 3>;
+template class FVGeometry<1, Hexahedron, 3>;
+
+template class FVGeometry<2, Triangle, 2>;
+template class FVGeometry<2, Quadrilateral, 2>;
+template class FVGeometry<2, Tetrahedron, 3>;
+template class FVGeometry<2, Prism, 3>;
+template class FVGeometry<2, Hexahedron, 3>;
+
+template class FVGeometry<3, Triangle, 2>;
+template class FVGeometry<3, Quadrilateral, 2>;
+template class FVGeometry<3, Tetrahedron, 3>;
+template class FVGeometry<3, Prism, 3>;
+template class FVGeometry<3, Hexahedron, 3>;
+
+//////////////////////
+// DimFVGeometry
+//template class DimFVGeometry<1, 1>;
+//template class DimFVGeometry<1, 2>;
+//template class DimFVGeometry<1, 3>;
+
+template class DimFVGeometry<2, 2>;
+template class DimFVGeometry<2, 3>;
+
+template class DimFVGeometry<3, 3>;
+
+
+//////////////////////
+// Manifold
 template class FV1ManifoldBoundary<Edge, 1>;
 template class FV1ManifoldBoundary<Edge, 2>;
 template class FV1ManifoldBoundary<Triangle, 2>;
