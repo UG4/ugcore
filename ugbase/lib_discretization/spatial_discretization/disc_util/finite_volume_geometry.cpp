@@ -1335,6 +1335,40 @@ FVGeometry()
 	update_local_data();
 }
 
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
+bool FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+update_local(ReferenceObjectID roid, int orderShape,
+                  int quadOrderSCVF, int quadOrderSCV)
+{
+	if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
+	{
+		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for "
+				<<geometry_traits<TElem>::REFERENCE_OBJECT_ID<<", but "
+				<<roid<<" requested.\n");
+		return false;
+	}
+	if(orderShape != TOrder)
+	{
+		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for shape order"
+				<<TOrder<<", but "<<orderShape<<" requested.\n");
+		return false;
+	}
+	if(quadOrderSCVF > TQuadOrderSCVF)
+	{
+		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for scvf integration order "
+				<< TQuadOrderSCVF<<", but order "<<quadOrderSCVF<<" requested.\n");
+		return false;
+	}
+	if(quadOrderSCV > TQuadOrderSCV)
+	{
+		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for scv integration order "
+				<< TQuadOrderSCV<<", but order "<<quadOrderSCV<<" requested.\n");
+		return false;
+	}
+
+	return true;
+}
+
 
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
 bool FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
@@ -1851,7 +1885,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 		m_vSCVF[i].vJtInv.resize(nipSCVF);
 		m_vSCVF[i].vDetJ.resize(nipSCVF);
 
-		m_vSCV[i].nsh = rTrialSpace.num_sh();
+		m_vSCVF[i].nsh = rTrialSpace.num_sh();
 
 		ReferenceMapping<scvf_type, dim> map(m_vSCVF[i].vLocPos);
 		for(size_t ip = 0; ip < rSCVFQuadRule.size(); ++ip)
@@ -1955,6 +1989,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	m_vLocSCVF_IP.resize(m_numSCVFIP);
+	m_vGlobSCVF_IP.resize(m_numSCVFIP);
 	size_t allIP = 0;
 	for(size_t i = 0; i < num_scvf(); ++i)
 		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
@@ -1962,6 +1997,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 // 	copy ip positions in a list for Sub Control Volumes (SCV)
 	m_vLocSCV_IP.resize(m_numSCVIP);
+	m_vGlobSCV_IP.resize(m_numSCVIP);
 	allIP = 0;
 	for(size_t i = 0; i < num_scv(); ++i)
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
