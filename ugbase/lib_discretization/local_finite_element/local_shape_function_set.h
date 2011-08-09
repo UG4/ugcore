@@ -34,7 +34,83 @@ struct UG_ERROR_InvalidShapeFunctionIndex
 /// \ingroup lib_disc_local_finite_elements
 /// @{
 
-/// base class for local shape function sets
+/// static interface for trial spaces
+template <typename TImpl, int TDim>
+class BaseLocalShapeFunctionSet
+{
+	public:
+	///	type of implementation
+		typedef TImpl ImplType;
+
+	///	dimension of reference element
+		static const int dim = TDim;
+
+	///	Domain position type
+		typedef MathVector<dim> position_type;
+
+	///	Shape type
+		typedef number shape_type;
+
+	///	Gradient type
+		typedef MathVector<dim> grad_type;
+
+	//////////////////////////////////////////
+	//	methods implemented by derived class
+	//////////////////////////////////////////
+
+	///	\copydoc ug::LocalShapeFunctionSet::type()
+		inline LFEID type() const {return getImpl().type();}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline size_t num_sh() const {return getImpl().num_sh();}
+
+	///	\copydoc ug::LocalShapeFunctionSet::position()
+		inline bool position(size_t i, position_type& pos) const
+		{
+			return getImpl().position(i, pos);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		inline shape_type shape(size_t i, const position_type& x) const
+		{
+			return getImpl().shape(i, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		inline void grad(grad_type& g, size_t i, const position_type& x) const
+		{
+			return getImpl().grad(g, i, x);
+		}
+
+	//////////////////////////////////////////
+	//	methods generated generically
+	//////////////////////////////////////////
+
+	///	\copydoc ug::LocalShapeFunctionSet::shapes()
+		inline void shapes(shape_type* sOut, const position_type& x) const
+		{
+			for(size_t sh = 0; sh < num_sh(); ++sh)
+				sOut[sh] = shape(sh, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grads()
+		inline void grads(grad_type* gOut, const position_type& x) const
+		{
+			for(size_t sh = 0; sh < num_sh(); ++sh)
+				grad(gOut[sh], sh, x);
+		}
+
+	protected:
+	///	access to implementation
+		ImplType& getImpl() {return static_cast<ImplType&>(*this);}
+
+	///	const access to implementation
+		const ImplType& getImpl() const {return static_cast<const ImplType&>(*this);}
+
+};
+
+
+/// virtual base class for local shape function sets
 /**
  * This class is a base class for the supply of local shape functions on finite
  * elements. The class provides evaluation of the shape functions and the
@@ -101,7 +177,7 @@ class DimLocalShapeFunctionSet
 	 * \param[in]	x		Position on reference element (evaluation point)
 	 * \return gradient at point
 	 */
-		virtual grad_type grad(size_t i, const position_type& x) const = 0;
+		virtual void grad(grad_type& g, size_t i, const position_type& x) const = 0;
 
 	/// returns all gradients evaluated at a point
 	/**
@@ -147,15 +223,6 @@ class LocalShapeFunctionSetWrapper
 		typedef TImpl ImplType;
 
 	public:
-	///	Reference Element type
-		typedef typename ImplType::reference_element_type reference_element_type;
-
-	///	Order of Shape functions
-		static const size_t order = ImplType::order;
-
-	///	Dimension, where shape functions are defined
-		static const int dim = ImplType::dim;
-
 	///	Domain position type
 		typedef typename ImplType::position_type position_type;
 
@@ -165,9 +232,6 @@ class LocalShapeFunctionSetWrapper
 	///	Gradient type
 		typedef typename ImplType::grad_type grad_type;
 
-	/// Number of shape functions
-		static const size_t nsh = ImplType::nsh;
-
 	public:
 	///	constructor
 		LocalShapeFunctionSetWrapper(){}
@@ -176,7 +240,7 @@ class LocalShapeFunctionSetWrapper
 		virtual LFEID type() const {return ImplType::type();}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		virtual size_t num_sh() const {return nsh;}
+		virtual size_t num_sh() const {return ImplType::num_sh();}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
 		virtual bool position(size_t i, position_type& pos) const
@@ -190,22 +254,24 @@ class LocalShapeFunctionSetWrapper
 			return ImplType::shape(i, x);
 		}
 
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		virtual void grad(grad_type& g, size_t i, const position_type& x) const
+		{
+			ImplType::grad(g, i, x);
+		}
+
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
 		virtual void shapes(shape_type* sOut, const position_type& x) const
 		{
-			ImplType::shapes(sOut, x);
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		virtual grad_type grad(size_t i, const position_type& x) const
-		{
-			return ImplType::grad(i, x);
+			for(size_t sh = 0; sh < ImplType::num_sh(); ++sh)
+				sOut[sh] = ImplType::shape(sh, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		virtual void grads(grad_type* gOut, const position_type& x) const
 		{
-			ImplType::grads(gOut, x);
+			for(size_t sh = 0; sh < ImplType::num_sh(); ++sh)
+				ImplType::grad(gOut[sh], sh, x);
 		}
 };
 
@@ -245,7 +311,7 @@ class LocalShapeFunctionSetProvider {
 		LocalShapeFunctionSetProvider& operator=(const LocalShapeFunctionSetProvider&);
 
 	// 	private destructor
-		~LocalShapeFunctionSetProvider(){};
+		~LocalShapeFunctionSetProvider();
 
 	// 	Singleton provider
 		static LocalShapeFunctionSetProvider& inst()
@@ -258,6 +324,10 @@ class LocalShapeFunctionSetProvider {
 	// 	initialize the standard trialspaces (called during construction)
 		template <typename TRefElem>
 		bool init_standard_sets();
+
+	// 	initialize the standard trialspaces (called during construction)
+		template <typename TRefElem>
+		static bool init_flex_lagrange(size_t order);
 
 	// 	clears all maps
 		template <typename TRefElem>
@@ -272,6 +342,14 @@ class LocalShapeFunctionSetProvider {
 		template <int dim>
 		static std::vector<std::map<LFEID, const DimLocalShapeFunctionSet<dim>* > >&
 		get_dim_map();
+
+	//	vector of dynamically created spaces
+		template <int dim>
+		static std::vector<DimLocalShapeFunctionSet<dim>*>&
+		get_dynamic_allocated_vector();
+
+	//	creates new set at runtime if available
+		static void dynamically_create_set(ReferenceObjectID roid, LFEID id);
 
 	public:
 	/// register a local shape function set for a given reference element type
@@ -309,7 +387,7 @@ class LocalShapeFunctionSetProvider {
 	 */
 		// get the local shape function set for a given reference element and id
 		template <typename TRefElem>
-		static const LocalShapeFunctionSet<TRefElem>& get(LFEID id);
+		static const LocalShapeFunctionSet<TRefElem>& get(LFEID id, bool bCreate = true);
 
 	///	returns the Local Shape Function Set
 	/**
@@ -322,7 +400,7 @@ class LocalShapeFunctionSetProvider {
 	 */
 		template <int dim>
 		static const DimLocalShapeFunctionSet<dim>& get(ReferenceObjectID roid,
-		                                             LFEID id);
+		                                                LFEID id, bool bCreate = true);
 };
 
 } // namespace ug

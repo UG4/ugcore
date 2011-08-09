@@ -218,8 +218,8 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 
 template <typename TRefElem>
 void SetLagrangeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
-                  	const TRefElem& rRef,
-                  	size_t p)
+                           	const TRefElem& rRef,
+                           	size_t p)
 {
 //	init shape -> multi-index mapping
 	size_t index = 0;
@@ -254,11 +254,34 @@ LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceEdge& rRef =
-			Provider::get<ReferenceEdge>();
+	const ReferenceEdge& rRef =	Provider::get<ReferenceEdge>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
+}
+
+void FlexLagrangeLSFS<ReferenceEdge>::set_order(size_t order)
+{
+//	resize
+	p = order;
+	nsh = p+1;
+	m_vPolynom.resize(nsh);
+	m_vDPolynom.resize(nsh);
+	m_vMultiIndex.resize(nsh);
+
+//	init polynomials
+	for(size_t i = 0; i < nsh; ++i)
+	{
+	//	create equidistant polynomials and its derivatives
+		m_vPolynom[i] = EquidistantLagrange1D(i, p);
+		m_vDPolynom[i] = m_vPolynom[i].derivative();
+	}
+
+//	reference element
+	const ReferenceEdge& rRef = Provider::get<ReferenceEdge>();
+
+//	init shape -> multi-index mapping
+	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceEdge, 1>;
@@ -266,6 +289,8 @@ template class LagrangeLSFS<ReferenceEdge, 2>;
 template class LagrangeLSFS<ReferenceEdge, 3>;
 template class LagrangeLSFS<ReferenceEdge, 4>;
 template class LagrangeLSFS<ReferenceEdge, 5>;
+
+template class FlexLagrangeLSFS<ReferenceEdge>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Triangle
@@ -284,11 +309,36 @@ LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceTriangle& rRef =
-			Provider::get<ReferenceTriangle>();
+	const ReferenceTriangle& rRef = Provider::get<ReferenceTriangle>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
+}
+
+void FlexLagrangeLSFS<ReferenceTriangle>::set_order(size_t order)
+{
+//	resize
+	p = order;
+	nsh = BinomCoeff(dim+p, p);
+
+	const size_t polSize = p+1;
+	m_vPolynom.resize(polSize);
+	m_vDPolynom.resize(polSize);
+	m_vMultiIndex.resize(nsh);
+
+//	init polynomials
+	for(size_t i = 0; i <= p; ++i)
+	{
+	//	create trancated equidistant polynomials and its derivatives
+		m_vPolynom[i] = TruncatedEquidistantLagrange1D(i, p);
+		m_vDPolynom[i] = m_vPolynom[i].derivative();
+	}
+
+//	reference element
+	const ReferenceTriangle& rRef = Provider::get<ReferenceTriangle>();
+
+//	init shape -> multi-index mapping
+	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceTriangle, 1>;
@@ -296,6 +346,8 @@ template class LagrangeLSFS<ReferenceTriangle, 2>;
 template class LagrangeLSFS<ReferenceTriangle, 3>;
 template class LagrangeLSFS<ReferenceTriangle, 4>;
 template class LagrangeLSFS<ReferenceTriangle, 5>;
+
+template class FlexLagrangeLSFS<ReferenceTriangle>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Quadrilateral
@@ -308,17 +360,42 @@ LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
 //	init polynomials
 	for(size_t i = 0; i <= p; ++i)
 	{
-	//	create trancated equidistant polynomials and its derivatives
+	//	create truncated equidistant polynomials and its derivatives
 		m_vPolynom[i] = EquidistantLagrange1D(i, p);
 		m_vDPolynom[i] = m_vPolynom[i].derivative();
 	}
 
 //	reference element
-	const ReferenceQuadrilateral& rRef =
-			Provider::get<ReferenceQuadrilateral>();
+	const ReferenceQuadrilateral& rRef = Provider::get<ReferenceQuadrilateral>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
+}
+
+void FlexLagrangeLSFS<ReferenceQuadrilateral>::set_order(size_t order)
+{
+//	resize
+	p = order;
+	nsh = (p+1)*(p+1);
+
+	const size_t polSize = p+1;
+	m_vPolynom.resize(polSize);
+	m_vDPolynom.resize(polSize);
+	m_vMultiIndex.resize(nsh);
+
+//	init polynomials
+	for(size_t i = 0; i <= p; ++i)
+	{
+	//	create truncated equidistant polynomials and its derivatives
+		m_vPolynom[i] = EquidistantLagrange1D(i, p);
+		m_vDPolynom[i] = m_vPolynom[i].derivative();
+	}
+
+//	reference element
+	const ReferenceQuadrilateral& rRef = Provider::get<ReferenceQuadrilateral>();
+
+//	init shape -> multi-index mapping
+	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceQuadrilateral, 1>;
@@ -326,6 +403,8 @@ template class LagrangeLSFS<ReferenceQuadrilateral, 2>;
 template class LagrangeLSFS<ReferenceQuadrilateral, 3>;
 template class LagrangeLSFS<ReferenceQuadrilateral, 4>;
 template class LagrangeLSFS<ReferenceQuadrilateral, 5>;
+
+template class FlexLagrangeLSFS<ReferenceQuadrilateral>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Tetrahedron
@@ -343,11 +422,36 @@ LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceTetrahedron& rRef =
-			Provider::get<ReferenceTetrahedron>();
+	const ReferenceTetrahedron& rRef = Provider::get<ReferenceTetrahedron>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
+}
+
+void FlexLagrangeLSFS<ReferenceTetrahedron>::set_order(size_t order)
+{
+//	resize
+	p = order;
+	nsh = BinomCoeff(dim + p, p);
+
+	const size_t polSize = p+1;
+	m_vPolynom.resize(polSize);
+	m_vDPolynom.resize(polSize);
+	m_vMultiIndex.resize(nsh);
+
+//	init polynomials
+	for(size_t i = 0; i <= p; ++i)
+	{
+	//	create trancated equidistant polynomials and its derivatives
+		m_vPolynom[i] = TruncatedEquidistantLagrange1D(i, p);
+		m_vDPolynom[i] = m_vPolynom[i].derivative();
+	}
+
+//	reference element
+	const ReferenceTetrahedron& rRef = Provider::get<ReferenceTetrahedron>();
+
+//	init shape -> multi-index mapping
+	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceTetrahedron, 1>;
@@ -355,6 +459,8 @@ template class LagrangeLSFS<ReferenceTetrahedron, 2>;
 template class LagrangeLSFS<ReferenceTetrahedron, 3>;
 template class LagrangeLSFS<ReferenceTetrahedron, 4>;
 template class LagrangeLSFS<ReferenceTetrahedron, 5>;
+
+template class FlexLagrangeLSFS<ReferenceTetrahedron>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Prism
@@ -376,11 +482,41 @@ LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferencePrism& rRef =
-			Provider::get<ReferencePrism>();
+	const ReferencePrism& rRef = Provider::get<ReferencePrism>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
+}
+
+void FlexLagrangeLSFS<ReferencePrism>::set_order(size_t order)
+{
+//	resize
+	p = order;
+	dofPerLayer = BinomCoeff(2 + p, p);
+	nsh = dofPerLayer * (p+1);
+
+	const size_t polSize = p+1;
+	m_vPolynom.resize(polSize);
+	m_vDPolynom.resize(polSize);
+	m_vMultiIndex.resize(nsh);
+
+//	init polynomials
+	for(size_t i = 0; i <= p; ++i)
+	{
+	//	create truncated equidistant polynomials and its derivatives
+		m_vTruncPolynom[i] = TruncatedEquidistantLagrange1D(i, p);
+		m_vDTruncPolynom[i] = m_vTruncPolynom[i].derivative();
+
+	//	create equidistant polynomials and its derivatives
+		m_vPolynom[i] = EquidistantLagrange1D(i, p);
+		m_vDPolynom[i] = m_vPolynom[i].derivative();
+	}
+
+//	reference element
+	const ReferencePrism& rRef = Provider::get<ReferencePrism>();
+
+//	init shape -> multi-index mapping
+	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
 }
 
 template class LagrangeLSFS<ReferencePrism, 1>;
@@ -388,6 +524,8 @@ template class LagrangeLSFS<ReferencePrism, 2>;
 template class LagrangeLSFS<ReferencePrism, 3>;
 template class LagrangeLSFS<ReferencePrism, 4>;
 template class LagrangeLSFS<ReferencePrism, 5>;
+
+template class FlexLagrangeLSFS<ReferencePrism>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Pyramid
@@ -440,11 +578,36 @@ LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceHexahedron& rRef =
-			Provider::get<ReferenceHexahedron>();
+	const ReferenceHexahedron& rRef = Provider::get<ReferenceHexahedron>();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
+}
+
+void FlexLagrangeLSFS<ReferenceHexahedron>::set_order(size_t order)
+{
+//	resize
+	p = order;
+	nsh = (p+1) * (p+1) * (p+1);
+
+	const size_t polSize = p+1;
+	m_vPolynom.resize(polSize);
+	m_vDPolynom.resize(polSize);
+	m_vMultiIndex.resize(nsh);
+
+//	init polynomials
+	for(size_t i = 0; i <= p; ++i)
+	{
+	//	create trancated equidistant polynomials and its derivatives
+		m_vPolynom[i] = EquidistantLagrange1D(i, p);
+		m_vDPolynom[i] = m_vPolynom[i].derivative();
+	}
+
+//	reference element
+	const ReferenceHexahedron& rRef = Provider::get<ReferenceHexahedron>();
+
+//	init shape -> multi-index mapping
+	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
 }
 
 template class LagrangeLSFS<ReferenceHexahedron, 1>;

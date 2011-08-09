@@ -17,8 +17,8 @@ namespace ug{
 ///////////////////////////////////////
 
 template<>
-LagrangeP1<ReferenceEdge,1>::shape_type
-LagrangeP1<ReferenceEdge,1>::
+LagrangeP1<ReferenceEdge>::shape_type
+LagrangeP1<ReferenceEdge>::
 shape(size_t i, const position_type& x) const
 {
 	switch(i)
@@ -31,8 +31,8 @@ shape(size_t i, const position_type& x) const
 
 template<>
 void
-LagrangeP1<ReferenceEdge,1>::
-evaluate_grad(size_t i, const position_type& x, grad_type& value) const
+LagrangeP1<ReferenceEdge>::
+grad(grad_type& value, size_t i, const position_type& x) const
 {
 	switch(i)
 	{
@@ -43,7 +43,7 @@ evaluate_grad(size_t i, const position_type& x, grad_type& value) const
 }
 
 template<>
-bool LagrangeP1<ReferenceEdge,1>::
+bool LagrangeP1<ReferenceEdge>::
 position(size_t i, position_type& value) const
 {
 	switch(i)
@@ -60,8 +60,8 @@ position(size_t i, position_type& value) const
 ///////////////////////////////////////
 
 template<>
-LagrangeP1<ReferenceTriangle,1>::shape_type
-LagrangeP1<ReferenceTriangle,1>::
+LagrangeP1<ReferenceTriangle>::shape_type
+LagrangeP1<ReferenceTriangle>::
 shape(size_t i, const position_type& x) const
 {
 	switch (i)
@@ -75,8 +75,8 @@ shape(size_t i, const position_type& x) const
 
 template<>
 void
-LagrangeP1<ReferenceTriangle,1>::
-evaluate_grad(size_t i, const position_type& x, grad_type& value) const
+LagrangeP1<ReferenceTriangle>::
+grad(grad_type& value, size_t i, const position_type& x) const
 {
 	switch(i)
 	{
@@ -91,7 +91,7 @@ evaluate_grad(size_t i, const position_type& x, grad_type& value) const
 }
 
 template<>
-bool LagrangeP1<ReferenceTriangle,1>::
+bool LagrangeP1<ReferenceTriangle>::
 position(size_t i, position_type& value) const
 {
 	switch(i)
@@ -112,8 +112,8 @@ position(size_t i, position_type& value) const
 ///////////////////////////////////////
 
 template<>
-LagrangeP1<ReferenceQuadrilateral,1>::shape_type
-LagrangeP1<ReferenceQuadrilateral,1>::
+LagrangeP1<ReferenceQuadrilateral>::shape_type
+LagrangeP1<ReferenceQuadrilateral>::
 shape(size_t i, const position_type& x) const
 {
 	switch(i)
@@ -128,8 +128,8 @@ shape(size_t i, const position_type& x) const
 
 template<>
 void
-LagrangeP1<ReferenceQuadrilateral,1>::
-evaluate_grad(size_t i, const position_type& x, grad_type& value) const
+LagrangeP1<ReferenceQuadrilateral>::
+grad(grad_type& value, size_t i, const position_type& x) const
 {
 	switch(i)
 	{
@@ -147,7 +147,7 @@ evaluate_grad(size_t i, const position_type& x, grad_type& value) const
 
 template<>
 bool
-LagrangeP1<ReferenceQuadrilateral,1>::
+LagrangeP1<ReferenceQuadrilateral>::
 position(size_t i, position_type& value) const
 {
 	switch(i)
@@ -170,8 +170,8 @@ position(size_t i, position_type& value) const
 ///////////////////////////////////////
 
 template<>
-LagrangeP1<ReferenceTetrahedron,1>::shape_type
-LagrangeP1<ReferenceTetrahedron,1>::
+LagrangeP1<ReferenceTetrahedron>::shape_type
+LagrangeP1<ReferenceTetrahedron>::
 shape(size_t i, const position_type& x) const
 {
 	switch(i)
@@ -186,8 +186,8 @@ shape(size_t i, const position_type& x) const
 
 template<>
 void
-LagrangeP1<ReferenceTetrahedron,1>::
-evaluate_grad(size_t i, const position_type& x, grad_type& value) const
+LagrangeP1<ReferenceTetrahedron>::
+grad(grad_type& value, size_t i, const position_type& x) const
 {
 	switch(i)
 	{
@@ -208,7 +208,7 @@ evaluate_grad(size_t i, const position_type& x, grad_type& value) const
 }
 
 template<>
-bool LagrangeP1<ReferenceTetrahedron,1>::
+bool LagrangeP1<ReferenceTetrahedron>::
 position(size_t i, position_type& value) const
 {
 	switch(i)
@@ -235,8 +235,8 @@ position(size_t i, position_type& value) const
 ///////////////////////////////////////
 
 template<>
-LagrangeP1<ReferencePyramid,1>::shape_type
-LagrangeP1<ReferencePyramid,1>::
+LagrangeP1<ReferencePyramid>::shape_type
+LagrangeP1<ReferencePyramid>::
 shape(size_t i, const position_type& x) const
 {
 	switch(i)
@@ -268,8 +268,8 @@ shape(size_t i, const position_type& x) const
 
 template<>
 void
-LagrangeP1<ReferencePyramid,1>::
-evaluate_grad(size_t i, const position_type& x, grad_type& value) const
+LagrangeP1<ReferencePyramid>::
+grad(grad_type& value, size_t i, const position_type& x) const
 {
 	switch(i)
 	{
@@ -343,7 +343,7 @@ evaluate_grad(size_t i, const position_type& x, grad_type& value) const
 }
 
 template<>
-bool LagrangeP1<ReferencePyramid,1>::
+bool LagrangeP1<ReferencePyramid>::
 position(size_t i, position_type& value) const
 {
 	static const DimReferenceElement<3>& refElem
@@ -358,8 +358,8 @@ position(size_t i, position_type& value) const
 ///////////////////////////////////////
 
 template<>
-LagrangeP1<ReferencePrism,1>::shape_type
-LagrangeP1<ReferencePrism,1>::
+LagrangeP1<ReferencePrism>::shape_type
+LagrangeP1<ReferencePrism>::
 shape(size_t i, const position_type& x) const
 {
 	switch(i)
@@ -376,8 +376,8 @@ shape(size_t i, const position_type& x) const
 
 template<>
 void
-LagrangeP1<ReferencePrism,1>::
-evaluate_grad(size_t i, const position_type& x, grad_type& value) const
+LagrangeP1<ReferencePrism>::
+grad(grad_type& value, size_t i, const position_type& x) const
 {
 	switch(i)
 	{
@@ -416,7 +416,7 @@ evaluate_grad(size_t i, const position_type& x, grad_type& value) const
 }
 
 template<>
-bool LagrangeP1<ReferencePrism,1>::
+bool LagrangeP1<ReferencePrism>::
 position(size_t i, position_type& value) const
 {
 	static const DimReferenceElement<3>& refElem
@@ -431,8 +431,8 @@ position(size_t i, position_type& value) const
 ///////////////////////////////////////
 
 template<>
-LagrangeP1<ReferenceHexahedron,1>::shape_type
-LagrangeP1<ReferenceHexahedron,1>::
+LagrangeP1<ReferenceHexahedron>::shape_type
+LagrangeP1<ReferenceHexahedron>::
 shape(size_t i, const position_type& x) const
 {
 	switch(i)
@@ -451,8 +451,8 @@ shape(size_t i, const position_type& x) const
 
 template<>
 void
-LagrangeP1<ReferenceHexahedron,1>::
-evaluate_grad(size_t i, const position_type& x, grad_type& value) const
+LagrangeP1<ReferenceHexahedron>::
+grad(grad_type& value, size_t i, const position_type& x) const
 {
 	switch(i)
 	{
@@ -501,7 +501,7 @@ evaluate_grad(size_t i, const position_type& x, grad_type& value) const
 }
 
 template<>
-bool LagrangeP1<ReferenceHexahedron,1>::
+bool LagrangeP1<ReferenceHexahedron>::
 position(size_t i, position_type& value) const
 {
 	static const DimReferenceElement<3>& refElem

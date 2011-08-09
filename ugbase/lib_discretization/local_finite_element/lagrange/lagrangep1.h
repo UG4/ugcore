@@ -22,24 +22,29 @@ namespace ug{
  * Reference Element.
  * \tparam 	TRefElem		Reference Element Type
  */
-template <typename TRefElem, int TOrder>
+template <typename TRefElem>
 class LagrangeP1
+	: public BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim>
 {
+	///	base class
+		typedef BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim> base_type;
+
+	public:
+	///	Domain position type
+		typedef typename base_type::position_type position_type;
+
+	///	Shape type
+		typedef typename base_type::shape_type shape_type;
+
+	///	Gradient type
+		typedef typename base_type::grad_type grad_type;
+
 	public:
 	///	Reference Element type
 		typedef TRefElem reference_element_type;
 
 	///	Dimension, where shape functions are defined
 		static const int dim = TRefElem::dim;
-
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
 
 	///	Order of Shape functions
 		static const size_t order = 1;
@@ -60,26 +65,12 @@ class LagrangeP1
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		shape_type shape(size_t i, const position_type& x) const;
 
-	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		void shapes(shape_type* sOut, const position_type& x) const;
-
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		grad_type grad(size_t i, const position_type& x) const;
-
-	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		void grads(grad_type* gOut, const position_type& x) const;
-
-	protected:
-	///	evaluate gradient of i'th shape function at position x
-		void evaluate_grad(size_t i, const position_type& x,
-		                   grad_type& value) const;
+		void grad(grad_type& value, size_t i, const position_type& x) const;
 };
 
 /// @}
 
 } //namespace ug
-
-// include implementation
-#include "lagrangep1_impl.h"
 
 #endif /* __H__UG__LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__LAGRANGEP1__LAGRANGEP1__ */

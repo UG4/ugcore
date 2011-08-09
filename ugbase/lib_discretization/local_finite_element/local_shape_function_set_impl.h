@@ -45,6 +45,20 @@ LocalShapeFunctionSetProvider::get_dim_map()
 	return sShapeFunctionSetMap;
 };
 
+template <int dim>
+std::vector<DimLocalShapeFunctionSet<dim>*>&
+LocalShapeFunctionSetProvider::get_dynamic_allocated_vector()
+{
+//	get type of map
+	typedef std::vector<DimLocalShapeFunctionSet<dim>*> Vec;
+
+//	create static map
+	static Vec sShapeFunctionSetMap;
+
+//	return map
+	return sShapeFunctionSetMap;
+};
+
 template <typename TRefElem>
 void
 LocalShapeFunctionSetProvider::
@@ -147,7 +161,7 @@ unregister_set(LFEID id)
 template <typename TRefElem>
 const LocalShapeFunctionSet<TRefElem>&
 LocalShapeFunctionSetProvider::
-get(LFEID id)
+get(LFEID id, bool bCreate)
 {
 //	get type of map
 	typedef std::map<LFEID, const LocalShapeFunctionSet<TRefElem>* > Map;
@@ -162,6 +176,15 @@ get(LFEID id)
 //	if not found
 	if(iter == map.end())
 	{
+		if(bCreate)
+		{
+		//	try to create the set
+			dynamically_create_set(roid, id);
+
+		//	next try to return the set
+			return get<TRefElem>(id, false);
+		}
+
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
 				"Unknown Trial Space Type "<<id<<" requested for Element"
 				" type: "<<roid<<".\n");
@@ -175,7 +198,7 @@ get(LFEID id)
 template <int dim>
 const DimLocalShapeFunctionSet<dim>&
 LocalShapeFunctionSetProvider::
-get(ReferenceObjectID roid, LFEID id)
+get(ReferenceObjectID roid, LFEID id, bool bCreate)
 {
 //	get type of map
 	typedef std::vector<std::map<LFEID, const DimLocalShapeFunctionSet<dim>* > > VecMap;
@@ -192,6 +215,15 @@ get(ReferenceObjectID roid, LFEID id)
 //	if not found
 	if(iter == map.end())
 	{
+		if(bCreate)
+		{
+		//	try to create the set
+			dynamically_create_set(roid, id);
+
+		//	next try to return the set
+			return get<dim>(roid, id, false);
+		}
+
 		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::get': "
 				"Unknown Trial Space Type "<<id<<" requested for Element"
 				" type: "<<roid<<".\n");
