@@ -419,8 +419,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	for(size_t i = 0; i < vPrimalRootIDs.size(); ++i) UG_LOG(vPrimalRootIDs[i] << " ");
 	UG_LOG(std::endl);
 
-	UG_LOG("     %  - num primal variables on each process of subdom: ");
-	for(size_t i = 0; i < vPrimalQuantities.size(); ++i) UG_LOG(vPrimalQuantities[i] << " ");
+	UG_LOG("     %  - num primal variables on each process of subdom (FetiSubdomProcID, #Primal): ");
+	for(size_t i = 0; i < vPrimalQuantities.size(); ++i) UG_LOG("("<<i<<","<<vPrimalQuantities[i] << ") ");
 	UG_LOG(std::endl);
 
 	UG_LOG("     %  - local-algebra indices for proc "<<pcl::GetProcRank()<<": ");
@@ -601,8 +601,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		mat.resize(newVecSize, newVecSize);
 
 	//	info output
-		std::cout << "On PrimalRoot: Creating proc local Schur Complement"
-					" of size " << newVecSize <<"x"<<newVecSize << std::endl;
+		UG_LOG("     %  - On PrimalRoot: Creating proc local Schur Complement"
+						" of size " << newVecSize <<"x"<<newVecSize << std::endl);
 
 	//	copy received values into matrix
 		mat.set(0.0);
