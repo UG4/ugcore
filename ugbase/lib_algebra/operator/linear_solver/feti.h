@@ -151,12 +151,59 @@ class FetiLayouts
 				PrintLayout(comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout);
 				UG_LOG("INNER LAYOUTS:\n");
 				PrintLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout);
-				UG_LOG("DUAL PRIMAL LAYOUTS:\n");
+				UG_LOG("PRIMAL LAYOUTS:\n");
 				PrintLayout(comTmp, m_masterPrimalLayout, m_slavePrimalLayout);
 				UG_LOG("DUAL LAYOUTS:\n");
 				PrintLayout(comTmp, m_masterDualLayout, m_slaveDualLayout);
 				UG_LOG("DUAL NBR LAYOUTS:\n");
 				PrintLayout(comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout);
+			}
+		}
+
+	//	tests the previously created layouts:
+		void test_layouts(bool print)
+		{
+			// TODO: Besserer Check, dass die Layouts schon existieren? Das hier sollte aber reichen, da Konstruktor
+			// 'm_pMasterStdLayout' mit NULL initialisiert!?
+			if (m_pMasterStdLayout == NULL) {
+				UG_LOG("LAYOUTS not yet created!\n");
+				return;
+			}
+			pcl::ParallelCommunicator<IndexLayout> comTmp;
+
+			UG_LOG("TEST STANDARD LAYOUTS:\n");
+			if (TestLayout(comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout, print) != true) {
+				UG_LOG("STANDARD LAYOUTS inconsistent!\n");
+			} else {
+				UG_LOG("STANDARD LAYOUTS are consistent!\n");
+			}
+
+			UG_LOG("TEST INNER LAYOUTS:\n");
+			if (TestLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout, print) != true) {
+				UG_LOG("INNER LAYOUTS inconsistent!\n");
+			} else {
+				UG_LOG("INNER LAYOUTS are consistent!\n");
+			}
+
+			UG_LOG("TEST PRIMAL LAYOUTS:\n");
+			if (TestLayout(comTmp, m_masterPrimalLayout, m_slavePrimalLayout, print) != true) {
+				UG_LOG("PRIMAL LAYOUTS inconsistent!\n");
+			} else {
+				UG_LOG("PRIMAL LAYOUTS are consistent!\n");
+			}
+
+			UG_LOG("TEST DUAL LAYOUTS:\n");
+			if (TestLayout(comTmp, m_masterDualLayout, m_slaveDualLayout, print) != true) {
+				UG_LOG("DUAL LAYOUTS inconsistent!\n");
+			} else {
+				UG_LOG("DUAL LAYOUTS are consistent!\n");
+			}
+
+			UG_LOG("TEST DUAL NBR LAYOUTS:\n");
+			if (TestLayout(comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout, print) != true) {
+				UG_LOG("DUAL NBR LAYOUTS inconsistent!\n");
+			} else {
+				UG_LOG("DUAL NBR LAYOUTS are consistent!\n");
 			}
 		}
 
@@ -386,15 +433,15 @@ class FetiLayouts
  * \param[in]		u						vector \f$u_{\Delta}\f$
  * \param[in]		dualMasterLayoutIn		dual master layout to operate on
  * \param[in]		dualSlaveLayoutIn		dual slave  layout to operate on
- * \param[in]		dualMasterNbrLayoutIn	dual master layout to operate on
- * \param[in]		dualSlaveNbrLayoutIn	dual slave  layout to operate on
+ * \param[in]		dualNbrMasterLayoutIn	dual master layout to operate on
+ * \param[in]		dualNbrSlaveLayoutIn	dual slave  layout to operate on
  */
 template <typename TVector>
 void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 							  IndexLayout&    dualMasterLayoutIn,
 							  IndexLayout&     dualSlaveLayoutIn,
-							  IndexLayout& dualMasterNbrLayoutIn,
-							  IndexLayout&  dualSlaveNbrLayoutIn)
+							  IndexLayout& dualNbrMasterLayoutIn,
+							  IndexLayout&  dualNbrSlaveLayoutIn)
 {
 	// Copy all values
 	diff = u;
@@ -408,7 +455,7 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 	VecCopy(&diff, dualMasterLayoutIn, dualSlaveLayoutIn);
 
 	// (c) and also to the additional slaves living in "Dual neighbour layout"
-	VecCopy(&diff, dualMasterNbrLayoutIn, dualSlaveNbrLayoutIn);
+	VecCopy(&diff, dualNbrMasterLayoutIn, dualNbrSlaveLayoutIn);
 
 	// now the vector 'diff' should be consistent!
 	return;
@@ -425,15 +472,15 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
  *
  * \param[out]		f						vector \f$f_{\Delta}\f$ living on "Dual layout"
  * \param[in]		diff					difference vector on "Dual layout"
- * \param[in]		dualMasterLayoutIn		master layout to operate on
- * \param[in]		dualSlaveLayoutIn		slave  layout to operate on
- * \param[in]		dualSlaveNbrLayoutIn	dual slave  layout to operate on
+ * \param[in]		vDualMasterIndex		dual  master   layout to operate on
+ * \param[in]		vDualSlaveIndex		    dual slave     layout to operate on
+ * \param[in]		vDualNbrSlaveIndex	    dual nbr slave layout to operate on
  */
 template <typename TVector>
 void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& diff,
 										const std::vector<IndexLayout::Element>& vDualMasterIndex,
 										const std::vector<IndexLayout::Element>& vDualSlaveIndex,
-										const std::vector<IndexLayout::Element>& vDualSlaveNbrIndex)
+										const std::vector<IndexLayout::Element>& vDualNbrSlaveIndex)
 {
 	// Copy values (no communication is performed):
 	// (a) set f = +1 * d on masters ...
@@ -444,7 +491,7 @@ void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& diff,
 
 	// (c) set f = +1 * d on slaves living in "Dual neighbour layout"
 	//     ("+1" since in this context these dofs play the role of masters!)
-	VecScaleAssign(f, +1.0, diff, vDualSlaveNbrIndex);
+	VecScaleAssign(f, +1.0, diff, vDualNbrSlaveIndex);
 	return;
 
 };
@@ -865,6 +912,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[out]		z				result of application of \f$$M^{-1}\f$
 	 */
 		bool apply_M_inverse(vector_type& z, const vector_type& r);
+
+	//	tests layouts:
+		void test_layouts(bool print);
 
 	///	solves the reduced system \f$F \lambda = d\f$ with preconditioned cg method
 	///	and returns the last defect of iteration in rhs

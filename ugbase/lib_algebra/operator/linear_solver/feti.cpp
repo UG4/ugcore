@@ -93,7 +93,7 @@ init()
 //	Set Dirichlet values on Pi
 	m_pFetiLayouts->mat_set_dirichlet_on_primal(*m_pDirichletMatrix);
 
-//	Set Dirichlet values on Delta
+//	Set Dirichlet values on Delta - and also on DualNbr??? (08082011ih)
 	m_pFetiLayouts->mat_set_dirichlet_on_dual(*m_pDirichletMatrix);
 
 //	Let Dirichlet Matrix use inner layouts
@@ -185,7 +185,8 @@ apply(vector_type& f, const vector_type& u)
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		bSuccess = false;
 	}
-	// set values to zero on \Delta (values are already zero on primal!)
+	// set values to zero on \Delta (values are already zero on primal after
+	// application of DirichletOperator!) - and also on DualNbr??? (08082011ih)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
 
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
@@ -219,7 +220,7 @@ apply(vector_type& f, const vector_type& u)
 	// (a) Scale u_{I} by -1
 	uTmp *= -1.0;
 
-	// (b) Add u_{\Delta} on \Delta
+	// (b) Add u_{\Delta} on \Delta - and also on DualNbr??? (08082011ih)
 	m_pFetiLayouts->vec_scale_append_on_dual(uTmp, u, 1.0);
 
 	// (c) Multiply with full matrix
@@ -758,7 +759,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
 	rootF.set(0.0);
-	pcl::SynchronizeProcesses();			// TMP
+	//pcl::SynchronizeProcesses();			// TMP
 	FETI_PROFILE_BEGIN(PSMIApply_VecGather);
 	VecGather(&rootF, &h, m_masterAllToOneLayout, m_slaveAllToOneLayout);
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_VecGather)'
@@ -783,7 +784,15 @@ apply_return_defect(vector_type& u, vector_type& f)
 								 "Could not invert Schur complement on root proc."
 						<< std::endl;
 				bSuccess = false;
-			}
+			} /*
+			else {			// TMP
+				IConvergenceCheck* convCheck = m_pCoarseProblemSolver->get_convergence_check();
+				if(convCheck != NULL)
+					UG_LOG("'PrimalSubassembledMatrixInverse::apply':"
+						   " Last defect after applying coarse problem solver (step 4  ) was " << convCheck->defect() <<
+						   " after " << convCheck->step() << " steps.\n");
+			}*/
+
 			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
 		}
 	}
@@ -1149,6 +1158,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	preconditioned residuum
 	vector_type z; z.create(u.size());
+	m_fetiLayouts.vec_use_std_communication(z);	// added 25022011ih
 
 //	help vector to compute t = F*p
 	vector_type t; t.create(u.size());
@@ -1242,6 +1252,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 	Build t = F*p
 		// p is consistent
 		// t is consistent afterwards
+		//m_fetiLayouts.vec_set_on_primal(p, 0.0); // seems to be not nec. (28022011ih)
 		m_PrimalSubassembledMatrixInverse.set_statistic_type("apply_F");
 		if(!apply_F(t, p))
 		{
@@ -1302,7 +1313,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	reset t = 0.0
 	t.set(0.0);
 
-// compute t = B^T * lambda
+// compute t = B^T * lambda (Please note that 'ComputeDifferenceOnDeltaTransposed()'
+// does not perform any communication!)
 	ComputeDifferenceOnDeltaTransposed(t, lambda,
 	                                   m_fetiLayouts.get_dual_master_indices(),
 	                                   m_fetiLayouts.get_dual_slave_indices(),
@@ -1320,6 +1332,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	Solve: A u = f
 	FETI_PROFILE_BEGIN(FETISolverApply_ApplyPrimalSubassMatInv);
 	m_PrimalSubassembledMatrixInverse.set_statistic_type("backsolve");
+	m_fetiLayouts.vec_use_inner_communication(u); // added 25022011ih
+	m_fetiLayouts.vec_use_inner_communication(f); // added 25022011ih
 	if(!m_PrimalSubassembledMatrixInverse.apply(u, f))
 	{
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
@@ -1335,7 +1349,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolver_Backsolve)' - Messpunkt ok!
 
-	return m_pConvCheck->post();;
+	return m_pConvCheck->post();
 	//FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect)' - complete method
 
 //	call this for output.
@@ -1356,7 +1370,8 @@ apply_F(vector_type& f, const vector_type& v)
 	f.set(0.0);
 
 //	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
-	// v must be consistent
+//     v must be consistent (Please note that 'ComputeDifferenceOnDeltaTransposed()'
+//     does not perform any communication!)
 	ComputeDifferenceOnDeltaTransposed(f, v,
 	                                   m_fetiLayouts.get_dual_master_indices(),
 	                                   m_fetiLayouts.get_dual_slave_indices(),
@@ -1365,6 +1380,7 @@ apply_F(vector_type& f, const vector_type& v)
 //  2. Apply PrimalSubassembledMatrixInverse to f
 	// f is consistent now, we make it additive
 	m_fetiLayouts.vec_use_inner_communication(f);
+	m_fetiLayouts.vec_use_inner_communication(fTmp); // added 25022011ih
 	f.set_storage_type(PST_CONSISTENT);
 	f.change_storage_type(PST_ADDITIVE);
 
@@ -1373,6 +1389,8 @@ apply_F(vector_type& f, const vector_type& v)
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_F_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	3. Apply jump operator to get the final 'f'
+	m_fetiLayouts.vec_use_std_communication(f);    // added 28022011ih
+	m_fetiLayouts.vec_use_std_communication(fTmp); // added 28022011ih
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
@@ -1398,6 +1416,9 @@ compute_d(vector_type& d, const vector_type& f)
 	dTmp.set(0.0); d.set(0.0);
 
 //  1. Apply PrimalSubassembledMatrixInverse to 'f'
+//	1.1. let vectors use communication within feti subdomain
+	//m_fetiLayouts.vec_use_inner_communication(f); // but 'f' is declared 'const' 25022011ih
+	m_fetiLayouts.vec_use_inner_communication(dTmp);// added 25022011ih
 	dTmp.set_storage_type(PST_CONSISTENT);
 	FETI_PROFILE_BEGIN(FETISolverCompute_d_ApplyPrimalSubassMatInv);
 	if(!m_PrimalSubassembledMatrixInverse.apply(dTmp, f))
@@ -1409,6 +1430,8 @@ compute_d(vector_type& d, const vector_type& f)
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverCompute_d_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	2. Apply jump operator to get the final 'd'
+	m_fetiLayouts.vec_use_std_communication(d);    // added 28022011ih
+	m_fetiLayouts.vec_use_std_communication(dTmp); // added 28022011ih
 	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
@@ -1427,7 +1450,7 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 //	on entry we assume the vector z to be consistent on the dual unknowns. The
 //	primal and inner values are assumed to be undefined, since they are not needed
 //	in the algorithm. Since z is consistent, in every dualMaster<->dualSlave is
-//	stored the same value and in every dualMasterNbr<->dualSlaveNbr is stored
+//	stored the same value and in every dualNbrMaster<->dualNbrSlave is stored
 //	the same value.
 
 //	Help vector
@@ -1440,7 +1463,8 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	apply_scaling_matrix(z, r); // maybe restrict to layout
 
 //  2. 	Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-//		Afterwards, zTmp is consistent on Delta
+//		Afterwards, zTmp is consistent on Delta (Please note that 'ComputeDifferenceOnDeltaTransposed()'
+//      does not perform any communication!)
 	ComputeDifferenceOnDeltaTransposed(zTmp, z,
 	                                   m_fetiLayouts.get_dual_master_indices(),
 	                                   m_fetiLayouts.get_dual_slave_indices(),
@@ -1465,6 +1489,8 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
 								// ('m_pOperator->apply' allein synchronisiert *nicht*!)
 //  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
+	m_fetiLayouts.vec_use_std_communication(zTmp); // added 28022011ih
+	m_fetiLayouts.vec_use_std_communication(z);    // added 28022011ih
 	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
@@ -1476,6 +1502,13 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 //	we're done
 	return true;
 } /* end 'FETISolver::apply_M_inverse()' */
+
+template <typename TAlgebra>
+void FETISolver<TAlgebra>::
+test_layouts(bool print)
+{
+	m_fetiLayouts.test_layouts(print);
+} /* end 'FETISolver::test_layouts()' */
 
 ////////////////////////////////////////////////////////////////////////
 //	template instantiations for all current algebra types.
