@@ -34,14 +34,6 @@ if PclDebugBarrierEnabled() then
 	print("#ANALYZER INFO: PCLDebugBarrier is enabled. Expect slowdowns.")
 end
 
-verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
-						    -- >= 1 for writing matrix files etc.
-
-activateDbgWriter = 0	  
-activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
-						    -- >= 1 for debug output: this sets
-						    -- 'fetiSolver:set_debug(dbgWriter)'
-						    
 --------------------------------------------------------------------------------
 -- Checking for parameters (begin)
 --------------------------------------------------------------------------------
@@ -65,6 +57,7 @@ numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
 -- parameters concerning the linear solver:
+lsType     = util.GetParam("-lsType",         "gmg") -- choose one in ["gmg" | "feti"]
 lsIterator = util.GetParam("-lsIterator",     "gmg")
 lsMaxIter  = util.GetParamNumber("-lsMaxIter", 100)
 
@@ -172,6 +165,7 @@ print("    verb (verbosity)         = " .. verbosity)
 print("    dbgw (activateDbgWriter) = " .. activateDbgWriter)
 
 print(" Linear solver related parameters chosen:")
+print("    lsType     = " .. lsType .. " (TMP - should be integrated better ...)")
 print("    lsIterator = " .. lsIterator)
 print("    lsMaxIter  = " .. lsMaxIter)
 
@@ -265,6 +259,7 @@ while numDistProcs > 0 do
 
 	-- save the partition map for debug purposes
 		if verbosity >= 1 then
+			print("saving partition map to 'partitionMap_p" .. GetProcessRank() .. ".ugx'")
 			SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
 		end
 	end
@@ -536,12 +531,22 @@ bicgstabSolver:set_convergence_check(convCheck)
 solver = linSolver
 --solver = cgSolver
 
+if lsType == "feti" then
+	print("Loading FETI solver setup ...")
+	ug_load_script("setup_fetisolver.lua")
+	solver = SetupFETISolver(dom,
+				 lsMaxIter,
+				 numProcs,
+				 activateDbgWriter,
+				 verbosity)
+end
+
 --------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h',
 --  to get separate profiling for assemble and solve
 --------------------------------------------------------------------------------
 
-if lsIterator == "gmg" then
+if lsType == "gmg" and lsIterator == "gmg" then
 	print( "   baseSolverType is " .. baseSolverType .. ",  baseLevel is " .. baseLevel )
 end
 
@@ -555,7 +560,8 @@ if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then
 end
 
 -- 1.b write matrix for test purpose
-if verbosity >= 1 then
+if verbosity >= 2 then
+	print("Save matrix and rhs for connection viewer ...")
 	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 	SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
@@ -566,10 +572,21 @@ if ApplyLinearSolver(linOp, u, b, solver) == false then
 	print("Could not apply linear solver.");
 end
 
+if verbosity >= 2 then
+	if lsType == "feti" then
+		--print("Testing standard interfaces ...")
+		--TestDomainInterfaces(dom)
+
+		print("# Testing FETI layouts ...")
+		solver:test_layouts(false) -- 'true' prints indices
+	end
+end
+
 --------------------------------------------------------------------------------
 --  Output of computed solution
 --------------------------------------------------------------------------------
 if verbosity >= 1 then
+	print("Write vtk file for solution ...")
 	WriteGridFunctionToVTK(u, "Solution")
 end
 
