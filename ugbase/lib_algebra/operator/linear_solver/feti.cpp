@@ -412,16 +412,25 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 
 //	log num primal quantities
-	UG_LOG("     %  - primal root ids: ");
-	for(size_t i = 0; i < vPrimalRootIDs.size(); ++i){
-		UG_LOG(vPrimalRootIDs[i] << " ");
-	}
+	UG_LOG("     %  - num procs in feti subdom: "<<localFetiBlockComm.size()<<"\n");
+
+	UG_LOG("     %  - num primal variables on feti subdom: " << vPrimalRootIDs.size() <<"\n");
+	UG_LOG("     %  - primal root ids on feti subdom as looped: ");
+	for(size_t i = 0; i < vPrimalRootIDs.size(); ++i) UG_LOG(vPrimalRootIDs[i] << " ");
 	UG_LOG(std::endl);
-	UG_LOG("     %  - primal quantities: ");
-	for(size_t i = 0; i < vPrimalQuantities.size(); ++i){
-		UG_LOG(vPrimalQuantities[i] << " ");
-	}
+
+	UG_LOG("     %  - num primal variables on each process of subdom: ");
+	for(size_t i = 0; i < vPrimalQuantities.size(); ++i) UG_LOG(vPrimalQuantities[i] << " ");
 	UG_LOG(std::endl);
+
+	UG_LOG("     %  - local-algebra indices for proc "<<pcl::GetProcRank()<<": ");
+	for(size_t i = 0; i < vlocalPrimalIndex.size(); ++i) UG_LOG(vlocalPrimalIndex[i] << " ");
+	UG_LOG(std::endl);
+
+	UG_LOG("     %  - corresponding root-algebra indices for proc "<<pcl::GetProcRank()<<": ");
+	for(size_t i = 0; i < vlocalPrimalIndex.size(); ++i) UG_LOG(rootIDs[vlocalPrimalIndex[i]] << " ");
+	UG_LOG(std::endl);
+
 
 //	processes will collect their local primal connections here.
 	typedef PrimalConnection<typename vector_type::value_type> PrimalConnection;
