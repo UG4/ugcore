@@ -294,6 +294,9 @@ template <typename TAlgebra>
 bool PrimalSubassembledMatrixInverse<TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& L)
 {
+//	status output
+	UG_LOG("Initializing 'PrimalSubassembledMatrixInverse': \n");
+
 //	success flag
 	bool bSuccess = true;
 
@@ -341,6 +344,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	Let Neumann Matrix use inner layouts
 	m_pFetiLayouts->mat_use_inner_communication(*m_pNeumannMatrix);
 
+//	status output
+	UG_LOG("  - initializing 'NeumannSolver' ... ");
+
 //	init sequential solver for Dirichlet problem
 	if(m_pNeumannSolver != NULL)
 		if(!m_pNeumannSolver->init(m_NeumannOperator))
@@ -349,6 +355,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 					"Sequential Neumann Solver for Operator A.\n");
 			return false;
 		}
+	UG_LOG("done.\n");
 
 //	Debug output of matrices
 	if(m_pDebugWriter != NULL)
@@ -368,6 +375,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	Build layouts such that all processes can communicate their unknowns
 //	to the primal Root Process
+	UG_LOG("  - building 'OneToManyLayout' ... ");
 	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout);
 	int newVecSize = BuildOneToManyLayout(m_masterAllToOneLayout,
 						 m_slaveAllToOneLayout, m_primalRootProc,
@@ -375,6 +383,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						 m_pFetiLayouts->get_primal_slave_layout(),
 						 m_allToOneProcessComm, &rootIDs);
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout)' - Messpunkt ok
+	UG_LOG("done.\n");
 
 //	We have to gather the rootIDs and the quantities of primal nodes
 //	on each process of the feti-block in one array.
@@ -428,6 +437,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_pFetiLayouts->vec_use_inner_communication(h1);
 	m_pFetiLayouts->vec_use_inner_communication(h2);
 
+	UG_LOG("  - assemble 'S_PiPi' ... ");
 	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi);
 //	Now within each feti subdomain, the primal unknowns are looped one after the
 //	other. This is done like the following: Each process loops the number of
@@ -549,6 +559,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			}
 		}
 	}
+	UG_LOG("done.\n");
 
 //	all processes send their connections to root
 //todo: This could be improved, so that only processes which contain
@@ -561,6 +572,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	build matrix on primalRoot
 	if(pcl::GetProcRank() == m_primalRootProc)
 	{
+		UG_LOG("  - building 'Matrix on Primal Root' ... ");
+
 	//	get matrix
 		m_pRootSchurComplementMatrix = &m_RootSchurComplementOp.get_matrix();
 
@@ -632,6 +645,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			m_pDebugWriter->write_matrix(m_RootSchurComplementOp.get_matrix(),
 										 "RootSchurComplementMatrix");
 		}
+		UG_LOG("done.\n");
 	} // end 'if(pcl::GetProcRank() == m_primalRootProc)'
 
 //	we're done
