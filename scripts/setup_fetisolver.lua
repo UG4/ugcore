@@ -350,6 +350,33 @@ function SetupFETISolver(domain,
 	elseif dirichletProblemSolverType == "bicg" then
 	
 		dirichletSolver = BiCGStab() -- not yet tested for Dirichlet problem!
+		dirichletSolver:set_preconditioner(dpILU)
+	
+	elseif dirichletProblemSolverType == "rsamg" then
+
+		maxBase = util.GetParamNumber("-maxBase", 1000)
+			
+		dpRSAMG = RSAMGPreconditioner()
+		
+		dpRSAMGGS = GaussSeidel()
+		dpRSAMGBase = LU()
+		
+		dpRSAMG:set_num_presmooth(3)
+		dpRSAMG:set_num_postsmooth(3)
+		dpRSAMG:set_cycle_type(1)
+		dpRSAMG:set_presmoother(dpRSAMGGS)
+		dpRSAMG:set_postsmoother(dpRSAMGGS)
+		dpRSAMG:set_base_solver(dpRSAMGBase)
+		dpRSAMG:set_max_levels(2)
+		dpRSAMG:set_max_nodes_for_base(maxBase)
+		dpRSAMG:set_max_fill_before_base(0.7)
+		dpRSAMG:set_fsmoothing(true)
+		dpRSAMG:set_epsilon_truncation(0)		
+		dpRSAMG:tostring()	
+		
+		dirichletSolver = LinearSolver()
+		dirichletSolver:set_preconditioner(dpRSAMG)
+		
 	
 	else
 		print ("ERROR: Dirichlet problem solver not specified ==> exit")
@@ -361,7 +388,7 @@ function SetupFETISolver(domain,
 	dirichletConvCheck:set_maximum_steps(100)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
-	dirichletConvCheck:set_verbose_level(false)
+	dirichletConvCheck:set_verbose_level(true)
 	
 	dirichletSolver:set_convergence_check(dirichletConvCheck)
 	
