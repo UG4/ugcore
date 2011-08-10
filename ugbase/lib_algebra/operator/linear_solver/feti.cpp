@@ -654,7 +654,6 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			m_pDebugWriter->write_matrix(m_RootSchurComplementOp.get_matrix(),
 										 "RootSchurComplementMatrix");
 		}
-		UG_LOG("done.\n");
 	} // end 'if(pcl::GetProcRank() == m_primalRootProc)'
 
 //	we're done
