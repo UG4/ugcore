@@ -139,13 +139,10 @@ convCheck:set_reduction(1e-12)
 --convCheck:set_verbose_level(true)
 
 -- create CG Solver
-cgSolver = CG()
+solver = BiCGStab()
 ilu = ILU()
-cgSolver:set_preconditioner(ilu)
-cgSolver:set_convergence_check(convCheck)
-
--- choose some solver
-solver = cgSolver
+solver:set_preconditioner(ilu)
+solver:set_convergence_check(convCheck)
 
 --------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h',
