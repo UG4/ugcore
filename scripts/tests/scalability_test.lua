@@ -214,9 +214,9 @@ refiner = GlobalDomainRefiner(dom)
 -- Performing pre-refines
 print("Perform (non parallel) pre-refinements of grid")
 for i=1,numPreRefs do
-	print( "PreRefinement step " .. i .. " ...")
+	write( "PreRefinement step " .. i .. " ...")
 	refiner:refine()
-	print( "  ... done.")
+	print( "  done.")
 end
 
 
