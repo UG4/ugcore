@@ -388,7 +388,7 @@ function SetupFETISolver(domain,
 	dirichletConvCheck:set_maximum_steps(100)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
-	dirichletConvCheck:set_verbose_level(true)
+	dirichletConvCheck:set_verbose_level(false)
 	
 	dirichletSolver:set_convergence_check(dirichletConvCheck)
 	
