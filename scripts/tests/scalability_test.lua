@@ -187,7 +187,7 @@ print("    hRedistStepSize = " .. hRedistStepSize)
 
 
 -- choose algebra
-InitUG(dim, CPUAlgebraSelector(), "GEN");
+InitUG(dim, CPUAlgebraSelector());
 
 -- create Instance of a Domain
 print("Create Domain.")
