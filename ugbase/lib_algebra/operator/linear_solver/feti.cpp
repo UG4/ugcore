@@ -295,7 +295,7 @@ bool PrimalSubassembledMatrixInverse<TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& L)
 {
 //	status output
-	UG_LOG("\n% Initializing 'PrimalSubassembledMatrixInverse': \n");
+	UG_LOG("     % Initializing 'PrimalSubassembledMatrixInverse': \n");
 
 //	success flag
 	bool bSuccess = true;
@@ -345,7 +345,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_pFetiLayouts->mat_use_inner_communication(*m_pNeumannMatrix);
 
 //	status output
-	UG_LOG("%  - initializing 'NeumannSolver' ... ");
+	UG_LOG("     %  - initializing 'NeumannSolver' ... ");
 
 //	init sequential solver for Dirichlet problem
 	if(m_pNeumannSolver != NULL)
@@ -375,7 +375,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	Build layouts such that all processes can communicate their unknowns
 //	to the primal Root Process
-	UG_LOG("%  - building 'OneToManyLayout' ... ");
+	UG_LOG("     %  - building 'OneToManyLayout' ... ");
 	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout);
 	int newVecSize = BuildOneToManyLayout(m_masterAllToOneLayout,
 						 m_slaveAllToOneLayout, m_primalRootProc,
@@ -412,12 +412,12 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 
 //	log num primal quantities
-	UG_LOG("%  - primal root ids: ");
+	UG_LOG("     %  - primal root ids: ");
 	for(size_t i = 0; i < vPrimalRootIDs.size(); ++i){
 		UG_LOG(vPrimalRootIDs[i] << " ");
 	}
 	UG_LOG(std::endl);
-	UG_LOG("%  - primal quantities: ");
+	UG_LOG("     %  - primal quantities: ");
 	for(size_t i = 0; i < vPrimalQuantities.size(); ++i){
 		UG_LOG(vPrimalQuantities[i] << " ");
 	}
@@ -437,7 +437,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_pFetiLayouts->vec_use_inner_communication(h1);
 	m_pFetiLayouts->vec_use_inner_communication(h2);
 
-	UG_LOG("%  - assemble 'S_PiPi' ... ");
+	UG_LOG("     %  - assemble 'S_PiPi' ... ");
 	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi);
 //	Now within each feti subdomain, the primal unknowns are looped one after the
 //	other. This is done like the following: Each process loops the number of
@@ -572,7 +572,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	build matrix on primalRoot
 	if(pcl::GetProcRank() == m_primalRootProc)
 	{
-		UG_LOG("%  - building 'Matrix on Primal Root' ... ");
+		UG_LOG("     %  - building 'Matrix on Primal Root' ... ");
 
 	//	get matrix
 		m_pRootSchurComplementMatrix = &m_RootSchurComplementOp.get_matrix();
@@ -1008,6 +1008,9 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 {
+//	status
+	UG_LOG("\n% Initializing FETI Solver: \n");
+
 //	bool flag
 	bool bSuccess = true;
 
@@ -1027,6 +1030,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 	bool debugLayouts = (m_pDebugWriter==NULL) ? false : true;
 
 //	1. create FETI Layouts
+	UG_LOG("\n%   - Create FETI layouts ...");
 	FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts);
 	m_fetiLayouts.create_layouts(m_pMatrix->get_master_layout(),
 	                             m_pMatrix->get_slave_layout(),
@@ -1035,6 +1039,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 	                             *m_pDDInfo,
 	                             debugLayouts);
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts)' - Messpunkt ok
+	UG_LOG("done.\n");
 
 //  ----- 2. CONFIGURE LOCAL SCHUR COMPLEMENT  ----- //
 
@@ -1057,6 +1062,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 	m_LocalSchurComplement.set_matrix(*m_pOperator);
 
 //	2.3 init local Schur complement
+	UG_LOG("\n%   - Init Local Schur Complement ...");
 	FETI_PROFILE_BEGIN(FETISolverInit_InitLocalSchurComplement);
 	if(m_LocalSchurComplement.init() != true)
 	{
@@ -1064,6 +1070,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 				"complement.\n");
 		bSuccess = false;
 	}
+	UG_LOG("done.\n");
 
 //	2.4 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -1105,12 +1112,14 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 
 //	3.4 init PrimalSubassembledMatrixInverse (operator - given as parameter here - is also set thereby)
 	FETI_PROFILE_BEGIN(FETISolverInit_InitPrimalSubassMatInv);
+	UG_LOG("\n%   - Init PrimalSubassembledMatrixInverse ...\n");
 	if(m_PrimalSubassembledMatrixInverse.init(*m_pOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
 				"complement inverse.\n");
 		bSuccess = false;
 	}
+	UG_LOG("\n%     PrimalSubassembledMatrixInverse done.\n");
 
 //	3.5 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
