@@ -341,6 +341,10 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 // 	FV1LevelSetDisc
 	{
 		typedef FV1LevelSetDisc<function_type> T;
+		typedef typename function_type::domain_type domain_type;
+		typedef boost::function<void (number& value,
+						                              const MathVector<domain_type::dim>& x,
+						                              number time)> NumberFunctor;
 		string name = string("FV1LevelSetDisc").append(dimAlgDDSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
@@ -350,7 +354,6 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("set_div_bool", &T::set_div_bool)
 			.add_method("set_solution_nr", &T::set_solution_nr)
 			.add_method("set_velocity_nr", &T::set_velocity_nr)
-			.add_method("set_source", &T::set_source)
 			.add_method("set_source_bool", &T::set_source_bool)
 			.add_method("set_static_values_type", &T::set_static_values_type)
 			.add_method("set_info", &T::set_info)
@@ -363,6 +366,14 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("set_neumann_boundary",&T::set_neumann_boundary)
 			.add_method("set_analytical_velocity_bool", &T::set_analytical_velocity_bool)
 			.add_method("init_function", &T::init_function)
+			.add_method("set_vel_x", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_vel_x))
+			.add_method("set_vel_y", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_vel_y))
+			.add_method("set_vel_z", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_vel_z))
+			.add_method("set_source", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_source))
+			.add_method("set_vel_x", static_cast<void (T::*)(function_type&)>(&T::set_vel_x))
+			.add_method("set_vel_y", static_cast<void (T::*)(function_type&)>(&T::set_vel_y))
+			.add_method("set_vel_z", static_cast<void (T::*)(function_type&)>(&T::set_vel_z))
+			.add_method("set_source", static_cast<void (T::*)(function_type&)>(&T::set_source))
 			.add_method("compute_error", &T::compute_error);
 		reg.add_class_to_group(name, "FV1LevelSetDisc", dimAlgDDTag);
 	}

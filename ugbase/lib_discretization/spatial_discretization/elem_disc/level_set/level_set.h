@@ -8,8 +8,11 @@
 #ifndef LEVEL_SET_UTIL_H_
 #define LEVEL_SET_UTIL_H_
 
+#include "common/common.h"
+
 #include <vector>
 #include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
+#include <boost/function.hpp>
 
 namespace ug{
 	
@@ -27,6 +30,10 @@ class FV1LevelSetDisc
 
 		typedef typename TGridFunction::dof_distribution_type::implementation_type
 				dof_distribution_impl_type;
+
+		typedef boost::function<void (number& value,
+				                              const MathVector<domain_type::dim>& x,
+				                              number time)> NumberFunctor;// see grid_function_util.h
 
 	///	world dimension
 		static const int dim = domain_type::dim;
@@ -61,13 +68,15 @@ class FV1LevelSetDisc
      	FV1LevelSetDisc() :
       		m_dt(0.0), m_time(0), m_gamma(1.0), m_delta(0.0),
       		m_reinit(false), m_analyticalSolution(true),
-      		m_analyticalVelocity(true),m_externalVelocity(true),m_analyticalSource(true),
-      		m_divFree(false), m_source(false), m_solutionNr(0),
+      		m_analyticalVelocity(true),m_externalVelocity(true),m_analyticalSource(true),m_divFree(false),
+      		m_source(false),
+      		m_vel_fct_bool(false),m_vel_vec_bool(false),m_source_fct_bool(false),m_source_vec_bool(false),
+      		m_solutionNr(0),
       		m_velocityNr(0),m_sourceNr(0),m_nrOfSteps(1),m_bdryCondition(0),
       		m_static_values_type(0),m_maxCFL(0),m_print(false),m_timestep_nr(0),m_limiter(false)
       	{}
 
-void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
+        void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 
 	/// set scale parameters for external velocity and velocity in normal direction
     	void set_vel_scale(number gamma,number delta){ };
@@ -75,7 +84,6 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 		void set_div_bool(bool b){m_divFree=b;};
 		void set_solution_nr(size_t n){m_solutionNr=n;};
 		void set_velocity_nr(size_t n){m_velocityNr=n;};
-		void set_source(size_t n){m_sourceNr=n;};
 		void set_source_bool(bool b){m_source = b;};
 		void set_static_values_type(size_t n){m_static_values_type=n;};
 		void set_analytical_velocity_bool(bool b){m_analyticalVelocity=b;};
@@ -94,6 +102,14 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 	    void set_neumann_boundary(const char* subsets){m_neumannSubsets = subsets;}
 	///	adds a post process to be used when stepping the level set function
 		void add_post_process(IConstraint<dof_distribution_impl_type, algebra_type>& pp) {m_vPP.push_back(&pp);}
+		void set_vel_x(const NumberFunctor& v){m_vel_fct_bool=true;m_vel_x_fct = v;};
+		void set_vel_y(const NumberFunctor& v){m_vel_fct_bool=true;m_vel_y_fct = v;};
+		void set_vel_z(const NumberFunctor& v){m_vel_fct_bool=true;m_vel_z_fct = v;};
+		void set_source(const NumberFunctor& s){m_source_fct_bool=true;m_source_fct= s;};
+		void set_vel_x(TGridFunction& v){m_vel_vec_bool=true;m_vel_x_vec = &v;};
+		void set_vel_y(TGridFunction& v){m_vel_vec_bool=true;m_vel_x_vec = &v;};
+		void set_vel_z(TGridFunction& v){m_vel_vec_bool=true;m_vel_x_vec = &v;};
+		void set_source(TGridFunction& s){m_source_vec_bool=true;m_source_vec = &s;};
 		
 	 protected:
 	    number analytic_solution(number,MathVector<dim>);
@@ -135,6 +151,10 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 		bool m_analyticalSource;
     	bool m_divFree;
 		bool m_source;
+		bool m_vel_fct_bool;
+		bool m_vel_vec_bool;
+		bool m_source_fct_bool;
+		bool m_source_vec_bool;
         size_t m_solutionNr;
         size_t m_velocityNr;
 		size_t m_sourceNr;
@@ -147,6 +167,14 @@ void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
 		size_t m_timestep_nr;
 		size_t m_limiter;
 		std::string m_neumannSubsets;
+		NumberFunctor m_vel_x_fct;
+		NumberFunctor m_vel_y_fct;
+		NumberFunctor m_vel_z_fct;
+		NumberFunctor m_source_fct;
+		TGridFunction* m_vel_x_vec;
+		TGridFunction* m_vel_y_vec;
+		TGridFunction* m_vel_z_vec;
+		TGridFunction* m_source_vec;
 };
 
 } // end namespace ug

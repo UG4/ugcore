@@ -27,7 +27,7 @@ bool FV1LevelSetDisc<TGridFunction>::analytic_velocity(MathVector<dim> & v,numbe
 		   v[0] = -x[1];
 		   v[1] = x[0];
 		   v[0] = 0;
-		   v[1] = 0;
+		   v[1] = 1;
 //		   v[0] = 1;
 	//	   v[1] = 1;
 		   return 0;
@@ -67,7 +67,7 @@ number FV1LevelSetDisc<TGridFunction>::analytic_solution(number t,MathVector<dim
 			//return sin(xnew);
         	return 0;
         case 2:
-        	return x[1];
+        	//return x[1];//-t;
             number z;
             z=min(min(abs(x[0]-1),abs(x[0]+1)),min(abs(x[1]-1),abs(x[1]+1)));
             //z=min(min(abs(x[0]),abs(1-x[0])),min(abs(x[1]),abs(1-x[1])));
@@ -371,9 +371,20 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
     MathVector<dim> coVelocity[geo.num_scv()];
 	for (size_t i=0;i < geo.num_scv();i++){
 		 coVelocity[i]=0;
-	     if (m_analyticalVelocity){
+	     if (m_analyticalVelocity==true){
 		     analytic_velocity(coVelocity[i],m_time,coCoord[i]);
 		 };
+	     if (m_vel_fct_bool==true){
+             m_vel_x_fct(coVelocity[i][0],coCoord[i],m_time);
+             if (dim>=2) m_vel_y_fct(coVelocity[i][1],coCoord[i],m_time);
+             if (dim>=3) m_vel_z_fct(coVelocity[i][2],coCoord[i],m_time);
+	     }
+	     if (m_vel_vec_bool==true){
+	    	 dd.inner_multi_indices(vVrt[i], 0, multInd);
+	    	 coVelocity[i][0]=BlockRef((*m_vel_x_vec)[multInd[0][0]],multInd[0][1]);
+	    	 if (dim>=2) coVelocity[i][1]=BlockRef((*m_vel_y_vec)[multInd[0][0]],multInd[0][1]);
+	    	 if (dim>=3) coVelocity[i][2]=BlockRef((*m_vel_z_vec)[multInd[0][0]],multInd[0][1]);
+	     }
 	     //UG_LOG("corner " << i << " grad=" << grad[i] << "\n");
 		 // velocity in normal direction
 		 if (m_delta!=0){
@@ -394,13 +405,17 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 		// 	get current SCVF
 	    const typename DimFV1Geometry<dim>::SCVF& scvf = geo.scvf(ip);
 	    MathVector<dim>	ipCoord = scvf.global_ip();
-	     if ((m_analyticalVelocity)&&(m_delta==0)&&(interpolate==false))
-		 {
-		     analytic_velocity(ipVelocity[ip],m_time,ipCoord);
-		 } else 
-		 // interpolate velocity
-		 {
-		//UG_LOG("ip " << ip << "\n");
+	    if ((m_delta==0)&&(interpolate==false)&&((m_analyticalVelocity==true)||(m_vel_fct_bool==true))){
+	    	if (m_analyticalVelocity==true) analytic_velocity(ipVelocity[ip],m_time,ipCoord);
+	    	if (m_vel_fct_bool==true){
+	    		m_vel_x_fct(ipVelocity[ip][0],ipCoord,m_time);
+	    		if (dim>=2) m_vel_y_fct(ipVelocity[ip][1],ipCoord,m_time);
+	    		if (dim>=3) m_vel_z_fct(ipVelocity[ip][2],ipCoord,m_time);
+	    	}
+	    } else
+	    // interpolate velocity
+		{
+		     //UG_LOG("ip " << ip << "\n");
 			 ipVelocity[ip] = 0;
 		     const typename DimFV1Geometry<dim>::SCVF& scvf = geo.scvf(ip);
 			 for (size_t co=0;co < geo.num_scv();co++){
@@ -420,18 +435,22 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 	
 //  fill source vector
 	std::vector<number> coSource(geo.num_scv());
-    if (m_source){
-	    if (m_analyticalSource){
-	    	for (size_t i=0;i<geo.num_scv();i++){
+    if (m_source==true){
+    	for (size_t i=0;i<geo.num_scv();i++){
+	        if (m_analyticalSource==true){
 	    	    coSource[i] = analytic_source(m_time,coCoord[i]);
-	    	}
-		};
+	    	};
+	        if (m_source_fct_bool) m_source_fct(coSource[i],coCoord[i],m_time);
+	        if (m_source_vec_bool){
+	    	    dd.inner_multi_indices(vVrt[i], 0, multInd);
+	    	    coSource[i] = BlockRef((*m_source_vec)[multInd[0][0]],multInd[0][1]);
+	        }
+    	}
 	}else{
 	    for (size_t i=0;i<geo.num_scv();i++){
 		    coSource[i] = 0;
 		};
 	};
-	
     // get finite volume geometry
 	// FV1Geometry<TElem,dim> geo;
 
@@ -454,24 +473,28 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 		} else {
 		    base = to;
 		};
-	    //UG_LOG("from " << from << " to " << to << " base " << base << "\n");
+	    UG_LOG("from " << coCoord[from] << " to " << coCoord[to] << "\n");
 		VecSubtract(distVec, ipCoord,coCoord[base]);
 		//UG_LOG("ip vel " << ipVelocity[ip] << " normal " << scvf.normal() << " v*n " << ipVelocity[ip]*scvf.normal() << "\n");
 		//UG_LOG("distVec*grad[base] " << distVec*grad[base] << " coSource[base] " << coSource[base] << " grad[base]*coVelocity[base] " << grad[base]*coVelocity[base] << "\n");
 		//UG_LOG("u^{n+0.5}_{ip_i} = " << uValue[base] + distVec*grad[base] + 0.5*m_dt*(coSource[base] - grad[base]*coVelocity[base]) << "\n");
 		// flux = v * n * u_{ip(i)}^{n+0.5}
 		flux = m_dt*(ipVelocity[ip]*scvf.normal())*( uValue[base] + (distVec*grad[base]) + 0.5*m_dt*(coSource[base] - (grad[base]*coVelocity[base])) );
-		//UG_LOG(ip << " flux=" << flux << "\n");
+		UG_LOG(ip << " flux=" << flux << "\n");
 		dd.inner_multi_indices(vVrt[from], 0, multInd);
         BlockRef(uNew[multInd[0][0]],multInd[0][1])-=flux/aaVolume[ vVrt[from] ];
 		if (m_divFree==false){
 		    BlockRef(uNew[multInd[0][0]],multInd[0][1])+=m_dt*(ipVelocity[ip]*scvf.normal())*(uValue[from] + 0.5*m_dt*(coSource[from] - (grad[from]*coVelocity[from])))/aaVolume[ vVrt[from] ];
 		};
+		UG_LOG("source flux from " << m_dt*(ipVelocity[ip]*scvf.normal())*(uValue[from] + 0.5*m_dt*(coSource[from] - (grad[from]*coVelocity[from])))/aaVolume[ vVrt[from] ] << "\n");
+		UG_LOG("v*n=" << (ipVelocity[ip]*scvf.normal()) << " uExtra=" <<  (uValue[from] + 0.5*m_dt*(coSource[from] - (grad[from]*coVelocity[from]))) << " vol=" << aaVolume[ vVrt[from] ] << "\n");
         dd.inner_multi_indices(vVrt[to], 0, multInd);
         BlockRef(uNew[multInd[0][0]],multInd[0][1])+=flux/aaVolume[ vVrt[to] ];
 		if (m_divFree==false){
 		    BlockRef(uNew[multInd[0][0]],multInd[0][1])-=m_dt*(ipVelocity[ip]*scvf.normal())*(uValue[to] + 0.5*m_dt*(coSource[to] - (grad[to]*coVelocity[to])))/aaVolume[ vVrt[to] ];
 		};
+		UG_LOG("source flux to " << m_dt*(ipVelocity[ip]*scvf.normal())*(uValue[to] + 0.5*m_dt*(coSource[to] - (grad[to]*coVelocity[to])))/aaVolume[ vVrt[to] ] << "\n");
+		UG_LOG("v*n=" << (ipVelocity[ip]*scvf.normal()) << " uExtra=" <<  (uValue[to] + 0.5*m_dt*(coSource[to] - (grad[to]*coVelocity[to]))) << " vol=" << aaVolume[ vVrt[to] ] << "\n");
         number localCFL = std::max(m_dt*abs(ipVelocity[ip]*scvf.normal())/aaVolume[ vVrt[from] ],m_dt*abs(ipVelocity[ip]*scvf.normal())/aaVolume[ vVrt[to] ] );
         //UG_LOG("localCFL " << localCFL << "\n");
         if (localCFL>m_maxCFL){
@@ -510,12 +533,15 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 				        bipU += bf.shape(co) *uValue[co];
 				        bipSource += bf.shape(co) * coSource[co];
 				    }
-    				flux = m_dt*(bipVelocity*bf.normal())*( bipU + 0.5*m_dt*(bipSource - (bipGrad*bipVelocity)) );
+    				//flux = m_dt*(bipVelocity*bf.normal())*( bipU + 0.5*m_dt*(bipSource - (bipGrad*bipVelocity)) );
+    				flux = m_dt*(bipVelocity*bf.normal())*uValue[nodeID];// first order approximation
     				dd.inner_multi_indices(vVrt[nodeID], 0, multInd);
     				BlockRef(uNew[multInd[0][0]],multInd[0][1])-=flux/aaVolume[ vVrt[nodeID] ];
     				UG_LOG("coord=" << bf.global_ip( )<< "vel=" << bipVelocity << " n=" << bf.normal() << " flux=" << flux << " source flux=" << m_dt*(bipVelocity*bf.normal())*(uValue[nodeID] + 0.5*m_dt*(coSource[nodeID] - (grad[nodeID]*coVelocity[nodeID])))/aaVolume[ vVrt[nodeID] ] << "\n");
+    				UG_LOG("v*n=" << (bipVelocity*bf.normal()) << " uExtra=" << (uValue[nodeID] + 0.5*m_dt*(coSource[nodeID] - (grad[nodeID]*coVelocity[nodeID]))) << " volume=" << aaVolume[ vVrt[nodeID] ] << "\n");
     				if (m_divFree==false){
     				    BlockRef(uNew[multInd[0][0]],multInd[0][1])+=m_dt*(bipVelocity*bf.normal())*(uValue[nodeID] + 0.5*m_dt*(coSource[nodeID] - (grad[nodeID]*coVelocity[nodeID])))/aaVolume[ vVrt[nodeID] ];
+    				    //BlockRef(uNew[multInd[0][0]],multInd[0][1])+=m_dt*(bipVelocity*bf.normal())*(uValue[nodeID] )/aaVolume[ vVrt[nodeID] ];// first order approximation
     				};
 		    	};
 		     };
@@ -1114,7 +1140,7 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 	    }
 	    m_time += m_dt;
 	    m_timestep_nr++;
-	    assign_dirichlet(uNew,1);// attention: hard-coded dirichlet subset index
+	    // assign_dirichlet(uNew,1); attention: hard-coded dirichlet subset index
 
         //	now process dirichlet values
 	    for(size_t i = 0; i < m_vPP.size(); ++i)
