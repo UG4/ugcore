@@ -31,6 +31,9 @@ class IDebugWriter
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	public:
+	///	Constructor
+		IDebugWriter() : m_currentDim(-1) {}
+
 	///	write vector
 		virtual bool write_vector(const vector_type& vec,
 		                          const char* name) = 0;
@@ -39,8 +42,50 @@ class IDebugWriter
 		virtual bool write_matrix(const matrix_type& mat,
 		                          const char* name) = 0;
 
+	///	returns the current dimension
+		int current_dimension() const {return m_currentDim;}
+
+	///	returns the positions (only available for current dimension)
+		template <int dim>
+		const std::vector<MathVector<dim> >& get_positions() const
+		{
+			if(m_currentDim != dim) throw(UGFatalError("Current dim is different."));
+			return get_pos(Int2Type<dim>());
+		}
+
+	///	sets the current positions
+		template <int dim>
+		void set_positions(const std::vector<MathVector<dim> >& vPos)
+		{
+			get_pos(Int2Type<dim>()) = vPos; m_currentDim = dim;
+		}
+
 	/// virtual destructor
 		virtual ~IDebugWriter(){}
+
+	protected:
+	///	returns the positions and sets the current dim
+		template <int dim>
+		std::vector<MathVector<dim> >& get_positions()
+		{
+			m_currentDim = dim; return get_pos(Int2Type<dim>());
+		}
+
+	///	current dimension
+		int m_currentDim;
+
+	///	vectors of positions
+		std::vector<MathVector<1> > m_vPos1d;
+		std::vector<MathVector<2> > m_vPos2d;
+		std::vector<MathVector<3> > m_vPos3d;
+
+	///	help function to get local ips
+		std::vector<MathVector<1> >& get_pos(Int2Type<1>) {return m_vPos1d;}
+		std::vector<MathVector<2> >& get_pos(Int2Type<2>) {return m_vPos2d;}
+		std::vector<MathVector<3> >& get_pos(Int2Type<3>) {return m_vPos3d;}
+		const std::vector<MathVector<1> >& get_pos(Int2Type<1>) const {return m_vPos1d;}
+		const std::vector<MathVector<2> >& get_pos(Int2Type<2>) const {return m_vPos2d;}
+		const std::vector<MathVector<3> >& get_pos(Int2Type<3>) const {return m_vPos3d;}
 };
 
 template <typename TAlgebra, int dim>

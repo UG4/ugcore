@@ -47,6 +47,16 @@ struct PrimalConnection{
 	TValue value;
 };
 
+template <int dim>
+struct PosAndIndex{
+		PosAndIndex() {}
+		PosAndIndex(int i1, const MathVector<dim>& val) :
+		ind1(i1), pos(val) {}
+	int ind1;
+	MathVector<dim> pos;
+};
+
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	LocalSchurComplement implementation
@@ -581,7 +591,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	build matrix on primalRoot
 	if(pcl::GetProcRank() == m_primalRootProc)
 	{
-		UG_LOG("     %  - building 'Matrix on Primal Root' ... ");
+		UG_LOG("     %  - building 'Matrix on Primal Root'.\n");
 
 	//	get matrix
 		m_pRootSchurComplementMatrix = &m_RootSchurComplementOp.get_matrix();
@@ -648,13 +658,62 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	//	operations, e.g. computation of defect, require this
 		m_pRootSchurComplementMatrix->set_storage_type(PST_ADDITIVE);
 
-	//	Debug output of matrix (added again (21022011ih))
-		if(m_pDebugWriter != NULL)
+	} // end 'if(pcl::GetProcRank() == m_primalRootProc)'
+
+//	Debug output of matrix
+//	this is 2d only debug output. \todo: generalize (i.e. copy+paste)
+	if(m_pDebugWriter != NULL && m_pDebugWriter->current_dimension() == 2)
+	{
+	//	get const ref to debug writer
+		const IDebugWriter<algebra_type>& dbgWriter = *m_pDebugWriter;
+
+	//	vector of root index + pos
+		std::vector<PosAndIndex<2> > vProcLocPos;
+
+	//	get positions on local proc
+		for(size_t pqi = 0; pqi < vlocalPrimalIndex.size(); ++pqi)
 		{
-			m_pDebugWriter->write_matrix(m_RootSchurComplementOp.get_matrix(),
+		//	get local index of primal
+			const IndexLayout::Element localPrimalIndex = vlocalPrimalIndex[pqi];
+
+		//	get position of local index
+			MathVector<2> vPos = (dbgWriter.template get_positions<2>())[localPrimalIndex];
+
+			UG_LOG_ALL_PROCS(pqi<<" Primal: locIndex="<<localPrimalIndex<<", pos="<<vPos<<"\n");
+
+		//	read root index
+			int id = rootIDs[localPrimalIndex];
+
+		//	add position to send buffer
+			vProcLocPos.push_back(PosAndIndex<2>(id, vPos));
+		}
+
+	//	gather positions to root
+		std::vector<PosAndIndex<2> > vPosRootSchur;//	only filled on root
+		pcl::ProcessCommunicator commWorld;
+		commWorld.gatherv(vPosRootSchur, vProcLocPos, m_primalRootProc);
+
+	//	only root proc writes the matrix
+		if(pcl::GetProcRank() == m_primalRootProc)
+		{
+		//	positions are now stored as in vPrimalRootIDs, sort this
+			std::vector<MathVector<2> > vPosRootSchurSorted(newVecSize);
+			for(size_t i = 0; i < vPosRootSchur.size(); ++i)
+			{
+				UG_LOG(i << ": Set Pos "<<vPosRootSchur[i].ind1<<" to "<< vPosRootSchur[i].pos<<"\n");
+				vPosRootSchurSorted[vPosRootSchur[i].ind1] = vPosRootSchur[i].pos;
+			}
+
+		//	create algebra debug writer
+			AlgebraDebugWriter<algebra_type, 2> dbgWriter2d;
+			dbgWriter2d.set_positions(&vPosRootSchurSorted[0], newVecSize);
+
+		//	write matrix
+			dbgWriter2d.write_matrix(m_RootSchurComplementOp.get_matrix(),
 										 "RootSchurComplementMatrix");
 		}
-	} // end 'if(pcl::GetProcRank() == m_primalRootProc)'
+	}
+
 
 //	we're done
 	return true;

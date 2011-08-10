@@ -270,6 +270,12 @@ class GridFunctionDebugWriter
 		void set_reference_grid_function(const TGridFunction& u)
 		{
 			m_pGridFunc = &u;
+
+		//	extract positions for this grid function
+			static const int dim = TGridFunction::domain_type::dim;
+			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
+			vPos.clear();
+			ExtractPositions(u, vPos);
 		}
 
 	//	sets if writing to vtk
