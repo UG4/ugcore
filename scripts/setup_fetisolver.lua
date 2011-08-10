@@ -367,7 +367,7 @@ function SetupFETISolver(domain,
 		dpRSAMG:set_presmoother(dpRSAMGGS)
 		dpRSAMG:set_postsmoother(dpRSAMGGS)
 		dpRSAMG:set_base_solver(dpRSAMGBase)
-		dpRSAMG:set_max_levels(2)
+		dpRSAMG:set_max_levels(4)
 		dpRSAMG:set_max_nodes_for_base(maxBase)
 		dpRSAMG:set_max_fill_before_base(0.7)
 		dpRSAMG:set_fsmoothing(true)
