@@ -679,8 +679,6 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		//	get position of local index
 			MathVector<2> vPos = (dbgWriter.template get_positions<2>())[localPrimalIndex];
 
-			UG_LOG_ALL_PROCS(pqi<<" Primal: locIndex="<<localPrimalIndex<<", pos="<<vPos<<"\n");
-
 		//	read root index
 			int id = rootIDs[localPrimalIndex];
 
@@ -699,10 +697,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		//	positions are now stored as in vPrimalRootIDs, sort this
 			std::vector<MathVector<2> > vPosRootSchurSorted(newVecSize);
 			for(size_t i = 0; i < vPosRootSchur.size(); ++i)
-			{
-				UG_LOG(i << ": Set Pos "<<vPosRootSchur[i].ind1<<" to "<< vPosRootSchur[i].pos<<"\n");
 				vPosRootSchurSorted[vPosRootSchur[i].ind1] = vPosRootSchur[i].pos;
-			}
 
 		//	create algebra debug writer
 			AlgebraDebugWriter<algebra_type, 2> dbgWriter2d;
