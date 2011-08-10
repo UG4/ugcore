@@ -29,7 +29,7 @@ elem_loop_prepare_fe()
 	static typename THolder::Type& geo = THolder::get();
 
 //	prepare geometry for type and order
-	if(!geo.update_local(roid, m_lfeID, m_pFEQuadOrder))
+	if(!geo.update_local(roid, m_lfeID, m_quadOrder))
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::elem_loop_prepare_fe':"
 				" Cannot update Finite Element Geometry.\n");
@@ -296,10 +296,8 @@ elem_rhs_fe(local_vector_type& d)
 // register for all dim
 template<>
 void ConvectionDiffusionElemDisc<Domain1d>::
-register_all_fe_funcs(int order)
+register_all_fe_funcs(int order, int quadOrder)
 {
-	m_pFEQuadOrder = 2*order-2;
-
 //	Edge
 	register_fe_func<Edge, FlexGeomHolder<DimFEGeometry<dim, 1> > >();
 }
@@ -307,9 +305,15 @@ register_all_fe_funcs(int order)
 // register for all dim
 template<>
 void ConvectionDiffusionElemDisc<Domain2d>::
-register_all_fe_funcs(int order)
+register_all_fe_funcs(int order, int quadOrder)
 {
-	m_pFEQuadOrder = 2*order-2;
+	if(quadOrder != 2*order+1)
+	{
+		register_fe_func<Triangle, FlexGeomHolder<DimFEGeometry<dim, 2> > >();
+		register_fe_func<Quadrilateral, FlexGeomHolder<DimFEGeometry<dim, 2> > >();
+	}
+
+//	special compiled cases
 
 //	Triangle
 	switch(order)
@@ -338,9 +342,17 @@ register_all_fe_funcs(int order)
 // register for all dim
 template<>
 void ConvectionDiffusionElemDisc<Domain3d>::
-register_all_fe_funcs(int order)
+register_all_fe_funcs(int order, int quadOrder)
 {
-	m_pFEQuadOrder = 2*order-2;
+	if(quadOrder != 2*order+1)
+	{
+		register_fe_func<Tetrahedron, FlexGeomHolder<DimFEGeometry<dim, 3> > >();
+		register_fe_func<Prism, FlexGeomHolder<DimFEGeometry<dim, 3> > >();
+		register_fe_func<Pyramid, FlexGeomHolder<DimFEGeometry<dim, 3> > >();
+		register_fe_func<Hexahedron, FlexGeomHolder<DimFEGeometry<dim, 3> > >();
+	}
+
+//	special compiled cases
 
 //	Tetrahedron
 	switch(order)

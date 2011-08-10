@@ -140,6 +140,19 @@ class ConvectionDiffusionElemDisc
 	///	sets the disc scheme
 		void set_disc_scheme(const char* c_scheme);
 
+	///	sets the quad order for fe / fv
+		void set_quad_order(size_t order)
+			{m_quadOrder = order; m_quadOrderSCV = order;
+			 m_quadOrderSCVF = order;m_bQuadOrderUserDef = true;}
+
+	///	sets the quad order for scv of fv
+		void set_quad_order_scv(size_t order)
+			{m_quadOrderSCV = order; m_bQuadOrderUserDef = true;}
+
+	///	sets the quad order for fe / fv
+		void set_quad_order_scvf(size_t order)
+			{m_quadOrderSCVF = order; m_bQuadOrderUserDef = true;}
+
 	protected:
 	///	sets the requested assembling routines
 		void set_assemble_funcs();
@@ -149,6 +162,15 @@ class ConvectionDiffusionElemDisc
 
 	///	current order of disc scheme
 		int m_order;
+
+	///	current shape function set
+		LFEID m_lfeID;
+
+	///	current integration order
+		bool m_bQuadOrderUserDef;
+		int m_quadOrder;
+		int m_quadOrderSCV;
+		int m_quadOrderSCVF;
 
 	///	current regular grid flag
 		bool m_bNonRegularGrid;
@@ -361,12 +383,6 @@ class ConvectionDiffusionElemDisc
 		DataExport<MathVector<dim>, dim> m_exConcentrationGrad;
 
 	protected:
-	///	current shape function set
-		LFEID m_lfeID;
-
-	///	current integration order
-		size_t m_pFEQuadOrder;
-
 	// 	FV1 Assemblings
 		void register_all_fv1_funcs(bool bHang);
 
@@ -394,14 +410,14 @@ class ConvectionDiffusionElemDisc
 
 
 	// 	FVHO Assemblings
-		void register_all_fvho_funcs(int order);
+		void register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF);
 
 		template<typename TElem, typename TFEGeom>
 		void register_fvho_func();
 
 
 	// 	FE Assemblings
-		void register_all_fe_funcs(int order);
+		void register_all_fe_funcs(int order, int quadOrder);
 
 		template<typename TElem, typename TFEGeom>
 		void register_fe_func();

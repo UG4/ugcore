@@ -87,6 +87,10 @@ ConvectionDiffusionElemDisc()
 
 //	set defaults
 	m_order = 1;
+	m_bQuadOrderUserDef = false;
+	m_quadOrder = -1;
+	m_quadOrderSCV = -1;
+	m_quadOrderSCVF = -1;
 	m_bNonRegularGrid = false;
 	m_discScheme = "fe";
 
@@ -198,10 +202,28 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_assemble_funcs()
 {
+//	set default quadrature order if not set by user
+	if(!m_bQuadOrderUserDef)
+	{
+	//	FE
+		m_quadOrder = 2* m_order + 1;
+
+	//	FV
+		m_quadOrderSCV = m_order;
+		m_quadOrderSCVF = m_order;
+	}
+//	set all non-set orders
+	else
+	{
+		if(m_quadOrder < 0) m_quadOrder = 2 * m_order + 1;
+		if(m_quadOrderSCV < 0) m_quadOrderSCV = m_order;
+		if(m_quadOrderSCVF < 0) m_quadOrderSCVF = m_order;
+	}
+
 //	switch, which assemble functions to use; both supported.
 	if(m_discScheme == "fv1") register_all_fv1_funcs(m_bNonRegularGrid);
-	else if(m_discScheme == "fv") register_all_fvho_funcs(m_order);
-	else if(m_discScheme == "fe") register_all_fe_funcs(m_order);
+	else if(m_discScheme == "fv") register_all_fvho_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
+	else if(m_discScheme == "fe") register_all_fe_funcs(m_order, m_quadOrder);
 	else throw(UGFatalError("Disc Scheme not recognized. Internal error."));
 }
 

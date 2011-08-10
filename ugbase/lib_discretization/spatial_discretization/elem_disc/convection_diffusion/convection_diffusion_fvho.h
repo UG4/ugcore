@@ -33,7 +33,7 @@ elem_loop_prepare_fvho()
 // 	Update Geometry for this element
 	static TFVGeom& geo = Provider::get<TFVGeom>();
 
-	if(!geo.update_local(roid, m_pFEQuadOrder, m_pFEQuadOrder, m_pFEQuadOrder))
+	if(!geo.update_local(roid, m_order, m_quadOrderSCVF, m_quadOrderSCV))
 	{
 		UG_LOG("ConvectionDiffusionElemDisc::elem_loop_prepare_fvho:"
 				" Cannot update Finite Volume Geometry.\n"); return false;
@@ -465,10 +465,8 @@ elem_rhs_fvho(local_vector_type& d)
 // register for all dim
 template<>
 void ConvectionDiffusionElemDisc<Domain1d>::
-register_all_fvho_funcs(int order)
+register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 {
-	m_pFEQuadOrder = order;
-
 //	Edge
 	switch(order)
 	{
@@ -486,43 +484,49 @@ register_all_fvho_funcs(int order)
 // register for all dim
 template<>
 void ConvectionDiffusionElemDisc<Domain2d>::
-register_all_fvho_funcs(int order)
+register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 {
-	m_pFEQuadOrder = order;
 
-//	Triangle
-	switch(order)
+	if(order == quadOrderSCV && order == quadOrderSCVF)
 	{
-/*		case 1:	{typedef FVGeometry<1, Triangle, dim> FVGeom;
-				 register_fvho_func<Triangle, FVGeom>(); break;}
-		case 2:	{typedef FVGeometry<2, Triangle, dim> FVGeom;
-				 register_fvho_func<Triangle, FVGeom>(); break;}
-		case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
-				 register_fvho_func<Triangle, FVGeom>(); break;}
-*/		default: {typedef DimFVGeometry<2, dim> FVGeom;
-		 	 	 register_fvho_func<Triangle, FVGeom>(); break;}
-	}
+	//	Triangle
+		switch(order)
+		{
+			case 1:	{typedef FVGeometry<1, Triangle, dim> FVGeom;
+					 register_fvho_func<Triangle, FVGeom>(); break;}
+			case 2:	{typedef FVGeometry<2, Triangle, dim> FVGeom;
+					 register_fvho_func<Triangle, FVGeom>(); break;}
+			case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
+					 register_fvho_func<Triangle, FVGeom>(); break;}
+			default: {typedef DimFVGeometry<2, dim> FVGeom;
+					 register_fvho_func<Triangle, FVGeom>(); break;}
+		}
 
-//	Quadrilateral
-	switch(order) {
-/*		case 1:	{typedef FVGeometry<1, Quadrilateral, dim> FVGeom;
-				 register_fvho_func<Quadrilateral, FVGeom>(); break;}
-		case 2:	{typedef FVGeometry<2, Quadrilateral, dim> FVGeom;
-				 register_fvho_func<Quadrilateral, FVGeom>(); break;}
-		case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
-				 register_fvho_func<Quadrilateral, FVGeom>(); break;}
-*/		default: {typedef DimFVGeometry<2, dim> FVGeom;
-				  register_fvho_func<Quadrilateral, FVGeom>(); break;}
+	//	Quadrilateral
+		switch(order) {
+			case 1:	{typedef FVGeometry<1, Quadrilateral, dim> FVGeom;
+					 register_fvho_func<Quadrilateral, FVGeom>(); break;}
+			case 2:	{typedef FVGeometry<2, Quadrilateral, dim> FVGeom;
+					 register_fvho_func<Quadrilateral, FVGeom>(); break;}
+			case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
+					 register_fvho_func<Quadrilateral, FVGeom>(); break;}
+			default: {typedef DimFVGeometry<2, dim> FVGeom;
+					  register_fvho_func<Quadrilateral, FVGeom>(); break;}
+		}
+	}
+	else
+	{
+		typedef DimFVGeometry<2, dim> FVGeom;
+		register_fvho_func<Triangle, FVGeom>();
+		register_fvho_func<Quadrilateral, FVGeom>();
 	}
 }
 
 // register for all dim
 template<>
 void ConvectionDiffusionElemDisc<Domain3d>::
-register_all_fvho_funcs(int order)
+register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 {
-	m_pFEQuadOrder = order;
-
 //	Tetrahedron
 	switch(order)
 	{
