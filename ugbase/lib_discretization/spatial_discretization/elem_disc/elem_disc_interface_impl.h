@@ -14,84 +14,63 @@
 
 namespace ug{
 
-template<typename TAssFunc>
-void IElemDisc::reg_prepare_elem_loop_fct(int id, TAssFunc func)
+template <typename TElem>
+inline bool IElemDisc::prepare_elem(TElem* elem, const local_vector_type& u)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vPrepareElemLoopFct.size())
-		m_vPrepareElemLoopFct.resize(id+1, 0);
+//	cast the method pointer back to the original type
+	typedef bool (IElemDisc::*Func)(TElem*, const local_vector_type&);
+	Func pFunc = reinterpret_cast<Func>(m_vPrepareElemFct[m_id]);
+	return (this->*(pFunc))(elem, u);
+}
 
-	m_vPrepareElemLoopFct[id] = (PrepareElemLoopFct)func;
+
+template<typename TAssFunc>
+void IElemDisc::reg_prepare_elem_fct(ReferenceObjectID id, TAssFunc func)
+{
+//	we cast the method pointer to a different type
+	m_vPrepareElemFct[id] = reinterpret_cast<PrepareElemFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_prepare_elem_fct(int id, TAssFunc func)
+void IElemDisc::reg_prepare_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vPrepareElemFct.size())
-		m_vPrepareElemFct.resize(id+1, 0);
-
-	m_vPrepareElemFct[id] = (PrepareElemFct)func;
+	m_vPrepareElemLoopFct[id] = static_cast<PrepareElemLoopFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_finish_elem_loop_fct(int id, TAssFunc func)
+void IElemDisc::reg_finish_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vFinishElemLoopFct.size())
-		m_vFinishElemLoopFct.resize(id+1, 0);
-
-	m_vFinishElemLoopFct[id] = (FinishElemLoopFct)func;
+	m_vFinishElemLoopFct[id] = static_cast<FinishElemLoopFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_JA_elem_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_JA_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vElemJAFct.size())
-		m_vElemJAFct.resize(id+1, 0);
-
-	m_vElemJAFct[id] = (ElemJAFct)func;
+	m_vElemJAFct[id] = static_cast<ElemJAFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_JM_elem_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_JM_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vElemJMFct.size())
-		m_vElemJMFct.resize(id+1, 0);
-
-	m_vElemJMFct[id] = (ElemJMFct)func;
+	m_vElemJMFct[id] = static_cast<ElemJMFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_dA_elem_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vElemdAFct.size())
-		m_vElemdAFct.resize(id+1, 0);
-
-	m_vElemdAFct[id] = (ElemdAFct)func;
+	m_vElemdAFct[id] = static_cast<ElemdAFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_dM_elem_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vElemdMFct.size())
-		m_vElemdMFct.resize(id+1, 0);
-
-	m_vElemdMFct[id] = (ElemdMFct)func;
+	m_vElemdMFct[id] = static_cast<ElemdMFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::reg_ass_rhs_elem_fct(int id, TAssFunc func)
+void IElemDisc::reg_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vElemRHSFct.size())
-		m_vElemRHSFct.resize(id+1, 0);
-
-	m_vElemRHSFct[id] = (ElemRHSFct)func;
+	m_vElemRHSFct[id] = static_cast<ElemRHSFct>(func);
 };
 
 }

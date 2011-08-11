@@ -157,7 +157,7 @@ class IElemDisc{
 	 * assembling routines can be called. Keep in mind, that the elements are
 	 * looped type by type, thus this function has to be called very few times.
 	 */
-		bool set_geometric_object_type(int id);
+		bool set_geometric_object_type(ReferenceObjectID id);
 
 	///	sets if assembling should be time-dependent (and the time point iff)
 	/**
@@ -242,8 +242,8 @@ class IElemDisc{
 	 * \param[in]		u			The current local solution
 	 * \param[in]		glob_ind	The global indices of the local solution
 	 */
-		bool prepare_elem(GeometricObject* obj, const local_vector_type& u)
-			{return (this->*(m_vPrepareElemFct[m_id]))(obj, u);}
+		template <typename TElem>
+		bool prepare_elem(TElem* elem, const local_vector_type& u);
 
 	///	postprocesses the loop over all elements of one type
 	/**
@@ -319,34 +319,6 @@ class IElemDisc{
 	///	list of local vectors for all solutions of the time series
 		const LocalVectorTimeSeries* m_pLocalVectorTimeSeries;
 
-	protected:
-	// 	register the functions
-		template <typename TAssFunc> void reg_prepare_elem_loop_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_prepare_elem_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_finish_elem_loop_fct(int id, TAssFunc func);
-
-		template <typename TAssFunc> void reg_ass_JA_elem_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_JM_elem_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_dA_elem_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_dM_elem_fct(int id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_rhs_elem_fct(int id, TAssFunc func);
-
-	protected:
-	// 	checks if the needed functions are registered for the id type
-		bool function_registered(int id);
-
-	// 	checks if the functions are present
-		bool prepare_elem_loop_fct_registered(int id);
-		bool prepare_elem_fct_registered(int id);
-		bool finish_elem_loop_fct_registered(int id);
-
-	// 	checks if the functions are present
-		bool ass_JA_elem_fct_registered(int id);
-		bool ass_JM_elem_fct_registered(int id);
-		bool ass_dA_elem_fct_registered(int id);
-		bool ass_dM_elem_fct_registered(int id);
-		bool ass_rhs_elem_fct_registered(int id);
-
 	private:
 	//	abbreviation for own type
 		typedef IElemDisc T;
@@ -371,26 +343,38 @@ class IElemDisc{
 	// 	types of right hand side assemble functions
 		typedef bool (T::*ElemRHSFct)(local_vector_type& d);
 
+	protected:
+	// 	register the functions
+		template <typename TAssFunc> void reg_prepare_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void reg_prepare_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void reg_finish_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
+
+		template <typename TAssFunc> void reg_ass_JA_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_JM_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void reg_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
+
 	private:
 	// 	loop function pointers
-		std::vector<PrepareElemLoopFct> m_vPrepareElemLoopFct;
-		std::vector<PrepareElemFct> 	m_vPrepareElemFct;
-		std::vector<FinishElemLoopFct> 	m_vFinishElemLoopFct;
+		PrepareElemLoopFct 	m_vPrepareElemLoopFct[NUM_REFERENCE_OBJECTS];
+		PrepareElemFct 		m_vPrepareElemFct[NUM_REFERENCE_OBJECTS];
+		FinishElemLoopFct 	m_vFinishElemLoopFct[NUM_REFERENCE_OBJECTS];
 
 	// 	Jacobian function pointers
-		std::vector<ElemJAFct> 	m_vElemJAFct;
-		std::vector<ElemJMFct> 	m_vElemJMFct;
+		ElemJAFct 	m_vElemJAFct[NUM_REFERENCE_OBJECTS];
+		ElemJMFct 	m_vElemJMFct[NUM_REFERENCE_OBJECTS];
 
 	// 	Defect function pointers
-		std::vector<ElemdAFct> 	m_vElemdAFct;
-		std::vector<ElemdMFct> 	m_vElemdMFct;
+		ElemdAFct 	m_vElemdAFct[NUM_REFERENCE_OBJECTS];
+		ElemdMFct 	m_vElemdMFct[NUM_REFERENCE_OBJECTS];
 
 	// 	Rhs function pointers
-		std::vector<ElemRHSFct> 	m_vElemRHSFct;
+		ElemRHSFct 	m_vElemRHSFct[NUM_REFERENCE_OBJECTS];
 
 	protected:
-		// current Geometric Object
-		int m_id;
+	/// current Geometric Object
+		ReferenceObjectID m_id;
 };
 
 template <typename TDomain>

@@ -11,7 +11,7 @@ namespace ug{
 
 IElemDisc::IElemDisc()
 	: 	m_bTimeDependent(false), m_time(0.0),
-	  	m_pLocalVectorTimeSeries(NULL), m_id(-1)
+	  	m_pLocalVectorTimeSeries(NULL), m_id(ROID_INVALID)
 {}
 
 bool IElemDisc::set_functions(const char* functions)
@@ -90,123 +90,18 @@ IDataExport& IElemDisc::get_export(size_t i)
 	return *m_vIExport[i];
 }
 
-bool IElemDisc::set_geometric_object_type(int id)
+bool IElemDisc::set_geometric_object_type(ReferenceObjectID id)
 {
-	if(function_registered(id))
+	m_id = id;
+	return true;
+
+//	\todo: error check
 	{
-		m_id = id;
-		return true;
-	}
-	else
-	{
-		m_id = -1;
+		m_id = ROID_INVALID;
 		UG_LOG("No or not all functions registered "
 				"for object with reference object id " << id << ".\n");
 	}
 	return false;
 };
-
-bool IElemDisc::function_registered(int id)
-{
-	// loop functions must exist in any case
-	if(!prepare_elem_loop_fct_registered(id))
-	{
-		UG_LOG("prepare_element_loop() function not registered for id " << id <<".\n");
-		return false;
-	}
-	if(!prepare_elem_fct_registered(id))
-	{
-		UG_LOG("prepare_element(...) function not registered for id " << id <<".\n");
-		return false;
-	}
-	if(!finish_elem_loop_fct_registered(id))
-	{
-		UG_LOG("finish_element_loop() function not registered for id " << id <<".\n");
-		return false;
-	}
-
-	return true;
-};
-
-bool IElemDisc::prepare_elem_loop_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vPrepareElemLoopFct.size())
-	{
-		if(m_vPrepareElemLoopFct[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-bool IElemDisc::prepare_elem_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vPrepareElemFct.size())
-	{
-		if(m_vPrepareElemFct[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-bool IElemDisc::finish_elem_loop_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vFinishElemLoopFct.size())
-	{
-		if(m_vFinishElemLoopFct[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-bool IElemDisc::ass_JA_elem_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vElemJAFct.size())
-	{
-		if(m_vElemJAFct[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-bool IElemDisc::ass_JM_elem_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vElemJMFct.size())
-	{
-		if(m_vElemJMFct[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-bool IElemDisc::ass_dA_elem_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vElemdAFct.size())
-	{
-		if(m_vElemdAFct[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-bool IElemDisc::ass_dM_elem_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vElemdMFct.size())
-	{
-		if(m_vElemdMFct[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-
-bool IElemDisc::ass_rhs_elem_fct_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vElemRHSFct.size())
-	{
-		if(m_vElemRHSFct[id] != 0)
-			return true;
-	}
-	return false;
-}
 
 } // end namespace ug

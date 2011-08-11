@@ -16,34 +16,33 @@ namespace ug{
 // IDataImport
 ////////////////////////////////////////////////////////////////////////////////
 
-inline bool IDataImport::set_geometric_object_type(int id)
+inline bool IDataImport::set_geometric_object_type(ReferenceObjectID id)
 {
 //	if lin defect is not supposed to be computed, we're done
 	if(!m_bCompLinDefect) return true;
 
 //	Check for evaluation function and choose it if present
-	if(id < (int)m_vLinDefectFunc.size() && m_vLinDefectFunc[id] != NULL)
+	if(m_vLinDefectFunc[id] != NULL)
 	{
 		m_id = id;
 		return true;
 	}
+
 //	return error else
 	else
 	{
-		UG_LOG("No or not all lin defect functions registered "
+		UG_LOG("ERROR in 'IDataImport::set_geometric_object_type':"
+				"No lin defect functions registered "
 				"for object with reference object id " << id << ".\n");
-		m_id = -1; return false;
+		m_id = ROID_INVALID;
+		return false;
 	}
 }
 
 template <typename TFunc>
-void IDataImport::reg_lin_defect_fct(int id, IElemDisc* obj, TFunc func)
+void IDataImport::reg_lin_defect_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func)
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vLinDefectFunc.size())
-		m_vLinDefectFunc.resize(id+1, NULL);
-
-	m_vLinDefectFunc[id] = (LinDefectFunc)func;
+	m_vLinDefectFunc[id] = static_cast<LinDefectFunc>(func);
 	m_pObj = obj;
 }
 
@@ -182,55 +181,78 @@ inline void DataImport<TData,dim>::check_values() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// IDataExport
+// DataExport
 ////////////////////////////////////////////////////////////////////////////////
 
-inline bool IDataExport::set_geometric_object_type(int id)
+template <typename TData, int dim>
+DataExport<TData, dim>::DataExport() : m_pObj(NULL)
 {
-	if(id < 0 || (size_t)id >= m_vExportFunc.size() || m_vExportFunc[id] == NULL)
-	{
-		UG_LOG("No or not all functions registered "
-				"for object with reference object id " << id << ".\n");
-		m_id = -1; return false;
-	}
-	else{m_id = id;	return true;}
+	this->m_bCompNeedsSol = true;
+
+	clear_export_fct();
 }
 
-template <typename TFunc>
-void IDataExport::reg_export_fct(int id, IElemDisc* obj, TFunc func)
+template <typename TData, int dim>
+void DataExport<TData, dim>::clear_export_fct()
 {
-//	make sure that there is enough space
-	if((size_t)id >= m_vExportFunc.size())
-		m_vExportFunc.resize(id+1, NULL);
+	for(size_t roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+		m_vExportFunc[roid] = NULL;
+}
 
-	m_vExportFunc[id] = (ExportFunc)func;
+template <typename TData, int dim>
+template <typename TFunc>
+void DataExport<TData, dim>::reg_export_fct(ReferenceObjectID id,
+                                            IElemDisc* obj, TFunc func)
+{
+	m_vExportFunc[id] = static_cast<ExportFunc>(func);
 
 	if(m_pObj == NULL) m_pObj = obj;
 	else if(m_pObj != obj)
 		throw(UGFatalError("Exports assume to be used by on object for all functions."));
 }
 
-inline bool IDataExport::is_ready() const
+template <typename TData, int dim>
+bool DataExport<TData, dim>::set_geometric_object_type(ReferenceObjectID id)
 {
-	if(m_id < 0) {
-		UG_LOG("ERROR in 'IDataExport::is_ready':"
-				"ElemType id is not set correctly."); return false;
-	}
-	if((size_t)m_id >= m_vExportFunc.size()) {
-		UG_LOG("ERROR in 'IDataExport::is_ready': There is no evaluation "
+	if(m_vExportFunc[m_id] == NULL) {
+		UG_LOG("ERROR in 'DataExport::is_ready': There is no evaluation "
 				"function registered for export and elem type "<<m_id<<".\n");
 		return false;
 	}
+
+	m_id = id;
+	return true;
+}
+
+template <typename TData, int dim>
+bool DataExport<TData, dim>::is_ready() const
+{
+//	check base
 	if(m_vExportFunc[m_id] == NULL) {
-		UG_LOG("ERROR in 'IDataExport::is_ready': There is a evaluation "
-				"function registered for export and elem type "<<m_id<<
-				", but function pointer is zero. \n");
+		UG_LOG("ERROR in 'DataExport::is_ready': There is no evaluation "
+				"function registered for export and elem type "<<m_id<<".\n");
 		return false;
 	}
 
 //	everything is ok
 	return true;
 }
+
+template <typename TData, int dim>
+bool DataExport<TData, dim>::compute(bool bDeriv)
+{
+	UG_LOG("ERROR in 'DataExport::compute()': Computation of Export "
+		 	 "without current solution called. Cannot evaluate.\n");
+	return false;
+}
+
+template <typename TData, int dim>
+bool DataExport<TData, dim>::compute(const local_vector_type& u, bool bDeriv)
+{
+	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
+	return (m_pObj->*(m_vExportFunc[m_id]))(u, bDeriv);
+}
+
 
 } // end namespace ug
 
