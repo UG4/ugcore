@@ -567,14 +567,14 @@ register_fvho_func()
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TFVGeom>);
-	reg_prepare_elem_fct(	  id, &T::template elem_prepare_fvho<TElem, TFVGeom>);
-	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TFVGeom>);
-	reg_ass_JA_elem_fct(	  id, &T::template elem_JA_fvho<TElem, TFVGeom>);
-	reg_ass_JM_elem_fct(	  id, &T::template elem_JM_fvho<TElem, TFVGeom>);
-	reg_ass_dA_elem_fct(	  id, &T::template elem_dA_fvho<TElem, TFVGeom>);
-	reg_ass_dM_elem_fct(	  id, &T::template elem_dM_fvho<TElem, TFVGeom>);
-	reg_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fvho<TElem, TFVGeom>);
+	set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TFVGeom>);
+	set_prep_elem_fct(	  id, &T::template elem_prepare_fvho<TElem, TFVGeom>);
+	set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TFVGeom>);
+	set_ass_JA_elem_fct(	  id, &T::template elem_JA_fvho<TElem, TFVGeom>);
+	set_ass_JM_elem_fct(	  id, &T::template elem_JM_fvho<TElem, TFVGeom>);
+	set_ass_dA_elem_fct(	  id, &T::template elem_dA_fvho<TElem, TFVGeom>);
+	set_ass_dM_elem_fct(	  id, &T::template elem_dM_fvho<TElem, TFVGeom>);
+	set_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fvho<TElem, TFVGeom>);
 }
 
 } // namespace ug

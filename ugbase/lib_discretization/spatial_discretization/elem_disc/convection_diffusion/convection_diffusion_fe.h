@@ -401,14 +401,14 @@ register_fe_func()
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	reg_prepare_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, THolder>);
-	reg_prepare_elem_fct(	  id, &T::template elem_prepare_fe<TElem, THolder>);
-	reg_finish_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, THolder>);
-	reg_ass_JA_elem_fct(	  id, &T::template elem_JA_fe<TElem, THolder>);
-	reg_ass_JM_elem_fct(	  id, &T::template elem_JM_fe<TElem, THolder>);
-	reg_ass_dA_elem_fct(	  id, &T::template elem_dA_fe<TElem, THolder>);
-	reg_ass_dM_elem_fct(	  id, &T::template elem_dM_fe<TElem, THolder>);
-	reg_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fe<TElem, THolder>);
+	set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, THolder>);
+	set_prep_elem_fct(	  id, &T::template elem_prepare_fe<TElem, THolder>);
+	set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, THolder>);
+	set_ass_JA_elem_fct(	  id, &T::template elem_JA_fe<TElem, THolder>);
+	set_ass_JM_elem_fct(	  id, &T::template elem_JM_fe<TElem, THolder>);
+	set_ass_dA_elem_fct(	  id, &T::template elem_dA_fe<TElem, THolder>);
+	set_ass_dM_elem_fct(	  id, &T::template elem_dM_fe<TElem, THolder>);
+	set_ass_rhs_elem_fct(	  id, &T::template elem_rhs_fe<TElem, THolder>);
 }
 
 } // namespace ug

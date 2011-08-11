@@ -345,15 +345,15 @@ class IElemDisc{
 
 	protected:
 	// 	register the functions
-		template <typename TAssFunc> void reg_prepare_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void reg_prepare_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void reg_finish_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_prep_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
 
-		template <typename TAssFunc> void reg_ass_JA_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_JM_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void reg_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_ass_JA_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_ass_JM_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
 
 	private:
 	// 	loop function pointers
