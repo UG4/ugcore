@@ -218,7 +218,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 							 const size_t nip,
 							 number* vValue,
 							 bool bDeriv,
-							 std::vector<std::vector<std::vector<number> > >& vvvDeriv);
+							 std::vector<std::vector<number> >* vvvDeriv);
 
 	///	computes the gradient of the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
@@ -228,7 +228,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 								  const size_t nip,
 								  MathVector<dim>* vValue,
 								  bool bDeriv,
-								  std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
+								  std::vector<std::vector<MathVector<dim> > >* vvvDeriv);
 
 	///	Export for the concentration
 		DataExport<number, dim> m_exConcentration;

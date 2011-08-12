@@ -336,7 +336,7 @@ ex_concentration(const local_vector_type& u,
                  const size_t nip,
                  number* vValue,
                  bool bDeriv,
-                 std::vector<std::vector<std::vector<number> > >& vvvDeriv)
+                 std::vector<std::vector<number> >* vvvDeriv)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
@@ -400,7 +400,7 @@ ex_concentration_grad(const local_vector_type& u,
                       const size_t nip,
                       MathVector<dim>* vValue,
                       bool bDeriv,
-                      std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
+                      std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();

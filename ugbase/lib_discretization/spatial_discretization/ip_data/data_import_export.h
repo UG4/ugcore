@@ -338,7 +338,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		            		 	 	 const size_t nip,
 		            		 	 	 TData* vValue,
 		            		 	 	 bool bDeriv,
-		            		 	 	 std::vector<std::vector<std::vector<TData> > >& vvvDeriv));
+		            		 	 	 std::vector<std::vector<TData> >* vvvDeriv));
 
 	///	clears all export functions
 		void clear_fct();

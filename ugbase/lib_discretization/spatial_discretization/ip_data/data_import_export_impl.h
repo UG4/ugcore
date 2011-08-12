@@ -217,7 +217,7 @@ set_fct(ReferenceObjectID id, IElemDisc* obj,
         				const size_t nip,
         				TData* vValue,
         				bool bDeriv,
-        				std::vector<std::vector<std::vector<TData> > >& vvvDeriv))
+        				std::vector<std::vector<TData> >* vvvDeriv))
 {
 //	store the method pointer casted to some generic (incompatible) type
 	m_vExportFunc[id] = reinterpret_cast<DummyMethod>(func);
@@ -243,7 +243,7 @@ comp(const local_vector_type& u, bool bDeriv)
 								const size_t nip,
 								TData* vValue,
 								bool bDeriv,
-								std::vector<std::vector<std::vector<TData> > >& vvvDeriv);
+								std::vector<std::vector<TData> >* vvvDeriv);
 
 
 	typedef bool (IElemDisc::*ElemDiscFunc)(
@@ -253,7 +253,7 @@ comp(const local_vector_type& u, bool bDeriv)
 								const size_t nip,
 								TData* vValue,
 								bool bDeriv,
-								std::vector<std::vector<std::vector<TData> > >& vvvDeriv);
+								std::vector<std::vector<TData> >* vvvDeriv);
 
 //	cast the method pointer back to correct type
 	ExpFunc func = reinterpret_cast<ExpFunc>(m_vExportFunc[m_id]);
@@ -272,7 +272,7 @@ comp(const local_vector_type& u, bool bDeriv)
 				 this->num_ip(s),
 				 this->m_vvValue[s],
 				 bDeriv,
-				 this->m_vvvvDeriv[s]);
+				 &this->m_vvvvDeriv[s][0]);
 	}
 	return bRet;
 }

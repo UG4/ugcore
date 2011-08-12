@@ -105,7 +105,7 @@ ex_darcy_std(const local_vector_type& u,
              const size_t nip,
              MathVector<dim>* vValue,
              bool bDeriv,
-             std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
+             std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -189,7 +189,7 @@ ex_darcy_cons_grav(const local_vector_type& u,
                    const size_t nip,
                    MathVector<dim>* vValue,
                    bool bDeriv,
-                   std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
+                   std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -312,7 +312,7 @@ ex_brine(const local_vector_type& u,
          const size_t nip,
          number* vValue,
          bool bDeriv,
-         std::vector<std::vector<std::vector<number> > >& vvvDeriv)
+         std::vector<std::vector<number> >* vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -380,7 +380,7 @@ ex_brine_grad(const local_vector_type& u,
               const size_t nip,
               MathVector<dim>* vValue,
               bool bDeriv,
-              std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
+              std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -427,7 +427,7 @@ ex_pressure_grad(const local_vector_type& u,
                  const size_t nip,
                  MathVector<dim>* vValue,
                  bool bDeriv,
-                 std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
+                 std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();

@@ -341,7 +341,7 @@ class DensityDrivenFlowElemDisc
 		                  const size_t nip,
 		                  MathVector<dim>* vValue,
 		                  bool bDeriv,
-		                  std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
+		                  std::vector<std::vector<MathVector<dim> > >* vvvDeriv);
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
@@ -351,7 +351,7 @@ class DensityDrivenFlowElemDisc
 		                        const size_t nip,
 		                        MathVector<dim>* vValue,
 		                        bool bDeriv,
-		                        std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
+		                        std::vector<std::vector<MathVector<dim> > >* vvvDeriv);
 
 	///	computes the value of the brine mass fraction
 		template <typename TElem>
@@ -361,7 +361,7 @@ class DensityDrivenFlowElemDisc
 		              const size_t nip,
 		              number* vValue,
 		              bool bDeriv,
-		              std::vector<std::vector<std::vector<number> > >& vvvDeriv);
+		              std::vector<std::vector<number> >* vvvDeriv);
 
 	///	computes the value of the gradient of the brine mass fraction
 		template <typename TElem>
@@ -371,7 +371,7 @@ class DensityDrivenFlowElemDisc
 		                   const size_t nip,
 		                   MathVector<dim>* vValue,
 		                   bool bDeriv,
-		                   std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
+		                   std::vector<std::vector<MathVector<dim> > >* vvvDeriv);
 
 	///	computes the value of the gradient of the pressure
 		template <typename TElem>
@@ -381,7 +381,7 @@ class DensityDrivenFlowElemDisc
 		                      const size_t nip,
 		                      MathVector<dim>* vValue,
 		                      bool bDeriv,
-		                      std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
+		                      std::vector<std::vector<MathVector<dim> > >* vvvDeriv);
 
 	///	Export for the Darcy velocity
 		DataExport<MathVector<dim>, dim> m_exDarcyVel;
