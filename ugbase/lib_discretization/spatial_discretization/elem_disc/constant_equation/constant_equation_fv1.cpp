@@ -344,12 +344,15 @@ ex_concentration(const local_vector_type& u,
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
+//	reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
 //	number of shape functions
-	static const size_t numSh =
-			reference_element_traits<TElem>::reference_element_type::num_corners;
+	static const size_t numSH =	ref_elem_type::num_corners;
 
 //	FV1 SCVF ip
-	if(vLocIP	== geo.scvf_local_ips())
+	if(vLocIP == geo.scvf_local_ips())
 	{
 	//	Loop Sub Control Volume Faces (SCVF)
 		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -372,20 +375,41 @@ ex_concentration(const local_vector_type& u,
 	else if(vLocIP == geo.scv_local_ips())
 	{
 	//	solution at ip
-		for(size_t sh = 0; sh < numSh; ++sh)
+		for(size_t sh = 0; sh < numSH; ++sh)
 			vValue[sh] = u(_C_, sh);
 
 	//	set derivatives if needed
 		if(bDeriv)
-			for(size_t sh = 0; sh < numSh; ++sh)
-				for(size_t sh2 = 0; sh2 < numSh; ++sh2)
+			for(size_t sh = 0; sh < numSH; ++sh)
+				for(size_t sh2 = 0; sh2 < numSH; ++sh2)
 					vvvDeriv[sh][_C_][sh2] = (sh==sh2) ? 1.0 : 0.0;
 	}
-// 	others not implemented
+// 	general case
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+	//	get trial space
+		LagrangeP1<ref_elem_type> rTrialSpace = Provider::get<LagrangeP1<ref_elem_type> >();
+
+	//	storage for shape function at ip
+		number vShape[numSH];
+
+	//	loop ips
+		for(size_t ip = 0; ip < nip; ++ip)
+		{
+		//	evaluate at shapes at ip
+			rTrialSpace.shapes(vShape, vLocIP[ip]);
+
+		//	compute concentration at ip
+			vValue[ip] = 0.0;
+			for(size_t sh = 0; sh < numSH; ++sh)
+				vValue[ip] += u(_C_, sh) * vShape[sh];
+
+		//	compute derivative w.r.t. to unknowns iff needed
+		//	\todo: maybe store shapes directly in vvvDeriv
+			if(bDeriv)
+				for(size_t sh = 0; sh < numSH; ++sh)
+					vvvDeriv[ip][_C_][sh] = vShape[sh];
+		}
 	}
 
 //	we're done
@@ -408,6 +432,16 @@ ex_concentration_grad(const local_vector_type& u,
 // 	Get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
+//	reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
+
+//	reference dimension
+	static const int refDim = ref_elem_type::dim;
+
+//	number of shape functions
+	static const size_t numSH =	ref_elem_type::num_corners;
+
 //	FV1 SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
 	{
@@ -426,11 +460,40 @@ ex_concentration_grad(const local_vector_type& u,
 					vvvDeriv[ip][_C_][sh] = scvf.global_grad(sh);
 		}
 	}
-// others not implemented
+// 	general case
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+	//	get trial space
+		LagrangeP1<ref_elem_type>& rTrialSpace = Provider::get<LagrangeP1<ref_elem_type> >();
+
+	//	storage for shape function at ip
+		MathVector<refDim> vLocGrad[numSH];
+		MathVector<refDim> locGrad;
+
+	//	Reference Mapping
+		MathMatrix<dim, refDim> JTInv;
+		ReferenceMapping<ref_elem_type, dim> mapping(&m_vCornerCoords[0]);
+
+	//	loop ips
+		for(size_t ip = 0; ip < nip; ++ip)
+		{
+		//	evaluate at shapes at ip
+			rTrialSpace.grads(vLocGrad, vLocIP[ip]);
+
+		//	compute grad at ip
+			VecSet(locGrad, 0.0);
+			for(size_t sh = 0; sh < numSH; ++sh)
+				VecScaleAppend(locGrad, u(_C_, sh), vLocGrad[sh]);
+
+		//	compute global grad
+			mapping.jacobian_transposed_inverse(JTInv, vLocIP[ip]);
+			MatVecMult(vValue[ip], JTInv, locGrad);
+
+		//	compute derivative w.r.t. to unknowns iff needed
+			if(bDeriv)
+				for(size_t sh = 0; sh < numSH; ++sh)
+					MatVecMult(vvvDeriv[ip][_C_][sh], JTInv, vLocGrad[sh]);
+		}
 	}
 
 //	we're done
@@ -489,14 +552,14 @@ register_fv1_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
-	set_prep_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
-	set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
-	set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
-	set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
-	set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
-	set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
-	set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+	set_prep_elem_loop_fct(	id, &T::template prepare_element_loop<TElem, TFVGeom>);
+	set_prep_elem_fct(		id, &T::template prepare_element<TElem, TFVGeom>);
+	set_fsh_elem_loop_fct( 	id, &T::template finish_element_loop<TElem, TFVGeom>);
+	set_ass_JA_elem_fct(	id, &T::template assemble_JA<TElem, TFVGeom>);
+	set_ass_JM_elem_fct(	id, &T::template assemble_JM<TElem, TFVGeom>);
+	set_ass_dA_elem_fct(	id, &T::template assemble_A<TElem, TFVGeom>);
+	set_ass_dM_elem_fct(	id, &T::template assemble_M<TElem, TFVGeom>);
+	set_ass_rhs_elem_fct(	id, &T::template assemble_f<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
