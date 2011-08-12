@@ -201,30 +201,30 @@ void DependentIPData<TData,dim>::resize(const LocalIndices& ind,
                                         const FunctionIndexMapping& map)
 {
 //	resize num fct
-	for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
-		for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
+	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
+		for(size_t ip = 0; ip < m_vvvvDeriv[s].size(); ++ip)
 		{
 		//	number of functions
 			const size_t numFct = map.num_fct();
 
 		//	resize num fct
-			m_vvvDeriv[s][ip].resize(numFct);
+			m_vvvvDeriv[s][ip].resize(numFct);
 
 		//	resize dofs
 			for(size_t fct = 0; fct < numFct; ++fct)
-				m_vvvDeriv[s][ip][fct].resize(ind.num_dof(map[fct]));
+				m_vvvvDeriv[s][ip][fct].resize(ind.num_dof(map[fct]));
 		}
 }
 
 template <typename TData, int dim>
 void DependentIPData<TData,dim>::clear_derivative_values()
 {
-	for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
-		for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
-			for(size_t fct = 0; fct <  m_vvvDeriv[s][ip].size(); ++fct)
-				for(size_t sh = 0; sh <  m_vvvDeriv[s][ip][fct].size(); ++sh)
+	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
+		for(size_t ip = 0; ip < m_vvvvDeriv[s].size(); ++ip)
+			for(size_t fct = 0; fct <  m_vvvvDeriv[s][ip].size(); ++fct)
+				for(size_t sh = 0; sh <  m_vvvvDeriv[s][ip][fct].size(); ++sh)
 				{
-					m_vvvDeriv[s][ip][fct][sh] = 0.0;
+					m_vvvvDeriv[s][ip][fct][sh] = 0.0;
 				}
 
 }
@@ -233,32 +233,32 @@ template <typename TData, int dim>
 inline void DependentIPData<TData,dim>::check_s_ip(size_t s, size_t ip) const
 {
 	UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-	UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
+	UG_ASSERT(s < m_vvvvDeriv.size(), "Invalid index "<<s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-	UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
+	UG_ASSERT(ip < m_vvvvDeriv[s].size(), "Invalid index "<<ip);
 }
 
 template <typename TData, int dim>
 inline void DependentIPData<TData,dim>::check_s_ip_fct(size_t s, size_t ip, size_t fct) const
 {
 	check_s_ip(s,ip);
-	UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+	UG_ASSERT(fct < m_vvvvDeriv[s][ip].size(), "Invalid index.");
 }
 
 template <typename TData, int dim>
 inline void DependentIPData<TData,dim>::check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const
 {
 	check_s_ip_fct(s,ip,fct);
-	UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
+	UG_ASSERT(dof < m_vvvvDeriv[s][ip][fct].size(), "Invalid index.");
 }
 
 template <typename TData, int dim>
 void DependentIPData<TData,dim>::local_ips_added()
 {
 //	adjust data arrays
-	m_vvvDeriv.resize(num_series());
-	for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
-		m_vvvDeriv[s].resize(num_ip(s));
+	m_vvvvDeriv.resize(num_series());
+	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
+		m_vvvvDeriv[s].resize(num_ip(s));
 
 //	forward change signal to base class
 	IPData<TData, dim>::local_ips_added();

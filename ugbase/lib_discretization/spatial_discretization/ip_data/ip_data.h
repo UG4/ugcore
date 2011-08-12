@@ -319,24 +319,24 @@ class DependentIPData : public IPData<TData, dim>,
 		size_t num_sh(size_t s, size_t fct) const
 		{
 			const size_t ip = 0; check_s_ip_fct(s,ip,fct);
-			return m_vvvDeriv[s][ip][fct].size();
+			return m_vvvvDeriv[s][ip][fct].size();
 		}
 
 	///	returns the derivative of the local function, at ip and for a dof
 		const TData& deriv(size_t s, size_t ip, size_t fct, size_t dof) const
-			{check_s_ip_fct_dof(s,ip,fct,dof);return m_vvvDeriv[s][ip][fct][dof];}
+			{check_s_ip_fct_dof(s,ip,fct,dof);return m_vvvvDeriv[s][ip][fct][dof];}
 
 	///	returns the derivative of the local function, at ip and for a dof
 		TData& deriv(size_t s, size_t ip, size_t fct, size_t dof)
-			{check_s_ip_fct_dof(s,ip,fct,dof);return m_vvvDeriv[s][ip][fct][dof];}
+			{check_s_ip_fct_dof(s,ip,fct,dof);return m_vvvvDeriv[s][ip][fct][dof];}
 
 	///	returns the derivatives of the local function, at ip
 		TData* deriv(size_t s, size_t ip, size_t fct)
-			{check_s_ip_fct(s,ip,fct);return &(m_vvvDeriv[s][ip][fct][0]);}
+			{check_s_ip_fct(s,ip,fct);return &(m_vvvvDeriv[s][ip][fct][0]);}
 
 	///	returns the derivatives of the local function, at ip
 		const TData* deriv(size_t s, size_t ip, size_t fct) const
-			{check_s_ip_fct(s,ip,fct);return &(m_vvvDeriv[s][ip][fct][0]);}
+			{check_s_ip_fct(s,ip,fct);return &(m_vvvvDeriv[s][ip][fct][0]);}
 
 	///	resize lin defect arrays
 		virtual void resize(const LocalIndices& ind, const FunctionIndexMapping& map);
@@ -363,7 +363,7 @@ class DependentIPData : public IPData<TData, dim>,
 	protected:
 	// 	Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
 	///	Derivatives
-		std::vector<std::vector<std::vector<std::vector<TData> > > > m_vvvDeriv;
+		std::vector<std::vector<std::vector<std::vector<TData> > > > m_vvvvDeriv;
 };
 
 } // end namespace ug

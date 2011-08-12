@@ -370,11 +370,23 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>
-		bool comp_export_concentration_fv1(const local_vector_type& u, bool compDeriv);
+		bool ex_concentration_fv1(const local_vector_type& u,
+		                          const MathVector<dim>* vGlobIP,
+		                          const MathVector<TFVGeom::dim>* vLocIP,
+		                          const size_t nip,
+		                          number* vValue,
+		                          bool bDeriv,
+		                          std::vector<std::vector<std::vector<number> > >& vvvDeriv);
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TFVGeom>
-		bool comp_export_concentration_grad_fv1(const local_vector_type& u, bool compDeriv);
+		bool ex_concentration_grad_fv1(const local_vector_type& u,
+		                               const MathVector<dim>* vGlobIP,
+		                               const	MathVector<TFVGeom::dim>* vLocIP,
+		                               const size_t nip,
+		                          	   MathVector<dim>* vValue,
+		                          	   bool bDeriv,
+		                          	   std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
 
 	///	Export for the concentration
 		DataExport<number, dim> m_exConcentration;

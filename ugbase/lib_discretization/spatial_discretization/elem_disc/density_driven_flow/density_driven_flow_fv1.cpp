@@ -99,32 +99,28 @@ template<typename TDomain>
 template <typename TElem>
 bool
 DensityDrivenFlowElemDisc<TDomain>::
-compute_darcy_export_std(const local_vector_type& u, bool compDeriv)
+ex_darcy_std(const local_vector_type& u,
+             const MathVector<dim>* vGlobIP,
+             const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+             const size_t nip,
+             MathVector<dim>* vValue,
+             bool bDeriv,
+             std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
-	static const int refDim = FV1Geometry<TElem, dim>::dim;
 
-//	Loop all series
-	for(size_t s = 0; s < m_exDarcyVel.num_series(); ++s)
+//	FV1 SCVF ip
+	if(vLocIP == geo.scvf_local_ips())
 	{
-	//	currently only for FV1 elem dofs implemented
-		if(m_exDarcyVel.template local_ips<refDim>(s) != geo.scvf_local_ips())
-		{
-			UG_LOG("ERROR in 'compute_darcy_export': Currently export"
-					" of Darcy Velocity only implemented for FV1 and"
-					"SCVF integration points.\n");
-			return false;
-		}
-
 	//	Loop ips
-		for(size_t ip = 0; ip < m_exDarcyVel.num_ip(s); ++ip)
+		for(size_t ip = 0; ip < nip; ++ip)
 		{
 		//	Darcy Velocity to be filled
-			MathVector<dim>& DarcyVel = m_exDarcyVel.value(s, ip);
+			MathVector<dim>& DarcyVel = vValue[ip];
 
 		//	Derivatives to be filled
 			MathVector<dim>* DarcyVel_c = NULL;
@@ -138,10 +134,10 @@ compute_darcy_export_std(const local_vector_type& u, bool compDeriv)
 			MathVector<dim> DensityTimesGravity_c[numSh];
 
 		//	get data fields to fill
-			if(compDeriv)
+			if(bDeriv)
 			{
-				DarcyVel_c = m_exDarcyVel.deriv(s, ip, _C_);
-				DarcyVel_p = m_exDarcyVel.deriv(s, ip, _P_);
+				DarcyVel_c = &vvvDeriv[ip][_C_][0];
+				DarcyVel_p = &vvvDeriv[ip][_P_][0];
 
 			//	get derivative of viscosity w.r.t mass fraction
 				if(!m_imViscosityScvf.constant_data())
@@ -166,10 +162,16 @@ compute_darcy_export_std(const local_vector_type& u, bool compDeriv)
 			compute_darcy_velocity_ip_std(DarcyVel, m_imPermeabilityScvf[ip],
 			                              m_imViscosityScvf[ip], DensityTimesGravity,
 			                              m_imPressureGradScvf[ip],
-			                              compDeriv,
+			                              bDeriv,
 			                              DarcyVel_c, DarcyVel_p, DensityTimesGravity_c,
 			                              Viscosity_c, PressureGrad_p, numSh);
 		}
+	}
+// 	others not implemented
+	else
+	{
+		UG_LOG("Evaluation not implemented.");
+		return false;
 	}
 
 //	we're done
@@ -181,14 +183,19 @@ template<typename TDomain>
 template <typename TElem>
 bool
 DensityDrivenFlowElemDisc<TDomain>::
-compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
+ex_darcy_cons_grav(const local_vector_type& u,
+                   const MathVector<dim>* vGlobIP,
+                   const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+                   const size_t nip,
+                   MathVector<dim>* vValue,
+                   bool bDeriv,
+                   std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
-	static const int refDim = FV1Geometry<TElem, dim>::dim;
 
 /// Consistent gravity and its derivative at corners
 	MathVector<dim> vConsGravity[dim*dim];
@@ -203,7 +210,7 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 	}
 
 // 	Prepare DensityDerivative in Corners
-	if(compDeriv) {
+	if(bDeriv) {
 		number DCoVal[numSh]; memset(DCoVal, 0, sizeof(number)*numSh);
 		for(size_t sh = 0; sh < numSh; sh++) {
 			DCoVal[sh] = m_imDensityScv.deriv(sh, _C_, sh);
@@ -218,18 +225,9 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 		}
 	}
 
-//	Loop all series
-	for(size_t s = 0; s < m_exDarcyVel.num_series(); ++s)
+//	FV1 SCVF ip
+	if(vLocIP == geo.scvf_local_ips())
 	{
-	//	currently only for FV1 elem dofs implemented
-		if(m_exDarcyVel.template local_ips<refDim>(s) != geo.scvf_local_ips())
-		{
-			UG_LOG("ERROR in 'compute_darcy_export': Currently export"
-					" of Darcy Velocity only implemented for FV1 and"
-					"SCVF integration points.\n");
-			return false;
-		}
-
 	//	Loop Sub Control Volume Faces (SCVF)
 		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
@@ -237,7 +235,7 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 			const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo.scvf(ip);
 
 		//	Darcy Velocity to be filled
-			MathVector<dim>& DarcyVel = m_exDarcyVel.value(s, ip);
+			MathVector<dim>& DarcyVel = vValue[ip];
 
 		//	Derivatives to be filled
 			MathVector<dim>* DarcyVel_c = NULL;
@@ -250,10 +248,10 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 			MathVector<dim> DensityTimesGravity_c[numSh];
 
 		//	get data fields to fill
-			if(compDeriv)
+			if(bDeriv)
 			{
-				DarcyVel_c = m_exDarcyVel.deriv(s, ip, _C_);
-				DarcyVel_p = m_exDarcyVel.deriv(s, ip, _P_);
+				DarcyVel_c = &vvvDeriv[ip][_C_][0];
+				DarcyVel_p = &vvvDeriv[ip][_P_][0];
 
 			//	get derivative of viscosity w.r.t mass fraction
 				if(!m_imViscosityScvf.constant_data())
@@ -288,10 +286,16 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 			compute_darcy_velocity_ip_std(DarcyVel, m_imPermeabilityScvf[ip],
 										  m_imViscosityScvf[ip], DensityTimesGravity,
 										  m_imPressureGradScvf[ip],
-										  compDeriv,
+										  bDeriv,
 										  DarcyVel_c, DarcyVel_p, DensityTimesGravity_c,
 										  Viscosity_c, PressureGrad_p, numSh);
 		}
+	}
+// 	others not implemented
+	else
+	{
+		UG_LOG("Evaluation not implemented.");
+		return false;
 	}
 
 //	we're done
@@ -302,74 +306,62 @@ template<typename TDomain>
 template<typename TElem >
 bool
 DensityDrivenFlowElemDisc<TDomain>::
-compute_brine_export(const local_vector_type& u, bool compDeriv)
+ex_brine(const local_vector_type& u,
+         const MathVector<dim>* vGlobIP,
+         const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+         const size_t nip,
+         number* vValue,
+         bool bDeriv,
+         std::vector<std::vector<std::vector<number> > >& vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
 //	Constants
 	static const size_t numSh = FV1Geometry<TElem, dim>::numSCV;
-	static const int refDim = FV1Geometry<TElem, dim>::dim;
 
-	for(size_t s = 0; s < m_exBrine.num_series(); ++s)
+//	FV1 SCVF ip
+	if(vLocIP == geo.scvf_local_ips())
 	{
-	//	FV1 SCVF ip
-		if(m_exBrine.template local_ips<refDim>(s)
-				== geo.scvf_local_ips())
+	//	Loop Sub Control Volume Faces (SCVF)
+		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
-		//	Loop Sub Control Volume Faces (SCVF)
-			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-			{
-			// 	Get current SCVF
-				const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo.scvf(ip);
+		// 	Get current SCVF
+			const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo.scvf(ip);
 
-			//	Compute Gradients and concentration at ip
-				number& cIP = m_exBrine.value(s, ip);
-				cIP = 0.0;
+		//	Compute Gradients and concentration at ip
+			vValue[ip] = 0.0;
+			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				vValue[ip] += u(_C_, sh) * scvf.shape(sh);
+
+		//	compute derivative w.r.t. to unknowns iff needed
+			if(bDeriv)
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					cIP += u(_C_, sh) * scvf.shape(sh);
-
-				if(compDeriv)
 				{
-					number* cIP_c = m_exBrine.deriv(s, ip, _C_);
-					number* cIP_p = m_exBrine.deriv(s, ip, _P_);
-
-					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					{
-						cIP_c[sh] = scvf.shape(sh);
-						cIP_p[sh] = 0.0;
-					}
+					vvvDeriv[ip][_C_][sh] = scvf.shape(sh);
+					vvvDeriv[ip][_P_][sh] = 0.0;
 				}
-			}
-			continue;
 		}
-
+	}
 	//	FV1 SCV ip
-		if(m_exBrine.template local_ips<refDim>(s)
-				== geo.scv_local_ips())
-		{
-		//	Loop Corners
-			for(size_t ip = 0; ip < numSh; ip++)
-			{
-			//	Compute Gradients and concentration at ip
-				m_exBrine.value(s, ip) = u(_C_, ip);
+	else if(vLocIP == geo.scv_local_ips())
+	{
+	//	solution at ip
+		for(size_t ip = 0; ip < numSh; ++ip)
+			vValue[ip] = u(_C_, ip);
 
-				if(compDeriv)
+	//	set derivatives if needed
+		if(bDeriv)
+			for(size_t ip = 0; ip < numSh; ++ip)
+				for(size_t sh = 0; sh < numSh; ++sh)
 				{
-					number* cIP_c = m_exBrine.deriv(s, ip, _C_);
-					number* cIP_p = m_exBrine.deriv(s, ip, _P_);
-
-					for(size_t sh = 0; sh < numSh; ++sh)
-					{
-						cIP_c[sh] = (ip==sh) ? 1.0 : 0.0;
-						cIP_p[sh] = 0.0;
-					}
+					vvvDeriv[ip][_C_][sh] = (ip==sh) ? 1.0 : 0.0;
+					vvvDeriv[ip][_P_][sh] = 0.0;
 				}
-			}
-			continue;
-		}
-
-		// others not implemented
+	}
+// 	others not implemented
+	else
+	{
 		UG_LOG("Evaluation not implemented.");
 		return false;
 	}
@@ -382,49 +374,41 @@ template<typename TDomain>
 template<typename TElem >
 bool
 DensityDrivenFlowElemDisc<TDomain>::
-compute_brine_grad_export(const local_vector_type& u, bool compDeriv)
+ex_brine_grad(const local_vector_type& u,
+              const MathVector<dim>* vGlobIP,
+              const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+              const size_t nip,
+              MathVector<dim>* vValue,
+              bool bDeriv,
+              std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
-//	Constants
-	static const int refDim = FV1Geometry<TElem, dim>::dim;
-
-	for(size_t s = 0; s < m_exBrineGrad.num_series(); ++s)
+//	FV1 SCVF ip
+	if(vLocIP == geo.scvf_local_ips())
 	{
-	//	FV1 SCVF ip
-		if(m_exBrineGrad.template local_ips<refDim>(s)
-				== geo.scvf_local_ips())
+	//	Loop Sub Control Volume Faces (SCVF)
+		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
-		//	Loop Sub Control Volume Faces (SCVF)
-			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-			{
-			// 	Get current SCVF
-				const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo.scvf(ip);
+		// 	Get current SCVF
+			const typename FV1Geometry<TElem,dim>::SCVF& scvf = geo.scvf(ip);
 
-			//	Compute Gradients and concentration at ip
-				MathVector<dim>& cIP = m_exBrineGrad.value(s, ip);
+			VecSet(vValue[ip], 0.0);
+			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				VecScaleAppend(vValue[ip], u(_C_, sh), scvf.global_grad(sh));
 
-				VecSet(cIP, 0.0);
+			if(bDeriv)
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh));
-
-				if(compDeriv)
 				{
-					MathVector<dim>* cIP_c = m_exBrineGrad.deriv(s, ip, _C_);
-					MathVector<dim>* cIP_p = m_exBrineGrad.deriv(s, ip, _P_);
-
-					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					{
-						cIP_c[sh] = scvf.global_grad(sh);
-						VecSet(cIP_p[sh], 0.0);
-					}
+					vvvDeriv[ip][_C_][sh] = scvf.global_grad(sh);
+					vvvDeriv[ip][_P_][sh] = 0.0;
 				}
-			}
-			continue;
 		}
-
-		// others not implemented
+	}
+// others not implemented
+	else
+	{
 		UG_LOG("Evaluation not implemented.");
 		return false;
 	}
@@ -437,48 +421,41 @@ template<typename TDomain>
 template<typename TElem >
 bool
 DensityDrivenFlowElemDisc<TDomain>::
-compute_pressure_grad_export(const local_vector_type& u, bool compDeriv)
+ex_pressure_grad(const local_vector_type& u,
+                 const MathVector<dim>* vGlobIP,
+                 const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+                 const size_t nip,
+                 MathVector<dim>* vValue,
+                 bool bDeriv,
+                 std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
 
-//	Constants
-	static const int refDim = FV1Geometry<TElem, dim>::dim;
-
-	for(size_t s = 0; s < m_exPressureGrad.num_series(); ++s)
+//	FV1 SCVF ip
+	if(vLocIP == geo.scvf_local_ips())
 	{
-	//	FV1 SCVF ip
-		if(m_exPressureGrad.template local_ips<refDim>(s)
-				== geo.scvf_local_ips())
+	//	Loop Sub Control Volume Faces (SCVF)
+		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
-			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-			{
-			// 	Get current SCVF
-				const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo.scvf(ip);
+		// 	Get current SCVF
+			const typename FV1Geometry<TElem,dim>::SCVF& scvf = geo.scvf(ip);
 
-			//	Compute Gradients and concentration at ip
-				MathVector<dim>& pressGrad = m_exPressureGrad.value(s, ip);
+			VecSet(vValue[ip], 0.0);
+			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				VecScaleAppend(vValue[ip], u(_P_, sh), scvf.global_grad(sh));
 
-				VecSet(pressGrad, 0.0);
+			if(bDeriv)
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(pressGrad, u(_P_, sh), scvf.global_grad(sh));
-
-				if(compDeriv)
 				{
-					MathVector<dim>* pressGrad_c = m_exPressureGrad.deriv(s, ip, _C_);
-					MathVector<dim>* pressGrad_p = m_exPressureGrad.deriv(s, ip, _P_);
-
-					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					{
-						pressGrad_p[sh] = scvf.global_grad(sh);
-						VecSet(pressGrad_c[sh], 0.0);
-					}
+					vvvDeriv[ip][_C_][sh] = 0.0;
+					vvvDeriv[ip][_P_][sh] = scvf.global_grad(sh);
 				}
-			}
-			continue;
 		}
-
-		// others not implemented
+	}
+// others not implemented
+	else
+	{
 		UG_LOG("Evaluation not implemented.");
 		return false;
 	}
@@ -1089,6 +1066,7 @@ register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
+	static const int refDim = reference_element_traits<TElem>::dim;
 
 	set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem>);
 	set_prep_elem_fct(	 id, &T::template prepare_element<TElem>);
@@ -1100,13 +1078,13 @@ register_fv1_func()
 	set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem>);
 
 	if(m_bConsGravity)
-		m_exDarcyVel.reg_export_fct(id, this, &T::template compute_darcy_export_cons_grav<TElem>);
+		m_exDarcyVel.template set_fct<T,refDim>(id, this, &T::template ex_darcy_cons_grav<TElem>);
 	else
-		m_exDarcyVel.reg_export_fct(id, this, &T::template compute_darcy_export_std<TElem>);
+		m_exDarcyVel.template set_fct<T,refDim>(id, this, &T::template ex_darcy_std<TElem>);
 
-	m_exBrine.reg_export_fct(id, this, &T::template compute_brine_export<TElem>);
-	m_exBrineGrad.reg_export_fct(id, this, &T::template compute_brine_grad_export<TElem>);
-	m_exPressureGrad.reg_export_fct(id, this, &T::template compute_pressure_grad_export<TElem>);
+	m_exBrine.		 template set_fct<T,refDim>(id, this, &T::template ex_brine<TElem>);
+	m_exBrineGrad.	 template set_fct<T,refDim>(id, this, &T::template ex_brine_grad<TElem>);
+	m_exPressureGrad.template set_fct<T,refDim>(id, this, &T::template ex_pressure_grad<TElem>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

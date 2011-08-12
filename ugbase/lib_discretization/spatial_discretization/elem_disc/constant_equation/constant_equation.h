@@ -212,11 +212,23 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	protected:
 	///	computes the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool compute_concentration_export(const local_vector_type& u, bool compDeriv);
+		bool ex_concentration(const local_vector_type& u,
+							 const MathVector<dim>* vGlobIP,
+							 const MathVector<TFVGeom<TElem, dim>::dim>* vLocIP,
+							 const size_t nip,
+							 number* vValue,
+							 bool bDeriv,
+							 std::vector<std::vector<std::vector<number> > >& vvvDeriv);
 
 	///	computes the gradient of the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool compute_concentration_grad_export(const local_vector_type& u, bool compDeriv);
+		bool ex_concentration_grad(const local_vector_type& u,
+								  const MathVector<dim>* vGlobIP,
+								  const MathVector<TFVGeom<TElem, dim>::dim>* vLocIP,
+								  const size_t nip,
+								  MathVector<dim>* vValue,
+								  bool bDeriv,
+								  std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
 
 	///	Export for the concentration
 		DataExport<number, dim> m_exConcentration;

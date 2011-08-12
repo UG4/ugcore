@@ -330,75 +330,59 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-compute_concentration_export(const local_vector_type& u, bool compDeriv)
+ex_concentration(const local_vector_type& u,
+                 const MathVector<dim>* vGlobIP,
+                 const MathVector<TFVGeom<TElem, dim>::dim>* vLocIP,
+                 const size_t nip,
+                 number* vValue,
+                 bool bDeriv,
+                 std::vector<std::vector<std::vector<number> > >& vvvDeriv)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
-//	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	static const size_t refDim = ref_elem_type::dim;
-	static const size_t numSh = ref_elem_type::num_corners;
+//	number of shape functions
+	static const size_t numSh =
+			reference_element_traits<TElem>::reference_element_type::num_corners;
 
-//	loop all ip series
-	for(size_t s = 0; s < m_exConcentration.num_series(); ++s)
+//	FV1 SCVF ip
+	if(vLocIP	== geo.scvf_local_ips())
 	{
-	//	get position array
-		const MathVector<refDim>* vLocalIP
-							= m_exConcentration.template local_ips<refDim>(s);
-
-	//	FV1 SCVF ip
-		if(vLocalIP	== geo.scvf_local_ips())
+	//	Loop Sub Control Volume Faces (SCVF)
+		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
-		//	Loop Sub Control Volume Faces (SCVF)
-			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-			{
-			// 	Get current SCVF
-				const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(ip);
+		// 	Get current SCVF
+			const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(ip);
 
-			//	compute concentration at ip
-				number& cIP = m_exConcentration.value(s, ip);
-				cIP = 0.0;
+		//	compute concentration at ip
+			vValue[ip] = 0.0;
+			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				vValue[ip] += u(_C_, sh) * scvf.shape(sh);
+
+		//	compute derivative w.r.t. to unknowns iff needed
+			if(bDeriv)
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					cIP += u(_C_, sh) * scvf.shape(sh);
-
-			//	compute derivative w.r.t. to unknowns iff needed
-				if(compDeriv)
-				{
-				//	get field of derivatives
-					number* cIP_c = m_exConcentration.deriv(s, ip, _C_);
-
-				//	set shapes
-					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						cIP_c[sh] = scvf.shape(sh);
-				}
-			}
+					vvvDeriv[ip][_C_][sh] = scvf.shape(sh);
 		}
-	//	FV1 SCV ip
-		else if(vLocalIP == geo.scv_local_ips())
-		{
-		//	Loop Corners
+	}
+//	FV1 SCV ip
+	else if(vLocIP == geo.scv_local_ips())
+	{
+	//	solution at ip
+		for(size_t sh = 0; sh < numSh; ++sh)
+			vValue[sh] = u(_C_, sh);
+
+	//	set derivatives if needed
+		if(bDeriv)
 			for(size_t sh = 0; sh < numSh; ++sh)
-			{
-			//	Compute Gradients and concentration at ip
-				m_exConcentration.value(s, sh) = u(_C_, sh);
-
-			//	set derivatives if needed
-				if(compDeriv)
-				{
-					number* cIP_c = m_exConcentration.deriv(s, sh, _C_);
-
-					for(size_t sh2 = 0; sh2 < numSh; ++sh2)
-						cIP_c[sh2] = (sh==sh2) ? 1.0 : 0.0;
-				}
-			}
-		}
-	// 	others not implemented
-		else
-		{
-			UG_LOG("Evaluation not implemented.");
-			return false;
-		}
+				for(size_t sh2 = 0; sh2 < numSh; ++sh2)
+					vvvDeriv[sh][_C_][sh2] = (sh==sh2) ? 1.0 : 0.0;
+	}
+// 	others not implemented
+	else
+	{
+		UG_LOG("Evaluation not implemented.");
+		return false;
 	}
 
 //	we're done
@@ -410,52 +394,40 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-compute_concentration_grad_export(const local_vector_type& u, bool compDeriv)
+ex_concentration_grad(const local_vector_type& u,
+                      const MathVector<dim>* vGlobIP,
+                      const MathVector<TFVGeom<TElem, dim>::dim>* vLocIP,
+                      const size_t nip,
+                      MathVector<dim>* vValue,
+                      bool bDeriv,
+                      std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv)
 {
 // 	Get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
-//	get reference element dimension
-	static const size_t refDim = TFVGeom<TElem, dim>::dim;
-
-//	loop all requested ip series
-	for(size_t s = 0; s < m_exConcentrationGrad.num_series(); ++s)
+//	FV1 SCVF ip
+	if(vLocIP == geo.scvf_local_ips())
 	{
-	//	get position array
-		const MathVector<refDim>* vLocalIP
-						= m_exConcentrationGrad.template local_ips<refDim>(s);
-
-	//	FV1 SCVF ip
-		if(vLocalIP == geo.scvf_local_ips())
+	//	Loop Sub Control Volume Faces (SCVF)
+		for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 		{
-		//	Loop Sub Control Volume Faces (SCVF)
-			for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
-			{
-			// 	Get current SCVF
-				const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(ip);
+		// 	Get current SCVF
+			const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(ip);
 
-			//	Compute Gradients and concentration at ip
-				MathVector<dim>& cIP = m_exConcentrationGrad.value(s, ip);
+			VecSet(vValue[ip], 0.0);
+			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				VecScaleAppend(vValue[ip], u(_C_, sh), scvf.global_grad(sh));
 
-				VecSet(cIP, 0.0);
+			if(bDeriv)
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(cIP, u(_C_, sh), scvf.global_grad(sh));
-
-				if(compDeriv)
-				{
-					MathVector<dim>* cIP_c = m_exConcentrationGrad.deriv(s, ip, _C_);
-
-					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						cIP_c[sh] = scvf.global_grad(sh);
-				}
-			}
+					vvvDeriv[ip][_C_][sh] = scvf.global_grad(sh);
 		}
-	// others not implemented
-		else
-		{
-			UG_LOG("Evaluation not implemented.");
-			return false;
-		}
+	}
+// others not implemented
+	else
+	{
+		UG_LOG("Evaluation not implemented.");
+		return false;
 	}
 
 //	we're done
@@ -512,6 +484,7 @@ register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
+	static const int refDim = reference_element_traits<TElem>::dim;
 
 	set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
 	set_prep_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
@@ -528,8 +501,8 @@ register_fv1_func()
 	m_imMassScale.reg_lin_defect_fct(id, this, &T::template lin_defect_mass_scale<TElem, TFVGeom>);
 
 //	exports
-	m_exConcentration.	  reg_export_fct(id, this, &T::template compute_concentration_export<TElem, TFVGeom>);
-	m_exConcentrationGrad.reg_export_fct(id, this, &T::template compute_concentration_grad_export<TElem, TFVGeom>);
+	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_concentration<TElem, TFVGeom>);
+	m_exConcentrationGrad.template set_fct<T,refDim>(id, this, &T::template ex_concentration_grad<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

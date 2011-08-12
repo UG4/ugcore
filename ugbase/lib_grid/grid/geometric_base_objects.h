@@ -9,6 +9,7 @@
 #include <cassert>
 #include <iostream>
 #include "common/types.h"
+#include "common/common.h"
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "lib_grid/attachments/attached_list.h"
 #include "common/util/hash.h"
@@ -65,7 +66,7 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 		case ROID_HEXAHEDRON: outStream << "Hexahedron"; break;
 		case ROID_PRISM: outStream << "Prism"; break;
 		case ROID_PYRAMID: outStream << "Pyramid"; break;
-		default: throw(int(1));
+		default: throw(UGFatalError("Unknown ReferenceObjectID in operator<<"));
 	}
 	return outStream;
 };

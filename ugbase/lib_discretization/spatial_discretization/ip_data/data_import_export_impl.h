@@ -46,6 +46,13 @@ void IDataImport::reg_lin_defect_fct(ReferenceObjectID id, IElemDisc* obj, TFunc
 	m_pObj = obj;
 }
 
+inline void IDataImport::clear_fct()
+{
+	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
+		m_vLinDefectFunc[i] = NULL;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // DataImport
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,14 +82,17 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 				register_local_ip_series<ldim>(vPos,numIP);
 
 //	cache the pointer to the data field. This is possible, since once a
-//	local ip series is registered it can not be removed ot altered. In the same
-//	way the memory starge is not changed but always only increased. Therefore,
+//	local ip series is registered it can not be removed or altered. In the same
+//	way the memory storage is not changed but always only increased. Therefore,
 //	we can request the data now and it will remain valid until IIPData::clear()
 //	is called.
 	m_vValue = m_pIPData->values(m_seriesID);
 
 //	in addition we cache the number of ips
 	m_numIP = m_pIPData->num_ip(m_seriesID);
+
+//	resize ips
+	m_vvvLinDefect.resize(num_ip());
 
 //	check that num ip is correct
 	UG_ASSERT(m_numIP == numIP, "Different number of ips than requested.");
@@ -137,10 +147,6 @@ void DataImport<TData,dim>::assemble_jacobian(local_matrix_type& J)
 template <typename TData, int dim>
 void DataImport<TData,dim>::resize(const LocalIndices& ind, const FunctionIndexMapping& map)
 {
-//	resize ips
-	//\todo: Move this call to some place, where num_ip is changed.
-	m_vvvLinDefect.resize(num_ip());
-
 //	resize num fct
 	for(size_t ip = 0; ip < num_ip(); ++ip)
 	{
@@ -185,37 +191,103 @@ inline void DataImport<TData,dim>::check_values() const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-DataExport<TData, dim>::DataExport() : m_pObj(NULL)
+DataExport<TData, dim>::DataExport() : m_id(ROID_INVALID), m_pObj(NULL)
 {
+//	this ipdata needs the solution for evaluation
 	this->m_bCompNeedsSol = true;
 
-	clear_export_fct();
+//	reset all evaluation functions
+	clear_fct();
 }
 
 template <typename TData, int dim>
-void DataExport<TData, dim>::clear_export_fct()
+void DataExport<TData, dim>::clear_fct()
 {
 	for(size_t roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
 		m_vExportFunc[roid] = NULL;
 }
 
 template <typename TData, int dim>
-template <typename TFunc>
-void DataExport<TData, dim>::reg_export_fct(ReferenceObjectID id,
-                                            IElemDisc* obj, TFunc func)
+template <typename T, int refDim>
+void DataExport<TData, dim>::
+set_fct(ReferenceObjectID id, IElemDisc* obj,
+        bool (T::*func)(const IElemDisc::local_vector_type& u,
+        				const MathVector<dim>* vGlobIP,
+        				const MathVector<refDim>* vLocIP,
+        				const size_t nip,
+        				TData* vValue,
+        				bool bDeriv,
+        				std::vector<std::vector<std::vector<TData> > >& vvvDeriv))
 {
-	m_vExportFunc[id] = static_cast<ExportFunc>(func);
+//	store the method pointer casted to some generic (incompatible) type
+	m_vExportFunc[id] = reinterpret_cast<DummyMethod>(func);
 
+//	store the evaluation forwarder
+	m_vCompFct[id] = &DataExport<TData, dim>::template comp<T,refDim>;
+
+//	store the base object needed for invocation
 	if(m_pObj == NULL) m_pObj = obj;
 	else if(m_pObj != obj)
 		throw(UGFatalError("Exports assume to be used by on object for all functions."));
 }
 
+
+template <typename TData, int dim>
+template <typename T, int refDim>
+inline bool DataExport<TData, dim>::
+comp(const local_vector_type& u, bool bDeriv)
+{
+	typedef bool (T::*ExpFunc)(	const local_vector_type& u,
+								const MathVector<dim>* vGlobIP,
+								const MathVector<refDim>* vLocIP,
+								const size_t nip,
+								TData* vValue,
+								bool bDeriv,
+								std::vector<std::vector<std::vector<TData> > >& vvvDeriv);
+
+
+	typedef bool (IElemDisc::*ElemDiscFunc)(
+								const local_vector_type& u,
+								const MathVector<dim>* vGlobIP,
+								const MathVector<refDim>* vLocIP,
+								const size_t nip,
+								TData* vValue,
+								bool bDeriv,
+								std::vector<std::vector<std::vector<TData> > >& vvvDeriv);
+
+//	cast the method pointer back to correct type
+	ExpFunc func = reinterpret_cast<ExpFunc>(m_vExportFunc[m_id]);
+
+//	cast if for evaluation using base class
+	ElemDiscFunc elemDiscfunc = static_cast<ElemDiscFunc>(func);
+
+//	evaluate for each ip series
+	bool bRet = true;
+	for(size_t s = 0; s < this->num_series(); ++s)
+	{
+		bRet &= (m_pObj->*(elemDiscfunc))
+				(u,
+				 this->ips(s),
+				 this->template local_ips<refDim>(s),
+				 this->num_ip(s),
+				 this->m_vvValue[s],
+				 bDeriv,
+				 this->m_vvvvDeriv[s]);
+	}
+	return bRet;
+}
+
 template <typename TData, int dim>
 bool DataExport<TData, dim>::set_geometric_object_type(ReferenceObjectID id)
 {
-	if(m_vExportFunc[m_id] == NULL) {
-		UG_LOG("ERROR in 'DataExport::is_ready': There is no evaluation "
+	if(m_vExportFunc[id] == NULL) {
+		UG_LOG("ERROR in 'DataExport::set_geometric_object_type': There is no evaluation "
+				"function registered for export and elem type "<<id<<".\n");
+		return false;
+	}
+
+	if(m_vCompFct[id] == NULL) {
+		UG_LOG("ERROR in 'DataExport::set_geometric_object_type': There is no evaluation forward"
 				"function registered for export and elem type "<<m_id<<".\n");
 		return false;
 	}
@@ -227,7 +299,18 @@ bool DataExport<TData, dim>::set_geometric_object_type(ReferenceObjectID id)
 template <typename TData, int dim>
 bool DataExport<TData, dim>::is_ready() const
 {
-//	check base
+	if(m_id == ROID_INVALID) {
+		UG_LOG("ERROR in 'DataExport::is_ready': The reference element "
+				"type has not been set for evaluation.\n");
+		return false;
+	}
+
+	if(m_vCompFct[m_id] == NULL) {
+		UG_LOG("ERROR in 'DataExport::is_ready': There is no evaluation forward"
+				"function registered for export and elem type "<<m_id<<".\n");
+		return false;
+	}
+
 	if(m_vExportFunc[m_id] == NULL) {
 		UG_LOG("ERROR in 'DataExport::is_ready': There is no evaluation "
 				"function registered for export and elem type "<<m_id<<".\n");
@@ -250,7 +333,8 @@ template <typename TData, int dim>
 bool DataExport<TData, dim>::compute(const local_vector_type& u, bool bDeriv)
 {
 	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
-	return (m_pObj->*(m_vExportFunc[m_id]))(u, bDeriv);
+	UG_ASSERT(m_vCompFct[m_id] != NULL, "Func pointer is NULL");
+	return (this->*m_vCompFct[m_id])(u, bDeriv);
 }
 
 

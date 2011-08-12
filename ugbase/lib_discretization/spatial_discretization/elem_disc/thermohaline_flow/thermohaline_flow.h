@@ -428,31 +428,73 @@ class ThermohalineFlowElemDisc
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool compute_darcy_export_std(const local_vector_type& u, bool compDeriv);
+		bool ex_darcy_std(const local_vector_type& u,
+						  const MathVector<dim>* vGlobIP,
+						  const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+						  const size_t nip,
+						  MathVector<dim>* vValue,
+						  bool bDeriv,
+						  std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv);
+		bool ex_darcy_cons_grav(const local_vector_type& u,
+								const MathVector<dim>* vGlobIP,
+								const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+								const size_t nip,
+								MathVector<dim>* vValue,
+								bool bDeriv,
+								std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
 
 	///	computes the value of the brine mass fraction
 		template <typename TElem>
-		bool compute_brine_export(const local_vector_type& u, bool compDeriv);
+		bool ex_brine(const local_vector_type& u,
+					  const MathVector<dim>* vGlobIP,
+					  const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+					  const size_t nip,
+					  number* vValue,
+					  bool bDeriv,
+					  std::vector<std::vector<std::vector<number> > >& vvvDeriv);
 
 	///	computes the value of the gradient of the brine mass fraction
 		template <typename TElem>
-		bool compute_brine_grad_export(const local_vector_type& u, bool compDeriv);
-
-	///	computes the value of the temperature
-		template <typename TElem>
-		bool compute_temperature_export(const local_vector_type& u, bool compDeriv);
-
-	///	computes the value of the temperature
-		template <typename TElem>
-		bool compute_temperature_grad_export(const local_vector_type& u, bool compDeriv);
+		bool ex_brine_grad(const local_vector_type& u,
+						   const MathVector<dim>* vGlobIP,
+						   const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+						   const size_t nip,
+						   MathVector<dim>* vValue,
+						   bool bDeriv,
+						   std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
 
 	///	computes the value of the gradient of the pressure
 		template <typename TElem>
-		bool compute_pressure_grad_export(const local_vector_type& u, bool compDeriv);
+		bool ex_pressure_grad(const local_vector_type& u,
+							  const MathVector<dim>* vGlobIP,
+							  const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+							  const size_t nip,
+							  MathVector<dim>* vValue,
+							  bool bDeriv,
+							  std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
+
+	///	computes the value of the brine mass fraction
+		template <typename TElem>
+		bool ex_temperature(const local_vector_type& u,
+						  const MathVector<dim>* vGlobIP,
+						  const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+						  const size_t nip,
+						  number* vValue,
+						  bool bDeriv,
+						  std::vector<std::vector<std::vector<number> > >& vvvDeriv);
+
+	///	computes the value of the gradient of the brine mass fraction
+		template <typename TElem>
+		bool ex_temperature_grad(const local_vector_type& u,
+							   const MathVector<dim>* vGlobIP,
+							   const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+							   const size_t nip,
+							   MathVector<dim>* vValue,
+							   bool bDeriv,
+							   std::vector<std::vector<std::vector<MathVector<dim> > > >& vvvDeriv);
 
 	///	Export for the Darcy velocity
 		DataExport<MathVector<dim>, dim> m_exDarcyVel;

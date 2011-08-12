@@ -30,7 +30,7 @@ class IDataImport
 		IDataImport(bool compLinDefect = true)
 			: m_pIDependentIPData(NULL), m_id(ROID_INVALID), m_pObj(NULL),
 			 m_bInMassPart(false),  m_bCompLinDefect(compLinDefect)
-		{}
+		{clear_fct();}
 
 		virtual ~IDataImport()	{}
 
@@ -114,6 +114,9 @@ class IDataImport
 	///	register evaluation of linear defect for a element
 		template <typename TFunc>
 		void reg_lin_defect_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func);
+
+	///	clear all evaluation functions
+		void clear_fct();
 
 	///	compute lin defect
 		bool compute_lin_defect(const local_vector_type& u)
@@ -313,9 +316,6 @@ class DataExport : 	public DependentIPData<TData, dim>,
 	///	type of local vector
 		typedef IElemDisc::local_vector_type local_vector_type;
 
-	///	type of evaluation function
-		typedef bool (IElemDisc::*ExportFunc)(const local_vector_type& u, bool bDeriv);
-
 	public:
 	///	default constructor
 		DataExport();
@@ -329,12 +329,19 @@ class DataExport : 	public DependentIPData<TData, dim>,
 	///	sets the geometric object type
 		virtual bool set_geometric_object_type(ReferenceObjectID id);
 
-	///	register evaluation of linear defect for a element
-		template <typename TFunc>
-		void reg_export_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func);
+	///	register evaluation of export function
+		template <typename T, int refDim>
+		void set_fct(ReferenceObjectID id, IElemDisc* obj,
+		             bool (T::*func)(const IElemDisc::local_vector_type& u,
+		            		 	 	 const MathVector<dim>* vGlobIP,
+		            		 	 	 const MathVector<refDim>* vLocIP,
+		            		 	 	 const size_t nip,
+		            		 	 	 TData* vValue,
+		            		 	 	 bool bDeriv,
+		            		 	 	 std::vector<std::vector<std::vector<TData> > >& vvvDeriv));
 
 	///	clears all export functions
-		void clear_export_fct();
+		void clear_fct();
 
 	///	returns if data depends on solution
 		virtual bool zero_derivative() const {return false;}
@@ -364,6 +371,9 @@ class DataExport : 	public DependentIPData<TData, dim>,
 			{return IDependentIPData::set_function_group(fctGrp);}
 
 	protected:
+		template <typename T, int refDim>
+		inline bool comp(const local_vector_type& u, bool bDeriv);
+
 	/// current Geom Object
 		ReferenceObjectID m_id;
 
@@ -371,7 +381,11 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		IElemDisc* m_pObj;
 
 	///	function pointers for all elem types
-		ExportFunc	m_vExportFunc[NUM_REFERENCE_OBJECTS];
+		typedef bool (IElemDisc::*DummyMethod)();
+		DummyMethod	m_vExportFunc[NUM_REFERENCE_OBJECTS];
+
+		typedef bool (DataExport::*CompFct)(const local_vector_type&, bool);
+		CompFct m_vCompFct[NUM_REFERENCE_OBJECTS];
 
 	///	data the export depends on
 		std::vector<IIPData*> m_vDependData;
