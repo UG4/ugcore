@@ -29,7 +29,7 @@ prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
-		if(!(*m_pvElemDisc)[i]->set_geometric_object_type(id))
+		if(!(*m_pvElemDisc)[i]->set_roid(id))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 					"Cannot set geometric object type for Disc " << i <<".\n");
@@ -38,7 +38,7 @@ prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
 
 //	set geometric type at imports
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
-		if(!m_vStiffDataImport[i]->set_geometric_object_type(id))
+		if(!m_vStiffDataImport[i]->set_roid(id))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': Cannot set "
 					" geometric object type "<<id<<" for Import " << i <<
@@ -47,7 +47,7 @@ prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
 		}
 	if(bMassPart)
 		for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
-			if(!m_vMassDataImport[i]->set_geometric_object_type(id))
+			if(!m_vMassDataImport[i]->set_roid(id))
 			{
 				UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': Cannot set "
 						" geometric object type "<<id<<" for Import " << i <<
@@ -57,7 +57,7 @@ prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
 
 //	set geometric type at exports
 	for(size_t i = 0; i < m_vDataExport.size(); ++i)
-		if(!m_vDataExport[i]->set_geometric_object_type(id))
+		if(!m_vDataExport[i]->set_roid(id))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 					"Cannot set geometric object type for Export " << i <<".\n");

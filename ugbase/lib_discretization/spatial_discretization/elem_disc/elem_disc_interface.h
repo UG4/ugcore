@@ -157,7 +157,7 @@ class IElemDisc{
 	 * assembling routines can be called. Keep in mind, that the elements are
 	 * looped type by type, thus this function has to be called very few times.
 	 */
-		bool set_geometric_object_type(ReferenceObjectID id);
+		bool set_roid(ReferenceObjectID id);
 
 	///	sets if assembling should be time-dependent (and the time point iff)
 	/**
@@ -226,7 +226,7 @@ class IElemDisc{
 	 * type. This function is called before e.g. the loop over all geometric
 	 * objects of a chosen type is performed.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 */
 		bool prepare_elem_loop()
 			{return (this->*(m_vPrepareElemLoopFct[m_id]))();}
@@ -236,7 +236,7 @@ class IElemDisc{
 	 * This function prepares one Geometric object, that will be assembled in
 	 * the next step.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 *
 	 * \param[in]		obj			The geometric object
 	 * \param[in]		u			The current local solution
@@ -251,7 +251,7 @@ class IElemDisc{
 	 * type. This function is called after e.g. the loop over all geometric
 	 * objects of a chosen type has been performed.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 */
 		bool finish_elem_loop()
 			{return (this->*(m_vFinishElemLoopFct[m_id]))();}
@@ -261,7 +261,7 @@ class IElemDisc{
 	 * This function assembles the local (stiffness) jacobian for the current
 	 * solution u and the time (iff timedependent).
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 */
 		bool ass_JA_elem(local_matrix_type& J, const local_vector_type& u)
 			{return (this->*(m_vElemJAFct[m_id]))(J, u);}
@@ -271,7 +271,7 @@ class IElemDisc{
 	 * This function assembles the local (mass) jacobian for the current
 	 * solution u and the time (iff timedependent).
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 */
 		bool ass_JM_elem(local_matrix_type& J, const local_vector_type& u)
 			{return (this->*(m_vElemJMFct[m_id]))(J, u);}
@@ -281,7 +281,7 @@ class IElemDisc{
 	 * This function assembles the local (stiffness) defect for the current
 	 * solution u and the time (iff timedependent).
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 */
 		bool ass_dA_elem(local_vector_type& d, const local_vector_type& u)
 			{return (this->*(m_vElemdAFct[m_id]))(d, u);}
@@ -292,7 +292,7 @@ class IElemDisc{
 	 * This function assembles the local (mass) defect for the current
 	 * solution u and the time (iff timedependent).
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 */
 		bool ass_dM_elem(local_vector_type& d, const local_vector_type& u)
 			{return (this->*(m_vElemdMFct[m_id]))(d, u);}
@@ -301,7 +301,7 @@ class IElemDisc{
 	/**
 	 * This function assembles the local rhs.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_geometric_object_type must have been called to set the elem type.
+	 * 'set_roid must have been called to set the elem type.
 	 */
 		bool ass_rhs_elem(local_vector_type& rhs)
 			{return (this->*(m_vElemRHSFct[m_id]))(rhs);}

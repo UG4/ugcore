@@ -76,7 +76,7 @@ class IDataImport
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
 	///	sets the geometric object type
-		virtual bool set_geometric_object_type(ReferenceObjectID id) = 0;
+		virtual bool set_roid(ReferenceObjectID id) = 0;
 
 	///	compute lin defect
 		virtual bool compute_lin_defect(const local_vector_type& u) = 0;
@@ -230,7 +230,7 @@ class DataImport : public IDataImport
 												 const size_t nip);
 
 	///	sets the geometric object type
-		virtual bool set_geometric_object_type(ReferenceObjectID id);
+		virtual bool set_roid(ReferenceObjectID id);
 
 	///	register evaluation of linear defect for a element
 		template <typename TFunc>
@@ -305,7 +305,7 @@ class IDataExport
 		IDataExport() {}
 
 	///	sets the geometric object type
-		virtual bool set_geometric_object_type(ReferenceObjectID id) = 0;
+		virtual bool set_roid(ReferenceObjectID id) = 0;
 
 	///	sets the function group
 		virtual void set_function_group(const FunctionGroup& fctGrp) = 0;
@@ -337,7 +337,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		virtual bool compute(const local_vector_type& u, bool bDeriv);
 
 	///	sets the geometric object type
-		virtual bool set_geometric_object_type(ReferenceObjectID id);
+		virtual bool set_roid(ReferenceObjectID id);
 
 	///	register evaluation of export function
 		template <typename T, int refDim>

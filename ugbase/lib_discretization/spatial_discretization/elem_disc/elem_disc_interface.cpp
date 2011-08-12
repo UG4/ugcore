@@ -90,7 +90,7 @@ IDataExport& IElemDisc::get_export(size_t i)
 	return *m_vIExport[i];
 }
 
-bool IElemDisc::set_geometric_object_type(ReferenceObjectID id)
+bool IElemDisc::set_roid(ReferenceObjectID id)
 {
 	m_id = id;
 	return true;

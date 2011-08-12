@@ -17,7 +17,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-bool DataImport<TData,dim>::set_geometric_object_type(ReferenceObjectID id)
+bool DataImport<TData,dim>::set_roid(ReferenceObjectID id)
 {
 //	if lin defect is not supposed to be computed, we're done
 	if(!m_bCompLinDefect) return true;
@@ -32,7 +32,7 @@ bool DataImport<TData,dim>::set_geometric_object_type(ReferenceObjectID id)
 //	return error else
 	else
 	{
-		UG_LOG("ERROR in 'DataImport::set_geometric_object_type':"
+		UG_LOG("ERROR in 'DataImport::set_roid':"
 				"No lin defect functions registered for " << id << ".\n");
 		m_id = ROID_INVALID;
 		return false;
@@ -267,16 +267,16 @@ comp(const local_vector_type& u, bool bDeriv)
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::set_geometric_object_type(ReferenceObjectID id)
+bool DataExport<TData, dim>::set_roid(ReferenceObjectID id)
 {
 	if(m_vExportFunc[id] == NULL) {
-		UG_LOG("ERROR in 'DataExport::set_geometric_object_type': There is no evaluation "
+		UG_LOG("ERROR in 'DataExport::set_roid': There is no evaluation "
 				"function registered for export and elem type "<<id<<".\n");
 		return false;
 	}
 
 	if(m_vCompFct[id] == NULL) {
-		UG_LOG("ERROR in 'DataExport::set_geometric_object_type': There is no evaluation forward"
+		UG_LOG("ERROR in 'DataExport::set_roid': There is no evaluation forward"
 				"function registered for export and elem type "<<m_id<<".\n");
 		return false;
 	}
