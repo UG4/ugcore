@@ -201,12 +201,12 @@ template <typename T, int refDim>
 void DataExport<TData, dim>::
 set_fct(ReferenceObjectID id, IElemDisc* obj,
         bool (T::*func)(const IElemDisc::local_vector_type& u,
-        				const MathVector<dim>* vGlobIP,
-        				const MathVector<refDim>* vLocIP,
+        				const MathVector<dim> vGlobIP[],
+        				const MathVector<refDim> vLocIP[],
         				const size_t nip,
-        				TData* vValue,
+        				TData vValue[],
         				bool bDeriv,
-        				std::vector<std::vector<TData> >* vvvDeriv))
+        				std::vector<std::vector<TData> > vvvDeriv[]))
 {
 //	store the method pointer casted to some generic (incompatible) type
 	m_vExportFunc[id] = reinterpret_cast<DummyMethod>(func);
@@ -227,22 +227,22 @@ inline bool DataExport<TData, dim>::
 comp(const local_vector_type& u, bool bDeriv)
 {
 	typedef bool (T::*ExpFunc)(	const local_vector_type& u,
-								const MathVector<dim>* vGlobIP,
-								const MathVector<refDim>* vLocIP,
+								const MathVector<dim> vGlobIP[],
+								const MathVector<refDim> vLocIP[],
 								const size_t nip,
-								TData* vValue,
+								TData vValue[],
 								bool bDeriv,
-								std::vector<std::vector<TData> >* vvvDeriv);
+								std::vector<std::vector<TData> > vvvDeriv[]);
 
 
 	typedef bool (IElemDisc::*ElemDiscFunc)(
 								const local_vector_type& u,
-								const MathVector<dim>* vGlobIP,
-								const MathVector<refDim>* vLocIP,
+								const MathVector<dim> vGlobIP[],
+								const MathVector<refDim> vLocIP[],
 								const size_t nip,
-								TData* vValue,
+								TData vValue[],
 								bool bDeriv,
-								std::vector<std::vector<TData> >* vvvDeriv);
+								std::vector<std::vector<TData> > vvvDeriv[]);
 
 //	cast the method pointer back to correct type
 	ExpFunc func = reinterpret_cast<ExpFunc>(m_vExportFunc[m_id]);

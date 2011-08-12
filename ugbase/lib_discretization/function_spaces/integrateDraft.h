@@ -37,7 +37,7 @@ class IIntegrand
 		virtual void getValues(GeometricObject* pElem,
 		                       number value[],
 		                       const MathVector<dim> vLocIP[],
-		                       const MathVector<dim> vGlobIP[],
+		                       const MathVector<dim> vGlobIP[][],
 		                       size_t numIP) = 0;
 };
 
@@ -98,7 +98,7 @@ class L2ErrorIntegrand : IIntegrand<TGridFunction::dim>
 		virtual void getValues(GeometricObject* pElem,
 		                       number value[],
 		                       const MathVector<dim> vLocIP[],
-		                       const MathVector<dim> vGlobIP[],
+		                       const MathVector<dim> vGlobIP[][],
 		                       size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)

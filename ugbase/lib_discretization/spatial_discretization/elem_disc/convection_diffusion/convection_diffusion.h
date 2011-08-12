@@ -310,31 +310,31 @@ class ConvectionDiffusionElemDisc
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
 		bool lin_def_velocity_fv1(const local_vector_type& u,
-		                          std::vector<std::vector<MathVector<dim> > >* vvvLinDef,
+		                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
 		bool lin_def_diffusion_fv1(const local_vector_type& u,
-		                           std::vector<std::vector<MathMatrix<dim,dim> > >* vvvLinDef,
+		                           std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                           const size_t nip);
 
 	///	computes the linearized defect w.r.t to the reaction
 		template <typename TElem, typename TFVGeom>
 		bool lin_def_reaction_fv1(const local_vector_type& u,
-		                          std::vector<std::vector<number> >* vvvLinDef,
+		                          std::vector<std::vector<number> > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, typename TFVGeom>
 		bool lin_def_source_fv1(const local_vector_type& u,
-		                        std::vector<std::vector<number> >* vvvLinDef,
+		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TFVGeom>
 		bool lin_def_mass_scale_fv1(const local_vector_type& u,
-		                            std::vector<std::vector<number> >* vvvLinDef,
+		                            std::vector<std::vector<number> > vvvLinDef[],
 		                            const size_t nip);
 
 	private:
@@ -381,22 +381,22 @@ class ConvectionDiffusionElemDisc
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>
 		bool ex_concentration_fv1(const local_vector_type& u,
-		                          const MathVector<dim>* vGlobIP,
-		                          const MathVector<TFVGeom::dim>* vLocIP,
+		                          const MathVector<dim> vGlobIP[],
+		                          const MathVector<TFVGeom::dim> vLocIP[],
 		                          const size_t nip,
-		                          number* vValue,
+		                          number vValue[],
 		                          bool bDeriv,
-		                          std::vector<std::vector<number> >* vvvDeriv);
+		                          std::vector<std::vector<number> > vvvDeriv[]);
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TFVGeom>
 		bool ex_concentration_grad_fv1(const local_vector_type& u,
-		                               const MathVector<dim>* vGlobIP,
-		                               const	MathVector<TFVGeom::dim>* vLocIP,
+		                               const MathVector<dim> vGlobIP[],
+		                               const	MathVector<TFVGeom::dim> vLocIP[],
 		                               const size_t nip,
-		                          	   MathVector<dim>* vValue,
+		                          	   MathVector<dim> vValue[],
 		                          	   bool bDeriv,
-		                          	   std::vector<std::vector<MathVector<dim> > >* vvvDeriv);
+		                          	   std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	///	Export for the concentration
 		DataExport<number, dim> m_exConcentration;

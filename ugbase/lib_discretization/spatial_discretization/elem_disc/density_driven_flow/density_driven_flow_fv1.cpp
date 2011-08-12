@@ -100,12 +100,12 @@ template <typename TElem>
 bool
 DensityDrivenFlowElemDisc<TDomain>::
 ex_darcy_std(const local_vector_type& u,
-             const MathVector<dim>* vGlobIP,
-             const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+             const MathVector<dim> vGlobIP[],
+             const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
              const size_t nip,
-             MathVector<dim>* vValue,
+             MathVector<dim> vValue[],
              bool bDeriv,
-             std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
+             std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -184,12 +184,12 @@ template <typename TElem>
 bool
 DensityDrivenFlowElemDisc<TDomain>::
 ex_darcy_cons_grav(const local_vector_type& u,
-                   const MathVector<dim>* vGlobIP,
-                   const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+                   const MathVector<dim> vGlobIP[],
+                   const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
                    const size_t nip,
-                   MathVector<dim>* vValue,
+                   MathVector<dim> vValue[],
                    bool bDeriv,
-                   std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
+                   std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -307,12 +307,12 @@ template<typename TElem >
 bool
 DensityDrivenFlowElemDisc<TDomain>::
 ex_brine(const local_vector_type& u,
-         const MathVector<dim>* vGlobIP,
-         const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+         const MathVector<dim> vGlobIP[],
+         const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
          const size_t nip,
-         number* vValue,
+         number vValue[],
          bool bDeriv,
-         std::vector<std::vector<number> >* vvvDeriv)
+         std::vector<std::vector<number> > vvvDeriv[])
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -375,12 +375,12 @@ template<typename TElem >
 bool
 DensityDrivenFlowElemDisc<TDomain>::
 ex_brine_grad(const local_vector_type& u,
-              const MathVector<dim>* vGlobIP,
-              const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+              const MathVector<dim> vGlobIP[],
+              const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
               const size_t nip,
-              MathVector<dim>* vValue,
+              MathVector<dim> vValue[],
               bool bDeriv,
-              std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
+              std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();
@@ -422,12 +422,12 @@ template<typename TElem >
 bool
 DensityDrivenFlowElemDisc<TDomain>::
 ex_pressure_grad(const local_vector_type& u,
-                 const MathVector<dim>* vGlobIP,
-                 const MathVector<FV1Geometry<TElem,dim>::dim>* vLocIP,
+                 const MathVector<dim> vGlobIP[],
+                 const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
                  const size_t nip,
-                 MathVector<dim>* vValue,
+                 MathVector<dim> vValue[],
                  bool bDeriv,
-                 std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
+                 std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =	Provider::get<FV1Geometry<TElem,dim> >();

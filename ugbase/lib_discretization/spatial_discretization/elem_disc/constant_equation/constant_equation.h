@@ -177,19 +177,19 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool lin_def_velocity(const local_vector_type& u,
-	                          std::vector<std::vector<MathVector<dim> > >* vvvLinDef,
+	                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 	                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool lin_def_source(const local_vector_type& u,
-                            std::vector<std::vector<number> >* vvvLinDef,
+                            std::vector<std::vector<number> > vvvLinDef[],
                             const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool lin_def_mass_scale(const local_vector_type& u,
-	                            std::vector<std::vector<number> >* vvvLinDef,
+	                            std::vector<std::vector<number> > vvvLinDef[],
 	                            const size_t nip);
 
 	private:
@@ -219,22 +219,22 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	///	computes the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool ex_concentration(const local_vector_type& u,
-							 const MathVector<dim>* vGlobIP,
-							 const MathVector<TFVGeom<TElem, dim>::dim>* vLocIP,
+							 const MathVector<dim> vGlobIP[],
+							 const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
 							 const size_t nip,
-							 number* vValue,
+							 number vValue[],
 							 bool bDeriv,
-							 std::vector<std::vector<number> >* vvvDeriv);
+							 std::vector<std::vector<number> > vvvDeriv[]);
 
 	///	computes the gradient of the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool ex_concentration_grad(const local_vector_type& u,
-								  const MathVector<dim>* vGlobIP,
-								  const MathVector<TFVGeom<TElem, dim>::dim>* vLocIP,
+								  const MathVector<dim> vGlobIP[],
+								  const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
 								  const size_t nip,
-								  MathVector<dim>* vValue,
+								  MathVector<dim> vValue[],
 								  bool bDeriv,
-								  std::vector<std::vector<MathVector<dim> > >* vvvDeriv);
+								  std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	///	Export for the concentration
 		DataExport<number, dim> m_exConcentration;

@@ -23,6 +23,7 @@ namespace ug{
  */
 class IDataImport
 {
+	protected:
 	///	type of local matrix
 		typedef IElemDisc::local_matrix_type local_matrix_type;
 
@@ -226,7 +227,7 @@ class DataImport : public IDataImport
 	public:
 	///	type of evaluation function
 		typedef bool (IElemDisc::*LinDefectFunc)(const local_vector_type& u,
-												 std::vector<std::vector<TData> >* vvvLinDefect,
+												 std::vector<std::vector<TData> > vvvLinDefect[],
 												 const size_t nip);
 
 	///	sets the geometric object type
@@ -343,12 +344,12 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		template <typename T, int refDim>
 		void set_fct(ReferenceObjectID id, IElemDisc* obj,
 		             bool (T::*func)(const IElemDisc::local_vector_type& u,
-		            		 	 	 const MathVector<dim>* vGlobIP,
-		            		 	 	 const MathVector<refDim>* vLocIP,
+		            		 	 	 const MathVector<dim> vGlobIP[],
+		            		 	 	 const MathVector<refDim> vLocIP[],
 		            		 	 	 const size_t nip,
-		            		 	 	 TData* vValue,
+		            		 	 	 TData vValue[],
 		            		 	 	 bool bDeriv,
-		            		 	 	 std::vector<std::vector<TData> >* vvvDeriv));
+		            		 	 	 std::vector<std::vector<TData> > vvvDeriv[]));
 
 	///	clears all export functions
 		void clear_fct();

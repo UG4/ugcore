@@ -387,7 +387,7 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_velocity_fv1(const local_vector_type& u,
-                     std::vector<std::vector<MathVector<dim> > >* vvvLinDef,
+                     std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                      const size_t nip)
 {
 // 	get finite volume geometry
@@ -428,7 +428,7 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_diffusion_fv1(const local_vector_type& u,
-                      std::vector<std::vector<MathMatrix<dim,dim> > >* vvvLinDef,
+                      std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
                       const size_t nip)
 {
 //  get finite volume geometry
@@ -481,7 +481,7 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_reaction_fv1(const local_vector_type& u,
-                     std::vector<std::vector<number> >* vvvLinDef,
+                     std::vector<std::vector<number> > vvvLinDef[],
                      const size_t nip)
 {
 //  get finite volume geometry
@@ -509,7 +509,7 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_source_fv1(const local_vector_type& u,
-                   std::vector<std::vector<number> >* vvvLinDef,
+                   std::vector<std::vector<number> > vvvLinDef[],
                    const size_t nip)
 {
 //  get finite volume geometry
@@ -537,7 +537,7 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_mass_scale_fv1(const local_vector_type& u,
-                       std::vector<std::vector<number> >* vvvLinDef,
+                       std::vector<std::vector<number> > vvvLinDef[],
                        const size_t nip)
 {
 //  get finite volume geometry
@@ -565,12 +565,12 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
 ex_concentration_fv1(const local_vector_type& u,
-                     const MathVector<dim>* vGlobIP,
-                     const MathVector<TFVGeom::dim>* vLocIP,
+                     const MathVector<dim> vGlobIP[],
+                     const MathVector<TFVGeom::dim> vLocIP[],
                      const size_t nip,
-                     number* vValue,
+                     number vValue[],
                      bool bDeriv,
-                     std::vector<std::vector<number> >* vvvDeriv)
+                     std::vector<std::vector<number> > vvvDeriv[])
 {
 //  get finite volume geometry
 	const static TFVGeom& geo = Provider::get<TFVGeom>();
@@ -628,12 +628,12 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
 ex_concentration_grad_fv1(const local_vector_type& u,
-                          const MathVector<dim>* vGlobIP,
-                          const MathVector<TFVGeom::dim>* vLocIP,
+                          const MathVector<dim> vGlobIP[],
+                          const MathVector<TFVGeom::dim> vLocIP[],
                           const size_t nip,
-                          MathVector<dim>* vValue,
+                          MathVector<dim> vValue[],
                           bool bDeriv,
-                          std::vector<std::vector<MathVector<dim> > >* vvvDeriv)
+                          std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
 	static const TFVGeom& geo = Provider::get<TFVGeom>();

@@ -258,7 +258,7 @@ The order of evaluation is as follows.
 	<li> Remember imports that are connected to a non-zero-derivative data. This
 		imports are scheduled for the evaluation of the linearized defect.
 	<li> TODO: Skip Exports, that are already scheduled.
-	<li> <b>set_geometric_object_type(...)</b>: Set geometric object type for 
+	<li> <b>set_roid(...)</b>: Set geometric object type for 
 		each IElemDisc to indicate which evaluation function must be used
 	<li> <b>prepare_element_loop(...)</b>: Call preparation of element loop for 
 		each IElemDisc. Local positions are set for DataImports here.
