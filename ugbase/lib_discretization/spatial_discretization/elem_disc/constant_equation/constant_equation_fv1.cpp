@@ -242,13 +242,18 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-lin_defect_velocity(const local_vector_type& u)
+lin_def_velocity(const local_vector_type& u,
+                 std::vector<std::vector<MathVector<dim> > >* vvvLinDef,
+                 const size_t nip)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
 
 //	reset the values for the linearized defect
-	m_imVelocity.clear_lin_defect();
+	for(size_t ip = 0; ip < nip; ++ip)
+		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
+			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
+				vvvLinDef[ip][c][sh] = 0.0;
 
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -256,12 +261,9 @@ lin_defect_velocity(const local_vector_type& u)
 	// get current SCVF
 		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(ip);
 
-	//	get derivatives to shapes at ip
-		MathVector<dim>* vLinDef = m_imVelocity.lin_defect(ip, _C_);
-
 	//	add parts for both sides of scvf
-		vLinDef[scvf.from()] += scvf.normal();
-		vLinDef[scvf.to()] -= scvf.normal();
+		vvvLinDef[ip][_C_][scvf.from()] += scvf.normal();
+		vvvLinDef[ip][_C_][scvf.to()] -= scvf.normal();
 	}
 
 //	we're done
@@ -273,7 +275,9 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-lin_defect_source(const local_vector_type& u)
+lin_def_source(const local_vector_type& u,
+               std::vector<std::vector<number> >* vvvLinDef,
+               const size_t nip)
 {
 //  get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
@@ -287,8 +291,8 @@ lin_defect_source(const local_vector_type& u)
 	// 	get associated node
 		const int co = scv.node_id();
 
-	// 	Add to local defect
-		m_imSource.lin_defect(ip, _C_, co) = scv.volume();
+	// 	set lin defect
+		vvvLinDef[ip][_C_][co] = scv.volume();
 	}
 
 //	we're done
@@ -300,13 +304,12 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-lin_defect_mass_scale(const local_vector_type& u)
+lin_def_mass_scale(const local_vector_type& u,
+                   std::vector<std::vector<number> >* vvvLinDef,
+                   const size_t nip)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo	= Provider::get<TFVGeom<TElem,dim> >();
-
-//	reset all values
-	m_imMassScale.clear_lin_defect();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t co = 0; co < geo.num_scv(); ++co)
@@ -317,8 +320,8 @@ lin_defect_mass_scale(const local_vector_type& u)
 	// 	Check associated node
 		UG_ASSERT(co == scv.node_id(), "Only one shape per SCV");
 
-	// 	Add to local defect
-		m_imMassScale.lin_defect(co, _C_, co) = scv.volume();
+	// 	set lin defect
+		vvvLinDef[co][_C_][co] = scv.volume();
 	}
 
 //	we're done
@@ -496,9 +499,9 @@ register_fv1_func()
 	set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
-	m_imVelocity. reg_lin_defect_fct(id, this, &T::template lin_defect_velocity<TElem, TFVGeom>);
-	m_imSource.	  reg_lin_defect_fct(id, this, &T::template lin_defect_source<TElem, TFVGeom>);
-	m_imMassScale.reg_lin_defect_fct(id, this, &T::template lin_defect_mass_scale<TElem, TFVGeom>);
+	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
+	m_imSource.	  set_fct(id, this, &T::template lin_def_source<TElem, TFVGeom>);
+	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale<TElem, TFVGeom>);
 
 //	exports
 	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_concentration<TElem, TFVGeom>);

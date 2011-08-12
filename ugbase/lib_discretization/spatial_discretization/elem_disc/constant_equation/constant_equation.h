@@ -176,15 +176,21 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_defect_velocity(const local_vector_type& u);
+		bool lin_def_velocity(const local_vector_type& u,
+	                          std::vector<std::vector<MathVector<dim> > >* vvvLinDef,
+	                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_defect_source(const local_vector_type& u);
+		bool lin_def_source(const local_vector_type& u,
+                            std::vector<std::vector<number> >* vvvLinDef,
+                            const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_defect_mass_scale(const local_vector_type& u);
+		bool lin_def_mass_scale(const local_vector_type& u,
+	                            std::vector<std::vector<number> >* vvvLinDef,
+	                            const size_t nip);
 
 	private:
 	///	Corner Coordinates

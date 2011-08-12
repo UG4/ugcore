@@ -309,23 +309,33 @@ class ConvectionDiffusionElemDisc
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
-		bool lin_defect_velocity_fv1(const local_vector_type& u);
+		bool lin_def_velocity_fv1(const local_vector_type& u,
+		                          std::vector<std::vector<MathVector<dim> > >* vvvLinDef,
+		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
-		bool lin_defect_diffusion_fv1(const local_vector_type& u);
+		bool lin_def_diffusion_fv1(const local_vector_type& u,
+		                           std::vector<std::vector<MathMatrix<dim,dim> > >* vvvLinDef,
+		                           const size_t nip);
 
 	///	computes the linearized defect w.r.t to the reaction
 		template <typename TElem, typename TFVGeom>
-		bool lin_defect_reaction_fv1(const local_vector_type& u);
+		bool lin_def_reaction_fv1(const local_vector_type& u,
+		                          std::vector<std::vector<number> >* vvvLinDef,
+		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, typename TFVGeom>
-		bool lin_defect_source_fv1(const local_vector_type& u);
+		bool lin_def_source_fv1(const local_vector_type& u,
+		                        std::vector<std::vector<number> >* vvvLinDef,
+		                        const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TFVGeom>
-		bool lin_defect_mass_scale_fv1(const local_vector_type& u);
+		bool lin_def_mass_scale_fv1(const local_vector_type& u,
+		                            std::vector<std::vector<number> >* vvvLinDef,
+		                            const size_t nip);
 
 	private:
 	///	Corner Coordinates

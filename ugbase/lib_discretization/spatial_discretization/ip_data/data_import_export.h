@@ -23,14 +23,18 @@ namespace ug{
  */
 class IDataImport
 {
-	typedef IElemDisc::local_matrix_type local_matrix_type;
+	///	type of local matrix
+		typedef IElemDisc::local_matrix_type local_matrix_type;
+
+	///	type of local vector
+		typedef IElemDisc::local_vector_type local_vector_type;
 
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_pIDependentIPData(NULL), m_id(ROID_INVALID), m_pObj(NULL),
+			: m_pIDependentIPData(NULL),
 			 m_bInMassPart(false),  m_bCompLinDefect(compLinDefect)
-		{clear_fct();}
+		{}
 
 		virtual ~IDataImport()	{}
 
@@ -71,6 +75,12 @@ class IDataImport
 	/// number of functions
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
+	///	sets the geometric object type
+		virtual bool set_geometric_object_type(ReferenceObjectID id) = 0;
+
+	///	compute lin defect
+		virtual bool compute_lin_defect(const local_vector_type& u) = 0;
+
 	///	resize arrays
 		virtual void resize(const LocalIndices& ind,
 		                    const FunctionIndexMapping& map) = 0;
@@ -86,43 +96,11 @@ class IDataImport
 		FunctionGroup m_fctGrp;
 
 	protected:
-	///	type of local vector
-		typedef IElemDisc::local_vector_type local_vector_type;
-
-	///	type of evaluation function
-		typedef bool (IElemDisc::*LinDefectFunc)(const local_vector_type& u);
-
-	/// current Geom Object
-		ReferenceObjectID m_id;
-
-	///	elem disc
-		IElemDisc* m_pObj;
-
-	///	function pointers for all elem types
-		LinDefectFunc m_vLinDefectFunc[NUM_REFERENCE_OBJECTS];
-
 	///	flag to indicate if import is located in mass part
 		bool m_bInMassPart;
 
 	///	indicates iff lin defect should be computed
 		bool m_bCompLinDefect;
-
-	public:
-	///	sets the geometric object type
-		bool set_geometric_object_type(ReferenceObjectID id);
-
-	///	register evaluation of linear defect for a element
-		template <typename TFunc>
-		void reg_lin_defect_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func);
-
-	///	clear all evaluation functions
-		void clear_fct();
-
-	///	compute lin defect
-		bool compute_lin_defect(const local_vector_type& u)
-		{
-			return (m_pObj->*(m_vLinDefectFunc[m_id]))(u);
-		}
 };
 
 /// Data import
@@ -139,9 +117,10 @@ class DataImport : public IDataImport
 	public:
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
+			m_id(ROID_INVALID), m_pObj(NULL),
 			m_seriesID(-1),	m_pIPData(NULL), m_vValue(NULL),
 			m_numIP(0), m_pDependentIPData(NULL)
-		{}
+		{clear_fct();}
 
 	///	set the user data
 		void set_data(IPData<TData, dim>& data);
@@ -238,14 +217,36 @@ class DataImport : public IDataImport
 		const TData& lin_defect(size_t ip, size_t fct, size_t sh) const
 			{check_ip_fct_sh(ip,fct,sh);return m_vvvLinDefect[ip][fct][sh];}
 
-	///	resets all values of the linearized defect to zero
-		void clear_lin_defect();
-
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
 		void assemble_jacobian(local_matrix_type& J);
 
 	///	resize lin defect arrays
 		virtual void resize(const LocalIndices& ind, const FunctionIndexMapping& map);
+
+	public:
+	///	type of evaluation function
+		typedef bool (IElemDisc::*LinDefectFunc)(const local_vector_type& u,
+												 std::vector<std::vector<TData> >* vvvLinDefect,
+												 const size_t nip);
+
+	///	sets the geometric object type
+		virtual bool set_geometric_object_type(ReferenceObjectID id);
+
+	///	register evaluation of linear defect for a element
+		template <typename TFunc>
+		void set_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func);
+
+	///	clear all evaluation functions
+		void clear_fct();
+
+	///	compute lin defect
+		virtual bool compute_lin_defect(const local_vector_type& u)
+		{
+			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
+			return (m_pObj->*(m_vLinDefectFunc[m_id]))(u,
+													   &m_vvvLinDefect[0],
+													   m_numIP);
+		}
 
 	protected:
 	///	checks in debug mode the correct index
@@ -259,6 +260,15 @@ class DataImport : public IDataImport
 
 	///	checks in debug mode the correct index
 		inline void check_values() const;
+
+	/// current Geom Object
+		ReferenceObjectID m_id;
+
+	///	elem disc
+		IElemDisc* m_pObj;
+
+	///	function pointers for all elem types
+		LinDefectFunc m_vLinDefectFunc[NUM_REFERENCE_OBJECTS];
 
 	///	series number provided by export
 		int m_seriesID;

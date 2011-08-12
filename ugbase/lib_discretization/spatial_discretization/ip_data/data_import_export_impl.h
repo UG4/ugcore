@@ -13,10 +13,11 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-// IDataImport
+// DataImport
 ////////////////////////////////////////////////////////////////////////////////
 
-inline bool IDataImport::set_geometric_object_type(ReferenceObjectID id)
+template <typename TData, int dim>
+bool DataImport<TData,dim>::set_geometric_object_type(ReferenceObjectID id)
 {
 //	if lin defect is not supposed to be computed, we're done
 	if(!m_bCompLinDefect) return true;
@@ -31,31 +32,28 @@ inline bool IDataImport::set_geometric_object_type(ReferenceObjectID id)
 //	return error else
 	else
 	{
-		UG_LOG("ERROR in 'IDataImport::set_geometric_object_type':"
-				"No lin defect functions registered "
-				"for object with reference object id " << id << ".\n");
+		UG_LOG("ERROR in 'DataImport::set_geometric_object_type':"
+				"No lin defect functions registered for " << id << ".\n");
 		m_id = ROID_INVALID;
 		return false;
 	}
 }
 
+template <typename TData, int dim>
 template <typename TFunc>
-void IDataImport::reg_lin_defect_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func)
+void DataImport<TData,dim>::set_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func)
 {
 	m_vLinDefectFunc[id] = static_cast<LinDefectFunc>(func);
 	m_pObj = obj;
 }
 
-inline void IDataImport::clear_fct()
+template <typename TData, int dim>
+void DataImport<TData,dim>::clear_fct()
 {
 	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 		m_vLinDefectFunc[i] = NULL;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// DataImport
-////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
 void DataImport<TData,dim>::set_data(IPData<TData, dim>& data)
@@ -107,15 +105,6 @@ void DataImport<TData,dim>::set_global_ips(const MathVector<dim>* vPos, size_t n
 //	set global ips for series ID
 	UG_ASSERT(m_seriesID >= 0, "Wrong series id.");
 	m_pIPData->set_global_ips(m_seriesID,vPos,numIP);
-}
-
-template <typename TData, int dim>
-void DataImport<TData,dim>::clear_lin_defect()
-{
-	for(size_t ip = 0; ip < m_vvvLinDefect.size(); ++ip)
-		for(size_t fct = 0; fct < m_vvvLinDefect[ip].size(); ++fct)
-			for(size_t sh = 0; sh < m_vvvLinDefect[ip][fct].size(); ++sh)
-				m_vvvLinDefect[ip][fct][sh] = 0.0;
 }
 
 template <typename TData, int dim>

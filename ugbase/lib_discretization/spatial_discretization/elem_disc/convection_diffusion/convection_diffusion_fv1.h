@@ -386,7 +386,9 @@ elem_rhs_fv1(local_vector_type& d)
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_defect_velocity_fv1(const local_vector_type& u)
+lin_def_velocity_fv1(const local_vector_type& u,
+                     std::vector<std::vector<MathVector<dim> > >* vvvLinDef,
+                     const size_t nip)
 {
 // 	get finite volume geometry
 	const static TFVGeom& geo = Provider::get<TFVGeom>();
@@ -395,16 +397,16 @@ lin_defect_velocity_fv1(const local_vector_type& u)
 	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
 
 //	reset the values for the linearized defect
-	m_imVelocity.clear_lin_defect();
+	for(size_t ip = 0; ip < nip; ++ip)
+		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
+			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
+				vvvLinDef[ip][c][sh] = 0.0;
 
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
 	// get current SCVF
 		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
-
-	//	get derivatives to shapes at ip
-		MathVector<dim>* vLinDef = m_imVelocity.lin_defect(ip, _C_);
 
 	//	sum up contributions of convection shapes
 		MathVector<dim> linDefect;
@@ -413,8 +415,8 @@ lin_defect_velocity_fv1(const local_vector_type& u)
 			VecScaleAppend(linDefect, u(_C_,sh), convShape.D_vel(ip, sh));
 
 	//	add parts for both sides of scvf
-		vLinDef[scvf.from()] += linDefect;
-		vLinDef[scvf.to()] -= linDefect;
+		vvvLinDef[ip][_C_][scvf.from()] += linDefect;
+		vvvLinDef[ip][_C_][scvf.to()] -= linDefect;
 	}
 
 //	we're done
@@ -425,7 +427,9 @@ lin_defect_velocity_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_defect_diffusion_fv1(const local_vector_type& u)
+lin_def_diffusion_fv1(const local_vector_type& u,
+                      std::vector<std::vector<MathMatrix<dim,dim> > >* vvvLinDef,
+                      const size_t nip)
 {
 //  get finite volume geometry
 	const static TFVGeom& geo = Provider::get<TFVGeom>();
@@ -433,8 +437,11 @@ lin_defect_diffusion_fv1(const local_vector_type& u)
 //	get conv shapes
 	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
 
-//	cleat the linearized defect
-	m_imDiffusion.clear_lin_defect();
+//	reset the values for the linearized defect
+	for(size_t ip = 0; ip < nip; ++ip)
+		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
+			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
+				vvvLinDef[ip][c][sh] = 0.0;
 
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -461,8 +468,8 @@ lin_defect_diffusion_fv1(const local_vector_type& u)
 				MatAdd(linDefect, convShape.D_diffusion(ip, sh), u(_C_, sh));
 
 	//	add contributions
-		m_imDiffusion.lin_defect(ip, _C_, scvf.from()) -= linDefect;
-		m_imDiffusion.lin_defect(ip, _C_, scvf.to()) += linDefect;
+		vvvLinDef[ip][_C_][scvf.from()] -= linDefect;
+		vvvLinDef[ip][_C_][scvf.to()  ] += linDefect;
 	}
 
 //	we're done
@@ -473,7 +480,9 @@ lin_defect_diffusion_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_defect_reaction_fv1(const local_vector_type& u)
+lin_def_reaction_fv1(const local_vector_type& u,
+                     std::vector<std::vector<number> >* vvvLinDef,
+                     const size_t nip)
 {
 //  get finite volume geometry
 	const static TFVGeom& geo = Provider::get<TFVGeom>();
@@ -487,8 +496,8 @@ lin_defect_reaction_fv1(const local_vector_type& u)
 	// 	get associated node
 		const int co = scv.node_id();
 
-	// 	Add to local defect
-		m_imReaction.lin_defect(ip, _C_, co) = u(_C_, co) * scv.volume();
+	// 	set lin defect
+		vvvLinDef[ip][_C_][co] = u(_C_, co) * scv.volume();
 	}
 
 //	we're done
@@ -499,7 +508,9 @@ lin_defect_reaction_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_defect_source_fv1(const local_vector_type& u)
+lin_def_source_fv1(const local_vector_type& u,
+                   std::vector<std::vector<number> >* vvvLinDef,
+                   const size_t nip)
 {
 //  get finite volume geometry
 	const static TFVGeom& geo = Provider::get<TFVGeom>();
@@ -513,8 +524,8 @@ lin_defect_source_fv1(const local_vector_type& u)
 	// 	get associated node
 		const int co = scv.node_id();
 
-	// 	Add to local defect
-		m_imSource.lin_defect(ip, _C_, co) = scv.volume();
+	// 	set lin defect
+		vvvLinDef[ip][_C_][co] = scv.volume();
 	}
 
 //	we're done
@@ -525,22 +536,24 @@ lin_defect_source_fv1(const local_vector_type& u)
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_defect_mass_scale_fv1(const local_vector_type& u)
+lin_def_mass_scale_fv1(const local_vector_type& u,
+                       std::vector<std::vector<number> >* vvvLinDef,
+                       const size_t nip)
 {
 //  get finite volume geometry
 	const static TFVGeom& geo = Provider::get<TFVGeom>();
 
 // 	loop Sub Control Volumes (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+	for(size_t co = 0; co < geo.num_scv(); ++co)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
+		const typename TFVGeom::SCV& scv = geo.scv(co);
 
-	// 	get associated node
-		const int co = scv.node_id();
+	// 	Check associated node
+		UG_ASSERT(co == scv.node_id(), "Only one shape per SCV");
 
-	// 	Add to local defect
-		m_imMassScale.lin_defect(ip, _C_, co) = u(_C_, co) * scv.volume();
+	// 	set lin defect
+		vvvLinDef[co][_C_][co] = u(_C_, co) * scv.volume();
 	}
 
 //	we're done
@@ -721,11 +734,11 @@ register_fv1_func()
 	set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fv1<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
-	m_imVelocity. reg_lin_defect_fct(id, this, &T::template lin_defect_velocity_fv1<TElem, TFVGeom>);
-	m_imDiffusion.reg_lin_defect_fct(id, this, &T::template lin_defect_diffusion_fv1<TElem, TFVGeom>);
-	m_imReaction. reg_lin_defect_fct(id, this, &T::template lin_defect_reaction_fv1<TElem, TFVGeom>);
-	m_imSource.	  reg_lin_defect_fct(id, this, &T::template lin_defect_source_fv1<TElem, TFVGeom>);
-	m_imMassScale.reg_lin_defect_fct(id, this, &T::template lin_defect_mass_scale_fv1<TElem, TFVGeom>);
+	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fv1<TElem, TFVGeom>);
+	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion_fv1<TElem, TFVGeom>);
+	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fv1<TElem, TFVGeom>);
+	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fv1<TElem, TFVGeom>);
+	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fv1<TElem, TFVGeom>);
 
 //	exports
 	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_concentration_fv1<TElem, TFVGeom>);
