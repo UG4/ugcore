@@ -355,8 +355,7 @@ class GridFunctionDebugWriter
 			if(found != std::string::npos) name.resize(found);
 
 		//	add ending
-		//	\todo: Introduce a ending *.vec for Connection Viewer
-			name.append(".mat");
+			name.append(".vec");
 
 		//	write to file
 			WriteVectorToConnectionViewer(name.c_str(), vec, *m_pGridFunc);
