@@ -44,7 +44,7 @@
  *    obtained by solving the entire linear system from which it originates after
  *    augmenting the given right hand side with zeros.
  *    Group all the interior and dual variables of each subdomain together
- *    and factor the resulting blocks in paralle across the subdomains using a
+ *    and factor the resulting blocks in parallel across the subdomains using a
  *     good ordering algorithm.
  *
  *    The contributions of the remaining Schur complement, of the primal variables,
@@ -102,12 +102,12 @@ class FetiLayouts
 							*m_pMasterStdLayout, *m_pSlaveStdLayout,
 							(int)(numIndices - 1), DDInfo);
 
-		//	create local feti block communicator
+		//	create intra feti subdomain communicator
 			int localSubdomID = DDInfo.map_proc_id_to_subdomain_id(pcl::GetProcRank());
 			pcl::ProcessCommunicator worldComm;
 			for(int i = 0; i < DDInfo.get_num_subdomains(); ++i){
 				if(localSubdomID == i)
-					m_localFetiBlockComm = worldComm.create_sub_communicator(true);
+					m_intraFetiSubDomComm = worldComm.create_sub_communicator(true);
 				else
 					worldComm.create_sub_communicator(false);
 			}
@@ -212,10 +212,10 @@ class FetiLayouts
 		IndexLayout& get_std_slave_layout() {return *m_pSlaveStdLayout;}
 		pcl::ProcessCommunicator& get_std_process_communicator() {return m_stdProcessCom;}
 
-	//	inner layouts
-		IndexLayout& get_inner_master_layout() {return m_masterInnerLayout;}
-		IndexLayout& get_inner_slave_layout() {return m_slaveInnerLayout;}
-		pcl::ProcessCommunicator& get_inner_process_communicator() {return m_localFetiBlockComm;}
+	//	intra subdomain layouts
+		IndexLayout& get_intra_sd_master_layout() {return m_masterInnerLayout;}
+		IndexLayout& get_intra_sd_slave_layout() {return m_slaveInnerLayout;}
+		pcl::ProcessCommunicator& get_intra_sd_process_communicator() {return m_intraFetiSubDomComm;}
 
 	//	dual layouts
 		IndexLayout& get_dual_master_layout() {return m_masterDualLayout;}
@@ -249,12 +249,12 @@ class FetiLayouts
 			vec.set_process_communicator(get_std_process_communicator());
 		}
 
-	//	sets inner communication layouts and communicators
-		void vec_use_inner_communication(vector_type& vec)
+	//	sets intra subdomain communication layouts and communicators
+		void vec_use_intra_sd_communication(vector_type& vec)
 		{
-			vec.set_slave_layout(get_inner_slave_layout());
-			vec.set_master_layout(get_inner_master_layout());
-			vec.set_process_communicator(get_inner_process_communicator());
+			vec.set_slave_layout(get_intra_sd_slave_layout());
+			vec.set_master_layout(get_intra_sd_master_layout());
+			vec.set_process_communicator(get_intra_sd_process_communicator());
 		}
 
 	public:
@@ -345,12 +345,12 @@ class FetiLayouts
 			mat.set_process_communicator(get_std_process_communicator());
 		}
 
-	//	sets inner communication layouts and communicators
-		void mat_use_inner_communication(matrix_type& mat)
+	//	sets intra subdomain communication layouts and communicators
+		void mat_use_intra_sd_communication(matrix_type& mat)
 		{
-			mat.set_slave_layout(get_inner_slave_layout());
-			mat.set_master_layout(get_inner_master_layout());
-			mat.set_process_communicator(get_inner_process_communicator());
+			mat.set_slave_layout(get_intra_sd_slave_layout());
+			mat.set_master_layout(get_intra_sd_master_layout());
+			mat.set_process_communicator(get_intra_sd_process_communicator());
 		}
 
 	protected:
@@ -392,7 +392,7 @@ class FetiLayouts
 	//	Layouts and Communicator for Inner variables
 		IndexLayout m_masterInnerLayout;
 		IndexLayout m_slaveInnerLayout;
-		pcl::ProcessCommunicator	m_localFetiBlockComm;
+		pcl::ProcessCommunicator	m_intraFetiSubDomComm;
 
 	//	Layouts for Dual variables
 		IndexLayout m_masterDualLayout;
