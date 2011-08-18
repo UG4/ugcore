@@ -1074,7 +1074,7 @@ bool FV1LevelSetDisc<TGridFunction>::init_function(TGridFunction& u)
 };
 
 template<typename TGridFunction>
-bool FV1LevelSetDisc<TGridFunction>::FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
+bool FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
 {
 	//	get domain of grid function
 	domain_type& domain = uNew.get_domain();
