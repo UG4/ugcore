@@ -1336,7 +1336,7 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 		   };
 	    }
 	    m_time += m_dt;
-	    UG_LOG("m_dt " << m_dt << " m_time " << m_time << endl);
+	    UG_LOG("m_dt " << m_dt << " m_time " << m_time << "\n");
 	    m_timestep_nr++;
 	    assign_dirichlet(uNew,1);// attention: hard-coded dirichlet subset index
 
