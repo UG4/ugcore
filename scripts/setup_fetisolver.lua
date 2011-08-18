@@ -55,6 +55,31 @@ salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -logtofile feti-sd1_8x8-quad_pr
 salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -distType grid2d -logtofile feti-sd1_8x8-quad_prerefs3-refs8_grid2d_pe64.txt - jetzt geht "step 3.b" auf folgenden Procs nicht:
 39, 47, 31, 55, 60, 61, 62, 3, 1, 2
 
+# Test, ob S_PiPi identisch fuer konstante Anzahl Subdomains:
+UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
+salloc        -n  16 mpirun ./ugshell $UGARGS numRefs 8 -dps rsamg -verb 2 -dbgw 1 -nPPSD 1
+salloc        -n  64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4
+# mit Overcommit:
+salloc -N 16 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4
+salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 2 -dps bicg  -verb 2 -dbgw 1 -nPPSD 16
+==> alle drei Schurkomplement-Matrizen identisch (umbenannt):
+RootSchurComplementMatrix_p0000_pe256_sd16_coords.mat RootSchurComplementMatrix_p0000_pe64_sd16_coords.mat RootSchurComplementMatrix_p0000_pe16_sd16_coords.mat
+
+
+# Vergleich und Test der Ausgaben beim Erzeugen von S_PiPi - identisches Problem, unterschiedliche outprocs:
+UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  0 -logtofile feti_pe64_sd16_p00.txt
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  1 -logtofile feti_pe64_sd16_p01.txt
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  2 -logtofile feti_pe64_sd16_p02.txt
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  3 -logtofile feti_pe64_sd16_p03.txt
+
+
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 12 -logtofile feti_pe64_sd16_p12.txt
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 13 -logtofile feti_pe64_sd16_p13.txt
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 14 -logtofile feti_pe64_sd16_p14.txt
+salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 15 -logtofile feti_pe64_sd16_p15.txt
+
+
 # JuGene:
 #########
 UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -nPPSD 1"
@@ -163,7 +188,7 @@ function SetupFETISolver(domain,
 	-- types of sub solvers:
 	local coarseProblemSolverType    = util.GetParam("-cps", "exact") -- choose one in ["exact" | "cg" | "hlib" ]
 	local neumannProblemSolverType   = util.GetParam("-nps",    "cg") -- choose one in ["exact" | "ls" | "cg" | "bicg" ]
-	local dirichletProblemSolverType = util.GetParam("-dps",    "cg") -- choose one in ["exact" | "ls" | "cg" | "bicg" ]
+	local dirichletProblemSolverType = util.GetParam("-dps",    "cg") -- choose one in ["exact" | "ls" | "cg" | "bicg" | "rsamg" ]
 
 
 	-- Display parameters (or defaults):
@@ -320,7 +345,7 @@ function SetupFETISolver(domain,
 		exit()
 	end
 	
-	-- define convergence criteria for the coarse problem solver
+	-- define convergence criteria for the Neumann problem solver
 	neumannConvCheck = StandardConvergenceCheck()
 	neumannConvCheck:set_maximum_steps(2000)
 	neumannConvCheck:set_minimum_defect(1e-10)
@@ -383,9 +408,9 @@ function SetupFETISolver(domain,
 		exit()
 	end
 	
-	-- define convergence criteria for the coarse problem solver
+	-- define convergence criteria for the Dirichlet problem solver
 	dirichletConvCheck = StandardConvergenceCheck()
-	dirichletConvCheck:set_maximum_steps(100)
+	dirichletConvCheck:set_maximum_steps(2000)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
 	dirichletConvCheck:set_verbose_level(false)
