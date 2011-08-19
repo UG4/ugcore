@@ -437,39 +437,39 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 	UG_LOG("     %  -------------------------------------------------------------------" << std::endl); 
 	UG_LOG("     %  - Assemble entries of Schur complement matrix on 'primal root proc' " << m_primalRootProc << std::endl);
-	UG_LOG("     %  - Log num primal variables for proc " << pcl::GetProcRank() << ":" << std::endl);
+	UG_LOG("     %  - Log num primal variables for proc " << pcl::GetProcRank() << " (outproc):" << std::endl);
+	UG_LOG("     %  -    num procs on this feti subdomain:  " << intraFetiSubdomComm.size() << "," << std::endl);
+	UG_LOG("     %  -          as looped ([counter:rank]): ");
+	for (size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size(); ++procInFetiSD)
+		UG_LOG("[" << procInFetiSD << ":"<< intraFetiSubdomComm.get_proc_id(procInFetiSD) << "] ");
+	UG_LOG(std::endl);
 
-	UG_LOG("     %  - num primal variables in total (whole domain)");
+
+	UG_LOG("     %  -    num primal variables in total (whole domain)");
 	if (pcl::GetProcRank() == m_primalRootProc) {
 		UG_LOG(": " << newVecSize << std::endl);
 	} else {
 		UG_LOG(" only known by primal root proc (try '-outproc <primal root proc>')!" << std::endl);
 	}
 
-	UG_LOG("     %  - num procs on this feti subdom: " << intraFetiSubdomComm.size() << std::endl);
-	UG_LOG("     %  - procs on this feti subdom as looped (counter:rank): ");
-	for (size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size(); ++procInFetiSD)
-		UG_LOG("(" << procInFetiSD << ":"<< intraFetiSubdomComm.get_proc_id(procInFetiSD) << ") ");
+	UG_LOG("     %  -                         on this feti subdomain:  " << vSubdomPrimalRootIDs.size() << std::endl);
+	UG_LOG("     %  -                         on each proc of this subdomain ([rank:#pv]): ");
+	for (size_t i = 0; i < vNumPrimalVariablesPerProc.size(); ++i) // 'vNumPrimalVariablesPerProc.size()' = 'intraFetiSubdomComm.size()'!
+		UG_LOG("[" << intraFetiSubdomComm.get_proc_id(i) << ":"<< vNumPrimalVariablesPerProc[i] << "] ");
 	UG_LOG(std::endl);
 
-	UG_LOG("     %  - num primal variables on this feti subdom: " << vSubdomPrimalRootIDs.size() << std::endl);
-	UG_LOG("     %  - primal root proc algebra indices on this feti subdom as looped: ");
+	UG_LOG("     %  -    primal root proc algebra indices on this feti subdomain: ");
 	for (size_t i = 0; i < vSubdomPrimalRootIDs.size(); ++i)
 		UG_LOG(vSubdomPrimalRootIDs[i] << " ");
 	UG_LOG(std::endl);
 
-	UG_LOG("     %  - num primal variables on each process of this subdom (proc rank:#Primal): ");
-	for (size_t i = 0; i < vNumPrimalVariablesPerProc.size(); ++i) // 'vNumPrimalVariablesPerProc.size()' = 'intraFetiSubdomComm.size()'!
-		UG_LOG("(" << intraFetiSubdomComm.get_proc_id(i) << ":"<< vNumPrimalVariablesPerProc[i] << ") ");
-	UG_LOG(std::endl);
-
-	UG_LOG("     %  - local-proc algebra indices for proc " << pcl::GetProcRank()<<": ");
-	for (size_t i = 0; i < vLocalPrimalIndex.size(); ++i) UG_LOG(vLocalPrimalIndex[i] << " ");
-	UG_LOG(std::endl);
-
-	UG_LOG("     %  - corresponding root proc algebra indices for proc " << pcl::GetProcRank() <<": ");
+	UG_LOG("     %  -                                     on proc "<<pcl::GetProcRank()<<" (outproc):    ");
 	for (size_t i = 0; i < vLocalPrimalIndex.size(); ++i)
 		UG_LOG(vTotalPrimalRootIDs[vLocalPrimalIndex[i]] << " "); // = 'vLocalPrimalRootIDs[i]'
+	UG_LOG(std::endl);
+
+	UG_LOG("     %  -           corresponding local-proc algebra indices:         ");
+	for (size_t i = 0; i < vLocalPrimalIndex.size(); ++i) UG_LOG(vLocalPrimalIndex[i] << " ");
 	UG_LOG(std::endl);
 
 
@@ -504,7 +504,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	for(size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size();
 			procInFetiSD++)
 	{
-		// loop over feti subdomain primals (\Pi variables) of current proc
+		// loop over feti subdomain primals (\Pi variables) of current proc in loop
 		for(size_t pvi = 0; pvi < (size_t)vNumPrimalVariablesPerProc[procInFetiSD]; ++pvi)
 		{
 		////////////////////////////
@@ -647,7 +647,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 	//	info output
 		UG_LOG("     %  - Creating Schur Complement matrix"
-						" of size " << newVecSize <<"x"<<newVecSize << std::endl);
+			   " of size '" << newVecSize <<"x"<<newVecSize << "'" <<std::endl);
 
 	//	copy received values into matrix
 		mat.set(0.0);
@@ -1127,7 +1127,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 	bool debugLayouts = (m_pDebugWriter==NULL) ? false : true;
 
 //	1. create FETI Layouts
-	UG_LOG("\n%   - Create FETI layouts ...");
+	UG_LOG("\n%   - Create FETI layouts ... ");
 	FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts);
 	m_fetiLayouts.create_layouts(m_pMatrix->get_master_layout(),
 	                             m_pMatrix->get_slave_layout(),
@@ -1159,7 +1159,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 	m_LocalSchurComplement.set_matrix(*m_pOperator);
 
 //	2.3 init local Schur complement
-	UG_LOG("\n%   - Init Local Schur Complement ...");
+	UG_LOG("\n%   - Init Local Schur Complement ... ");
 	FETI_PROFILE_BEGIN(FETISolverInit_InitLocalSchurComplement);
 	if(m_LocalSchurComplement.init() != true)
 	{
@@ -1209,7 +1209,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 
 //	3.4 init PrimalSubassembledMatrixInverse (operator - given as parameter here - is also set thereby)
 	FETI_PROFILE_BEGIN(FETISolverInit_InitPrimalSubassMatInv);
-	UG_LOG("\n%   - Init PrimalSubassembledMatrixInverse ...\n");
+	UG_LOG("\n%   - Init 'PrimalSubassembledMatrixInverse' ...\n");
 	if(m_PrimalSubassembledMatrixInverse.init(*m_pOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
