@@ -80,6 +80,9 @@ class SubsetGroup
 	 */
 		bool remove(const char* name);
 
+	/// removes all subsets of another subset from the group
+		bool remove(const SubsetGroup& ssGroup);
+
 	/// clear all subsets
 		void clear() {m_vSubset.clear();}
 

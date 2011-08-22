@@ -150,6 +150,32 @@ bool SubsetGroup::remove(const char* name)
 	return true;
 }
 
+bool SubsetGroup::remove(const SubsetGroup& ssGroup)
+{
+	if(!is_init())
+	{
+		UG_LOG("No SubsetHandler set. "
+				"Cannot use SubsetGroup without SubsetHandler.\n");
+		return false;
+	}
+
+//	check that underlying subset handlers are equal
+	if(m_pSH != ssGroup.get_subset_handler())
+	{
+		UG_LOG("Underlying subset handler does not match. Cannot add"
+				" subsets to subset group.\n");
+		return false;
+	}
+
+//	add all subsets
+	for(size_t i = 0; i < ssGroup.num_subsets(); ++i)
+		remove(ssGroup[i]);
+
+//	we're done
+	return true;
+}
+
+
 ///	name of subset
 const char* SubsetGroup::name(size_t i) const
 {
