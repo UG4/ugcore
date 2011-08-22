@@ -71,7 +71,7 @@ class FV1LevelSetDisc
       		m_reinit(false), m_analyticalSolution(true),
       		m_analyticalVelocity(false),m_externalVelocity(true),m_analyticalSource(false),m_divFree(false),
       		m_source(false),
-      		m_nrOfSteps(1),m_bdryCondition(0),
+      		m_nrOfSteps(1),
       		m_maxCFL(0),m_print(false),m_timestep_nr(0),m_limiter(false),
 		    m_vel_x_fct(0),
 		    m_vel_y_fct(0),
@@ -99,6 +99,7 @@ class FV1LevelSetDisc
     	void set_vel_scale(number gamma,number delta){ };
     	void set_reinit(size_t n){ m_reinit=1;m_gamma=0;m_delta=1;m_nrOfSteps=n; };
 		void set_divfree_bool(bool b){m_divFree=b;};
+		void set_gamma(number gamma){m_gamma =gamma;}
 		void set_delta(number delta){m_delta =delta;}
 		void set_time(double t){m_time = t;}
 		number get_time(){return m_time;};
@@ -144,28 +145,41 @@ class FV1LevelSetDisc
 		
 		bool runtimetest (TGridFunction& u);
 
-		bool set_neumann_boundary(TGridFunction& uNew,const char* subsets){
+		bool set_dirichlet_boundary(TGridFunction& uNew,const char* subsets){
+		    std::string m_dirichletSubsets = subsets;
+			//	get domain of grid function
+			domain_type& domain = uNew.get_domain();
+			if(!ConvertStringToSubsetGroup(m_dirichlet_sg, domain.get_subset_handler(), m_dirichletSubsets.c_str()))
+			{
+			    UG_LOG("ERROR while parsing Subsets.\n");
+				return false;
+			}
+			return true;
+       };
+
+	   bool set_neumann_boundary(TGridFunction& uNew,const char* subsets){
 		    std::string m_neumannSubsets = subsets;
 			//	get domain of grid function
 			domain_type& domain = uNew.get_domain();
-			if(!ConvertStringToSubsetGroup(m_neumannSG, domain.get_subset_handler(), m_neumannSubsets.c_str()))
+			if(!ConvertStringToSubsetGroup(m_neumann_sg, domain.get_subset_handler(), m_neumannSubsets.c_str()))
 		    {
 			     UG_LOG("ERROR while parsing Subsets.\n");
 			     return false;
 			}
 			return true;
 		}
-		bool set_dirichlet_boundary(TGridFunction& uNew,const char* subsets){
-		    std::string m_dirichletSubsets = subsets;
-			//	get domain of grid function
+
+	/*	bool set_dirichlet_boundary(TGridFunction& uNew,const char* subsets){
+			std::string m_dirichletSubsets = subsets;
+			// get domain of grid function
 			domain_type& domain = uNew.get_domain();
-			if(!ConvertStringToSubsetGroup(m_dirichletSG, domain.get_subset_handler(), m_dirichletSubsets.c_str()))
+			if(!ConvertStringToSubsetGroup(m_dirichlet_sg, domain.get_subset_handler(), m_dirichletSubsets.c_str()))
 			{
 			    UG_LOG("ERROR while parsing Subsets.\n");
 				return false;
 			}
 			return true;
-		}
+		};*/
 
 	 protected:
 	    number analytic_solution(number,MathVector<dim>);
@@ -206,15 +220,13 @@ class FV1LevelSetDisc
     	bool m_divFree;
 		bool m_source;
      	size_t m_nrOfSteps;
-    	size_t m_bdryCondition;
 		number m_maxCFL;
 		bool m_print;
 		size_t m_timestep_nr;
 		size_t m_limiter;
-		SubsetGroup m_assembleSG;
-		SubsetGroup m_neumannSG;
-		SubsetGroup m_dirichletSG;
-		SubsetGroup m_donothingSG;
+		SubsetGroup m_neumann_sg;
+		SubsetGroup m_dirichlet_sg;
+		SubsetGroup m_inactive_sg;
 		NumberFunctor m_vel_x_fct;
 		NumberFunctor m_vel_y_fct;
 		NumberFunctor m_vel_z_fct;

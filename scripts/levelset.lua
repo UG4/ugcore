@@ -72,7 +72,7 @@ end
 rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
 
 function ExactSolution(x, y, t)
-         delta = 0.1;
+         delta = 0.0;
          xnew = x*math.cos(t)+y*math.sin(t);
 	 ynew = -x*math.sin(t)+y*math.cos(t);
 	 xnew = x;
@@ -135,11 +135,11 @@ time = lsDisc:get_time();
 -- lsDisc:add_post_process(dirichletBND);
 
 lsDisc:set_source(0);
-lsDisc:set_delta(0.1);
+lsDisc:set_delta(1.0);
 
 -- lsDisc:set_neumann_boundary("Boundary");
--- lsDisc:set_neumann_boundary(phiOld,"Boundary");
-lsDisc:set_dirichlet_boundary(phiOld,"Boundary");
+lsDisc:set_neumann_boundary(phiOld,"Boundary");
+-- lsDisc:set_dirichlet_boundary(phiOld,"Boundary");
 
 if (setup==0) then
 	lsDisc:init_function(phiOld);
@@ -168,12 +168,12 @@ if (setup==2) then
     lsDisc:set_vel_y(vy);
 end;
 
-lsDisc:set_limiter(false);
+lsDisc:set_limiter(true);
 lsDisc:compute_error(phiOld);
 
 VecAssign(phiNew,phiOld);
 
-NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 200)
+NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 400)
 lsDisc:set_dt(0.2/2/2/2/2);
 
 if (movie==true) then
