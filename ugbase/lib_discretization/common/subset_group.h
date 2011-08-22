@@ -89,7 +89,7 @@ class SubsetGroup
 	/// number of subsets in this group
 		inline size_t num_subsets() const
 		{
-			UG_ASSERT(is_init(), "No SubsetHandler set.");
+			if (m_pSH==NULL) return 0;
 			return m_vSubset.size();
 		}
 
