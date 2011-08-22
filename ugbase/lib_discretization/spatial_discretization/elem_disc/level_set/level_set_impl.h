@@ -875,7 +875,7 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 }
 
 template<typename TGridFunction>
-bool FV1LevelSetDisc<TGridFunction>::assign_dirichlet(TGridFunction& numsol,int si){
+bool FV1LevelSetDisc<TGridFunction>::assign_dirichlet(TGridFunction& numsol){
 	//	get domain of grid function
 		domain_type& domain = numsol.get_domain();
 
@@ -887,6 +887,14 @@ bool FV1LevelSetDisc<TGridFunction>::assign_dirichlet(TGridFunction& numsol,int 
 
 		typedef typename domain_type::position_accessor_type position_accessor_type;
 
+		UG_LOG("dirichlet\n");
+
+		UG_LOG("nr dir ss" << m_dirichletSG.num_subsets() << "\n");
+
+		for(size_t i = 0; i < m_dirichletSG.num_subsets(); ++i)
+		{
+	        const int si = m_dirichletSG[i];
+	        UG_LOG("Dirichlet boundary is: "<<si<< "\n");
 			for(VertexBaseConstIterator iter = numsol.template begin<VertexBase>(si);
 										   iter != grid.template end<VertexBase>(si); ++iter)
 			{
@@ -933,7 +941,7 @@ bool FV1LevelSetDisc<TGridFunction>::assign_dirichlet(TGridFunction& numsol,int 
 				//if ((coord[0]==0)||(coord[0]==1)||(coord[1]==0)||(coord[1]==1)){
 				//};
 		     }
-
+		};
 	return true;
 }
 
@@ -1289,24 +1297,16 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 		    ElemIterator iter = uNew.template begin<ElemType>(si);
 		    ElemIterator iterEnd = uNew.template end<ElemType>(si);
 
-		//	convert strings
-			SubsetGroup neumannSSGrp;
-			if(!ConvertStringToSubsetGroup(neumannSSGrp, domain.get_subset_handler(), m_neumannSubsets.c_str()))
-			{
-				UG_LOG("ERROR while parsing Subsets.\n");
-				return false;
-			}
-
 		    DimFV1Geometry<dim> geo;
 
 		    // flag given neumann bnd subsets at the geometry, such that the
 		    //	geometry produces boundaryfaces (BF) for all sides of the
 		    //	element, that is in one of the subsets
-		    for(size_t i = 0; i < neumannSSGrp.num_subsets(); ++i)
+		    for(size_t i = 0; i < m_neumannSG.num_subsets(); ++i)
 		    {
-		    	const int bndSi = neumannSSGrp[i];
-		    	UG_LOG("NeumannBoundary is: "<<bndSi<< "\n");
-		    	geo.add_boundary_subset(bndSi);
+		        const int bndSi = m_neumannSG[i];
+		        UG_LOG("Neumann boundary is: "<<bndSi<< "\n");
+		        geo.add_boundary_subset(bndSi);
 		    }
 
 		    //	loop elements of dimension
@@ -1338,7 +1338,7 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 	    m_time += m_dt;
 	    UG_LOG("m_dt " << m_dt << " m_time " << m_time << "\n");
 	    m_timestep_nr++;
-	    assign_dirichlet(uNew,1);// attention: hard-coded dirichlet subset index
+	    assign_dirichlet(uNew);
 
         //	now process dirichlet values
 	    for(size_t i = 0; i < m_vPP.size(); ++i)

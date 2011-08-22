@@ -75,6 +75,8 @@ function ExactSolution(x, y, t)
          delta = 0.1;
          xnew = x*math.cos(t)+y*math.sin(t);
 	 ynew = -x*math.sin(t)+y*math.cos(t);
+	 xnew = x;
+	 ynew = y;
 	 return math.sqrt( (xnew-0.5)*(xnew-0.5)+ynew*ynew )-(0.3+delta*t);
 --	local s = 2*math.pi
   --      local s = 10;
@@ -93,11 +95,13 @@ function ExactSolution(x, y, t)
 end
 
 function vx(x,y,t)
-    return -y;
+	return 0;
+--    return -y;
 end
 
 function vy(x,y,t)
-    return x;
+    return 0;
+--    return x;
 end
 
 -- The dirichlet condition
@@ -106,14 +110,14 @@ function DirichletBnd2d(x, y, t)
 end
 
 -- dirichlet setup
-dirichlet = util.CreateLuaBoundaryNumber("Boundary"..dim.."d", dim)
+-- dirichlet = util.CreateLuaBoundaryNumber("Boundary"..dim.."d", dim)
 	
 --------------------------------------------------------------------------------
 --  Setup Dirichlet Boundary
 --------------------------------------------------------------------------------
 
-dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add(dirichlet, "c", "DirichletBnd")
+--dirichletBND = util.CreateDirichletBoundary(approxSpace)
+--dirichletBND:add(dirichlet, "c", "DirichletBnd")
 
 --------------------------------------------------------------------------------
 --  Create a grid function
@@ -132,6 +136,10 @@ time = lsDisc:get_time();
 
 lsDisc:set_source(0);
 lsDisc:set_delta(0.1);
+
+-- lsDisc:set_neumann_boundary("Boundary");
+-- lsDisc:set_neumann_boundary(phiOld,"Boundary");
+lsDisc:set_dirichlet_boundary(phiOld,"Boundary");
 
 if (setup==0) then
 	lsDisc:init_function(phiOld);

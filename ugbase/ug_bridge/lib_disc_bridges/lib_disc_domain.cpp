@@ -360,6 +360,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("set_delta", &T::set_delta)
 			.add_method("set_limiter",&T::set_limiter)
 			.add_method("set_neumann_boundary",&T::set_neumann_boundary)
+			.add_method("set_dirichlet_boundary",&T::set_dirichlet_boundary)
 			.add_method("init_function", &T::init_function)
 			.add_method("set_vel_x", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_vel_x))
 			.add_method("set_vel_y", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_vel_y))

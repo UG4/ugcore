@@ -112,7 +112,6 @@ class FV1LevelSetDisc
 	    bool compute_error(TGridFunction& numsol);
 		bool advect_lsf(TGridFunction& uNew,TGridFunction& u);
 	    bool init_function(TGridFunction& u);
-	    void set_neumann_boundary(const char* subsets){m_neumannSubsets = subsets;}
 	///	adds a post process to be used when stepping the level set function
 		void add_post_process(IConstraint<dof_distribution_impl_type, algebra_type>& pp) {m_vPP.push_back(&pp);}
 
@@ -145,6 +144,29 @@ class FV1LevelSetDisc
 		
 		bool runtimetest (TGridFunction& u);
 
+		bool set_neumann_boundary(TGridFunction& uNew,const char* subsets){
+		    std::string m_neumannSubsets = subsets;
+			//	get domain of grid function
+			domain_type& domain = uNew.get_domain();
+			if(!ConvertStringToSubsetGroup(m_neumannSG, domain.get_subset_handler(), m_neumannSubsets.c_str()))
+		    {
+			     UG_LOG("ERROR while parsing Subsets.\n");
+			     return false;
+			}
+			return true;
+		}
+		bool set_dirichlet_boundary(TGridFunction& uNew,const char* subsets){
+		    std::string m_dirichletSubsets = subsets;
+			//	get domain of grid function
+			domain_type& domain = uNew.get_domain();
+			if(!ConvertStringToSubsetGroup(m_dirichletSG, domain.get_subset_handler(), m_dirichletSubsets.c_str()))
+			{
+			    UG_LOG("ERROR while parsing Subsets.\n");
+				return false;
+			}
+			return true;
+		}
+
 	 protected:
 	    number analytic_solution(number,MathVector<dim>);
 		number analytic_source(number,MathVector<dim>);
@@ -164,7 +186,7 @@ class FV1LevelSetDisc
 //fordebug		template <typename TElem>
 //		bool assemble_divergence(TElem& elem,grid_type& grid,TGridFunction& uNew,aaDiv& aaDivergence,aaGrad& aaGradient );
 
-		bool assign_dirichlet(TGridFunction&,int);
+		bool assign_dirichlet(TGridFunction&);
 		bool limit_grad(TGridFunction& uOld, aaGrad& aaGradient);
 
 		//bool limit_grad_alpha(TGridFunction& uOld,aaGrad& aaGradient,aaAlpha& aaAlpha);
@@ -189,7 +211,10 @@ class FV1LevelSetDisc
 		bool m_print;
 		size_t m_timestep_nr;
 		size_t m_limiter;
-		std::string m_neumannSubsets;
+		SubsetGroup m_assembleSG;
+		SubsetGroup m_neumannSG;
+		SubsetGroup m_dirichletSG;
+		SubsetGroup m_donothingSG;
 		NumberFunctor m_vel_x_fct;
 		NumberFunctor m_vel_y_fct;
 		NumberFunctor m_vel_z_fct;
