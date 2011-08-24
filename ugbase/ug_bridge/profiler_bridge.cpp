@@ -37,6 +37,11 @@ string cut(const char *p, size_t L)
 	return s.substr(0, L);
 }
 
+#define PROFILER_BRIDGE_OUTPUT_WIDTH_NAME 50 //Shiny::OUTPUT_WIDTH_NAME
+#define PROFILER_BRIDGE_OUTPUT_WIDTH_HIT 13 // Shiny::OUTPUT_WIDTH_HIT
+#define PROFILER_BRIDGE_OUTPUT_WIDTH_TIME 7 // Shiny::OUTPUT_WIDTH_TIME
+#define PROFILER_BRIDGE_OUTPUT_WIDTH_PERC 5 //Shiny::OUTPUT_WIDTH_PERC
+
 // note: for some really strange reason, shiny multiplies every time by 0.9 when you call PROFILER_UPDATE
 // and since update(0.9) is called at least once at the end of UGFinalize, we need to compensate for that
 // (WE do call update with damping = 1.0 of course)
@@ -91,13 +96,13 @@ public:
 		stringstream s;
 		if(offset)	s << setw(offset) << " ";
 
-		s <<	left << setw(Shiny::OUTPUT_WIDTH_NAME-offset) << cut(zone->name, Shiny::OUTPUT_WIDTH_NAME-offset) <<
-				right << setw(Shiny::OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
-				setprecision(Shiny::OUTPUT_WIDTH_TIME-1) <<
-				setw(Shiny::OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " << selfUnit->suffix << " " <<
-				setw(Shiny::OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "% " <<
-				setw(Shiny::OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " << totalUnit->suffix << " " <<
-				setw(Shiny::OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "% ";
+		s <<	left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) <<
+				right << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
+				setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1) <<
+				setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " << selfUnit->suffix << " " <<
+				setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "% " <<
+				setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " << totalUnit->suffix << " " <<
+				setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "% ";
 		return s.str();
 	}
 
@@ -190,10 +195,10 @@ private:
 	static void log_header(stringstream &s, const char *name)
 	{
 
-		s << 	left << setw(Shiny::OUTPUT_WIDTH_NAME) << name << " " <<
-				right << setw(Shiny::OUTPUT_WIDTH_HIT) << "hits" << " " <<
-				setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "self time" << " " <<
-				setw(Shiny::OUTPUT_WIDTH_TIME+4+Shiny::OUTPUT_WIDTH_PERC+1) << "total time"  << " \n";
+		s << 	left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << name << " " <<
+				right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << "hits" << " " <<
+				setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4+PROFILER_BRIDGE_OUTPUT_WIDTH_PERC+1) << "self time" << " " <<
+				setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4+PROFILER_BRIDGE_OUTPUT_WIDTH_PERC+1) << "total time"  << " \n";
 	}
 
 	static bool self_time_sort(const UGProfilerNode *a, const UGProfilerNode *b)
