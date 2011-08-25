@@ -92,9 +92,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	//	registerPlayground(reg);
 	//#endif
 
-	//	ug::vrl::RegisterUserData(reg, "UG4/VRL");
-
-	//	ug::vrl::registerMessaging(reg);
+	ug::vrl::RegisterUserData(reg, "UG4/VRL");
+	ug::vrl::registerMessaging(reg);
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");
@@ -102,7 +101,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	}
 
 	ug::vrl::SetVRLRegistry(&reg);
-	
+
 	ug::vrl::invocation::initClasses(*ug::vrl::vrlRegistry);
 
 	return (jint) retVal;
@@ -288,7 +287,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
 		return ug::vrl::stringC2J(env, "");
 	}
 
-//\todo: @Michi: not using c_str()
+	//\todo: @Michi: not using c_str()
 	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
 }
 
