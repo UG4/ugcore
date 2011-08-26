@@ -144,7 +144,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 		}
 
 		ug::vrl::jobjectArray2ParamStack(
-				env, paramsIn, method->params_in(), params);
+				env, ug::vrl::vrlRegistry, paramsIn, method->params_in(), params);
 
 		const ug::bridge::ClassNameNode* clsNode =
 				ug::vrl::invocation::getClassNodePtrByName(
@@ -226,7 +226,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 		}
 
 		ug::vrl::jobjectArray2ParamStack(
-				env, paramsIn, func->params_in(), params);
+				env, ug::vrl::vrlRegistry, paramsIn, func->params_in(), params);
 
 		func->execute(paramsIn, paramsOut);
 

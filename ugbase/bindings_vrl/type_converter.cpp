@@ -204,9 +204,11 @@ void* jObject2Pointer(JNIEnv *env, jobject obj) {
 	return (void*) env->CallLongMethod(obj, methodID);
 }
 
-//jdoubleArray doubleArrayC2J(double[] array) {
-//
-//}
+std::string jPointerGetName(JNIEnv *env, jobject obj) {
+	jclass argClass = env->GetObjectClass(obj);
+	jmethodID methodID = env->GetMethodID(argClass, "getClassName", "()Ljava/lang/String;");
+	return stringJ2C(env,(jstring)env->CallObjectMethod(obj, methodID));
+}
 
 SmartPtr<void> jObject2SmartPointer(JNIEnv *env, jobject obj) {
 
@@ -617,7 +619,8 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 }
 
 void jobjectArray2ParamStack(
-		JNIEnv *env, ug::bridge::ParameterStack& paramsOut,
+		JNIEnv *env, ug::bridge::Registry* reg, 
+		ug::bridge::ParameterStack& paramsOut,
 		const ug::bridge::ParameterStack& paramsTemplate,
 		jobjectArray const& array) {
 	using namespace ug::bridge;
@@ -656,34 +659,34 @@ void jobjectArray2ParamStack(
 			case PT_POINTER:
 			{
 				paramsOut.push_pointer(jObject2Pointer(env, value),
-						paramsTemplate.class_name_node(i));
-				//DON'T USE paramsTemplate here!!!
-				// Use the original type string of value
-				//
-				// VRL now checks the type string and does not allow
-				// incompatible connections. Thus, this should not be a
-				// problem anymore.
+						ug::vrl::invocation::getClassNodePtrByName(reg,
+				jPointerGetName(env,value)));
 			}
 				break;
 			case PT_CONST_POINTER:
 			{
 				paramsOut.push_const_pointer(
-						jObject2Pointer(env, value),
-						paramsTemplate.class_name_node(i));
+						ug::vrl::invocation::getClassNodePtrByName(reg,
+				jPointerGetName(env,value)));
 			}
 				break;
 			case PT_SMART_POINTER:
 			{
 				if (paramsOut.get_type(i) == PT_POINTER) {
 					paramsOut.push_pointer(
-							jObject2SmartPointer(env, value).get_impl());
+							jObject2SmartPointer(env, value).get_impl(),
+							ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env,value)));
 				} else if (paramsOut.get_type(i) == PT_CONST_POINTER) {
 					paramsOut.push_const_pointer(
-							jObject2SmartPointer(env, value).get_impl());
+							jObject2SmartPointer(env, value).get_impl(),
+							ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env,value)));
 				} else {
 					paramsOut.push_smart_pointer(
 							jObject2SmartPointer(env, value),
-							paramsTemplate.class_name_node(i));
+							ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env,value)));
 				}
 			}
 				break;
@@ -692,11 +695,13 @@ void jobjectArray2ParamStack(
 				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
 					paramsOut.push_const_pointer(
 							jObject2ConstSmartPointer(env, value).get_impl(),
-							paramsTemplate.class_name_node(i));
+							ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env,value)));
 				} else {
 					paramsOut.push_const_smart_pointer(
 							jObject2ConstSmartPointer(env, value),
-							paramsTemplate.class_name_node(i));
+							ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env,value)));
 				}
 			}
 				break;

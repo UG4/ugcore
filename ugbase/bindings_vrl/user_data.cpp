@@ -115,7 +115,7 @@ struct VectorConverter {
 jdouble boundaryReturnData2Double(JNIEnv *env, jobject obj) {
 	jdouble result = 0;
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Boundary");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
 
 	if (env->ExceptionCheck()) {
 		env->ExceptionDescribe();
@@ -135,7 +135,7 @@ jdouble boundaryReturnData2Double(JNIEnv *env, jobject obj) {
 jdouble boundaryReturnData2Boolean(JNIEnv *env, jobject obj) {
 	jdouble result = 0;
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Boundary");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
 
 	if (env->ExceptionCheck()) {
 		env->ExceptionDescribe();
@@ -154,7 +154,7 @@ jdouble boundaryReturnData2Boolean(JNIEnv *env, jobject obj) {
 
 jobject compileUserDataString(JNIEnv *env, const char* s, unsigned int returnValueDim) {
 	jclass cls = env->FindClass(
-			"edu/gcsc/vrl/ug4/UserDataCompiler");
+			"edu/gcsc/vrl/ug/UserDataCompiler");
 
 	if (env->ExceptionCheck()) {
 		env->ExceptionDescribe();
@@ -174,7 +174,7 @@ jobject compileUserDataString(JNIEnv *env, const char* s, unsigned int returnVal
 
 jclass getUserDataClass(JNIEnv *env) {
 	jclass result = env->FindClass(
-			"edu/gcsc/vrl/ug4/UserData");
+			"edu/gcsc/vrl/ug/UserData");
 
 	if (env->ExceptionCheck()) {
 		env->ExceptionDescribe();
@@ -202,7 +202,7 @@ jmethodID getUserDataRunMethod(JNIEnv *env, jclass cls, int dim, const char* sig
 
 jobject compileBoundaryUserDataString(JNIEnv *env, const char* s) {
 	jclass cls = env->FindClass(
-			"edu/gcsc/vrl/ug4/UserDataCompiler");
+			"edu/gcsc/vrl/ug/UserDataCompiler");
 
 	if (env->ExceptionCheck()) {
 		env->ExceptionDescribe();
@@ -221,7 +221,7 @@ jobject compileBoundaryUserDataString(JNIEnv *env, const char* s) {
 
 jclass getBoundaryUserDataClass(JNIEnv *env) {
 	jclass result = env->FindClass(
-			"edu/gcsc/vrl/ug4/BoundaryUserData");
+			"edu/gcsc/vrl/ug/BoundaryUserData");
 
 	if (env->ExceptionCheck()) {
 		env->ExceptionDescribe();
@@ -233,7 +233,7 @@ jclass getBoundaryUserDataClass(JNIEnv *env) {
 jmethodID getBoundaryUserDataRunMethod(JNIEnv *env, jclass cls) {
 
 	std::string signature =
-			"([D)Ledu/gcsc/vrl/ug4/Boundary;";
+			"([D)Ledu/gcsc/vrl/ug/Boundary;";
 
 	std::stringstream mName;
 

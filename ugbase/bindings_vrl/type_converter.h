@@ -205,12 +205,14 @@ void* jObject2Pointer(JNIEnv *env, jobject obj);
 /**
  * Converts an array of Java objects to a parameter stack.
  * @param env JVM environment to operate on
+ * @param reg ug registry
  * @param paramsOut converted parameter stack (return value)
  * @param paramsTemplate template parameter stack used to get correct
  *                       parameter type
  * @param array object array to convert
  */
 void jobjectArray2ParamStack(JNIEnv *env,
+		ug::bridge::Registry* reg,
 		ug::bridge::ParameterStack& paramsOut,
 		const ug::bridge::ParameterStack& paramsTemplate,
 		jobjectArray const& array);
