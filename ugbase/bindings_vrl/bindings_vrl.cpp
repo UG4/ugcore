@@ -142,23 +142,35 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 					"()" << " : " << std::endl << VRL_CRITICAL_ERROR);
 			return NULL;
 		}
+		
+//		UG_LOG("M0: " << name <<"\n")
 
 		ug::vrl::jobjectArray2ParamStack(
 				env, ug::vrl::vrlRegistry, paramsIn, method->params_in(), params);
-
+		
+//		UG_LOG("M1\n")
+	
 		const ug::bridge::ClassNameNode* clsNode =
 				ug::vrl::invocation::getClassNodePtrByName(
 				ug::vrl::vrlRegistry, className);
-
+	
+//		UG_LOG("M2\n")
+		
 		void* finalObjPtr = ug::bridge::ClassCastProvider::cast_to_base_class(
 				(void*) objPtr,
 				clsNode, method->class_name());
 
+//		UG_LOG("M3\n")
+		
 		method->execute(finalObjPtr, paramsIn, paramsOut);
 
+//		UG_LOG("M4\n")
+		
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
+		
+//		UG_LOG("M5\n")
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 		UG_LOG("Incompatible Conversion from " <<
@@ -227,7 +239,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 
 		ug::vrl::jobjectArray2ParamStack(
 				env, ug::vrl::vrlRegistry, paramsIn, func->params_in(), params);
-
+		
 		func->execute(paramsIn, paramsOut);
 
 		if (paramsOut.size() > 0) {

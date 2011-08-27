@@ -207,7 +207,13 @@ void* jObject2Pointer(JNIEnv *env, jobject obj) {
 std::string jPointerGetName(JNIEnv *env, jobject obj) {
 	jclass argClass = env->GetObjectClass(obj);
 	jmethodID methodID = env->GetMethodID(argClass, "getClassName", "()Ljava/lang/String;");
-	return stringJ2C(env,(jstring)env->CallObjectMethod(obj, methodID));
+
+	std::string name =
+			stringJ2C(env, (jstring) env->CallObjectMethod(obj, methodID));
+
+//	UG_LOG("POINTER_NAME: " << name)
+
+	return name;
 }
 
 SmartPtr<void> jObject2SmartPointer(JNIEnv *env, jobject obj) {
@@ -539,9 +545,9 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		ug::bridge::Registry *reg,
 		ug::bridge::ParameterStack const& paramStack) {
 
-//#ifdef UG_DEBUG
-//	UG_LOG("\n -- BEGIN COMPARE --\n")
-//#endif
+	//#ifdef UG_DEBUG
+	//	UG_LOG("\n -- BEGIN COMPARE --\n")
+	//#endif
 
 	// compare array lengths
 	jsize len = env->GetArrayLength(params);
@@ -610,16 +616,16 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			}
 		}
 	}
-//
-//#ifdef UG_DEBUG
-//	UG_LOG(" -- ALL TRUE --\n" << std::endl)
-//#endif
+	//
+	//#ifdef UG_DEBUG
+	//	UG_LOG(" -- ALL TRUE --\n" << std::endl)
+	//#endif
 
 	return true;
 }
 
 void jobjectArray2ParamStack(
-		JNIEnv *env, ug::bridge::Registry* reg, 
+		JNIEnv *env, ug::bridge::Registry* reg,
 		ug::bridge::ParameterStack& paramsOut,
 		const ug::bridge::ParameterStack& paramsTemplate,
 		jobjectArray const& array) {
@@ -658,50 +664,56 @@ void jobjectArray2ParamStack(
 
 			case PT_POINTER:
 			{
-				paramsOut.push_pointer(jObject2Pointer(env, value),
+				const ug::bridge::ClassNameNode* node =
 						ug::vrl::invocation::getClassNodePtrByName(reg,
-				jPointerGetName(env,value)));
+						jPointerGetName(env, value));
+				paramsOut.push_pointer(jObject2Pointer(env, value), node);
 			}
 				break;
 			case PT_CONST_POINTER:
 			{
-				paramsOut.push_const_pointer(
+				const ug::bridge::ClassNameNode* node =
 						ug::vrl::invocation::getClassNodePtrByName(reg,
-				jPointerGetName(env,value)));
+						jPointerGetName(env, value));
+
+				paramsOut.push_const_pointer(jObject2Pointer(env, value), node);
 			}
 				break;
 			case PT_SMART_POINTER:
 			{
+				
+				const ug::bridge::ClassNameNode* node =
+							ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env, value));
+				
 				if (paramsOut.get_type(i) == PT_POINTER) {
+
 					paramsOut.push_pointer(
-							jObject2SmartPointer(env, value).get_impl(),
-							ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env,value)));
+							jObject2SmartPointer(env, value).get_impl(),node);
+					
 				} else if (paramsOut.get_type(i) == PT_CONST_POINTER) {
+					// we allow cast to const pointer (but i don't like it!)
 					paramsOut.push_const_pointer(
-							jObject2SmartPointer(env, value).get_impl(),
-							ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env,value)));
+							jObject2SmartPointer(env, value).get_impl(),node);
 				} else {
 					paramsOut.push_smart_pointer(
-							jObject2SmartPointer(env, value),
-							ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env,value)));
+							jObject2SmartPointer(env, value),node);
 				}
 			}
 				break;
 			case PT_CONST_SMART_POINTER:
 			{
-				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
-					paramsOut.push_const_pointer(
-							jObject2ConstSmartPointer(env, value).get_impl(),
+				const ug::bridge::ClassNameNode* node =
 							ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env,value)));
+							jPointerGetName(env, value));
+				
+				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
+					// we allow cast to const pointer (but i don't like it!)
+					paramsOut.push_const_pointer(
+							jObject2ConstSmartPointer(env, value).get_impl(),node);
 				} else {
 					paramsOut.push_const_smart_pointer(
-							jObject2ConstSmartPointer(env, value),
-							ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env,value)));
+							jObject2ConstSmartPointer(env, value),node);
 				}
 			}
 				break;
