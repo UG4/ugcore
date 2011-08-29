@@ -318,22 +318,22 @@ register_all_fe_funcs(int order, int quadOrder)
 //	Triangle
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 2> > FEGeom;
+		case 1:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 3> > FEGeom;
 				 register_fe_func<Triangle, ClassHolder<FEGeom> >(); break;}
-		case 2:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 4> > FEGeom;
+		case 2:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 5> > FEGeom;
 				 register_fe_func<Triangle, ClassHolder<FEGeom> >(); break;}
-		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 6> > FEGeom;
+		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 7> > FEGeom;
 				 register_fe_func<Triangle, ClassHolder<FEGeom> >(); break;}
 		default: register_fe_func<Triangle, FlexGeomHolder<DimFEGeometry<dim, 2> > >();  break;
 	}
 
 //	Quadrilateral
 	switch(order) {
-		case 1:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 2> > FEGeom;
+		case 1:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 3> > FEGeom;
 				 register_fe_func<Quadrilateral, ClassHolder<FEGeom> >(); break;}
-		case 2:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 6> > FEGeom;
+		case 2:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 7> > FEGeom;
 				 register_fe_func<Quadrilateral, ClassHolder<FEGeom> >(); break;}
-		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 10> > FEGeom;
+		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 11> > FEGeom;
 				 register_fe_func<Quadrilateral, ClassHolder<FEGeom> >(); break;}
 		default: register_fe_func<Quadrilateral, FlexGeomHolder<DimFEGeometry<dim, 2> > >();  break;
 	}
