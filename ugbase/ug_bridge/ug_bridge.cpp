@@ -109,6 +109,9 @@ void InitUG(int dim, const IAlgebraTypeSelector& algebraSel, DofDistributionType
 
 	UG_LOG("INFO: InitUG successful. Setting is: ");
 	UG_LOG(dimTag << ", " << algTag << ", " << ddTag << "\n");
+#ifdef UG_PARALLEL
+	UG_LOG("      Parallel Environment: Num Procs="<<pcl::GetNumProcesses()<<"\n");
+#endif
 }
 
 ///	Sets the default classes of class-groups based on a tags using default DoFManager
