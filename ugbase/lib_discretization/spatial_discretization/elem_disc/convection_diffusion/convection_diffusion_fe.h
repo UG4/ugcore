@@ -103,7 +103,7 @@ elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 		{
 		//	Diffusion
 			if(m_imDiffusion.data_given())
-				MatVecMult(Dgrad, m_imDiffusion[ip], geo.grad_global(ip, j));
+				MatVecMult(Dgrad, m_imDiffusion[ip], geo.global_grad(ip, j));
 			else
 				VecSet(Dgrad, 0.0);
 
@@ -115,7 +115,7 @@ elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 			for(size_t i = 0; i < geo.num_sh(); ++i)
 			{
 			//	compute integrand
-				number integrand = VecDot(Dgrad, geo.grad_global(ip, i));
+				number integrand = VecDot(Dgrad, geo.global_grad(ip, i));
 
 			// 	Reaction
 				if(m_imReaction.data_given())
@@ -190,7 +190,7 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 		shape_u = 0.0;
 		for(size_t j = 0; j < geo.num_sh(); ++j)
 		{
-			VecScaleAppend(grad_u, u(_C_,j), geo.grad_global(ip, j));
+			VecScaleAppend(grad_u, u(_C_,j), geo.global_grad(ip, j));
 			shape_u += u(_C_,j) * geo.shape(ip, j);
 		}
 
@@ -208,7 +208,7 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 		//	compute integrand
-			integrand = VecDot(Dgrad_u, geo.grad_global(ip, i));
+			integrand = VecDot(Dgrad_u, geo.global_grad(ip, i));
 
 		// 	add Reaction
 			if(m_imReaction.data_given())
@@ -312,7 +312,7 @@ lin_def_velocity_fe(const local_vector_type& u,
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 		//	add to local defect
-			VecScale(vvvLinDef[ip][_C_][i], geo.grad_global(ip, i),
+			VecScale(vvvLinDef[ip][_C_][i], geo.global_grad(ip, i),
 			         	 	 	 	 	 	 geo.weight(ip) * shape_u);
 		}
 	}
@@ -340,14 +340,14 @@ lin_def_diffusion_fe(const local_vector_type& u,
 	// 	get current u and grad_u
 		VecSet(grad_u, 0.0);
 		for(size_t j = 0; j < geo.num_sh(); ++j)
-			VecScaleAppend(grad_u, u(_C_,j), geo.grad_global(ip, j));
+			VecScaleAppend(grad_u, u(_C_,j), geo.global_grad(ip, j));
 
 	//	loop test spaces
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 			for(size_t k=0; k < (size_t)dim; ++k)
 				for(size_t j = 0; j < (size_t)dim; ++j)
-					(vvvLinDef[ip][_C_][i])(k,j) += grad_u[j] * geo.grad_global(ip, i)[k]
+					(vvvLinDef[ip][_C_][i])(k,j) += grad_u[j] * geo.global_grad(ip, i)[k]
 												* geo.weight(ip);
 		}
 	}
@@ -567,11 +567,11 @@ ex_concentration_grad_fe(const local_vector_type& u,
 		{
 			VecSet(vValue[ip], 0.0);
 			for(size_t sh = 0; sh < geo.num_sh(); ++sh)
-				VecScaleAppend(vValue[ip], u(_C_, sh), geo.grad_global(ip, sh));
+				VecScaleAppend(vValue[ip], u(_C_, sh), geo.global_grad(ip, sh));
 
 			if(bDeriv)
 				for(size_t sh = 0; sh < geo.num_sh(); ++sh)
-					vvvDeriv[ip][_C_][sh] = geo.grad_global(ip, sh);
+					vvvDeriv[ip][_C_][sh] = geo.global_grad(ip, sh);
 		}
 	}
 // 	general case

@@ -161,9 +161,9 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 								DEa[d1][d2] = 0.0;
 								DEb[d1][d2] = 0.0;
 
-								Gsyma += 0.5 * (FT[d1][c1] * geo.grad_global(ip, i)[d2] + FT[d2][c1] * geo.grad_global(ip, i)[d1]);
+								Gsyma += 0.5 * (FT[d1][c1] * geo.global_grad(ip, i)[d2] + FT[d2][c1] * geo.global_grad(ip, i)[d1]);
 								DEa[d1][d2] += Gsyma;
-								Gsymb += 0.5 * (FT[d1][c2] * geo.grad_global(ip, j)[d2] + FT[d2][c2] * geo.grad_global(ip, j)[d1]);
+								Gsymb += 0.5 * (FT[d1][c2] * geo.global_grad(ip, j)[d2] + FT[d2][c2] * geo.global_grad(ip, j)[d1]);
 								DEb[d1][d2] += Gsymb;
 							}
 						}
@@ -176,10 +176,10 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 								{
 									for(size_t C2 = 0; C2 < num_fct(); ++C2) // loop component
 									{
-										integrandC += DEa[C1][d1] * m_ElasticityTensor[C1][d1][C2][d2] * DEb[C2][d2]; //geo.grad_global(ip, i)[d1] * m_ElasticityTensor[c1][d1][c2][d2] * geo.grad_global(ip, j)[d2];
+										integrandC += DEa[C1][d1] * m_ElasticityTensor[C1][d1][C2][d2] * DEb[C2][d2]; //geo.global_grad(ip, i)[d1] * m_ElasticityTensor[c1][d1][c2][d2] * geo.global_grad(ip, j)[d2];
 									}
 								}
-								integrandS += geo.grad_global(ip, j)[d1] * m_StressTensor[d1][d2] * geo.grad_global(ip, i)[d2];
+								integrandS += geo.global_grad(ip, j)[d1] * m_StressTensor[d1][d2] * geo.global_grad(ip, i)[d2];
 							}
 						}
 						integrand = geo.weight(ip) * (integrandC + integrandS);
@@ -268,13 +268,13 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 				{
 					for(size_t d1 = 0; d1 < (size_t)dim; ++d1) // loop dimension
 					{
-						//integrand += geo.grad_global(ip, i)[d1] * m_StressTensor[c][d1];
+						//integrand += geo.global_grad(ip, i)[d1] * m_StressTensor[c][d1];
 						for(size_t d2 = 0; d2 < (size_t)dim; ++d2) // loop dimension
 						{
 							number Gsym = 0.0;
 
 							DE[d1][d2] = 0.0;
-							Gsym += 0.5 * (FT[d1][c] * geo.grad_global(ip, i)[d2] + FT[d2][c] * geo.grad_global(ip, i)[d1]);
+							Gsym += 0.5 * (FT[d1][c] * geo.global_grad(ip, i)[d2] + FT[d2][c] * geo.global_grad(ip, i)[d1]);
 							DE[d1][d2] += Gsym;
 
 							integrand += DE[d1][d2] * m_StressTensor[d1][d2];

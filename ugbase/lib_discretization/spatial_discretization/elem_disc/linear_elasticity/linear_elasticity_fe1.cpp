@@ -116,7 +116,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 						{
 							for(size_t d2 = 0; d2 < (size_t)dim; ++d2) // loop dimension
 							{
-								integrand += geo.grad_global(ip, i)[d1] * m_ElasticityTensor[c1][d1][c2][d2] * geo.grad_global(ip, j)[d2];
+								integrand += geo.global_grad(ip, i)[d1] * m_ElasticityTensor[c1][d1][c2][d2] * geo.global_grad(ip, j)[d2];
 							}
 						}
 						integrand *= geo.weight(ip);

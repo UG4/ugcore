@@ -90,14 +90,14 @@ class FEGeometry
 		}
 
 	/// local gradient at ip
-		const MathVector<dim>& grad_local(size_t ip, size_t sh) const
+		const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < nip, "Wrong index"); UG_ASSERT(sh < nsh, "Wrong index");
 			return m_vvGradLocal[ip][sh];
 		}
 
 	/// global gradient at ip
-		const MathVector<worldDim>& grad_global(size_t ip, size_t sh) const
+		const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < nip, "Wrong index"); UG_ASSERT(sh < nsh, "Wrong index");
 			return m_vvGradGlobal[ip][sh];
@@ -295,7 +295,7 @@ class DimFEGeometry
 		}
 
 	/// local gradient at ip
-		const MathVector<dim>& grad_local(size_t ip, size_t sh) const
+		const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < m_vvGradLocal.size(), "Wrong index");
 			UG_ASSERT(sh < m_vvGradLocal[ip].size(), "Wrong index");
@@ -303,7 +303,7 @@ class DimFEGeometry
 		}
 
 	/// global gradient at ip
-		const MathVector<worldDim>& grad_global(size_t ip, size_t sh) const
+		const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < m_vvGradGlobal.size(), "Wrong index");
 			UG_ASSERT(sh < m_vvGradGlobal[ip].size(), "Wrong index");
