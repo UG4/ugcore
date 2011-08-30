@@ -1316,7 +1316,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 	{
 	case 2:
 		const static GaussQuadrature<ReferenceHexahedron, 2>& q2 
-			= Provider::get<GaussQuadrature<ReferenceHexahedron, 2> >();
+			= Provider<GaussQuadrature<ReferenceHexahedron, 2> >::get();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();
@@ -1326,7 +1326,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 	case 3:
 		const static GaussQuadrature<ReferenceHexahedron, 3>& q3 
-			= Provider::get<GaussQuadrature<ReferenceHexahedron, 3> >();
+			= Provider<GaussQuadrature<ReferenceHexahedron, 3> >::get();
 
 		m_order = q3.order();
 		m_numPoints = q3.size();
@@ -1336,7 +1336,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 	case 5:
 		const static GaussQuadrature<ReferenceHexahedron, 5>& q5 
-			= Provider::get<GaussQuadrature<ReferenceHexahedron, 5> >();
+			= Provider<GaussQuadrature<ReferenceHexahedron, 5> >::get();
 
 		m_order = q5.order();
 		m_numPoints = q5.size();
@@ -1346,7 +1346,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 	case 7:
 		const static GaussQuadrature<ReferenceHexahedron, 7>& q7 
-			= Provider::get<GaussQuadrature<ReferenceHexahedron, 7> >();
+			= Provider<GaussQuadrature<ReferenceHexahedron, 7> >::get();
 
 		m_order = q7.order();
 		m_numPoints = q7.size();
@@ -1356,7 +1356,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 	case 8:
 		const static GaussQuadrature<ReferenceHexahedron, 8>& q8 
-			= Provider::get<GaussQuadrature<ReferenceHexahedron, 8> >();
+			= Provider<GaussQuadrature<ReferenceHexahedron, 8> >::get();
 
 		m_order = q8.order();
 		m_numPoints = q8.size();
@@ -1366,7 +1366,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 	case 9:
 		const static GaussQuadrature<ReferenceHexahedron, 9>& q9 
-			= Provider::get<GaussQuadrature<ReferenceHexahedron, 9> >();
+			= Provider<GaussQuadrature<ReferenceHexahedron, 9> >::get();
 
 		m_order = q9.order();
 		m_numPoints = q9.size();
@@ -1376,7 +1376,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 	case 11:
 		const static GaussQuadrature<ReferenceHexahedron, 11>& q11 
-			= Provider::get<GaussQuadrature<ReferenceHexahedron, 11> >();
+			= Provider<GaussQuadrature<ReferenceHexahedron, 11> >::get();
 
 		m_order = q11.order();
 		m_numPoints = q11.size();

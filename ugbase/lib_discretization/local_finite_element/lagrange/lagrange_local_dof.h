@@ -199,7 +199,7 @@ class LagrangeLDS<ReferenceVertex>
 			p = order;
 			nsh = 1;
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceVertex>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceVertex>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -221,7 +221,7 @@ class LagrangeLDS<ReferenceVertex>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferenceVertex>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceVertex>::get().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -267,7 +267,7 @@ class LagrangeLDS<ReferenceEdge>
 			p = order;
 			nsh = p+1;
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceEdge>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceEdge>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -290,7 +290,7 @@ class LagrangeLDS<ReferenceEdge>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferenceEdge>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceEdge>::get().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -338,7 +338,7 @@ class LagrangeLDS<ReferenceTriangle>
 			p = order;
 			nsh = BinomCoeff(2 + p, p);
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceTriangle>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceTriangle>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -362,7 +362,7 @@ class LagrangeLDS<ReferenceTriangle>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferenceTriangle>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceTriangle>::get().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -411,7 +411,7 @@ class LagrangeLDS<ReferenceQuadrilateral>
 			p = order;
 			nsh = (p+1)*(p+1);
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceQuadrilateral>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceQuadrilateral>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -444,7 +444,7 @@ class LagrangeLDS<ReferenceQuadrilateral>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferenceQuadrilateral>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceQuadrilateral>::get().ref_elem_type(d, id));
 		}
 
 	///	returns the dof storage
@@ -483,7 +483,7 @@ class LagrangeLDS<ReferenceTetrahedron>
 			p = order;
 			nsh = BinomCoeff(3 + p, p);
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceTetrahedron>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceTetrahedron>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -508,7 +508,7 @@ class LagrangeLDS<ReferenceTetrahedron>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferenceTetrahedron>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceTetrahedron>::get().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -560,7 +560,7 @@ class LagrangeLDS<ReferencePrism>
 			p = order;
 			nsh = BinomCoeff(2+p,p) * (p+1);
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferencePrism>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferencePrism>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -589,7 +589,7 @@ class LagrangeLDS<ReferencePrism>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferencePrism>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferencePrism>::get().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -647,7 +647,7 @@ class LagrangeLDS<ReferencePyramid>
 			p = order;
 			nsh = GetNumberOfDoFsOfPyramid(p);
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferencePyramid>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferencePyramid>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -676,7 +676,7 @@ class LagrangeLDS<ReferencePyramid>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferencePyramid>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferencePyramid>::get().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -726,7 +726,7 @@ class LagrangeLDS<ReferenceHexahedron>
 			p = order;
 			nsh = (p+1)*(p+1)*(p+1);
 			m_vLocalDoF.resize(nsh);
-			SetLagrangeLocalDoFs(m_vLocalDoF, Provider::get<ReferenceHexahedron>(), p);
+			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceHexahedron>::get(), p);
 		}
 
 	///	returns the reference dimension
@@ -751,7 +751,7 @@ class LagrangeLDS<ReferenceHexahedron>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider::get<ReferenceHexahedron>().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceHexahedron>::get().ref_elem_type(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension

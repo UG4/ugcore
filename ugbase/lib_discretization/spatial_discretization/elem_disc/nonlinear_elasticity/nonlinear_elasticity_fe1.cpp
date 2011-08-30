@@ -66,7 +66,7 @@ prepare_element(TElem* elem, const local_vector_type& u)
 
 // 	update Geometry for this element
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+			= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	if(!geo.update(elem, m_corners, LFEID(LFEID::LAGRANGE,1), 2))
 		{UG_LOG("FE1NonlinearElasticityElemDisc::prepare_element:"
@@ -86,7 +86,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 			ref_elem_type;
 
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+			= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	//using Lagrange description of the linearized equations (cf. Bonet/Wood 1997 chapter 8/9)
 
@@ -206,7 +206,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 			ref_elem_type;
 
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+			= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
@@ -240,7 +240,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 
 	// to be implemented
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
-			= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+			= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 	//TODO: mean Dilatation Term fehlt noch!
 
 	number DE[dim][dim], FT[dim][dim], F[dim][dim];

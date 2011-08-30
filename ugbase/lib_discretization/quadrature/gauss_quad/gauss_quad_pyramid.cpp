@@ -62,7 +62,7 @@ FlexGaussQuadrature<ReferencePyramid>::FlexGaussQuadrature(int order)
 	{
 	case 2:
 		const static GaussQuadrature<ReferencePyramid, 2>& q2 
-			= Provider::get<GaussQuadrature<ReferencePyramid, 2> >();
+			= Provider<GaussQuadrature<ReferencePyramid, 2> >::get();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();

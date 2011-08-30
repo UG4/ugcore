@@ -679,8 +679,8 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 template <typename TElem, int TWorldDim>
 FV1Geometry<TElem, TWorldDim>::
 FV1Geometry()
-	: m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>()),
-	  m_rTrialSpace(Provider::get<local_shape_fct_set_type>())
+	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
+	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get())
 {
 	update_local_data();
 }
@@ -1327,10 +1327,10 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
 FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
 FVGeometry()
-	: m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>()),
-	  m_rTrialSpace(Provider::get<local_shape_fct_set_type>()),
-	  m_rSCVFQuadRule(Provider::get<scvf_quad_rule_type>()),
-	  m_rSCVQuadRule(Provider::get<scv_quad_rule_type>())
+	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
+	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get()),
+	  m_rSCVFQuadRule(Provider<scvf_quad_rule_type>::get()),
+	  m_rSCVQuadRule(Provider<scv_quad_rule_type>::get())
 {
 	update_local_data();
 }
@@ -2304,7 +2304,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 template <typename TElem, int TWorldDim>
 FV1ManifoldBoundary<TElem, TWorldDim>::
-FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider::get<ref_elem_type>())
+FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// set corners of element as local centers of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)

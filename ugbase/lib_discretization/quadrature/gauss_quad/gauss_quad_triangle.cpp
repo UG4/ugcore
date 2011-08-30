@@ -730,7 +730,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 	{
 	case 1:
 		const static GaussQuadrature<ReferenceTriangle, 1>& q1 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 1> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 1> >::get();
 
 		m_order = q1.order();
 		m_numPoints = q1.size();
@@ -740,7 +740,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 2:
 		const static GaussQuadrature<ReferenceTriangle, 2>& q2 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 2> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 2> >::get();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();
@@ -750,7 +750,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 3:
 		const static GaussQuadrature<ReferenceTriangle, 3>& q3 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 3> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 3> >::get();
 
 		m_order = q3.order();
 		m_numPoints = q3.size();
@@ -760,7 +760,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 4:
 		const static GaussQuadrature<ReferenceTriangle, 4>& q4 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 4> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 4> >::get();
 
 		m_order = q4.order();
 		m_numPoints = q4.size();
@@ -770,7 +770,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 5:
 		const static GaussQuadrature<ReferenceTriangle, 5>& q5 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 5> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 5> >::get();
 
 		m_order = q5.order();
 		m_numPoints = q5.size();
@@ -780,7 +780,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 6:
 		const static GaussQuadrature<ReferenceTriangle, 6>& q6 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 6> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 6> >::get();
 
 		m_order = q6.order();
 		m_numPoints = q6.size();
@@ -790,7 +790,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 7:
 		const static GaussQuadrature<ReferenceTriangle, 7>& q7 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 7> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 7> >::get();
 
 		m_order = q7.order();
 		m_numPoints = q7.size();
@@ -800,7 +800,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 8:
 		const static GaussQuadrature<ReferenceTriangle, 8>& q8 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 8> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 8> >::get();
 
 		m_order = q8.order();
 		m_numPoints = q8.size();
@@ -810,7 +810,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 9:
 		const static GaussQuadrature<ReferenceTriangle, 9>& q9 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 9> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 9> >::get();
 
 		m_order = q9.order();
 		m_numPoints = q9.size();
@@ -820,7 +820,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 10:
 		const static GaussQuadrature<ReferenceTriangle, 10>& q10 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 10> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 10> >::get();
 
 		m_order = q10.order();
 		m_numPoints = q10.size();
@@ -830,7 +830,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 11:
 		const static GaussQuadrature<ReferenceTriangle, 11>& q11 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 11> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 11> >::get();
 
 		m_order = q11.order();
 		m_numPoints = q11.size();
@@ -840,7 +840,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 	case 12:
 		const static GaussQuadrature<ReferenceTriangle, 12>& q12 
-			= Provider::get<GaussQuadrature<ReferenceTriangle, 12> >();
+			= Provider<GaussQuadrature<ReferenceTriangle, 12> >::get();
 
 		m_order = q12.order();
 		m_numPoints = q12.size();

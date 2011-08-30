@@ -282,28 +282,28 @@ class ConvectionDiffusionElemDisc
 		//	Finite Element assemblings
 		/////////////////////////////////////
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_loop_prepare_fe();
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_prepare_fe(TElem* elem, const local_vector_type& u);
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_loop_finish_fe();
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_JA_fe(local_matrix_type& J, const local_vector_type& u);
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_JM_fe(local_matrix_type& J, const local_vector_type& u);
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_dA_fe(local_vector_type& d, const local_vector_type& u);
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_dM_fe(local_vector_type& d, const local_vector_type& u);
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		bool elem_rhs_fe(local_vector_type& d);
 
 	protected:
@@ -370,31 +370,31 @@ class ConvectionDiffusionElemDisc
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		bool lin_def_velocity_fe(const local_vector_type& u,
 		                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		bool lin_def_diffusion_fe(const local_vector_type& u,
 		                           std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                           const size_t nip);
 
 	///	computes the linearized defect w.r.t to the reaction
-		template <typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		bool lin_def_reaction_fe(const local_vector_type& u,
 		                          std::vector<std::vector<number> > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
-		template <typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		bool lin_def_source_fe(const local_vector_type& u,
 		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
-		template <typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		bool lin_def_mass_scale_fe(const local_vector_type& u,
 		                            std::vector<std::vector<number> > vvvLinDef[],
 		                            const size_t nip);
@@ -481,20 +481,20 @@ class ConvectionDiffusionElemDisc
 									   std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	///	computes the concentration
-		template <typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		bool ex_concentration_fe(const local_vector_type& u,
 								  const MathVector<dim> vGlobIP[],
-								  const MathVector<THolder::Type::dim> vLocIP[],
+								  const MathVector<TProvider::Type::dim> vLocIP[],
 								  const size_t nip,
 								  number vValue[],
 								  bool bDeriv,
 								  std::vector<std::vector<number> > vvvDeriv[]);
 
 	///	computes the gradient of the concentration
-		template <typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		bool ex_concentration_grad_fe(const local_vector_type& u,
 									   const MathVector<dim> vGlobIP[],
-									   const	MathVector<THolder::Type::dim> vLocIP[],
+									   const	MathVector<TProvider::Type::dim> vLocIP[],
 									   const size_t nip,
 									   MathVector<dim> vValue[],
 									   bool bDeriv,
@@ -517,14 +517,14 @@ class ConvectionDiffusionElemDisc
 	// 	FVHO Assemblings
 		void register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF);
 
-		template<typename TElem, typename THolder>
+		template<typename TElem, typename TProvider>
 		void register_fvho_func();
 
 
 	// 	FE Assemblings
 		void register_all_fe_funcs(int order, int quadOrder);
 
-		template<typename TElem, typename THolder>
+		template <typename TElem, typename TProvider>
 		void register_fe_func();
 
 	//	helper class holding a geometry

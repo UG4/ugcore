@@ -25,7 +25,7 @@ bool ComputeGradient(TFunction& u,
 {
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	const ref_elem_type& refElem = Provider::get<ref_elem_type>();
+	const ref_elem_type& refElem = Provider<ref_elem_type>::get();
 
 //	get reference dimension
 	static const int dim = ref_elem_type::dim;

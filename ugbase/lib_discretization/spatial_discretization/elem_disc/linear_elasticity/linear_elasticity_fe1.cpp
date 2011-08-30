@@ -78,7 +78,7 @@ prepare_element(TElem* elem, const local_vector_type& u)
 
 // 	update Geometry for this element
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
-		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+		= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	if(!geo.update(elem, m_corners, LFEID(LFEID::LAGRANGE,1), 2))
 		{UG_LOG("FE1LinearElasticityElemDisc::prepare_element:"
@@ -98,7 +98,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 			ref_elem_type;
 
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
-		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+		= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	for(size_t i = 0; i < geo.num_sh(); ++i) // loop corner
 	{
@@ -143,7 +143,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u)
 			ref_elem_type;
 
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
-		= Provider::get<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >();
+		= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{

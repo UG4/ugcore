@@ -254,7 +254,7 @@ LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceEdge& rRef =	Provider::get<ReferenceEdge>();
+	const ReferenceEdge& rRef =	Provider<ReferenceEdge>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -278,7 +278,7 @@ void FlexLagrangeLSFS<ReferenceEdge>::set_order(size_t order)
 	}
 
 //	reference element
-	const ReferenceEdge& rRef = Provider::get<ReferenceEdge>();
+	const ReferenceEdge& rRef = Provider<ReferenceEdge>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
@@ -309,7 +309,7 @@ LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceTriangle& rRef = Provider::get<ReferenceTriangle>();
+	const ReferenceTriangle& rRef = Provider<ReferenceTriangle>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -335,7 +335,7 @@ void FlexLagrangeLSFS<ReferenceTriangle>::set_order(size_t order)
 	}
 
 //	reference element
-	const ReferenceTriangle& rRef = Provider::get<ReferenceTriangle>();
+	const ReferenceTriangle& rRef = Provider<ReferenceTriangle>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
@@ -366,7 +366,7 @@ LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceQuadrilateral& rRef = Provider::get<ReferenceQuadrilateral>();
+	const ReferenceQuadrilateral& rRef = Provider<ReferenceQuadrilateral>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -392,7 +392,7 @@ void FlexLagrangeLSFS<ReferenceQuadrilateral>::set_order(size_t order)
 	}
 
 //	reference element
-	const ReferenceQuadrilateral& rRef = Provider::get<ReferenceQuadrilateral>();
+	const ReferenceQuadrilateral& rRef = Provider<ReferenceQuadrilateral>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
@@ -422,7 +422,7 @@ LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceTetrahedron& rRef = Provider::get<ReferenceTetrahedron>();
+	const ReferenceTetrahedron& rRef = Provider<ReferenceTetrahedron>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -448,7 +448,7 @@ void FlexLagrangeLSFS<ReferenceTetrahedron>::set_order(size_t order)
 	}
 
 //	reference element
-	const ReferenceTetrahedron& rRef = Provider::get<ReferenceTetrahedron>();
+	const ReferenceTetrahedron& rRef = Provider<ReferenceTetrahedron>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
@@ -482,7 +482,7 @@ LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferencePrism& rRef = Provider::get<ReferencePrism>();
+	const ReferencePrism& rRef = Provider<ReferencePrism>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -513,7 +513,7 @@ void FlexLagrangeLSFS<ReferencePrism>::set_order(size_t order)
 	}
 
 //	reference element
-	const ReferencePrism& rRef = Provider::get<ReferencePrism>();
+	const ReferencePrism& rRef = Provider<ReferencePrism>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);
@@ -552,7 +552,7 @@ LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
 
 	//	reference element
 		const ReferencePyramid& rRef =
-				Provider::get<ReferencePyramid>();
+				Provider<ReferencePyramid>::get();
 
 	//	init shape -> multi-index mapping
 		SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -578,7 +578,7 @@ LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
 	}
 
 //	reference element
-	const ReferenceHexahedron& rRef = Provider::get<ReferenceHexahedron>();
+	const ReferenceHexahedron& rRef = Provider<ReferenceHexahedron>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
@@ -604,7 +604,7 @@ void FlexLagrangeLSFS<ReferenceHexahedron>::set_order(size_t order)
 	}
 
 //	reference element
-	const ReferenceHexahedron& rRef = Provider::get<ReferenceHexahedron>();
+	const ReferenceHexahedron& rRef = Provider<ReferenceHexahedron>::get();
 
 //	init shape -> multi-index mapping
 	SetLagrangeMultiIndex(&m_vMultiIndex[0], rRef, p);

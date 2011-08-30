@@ -31,7 +31,7 @@ elem_loop_prepare_fvho()
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 // 	Update Geometry for this element
-	static TFVGeom& geo = Provider::get<TFVGeom>();
+	static TFVGeom& geo = Provider<TFVGeom>::get();
 
 	if(!geo.update_local(roid, m_order, m_quadOrderSCVF, m_quadOrderSCV))
 	{
@@ -42,7 +42,7 @@ elem_loop_prepare_fvho()
 //	set local positions
 	if(!TFVGeom::usesHangingNodes)
 	{
-		TFVGeom& geo = Provider::get<TFVGeom>();
+		TFVGeom& geo = Provider<TFVGeom>::get();
 		m_imDiffusion.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                       	                      geo.num_scvf_ips());
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
@@ -80,7 +80,7 @@ elem_prepare_fvho(TElem* elem, const local_vector_type& u)
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
-	static TFVGeom& geo = Provider::get<TFVGeom>();
+	static TFVGeom& geo = Provider<TFVGeom>::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
 	{
@@ -120,7 +120,7 @@ bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 {
 // get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 //	Diff. Tensor times Gradient
 	MathVector<dim> Dgrad;
@@ -226,7 +226,7 @@ bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JM_fvho(local_matrix_type& J, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0, ipOffset = 0; ip < geo.num_scv(); ++ip)
@@ -271,7 +271,7 @@ bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
 	{
@@ -379,7 +379,7 @@ bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dM_fvho(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
@@ -427,7 +427,7 @@ elem_rhs_fvho(local_vector_type& d)
 	if(!m_imSource.data_given()) return true;
 
 // 	get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
@@ -466,7 +466,7 @@ lin_def_velocity_fvho(const local_vector_type& u,
                      const size_t nip)
 {
 // 	get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -508,7 +508,7 @@ lin_def_diffusion_fvho(const local_vector_type& u,
                       const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -556,7 +556,7 @@ lin_def_reaction_fvho(const local_vector_type& u,
                      const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
@@ -593,7 +593,7 @@ lin_def_source_fvho(const local_vector_type& u,
                    const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
@@ -625,7 +625,7 @@ lin_def_mass_scale_fvho(const local_vector_type& u,
                        const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
@@ -667,7 +667,7 @@ ex_concentration_fvho(const local_vector_type& u,
                      std::vector<std::vector<number> > vvvDeriv[])
 {
 //  get finite volume geometry
-	const static TFVGeom& geo = Provider::get<TFVGeom>();
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -783,7 +783,7 @@ ex_concentration_grad_fvho(const local_vector_type& u,
                           std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
-	static const TFVGeom& geo = Provider::get<TFVGeom>();
+	static const TFVGeom& geo = Provider<TFVGeom>::get();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type

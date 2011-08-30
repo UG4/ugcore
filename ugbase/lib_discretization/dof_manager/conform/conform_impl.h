@@ -258,7 +258,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind,
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	reference element
-	static const ref_elem_type& rRef = Provider::get<ref_elem_type>();
+	static const ref_elem_type& rRef = Provider<ref_elem_type>::get();
 
 //	add normal dofs
 	UG_ASSERT(vElem.size() == numNatural, "Size must match");
@@ -514,7 +514,7 @@ void DoFDistribution::multi_indices(TElem* elem, size_t fct, multi_index_vector_
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	reference element
-	static const ref_elem_type& rRef = Provider::get<ref_elem_type>();
+	static const ref_elem_type& rRef = Provider<ref_elem_type>::get();
 
 //	loop passed elements
 	UG_ASSERT(vElem.size() == numNatural, "Size must match");
@@ -622,7 +622,7 @@ size_t DoFDistribution::inner_multi_indices(TElem* elem, size_t fct,
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	reference element
-	static const ref_elem_type& rRef = Provider::get<ref_elem_type>();
+	static const ref_elem_type& rRef = Provider<ref_elem_type>::get();
 
 //	get subset index
 	const int si = m_pISubsetHandler->get_subset_index(elem);

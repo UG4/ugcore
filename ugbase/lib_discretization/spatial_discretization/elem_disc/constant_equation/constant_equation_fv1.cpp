@@ -35,7 +35,7 @@ prepare_element_loop()
 //	set local positions for rhs
 	if(!TFVGeom<TElem, dim>::usesHangingNodes)
 	{
-		TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+		TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                   	                      geo.num_scvf_ips());
 		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
@@ -87,7 +87,7 @@ prepare_element(TElem* elem, const local_vector_type& u){
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
-	TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
 	{
 		UG_LOG("FVConstantEquationElemDisc::prepare_element:"
@@ -146,7 +146,7 @@ FVConstantEquationElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo	= Provider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo	= Provider<TFVGeom<TElem,dim> >::get();
 
 //	check if data given
 	if(!m_imVelocity.data_given()) return true;
@@ -178,7 +178,7 @@ FVConstantEquationElemDisc<TDomain>::
 assemble_M(local_vector_type& d, const local_vector_type& u)
 {
 // 	get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -217,7 +217,7 @@ assemble_f(local_vector_type& d)
 
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo
-		= Provider::get<TFVGeom<TElem,dim> >();
+		= Provider<TFVGeom<TElem,dim> >::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -247,7 +247,7 @@ lin_def_velocity(const local_vector_type& u,
                  const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -280,7 +280,7 @@ lin_def_source(const local_vector_type& u,
                const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -309,7 +309,7 @@ lin_def_mass_scale(const local_vector_type& u,
                    const size_t nip)
 {
 // 	get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo	= Provider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo	= Provider<TFVGeom<TElem,dim> >::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t co = 0; co < geo.num_scv(); ++co)
@@ -342,7 +342,7 @@ ex_concentration(const local_vector_type& u,
                  std::vector<std::vector<number> > vvvDeriv[])
 {
 //  get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -388,7 +388,7 @@ ex_concentration(const local_vector_type& u,
 	else
 	{
 	//	get trial space
-		LagrangeP1<ref_elem_type> rTrialSpace = Provider::get<LagrangeP1<ref_elem_type> >();
+		LagrangeP1<ref_elem_type> rTrialSpace = Provider<LagrangeP1<ref_elem_type> >::get();
 
 	//	storage for shape function at ip
 		number vShape[numSH];
@@ -430,7 +430,7 @@ ex_concentration_grad(const local_vector_type& u,
                       std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
-	static const TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	static const TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -464,7 +464,7 @@ ex_concentration_grad(const local_vector_type& u,
 	else
 	{
 	//	get trial space
-		LagrangeP1<ref_elem_type>& rTrialSpace = Provider::get<LagrangeP1<ref_elem_type> >();
+		LagrangeP1<ref_elem_type>& rTrialSpace = Provider<LagrangeP1<ref_elem_type> >::get();
 
 	//	storage for shape function at ip
 		MathVector<refDim> vLocGrad[numSH];

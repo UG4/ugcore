@@ -715,7 +715,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 	{
 	case 0:
 		const static GaussQuadrature<ReferenceTetrahedron, 0>& q0 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 0> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 0> >::get();
 
 		m_order = q0.order();
 		m_numPoints = q0.size();
@@ -725,7 +725,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 	case 1:
 		const static GaussQuadrature<ReferenceTetrahedron, 1>& q1 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 1> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 1> >::get();
 
 		m_order = q1.order();
 		m_numPoints = q1.size();
@@ -735,7 +735,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 	case 2:
 		const static GaussQuadrature<ReferenceTetrahedron, 2>& q2 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 2> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 2> >::get();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();
@@ -745,7 +745,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 	case 3:
 		const static GaussQuadrature<ReferenceTetrahedron, 3>& q3 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 3> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 3> >::get();
 
 		m_order = q3.order();
 		m_numPoints = q3.size();
@@ -755,7 +755,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 	case 5:
 		const static GaussQuadrature<ReferenceTetrahedron, 5>& q5 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 5> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 5> >::get();
 
 		m_order = q5.order();
 		m_numPoints = q5.size();
@@ -765,7 +765,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 	case 6:
 		const static GaussQuadrature<ReferenceTetrahedron, 6>& q6 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 6> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 6> >::get();
 
 		m_order = q6.order();
 		m_numPoints = q6.size();
@@ -775,7 +775,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 	case 7:
 		const static GaussQuadrature<ReferenceTetrahedron, 7>& q7 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 7> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 7> >::get();
 
 		m_order = q7.order();
 		m_numPoints = q7.size();
@@ -785,7 +785,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 	case 8:
 		const static GaussQuadrature<ReferenceTetrahedron, 8>& q8 
-			= Provider::get<GaussQuadrature<ReferenceTetrahedron, 8> >();
+			= Provider<GaussQuadrature<ReferenceTetrahedron, 8> >::get();
 
 		m_order = q8.order();
 		m_numPoints = q8.size();

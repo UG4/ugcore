@@ -13,7 +13,7 @@ namespace ug{
 template <typename TElem, int TWorldDim>
 HFV1Geometry<TElem, TWorldDim>::
 HFV1Geometry()
-	: m_pElem(NULL),  m_rRefElem(Provider::get<ref_elem_type>())
+	: m_pElem(NULL),  m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// local corners
 	m_vSCV.resize(m_numNaturalSCV);

@@ -105,7 +105,7 @@ FV1NeumannBoundaryElemDisc<TDomain>::
 prepare_element_loop()
 {
 //	register subsetIndex at Geometry
-	static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 	typename std::map<int, std::vector<UserDataFunction> >::const_iterator subsetIter;
 	for(subsetIter = m_mBoundarySegment.begin();
@@ -127,7 +127,7 @@ FV1NeumannBoundaryElemDisc<TDomain>::
 finish_element_loop()
 {
 //	remove subsetIndex from Geometry
-	static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 	typename std::map<int, std::vector<UserDataFunction> >::const_iterator subsetIter;
 	for(subsetIter = m_mBoundarySegment.begin();
@@ -154,7 +154,7 @@ prepare_element(TElem* elem, const local_vector_type& u)
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
 //  update Geometry for this element
-	static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
 	{
 		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::prepare_element': "
@@ -222,7 +222,7 @@ FV1NeumannBoundaryElemDisc<TDomain>::
 assemble_f(local_vector_type& d)
 {
 	// get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = Provider::get<TFVGeom<TElem,dim> >();
+	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 	// loop registered boundary segments
 	typename std::map<int, std::vector<UserDataFunction> >::const_iterator subsetIter;

@@ -86,7 +86,7 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 	{
 	case 0:
 		const static GaussQuadrature<ReferencePrism, 0>& q0 
-			= Provider::get<GaussQuadrature<ReferencePrism, 0> >();
+			= Provider<GaussQuadrature<ReferencePrism, 0> >::get();
 
 		m_order = q0.order();
 		m_numPoints = q0.size();
@@ -96,7 +96,7 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 
 	case 2:
 		const static GaussQuadrature<ReferencePrism, 2>& q2 
-			= Provider::get<GaussQuadrature<ReferencePrism, 2> >();
+			= Provider<GaussQuadrature<ReferencePrism, 2> >::get();
 
 		m_order = q2.order();
 		m_numPoints = q2.size();

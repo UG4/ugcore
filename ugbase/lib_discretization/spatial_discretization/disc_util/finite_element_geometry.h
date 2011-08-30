@@ -45,8 +45,8 @@ class FEGeometry
 	public:
 	///	Constructor
 		FEGeometry()
-			: m_rQuadRule(Provider::get<quad_rule_type>()),
-			  m_rTrialSpace(Provider::get<trial_space_type>())
+			: m_rQuadRule(Provider<quad_rule_type>::get()),
+			  m_rTrialSpace(Provider<trial_space_type>::get())
 		{
 		//	evaluate local shapes and gradients
 			for(size_t ip = 0; ip < nip; ++ip)

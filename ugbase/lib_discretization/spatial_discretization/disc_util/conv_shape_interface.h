@@ -222,7 +222,7 @@ set_geometry_type()
 	m_id = id;
 
 //	set sizes
-	TFVGeom& geo = Provider::get<TFVGeom>();
+	TFVGeom& geo = Provider<TFVGeom>::get();
 	set_sizes(geo.num_scvf(), geo.num_scv());
 
 //	we're done

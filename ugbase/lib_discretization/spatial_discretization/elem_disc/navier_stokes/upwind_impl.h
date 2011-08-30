@@ -67,7 +67,7 @@ set_geometry_type()
 	m_id = id;
 
 //	set sizes
-	TFVGeom& geo = Provider::get<TFVGeom>();
+	TFVGeom& geo = Provider<TFVGeom>::get();
 	set_sizes(geo.num_scvf(), geo.num_scv());
 
 //	we're done
@@ -248,7 +248,7 @@ bool GetNodeNextToCut(size_t& coOut,
 	}
 
 //	get reference element
-	static const TRefElem& rRefElem = Provider::get<TRefElem>();
+	static const TRefElem& rRefElem = Provider<TRefElem>::get();
 	const int dim = TRefElem::dim;
 
 // 	reset minimum
@@ -387,7 +387,7 @@ update(const FV1Geometry<TElem, dim>* geo, const local_vector_type& vCornerValue
  	// 	get Reference Element
  		typedef typename FV1Geometry<TElem, dim>::ref_elem_type ref_elem_type;
  		static const ref_elem_type& rRefElem
- 			= Provider::get<ref_elem_type>();
+ 			= Provider<ref_elem_type>::get();
 
  	// 	loop corners of side
  		for(size_t j = 0; j < rRefElem.num(dim-1, side, 0); ++j)
