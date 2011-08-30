@@ -510,25 +510,6 @@ class ConvectionDiffusionElemDisc
 	// 	FV1 Assemblings
 		void register_all_fv1_funcs(bool bHang);
 
-		template <template <class Elem, int WorldDim> class TFVGeom>
-		struct RegisterFV1 {
-				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
-				this_type* m_pThis;
-				template< typename TElem > void operator()(TElem&)
-				{m_pThis->register_fv1_func<TElem, TFVGeom<TElem, dim> >();}
-		};
-
-		template <template <int TDim, int WorldDim> class TFVGeom>
-		struct RegisterDimFV1 {
-				RegisterDimFV1(this_type* pThis) : m_pThis(pThis){}
-				this_type* m_pThis;
-				template< typename TElem > void operator()(TElem&)
-				{
-					static const int refDim = reference_element_traits<TElem>::dim;
-					m_pThis->register_fv1_func<TElem, TFVGeom<refDim, dim> >();
-				}
-		};
-
 		template <typename TElem, typename TFVGeom>
 		void register_fv1_func();
 
@@ -546,6 +527,7 @@ class ConvectionDiffusionElemDisc
 		template<typename TElem, typename THolder>
 		void register_fe_func();
 
+	//	helper class holding a geometry
 		template<typename TGeom>
 		struct FlexGeomHolder
 		{

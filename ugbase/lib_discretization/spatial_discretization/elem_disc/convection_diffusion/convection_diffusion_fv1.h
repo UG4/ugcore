@@ -762,20 +762,57 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
-// register for all dim
-template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+template<>
+void ConvectionDiffusionElemDisc<Domain1d>::
 register_all_fv1_funcs(bool bHang)
 {
-//	get all grid element types in this dimension and below
-	typedef typename domain_traits<dim>::DimElemList ElemList;
-
 //	switch assemble functions
-	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
-	else boost::mpl::for_each<ElemList>( RegisterFV1<HFV1Geometry>(this) );
+	if(!bHang)
+	{
+		register_fv1_func<Edge, FV1Geometry<Edge, dim> >();
+	}
+	else
+	{
+		register_fv1_func<Edge, HFV1Geometry<Edge, dim> >();
+	}
+}
 
-//	if(!bHang) boost::mpl::for_each<ElemList>( RegisterDimFV1<DimFV1Geometry>(this) );
-//	else throw(UGFatalError("Hanging - DimFV1Geometry not implemented"));
+template<>
+void ConvectionDiffusionElemDisc<Domain2d>::
+register_all_fv1_funcs(bool bHang)
+{
+//	switch assemble functions
+	if(!bHang)
+	{
+		register_fv1_func<Triangle, FV1Geometry<Triangle, dim> >();
+		register_fv1_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
+	}
+	else
+	{
+		register_fv1_func<Triangle, HFV1Geometry<Triangle, dim> >();
+		register_fv1_func<Quadrilateral, HFV1Geometry<Quadrilateral, dim> >();
+	}
+}
+
+template<>
+void ConvectionDiffusionElemDisc<Domain3d>::
+register_all_fv1_funcs(bool bHang)
+{
+//	switch assemble functions
+	if(!bHang)
+	{
+		register_fv1_func<Tetrahedron, FV1Geometry<Tetrahedron, dim> >();
+		register_fv1_func<Prism, FV1Geometry<Prism, dim> >();
+		register_fv1_func<Pyramid, FV1Geometry<Pyramid, dim> >();
+		register_fv1_func<Hexahedron, FV1Geometry<Hexahedron, dim> >();
+	}
+	else
+	{
+		register_fv1_func<Tetrahedron, HFV1Geometry<Tetrahedron, dim> >();
+		register_fv1_func<Prism, HFV1Geometry<Prism, dim> >();
+		register_fv1_func<Pyramid, HFV1Geometry<Pyramid, dim> >();
+		register_fv1_func<Hexahedron, HFV1Geometry<Hexahedron, dim> >();
+	}
 }
 
 template<typename TDomain>
