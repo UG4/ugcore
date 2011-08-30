@@ -21,7 +21,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_prepare_fvho()
 {
@@ -30,8 +30,8 @@ elem_loop_prepare_fvho()
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
-// 	Update Geometry for this element
-	static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 	if(!geo.update_local(roid, m_order, m_quadOrderSCVF, m_quadOrderSCV))
 	{
@@ -40,9 +40,8 @@ elem_loop_prepare_fvho()
 	}
 
 //	set local positions
-	if(!TFVGeom::usesHangingNodes)
+	if(!TGeomProvider::Type::usesHangingNodes)
 	{
-		TFVGeom& geo = Provider<TFVGeom>::get();
 		m_imDiffusion.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                       	                      geo.num_scvf_ips());
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
@@ -60,7 +59,7 @@ elem_loop_prepare_fvho()
 }
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_loop_finish_fvho()
 {
@@ -69,7 +68,7 @@ elem_loop_finish_fvho()
 }
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_prepare_fvho(TElem* elem, const local_vector_type& u)
 {
@@ -79,8 +78,8 @@ elem_prepare_fvho(TElem* elem, const local_vector_type& u)
 //	get corners
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
 
-// 	Update Geometry for this element
-	static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
 	{
@@ -89,7 +88,7 @@ elem_prepare_fvho(TElem* elem, const local_vector_type& u)
 	}
 
 //	set local positions
-	if(TFVGeom::usesHangingNodes)
+	if(TGeomProvider::Type::usesHangingNodes)
 	{
 		m_imDiffusion.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                       	                      geo.num_scvf_ips());
@@ -115,12 +114,12 @@ elem_prepare_fvho(TElem* elem, const local_vector_type& u)
 }
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 {
-// get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 //	Diff. Tensor times Gradient
 	MathVector<dim> Dgrad;
@@ -132,7 +131,7 @@ elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 		for(size_t i = 0, ipCnt = 0; i < geo.num_scvf(); ++i)
 		{
 		// 	get current SCVF
-			const typename TFVGeom::SCVF& scvf = geo.scvf(i);
+			const typename TGeomProvider::Type::SCVF& scvf = geo.scvf(i);
 
 		//	loop integration points
 			for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
@@ -190,7 +189,7 @@ elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 	for(size_t i = 0, ipOffset = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(i);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 	// 	get associated node
 		const int co = scv.node_id();
@@ -221,18 +220,18 @@ elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_JM_fvho(local_matrix_type& J, const local_vector_type& u)
 {
-// 	get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0, ipOffset = 0; ip < geo.num_scv(); ++ip)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(ip);
 
 	// 	get associated node
 		const int co = scv.node_id();
@@ -266,12 +265,12 @@ elem_JM_fvho(local_matrix_type& J, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 {
-// 	get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
 	{
@@ -279,7 +278,7 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 		for(size_t i = 0, ipCnt = 0; i < geo.num_scvf(); ++i)
 		{
 		// 	get current SCVF
-			const typename TFVGeom::SCVF& scvf = geo.scvf(i);
+			const typename TGeomProvider::Type::SCVF& scvf = geo.scvf(i);
 
 		//	the flux of the scvf
 			number flux = 0;
@@ -344,7 +343,7 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(i);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 	//	reset integral
 		number integral = 0;
@@ -374,18 +373,18 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_dM_fvho(local_vector_type& d, const local_vector_type& u)
 {
-// 	get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(i);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 	//	reset integral
 		number integral = 0;
@@ -419,21 +418,21 @@ elem_dM_fvho(local_vector_type& d, const local_vector_type& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 elem_rhs_fvho(local_vector_type& d)
 {
 //	if zero data given, return
 	if(!m_imSource.data_given()) return true;
 
-// 	get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(i);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 	//	reset integral
 		number integral = 0;
@@ -459,14 +458,14 @@ elem_rhs_fvho(local_vector_type& d)
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-template <typename TElem, typename TFVGeom>
+template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_velocity_fvho(const local_vector_type& u,
                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                      const size_t nip)
 {
-// 	get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -478,7 +477,7 @@ lin_def_velocity_fvho(const local_vector_type& u,
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scvf(); ++i)
 	{
 	// 	get current SCVF
-		const typename TFVGeom::SCVF& scvf = geo.scvf(i);
+		const typename TGeomProvider::Type::SCVF& scvf = geo.scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -501,14 +500,14 @@ lin_def_velocity_fvho(const local_vector_type& u,
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-template <typename TElem, typename TFVGeom>
+template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_diffusion_fvho(const local_vector_type& u,
                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
                       const size_t nip)
 {
-//  get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -520,7 +519,7 @@ lin_def_diffusion_fvho(const local_vector_type& u,
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scvf(); ++i)
 	{
 	// 	get current SCVF
-		const typename TFVGeom::SCVF& scvf = geo.scvf(i);
+		const typename TGeomProvider::Type::SCVF& scvf = geo.scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -549,20 +548,20 @@ lin_def_diffusion_fvho(const local_vector_type& u,
 
 //	computes the linearized defect w.r.t to the reaction
 template<typename TDomain>
-template <typename TElem, typename TFVGeom>
+template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_reaction_fvho(const local_vector_type& u,
                      std::vector<std::vector<number> > vvvLinDef[],
                      const size_t nip)
 {
-//  get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(i);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 	// 	get associated node
 		const int co = scv.node_id();
@@ -586,20 +585,20 @@ lin_def_reaction_fvho(const local_vector_type& u,
 
 //	computes the linearized defect w.r.t to the source
 template<typename TDomain>
-template <typename TElem, typename TFVGeom>
+template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_source_fvho(const local_vector_type& u,
                    std::vector<std::vector<number> > vvvLinDef[],
                    const size_t nip)
 {
-//  get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(i);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 	// 	get associated node
 		const int co = scv.node_id();
@@ -618,20 +617,20 @@ lin_def_source_fvho(const local_vector_type& u,
 
 //	computes the linearized defect w.r.t to the mass scale
 template<typename TDomain>
-template <typename TElem, typename TFVGeom>
+template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 lin_def_mass_scale_fvho(const local_vector_type& u,
                        std::vector<std::vector<number> > vvvLinDef[],
                        const size_t nip)
 {
-//  get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(i);
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 	// 	get associated node
 		const int co = scv.node_id();
@@ -656,18 +655,18 @@ lin_def_mass_scale_fvho(const local_vector_type& u,
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-template <typename TElem, typename TFVGeom>
+template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 ex_concentration_fvho(const local_vector_type& u,
                      const MathVector<dim> vGlobIP[],
-                     const MathVector<TFVGeom::dim> vLocIP[],
+                     const MathVector<TGeomProvider::Type::dim> vLocIP[],
                      const size_t nip,
                      number vValue[],
                      bool bDeriv,
                      std::vector<std::vector<number> > vvvDeriv[])
 {
-//  get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -686,7 +685,7 @@ ex_concentration_fvho(const local_vector_type& u,
 		for(size_t i = 0, ipCnt = 0; i < geo.num_scvf(); ++i)
 		{
 		// 	get current SCVF
-			const typename TFVGeom::SCVF& scvf = geo.scvf(i);
+			const typename TGeomProvider::Type::SCVF& scvf = geo.scvf(i);
 
 			for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 			{
@@ -711,7 +710,7 @@ ex_concentration_fvho(const local_vector_type& u,
 		for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 		{
 		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(i);
+			const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
 		//	loop integration points
 			for(size_t ip = 0; ip < scv.num_ip(); ++ip)
@@ -772,18 +771,18 @@ ex_concentration_fvho(const local_vector_type& u,
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-template <typename TElem, typename TFVGeom>
+template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 ex_concentration_grad_fvho(const local_vector_type& u,
                           const MathVector<dim> vGlobIP[],
-                          const MathVector<TFVGeom::dim> vLocIP[],
+                          const MathVector<TGeomProvider::Type::dim> vLocIP[],
                           const size_t nip,
                           MathVector<dim> vValue[],
                           bool bDeriv,
                           std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
-// 	Get finite volume geometry
-	static const TFVGeom& geo = Provider<TFVGeom>::get();
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -805,7 +804,7 @@ ex_concentration_grad_fvho(const local_vector_type& u,
 		for(size_t i = 0, ipCnt = 0; i < geo.num_scvf(); ++i)
 		{
 		// 	get current SCVF
-			const typename TFVGeom::SCVF& scvf = geo.scvf(i);
+			const typename TGeomProvider::Type::SCVF& scvf = geo.scvf(i);
 
 			for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 			{
@@ -882,13 +881,13 @@ register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 	switch(order)
 	{
 /*		case 1:	{typedef FVGeometry<1, Edge, dim> FVGeom;
-				 register_fvho_func<Edge, FVGeom>(); break;}
+				 register_fvho_func<Edge, Provider<FVGeom> >(); break;}
 		case 2:	{typedef FVGeometry<2, Edge, dim> FVGeom;
-				 register_fvho_func<Edge, FVGeom>(); break;}
+				 register_fvho_func<Edge, Provider<FVGeom> >(); break;}
 		case 3:	{typedef FVGeometry<3, Edge, dim> FVGeom;
-				 register_fvho_func<Edge, FVGeom>(); break;}
+				 register_fvho_func<Edge, Provider<FVGeom> >(); break;}
 		default: {typedef DimFVGeometry<1, dim> FVGeom;
-		 	 	 register_fvho_func<Edge, FVGeom>(); break;}
+		 	 	 register_fvho_func<Edge, Provider<FVGeom> >(); break;}
 */	}
 }
 
@@ -897,39 +896,38 @@ template<>
 void ConvectionDiffusionElemDisc<Domain2d>::
 register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 {
-
 	if(order == quadOrderSCV && order == quadOrderSCVF)
 	{
 	//	Triangle
 		switch(order)
 		{
 			case 1:	{typedef FVGeometry<1, Triangle, dim> FVGeom;
-					 register_fvho_func<Triangle, FVGeom>(); break;}
+					 register_fvho_func<Triangle, Provider<FVGeom> >(); break;}
 			case 2:	{typedef FVGeometry<2, Triangle, dim> FVGeom;
-					 register_fvho_func<Triangle, FVGeom>(); break;}
+					 register_fvho_func<Triangle, Provider<FVGeom> >(); break;}
 			case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
-					 register_fvho_func<Triangle, FVGeom>(); break;}
+					 register_fvho_func<Triangle, Provider<FVGeom> >(); break;}
 			default: {typedef DimFVGeometry<2, dim> FVGeom;
-					 register_fvho_func<Triangle, FVGeom>(); break;}
+					 register_fvho_func<Triangle, FlexGeomProvider<FVGeom> >(); break;}
 		}
 
 	//	Quadrilateral
 		switch(order) {
 			case 1:	{typedef FVGeometry<1, Quadrilateral, dim> FVGeom;
-					 register_fvho_func<Quadrilateral, FVGeom>(); break;}
+					 register_fvho_func<Quadrilateral, Provider<FVGeom> >(); break;}
 			case 2:	{typedef FVGeometry<2, Quadrilateral, dim> FVGeom;
-					 register_fvho_func<Quadrilateral, FVGeom>(); break;}
+					 register_fvho_func<Quadrilateral, Provider<FVGeom> >(); break;}
 			case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
-					 register_fvho_func<Quadrilateral, FVGeom>(); break;}
+					 register_fvho_func<Quadrilateral, Provider<FVGeom> >(); break;}
 			default: {typedef DimFVGeometry<2, dim> FVGeom;
-					  register_fvho_func<Quadrilateral, FVGeom>(); break;}
+					  register_fvho_func<Quadrilateral, FlexGeomProvider<FVGeom> >(); break;}
 		}
 	}
 	else
 	{
 		typedef DimFVGeometry<2, dim> FVGeom;
-		register_fvho_func<Triangle, FVGeom>();
-		register_fvho_func<Quadrilateral, FVGeom>();
+		register_fvho_func<Triangle, FlexGeomProvider<FVGeom> >();
+		register_fvho_func<Quadrilateral, FlexGeomProvider<FVGeom> >();
 	}
 }
 
@@ -938,40 +936,54 @@ template<>
 void ConvectionDiffusionElemDisc<Domain3d>::
 register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 {
-//	Tetrahedron
-	switch(order)
+	if(order == quadOrderSCV && order == quadOrderSCVF)
 	{
-		case 1:	{typedef FVGeometry<1, Tetrahedron, dim> FVGeom;
-				 register_fvho_func<Tetrahedron, FVGeom>(); break;}
-		case 2:	{typedef FVGeometry<2, Tetrahedron, dim> FVGeom;
-				 register_fvho_func<Tetrahedron, FVGeom>(); break;}
-		case 3:	{typedef FVGeometry<3, Tetrahedron, dim> FVGeom;
-				 register_fvho_func<Tetrahedron, FVGeom>(); break;}
-		default: UG_LOG("NO Tetrahedron please.\n"); break;
+	//	Tetrahedron
+		switch(order)
+		{
+			case 1:	{typedef FVGeometry<1, Tetrahedron, dim> FVGeom;
+					 register_fvho_func<Tetrahedron, Provider<FVGeom> >(); break;}
+			case 2:	{typedef FVGeometry<2, Tetrahedron, dim> FVGeom;
+					 register_fvho_func<Tetrahedron, Provider<FVGeom> >(); break;}
+			case 3:	{typedef FVGeometry<3, Tetrahedron, dim> FVGeom;
+					 register_fvho_func<Tetrahedron, Provider<FVGeom> >(); break;}
+			default: {typedef DimFVGeometry<3, dim> FVGeom;
+					  register_fvho_func<Tetrahedron, FlexGeomProvider<FVGeom> >(); break;}
+		}
+
+	//	Prism
+		switch(order) {
+			case 1:	{typedef FVGeometry<1, Prism, dim> FVGeom;
+					 register_fvho_func<Prism, Provider<FVGeom> >(); break;}
+			default: {typedef DimFVGeometry<3, dim> FVGeom;
+					  register_fvho_func<Prism, FlexGeomProvider<FVGeom> >(); break;}
+		}
+
+	//	Hexahedron
+		switch(order)
+		{
+			case 1:	{typedef FVGeometry<1, Hexahedron, dim> FVGeom;
+					 register_fvho_func<Hexahedron, Provider<FVGeom> >(); break;}
+			case 2:	{typedef FVGeometry<2, Hexahedron, dim> FVGeom;
+					 register_fvho_func<Hexahedron, Provider<FVGeom> >(); break;}
+			case 3:	{typedef FVGeometry<3, Hexahedron, dim> FVGeom;
+					 register_fvho_func<Hexahedron, Provider<FVGeom> >(); break;}
+			default: {typedef DimFVGeometry<3, dim> FVGeom;
+					  register_fvho_func<Hexahedron, FlexGeomProvider<FVGeom> >(); break;}
+		}
+	}
+	else
+	{
+		typedef DimFVGeometry<3, dim> FVGeom;
+		register_fvho_func<Tetrahedron, FlexGeomProvider<FVGeom> >();
+		register_fvho_func<Prism, FlexGeomProvider<FVGeom> >();
+		register_fvho_func<Hexahedron, FlexGeomProvider<FVGeom> >();
 	}
 
-//	Prism
-	switch(order) {
-		case 1:	{typedef FVGeometry<1, Prism, dim> FVGeom;
-				 register_fvho_func<Prism, FVGeom>(); break;}
-		default: UG_LOG("NO Prism please.\n"); break;
-	}
-
-//	Hexahedron
-	switch(order)
-	{
-		case 1:	{typedef FVGeometry<1, Hexahedron, dim> FVGeom;
-				 register_fvho_func<Hexahedron, FVGeom>(); break;}
-		case 2:	{typedef FVGeometry<2, Hexahedron, dim> FVGeom;
-				 register_fvho_func<Hexahedron, FVGeom>(); break;}
-		case 3:	{typedef FVGeometry<3, Hexahedron, dim> FVGeom;
-				 register_fvho_func<Hexahedron, FVGeom>(); break;}
-		default: UG_LOG("NO Hexahedron please.\n"); break;
-	}
 }
 
 template<typename TDomain>
-template<typename TElem, typename TFVGeom>
+template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusionElemDisc<TDomain>::
 register_fvho_func()
 {
@@ -979,25 +991,25 @@ register_fvho_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TFVGeom>);
-	set_prep_elem_fct(	   id, &T::template elem_prepare_fvho<TElem, TFVGeom>);
-	set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TFVGeom>);
-	set_ass_JA_elem_fct(   id, &T::template elem_JA_fvho<TElem, TFVGeom>);
-	set_ass_JM_elem_fct(   id, &T::template elem_JM_fvho<TElem, TFVGeom>);
-	set_ass_dA_elem_fct(   id, &T::template elem_dA_fvho<TElem, TFVGeom>);
-	set_ass_dM_elem_fct(   id, &T::template elem_dM_fvho<TElem, TFVGeom>);
-	set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fvho<TElem, TFVGeom>);
+	set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TGeomProvider>);
+	set_prep_elem_fct(	   id, &T::template elem_prepare_fvho<TElem, TGeomProvider>);
+	set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TGeomProvider>);
+	set_ass_JA_elem_fct(   id, &T::template elem_JA_fvho<TElem, TGeomProvider>);
+	set_ass_JM_elem_fct(   id, &T::template elem_JM_fvho<TElem, TGeomProvider>);
+	set_ass_dA_elem_fct(   id, &T::template elem_dA_fvho<TElem, TGeomProvider>);
+	set_ass_dM_elem_fct(   id, &T::template elem_dM_fvho<TElem, TGeomProvider>);
+	set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fvho<TElem, TGeomProvider>);
 
 //	set computation of linearized defect w.r.t velocity
-	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fvho<TElem, TFVGeom>);
-	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion_fvho<TElem, TFVGeom>);
-	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fvho<TElem, TFVGeom>);
-	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fvho<TElem, TFVGeom>);
-	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fvho<TElem, TFVGeom>);
+	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fvho<TElem, TGeomProvider>);
+	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion_fvho<TElem, TGeomProvider>);
+	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fvho<TElem, TGeomProvider>);
+	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fvho<TElem, TGeomProvider>);
+	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fvho<TElem, TGeomProvider>);
 
 //	exports
-	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_concentration_fvho<TElem, TFVGeom>);
-	m_exConcentrationGrad.template set_fct<T,refDim>(id, this, &T::template ex_concentration_grad_fvho<TElem, TFVGeom>);
+	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_concentration_fvho<TElem, TGeomProvider>);
+	m_exConcentrationGrad.template set_fct<T,refDim>(id, this, &T::template ex_concentration_grad_fvho<TElem, TGeomProvider>);
 }
 
 } // namespace ug
