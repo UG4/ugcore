@@ -17,7 +17,6 @@ namespace ug
 {
 namespace bridge
 {
-
 ///	Wrapper object that simplifies script creation
 class GridObject : public Grid
 {
@@ -467,12 +466,6 @@ UG_LOG(" redistributing grid\n");
 	RedistributeGrid(distGridMgr, shPart, serializer, serializer, false);
 UG_LOG("done\n");
 
-/*
-	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		UG_LOG("level " << lvl << ":\n");
-		PrintElementNumbers(mg.get_geometric_object_collection(lvl));
-	}
-*/
 //	save the hierarchy on each process
 	{
 		stringstream ss;
@@ -488,26 +481,6 @@ UG_LOG("done\n");
 	}
 
 #endif // UG_PARALLEL
-}
-
-///	only for temporary testing purposes.
-void TestAttachedLinkedList(const char* filename)
-{
-	Grid g;
-	//SubsetHandler sh(g);
-
-	UG_LOG("loading...");
-	//if(!LoadGridFromFile(g, filename, sh)){
-	if(!LoadGridFromFile(g, filename)){
-		UG_LOG("load file failed\n");
-		return;
-	}
-	UG_LOG(" done.\n");
-
-	//UG_LOG("testing surface view... ");
-	//SurfaceView sv(g);
-	//sv.assign_subset(*g.begin<VertexBase>(), 0);
-	//UG_LOG(" done\n");
 }
 
 
@@ -613,7 +586,7 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			("ParallelHangingNodeRefiner_MultiGrid", grp)
 			.add_constructor();
 	#endif
-	
+
 	//	GridObject
 		reg.add_class_<GridObject, Grid>("GridObject", grp)
 			.add_constructor()
@@ -663,9 +636,6 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("num_target_procs", &PartitionMap::num_target_procs)
 			.add_method("get_target_proc", &PartitionMap::get_target_proc)
 			.add_method("shift_target_procs", &PartitionMap::shift_target_procs);
-
-	//	tests:
-		reg.add_function("TestAttachedLinkedList", &TestAttachedLinkedList);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

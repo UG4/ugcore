@@ -12,20 +12,6 @@
 #include <fstream>
 #include "util/ostream_util.h"
 
-/* After 'http://www.boost.org/doc/libs/1_47_0/doc/html/boost_units/Examples.html#boost_units.Examples.autoscale': */
-#include <boost/units/io.hpp>
-//#include <boost/units/systems/si/io.hpp> -- inkludiert ebenfalls 'quantity.hpp', sowie 'base.hpp'
-#include <boost/units/quantity.hpp>
-#include <boost/units/systems/si/base.hpp>
-
-struct thing_base_unit : boost::units::base_unit<thing_base_unit, boost::units::dimensionless_type, 4>
-{
-  static const char* name() { return("thing"); }
-  static const char* symbol() { return(""); }
-};
-
-using namespace boost::units;
-
 //	in order to support parallel logs, we're including pcl.h
 //	you can set the output process using pcl::SetOutputProcRank(int rank).
 #ifdef UG_PARALLEL

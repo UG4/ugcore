@@ -147,10 +147,11 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		bResult &= RegisterProfileFunctions(reg, parentGroup);
 		bResult &= RegisterMiscFunctions(reg, parentGroup);
 
+		#ifdef UG_ALGEBRA
+	//	depends on lib_disc
 		bResult &= RegisterLibDisc_Common(reg, parentGroup);
 		bResult &= RegisterLibDisc_ElemDisc(reg, parentGroup);
 
-		#ifdef UG_ALGEBRA
 	//	depends on lib_algebra
 		bResult &= RegisterLibAlgebra(reg, parentGroup);
 		bResult &= RegisterLibDisc_Algebra(reg, parentGroup);

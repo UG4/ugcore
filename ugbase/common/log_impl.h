@@ -8,10 +8,11 @@
 #ifndef __H__COMMON__LOG_IMPL__
 #define __H__COMMON__LOG_IMPL__
 
-#include <iostream> // bereits vorhanden!
-//#include <string>  // added for 'string' - ist offenbar anderweitig inkludiert!
-//#include <sstream>  // added for 'stringstream' - ist offenbar anderweitig inkludiert!
+#include <iostream>
+#include <string>  // added for 'string'
+#include <sstream>  // added for 'stringstream'
 #include <iomanip> // added for 'setprecision()'
+#include <cmath>
 
 namespace ug{
 
