@@ -67,10 +67,10 @@ class FEGeometry
 		number weight(size_t ip) const {return fabs(m_vDetJ[ip]) * m_rQuadRule.weight(ip);}
 
 	/// local integration point
-		const MathVector<dim>& ip_local(size_t ip) const {return m_rQuadRule.point(ip);}
+		const MathVector<dim>& local_ip(size_t ip) const {return m_rQuadRule.point(ip);}
 
 	/// global integration point
-		const MathVector<worldDim>& ip_global(size_t ip) const
+		const MathVector<worldDim>& global_ip(size_t ip) const
 		{
 			UG_ASSERT(ip < nip, "Wrong ip.");
 			return m_vIPGlobal[ip];
@@ -152,15 +152,15 @@ class FEGeometry
 
 		//	compute global integration points
 			for(size_t ip = 0; ip < nip; ++ip)
-				m_mapping.local_to_global(m_vIPGlobal[ip], ip_local(ip));
+				m_mapping.local_to_global(m_vIPGlobal[ip], local_ip(ip));
 
 		//	evaluate global data
 		//	if reference mapping is linear,
 			if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
 			{
 			// 	compute transformation inverse and determinate at first ip
-				m_mapping.jacobian_transposed_inverse(m_vJTInv[0], ip_local(0));
-				m_vDetJ[0] = m_mapping.jacobian_det(ip_local(0));
+				m_mapping.jacobian_transposed_inverse(m_vJTInv[0], local_ip(0));
+				m_vDetJ[0] = m_mapping.jacobian_det(local_ip(0));
 
 			//	copy values
 				for(size_t ip = 1; ip < nip; ++ip)
@@ -174,10 +174,10 @@ class FEGeometry
 				for(size_t ip = 0; ip < nip; ++ip)
 				{
 				// 	compute transformation inverse and determinate at ip
-					m_mapping.jacobian_transposed_inverse(m_vJTInv[ip], ip_local(ip));
+					m_mapping.jacobian_transposed_inverse(m_vJTInv[ip], local_ip(ip));
 
 				//	compute determinant
-					m_vDetJ[ip] = m_mapping.jacobian_det(ip_local(ip));
+					m_vDetJ[ip] = m_mapping.jacobian_det(local_ip(ip));
 				}
 			}
 
@@ -267,14 +267,14 @@ class DimFEGeometry
 		}
 
 	/// local integration point
-		const MathVector<dim>& ip_local(size_t ip) const
+		const MathVector<dim>& local_ip(size_t ip) const
 		{
 			UG_ASSERT(ip < m_nip, "Wrong index");
 			return m_vIPLocal[ip];
 		}
 
 	/// global integration point
-		const MathVector<worldDim>& ip_global(size_t ip) const
+		const MathVector<worldDim>& global_ip(size_t ip) const
 		{
 			UG_ASSERT(ip < m_vIPGlobal.size(), "Wrong ip.");
 			return m_vIPGlobal[ip];
@@ -286,7 +286,7 @@ class DimFEGeometry
 	/// global integration point
 		const MathVector<worldDim>* global_ips() const{return &m_vIPGlobal[0];}
 
-		/// shape function at ip
+	/// shape function at ip
 		number shape(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < m_vvShape.size(), "Wrong index");
