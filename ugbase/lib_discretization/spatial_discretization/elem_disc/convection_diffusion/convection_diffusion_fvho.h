@@ -146,7 +146,7 @@ elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					{
 					// 	Compute Diffusion Tensor times Gradient
-						MatVecMult(Dgrad, m_imDiffusion[ipCnt], scvf.global_grad(sh, ip));
+						MatVecMult(Dgrad, m_imDiffusion[ipCnt], scvf.global_grad(ip, sh));
 
 					//	Compute flux at IP
 						const number D_diff_flux = VecDot(Dgrad, scvf.normal());
@@ -166,7 +166,7 @@ elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					{
 						const number D_conv_flux = VecDot(m_imVelocity[ipCnt], scvf.normal())
-													* scvf.shape(sh, ip);
+													* scvf.shape(ip, sh);
 
 					//	Add fkux term to local matrix
 						J(_C_, scvf.from(), _C_, sh) += D_conv_flux * scvf.weight(ip);
@@ -204,7 +204,7 @@ elem_JA_fvho(local_matrix_type& J, const local_vector_type& u)
 		//	loop integration points
 			for(size_t ip = 0; ip < scv.num_ip(); ++ip)
 			{
-				integral += m_imReaction[ipOffset+ip] * scv.shape(sh, ip) * scv.weight(ip);
+				integral += m_imReaction[ipOffset+ip] * scv.shape(ip, sh) * scv.weight(ip);
 			}
 
 		// 	Add to local matrix
@@ -247,9 +247,9 @@ elem_JM_fvho(local_matrix_type& J, const local_vector_type& u)
 			for(size_t ip = 0; ip < scv.num_ip(); ++ip)
 			{
 				if(m_imMassScale.data_given())
-					integral += scv.shape(sh, ip) * scv.weight(ip) * m_imMassScale[ipOffset+ip];
+					integral += scv.shape(ip, sh) * scv.weight(ip) * m_imMassScale[ipOffset+ip];
 				else
-					integral += scv.shape(sh, ip) * scv.weight(ip);
+					integral += scv.shape(ip, sh) * scv.weight(ip);
 			}
 
 		// 	Add to local matrix
@@ -300,7 +300,7 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 				// 	compute gradient and shape at ip
 					VecSet(grad_c, 0.0);
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						VecScaleAppend(grad_c, u(_C_,sh), scvf.global_grad(sh, ip));
+						VecScaleAppend(grad_c, u(_C_,sh), scvf.global_grad(ip, sh));
 
 				//	scale by diffusion tensor
 					MatVecMult(Dgrad_c, m_imDiffusion[ipCnt], grad_c);
@@ -317,7 +317,7 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 				//	sum up solution
 					number solIP = 0;
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						solIP += u(_C_, sh) * scvf.shape(sh, ip);
+						solIP += u(_C_, sh) * scvf.shape(ip, sh);
 
 				//	add convective flux
 					fluxIP += solIP * VecDot(m_imVelocity[ipCnt++], scvf.normal());
@@ -355,7 +355,7 @@ elem_dA_fvho(local_vector_type& d, const local_vector_type& u)
 		//	compute solution at ip
 			number solIP = 0;
 			for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-				solIP += u(_C_, sh) * scv.shape(sh, ip);
+				solIP += u(_C_, sh) * scv.shape(ip, sh);
 
 		//	add to integral-sum
 			integral += m_imReaction[ipCnt++] * solIP * scv.weight(ip);
@@ -396,7 +396,7 @@ elem_dM_fvho(local_vector_type& d, const local_vector_type& u)
 		//	compute solution at ip
 			number solIP = 0;
 			for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-				solIP += u(_C_, sh) * scv.shape(sh, ip);
+				solIP += u(_C_, sh) * scv.shape(ip, sh);
 
 		//	multiply by scaling
 			if(m_imMassScale.data_given())
@@ -485,7 +485,7 @@ lin_def_velocity_fvho(const local_vector_type& u,
 		// 	compute shape at ip
 			number shape_u = 0.0;
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				shape_u += u(_C_,sh) * scvf.shape(sh, ip);
+				shape_u += u(_C_,sh) * scvf.shape(ip, sh);
 
 		//	add parts for both sides of scvf
 			VecScale(vvvLinDef[ip][_C_][scvf.from()], scvf.normal(), shape_u);
@@ -527,7 +527,7 @@ lin_def_diffusion_fvho(const local_vector_type& u,
 		// 	compute gradient at ip
 			MathVector<dim> grad_u;	VecSet(grad_u, 0.0);
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecScaleAppend(grad_u, u(_C_,sh), scvf.global_grad(sh, ip));
+				VecScaleAppend(grad_u, u(_C_,sh), scvf.global_grad(ip, sh));
 
 		//	part coming from -\nabla u * \vec{n}
 			for(size_t k=0; k < (size_t)dim; ++k)
@@ -573,7 +573,7 @@ lin_def_reaction_fvho(const local_vector_type& u,
 		//	compute solution at ip
 			number solIP = 0;
 			for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-				solIP += u(_C_, sh) * scv.shape(sh, ip);
+				solIP += u(_C_, sh) * scv.shape(ip, sh);
 
 		// 	set lin defect
 			vvvLinDef[ipCnt++][_C_][co] = solIP * scv.weight(ip) * scv.volume();
@@ -642,7 +642,7 @@ lin_def_mass_scale_fvho(const local_vector_type& u,
 		//	compute solution at ip
 			number solIP = 0;
 			for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-				solIP += u(_C_, sh) * scv.shape(sh, ip);
+				solIP += u(_C_, sh) * scv.shape(ip, sh);
 
 		// 	set lin defect
 			vvvLinDef[ipCnt++][_C_][co] = solIP * scv.weight(ip) * scv.volume();
@@ -693,12 +693,12 @@ ex_concentration_fvho(const local_vector_type& u,
 			//	compute concentration at ip
 				vValue[ipCnt] = 0.0;
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					vValue[ipCnt] += u(_C_, sh) * scvf.shape(sh, ip);
+					vValue[ipCnt] += u(_C_, sh) * scvf.shape(ip, sh);
 
 			//	compute derivative w.r.t. to unknowns iff needed
 				if(bDeriv)
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						vvvDeriv[ipCnt][_C_][sh] = scvf.shape(sh, ip);
+						vvvDeriv[ipCnt][_C_][sh] = scvf.shape(ip, sh);
 
 				++ipCnt;
 			}
@@ -719,12 +719,12 @@ ex_concentration_fvho(const local_vector_type& u,
 			//	compute solution at ip
 				vValue[ipCnt] = 0.0;
 				for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-					vValue[ipCnt] += u(_C_, sh) * scv.shape(sh, ip);
+					vValue[ipCnt] += u(_C_, sh) * scv.shape(ip, sh);
 
 			//	compute derivative w.r.t. to unknowns iff needed
 				if(bDeriv)
 					for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-						vvvDeriv[ipCnt][_C_][sh] = scv.shape(sh, ip);
+						vvvDeriv[ipCnt][_C_][sh] = scv.shape(ip, sh);
 
 				++ipCnt;
 			}
@@ -811,11 +811,11 @@ ex_concentration_grad_fvho(const local_vector_type& u,
 			{
 				VecSet(vValue[ipCnt], 0.0);
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(vValue[ipCnt], u(_C_, sh), scvf.global_grad(sh, ip));
+					VecScaleAppend(vValue[ipCnt], u(_C_, sh), scvf.global_grad(ip, sh));
 
 				if(bDeriv)
 					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-						vvvDeriv[ipCnt][_C_][sh] = scvf.global_grad(sh, ip);
+						vvvDeriv[ipCnt][_C_][sh] = scvf.global_grad(ip, sh);
 
 				++ipCnt;
 			}

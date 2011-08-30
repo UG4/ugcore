@@ -1187,7 +1187,7 @@ class FVGeometry : public FVGeometryBase
 				inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh, size_t ip) const
+				inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
@@ -1195,7 +1195,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip];}
 
 			/// value of local gradient of shape function i in integration point
-				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+				inline const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
 
@@ -1204,7 +1204,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip];}
 
 			/// value of global gradient of shape function i in integration point
-				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+				inline const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
 
@@ -1312,7 +1312,7 @@ class FVGeometry : public FVGeometryBase
 				inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh, size_t ip) const
+				inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
@@ -1320,7 +1320,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvShape[ip];}
 
 			/// value of local gradient of shape function i in integration point
-				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+				inline const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvLocalGrad[ip][sh];}
 
@@ -1329,7 +1329,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvLocalGrad[ip];}
 
 			/// value of global gradient of shape function i in integration point
-				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+				inline const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvGlobalGrad[ip][sh];}
 
@@ -1417,7 +1417,7 @@ class FVGeometry : public FVGeometryBase
 				inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh, size_t ip) const
+				inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
@@ -1425,7 +1425,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip];}
 
 			/// value of local gradient of shape function i in integration point
-				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+				inline const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
 
@@ -1434,7 +1434,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip];}
 
 			/// value of global gradient of shape function i in integration point
-				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+				inline const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
 
@@ -1734,7 +1734,7 @@ class DimFVGeometry : public FVGeometryBase
 				inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh, size_t ip) const
+				inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
@@ -1742,7 +1742,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
 
 			/// value of local gradient of shape function i in integration point
-				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+				inline const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
 
@@ -1751,7 +1751,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvLocalGrad[ip][0];}
 
 			/// value of global gradient of shape function i in integration point
-				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+				inline const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
 
@@ -1858,7 +1858,7 @@ class DimFVGeometry : public FVGeometryBase
 				inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh, size_t ip) const
+				inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
@@ -1866,7 +1866,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return &vvShape[ip][0];}
 
 			/// value of local gradient of shape function i in integration point
-				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+				inline const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvLocalGrad[ip][sh];}
 
@@ -1875,7 +1875,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return &vvLocalGrad[ip][0];}
 
 			/// value of global gradient of shape function i in integration point
-				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+				inline const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvGlobalGrad[ip][sh];}
 
@@ -1962,7 +1962,7 @@ class DimFVGeometry : public FVGeometryBase
 				inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh, size_t ip) const
+				inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
@@ -1970,7 +1970,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
 
 			/// value of local gradient of shape function i in integration point
-				inline const MathVector<dim>& local_grad(size_t sh, size_t ip) const
+				inline const MathVector<dim>& local_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
 
@@ -1979,7 +1979,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvLocalGrad[ip][0];}
 
 			/// value of global gradient of shape function i in integration point
-				inline const MathVector<worldDim>& global_grad(size_t sh, size_t ip) const
+				inline const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
 
