@@ -139,15 +139,17 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 		}
 
 		if (method == NULL) {
-			UG_LOG("Method not found: " << name <<
-					"()" << " : " << std::endl << VRL_CRITICAL_ERROR);
+			UG_LOG("Method not found: " <<
+                                EMPHASIZE_BEGIN << name <<
+					"()" << EMPHASIZE_END << ".");
 			return NULL;
 		}
 		
 //		UG_LOG("M0: " << name <<"\n")
 
 		ug::vrl::jobjectArray2ParamStack(
-				env, ug::vrl::vrlRegistry, paramsIn, method->params_in(), params);
+				env, ug::vrl::vrlRegistry,
+                        paramsIn, method->params_in(), params);
 		
 //		UG_LOG("M1\n")
 	
