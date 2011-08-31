@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include "util/ostream_util.h"
+#include "types.h"
 
 //	in order to support parallel logs, we're including pcl.h
 //	you can set the output process using pcl::SetOutputProcRank(int rank).
@@ -26,20 +27,20 @@
 #endif
 
 namespace ug{
-	const uint64_t UNIT_KILO     = 1024;                   // 2^{10}
-	const uint64_t UNIT_MEGA     = UNIT_KILO * 1024;       // 2^{20} =                 1'048'576
-	const uint64_t UNIT_GIGA     = UNIT_MEGA * 1024;       // 2^{30} =             1'073'741'824
-	const uint64_t UNIT_TERA     = UNIT_GIGA * 1024ll;     // 2^{40} =         1'099'511'627'776
-	const uint64_t UNIT_PETA     = UNIT_TERA * 1024ll;     // 2^{50} =     1'125'899'906'842'624 
-	const uint64_t UNIT_EXA      = UNIT_PETA * 1024ll;     // 2^{60} = 1'152'921'504'606'846'976
+	const uint64 UNIT_KILO     = 1024;                   // 2^{10}
+	const uint64 UNIT_MEGA     = UNIT_KILO * 1024;       // 2^{20} =                 1'048'576
+	const uint64 UNIT_GIGA     = UNIT_MEGA * 1024;       // 2^{30} =             1'073'741'824
+	const uint64 UNIT_TERA     = UNIT_GIGA * 1024ll;     // 2^{40} =         1'099'511'627'776
+	const uint64 UNIT_PETA     = UNIT_TERA * 1024ll;     // 2^{50} =     1'125'899'906'842'624
+	const uint64 UNIT_EXA      = UNIT_PETA * 1024ll;     // 2^{60} = 1'152'921'504'606'846'976
 	//const uint64_t UNIT_ZETTA    = UNIT_EXA  * 1024ll;   // 2^{70} -- too big for 64 bit 'long long int'!
 	
-	const uint64_t UNIT_KILO_SI  = 1000;                   // 10^{ 3}
-	const uint64_t UNIT_MEGA_SI  = UNIT_KILO_SI * 1000;    // 10^{ 6}
-	const uint64_t UNIT_GIGA_SI  = UNIT_MEGA_SI * 1000;    // 10^{ 9}
-	const uint64_t UNIT_TERA_SI  = UNIT_GIGA_SI * 1000ll;  // 10^{12}
-	const uint64_t UNIT_PETA_SI  = UNIT_TERA_SI * 1000ll;  // 10^{15}
-	const uint64_t UNIT_EXA_SI   = UNIT_PETA_SI * 1000ll;  // 10^{18}
+	const uint64 UNIT_KILO_SI  = 1000;                   // 10^{ 3}
+	const uint64 UNIT_MEGA_SI  = UNIT_KILO_SI * 1000;    // 10^{ 6}
+	const uint64 UNIT_GIGA_SI  = UNIT_MEGA_SI * 1000;    // 10^{ 9}
+	const uint64 UNIT_TERA_SI  = UNIT_GIGA_SI * 1000ll;  // 10^{12}
+	const uint64 UNIT_PETA_SI  = UNIT_TERA_SI * 1000ll;  // 10^{15}
+	const uint64 UNIT_EXA_SI   = UNIT_PETA_SI * 1000ll;  // 10^{18}
 	//const uint64_t UNIT_ZETTA_SI = UNIT_EXA_SI  * 1000ll;// 10^{21} -- too big for 64 bit 'long long int'!
 
 // LogAssistant

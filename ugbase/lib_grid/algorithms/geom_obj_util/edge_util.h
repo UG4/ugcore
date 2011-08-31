@@ -288,6 +288,12 @@ template <class TEdgeIterator, class TAAPosVRT>
 EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos);
 
+////////////////////////////////////////////////////////////////////////////////
+///	Removes edges that connect the same two vertices as another edge.
+/**	THIS ALGORITHM USES Grid::mark*/
+template <class TEdgeIterator>
+void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd);
+
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace
