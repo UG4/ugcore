@@ -208,6 +208,17 @@ ClassGroupDesc* Registry::get_class_group(const std::string& name)
 			return m_vClassGroups[i];
 
 //	since we reached this point, no class-group with the given name exists.
+	
+	// check that name does not contain illegal characters
+	if (!IdentifierIsValid(name)) {
+		UG_LOG("### Registry ERROR: Trying add group '" 
+				<< name << "' that"
+				<< " contains illegal characters.\n"
+				<< GetIdentifierMessage()
+				<< "\n### Please change register process. Aborting ...\n");
+		throw(UG_REGISTRY_ERROR_RegistrationFailed(name));
+	}
+
 	ClassGroupDesc* classGroup = new ClassGroupDesc();
 	classGroup->set_name(name);
 	m_vClassGroups.push_back(classGroup);
