@@ -103,10 +103,8 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 		}
 	}
 
-//	bool pathsCorrect = InitPaths(argv[0]);
-	bool pathsCorrect = InitPaths((*argvp)[0]);
-	if (!pathsCorrect)
-		return -1;
+//todo: If initPaths fails, something should be done...
+	InitPaths((*argvp)[0]);
 
 	return 0;
 }
