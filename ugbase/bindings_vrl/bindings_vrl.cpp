@@ -84,7 +84,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 
 	int argc = arguments.size();
 	char** pargv = &argv[0];
-	int retVal = ug::UGInit(&argc, &pargv);
+        //\todo: generalize outputproc rank
+	int retVal = ug::UGInit(&argc, &pargv, 0);
 
 	// Register Playground if we are in debug mode
 
