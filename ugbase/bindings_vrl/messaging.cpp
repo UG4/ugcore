@@ -55,6 +55,14 @@ std::string replaceAll(
 	return target;
 }
 
+bool startsWith(std::string str, std::string search) {
+	return str.find(search) == 0;
+}
+
+bool contains(std::string str, std::string search) {
+	return str.find(search) !=std::string::npos;
+}
+
 std::string getExceptionMessageString(JNIEnv* env, jthrowable exception) {
 	std::string result = "";
 

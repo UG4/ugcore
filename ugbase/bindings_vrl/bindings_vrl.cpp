@@ -6,6 +6,8 @@
 #include "ugbase.h"
 #include "registry/registry.h"
 #include "registry/class.h"
+#include "../common/common.h"
+#include "../lib_algebra/operator/convergence_check.h"
 
 
 #include "type_converter.h"
@@ -21,6 +23,7 @@
 
 #include "invocation.h"
 #include "playground.h"
+#include "threading.h"
 
 namespace ug {
 namespace vrl {
@@ -52,9 +55,70 @@ void Logln(std::string s) {
 	UG_LOG(s << std::endl);
 }
 
+void ThrowIf(bool b, std::string s) {
+	if (!b) {
+		throw(UGError(s.c_str()));
+	}
+}
+
+void ThrowIfNot(bool b, std::string s) {
+	if (!b) {
+		throw(UGError(s.c_str()));
+	}
+}
+
 void registerMessaging(ug::bridge::Registry & reg) {
 	reg.add_function("print", &Log, "UG4/Messaging");
 	reg.add_function("println", &Logln, "UG4/Messaging");
+}
+
+void registerThrowUtil(ug::bridge::Registry & reg) {
+	reg.add_function("throwIf", &ThrowIf, "UG4/Util");
+	reg.add_function("throwIfNot", &ThrowIfNot, "UG4/Util");
+}
+
+class NumberArray {
+private :
+	std::vector<number> _vec;
+public:
+	
+	NumberArray() {}
+	
+	NumberArray(std::vector<number> vec) {
+		_vec = vec;
+	}
+	
+	void setArray(std::vector<number> vec) {
+		_vec = vec;
+	}
+	
+	int size() const {
+		return _vec.size();
+	}
+	
+	number get(size_t i) const {
+		if (i < 0 || i >= _vec.size()){
+			throw UGFatalError("NumberArray: index out of Bounds!");
+		}
+		
+		return _vec[i];
+	}
+};
+
+
+
+SmartPtr<NumberArray> getConvergenceRates(const ug::StandardConvCheck* convCheck) {
+	
+	return SmartPtr<NumberArray>(
+			new NumberArray(convCheck->get_convergece_rates()));
+}
+
+void registerNumberArray(ug::bridge::Registry & reg) {
+	reg.add_class_<NumberArray>("NumberArray","UG4/Util")
+	.add_constructor()
+				.add_method("get", &NumberArray::get)
+				.add_method("size", &NumberArray::size);
+	reg.add_function("GetConvergenceRates", &getConvergenceRates, "UG4/Util");
 }
 
 }// end vrl::
@@ -84,7 +148,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 
 	int argc = arguments.size();
 	char** pargv = &argv[0];
-        //\todo: generalize outputproc rank
+	//\todo: generalize outputproc rank
 	int retVal = ug::UGInit(&argc, &pargv, 0);
 
 	// Register Playground if we are in debug mode
@@ -95,6 +159,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 
 	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 	ug::vrl::registerMessaging(reg);
+	ug::vrl::registerThrowUtil(reg);
+	ug::vrl::registerNumberArray(reg);
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");
@@ -139,55 +205,65 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 		}
 
 		if (method == NULL) {
-			UG_LOG("Method not found: " <<
-                                EMPHASIZE_BEGIN << name <<
-					"()" << EMPHASIZE_END << ".");
+
+			std::stringstream ss;
+
+			ss << "Method not found: " <<
+					EMPHASIZE_BEGIN << name <<
+					"()" << EMPHASIZE_END << ".";
+
+			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+			env->ThrowNew(Exception, ss.str().c_str());
 			return NULL;
 		}
-		
-//		UG_LOG("M0: " << name <<"\n")
 
 		ug::vrl::jobjectArray2ParamStack(
 				env, ug::vrl::vrlRegistry,
-                        paramsIn, method->params_in(), params);
-		
-//		UG_LOG("M1\n")
-	
+				paramsIn, method->params_in(), params);
+
 		const ug::bridge::ClassNameNode* clsNode =
 				ug::vrl::invocation::getClassNodePtrByName(
 				ug::vrl::vrlRegistry, className);
-	
-//		UG_LOG("M2\n")
-		
+
 		void* finalObjPtr = ug::bridge::ClassCastProvider::cast_to_base_class(
 				(void*) objPtr,
 				clsNode, method->class_name());
 
-//		UG_LOG("M3\n")
-		
 		method->execute(finalObjPtr, paramsIn, paramsOut);
 
-//		UG_LOG("M4\n")
-		
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
-		
-//		UG_LOG("M5\n")
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
-		UG_LOG("Incompatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl
-				<< VRL_CRITICAL_ERROR);
+
+		std::stringstream ss;
+		ss << "Incompatible Conversion from " <<
+				ex.m_from << " to " << ex.m_to;
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
 	} catch (ug::bridge::ERROR_BadConversion ex) {
-		UG_LOG("Incompatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl
-				<< VRL_CRITICAL_ERROR);
+
+		std::stringstream ss;
+
+		ss << "Incompatible Conversion from " <<
+		ex.m_from << " to " << ex.m_to;
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
+	} catch (UGError ex) {
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ex.get_msg().c_str());
 	} catch (...) {
 
-		UG_LOG("Unknown exception thrown while"
-				<< " trying to invoke method!" << std::endl
-				<< std::endl);
+		std::stringstream ss;
+
+		ss << "Unknown exception thrown while"
+				<< " trying to invoke method: " << name << "().";
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
 	}
 
 	return result;
@@ -206,15 +282,23 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 
 		result = (long) clazz->create();
 
+	} catch (UGError ex) {
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ex.get_msg().c_str());
 	} catch (...) {
 		std::string className = "Unknown class";
 		if (clazz != NULL) {
 			className = clazz->name();
 		}
 
-		UG_LOG("Unknown exception thrown while"
-				<< " trying to instanciate class \""
-				<< className << "\"!" << std::endl);
+		std::stringstream ss;
+
+		ss << "Unknown exception thrown while"
+				<< " trying to instanciate class " << className << "().";
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
 	}
 
 	return result;
@@ -235,14 +319,21 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 	try {
 
 		if (func == NULL) {
-			UG_LOG("Function not found: " << ug::vrl::stringJ2C(env, fName) <<
-					"()" << " : " << std::endl << VRL_CRITICAL_ERROR);
+			std::stringstream ss;
+
+			ss << "Function not found: " <<
+					EMPHASIZE_BEGIN << ug::vrl::stringJ2C(env, fName) <<
+					"()" << EMPHASIZE_END << ".";
+
+			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+			env->ThrowNew(Exception, ss.str().c_str());
+
 			return NULL;
 		}
 
 		ug::vrl::jobjectArray2ParamStack(
 				env, ug::vrl::vrlRegistry, paramsIn, func->params_in(), params);
-		
+
 		func->execute(paramsIn, paramsOut);
 
 		if (paramsOut.size() > 0) {
@@ -250,16 +341,30 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 		}
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
-		UG_LOG("Incopatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl
-				<< VRL_CRITICAL_ERROR);
+		std::stringstream ss;
+		ss << "Incompatible Conversion from " <<
+				ex.m_from << " to " << ex.m_to;
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
+
 	} catch (ug::bridge::ERROR_BadConversion ex) {
-		UG_LOG("Incopatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl
-				<< VRL_CRITICAL_ERROR);
+		std::stringstream ss;
+		ss << "Incompatible Conversion from " <<
+				ex.m_from << " to " << ex.m_to;
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
+
 	} catch (...) {
-		UG_LOG("Unknown exception thrown while"
-				<< " trying to invoke function!" << std::endl);
+		std::stringstream ss;
+
+		ss << "Unknown exception thrown while"
+				<< " trying to invoke function: " <<
+				ug::vrl::stringJ2C(env, fName) << "().";
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
 	}
 
 	return result;

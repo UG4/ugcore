@@ -15,6 +15,7 @@
 #include <limits>
 #include <algorithm>
 #include <iomanip>
+#include <vector>
 
 #include "common/common.h"
 #include "lib_algebra/operator/operator_base_interface.h"
@@ -186,6 +187,7 @@ class StandardConvCheck : public IConvergenceCheck
 
 		void start(IFunctionBase& d)
 		{
+			rates.clear();
 			start_defect(d.two_norm());
 		}
 
@@ -199,6 +201,7 @@ class StandardConvCheck : public IConvergenceCheck
 			{
 				print_offset(); UG_LOG(std::setw(4) << step() << ":    " << std::scientific << defect() <<
 									"    " << defect()/m_lastDefect << "\n");
+				rates.push_back(defect()/m_lastDefect);
 			}
 		}
 
@@ -273,6 +276,7 @@ class StandardConvCheck : public IConvergenceCheck
 		void set_symbol(char symbol){m_symbol = symbol;}
 		void set_name(std::string name) {m_name = name;}
 		void set_info(std::string info) {m_info = info;}
+		const std::vector<number> get_convergece_rates() const { return rates;}
 
 	protected:
 		void print_offset()
@@ -333,6 +337,9 @@ class StandardConvCheck : public IConvergenceCheck
 
 		// info for iteration (e.g. preconditioner type)
 		std::string m_info;
+		
+	private:
+		std::vector<number> rates;
 };
 
 

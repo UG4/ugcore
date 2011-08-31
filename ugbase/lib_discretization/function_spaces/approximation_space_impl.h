@@ -9,13 +9,14 @@
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__APPROXIMATION_SPACE_IMPL__
 
 #include "approximation_space.h"
+#include "../../common/common.h"
 
 namespace ug{
 
 struct UG_ERROR_DoFDistributionMissing{};
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
+void
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 {
 //	Check, that domain is given
@@ -23,16 +24,16 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 	{
 		UG_LOG("ERROR in 'ApproximationSpace::init':"
 				" No Domain assigned to Approximation Space.\n");
-		return false;
+		throw UGFatalError("ERROR in 'ApproximationSpace::init':"
+				" No Domain assigned to Approximation Space.");
 	}
 
 //	check, if already initialized
 	if(m_bInit)
-	{
+	{	
 		UG_LOG("WARNING in 'ApproximationSpace::init':"
 				" Approximation Space already initialized. You cannot alter"
 				" the pattern. This call was useless.\n");
-		return true;
 	}
 
 //	lock function pattern
@@ -41,9 +42,12 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 //	set subsethandler to DofManager
 	if(!m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSH)))
 	{
+		
 		UG_LOG("In 'ApproximationSpace::init':"
 				" Cannot assign multi grid subset handler.\n");
-		return false;
+		
+		throw UGFatalError("In 'ApproximationSpace::init':"
+				" Cannot assign multi grid subset handler.");
 	}
 
 //	set the function pattern for dofmanager
@@ -51,7 +55,9 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 	{
 		UG_LOG("In 'ApproximationSpace::init':"
 				" Cannot assign Function Pattern.\n");
-		return false;
+
+		throw UGFatalError("In 'ApproximationSpace::init':"
+				" Cannot assign Function Pattern.");
 	}
 
 #ifdef UG_PARALLEL
@@ -65,14 +71,13 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 	{
 		UG_LOG("In 'ApproximationSpace::init':"
 				" Cannot distribute dofs.\n");
-		return false;
+		
+		throw UGFatalError("In 'ApproximationSpace::init':"
+				" Cannot distribute dofs.");
 	}
 
 //	remember init flag
 	m_bInit = true;
-
-//	we're done
-	return true;
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>

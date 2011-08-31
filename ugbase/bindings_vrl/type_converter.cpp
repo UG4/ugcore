@@ -201,7 +201,14 @@ std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node
 void* jObject2Pointer(JNIEnv *env, jobject obj) {
 	jclass argClass = env->GetObjectClass(obj);
 	jmethodID methodID = env->GetMethodID(argClass, "getAddress", "()J");
-	return (void*) env->CallLongMethod(obj, methodID);
+	long result = env->CallLongMethod(obj, methodID);
+	
+	if (result==0) {
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, "Pointer is NULL!");
+	}
+	
+	return (void*)result;
 }
 
 std::string jPointerGetName(JNIEnv *env, jobject obj) {
@@ -210,8 +217,6 @@ std::string jPointerGetName(JNIEnv *env, jobject obj) {
 
 	std::string name =
 			stringJ2C(env, (jstring) env->CallObjectMethod(obj, methodID));
-
-//	UG_LOG("POINTER_NAME: " << name)
 
 	return name;
 }

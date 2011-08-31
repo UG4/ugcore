@@ -128,7 +128,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		~ApproximationSpace(){}
 
 	///	initializes the Approximation Space
-		bool init();
+		void init();
 
 	///	returns if ansatz space is supported
 		virtual bool supports_trial_space(LFEID& id) const

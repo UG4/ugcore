@@ -86,6 +86,46 @@ std::string FilenameWithoutPath(const std::string& str)
 }
 
 
+std::string ReplaceAll(
+		std::string target,
+		const std::string oldstr,
+		const std::string newstr) {
+
+	// no substitution necessary
+	if (oldstr == newstr) {
+		return target;
+	}
+
+	for (size_t x = target.find(oldstr); x != std::string::npos; x = target.find(oldstr, x + newstr.size())) {
+		target.erase(x, oldstr.length());
+		target.insert(x, newstr);
+	}
+
+	return target;
+}
+
+bool StartsWith(std::string str, std::string begin) {
+	return str.find(begin) == 0;
+}
+
+bool Contains(std::string str, std::string search) {
+	return str.find(search) !=std::string::npos;
+}
+
+bool IdentifierIsValid(std::string name) {
+	return !Contains(name,"__") &&
+			!StartsWith(name, "F_") &&
+			!StartsWith(name, "C_") &&
+			!StartsWith(name, "I_");
+}
+
+std::string GetIdentifierMessage() {
+	return "Identifier names must not start with"
+			" 'F_', 'C_' or 'I_' and must not contain"
+			" '__' (double underscore).";
+}
+
+
 //sreiter - Implementation is copied from some book or website. Can't remember...
 template <> unsigned long hash_key(const std::string& key)
 {

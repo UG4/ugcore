@@ -10,6 +10,7 @@
 namespace ug{
 namespace bridge
 {
+
 //////////////////////
 // global functions
 //////////////////////
@@ -40,6 +41,16 @@ add_function(std::string funcName, TFunc func, std::string group,
 	if(strippedMethodName.empty())
 	{
 		UG_LOG("### Registry ERROR: Trying to register empty function name."
+				<< "\n### Please change register process. Aborting ...\n");
+		throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
+	}
+	
+	// check that name does not contain illegal characters
+	if (!IdentifierIsValid(strippedMethodName)) {
+		UG_LOG("### Registry ERROR: Trying to register function '" 
+				<< strippedMethodName << "' that"
+				<< " contains illegal characters.\n"
+				<< GetIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
 	}
@@ -138,6 +149,16 @@ add_class_(std::string className, std::string group, std::string tooltip)
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}
+	
+	// check that name does not contain illegal characters
+	if (!IdentifierIsValid(className)) {
+		UG_LOG("### Registry ERROR: Trying to register class '" 
+				<< className << "' that"
+				<< " contains illegal characters.\n"
+				<< GetIdentifierMessage()
+				<< "\n### Please change register process. Aborting ...\n");
+		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+	}
 
 //	new class pointer
 	ExportedClass_<TClass>* newClass = NULL;
@@ -190,6 +211,16 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	if(className.empty())
 	{
 		UG_LOG("### Registry ERROR: Trying to register empty class name."
+				<< "\n### Please change register process. Aborting ...\n");
+		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+	}
+	
+	// check that name does not contain illegal characters
+	if (!IdentifierIsValid(className)) {
+		UG_LOG("### Registry ERROR: Trying to register class '" 
+				<< className << "' that"
+				<< " contains illegal characters.\n"
+				<< GetIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}
@@ -251,6 +282,16 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	if(className.empty())
 	{
 		UG_LOG("### Registry ERROR: Trying to register empty class name."
+				<< "\n### Please change register process. Aborting ...\n");
+		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+	}
+	
+	// check that name does not contain illegal characters
+	if (!IdentifierIsValid(className)) {
+		UG_LOG("### Registry ERROR: Trying to register class '" 
+				<< className << "' that"
+				<< " contains illegal characters.\n"
+				<< GetIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}

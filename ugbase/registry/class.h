@@ -469,6 +469,16 @@ class ExportedClass_ : public IExportedClass
 						<< "\n### Please change register process. Aborting ...\n");
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
 			}
+			
+			// check that name does not contain illegal characters
+			if (!IdentifierIsValid(strippedMethodName)) {
+				UG_LOG("### Registry ERROR: Trying to register method '" 
+				<< strippedMethodName << "' that"
+				<< " contains illegal characters.\n"
+				<< GetIdentifierMessage()
+				<< "\n### Please change register process. Aborting ...\n");
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
+			}
 
 		//	if the method is already in use, we have to add an overload.
 		//	If not, we have to create a new method group

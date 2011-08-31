@@ -72,6 +72,24 @@ std::vector<std::string> split(
 		const char delimiter);
 
 /**
+ * Checks whether <code>str</code> starts with <code>search</code>.
+ * @param str string
+ * @param search string to search
+ * @return <code>true</code> if <code>str</code> starts
+ * with <code>search</code>; <code>false</code> otherwise
+ */
+bool startsWith(std::string str, std::string search);
+
+/**
+ * Checks whether <code>str</code> contains <code>search</code>.
+ * @param str string
+ * @param search string to search
+ * @return <code>true</code> if <code>str</code> contains
+ * <code>search</code>; <code>false</code> otherwise
+ */
+bool contains(std::string str, std::string search);
+
+/**
  * Returns the message string of the specified Java exception. If no exception
  * occured, an empty String will be returned.
  * @param env JVM environment
