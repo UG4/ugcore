@@ -33,7 +33,7 @@
 
 # Local:
 ########
-UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 0 -lsType feti -nPPSD 1"
+setenv UGARGS "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 0 -lsType feti -nPPSD 1"
 openmpirun -np 4 ugshell $UGARGS -numRefs 5 # etc.
 	
 # cekon:
@@ -172,7 +172,7 @@ function SetupFETISolver(domain,
 
 	-- Stuff for the FETI-DP solver itself:
         local fetiConvCheck
-	local linAbsLimit = 1e-7
+	local linAbsLimit  = 1e-7
 	local linReduction = 1e-16
 
         local fetiSolver
@@ -392,7 +392,7 @@ function SetupFETISolver(domain,
 		dpRSAMG:set_presmoother(dpRSAMGGS)
 		dpRSAMG:set_postsmoother(dpRSAMGGS)
 		dpRSAMG:set_base_solver(dpRSAMGBase)
-		dpRSAMG:set_max_levels(4)
+		dpRSAMG:set_max_levels(20)
 		dpRSAMG:set_max_nodes_for_base(maxBase)
 		dpRSAMG:set_max_fill_before_base(0.7)
 		dpRSAMG:set_fsmoothing(true)
@@ -428,7 +428,7 @@ function SetupFETISolver(domain,
 	fetiSolver:set_dirichlet_solver(dirichletSolver)
 	fetiSolver:set_coarse_problem_solver(coarseproblemSolver)
 	
-	-- define convergence criteria for the coarse problem solver
+	-- define convergence criteria for the FETI solver
 	fetiConvCheck = StandardConvergenceCheck()
 
 	print("    'setup_fetisolver.lua': linMaxIterations = " .. linMaxIterations .. ", linAbsLimit = " .. linAbsLimit .. ", linReduction = " .. linReduction)
