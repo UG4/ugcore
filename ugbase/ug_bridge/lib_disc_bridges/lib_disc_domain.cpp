@@ -47,6 +47,8 @@
 
 #include "lib_discretization/spatial_discretization/elem_disc/level_set/level_set.h"
 
+#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/navier_stokes_bnd.h"
+
 using namespace std;
 
 namespace ug
@@ -172,6 +174,8 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						"", "Post Process")
 			.add_method("add|interactive=false", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
 						"", "Discretization")
+			.add_method("add|interactive=false", static_cast<bool (T::*)(IDiscretizationItem<TDomain,TDoFDistribution,TAlgebra>&)>(&T::add),
+						"", "DiscItem")
 			.add_method("assemble_linear", static_cast<bool (T::*)(matrix_type&, vector_type&, const vector_type&)>(&T::assemble_linear))
 			.add_method("assemble_solution", static_cast<bool (T::*)(vector_type&)>(&T::assemble_solution))
 			.add_method("assemble_mass_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&, const dof_distribution_type&)>(&T::assemble_mass_matrix))
@@ -213,6 +217,29 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						"Success", "Constant Value#Function#Subsets")
 			.add_method("clear", &T::clear);
 		reg.add_class_to_group(name, "DirichletBND", dimAlgDDTag);
+	}
+
+//	IDiscretizationItem
+	{
+		typedef IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra> T;
+		string name = string("IDiscretizationItem").append(dimAlgDDSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IDiscretizationItem", dimAlgDDTag);
+	}
+
+//	NavierStokesInflow
+	{
+		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
+		typedef NavierStokesInflow<TDomain, TDoFDistribution, TAlgebra> T;
+		typedef IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra> TBase;
+		string name = string("NavierStokesInflow").append(dimAlgDDSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.add_method("set_functions", &T::set_functions)
+			.add_method("set_subsets", &T::set_subsets)
+			.add_method("set_approximation_space", &T::set_approximation_space)
+			.add_method("add", static_cast<bool (T::*)(VectorFunctor&, const char*)>(&T::add));
+		reg.add_class_to_group(name, "NavierStokesInflow", dimAlgDDTag);
 	}
 
 //	ProlongationOperator

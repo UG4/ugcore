@@ -55,34 +55,80 @@ class FV1NeumannBoundaryElemDisc
 	protected:
 	///	type of bnd number
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
+		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
 
 	public:
 	///	default constructor
 		FV1NeumannBoundaryElemDisc();
 
 	///	add a boundary value
-		bool add(BNDNumberFunctor& user, const char* function, const char* subsets);
-
-	///	add a boundary value
-		bool add(BNDNumberFunctor user, size_t fct, SubsetGroup bndSubsetGroup);
+		void add(BNDNumberFunctor& user, const char* function, const char* subsets);
+		void add(VectorFunctor& user, const char* function, const char* subsets);
 
 	private:
-	//	Functor, function grouping
-		struct UserDataFunction
+	///	Functor, function grouping
+		struct BNDNumberData
 		{
-			UserDataFunction(size_t fct_, BNDNumberFunctor functor_)
+			BNDNumberData(size_t fct_, BNDNumberFunctor functor_)
 				: loc_fct(fct_), functor(functor_) {}
 
 			size_t loc_fct;
 			BNDNumberFunctor functor;
 		};
 
-		std::map<int, std::vector<UserDataFunction> > m_mBoundarySegment;
-		size_t m_numFct;
+	///	Functor, function grouping
+		struct VectorData
+		{
+			VectorData(size_t fct_, VectorFunctor functor_)
+				: loc_fct(fct_), functor(functor_) {}
+
+			size_t loc_fct;
+			VectorFunctor functor;
+		};
+
+	///	to remember the scheduled data
+		struct ScheduledBNDNumberData
+		{
+			ScheduledBNDNumberData(BNDNumberFunctor functor_,
+								   std::string fctName_, std::string ssName_)
+				: functor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+
+			BNDNumberFunctor functor;
+			std::string fctName;
+			std::string ssName;
+		};
+
+		struct ScheduledVectorData
+		{
+			ScheduledVectorData(VectorFunctor functor_,
+								   std::string fctName_, std::string ssName_)
+				: functor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+
+			VectorFunctor functor;
+			std::string fctName;
+			std::string ssName;
+		};
+
+		std::vector<ScheduledBNDNumberData> m_vScheduledBNDNumberData;
+		std::vector<ScheduledVectorData> m_vScheduledVectorData;
+
+		std::map<int, std::vector<BNDNumberData> > m_mBNDNumberBndSegment;
+		std::map<int, std::vector<VectorData> > m_mVectorBndSegment;
+
+		template <typename TUserData, typename TScheduledUserData>
+		bool extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegment,
+		                            const std::vector<TScheduledUserData>& vScheduledUserData,
+		                            FunctionGroup& commonFctGrp, std::string& fctNames);
+
+		bool extract_scheduled_data();
+
+		virtual void approximation_space_changed() {extract_scheduled_data();}
 
 	public:
-	///	number of functons required
-		virtual size_t num_fct(){return m_numFct;}
+	///	number of functions required
+		virtual size_t num_fct() {return this->symb_fcts().size();}
 
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)

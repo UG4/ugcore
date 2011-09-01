@@ -18,6 +18,7 @@
 #include "lib_discretization/common/function_group.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_assemble_util.h"
 #include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
+#include "disc_item.h"
 
 namespace ug {
 
@@ -232,6 +233,28 @@ class DomainDiscretization :
 		//	add constraint
 			m_vvConstraints[type].push_back(&pp);
 			return true;
+		}
+
+	/// adds a disc item to the assembling process
+	/**
+	 * This function adds a IDiscretizationItem to the assembling. The contained
+	 * elem discs and constraints are sorted into the lists
+	 *
+	 * \param[in] 	di		Disc Item
+	 */
+		bool add(IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra>& di)
+		{
+			bool bRet = true;
+
+		//	add elem discs
+			for(size_t i = 0; i < di.num_elem_disc(); ++i)
+				bRet &= add(di.get_elem_disc(i));
+
+		//	add constraints
+			for(size_t i = 0; i < di.num_constraint(); ++i)
+				bRet &= add(di.get_constraint(i));
+
+			return bRet;
 		}
 
 	protected:

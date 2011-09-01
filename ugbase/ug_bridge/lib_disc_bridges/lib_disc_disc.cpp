@@ -153,12 +153,14 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 //	Neumann Boundary
 	{
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
+		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
 		typedef FV1NeumannBoundaryElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1NeumannBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, grp)
 			.add_constructor()
-			.add_method("add", static_cast<bool (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add));
+			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(VectorFunctor&, const char*, const char*)>(&T::add));
 		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
 	}
 

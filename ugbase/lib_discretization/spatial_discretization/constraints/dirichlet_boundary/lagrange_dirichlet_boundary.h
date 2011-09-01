@@ -54,6 +54,9 @@ class LagrangeDirichletBoundary
 	///	Type of non-conditional boundary functor for a number (always true)
 		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
 
+	///	Type of non-conditional boundary functor for a Vector (always true)
+		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
+
 	public:
 	///	constructor
 		LagrangeDirichletBoundary() :
@@ -71,6 +74,9 @@ class LagrangeDirichletBoundary
 	///	adds a constant value as dirichlet condition for a function on subsets
 		void add(number value, const char* function, const char* subsets);
 
+	///	adds a user-defined vector as dirichlet condition for a vector-function on subsets
+		void add(VectorFunctor& func, const char* functions, const char* subsets);
+
 	///	sets the approximation space to work on
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
 		{
@@ -86,6 +92,7 @@ class LagrangeDirichletBoundary
 			m_vScheduledBNDNumberData.clear();
 			m_vScheduledNumberData.clear();
 			m_vScheduledConstNumberData.clear();
+			m_vScheduledVectorData.clear();
 		}
 
 	///	Sets dirichlet rows for all registered dirichlet values
@@ -136,9 +143,13 @@ class LagrangeDirichletBoundary
 
 	protected:
 		bool check_functions_and_subsets(FunctionGroup& functionGroup,
-		                                 SubsetGroup& subsetGroup) const;
+		                                 SubsetGroup& subsetGroup, size_t numFct) const;
 
 		bool extract_scheduled_data();
+
+		template <typename TUserData, typename TScheduledUserData>
+		bool extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegment,
+		                            const std::vector<TScheduledUserData>& vScheduledUserData);
 
 		template <typename TUserData>
 		bool adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
@@ -189,46 +200,84 @@ class LagrangeDirichletBoundary
 		                const dof_distribution_type& dd, number time);
 
 	protected:
-	///	grouping for subset and conditional data
-		struct BNDNumberData
-		{
-			const static bool isConditional = true;
-			BNDNumberData(size_t fct_, BNDNumberFunctor functor_)
-				: fct(fct_), functor(functor_) {}
-			bool operator()(number& val, const MathVector<dim> x, number time) const
-			{
-				return functor(val, x, time);
-			}
-			size_t fct;
-			BNDNumberFunctor functor;
-		};
-
 	///	grouping for subset and non-conditional data
 		struct NumberData
 		{
 			const static bool isConditional = false;
-			NumberData(size_t fct_, NumberFunctor functor_)
-				: fct(fct_), functor(functor_) {}
-			bool operator()(number& val, const MathVector<dim> x, number time) const
+			const static size_t numFct = 1;
+			typedef MathVector<1> value_type;
+			NumberData(const FunctionGroup& fcts_, NumberFunctor functor_)
+				: functor(functor_)
 			{
-				functor(val, x, time); return true;
+				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
+				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
 			}
-			size_t fct;
+			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
+			{
+				functor(val[0], x, time); return true;
+			}
+			size_t fct[numFct];
 			NumberFunctor functor;
+		};
+
+	///	grouping for subset and conditional data
+		struct BNDNumberData
+		{
+			const static bool isConditional = true;
+			const static size_t numFct = 1;
+			typedef MathVector<1> value_type;
+			BNDNumberData(const FunctionGroup& fcts_, BNDNumberFunctor functor_)
+				: functor(functor_)
+			{
+				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
+				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
+			}
+			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
+			{
+				return functor(val[0], x, time);
+			}
+			size_t fct[numFct];
+			BNDNumberFunctor functor;
 		};
 
 	///	grouping for subset and conditional data
 		struct ConstNumberData
 		{
 			const static bool isConditional = false;
-			ConstNumberData(size_t fct_, number value_)
-				: fct(fct_), value(value_) {}
-			inline bool operator()(number& val, const MathVector<dim> x, number time) const
+			const static size_t numFct = 1;
+			typedef MathVector<1> value_type;
+			ConstNumberData(const FunctionGroup& fcts_, number value_)
+				: functor(value_)
 			{
-				val = value; return true;
+				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
+				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
 			}
-			size_t fct;
-			number value;
+			inline bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
+			{
+				val[0] = functor; return true;
+			}
+			size_t fct[numFct];
+			number functor;
+		};
+
+	///	grouping for subset and non-conditional data
+		struct VectorData
+		{
+			const static bool isConditional = false;
+			const static size_t numFct = dim;
+			typedef MathVector<dim> value_type;
+			VectorData(const FunctionGroup& fcts_, VectorFunctor functor_)
+				: functor(functor_)
+			{
+				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
+				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
+			}
+			bool operator()(MathVector<dim>& val, const MathVector<dim> x, number time) const
+			{
+				functor(val, x, time); return true;
+			}
+			size_t fct[numFct];
+			VectorFunctor functor;
 		};
 
 	///	to remember the scheduled data
@@ -262,10 +311,23 @@ class LagrangeDirichletBoundary
 		{
 			ScheduledConstNumberData(number value_,
 			                         std::string fctName_, std::string ssName_)
-				: value(value_), fctName(fctName_), ssName(ssName_)
+				: functor(value_), fctName(fctName_), ssName(ssName_)
 			{}
 
-			number value;
+			number functor;
+			std::string fctName;
+			std::string ssName;
+		};
+
+	///	to remember the scheduled data
+		struct ScheduledVectorData
+		{
+			ScheduledVectorData(VectorFunctor functor_,
+								std::string fctName_, std::string ssName_)
+				: functor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+
+			VectorFunctor functor;
 			std::string fctName;
 			std::string ssName;
 		};
@@ -273,6 +335,8 @@ class LagrangeDirichletBoundary
 		std::vector<ScheduledBNDNumberData> m_vScheduledBNDNumberData;
 		std::vector<ScheduledNumberData> m_vScheduledNumberData;
 		std::vector<ScheduledConstNumberData> m_vScheduledConstNumberData;
+
+		std::vector<ScheduledVectorData> m_vScheduledVectorData;
 
 	protected:
 	///	current domain
@@ -285,13 +349,16 @@ class LagrangeDirichletBoundary
 		const FunctionPattern* m_pPattern;
 
 	///	non-conditional boundary values for all subsets
-		std::map<int, std::vector<NumberData> > m_mBoundarySegment;
+		std::map<int, std::vector<NumberData> > m_mNumberBndSegment;
 
 	///	constant boundary values for all subsets
-		std::map<int, std::vector<ConstNumberData> > m_mConstBoundarySegment;
+		std::map<int, std::vector<ConstNumberData> > m_mConstNumberBndSegment;
 
 	///	conditional boundary values for all subsets
-		std::map<int, std::vector<BNDNumberData> > m_mConditionalBoundarySegment;
+		std::map<int, std::vector<BNDNumberData> > m_mBNDNumberBndSegment;
+
+	///	non-conditional boundary values for all subsets
+		std::map<int, std::vector<VectorData> > m_mVectorBndSegment;
 };
 
 
@@ -302,39 +369,41 @@ class LagrangeDirichletBoundary
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add(BNDNumberFunctor& func,
-						const char* function, const char* subsets)
+add(BNDNumberFunctor& func, const char* function, const char* subsets)
 {
 	m_vScheduledBNDNumberData.push_back(ScheduledBNDNumberData(func, function, subsets));
-	extract_scheduled_data();
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add(NumberFunctor& func,
-						const char* function, const char* subsets)
+add(NumberFunctor& func, const char* function, const char* subsets)
 {
 	m_vScheduledNumberData.push_back(ScheduledNumberData(func, function, subsets));
-	extract_scheduled_data();
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-add(number value,  const char* function, const char* subsets)
+add(number value, const char* function, const char* subsets)
 {
 	m_vScheduledConstNumberData.push_back(ScheduledConstNumberData(value, function, subsets));
-	extract_scheduled_data();
+}
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+add(VectorFunctor& func, const char* functions, const char* subsets)
+{
+	m_vScheduledVectorData.push_back(ScheduledVectorData(func, functions, subsets));
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
-check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGroup) const
+check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGroup, size_t numFct) const
 {
-//	only one function allowed
-	if(functionGroup.num_fct() != 1)
+//	only number of functions allowed
+	if(functionGroup.num_fct() != numFct)
 	{
 		UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-				" Only one function allowed in specification of each"
+				" Only "<<numFct<<" function(s) allowed in specification of a"
 				" Dirichlet Value, but the following functions given:"
 				<<functionGroup<<"\n");
 		return false;
@@ -358,28 +427,86 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 			return false;
 		}
 
-		const size_t fct = functionGroup[0];
-
-	// 	check if function exist
-		if(fct >= m_pPattern->num_fct())
+	//	check all functions
+		for(size_t i=0; i < functionGroup.num_fct(); ++i)
 		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Function "<< fct << " does not exist in pattern.\n");
-			return false;
-		}
+			const size_t fct = functionGroup[i];
 
-	// 	check that function is defined for segment
-		if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-				" Function "<<fct<<" not defined on subset "<<subsetIndex<<".\n");
-			return false;
+		// 	check if function exist
+			if(fct >= m_pPattern->num_fct())
+			{
+				UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+						" Function "<< fct << " does not exist in pattern.\n");
+				return false;
+			}
+
+		// 	check that function is defined for segment
+			if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
+			{
+				UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Function "<<fct<<" not defined on subset "<<subsetIndex<<".\n");
+				return false;
+			}
 		}
 	}
 
 //	everything ok
 	return true;
 }
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TUserData, typename TScheduledUserData>
+bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegment,
+                       const std::vector<TScheduledUserData>& vScheduledUserData)
+{
+//	clear the extracted data
+	mvUserDataBndSegment.clear();
+
+	for(size_t i = 0; i < vScheduledUserData.size(); ++i)
+	{
+	//	create Function Group and Subset Group
+		FunctionGroup fctGrp;
+		SubsetGroup ssGrp;
+
+	//	convert strings
+		if(!ConvertStringToSubsetGroup(ssGrp, *m_pPattern,
+		                               vScheduledUserData[i].ssName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Subsets '"<<vScheduledUserData[i].ssName<<"' not"
+					" all contained in ApproximationSpace.\n");
+			return false;
+		}
+		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
+		                                 vScheduledUserData[i].fctName.c_str()))
+		{
+			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
+					" Functions '"<<vScheduledUserData[i].fctName<<"' not"
+					" all contained in ApproximationSpace.\n");
+			return false;
+		}
+
+	//	check functions and subsets
+		if(!check_functions_and_subsets(fctGrp, ssGrp, TUserData::numFct)) return false;
+
+	// 	loop subsets
+		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
+		{
+		//	get subset index and function
+			const int subsetIndex = ssGrp[si];
+
+		//	get Boundary segment from map
+			std::vector<TUserData>& vSegmentFunction = mvUserDataBndSegment[subsetIndex];
+
+		//	remember functor and function
+			vSegmentFunction.push_back(TUserData(fctGrp, vScheduledUserData[i].functor));
+		}
+	}
+
+	return true;
+}
+
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
@@ -393,143 +520,14 @@ extract_scheduled_data()
 		return false;
 	}
 
-//	clear data
-	m_mConditionalBoundarySegment.clear();
-	m_mBoundarySegment.clear();
-	m_mConstBoundarySegment.clear();
-
-	for(size_t i = 0; i < m_vScheduledBNDNumberData.size(); ++i)
-	{
-	//	create Function Group and Subset Group
-		FunctionGroup fctGrp;
-		SubsetGroup ssGrp;
-
-	//	convert strings
-		if(!ConvertStringToSubsetGroup(ssGrp, *m_pPattern,
-									   m_vScheduledBNDNumberData[i].ssName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Subsets '"<<m_vScheduledBNDNumberData[i].ssName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
-		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
-										 m_vScheduledBNDNumberData[i].fctName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Functions '"<<m_vScheduledBNDNumberData[i].fctName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
-
-	//	check functions and subsets
-		if(!check_functions_and_subsets(fctGrp, ssGrp)) return false;
-
-	// 	loop subsets
-		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
-		{
-		//	get subset index and function
-			const int subsetIndex = ssGrp[si];
-			const size_t fct = fctGrp[0];
-
-		//	get Boundary segment from map
-			std::vector<BNDNumberData>& vSegmentFunction
-									= m_mConditionalBoundarySegment[subsetIndex];
-
-		//	remember functor and function
-			vSegmentFunction.push_back(BNDNumberData(fct, m_vScheduledBNDNumberData[i].functor));
-		}
-	}
-
-
-	for(size_t i = 0; i < m_vScheduledNumberData.size(); ++i)
-	{
-	//	create Function Group and Subset Group
-		FunctionGroup fctGrp;
-		SubsetGroup ssGrp;
-
-	//	convert strings
-		if(!ConvertStringToSubsetGroup(ssGrp, *m_pPattern,
-		                               m_vScheduledNumberData[i].ssName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Subsets '"<<m_vScheduledNumberData[i].ssName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
-		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
-		                                 m_vScheduledNumberData[i].fctName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Functions '"<<m_vScheduledNumberData[i].fctName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
-
-	//	check functions and subsets
-		if(!check_functions_and_subsets(fctGrp, ssGrp)) return false;
-
-	// 	loop subsets
-		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
-		{
-		//	get subset index and function
-			const int subsetIndex = ssGrp[si];
-			const size_t fct = fctGrp[0];
-
-		//	get Boundary segment from map
-			std::vector<NumberData>& vSegmentFunction
-									= m_mBoundarySegment[subsetIndex];
-
-		//	remember functor and function
-			vSegmentFunction.push_back(NumberData(fct, m_vScheduledNumberData[i].functor));
-		}
-	}
-
-	for(size_t i = 0; i < m_vScheduledConstNumberData.size(); ++i)
-	{
-	//	create Function Group and Subset Group
-		FunctionGroup fctGrp;
-		SubsetGroup ssGrp;
-
-	//	convert strings
-		if(!ConvertStringToSubsetGroup(ssGrp, *m_pPattern,
-		                               m_vScheduledConstNumberData[i].ssName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Subsets '"<<m_vScheduledConstNumberData[i].ssName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
-		if(!ConvertStringToFunctionGroup(fctGrp, *m_pPattern,
-		                                 m_vScheduledConstNumberData[i].fctName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Functions '"<<m_vScheduledConstNumberData[i].fctName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
-
-	//	check functions and subsets
-		if(!check_functions_and_subsets(fctGrp, ssGrp)) return false;
-
-	// 	loop subsets
-		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
-		{
-		//	get subset index and function
-			const int subsetIndex = ssGrp[si];
-			const size_t fct = fctGrp[0];
-
-		//	get Boundary segment from map
-			std::vector<ConstNumberData>& vSegmentFunction
-									= m_mConstBoundarySegment[subsetIndex];
-
-		//	remember functor and function
-			vSegmentFunction.push_back(ConstNumberData(fct, m_vScheduledConstNumberData[i].value));
-		}
-	}
+	bool bRet = true;
+	bRet &= extract_scheduled_data(m_mNumberBndSegment, m_vScheduledNumberData);
+	bRet &= extract_scheduled_data(m_mBNDNumberBndSegment, m_vScheduledBNDNumberData);
+	bRet &= extract_scheduled_data(m_mConstNumberBndSegment, m_vScheduledConstNumberData);
+	bRet &= extract_scheduled_data(m_mVectorBndSegment, m_vScheduledVectorData);
 
 //	we're done
-	return true;
+	return bRet;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -540,9 +538,11 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dd, number time)
 {
+	extract_scheduled_data();
+
 //	loop boundary subsets
 	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
-	for(iter = m_mConditionalBoundarySegment.begin(); iter != m_mConditionalBoundarySegment.end(); ++iter)
+	for(iter = m_mBNDNumberBndSegment.begin(); iter != m_mBNDNumberBndSegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
 		const std::vector<BNDNumberData>& userData = (*iter).second;
@@ -573,7 +573,7 @@ assemble_dirichlet_rows(matrix_type& mat, const dof_distribution_type& dd, numbe
 				if(!userData[i].functor(val, corner, time)) continue;
 
 			//	get function index
-				const size_t fct = userData[i].fct;
+				const size_t fct = userData[i].fct[0];
 
 			//	get multi indices
 				if(dd.template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
@@ -598,10 +598,15 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dd, number time)
 {
+	extract_scheduled_data();
+
 	bool bRet = true;
-	bRet &= adjust_jacobian<BNDNumberData>(m_mConditionalBoundarySegment, J, u, dd, time);
-	bRet &= adjust_jacobian<NumberData>(m_mBoundarySegment, J, u, dd, time);
-	bRet &= adjust_jacobian<ConstNumberData>(m_mConstBoundarySegment, J, u, dd, time);
+	bRet &= adjust_jacobian<BNDNumberData>(m_mBNDNumberBndSegment, J, u, dd, time);
+	bRet &= adjust_jacobian<NumberData>(m_mNumberBndSegment, J, u, dd, time);
+	bRet &= adjust_jacobian<ConstNumberData>(m_mConstNumberBndSegment, J, u, dd, time);
+
+	bRet &= adjust_jacobian<VectorData>(m_mVectorBndSegment, J, u, dd, time);
+
 	return bRet;
 }
 
@@ -658,7 +663,7 @@ adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
 	multi_index_vector_type multInd;
 
 //	dummy for readin
-	number val;
+	typename TUserData::value_type val;
 
 //	position of dofs
 	std::vector<position_type> vPos;
@@ -677,31 +682,34 @@ adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < vUserData.size(); ++i)
 		{
-		//	get function index
-			const size_t fct = vUserData[i].fct;
-
-		//	get local finite element id
-			const LFEID& lfeID = dd.local_finite_element_id(fct);
-
-		//	get dof position
-			if(TUserData::isConditional)
-				InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
-
-		//	get multi indices
-			dd.inner_multi_indices(elem, fct, multInd);
-
-			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
-
-		//	loop dofs on element
-			for(size_t j = 0; j < vPos.size(); ++j)
+			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
-			// 	check if function is dirichlet
+			//	get function index
+				const size_t fct = vUserData[i].fct[f];
+
+			//	get local finite element id
+				const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+			//	get multi indices
+				dd.inner_multi_indices(elem, fct, multInd);
+
+			//	get dof position
 				if(TUserData::isConditional){
-					if(!vUserData[i](val, vPos[j], time)) continue;
+					InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+					UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
 				}
 
-			//	set dirichlet row
-				SetDirichletRow(J, multInd[j][0], multInd[j][1]);
+			//	loop dofs on element
+				for(size_t j = 0; j < multInd.size(); ++j)
+				{
+				// 	check if function is dirichlet
+					if(TUserData::isConditional){
+						if(!vUserData[i](val, vPos[j], time)) continue;
+					}
+
+				//	set dirichlet row
+					SetDirichletRow(J, multInd[j][0], multInd[j][1]);
+				}
 			}
 		}
 	}
@@ -719,10 +727,15 @@ bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
               const dof_distribution_type& dd, number time)
 {
+	extract_scheduled_data();
+
 	bool bRet = true;
-	bRet &= adjust_defect<BNDNumberData>(m_mConditionalBoundarySegment, d, u, dd, time);
-	bRet &= adjust_defect<NumberData>(m_mBoundarySegment, d, u, dd, time);
-	bRet &= adjust_defect<ConstNumberData>(m_mConstBoundarySegment, d, u, dd, time);
+	bRet &= adjust_defect<BNDNumberData>(m_mBNDNumberBndSegment, d, u, dd, time);
+	bRet &= adjust_defect<NumberData>(m_mNumberBndSegment, d, u, dd, time);
+	bRet &= adjust_defect<ConstNumberData>(m_mConstNumberBndSegment, d, u, dd, time);
+
+	bRet &= adjust_defect<VectorData>(m_mVectorBndSegment, d, u, dd, time);
+
 	return bRet;
 }
 
@@ -779,7 +792,7 @@ adjust_defect(const std::vector<TUserData>& vUserData, int si,
 	multi_index_vector_type multInd;
 
 //	dummy for readin
-	number val;
+	typename TUserData::value_type val;
 
 //	position of dofs
 	std::vector<position_type> vPos;
@@ -798,31 +811,35 @@ adjust_defect(const std::vector<TUserData>& vUserData, int si,
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < vUserData.size(); ++i)
 		{
-		//	get function index
-			const size_t fct = vUserData[i].fct;
-
-		//	get local finite element id
-			const LFEID& lfeID = dd.local_finite_element_id(fct);
-
-		//	get dof position
-			if(TUserData::isConditional)
-				InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
-
-		//	get multi indices
-			dd.inner_multi_indices(elem, fct, multInd);
-
-			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
-
-		//	loop dofs on element
-			for(size_t j = 0; j < vPos.size(); ++j)
+			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
-			// 	check if function is dirichlet
+			//	get function index
+				const size_t fct = vUserData[i].fct[f];
+
+			//	get local finite element id
+				const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+			//	get multi indices
+				dd.inner_multi_indices(elem, fct, multInd);
+
+			//	get dof position
 				if(TUserData::isConditional){
-					if(!vUserData[i](val, vPos[j], time)) continue;
+					InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+					UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch. (multInd.size()="<<
+					          multInd.size()<<", vPos.size()="<<vPos.size()<<")");
 				}
 
-			//	set zero for dirichlet values
-				BlockRef(d[multInd[j][0]], multInd[j][1]) = 0.0;
+			//	loop dofs on element
+				for(size_t j = 0; j < multInd.size(); ++j)
+				{
+				// 	check if function is dirichlet
+					if(TUserData::isConditional){
+						if(!vUserData[i](val, vPos[j], time)) continue;
+					}
+
+				//	set zero for dirichlet values
+					BlockRef(d[multInd[j][0]], multInd[j][1]) = 0.0;
+				}
 			}
 		}
 	}
@@ -839,10 +856,15 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_solution(vector_type& u, const dof_distribution_type& dd, number time)
 {
+	extract_scheduled_data();
+
 	bool bRet = true;
-	bRet &= adjust_solution<BNDNumberData>(m_mConditionalBoundarySegment, u, dd, time);
-	bRet &= adjust_solution<NumberData>(m_mBoundarySegment, u, dd, time);
-	bRet &= adjust_solution<ConstNumberData>(m_mConstBoundarySegment, u, dd, time);
+	bRet &= adjust_solution<BNDNumberData>(m_mBNDNumberBndSegment, u, dd, time);
+	bRet &= adjust_solution<NumberData>(m_mNumberBndSegment, u, dd, time);
+	bRet &= adjust_solution<ConstNumberData>(m_mConstNumberBndSegment, u, dd, time);
+
+	bRet &= adjust_solution<VectorData>(m_mVectorBndSegment, u, dd, time);
+
 	return bRet;
 }
 
@@ -897,7 +919,7 @@ adjust_solution(const std::vector<TUserData>& vUserData, int si,
 	multi_index_vector_type multInd;
 
 //	value readin
-	number val;
+	typename TUserData::value_type val;
 
 //	position of dofs
 	std::vector<position_type> vPos;
@@ -916,28 +938,31 @@ adjust_solution(const std::vector<TUserData>& vUserData, int si,
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < vUserData.size(); ++i)
 		{
-		//	get function index
-			const size_t fct = vUserData[i].fct;
-
-		//	get local finite element id
-			const LFEID& lfeID = dd.local_finite_element_id(fct);
-
-		//	get dof position
-			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
-
-		//	get multi indices
-			dd.inner_multi_indices(elem, fct, multInd);
-
-			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
-
-		//	loop dofs on element
-			for(size_t j = 0; j < vPos.size(); ++j)
+			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
-			//  get dirichlet value
-				if(!vUserData[i](val, vPos[j], time)) continue;
+			//	get function index
+				const size_t fct = vUserData[i].fct[f];
 
-			//	set zero for dirichlet values
-				BlockRef(u[multInd[j][0]], multInd[j][1]) = val;
+			//	get local finite element id
+				const LFEID& lfeID = dd.local_finite_element_id(fct);
+
+			//	get dof position
+				InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+
+			//	get multi indices
+				dd.inner_multi_indices(elem, fct, multInd);
+
+				UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+			//	loop dofs on element
+				for(size_t j = 0; j < multInd.size(); ++j)
+				{
+				//  get dirichlet value
+					if(!vUserData[i](val, vPos[j], time)) continue;
+
+				//	set zero for dirichlet values
+					BlockRef(u[multInd[j][0]], multInd[j][1]) = val[f];
+				}
 			}
 		}
 	}
@@ -955,10 +980,15 @@ bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_linear(matrix_type& A, vector_type& b,
               const vector_type& u, const dof_distribution_type& dd, number time)
 {
+	extract_scheduled_data();
+
 	bool bRet = true;
-	bRet &= adjust_linear<BNDNumberData>(m_mConditionalBoundarySegment, A, b, u, dd, time);
-	bRet &= adjust_linear<NumberData>(m_mBoundarySegment, A, b, u, dd, time);
-	bRet &= adjust_linear<ConstNumberData>(m_mConstBoundarySegment, A, b, u, dd, time);
+	bRet &= adjust_linear<BNDNumberData>(m_mBNDNumberBndSegment, A, b, u, dd, time);
+	bRet &= adjust_linear<NumberData>(m_mNumberBndSegment, A, b, u, dd, time);
+	bRet &= adjust_linear<ConstNumberData>(m_mConstNumberBndSegment, A, b, u, dd, time);
+
+	bRet &= adjust_linear<VectorData>(m_mVectorBndSegment, A, b, u, dd, time);
+
 	return bRet;
 }
 
@@ -1015,7 +1045,7 @@ adjust_linear(const std::vector<TUserData>& vUserData, int si,
 	multi_index_vector_type multInd;
 
 //	readin value
-	number val;
+	typename TUserData::value_type val;
 
 //	position of dofs
 	std::vector<position_type> vPos;
@@ -1034,35 +1064,38 @@ adjust_linear(const std::vector<TUserData>& vUserData, int si,
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < vUserData.size(); ++i)
 		{
-		//	get function index
-			const size_t fct = vUserData[i].fct;
-
-		//	get local finite element id
-			const LFEID& lfeID = dd.local_finite_element_id(fct);
-
-		//	get dof position
-			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
-
-		//	get multi indices
-			dd.inner_multi_indices(elem, fct, multInd);
-
-			UG_ASSERT(multInd.size() == vPos.size(),
-			          "Mismatch: numInd="<<multInd.size()<<", numPos="<<vPos.size());
-
-		//	loop dofs on element
-			for(size_t j = 0; j < vPos.size(); ++j)
+			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
-			// 	check if function is dirichlet and read value
-				if(!vUserData[i](val, vPos[j], time)) continue;
+			//	get function index
+				const size_t fct = vUserData[i].fct[f];
 
-				const size_t index = multInd[j][0];
-				const size_t alpha = multInd[j][1];
+			//	get local finite element id
+				const LFEID& lfeID = dd.local_finite_element_id(fct);
 
-			//	set dirichlet row
-				SetDirichletRow(A, index, alpha);
+			//	get dof position
+				InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
 
-			//	set dirichlet value in rhs
-				BlockRef(b[index], alpha) = val;
+			//	get multi indices
+				dd.inner_multi_indices(elem, fct, multInd);
+
+				UG_ASSERT(multInd.size() == vPos.size(),
+						  "Mismatch: numInd="<<multInd.size()<<", numPos="<<vPos.size());
+
+			//	loop dofs on element
+				for(size_t j = 0; j < multInd.size(); ++j)
+				{
+				// 	check if function is dirichlet and read value
+					if(!vUserData[i](val, vPos[j], time)) continue;
+
+					const size_t index = multInd[j][0];
+					const size_t alpha = multInd[j][1];
+
+				//	set dirichlet row
+					SetDirichletRow(A, index, alpha);
+
+				//	set dirichlet value in rhs
+					BlockRef(b[index], alpha) = val[f];
+				}
 			}
 		}
 	}
@@ -1080,10 +1113,15 @@ bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_rhs(vector_type& b, const vector_type& u,
            const dof_distribution_type& dd, number time)
 {
+	extract_scheduled_data();
+
 	bool bRet = true;
-	bRet &= adjust_rhs<BNDNumberData>(m_mConditionalBoundarySegment, b, u, dd, time);
-	bRet &= adjust_rhs<NumberData>(m_mBoundarySegment, b, u, dd, time);
-	bRet &= adjust_rhs<ConstNumberData>(m_mConstBoundarySegment, b, u, dd, time);
+	bRet &= adjust_rhs<BNDNumberData>(m_mBNDNumberBndSegment, b, u, dd, time);
+	bRet &= adjust_rhs<NumberData>(m_mNumberBndSegment, b, u, dd, time);
+	bRet &= adjust_rhs<ConstNumberData>(m_mConstNumberBndSegment, b, u, dd, time);
+
+	bRet &= adjust_rhs<VectorData>(m_mVectorBndSegment, b, u, dd, time);
+
 	return bRet;
 }
 
@@ -1140,7 +1178,7 @@ adjust_rhs(const std::vector<TUserData>& vUserData, int si,
 	multi_index_vector_type multInd;
 
 //	readin value
-	number val;
+	typename TUserData::value_type val;
 
 //	position of dofs
 	std::vector<position_type> vPos;
@@ -1159,31 +1197,34 @@ adjust_rhs(const std::vector<TUserData>& vUserData, int si,
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < vUserData.size(); ++i)
 		{
-		//	get function index
-			const size_t fct = vUserData[i].fct;
-
-		//	get local finite element id
-			const LFEID& lfeID = dd.local_finite_element_id(fct);
-
-		//	get dof position
-			InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
-
-		//	get multi indices
-			dd.inner_multi_indices(elem, fct, multInd);
-
-			UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
-
-		//	loop dofs on element
-			for(size_t j = 0; j < vPos.size(); ++j)
+			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
-			// 	check if function is dirichlet and read value
-				if(!vUserData[i](val, vPos[j], time)) continue;
+			//	get function index
+				const size_t fct = vUserData[i].fct[f];
 
-				const size_t index = multInd[j][0];
-				const size_t alpha = multInd[j][1];
+			//	get local finite element id
+				const LFEID& lfeID = dd.local_finite_element_id(fct);
 
-			//	set dirichlet value in rhs
-				BlockRef(b[index], alpha) = val;
+			//	get dof position
+				InnerDoFPosition(vPos, elem, *m_pDomain, lfeID);
+
+			//	get multi indices
+				dd.inner_multi_indices(elem, fct, multInd);
+
+				UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+			//	loop dofs on element
+				for(size_t j = 0; j < multInd.size(); ++j)
+				{
+				// 	check if function is dirichlet and read value
+					if(!vUserData[i](val, vPos[j], time)) continue;
+
+					const size_t index = multInd[j][0];
+					const size_t alpha = multInd[j][1];
+
+				//	set dirichlet value in rhs
+					BlockRef(b[index], alpha) = val[f];
+				}
 			}
 		}
 	}

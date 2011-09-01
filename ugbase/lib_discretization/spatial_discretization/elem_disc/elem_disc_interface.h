@@ -404,7 +404,7 @@ class IDomainElemDisc : public IElemDisc
 		typedef typename base_type::local_index_type local_index_type;
 
 	public:
-		IDomainElemDisc() : m_pDomain(NULL) {};
+		IDomainElemDisc() : m_pDomain(NULL), m_pApproxSpace(NULL) {};
 
 	///	sets the approximation space
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
@@ -414,7 +414,13 @@ class IDomainElemDisc : public IElemDisc
 
 		//	remember domain
 			set_domain(approxSpace.get_domain());
+
+		//	invoke callback
+			approximation_space_changed();
 		}
+
+	///	callback invoked, when approximation space is changed
+		virtual void approximation_space_changed() {}
 
 	///	sets the domain
 		void set_domain(domain_type& domain)
@@ -442,6 +448,9 @@ class IDomainElemDisc : public IElemDisc
 
 	///	returns the function pattern
 		const FunctionPattern& get_fct_pattern() const {return *m_pApproxSpace;}
+
+	///	returns if function pattern set
+		bool fct_pattern_set() const {return m_pApproxSpace != NULL;}
 
 	///	returns the subset handler
 		typename domain_type::subset_handler_type& get_subset_handler()
