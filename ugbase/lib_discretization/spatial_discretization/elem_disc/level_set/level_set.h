@@ -145,6 +145,9 @@ class FV1LevelSetDisc
 		
 		bool runtimetest (TGridFunction& u);
 
+		bool compute_normal(TGridFunction& vx,TGridFunction& vy,TGridFunction& u);
+
+      /// boundary condition subset handling
 		bool set_dirichlet_boundary(TGridFunction& uNew,const char* subsets){
 		    std::string m_dirichletSubsets = subsets;
 			//	get domain of grid function
@@ -169,17 +172,65 @@ class FV1LevelSetDisc
 			return true;
 		}
 
-	/*	bool set_dirichlet_boundary(TGridFunction& uNew,const char* subsets){
-			std::string m_dirichletSubsets = subsets;
-			// get domain of grid function
-			domain_type& domain = uNew.get_domain();
-			if(!ConvertStringToSubsetGroup(m_dirichlet_sg, domain.get_subset_handler(), m_dirichletSubsets.c_str()))
-			{
-			    UG_LOG("ERROR while parsing Subsets.\n");
-				return false;
-			}
-			return true;
-		};*/
+/// subset handling methods:
+
+	   bool init_ls_subsets(TGridFunction& phi);
+	   void create_ls_subsets(TGridFunction& phi);
+	   bool update_ls_subsets(TGridFunction& phi);
+
+	   void set_elements_active(int sign){
+	        if (sign==-1) if (m_inactive_sg.contains(m_inside_elements_si)==true) m_inactive_sg.remove(m_inside_elements_si);
+	   		if (sign==0) if (m_inactive_sg.contains(m_onls_elements_si)==true) m_inactive_sg.remove(m_onls_elements_si);
+	        if (sign==1) if (m_inactive_sg.contains(m_outside_elements_si)==true)  m_inactive_sg.remove(m_outside_elements_si);
+	   	}
+	   	void set_elements_active(int signi,int signj){
+	       	set_elements_active(signi);
+	   	    set_elements_active(signj);
+	   	}
+	   	void set_elements_active(int signi,int signj,int signk){
+	       	set_elements_active(signi,signj);
+	   	    set_elements_active(signk);
+	   	}
+	   	void set_elements_inactive(int sign){
+	       	if (sign==-1) m_inactive_sg.add(m_inside_elements_si);
+	        if (sign==0) m_inactive_sg.add(m_onls_elements_si);
+	        if (sign==1) m_inactive_sg.add(m_outside_elements_si);
+	   	}
+	   	void set_elements_inactive(int signi,int signj){
+	   		set_elements_inactive(signi);
+	        set_elements_inactive(signj);
+	   	}
+	   	void set_elements_inactive(int signi,int signj,int signk){
+	       	set_elements_inactive(signi,signj);
+	   	    set_elements_inactive(signk);
+	   	}
+	    void set_nodes_active(int sign){
+	   	    if (sign==-1) m_inactive_sg.remove(m_inside_nodes_si);
+	      	if (sign==0) m_inactive_sg.remove(m_onls_nodes_si);
+	       	if (sign==1) m_inactive_sg.remove(m_outside_nodes_si);
+	   	}
+	   	void set_nodes_active(int signi,int signj){
+	        set_nodes_active(signi);
+	        set_nodes_active(signj);
+	   	}
+	   	void set_nodes_active(int signi,int signj,int signk){
+	        set_nodes_active(signi,signj);
+	        set_nodes_active(signk);
+	   	}
+	    void set_nodes_inactive(int sign){
+	       	if (sign==-1) m_inactive_sg.add(m_inside_nodes_si);
+	       	if (sign==0) m_inactive_sg.add(m_onls_nodes_si);
+	        if (sign==1) m_inactive_sg.add(m_outside_nodes_si);
+	   	}
+	   	void set_nodes_inactive(int signi,int signj){
+	       	set_nodes_inactive(signi);
+	   	    set_nodes_inactive(signj);
+	   	}
+	   	void set_nodes_inactive(int signi,int signj,int signk){
+	       	set_nodes_inactive(signi,signj);
+	       	set_nodes_inactive(signk);
+	   	}
+
 
 	 protected:
 	    number analytic_solution(number,MathVector<dim>);
@@ -245,6 +296,12 @@ class FV1LevelSetDisc
 		UserDataType m_velocity_type;
 		UserDataType m_dirichlet_data_type;
 		bool m_interpolate_v_in_ip;
+		int m_inside_elements_si;
+		int m_outside_elements_si;
+		int m_onls_elements_si;
+		int m_inside_nodes_si;
+		int m_outside_nodes_si;
+		int m_onls_nodes_si;
 };
 
 } // end namespace ug

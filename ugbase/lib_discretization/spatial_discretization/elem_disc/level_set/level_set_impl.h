@@ -136,7 +136,80 @@ bool FV1LevelSetDisc<TGridFunction>::fill_v_vec(TGridFunction& vel,int component
 };
 
 template<typename TGridFunction>
-bool compute_normal_velocity(TGridFunction& vx,TGridFunction& vy,const TGridFunction& u){
+bool FV1LevelSetDisc<TGridFunction>::compute_normal(TGridFunction& vx,TGridFunction& vy,TGridFunction& u){
+    	//	get domain of grid function
+	domain_type& domain = u.get_domain();
+
+	//	get grid type of domain
+	typedef typename domain_type::grid_type grid_type;
+
+	//	get grid of domain
+	grid_type& grid = domain.get_grid();
+
+	typedef typename domain_type::position_accessor_type position_accessor_type;
+
+	//	element iterator type
+	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+
+    //	element type
+	typedef typename domain_traits<dim>::geometric_base_object ElemType;
+
+
+	//	get element iterator type
+	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+
+	//	create Attachment for scv-volume size
+	ANumber aScvVolume;
+
+	//	typedef of gradient attachment
+	typedef Attachment<MathVector<dim> > AGradient;
+
+	//	create Attachment for gradient
+	AGradient aGradient;
+
+	//	attach to grid
+	grid.attach_to_vertices(aScvVolume);
+	grid.attach_to_vertices(aGradient);
+
+	//	get attachment accessor to access values
+	Grid::VertexAttachmentAccessor<ANumber> aaScvVolume(grid, aScvVolume);
+	Grid::VertexAttachmentAccessor<AGradient> aaGradient(grid, aGradient);
+
+	// initialize attachment value
+	SetAttachmentValues(aaScvVolume, grid.vertices_begin(), grid.vertices_end(), 0);
+	SetAttachmentValues(aaGradient, grid.vertices_begin(), grid.vertices_end(), 0);
+
+    MathVector<dim> coord;
+    position_accessor_type aaPos = domain.get_position_accessor();
+
+	typedef typename TGridFunction::multi_index_vector_type index_type;
+    //	get vector holding all indices on the vertex
+	multi_index_vector_type ind;
+    //	read indices on vertex
+	typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
+	const dof_distribution_type& dd = u.get_dof_distribution();
+    // calculate scv size and gradient
+    if (calculate_vertex_grad_vol(u,aaGradient, aaScvVolume)==false){UG_LOG("ERROR: gradient computation failed!"); return false;};
+    // SetAttachmentValues(aaGradient, grid.vertices_begin(), grid.vertices_end(), 0); for debug set gradient to 0
+	for (int si=0;si<u.num_subsets();++si){
+	    if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(si)==true) continue;
+	    if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(si)==true) continue;
+	    if (m_inactive_sg.num_subsets()!=0) if (m_inactive_sg.contains(si)==true) continue;
+        VertexBaseConstIterator iter = u.template begin<VertexBase>(si);
+		VertexBaseIterator iterEnd = grid.template end<VertexBase>(si);
+		for (;iter != iterEnd; ++iter){
+		    VertexBase* vrt = *iter;
+			dd.inner_multi_indices(vrt, 0, ind);
+			number vnorm = VecLength(aaGradient[vrt]);
+			if (vnorm>1e-15){
+	    		BlockRef(vx[ind[0][0]],ind[0][1]) = aaGradient[vrt][0]/vnorm;
+		    	BlockRef(vy[ind[0][0]],ind[0][1]) = aaGradient[vrt][1]/vnorm;
+			} else {
+			    BlockRef(vx[ind[0][0]],ind[0][1]) = 0;
+    			BlockRef(vy[ind[0][0]],ind[0][1]) = 0;
+			};
+		};
+    };
 	return true;
 }
 
@@ -283,6 +356,12 @@ bool FV1LevelSetDisc<TGridFunction>::limit_grad(TGridFunction& uOld, aaGrad& aaG
 	typedef typename domain_traits<dim>::const_iterator ElemIterator;
 	//	get element type
 	typedef typename domain_traits<dim>::geometric_base_object ElemType;
+
+	VertexBase* vVrt[domain_traits<dim>::MaxNumVerticesOfElem];
+	//	coord and vertex array
+	MathVector<dim> coCoord[domain_traits<dim>::MaxNumVerticesOfElem];
+	//	coord and vertex array
+	MathVector<dim> grad[domain_traits<dim>::MaxNumVerticesOfElem];
 	//	get iterators
 	ElemIterator iter = uOld.template begin<ElemType>(si);
 	ElemIterator iterEnd = uOld.template end<ElemType>(si);
@@ -292,26 +371,20 @@ bool FV1LevelSetDisc<TGridFunction>::limit_grad(TGridFunction& uOld, aaGrad& aaG
 	    //	get Elem
 		ElemType* elem = *iter;
 
-		//	get vertices of the Elem
-		std::vector<VertexBase*> vVrt;
-		CollectVertices(vVrt, grid, elem);
-
 		//	get position accessor
 		typedef typename domain_type::position_accessor_type position_accessor_type;
 		const position_accessor_type& aaPos = domain.get_position_accessor();
 
-		//	resize corners
-		std::vector<MathVector<dim> > vCornerCoord;
 		//	compute center of mass
 		MathVector<dim> center;
-		std::vector<MathVector<dim> > grad;
 		center=0;
-		size_t noc=vVrt.size();
+		size_t noc=elem->num_vertices();
 		number u[noc];
     	for(size_t i = 0; i < noc; ++i){
-			vCornerCoord.push_back( aaPos[vVrt[i]] );
-			grad.push_back( aaGrad[vVrt[i]] );
-			VecAppend(center,vCornerCoord[i]);
+    		vVrt[i] = elem->vertex(i);
+    		coCoord[i] = aaPos[vVrt[i]];
+			grad[i] = aaGrad[vVrt[i]] ;
+			VecAppend(center,coCoord[i]);
 			dd.inner_multi_indices(vVrt[i], 0, ind);
 			u[i]=BlockRef(uOld[ind[0][0]],ind[0][1]);
 		};
@@ -320,18 +393,18 @@ bool FV1LevelSetDisc<TGridFunction>::limit_grad(TGridFunction& uOld, aaGrad& aaG
 			number alpha=1;
 			MathVector<dim> distVec;
 			number uCenter;
-    		VecSubtract(distVec,center,vCornerCoord[i]);
+    		VecSubtract(distVec,center,coCoord[i]);
 			uCenter = u[i] + distVec*grad[i];
 			if (uCenter>u[i]){
 		        if (uCenter>aaMax[vVrt[i]]) alpha=(aaMax[vVrt[i]]-u[i])/(distVec*grad[i]);
 		        if (alpha<1){
-		        	// UG_LOG("* " << vCornerCoord[i] << " uCenter " << uCenter << " ui " << u[i] << " max " << aaMax[vVrt[i]] << " alpha " << alpha << "\n");
+		        	// UG_LOG("* " << coCoord[i] << " uCenter " << uCenter << " ui " << u[i] << " max " << aaMax[vVrt[i]] << " alpha " << alpha << "\n");
 			        aaGrad[vVrt[i]]*=alpha;
 		        };
 			}else{
 		        if (uCenter<aaMin[vVrt[i]]) alpha=(aaMin[vVrt[i]]-u[i])/(distVec*grad[i]);
 		        if (alpha<1){
-		        	// UG_LOG("*#* " << vCornerCoord[i] << " uCenter " << uCenter << " ui " << u[i] << " min " << aaMin[vVrt[i]] << " alpha " << alpha << "\n");
+		        	// UG_LOG("*#* " << coCoord[i] << " uCenter " << uCenter << " ui " << u[i] << " min " << aaMin[vVrt[i]] << " alpha " << alpha << "\n");
 			        aaGrad[vVrt[i]]*=alpha;
 		        };
 		    };
@@ -345,7 +418,7 @@ bool FV1LevelSetDisc<TGridFunction>::limit_grad(TGridFunction& uOld, aaGrad& aaG
 };
 
 
-/// interpolates a function on an element
+/// assemble element
 template<typename TGridFunction>
 template <typename TElem>
 bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometry<dim>& geo, grid_type& grid,TGridFunction& uNew,const TGridFunction& uOld,aaGrad& aaGradient, aaSCV& aaVolume )
@@ -375,21 +448,20 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 	//	id of shape functions used
 	LFEID id = uOld.local_finite_element_id(fct);
 
-	//	get vertices of the Elem
-	std::vector<VertexBase*> vVrt;
-	CollectVertices(vVrt, grid, elem);
-
 	//	get position accessor
 	typedef typename domain_type::position_accessor_type position_accessor_type;
 	const position_accessor_type& aaPos = domain.get_position_accessor();
 
-    //	resize corners
-	std::vector<MathVector<dim> > coCoord;
+    //	coord and vertex array
+	MathVector<dim> coCoord[domain_traits<dim>::MaxNumVerticesOfElem];
+	VertexBase* vVrt[domain_traits<dim>::MaxNumVerticesOfElem];
 
-	//	extract corner coordinates
-	for(size_t i = 0; i < vVrt.size(); ++i)
-	   coCoord.push_back( aaPos[vVrt[i]] );
-
+	//	get vertices and extract corner coordinates
+	const size_t numVertices = elem->num_vertices();
+	for(size_t i = 0; i < numVertices; ++i){
+		vVrt[i] = elem->vertex(i);
+		coCoord[i] = aaPos[vVrt[i]];
+	};
 	// update fv geometry
 	geo.update(elem, &(coCoord[0]), &domain.get_subset_handler());
 
@@ -402,7 +474,8 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 
 //  fill node value vector
 	std::vector<number> uValue(geo.num_scv());
-	for (size_t i=0;i < geo.num_scv();i++){
+	size_t noc = geo.num_scv();
+	for (size_t i=0;i < noc;i++){
 		// if (dd.template inner_multi_indices<VertexBase>(vVrt[i], 0, multInd) != 1) return false;
 		dd.inner_multi_indices(vVrt[i], 0, multInd);
 		uValue[i]=BlockRef(uOld[multInd[0][0]],multInd[0][1]);
@@ -412,8 +485,8 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 	//UG_LOG("uValues " << uValue[0] << " " << uValue[1] << " " << uValue[2] << "\n");
 
 //  fill grad vector
-    MathVector<dim> grad[geo.num_scv()];
-	for (size_t i=0;i < geo.num_scv();i++){
+    MathVector<dim> grad[noc];
+	for (size_t i=0;i < noc;i++){
 		// if (dd.template inner_multi_indices<VertexBase>(vVrt[i], 0, multInd) != 1) return false;
 		dd.inner_multi_indices(vVrt[i], 0, multInd);
 		grad[i]=aaGradient[vVrt[i]];
@@ -421,8 +494,8 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 	}
 	
 	//  fill corner velocity vector
-	MathVector<dim> coVelocity[geo.num_scv()];
-	for (size_t i=0;i<geo.num_scv();++i){
+	MathVector<dim> coVelocity[noc];
+	for (size_t i=0;i<noc;++i){
 		coVelocity[i]=0;
 	}
 	if (m_gamma!=0){
@@ -431,14 +504,14 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
         	    for (size_t i=0;i < geo.num_scv();i++) analytic_velocity(coVelocity[i],m_time,coCoord[i]);
         	    break;
             case FunctorData:
-        	    for (size_t i=0;i < geo.num_scv();i++){
+        	    for (size_t i=0;i < noc;i++){
         		    m_vel_x_fct(coVelocity[i][0],coCoord[i],m_time);
         	        if (dim>=2) m_vel_y_fct(coVelocity[i][1],coCoord[i],m_time);
         	        if (dim>=3) m_vel_z_fct(coVelocity[i][2],coCoord[i],m_time);
         	    }
         	    break;
             case VectorData:
-        	    for (size_t i=0;i < geo.num_scv();i++){
+        	    for (size_t i=0;i < noc;i++){
         		    dd.inner_multi_indices(vVrt[i], 0, multInd);
         		    coVelocity[i][0]=BlockRef((*m_vel_x_vec)[multInd[0][0]],multInd[0][1]);
         		    if (dim>=2) coVelocity[i][1]=BlockRef((*m_vel_y_vec)[multInd[0][0]],multInd[0][1]);
@@ -446,16 +519,16 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
         	    }
         	    break;
             case ConstantData:
-        	    for (size_t i=0;i < geo.num_scv();i++){
+        	    for (size_t i=0;i < noc;i++){
         	        coVelocity[i][0] = m_constantv_x;
         		    if (dim>=2) coVelocity[i][1] = m_constantv_y;
         		    if (dim>=3) coVelocity[i][2] = m_constantv_z;
         	    };
         }
-        if (m_gamma!=1) for (size_t i=0;i < geo.num_scv();i++) coVelocity[i]*=m_gamma;
+        if (m_gamma!=1) for (size_t i=0;i < noc;i++) coVelocity[i]*=m_gamma;
 	}
     if (m_delta!=0){
-    	for (size_t i=0;i < geo.num_scv();i++){
+    	for (size_t i=0;i < noc;i++){
     	    number vnorm = VecLength(grad[i]);
     	    if (vnorm>1e-15) for (int j=0;j<dim;j++) coVelocity[i][j] += m_delta/vnorm*grad[i][j];
     	    //UG_LOG("corner " << i << " gradient" << grad[i] << " velocity " << coVelocity[i] << "\n");
@@ -468,7 +541,7 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 		for (size_t ip=0;ip < geo.num_scvf();ip++){
 			ipVelocity[ip] = 0;
 			const typename DimFV1Geometry<dim>::SCVF& scvf = geo.scvf(ip);
-			for (size_t co=0;co < geo.num_scv();co++){
+			for (size_t co=0;co < noc;co++){
 			   // UG_LOG("co " << co << "\n");
 				for (int j=0;j<dim;j++){
 				    ipVelocity[ip][j] += scvf.shape(co)*coVelocity[co][j];
@@ -508,22 +581,22 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 		}
 	};
     //  fill source vector
-	std::vector<number> coSource(geo.num_scv());
+	std::vector<number> coSource(noc);
     switch (m_source_type){
         case HardcodedData:
-          	for (size_t i=0;i<geo.num_scv();i++) coSource[i] = analytic_source(m_time,coCoord[i]);
+          	for (size_t i=0;i<noc;i++) coSource[i] = analytic_source(m_time,coCoord[i]);
        	    break;
         case FunctorData:
-        	for (size_t i=0;i<geo.num_scv();i++) m_source_fct(coSource[i],coCoord[i],m_time);
+        	for (size_t i=0;i<noc;i++) m_source_fct(coSource[i],coCoord[i],m_time);
         	break;
         case VectorData:
-        	for (size_t i=0;i<geo.num_scv();i++){
+        	for (size_t i=0;i<noc;i++){
         		dd.inner_multi_indices(vVrt[i], 0, multInd);
 	    	    coSource[i] = BlockRef((*m_source_vec)[multInd[0][0]],multInd[0][1]);
         	}
         	break;
         case ConstantData:
-        	for (size_t i=0;i<geo.num_scv();i++) coSource[i] = m_source_constant;
+        	for (size_t i=0;i<noc;i++) coSource[i] = m_source_constant;
         	break;
     }
     // get finite volume geometry
@@ -599,7 +672,7 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 				    bipGrad=0;
 				    const MathVector<dim>* globalGradVec = bf.global_grad_vector();
 				    bipVelocity=0;
-				    for (size_t co=0;co<geo.num_scv();co++){
+				    for (size_t co=0;co<noc;co++){
 					    //UG_LOG("corner " << co << " num_sh " << bf.num_sh() << "\n");
 				        for (int j=0;j<dim;j++){
 				            bipVelocity[j] += bf.shape(co)*coVelocity[co][j];
@@ -623,7 +696,7 @@ bool FV1LevelSetDisc<TGridFunction>::assemble_element(TElem& elem, DimFV1Geometr
 		 };
 
 	// give out corner values for debug
-//	for (size_t i=0;i < geo.num_scv();i++){
+//	for (size_t i=0;i < noc;i++){
 			// if (dd.template inner_multi_indices<VertexBase>(vVrt[i], 0, multInd) != 1) return false;
 //			dd.inner_multi_indices(vVrt[i], 0, multInd);
 //			uValue[i]=BlockRef(uNew[multInd[0][0]],multInd[0][1]);
@@ -649,9 +722,6 @@ calculate_vertex_vol(TGridFunction& u,aaSCV& aaScvVolume)
 	//	get domain
 		domain_type& domain = u.get_domain();
 
-	//	get grid of domain
-		typename domain_type::grid_type& grid = domain.get_grid();
-
 	//	create a FV Geometry for the dimension
 		DimFV1Geometry<dim> geo;
 
@@ -668,6 +738,7 @@ calculate_vertex_vol(TGridFunction& u,aaSCV& aaScvVolume)
 	//	sum up all contributions of the sub control volumes to one vertex in an attachment
 		for(int si = 0; si < u.num_subsets(); ++si)
 		{
+			MathVector<dim> coCoord[domain_traits<dim>::MaxNumVerticesOfElem];
 		//	get iterators
 			ElemIterator iter = u.template begin<ElemType>(si);
 			ElemIterator iterEnd = u.template end<ElemType>(si);
@@ -677,18 +748,14 @@ calculate_vertex_vol(TGridFunction& u,aaSCV& aaScvVolume)
 			{
 			//	get Elem
 				ElemType* elem = *iter;
-			//	get vertices of the element
-				std::vector<VertexBase*> vVrt;
-				CollectVertices(vVrt, grid, elem);
-			//	resize corners
-				std::vector<MathVector<dim> > vCornerCoord;
 
+				size_t numVertices=elem->num_vertices();
 			//	extract corner coordinates
-				for(size_t i = 0; i < vVrt.size(); ++i)
-			    	vCornerCoord.push_back( aaPos[vVrt[i]] );
+				for(size_t i = 0; i < numVertices; ++i)
+					coCoord[i] = aaPos[elem->vertex(i)];
 
 			//	evaluate finite volume geometry
-				geo.update(elem, &(vCornerCoord[0]), &domain.get_subset_handler());
+				geo.update(elem, &(coCoord[0]), &domain.get_subset_handler());
 
 
 			//	loop corners
@@ -697,7 +764,7 @@ calculate_vertex_vol(TGridFunction& u,aaSCV& aaScvVolume)
 					//	get scv for sh
 					const typename DimFV1Geometry<dim>::SCV& scv = geo.scv(i);
 
-					aaScvVolume[vVrt[i]] += scv.volume();
+					aaScvVolume[elem->vertex(i)] += scv.volume();
 				};
 			}
 		}
@@ -754,9 +821,16 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 		SetAttachmentValues(aaScvVolume, grid.vertices_begin(), grid.vertices_end(), 0);
 		SetAttachmentValues(aaGradient, grid.vertices_begin(), grid.vertices_end(), 0);
 
+		//	coord and vertex array
+		MathVector<dim> coCoord[domain_traits<dim>::MaxNumVerticesOfElem];
+		VertexBase* vVrt[domain_traits<dim>::MaxNumVerticesOfElem];
+
 	//	sum up all contributions of the sub control volumes to one vertex in an attachment
-		for(int si = 0; si < u.num_subsets(); ++si)
+		for(int si = 0; si < domain.get_subset_handler().num_subsets(); ++si)
 		{
+	        if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(si)==true) continue;
+	        if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(si)==true) continue;
+	        if (m_inactive_sg.num_subsets()!=0) if (m_inactive_sg.contains(si)==true) continue;
 		//	get iterators
 			ElemIterator iter = u.template begin<ElemType>(si);
 			ElemIterator iterEnd = u.template end<ElemType>(si);
@@ -767,32 +841,24 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 			//	get Elem
 				ElemType* elem = *iter;
 
-			//	get vertices of the Elem
-				std::vector<VertexBase*> vVrt;
-				CollectVertices(vVrt, grid, elem);
-
 			//	get position accessor
 				typedef typename domain_type::position_accessor_type position_accessor_type;
 				const position_accessor_type& aaPos = domain.get_position_accessor();
 
-			//	resize corners
-				std::vector<MathVector<dim> > vCornerCoord;
-
-			//	extract corner coordinates
-				for(size_t i = 0; i < vVrt.size(); ++i)
-					vCornerCoord.push_back( aaPos[vVrt[i]] );
+			//	get vertices and extract corner coordinates
+				const size_t numVertices = elem->num_vertices();
+				for(size_t i = 0; i < numVertices; ++i){
+					vVrt[i] = elem->vertex(i);
+					coCoord[i] = aaPos[vVrt[i]];
+				};
 
 			//	evaluate finite volume geometry
-				geo.update(elem, &(vCornerCoord[0]), &domain.get_subset_handler());
+				geo.update(elem, &(coCoord[0]), &domain.get_subset_handler());
 
 				//UG_LOG("Num Verts loaded: "<<vVrt.size()<<"\n");
 				//UG_LOG("Num SCV computed: "<<geo.num_scv()<<"\n");m_vPP.
-				UG_ASSERT(vVrt.size() == geo.num_scv(), "Must match.");
-				for(size_t i = 0; i < vVrt.size(); ++i)
-					if(vVrt[i] == NULL)
-						UG_LOG("Vertex "<<i<<" is NULL.\n");
 
-				std::vector<number> uValue(geo.num_scv());
+				number uValue[domain_traits<dim>::MaxNumVerticesOfElem];
 
 				typedef typename TGridFunction::multi_index_vector_type index_type;
 
@@ -800,7 +866,8 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 				typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
 				const dof_distribution_type& dd = u.get_dof_distribution();
 
-				for (size_t i=0;i < geo.num_scv();i++)
+				size_t noc = geo.num_scv();
+				for (size_t i=0;i < noc;i++)
 				{
 				//	get indices of function fct on vertex
 					dd.inner_multi_indices(vVrt[i], fct, multInd);
@@ -816,7 +883,7 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 				MathVector<dim> globalGrad;
 
 			//	loop corners
-				for (size_t i=0;i < geo.num_scv();i++)
+				for (size_t i=0;i < noc;i++)
 				{
 				//	get scv for sh
 					const typename DimFV1Geometry<dim>::SCV& scv = geo.scv(i);
@@ -828,7 +895,7 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 					globalGrad = 0.0;
 
 				//	sum up gradients of shape functions in corner
-					for(size_t sh = 0 ; sh < geo.num_scv(); ++sh)
+					for(size_t sh = 0 ; sh < noc; ++sh)
 					{
 						//UG_LOG("local grad " << sh << " : " << scv.local_grad(sh) << "\n");
 						//UG_LOG("unscaled global grad " << sh << " = " << scv.global_grad(sh) << "\n");
@@ -852,7 +919,7 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 			}
 		}
 
-	int count=0;
+	// int count=0;
 	typedef typename domain_type::position_accessor_type position_accessor_type;
 	position_accessor_type aaPos = u.get_domain().get_position_accessor();
 	for (int si=0;si < u.num_subsets();++si){
@@ -865,17 +932,13 @@ calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient,aaSCV& aaScvVolum
 		    if (aaScvVolume[vrt]!=0){
 		        (aaGradient[vrt]) /= aaScvVolume[vrt];
 		    };
-		    MathVector<dim> coord = aaPos[vrt];
-		    MathVector<dim> exact;
-		    exact[0] = 0;
-		    exact[1] = 0;
 		    //exact[0] = cos(coord[0]);// 6*coord[0];
 		    //exact[1] = -4*sin(coord[1]);//-4*coord[1];
 		    //number gError = sqrt( (exact[0]-aaGradient[vrt][0])*(exact[0]-aaGradient[vrt][0]) + (exact[1]-aaGradient[vrt][1])*(exact[1]-aaGradient[vrt][1]) );
 	        //UG_LOG(count << "[ " << coord[0] << "," << coord[1] << " ] vol= " << aaScvVolume[vrt] << " " << "grad= ["
 	        //		<< aaGradient[vrt][0] << "," << aaGradient[vrt][1] << "] exact grad = ["
 	        //		<< exact[0] << "," << exact[1] << "] error: " << gError <<  "\n");
-	        count++;
+	        // count++;
 	    }
 	}
 	//UG_LOG("#*#*#*#\n");
@@ -895,14 +958,14 @@ bool FV1LevelSetDisc<TGridFunction>::assign_dirichlet(TGridFunction& numsol){
 
 		typedef typename domain_type::position_accessor_type position_accessor_type;
 
-		UG_LOG("dirichlet\n");
+	//	UG_LOG("dirichlet\n");
 
-		UG_LOG("nr dir ss" << m_dirichlet_sg.num_subsets() << "\n");
+	//	UG_LOG("nr dir ss" << m_dirichlet_sg.num_subsets() << "\n");
 
 		for(size_t i = 0; i < m_dirichlet_sg.num_subsets(); ++i)
 		{
 	        const int si = m_dirichlet_sg[i];
-	        UG_LOG("Dirichlet boundary is: "<<si<< "\n");
+	 //       UG_LOG("Dirichlet boundary is: "<<si<< "\n");
 			for(VertexBaseConstIterator iter = numsol.template begin<VertexBase>(si);
 										   iter != grid.template end<VertexBase>(si); ++iter)
 			{
@@ -990,7 +1053,8 @@ bool FV1LevelSetDisc<TGridFunction>::compute_error(TGridFunction& numsol)
 	//UG_LOG("----------------------------\n");
 
 	if(!bRes) {UG_LOG("Error while calculating CV Volume.\n"); return false;}
-	for (int si=0;si<numsol.num_subsets();++si){
+	for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
+		// UG_LOG("*** " << si << "\n");
 		for(VertexBaseConstIterator iter = numsol.template begin<VertexBase>(si);
 									   iter != grid.template end<VertexBase>(si); ++iter)
 		{
@@ -1072,7 +1136,7 @@ bool FV1LevelSetDisc<TGridFunction>::init_function(TGridFunction& u)
 	const dof_distribution_type& dd = u.get_dof_distribution();
 
 
-	for (int si=0;si<u.num_subsets();++si){
+	for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
 		for(VertexBaseConstIterator iter = u.template begin<VertexBase>(si);
 									   iter != grid.template end<VertexBase>(si); ++iter)
 		{
@@ -1099,7 +1163,7 @@ bool FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
 	typedef typename domain_type::grid_type grid_type;
 
 	//	get grid of domain
-	grid_type& grid = domain.get_grid();
+//	grid_type& grid = domain.get_grid();
 
 	//	element iterator type
 	typedef typename domain_traits<dim>::const_iterator ElemIterator;
@@ -1110,9 +1174,13 @@ bool FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
 	//	create a FV Geometry for the dimension
 	DimFV1Geometry<dim> geo;
 
-	/*	bool testfvgeom=false;
+//	get position accessor
+	typedef typename domain_type::position_accessor_type position_accessor_type;
+	const position_accessor_type& aaPos = domain.get_position_accessor();
 
-	if (testfvgeom==true){
+//	resize corners
+//	std::vector<MathVector<dim> > coCoord;
+	MathVector<dim> coCoord[domain_traits<dim>::MaxNumVerticesOfElem];
 
 	for (int si=0;si<uNew.num_subsets();++si){
 	    //	get iterators
@@ -1123,25 +1191,18 @@ bool FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
 		{
 		//	get Elem
 			ElemType* elem = *iter;
-		//	get vertices of the Elem
-			std::vector<VertexBase*> vVrt;
-			CollectVertices(vVrt, grid, elem);
-		//	get position accessor
-			typedef typename domain_type::position_accessor_type position_accessor_type;
-			const position_accessor_type& aaPos = domain.get_position_accessor();
-		//	resize corners
-			std::vector<MathVector<dim> > vCornerCoord;
+
 		//	extract corner coordinates
-			for(size_t i = 0; i < vVrt.size(); ++i)
-				vCornerCoord.push_back( aaPos[vVrt[i]] );
+			const size_t numVertices = elem->num_vertices();
+			for(size_t i = 0; i < numVertices; ++i)
+				coCoord[i] = aaPos[elem->vertex(i)];
 
 		//	evaluate finite volume geometry
-			geo.update(elem, &(vCornerCoord[0]), &domain.get_subset_handler());
+			geo.update(elem, &(coCoord[0]), &domain.get_subset_handler());
 		};
 	};
 
-	}
-
+	/*
 	for (int si=0;si<uNew.num_subsets();++si){
 		//	get iterators
 		ElemIterator iter = uNew.template begin<ElemType>(si);
@@ -1158,15 +1219,15 @@ bool FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
 			typedef typename domain_type::position_accessor_type position_accessor_type;
 			const position_accessor_type& aaPos = domain.get_position_accessor();
 			//	resize corners
-			std::vector<MathVector<dim> > vCornerCoord;
+			std::vector<MathVector<dim> > coCoord;
 			//	extract corner coordinates
 			for(size_t i = 0; i < vVrt.size(); ++i)
-				vCornerCoord.push_back( aaPos[vVrt[i]] );
+				coCoord.push_back( aaPos[vVrt[i]] );
 		};
 	};
 	
-	*/
-	for (int si=0;si<uNew.num_subsets();++si){
+
+	for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
 		//	get iterators
 		ElemIterator iter = uNew.template begin<ElemType>(si);
 		ElemIterator iterEnd = uNew.template end<ElemType>(si);
@@ -1180,7 +1241,7 @@ bool FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
 			CollectVertices(vVrt, grid, elem);
 		};
 	};
-/*
+
 	MathVector<dim> coord;
 	typedef typename domain_type::position_accessor_type position_accessor_type;
 	position_accessor_type aaPos = domain.get_position_accessor();
@@ -1197,6 +1258,149 @@ bool FV1LevelSetDisc<TGridFunction>::runtimetest(TGridFunction& uNew)
 	};*/
 	return true;
 }
+
+template<typename TGridFunction>
+bool FV1LevelSetDisc<TGridFunction>::update_ls_subsets(TGridFunction& phi){
+	//	get domain of grid function
+    domain_type& domain = phi.get_domain();
+
+    //	get grid type of domain
+    typedef typename domain_type::grid_type grid_type;
+
+    //	get grid of domain
+    // grid_type& grid = domain.get_grid();
+
+    typedef typename domain_type::position_accessor_type position_accessor_type;
+
+	//	element iterator type
+    typedef typename domain_traits<dim>::const_iterator ElemIterator;
+
+    //	element type
+    typedef typename domain_traits<dim>::geometric_base_object ElemType;
+
+    const dof_distribution_type& dd = phi.get_dof_distribution();
+
+    //	create Multiindex
+    multi_index_vector_type ind;
+
+	//	get element iterator type
+	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+    for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
+		if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(si)==true) continue;
+        if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(si)==true) continue;
+		ElemIterator iter = phi.template begin<ElemType>(si);
+     	ElemIterator iterEnd = phi.template end<ElemType>(si);
+     	//	loop elements of dimension
+     	for(  ;iter !=iterEnd; ++iter)
+     	{
+  	    //	get Elem
+        	ElemType* elem = *iter;
+
+        	//	coord and vertex array
+        	VertexBase* vVrt[domain_traits<dim>::MaxNumVerticesOfElem];
+
+        	//	get vertices and extract corner coordinates
+        	const size_t numVertices = elem->num_vertices();
+        	for(size_t i = 0; i < numVertices; ++i){
+        		vVrt[i] = elem->vertex(i);
+        	};
+            //	get position accessor
+      		typedef typename domain_type::position_accessor_type position_accessor_type;
+
+	        //	resize corners
+	        std::vector<MathVector<dim> > coCoord;
+     		//	compute center of mass
+     		MathVector<dim> center;
+     		std::vector<MathVector<dim> > grad;
+     		center=0;
+      		int noc=elem->num_vertices();
+     		number phiCo[noc];
+           	for(int i = 0; i < noc; ++i){
+	        	dd.inner_multi_indices(vVrt[i], 0, ind);
+     			phiCo[i]=BlockRef(phi[ind[0][0]],ind[0][1]);
+      		};
+			int firstNonzero=-1;
+			for (int j=0;j<noc;j++){
+			    if (phiCo[j]!=0){
+				    firstNonzero=j;
+				    break;
+				};
+			};
+			if (firstNonzero==-1) // all element nodes are on zero ls
+			     domain.get_subset_handler().assign_subset(elem,m_inside_elements_si);
+			// add nodes on zero ls to zero ls node subsetgroup
+			for (int i=0;i<noc;i++){
+				if (phiCo[i]==0){
+    			    int oldindex = domain.get_subset_handler().get_subset_index(vVrt[i]);
+	            	if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(oldindex)==true) continue;
+		            if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(oldindex)==true) continue;
+                    domain.get_subset_handler().assign_subset(vVrt[i],m_onls_nodes_si);
+ 				};
+			};
+			bool onls=false;
+			for (int i=firstNonzero+1;i<noc;i++){
+			    if (phiCo[firstNonzero]*phiCo[i]<0){
+			    	onls=true;
+			    	break;
+			    }
+			};
+			if (onls==false){
+			    if (phiCo[firstNonzero]<0){
+			    	UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
+				    domain.get_subset_handler().assign_subset(elem,m_inside_elements_si);
+				    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) << "\n");
+				    UG_LOG("-- nr of subsets: " << domain.get_subset_handler().num_subsets() << " " << m_inside_elements_si <<  "\n");
+				};
+				if (phiCo[firstNonzero]>0){
+					UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
+				    domain.get_subset_handler().assign_subset(elem,m_outside_elements_si);
+				    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) <<  "\n");
+				    UG_LOG("|| nr of subsets: " << domain.get_subset_handler().num_subsets() << " " << m_outside_elements_si << "\n");
+				};
+			};
+			if (onls==true){
+				UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
+			    domain.get_subset_handler().assign_subset(elem,m_onls_elements_si);
+			    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) <<  "\n");
+			    UG_LOG("// nr of subsets: " << domain.get_subset_handler().num_subsets() << " " << m_onls_elements_si << "\n");
+			    for (int i=0;i<noc;i++){
+   					int oldindex = domain.get_subset_handler().get_subset_index(vVrt[i]);
+	    		    if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(oldindex)==true) continue;
+       	            if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(oldindex)==true) continue;
+				    if (phiCo[i]<0){
+					    domain.get_subset_handler().assign_subset(vVrt[i],m_inside_nodes_si);
+					};
+					if (phiCo[i]>0){
+					    domain.get_subset_handler().assign_subset(vVrt[i],m_outside_nodes_si);
+					};
+				};
+			};
+	    };
+	};
+  	return true;
+}
+
+template<typename TGridFunction>
+bool FV1LevelSetDisc<TGridFunction>::init_ls_subsets(TGridFunction& phi){
+    create_ls_subsets(phi);
+	if (update_ls_subsets(phi)==false) return false;
+    return true;
+}
+
+template<typename TGridFunction>
+void FV1LevelSetDisc<TGridFunction>::create_ls_subsets(TGridFunction& phi){
+	//	get domain
+	domain_type& domain = phi.get_domain();
+	UG_LOG("nr of subsets: " << domain.get_subset_handler().num_subsets() << "\n");
+   	m_inside_elements_si = domain.get_subset_handler().num_subsets();
+   	m_outside_elements_si = m_inside_elements_si + 1;
+   	m_onls_elements_si = m_inside_elements_si + 2;
+   	m_inside_nodes_si = m_inside_elements_si + 3;
+   	m_outside_nodes_si = m_inside_elements_si + 4;
+   	m_onls_nodes_si = m_inside_elements_si + 5;
+   	domain.get_subset_handler().subset_required(phi.num_subsets()+5);
+   	UG_LOG("nr of subsets:" << domain.get_subset_handler().num_subsets() << "\n");
+};
 
 template<typename TGridFunction>
 bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunction& uOld)
@@ -1288,7 +1492,8 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 	    	limit_grad(uNew,aaGradient);
 	    };
 
-	    for (int si=0;si<uNew.num_subsets();++si){
+	    for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
+	    	// UG_LOG("si " << si << "\n");
 	        if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(si)==true) continue;
 	        if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(si)==true) continue;
 	        if (m_inactive_sg.num_subsets()!=0) if (m_inactive_sg.contains(si)==true) continue;
@@ -1350,17 +1555,22 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 	    UG_LOG("m_dt " << m_dt << " m_time " << m_time << "\n");
 	    m_timestep_nr++;
 	    assign_dirichlet(uNew);
-
-        //	now process dirichlet values
-	    for(size_t i = 0; i < m_vPP.size(); ++i)
+	    // overwrite inactive nodes with old solution
+	    for(size_t i = 0; i < m_inactive_sg.num_subsets(); ++i)
 	    {
-	    //	UG_LOG(i << "\n");
-	    //	m_vPP[i]->adjust_solution(uNew, uNew.get_dof_distribution(),m_time);
-	    }
-	    //if(m_print){
-	    	UG_LOG("step: " << m_timestep_nr << "\n");
-	        UG_LOG("time: " << m_time << "\n");
-            UG_LOG("max CFL nr " << m_maxCFL << "\n");
+	    	 const int si = m_inactive_sg[i];
+	    	 for(VertexBaseConstIterator iter = uNew.template begin<VertexBase>(si);
+	    	 									   iter != grid.template end<VertexBase>(si); ++iter)
+	    	 {
+	    	     VertexBase* vrt = *iter;
+	    		 dd.inner_multi_indices(vrt, 0, ind);
+	    		 BlockRef(uNew[ind[0][0]],ind[0][1]) = BlockRef(uOld[ind[0][0]],ind[0][1]);
+	    	 }
+	    };
+
+	    UG_LOG("step: " << m_timestep_nr << "\n");
+	    UG_LOG("time: " << m_time << "\n");
+        UG_LOG("max CFL nr " << m_maxCFL << "\n");
 	    //};
 	    if (m_nrOfSteps>1){
 	    	// Attention, uOld is overwritten

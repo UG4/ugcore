@@ -18,7 +18,8 @@ neumann = false;
 -- setup 0 : use hard-coded functions for velocity/boundary conditions
 -- setup 1 : use lua-functions for velocity/boundary conditions
 -- setup 2 : use vector field for velocity
-setup = 1;
+-- setup 3 : use constant data
+setup = 3;
 
 if  dim == 2 then 
 gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
@@ -72,12 +73,13 @@ end
 rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
 
 function ExactSolution(x, y, t)
-         delta = 0.0;
+--         delta = 0.0;
          xnew = x*math.cos(t)+y*math.sin(t);
 	 ynew = -x*math.sin(t)+y*math.cos(t);
-	 xnew = x;
-	 ynew = y;
-	 return math.sqrt( (xnew-0.5)*(xnew-0.5)+ynew*ynew )-(0.3+delta*t);
+--	 xnew = x;
+--	 ynew = y;
+--	 return math.sqrt( (xnew-0.5)*(xnew-0.5)+ynew*ynew )-(0.3+delta*t);
+	  return math.sqrt( (xnew-0.5)*(xnew-0.5)+ynew*ynew )-0.3;
 --	local s = 2*math.pi
   --      local s = 10;
         --return 0;
@@ -94,14 +96,22 @@ function ExactSolution(x, y, t)
 	-- return math.sin(s*x) + math.sin(s*y)
 end
 
+function ConstantVSolution(x,y,t)
+ --   delta = 0.0;
+    xnew = x - t;
+	ynew = y - t;
+	return 2*xnew+ynew;
+--	return math.sqrt( (xnew-0.5)*(xnew-0.5)+ynew*ynew )-(0.3+delta*t);
+end
+
 function vx(x,y,t)
-	return 0;
---    return -y;
+--	return 0;
+    return -y;
 end
 
 function vy(x,y,t)
-    return 0;
---    return x;
+--    return 0;
+	return x;
 end
 
 -- The dirichlet condition
@@ -135,11 +145,11 @@ time = lsDisc:get_time();
 -- lsDisc:add_post_process(dirichletBND);
 
 lsDisc:set_source(0);
-lsDisc:set_delta(1.0);
+lsDisc:set_delta(0.0);
 
 -- lsDisc:set_neumann_boundary("Boundary");
-lsDisc:set_neumann_boundary(phiOld,"Boundary");
--- lsDisc:set_dirichlet_boundary(phiOld,"Boundary");
+--lsDisc:set_neumann_boundary(phiOld,"Boundary");
+lsDisc:set_dirichlet_boundary(phiOld,"Boundary");
 
 if (setup==0) then
 	lsDisc:init_function(phiOld);
@@ -167,14 +177,22 @@ if (setup==2) then
     lsDisc:set_vel_x(vx);
     lsDisc:set_vel_y(vy);
 end;
+if (setup==3) then
+    solfunctor = util.CreateLuaUserNumber("ConstantVSolution", dim);
+	lsDisc:set_dirichlet_data(solfunctor);
+	InterpolateFunction(solfunctor, phiOld, "c", time);
+	lsDisc:set_vel_x(1);
+	lsDisc:set_vel_y(1);
+end;
 
-lsDisc:set_limiter(true);
+lsDisc:set_limiter(false);
 lsDisc:compute_error(phiOld);
 
 VecAssign(phiNew,phiOld);
 
 NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 400)
-lsDisc:set_dt(0.2/2/2/2/2);
+EndTime = 2*math.pi;
+lsDisc:set_dt(EndTime/NumTimeSteps);
 
 if (movie==true) then
     -- filename
@@ -188,6 +206,7 @@ if (movie==true) then
     out:print(filename, phiOld, step, time)
 end;
 
+-- lsDisc:create_ls_subsets(phiOld);
 tBefore = os.clock()
 
 for step = 1, NumTimeSteps do
