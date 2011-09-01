@@ -179,6 +179,8 @@ typedef geometry_traits<VertexBase>::const_iterator const_iterator;
 typedef geometry_traits<VertexBase>::iterator iterator;
 
 typedef geometry_traits<VertexBase>::geometric_base_object geometric_base_object;
+
+const static size_t MaxNumVerticesOfElem = 1;
 };
 
 // 1d
@@ -190,6 +192,8 @@ typedef geometry_traits<EdgeBase>::const_iterator const_iterator;
 typedef geometry_traits<EdgeBase>::iterator iterator;
 
 typedef geometry_traits<EdgeBase>::geometric_base_object geometric_base_object;
+
+const static size_t MaxNumVerticesOfElem = 2;
 };
 
 // 2d
@@ -201,6 +205,8 @@ typedef geometry_traits<Face>::const_iterator const_iterator;
 typedef geometry_traits<Face>::iterator iterator;
 
 typedef geometry_traits<Face>::geometric_base_object geometric_base_object;
+
+const static size_t MaxNumVerticesOfElem = 4;
 };
 
 // 3d
@@ -213,6 +219,8 @@ typedef geometry_traits<Volume>::const_iterator const_iterator;
 typedef geometry_traits<Volume>::iterator iterator;
 
 typedef geometry_traits<Volume>::geometric_base_object geometric_base_object;
+
+const static size_t MaxNumVerticesOfElem = 8;
 };
 
 
