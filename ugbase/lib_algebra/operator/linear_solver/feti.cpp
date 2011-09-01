@@ -12,6 +12,7 @@
 
 // extern headers
 #include <cmath>
+#include <sstream>  // added for 'stringstream'
 
 // own header
 #include "feti.h"
@@ -339,7 +340,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		return false;
 	}
 */
-//	save matrix from which we build the Schur complement
+//	save matrix from which we build the Schur complement (same matrix as
+//  'm_pOperator->get_matrix()' in 'LocalSchurComplement::init()')
 	m_pMatrix = &m_pOperator->get_matrix();
 
 //	get matrix from Neumann operator
@@ -383,13 +385,13 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //  'total'   - regarding the whole domain
 //  'subdomain' or similar - regarding the feti subdomain the current proc belongs to
 //  'local'   - regarding the current proc only
-//  'rootIDs' - local algebra indices of primal variables on root proc.
+//  'rootIDs' - (local) algebra indices of primal variables on root proc.
 ////////////////////////////////////////////////////////////////////////////////
 
-//	vector to store newly created root ids
+//	vector to store newly created root ids - "look-up-table".
 //	please note that rootIDs may only be indexed with the algebra-index
 //	of primal nodes. Content is not defined for other entries.
-	std::vector<int> vTotalPrimalRootIDs;
+	std::vector<int> vPrimalRootIDLUT; // original name: 'rootIDs'
 
 //	Build layouts such that all processes can communicate their unknowns
 //	to the primal Root Process
@@ -399,23 +401,31 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						 m_slaveAllToOneLayout, m_primalRootProc,
 						 m_pFetiLayouts->get_primal_master_layout(),
 						 m_pFetiLayouts->get_primal_slave_layout(),
-						 m_allToOneProcessComm, &vTotalPrimalRootIDs);
+						 m_allToOneProcessComm, &vPrimalRootIDLUT);
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout)' - Messpunkt ok
 	UG_LOG("done.\n");
+
+// TMP:
+	UG_LOG("TEST ONE TO MANY LAYOUTS:\n");
+	pcl::ParallelCommunicator<IndexLayout> comTmp;
+	if (TestLayout(comTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout, true) != true) {
+		UG_LOG("ONE TO MANY LAYOUTS inconsistent!\n");
+	} else {
+		UG_LOG("ONE TO MANY LAYOUTS are consistent!\n");
+	}
+// TMP END
 
 //	We have to gather the primal root IDs and the quantities of primal nodes
 //	on each process of the feti subdomain in one array.
 //	first we collect all local primal variables in one array
 //	Collect all Primal indices on proc
-	std::vector<IndexLayout::Element> vLocalPrimalIndex;
-	CollectUniqueElements(vLocalPrimalIndex, m_slaveAllToOneLayout);
-
-// TODO: Benennung angleichen? Einmal 'v...RootIDs', dann 'v...Index' (also 1. Plural vs. Singular, 2. "IDs" vs. ausgeschrieben)!
+	std::vector<IndexLayout::Element> vLocalPrimalLocalID; // former name: 'vLocalPrimalIndex'
+	CollectUniqueElements(vLocalPrimalLocalID, m_slaveAllToOneLayout);
 
 //	now build an array of local primal root ids
-	std::vector<int> vLocalPrimalRootIDs(vLocalPrimalIndex.size());
-	for(size_t i = 0; i < vLocalPrimalIndex.size(); ++i)
-		vLocalPrimalRootIDs[i] = vTotalPrimalRootIDs[vLocalPrimalIndex[i]];
+	std::vector<int> vLocalPrimalRootID(vLocalPrimalLocalID.size());
+	for(size_t i = 0; i < vLocalPrimalLocalID.size(); ++i)
+		vLocalPrimalRootID[i] = vPrimalRootIDLUT[vLocalPrimalLocalID[i]];
 
 	pcl::ProcessCommunicator& intraFetiSubdomComm =
 						m_pFetiLayouts->get_intra_sd_process_communicator();
@@ -425,57 +435,76 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	std::vector<int>	vNumPrimalVariablesPerProc;
 
 //	rootIDs of primal variables in the local feti subdomain
-	std::vector<int> vSubdomPrimalRootIDs;
+	std::vector<int> vSubdomPrimalRootID;
 
-	intraFetiSubdomComm.allgatherv(vSubdomPrimalRootIDs, vLocalPrimalRootIDs,
-								 &vNumPrimalVariablesPerProc);
+	intraFetiSubdomComm.allgatherv(vSubdomPrimalRootID, vLocalPrimalRootID,
+								   &vNumPrimalVariablesPerProc);
 
 
-//	log num primal variables (with 'UG_LOG()' only stuff concerning the outproc ...):
+//	log num primal variables (display width for moderate sizes of indices;
+//  with 'UG_LOG()' only stuff concerning the outproc ...):
 	if (intraFetiSubdomComm.size() != vNumPrimalVariablesPerProc.size())
-		UG_LOG("     %  - Huh!??: intraFetiSubdomComm.size() = " << intraFetiSubdomComm.size() << " != vNumPrimalVariablesPerProc.size() = " << vNumPrimalVariablesPerProc.size() << std::endl);
+		UG_LOG("     %  - Huh!??: intraFetiSubdomComm.size() = " << intraFetiSubdomComm.size() <<
+			   " != vNumPrimalVariablesPerProc.size() = " << vNumPrimalVariablesPerProc.size() << std::endl);
 
 	UG_LOG("     %  -------------------------------------------------------------------" << std::endl); 
 	UG_LOG("     %  - Assemble entries of Schur complement matrix on 'primal root proc' " << m_primalRootProc << std::endl);
-	UG_LOG("     %  - Log num primal variables for proc " << pcl::GetProcRank() << " (outproc):" << std::endl);
+	UG_LOG("     %  - Log num primal variables (pv) for proc " << std::setw(4) << pcl::GetProcRank() << " (outproc):" << std::endl);
 	UG_LOG("     %  -    num procs on this feti subdomain:  " << intraFetiSubdomComm.size() << "," << std::endl);
-	UG_LOG("     %  -          as looped ([counter:rank]): ");
+	UG_LOG("     %  -                         as looped ([counter:rank]): ");
 	for (size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size(); ++procInFetiSD)
-		UG_LOG("[" << procInFetiSD << ":"<< intraFetiSubdomComm.get_proc_id(procInFetiSD) << "] ");
+		UG_LOG("[" << procInFetiSD << ":" << intraFetiSubdomComm.get_proc_id(procInFetiSD) << "] ");
 	UG_LOG(std::endl);
+	//UG_LOG("     %  -    num procs in 'm_allToOneProcessComm': " << m_allToOneProcessComm.size() << std::endl); // is "world"!
 
 
 	UG_LOG("     %  -    num primal variables in total (whole domain)");
 	if (pcl::GetProcRank() == m_primalRootProc) {
-		UG_LOG(": " << newVecSize << std::endl);
+		UG_LOG(": " << newVecSize << " (= 'newVecSize')");
+		//for (size_t i = 0; i < vPrimalRootIDLUT.size(); ++i)
+		//	UG_LOG(std::setw(6) << vPrimalRootIDLUT[i]);
+		UG_LOG(std::endl);
 	} else {
 		UG_LOG(" only known by primal root proc (try '-outproc <primal root proc>')!" << std::endl);
 	}
 
-	UG_LOG("     %  -                         on this feti subdomain:  " << vSubdomPrimalRootIDs.size() << std::endl);
+	UG_LOG("     %  -                         on this feti subdomain:  " << vSubdomPrimalRootID.size() << std::endl);
 	UG_LOG("     %  -                         on each proc of this subdomain ([rank:#pv]): ");
 	for (size_t i = 0; i < vNumPrimalVariablesPerProc.size(); ++i) // 'vNumPrimalVariablesPerProc.size()' = 'intraFetiSubdomComm.size()'!
 		UG_LOG("[" << intraFetiSubdomComm.get_proc_id(i) << ":"<< vNumPrimalVariablesPerProc[i] << "] ");
 	UG_LOG(std::endl);
 
-	UG_LOG("     %  -    primal root proc algebra indices on this feti subdomain: ");
-	for (size_t i = 0; i < vSubdomPrimalRootIDs.size(); ++i)
-		UG_LOG(vSubdomPrimalRootIDs[i] << " ");
+	UG_LOG("     %  -    primal root proc algebra indices on this feti subdomain ('vSubdomPrimalRootID's): ");
+	for (size_t i = 0; i < vSubdomPrimalRootID.size(); ++i)
+		UG_LOG(std::setw(6) << vSubdomPrimalRootID[i] << " ");
 	UG_LOG(std::endl);
 
-	UG_LOG("     %  -                                     on proc "<<pcl::GetProcRank()<<" (outproc):    ");
-	for (size_t i = 0; i < vLocalPrimalIndex.size(); ++i)
-		UG_LOG(vTotalPrimalRootIDs[vLocalPrimalIndex[i]] << " "); // = 'vLocalPrimalRootIDs[i]'
+	UG_LOG("     %  -                                     on proc " <<
+		   std::setw(4) << pcl::GetProcRank()<<" (outproc;   'vLocalPrimalRootID's): ");
+	for (size_t i = 0; i < vLocalPrimalLocalID.size(); ++i)
+		UG_LOG(std::setw(6) << vLocalPrimalRootID[i] << " "); // = 'vPrimalRootIDLUT[vLocalPrimalLocalID[i]]' (see above)
 	UG_LOG(std::endl);
 
-	UG_LOG("     %  -           corresponding local-proc algebra indices:         ");
-	for (size_t i = 0; i < vLocalPrimalIndex.size(); ++i) UG_LOG(vLocalPrimalIndex[i] << " ");
+	UG_LOG("     %  -                   corresponding local-proc algebra indices ('vLocalPrimalLocalID's): ");
+	for (size_t i = 0; i < vLocalPrimalLocalID.size(); ++i)
+		UG_LOG(std::setw(6) << vLocalPrimalLocalID[i] << " ");
 	UG_LOG(std::endl);
 
+// Some checks
+	for(size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size(); procInFetiSD++) {
+		if(pcl::GetProcRank() == intraFetiSubdomComm.get_proc_id(procInFetiSD))
+			if (vNumPrimalVariablesPerProc[procInFetiSD] != (int)vLocalPrimalLocalID.size()) {
+				UG_LOG("     %  - Huh? 'vNumPrimalVariablesPerProc[" << pcl::GetProcRank() << "]' != 'vLocalPrimalLocalID.size()': ");
+				UG_LOG(vNumPrimalVariablesPerProc[procInFetiSD] << " != " << vLocalPrimalLocalID.size() << "!?\n");
+			} //else {
+		//UG_LOG("     %  -    'vNumPrimalVariablesPerProc[" << pcl::GetProcRank() << "]' == 'vLocalPrimalLocalID.size()': ");
+		//UG_LOG(vNumPrimalVariablesPerProc[procInFetiSD] << " == " << vLocalPrimalLocalID.size() << "\n");
+		//}
+	}
 
 //	processes will collect their local primal connections here.
 	typedef PrimalConnection<typename vector_type::value_type> PrimalConnection;
-	std::vector<PrimalConnection> localPrimalConnections;
+	std::vector<PrimalConnection> vLocalPrimalConnections;
 
 //	create help vectors
 	vector_type e;   e.resize(m_pMatrix->num_rows());
@@ -487,7 +516,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_pFetiLayouts->vec_use_intra_sd_communication(h1);
 	m_pFetiLayouts->vec_use_intra_sd_communication(h2);
 
-	UG_LOG("     %  - assemble entries of 'S_PiPi' ... ");
+	UG_LOG("     %\n");
+	UG_LOG("     %  - assemble entries of 'S_PiPi' (format: '[<proc rank>]: (<from_i> -> <to_j>)') ... \n");
+
 	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi);
 //	Now within each feti subdomain, the primal unknowns are looped one after the
 //	other. This is done like the following: Each process loops the number of
@@ -498,43 +529,53 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	this unity vector an application of S_{Pi Pi} is computed such that we can
 //	read then the values of (S_{Pi Pi})_{ij} in the i-th component of the result
 //	vector. All those couplings are stored in the vector of connections called
-//	localPrimalConnections and sent to the primalRootProc at the end of the
+//	vLocalPrimalConnections and sent to the primalRootProc at the end of the
 //	loop.
 	size_t primalCounter = 0;
+	std::stringstream ss;
+
 	for(size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size();
 			procInFetiSD++)
 	{
+		UG_LOG("     %  - [proc " << std::setw(6) << intraFetiSubdomComm.get_proc_id(procInFetiSD) << "]: ");
+
 		// loop over feti subdomain primals (\Pi variables) of current proc in loop
-		for(size_t pvi = 0; pvi < (size_t)vNumPrimalVariablesPerProc[procInFetiSD]; ++pvi)
+		for(size_t pvTo_j = 0; pvTo_j < (size_t)vNumPrimalVariablesPerProc[procInFetiSD]; ++pvTo_j)
 		{
-		////////////////////////////
-		// 	1. Create unity vector
-		////////////////////////////
+		////////////////////////////////////////
+		// 	1. Create (column) unity vector e_j:
+		////////////////////////////////////////
 
 		//	keep the matrix id on root, of the primal unknown, that is set to one
-			int unityRootID = vSubdomPrimalRootIDs[primalCounter++];
+			int unityRootID = vSubdomPrimalRootID[primalCounter++];
 
 		//	reset identity vector to zero for all (primal) unknowns
 			e.set(0.0);
 
+			ss.str(""); // clear stringstream before next loop
+
 		//	set value of unity vector to one if on process and quantity, else 0
 			if(pcl::GetProcRank() == intraFetiSubdomComm.get_proc_id(procInFetiSD))
 			{
-				const IndexLayout::Element localPrimalIndex = vLocalPrimalIndex[pvi];
+				const IndexLayout::Element localPrimalIndex = vLocalPrimalLocalID[pvTo_j];
 
 				e[localPrimalIndex] = 1.0;
+				ss << std::setw(3) << vPrimalRootIDLUT[localPrimalIndex]; // store for later output
+			} else {
+				ss << "no connection to pvTo_j " << pvTo_j;
+				//continue; // as long as null space of A_{\{I, \Delta\} \Pi} is empty
 			}
 
-		//////////////////////////
-		// 	2. Apply first matrix A_{\{I, \Delta\} \Pi}$ to unity vector e^{(p)}
-		//////////////////////////
+		////////////////////////////////////////////////////////////////////////
+		// 	2. Apply first matrix A_{\{I, \Delta\} \Pi} to unity vector e^{(p)}:
+		////////////////////////////////////////////////////////////////////////
 		//	build h1 = A_{\{I \Delta\} \Pi} e
 			m_pOperator->apply(h1, e);
 
-		////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////
 		//	3. Apply A_{\{I \Delta\}\{I\Delta\}}^{-1} by solving "I,\Delta"
 		//	   subsystem problem:
-		////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////
 		//	Solve: A_{\{I \Delta\}  \{I \Delta\} } h2 = h1
 
 		//	(a1) Set zero dirichlet bnd conds for rhs h1 on_\Pi
@@ -553,8 +594,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			if(!m_pNeumannSolver->apply(h2, h1))
 			{
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
-						" Could not solve local problem to compute Schur complement"
-						" w.r.t. primal unknowns.\n");
+						" Could not solve local Neumann problem to compute Schur"
+						" complement w.r.t. primal unknowns.\n");
 
 				IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
@@ -596,31 +637,51 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		//	unknowns i. Thus, we have to read it and send it to the root process
 
 		//	loop process local primal unknowns
-			for(size_t pvj = 0; pvj < vLocalPrimalIndex.size(); ++pvj)
+			for(size_t pvFrom_i = 0; pvFrom_i < vLocalPrimalLocalID.size(); ++pvFrom_i)
 			{
-				const IndexLayout::Element localPrimalIndex = vLocalPrimalIndex[pvj]; // 2. (lokale) Deklaration!
+				const IndexLayout::Element localPrimalIndex = vLocalPrimalLocalID[pvFrom_i];
+
+				UG_LOG("(" << std::setw(3) << vPrimalRootIDLUT[localPrimalIndex] <<
+					   " -> " << ss.str() << ") ");
 
 			//	read coupling
 				typename vector_type::value_type& entry = e[localPrimalIndex];
 
 			//	read root index
-				int primalRootID = vTotalPrimalRootIDs[localPrimalIndex];
+				int primalRootID = vPrimalRootIDLUT[localPrimalIndex];
 
 			//  remember coupling
-				localPrimalConnections.push_back(PrimalConnection(primalRootID,
+				vLocalPrimalConnections.push_back(PrimalConnection(primalRootID,
 				                                                  unityRootID, entry));
 			}
-		} // end loop over feti subdomain primals of current proc
+			if (((size_t)vNumPrimalVariablesPerProc[procInFetiSD] !=0) && vLocalPrimalLocalID.size() != 0)
+				UG_LOG(((pvTo_j < (size_t)vNumPrimalVariablesPerProc[procInFetiSD]-1) ?
+						"\n     %                   " : "\n"));
+
+		} // end loop over feti subdomain primals 'pvTo_j' of current proc
+		if (((size_t)vNumPrimalVariablesPerProc[procInFetiSD] == 0) || vLocalPrimalLocalID.size() == 0)
+			UG_LOG((((size_t)vNumPrimalVariablesPerProc[procInFetiSD] != 0) && (vLocalPrimalLocalID.size() != 0) ? "     %+\n" : "\n"));
 	} // end loop over procs in feti subdomain
-	UG_LOG("done.\n");
+
+	UG_LOG("     %  - done.\n");
 	UG_LOG("     %  -------------------------------------------------------------------" << std::endl); 
+
+// Further checks
+	if (primalCounter != vSubdomPrimalRootID.size()) {
+		UG_LOG("     %  - Huh? 'primalCounter' != 'vSubdomPrimalRootID.size()': ");
+		UG_LOG(primalCounter << " != " << vSubdomPrimalRootID.size() << "!?\n");
+	} //else {
+		//UG_LOG("     %  -    'primalCounter' == 'vSubdomPrimalRootID.size()': ");
+		//UG_LOG(primalCounter << " == " << vSubdomPrimalRootID.size() << "\n");
+	//}
+
 
 //	all processes send their connections to root
 // \todo: This could be improved, so that only processes which contain
-//		a primal node are involved.
+//		a primal node are involved. - How? 'if (vLocalPrimalLocalID,size() > 0)'??
 	std::vector<PrimalConnection> vPrimalConnections;//	only filled on root
 	pcl::ProcessCommunicator commWorld;
-	commWorld.gatherv(vPrimalConnections, localPrimalConnections, m_primalRootProc);
+	commWorld.gatherv(vPrimalConnections, vLocalPrimalConnections, m_primalRootProc);
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi)' - Messpunkt ok
 
 //	build matrix on primalRoot
@@ -651,7 +712,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 	//	copy received values into matrix
 		mat.set(0.0);
-//		std::cout << "Writing primal connections:" << std::endl;
+		UG_LOG("     %  - " << vPrimalConnections.size() << " primal connections received" << std::endl);
+//		std::cout << "Writing " << vPrimalConnections.size() << " primal connections:" << std::endl;
 		for(size_t i = 0; i < vPrimalConnections.size(); ++i)
 		{
 		//	get sent connection
@@ -706,16 +768,16 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		std::vector<PosAndIndex<2> > vProcLocPos;
 
 	//	get positions on local proc
-		for(size_t pqi = 0; pqi < vLocalPrimalIndex.size(); ++pqi)
+		for(size_t pqi = 0; pqi < vLocalPrimalLocalID.size(); ++pqi)
 		{
 		//	get local index of primal
-			const IndexLayout::Element localPrimalIndex = vLocalPrimalIndex[pqi]; // 3. (lokale) Deklaration!
+			const IndexLayout::Element localPrimalIndex = vLocalPrimalLocalID[pqi];
 
 		//	get position of local index
 			MathVector<2> vPos = (dbgWriter.template get_positions<2>())[localPrimalIndex];
 
 		//	read root index
-			int id = vTotalPrimalRootIDs[localPrimalIndex];
+			int id = vPrimalRootIDLUT[localPrimalIndex];
 
 		//	add position to send buffer
 			vProcLocPos.push_back(PosAndIndex<2>(id, vPos));
@@ -729,7 +791,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	//	only root proc writes the matrix
 		if(pcl::GetProcRank() == m_primalRootProc)
 		{
-		//	positions are now stored as in vPrimalRootIDs, sort this
+		//	positions are now stored as in vPrimalRootIDLUT, sort this
 			std::vector<MathVector<2> > vPosRootSchurSorted(newVecSize);
 			for(size_t i = 0; i < vPosRootSchur.size(); ++i)
 				vPosRootSchurSorted[vPosRootSchur[i].ind1] = vPosRootSchur[i].pos;

@@ -528,23 +528,6 @@ class LocalSchurComplement
 	///	name of solver
 		virtual const char* name() const {return "Local Schur Complement Solver";}
 
-	///	sets a sequential Dirichlet solver
-	/**
-	 * This method sets the Dirichlet Solver that is used to invert the
-	 * inner matrix \f$A_{II}\f$
-	 */
-		void set_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dirichletSolver)
-		{
-		//	remember the Dirichlet Solver
-			m_pDirichletSolver = &dirichletSolver;
-		}
-
-	///	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
-
 	///	set original matrix from which the local Schur complement is constructed
 	/**
 	 * Using this method, the original matrix A is set. Given the matrix in the
@@ -574,10 +557,27 @@ class LocalSchurComplement
 			m_pOperator = &A;
 		}
 
+	///	sets a sequential Dirichlet solver
+	/**
+	 * This method sets the Dirichlet Solver that is used to invert the
+	 * inner matrix \f$A_{II}\f$
+	 */
+		void set_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dirichletSolver)
+		{
+		//	remember the Dirichlet Solver
+			m_pDirichletSolver = &dirichletSolver;
+		}
+
 	///	sets the primal layouts
 		void set_feti_layouts(FetiLayouts<algebra_type>& fetiLayouts)
 		{
 			m_pFetiLayouts = &fetiLayouts;
+		}
+
+	///	set debug output
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
 		}
 
 	/// implementation of the operator for the solution dependent initialization.
@@ -665,12 +665,6 @@ class PrimalSubassembledMatrixInverse
 	///	name of class
 		virtual const char* name() const {return "Schur Complement Inverse";}
 
-	//	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
-
 	///	sets the Neumann solver
 		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
 		{
@@ -689,6 +683,12 @@ class PrimalSubassembledMatrixInverse
 		void set_feti_layouts(FetiLayouts<algebra_type>& fetiLayouts)
 		{
 			m_pFetiLayouts = &fetiLayouts;
+		}
+
+	//	set debug output
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
 		}
 
 	// 	Init for Linear Operator L
@@ -897,7 +897,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		// 	scale by 1/2
 			s *= 1./2.;
 
-			// more general: m_Ddelta.apply(s,v), with additional member 'matrix_type m_Ddelta;'
+			// \todo: more general: m_Ddelta.apply(s,v), with additional member 'matrix_type m_Ddelta;'
 
 		//	we're done
 			return true;
