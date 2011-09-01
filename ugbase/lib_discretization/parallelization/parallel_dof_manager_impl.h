@@ -400,7 +400,9 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
 	}
 
 //	global and local values
-	std::vector<size_t> tNumGlobal, tNumLocal;
+//	we use unsigned long int here instead of size_t since the communication via
+//	mpi does not support the usage of size_t.
+	std::vector<unsigned long int> tNumGlobal, tNumLocal;
 
 //	write number of Masters on this process
 	tNumLocal.push_back(numMasterDoF);
@@ -418,12 +420,14 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
 	if(!pCom.empty())
 	{
 		pCom.allreduce(&tNumLocal[0], &tNumGlobal[0], tNumGlobal.size(),
-	               	   PCL_DT_INT, PCL_RO_SUM);
+		               PCL_DT_UNSIGNED_LONG, PCL_RO_SUM);
 	}
 	else if (pcl::GetNumProcesses() == 1)
 	{
 		for(size_t i = 0; i < tNumGlobal.size(); ++i)
+		{
 			tNumGlobal[i] = tNumLocal[i];
+		}
 	}
 	else
 	{
