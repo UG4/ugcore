@@ -242,6 +242,19 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_class_to_group(name, "NavierStokesInflow", dimAlgDDTag);
 	}
 
+//	NavierStokesInflow
+	{
+		typedef NavierStokesWall<TDomain, TDoFDistribution, TAlgebra> T;
+		typedef IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra> TBase;
+		string name = string("NavierStokesWall").append(dimAlgDDSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.add_method("set_functions", &T::set_functions)
+			.add_method("set_approximation_space", &T::set_approximation_space)
+			.add_method("add", &T::add);
+		reg.add_class_to_group(name, "NavierStokesWall", dimAlgDDTag);
+	}
+
 //	ProlongationOperator
 	{
 		typedef P1ProlongationOperator<approximation_space_type, TAlgebra> T;

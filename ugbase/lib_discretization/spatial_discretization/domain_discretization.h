@@ -248,11 +248,11 @@ class DomainDiscretization :
 
 		//	add elem discs
 			for(size_t i = 0; i < di.num_elem_disc(); ++i)
-				bRet &= add(di.get_elem_disc(i));
+				bRet &= add(*di.get_elem_disc(i));
 
 		//	add constraints
 			for(size_t i = 0; i < di.num_constraint(); ++i)
-				bRet &= add(di.get_constraint(i));
+				bRet &= add(*di.get_constraint(i));
 
 			return bRet;
 		}

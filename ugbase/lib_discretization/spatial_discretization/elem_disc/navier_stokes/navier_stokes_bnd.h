@@ -30,13 +30,13 @@ class NavierStokesInflow
 		virtual size_t num_elem_disc() const {return 1;}
 
 	///	returns the element disc
-		virtual IDomainElemDisc<TDomain>& get_elem_disc(size_t i) {return m_NeumannDisc;}
+		virtual IDomainElemDisc<TDomain>* get_elem_disc(size_t i) {return &m_NeumannDisc;}
 
 	///	returns the number of constraints
 		virtual size_t num_constraint() const {return 1;}
 
 	///	returns an element disc
-		virtual IConstraint<TDoFDistribution, TAlgebra>& get_constraint(size_t i) {return m_DirichletConstraint;}
+		virtual IConstraint<TDoFDistribution, TAlgebra>* get_constraint(size_t i) {return &m_DirichletConstraint;}
 
 	public:
 	///	sets the symbolic names for velocity and pressure
@@ -103,6 +103,77 @@ class NavierStokesInflow
 
 	///	name of pressure components
 		std::string m_pressureName;
+};
+
+template <	typename TDomain,
+			typename TDoFDistribution,
+			typename TAlgebra>
+class NavierStokesWall
+	: public IDiscretizationItem<TDomain,TDoFDistribution,TAlgebra>
+{
+	public:
+	///	returns the number of element discs
+		virtual size_t num_elem_disc() const {return 0;}
+
+	///	returns the element disc
+		virtual IDomainElemDisc<TDomain>* get_elem_disc(size_t i) {return NULL;}
+
+	///	returns the number of constraints
+		virtual size_t num_constraint() const {return 1;}
+
+	///	returns an element disc
+		virtual IConstraint<TDoFDistribution, TAlgebra>* get_constraint(size_t i) {return &m_DirichletConstraint;}
+
+	public:
+	///	sets the symbolic names for velocity and pressure
+		bool set_functions(const char* functions)
+		{
+			std::string strFunctions(functions);
+
+			m_velNames.clear();
+			TokenizeString(strFunctions, m_velNames, ',');
+
+			if(m_velNames.size() != TDomain::dim + 1)
+			{
+				UG_LOG("ERROR in 'NavierStokesWall::set_functions': This Boundary "
+						"Condition works on exactly dim+1 (velocity+pressure) "
+						"components, but "<<m_velNames.size()<<"components given.\n");
+				return false;
+			}
+
+			return true;
+		}
+
+	///	sets the velocity to a given value
+		bool add(const char* subsetsBND)
+		{
+			if(m_velNames.empty())
+			{
+				UG_LOG("ERROR in 'NavierStokesWall::add': Symbolic names for"
+						" velocity and pressure not set. Please set them first.\n");
+				return false;
+			}
+
+			for(int i = 0; i < TDomain::dim; ++i)
+			{
+				m_DirichletConstraint.add(0.0, m_velNames[i].c_str(), subsetsBND);
+			}
+
+			return true;
+		}
+
+	///	sets the approximation space
+		void set_approximation_space(IApproximationSpace<TDomain>& approxSpace)
+		{
+			m_DirichletConstraint.set_approximation_space(approxSpace);
+		}
+
+	protected:
+	///	dirichlet disc for velocity components
+		LagrangeDirichletBoundary<TDomain,TDoFDistribution,TAlgebra> m_DirichletConstraint;
+
+	///	name of velocity components
+		std::vector<std::string> m_velNames;
 };
 
 } // end namespace ug
