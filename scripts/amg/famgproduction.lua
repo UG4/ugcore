@@ -21,8 +21,8 @@ end
 InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
-	-- gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
-	gridName = "unit_square/unit_square_quads_8x8.ugx"
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
+	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
