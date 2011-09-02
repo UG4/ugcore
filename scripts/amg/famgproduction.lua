@@ -429,7 +429,7 @@ print("Apply solver.")
 tBefore = os.clock()
 linSolver:apply_return_defect(u,b)
 tSolve = os.clock()-tBefore
-WriteGridFunctionToVTK(u, "Solution")
+-- WriteGridFunctionToVTK(u, "Solution")
 
 print("done")
 
