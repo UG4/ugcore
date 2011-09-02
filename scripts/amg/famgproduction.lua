@@ -21,8 +21,8 @@ end
 InitUG(dim, CPUAlgebraSelector());
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
-	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
+	-- gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
+	gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -40,8 +40,17 @@ maxBase = util.GetParamNumber("-maxBase", 1000)
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
 
-bFileOutput = true
-bOutput = false
+epsx = util.GetParamNumber("-epsx", 1)
+epsy = util.GetParamNumber("-epsy", 1)
+
+bFileOutput = false
+bOutput = true
+
+if util.HasParamOption("-RSAMG") then
+	bRSAMG = true
+else
+	bRSAMG = false
+end
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
@@ -53,6 +62,8 @@ print("    RAepsilon = "..RAepsilon)
 print("    RAalpha = "..RAalpha.." degree")
 RAalpha = RAalpha * (2*math.pi/360)
 print("    RAalpha = "..RAalpha.." grad")
+print("    epsx = "..epsx)
+print("    epsy = "..epsy)
 
 function writeln(...)
 	write(...)
@@ -68,34 +79,98 @@ end
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
-	function ourDiffTensor2d(x, y, t)
-		return	1, 0, 
-				0, 1
+	function cbDirichletBnd2d(x, y, t)
+		return true, 0		
 	end
+	dirchletBnd2d = util.CreateLuaBoundaryNumber("cbDirichletBnd"..dim.."d", dim)
 	
-	function ourVelocityField2d(x, y, t)
-		return	0, 0 -- 150 ist grenzwertig
-	end
 	
-	function ourReaction2d(x, y, t)
-		return	0
-	end
-	
-	function ourRhs2d(x, y, t)
+	function cbSinRhs2d(x, y, t)
 		local s = 2*math.pi
-		-- return	s*s*(math.sin(s*x) + math.sin(s*y))
-		--return -2*y
-		return 0
+		return s*s*(math.sin(s*x) + math.sin(s*y))
 	end
+	sinRhs2d = util.CreateLuaUserNumber("cbSinRhs2d", 2)
+	
+	
+	function cbSinDirichletBnd2d(x, y, t)
+		local s = 2*math.pi
+		return true, math.sin(s*x) + math.sin(s*y)
+	end
+	sinDirchletBnd2d = util.CreateLuaBoundaryNumber("cbSinDirichletBnd2d", 2)
+	
+	-- anisotropic diffusion in corners
+	function cbAnisoDiffTensor2d(x, y, t)
+		local fac1 = 1/1+exp(alpha*(x+y-1)) 
+		local fac2 = 1- fac1
+		return	fac1*epsx+fac2, 0, 
+				0, fac1+fac2*epsy
+	end
+	anisoDiffTensor2d = util.CreateLuaUserMatrix("cbAnisoDiffTensor2d", 2)
 
 	
-	function ourDirichletBnd2d(x, y, t)
-		local s = 2*math.pi
-		--return true, math.sin(s*x) + math.sin(s*y)
-		return true, 0
-		--return true, x*x*y
-		--return true, 2.5
+	function CreateRotatedAnisotropyMatrix2d(alpha, epsilon)
+		local sinalpha = math.sin(alpha)
+		local cosalpha = math.cos(alpha)
+		RAmat = ConstUserMatrix2d()
+		-- print((sinalpha*sinalpha + epsilon*cosalpha*cosalpha)..", "..(1-epsilon)*sinalpha*cosalpha)
+		-- print((1-epsilon)*sinalpha*cosalpha..", "..epsilon*sinalpha*sinalpha + cosalpha*cosalpha)
+		return util.CreateConstUserMatrix2d(sinalpha*sinalpha + epsilon*cosalpha*cosalpha, (1-epsilon)*sinalpha*cosalpha,	(1-epsilon)*sinalpha*cosalpha, epsilon*sinalpha*sinalpha + cosalpha*cosalpha)		
+	end	
+
+
+	-- hedgehog diffusion 
+	function cbHedgehogDiffTensor2d(x, y, t)
+		if x<0 then 
+			if y<0 then return 1.0, 0, 0, 1.0 
+			else return epsx, 0, 0, 1.0 end
+		else
+			if y<0 then return 1.0, 0, 0, epsy 
+			else return 1.0, -1.0, -1.0, 1.0 end
+		end
+		
+		-- should never happen
+		return 0, 0, 0, 0 
 	end
+	
+	
+	-- discontinuous coefficient
+	function cbJumpDiffTensor2d(x, y, t)
+		if (math.abs (x)<0.5 and math.abs(y)<0.5) then
+			return	epsx, 0, 0, epsy
+		else 
+			return	1, 0, 0, 1
+		end
+	end	
+	
+
+
+problem = "rotatedAniso"
+-------------------------------------------
+--  Setup User Functions
+-------------------------------------------
+if problem == "rotatedAniso" then
+diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
+velocityField = util.CreateConstUserVector2d(0,0)
+reaction = util.CreateConstUserNumber(0)
+rhs = util.CreateConstUserNumber(0)
+dirichlet = dirchletBnd2d
+end
+
+if problem == "hedgehog" then
+diffusionMatrix = util.CreateLuaUserMatrix("cbHedgehogDiffTensor2d", 2)
+velocityField = util.CreateConstUserVector2d(0,0)
+reaction = util.CreateConstUserNumber(0)
+rhs = util.CreateConstUserNumber(0)
+dirichlet = dirchletBnd2d
+end
+
+if problem == "jump" then
+diffusionMatrix = util.CreateLuaUserMatrix("cbJumpDiffTensor2d", 2)
+velocityField = util.CreateConstUserVector2d(0,0)
+reaction = util.CreateConstUserNumber(0)
+rhs = util.CreateConstUserNumber(0)
+dirichlet = dirchletBnd2d
+end
 
 --------------------------------
 -- User Data Functions (end)
@@ -142,19 +217,7 @@ approxSpace = util.CreateApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 
--------------------------------------------
---  Setup User Functions
--------------------------------------------
-diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)		
 
--- diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
-
--- Velocity Field setup
-velocityField = util.CreateLuaUserVector("ourVelocityField"..dim.."d", dim)
-reaction = util.CreateLuaUserNumber("ourReaction"..dim.."d", dim)
-rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
-neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
-dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -257,8 +320,7 @@ end
 -- create AMG ---
 -----------------
 
-bUseFAMG = 1
-if bUseFAMG == 1 then
+if bRSAMG == false then
 	print ("create FAMG... ")
 	-- Testvectors for FAMG ---
 	--------------------------	
@@ -279,7 +341,7 @@ if bUseFAMG == 1 then
 	amg = FAMGPreconditioner()	
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
-	amg:set_aggressive_coarsening(false)
+	amg:set_aggressive_coarsening(true)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
 		
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
@@ -290,6 +352,11 @@ if bUseFAMG == 1 then
 	amg:set_testvector_damps(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
 		
+	if bOutput then
+		amg:write_testvectors(true)
+	end
+	
+		
 	-- amg:set_debug_level_get_ratings(4)
 	-- amg:set_debug_level_coloring(4)
 	-- amg:set_debug_level_communicate_prolongation(4)
@@ -299,7 +366,7 @@ if bUseFAMG == 1 then
 else
 	print ("create AMG... ")
 	amg = RSAMGPreconditioner()
-	amg:enable_aggressive_coarsening_A(2)
+	-- amg:enable_aggressive_coarsening_A(2)
 end
 
 
@@ -308,7 +375,6 @@ vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider2d(vectorWriter)
 if bOutput then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
-amg:write_testvectors(true)
 end
 
 amg:set_num_presmooth(2)
