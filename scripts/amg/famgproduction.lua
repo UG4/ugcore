@@ -43,8 +43,8 @@ RAalpha = util.GetParamNumber("-RAalpha", 0)
 epsx = util.GetParamNumber("-epsx", 1)
 epsy = util.GetParamNumber("-epsy", 1)
 
-bFileOutput = false
-bOutput = true
+bFileOutput = true
+bOutput = false
 
 if util.HasParamOption("-RSAMG") then
 	bRSAMG = true
