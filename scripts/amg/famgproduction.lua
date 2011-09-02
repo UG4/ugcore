@@ -498,7 +498,7 @@ print("tAssemble [s]: "..tAssemble)
 
 
 
-if false and GetProfilerAvailable() == true then
+if GetProfilerAvailable() == true then
 	create_levelPN = GetProfileNode("c_create_AMG_level")
 	
 	function PrintParallelProfileNode(name)
