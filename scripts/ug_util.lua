@@ -148,6 +148,32 @@ function util.CreateConstDiagUserMatrix(diagVal, dim)
 	return mat
 end
 
+-- creates a Const User Matrix 2d 
+function util.CreateConstUserMatrix2d(m00, m01, m10, m11)
+	local mat = ConstUserMatrix2d()
+	mat:set_entry(0, 0, m00)
+	mat:set_entry(0, 1, m01)
+	mat:set_entry(1, 0, m10)
+	mat:set_entry(1, 1, m11)	
+	return mat
+end
+
+
+-- creates a Const User Matrix 3d
+function util.CreateConstUserMatrix3d(m00, m01, m02, m10, m11, m12, m20, m21, m22)
+	local mat = ConstUserMatrix3d()
+	mat:set_entry(0, 0, m00)
+	mat:set_entry(0, 1, m01)
+	mat:set_entry(0, 2, m02)
+	mat:set_entry(1, 0, m10)
+	mat:set_entry(1, 1, m11)
+	mat:set_entry(1, 2, m12)
+	mat:set_entry(2, 0, m20)
+	mat:set_entry(2, 1, m21)
+	mat:set_entry(2, 2, m22)	
+	return mat
+end
+
 -- creates a Lua User Vector using a lua function and returns the Provider
 function util.CreateLuaUserVector(funcName, dim)
 	local vec = LuaUserVector()
@@ -161,6 +187,24 @@ function util.CreateConstUserVector(val, dim)
 	vec:set_all_entries(val)
 	return vec
 end
+
+-- creates a Const User Vector 2d
+function util.CreateConstUserVector2d(v0, v1)
+	local vec = ConstUserVector2d()
+	vec:set_entry(0, v0)
+	vec:set_entry(1, v1)
+	return vec
+end
+
+-- creates a Const User Vector 3d
+function util.CreateConstUserVector3d(v0, v1, v2)
+	local vec = ConstUserVector3d()
+	vec:set_entry(0, v0)
+	vec:set_entry(1, v1)
+	vec:set_entry(2, v2)
+	return vec
+end
+
 
 -- creates a Lua User Number using a lua function and returns the Provider
 function util.CreateLuaUserNumber(funcName, dim)
