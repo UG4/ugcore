@@ -166,18 +166,18 @@ bool SumValuesForSubsetGroup( number& addValue,
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef typename domain_type::position_type position_type;
 
+//	check if something to do
+	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
+	iterEnd = u.template end<TElem>(si);
+	iter = u.template begin<TElem>(si);
+	if(iter==iterEnd) return true;
+
 //	get quadrature Rule
 	const QuadratureRule<dim>& rQuadRule
 	= QuadratureRuleProvider<dim>::template get_rule<ref_elem_type>(order);
 
 //	create a reference mapping
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
-
-//	check if something to do
-	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
-	iterEnd = u.template end<TElem>(si);
-	iter = u.template begin<TElem>(si);
-	if(iter==iterEnd) return true;
 
 //	id of shape functions used
 //	LFEID id = u.local_finite_element_id(fct);
