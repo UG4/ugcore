@@ -107,10 +107,10 @@ public:
 
 
 
-SmartPtr<NumberArray> getConvergenceRates(const ug::StandardConvCheck* convCheck) {
+SmartPtr<NumberArray> getDefects(const ug::StandardConvCheck* convCheck) {
 	
 	return SmartPtr<NumberArray>(
-			new NumberArray(convCheck->get_convergece_rates()));
+			new NumberArray(convCheck->get_defects()));
 }
 
 void registerNumberArray(ug::bridge::Registry & reg) {
@@ -118,7 +118,7 @@ void registerNumberArray(ug::bridge::Registry & reg) {
 	.add_constructor()
 				.add_method("get", &NumberArray::get)
 				.add_method("size", &NumberArray::size);
-	reg.add_function("GetConvergenceRates", &getConvergenceRates, "UG4/Util");
+	reg.add_function("GetDefects", &getDefects, "UG4/Util");
 }
 
 }// end vrl::
