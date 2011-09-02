@@ -147,11 +147,6 @@ bool SumValuesForSubsetGroup( number& addValue,
 
  */
 {
-	// initialize local class
-	// NOTE: This is independent of the rest and may be provided as its own class!!!
-	L2ErrorIntegrand<TElem,TGridFunction> integrand= L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution, time);
-
-
 //	order of quadrature rule
 //	\todo: generalize
 	const int order = 1;
@@ -171,6 +166,10 @@ bool SumValuesForSubsetGroup( number& addValue,
 	iterEnd = u.template end<TElem>(si);
 	iter = u.template begin<TElem>(si);
 	if(iter==iterEnd) return true;
+
+	// initialize local class
+	// NOTE: This is independent of the rest and may be provided as its own class!!!
+	L2ErrorIntegrand<TElem,TGridFunction> integrand= L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution, time);
 
 //	get quadrature Rule
 	const QuadratureRule<dim>& rQuadRule
