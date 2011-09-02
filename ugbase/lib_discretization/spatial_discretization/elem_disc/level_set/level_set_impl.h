@@ -1017,6 +1017,83 @@ bool FV1LevelSetDisc<TGridFunction>::assign_dirichlet(TGridFunction& numsol){
 }
 
 template<typename TGridFunction>
+bool FV1LevelSetDisc<TGridFunction>::overwrite(TGridFunction& unew,TGridFunction& uold,TGridFunction& phi,int sign){
+	//	get domain of grid function
+	domain_type& domain = unew.get_domain();
+	//	get grid type of domain
+	typedef typename domain_type::grid_type grid_type;
+	//	get grid of domain
+	grid_type& grid = domain.get_grid();
+	typedef typename domain_type::position_accessor_type position_accessor_type;
+	//	element iterator type
+	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+    //	element type
+	typedef typename domain_traits<dim>::geometric_base_object ElemType;
+	//	get element iterator type
+	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+	for (int si=0;si<unew.num_subsets();++si){
+		// UG_LOG("*** " << si << "\n");
+		for(VertexBaseConstIterator iter = unew.template begin<VertexBase>(si);
+									   iter != grid.template end<VertexBase>(si); ++iter)
+		{
+			VertexBase* vrt = * iter;
+		//	get vector holding all indices on the vertex
+			multi_index_vector_type ind;
+		//	read indices on vertex
+			typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
+			const dof_distribution_type& dd = unew.get_dof_distribution();
+			dd.inner_multi_indices(vrt, 0, ind);
+		    number phiValue = BlockRef(phi[ind[0][0]],ind[0][1]);
+			int nodeSign;
+			if (phiValue<0)  nodeSign =-1;
+			if (phiValue>0)  nodeSign = 1;
+			if (phiValue==0) nodeSign = 0;
+		    if (nodeSign==sign)	BlockRef(unew[ind[0][0]],ind[0][1]) = BlockRef(uold[ind[0][0]],ind[0][1]);
+		}
+	};
+    return true;
+};
+
+template<typename TGridFunction>
+bool FV1LevelSetDisc<TGridFunction>::overwrite(TGridFunction& unew,number value,TGridFunction& phi,int sign){
+	//	get domain of grid function
+	domain_type& domain = unew.get_domain();
+	//	get grid type of domain
+	typedef typename domain_type::grid_type grid_type;
+	//	get grid of domain
+	grid_type& grid = domain.get_grid();
+	typedef typename domain_type::position_accessor_type position_accessor_type;
+	//	element iterator type
+	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+    //	element type
+	typedef typename domain_traits<dim>::geometric_base_object ElemType;
+	//	get element iterator type
+	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+	for (int si=0;si<unew.num_subsets();++si){
+		// UG_LOG("*** " << si << "\n");
+		for(VertexBaseConstIterator iter = unew.template begin<VertexBase>(si);
+									   iter != grid.template end<VertexBase>(si); ++iter)
+		{
+			VertexBase* vrt = * iter;
+		//	get vector holding all indices on the vertex
+			multi_index_vector_type ind;
+		//	read indices on vertex
+			typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
+			const dof_distribution_type& dd = unew.get_dof_distribution();
+			dd.inner_multi_indices(vrt, 0, ind);
+		    number phiValue = BlockRef(phi[ind[0][0]],ind[0][1]);
+			int nodeSign;
+			if (phiValue<0)  nodeSign =-1;
+			if (phiValue>0)  nodeSign = 1;
+			if (phiValue==0) nodeSign = 0;
+		    if (nodeSign==sign)	BlockRef(unew[ind[0][0]],ind[0][1]) = value;
+		}
+	};
+    return true;
+};
+
+
+template<typename TGridFunction>
 bool FV1LevelSetDisc<TGridFunction>::compute_error(TGridFunction& numsol)
 {
 //	get domain of grid function
@@ -1053,7 +1130,7 @@ bool FV1LevelSetDisc<TGridFunction>::compute_error(TGridFunction& numsol)
 	//UG_LOG("----------------------------\n");
 
 	if(!bRes) {UG_LOG("Error while calculating CV Volume.\n"); return false;}
-	for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
+	for (int si=0;si<numsol.num_subsets();++si){
 		// UG_LOG("*** " << si << "\n");
 		for(VertexBaseConstIterator iter = numsol.template begin<VertexBase>(si);
 									   iter != grid.template end<VertexBase>(si); ++iter)
@@ -1285,7 +1362,9 @@ bool FV1LevelSetDisc<TGridFunction>::update_ls_subsets(TGridFunction& phi){
 
 	//	get element iterator type
 	typedef typename domain_traits<dim>::const_iterator ElemIterator;
+	m_inactive_sg.set_subset_handler(domain.get_subset_handler());
     for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
+    	UG_LOG("******************* si " << si << " **********************\n");
 		if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(si)==true) continue;
         if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(si)==true) continue;
 		ElemIterator iter = phi.template begin<ElemType>(si);
@@ -1346,37 +1425,64 @@ bool FV1LevelSetDisc<TGridFunction>::update_ls_subsets(TGridFunction& phi){
 			};
 			if (onls==false){
 			    if (phiCo[firstNonzero]<0){
-			    	UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
+			    //	UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
 				    domain.get_subset_handler().assign_subset(elem,m_inside_elements_si);
-				    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) << "\n");
-				    UG_LOG("-- nr of subsets: " << domain.get_subset_handler().num_subsets() << " " << m_inside_elements_si <<  "\n");
+				    UG_LOG("element is inside \n");
+				//    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) << "\n");
+				//    UG_LOG("-- nr of subsets: " << phi.num_subsets() << " " << m_inside_elements_si <<  "\n");
 				};
 				if (phiCo[firstNonzero]>0){
-					UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
+				//	UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
 				    domain.get_subset_handler().assign_subset(elem,m_outside_elements_si);
-				    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) <<  "\n");
-				    UG_LOG("|| nr of subsets: " << domain.get_subset_handler().num_subsets() << " " << m_outside_elements_si << "\n");
+				//    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) <<  "\n");
+				//    UG_LOG("|| nr of subsets: " << phi.num_subsets() << " " << m_outside_elements_si << "\n");
 				};
 			};
 			if (onls==true){
-				UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
+				//UG_LOG("si before " << domain.get_subset_handler().get_subset_index(elem));
 			    domain.get_subset_handler().assign_subset(elem,m_onls_elements_si);
-			    UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) <<  "\n");
-			    UG_LOG("// nr of subsets: " << domain.get_subset_handler().num_subsets() << " " << m_onls_elements_si << "\n");
+			    //UG_LOG("si after " << domain.get_subset_handler().get_subset_index(elem) <<  "\n");
+			    //UG_LOG("// nr of subsets: " << phi.num_subsets() << " " << m_onls_elements_si << "\n");
 			    for (int i=0;i<noc;i++){
    					int oldindex = domain.get_subset_handler().get_subset_index(vVrt[i]);
 	    		    if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(oldindex)==true) continue;
        	            if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(oldindex)==true) continue;
 				    if (phiCo[i]<0){
 					    domain.get_subset_handler().assign_subset(vVrt[i],m_inside_nodes_si);
+					    UG_LOG("node is inside \n");
 					};
 					if (phiCo[i]>0){
 					    domain.get_subset_handler().assign_subset(vVrt[i],m_outside_nodes_si);
 					};
+					if (phiCo[i]==0){
+						domain.get_subset_handler().assign_subset(vVrt[i],m_onls_nodes_si);
+					}
 				};
 			};
 	    };
 	};
+/*  for(int sindex = 0; sindex < phi.num_subsets(); ++sindex)
+    {
+       	 UG_LOG("si " << sindex << "\n");
+    	  //	get iterators
+    	 ElemIterator iter = phi.template begin<ElemType>(sindex);
+    	 ElemIterator iterEnd = phi.template end<ElemType>(sindex);
+    	 int count=0;
+    	for(  ;iter !=iterEnd; ++iter)
+    	 {
+    		ElemType* elem = *iter;
+    		++count;
+    	};
+    	UG_LOG(count << " elements in subset\n");
+    	count=0;
+       	 for(VertexBaseConstIterator iter = phi.template begin<VertexBase>(sindex);
+    	   iter != phi.template end<VertexBase>(sindex); ++iter)
+       	 {
+       	     VertexBase* vrt = *iter;
+       	    ++count;
+       	 }
+    	 UG_LOG(count << " nodes in subset\n");
+    };*/
   	return true;
 }
 
@@ -1491,12 +1597,13 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 	    if (m_limiter==true){
 	    	limit_grad(uNew,aaGradient);
 	    };
-
-	    for (int si=0;si<domain.get_subset_handler().num_subsets();++si){
-	    	// UG_LOG("si " << si << "\n");
+	    // UG_LOG("num_subsets: " << uOld.num_subsets() << "\n");
+	    for (int si=0;si<uOld.num_subsets();++si){
+	        //UG_LOG("si " << si << "\n");
 	        if (m_dirichlet_sg.num_subsets()!=0) if (m_dirichlet_sg.contains(si)==true) continue;
 	        if (m_neumann_sg.num_subsets()!=0) if (m_neumann_sg.contains(si)==true) continue;
 	        if (m_inactive_sg.num_subsets()!=0) if (m_inactive_sg.contains(si)==true) continue;
+	        //UG_LOG("... \n");
 		    //UG_LOG("***************************************************\n");
 	        //UG_LOG("***********************" << si << "**************************\n");
 		    //UG_LOG("***************************************************\n");
@@ -1559,10 +1666,12 @@ bool FV1LevelSetDisc<TGridFunction>::advect_lsf(TGridFunction& uNew,TGridFunctio
 	    for(size_t i = 0; i < m_inactive_sg.num_subsets(); ++i)
 	    {
 	    	 const int si = m_inactive_sg[i];
+	    	 UG_LOG("inactive si: " << si << "\n");
 	    	 for(VertexBaseConstIterator iter = uNew.template begin<VertexBase>(si);
 	    	 									   iter != grid.template end<VertexBase>(si); ++iter)
 	    	 {
 	    	     VertexBase* vrt = *iter;
+	    	     UG_LOG("*\n");
 	    		 dd.inner_multi_indices(vrt, 0, ind);
 	    		 BlockRef(uNew[ind[0][0]],ind[0][1]) = BlockRef(uOld[ind[0][0]],ind[0][1]);
 	    	 }

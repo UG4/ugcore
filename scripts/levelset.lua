@@ -11,7 +11,7 @@ ug_load_script("ug_util.lua")
 -- constants
 dim = 2
 
-movie=true;
+movie=false;
 
 neumann = false;
 
@@ -19,7 +19,7 @@ neumann = false;
 -- setup 1 : use lua-functions for velocity/boundary conditions
 -- setup 2 : use vector field for velocity
 -- setup 3 : use constant data
-setup = 3;
+setup = 0;
 
 if  dim == 2 then 
 gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
@@ -153,6 +153,9 @@ lsDisc:set_dirichlet_boundary(phiOld,"Boundary");
 
 if (setup==0) then
 	lsDisc:init_function(phiOld);
+	lsDisc:set_vel_x();
+	lsDisc:set_vel_y();
+	lsDisc:set_dirichlet_data();
 end;
 if (setup==1) then
     solfunctor = util.CreateLuaUserNumber("ExactSolution", dim);
@@ -166,6 +169,7 @@ end;
 if (setup==2) then
     solfunctor = util.CreateLuaUserNumber("ExactSolution", dim);
 	lsDisc:set_dirichlet_data(solfunctor);
+--	lsDisc:set_dirichlet_data();
 	InterpolateFunction(solfunctor, phiOld, "c", time);
     -- create velocity vectors
     vx = approxSpace:create_surface_function();

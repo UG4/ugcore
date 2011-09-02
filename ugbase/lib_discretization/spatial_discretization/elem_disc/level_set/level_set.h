@@ -90,7 +90,13 @@ class FV1LevelSetDisc
 		    m_source_type(HardcodedData),
 		    m_velocity_type(HardcodedData),
       	    m_dirichlet_data_type(HardcodedData),
-      	    m_interpolate_v_in_ip(true)
+      	    m_interpolate_v_in_ip(true),
+      	    m_inside_elements_si(2),
+      	  	m_outside_elements_si(3),
+      	  	m_onls_elements_si(4),
+      	  	m_inside_nodes_si(5),
+      	  	m_outside_nodes_si(6),
+      	  	m_onls_nodes_si(7)
       	{}
 
         void set_dt(number deltaT){ UG_LOG("Set dt="<<deltaT<<"\n"); m_dt=deltaT; };
@@ -230,7 +236,8 @@ class FV1LevelSetDisc
 	       	set_nodes_inactive(signi,signj);
 	       	set_nodes_inactive(signk);
 	   	}
-
+	   	bool overwrite(TGridFunction&,TGridFunction&,TGridFunction&,int);
+        bool overwrite(TGridFunction&,number,TGridFunction&,int);
 
 	 protected:
 	    number analytic_solution(number,MathVector<dim>);
