@@ -277,7 +277,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	else(NO_BOOST)
 		find_package(Boost 1.40.0)
 
-		if(Boost_FOUND)
+		if(Boost_FOUND AND (Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39))
 			message(STATUS "INFO: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}'). (To disable boost define -DNO_BOOST=ON)")
 
 			# add include path
@@ -293,7 +293,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 			else(Boost_FOUND)
 				message(FATAL_ERROR " BOOST not found! NO Boost available, but required boost 1.40.0. Aborting.")
 			endif(Boost_FOUND)
-		endif(Boost_FOUND)
+		endif(Boost_FOUND AND (Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39))		
 	endif(NO_BOOST)
 
 	#######################
