@@ -341,7 +341,7 @@ if bRSAMG == false then
 	amg = FAMGPreconditioner()	
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
-	amg:set_aggressive_coarsening(true)
+	amg:set_aggressive_coarsening(false)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
 		
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
