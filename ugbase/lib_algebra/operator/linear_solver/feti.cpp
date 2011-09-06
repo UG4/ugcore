@@ -448,9 +448,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			   " != vNumPrimalVariablesPerProc.size() = " << vNumPrimalVariablesPerProc.size() << std::endl);
 
 	UG_LOG("     %  -------------------------------------------------------------------" << std::endl); 
-	UG_LOG("     %  - Assemble entries of Schur complement matrix on 'primal root proc' " << m_primalRootProc << std::endl);
-	UG_LOG("     %  - Log num primal variables (pv) for proc " << std::setw(4) << pcl::GetProcRank() << " (outproc):" << std::endl);
-	UG_LOG("     %  -    num procs on this feti subdomain:  " << intraFetiSubdomComm.size() << "," << std::endl);
+	UG_LOG("     %  - Assemble entries of Schur complement matrix on 'primal root proc' " << std::setw(4) << m_primalRootProc   << std::endl);
+	UG_LOG("     %  - Log number of primal variables ('#pv') for proc ('output proc')   " << std::setw(4) << pcl::GetProcRank() << std::endl);
+	UG_LOG("     %  -    number of processes on this feti subdomain:      " << intraFetiSubdomComm.size() << ","  << std::endl);
 	UG_LOG("     %  -                         as looped ([counter:rank]): ");
 	for (size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size(); ++procInFetiSD)
 		UG_LOG("[" << procInFetiSD << ":" << intraFetiSubdomComm.get_proc_id(procInFetiSD) << "] ");
