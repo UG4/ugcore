@@ -704,10 +704,17 @@ public:
 		}
 		UG_ASSERT(m_mat.num_rows() == m_mat.num_cols(), "atm only for square matrices");
 
+		PROFILE_END(); PROFILE_BEGIN(calculate1);
 		IndexLayout &masterLayout = m_mat.get_master_layout();
 		IndexLayout &slaveLayout = m_mat.get_slave_layout();
 
-		TestLayout(m_com, masterLayout, slaveLayout);
+		PROFILE_END(); PROFILE_BEGIN(calculate_TestLayout);
+		IF_DEBUG(LIB_ALG_MATRIX, 1)
+		{
+		  TestLayout(m_com, masterLayout, slaveLayout);
+		}
+
+		PROFILE_END(); PROFILE_BEGIN(calculate_GenerateGlobalAlgrebraIDs);
 
 		// generate global algebra indices
 		UG_DLOG(LIB_ALG_MATRIX, 4, "generate " << m_mat.num_rows() << " m_globalIDs\n");
@@ -719,10 +726,15 @@ public:
 				UG_DLOG(LIB_ALG_MATRIX, 4, "  " << i << ": global id " << m_globalIDs[i] << "\n")
 		}
 
+		PROFILE_END(); PROFILE_BEGIN(calculate_set_as_copy_of);
+
 		m_newMat.set_as_copy_of(m_mat);
+
+		PROFILE_END(); PROFILE_BEGIN(calculate_nodeNummerator);
 
 		NewNodesNummerator nodeNummerator(m_globalIDs);
 
+		PROFILE_END(); PROFILE_BEGIN(calculate2);
 
 		// collect data
 		//-----------------
@@ -756,6 +768,9 @@ public:
 		AddLayout(m_vMasterLayouts[0], masterLayout);
 		AddLayout(m_vSlaveLayouts[0], slaveLayout);
 		m_overlapSize.clear();
+
+		PROFILE_END(); PROFILE_BEGIN(calculate3);
+
 		for(size_t current_overlap=0; current_overlap <= maxOverlap; current_overlap++)
 		{
 			m_overlapSize.push_back(m_newMat.num_rows());
@@ -782,6 +797,8 @@ public:
 
 				if(current_overlap == m_overlapDepthMaster && m_masterDirichletLast)
 				{
+		            PROFILE_BEGIN(calculate3_1);
+
 					std::vector<IndexLayout::Element> vIndex;
 					CollectUniqueElements(vIndex,  *receive_layout);
 					SetDirichletRow(m_newMat, vIndex);
@@ -812,6 +829,8 @@ public:
 
 				if(current_overlap == m_overlapDepthSlave && m_slaveDirichletLast)
 				{
+				    PROFILE_BEGIN(calculate3_2);
+
 					std::vector<IndexLayout::Element> vIndex;
 					CollectUniqueElements(vIndex,  *backward_receive_layout);
 					SetDirichletRow(m_newMat, vIndex);
@@ -829,6 +848,7 @@ public:
 		}
 
 
+		PROFILE_END(); PROFILE_BEGIN(calculate4);
 
 
 		m_newMat.set_layouts(m_totalMasterLayout, m_totalSlaveLayout);
