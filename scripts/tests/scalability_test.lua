@@ -57,7 +57,7 @@ numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
 -- parameters concerning the linear solver:
-lsType     = util.GetParam("-lsType",         "gmg") -- choose one in ["gmg" | "feti"]
+lsType     = util.GetParam("-lsType",         "gmg") -- choose one in ["gmg" | "feti" | "hlib"]
 lsIterator = util.GetParam("-lsIterator",     "gmg")
 lsMaxIter  = util.GetParamNumber("-lsMaxIter", 100)
 
@@ -539,6 +539,12 @@ if lsType == "feti" then
 				 numProcs,
 				 activateDbgWriter,
 				 verbosity)
+elseif lsType == "hlib" then
+	print("Loading HLIB solver setup ...")
+	ug_load_script("setup_hlibsolver.lua")
+	solver = SetupHLIBSolver(lsMaxIter,
+				 activateDbgWriter,
+				 verbosity)
 end
 
 --------------------------------------------------------------------------------
@@ -572,8 +578,9 @@ if ApplyLinearSolver(linOp, u, b, solver) == false then
 	print("Could not apply linear solver.");
 end
 
-if verbosity >= 2 then
-	if lsType == "feti" then
+if lsType == "feti" then
+	solver:print_statistic_of_inner_solver()
+	if verbosity >= 2 then
 		--print("Testing standard interfaces ...")
 		--TestDomainInterfaces(dom)
 
