@@ -124,6 +124,9 @@ class NavierStokesWall
 	///	returns an element disc
 		virtual IConstraint<TDoFDistribution, TAlgebra>* get_constraint(size_t i) {return &m_DirichletConstraint;}
 
+	///	virtual destructor
+		~NavierStokesWall() {}
+
 	public:
 	///	sets the symbolic names for velocity and pressure
 		bool set_functions(const char* functions)

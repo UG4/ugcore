@@ -37,6 +37,9 @@ class IDiscretizationItem
 
 	///	returns an element disc
 		virtual IConstraint<TDoFDistribution, TAlgebra>* get_constraint(size_t i) = 0;
+
+	///	virtual destructor
+		virtual ~IDiscretizationItem() {}
 };
 
 } // end namespace ug
