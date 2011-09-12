@@ -10,7 +10,7 @@
 
 namespace ug {
     /**
-     * Names of the UG Core developer team, seperated by \n.
+     * Names of the UG Core developer team, seperated by ','.
      */
     static std::string UG_AUTHORS ="...";
 }
