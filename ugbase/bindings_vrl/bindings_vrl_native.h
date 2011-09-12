@@ -73,6 +73,22 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getSvnRevision
 
 /*
  * Class:     edu_gcsc_vrl_ug_UG
+ * Method:    getDescription
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDescription
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_gcsc_vrl_ug_UG
+ * Method:    getAuthors
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getAuthors
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_gcsc_vrl_ug_UG
  * Method:    getCompileDate
  * Signature: ()Ljava/lang/String;
  */

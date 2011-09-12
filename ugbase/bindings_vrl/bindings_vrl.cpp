@@ -6,8 +6,10 @@
 #include "ugbase.h"
 #include "registry/registry.h"
 #include "registry/class.h"
+
 #include "../common/common.h"
 #include "../lib_algebra/operator/convergence_check.h"
+#include "common/authors.h"
 
 
 #include "type_converter.h"
@@ -24,6 +26,8 @@
 #include "invocation.h"
 #include "playground.h"
 #include "threading.h"
+
+#include "ug_script/externals/lua/lstate.h"
 
 namespace ug {
 namespace vrl {
@@ -221,6 +225,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 				env, ug::vrl::vrlRegistry,
 				paramsIn, method->params_in(), params);
 
+
 		const ug::bridge::ClassNameNode* clsNode =
 				ug::vrl::invocation::getClassNodePtrByName(
 				ug::vrl::vrlRegistry, className);
@@ -234,6 +239,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
+
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 
@@ -445,6 +451,20 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_invalidate
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_convertRegistryInfo
 (JNIEnv * env, jobject obj) {
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
+}
+
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDescription
+(JNIEnv *env, jobject obj) {
+	std::string desc = 
+			"UG is a general platform for the numerical solution<br>"
+            " of partial differential equations.";
+	
+	return ug::vrl::stringC2J(env, desc.c_str());
+}
+
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getAuthors
+(JNIEnv *env, jobject obj) {
+	return ug::vrl::stringC2J(env, ug::UG_AUTHORS.c_str());
 }
 
 
