@@ -66,9 +66,13 @@ static bool PerformTetrahedralization(Grid& grid,
 		//	selfintersecting facets otherwise (sometimes). I didn't really understand
 		//	this behaviour yet.
 		//TODO: Think about how the following code could be improved.
+			/*
 			in.pointlist[counter * 3] = (float)v.x;
 			in.pointlist[counter * 3 + 1] = (float)v.y;
-			in.pointlist[counter * 3 + 2] = (float)v.z;
+			in.pointlist[counter * 3 + 2] = (float)v.z;*/
+			in.pointlist[counter * 3] = v.x;
+			in.pointlist[counter * 3 + 1] = v.y;
+			in.pointlist[counter * 3 + 2] = v.z;
 		}
 	}
 
@@ -163,6 +167,9 @@ static bool PerformTetrahedralization(Grid& grid,
 		for(VertexBaseIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter, ++counter)
 		{
+			aaPos[*iter].x = out.pointlist[counter*3];
+			aaPos[*iter].y = out.pointlist[counter*3+1];
+			aaPos[*iter].z = out.pointlist[counter*3+2];
 			vVrts[counter] = *iter;
 		}
 	//	create new ones and add them to the vector

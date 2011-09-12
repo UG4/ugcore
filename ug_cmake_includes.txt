@@ -86,6 +86,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(HLIBPRO "Enable HLibPro")
 	OPTION(NO_BOOST "disable support for BOOST")
 	OPTION(NO_PCL "Disable parallel communication library")
+	OPTION(UG_PLUGINS "Enables plugin support. Note that UG_SHARED should also be activated.")
 
 	OPTION(NO_FORTRAN "Do not use Fortran (Fortran may be needed to find LAPACK)")
 	OPTION(NO_LAPACK "Disable LAPACK")
@@ -438,7 +439,19 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		message(STATUS "INFO: Not building dynamic library (To enable Dynamic Library define -DUG_SHARED=ON)")
     endif(UG_SHARED)
 
-
+	
+	if(UG_PLUGINS)
+		if(NOT UG_SHARED)
+			message(FATAL_ERROR "If UG_PLUGINS is activated, then UG_SHARED has to be activated, too!")
+		endif(NOT UG_SHARED)
+		ADD_DEFINITIONS(-DUG_PLUGINS)
+		message(STATUS "INFO: plugins suppored (To disable plugins, define -DUG_PLUGINS=OFF)")
+	else(UG_PLUGINS)
+		REMOVE_DEFINITIONS(-DUG_PLUGINS)
+		message(STATUS "INFO: plugins not suppored (To enable plugins, define -DUG_PLUGINS=ON)")
+	endif(UG_PLUGINS)
+	
+	
 	#######################
 	# Fortran compiler
 	# is needed for find_package(LAPACK)

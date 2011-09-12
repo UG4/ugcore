@@ -14,6 +14,20 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+template <class TAAPos>
+number VertexDistanceSq(VertexBase* v0, VertexBase* v1, TAAPos& aaPos)
+{
+	return VecDistanceSq(aaPos[v0], aaPos[v1]);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAAPos>
+number VertexDistance(VertexBase* v0, VertexBase* v1, TAAPos& aaPos)
+{
+	return VecDistance(aaPos[v0], aaPos[v1]);
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
 void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt, TAAPosVRT& aaPos)
 {

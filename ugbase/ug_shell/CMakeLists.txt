@@ -10,7 +10,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-include("../../ug_cmake_includes.txt")
+# include("../../ug_cmake_includes.txt")
 
 # print the different options.
 message(STATUS)
@@ -51,4 +51,11 @@ if(libReadline)
 	target_link_libraries(ugshell readline)
 endif(libReadline)
 
-target_link_libraries (ugshell ug)
+if(UG_SHARED)
+# link the dynamic library
+	target_link_libraries (ugshell ug4)
+else(UG_SHARED)
+# link the static library (only a fragment of the dynamic ug4 library)
+# the rest is automatically linked in ug_cmake_includes.txt
+	target_link_libraries (ugshell ug)
+endif(UG_SHARED)

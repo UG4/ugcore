@@ -8,6 +8,10 @@
 	#include "lib_algebra/algebra_selector.h"
 #endif
 
+#ifdef UG_PLUGINS
+	#include "common/plugin_util/plugin_util.h"
+#endif
+
 #include "lib_discretization/dof_manager/dof_distribution_type.h"
 
 using namespace std;
@@ -193,6 +197,12 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG), "/ug4",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra"));
+
+	//	add LoadPlugin method
+#ifdef UG_PLUGINS
+		reg.add_function("LoadPlugin", LoadPlugin);
+#endif
+
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed& ex)
 	{

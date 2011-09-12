@@ -90,8 +90,8 @@ if(UG_SHARED)
     get_property(ug4libSources GLOBAL PROPERTY ugSources)
 
     add_library(ug4 SHARED ${ug4libSources})
-else(UG_SHARED)
-	if(NOT NO_SHELL)
-	    add_subdirectory(ug_shell)
-	endif(NOT NO_SHELL)
 endif(UG_SHARED)
+
+if(NOT NO_SHELL)
+    add_subdirectory(ug_shell)
+endif(NOT NO_SHELL)

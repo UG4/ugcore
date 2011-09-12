@@ -7,6 +7,7 @@
 
 //#include "edge_util.h"
 #include <stack>
+#include <queue>
 #include "lib_grid/grid/grid_util.h"
 #include "vertex_util.h"
 namespace ug
@@ -299,6 +300,96 @@ void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edges
 		grid.objects_will_be_merged(doubles[i].second, doubles[i].second,
 									doubles[i].first);
 		grid.erase(doubles[i].first);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+template <class EdgeIterator, class TAAPos>
+void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
+								  EdgeIterator edgesEnd, TAAPos& aaPos)
+{
+	using namespace std;
+
+//	helper to collect neighbors
+	Face* nbrFaces[2];
+	vector<EdgeBase*> edges;
+
+//	flipCandidates
+	queue<EdgeBase*> candidates;
+
+//	sadly we can't use marking. Thats why we attach a simple byte to the edges,
+//	which will tell whether an edge is already a candidate.
+	AByte aIsCandidate;
+	grid.attach_to_edges_dv(aIsCandidate, 0, false);
+	Grid::AttachmentAccessor<EdgeBase, AByte> aaIsCandidate(grid, aIsCandidate);
+
+//	set up candidate array
+	for(EdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
+		aaIsCandidate[*iter] = 1;
+		candidates.push(*iter);
+	}
+
+
+	while(!candidates.empty()){
+		EdgeBase* e = candidates.front();
+		candidates.pop();
+		aaIsCandidate[e] = 0;
+
+	//	we only perform swaps on regular manifolds.
+		if(GetAssociatedFaces(nbrFaces, grid, e, 2) == 2){
+		//	make sure that both neighbors are triangles
+			if(nbrFaces[0]->num_vertices() != 3 || nbrFaces[1]->num_vertices() != 3)
+				continue;
+
+		//	check whether a swap would make the edge shorter.
+			VertexBase* conVrt0 = GetConnectedVertex(e, nbrFaces[0]);
+			VertexBase* conVrt1 = GetConnectedVertex(e, nbrFaces[1]);
+			if(VertexDistanceSq(conVrt0, conVrt1, aaPos) < EdgeLengthSq(e, aaPos))
+			{
+			//	it'll be shorter
+			//	now make sure that associated triangles won't flip
+			//todo: add support for 2d position attachments
+				vector3 n0, n1;
+				CalculateNormal(n0, nbrFaces[0], aaPos);
+				CalculateNormal(n1, nbrFaces[1], aaPos);
+				number oldDot = VecDot(n0, n1);
+
+				FaceDescriptor ntri;
+				ntri.set_num_vertices(3);
+				ntri.set_vertex(0, e->vertex(0));
+				ntri.set_vertex(1, conVrt1);
+				ntri.set_vertex(2, conVrt0);
+				CalculateNormal(n0, &ntri, aaPos);
+
+				ntri.set_vertex(0, e->vertex(1));
+				ntri.set_vertex(1, conVrt0);
+				ntri.set_vertex(2, conVrt1);
+				CalculateNormal(n1, &ntri, aaPos);
+
+				number newDot = VecDot(n0, n1);
+
+			//	if both have the same sign, we're fine!
+				if(oldDot * newDot < 0)
+					continue;//	not fine!
+
+			//	ok - everything is fine. Now swap the edge
+				e = SwapEdge(grid,  e);
+
+				UG_ASSERT(e, "SwapEdge did not produce a new edge.");
+
+			//	all edges of associated triangles are candidates again (except e)
+				GetAssociatedFaces(nbrFaces, grid, e, 2);
+				for(size_t i = 0; i < 2; ++i){
+					CollectAssociated(edges, grid, nbrFaces[i]);
+					for(size_t j = 0; j < edges.size(); ++j){
+						if(edges[j] != e && (!aaIsCandidate[edges[j]])){
+							candidates.push(edges[j]);
+							aaIsCandidate[edges[j]] = 1;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 

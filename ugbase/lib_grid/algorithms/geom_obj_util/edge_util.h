@@ -294,6 +294,16 @@ EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 template <class TEdgeIterator>
 void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd);
 
+///	Transforms the given edge-set so that the sum of the length the edges is minimized.
+/**
+ * Currently only works for 3d position attachments.
+ *
+ * \todo	add support for 2d position attachments.
+ */
+template <class EdgeIterator, class TAAPos>
+void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
+								  EdgeIterator edgesEnd, TAAPos& aaPos);
+
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace

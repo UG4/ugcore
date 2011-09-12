@@ -38,8 +38,24 @@ if(UG_PROFILER)
 	set(sources ${sources} ${srcProfiler})
 endif(UG_PROFILER)
 
+if(UG_PLUGINS)
+	if(UNIX)
+		set(sources ${sources} plugin_util/plugin_util_unix.cpp)
+		link_libraries(dl)
+	
+	elseif(WIN32)
+		message(FATAL_ERROR "plugin_util not yet implemented for WIN32. Aborting.")
+		
+	else(UNIX)
+		message(FATAL_ERROR "plugin_util not yet implemented for this platform. Aborting.")
+		
+	endif(UNIX)
+	
+endif(UG_PLUGINS)
+
+
 EXPORTSOURCES("common" ${sources})
 
 if(NOT UG_SHARED)
-add_library(common ${sources})
+	add_library(common ${sources})
 endif(NOT UG_SHARED)

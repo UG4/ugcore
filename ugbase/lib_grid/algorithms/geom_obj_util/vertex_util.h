@@ -96,6 +96,16 @@ bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
 								   Grid& grid, VertexBase* v);
 									
 ////////////////////////////////////////////////////////////////////////
+///	Returns the squared distance between two vertices
+template <class TAAPos>
+number VertexDistanceSq(VertexBase* v0, VertexBase* v1, TAAPos& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	Returns the distance between two vertices
+template <class TAAPos>
+number VertexDistance(VertexBase* v0, VertexBase* v1, TAAPos& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 //	FindVertexByCoordiante
 ///	returns the vertex that is the closest to the given coordinate
 /**
