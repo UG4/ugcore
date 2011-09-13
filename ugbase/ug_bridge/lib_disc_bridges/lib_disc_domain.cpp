@@ -40,6 +40,7 @@
 #include "lib_discretization/spatial_discretization/domain_discretization.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/spatial_discretization/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
+#include "lib_discretization/spatial_discretization/constraints/dirichlet_boundary/lagrange_difference_boundary.h"
 
 #include "lib_discretization/operator/linear_operator/projection_operator.h"
 #include "lib_discretization/operator/linear_operator/prolongation_operator.h"
@@ -217,6 +218,20 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						"Success", "Constant Value#Function#Subsets")
 			.add_method("clear", &T::clear);
 		reg.add_class_to_group(name, "DirichletBND", dimAlgDDTag);
+	}
+
+//	LagrangeDifferenceBoundary
+	{
+		typedef LagrangeDifferenceBoundary<TDomain, TDoFDistribution, TAlgebra> T;
+		typedef IConstraint<TDoFDistribution, TAlgebra> TBase;
+		string name = string("LagrangeDifferenceBoundary").append(dimAlgDDSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
+						"", "Approximation Space")
+			.add_method("set", &T::set,
+						"Success", "Value#Function#Subsets");
+		reg.add_class_to_group(name, "LagrangeDifferenceBoundary", dimAlgDDTag);
 	}
 
 //	IDiscretizationItem
@@ -489,6 +504,13 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						 static_cast<fct_type_subset>(&InterpolateFunction<function_type>),
 						 grp);
 	}
+
+//	InterpolateFunction
+	{
+		reg.add_function("AssignP1GridFunctionOnSubset",
+						 &AssignP1GridFunctionOnSubset<function_type>, grp);
+	}
+
 
 //	L2Error
 	{

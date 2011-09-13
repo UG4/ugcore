@@ -123,7 +123,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef ILinearOperator<vector_type, vector_type> T;
 		string name = string("ILinearOperator").append(algSuffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("init", static_cast<bool(T::*)()>(&T::init));
+			.add_method("init", static_cast<bool(T::*)()>(&T::init))
+			.add_method("apply", &T::apply);
 		reg.add_class_to_group(name, "ILinearOperator", algTag);
 	}
 

@@ -302,8 +302,9 @@ register_all_fv1_funcs()
 //	get all grid element types in this dimension and below
 	typedef typename domain_traits<dim>::DimElemList ElemList;
 
+	// BROKEN !!!
 //	switch assemble functions
-	boost::mpl::for_each<ElemList>( RegisterFV1<FV1ManifoldBoundary>(this) );
+//	boost::mpl::for_each<ElemList>( RegisterFV1<FV1ManifoldBoundary>(this) );
 }
 
 template<typename TDomain>
