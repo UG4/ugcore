@@ -2547,13 +2547,8 @@ template class DimFVGeometry<3, 3>;
 
 //////////////////////
 // Manifold
-template class FV1ManifoldBoundary<Edge, 1>;
 template class FV1ManifoldBoundary<Edge, 2>;
-template class FV1ManifoldBoundary<Triangle, 2>;
-template class FV1ManifoldBoundary<Quadrilateral, 2>;
-template class FV1ManifoldBoundary<Tetrahedron, 3>;
-template class FV1ManifoldBoundary<Prism, 3>;
-template class FV1ManifoldBoundary<Pyramid, 3>;
-template class FV1ManifoldBoundary<Hexahedron, 3>;
+template class FV1ManifoldBoundary<Triangle, 3>;
+template class FV1ManifoldBoundary<Quadrilateral, 3>;
 
 } // end namespace ug

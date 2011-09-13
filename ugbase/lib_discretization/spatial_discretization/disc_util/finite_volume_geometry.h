@@ -2239,30 +2239,30 @@ template <	typename TElem,
 class FV1ManifoldBoundary
 {
 	public:
-		// type of element
+	// 	type of element
 		typedef TElem elem_type;
 
-		// type of reference element
+	// 	type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 	public:
-		// order
+	// 	order
 		static const int order = 1;
 
-		// number of BoundaryFaces
+	// 	number of BoundaryFaces
 		static const size_t m_numBF = ref_elem_type::num_corners;
 
-		// type of BoundaryFaces
+	// 	type of BoundaryFaces
 		typedef typename fv1_traits<ref_elem_type, TWorldDim>::scv_type bf_type;
 
 	public:
-		// dimension of reference element
+	// 	dimension of reference element
 		static const int dim = ref_elem_type::dim;
 
-		// dimension of world
+	// 	dimension of world
 		static const int worldDim = TWorldDim;
 
-		// Hanging node flag: this Geometry does not support hanging nodes
+	// 	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
 		
 	protected:
@@ -2278,50 +2278,50 @@ class FV1ManifoldBoundary
 		class BF
 		{
 			private:
-				// let outer class access private members
+			// 	let outer class access private members
 				friend class FV1ManifoldBoundary<TElem, TWorldDim>;
 
-				// number of integration points
+			// 	number of integration points
 				static const size_t m_numIP = 1;
 				
-				// max number of corners of bf
+			// 	max number of corners of bf
 				static const size_t m_maxNumCorners = fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
 
 			public:
 				BF() : m_numCorners(m_maxNumCorners) {};
 
-				/// node id that this bf is associated to
+			/// node id that this bf is associated to
 				inline size_t node_id() const {return nodeId;}
 
-				/// number of integration points
+			/// number of integration points
 				inline size_t num_ip() const {return m_numIP;}
 
-				/// local integration point of bf
+			/// local integration point of bf
 				inline const MathVector<dim>& local_ip(size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vLocPos[0];}
 
-				/// global integration point
+			/// global integration point
 				inline const MathVector<worldDim>& global_ip(size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vGloPos[0];}
 
-				/// volume of bf
+			/// volume of bf
 				inline number volume() const {return vol;}
 
-				/// number of corners, that bound the bf
+			/// number of corners, that bound the bf
 				inline size_t num_corners() const {return m_numCorners;}
 
-				/// return local position of corner number i
+			/// return local position of corner number i
 				inline const MathVector<dim>& local_corner(size_t i) const
 					{UG_ASSERT(i < num_corners(), "Invalid index."); return vLocPos[i];}
 
-				/// return global position of corner number i
+			/// return global position of corner number i
 				inline const MathVector<worldDim>& global_corner(size_t i) const
 					{UG_ASSERT(i < num_corners(), "Invalid index."); return vGloPos[i];}
 				
-				/// number of shape functions
+			/// number of shape functions
 				inline size_t num_sh() const {return vShape.size();}
 
-				/// value of shape function i in integration point
+			/// value of shape function i in integration point
 				inline number shape(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vShape[i];}
 				
@@ -2401,20 +2401,20 @@ class FV1ManifoldBoundary
 
 	
 	private:
-		// pointer to current element
+	// 	pointer to current element
 		TElem* m_pElem;
 		
-		// local and global geom object midpoints for each dimension
+	// 	local and global geom object midpoints for each dimension
 		MathVector<dim> m_locMid[dim+1][m_numBF];
 		MathVector<worldDim> m_gloMid[dim+1][m_numBF];
 		
-		// SubControlVolumes
+	// 	SubControlVolumes
 		BF m_vBF[m_numBF];
 		
-		// Reference Mapping
+	// 	Reference Mapping
 		ReferenceMapping<ref_elem_type, worldDim> m_rMapping;
 
-		// Reference Element
+	// 	Reference Element
 		const ref_elem_type& m_rRefElem;
 
 		
