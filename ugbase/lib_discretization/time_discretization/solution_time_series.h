@@ -129,6 +129,9 @@ class LocalVectorTimeSeries
 	///	returns the local vector for the i'th time point
 		const LocalVector& solution(size_t i) const {return m_vLocalVector.at(i);}
 
+	///	returns the local vector for the i'th time point
+		LocalVector& solution(size_t i) {return m_vLocalVector.at(i);}
+
 	///	update for indices
 		template <typename TVector>
 		void read_values(const SolutionTimeSeries<TVector>& solTimeSeries, LocalIndices& ind)
