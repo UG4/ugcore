@@ -117,6 +117,10 @@ prepare_elem(TElem* elem, local_vector_type& u, const local_index_type& ind,
 	//	access disc functions
 		u.access_by_map(map(i));
 
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+
 	//	prepare for elem disc
 		if(!(*m_pvElemDisc)[i]->prepare_elem(elem, u))
 		{

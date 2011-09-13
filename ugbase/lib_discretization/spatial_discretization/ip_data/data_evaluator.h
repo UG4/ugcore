@@ -137,6 +137,15 @@ class DataEvaluator
 	///	flag if hanging nodes are used
 		bool m_bUseHanging;
 
+	///	flag indicating if elem disc needs local time series
+		std::vector<bool> m_vbNeedLocTimeSeries;
+
+	///	flag indicating if any elem disc needs local time series
+		bool m_bNeedLocTimeSeries;
+
+	///	local time series
+		LocalVectorTimeSeries* m_pLocTimeSeries;
+
 	////////////////////////////////
 	// 	Data Import
 	////////////////////////////////

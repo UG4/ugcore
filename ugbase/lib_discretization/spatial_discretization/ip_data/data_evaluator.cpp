@@ -108,6 +108,10 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		return false;
 	}
 
+//	reset local time series flag
+	const size_t numElemDisc = (*m_pvElemDisc).size();
+	m_vbNeedLocTimeSeries.clear(); m_vbNeedLocTimeSeries.resize(numElemDisc, false);
+
 	return extract_imports_and_ipdata(bMassPart);
 }
 
@@ -438,13 +442,18 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 bool DataEvaluator::set_time_dependent(bool bTimeDep, number time,
                                        LocalVectorTimeSeries* locTimeSeries)
 {
-	bool bNeedLocTimeSeries = false;
+	m_bNeedLocTimeSeries = false;
 
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
-		bNeedLocTimeSeries
-			|= (*m_pvElemDisc)[i]->set_time_dependent(bTimeDep, time, locTimeSeries);
+	{
+		m_vbNeedLocTimeSeries[i]
+		  = (*m_pvElemDisc)[i]->set_time_dependent(bTimeDep, time, locTimeSeries);
+		m_bNeedLocTimeSeries |= m_vbNeedLocTimeSeries[i];
+	}
 
-	return bNeedLocTimeSeries;
+	m_pLocTimeSeries = locTimeSeries;
+
+	return m_bNeedLocTimeSeries;
 }
 
 
@@ -523,6 +532,10 @@ bool DataEvaluator::ass_JA_elem(local_matrix_type& A, local_vector_type& u)
 		u.access_by_map(map(i));
 		A.access_by_map(map(i));
 
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+
 	//	assemble JA
 		if(!(*m_pvElemDisc)[i]->ass_JA_elem(A, u))
 		{
@@ -543,6 +556,10 @@ bool DataEvaluator::ass_JM_elem(local_matrix_type& M, local_vector_type& u)
 	//	access disc functions
 		u.access_by_map(map(i));
 		M.access_by_map(map(i));
+
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	assemble JA
 		if(!(*m_pvElemDisc)[i]->ass_JM_elem(M, u))
@@ -565,6 +582,10 @@ bool DataEvaluator::ass_dA_elem(local_vector_type& d, local_vector_type& u)
 		u.access_by_map(map(i));
 		d.access_by_map(map(i));
 
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+
 	//	assemble JA
 		if(!(*m_pvElemDisc)[i]->ass_dA_elem(d, u))
 		{
@@ -586,6 +607,10 @@ bool DataEvaluator::ass_dM_elem(local_vector_type& d, local_vector_type& u)
 		u.access_by_map(map(i));
 		d.access_by_map(map(i));
 
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+
 	//	assemble JA
 		if(!(*m_pvElemDisc)[i]->ass_dM_elem(d, u))
 		{
@@ -605,6 +630,10 @@ bool DataEvaluator::ass_rhs_elem(local_vector_type& rhs)
 	{
 	//	access disc functions
 		rhs.access_by_map(map(i));
+
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	assemble rhs
 		if(!(*m_pvElemDisc)[i]->ass_rhs_elem(rhs))
