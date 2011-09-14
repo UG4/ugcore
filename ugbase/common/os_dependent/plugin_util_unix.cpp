@@ -22,12 +22,12 @@ bool LoadPlugins(const char* pluginPath)
 
 	GetFilesInDirectory(files, pluginPath);
 
-	UG_LOG("Loading plugins (from " << pluginPath << "):");
+	//UG_LOG("Loading plugins (from " << pluginPath << "):");
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
 	for(size_t i = 0; i < files.size(); ++i){
-		UG_LOG(" " << files[i]);
+		//UG_LOG(" " << files[i]);
 
 		string fullPluginName(pluginPath);
 		fullPluginName.append("/").append(files[i]);
@@ -57,45 +57,9 @@ bool LoadPlugins(const char* pluginPath)
 //	make sure that the registry is updated
 	reg.registry_changed();
 
-	UG_LOG(endl);
+	//UG_LOG(endl);
 
 	return true;
 }
-/*
-bool LoadPlugin(const char* pluginName)
-{
-//	Thanks to Michael Hoffer for his examples!
 
-	string fullPluginName = PathProvider::get_path(PLUGIN_PATH);
-	fullPluginName.append("/lib").append(pluginName).append(".dylib");
-
-//	load the library
-	void* libHandle = dlopen(fullPluginName.c_str(), RTLD_LAZY);
-	if(!libHandle){
-		UG_LOG("Failed to load plugin " << fullPluginName << ". File not found.\n");
-		return false;
-	}
-
-//	find the init_ug_plugin function
-	typedef void (*FctInitPlugin)(ug::bridge::Registry*);
-
-	std::string fctName("InitUGPlugin_"); fctName.append(pluginName);
-	FctInitPlugin fctInitPlugin = (FctInitPlugin) dlsym(libHandle, fctName.c_str());
-
-	if(!fctInitPlugin){
-		UG_LOG("Method 'void " << fctName << "(ug::bridge::Registry*)' could not be found in " << fullPluginName << ".\n");
-		return false;
-	}
-
-	bridge::Registry& reg = bridge::GetUGRegistry();
-
-//	call the init method
-	fctInitPlugin(&reg);
-
-	reg.registry_changed();
-
-//	we're done in here.
-	return true;
-}
-*/
 }// end of namespace

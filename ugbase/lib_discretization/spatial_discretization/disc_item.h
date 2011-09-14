@@ -10,6 +10,9 @@
 
 namespace ug{
 
+template <typename TDoFDistribution, typename TAlgebra>
+class IConstraint;
+
 template <	typename TDomain,
 			typename TDoFDistribution,
 			typename TAlgebra>

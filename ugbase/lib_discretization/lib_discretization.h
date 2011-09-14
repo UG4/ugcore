@@ -93,7 +93,6 @@
 #include "spatial_discretization/elem_disc/density_driven_flow/density_driven_flow.h"
 #include "spatial_discretization/elem_disc/inner_boundary/inner_boundary.h"
 #include "spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
-#include "spatial_discretization/elem_disc/navier_stokes/navier_stokes.h"
 #include "spatial_discretization/elem_disc/neumann_boundary/neumann_boundary.h"
 #include "spatial_discretization/elem_disc/level_set/level_set.h"
 

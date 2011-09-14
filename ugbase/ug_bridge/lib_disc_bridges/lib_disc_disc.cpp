@@ -21,10 +21,6 @@
 #include "lib_discretization/spatial_discretization/disc_util/conv_shape_interface.h"
 #include "lib_discretization/spatial_discretization/disc_util/conv_shape.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/navier_stokes.h"
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/upwind.h"
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/stabilization.h"
-
 #include "lib_discretization/spatial_discretization/elem_disc/density_driven_flow/density_driven_flow.h"
 #include "lib_discretization/spatial_discretization/elem_disc/convection_diffusion/convection_diffusion.h"
 #include "lib_discretization/spatial_discretization/elem_disc/constant_equation/constant_equation.h"
@@ -299,23 +295,6 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FV1TimeNeumannBoundary", dimTag);
 	}
 
-//	Navier-Stokes
-	{
-		typedef FVNavierStokesElemDisc<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("FV1NavierStokes").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.add_constructor()
-			.add_method("set_kinematic_viscosity", &T::set_kinematic_viscosity)
-			.add_method("set_stabilization", &T::set_stabilization)
-			.add_method("set_conv_upwind",  static_cast<void (T::*)(INavierStokesStabilization<dim>&)>(&T::set_conv_upwind))
-			.add_method("set_conv_upwind",  static_cast<void (T::*)(INavierStokesUpwind<dim>&)>(&T::set_conv_upwind))
-			.add_method("set_peclet_blend", &T::set_peclet_blend)
-			.add_method("set_exact_jacobian", &T::set_exact_jacobian);
-		reg.add_class_to_group(name, "FV1NavierStokes", dimTag);
-	}
-
-
 //	Non-Linear Elastictity
 	{
 		typedef FE1NonlinearElasticityElemDisc<TDomain> T;
@@ -329,93 +308,6 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 	}
 
 
-/////////////////////////////////////////////////////////////////////////////
-// Upwind
-/////////////////////////////////////////////////////////////////////////////
-
-
-//	INavierStokesUpwind
-	{
-		typedef INavierStokesUpwind<dim> T;
-		string name = string("INavierStokesUpwind").append(dimSuffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "INavierStokesUpwind", dimTag);
-	}
-
-//	NavierStokesNoUpwind
-	{
-		typedef NavierStokesNoUpwind<dim> T;
-		typedef INavierStokesUpwind<dim> TBase;
-		string name = string("NavierStokesNoUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "NavierStokesNoUpwind", dimTag);
-	}
-
-//	NavierStokesFullUpwind
-	{
-		typedef NavierStokesFullUpwind<dim> T;
-		typedef INavierStokesUpwind<dim> TBase;
-		string name = string("NavierStokesFullUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "NavierStokesFullUpwind", dimTag);
-	}
-
-//	NavierStokesSkewedUpwind
-	{
-		typedef NavierStokesSkewedUpwind<dim> T;
-		typedef INavierStokesUpwind<dim> TBase;
-		string name = string("NavierStokesSkewedUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "NavierStokesSkewedUpwind", dimTag);
-	}
-
-//	NavierStokesLinearProfileSkewedUpwind
-	{
-		typedef NavierStokesLinearProfileSkewedUpwind<dim> T;
-		typedef INavierStokesUpwind<dim> TBase;
-		string name = string("NavierStokesLinearProfileSkewedUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "NavierStokesLinearProfileSkewedUpwind", dimTag);
-	}
-
-//	NavierStokesPositiveUpwind
-	{
-		typedef NavierStokesPositiveUpwind<dim> T;
-		typedef INavierStokesUpwind<dim> TBase;
-		string name = string("NavierStokesPositiveUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "NavierStokesPositiveUpwind", dimTag);
-	}
-
-/////////////////////////////////////////////////////////////////////////////
-// Stabilization
-/////////////////////////////////////////////////////////////////////////////
-
-
-//	INavierStokesStabilization
-	{
-		typedef INavierStokesStabilization<dim> T;
-		string name = string("INavierStokesStabilization").append(dimSuffix);
-		reg.add_class_<T>(name, grp)
-			.add_method("set_upwind", &T::set_upwind)
-			.add_method("set_diffusion_length", &T::set_diffusion_length);
-		reg.add_class_to_group(name, "INavierStokesStabilization", dimTag);
-	}
-
-//	NavierStokesFIELDSStabilization
-	{
-		typedef NavierStokesFIELDSStabilization<dim> T;
-		typedef INavierStokesStabilization<dim> TBase;
-		string name = string("NavierStokesFIELDSStabilization").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "NavierStokesFIELDSStabilization", dimTag);
-	}
 
 /////////////////////////////////////////////////////////////////////////////
 // Convection Shapes

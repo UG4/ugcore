@@ -95,3 +95,4 @@ endif(UG_SHARED)
 if(NOT NO_SHELL)
     add_subdirectory(ug_shell)
 endif(NOT NO_SHELL)
+

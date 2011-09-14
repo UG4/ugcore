@@ -48,8 +48,6 @@
 
 #include "lib_discretization/spatial_discretization/elem_disc/level_set/level_set.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/navier_stokes/navier_stokes_bnd.h"
-
 using namespace std;
 
 namespace ug
@@ -240,34 +238,6 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		string name = string("IDiscretizationItem").append(dimAlgDDSuffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IDiscretizationItem", dimAlgDDTag);
-	}
-
-//	NavierStokesInflow
-	{
-		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
-		typedef NavierStokesInflow<TDomain, TDoFDistribution, TAlgebra> T;
-		typedef IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra> TBase;
-		string name = string("NavierStokesInflow").append(dimAlgDDSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.add_method("set_functions", &T::set_functions)
-			.add_method("set_subsets", &T::set_subsets)
-			.add_method("set_approximation_space", &T::set_approximation_space)
-			.add_method("add", static_cast<bool (T::*)(VectorFunctor&, const char*)>(&T::add));
-		reg.add_class_to_group(name, "NavierStokesInflow", dimAlgDDTag);
-	}
-
-//	NavierStokesInflow
-	{
-		typedef NavierStokesWall<TDomain, TDoFDistribution, TAlgebra> T;
-		typedef IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra> TBase;
-		string name = string("NavierStokesWall").append(dimAlgDDSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.add_method("set_functions", &T::set_functions)
-			.add_method("set_approximation_space", &T::set_approximation_space)
-			.add_method("add", &T::add);
-		reg.add_class_to_group(name, "NavierStokesWall", dimAlgDDTag);
 	}
 
 //	ProlongationOperator
