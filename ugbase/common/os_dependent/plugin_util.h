@@ -8,8 +8,8 @@
 namespace ug
 {
 
-///	Loads the specified dynamic library and runs init_ug_plugin() on it.
-bool LoadPlugin(const char* pluginName);
+///	Loads all plugins in the given path.
+bool LoadPlugins(const char* pluginPath);
 
 }//	end of namespace
 

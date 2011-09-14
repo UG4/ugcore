@@ -38,22 +38,49 @@ if(UG_PROFILER)
 	set(sources ${sources} ${srcProfiler})
 endif(UG_PROFILER)
 
-if(UG_PLUGINS)
-	if(UNIX)
-		set(sources ${sources} plugin_util/plugin_util_unix.cpp)
+
+################################################################################
+# Platform dependend code
+################################################################################
+if(UNIX)
+	set(sources ${sources} os_dependent/file_util_posix.cpp)
+	
+	if(MAC)
+		set(sources ${sources} os_dependent/os_info_osx.cpp)
+	else(MAC)
+		set(sources ${sources} os_dependent/os_info_linux.cpp)
+	endif(MAC)
+
+	if(UG_PLUGINS)
+		set(sources ${sources} os_dependent/plugin_util_unix.cpp)
 		link_libraries(dl)
+	endif(UG_PLUGINS)
+
+elseif(WIN32)
+	set(sources ${sources} os_dependent/os_info_win.cpp)
 	
-	elseif(WIN32)
-		message(FATAL_ERROR "plugin_util not yet implemented for WIN32. Aborting.")
+	if(MINGW)
+		set(sources ${sources} os_dependent/file_util_posix.cpp)
 		
-	else(UNIX)
-		message(FATAL_ERROR "plugin_util not yet implemented for this platform. Aborting.")
-		
-	endif(UNIX)
+	else(MINGW)
+	endif(MINGW)
 	
-endif(UG_PLUGINS)
+	if(UG_PLUGINS)
+		message(FATAL_ERROR "Plugins not yet supported for MSVC. Aborting.")
+	endif(UG_PLUGINS)
+	
+	
+else(UNIX)
+	message(STATUS "YOUR OS IS NOT FULLY SUPPORTED. Methods in common/os_dependent won't be available!")
+	if(UG_PLUGINS)
+		message(FATAL_ERROR "Plugins not yet supported for this platform. Consider deactivating plugins through cmake -DUG_PLUGINS=OFF")
+	endif(UG_PLUGINS)
+endif(UNIX)
 
 
+################################################################################
+#	add sources to library
+################################################################################
 EXPORTSOURCES("common" ${sources})
 
 if(NOT UG_SHARED)

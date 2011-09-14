@@ -20,6 +20,7 @@ enum PathTypes
 	DATA_PATH,
 	SCRIPT_PATH,
 	ROOT_PATH,
+	PLUGIN_PATH,
 //	always last
 	MAX_PATH_CONSTANT
 };

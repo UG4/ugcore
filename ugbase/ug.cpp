@@ -13,6 +13,8 @@
 #include "ug_script/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
 
+#include "common/os_dependent/plugin_util.h"
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
@@ -40,6 +42,7 @@ static bool InitPaths(const char* argv0) {
 		PathProvider::set_path(APP_PATH, strRoot + "/bin");
 		PathProvider::set_path(SCRIPT_PATH, strRoot + "/scripts");
 		PathProvider::set_path(DATA_PATH, strRoot + "/data");
+		PathProvider::set_path(PLUGIN_PATH, strRoot + "/bin/plugins");
 	}
 	else{
 		std::string tPath = argv0;
@@ -56,6 +59,7 @@ static bool InitPaths(const char* argv0) {
 		PathProvider::set_path(ROOT_PATH, tPath + "/..");
 		PathProvider::set_path(SCRIPT_PATH, tPath + "/../scripts");
 		PathProvider::set_path(DATA_PATH, tPath + "/../data");
+		PathProvider::set_path(PLUGIN_PATH, tPath + "/bin/plugins");
 	}
 
 //	log the paths
@@ -88,6 +92,10 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 	static bool firstCall = true;
 	if (firstCall) {
 		firstCall = false;
+
+	//todo: If initPaths fails, something should be done...
+		InitPaths((*argvp)[0]);
+
 #ifdef UG_PARALLEL
 //		pcl::Init(argc, argv);
 		pcl::Init(argcp, argvp);
@@ -101,10 +109,9 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 					"using RegisterStandardInterfaces. Check registration process.\n";
 			return -1;
 		}
-	}
 
-//todo: If initPaths fails, something should be done...
-	InitPaths((*argvp)[0]);
+		LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str());
+	}
 
 	return 0;
 }
