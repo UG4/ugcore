@@ -13,7 +13,9 @@
 #include "ug_script/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
 
-#include "common/os_dependent/plugin_util.h"
+#ifdef UG_PLUGINS
+	#include "common/os_dependent/plugin_util.h"
+#endif
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
