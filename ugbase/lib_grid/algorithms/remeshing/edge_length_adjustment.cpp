@@ -291,6 +291,7 @@ VertexBase* TryCollapse(Grid& grid, EdgeBase* e,
 		int vrtSI[2];
 		vrtSI[0] = shMarks.get_subset_index(e->vertex(0));
 		vrtSI[1] = shMarks.get_subset_index(e->vertex(1));
+
 		if((vrtSI[0] == REM_FIXED) && (vrtSI[1] == REM_FIXED))
 			return NULL;
 
@@ -395,6 +396,7 @@ VertexBase* TryCollapse(Grid& grid, EdgeBase* e,
 		bool regularNeighbourhood = IsRegularSurfaceVertex(grid, e->vertex(0)) &&	
 									IsRegularSurfaceVertex(grid, e->vertex(1));
 */
+
 	//	if the best approximation degree is not too bad, we'll perform the collapse
 		if(/*!regularNeighbourhood || */(newApproxDeg[bestIndex] > 0.95 * approxDeg))
 		{						
@@ -420,10 +422,9 @@ VertexBase* TryCollapse(Grid& grid, EdgeBase* e,
 					
 		//	choose the vertex that shall remain.
 			VertexBase* vrt = e->vertex(0);
-			bestIndex = 0;
-			if(vrtSI[1] != REM_NONE && vrtSI[0] != REM_FIXED)
+
+			if(vrtSI[0] != REM_FIXED && vrtSI[1] != REM_NONE)
 			{
-				bestIndex = 1;
 				vrt = e->vertex(1);
 			}
 
@@ -988,12 +989,14 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 				iter != grid.vertices_end(); ++iter)
 			{
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
-				vector3 vNew;
-				if(pojectionTraverser.project(aaPos[*iter], octree/*, &aaNorm[*iter]*/)){
-					aaPos[*iter] = pojectionTraverser.get_closest_point();
-				}
-				else{
-					LOG("f");
+				if(shMarks.get_subset_index(*iter) != REM_FIXED){
+					vector3 vNew;
+					if(pojectionTraverser.project(aaPos[*iter], octree/*, &aaNorm[*iter]*/)){
+						aaPos[*iter] = pojectionTraverser.get_closest_point();
+					}
+					else{
+						LOG("f");
+					}
 				}
 			}
 			//PROFILE_END();
