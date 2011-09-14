@@ -53,8 +53,6 @@ if(UNIX)
 
 	if(UG_PLUGINS)
 		set(sources ${sources} os_dependent/plugin_util_unix.cpp)
-		find_library(DL_LIBS NAMES dl)
-		link_libraries(DL_LIBS)
 	endif(UG_PLUGINS)
 
 elseif(WIN32)

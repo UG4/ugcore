@@ -446,6 +446,14 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		endif(NOT UG_SHARED)
 		ADD_DEFINITIONS(-DUG_PLUGINS)
 		message(STATUS "INFO: plugins suppored (To disable plugins, define -DUG_PLUGINS=OFF)")
+
+        if(UNIX)
+            find_library(DL_LIBS NAMES dl)
+            link_libraries(${DL_LIBS})
+        elseif(WIN32)
+
+        endif(UNIX)
+
 	else(UG_PLUGINS)
 		REMOVE_DEFINITIONS(-DUG_PLUGINS)
 		message(STATUS "INFO: plugins not suppored (To enable plugins, define -DUG_PLUGINS=ON)")
