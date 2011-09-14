@@ -110,7 +110,9 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 			return -1;
 		}
 
-		LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str());
+		#ifdef UG_PLUGINS
+			LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str());
+		#endif
 	}
 
 	return 0;
