@@ -12,7 +12,8 @@ namespace ug {
     /**
      * Names of the UG Core developer team, seperated by ','.
      */
-    static std::string UG_AUTHORS ="...";
+    static std::string UG_AUTHORS
+    	="Sebastian Reiter, Martin Rupp, Andreas Vogel, etc ...";
 }
 
 #endif	/* AUTHORS_H */
