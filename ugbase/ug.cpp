@@ -61,7 +61,7 @@ static bool InitPaths(const char* argv0) {
 		PathProvider::set_path(ROOT_PATH, tPath + "/..");
 		PathProvider::set_path(SCRIPT_PATH, tPath + "/../scripts");
 		PathProvider::set_path(DATA_PATH, tPath + "/../data");
-		PathProvider::set_path(PLUGIN_PATH, tPath + "/bin/plugins");
+		PathProvider::set_path(PLUGIN_PATH, tPath + "/../bin/plugins");
 	}
 
 //	log the paths
