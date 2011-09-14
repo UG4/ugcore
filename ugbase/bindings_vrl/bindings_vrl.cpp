@@ -77,8 +77,8 @@ void registerMessaging(ug::bridge::Registry & reg) {
 }
 
 void registerThrowUtil(ug::bridge::Registry & reg) {
-	reg.add_function("throwIf", &ThrowIf, "UG4/Util");
-	reg.add_function("throwIfNot", &ThrowIfNot, "UG4/Util");
+	reg.add_function("throwIf", &ThrowIf, "UG4/util");
+	reg.add_function("throwIfNot", &ThrowIfNot, "UG4/util");
 }
 
 class NumberArray {
@@ -118,11 +118,11 @@ SmartPtr<NumberArray> getDefects(const ug::StandardConvCheck* convCheck) {
 }
 
 void registerNumberArray(ug::bridge::Registry & reg) {
-	reg.add_class_<NumberArray>("NumberArray","UG4/Util")
+	reg.add_class_<NumberArray>("NumberArray","UG4/util")
 	.add_constructor()
 				.add_method("get", &NumberArray::get)
 				.add_method("size", &NumberArray::size);
-	reg.add_function("GetDefects", &getDefects, "UG4/Util");
+	reg.add_function("GetDefects", &getDefects, "UG4/util");
 }
 
 }// end vrl::
