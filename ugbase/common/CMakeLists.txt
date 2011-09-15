@@ -65,7 +65,7 @@ elseif(WIN32)
 	endif(MINGW)
 	
 	if(UG_PLUGINS)
-		message(FATAL_ERROR "Plugins not yet supported for MSVC. Aborting.")
+		set(sources ${sources} os_dependent/plugin_util_win.cpp)
 	endif(UG_PLUGINS)
 	
 	
