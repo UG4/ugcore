@@ -11,6 +11,7 @@
 #include "math_matrix.h"
 
 namespace ug{
+
 ////////////////////////////////////////////////////////////////
 // Addition of Matrices
 
@@ -188,6 +189,25 @@ template <size_t N, size_t M, typename T>
 inline
 void
 LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
+
+////////////////////////////////////////////////////////////////
+// Trace of Matrix
+
+/// Trace of a matrix_t
+template <typename T>
+inline
+typename MathMatrix<1,1,T>::value_type
+Trace(const MathMatrix<1,1,T>& m);
+
+template <typename T>
+inline
+typename MathMatrix<2,2,T>::value_type
+Trace(const MathMatrix<2,2,T>& m);
+
+template <typename T>
+inline
+typename MathMatrix<3,3,T>::value_type
+Trace(const MathMatrix<3,3,T>& m);
 
 ////////////////////////////////////////////////////////////////
 // Scalar operations for Matrices

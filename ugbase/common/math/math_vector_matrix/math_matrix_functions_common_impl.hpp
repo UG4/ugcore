@@ -17,6 +17,7 @@
 
 namespace ug
 {
+
 ///	adds two matrices and stores the result in a third one
 // mOut = m1 + m2
 template <typename matrix_t>
@@ -485,6 +486,30 @@ LeftInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){Inverse(mOut, m);}
 template <>
 inline void
 LeftInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
+
+template <typename T>
+inline
+typename MathMatrix<1,1,T>::value_type
+Trace(const MathMatrix<1,1,T>& m)
+{
+	return m(0,0);
+}
+
+template <typename T>
+inline
+typename MathMatrix<2,2,T>::value_type
+Trace(const MathMatrix<2,2,T>& m)
+{
+	return (m(0,0)+m(1,1));
+}
+
+template <typename T>
+inline
+typename MathMatrix<3,3,T>::value_type
+Trace(const MathMatrix<3,3,T>& m)
+{
+	return 	m(0,0)+m(1,1)+m(2,2);
+}
 
 /// Set each matrix entry to a scalar (componentwise)
 template <typename matrix_t>
