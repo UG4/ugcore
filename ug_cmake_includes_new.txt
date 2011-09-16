@@ -73,6 +73,14 @@ option(TARGET "Set the target of this build process. Valid options are: "${targe
 option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
 option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
 
+# the following options too are pseudo cmake-options. However, they should
+# contains pathes, if set.
+option(METIS "Sets the path in which metis shall be searched.")
+option(PARMETIS "Sets the path in which parmetis shall be searched.")
+option(TETGEN "Sets the path in which tetgen shall be searched.")
+option(HYPRE "Sets the path in which hypre shall be searched.")
+option(HLIBPRO "Sets the path in which hlibpro shall be searched.")
+
 # the following options are real cmake-options
 option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
 option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
@@ -104,6 +112,7 @@ endif(NOT DOF)
 
 ################################################################################
 # We'll output the current options-setting in this section
+message(STATUS "")
 message(STATUS "Info: Current options:")
 message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOptions}")")
 message(STATUS "Info: DIM:               "${DIM}" (options are: "${dimOptions}")")
@@ -117,7 +126,14 @@ message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
 message(STATUS "Info: IGNORE_LAPACK:     "${IGNORE_LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: IGNORE_BLAS:       "${IGNORE_BLAS}" (options are: ON, OFF)")
-
+message(STATUS "")
+message(STATUS "Info: External libraries (set them to the path, which contains the library):")
+message(STATUS "Info: METIS:    "${METIS})
+message(STATUS "Info: PARMETIS: "${PARMETIS})
+message(STATUS "Info: TETGEN:   "${TETGEN})
+message(STATUS "Info: HYPRE:    "${HYPRE})
+message(STATUS "Info: HLIBPRO:  "${HLIBPRO})
+message(STATUS "")
 
 ################################################################################
 # Options are processed in this section.
@@ -321,6 +337,74 @@ if(buildAlgebra)
 		
 	endif(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
 endif(buildAlgebra)
+
+
+########################################
+# METIS
+if(METIS)
+	find_library(METIS_LIBS NAMES metis PATHS ${METIS})
+	if(METIS_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find METIS in the specified path.")
+	else(METIS_LIBS-NOTFOUND)
+		add_definitions(-DUG_METIS)
+		include_directories(${METIS}/Lib)
+		set(linkLibraries ${linkLibraries} ${METIS_LIBS})		
+	endif(METIS_LIBS-NOTFOUND)
+endif(METIS)
+
+########################################
+# PARMETIS
+if(PARMETIS)
+	find_library(PARMETIS_LIBS NAMES metis parmetis PATHS ${PARMETIS})
+	if(PARMETIS_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find PARMETIS in the specified path.")
+	else(PARMETIS_LIBS-NOTFOUND)
+		add_definitions(-DUG_PARMETIS)
+		include_directories(${PARMETIS})
+		set(linkLibraries ${linkLibraries} ${PARMETIS_LIBS})		
+	endif(PARMETIS_LIBS-NOTFOUND)
+endif(PARMETIS)
+
+########################################
+# TETGEN
+if(TETGEN)
+	find_library(TETGEN_LIBS NAMES tet PATHS ${TETGEN})
+	if(TETGEN_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find TETGEN in the specified path.")
+	else(TETGEN_LIBS-NOTFOUND)
+		add_definitions(-DUG_TETGEN -DTETLIBRARY)
+		include_directories(${TETGEN})
+		set(linkLibraries ${linkLibraries} ${TETGEN_LIBS})
+	endif(TETGEN_LIBS-NOTFOUND)
+endif(TETGEN)
+
+########################################
+# HYPRE
+if(HYPRE)
+	find_library(HYPRE_LIBS HYPRE PATHS ${HYPRE})
+
+	if(HYPRE_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find HYPRE in the specified path.")
+	else(HYPRE_LIBS-NOTFOUND)
+		add_definitions(-DHYPRELIB_DIR)
+		include_directories(${HYPRE}/../include/)
+		set(linkLibraries ${linkLibraries} ${HYPRE_LIBS})
+	endif(HYPRE_LIBS-NOTFOUND)
+endif(HYPRE)
+
+########################################
+# HLIBPRO
+if(HLIBPRO)
+	find_library(HLIBPRO_LIBS NAMES hpro PATHS ${HLIBPRO})
+	if(HLIBPRO_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find HLIBPRO in the specified path.")
+	else(HLIBPRO_LIBS-NOTFOUND)
+		add_definitions(-DHLIBPROLIB_DIR)
+		include_directories(${HLIBPRO}/../../../include/)
+		include_directories(${HLIBPRO}/../../../src/include/)
+		set(linkLibraries ${linkLibraries} ${HLIBPRO_LIBS})
+	endif(HLIBPRO_LIBS-NOTFOUND)
+endif(HLIBPRO)
 
 
 ################################################################################

@@ -71,7 +71,7 @@
 
 if(USE_NEW_CMAKE_INCLUDES)
 	if(NOT UG_CMAKE_INCLUDES_INCLUDED)
-		message(STATUS "Using new cmake includes. Expect errors!")
+		message(STATUS "Using new cmake includes. Proceed on your own risk!")
 		get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 		include(${UG_ROOT_PATH}/ug_cmake_includes_new.txt)
 		set(UG_SHARED ON)
