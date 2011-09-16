@@ -71,7 +71,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		LFEID m_id;
 
 	//  exact solution
-		typedef boost::function<void (number&, const MathVector<dim>&, number)> ExactSolFunctor;
+		typedef boost::function<void (number&, const MathVector<worldDim>&, number)> ExactSolFunctor;
 		ExactSolFunctor m_ExactSolution;
 
 	//	time
@@ -176,11 +176,11 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 		LFEID m_id;
 
 	// 	exact solution
-		typedef boost::function<void (number&, const MathVector<dim>&, number)> ExactSolFunctor;
+		typedef boost::function<void (number&, const MathVector<worldDim>&, number)> ExactSolFunctor;
 		ExactSolFunctor m_ExactSolution;
 
 	// 	exact gradient
-		typedef boost::function<void (MathVector<dim>&, const MathVector<dim>&, number)> ExactGradFunctor;
+		typedef boost::function<void (MathVector<worldDim>&, const MathVector<worldDim>&, number)> ExactGradFunctor;
 		ExactGradFunctor m_ExactGrad;
 
 	//	time
@@ -242,7 +242,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 				m_ExactSolution(exactSolIP, vGlobIP[ip], m_time);
 
 			//	compute exact gradient at integration point
-				MathVector<dim> exactGradIP;
+				MathVector<worldDim> exactGradIP;
 				m_ExactGrad(exactGradIP, vGlobIP[ip], m_time);
 
 			//	compute shape gradients at ip
