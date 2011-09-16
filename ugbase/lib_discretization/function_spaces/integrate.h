@@ -44,7 +44,7 @@ public:
 /// This class provides the integrand for the L2 error of a grid function.
 /** For each element, it returns the L2 error in the integration points.*/
 template <typename TElem, typename TGridFunction>
-class L2ErrorIntegrand : Integrand< L2ErrorIntegrand<TElem, TGridFunction>, TElem, TGridFunction>{
+class L2ErrorIntegrandTmp : Integrand< L2ErrorIntegrandTmp<TElem, TGridFunction>, TElem, TGridFunction>{
 
 private:
 	// grid function
@@ -64,7 +64,7 @@ public:
 
 	//typedef TElem element_type;
 	/// constructor
-	L2ErrorIntegrand(TGridFunction &f, size_t fctid,
+	L2ErrorIntegrandTmp(TGridFunction &f, size_t fctid,
 			boost::function<void (number&, const MathVector<TGridFunction::domain_type::dim>&, number)> e,
 			number t) :
 				//	grid function and id of shape functions used
@@ -169,7 +169,7 @@ bool SumValuesForSubsetGroup( number& addValue,
 
 	// initialize local class
 	// NOTE: This is independent of the rest and may be provided as its own class!!!
-	L2ErrorIntegrand<TElem,TGridFunction> integrand= L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution, time);
+	L2ErrorIntegrandTmp<TElem,TGridFunction> integrand= L2ErrorIntegrandTmp<TElem,TGridFunction>(u, fct, ExactSolution, time);
 
 //	get quadrature Rule
 	const QuadratureRule<dim>& rQuadRule
@@ -195,7 +195,7 @@ bool SumValuesForSubsetGroup( number& addValue,
 
 	// initialize local class
 	// NOTE: This is independent of the rest and may be provided as its own class!!!
-	//L2ErrorIntegrand<TElem,TGridFunction> local = L2ErrorIntegrand<TElem,TGridFunction>(u, fct, ExactSolution);
+	//L2ErrorIntegrandTmp<TElem,TGridFunction> local = L2ErrorIntegrandTmp<TElem,TGridFunction>(u, fct, ExactSolution);
 
 
 // 	iterate over all elements
@@ -299,7 +299,7 @@ static number invoke(	boost::function<void (
 		switch(ssGrp.dim(i))
 		{
 		case 1:
-			// L2ErrorIntegrand<Edge, TGridFunction> integrand(InterpolFunction, u, time);
+			// L2ErrorIntegrandTmp<Edge, TGridFunction> integrand(InterpolFunction, u, time);
 			// bRes &= SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, integrand, si);
 			bRes &= SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
