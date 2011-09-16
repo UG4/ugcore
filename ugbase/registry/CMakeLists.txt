@@ -18,8 +18,9 @@ set(srcRegistry    	registry.cpp
 					class_helper.cpp)
 
 set(Sources ${srcRegistry})
-EXPORTSOURCES(registry  ${Sources})
 
-if(NOT UG_SHARED)
-add_library(registry  ${Sources})
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES(registry  ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(registry  ${Sources})
+endif(BUILD_ONE_LIB)

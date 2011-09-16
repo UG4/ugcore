@@ -45,17 +45,19 @@ else(USE_READLINE)
 endif(USE_READLINE)
 message(STATUS)
 
-add_executable(ugshell ${srcUGShell})
+add_executable(${targetExecutableName} ${srcUGShell})
 
 if(libReadline)
-	target_link_libraries(ugshell readline)
+	target_link_libraries(${targetExecutableName} readline)
 endif(libReadline)
 
-if(UG_SHARED)
+if(STATIC)
+# if we're compiling with the new cmake_includes, then we have to link
+# against the ug4_s static library
+	if(USE_NEW_CMAKE_INCLUDES)
+		target_link_libraries(${targetExecutableName} ${targetLibraryName})
+	endif(USE_NEW_CMAKE_INCLUDES)
+else(STATIC)
 # link the dynamic library
-	target_link_libraries (ugshell ug4)
-else(UG_SHARED)
-# link the static library (only a fragment of the dynamic ug4 library)
-# the rest is automatically linked in ug_cmake_includes.txt
-	target_link_libraries (ugshell ug)
-endif(UG_SHARED)
+	target_link_libraries (${targetExecutableName} ${targetLibraryName})
+endif(STATIC)

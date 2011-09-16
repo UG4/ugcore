@@ -28,11 +28,12 @@ set(srcBindingsVRL
 
 
 set(Sources ${srcBindingsVRL})
-EXPORTSOURCES(bindings_vrl  ${Sources})
 
-if(NOT UG_SHARED)
-add_library(bindings_vrl  ${Sources})
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES(bindings_vrl  ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(bindings_vrl  ${Sources})
+endif(BUILD_ONE_LIB)
 
 
 

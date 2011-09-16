@@ -25,8 +25,8 @@ set(srcTraversers	traversers/traverser_collision_tree.cpp
 set(Sources     ${srcNodeTree} ${srcTraversers})
 
 
-ExportSources("node_tree" ${Sources})
-
-if(NOT UG_SHARED)
-add_library(node_tree STATIC ${Sources})
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	ExportSources("node_tree" ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(node_tree STATIC ${Sources})
+endif(BUILD_ONE_LIB)

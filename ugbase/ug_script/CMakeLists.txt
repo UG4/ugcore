@@ -10,9 +10,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# This include directory is required by lib_grid.
-include_directories(${P_UGBASE_SOURCE_DIR})
-
 include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 
 include("../../ug_cmake_includes.txt")
@@ -81,20 +78,21 @@ set(srcUGScript		ug_script.cpp
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
-if(NOT NO_ALGEBRA)
+if(buildAlgebra)
 	# add the source files
 	set(srcUGScript ${srcUGScript}
 					user_data/user_data.cpp
 					extensions/algebra_extensions.cpp)
 
-else(NOT NO_ALGEBRA)
+else(buildAlgebra)
 
-endif(NOT NO_ALGEBRA)
+endif(buildAlgebra)
 
 
 set(Sources ${srcUGScript} ${srcLua})
-EXPORTSOURCES(ug_script  ${Sources})
 
-if(NOT UG_SHARED)
-add_library(ugscript  ${Sources})
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES(ug_script  ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(ugscript  ${Sources})
+endif(BUILD_ONE_LIB)

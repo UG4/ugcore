@@ -69,6 +69,18 @@
 # - UG_PARALLEL is defined if NO_PCL is set to OFF and NO_MPI is set to OFF.
 ################################################
 
+if(USE_NEW_CMAKE_INCLUDES)
+	if(NOT UG_CMAKE_INCLUDES_INCLUDED)
+		message(STATUS "Using new cmake includes. Expect errors!")
+		get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
+		include(${UG_ROOT_PATH}/ug_cmake_includes_new.txt)
+		set(UG_SHARED ON)
+		add_definitions(-DUG_PLUGINS)
+		set(UG_PROFILER ${PROFILER})
+		set(UG_DEBUG ${DEBUG})
+		set(UG_CMAKE_INCLUDES_INCLUDED on)
+	endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
+endif(USE_NEW_CMAKE_INCLUDES)
 
 # Make sure code is only executed once.
 if(NOT UG_CMAKE_INCLUDES_INCLUDED)
@@ -198,6 +210,14 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		message(STATUS "INFO: Debug logs disabled.(Enable debug logs by defining -DUG_ENABLE_DEBUG_LOGS=ON)")
 	endif(UG_ENABLE_DEBUG_LOGS)
 		
+	# Enables or disables compilation of the shell
+	if(NO_SHELL)
+		set(buildUGShell OFF)
+	else(NO_SHELL)
+		set(buildUGShell ON)
+		set(targetExecutableName ugshell)
+	endif(NO_SHELL)
+	
 	# Saturn is an OSX profiler. Specify -DUSE_SATURN=ON to generate an
 	# executable which is compatible with saturn.
 	if(USE_SATURN)
@@ -300,6 +320,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	#######################
 	# ALGEBRA
  	if (NOT NO_ALGEBRA)
+ 		set(buildAlgebra ON)
 		add_definitions(-DUG_ALGEBRA)
 		if(NOT HYPRE)
 			message(STATUS "INFO: Not using HYPRE. (To enable HYPRE define -DHYPRE=ON)")
@@ -339,6 +360,9 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 				message(WARNING " HLibPro not found! Compiling WITHOUT HLIBPRO.")
 			endif(HLIBPROLIB_DIR)
 		endif(NOT HLIBPRO)
+		
+	else(NOT NO_ALGEBRA)
+		set(buildAlgebra OFF)
 	endif(NOT NO_ALGEBRA)
 
 	#######################
@@ -346,10 +370,10 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	# clear UG_LIBRARIES
 	# THE ORDER OF THE LIBRARIES IN UG_LIBRARIES IS CRUCIAL FOR THE LINKER
 
-    set(UG_LIBRARIES)
+    set(UG_LIBRARIES ugbase)
 
     if(NOT NO_UGBRIDGE)
-        set(UG_LIBRARIES ugscript ugbridge)
+        set(UG_LIBRARIES ${UG_LIBRARIES} ugscript ugbridge)
     endif(NOT NO_UGBRIDGE)
 
 	if(NOT NO_ALGEBRA)
@@ -370,8 +394,10 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	if(NOT NO_PCL AND MPI_FOUND)
 		set(UG_LIBRARIES ${UG_LIBRARIES} pcl)
 		ADD_DEFINITIONS(-DUG_PARALLEL)
+		set(PARALLEL ON)
 		message(STATUS "INFO: Compiling parallel (UG_PARALLEL)")
 	else(NOT NO_PCL AND MPI_FOUND)
+		set(PARALLEL OFF)
 		message(STATUS "INFO: NOT compiling parallel (NO_PCL=${NO_PCL}, NO_MPI=${NO_MPI}, MPI_FOUND=${MPI_FOUND})")
 	endif(NOT NO_PCL AND MPI_FOUND)
 
@@ -441,6 +467,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 
 	
 	if(UG_PLUGINS)
+		set(buildCorePlugins ON)
 		if(NOT UG_SHARED)
 			message(FATAL_ERROR "If UG_PLUGINS is activated, then UG_SHARED has to be activated, too!")
 		endif(NOT UG_SHARED)
@@ -455,6 +482,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
         endif(UNIX)
 
 	else(UG_PLUGINS)
+		set(buildCorePlugins OFF)
 		REMOVE_DEFINITIONS(-DUG_PLUGINS)
 		message(STATUS "INFO: plugins not suppored (To enable plugins, define -DUG_PLUGINS=ON)")
 	endif(UG_PLUGINS)
@@ -602,7 +630,10 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     ####
 
     if(FOR_VRL)
+    	set(buildForVRL ON)
         set(UG_SHARED ON)
+    else(FOR_VRL)
+    	set(buildForVRL OFF)
     endif(FOR_VRL)
 
     if(UG_SHARED AND FOR_VRL)
@@ -613,5 +644,16 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     else(UG_SHARED AND FOR_VRL)
 		message(STATUS "INFO: Not Building for VRL! (To enable VRL define -DFOR_VRL=ON)")
     endif(UG_SHARED AND FOR_VRL)
+    
+    if(UG_SHARED)
+    	set(buildDynamicLib ON)
+    	set(BUILD_ONE_LIB ON)
+    	set(targetLibraryName ug4)
+    	set(STATIC OFF)
+    else(UG_SHARED)
+    	set(buildDynamicLib OFF)
+    	set(BUILD_ONE_LIB OFF)
+    	set(STATIC ON)
+    endif(UG_SHARED)
     
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)

@@ -95,14 +95,15 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 	if (firstCall) {
 		firstCall = false;
 
-	//todo: If initPaths fails, something should be done...
-		InitPaths((*argvp)[0]);
-
 #ifdef UG_PARALLEL
 //		pcl::Init(argc, argv);
 		pcl::Init(argcp, argvp);
 		pcl::SetOutputProcRank(parallelOutputProcRank);
+		UG_LOG("PARALLEL!!!\n");
 #endif
+
+	//todo: If initPaths fails, something should be done...
+		InitPaths((*argvp)[0]);
 
 		//	initialize ug-interfaces
 		if(!bridge::RegisterStandardInterfaces(bridge::GetUGRegistry()))

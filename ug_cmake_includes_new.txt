@@ -1,0 +1,430 @@
+################################################################################
+# created by Sebastian Reiter, Andreas Vogel, Martin Rupp, Michael Hoffer, ...
+# s.b.reiter@googlemail.com
+#
+# This file handles all options, with which ug can be compiled. Depending on
+# those options, it then resolves all dependencies by adding required
+# include-paths and by linking to required libraries.
+# It also sets associated defines which can be queried in C and C++ Code.
+#
+# If you're creating an executable or a library which mainly depends on ug4,
+# including this file in your CMakeLists.txt may be a good idea.
+################################################################################
+
+################################################################################
+# Make sure code is only executed once.
+# (no indent here, since it affects the whole file)
+if(NOT UG_CMAKE_INCLUDES_INCLUDED)
+set(UG_CMAKE_INCLUDES_INCLUDED on)
+
+
+################################################################################
+# include ug header and library path
+get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
+include_directories(${UG_ROOT_PATH}/ugbase)
+link_directories(${UG_ROOT_PATH}/lib)
+
+################################################################################
+# We want the code to be built into one library (except the plugins, of course)
+set(BUILD_ONE_LIB ON)
+
+################################################################################
+# In this section we'll define default variables
+	
+# Values for the TARGET option
+set(targetOptions "ugshell, vrl, libug4, libgrid, gridshell")
+set(targetDefault "ugshell")
+set(targetExecutableName ugshell)
+set(targetLibraryName ug4)
+
+# Values for the DIM option
+#todo: add 1;2, 1;3, 2;3 (problematic since ';' is a list-separator)
+set(dimOptions "1, 2, 3, ALL")
+set(dimDefault "ALL")
+
+# Values for the DOF option
+set(dofOptions "GEN, P1")
+set(dofDefault "P1")
+
+# Those variables control the build process. They are later modified depending
+# on the value of TARGET.
+set(buildUGShell OFF)
+set(buildForVRL OFF)
+set(buildAlgebra OFF)
+set(buildCorePlugins OFF)
+set(buildSharedLib OFF)
+
+# Here we'll store libs, if we find and need them
+set(linkLibraries)
+
+# We'll reset CMAKE_CXX_FLAGS, since many options are adding some values.
+# Removal of single values from CMAKE_CXX_FLAGS would be hard...
+set(CMAKE_CXX_FLAGS "")
+
+
+
+################################################################################
+# All available options should be defined here:
+# cmake-options can either be on or off.
+
+# the following options are pseudo cmake-options (normal options only support ON and OFF).
+# Their default values are defined in the section below.
+option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
+option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
+option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
+
+# the following options are real cmake-options
+option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
+option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
+option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
+option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ON)
+option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
+option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
+option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
+option(IGNORE_LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" OFF)
+option(IGNORE_BLAS "Blas won't be used, even if available. Valid options are ON, OFF" OFF)
+
+# set default values for pseudo-options
+if(NOT TARGET)
+	set(TARGET ${targetDefault})
+endif(NOT TARGET)
+
+if(NOT DIM)
+	set(DIM ${dimDefault})
+endif(NOT DIM)
+
+if(NOT DOF)
+	set(DOF ${dofDefault})
+endif(NOT DOF)
+
+
+################################################################################
+# We'll output the current options-setting in this section
+message(STATUS "Info: TARGET is set to "${TARGET}" (options are: "${targetOptions}")")
+message(STATUS "Info: DIM is set to "${DIM}" (options are: "${dimOptions}")")
+message(STATUS "Info: DOF is set to "${DOF}" (options are: "${dofOptions}")")
+message(STATUS "Info: STATIC is set to "${STATIC}" (options are: ON, OFF)")
+message(STATUS "Info: DEBUG is set to "${DEBUG}" (options are: ON, OFF)")
+message(STATUS "Info: DEBUG_LOGS is set to "${DEBUG_LOGS}" (options are: ON, OFF)")
+message(STATUS "Info: PARALLEL is set to "${PARALLEL}" (options are: ON, OFF)")
+message(STATUS "Info: PCL_DEBUG_BARRIER is set to "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILER is set to "${PROFILER}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILE_PCL is set to "${PROFILE_PCL}" (options are: ON, OFF)")
+message(STATUS "Info: IGNORE_LAPACK is set to "${IGNORE_LAPACK}" (options are: ON, OFF)")
+message(STATUS "Info: IGNORE_BLAS is set to "${IGNORE_BLAS}" (options are: ON, OFF)")
+
+
+################################################################################
+# Options are processed in this section.
+
+########################################
+# TARGET
+# The target option enables specific build variables
+if("${TARGET}" STREQUAL "ugshell")
+	set(buildUGShell ON)
+	set(buildAlgebra ON)
+	set(buildCorePlugins ON)
+	
+elseif("${TARGET}" STREQUAL "vrl")
+	# The vrl works only, if a dynamic library is built.
+	if(STATIC)
+		message(FATAL_ERROR "ug4 for vrl can only be build as a dynamic library. Please set STATIC = OFF.")
+	endif(STATIC)
+	
+	set(buildAlgebra ON)
+	set(buildForVRL ON)
+	set(buildCorePlugins ON)
+	#todo: rename targetLibraryName to ug4_vrl
+	#set(targetLibraryName ug4_vrl)
+	
+elseif("${TARGET}" STREQUAL "libug4")
+	set(buildAlgebra ON)
+	set(buildCorePlugins ON)
+	
+elseif("${TARGET}" STREQUAL "libgrid")
+	set(targetLibraryName grid)
+
+elseif("${TARGET}" STREQUAL "gridshell")
+	set(buildUGShell ON)
+	set(targetExecutableName gridshell)
+	set(targetLibraryName grid)
+
+elseif("${TARGET}" STREQUAL "plugin")
+	# The plugin-target does not do anything specific.
+	# It is only there to allow a more clean output.
+	# Note that the STATIC option for plugins should not change the fact,
+	# that a plugin is compiled as a dynamic library. However, the plugin
+	# should try to link against the static ug4_s library.
+	
+else("${TARGET}" STREQUAL "ugshell")
+	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})
+endif("${TARGET}" STREQUAL "ugshell")
+
+
+########################################
+# STATIC
+# If STATIC is enabled, then a static ug-lib will be built. This will add a
+# _s suffix to the resulting lib name.
+if(STATIC)
+	set(buildDynamicLib OFF)
+	set(targetLibraryName ${targetLibraryName}_s)
+else(STATIC)
+	set(buildDynamicLib ON)
+endif(STATIC)
+
+
+########################################
+# DIM
+# The dim option sets defines for C and C++
+if("${DIM}" STREQUAL "ALL")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3")
+	
+else("${DIM}" STREQUAL "ALL")
+	# DIM is a string of dimensions (e.g. "1;2")
+	# loop dims
+	foreach(d ${DIM})
+		# check if dim is valid
+		if(d GREATER 3 OR d LESS 1)
+			message(FATAL_ERROR "ERROR: Cannot build world dimension ${d}. "
+								"Valid options are: "${dimOptions})
+		endif(d GREATER 3 OR d LESS 1)
+	
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
+	endforeach(d)
+endif("${DIM}" STREQUAL "ALL")
+
+########################################
+# DoFManager
+if("${DOF}" STREQUAL "GEN")
+	# if DOF is "GEN"
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_GEN")
+
+elseif("${DOF}" STREQUAL "P1")
+	# if DOF is "P1"
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_P1")
+
+else("${DOF}" STREQUAL "GEN")
+	message(FATAL_ERROR "ERROR: Invalid DoFManager specified. Valid options are: "${dofOptions})
+endif("${DOF}" STREQUAL "GEN")
+
+
+########################################
+# DEBUG
+if(DEBUG)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
+	add_definitions(-DUG_DEBUG)
+	
+	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
+	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
+	# when this bug is fixed, one could set those flags (or similar) depending on the compiler.
+	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1")
+
+else(DEBUG)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize")
+	remove_definitions(-DUG_DEBUG)
+endif(DEBUG)
+
+if(DEBUG_LOGS)
+	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
+else(DEBUG_LOGS)
+	remove_definitions(-DUG_ENABLE_DEBUG_LOGS)
+endif(DEBUG_LOGS)
+
+########################################
+# PARALLEL
+if(PARALLEL)
+	add_definitions(-DUG_PARALLEL)	
+else(PARALLEL)
+	remove_definitions(-DUG_PARALLEL)
+endif(PARALLEL)
+
+
+########################################
+# PROFILER
+if(PROFILER)
+	add_definitions(-DUG_PROFILER)
+else(PROFILER)
+	remove_definitions(-DUG_PROFILER)
+endif(PROFILER)
+
+
+########################################
+# PROFILE_PCL
+if(PROFILE_PCL)
+	add_definitions(-DPROFILE_PCL)
+else(PROFILE_PCL)
+	remove_definitions(-DPROFILE_PCL)
+endif(PROFILE_PCL)
+
+
+########################################
+# PCL_DEBUG_BARRIER
+if(PCL_DEBUG_BARRIER)
+	add_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
+else(PCL_DEBUG_BARRIER)
+	remove_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
+endif(PCL_DEBUG_BARRIER)
+
+
+########################################
+# buildAlgebra
+if(buildAlgebra)
+	add_definitions(-DUG_ALGEBRA)
+	
+	# we'll check for lapack and blas here
+	if(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
+		# a fortran compiler is required to find the packages
+		# Sadly there seems to be a cmake-bug, hence the following workaround.
+		# ENABLE_LANGUAGE workaround begin (issue 0009220)
+		if(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+		  set(CMAKE_Fortran_COMPILER CMAKE_Fortran_COMPILER-NOTFOUND)
+		endif(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+		# ENABLE_LANGUAGE workaround end (issue 0009220)
+		
+		ENABLE_LANGUAGE(Fortran OPTIONAL)
+		if(CMAKE_Fortran_COMPILER_WORKS)
+			if(NOT IGNORE_LAPACK)
+				find_package(LAPACK)
+			endif(NOT IGNORE_LAPACK)
+			
+			if(NOT IGNORE_BLAS)
+				find_package(BLAS)
+			endif(NOT IGNORE_BLAS)
+			
+		else(CMAKE_Fortran_COMPILER_WORKS)
+			if(APPLE)
+				if(NOT IGNORE_LAPACK)
+					set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
+					FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
+					if(LAPACK_INCLUDE_PATH)
+			  			set(LAPACK_FOUND YES)
+			  		endif(LAPACK_INCLUDE_PATH)
+				endif(NOT IGNORE_LAPACK)
+				
+				if(NOT IGNORE_BLAS)
+					set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
+					find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
+					set(BLAS_FOUND YES)
+					if(BLAS_INCLUDE_PATH)
+						set(BLAS_FOUND YES)
+					endif(BLAS_INCLUDE_PATH)
+				endif(NOT IGNORE_BLAS)
+			endif(APPLE)
+		endif(CMAKE_Fortran_COMPILER_WORKS)
+		
+	# We'll output whether lapack and blas are used, to avoid misconceptions
+		if(LAPACK_FOUND)
+			message(STATUS "Info: Using Lapack")
+			include_directories (${LAPACK_INCLUDE_PATH})
+			set(linkLibraries ${linkLibraries} ${LAPACK_LIBRARIES})
+			add_definitions(-DLAPACK_AVAILABLE)
+		else(LAPACK_FOUND)	
+			message(STATUS "Info: Not using Lapack. No package found.")
+			remove_definitions(-DLAPACK_AVAILABLE)
+		endif(LAPACK_FOUND)
+		
+		if(BLAS_FOUND)
+			message(STATUS "Info: Using Blas")
+			include_directories (${BLAS_INCLUDE_PATH})
+			set(linkLibraries ${linkLibraries} ${BLAS_LIBRARIES})
+			add_definitions(-DBLAS_AVAILABLE)
+		else(BLAS_FOUND)	
+			message(STATUS "Info: Not using Blas. No package found.")
+			remove_definitions(-DBLAS_AVAILABLE)
+		endif(BLAS_FOUND)
+		
+	endif(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
+	
+else(buildAlgebra)
+	remove_definitions(-DUG_ALGEBRA)
+endif(buildAlgebra)
+
+
+################################################################################
+# find and collect required libraries
+
+########################################
+# boost
+find_package(Boost)
+
+if(Boost_FOUND)
+	if(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+		#message(STATUS "Info: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}').")
+		
+		# add include path
+		include_directories (${Boost_INCLUDE_DIRS})
+		
+	else(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+		# we require a newer version of boost
+		message(FATAL_ERROR " BOOST in ${Boost_INCLUDE_DIRS} is not compatible (required 1.40.0, but is ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}) . NO Boost available. Aborting.")	
+	endif(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+else(Boost_FOUND)
+	message(FATAL_ERROR " BOOST not found! NO Boost available, but at least boost 1.40.0 is required. Aborting.")
+endif(Boost_FOUND)
+
+
+########################################
+# dynamic linking
+if(UNIX)
+    set(linkLibraries ${linkLibraries} dl)
+elseif(WIN32)
+	set(linkLibraries ${linkLibraries} Kernel32)
+endif(UNIX)
+
+
+########################################
+# MPI
+if(PARALLEL)
+	# MPI is required for parallel builds
+	find_package(MPI)
+	if(MPI_FOUND)
+		include_directories(${MPI_INCLUDE_PATH})
+		set(linkLibraries ${linkLibraries} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
+	else(MPI_FOUND)
+		message(FATAL_ERROR "MPI missing! MPI is required for parallel builds. Aborting.")
+	endif(MPI_FOUND)
+endif(PARALLEL)
+
+
+########################################
+# JNI
+if(buildForVRL)
+	find_package(JNI REQUIRED)
+    include_directories(${JNI_INCLUDE_DIRS})
+	add_definitions(-DFOR_VRL)
+endif(buildForVRL)
+
+
+################################################################################
+# link against required libraries
+link_libraries(${linkLibraries})
+
+
+################################################################################
+# Finally declare a method that allows all sub-cmake-files to add their sources
+# to a common library.
+
+#######################
+# Export sources to global variable.
+# PURPOSE: use this function to add local package sources to global
+#          ugSources property which is used to build libug4
+# @param prefix current directory prefix
+# @param sources sources list to export
+function(ExportSources prefix sources)
+    # iterate over all arguments and insert given prefix
+    foreach(l ${ARGV})
+        # FIXME: this is a hack to omit the first argument
+        #        which is the prefix. Shall we use boolean or index variable?
+        if(NOT "${l}" STREQUAL "${prefix}")
+            # retrieve the global property ugSources and store it
+            # in tmp variable
+            # NOTE: properties must be assigned to variables before being used
+            get_property(tmp GLOBAL PROPERTY ugSources)
+            # append tmp to the global ugSources property using the correct prefix
+            set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
+        endif(NOT "${l}" STREQUAL "${prefix}")
+    endforeach(l)
+endfunction(ExportSources)
+
+
+endif(NOT UG_CMAKE_INCLUDES_INCLUDED)

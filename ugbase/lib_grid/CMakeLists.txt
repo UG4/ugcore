@@ -85,7 +85,7 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				)
 
 
-if(NOT NO_MPI)
+if(PARALLEL)
 	# add parallelization
 	set(srcParallelization	parallelization/grid_distribution.cpp
 							parallelization/grid_redistribution.cpp
@@ -96,10 +96,9 @@ if(NOT NO_MPI)
 							# (unmaintained) parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
 							parallelization/util/distribution_util.cpp
 							parallelization/util/redistribution_util.cpp)	
-else(NOT NO_MPI)
-	# give a warning that pcl will not be compiled.
+else(PARALLEL)
 	set(srcParallelization )
-endif(NOT NO_MPI)
+endif(PARALLEL)
 
 ################################################
 # EXTERNALS - liblgm
@@ -133,11 +132,11 @@ set(Sources
 					${srcAlgorithms} ${srcFileIO}
 					${srcTokstream} ${srcTetgen} ${srcLgm} ${srcNg})
 
-EXPORTSOURCES("lib_grid" ${Sources})
-
-if(NOT UG_SHARED)
-add_library(grid STATIC	${Sources})
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES("lib_grid" ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(grid STATIC	${Sources})
+endif(BUILD_ONE_LIB)
 
 #for debug only
 #add_library(grid ${srcGrid} ${srcLibGrid})

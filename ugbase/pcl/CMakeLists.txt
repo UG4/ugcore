@@ -17,8 +17,8 @@ set(srcPcl	pcl_base.cpp
 			pcl_process_communicator.cpp
 			pcl_util.cpp)
 
-EXPORTSOURCES(pcl ${srcPcl})
-
-if(NOT UG_SHARED)
-add_library(pcl ${srcPcl})
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES(pcl ${srcPcl})
+else(BUILD_ONE_LIB)
+	add_library(pcl ${srcPcl})
+endif(BUILD_ONE_LIB)

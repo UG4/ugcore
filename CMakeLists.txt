@@ -24,6 +24,6 @@ include("ug_cmake_includes.txt")
 add_subdirectory(ugbase)
 
 # compile core plugins
-if(UG_PLUGINS)
+if(buildCorePlugins)
 	add_subdirectory(plugins/core)
-endif(UG_PLUGINS)
+endif(buildCorePlugins)

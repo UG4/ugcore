@@ -43,7 +43,8 @@ endif(UG_PROFILER)
 # Platform dependend code
 ################################################################################
 if(UNIX)
-	set(sources ${sources} os_dependent/file_util_posix.cpp)
+	set(sources ${sources}	os_dependent/file_util_posix.cpp
+							os_dependent/plugin_util_unix.cpp)
 	
 	if(MAC)
 		set(sources ${sources} os_dependent/os_info_osx.cpp)
@@ -51,12 +52,9 @@ if(UNIX)
 		set(sources ${sources} os_dependent/os_info_linux.cpp)
 	endif(MAC)
 
-	if(UG_PLUGINS)
-		set(sources ${sources} os_dependent/plugin_util_unix.cpp)
-	endif(UG_PLUGINS)
-
 elseif(WIN32)
-	set(sources ${sources} os_dependent/os_info_win.cpp)
+	set(sources ${sources}	os_dependent/os_info_win.cpp
+							os_dependent/plugin_util_win.cpp)
 	
 	if(MINGW)
 		set(sources ${sources} os_dependent/file_util_posix.cpp)
@@ -64,24 +62,16 @@ elseif(WIN32)
 	else(MINGW)
 	endif(MINGW)
 	
-	if(UG_PLUGINS)
-		set(sources ${sources} os_dependent/plugin_util_win.cpp)
-	endif(UG_PLUGINS)
-	
-	
 else(UNIX)
 	message(STATUS "YOUR OS IS NOT FULLY SUPPORTED. Methods in common/os_dependent won't be available!")
-	if(UG_PLUGINS)
-		message(FATAL_ERROR "Plugins not yet supported for this platform. Consider deactivating plugins through cmake -DUG_PLUGINS=OFF")
-	endif(UG_PLUGINS)
 endif(UNIX)
 
 
 ################################################################################
 #	add sources to library
 ################################################################################
-EXPORTSOURCES("common" ${sources})
-
-if(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES("common" ${sources})
+else(BUILD_ONE_LIB)
 	add_library(common ${sources})
-endif(NOT UG_SHARED)
+endif(BUILD_ONE_LIB)

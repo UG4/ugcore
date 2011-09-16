@@ -11,40 +11,37 @@ project (P_LIB_ALGEBRA)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-if(NOT NO_ALGEBRA)
-	set(src_Algebra)
+set(src_Algebra)
 
-	##########################
-	# cpu algebra
-	##########################
+##########################
+# cpu algebra
+##########################
 
 
-	##########################
+##########################
 
-	set(src_Algebra	 ${src_Algebra}
-		operator/preconditioner/amg/rsamg/rsamg_coarsening.cpp
-		operator/preconditioner/amg/famg/famg.cpp
-		operator/preconditioner/amg/agglomeration.cpp
-		operator/preconditioner/amg/global_layout.cpp		
-		 )
+set(src_Algebra	 ${src_Algebra}
+	operator/preconditioner/amg/rsamg/rsamg_coarsening.cpp
+	operator/preconditioner/amg/famg/famg.cpp
+	operator/preconditioner/amg/agglomeration.cpp
+	operator/preconditioner/amg/global_layout.cpp		
+	 )
 
-if(NOT NO_PCL)
+if(PARALLEL)
 	# add parallelization
 	set(src_Algebra	 ${src_Algebra}
 						operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
 						parallelization/parallel_coloring.cpp						
 						 )
-endif(NOT NO_PCL)
+endif(PARALLEL)
 
-	##########################
-	# setup library
-        EXPORTSOURCES(lib_algebra ${src_Algebra})
-
-if(NOT UG_SHARED)
+##########################
+# setup library
+if(BUILD_ONE_LIB)
+    EXPORTSOURCES(lib_algebra ${src_Algebra})
+else(BUILD_ONE_LIB)
 	add_library(algebra ${src_Algebra} )
-	#add_dependencies(algebra common lib_algebra.h)
-endif(NOT UG_SHARED)
+endif(BUILD_ONE_LIB)
 
-endif(NOT NO_ALGEBRA)
 

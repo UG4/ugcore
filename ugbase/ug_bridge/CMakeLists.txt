@@ -27,7 +27,7 @@ set(srcUGBridge     ${srcUGBridge}
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
-if(NOT NO_ALGEBRA)
+if(buildAlgebra)
 	# add source files that depend on the algebra and discretization system here.
 	set(srcUGBridge ${srcUGBridge}
 					lib_algebra_bridges/lib_algebra_bridge.cpp
@@ -39,13 +39,14 @@ if(NOT NO_ALGEBRA)
 					lib_disc_bridges/lib_disc_domain.cpp
 					lib_disc_bridges/lib_disc_disc.cpp
 					lib_disc_bridges/lib_disc_user_data.cpp)
-else(NOT NO_ALGEBRA)
+else(buildAlgebra)
 
-endif(NOT NO_ALGEBRA)
+endif(buildAlgebra)
 
 set(Sources ${srcUGBridge})
-EXPORTSOURCES(ug_bridge  ${Sources})
 
-if(NOT UG_SHARED)
-add_library(ugbridge  ${Sources})
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES(ug_bridge  ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(ugbridge  ${Sources})
+endif(BUILD_ONE_LIB)

@@ -11,8 +11,6 @@ project(P_LIB_DISCRETIZATION)
 
 include("../../ug_cmake_includes.txt")
 
-include_directories(${P_UGBASE_SOURCE_DIR})
-
 set(srcDiscretization	common/function_group.cpp
 						common/subset_group.cpp
 						common/groups_util.cpp
@@ -60,18 +58,17 @@ set(srcDiscretization	common/function_group.cpp
 						
 
 # add parallelization
-if(NOT NO_MPI)
+if(PARALLEL)
 	set(srcParallelization	parallelization/parallelization_util.cpp)
-else(NOT NO_MPI)
+else(PARALLEL)
 	set(srcParallelization )
-endif(NOT NO_MPI)
+endif(PARALLEL)
 
 set(Sources         ${srcParallelization}
 					${srcDiscretization})
 
-EXPORTSOURCES(lib_discretization ${Sources})
-
-if(NOT UG_SHARED)
-add_library(discretization STATIC ${Sources})
-#add_dependencies(discretization algebra grid common)
-endif(NOT UG_SHARED)
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES(lib_discretization ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(discretization STATIC ${Sources})
+endif(BUILD_ONE_LIB)

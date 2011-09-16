@@ -15,8 +15,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-add_library(ug ug.cpp)
-EXPORTSOURCES(.  ug.cpp)
+set(Sources	ug.cpp)
+
+if(BUILD_ONE_LIB)
+	EXPORTSOURCES(. ${Sources})
+else(BUILD_ONE_LIB)
+	add_library(ugbase ${Sources})
+endif(BUILD_ONE_LIB)
+
 
 ########################
 # common
@@ -44,55 +50,39 @@ add_subdirectory(ug_script)
 
 ########################
 # lib_algebra and lib_discretization
-
-if(NO_ALGEBRA)
-	message(STATUS "INFO: Compiling WITHOUT algebra and discretization. (Enable compilation by defining -DNO_ALGEBRA=OFF)")
-else(NO_ALGEBRA)
-	message(STATUS "INFO: compiling 'algebra' library enabled. (To disable algebra define -DNO_ALGEBRA=ON)")
+if(buildAlgebra)
 	add_subdirectory(lib_algebra)	
-
-	message(STATUS "INFO: compiling 'discretization' library enabled")
 	add_subdirectory(lib_discretization)
-endif(NO_ALGEBRA)
+endif(buildAlgebra)
 
 
 ########################
 # pcl
-
-if(MPI_FOUND)
-	if(NO_PCL)
-		message(STATUS "INFO: not compiling 'pcl' library. (Enable compilation by defining -DNO_PCL=OFF)")
-	else(NO_PCL)
-		message(STATUS "INFO: compiling 'pcl' library. (Disable compilation by defining -DNO_PCL=ON)")
-		add_subdirectory(pcl)
-	endif(NO_PCL)
-
-else(MPI_FOUND)
-	if(NO_PCL)
-		message(STATUS "INFO: not compiling 'pcl' library. (Enable compilation by defining -DNO_PCL=OFF)")
-	else(NO_PCL)
-		message(STATUS "INFO: not compiling 'pcl' library. MPI is required!")
-	endif(NO_PCL)
-
-endif(MPI_FOUND)
+if(PARALLEL)
+	add_subdirectory(pcl)
+endif(PARALLEL)
 
 
 ########################
-# vrl_bindings or shell
-if(UG_SHARED)
-    if(FOR_VRL)
-        add_subdirectory(bindings_vrl)
-    endif(FOR_VRL)
+# vrl_bindings
+if(buildForVRL)
+    add_subdirectory(bindings_vrl)
+endif(buildForVRL)
 
-    ########################
-    # ug4 library
+########################
+# ug4 library
+if(BUILD_ONE_LIB)
+	get_property(ug4libSources GLOBAL PROPERTY ugSources)
+	if(buildDynamicLib)
+		add_library(${targetLibraryName} SHARED ${ug4libSources})
+	else(buildDynamicLib)
+		add_library(${targetLibraryName} ${ug4libSources})
+	endif(buildDynamicLib)
+endif(BUILD_ONE_LIB)
 
-    get_property(ug4libSources GLOBAL PROPERTY ugSources)
-
-    add_library(ug4 SHARED ${ug4libSources})
-endif(UG_SHARED)
-
-if(NOT NO_SHELL)
+########################
+# ug4 shell
+if(buildUGShell)
     add_subdirectory(ug_shell)
-endif(NOT NO_SHELL)
+endif(buildUGShell)
 
