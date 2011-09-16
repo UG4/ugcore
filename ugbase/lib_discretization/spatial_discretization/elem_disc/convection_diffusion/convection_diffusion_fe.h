@@ -690,11 +690,11 @@ register_all_fe_funcs(int order, int quadOrder)
 //	Tetrahedron
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 2> > FEGeom;
+		case 1:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 3> > FEGeom;
 				 register_fe_func<Tetrahedron, Provider<FEGeom> >(); break;}
-		case 2:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 4> > FEGeom;
+		case 2:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 5> > FEGeom;
 				 register_fe_func<Tetrahedron, Provider<FEGeom> >(); break;}
-		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 6> > FEGeom;
+		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 7> > FEGeom;
 				 register_fe_func<Tetrahedron, Provider<FEGeom> >(); break;}
 		default: register_fe_func<Tetrahedron, FlexGeomProvider<DimFEGeometry<dim, 3> > >();  break;
 	}
@@ -715,11 +715,11 @@ register_all_fe_funcs(int order, int quadOrder)
 //	Hexahedron
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 2> > FEGeom;
+		case 1:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 3> > FEGeom;
 				 register_fe_func<Hexahedron, Provider<FEGeom> >(); break;}
-		case 2:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 6> > FEGeom;
+		case 2:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 7> > FEGeom;
 				 register_fe_func<Hexahedron, Provider<FEGeom> >(); break;}
-		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 10> > FEGeom;
+		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 11> > FEGeom;
 				 register_fe_func<Hexahedron, Provider<FEGeom> >(); break;}
 		default: register_fe_func<Hexahedron, FlexGeomProvider<DimFEGeometry<dim, 3> > >();  break;
 	}
