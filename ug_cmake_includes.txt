@@ -474,20 +474,20 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		ADD_DEFINITIONS(-DUG_PLUGINS)
 		message(STATUS "INFO: plugins suppored (To disable plugins, define -DUG_PLUGINS=OFF)")
 
-        if(UNIX)
-            find_library(DL_LIBS NAMES dl)
-            link_libraries(${DL_LIBS})
-        elseif(WIN32)
-
-        endif(UNIX)
-
 	else(UG_PLUGINS)
 		set(buildCorePlugins OFF)
 		REMOVE_DEFINITIONS(-DUG_PLUGINS)
 		message(STATUS "INFO: plugins not suppored (To enable plugins, define -DUG_PLUGINS=ON)")
 	endif(UG_PLUGINS)
 	
-	
+	if(UNIX)
+        find_library(DL_LIBS NAMES dl)
+        link_libraries(${DL_LIBS})
+    elseif(WIN32)
+		find_library(KERNEL32_LIBS NAMES Kernel32)
+		link_libraries(${KERNEL32_LIBS})
+    endif(UNIX)
+    	
 	#######################
 	# Fortran compiler
 	# is needed for find_package(LAPACK)

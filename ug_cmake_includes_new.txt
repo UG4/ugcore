@@ -32,7 +32,7 @@ set(BUILD_ONE_LIB ON)
 # In this section we'll define default variables
 	
 # Values for the TARGET option
-set(targetOptions "ugshell, vrl, libug4, libgrid, gridshell")
+set(targetOptions "ugshell, vrl, libug4, libgrid, ugplugin")
 set(targetDefault "ugshell")
 set(targetExecutableName ugshell)
 set(targetLibraryName ug4)
@@ -86,7 +86,11 @@ option(IGNORE_BLAS "Blas won't be used, even if available. Valid options are ON,
 
 # set default values for pseudo-options
 if(NOT TARGET)
-	set(TARGET ${targetDefault})
+	if(BUILDING_PLUGIN)
+		set(TARGET ugplugin)
+	else(BUILDING_PLUGIN)
+		set(TARGET ${targetDefault})
+	endif(BUILDING_PLUGIN)
 endif(NOT TARGET)
 
 if(NOT DIM)
@@ -100,18 +104,19 @@ endif(NOT DOF)
 
 ################################################################################
 # We'll output the current options-setting in this section
-message(STATUS "Info: TARGET is set to "${TARGET}" (options are: "${targetOptions}")")
-message(STATUS "Info: DIM is set to "${DIM}" (options are: "${dimOptions}")")
-message(STATUS "Info: DOF is set to "${DOF}" (options are: "${dofOptions}")")
-message(STATUS "Info: STATIC is set to "${STATIC}" (options are: ON, OFF)")
-message(STATUS "Info: DEBUG is set to "${DEBUG}" (options are: ON, OFF)")
-message(STATUS "Info: DEBUG_LOGS is set to "${DEBUG_LOGS}" (options are: ON, OFF)")
-message(STATUS "Info: PARALLEL is set to "${PARALLEL}" (options are: ON, OFF)")
-message(STATUS "Info: PCL_DEBUG_BARRIER is set to "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
-message(STATUS "Info: PROFILER is set to "${PROFILER}" (options are: ON, OFF)")
-message(STATUS "Info: PROFILE_PCL is set to "${PROFILE_PCL}" (options are: ON, OFF)")
-message(STATUS "Info: IGNORE_LAPACK is set to "${IGNORE_LAPACK}" (options are: ON, OFF)")
-message(STATUS "Info: IGNORE_BLAS is set to "${IGNORE_BLAS}" (options are: ON, OFF)")
+message(STATUS "Info: Current options:")
+message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOptions}")")
+message(STATUS "Info: DIM:               "${DIM}" (options are: "${dimOptions}")")
+message(STATUS "Info: DOF:               "${DOF}" (options are: "${dofOptions}")")
+message(STATUS "Info: STATIC:            "${STATIC}" (options are: ON, OFF)")
+message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
+message(STATUS "Info: DEBUG_LOGS:        "${DEBUG_LOGS}" (options are: ON, OFF)")
+message(STATUS "Info: PARALLEL:          "${PARALLEL}" (options are: ON, OFF)")
+message(STATUS "Info: PCL_DEBUG_BARRIER: "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
+message(STATUS "Info: IGNORE_LAPACK:     "${IGNORE_LAPACK}" (options are: ON, OFF)")
+message(STATUS "Info: IGNORE_BLAS:       "${IGNORE_BLAS}" (options are: ON, OFF)")
 
 
 ################################################################################
@@ -144,17 +149,11 @@ elseif("${TARGET}" STREQUAL "libug4")
 elseif("${TARGET}" STREQUAL "libgrid")
 	set(targetLibraryName grid)
 
-elseif("${TARGET}" STREQUAL "gridshell")
-	set(buildUGShell ON)
-	set(targetExecutableName gridshell)
-	set(targetLibraryName grid)
-
-elseif("${TARGET}" STREQUAL "plugin")
-	# The plugin-target does not do anything specific.
-	# It is only there to allow a more clean output.
+elseif("${TARGET}" STREQUAL "ugplugin")
 	# Note that the STATIC option for plugins should not change the fact,
 	# that a plugin is compiled as a dynamic library. However, the plugin
 	# should try to link against the static ug4_s library.
+	set(buildAlgebra ON)
 	
 else("${TARGET}" STREQUAL "ugshell")
 	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})
@@ -221,21 +220,16 @@ if(DEBUG)
 
 else(DEBUG)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize")
-	remove_definitions(-DUG_DEBUG)
 endif(DEBUG)
 
 if(DEBUG_LOGS)
 	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
-else(DEBUG_LOGS)
-	remove_definitions(-DUG_ENABLE_DEBUG_LOGS)
 endif(DEBUG_LOGS)
 
 ########################################
 # PARALLEL
 if(PARALLEL)
 	add_definitions(-DUG_PARALLEL)	
-else(PARALLEL)
-	remove_definitions(-DUG_PARALLEL)
 endif(PARALLEL)
 
 
@@ -243,8 +237,6 @@ endif(PARALLEL)
 # PROFILER
 if(PROFILER)
 	add_definitions(-DUG_PROFILER)
-else(PROFILER)
-	remove_definitions(-DUG_PROFILER)
 endif(PROFILER)
 
 
@@ -252,8 +244,6 @@ endif(PROFILER)
 # PROFILE_PCL
 if(PROFILE_PCL)
 	add_definitions(-DPROFILE_PCL)
-else(PROFILE_PCL)
-	remove_definitions(-DPROFILE_PCL)
 endif(PROFILE_PCL)
 
 
@@ -261,8 +251,6 @@ endif(PROFILE_PCL)
 # PCL_DEBUG_BARRIER
 if(PCL_DEBUG_BARRIER)
 	add_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
-else(PCL_DEBUG_BARRIER)
-	remove_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
 endif(PCL_DEBUG_BARRIER)
 
 
@@ -320,7 +308,6 @@ if(buildAlgebra)
 			add_definitions(-DLAPACK_AVAILABLE)
 		else(LAPACK_FOUND)	
 			message(STATUS "Info: Not using Lapack. No package found.")
-			remove_definitions(-DLAPACK_AVAILABLE)
 		endif(LAPACK_FOUND)
 		
 		if(BLAS_FOUND)
@@ -330,13 +317,9 @@ if(buildAlgebra)
 			add_definitions(-DBLAS_AVAILABLE)
 		else(BLAS_FOUND)	
 			message(STATUS "Info: Not using Blas. No package found.")
-			remove_definitions(-DBLAS_AVAILABLE)
 		endif(BLAS_FOUND)
 		
 	endif(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
-	
-else(buildAlgebra)
-	remove_definitions(-DUG_ALGEBRA)
 endif(buildAlgebra)
 
 

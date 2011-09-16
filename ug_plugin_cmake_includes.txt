@@ -4,7 +4,7 @@
 get_filename_component(PLUGIN_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 
 # include options and dependencies from ug4
-set(TARGET plugin)
+set(BUILDING_PLUGIN ON)
 include(${PLUGIN_ROOT_PATH}/ug_cmake_includes.txt)
 
 # Plugins only work in a shared environment
