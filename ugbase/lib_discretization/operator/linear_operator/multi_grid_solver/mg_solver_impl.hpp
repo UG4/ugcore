@@ -465,10 +465,6 @@ template <typename TApproximationSpace, typename TAlgebra>
 bool AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 base_solve(size_t lev)
 {
-//	vector defined on whole grid (including ghosts) on this level
-//	are given by c, d, t
-	vector_type& d = m_vLevData[lev]->d;
-
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -484,6 +480,9 @@ base_solve(size_t lev)
 
 //	CASE a): We solve the problem in parallel (or normally for sequential code)
 #ifdef UG_PARALLEL
+//	vector defined on whole grid (including ghosts) on this level
+	vector_type& d = m_vLevData[lev]->d;
+
 	UG_DLOG(LIB_DISC_MULTIGRID, 2, "GMG: Start BaseSolver on level "<<lev<<".\n");
 	if( m_bBaseParallel ||
 	   (d.get_vertical_slave_layout().empty() &&
