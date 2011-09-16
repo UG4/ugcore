@@ -470,7 +470,7 @@ number L2ErrorDraft(
 									 integrandKernel,
 									 quadOrder);
 			}
-*/			case 2:
+			case 2:
 			{
 			//	create integration Kernel
 				L2ErrorIntegrand<TGridFunction, 2> integrandKernel(ExactSol, u, fct, time);
@@ -482,7 +482,7 @@ number L2ErrorDraft(
 									 integrandKernel,
 									 quadOrder);
 			}
-/*			case 3:
+			case 3:
 			{
 			//	create integration Kernel
 				L2ErrorIntegrand<TGridFunction, 3> integrandKernel(ExactSol, u, fct, time);
