@@ -194,6 +194,11 @@ typedef geometry_traits<EdgeBase>::iterator iterator;
 typedef geometry_traits<EdgeBase>::geometric_base_object geometric_base_object;
 
 const static size_t MaxNumVerticesOfElem = 2;
+
+typedef MathVector<1> position_type;
+typedef Attachment<position_type> position_attachment_type;
+typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+
 };
 
 // 2d
@@ -207,6 +212,10 @@ typedef geometry_traits<Face>::iterator iterator;
 typedef geometry_traits<Face>::geometric_base_object geometric_base_object;
 
 const static size_t MaxNumVerticesOfElem = 4;
+
+typedef MathVector<2> position_type;
+typedef Attachment<position_type> position_attachment_type;
+typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
 };
 
 // 3d
@@ -221,6 +230,11 @@ typedef geometry_traits<Volume>::iterator iterator;
 typedef geometry_traits<Volume>::geometric_base_object geometric_base_object;
 
 const static size_t MaxNumVerticesOfElem = 8;
+
+typedef MathVector<3> position_type;
+typedef Attachment<position_type> position_attachment_type;
+typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+
 };
 
 
