@@ -1939,6 +1939,8 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 		m_vSCV[i].nsh = rTrialSpace.num_sh();
 
+		if(dim == 3 && roid != ROID_PYRAMID) m_vSCV[i].numCo = 8;
+
 		ReferenceMapping<scv_type, dim> map(m_vSCV[i].vLocPos);
 		for(size_t ip = 0; ip < rSCVQuadRule.size(); ++ip)
 			map.local_to_global(m_vSCV[i].vLocalIP[ip], rSCVQuadRule.point(ip));
