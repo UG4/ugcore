@@ -89,6 +89,7 @@ class FE1NonlinearElasticityElemDisc
 		}
 
 	private:
+
 		template <typename TElem>
 		bool prepare_element_loop();
 
