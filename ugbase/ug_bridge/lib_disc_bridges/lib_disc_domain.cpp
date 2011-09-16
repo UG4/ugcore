@@ -27,6 +27,7 @@
 #include "lib_discretization/function_spaces/grid_function_util.h"
 #include "lib_discretization/function_spaces/interpolate.h"
 #include "lib_discretization/function_spaces/integrate.h"
+#include "lib_discretization/function_spaces/integrateDraft.h"
 #include "lib_discretization/function_spaces/error_indicator.h"
 #include "lib_discretization/dof_manager/cuthill_mckee.h"
 #include "lib_discretization/dof_manager/p1conform/p1conform.h"
@@ -496,6 +497,16 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 				function_type&, const char*, number, const char*);
 		reg.add_function("L2Error",
 						 static_cast<fct_type_subset>(&L2Error<function_type>),
+						 grp);
+	}
+
+//	L2ErrorDraft
+	{
+		typedef number (*fct_type)(
+				const boost::function<void (number& res,const MathVector<dim>& x, number time)>&,
+				function_type&, const char*, number, int, const char*);
+		reg.add_function("L2ErrorDraft",
+						 static_cast<fct_type>(&L2ErrorDraft<function_type>),
 						 grp);
 	}
 
