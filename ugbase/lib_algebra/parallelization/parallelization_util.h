@@ -217,6 +217,40 @@ void SetLayoutValues(	TVector* pVec,
 	}
 }
 
+/// sets the values of a vector to a given number only on the layout indices
+/**
+ * \param[in,out]		pVec			Vector
+ * \param[in]			layout			Layout
+ * \param[in]			val				Value to set on layout indices
+ */
+template <typename TVector>
+void SetLayoutValues(	TVector* pVec,
+                     	IndexLayout& layout,
+                     	typename TVector::value_type val)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = layout.begin();
+	typename IndexLayout::iterator end = layout.end();
+
+//	iterate over interfaces
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = layout.interface(iter);
+
+	//	loop over indices
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		//  get index
+			const size_t index = interface.get_element(iter);
+
+		//	set value of vector to zero
+			(*pVec)[index] = val;
+		}
+	}
+}
+
 /// changes parallel storage type from consistent to unique
 /**
  * This function changes the storage type of a parallel vector from consistent
