@@ -410,7 +410,7 @@ count_piece_sizes(function_type& u, int si, int dim,
 	{
 		case 0: if(si>=0) numVert = u.template num<VertexBase>(si);
 				else {
-					numVert = 0.0;
+					numVert = 0;
 					for(si = 0; si < u.num_subsets(); ++si)
 						numVert += u.template num<VertexBase>(si);
 				}
