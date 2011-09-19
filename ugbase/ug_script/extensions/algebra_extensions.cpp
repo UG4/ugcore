@@ -68,7 +68,7 @@ void transmembrane_current_as_vector(TVector& transmembrane_current, const TVect
 	UG_ASSERT(transmembrane_current.size() == h_gate.size(), "Vector size does not match with first vector.");
 
 //	Reset current
-	transmembrane_current = 0.0;
+	transmembrane_current.set(0.0);
 
 	const static int dim = TDomain::dim;
 
