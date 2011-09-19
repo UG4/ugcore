@@ -9,6 +9,8 @@
 #ifndef __H__LIB_DISCRETIZATION__STOPWATCH_H__
 #define __H__LIB_DISCRETIZATION__STOPWATCH_H__
 
+#include <ctime>
+
 namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 //!
