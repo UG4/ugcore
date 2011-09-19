@@ -101,7 +101,7 @@ public:
 	{
 		size_check(i);
 		size_t val = arr[i].get_val();
-		UG_ASSERT(val < BOXPRIORITYQUEUE_MAXIMAL_VALUE, "T::get_val() has to be < " << BOXPRIORITYQUEUE_MAXIMAL_VALUE << " but is " << val);
+		UG_ASSERT(val < (size_t)BOXPRIORITYQUEUE_MAXIMAL_VALUE, "T::get_val() has to be < " << BOXPRIORITYQUEUE_MAXIMAL_VALUE << " but is " << val);
 		if(m_box.size() < val+1)
 		{
 			//size_t s = m_box.size();
