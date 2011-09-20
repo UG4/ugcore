@@ -66,13 +66,13 @@ static bool PerformTetrahedralization(Grid& grid,
 		//	selfintersecting facets otherwise (sometimes). I didn't really understand
 		//	this behaviour yet.
 		//TODO: Think about how the following code could be improved.
-			/*
+
 			in.pointlist[counter * 3] = (float)v.x;
 			in.pointlist[counter * 3 + 1] = (float)v.y;
-			in.pointlist[counter * 3 + 2] = (float)v.z;*/
-			in.pointlist[counter * 3] = v.x;
-			in.pointlist[counter * 3 + 1] = v.y;
-			in.pointlist[counter * 3 + 2] = v.z;
+			in.pointlist[counter * 3 + 2] = (float)v.z;
+			//in.pointlist[counter * 3] = v.x;
+			//in.pointlist[counter * 3 + 1] = v.y;
+			//in.pointlist[counter * 3 + 2] = v.z;
 		}
 	}
 
