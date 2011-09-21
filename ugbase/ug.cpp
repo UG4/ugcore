@@ -40,14 +40,19 @@ static bool InitPaths(const char* argv0) {
 
 	char* ug4Root = getenv("UG4_ROOT");
 	const char* pathSep = GetPathSeparator();
-	
+
 	if(ug4Root){
 		std::string strRoot = ug4Root;
-		PathProvider::set_path(ROOT_PATH, strRoot);
-		PathProvider::set_path(APP_PATH, strRoot + pathSep + "bin");
-		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
-		PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
-		PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
+		if(!PathProvider::has_path(ROOT_PATH))
+			PathProvider::set_path(ROOT_PATH, strRoot);
+		if(!PathProvider::has_path(APP_PATH))
+			PathProvider::set_path(APP_PATH, strRoot + pathSep + "bin");
+		if(!PathProvider::has_path(SCRIPT_PATH))
+			PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
+		if(!PathProvider::has_path(DATA_PATH))
+			PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
+		if(!PathProvider::has_path(PLUGIN_PATH))
+			PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
 											+ "bin" + pathSep + "plugins");
 	}
 	else{
@@ -59,13 +64,18 @@ static bool InitPaths(const char* argv0) {
 		else
 			tPath = ".";
 
-		PathProvider::set_path(APP_PATH, tPath);
-		PathProvider::set_path(ROOT_PATH, tPath + pathSep + "..");
-		PathProvider::set_path(SCRIPT_PATH, tPath + pathSep + ".."
+		if(!PathProvider::has_path(APP_PATH))
+			PathProvider::set_path(APP_PATH, tPath);
+		if(!PathProvider::has_path(ROOT_PATH))
+			PathProvider::set_path(ROOT_PATH, tPath + pathSep + "..");
+		if(!PathProvider::has_path(SCRIPT_PATH))
+			PathProvider::set_path(SCRIPT_PATH, tPath + pathSep + ".."
 											+ pathSep + "scripts");
-		PathProvider::set_path(DATA_PATH, tPath + pathSep + ".."
+		if(!PathProvider::has_path(DATA_PATH))
+			PathProvider::set_path(DATA_PATH, tPath + pathSep + ".."
 										  + pathSep + "data");
-		PathProvider::set_path(PLUGIN_PATH, tPath + pathSep + ".."
+		if(!PathProvider::has_path(PLUGIN_PATH))
+			PathProvider::set_path(PLUGIN_PATH, tPath + pathSep + ".."
 											+ pathSep + "bin"
 											+ pathSep + "plugins");
 	}

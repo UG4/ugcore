@@ -842,6 +842,8 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 		return false;
 	}
 
+	out.precision(12);
+
 //	vectors are used to collect associated elements
 	vector<Face*> vFaces;
 	
@@ -1139,8 +1141,8 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 //	open the file
 	out.open(ngFileName.c_str());
 
-//	enable scientific number format
-	out.setf(ios::scientific);
+//	enable scientific number formatâ
+	//out.setf(ios::scientific);
 
 	if(!out)
 	{

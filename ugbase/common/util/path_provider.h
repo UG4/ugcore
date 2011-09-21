@@ -59,6 +59,16 @@ class PathProvider
 		static inline const std::string& get_path(int pathType)
 		{return inst().m_map[pathType];}
 
+	///	returns true, if the path associated with the given constant exists.
+	/** Note that all pathes (ideally) end with a "/".
+	 *
+	 * \param pathType	should be one of the constants enumerated in PathTypes
+	 * 					or a used defined constant starting from
+	 * 					MAX_PATH_CONSTANT + 1.
+	 */
+		static inline const bool has_path(int pathType)
+		{return inst().m_map.find(pathType) != inst().m_map.end();}
+
 	///	returns the current path
 	/**	current paths are stored in a stack. The top of the stack is considered
 	 * to be the most current path and is returned by this method.
