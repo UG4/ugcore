@@ -9,6 +9,8 @@
 #include <fstream>
 #include <string>
 
+#include "ug_config.h"
+
 /////////////////////////////////////////////////////////////////
 // defines (currently here, should be compiling options)
 

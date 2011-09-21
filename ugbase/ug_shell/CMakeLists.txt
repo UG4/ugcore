@@ -45,6 +45,8 @@ else(USE_READLINE)
 endif(USE_READLINE)
 message(STATUS)
 
+remove_definitions(-DBUILDING_DYNAMIC_LIBRARY)
+remove_definitions(-DLUA_BUILD_AS_DLL)
 add_executable(${targetExecutableName} ${srcUGShell})
 
 if(libReadline)

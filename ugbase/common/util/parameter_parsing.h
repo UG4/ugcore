@@ -5,25 +5,27 @@
 #ifndef __H__UG__parameter_parsing__
 #define __H__UG__parameter_parsing__
 
+#include "common/ug_config.h"
+
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter and returns its position in argv.
  *	If the parameter is not contained in argv, -1 is returned.
  */
-int GetParamIndex(const char* param, int argc, char* argv[]);
+UG_API int GetParamIndex(const char* param, int argc, char* argv[]);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter and returns true if it is found.
  */
-bool FindParam(const char* param, int argc, char* argv[]);
+UG_API bool FindParam(const char* param, int argc, char* argv[]);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter, and converts the
  *	associated value to an integer. Returns true if the parameter was
  *	found, false if not.
  */
-bool ParamToInt(int& iOut, const char* param, int argc, char* argv[]);
+UG_API bool ParamToInt(int& iOut, const char* param, int argc, char* argv[]);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter, and returns the
@@ -32,7 +34,7 @@ bool ParamToInt(int& iOut, const char* param, int argc, char* argv[]);
  *
  *	Please note that spaces may not be contained in the associated string.
  */
-bool ParamToString(char** strOut, const char* param, int argc, char* argv[]);
+UG_API bool ParamToString(char** strOut, const char* param, int argc, char* argv[]);
 
 }//	end of namespace
 

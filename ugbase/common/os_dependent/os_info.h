@@ -5,14 +5,19 @@
 #ifndef __H__UG__os_info__
 #define __H__UG__os_info__
 
+#include "common/ug_config.h"
+
 namespace ug
 {
 
 ///	returns the standard prefix of static and dynamic libraries on this os
-const char* GetDynamicLibraryPrefix();
+UG_API const char* GetDynamicLibraryPrefix();
 
 ///	returns the standard suffix of dynamic libraries on this os
-const char* GetDynamicLibrarySuffix();
+UG_API const char* GetDynamicLibrarySuffix();
+
+///	returns a string containing the path-separator for the current os
+UG_API const char* GetPathSeparator();
 
 }//	end of namespace
 

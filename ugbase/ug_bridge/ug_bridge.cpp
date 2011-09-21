@@ -186,6 +186,7 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		first=false;
 #endif
 
+#ifdef UG_ALGEBRA
 		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG), "/ug4",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra#DoFManager|selection|value=[").
@@ -193,6 +194,7 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG), "/ug4",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra"));
+#endif
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed& ex)

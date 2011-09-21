@@ -17,6 +17,7 @@
 #include "class.h"
 #include "param_to_type_value_list.h"
 #include "parameter_stack.h"
+#include "common/ug_config.h"
 
 namespace ug
 {
@@ -36,7 +37,7 @@ typedef boost::function<void (Registry* pReg)> FuncRegistryChanged;
 
 
 ///	groups classes. One of the members is the default member.
-class ClassGroupDesc
+class UG_API ClassGroupDesc
 {
 	public:
 		ClassGroupDesc() : m_defaultClass(NULL)	{}
@@ -98,7 +99,7 @@ class ClassGroupDesc
  * using const std::string&. This is on purpose in order to allow a call
  * of the method using a const char* as well.
  */
-class Registry {
+class UG_API Registry {
 	public:
 	///	constructor
 		Registry();

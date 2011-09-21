@@ -10,6 +10,7 @@
 #include "registry/registry.h"
 #include "lib_algebra/algebra_selector.h"
 #include "lib_discretization/dof_manager/dof_distribution_type.h"
+#include "common/ug_config.h"
 
 namespace ug
 {
@@ -17,7 +18,7 @@ namespace bridge
 {
 
 ///	returns the default registry used in ug
-Registry & GetUGRegistry();
+UG_API Registry & GetUGRegistry();
 
 ///	Sets the default classes of class-groups based on a tags using default DoFManager
 void InitUG(int dim, const IAlgebraTypeSelector& algebraSel);

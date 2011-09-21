@@ -8,6 +8,7 @@
 #include "common/util/path_provider.h"
 #include "ug_bridge/ug_bridge.h"
 #include "common/os_dependent/file_util.h"
+#include "os_info.h"
 
 using namespace std;
 
@@ -30,12 +31,12 @@ bool LoadPlugins(const char* pluginPath)
 		//UG_LOG(" " << files[i]);
 
 		string fullPluginName(pluginPath);
-		fullPluginName.append("/").append(files[i]);
+		fullPluginName.append(GetPathSeparator()).append(files[i]);
 
 		HMODULE libHandle = LoadLibrary(fullPluginName.c_str());
 
 		if(!libHandle){
-			UG_LOG("(failed)");
+			UG_LOG("(failed: " << GetLastError() << ")");
 			continue;
 		}
 
@@ -47,7 +48,7 @@ bool LoadPlugins(const char* pluginPath)
 			(FctInitPlugin) GetProcAddress(libHandle, fctName.c_str());
 
 		if(!fctInitPlugin){
-			UG_LOG("(failed)");
+			UG_LOG("(failed: " << GetLastError() << ")");
 			continue;
 		}
 

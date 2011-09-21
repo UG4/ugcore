@@ -7,9 +7,11 @@
 
 #ifndef __H__UG__UG__
 #define __H__UG__UG__
+
 #include <string>
 
 #include "common/profiler/profiler.h"
+#include "common/ug_config.h"
 
 /**
  * 	\brief the ug namespace
@@ -28,7 +30,7 @@ namespace ug
  *
  *	This method also sets the common paths in PathProvider.
  */
-int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
+UG_API int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
 
 ///	finalizes ug
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
@@ -37,13 +39,13 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
  *	Use ug::UGOutputProfileStatsOnExit to enable profiling output
  *	during finalize.
  */
-int UGFinalize();
+UG_API int UGFinalize();
 
 ///	Calls UGFinalize and terminates the application.
-void UGForceExit();
+UG_API void UGForceExit();
 
 ///	Call with true, if profiling output is desired at the end of the show.
-void UGOutputProfileStatsOnExit(bool bEnable);
+UG_API void UGOutputProfileStatsOnExit(bool bEnable);
 
 }//	end of namespace
 

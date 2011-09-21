@@ -12,6 +12,8 @@
 
 #include <string>
 
+#include "common/ug_config.h"
+
 #ifndef __H__UG_BRIDGE__CLASS_HELPER__
 #define __H__UG_BRIDGE__CLASS_HELPER__
 
@@ -32,7 +34,7 @@ class Registry;
  * This class stores class names and their subclasses
  * \sa GetClassHierarchy
  */
-class ClassHierarchy
+class UG_API ClassHierarchy
 {
 	public:
 		ClassHierarchy() : name(), bGroup(false), subclasses() {}
@@ -68,24 +70,24 @@ class ClassHierarchy
 /**
  * inits hierarchy with all classes of UGBridge
  */
-void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
+UG_API void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
 
 /**
  * Finds the class classname in the default ug registry and returns
  * IExportedClass pointer if found, otherwise NULL
  */
-bool PrintFunctionInfo(Registry &reg, const char *functionname);
+UG_API bool PrintFunctionInfo(Registry &reg, const char *functionname);
 
-void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
+UG_API void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
                        const char *classname=NULL, const char *highlightclassname=NULL);
 
-const IExportedClass *FindClass(bridge::Registry &reg, const char* classname);
-bool PrintClassHierarchy(Registry &reg, const char *classname);
-void PrintClassInfo(const IExportedClass &c);
-bool PrintClassInfo(Registry &reg, const char *classname);
-bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters);
-const IExportedClass *FindClass(Registry &reg, const char* classname);
-const ExportedFunction *FindFunction(Registry &reg, const char *functionname);
+UG_API const IExportedClass *FindClass(bridge::Registry &reg, const char* classname);
+UG_API bool PrintClassHierarchy(Registry &reg, const char *classname);
+UG_API void PrintClassInfo(const IExportedClass &c);
+UG_API bool PrintClassInfo(Registry &reg, const char *classname);
+UG_API bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters);
+UG_API const IExportedClass *FindClass(Registry &reg, const char* classname);
+UG_API const ExportedFunction *FindFunction(Registry &reg, const char *functionname);
 
 } // end namespace
 } // end namespace

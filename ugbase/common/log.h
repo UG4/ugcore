@@ -12,6 +12,7 @@
 #include <fstream>
 #include "util/ostream_util.h"
 #include "types.h"
+#include "ug_config.h"
 
 //	in order to support parallel logs, we're including pcl.h
 //	you can set the output process using pcl::SetOutputProcRank(int rank).
@@ -56,7 +57,7 @@ namespace ug{
  * Please note that this class operates on std::clog. Thus, if output-options are changed
  * (e.g. file-logging enabled) the stream buffer on which clog operates will change too.
  */
-class LogAssistant
+class UG_API LogAssistant
 {
 	public:
 		// different tags to distingish several parts of the program, that

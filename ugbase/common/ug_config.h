@@ -26,12 +26,10 @@
 #endif
 
 
-
-#ifdef BUILD_EXPORTING_LIB
-	#define PUBLIC_IMPL EXPORT_IMPL
+#ifdef BUILDING_DYNAMIC_LIBRARY
+	#define UG_API EXPORT_IMPL
 #else
-	#define PUBLIC_IMPL IMPORT_IMPL
+	#define UG_API IMPORT_IMPL
 #endif
-
 
 #endif

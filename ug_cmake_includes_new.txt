@@ -32,7 +32,7 @@ set(BUILD_ONE_LIB ON)
 # In this section we'll define default variables
 	
 # Values for the TARGET option
-set(targetOptions "ugshell, vrl, libug4, libgrid, ugplugin")
+set(targetOptions "ugshell, vrl, libug4, libgrid, ugplugin, gridshell")
 set(targetDefault "ugshell")
 set(targetExecutableName ugshell)
 set(targetLibraryName ug4)
@@ -170,6 +170,10 @@ elseif("${TARGET}" STREQUAL "ugplugin")
 	# that a plugin is compiled as a dynamic library. However, the plugin
 	# should try to link against the static ug4_s library.
 	set(buildAlgebra ON)
+
+elseif("${TARGET}" STREQUAL "gridshell")
+	set(buildUGShell ON)
+	set(buildCorePlugins ON)
 	
 else("${TARGET}" STREQUAL "ugshell")
 	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})

@@ -7,17 +7,18 @@
 #include <string>
 #include <vector>
 #include "hash.h"
+#include "common/ug_config.h"
 
 namespace ug{
 
 // help function to tokenize the parameter string
-void TokenizeString(const std::string& str, std::vector<std::string>& tokens, const char delimiter);
+UG_API void TokenizeString(const std::string& str, std::vector<std::string>& tokens, const char delimiter);
 
 // help function to remove white space from string
-void RemoveWhitespaceFromString(std::string& string);
+UG_API void RemoveWhitespaceFromString(std::string& string);
 
 // help function to remove whitespace from front and end of string
-std::string TrimString(const std::string& str);
+UG_API std::string TrimString(const std::string& str);
 
 /// returns the number of digits of an integer (expressed with base 10)
 /**
@@ -26,7 +27,7 @@ std::string TrimString(const std::string& str);
  *
  * \param[in]	n 		number to count the number of digits
  */
-int NumberOfDigits(int n);
+UG_API int NumberOfDigits(int n);
 
 ///	appends a counter number to a string
 /**
@@ -39,15 +40,15 @@ int NumberOfDigits(int n);
  * \param[in]		counter		counter added
  * \param[in]		maxCounter	maximum counter to be added
  */
-void AppendCounterToString(std::string& str, std::string indicator,
+UG_API void AppendCounterToString(std::string& str, std::string indicator,
                            int counter, int maxCounter = -1);
 
 //sreiter
 ///	this template function creates a hash key for a string value.
-template <> unsigned long hash_key(const std::string& key);
+template <> UG_API unsigned long hash_key(const std::string& key);
 
 /// returns the part of the string after the last '/' character
-std::string FilenameWithoutPath(const std::string& str);
+UG_API std::string FilenameWithoutPath(const std::string& str);
 
 
 /**
@@ -60,7 +61,7 @@ std::string FilenameWithoutPath(const std::string& str);
  *         all occurences of <code>oldstr</code> are replaced with
  *         <code>newstr</code>
  */
-std::string ReplaceAll(
+UG_API std::string ReplaceAll(
 		std::string target,
 		const std::string oldstr,
 		const std::string newstr);
@@ -73,7 +74,7 @@ std::string ReplaceAll(
  * @return <code>true</code> if <code>str</code> starts
  * with <code>search</code>; <code>false</code> otherwise
  */
-bool StartsWith(std::string str, std::string search);
+UG_API bool StartsWith(std::string str, std::string search);
 
 /**
  * Checks whether <code>str</code> contains <code>search</code>.
@@ -82,7 +83,7 @@ bool StartsWith(std::string str, std::string search);
  * @return <code>true</code> if <code>str</code> contains
  * <code>search</code>; <code>false</code> otherwise
  */
-bool Contains(std::string str, std::string search);
+UG_API bool Contains(std::string str, std::string search);
 
 /**
  * Checks whether the specified name is a valid identifier name.
@@ -95,13 +96,13 @@ bool Contains(std::string str, std::string search);
  * @return  <code>true</code> if the specified name is valid;
  *          <code>false</code> otherwise
  */
-bool IdentifierIsValid(std::string name);
+UG_API bool IdentifierIsValid(std::string name);
 
 /**
  * Returns a message describing which identifiers are valid and which ar not.
  * @return message string
  */
-std::string GetIdentifierMessage();
+UG_API std::string GetIdentifierMessage();
 
 } // end namespace ug
 

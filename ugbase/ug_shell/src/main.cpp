@@ -87,6 +87,7 @@ int main(int argc, char* argv[])
 //	register the load script method.
 //	this currently can't be done by the bridge, since it would
 //	introduce a dependency to scripting (this has to be avoided at all costs!!!)
+//todo: move it to ug_script
 	bridge::GetUGRegistry()
 		.add_function("ug_load_script", &LoadUGScript, "/ug4/shell",
 					"success", "", "Loads and parses a script and returns whether it succeeded.")
@@ -240,7 +241,7 @@ int main(int argc, char* argv[])
 	LOG(endl);
 
 	UGFinalize();
-	
+
 	return 0;
 }
 

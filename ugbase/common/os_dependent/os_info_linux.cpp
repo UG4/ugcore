@@ -16,4 +16,9 @@ const char* GetDynamicLibrarySuffix()
 	return "so";
 }
 
+const char* GetPathSeparator()
+{
+	return "/";
+}
+
 }// end of namespace

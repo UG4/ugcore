@@ -10,6 +10,7 @@
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
 #include "class_helper.h"
+#include "common/ug_config.h"
 #include <iostream>
 
 namespace ug
@@ -34,7 +35,7 @@ struct CreateParameterOutStack<void>{
 struct UG_REGISTRY_ERROR_FunctionOrMethodNameMissing {};
 
 /// Base class for function/method export
-class ExportedFunctionBase
+class UG_API ExportedFunctionBase
 {
 	public:
 		ExportedFunctionBase(const std::string& funcName, const std::string& funcOptions,
@@ -152,7 +153,7 @@ class ExportedFunctionBase
 
 
 ///This class describes a wrapper for a c++ - function, that is exported by ug
-class ExportedFunction : public ExportedFunctionBase
+class UG_API ExportedFunction : public ExportedFunctionBase
 {
 //	all c++ functions are wrapped by a proxy function of the following type
 	typedef void (*ProxyFunc)(void* func, const ParameterStack& in, ParameterStack& out);
@@ -194,7 +195,7 @@ class ExportedFunction : public ExportedFunctionBase
 ////////////////////////////////////////////////////////////////////////
 //	ExportedFunctionGroup (sreiter)
 ///	Groups of Functions - useful to realize overloaded functions
-class ExportedFunctionGroup
+class UG_API ExportedFunctionGroup
 {
 	public:
 	///	constructor

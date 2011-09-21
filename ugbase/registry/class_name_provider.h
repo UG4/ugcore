@@ -13,6 +13,7 @@
 #include <typeinfo>
 #include <map>
 #include "common/common.h"
+#include "common/ug_config.h"
 
 namespace ug
 {
@@ -39,7 +40,7 @@ struct REGISTRY_ERROR_Message
  * the ClassNameNodes of the direct base classes of this class. By traversing
  * the tree of ClassNameNodes all parent classes of a class can be found.
  */
-class ClassNameNode
+class UG_API ClassNameNode
 {
 	public:
 	///	constructor
@@ -76,7 +77,7 @@ class ClassNameNode
 
 ///	provides the name for a class
 template <typename TClass>
-class ClassNameProvider
+class UG_API ClassNameProvider
 {
 	public:
 	/// set name of class and copy parent names
@@ -137,6 +138,10 @@ class ClassNameProvider
 		static ClassNameNode m_ClassNameNode;
 };
 
+template <typename TClass>
+const char* GetClassName(){
+	return ClassNameProvider<TClass>::name().c_str();
+}
 
 ///	static cast function for two classes
 template <typename TBase, typename TDerived>

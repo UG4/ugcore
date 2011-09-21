@@ -12,6 +12,7 @@
 #include "common/util/path_provider.h"
 #include "ug_script/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
+#include "common/os_dependent/os_info.h"
 
 #ifdef UG_PLUGINS
 	#include "common/os_dependent/plugin_util.h"
@@ -38,38 +39,43 @@ static bool InitPaths(const char* argv0) {
 	// UG_LOG("argv[0]: " << argv0 << endl);
 
 	char* ug4Root = getenv("UG4_ROOT");
+	const char* pathSep = GetPathSeparator();
+	
 	if(ug4Root){
 		std::string strRoot = ug4Root;
 		PathProvider::set_path(ROOT_PATH, strRoot);
-		PathProvider::set_path(APP_PATH, strRoot + "/bin");
-		PathProvider::set_path(SCRIPT_PATH, strRoot + "/scripts");
-		PathProvider::set_path(DATA_PATH, strRoot + "/data");
-		PathProvider::set_path(PLUGIN_PATH, strRoot + "/bin/plugins");
+		PathProvider::set_path(APP_PATH, strRoot + pathSep + "bin");
+		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
+		PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
+		PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
+											+ "bin" + pathSep + "plugins");
 	}
 	else{
 		std::string tPath = argv0;
-		size_t pos = tPath.find_last_of("/");
-		if (pos == std::string::npos)
-			pos = tPath.find_last_of("\\\\");
-
+		size_t pos = tPath.find_last_of(pathSep);
+		
 		if (pos != std::string::npos)
 			tPath = tPath.substr(0, pos);
 		else
 			tPath = ".";
 
 		PathProvider::set_path(APP_PATH, tPath);
-		PathProvider::set_path(ROOT_PATH, tPath + "/..");
-		PathProvider::set_path(SCRIPT_PATH, tPath + "/../scripts");
-		PathProvider::set_path(DATA_PATH, tPath + "/../data");
-		PathProvider::set_path(PLUGIN_PATH, tPath + "/../bin/plugins");
+		PathProvider::set_path(ROOT_PATH, tPath + pathSep + "..");
+		PathProvider::set_path(SCRIPT_PATH, tPath + pathSep + ".."
+											+ pathSep + "scripts");
+		PathProvider::set_path(DATA_PATH, tPath + pathSep + ".."
+										  + pathSep + "data");
+		PathProvider::set_path(PLUGIN_PATH, tPath + pathSep + ".."
+											+ pathSep + "bin"
+											+ pathSep + "plugins");
 	}
 
 //	log the paths
-	UG_DLOG(MAIN, 0, "app path set to: " << PathProvider::get_path(APP_PATH) <<
+	UG_DLOG(MAIN, 1, "app path set to: " << PathProvider::get_path(APP_PATH) <<
 			std::endl << "script path set to: " << PathProvider::get_path(SCRIPT_PATH) <<
 			std::endl << "data path set to: " << PathProvider::get_path(DATA_PATH) <<
 			std::endl);
-
+/*
 	if(!script::FileExists(PathProvider::get_path(APP_PATH).c_str()) ||
 	   !script::FileExists(PathProvider::get_path(SCRIPT_PATH).c_str()) ||
 	   !script::FileExists(PathProvider::get_path(DATA_PATH).c_str()))
@@ -77,7 +83,7 @@ static bool InitPaths(const char* argv0) {
 		UG_LOG("WARNING: paths were not initialized correctly.\n");
 		return false;
 	}
-
+*/
 	return true;
 }
 
@@ -99,7 +105,6 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 //		pcl::Init(argc, argv);
 		pcl::Init(argcp, argvp);
 		pcl::SetOutputProcRank(parallelOutputProcRank);
-		UG_LOG("PARALLEL!!!\n");
 #endif
 
 	//todo: If initPaths fails, something should be done...

@@ -5,33 +5,35 @@
 #ifndef __H__UG_SCRIPT__INFO_COMMANDS__
 #define __H__UG_SCRIPT__INFO_COMMANDS__
 
+#include "common/ug_config.h"
+
 namespace ug
 {
 namespace bridge
 {
 
 ///	registers info commands TypeInfo, ClassUsage and others
-bool RegisterInfoCommands(bridge::Registry &reg,
+UG_API bool RegisterInfoCommands(bridge::Registry &reg,
 						  const char* parentGroup = "/ug4");
 
-const ClassNameNode* GetClassNameNode(lua_State *L, int index);
+UG_API const ClassNameNode* GetClassNameNode(lua_State *L, int index);
 
-const std::vector<const char*> *GetClassNames(lua_State *L, int index);
-const std::vector<const char*> *GetClassNames(lua_State* L, const char *name);
+UG_API const std::vector<const char*> *GetClassNames(lua_State *L, int index);
+UG_API const std::vector<const char*> *GetClassNames(lua_State* L, const char *name);
 
-void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc);
+UG_API void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc);
 
-std::string GetFileLine(const char *filename, size_t line);
+UG_API std::string GetFileLine(const char *filename, size_t line);
 
-int PrintFunctionInfo(lua_State *L, bool bComplete);
+UG_API int PrintFunctionInfo(lua_State *L, bool bComplete);
 
-int UGTypeInfo(const char *p);
+UG_API int UGTypeInfo(const char *p);
 
-bool GetLuaNamespace(lua_State* L, std::string name);
+UG_API bool GetLuaNamespace(lua_State* L, std::string name);
 
-int LuaGetNumber(lua_State *L, const char *name, int notAvailable);
-std::string LuaGetString(lua_State *L, const char *name, const char *notAvailable);
-bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
+UG_API int LuaGetNumber(lua_State *L, const char *name, int notAvailable);
+UG_API std::string LuaGetString(lua_State *L, const char *name, const char *notAvailable);
+UG_API bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
 
 
 }

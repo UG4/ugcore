@@ -40,10 +40,10 @@ class LuaError : public UGError
  *
  * Note that this method pushes the path of the currently parsed script to
  * PathProvider when parsing starts, and pops it when parsing is done.*/
-bool LoadUGScript(const char* filename);
+UG_API bool LoadUGScript(const char* filename);
 
 /// checks if given file exists.
-bool FileExists(const char* filename);
+UG_API bool FileExists(const char* filename);
 
 ///	returns the default lua state
 /**	When called for the first time, a new state is created and
@@ -51,21 +51,21 @@ bool FileExists(const char* filename);
  *	(ug::bridge::GetUGRegistry) are registered. Furthermore a callback
  *	is registered, which registers new methods whenever
  *	Registry::registry_changed() is called on the default registry.*/
-lua_State* GetDefaultLuaState();
+UG_API lua_State* GetDefaultLuaState();
 
 ///	parses and executes a buffer
 /**	Throws an instance of LuaError, if a parse error occurs.*/
-bool ParseBuffer(const char* buffer, const char *bufferName="buffer");
+UG_API bool ParseBuffer(const char* buffer, const char *bufferName="buffer");
 
 ///	parses and executes a file
 /**	Throws an instance of LuaError, if a parse error occurs.*/
-bool ParseFile(const char* filename);
+UG_API bool ParseFile(const char* filename);
 
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
-int UGLuaPrint(lua_State *L);
+UG_API int UGLuaPrint(lua_State *L);
 
 /// UGLuaWrite. prints LUA output to UG_LOG without adding std::endl automatically
-int UGLuaWrite(lua_State *L);
+UG_API int UGLuaWrite(lua_State *L);
 
 }//	end of namespace
 }//	end of namespace
