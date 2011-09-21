@@ -125,6 +125,10 @@ void registerNumberArray(ug::bridge::Registry & reg) {
 	reg.add_function("GetDefects", &getDefects, "UG4/util");
 }
 
+void registerUGFinalize(ug::bridge::Registry & reg) {
+	reg.add_function("UGFinalize", &ug::UGFinalize, "UG4/util");
+}
+
 }// end vrl::
 }// end ug::
 
@@ -165,6 +169,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	ug::vrl::registerMessaging(reg);
 	ug::vrl::registerThrowUtil(reg);
 	ug::vrl::registerNumberArray(reg);
+	ug::vrl::registerUGFinalize(reg);
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.");
