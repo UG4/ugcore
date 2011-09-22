@@ -14,6 +14,8 @@
 
 using namespace std;
 
+//	a symbol preceding error messages
+const char* errSymb = " % ";
 
 namespace ug
 {
@@ -617,18 +619,23 @@ static int LuaProxyFunction(lua_State* L)
 				func->execute(paramsIn, paramsOut);
 			}
 			catch(UGError& err){
-				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
+				UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " in function ")
 				PrintFunctionInfo(*func);
-				UG_LOG(". Error message:\n");
-				for(size_t i=0;i<err.num_msg();++i)	UG_LOG(err.get_msg(i)<<endl);
+				UG_LOG(". Error traceback:\n");
+				for(size_t i=0;i<err.num_msg();++i)
+				{
+					UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
+					UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
+					       ", line "<<err.get_line(i)<<"]\n");
+				}
 				if(err.terminate())
 				{
-					UG_LOG("Call stack:\n");
+					UG_LOG(errSymb<<"Call stack:\n");
 					lua_stacktrace(L);
-					UG_LOG("terminating..." << endl);
+					UG_LOG(errSymb<<"Terminating..." << endl);
 					exit(0);
 				}
-				UG_LOG(". continuing execution...\n");
+				UG_LOG(errSymb<<" Continuing execution ...\n");
 			}
 			catch(bad_alloc& ba)
 			{
@@ -755,16 +762,21 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			}
 			catch(UGError& err)
 			{
-				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
+				UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " in function ")
 				PrintLuaClassMethodInfo(L, 1, *m);
-				UG_LOG(". Error message:\n");
-				for(size_t i=0;i<err.num_msg();++i)	UG_LOG(err.get_msg(i)<<endl);
+				UG_LOG(". Error traceback:\n");
+				for(size_t i=0;i<err.num_msg();++i)
+				{
+					UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
+					UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
+					       ", line "<<err.get_line(i)<<"]\n");
+				}
 				if(err.terminate())
 				{
-					UG_LOG("terminating..." << endl);
+					UG_LOG(errSymb<<"Terminating..." << endl);
 					exit(0);
 				}
-				UG_LOG(". continuing execution...\n");
+				UG_LOG(errSymb<<" Continuing execution ...\n");
 			}
 			catch(...)
 			{

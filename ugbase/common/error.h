@@ -2,7 +2,7 @@
  * error.h
  *
  *  Created on: 22.09.2011
- *      Author: andreasvogel
+ *      Author: sreiter, avogel
  */
 
 #ifndef __H__UG__COMMON__ERROR__
@@ -16,15 +16,12 @@
 // UG Throw / Catch
 ////////////////////////////////////////////////////////////////////////////////
 
-#define UG_THROW(msg)		{std::stringstream ss; ss << " UG Error in '"\
-							<< __FILE__ << "' at line " << __LINE__ << ": "\
-							<< msg; throw(ug::UGError(ss.str()));}
-#define UG_THROW_FATAL(msg)	{std::stringstream ss; ss << " UG Error in '"\
-							<< __FILE__ << "' at line " << __LINE__ << ": "\
-							<< msg; throw(UGFatalError(ss.str()));}
-#define UG_TRY 				try{
-#define UG_THROW_ADD(msg)	}catch(ug::UGError ex) {std::stringstream ss; ss << msg;\
-											  ex.push_msg(ss.str()); throw(ex);}
+#define UG_THROW(msg)		{std::stringstream ss; ss << msg; \
+							throw(ug::UGError(ss.str(),__FILE__,__LINE__));}
+#define UG_THROW_FATAL(msg)	{std::stringstream ss; ss << msg; \
+							throw(ug::UGFatalError(ss.str(),__FILE__,__LINE__));}
+#define UG_CATCH_THROW(msg)	catch(ug::UGError err){std::stringstream ss; ss << msg;\
+							  err.push_msg(ss.str(),__FILE__,__LINE__); throw(err);}
 
 ////////////////////////////////////////////////////////////////////////////////
 // UG Error
@@ -37,20 +34,43 @@ namespace ug{
 class UGError
 {
 	public:
-		UGError(const char* msg) : m_bTerminate(false) {push_msg(msg);}
-		UGError(const std::string& msg) : m_bTerminate(false) {push_msg(msg);}
+		UGError(const char* msg,
+		        const char* file = " -- no file -- ", const unsigned long line = 0)
+			: m_bTerminate(false) {push_msg(msg, file, line);}
+		UGError(const std::string& msg,
+		        const char* file = " -- no file -- ", const unsigned long line = 0)
+			: m_bTerminate(false) {push_msg(msg, file, line);}
 
-		UGError(bool bExit, const char* msg) : m_bTerminate(bExit) {push_msg(msg);}
-		UGError(bool bExit, const std::string& msg) : m_bTerminate(bExit) {push_msg(msg);}
+		UGError(bool bExit, const char* msg,
+		        const char* file = " -- no file -- ", const unsigned long line = 0)
+			: m_bTerminate(bExit) {push_msg(msg, file, line);}
+		UGError(bool bExit, const std::string& msg,
+		        const char* file = " -- no file -- ", const unsigned long line = 0)
+			: m_bTerminate(bExit) {push_msg(msg, file, line);}
 
 	///	virtual destructor
 		virtual ~UGError()	{}
 
 	///	adds a message to the message stack
-		void push_msg(const std::string& msg) 		{m_vMsg.push_back(msg);}
+		void push_msg(const std::string& msg, const char* file = " -- no file -- ",
+		              const unsigned long line = 0)
+		{
+			m_vMsg.push_back(msg);
+			m_vFile.push_back(file);
+			m_vLine.push_back(line);
+		}
 
 	///	adds a message to the message stack
-		void push_msg(const char* msg) 		 		{m_vMsg.push_back(msg);}
+		void push_msg(const char* msg, const char* file = " -- no file -- ",
+		              const unsigned long line = 0)
+		{
+			m_vMsg.push_back(msg);
+			m_vFile.push_back(file);
+			m_vLine.push_back(line);
+		}
+
+	///	returns the initial message
+		const std::string& get_msg() const			{return m_vMsg.at(0);}
 
 	///	number of messages in message-stack
 		size_t num_msg() const 						{return m_vMsg.size();}
@@ -58,14 +78,19 @@ class UGError
 	///	returns a message in the message-stack (innermost is first)
 		const std::string& get_msg(size_t i) const	{return m_vMsg.at(i);}
 
-	///	returns the initial message
-		const std::string& get_msg() const			{return m_vMsg.at(0);}
+	/// returns the file where a message occured
+		const std::string& get_file(size_t i) const	{return m_vFile.at(i);}
+
+	///	returns the line where a message occured
+		const unsigned long get_line(size_t i) const{return m_vLine.at(i);}
 
 	///	returns if program should terminate
 		bool terminate() const						{return m_bTerminate;}
 
 	protected:
 		std::vector<std::string> m_vMsg; //< Message stack
+		std::vector<std::string> m_vFile; //< File stack
+		std::vector<unsigned long> m_vLine; //< Line stack
 		bool m_bTerminate;				 //< terminate flag
 };
 
@@ -73,7 +98,11 @@ class UGFatalError : public UGError
 {
 	public:
 		UGFatalError(const char* msg) 			  : UGError(true, msg) {}
-		UGFatalError(bool bExit, const char* msg) :	UGError(bExit, msg) {}
+		UGFatalError(const char* msg, const char* file, const unsigned long line)
+			: UGError(true, msg, file, line) {}
+		UGFatalError(const std::string& msg) 	  : UGError(true, msg) {}
+		UGFatalError(const std::string& msg, const char* file, const unsigned long line)
+			: UGError(true, msg, file, line) {}
 };
 
 } // end namespace ug
