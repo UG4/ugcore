@@ -5,8 +5,8 @@
  *      Author: andreasvogel, sebastianreiter
  */
 
-#ifndef __H__COMMON__LOG_IMPL__
-#define __H__COMMON__LOG_IMPL__
+#ifndef __H__UG__COMMON__LOG_IMPL__
+#define __H__UG__COMMON__LOG_IMPL__
 
 #include <iostream>
 #include <string>  // added for 'string'
@@ -160,4 +160,4 @@ ConvertNumberSI (uint64_t size, unsigned int width, unsigned int numDisplayedDig
 
 } // end namespace ug
 
-#endif /* __H__COMMON__LOG_IMPL__ */
+#endif /* __H__UG__COMMON__LOG_IMPL__ */

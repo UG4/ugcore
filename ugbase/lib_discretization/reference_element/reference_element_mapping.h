@@ -258,7 +258,7 @@ struct UG_ERROR_ReferenceMappingMissing : public UGFatalError
 	{
 		std::stringstream ss; ss << "ReferenceMapping not found for "<<roid<<
 									" from R^"<<dim<<" to R^"<<worldDim;
-		UGFatalError::set_msg(ss.str());
+		UGFatalError::push_msg(ss.str());
 	}
 	int dim;
 	int worldDim;

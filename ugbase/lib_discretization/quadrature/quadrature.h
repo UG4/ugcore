@@ -144,7 +144,7 @@ struct UG_ERROR_QuadratureRuleNotRegistered
 		{
 			std::stringstream ss; ss << "Quadrature Rule not found for "<<roid<<
 										" (dim="<<dim<<") and order "<<order;
-			UGFatalError::set_msg(ss.str());
+			UGFatalError::push_msg(ss.str());
 		}
 		int dim;
 		ReferenceObjectID roid;

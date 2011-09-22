@@ -98,16 +98,17 @@ int main(int argc, char* argv[])
 
 	bool runInteractiveShell = true;
 
-	LOG("****************\n");
-	LOG("* ugshell - v4.0.1\n");
-	LOG("* arguments:\n");
-	LOG("*   -outproc id:\tSets the output-proc to id. Default is 0.\n");
-	LOG("*   -ex scriptname:\tExecutes the specified script.\n");
-	LOG("*   -noquit:       \tDoes run the interactive shell after specified script.\n");
-	LOG("*   -noterm:		\tTerminal logging will be disabled.\n");
-	LOG("*   -logtofile filename:\tOutput will be written to the specified file.\n");
-	LOG("* Additional parameters are passed to the script through ugargc and ugargv.\n");
-	LOG("****************\n");
+	LOG("********************************************************************************\n");
+	LOG("* ugshell - v4.0.1                                                             *\n");
+	LOG("*                                                                              *\n");
+	LOG("* arguments:                                                                   *\n");
+	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
+	LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
+	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
+	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
+	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
+	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
+	LOG("********************************************************************************\n");
 
 //	we want to forward argc and argv to the lua-environment.
 //	we'll create a table for that.
@@ -166,11 +167,13 @@ int main(int argc, char* argv[])
 			}
 		}
 		catch(LuaError& err) {
-			UG_LOG("PARSE ERROR: " << err.get_msg() << endl);
+			UG_LOG("PARSE ERROR: \n");
+			for(size_t i=0;i<err.num_msg();++i)
+				UG_LOG(err.get_msg(i)<<endl);
 
 			if(err.terminate()){
 				UGFinalize();
-				return err.get_code();
+				return 0; // exit with code 0
 			}
 		}
 		
@@ -222,11 +225,13 @@ int main(int argc, char* argv[])
 					}
 					catch(LuaError& err)
 					{
-						UG_LOG("PARSE ERROR: " << err.get_msg() << endl);						
+						UG_LOG("PARSE ERROR: \n");
+						for(size_t i=0;i<err.num_msg();++i)
+							UG_LOG(err.get_msg(i)<<endl);
 						if(err.terminate())
 						{
 							UGFinalize();
-							return err.get_code();
+							return 0; // exit with code 0
 						}
 					}
 					

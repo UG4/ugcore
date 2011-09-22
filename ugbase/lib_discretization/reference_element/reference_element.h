@@ -249,7 +249,7 @@ struct UG_ERROR_ReferenceElementMissing
 	{
 		std::stringstream ss; ss << "Refernce Element not found for "
 							<<roid<<" (dim="<<dim<<")";
-		UGFatalError::set_msg(ss.str());
+		UGFatalError::push_msg(ss.str());
 	}
 	int dim;
 	ReferenceObjectID roid;

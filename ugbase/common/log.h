@@ -5,8 +5,8 @@
  *      Author: andreasvogel, sebastianreiter
  */
 
-#ifndef __H__COMMON__LOG__
-#define __H__COMMON__LOG__
+#ifndef __H__UG__COMMON__LOG__
+#define __H__UG__COMMON__LOG__
 
 #include <iostream>
 #include <fstream>
@@ -46,16 +46,19 @@ namespace ug{
 
 // LogAssistant
 /**
- * This class provides infrastructure for logging. It separates the log messages in different levels:
+ * This class provides infrastructure for logging. It separates the log messages
+ * in different levels:
  *
  * logger() returns the output stream for normal User information output.
  * debug_logger() returns the output stream for debug informations.
  *
- * Debug messages are grouped by tags and debug levels. It is intended, that only messages are printed,
- * when the current level is equal or greater than the debug level chosen in the code.
+ * Debug messages are grouped by tags and debug levels. It is intended, that
+ * only messages are printed, when the current level is equal or greater than
+ * the debug level chosen in the code.
  *
- * Please note that this class operates on std::clog. Thus, if output-options are changed
- * (e.g. file-logging enabled) the stream buffer on which clog operates will change too.
+ * Please note that this class operates on std::clog. Thus, if output-options
+ * are changed (e.g. file-logging enabled) the stream buffer on which clog
+ * operates will change too.
  */
 class UG_API LogAssistant
 {
@@ -155,19 +158,21 @@ class UG_API LogAssistant
 inline LogAssistant& GetLogAssistant();
 
 /// returns number 'size' in a more human readable format (using IEC binary prefixes)
-inline std::string ConvertNumber (uint64_t size, unsigned int width, unsigned int numDisplayedDigits);
+inline std::string ConvertNumber (uint64_t size, unsigned int width,
+                                  unsigned int numDisplayedDigits);
 
 /// returns number 'size' in a more human readable format (using SI prefixes)
-inline std::string ConvertNumberSI (uint64_t size, unsigned int width, unsigned int numDisplayedDigits);
+inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
+                                    unsigned int numDisplayedDigits);
 
 } // end namespace ug
 
 
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // DEBUG LOG
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Usage:
 /* The following macros can be used to control debug messages.
@@ -222,36 +227,45 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width, unsigned 
 	#define IF_DEBUG(tag, level)				if(1==0)
 #endif
 
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // WARNING LOG
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+// Warning and debug logs are disabled when compiling for release
+// defines (currently here, should be compiling options)
+#ifndef NDEBUG
+	#define UG_ENABLE_WARNINGS
+#else /* NDEBUG */
+	#undef UG_ENABLE_WARNINGS
+#endif /* NDEBUG*/
 
 // Usage:
 /* The following macro can be used to print warning messages.
- * To use it the define 'UG_ENABLE_WARNINGS' must be set. Otherwise nothing will be done (no runtime overhead).
+ * To use it the define 'UG_ENABLE_WARNINGS' must be set. Otherwise nothing will
+ * be done (no runtime overhead).
  *
- * UG_WARNING(msg)  				- prints a warning to the normal output stream
+ * UG_WARNING(msg)  			- prints a warning to the normal output stream
  */
-
-
 #ifdef UG_ENABLE_WARNINGS
-	#define UG_WARNING(msg) {ug::GetLogAssistant().logger() << "UG_WARNING in " << __FILE__ << " at line " << __LINE__ << ": " << msg; ug::GetLogAssistant().logger().flush();}
+	#define UG_WARNING(msg) {ug::GetLogAssistant().logger() << "UG_WARNING in "\
+								<< __FILE__ << " at line " << __LINE__ << ": " \
+								<< msg; ug::GetLogAssistant().logger().flush();}
 #else
 	#define UG_WARNING(msg) {}
 #endif
 
 
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // LOG
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Usage:
 /**
- * UG_LOG(msg)  					- prints a message to the normal output stream
+ * UG_LOG(msg)  		- prints a message to the normal output stream
  * If ug is compiled in a parallel environment (UG_PARALLEL is defined),
  * UG_LOG will use PCLLOG to output its data.
  */
@@ -266,7 +280,8 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width, unsigned 
 	#define UG_LOG(msg) {if(pcl::IsOutputProc())\
 						{ug::GetLogAssistant().logger() << msg; VRL_LOG(msg);\
 						 ug::GetLogAssistant().logger().flush();}}
-	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc " << std::setw(3) << pcl::GetProcRank() << "]: "; \
+	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc " <<\
+								   std::setw(3) << pcl::GetProcRank() << "]: "; \
 						           ug::GetLogAssistant().logger() << msg;\
 						           VRL_LOG(msg);\
 						           ug::GetLogAssistant().logger().flush();}
@@ -279,11 +294,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width, unsigned 
 						           ug::GetLogAssistant().logger().flush();}
 #endif
 
-
-//#define UG_LOG(msg) {std::stringstream ss;ss << msg; ug::vrl::soutPrintln(ss.str());}
-
-
 // include implementation
 #include "log_impl.h"
 
-#endif /* __H__COMMON__LOG__ */
+#endif /* __H__UG__COMMON__LOG__ */

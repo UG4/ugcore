@@ -619,14 +619,14 @@ static int LuaProxyFunction(lua_State* L)
 			catch(UGError& err){
 				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
 				PrintFunctionInfo(*func);
-				UG_LOG(" with code " << err.get_code() << ":\n");
-				UG_LOG("Error message: " << err.get_msg() << endl);
+				UG_LOG(". Error message:\n");
+				for(size_t i=0;i<err.num_msg();++i)	UG_LOG(err.get_msg(i)<<endl);
 				if(err.terminate())
 				{
 					UG_LOG("Call stack:\n");
 					lua_stacktrace(L);
 					UG_LOG("terminating..." << endl);
-					exit(err.get_code());
+					exit(0);
 				}
 				UG_LOG(". continuing execution...\n");
 			}
@@ -757,12 +757,12 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			{
 				UG_LOG("UGError in " << GetLuaFileAndLine(L) << " in function ")
 				PrintLuaClassMethodInfo(L, 1, *m);
-				UG_LOG(" with code " << err.get_code() << ":\n");
-				UG_LOG("Error message: " << err.get_msg() << endl);
+				UG_LOG(". Error message:\n");
+				for(size_t i=0;i<err.num_msg();++i)	UG_LOG(err.get_msg(i)<<endl);
 				if(err.terminate())
 				{
 					UG_LOG("terminating..." << endl);
-					exit(err.get_code());
+					exit(0);
 				}
 				UG_LOG(". continuing execution...\n");
 			}

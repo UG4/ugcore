@@ -288,7 +288,7 @@ struct UG_ERROR_LocalShapeFunctionSetNotRegistered
 	{
 		std::stringstream ss; ss << "Local Shape Function Set not found for "
 							<<roid<<" (dim="<<dim<<") and type = "<<lfeid;
-		UGFatalError::set_msg(ss.str());
+		UGFatalError::push_msg(ss.str());
 	}
 	int dim;
 	ReferenceObjectID roid;
