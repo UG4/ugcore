@@ -90,7 +90,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 	{
 		UG_DLOG(LIB_ALG_AMG, 4, "========================\n");
 		// get smallest supernode
-		size_t smallest=0; size_t ismallest;
+		size_t smallest=0; size_t ismallest = 0;
 		cnt = 0;
 		for(size_t i=0; i<sizes.size(); i++)
 		{
@@ -98,7 +98,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 			UG_DLOG(LIB_ALG_AMG, 4, i << ":\n");
 			supernodes[i].print(supernodes);
 
-			if(smallest == 0 || supernodes[i].size < smallest)
+			if(smallest == 0 || supernodes[i].size < (int)smallest)
 			{
 				smallest = supernodes[i].size;
 				ismallest = i;
