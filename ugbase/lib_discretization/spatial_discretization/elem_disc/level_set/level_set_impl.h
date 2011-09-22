@@ -1044,7 +1044,7 @@ bool FV1LevelSetDisc<TGridFunction>::overwrite(TGridFunction& unew,TGridFunction
 			const dof_distribution_type& dd = unew.get_dof_distribution();
 			dd.inner_multi_indices(vrt, 0, ind);
 		    number phiValue = BlockRef(phi[ind[0][0]],ind[0][1]);
-			int nodeSign;
+			int nodeSign = 0;
 			if (phiValue<0)  nodeSign =-1;
 			if (phiValue>0)  nodeSign = 1;
 			if (phiValue==0) nodeSign = 0;
