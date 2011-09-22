@@ -61,7 +61,9 @@ set(linkLibraries)
 # Removal of single values from CMAKE_CXX_FLAGS would be hard...
 set(CMAKE_CXX_FLAGS "")
 
-
+# We check for MPI here, since we use MPI_FOUND as default value for
+# the PARALLEL option
+find_package(MPI)
 
 ################################################################################
 # All available options should be defined here:
@@ -85,7 +87,7 @@ option(HLIBPRO "Sets the path in which hlibpro shall be searched.")
 option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
 option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
 option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
-option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ON)
+option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI_FOUND})
 option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
 option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
@@ -245,13 +247,6 @@ endif(DEBUG)
 if(DEBUG_LOGS)
 	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
 endif(DEBUG_LOGS)
-
-########################################
-# PARALLEL
-if(PARALLEL)
-	add_definitions(-DUG_PARALLEL)	
-endif(PARALLEL)
-
 
 ########################################
 # PROFILER
@@ -450,8 +445,8 @@ endif(UNIX)
 # MPI
 if(PARALLEL)
 	# MPI is required for parallel builds
-	find_package(MPI)
 	if(MPI_FOUND)
+		add_definitions(-DUG_PARALLEL)
 		include_directories(${MPI_INCLUDE_PATH})
 		set(linkLibraries ${linkLibraries} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
 	else(MPI_FOUND)
