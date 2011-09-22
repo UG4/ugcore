@@ -21,5 +21,6 @@
  
 #include "extrude.h"
 #include "cylinder_extrusion.h"
+#include "expand_layers.h"
 
 #endif

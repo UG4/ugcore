@@ -36,6 +36,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/grid_generation/triangle_fill.cpp
 					algorithms/extrusion/extrude.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
+					algorithms/extrusion/expand_layers.cpp
 					algorithms/refinement/hanging_node_refiner_base.cpp
 					algorithms/refinement/hanging_node_refiner_grid.cpp
 					algorithms/refinement/hanging_node_refiner_multi_grid.cpp

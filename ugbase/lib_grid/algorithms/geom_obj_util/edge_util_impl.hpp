@@ -391,6 +391,8 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 			}
 		}
 	}
+
+	grid.detach_from_edges(aIsCandidate);
 }
 
 }//	end of namespace

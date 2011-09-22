@@ -43,6 +43,39 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
+bool IsBoundaryEdge(Grid& grid, EdgeBase* e, CB_ConsiderFace funcIsSurfFace)
+{
+	int counter = 0;
+	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	{
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
+			iter != grid.associated_faces_end(e); ++iter)
+		{
+			if(funcIsSurfFace(*iter))
+				++counter;
+			if(counter > 1)
+				return false;
+		}
+	}
+	else
+	{
+	//	fill a vector using a helper function
+		vector<Face*> faces;
+		CollectFaces(faces, grid, e, false);
+		for(size_t i = 0; i < faces.size(); ++i){
+			if(funcIsSurfFace(faces[i]))
+				++counter;
+			if(counter > 1)
+				return false;
+		}
+	}
+
+	if(counter == 1)
+			return true;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
 bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
 {
 //	get the number of connected faces. if only one face is connected then

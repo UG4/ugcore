@@ -7,6 +7,7 @@
 
 #include "lib_grid/lg_base.h"
 #include "face_util.h"
+#include "lib_grid/algorithms/callbacks/callbacks.h"
 
 namespace ug
 {
@@ -33,6 +34,17 @@ int GetEdgeIndex(Face* f, EdgeBase* e);
  * returns -1 if the edge was not found.
  */
 int GetEdgeIndex(Volume* vol, EdgeBase* e);
+
+
+///	returns true if the edge is connected to exactly one surface face.
+/**	If the given callback returns true for a given face, then the face is
+ * considered to be part of a surface. If exactly one of the faces adjacent to
+ * the given edge is part of a surface, then the edge is considered to be
+ * a boundary edge and true is returned.
+ * Take a look at existing standard callbacks, if you want to use this method.
+ */
+bool IsBoundaryEdge(Grid& grid, EdgeBase* e, CB_ConsiderFace funcIsSurfFace);
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns whether an edge lies on the boundary of a 2D grid.
