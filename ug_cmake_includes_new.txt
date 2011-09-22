@@ -180,6 +180,7 @@ elseif("${TARGET}" STREQUAL "ugplugin")
 elseif("${TARGET}" STREQUAL "gridshell")
 	set(buildUGShell ON)
 	set(buildCorePlugins ON)
+	set(targetExecutableName gridshell)
 	
 else("${TARGET}" STREQUAL "ugshell")
 	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})
