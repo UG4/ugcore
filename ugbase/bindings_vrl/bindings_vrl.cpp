@@ -61,13 +61,13 @@ void Logln(std::string s) {
 
 void ThrowIf(bool b, std::string s) {
 	if (!b) {
-		throw(UGError(s.c_str()));
+		throw(ug::UGError(s.c_str()));
 	}
 }
 
 void ThrowIfNot(bool b, std::string s) {
 	if (!b) {
-		throw(UGError(s.c_str()));
+		throw(ug::UGError(s.c_str()));
 	}
 }
 
@@ -263,7 +263,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
-	} catch (UGError ex) {
+	} catch (ug::UGError ex) {
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ex.get_msg().c_str());
 	} catch (...) {
@@ -293,7 +293,7 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 
 		result = (long) clazz->create();
 
-	} catch (UGError ex) {
+	} catch (ug::UGError ex) {
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ex.get_msg().c_str());
