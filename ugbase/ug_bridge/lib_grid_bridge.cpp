@@ -485,6 +485,26 @@ UG_LOG("done\n");
 
 
 ////////////////////////////////////////////////////////////////////////
+///	A helper class for ExpandLayers.
+/**	This class should never be publicly available, especially since
+ * deriving from std::vector is a bad idea (compare 'Effective C++').
+ * However, it is very useful in this situation.
+ *
+ * The class simply extends std::vector<FractureInfo> by an add_layer method.
+ */
+class ExpandLayersDesc : public std::vector<FractureInfo>
+{
+	public:
+		ExpandLayersDesc() {}
+
+		void add_layer(int subsetInd, int newSubsetInd, number width)
+		{
+			push_back(FractureInfo(subsetInd, newSubsetInd, width));
+		}
+};
+
+
+////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 {
 	try
@@ -636,6 +656,17 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("num_target_procs", &PartitionMap::num_target_procs)
 			.add_method("get_target_proc", &PartitionMap::get_target_proc)
 			.add_method("shift_target_procs", &PartitionMap::shift_target_procs);
+
+	//	ExpandLayers
+		typedef std::vector<FractureInfo> FracInfoVec;
+		reg.add_class_<FracInfoVec>("FractureInfoVec", grp);
+
+		reg.add_class_<ExpandLayersDesc, FracInfoVec>("ExpandLayersDesc", grp)
+			.add_constructor()
+			.add_method("add_layer", &ExpandLayersDesc::add_layer);
+
+		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
+			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
