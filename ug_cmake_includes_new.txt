@@ -65,6 +65,10 @@ set(CMAKE_CXX_FLAGS "")
 # the PARALLEL option
 find_package(MPI)
 
+# Boost is required.
+find_package(Boost REQUIRED)
+include_directories (${Boost_INCLUDE_DIRS})
+
 ################################################################################
 # All available options should be defined here:
 # cmake-options can either be on or off.
@@ -414,14 +418,9 @@ endif(HLIBPRO)
 
 ########################################
 # boost
-find_package(Boost)
-
 if(Boost_FOUND)
 	if(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
 		#message(STATUS "Info: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}').")
-		
-		# add include path
-		include_directories (${Boost_INCLUDE_DIRS})
 		
 	else(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
 		# we require a newer version of boost

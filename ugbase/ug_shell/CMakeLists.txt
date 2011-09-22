@@ -12,37 +12,56 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # include("../../ug_cmake_includes.txt")
 
-# print the different options.
-message(STATUS)
-message(STATUS "Please note that several options exist:")
-message(STATUS "  -DNO_LINENOISE=OFF: BSD-licensed linenoise is used (this is the default).")
-message(STATUS "                      Adds support for a history, and path-completion.")
-message(STATUS "                      Additionally type and member completion is featured.")
-message(STATUS "  -DUSE_READLINE=ON: GPL-licensed readline is used.")
-message(STATUS "                     Adds support for a history, and path-completion.")
-message(STATUS "                     Note that you may only use this option for private applications.")
-message(STATUS "                     You may not redistribute applications that use this option.")
-message(STATUS "")
-message(STATUS "Note that those libraries do not work for all platforms")
-message(STATUS)
+set(shelltypeOptions "linenoise, readline, simple")
+set(shelltypeDefault "linenoise")
 
+# In order to avoid build errors, we'll perform some more checks, to determine
+# the best matching shelltype for the given platform.
+#todo: This can be further elaborated...
+find_library(libReadline readline)
+if(NOT libReadline)
+	# set shelltypeDefault to "simple". linenoise most likely wouldn't work, too.
+	set(shelltypeDefault "simple")
+endif(NOT libReadline)
+
+
+# this option is a pseudo-option, since it uses a string instead of (ON / OFF)
+option(SHELLTYPE "Set the type of the shell. Valid options are: "${targetOptions})
+
+if(NOT SHELLTYPE)
+	set(SHELLTYPE ${shelltypeDefault})
+endif(NOT SHELLTYPE)
+
+# output the current shell-type
+message(STATUS "")
+message(STATUS "Info: SHELLTYPE: "${SHELLTYPE}" (options are: "${shelltypeOptions}")")
+
+
+# set the main sources
 set(srcUGShell	    src/main.cpp
                     src/completion.cpp)
 
-# find the readline libraries
-if(USE_READLINE)
-	message(STATUS "using readline. DON'T REDISTRIBUTE THE RESULTING APPLICATION!")
-	find_library(libReadline readline)
+
+if("${SHELLTYPE}" STREQUAL "linenoise")
+	add_definitions(-DUG_USE_LINENOISE)
+	set(srcUGShell	${srcUGShell} src/externals/linenoise/linenoise.cpp)
+	
+elseif("${SHELLTYPE}" STREQUAL "readline")
 	if(libReadline)
 		add_definitions(-DUG_USE_READLINE)
+		message(STATUS "Info: Readline is GPL licensed. Do not redistribute the resulting application!")
+	else(libReadline)
+		message(FATAL_ERROR "Readline could not be found. Aborting.")
 	endif(libReadline)
-else(USE_READLINE)
-	if(NOT NO_LINENOISE)
-		message(STATUS "INFO: Using linenoise. DON'T FORGET TO MENTION THIS IN THE DOCUMENTATION.")
-		add_definitions(-DUG_USE_LINENOISE)
-		set(srcUGShell	${srcUGShell} src/externals/linenoise/linenoise.cpp)
-	endif(NOT NO_LINENOISE)
-endif(USE_READLINE)
+
+elseif("${SHELLTYPE}" STREQUAL "simple")
+	# Nothing to do here...
+	
+else("${SHELLTYPE}" STREQUAL "linenoise")
+	message(FATAL_ERROR "Invalid SHELLTYPE specified. Aborting.")
+endif("${SHELLTYPE}" STREQUAL "linenoise")
+
+
 message(STATUS)
 
 remove_definitions(-DBUILDING_DYNAMIC_LIBRARY)
