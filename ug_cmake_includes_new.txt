@@ -281,44 +281,47 @@ if(buildAlgebra)
 	
 	# we'll check for lapack and blas here
 	if(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
-		# a fortran compiler is required to find the packages
-		# Sadly there seems to be a cmake-bug, hence the following workaround.
-		# ENABLE_LANGUAGE workaround begin (issue 0009220)
-		if(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
-		  set(CMAKE_Fortran_COMPILER CMAKE_Fortran_COMPILER-NOTFOUND)
-		endif(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
-		# ENABLE_LANGUAGE workaround end (issue 0009220)
-		
-		ENABLE_LANGUAGE(Fortran OPTIONAL)
-		if(CMAKE_Fortran_COMPILER_WORKS)
+		# On OSX, we know where lapack and blas are located. To avoid errors
+		# with Fortran compilers on OSX, we'll add APPLE as a special case here.
+		if(APPLE)
 			if(NOT IGNORE_LAPACK)
-				find_package(LAPACK)
+				set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
+				FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
+				if(LAPACK_INCLUDE_PATH)
+		  			set(LAPACK_FOUND YES)
+		  		endif(LAPACK_INCLUDE_PATH)
 			endif(NOT IGNORE_LAPACK)
 			
 			if(NOT IGNORE_BLAS)
-				find_package(BLAS)
+				set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
+				find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
+				set(BLAS_FOUND YES)
+				if(BLAS_INCLUDE_PATH)
+					set(BLAS_FOUND YES)
+				endif(BLAS_INCLUDE_PATH)
 			endif(NOT IGNORE_BLAS)
 			
-		else(CMAKE_Fortran_COMPILER_WORKS)
-			if(APPLE)
+		else(APPLE)
+			# a fortran compiler is required to find the packages
+			# Sadly there seems to be a cmake-bug, hence the following workaround.
+			# ENABLE_LANGUAGE workaround begin (issue 0009220)
+			if(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+			  set(CMAKE_Fortran_COMPILER CMAKE_Fortran_COMPILER-NOTFOUND)
+			endif(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+			# ENABLE_LANGUAGE workaround end (issue 0009220)
+			
+			ENABLE_LANGUAGE(Fortran OPTIONAL)
+			if(CMAKE_Fortran_COMPILER_WORKS)
 				if(NOT IGNORE_LAPACK)
-					set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
-					FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
-					if(LAPACK_INCLUDE_PATH)
-			  			set(LAPACK_FOUND YES)
-			  		endif(LAPACK_INCLUDE_PATH)
+					find_package(LAPACK)
 				endif(NOT IGNORE_LAPACK)
 				
 				if(NOT IGNORE_BLAS)
-					set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
-					find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
-					set(BLAS_FOUND YES)
-					if(BLAS_INCLUDE_PATH)
-						set(BLAS_FOUND YES)
-					endif(BLAS_INCLUDE_PATH)
+					find_package(BLAS)
 				endif(NOT IGNORE_BLAS)
-			endif(APPLE)
-		endif(CMAKE_Fortran_COMPILER_WORKS)
+				
+			endif(CMAKE_Fortran_COMPILER_WORKS)
+		endif(APPLE)
 		
 	# We'll output whether lapack and blas are used, to avoid misconceptions
 		if(LAPACK_FOUND)
