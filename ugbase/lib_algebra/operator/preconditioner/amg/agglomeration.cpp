@@ -194,7 +194,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 			mergeWith[i].push_back(supernodes[i].father);
 		else
 		{
-			UG_ASSERT(supernodes[i].components[0] == i, i << " != " << supernodes[i].components[0]);
+			UG_ASSERT(supernodes[i].components[0] == (int)i, i << " != " << supernodes[i].components[0]);
 			mergeWith[i] = supernodes[i].components;
 		}
 	}
