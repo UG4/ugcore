@@ -19,10 +19,10 @@ prepare_step(SolutionTimeSeries<vector_type>& prevSol,
              number dt)
 {
 //	perform checks
-	if(prevSol.size() != m_prevSteps)
+	if(prevSol.size() < m_prevSteps)
 	{
 		UG_LOG("ERROR in ThetaTimeDiscretization::prepare_step:"
-			" Number of previous solutions must be "<<m_prevSteps<<".\n");
+			" Number of previous solutions must at least "<<m_prevSteps<<".\n");
 		return false;
 	}
 	if(this->m_pDomDisc == NULL)
@@ -116,8 +116,10 @@ assemble_defect(vector_type& d, const vector_type& u,
 			(d, u, m_futureTime, (*m_pPrevSol), dofDistr, s_m[0], s_a[0]*m_dt) != true)
 		return false;
 
+	UG_ASSERT(m_pPrevSol->size() >= m_prevSteps + 1, "Wrong number of solutions")
+
 // 	previous time step part
-	for(size_t i=1; i < m_pPrevSol->size(); ++i)
+	for(size_t i=1; i < m_prevSteps; ++i)
 	{
 		if(this->m_pDomDisc->assemble_defect
 				(d,  m_pPrevSol->solution(i), m_pPrevSol->time(i), (*m_pPrevSol), dofDistr,
