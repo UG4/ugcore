@@ -6,9 +6,10 @@
 #include "ugbase.h"
 #include "registry/registry.h"
 #include "registry/class.h"
+#include "common/util/path_provider.h"
 
-#include "../common/common.h"
-#include "../lib_algebra/operator/convergence_check.h"
+#include "common/common.h"
+#include "lib_algebra/operator/convergence_check.h"
 #include "common/authors.h"
 
 
@@ -21,7 +22,7 @@
 #include "lib_grid/lib_grid.h"
 #include "compiledate.h"
 #include "user_data.h"
-#include "../lib_discretization/spatial_discretization/ip_data/const_user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
 
 #include "invocation.h"
 #include "playground.h"
@@ -129,6 +130,10 @@ void registerUGFinalize(ug::bridge::Registry & reg) {
 	reg.add_function("UGFinalize", &ug::UGFinalize, "UG4/util");
 }
 
+//void registryChanged(ug::bridge::Registry* reg) {
+//	UG_LOG("VRL: REGISTRY CHANGED\n");
+//}
+
 }// end vrl::
 }// end ug::
 
@@ -152,15 +157,21 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	// Choose registry used.
 	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
 
+//	reg.add_callback(&ug::vrl::registryChanged);
+	
 	using namespace ug;
 
+	// define paths
+	ug::PathProvider::set_path(PLUGIN_PATH,arguments[0]);
+	
 	int argc = arguments.size();
 	char** pargv = &argv[0];
 	//\todo: generalize outputproc rank
+	// isn't this possible already via SetOuputRank() ?
 	int retVal = ug::UGInit(&argc, &pargv, 0);
 
 	// Register Playground if we are in debug mode
-
+	
 	//#ifdef UG_DEBUG
 	//	registerPlayground(reg);
 	//#endif
@@ -172,7 +183,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	ug::vrl::registerUGFinalize(reg);
 
 	if (!reg.check_consistency()) {
-		UG_LOG("UG-VRL: cannot compile code due to registration error.");
+		UG_LOG("UG-VRL: cannot compile code due to registration error.\n");
 		return 1;
 	}
 
