@@ -29,8 +29,6 @@
 #include "lib_discretization/spatial_discretization/elem_disc/inner_boundary/inner_boundary.h"
 #include "lib_discretization/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
-#include "lib_discretization/spatial_discretization/elem_disc/time_neumann_boundary/time_neumann_boundary.h"
-
 // fe1_nonlinear_elasticity includes
 #include <boost/function.hpp>
 #include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
@@ -284,17 +282,6 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FV1ThermohalineFlow", dimTag);
 	}
 
-//	Time Neumann Boundary
-	{
-		typedef FV1TimeNeumannBoundary<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("FV1TimeNeumannBoundary").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.add_constructor()
-			.add_method("set_capacity", &T::set_capacity);
-		reg.add_class_to_group(name, "FV1TimeNeumannBoundary", dimTag);
-	}
-
 //	Non-Linear Elastictity
 	{
 		typedef FE1NonlinearElasticityElemDisc<TDomain> T;
@@ -306,8 +293,6 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 			//methods, which are used in script-file
 		reg.add_class_to_group(name, "FE1NonlinearElasticity", dimTag);
 	}
-
-
 
 /////////////////////////////////////////////////////////////////////////////
 // Convection Shapes
