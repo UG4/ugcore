@@ -1,659 +1,512 @@
-
-################################################
-# created by Sebastian Reiter
+################################################################################
+# created by Sebastian Reiter, Andreas Vogel, Martin Rupp, Michael Hoffer, ...
 # s.b.reiter@googlemail.com
 #
-# ug cmake includes
-################################################
+# This file handles all options, with which ug can be compiled. Depending on
+# those options, it then resolves all dependencies by adding required
+# include-paths and by linking to required libraries.
+# It also sets associated defines which can be queried in C and C++ Code.
+#
+# If you're creating an executable or a library which mainly depends on ug4,
+# including this file in your CMakeLists.txt may be a good idea.
+################################################################################
 
-################################################
-# OVERVIEW
-# This file is a compilation of code required by cmake files of most applications.
-# If you want to use ug in your application, you should add
-# include(ug_cmake_includes.txt)
-# to your CMakeLists.txt file. Make sure that you specify the right path to this file.
-# Please note that this file only works correctly if it is located in the ug-root path.
-#
-# The following code automatically takes care of finding important external libraries,
-# adding important include paths (including ug-include paths),
-# and links with the ug libraries and external libraries.
-#
-#
-# OPTIONS
-# You can enable and disable some parts of ug, in order to reduce build-times or
-# unwanted dependencies.
-# It is good practice to disable everything you don't need.
-# The following options can be enabled / disabled:
-#
-# - UG_DEBUG: Produces slow but debuggable applications.
-# - FORCE_64: Produces 64bit-code
-# - FORCE_32: Produces 32bit-code
-# - NO_MPI: Disables MPI support.
-# - NO_ALGEBRA: Disables support for algebra and discretization.
-# - HYPRE: Enables support for hypre.
-# - HLIBPRO: Enables support for HLibPro.
-# - NO_BOOST: Disables support for boost (should only be disabled if required).
-# - NO_PCL: Disables creation of the pcl-library.
-# - NO_FORTRAN: Disables Fortran (Fortran may be needed to find LAPACK)
-# - NO_LAPACK: Disable LAPACK libraries
-# - NO_BLAS: Disable BLAS libraries
-# - UG_PROFILER: Enables the ug-profiler.
-# - DIM: Dimension to be build (1,2,3,ALL)
-# - DIM: DoFManager to be build (P1, GEN)
-# - PROFILE_PCL: Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.
-# - PCL_DEBUG_BARRIER: Enables Barriers ('pcl:SynchronizeProcesses()') for debugging/profiling.
-# - USE_METIS: Sets the path in which the METIS lib can be found.
-# - USE_PARMETIS: Sets the path in which the PARMETIS lib can be found.
-# - USE_TETGEN: Sets the path in which the Tetgen libraries can be found.
-#
-# To enable or disable options during the cmake call, call cmake like this:
-# cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
-#
-# If you want to disable some parts of ug in the CMakeLists.txt file of your
-# application (a good idea if your application doesn't need some part of ug)
-# you can set those options before including the ug_cmake_includes file using
-# set(NO_MPI ON)
-# set(NO_ALGEBRA OFF)
-# include(ug_cmake_includes.txt)
-#
-# Please note that UG_DEBUG should not be set in any CMakeLists.txt file. It should
-# only be used as a command-line parameter to cmake.
-#
-# If you want to build a library using ug_cmake_includes.txt, you should call
-# set(UG_LIBRARY_BUILD on) before including ug_cmake_includes.txt.
-# This will avoid unnecessary calls to link_libraries.
-#
-# DEFINES
-# Some defines that are accessible from your source-code are defined here:
-# - UG_DEBUG is defined if UG_DEBUG is set to ON (use cmake -DUG_DEBUG=ON)
-# - UG_PARALLEL is defined if NO_PCL is set to OFF and NO_MPI is set to OFF.
-################################################
-
-if(USE_NEW_CMAKE_INCLUDES)
-	if(NOT UG_CMAKE_INCLUDES_INCLUDED)
-		message(STATUS "Using new cmake includes. Proceed on your own risk!")
-		get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
-		include(${UG_ROOT_PATH}/ug_cmake_includes_new.txt)
-		set(UG_SHARED ON)
-		add_definitions(-DUG_PLUGINS)
-		set(UG_PROFILER ${PROFILER})
-		set(UG_DEBUG ${DEBUG})
-		set(UG_CMAKE_INCLUDES_INCLUDED on)
-	endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
-endif(USE_NEW_CMAKE_INCLUDES)
-
+################################################################################
 # Make sure code is only executed once.
+# (no indent here, since it affects the whole file)
 if(NOT UG_CMAKE_INCLUDES_INCLUDED)
-	set(UG_CMAKE_INCLUDES_INCLUDED on)
+set(UG_CMAKE_INCLUDES_INCLUDED on)
 
-	# options for use in cmake gui and help strings in CMakeCache.txt
-	OPTION(UG_DEBUG "debug mode")
-	OPTION(UG_ENABLE_DEBUG_LOGS "debug logs")
-	OPTION(UG_SHARED "builds a shared lib")
-	OPTION(FORCE_64 "Force -m64, 64bit-Compilation")
-	OPTION(FORCE_32 "Force -m32, 32bit-Compiltation")
-	OPTION(NO_MPI "Disable MPI Support")
-	OPTION(NO_ALGEBRA "Disable algebra and discretization")
-	OPTION(HYPRE "Enable Hypre")
-	OPTION(HLIBPRO "Enable HLibPro")
-	OPTION(NO_BOOST "disable support for BOOST")
-	OPTION(NO_PCL "Disable parallel communication library")
-	OPTION(UG_PLUGINS "Enables plugin support. Note that UG_SHARED should also be activated.")
 
-	OPTION(NO_FORTRAN "Do not use Fortran (Fortran may be needed to find LAPACK)")
-	OPTION(NO_LAPACK "Disable LAPACK")
-	OPTION(NO_BLAS "Disable BLAS")
-	OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
-	OPTION(NO_SHELL "Disables building of the ugshell app.")
-	OPTION(UG_PROFILER "enables the ug-profiler")
-	OPTION(GENERATE_DEBUG_SYMBOLS "adds -g to gcc. Generates debug symbols in release mode (for profilers etc)")
-	OPTION(DIM "Specify the dimension to build (1,2,3, ALL)")
-	OPTION(DOF "Specify the DoFManager to build (P1, GEN)")
-	OPTION(PROFILE_PCL "Enables pcl-profiling. Only has effect if UG_PROFILER is also enabled.")
-	OPTION(PCL_DEBUG_BARRIER "Enables Barriers for debugging/profiling.")
+################################################################################
+# include ug header and library path
+get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
+include_directories(${UG_ROOT_PATH}/ugbase)
+link_directories(${UG_ROOT_PATH}/lib)
 
-	OPTION(USE_METIS "specify the path in which the metis libraries are located (headers are assumed to be in PATH_TO_METIS/Lib).")
-	OPTION(USE_PARMETIS "specify the path in which the parmetis header and libraries are located.")
-	OPTION(USE_TETGEN "specify the path in which the tetgen header and libraries are located.")
+################################################################################
+# We want the code to be built into one library (except the plugins, of course)
+set(BUILD_ONE_LIB ON)
+
+################################################################################
+# In this section we'll define default variables
 	
-	#######################
-	# include ug header and library path
-	get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
-	include_directories(${UG_ROOT_PATH}/ugbase)
-	link_directories(${UG_ROOT_PATH}/lib)
+# Values for the TARGET option
+set(targetOptions "ugshell, vrl, libug4, libgrid, ugplugin, gridshell")
+set(targetDefault "ugshell")
+set(targetExecutableName ugshell)
+set(targetLibraryName ug4)
 
-	#######################
-	# Dimension
+# Values for the DIM option
+#todo: add 1;2, 1;3, 2;3 (problematic since ';' is a list-separator)
+set(dimOptions "1, 2, 3, ALL")
+set(dimDefault "ALL")
 
-	# check if DIM flag has been passed, else set default to "ALL"
-	if(NOT DIM)
-		set(DIM "ALL")
-	endif(NOT DIM)
+# Values for the DOF option
+set(dofOptions "GEN, P1")
+set(dofDefault "P1")
+
+# Those variables control the build process. They are later modified depending
+# on the value of TARGET.
+set(buildUGShell OFF)
+set(buildForVRL OFF)
+set(buildAlgebra OFF)
+set(buildCorePlugins OFF)
+set(buildSharedLib OFF)
+
+# Here we'll store libs, if we find and need them
+set(linkLibraries)
+
+# We'll reset CMAKE_CXX_FLAGS, since many options are adding some values.
+# Removal of single values from CMAKE_CXX_FLAGS would be hard...
+# -dynamic should always be on
+set(CMAKE_CXX_FLAGS "")
+
+# We check for MPI here, since we use MPI_FOUND as default value for
+# the PARALLEL option
+find_package(MPI)
+
+# Boost is required.
+find_package(Boost REQUIRED)
+include_directories (${Boost_INCLUDE_DIRS})
+
+################################################################################
+# All available options should be defined here:
+# cmake-options can either be on or off.
+
+# the following options are pseudo cmake-options (normal options only support ON and OFF).
+# Their default values are defined in the section below.
+option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
+option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
+option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
+
+# the following options too are pseudo cmake-options. However, they should
+# contains pathes, if set.
+option(METIS "Sets the path in which metis shall be searched.")
+option(PARMETIS "Sets the path in which parmetis shall be searched.")
+option(TETGEN "Sets the path in which tetgen shall be searched.")
+option(HYPRE "Sets the path in which hypre shall be searched.")
+option(HLIBPRO "Sets the path in which hlibpro shall be searched.")
+
+# the following options are real cmake-options
+option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
+option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
+option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
+option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI_FOUND})
+option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
+option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
+option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
+option(IGNORE_LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" OFF)
+option(IGNORE_BLAS "Blas won't be used, even if available. Valid options are ON, OFF" OFF)
+
+# set default values for pseudo-options
+if(NOT TARGET)
+	if(BUILDING_PLUGIN)
+		set(TARGET ugplugin)
+	else(BUILDING_PLUGIN)
+		set(TARGET ${targetDefault})
+	endif(BUILDING_PLUGIN)
+endif(NOT TARGET)
+
+if(NOT DIM)
+	set(DIM ${dimDefault})
+endif(NOT DIM)
+
+if(NOT DOF)
+	set(DOF ${dofDefault})
+endif(NOT DOF)
+
+
+################################################################################
+# We'll output the current options-setting in this section
+message(STATUS "")
+message(STATUS "Info: Current options:")
+message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOptions}")")
+message(STATUS "Info: DIM:               "${DIM}" (options are: "${dimOptions}")")
+message(STATUS "Info: DOF:               "${DOF}" (options are: "${dofOptions}")")
+message(STATUS "Info: STATIC:            "${STATIC}" (options are: ON, OFF)")
+message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
+message(STATUS "Info: DEBUG_LOGS:        "${DEBUG_LOGS}" (options are: ON, OFF)")
+message(STATUS "Info: PARALLEL:          "${PARALLEL}" (options are: ON, OFF)")
+message(STATUS "Info: PCL_DEBUG_BARRIER: "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
+message(STATUS "Info: IGNORE_LAPACK:     "${IGNORE_LAPACK}" (options are: ON, OFF)")
+message(STATUS "Info: IGNORE_BLAS:       "${IGNORE_BLAS}" (options are: ON, OFF)")
+message(STATUS "")
+message(STATUS "Info: External libraries (set them to the path, which contains the library):")
+message(STATUS "Info: METIS:    "${METIS})
+message(STATUS "Info: PARMETIS: "${PARMETIS})
+message(STATUS "Info: TETGEN:   "${TETGEN})
+message(STATUS "Info: HYPRE:    "${HYPRE})
+message(STATUS "Info: HLIBPRO:  "${HLIBPRO})
+message(STATUS "")
+
+################################################################################
+# Options are processed in this section.
+
+########################################
+# TARGET
+# The target option enables specific build variables
+if("${TARGET}" STREQUAL "ugshell")
+	set(buildUGShell ON)
+	set(buildAlgebra ON)
+	set(buildCorePlugins ON)
+	set(CMAKE_CXX_FLAGS "-dynamic")
 	
-	# if DIM is "ALL"
-	if("${DIM}" STREQUAL "ALL")
-		message(STATUS "INFO: Building all world dimensions 1,2,3. (Choose dimension by -DDIM=\"1;2;3\")")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3")
-		
-	# if DIM is string of dimensions (e.g. "1;2")
-	else("${DIM}" STREQUAL "ALL")
-		# loop dims
-		foreach(d ${DIM})
-			# check if dim is valid
-			if(d GREATER 3 OR d LESS 1)
-			message(FATAL_ERROR "ERROR: Cannot build world dimension ${d}. Choose -DDIM=\"1;2;3\"")
-			endif(d GREATER 3 OR d LESS 1)
-		
-			message(STATUS "INFO: Building world dimension ${d}. (Choose all dimensions by -DDIM=ALL, others by -DDIM=\"1;2;3\")")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
-		endforeach(d)
-	endif("${DIM}" STREQUAL "ALL")
-
-	#######################
-	# DoFManager
-
-	# check if DOF flag has been passed, else set default to "P1"
-	if(NOT DOF)
-		set(DOF "P1")
-	endif(NOT DOF)
-
-	if((NOT ("${DOF}" STREQUAL "GEN")) AND (NOT ("${DOF}" STREQUAL "P1")))
-		message(FATAL_ERROR "ERROR: Specify P1Conform DoFManager correctly. (Choose DoFManager by -DDOF=\"P1|GEN\")")
-	endif((NOT ("${DOF}" STREQUAL "GEN")) AND (NOT ("${DOF}" STREQUAL "P1")))
+elseif("${TARGET}" STREQUAL "vrl")
+	# The vrl works only, if a dynamic library is built.
+	if(STATIC)
+		message(FATAL_ERROR "ug4 for vrl can only be build as a dynamic library. Please set STATIC = OFF.")
+	endif(STATIC)
 	
+	set(buildAlgebra ON)
+	set(buildForVRL ON)
+	set(buildCorePlugins ON)
+	#todo: rename targetLibraryName to ug4_vrl
+	#set(targetLibraryName ug4_vrl)
+	
+elseif("${TARGET}" STREQUAL "libug4")
+	set(buildAlgebra ON)
+	set(buildCorePlugins ON)
+	
+elseif("${TARGET}" STREQUAL "libgrid")
+	set(targetLibraryName grid)
+
+elseif("${TARGET}" STREQUAL "ugplugin")
+	# Note that the STATIC option for plugins should not change the fact,
+	# that a plugin is compiled as a dynamic library. However, the plugin
+	# should try to link against the static ug4_s library.
+	set(buildAlgebra ON)
+
+elseif("${TARGET}" STREQUAL "gridshell")
+	set(buildUGShell ON)
+	set(buildCorePlugins ON)
+	set(targetExecutableName gridshell)
+	
+else("${TARGET}" STREQUAL "ugshell")
+	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})
+endif("${TARGET}" STREQUAL "ugshell")
+
+
+########################################
+# STATIC
+# If STATIC is enabled, then a static ug-lib will be built. This will add a
+# _s suffix to the resulting lib name.
+if(STATIC)
+	set(buildDynamicLib OFF)
+	set(targetLibraryName ${targetLibraryName}_s)
+else(STATIC)
+	set(buildDynamicLib ON)
+endif(STATIC)
+
+
+########################################
+# DIM
+# The dim option sets defines for C and C++
+if("${DIM}" STREQUAL "ALL")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3")
+	
+else("${DIM}" STREQUAL "ALL")
+	# DIM is a string of dimensions (e.g. "1;2")
+	# loop dims
+	foreach(d ${DIM})
+		# check if dim is valid
+		if(d GREATER 3 OR d LESS 1)
+			message(FATAL_ERROR "ERROR: Cannot build world dimension ${d}. "
+								"Valid options are: "${dimOptions})
+		endif(d GREATER 3 OR d LESS 1)
+	
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
+	endforeach(d)
+endif("${DIM}" STREQUAL "ALL")
+
+########################################
+# DoFManager
+if("${DOF}" STREQUAL "GEN")
 	# if DOF is "GEN"
-	if("${DOF}" STREQUAL "GEN")
-		message(STATUS "INFO: Using (general) Conform DoFManager. (Choose DoFManager by -DDOF=\"P1|GEN\")")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_GEN")
-	endif("${DOF}" STREQUAL "GEN")
-		
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_GEN")
+
+elseif("${DOF}" STREQUAL "P1")
 	# if DOF is "P1"
-	if("${DOF}" STREQUAL "P1")
-		message(STATUS "INFO: Using P1Conform DoFManager. (Choose DoFManager by -DDOF=\"P1|GEN\")")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_P1")
-	endif("${DOF}" STREQUAL "P1")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_P1")
 
-	#######################
-	# compiler flags
+else("${DOF}" STREQUAL "GEN")
+	message(FATAL_ERROR "ERROR: Invalid DoFManager specified. Valid options are: "${dofOptions})
+endif("${DOF}" STREQUAL "GEN")
 
-	# Check whether debug or release mode is activated.
-	if(UG_DEBUG)
-		# Enable debugging output
-		message(STATUS "INFO: Debug mode. (Enable release-mode by defining -DUG_DEBUG=OFF)")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
-		
-		# these will enable strict bounds checking for STL objects like in vector::operator []. 
-		# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC ). 
-		# when this bug is fixed, i'd like to add an option to set those flags
-		# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1")
-		
-		add_definitions(-DUG_DEBUG)
-	else(UG_DEBUG)
-		message(STATUS "INFO: Release mode. (Enable debug-mode by defining -DUG_DEBUG=ON)")
-		# Enable these flags for a fast ublas algebra
-		
-		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize -msse3 -mssse3")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize")
-		if(GENERATE_DEBUG_SYMBOLS)
-			message(STATUS "INFO: Generating debug symbols (-g) (Disable by defining -DGENERATE_DEBUG_SYMBOLS=OFF)")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-		endif(GENERATE_DEBUG_SYMBOLS)
-		remove_definitions(-DUG_DEBUG)
-	endif(UG_DEBUG)
 
-	# Check whether debug output is activated.
-	if(UG_ENABLE_DEBUG_LOGS)
-		# Enable debugging output
-		message(STATUS "INFO: Debug logs enabled. (Disable debug logs by defining -DUG_ENABLE_DEBUG_LOGS=OFF)")
-		add_definitions(-DUG_ENABLE_DEBUG_LOGS)
-	else(UG_ENABLE_DEBUG_LOGS)
-		message(STATUS "INFO: Debug logs disabled.(Enable debug logs by defining -DUG_ENABLE_DEBUG_LOGS=ON)")
-	endif(UG_ENABLE_DEBUG_LOGS)
-		
-	# Enables or disables compilation of the shell
-	if(NO_SHELL)
-		set(buildUGShell OFF)
-	else(NO_SHELL)
-		set(buildUGShell ON)
-		set(targetExecutableName ugshell)
-	endif(NO_SHELL)
+########################################
+# DEBUG
+if(DEBUG)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
+	add_definitions(-DUG_DEBUG)
 	
-	# Saturn is an OSX profiler. Specify -DUSE_SATURN=ON to generate an
-	# executable which is compatible with saturn.
-	if(USE_SATURN)
-		set(CMAKE_CXX_FLAGS "-gfull -pg -finstrument-functions")
-		find_library(LIB_SATURN Saturn)
-		message(STATUS "INFO: Generating profile code (performance drawbacks).")
-		message(STATUS "      Found Saturn lib: ${LIB_SATURN}")
-		link_libraries(${LIB_SATURN})
-	endif(USE_SATURN)
+	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
+	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
+	# when this bug is fixed, one could set those flags (or similar) depending on the compiler.
+	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1")
+
+else(DEBUG)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize")
+endif(DEBUG)
+
+if(DEBUG_LOGS)
+	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
+endif(DEBUG_LOGS)
+
+########################################
+# PROFILER
+if(PROFILER)
+	add_definitions(-DUG_PROFILER)
+endif(PROFILER)
+
+
+########################################
+# PROFILE_PCL
+if(PROFILE_PCL)
+	add_definitions(-DPROFILE_PCL)
+endif(PROFILE_PCL)
+
+
+########################################
+# PCL_DEBUG_BARRIER
+if(PCL_DEBUG_BARRIER)
+	add_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
+endif(PCL_DEBUG_BARRIER)
+
+
+########################################
+# buildAlgebra
+if(buildAlgebra)
+	add_definitions(-DUG_ALGEBRA)
 	
-	#######################
-	# FORCE_32/64 . for use e.g. on MacOS 10.6, where -m64 is default otherwise
-
-	# prevent 32 AND 64 bit
-	if(FORCE_64 AND FORCE_32)
-		message(FATAL_ERROR "FORCE_64=ON and FORCE_32=ON. do not use FORCE_32 and FORCE_64 together.")
-	endif(FORCE_64 AND FORCE_32)
-	
-	if(FORCE_64)
-	   # set 64bit mode
-		message(STATUS "INFO: 64bit mode. (Disable by defining -DFORCE_64=OFF)")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
-	endif(FORCE_64)
-
-	if(FORCE_32)
-	    # set 32bit mode
-		message(STATUS "INFO: 32bit mode. (Disable by defining -DFORCE_32=OFF)")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
-		# otherwise it gets compiled as 64bit on Snow Leopard Systems
-	endif(FORCE_32)
-
-	# Check whether the profiler is activated.
-	if(UG_PROFILER)
-		message(STATUS "INFO: Using profiler (Disable by defining -DUG_PROFILER=OFF)")
-		add_definitions(-DUG_PROFILER)
-	else(UG_PROFILER)
-		message(STATUS "INFO: Not using profiler (Enable by defining -DUG_PROFILER=ON)")
-	endif(UG_PROFILER)
-
-	#check whether pcl-profiling is activated
-	if(PROFILE_PCL)
-		message(STATUS "INFO: profiling pcl (Disable by defining -DPROFILE_PCL=OFF)")
-		add_definitions(-DPROFILE_PCL)
-	else(PROFILE_PCL)
-		message(STATUS "INFO: Not profiling pcl (Enable by defining -DPROFILE_PCL=ON)")
-	endif(PROFILE_PCL)
-
-	#check whether debug barriers are activated
-	if(PCL_DEBUG_BARRIER)
-		message(STATUS "INFO: debug barriers enabled (Disable by defining -DPCL_DEBUG_BARRIER=OFF)")
-		add_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
-	else(PCL_DEBUG_BARRIER)
-		message(STATUS "INFO: No debug barriers enabled (Enable by defining -DPCL_DEBUG_BARRIER=ON)")
-	endif(PCL_DEBUG_BARRIER)
-	
-	#######################
-	# MPI - find include-path and link-libraries
-	if(NO_MPI)
-		message(STATUS "INFO: Not using MPI. (To use MPI define -DNO_MPI=OFF)")
-	else(NO_MPI)
-		message(STATUS "INFO: Using MPI. (To disable MPI define -DNO_MPI=ON)")
-
-		find_package(MPI)
-		if(MPI_FOUND)
-			include_directories(${MPI_INCLUDE_PATH})
-			set(MPI_LIBS ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
-		else(MPI_FOUND)
-			message(WARNING " MPI not found!")
-		endif(MPI_FOUND)
-	endif(NO_MPI)
-
-	#######################
-	# BOOST
-	if(NO_BOOST)
-		message(STATUS "INFO: Not using BOOST. (To enable BOOST define -DNO_BOOST=OFF)")
-	else(NO_BOOST)
-		find_package(Boost 1.40.0)
-
-		if(Boost_FOUND AND (Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39))
-			message(STATUS "INFO: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}'). (To disable boost define -DNO_BOOST=ON)")
-
-			# add include path
-			include_directories (${Boost_INCLUDE_DIRS})
-
-		else(Boost_FOUND)
-		    find_package(Boost)
-			if(Boost_FOUND)
-			    message(FATAL_ERROR " BOOST in ${Boost_INCLUDE_DIRS} is not compatible (required 1.40.0, but is ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}) . NO Boost available. Aborting.")
-				UNSET(Boost_FOUND)
-				UNSET(Boost_INCLUDE_DIRS CACHE)
-				UNSET(Boost_INCLUDE_DIR CACHE)
-			else(Boost_FOUND)
-				message(FATAL_ERROR " BOOST not found! NO Boost available, but required boost 1.40.0. Aborting.")
-			endif(Boost_FOUND)
-		endif(Boost_FOUND AND (Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39))		
-	endif(NO_BOOST)
-
-	#######################
-	# ALGEBRA
- 	if (NOT NO_ALGEBRA)
- 		set(buildAlgebra ON)
-		add_definitions(-DUG_ALGEBRA)
-		if(NOT HYPRE)
-			message(STATUS "INFO: Not using HYPRE. (To enable HYPRE define -DHYPRE=ON)")
-		else(NOT HYPRE)
-			find_path (HYPRELIB_DIR libHYPRE.a
-					PATHS ENV PATH
-					PATH_SUFFIXES src/hypre/lib/ )
-
-			if(HYPRELIB_DIR)
-				message(STATUS "INFO: Using HYPRE (libs at '${HYPRELIB_DIR}'). (To disable HYPRE define -DHYPRE=OFF)")
-
-				# add include path
-				include_directories (${HYPRELIB_DIR}/../include/)
-				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHYPRELIB_DIR")
-
-			else(HYPRELIB_DIR)
-				message(WARNING " HYPRE not found! Compiling WITHOUT HYPRE.")
-			endif(HYPRELIB_DIR)
-		endif(NOT HYPRE)
-
-		if(NOT HLIBPRO)
-			message(STATUS "INFO: Not using HLibPro. (To enable HLibPro define -DHLIBPRO=ON)")
-		else(NOT HLIBPRO)
-			find_path (HLIBPROLIB_DIR libhpro.a
-					PATHS ENV PATH
-					PATH_SUFFIXES ../../hlibpro-0.13.6/lib/ )
-
-			if(HLIBPROLIB_DIR)
-				message(STATUS "INFO: Using HLibPro (libs at '${HLIBPROLIB_DIR}'). (To disable HLibPro define -DHLIBPRO=OFF)")
-
-				# add include path - the second path for the C interface header 'hlib-c.hh'
-				include_directories (${HLIBPROLIB_DIR}/../include/ ${HLIBPROLIB_DIR}/../src/include/)
-				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHLIBPROLIB_DIR")
-				add_definitions(-DUSE_HLIBPRO)
-
-			else(HLIBPROLIB_DIR)
-				message(WARNING " HLibPro not found! Compiling WITHOUT HLIBPRO.")
-			endif(HLIBPROLIB_DIR)
-		endif(NOT HLIBPRO)
-		
-	else(NOT NO_ALGEBRA)
-		set(buildAlgebra OFF)
-	endif(NOT NO_ALGEBRA)
-
-	#######################
-	# UG_LIBRARIES
-	# clear UG_LIBRARIES
-	# THE ORDER OF THE LIBRARIES IN UG_LIBRARIES IS CRUCIAL FOR THE LINKER
-
-    set(UG_LIBRARIES ugbase)
-
-    if(NOT NO_UGBRIDGE)
-        set(UG_LIBRARIES ${UG_LIBRARIES} ugscript ugbridge)
-    endif(NOT NO_UGBRIDGE)
-
-	if(NOT NO_ALGEBRA)
-		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
-		# Hypre:
-		if(HYPRE AND HYPRELIB_DIR)
-			set(UG_LIBRARIES ${UG_LIBRARIES} ${HYPRELIB_DIR}/libHYPRE.a)
-		endif(HYPRE AND HYPRELIB_DIR)
-		# HLibPro:
-		if(HLIBPRO AND HLIBPROLIB_DIR)
-			set(UG_LIBRARIES ${UG_LIBRARIES} ${HLIBPROLIB_DIR}/libhpro.a)
-			#list(APPEND ${UG_LIBRARIES} ${HLIBPROLIB_DIR}/libhpro.a) # should be possible since CMake 2.4!
-		endif(HLIBPRO AND HLIBPROLIB_DIR)
-	endif(NOT NO_ALGEBRA)
-
-	set(UG_LIBRARIES ${UG_LIBRARIES} grid)
-
-	if(NOT NO_PCL AND MPI_FOUND)
-		set(UG_LIBRARIES ${UG_LIBRARIES} pcl)
-		ADD_DEFINITIONS(-DUG_PARALLEL)
-		set(PARALLEL ON)
-		message(STATUS "INFO: Compiling parallel (UG_PARALLEL)")
-	else(NOT NO_PCL AND MPI_FOUND)
-		set(PARALLEL OFF)
-		message(STATUS "INFO: NOT compiling parallel (NO_PCL=${NO_PCL}, NO_MPI=${NO_MPI}, MPI_FOUND=${MPI_FOUND})")
-	endif(NOT NO_PCL AND MPI_FOUND)
-
-	set(UG_LIBRARIES ${UG_LIBRARIES} node_tree registry common)
-
-	if(MPI_FOUND)
-		set(UG_LIBRARIES ${UG_LIBRARIES} ${MPI_LIBS})
-	endif(MPI_FOUND)
-
-	if(USE_METIS)
-		find_library(METIS_LIBS NAMES metis PATHS ${USE_METIS})
-		
-		if(METIS_LIBS-NOTFOUND)
-			message(STATUS "WARNING: METIS lib could not be found.")
-		else(METIS_LIBS-NOTFOUND)
-			message(STATUS "INFO: Using METIS. Please check the METIS license!")
-			ADD_DEFINITIONS(-DUG_METIS)
-			include_directories(${USE_METIS}/Lib)
-			set(UG_LIBRARIES ${UG_LIBRARIES} ${METIS_LIBS})
-		endif(METIS_LIBS-NOTFOUND)
-	else(USE_METIS)
-		message(STATUS "INFO: Not using METIS. (Enable with -DUSE_METIS=path_to_metis).")
-	endif(USE_METIS)
-	
-	if(USE_PARMETIS)
-		find_library(PARMETIS_LIBS NAMES metis parmetis PATHS ${USE_PARMETIS})
-		
-		if(PARMETIS_LIBS-NOTFOUND)
-			message(STATUS "WARNING: PARMETIS lib could not be found.")
-		else(PARMETIS_LIBS-NOTFOUND)
-			message(STATUS "INFO: Using PARMETIS. Please check the PARMETIS license!")
-			ADD_DEFINITIONS(-DUG_PARMETIS)
-			include_directories(${USE_PARMETIS})
-			set(UG_LIBRARIES ${UG_LIBRARIES} ${PARMETIS_LIBS})
-		endif(PARMETIS_LIBS-NOTFOUND)
-	else(USE_PARMETIS)
-		message(STATUS "INFO: Not using PARMETIS. (Enable with -DUSE_PARMETIS=path_to_parmetis).")
-	endif(USE_PARMETIS)
-	
-	if(USE_TETGEN)
-		find_library(TETGEN_LIBS NAMES tet PATHS ${USE_TETGEN})
-		
-		if(TETGEN_LIBS-NOTFOUND)
-			message(STATUS "WARNING: TETGEN lib could not be found.")
-		else(TETGEN_LIBS-NOTFOUND)
-			message(STATUS "INFO: Using TETGEN. Please check the TETGEN license!")
-			ADD_DEFINITIONS(-DUG_TETGEN)
-			ADD_DEFINITIONS(-DTETLIBRARY)
-			include_directories(${USE_TETGEN})
-			set(UG_LIBRARIES ${UG_LIBRARIES} ${TETGEN_LIBS})
-		endif(TETGEN_LIBS-NOTFOUND)
-	else(USE_TETGEN)
-		message(STATUS "INFO: Not using TETGEN. (Enable with -DUSE_TETGEN=path_to_tetgen).")
-	endif(USE_TETGEN)
-	
-    if(UG_SHARED)
-    #   if we're building a shared library, only mpi has to be linked.
-    #   this is important for the shared library
-        if(MPI_FOUND)
-            link_libraries(${MPI_LIBS})
-        endif(MPI_FOUND)
-		message(STATUS "INFO: Building dynamic library (To disable Dynamic Library define -DUG_SHARED=OFF)")
-    else(UG_SHARED)
-        link_libraries(${UG_LIBRARIES})
-		message(STATUS "INFO: Not building dynamic library (To enable Dynamic Library define -DUG_SHARED=ON)")
-    endif(UG_SHARED)
-
-	
-	if(UG_PLUGINS)
-		set(buildCorePlugins ON)
-		if(NOT UG_SHARED)
-			message(FATAL_ERROR "If UG_PLUGINS is activated, then UG_SHARED has to be activated, too!")
-		endif(NOT UG_SHARED)
-		ADD_DEFINITIONS(-DUG_PLUGINS)
-		message(STATUS "INFO: plugins suppored (To disable plugins, define -DUG_PLUGINS=OFF)")
-
-	else(UG_PLUGINS)
-		set(buildCorePlugins OFF)
-		REMOVE_DEFINITIONS(-DUG_PLUGINS)
-		message(STATUS "INFO: plugins not suppored (To enable plugins, define -DUG_PLUGINS=ON)")
-	endif(UG_PLUGINS)
-	
-	if(UNIX)
-        find_library(DL_LIBS NAMES dl)
-        link_libraries(${DL_LIBS})
-    elseif(WIN32)
-		find_library(KERNEL32_LIBS NAMES Kernel32)
-		link_libraries(${KERNEL32_LIBS})
-    endif(UNIX)
-    	
-	#######################
-	# Fortran compiler
-	# is needed for find_package(LAPACK)
-	# disable with -DNO_FORTRAN=ON
-	# if disabled, you might not be able to use LAPACK on clusters
-
-	if(NOT APPLE)
-		if(NOT NO_FORTRAN)
-			ENABLE_LANGUAGE(Fortran)
-			if(CMAKE_Fortran_COMPILER_WORKS)
-				message(STATUS "INFO: Fortran compiler found: '${CMAKE_Fortran_COMPILER}' (To disable Fortran define -DNO_FORTRAN=ON)")
-			else(CMAKE_Fortran_Compiler_WORKS)
-				message(STATUS "INFO: Fortran compiler NOT found (To disable Fortran define -DNO_FORTRAN=ON).")				
-			endif(CMAKE_Fortran_COMPILER_WORKS)
-		endif(NOT NO_FORTRAN)
-	endif(NOT APPLE)
-
-
-	#######################
-	# LAPACK
-	# find lapack. On Apple Systems, this is -framework vecLib for LAPACK and BLAS
-	# On other systems, it uses find_package(LAPACK) which requires Fortran
-	# without fortran, it tries to find a LAPACK library by itself
-
-	if(NO_LAPACK)
-	    message("-- INFO: Not using LAPACK. (To enable LAPACK define -DNO_LAPACK=OFF)")
-	else(NO_LAPACK)	    
-	    if(APPLE)
-		      message(STATUS "INFO: Working on MacOS, using -framework vecLib for LAPACK and BLAS  (To disable LAPACK define -DNO_LAPACK=ON).")
-		      set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
-			  set(LAPACK_FOUND YES)
-		else(APPLE)
-			if(CMAKE_Fortran_COMPILER_WORKS)
-				message(STATUS "INFO: Searching for LAPACK with find_package... (To disable LAPACK define -DNO_LAPACK=ON)")
-		   		find_package(LAPACK)
-			else(CMAKE_Fortran_COMPILER_WORKS)
-				message(STATUS "INFO: Searching for LAPACK with find_library... (To disable LAPACK define -DNO_LAPACK=ON)")
-			    find_library(LAPACK_LIBRARIES NAMES atlas PATHS /usr/local/lib /usr/lib /lib)
-				if(LAPACK_LIBRARIES)
-		             set(LAPACK_FOUND YES)
-			  	endif(LAPACK_LIBRARIES)
-			endif(CMAKE_Fortran_COMPILER_WORKS)
-		endif(APPLE)
-
-		if(LAPACK_FOUND)
-			if(NOT LAPACK_INCLUDE_PATH)
-				FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
-			endif(NOT LAPACK_INCLUDE_PATH)
-
-			link_libraries(${LAPACK_LIBRARIES})
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLAPACK_AVAILABLE")
-			
-			if(LAPACK_INCLUDE_PATH)
-				include_directories (${LAPACK_INCLUDE_PATH})
-				message(STATUS "INFO: LAPACK Found. (lib = '${LAPACK_LIBRARIES}', flags = '${LAPACK_LINKER_FLAGS}', headers at '${LAPACK_INCLUDE_PATH})")
-			else(LAPACK_INCLUDE_PATH)
-				message(STATUS "INFO: LAPACK found. (lib = '${LAPACK_LIBRARIES}') , clapack.h NOT found ! (To disable LAPACK define -DNO_LAPACK=ON)")			
-			endif(LAPACK_INCLUDE_PATH)
-
-		else(LAPACK_FOUND)
-		    message(STATUS "INFO: Did not find LAPACK ! (To disable LAPACK define -DNO_LAPACK=ON)")
-		    if(NO_FORTRAN)
-		    	message(STATUS "(NO_FORTRAN is on. When setting -DNO_FORTRAN=OFF, better search routines for LAPACK can be used)")
-		    endif(NO_FORTRAN)
-		endif(LAPACK_FOUND)
-
-	endif(NO_LAPACK)
-
-	#######################
-	# BLAS
-	# see LAPACK
-
-	if(NO_BLAS)
-	    message("-- INFO: Not using BLAS. (To enable BLAS define -DNO_BLAS=OFF)")
-	else(NO_BLAS)
+	# we'll check for lapack and blas here
+	if(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
+		# On OSX, we know where lapack and blas are located. To avoid errors
+		# with Fortran compilers on OSX, we'll add APPLE as a special case here.
 		if(APPLE)
-			set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
-			set(BLAS_FOUND YES)
-		else(APPLE)
-			if(NOT BLAS_FOUND) # BLAS can be found by FindLAPACK					
-				if(CMAKE_Fortran_COMPILER_WORKS)
-					message(STATUS "INFO: Searching for BLAS with find_package... (To disable BLAS define -DNO_BLAS=ON)")		 	
-					find_package(BLAS)
-				else(CMAKE_Fortran_COMPILER_WORKS)
-					message(STATUS "INFO: Searching for BLAS with find_library... (To disable BLAS define -DNO_BLAS=ON)")
-			   		find_library(BLAS_LIBRARIES NAMES cblas PATHS)
-					if(BLAS_LIBRARIES)
-						set(BLAS_FOUND YES)
-					endif(BLAS_LIBRARIES)
-				endif(CMAKE_Fortran_COMPILER_WORKS)
-			endif(NOT BLAS_FOUND)
-		endif(APPLE)
-
-		if(BLAS_FOUND)		
-			if(NOT BLAS_INCLUDE_PATH)
-				find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
-			endif(NOT BLAS_INCLUDE_PATH)
-
-			link_libraries(${BLAS_LIBRARIES})			
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBLAS_AVAILABLE")
+			if(NOT IGNORE_LAPACK)
+				set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
+				FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
+				if(LAPACK_INCLUDE_PATH)
+		  			set(LAPACK_FOUND YES)
+		  		endif(LAPACK_INCLUDE_PATH)
+			endif(NOT IGNORE_LAPACK)
 			
-			if(BLAS_INCLUDE_PATH)
-				include_directories (${BLAS_INCLUDE_PATH})
-				message(STATUS "INFO: BLAS found. (lib = '${BLAS_LIBRARIES}', flags = '${BLAS_LINKER_FLAGS}'")
-			else(BLAS_INCLUDE_PATH)
-				message(STATUS "INFO: BLAS found. (lib = '${BLAS_LIBRARIES}), cblas.h NOT found ! (To disable BLAS define -DNO_BLAS=ON)")
-		   	endif(BLAS_INCLUDE_PATH)
-		else(BLAS_FOUND)
-		    message(STATUS "INFO: Did not find BLAS ! (To disable LAPACK define -DNO_LAPACK=ON)")
+			if(NOT IGNORE_BLAS)
+				set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
+				find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
+				set(BLAS_FOUND YES)
+				if(BLAS_INCLUDE_PATH)
+					set(BLAS_FOUND YES)
+				endif(BLAS_INCLUDE_PATH)
+			endif(NOT IGNORE_BLAS)
+			
+		else(APPLE)
+			# a fortran compiler is required to find the packages
+			# Sadly there seems to be a cmake-bug, hence the following workaround.
+			# ENABLE_LANGUAGE workaround begin (issue 0009220)
+			if(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+			  set(CMAKE_Fortran_COMPILER CMAKE_Fortran_COMPILER-NOTFOUND)
+			endif(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+			# ENABLE_LANGUAGE workaround end (issue 0009220)
+			
+			ENABLE_LANGUAGE(Fortran OPTIONAL)
+			if(CMAKE_Fortran_COMPILER_WORKS)
+				if(NOT IGNORE_LAPACK)
+					find_package(LAPACK)
+				endif(NOT IGNORE_LAPACK)
+				
+				if(NOT IGNORE_BLAS)
+					find_package(BLAS)
+				endif(NOT IGNORE_BLAS)
+				
+			endif(CMAKE_Fortran_COMPILER_WORKS)
+		endif(APPLE)
+		
+	# We'll output whether lapack and blas are used, to avoid misconceptions
+		if(LAPACK_FOUND)
+			message(STATUS "Info: Using Lapack")
+			include_directories (${LAPACK_INCLUDE_PATH})
+			set(linkLibraries ${linkLibraries} ${LAPACK_LIBRARIES})
+			add_definitions(-DLAPACK_AVAILABLE)
+		else(LAPACK_FOUND)	
+			message(STATUS "Info: Not using Lapack. No package found.")
+		endif(LAPACK_FOUND)
+		
+		if(BLAS_FOUND)
+			message(STATUS "Info: Using Blas")
+			include_directories (${BLAS_INCLUDE_PATH})
+			set(linkLibraries ${linkLibraries} ${BLAS_LIBRARIES})
+			add_definitions(-DBLAS_AVAILABLE)
+		else(BLAS_FOUND)	
+			message(STATUS "Info: Not using Blas. No package found.")
 		endif(BLAS_FOUND)
+		
+	endif(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
+endif(buildAlgebra)
 
-	endif(NO_BLAS)
 
-	
+########################################
+# METIS
+if(METIS)
+	find_library(METIS_LIBS NAMES metis PATHS ${METIS})
+	if(METIS_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find METIS in the specified path.")
+	else(METIS_LIBS-NOTFOUND)
+		add_definitions(-DUG_METIS)
+		include_directories(${METIS}/Lib)
+		set(linkLibraries ${linkLibraries} ${METIS_LIBS})		
+	endif(METIS_LIBS-NOTFOUND)
+endif(METIS)
 
-    #######################
-    # Export sources to global variable.
-    # PURPOSE: use this function to add local package sources to global
-    #          ugSources property which is used to build libug4
-    # @param prefix current directory prefix
-    # @param sources sources list to export
-    function(ExportSources prefix sources)
-        # iterate over all arguments and insert given prefix
-        foreach(l ${ARGV})
-            # FIXME: this is a hack to omit the first argument
-            #        which is the prefix. Shall we use boolean or index variable?
-            if(NOT "${l}" STREQUAL "${prefix}")
-                # retrieve the global property ugSources and store it
-                # in tmp variable
-                # NOTE: properties must be assigned to variables before being used
-                get_property(tmp GLOBAL PROPERTY ugSources)
-                # append tmp to the global ugSources property using the correct prefix
-                set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
-            endif(NOT "${l}" STREQUAL "${prefix}")
-        endforeach(l)
-    endfunction(ExportSources)
+########################################
+# PARMETIS
+if(PARMETIS)
+	find_library(PARMETIS_LIBS NAMES metis parmetis PATHS ${PARMETIS})
+	if(PARMETIS_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find PARMETIS in the specified path.")
+	else(PARMETIS_LIBS-NOTFOUND)
+		add_definitions(-DUG_PARMETIS)
+		include_directories(${PARMETIS})
+		set(linkLibraries ${linkLibraries} ${PARMETIS_LIBS})		
+	endif(PARMETIS_LIBS-NOTFOUND)
+endif(PARMETIS)
 
-    ####
-    # External dependencies
-    ####
+########################################
+# TETGEN
+if(TETGEN)
+	find_library(TETGEN_LIBS NAMES tet PATHS ${TETGEN})
+	if(TETGEN_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find TETGEN in the specified path.")
+	else(TETGEN_LIBS-NOTFOUND)
+		add_definitions(-DUG_TETGEN -DTETLIBRARY)
+		include_directories(${TETGEN})
+		set(linkLibraries ${linkLibraries} ${TETGEN_LIBS})
+	endif(TETGEN_LIBS-NOTFOUND)
+endif(TETGEN)
 
-    if(FOR_VRL)
-    	set(buildForVRL ON)
-        set(UG_SHARED ON)
-    else(FOR_VRL)
-    	set(buildForVRL OFF)
-    endif(FOR_VRL)
+########################################
+# HYPRE
+if(HYPRE)
+	find_library(HYPRE_LIBS HYPRE PATHS ${HYPRE})
 
-    if(UG_SHARED AND FOR_VRL)
-        find_package(JNI REQUIRED)
-        include_directories(${JNI_INCLUDE_DIRS})
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFOR_VRL")
-		message(STATUS "INFO: Building for VRL! (To disable VRL define -DFOR_VRL=OFF)")
-    else(UG_SHARED AND FOR_VRL)
-		message(STATUS "INFO: Not Building for VRL! (To enable VRL define -DFOR_VRL=ON)")
-    endif(UG_SHARED AND FOR_VRL)
-    
-    if(UG_SHARED)
-    	set(buildDynamicLib ON)
-    	set(BUILD_ONE_LIB ON)
-    	set(targetLibraryName ug4)
-    	set(STATIC OFF)
-    else(UG_SHARED)
-    	set(buildDynamicLib OFF)
-    	set(BUILD_ONE_LIB OFF)
-    	set(STATIC ON)
-    endif(UG_SHARED)
-    
+	if(HYPRE_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find HYPRE in the specified path.")
+	else(HYPRE_LIBS-NOTFOUND)
+		add_definitions(-DHYPRELIB_DIR)
+		include_directories(${HYPRE}/../include/)
+		set(linkLibraries ${linkLibraries} ${HYPRE_LIBS})
+	endif(HYPRE_LIBS-NOTFOUND)
+endif(HYPRE)
+
+########################################
+# HLIBPRO
+if(HLIBPRO)
+	find_library(HLIBPRO_LIBS NAMES hpro PATHS ${HLIBPRO})
+	if(HLIBPRO_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find HLIBPRO in the specified path.")
+	else(HLIBPRO_LIBS-NOTFOUND)
+		add_definitions(-DHLIBPROLIB_DIR)
+		include_directories(${HLIBPRO}/../../../include/)
+		include_directories(${HLIBPRO}/../../../src/include/)
+		set(linkLibraries ${linkLibraries} ${HLIBPRO_LIBS})
+	endif(HLIBPRO_LIBS-NOTFOUND)
+endif(HLIBPRO)
+
+
+################################################################################
+# find and collect required libraries
+
+########################################
+# boost
+if(Boost_FOUND)
+	if(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+		#message(STATUS "Info: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}').")
+		
+	else(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+		# we require a newer version of boost
+		message(FATAL_ERROR " BOOST in ${Boost_INCLUDE_DIRS} is not compatible (required 1.40.0, but is ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}) . NO Boost available. Aborting.")	
+	endif(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+else(Boost_FOUND)
+	message(FATAL_ERROR " BOOST not found! NO Boost available, but at least boost 1.40.0 is required. Aborting.")
+endif(Boost_FOUND)
+
+
+########################################
+# dynamic linking
+if(UNIX)
+    set(linkLibraries ${linkLibraries} dl)
+elseif(WIN32)
+	set(linkLibraries ${linkLibraries} Kernel32)
+endif(UNIX)
+
+
+########################################
+# MPI
+if(PARALLEL)
+	# MPI is required for parallel builds
+	if(MPI_FOUND)
+		add_definitions(-DUG_PARALLEL)
+		include_directories(${MPI_INCLUDE_PATH})
+		set(linkLibraries ${linkLibraries} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
+	else(MPI_FOUND)
+		message(FATAL_ERROR "MPI missing! MPI is required for parallel builds. Aborting.")
+	endif(MPI_FOUND)
+endif(PARALLEL)
+
+
+########################################
+# JNI
+if(buildForVRL)
+	find_package(JNI REQUIRED)
+    include_directories(${JNI_INCLUDE_DIRS})
+	add_definitions(-DFOR_VRL)
+endif(buildForVRL)
+
+
+################################################################################
+# link against required libraries
+link_libraries(${linkLibraries})
+
+
+################################################################################
+# Finally declare a method that allows all sub-cmake-files to add their sources
+# to a common library.
+
+#######################
+# Export sources to global variable.
+# PURPOSE: use this function to add local package sources to global
+#          ugSources property which is used to build libug4
+# @param prefix current directory prefix
+# @param sources sources list to export
+function(ExportSources prefix sources)
+    # iterate over all arguments and insert given prefix
+    foreach(l ${ARGV})
+        # FIXME: this is a hack to omit the first argument
+        #        which is the prefix. Shall we use boolean or index variable?
+        if(NOT "${l}" STREQUAL "${prefix}")
+            # retrieve the global property ugSources and store it
+            # in tmp variable
+            # NOTE: properties must be assigned to variables before being used
+            get_property(tmp GLOBAL PROPERTY ugSources)
+            # append tmp to the global ugSources property using the correct prefix
+            set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
+        endif(NOT "${l}" STREQUAL "${prefix}")
+    endforeach(l)
+endfunction(ExportSources)
+
+
+
+
+################################################################################
+# Those options are temporary and should be removed in future builds.
+# They are left from the old build script.
+set(UG_SHARED ON)
+add_definitions(-DUG_PLUGINS)
+set(UG_PROFILER ${PROFILER})
+set(UG_DEBUG ${DEBUG})
+set(USE_NEW_CMAKE_INCLUDES ON)
+
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)

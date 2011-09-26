@@ -153,12 +153,12 @@ static bool PerformTetrahedralization(Grid& grid,
 		UG_LOG("  aborting tetrahedralization. Received error: " << errCode << endl);
 		return false;
 	}
-
+/*
 	if(out.numberofpoints < (int)grid.num_vertices()){
 		LOG("  aborting tetrahedralization - bad number of points\n");
 		return false;
 	}
-
+*/
 //	add new vertices to the grid. store all vertices in a vector.
 	vector<VertexBase*> vVrts(out.numberofpoints);
 	{
@@ -171,6 +171,10 @@ static bool PerformTetrahedralization(Grid& grid,
 			aaPos[*iter].y = out.pointlist[counter*3+1];
 			aaPos[*iter].z = out.pointlist[counter*3+2];
 			vVrts[counter] = *iter;
+			if(counter == out.numberofpoints -1){
+				UG_LOG("WARNING: Unused points may remain!\n");
+				break;
+			}
 		}
 	//	create new ones and add them to the vector
 		for(; counter < out.numberofpoints; ++counter)

@@ -8,6 +8,7 @@
 #include "expand_layers.h"
 #include "lib_grid/algorithms/callbacks/callbacks.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+//#include "lib_grid/util/simple_algebra/least_squares_solver.h"
 
 using namespace std;
 
@@ -901,6 +902,14 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	DistributeExpansionMarks3D(grid, sh, sel, fracInfos, expandInnerFracBnds,
 						expandOuterFracBnds, aaMarkVRT, aaMarkEDGE, aaMarkFACE);
 
+//	We'll now store all fracture faces in a vector.
+//	They will help to adjust positions of new vertices later on.
+	std::vector<Face*> originalFractureFaces;
+	for(FaceIterator iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter){
+		if(aaMarkFACE[*iter] == 1)
+			originalFractureFaces.push_back(*iter);
+	}
+
 //	vectors that allow to access fracture properties by subset index
 	vector<FractureInfo> fracInfosBySubset(sh.num_subsets(), FractureInfo(-1, -1, 0));
 	for(size_t i = 0; i < fracInfos.size(); ++i){
@@ -1057,6 +1066,8 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 //	Expand all faces.
 //	Since volumes are replaced on the fly, we have to take care with the iterator.
+//	record all new volumes in a vector. This will help to adjust positions later on.
+	vector<Volume*> newFractureVolumes;
 	for(VolumeIterator iter_sv = sel.volumes_begin(); iter_sv != sel.volumes_end();)
 	{
 		Volume* sv = *iter_sv;
@@ -1144,6 +1155,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 					}
 					if(expVol){
 						sh.assign_subset(expVol, fracInfosBySubset.at(sh.get_subset_index(tFace)).newSubsetIndex);
+						newFractureVolumes.push_back(expVol);
 					}
 				}
 			}
@@ -1194,8 +1206,36 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	if(foundUnusedFaces){
 		UG_LOG("WARNING in ExpandFractures3D: Unused faces encountered during cleanup. Removing them...\n");
 	}
-
+/*
 //	finally assign the new positions
+//	find the maximal fracture width. If it is 0, we only have to copy positions.
+	number maxFracWidth = 0;
+	for(size_t i = 0; i < fracInfos.size(); ++i)
+		maxFracWidth = max(fracInfos[i].width, maxFracWidth);
+
+//	in this case equality with 0 is desired.
+	if(maxFracWidth == 0){
+	//	set all positions of new vertices to the positions of their parents
+		for(VertexBaseIterator iter = sel.vertices_begin();
+			iter != sel.vertices_end(); ++iter)
+		{
+			VertexBase* vrt = *iter;
+		//	iterate over associated vertices
+			vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+			for(size_t i = 0; i < vrtVec.size(); ++i){
+				VertexBase* nVrt = vrtVec[i];
+				aaPos[nVrt] = aaPos[vrt];
+			}
+		}
+	}
+	else{
+	//	we will find the new positions by solving a minimal least squares problem.
+	//todo: Special treatment has to be to boundary vertices.
+
+	//	currently all original fracture vertices are selected.
+	}*/
+
+
 	for(VertexBaseIterator iter = sel.vertices_begin();
 		iter != sel.vertices_end(); ++iter)
 	{
