@@ -447,7 +447,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u, number time,
-	                const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
+	                const VectorTimeSeries<typename TAlgebra::vector_type>& solList,
 					number s_a0,
                 	ISelector* sel = NULL)
 {
@@ -735,7 +735,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u, number time,
-                const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
+                const VectorTimeSeries<typename TAlgebra::vector_type>& solList,
                	number s_m, number s_a,
             	ISelector* sel = NULL)
 {
@@ -1018,7 +1018,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u, number time,
-                const SolutionTimeSeries<typename TAlgebra::vector_type>& solList,
+                const VectorTimeSeries<typename TAlgebra::vector_type>& solList,
                	number s_m, number s_a,
             	ISelector* sel = NULL)
 {

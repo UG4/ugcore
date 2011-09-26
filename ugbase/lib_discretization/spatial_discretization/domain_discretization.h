@@ -108,39 +108,39 @@ class DomainDiscretization :
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
 		bool assemble_jacobian(matrix_type& J,
 		                       const vector_type& u, number time,
-		                       const SolutionTimeSeries<vector_type>& solList,
+		                       const VectorTimeSeries<vector_type>& solList,
 		                       const dof_distribution_type& dd,
 		                       number s_m, number s_a);
 
 		bool assemble_jacobian(matrix_type& J,
 		                       const vector_type& u, number time,
-		                       const SolutionTimeSeries<vector_type>& solList,
+		                       const VectorTimeSeries<vector_type>& solList,
 		                       number s_m, number s_a)
 		{return assemble_jacobian(J, time, solList, get_surface_dd(), s_m, s_a);}
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
 		bool assemble_defect(vector_type& d,
 		                     const vector_type& u, number time,
-		                     const SolutionTimeSeries<vector_type>& solList,
+		                     const VectorTimeSeries<vector_type>& solList,
 		                     const dof_distribution_type& dd,
 		                     number s_m, number s_a);
 
 		bool assemble_defect(vector_type& d,
 		                     const vector_type& u, number time,
-		                     const SolutionTimeSeries<vector_type>& solList,
+		                     const VectorTimeSeries<vector_type>& solList,
 		                     number s_m, number s_a)
 		{return assemble_defect(d, u, time, solList, get_surface_dd(), s_m, s_a);}
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
 		bool assemble_linear(matrix_type& A, vector_type& b,
 		                     const vector_type& u, number time,
-		                     const SolutionTimeSeries<vector_type>& solList,
+		                     const VectorTimeSeries<vector_type>& solList,
 		                     const dof_distribution_type& dd,
 		                     number s_m, number s_a);
 
 		bool assemble_linear(matrix_type& A, vector_type& b,
 		                     const vector_type& u, number time,
-		                     const SolutionTimeSeries<vector_type>& solList,
+		                     const VectorTimeSeries<vector_type>& solList,
 		                     number s_m, number s_a)
 		{return assemble_linear(A, b, u, time, solList, get_surface_dd(), s_m, s_a);}
 

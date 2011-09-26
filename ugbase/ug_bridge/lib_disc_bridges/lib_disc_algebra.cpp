@@ -116,7 +116,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		string name = string("IDomainDiscretization").append(algDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("assemble_jacobian", static_cast<bool (T::*)(matrix_type&, const vector_type&,
-							number, const SolutionTimeSeries<vector_type>&, const IDoFDistribution<TDoFDistribution>&, number, number)>(&T::assemble_jacobian));
+							number, const VectorTimeSeries<vector_type>&, const IDoFDistribution<TDoFDistribution>&, number, number)>(&T::assemble_jacobian));
 		reg.add_class_to_group(name, "IDomainDiscretization", algDDTag);
 	}
 
@@ -274,7 +274,7 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 // PreviousSolutions
 	{
 		string name = string("SolutionTimeSeries").append(algSuffix);
-		typedef SolutionTimeSeries<vector_type> T;
+		typedef VectorTimeSeries<vector_type> T;
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("size", &T::size)

@@ -802,7 +802,7 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const vector_type& u, number time,
-                  const SolutionTimeSeries<vector_type>& solList,
+                  const VectorTimeSeries<vector_type>& solList,
                   const dof_distribution_type& dd,
                   number s_m0, number s_a0)
 {
@@ -919,7 +919,7 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d,
                 const vector_type& u, number time,
-                const SolutionTimeSeries<vector_type>& solList,
+                const VectorTimeSeries<vector_type>& solList,
                 const dof_distribution_type& dd,
                 number s_m, number s_a)
 {
@@ -1027,7 +1027,7 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 const vector_type& u, number time,
-                const SolutionTimeSeries<vector_type>& solList,
+                const VectorTimeSeries<vector_type>& solList,
                 const dof_distribution_type& dd,
                 number s_m, number s_a)
 {

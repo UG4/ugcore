@@ -30,7 +30,7 @@ namespace ug{
  * computed solution lets the object pop the oldest stored solution.
  */
 template <typename TVector>
-class SolutionTimeSeries
+class VectorTimeSeries
 {
 	public:
 	///	vector type of solutions
@@ -134,7 +134,7 @@ class LocalVectorTimeSeries
 
 	///	update for indices
 		template <typename TVector>
-		void read_values(const SolutionTimeSeries<TVector>& solTimeSeries, LocalIndices& ind)
+		void read_values(const VectorTimeSeries<TVector>& solTimeSeries, LocalIndices& ind)
 		{
 			m_vLocalVector.resize(solTimeSeries.size());
 			m_vTime.resize(solTimeSeries.size());

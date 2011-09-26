@@ -63,7 +63,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 */
 		virtual bool assemble_jacobian(matrix_type& J,
 		                               const vector_type& u, number time,
-		                               const SolutionTimeSeries<vector_type>& solList,
+		                               const VectorTimeSeries<vector_type>& solList,
 		                               const dof_distribution_type& dofDistr,
 		                               number s_m, number s_a) = 0;
 
@@ -83,7 +83,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 */
 		virtual	bool assemble_defect(vector_type& d,
 		       	                     const vector_type& u, number time,
-		       	                     const SolutionTimeSeries<vector_type>& solList,
+		       	                     const VectorTimeSeries<vector_type>& solList,
 		       	                     const dof_distribution_type& dofDistr,
 		       	                     number s_m, number s_a) = 0;
 
@@ -105,7 +105,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		virtual bool assemble_linear(matrix_type& A,
 		                             vector_type& b,
 		                             const vector_type& u, number time,
-		                             const SolutionTimeSeries<vector_type>& solList,
+		                             const VectorTimeSeries<vector_type>& solList,
 		                             const dof_distribution_type& dofDistr,
 		                             number s_m, number s_a) = 0;
 

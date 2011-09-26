@@ -15,7 +15,7 @@ namespace ug{
 template <typename TDoFDistribution, typename TAlgebra >
 bool
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-prepare_step(SolutionTimeSeries<vector_type>& prevSol,
+prepare_step(VectorTimeSeries<vector_type>& prevSol,
              number dt)
 {
 //	perform checks
