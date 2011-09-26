@@ -1,7 +1,7 @@
 # Based on the scripts from Ingo Heppner.
 
-SET(CMAKE_SYSTEM_NAME BlueGeneP)
-SET(CMAKE_SYSTEM_VERSION 1)
+#SET(CMAKE_SYSTEM_NAME BlueGeneP)
+#SET(CMAKE_SYSTEM_VERSION 1)
 
 SET(CMAKE_C_COMPILER       /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-gcc)
 SET(CMAKE_CXX_COMPILER     /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-g++)
