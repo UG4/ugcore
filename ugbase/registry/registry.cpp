@@ -145,6 +145,7 @@ bool Registry::check_consistency()
 // 	check classes and their methods
 	size_t baseClassUndef = 0;
 	size_t methodUndef = 0;
+	size_t constructorUndef = 0;
 	for(size_t i=0; i<num_classes(); i++)
 	{
 	//	get class
@@ -162,6 +163,11 @@ bool Registry::check_consistency()
 		for(size_t j=0; j<c.num_const_methods(); j++)
 			if(!c.get_const_method(j).check_consistency(c.name()))
 				methodUndef++;
+
+	//	check constructors
+		for(size_t j=0; j<c.num_constructors(); j++)
+			if(!c.get_constructor(j).check_consistency(c.name()))
+				constructorUndef++;
 	}
 
 //	log error messages
@@ -174,11 +180,15 @@ bool Registry::check_consistency()
 	if(baseClassUndef > 0)
 		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<baseClassUndef<<
 		       " Base-Classes are using undeclared Classes.\n");
+	if(constructorUndef > 0)
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<constructorUndef<<
+		       " Constructors are using undeclared Classes.\n");
 
 //	return false if undefined classes have been found
 	if(globFctUndef > 0) return false;
 	if(methodUndef > 0) return false;
 	if(baseClassUndef > 0) return false;
+	if(constructorUndef > 0) return false;
 
 //	everything fine
 	return true;

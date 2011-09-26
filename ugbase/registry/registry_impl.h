@@ -123,7 +123,7 @@ check_base_class(const std::string& className)
 }
 
 template <typename TClass>
-ExportedClass_<TClass>& Registry::
+ExportedClass<TClass>& Registry::
 add_class_(std::string className, std::string group, std::string tooltip)
 {
 //	check that className is not already used
@@ -161,12 +161,12 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	}
 
 //	new class pointer
-	ExportedClass_<TClass>* newClass = NULL;
+	ExportedClass<TClass>* newClass = NULL;
 
 //	try creation
 	try
 	{
-		newClass = new ExportedClass_<TClass>(className, group, tooltip);
+		newClass = new ExportedClass<TClass>(className, group, tooltip);
 	}
 	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
 	{
@@ -188,7 +188,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 }
 
 template <typename TClass, typename TBaseClass>
-ExportedClass_<TClass>& Registry::
+ExportedClass<TClass>& Registry::
 add_class_(std::string className, std::string group, std::string tooltip)
 {
 //	check that className is not already used
@@ -229,10 +229,10 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	check_base_class<TClass, TBaseClass>(className);
 
 //	new class pointer
-	ExportedClass_<TClass>* newClass = NULL;
+	ExportedClass<TClass>* newClass = NULL;
 
 //	try creation of new class
-	try { newClass = new ExportedClass_<TClass>(className, group, tooltip);}
+	try { newClass = new ExportedClass<TClass>(className, group, tooltip);}
 	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
 	{
 		UG_LOG("### Registry ERROR: Trying to register class with name '"<<className
@@ -259,7 +259,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 }
 
 template <typename TClass, typename TBaseClass1, typename TBaseClass2>
-ExportedClass_<TClass>& Registry::
+ExportedClass<TClass>& Registry::
 add_class_(std::string className, std::string group, std::string tooltip)
 {
 //	check that className is not already used
@@ -301,10 +301,10 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	check_base_class<TClass, TBaseClass2>(className);
 
 //	new class pointer
-	ExportedClass_<TClass>* newClass = NULL;
+	ExportedClass<TClass>* newClass = NULL;
 
 //	try creation of new class
-	try { newClass = new ExportedClass_<TClass>(className, group, tooltip);}
+	try { newClass = new ExportedClass<TClass>(className, group, tooltip);}
 	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
 	{
 		UG_LOG("### Registry ERROR: Trying to register class with name '"<<className
@@ -331,7 +331,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 }
 
 template <typename TClass>
-ExportedClass_<TClass>& Registry::
+ExportedClass<TClass>& Registry::
 get_class_()
 {
 // 	get class names
@@ -340,7 +340,7 @@ get_class_()
 //	look for class in this registry
 	for(size_t i = 0; i < m_vClass.size(); ++i)
 		if(name == m_vClass[i]->name())
-			return *dynamic_cast<ExportedClass_<TClass>* >(m_vClass[i]);
+			return *dynamic_cast<ExportedClass<TClass>* >(m_vClass[i]);
 
 //	not found
 	UG_LOG("### Registry ERROR: Trying to get class with name '" << name

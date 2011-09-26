@@ -13,9 +13,9 @@ namespace bridge
 template <typename TFunc>
 struct func_traits {};
 
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // global function traits
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TRet>
 struct func_traits <TRet (*) ()>
@@ -174,9 +174,9 @@ struct func_traits <TRet (*) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>
 	};
 };
 
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // non-const method traits
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 #define FUNC_TRAITS_GENERAL_NON_CONST_MEMBER \
 	static const bool const_method = false;\
@@ -307,9 +307,9 @@ struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9)>
 	};
 };
 
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // const method traits
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 #define FUNC_TRAITS_GENERAL_CONST_MEMBER \
 	static const bool const_method = true;\
@@ -439,6 +439,75 @@ struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9) const>
 				 	 	 args.tl.tl.tl.tl.tl.tl.tl.tl.hd);
 	};
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// constructor function traits
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename TTypelist>
+struct constructor_traits;
+
+template <typename T>
+struct constructor_traits <T, TypeList<> >
+{
+	typedef TypeList<> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		(void)args;
+		return new T();
+	};
+};
+
+template <typename T, typename T1>
+struct constructor_traits <T, TypeList<T1> >
+{
+	typedef TypeList<T1> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd);
+	};
+};
+
+template <typename T, typename T1, typename T2>
+struct constructor_traits <T, TypeList<T1, T2> >
+{
+	typedef TypeList<T1, T2> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd, args.tl.hd);
+	};
+};
+
+template <typename T, typename T1, typename T2, typename T3>
+struct constructor_traits <T, TypeList<T1, T2, T3> >
+{
+	typedef TypeList<T1, T2, T3> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd, args.tl.hd, args.tl.tl.hd);
+	};
+};
+
+template <typename T, typename T1, typename T2, typename T3, typename T4>
+struct constructor_traits <T, TypeList<T1, T2, T3, T4> >
+{
+	typedef TypeList<T1, T2, T3, T4> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd);
+	};
+};
+
+template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
+struct constructor_traits <T, TypeList<T1, T2, T3, T4, T5> >
+{
+	typedef TypeList<T1, T2, T3, T4, T5> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd, args.tl.tl.tl.tl.hd);
+	};
+};
+
 
 } // end namespace bridge
 } // end namespace ug

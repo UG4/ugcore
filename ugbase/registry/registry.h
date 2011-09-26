@@ -150,25 +150,25 @@ class UG_API Registry {
 
 	/// Register a class at this registry
 		template <typename TClass>
-		ExportedClass_<TClass>& add_class_(std::string className,
+		ExportedClass<TClass>& add_class_(std::string className,
 		                                   std::string group = "",
 		                                   std::string tooltip = "");
 
 	/// Register a class at this registry together with its base class
 		template <typename TClass, typename TBaseClass>
-		ExportedClass_<TClass>& add_class_(std::string className,
+		ExportedClass<TClass>& add_class_(std::string className,
 		                                   std::string group = "",
 		                                   std::string tooltip = "");
 
 	/// Register a class at this registry together with its base class
 		template <typename TClass, typename TBaseClass1, typename TBaseClass2>
-		ExportedClass_<TClass>& add_class_(std::string className,
+		ExportedClass<TClass>& add_class_(std::string className,
 		                                   std::string group = "",
 		                                   std::string tooltip = "");
 
 	/// Get Reference to already registered class
 		template <typename TClass>
-		ExportedClass_<TClass>& get_class_();
+		ExportedClass<TClass>& get_class_();
 
 	/// number of classes registered at the Registry
 		size_t num_classes() const;

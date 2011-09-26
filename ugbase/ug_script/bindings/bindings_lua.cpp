@@ -689,12 +689,43 @@ static int LuaProxyFunction(lua_State* L)
 
 static int LuaProxyConstructor(lua_State* L)
 {
+//	get class
 	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
-	
-	CreateNewUserData(L, c->create(), c->name().c_str(), c->get_delete_function(), false);
 
-	return 1;
+//	try each constructor overlaod
+	int badParam = -2;
+	for(size_t i = 0; i < c->num_constructors(); ++i)
+	{
+	//	get overload
+		const ExportedConstructor& constr = c->get_constructor(i);
+
+		ParameterStack paramsIn;
+		badParam = LuaStackToParams(paramsIn, constr.params_in(), L, 0);
+
+	//	check whether the parameter was correct
+		if(badParam != 0)
+		{
+		//	parameters didn't match. Try the next overload.
+			continue;
+		}
+
+	//	correct parameterlist found, create
+		CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
+		                  c->get_delete_function(), false);
+
+	//	object created
+		return 1;
+	}
+
+//	no matching overload found
+	if(badParam < 0)
+	{
+		UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << ": ");
+		UG_LOG("Cannot find constructor for class.\n");
+	}
+	return badParam;
 }
+
 
 //	This method is not called by lua, but a helper to LuaProxyMethod.
 //	It recursivly calls itself until a matching overload was found.
@@ -1181,7 +1212,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			lua_pushcclosure(L, LuaProxyConstructor, 1);
 			lua_setglobal(L, c->name().c_str());
 		}
-		
+
 	//	create the meta-table for the object
 	//	overwrite index and store the class-name
 		luaL_newmetatable(L, c->name().c_str());

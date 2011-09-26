@@ -87,7 +87,7 @@ class UG_API ExportedFunctionBase
 	/// parameter list for input values
 		const ParameterStack& params_out() const {return m_paramsOut;}
 
-	// todo: we export non-const here, since we can not make ExportedClass_<TClass> a friend
+	// todo: we export non-const here, since we can not make ExportedClass<TClass> a friend
 	/// non-const export of param list
 		ParameterStack& params_in() {return m_paramsIn;}
 

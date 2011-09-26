@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <boost/type_traits.hpp>
+
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "global_function.h"
@@ -103,8 +105,10 @@ class ExportedMethod : public ExportedFunctionBase
 		std::string m_className;
 };
 
-////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 //	ExportedMethodGroup (sreiter)
+////////////////////////////////////////////////////////////////////////////////
+
 ///	Groups of methods - useful to realize overloaded methods
 class ExportedMethodGroup
 {
@@ -206,10 +210,12 @@ class ExportedMethodGroup
 		std::vector<Overload>	m_overloads;
 };
 
-template <typename TClass, typename TMethod, typename TRet = typename func_traits<TMethod>::return_type>
+template <typename TClass, typename TMethod,
+		  typename TRet = typename func_traits<TMethod>::return_type>
 struct MethodProxy
 {
-	static void apply(const MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
+	static void apply(const MethodPtrWrapper& method, void* obj,
+	                  const ParameterStack& in, ParameterStack& out)
 	{
 	//  cast to method pointer
 		TMethod mptr = *(TMethod*) method.get_raw_ptr();
@@ -234,7 +240,8 @@ struct MethodProxy
 template <typename TClass, typename TMethod>
 struct MethodProxy<TClass, TMethod, void>
 {
-	static void apply(const MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
+	static void apply(const MethodPtrWrapper& method, void* obj,
+	                  const ParameterStack& in, ParameterStack& out)
 	{
 	//  cast to method pointer
 		TMethod mptr = *(TMethod*) method.get_raw_ptr();
@@ -251,8 +258,128 @@ struct MethodProxy<TClass, TMethod, void>
 	}
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Exported Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+/// describing information for constructor
+class UG_API ExportedConstructor
+{
+	public:
+	// all c++ functions are wrapped by a proxy function of the following type
+		typedef void* (*ProxyFunc)(const ParameterStack& in);
+
+	public:
+		ExportedConstructor(ProxyFunc pf,
+		                    const std::string& className, const std::string& options,
+		                    const std::string& paramInfos,
+		                    const std::string& tooltip, const std::string& help);
+
+	/// executes the function
+		void* create(const ParameterStack& paramsIn) const {return m_proxy_func(paramsIn);}
+
+	///	options
+		const std::string& options() const {return m_options;}
+
+	/// number of parameters.
+		size_t num_parameter() const {return m_vvParamInfo.size();}
+
+	///	number of info strings for one parameter
+		size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
+
+	/// name of parameter i
+		const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}
+
+	///	type info of all parameters
+		const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
+
+	/// type info of i th parameters
+		const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
+
+	///	whole string of all type infos for of all parameters
+		const std::string& parameter_info_string() const {return m_paramInfos;}
+
+	/// gives some information to the exported functions
+		const std::string& tooltip() const {return m_tooltip;}
+
+	/// help informations
+		const std::string& help() const {return m_help;}
+
+	/// parameter list for input values
+		const ParameterStack& params_in() const	{return m_paramsIn;}
+
+	/// non-const export of param list
+		ParameterStack& params_in() {return m_paramsIn;}
+
+	/// returns true if all parameters of the function are correctly declared
+		bool check_consistency(std::string classname) const;
+
+		template <typename TFunc>
+		void create_parameter_stack()
+		{
+			typedef typename func_traits<TFunc>::params_type params_type;
+			CreateParameterStack<params_type>::create(m_paramsIn);
+
+		//	arbitrary choosen minimum number of infos exported
+		//	(If values non given we set them to an empty string)
+			const size_t MinNumInfos = 3; // for "name | style | options"
+
+		//	Fill missing Parameter
+			m_vvParamInfo.resize(m_paramsIn.size());
+
+		//	resize missing infos for each parameter
+			for(int i = 0; i < (int)m_vvParamInfo.size(); ++i)
+				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)
+					m_vvParamInfo.at(i).push_back(std::string(""));
+		}
+
+	protected:
+	// 	help function to tokenize the parameter string
+		void tokenize(const std::string& str, std::vector<std::string>& tokens,
+		              const char delimiter);
+
+	protected:
+	private:
+	/// proxy function to call method
+		ProxyFunc m_proxy_func;
+
+	///	name of class constructed
+		std::string m_className;
+
+	///	options
+		std::string m_options;
+
+	/// string with Infos about parameter
+		std::string m_paramInfos;
+
+	///	tokenized strings for each Parameter and each Info (name | style | options | ...)
+		std::vector<std::vector<std::string> > m_vvParamInfo;
+
+		std::string m_tooltip;
+		std::string m_help;
+
+		ParameterStack m_paramsIn;
+};
+
+template <typename TClass, typename TMethod>
+struct ConstructorProxy
+{
+	static void* create(const ParameterStack& in)
+	{
+	//  get parameter
+		typedef typename func_traits<TMethod>::params_type params_type;
+		ParameterStackToTypeValueList<params_type> args(in);
+
+	//  apply method
+		TClass* newInst = constructor_traits<TClass, params_type>::apply(args);
+
+	//  return new pointer
+		return (void*) newInst;
+	}
+};
+
 template <typename TClass>
-TClass* ConstructorProxy() {return new TClass();}
+TClass* PlainConstructorProxy() {return new TClass();}
 
 template <typename TClass>
 void DestructorProxy(void* obj)
@@ -261,9 +388,11 @@ void DestructorProxy(void* obj)
 	delete pObj;
 }
 
-/** Base class for exported Classes
- *
- */
+////////////////////////////////////////////////////////////////////////////////
+// Interface Exported Class
+////////////////////////////////////////////////////////////////////////////////
+
+/// Base class for exported Classes
 class IExportedClass
 {
 	public:
@@ -319,6 +448,12 @@ class IExportedClass
 	 *	(i.e. the class does not contain pure virtual functions)*/
 		virtual bool is_instantiable() const = 0;
 
+	///	number of registered constructors
+		virtual size_t num_constructors() const = 0;
+
+	///	get exported constructor
+		virtual const ExportedConstructor& get_constructor(size_t i) const = 0;
+
 	/**  create an instance
 	 *  returns NULL id we cannot create instances of this type*/
 		virtual void* create() const = 0;
@@ -330,46 +465,7 @@ class IExportedClass
 		virtual DeleteFunction get_delete_function() const = 0;
 
 	///	returns false is consistency-check failed
-		virtual bool check_consistency() const
-		{
-		//	get class name vector of all parents
-			const std::vector<const char*>* vClassNames = class_names();
-
-		//	check if class name vector correct
-			if(vClassNames==NULL)
-			{
-				UG_LOG("ERROR in 'IExportedClass::check_consistency':"
-						" Class name vector of parent classes missing for "
-						"class '"<<this->name()<<"'.\n");
-				return false;
-			}
-
-		//	loop all base classes
-			for(size_t i = 0; i < (*vClassNames).size(); ++i)
-			{
-			//	get name of base class
-				const char* baseName = (*vClassNames)[i];
-
-			//	check the name
-				if(baseName == NULL || strlen(baseName) == 0 || baseName[0] == '[')
-				{
-					if(i>0){
-					UG_LOG("ERROR in 'IExportedClass::check_consistency':"
-							" base class "<<i<<" of class '"<<this->name()<<
-							"' has not been named.\n");
-						return false;
-					}
-					else{
-					UG_LOG("ERROR in 'IExportedClass::check_consistency':"
-							" Class '"<<this->name()<<"' has not been named.\n");
-						return false;
-					}
-				}
-			}
-
-		//	everything ok
-			return true;
-		}
+		virtual bool check_consistency() const;
 
 	///  virtual destructor
 		virtual ~IExportedClass() {};
@@ -377,16 +473,16 @@ class IExportedClass
 
 
 template <typename TClass>
-class ExportedClass_ : public IExportedClass
+class ExportedClass : public IExportedClass
 {
 	private:
 	//  disallow
-		ExportedClass_ () {};
-		ExportedClass_ (const ExportedClass_& other);
+		ExportedClass () {};
+		ExportedClass (const ExportedClass& other);
 
 	public:
 	//  contructor
-		ExportedClass_(const std::string& name, const std::string& group,
+		ExportedClass(const std::string& name, const std::string& group,
 		               const std::string& tooltip)
 				: m_constructor(NULL), m_destructor(NULL), m_tooltip(tooltip)
 		{
@@ -440,10 +536,15 @@ class ExportedClass_ : public IExportedClass
 	///	returns the i-th method group (all overloads of the i-th function)
 		virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const	{return *m_vConstMethod.at(ind);}
 
+	///	number of registered constructors
+		virtual size_t num_constructors() const {return m_vConstructor.size();}
+
+	///	get exported constructor
+		virtual const ExportedConstructor& get_constructor(size_t i) const {return *(m_vConstructor[i].m_constructor);}
 
 	/// Method registration
 		template <typename TMethod>
-		ExportedClass_<TClass>& add_method (std::string methodName, TMethod func,
+		ExportedClass<TClass>& add_method (std::string methodName, TMethod func,
 		                                    std::string retValInfos = "", std::string paramInfos = "",
 		                                    std::string tooltip = "", std::string help = "")
 		{
@@ -513,22 +614,65 @@ class ExportedClass_ : public IExportedClass
 			return *this;
 		}
 
-	/// Make constructor accessible
-	//  We use a pointer to ConstructorProxy since abstract base classes can not be created but registered.
-	//  Each class that is instantiable must register its constructor
-		ExportedClass_<TClass>& add_constructor ()
+	/// Make default constructor accessible
+		ExportedClass<TClass>& add_constructor ()
 		{
-		//  remember constructor proxy
-			m_constructor = &ConstructorProxy<TClass>;
+		//	add also in new style
+			add_constructor<void (*)()>();
 
-			//  remember constructor proxy
+			//\todo: part below can be delete if noone uses this->create() anymore
+		//  remember constructor proxy
+			m_constructor = &PlainConstructorProxy<TClass>;
+
+		//  remember constructor proxy
 			m_destructor = &DestructorProxy<TClass>;
 
 			return *this;
 		}
 
+	/// constructor registration
+		template <typename TFunc>
+		ExportedClass<TClass>& add_constructor(std::string options = "", std::string paramInfos = "",
+		                                        std::string tooltip = "", std::string help = "")
+		{
+		//	return-type must be void
+			if(!(boost::is_void< typename func_traits<TFunc>::return_type >::value))
+			{
+				UG_LOG("### Registry ERROR: Trying to register constructor of class "
+						<<name()<<"with non-void return value in signature "
+								"function. Aborting ...\n");
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
+			}
+
+		//	type id of constructor
+			size_t typeID = GetUniqueTypeID<TFunc>();
+
+		//	make sure that the overload didn't exist
+			if(constructor_type_id_registered(typeID))
+			{
+				UG_LOG("### Registry ERROR: Trying to register constructor of class "
+						<<name()<<" with same signature twice. Aborting ...\n");
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
+			}
+
+		//	create new exported constructor
+			ExportedConstructor* expConstr
+				= new ExportedConstructor(	&ConstructorProxy<TClass, TFunc>::create,
+				                          	ClassNameProvider<TClass>::name(),
+											options, paramInfos, tooltip, help);
+
+		//	create parameter stack
+			expConstr->create_parameter_stack<TFunc>();
+
+		//	rememeber it
+			m_vConstructor.push_back(ConstructorOverload(expConstr, typeID));
+
+		//	done
+			return *this;
+		}
+
 	/// is instantiable
-		virtual bool is_instantiable() const {return m_constructor != NULL;}
+		virtual bool is_instantiable() const {return m_vConstructor.size() > 0;}
 
 	/// create new instance of class
 		virtual void* create() const
@@ -553,8 +697,12 @@ class ExportedClass_ : public IExportedClass
 		}
 
 	/// destructor
-		virtual ~ExportedClass_()
+		virtual ~ExportedClass()
 		{
+		//	delete constructors
+			for(size_t i = 0; i < m_vConstructor.size(); ++i)
+				delete (m_vConstructor[i].m_constructor);
+
 		//  delete methods
 			for(size_t i = 0; i < m_vMethod.size(); ++i)
 				delete m_vMethod[i];
@@ -564,6 +712,16 @@ class ExportedClass_ : public IExportedClass
 		}
 
 	protected:
+	///	returns if a constructor overload is registered
+		bool constructor_type_id_registered(size_t typeID)
+		{
+			for(size_t i = 0; i < m_vConstructor.size(); ++i)
+				if(typeID == m_vConstructor[i].m_typeID)
+					return true;
+
+			return false;
+		}
+
 	/// returns true if methodname is already used by a method in this class
 		bool constmethodname_registered(const std::string& name)
 		{
@@ -605,6 +763,17 @@ class ExportedClass_ : public IExportedClass
 	private:
 		typedef TClass* (*ConstructorFunc)();
 		ConstructorFunc m_constructor;
+
+		struct ConstructorOverload{
+			ConstructorOverload()	{}
+			ConstructorOverload(ExportedConstructor* func, size_t typeID)
+				: m_constructor(func), m_typeID(typeID)
+			{}
+			ExportedConstructor* 	m_constructor;
+			size_t					m_typeID;
+		};
+
+		std::vector<ConstructorOverload> m_vConstructor;
 
 		typedef void (*DestructorFunc)(void*);
 		DestructorFunc m_destructor;

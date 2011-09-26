@@ -43,6 +43,13 @@ string Add(const char* a, const char* b)
 class Test
 {
 	public:
+		Test() { UG_LOG("Test::Test() constructor used.\n")}
+		Test(const char* msg)
+		{
+			UG_LOG("Test::Test(const char*) constructor used.\n")
+			UG_LOG("Message is: '"<<msg<<"'.\n");
+		}
+
 		int add(int a, int b)
 		{
 			return a+b;
@@ -390,6 +397,7 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 	//	register class "Test"
 		reg.add_class_<Test>("Test", grp)
 			.add_constructor()
+			.add_constructor<void (*)(const char*)>()
 			.add_method("add", static_cast<int (Test::*)(int, int)>(&Test::add), "c", "a#b")
 			.add_method("add", static_cast<int (Test::*)(int, int, int)>(&Test::add), "d", "a#b#c")
 			.add_method("add", static_cast<string (Test::*)(const char*, const char*)>(&Test::add), "d", "a#b#c")
