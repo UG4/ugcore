@@ -24,9 +24,11 @@ get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 include_directories(${UG_ROOT_PATH}/ugbase)
 link_directories(${UG_ROOT_PATH}/lib)
 
+
 ################################################################################
 # We want the code to be built into one library (except the plugins, of course)
 set(BUILD_ONE_LIB ON)
+
 
 ################################################################################
 # In this section we'll define default variables
@@ -59,7 +61,6 @@ set(linkLibraries)
 
 # We'll reset CMAKE_CXX_FLAGS, since many options are adding some values.
 # Removal of single values from CMAKE_CXX_FLAGS would be hard...
-# -dynamic should always be on
 set(CMAKE_CXX_FLAGS "")
 
 # We check for MPI here, since we use MPI_FOUND as default value for
