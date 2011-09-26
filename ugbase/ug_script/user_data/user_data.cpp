@@ -9,6 +9,7 @@
 #include "ug_script/ug_script.h"
 #include "user_data.h"
 #include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_function.h"
 #include "lib_discretization/spatial_discretization/ip_data/data_linker.h"
 
 using namespace std;
@@ -658,6 +659,110 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 	return c;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// LuaFunction
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \tparam		TData		Return value type
+ * \tparam		TDataIn		Input daten type
+ */
+template <typename TData, typename TDataIn>
+class LuaFunction
+	: public IFunction<TData, TDataIn>
+{
+	public:
+	///	constructor
+		LuaFunction() : m_numArgs(0)
+		{
+			m_L = ug::script::GetDefaultLuaState();
+			m_cbValueRef = LUA_NOREF;
+		}
+
+	///	sets the Lua function used to compute the data
+	/**
+	 * This function sets the lua callback. The name of the function is
+	 * passed as a string. Make sure, that the function name is defined
+	 * when executing the script.
+	 */
+		void set_lua_callback(const char* luaCallback, size_t numArgs)
+		{
+		//	store name (string) of callback
+			m_cbValueName = luaCallback;
+
+		//	obtain a reference
+			lua_getglobal(m_L, m_cbValueName);
+
+		//	store reference to lua function
+			m_cbValueRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
+
+		//	remember number of arguments to be used
+			m_numArgs = numArgs;
+		}
+
+	///	evaluates the data
+		virtual void operator() (TData& out, int numArgs, ...)
+		{
+			UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");
+
+		//	push the callback function on the stack
+			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_cbValueRef);
+
+		//	get list of arguments
+			va_list ap;
+			va_start(ap, numArgs);
+
+		//	read all arguments and push them to the lua stack
+			for(int i = 0; i < numArgs; ++i)
+			{
+			//	cast data
+				TDataIn val = va_arg(ap, TDataIn);
+
+			//	push data to lua stack
+				lua_traits<TDataIn>::push(m_L, val);
+			}
+
+		//	end read in of parameters
+			va_end(ap);
+
+		//	compute total args size
+			size_t argSize = lua_traits<TDataIn>::size * numArgs;
+
+		//	compute total return size
+			size_t retSize = lua_traits<TData>::size;
+
+		//	call lua function
+			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
+			{
+				std::stringstream ss;
+				ss << "ERROR in 'LuaUserFunction::operator(...)': Error while "
+						"running callback '" << m_cbValueName << "',"
+						" lua message: "<< lua_tostring(m_L, -1) << "\n";
+				throw(UGError(true, ss.str().c_str()));
+			}
+
+		//	read return value
+			lua_traits<TData>::read(m_L, out);
+
+		//	pop values
+			lua_pop(m_L, retSize);
+		}
+
+	protected:
+	///	callback name as string
+		const char* m_cbValueName;
+
+	///	reference to lua function
+		int m_cbValueRef;
+
+	///	lua state
+		lua_State*	m_L;
+
+	///	number of arguments to use
+		size_t m_numArgs;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // Registration
 ///////////////////////////////////////////////////////////////////////////////
@@ -741,6 +846,15 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef LuaUserNumberNumberFunction T;
 		reg.add_class_<T>("LuaUserNumberNumberFunction", parentGroup)
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
+	}
+
+//	LuaFunctionNumber
+	{
+		typedef LuaFunction<number, number> T;
+		typedef IFunction<number, number> TBase;
+		reg.add_class_<T, TBase>("LuaFunctionNumber", parentGroup)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback);
 	}
