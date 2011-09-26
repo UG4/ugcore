@@ -68,9 +68,9 @@ remove_definitions(-DBUILDING_DYNAMIC_LIBRARY)
 remove_definitions(-DLUA_BUILD_AS_DLL)
 add_executable(${targetExecutableName} ${srcUGShell})
 
-if(libReadline)
+if("${SHELLTYPE}" STREQUAL "readline")
 	target_link_libraries(${targetExecutableName} readline)
-endif(libReadline)
+endif("${SHELLTYPE}" STREQUAL "readline")
 
 if(STATIC)
 # if we're compiling with the new cmake_includes, then we have to link
