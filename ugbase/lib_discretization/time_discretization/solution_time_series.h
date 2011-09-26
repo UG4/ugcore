@@ -39,45 +39,45 @@ class VectorTimeSeries
 	public:
 
 	///	returns number of time steps handled
-		size_t size() const {return m_vTimeSolution.size();}
+		size_t size() const {return m_vTimeSol.size();}
 
 	///	returns point in time for solution
-		number time(size_t i) const {return m_vTimeSolution.at(i).time();}
+		number time(size_t i) const {return m_vTimeSol.at(i).time();}
 
 	///	returns solution
-		vector_type& solution(size_t i) {return *(m_vTimeSolution.at(i).solution());}
+		vector_type& solution(size_t i) {return *(m_vTimeSol.at(i).solution());}
 
 	///	returns solution
-		const vector_type& solution(size_t i) const {return *(m_vTimeSolution.at(i).solution());}
+		const vector_type& solution(size_t i) const {return *(m_vTimeSol.at(i).solution());}
 
 	///	returns oldest solution
-		vector_type& oldest() {return *(m_vTimeSolution.back().solution());}
+		vector_type& oldest() {return *(m_vTimeSol.back().solution());}
 
 	/// const access to oldest solution
-		const vector_type& oldest() const {return *(m_vTimeSolution.back().solution());}
+		const vector_type& oldest() const {return *(m_vTimeSol.back().solution());}
 
 	///	returns latest solution
-		vector_type& latest() {return *(m_vTimeSolution.front().solution());}
+		vector_type& latest() {return *(m_vTimeSol.front().solution());}
 
 	///	const access to latest solution
-		const vector_type& latest() const {return *(m_vTimeSolution.front().solution());}
+		const vector_type& latest() const {return *(m_vTimeSol.front().solution());}
 
 	///	adds new time point, not discarding the oldest
-		void push(vector_type& vec, number time) {m_vTimeSolution.push_front(TimeSol(vec, time));}
+		void push(vector_type& vec, number time) {m_vTimeSol.push_front(TimeSol(vec, time));}
 
 	///	adds new time point, oldest solution is discarded and returned
 		vector_type* push_discard_oldest(vector_type& vec, number time)
 		{
-			vector_type* discardVec = m_vTimeSolution.back().solution();
+			vector_type* discardVec = m_vTimeSol.back().solution();
 			remove_oldest(); push(vec, time);
 			return discardVec;
 		}
 
 	///	removes latest time point
-		void remove_latest() {m_vTimeSolution.pop_front();}
+		void remove_latest() {m_vTimeSol.pop_front();}
 
 	///	removes oldest time point
-		void remove_oldest() {m_vTimeSolution.pop_back();}
+		void remove_oldest() {m_vTimeSol.pop_back();}
 
 	protected:
 	///	grouping of solution and time point
@@ -110,10 +110,10 @@ class VectorTimeSeries
 		};
 
 	//	deque of previous solutions
-		std::deque<TimeSol> m_vTimeSolution;
+		std::deque<TimeSol> m_vTimeSol;
 };
 
-
+/// time series of local vectors
 class LocalVectorTimeSeries
 {
 	public:
@@ -132,18 +132,25 @@ class LocalVectorTimeSeries
 	///	returns the local vector for the i'th time point
 		LocalVector& solution(size_t i) {return m_vLocalVector.at(i);}
 
-	///	update for indices
+	/// extract local values from global vectors
 		template <typename TVector>
-		void read_values(const VectorTimeSeries<TVector>& solTimeSeries, LocalIndices& ind)
+		void read_values(const VectorTimeSeries<TVector>& vecTimeSeries, LocalIndices& ind)
 		{
-			m_vLocalVector.resize(solTimeSeries.size());
-			m_vTime.resize(solTimeSeries.size());
+			m_vLocalVector.resize(vecTimeSeries.size());
 			for(size_t i = 0; i < m_vLocalVector.size(); ++i)
 			{
 				m_vLocalVector[i].resize(ind);
-				GetLocalVector(m_vLocalVector[i], solTimeSeries.solution(i));
-				m_vTime[i] = solTimeSeries.time(i);
+				GetLocalVector(m_vLocalVector[i], vecTimeSeries.solution(i));
 			}
+		}
+
+	///	extract time points
+		template <typename TVector>
+		void read_times(const VectorTimeSeries<TVector>& vecTimeSeries)
+		{
+			m_vTime.resize(vecTimeSeries.size());
+			for(size_t i = 0; i < m_vLocalVector.size(); ++i)
+				m_vTime[i] = vecTimeSeries.time(i);
 		}
 
 	protected:

@@ -504,7 +504,11 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	//	read local values of time series
-		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
+		if(bNeedLocTimeSeries)
+		{
+			locTimeSeries.read_values(solList, ind);
+			locTimeSeries.read_times(solList);
+		}
 
 	// 	prepare element
 		if(!Eval.prepare_elem(elem, locU, ind, true, true))
@@ -793,7 +797,11 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	//	read local values of time series
-		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
+		if(bNeedLocTimeSeries)
+		{
+			locTimeSeries.read_values(solList, ind);
+			locTimeSeries.read_times(solList);
+		}
 
 	// 	prepare element
 		if(!Eval.prepare_elem(elem, locU, ind, false, true))
@@ -1076,7 +1084,11 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	//	read local values of time series
-		if(bNeedLocTimeSeries) locTimeSeries.read_values(solList, ind);
+		if(bNeedLocTimeSeries)
+		{
+			locTimeSeries.read_values(solList, ind);
+			locTimeSeries.read_times(solList);
+		}
 
 	// 	prepare element
 		if(!Eval.prepare_elem(elem, locU, ind, false, true))
