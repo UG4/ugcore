@@ -119,7 +119,7 @@ assemble_defect(vector_type& d, const vector_type& u,
 	UG_ASSERT(m_pPrevSol->size() >= m_prevSteps + 1, "Wrong number of solutions")
 
 // 	previous time step part
-	for(size_t i=1; i < m_prevSteps; ++i)
+	for(size_t i=1; i < m_prevSteps+1; ++i)
 	{
 		if(this->m_pDomDisc->assemble_defect
 				(d,  m_pPrevSol->solution(i), m_pPrevSol->time(i), (*m_pPrevSol), dofDistr,
