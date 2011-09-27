@@ -801,20 +801,15 @@ assemble_solution(vector_type& u, const dof_distribution_type& dd)
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J,
-                  const vector_type& u, number time,
-                  const VectorTimeSeries<vector_type>& solList,
-                  const dof_distribution_type& dd,
-                  number s_m0, number s_a0)
+                  const VectorTimeSeries<vector_type>& vSol,
+                  const number s_a0,
+                  const dof_distribution_type& dd)
 {
 //	update the elem discs
 	if(!update_elem_discs()) return false;
 
-//	check that s_m is 1.0
-	if(s_m0 != 1.0)
-	{
-		UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
-				" It is assumed to have s_m == 1\n");
-	}
+//	get current time
+	const number time = vSol.time(0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -858,23 +853,23 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			bSuc &= AssembleJacobian<Edge,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			break;
 		case 2:
 			bSuc &= AssembleJacobian<Triangle,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			bSuc &= AssembleJacobian<Quadrilateral,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			break;
 		case 3:
 			bSuc &= AssembleJacobian<Tetrahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			bSuc &= AssembleJacobian<Pyramid,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			bSuc &= AssembleJacobian<Prism,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			bSuc &= AssembleJacobian<Hexahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, time, solList, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
 				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
@@ -896,7 +891,7 @@ assemble_jacobian(matrix_type& J,
 	{
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
-			if(!m_vvConstraints[type][i]->adjust_jacobian(J, u, dd, time))
+			if(!m_vvConstraints[type][i]->adjust_jacobian(J, vSol.solution(0), dd, time))
 				return false;
 		}
 	}
@@ -918,10 +913,10 @@ assemble_jacobian(matrix_type& J,
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d,
-                const vector_type& u, number time,
-                const VectorTimeSeries<vector_type>& solList,
-                const dof_distribution_type& dd,
-                number s_m, number s_a)
+                const VectorTimeSeries<vector_type>& vSol,
+                const std::vector<number>& vScaleMass,
+                const std::vector<number>& vScaleStiff,
+                const dof_distribution_type& dd)
 {
 //	update the elem discs
 	if(!update_elem_discs()) return false;
@@ -968,23 +963,23 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			bSuc &= AssembleDefect<Edge,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 2:
 			bSuc &= AssembleDefect<Triangle,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleDefect<Quadrilateral,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 3:
 			bSuc &= AssembleDefect<Tetrahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleDefect<Pyramid,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleDefect<Prism,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleDefect<Hexahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
 						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
@@ -1006,7 +1001,7 @@ assemble_defect(vector_type& d,
 	{
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
-			if(!m_vvConstraints[type][i]->adjust_defect(d, u, dd, time))
+			if(!m_vvConstraints[type][i]->adjust_defect(d, vSol.solution(0), dd, vSol.time(0)))
 				return false;
 		}
 	}
@@ -1026,10 +1021,10 @@ assemble_defect(vector_type& d,
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
-                const vector_type& u, number time,
-                const VectorTimeSeries<vector_type>& solList,
-                const dof_distribution_type& dd,
-                number s_m, number s_a)
+                const VectorTimeSeries<vector_type>& vSol,
+                const std::vector<number>& vScaleMass,
+                const std::vector<number>& vScaleStiff,
+                const dof_distribution_type& dd)
 {
 //	update the elem discs
 	if(!update_elem_discs()) return false;
@@ -1076,23 +1071,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			bSuc &= AssembleLinear<Edge,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 2:
 			bSuc &= AssembleLinear<Triangle,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleLinear<Quadrilateral,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 3:
 			bSuc &= AssembleLinear<Tetrahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleLinear<Pyramid,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleLinear<Prism,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			bSuc &= AssembleLinear<Hexahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, time, solList, s_m, s_a, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
 						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
@@ -1115,7 +1110,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	{
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
-			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, u, dd, time))
+			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, vSol.solution(0), dd, vSol.time(0)))
 				return false;
 		}
 	}

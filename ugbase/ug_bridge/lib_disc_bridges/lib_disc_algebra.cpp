@@ -115,8 +115,9 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> T;
 		string name = string("IDomainDiscretization").append(algDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_method("assemble_jacobian", static_cast<bool (T::*)(matrix_type&, const vector_type&,
-							number, const VectorTimeSeries<vector_type>&, const IDoFDistribution<TDoFDistribution>&, number, number)>(&T::assemble_jacobian));
+			.add_method("assemble_jacobian", static_cast<bool (T::*)
+			            (matrix_type&, const VectorTimeSeries<vector_type>&,
+			             number, const IDoFDistribution<TDoFDistribution>&)>(&T::assemble_jacobian));
 		reg.add_class_to_group(name, "IDomainDiscretization", algDDTag);
 	}
 

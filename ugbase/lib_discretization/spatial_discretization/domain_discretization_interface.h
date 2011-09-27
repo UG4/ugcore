@@ -51,63 +51,57 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	/**
 	 * Assembles Jacobian at a given Solution u.
 	 *
-	 * \param[out] J 		Jacobian J(u) Matrix to be filled
-	 * \param[in]  u 		Current iterated (next timestep) solution
-	 * \param[in]  time		time of next (to be computed) timestep
-	 * \param[in]  dofDistr DoF Distribution
-	 * \param[in]  s_m		scaling for mass matrix
-	 * \param[in]  s_a		scaling for stiffness matrix
+	 * \param[out] J 			Jacobian J(u) Matrix to be filled
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  s_a			scaling factors for mass matrix
+	 * \param[in]  dd 			DoF Distribution
 	 *
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
 		virtual bool assemble_jacobian(matrix_type& J,
-		                               const vector_type& u, number time,
-		                               const VectorTimeSeries<vector_type>& solList,
-		                               const dof_distribution_type& dofDistr,
-		                               number s_m, number s_a) = 0;
+		                               const VectorTimeSeries<vector_type>& vSol,
+		                               const number s_a,
+		                               const dof_distribution_type& dd) = 0;
 
 	/// assembles Defect
 	/**
 	 * Assembles Defect at a given Solution u.
 	 *
-	 * \param[out] d Defect d(u) to be filled
-	 * \param[in]  u 		Current iterated (next timestep) solution
-	 * \param[in]  time		time of next (to be computed) timestep
-	 * \param[in]  dofDistr DoF Distribution
-	 * \param[in]  s_m		scaling for mass matrix
-	 * \param[in]  s_a		scaling for stiffness matrix
+	 * \param[out] d 			Defect d(u) to be filled
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  vScaleMass	scaling factors for mass matrix
+	 * \param[in]  vScaleStiff	scaling factors for stiffness matrix
+	 * \param[in]  dd 			DoF Distribution
 	 *
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
 		virtual	bool assemble_defect(vector_type& d,
-		       	                     const vector_type& u, number time,
-		       	                     const VectorTimeSeries<vector_type>& solList,
-		       	                     const dof_distribution_type& dofDistr,
-		       	                     number s_m, number s_a) = 0;
+		       	                     const VectorTimeSeries<vector_type>& vSol,
+		       	                     const std::vector<number>& vScaleMass,
+		       	                     const std::vector<number>& vScaleStiff,
+		       	                     const dof_distribution_type& dd) = 0;
 
 	/// Assembles matrix_type and Right-Hand-Side for a linear problem
 	/**
 	 * Assembles matrix_type and Right-Hand-Side for a linear problem
 	 *
-	 * \param[out] A Mass-/Stiffness- matrix_type of the discretization
-	 * \param[out] b Right-Hand-Side of the discretization
-	 * \param[in]  u 		Current iterated solution
-	 * \param[in]  time		time of next (to be computed) timestep
-	 * \param[in]  dofDistr DoF Distribution
-	 * \param[in]  s_m		scaling for mass matrix
-	 * \param[in]  s_a		scaling for stiffness matrix
+	 * \param[out] A 			Mass-/Stiffness- matrix_type of the discretization
+	 * \param[out] b 			Right-Hand-Side of the discretization
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  vScaleMass	scaling factors for mass matrix
+	 * \param[in]  vScaleStiff	scaling factors for stiffness matrix
+	 * \param[in]  dd 			DoF Distribution
 	 *
 	 * \return 	true  				if time dependent and linear and successful
 	 * 			false 				if an error occurred
 	 */
-		virtual bool assemble_linear(matrix_type& A,
-		                             vector_type& b,
-		                             const vector_type& u, number time,
-		                             const VectorTimeSeries<vector_type>& solList,
-		                             const dof_distribution_type& dofDistr,
-		                             number s_m, number s_a) = 0;
+		virtual bool assemble_linear(matrix_type& A, vector_type& b,
+		                             const VectorTimeSeries<vector_type>& vSol,
+		                             const std::vector<number>& vScaleMass,
+		                             const std::vector<number>& vScaleStiff,
+		                             const dof_distribution_type& dd) = 0;
 
 	/// sets dirichlet values in solution vector
 	/**
@@ -115,14 +109,14 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 *
 	 * \param[in]  u 		Solution to set values at
 	 * \param[in]  time		time of next (to be computed) timestep
-	 * \param[in]  dofDistr DoF Distribution
+	 * \param[in]  dd 		DoF Distribution
 	 *
 	 * \return 	true 			if successful
 	 * 			false 			if function has not been implemented
 	 * 			false 			if implemented but error occurred
 	 */
 		virtual bool assemble_solution(vector_type& u, number time,
-		                               const dof_distribution_type& dofDistr) = 0;
+		                               const dof_distribution_type& dd) = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_dirichlet_constraints() const = 0;

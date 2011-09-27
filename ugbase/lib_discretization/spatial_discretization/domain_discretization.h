@@ -107,42 +107,40 @@ class DomainDiscretization :
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
 		bool assemble_jacobian(matrix_type& J,
-		                       const vector_type& u, number time,
-		                       const VectorTimeSeries<vector_type>& solList,
-		                       const dof_distribution_type& dd,
-		                       number s_m, number s_a);
+		                       const VectorTimeSeries<vector_type>& vSol,
+		                       const number s_a0,
+		                       const dof_distribution_type& dd);
 
 		bool assemble_jacobian(matrix_type& J,
-		                       const vector_type& u, number time,
-		                       const VectorTimeSeries<vector_type>& solList,
-		                       number s_m, number s_a)
-		{return assemble_jacobian(J, time, solList, get_surface_dd(), s_m, s_a);}
+		                       const VectorTimeSeries<vector_type>& vSol,
+		                       const number s_a0)
+		{return assemble_jacobian(J, vSol, s_a0, get_surface_dd());}
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
 		bool assemble_defect(vector_type& d,
-		                     const vector_type& u, number time,
-		                     const VectorTimeSeries<vector_type>& solList,
-		                     const dof_distribution_type& dd,
-		                     number s_m, number s_a);
+		                     const VectorTimeSeries<vector_type>& vSol,
+		                     const std::vector<number>& vScaleMass,
+		                     const std::vector<number>& vScaleStiff,
+		                     const dof_distribution_type& dd);
 
 		bool assemble_defect(vector_type& d,
-		                     const vector_type& u, number time,
-		                     const VectorTimeSeries<vector_type>& solList,
-		                     number s_m, number s_a)
-		{return assemble_defect(d, u, time, solList, get_surface_dd(), s_m, s_a);}
+		                     const VectorTimeSeries<vector_type>& vSol,
+		                     const std::vector<number>& vScaleMass,
+		                     const std::vector<number>& vScaleStiff)
+		{return assemble_defect(d, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
 		bool assemble_linear(matrix_type& A, vector_type& b,
-		                     const vector_type& u, number time,
-		                     const VectorTimeSeries<vector_type>& solList,
-		                     const dof_distribution_type& dd,
-		                     number s_m, number s_a);
+		                     const VectorTimeSeries<vector_type>& vSol,
+		                     const std::vector<number>& vScaleMass,
+		                     const std::vector<number>& vScaleStiff,
+		                     const dof_distribution_type& dd);
 
 		bool assemble_linear(matrix_type& A, vector_type& b,
-		                     const vector_type& u, number time,
-		                     const VectorTimeSeries<vector_type>& solList,
-		                     number s_m, number s_a)
-		{return assemble_linear(A, b, u, time, solList, get_surface_dd(), s_m, s_a);}
+		                     const VectorTimeSeries<vector_type>& vSol,
+		                     const std::vector<number>& vScaleMass,
+		                     const std::vector<number>& vScaleStiff)
+		{return assemble_linear(A, b, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
 
 	/// \copydoc IDomainDiscretization::assemble_solution()
 		bool assemble_solution(vector_type& u, number time,

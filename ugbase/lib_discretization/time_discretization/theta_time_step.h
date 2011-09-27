@@ -67,18 +67,12 @@ class ThetaTimeDiscretization
 			set_theta(1.0);
 		}
 
-		ThetaTimeDiscretization()
-		{
-			set_theta(1.0);
-		}
+		ThetaTimeDiscretization(){set_theta(1.0);}
 
 	///	sets the theta value
 		void set_theta(number theta)
 		{
-			s_a[0] = 1.-theta;
-			s_a[1] = theta;
-			s_m[0] = 1.;
-			s_m[1] = -1.;
+			m_theta = theta;
 			m_prevSteps = 1;
 		}
 
@@ -113,9 +107,25 @@ class ThetaTimeDiscretization
 		                     const dof_distribution_type& dofDistr);
 
 	private:
+	///	updates the scaling factors
+		void update_scaling(number dt)
+		{
+			m_vScaleMass.resize(2);
+			m_vScaleMass[0] = 1.;
+			m_vScaleMass[1] = -1.;
+
+			m_vScaleStiff.resize(2);
+			m_vScaleStiff[0] = (1.- m_theta) * dt;
+			m_vScaleStiff[1] = m_theta * dt;
+		}
+
+
+		number m_theta;
+
 		size_t m_prevSteps;
-		number s_a[2];
-		number s_m[2];
+		std::vector<number> m_vScaleMass;
+		std::vector<number> m_vScaleStiff;
+
 		VectorTimeSeries<vector_type>* m_pPrevSol;
 		number m_dt; 							///< Time Step size
 		number m_futureTime;					///< Future Time
