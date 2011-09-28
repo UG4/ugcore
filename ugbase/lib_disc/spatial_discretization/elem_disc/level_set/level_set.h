@@ -11,7 +11,7 @@
 #include "common/common.h"
 
 #include <vector>
-#include "lib_disc/spatial_discretization/disc_util/finite_volume_geometry.h"
+#include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
 #include <boost/function.hpp>
 
 namespace ug{
@@ -70,7 +70,6 @@ class FV1LevelSetDisc
       		m_dt(0.0), m_time(0), m_gamma(1.0), m_delta(0.0),
       		m_reinit(false), m_analyticalSolution(true),
       		m_analyticalVelocity(false),m_externalVelocity(true),m_analyticalSource(false),m_divFree(false),
-      		m_source(false),
       		m_nrOfSteps(1),
       		m_maxCFL(0),m_print(false),m_timestep_nr(0),m_limiter(false),
 		    m_vel_x_fct(0),
@@ -152,6 +151,8 @@ class FV1LevelSetDisc
 		bool runtimetest (TGridFunction& u);
 
 		bool compute_normal(TGridFunction& vx,TGridFunction& vy,TGridFunction& u);
+		bool compute_dnormal(TGridFunction& dnormal,TGridFunction& vx,TGridFunction& vy,TGridFunction& phi,TGridFunction& u);
+		bool compute_ddnormal(TGridFunction& ddnormal,TGridFunction& dnormal,TGridFunction& vx,TGridFunction& vy,TGridFunction& phi,TGridFunction& u);
 
       /// boundary condition subset handling
 		bool set_dirichlet_boundary(TGridFunction& uNew,const char* subsets){
@@ -166,7 +167,7 @@ class FV1LevelSetDisc
 			return true;
        };
 
-	   bool set_neumann_boundary(TGridFunction& uNew,const char* subsets){
+	   bool set_outflow_boundary(TGridFunction& uNew,const char* subsets){
 		    std::string m_neumannSubsets = subsets;
 			//	get domain of grid function
 			domain_type& domain = uNew.get_domain();
@@ -252,6 +253,8 @@ class FV1LevelSetDisc
 
 	    bool calculate_vertex_grad_vol(TGridFunction& u, aaGrad& aaGradient, aaSCV& aaVolume );
 
+	    bool calculate_vertex_grad_vol_sign(TGridFunction&, aaGrad& ,aaSCV& ,TGridFunction& ,int);
+
 		template <typename TElem>
 		bool assemble_element(TElem& elem, DimFV1Geometry<dim>& geo, grid_type& grid,TGridFunction& uNew,const TGridFunction& uOld,aaGrad& aaGradient, aaSCV& aaVolume );
 
@@ -276,7 +279,6 @@ class FV1LevelSetDisc
 	    bool m_externalVelocity;
 		bool m_analyticalSource;
     	bool m_divFree;
-		bool m_source;
      	size_t m_nrOfSteps;
 		number m_maxCFL;
 		bool m_print;

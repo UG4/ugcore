@@ -354,8 +354,8 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		typedef FV1LevelSetDisc<function_type> T;
 		typedef typename function_type::domain_type domain_type;
 		typedef boost::function<void (number& value,
-						                              const MathVector<domain_type::dim>& x,
-						                              number time)> NumberFunctor;
+													  const MathVector<domain_type::dim>& x,
+													  number time)> NumberFunctor;
 		string name = string("FV1LevelSetDisc").append(dimAlgDDSuffix);
 				reg.add_class_<T>(name, grp)
 						.add_constructor()
@@ -372,7 +372,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						.add_method("set_gamma", &T::set_gamma)
 						.add_method("set_limiter",&T::set_limiter)
 						.add_method("set_dirichlet_boundary",&T::set_dirichlet_boundary)
-						.add_method("set_neumann_boundary",&T::set_neumann_boundary)
+						.add_method("set_outflow_boundary",&T::set_outflow_boundary)
 						.add_method("init_function", &T::init_function)
 						.add_method("set_vel_x", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_vel_x))
 						.add_method("set_vel_y", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_vel_y))
@@ -394,6 +394,8 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						.add_method("set_dirichlet_data", static_cast<void (T::*)(const NumberFunctor&)>(&T::set_dirichlet_data))
 						.add_method("set_dirichlet_data", static_cast<void (T::*)()>(&T::set_dirichlet_data))
 						.add_method("compute_normal",&T::compute_normal)
+						.add_method("compute_dnormal",&T::compute_dnormal)
+						.add_method("compute_ddnormal",&T::compute_ddnormal)
 						.add_method("fill_v_vec",&T::fill_v_vec)
 						.add_method("get_time",&T::get_time)
 						.add_method("runtimetest", &T::runtimetest)
