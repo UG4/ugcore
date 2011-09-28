@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__
-#define __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__
+#ifndef __H__UG__LIB_DISC__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__
+#define __H__UG__LIB_DISC__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__
 
 #include "theta_time_step.h"
 
@@ -162,4 +162,4 @@ assemble_linear(matrix_type& A, vector_type& b, const vector_type& u,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__ */
+#endif /* __H__UG__LIB_DISC__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__ */

@@ -5,8 +5,8 @@
  *      Author: kxylouris, avogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACES__INTEGRATE__
-#define __H__LIBDISCRETIZATION__FUNCTION_SPACES__INTEGRATE__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE__
+#define __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE__
 
 #include <cmath>
 
@@ -492,4 +492,4 @@ number L2Error(
 
 } // namespace ug
 
-#endif /*__H__LIBDISCRETIZATION__FUNCTION_SPACES__INTEGRATE__*/
+#endif /*__H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE__*/

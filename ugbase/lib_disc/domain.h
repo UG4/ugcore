@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__DOMAIN__
-#define __H__UG__LIB_DISCRETIZATION__DOMAIN__
+#ifndef __H__UG__LIB_DISC__DOMAIN__
+#define __H__UG__LIB_DISC__DOMAIN__
 
 #include "lib_grid/lg_base.h"
 #include <boost/mpl/list.hpp>
@@ -242,4 +242,4 @@ typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_access
 
 /// @}
 
-#endif /* __H__LIBDISCRETIZATION__DOMAIN__ */
+#endif /* __H__UG__LIB_DISC__DOMAIN__ */

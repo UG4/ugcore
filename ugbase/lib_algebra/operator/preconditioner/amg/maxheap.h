@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__MAXHEAP_H__
-#define __H__LIB_DISCRETIZATION__AMG_SOLVER__MAXHEAP_H__
+#ifndef __H__UG__LIB_DISC__AMG_SOLVER__MAXHEAP_H__
+#define __H__UG__LIB_DISC__AMG_SOLVER__MAXHEAP_H__
 
 namespace ug{
 // maxheap
@@ -283,4 +283,4 @@ private:
 	
 } // namespace ug
 
-#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__MAXHEAP_H__
+#endif // __H__UG__LIB_DISC__AMG_SOLVER__MAXHEAP_H__

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__CONFORM__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__CONFORM__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__CONFORM__
+#define __H__UG__LIB_DISC__DOF_MANAGER__CONFORM__
 
 #include <vector>
 
@@ -396,4 +396,4 @@ class DoFDistribution
 
 #include "conform_impl.h"
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__CONFORM__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__CONFORM__ */

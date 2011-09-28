@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION_TYPE__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION_TYPE__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_TYPE__
+#define __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_TYPE__
 
 namespace ug{
 
@@ -18,4 +18,4 @@ enum DofDistributionType
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION_TYPE__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_TYPE__ */

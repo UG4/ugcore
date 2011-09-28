@@ -5,8 +5,8 @@
  *      Author: A. Vogel, S.Reiter
  */
 
-#ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
-#define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
+#ifndef __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__
+#define __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__
 
 
 #include "lib_grid/parallelization/parallelization.h"

@@ -2,8 +2,8 @@
 //  It provides the Gauss Quadratures for a reference hexahedron.
 
 
-#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceHexahedron__
-#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceHexahedron__
+#ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceHexahedron__
+#define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceHexahedron__
 
 #include "gauss_quad.h"
 
@@ -334,5 +334,5 @@ class GaussQuadrature<ReferenceHexahedron, 0> : public GaussQuadrature<Reference
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceHexahedron__ */
+#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceHexahedron__ */
 

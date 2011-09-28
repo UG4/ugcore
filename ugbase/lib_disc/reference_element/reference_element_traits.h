@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
-#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
+#ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
+#define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
 
 #include "reference_vertex.h"
 #include "reference_edge.h"
@@ -168,4 +168,4 @@ struct reference_element_traits<Hexahedron>
 
 }
 
-#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__ */
+#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__ */

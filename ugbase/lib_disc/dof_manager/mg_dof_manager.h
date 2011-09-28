@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_MANAGER__
+#define __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_MANAGER__
 
 #include <vector>
 
@@ -303,4 +303,4 @@ class MGDoFManager : public GridObserver
 // include implementation
 #include "mg_dof_manager_impl.h"
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_MANAGER__ */

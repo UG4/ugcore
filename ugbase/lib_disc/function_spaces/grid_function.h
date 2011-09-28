@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__
-#define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__
+#define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__
 
 #include "lib_algebra/operator/operator_base_interface.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
@@ -329,4 +329,4 @@ inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDo
 // include implementation
 #include "grid_function_impl.h"
 
-#endif /* __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__ */
+#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__ */

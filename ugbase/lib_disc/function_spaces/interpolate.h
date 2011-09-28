@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACES__INTERPOLATE__
-#define __H__LIBDISCRETIZATION__FUNCTION_SPACES__INTERPOLATE__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE__
+#define __H__UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE__
 
 #include "common/common.h"
 
@@ -555,4 +555,4 @@ bool InterpolateFunctionOnVertices(
 
 } // namespace ug
 
-#endif /*__H__LIBDISCRETIZATION__FUNCTION_SPACES__INTERPOLATE__*/
+#endif /*__H__UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE__*/

@@ -2,8 +2,8 @@
 //  It provides the Gauss Quadratures for a reference edge.
 
 
-#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__
-#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__
+#ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__
+#define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__
 
 #include "gauss_quad.h"
 
@@ -481,5 +481,5 @@ class GaussQuadrature<ReferenceEdge, 0> : public GaussQuadrature<ReferenceEdge, 
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__ */
+#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceEdge__ */
 

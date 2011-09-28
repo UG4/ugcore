@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__
-#define __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__
+#ifndef __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__
+#define __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__
 
 // extern libraries
 #include <cassert>
@@ -407,4 +407,4 @@ class LocalShapeFunctionSetProvider {
 
 #include "local_shape_function_set_impl.h"
 
-#endif /* __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__ */
+#endif /* __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__ */

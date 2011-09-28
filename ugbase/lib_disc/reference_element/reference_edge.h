@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_EDGE__
-#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_EDGE__
+#ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_EDGE__
+#define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_EDGE__
 
 #include "common/math/ugmath.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -178,4 +178,4 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 
 } // namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_EDGE__ */
+#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_EDGE__ */

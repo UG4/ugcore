@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER_IMPL__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER_IMPL__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_MANAGER_IMPL__
+#define __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_MANAGER_IMPL__
 
 #include "mg_dof_manager.h"
 #include "lib_grid/algorithms/multi_grid_util.h"
@@ -1395,4 +1395,4 @@ add_associated_sides_to_surface_view()
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER_IMPL__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_MANAGER_IMPL__ */

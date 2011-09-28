@@ -5,8 +5,8 @@
  *      Author: Andreas Vogel, Arne Naegel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ILU__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ILU__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 
 #include "lib_algebra/operator/operator_interface.h"
 

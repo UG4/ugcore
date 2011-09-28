@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__COMMON__GROUPS_UTIL__
-#define __H__LIB_DISCRETIZATION__COMMON__GROUPS_UTIL__
+#ifndef __H__UG__LIB_DISC__COMMON__GROUPS_UTIL__
+#define __H__UG__LIB_DISC__COMMON__GROUPS_UTIL__
 
 #include <vector>
 #include <string>
@@ -94,4 +94,4 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__COMMON__GROUPS_UTIL__ */
+#endif /* __H__UG__LIB_DISC__COMMON__GROUPS_UTIL__ */

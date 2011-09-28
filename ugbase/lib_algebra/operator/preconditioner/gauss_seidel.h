@@ -5,8 +5,8 @@
  *      Author: Martin Rupp
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
 
 #include "lib_algebra/operator/operator_interface.h"
 #ifdef UG_PARALLEL
@@ -272,4 +272,4 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 
 } // end namespace ug
 
-#endif // __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
+#endif // __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__

@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
-#define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
+#ifndef __H__UG__LIB_DISC__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
+#define __H__UG__LIB_DISC__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
 
 #include "parallel_dof_manager.h"
 #include "pcl/pcl_communication_structs.h"
@@ -538,4 +538,4 @@ print_layout_statistic(int verboseLev) const
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__ */
+#endif /* __H__UG__LIB_DISC__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__ */

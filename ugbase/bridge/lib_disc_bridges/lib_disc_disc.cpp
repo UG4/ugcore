@@ -17,17 +17,17 @@
 // lib_disc includes
 #include "lib_disc/domain.h"
 
-#include "lib_disc/spatial_discretization/elem_disc/thermohaline_flow/thermohaline_flow.h"
-#include "lib_disc/spatial_discretization/disc_util/conv_shape_interface.h"
-#include "lib_disc/spatial_discretization/disc_util/conv_shape.h"
+#include "lib_disc/spatial_disc/elem_disc/thermohaline_flow/thermohaline_flow.h"
+#include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
+#include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
-#include "lib_disc/spatial_discretization/elem_disc/density_driven_flow/density_driven_flow.h"
-#include "lib_disc/spatial_discretization/elem_disc/convection_diffusion/convection_diffusion.h"
-#include "lib_disc/spatial_discretization/elem_disc/constant_equation/constant_equation.h"
+#include "lib_disc/spatial_disc/elem_disc/density_driven_flow/density_driven_flow.h"
+#include "lib_disc/spatial_disc/elem_disc/convection_diffusion/convection_diffusion.h"
+#include "lib_disc/spatial_disc/elem_disc/constant_equation/constant_equation.h"
 
-#include "lib_disc/spatial_discretization/elem_disc/neumann_boundary/neumann_boundary.h"
-#include "lib_disc/spatial_discretization/elem_disc/inner_boundary/inner_boundary.h"
-#include "lib_disc/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
+#include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
+#include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
+#include "lib_disc/spatial_disc/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 using namespace std;
 

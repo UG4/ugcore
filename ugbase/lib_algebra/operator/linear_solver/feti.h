@@ -9,8 +9,8 @@
  *      Author: iheppner, avogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__FETI__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__FETI__
 
 
 #ifdef UG_PARALLEL
@@ -1016,4 +1016,4 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 #endif /* UG_PARALLEL */
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__FETI__ */

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_HEXAHEDRON__
-#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_HEXAHEDRON__
+#ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_HEXAHEDRON__
+#define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_HEXAHEDRON__
 
 #include "common/math/ugmath.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -244,4 +244,4 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 
 }
 
-#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_HEXAHEDRON__ */
+#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_HEXAHEDRON__ */

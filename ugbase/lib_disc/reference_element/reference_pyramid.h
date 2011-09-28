@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PYRAMID__
-#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PYRAMID__
+#ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_PYRAMID__
+#define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_PYRAMID__
 
 #include "common/math/ugmath.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -244,4 +244,4 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 
 }
 
-#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PYRAMID__ */
+#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_PYRAMID__ */

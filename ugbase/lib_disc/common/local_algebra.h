@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__COMMON__LOCAL_ALGEBRA__
-#define __H__LIB_DISCRETIZATION__COMMON__LOCAL_ALGEBRA__
+#ifndef __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__
+#define __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__
 
 #include <vector>
 
@@ -689,4 +689,4 @@ void AddLocalMatrixToGlobal(TMatrix& mat, const LocalMatrix& lmat)
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__COMMON__LOCAL_ALGEBRA__ */
+#endif /* __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__ */

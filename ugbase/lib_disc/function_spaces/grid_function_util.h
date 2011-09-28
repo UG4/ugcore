@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
-#define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
+#define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
 #include <boost/function.hpp>
 
@@ -15,7 +15,7 @@
 #include "lib_algebra/operator/debug_writer.h"
 #include "lib_algebra/operator/vector_writer.h"
 #include "lib_disc/io/vtkoutput.h"
-#include "lib_disc/spatial_discretization/constraints/constraint_interface.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include <vector>
 #include <string>
 #include "lib_algebra/common/connection_viewer_output.h"
@@ -585,4 +585,4 @@ class GridFunctionVectorWriterDirichlet0
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_UTIL__ */
+#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__ */

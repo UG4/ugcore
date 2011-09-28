@@ -2,8 +2,8 @@
 //	s.b.reiter@googlemail.com
 //	y10 m06 d30
 
-#ifndef __H__LIBDISCRETIZATION__DOMAIN_UTIL__
-#define __H__LIBDISCRETIZATION__DOMAIN_UTIL__
+#ifndef __H__UG__LIB_DISC__DOMAIN_UTIL__
+#define __H__UG__LIB_DISC__DOMAIN_UTIL__
 
 // extern libraries
 #include <vector>
@@ -287,4 +287,4 @@ bool WriteDomainToUGX(const char* filename, const TDomain& domain);
 //	include implementation
 #include "domain_util_impl.h"
 
-#endif /* __H__LIBDISCRETIZATION__DOMAIN_UTIL__ */
+#endif /* __H__UG__LIB_DISC__DOMAIN_UTIL__ */

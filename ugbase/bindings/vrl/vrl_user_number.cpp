@@ -5,8 +5,8 @@
 
 #include "type_converter.h"
 #include "common/common.h"
-#include "lib_disc/spatial_discretization/ip_data/ip_data.h"
-#include "lib_disc/spatial_discretization/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 #include "bindings/lua/ug_script.h"
 #include "bridge/bridge.h"
 

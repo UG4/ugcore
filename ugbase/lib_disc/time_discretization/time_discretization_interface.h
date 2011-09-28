@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__
-#define __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__
+#ifndef __H__UG__LIB_DISC__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__
+#define __H__UG__LIB_DISC__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__
 
 // extern libraries
 #include <deque>
@@ -17,7 +17,7 @@
 // module intern libraries
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/time_discretization/solution_time_series.h"
-#include "lib_disc/spatial_discretization/domain_discretization_interface.h"
+#include "lib_disc/spatial_disc/domain_discretization_interface.h"
 
 namespace ug{
 
@@ -133,4 +133,4 @@ class ITimeDiscretization
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__ */
+#endif /* __H__UG__LIB_DISC__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__ */

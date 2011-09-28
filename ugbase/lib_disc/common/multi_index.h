@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__COMMON__MULTI_INDEX__
-#define __H__LIB_DISCRETIZATION__COMMON__MULTI_INDEX__
+#ifndef __H__UG__LIB_DISC__COMMON__MULTI_INDEX__
+#define __H__UG__LIB_DISC__COMMON__MULTI_INDEX__
 
 #include <vector>
 #include <iostream>
@@ -237,4 +237,4 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
 }
 
 
-#endif /* __H__LIB_DISCRETIZATION__COMMON__MULTI_INDEX__ */
+#endif /* __H__UG__LIB_DISC__COMMON__MULTI_INDEX__ */

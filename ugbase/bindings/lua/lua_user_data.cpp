@@ -7,9 +7,9 @@
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lua_user_data.h"
-#include "lib_disc/spatial_discretization/ip_data/ip_data.h"
-#include "lib_disc/spatial_discretization/ip_data/user_function.h"
-#include "lib_disc/spatial_discretization/ip_data/data_linker.h"
+#include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_function.h"
+#include "lib_disc/spatial_disc/ip_data/data_linker.h"
 
 #include "lua_util.h"
 

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
 
 // extern headers
 #include <iostream>
@@ -15,7 +15,7 @@
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
 #include "lib_algebra/operator/operator_interface.h"
-#include "lib_disc/spatial_discretization/constraints/constraint_interface.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
@@ -440,4 +440,4 @@ class P1ProlongationOperator :
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__ */

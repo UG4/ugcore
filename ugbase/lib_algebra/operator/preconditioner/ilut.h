@@ -5,8 +5,8 @@
  * \author Martin Rupp
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ILUT__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ILUT__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT__
 
 #include "lib_algebra/operator/operator_interface.h"
 #ifdef UG_PARALLEL

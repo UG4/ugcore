@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_ELEMENT__
-#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_ELEMENT__
+#ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT__
+#define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT__
 
 #include <cassert>
 #include <iostream>
@@ -335,4 +335,4 @@ class ReferenceElementProvider
 
 #include "reference_element_traits.h"
 
-#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_ELEMENT__ */
+#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT__ */

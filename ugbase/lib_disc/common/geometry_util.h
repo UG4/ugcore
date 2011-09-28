@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__COMMON__GEOMETRY_UTIL__
-#define __H__LIB_DISCRETIZATION__COMMON__GEOMETRY_UTIL__
+#ifndef __H__UG__LIB_DISC__COMMON__GEOMETRY_UTIL__
+#define __H__UG__LIB_DISC__COMMON__GEOMETRY_UTIL__
 
 #include <vector>
 #include <cmath>
@@ -563,4 +563,4 @@ bool ElementSideRayIntersection(	size_t& sideOut,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__COMMON__GEOMETRY_UTIL__ */
+#endif /* __H__UG__LIB_DISC__COMMON__GEOMETRY_UTIL__ */

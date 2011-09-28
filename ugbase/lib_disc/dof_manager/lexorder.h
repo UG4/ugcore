@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__LEXORDER__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__LEXORDER__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__LEXORDER__
+#define __H__UG__LIB_DISC__DOF_MANAGER__LEXORDER__
 
 #include <vector>
 #include <utility> // for pair
@@ -203,4 +203,4 @@ bool OrderLex(ApproximationSpace<TDomain, TDoFImpl, TAlgebra>& approxSpace,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__LEXORDER__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__LEXORDER__ */

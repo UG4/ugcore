@@ -2,8 +2,8 @@
 //  It provides the Gauss Quadratures for a reference quadrilateral.
 
 
-#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__
-#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__
+#ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__
+#define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__
 
 #include "gauss_quad.h"
 
@@ -504,5 +504,5 @@ class GaussQuadrature<ReferenceQuadrilateral, 0> : public GaussQuadrature<Refere
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__ */
+#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferenceQuadrilateral__ */
 

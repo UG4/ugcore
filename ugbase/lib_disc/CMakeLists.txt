@@ -41,18 +41,18 @@ set(srcDiscretization	common/function_group.cpp
 						
 						operator/linear_operator/multi_grid_solver/mg_solver_util.cpp
 						
-						spatial_discretization/elem_disc/elem_disc_interface.cpp
-						spatial_discretization/disc_util/finite_volume_geometry.cpp
-						spatial_discretization/disc_util/hanging_finite_volume_geometry.cpp
-						spatial_discretization/ip_data/data_evaluator.cpp
+						spatial_disc/elem_disc/elem_disc_interface.cpp
+						spatial_disc/disc_util/finite_volume_geometry.cpp
+						spatial_disc/disc_util/hanging_finite_volume_geometry.cpp
+						spatial_disc/ip_data/data_evaluator.cpp
 						
-						spatial_discretization/elem_disc/constant_equation/constant_equation_fv1.cpp
-						spatial_discretization/elem_disc/convection_diffusion/convection_diffusion.cpp
-						spatial_discretization/elem_disc/density_driven_flow/density_driven_flow_fv1.cpp
-						spatial_discretization/elem_disc/inner_boundary/inner_boundary_fv1.cpp
-						spatial_discretization/elem_disc/linear_elasticity/linear_elasticity_fe1.cpp
-						spatial_discretization/elem_disc/neumann_boundary/neumann_boundary_fv1.cpp
-						spatial_discretization/elem_disc/thermohaline_flow/thermohaline_flow_fv1.cpp)
+						spatial_disc/elem_disc/constant_equation/constant_equation_fv1.cpp
+						spatial_disc/elem_disc/convection_diffusion/convection_diffusion.cpp
+						spatial_disc/elem_disc/density_driven_flow/density_driven_flow_fv1.cpp
+						spatial_disc/elem_disc/inner_boundary/inner_boundary_fv1.cpp
+						spatial_disc/elem_disc/linear_elasticity/linear_elasticity_fe1.cpp
+						spatial_disc/elem_disc/neumann_boundary/neumann_boundary_fv1.cpp
+						spatial_disc/elem_disc/thermohaline_flow/thermohaline_flow_fv1.cpp)
 						
 						
 						

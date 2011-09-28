@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
-#define __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
+#ifndef __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
+#define __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
 
 #include <vector>
 #include <map>
@@ -227,4 +227,4 @@ class LocalDoFSetProvider {
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__ */
+#endif /* __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__ */

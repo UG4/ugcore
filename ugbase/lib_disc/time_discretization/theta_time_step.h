@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP__
-#define __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP__
+#ifndef __H__UG__LIB_DISC__TIME_DISCRETIZATION__THETA_TIME_STEP__
+#define __H__UG__LIB_DISC__TIME_DISCRETIZATION__THETA_TIME_STEP__
 
 // extern libraries
 #include <deque>
@@ -138,4 +138,4 @@ class ThetaTimeDiscretization
 // include implementation
 #include "theta_time_step_impl.h"
 
-#endif /* __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP__ */
+#endif /* __H__UG__LIB_DISC__TIME_DISCRETIZATION__THETA_TIME_STEP__ */

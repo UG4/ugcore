@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION_IMPL__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION_IMPL__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_IMPL__
+#define __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_IMPL__
 
 #include "dof_distribution.h"
 
@@ -458,4 +458,4 @@ size_t IDoFDistribution<TImpl>::inner_algebra_indices(Volume* elem, algebra_inde
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_DISTRIBUTION_IMPL__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_IMPL__ */

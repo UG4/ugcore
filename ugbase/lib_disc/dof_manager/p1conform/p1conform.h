@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__P1CONFORM__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__P1CONFORM__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__P1CONFORM__
+#define __H__UG__LIB_DISC__DOF_MANAGER__P1CONFORM__
 
 #include <vector>
 
@@ -316,4 +316,4 @@ class P1DoFDistribution
 
 #include "./p1conform_impl.h"
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__P1CONFORM__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__P1CONFORM__ */

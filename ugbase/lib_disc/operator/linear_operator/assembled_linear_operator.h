@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 
 #include "lib_algebra/operator/operator_interface.h"
 
@@ -126,4 +126,4 @@ bool AssembleLinearOperatorRhsAndSolution
 // include implementation
 #include "assembled_linear_operator_impl.h"
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__ */

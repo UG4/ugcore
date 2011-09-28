@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER__
-#define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER__
+#ifndef __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER__
+#define __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER__
 
 // extern includes
 #include <vector>
@@ -574,4 +574,4 @@ class AssembledMultiGridCycle :
 // include implementation
 #include "mg_solver_impl.hpp"
 
-#endif /* __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER__ */
+#endif /* __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER__ */

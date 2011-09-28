@@ -13,8 +13,8 @@
  */
 
 
-#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_H__
-#define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_H__
+#ifndef __H__UG__LIB_DISC__AMG_SOLVER__AMG_H__
+#define __H__UG__LIB_DISC__AMG_SOLVER__AMG_H__
 
 #include <vector>
 #include <iostream>
@@ -137,4 +137,4 @@ private:
 
 #include "rsamg_impl.h"
 
-#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_H__
+#endif // __H__UG__LIB_DISC__AMG_SOLVER__AMG_H__

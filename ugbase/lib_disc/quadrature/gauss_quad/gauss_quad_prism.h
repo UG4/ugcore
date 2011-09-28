@@ -2,8 +2,8 @@
 //  It provides the Gauss Quadratures for a reference prism.
 
 
-#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__
-#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__
+#ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__
+#define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__
 
 #include "gauss_quad.h"
 
@@ -102,5 +102,5 @@ class GaussQuadrature<ReferencePrism, 1> : public GaussQuadrature<ReferencePrism
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__ */
+#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__ */
 

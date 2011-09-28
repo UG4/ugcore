@@ -7,9 +7,9 @@
 #include "bridge/bridge.h"
 
 #include "common/common.h"
-#include "lib_disc/spatial_discretization/ip_data/const_user_data.h"
-#include "lib_disc/spatial_discretization/ip_data/data_linker.h"
-#include "lib_disc/spatial_discretization/ip_data/user_function.h"
+#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/ip_data/data_linker.h"
+#include "lib_disc/spatial_disc/ip_data/user_function.h"
 
 using namespace std;
 

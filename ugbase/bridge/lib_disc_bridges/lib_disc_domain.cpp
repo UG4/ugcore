@@ -38,9 +38,9 @@
 
 #include "lib_disc/io/vtkoutput.h"
 
-#include "lib_disc/spatial_discretization/domain_discretization.h"
-#include "lib_disc/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_disc/spatial_discretization/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
+#include "lib_disc/spatial_disc/domain_discretization.h"
+#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+#include "lib_disc/spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
 
 #include "lib_disc/operator/linear_operator/projection_operator.h"
 #include "lib_disc/operator/linear_operator/prolongation_operator.h"

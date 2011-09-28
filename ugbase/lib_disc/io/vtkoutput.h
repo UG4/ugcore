@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__IO__VTKOUTPUT__
-#define __H__LIB_DISCRETIZATION__IO__VTKOUTPUT__
+#ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT__
+#define __H__UG__LIB_DISC__IO__VTKOUTPUT__
 
 // extern libraries
 #include <vector>
@@ -361,4 +361,4 @@ class VTKOutput{
 
 #include "vtkoutput_impl.h"
 
-#endif /* __H__LIB_DISCRETIZATION__IO__VTKOUTPUT__ */
+#endif /* __H__UG__LIB_DISC__IO__VTKOUTPUT__ */

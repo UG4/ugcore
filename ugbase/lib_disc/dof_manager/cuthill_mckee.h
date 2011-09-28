@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__CUTHILL_MCKEE__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__CUTHILL_MCKEE__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__
+#define __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__
 
 #include <vector>
 #include "dof_distribution.h"
@@ -93,4 +93,4 @@ bool OrderCuthillMcKee(ApproximationSpace<TDomain, TDoFImpl, TAlgebra>& approxSp
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__CUTHILL_MCKEE__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__ */

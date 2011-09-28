@@ -10,8 +10,8 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
-#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_HELPER_H__
-#define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_HELPER_H__
+#ifndef __H__UG__LIB_DISC__AMG_SOLVER__AMG_DEBUG_HELPER_H__
+#define __H__UG__LIB_DISC__AMG_SOLVER__AMG_DEBUG_HELPER_H__
 
 #include "common/common.h" // MathVector<3>
 #include "common/math/ugmath.h"
@@ -78,4 +78,4 @@ struct cAMG_helper
 
 
 } // namespace ug
-#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_HELPER_H__
+#endif // __H__UG__LIB_DISC__AMG_SOLVER__AMG_DEBUG_HELPER_H__

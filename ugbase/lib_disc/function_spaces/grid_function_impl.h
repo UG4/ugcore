@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
-#define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
+#define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
 
 #include "grid_function.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
@@ -436,4 +436,4 @@ assign(const this_type& v)
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_IMPL__ */
+#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__ */

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_SOLVER__CG__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_SOLVER__CG__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__CG__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__CG__
 
 #include <iostream>
 #include <sstream>
@@ -309,4 +309,4 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_SOLVER__CG__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__CG__ */

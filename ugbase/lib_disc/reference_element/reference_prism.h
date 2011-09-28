@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PRISM__
-#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PRISM__
+#ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_PRISM__
+#define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_PRISM__
 
 #include "common/math/ugmath.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -221,4 +221,4 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 
 }
 
-#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_PRISM__ */
+#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_PRISM__ */

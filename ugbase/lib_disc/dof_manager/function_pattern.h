@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__FUNCTION_PATTERN__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__FUNCTION_PATTERN__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__FUNCTION_PATTERN__
+#define __H__UG__LIB_DISC__DOF_MANAGER__FUNCTION_PATTERN__
 
 #include <vector>
 #include <string>
@@ -232,4 +232,4 @@ class FunctionPattern
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__FUNCTION_PATTERN__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__FUNCTION_PATTERN__ */

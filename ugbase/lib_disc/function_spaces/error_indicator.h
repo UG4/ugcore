@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__ERROR_INDICATOR__
-#define __H__LIBDISCRETIZATION__FUNCTION_SPACE__ERROR_INDICATOR__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
+#define __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
 
 #include <vector>
 
@@ -323,4 +323,4 @@ void MarkForRefinement_GradientIndicator(IRefiner& refiner,
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__FUNCTION_SPACE__ERROR_INDICATOR__ */
+#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__ */

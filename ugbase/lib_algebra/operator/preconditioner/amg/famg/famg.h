@@ -11,8 +11,8 @@
  */
 
 
-#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__FAMG_H__
-#define __H__LIB_DISCRETIZATION__AMG_SOLVER__FAMG_H__
+#ifndef __H__UG__LIB_DISC__AMG_SOLVER__FAMG_H__
+#define __H__UG__LIB_DISC__AMG_SOLVER__FAMG_H__
 
 #include <vector>
 #include <iostream>
@@ -203,4 +203,4 @@ private:
 
 #include "famg_impl.h"
 
-#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__FAMG_H__
+#endif // __H__UG__LIB_DISC__AMG_SOLVER__FAMG_H__

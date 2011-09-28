@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
-#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
+#ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
+#define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
 
 #include "common/math/ugmath.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -206,4 +206,4 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 
 }
 
-#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__ */
+#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__ */

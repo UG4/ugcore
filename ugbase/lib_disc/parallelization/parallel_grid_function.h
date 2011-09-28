@@ -5,8 +5,8 @@
  *      Author: A. Vogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_GRID_FUNCTION__
-#define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_GRID_FUNCTION__
+#ifndef __H__UG__LIB_DISC__PARALLELIZATION__PARALLEL_GRID_FUNCTION__
+#define __H__UG__LIB_DISC__PARALLELIZATION__PARALLEL_GRID_FUNCTION__
 
 #include "pcl/pcl.h"
 #include "lib_algebra/parallelization/parallelization.h"
@@ -265,4 +265,4 @@ inline void VecScaleAdd(ParallelGridFunction<T> &dest,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_GRID_FUNCTION__ */
+#endif /* __H__UG__LIB_DISC__PARALLELIZATION__PARALLEL_GRID_FUNCTION__ */

@@ -4,8 +4,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__ASSEMBLE__
-#define __H__UG__LIB_DISCRETIZATION__ASSEMBLE__
+#ifndef __H__UG__LIB_DISC__ASSEMBLE__
+#define __H__UG__LIB_DISC__ASSEMBLE__
 
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_grid/tools/selector_interface.h"
@@ -170,4 +170,4 @@ class IAssemble {
 
 }; // name space ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__ASSEMBLE__ */
+#endif /* __H__UG__LIB_DISC__ASSEMBLE__ */

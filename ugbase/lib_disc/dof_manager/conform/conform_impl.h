@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__CONFORM_IMPL__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__CONFORM_IMPL__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__CONFORM_IMPL__
+#define __H__UG__LIB_DISC__DOF_MANAGER__CONFORM_IMPL__
 
 #include <vector>
 
@@ -812,4 +812,4 @@ size_t DoFDistribution::inner_algebra_indices(TElem* elem,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__CONFORM_IMPL__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__CONFORM_IMPL__ */

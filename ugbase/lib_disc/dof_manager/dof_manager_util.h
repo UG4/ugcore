@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER_UTIL__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER_UTIL__
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__DOF_MANAGER_UTIL__
+#define __H__UG__LIB_DISC__DOF_MANAGER__DOF_MANAGER_UTIL__
 
 namespace ug{
 
@@ -200,4 +200,4 @@ bool CopyMatrixSurfaceToLevel(std::vector<TMatrix*>& vLevelMatrix,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER_UTIL__ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__DOF_MANAGER_UTIL__ */

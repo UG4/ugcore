@@ -10,8 +10,8 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#ifndef __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_IMPL_H__
-#define __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_IMPL_H__
+#ifndef __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_IMPL_H__
+#define __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_IMPL_H__
 
 //#include "sparsematrix_util.h"
 
@@ -467,4 +467,4 @@ void RSAMG<TAlgebra>::tostring() const
 
 } // namespace ug
 
-#endif //  __H__LIB_DISCRETIZATION__RSAMG_SOLVER__RSAMG_IMPL_H__
+#endif //  __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_IMPL_H__
