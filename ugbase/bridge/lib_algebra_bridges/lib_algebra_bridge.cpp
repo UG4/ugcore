@@ -11,7 +11,7 @@
 #include <string>
 
 // bridge
-#include "bridge/ug_bridge.h"
+#include "bridge/bridge.h"
 
 // algebra includes
 #include "lib_algebra_bridge.h"

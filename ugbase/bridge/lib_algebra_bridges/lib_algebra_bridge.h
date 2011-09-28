@@ -9,7 +9,7 @@
 #define UG_BRIDGE_LIB_ALGEBRA_BRIDGE_H_
 
 
-#include "bridge/ug_bridge.h"
+#include "bridge/bridge.h"
 #include "lib_algebra/algebra_selector.h"
 #include "lib_algebra/algebra_types.h"
 

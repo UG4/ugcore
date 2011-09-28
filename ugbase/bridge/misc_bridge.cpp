@@ -6,7 +6,7 @@
  */
 
 #include "registry/registry.h"
-#include "ug_bridge.h"
+#include "bridge.h"
 #include <string>
 #include <sstream>
 

@@ -11,7 +11,7 @@
 #include "common/log.h"
 #include "common/util/path_provider.h"
 #include "bindings/lua/lua_util.h"
-#include "bridge/ug_bridge.h"
+#include "bridge/bridge.h"
 #include "common/os_dependent/os_info.h"
 
 #ifdef UG_PLUGINS

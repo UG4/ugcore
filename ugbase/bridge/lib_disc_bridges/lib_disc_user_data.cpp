@@ -4,7 +4,7 @@
 #include <sstream>
 #include <boost/function.hpp>
 
-#include "bridge/ug_bridge.h"
+#include "bridge/bridge.h"
 
 #include "common/common.h"
 #include "lib_disc/spatial_discretization/ip_data/const_user_data.h"

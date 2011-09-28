@@ -11,7 +11,7 @@
 #include <string>
 
 // include bridge
-#include "../ug_bridge.h"
+#include "../bridge.h"
 #include "registry/registry.h"
 
 // lib_disc includes

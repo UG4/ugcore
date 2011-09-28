@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include("../../ug_cmake_includes.txt")
 
-set(srcUGBridge    	ug_bridge.cpp
+set(srcUGBridge    	bridge.cpp
 					vec_math_bridge.cpp
 					lib_grid_bridge.cpp
 					test_bridge.cpp

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include "registry/registry.h"
-#include "ug_bridge.h"
+#include "bridge.h"
 #include "lib_grid/lib_grid.h"
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"

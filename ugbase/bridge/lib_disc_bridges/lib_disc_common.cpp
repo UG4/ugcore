@@ -8,7 +8,7 @@
 #include <string>
 
 // include brigde
-#include "../ug_bridge.h"
+#include "../bridge.h"
 
 // includes of lib_discretization
 #include "lib_disc/common/function_group.h"

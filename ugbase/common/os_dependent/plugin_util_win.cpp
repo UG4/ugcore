@@ -6,7 +6,7 @@
 #include <string>
 #include "common/log.h"
 #include "common/util/path_provider.h"
-#include "bridge/ug_bridge.h"
+#include "bridge/bridge.h"
 #include "common/os_dependent/file_util.h"
 #include "os_info.h"
 

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include "registry/registry.h"
-#include "ug_bridge.h"
+#include "bridge.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"

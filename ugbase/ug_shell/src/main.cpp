@@ -7,7 +7,7 @@
 
 #include "ug.h"
 #include "bindings/lua/lua_util.h"
-#include "bridge/ug_bridge.h"
+#include "bridge/bridge.h"
 #include "bindings/lua/info_commands.h"
 #include "common/util/parameter_parsing.h"
 

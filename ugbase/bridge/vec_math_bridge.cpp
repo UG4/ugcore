@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 
-#include "ug_bridge.h"
+#include "bridge.h"
 #include "common/math/ugmath.h"
 
 using namespace std;

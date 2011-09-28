@@ -14,7 +14,7 @@
 #include "lua_util.h"
 #include "common/util/path_provider.h"
 #include "bindings_lua.h"
-#include "bridge/ug_bridge.h"
+#include "bridge/bridge.h"
 #include "registry/class_helper.h"
 #include "info_commands.h"
 #include "lua_user_data.h"

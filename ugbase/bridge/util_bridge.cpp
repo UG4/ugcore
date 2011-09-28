@@ -4,7 +4,7 @@
 
 #include "common/util/path_provider.h"
 #include "registry/registry.h"
-#include "ug_bridge.h"
+#include "bridge.h"
 
 #include <cstdlib>
 #include <string>

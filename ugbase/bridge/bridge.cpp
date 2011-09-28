@@ -2,7 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
-#include "ug_bridge.h"
+#include "bridge.h"
 
 #ifdef UG_ALGEBRA
 	#include "lib_algebra/algebra_selector.h"
