@@ -8,7 +8,7 @@
 #ifndef ALGEBRA_EXTENSIONS_H_
 #define ALGEBRA_EXTENSIONS_H_
 
-#include "ug_bridge/ug_bridge.h"
+#include "bridge/ug_bridge.h"
 
 namespace ug{
 namespace bridge{

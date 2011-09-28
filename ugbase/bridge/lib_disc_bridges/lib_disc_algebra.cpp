@@ -12,7 +12,7 @@
 
 // registry
 #include "registry/registry.h"
-#include "ug_bridge/ug_bridge.h"
+#include "bridge/ug_bridge.h"
 
 // algebra chooser
 #include "lib_algebra/algebra_selector.h"

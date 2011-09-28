@@ -11,7 +11,7 @@
  */
 #include "ug.h"
 #include "algebra_extensions.h"
-#include "ug_bridge/ug_bridge.h"
+#include "bridge/ug_bridge.h"
 #include "lib_algebra/algebra_types.h"
 
 #include "bindings/lua/user_data/user_data.h"

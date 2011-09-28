@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "ug_bridge/ug_bridge.h"
+#include "bridge/ug_bridge.h"
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "bindings/lua/ug_script.h"

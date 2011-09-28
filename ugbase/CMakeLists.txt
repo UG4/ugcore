@@ -37,8 +37,8 @@ add_subdirectory(lib_grid)
 add_subdirectory(registry)
 
 ########################
-# lib_ugbridge
-add_subdirectory(ug_bridge)
+# bridge
+add_subdirectory(bridge)
 
 ########################
 # bindings

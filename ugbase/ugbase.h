@@ -27,7 +27,7 @@
 #include "common/node_tree/node_tree.h"
 
 // ug_bridge
-#include "ug_bridge/ug_bridge.h"
+#include "bridge/ug_bridge.h"
 
 // ug_script
 #include "bindings/lua/ug_script.h"

@@ -14,7 +14,7 @@
 #include "ug_script.h"
 #include "common/util/path_provider.h"
 #include "bindings/bindings_lua.h"
-#include "ug_bridge/ug_bridge.h"
+#include "bridge/ug_bridge.h"
 #include "registry/class_helper.h"
 #include "info_commands.h"
 #include "user_data/user_data.h"
