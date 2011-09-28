@@ -149,7 +149,7 @@ class LocalVectorTimeSeries
 		void read_times(const VectorTimeSeries<TVector>& vecTimeSeries)
 		{
 			m_vTime.resize(vecTimeSeries.size());
-			for(size_t i = 0; i < m_vLocalVector.size(); ++i)
+			for(size_t i = 0; i < m_vTime.size(); ++i)
 				m_vTime[i] = vecTimeSeries.time(i);
 		}
 
