@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
 
 #include "lib_disc/assemble_interface.h"
-#include "lib_disc/time_discretization/solution_time_series.h"
+#include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 namespace ug {

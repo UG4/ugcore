@@ -28,10 +28,10 @@
 #include "lib_disc/spatial_disc/domain_discretization_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
-#include "lib_disc/time_discretization/time_discretization_interface.h"
+#include "lib_disc/time_disc/time_discretization_interface.h"
 
 // time discretization implementation
-#include "lib_disc/time_discretization/theta_time_step.h"
+#include "lib_disc/time_disc/theta_time_step.h"
 
 // post processes
 #include "lib_disc/spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"

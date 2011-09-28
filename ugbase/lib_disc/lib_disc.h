@@ -105,7 +105,7 @@
 #include "spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
 
 // Time discretization
-#include "time_discretization/time_discretization_interface.h"
-#include "time_discretization/theta_time_step.h"
+#include "time_disc/time_discretization_interface.h"
+#include "time_disc/theta_time_step.h"
 
 #endif /* __H__UG__LIB_DISC__LIB__DISC__ */

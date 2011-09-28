@@ -13,7 +13,7 @@
 
 // intern headers
 #include "lib_disc/common/local_algebra.h"
-#include "lib_disc/time_discretization/solution_time_series.h"
+#include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 
