@@ -7,12 +7,13 @@
 
 #include "fe1_nonlinear_elasticity.h"
 
-#include "lib_disc/spatial_discretization/disc_util/finite_element_geometry.h"
+#include "lib_discretization/spatial_discretization/disc_util/finite_element_geometry.h"
 #include "common/util/provider.h"
-#include "lib_disc/local_finite_element/lagrange/lagrange.h"
-#include "lib_disc/quadrature/gauss_quad/gauss_quad.h"
+#include "lib_discretization/local_finite_element/lagrange/lagrange.h"
+#include "lib_discretization/quadrature/gauss_quad/gauss_quad.h"
 
 #include "common/math/math_vector_matrix/math_matrix_functions.h"
+#include "common/math/math_vector_matrix/math_tensor.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //	variables global to this file
@@ -86,7 +87,7 @@ DeformationGradient(size_t ip, const typename FE1NonlinearElasticityElemDisc<TDo
 		{
 			for(size_t k = 0; k < (size_t)dim ; ++k)
 			{
-				F(j,k) += Grad[k] * u(i,j); //Grad(k)? u(i,j)? u(fct,dof)!
+				F(j,k) += Grad[k] * u(j,i); //Grad(k)? u(fct,dof)!
 			}
 		}
 
@@ -111,9 +112,9 @@ template<typename TDomain>
 static bool
 SetCP(MathMatrix<TDomain::dim,TDomain::dim>& z, MathMatrix<TDomain::dim,TDomain::dim>& CPnew)
 {
-	static const int dim = TDomain::dim;
+	//static const int dim = TDomain::dim;
 
-	MathMatrix<dim,dim> IDENT;
+	MathMatrix<TDomain::dim,TDomain::dim> IDENT;
 
 	MatIdentity(IDENT);
 	MatAdd(CPnew,z,IDENT); //CPnew = z + IDENT
@@ -150,7 +151,7 @@ SetCP(MathMatrix<TDomain::dim,TDomain::dim>& z, MathMatrix<TDomain::dim,TDomain:
 
 template<typename TDomain>
 static bool
-Inner(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& CPnew, number& alpha)
+Inner(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& CPnew, number alpha)
 {
 	static const int dim = TDomain::dim;
 
@@ -173,7 +174,7 @@ Inner(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::d
 	MatMultiply(CI,FI,FTI);
 
 	//Transfer of CPold to spatial config by Push-Forward-Operation (trial elastic state)
-	SetCP(CPold,CPnew);
+	SetCP<TDomain>(CPold,CPnew);
 
 	//computing the finger tensor
 	//btrial = F1 * CPnew * FT; //TODO: eventuell in math_matrix_function Multiplikation dreier Matrizen einfügen!
@@ -183,7 +184,7 @@ Inner(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::d
 	//compute btrialquer
 	MatScale(btrial,J23,btrial);
 
-	Trace(tracebtrial,btrial);
+	tracebtrial = Trace(btrial);
 
 	//computing the deviatoric part of btrialquer
 	for(size_t i = 0; i < (size_t)dim; ++i) // loop dimension
@@ -236,7 +237,8 @@ Inner(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::d
 	MatScale(dCP,update,Normaltrial);
 
 	//CP-Update
-	CPnew(0) = CPold(0) + dCP(0); //TODO: voller CP-Tensor?
+	MatAdd(CPnew,CPold,dCP);
+	/*CPnew(0) = CPold(0) + dCP(0); //TODO: voller CP-Tensor?
 	CPnew(1) = CPold(1) + dCP(1);
 	CPnew(2) = CPold(2) + dCP(2);
 	CPnew(3) = CPold(3) + dCP(3);
@@ -244,7 +246,8 @@ Inner(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::d
 	CPnew(5) = CPold(5) + dCP(5);
 	CPnew(6) = CPold(6) + dCP(6);
 	CPnew(7) = CPold(7) + dCP(7);
-	CPnew(8) = CPold(8) + dCP(8);
+	CPnew(8) = CPold(8) + dCP(8);*/
+
 
 	//Hardening-parameter Update
 	alpha = alpha + sqrt(2.0/3.0) * gamma;
@@ -258,7 +261,7 @@ Inner(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::d
 	CPnew(4) = CPold(4) + dCP[2];
 	CPnew(5) = CPold(5) + dCP(5);*/
 
-	return false;
+	return true;
 }
 
 //"W_F_<..>": computes stress tensors after inner evolution
@@ -293,7 +296,7 @@ W_F_tau(MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomai
 	J2 = detF * detF;
 	J23 = 1.0 / pow(J2,1.0/dim);
 
-	SetCP(CPnew,CP);
+	SetCP<TDomain>(CPnew,CP);
 
 	//computing finger-tensor b in spatial config
 	MatMultiply(help,CP,FT);
@@ -348,7 +351,7 @@ W_F_PK1(MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomai
 	J2 = detF * detF;
 	J23 = 1.0 / pow(J2,1.0/dim);
 
-	SetCP(CPnew,CP);
+	SetCP<TDomain>(CPnew,CP);
 
 	//computing finger-tensor b in spatial config
 	MatMultiply(help,CP,FT);
@@ -357,7 +360,7 @@ W_F_PK1(MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomai
 	//compute bquer
 	MatScale(b,J23,b);
 
-	Trace(traceb,b);
+	traceb = Trace(b);
 
 	//computing the deviatoric part of b
 	for(size_t i = 0; i < (size_t)dim; ++i) // loop dimension
@@ -406,7 +409,7 @@ W_F_PK2(MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomai
 	J2 = detF * detF;
 	J23 = 1.0 / pow(J2,1.0/dim);
 
-	SetCP(CPnew,CP);
+	SetCP<TDomain>(CPnew,CP);
 
 	//computing finger-tensor b in spatial config
 	MatMultiply(help,CP,FT);
@@ -415,7 +418,7 @@ W_F_PK2(MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomai
 	//compute bquer
 	MatScale(b,J23,b);
 
-	Trace(traceb,b);
+	traceb = Trace(b);
 
 	//computing the deviatoric part of b
 	for(size_t i = 0; i < (size_t)dim; ++i) // loop dimension
@@ -443,7 +446,7 @@ W_F_PK2(MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomai
 	MatMultiply(PK1,tau,FTI); //PK1 = tau * F^-T
 	MatMultiply(PK2,FI,PK1); //PK2 = F^-1 * PK1
 
-	return false;
+	return true;
 }
 
 //"Stress_<..>": computes stress response at a ip
@@ -458,53 +461,53 @@ W_F_PK2(MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomai
 
 template<typename TDomain>
 static bool
-Stress_tau(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& tau)
+Stress_tau(number& dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& tau)
 {
 	static const int dim = TDomain::dim;
 
-	MathMatrix<dim,dim>& CPnew; //CPnew[2*dim+1];
+	MathMatrix<dim,dim> CPnew; //CPnew[2*dim+1];
 	number alpha; //TODO: alpha mit CP vereinen für data-Pointer-Struktur!
 
 	//compute inner evolution of strains, hardening variables,...
-	Inner(dt,F,CPold,CPnew,alpha);
+	Inner<TDomain>(dt,F,CPold,CPnew,alpha);
 	//compute stored energy functional
-	W_F_tau(F,CPnew,tau);
+	W_F_tau<TDomain>(F,CPnew,tau);
 
 	return false;
 }
 
 template<typename TDomain>
 static bool
-Stress_PK1(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& PK1)
+Stress_PK1(number& dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& PK1)
 {
 	static const int dim = TDomain::dim;
 
-	MathMatrix<dim,dim>& CPnew; //CPnew[2*dim+1];
+	MathMatrix<dim,dim> CPnew; //CPnew[2*dim+1];
 	number alpha;
 
 	//compute inner evolution of strains, hardening variables,...
-	Inner(dt,F,CPold,CPnew,alpha);
+	Inner<TDomain>(dt,F,CPold,CPnew,alpha);
 	//compute stored energy functional
-	W_F_PK1(F,CPnew,PK1);
+	W_F_PK1<TDomain>(F,CPnew,PK1);
 
 	return false;
 }
 
 template<typename TDomain>
 static bool
-Stress_PK2(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& PK2)
+Stress_PK2(number& dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, MathMatrix<TDomain::dim,TDomain::dim>& PK2)
 {
 	static const int dim = TDomain::dim;
 
-	MathMatrix<dim,dim>& CPnew; //CPnew[2*dim+1];
+	MathMatrix<dim,dim> CPnew; //CPnew[2*dim+1];
 	number alpha;
 
 	//compute inner evolution of strains, hardening variables,...
-	Inner(dt,F,CPold,CPnew,alpha);
+	Inner<TDomain>(dt,F,CPold,CPnew,alpha);
 	//compute stored energy functional
-	W_F_PK2(F,CPnew,PK2);
+	W_F_PK2<TDomain>(F,CPnew,PK2);
 
-	return false;
+	return true;
 }
 
 template<typename TDomain>
@@ -531,7 +534,7 @@ TangentInnerParameter(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathM
 	MatMultiply(CI,FI,FTI);
 
 	//Transfer of CPold to spatial config by Push-Forward-Operation (trial elastic state)
-	SetCP(CPold,CPnew);
+	SetCP<TDomain>(CPold,CPnew);
 
 	//computing the finger tensor
 	//btrial = F1 * CPnew * FT;
@@ -541,7 +544,7 @@ TangentInnerParameter(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathM
 	//compute btrialquer
 	MatScale(btrial,J23,btrial);
 
-	Trace(tracebtrial,btrial);
+	tracebtrial = Trace(btrial);
 
 	//computing the deviatoric part of btrial
 	for(size_t i = 0; i < (size_t)dim; ++i) // loop dimension
@@ -594,7 +597,8 @@ TangentInnerParameter(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathM
 	MatScale(dCP,update,Normaltrial);
 
 	//CP-Update
-	CPnew(0) = CPold(0) + dCP(0);
+	MatAdd(CPnew,CPold,dCP);
+	/*CPnew(0) = CPold(0) + dCP(0);
 	CPnew(1) = CPold(1) + dCP(1);
 	CPnew(2) = CPold(2) + dCP(2);
 	CPnew(3) = CPold(3) + dCP(3);
@@ -602,7 +606,7 @@ TangentInnerParameter(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathM
 	CPnew(5) = CPold(5) + dCP(5);
 	CPnew(6) = CPold(6) + dCP(6);
 	CPnew(7) = CPold(7) + dCP(7);
-	CPnew(8) = CPold(8) + dCP(8);
+	CPnew(8) = CPold(8) + dCP(8);*/
 
 	//Hardening-parameter Update
 	alpha = alpha + sqrt(2.0/3.0) * gamma;
@@ -630,7 +634,7 @@ TangentInnerParameter(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathM
 
 template<typename TDomain>
 static bool
-TangentExact(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, number& alpha, MathTensor<4,TDomain::dim>& C)
+TangentExact(number& dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDomain::dim,TDomain::dim>& CPold, number& alpha, MathTensor4<TDomain::dim,TDomain::dim,TDomain::dim,TDomain::dim>& C)
 {
 	static const int dim = TDomain::dim;
 
@@ -646,7 +650,9 @@ TangentExact(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDo
 	detF = Determinant(F1);
 	J2 = detF * detF;
 
-	TangentInnerParameter(dt,F,CPold,CPnew,alpha,muquer,snorm,normal,devnorm2,gamma,s);
+	MathTensor1<dim> Tens;
+
+	TangentInnerParameter<TDomain>(dt,F,CPold,CPnew,alpha,muquer,snorm,normal,devnorm2,gamma,s);
 
 	beta0 = 1.0 + Hardening_d(alpha + sqrt(2.0/3.0) * gamma) / (3.0 * muquer);
 	beta1 = 2.0 * muquer * gamma / snorm;
@@ -663,7 +669,9 @@ TangentExact(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDo
 			{
 				for(size_t l = 0; l < (size_t)dim; ++l) // loop dimension
 				{
-					C(i,j,k,l) = 0.0;
+					Tens[l] = 0.0;
+
+/*					C(i,j,k,l) = 0.0;
 
 					if ((i==j) && (k==l)) //1x1-term
 					{
@@ -709,6 +717,8 @@ TangentExact(number dt, MathMatrix<TDomain::dim,TDomain::dim>& F, MathMatrix<TDo
 					//beta4-term
 					C(i,j,k,l) -= muquer * beta4 * normal(i,j) * devnorm2(k,l);
 					C(i,j,k,l) -= muquer * beta4 * devnorm2(i,j) * normal(k,l);
+
+					*/
 				}
 			}
 		}
@@ -738,9 +748,9 @@ prepare_element_loop()
 //	set material data
 	MaterialData();
 // 	evaluate Elasticity Tensor
-	m_ElasticityTensorFct(m_ElasticityTensor);
+	//m_ElasticityTensorFct(m_ElasticityTensor);
 // 	evaluate Stress Tensor
-	m_StressTensorFct(m_StressTensor);
+	//m_StressTensorFct(m_StressTensor);
 
 	return true;
 }
@@ -763,7 +773,9 @@ bool
 FE1NonlinearElasticityElemDisc<TDomain>::
 prepare_element(TElem* elem, const local_vector_type& u)
 {
-//	get corners
+	static const int dim = TDomain::dim;
+
+	//	get corners
 	m_corners = this->template get_element_corners<TElem>(elem);
 
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -788,6 +800,8 @@ bool
 FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u)
 {
+	static const int dim = TDomain::dim;
+
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
@@ -796,9 +810,14 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 
 	//using Lagrange description of the linearized equations (cf. Bonet/Wood 1997 chapter 8/9)
 
-	number detF;
-	MathMatrix<dim,dim> F, F1, FI, FT, FTI, CI, IDENT, DEa, DEb, grad; //FI(i,j);
+	number detF, dt, alpha;
+	MathMatrix<dim,dim> F, F1, FI, FT, FTI, CI, IDENT, DEa, DEb, grad, CPold, T; //FI(i,j);
+	MathTensor4<dim,dim,dim,dim> C;
 	//TODO: Schleife für ip rausziehen???
+
+	//TODO: dt, CPold und alpha richtig einbinden!
+	dt = 1.0;
+	alpha = 0.0;
 
 	MatIdentity(IDENT);
 
@@ -829,11 +848,13 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 						//computing Inverse of right Cauchy-Green-Tensor
 						MatMultiply(CI,FI,FTI);
 
-						//computing 2.PK-stress tensor: Stress_2PK-Aufruf!
+						//computing 2.PK-stress tensor: Stress_PK2-Aufruf!
 						//-> T
+						Stress_PK2<TDomain>(dt,F,CPold,T);
 
 						//computing elasticityMatrix: Funktionsaufruf für TangentExactSpatial
 						//-> C
+						TangentExact<TDomain>(dt,F,CPold,alpha,C);
 
 						/* for formulation in convected config:
 						for(size_t d1 = 0; d1 < (size_t)dim; ++d1) // loop dimension
@@ -879,10 +900,12 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u)
 								grad(a,k) = grada;
 								grad(b,l) = gradb;
 
-								integrandC += grad(a,k) * m_ElasticityTensor[i][k][j][l] * grad(b,l);
+								//integrandC += grad(a,k) * m_ElasticityTensor[i][k][j][l] * grad(b,l);
+								integrandC += grad(a,k) * C[i][k][j][l] * grad(b,l);
 
 								//computing the geometrical contribution to the stiffness matrix
-								integrandS += geo.global_grad(ip, a)[k] * m_StressTensor[k][l] * geo.global_grad(ip, b)[l];
+								//integrandS += geo.global_grad(ip, a)[k] * m_StressTensor[k][l] * geo.global_grad(ip, b)[l];
+								integrandS += geo.global_grad(ip, a)[k] * T[k][l] * geo.global_grad(ip, b)[l];
 							}
 						}
 						integrand = geo.weight(ip) * (integrandC + integrandS);
@@ -906,6 +929,8 @@ bool
 FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u)
 {
+	static const int dim = TDomain::dim;
+
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
@@ -940,6 +965,8 @@ bool
 FE1NonlinearElasticityElemDisc<TDomain>::
 assemble_A(local_vector_type& d, const local_vector_type& u)
 {
+	static const int dim = TDomain::dim;
+
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
@@ -947,8 +974,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 	FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> >& geo
 			= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
-	number Vol, vol, detF;
-	MathMatrix<dim,dim> F1, FI, F, FT, FTI, CI, IDENT, DE;
+	number Vol, vol, detF, dt;
+	MathMatrix<dim,dim> F1, FI, F, FT, FTI, CI, IDENT, DE, CPold, T;
+
+	//TODO: dt und CPold richtig einbauen!
+	dt = 1.0;
 
 	MatIdentity(IDENT);
 
@@ -996,11 +1026,14 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 				Transpose(FTI,FI);
 				detF = Determinant(F1);
 
-				//Aufruf von Stress_1PK(ABS(time-time_old),F,data,T); //muss m_StressTensor füllen!
+				//computing 1.PK-stress tensor: Stress_PK1-Aufruf!
+				//-> T
+				Stress_PK1<TDomain>(dt,F,CPold,T);
 
 				for(size_t d1 = 0; d1 < (size_t)dim; ++d1) // loop dimension
 				{
-					integrand += geo.global_grad(ip, i)[d1] * m_StressTensor[c][d1];
+					//integrand += geo.global_grad(ip, i)[d1] * m_StressTensor[c][d1];
+					integrand += geo.global_grad(ip, i)[d1] * T[c][d1];
 					/*for(size_t d2 = 0; d2 < (size_t)dim; ++d2) // loop dimension
 					{
 						number Gsym = 0.0;
@@ -1016,7 +1049,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u)
 				integrand *= geo.weight(ip); //in weight(ip) steckt schon die Multiplikation mit Jdet!
 			}
 
-			d(i,c) -= integrand; //+= oder -=?
+			d(c,i) -= integrand; //+= oder -bu=?
 		}
 	}
 	return true;
@@ -1068,7 +1101,9 @@ void
 FE1NonlinearElasticityElemDisc<TDomain>::
 register_all_fe1_funcs()
 {
-//	get all grid element types in this dimension and below
+	static const int dim = TDomain::dim;
+
+	//	get all grid element types in this dimension and below
 	typedef typename domain_traits<dim>::DimElemList ElemList;
 
 //	switch assemble functions
