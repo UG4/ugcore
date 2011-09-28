@@ -52,7 +52,6 @@ set(srcDiscretization	common/function_group.cpp
 						spatial_discretization/elem_disc/inner_boundary/inner_boundary_fv1.cpp
 						spatial_discretization/elem_disc/linear_elasticity/linear_elasticity_fe1.cpp
 						spatial_discretization/elem_disc/neumann_boundary/neumann_boundary_fv1.cpp
-						spatial_discretization/elem_disc/nonlinear_elasticity/nonlinear_elasticity_fe1.cpp
 						spatial_discretization/elem_disc/thermohaline_flow/thermohaline_flow_fv1.cpp)
 						
 						

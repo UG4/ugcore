@@ -29,11 +29,6 @@
 #include "lib_disc/spatial_discretization/elem_disc/inner_boundary/inner_boundary.h"
 #include "lib_disc/spatial_discretization/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
-// fe1_nonlinear_elasticity includes
-#include <boost/function.hpp>
-#include "lib_disc/spatial_discretization/ip_data/ip_data.h"
-#include "lib_disc/spatial_discretization/elem_disc/nonlinear_elasticity/fe1_nonlinear_elasticity.h"
-
 using namespace std;
 
 namespace ug
@@ -41,75 +36,6 @@ namespace ug
 
 namespace bridge
 {
-
-////////////////////////////////////////////////////////////////////////////////
-//	Some classes for Non-Linear Elastictity
-////////////////////////////////////////////////////////////////////////////////
-
-template <int dim>
-class ElasticityTensorUserData
-	: public IPData<MathTensor<4,dim>, dim>,
-	  public boost::function<void (MathTensor<4,dim>& value, const MathVector<dim>& x, number time)>
-{
-	///	Base class type
-		typedef IPData<MathTensor<4,dim>, dim> base_type;
-
-	///	Functor type
-		typedef boost::function<void (MathTensor<4,dim>& value,
-		                              const MathVector<dim>& x,
-		                              number time)> TensorFunctor;
-
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::ip;
-		using base_type::time;
-		using base_type::value;
-
-	public:
-	///	Constructor
-		ElasticityTensorUserData() : TensorFunctor(boost::ref(*this)) {}
-
-	///	virtual destructor
-		virtual ~ElasticityTensorUserData()	{}
-
-	///	evaluates the data at a given point and time
-		void operator() (MathTensor<4,dim>& C, const MathVector<dim>& x, number time = 0.0)
-		{
-			//filling the ElasticityTensor
-			C.set(0.0);
-
-			C[0][0][0][0] = 5.;
-			C[0][0][1][2] = 12.;
-		}
-	///	prints Elasticity Tensor C at point x and time t
-		void test_evaluate(number x, number y, number z, number t)
-		{
-			MathTensor<4,dim> C;
-			MathVector<dim> v;
-			v.x = x;
-			if(v.size() > 1)
-				v[1] = y;
-			if(v.size() > 2)
-				v[2] = z;
-
-			this->operator()(C, v, t);
-			//UG_LOG("Tensor: " << C);
-
-		}
-	///	implement as a IPData
-		virtual bool compute(bool bDeriv = false)
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t i = 0; i < num_ip(s); ++i)
-				{
-					this->operator() (	value(s,i),
-										ip(s, i),
-										time());
-				}
-			return true;
-		}
-};
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Registering for all implementations of IElemDisc
@@ -282,18 +208,6 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FV1ThermohalineFlow", dimTag);
 	}
 
-//	Non-Linear Elastictity
-	{
-		typedef FE1NonlinearElasticityElemDisc<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("FE1NonlinearElasticity").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.add_constructor()
-			.add_method("set_elasticity_tensor", &T::set_elasticity_tensor);
-			//methods, which are used in script-file
-		reg.add_class_to_group(name, "FE1NonlinearElasticity", dimTag);
-	}
-
 /////////////////////////////////////////////////////////////////////////////
 // Convection Shapes
 /////////////////////////////////////////////////////////////////////////////
@@ -346,23 +260,6 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 			.add_constructor();
 		reg.add_class_to_group(name, "PartialUpwind", dimTag);
 	}
-
-/////////////////////////////////////////////////////////////////////////////
-// ElasticityTensorUserData
-/////////////////////////////////////////////////////////////////////////////
-	{
-		typedef ElasticityTensorUserData<dim> T;
-		typedef IPData<MathTensor<4,dim>, dim> TBase;
-		typedef boost::function<void (MathTensor<4,dim>& value, const MathVector<dim>& x, number time)> TBase2;
-		string name = string("ElasticityTensorUserData").append(dimSuffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
-			.add_constructor()
-			//.add_method("operator", &T::operator ())
-			.add_method("test_evaluate", &T::test_evaluate);
-			//methods, which are used in script-file
-		reg.add_class_to_group(name, "ElasticityTensorUserData", dimTag);
-	}
-
 }
 
 
