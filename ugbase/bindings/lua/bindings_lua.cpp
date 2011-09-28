@@ -7,10 +7,10 @@
 #include <cstdlib>
 #include <queue>
 #include "bindings_lua.h"
-#include "bindings/lua/ug_script.h"
+#include "bindings/lua/lua_util.h"
 #include "registry/registry.h"
 #include "common/common.h"
-#include "../info_commands.h"
+#include "info_commands.h"
 
 using namespace std;
 

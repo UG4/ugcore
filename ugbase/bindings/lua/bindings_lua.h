@@ -9,9 +9,9 @@
 #include <string>
 
 extern "C" {
-#include "../externals/lua/lua.h"
-#include "../externals/lua/lauxlib.h"
-#include "../externals/lua/lualib.h"
+#include "externals/lua/lua.h"
+#include "externals/lua/lauxlib.h"
+#include "externals/lua/lualib.h"
 }
 
 

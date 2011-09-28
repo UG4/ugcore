@@ -72,16 +72,16 @@ set(srcLua	externals/lua/lapi.c
 			externals/lua/lzio.h)
 
 
-set(srcUGScript		ug_script.cpp
+set(srcUGScript		lua_util.cpp
 					info_commands.cpp
-					bindings/bindings_lua.cpp)
+					bindings_lua.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
 if(buildAlgebra)
 	# add the source files
 	set(srcUGScript ${srcUGScript}
-					user_data/user_data.cpp)
+					lua_user_data.cpp)
 
 else(buildAlgebra)
 
