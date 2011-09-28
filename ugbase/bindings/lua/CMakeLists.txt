@@ -81,8 +81,7 @@ set(srcUGScript		ug_script.cpp
 if(buildAlgebra)
 	# add the source files
 	set(srcUGScript ${srcUGScript}
-					user_data/user_data.cpp
-					extensions/algebra_extensions.cpp)
+					user_data/user_data.cpp)
 
 else(buildAlgebra)
 

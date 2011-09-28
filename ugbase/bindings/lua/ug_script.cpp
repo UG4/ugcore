@@ -18,7 +18,7 @@
 #include "registry/class_helper.h"
 #include "info_commands.h"
 #include "user_data/user_data.h"
-#include "extensions/algebra_extensions.h"
+
 using namespace std;
 
 namespace ug
@@ -119,13 +119,6 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 										*pReg);
 }
 
-#ifdef UG_ALGEBRA
-static void LoadAlgebraExtensions()
-{
-	RegisterAlgebraExtensions(ug::bridge::GetUGRegistry(), "/ug4");
-	ug::bridge::GetUGRegistry().registry_changed();
-}
-#endif
 
 lua_State* GetDefaultLuaState()
 {
@@ -155,9 +148,6 @@ lua_State* GetDefaultLuaState()
 
 	//	Register user functions
 		RegisterLuaUserData(*g_pRegistry, "/ug4");
-
-	//	Register algebra extensions
-		g_pRegistry->add_function("LoadAlgebraExtensions", &LoadAlgebraExtensions);
 
 		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
 		#endif
