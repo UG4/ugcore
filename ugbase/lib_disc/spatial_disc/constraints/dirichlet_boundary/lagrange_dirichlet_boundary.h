@@ -5,12 +5,12 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__
 
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
-#include "lib_disc/spatial_disc/domain_discretization_interface.h"
+#include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 #include "lib_grid/tools/subset_handler_interface.h"
@@ -1236,4 +1236,4 @@ adjust_rhs(const std::vector<TUserData>& vUserData, int si,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__ */

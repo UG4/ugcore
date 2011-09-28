@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_LINKER_IMPL__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_LINKER_IMPL__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER_IMPL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER_IMPL__
 
 #include "data_linker.h"
 
@@ -319,4 +319,4 @@ bool ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_LINKER_IMPL__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER_IMPL__ */

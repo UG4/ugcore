@@ -1,12 +1,12 @@
 /*
- * domain_discretization.h
+ * domain_disc.h
  *
  *  Created on: 29.06.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG_LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__
-#define __H__UG_LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__
 
 // other ug4 modules
 #include "common/common.h"
@@ -14,7 +14,7 @@
 
 // library intern headers
 #include "subset_assemble_util.h"
-#include "domain_discretization_interface.h"
+#include "domain_disc_interface.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
@@ -299,6 +299,6 @@ class DomainDiscretization :
 } // end namespace ug
 
 // inlcude documentation
-#include "domain_discretization_impl.h"
+#include "domain_disc_impl.h"
 
-#endif /* __H__UG_LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__ */

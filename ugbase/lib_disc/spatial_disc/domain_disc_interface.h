@@ -1,12 +1,12 @@
 /*
- * domain_discretization_interface.h
+ * domain_disc_interface.h
  *
  *  Created on: 01.03.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_INTERFACE__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_INTERFACE__
 
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/time_disc/solution_time_series.h"
@@ -129,4 +129,4 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_INTERFACE__ */

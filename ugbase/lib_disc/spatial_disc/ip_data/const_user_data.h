@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__CONST_USER_DATA__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__CONST_USER_DATA__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__CONST_USER_DATA__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__CONST_USER_DATA__
 
 #include "common/common.h"
 #include "common/math/ugmath.h"
@@ -239,4 +239,4 @@ class ConstBoundaryNumber
 
 } /// end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__CONST_USER_DATA__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__CONST_USER_DATA__ */

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_VOLUME_UTIL__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_VOLUME_UTIL__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_UTIL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_UTIL__
 
 // extern libraries
 #include <cmath>
@@ -412,4 +412,4 @@ struct fvho_traits<p, ReferenceHexahedron, TWorldDim>
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_VOLUME_UTIL__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_UTIL__ */

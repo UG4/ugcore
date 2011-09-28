@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG_LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__
-#define __H__UG_LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__
+#ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__
+#define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__
 
 #include "./polynomial1d.h"
 #include "common/math/ugmath.h"
@@ -276,4 +276,4 @@ class BoundedEquidistantLagrange1D
 
 } // end namespace ug
 
-#endif /* __H__UG_LIB_DISCRETIZATION__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__ */
+#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__ */

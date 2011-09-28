@@ -1,14 +1,14 @@
 /*
- * domain_discretization_impl.h
+ * domain_disc_impl.h
  *
  *  Created on: 29.06.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__
 
-#include "domain_discretization_impl.h"
+#include "domain_disc.h"
 #include "lib_disc/common/groups_util.h"
 
 namespace ug{
@@ -1156,4 +1156,4 @@ assemble_solution(vector_type& u, number time, const dof_distribution_type& dd)
 
 }
 
-#endif /*__H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__*/
+#endif /*__H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__*/

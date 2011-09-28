@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__SUBSET_ASSEMBLE_UTIL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__SUBSET_ASSEMBLE_UTIL__
 
 // extern includes
 #include <iostream>
@@ -105,4 +105,4 @@ bool GetElemDiscOnSubset(std::vector<IElemDisc*>& vSubsetElemDisc,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__SUBSET_ASSEMBLE_UTIL__ */

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__IP_DATA__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__IP_DATA__
 
 #include <vector>
 #include "lib_disc/common/local_algebra.h"
@@ -371,4 +371,4 @@ class DependentIPData : public IPData<TData, dim>,
 //include implementation
 #include "ip_data_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__IP_DATA__ */

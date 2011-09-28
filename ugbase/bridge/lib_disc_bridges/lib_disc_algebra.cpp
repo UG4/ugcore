@@ -25,10 +25,10 @@
 #include "lib_disc/dof_manager/conform/conform.h"
 
 // discretization interfaces
-#include "lib_disc/spatial_disc/domain_discretization_interface.h"
+#include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
-#include "lib_disc/time_disc/time_discretization_interface.h"
+#include "lib_disc/time_disc/time_disc_interface.h"
 
 // time discretization implementation
 #include "lib_disc/time_disc/theta_time_step.h"

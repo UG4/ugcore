@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__
 
 #include "elem_disc_interface.h"
 #include "common/util/string_util.h"
@@ -75,4 +75,4 @@ void IElemDisc::set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
 
 }
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__ */

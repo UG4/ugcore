@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA_IMPL__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA_IMPL__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__IP_DATA_IMPL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__IP_DATA_IMPL__
 
 #include "ip_data.h"
 
@@ -267,4 +267,4 @@ void DependentIPData<TData,dim>::local_ips_added()
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA_IMPL__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__IP_DATA_IMPL__ */

@@ -15,7 +15,7 @@
 #include "common/common.h"
 
 // modul intern libraries
-#include "lib_disc/time_disc/time_discretization_interface.h"
+#include "lib_disc/time_disc/time_disc_interface.h"
 
 namespace ug{
 

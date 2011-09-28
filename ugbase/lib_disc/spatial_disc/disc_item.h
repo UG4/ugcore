@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG_LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_ITEM__
-#define __H__UG_LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_ITEM__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DISC_ITEM__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_ITEM__
 
 namespace ug{
 
@@ -47,4 +47,4 @@ class IDiscretizationItem
 
 } // end namespace ug
 
-#endif /* __H__UG_LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_ITEM__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_ITEM__ */

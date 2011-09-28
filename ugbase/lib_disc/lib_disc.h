@@ -77,8 +77,8 @@
 #include "reference_element/reference_element.h"
 
 // Spatial Discretization
-#include "spatial_disc/domain_discretization_interface.h"
-#include "spatial_disc/domain_discretization.h"
+#include "spatial_disc/domain_disc_interface.h"
+#include "spatial_disc/domain_disc.h"
 #include "spatial_disc/subset_assemble_util.h"
 
 #include "spatial_disc/disc_util/finite_element_geometry.h"
@@ -105,7 +105,7 @@
 #include "spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
 
 // Time discretization
-#include "time_disc/time_discretization_interface.h"
+#include "time_disc/time_disc_interface.h"
 #include "time_disc/theta_time_step.h"
 
 #endif /* __H__UG__LIB_DISC__LIB__DISC__ */

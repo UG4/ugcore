@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_EVALUATOR_IMPL__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_EVALUATOR_IMPL__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR_IMPL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR_IMPL__
 
 namespace ug{
 
@@ -138,4 +138,4 @@ prepare_elem(TElem* elem, local_vector_type& u, const local_index_type& ind,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_EVALUATOR_IMPL__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR_IMPL__ */

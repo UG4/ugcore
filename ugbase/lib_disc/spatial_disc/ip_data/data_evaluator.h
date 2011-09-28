@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_EVALUATOR__
-#define __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_EVALUATOR__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR__
 
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "data_import_export.h"
@@ -189,4 +189,4 @@ class DataEvaluator
 
 #include "data_evaluator_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISCRETIZATION__DATA_EVALUATOR__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR__ */
