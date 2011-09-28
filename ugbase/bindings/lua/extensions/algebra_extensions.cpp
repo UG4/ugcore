@@ -14,7 +14,7 @@
 #include "ug_bridge/ug_bridge.h"
 #include "lib_algebra/algebra_types.h"
 
-#include "ug_script/user_data/user_data.h"
+#include "bindings/lua/user_data/user_data.h"
 
 #include "lib_disc/dof_manager/p1conform/p1conform.h"
 #include "lib_disc/spatial_discretization/disc_util/finite_volume_geometry.h"

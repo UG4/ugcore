@@ -41,8 +41,11 @@ add_subdirectory(registry)
 add_subdirectory(ug_bridge)
 
 ########################
-# lib_script
-add_subdirectory(ug_script)
+# bindings
+add_subdirectory(bindings/lua)
+if(buildForVRL)
+    add_subdirectory(bindings/vrl)
+endif(buildForVRL)
 
 ########################
 # lib_algebra and lib_discretization
@@ -57,13 +60,6 @@ endif(buildAlgebra)
 if(PARALLEL)
 	add_subdirectory(pcl)
 endif(PARALLEL)
-
-
-########################
-# vrl_bindings
-if(buildForVRL)
-    add_subdirectory(bindings_vrl)
-endif(buildForVRL)
 
 ########################
 # ug4 library

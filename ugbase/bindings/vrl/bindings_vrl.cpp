@@ -28,7 +28,7 @@
 #include "playground.h"
 #include "threading.h"
 
-#include "ug_script/externals/lua/lstate.h"
+#include "bindings/lua/externals/lua/lstate.h"
 
 namespace ug {
 namespace vrl {

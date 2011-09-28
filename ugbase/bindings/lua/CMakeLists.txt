@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 
-include("../../ug_cmake_includes.txt")
+include("../../../ug_cmake_includes.txt")
 
 if(UNIX)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
@@ -92,7 +92,7 @@ endif(buildAlgebra)
 set(Sources ${srcUGScript} ${srcLua})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(ug_script  ${Sources})
+	EXPORTSOURCES(bindings/lua  ${Sources})
 else(BUILD_ONE_LIB)
-	add_library(ugscript  ${Sources})
+	add_library(bindings_lua  ${Sources})
 endif(BUILD_ONE_LIB)

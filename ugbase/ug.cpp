@@ -10,7 +10,7 @@
 #include "ug.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
-#include "ug_script/ug_script.h"
+#include "bindings/lua/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
 #include "common/os_dependent/os_info.h"
 

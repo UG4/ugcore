@@ -3,8 +3,8 @@
 #include "type_converter.h"
 #include <string>
 
-#include "../common/util/string_util.h"
-#include "../common/util/hash.h"
+#include "common/util/string_util.h"
+#include "common/util/hash.h"
 
 namespace ug {
 namespace vrl {

@@ -12,7 +12,7 @@
  */
 
 #include <iomanip>
-#include "ug_script/ug_script.h"
+#include "bindings/lua/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
 #include "registry/class_helper.h"
 #include "common/util/sort_util.h"
@@ -21,7 +21,7 @@
 
 extern "C"
 {
-#include "ug_script/externals/lua/lstate.h"
+#include "bindings/lua/externals/lua/lstate.h"
 }
 
 #include "info_commands.h"

@@ -6,9 +6,9 @@
 #include <sstream>
 
 #include "ug.h"
-#include "ug_script/ug_script.h"
+#include "bindings/lua/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
-#include "ug_script/info_commands.h"
+#include "bindings/lua/info_commands.h"
 #include "common/util/parameter_parsing.h"
 
 using namespace std;

@@ -2,7 +2,7 @@
 #ifndef __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
 
-#include "ug_script/ug_script.h"
+#include "bindings/lua/ug_script.h"
 #include <stdarg.h>
 
 namespace ug

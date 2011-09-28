@@ -10,7 +10,6 @@
 #include "lib_disc/spatial_discretization/ip_data/const_user_data.h"
 #include "lib_disc/spatial_discretization/ip_data/data_linker.h"
 #include "lib_disc/spatial_discretization/ip_data/user_function.h"
-#include "ug_script/ug_script.h"
 
 using namespace std;
 

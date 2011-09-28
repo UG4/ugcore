@@ -30,7 +30,7 @@
 #include "ug_bridge/ug_bridge.h"
 
 // ug_script
-#include "ug_script/ug_script.h"
+#include "bindings/lua/ug_script.h"
 
 // pcl (parallel only)
 #ifdef UG_PARALLEL

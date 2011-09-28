@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-include("../../ug_cmake_includes.txt")
+include("../../../ug_cmake_includes.txt")
 
 
 set(srcBindingsVRL
@@ -30,7 +30,7 @@ set(srcBindingsVRL
 set(Sources ${srcBindingsVRL})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(bindings_vrl  ${Sources})
+	EXPORTSOURCES(bindings/vrl  ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(bindings_vrl  ${Sources})
 endif(BUILD_ONE_LIB)

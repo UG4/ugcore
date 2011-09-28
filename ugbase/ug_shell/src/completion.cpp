@@ -17,15 +17,15 @@
 
 #include "ug.h"
 
-#include "ug_script/ug_script.h"
+#include "bindings/lua/ug_script.h"
 #include "ug_bridge/ug_bridge.h"
-#include "ug_script/info_commands.h"
-#include "ug_script/lua_stack_check.h"
+#include "bindings/lua/info_commands.h"
+#include "bindings/lua/lua_stack_check.h"
 #include "registry/registry.h"
 
 extern "C"
 {
-#include "ug_script/externals/lua/lstate.h"
+#include "bindings/lua/externals/lua/lstate.h"
 }
 
 using namespace std;

@@ -24,7 +24,7 @@
 //  this is necessary to get access to the JVM environment
 #ifdef FOR_VRL
 		#include <sstream>
-		#include "bindings_vrl/messaging.h"
+		#include "bindings/vrl/messaging.h"
 #endif
 
 namespace ug{
