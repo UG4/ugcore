@@ -124,6 +124,6 @@ the second element disc. Here the function with local index 0 is the function
 with unique id 4. This function has in the union Function Group the local index 2.
 Thus, the mapping has the entry (local index 0 -> local index 2). 
 
-\image html lib_discretization/additional_pages/discrete_function/function_group.jpg
+\image html lib_disc/additional_pages/discrete_function/function_group.jpg
 
 */

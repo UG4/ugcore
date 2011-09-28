@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
-#include "node_tree/octree.h"
+#include "common/node_tree/octree.h"
 
 namespace ug
 {

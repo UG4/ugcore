@@ -21,10 +21,10 @@
 #include "lib_grid/lib_grid.h"
 
 // lib_discretization
-#include "lib_discretization/lib_discretization.h"
+#include "lib_disc/lib_discretization.h"
 
 // node_tree
-#include "node_tree/node_tree.h"
+#include "common/node_tree/node_tree.h"
 
 // ug_bridge
 #include "ug_bridge/ug_bridge.h"

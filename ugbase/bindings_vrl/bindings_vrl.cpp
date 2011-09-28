@@ -22,7 +22,7 @@
 #include "lib_grid/lib_grid.h"
 #include "compiledate.h"
 #include "user_data.h"
-#include "lib_discretization/spatial_discretization/ip_data/const_user_data.h"
+#include "lib_disc/spatial_discretization/ip_data/const_user_data.h"
 
 #include "invocation.h"
 #include "playground.h"

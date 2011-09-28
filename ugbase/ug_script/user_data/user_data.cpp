@@ -8,9 +8,9 @@
 #include "common/math/ugmath.h"
 #include "ug_script/ug_script.h"
 #include "user_data.h"
-#include "lib_discretization/spatial_discretization/ip_data/ip_data.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_function.h"
-#include "lib_discretization/spatial_discretization/ip_data/data_linker.h"
+#include "lib_disc/spatial_discretization/ip_data/ip_data.h"
+#include "lib_disc/spatial_discretization/ip_data/user_function.h"
+#include "lib_disc/spatial_discretization/ip_data/data_linker.h"
 
 using namespace std;
 

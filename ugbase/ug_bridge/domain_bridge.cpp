@@ -12,10 +12,10 @@
 #include "common/profiler/profiler.h"
 #include "lib_grid/lib_grid.h"
 
-#include "lib_discretization/domain.h"
-#include "lib_discretization/domain_util.h"
+#include "lib_disc/domain.h"
+#include "lib_disc/domain_util.h"
 
-#include "lib_discretization/parallelization/domain_distribution.h"
+#include "lib_disc/parallelization/domain_distribution.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/load_balancing.h"

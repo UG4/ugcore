@@ -16,9 +16,9 @@
 
 #include "ug_script/user_data/user_data.h"
 
-#include "lib_discretization/dof_manager/p1conform/p1conform.h"
-#include "lib_discretization/spatial_discretization/disc_util/finite_volume_geometry.h"
-#include "lib_discretization/common/groups_util.h"
+#include "lib_disc/dof_manager/p1conform/p1conform.h"
+#include "lib_disc/spatial_discretization/disc_util/finite_volume_geometry.h"
+#include "lib_disc/common/groups_util.h"
 
 #include <iostream>
 #include <sstream>

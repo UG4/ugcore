@@ -4,8 +4,8 @@
 #include "type_converter.h"
 #include "common/common.h"
 #include <boost/function.hpp>
-#include "../lib_discretization/spatial_discretization/ip_data/ip_data.h"
-#include "../lib_discretization/spatial_discretization/ip_data/const_user_data.h"
+#include "../lib_disc/spatial_discretization/ip_data/ip_data.h"
+#include "../lib_disc/spatial_discretization/ip_data/const_user_data.h"
 #include "../ug_script/ug_script.h"
 #include "bindings_vrl.h"
 #include "type_converter.h"

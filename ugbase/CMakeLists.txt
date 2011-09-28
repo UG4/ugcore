@@ -29,10 +29,6 @@ endif(BUILD_ONE_LIB)
 add_subdirectory(common)
 
 ########################
-# node_tree
-add_subdirectory(node_tree)
-
-########################
 # lib_grid
 add_subdirectory(lib_grid)
 
@@ -52,7 +48,7 @@ add_subdirectory(ug_script)
 # lib_algebra and lib_discretization
 if(buildAlgebra)
 	add_subdirectory(lib_algebra)	
-	add_subdirectory(lib_discretization)
+	add_subdirectory(lib_disc)
 endif(buildAlgebra)
 
 

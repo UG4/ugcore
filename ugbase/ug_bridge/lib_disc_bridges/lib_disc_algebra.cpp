@@ -20,29 +20,29 @@
 #include "lib_algebra/operator/matrix_operator_functions.h"
 
 // lib_discretization part
-#include "lib_discretization/dof_manager/dof_distribution.h"
-#include "lib_discretization/dof_manager/p1conform/p1conform.h"
-#include "lib_discretization/dof_manager/conform/conform.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
+#include "lib_disc/dof_manager/p1conform/p1conform.h"
+#include "lib_disc/dof_manager/conform/conform.h"
 
 // discretization interfaces
-#include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
-#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
-#include "lib_discretization/spatial_discretization/constraints/constraint_interface.h"
-#include "lib_discretization/time_discretization/time_discretization_interface.h"
+#include "lib_disc/spatial_discretization/domain_discretization_interface.h"
+#include "lib_disc/spatial_discretization/elem_disc/elem_disc_interface.h"
+#include "lib_disc/spatial_discretization/constraints/constraint_interface.h"
+#include "lib_disc/time_discretization/time_discretization_interface.h"
 
 // time discretization implementation
-#include "lib_discretization/time_discretization/theta_time_step.h"
+#include "lib_disc/time_discretization/theta_time_step.h"
 
 // post processes
-#include "lib_discretization/spatial_discretization/constraints/continuity_constraints/p1_continuity_constraints.h"
+#include "lib_disc/spatial_discretization/constraints/continuity_constraints/p1_continuity_constraints.h"
 
 // operator interfaces
-#include "lib_discretization/operator/linear_operator/assembled_linear_operator.h"
-#include "lib_discretization/operator/non_linear_operator/assembled_non_linear_operator.h"
+#include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
+#include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 
 // newton solver
-#include "lib_discretization/operator/non_linear_operator/line_search.h"
-#include "lib_discretization/operator/non_linear_operator/newton_solver/newton.h"
+#include "lib_disc/operator/non_linear_operator/line_search.h"
+#include "lib_disc/operator/non_linear_operator/newton_solver/newton.h"
 
 using namespace std;
 

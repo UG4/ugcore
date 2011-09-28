@@ -5,7 +5,7 @@
 #ifndef __H__LIB_GRID__OCTREE__
 #define __H__LIB_GRID__OCTREE__
 
-#include "node_tree/node_tree.h"
+#include "common/node_tree/node_tree.h"
 #include "lib_grid/lg_base.h"
 
 namespace ug

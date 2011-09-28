@@ -6,7 +6,7 @@
 #include <string>
 #include <sstream>
 #include "ug_bridge.h"
-#include "lib_discretization/domain.h"
+#include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
 
 using namespace std;

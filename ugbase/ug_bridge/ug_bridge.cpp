@@ -8,7 +8,7 @@
 	#include "lib_algebra/algebra_selector.h"
 #endif
 
-#include "lib_discretization/dof_manager/dof_distribution_type.h"
+#include "lib_disc/dof_manager/dof_distribution_type.h"
 
 using namespace std;
 

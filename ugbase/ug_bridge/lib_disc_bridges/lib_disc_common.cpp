@@ -11,9 +11,9 @@
 #include "../ug_bridge.h"
 
 // includes of lib_discretization
-#include "lib_discretization/common/function_group.h"
-#include "lib_discretization/dof_manager/function_pattern.h"
-#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
+#include "lib_disc/common/function_group.h"
+#include "lib_disc/dof_manager/function_pattern.h"
+#include "lib_disc/spatial_discretization/elem_disc/elem_disc_interface.h"
 
 using namespace std;
 

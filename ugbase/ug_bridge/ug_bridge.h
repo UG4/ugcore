@@ -9,7 +9,7 @@
 #include <sstream>
 #include "registry/registry.h"
 #include "lib_algebra/algebra_selector.h"
-#include "lib_discretization/dof_manager/dof_distribution_type.h"
+#include "lib_disc/dof_manager/dof_distribution_type.h"
 #include "common/ug_config.h"
 
 namespace ug
