@@ -240,7 +240,7 @@ function util.CreateConstUserNumber(val, dim)
 end
 
 
--- creates a Lua Boundary Numver using a lua function and returns the Provider
+-- creates a Lua Boundary Number using a lua function and returns the Provider
 function util.CreateLuaBoundaryNumber(funcName, dim)
 	local number = LuaBoundaryNumber()
 	number:set_lua_callback(funcName)
