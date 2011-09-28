@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE__
 
 #include "conv_shape_interface.h"
+#include "lib_disc/spatial_discretization/disc_util/hanging_finite_volume_geometry.h"
 
 namespace ug{
 
@@ -52,8 +53,8 @@ class ConvectionShapesNoUpwind
 		}
 
 	///	update of values for FV1Geometry
-		template <typename TElem>
-		bool update(const FV1Geometry<TElem, dim>* geo,
+		template <template <typename T, int dim> class TFVGeom, typename TElem>
+		bool update(const TFVGeom<TElem, dim>* geo,
 					const MathVector<dim>* DarcyVelocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
@@ -84,15 +85,24 @@ class ConvectionShapesNoUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
+			this->template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>);
+
+			typedef HFV1Geometry<TElem, dim> THGeom;
+			typedef bool (this_type::*THFunc)
+					(  const THGeom* geo,
+					   const MathVector<dim>* DarcyVelocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			this->template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
 		}
 };
 
 template <int TDim>
-template <typename TElem>
+template <template <typename T, int dim> class TFVGeom, typename TElem>
 bool
 ConvectionShapesNoUpwind<TDim>::
-update(const FV1Geometry<TElem, dim>* geo,
+update(const TFVGeom<TElem, dim>* geo,
        const MathVector<dim>* DarcyVelocity,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
@@ -104,7 +114,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
 	//	get subcontrol volume face
-		const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo->scvf(ip);
+		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo->scvf(ip);
 
 	//	Compute flux
 		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
@@ -166,8 +176,8 @@ class ConvectionShapesFullUpwind
 		}
 
 	///	update of values for FV1Geometry
-		template <typename TElem>
-		bool update(const FV1Geometry<TElem, dim>* geo,
+		template <template <typename T, int dim> class TFVGeom, typename TElem>
+		bool update(const TFVGeom<TElem, dim>* geo,
 					const MathVector<dim>* DarcyVelocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
@@ -198,15 +208,23 @@ class ConvectionShapesFullUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
+			this->template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>);
+
+			typedef HFV1Geometry<TElem, dim> THGeom;
+			typedef bool (this_type::*THFunc)
+					(  const THGeom* geo,
+					   const MathVector<dim>* DarcyVelocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			this->template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
 		}
 };
 
 template <int TDim>
-template <typename TElem>
-bool
-ConvectionShapesFullUpwind<TDim>::
-update(const FV1Geometry<TElem, dim>* geo,
+template <template <typename T, int dim> class TFVGeom, typename TElem>
+bool ConvectionShapesFullUpwind<TDim>::
+update(const TFVGeom<TElem, dim>* geo,
        const MathVector<dim>* DarcyVelocity,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
@@ -218,7 +236,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
 	//	get subcontrol volume face
-		const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo->scvf(ip);
+		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo->scvf(ip);
 
 	//	Compute flux
 		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
