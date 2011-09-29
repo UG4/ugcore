@@ -22,40 +22,55 @@
 
 namespace ug
 {
-//	methods that load a file by automatically choosing the right method
-//	from the filenames suffix should be added here.
 
-////////////////////////////////////////////////////////////////////////
-//	LoadGridFromFile
-///	Loads a grid from a file. The importer is chosen by the filenames suffix.
-bool LoadGridFromFile(Grid& grid, const char* filename, AVector3& aPos = aPosition);
-
-////////////////////////////////////////////////////////////////////////
-//	SaveGridToFile
-///	Saves a grid from a file. The exporter is chosen by the filenames suffix.
-bool SaveGridToFile(Grid& grid, const char* filename, AVector3& aPos = aPosition);
-
-////////////////////////////////////////////////////////////////////////
-//	LoadGridFromFile
-///	Loads a grid from a file. The importer is chosen by the filenames suffix.
+////////////////////////////////////////////////////////////////////////////////
+///	Loads a grid from a file. Position data is written to the specified attachment.
 /**
- * Supports a subset-handler.
- * If the file does not support subsets, all elements of highest dimension
- * will automatically be added to subset 0.
+ * Make sure that the given position attachment is either of type AVector1,
+ * AVector2 or AVector3.
+ *
+ * \{
  */
-bool LoadGridFromFile(Grid& grid, const char* filename,
-						ISubsetHandler& sh,
-						AVector3& aPos = aPosition);
+template <class TAPos>
+bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
+					  const char* filename, TAPos& aPos);
 
-////////////////////////////////////////////////////////////////////////
-//	SaveGridToFile
-///	Saves a grid from a file. The exporter is chosen by the filenames suffix.
+template <class TAPos>
+bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos);
+/**	\} */
+
+////////////////////////////////////////////////////////////////////////////////
+///	Loads a grid from a file. Position data is written to aPosition.
+/** \{ */
+bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename);
+
+bool LoadGridFromFile(Grid& grid, const char* filename);
+/** \} */
+
+
+////////////////////////////////////////////////////////////////////////////////
+///	Saves a grid to a file. Position data is read from the specified attachment.
 /**
- * Supports a subset-handler.
+ * Make sure that the given position attachment is either of type AVector1,
+ * AVector2 or AVector3.
+ *
+ * \{
  */
-bool SaveGridToFile(Grid& grid, const char* filename,
-					SubsetHandler& sh,
-					AVector3& aPos = aPosition);
+template <class TAPos>
+bool SaveGridToFile(Grid& grid, SubsetHandler& sh,
+					const char* filename, TAPos& aPos);
+
+template <class TAPos>
+bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos);
+/**	\} */
+
+////////////////////////////////////////////////////////////////////////////////
+///	Saves a grid to a file. Position data is read from aPosition.
+/** \{ */
+bool SaveGridToFile(Grid& grid, SubsetHandler& sh, const char* filename);
+
+bool SaveGridToFile(Grid& grid, const char* filename);
+/** \} */
 
 };
 

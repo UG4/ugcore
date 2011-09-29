@@ -41,7 +41,8 @@ static bool LoadDomain(TDomain& domain, const char* filename)
 		return false;
 	}
 
-	if(!LoadGridFromUGX(domain.get_grid(), domain.get_subset_handler(), filename))
+	if(!LoadGridFromFile(domain.get_grid(), domain.get_subset_handler(),
+						 filename, domain.get_position_attachment()))
 	{
 		UG_LOG("Cannot load grid.\n");
 		return false;

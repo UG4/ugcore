@@ -31,12 +31,12 @@ class GridObject : public Grid
 
 bool LoadGridObject(GridObject& go, const char* filename)
 {
-	return LoadGridFromFile(go.get_grid(), filename, go.get_subset_handler());
+	return LoadGridFromFile(go.get_grid(), go.get_subset_handler(), filename);
 }
 
 bool SaveGridObject(GridObject& go, const char* filename)
 {
-	return SaveGridToFile(go.get_grid(), filename, go.get_subset_handler());
+	return SaveGridToFile(go.get_grid(), go.get_subset_handler(), filename);
 }
 
 GridObject* CreateGridObject(const char* filename)
@@ -90,7 +90,7 @@ void SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
 	}
 
 //	finally save the grid
-	//SaveGridToFile(mg, filename, sh, aPos);
+	//SaveGridToFile(mg, sh, filename, aPos);
 	SaveGridToUGX(mg, sh, filename, aPos);
 
 //	clean up
@@ -100,7 +100,7 @@ void SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
 
 bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
-	return LoadGridFromFile(grid, filename, sh);
+	return LoadGridFromFile(grid, sh, filename);
 }
 
 bool LoadGrid(Grid& grid, const char* filename)
@@ -115,17 +115,17 @@ bool SaveGrid(Grid& grid, const char* filename)
 
 bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 {
-	return SaveGridToFile(grid, filename, sh);
+	return SaveGridToFile(grid, sh, filename);
 }
 
 bool SaveGrid(Grid& grid, const SubsetHandler& sh, const char* filename)
 {
-	return SaveGridToFile(grid, filename, *const_cast<SubsetHandler*>(&sh));
+	return SaveGridToFile(grid, *const_cast<SubsetHandler*>(&sh), filename);
 }
 
 bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
 {
-	return SaveGridToFile(mg, filename, mg.get_hierarchy_handler());
+	return SaveGridToFile(mg, mg.get_hierarchy_handler(), filename);
 }
 
 
@@ -138,13 +138,13 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 	RefinementCallbackSubdivisionLoop<APosition> refCallback(mg, aPosition, aPosition);
 	GlobalMultiGridRefiner ref(mg, &refCallback);
 	
-	if(LoadGridFromFile(mg, fileIn, sh)){
+	if(LoadGridFromFile(mg, sh, fileIn)){
 		for(int lvl = 0; lvl < numRefs; ++lvl){
 			ref.refine();
 		}
 
 		ProjectToLimitPLoop(mg, aPosition, aPosition);
-		SaveGridToFile(mg, fileOut, mg.get_hierarchy_handler());
+		SaveGridToFile(mg, mg.get_hierarchy_handler(), fileOut);
 
 	}
 	else{
@@ -260,7 +260,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 	HangingNodeRefiner_MultiGrid refiner(mg);
 
 	PROFILE_BEGIN(PROFTEST_loading);
-	if(!LoadGridFromFile(mg, filename, sh)){
+	if(!LoadGridFromFile(mg, sh, filename)){
 		UG_LOG("  could not load " << filename << endl);
 		return false;
 	}
@@ -293,7 +293,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 
 	CreateSurfaceView(surfView, mg, sh);
 
-	SaveGridToFile(mg, "surface_view.ugx", surfView);
+	SaveGridToFile(mg, surfView, "surface_view.ugx");
 
 	UG_LOG("surface view element numbers:\n");
 	PrintGridElementNumbers(surfView);
@@ -338,7 +338,7 @@ UG_LOG(" performing initial distribution\n");
 		bool success = true;
 		string strError;
 
-		if(!LoadGridFromFile(mg, filename, sh)){
+		if(!LoadGridFromFile(mg, sh, filename)){
 			strError = "File not found.";
 			success = false;
 		}
@@ -446,7 +446,7 @@ UG_LOG(" preparing for redistribution\n");
 		{
 			stringstream ss;
 			ss << "partition_map_" << pcl::GetProcRank() << ".ugx";
-			SaveGridToFile(mg, ss.str().c_str(), shPart);
+			SaveGridToFile(mg, shPart, ss.str().c_str());
 		}
 	}
 
@@ -477,7 +477,7 @@ UG_LOG("done\n");
 	{
 		stringstream ss;
 		ss << "domain_" << pcl::GetProcRank() << ".ugx";
-		SaveGridToFile(mg, ss.str().c_str(), sh);
+		SaveGridToFile(mg, sh, ss.str().c_str());
 	}
 
 #endif // UG_PARALLEL

@@ -68,22 +68,8 @@ int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
 
 ////////////////////////////////////////////////////////////////////////
-//	CollectNeighbors
-///	fills an array with all neighbour-vertices of v.
-/**
- * v will not be contained in vNeighboursOut.
- * requires grid-option GRIDOPT_STANDARD_INTERCONNECTION.
- * This method is fast if grid-options FACEOPT_AUTOGENERATE_EDGES
- * and VOLOPT_AUTOGENERATE_EDGES are enabled - if there are any
- * faces and volumes.
- * It works without these options, too. The method however will
- * require more time in this case.
- */
-//void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v);
-
-////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceNeighborsSorted
-///	Collects neighbour-vertices in either clockwise or counter clockwise order.
+///	Collects neighbor-vertices in either clockwise or counter clockwise order.
 /**	Please note: This algorithm uses Grid::mark.
  *
  *	This method will only work if the triangles connected to the given

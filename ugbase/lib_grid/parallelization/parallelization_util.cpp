@@ -149,7 +149,7 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 
 		//	load
 			LOG("  loading... ");
-			if(!LoadGridFromFile(mg, filename, sh))
+			if(!LoadGridFromFile(mg, sh, filename))
 			{
 				LOG(" failed. Bad or missing file: " << filename << endl);
 				return 0;
