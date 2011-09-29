@@ -97,8 +97,8 @@ option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI
 option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
 option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
-option(IGNORE_LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" OFF)
-option(IGNORE_BLAS "Blas won't be used, even if available. Valid options are ON, OFF" OFF)
+option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" OFF)
+option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" OFF)
 
 # set default values for pseudo-options
 if(NOT TARGET)
@@ -132,8 +132,8 @@ message(STATUS "Info: PARALLEL:          "${PARALLEL}" (options are: ON, OFF)")
 message(STATUS "Info: PCL_DEBUG_BARRIER: "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
-message(STATUS "Info: IGNORE_LAPACK:     "${IGNORE_LAPACK}" (options are: ON, OFF)")
-message(STATUS "Info: IGNORE_BLAS:       "${IGNORE_BLAS}" (options are: ON, OFF)")
+message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
+message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (set them to the path, which contains the library):")
 message(STATUS "Info: METIS:    "${METIS})
@@ -282,31 +282,32 @@ if(buildAlgebra)
 	add_definitions(-DUG_ALGEBRA)
 	
 	# we'll check for lapack and blas here
-	if(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
+	if(LAPACK OR BLAS)
 		# On OSX, we know where lapack and blas are located. To avoid errors
 		# with Fortran compilers on OSX, we'll add APPLE as a special case here.
 		if(APPLE)
-			if(NOT IGNORE_LAPACK)
+			if(LAPACK)
 				set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
 				FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
 				if(LAPACK_INCLUDE_PATH)
 		  			set(LAPACK_FOUND YES)
 		  		endif(LAPACK_INCLUDE_PATH)
-			endif(NOT IGNORE_LAPACK)
+			endif(LAPACK)
 			
-			if(NOT IGNORE_BLAS)
+			if(BLAS)
 				set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
 				find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
 				set(BLAS_FOUND YES)
 				if(BLAS_INCLUDE_PATH)
 					set(BLAS_FOUND YES)
 				endif(BLAS_INCLUDE_PATH)
-			endif(NOT IGNORE_BLAS)
+			endif(BLAS)
 			
 		else(APPLE)
 			# a fortran compiler is required to find the packages
 			# Sadly there seems to be a cmake-bug, hence the following workaround.
 			# ENABLE_LANGUAGE workaround begin (issue 0009220)
+			message(STATUS "Info: If problems with the Fortran compiler occur, consider deactivating LAPACK and BLAS")
 			if(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
 			  set(CMAKE_Fortran_COMPILER CMAKE_Fortran_COMPILER-NOTFOUND)
 			endif(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
@@ -314,13 +315,13 @@ if(buildAlgebra)
 			
 			ENABLE_LANGUAGE(Fortran OPTIONAL)
 			if(CMAKE_Fortran_COMPILER_WORKS)
-				if(NOT IGNORE_LAPACK)
+				if(LAPACK)
 					find_package(LAPACK)
-				endif(NOT IGNORE_LAPACK)
+				endif(LAPACK)
 				
-				if(NOT IGNORE_BLAS)
+				if(BLAS)
 					find_package(BLAS)
-				endif(NOT IGNORE_BLAS)
+				endif(BLAS)
 				
 			endif(CMAKE_Fortran_COMPILER_WORKS)
 		endif(APPLE)
@@ -344,7 +345,7 @@ if(buildAlgebra)
 			message(STATUS "Info: Not using Blas. No package found.")
 		endif(BLAS_FOUND)
 		
-	endif(NOT (IGNORE_LAPACK AND IGNORE_BLAS))
+	endif(LAPACK OR BLAS)
 endif(buildAlgebra)
 
 
