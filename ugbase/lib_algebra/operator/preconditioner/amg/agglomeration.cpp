@@ -156,7 +156,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 			int j = snSmallest.connections[i];
 			supernode &s = supernodes[j];
 
-			std::vector<int>::iterator it = std::find(s.connections.begin(), s.connections.end(), ismallest);
+			std::vector<int>::iterator it = std::find(s.connections.begin(), s.connections.end(), (int)ismallest);
 			if(it != s.connections.end())
 				s.connections.erase(it);
 
