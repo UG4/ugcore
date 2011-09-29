@@ -117,7 +117,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 		UG_DLOG(LIB_ALG_AMG, 4, "\nsmallest supernode is " << ismallest << "\n");
 		supernodes[ismallest].print(supernodes);
 
-		size_t iAgglo = snSmallest.connections[0];
+		int iAgglo = snSmallest.connections[0];
 		for(size_t i=1; i<snSmallest.connections.size(); i++)
 		{
 			UG_ASSERT(supernodes[snSmallest.connections[i]].size != -1, snSmallest.connections[i]);
@@ -143,7 +143,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 		// put all connections of snSmallest in snAgglo
 		for(size_t i=0; i<snSmallest.connections.size(); i++)
 		{
-			size_t k = snSmallest.connections[i];
+			int k = snSmallest.connections[i];
 			if(k == iAgglo) continue;
 			if(std::find(snAgglo.connections.begin(), snAgglo.connections.end(), k) == snAgglo.connections.end())
 				snAgglo.connections.push_back(k);
@@ -153,7 +153,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 		// all nodes which are connected to snSmallest are now connected to snAgglo
 		for(size_t i=0; i<snSmallest.connections.size(); i++)
 		{
-			size_t j = snSmallest.connections[i];
+			int j = snSmallest.connections[i];
 			supernode &s = supernodes[j];
 
 			std::vector<int>::iterator it = std::find(s.connections.begin(), s.connections.end(), ismallest);
