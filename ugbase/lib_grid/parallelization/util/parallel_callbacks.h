@@ -5,7 +5,7 @@
 #ifndef __H__UG__parallel_callbacks__
 #define __H__UG__parallel_callbacks__
 
-#include "lib_grid/algorithms/callbacks/callbacks.h"
+#include "lib_grid/grid/geometric_object_callbacks.h"
 #include "../distributed_grid.h"
 #include "common/assert.h"
 

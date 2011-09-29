@@ -732,7 +732,7 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 				{
 				//	collect neighbour nodes
 					VertexBase* vrt = *iter;
-					CollectNeighbours(vNeighbours, grid, vrt);
+					CollectNeighbors(vNeighbours, grid, vrt);
 					
 				//	sum their normals and interpolate it
 				//	make sure to only add valid normals
@@ -756,7 +756,7 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 						vector3 v = aaPos[vrt];
 						vector3 n = aaNorm[vrt];
 
-						CollectNeighbours(vNeighbours, grid, vrt);
+						CollectNeighbors(vNeighbours, grid, vrt);
 						vNodes.resize(vNeighbours.size());
 						
 						for(size_t j = 0; j < vNodes.size(); ++j)
@@ -808,8 +808,9 @@ if(shMarks.get_subset_index(vrt) == REM_CREASE)
 			bool bProjectPointsToPlane = true;
 			
 			if(shMarks.get_subset_index(vrt) == REM_CREASE){
-				CollectSubsetNeighbours(vNeighbours, grid, shMarks,
-										vrt, REM_CREASE, NHT_EDGE_NEIGHBOURS);
+				CollectNeighbors(vNeighbours, grid, vrt, NHT_EDGE_NEIGHBORS,
+									IsInSubset(shMarks, REM_CREASE));
+
 			//	we have to choose a special normal
 				if(vNeighbours.size() != 2){
 					UG_LOG("n"<<vNeighbours.size());
@@ -832,7 +833,7 @@ if(shMarks.get_subset_index(vrt) == REM_CREASE)
 				}
 			}
 			else{
-				CollectNeighbours(vNeighbours, grid, vrt);
+				CollectNeighbors(vNeighbours, grid, vrt);
 			}
 			
 			vNodes.resize(vNeighbours.size());

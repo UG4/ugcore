@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include "lib_grid/grid/grid.h"
+#include "lib_grid/grid/geometric_object_callbacks.h"
 
 namespace ug
 {
@@ -278,6 +279,48 @@ class ISelector : public GridObserver
 };
 
 /// \}
+
+
+
+/**	A wrapper that returns whether an object is selected. Instances can
+ * be used as callbacks CB_ConsiderVertex, ..., CB_ConsiderVolume.
+ *
+ * \ingroup lib_grid_callbacks
+ */
+class IsSelected
+{
+	public:
+		IsSelected(const ISelector& sel) :
+			m_sel(sel)	{}
+
+		bool operator() (VertexBase* v)	{return m_sel.is_selected(v);}
+		bool operator() (EdgeBase* e)	{return m_sel.is_selected(e);}
+		bool operator() (Face* f)		{return m_sel.is_selected(f);}
+		bool operator() (Volume* v)		{return m_sel.is_selected(v);}
+
+	private:
+		const ISelector&	m_sel;
+};
+
+/**	A wrapper that returns whether an object is not selected. Instances can
+ * be used as callbacks CB_ConsiderVertex, ..., CB_ConsiderVolume.
+ *
+ * \ingroup lib_grid_callbacks
+ */
+class IsNotSelected
+{
+	public:
+		IsNotSelected(const ISelector& sel) :
+			m_sel(sel)	{}
+
+		bool operator() (VertexBase* v)	{return !m_sel.is_selected(v);}
+		bool operator() (EdgeBase* e)	{return !m_sel.is_selected(e);}
+		bool operator() (Face* f)		{return !m_sel.is_selected(f);}
+		bool operator() (Volume* v)		{return !m_sel.is_selected(v);}
+
+	private:
+		const ISelector&	m_sel;
+};
 
 }//	end of namespace
 

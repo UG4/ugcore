@@ -13,6 +13,8 @@
 
 #include "grid/grid.h"
 #include "grid/grid_util.h"
+#include "grid/geometric_object_callbacks.h"
+#include "grid/neighborhood.h"
 #include "multi_grid.h"
 #include "geometric_objects/geometric_objects.h"
 #include "common_attachments.h"

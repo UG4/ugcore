@@ -5,6 +5,7 @@
 #include <vector>
 #include <stack>
 #include <queue>
+#include <map>
 #include "subset_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "polychain_util.h"

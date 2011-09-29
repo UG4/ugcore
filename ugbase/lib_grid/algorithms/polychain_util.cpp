@@ -3,7 +3,6 @@
 // s.b.reiter@googlemail.com
 
 #include "polychain_util.h"
-#include "callbacks/subset_handler_callbacks.h"
 
 using namespace std;
 

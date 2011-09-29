@@ -1,12 +1,12 @@
 // created by Sebastian Reiter
-// y10 m12 d13
 // s.b.reiter@googlemail.com
+// 28.09.2011 (m,d,y) (originally created on y10 m12 d13)
 
-#ifndef __H__LIB_GRID__CALLBACK_DEFINITIONS__
-#define __H__LIB_GRID__CALLBACK_DEFINITIONS__
+#ifndef __H__UG__geometric_object_callbacks__
+#define __H__UG__geometric_object_callbacks__
 
 #include <boost/function.hpp>
-#include "lib_grid/lg_base.h"
+#include "geometric_base_objects.h"
 
 namespace ug
 {
@@ -15,11 +15,11 @@ namespace ug
  * Callbacks that allow algorithms to query whether they should consider
  * an element in their computations.
  *
- * \defgroup lib_grid_algorithms_callbacks callbacks
- * \ingroup lib_grid_algorithms
+ * \defgroup lib_grid_callbacks callbacks
+ * \ingroup lib_grid
  * \{
  */
- 
+
 ////////////////////////////////////////////////////////////////////////
 /**
  *\{

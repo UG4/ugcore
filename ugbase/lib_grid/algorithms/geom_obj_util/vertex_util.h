@@ -8,7 +8,6 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "common/math/ugmath.h"
-#include "lib_grid/algorithms/callbacks/callback_definitions.h"
 
 namespace ug
 {
@@ -69,7 +68,7 @@ int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
 
 ////////////////////////////////////////////////////////////////////////
-//	CollectNeighbours
+//	CollectNeighbors
 ///	fills an array with all neighbour-vertices of v.
 /**
  * v will not be contained in vNeighboursOut.
@@ -80,7 +79,7 @@ EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
  * It works without these options, too. The method however will
  * require more time in this case.
  */
-void CollectNeighbours(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v);
+//void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceNeighborsSorted

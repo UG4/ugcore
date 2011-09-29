@@ -96,9 +96,9 @@ EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri)
 	}
 	return NULL;
 }
-
+/*
 ////////////////////////////////////////////////////////////////////////
-void CollectNeighbours(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v)
+void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v)
 {
 	vNeighborsOut.clear();
 
@@ -174,7 +174,7 @@ void CollectNeighbours(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, Vert
 		}
 	}
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceNeighborsSorted
 bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,

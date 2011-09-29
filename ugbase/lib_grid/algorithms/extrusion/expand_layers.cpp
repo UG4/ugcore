@@ -6,8 +6,8 @@
 #include <stack>
 #include <vector>
 #include "expand_layers.h"
-#include "lib_grid/algorithms/callbacks/callbacks.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/grid/grid_util.h"
 //#include "lib_grid/util/simple_algebra/least_squares_solver.h"
 
 using namespace std;
@@ -42,6 +42,7 @@ class AttachmentUnequal{
  *
  *	Requires the option FACEOPT_AUTOGENERATE_EDGES.
  */
+/*
 static bool VertexLiesOnSurface(Grid& grid, VertexBase* vrt,
 						 CB_ConsiderFace funcIsSurfFace)
 {
@@ -120,7 +121,7 @@ static bool VertexLiesOnSurface(Grid& grid, VertexBase* vrt,
 	grid.end_marking();
 	return false;
 }
-
+*/
 ///	calculates the normal of the crease vertex vrt on the side of f
 /**
  *	This algorithm uses grid::mark.

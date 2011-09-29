@@ -1012,7 +1012,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 		vector3 n;
 		CalculateNormal(n, f, aaPos);
 		
-		CollectNeighbours(vNeighbours, f, grid);
+		CollectNeighbors(vNeighbours, f, grid);
 		
 	//	iterate through all neighbours
 		for(size_t i = 0; i < vNeighbours.size(); ++i)

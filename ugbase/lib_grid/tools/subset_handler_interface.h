@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "lib_grid/grid/grid.h"
+#include "lib_grid/grid/geometric_object_callbacks.h"
 #include "lib_grid/common_attachments.h"
 
 namespace ug
@@ -690,6 +691,52 @@ class ISubsetHandler : public GridObserver
 		Grid::EdgeAttachmentAccessor<ADataIndex>		m_aaDataIndEDGE;
 		Grid::FaceAttachmentAccessor<ADataIndex>		m_aaDataIndFACE;
 		Grid::VolumeAttachmentAccessor<ADataIndex>		m_aaDataIndVOL;
+};
+
+
+
+/**	A wrapper that returns whether an object is in a given subset. Instances can
+ * be used as callbacks CB_ConsiderVertex, ..., CB_ConsiderVolume.
+ *
+ * \ingroup lib_grid_callbacks
+ */
+class IsInSubset
+{
+	public:
+		IsInSubset(const ISubsetHandler& sh, int subsetIndex) :
+			m_sh(sh),
+			m_si(subsetIndex)	{}
+
+		bool operator() (VertexBase* v)	{return m_sh.get_subset_index(v) == m_si;}
+		bool operator() (EdgeBase* e)	{return m_sh.get_subset_index(e) == m_si;}
+		bool operator() (Face* f)		{return m_sh.get_subset_index(f) == m_si;}
+		bool operator() (Volume* v)		{return m_sh.get_subset_index(v) == m_si;}
+
+	private:
+		const ISubsetHandler& m_sh;
+		int m_si;
+};
+
+/**	A wrapper that returns whether an object is not in a given subset. Instances
+ * can be used as callbacks CB_ConsiderVertex, ..., CB_ConsiderVolume.
+ *
+ * \ingroup lib_grid_callbacks
+ */
+class IsNotInSubset
+{
+	public:
+		IsNotInSubset(const ISubsetHandler& sh, int subsetIndex) :
+			m_sh(sh),
+			m_si(subsetIndex)	{}
+
+		bool operator() (VertexBase* v)	{return m_sh.get_subset_index(v) != m_si;}
+		bool operator() (EdgeBase* e)	{return m_sh.get_subset_index(e) != m_si;}
+		bool operator() (Face* f)		{return m_sh.get_subset_index(f) != m_si;}
+		bool operator() (Volume* v)		{return m_sh.get_subset_index(v) != m_si;}
+
+	private:
+		const ISubsetHandler& m_sh;
+		int m_si;
 };
 
 }//	end of namespace

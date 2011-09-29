@@ -148,8 +148,8 @@ bool ObtainSimpleGrid_CollapseEdge(SimpleGrid& sgOut, Grid& grid,
 //	collect triangles in the neighbourhood of e.
 //	Note that faces may (and most likely will) contain some faces twice			
 	std::vector<Face*> faces;
-	CollectNeighbourhood(faces, grid, e->vertex(0), size, false);
-	CollectNeighbourhood(faces, grid, e->vertex(1), size, false);
+	CollectNeighborhood(faces, grid, e->vertex(0), size, false);
+	CollectNeighborhood(faces, grid, e->vertex(1), size, false);
 
 //	the first vertex resembles the collapsed edge
 	typename TPosAcc::ValueType n;

@@ -7,7 +7,6 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
-#include "callbacks/callbacks.h"
 
 namespace ug
 {

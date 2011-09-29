@@ -15,7 +15,8 @@ set(srcGrid		grid/grid.cpp
 				grid/geometric_base_objects.cpp
 				grid/grid_connection_managment.cpp
 				grid/geometric_object_collection.cpp
-				grid/grid_util.cpp)
+				grid/grid_util.cpp
+				grid/neighborhood.cpp)
 				
 set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/subset_util.cpp
@@ -26,7 +27,6 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/remeshing/edge_length_adjustment.cpp
 					algorithms/remeshing/simple_grid.cpp
 					algorithms/remeshing/grid_adaption.cpp
-					algorithms/graph/neighbourhood.cpp
 					algorithms/geom_obj_util/edge_util.cpp
 					algorithms/geom_obj_util/face_util.cpp
 					algorithms/geom_obj_util/misc_util.cpp

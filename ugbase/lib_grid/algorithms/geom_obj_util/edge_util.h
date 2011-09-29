@@ -7,7 +7,7 @@
 
 #include "lib_grid/lg_base.h"
 #include "face_util.h"
-#include "lib_grid/algorithms/callbacks/callbacks.h"
+#include "lib_grid/grid/grid_util.h"
 
 namespace ug
 {

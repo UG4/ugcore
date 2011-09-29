@@ -2,7 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y10 m01 d18
 
-#include "neighbourhood.h"
+#include "neighborhood.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 
 using namespace std;
@@ -12,13 +12,14 @@ namespace ug
 							
 ////////////////////////////////////////////////////////////////////////
 //
-void CollectSubsetNeighbours(vector<VertexBase*>& vNeighboursOut,
-							Grid& grid, SubsetHandler& sh,
-							VertexBase* vrt, int subsetIndex,
-							uint nbhType)
+void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
+						Grid& grid, VertexBase* vrt, uint nbhType,
+						CB_ConsiderEdge considerEdge,
+						CB_ConsiderFace considerFace,
+						CB_ConsiderVolume considerVol)
 {
 //	clear the container
-	vNeighboursOut.clear();
+	vNeighborsOut.clear();
 	
 //	begin marking
 	grid.begin_marking();
@@ -27,34 +28,34 @@ void CollectSubsetNeighbours(vector<VertexBase*>& vNeighboursOut,
 	grid.mark(vrt);
 	
 //	iterate through associated edges
-	if(nbhType & NHT_EDGE_NEIGHBOURS){
+	if(nbhType & NHT_EDGE_NEIGHBORS){
 		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
 		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
 			iter != iterEnd; ++iter)
 		{
-			if(sh.get_subset_index(*iter) == subsetIndex){
+			if(considerEdge(*iter)){
 				VertexBase* neighbour = GetConnectedVertex(*iter, vrt);
 				if(!grid.is_marked(neighbour)){
 					grid.mark(neighbour);
-					vNeighboursOut.push_back(neighbour);
+					vNeighborsOut.push_back(neighbour);
 				}
 			}
 		}
 	}
 
 //	iterate through associated faces
-	if(nbhType & NHT_FACE_NEIGHBOURS){
+	if(nbhType & NHT_FACE_NEIGHBORS){
 		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
 			iter != iterEnd; ++iter)
 		{
-			if(sh.get_subset_index(*iter) == subsetIndex){
+			if(considerFace(*iter)){
 				Face* f = *iter;
 				for(size_t i = 0; i < f->num_vertices(); ++i){
 					VertexBase* neighbour = f->vertex(i);
 					if(!grid.is_marked(neighbour)){
 						grid.mark(neighbour);
-						vNeighboursOut.push_back(neighbour);
+						vNeighborsOut.push_back(neighbour);
 					}
 				}
 			}
@@ -62,18 +63,18 @@ void CollectSubsetNeighbours(vector<VertexBase*>& vNeighboursOut,
 	}
 
 //	iterate through associated volumes
-	if(nbhType & NHT_VOLUME_NEIGHBOURS){
+	if(nbhType & NHT_VOLUME_NEIGHBORS){
 		Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrt);
 		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrt);
 			iter != iterEnd; ++iter)
 		{
-			if(sh.get_subset_index(*iter) == subsetIndex){
+			if(considerVol(*iter)){
 				Volume* v = *iter;
 				for(size_t i = 0; i < v->num_vertices(); ++i){
 					VertexBase* neighbour = v->vertex(i);
 					if(!grid.is_marked(neighbour)){
 						grid.mark(neighbour);
-						vNeighboursOut.push_back(neighbour);
+						vNeighborsOut.push_back(neighbour);
 					}
 				}
 			}
@@ -85,19 +86,19 @@ void CollectSubsetNeighbours(vector<VertexBase*>& vNeighboursOut,
 }
 							
 ////////////////////////////////////////////////////////////////////////
-//	CollectNeighbours
-void CollectNeighbours(std::vector<EdgeBase*>& vNeighboursOut, EdgeBase* e,
-					   Grid& grid, NeighbourhoodType nbhType)
+//	CollectNeighbors
+void CollectNeighbors(std::vector<EdgeBase*>& vNeighborsOut, EdgeBase* e,
+					   Grid& grid, NeighborhoodType nbhType)
 {
 //	clear the container
-	vNeighboursOut.clear();
+	vNeighborsOut.clear();
 	
 //	default neighbourhood:
 	if(nbhType == NHT_DEFAULT)
-		nbhType = NHT_VERTEX_NEIGHBOURS;
+		nbhType = NHT_VERTEX_NEIGHBORS;
 
 //	edges can only be vertex-neighbours
-	if(nbhType != NHT_VERTEX_NEIGHBOURS)
+	if(nbhType != NHT_VERTEX_NEIGHBORS)
 		return;
 
 //	begin marking
@@ -120,7 +121,7 @@ void CollectNeighbours(std::vector<EdgeBase*>& vNeighboursOut, EdgeBase* e,
 		{
 			if(!grid.is_marked(*iter))
 			{
-				vNeighboursOut.push_back(*iter);
+				vNeighborsOut.push_back(*iter);
 				grid.mark(*iter);
 			}
 		}
@@ -132,19 +133,19 @@ void CollectNeighbours(std::vector<EdgeBase*>& vNeighboursOut, EdgeBase* e,
 
 
 ////////////////////////////////////////////////////////////////////////
-//	CollectNeighbours
-void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
-					   Grid& grid, NeighbourhoodType nbhType)
+//	CollectNeighbors
+void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
+					   Grid& grid, NeighborhoodType nbhType)
 {
 //	clear the container
-	vNeighboursOut.clear();
+	vNeighborsOut.clear();
 	
 //	default neighbourhood:
 	if(nbhType == NHT_DEFAULT)
-		nbhType = NHT_EDGE_NEIGHBOURS;
+		nbhType = NHT_EDGE_NEIGHBORS;
 
 //	faces can't be face-neighbours
-	if(nbhType == NHT_FACE_NEIGHBOURS)
+	if(nbhType == NHT_FACE_NEIGHBORS)
 		return;
 
 //	begin marking
@@ -160,7 +161,7 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 	
 //	in order to get the maximum speed-up, we'll try to use
 //	associated elements in grid.
-	if((nbhType == NHT_EDGE_NEIGHBOURS)
+	if((nbhType == NHT_EDGE_NEIGHBORS)
 		&& grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES
 								  | EDGEOPT_STORE_ASSOCIATED_FACES
 								  | FACEOPT_AUTOGENERATE_EDGES))
@@ -179,7 +180,7 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 				if(!grid.is_marked(*iter))
 				{
 					grid.mark(*iter);
-					vNeighboursOut.push_back(*iter);
+					vNeighborsOut.push_back(*iter);
 				}
 			}
 		}
@@ -197,7 +198,7 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 //	(compare counted marked vertices against nbhType)
 	switch(nbhType)
 	{
-	case NHT_VERTEX_NEIGHBOURS:
+	case NHT_VERTEX_NEIGHBORS:
 		for(uint i = 0; i < numVrts; ++i)
 		{
 			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(f->vertex(i));
@@ -206,14 +207,14 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 			{
 				if(!grid.is_marked(*iter))
 				{
-					vNeighboursOut.push_back(*iter);
+					vNeighborsOut.push_back(*iter);
 					grid.mark(*iter);
 				}
 			}
 		}
 		break;
 
-	case NHT_EDGE_NEIGHBOURS:
+	case NHT_EDGE_NEIGHBORS:
 		for(uint i = 0; i < numVrts; ++i)
 		{
 			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(f->vertex(i));
@@ -235,7 +236,7 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 							++counter;
 							if(counter > 1)
 							{
-								vNeighboursOut.push_back(nf);
+								vNeighborsOut.push_back(nf);
 								grid.mark(nf);
 								break;
 							}
@@ -254,16 +255,16 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	CollectNeighbours
-void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
-					   Grid& grid, NeighbourhoodType nbhType)
+//	CollectNeighbors
+void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
+					   Grid& grid, NeighborhoodType nbhType)
 {
 //	clear the container
-	vNeighboursOut.clear();
+	vNeighborsOut.clear();
 	
 //	default neighbourhood:
 	if(nbhType == NHT_DEFAULT)
-		nbhType = NHT_FACE_NEIGHBOURS;
+		nbhType = NHT_FACE_NEIGHBORS;
 
 //	begin marking
 	grid.begin_marking();
@@ -278,7 +279,7 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 
 //	in order to get the maximum speed-up, we'll try to use
 //	associated elements in grid.
-	if((nbhType == NHT_FACE_NEIGHBOURS)
+	if((nbhType == NHT_FACE_NEIGHBORS)
 		&& grid.option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES
 								  | FACEOPT_STORE_ASSOCIATED_VOLUMES
 								  | VOLOPT_AUTOGENERATE_FACES))
@@ -297,7 +298,7 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 				if(!grid.is_marked(*iter))
 				{
 					grid.mark(*iter);
-					vNeighboursOut.push_back(*iter);
+					vNeighborsOut.push_back(*iter);
 				}
 			}
 		}
@@ -311,7 +312,7 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 //	it is not yet marked, we have to push it to vNeighboursOut.
 //	to optimize speed we'll check both valid nbhTypes separately.
 //	the first case indeed is a subcase of the second
-	if(nbhType == NHT_VERTEX_NEIGHBOURS)
+	if(nbhType == NHT_VERTEX_NEIGHBORS)
 		for(uint i = 0; i < numVrts; ++i)
 		{
 			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v->vertex(i));
@@ -320,7 +321,7 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 			{
 				if(!grid.is_marked(*iter))
 				{
-					vNeighboursOut.push_back(*iter);
+					vNeighborsOut.push_back(*iter);
 					grid.mark(*iter);
 				}
 			}
@@ -348,7 +349,7 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 							++counter;
 							if(counter >= nbhType)
 							{
-								vNeighboursOut.push_back(nv);
+								vNeighborsOut.push_back(nv);
 								grid.mark(nv);
 								break;
 							}
@@ -363,7 +364,7 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 	grid.end_marking();
 }
 
-void CollectNeighbourhood(std::vector<Face*>& facesOut, Grid& grid,
+void CollectNeighborhood(std::vector<Face*>& facesOut, Grid& grid,
 						  VertexBase* vrt, size_t range,
 						  bool clearContainer)
 {

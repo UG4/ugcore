@@ -7,7 +7,6 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
-#include "neighbourhood.h"
 
 namespace ug
 {
@@ -54,7 +53,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						Grid& grid, Attachment<TIndexType>* paIndex = NULL,
 						TGeomBaseObj** pGeomObjsOut = NULL,
-						NeighbourhoodType nbhType = NHT_DEFAULT,
+						NeighborhoodType nbhType = NHT_DEFAULT,
 						const GeometricObjectCollection* pgoc = NULL)
 {
 	using namespace std;
@@ -105,7 +104,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 				iter != goc.end<Elem>(lvl); ++iter, ++ind)
 			{
 			//	get all neighbours
-				CollectNeighbours(vNeighbours, *iter, grid, nbhType);
+				CollectNeighbors(vNeighbours, *iter, grid, nbhType);
 
 			//	store first entry at which the connections will be written to the map
 				adjacencyMapStructureOut[ind] = adjacencyMapOut.size();
@@ -187,7 +186,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 						int hWeight = 1, int vWeight = 1,
 						Attachment<TIndexType>* paIndex = NULL,
 						TGeomBaseObj** pGeomObjsOut = NULL,
-						NeighbourhoodType nbhType = NHT_DEFAULT)
+						NeighborhoodType nbhType = NHT_DEFAULT)
 {
 	using namespace std;
 	typedef TGeomBaseObj Elem;
@@ -237,7 +236,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 				Elem* elem = *iter;
 
 			//	get all neighbours
-				CollectNeighbours(vNeighbours, elem, mg, nbhType);
+				CollectNeighbors(vNeighbours, elem, mg, nbhType);
 
 			//	store first entry at which the connections will be written to the map
 				adjacencyMapStructureOut[ind] = adjacencyMapOut.size();
