@@ -909,6 +909,62 @@ jobjectArray params2NativeParams(JNIEnv *env,
 	return result;
 }
 
+jobjectArray params2NativeParams(JNIEnv *env,
+		const ug::bridge::ExportedConstructor& constructor) {
+
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeParamInfo");
+
+	jobjectArray result =
+			env->NewObjectArray(constructor.num_parameter(), cls, 0);
+
+	const ug::bridge::ParameterStack& params = constructor.params_in();
+
+	for (size_t i = 0; i < constructor.num_parameter(); i++) {
+
+		// create instance
+		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+		jobject obj = env->NewObject(cls, methodID);
+
+		//assign values
+
+		jmethodID setType = env->GetMethodID(cls, "setType", "(I)V");
+		jmethodID setID = env->GetMethodID(cls, "setId", "(I)V");
+		jmethodID setClassName = env->GetMethodID(
+				cls, "setClassName", "(Ljava/lang/String;)V");
+		jmethodID setClassNames = env->GetMethodID(
+				cls, "setClassNames", "([Ljava/lang/String;)V");
+		//	jmethodID setHelp = env->GetMethodID(cls,
+		//		"setHelp", "(Ljava/lang/String;)V");
+		//	jmethodID setToolTip = env->GetMethodID(cls,
+		//		"setTooltip", "(Ljava/lang/String;)V");
+		jmethodID setParamInfo = env->GetMethodID(cls,
+				"setParamInfo", "([Ljava/lang/String;)V");
+
+
+		using namespace ug::bridge;
+
+		// TODO Unfortunately we don't know a better way to convert an enumeration
+		// from C++ to Java. Currently we just use integers :(
+		int type = paramType2Int(params, i);
+
+		env->CallVoidMethod(obj, setType, type);
+		env->CallVoidMethod(obj, setID, i);
+
+		env->CallVoidMethod(obj, setClassName, stringC2J(env, params.class_name(i)));
+
+		env->CallVoidMethod(obj, setClassNames, stringArrayC2J(env,
+				getBaseClassNames(params.class_name_node(i))));
+
+		env->CallVoidMethod(obj, setParamInfo,
+				stringArrayC2J(env, constructor.parameter_info_vec(i)));
+
+		// set array element
+		env->SetObjectArrayElement(result, i, obj);
+	}
+
+	return result;
+}
+
 jobject retVal2NativeParam(JNIEnv *env,
 		const ug::bridge::ExportedFunctionBase& func) {
 
@@ -967,6 +1023,60 @@ jobject retVal2NativeParam(JNIEnv *env,
 	}
 
 	return obj;
+}
+
+jobject constructor2NativeConstructor(JNIEnv *env,
+		const ug::bridge::ExportedConstructor* constructor) {
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeConstructorInfo");
+
+	// create instance
+
+	jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+	jobject obj = env->NewObject(cls, methodID);
+
+	//assign values
+
+	jmethodID setHelp = env->GetMethodID(cls,
+			"setHelp", "(Ljava/lang/String;)V");
+	jmethodID setToolTip = env->GetMethodID(cls,
+			"setToolTip", "(Ljava/lang/String;)V");
+	jmethodID setOptions = env->GetMethodID(cls,
+			"setOptions", "(Ljava/lang/String;)V");
+	jmethodID setParameters = env->GetMethodID(cls,
+			"setParameters", "([Ledu/gcsc/vrl/ug/NativeParamInfo;)V");
+
+	using namespace ug::bridge;
+	env->CallVoidMethod(obj, setHelp,
+			stringC2J(env, constructor->help().c_str()));
+	env->CallVoidMethod(obj, setToolTip,
+			stringC2J(env, constructor->tooltip().c_str()));
+	env->CallVoidMethod(obj, setOptions,
+			stringC2J(env, constructor->options().c_str()));
+
+	env->CallVoidMethod(obj, setParameters,
+			params2NativeParams(env, *constructor));
+
+	return obj;
+}
+
+jobjectArray constructors2NativeConstructors(JNIEnv *env,
+		const ug::bridge::IExportedClass& eCls) {
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug/NativeConstructorInfo");
+
+	size_t numConstructors = eCls.num_constructors();
+
+	jobjectArray result =
+			env->NewObjectArray(numConstructors, cls, 0);
+
+	for (size_t i = 0; i < numConstructors; i++) {
+
+		jobject constructor = 
+				constructor2NativeConstructor(env, &eCls.get_constructor(i));
+
+		env->SetObjectArrayElement(result, i, constructor);
+	}
+
+	return result;
 }
 
 jobject method2NativeMethod(JNIEnv *env,
@@ -1189,6 +1299,8 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 				cls, "setClassNames", "([Ljava/lang/String;)V");
 		jmethodID setInstantiable = env->GetMethodID(cls,
 				"setInstantiable", "(Z)V");
+		jmethodID setConstructors = env->GetMethodID(cls,
+				"setConstructors", "([Ledu/gcsc/vrl/ug/NativeConstructorInfo;)V");
 		jmethodID setMethods = env->GetMethodID(cls,
 				"setMethods", "([Ledu/gcsc/vrl/ug/NativeMethodGroupInfo;)V");
 		jmethodID setConstMethods = env->GetMethodID(cls,
@@ -1225,6 +1337,8 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 		//				stringArrayC2J(env, baseClasses));
 		env->CallVoidMethod(obj, setInstantiable,
 				boolC2J(eCls.is_instantiable()));
+		env->CallVoidMethod(obj, setConstructors,
+				constructors2NativeConstructors(env, eCls));
 		env->CallVoidMethod(obj, setMethods,
 				methods2NativeGroups(env, eCls, false));
 		env->CallVoidMethod(obj, setConstMethods,

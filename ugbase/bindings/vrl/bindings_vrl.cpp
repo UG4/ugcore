@@ -62,13 +62,13 @@ void Logln(std::string s) {
 
 void ThrowIf(bool b, std::string s) {
 	if (!b) {
-		throw(ug::UGError(s.c_str()));
+		throw (ug::UGError(s.c_str()));
 	}
 }
 
 void ThrowIfNot(bool b, std::string s) {
 	if (!b) {
-		throw(ug::UGError(s.c_str()));
+		throw (ug::UGError(s.c_str()));
 	}
 }
 
@@ -83,52 +83,66 @@ void registerThrowUtil(ug::bridge::Registry & reg) {
 }
 
 class NumberArray {
-private :
+private:
 	std::vector<number> _vec;
 public:
-	
-	NumberArray() {}
-	
+
+	NumberArray() {
+	}
+
 	NumberArray(std::vector<number> vec) {
 		_vec = vec;
 	}
-	
+
 	void setArray(std::vector<number> vec) {
 		_vec = vec;
 	}
-	
+
 	int size() const {
 		return _vec.size();
 	}
-	
+
 	number get(size_t i) const {
-		if (i < 0 || i >= _vec.size()){
+		if (i < 0 || i >= _vec.size()) {
 			throw UGFatalError("NumberArray: index out of Bounds!");
 		}
-		
+
 		return _vec[i];
 	}
 };
 
-
-
 SmartPtr<NumberArray> getDefects(const ug::StandardConvCheck* convCheck) {
-	
-	return SmartPtr<NumberArray>(
+
+	return SmartPtr<NumberArray > (
 			new NumberArray(convCheck->get_defects()));
 }
 
 void registerNumberArray(ug::bridge::Registry & reg) {
-	reg.add_class_<NumberArray>("NumberArray","UG4/util")
-	.add_constructor()
-				.add_method("get", &NumberArray::get)
-				.add_method("size", &NumberArray::size);
+	reg.add_class_<NumberArray > ("NumberArray", "UG4/util")
+			.add_constructor()
+			.add_method("get", &NumberArray::get)
+			.add_method("size", &NumberArray::size);
 	reg.add_function("GetDefects", &getDefects, "UG4/util", "Defects");
 }
 
 void registerUGFinalize(ug::bridge::Registry & reg) {
 	reg.add_function("UGFinalize", &ug::UGFinalize, "UG4/util");
 }
+
+class VTest {
+public:
+
+	VTest() {
+		UG_LOG("VTest::VTest() constructor used.\n")
+	}
+
+	VTest(const char* msg) {
+		UG_LOG("VTest::VTest(const char*) constructor used.\n")
+		UG_LOG("Message is: '" << msg << "'.\n");
+	}
+};
+
+
 
 //void registryChanged(ug::bridge::Registry* reg) {
 //	UG_LOG("VRL: REGISTRY CHANGED\n");
@@ -157,13 +171,13 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	// Choose registry used.
 	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
 
-//	reg.add_callback(&ug::vrl::registryChanged);
-	
+	//	reg.add_callback(&ug::vrl::registryChanged);
+
 	using namespace ug;
 
 	// define paths
-	ug::PathProvider::set_path(PLUGIN_PATH,arguments[0]);
-	
+	ug::PathProvider::set_path(PLUGIN_PATH, arguments[0]);
+
 	int argc = arguments.size();
 	char** pargv = &argv[0];
 	//\todo: generalize outputproc rank
@@ -171,7 +185,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	int retVal = ug::UGInit(&argc, &pargv, 0);
 
 	// Register Playground if we are in debug mode
-	
+
 	//#ifdef UG_DEBUG
 	//	registerPlayground(reg);
 	//#endif
@@ -181,6 +195,10 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	ug::vrl::registerThrowUtil(reg);
 	ug::vrl::registerNumberArray(reg);
 	ug::vrl::registerUGFinalize(reg);
+
+	reg.add_class_<ug::vrl::VTest > ("VTest", "UG4/VRL/Testing")
+			.add_constructor()
+			.add_constructor<void (*)(const char*) >();
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.\n");
@@ -270,7 +288,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 		std::stringstream ss;
 
 		ss << "Incompatible Conversion from " <<
-		ex.m_from << " to " << ex.m_to;
+				ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -471,10 +489,10 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_convertRegistryInfo
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDescription
 (JNIEnv *env, jobject obj) {
-	std::string desc = 
+	std::string desc =
 			"UG is a general platform for the numerical solution<br>"
-            " of partial differential equations.";
-	
+			" of partial differential equations.";
+
 	return ug::vrl::stringC2J(env, desc.c_str());
 }
 
