@@ -116,13 +116,14 @@ bool IdentifierIsValid(std::string name) {
 	return !Contains(name,"__") &&
 			!StartsWith(name, "F_") &&
 			!StartsWith(name, "C_") &&
-			!StartsWith(name, "I_");
+			!StartsWith(name, "I_") &&
+			name!="constructor";
 }
 
 std::string GetIdentifierMessage() {
 	return "Identifier names must not start with"
 			" 'F_', 'C_' or 'I_' and must not contain"
-			" '__' (double underscore).";
+			" '__' (double underscore) nor be equal to 'constructor'.";
 }
 
 

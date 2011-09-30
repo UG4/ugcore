@@ -90,7 +90,7 @@ UG_API bool Contains(std::string str, std::string search);
  * <p>
  * <b>Note:</b> identifiers starting with <code>F_</code>, <code>C_</code>,
  * <code>I_</code> or containing <code>__</code>
- *  (double underscore) are invalid.
+ *  (double underscore) or being equal to 'constructor' are invalid.
  * </p>
  * @param name name to check
  * @return  <code>true</code> if the specified name is valid;
