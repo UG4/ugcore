@@ -22,6 +22,22 @@ namespace invocation {
 //const std::string createMethodSignature(JNIEnv* env, const char* className,
 //		const char* methodName, bool readOnly, jobjectArray params);
 
+
+/**
+ * Returns an exported function by its signature.
+ * @param env JVM environment to operate on
+ * @param reg registry to search
+ * @param eCls exported class
+ * @param params Java object array containing method parameter
+ * @return pointer to requested method if such a method exists;
+ *         <code>NULL</code> otherwise
+ */
+const ug::bridge::ExportedConstructor* getConstructorBySignature(
+		JNIEnv *env,
+		ug::bridge::Registry* reg,
+		ug::bridge::IExportedClass* eCls,
+		jobjectArray params);
+
 /**
  * Returns an exported method by its signature.
  * @param env JVM environment to operate on

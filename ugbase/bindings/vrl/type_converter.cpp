@@ -202,13 +202,13 @@ void* jObject2Pointer(JNIEnv *env, jobject obj) {
 	jclass argClass = env->GetObjectClass(obj);
 	jmethodID methodID = env->GetMethodID(argClass, "getAddress", "()J");
 	long result = env->CallLongMethod(obj, methodID);
-	
-	if (result==0) {
+
+	if (result == 0) {
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, "Pointer is NULL!");
 	}
-	
-	return (void*)result;
+
+	return (void*) result;
 }
 
 std::string jPointerGetName(JNIEnv *env, jobject obj) {
@@ -561,6 +561,7 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		return false;
 	}
 
+
 	// iterate over all param stack elements and compare their type with
 	// the corresponding elements in the specified Java array
 	for (size_t i = 0; i < (size_t) paramStack.size(); i++) {
@@ -598,12 +599,12 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		}
 
 		if (paramType != paramStack.get_type(i)) {
-#ifdef UG_DEBUG
-			UG_LOG("requested by method:\n")
-			printParamType(paramStack.get_type(i), i);
-			UG_LOG("given as parameter:\n")
-			printParamType(paramType, i);
-#endif
+//#ifdef UG_DEBUG
+//			UG_LOG("requested by method:\n")
+//			printParamType(paramStack.get_type(i), i);
+//			UG_LOG("given as parameter:\n")
+//			printParamType(paramType, i);
+//#endif
 			return false;
 		}
 
@@ -621,10 +622,10 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			}
 		}
 	}
-	//
-	//#ifdef UG_DEBUG
-	//	UG_LOG(" -- ALL TRUE --\n" << std::endl)
-	//#endif
+
+//#ifdef UG_DEBUG
+//	UG_LOG(" -- ALL TRUE --\n" << std::endl)
+//#endif
 
 	return true;
 }
@@ -686,39 +687,39 @@ void jobjectArray2ParamStack(
 				break;
 			case PT_SMART_POINTER:
 			{
-				
+
 				const ug::bridge::ClassNameNode* node =
-							ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env, value));
-				
+						ug::vrl::invocation::getClassNodePtrByName(reg,
+						jPointerGetName(env, value));
+
 				if (paramsOut.get_type(i) == PT_POINTER) {
 
 					paramsOut.push_pointer(
-							jObject2SmartPointer(env, value).get_impl(),node);
-					
+							jObject2SmartPointer(env, value).get_impl(), node);
+
 				} else if (paramsOut.get_type(i) == PT_CONST_POINTER) {
 					// we allow cast to const pointer (but i don't like it!)
 					paramsOut.push_const_pointer(
-							jObject2SmartPointer(env, value).get_impl(),node);
+							jObject2SmartPointer(env, value).get_impl(), node);
 				} else {
 					paramsOut.push_smart_pointer(
-							jObject2SmartPointer(env, value),node);
+							jObject2SmartPointer(env, value), node);
 				}
 			}
 				break;
 			case PT_CONST_SMART_POINTER:
 			{
 				const ug::bridge::ClassNameNode* node =
-							ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env, value));
-				
+						ug::vrl::invocation::getClassNodePtrByName(reg,
+						jPointerGetName(env, value));
+
 				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
 					// we allow cast to const pointer (but i don't like it!)
 					paramsOut.push_const_pointer(
-							jObject2ConstSmartPointer(env, value).get_impl(),node);
+							jObject2ConstSmartPointer(env, value).get_impl(), node);
 				} else {
 					paramsOut.push_const_smart_pointer(
-							jObject2ConstSmartPointer(env, value),node);
+							jObject2ConstSmartPointer(env, value), node);
 				}
 			}
 				break;
@@ -1070,7 +1071,7 @@ jobjectArray constructors2NativeConstructors(JNIEnv *env,
 
 	for (size_t i = 0; i < numConstructors; i++) {
 
-		jobject constructor = 
+		jobject constructor =
 				constructor2NativeConstructor(env, &eCls.get_constructor(i));
 
 		env->SetObjectArrayElement(result, i, constructor);

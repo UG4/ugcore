@@ -140,6 +140,10 @@ public:
 		UG_LOG("VTest::VTest(const char*) constructor used.\n")
 		UG_LOG("Message is: '" << msg << "'.\n");
 	}
+	
+	std::string hello() {
+		return "i am instantiated!";
+	}
 };
 
 
@@ -155,9 +159,8 @@ public:
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
-
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
-(JNIEnv *env, jobject obj, jobjectArray args) {
+  (JNIEnv *env, jclass cls, jobjectArray args) {
 
 	ug::vrl::initJavaVM(env);
 
@@ -198,7 +201,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 
 	reg.add_class_<ug::vrl::VTest > ("VTest", "UG4/VRL/Testing")
 			.add_constructor()
-			.add_constructor<void (*)(const char*) >();
+			.add_constructor<void (*)(const char*) >()
+			.add_method("hello", &ug::vrl::VTest::hello);
 
 	if (!reg.check_consistency()) {
 		UG_LOG("UG-VRL: cannot compile code due to registration error.\n");
@@ -231,18 +235,18 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 	jobject result = NULL;
 
 	try {
-		const ug::bridge::ExportedMethod* method =
+		const ug::bridge::ExportedMethod* constructor =
 				ug::vrl::invocation::getMethodBySignature(
 				env, ug::vrl::vrlRegistry,
 				clazz, ug::vrl::boolJ2C(readOnly), name, params);
 
-		if (method == NULL && readOnly == false) {
-			method = ug::vrl::invocation::getMethodBySignature(
+		if (constructor == NULL && readOnly == false) {
+			constructor = ug::vrl::invocation::getMethodBySignature(
 					env, ug::vrl::vrlRegistry,
 					clazz, ug::vrl::boolJ2C(true), name, params);
 		}
 
-		if (method == NULL) {
+		if (constructor == NULL) {
 
 			std::stringstream ss;
 
@@ -257,7 +261,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 
 		ug::vrl::jobjectArray2ParamStack(
 				env, ug::vrl::vrlRegistry,
-				paramsIn, method->params_in(), params);
+				paramsIn, constructor->params_in(), params);
 
 
 		const ug::bridge::ClassNameNode* clsNode =
@@ -266,9 +270,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 
 		void* finalObjPtr = ug::bridge::ClassCastProvider::cast_to_base_class(
 				(void*) objPtr,
-				clsNode, method->class_name());
+				clsNode, constructor->class_name());
 
-		method->execute(finalObjPtr, paramsIn, paramsOut);
+		constructor->execute(finalObjPtr, paramsIn, paramsOut);
 
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
@@ -309,7 +313,76 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 	return result;
 }
 
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance__J_3Ljava_lang_Object_2
+(JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
+
+	ug::bridge::IExportedClass* clazz =
+			(ug::bridge::IExportedClass*) exportedClassPointer;
+
+	ug::bridge::ParameterStack paramsIn;
+
+	std::string name = "constructor";
+
+	try {
+		const ug::bridge::ExportedConstructor* constructor =
+				ug::vrl::invocation::getConstructorBySignature(
+				env, ug::vrl::vrlRegistry,
+				clazz, params);
+
+		if (constructor == NULL) {
+
+			std::stringstream ss;
+
+			ss << "Constructor not found: " <<
+					EMPHASIZE_BEGIN << name <<
+					"()" << EMPHASIZE_END << ".";
+
+			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+			env->ThrowNew(Exception, ss.str().c_str());
+			return (long)NULL;
+		}
+
+		ug::vrl::jobjectArray2ParamStack(
+				env, ug::vrl::vrlRegistry,
+				paramsIn, constructor->params_in(), params);
+
+		return (long) constructor->create(paramsIn);
+
+	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
+
+		std::stringstream ss;
+		ss << "Incompatible Conversion from " <<
+				ex.m_from << " to " << ex.m_to;
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
+	} catch (ug::bridge::ERROR_BadConversion ex) {
+
+		std::stringstream ss;
+
+		ss << "Incompatible Conversion from " <<
+				ex.m_from << " to " << ex.m_to;
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
+	} catch (ug::UGError ex) {
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ex.get_msg().c_str());
+	} catch (...) {
+
+		std::stringstream ss;
+
+		ss << "Unknown exception thrown while"
+				<< " trying to invoke method: " << name << "().";
+
+		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+		env->ThrowNew(Exception, ss.str().c_str());
+	}
+
+	return (long) NULL;
+}
+
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance__J
 (JNIEnv *env, jobject obj, jlong objPtr) {
 
 	long result = 0;

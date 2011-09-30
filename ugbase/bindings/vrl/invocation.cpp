@@ -167,6 +167,32 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 	return NULL;
 }
 
+const ug::bridge::ExportedConstructor* getConstructorBySignature(
+		JNIEnv *env,
+		ug::bridge::Registry* reg,
+		ug::bridge::IExportedClass* eCls,
+		jobjectArray params) {
+
+	unsigned int numConstructors = 0;
+
+	numConstructors = eCls->num_constructors();
+
+	for (unsigned int i = 0; i < numConstructors; i++) {
+		const ug::bridge::ExportedConstructor* constructor = 
+		&eCls->get_constructor(i);
+
+		// if the parameter types are equal
+		// we found the correct constructor
+		if (compareParamTypes(
+				env, params, reg, constructor->params_in())) {
+
+			return constructor;
+		}
+	}
+
+	return NULL;
+}
+
 const ug::bridge::IExportedClass* getExportedClassPtrByName(
 		ug::bridge::Registry* reg,
 		std::string className) {
