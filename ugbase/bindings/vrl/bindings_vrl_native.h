@@ -26,17 +26,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 /*
  * Class:     edu_gcsc_vrl_ug_UG
  * Method:    newInstance
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance__J
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     edu_gcsc_vrl_ug_UG
- * Method:    newInstance
  * Signature: (J[Ljava/lang/Object;)J
  */
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance__J_3Ljava_lang_Object_2
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
   (JNIEnv *, jobject, jlong, jobjectArray);
 
 /*
