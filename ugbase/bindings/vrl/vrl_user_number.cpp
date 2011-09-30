@@ -7,7 +7,7 @@
 #include "common/common.h"
 #include "lib_disc/spatial_disc/ip_data/ip_data.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
-#include "bindings/lua/ug_script.h"
+#include "bindings/lua/lua_util.h"
 #include "bridge/bridge.h"
 
 #include "type_converter.h"

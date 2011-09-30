@@ -1,0 +1,1 @@
+#define COMPILE_DATE "Fr 30. Sep 18:01:51 CEST 2011"
