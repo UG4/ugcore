@@ -313,7 +313,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 	return result;
 }
 
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance__J_3Ljava_lang_Object_2
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 (JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
 
 	ug::bridge::IExportedClass* clazz =
@@ -380,41 +380,6 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance__J_3Ljava_lang_Objec
 	}
 
 	return (long) NULL;
-}
-
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance__J
-(JNIEnv *env, jobject obj, jlong objPtr) {
-
-	long result = 0;
-	ug::bridge::IExportedClass* clazz = NULL;
-
-	try {
-
-		ug::bridge::IExportedClass* clazz =
-				(ug::bridge::IExportedClass*) objPtr;
-
-		result = (long) clazz->create();
-
-	} catch (ug::UGError ex) {
-
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ex.get_msg().c_str());
-	} catch (...) {
-		std::string className = "Unknown class";
-		if (clazz != NULL) {
-			className = clazz->name();
-		}
-
-		std::stringstream ss;
-
-		ss << "Unknown exception thrown while"
-				<< " trying to instanciate class " << className << "().";
-
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ss.str().c_str());
-	}
-
-	return result;
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
