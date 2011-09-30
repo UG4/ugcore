@@ -123,7 +123,7 @@ void registerNumberArray(ug::bridge::Registry & reg) {
 	.add_constructor()
 				.add_method("get", &NumberArray::get)
 				.add_method("size", &NumberArray::size);
-	reg.add_function("GetDefects", &getDefects, "UG4/util");
+	reg.add_function("GetDefects", &getDefects, "UG4/util", "Defects");
 }
 
 void registerUGFinalize(ug::bridge::Registry & reg) {
