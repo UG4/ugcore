@@ -9,6 +9,7 @@
 #include "bindings_lua.h"
 #include "bindings/lua/lua_util.h"
 #include "registry/registry.h"
+#include "registry/class_helper.h"
 #include "common/common.h"
 #include "info_commands.h"
 

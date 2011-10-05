@@ -22,6 +22,7 @@
 #include "bindings/lua/info_commands.h"
 #include "bindings/lua/lua_stack_check.h"
 #include "registry/registry.h"
+#include "registry/class_helper.h"
 
 extern "C"
 {

@@ -9,7 +9,6 @@
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
-#include "class_helper.h"
 #include "common/ug_config.h"
 #include <iostream>
 

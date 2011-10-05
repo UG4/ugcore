@@ -10,22 +10,20 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#include <string>
-
-#include "common/ug_config.h"
-
 #ifndef __H__UG_BRIDGE__CLASS_HELPER__
 #define __H__UG_BRIDGE__CLASS_HELPER__
+
+#include <string>
+#include "common/ug_config.h"
+
+#include "registry.h"
+#include "class.h"
+#include "global_function.h"
 
 namespace ug
 {
 namespace bridge
 {
-
-class IExportedClass;
-class ExportedFunctionBase;
-class ExportedFunction;
-class Registry;
 
 // ClassHierarchy
 //--------------
