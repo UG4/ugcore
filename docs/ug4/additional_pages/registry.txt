@@ -1,4 +1,4 @@
-/**	\page pageSTRegistry ug-Registry Tutorial
+/**	\page pageUG4Registry ug-Registry Tutorial
 
 In order to make functionality (such as c++ classes, methods and functions) 
 available in the Lua-Script or the VRL, this functionality must be registered
@@ -76,16 +76,17 @@ terminal:
 
 \verbatim
 user$ ./ugshell 
-****************
-* ugshell - v4.0.1
-* arguments:
-*   -outproc id:	Sets the output-proc to id. Default is 0.
-*   -ex scriptname:	Executes the specified script.
-*   -noquit:       	Does run the interactive shell after specified script.
-*   -noterm:			Terminal logging will be disabled.
-*   -logtofile filename:	Output will be written to the specified file.
-* Additional parameters are passed to the script through ugargc and ugargv.
-****************
+********************************************************************************
+* ugshell - v4.0.1                                                             *
+*                                                                              *
+* arguments:                                                                   *
+*   -outproc id:         Sets the output-proc to id. Default is 0.             *
+*   -ex scriptname:      Executes the specified script.                        *
+*   -noquit:             Runs the interactive shell after specified script.    *
+*   -noterm:             Terminal logging will be disabled.                    *
+*   -logtofile filename: Output will be written to the specified file.         *
+* Additional parameters are passed to the script through ugargc and ugargv.    *
+********************************************************************************
 ug:> 
 \endverbatim
 

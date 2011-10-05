@@ -11,6 +11,7 @@
 	- \ref pageCopyrights "Copyrights and Licenses"
 	- \ref pageUG4Introduction "Introduction"
 	- \ref pageUG4CodingStyle "Coding Style"
+	- \ref pageUG4Registry "Registry"
 	- \ref pageTeamCommunication "Developer Team Communication"
 	- \ref pageTutorials "Tutorials"
 	- \ref pageExternalLibraries "External Libraries"
