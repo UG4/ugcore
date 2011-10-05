@@ -129,7 +129,7 @@ This class is registered by
 
 \code
 //	register class "Test"
-	reg.add_class_<Test>("Test", grp.c_str())
+	reg.add_class_<Test>("Test", grp)
 		.add_constructor()
 		.add_method("add", &Test::add, "c", "a#b")
 		.add_method("print_name", &Test::print_name);
@@ -333,7 +333,7 @@ Now, in registration, add the base class <b>without</b> constructor:
 
 \code
 //	registering base class (without constructor)
-	reg.add_class_<Base>("Base", grp.c_str())
+	reg.add_class_<Base>("Base", grp)
 		.add_method("print", &Base::print);
 \endcode
 
@@ -342,7 +342,7 @@ argument.
 
 \code
 //	registering derived class
-	reg.add_class_<Derived, Base>("Derived", grp.c_str())
+	reg.add_class_<Derived, Base>("Derived", grp)
 		.add_constructor();
 \endcode
 
@@ -368,9 +368,56 @@ class Test
 
 \code
 //	register class "Test"
-	reg.add_class_<Test>("Test", grp.c_str())
+	reg.add_class_<Test>("Test", grp)
 		.add_method("print", (int(Test::*)()) &Test::print)
 		.add_method("print", (int(Test::*)() const) &Test::print);
 \endcode
+
+<hr>
+\section secSTHowToRegisterOverloadedConstructors 	How to register Overloaded Constructors
+<hr>
+
+Constructors with parameters and several (overloaded) Constructors are also 
+possible. Since it is impossible to take the function point of a constructor the 
+special method "add_constructor<SignatureFunction>(...)" must be used. 
+
+\code
+class Test
+{
+	public:
+		Test() { UG_LOG("Test::Test() constructor used.\n")}
+		Test(const char* msg)
+		{
+			UG_LOG("Test::Test(const char*) constructor used.\n")
+			UG_LOG("Message is: '"<<msg<<"'.\n");
+		}
+};
+\endcode
+
+\code
+//	register class "Test"
+	reg.add_class_<Test>("Test", grp)
+		.add_constructor()
+		.add_constructor<void (*)(const char*)>("Message");
+\endcode
+
+The template argument of the add_constructor method must be a global function pointer
+with void return value. The signature of the function pointer type is used to 
+get the arguments of the constructor. In total these informations can be passed 
+when registering a constructor:
+
+\code
+	template <typename TFunc>
+	ExportedClass<TClass>& add_constructor(std::string paramInfos = "",
+	                                       std::string tooltip = "", std::string help = "",
+	                                       std::string options = "")
+\endcode
+ 
+<ul>
+<li> paramInfos: a list of parameter names (and options) separated by '#' (see above)
+<li> tooltip: Some information about the usage of the constructor
+<li> help: Help informations
+<li> options: style option of the constructor itself (for visualisation)
+</ul>
 
 */
