@@ -48,6 +48,10 @@ set(dimDefault "ALL")
 set(dofOptions "GEN, P1")
 set(dofDefault "P1")
 
+# Values for the blas / lapack option
+set(blasDefault ON)
+set(lapackDefault ON)
+
 # Those variables control the build process. They are later modified depending
 # on the value of TARGET.
 set(buildUGShell OFF)
@@ -117,6 +121,13 @@ if(NOT DOF)
 	set(DOF ${dofDefault})
 endif(NOT DOF)
 
+if(NOT BLAS)
+	set(BLAS ${blasDefault})
+endif(NOT BLAS)
+
+if(NOT LAPACK)
+	set(LAPACK ${lapackDefault})
+endif(NOT LAPACK)
 
 ################################################################################
 # We'll output the current options-setting in this section
