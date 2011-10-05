@@ -1134,8 +1134,37 @@ static int LuaProxyGroupCreate(lua_State* L)
 		return 1;
 	}
 
-//	now create an instance of the associated class
-	CreateNewUserData(L, c->create(), c->name().c_str(), c->get_delete_function(), false);
+//	try each constructor overlaod
+	int badParam = -2;
+	for(size_t i = 0; i < c->num_constructors(); ++i)
+	{
+	//	get overload
+		const ExportedConstructor& constr = c->get_constructor(i);
+
+		ParameterStack paramsIn;
+		badParam = LuaStackToParams(paramsIn, constr.params_in(), L, 0);
+
+	//	check whether the parameter was correct
+		if(badParam != 0)
+		{
+		//	parameters didn't match. Try the next overload.
+			continue;
+		}
+
+	//	correct parameterlist found, create
+		CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
+						  c->get_delete_function(), false);
+
+	//	object created
+		return 1;
+	}
+
+//	no matching overload found
+	if(badParam < 0)
+	{
+		UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << ": ");
+		UG_LOG("Cannot find constructor for class.\n");
+	}
 
 	return 1;
 }
