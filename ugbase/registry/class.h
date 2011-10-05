@@ -632,8 +632,9 @@ class ExportedClass : public IExportedClass
 
 	/// constructor registration
 		template <typename TFunc>
-		ExportedClass<TClass>& add_constructor(std::string options = "", std::string paramInfos = "",
-		                                        std::string tooltip = "", std::string help = "")
+		ExportedClass<TClass>& add_constructor(std::string paramInfos = "",
+		                                       std::string tooltip = "", std::string help = "",
+		                                       std::string options = "")
 		{
 		//	return-type must be void
 			if(!(boost::is_void< typename func_traits<TFunc>::return_type >::value))

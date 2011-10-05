@@ -472,22 +472,25 @@ static bool RegisterLibAlgebra__Common(Registry& reg, string parentGroup)
 	reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp);
 
 // 	StandardConvCheck
-	reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp)
-		.add_constructor()
-		.add_method("set_maximum_steps", &StandardConvCheck::set_maximum_steps,
-				"", "Maximum Steps")
-		.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
-				"", "Minimum Defect")
-		.add_method("set_reduction", &StandardConvCheck::set_reduction,
-				"", "Reduction")
-		.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
-				"", "Verbose")
-		.add_method("defect", &StandardConvCheck::defect, "defect", "", "returns the current defect")
-		.add_method("step", &StandardConvCheck::step, "step", "", "returns the current number of steps")
-		.add_method("reduction", &StandardConvCheck::reduction, "reduction", "", "returns the current relative reduction")
-		.add_method("iteration_ended", &StandardConvCheck::iteration_ended)
-		.add_method("previous_defect", &StandardConvCheck::previous_defect);
-
+	{
+		typedef StandardConvCheck T;
+		reg.add_class_<T, IConvergenceCheck>("StandardConvergenceCheck", grp)
+			.add_constructor()
+			.add_constructor<void (*)(int, number, number, bool)>
+							("Maximum Steps|default|min=0;value=100#"
+							 "Minimum Defect|default|min=0D;value=1e-10#"
+							 "Relative Reduction|default|min=0D;value=1e-12#"
+							 "Verbosity")
+			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
+			.add_method("set_minimum_defect", &T::set_minimum_defect, "", "Minimum Defect|default|min=0D;value=1e-10")
+			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
+			.add_method("set_verbose_level", &T::set_verbose_level,	"", "Verbosity")
+			.add_method("defect", &T::defect, "defect", "", "returns the current defect")
+			.add_method("step", &T::step, "step", "", "returns the current number of steps")
+			.add_method("reduction", &T::reduction, "reduction", "", "returns the current relative reduction")
+			.add_method("iteration_ended", &T::iteration_ended)
+			.add_method("previous_defect", &T::previous_defect);
+	}
 // IPositionProvider (abstract base class)
 	{
 		reg.add_class_<IPositionProvider<1> >("IPositionProvider1d", grp);
