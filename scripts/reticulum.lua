@@ -128,7 +128,7 @@ SaveDomain(dom, "refined_grid.ugx")
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = util.CreateApproximationSpace(dom)
+approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct_on_subset("ca_cyt", "Lagrange", 1, "cyt, mem_er, mem_cyt")
 approxSpace:add_fct_on_subset("ca_er", "Lagrange", 1, "er, mem_er")
 approxSpace:add_fct_on_subset("ip3", "Lagrange", 1, "cyt, mem_er, mem_cyt")

@@ -166,7 +166,7 @@ end
 -- only require one unknown for the concentration ("c").
 -- Note that the Approximation Space is build on the domain created above.
 print("Create ApproximationSpace")
-approxSpace = util.CreateApproximationSpace(dom) -- creates new object
+approxSpace = ApproximationSpace(dom) -- creates new object
 approxSpace:add_fct("c", "Lagrange", 1)          -- adds one function
 approxSpace:init()                               -- fixes the space
 

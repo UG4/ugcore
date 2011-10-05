@@ -57,7 +57,6 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef FunctionPattern TBase;
 		string name = string("IApproximationSpace").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.add_method("assign_domain|hide=true", &T::assign_domain)
 			.add_method("get_domain|hide=true", static_cast<TDomain& (T::*)()>(&T::get_domain));
 		reg.add_class_to_group(name, "IApproximationSpace", dimTag);
 	}

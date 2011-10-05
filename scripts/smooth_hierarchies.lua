@@ -72,7 +72,7 @@ if util.LoadDomain(dom, gridName) == true then
 
 	print("creating approximation space...")
 	-- create Approximation Space
-	approxSpace = util.CreateApproximationSpace(dom)
+	approxSpace = ApproximationSpace(dom)
 	approxSpace:add_fct("c", "Lagrange", 1)
 	approxSpace:init()
 

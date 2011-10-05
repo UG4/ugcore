@@ -62,14 +62,6 @@ function util.GlobalRefineParallelDomain(domain)
 	return false
 end
 
-	
--- Creates an Approxmiation space of correct dimesion
-function util.CreateApproximationSpace(domain)
-	local approxSpace = ApproximationSpace()
-	approxSpace:assign_domain(domain)	
-	return approxSpace
-end
-
 -- creates Neumann Boundary
 function util.CreateNeumannBoundary(approxSpace, subsets)
 	local neumannDisc = FV1NeumannBoundary()

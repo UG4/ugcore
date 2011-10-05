@@ -32,17 +32,11 @@ class IApproximationSpace : public FunctionPattern
 		typedef typename domain_type::subset_handler_type subset_handler_type;
 
 	public:
-	/// Default constructor
-		IApproximationSpace() : m_pDomain(NULL), m_pMGSH(NULL) {};
-
-	///	Assign domain
-		void assign_domain(domain_type& domain)
-		{
-			m_pDomain = &domain;
-			m_pMGSH = &domain.get_subset_handler();
-
-			return this->set_subset_handler(*m_pMGSH);
-		}
+	/// constructor
+		IApproximationSpace(domain_type& domain)
+			: FunctionPattern(domain.get_subset_handler()),
+			  m_pDomain(&domain), m_pMGSH(&domain.get_subset_handler())
+		{};
 
 	/// Return the domain
 		const domain_type& get_domain() const {return *m_pDomain;}
@@ -122,7 +116,8 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 
 	public:
 	///	Constructor
-		ApproximationSpace() : m_bInit(false) {};
+		ApproximationSpace(domain_type& domain)
+			: IApproximationSpace<domain_type>(domain), m_bInit(false) {};
 
 	///	Destructor
 		~ApproximationSpace(){}
@@ -138,8 +133,8 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		void set_grouping(bool bGrouped)
 		{
 			if(m_bInit)
-				throw(UGFatalError("ApproximationSpace: cannot change grouping "
-						"strategy after initialization."));
+				UG_THROW_FATAL("ApproximationSpace: cannot change grouping "
+								"strategy after initialization.");
 			m_MGDoFManager.set_grouping(bGrouped);
 		}
 

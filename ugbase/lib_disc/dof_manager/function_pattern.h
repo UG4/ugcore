@@ -35,12 +35,9 @@ class FunctionPattern
 {
 	public:
 	///	Default Constructor
-		FunctionPattern() :
-			m_bLocked(false), m_pSH(NULL)
+		FunctionPattern(const ISubsetHandler& sh) :
+			m_bLocked(false), m_pSH(&sh)
 		{clear();}
-
-	/// set an underlying subset handler
-		void set_subset_handler(const ISubsetHandler& sh) {m_pSH = &sh; clear();}
 
 	/// get underlying subset handler
 		const ISubsetHandler* get_subset_handler() const {return m_pSH;}

@@ -139,7 +139,7 @@ sh:set_subset_name("OuterSchallloch", 2)
 -- SaveDomain(dom, "refined_grid.ugx")
 
 -- create Approximation Space
-approxSpace = util.CreateApproximationSpace(dom)
+approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:init()
 

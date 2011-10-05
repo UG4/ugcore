@@ -65,7 +65,7 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 	local dim = dom:get_dim()
 
 --	create the approximation space
-	local approxSpace = util.CreateApproximationSpace(dom) -- creates new object
+	local approxSpace = ApproximationSpace(dom) -- creates new object
 	approxSpace:add_fct("c", "Lagrange", 1)          -- adds one function
 	approxSpace:init()                               -- fixes the space
 	approxSpace:print_statistic()                    -- write some information

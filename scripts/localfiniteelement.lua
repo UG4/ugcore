@@ -41,7 +41,7 @@ dom = util.CreateAndDistributeDomain(gridName, numRefs, 0, neededSubsets)
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = util.CreateApproximationSpace(dom)
+approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", trialOrder)
 approxSpace:init()
 approxSpace:print_local_dof_statistic(2)

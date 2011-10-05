@@ -12,6 +12,7 @@
 
 // include bridge
 #include "../bridge.h"
+#include "registry/registry.h"
 
 // lib_algebra includes
 #include "lib_algebra/algebra_selector.h"
@@ -143,7 +144,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		typedef IApproximationSpace<TDomain> TBase;
 		string name = string("ApproximationSpace").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
+			.template add_constructor<void (*)(TDomain&)>("Domain")
 			.add_method("init|hide=true", &T::init)
 			.add_method("set_grouping", &T::set_grouping)
 			.add_method("print_statistic|hide=true", static_cast<void (T::*)(int) const>(&T::print_statistic))
