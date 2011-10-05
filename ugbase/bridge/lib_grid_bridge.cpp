@@ -631,23 +631,23 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(Grid&)>(&PrintGridElementNumbers), grp);
 
 	//	refinement
-		reg.add_function("TestSubdivision", &TestSubdivision)
-			.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid)
+		reg.add_function("TestSubdivision", &TestSubdivision, grp)
+			.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid, grp)
 			.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
 			.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp)
 			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp)
-			.add_function("TestGridRedistribution", &TestGridRedistribution);
+			.add_function("TestGridRedistribution", &TestGridRedistribution, grp);
 		
 	//	subset util
 		reg.add_function("AdjustSubsetsForSimulation",
 						static_cast<void (*)(SubsetHandler&, bool, bool, bool)>(
-						&AdjustSubsetsForSimulation<SubsetHandler>))
+						&AdjustSubsetsForSimulation<SubsetHandler>), grp)
 			.add_function("AdjustSubsetsForSimulation",
 						static_cast<void (*)(MGSubsetHandler&, bool, bool, bool)>(
-						&AdjustSubsetsForSimulation<MGSubsetHandler>));
+						&AdjustSubsetsForSimulation<MGSubsetHandler>), grp);
 
 	//	PartitionMap
-		reg.add_class_<PartitionMap>("PartitionMap", "ug4")
+		reg.add_class_<PartitionMap>("PartitionMap", grp)
 			.add_constructor()
 			.add_method("clear", &PartitionMap::clear)
 			.add_method("get_partition_handler", &PartitionMap::get_partition_handler)

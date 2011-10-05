@@ -307,9 +307,9 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("LinearSolver").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3)
 			.add_constructor()
-			.add_method("set_preconditioner|interactive=false", &T::set_preconditioner,
+			.add_method("set_preconditioner", &T::set_preconditioner,
 						"", "Preconditioner")
-			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+			.add_method("set_convergence_check", &T::set_convergence_check,
 						"", "Check")
 			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished)
 			.add_method("set_debug", &T::set_debug);
@@ -323,9 +323,9 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("CG").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3, "Conjugate Gradient")
 			.add_constructor()
-			.add_method("set_preconditioner|interactive=false", &T::set_preconditioner,
+			.add_method("set_preconditioner", &T::set_preconditioner,
 						"", "Preconditioner")
-			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+			.add_method("set_convergence_check", &T::set_convergence_check,
 						"", "Check");
 		reg.add_class_to_group(name, "CG", algTag);
 	}
@@ -337,9 +337,9 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("BiCGStab").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3)
 			.add_constructor()
-			.add_method("set_preconditioner|interactive=false", &T::set_preconditioner,
+			.add_method("set_preconditioner", &T::set_preconditioner,
 						"", "Preconditioner")
-			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+			.add_method("set_convergence_check", &T::set_convergence_check,
 						"", "Check");
 		reg.add_class_to_group(name, "BiCGStab", algTag);
 	}
@@ -351,7 +351,7 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("LU").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3, "LU-Decomposition exact solver")
 			.add_constructor()
-			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+			.add_method("set_convergence_check", &T::set_convergence_check,
 						"", "Check");
 		reg.add_class_to_group(name, "LU", algTag);
 	}
@@ -364,13 +364,13 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("DirichletDirichlet").append(algSuffix);
 		reg.add_class_<	T, BaseT >(name, grp3, "Dirichlet-Dirichlet Domain Decomposition Algorithm")
 		.add_constructor()
-		.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+		.add_method("set_convergence_check", &T::set_convergence_check,
 					"", "Check")
-		.add_method("set_theta|interactive=false", &T::set_theta,
+		.add_method("set_theta", &T::set_theta,
 					"", "Theta", "set damping factor theta")
-		.add_method("set_neumann_solver|interactive=false", &T::set_neumann_solver,
+		.add_method("set_neumann_solver", &T::set_neumann_solver,
 					"", "Neumann Solver")
-		.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
+		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver,
 					"", "Dirichlet Solver")
 		.add_method("set_debug", &T::set_debug);
 		reg.add_class_to_group(name, "DirichletDirichlet", algTag);
@@ -383,9 +383,9 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("LocalSchurComplement").append(algSuffix);
 		reg.add_class_<	T, TBase>(name, grp3)
 		.add_constructor()
-		.add_method("set_matrix|interactive=false", &T::set_matrix,
+		.add_method("set_matrix", &T::set_matrix,
 					"", "Matrix")
-		.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
+		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver,
 					"", "Dirichlet Solver")
 		.add_method("set_debug", &T::set_debug, "", "d")
 		// the following functions would normally not be executed from script
@@ -402,13 +402,13 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("FETI").append(algSuffix);
 		reg.add_class_<	T, BaseT >(name, grp3, "FETI Domain Decomposition Solver")
 		.add_constructor()
-		.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+		.add_method("set_convergence_check", &T::set_convergence_check,
 					"", "Check")
-		.add_method("set_neumann_solver|interactive=false", &T::set_neumann_solver,
+		.add_method("set_neumann_solver", &T::set_neumann_solver,
 					"", "Neumann Solver")
-		.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
+		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver,
 					"", "Dirichlet Solver")
-		.add_method("set_coarse_problem_solver|interactive=false", &T::set_coarse_problem_solver,
+		.add_method("set_coarse_problem_solver", &T::set_coarse_problem_solver,
 					"", "Coarse Problem Solver")
 		.add_method("set_domain_decomp_info", &T::set_domain_decomp_info)
 		.add_method("print_statistic_of_inner_solver", &T::print_statistic_of_inner_solver)
@@ -426,21 +426,21 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("HLIBSolver").append(algSuffix);
 		reg.add_class_<	T, TBase>(name, grp3)
 		.add_constructor()
-		.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
+		.add_method("set_convergence_check", &T::set_convergence_check,
 					"", "Check")
-		.add_method("set_hlib_nmin|interactive=false",         &T::set_hlib_nmin,
+		.add_method("set_hlib_nmin",         &T::set_hlib_nmin,
 					"", "HLIB nmin")
-		.add_method("set_hlib_accuracy_H|interactive=false",   &T::set_hlib_accuracy_H,
+		.add_method("set_hlib_accuracy_H",   &T::set_hlib_accuracy_H,
 					"", "HLIB accuracy_H")
-		.add_method("set_hlib_accuracy_LU|interactive=false",  &T::set_hlib_accuracy_LU,
+		.add_method("set_hlib_accuracy_LU",  &T::set_hlib_accuracy_LU,
 					"", "HLIB accuracy_LU")
-		.add_method("set_hlib_verbosity|interactive=false",    &T::set_hlib_verbosity,
+		.add_method("set_hlib_verbosity",    &T::set_hlib_verbosity,
 					"", "HLIB verbosity")
-		.add_method("set_clustering_method|interactive=false", &T::set_clustering_method,
+		.add_method("set_clustering_method", &T::set_clustering_method,
 					"", "Clustering")
-		.add_method("set_ps_basename|interactive=false",       &T::set_ps_basename,
+		.add_method("set_ps_basename",       &T::set_ps_basename,
 					"", "PostScript basename")
-		.add_method("check_crs_matrix|interactive=false",      &T::check_crs_matrix,
+		.add_method("check_crs_matrix",      &T::check_crs_matrix,
 					"", "Check CRS matrix")
 		.add_method("set_debug", &T::set_debug);
 		reg.add_class_to_group(name, "HLIBSolver", algTag);
@@ -474,19 +474,19 @@ static bool RegisterLibAlgebra__Common(Registry& reg, string parentGroup)
 // 	StandardConvCheck
 	reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp)
 		.add_constructor()
-		.add_method("set_maximum_steps|interactive=false", &StandardConvCheck::set_maximum_steps,
+		.add_method("set_maximum_steps", &StandardConvCheck::set_maximum_steps,
 				"", "Maximum Steps")
-		.add_method("set_minimum_defect|interactive=false", &StandardConvCheck::set_minimum_defect,
+		.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
 				"", "Minimum Defect")
-		.add_method("set_reduction|interactive=false", &StandardConvCheck::set_reduction,
+		.add_method("set_reduction", &StandardConvCheck::set_reduction,
 				"", "Reduction")
-		.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
+		.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
 				"", "Verbose")
-		.add_method("defect|interactive=false", &StandardConvCheck::defect, "defect", "", "returns the current defect")
-		.add_method("step|interactive=false", &StandardConvCheck::step, "step", "", "returns the current number of steps")
-		.add_method("reduction|interactive=false", &StandardConvCheck::reduction, "reduction", "", "returns the current relative reduction")
-		.add_method("iteration_ended|interactive=false", &StandardConvCheck::iteration_ended)
-		.add_method("previous_defect|interactive=false", &StandardConvCheck::previous_defect);
+		.add_method("defect", &StandardConvCheck::defect, "defect", "", "returns the current defect")
+		.add_method("step", &StandardConvCheck::step, "step", "", "returns the current number of steps")
+		.add_method("reduction", &StandardConvCheck::reduction, "reduction", "", "returns the current relative reduction")
+		.add_method("iteration_ended", &StandardConvCheck::iteration_ended)
+		.add_method("previous_defect", &StandardConvCheck::previous_defect);
 
 // IPositionProvider (abstract base class)
 	{

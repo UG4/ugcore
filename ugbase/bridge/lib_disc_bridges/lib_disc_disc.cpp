@@ -140,25 +140,25 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		string name = string("DensityDrivenFlow").append(dimSuffix);
 		reg.add_class_<T2, TBase >(name, grp)
 			.add_constructor()
-			.add_method("set_upwind|interactive=false", &T2::set_upwind,
+			.add_method("set_upwind", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
-			.add_method("set_boussinesq_transport|interactive=false", &T2::set_boussinesq_transport,
+			.add_method("set_boussinesq_transport", &T2::set_boussinesq_transport,
 						"", "Boussinesq Transport")
-			.add_method("set_boussinesq_flow|interactive=false", &T2::set_boussinesq_flow,
+			.add_method("set_boussinesq_flow", &T2::set_boussinesq_flow,
 						"", "Boussinesq Flow")
-			.add_method("set_porosity|interactive=false", &T2::set_porosity,
+			.add_method("set_porosity", &T2::set_porosity,
 						"", "Porosity")
-			.add_method("set_gravity|interactive=false", &T2::set_gravity,
+			.add_method("set_gravity", &T2::set_gravity,
 						"", "Gravity")
-			.add_method("set_permeability|interactive=false", &T2::set_permeability,
+			.add_method("set_permeability", &T2::set_permeability,
 						"", "Permeability")
-			.add_method("set_viscosity|interactive=false", &T2::set_viscosity,
+			.add_method("set_viscosity", &T2::set_viscosity,
 						"", "Viscosity")
-			.add_method("set_molecular_diffusion|interactive=false", &T2::set_molecular_diffusion,
+			.add_method("set_molecular_diffusion", &T2::set_molecular_diffusion,
 						"", "Molecular Diffusion")
-			.add_method("set_density|interactive=false", &T2::set_density,
+			.add_method("set_density", &T2::set_density,
 						"", "Density")
-			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
+			.add_method("set_consistent_gravity", &T2::set_consistent_gravity,
 						"", "Consistent Gravity")
 			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
 			.add_method("get_brine", &T2::get_brine);

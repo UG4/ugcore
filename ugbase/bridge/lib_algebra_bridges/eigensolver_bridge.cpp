@@ -47,15 +47,15 @@ struct RegisterEigensolverClass
 				.add_constructor()
 				.add_method("add_vector", &T::add_vector,
 							"", "vector")
-				.add_method("set_preconditioner|interactive=false", &T::set_preconditioner,
+				.add_method("set_preconditioner", &T::set_preconditioner,
 							"", "Preconditioner")
-				.add_method("set_linear_operator_A|interactive=false", &T::set_linear_operator_A,
+				.add_method("set_linear_operator_A", &T::set_linear_operator_A,
 							"", "LinearOperatorA")
-				.add_method("set_linear_operator_B|interactive=false", &T::set_linear_operator_B,
+				.add_method("set_linear_operator_B", &T::set_linear_operator_B,
 							"", "LinearOperatorB")
-				.add_method("set_max_iterations|interactive=false", &T::set_max_iterations,
+				.add_method("set_max_iterations", &T::set_max_iterations,
 								"", "precision")
-				.add_method("set_precision|interactive=false", &T::set_precision,
+				.add_method("set_precision", &T::set_precision,
 								"", "precision")
 				.add_method("set_pinvit", &T::set_pinvit, "", "iPINVIT", "1 = preconditioned inverse block iteration, 2 = preconditioned block gradient descent, 3 = LOBPCG")
 				.add_method("apply", &T::apply);

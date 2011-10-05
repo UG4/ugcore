@@ -139,9 +139,9 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		string name = string("ThetaTimeDiscretization").append(algDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 				.add_constructor()
-				.add_method("set_domain_discretization|interactive=false", &T::set_domain_discretization,
+				.add_method("set_domain_discretization", &T::set_domain_discretization,
 							"", "Domain Discretization")
-				.add_method("set_theta|interactive=false", &T::set_theta,
+				.add_method("set_theta", &T::set_theta,
 							"", "Theta (0.0 = Impl; 1.0 = Expl)")
 				.add_method("prepare_step", &T::prepare_step)
 				.add_method("num_prev_steps", &T::num_prev_steps);
@@ -243,9 +243,9 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 //	some functions
 	{
 		//reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>);
-		reg.add_function("MatIdentity", &MatIdentity<vector_type, vector_type, matrix_type>);
-		reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>);
-		reg.add_function("MatScale", &MatScale<vector_type, vector_type, matrix_type>);
+		reg.add_function("MatIdentity", &MatIdentity<vector_type, vector_type, matrix_type>, grp);
+		reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>, grp);
+		reg.add_function("MatScale", &MatScale<vector_type, vector_type, matrix_type>, grp);
 	}
 
 //	ILineSearch
@@ -294,7 +294,6 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}
-
 
 //	add DoFDistributionType
 	bool bReturn = true;

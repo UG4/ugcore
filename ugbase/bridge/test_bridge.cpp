@@ -384,7 +384,7 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 		string grp = groupString.str();
 
 	//	registering hello world
-		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen);
+		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen, grp);
 
 	//	registering add
 		reg.add_function("add", static_cast<int (*)(int, int)>(
@@ -450,15 +450,15 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 			.add_constructor()
 			.add_method("print_mulitple_derived", &MultipleDerived::print_mulitple_derived);
 
-		reg.add_function("SmartMultipleDerivedImpl", SmartMultipleDerivedImpl);
+		reg.add_function("SmartMultipleDerivedImpl", SmartMultipleDerivedImpl, grp);
 
-		reg.add_function("PrintFunctionIntermediate", static_cast<void (*)(SmartPtr<Intermediate1>)>(&PrintFunctionIntermediate));
-//		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base3>))&PrintFunction); // nasty example!
-		reg.add_function("PrintFunction", static_cast<void (*)(SmartPtr<Base2>)>(&PrintFunction));
-		reg.add_function("PrintFunction", static_cast<void (*)(Base&)>(&PrintFunction));
-//		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate1&))&PrintFunctionIntermediate); // nasty example!
-		reg.add_function("PrintFunctionIntermediate", static_cast<void (*)(Intermediate0&)>(&PrintFunctionIntermediate));
-		reg.add_function("PrintFunction", static_cast<void (*)(Base3&)>(&PrintFunction));
+		reg.add_function("PrintFunctionIntermediate", static_cast<void (*)(SmartPtr<Intermediate1>)>(&PrintFunctionIntermediate), grp);
+//		reg.add_function("PrintFunction", (void (*)(SmartPtr<Base3>))&PrintFunction, grp); // nasty example!
+		reg.add_function("PrintFunction", static_cast<void (*)(SmartPtr<Base2>)>(&PrintFunction), grp);
+		reg.add_function("PrintFunction", static_cast<void (*)(Base&)>(&PrintFunction), grp);
+//		reg.add_function("PrintFunctionIntermediate", (void (*)(Intermediate1&))&PrintFunctionIntermediate, grp); // nasty example!
+		reg.add_function("PrintFunctionIntermediate", static_cast<void (*)(Intermediate0&)>(&PrintFunctionIntermediate), grp);
+		reg.add_function("PrintFunction", static_cast<void (*)(Base3&)>(&PrintFunction), grp);
 
 		reg.add_class_<ConstClass>("ConstClass", grp)
 			.add_constructor()
@@ -485,7 +485,7 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 			.add_function("StdStringTest", StdStringTest, grp)
 			.add_function("TestPageContainer", TestPageContainer, grp);
 
-		reg.add_function("PostRegisterTest", &PostRegisterTest);
+		reg.add_function("PostRegisterTest", &PostRegisterTest, grp);
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered method takes an argument of an unregistered type.

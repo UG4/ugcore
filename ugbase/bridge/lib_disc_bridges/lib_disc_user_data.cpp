@@ -580,7 +580,7 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		string name = string("ConstUserNumber").append(dimSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
-			.add_method("set | interactive=false", &T::set, "", "MyNumber || invokeOnChange=true")
+			.add_method("set", &T::set, "", "MyNumber || invokeOnChange=true")
 			.add_method("print", &T::print);
 		reg.add_class_to_group(name, "ConstUserNumber", dimTag);
 	}

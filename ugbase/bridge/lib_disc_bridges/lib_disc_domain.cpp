@@ -168,11 +168,11 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space)
-			.add_method("add|interactive=false", static_cast<bool (T::*)(IConstraint<TDoFDistribution, TAlgebra>&)>(&T::add),
+			.add_method("add", static_cast<bool (T::*)(IConstraint<TDoFDistribution, TAlgebra>&)>(&T::add),
 						"", "Post Process")
-			.add_method("add|interactive=false", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
+			.add_method("add", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
 						"", "Discretization")
-			.add_method("add|interactive=false", static_cast<bool (T::*)(IDiscretizationItem<TDomain,TDoFDistribution,TAlgebra>&)>(&T::add),
+			.add_method("add", static_cast<bool (T::*)(IDiscretizationItem<TDomain,TDoFDistribution,TAlgebra>&)>(&T::add),
 						"", "DiscItem")
 			.add_method("assemble_linear", static_cast<bool (T::*)(matrix_type&, vector_type&, const vector_type&)>(&T::assemble_linear))
 			.add_method("assemble_solution", static_cast<bool (T::*)(vector_type&)>(&T::assemble_solution))
@@ -187,13 +187,13 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 
 //	Order Cuthill-McKee
 	{
-		reg.add_function("OrderCuthillMcKee", static_cast<bool (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee));
+		reg.add_function("OrderCuthillMcKee", static_cast<bool (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), grp);
 	}
 
 //	Order lexicographically
 	{
 		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> T;
-		reg.add_function("OrderLex", (bool (*)(T&, const char*))&OrderLex);
+		reg.add_function("OrderLex", (bool (*)(T&, const char*))&OrderLex, grp);
 	}
 
 //	DirichletBNDValues
@@ -205,7 +205,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		string name = string("DirichletBND").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
+			.add_method("set_approximation_space", &T::set_approximation_space,
 						"", "Approximation Space")
 			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add),
 						"Success", "Value#Function#Subsets")
@@ -256,27 +256,27 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		string name = string("GeometricMultiGridPreconditioner").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.add_method("set_discretization|interactive=false", &T::set_discretization,
+			.add_method("set_discretization", &T::set_discretization,
 						"", "Discretization")
-			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
+			.add_method("set_approximation_space", &T::set_approximation_space,
 						"", "Approximation Space")
-			.add_method("set_base_level|interactive=false", &T::set_base_level,
+			.add_method("set_base_level", &T::set_base_level,
 						"", "Base Level")
 			.add_method("set_parallel_base_solver", &T::set_parallel_base_solver,
 						"", "Specifies if base solver works in parallel")
-			.add_method("set_base_solver|interactive=false", &T::set_base_solver,
+			.add_method("set_base_solver", &T::set_base_solver,
 						"","Base Solver")
-			.add_method("set_smoother|interactive=false", &T::set_smoother,
+			.add_method("set_smoother", &T::set_smoother,
 						"", "Smoother")
-			.add_method("set_cycle_type|interactive=false", &T::set_cycle_type,
+			.add_method("set_cycle_type", &T::set_cycle_type,
 						"", "Cycle Type")
-			.add_method("set_num_presmooth|interactive=false", &T::set_num_presmooth,
+			.add_method("set_num_presmooth", &T::set_num_presmooth,
 						"", "Number PreSmooth Steps")
-			.add_method("set_num_postsmooth|interactive=false", &T::set_num_postsmooth,
+			.add_method("set_num_postsmooth", &T::set_num_postsmooth,
 						"", "Number PostSmooth Steps")
-			.add_method("set_prolongation|interactive=false", &T::set_prolongation_operator,
+			.add_method("set_prolongation", &T::set_prolongation_operator,
 						"", "Prolongation")
-			.add_method("set_projection|interactive=false", &T::set_projection_operator,
+			.add_method("set_projection", &T::set_projection_operator,
 						"", "Projection")
 			.add_method("set_debug", &T::set_debug);
 		reg.add_class_to_group(name, "GeometricMultiGridPreconditioner", dimAlgDDTag);
