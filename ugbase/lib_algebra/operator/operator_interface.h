@@ -18,15 +18,15 @@ namespace ug{
 
 /// describes a mapping X->Y
 /**
- * This class is the base class for all mappings between to spaces. The domain
+ * This class is the base class for all mappings between two spaces. The domain
  * space and the codomain space are passed as template parameters. In particular,
  * the mapping can be nonlinear. For linear (or linearized) mappings see
  * ILinearizedOperator. The basic usage of this class is to provide the
  * computation of:
  *
- * 		d := N(u)
+ * 		d := N(u),
  *
- * where, d is from the codomain space, u a function of the domain space and
+ * where d is from the codomain space, u a function of the domain space and
  * N() is a (nonlinear-) mapping.
  *
  * This application is splitted into three methods, that have to be called
@@ -112,14 +112,14 @@ class IOperator
 
 /// describes a linear mapping X->Y
 /**
- * This class is the base class for all linear mappings between to spaces.
+ * This class is the base class for all linear mappings between two spaces.
  * The domain space and the codomain space are passed as template parameters.
  * The mapping must be linear. For nonlinear mappings see IOperator. The basic
  * usage of this class is to provide the computation of:
  *
- * 		f := L*u,    (resp.  d := J(u) * c in iterative schemes)
+ * 		f := L*u,    (resp.  d := J(u) * c in iterative schemes),
  *
- * where, f (resp. d) is from the codomain space, u (resp. c) a function of
+ * where f (resp. d) is from the codomain space, u (resp. c) a function of
  * the domain space and L is a linear mapping (resp. J(u) a linearized mapping)
  *
  * This application is splitted into two steps, that have to be called in the
@@ -128,7 +128,7 @@ class IOperator
  * 1. init() or init(u):
  * 		Theses methods initialize the operator for application. One of these
  * 		methods has to be called once before one of the other two methods can be
- * 		invoked. There is no need to init the operatpr more than once, but
+ * 		invoked. There is no need to init the operator more than once, but
  * 		sometimes - due to parameter change - this is desirable and can be done.
  *
  * 2. apply() or apply_sub():
