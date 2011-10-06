@@ -132,27 +132,6 @@ function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
 	return elemDisc
 end
 
--- create Geometric Multigrid
-function util.CreateGeometricMultiGrid(approxSpace)
-	local gmg = GeometricMultiGridPreconditioner()
-	gmg:set_approximation_space(approxSpace)
-	return gmg
-end
-
--- create Prolongation / Restriction
-function util.CreateP1Prolongation(approxSpace)
-	local transfer = P1ProlongationOperator()
-	transfer:set_approximation_space(approxSpace)
-	return transfer
-end
-
--- create Projection
-function util.CreateP1Projection(approxSpace)
-	local project = P1ProjectionOperator()
-	project:set_approximation_space(approxSpace)
-	return project
-end
-
 --------------------------------------------------------------------------------
 -- User Data utils
 --------------------------------------------------------------------------------

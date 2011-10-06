@@ -228,59 +228,51 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 
 //	ProlongationOperator
 	{
-		typedef P1ProlongationOperator<approximation_space_type, TAlgebra> T;
+		typedef P1Prolongation<approximation_space_type, TAlgebra> T;
 		typedef IProlongationOperator<vector_type, vector_type> TBase;
-		string name = string("P1ProlongationOperator").append(dimAlgDDSuffix);
+		string name = string("P1Prolongation").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
 			.add_method("set_approximation_space", &T::set_approximation_space)
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("set_dirichlet_post_process", &T::set_dirichlet_post_process);
-		reg.add_class_to_group(name, "P1ProlongationOperator", dimAlgDDTag);
+		reg.add_class_to_group(name, "P1Prolongation", dimAlgDDTag);
 	}
 
 //	ProjectionOperator
 	{
-		typedef P1ProjectionOperator<approximation_space_type, TAlgebra> T;
+		typedef P1Projection<approximation_space_type, TAlgebra> T;
 		typedef IProjectionOperator<vector_type, vector_type> TBase;
-		string name = string("P1ProjectionOperator").append(dimAlgDDSuffix);
+		string name = string("P1Projection").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
 			.add_method("set_approximation_space", &T::set_approximation_space);
-		reg.add_class_to_group(name, "P1ProjectionOperator", dimAlgDDTag);
+		reg.add_class_to_group(name, "P1Projection", dimAlgDDTag);
 	}
 
 //	AssembledMultiGridCycle
 	{
 		typedef AssembledMultiGridCycle<approximation_space_type, TAlgebra> T;
 		typedef ILinearIterator<vector_type, vector_type> TBase;
-		string name = string("GeometricMultiGridPreconditioner").append(dimAlgDDSuffix);
+		string name = string("GeometricMultiGrid").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.add_method("set_discretization", &T::set_discretization,
-						"", "Discretization")
-			.add_method("set_approximation_space", &T::set_approximation_space,
-						"", "Approximation Space")
-			.add_method("set_base_level", &T::set_base_level,
-						"", "Base Level")
-			.add_method("set_parallel_base_solver", &T::set_parallel_base_solver,
-						"", "Specifies if base solver works in parallel")
-			.add_method("set_base_solver", &T::set_base_solver,
-						"","Base Solver")
-			.add_method("set_smoother", &T::set_smoother,
-						"", "Smoother")
-			.add_method("set_cycle_type", &T::set_cycle_type,
-						"", "Cycle Type")
-			.add_method("set_num_presmooth", &T::set_num_presmooth,
-						"", "Number PreSmooth Steps")
-			.add_method("set_num_postsmooth", &T::set_num_postsmooth,
-						"", "Number PostSmooth Steps")
-			.add_method("set_prolongation", &T::set_prolongation_operator,
-						"", "Prolongation")
-			.add_method("set_projection", &T::set_projection_operator,
-						"", "Projection")
+			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
+			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
+			.add_method("set_approximation_space", &T::set_approximation_space,"", "Approximation Space")
+			.add_method("set_base_level", &T::set_base_level, "", "Base Level")
+			.add_method("set_parallel_base_solver", &T::set_parallel_base_solver,"", "Specifies if base solver works in parallel")
+			.add_method("set_base_solver", &T::set_base_solver,"","Base Solver")
+			.add_method("set_smoother", &T::set_smoother,"", "Smoother")
+			.add_method("set_cycle_type", &T::set_cycle_type,"", "Cycle Type")
+			.add_method("set_num_presmooth", &T::set_num_presmooth,"", "Number PreSmooth Steps")
+			.add_method("set_num_postsmooth", &T::set_num_postsmooth,"", "Number PostSmooth Steps")
+			.add_method("set_prolongation", &T::set_prolongation_operator,"", "Prolongation")
+			.add_method("set_projection", &T::set_projection_operator,"", "Projection")
 			.add_method("set_debug", &T::set_debug);
-		reg.add_class_to_group(name, "GeometricMultiGridPreconditioner", dimAlgDDTag);
+		reg.add_class_to_group(name, "GeometricMultiGrid", dimAlgDDTag);
 	}
 
 //	VTK Output

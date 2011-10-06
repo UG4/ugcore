@@ -157,7 +157,7 @@ domainDisc:set_approximation_space(approxSpace)
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
 
-	gmg = util.CreateGeometricMultiGridPreconditioner(approxSpace)
+	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)

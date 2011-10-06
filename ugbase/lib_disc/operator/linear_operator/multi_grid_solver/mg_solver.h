@@ -99,6 +99,18 @@ class AssembledMultiGridCycle :
 			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{};
 
+	/// constructor setting approximation space
+		AssembledMultiGridCycle(approximation_space_type& approxSpace) :
+			m_pAss(NULL), m_pApproxSpace(&approxSpace),
+			m_topLev(0), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
+			m_numPreSmooth(1), m_numPostSmooth(1),
+			m_bAdaptive(true),
+			m_pSmootherPrototype(NULL),
+			m_pProjectionPrototype(NULL), m_pProlongationPrototype(NULL),
+			m_pBaseSolver(NULL),
+			m_pDebugWriter(NULL), m_dbgIterCnt(0)
+		{};
+
 	///////////////////////////////////////////////////////////////////////////
 	//	Setup
 	///////////////////////////////////////////////////////////////////////////

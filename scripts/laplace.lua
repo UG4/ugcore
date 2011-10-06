@@ -386,12 +386,12 @@ ilut = ILUT()
 	base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
-	transfer = util.CreateP1Prolongation(approxSpace)
+	transfer = P1Prolongation(approxSpace)
 	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = util.CreateP1Projection(approxSpace)
+	projection = P1Projection(approxSpace)
 	
 	-- Geometric Multi Grid
-	gmg = util.CreateGeometricMultiGrid(approxSpace)
+	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)

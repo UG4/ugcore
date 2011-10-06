@@ -207,14 +207,12 @@ base = LinearSolver()
 base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
 
-transfer = P1ProlongationOperator2d()
-transfer:set_approximation_space(approxSpace)
+transfer = P1ProlongationOperator(approxSpace)
 transfer:set_dirichlet_post_process(dirichletBND)
 
-projection = P1ProjectionOperator2d()
-projection:set_approximation_space(approxSpace)
+projection = P1ProjectionOperator(approxSpace)
 
-gmg = util.CreateGeometricMultiGridPreconditioner(approxSpace)
+gmg = GeometricMultiGrid(approxSpace)
 gmg:set_discretization(domainDisc)
 gmg:set_surface_level(numRefs)
 gmg:set_base_level(0)

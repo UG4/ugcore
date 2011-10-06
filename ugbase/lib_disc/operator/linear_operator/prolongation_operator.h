@@ -195,7 +195,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 
 template <typename TApproximationSpace, typename TAlgebra>
-class P1ProlongationOperator :
+class P1Prolongation :
 	virtual public IProlongationOperator<	typename TAlgebra::vector_type,
 											typename TAlgebra::vector_type>
 {
@@ -217,8 +217,15 @@ class P1ProlongationOperator :
 
 	public:
 		// Transfer Operator acts on level -> level + 1
-		P1ProlongationOperator() :
+		P1Prolongation() :
 			m_pApproxSpace(NULL), m_fineLevel(0), m_coarseLevel(0),
+			m_bInit(false), m_dampRes(1.0)
+		{
+			m_vPostProcess.clear();
+		};
+
+		P1Prolongation(approximation_space_type& approxSpace) :
+			m_pApproxSpace(&approxSpace), m_fineLevel(0), m_coarseLevel(0),
 			m_bInit(false), m_dampRes(1.0)
 		{
 			m_vPostProcess.clear();
@@ -250,7 +257,7 @@ class P1ProlongationOperator :
 			m_coarseLevel = coarseLevel;
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::set_levels':"
+				UG_LOG("ERROR in 'P1Prolongation::set_levels':"
 						" Can only project between successive level.\n");
 				return false;
 			}
@@ -267,14 +274,14 @@ class P1ProlongationOperator :
 		{
 			if(m_pApproxSpace == NULL)
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::init':"
+				UG_LOG("ERROR in 'P1Prolongation::init':"
 						"Approximation Space not set. Cannot init Projection.\n");
 				return false;
 			}
 
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::init':"
+				UG_LOG("ERROR in 'P1Prolongation::init':"
 						" Can only project between successiv level.\n");
 				return false;
 			}
@@ -284,7 +291,7 @@ class P1ProlongationOperator :
 			if(!AssembleVertexProlongation<approximation_space_type, algebra_type>
 				(m_matrix, *m_pApproxSpace, m_coarseLevel, m_fineLevel, m_vIsRestricted))
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::init':"
+				UG_LOG("ERROR in 'P1Prolongation::init':"
 						"Cannot assemble interpolation matrix.\n");
 				return false;
 			}
@@ -304,7 +311,7 @@ class P1ProlongationOperator :
 		//	Check, that operator is initiallized
 			if(!m_bInit)
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::apply':"
+				UG_LOG("ERROR in 'P1Prolongation::apply':"
 						" Operator not initialized.\n");
 				return false;
 			}
@@ -318,7 +325,7 @@ class P1ProlongationOperator :
 		//	Apply Matrix
 			if(!m_matrix.apply(uFineOut, uCoarseIn))
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::apply': "
+				UG_LOG("ERROR in 'P1Prolongation::apply': "
 						"Cannot apply matrix. "
 #ifdef UG_PARALLEL
 						"(Type uCoarse = " <<uCoarseIn.get_storage_mask() <<".\n");
@@ -336,7 +343,7 @@ class P1ProlongationOperator :
 						m_pApproxSpace->get_level_dof_distribution(m_fineLevel);
 				if(m_vPostProcess[i]->adjust_defect(uFineOut, uFineOut, dofDistr) != true)
 				{
-					UG_LOG("ERROR in 'P1ProlongationOperator::apply': "
+					UG_LOG("ERROR in 'P1Prolongation::apply': "
 							"Error while setting dirichlet defect nr " << i << " to zero.\n");
 					return false;
 				}
@@ -352,7 +359,7 @@ class P1ProlongationOperator :
 		//	Check, that operator is initiallized
 			if(!m_bInit)
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::apply_transposed':"
+				UG_LOG("ERROR in 'P1Prolongation::apply_transposed':"
 						"Operator not initialized.\n");
 				return false;
 			}
@@ -368,7 +375,7 @@ class P1ProlongationOperator :
 		//	Apply transposed matrix
 			if(!m_matrix.apply_transposed(uTmp, uFineIn))
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::apply_transposed':"
+				UG_LOG("ERROR in 'P1Prolongation::apply_transposed':"
 						" Cannot apply transposed matrix.\n");
 				return false;
 			}
@@ -410,7 +417,7 @@ class P1ProlongationOperator :
 
 		virtual IProlongationOperator<vector_type, vector_type>* clone()
 		{
-			P1ProlongationOperator* op = new P1ProlongationOperator;
+			P1Prolongation* op = new P1Prolongation;
 			op->set_approximation_space(*m_pApproxSpace);
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 				op->set_dirichlet_post_process(*m_vPostProcess[i]);
@@ -418,7 +425,7 @@ class P1ProlongationOperator :
 			return op;
 		}
 
-		~P1ProlongationOperator()
+		~P1Prolongation()
 		{
 		}
 

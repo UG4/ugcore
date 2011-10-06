@@ -110,7 +110,7 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
 
 
 template <typename TApproximationSpace, typename TAlgebra>
-class P1ProjectionOperator :
+class P1Projection :
 	virtual public IProjectionOperator<	typename TAlgebra::vector_type,
 										typename TAlgebra::vector_type>
 {
@@ -132,8 +132,13 @@ class P1ProjectionOperator :
 
 	public:
 	//	Constructor
-		P1ProjectionOperator() :
+		P1Projection() :
 			m_pApproxSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
+		{}
+
+	//	Constructor
+		P1Projection(approximation_space_type& approxSpace) :
+			m_pApproxSpace(&approxSpace), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
 		{}
 
 	//	Set Approximation Space
@@ -149,7 +154,7 @@ class P1ProjectionOperator :
 			m_coarseLevel = coarseLevel;
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in P1ProjectionOperator::set_levels:"
+				UG_LOG("ERROR in P1Projection::set_levels:"
 						" Can only project between successiv level.\n");
 				return false;
 			}
@@ -162,14 +167,14 @@ class P1ProjectionOperator :
 		{
 			if(m_pApproxSpace == NULL)
 			{
-				UG_LOG("ERROR in 'P1ProjectionOperator::init':"
+				UG_LOG("ERROR in 'P1Projection::init':"
 						" Approximation Space not set. Cannot init Projection.\n");
 				return false;
 			}
 
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in P1ProjectionOperator::init:"
+				UG_LOG("ERROR in P1Projection::init:"
 						" Can only project between successive level.\n");
 				return false;
 			}
@@ -219,7 +224,7 @@ class P1ProjectionOperator :
 		//	Apply matrix
 			if(!m_matrix.apply(uCoarseOut, uFineIn))
 			{
-				UG_LOG("ERROR in 'P1ProjectionOperator::apply':"
+				UG_LOG("ERROR in 'P1Projection::apply':"
 						" Cannot apply matrix.\n");
 				return false;
 			}
@@ -249,7 +254,7 @@ class P1ProjectionOperator :
 		//	Apply matrix
 			if(!m_matrix.apply_transposed(uFineOut, uCoarseIn))
 			{
-				UG_LOG("ERROR in 'P1ProjectionOperator::apply_transposed':"
+				UG_LOG("ERROR in 'P1Projection::apply_transposed':"
 						" Cannot apply matrix.\n");
 				return false;
 			}
@@ -266,13 +271,13 @@ class P1ProjectionOperator :
 		}
 
 	//	Destructor
-		~P1ProjectionOperator()
+		~P1Projection()
 		{
 		}
 
 		virtual IProjectionOperator<vector_type, vector_type>* clone()
 		{
-			P1ProjectionOperator* op = new P1ProjectionOperator;
+			P1Projection* op = new P1Projection;
 			op->set_approximation_space(*m_pApproxSpace);
 			return op;
 		}
