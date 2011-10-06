@@ -1,12 +1,14 @@
 /*
- * algebra_types.h
+ * cpu_algebra_types.h
  *
  *  Created on: 01.04.2011
  *      Author: mrupp
  */
 
-#ifndef __H__LIB_ALGEBRA__ALGEBRA_TYPES__
-#define __H__LIB_ALGEBRA__ALGEBRA_TYPES__
+#ifndef __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__
+#define __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__
+
+#include "algebra_type.h"
 
 // vector and sparse_matrix
 #include "cpu_algebra/vector.h"
@@ -18,20 +20,10 @@
 	#include "parallelization/parallel_matrix.h"
 #endif
 
-#include "algebra_selector.h"
-
 namespace ug{
 
-/**
- * \brief Algebra Library
- *
- *
- * \defgroup lib_algebra lib_algebra
- */
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-//   Algebra Types
-////////////////////////////////////////////////////////////////////////////////
+//   CPU Algebra
 ////////////////////////////////////////////////////////////////////////////////
 
 /*  Define different algebra types.
@@ -91,28 +83,6 @@ struct CPUVariableBlockAlgebra
 	static const int blockSize = AlgebraType::VariableBlockSize;
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// AlgebraEnum to Algebra Class Type
-////////////////////////////////////////////////////////////////////////////////
-
-template<enum_AlgebraType type>
-class AlgebraEnumToType;
-
-template <>
-class AlgebraEnumToType<eCPUAlgebra> : public CPUAlgebra { };
-
-template <>
-class AlgebraEnumToType<eCPUBlockAlgebra2x2> : public CPUBlockAlgebra<2> { };
-
-template <>
-class AlgebraEnumToType<eCPUBlockAlgebra3x3> : public CPUBlockAlgebra<3> { };
-
-template <>
-class AlgebraEnumToType<eCPUBlockAlgebra4x4> : public CPUBlockAlgebra<4> { };
-
-template <>
-class AlgebraEnumToType<eCPUVariableBlockAlgebra> : public CPUVariableBlockAlgebra { };
-
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__ALGEBRA_TYPES__ */
+#endif /* __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__ */

@@ -15,7 +15,10 @@
 
 #ifndef __H__UG__SMALL_ALGEBRA__DOUBLE__
 #define __H__UG__SMALL_ALGEBRA__DOUBLE__
+
 #include "blocks.h"
+#include "common/common.h"
+
 namespace ug{
 
 

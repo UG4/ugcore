@@ -33,7 +33,7 @@ print("    grid       = " .. gridName)
 print("    numRefs    = " .. numRefs)
 
 -- choose algebra
-InitUG(dim, CPUAlgebraSelector(), "GEN");
+InitUG(dim, AlgebraType("CPU", 1), "GEN");
 	
 -- Create, Load, Refine and Distribute Domain
 neededSubsets = {"Inner", "Boundary"}

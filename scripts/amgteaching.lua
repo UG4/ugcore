@@ -76,7 +76,7 @@ print("    ilu-beta = " .. ilubeta)
 --------------------------------------------------------------------------------
 
 -- choose dimension and algebra
-InitUG(dim, CPUAlgebraSelector());
+InitUG(dim, AlgebraType("CPU", 1));
 
 --------------------------------
 -- User Data Functions 2d (begin)

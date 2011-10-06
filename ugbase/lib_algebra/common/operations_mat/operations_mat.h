@@ -8,6 +8,8 @@
 #ifndef __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__
 #define __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__
 
+#include "common/common.h"
+
 namespace ug
 {
 

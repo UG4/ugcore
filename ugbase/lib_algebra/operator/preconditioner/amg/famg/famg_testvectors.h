@@ -8,6 +8,7 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
+#include "common/common.h"
 
 #ifndef __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_TESTVECTORS_H__
 #define __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_TESTVECTORS_H__

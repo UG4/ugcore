@@ -17,7 +17,7 @@ ug_load_script("ug_util.lua")
 dim = 2
 
 -- choose dimension and algebra
-InitUG(dim, CPUAlgebraSelector());
+InitUG(dim, AlgebraType("CPU", 1));
 
 gridName = "volgrid_b.ugx"
 numRefs = 4

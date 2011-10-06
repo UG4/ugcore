@@ -12,6 +12,7 @@
 #define  __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
 
 #include "sparsematrix.h"
+#include "common/common.h"
 
 namespace ug {
 

@@ -19,7 +19,7 @@ else
 end
 
 -- choose algebra
-InitUG(dim, CPUAlgebraSelector());
+InitUG(dim, AlgebraType("CPU", 1));
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "gitarre/gitarre2d.ugx")

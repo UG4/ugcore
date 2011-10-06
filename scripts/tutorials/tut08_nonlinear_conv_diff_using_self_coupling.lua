@@ -21,7 +21,7 @@ dim = util.GetParamNumber("-dim", 1) -- default dimension is 1.
 -- Since ug supports a bunch of different dimensions and algebra modules 
 -- we will choose a combination here. This should always be the first thing 
 -- you do in an ug-script. The cpu-algebra is fine for now.
-InitUG(dim, CPUAlgebraSelector())
+InitUG(dim, AlgebraType("CPU", 1))
 
 -- We also need a filename for the grid that shall be loaded.
 if 		dim == 1 then gridName = util.GetParam("-grid", "unit_square_01/unit_line_01_edge_2.ugx")

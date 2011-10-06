@@ -42,7 +42,7 @@ print("    numRefs    = " .. numRefs)
 print("    numPreRefs = " .. numPreRefs)
 print("    grid       = " .. gridName)
 
-InitUG(dim, CPUAlgebraSelector());
+InitUG(dim, AlgebraType("CPU", 1));
 
 --------------------------------------------------------------------------------
 -- Domain Setup

@@ -15,8 +15,7 @@
 #include "bridge/bridge.h"
 
 // algebra chooser
-#include "lib_algebra/algebra_selector.h"
-#include "lib_algebra/algebra_types.h"
+#include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
 
 // lib_discretization part
@@ -48,8 +47,6 @@ using namespace std;
 
 namespace ug
 {
-extern enum_AlgebraType g_AlgebraType;
-
 namespace bridge
 {
 

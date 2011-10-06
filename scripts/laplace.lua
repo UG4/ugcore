@@ -61,7 +61,7 @@ print("    distType   = " .. distributionType)
 
 
 -- choose algebra
-InitUG(dim, CPUAlgebraSelector());
+InitUG(dim, AlgebraType("CPU", 1));
 
 
 --------------------------------

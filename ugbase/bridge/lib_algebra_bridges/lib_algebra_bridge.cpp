@@ -461,12 +461,11 @@ static bool RegisterLibAlgebra__Common(Registry& reg, string parentGroup)
 	stringstream groupString; groupString << parentGroup << "/Algebra";
 	string grp = groupString.str();
 
-// 	AlgebraSelector Interface
-	reg.add_class_<	IAlgebraTypeSelector>("IAlgebraTypeSelector", grp);
-	reg.add_class_<	CPUAlgebraSelector, IAlgebraTypeSelector>("CPUAlgebraSelector", grp)
-		.add_constructor()
-		.add_method("set_fixed_blocksize", &CPUAlgebraSelector::set_fixed_blocksize, "", "blocksize")
-		.add_method("set_variable_blocksize", &CPUAlgebraSelector::set_variable_blocksize);
+// 	AlgebraType Interface
+	reg.add_class_<AlgebraType>("AlgebraType", grp)
+		.add_constructor<void (*)(const char*, int)>("Type#Blocksize")
+		.add_constructor<void (*)(const char*)>("Type  (Blocksize=variable)");
+
 
 // 	IConvergenceCheck
 	reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp);

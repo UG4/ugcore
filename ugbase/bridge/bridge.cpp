@@ -3,11 +3,7 @@
 //	y10 m09 d20
 
 #include "bridge.h"
-
-#ifdef UG_ALGEBRA
-	#include "lib_algebra/algebra_selector.h"
-#endif
-
+#include "lib_algebra/algebra_type.h"
 #include "lib_disc/dof_manager/dof_distribution_type.h"
 
 using namespace std;
@@ -16,7 +12,6 @@ namespace ug
 {
 namespace bridge
 {
-
 
 Registry & GetUGRegistry()
 {
@@ -29,40 +24,37 @@ Registry & GetUGRegistry()
 /**	If a class has a tag (e.g. "dim=1d", "dim=2d" or "dim=3d") then it will be set
  * as default - depending on the given tags.
  */
-void InitUG(int dim, const IAlgebraTypeSelector& algebraSel, DofDistributionType ddType)
+void InitUG(int dim, const AlgebraType& algType, DofDistributionType ddType)
 {
-//	get algebra type
-	AlgebraType algType = algebraSel.get_algebra_type();
-
 //	get tag of algebra type
 	std::string algTag = GetAlgebraTag(algType);
 
 //	get dim tag
 	std::string dimTag = GetDomainTag(dim);
 	if(dim < 0 || dim > 3)
-		throw(UGFatalError("ERROR in InitUG: Only dimensions 1, 2, 3 are supported."));
+		UG_THROW_FATAL("ERROR in InitUG: Only dimensions 1, 2, 3 are supported.");
 #ifndef UG_DIM_1
 	if(dim == 1)
-		throw(UGFatalError("ERROR in InitUG: Requested Dimension '1d' is not compiled into binary."));
+		UG_THROW_FATAL("ERROR in InitUG: Requested Dimension '1d' is not compiled into binary.");
 #endif
 #ifndef UG_DIM_2
 	if(dim == 2)
-		throw(UGFatalError("ERROR in InitUG: Requested Dimension '2d' is not compiled into binary."));
+		UG_THROW_FATAL("ERROR in InitUG: Requested Dimension '2d' is not compiled into binary.");
 #endif
 #ifndef UG_DIM_3
 	if(dim == 3)
-		throw(UGFatalError("ERROR in InitUG: Requested Dimension '3d' is not compiled into binary."));
+		UG_THROW_FATAL("ERROR in InitUG: Requested Dimension '3d' is not compiled into binary.");
 #endif
 
 //	get DoFDistribution tag
 	std::string ddTag = GetDoFDistributionTag(ddType);
 #ifndef DOF_P1
 	if(ddType == DDT_P1CONFORM)
-		throw(UGFatalError("ERROR in InitUG: Requested DoFManager 'P1' is not compiled into binary."));
+		UG_THROW_FATAL("ERROR in InitUG: Requested DoFManager 'P1' is not compiled into binary.");
 #endif
 #ifndef DOF_GEN
 	if(ddType == DDT_CONFORM)
-		throw(UGFatalError("ERROR in InitUG: Requested DoFManager 'GEN' is not compiled into binary."));
+		UG_THROW_FATAL("ERROR in InitUG: Requested DoFManager 'GEN' is not compiled into binary.");
 #endif
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
@@ -108,25 +100,25 @@ void InitUG(int dim, const IAlgebraTypeSelector& algebraSel, DofDistributionType
 	}
 
 	UG_LOG("INFO: InitUG successful. Setting is: ");
-	UG_LOG(dimTag << ", " << algTag << ", " << ddTag << "\n");
+	UG_LOG(dimTag << " " << algTag << " " << ddTag << "\n");
 #ifdef UG_PARALLEL
 	UG_LOG("      Parallel Environment: Num Procs="<<pcl::GetNumProcesses()<<"\n");
 #endif
 }
 
 ///	Sets the default classes of class-groups based on a tags using default DoFManager
-void InitUG(int dim, const IAlgebraTypeSelector& algebraSel)
+void InitUG(int dim, const AlgebraType& algType)
 {
 //	use default dof distribution
-	InitUG(dim, algebraSel, DDT_P1CONFORM);
+	InitUG(dim, algType, DDT_P1CONFORM);
 }
 
 ///	Sets the default classes of class-groups based on a tags
-void InitUG(int dim, const IAlgebraTypeSelector& algebraSel, const char* ddType)
+void InitUG(int dim, const AlgebraType& algType, const char* ddType)
 {
 	std::string dd = ddType;
-	if(dd == "P1") {InitUG(dim, algebraSel, DDT_P1CONFORM); return;}
-	if(dd == "GEN")  {InitUG(dim, algebraSel, DDT_CONFORM); return;}
+	if(dd == "P1") {InitUG(dim, algType, DDT_P1CONFORM); return;}
+	if(dd == "GEN")  {InitUG(dim, algType, DDT_CONFORM); return;}
 	UG_LOG("ERROR in 'InitUG': For DofManager choose one within ['P1', 'GEN'].\n");
 	throw(UGFatalError("DoFManager not recognized."));
 }
@@ -187,13 +179,13 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 #endif
 
 #ifdef UG_ALGEBRA
-		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&, const char *)>(&InitUG), "/ug4",
+		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&, const char *)>(&InitUG), "/ug4",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
-		                 	 append("]#Algebra#DoFManager|selection|value=[").
+		                 	 append("]#Algebra Type#DoFManager|selection|value=[").
 		                 	 append(availDofManager.str()).append("]"));
-		reg.add_function("InitUG", static_cast<void (*)(int, const IAlgebraTypeSelector&)>(&InitUG), "/ug4",
+		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
-		                 	 append("]#Algebra"));
+		                 	 append("]#Algebra Type"));
 #endif
 
 	}

@@ -23,6 +23,7 @@
 
 #include "famg.h"
 #include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/common/stl_debug.h"
 #include "../amg_debug_helper.h"
 

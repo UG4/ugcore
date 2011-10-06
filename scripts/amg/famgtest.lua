@@ -18,7 +18,7 @@ else
 end
 
 -- choose dimension and algebra
-InitUG(dim, CPUAlgebraSelector());
+InitUG(dim, AlgebraType("CPU", 1));
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")

@@ -12,7 +12,7 @@
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
 
 #include "math.h"
-
+#include "common/common.h"
 
 #include "../common/template_expressions.h"
 #include "vector.h"

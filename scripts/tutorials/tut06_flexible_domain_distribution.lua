@@ -17,7 +17,7 @@ dim = util.GetParamNumber("-dim", 2)
 -- Since ug supports a bunch of different dimensions and algebra modules 
 -- we will choose a combination here. This should always be the first thing 
 -- you do in an ug-script. The cpu-algebra is fine for now.
-InitUG(dim, CPUAlgebraSelector())
+InitUG(dim, AlgebraType("CPU", 1))
 
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_2x2.ugx")
 outFileNamePrefix = util.GetParam("-o", "distributed_domain_")

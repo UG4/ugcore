@@ -8,7 +8,7 @@
 #include <string>
 #include <sstream>
 #include "registry/registry.h"
-#include "lib_algebra/algebra_selector.h"
+#include "lib_algebra/algebra_type.h"
 #include "lib_disc/dof_manager/dof_distribution_type.h"
 #include "common/ug_config.h"
 
@@ -21,10 +21,10 @@ namespace bridge
 UG_API Registry & GetUGRegistry();
 
 ///	Sets the default classes of class-groups based on a tags using default DoFManager
-void InitUG(int dim, const IAlgebraTypeSelector& algebraSel);
+void InitUG(int dim, const AlgebraType& algebraType);
 
 ///	Sets the default classes of class-groups based on a tags
-void InitUG(int dim, const IAlgebraTypeSelector& algebraSel, const char* ddType);
+void InitUG(int dim, const AlgebraType& algebraType, const char* ddType);
 
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.

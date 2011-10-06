@@ -18,7 +18,7 @@
 #include "feti.h"
 
 // algebra types
-#include "lib_algebra/algebra_types.h"
+#include "lib_algebra/cpu_algebra_types.h"
 
 // additions for profiling
 #include "common/profiler/profiler.h"

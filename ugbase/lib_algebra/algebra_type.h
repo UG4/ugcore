@@ -1,0 +1,65 @@
+/*
+ * algebra_types.h
+ *
+ *  Created on: 01.04.2011
+ *      Author: mrupp
+ */
+
+#ifndef __H__UG__LIB_ALGEBRA__ALGEBRA_TYPE__
+#define __H__UG__LIB_ALGEBRA__ALGEBRA_TYPE__
+
+#include <ostream>
+
+namespace ug{
+
+/**
+ * \brief Algebra Library
+ *
+ *
+ * \defgroup lib_algebra lib_algebra
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//   Algebra Types
+////////////////////////////////////////////////////////////////////////////////
+
+/// class describing the type of an algebra
+class AlgebraType
+{
+	public:
+	///	types of algebra
+		enum Type
+		{
+			CPU = 0,
+		};
+
+	///	indicating variable block size
+		enum {VariableBlockSize = -1};
+
+	public:
+	///	constructor for fix blocksize
+		AlgebraType(Type type, int blockSize);
+
+	///	constructor for fix blocksize
+		AlgebraType(const char* type, int blockSize);
+
+	///	constructor for variable block size
+		AlgebraType(const char* type);
+
+	///	returns the type
+		int type() const {return m_type;}
+
+	///	returns the blocksize
+		int blocksize() const {return m_blockSize;}
+
+	protected:
+		int m_type;
+		int m_blockSize;
+};
+
+/// writes the Identifier to the output stream
+std::ostream& operator<<(std::ostream& out,	const AlgebraType& v);
+
+} // end namespace ug
+
+#endif /* __H__UG__LIB_ALGEBRA__ALGEBRA_TYPE__ */

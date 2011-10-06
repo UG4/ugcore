@@ -11,6 +11,7 @@
 
 #include "storage.h"
 #include "variable_array.h"
+#include "common/common.h"
 #include <algorithm> // for min
 #include <cstring>
 
