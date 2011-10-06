@@ -73,13 +73,13 @@ function ExactSolution3d(x, y, z, t)
 end
 
 --diffusionMatrix = LuaUserMatrix("DiffTensor"..dim.."d")
-diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
+diffusionMatrix = ConstUserMatrix(1.0)
 
 rhs = LuaUserNumber("Rhs"..dim.."d")
---rhs = util.CreateConstUserNumber(0.0, dim)
+--rhs = ConstUserNumber(0.0)
 
 exactSolution = LuaUserNumber("ExactSolution"..dim.."d")
---exactSolution = util.CreateConstBoundaryNumber(3.2, dim)
+--exactSolution = ConstBoundaryNumber(3.2)
 	
 --------------------------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization

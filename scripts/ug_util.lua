@@ -123,6 +123,15 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
+-- creates FV1NavierStokes
+function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
+	local elemDisc = FV1NavierStokes()	
+	elemDisc:set_approximation_space(approxSpace)
+	elemDisc:set_subsets(subsets)
+	elemDisc:set_functions(functions)
+	return elemDisc
+end
+
 -- create Geometric Multigrid
 function util.CreateGeometricMultiGrid(approxSpace)
 	local gmg = GeometricMultiGridPreconditioner()
@@ -144,12 +153,9 @@ function util.CreateP1Projection(approxSpace)
 	return project
 end
 
--- creates a Const User Matrix using a lua function and returns the Provider
-function util.CreateConstDiagUserMatrix(diagVal, dim)
-	local mat = ConstUserMatrix()
-	mat:set_diag_tensor(diagVal)
-	return mat
-end
+--------------------------------------------------------------------------------
+-- User Data utils
+--------------------------------------------------------------------------------
 
 -- creates a Const User Matrix 2d 
 function util.CreateConstUserMatrix2d(m00, m01, m10, m11)
@@ -160,7 +166,6 @@ function util.CreateConstUserMatrix2d(m00, m01, m10, m11)
 	mat:set_entry(1, 1, m11)	
 	return mat
 end
-
 
 -- creates a Const User Matrix 3d
 function util.CreateConstUserMatrix3d(m00, m01, m02, m10, m11, m12, m20, m21, m22)
@@ -175,13 +180,6 @@ function util.CreateConstUserMatrix3d(m00, m01, m02, m10, m11, m12, m20, m21, m2
 	mat:set_entry(2, 1, m21)
 	mat:set_entry(2, 2, m22)	
 	return mat
-end
-
--- creates a Const User Vector using a lua function and returns the Provider
-function util.CreateConstUserVector(val, dim)
-	local vec = ConstUserVector()
-	vec:set_all_entries(val)
-	return vec
 end
 
 -- creates a Const User Vector 2d
@@ -200,30 +198,6 @@ function util.CreateConstUserVector3d(v0, v1, v2)
 	vec:set_entry(2, v2)
 	return vec
 end
-
--- creates a Const User Number using a lua function and returns the Provider
-function util.CreateConstUserNumber(val, dim)
-	local number = ConstUserNumber()
-	number:set(val)
-	return number
-end
-
--- creates a Const Boundary Number using a lua function and returns the Provider
-function util.CreateConstBoundaryNumber(val, dim)
-	local number = ConstBoundaryNumber()
-	number:set(val)
-	return number
-end
-
--- creates FV1NavierStokes
-function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
-	local elemDisc = FV1NavierStokes()	
-	elemDisc:set_approximation_space(approxSpace)
-	elemDisc:set_subsets(subsets)
-	elemDisc:set_functions(functions)
-	return elemDisc
-end
-
 
 --------------------------------------------------------------------------------
 -- Subset utils

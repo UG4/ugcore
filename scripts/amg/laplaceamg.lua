@@ -103,27 +103,27 @@ approxSpace:init()
 
 -- Diffusion Tensor setup
 diffusionMatrix = LuaUserMatrix("ourDiffTensor")
---diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
+--diffusionMatrix = ConstUserMatrix(1.0)
 
 -- Velocity Field setup
 velocityField = LuaUserVector("ourVelocityField")
---velocityField = util.CreateConstUserVector(0.0, dim)
+--velocityField = ConstUserVector(0.0)
 
 -- Reaction setup
 reaction = LuaUserNumber("ourReaction")
---reaction = util.CreateConstUserNumber(0.0, dim)
+--reaction = ConstUserNumber(0.0)
 
 -- rhs setup
 rhs = LuaUserNumber("ourRhs")
---rhs = util.CreateConstUserNumber(0.0, dim)
+--rhs = ConstUserNumber(0.0)
 
 -- neumann setup
 neumann = LuaBoundaryNumber("ourNeumannBnd")
---neumann = util.CreateConstUserNumber(0.0, dim)
+--neumann = ConstUserNumber(0.0)
 
 -- dirichlet setup
 dirichlet = LuaBoundaryNumber("ourDirichletBnd")
---dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
+--dirichlet = ConstBoundaryNumber(0.0)
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization

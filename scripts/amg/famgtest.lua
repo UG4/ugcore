@@ -199,7 +199,7 @@ else
 end
 
 
--- diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
+-- diffusionMatrix = ConstUserMatrix(1.0)
 
 -- Velocity Field setup
 velocityField = LuaUserVector("ourVelocityField"..dim.."d")

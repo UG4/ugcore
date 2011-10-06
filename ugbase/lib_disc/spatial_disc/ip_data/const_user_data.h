@@ -50,6 +50,9 @@ class ConstUserNumber
 	///	creates empty user number
 		ConstUserNumber() : func_type(boost::ref(*this)) {set(0.0);}
 
+	///	creates user number with value
+		ConstUserNumber(number val) : func_type(boost::ref(*this)) {set(val);}
+
 	///	set constant value
 		void set(number val) {m_Number = val;}
 
@@ -100,6 +103,9 @@ class ConstUserVector
 	public:
 	///	Constructor
 		ConstUserVector() : func_type(boost::ref(*this)) {set_all_entries(0.0);}
+
+	///	creates user number with value
+		ConstUserVector(number val) : func_type(boost::ref(*this)) {set_all_entries(val);}
 
 	///	set all vector entries
 		void set_all_entries(number val) { m_Vector = val;}
@@ -154,6 +160,9 @@ class ConstUserMatrix
 	public:
 	///	Constructor
 		ConstUserMatrix() : func_type(boost::ref(*this)) {set_diag_tensor(1.0);}
+
+	///	Constructor setting the diagonal
+		ConstUserMatrix(number val) : func_type(boost::ref(*this)) {set_diag_tensor(val);}
 
 	///	set diagonal of matrix to a vector
 		void set_diag_tensor(number val)
@@ -216,6 +225,9 @@ class ConstBoundaryNumber
 	public:
 	///	Constructor
 		ConstBoundaryNumber() : func_type(boost::ref(*this)) {set(0.0);}
+
+	///	Constructor
+		ConstBoundaryNumber(number val) : func_type(boost::ref(*this)) {set(val);}
 
 	///	set value
 		void set(number val) {m_Number = val;}

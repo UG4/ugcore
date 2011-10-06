@@ -150,15 +150,15 @@ print ("Setting up Assembling")
 
 -- rhs setup
 	rhs = LuaUserNumber("ourRhs2d")
-	--rhs = util.CreateConstUserNumber(0.0, dim)
+	--rhs = ConstUserNumber(0.0)
 
 -- neumann setup
 	neumann = LuaBoundaryNumber("ourNeumannBnd2d")
-	--neumann = util.CreateConstUserNumber(0.0, dim)
+	--neumann = ConstUserNumber(0.0)
 
 -- dirichlet setup
 	dirichlet = LuaBoundaryNumber("ourDirichletBnd2d")
-	--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
+	--dirichlet = ConstBoundaryNumber(3.2)
 	
 -- dirichlet setup
 	membraneDirichlet = LuaBoundaryNumber("membraneDirichletBnd2d")

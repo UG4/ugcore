@@ -580,7 +580,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		string name = string("ConstUserNumber").append(dimSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
-			.add_method("set", &T::set, "", "MyNumber || invokeOnChange=true")
+			.template add_constructor<void (*)(number)>("Value")
+			.add_method("set", &T::set, "", "Value")
 			.add_method("print", &T::print);
 		reg.add_class_to_group(name, "ConstUserNumber", dimTag);
 	}
@@ -593,6 +594,7 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		string name = string("ConstUserVector").append(dimSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(number)>("Values")
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
 			.add_method("print", &T::print);
@@ -607,6 +609,7 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		string name = string("ConstUserMatrix").append(dimSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(number)>("Diagonal Value")
 			.add_method("set_diag_tensor", &T::set_diag_tensor)
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
@@ -621,6 +624,7 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		string name = string("ConstBoundaryNumber").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(number)>("Value")
 			.add_method("set", &T::set)
 			.add_method("print", &T::print);
 		reg.add_class_to_group(name, "ConstBoundaryNumber", dimTag);

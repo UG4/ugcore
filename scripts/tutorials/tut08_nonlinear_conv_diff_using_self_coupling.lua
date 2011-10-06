@@ -172,7 +172,7 @@ luaDiffTensorCallback = LuaUserMatrix("constDiffTensor" .. dim .. "d")
 -- data when possible. We can create a unit-tensor as follows. Note, that this 
 -- object can again be passed to the element discretization since it satisfies
 -- the same interface as the lua-callback.
-constDiffTensor = util.CreateConstDiagUserMatrix(1.0, dim)
+constDiffTensor = ConstUserMatrix(1.0)
 
 -- A third possibility is to use a DataLinker. A Linker simply combines data
 -- to some new data and can be used e.g. to combine constant data and data

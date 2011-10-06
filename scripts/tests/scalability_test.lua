@@ -385,7 +385,7 @@ function ourDirichletBnd3d(x, y, z, t)
 end
 
 -- We need a constant Identity matrix for the Diffusion.
-diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
+diffusionMatrix = ConstUserMatrix(1.0)
 
 -- The right hand side is given by a lua function
 rhs = LuaUserNumber("ourRhs"..dim.."d")
