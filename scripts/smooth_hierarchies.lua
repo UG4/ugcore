@@ -99,13 +99,13 @@ domainDisc:set_approximation_space(approxSpace)
 	-------------------------------------------
 	
 	-- Diffusion Tensor setup
-		diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor", dim)
+		diffusionMatrix = LuaUserMatrix("ourDiffTensor")
 	-- Velocity Field setup
-		velocityField = util.CreateLuaUserVector("ourVelocityField", dim)
+		velocityField = LuaUserVector("ourVelocityField")
 	-- Reaction setup
-		reaction = util.CreateLuaUserNumber("ourReaction", dim)
+		reaction = LuaUserNumber("ourReaction")
 	-- rhs setup
-		rhs = util.CreateLuaUserNumber("ourRhs", dim)
+		rhs = LuaUserNumber("ourRhs")
 
 	print("creating element discretization...")
 	-- create Finite-Volume Element Discretization for Convection Diffusion Equation

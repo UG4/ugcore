@@ -87,9 +87,9 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 		tmpBndCBName = "LaplaceDefaults_DirichletBnd" .. dim .. "d"
 	end
 
-	local cbDiff = util.CreateLuaUserMatrix(tmpDiffCBName, dim)
-	local cbRhs = util.CreateLuaUserNumber(tmpRhsCBName, dim)
-	local cbBnd = util.CreateLuaBoundaryNumber(tmpBndCBName, dim)
+	local cbDiff = LuaUserMatrix(tmpDiffCBName)
+	local cbRhs = LuaUserNumber(tmpRhsCBName)
+	local cbBnd = LuaBoundaryNumber(tmpBndCBName)
 	
 	
 --	set up the discretization

@@ -164,7 +164,7 @@ end
 
 -- Now we wrap this lua functions into an data-callback, that can be passed to
 -- the element discretization later.
-luaDiffTensorCallback = util.CreateLuaUserMatrix("constDiffTensor" .. dim .. "d", dim)
+luaDiffTensorCallback = LuaUserMatrix("constDiffTensor" .. dim .. "d")
 
 -- We can gain the same effect, by using a constant user matrix implementation,
 -- since we have not used the coordinates at all. Since a hard-coded, constant
@@ -246,7 +246,7 @@ function ourRhs3d(x, y, z, t)
 	return 0.0
 end
 
-rhsCallback = util.CreateLuaUserNumber("ourRhs" .. dim .."d", dim)
+rhsCallback = LuaUserNumber("ourRhs" .. dim .."d")
 
 
 
@@ -311,7 +311,7 @@ function ourDirichletBnd3d(x, y, z, t)
 end
 
 -- ... and wrap it into a lua-callback
-dirichletCallback = util.CreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d", dim)
+dirichletCallback = LuaBoundaryNumber("ourDirichletBnd" .. dim .. "d")
 
 -- lets setup the dirichlet values as explained in the previous tutorials
 dirichletBnd = util.CreateDirichletBoundary(approxSpace)
@@ -415,7 +415,7 @@ function StartValue3d(x, y, z, t)
 end
 
 -- ... and wrap the lua-callback
-LuaStartValue = util.CreateLuaUserNumber("StartValue"..dim.."d", dim)
+LuaStartValue = LuaUserNumber("StartValue"..dim.."d")
 
 -- Now interpolate the function
 InterpolateFunction(LuaStartValue, u, "c", time);

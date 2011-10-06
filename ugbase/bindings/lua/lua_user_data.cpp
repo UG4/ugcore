@@ -119,32 +119,21 @@ class LuaUserData
 
 	public:
 	///	Constructor
-		LuaUserData() : func_type(boost::ref(*this))
+		LuaUserData(const char* luaCallback)
+			: func_type(boost::ref(*this)), m_callbackName(luaCallback)
 		{
+		//	get lua state
 			m_L = ug::script::GetDefaultLuaState();
-			m_callbackRef = LUA_NOREF;
-		}
-
-	///	virtual destructor
-		virtual ~LuaUserData()	{}
-
-	///	sets the Lua function used to compute the data
-	/**
-	 * This function sets the lua callback. The name of the function is
-	 * passed as a string. Make sure, that the function name is defined
-	 * when executing the script.
-	 */
-		void set_lua_callback(const char* luaCallback)
-		{
-		//	store name (string) of callback
-			m_callbackName = luaCallback;
 
 		//	obtain a reference
-			lua_getglobal(m_L, m_callbackName);
+			lua_getglobal(m_L, m_callbackName.c_str());
 
 		//	store reference to lua function
 			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 		}
+
+	///	virtual destructor
+		virtual ~LuaUserData()	{}
 
 	///	evaluates the data at a given point and time
 		void operator() (TData& D, const MathVector<dim>& x, number time = 0.0)
@@ -197,7 +186,7 @@ class LuaUserData
 
 	protected:
 	///	callback name as string
-		const char* m_callbackName;
+		string m_callbackName;
 
 	///	reference to lua function
 		int m_callbackRef;
@@ -224,32 +213,22 @@ class LuaBoundaryData
 
 	public:
 	///	Constructor
-		LuaBoundaryData()  : func_type(boost::ref(*this))
+		LuaBoundaryData(const char* luaCallback)  : func_type(boost::ref(*this))
 		{
 			m_L = ug::script::GetDefaultLuaState();
-			m_callbackRef = LUA_NOREF;
-		}
 
-	///	virtual destructor
-		virtual ~LuaBoundaryData()	{}
-
-	///	sets the Lua function used to compute the data
-	/**
-	 * This function sets the lua callback. The name of the function is
-	 * passed as a string. Make sure, that the function name is defined
-	 * when executing the script.
-	 */
-		void set_lua_callback(const char* luaCallback)
-		{
 		//	store name (string) of callback
 			m_callbackName = luaCallback;
 
 		//	obtain a reference
-			lua_getglobal(m_L, m_callbackName);
+			lua_getglobal(m_L, m_callbackName.c_str());
 
 		//	store reference to lua function
 			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 		}
+
+	///	virtual destructor
+		virtual ~LuaBoundaryData()	{}
 
 	///	evaluates the data at a given point and time
 		bool operator() (TData& D, const MathVector<dim>& x, number time = 0.0)
@@ -295,7 +274,7 @@ class LuaBoundaryData
 
 	protected:
 	///	callback name as string
-		const char* m_callbackName;
+		string m_callbackName;
 
 	///	reference to lua function
 		int m_callbackRef;
@@ -783,8 +762,7 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> TBase2;
 		string name = string("LuaUser").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
-			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
+			.template add_constructor<void (*)(const char*)>("Callback");
 		reg.add_class_to_group(name, string("LuaUser").append(type), dimTag);
 	}
 
@@ -794,8 +772,7 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> TBase;
 		string name = string("LuaBoundary").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
+			.template add_constructor<void (*)(const char*)>("Callback");
 		reg.add_class_to_group(name, string("LuaBoundary").append(type), dimTag);
 	}
 

@@ -187,9 +187,9 @@ approxSpace:init()                               -- fixes the space
 -- whereas we use utilCreateLuaUserNumber if only a number is returned.
 -- For the dirichlet callback we use utilCreateLuaBoundaryNumber, since here
 -- a boolean and a number are returned.
-diffMatrixCallback = util.CreateLuaUserMatrix("ourDiffTensor" .. dim .. "d", dim)
-rhsCallback = util.CreateLuaUserNumber("ourRhs" .. dim .."d", dim)
-dirichletCallback = util.CreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d", dim)
+diffMatrixCallback = LuaUserMatrix("ourDiffTensor" .. dim .. "d")
+rhsCallback = LuaUserNumber("ourRhs" .. dim .."d")
+dirichletCallback = LuaBoundaryNumber("ourDirichletBnd" .. dim .. "d")
 
 -- The element discretization
 -- Here we create a new instance of a convection diffusion equation.

@@ -388,10 +388,10 @@ end
 diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- The right hand side is given by a lua function
-rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
+rhs = LuaUserNumber("ourRhs"..dim.."d")
 
 -- The Dirichlet values are also given by lua values
-dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
 	
 --------------------------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization

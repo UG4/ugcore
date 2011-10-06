@@ -70,7 +70,7 @@ function ourRhs2d(x, y, t)
 end
 
 -- rhs setup
-rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
+rhs = LuaUserNumber("ourRhs"..dim.."d")
 
 function ExactSolution(x, y, t)
 --         delta = 0.0;
@@ -120,7 +120,7 @@ function DirichletBnd2d(x, y, t)
 end
 
 -- dirichlet setup
--- dirichlet = util.CreateLuaBoundaryNumber("Boundary"..dim.."d", dim)
+-- dirichlet = LuaBoundaryNumber("Boundary"..dim.."d")
 	
 --------------------------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -158,16 +158,16 @@ if (setup==0) then
 	lsDisc:set_dirichlet_data();
 end;
 if (setup==1) then
-    solfunctor = util.CreateLuaUserNumber("ExactSolution", dim);
+    solfunctor = LuaUserNumber("ExactSolution");
 	lsDisc:set_dirichlet_data(solfunctor);
 	InterpolateFunction(solfunctor, phiOld, "c", time);
-	vxfunctor = util.CreateLuaUserNumber("vx", dim);
-	vyfunctor = util.CreateLuaUserNumber("vy", dim);
+	vxfunctor = LuaUserNumber("vx");
+	vyfunctor = LuaUserNumber("vy");
 	lsDisc:set_vel_x(vxfunctor);
 	lsDisc:set_vel_y(vyfunctor);
 end;
 if (setup==2) then
-    solfunctor = util.CreateLuaUserNumber("ExactSolution", dim);
+    solfunctor = LuaUserNumber("ExactSolution");
 	lsDisc:set_dirichlet_data(solfunctor);
 --	lsDisc:set_dirichlet_data();
 	InterpolateFunction(solfunctor, phiOld, "c", time);
@@ -182,7 +182,7 @@ if (setup==2) then
     lsDisc:set_vel_y(vy);
 end;
 if (setup==3) then
-    solfunctor = util.CreateLuaUserNumber("ConstantVSolution", dim);
+    solfunctor = LuaUserNumber("ConstantVSolution");
 	lsDisc:set_dirichlet_data(solfunctor);
 	InterpolateFunction(solfunctor, phiOld, "c", time);
 	lsDisc:set_vel_x(1);

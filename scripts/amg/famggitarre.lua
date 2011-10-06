@@ -146,16 +146,16 @@ approxSpace:init()
 -------------------------------------------
 --  Setup User Functions
 -------------------------------------------
-diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)		
+diffusionMatrix = LuaUserMatrix("ourDiffTensor"..dim.."d")		
 
 -- diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-velocityField = util.CreateLuaUserVector("ourVelocityField"..dim.."d", dim)
-reaction = util.CreateLuaUserNumber("ourReaction"..dim.."d", dim)
-rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
-neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
-dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+velocityField = LuaUserVector("ourVelocityField"..dim.."d")
+reaction = LuaUserNumber("ourReaction"..dim.."d")
+rhs = LuaUserNumber("ourRhs"..dim.."d")
+neumann = LuaBoundaryNumber("ourNeumannBnd"..dim.."d")
+dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -268,7 +268,7 @@ if bUseFAMG == 1 then
 		local amgTestvector;
 		amgTestvector = GridFunctionVectorWriter()
 		amgTestvector:set_reference_grid_function(gridfunction)
-		amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
+		amgTestvector:set_user_data(LuaUserNumber(luaCallbackName))
 		return amgTestvector	
 	end
 		

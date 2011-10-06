@@ -102,27 +102,27 @@ approxSpace:init()
 -------------------------------------------
 
 -- Diffusion Tensor setup
-diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor", dim)
+diffusionMatrix = LuaUserMatrix("ourDiffTensor")
 --diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-velocityField = util.CreateLuaUserVector("ourVelocityField", dim)
+velocityField = LuaUserVector("ourVelocityField")
 --velocityField = util.CreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-reaction = util.CreateLuaUserNumber("ourReaction", dim)
+reaction = LuaUserNumber("ourReaction")
 --reaction = util.CreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-rhs = util.CreateLuaUserNumber("ourRhs", dim)
+rhs = LuaUserNumber("ourRhs")
 --rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd", dim)
+neumann = LuaBoundaryNumber("ourNeumannBnd")
 --neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd", dim)
+dirichlet = LuaBoundaryNumber("ourDirichletBnd")
 --dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
 
 -----------------------------------------------------------------

@@ -72,13 +72,13 @@ function ExactSolution3d(x, y, z, t)
 	return x
 end
 
---diffusionMatrix = util.CreateLuaUserMatrix("DiffTensor"..dim.."d", dim)
+--diffusionMatrix = LuaUserMatrix("DiffTensor"..dim.."d")
 diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
-rhs = util.CreateLuaUserNumber("Rhs"..dim.."d", dim)
+rhs = LuaUserNumber("Rhs"..dim.."d")
 --rhs = util.CreateConstUserNumber(0.0, dim)
 
-exactSolution = util.CreateLuaUserNumber("ExactSolution"..dim.."d", dim)
+exactSolution = LuaUserNumber("ExactSolution"..dim.."d")
 --exactSolution = util.CreateConstBoundaryNumber(3.2, dim)
 	
 --------------------------------------------------------------------------------

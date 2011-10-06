@@ -204,28 +204,28 @@ print ("Setting up Assembling")
 -- depending on the dimension we're choosing the appropriate callbacks.
 -- we're using the .. operator to assemble the names (dim = 2 -> "ourDiffTensor2d")
 -- Diffusion Tensor setup
--- diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
+-- diffusionMatrix = LuaUserMatrix("ourDiffTensor"..dim.."d")
 diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
 --diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-velocityField = util.CreateLuaUserVector("ourVelocityField"..dim.."d", dim)
+velocityField = LuaUserVector("ourVelocityField"..dim.."d")
 --velocityField = util.CreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-reaction = util.CreateLuaUserNumber("ourReaction"..dim.."d", dim)
+reaction = LuaUserNumber("ourReaction"..dim.."d")
 --reaction = util.CreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
+rhs = LuaUserNumber("ourRhs"..dim.."d")
 --rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
+neumann = LuaBoundaryNumber("ourNeumannBnd"..dim.."d")
 --neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
 --dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 
 -----------------------------------------------------------------
@@ -344,7 +344,7 @@ if bUseFAMG == 1 then
 			amgTestvector = GridFunctionVectorWriter3d()
 		end
 		amgTestvector:set_reference_grid_function(gridfunction)
-		amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
+		amgTestvector:set_user_data(LuaUserNumber(luaCallbackName))
 		return amgTestvector	
 	end
 	

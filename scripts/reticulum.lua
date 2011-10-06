@@ -140,28 +140,28 @@ approxSpace:init()
 print ("Setting up Assembling")
 
 -- Start value function setup
-    CaCytStartValue = util.CreateLuaUserNumber("CaCytStart", dim)
-    CaERStartValue = util.CreateLuaUserNumber("CaERStart", dim)
-    IP3StartValue = util.CreateLuaUserNumber("IP3Start", dim)
+    CaCytStartValue = LuaUserNumber("CaCytStart")
+    CaERStartValue = LuaUserNumber("CaERStart")
+    IP3StartValue = LuaUserNumber("IP3Start")
 
 -- Diffusion Tensor setup
-	diffusionMatrixCA = util.CreateLuaUserMatrix("ourDiffTensor2dCA", dim)
-	diffusionMatrixIP3 = util.CreateLuaUserMatrix("ourDiffTensor2dIP3", dim)
+	diffusionMatrixCA = LuaUserMatrix("ourDiffTensor2dCA")
+	diffusionMatrixIP3 = LuaUserMatrix("ourDiffTensor2dIP3")
 
 -- rhs setup
-	rhs = util.CreateLuaUserNumber("ourRhs2d", dim)
+	rhs = LuaUserNumber("ourRhs2d")
 	--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-	neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
+	neumann = LuaBoundaryNumber("ourNeumannBnd2d")
 	--neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
+	dirichlet = LuaBoundaryNumber("ourDirichletBnd2d")
 	--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 	
 -- dirichlet setup
-	membraneDirichlet = util.CreateLuaBoundaryNumber("membraneDirichletBnd2d", dim)
+	membraneDirichlet = LuaBoundaryNumber("membraneDirichletBnd2d")
 
 
 -----------------------------------------------------------------
@@ -173,8 +173,8 @@ print ("Setting up Assembling")
 
  -- muss hier im letzten Arg (subsets) nicht auch ein mem_er stehen?
  -- Antwort: Nein, es geht hier im die 2d elemente von "er", der Rand von "er"
- --          spielt fŸr das assemblieren keine Rolle. Randwerte kommen dann 
- --          spŠter extra. 
+ --          spielt fï¿½r das assemblieren keine Rolle. Randwerte kommen dann 
+ --          spï¿½ter extra. 
 elemDiscER = util.CreateFV1ConvDiff(approxSpace, "ca_er", "er") 
 elemDiscER:set_upwind_amount(0.0)
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)

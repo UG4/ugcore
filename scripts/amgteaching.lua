@@ -524,12 +524,12 @@ problem = {}
 if false then
 	problem["Poisson"] = {}
 	problem["Poisson"].desc = "Problem 1: Poisson's eqn. (w/ anisotropy)"
-	problem["Poisson"].diffusion = util.CreateLuaUserMatrix("stdDiffTensor2d", dim)
-	problem["Poisson"].velocity = util.CreateLuaUserVector("zeroVelocityField2d", dim)
-	problem["Poisson"].reaction = util.CreateLuaUserNumber("zeroReaction2d", dim)
-	problem["Poisson"].source = util.CreateLuaUserNumber("stdSource2d", dim)
-	problem["Poisson"].neumann = util.CreateLuaBoundaryNumber("stdNeumannBnd2d", dim)
-	problem["Poisson"].dirichlet = util.CreateLuaBoundaryNumber("stdDirichletBnd2d", dim)
+	problem["Poisson"].diffusion = LuaUserMatrix("stdDiffTensor2d")
+	problem["Poisson"].velocity = LuaUserVector("zeroVelocityField2d")
+	problem["Poisson"].reaction = LuaUserNumber("zeroReaction2d")
+	problem["Poisson"].source = LuaUserNumber("stdSource2d")
+	problem["Poisson"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
+	problem["Poisson"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
 	
 	problem["Poisson"].configs = {}
 	problem["Poisson"].configs[1] = {["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -556,12 +556,12 @@ end
 if false then
 	problem["ConvDiff"] = {}
 	problem["ConvDiff"].desc = "Problem 2: Convection-diffusion (w/ anisotropy)"
-	problem["ConvDiff"].diffusion = util.CreateLuaUserMatrix("stdDiffTensor2d", dim)
-	problem["ConvDiff"].velocity = util.CreateLuaUserVector("constVelocityField2d", dim)
-	problem["ConvDiff"].reaction = util.CreateLuaUserNumber("zeroReaction2d", dim)
-	problem["ConvDiff"].source = util.CreateLuaUserNumber("stdSource2d", dim)
-	problem["ConvDiff"].neumann = util.CreateLuaBoundaryNumber("stdNeumannBnd2d", dim)
-	problem["ConvDiff"].dirichlet = util.CreateLuaBoundaryNumber("stdDirichletBnd2d", dim)
+	problem["ConvDiff"].diffusion = LuaUserMatrix("stdDiffTensor2d")
+	problem["ConvDiff"].velocity = LuaUserVector("constVelocityField2d")
+	problem["ConvDiff"].reaction = LuaUserNumber("zeroReaction2d")
+	problem["ConvDiff"].source = LuaUserNumber("stdSource2d")
+	problem["ConvDiff"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
+	problem["ConvDiff"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
 	
 	problem["ConvDiff"].configs = {}
 	problem["ConvDiff"].configs[1] = {["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -577,12 +577,12 @@ end
 if false then
 	problem["Recirc"] = {}
 	problem["Recirc"].desc = "Problem 2: Recirculating flow (w/ anisotropy)"
-	problem["Recirc"].diffusion = util.CreateLuaUserMatrix("stdDiffTensor2d", dim)
-	problem["Recirc"].velocity = util.CreateLuaUserVector("recirculatingVelocityField2d", dim)
-	problem["Recirc"].reaction = util.CreateLuaUserNumber("zeroReaction2d", dim)
-	problem["Recirc"].source = util.CreateLuaUserNumber("stdSource2d", dim)
-	problem["Recirc"].neumann = util.CreateLuaBoundaryNumber("stdNeumannBnd2d", dim)
-	problem["Recirc"].dirichlet = util.CreateLuaBoundaryNumber("stdDirichletBnd2d", dim)
+	problem["Recirc"].diffusion = LuaUserMatrix("stdDiffTensor2d")
+	problem["Recirc"].velocity = LuaUserVector("recirculatingVelocityField2d")
+	problem["Recirc"].reaction = LuaUserNumber("zeroReaction2d")
+	problem["Recirc"].source = LuaUserNumber("stdSource2d")
+	problem["Recirc"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
+	problem["Recirc"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
 	
 	problem["Recirc"].configs = {}
 	problem["Recirc"].configs[1] ={["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -599,12 +599,12 @@ end
 if true then
 	problem["Hedgehog"] = {}
 	problem["Hedgehog"].desc = "Problem 4: Hedgehog-type Poisson's eqn. (w/ anisotropy)"
-	problem["Hedgehog"].diffusion = util.CreateLuaUserMatrix("hedgehogDiffTensor2d", dim)
-	problem["Hedgehog"].velocity = util.CreateLuaUserVector("zeroVelocityField2d", dim)
-	problem["Hedgehog"].reaction = util.CreateLuaUserNumber("zeroReaction2d", dim)
-	problem["Hedgehog"].source = util.CreateLuaUserNumber("stdSource2d", dim)
-	problem["Hedgehog"].neumann = util.CreateLuaBoundaryNumber("stdNeumannBnd2d", dim)
-	problem["Hedgehog"].dirichlet = util.CreateLuaBoundaryNumber("stdDirichletBnd2d", dim)
+	problem["Hedgehog"].diffusion = LuaUserMatrix("hedgehogDiffTensor2d")
+	problem["Hedgehog"].velocity = LuaUserVector("zeroVelocityField2d")
+	problem["Hedgehog"].reaction = LuaUserNumber("zeroReaction2d")
+	problem["Hedgehog"].source = LuaUserNumber("stdSource2d")
+	problem["Hedgehog"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
+	problem["Hedgehog"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
 	
 	problem["Hedgehog"].configs = {}
 	problem["Hedgehog"].configs[1] = {["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -620,12 +620,12 @@ end
 if true then
 	problem["Isolator"] = {}
 	problem["Isolator"].desc = "Problem 4: Isolator problem (jumping coefficient)"
-	problem["Isolator"].diffusion = util.CreateLuaUserMatrix("jumpDiffTensor2d", dim)
-	problem["Isolator"].velocity = util.CreateLuaUserVector("zeroVelocityField2d", dim)
-	problem["Isolator"].reaction = util.CreateLuaUserNumber("zeroReaction2d", dim)
-	problem["Isolator"].source = util.CreateLuaUserNumber("stdSource2d", dim)
-	problem["Isolator"].neumann = util.CreateLuaBoundaryNumber("stdNeumannBnd2d", dim)
-	problem["Isolator"].dirichlet = util.CreateLuaBoundaryNumber("stdDirichletBnd2d", dim)
+	problem["Isolator"].diffusion = LuaUserMatrix("jumpDiffTensor2d")
+	problem["Isolator"].velocity = LuaUserVector("zeroVelocityField2d")
+	problem["Isolator"].reaction = LuaUserNumber("zeroReaction2d")
+	problem["Isolator"].source = LuaUserNumber("stdSource2d")
+	problem["Isolator"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
+	problem["Isolator"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
 	
 	problem["Isolator"].configs = {}
 	problem["Isolator"].configs[1] = {["epsx"]= 1e+6, ["epsy"]= 1e+6}

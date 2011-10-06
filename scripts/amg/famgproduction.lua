@@ -82,7 +82,7 @@ end
 	function cbDirichletBnd2d(x, y, t)
 		return true, 0		
 	end
-	dirchletBnd2d = util.CreateLuaBoundaryNumber("cbDirichletBnd"..dim.."d", dim)
+	dirchletBnd2d = LuaBoundaryNumber("cbDirichletBnd"..dim.."d")
 	
 	
 	function cbSinRhs2d(x, y, t)
@@ -328,7 +328,7 @@ if bRSAMG == false then
 		local amgTestvector;
 		amgTestvector = GridFunctionVectorWriter()
 		amgTestvector:set_reference_grid_function(gridfunction)
-		amgTestvector:set_user_data(util.CreateLuaUserNumber(luaCallbackName, dim))
+		amgTestvector:set_user_data(LuaUserNumber(luaCallbackName))
 		return amgTestvector	
 	end
 		

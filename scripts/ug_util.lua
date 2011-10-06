@@ -144,14 +144,6 @@ function util.CreateP1Projection(approxSpace)
 	return project
 end
 
-
--- creates a Lua User Matrix using a lua function and returns the Provider
-function util.CreateLuaUserMatrix(funcName, dim)
-	local mat = LuaUserMatrix()
-	mat:set_lua_callback(funcName)
-	return mat
-end
-
 -- creates a Const User Matrix using a lua function and returns the Provider
 function util.CreateConstDiagUserMatrix(diagVal, dim)
 	local mat = ConstUserMatrix()
@@ -185,13 +177,6 @@ function util.CreateConstUserMatrix3d(m00, m01, m02, m10, m11, m12, m20, m21, m2
 	return mat
 end
 
--- creates a Lua User Vector using a lua function and returns the Provider
-function util.CreateLuaUserVector(funcName, dim)
-	local vec = LuaUserVector()
-	vec:set_lua_callback(funcName)
-	return vec
-end
-
 -- creates a Const User Vector using a lua function and returns the Provider
 function util.CreateConstUserVector(val, dim)
 	local vec = ConstUserVector()
@@ -216,26 +201,10 @@ function util.CreateConstUserVector3d(v0, v1, v2)
 	return vec
 end
 
-
--- creates a Lua User Number using a lua function and returns the Provider
-function util.CreateLuaUserNumber(funcName, dim)
-	local number = LuaUserNumber()
-	number:set_lua_callback(funcName)
-	return number
-end
-
 -- creates a Const User Number using a lua function and returns the Provider
 function util.CreateConstUserNumber(val, dim)
 	local number = ConstUserNumber()
 	number:set(val)
-	return number
-end
-
-
--- creates a Lua Boundary Number using a lua function and returns the Provider
-function util.CreateLuaBoundaryNumber(funcName, dim)
-	local number = LuaBoundaryNumber()
-	number:set_lua_callback(funcName)
 	return number
 end
 
@@ -420,7 +389,6 @@ function util.HasParamOption(name)
 	end
 	return false 
 end
-
 
 --------------------------------------------------------------------------------
 -- lua script functions
