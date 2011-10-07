@@ -46,7 +46,7 @@ end
 
 function DirichletBnd(x, y, t)
 	local s = 2*math.pi
-	return	math.sin(s*x) + math.sin(s*y)
+	return	true, math.sin(s*x) + math.sin(s*y)
 end
 
 

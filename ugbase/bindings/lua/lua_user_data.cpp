@@ -24,6 +24,26 @@ namespace bridge
 // Implementation
 ///////////////////////////////////////////////////////////////////////////////
 
+/// Helper to access a return value on the stack.
+/**	If the value can't be converted to a number, an error is thrown*/
+number ReturnValueToNumber(lua_State* L, int index){
+	if(!lua_isnumber(L, index)){
+		UG_THROW("Can't convert return value to number!");
+	}
+	return lua_tonumber(L, index);
+}
+
+/// Helper to access a return value on the stack.
+/**	If the value can't be converted to a boolean, an error is thrown*/
+number ReturnValueToBool(lua_State* L, int index){
+	if(!lua_isboolean(L, index)){
+		UG_THROW("Can't convert return value to boolean!");
+	}
+	return lua_toboolean(L, index);
+}
+
+
+
 /// Lua Traits to push/pop on lua stack
 template <typename TData>
 struct lua_traits;
@@ -38,7 +58,7 @@ struct lua_traits<number>
 
 	static void read(lua_State* L, number& c)
 	{
-		c = luaL_checknumber(L, -1);
+		c = ReturnValueToNumber(L, -1);
 	}
 
 	static const int size = 1;
@@ -57,7 +77,7 @@ struct lua_traits< ug::MathVector<dim> >
 	{
 		int counter = -1;
 		for(size_t i = 0; i < dim; ++i){
-				x[dim-1-i] = luaL_checknumber(L, counter--);
+				x[dim-1-i] = ReturnValueToNumber(L, counter--);
 		}
 	}
 
@@ -83,7 +103,7 @@ struct lua_traits< MathMatrix<dim, dim> >
 		int counter = -1;
 		for(size_t i = 0; i < dim; ++i){
 			for(size_t j = 0; j < dim; ++j){
-				D[dim-1-j][dim-1-i] = luaL_checknumber(L, counter--);
+				D[dim-1-j][dim-1-i] = ReturnValueToNumber(L, counter--);
 			}
 		}
 	}
@@ -128,6 +148,12 @@ class LuaUserData
 		//	obtain a reference
 			lua_getglobal(m_L, m_callbackName.c_str());
 
+		//	make sure that the reference is valid
+			if(lua_isnil(m_L, -1)){
+				UG_THROW_FATAL("ERROR in LuaUserData(...): Specified callback "
+						"does not exist: " << m_callbackName);
+			}
+
 		//	store reference to lua function
 			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 		}
@@ -164,8 +190,12 @@ class LuaUserData
 				throw(UGError(true, ss.str().c_str()));
 			}
 
-		//	read return value
-			lua_traits<TData>::read(m_L, D);
+			try{
+			//	read return value
+				lua_traits<TData>::read(m_L, D);
+			}
+			UG_CATCH_THROW("ERROR in 'LuaUserData::operator(...)': "
+						   << "Error while running callback '" << m_callbackName << "'");
 
 		//	pop values
 			lua_pop(m_L, retSize);
@@ -223,6 +253,12 @@ class LuaBoundaryData
 		//	obtain a reference
 			lua_getglobal(m_L, m_callbackName.c_str());
 
+		//	make sure that the reference is valid
+			if(lua_isnil(m_L, -1)){
+				UG_THROW_FATAL("ERROR in LuaBoundaryData(...): Specified callback "
+						"does not exist: " << m_callbackName);
+			}
+
 		//	store reference to lua function
 			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 		}
@@ -246,24 +282,27 @@ class LuaBoundaryData
 			size_t argSize = lua_traits<MathVector<dim> >::size
 								+  lua_traits<number>::size;
 
-		//	compute total return size (+1 for boolian)
+		//	compute total return size (+1 for boolean)
 			size_t retSize = lua_traits<TData>::size + 1;
 
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
 			{
-				std::stringstream ss;
-				ss << "ERROR in 'LuaBoundaryData::operator(...)': Error while "
-						"running callback '" << m_callbackName << "',"
-						" lua message: "<< lua_tostring(m_L, -1) << "\n";
-				throw(UGError(true, ss.str().c_str()));
+				UG_THROW_FATAL("ERROR in 'LuaBoundaryData::operator(...)': "
+						<< "Error while running callback '" << m_callbackName
+						<< "', lua message: "<< lua_tostring(m_L, -1) << "\n");
 			}
 
-		//	read return value
-			lua_traits<TData>::read(m_L, D);
+			bool res = false;
+			try{
+			//	read return value
+				lua_traits<TData>::read(m_L, D);
 
-		//	read bool flag
-			bool res = lua_toboolean(m_L, -retSize);
+			//	read bool flag
+				res = ReturnValueToBool(m_L, -retSize);
+			}
+			UG_CATCH_THROW("ERROR in 'LuaBoundaryData::operator(...)': "
+						   << "Error while running callback '" << m_callbackName << "'");
 
 		//	pop values
 			lua_pop(m_L, retSize);
@@ -349,6 +388,12 @@ class LuaUserFunction
 		//	obtain a reference
 			lua_getglobal(m_L, m_cbValueName);
 
+		//	make sure that the reference is valid
+			if(lua_isnil(m_L, -1)){
+				UG_THROW_FATAL("ERROR in LuaUserFunction::set_lua_value_callback(...):"
+						"Specified callback does not exist: " << m_cbValueName);
+			}
+
 		//	store reference to lua function
 			m_cbValueRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 
@@ -377,6 +422,12 @@ class LuaUserFunction
 
 		//	obtain a reference
 			lua_getglobal(m_L, m_cbDerivName[arg]);
+
+		//	make sure that the reference is valid
+			if(lua_isnil(m_L, -1)){
+				UG_THROW_FATAL("ERROR in LuaUserFunction::set_lua_deriv_callback(...):"
+						"Specified callback does not exist: " << m_cbDerivName[arg]);
+			}
 
 		//	store reference to lua function
 			m_cbDerivRef[arg] = luaL_ref(m_L, LUA_REGISTRYINDEX);
@@ -425,8 +476,12 @@ class LuaUserFunction
 				throw(UGError(true, ss.str().c_str()));
 			}
 
-		//	read return value
-			lua_traits<TData>::read(m_L, out);
+			try{
+			//	read return value
+				lua_traits<TData>::read(m_L, out);
+			}
+			UG_CATCH_THROW("ERROR in 'LuaUserFunction::operator(...)': "
+						   << "Error while running callback '" << m_cbValueName << "'");
 
 		//	pop values
 			lua_pop(m_L, retSize);
@@ -526,8 +581,12 @@ class LuaUserFunction
 				throw(UGError(true, ss.str().c_str()));
 			}
 
-		//	read return value
-			lua_traits<TData>::read(m_L, out);
+			try{
+			//	read return value
+				lua_traits<TData>::read(m_L, out);
+			}
+			UG_CATCH_THROW("ERROR in 'LuaUserFunction::eval_value(...)': "
+						   << "Error while running callback '" << m_cbValueName << "'");
 
 		//	pop values
 			lua_pop(m_L, retSize);
@@ -566,8 +625,12 @@ class LuaUserFunction
 				throw(UGError(true, ss.str().c_str()));
 			}
 
-		//	read return value
-			lua_traits<TData>::read(m_L, out);
+			try{
+			//	read return value
+				lua_traits<TData>::read(m_L, out);
+			}
+			UG_CATCH_THROW("ERROR in 'LuaUserFunction::eval_deriv(...)': "
+						   << "Error while running callback '" << m_cbDerivName[arg] << "'");
 
 		//	pop values
 			lua_pop(m_L, retSize);
@@ -602,6 +665,13 @@ void LuaUserNumberNumberFunction::set_lua_callback(const char* luaCallback)
 	m_callbackName = luaCallback;
 //	store the callback function in the registry and obtain a reference.
 	lua_getglobal(m_L, m_callbackName);
+
+//	make sure that the reference is valid
+	if(lua_isnil(m_L, -1)){
+		UG_THROW_FATAL("ERROR in LuaUserNumberNumberFunction::set_lua_callback(...):"
+				"Specified callback does not exist: " << m_callbackName);
+	}
+
 	m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 }
 
@@ -633,7 +703,7 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 		throw(UGError(true, ss.str().c_str()));
 	}
 
-	number c = luaL_checknumber(m_L, -1);
+	number c = ReturnValueToNumber(m_L, -1);
 	lua_pop(m_L, 1);
 
 	return c;
@@ -673,6 +743,12 @@ class LuaFunction
 
 		//	obtain a reference
 			lua_getglobal(m_L, m_cbValueName);
+
+		//	make sure that the reference is valid
+			if(lua_isnil(m_L, -1)){
+				UG_THROW_FATAL("ERROR in LuaFunction::set_lua_callback(...):"
+						"Specified callback does not exist: " << m_cbValueName);
+			}
 
 		//	store reference to lua function
 			m_cbValueRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
@@ -716,14 +792,18 @@ class LuaFunction
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
 			{
 				std::stringstream ss;
-				ss << "ERROR in 'LuaUserFunction::operator(...)': Error while "
+				ss << "ERROR in 'LuaFunction::operator(...)': Error while "
 						"running callback '" << m_cbValueName << "',"
 						" lua message: "<< lua_tostring(m_L, -1) << "\n";
 				throw(UGError(true, ss.str().c_str()));
 			}
 
-		//	read return value
-			lua_traits<TData>::read(m_L, out);
+			try{
+			//	read return value
+				lua_traits<TData>::read(m_L, out);
+			}
+			UG_CATCH_THROW("ERROR in 'LuaFunction::operator(...)': "
+						   << "Error while running callback '" << m_cbValueName << "'");
 
 		//	pop values
 			lua_pop(m_L, retSize);
