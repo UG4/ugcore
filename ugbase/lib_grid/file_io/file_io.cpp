@@ -277,12 +277,29 @@ bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos)
 
 bool SaveGridToFile(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
-	return SaveGrid(grid, &sh, filename, aPosition);
+//	check whether one of the standard attachments is attached and call
+//	SaveGrid with that attachment
+	if(grid.has_vertex_attachment(aPosition))
+		return SaveGrid(grid, &sh, filename, aPosition);
+	if(grid.has_vertex_attachment(aPosition2))
+		return SaveGrid(grid, &sh, filename, aPosition2);
+	if(grid.has_vertex_attachment(aPosition1))
+		return SaveGrid(grid, &sh, filename, aPosition1);
+
+	return false;
 }
 
 bool SaveGridToFile(Grid& grid, const char* filename)
 {
-	return SaveGrid(grid, NULL, filename, aPosition);
+//	check whether one of the standard attachments is attached and call
+//	SaveGrid with that attachment
+	if(grid.has_vertex_attachment(aPosition))
+		return SaveGrid(grid, NULL, filename, aPosition);
+	if(grid.has_vertex_attachment(aPosition2))
+		return SaveGrid(grid, NULL, filename, aPosition2);
+	if(grid.has_vertex_attachment(aPosition1))
+		return SaveGrid(grid, NULL, filename, aPosition1);
+	return false;
 }
 
 
