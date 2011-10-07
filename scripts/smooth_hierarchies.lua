@@ -40,12 +40,12 @@ function Reaction(x, y, t)
 end
 
 function Rhs(x, y, t)
-	s = 2*math.pi
+	local s = 2*math.pi
 	return	s*s*(math.sin(s*x) + math.sin(s*y))
 end
 
 function DirichletBnd(x, y, t)
-	s = 2*math.pi
+	local s = 2*math.pi
 	return	math.sin(s*x) + math.sin(s*y)
 end
 
@@ -100,7 +100,7 @@ approxSpace:init()
 
 -- make sure that the required subsets exist	
 if util.CheckSubsets(dom, requiredSubsets) == false then 
-   print("Domain must have the following Subsets for this problem.")
+   print("Subsets missing. Aborting")
    exit()
 end
 
@@ -120,6 +120,7 @@ print("creating dirichlet boundary...")
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add(dirichlet, "c", "Boundary")
 
+
 print("creating domain discretization...")
 -- The domain discretization
 domainDisc = DomainDiscretization()
@@ -127,28 +128,22 @@ domainDisc:set_approximation_space(approxSpace)
 domainDisc:add(elemDisc)
 domainDisc:add(dirichletBND)
 
-
-print("creating linear operator...")	
--- create operator from discretization
-linOp = AssembledLinearOperator()
-linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
-
--- get grid function
+print("filling stiffness matrix")	
+-- create the stiffness matrix
+A = MatrixOperator()
+-- create the grid functions (vectors for the solution and rhs)
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
--- init Operator
-linOp:init_op_and_rhs(b)
+-- assemble matrix and rhs
+domainDisc:assemble_linear(A, b, u)
 
--- set initial value
-u:set(1.0)
+-- set dirichlet values
+u:set(0)
+domainDisc:assemble_solution(u)
 
 -- write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-
--- set dirichlet values in start iterate
-linOp:set_dirichlet_values(u)
+SaveMatrixForConnectionViewer(u, A, "Stiffness.mat")
 
 
 --------------------------------------------------------------------------------
@@ -202,7 +197,7 @@ cgSolver:set_preconditioner(ilu)
 cgSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, linSolver)
+ApplyLinearSolver(A, u, b, linSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")

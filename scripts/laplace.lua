@@ -217,15 +217,13 @@ for i=numPreRefs+1,numRefs do
 	print( "... done!")
 end
 
--- get subset handler
-sh = dom:get_subset_handler()
-if sh:num_subsets() ~= 2 then 
-print("Domain must have 2 Subsets for this problem.")
-exit()
+
+-- Make sure, that the required subsets are present
+requiredSubsets = {"Inner", "DirichletBoundary"}
+if util.CheckSubsets(dom, requiredSubsets) == false then 
+   print("Subsets missing. Aborting")
+   exit()
 end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("DirichletBoundary", 1)
---sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
 if verbosity >= 1 then
