@@ -5,11 +5,13 @@
 #ifndef __H__UG__plugin_util__
 #define __H__UG__plugin_util__
 
+#include <string>
+
 namespace ug
 {
 
 ///	Loads all plugins in the given path.
-bool LoadPlugins(const char* pluginPath);
+bool LoadPlugins(const char* pluginPath, std::string);
 
 }//	end of namespace
 

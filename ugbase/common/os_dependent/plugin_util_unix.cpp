@@ -13,9 +13,9 @@ using namespace std;
 
 namespace ug{
 
-bool LoadPlugins(const char* pluginPath)
+bool LoadPlugins(const char* pluginPath, string parentGroup)
 {
-	typedef void (*FctInitPlugin)(ug::bridge::Registry*);
+	typedef void (*FctInitPlugin)(ug::bridge::Registry*, std::string);
 
 //	first we'll try to find all plugins in the given path
 	vector<string> files;
@@ -51,7 +51,7 @@ bool LoadPlugins(const char* pluginPath)
 		}
 
 	//	call the init method
-		fctInitPlugin(&reg);
+		fctInitPlugin(&reg, parentGroup);
 	}
 
 //	make sure that the registry is updated
