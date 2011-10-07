@@ -219,7 +219,7 @@ end
 
 
 -- Make sure, that the required subsets are present
-requiredSubsets = {"Inner", "DirichletBoundary"}
+requiredSubsets = {"Inner", "Boundary"}
 if util.CheckSubsets(dom, requiredSubsets) == false then 
    print("Subsets missing. Aborting")
    exit()
@@ -328,7 +328,7 @@ elemDisc:set_source(rhs)
 -----------------------------------------------------------------
 
 dirichletBND = util.CreateDirichletBoundary(approxSpace)
-dirichletBND:add(dirichlet, "c", "DirichletBoundary")
+dirichletBND:add(dirichlet, "c", "Boundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
