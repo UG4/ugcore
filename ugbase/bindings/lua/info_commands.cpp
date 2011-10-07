@@ -484,7 +484,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace)
 		{
 			UG_LOG(" = \n");
 			lua_pushvalue(L, index);
-			//LuaPrintTable(L, iSpace+1);
+			LuaPrintTable(L, iSpace+1);
 			lua_pop(L, 1);
 		}
 		else
