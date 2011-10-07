@@ -179,13 +179,18 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 #endif
 
 #ifdef UG_ALGEBRA
-		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&, const char *)>(&InitUG), "/ug4",
+		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&, const char *)>(&InitUG), "/ug4/Init",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra Type#DoFManager|selection|value=[").
 		                 	 append(availDofManager.str()).append("]"));
-		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4",
+		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra Type"));
+
+	// 	AlgebraType Interface
+		reg.add_class_<AlgebraType>("AlgebraType", "/ug4/Init")
+			.add_constructor<void (*)(const char*, int)>("Type|selection|value=[\"CPU\"]#Blocksize|selection|value=[1,2,3,4]")
+			.add_constructor<void (*)(const char*)>("Type  (Blocksize=variable)|selection|value=[\"CPU\"]");
 #endif
 
 	}
