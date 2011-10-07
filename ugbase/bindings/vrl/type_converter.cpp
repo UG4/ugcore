@@ -566,6 +566,18 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 	// the corresponding elements in the specified Java array
 	for (size_t i = 0; i < (size_t) paramStack.size(); i++) {
 		jobject param = env->GetObjectArrayElement(params, i);
+
+
+		// we don't allow null values
+		if (param == NULL) {
+			std::stringstream ss;
+			ss << "Value " << i << " == NULL!";
+
+			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+			env->ThrowNew(Exception, ss.str().c_str());
+		}
+
+
 		uint paramType = paramClass2ParamType(env, param);
 
 		// allow non-const * to const *
@@ -599,12 +611,12 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		}
 
 		if (paramType != paramStack.get_type(i)) {
-//#ifdef UG_DEBUG
-//			UG_LOG("requested by method:\n")
-//			printParamType(paramStack.get_type(i), i);
-//			UG_LOG("given as parameter:\n")
-//			printParamType(paramType, i);
-//#endif
+			//#ifdef UG_DEBUG
+			//			UG_LOG("requested by method:\n")
+			//			printParamType(paramStack.get_type(i), i);
+			//			UG_LOG("given as parameter:\n")
+			//			printParamType(paramType, i);
+			//#endif
 			return false;
 		}
 
@@ -623,9 +635,9 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		}
 	}
 
-//#ifdef UG_DEBUG
-//	UG_LOG(" -- ALL TRUE --\n" << std::endl)
-//#endif
+	//#ifdef UG_DEBUG
+	//	UG_LOG(" -- ALL TRUE --\n" << std::endl)
+	//#endif
 
 	return true;
 }
@@ -644,6 +656,15 @@ void jobjectArray2ParamStack(
 		int type = paramsTemplate.get_type(i);
 
 		jobject value = env->GetObjectArrayElement(array, i);
+
+		// we don't allow null values
+		if (value == NULL) {
+			std::stringstream ss;
+			ss << "Value " << i << " == NULL!";
+
+			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+			env->ThrowNew(Exception, ss.str().c_str());
+		}
 
 		switch (type) {
 			case PT_BOOL:
