@@ -29,6 +29,10 @@ namespace ug
  * Make sure that the given position attachment is either of type AVector1,
  * AVector2 or AVector3.
  *
+ * If the given file can't be found, LoadGridFromFile will looks for it reative
+ * to the following additional places:
+ * 	- PathProvider::get_current_path()
+ * 	- PathProvider::get_path(GRID_PATH)
  * \{
  */
 template <class TAPos>
@@ -41,7 +45,13 @@ bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos);
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Loads a grid from a file. Position data is written to aPosition.
-/** \{ */
+/**
+ * If the given file can't be found, LoadGridFromFile will looks for it reative
+ * to the following additional places:
+ * 	- PathProvider::get_current_path()
+ * 	- PathProvider::get_path(GRID_PATH)
+ *
+ * \{ */
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename);
 
 bool LoadGridFromFile(Grid& grid, const char* filename);
@@ -57,7 +67,7 @@ bool LoadGridFromFile(Grid& grid, const char* filename);
  * \{
  */
 template <class TAPos>
-bool SaveGridToFile(Grid& grid, SubsetHandler& sh,
+bool SaveGridToFile(Grid& grid, ISubsetHandler& sh,
 					const char* filename, TAPos& aPos);
 
 template <class TAPos>
@@ -67,7 +77,7 @@ bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos);
 ////////////////////////////////////////////////////////////////////////////////
 ///	Saves a grid to a file. Position data is read from aPosition.
 /** \{ */
-bool SaveGridToFile(Grid& grid, SubsetHandler& sh, const char* filename);
+bool SaveGridToFile(Grid& grid, ISubsetHandler& sh, const char* filename);
 
 bool SaveGridToFile(Grid& grid, const char* filename);
 /** \} */

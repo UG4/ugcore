@@ -65,7 +65,7 @@ dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
-if util.LoadDomain(dom, gridName) == false then
+if LoadDomain(dom, gridName) == false then
 print("Loading Domain failed.")
 exit()
 end

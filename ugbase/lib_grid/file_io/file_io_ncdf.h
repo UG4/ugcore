@@ -13,7 +13,7 @@ namespace ug
  * Saves a grid to NCDF-ASCII-format (EXODUS).
  */
 bool SaveGridToNCDF(Grid& grid, const char* filename,
-					SubsetHandler* pSH,
+					ISubsetHandler* pSH,
 					APosition aPos = aPosition);
 
 

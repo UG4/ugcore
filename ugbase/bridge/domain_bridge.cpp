@@ -34,13 +34,6 @@ static bool LoadDomain(TDomain& domain, const char* filename)
 		return true;
 #endif
 
-	const char * p = strstr(filename, ".ugx");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.ugx' format supported for domains.\n");
-		return false;
-	}
-
 	if(!LoadGridFromFile(domain.get_grid(), domain.get_subset_handler(),
 						 filename, domain.get_position_attachment()))
 	{
@@ -54,27 +47,14 @@ static bool LoadDomain(TDomain& domain, const char* filename)
 template <typename TDomain>
 static bool SaveDomain(TDomain& domain, const char* filename)
 {
-	const char * p = strstr(filename, ".ugx");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.ugx' format supported for domains.\n");
-		return false;
-	}
-
-	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), filename);
+	return SaveGridToFile(domain.get_grid(), domain.get_subset_handler(),
+						  filename, domain.get_position_attachment());
 }
 
 template <typename TDomain>
 static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 							 const char* filename)
 {
-	const char * p = strstr(filename, ".ugx");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.ugx' format supported for partition-maps.\n");
-		return false;
-	}
-
 	if(&domain.get_grid() != pmap.get_partition_handler().get_assigned_grid())
 	{
 		UG_LOG("WARNING in SavePartitionMap: The given partition map was not"

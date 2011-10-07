@@ -15,7 +15,7 @@ namespace ug
  * of subset-handlers that shall be written.
  */
 bool SaveGridToLGB(Grid& grid, const char* filename,
-				   SubsetHandler** ppSH, int numSHs,
+				   ISubsetHandler** ppSH, int numSHs,
 				   APosition aPos = aPosition);
 
 
@@ -27,7 +27,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
  * at the grid.
  */
 bool LoadGridFromLGB(Grid& grid, const char* filename,
-				   SubsetHandler** ppSH, int numSHs,
+				   ISubsetHandler** ppSH, int numSHs,
 				   APosition aPos = aPosition);
 
 }//	end of namespace

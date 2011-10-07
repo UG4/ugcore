@@ -171,7 +171,7 @@ void TElemSelector<BaseElem>::erase_from_list(Volume* elem)
 //	geometric-object-collection
 template <class BaseElem>
 GeometricObjectCollection 
-TElemSelector<BaseElem>::get_geometric_object_collection()
+TElemSelector<BaseElem>::get_geometric_objects()
 {
 //TODO: ugly casts! GenericElementSelector should store its selected elements
 //		in a GeometricObjectSectionContainer!

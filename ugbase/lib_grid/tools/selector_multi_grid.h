@@ -175,7 +175,7 @@ class MGSelector : public ISelector
 		
 	//	geometric-object-collection
 		GeometricObjectCollection
-		get_geometric_object_collection();
+		get_geometric_objects();
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver

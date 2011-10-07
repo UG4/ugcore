@@ -41,19 +41,10 @@ static bool InitPaths(const char* argv0) {
 	char* ug4Root = getenv("UG4_ROOT");
 	const char* pathSep = GetPathSeparator();
 
+	std::string strRoot = "";
+
 	if(ug4Root){
-		std::string strRoot = ug4Root;
-		if(!PathProvider::has_path(ROOT_PATH))
-			PathProvider::set_path(ROOT_PATH, strRoot);
-		if(!PathProvider::has_path(APP_PATH))
-			PathProvider::set_path(APP_PATH, strRoot + pathSep + "bin");
-		if(!PathProvider::has_path(SCRIPT_PATH))
-			PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
-		if(!PathProvider::has_path(DATA_PATH))
-			PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
-		if(!PathProvider::has_path(PLUGIN_PATH))
-			PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
-											+ "bin" + pathSep + "plugins");
+		strRoot = ug4Root;
 	}
 	else{
 		std::string tPath = argv0;
@@ -64,21 +55,22 @@ static bool InitPaths(const char* argv0) {
 		else
 			tPath = ".";
 
-		if(!PathProvider::has_path(APP_PATH))
-			PathProvider::set_path(APP_PATH, tPath);
-		if(!PathProvider::has_path(ROOT_PATH))
-			PathProvider::set_path(ROOT_PATH, tPath + pathSep + "..");
-		if(!PathProvider::has_path(SCRIPT_PATH))
-			PathProvider::set_path(SCRIPT_PATH, tPath + pathSep + ".."
-											+ pathSep + "scripts");
-		if(!PathProvider::has_path(DATA_PATH))
-			PathProvider::set_path(DATA_PATH, tPath + pathSep + ".."
-										  + pathSep + "data");
-		if(!PathProvider::has_path(PLUGIN_PATH))
-			PathProvider::set_path(PLUGIN_PATH, tPath + pathSep + ".."
-											+ pathSep + "bin"
-											+ pathSep + "plugins");
+		strRoot = tPath + pathSep + "..";
 	}
+
+	if(!PathProvider::has_path(ROOT_PATH))
+		PathProvider::set_path(ROOT_PATH, strRoot);
+	if(!PathProvider::has_path(APP_PATH))
+		PathProvider::set_path(APP_PATH, strRoot + pathSep + "bin");
+	if(!PathProvider::has_path(SCRIPT_PATH))
+		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
+	if(!PathProvider::has_path(DATA_PATH))
+		PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
+	if(!PathProvider::has_path(GRID_PATH))
+		PathProvider::set_path(GRID_PATH, strRoot + pathSep + "data/grids");
+	if(!PathProvider::has_path(PLUGIN_PATH))
+		PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
+										+ "bin" + pathSep + "plugins");
 
 //	log the paths
 	UG_DLOG(MAIN, 1, "app path set to: " << PathProvider::get_path(APP_PATH) <<

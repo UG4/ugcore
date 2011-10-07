@@ -87,7 +87,7 @@ void GridSubsetHandler::assign_grid(Grid& grid)
 		m_pGrid->attach_to_volumes(m_aSharedEntry);
 }
 
-GridSubsetHandler& GridSubsetHandler::operator = (const GridSubsetHandler& sh)
+GridSubsetHandler& GridSubsetHandler::operator = (const ISubsetHandler& sh)
 {
 	ISubsetHandler::operator =(sh);
 	return *this;
@@ -268,11 +268,12 @@ register_subset_elements_at_pipe()
 
 GeometricObjectCollection
 GridSubsetHandler::
-get_geometric_object_collection(int subsetIndex)
+get_geometric_objects_in_subset(int subsetIndex) const
 {
 //todo: replace with throw
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) && "invalid subset index!");
 
+	subset_required(subsetIndex);
 	return GeometricObjectCollection(&m_subsets[subsetIndex]->m_elements[VERTEX],
 									 &m_subsets[subsetIndex]->m_elements[EDGE],
 									 &m_subsets[subsetIndex]->m_elements[FACE],
@@ -281,7 +282,7 @@ get_geometric_object_collection(int subsetIndex)
 
 GeometricObjectCollection
 GridSubsetHandler::
-get_geometric_object_collection()
+get_geometric_objects() const
 {
 	uint numSubsets = num_subsets_in_list();
 	GeometricObjectCollection goc(numSubsets);
@@ -295,7 +296,7 @@ get_geometric_object_collection()
 	
 	return goc;
 }
-
+/*
 size_t GridSubsetHandler::
 collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const
 {
@@ -354,5 +355,5 @@ collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) con
 	
 	return elemsOut.size();
 }
-
+*/
 }//	end of namespace

@@ -5,6 +5,8 @@
 #include <string>
 #include "file_io.h"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "common/util/path_provider.h"
+#include "common/os_dependent/file_util.h"
 
 using namespace std;
 
@@ -28,12 +30,11 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 		bSuccess = LoadGridFromOBJ(grid, filename, aPos, NULL, pSH);
 	else if(strName.find(".lgb") != string::npos)
 	{
-		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
 		int numSHs = 0;
-		if(shGrid)
+		if(pSH)
 			numSHs = 1;
 
-		bSuccess = LoadGridFromLGB(grid, filename, &shGrid, numSHs, aPos);
+		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, aPos);
 	}
 	else if(strName.find(".net") != string::npos)
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
@@ -103,22 +104,46 @@ template <class TAPos>
 static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 					 const char* filename, TAPos& aPos)
 {
+//	For convenience, we support multiple different standard paths, from which
+//	grids may be loaded. We thus first check, where the specified file is
+//	located and load it from that location afterwards.
+
+//	check the default file first
+	string tfile = filename;
+	if(!FileExists(tfile.c_str())){
+	//	Now check whether the file was specified relative to the current
+	//	working directory
+		tfile = PathProvider::get_current_path();
+		tfile.append("/").append(filename);
+
+		if(!FileExists(tfile.c_str())){
+		//	now check the grid path
+			tfile = PathProvider::get_path(GRID_PATH);
+			tfile.append("/").append(filename);
+
+			if(!FileExists(tfile.c_str())){
+			//	The file couldn't be located. we have to abort loading.
+				return false;
+			}
+		}
+	}
+
+
+//	Now perform the actual loading.
 //	first all load methods, which do accept template position types are
 //	handled. Then all those which only work with 3d position types are processed.
-	string strName = filename;
-	if(strName.find(".ugx") != string::npos){
+	if(tfile.find(".ugx") != string::npos){
 		if(psh)
-			return LoadGridFromUGX(grid, *psh, filename, aPos);
+			return LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);
 		else{
 		//	we have to create a temporary subset handler, since
 			SubsetHandler shTmp(grid);
-			return LoadGridFromUGX(grid, shTmp, filename, aPos);
+			return LoadGridFromUGX(grid, shTmp, tfile.c_str(), aPos);
 		}
 	}
 	else{
 	//	now we'll handle those methods, which only support 3d position types.
-	//	Use a temporary position attachment for dimension 1 and 2.
-		return LoadGrid3d(grid, psh, filename, aPos);
+		return LoadGrid3d(grid, psh, tfile.c_str(), aPos);
 	}
 }
 
@@ -150,7 +175,7 @@ bool LoadGridFromFile(Grid& grid, const char* filename)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //	this method performs the actual save.
-static bool SaveGrid3d_IMPL(Grid& grid, SubsetHandler* pSH,
+static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 							const char* filename, AVector3& aPos)
 {
 	string strName = filename;
@@ -179,7 +204,7 @@ static bool SaveGrid3d_IMPL(Grid& grid, SubsetHandler* pSH,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static bool SaveGrid3d(Grid& grid, SubsetHandler* psh,
+static bool SaveGrid3d(Grid& grid, ISubsetHandler* psh,
 					   const char* filename, APosition1& aPos)
 {
 	APosition aPosTMP;
@@ -195,7 +220,7 @@ static bool SaveGrid3d(Grid& grid, SubsetHandler* psh,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static bool SaveGrid3d(Grid& grid, SubsetHandler* psh,
+static bool SaveGrid3d(Grid& grid, ISubsetHandler* psh,
 					   const char* filename, APosition2& aPos)
 {
 	APosition aPosTMP;
@@ -211,7 +236,7 @@ static bool SaveGrid3d(Grid& grid, SubsetHandler* psh,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static bool SaveGrid3d(Grid& grid, SubsetHandler* psh,
+static bool SaveGrid3d(Grid& grid, ISubsetHandler* psh,
 					   const char* filename, APosition3& aPos)
 {
 	return SaveGrid3d_IMPL(grid, psh, filename, aPos);
@@ -219,7 +244,7 @@ static bool SaveGrid3d(Grid& grid, SubsetHandler* psh,
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPos>
-static bool SaveGrid(Grid& grid, SubsetHandler* psh,
+static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 					 const char* filename, TAPos& aPos)
 {
 	string strName = filename;
@@ -238,26 +263,26 @@ static bool SaveGrid(Grid& grid, SubsetHandler* psh,
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPos>
-bool SaveGridToFile(Grid& grid, SubsetHandler& sh,
+bool SaveGridToFile(Grid& grid, ISubsetHandler& sh,
 					const char* filename, TAPos& aPos)
 {
-	return SaveGrid3d(grid, &sh, filename, aPos);
+	return SaveGrid(grid, &sh, filename, aPos);
 }
 
 template <class TAPos>
 bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos)
 {
-	return SaveGrid3d(grid, NULL, filename, aPos);
+	return SaveGrid(grid, NULL, filename, aPos);
 }
 
-bool SaveGridToFile(Grid& grid, SubsetHandler& sh, const char* filename)
+bool SaveGridToFile(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
-	return SaveGrid3d(grid, &sh, filename, aPosition);
+	return SaveGrid(grid, &sh, filename, aPosition);
 }
 
 bool SaveGridToFile(Grid& grid, const char* filename)
 {
-	return SaveGrid3d(grid, NULL, filename, aPosition);
+	return SaveGrid(grid, NULL, filename, aPosition);
 }
 
 
@@ -272,9 +297,9 @@ template bool LoadGridFromFile(Grid&, const char*, AVector1&);
 template bool LoadGridFromFile(Grid&, const char*, AVector2&);
 template bool LoadGridFromFile(Grid&, const char*, AVector3&);
 
-template bool SaveGridToFile(Grid&, SubsetHandler&, const char*, AVector1&);
-template bool SaveGridToFile(Grid&, SubsetHandler&, const char*, AVector2&);
-template bool SaveGridToFile(Grid&, SubsetHandler&, const char*, AVector3&);
+template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector1&);
+template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector2&);
+template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector3&);
 
 template bool SaveGridToFile(Grid&, const char*, AVector1&);
 template bool SaveGridToFile(Grid&, const char*, AVector2&);

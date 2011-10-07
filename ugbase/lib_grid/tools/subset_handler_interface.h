@@ -393,22 +393,26 @@ class ISubsetHandler : public GridObserver
 	///	collects all vertices that are in the given subset.
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/
-		virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const = 0;
+		//virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut,
+		//									   int subsetIndex) const = 0;
 
 	///	collects all edges that are in the given subset.
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/
-		virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const = 0;
+		//virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut,
+		//									   int subsetIndex) const = 0;
 
 	///	collects all faces that are in the given subset.
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/
-		virtual size_t collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const = 0;
+		//virtual size_t collect_subset_elements(std::vector<Face*>& facesOut,
+		//									  int subsetIndex) const = 0;
 
 	///	collects all volumes that are in the given subset.
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/
-		virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const = 0;
+		//virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut,
+		//									   int subsetIndex) const = 0;
 
 	///	returns true if the subset contains vertices
 		virtual bool contains_vertices(int subsetIndex) const = 0;
@@ -421,6 +425,11 @@ class ISubsetHandler : public GridObserver
 
 	///	returns true if the subset contains volumes
 		virtual bool contains_volumes(int subsetIndex) const = 0;
+
+	///	Returns the geometric object collection for the given subset.
+	/**	Note that the GOC may contain multiple levels.*/
+		virtual GeometricObjectCollection
+			get_geometric_objects_in_subset(int subsetInd) const = 0;
 
 	////////////////////////////////
 	//	attachments

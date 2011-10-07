@@ -13,6 +13,7 @@
 #include "ug.h"
 #include "lua_util.h"
 #include "common/util/path_provider.h"
+#include "common/os_dependent/file_util.h"
 #include "bindings_lua.h"
 #include "bridge/bridge.h"
 #include "registry/class_helper.h"
@@ -95,17 +96,6 @@ bool LoadUGScript(const char* filename)
 	return false;
 }
 
-/// checks if given file exists.
-bool FileExists(const char* filename)
-{
-//todo: this could be improved.
-	ifstream in(filename);
-	if(in) {
-		in.close();
-		return true;
-	}
-	return false;
-}
 
 static ug::bridge::Registry* g_pRegistry = NULL;
 

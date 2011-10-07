@@ -93,7 +93,6 @@ class GeometricObjectCollection
 
 	///	returns the number of levels
 		inline size_t num_levels() const		{return m_levels.size();}
-//		inline const GeometricObjectCollection& get_geometric_object_collection(int level)	{return m_levels[level];}
 		
 	//	Iterators
 	//	begin

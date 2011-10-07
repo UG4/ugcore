@@ -42,8 +42,6 @@ class LuaError : public UGError
  * PathProvider when parsing starts, and pops it when parsing is done.*/
 UG_API bool LoadUGScript(const char* filename);
 
-/// checks if given file exists.
-UG_API bool FileExists(const char* filename);
 
 ///	returns the default lua state
 /**	When called for the first time, a new state is created and

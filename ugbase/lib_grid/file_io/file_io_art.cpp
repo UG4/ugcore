@@ -550,7 +550,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 
 ////////////////////////////////////////////////////////////////////////
 bool SaveGridToART(Grid& srcGrid, const char* filename,
-				   SubsetHandler* pSH, AVector3& aPos)
+				   ISubsetHandler* pSH, AVector3& aPos)
 {
 	if(!srcGrid.has_vertex_attachment(aPos)){
 		LOG("  Aborting SaveGridToART: position attachment is missing.\n");

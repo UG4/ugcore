@@ -324,7 +324,7 @@ class Grid
 	////////////////////////////////////////////////
 	//	geometric-object-collection
 	///	returns the the GeometricObjectCollection of the grid:
-		virtual GeometricObjectCollection get_geometric_object_collection();
+		virtual GeometricObjectCollection get_geometric_objects();
 
 	////////////////////////////////////////////////
 	///	flips the orientation of an edge.

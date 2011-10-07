@@ -211,6 +211,42 @@ change_elem_subset_indices(int indOld, int indNew)
 	}
 }
 
+inline void MultiGridSubsetHandler::
+subset_required(int index)
+{
+	if(index >= m_numSubsets)
+	{
+		add_required_subset_lists(index);
+		ISubsetHandler::subset_info_required(index);
+	}
+}
+
+inline void MultiGridSubsetHandler::
+subset_required(int index) const
+{
+	if(index >= num_subsets()){
+		UG_THROW_FATAL("Can't create new subsets in const MGSubsetHandler. "
+						<< "num current subsets: " << num_subsets()
+						<< " required subset: " << index);
+	}
+}
+
+inline void MultiGridSubsetHandler::
+level_required(size_t level)
+{
+	while(m_levels.size() <= level) add_level();
+}
+
+inline void MultiGridSubsetHandler::
+level_required(size_t level) const
+{
+	if(level >= num_levels()){
+		UG_THROW_FATAL("Can't create additional levels in const MGSubsetHandler. "
+						<< "num current levels: " << num_levels()
+						<< " required level: " << level);
+	}
+}
+
 }//	end of namespace
 
 #endif

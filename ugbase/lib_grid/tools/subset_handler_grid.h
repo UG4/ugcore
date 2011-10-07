@@ -29,15 +29,18 @@ class GridSubsetHandler : public ISubsetHandler
 		GridSubsetHandler(const GridSubsetHandler& sh);
 		~GridSubsetHandler();
 		
-		GridSubsetHandler& operator = (const GridSubsetHandler& sh);
+		GridSubsetHandler& operator = (const ISubsetHandler& sh);
 
 		void assign_grid(Grid& grid);
 		
 	///	Makes sure that the subset with the given index exists.
 	/**	If required the subsets between num_subsets() and index will be created.
 	 *	ISubsetHandler::subset_info_required is called automatically.*/
-		inline void subset_required(size_t index);
+		inline void subset_required(int index);
 		
+	///	The const version of subset_required throws an error if the subset does not exist.
+		inline void subset_required(int index) const;
+
 	////////////////////////////////////////////////
 	//	implementation of public virtual methdos of ISubsetHandler.
 	///	assigns a vertex to a subset.
@@ -112,12 +115,12 @@ class GridSubsetHandler : public ISubsetHandler
 		void clear_subset_elements(int subsetIndex);
 
 	//	geometric-object-collection
-		GeometricObjectCollection
-		get_geometric_object_collection(int subsetIndex);
+		virtual GeometricObjectCollection
+		get_geometric_objects_in_subset(int subsetIndex) const;
 		
 	//	multi-level-geometric-object-collection
 		GeometricObjectCollection
-		get_geometric_object_collection();
+		get_geometric_objects() const;
 
 	///	collects all vertices that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -125,7 +128,7 @@ class GridSubsetHandler : public ISubsetHandler
 	 *	of vertices in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const;
 
 	///	collects all edges that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -133,7 +136,7 @@ class GridSubsetHandler : public ISubsetHandler
 	 *	of edges in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const;
 
 	///	collects all faces that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -141,7 +144,7 @@ class GridSubsetHandler : public ISubsetHandler
 	 *	of faces in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const;
 
 	///	collects all volumes that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -149,7 +152,7 @@ class GridSubsetHandler : public ISubsetHandler
 	 *	of volumes in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;
 
 	///	returns true if the subset contains vertices
 		virtual bool contains_vertices(int subsetIndex) const	{return num<VertexBase>(subsetIndex) > 0;}
@@ -250,8 +253,8 @@ class GridSubsetHandler : public ISubsetHandler
 		void change_elem_subset_indices(int indOld, int indNew);
 
 	///	helper for collect_subset_elements
-		template <class TElem>
-		size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
+		//template <class TElem>
+		//size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
 		
 	///	removes attachments
 		void cleanup();
@@ -310,16 +313,6 @@ class GridSubsetHandler : public ISubsetHandler
 		AttachedElemList::AEntry	m_aSharedEntry;
 };
 
-
-inline void GridSubsetHandler::
-subset_required(size_t index)
-{
-	if(index >= m_subsets.size())
-	{
-		add_required_subset_lists(index);
-		ISubsetHandler::subset_info_required(index);
-	}
-}
 
 /// \ingroup lib_grid
 typedef GridSubsetHandler SubsetHandler;

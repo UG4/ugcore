@@ -55,7 +55,7 @@ end
 -- Create the domain and load a grid
 dom = Domain()
 
-if util.LoadDomain(dom, gridName) == false then
+if LoadDomain(dom, gridName) == false then
 	print("Loading of domain " .. gridName .. " failed. Aborting.")
 	exit() 
 end

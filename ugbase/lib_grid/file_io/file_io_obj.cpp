@@ -183,7 +183,7 @@ static void WriteFaces(ofstream& out, FaceIterator facesBegin, FaceIterator face
 
 bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		AVector2* paTexCoord,
-		SubsetHandler* pSubsetHandler,
+		ISubsetHandler* pSubsetHandler,
 		std::vector<OBJMaterial>* pvMaterials)
 {
 //	check whether the grid has vertex-position data. If not, return false
@@ -279,13 +279,19 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 				else
 					out << "usemtl (null)" << endl;
 
-			//	write the edges of this subset
-				WriteEdges(out, pSubsetHandler->begin<EdgeBase>(i),
-							pSubsetHandler->end<EdgeBase>(i), indexDimension, aaInt);
+			//	get the goc
+				GeometricObjectCollection goc = pSubsetHandler->
+						get_geometric_objects_in_subset(i);
 
-			//	write the faces of this subset
-				WriteFaces(out, pSubsetHandler->begin<Face>(i),
-							pSubsetHandler->end<Face>(i), indexDimension, aaInt);
+				for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+				//	write the edges of this subset
+					WriteEdges(out, goc.begin<EdgeBase>(lvl),
+								goc.end<EdgeBase>(lvl), indexDimension, aaInt);
+
+				//	write the faces of this subset
+					WriteFaces(out, goc.begin<Face>(lvl), goc.end<Face>(lvl),
+							   indexDimension, aaInt);
+				}
 			}
 		}
 		else

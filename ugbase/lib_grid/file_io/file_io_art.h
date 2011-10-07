@@ -20,7 +20,7 @@ bool LoadGridFromART(Grid&grid, const char* filename,
 ////////////////////////////////////////////////////////////////////////
 ///	saves a grid to art
 bool SaveGridToART(Grid& grid, const char* filename,
-				   SubsetHandler* pSH = NULL,
+				   ISubsetHandler* pSH = NULL,
 				   AVector3& aPos = aPosition);
 
 };

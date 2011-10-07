@@ -13,7 +13,7 @@ namespace ug
 {
 
 bool SaveGridToNCDF(Grid& grid, const char* filename,
-					SubsetHandler* pSH,
+					ISubsetHandler* pSH,
 					APosition aPos)
 {
 //	open the file to which we'll write
@@ -27,7 +27,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		return false;
 	}
 
-	SubsetHandler& sh = *pSH;
+	ISubsetHandler& sh = *pSH;
 
 //	access the position attachment
 	if(!grid.has_vertex_attachment(aPos))
@@ -60,7 +60,8 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	out << "\tnum_el_blk = " << sh.num_subsets() << " ;" << endl;
 
 	for(int i = 0; i < sh.num_subsets(); ++i){
-		out << "\tnum_el_in_blk" << i+1 << " = " << sh.num<Tetrahedron>(i) << " ;" << endl;
+		GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(i);
+		out << "\tnum_el_in_blk" << i+1 << " = " << goc.num<Tetrahedron>() << " ;" << endl;
 		out << "\tnum_nod_per_el" << i+1 << " = 4 ;" << endl;
 	}
 
@@ -117,20 +118,25 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 
 //	write elements
 	for(int i = 0; i < sh.num_subsets(); ++i){
-		out << "connect" << i+1 << " =" << endl;
-		for(TetrahedronIterator iter = sh.begin<Tetrahedron>(i);
-			iter != sh.end<Tetrahedron>(i); ++iter)
-		{
-		//	last comma in each row
-			if(iter != sh.begin<Tetrahedron>(i))
-				out << "," << endl;
+	//	get the goc for this subset
+		GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(i);
 
-			Tetrahedron* tet = *iter;
-			out << "  ";
-			out << aaInt[tet->vertex(0)] << ", ";
-			out << aaInt[tet->vertex(1)] << ", ";
-			out << aaInt[tet->vertex(2)] << ", ";
-			out << aaInt[tet->vertex(3)];
+		out << "connect" << i+1 << " =" << endl;
+		for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+			for(TetrahedronIterator iter = goc.begin<Tetrahedron>(lvl);
+				iter != goc.end<Tetrahedron>(lvl); ++iter)
+			{
+			//	last comma in each row
+				if(iter != goc.begin<Tetrahedron>(lvl))
+					out << "," << endl;
+
+				Tetrahedron* tet = *iter;
+				out << "  ";
+				out << aaInt[tet->vertex(0)] << ", ";
+				out << aaInt[tet->vertex(1)] << ", ";
+				out << aaInt[tet->vertex(2)] << ", ";
+				out << aaInt[tet->vertex(3)];
+			}
 		}
 		out << " ;" << endl << endl;
 	}

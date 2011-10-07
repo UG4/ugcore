@@ -41,17 +41,17 @@ void PrintElementNumbers(const GeometricObjectCollection& goc)
 
 void PrintGridElementNumbers(Grid& grid)
 {
-	PrintElementNumbers(grid.get_geometric_object_collection());
+	PrintElementNumbers(grid.get_geometric_objects());
 }
 
 void PrintGridElementNumbers(MultiGrid& mg)
 {
-	PrintElementNumbers(mg.get_geometric_object_collection());
+	PrintElementNumbers(mg.get_geometric_objects());
 }
 
 void PrintGridElementNumbers(GridSubsetHandler& sh)
 {
-	PrintElementNumbers(sh.get_geometric_object_collection());
+	PrintElementNumbers(sh.get_geometric_objects());
 }
 
 template <class TGeomObj>

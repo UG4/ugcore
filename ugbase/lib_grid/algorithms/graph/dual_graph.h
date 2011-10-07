@@ -75,7 +75,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 	if(pgoc)
 		goc = *pgoc;
 	else
-		goc = grid.get_geometric_object_collection();
+		goc = grid.get_geometric_objects();
 
 //	init the indices
 	TIndexType ind = 0;

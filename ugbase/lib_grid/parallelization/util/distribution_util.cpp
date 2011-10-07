@@ -861,7 +861,7 @@ void SerializeGridAndDistributionLayouts(
 //	during serialization the local indices are automatically generated
 //	and written to the aLocalInd... attachments.
 	SerializeMultiGridElements(mg,
-						msel.get_geometric_object_collection(),
+						msel.get_geometric_objects(),
 						aLocalIndVRT, aLocalIndEDGE,
 						aLocalIndFACE, aLocalIndVOL, out);
 

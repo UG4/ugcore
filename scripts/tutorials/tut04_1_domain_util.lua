@@ -30,7 +30,7 @@ function CreateAndDistributeDomain(gridName, dim, savePrefix)
 	
 --	Load the domain from file (Note that this is always performed on
 --	process 0)
-	if util.LoadDomain(dom, gridName) == false then
+	if LoadDomain(dom, gridName) == false then
 		print("Loading of domain " .. gridName .. " failed.")
 		return nil
 	end

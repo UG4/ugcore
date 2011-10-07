@@ -21,6 +21,7 @@ enum PathTypes
 	SCRIPT_PATH,
 	ROOT_PATH,
 	PLUGIN_PATH,
+	GRID_PATH,
 //	always last
 	MAX_PATH_CONSTANT
 };
@@ -40,8 +41,7 @@ class PathProvider
 {
 	public:
 	///	sets the path for the given constant.
-	/** Note that all pathes should end with a "/".
-	 *
+	/**
 	 * \param pathType	should be one of the constants enumerated in PathTypes
 	 * 					or a used defined constant starting from
 	 * 					MAX_PATH_CONSTANT + 1.
@@ -50,8 +50,7 @@ class PathProvider
 		{inst().m_map[pathType] = path;}
 
 	///	returns the path associated with the given constant.
-	/** Note that all pathes (ideally) end with a "/".
-	 *
+	/**
 	 * \param pathType	should be one of the constants enumerated in PathTypes
 	 * 					or a used defined constant starting from
 	 * 					MAX_PATH_CONSTANT + 1.
@@ -60,8 +59,7 @@ class PathProvider
 		{return inst().m_map[pathType];}
 
 	///	returns true, if the path associated with the given constant exists.
-	/** Note that all pathes (ideally) end with a "/".
-	 *
+	/**
 	 * \param pathType	should be one of the constants enumerated in PathTypes
 	 * 					or a used defined constant starting from
 	 * 					MAX_PATH_CONSTANT + 1.

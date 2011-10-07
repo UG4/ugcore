@@ -7,16 +7,20 @@
 
 #include <string>
 #include <vector>
+#include "../ug_config.h"
 
 namespace ug
 {
 
-///	This method returns a list of all directories in a directory
-bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut,
+///	Returns a list of all directories in a directory
+UG_API bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut,
 								const char* dir);
 
-///	This method returns a list of all files in a directory
-bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir);
+///	Returns a list of all files in a directory
+UG_API bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir);
+
+///	Returns true, if the specified file exists, false if not
+UG_API bool FileExists(const char* filename);
 
 }//	end of namespace
 

@@ -234,7 +234,7 @@ class MultiGrid : public Grid, public GridObserver
 		using Grid::begin;
 		using Grid::end;
 		using Grid::num;
-		using Grid::get_geometric_object_collection;
+		using Grid::get_geometric_objects;
 		using Grid::create;
 		using Grid::create_by_cloning;
 
@@ -335,12 +335,12 @@ class MultiGrid : public Grid, public GridObserver
 
 	//	geometric-object-collection
 		inline GeometricObjectCollection
-		get_geometric_object_collection(int level)
-		{return m_hierarchy.get_geometric_object_collection(level);}
+		get_geometric_objects(int level)
+		{return m_hierarchy.get_geometric_objects_in_subset(level);}
 		
 	//	multi-level-geometric-object-collection
-		virtual GeometricObjectCollection get_geometric_object_collection()
-		{return m_hierarchy.get_geometric_object_collection();}
+		virtual GeometricObjectCollection get_geometric_objects()
+		{return m_hierarchy.get_geometric_objects();}
 		
 		template <class TElem> inline
 		int get_level(TElem* elem)

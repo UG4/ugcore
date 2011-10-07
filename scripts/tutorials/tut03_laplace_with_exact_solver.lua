@@ -50,7 +50,7 @@ dom = Domain()
 -- has the benefit that grids are automatically searched in the data/grids folder if
 -- they were not found at the default locations (execution-path or a path specified
 -- in your environments path-variable).
-if util.LoadDomain(dom, gridName) == false then
+if LoadDomain(dom, gridName) == false then
 	print("Loading of domain " .. gridName .. " failed. Aborting.")
 --	call exit to leave the application right away.
 	exit() 

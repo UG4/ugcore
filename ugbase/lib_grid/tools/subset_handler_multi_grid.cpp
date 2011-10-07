@@ -285,7 +285,7 @@ register_subset_elements_at_pipe()
 
 GeometricObjectCollection
 MultiGridSubsetHandler::
-get_goc(int subsetIndex, int level)
+get_geometric_objects(int subsetIndex, int level) const
 {
 	subset_required(subsetIndex);
 	level_required(level);
@@ -298,7 +298,7 @@ get_goc(int subsetIndex, int level)
 
 GeometricObjectCollection
 MultiGridSubsetHandler::
-get_goc_by_subset(int subsetIndex)
+get_geometric_objects_in_subset(int subsetIndex) const
 {
 	subset_required(subsetIndex);
 	GeometricObjectCollection goc(m_levels.size());
@@ -315,7 +315,7 @@ get_goc_by_subset(int subsetIndex)
 
 GeometricObjectCollection
 MultiGridSubsetHandler::
-get_goc_by_level(int level)
+get_geometric_objects_in_level(int level) const
 {
 	level_required(level);
 	uint numSubsets = num_subsets_in_list();
@@ -365,7 +365,7 @@ void MultiGridSubsetHandler::add_subset_to_all_levels()
 
 	m_numSubsets++;
 }
-
+/*
 size_t MultiGridSubsetHandler::
 collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const
 {
@@ -424,5 +424,5 @@ collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) con
 	
 	return elemsOut.size();
 }
-
+*/
 }//	end of namespace

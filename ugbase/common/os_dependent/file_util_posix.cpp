@@ -2,10 +2,11 @@
 // s.b.reiter@googlemail.com
 // 14.09.2011 (m,d,y)
  
-#include "file_util.h"
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fstream>
+#include "file_util.h"
 
 using namespace std;
 
@@ -67,6 +68,17 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 	closedir(curDir);
 
 	return true;
+}
+
+bool FileExists(const char* filename)
+{
+//todo: this could be improved.
+	ifstream in(filename);
+	if(in) {
+		in.close();
+		return true;
+	}
+	return false;
 }
 
 }// end of namespace

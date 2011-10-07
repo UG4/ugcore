@@ -149,7 +149,7 @@ class Selector : public ISelector
 		template <class TElem> TElem* back();
 
 	//	geometric-object-collection
-		GeometricObjectCollection get_geometric_object_collection();
+		GeometricObjectCollection get_geometric_objects();
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver

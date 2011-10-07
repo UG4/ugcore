@@ -10,6 +10,7 @@
 #include "bridge/bridge.h"
 #include "bindings/lua/info_commands.h"
 #include "common/util/parameter_parsing.h"
+#include "common/os_dependent/file_util.h"
 
 using namespace std;
 using namespace ug;

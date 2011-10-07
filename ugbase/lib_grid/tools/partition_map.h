@@ -90,7 +90,7 @@ bool SavePartitionMapToFile(PartitionMap& pm, const char* filename,
 	}
 
 //	now save the grid to file
-	return SaveGridToUGX(grid, sh, filename, aPos);
+	return SaveGridToFile(grid, sh, filename, aPos);
 }
 
 }//	end of namespace

@@ -431,7 +431,7 @@ surface_distribution_required()
 	{
 	//	create dof distribution on surface
 		m_pSurfDD =
-			new TDoFDistribution(m_pSurfaceView->get_geometric_object_collection(),
+			new TDoFDistribution(m_pSurfaceView->get_geometric_objects(),
 								 *m_pSurfaceView,
 								 m_surfaceStorageManager,
 								 *m_pFuncPattern,
@@ -462,7 +462,7 @@ level_distribution_required(size_t numLevel)
 	for(size_t l = m_vLevelDD.size(); l < numLevel; ++l)
 	{
 		m_vLevelDD.push_back(
-				new TDoFDistribution(m_pMGSubsetHandler->get_goc_by_level(l),
+				new TDoFDistribution(m_pMGSubsetHandler->get_geometric_objects_in_level(l),
 									 *m_pMGSubsetHandler,
 									 m_levelStorageManager,
 									 *m_pFuncPattern));

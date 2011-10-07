@@ -156,12 +156,13 @@ create_subset_element_node(const char* name, const ISubsetHandler& sh,
 	//	access the attachment
 		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);
 		if(aaInd.valid()){
-		//	collect all elements of the given subset
-			std::vector<TGeomObj*> elems;
-			sh.collect_subset_elements(elems, si);
-			for(size_t i = 0; i < elems.size(); ++i)
-			{
-				ss << aaInd[elems[i]] << " ";
+			GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
+			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+				for(typename geometry_traits<TGeomObj>::iterator iter =
+					goc.begin<TGeomObj>(lvl); iter != goc.end<TGeomObj>(lvl); ++iter)
+				{
+					ss << aaInd[*iter] << " ";
+				}
 			}
 		}
 	}

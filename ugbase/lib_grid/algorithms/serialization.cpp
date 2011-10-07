@@ -298,7 +298,7 @@ bool SerializeGridElements(Grid& grid, std::ostream& out)
 {
 //	call SerializeGridElements with the grids goc
 	return SerializeGridElements(grid,
-							grid.get_geometric_object_collection(),
+							grid.get_geometric_objects(),
 							out);
 }
 
@@ -1190,7 +1190,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								std::ostream& out)
 {
 	return SerializeMultiGridElements(mg,
-						mg.get_geometric_object_collection(),
+						mg.get_geometric_objects(),
 						out);
 }
 
@@ -1653,7 +1653,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							std::ostream& out)
 {
 	return SerializeSubsetHandler(grid, sh,
-							grid.get_geometric_object_collection(),
+							grid.get_geometric_objects(),
 							out);
 }
 
@@ -1756,7 +1756,7 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							std::istream& in)
 {
 	return DeserializeSubsetHandler(grid, sh,
-							grid.get_geometric_object_collection(),
+							grid.get_geometric_objects(),
 							in);
 }
 

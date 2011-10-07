@@ -146,7 +146,7 @@ void Selector::erase_from_list(Volume* elem)
 
 //	geometric-object-collection
 GeometricObjectCollection 
-Selector::get_geometric_object_collection()
+Selector::get_geometric_objects()
 {
 //TODO: ugly casts! GenericElementSelector should store its selected elements
 //		in a GeometricObjectSectionContainer!

@@ -56,7 +56,7 @@ dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
-if util.LoadDomain(dom, gridName) == true then
+if LoadDomain(dom, gridName) == true then
 	-- create Refiner
 	print("Create Hierarchy")
 	if useLoopScheme == true then

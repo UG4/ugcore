@@ -374,7 +374,7 @@ void Grid::erase(Volume* vol)
 }
 
 //	the geometric-object-collection:
-GeometricObjectCollection Grid::get_geometric_object_collection()
+GeometricObjectCollection Grid::get_geometric_objects()
 {
 	return GeometricObjectCollection(&m_elementStorage[VERTEX].m_sectionContainer,
 									 &m_elementStorage[EDGE].m_sectionContainer,

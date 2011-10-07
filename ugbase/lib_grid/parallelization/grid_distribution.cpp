@@ -234,7 +234,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 
 		//	serialize subset indices
 			SerializeSubsetHandler(mg, sh,
-								   msel.get_geometric_object_collection(),
+								   msel.get_geometric_objects(),
 								   globalStream);
 
 		//	serialize position attachment
@@ -344,7 +344,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 
 		//	serialize subset indices
 			SerializeSubsetHandler(mg, sh,
-								   msel.get_geometric_object_collection(),
+								   msel.get_geometric_objects(),
 								   localStream);
 
 		//	serialize position attachment
@@ -368,7 +368,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 
 		//	serialize subset indices
 			SerializeSubsetHandler(mg, sh,
-								   msel.get_geometric_object_collection(),
+								   msel.get_geometric_objects(),
 								   globalStream);
 
 		//	serialize position attachment
@@ -415,7 +415,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 
 	//	deserialize subset handler
 		if(!DeserializeSubsetHandler(*pLocalGridOut, *pLocalSHOut,
-									pLocalGridOut->get_geometric_object_collection(),
+									pLocalGridOut->get_geometric_objects(),
 									localStream))
 		{
 			goto bailout_false;
@@ -539,7 +539,7 @@ UG_LOG("deserialization done...\n");
 
 //	deserialize subset handler
 	if(!DeserializeSubsetHandler(mgOut, shOut,
-								mgOut.get_geometric_object_collection(),
+								mgOut.get_geometric_objects(),
 								binaryStream))
 		return false;
 

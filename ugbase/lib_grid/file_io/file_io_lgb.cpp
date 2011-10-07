@@ -21,7 +21,7 @@ enum LGBConstants
 };
 
 bool SaveGridToLGB(Grid& grid, const char* filename,
-				   SubsetHandler** ppSH, int numSHs,
+				   ISubsetHandler** ppSH, int numSHs,
 				   APosition aPos)
 {
 //	make sure that aPos is attached to the grid
@@ -78,7 +78,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 
 
 bool LoadGridFromLGB(Grid& grid, const char* filename,
-				   SubsetHandler** ppSH, int numSHs, APosition aPos)
+				   ISubsetHandler** ppSH, int numSHs, APosition aPos)
 {
 //	if aPos is not yet attached to the grid, we'll do it now.
 	if(!grid.has_vertex_attachment(aPos))

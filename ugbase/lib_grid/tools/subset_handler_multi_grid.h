@@ -37,6 +37,9 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	/**	If required the subsets between num_subsets() and index will be created.*/
 		inline void subset_required(int index);
 		
+	///	The const version of subset_required throws an error if the subset does not exist.
+		inline void subset_required(int index) const;
+
 	///	returns the number of levels
 		inline uint num_levels() const	{return (uint)m_levels.size();}
 		
@@ -114,20 +117,20 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	/**	the returned GeometricObjectCollection hold the elements of the
 	 *	specified subset on the given level.*/
 		GeometricObjectCollection
-		get_goc(int subsetIndex, int level);
+		get_geometric_objects(int subsetIndex, int level) const;
 		
 	///	returns a GeometricObjectCollection with multiple levels
 	/**	the returned GeometricObjectCollection hold the
 	 *	elements of the specified subset.*/
 		GeometricObjectCollection
-		get_goc_by_subset(int subsetIndex);
+		get_geometric_objects_in_subset(int subsetIndex) const;
 
 	///	returns a GeometricObjectCollection with multiple levels - each representing a subset.
 	/**	the returned GeometricObjectCollection hold the
 	 *	elements of the specified level, each level of the collection
 	 *	represents a subset.*/
 		GeometricObjectCollection
-		get_goc_by_level(int level);
+		get_geometric_objects_in_level(int level) const;
 		
 	///	collects all vertices that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -135,7 +138,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	 *	of vertices in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const;
 
 	///	collects all edges that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -143,7 +146,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	 *	of edges in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const;
 
 	///	collects all faces that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -151,7 +154,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	 *	of faces in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const;
 
 	///	collects all volumes that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -159,7 +162,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	 *	of volumes in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;		
+		//virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;
 		
 	///	returns true if the subset contains vertices
 		virtual bool contains_vertices(int subsetIndex) const	{return num<VertexBase>(subsetIndex) > 0;}
@@ -221,7 +224,10 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		template<class TElem>
 		void change_elem_subset_indices(int indOld, int indNew);
 		
-		inline void level_required(size_t level)		{while(m_levels.size() <= level) add_level();}
+	///	creates the required levels, if they do not yet exist
+		inline void level_required(size_t level);
+	///	Throws an error if the required level does not yet exist
+		inline void level_required(size_t level) const;
 
 		void add_level();
 		void add_subset_to_all_levels();///< increases m_numSubsets.
@@ -295,16 +301,6 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		AttachedElemList::AEntry	m_aSharedEntry;
 };
 
-inline void
-MultiGridSubsetHandler::
-subset_required(int index)
-{
-	if(index >= m_numSubsets)
-	{
-		add_required_subset_lists(index);
-		ISubsetHandler::subset_info_required(index);
-	}
-}
 
 /// \ingroup lib_grid
 typedef MultiGridSubsetHandler MGSubsetHandler;

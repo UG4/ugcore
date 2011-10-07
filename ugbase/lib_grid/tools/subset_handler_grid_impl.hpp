@@ -251,6 +251,26 @@ bool GridSubsetHandler::perform_self_tests()
 	return bSuccess;
 }
 
+inline void GridSubsetHandler::
+subset_required(int index)
+{
+	if(index >= num_subsets())
+	{
+		add_required_subset_lists(index);
+		ISubsetHandler::subset_info_required(index);
+	}
+}
+
+inline void GridSubsetHandler::
+subset_required(int index) const
+{
+	if(index >= num_subsets()){
+		UG_THROW_FATAL("Can't create new subsets in const SubsetHandler. "
+						<< "num current subsets: " << num_subsets()
+						<< " required subset: " << index);
+	}
+}
+
 }//	end of namespace
 
 #endif
