@@ -197,9 +197,22 @@ dirichletCallback = LuaBoundaryNumber("ourDirichletBnd" .. dim .. "d")
 -- with function "c" (the concentration defined in the approximation space)
 -- and that the discretization shall only operate on elements in the subset
 -- "Inner". Note that one could specify multiple subsets here by enumerating
--- them all in the subsets-string separated by , (i.e. "Inner1, Inner2"). 
+-- them all in the subsets-string separated by , (i.e. "Inner1, Inner2").
+-- Select upwind
+if dim == 2 then 
+--upwind = NoUpwind2d()
+--upwind = FullUpwind2d()
+upwind = WeightedUpwind(); upwind:set_weight(0.0)
+--upwind = PartialUpwind2d()
+elseif dim == 3 then 
+--upwind = NoUpwind3d()
+--upwind = FullUpwind3d()
+upwind = WeightedUpwind3d(); upwind:set_weight(0.0)
+--upwind = PartialUpwind3d()
+else print("Dim not supported for upwind"); exit() end
+ 
 elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
-elemDisc:set_upwind_amount(0)
+if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_diffusion_tensor(diffMatrixCallback)	-- set the diffusion matrix
 elemDisc:set_source(rhsCallback)						-- set the right hand side
 

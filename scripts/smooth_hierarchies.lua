@@ -138,11 +138,11 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
 
--- set initial value
-u:set(1.0)
-
 -- init Operator
 linOp:init_op_and_rhs(b)
+
+-- set initial value
+u:set(1.0)
 
 -- write matrix for test purpose
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
