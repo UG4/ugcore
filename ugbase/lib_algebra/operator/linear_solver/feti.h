@@ -600,7 +600,13 @@ class LocalSchurComplement
 	///	solves the system
 		virtual bool apply_sub(vector_type& f, const vector_type& u);
 
-		// destructor
+	///	sets statistic slot where next iterate should be counted
+		void set_statistic_type(std::string type) {m_statType = type;}
+
+	///	prints some convergence statistic of inner solvers
+		void print_statistic_of_inner_solver() const;
+
+	// destructor
 		virtual ~LocalSchurComplement() {};
 
 	protected:
@@ -631,6 +637,19 @@ class LocalSchurComplement
 
 	// 	Linear Solver to invert the local Dirichlet problems
 		ILinearOperatorInverse<vector_type,vector_type>* m_pDirichletSolver;
+
+	//	Convergence history
+		std::string m_statType;
+
+		struct StepConv
+		{
+			int numIter3b;
+			number lastDef3b;
+		};
+
+		std::map<std::string, std::vector<StepConv> > m_mvStepConv;
+
+		int m_applyCnt;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
@@ -725,6 +744,9 @@ class PrimalSubassembledMatrixInverse
 	///	prints some convergence statistic of inner solvers
 		void print_statistic_of_inner_solver() const;
 
+	///	set 'm_bTestOnToManyLayouts'
+		void set_test_one_to_many_layouts(bool bTest) {m_bTestOnToManyLayouts = bTest;}
+
 	//  destructor
 		virtual ~PrimalSubassembledMatrixInverse() {};
 
@@ -789,6 +811,9 @@ class PrimalSubassembledMatrixInverse
 		};
 
 		std::map<std::string, std::vector<StepConv> > m_mvStepConv;
+
+	//	testing of 'one-to-many layouts'
+		bool m_bTestOnToManyLayouts;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
@@ -916,6 +941,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	tests layouts:
 		void test_layouts(bool print);
 
+	//	set member 'm_bTestOnToManyLayouts' of class 'PrimalSubassembledMatrixInverse':
+		void set_test_one_to_many_layouts(bool bTest)
+		{
+			m_PrimalSubassembledMatrixInverse.set_test_one_to_many_layouts(bTest);
+		}
+
+
 	///	solves the reduced system \f$F \lambda = d\f$ with preconditioned cg method
 	///	and returns the last defect of iteration in rhs
 	/// (derived from 'CGSolver::apply_return_defect()')
@@ -936,6 +968,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void print_statistic_of_inner_solver() const
 		{
 			m_PrimalSubassembledMatrixInverse.print_statistic_of_inner_solver();
+			UG_LOG("\n");
+
+			m_LocalSchurComplement.print_statistic_of_inner_solver();
 		}
 
 		// destructor

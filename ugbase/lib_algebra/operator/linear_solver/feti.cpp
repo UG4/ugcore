@@ -104,7 +104,7 @@ init()
 //	Set Dirichlet values on Pi
 	m_pFetiLayouts->mat_set_dirichlet_on_primal(*m_pDirichletMatrix);
 
-//	Set Dirichlet values on Delta - and also on DualNbr??? (08082011ih)
+//	Set Dirichlet values on Delta
 	m_pFetiLayouts->mat_set_dirichlet_on_dual(*m_pDirichletMatrix);
 
 //	Let Dirichlet Matrix use intra subdomain layouts
@@ -126,6 +126,9 @@ init()
 		m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
 									 "FetiOriginalMatrix");
 	}
+
+//	reset apply counter
+	m_applyCnt = 0;
 
 //	we're done
 	return true;
@@ -197,8 +200,20 @@ apply(vector_type& f, const vector_type& u)
 		bSuccess = false;
 	}
 	// set values to zero on \Delta (values are already zero on primal after
-	// application of DirichletOperator!) - and also on DualNbr??? (08082011ih)
+	// application of DirichletOperator!)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
+
+//	Debug output of vector
+	if(m_pDebugWriter != NULL)
+	{
+	//	add iter count to name
+		std::string name("FetiDirichletRhs");
+		char ext[20]; sprintf(ext, "_apply%03d", m_applyCnt);
+		//name.append(m_statType);
+		name.append(ext);
+
+		m_pDebugWriter->write_vector(f, name.c_str());
+	}
 
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
 	// (a) use the intra-FETI-subdomain layouts
@@ -213,25 +228,36 @@ apply(vector_type& f, const vector_type& u)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 						 "Could not solve Dirichlet problem (step 3.b) on Proc "
-							<< pcl::GetProcRank() << ".\n");
-
+							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply':"
 						" Last defect was " << convCheck->defect() <<
 						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
-	} else {
-/*		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
+	} /* else {
+		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("'LocalSchurComplement::apply':"
 						" Last defect after applying Dirichlet solver (step 3.b) was " << convCheck->defect() <<
 						" after " << convCheck->step() << " steps.\n");
-*/	}
+	}*/
+
+//	remember for statistic
+	StepConv stepConv;
+	if(!m_statType.empty())
+	{
+		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
+		stepConv.lastDef3b = convCheck->defect();
+		stepConv.numIter3b = convCheck->step();
+
+		m_mvStepConv[m_statType].push_back(stepConv);
+	}
+
 
 //	4. Compute result vector
 	// (a) Scale u_{I} by -1
 	uTmp *= -1.0;
 
-	// (b) Add u_{\Delta} on \Delta - and also on DualNbr??? (08082011ih)
+	// (b) Add u_{\Delta} on \Delta
 	m_pFetiLayouts->vec_scale_append_on_dual(uTmp, u, 1.0);
 
 	// (c) Multiply with full matrix
@@ -260,6 +286,9 @@ apply(vector_type& f, const vector_type& u)
 		return false;
 	}
 
+//	increase apply counter
+	m_applyCnt++;
+
 //	we're done
 	return true;
 } /* end 'LocalSchurComplement::apply()' */
@@ -281,6 +310,63 @@ apply_sub(vector_type& f, const vector_type& u)
 	return true;
 }
 
+template <typename TAlgebra>
+void LocalSchurComplement<TAlgebra>::
+print_statistic_of_inner_solver() const
+{
+	using namespace std;
+//	Process Communicator for CommWorld (MPI_WORLD)
+	pcl::ProcessCommunicator ProcCom;
+
+	typename map<string, vector<StepConv> >::const_iterator mapIter = m_mvStepConv.begin();
+
+	for(; mapIter != m_mvStepConv.end(); ++mapIter)
+	{
+	//	write Type
+		std::string type = (*mapIter).first;
+		UG_LOG("Calls of LocalSchurComplement::apply for '"<< type << "':\n");
+
+	//	write all calls
+		const vector<StepConv>& vStepConv = (*mapIter).second;
+
+	//	print num call
+		UG_LOG("Call                     :  ");
+		for(size_t i = 0; i < vStepConv.size(); ++i)
+			UG_LOG(std::setw(8) << i << " |  ");
+		UG_LOG("\n");
+
+		UG_LOG("Defect3b  (avg)          :  ");
+		for(size_t i = 0; i < vStepConv.size(); ++i)
+		{
+			double tGlob, tLoc = vStepConv[i].lastDef3b;
+			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+			tGlob /= pcl::GetNumProcesses();
+			UG_LOG(std::setprecision(2) << tGlob << " |  ");
+		}
+		UG_LOG("\n");
+
+		UG_LOG("NumIter3b (avg, max, min):");
+		for(size_t i = 0; i < vStepConv.size(); ++i)
+		{
+			int tGlob, tLoc = vStepConv[i].numIter3b;
+			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
+			tGlob /= pcl::GetNumProcesses();
+			UG_LOG(std::setw(3) << tGlob << ",");
+
+			tLoc = vStepConv[i].numIter3b;
+			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
+			UG_LOG(std::setw(3) << tGlob << ",");
+
+			tLoc = vStepConv[i].numIter3b;
+			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MIN);
+			UG_LOG(std::setw(3) << tGlob << "|");
+		}
+		UG_LOG("\n");
+
+		UG_LOG("\n");
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	PrimalSubassembledMatrixInverse implementation
@@ -297,6 +383,7 @@ PrimalSubassembledMatrixInverse() :
 	m_pRootSchurComplementMatrix(NULL),
 	m_pConvCheck(NULL),
 	m_statType(""),
+	m_bTestOnToManyLayouts(false),
 	m_pDebugWriter(NULL)
 {
 }
@@ -405,15 +492,15 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout)' - Messpunkt ok
 	UG_LOG("done.\n");
 
-// TMP:
-	UG_LOG("TEST ONE TO MANY LAYOUTS:\n");
-	pcl::ParallelCommunicator<IndexLayout> comTmp;
-	if (TestLayout(comTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout, true) != true) {
-		UG_LOG("ONE TO MANY LAYOUTS inconsistent!\n");
-	} else {
-		UG_LOG("ONE TO MANY LAYOUTS are consistent!\n");
+	if (m_bTestOnToManyLayouts == true) {
+		UG_LOG("     % - TEST ONE TO MANY LAYOUTS:\n");
+		pcl::ParallelCommunicator<IndexLayout> comTmp;
+		if (TestLayout(comTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout, true) != true) {
+			UG_LOG("     % - ONE TO MANY LAYOUTS inconsistent!\n");
+		} else {
+			UG_LOG("     % - ONE TO MANY LAYOUTS are consistent!\n");
+		}
 	}
-// TMP END
 
 //	We have to gather the primal root IDs and the quantities of primal nodes
 //	on each process of the feti subdomain in one array.
@@ -883,7 +970,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
-							<< pcl::GetProcRank() << ".\n");
+							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 
 		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
@@ -954,7 +1041,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 			if(!m_pCoarseProblemSolver->apply_return_defect(rootU, rootF))
 			{
 				std::cout << "ERROR in 'PrimalSubassembledMatrixInverse::apply': "
-								 "Could not invert Schur complement on root proc."
+								 "Could not invert Schur complement 'S_PiPi' on root proc."
 						<< std::endl;
 				bSuccess = false;
 			} /*
@@ -1009,7 +1096,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
-							<< pcl::GetProcRank() << ".\n");
+							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 
 		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
@@ -1076,7 +1163,7 @@ print_statistic_of_inner_solver() const
 	{
 	//	write Type
 		std::string type = (*mapIter).first;
-		UG_LOG("Calls of PrimalSubassembledMatrixInverse::apply_return defect for '"<< type << "':\n");
+		UG_LOG("Calls of PrimalSubassembledMatrixInverse::apply_return_defect for '"<< type << "':\n");
 
 	//	write all calls
 		const vector<StepConv>& vStepConv = (*mapIter).second;
@@ -1087,7 +1174,7 @@ print_statistic_of_inner_solver() const
 			UG_LOG(std::setw(8) << i << " |  ");
 		UG_LOG("\n");
 
-		UG_LOG("Defect2a (avg)           :  ");
+		UG_LOG("Defect2a  (avg)          :  ");
 		for(size_t i = 0; i < vStepConv.size(); ++i)
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef2a;
@@ -1115,7 +1202,7 @@ print_statistic_of_inner_solver() const
 		}
 		UG_LOG("\n");
 
-		UG_LOG("Defect7  (avg)           :  ");
+		UG_LOG("Defect7   (avg)          :  ");
 		for(size_t i = 0; i < vStepConv.size(); ++i)
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef7;
@@ -1383,6 +1470,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	if (!isLambdaStartZero) {
 // 	(b) Build t = F*lambda (t is additive afterwards)
 		FETI_PROFILE_BEGIN(FETISolverApply_Apply_F);
+		m_PrimalSubassembledMatrixInverse.set_statistic_type("apply_F");
 		if(!apply_F(t, lambda))
 		{
 			UG_LOG("ERROR in 'FETISolver::apply': Unable "
@@ -1403,6 +1491,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 // 	Precondition the start defect: apply z = M^-1 * r
 	FETI_PROFILE_BEGIN(FETISolverApply_Apply_M_inverse);
+	m_LocalSchurComplement.set_statistic_type("apply_M_inv_start");
 	if (!apply_M_inverse(z, r))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
@@ -1468,6 +1557,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		}
 
 	// 	Preconditioning: apply z = M^-1 * r
+		m_LocalSchurComplement.set_statistic_type("apply_M_inv_iter");
 		if (!apply_M_inverse(z, r))
 		{
 			UG_LOG("ERROR in 'FETISolver::apply': "
