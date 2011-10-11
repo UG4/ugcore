@@ -413,7 +413,8 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("set_domain_decomp_info", &T::set_domain_decomp_info)
 		.add_method("print_statistic_of_inner_solver", &T::print_statistic_of_inner_solver)
 		.add_method("set_debug", &T::set_debug)
-		.add_method("test_layouts", &T::test_layouts);
+		.add_method("test_layouts", &T::test_layouts)
+		.add_method("set_test_one_to_many_layouts", &T::set_test_one_to_many_layouts);
 		reg.add_class_to_group(name, "FETI", algTag);
 	}
 #endif
