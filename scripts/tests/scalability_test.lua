@@ -441,7 +441,7 @@ b = approxSpace:create_surface_function()
 -- debug writer
 dbgWriter = GridFunctionDebugWriter()
 dbgWriter:set_reference_grid_function(u)
-dbgWriter:set_vtk_output(false)
+dbgWriter:set_vtk_output(true) -- TMP 06102011, war false
 
 -- create algebraic Preconditioner
 jac = Jacobi()
@@ -538,12 +538,14 @@ if lsType == "feti" then
 				 lsMaxIter,
 				 numProcs,
 				 activateDbgWriter,
+				 dbgWriter,
 				 verbosity)
 elseif lsType == "hlib" then
 	print("Loading HLIB solver setup ...")
 	ug_load_script("setup_hlibsolver.lua")
 	solver = SetupHLIBSolver(lsMaxIter,
 				 activateDbgWriter,
+				 dbgWriter,
 				 verbosity)
 end
 

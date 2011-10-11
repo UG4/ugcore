@@ -45,7 +45,7 @@ salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 6 -logtofile feti-sd1_8x8-quad_pr
 salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe04.txt - "Could not solve Dirichlet problem (step 3.b)", auf allen 4 Procs!
 
 salloc -n 16 mpirun ./ugshell $UGARGS -numRefs 6 -logtofile feti-sd1_8x8-quad_prerefs3-refs6_pe16.txt - geht!
-salloc -n 16 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe16.txt - "Could not solve Dirichlet problem (step 3.b)", nur auf Proc 8!?
+salloc -n 16 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe16.txt - "Could not solve Dirichlet problem (step 3.b)", nur auf Proc 8!? <-- #DoF's wie bei Klawonn
 
 salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe64.txt - geht!
 salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -logtofile feti-sd1_8x8-quad_prerefs3-refs8_pe64.txt - "Could not solve Dirichlet problem (step 3.b)", auf Proc 53, 55, 61, 4, 5, 1 und 16
@@ -57,9 +57,11 @@ salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -distType grid2d -logtofile fet
 
 # Test, ob S_PiPi identisch fuer konstante Anzahl Subdomains:
 UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
-salloc        -n  16 mpirun ./ugshell $UGARGS numRefs 8 -dps rsamg -verb 2 -dbgw 1 -nPPSD 1
-salloc        -n  64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4
+salloc        -n  16 mpirun ./ugshell $UGARGS -numRefs 3 -dps rsamg -verb 2 -dbgw 1 -nPPSD 1
+salloc        -n  64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4
 # mit Overcommit:
+salloc -N 4 -O -n 64 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4
+
 salloc -N 16 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4
 salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 2 -dps bicg  -verb 2 -dbgw 1 -nPPSD 16
 ==> alle drei Schurkomplement-Matrizen identisch (umbenannt):
@@ -68,20 +70,25 @@ RootSchurComplementMatrix_p0000_pe256_sd16_coords.mat RootSchurComplementMatrix_
 
 # Vergleich und Test der Ausgaben beim Erzeugen von S_PiPi - identisches Problem, unterschiedliche outprocs:
 UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  0 -logtofile feti_pe64_sd16_p00.txt
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  1 -logtofile feti_pe64_sd16_p01.txt
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  2 -logtofile feti_pe64_sd16_p02.txt
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  3 -logtofile feti_pe64_sd16_p03.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  0 -logtofile feti_pe64_sd16_p00.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  1 -logtofile feti_pe64_sd16_p01.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  2 -logtofile feti_pe64_sd16_p02.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc  3 -logtofile feti_pe64_sd16_p03.txt
 
 
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 12 -logtofile feti_pe64_sd16_p12.txt
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 13 -logtofile feti_pe64_sd16_p13.txt
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 14 -logtofile feti_pe64_sd16_p14.txt
-salloc -n 64 mpirun ./ugshell $UGARGS numRefs 8 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 15 -logtofile feti_pe64_sd16_p15.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 12 -logtofile feti_pe64_sd16_p12.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 13 -logtofile feti_pe64_sd16_p13.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 14 -logtofile feti_pe64_sd16_p14.txt
+salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4 -outproc 15 -logtofile feti_pe64_sd16_p15.txt
 
 
 # JuGene:
 #########
+Interaktiv - Job lief jedoch nicht mehr (01092011):
+UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
+llrun -v  -np 16 -exe ./ugshell -mode VN -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args $UGARGS -nPPSD 1 -outproc 0
+
+
 UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -nPPSD 1"
 mpirun -np  64 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ \
                        -args "$UGARGS -numRefs 8 -logtofile jugene_feti-sd1_8x8-quad_prerefs3-refs8_pe64.txt"
@@ -138,6 +145,7 @@ function SetupFETISolver(domain,
 			 linMaxIterations,
 			 numProcs,
 			 activateDbgWriter,
+			 dbgWriter,
 			 verbosity)
 
 	print("    'setup_fetisolver.lua': Setting up FETI solver...")
@@ -401,7 +409,6 @@ function SetupFETISolver(domain,
 		
 		dirichletSolver = LinearSolver()
 		dirichletSolver:set_preconditioner(dpRSAMG)
-		
 	
 	else
 		print ("ERROR: Dirichlet problem solver not specified ==> exit")
@@ -413,7 +420,7 @@ function SetupFETISolver(domain,
 	dirichletConvCheck:set_maximum_steps(2000)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
-	dirichletConvCheck:set_verbose_level(false)
+	dirichletConvCheck:set_verbose_level(true)
 	
 	dirichletSolver:set_convergence_check(dirichletConvCheck)
 	
@@ -443,6 +450,8 @@ function SetupFETISolver(domain,
 		fetiSolver:set_debug(dbgWriter)
 	end
 	
+	fetiSolver:set_test_one_to_many_layouts(true)
+
 --[[ Layout tests sind irgendwann rausgeflogen ...
 	if verbosity >= 2 then
 		print("    Performing layout tests:")
