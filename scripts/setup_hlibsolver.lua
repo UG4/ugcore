@@ -50,6 +50,7 @@ salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 5
 ----------------------------------------------------------
 function SetupHLIBSolver(linMaxIterations,
 			 activateDbgWriter,
+			 dbgWriter,
 			 verbosity)
 
 	print("    'setup_hlibsolver.lua': Setting up HLIB solver...")
