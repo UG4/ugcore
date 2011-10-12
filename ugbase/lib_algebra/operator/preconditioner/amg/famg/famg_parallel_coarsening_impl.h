@@ -19,6 +19,7 @@
 #include "lib_algebra/parallelization/parallel_coloring.h"
 #include "../stopwatch.h"
 #include "lib_algebra/common/connection_viewer_output.h"
+#include "../send_interface.h"
 
 namespace ug
 {
@@ -73,6 +74,44 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	UG_DLOG(LIB_ALG_AMG, 1, "\n");
 }
 
+
+
+
+class FAMGCoarseningCommunicationScheme
+{
+public:
+	typedef int value_type;
+	FAMGCoarseningCommunicationScheme(FAMGNodes &r) : rating(r)
+	{
+
+	}
+	int send(int pid, size_t index) const
+	{
+		return rating[index].get_state();
+	}
+	void receive(int pid, size_t index, int state)
+	{
+		if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING || state == FAMG_AGGRESSIVE_FINE_RATING)
+			rating.external_set_uncalculated_fine(index);
+		else if(state == FAMG_COARSE_RATING)
+			rating.external_set_coarse(index);
+		else if(state == 0.0)
+			; // nothing
+		else
+		{
+			UG_ASSERT(0, "state is " << state << "?");
+		}
+	}
+
+	inline int get_element_size() const
+	{
+		return sizeof(int);
+	}
+private:
+	FAMGNodes &rating;
+};
+
+
 // FAMGLevelCalculator::receive_coarsening_from_processes_with_lower_color
 //---------------------------------------------------------------------------
 /** receives coarsening data from processes with lower color
@@ -94,14 +133,18 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	AMG_PROFILE_FUNC();
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelRecvCoarsening);
 
+	stopwatch SW;
+	if(bTiming) SW.start();
+
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*** receive coarsening data from processes with lower color ***\n");
 	if(processesWithLowerColor.size() == 0)
 	{
 		UG_DLOG(LIB_ALG_AMG, 1, "no processes with lower color.");
 		return;
 	}
-	pcl::ParallelCommunicator<IndexLayout> communicator = A_OL2.get_communicator();
 
+	FAMGCoarseningCommunicationScheme scheme(rating);
+	ReceiveOnInterfaces(A_OL2.get_communicator(), processesWithLowerColor, OLCoarseningReceiveLayout, scheme);
 
 	// issue receive of coarsening data from processes with lower color
 	/*IF_DEBUG(LIB_ALG_AMG, 11)
@@ -110,54 +153,6 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		communicator.enable_communication_debugging(lowerPC);
 	}*/
 
-	stopwatch SW;
-	UG_DLOG(LIB_ALG_AMG, 1, "\nWaiting for processes "); if(bTiming) SW.start();
-	stdvector< stdvector<char> > states;
-	states.resize(processesWithLowerColor.size());
-
-	for(size_t i=0; i<processesWithLowerColor.size(); i++)
-	{
-		int pid = processesWithLowerColor[i];
-
-		size_t s = OLCoarseningReceiveLayout.interface(pid).size();
-		states[i].resize(s, -1);
-		UG_DLOG(LIB_ALG_AMG, 1, pid << ", awaiting  " << s << " bytes.");
-		communicator.receive_raw(pid, &states[i][0], s);
-	}
-	UG_DLOG(LIB_ALG_AMG, 1, "which have lower color to receive coarse nodes...\n");
-	AMG_PROFILE_BEGIN(FAMG_recv_coarsening_communicate);
-	communicator.communicate();
-	AMG_PROFILE_END();
-	UG_DLOG(LIB_ALG_AMG, 1, "done. processing data...");
-
-	// set nodes coarse
-	for(size_t i=0; i<processesWithLowerColor.size(); i++)
-	{
-		int pid = processesWithLowerColor[i];
-		UG_DLOG(LIB_ALG_AMG, 3, "\nfrom processor " << pid << ":\n");
-
-		int j=0;
-		IndexLayout::Interface &interface = OLCoarseningReceiveLayout.interface(pid);
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
-		{
-			size_t index = interface.get_element(iter);
-
-			int state = states[i][j++];
-
-			if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING || state == FAMG_AGGRESSIVE_FINE_RATING)
-				rating.external_set_uncalculated_fine(index);
-			else if(state == FAMG_COARSE_RATING)
-				rating.external_set_coarse(index);
-			else if(state == 0.0)
-				; // nothing
-			else
-			{
-				UG_ASSERT(0, "state is " << state << "?");
-			}
-
-			UG_DLOG(LIB_ALG_AMG, 3, index << ": got state " << state << " now " << rating[index] << ", " << rating.OL_type(index) << "\n");
-		}
-	}
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
 }
 
@@ -185,40 +180,16 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 	pcl::ParallelCommunicator<IndexLayout> communicator = A_OL2.get_communicator();
 
+	FAMGCoarseningCommunicationScheme scheme(rating);
+	SendOnInterfaces(A_OL2.get_communicator(), processesWithHigherColor, OLCoarseningSendLayout, scheme);
+
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
+
 	/*IF_DEBUG(LIB_ALG_AMG, 11)
 	{
 		pcl::ProcessCommunicator higherPC = A_OL2.get_process_communicator().create_sub_communicator(processesWithHigherColor);
 		communicator.enable_communication_debugging(higherPC);
 	}*/
-
-	for(size_t i=0; i<processesWithHigherColor.size(); i++)
-	{
-		int pid = processesWithHigherColor[i];
-		UG_DLOG(LIB_ALG_AMG, 1, "Process " << pid << ":\n");
-		BinaryStream s;
-
-		IndexLayout::Interface &interface = OLCoarseningSendLayout.interface(pid);
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
-		{
-			size_t index = interface.get_element(iter);
-			char state = rating[index].get_state();
-			UG_ASSERT(state <= 0 , "node " << index << " still has a valid rating");
-
-			Serialize(s, state);
-
-			UG_DLOG(LIB_ALG_AMG, 3, rating.info(index));
-		}
-
-		UG_DLOG(LIB_ALG_AMG, 1, "sending " << s.size() << " of data to pid " << pid << "\n");
-		communicator.send_raw(pid, s.buffer(), s.size(), true);
-	}
-	UG_DLOG(LIB_ALG_AMG, 1, "with higher color...")
-
-	AMG_PROFILE_BEGIN(FAMG__coarsening_communicate);
-	communicator.communicate();
-	AMG_PROFILE_END();
-	UG_DLOG(LIB_ALG_AMG, 1, "done.");
-	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 }
 
 
@@ -226,14 +197,16 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 template<typename matrix_type>
 bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
 		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
-		size_t overlapDepthMaster, size_t overlapDepthSlave, std::vector<size_t> &overlapSize, bool masterDirichletLast, bool slaveDirichletLast)
+		size_t overlapDepthMaster, size_t overlapDepthSlave, std::vector<size_t> &overlapSize, bool masterDirichletLast, bool slaveDirichletLast,
+		ParallelNodes &PN)
 {
 	PROFILE_FUNC();
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
 
-	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts);
+	GenerateOverlapClass<ParallelMatrix<matrix_type> >
+		c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, PN);
 	c.m_overlapDepthMaster = overlapDepthMaster;
 	c.m_overlapDepthSlave = overlapDepthSlave;
 	c.m_masterDirichletLast = masterDirichletLast;
@@ -274,7 +247,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OL2SlaveLayout, A.get_slave_layout());
 
 	GenerateOverlap2(A, A_OL2, OL2MasterLayout, OL2SlaveLayout, masterLayouts, slaveLayouts,
-			2, 1, overlapSize, false, false);
+			2, 1, overlapSize, false, false, PN);
+	// PN.print();
 
 	// OL1
 	AddLayout(OL1MasterLayout, masterLayouts[0]);
@@ -348,6 +322,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	size_t N = A_OL2.num_rows();
 	rating.create(N);
 
+	/*
 	// set overlap type of the nodes
 	//-------------------------------
 	for(IndexLayout::iterator iter = masterLayouts[0].begin(); iter != masterLayouts[0].end(); ++iter)
@@ -373,7 +348,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 					rating.m_masterOn[index] = pid;
 			}
 		}
-	}
+	}*/
 
 	// debug: write overlap 2 matrix as debug output
 

@@ -18,67 +18,6 @@ namespace ug
  * send prolongation from masters to slaves
  *
  */
-#if 0
-template<typename matrix_type, typename TLocalToGlobal>
-void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
-{
-	const AlgebraID &globalRowIndex = localToGlobal[localRowIndex];
-
-	// serialize global row index
-	Serialize(stream, globalRowIndex);
-
-	size_t num_connections = mat.num_connections(localRowIndex);
-
-	// serialize number of connections
-	Serialize(stream, num_connections);
-	UG_DLOG(LIB_ALG_AMG, 4, "Sending row " << localRowIndex << " (" << globalRowIndex << "), " << num_connections << " cons: ");
-
-	for(typename matrix_type::const_row_iterator conn = mat.begin_row(localRowIndex);
-						conn != mat.end_row(localRowIndex); ++conn)
-	{
-		size_t localColIndex = conn.index();
-		const AlgebraID &globalColIndex = localToGlobal[localColIndex];
-		UG_DLOG(LIB_ALG_AMG, 4, localColIndex << " (" << globalColIndex << ") -> " << conn.value() << " ");
-
-		// serialize connection
-		Serialize(stream, globalColIndex);
-		Serialize(stream, conn.value());
-	}
-	UG_DLOG(LIB_ALG_AMG, 4, "\n");
-}
-
-
-template<typename TConnectionType, typename TGlobalToLocal>
-size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal)
-{
-	AlgebraID globalRowIndex;
-
-	// serialize global row index
-	Deserialize(stream, globalRowIndex);
-	size_t localRowIndex = globalToLocal[globalRowIndex];
-
-	UG_DLOG(LIB_ALG_AMG, 4, "Got row " << localRowIndex << " (" << globalRowIndex << "), ");
-	size_t num_connections;
-
-	// serialize number of connections
-	Deserialize(stream, num_connections);
-	
-	UG_DLOG(LIB_ALG_AMG, 4, num_connections << " connections: ")
-
-	cons.resize(num_connections);
-	for(size_t i =0; i<num_connections; i++)
-	{
-		AlgebraID globalColIndex;
-		Deserialize(stream, globalColIndex);
-		cons[i].iIndex = globalToLocal[globalColIndex];
-		Deserialize(stream, cons[i].dValue);
-		UG_DLOG(LIB_ALG_AMG, 4, cons[i].iIndex << " (" << globalColIndex << ") -> " << cons[i].dValue << " ");
-	}
-	UG_DLOG(LIB_ALG_AMG, 4, "\n");
-	return localRowIndex;
-}
-#endif
-
 
 // FAMGLevelCalculator::communicate_prolongation
 //---------------------------------------------------------------------------
@@ -100,14 +39,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	//PrintLayout(A_OL2.get_communicator(), OL2MasterLayout, OL2SlaveLayout);
 
 	// 1. get global IDs (we would only need IDs on OL1)
-	std::vector<AlgebraID> localToGlobal;
-	GenerateGlobalAlgebraIDs(localToGlobal, A_OL2.num_rows(), OL2MasterLayout, OL2SlaveLayout);
-	IF_DEBUG(LIB_ALG_AMG, 4)
-	{
-		for(size_t i=0; i<localToGlobal.size(); i++)
-		{	UG_DLOG(LIB_ALG_AMG, 4, "local " << i << " = " << localToGlobal[i] << "\n");	}
-	}
-	NewNodesNummerator globalToLocal(localToGlobal);
+
+	ParallelNodes PN(A_OL2.get_communicator(), A_OL2.get_master_layout(), A_OL2.get_slave_layout(), A_OL2.num_rows());
 
 	// 2. send from master interface of A to slaves rows of P (with global IDs)
 
@@ -123,7 +56,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			size_t localIndex = interface.get_element(iter);
 			if(PoldIndices.num_connections(localIndex)==0)
 				continue;
-			SerializeRow(stream, PoldIndices, localIndex, localToGlobal);
+			SerializeRow(stream, PoldIndices, localIndex, PN);
 		}
 		communicator.send_raw(pid, stream.buffer(), stream.write_pos(), false);
 	}
@@ -152,7 +85,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		while(!stream.eof())
 		{
 		
-			size_t localRowIndex = DeserializeRow(stream, cons, globalToLocal);
+			size_t localRowIndex = DeserializeRow(stream, cons, PN);
 			UG_ASSERT(rating.i_must_assign(localRowIndex) != true, "i must assign is true for " << localRowIndex << "?");
 			//UG_ASSERT(rating[localRowIndex].is_fine(), "node " << localRowIndex << " is not fine!");
 
@@ -168,7 +101,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			{
 				if(rating[localRowIndex].is_fine() == false)
 				{
-					UG_ASSERT(rating.is_slave(localRowIndex, 0), localRowIndex);
+					UG_ASSERT(rating.is_slave(localRowIndex), localRowIndex);
 					rating.set_fine(localRowIndex);
 					UG_DLOG(LIB_ALG_AMG, 4, "post-setted " << localRowIndex << " fine.\n");
 				}
@@ -180,7 +113,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 					if( //localToGlobal[localColIndex].first == pcl::GetProcRank() &&
 							rating[localColIndex].is_coarse() == false)
 					{
-						UG_ASSERT(rating.is_slave(localColIndex, 0)	|| rating.is_slave(localColIndex, 1), localColIndex << ": " << rating.OL_type(localColIndex));
+						//UG_ASSERT(rating.is_slave(localColIndex)
+							//	|| rating.is_slave(localColIndex, 1), localColIndex << ": " << rating.OL_type(localColIndex));
 						rating.external_set_coarse(localColIndex);
 						UG_DLOG(LIB_ALG_AMG, 4, "post-setted " << localColIndex << " coarse.\n");
 					}
@@ -250,7 +184,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			//UG_ASSERT(!rating.is_master(i) ||
 				//				rating.is_slave(localIndex, 1), "master nodes may only be interpolated by slave0 nodes");
 
-			AlgebraID &globalID = localToGlobal[localIndex];
+			const AlgebraID &globalID = PN.local_to_global(localIndex);
 			UG_ASSERT(globalID.first != pcl::GetProcRank(), globalID);
 
 			bInLayout[localIndex] = true;

@@ -44,7 +44,20 @@ namespace ug{
 /// @{
 
 ///	this type is used to identify distributed objects.
-typedef std::pair<int, size_t> AlgebraID;
+
+
+struct AlgebraID : public std::pair<int, size_t>
+{
+	AlgebraID() { first = -1; second = -1; }
+	AlgebraID(int _masterProc, size_t _indexOnMaster)
+	{
+		first = _masterProc;
+		second = _indexOnMaster;
+	}
+
+	int master_proc() const { return first; }
+	size_t index_on_master() const { return second; }
+};
 
 
 std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
@@ -54,21 +67,21 @@ std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
  * indices >= numIDs.
  */
 template <class TLayout>
-void GenerateGlobalAlgebraIDs(std::vector<AlgebraID>& idsOut,
-							  size_t numIDs,
-							  TLayout& masterLayout,
-							  TLayout& slaveLayout)
+void GenerateGlobalAlgebraIDs(pcl::ParallelCommunicator<TLayout> communicator,
+		std::vector<AlgebraID>& idsOut,
+		size_t numIDs,
+		TLayout& masterLayout,
+		TLayout& slaveLayout)
 {
 //	generate an id for each entry.
 	idsOut.resize(numIDs);
 	int localProc = pcl::GetProcRank();
 	for(size_t i = 0; i < numIDs; ++i)
-		idsOut[i] = std::make_pair(localProc, i);
+		idsOut[i] = AlgebraID(localProc, i);
 
 //	copy all ids from master to slave interfaces
 	ComPol_VecCopy<std::vector<AlgebraID> >	copyPol(&idsOut);
 
-	pcl::ParallelCommunicator<TLayout> communicator;
 	communicator.send_data(masterLayout, copyPol);
 	communicator.receive_data(slaveLayout, copyPol);
 	communicator.communicate();
@@ -625,6 +638,19 @@ void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
 		com.communicate();
 }
 
+template<typename TLayout>
+void PrintLayout(TLayout &layout)
+{
+	for(typename TLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	{
+		size_t pid = layout.proc_id(iter);
+		UG_LOG("to processor " << pid << ": ");
+		typename TLayout::Interface &interface = layout.interface(iter);
+		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+			UG_LOG(interface.get_element(iter2) << "  ");
+		UG_LOG("\n");
+	}
+}
 
 }//	end of namespace
 

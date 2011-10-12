@@ -63,6 +63,8 @@ void MultiScalProd(vector_type **px,
 template<typename matrix_type, typename vector_type>
 double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
 {
+	pcl::ProcessCommunicator pc;
+	pc.barrier();
 	vector_type t;
 	CloneVector(t, v1);
 #ifdef UG_PARALLEL
@@ -72,7 +74,9 @@ double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
 #ifdef UG_PARALLEL
 	t.change_storage_type(PST_CONSISTENT);
 #endif
-	return VecProd(v1, t);
+	double a = VecProd(v1, t);
+	pc.barrier();
+	return a;
 }
 
 template<typename matrix_type, typename vector_type, typename densematrix_type>
@@ -80,10 +84,12 @@ void MultiEnergyProd(matrix_type &A,
 			vector_type **px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
+	pcl::ProcessCommunicator pc;
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	vector_type t;
 	CloneVector(t, *px[0]);
 
+	pc.barrier();
 	for(size_t r=0; r<n; r++)
 	{
 		// todo: why is SparseMatrix<T>::apply not const ?!?
@@ -97,6 +103,7 @@ void MultiEnergyProd(matrix_type &A,
 		for(size_t c=r; c<n; c++)
 			rA(r, c) = VecProd((*px[c]), t);
 	}
+	pc.barrier();
 
 	for(size_t r=0; r<n; r++)
 		for(size_t c=0; c<r; c++)
@@ -276,11 +283,13 @@ public:
 		std::vector<std::string> testVectorDescription;
 
 		m_pPrecond->init(*m_pA);
+		pcl::ProcessCommunicator pc;
 
 		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
 		{
 			UG_LOG("iteration " << iteration << "\n");
 			// 0. normalize
+			pc.barrier();
 			if(m_pB)
 			{
 				for(size_t i=0; i<n; i++)
@@ -292,6 +301,7 @@ public:
 					(*px[i]) *= 1 / px[i]->two_norm();
 			}
 
+			pc.barrier();
 
 			// 1. before calculating new correction, save old correction
 			for(size_t i=0; i<n; i++)
@@ -300,6 +310,7 @@ public:
 			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
 			size_t nrofconverged=0;
 
+			pc.barrier();
 			for(size_t i=0; i<n; i++)
 			{
 				// 2a. compute rayleigh quotients
@@ -307,11 +318,13 @@ public:
 				// todo: replace with MatMult
 //				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(*px[i]); UG_LOG("\n");
 				// px can be set to unique because of two_norm
+				pc.barrier();
 #ifdef UG_PARALLEL
 				px[i]->change_storage_type(PST_CONSISTENT);
 				defect.set_storage_type(PST_ADDITIVE);
 #endif
 				m_pA->apply(defect, *px[i]);
+				pc.barrier();
 
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_UNIQUE);
@@ -336,9 +349,12 @@ public:
 
 				// 2c. check if converged
 
+				pc.barrier();
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_UNIQUE);
 #endif
+				pc.barrier();
+
 				corrnorm[i] = defect.two_norm();
 				//UG_LOG("corrnorm[" << i << "] = " << corrnorm[i] << "\n");
 				if(corrnorm[i] < m_dPrecision)

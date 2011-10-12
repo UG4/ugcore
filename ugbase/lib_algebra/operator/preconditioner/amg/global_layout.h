@@ -25,10 +25,11 @@ void ReceiveGlobalLayout(pcl::ParallelCommunicator<IndexLayout> &comm, std::vect
 void SendGlobalLayout(pcl::ParallelCommunicator<IndexLayout> &comm, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout, int pid);
 void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge);
 
+
 template<typename TGlobalToLocal>
-inline void CreateLayoutFromGlobalLayout(IndexLayout &layout, GlobalLayout &globalLayout, TGlobalToLocal &globalToLocal)
+void AddLayoutFromGlobalLayout(IndexLayout &layout, GlobalLayout &globalLayout, TGlobalToLocal &globalToLocal, bool bRemoveDoubles=true)
 {
-	layout.clear();
+	PROFILE_FUNC();
 	for(GlobalLayout::iterator it = globalLayout.begin(); it != globalLayout.end(); ++it)
 	{
 		int pid = it->first;
@@ -36,14 +37,34 @@ inline void CreateLayoutFromGlobalLayout(IndexLayout &layout, GlobalLayout &glob
 		sort(v.begin(), v.end());
 
 		IndexLayout::Interface &interface = layout.interface(pid);
-		for(size_t i=0; i<v.size(); i++)
-			interface.push_back(globalToLocal[v[i]]);
+
+		if(bRemoveDoubles)
+		{
+			interface.push_back(globalToLocal[v[0]]);
+			for(size_t i=1; i<v.size(); i++)
+				if(v[i-1] == v[i])
+					interface.push_back(globalToLocal[v[i]]);
+		}
+		else
+		{
+			for(size_t i=0; i<v.size(); i++)
+				interface.push_back(globalToLocal[v[i]]);
+		}
 	}
 }
 
-template<typename TLocalToGlobal>
-inline void CreateGlobalLayout(GlobalLayout &globalLayout, IndexLayout layout, const TLocalToGlobal &localToGlobal)
+template<typename TGlobalToLocal>
+inline void CreateLayoutFromGlobalLayout(IndexLayout &layout, GlobalLayout &globalLayout, TGlobalToLocal &globalToLocal, bool bRemoveDoubles=true)
 {
+	layout.clear();
+	AddLayoutFromGlobalLayout(layout, globalLayout, globalToLocal, bRemoveDoubles);
+}
+
+
+template<typename TLocalToGlobal>
+void CreateGlobalLayout(GlobalLayout &globalLayout, IndexLayout layout, const TLocalToGlobal &localToGlobal)
+{
+	PROFILE_FUNC();
 	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
 	{
 		IndexLayout::Interface &interface = layout.interface(iter);
@@ -56,7 +77,6 @@ inline void CreateGlobalLayout(GlobalLayout &globalLayout, IndexLayout layout, c
 			v.push_back(localToGlobal[localIndex]);
 		}
 	}
-
 }
 
 

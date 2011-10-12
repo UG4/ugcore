@@ -158,6 +158,12 @@ public:
 		m_writeTestvectors = wt;
 	}
 
+	void set_testvector_from_matrix_rows(bool bEnable)
+	{
+		m_bTestvectorsFromMatrixRows = bEnable;
+	}
+
+
 private:
 //  functions
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
@@ -166,7 +172,7 @@ private:
 	void c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level);
 
-	void get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega);
+	void get_testvectors(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega);
 
 private:
 // data
@@ -182,6 +188,7 @@ private:
 	bool m_bAggressiveCoarsening;
 	bool m_bExternalCoarsening;
 	bool m_bUsePrecalculate;
+	bool m_bTestvectorsFromMatrixRows;
 
 
 	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;

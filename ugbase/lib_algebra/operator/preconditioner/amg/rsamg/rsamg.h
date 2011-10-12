@@ -13,8 +13,8 @@
  */
 
 
-#ifndef __H__UG__LIB_DISC__AMG_SOLVER__AMG_H__
-#define __H__UG__LIB_DISC__AMG_SOLVER__AMG_H__
+#ifndef __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_H__
+#define __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_H__
 
 #include <vector>
 #include <iostream>
@@ -121,6 +121,9 @@ private:
 	void create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level);
 	void create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level);
 
+	void write_debug_matrix_markers(size_t level, const AMGNodes &nodes);
+	template<typename TMatrix>
+	void write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name);
 // data
 	double m_dEpsilonTr;	///< parameter used for truncation of interpolation
 	double m_dTheta; 		///< measure for strong connectivity
@@ -137,4 +140,4 @@ private:
 
 #include "rsamg_impl.h"
 
-#endif // __H__UG__LIB_DISC__AMG_SOLVER__AMG_H__
+#endif // __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_H__

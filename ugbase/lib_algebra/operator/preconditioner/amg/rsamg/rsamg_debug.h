@@ -10,8 +10,8 @@
 
 #if 0
 
-#ifndef __H__UG__LIB_DISC__RSAMG_SOLVER__AMG_DEBUG_H__
-#define __H__UG__LIB_DISC__RSAMG_SOLVER__AMG_DEBUG_H__
+#ifndef __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__AMG_DEBUG_H__
+#define __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__AMG_DEBUG_H__
 
 #include <fstream>
 #include "rsamg_nodeinfo.h"
@@ -275,5 +275,5 @@ void RSAMG<Matrix_type, Vector_type>::amgTest(const Matrix_type& A_, Vector_type
 }
 
 
-#endif // __H__UG__LIB_DISC__AMG_SOLVER__AMG_DEBUG_H__
+#endif // __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_DEBUG_H__
 #endif

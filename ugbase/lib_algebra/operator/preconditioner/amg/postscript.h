@@ -9,8 +9,8 @@
  */
 
 
-#ifndef __H__UG__LIB_DISC__POSTSCRIPT_H__
-#define __H__UG__LIB_DISC__POSTSCRIPT_H__
+#ifndef __H__UG__LIB_ALGEBRA__POSTSCRIPT_H__
+#define __H__UG__LIB_ALGEBRA__POSTSCRIPT_H__
 
 #include <fstream>
 #include <string>
@@ -138,4 +138,4 @@ private:
 };
 
 }
-#endif // __H__UG__LIB_DISC__POSTSCRIPT_H__
+#endif // __H__UG__LIB_ALGEBRA__POSTSCRIPT_H__

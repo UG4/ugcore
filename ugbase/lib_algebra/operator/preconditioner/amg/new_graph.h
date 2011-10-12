@@ -75,7 +75,7 @@ public:
 		return cons[node+1]-cons[node];
 	}
 
-	bool is_isolated(size_t i)
+	bool is_isolated(size_t i) const
 	{
 		size_check(i);
 		if(cons[i+1] == NULL) return false;
@@ -281,7 +281,7 @@ private:
 				"graph contains " << size() << " nodes, but trying to access nodes " << i << " and " << j);
 	}
 public:
-	void print()
+	void print() const
 	{
 		cout << "============= graph ================ " << endl;
 		for(size_t i=0; i < size(); i++)

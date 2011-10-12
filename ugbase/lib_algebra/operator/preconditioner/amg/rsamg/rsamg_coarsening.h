@@ -11,17 +11,23 @@ template<typename Matrix_type>
 void
 CreateStrongConnectionGraph(const Matrix_type &A, cgraph &graph, double theta=0.25);
 
-void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, AMGNodes &nodes);
+void CreateMeasureOfImportancePQ(const cgraph &strong, const cgraph &strongT, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
-void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, AMGNodes &nodes,
+void CreateAggressiveCoarseningGraph(const cgraph &graph, cgraph &graph2, const AMGNodes &nodes,
 		int nrOfPaths, int *posInConnections);
 
 
-void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, AMGNodes &nodes);
+void CreateMeasureOfImportanceAggressiveCoarseningPQ(const cgraph &graphAC, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
-int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes);
+int Coarsen(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
-void PreventFFConnections(cgraph &graphS, cgraph &graphST, AMGNodes &nodes);
+void PreventFFConnections(const cgraph &graphS, const cgraph &graphST, AMGNodes &nodes);
+
+
+void RemoveUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i);
+void MarkUnassignedNeighborsFine(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i);
+void UpdateNeighborsOfFineNode(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i);
+
 
 } // namespace ug
 

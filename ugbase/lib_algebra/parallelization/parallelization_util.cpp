@@ -662,6 +662,7 @@ void BuildDomainDecompositionLayouts(
 */
 
 
+
 /**
  * adds connections between slave nodes to the interfaces/layouts
  * when a master node has 2 slave nodes, this function adds a connection between these nodes
@@ -847,5 +848,24 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 #endif
 
 }
+
+void CreateAllToAllFromMasterSlave(pcl::ParallelCommunicator<IndexLayout> &communicator,
+		IndexLayout &OLCoarseningSendLayout, IndexLayout &OLCoarseningReceiveLayout,
+		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout)
+{
+	// master -> slave
+	AddLayout(OLCoarseningSendLayout, OL1MasterLayout);
+	AddLayout(OLCoarseningReceiveLayout, OL1SlaveLayout);
+
+	// slave -> master
+	AddLayout(OLCoarseningSendLayout, OL1SlaveLayout);
+	AddLayout(OLCoarseningReceiveLayout, OL1MasterLayout);
+
+
+	AddConnectionsBetweenSlaves(communicator,
+			OL1MasterLayout, OL1SlaveLayout,
+			OLCoarseningSendLayout, OLCoarseningReceiveLayout);
+}
+
 
 }// end of namespace

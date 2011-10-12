@@ -139,9 +139,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 	pcl::ParallelCommunicator<IndexLayout> &communicator = A.get_communicator();
 	pcl::ProcessCommunicator &pc = A.get_process_communicator();
 
-	std::vector<AlgebraID> localToGlobal;
-	GenerateGlobalAlgebraIDs(localToGlobal, A.num_rows(), A.get_master_layout(), A.get_slave_layout());
-	NewNodesNummerator globalToLocal(localToGlobal);
+	ParallelNodes PN(A.get_communicator(), A.get_master_layout(), A.get_slave_layout(), A.num_rows());
 
 	// 1. ein prozessor erhält alle daten
 	// 2. ein maß definiert, wie leicht man agglomerieren kann:
@@ -302,8 +300,8 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 	UG_LOG("\n");
 
 	GlobalLayout globalMasterLayout, globalSlaveLayout;
-	CreateGlobalLayout(globalMasterLayout, A.get_master_layout(), localToGlobal);
-	CreateGlobalLayout(globalSlaveLayout, A.get_slave_layout(), localToGlobal);
+	CreateGlobalLayout(globalMasterLayout, A.get_master_layout(), PN);
+	CreateGlobalLayout(globalSlaveLayout, A.get_slave_layout(), PN);
 
 	if(mergeWith.size() > 1)
 	{
@@ -313,14 +311,14 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		UG_LOG("\n");
 		mergeWith.erase(mergeWith.begin());
 
-		ReceiveMatrix(A, M, L.agglomerateMasterLayout, mergeWith, globalToLocal);
+		ReceiveMatrix(A, M, L.agglomerateMasterLayout, mergeWith, PN);
 		ReceiveGlobalLayout(communicator, mergeWith, globalMasterLayout, globalSlaveLayout);
 
 		MergeGlobalLayout(globalMasterLayout, merge);
 		MergeGlobalLayout(globalSlaveLayout, merge);
 
-		CreateLayoutFromGlobalLayout(L.masterLayout, globalMasterLayout, globalToLocal);
-		CreateLayoutFromGlobalLayout(L.slaveLayout, globalSlaveLayout, globalToLocal);
+		CreateLayoutFromGlobalLayout(L.masterLayout, globalMasterLayout, PN);
+		CreateLayoutFromGlobalLayout(L.slaveLayout, globalSlaveLayout, PN);
 
 		newPC.create_sub_communicator(true);
 
@@ -345,8 +343,8 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 			MergeGlobalLayout(globalMasterLayout, merge);
 			MergeGlobalLayout(globalSlaveLayout, merge);
-			CreateLayoutFromGlobalLayout(L.masterLayout, globalMasterLayout, globalToLocal);
-			CreateLayoutFromGlobalLayout(L.slaveLayout, globalSlaveLayout, globalToLocal);
+			CreateLayoutFromGlobalLayout(L.masterLayout, globalMasterLayout, PN);
+			CreateLayoutFromGlobalLayout(L.slaveLayout, globalSlaveLayout, PN);
 
 			A.set_layouts(L.masterLayout, L.slaveLayout);
 			A.set_process_communicator(newPC);
@@ -356,7 +354,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 			L.bHasBeenMerged = true;
 			UG_LOG("Merging to " << pid << "\n");
 
-			SendMatrix(A, agglomerateSlaveLayout, pid, localToGlobal);
+			SendMatrix(A, agglomerateSlaveLayout, pid, PN);
 
 			MergeGlobalLayout(globalMasterLayout, merge);
 			MergeGlobalLayout(globalSlaveLayout, merge);

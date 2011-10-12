@@ -5,8 +5,8 @@
  *      Author: mrupp
  */
 
-#ifndef AMG_PROFILING_H_
-#define AMG_PROFILING_H_
+#ifndef __H__LIB_ALGEBRA__AMG_PROFILING_H_
+#define __H__LIB_ALGEBRA__AMG_PROFILING_H_
 
 
 #define PROFILE_AMG
@@ -30,4 +30,4 @@
 	#define AMG_BPROFILE_END()
 #endif
 
-#endif /* AMG_PROFILING_H_ */
+#endif /* __H__LIB_ALGEBRA__AMG_PROFILING_H_ */

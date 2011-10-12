@@ -69,7 +69,7 @@ public:
 		return m_data[node].size() ;
 	}
 
-	bool is_isolated(size_t i)
+	bool is_isolated(size_t i) const
 	{
 		size_check(i);
 		return num_connections(i)==0 ||
@@ -77,7 +77,7 @@ public:
 	}
 
 	//! returns true if graph has connection from "from" to "to", otherwise false
-	bool has_connection(size_t from, size_t to)
+	bool has_connection(size_t from, size_t to) const
 	{
 		size_check(from, to);
 		return binary_search(begin_row(from), end_row(to), to);
@@ -161,7 +161,7 @@ public:
 	// print functions
 
 	//! print row i
-	void pr(size_t i)
+	void pr(size_t i) const
 	{
 		std::cout << "graph row " << i << ", length " << num_connections(i) << ":" << std::endl;
 		for(const_row_iterator it = begin_row(i); it != end_row(i); ++it)
@@ -170,7 +170,7 @@ public:
 		std::cout.flush();
 	}
 	//! print whole graph to cout
-	void print()
+	void print() const
 	{
 		std::cout << *this << std::endl;
 	}

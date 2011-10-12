@@ -44,6 +44,7 @@
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
+//#include "../row_sender.h"
 
 std::stack<int> g_DebugLevelStack;
 
@@ -196,6 +197,8 @@ private:
 
 	// our testvectors
 	stdvector< vector_type > &m_testvectors;
+
+	ParallelNodes PN;
 
 #ifdef UG_PARALLEL
 	//! layout for sending/receiving coarsening information
@@ -373,8 +376,10 @@ public:
 					m_famg.get_damping_for_smoother_in_interpolation_calculation(),
 					m_famg.get_epsilon_truncation(),
 					testvectors, omega),
-			rating(PoldIndices, _level, m_famg.m_amghelper),
-			m_testvectors(testvectors)
+			rating(PoldIndices, _level, m_famg.m_amghelper, PN),
+			m_testvectors(testvectors),
+			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
+					const_cast<matrix_type&>(A).get_slave_layout(), A.num_rows())
 #ifndef UG_PARALLEL
 			, A_OL2(A)
 #else
@@ -506,7 +511,15 @@ public:
 			// set P to real size
 
 			#ifdef UG_PARALLEL
-				communicate_prolongation();
+			/*{
+				pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
+
+				ParallelNodes PN(OL2MasterLayout, OL2SlaveLayout, A_OL2.num_rows());
+
+				communicate_prolongation(communicator, A.get_master_layout(), A.get_slave_layout(),
+						nextLevelMasterLayout, nextLevelSlaveLayout, PN, rating);
+			}*/
+			communicate_prolongation();
 			#endif
 
 			// [ debug output
@@ -655,8 +668,9 @@ private:
 				UG_ASSERT(rating[c].is_coarse(), "node " << c << " is not even coarse.");
 				UG_ASSERT(newIndex[c] != -1, rating.info(c));
 				// assure we are only interpolating Master0 and Slave0 nodes from Master0, Slave0 or Slave1 nodes.
-				UG_ASSERT(rating.is_inner_node(r) || rating.is_master(r) || rating.is_slave(r, 0), rating.info(r));
-				UG_ASSERT(rating.is_inner_node(c) || rating.is_master(c) || rating.is_slave(c, 0) || rating.is_slave(c, 1), rating.info(c));
+				//UG_ASSERT(PN.distance_to_master_or_inner(c) <= 1
+					//	|| (rating.is_slave(r) && PN.distance_to_master_or_inner(c) == 2),
+						//c << " = " << PN.overlap_type());
 				PnewIndices(r, newIndex[c]) = conn.value();
 			}
 		}
@@ -731,10 +745,10 @@ private:
 	void receive_coarsening_from_processes_with_lower_color();
 	void send_coarsening_data_to_processes_with_higher_color();
 	void create_OL2_matrix();
-	void add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout);
-	void communicate_prolongation(); // in famg_communicate_prolongation.h
+	void add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout);		void communicate_prolongation(); // in famg_communicate_prolongation.h
 	void calculate_uncalculated_fine_nodes();
 	void update_interface_with_newIndex(IndexLayout &layout, IndexLayout &nextLevelLayout, stdvector<int> &newIndex);
+	//void create_layouts();
 	IndexLayout OL1MasterLayout, OL1SlaveLayout;
 	IndexLayout OL2MasterLayout, OL2SlaveLayout;
 #endif
@@ -745,24 +759,42 @@ private:
 
 
 template<>
-void FAMG<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega)
+void FAMG<CPUAlgebra>::get_testvectors(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega)
 {
 	AMG_PROFILE_FUNC();
-	testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
-	omega.resize(m_vVectorWriters.size() + m_testvectors.size());
 
-	for(size_t i=0; i<m_testvectors.size(); i++)
+	if(m_bTestvectorsFromMatrixRows)
 	{
-		testvectors[i] = m_testvectors[i];
-		omega[i] = m_omegaVectors[i];
+		testvectors.resize(1);
+		omega.resize(1);
+		vector_type &v = testvectors[0];
+		v.resize(A.num_rows());
+		for(size_t i=0; i<A.num_rows(); i++)
+		{
+			if(A.is_isolated(i))
+				v[i] = 0.0;
+			else
+				v[i] = 1.0;
+		}
 	}
-
-	for(size_t i=0; i<m_vVectorWriters.size(); i++)
+	else
 	{
-		size_t index = i+m_testvectors.size();
-		m_vVectorWriters[i]->update(testvectors[index]);
-		omega[index] = m_omegaVectorWriters[i];
+		testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
+		omega.resize(m_vVectorWriters.size() + m_testvectors.size());
 
+		for(size_t i=0; i<m_testvectors.size(); i++)
+		{
+			testvectors[i] = m_testvectors[i];
+			omega[i] = m_omegaVectors[i];
+		}
+
+		for(size_t i=0; i<m_vVectorWriters.size(); i++)
+		{
+			size_t index = i+m_testvectors.size();
+			m_vVectorWriters[i]->update(testvectors[index]);
+			omega[index] = m_omegaVectorWriters[i];
+
+		}
 	}
 }
 
@@ -798,7 +830,7 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	if(level == 0)
 	{
 		testvectors.clear();
-		get_testvectors(testvectors, omega);
+		get_testvectors(A, testvectors, omega);
 	}
 
 	if(m_writeMatrices && m_writeTestvectors)
@@ -825,11 +857,11 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 #ifdef UG_PARALLEL
 #include "famg_parallel_coarsening_impl.h"
-#include "famg_communicate_prolongation.h"
 #endif
 
 #include "famg_debug_impl.h"
 #include "famg_on_demand_coarsening_impl.h"
 #include "famg_precalculate_coarsening_impl.h"
+#include "famg_communicate_prolongation.h"
 #include "famg_testvectors.h"
 #endif //  __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__

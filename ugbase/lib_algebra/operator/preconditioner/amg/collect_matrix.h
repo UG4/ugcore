@@ -8,16 +8,16 @@
 #ifndef __H__LIB_ALGEBRA__COLLECT_MATRIX_H_
 #define __H__LIB_ALGEBRA__COLLECT_MATRIX_H_
 
-#include "lib_algebra/parallelization/new_nodes_nummerator.h"
+#include "lib_algebra/parallelization/parallel_nodes.h"
 
 #include "parallelization.h"
 
 namespace ug{
 
-template<typename matrix_type, typename TLocalToGlobal>
-void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, const TLocalToGlobal &localToGlobal)
+template<typename matrix_type>
+void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, ParallelNodes &PN)
 {
-	const AlgebraID &globalRowIndex = localToGlobal[localRowIndex];
+	const AlgebraID &globalRowIndex = PN.local_to_global(localRowIndex);
 
 	// serialize global row index
 	Serialize(stream, globalRowIndex);
@@ -32,7 +32,7 @@ void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowI
 						conn != mat.end_row(localRowIndex); ++conn)
 	{
 		size_t localColIndex = conn.index();
-		const AlgebraID &globalColIndex = localToGlobal[localColIndex];
+		const AlgebraID &globalColIndex = PN.local_to_global(localColIndex);
 		UG_DLOG(LIB_ALG_AMG, 4, localColIndex << " (" << globalColIndex << ") -> " << conn.value() << " ");
 
 		// serialize connection
@@ -44,7 +44,7 @@ void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowI
 
 
 template<typename matrix_type>
-void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int destproc, std::vector<AlgebraID> localToGlobal)
+void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int destproc, ParallelNodes &PN)
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 
@@ -53,10 +53,10 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 
 	Serialize(stream, A.num_rows());
 	for(size_t i=0; i<A.num_rows(); i++)
-		SerializeRow(stream, A, i, localToGlobal);
+		SerializeRow(stream, A, i, PN);
 
-	SerializeLayout(stream, A.get_master_layout(), localToGlobal);
-	SerializeLayout(stream, A.get_slave_layout(), localToGlobal);
+	SerializeLayout(stream, A.get_master_layout(), PN);
+	SerializeLayout(stream, A.get_slave_layout(), PN);
 
 	IndexLayout::Interface &verticalInterface = verticalSlaveLayout.interface(0);
 	for(size_t i=0; i<A.num_rows(); i++)
@@ -67,14 +67,14 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 	communicator.communicate();
 }
 
-template<typename TConnectionType, typename TGlobalToLocal>
-size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, const TGlobalToLocal &globalToLocal)
+template<typename TConnectionType>
+size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, ParallelNodes &PN)
 {
 	AlgebraID globalRowIndex;
 
 	// serialize global row index
 	Deserialize(stream, globalRowIndex);
-	size_t localRowIndex = globalToLocal[globalRowIndex];
+	size_t localRowIndex = PN.global_to_local(globalRowIndex);
 
 	UG_DLOG(LIB_ALG_AMG, 4, "Got row " << localRowIndex << " (" << globalRowIndex << "), ");
 	size_t num_connections;
@@ -89,7 +89,7 @@ size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, co
 	{
 		AlgebraID globalColIndex;
 		Deserialize(stream, globalColIndex);
-		cons[i].iIndex = globalToLocal[globalColIndex];
+		cons[i].iIndex = PN.global_to_local(globalColIndex);
 		Deserialize(stream, cons[i].dValue);
 		UG_DLOG(LIB_ALG_AMG, 4, cons[i].iIndex << " (" << globalColIndex << ") -> " << cons[i].dValue << " ");
 	}
@@ -110,7 +110,7 @@ size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, co
  */
 template<typename matrix_type>
 void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMasterLayout,	const std::vector<int> &srcprocs,
-		NewNodesNummerator &globalToLocal)
+		ParallelNodes &PN)
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** ReceiveMatrix ************\n\n");
 	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
@@ -151,7 +151,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 			Deserialize(stream, globalRowIndex);
 			Deserialize(stream, num_connections);
 
-			size_t localRowIndex = globalToLocal.get_index_or_create_new(globalRowIndex);
+			size_t localRowIndex = PN.get_local_index_or_create_new(globalRowIndex, 0);
 			verticalInterface.push_back(localRowIndex);
 			UG_DLOG(LIB_ALG_AMG, 4, "Got row " << localRowIndex << " (" << globalRowIndex << "), ");
 			UG_DLOG(LIB_ALG_AMG, 4, num_connections << " connections: ");
@@ -161,14 +161,14 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 				Deserialize(stream, globalColIndex);
 				Deserialize(stream, con.dValue);
 
-				con.iIndex = globalToLocal.get_index_or_create_new(globalColIndex);
+				con.iIndex = PN.get_local_index_or_create_new(globalColIndex, 0);
 				UG_DLOG(LIB_ALG_AMG, 4, con.iIndex << " (" << globalColIndex << ") -> " << con.dValue << " ");
 			}
 			UG_DLOG(LIB_ALG_AMG, 4, "\n");
 		}
 	}
 
-	M.resize(globalToLocal.get_new_indices_size(),  globalToLocal.get_new_indices_size());
+	M.resize(PN.local_size(), PN.local_size());
 
 	for(size_t i=0; i<srcprocs.size(); i++)
 	{
@@ -180,7 +180,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 		Deserialize(stream, numRows);
 		for(size_t i=0; i<numRows; i++)
 		{
-			size_t localRowIndex = DeserializeRow(stream, cons, globalToLocal);
+			size_t localRowIndex = DeserializeRow(stream, cons, PN);
 			if(cons.size())
 				M.add_matrix_row(localRowIndex, &cons[0], cons.size());
 		}
@@ -201,18 +201,16 @@ void collect_matrix(matrix_type &A, matrix_type &M, IndexLayout &masterLayout, I
 	std::vector<int> srcprocs;
 	pcl::ProcessCommunicator &pc = A.get_process_communicator();
 
-	std::vector<AlgebraID> localToGlobal;
-	GenerateGlobalAlgebraIDs(localToGlobal, A.num_rows(), A.get_master_layout(), A.get_slave_layout());
+	ParallelNodes PN(A.get_communicator(), A.get_master_layout(), A.get_slave_layout(), A.num_rows());
 
 	if(pcl::GetProcRank() == pc.get_proc_id(0))
 	{
-		NewNodesNummerator globalToLocal(localToGlobal);
 		srcprocs.resize(pc.size()-1);
 		for(size_t i=1; i<pc.size(); i++) srcprocs[i-1] = pc.get_proc_id(i);
-		ReceiveMatrix(A, M, masterLayout, srcprocs, globalToLocal);
+		ReceiveMatrix(A, M, masterLayout, srcprocs, PN);
 	}
 	else
-		SendMatrix(A, slaveLayout, pc.get_proc_id(0), localToGlobal);
+		SendMatrix(A, slaveLayout, pc.get_proc_id(0), PN);
 }
 
 } // namespace ug

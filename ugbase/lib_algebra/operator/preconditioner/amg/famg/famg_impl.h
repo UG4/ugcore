@@ -49,6 +49,7 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 	m_dDampingForSmootherInInterpolationCalculation = 0.8;
 	m_bAggressiveCoarsening = false;
 	m_writeTestvectors = false;
+	m_bTestvectorsFromMatrixRows = false;
 
 
 	m_bExternalCoarsening = false;

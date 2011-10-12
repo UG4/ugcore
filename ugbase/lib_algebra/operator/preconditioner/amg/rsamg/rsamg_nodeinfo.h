@@ -1,7 +1,7 @@
 /**
  * \file rsamg_debug.h
- *
  * \author Martin Rupp
+ *
  *
  * \date 16.06.10
  *
@@ -9,8 +9,8 @@
  */
 
 
-#ifndef __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_NODEINFO_H__
-#define __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_NODEINFO_H__
+#ifndef __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_NODEINFO_H__
+#define __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_NODEINFO_H__
 
 //#include "maxheap.h"
 #include "../boxsort.h"
@@ -41,6 +41,10 @@ public:
 	int rating;
 	inline bool is_coarse() const {	return rating == AMG_COARSE_RATING;}
 	inline bool is_fine_direct() const {return (rating == AMG_FINE_RATING);}
+	inline bool operator ==(int comp)
+	{
+		return comp == rating;
+	}
 	
 	inline bool is_unassigned_fine_indirect() const {return rating == AMG_UNASSIGNED_FINE_INDIRECT_RATING;}
 	
@@ -91,24 +95,26 @@ public:
 class AMGNodes
 {
 public:
+	typedef AMGNode value_type;
 	AMGNodes()
 	{
 		m_unassigned = 0;
 		m_iNrOfCoarse = 0;
 	}
 
-	AMGNodes(size_t s)
+	AMGNodes(size_t N)
 	{
-		resize(s);
-	}
-
-	void resize(size_t s)
-	{
-		m_nodes.resize(s);
-		m_isOnBoundary.resize(s, false);
-
 		m_unassigned = 0;
 		m_iNrOfCoarse = 0;
+		resize(N);
+	}
+
+
+	void resize(size_t N)
+	{
+		//size_t oldsize = size();
+		m_nodes.resize(N);
+
 	}
 
 	AMGNode &operator[] (size_t i)
@@ -121,15 +127,6 @@ public:
 		return m_nodes[i];
 	}
 
-	bool is_on_boundary(size_t i)
-	{
-		return m_isOnBoundary[i];
-	}
-
-	void set_is_on_boundary(size_t i, bool b)
-	{
-		m_isOnBoundary[i] = b;
-	}
 
 	size_t size() const
 	{
@@ -142,8 +139,10 @@ public:
 		UG_ASSERT(m_unassigned != 0, i);
 		m_unassigned--;
 	}
-	inline void set_coarse(size_t i)
+
+	inline void external_set_coarse(size_t i)
 	{
+		//UG_ASSERT(!is_slave(i), i);
 		if(m_nodes[i].is_assigned() == false)
 		{
 			UG_ASSERT(m_unassigned != 0, i);
@@ -152,6 +151,11 @@ public:
 		else if(m_nodes[i].is_coarse()) return;
 		m_nodes[i].set_coarse();
 		m_iNrOfCoarse++;
+	}
+
+	inline void set_coarse(size_t i)
+	{
+		external_set_coarse(i);
 	}
 	inline void set_fine_direct(size_t i)
 	{
@@ -194,7 +198,8 @@ public:
 
 	void set_rating(size_t i, int rating)
 	{
-		UG_ASSERT(rating >=0, "");
+		UG_ASSERT(rating >=0, rating << " i = " << i);
+		//UG_ASSERT(!is_slave(i), i);
 		m_unassigned++;
 		if(m_nodes[i].is_coarse()) m_iNrOfCoarse--;
 		m_nodes[i].rating = rating;
@@ -208,9 +213,45 @@ public:
 	}
 
 
+
+
+#ifdef UG_PARALLEL
+public:
+	bool is_inner(size_t i) const
+	{
+		return !bMaster[i] && !bSlave[i];
+	}
+	bool is_master(size_t i) const
+	{
+		return bMaster[i];
+	}
+
+	bool is_slave(size_t i) const
+	{
+		return bSlave[i];
+	}
+
+	stdvector<bool> bMaster;
+	stdvector<bool> bSlave;
+#else
+public:
+	bool is_inner(size_t i) const
+	{
+		return true;
+	}
+	bool is_master(size_t i) const
+	{
+		return true;
+	}
+
+	bool is_slave(size_t i) const
+	{
+		return false;
+	}
+#endif
+
 private:
 	stdvector<AMGNode> m_nodes;
-	stdvector<bool> m_isOnBoundary;
 	int m_unassigned;
 	int m_iNrOfCoarse;			//< nr of nodes to assign
 };
@@ -221,4 +262,4 @@ typedef BoxPriorityQueue<AMGNode> nodeinfo_pq_type;
 }
 
 
-#endif // __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_NODEINFO_H__
+#endif // __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_NODEINFO_H__

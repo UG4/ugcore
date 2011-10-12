@@ -10,8 +10,8 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#ifndef __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_IMPL_H__
-#define __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_IMPL_H__
+#ifndef __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_IMPL_H__
+#define __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_IMPL_H__
 
 //#include "sparsematrix_util.h"
 
@@ -30,7 +30,12 @@
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
+#include "lib_algebra/parallelization/parallelization_util.h"
+#include "rsamg_parallel_coarsening.h"
 #endif
+
+std::string GetProcFilename(std::string path, std::string name, std::string extension);
+
 
 namespace ug{
 
@@ -39,7 +44,6 @@ namespace ug{
 
 #define AMG_WRITE_MATRICES_PATH "/Users/mrupp/matrices/AMG_"
 #define AMG_WRITE_MATRICES_MAX (200*200)
-
 
 
 
@@ -164,6 +168,62 @@ void RSAMG<TAlgebra>::create_parentIndex(const stdvector<int> &newIndex, const A
 
 
 template<typename TAlgebra>
+template<typename TMatrix>
+
+void RSAMG<TAlgebra>::write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name)
+{
+	if(m_writeMatrices)
+	{
+		AMG_PROFILE_FUNC();
+		std::string filename = GetProcFilename(m_writeMatrixPath, ToString(name) + ToString(fromlevel),".mat");
+		AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_amghelper);
+		std::fstream f2(filename.c_str(), std::ios::out | std::ios::app);
+		f2 << "c " << GetProcFilename("", std::string("AMG_fine_L") + ToString(fromlevel), ".marks") << "\n";
+		//f2 << "c " << GetProcFilename("", std::string("AMG_aggfine_L") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename("", std::string("AMG_coarse_L") + ToString(fromlevel), ".marks") << "\n";
+		f2 << "c " << GetProcFilename("", std::string("AMG_other_L") + ToString(fromlevel), ".marks") << "\n";
+		f2 << "c " << GetProcFilename("", std::string("AMG_dirichlet_L") + ToString(fromlevel), ".marks") << "\n";
+		//f2 << "v " << GetProcFilename("", std::string("AMG_d_L") + ToString(fromlevel), ".marks") << "\n";
+	}
+}
+
+
+
+template<typename TAlgebra>
+void RSAMG<TAlgebra>::write_debug_matrix_markers
+	(size_t level, const AMGNodes &nodes)
+{
+	AMG_PROFILE_FUNC();
+	std::fstream ffine(GetProcFilename(m_writeMatrixPath, std::string("AMG_fine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	ffine << "1 0 0 1 0\n";
+	std::fstream ffine2(GetProcFilename(m_writeMatrixPath, std::string("AMG_aggfine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	ffine2 << "1 0.2 1 1 0\n";
+	std::fstream fcoarse(GetProcFilename(m_writeMatrixPath, std::string("AMG_coarse_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	fcoarse << "0 0 1 1 2\n";
+	std::fstream fother(GetProcFilename(m_writeMatrixPath, std::string("AMG_other_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	fother << "1 1 0 1 0\n";
+	std::fstream fdirichlet(GetProcFilename(m_writeMatrixPath, std::string("AMG_dirichlet_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	fdirichlet << "0 1 1 1 0\n";
+	/*for(size_t i=0; i < rating.size(); i++)
+	{
+		//int o = m_amghelper.GetOriginalIndex(level, i);
+		int o=i;
+		if(rating[i].is_aggressive_fine()) ffine2 << o << "\n";
+		else if(rating[i].is_fine()) ffine << o << "\n";
+		else if(rating[i].is_coarse()) fcoarse << o << "\n";
+		else if(rating[i].is_dirichlet()) fdirichlet << o << "\n";
+		else fother << o << "\n";
+	}*/
+	for(size_t i=0; i<nodes.size(); i++)
+	{
+		int o = i; //m_amghelper.GetOriginalIndex(level, i);
+		if(nodes[i].is_fine_direct()) ffine << o << "\n";
+		else if(nodes[i].is_coarse()) fcoarse << o << "\n";
+		else fother << o << "\n";
+	}
+}
+
+template<typename TAlgebra>
 void RSAMG<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level, const AMGNodes &nodes)
 {
@@ -175,53 +235,64 @@ void RSAMG<TAlgebra>::debug_matrix_write(matrix_type &AH, prolongation_matrix_ty
 			m_amghelper.positions[level+1][i] = m_amghelper.positions[level][m_parentIndex[level+1][i]];
 	}
 
+	write_debug_matrix_markers(level, nodes);
+
 	AMG_PROFILE_FUNC();
-	std::fstream ffine((std::string(m_writeMatrixPath) + "AMG_fine_L" + ToString(level) + ".marks").c_str(), std::ios::out);
-	ffine << "1 0 0 1 0\n";
-	//ffine2 << "1 0.2 1 1 0\n";
-	std::fstream fcoarse((std::string(m_writeMatrixPath) + "AMG_coarse_L" + ToString(level) + ".marks").c_str(), std::ios::out);
-	fcoarse << "0 0 1 1 2\n";
-	std::fstream fother((std::string(m_writeMatrixPath) + "AMG_other_L" + ToString(level) + ".marks").c_str(), std::ios::out);
-	fother << "1 1 0 1 0\n";
-	std::fstream fdirichlet((std::string(m_writeMatrixPath) + "AMG_dirichlet_L" + ToString(level) + ".marks").c_str(), std::ios::out);
-	fdirichlet << "0 1 1 1 0\n";
-	for(size_t i=0; i<nodes.size(); i++)
-	{
-		int o = i; //m_amghelper.GetOriginalIndex(level, i);
-		if(nodes[i].is_fine_direct()) ffine << o << "\n";
-		else if(nodes[i].is_coarse()) fcoarse << o << "\n";
-		else fother << o << "\n";
-	}
+	UG_LOG("write matrices");
 
-	UG_DLOG(LIB_ALG_AMG, 1, "write matrices");
-	AMGWriteToFile(A, level, level, (std::string(m_writeMatrixPath) + "AMG_A_L" + ToString(level) + ".mat").c_str(), m_amghelper);
-	std::fstream f((std::string(m_writeMatrixPath) + "AMG_A_L" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_fine_L" << level << ".marks\n";
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_coarse_L" << level << ".marks\n";
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_other_L" << level << ".marks\n";
-	f << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet_L" << level << ".marks\n";
-	f << "v " << std::string(m_writeMatrixPath) << "AMG_d_L" << level << ".values\n";
-	UG_DLOG(LIB_ALG_AMG, 1, ".");
+	write_debug_matrix(A, level, level, "AMG_A_L");				UG_LOG(".");
+	write_debug_matrix(P, level, level, "AMG_P_L");	UG_LOG(".");
+	write_debug_matrix(R, level, level+1, "AMG_R_L");			UG_LOG(".");
 
-	AMGWriteToFile(P, level+1, level, (std::string(m_writeMatrixPath) + "AMG_Pp_L" + ToString(level) + ".mat").c_str(), m_amghelper);
-	std::fstream f2((std::string(m_writeMatrixPath) + "AMG_Pp_L" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_fine_L" << level << ".marks\n";
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse_L" << level << ".marks\n";
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_other_L" << level << ".marks\n";
-	f2 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet_L" << level << ".marks\n";
-	UG_DLOG(LIB_ALG_AMG, 1, ".");
+	AMGWriteToFile(AH, level+1, level+1, GetProcFilename(m_writeMatrixPath,
+			ToString("AMG_A_L") + ToString(level+1),".mat").c_str(), m_amghelper);
 
-	AMGWriteToFile(R, level, level+1, (std::string(m_writeMatrixPath) + "AMG_Rr_L" + ToString(level) + ".mat").c_str(), m_amghelper);
-	std::fstream f3((std::string(m_writeMatrixPath) + "AMG_Rr_L" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_fine_L" << level << ".marks\n";
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse_L" << level << ".marks\n";
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_other_L" << level << ".marks\n";
-	f3 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet_L" << level << ".marks\n";
-	UG_DLOG(LIB_ALG_AMG, 1, ".");
+	UG_LOG(". done\n");
 
-	AMGWriteToFile(AH, level+1, level+1, (std::string(m_writeMatrixPath) + "AMG_A_L" + ToString(level+1) + ".mat").c_str(), m_amghelper);
+	AMGWriteToFile(AH, level+1, level+1, GetProcFilename(m_writeMatrixPath,
+					ToString("AMG_A_L") + ToString(level+1),".mat").c_str(), m_amghelper);
+
 	UG_DLOG(LIB_ALG_AMG, 1, ". done.\n");
 }
+
+
+#ifdef UG_PARALLEL
+template<typename matrix_type>
+bool _MakeFullRowsMatrix(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
+		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout)
+{
+	PROFILE_FUNC();
+	// pcl does not use const much
+	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
+	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
+
+	IndexLayout totalMasterLayout, totalSlaveLayout;
+	stdvector<IndexLayout> vMasterLayouts, vSlaveLayouts;
+	ParallelNodes PN(mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout(), mat.num_rows());
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat,
+			totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, PN);
+	c.m_overlapDepthMaster = 1;
+	c.m_overlapDepthSlave = 0;
+	c.m_masterDirichletLast = false;
+	c.m_slaveDirichletLast = false;
+	bool b = c.calculate();
+
+	AddLayout(OL1MasterLayout, mat.get_master_layout());
+	AddLayout(OL1SlaveLayout, mat.get_slave_layout());
+	AddLayout(OL1MasterLayout, vMasterLayouts[0]);
+	AddLayout(OL1SlaveLayout, vSlaveLayouts[0]);
+	//overlapSize = c.m_overlapSize;
+	return b;
+}
+#endif
+
+
+#ifdef UG_PARALLEL
+void CreateAllToAllFromMasterSlave(pcl::ParallelCommunicator<IndexLayout> &communicator,
+		IndexLayout &OLCoarseningSendLayout, IndexLayout &OLCoarseningReceiveLayout,
+		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout);
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // createAMGLevel:
@@ -241,23 +312,57 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	AMG_PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	//UG_ASSERT(pcl::GetNumProcesses()==1, "not implemented for procs > 1");
+
+
+	matrix_type AOL1;
+	IndexLayout OL1MasterLayout, OL1SlaveLayout;
+	_MakeFullRowsMatrix(A, AOL1, OL1MasterLayout, OL1SlaveLayout);
+
+	stdvector<bool> bMaster(AOL1.num_rows(), false);
+	for(IndexLayout::iterator iter = A.get_master_layout().begin(); iter != A.get_master_layout().end(); ++iter)
+	{
+		IndexLayout::Interface &interface = A.get_master_layout().interface(iter);
+		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+			bMaster[interface.get_element(iter2)] = true;
+	}
+
+	stdvector<bool> bSlave(AOL1.num_rows(), false);
+	for(IndexLayout::iterator iter = A.get_slave_layout().begin(); iter != A.get_slave_layout().end(); ++iter)
+	{
+		IndexLayout::Interface &interface = A.get_master_layout().interface(iter);
+		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+			bMaster[interface.get_element(iter2)] = true;
+	}
+
+#else
+	const matrix_type &AOL1 = A;
 #endif
+
+
+
+	size_t NOL1 = AOL1.num_rows();
 	size_t N = A.num_rows();
-	AMGNodes nodes(N);
+	AMGNodes nodes(NOL1);
+	UG_LOG("NOL1 = " << NOL1 << "\n");
+
+#ifdef UG_PARALLEL
+	nodes.bMaster = bMaster;
+	nodes.bSlave = bSlave;
+#endif
 
 	bool bTiming=true;
-	UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << ". (" << N << " nodes)" << std::endl << std::fixed);
+	UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << ". (" << N << " nodes, " << NOL1-N << " overlapping )" << std::endl << std::fixed);
 	stopwatch SW;
 
 	// todo: check for isolated condition
 
 	nodeinfo_pq_type PQ;
 
-	stdvector<int> posInConnections; posInConnections.resize(N, -1);
+	stdvector<int> posInConnections; posInConnections.resize(NOL1, -1);
 
 	UG_DLOG(LIB_ALG_AMG, 1, "A.totalNrOfConnections = " << A.total_num_connections() << std::endl);
 
-	cgraph graphS(N);
+	cgraph graphS(NOL1);
 	cgraph graphST;
 
 	// build graph
@@ -266,7 +371,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	UG_DLOG(LIB_ALG_AMG, 1, "building graph... ");
 	if(bTiming) SW.start();
 
-	CreateStrongConnectionGraph(A, graphS);
+	CreateStrongConnectionGraph(AOL1, graphS);
 
 	// we need the transpose, since when we set a node coarse, we want
 	// all nodes to be fine which can be interpolated by this coarse node
@@ -292,7 +397,30 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 
 	SW.start();
 
+#ifdef UG_PARALLEL
+	// subdomain blocking
+	enum ParallelCoarseningType
+	{
+		PCT_FULL_SUBDOMAIN_BLOCKING, PCT_COLORING_COARSEN
+	};
+	ParallelCoarseningType m_parallelCoarseningType = PCT_FULL_SUBDOMAIN_BLOCKING;
+
+	if(m_parallelCoarseningType == PCT_FULL_SUBDOMAIN_BLOCKING)
+	{
+		FullSubdomainBlocking(graphST, PQ, nodes);
+	}
+	else if(m_parallelCoarseningType == PCT_COLORING_COARSEN)
+	{
+		IndexLayout OLCoarseningSendLayout, OLCoarseningReceiveLayout;
+
+		CreateAllToAllFromMasterSlave(AOL1.get_communicator(), OLCoarseningSendLayout, OLCoarseningReceiveLayout, OL1MasterLayout, OL1SlaveLayout);
+
+		ColoringCoarsen(AOL1.get_communicator(), OLCoarseningSendLayout, OLCoarseningReceiveLayout,
+			graphST, PQ, nodes);
+	}
+#else
 	Coarsen(graphST, PQ, nodes);
+#endif
 
 	PreventFFConnections(graphS, graphST, nodes);
 
@@ -341,15 +469,6 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	printCoarsening(level);
 #endif
 
-	// create new indices
-	stdvector<int> newIndex(nodes.size());
-	create_new_indices(newIndex, nodes, level);
-
-
-	// create parentIndex (for debug only)
-	if(m_writeMatrices)
-		create_parentIndex(newIndex, nodes, level);
-
 	// construct prolongation P = I_{2h->h}
 	/////////////////////////////////////////
 
@@ -357,11 +476,25 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 
 
 	if(bTiming) SW.start();
-	CreateRugeStuebenProlongation(P, A, nodes, newIndex, m_dTheta, m_dEpsilonTr);
+	CreateRugeStuebenProlongation(P, A, nodes, //newIndex,
+			m_dTheta, m_dEpsilonTr);
 	UG_ASSERT(nodes.get_unassigned() == 0 || (m_bAggressiveCoarsening && level == 0),
 			"no aggressive coarsening, but indirect interpolation of " << nodes.get_unassigned() << " nodes ?");
 	if(nodes.get_unassigned() > 0)
 		CreateIndirectProlongation(P, A, nodes, &posInConnections[0], m_dTheta);
+
+	//----------
+
+	/// create layouts
+
+
+	stdvector<int> newIndex(nodes.size());
+	create_new_indices(newIndex, nodes, level);
+
+	// create parentIndex (for debug only)
+	if(m_writeMatrices)
+		create_parentIndex(newIndex, nodes, level);
+
 
 	P.defragment();
 #ifdef UG_PARALLEL
@@ -432,7 +565,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	UG_DLOG(LIB_ALG_AMG, 1, "\n");
 
 	if(m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
-		debug_matrix_write(AH, R, A, P, level, nodes);
+		debug_matrix_write(AH, R, AOL1, P, level, nodes);
 }
 
 
@@ -467,4 +600,4 @@ void RSAMG<TAlgebra>::tostring() const
 
 } // namespace ug
 
-#endif //  __H__UG__LIB_DISC__RSAMG_SOLVER__RSAMG_IMPL_H__
+#endif //  __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_IMPL_H__

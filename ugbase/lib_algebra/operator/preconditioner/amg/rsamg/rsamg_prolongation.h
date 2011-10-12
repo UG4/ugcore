@@ -9,8 +9,8 @@
  */
 
 
-#ifndef __H__UG__LIB_DISC__AMG_SOLVER__AMG_RS_PROLONGATION_H__
-#define __H__UG__LIB_DISC__AMG_SOLVER__AMG_RS_PROLONGATION_H__
+#ifndef __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_RS_PROLONGATION_H__
+#define __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_RS_PROLONGATION_H__
 
 #include <vector>
 #include "rsamg_nodeinfo.h"
@@ -47,10 +47,11 @@ inline void SetRSInterpolation(SparseMatrix<double> &P, size_t i,
 
 template<typename Matrix_type>
 void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, AMGNodes &nodes,
-		stdvector<int> &newIndex, double theta, double epsilonTruncation=0.0)
+		//stdvector<int> &newIndex,
+		double theta, double epsilonTruncation=0.0)
 {
 	AMG_PROFILE_FUNC();
-	UG_ASSERT(newIndex.size() == nodes.size(), "");
+	//UG_ASSERT(newIndex.size() == nodes.size(), "");
 	P.resize(A.num_rows(), nodes.get_nr_of_coarse());
 
 	std::vector<SparseMatrix<double>::connection> con(255);
@@ -63,8 +64,9 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 		if(nodes[i].is_coarse())
 		{
 			// a coarse node
-			UG_ASSERT(newIndex[i] != -1, "coarse node but no new index?");
-			P(i, newIndex[i]) = 1.0;
+			//UG_ASSERT(newIndex[i] != -1, "coarse node but no new index?");
+			//P(i, newIndex[i]) = 1.0;
+			P(i,i) = 1.0;
 		}
 		else if(A.is_isolated(i))
 		{
@@ -117,7 +119,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 				connValue = amg_offdiag_value(conn.value());
 				if(connValue > barrier)
 					continue;
-				c.iIndex = newIndex[conn.index()];
+				//c.iIndex = newIndex[conn.index()];
+				c.iIndex = conn.index();
 				c.dValue = connValue;
 
 				UG_ASSERT(c.iIndex >= 0, "not coarse?");
@@ -301,4 +304,4 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__AMG_SOLVER__AMG_RS_PROLONGATION_H__ */
+#endif /* __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_RS_PROLONGATION_H__ */

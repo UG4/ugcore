@@ -102,8 +102,9 @@ public:
 class FAMGNodes
 {
 public:
-	FAMGNodes(SparseMatrix<double> &_P, size_t level, ug::cAMG_helper &amghelper)
-	: P(_P), m_level(level), m_amghelper(amghelper)
+	FAMGNodes(SparseMatrix<double> &_P, size_t level, ug::cAMG_helper &amghelper,
+			ParallelNodes &pn)
+	: m_level(level), P(_P), PN(pn), m_amghelper(amghelper)
 	{
 		m_iNrOfCoarse = 0;
 	}
@@ -116,6 +117,19 @@ public:
 		nodes.clear(); 		nodes.resize(size);
 #ifdef UG_PARALLEL
 		OLtype.clear();		OLtype.resize(size, 0);
+#endif
+	}
+
+	void resize(size_t size)
+	{
+		size_t oldSize = nodes.size();
+		nodes.resize(size);
+#ifdef UG_PARALLEL
+		OLtype.resize(size);
+		for(size_t i=oldSize; i<size; i++)
+		{
+
+		}
 #endif
 	}
 
@@ -229,17 +243,22 @@ public:
 public:
 	bool is_inner_node(size_t i) const
 	{
-		return OLtype[i] == 0;
+		return PN.overlap_type(i).is_inner();
 	}
 
 	bool is_master(size_t i) const
 	{
-		return OLtype[i] & 1;
+		return PN.overlap_type(i).is_master();
 	}
 
-	bool is_slave(size_t i, int OLlevel=0) const
+	bool is_slave(size_t i) const
 	{
-		return OLtype[i] & (1 << (OLlevel+1));
+		return PN.overlap_type(i).is_slave();
+	}
+
+	size_t distance_to_master_or_inner(size_t i) const
+	{
+		return PN.overlap_type(i).distance_to_master_or_inner();
 	}
 
 	/*bool is_master_on(size_t i, int pid)
@@ -257,33 +276,22 @@ public:
 
 	bool i_can_set_coarse(size_t i) const
 	{
-		return nodes[i].could_be_coarse() &&
-			(is_inner_node(i) || is_master(i)|| is_slave(i, 0));
+		return nodes[i].could_be_coarse() && distance_to_master_or_inner(i) <= 1;
 	}
 
 	std::string OL_type(size_t i) const
 	{
-		if(is_inner_node(i))
-			return "inner ";
-		else
-		{
-			std::stringstream  ss;
-			if(is_master(i))
-				ss << "master ";
-			for(size_t j=0; j<5; j++)
-				if(is_slave(i, j)) ss << "slave" << j << " ";
-			return ss.str();
-		}
+		std::stringstream  ss;
+		ss << PN.overlap_type(i);
+		return ss.str();
 	}
 
 	std::string info(size_t i)
 	{
 		std::stringstream ss;
-		ss << "Index " << i << ": " << nodes[i] << ", " << OL_type(i);
+		ss << "Index " << i << ": " << nodes[i] << ", " << PN.overlap_type(i);
 		return ss.str();
 	}
-
-
 
 	void calculate_unassigned()
 	{
@@ -434,13 +442,16 @@ public:
 	stdvector<FAMGNode> nodes; // !!! this HAS to be a consecutive array, because it is used in the heap
 
 private:
+
 	size_t m_iNrOfCoarse;			// number of coarse nodes so far
 	size_t m_iUnassigned;			// number of still unassigned nodes
 	size_t m_iNrOfAggressiveFine; 	// number of aggressive fine nodes
 	size_t m_iNrOfFine; 			// number of fine nodes
 
-	SparseMatrix<double> &P;
 	size_t m_level;
+
+	SparseMatrix<double> &P;
+	ParallelNodes &PN;
 	ug::cAMG_helper &m_amghelper;
 };
 

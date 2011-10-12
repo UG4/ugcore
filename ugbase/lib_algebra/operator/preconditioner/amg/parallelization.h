@@ -81,6 +81,26 @@ void DeserializeLayout(BinaryBuffer &stream,
 	}
 }
 
+inline IndexLayout::Interface::iterator find(IndexLayout::Interface &interface, size_t i)
+{
+	for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+	{
+		if(interface.get_element(iter) == i)
+			return iter;
+	}
+	return interface.end();
+}
+
+inline bool IsInInterface(IndexLayout::Interface &interface, size_t i)
+{
+	return find(interface, i) != interface.end();
+}
+
+inline void AddIfUnique(IndexLayout::Interface &interface, size_t i)
+{
+	if(IsInInterface(interface, i) == false)
+		interface.push_back(i);
+}
 
 template<typename TLayout>
 typename TLayout::iterator find(TLayout &layout, int pid)

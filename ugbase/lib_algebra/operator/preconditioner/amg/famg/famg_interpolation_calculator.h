@@ -157,8 +157,10 @@ public:
 		DenseVector<FixedArray1<double, 3> > rhs;
 		DenseVector<FixedArray1<double, 3> > q;
 		DenseVector<FixedArray1<double, 3> > t;
-		rhs[2] = - localTestvector[0][i_index];
+		double t_i = localTestvector[0][i_index];
+		rhs[2] = -t_i;
 		i_neighborpairs.clear();
+
 
 		AMG_PROFILE_NEXT(FAMG_getPPP_minCalc);
 		int i_min = -1;
@@ -172,6 +174,7 @@ public:
 			UG_DLOG(LIB_ALG_AMG, 4, "\n");
 		}
 
+		neighborstruct2 s;
 
 		const double &aii = A_OL2(i,i);
 		for(size_t n=0; n < onlyN1.size(); n++)
@@ -191,6 +194,7 @@ public:
 				 *         H(m,n) * q_n + H(m, m) * q_m + H(m, i) * q_i
 				 */
 
+#if 1
 				KKT(0, 0) = H(n, n);
 				KKT(0, 1) = H(n, m);
 				KKT(1, 0) = H(m, n);
@@ -215,10 +219,10 @@ public:
 
 				IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 
-				neighborstruct2 s;
-
 				IF_DEBUG(LIB_ALG_AMG, 5) KKT.maple_print("KKT");
 				UG_DLOG(LIB_ALG_AMG, 5, "H(i, n) = " << H(i_index, n) << ", " << " H(i, m) = " << H(i_index, m) << " H(i, i) = " << H(i_index, i_index) << "\n");
+
+				if(q[0] > 0 || q[1] > 0) continue;
 
 				// calc q^T H q
 
@@ -230,15 +234,79 @@ public:
 				UG_DLOG(LIB_ALG_AMG, 2, "F: " << s.F << "\n");
 
 				if(s.F > m_delta) continue;
+
+
+				s.parents[0].from = onlyN1[n];
+				s.parents[0].value = -q[0];
+				s.parents[1].from = onlyN1[m];
+				s.parents[1].value = -q[1];
 				if(s.F < f_min)
 				{
 					f_min =s.F;
 					i_min = i_neighborpairs.size();
 				}
+
+				//std::cout << s.parents[0].value << "   " << s.parents[1].value << " : " << s.F << "\n";
+
+#else
+				double qn, qm;
+				UG_DLOG(LIB_ALG_AMG, 5, "H(i, n) = " << H(i_index, n) << ", " << " H(i, m) = " << H(i_index, m) << " H(i, i) = " << H(i_index, i_index) << "\n");
+
+				double tn = localTestvector[0][n];
+				double tm = localTestvector[0][m];
+				double nenner1 = tn*tn*H(m,m) - 2.0*tn*tm*H(n,m) + tm*tm*H(n,n);
+				if(nenner1 < 1e-12) continue;
+				 // construct prolongation
+				if(abs(tm) > abs(tn))
+				{
+					//std::cout << "a\n";
+					// Hnn = Hnn
+					// Hm0 Hnn
+					double zaehler1 = -(tm*tm * H(i_index, n) - tm*tn * H(i_index, m) + (tn*H(m,m) - tm*H(n,m)) * t_i);
+					double laenge1 = H(i_index, i_index)*tm*tm - 2.0*t_i*tm*H(i_index, m) + t_i*t_i*H(m,m);
+
+					s.F = (laenge1 - zaehler1*zaehler1/nenner1)/(tm*tm);
+
+					s.F *= aii; // diagonal scaling is made here
+					if(s.F > m_delta) continue;
+
+					qn = zaehler1/nenner1;
+					qm = (-t_i - qn*tn)/tm;
+				}
+
+				else
+				{
+					//std::cout << "b\n";
+					double zaehler1 =  -( - tn*tm * H(i_index, n) + tn*tn * H(i_index, m) + (tm*H(n,n) - tn*H(n,m)) * t_i);
+					double laenge1 = H(i_index, i_index)*tn*tn - 2.0*t_i*tn*H(i_index, n) + t_i*t_i*H(n,n);
+					s.F = (laenge1 - zaehler1*zaehler1/nenner1)/(tn*tn);
+
+					s.F *= aii; // diagonal scaling is made here
+					if(s.F > m_delta) continue;
+
+					qm = zaehler1/nenner1;
+					qn = (-t_i - qm*tm)/tn;
+			   }
+
+
+				if(qm > 0 || qn > 0) continue;
+
+				IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 				s.parents[0].from = onlyN1[n];
-				s.parents[0].value = -q[0];
+				s.parents[0].value = -qn;
 				s.parents[1].from = onlyN1[m];
-				s.parents[1].value = -q[1];
+				s.parents[1].value = -qm;
+				//std::cout << s.parents[0].value << "   " << s.parents[1].value << " : " << s.F << "\n\n";
+				// calc q^T H q
+
+				UG_DLOG(LIB_ALG_AMG, 2, "F: " << s.F << "\n");
+
+				if(s.F < f_min)
+				{
+					f_min =s.F;
+					i_min = i_neighborpairs.size();
+				}
+#endif
 				i_neighborpairs.push_back(s);
 
 				// F = q^T H q
@@ -282,6 +350,7 @@ public:
 
 	inline bool solve_KKT()
 	{
+		AMG_PROFILE_FUNC();
 		size_t N = onlyN1.size();
 		size_t i_index = N;
 		vKKT.resize(N+1, N+1);
@@ -312,6 +381,7 @@ public:
 
 	inline bool solve_KKT_on_subset(const std::vector<size_t> &indices)
 	{
+		AMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
 		size_t N = indices.size();
 		vKKT.resize(N+1, N+1);
@@ -342,6 +412,7 @@ public:
 
 	bool get_N2(size_t i, std::vector<size_t> &myN1)
 	{
+		AMG_PROFILE_FUNC();
 		swap(onlyN1, myN1);
 
 		for(size_t j=0; j<bvisited.size(); j++)
@@ -372,6 +443,7 @@ public:
 	bool indirect_interpolation(size_t i, prolongation_matrix_type &P,	FAMGNodes &rating,
 			std::vector<size_t> &coarseNeighbors)
 	{
+		AMG_PROFILE_FUNC();
 		if(coarseNeighbors.size() == 1)
 		{
 			/*UG_LOG("only 1 coarse neighbor (" << rating.get_original_index(onlyN1[coarse_neighbors[0]]) << " for " << rating.get_original_index(i) << "?\n")
@@ -440,6 +512,7 @@ public:
 	bool direct_interpolation(size_t i, prolongation_matrix_type &P, FAMGNodes &rating,
 			std::vector<size_t> &interpolateNeighbors)
 	{
+		AMG_PROFILE_FUNC();
 		get_H(i, rating);
 		calculate_testvectors(i);
 
@@ -615,15 +688,22 @@ private:
 		UG_ASSERT(S.num_cols() == onlyN1.size()+1+onlyN2.size(), "");
 		size_t N = S.num_rows();
 
+		if(Dinv.size() != N) Dinv.resize(N);
+		if(SF.size() != N) SF.resize(N);
+		//AMG_PROFILE_NEXT(AMG_HA_calculate_H);
+		if(H.num_rows() != onlyN1.size()+1)
+			H.resize(onlyN1.size()+1, onlyN1.size()+1);
+
+		AMG_PROFILE_NEXT(cHflA)
 		//AMG_PROFILE_NEXT(AMG_HA_Dinv);
 		// get Dinv = 1/Aii
-		Dinv.resize(N);
+
 		for(size_t j=0; j < N; j++)
 			GetInverse(Dinv[j], S(j,j));
 
 		// get SF = 1-wDF^{-1} A  (F-smoothing)
 		//AMG_PROFILE_BEGIN(AMG_HA_calculate_SF);
-		SF.resize(N);
+
 		// bei f-smoothing nie und nimmer damping (arne 3.juni)
 		double diaginv = 1/S(i_index, i_index);
 		for(size_t j=0; j < N; j++)
@@ -644,7 +724,7 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 5) S.maple_print("Sjac");
 
-		// get S = SF S
+		// get S' = SF S
 		//AMG_PROFILE_NEXT(AMG_HA_calculate_SFS);
 		// (possible without temporary since SF is mostly Id,
 		//  and then SF S is addition of rows of S)
@@ -674,9 +754,8 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 5)	S.maple_print("S_SF");
 
-		//AMG_PROFILE_NEXT(AMG_HA_calculate_H);
-		H.resize(onlyN1.size()+1, onlyN1.size()+1);
-		// get H = S Y S^T
+
+		// get H = S' Y S'^T
 		// todo: use symmetric H.
 		for(size_t r=0; r < onlyN1.size()+1; r++)
 			for(size_t c=r; c < onlyN1.size()+1; c++)
