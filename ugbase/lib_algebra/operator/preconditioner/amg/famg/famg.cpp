@@ -198,9 +198,10 @@ private:
 	// our testvectors
 	stdvector< vector_type > &m_testvectors;
 
-	ParallelNodes PN;
+
 
 #ifdef UG_PARALLEL
+	ParallelNodes PN;
 	//! layout for sending/receiving coarsening information
 	//! note: this is not a classical master/slave distribution!
 	IndexLayout OLCoarseningReceiveLayout, OLCoarseningSendLayout;
@@ -376,11 +377,15 @@ public:
 					m_famg.get_damping_for_smoother_in_interpolation_calculation(),
 					m_famg.get_epsilon_truncation(),
 					testvectors, omega),
+#ifdef UG_PARALLEL
 			rating(PoldIndices, _level, m_famg.m_amghelper, PN),
+#else
+			rating(PoldIndices, _level, m_famg.m_amghelper),
+#endif
 			m_testvectors(testvectors),
-			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
-					const_cast<matrix_type&>(A).get_slave_layout(), A.num_rows())
 #ifndef UG_PARALLEL
+			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
+								const_cast<matrix_type&>(A).get_slave_layout(), A.num_rows())
 			, A_OL2(A)
 #else
 			, nextLevelMasterLayout(AH.get_master_layout()), nextLevelSlaveLayout(AH.get_slave_layout())

@@ -102,12 +102,20 @@ public:
 class FAMGNodes
 {
 public:
+#ifdef UG_PARALLEL
 	FAMGNodes(SparseMatrix<double> &_P, size_t level, ug::cAMG_helper &amghelper,
 			ParallelNodes &pn)
 	: m_level(level), P(_P), PN(pn), m_amghelper(amghelper)
 	{
 		m_iNrOfCoarse = 0;
 	}
+#else
+	FAMGNodes(SparseMatrix<double> &_P, size_t level, ug::cAMG_helper &amghelper)
+		: m_level(level), P(_P), m_amghelper(amghelper)
+		{
+			m_iNrOfCoarse = 0;
+		}
+#endif
 
 	void create(size_t size)
 	{
@@ -451,7 +459,9 @@ private:
 	size_t m_level;
 
 	SparseMatrix<double> &P;
+#ifdef UG_PARALLEL
 	ParallelNodes &PN;
+#endif
 	ug::cAMG_helper &m_amghelper;
 };
 
