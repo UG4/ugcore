@@ -397,6 +397,21 @@ bool SendRecvListsMatch(const std::vector<int>& recvFrom,
 bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<int>& recvBufSizes,
 						  const std::vector<int>& sendTo, const std::vector<int>& sendBufSizes,
 						  const ProcessCommunicator& involvedProcs = ProcessCommunicator());
+
+
+
+template<typename TLayout>
+void AddLayout(TLayout &destLayout, TLayout &sourceLayout)
+{
+	for(typename TLayout::iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
+	{
+		typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
+		typename TLayout::Interface &dest_interface = destLayout.interface(sourceLayout.proc_id(iter));
+		for(typename TLayout::Interface::iterator iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
+			dest_interface.push_back(source_interface.get_element(iter2));
+	}
+}
+
 }//	end of namespace
 
 #endif
