@@ -69,7 +69,8 @@ void ColoringCoarsen(pcl::ParallelCommunicator<IndexLayout> &communicator,
 			pidsOL.insert(OLCoarseningReceiveLayout.proc_id(iter));
 	}
 
-	int m_myColor = ColorProcessorGraph(communicator, pidsOL, processesWithLowerColor, processesWithHigherColor);
+	// int m_myColor =
+	ColorProcessorGraph(communicator, pidsOL, processesWithLowerColor, processesWithHigherColor);
 
 	// receive from processes with lower color
 
