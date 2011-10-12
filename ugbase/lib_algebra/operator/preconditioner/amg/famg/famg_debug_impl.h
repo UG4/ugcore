@@ -88,7 +88,7 @@ void WritePMAT(std::string &path, std::string &name)
 		file << name << "_" << i << ".mat\n";
 }
 #else
-void WritePMAT(std::string &name)
+void WritePMAT(std::string &path, std::string &name)
 {
 }
 #endif
