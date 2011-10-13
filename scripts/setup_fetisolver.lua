@@ -43,6 +43,23 @@ UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/uni
 salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 5 -logtofile feti-sd1_8x8-quad_prerefs3-refs5_pe04.txt - geht!
 salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 6 -logtofile feti-sd1_8x8-quad_prerefs3-refs6_pe04.txt - geht, zumindest mit 2000 Schritten Dirichlet-Solver!
 salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe04.txt - "Could not solve Dirichlet problem (step 3.b)", auf allen 4 Procs!
+salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps rsamg - works!
+salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 8 -dps rsamg - nun Ausstieg des Neumann-Solvers!
+
+-- Test of solvers:
+UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -nPPSD 1"
+-- Default solvers:
+salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg    -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-cg_nps-cg_cps-exact_pe04.txt
+-- RSAMG for Dirichlet problem:
+salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps rsamg -nps cg    -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-rsamg_nps-cg_cps-exact_pe04.txt
+-- RSAMG for Dirichlet+Neumann problem:
+salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps rsamg -nps rsamg -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-rsamg_nps-rsamg_cps-exact_pe04.txt
+
+-- exact for Dirichlet problem:
+salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps exact -nps cg    -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-exact_nps-cg_cps-exact_pe04.txt
+-- exact for Dirichlet+Neumann problem:
+salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps exact -nps exact -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-exact_nps-exact_cps-exact_pe04.txt
+
 
 salloc -n 16 mpirun ./ugshell $UGARGS -numRefs 6 -logtofile feti-sd1_8x8-quad_prerefs3-refs6_pe16.txt - geht!
 salloc -n 16 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe16.txt - "Could not solve Dirichlet problem (step 3.b)", nur auf Proc 8!? <-- #DoF's wie bei Klawonn
@@ -195,7 +212,7 @@ function SetupFETISolver(domain,
 
 	-- types of sub solvers:
 	local coarseProblemSolverType    = util.GetParam("-cps", "exact") -- choose one in ["exact" | "cg" | "hlib" ]
-	local neumannProblemSolverType   = util.GetParam("-nps",    "cg") -- choose one in ["exact" | "ls" | "cg" | "bicg" ]
+	local neumannProblemSolverType   = util.GetParam("-nps",    "cg") -- choose one in ["exact" | "ls" | "cg" | "bicg" | "rsamg" ]
 	local dirichletProblemSolverType = util.GetParam("-dps",    "cg") -- choose one in ["exact" | "ls" | "cg" | "bicg" | "rsamg" ]
 
 
@@ -333,20 +350,44 @@ function SetupFETISolver(domain,
 	elseif neumannProblemSolverType == "ls" then
 	
 		neumannSolver = LinearSolver()
-		--neumannSolver:set_preconditioner(npJac)
-		neumannSolver:set_preconditioner(npILU)
+		neumannSolver:set_preconditioner(npILU) -- npJac
 	
 	elseif neumannProblemSolverType == "cg" then
 	
 		neumannSolver = CG()
-		--neumannSolver:set_preconditioner(npJac)
-		neumannSolver:set_preconditioner(npILU)
+		neumannSolver:set_preconditioner(npILU) -- npJac
 	
 	elseif neumannProblemSolverType == "bicg" then
 	
 		neumannSolver = BiCGStab() -- ERROR in 'PrimalSubassembledMatrixInverse::init': Could not solve local problem to compute Schur complement w.r.t. primal unknowns. - war das bei 1x1?
 		-- BiCGStab statt CG hatte z.T. eine Verdopplung bis Verdreifachung der Iterationszahlen
 		-- (apply_F), z.T. eine Verringerung von einem Viertel bis zur Haelfte (backsolve; compute_d) bewirkt!?
+		neumannSolver:set_preconditioner(npILU) -- npJac
+	
+	elseif neumannProblemSolverType == "rsamg" then
+
+		maxBase = util.GetParamNumber("-maxBase", 1000) -- TODO (maybe): make 'maxBase' different for "np solver" and "dp solver"!
+			
+		npRSAMG = RSAMGPreconditioner()
+		
+		npRSAMGGS = GaussSeidel()
+		npRSAMGBase = LU()
+		
+		npRSAMG:set_num_presmooth(3)
+		npRSAMG:set_num_postsmooth(3)
+		npRSAMG:set_cycle_type(1)
+		npRSAMG:set_presmoother(npRSAMGGS)
+		npRSAMG:set_postsmoother(npRSAMGGS)
+		npRSAMG:set_base_solver(npRSAMGBase)
+		npRSAMG:set_max_levels(20)
+		npRSAMG:set_max_nodes_for_base(maxBase)
+		npRSAMG:set_max_fill_before_base(0.7)
+		npRSAMG:set_fsmoothing(true)
+		npRSAMG:set_epsilon_truncation(0)		
+		npRSAMG:tostring()	
+		
+		neumannSolver = LinearSolver()
+		neumannSolver:set_preconditioner(npRSAMG)
 	
 	else
 		print ("ERROR: Neumann problem solver not specified ==> exit")
@@ -373,17 +414,17 @@ function SetupFETISolver(domain,
 	elseif dirichletProblemSolverType == "ls" then
 	
 		dirichletSolver = LinearSolver()
-		dirichletSolver:set_preconditioner(dpILU)
+		dirichletSolver:set_preconditioner(dpILU) -- dpJac
 	
 	elseif dirichletProblemSolverType == "cg" then
 	
 		dirichletSolver = CG()
-		dirichletSolver:set_preconditioner(dpILU)
+		dirichletSolver:set_preconditioner(dpILU) -- dpJac
 	
 	elseif dirichletProblemSolverType == "bicg" then
 	
 		dirichletSolver = BiCGStab() -- not yet tested for Dirichlet problem!
-		dirichletSolver:set_preconditioner(dpILU)
+		dirichletSolver:set_preconditioner(dpILU) -- dpJac
 	
 	elseif dirichletProblemSolverType == "rsamg" then
 
