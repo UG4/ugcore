@@ -384,7 +384,7 @@ public:
 #endif
 			m_testvectors(testvectors),
 #ifndef UG_PARALLEL
-			, A_OL2(A)
+			A_OL2(A)
 #else
 			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
 											const_cast<matrix_type&>(A).get_slave_layout(), A.num_rows())
