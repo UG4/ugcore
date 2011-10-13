@@ -132,6 +132,7 @@ public:
 	{
 		size_t oldSize = nodes.size();
 		nodes.resize(size);
+		(void) oldSize;
 #ifdef UG_PARALLEL
 		OLtype.resize(size);
 		for(size_t i=oldSize; i<size; i++)
