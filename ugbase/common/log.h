@@ -101,6 +101,9 @@ class UG_API LogAssistant
 	 */
 		bool enable_file_output(bool bEnable, const char* filename = "uglog.log");
 
+	/// renames output file if opened.
+		bool rename_log_file(const char * newname);
+
 	///	enables or disables terminal output.
 	/**	terminal output is enbled by default.*/
 		bool enable_terminal_output(bool bEnable);
@@ -145,6 +148,7 @@ class UG_API LogAssistant
 		OStreamBufferEmpty		m_emptyBufInst;
 		OStreamBufferSplitter	m_splitBufInst;
 
+		char* m_logFileName;
 		std::ofstream			m_fileStream;
 
 		bool m_terminalOutputEnabled;

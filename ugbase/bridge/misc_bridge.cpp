@@ -94,6 +94,8 @@ bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 		reg.add_class_<LogAssistant>("LogAssistant", grp)
 			.add_method("enable_file_output", &LogAssistant::enable_file_output,
 					"", "bEnable#filename", "Please note that only the filename given at the first call is considered")
+			.add_method("rename_log_file", &LogAssistant::rename_log_file,
+					"", "filename", "Renames previously opened logfile to the name given")
 			.add_method("enable_terminal_output", &LogAssistant::enable_terminal_output,
 					"", "bEnable", "enables or disables terminal output (enabled by default)")
 			.add_method("set_debug_levels", &LogAssistant::set_debug_levels,

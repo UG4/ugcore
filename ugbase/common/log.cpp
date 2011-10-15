@@ -64,11 +64,27 @@ enable_file_output(bool bEnable, const char* filename)
 				m_fileOutputEnabled = false;
 				return false;
 			}
+			m_logFileName = const_cast<char *>(filename);
 		}
 	}
 
 	m_fileOutputEnabled = bEnable;
 	update_ostream();
+	return true;
+}
+
+bool LogAssistant::
+rename_log_file(const char * newname)
+{
+		if(!m_fileStream.is_open()){
+			UG_LOG("Unable to rename logfile to '" << newname << "': no logfile open!");
+			return false;
+		} else {
+			UG_LOG("Logfile '" << m_logFileName << "' renamed to '" << newname << "'" << std::endl);
+			rename(m_logFileName, newname);
+			m_logFileName = const_cast<char *>(newname);
+
+		}
 	return true;
 }
 
