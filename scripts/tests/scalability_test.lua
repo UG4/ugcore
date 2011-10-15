@@ -23,6 +23,10 @@
 
 ug_load_script("ug_util.lua")
 
+-- some parameters for renaming of logfiles (in the moment only used for FETI)
+str_problem = "laplace"
+str_startgrid = ""
+
 -- output command line arguments
 line = "#ANALYZER INFO: cmd args:"
 for _, arg in ipairs(ugargv) do
@@ -43,12 +47,14 @@ dim = util.GetParamNumber("-dim", 2)
 
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_8x8.ugx")
+	str_startgrid = "8x8-quads"
 	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
 	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
 	--gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_hex_2x2x2.ugx")
+	str_startgrid = "2x2x2-quads"
 	--gridName = "unit_square/unit_cube_tets_regular.ugx"
 end
 
@@ -87,6 +93,11 @@ activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time me
 						    -- >= 1 for debug output: this sets
 						    -- 'fetiSolver:set_debug(dbgWriter)'
 
+
+
+renameLogfileAfterRun = 0	  
+renameLogfileAfterRun = util.GetParamNumber("-rlf", 0)
+logfileName = "" -- empty at start; will be built by concatenating some parameters
 
 --------------------------------------------------------------------------------
 -- HIERARCHICAL REDISTRIBUTION
@@ -534,12 +545,15 @@ solver = linSolver
 if lsType == "feti" then
 	print("Loading FETI solver setup ...")
 	ug_load_script("setup_fetisolver.lua")
-	solver = SetupFETISolver(dom,
-				 lsMaxIter,
-				 numProcs,
-				 activateDbgWriter,
-				 dbgWriter,
-				 verbosity)
+
+	solver, logfileName = SetupFETISolver(str_problem,str_startgrid,
+					      dim,
+					      lsMaxIter,
+					      numProcs,
+					      activateDbgWriter,
+					      dbgWriter,
+					      verbosity, logfileName)
+
 elseif lsType == "hlib" then
 	print("Loading HLIB solver setup ...")
 	ug_load_script("setup_hlibsolver.lua")
@@ -588,6 +602,14 @@ if lsType == "feti" then
 
 		print("# Testing FETI layouts ...")
 		solver:test_layouts(false) -- 'true' prints indices
+	end
+	if renameLogfileAfterRun then
+		print("Renaming logfile (name built in 'setup_fetisolver.lua') to '" .. logfileName .. "' ...")
+		if GetLogAssistant():rename_log_file(logfileName) == true then
+			print(".. done!")
+		else
+			print(".. could not rename - no logfile open! Try again with '-logtofile <name>'!")
+		end
 	end
 end
 

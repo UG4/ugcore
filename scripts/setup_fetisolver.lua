@@ -6,8 +6,14 @@
 --   Begin: 06072011.
 --
 --   Provides: Function which set up a FETI solver object.
+--
 --          Input parameters:
---          'linMaxIterations', 'activateDbgWriter', 'verbosity'.
+--          'problem', 'startgrid', -- two strings only for (re)naming of logfile
+--          'dim',
+--          'linMaxIterations'
+--          'numProcs'
+--          'linMaxIterations',
+--          'activateDbgWriter', 'verbosity', logfileName.
 --          Return value:
 --          Reference of the fully configured FETI solver object.
 --
@@ -15,10 +21,14 @@
 --	1. In the calling LUA script:
 --
 --	ug_load_script("setup_fetisolver.lua")
---	solver = SetupFETISolver(lsMaxIter,
+--	solver = SetupFETISolver(problem,
+--				 startgrid,
+--				 dim
+--				 linMaxIterations,
 --				 numProcs,
 --				 activateDbgWriter,
---				 verbosity)
+--				 dbgWriter,
+--				 verbosity, logfileName)
 --
 --      where 'solver' is the solver object which is called by
 --      'ApplyLinearSolver(., ., ., <solver>)', i.e.:
@@ -156,14 +166,15 @@ grep "Could not solve Dirichlet problem " ug4_laplace_feti.204720.out_feti-sd1_8
 
 
 ----------------------------------------------------------
--- function 'SetupFETISolver()':
+-- function 'SetupFETISolver()' (first parameters only for (re)naming of logfile):
 ----------------------------------------------------------
-function SetupFETISolver(domain,
+function SetupFETISolver(problem,startgrid,
+			 dim,
 			 linMaxIterations,
 			 numProcs,
 			 activateDbgWriter,
 			 dbgWriter,
-			 verbosity)
+			 verbosity, logfileName)
 
 	print("    'setup_fetisolver.lua': Setting up FETI solver...")
 
@@ -502,6 +513,50 @@ function SetupFETISolver(domain,
 ]]
 
 	----------------------------------------------------------
+	-- Create new name of logfile (will be used in 'scalability_test.lua', 'GetLogAssistant:rename_log_file()')
+	--LOGPOSTFIX    = ".log"
+	logpostfix    = ".txt"
+	uscore        = "_"
+	score         = "-"
+	times         = "x"
+	space         = " "
+	slash         = "/"
+	colon         = ":"
+	doublequote   = '"'
+	comma         = ","
+
+	str_refs      = "refs"
+	str_spsolvers = "spss" -- "sub problem solvers"
+	str_nppsd     = "nppsd"
+	str_pe        = "pe"
+	str_d         = "d"
+
+	str_problem = problem
+	str_startgrid = startgrid
+
+	str_lstype  = lsType
+
+
+	-- concatenate logfile name
+	str_problem = str_problem .. score .. dim .. str_d
+	logfileName = str_problem .. uscore .. str_startgrid
+
+	str_refs = str_refs .. score .. numPreRefs .. score .. numRefs
+	logfileName = logfileName .. uscore .. str_refs
+
+	str_nppsd = str_nppsd .. score .. numProcsPerSubdomain
+	logfileName = logfileName .. uscore .. str_lstype .. uscore .. str_nppsd
+
+	str_spsolvers = str_spsolvers .. score .. dirichletProblemSolverType
+                                      .. score .. neumannProblemSolverType
+                                      .. score .. coarseProblemSolverType
+	logfileName = logfileName .. uscore .. str_spsolvers
+
+	str_pe = str_pe .. score .. numProcs
+	logfileName = logfileName .. uscore .. str_pe
+
+	logfileName = logfileName .. logpostfix
+
 	print("    'setup_fetisolver.lua': returning FETI solver 'fetiSolver', ready for application!")
-	return fetiSolver
+	return fetiSolver, logfileName
 end
