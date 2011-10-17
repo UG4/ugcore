@@ -241,10 +241,6 @@ class IPData : public IIPDimData<dim>
  */
 class IDependentIPData : virtual public IIPData
 {
-	protected:
-	///	type of local vector
-		typedef IElemDisc::local_vector_type local_vector_type;
-
 	public:
 	///	default constructor
 		IDependentIPData() : m_bCompNeedsSol(false) {};
@@ -261,7 +257,7 @@ class IDependentIPData : virtual public IIPData
 		}
 
 	///	computation of data depending on current solution
-		virtual bool compute(const local_vector_type& u, bool bDeriv)
+		virtual bool compute(const LocalVector& u, bool bDeriv)
 		{
 			UG_LOG("ERROR in 'IDependentIPData::compute': No implementation found.\n");
 			return false;

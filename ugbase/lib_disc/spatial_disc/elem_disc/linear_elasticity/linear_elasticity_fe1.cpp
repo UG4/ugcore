@@ -68,7 +68,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u)
+prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
 	m_corners = this->template get_element_corners<TElem>(elem);
@@ -92,7 +92,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u)
+assemble_JA(LocalMatrix& J, const LocalVector& u)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
@@ -137,7 +137,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u)
+assemble_JM(LocalMatrix& J, const LocalVector& u)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
@@ -170,7 +170,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain>::
-assemble_A(local_vector_type& d, const local_vector_type& u)
+assemble_A(LocalVector& d, const LocalVector& u)
 {
 	// Not implemented
 	return false;
@@ -182,7 +182,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain>::
-assemble_M(local_vector_type& d, const local_vector_type& u)
+assemble_M(LocalVector& d, const LocalVector& u)
 {
 	// Not implemented
 	return false;
@@ -194,7 +194,7 @@ template<typename TElem >
 inline
 bool
 FE1LinearElasticityElemDisc<TDomain>::
-assemble_f(local_vector_type& d)
+assemble_f(LocalVector& d)
 {
 	// Not implemented
 	return false;

@@ -59,7 +59,7 @@ elem_loop_finish_fe()
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-elem_prepare_fe(TElem* elem, const local_vector_type& u)
+elem_prepare_fe(TElem* elem, const LocalVector& u)
 {
 //	get corners
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
@@ -88,7 +88,7 @@ elem_prepare_fe(TElem* elem, const local_vector_type& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
+elem_JA_fe(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -138,7 +138,7 @@ elem_JA_fe(local_matrix_type& J, const local_vector_type& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
+elem_JM_fe(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -173,7 +173,7 @@ elem_JM_fe(local_matrix_type& J, const local_vector_type& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-elem_dA_fe(local_vector_type& d, const local_vector_type& u)
+elem_dA_fe(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -229,7 +229,7 @@ elem_dA_fe(local_vector_type& d, const local_vector_type& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-elem_dM_fe(local_vector_type& d, const local_vector_type& u)
+elem_dM_fe(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -266,7 +266,7 @@ elem_dM_fe(local_vector_type& d, const local_vector_type& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-elem_rhs_fe(local_vector_type& d)
+elem_rhs_fe(LocalVector& d)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -293,7 +293,7 @@ elem_rhs_fe(local_vector_type& d)
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_def_velocity_fe(const local_vector_type& u,
+lin_def_velocity_fe(const LocalVector& u,
                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                      const size_t nip)
 {
@@ -325,7 +325,7 @@ lin_def_velocity_fe(const local_vector_type& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_def_diffusion_fe(const local_vector_type& u,
+lin_def_diffusion_fe(const LocalVector& u,
                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
                       const size_t nip)
 {
@@ -360,7 +360,7 @@ lin_def_diffusion_fe(const local_vector_type& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_def_reaction_fe(const local_vector_type& u,
+lin_def_reaction_fe(const LocalVector& u,
                      std::vector<std::vector<number> > vvvLinDef[],
                      const size_t nip)
 {
@@ -394,7 +394,7 @@ lin_def_reaction_fe(const local_vector_type& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_def_source_fe(const local_vector_type& u,
+lin_def_source_fe(const LocalVector& u,
                    std::vector<std::vector<number> > vvvLinDef[],
                    const size_t nip)
 {
@@ -420,7 +420,7 @@ lin_def_source_fe(const local_vector_type& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_def_mass_scale_fe(const local_vector_type& u,
+lin_def_mass_scale_fe(const LocalVector& u,
                        std::vector<std::vector<number> > vvvLinDef[],
                        const size_t nip)
 {
@@ -454,7 +454,7 @@ lin_def_mass_scale_fe(const local_vector_type& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-ex_concentration_fe(const local_vector_type& u,
+ex_concentration_fe(const LocalVector& u,
                      const MathVector<dim> vGlobIP[],
                      const MathVector<TGeomProvider::Type::dim> vLocIP[],
                      const size_t nip,
@@ -535,7 +535,7 @@ ex_concentration_fe(const local_vector_type& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-ex_concentration_grad_fe(const local_vector_type& u,
+ex_concentration_grad_fe(const LocalVector& u,
                           const MathVector<dim> vGlobIP[],
                           const MathVector<TGeomProvider::Type::dim> vLocIP[],
                           const size_t nip,

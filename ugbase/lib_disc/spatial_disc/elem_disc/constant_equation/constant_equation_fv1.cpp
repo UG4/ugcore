@@ -79,7 +79,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConstantEquationElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u){
+prepare_element(TElem* elem, const LocalVector& u){
 //	get dimension of reference element
 	static const int refDim = TFVGeom<TElem, dim>::dim;
 
@@ -119,7 +119,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConstantEquationElemDisc<TDomain>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u)
+assemble_JA(LocalMatrix& J, const LocalVector& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
 	return true;
@@ -131,7 +131,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConstantEquationElemDisc<TDomain>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u)
+assemble_JM(LocalMatrix& J, const LocalVector& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
 	return true;
@@ -143,7 +143,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConstantEquationElemDisc<TDomain>::
-assemble_A(local_vector_type& d, const local_vector_type& u)
+assemble_A(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo	= Provider<TFVGeom<TElem,dim> >::get();
@@ -175,7 +175,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConstantEquationElemDisc<TDomain>::
-assemble_M(local_vector_type& d, const local_vector_type& u)
+assemble_M(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
@@ -210,7 +210,7 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
 FVConstantEquationElemDisc<TDomain>::
-assemble_f(local_vector_type& d)
+assemble_f(LocalVector& d)
 {
 //	if zero data given, return
 	if(!m_imSource.data_given()) return true;
@@ -242,7 +242,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-lin_def_velocity(const local_vector_type& u,
+lin_def_velocity(const LocalVector& u,
                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                  const size_t nip)
 {
@@ -275,7 +275,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-lin_def_source(const local_vector_type& u,
+lin_def_source(const LocalVector& u,
                std::vector<std::vector<number> > vvvLinDef[],
                const size_t nip)
 {
@@ -304,7 +304,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-lin_def_mass_scale(const local_vector_type& u,
+lin_def_mass_scale(const LocalVector& u,
                    std::vector<std::vector<number> > vvvLinDef[],
                    const size_t nip)
 {
@@ -333,7 +333,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-ex_concentration(const local_vector_type& u,
+ex_concentration(const LocalVector& u,
                  const MathVector<dim> vGlobIP[],
                  const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
                  const size_t nip,
@@ -421,7 +421,7 @@ template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 bool
 FVConstantEquationElemDisc<TDomain>::
-ex_concentration_grad(const local_vector_type& u,
+ex_concentration_grad(const LocalVector& u,
                       const MathVector<dim> vGlobIP[],
                       const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
                       const size_t nip,

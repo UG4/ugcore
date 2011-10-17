@@ -113,7 +113,7 @@ template<typename TDomain>
 template <typename TElem>
 bool
 ThermohalineFlowElemDisc<TDomain>::
-ex_darcy_std(const local_vector_type& u,
+ex_darcy_std(const LocalVector& u,
              const MathVector<dim> vGlobIP[],
              const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
              const size_t nip,
@@ -206,7 +206,7 @@ template<typename TDomain>
 template <typename TElem>
 bool
 ThermohalineFlowElemDisc<TDomain>::
-ex_darcy_cons_grav(const local_vector_type& u,
+ex_darcy_cons_grav(const LocalVector& u,
                    const MathVector<dim> vGlobIP[],
                    const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
                    const size_t nip,
@@ -356,7 +356,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-ex_brine(const local_vector_type& u,
+ex_brine(const LocalVector& u,
          const MathVector<dim> vGlobIP[],
          const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
          const size_t nip,
@@ -426,7 +426,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-ex_temperature(const local_vector_type& u,
+ex_temperature(const LocalVector& u,
                const MathVector<dim> vGlobIP[],
                const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
                const size_t nip,
@@ -496,7 +496,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-ex_brine_grad(const local_vector_type& u,
+ex_brine_grad(const LocalVector& u,
               const MathVector<dim> vGlobIP[],
               const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
               const size_t nip,
@@ -544,7 +544,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-ex_pressure_grad(const local_vector_type& u,
+ex_pressure_grad(const LocalVector& u,
                  const MathVector<dim> vGlobIP[],
                  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
                  const size_t nip,
@@ -592,7 +592,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-ex_temperature_grad(const local_vector_type& u,
+ex_temperature_grad(const LocalVector& u,
                     const MathVector<dim> vGlobIP[],
                     const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
                     const size_t nip,
@@ -827,7 +827,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u)
+prepare_element(TElem* elem, const LocalVector& u)
 {
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -873,7 +873,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u)
+assemble_JA(LocalMatrix& J, const LocalVector& u)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo = Provider<FV1Geometry<TElem,dim> >::get();
@@ -1118,7 +1118,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-assemble_A(local_vector_type& d, const local_vector_type& u)
+assemble_A(LocalVector& d, const LocalVector& u)
 {
 //	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =
@@ -1230,7 +1230,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u)
+assemble_JM(LocalMatrix& J, const LocalVector& u)
 {
 // 	get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo = Provider<FV1Geometry<TElem,dim> >::get();
@@ -1306,7 +1306,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-assemble_M(local_vector_type& d, const local_vector_type& u)
+assemble_M(LocalVector& d, const LocalVector& u)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo = Provider<FV1Geometry<TElem,dim> >::get();
@@ -1354,7 +1354,7 @@ template<typename TDomain>
 template<typename TElem >
 bool
 ThermohalineFlowElemDisc<TDomain>::
-assemble_f(local_vector_type& d)
+assemble_f(LocalVector& d)
 {
 //	currently there is no contribution that does not depend on the solution
 

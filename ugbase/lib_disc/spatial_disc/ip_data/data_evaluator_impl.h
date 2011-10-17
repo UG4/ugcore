@@ -13,7 +13,7 @@ namespace ug{
 template <typename TElem>
 bool
 DataEvaluator::
-prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
+prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -94,7 +94,7 @@ prepare_elem_loop(local_index_type& ind, number time, bool bMassPart)
 template <typename TElem>
 bool
 DataEvaluator::
-prepare_elem(TElem* elem, local_vector_type& u, const local_index_type& ind,
+prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
              bool bDeriv, bool bMassPart)
 {
 //	adjust lin defect array of imports

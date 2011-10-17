@@ -108,7 +108,7 @@ void DataImport<TData,dim>::set_global_ips(const MathVector<dim>* vPos, size_t n
 }
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::assemble_jacobian(local_matrix_type& J)
+void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 {
 	UG_ASSERT(m_pDependentIPData != NULL, "No Export set.");
 
@@ -200,7 +200,7 @@ template <typename TData, int dim>
 template <typename T, int refDim>
 void DataExport<TData, dim>::
 set_fct(ReferenceObjectID id, IElemDisc* obj,
-        bool (T::*func)(const IElemDisc::local_vector_type& u,
+        bool (T::*func)(const LocalVector& u,
         				const MathVector<dim> vGlobIP[],
         				const MathVector<refDim> vLocIP[],
         				const size_t nip,
@@ -224,9 +224,9 @@ set_fct(ReferenceObjectID id, IElemDisc* obj,
 template <typename TData, int dim>
 template <typename T, int refDim>
 inline bool DataExport<TData, dim>::
-comp(const local_vector_type& u, bool bDeriv)
+comp(const LocalVector& u, bool bDeriv)
 {
-	typedef bool (T::*ExpFunc)(	const local_vector_type& u,
+	typedef bool (T::*ExpFunc)(	const LocalVector& u,
 								const MathVector<dim> vGlobIP[],
 								const MathVector<refDim> vLocIP[],
 								const size_t nip,
@@ -236,7 +236,7 @@ comp(const local_vector_type& u, bool bDeriv)
 
 
 	typedef bool (IElemDisc::*ElemDiscFunc)(
-								const local_vector_type& u,
+								const LocalVector& u,
 								const MathVector<dim> vGlobIP[],
 								const MathVector<refDim> vLocIP[],
 								const size_t nip,
@@ -319,7 +319,7 @@ bool DataExport<TData, dim>::compute(bool bDeriv)
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::compute(const local_vector_type& u, bool bDeriv)
+bool DataExport<TData, dim>::compute(const LocalVector& u, bool bDeriv)
 {
 	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
 	UG_ASSERT(m_vCompFct[m_id] != NULL, "Func pointer is NULL");

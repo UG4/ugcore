@@ -103,8 +103,8 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TAlgebra>
 template<typename TElem >
 bool FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
-prepare_element(TElem* elem, const local_vector_type& u,
-								const local_index_type& glob_ind)
+prepare_element(TElem* elem, const LocalVector& u,
+								const LocalIndices& glob_ind)
 {
 // 	Load corners of this element
 	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
@@ -225,7 +225,7 @@ Now, a evaluation function must be written in the same class, with the signature
 	template <typename TElem>
 	bool 
 	IElemDisc<TAlgebra>::
-	compute_darcy_export(const local_vector_type& u, bool compDeriv);
+	compute_darcy_export(const LocalVector& u, bool compDeriv);
 \endcode
 
 A DataExport uses the local integration points to compute the data. 

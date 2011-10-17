@@ -60,15 +60,6 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	///	Position type
 		typedef typename base_type::position_type position_type;
 
-	///	Local matrix type
-		typedef typename base_type::local_matrix_type local_matrix_type;
-
-	///	Local vector type
-		typedef typename base_type::local_vector_type local_vector_type;
-
-	///	Local index type
-		typedef typename base_type::local_index_type local_index_type;
-
 	public:
 	///	Constructor
 		FVConstantEquationElemDisc();
@@ -147,7 +138,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool prepare_element(TElem* elem, const local_vector_type& u);
+		bool prepare_element(TElem* elem, const LocalVector& u);
 
 	///	finishes the loop over all elements
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
@@ -155,40 +146,40 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_JA(local_matrix_type& J, const local_vector_type& u);
+		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_JM(local_matrix_type& J, const local_vector_type& u);
+		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_A(local_vector_type& d, const local_vector_type& u);
+		bool assemble_A(LocalVector& d, const LocalVector& u);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_M(local_vector_type& d, const local_vector_type& u);
+		bool assemble_M(LocalVector& d, const LocalVector& u);
 
 	///	assembles the local right hand side
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_f(local_vector_type& d);
+		bool assemble_f(LocalVector& d);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_def_velocity(const local_vector_type& u,
+		bool lin_def_velocity(const LocalVector& u,
 	                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 	                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_def_source(const local_vector_type& u,
+		bool lin_def_source(const LocalVector& u,
                             std::vector<std::vector<number> > vvvLinDef[],
                             const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_def_mass_scale(const local_vector_type& u,
+		bool lin_def_mass_scale(const LocalVector& u,
 	                            std::vector<std::vector<number> > vvvLinDef[],
 	                            const size_t nip);
 
@@ -218,7 +209,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	protected:
 	///	computes the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool ex_concentration(const local_vector_type& u,
+		bool ex_concentration(const LocalVector& u,
 							 const MathVector<dim> vGlobIP[],
 							 const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
 							 const size_t nip,
@@ -228,7 +219,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 
 	///	computes the gradient of the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool ex_concentration_grad(const local_vector_type& u,
+		bool ex_concentration_grad(const LocalVector& u,
 								  const MathVector<dim> vGlobIP[],
 								  const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
 								  const size_t nip,

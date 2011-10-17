@@ -40,17 +40,8 @@ class IDataImport;
  * contribution of one element to the global jacobian and local contributions
  * of one element to the local defect.
  */
-class IElemDisc{
-	public:
-	///	Local matrix type
-		typedef LocalMatrix local_matrix_type;
-
-	/// Local vector type
-		typedef LocalVector local_vector_type;
-
-	/// Local index type
-		typedef LocalIndices local_index_type;
-
+class IElemDisc
+{
 	public:
 	///	Constructor
 		IElemDisc();
@@ -243,7 +234,7 @@ class IElemDisc{
 	 * \param[in]		glob_ind	The global indices of the local solution
 	 */
 		template <typename TElem>
-		bool prepare_elem(TElem* elem, const local_vector_type& u);
+		bool prepare_elem(TElem* elem, const LocalVector& u);
 
 	///	postprocesses the loop over all elements of one type
 	/**
@@ -263,7 +254,7 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_JA_elem(local_matrix_type& J, const local_vector_type& u)
+		bool ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 			{return (this->*(m_vElemJAFct[m_id]))(J, u);}
 
 	/// Assembling of Jacobian (Mass part)
@@ -273,7 +264,7 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_JM_elem(local_matrix_type& J, const local_vector_type& u)
+		bool ass_JM_elem(LocalMatrix& J, const LocalVector& u)
 			{return (this->*(m_vElemJMFct[m_id]))(J, u);}
 
 	/// Assembling of Defect (Stiffness part)
@@ -283,7 +274,7 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_dA_elem(local_vector_type& d, const local_vector_type& u)
+		bool ass_dA_elem(LocalVector& d, const LocalVector& u)
 			{return (this->*(m_vElemdAFct[m_id]))(d, u);}
 
 
@@ -294,7 +285,7 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_dM_elem(local_vector_type& d, const local_vector_type& u)
+		bool ass_dM_elem(LocalVector& d, const LocalVector& u)
 			{return (this->*(m_vElemdMFct[m_id]))(d, u);}
 
 	/// Assembling of Right-Hand Side
@@ -303,7 +294,7 @@ class IElemDisc{
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_rhs_elem(local_vector_type& rhs)
+		bool ass_rhs_elem(LocalVector& rhs)
 			{return (this->*(m_vElemRHSFct[m_id]))(rhs);}
 
 	/// Virtual destructor
@@ -325,23 +316,23 @@ class IElemDisc{
 
 	// 	types of loop function pointers
 		typedef bool (T::*PrepareElemLoopFct)();
-		typedef bool (T::*PrepareElemFct)(GeometricObject* obj, const local_vector_type& u);
+		typedef bool (T::*PrepareElemFct)(GeometricObject* obj, const LocalVector& u);
 		typedef bool (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions
-		typedef bool (T::*ElemJAFct)(	local_matrix_type& J,
-										const local_vector_type& u);
-		typedef bool (T::*ElemJMFct)(	local_matrix_type& J,
-										const local_vector_type& u);
+		typedef bool (T::*ElemJAFct)(	LocalMatrix& J,
+										const LocalVector& u);
+		typedef bool (T::*ElemJMFct)(	LocalMatrix& J,
+										const LocalVector& u);
 
 	// 	types of Defect assemble functions
-		typedef bool (T::*ElemdAFct)( 	local_vector_type& d,
-										const local_vector_type& u);
-		typedef bool (T::*ElemdMFct)(	local_vector_type& d,
-											const local_vector_type& u);
+		typedef bool (T::*ElemdAFct)( 	LocalVector& d,
+										const LocalVector& u);
+		typedef bool (T::*ElemdMFct)(	LocalVector& d,
+											const LocalVector& u);
 
 	// 	types of right hand side assemble functions
-		typedef bool (T::*ElemRHSFct)(local_vector_type& d);
+		typedef bool (T::*ElemRHSFct)(LocalVector& d);
 
 	protected:
 	// 	register the functions
@@ -393,15 +384,6 @@ class IDomainElemDisc : public IElemDisc
 
 	///	Position type
 		typedef typename TDomain::position_type position_type;
-
-	///	Local matrix type
-		typedef typename base_type::local_matrix_type local_matrix_type;
-
-	/// Local vector type
-		typedef typename base_type::local_vector_type local_vector_type;
-
-	/// Local index type
-		typedef typename base_type::local_index_type local_index_type;
 
 	public:
 		IDomainElemDisc() : m_pDomain(NULL), m_pApproxSpace(NULL) {};

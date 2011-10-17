@@ -25,16 +25,6 @@ namespace ug{
 class DataEvaluator
 {
 	public:
-	///	Type of local vector
-		typedef IElemDisc::local_vector_type local_vector_type;
-
-	///	Type of local matrix
-		typedef IElemDisc::local_matrix_type local_matrix_type;
-
-	///	Type of local indices
-		typedef IElemDisc::local_index_type local_index_type;
-
-	public:
 	///	sets the elem discs to evaluate
 		bool set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		                    const FunctionPattern& fctPat,
@@ -57,32 +47,32 @@ class DataEvaluator
 
 	///	prepares the element loop for all IElemDiscs
 		template <typename TElem>
-		bool prepare_elem_loop(local_index_type& ind, number time = 0.0,
+		bool prepare_elem_loop(LocalIndices& ind, number time = 0.0,
 		                       bool bMassPart = false);
 
 	///	prepares the element for all IElemDiscs
 		template <typename TElem>
-		bool prepare_elem(TElem* elem, local_vector_type& u,
-		                  const local_index_type& ind,
+		bool prepare_elem(TElem* elem, LocalVector& u,
+		                  const LocalIndices& ind,
 		                  bool bDeriv = false, bool bMassPart = false);
 
 	///	computes all needed data on the element
-		bool compute_elem_data(local_vector_type & u, bool bDeriv = false);
+		bool compute_elem_data(LocalVector & u, bool bDeriv = false);
 
 	///	compute local stiffness matrix for all IElemDiscs
-		bool ass_JA_elem(local_matrix_type& A, local_vector_type& u);
+		bool ass_JA_elem(LocalMatrix& A, LocalVector& u);
 
 	///	compute local mass matrix for all IElemDiscs
-		bool ass_JM_elem(local_matrix_type& M, local_vector_type& u);
+		bool ass_JM_elem(LocalMatrix& M, LocalVector& u);
 
 	///	compute local stiffness defect for all IElemDiscs
-		bool ass_dA_elem(local_vector_type& d, local_vector_type& u);
+		bool ass_dA_elem(LocalVector& d, LocalVector& u);
 
 	///	compute local mass defect for all IElemDiscs
-		bool ass_dM_elem(local_vector_type& d, local_vector_type& u);
+		bool ass_dM_elem(LocalVector& d, LocalVector& u);
 
 	///	compute local rhs for all IElemDiscs
-		bool ass_rhs_elem(local_vector_type& rhs);
+		bool ass_rhs_elem(LocalVector& rhs);
 
 	///	finishes the element loop for all IElemDiscs
 		bool finish_elem_loop();
@@ -92,16 +82,16 @@ class DataEvaluator
 		////////////////////////////////////////////
 
 	///	computes the linearized defect of imports in stiffness part of all IElemDiscs
-		bool compute_lin_defect_JA(local_vector_type& u);
+		bool compute_lin_defect_JA(LocalVector& u);
 
 	///	computes the linearized defect of imports in mass part of all IElemDiscs
-		bool compute_lin_defect_JM(local_vector_type& u);
+		bool compute_lin_defect_JM(LocalVector& u);
 
 	///	adds the contribution due to coupling to local stiffness matrix
-		bool add_coupl_JA(local_matrix_type& J);
+		bool add_coupl_JA(LocalMatrix& J);
 
 	///	adds the contribution due to coupling to local mass matrix
-		bool add_coupl_JM(local_matrix_type& J);
+		bool add_coupl_JM(LocalMatrix& J);
 
 	protected:
 	///	Mapping between local functions of ElemDisc i and common FunctionGroup

@@ -32,12 +32,6 @@ class ParallelGridFunction : public TGridFunction
 		// vector type used to store dof values
 		typedef typename TGridFunction::vector_type vector_type;
 
-		// local vector type
-		typedef typename TGridFunction::local_vector_type local_vector_type;
-
-		// local index type
-		typedef typename TGridFunction::local_index_type local_index_type;
-
 		// dof distribution
 		typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
 

@@ -69,15 +69,6 @@ class ConvectionDiffusionElemDisc
 	///	Position type
 		typedef typename base_type::position_type position_type;
 
-	///	Local matrix type
-		typedef typename base_type::local_matrix_type local_matrix_type;
-
-	///	Local vector type
-		typedef typename base_type::local_vector_type local_vector_type;
-
-	///	Local index type
-		typedef typename base_type::local_index_type local_index_type;
-
 	public:
 	///	Constructor
 		ConvectionDiffusionElemDisc();
@@ -206,7 +197,7 @@ class ConvectionDiffusionElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, typename TFVGeom>
-		bool elem_prepare_fv1(TElem* elem, const local_vector_type& u);
+		bool elem_prepare_fv1(TElem* elem, const LocalVector& u);
 
 	///	finishes the loop over all elements
 		template <typename TElem, typename TFVGeom>
@@ -214,23 +205,23 @@ class ConvectionDiffusionElemDisc
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, typename TFVGeom>
-		bool elem_JA_fv1(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JA_fv1(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem, typename TFVGeom>
-		bool elem_JM_fv1(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JM_fv1(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, typename TFVGeom>
-		bool elem_dA_fv1(local_vector_type& d, const local_vector_type& u);
+		bool elem_dA_fv1(LocalVector& d, const LocalVector& u);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFVGeom>
-		bool elem_dM_fv1(local_vector_type& d, const local_vector_type& u);
+		bool elem_dM_fv1(LocalVector& d, const LocalVector& u);
 
 	///	assembles the local right hand side
 		template <typename TElem, typename TFVGeom>
-		bool elem_rhs_fv1(local_vector_type& d);
+		bool elem_rhs_fv1(LocalVector& d);
 
 		/////////////////////////////////////
 		//	Finite Volume assemblings (FVHO)
@@ -252,7 +243,7 @@ class ConvectionDiffusionElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, typename TFVGeom>
-		bool elem_prepare_fvho(TElem* elem, const local_vector_type& u);
+		bool elem_prepare_fvho(TElem* elem, const LocalVector& u);
 
 	///	finishes the loop over all elements
 		template <typename TElem, typename TFVGeom>
@@ -260,23 +251,23 @@ class ConvectionDiffusionElemDisc
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, typename TFVGeom>
-		bool elem_JA_fvho(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JA_fvho(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem, typename TFVGeom>
-		bool elem_JM_fvho(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JM_fvho(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, typename TFVGeom>
-		bool elem_dA_fvho(local_vector_type& d, const local_vector_type& u);
+		bool elem_dA_fvho(LocalVector& d, const LocalVector& u);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFVGeom>
-		bool elem_dM_fvho(local_vector_type& d, const local_vector_type& u);
+		bool elem_dM_fvho(LocalVector& d, const LocalVector& u);
 
 	///	assembles the local right hand side
 		template <typename TElem, typename TFVGeom>
-		bool elem_rhs_fvho(local_vector_type& d);
+		bool elem_rhs_fvho(LocalVector& d);
 
 		/////////////////////////////////////
 		//	Finite Element assemblings
@@ -286,116 +277,116 @@ class ConvectionDiffusionElemDisc
 		bool elem_loop_prepare_fe();
 
 		template<typename TElem, typename TGeomProvider>
-		bool elem_prepare_fe(TElem* elem, const local_vector_type& u);
+		bool elem_prepare_fe(TElem* elem, const LocalVector& u);
 
 		template<typename TElem, typename TGeomProvider>
 		bool elem_loop_finish_fe();
 
 		template<typename TElem, typename TGeomProvider>
-		bool elem_JA_fe(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JA_fe(LocalMatrix& J, const LocalVector& u);
 
 		template<typename TElem, typename TGeomProvider>
-		bool elem_JM_fe(local_matrix_type& J, const local_vector_type& u);
+		bool elem_JM_fe(LocalMatrix& J, const LocalVector& u);
 
 		template<typename TElem, typename TGeomProvider>
-		bool elem_dA_fe(local_vector_type& d, const local_vector_type& u);
+		bool elem_dA_fe(LocalVector& d, const LocalVector& u);
 
 		template<typename TElem, typename TGeomProvider>
-		bool elem_dM_fe(local_vector_type& d, const local_vector_type& u);
+		bool elem_dM_fe(LocalVector& d, const LocalVector& u);
 
 		template<typename TElem, typename TGeomProvider>
-		bool elem_rhs_fe(local_vector_type& d);
+		bool elem_rhs_fe(LocalVector& d);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_velocity_fv1(const local_vector_type& u,
+		bool lin_def_velocity_fv1(const LocalVector& u,
 		                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_diffusion_fv1(const local_vector_type& u,
+		bool lin_def_diffusion_fv1(const LocalVector& u,
 		                           std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                           const size_t nip);
 
 	///	computes the linearized defect w.r.t to the reaction
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_reaction_fv1(const local_vector_type& u,
+		bool lin_def_reaction_fv1(const LocalVector& u,
 		                          std::vector<std::vector<number> > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_source_fv1(const local_vector_type& u,
+		bool lin_def_source_fv1(const LocalVector& u,
 		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_mass_scale_fv1(const local_vector_type& u,
+		bool lin_def_mass_scale_fv1(const LocalVector& u,
 		                            std::vector<std::vector<number> > vvvLinDef[],
 		                            const size_t nip);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_velocity_fvho(const local_vector_type& u,
+		bool lin_def_velocity_fvho(const LocalVector& u,
 		                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_diffusion_fvho(const local_vector_type& u,
+		bool lin_def_diffusion_fvho(const LocalVector& u,
 		                           std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                           const size_t nip);
 
 	///	computes the linearized defect w.r.t to the reaction
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_reaction_fvho(const local_vector_type& u,
+		bool lin_def_reaction_fvho(const LocalVector& u,
 		                          std::vector<std::vector<number> > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_source_fvho(const local_vector_type& u,
+		bool lin_def_source_fvho(const LocalVector& u,
 		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TFVGeom>
-		bool lin_def_mass_scale_fvho(const local_vector_type& u,
+		bool lin_def_mass_scale_fvho(const LocalVector& u,
 		                            std::vector<std::vector<number> > vvvLinDef[],
 		                            const size_t nip);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TGeomProvider>
-		bool lin_def_velocity_fe(const local_vector_type& u,
+		bool lin_def_velocity_fe(const LocalVector& u,
 		                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TGeomProvider>
-		bool lin_def_diffusion_fe(const local_vector_type& u,
+		bool lin_def_diffusion_fe(const LocalVector& u,
 		                           std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                           const size_t nip);
 
 	///	computes the linearized defect w.r.t to the reaction
 		template <typename TElem, typename TGeomProvider>
-		bool lin_def_reaction_fe(const local_vector_type& u,
+		bool lin_def_reaction_fe(const LocalVector& u,
 		                          std::vector<std::vector<number> > vvvLinDef[],
 		                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, typename TGeomProvider>
-		bool lin_def_source_fe(const local_vector_type& u,
+		bool lin_def_source_fe(const LocalVector& u,
 		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TGeomProvider>
-		bool lin_def_mass_scale_fe(const local_vector_type& u,
+		bool lin_def_mass_scale_fe(const LocalVector& u,
 		                            std::vector<std::vector<number> > vvvLinDef[],
 		                            const size_t nip);
 
@@ -442,7 +433,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>
-		bool ex_concentration_fv1(const local_vector_type& u,
+		bool ex_concentration_fv1(const LocalVector& u,
 		                          const MathVector<dim> vGlobIP[],
 		                          const MathVector<TFVGeom::dim> vLocIP[],
 		                          const size_t nip,
@@ -452,7 +443,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TFVGeom>
-		bool ex_concentration_grad_fv1(const local_vector_type& u,
+		bool ex_concentration_grad_fv1(const LocalVector& u,
 		                               const MathVector<dim> vGlobIP[],
 		                               const MathVector<TFVGeom::dim> vLocIP[],
 		                               const size_t nip,
@@ -462,7 +453,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_fvho(const local_vector_type& u,
+		bool ex_concentration_fvho(const LocalVector& u,
 								  const MathVector<dim> vGlobIP[],
 								  const MathVector<TGeomProvider::Type::dim> vLocIP[],
 								  const size_t nip,
@@ -472,7 +463,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_grad_fvho(const local_vector_type& u,
+		bool ex_concentration_grad_fvho(const LocalVector& u,
 									   const MathVector<dim> vGlobIP[],
 									   const MathVector<TGeomProvider::Type::dim> vLocIP[],
 									   const size_t nip,
@@ -482,7 +473,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_fe(const local_vector_type& u,
+		bool ex_concentration_fe(const LocalVector& u,
 								  const MathVector<dim> vGlobIP[],
 								  const MathVector<TGeomProvider::Type::dim> vLocIP[],
 								  const size_t nip,
@@ -492,7 +483,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_grad_fe(const local_vector_type& u,
+		bool ex_concentration_grad_fe(const LocalVector& u,
 									   const MathVector<dim> vGlobIP[],
 									   const MathVector<TGeomProvider::Type::dim> vLocIP[],
 									   const size_t nip,

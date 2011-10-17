@@ -23,13 +23,6 @@ namespace ug{
  */
 class IDataImport
 {
-	protected:
-	///	type of local matrix
-		typedef IElemDisc::local_matrix_type local_matrix_type;
-
-	///	type of local vector
-		typedef IElemDisc::local_vector_type local_vector_type;
-
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
@@ -80,14 +73,14 @@ class IDataImport
 		virtual bool set_roid(ReferenceObjectID id) = 0;
 
 	///	compute lin defect
-		virtual bool compute_lin_defect(const local_vector_type& u) = 0;
+		virtual bool compute_lin_defect(const LocalVector& u) = 0;
 
 	///	resize arrays
 		virtual void resize(const LocalIndices& ind,
 		                    const FunctionIndexMapping& map) = 0;
 
 	///	add jacobian entries introduced by this import
-		virtual void assemble_jacobian(local_matrix_type& J) = 0;
+		virtual void assemble_jacobian(LocalMatrix& J) = 0;
 
 	protected:
 	/// connected iexport
@@ -113,8 +106,6 @@ class IDataImport
 template <typename TData, int dim>
 class DataImport : public IDataImport
 {
-	typedef IElemDisc::local_matrix_type local_matrix_type;
-
 	public:
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
@@ -219,14 +210,14 @@ class DataImport : public IDataImport
 			{check_ip_fct_sh(ip,fct,sh);return m_vvvLinDefect[ip][fct][sh];}
 
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
-		void assemble_jacobian(local_matrix_type& J);
+		void assemble_jacobian(LocalMatrix& J);
 
 	///	resize lin defect arrays
 		virtual void resize(const LocalIndices& ind, const FunctionIndexMapping& map);
 
 	public:
 	///	type of evaluation function
-		typedef bool (IElemDisc::*LinDefectFunc)(const local_vector_type& u,
+		typedef bool (IElemDisc::*LinDefectFunc)(const LocalVector& u,
 												 std::vector<std::vector<TData> > vvvLinDefect[],
 												 const size_t nip);
 
@@ -241,7 +232,7 @@ class DataImport : public IDataImport
 		void clear_fct();
 
 	///	compute lin defect
-		virtual bool compute_lin_defect(const local_vector_type& u)
+		virtual bool compute_lin_defect(const LocalVector& u)
 		{
 			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
 			return (m_pObj->*(m_vLinDefectFunc[m_id]))(u,
@@ -323,10 +314,6 @@ template <typename TData, int dim>
 class DataExport : 	public DependentIPData<TData, dim>,
 					public IDataExport
 {
-	protected:
-	///	type of local vector
-		typedef IElemDisc::local_vector_type local_vector_type;
-
 	public:
 	///	default constructor
 		DataExport();
@@ -335,7 +322,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		virtual bool compute(bool bDeriv);
 
 	///	compute export (implements IDependendIPData::compute)
-		virtual bool compute(const local_vector_type& u, bool bDeriv);
+		virtual bool compute(const LocalVector& u, bool bDeriv);
 
 	///	sets the geometric object type
 		virtual bool set_roid(ReferenceObjectID id);
@@ -343,7 +330,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 	///	register evaluation of export function
 		template <typename T, int refDim>
 		void set_fct(ReferenceObjectID id, IElemDisc* obj,
-		             bool (T::*func)(const IElemDisc::local_vector_type& u,
+		             bool (T::*func)(const LocalVector& u,
 		            		 	 	 const MathVector<dim> vGlobIP[],
 		            		 	 	 const MathVector<refDim> vLocIP[],
 		            		 	 	 const size_t nip,
@@ -383,7 +370,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 
 	protected:
 		template <typename T, int refDim>
-		inline bool comp(const local_vector_type& u, bool bDeriv);
+		inline bool comp(const LocalVector& u, bool bDeriv);
 
 	/// current Geom Object
 		ReferenceObjectID m_id;
@@ -395,7 +382,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		typedef bool (IElemDisc::*DummyMethod)();
 		DummyMethod	m_vExportFunc[NUM_REFERENCE_OBJECTS];
 
-		typedef bool (DataExport::*CompFct)(const local_vector_type&, bool);
+		typedef bool (DataExport::*CompFct)(const LocalVector&, bool);
 		CompFct m_vCompFct[NUM_REFERENCE_OBJECTS];
 
 	///	data the export depends on

@@ -220,12 +220,6 @@ class GridFunction
 	///	Vector type used to store dof values
 		typedef typename algebra_type::vector_type vector_type;
 
-	///	Local vector type
-		typedef LocalVector local_vector_type;
-
-	///	Local index type
-		typedef LocalIndices local_index_type;
-
 	/// DoF Distribution type
 		typedef typename IGridFunction<TDoFDistribution>::dof_distribution_type
 				dof_distribution_type;

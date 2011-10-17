@@ -485,7 +485,7 @@ bool DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 // Assemble routines
 ///////////////////////////////////////////////////////////////////////////////
 
-bool DataEvaluator::compute_elem_data(local_vector_type & u, bool bDeriv)
+bool DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 {
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
@@ -524,7 +524,7 @@ bool DataEvaluator::compute_elem_data(local_vector_type & u, bool bDeriv)
 	return true;
 }
 
-bool DataEvaluator::ass_JA_elem(local_matrix_type& A, local_vector_type& u)
+bool DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -549,7 +549,7 @@ bool DataEvaluator::ass_JA_elem(local_matrix_type& A, local_vector_type& u)
 	return true;
 }
 
-bool DataEvaluator::ass_JM_elem(local_matrix_type& M, local_vector_type& u)
+bool DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -574,7 +574,7 @@ bool DataEvaluator::ass_JM_elem(local_matrix_type& M, local_vector_type& u)
 	return true;
 }
 
-bool DataEvaluator::ass_dA_elem(local_vector_type& d, local_vector_type& u)
+bool DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -599,7 +599,7 @@ bool DataEvaluator::ass_dA_elem(local_vector_type& d, local_vector_type& u)
 	return true;
 }
 
-bool DataEvaluator::ass_dM_elem(local_vector_type& d, local_vector_type& u)
+bool DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -624,7 +624,7 @@ bool DataEvaluator::ass_dM_elem(local_vector_type& d, local_vector_type& u)
 	return true;
 }
 
-bool DataEvaluator::ass_rhs_elem(local_vector_type& rhs)
+bool DataEvaluator::ass_rhs_elem(LocalVector& rhs)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -666,7 +666,7 @@ bool DataEvaluator::finish_elem_loop()
 // Coupling
 ///////////////////////////////////////////////////////////////////////////////
 
-bool DataEvaluator::compute_lin_defect_JA(local_vector_type & u)
+bool DataEvaluator::compute_lin_defect_JA(LocalVector & u)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -687,7 +687,7 @@ bool DataEvaluator::compute_lin_defect_JA(local_vector_type & u)
 	return true;
 }
 
-bool DataEvaluator::compute_lin_defect_JM(local_vector_type & u)
+bool DataEvaluator::compute_lin_defect_JM(LocalVector & u)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
@@ -708,7 +708,7 @@ bool DataEvaluator::compute_lin_defect_JM(local_vector_type & u)
 	return true;
 }
 
-bool DataEvaluator::add_coupl_JA(local_matrix_type& J)
+bool DataEvaluator::add_coupl_JA(LocalMatrix& J)
 {
 //	loop all imports located in the stiffness part
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -724,7 +724,7 @@ bool DataEvaluator::add_coupl_JA(local_matrix_type& J)
 	return true;
 }
 
-bool DataEvaluator::add_coupl_JM(local_matrix_type& J)
+bool DataEvaluator::add_coupl_JM(LocalMatrix& J)
 {
 //	loop all imports located in the mass part
 	for(size_t i = 0; i < m_vMassDataImport.size(); ++i)

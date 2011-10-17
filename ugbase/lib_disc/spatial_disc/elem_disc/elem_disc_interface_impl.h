@@ -15,10 +15,10 @@
 namespace ug{
 
 template <typename TElem>
-inline bool IElemDisc::prepare_elem(TElem* elem, const local_vector_type& u)
+inline bool IElemDisc::prepare_elem(TElem* elem, const LocalVector& u)
 {
 //	cast the method pointer back to the original type
-	typedef bool (IElemDisc::*Func)(TElem*, const local_vector_type&);
+	typedef bool (IElemDisc::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vPrepareElemFct[m_id]);
 	return (this->*(pFunc))(elem, u);
 }

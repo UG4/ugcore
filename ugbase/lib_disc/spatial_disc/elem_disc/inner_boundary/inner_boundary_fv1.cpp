@@ -78,7 +78,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain>::
-prepare_element(TElem* elem, const local_vector_type& u)
+prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
 	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
@@ -101,7 +101,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain>::
-assemble_JA(local_matrix_type& J, const local_vector_type& u)
+assemble_JA(LocalMatrix& J, const LocalVector& u)
 {
 	// get finite volume geometry
 	const static TFVGeom<TElem, dim>& fvgeom = Provider<TFVGeom<TElem,dim> >::get();
@@ -191,7 +191,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain>::
-assemble_JM(local_matrix_type& J, const local_vector_type& u)
+assemble_JM(LocalMatrix& J, const LocalVector& u)
 {
 	// nothing to be done
 	return true;
@@ -204,7 +204,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain>::
-assemble_A(local_vector_type& d, const local_vector_type& u)
+assemble_A(LocalVector& d, const LocalVector& u)
 {
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = Provider<TFVGeom<TElem,dim> >::get();
@@ -269,7 +269,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain>::
-assemble_M(local_vector_type& d, const local_vector_type& u)
+assemble_M(LocalVector& d, const LocalVector& u)
 {
 	// nothing to be done
 	return true;
@@ -282,7 +282,7 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
 FVInnerBoundaryElemDisc<TDomain>::
-assemble_f(local_vector_type& d)
+assemble_f(LocalVector& d)
 {
 	// nothing to be done
 	return true;

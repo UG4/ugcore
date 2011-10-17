@@ -83,15 +83,6 @@ class DensityDrivenFlowElemDisc
 	///	Position type
 		typedef typename base_type::position_type position_type;
 
-	///	Local matrix type
-		typedef typename base_type::local_matrix_type local_matrix_type;
-
-	///	Local vector type
-		typedef typename base_type::local_vector_type local_vector_type;
-
-	///	Local index type
-		typedef typename base_type::local_index_type local_index_type;
-
 	public:
 	///	Constructor
 		DensityDrivenFlowElemDisc();
@@ -229,25 +220,25 @@ class DensityDrivenFlowElemDisc
 		bool prepare_element_loop();
 
 		template <typename TElem>
-		bool prepare_element(TElem* elem, const local_vector_type& u);
+		bool prepare_element(TElem* elem, const LocalVector& u);
 
 		template <typename TElem>
 		bool finish_element_loop();
 
 		template <typename TElem>
-		bool assemble_JA(local_matrix_type& J, const local_vector_type& u);
+		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_JM(local_matrix_type& J, const local_vector_type& u);
+		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_A(local_vector_type& d, const local_vector_type& u);
+		bool assemble_A(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_M(local_vector_type& d, const local_vector_type& u);
+		bool assemble_M(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_f(local_vector_type& d);
+		bool assemble_f(LocalVector& d);
 
 	private:
 	///	strategy to compute the upwind shapes
@@ -335,7 +326,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool ex_darcy_std(const local_vector_type& u,
+		bool ex_darcy_std(const LocalVector& u,
 		                  const MathVector<dim> vGlobIP[],
 		                  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                  const size_t nip,
@@ -345,7 +336,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool ex_darcy_cons_grav(const local_vector_type& u,
+		bool ex_darcy_cons_grav(const LocalVector& u,
 		                        const MathVector<dim> vGlobIP[],
 		                        const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                        const size_t nip,
@@ -355,7 +346,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the value of the brine mass fraction
 		template <typename TElem>
-		bool ex_brine(const local_vector_type& u,
+		bool ex_brine(const LocalVector& u,
 		              const MathVector<dim> vGlobIP[],
 		              const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		              const size_t nip,
@@ -365,7 +356,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the value of the gradient of the brine mass fraction
 		template <typename TElem>
-		bool ex_brine_grad(const local_vector_type& u,
+		bool ex_brine_grad(const LocalVector& u,
 		                   const MathVector<dim> vGlobIP[],
 		                   const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                   const size_t nip,
@@ -375,7 +366,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the value of the gradient of the pressure
 		template <typename TElem>
-		bool ex_pressure_grad(const local_vector_type& u,
+		bool ex_pressure_grad(const LocalVector& u,
 		                      const MathVector<dim> vGlobIP[],
 		                      const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                      const size_t nip,

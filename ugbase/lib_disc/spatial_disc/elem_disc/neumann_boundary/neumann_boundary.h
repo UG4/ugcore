@@ -43,15 +43,6 @@ class FV1NeumannBoundaryElemDisc
 	///	Position type
 		typedef typename base_type::position_type position_type;
 
-	///	Local matrix type
-		typedef typename base_type::local_matrix_type local_matrix_type;
-
-	///	Local vector type
-		typedef typename base_type::local_vector_type local_vector_type;
-
-	///	Local index type
-		typedef typename base_type::local_index_type local_index_type;
-
 	protected:
 	///	type of bnd number
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
@@ -163,25 +154,25 @@ class FV1NeumannBoundaryElemDisc
 		bool prepare_element_loop();
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool prepare_element(TElem* elem, const local_vector_type& u);
+		bool prepare_element(TElem* elem, const LocalVector& u);
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 		bool finish_element_loop();
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_JA(local_matrix_type& J, const local_vector_type& u);
+		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_JM(local_matrix_type& J, const local_vector_type& u);
+		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_A(local_vector_type& d, const local_vector_type& u);
+		bool assemble_A(LocalVector& d, const LocalVector& u);
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_M(local_vector_type& d, const local_vector_type& u);
+		bool assemble_M(LocalVector& d, const LocalVector& u);
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_f(local_vector_type& d);
+		bool assemble_f(LocalVector& d);
 
 	private:
 	// 	position access
