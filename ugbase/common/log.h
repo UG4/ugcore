@@ -148,7 +148,7 @@ class UG_API LogAssistant
 		OStreamBufferEmpty		m_emptyBufInst;
 		OStreamBufferSplitter	m_splitBufInst;
 
-		char* m_logFileName;
+		const char* m_logFileName;
 		std::ofstream			m_fileStream;
 
 		bool m_terminalOutputEnabled;

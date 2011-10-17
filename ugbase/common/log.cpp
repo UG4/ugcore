@@ -57,14 +57,21 @@ bool LogAssistant::
 enable_file_output(bool bEnable, const char* filename)
 {
 	if(bEnable){
-		if(!m_fileStream.is_open()){
+		if(!m_fileStream.is_open())
+		  {
+#ifdef UG_PARALLEL
+		  char pName[255]; 
+		  sprintf(pName, "%s_p%d", filename, pcl::GetProcRank());
+			m_fileStream.open(pName);
+#else	
 			m_fileStream.open(filename);
+#endif
 			if(!m_fileStream)
 			{
 				m_fileOutputEnabled = false;
 				return false;
 			}
-			m_logFileName = const_cast<char *>(filename);
+			m_logFileName = filename;
 		}
 	}
 
@@ -82,7 +89,7 @@ rename_log_file(const char * newname)
 		} else {
 			UG_LOG("Logfile '" << m_logFileName << "' renamed to '" << newname << "'" << std::endl);
 			rename(m_logFileName, newname);
-			m_logFileName = const_cast<char *>(newname);
+			m_logFileName = newname;
 
 		}
 	return true;
