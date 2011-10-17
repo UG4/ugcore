@@ -369,60 +369,6 @@ bool InterpolateFunction(
 }
 
 
-/// copy a gridfunction only on a subset
-template <typename TGridFunction>
-bool AssignP1GridFunctionOnSubset(TGridFunction& uDest, const TGridFunction& uSrc,
-                                const char* subsetNames)
-{
-//	get Approximation Space
-	const typename TGridFunction::approximation_space_type& approxSpace
-												= uDest.get_approximation_space();
-//	create subset group
-	SubsetGroup ssGrp;
-	ssGrp.set_subset_handler(*approxSpace.get_subset_handler());
-
-//	read subsets
-	ConvertStringToSubsetGroup(ssGrp, *approxSpace.get_subset_handler(), subsetNames);
-
-
-//	loop subsets
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
-	{
-	//	get subset index
-		const int si = ssGrp[i];
-
-
-	//	loop vertices
-		typename geometry_traits<VertexBase>::const_iterator iter
-									= uDest.template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd
-									= uDest.template end<VertexBase>(si);
-
-		for(; iter != iterEnd; ++iter)
-		{
-		//	get vertex
-			VertexBase* vrt = *iter;
-
-		//	get algebra indices
-			typename TGridFunction::algebra_index_vector_type vInd;
-			uDest.inner_algebra_indices(vrt, vInd);
-
-		//	loop indices
-			for(size_t k = 0; k < vInd.size(); ++k)
-			{
-			//	get algebra index
-				const size_t index = vInd[k];
-
-			//	assign values
-				uDest[index] = uSrc[index];
-
-			}
-		}
-	}
-
-//	we're done
-	return true;
-}
 
 /////////////////////////////////////////////////////
 // Vertices only section

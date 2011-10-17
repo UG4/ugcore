@@ -49,31 +49,6 @@ namespace ug
 namespace bridge
 {
 
-/**	Calls e.g. LagrangeDirichletBoundary::assemble_dirichlet_rows.
- *
- * This method probably shouldn't be implemented here, but in some util file.
- */
-template <class TMatOp, class TDirichletBnd, class TApproxSpace>
-void AssembleDirichletRows(TMatOp& matOp, TDirichletBnd& dirichletBnd,
-							TApproxSpace& approxSpace)
-{
-	dirichletBnd.assemble_dirichlet_rows(matOp.get_matrix(),
-						approxSpace.get_surface_dof_distribution());
-}
-
-/**	Calls e.g. LagrangeDirichletBoundary::assemble_dirichlet_rows.
- * Also takes a time argument.
- *
- * This method probably shouldn't be implemented here, but in some util file.
- */
-template <class TMatOp, class TDirichletBnd, class TApproxSpace>
-void AssembleDirichletRows(TMatOp& matOp, TDirichletBnd& dirichletBnd,
-							TApproxSpace& approxSpace, number time)
-{
-	dirichletBnd.assemble_dirichlet_rows(matOp.get_matrix(),
-					approxSpace.get_surface_dof_distribution(), time);
-}
-
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
 void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string parentGroup)
 {
@@ -90,8 +65,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 #endif
 
 //	group string
-	stringstream grpSS; grpSS << parentGroup << "/ApproximationSpace";
-	string grp = grpSS.str();
+	string approxGrp = parentGroup; approxGrp.append("/ApproximationSpace");
 
 //	suffix and tag
 	string dimAlgDDSuffix = GetDomainSuffix<TDomain>();
@@ -105,7 +79,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 //	GridFunction
 	{
 		string name = string("GridFunction").append(dimAlgDDSuffix);
-		reg.add_class_<function_type, vector_type>(name, grp)
+		reg.add_class_<function_type, vector_type>(name, approxGrp)
 			.add_constructor()
 			.add_method("assign", static_cast<bool (function_type::*)(const vector_type&)>(&function_type::assign),
 						"Success", "Vector")
@@ -126,7 +100,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> T;
 		typedef IApproximationSpace<TDomain> TBase;
 		string name = string("ApproximationSpace").append(dimAlgDDSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, approxGrp)
 			.template add_constructor<void (*)(TDomain&)>("Domain")
 			.add_method("init|hide=true", &T::init)
 			.add_method("set_grouping", &T::set_grouping)
@@ -145,14 +119,16 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 
 //	Order Cuthill-McKee
 	{
-		reg.add_function("OrderCuthillMcKee", static_cast<bool (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), grp);
+		reg.add_function("OrderCuthillMcKee", static_cast<bool (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), approxGrp);
 	}
 
 //	Order lexicographically
 	{
 		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> T;
-		reg.add_function("OrderLex", (bool (*)(T&, const char*))&OrderLex, grp);
+		reg.add_function("OrderLex", (bool (*)(T&, const char*))&OrderLex, approxGrp);
 	}
+
+	string domDiscGrp = parentGroup; domDiscGrp.append("/DomainDisc");
 
 //	DomainDiscretization
 	{
@@ -160,7 +136,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra> T;
 		typedef typename T::dof_distribution_type dof_distribution_type;
 		string name = string("DomainDiscretization").append(dimAlgDDSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space)
 			.add_method("add", static_cast<bool (T::*)(IConstraint<TDoFDistribution, TAlgebra>&)>(&T::add),
@@ -187,7 +163,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		typedef LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra> T;
 		typedef IConstraint<TDoFDistribution, TAlgebra> TBase;
 		string name = string("DirichletBND").append(dimAlgDDSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space,
 						"", "Approximation Space")
@@ -205,9 +181,11 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 	{
 		typedef IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra> T;
 		string name = string("IDiscretizationItem").append(dimAlgDDSuffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T>(name, domDiscGrp);
 		reg.add_class_to_group(name, "IDiscretizationItem", dimAlgDDTag);
 	}
+
+	string grp = parentGroup; grp.append("");
 
 //	MarkForRefinement_GradientIndicator
 	{
@@ -231,13 +209,6 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						 static_cast<fct_type_subset>(&InterpolateFunction<function_type>),
 						 grp);
 	}
-
-//	InterpolateFunction
-	{
-		reg.add_function("AssignP1GridFunctionOnSubset",
-						 &AssignP1GridFunctionOnSubset<function_type>, grp);
-	}
-
 
 //	L2Error
 	{
@@ -264,30 +235,6 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_function("L2ErrorDraft",
 						 static_cast<fct_type>(&L2ErrorDraft<function_type>),
 						 grp);
-	}
-
-//	AssembleDirichletBoundary
-	{
-		typedef MatrixOperator<vector_type, vector_type, matrix_type> mat_op_type;
-		typedef LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra> dirichlet_type;
-		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> approximation_space_type;
-
-		typedef void (*fct_type)(	mat_op_type&,
-									dirichlet_type&,
-									approximation_space_type&);
-
-		reg.add_function("AssembleDirichletRows",
-						static_cast<fct_type>(&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>),
-						grp);
-
-		typedef void (*fct_type2)(	mat_op_type&,
-									dirichlet_type&,
-									approximation_space_type&,
-									number);
-
-		reg.add_function("AssembleDirichletRows",
-				static_cast<fct_type2>(&AssembleDirichletRows<mat_op_type, dirichlet_type, approximation_space_type>),
-				grp);
 	}
 }
 
