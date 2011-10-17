@@ -71,7 +71,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 	///	default constructor (setting default values)
 		StandardLineSearch()
 		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5),
-			 m_verbose(true), m_bAcceptBest(false), m_offset("")
+		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_offset("")
 			 {};
 
 	///	sets maximum number of line search steps
@@ -85,6 +85,9 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 	///	sets iff after max_steps the best try is used
 		void set_accept_best(bool bAcceptBest) {m_bAcceptBest = bAcceptBest;}
+
+	///	sets maximum allowed defect
+		void set_maximum_defect(number maxDef) {m_maxDefect = maxDef;}
 
 	///	sets if info should be printed
 		void set_verbose_level(bool level) {m_verbose = level;}
@@ -106,6 +109,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 		//	some values
 			number norm, norm_old = defect;
+			bool converged = false;
 			std::vector<number> vRho;
 
 		// remember u
@@ -115,7 +119,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 			if(m_verbose)
 				UG_LOG(m_offset << "   ++++ Line Search:  Iter       lambda        Defect          Rate \n");
 
-		//	loop line stearch steps
+		//	loop line search steps
 			for(int k = 1; k <= m_maxSteps; ++k)
 			{
 			// 	try on line u := u - lambda*p
@@ -150,7 +154,11 @@ class StandardLineSearch : public ILineSearch<TVector>
 							<< std::scientific << norm << "   " << vRho.back() <<"\n");
 
 			// 	check if reduction fits
-				if(vRho.back() <= 1 - alpha * fabs(lambda)) break;
+				if(vRho.back() <= 1 - alpha * fabs(lambda))
+				{
+					converged = true;
+					break;
+				}
 				else lambda *= m_lambdaReduce;
 
 			//	check if maximum number of steps reached
@@ -175,14 +183,14 @@ class StandardLineSearch : public ILineSearch<TVector>
 						}
 					}
 
-				//	check if best is converging (i.e. rho < 1)
+				/*	check if best is converging (i.e. rho < 1)
 					if(vRho[best] >= 1)
 					{
 						UG_LOG(m_offset << "   ++++ Accept Best: No try with "
 								"Rate < 1, cannot accept any line search step.\n");
 						UG_LOG(m_offset << "   ++++ Line Search did not converge.\n");
 						return false;
-					}
+					}*/
 
 				//	accept best
 					UG_LOG(m_offset << "   ++++ Accept Best: Accepting step " <<
@@ -205,6 +213,17 @@ class StandardLineSearch : public ILineSearch<TVector>
 						return false;
 					}
 
+					// compute new Residuum
+					norm = d.two_norm();
+
+					// check if defect-norm is smaller than maximum allowed defect value
+					if (norm > m_maxDefect)
+					{
+						UG_LOG("ERROR in 'StandardLineSearch::search':"
+								" maximum defect-limit is reached.\n");
+						return false;
+					}
+
 				//	break to finish
 					break;
 				}
@@ -215,7 +234,11 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 		//	print end line
 			if(m_verbose)
-				UG_LOG(m_offset << "   ++++ Line Search converged.\n");
+			{
+				//only for rate < 1, we call it "Line Search converged"
+				if(converged)
+					UG_LOG(m_offset << "   ++++ Line Search converged.\n");
+			}
 
 		//	we're done
 			return true;
@@ -240,6 +263,9 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 	///	accept best
 		bool m_bAcceptBest;
+
+	/// maximum allowed defect
+		number m_maxDefect;
 
 	/// number of spaces inserted before output
 		std::string m_offset;
