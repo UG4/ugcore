@@ -12,6 +12,7 @@
 
 #include "./grid_function.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"
+#include "lib_algebra/operator/operator_interface.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "lib_algebra/operator/vector_writer.h"
 #include "lib_disc/io/vtkoutput.h"
@@ -190,8 +191,8 @@ bool WriteMatrixToConnectionViewer(const char *filename,
 template <typename TGridFunction>
 bool SaveMatrixForConnectionViewer(	TGridFunction& u,
 									MatrixOperator<typename TGridFunction::vector_type,
-													typename TGridFunction::vector_type,
-													typename TGridFunction::algebra_type::matrix_type>& A,
+									typename TGridFunction::vector_type,
+									typename TGridFunction::algebra_type::matrix_type>& A,
 									const char* filename)
 {
 //	forward

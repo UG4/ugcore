@@ -29,19 +29,10 @@ bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
 
 	try
 	{
-
-//	FunctionGroup
-	{
-		reg.add_class_<FunctionGroup>("FunctionGroup", grp)
-			.add_constructor()
-			.add_method("clear", &FunctionGroup::clear)
-			.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
-			.add_method("add_function", static_cast<bool (FunctionGroup::*)(const char*)>(&FunctionGroup::add));
-	}
-
 //	FunctionPattern
 	{
 		typedef FunctionPattern T;
+		string elemGrp = grp; elemGrp.append("/ApproximationSpace");
 		reg.add_class_<T>("FunctionPattern", grp)
 			.add_method("clear", &T::clear)
 			.add_method("add_fct", static_cast<bool (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
@@ -54,7 +45,7 @@ bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
 
 //	Elem Discs
 	{
-	//	Base class
+		string elemGrp = grp; elemGrp.append("/ElemDisc");
 		typedef IElemDisc T;
 		reg.add_class_<T>("IElemDisc", grp)
 			.add_method("set_functions", &T::set_functions,

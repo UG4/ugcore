@@ -76,6 +76,8 @@ bool RegisterLibAlgebra(Registry& reg, std::string parentGroup = "/ug4");
 ///	registers lib-discretization interface methods at the registry.
 bool RegisterLibDisc_Algebra(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterLibDisc_Domain(Registry& reg, std::string parentGroup = "/ug4");
+bool RegisterMultiGrid(Registry& reg, std::string parentGroup = "/ug4");
+bool RegisterOutput(Registry& reg, std::string parentGroup = "/ug4");
 #endif
 
 

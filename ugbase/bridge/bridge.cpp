@@ -149,6 +149,8 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		bResult &= RegisterLibDisc_Algebra(reg, parentGroup);
 		bResult &= RegisterLibDisc_Domain(reg, parentGroup);
 		bResult &= RegisterLibDisc_UserData(reg, parentGroup);
+		bResult &= RegisterMultiGrid(reg, parentGroup);
+		bResult &= RegisterOutput(reg, parentGroup);
 		#endif
 
 

@@ -61,12 +61,14 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		reg.add_class_to_group(name, "IApproximationSpace", dimTag);
 	}
 
+	string elemGrp = grp; elemGrp.append("/ElemDisc");
+
 //	DomainElemDisc base class
 	{
 		typedef IDomainElemDisc<TDomain> T;
 		typedef IElemDisc TBase;
 		string name = string("IDomainElemDisc").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_method("set_approximation_space", &T::set_approximation_space);
 		reg.add_class_to_group(name, "IDomainElemDisc", dimTag);
 	}
@@ -78,7 +80,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef FV1NeumannBoundaryElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1NeumannBoundary").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_constructor()
 			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(VectorFunctor&, const char*, const char*)>(&T::add));
@@ -90,7 +92,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef FVInnerBoundaryElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1InnerBoundary").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_constructor();
 		reg.add_class_to_group(name, "FV1InnerBoundary", dimTag);
 	}
@@ -100,7 +102,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef FVConstantEquationElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1ConstantEquation").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_constructor()
 			.add_method("set_velocity", &T::set_velocity)
 			.add_method("set_source", &T::set_source)
@@ -115,7 +117,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef ConvectionDiffusionElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("ConvectionDiffusion").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_constructor()
 			.add_method("set_disc_scheme", &T::set_disc_scheme, "", "Disc Scheme|selection|value=[\"fe\",\"fv\",\"fv1\"]")
 			.add_method("set_quad_order", &T::set_quad_order)
@@ -137,7 +139,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef DensityDrivenFlowElemDisc<TDomain> T2;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("DensityDrivenFlow").append(dimSuffix);
-		reg.add_class_<T2, TBase >(name, grp)
+		reg.add_class_<T2, TBase >(name, elemGrp)
 			.add_constructor()
 			.add_method("set_upwind", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
@@ -169,7 +171,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef ThermohalineFlowElemDisc<TDomain> T2;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1ThermohalineFlow").append(dimSuffix);
-		reg.add_class_<T2, TBase >(name, grp)
+		reg.add_class_<T2, TBase >(name, elemGrp)
 			.add_constructor()
 			.add_method("set_upwind", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
@@ -211,11 +213,13 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 // Convection Shapes
 /////////////////////////////////////////////////////////////////////////////
 
+	string upGrp = grp; upGrp.append("/Upwind");
+
 //	IConvectionShapes
 	{
 		typedef IConvectionShapes<dim> T;
 		string name = string("IConvectionShapes").append(dimSuffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T>(name, upGrp);
 		reg.add_class_to_group(name, "IConvectionShapes", dimTag);
 	}
 
@@ -224,7 +228,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef ConvectionShapesNoUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
 		string name = string("NoUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor();
 		reg.add_class_to_group(name, "NoUpwind", dimTag);
 	}
@@ -234,7 +238,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef ConvectionShapesFullUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
 		string name = string("FullUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor();
 		reg.add_class_to_group(name, "FullUpwind", dimTag);
 	}
@@ -244,7 +248,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef ConvectionShapesWeightedUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
 		string name = string("WeightedUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, upGrp)
 			.add_method("set_weight", &T::set_weight)
 			.add_constructor();
 		reg.add_class_to_group(name, "WeightedUpwind", dimTag);
@@ -255,7 +259,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef ConvectionShapesPartialUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
 		string name = string("PartialUpwind").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor();
 		reg.add_class_to_group(name, "PartialUpwind", dimTag);
 	}
