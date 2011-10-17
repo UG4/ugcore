@@ -192,7 +192,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 //	some functions
 	{
 		reg.add_function("AssembleLinearOperatorRhsAndSolution",
-						 &AssembleLinearOperatorRhsAndSolution<TDoFDistribution, TAlgebra>);
+						 &AssembleLinearOperatorRhsAndSolution<TDoFDistribution, TAlgebra>, grp);
 	}
 
 	} catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
@@ -204,7 +204,6 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 	return true;
 }
-
 
 template <typename TDoFDistribution>
 static bool RegisterLibDiscAlgebra__DoFDistribution(Registry& reg, string parentGroup)

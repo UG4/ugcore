@@ -111,7 +111,7 @@ bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 	{
 		reg.add_function("DefinedUG_DEBUG", &DefinedUG_DEBUG, grp, "");
 		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &DefinedUG_ENABLE_DEBUG_LOGS, grp, "");
-		reg.add_function("srand", int_srand, "", "seed", "The pseudo-random number generator is initialized using the argument passed as seed.");
+		reg.add_function("srand", int_srand, grp, "seed", "The pseudo-random number generator is initialized using the argument passed as seed.");
 	}
 
 	return true;

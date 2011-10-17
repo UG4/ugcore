@@ -106,7 +106,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 #endif
 
 //	group string
-	stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	stringstream grpSS; grpSS << parentGroup;
 	string grp = grpSS.str();
 
 //	suffix and tag

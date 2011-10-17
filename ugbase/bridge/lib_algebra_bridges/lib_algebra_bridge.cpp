@@ -72,13 +72,13 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("print|hide=true", &vector_type::p);
 		reg.add_class_to_group(name, "Vector", algTag);
 
-		reg.add_function("VecScaleAssign", static_cast<void (*)(vector_type&, number, const vector_type &)>(&VecScaleAssign<vector_type>));
-		reg.add_function("VecAssign", static_cast<void (*)(vector_type&,const vector_type &)>(&VecAssign<vector_type>));
+		reg.add_function("VecScaleAssign", static_cast<void (*)(vector_type&, number, const vector_type &)>(&VecScaleAssign<vector_type>), grp);
+		reg.add_function("VecAssign", static_cast<void (*)(vector_type&,const vector_type &)>(&VecAssign<vector_type>), grp);
 		reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
-				&VecScaleAdd2<vector_type>, "", "alpha1*vec1 + alpha2*vec2",
+				&VecScaleAdd2<vector_type>, grp, "alpha1*vec1 + alpha2*vec2",
 				"dest#alpha1#vec1#alpha2#vec2");
 		reg.add_function("VecScaleAdd3", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))*/
-				&VecScaleAdd3<vector_type>, "", "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
+				&VecScaleAdd3<vector_type>, grp, "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
 				"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");
 	}
 
