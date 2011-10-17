@@ -258,14 +258,14 @@ class StandardLineSearch : public ILineSearch<TVector>
 	/// lambda reduce
 		number m_lambdaReduce;
 
+	/// maximum allowed defect
+		number m_maxDefect;
+
 	/// verbose level
 		bool m_verbose;
 
 	///	accept best
 		bool m_bAcceptBest;
-
-	/// maximum allowed defect
-		number m_maxDefect;
 
 	/// number of spaces inserted before output
 		std::string m_offset;
