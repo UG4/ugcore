@@ -100,17 +100,17 @@ void CalculateCovarianceMatrix(matrix33& matOut, const vector3* pointSet,
 	}
 }
 
-bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
-						  size_t numPoints)
+bool FindClosestPlane(vector3& centerOut, vector3& normalOut,
+					  const vector3* pointSet, size_t numPoints)
 {
 //	calculate the center of the point set
 	vector3 center;
 	CalculateCenter(center, pointSet, numPoints);
-	
+
 //	calculate the covariance matrix of the point set
 	matrix33 matCo;
 	CalculateCovarianceMatrix(matCo, pointSet, center, numPoints);
-	
+
 //	find the eigenvector of smallest eigenvalue of the covariance matrix
 	number lambda[3];
 	vector3 ev[3];
@@ -119,13 +119,29 @@ bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
 	{
 		return false;
 	}
+
+	VecNormalize(normalOut, ev[0]);
+	centerOut = center;
+
+	return true;
+}
+
+bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
+						  size_t numPoints)
+{
+//	calculate the center of the point set
+	vector3 center;
+	vector3 normal;
+	
+	if(!FindClosestPlane(center, normal, pointSet, numPoints))
+		return false;
 	
 //	lambda[0] is the smallest (absolute) eigenvalue.
 //	ev[0] can be regarded as the normal of a plane through center.
 //	we now have to find the matrix that transforms this plane
 //	to a plane parallel to the x-y-plane.
 	matrix33 matOrtho;
-	if(!ConstructOrthonormalSystem(matOrtho, ev[0], 2))
+	if(!ConstructOrthonormalSystem(matOrtho, normal, 2))
 		return false;
 	
 //	we need the inverse of this matrix. Since it is a orthonormal

@@ -146,11 +146,11 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 						w.y, p0, w.z, p1);
 		}
 		else{
-			m_aaTargetPos[vrt] = aaPos[vrt];
+			m_aaTargetPos[vrt] = aaPos[parent];
 		}
 	}
 	else{
-		m_aaTargetPos[vrt] = aaPos[vrt];
+		m_aaTargetPos[vrt] = aaPos[parent];
 	}
 }
 

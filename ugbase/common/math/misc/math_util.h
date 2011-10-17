@@ -85,6 +85,16 @@ void CalculateCovarianceMatrix(matrix33& matOut, const vector3* pointSet,
 							  const vector3& center, size_t numPoints);
 
 ////////////////////////////////////////////////////////////////////////
+///	Finds the plane which minimizes the distance to the given point set.
+/**	The method returns the true if the calculation was a success and false
+ * if not. If true is returned, then centerOut and normalOut will contain
+ * the center and the normal of the plane which minimizes the distance to
+ * the given point set.
+ */
+bool FindClosestPlane(vector3& centerOut, vector3& normalOut,
+					  const vector3* pointSet, size_t numPoints);
+
+////////////////////////////////////////////////////////////////////////
 ///	transforms points from 3d space to 2d space.
 /**
  * This method calculates the plane that minimizes the distances
