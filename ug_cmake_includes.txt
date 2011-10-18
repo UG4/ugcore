@@ -101,8 +101,8 @@ option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI
 option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
 option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
-option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" OFF)
-option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" OFF)
+option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
+option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
 
 # set default values for pseudo-options
 if(NOT TARGET)
@@ -121,13 +121,6 @@ if(NOT DOF)
 	set(DOF ${dofDefault})
 endif(NOT DOF)
 
-if(NOT BLAS)
-	set(BLAS ${blasDefault})
-endif(NOT BLAS)
-
-if(NOT LAPACK)
-	set(LAPACK ${lapackDefault})
-endif(NOT LAPACK)
 
 ################################################################################
 # We'll output the current options-setting in this section
