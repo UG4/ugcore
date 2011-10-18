@@ -59,13 +59,21 @@ enable_file_output(bool bEnable, const char* filename)
 	if(bEnable){
 		if(!m_fileStream.is_open())
 		  {
-#ifdef UG_PARALLEL
-		  char pName[255]; 
-		  sprintf(pName, "%s_p%d", filename, pcl::GetProcRank());
-			m_fileStream.open(pName);
-#else	
+
+//	Ich habe diese Stelle auskommentiert, da ein Zugriff auf pcl::GetProcRank()
+//	an dieser Stelle problematisch ist. UGInit und damit mpi-init wird in main
+//	erst später aufgerufen.
+//	enable_file_output allerdings erst nach UGInit aufzurufen wäre auch schlecht,
+//	da so dann alle logs in UGInit verloren gingen.
+//	Dafür müssen wir uns eine bessere Lösung einfallen lassen. Z.b. durch ein
+//	init in LogAssistant, das erst dann die Dateien tatsächlich öffnet...
+//#ifdef UG_PARALLEL
+//		  char pName[255];
+//		  sprintf(pName, "%s_p%d", filename, pcl::GetProcRank());
+//			m_fileStream.open(pName);
+//#else
 			m_fileStream.open(filename);
-#endif
+//#endif
 			if(!m_fileStream)
 			{
 				m_fileOutputEnabled = false;
