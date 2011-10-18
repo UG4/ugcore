@@ -2033,6 +2033,12 @@ update(size_t lev,
 								 pLevDD->template begin<Volume>(si),
 								 pLevDD->template end<Volume>(si));
 	}
+	
+#else //PARALLEL
+
+//	We have to smooth on the entire level
+	m_numSmoothIndices = numIndex;
+	
 #endif
 }
 

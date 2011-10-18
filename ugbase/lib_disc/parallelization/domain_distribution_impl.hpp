@@ -85,9 +85,17 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 		return true;
 	#endif
 
-	UG_LOG("WARNING: PartitionDomain_Bisection is currently only implemented for");
-	UG_LOG(" parallel environments.\n");
-	return false;
+//	Assign all elements to partition 0
+	UG_LOG("WARNING: Serial fallback implementation of PartitionDomain_Bisection is used.\n");
+	partitionMap.get_partition_handler().assign_subset(mg.begin<VertexBase>(),
+													   mg.end<VertexBase>(), 0);
+	partitionMap.get_partition_handler().assign_subset(mg.begin<EdgeBase>(),
+													   mg.end<EdgeBase>(), 0);
+	partitionMap.get_partition_handler().assign_subset(mg.begin<Face>(),
+													   mg.end<Face>(), 0);
+	partitionMap.get_partition_handler().assign_subset(mg.begin<Volume>(),
+													   mg.end<Volume>(), 0);
+	return true;
 }
 
 ///	partitions a domain by sorting all elements into a regular grid
