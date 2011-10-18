@@ -250,9 +250,9 @@ linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
 -- get grid function
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
-b2 = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
+b = GridFunction(approxSpace)
+b2 = GridFunction(approxSpace)
 
 -- set initial value
 --u:set_random(-1.0, 1.0)
@@ -373,7 +373,7 @@ else
 	-- testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
 	
 	-- your algebraic testvector
-	testvector = approxSpace:create_surface_function()
+	testvector = GridFunction(approxSpace)
 	-- SaveVectorForConnectionViewer(testvector, "testvector.vec")
 	-- there you write it
 	testvectorwriter:update(testvector)

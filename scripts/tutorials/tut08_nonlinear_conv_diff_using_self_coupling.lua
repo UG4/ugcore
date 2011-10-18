@@ -390,7 +390,7 @@ newtonSolver:init(op)
 -- loop
 
 -- We create a grid function on the surface of our MultiGrid hierarchy.
-u = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
 
 -- Lets chose a fixed time step size and start at time point 0.0. Our first
 -- step is step number 0.

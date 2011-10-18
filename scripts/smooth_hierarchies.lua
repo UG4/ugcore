@@ -131,8 +131,8 @@ print("filling stiffness matrix")
 -- create the stiffness matrix
 A = MatrixOperator()
 -- create the grid functions (vectors for the solution and rhs)
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
+b = GridFunction(approxSpace)
 
 -- assemble matrix and rhs
 domainDisc:assemble_linear(A, b, u)

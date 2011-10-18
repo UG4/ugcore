@@ -349,7 +349,7 @@ newtonSolver:init(op)
 -------------------------------------------
 
 -- get grid function
-u = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
 
 -- set initial value
 InterpolateFunction(CaCytStartValue, u, "ca_cyt", 0.0)

@@ -260,8 +260,8 @@ linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
 -- get grid function
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
+b = GridFunction(approxSpace)
 
 -- set initial value
 u:set_random(-1.0, 1.0)
@@ -341,7 +341,7 @@ if bUseFAMG == 1 then
 		
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
 	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
-	testvector = approxSpace:create_surface_function()
+	testvector = GridFunction(approxSpace)
 	testvectorwriter:update(testvector)	
 	amg:add_vector_writer(testvectorwriter, 1.0)
 	amg:set_testvector_damps(1)
@@ -423,7 +423,7 @@ linSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
 
-b2 = approxSpace:create_surface_function()
+b2 = GridFunction(approxSpace)
 b2:assign(b)
 
 -------------------------------------------

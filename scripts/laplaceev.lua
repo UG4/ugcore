@@ -301,8 +301,8 @@ linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
 -- get grid function
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
+b = GridFunction(approxSpace)
 
 -- debug writer
 dbgWriter = GridFunctionDebugWriter()
@@ -379,7 +379,7 @@ linOp:init_op_and_rhs(b)
 
 B = MatrixOperator()
 -- domainDisc:assemble_stiffness_matrix(A, v, approxSpace:get_surface_dof_distribution())
-v = approxSpace:create_surface_function()
+v = GridFunction(approxSpace)
 domainDisc:assemble_mass_matrix(B, v, approxSpace:get_surface_dof_distribution())
 SaveMatrixForConnectionViewer(v, B, "B.mat") 
 SaveMatrixForConnectionViewer(v, linOp, "A.mat")
@@ -400,7 +400,7 @@ eig:set_pinvit(3)
 ev = {}
 for i=1,nev do
 	print("adding ev "..i)
-	ev[i] = approxSpace:create_surface_function()
+	ev[i] = GridFunction(approxSpace)
 	ev[i]:set_random(-1.0, 1.0)
 	linOp:set_dirichlet_values(ev[i])
 	eig:add_vector(ev[i])

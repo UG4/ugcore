@@ -329,7 +329,7 @@ GridFunction<TDomain, TDoFDistribution, TAlgebra>::
 clone_pattern(const this_type& v)
 {
 // 	copy approximation space
-	assign_approximation_space(*v.m_pApproxSpace);
+	m_pApproxSpace = v.m_pApproxSpace;
 
 //	assign dof distribution (resizes vector)
 	assign_dof_distribution(*v.m_pDD);
@@ -422,7 +422,7 @@ GridFunction<TDomain, TDoFDistribution, TAlgebra>::
 assign(const this_type& v)
 {
 // 	copy approximation space
-	assign_approximation_space(*v.m_pApproxSpace);
+	m_pApproxSpace = v.m_pApproxSpace;
 
 //	assign dof distribution (resizes vector)
 	assign_dof_distribution(*v.m_pDD);

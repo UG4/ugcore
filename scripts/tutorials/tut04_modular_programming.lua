@@ -43,8 +43,8 @@ outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 dom = CreateAndDistributeDomain(gridName, dim, outFileNamePrefix) 
 
 -- Create surface functions (vectors) for Au=b (where A=linOp) and initialize them
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
+b = GridFunction(approxSpace)
 
 -- Using the AssembleLaplace method which we created in
 -- tut04_2_disc_laplace.lua, we now create the linear operator.

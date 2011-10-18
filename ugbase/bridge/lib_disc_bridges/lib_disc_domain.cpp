@@ -80,18 +80,11 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 	{
 		string name = string("GridFunction").append(dimAlgDDSuffix);
 		reg.add_class_<function_type, vector_type>(name, approxGrp)
-			.add_constructor()
+			.template add_constructor<void (*)(approximation_space_type&)>("ApproximationSpace")
+			.template add_constructor<void (*)(approximation_space_type&, typename approximation_space_type::dof_distribution_type&)>("ApproximationSpace#DoFDistribution")
 			.add_method("assign", static_cast<bool (function_type::*)(const vector_type&)>(&function_type::assign),
 						"Success", "Vector")
-			.add_method("assign_dof_distribution", &function_type::assign_dof_distribution)
-			.add_method("get_dim", &function_type::get_dim)
-			.add_method("assign_approximation_space", &function_type::assign_approximation_space)
 			.add_method("clone", &function_type::clone);
-#ifdef UG_PARALLEL
-		reg.get_class_<function_type>()
-			.add_method("change_storage_type_by_string", &function_type::change_storage_type_by_string)
-			.add_method("set_storage_type_by_string", &function_type::set_storage_type_by_string);
-#endif
 		reg.add_class_to_group(name, "GridFunction", dimAlgDDTag);
 	}
 
@@ -111,8 +104,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("print_local_dof_statistic", static_cast<void (T::*)()>(&T::print_local_dof_statistic))
 			.add_method("defragment", &T::defragment)
 			.add_method("get_surface_view", &T::get_surface_view)
-			.add_method("get_surface_dof_distribution",  static_cast<const typename T::dof_distribution_type& (T::*)() const>(&T::get_surface_dof_distribution))
-			.add_method("create_surface_function", &T::create_surface_function);
+			.add_method("get_surface_dof_distribution",  static_cast<const typename T::dof_distribution_type& (T::*)() const>(&T::get_surface_dof_distribution));
 		reg.add_class_to_group(name, "ApproximationSpace", dimAlgDDTag);
 	}
 

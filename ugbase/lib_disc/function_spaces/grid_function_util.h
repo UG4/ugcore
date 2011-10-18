@@ -263,14 +263,13 @@ class GridFunctionDebugWriter
 	public:
 	///	Constructor
 		GridFunctionDebugWriter() :
-			m_pGridFunc(NULL),
-			bConnViewerOut(true), bVTKOut(true)
+			m_pGridFunc(NULL), bConnViewerOut(true), bVTKOut(true)
 		{}
 
 	///	sets the function
 		void set_reference_grid_function(const TGridFunction& u)
 		{
-			m_pGridFunc = &u;
+			m_pGridFunc = const_cast<TGridFunction*>(&u);
 
 		//	extract positions for this grid function
 			static const int dim = TGridFunction::domain_type::dim;
@@ -375,26 +374,27 @@ class GridFunctionDebugWriter
 				return false;
 			}
 
+		//	create grid function
+			TGridFunction vtkFunc( m_pGridFunc->get_approximation_space(),
+			                       m_pGridFunc->get_dof_distribution());
+
 		//	assign all patterns and sizes
-			m_vtkFunc.clone_pattern((*m_pGridFunc));
-			m_vtkFunc = (*m_pGridFunc);
+			vtkFunc.clone_pattern((*m_pGridFunc));
+			vtkFunc = (*m_pGridFunc);
 
 		//	overwrite values with vector
-			m_vtkFunc.assign(vec);
+			vtkFunc.assign(vec);
 
 		//	create vtk output
 			VTKOutput<TGridFunction> out;
 
 		//	write
-			return out.print(filename, m_vtkFunc);
+			return out.print(filename, vtkFunc);
 		}
 
 	protected:
 	// 	grid function used as reference
-		const TGridFunction* m_pGridFunc;
-
-	// 	dummy vector for vtk output
-		TGridFunction m_vtkFunc;
+		TGridFunction* m_pGridFunc;
 
 	//	flag if write to conn viewer
 		bool bConnViewerOut;

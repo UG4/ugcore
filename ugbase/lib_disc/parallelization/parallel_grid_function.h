@@ -37,10 +37,16 @@ class ParallelGridFunction : public TGridFunction
 
 	public:
 	/// Default Constructor
-		ParallelGridFunction() : TGridFunction() {};
+		ParallelGridFunction(approximation_space_type& approxSpace)
+			: TGridFunction(approxSpace)
+		{
+			copy_layouts_into_vector();
+			set_storage_type(PST_UNDEFINED);
+		};
 
 	/// Initializing Constructor
-		ParallelGridFunction(approximation_space_type& approxSpace, dof_distribution_type& DoFDistr)
+		ParallelGridFunction(approximation_space_type& approxSpace,
+		                     dof_distribution_type& DoFDistr)
 			: TGridFunction(approxSpace, DoFDistr)
 		{
 			copy_layouts_into_vector();

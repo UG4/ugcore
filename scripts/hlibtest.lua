@@ -264,8 +264,8 @@ linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
 -- get grid function
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
+b = GridFunction(approxSpace)
 
 print ("Reset initial value")
 -- set initial value

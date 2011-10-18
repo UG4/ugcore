@@ -255,8 +255,8 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 -- to create the vectors. Make sure to create the vector for the same
 -- dofs as set to linOp through linOp:set_dof_distribution.
 -- Note that the vectors automatically have the right size.
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
+u = GridFunction(approxSpace)
+b = GridFunction(approxSpace)
 
 
 -- the linear operator is now complete. To perform the discretization call init.

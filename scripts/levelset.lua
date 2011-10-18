@@ -133,8 +133,8 @@ end
 --------------------------------------------------------------------------------
 
 -- get grid function
-phiNew = approxSpace:create_surface_function();
-phiOld = approxSpace:create_surface_function();
+phiNew = GridFunction(approxSpace);
+phiOld = GridFunction(approxSpace);
 phiNew:set(0);
 
 lsDisc = FV1LevelSetDisc();
@@ -171,8 +171,8 @@ if (setup==2) then
 --	lsDisc:set_dirichlet_data();
 	InterpolateFunction(solfunctor, phiOld, "c", time);
     -- create velocity vectors
-    vx = approxSpace:create_surface_function();
-    vy = approxSpace:create_surface_function();
+    vx = GridFunction(approxSpace);
+    vy = GridFunction(approxSpace);
     -- fill velocity vectors
     lsDisc:fill_v_vec(vx,0);
     lsDisc:fill_v_vec(vy,1);

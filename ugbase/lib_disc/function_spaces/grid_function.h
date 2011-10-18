@@ -225,14 +225,19 @@ class GridFunction
 				dof_distribution_type;
 
 	public:
-	/// Default constructor
-		GridFunction() : m_pApproxSpace(NULL){}
-
 	/// Initializing Constructor
 		GridFunction(	approximation_space_type& approxSpace,
 						dof_distribution_type& DoFDistr)
 			: m_pApproxSpace(&approxSpace)
 		{
+			IGridFunction<TDoFDistribution>::assign_dof_distribution(DoFDistr);
+		};
+
+	/// Initializing Constructor using surface dof distribution
+		GridFunction(approximation_space_type& approxSpace)
+			: m_pApproxSpace(&approxSpace)
+		{
+			dof_distribution_type& DoFDistr = approxSpace.get_surface_dof_distribution();
 			IGridFunction<TDoFDistribution>::assign_dof_distribution(DoFDistr);
 		};
 
@@ -266,13 +271,6 @@ class GridFunction
 
 	/// Destructor
 		virtual ~GridFunction() {}
-
-	/// returns world dimension
-		int get_dim() const {return domain_type::dim;}
-
-	///	assign approximation space
-		void assign_approximation_space(approximation_space_type& ApproxSpace)
-			{m_pApproxSpace = &ApproxSpace;}
 
 	/// returns approximation space
 		const approximation_space_type& get_approximation_space() const
