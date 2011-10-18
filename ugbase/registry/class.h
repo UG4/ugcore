@@ -379,9 +379,6 @@ struct ConstructorProxy
 };
 
 template <typename TClass>
-TClass* PlainConstructorProxy() {return new TClass();}
-
-template <typename TClass>
 void DestructorProxy(void* obj)
 {
 	TClass* pObj = (TClass*)obj;
@@ -454,10 +451,6 @@ class IExportedClass
 	///	get exported constructor
 		virtual const ExportedConstructor& get_constructor(size_t i) const = 0;
 
-	/**  create an instance
-	 *  returns NULL id we cannot create instances of this type*/
-		virtual void* create() const = 0;
-
 	///	destructur for object
 		virtual void destroy(void* obj) const = 0;
 
@@ -484,7 +477,7 @@ class ExportedClass : public IExportedClass
 	//  contructor
 		ExportedClass(const std::string& name, const std::string& group,
 		               const std::string& tooltip)
-				: m_constructor(NULL), m_destructor(NULL), m_tooltip(tooltip)
+				: m_destructor(NULL), m_tooltip(tooltip)
 		{
 			ClassNameProvider<TClass>::set_name(name, group, true);
 			ClassNameProvider<const TClass>::set_name(name, group, true);
@@ -620,10 +613,6 @@ class ExportedClass : public IExportedClass
 		//	add also in new style
 			add_constructor<void (*)()>();
 
-			//\todo: part below can be delete if noone uses this->create() anymore
-		//  remember constructor proxy
-			m_constructor = &PlainConstructorProxy<TClass>;
-
 		//  remember constructor proxy
 			m_destructor = &DestructorProxy<TClass>;
 
@@ -674,15 +663,6 @@ class ExportedClass : public IExportedClass
 
 	/// is instantiable
 		virtual bool is_instantiable() const {return m_vConstructor.size() > 0;}
-
-	/// create new instance of class
-		virtual void* create() const
-		{
-			if(m_constructor != NULL)
-				return (*m_constructor)();
-			else
-				return NULL;
-		}
 
 	///	destructur for object
 		virtual void destroy(void* obj) const
@@ -762,9 +742,6 @@ class ExportedClass : public IExportedClass
 		}
 
 	private:
-		typedef TClass* (*ConstructorFunc)();
-		ConstructorFunc m_constructor;
-
 		struct ConstructorOverload{
 			ConstructorOverload()	{}
 			ConstructorOverload(ExportedConstructor* func, size_t typeID)
