@@ -51,17 +51,19 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 	string dimSuffix = GetDomainSuffix<dim>();
 	string dimTag = GetDomainTag<dim>();
 
+	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
+
 //	IApproximationSpace
 	{
 		typedef IApproximationSpace<TDomain> T;
 		typedef FunctionPattern TBase;
 		string name = string("IApproximationSpace").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.add_class_<T, TBase >(name, approxGrp)
 			.add_method("get_domain|hide=true", static_cast<TDomain& (T::*)()>(&T::get_domain));
 		reg.add_class_to_group(name, "IApproximationSpace", dimTag);
 	}
 
-	string elemGrp = grp; elemGrp.append("/ElemDisc");
+	string elemGrp = grp; elemGrp.append("/SpatialDisc/ElemDisc");
 
 //	DomainElemDisc base class
 	{
@@ -213,7 +215,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 // Convection Shapes
 /////////////////////////////////////////////////////////////////////////////
 
-	string upGrp = grp; upGrp.append("/Upwind");
+	string upGrp = grp; upGrp.append("/SpatialDisc/Upwind");
 
 //	IConvectionShapes
 	{

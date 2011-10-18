@@ -38,7 +38,7 @@ static SmartPtr<vector4> MakeVec(number x, number y, number z, number w)
 namespace bridge{
 ////////////////////////////////////////////////////////////////////////////////
 template <int dim>
-static bool RegisterVecMathBridge(Registry& reg, string parentGroup)
+static bool RegisterVecMathBridge(Registry& reg, string grp)
 {
 	typedef MathVector<dim, number> vec_type;
 
@@ -51,10 +51,6 @@ static bool RegisterVecMathBridge(Registry& reg, string parentGroup)
 	//	the dimension tag
 		string dimTag = "dim=";
 		dimTag.append(dimSuffix);
-
-	//	get group string
-		string grp = parentGroup;
-		grp.append("/VecMath");
 
 	//	register the class
 		string vecName = "Vector";
@@ -76,14 +72,10 @@ static bool RegisterVecMathBridge(Registry& reg, string parentGroup)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static bool RegisterVecMathBridge_DimIndep(Registry& reg, string parentGroup)
+static bool RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 {
 	try
 	{
-	//	get group string
-		stringstream groupString; groupString << parentGroup << "/VecMath";
-		string grp = groupString.str();
-
 	//	register make-methods
 		reg.add_function("MakeVec", static_cast<SmartPtr<vector1> (*)(number)>(
 							&MakeVec), grp)
@@ -108,13 +100,16 @@ static bool RegisterVecMathBridge_DimIndep(Registry& reg, string parentGroup)
 ////////////////////////////////////////////////////////////////////////////////
 bool RegisterVecMathBridge(Registry& reg, string parentGroup)
 {
+//	get group string
+	string grp = parentGroup; grp.append("/Util/VecMath");
+
 	bool bSuccess = true;
 
-	bSuccess &= RegisterVecMathBridge<1>(reg, parentGroup);
-	bSuccess &= RegisterVecMathBridge<2>(reg, parentGroup);
-	bSuccess &= RegisterVecMathBridge<3>(reg, parentGroup);
-	bSuccess &= RegisterVecMathBridge<4>(reg, parentGroup);
-	bSuccess &= RegisterVecMathBridge_DimIndep(reg, parentGroup);
+	bSuccess &= RegisterVecMathBridge<1>(reg, grp);
+	bSuccess &= RegisterVecMathBridge<2>(reg, grp);
+	bSuccess &= RegisterVecMathBridge<3>(reg, grp);
+	bSuccess &= RegisterVecMathBridge<4>(reg, grp);
+	bSuccess &= RegisterVecMathBridge_DimIndep(reg, grp);
 
 	return bSuccess;
 }

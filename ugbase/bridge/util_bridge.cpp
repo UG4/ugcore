@@ -45,7 +45,7 @@ static int ExecuteSystemCommand(const char* cmd)
 bool RegisterUtilInterface(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
-	grp.append("/util");
+	grp.append("/Util");
 
 	reg.add_function("ug_get_app_path", &GetAppPath, grp,
 					 "pathName", "", "Returns the application path");

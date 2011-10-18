@@ -87,7 +87,7 @@ void int_srand(int seed)
 
 bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 {
-	stringstream ss; ss << parentGroup << "/log";
+	stringstream ss; ss << parentGroup << "/Util/Log";
 	string grp = ss.str();
 
 	{

@@ -128,7 +128,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_function("OrderLex", (bool (*)(T&, const char*))&OrderLex, approxGrp);
 	}
 
-	string domDiscGrp = parentGroup; domDiscGrp.append("/DomainDisc");
+	string domDiscGrp = parentGroup; domDiscGrp.append("/SpatialDisc");
 
 //	DomainDiscretization
 	{
@@ -185,13 +185,14 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_class_to_group(name, "IDiscretizationItem", dimAlgDDTag);
 	}
 
-	string grp = parentGroup; grp.append("");
-
 //	MarkForRefinement_GradientIndicator
 	{
+		string grp("ug4/Refinement/");
 		reg.add_function("MarkForRefinement_GradientIndicator",
 						 &MarkForRefinement_GradientIndicator<function_type>, grp);
 	}
+
+	string grp = parentGroup; grp.append("");
 
 //	InterpolateFunction
 	{

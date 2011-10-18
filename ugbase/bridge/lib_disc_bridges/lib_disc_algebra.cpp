@@ -70,6 +70,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	Base class
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef IConstraint<TDoFDistribution, TAlgebra> T;
 		string name = string("IConstraint").append(algDDSuffix);
 		reg.add_class_<T>(name, grp);
@@ -78,6 +79,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	OneSideP1ConstraintsPostProcess
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef OneSideP1ConstraintsPostProcess<TDoFDistribution, TAlgebra> T;
 		typedef IConstraint<TDoFDistribution, TAlgebra> baseT;
 		string name = string("OneSideP1Constraints").append(algDDSuffix);
@@ -88,6 +90,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	SymP1ConstraintsPostProcess
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef SymP1ConstraintsPostProcess<TDoFDistribution, TAlgebra> T;
 		typedef IConstraint<TDoFDistribution, TAlgebra> baseT;
 		string name = string("SymP1Constraints").append(algDDSuffix);
@@ -98,6 +101,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	IAssemble
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef IAssemble<TDoFDistribution, TAlgebra> T;
 		string name = string("IAssemble").append(algDDSuffix);
 		reg.add_class_<T>(name, grp)
@@ -108,6 +112,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	IDomainDiscretization
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef IAssemble<TDoFDistribution, TAlgebra> TBase;
 		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> T;
 		string name = string("IDomainDiscretization").append(algDDSuffix);
@@ -120,6 +125,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	ITimeDiscretization
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		typedef IAssemble<TDoFDistribution, TAlgebra>  TBase;
 		typedef ITimeDiscretization<TDoFDistribution, TAlgebra> T;
 		string name = string("ITimeDiscretization").append(algDDSuffix);
@@ -131,6 +137,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	ThetaTimeDiscretization
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		typedef ITimeDiscretization<TDoFDistribution, TAlgebra> TBase;
 		typedef ThetaTimeDiscretization<TDoFDistribution, TAlgebra> T;
 		string name = string("ThetaTimeDiscretization").append(algDDSuffix);
@@ -161,6 +168,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	NewtonSolver
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef NewtonSolver<TDoFDistribution, TAlgebra> T;
 		typedef IOperatorInverse<vector_type, vector_type> TBase;
 		string name = string("NewtonSolver").append(algDDSuffix);
@@ -178,6 +186,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 //	AssembledOperator
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef AssembledOperator<TDoFDistribution, TAlgebra> T;
 		typedef IOperator<vector_type, vector_type> TBase;
 		string name = string("AssembledOperator").append(algDDSuffix);
@@ -227,9 +236,6 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 
-//	get group string
-	std::string grp = parentGroup; grp.append("/Discretization");
-
 //	suffix and tag
 	string algSuffix = GetAlgebraSuffix<TAlgebra>();
 	string algTag = GetAlgebraTag<TAlgebra>();
@@ -238,7 +244,7 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 
 //	some functions
 	{
-		//reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>);
+		std::string grp = parentGroup; grp.append("/Algebra/Operation");
 		reg.add_function("MatIdentity", &MatIdentity<vector_type, vector_type, matrix_type>, grp);
 		reg.add_function("MatAdd", &MatAdd<vector_type, vector_type, matrix_type>, grp);
 		reg.add_function("MatScale", &MatScale<vector_type, vector_type, matrix_type>, grp);
@@ -246,6 +252,7 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 
 //	ILineSearch
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef ILineSearch<vector_type> T;
 		string name = string("ILineSearch").append(algSuffix);
 		reg.add_class_<T>(name, grp);
@@ -254,6 +261,7 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 
 //	StandardLineSearch
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef StandardLineSearch<vector_type> T;
 		typedef ILineSearch<vector_type> TBase;
 		string name = string("StandardLineSearch").append(algSuffix);
@@ -271,6 +279,7 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 
 // PreviousSolutions
 	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		string name = string("SolutionTimeSeries").append(algSuffix);
 		typedef VectorTimeSeries<vector_type> T;
 		reg.add_class_<T>(name, grp)

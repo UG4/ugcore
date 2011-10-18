@@ -322,7 +322,7 @@ bool GetProfilerAvailable()
 
 bool RegisterProfileFunctions(Registry &reg, string parentGroup)
 {
-	stringstream ss; ss << parentGroup << "/Profiler";
+	stringstream ss; ss << parentGroup << "/Util/Profiler";
 	string grp = ss.str();
 
 	reg.add_class_<UGProfilerNode>("UGProfilerNode", grp)

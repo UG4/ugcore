@@ -73,13 +73,13 @@ void ThrowIfNot(bool b, std::string s) {
 }
 
 void registerMessaging(ug::bridge::Registry & reg) {
-	reg.add_function("print", &Log, "UG4/Messaging");
-	reg.add_function("println", &Logln, "UG4/Messaging");
+	reg.add_function("print", &Log, "UG4/Util/Messaging");
+	reg.add_function("println", &Logln, "UG4/Util/Messaging");
 }
 
 void registerThrowUtil(ug::bridge::Registry & reg) {
-	reg.add_function("throwIf", &ThrowIf, "UG4/util");
-	reg.add_function("throwIfNot", &ThrowIfNot, "UG4/util");
+	reg.add_function("throwIf", &ThrowIf, "UG4/Util");
+	reg.add_function("throwIfNot", &ThrowIfNot, "UG4/Util");
 }
 
 class NumberArray {
@@ -118,15 +118,15 @@ SmartPtr<NumberArray> getDefects(const ug::StandardConvCheck* convCheck) {
 }
 
 void registerNumberArray(ug::bridge::Registry & reg) {
-	reg.add_class_<NumberArray > ("NumberArray", "UG4/util")
+	reg.add_class_<NumberArray > ("NumberArray", "UG4/Util")
 			.add_constructor()
 			.add_method("get", &NumberArray::get)
 			.add_method("size", &NumberArray::size);
-	reg.add_function("GetDefects", &getDefects, "UG4/util", "Defects");
+	reg.add_function("GetDefects", &getDefects, "UG4/Util", "Defects");
 }
 
 void registerUGFinalize(ug::bridge::Registry & reg) {
-	reg.add_function("UGFinalize", &ug::UGFinalize, "UG4/util");
+	reg.add_function("UGFinalize", &ug::UGFinalize, "UG4/Util");
 }
 
 class VTest {

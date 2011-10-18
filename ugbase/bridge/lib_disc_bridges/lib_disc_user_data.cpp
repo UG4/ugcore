@@ -661,7 +661,7 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 bool RegisterLibDisc_UserData(Registry& reg, string parentGroup)
 {
 //	get group string
-	std::string grp = parentGroup; grp.append("/Discretization/UserData");
+	std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc/UserData");
 
 #ifdef UG_DIM_1
 	RegisterUserData<1>(reg, grp);
