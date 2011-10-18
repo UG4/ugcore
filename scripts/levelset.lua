@@ -56,7 +56,6 @@ dom = util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubset
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-approxSpace:init()
 approxSpace:print_statistic()
 
 

@@ -186,7 +186,6 @@ sh:set_subset_name("DirichletBoundary", 1)
 -- create Approximation Space
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-approxSpace:init()
 
 -------------------------------------------
 --  Setup User Functions

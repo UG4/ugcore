@@ -84,7 +84,7 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 		fctNames.append(vScheduledUserData[i].fctName.c_str());
 
 	//	get subsethandler
-		const ISubsetHandler* pSH = this->get_fct_pattern().get_subset_handler();
+		const ISubsetHandler& rSH = this->get_fct_pattern().get_subset_handler();
 
 	// 	loop subsets
 		for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
@@ -101,11 +101,11 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 			}
 
 		//	check that subsetIndex is valid
-			if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
+			if(subsetIndex < 0 || subsetIndex >= rSH.num_subsets())
 			{
 				UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:extract_scheduled_data':"
 						" Invalid subset Index " << subsetIndex <<
-						". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
+						". (Valid is 0, .. , " << rSH.num_subsets() <<").\n");
 				return false;
 			}
 

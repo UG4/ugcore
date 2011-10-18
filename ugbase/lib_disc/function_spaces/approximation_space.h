@@ -122,9 +122,6 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 	///	Destructor
 		~ApproximationSpace(){}
 
-	///	initializes the Approximation Space
-		void init();
-
 	///	returns if ansatz space is supported
 		virtual bool supports_trial_space(LFEID& id) const
 			{return TDoFDistribution::supports_trial_space(id);}
@@ -139,25 +136,25 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		}
 
 	///	prints statistic about DoF Distribution
-		void print_statistic(int verboseLev) const
-			{m_MGDoFManager.print_statistic(verboseLev);}
+		void print_statistic(int verboseLev)
+			{init(true); m_MGDoFManager.print_statistic(verboseLev);}
 
 	///	prints statistic about DoF Distribution
-		void print_statistic() const {print_statistic(1);}
+		void print_statistic() {print_statistic(1);}
 
 	///	prints statistic on layouts
-		void print_layout_statistic(int verboseLev = 1) const
-			{m_MGDoFManager.print_layout_statistic(verboseLev);}
+		void print_layout_statistic(int verboseLev = 1)
+			{init(true); m_MGDoFManager.print_layout_statistic(verboseLev);}
 
 	///	prints statistic on layouts
-		void print_layout_statistic() const {print_layout_statistic(1);}
+		void print_layout_statistic() {print_layout_statistic(1);}
 
 	///	prints statistic on local dof distribution
-		void print_local_dof_statistic(int verboseLev = 1) const
-			{m_MGDoFManager.print_local_dof_statistic(verboseLev);}
+		void print_local_dof_statistic(int verboseLev = 1)
+			{init(true); m_MGDoFManager.print_local_dof_statistic(verboseLev);}
 
 	///	prints statistic on local dof distribution
-		void print_local_dof_statistic() const {print_local_dof_statistic(1);}
+		void print_local_dof_statistic() {print_local_dof_statistic(1);}
 
 	///	defragments the index set of the DoF Distribution
 		void defragment() {m_MGDoFManager.defragment();}
@@ -189,6 +186,10 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 
 	///	returns the number of level
 		size_t num_levels() const {return m_MGDoFManager.num_levels();}
+
+	protected:
+	///	initializes the Approximation Space
+		void init(bool bInitDoFs = false);
 
 	protected:
 	///	Init flag

@@ -192,9 +192,6 @@ sh:set_subset_name("DirichletBoundary", 1)
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-approxSpace:init()
--- approxSpace:print_layout_statistic()
--- approxSpace:print_statistic()
 
 -------------------------------------------
 --  Setup User Functions

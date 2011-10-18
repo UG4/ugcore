@@ -344,11 +344,11 @@ bool InterpolateFunction(
 	}
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(*approxSpace.get_subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.get_subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, *approxSpace.get_subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, approxSpace.get_subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 

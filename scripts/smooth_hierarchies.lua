@@ -96,7 +96,6 @@ print("creating approximation space...")
 -- create Approximation Space
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-approxSpace:init()
 
 -- make sure that the required subsets exist	
 if util.CheckSubsets(dom, requiredSubsets) == false then 

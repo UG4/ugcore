@@ -35,11 +35,11 @@ bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
 		string elemGrp = grp; elemGrp.append("/ApproximationSpace");
 		reg.add_class_<T>("FunctionPattern", grp)
 			.add_method("clear", &T::clear)
-			.add_method("add_fct", static_cast<bool (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
-						"Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
+			.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
+						"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
 						"currently no help available")
-			.add_method("add_fct", static_cast<bool (T::*)(const char*, const char*, int)>(&T::add_fct),
-						"Success", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
+			.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int)>(&T::add_fct),
+						"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
 						"currently no help available");
 	}
 

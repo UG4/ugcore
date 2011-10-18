@@ -248,10 +248,9 @@ print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRef
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-approxSpace:init()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
-approxSpace:print_statistic(0)
+approxSpace:print_statistic()
 
 -- lets order indices using Cuthill-McKee
 --if OrderCuthillMcKee(approxSpace, true) == false then

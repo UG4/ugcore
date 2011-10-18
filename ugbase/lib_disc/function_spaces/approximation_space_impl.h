@@ -13,52 +13,25 @@
 
 namespace ug{
 
-struct UG_ERROR_DoFDistributionMissing{};
-
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void
-ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
+ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init(bool bInitDoFs)
 {
-//	Check, that domain is given
-	if(this->m_pMGSH == NULL)
-	{
-		UG_LOG("ERROR in 'ApproximationSpace::init':"
-				" No Domain assigned to Approximation Space.\n");
-		throw UGFatalError("ERROR in 'ApproximationSpace::init':"
-				" No Domain assigned to Approximation Space.");
-	}
-
-//	check, if already initialized
-	if(m_bInit)
-	{	
-		UG_LOG("WARNING in 'ApproximationSpace::init':"
-				" Approximation Space already initialized. You cannot alter"
-				" the pattern. This call was useless.\n");
-	}
+//	check if already init
+	if(m_bInit) return;
 
 //	lock function pattern
 	this->lock();
 
 //	set subsethandler to DofManager
 	if(!m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSH)))
-	{
-		
-		UG_LOG("In 'ApproximationSpace::init':"
-				" Cannot assign multi grid subset handler.\n");
-		
-		throw UGFatalError("In 'ApproximationSpace::init':"
-				" Cannot assign multi grid subset handler.");
-	}
+		UG_THROW_FATAL("In 'ApproximationSpace::init':"
+						" Cannot assign multi grid subset handler.");
 
 //	set the function pattern for dofmanager
 	if(!m_MGDoFManager.assign_function_pattern(*this))
-	{
-		UG_LOG("In 'ApproximationSpace::init':"
-				" Cannot assign Function Pattern.\n");
-
-		throw UGFatalError("In 'ApproximationSpace::init':"
-				" Cannot assign Function Pattern.");
-	}
+		UG_THROW_FATAL("In 'ApproximationSpace::init':"
+						" Cannot assign Function Pattern.");
 
 #ifdef UG_PARALLEL
 //	set distributed grid manager
@@ -66,15 +39,10 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init()
 			*this->m_pDomain->get_distributed_grid_manager());
 #endif
 
-//	enable all dofs
-	if(!m_MGDoFManager.enable_indices())
-	{
-		UG_LOG("In 'ApproximationSpace::init':"
-				" Cannot distribute dofs.\n");
-		
-		throw UGFatalError("In 'ApproximationSpace::init':"
-				" Cannot distribute dofs.");
-	}
+	if(bInitDoFs)
+		if(!m_MGDoFManager.enable_indices())
+			UG_THROW_FATAL("In 'ApproximationSpace::init':"
+							" Cannot distribute dofs.");
 
 //	remember init flag
 	m_bInit = true;
@@ -84,54 +52,61 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::function_type*
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_level_function(size_t level)
 {
-	if(!m_bInit)
-	{
-		UG_LOG("Approximation Space not initialized.\n");
-		return NULL;
-	}
+//	init space
+	init();
 
+//	enable level dofs
+	if(!m_MGDoFManager.enable_level_indices())
+		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
+
+//	get level dof distribution
 	dof_distribution_type* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
-	if(dofDistr == NULL)
-	{
-		throw(UG_ERROR_DoFDistributionMissing());
-	}
 
-	function_type* gridFct = new function_type(*this, *dofDistr);
-	return gridFct;
+//	check distribution
+	if(dofDistr == NULL)
+		UG_THROW_FATAL( "ApproximationSpace: No level DoFDistribution created.");
+
+//	create new function
+	return new function_type(*this, *dofDistr);
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::function_type*
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_surface_function()
 {
-	if(!m_bInit)
-	{
-		UG_LOG("Approximation Space not initialized.\n");
-		return NULL;
-	}
+//	init space
+	init();
 
+//	enable surface dofs
+	if(!m_MGDoFManager.enable_surface_indices())
+		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
+
+//	get surface dof distribution
 	dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+
+//	check distribution
 	if(dofDistr == NULL)
-	{
-		throw(UG_ERROR_DoFDistributionMissing());
-	}
+		UG_THROW_FATAL( "ApproximationSpace: No surface DoFDistribution created.");
 
-	function_type* gridFct = new function_type(*this, *dofDistr);
-
-	return gridFct;
+//	create new function
+	return new function_type(*this, *dofDistr);
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_surface_dof_distribution()
 {
-	if(!m_bInit)
-		throw(UG_ERROR_DoFDistributionMissing());
+//	init space
+	init();
+
+//	enable surface dofs
+	if(!m_MGDoFManager.enable_surface_indices())
+		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
 
 	dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
 
 	if(dofDistr == NULL)
-		throw(UG_ERROR_DoFDistributionMissing());
+		UG_THROW_FATAL( "ApproximationSpace: No surface DoFDistribution created.");
 
 	return *dofDistr;
 }
@@ -140,23 +115,22 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 const typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_surface_dof_distribution() const
 {
-	if(!m_bInit)
-		throw(UG_ERROR_DoFDistributionMissing());
+	ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>* This =
+			const_cast<ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>*>(this);
 
-	const dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
-
-	if(dofDistr == NULL)
-		throw(UG_ERROR_DoFDistributionMissing());
-
-	return *dofDistr;
+	return This->get_surface_dof_distribution();
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_level_dof_distribution(size_t level)
 {
-	if(!m_bInit)
-		throw(UG_ERROR_DoFDistributionMissing());
+//	init space
+	init();
+
+//	enable surface dofs
+	if(!m_MGDoFManager.enable_level_indices())
+		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
 
 	return *(m_MGDoFManager.get_level_dof_distribution(level));
 }
@@ -165,10 +139,10 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 const typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_level_dof_distribution(size_t level) const
 {
-	if(!m_bInit)
-		throw(UG_ERROR_DoFDistributionMissing());
+	ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>* This =
+			const_cast<ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>*>(this);
 
-	return *(m_MGDoFManager.get_level_dof_distribution(level));
+	return This->get_level_dof_distribution(level);
 }
 
 }

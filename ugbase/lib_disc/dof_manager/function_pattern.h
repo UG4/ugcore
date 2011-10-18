@@ -36,11 +36,11 @@ class FunctionPattern
 	public:
 	///	Default Constructor
 		FunctionPattern(const ISubsetHandler& sh) :
-			m_bLocked(false), m_pSH(&sh)
+			m_bLocked(false), m_rSH(sh)
 		{clear();}
 
 	/// get underlying subset handler
-		const ISubsetHandler* get_subset_handler() const {return m_pSH;}
+		const ISubsetHandler& get_subset_handler() const {return m_rSH;}
 
 	//	returns if ansatz space is supported
 		virtual bool supports_trial_space(LFEID& id) const = 0;
@@ -51,7 +51,7 @@ class FunctionPattern
 	 * \param[in] 	id			Shape Function set id
 	 * \param[in]	dim			Dimension (optional)
 	 */
-		virtual bool add_fct(const char* name, LFEID id, int dim = -1);
+		virtual void add_fct(const char* name, LFEID id, int dim = -1);
 
 	/// add a single solution of LocalShapeFunctionSetID to selected subsets
 	/**
@@ -60,7 +60,7 @@ class FunctionPattern
 	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
 	 * \param[in] dim			Dimension
 	 */
-		virtual bool add_fct(const char* name, LFEID id,
+		virtual void add_fct(const char* name, LFEID id,
 		                     const SubsetGroup& SubsetIndices, int dim = -1);
 
 	/// add a single solution of LocalShapeFunctionSetID to selected subsets
@@ -70,12 +70,12 @@ class FunctionPattern
 	 * \param[in] subsets		Subsets separated by ','
 	 * \param[in] dim			Dimension
 	 */
-		virtual bool add_fct(const char* name, LFEID id, const char* subsets,
+		virtual void add_fct(const char* name, LFEID id, const char* subsets,
 		                     int dim = -1);
 
-		virtual bool add_fct(const char* name, const char* type, int order);
+		virtual void add_fct(const char* name, const char* type, int order);
 
-		virtual bool add_fct(const char* name, const char* type,
+		virtual void add_fct(const char* name, const char* type,
 		                     int order, const char* subsets);
 
 	///	lock pattern (i.e. can not be changed then)
@@ -92,25 +92,13 @@ class FunctionPattern
 		}
 
 	///	number of subsets
-		int num_subsets() const
-		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
-			return m_pSH->num_subsets();
-		}
+		int num_subsets() const {return m_rSH.num_subsets();}
 
 	///	dimension of subset
-		int dim_subset(int si) const
-		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
-			return DimensionOfSubset(*m_pSH, si);
-		}
+		int dim_subset(int si) const {return DimensionOfSubset(m_rSH, si);}
 
 	///	returns the name of a subset
-		const char* subset_name(int si) const
-		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
-			return m_pSH->subset_info(si).name.c_str();
-		}
+		const char* subset_name(int si) const {return m_rSH.subset_info(si).name.c_str();}
 
 	/// number of discrete functions this dof distributor handles
 		size_t num_fct() const {return m_vFunction.size();}
@@ -118,7 +106,6 @@ class FunctionPattern
 	/// number of discrete functions on a subset
 		size_t num_fct(int si) const
 		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			size_t num = 0;
 			for(size_t fct = 0; fct < num_fct(); ++fct)
 			{
@@ -174,7 +161,6 @@ class FunctionPattern
 	/// returns true if the discrete function nr_fct is defined on subset si
 		bool is_def_in_subset(size_t fct, int si) const
 		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].is_def_in_subset(si);
 		}
@@ -182,7 +168,6 @@ class FunctionPattern
 	/// returns true if the discrete function nr_fct is defined on all subsets
 		bool is_def_everywhere(size_t fct) const
 		{
-			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].is_def_everywhere();
 		}
@@ -221,7 +206,7 @@ class FunctionPattern
 		bool m_bLocked;
 
 	// 	underlying subset handler
-		const ISubsetHandler* m_pSH;
+		const ISubsetHandler& m_rSH;
 
 	// 	informations about Functions
 		std::vector<Function> m_vFunction;

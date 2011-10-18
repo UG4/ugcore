@@ -95,7 +95,6 @@ SaveDomain(dom, "refined_grid.ugx")
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-approxSpace:init()
 
 -------------------------------------------
 --  Setup User Functions

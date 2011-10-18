@@ -411,7 +411,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 	}
 
 //	get subsethandler
-	const ISubsetHandler* pSH = m_pPattern->get_subset_handler();
+	const ISubsetHandler& rSH = m_pPattern->get_subset_handler();
 
 // 	loop subsets
 	for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
@@ -420,11 +420,11 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 		const int subsetIndex = subsetGroup[si];
 
 	//	check that subsetIndex is valid
-		if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
+		if(subsetIndex < 0 || subsetIndex >= rSH.num_subsets())
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Invalid Subset Index " << subsetIndex << ". (Valid is"
-					" 0, .. , " << pSH->num_subsets() <<").\n");
+					" 0, .. , " << rSH.num_subsets() <<").\n");
 			return false;
 		}
 

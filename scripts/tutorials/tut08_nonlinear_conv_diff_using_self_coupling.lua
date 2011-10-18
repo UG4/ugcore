@@ -125,8 +125,6 @@ end
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom) -- creates new object
 approxSpace:add_fct("c", "Lagrange", 1)          -- adds one function
-approxSpace:init()                               -- fixes the space
-
 
 ----------------------------------------------------
 ----------------------------------------------------
