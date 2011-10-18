@@ -722,9 +722,17 @@ static int LuaProxyConstructor(lua_State* L)
 	if(badParam < 0)
 	{
 		UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << ": ");
-		UG_LOG("Cannot find constructor for class.\n");
+		UG_LOG("Cannot find constructor for class "<< c->name()  <<".\n");
 	}
-	return badParam;
+
+	UG_LOG("Call stack:\n"); lua_stacktrace(L);
+	lua_pushstring (L, "Unknown constructor overload.");
+
+//	If we reach this point, an error has occured. Force lua to stop execution.
+//	pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
+	lua_error(L);
+
+	return 0;
 }
 
 
@@ -1163,10 +1171,17 @@ static int LuaProxyGroupCreate(lua_State* L)
 	if(badParam < 0)
 	{
 		UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << ": ");
-		UG_LOG("Cannot find constructor for class.\n");
+		UG_LOG("Cannot find constructor for class "<< c->name()  <<".\n");
 	}
 
-	return 1;
+	UG_LOG("Call stack:\n"); lua_stacktrace(L);
+	lua_pushstring (L, "Unknown constructor overload.");
+
+//	If we reach this point, an error has occured. Force lua to stop execution.
+//	pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
+	lua_error(L);
+
+	return 0;
 }
 
 bool CreateBindings_LUA(lua_State* L, Registry& reg)
