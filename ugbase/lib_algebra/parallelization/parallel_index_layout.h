@@ -123,8 +123,7 @@ inline void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& 
 		IndexLayout::Interface& interface = layout.interface(interfaceIter);
 
 	//	loop over indices
-		for(IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end();)
 		{
 		//  get index
 			size_t& index = interface.get_element(iter);
@@ -137,7 +136,11 @@ inline void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& 
 				iter = interface.erase(iter);
 		//	else replace index
 			else
+			{
 				index = newIndex;
+				 ++iter;
+			}
+
 		}
 	}
 }
