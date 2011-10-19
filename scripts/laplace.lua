@@ -352,8 +352,6 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 -- get grid function
 u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
---u = GridFunction(approxSpace)
---b = GridFunction(approxSpace)
 
 -- debug writer
 dbgWriter = GridFunctionDebugWriter()
