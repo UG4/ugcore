@@ -128,8 +128,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		typedef typename T::dof_distribution_type dof_distribution_type;
 		string name = string("DomainDiscretization").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
-			.add_constructor()
-			.add_method("set_approximation_space", &T::set_approximation_space)
+			.template add_constructor<void (*)(approximation_space_type&)>("ApproximationSpace")
 			.add_method("add", static_cast<bool (T::*)(IConstraint<TDoFDistribution, TAlgebra>&)>(&T::add),
 						"", "Post Process")
 			.add_method("add", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),

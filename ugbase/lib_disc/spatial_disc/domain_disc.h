@@ -59,14 +59,8 @@ class DomainDiscretization :
 
 	public:
 	///	default Constructor
-		DomainDiscretization() :
-			m_pApproxSpace(NULL), m_bForceRegGrid(false), m_pSelector(NULL) {};
-
-	///	sets the approximation space to use
-		void set_approximation_space(approx_space_type& pApproxSpace)
-		{
-			m_pApproxSpace = & pApproxSpace;
-		}
+		DomainDiscretization(approx_space_type& pApproxSpace) :
+			m_pApproxSpace(&pApproxSpace), m_bForceRegGrid(false), m_pSelector(NULL) {};
 
 	///////////////////////////
 	// Time independent part

@@ -122,8 +122,7 @@ dirichletBND:add(dirichlet, "c", "Boundary")
 
 print("creating domain discretization...")
 -- The domain discretization
-domainDisc = DomainDiscretization()
-domainDisc:set_approximation_space(approxSpace)
+domainDisc = DomainDiscretization(approxSpace)
 domainDisc:add(elemDisc)
 domainDisc:add(dirichletBND)
 
