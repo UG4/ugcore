@@ -45,6 +45,29 @@ static bool LoadDomain(TDomain& domain, const char* filename)
 }
 
 template <typename TDomain>
+static bool LoadAndRefineDomain(TDomain& domain, const char* filename,
+								int numRefs)
+{
+#ifdef UG_PARALLEL
+	if(pcl::GetProcRank() != 0)
+		return true;
+#endif
+
+	if(!LoadGridFromFile(domain.get_grid(), domain.get_subset_handler(),
+						 filename, domain.get_position_attachment()))
+	{
+		UG_LOG("Cannot load grid.\n");
+		return false;
+	}
+
+	GlobalMultiGridRefiner ref(domain.get_grid());
+	for(int i = 0; i < numRefs; ++i)
+		ref.refine();
+
+	return true;
+}
+
+template <typename TDomain>
 static bool SaveDomain(TDomain& domain, const char* filename)
 {
 	return SaveGridToFile(domain.get_grid(), domain.get_subset_handler(),
@@ -105,6 +128,10 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 					"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 					"Loads a domain", "No help");
 
+//	LoadAndRefineDomain
+	reg.add_function("LoadAndRefineDomain", &LoadAndRefineDomain<TDomain>, grp,
+					"Success", "Domain # Filename # NumRefines | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
+					"Loads a domain and performs global refinement", "No help");
 //	SaveDomain
 	reg.add_function("SaveDomain", &SaveDomain<TDomain>, grp,
 					"Success", "Domain # Filename|save-dialog",
