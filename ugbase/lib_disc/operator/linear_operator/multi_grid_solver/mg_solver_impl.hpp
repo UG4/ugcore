@@ -1626,9 +1626,8 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 clone()
 {
 	AssembledMultiGridCycle<TApproximationSpace, TAlgebra>* clone =
-		new AssembledMultiGridCycle<TApproximationSpace, TAlgebra>();
+		new AssembledMultiGridCycle<TApproximationSpace, TAlgebra>(*m_pApproxSpace);
 
-	clone->set_approximation_space(*m_pApproxSpace);
 	clone->set_base_level(m_baseLev);
 	clone->set_base_solver(*m_pBaseSolver);
 	clone->set_cycle_type(m_cycleType);

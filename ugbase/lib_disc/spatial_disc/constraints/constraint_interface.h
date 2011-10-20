@@ -42,6 +42,7 @@ enum ConstraintType
  * situations it is important to apply the constraint modification in a certain
  * order.
  *
+ * \tparam	TDomain				type of Domain
  * \tparam	TDoFDistribution	type of DoF Distribution
  * \tparam	TAlgebra			type of Algebra
  */
@@ -92,6 +93,25 @@ class IConstraint{
 
 	///	virtual destructor
 		virtual ~IConstraint() {};
+};
+
+// predeclaration
+template <typename TDomain> class IApproximationSpace;
+
+template <	typename TDomain,
+			typename TDoFDistribution,
+			typename TAlgebra>
+class IDomainConstraint
+	: public IConstraint<TDoFDistribution, TAlgebra>
+{
+	public:
+	///	Domain Type
+		typedef TDomain domain_type;
+
+	public:
+	///	sets the approximation space
+		virtual void set_approximation_space(IApproximationSpace<TDomain>& approxSpace) = 0;
+
 };
 
 } // end namespace ug

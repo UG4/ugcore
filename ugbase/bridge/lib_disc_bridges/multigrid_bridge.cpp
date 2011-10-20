@@ -69,7 +69,6 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
-			.add_method("set_approximation_space", &T::set_approximation_space)
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("set_dirichlet_post_process", &T::set_dirichlet_post_process);
 		reg.add_class_to_group(name, "P1Prolongation", dimAlgDDTag);
@@ -82,8 +81,7 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 		string name = string("P1Projection").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
-			.add_method("set_approximation_space", &T::set_approximation_space);
+			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space");
 		reg.add_class_to_group(name, "P1Projection", dimAlgDDTag);
 	}
 
@@ -93,10 +91,8 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 		typedef ILinearIterator<vector_type, vector_type> TBase;
 		string name = string("GeometricMultiGrid").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
 			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
 			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
-			.add_method("set_approximation_space", &T::set_approximation_space,"", "Approximation Space")
 			.add_method("set_base_level", &T::set_base_level, "", "Base Level")
 			.add_method("set_parallel_base_solver", &T::set_parallel_base_solver,"", "Specifies if base solver works in parallel")
 			.add_method("set_base_solver", &T::set_base_solver,"","Base Solver")

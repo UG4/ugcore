@@ -38,7 +38,9 @@
 
 #include "lib_disc/spatial_disc/domain_disc.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_disc/spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
+#include "lib_disc/spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"
 
 
 using namespace std;
@@ -129,7 +131,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		string name = string("DomainDiscretization").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(approximation_space_type&)>("ApproximationSpace")
-			.add_method("add", static_cast<bool (T::*)(IConstraint<TDoFDistribution, TAlgebra>&)>(&T::add),
+			.add_method("add", static_cast<bool (T::*)(IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>&)>(&T::add),
 						"", "Post Process")
 			.add_method("add", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
 						"", "Discretization")
@@ -146,17 +148,47 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_class_to_group(name, "DomainDiscretization", dimAlgDDTag);
 	}
 
+//	IDomainConstraint
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
+		typedef IConstraint<TDoFDistribution, TAlgebra> TBase;
+		typedef IDomainConstraint<TDomain, TDoFDistribution, TAlgebra> T;
+		string name = string("IDomainConstraint").append(dimAlgDDSuffix);
+		reg.add_class_<T, TBase>(name, grp);
+		reg.add_class_to_group(name, "IDomainConstraint", dimAlgDDTag);
+	}
+
+//	OneSideP1ConstraintsPostProcess
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
+		typedef OneSideP1ConstraintsPostProcess<TDomain, TDoFDistribution, TAlgebra> T;
+		typedef IDomainConstraint<TDomain, TDoFDistribution, TAlgebra> baseT;
+		string name = string("OneSideP1Constraints").append(dimAlgDDSuffix);
+		reg.add_class_<T, baseT>(name, grp)
+			.add_constructor();
+		reg.add_class_to_group(name, "OneSideP1Constraints", dimAlgDDTag);
+	}
+
+//	SymP1ConstraintsPostProcess
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
+		typedef SymP1ConstraintsPostProcess<TDomain, TDoFDistribution, TAlgebra> T;
+		typedef IDomainConstraint<TDomain, TDoFDistribution, TAlgebra> baseT;
+		string name = string("SymP1Constraints").append(dimAlgDDSuffix);
+		reg.add_class_<T, baseT>(name, grp)
+			.add_constructor();
+		reg.add_class_to_group(name, "SymP1Constraints", dimAlgDDTag);
+	}
+
 //	DirichletBNDValues
 	{
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
 		typedef LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra> T;
-		typedef IConstraint<TDoFDistribution, TAlgebra> TBase;
+		typedef IDomainConstraint<TDomain, TDoFDistribution, TAlgebra> TBase;
 		string name = string("DirichletBND").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.add_constructor()
-			.add_method("set_approximation_space", &T::set_approximation_space,
-						"", "Approximation Space")
 			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add),
 						"Success", "Value#Function#Subsets")
 			.add_method("add", static_cast<void (T::*)(NumberFunctor&, const char*, const char*)>(&T::add),

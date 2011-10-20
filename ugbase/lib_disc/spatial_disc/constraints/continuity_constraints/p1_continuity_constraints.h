@@ -13,9 +13,12 @@
 
 namespace ug {
 
-template <	typename TDoFDistribution,
+template <	typename TDomain,
+			typename TDoFDistribution,
 			typename TAlgebra>
-class SymP1ConstraintsPostProcess : public IConstraint<TDoFDistribution, TAlgebra> {
+class SymP1ConstraintsPostProcess
+	: public IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>
+{
 	public:
 	// 	DoF Distribution Type
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
@@ -34,6 +37,9 @@ class SymP1ConstraintsPostProcess : public IConstraint<TDoFDistribution, TAlgebr
 
 	public:
 		virtual int type() {return CT_CONSTRAINTS;}
+
+	///	sets the approximation space
+		virtual void set_approximation_space(IApproximationSpace<TDomain>& approxSpace) {}
 
 		virtual bool adjust_defect(vector_type& d, const vector_type& u,
 		                           const dof_distribution_type& dofDistr,
@@ -622,9 +628,12 @@ class SymP1ConstraintsPostProcess : public IConstraint<TDoFDistribution, TAlgebr
 
 
 
-template <	typename TDoFDistribution,
+template <	typename TDomain,
+			typename TDoFDistribution,
 			typename TAlgebra>
-class OneSideP1ConstraintsPostProcess : public IConstraint<TDoFDistribution, TAlgebra> {
+class OneSideP1ConstraintsPostProcess
+	: public IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>
+{
 	public:
 	// 	DoF Distribution Type
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
@@ -643,6 +652,9 @@ class OneSideP1ConstraintsPostProcess : public IConstraint<TDoFDistribution, TAl
 
 	public:
 		virtual int type() {return CT_CONSTRAINTS;}
+
+	///	sets the approximation space
+		virtual void set_approximation_space(IApproximationSpace<TDomain>& approxSpace) {}
 
 		virtual bool adjust_jacobian(matrix_type& J,
 		                                              const vector_type& u,

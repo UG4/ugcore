@@ -87,18 +87,6 @@ class AssembledMultiGridCycle :
 		typedef ILinearIterator<vector_type, vector_type> base_type;
 
 	public:
-	/// default Constructor
-		AssembledMultiGridCycle() :
-			m_pAss(NULL), m_pApproxSpace(NULL),
-			m_topLev(0), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
-			m_numPreSmooth(1), m_numPostSmooth(1),
-			m_bAdaptive(true),
-			m_pSmootherPrototype(NULL),
-			m_pProjectionPrototype(NULL), m_pProlongationPrototype(NULL),
-			m_pBaseSolver(NULL),
-			m_pDebugWriter(NULL), m_dbgIterCnt(0)
-		{};
-
 	/// constructor setting approximation space
 		AssembledMultiGridCycle(approximation_space_type& approxSpace) :
 			m_pAss(NULL), m_pApproxSpace(&approxSpace),
@@ -118,10 +106,6 @@ class AssembledMultiGridCycle :
 	/// sets the assembling procedure that is used to compute coarse grid matrices
 		void set_discretization(assemble_type& ass)
 			{m_pAss = &ass;}
-
-	///	sets the approximation space that is used to build up the grid hierarchy
-		void set_approximation_space(approximation_space_type& approxSpace)
-			{m_pApproxSpace = &approxSpace;}
 
 	///	sets the level where exact solving is performed in the mg cycle
 		void set_base_level(int baseLevel) {m_baseLev = baseLevel;}

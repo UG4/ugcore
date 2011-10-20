@@ -40,6 +40,47 @@ update_elem_discs()
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+update_constraints()
+{
+//	check Approximation space
+	if(m_pApproxSpace == NULL)
+	{
+		UG_LOG("ERROR in DomainDiscretization: Before using the "
+				"DomainDiscretization an ApproximationSpace must be set to it. "
+				"Please use DomainDiscretization:set_approximation_space to "
+				"set an appropriate Space.\n");
+		return false;
+	}
+
+
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
+		{
+			m_vvConstraints[type][i]->set_approximation_space(*m_pApproxSpace);
+		}
+	}
+
+//	ok
+	return true;
+}
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+update_disc_items()
+{
+//	return flag
+	bool bRet = true;
+
+	bRet &= update_elem_discs();
+	bRet &= update_constraints();
+
+//	ok
+	return bRet;
+}
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 typename DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
 DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 get_surface_dd()
@@ -67,7 +108,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -182,7 +223,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -304,7 +345,7 @@ assemble_jacobian(matrix_type& J,
                   const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -424,7 +465,7 @@ assemble_defect(vector_type& d,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -536,7 +577,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -659,7 +700,7 @@ assemble_rhs(vector_type& rhs,
 			const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -771,6 +812,8 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, const dof_distribution_type& dd)
 {
+	if(!update_constraints()) return false;
+
 //	post process dirichlet
 	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
 	{
@@ -806,7 +849,7 @@ assemble_jacobian(matrix_type& J,
                   const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	get current time
 	const number time = vSol.time(0);
@@ -919,7 +962,7 @@ assemble_defect(vector_type& d,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1027,7 +1070,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_elem_discs()) return false;
+	if(!update_disc_items()) return false;
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1136,6 +1179,8 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, number time, const dof_distribution_type& dd)
 {
+	if(!update_constraints()) return false;
+
 //	dirichlet
 	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
 	{

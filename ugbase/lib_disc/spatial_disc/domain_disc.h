@@ -193,7 +193,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	elem		Element Discretization to be added
 	 */
-		bool add(IDomainElemDisc<domain_type>& elem)
+		bool add(IDomainElemDisc<TDomain>& elem)
 		{
 		//	check that not already registered
 			for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
@@ -212,7 +212,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	pp		Constraint to be added
 	 */
-		bool add(IConstraint<TDoFDistribution, TAlgebra>& pp)
+		bool add(IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>& pp)
 		{
 		// 	get type of constraint
 			const int type = pp.type();
@@ -264,6 +264,8 @@ class DomainDiscretization :
 
 	///	set the approximation space in the elem discs and extract IElemDiscs
 		bool update_elem_discs();
+		bool update_constraints();
+		bool update_disc_items();
 
 	///	returns the surface dof distribution
 		dof_distribution_type& get_surface_dd();
@@ -276,7 +278,7 @@ class DomainDiscretization :
 		std::vector<IElemDisc*> m_vElemDisc;
 
 	//	vector holding all registered constraints
-		std::vector<IConstraint<TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
+		std::vector<IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
 
 	///	current approximation space
 		approx_space_type* m_pApproxSpace;

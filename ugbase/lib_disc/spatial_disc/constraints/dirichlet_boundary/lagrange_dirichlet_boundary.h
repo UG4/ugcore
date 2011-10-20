@@ -22,7 +22,7 @@ namespace ug{
 
 template <	typename TDomain, typename TDoFDistribution, typename TAlgebra>
 class LagrangeDirichletBoundary
-	: public IConstraint<TDoFDistribution, TAlgebra>
+	: public IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>
 {
 	public:
 	///	Type of dof distribution
@@ -79,12 +79,11 @@ class LagrangeDirichletBoundary
 		void add(VectorFunctor& func, const char* functions, const char* subsets);
 
 	///	sets the approximation space to work on
-		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
+		void set_approximation_space(IApproximationSpace<TDomain>& approxSpace)
 		{
 			m_pDomain = &approxSpace.get_domain();
 			m_aaPos = m_pDomain->get_position_accessor();
 			m_pPattern = &approxSpace;
-			clear();
 		}
 
 	///	removes all scheduled dirichlet data.

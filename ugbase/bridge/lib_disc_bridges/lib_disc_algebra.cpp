@@ -32,9 +32,6 @@
 // time discretization implementation
 #include "lib_disc/time_disc/theta_time_step.h"
 
-// post processes
-#include "lib_disc/spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"
-
 // operator interfaces
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
@@ -68,35 +65,13 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 
 	try{
 
-//	Base class
+//	IConstraint
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef IConstraint<TDoFDistribution, TAlgebra> T;
 		string name = string("IConstraint").append(algDDSuffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IConstraint", algDDTag);
-	}
-
-//	OneSideP1ConstraintsPostProcess
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef OneSideP1ConstraintsPostProcess<TDoFDistribution, TAlgebra> T;
-		typedef IConstraint<TDoFDistribution, TAlgebra> baseT;
-		string name = string("OneSideP1Constraints").append(algDDSuffix);
-		reg.add_class_<T, baseT>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "OneSideP1Constraints", algDDTag);
-	}
-
-//	SymP1ConstraintsPostProcess
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef SymP1ConstraintsPostProcess<TDoFDistribution, TAlgebra> T;
-		typedef IConstraint<TDoFDistribution, TAlgebra> baseT;
-		string name = string("SymP1Constraints").append(algDDSuffix);
-		reg.add_class_<T, baseT>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "SymP1Constraints", algDDTag);
 	}
 
 //	IAssemble

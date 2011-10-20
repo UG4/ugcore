@@ -70,8 +70,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef IDomainElemDisc<TDomain> T;
 		typedef IElemDisc TBase;
 		string name = string("IDomainElemDisc").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, elemGrp)
-			.add_method("set_approximation_space", &T::set_approximation_space);
+		reg.add_class_<T, TBase >(name, elemGrp);
 		reg.add_class_to_group(name, "IDomainElemDisc", dimTag);
 	}
 

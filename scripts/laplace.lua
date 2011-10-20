@@ -59,7 +59,6 @@ print("    distType   = " .. distributionType)
 -- Checking for parameters (end)
 --------------------------------------------------------------------------------
 
-
 -- choose algebra
 InitUG(dim, AlgebraType("CPU", 1));
 

@@ -23,7 +23,6 @@ end
 -- creates Neumann Boundary
 function util.CreateNeumannBoundary(approxSpace, subsets)
 	local neumannDisc = FV1NeumannBoundary()
-	neumannDisc:set_approximation_space(approxSpace)
 	neumannDisc:set_subsets(subsets)
 	return neumannDisc
 end
@@ -31,14 +30,12 @@ end
 -- creates Dirichlet Boundary
 function util.CreateDirichletBoundary(approxSpace)
 	local dirichlet = DirichletBND()
-	dirichlet:set_approximation_space(approxSpace)
 	return dirichlet
 end
 
 -- creates Inner Boundary
 function util.CreateInnerBoundary(approxSpace, functions, subsets)
 	local innerDisc = FV1InnerBoundary()
-	innerDisc:set_approximation_space(approxSpace)
 	innerDisc:set_subsets(subsets)
 	innerDisc:set_functions(functions)
 	return innerDisc
@@ -47,7 +44,6 @@ end
 -- creates FV1ConvDiff
 function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	local elemDisc = ConvectionDiffusion()
-	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	elemDisc:set_disc_scheme("fv1")
@@ -57,7 +53,6 @@ end
 -- creates FV1ConvDiff
 function util.CreateFV1ThermohalineFlow(approxSpace, functions, subsets)
 	local elemDisc = FV1ThermohalineFlow()
-	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc
@@ -66,7 +61,6 @@ end
 -- creates FV1ConstEq
 function util.CreateFV1ConstEq(approxSpace, functions, subsets)
 	local elemDisc = FV1ConstantEquation()
-	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc
@@ -74,7 +68,6 @@ end
 
 function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	local elemDisc = ConvectionDiffusion()
-	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	elemDisc:set_disc_scheme("fe")
@@ -84,7 +77,6 @@ end
 -- creates FV1NavierStokes
 function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
 	local elemDisc = FV1NavierStokes()	
-	elemDisc:set_approximation_space(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc
