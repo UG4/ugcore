@@ -57,7 +57,6 @@ bool ComputeGradient(TFunction& u,
 	std::vector<MathVector<worldDim> > globalGrad(num_sh);
 	std::vector<MathVector<worldDim> > vCorner(num_sh);
 	MathMatrix<dim, dim> JTInv;
-	number detJ;
 
 //	compute local midpoint
 	VecSet(localIP, 0.0);
@@ -90,10 +89,7 @@ bool ComputeGradient(TFunction& u,
 			mapping.jacobian_transposed_inverse(JTInv, localIP);
 
 		//	compute size (volume) of element
-			number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);
-
-		//	compute determinate
-			detJ = mapping.jacobian_det(localIP);
+			const number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);
 
 		//	compute gradient at mid point by summing contributions of all shape fct
 			MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
