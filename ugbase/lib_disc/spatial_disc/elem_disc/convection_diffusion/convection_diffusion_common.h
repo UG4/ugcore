@@ -69,8 +69,8 @@ get_concentration_grad() {return m_exConcentrationGrad;}
 
 template<typename TDomain>
 ConvectionDiffusionElemDisc<TDomain>::
-ConvectionDiffusionElemDisc()
- : m_pConvShape(NULL)
+ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
+ : IDomainElemDisc<TDomain>(1, functions,subsets), m_pConvShape(NULL)
 {
 //	register exports
 	register_export(m_exConcentration);
@@ -99,18 +99,14 @@ ConvectionDiffusionElemDisc()
 }
 
 template<typename TDomain>
-size_t ConvectionDiffusionElemDisc<TDomain>::
-num_fct(){return 1;}
-
-template<typename TDomain>
 bool ConvectionDiffusionElemDisc<TDomain>::
 request_finite_element_id(const std::vector<LFEID>& vLfeID)
 {
 //	check number
-	if(vLfeID.size() != num_fct())
+	if(vLfeID.size() != 1)
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
-				" Wrong number of functions given. Need exactly "<<num_fct()<<"\n");
+				" Wrong number of functions given. Need exactly "<<1<<"\n");
 		return false;
 	}
 

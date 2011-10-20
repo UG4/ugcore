@@ -22,57 +22,44 @@ end
 
 -- creates Neumann Boundary
 function util.CreateNeumannBoundary(approxSpace, subsets)
-	local neumannDisc = FV1NeumannBoundary()
-	neumannDisc:set_subsets(subsets)
+	local neumannDisc = FV1NeumannBoundary(subsets)
 	return neumannDisc
 end
 
 -- creates Inner Boundary
 function util.CreateInnerBoundary(approxSpace, functions, subsets)
-	local innerDisc = FV1InnerBoundary()
-	innerDisc:set_subsets(subsets)
-	innerDisc:set_functions(functions)
+	local innerDisc = FV1InnerBoundary(functions, subsets)
 	return innerDisc
 end
 
 -- creates FV1ConvDiff
 function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
-	local elemDisc = ConvectionDiffusion()
-	elemDisc:set_subsets(subsets)
-	elemDisc:set_functions(functions)
+	local elemDisc = ConvectionDiffusion(functions, subsets)
 	elemDisc:set_disc_scheme("fv1")
 	return elemDisc
 end
 
 -- creates FV1ConvDiff
 function util.CreateFV1ThermohalineFlow(approxSpace, functions, subsets)
-	local elemDisc = FV1ThermohalineFlow()
-	elemDisc:set_subsets(subsets)
-	elemDisc:set_functions(functions)
+	local elemDisc = FV1ThermohalineFlow(functions, subsets)
 	return elemDisc
 end
 
 -- creates FV1ConstEq
 function util.CreateFV1ConstEq(approxSpace, functions, subsets)
-	local elemDisc = FV1ConstantEquation()
-	elemDisc:set_subsets(subsets)
-	elemDisc:set_functions(functions)
+	local elemDisc = FV1ConstantEquation(functions, subsets)
 	return elemDisc
 end
 
 function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
-	local elemDisc = ConvectionDiffusion()
-	elemDisc:set_subsets(subsets)
-	elemDisc:set_functions(functions)
+	local elemDisc = ConvectionDiffusion(functions, subsets)
 	elemDisc:set_disc_scheme("fe")
 	return elemDisc
 end
 
 -- creates FV1NavierStokes
 function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
-	local elemDisc = FV1NavierStokes()	
-	elemDisc:set_subsets(subsets)
-	elemDisc:set_functions(functions)
+	local elemDisc = FV1NavierStokes(functions, subsets)	
 	return elemDisc
 end
 

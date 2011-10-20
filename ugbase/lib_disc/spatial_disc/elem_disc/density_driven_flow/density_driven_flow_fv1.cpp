@@ -1003,7 +1003,8 @@ assemble_f(LocalVector& d)
 
 template<typename TDomain>
 DensityDrivenFlowElemDisc<TDomain>::
-DensityDrivenFlowElemDisc() :
+DensityDrivenFlowElemDisc(const char* functions, const char* subsets) :
+	IDomainElemDisc<TDomain>(2, functions,subsets),
 	m_pUpwind(NULL), m_bConsGravity(true),
 	m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 	m_imBrineScvf(false), m_imBrineGradScvf(false),

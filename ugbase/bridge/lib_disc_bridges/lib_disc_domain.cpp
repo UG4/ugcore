@@ -131,11 +131,11 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		string name = string("DomainDiscretization").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(approximation_space_type&)>("ApproximationSpace")
-			.add_method("add", static_cast<bool (T::*)(IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>&)>(&T::add),
+			.add_method("add", static_cast<void (T::*)(IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>&)>(&T::add),
 						"", "Post Process")
-			.add_method("add", static_cast<bool (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
-						"", "Discretization")
-			.add_method("add", static_cast<bool (T::*)(IDiscretizationItem<TDomain,TDoFDistribution,TAlgebra>&)>(&T::add),
+			.add_method("add", static_cast<void (T::*)(IDomainElemDisc<TDomain>&)>(&T::add),
+						"", "Element Discretization")
+			.add_method("add", static_cast<void (T::*)(IDiscretizationItem<TDomain,TDoFDistribution,TAlgebra>&)>(&T::add),
 						"", "DiscItem")
 			.add_method("assemble_linear", static_cast<bool (T::*)(matrix_type&, vector_type&, const vector_type&)>(&T::assemble_linear))
 			.add_method("assemble_solution", static_cast<bool (T::*)(vector_type&)>(&T::assemble_solution))

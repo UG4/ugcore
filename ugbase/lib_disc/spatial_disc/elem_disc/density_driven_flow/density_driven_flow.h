@@ -85,7 +85,7 @@ class DensityDrivenFlowElemDisc
 
 	public:
 	///	Constructor
-		DensityDrivenFlowElemDisc();
+		DensityDrivenFlowElemDisc(const char* functions, const char* subsets);
 
 	///	sets usage of consistent gravity
 		void set_consistent_gravity(bool bUse)
@@ -175,14 +175,11 @@ class DensityDrivenFlowElemDisc
 		}
 
 	public:
-	///	number of functions used
-		virtual size_t num_fct() {return 2;}
-
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
 		//	check number
-			if(vLfeID.size() != num_fct()) return false;
+			if(vLfeID.size() != 2) return false;
 
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)

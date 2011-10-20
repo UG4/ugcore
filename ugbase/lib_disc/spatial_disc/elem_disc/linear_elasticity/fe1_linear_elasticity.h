@@ -43,15 +43,13 @@ class FE1LinearElasticityElemDisc
 		typedef void (*Elasticity_Tensor_fct)(MathTensor<4,dim>&);
 
 	public:
-		FE1LinearElasticityElemDisc(Elasticity_Tensor_fct elast);
-
-		virtual size_t num_fct(){return dim;}
+		FE1LinearElasticityElemDisc(const char* functions, const char* subsets);
 
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
 		//	check number
-			if(vLfeID.size() != num_fct()) return false;
+			if(vLfeID.size() != (size_t)dim) return false;
 
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)

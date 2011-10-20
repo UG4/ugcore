@@ -9,16 +9,16 @@
 
 namespace ug{
 
-IElemDisc::IElemDisc()
-	: 	m_bTimeDependent(false), m_time(0.0),
+IElemDisc::IElemDisc(int numFct, const char* functions, const char* subsets)
+	: 	m_numFct(numFct), m_bTimeDependent(false), m_time(0.0),
 	  	m_pLocalVectorTimeSeries(NULL), m_id(ROID_INVALID)
-{}
-
-bool IElemDisc::set_functions(const char* functions)
 {
-//	get strings
-	std::string fctString = std::string(functions);
+	set_functions(functions);
+	set_subsets(subsets);
+}
 
+void IElemDisc::set_functions(std::string fctString)
+{
 //	tokenize string
 	TokenizeString(fctString, m_vFct, ',');
 
@@ -27,24 +27,17 @@ bool IElemDisc::set_functions(const char* functions)
 		RemoveWhitespaceFromString(m_vFct[i]);
 
 //	check, that number of symbols is correct
-	if(m_vFct.size() != this->num_fct())
+	if(m_vFct.size() != m_numFct)
 	{
-		UG_LOG("ERROR in 'IElemDisc::set_functions': Wrong number of symbolic "
-				"names of functions passed: Required: "<< this->num_fct() <<
-				" Passed: " << m_vFct.size() << " ('"<<functions<<"'). Please "
-				" pass correct number of symbolic names separated by ','.\n");
-		return false;
+		UG_THROW("IElemDisc: Wrong number of symbolic "
+				 "names of functions passed: Required: "<< m_numFct <<
+				 " Passed: " << m_vFct.size() << " ('"<<fctString<<"'). Please "
+				 " pass correct number of symbolic names separated by ','.\n");
 	}
-
-//	done
-	return true;
 }
 
-bool IElemDisc::set_subsets(const char* subsets)
+void IElemDisc::set_subsets(std::string ssString)
 {
-//	get strings
-	std::string ssString = std::string(subsets);
-
 //	tokenize string
 	TokenizeString(ssString, m_vSubset, ',');
 
@@ -52,8 +45,9 @@ bool IElemDisc::set_subsets(const char* subsets)
 	for(size_t i = 0; i < m_vSubset.size(); ++i)
 		RemoveWhitespaceFromString(m_vSubset[i]);
 
-//	done
-	return true;
+//	check that at least one subset given
+	if(m_vSubset.empty())
+		UG_THROW("IElemDisc: At least one Subset must be specified for an element disc.")
 }
 
 void IElemDisc::register_import(IDataImport& Imp)

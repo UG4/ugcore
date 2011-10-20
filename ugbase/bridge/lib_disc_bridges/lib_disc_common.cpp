@@ -47,11 +47,7 @@ bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
 	{
 		string elemGrp = grp; elemGrp.append("/ElemDisc");
 		typedef IElemDisc T;
-		reg.add_class_<T>("IElemDisc", grp)
-			.add_method("set_functions", &T::set_functions,
-						"", "Functions (sep. by ',')")
-			.add_method("set_subsets",  &T::set_subsets,
-						"", "Subsets (sep. by ',')");
+		reg.add_class_<T>("IElemDisc", grp);
 	}
 
 #ifdef UG_PARALLEL

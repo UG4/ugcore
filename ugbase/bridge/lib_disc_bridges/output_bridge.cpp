@@ -34,10 +34,10 @@ namespace bridge {
 
 /// small wrapper to write a grid function to vtk
 template <typename TGridFunction>
-bool WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
+void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 {
 	VTKOutput<TGridFunction> out;
-	return out.print(filename, u);
+	out.print(filename, u);
 }
 
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
@@ -138,7 +138,7 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 	{
 		reg.add_function("WriteGridFunctionToVTK",
 						 &WriteGridFunctionToVTK<function_type>, grp,
-							"Success", "GridFunction#Filename|save-dialog",
+							"", "GridFunction#Filename|save-dialog",
 							"Saves GridFunction to *.vtk file", "No help");
 	}
 

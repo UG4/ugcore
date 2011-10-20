@@ -62,7 +62,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 
 	public:
 	///	Constructor
-		FVConstantEquationElemDisc();
+		FVConstantEquationElemDisc(const char* functions, const char* subsets);
 
 	///	sets the velocity field
 	/**
@@ -86,14 +86,11 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 		void set_mass_scale(IPData<number, dim>& user)	{m_imMassScale.set_data(user);}
 
 	public:
-	///	number of functions used
-		virtual size_t num_fct(){return 1;}
-
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
 		//	check number
-			if(vLfeID.size() != num_fct()) return false;
+			if(vLfeID.size() != 1) return false;
 
 		//	check that Lagrange 1st order
 			return vLfeID[0] == LFEID(LFEID::LAGRANGE, 1);

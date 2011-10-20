@@ -10,6 +10,7 @@
 
 // extern headers
 #include <vector>
+#include <string>
 
 // intern headers
 #include "lib_disc/common/local_algebra.h"
@@ -44,17 +45,22 @@ class IElemDisc
 {
 	public:
 	///	Constructor
-		IElemDisc();
+		IElemDisc(int numFct, const char* functions, const char* subsets);
 
 	////////////////////////////
 	// Functions and Subsets
-	////////////////////////////
+
+	/// sets number of functions this discretization handles
+		void set_num_fct(size_t numFct) {m_numFct = numFct;}
+
+	/// number of functions this discretization handles
+		size_t num_fct() const {return m_numFct;}
 
 	///	sets functions by name list, divided by ','
-		virtual bool set_functions(const char* functions);
+		void set_functions(std::string functions);
 
 	///	sets subset(s) by name list, divided by ','
-		virtual bool set_subsets(const char* subsets);
+		void set_subsets(std::string subsets);
 
 	///	returns the symbolic functions
 		const std::vector<std::string>& symb_fcts() const {return m_vFct;}
@@ -102,9 +108,6 @@ class IElemDisc
 	////////////////////////////
 	// Assembling functions
 	////////////////////////////
-
-	/// number of functions this discretization handles
-		virtual size_t num_fct() = 0;
 
 	/// requests assembling for a finite element id
 	/**
@@ -301,6 +304,9 @@ class IElemDisc
 		virtual ~IElemDisc() {}
 
 	protected:
+	///	number of functions
+		size_t m_numFct;
+
 	///	flag if time dependent
 		bool m_bTimeDependent;
 
@@ -386,7 +392,8 @@ class IDomainElemDisc : public IElemDisc
 		typedef typename TDomain::position_type position_type;
 
 	public:
-		IDomainElemDisc() : m_pDomain(NULL), m_pApproxSpace(NULL) {};
+		IDomainElemDisc(size_t numFct, const char* functions, const char* subsets)
+			: IElemDisc(numFct, functions, subsets), m_pDomain(NULL), m_pApproxSpace(NULL) {};
 
 	///	sets the approximation space
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)

@@ -193,16 +193,16 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	elem		Element Discretization to be added
 	 */
-		bool add(IDomainElemDisc<TDomain>& elem)
+		void add(IDomainElemDisc<TDomain>& elem)
 		{
 		//	check that not already registered
 			for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
 				if(m_vDomainElemDisc[i] == &elem)
-					return true;
+					return;
 
 		//	add it
 			m_vDomainElemDisc.push_back(&elem);
-			return true;
+			return;
 		}
 
 	/// adds a constraint to the assembling process
@@ -212,7 +212,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	pp		Constraint to be added
 	 */
-		bool add(IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>& pp)
+		void add(IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>& pp)
 		{
 		// 	get type of constraint
 			const int type = pp.type();
@@ -220,11 +220,11 @@ class DomainDiscretization :
 		//	check that not already registered
 			for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 				if(m_vvConstraints[type][i] == &pp)
-					return true;
+					return;
 
 		//	add constraint
 			m_vvConstraints[type].push_back(&pp);
-			return true;
+			return;
 		}
 
 	/// adds a disc item to the assembling process
@@ -234,19 +234,15 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	di		Disc Item
 	 */
-		bool add(IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra>& di)
+		void add(IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra>& di)
 		{
-			bool bRet = true;
-
 		//	add elem discs
 			for(size_t i = 0; i < di.num_elem_disc(); ++i)
-				bRet &= add(*di.get_elem_disc(i));
+				add(*di.get_elem_disc(i));
 
 		//	add constraints
 			for(size_t i = 0; i < di.num_constraint(); ++i)
-				bRet &= add(*di.get_constraint(i));
-
-			return bRet;
+				add(*di.get_constraint(i));
 		}
 
 	protected:

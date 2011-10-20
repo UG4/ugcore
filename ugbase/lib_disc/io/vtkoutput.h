@@ -316,22 +316,22 @@ class VTKOutput{
 		                      int step = -1, number time = 0.0);
 
 	///	creates the needed vtu file name
-		bool vtu_filename(std::string& nameOut, const std::string& nameIn,
+		bool vtu_filename(std::string& nameOut, std::string nameIn,
 		                  int rank, int si, int maxSi, int step);
 
 	///	create the needed pvtu file name
-		bool pvtu_filename(std::string& nameOut, const std::string& nameIn,
+		bool pvtu_filename(std::string& nameOut, std::string nameIn,
 		                   int si, int maxSi, int step);
 
 	///	creates the needed pvd file name
-		bool pvd_filename(std::string& nameOut, const std::string& nameIn);
+		bool pvd_filename(std::string& nameOut, std::string nameIn);
 
 	///	creates the needed pvd file name to group the time steps
-		bool pvd_time_filename(std::string& nameOut, const std::string& nameIn,
+		bool pvd_time_filename(std::string& nameOut, std::string nameIn,
 		                       int step);
 
 	///	checks if chosen filename is admissible
-		bool is_valid_filename(const std::string& nameIn);
+		bool is_valid_filename(std::string& nameIn);
 
 	public:
 	///	default constructor

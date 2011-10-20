@@ -82,7 +82,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1NeumannBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
-			.add_constructor()
+			.template add_constructor<void (*)(const char*)>("Function(s)")
 			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(VectorFunctor&, const char*, const char*)>(&T::add));
 		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
@@ -94,7 +94,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1InnerBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
-			.add_constructor();
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)");
 		reg.add_class_to_group(name, "FV1InnerBoundary", dimTag);
 	}
 
@@ -104,7 +104,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1ConstantEquation").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
-			.add_constructor()
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_velocity", &T::set_velocity)
 			.add_method("set_source", &T::set_source)
 			.add_method("set_mass_scale", &T::set_mass_scale)
@@ -119,16 +119,16 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("ConvectionDiffusion").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
-			.add_constructor()
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_disc_scheme", &T::set_disc_scheme, "", "Disc Scheme|selection|value=[\"fe\",\"fv\",\"fv1\"]")
 			.add_method("set_quad_order", &T::set_quad_order)
 			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
 			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
-			.add_method("set_diffusion_tensor", &T::set_diffusion)
-			.add_method("set_velocity_field", &T::set_velocity)
-			.add_method("set_reaction", &T::set_reaction)
-			.add_method("set_source", &T::set_source)
-			.add_method("set_mass_scale", &T::set_mass_scale)
+			.add_method("set_diffusion_tensor", &T::set_diffusion, "", "Diffusion")
+			.add_method("set_velocity_field", &T::set_velocity, "", "Velocity Field")
+			.add_method("set_reaction", &T::set_reaction, "", "Reaction")
+			.add_method("set_source", &T::set_source, "", "Source")
+			.add_method("set_mass_scale", &T::set_mass_scale, "", "Mass Scale")
 			.add_method("set_upwind", &T::set_upwind)
 			.add_method("get_concentration", &T::get_concentration)
 			.add_method("get_concentration_grad", &T::get_concentration_grad);
@@ -141,7 +141,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("DensityDrivenFlow").append(dimSuffix);
 		reg.add_class_<T2, TBase >(name, elemGrp)
-			.add_constructor()
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_upwind", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
 			.add_method("set_boussinesq_transport", &T2::set_boussinesq_transport,
@@ -173,7 +173,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1ThermohalineFlow").append(dimSuffix);
 		reg.add_class_<T2, TBase >(name, elemGrp)
-			.add_constructor()
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_upwind", &T2::set_upwind,
 						"", "Upwind (no, part, full)")
 			.add_method("set_upwind_energy", &T2::set_upwind_energy,

@@ -50,7 +50,7 @@ class FV1NeumannBoundaryElemDisc
 
 	public:
 	///	default constructor
-		FV1NeumannBoundaryElemDisc();
+		FV1NeumannBoundaryElemDisc(const char* subsets);
 
 	///	add a boundary value
 		void add(BNDNumberFunctor& user, const char* function, const char* subsets);
@@ -118,15 +118,9 @@ class FV1NeumannBoundaryElemDisc
 		virtual void approximation_space_changed() {extract_scheduled_data();}
 
 	public:
-	///	number of functions required
-		virtual size_t num_fct() {return this->symb_fcts().size();}
-
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
-		//	check number
-			if(vLfeID.size() != num_fct()) return false;
-
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)
 				if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;

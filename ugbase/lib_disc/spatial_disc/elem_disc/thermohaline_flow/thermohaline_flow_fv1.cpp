@@ -1366,7 +1366,8 @@ assemble_f(LocalVector& d)
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc() :
+ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* functions, const char* subsets) :
+	IDomainElemDisc<TDomain>(3, functions,subsets),
 	m_pUpwind(NULL), m_pUpwindEnergy(NULL), m_bConsGravity(true),
 	m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 	m_BoussinesqEnergy(false),

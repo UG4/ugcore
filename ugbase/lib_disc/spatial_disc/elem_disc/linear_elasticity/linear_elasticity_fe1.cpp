@@ -28,8 +28,8 @@ namespace ug{
 
 template<typename TDomain>
 FE1LinearElasticityElemDisc<TDomain>::
-FE1LinearElasticityElemDisc(Elasticity_Tensor_fct elast)
-	: 	m_ElasticityTensorFct(elast)
+FE1LinearElasticityElemDisc(const char* functions, const char* subsets)
+	: 	IDomainElemDisc<TDomain>(TDomain::dim, functions,subsets), m_ElasticityTensorFct(NULL)
 {
 	register_all_fe1_funcs();
 };
@@ -102,11 +102,11 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 
 	for(size_t i = 0; i < geo.num_sh(); ++i) // loop corner
 	{
-		for(size_t c1 = 0; c1 < num_fct(); ++c1) // loop component
+		for(size_t c1 = 0; c1 < (size_t)dim; ++c1) // loop component
 		{
 			for(size_t j = 0; j < geo.num_sh(); ++j) // loop corner
 			{
-				for(size_t c2 = 0; c2 < num_fct(); ++c2) // loop component
+				for(size_t c2 = 0; c2 < (size_t)dim; ++c2) // loop component
 				{
 					// Compute entry A_{i, c1, j, c2}
 					number integrand = 0;
@@ -153,7 +153,7 @@ assemble_JM(LocalMatrix& J, const LocalVector& u)
 			{
 				// same value for all components
 				number value = geo.shape(ip, i) *geo.shape(ip, j) * geo.weight(ip);
-				for(size_t c = 0; c < num_fct(); ++c)
+				for(size_t c = 0; c < (size_t)dim; ++c)
 				{
 					J(c, i, c, j) += value;
 				}

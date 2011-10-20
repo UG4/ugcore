@@ -71,7 +71,7 @@ class ConvectionDiffusionElemDisc
 
 	public:
 	///	Constructor
-		ConvectionDiffusionElemDisc();
+		ConvectionDiffusionElemDisc(const char* functions, const char* subsets);
 
 	///	set the upwind method
 	/**
@@ -116,9 +116,6 @@ class ConvectionDiffusionElemDisc
 		void set_mass_scale(IPData<number, dim>& user);
 
 	public:
-	///	number of functions used
-		virtual size_t num_fct();
-
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID);
 

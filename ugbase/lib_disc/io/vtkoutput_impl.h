@@ -13,6 +13,7 @@
 #include <iostream>
 #include <cstring>
 #include <string>
+#include <algorithm>
 
 // ug4 libraries
 #include "common/log.h"
@@ -1048,15 +1049,10 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-is_valid_filename(const std::string& nameIn)
+is_valid_filename(std::string& nameIn)
 {
 // 	search for dots, they are not allowed in file name
-	size_t found = nameIn.find_first_of('.');
-	if (found != std::string::npos)
-	{
-		UG_LOG("Filename must not contain '.', but '"<<nameIn<<"' passed.\n");
-		return false;
-	}
+	nameIn = nameIn.substr(0, nameIn.find_first_of('.'));
 
 //	everything ok
 	return true;
@@ -1066,7 +1062,7 @@ is_valid_filename(const std::string& nameIn)
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-vtu_filename(std::string& nameOut, const std::string& nameIn, int rank,
+vtu_filename(std::string& nameOut, std::string nameIn, int rank,
              int si, int maxSi, int step)
 {
 	if(!is_valid_filename(nameIn)) return false;
@@ -1098,7 +1094,7 @@ vtu_filename(std::string& nameOut, const std::string& nameIn, int rank,
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-pvtu_filename(std::string& nameOut, const std::string& nameIn,
+pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
 //	check name
@@ -1125,7 +1121,7 @@ pvtu_filename(std::string& nameOut, const std::string& nameIn,
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-pvd_filename(std::string& nameOut, const std::string& nameIn)
+pvd_filename(std::string& nameOut, std::string nameIn)
 {
 //	check name
 	if(!is_valid_filename(nameIn)) return false;
@@ -1143,7 +1139,7 @@ pvd_filename(std::string& nameOut, const std::string& nameIn)
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-pvd_time_filename(std::string& nameOut, const std::string& nameIn, int step)
+pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
 {
 //	check name
 	if(!is_valid_filename(nameIn)) return false;

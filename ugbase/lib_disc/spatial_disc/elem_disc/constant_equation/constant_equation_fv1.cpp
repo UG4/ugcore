@@ -506,7 +506,8 @@ ex_concentration_grad(const LocalVector& u,
 
 template<typename TDomain>
 FVConstantEquationElemDisc<TDomain>::
-FVConstantEquationElemDisc()
+FVConstantEquationElemDisc(const char* functions, const char* subsets)
+:IDomainElemDisc<TDomain>(1, functions,subsets)
 {
 //	register assemling functions
 	register_all_fv1_funcs(false);

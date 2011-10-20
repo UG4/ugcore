@@ -52,25 +52,18 @@ class FVInnerBoundaryElemDisc
 		typedef typename base_type::position_type position_type;
 
 	public:
-		FVInnerBoundaryElemDisc()
+		FVInnerBoundaryElemDisc(const char* functions, const char* subsets)
+			: IDomainElemDisc<TDomain>(1, functions, subsets)
 		{
 			register_all_fv1_funcs();
 		}
 		
-	private:
-	//	number of functions required on manifold
-		// \todo: handle flexible, using flexible DataLinker UserFunction
-		static const size_t m_numFct = 3;
-	
 	public:	// inherited from IElemDisc
-	///	number of functions used
-		virtual size_t num_fct(){return m_numFct;}
-		
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
 		//	check number
-			if(vLfeID.size() != num_fct()) return false;
+			if(vLfeID.size() != 1) return false;
 
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)
