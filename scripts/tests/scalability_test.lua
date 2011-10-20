@@ -422,7 +422,7 @@ if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_source(rhs)
 
-dirichletBND = util.CreateDirichletBoundary(approxSpace)
+dirichletBND = DirichletBoundary()
 dirichletBND:add(dirichlet, "c", "Boundary")
 
 -------------------------------------------

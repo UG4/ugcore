@@ -674,7 +674,7 @@ for myname,myproblem in pairs(problem) do
 		--  Setup Dirichlet Boundary
 		-----------------------------------------------------------------
 		
-		dirichletBND = util.CreateDirichletBoundary(approxSpace)
+		dirichletBND = DirichletBoundary()
 		dirichletBND:add(myproblem.dirichlet, "c", "DirichletBoundary")
 		
 		-------------------------------------------

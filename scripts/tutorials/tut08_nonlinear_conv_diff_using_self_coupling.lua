@@ -312,7 +312,7 @@ end
 dirichletCallback = LuaBoundaryNumber("ourDirichletBnd" .. dim .. "d")
 
 -- lets setup the dirichlet values as explained in the previous tutorials
-dirichletBnd = util.CreateDirichletBoundary(approxSpace)
+dirichletBnd = DirichletBoundary()
 dirichletBnd:add(dirichletCallback, "c", "Boundary")
 
 ----------------------------------------------------

@@ -27,12 +27,6 @@ function util.CreateNeumannBoundary(approxSpace, subsets)
 	return neumannDisc
 end
 
--- creates Dirichlet Boundary
-function util.CreateDirichletBoundary(approxSpace)
-	local dirichlet = DirichletBND()
-	return dirichlet
-end
-
 -- creates Inner Boundary
 function util.CreateInnerBoundary(approxSpace, functions, subsets)
 	local innerDisc = FV1InnerBoundary()

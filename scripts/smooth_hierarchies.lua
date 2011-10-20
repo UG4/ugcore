@@ -116,7 +116,7 @@ elemDisc:set_source(rhs)
 
 print("creating dirichlet boundary...")
 -- create dirichlet boundary and add it to discretization
-dirichletBND = util.CreateDirichletBoundary(approxSpace)
+dirichletBND = DirichletBoundary()
 dirichletBND:add(dirichlet, "c", "Boundary")
 
 

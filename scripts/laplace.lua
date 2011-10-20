@@ -325,7 +325,7 @@ elemDisc:set_source(rhs)
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = util.CreateDirichletBoundary(approxSpace)
+dirichletBND = DirichletBoundary()
 dirichletBND:add(dirichlet, "c", "Boundary")
 
 -------------------------------------------

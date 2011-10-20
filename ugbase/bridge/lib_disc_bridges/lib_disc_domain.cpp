@@ -180,13 +180,13 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_class_to_group(name, "SymP1Constraints", dimAlgDDTag);
 	}
 
-//	DirichletBNDValues
+//	LagrangeDirichletBoundary
 	{
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
 		typedef LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TDoFDistribution, TAlgebra> TBase;
-		string name = string("DirichletBND").append(dimAlgDDSuffix);
+		string name = string("DirichletBoundary").append(dimAlgDDSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.add_constructor()
 			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add),
@@ -196,7 +196,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
 						"Success", "Constant Value#Function#Subsets")
 			.add_method("clear", &T::clear);
-		reg.add_class_to_group(name, "DirichletBND", dimAlgDDTag);
+		reg.add_class_to_group(name, "DirichletBoundary", dimAlgDDTag);
 	}
 
 //	IDiscretizationItem

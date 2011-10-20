@@ -204,10 +204,10 @@ innerDisc = util.CreateInnerBoundary(approxSpace, "ca_cyt, ca_er, ip3", "mem_er"
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
---dirichletBND = util.CreateDirichletBoundary(approxSpace)
+--dirichletBND = DirichletBoundary()
 --dirichletBND:add(dirichlet, "c", "Boundary, MembraneBnd")
 
---membraneDirichletBND = util.CreateDirichletBoundary(approxSpace)
+--membraneDirichletBND = DirichletBoundary()
 --membraneDirichletBND:add(membraneDirichlet, "c_membrane", "MembraneBnd")
 
 -------------------------------------------

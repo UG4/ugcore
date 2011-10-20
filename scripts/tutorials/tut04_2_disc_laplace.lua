@@ -104,7 +104,7 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 	elemDisc:set_diffusion_tensor(cbDiff)	-- set the diffusion matrix
 	elemDisc:set_source(cbRhs)					-- set the right hand side
 	
-	local dirichletBnd = util.CreateDirichletBoundary(approxSpace)
+	local dirichletBnd = DirichletBoundary()
 	dirichletBnd:add(cbBnd, "c", boundarySubsets)
 	
 	local domainDisc = DomainDiscretization(approxSpace)

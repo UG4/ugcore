@@ -227,7 +227,7 @@ elemDisc:set_source(rhsCallback)						-- set the right hand side
 -- Here we set up such a dirichlet boundary condition. We explicitly
 -- add subsets on which the boundary callback defined above shall be
 -- applied to a given function (as defined in the approximation space).
-dirichletBnd = util.CreateDirichletBoundary(approxSpace)
+dirichletBnd = DirichletBoundary()
 dirichletBnd:add(dirichletCallback, "c", "Boundary")
 
 -- Finally we create the discretization object which combines all the
