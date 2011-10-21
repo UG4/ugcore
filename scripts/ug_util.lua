@@ -27,12 +27,6 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
-function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
-	local elemDisc = ConvectionDiffusion(functions, subsets)
-	elemDisc:set_disc_scheme("fe")
-	return elemDisc
-end
-
 --------------------------------------------------------------------------------
 -- User Data utils
 --------------------------------------------------------------------------------
