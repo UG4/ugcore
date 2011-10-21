@@ -227,7 +227,7 @@ elemDisc:set_source(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
---neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
+--neumannDisc = FV1NeumannBoundary("Inner")
 --neumannDisc:add(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------

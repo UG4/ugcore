@@ -20,12 +20,6 @@ function util.GlobalRefineParallelDomain(domain)
 	return false
 end
 
--- creates Neumann Boundary
-function util.CreateNeumannBoundary(approxSpace, subsets)
-	local neumannDisc = FV1NeumannBoundary(subsets)
-	return neumannDisc
-end
-
 -- creates Inner Boundary
 function util.CreateInnerBoundary(approxSpace, functions, subsets)
 	local innerDisc = FV1InnerBoundary(functions, subsets)

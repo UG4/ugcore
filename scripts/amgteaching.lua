@@ -667,7 +667,7 @@ for myname,myproblem in pairs(problem) do
 		--  Setup Neumann Boundary
 		-----------------------------------------------------------------
 		
-		--neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
+		--neumannDisc = FV1NeumannBoundary("Inner")
 		--neumannDisc:add(neumann, "c", "NeumannBoundary")
 		
 		-----------------------------------------------------------------

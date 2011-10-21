@@ -193,7 +193,7 @@ elemDiscIP3:set_source(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDiscCYT = util.CreateNeumannBoundary(approxSpace, "cyt")
+neumannDiscCYT = FV1NeumannBoundary("cyt")
 neumannDiscCYT:add(neumann, "ca_cyt", "mem_cyt")
 
 -- we pass here the function needed to evaluate the flux function. The order in 
