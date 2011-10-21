@@ -189,9 +189,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 
 	// Register Playground if we are in debug mode
 
-	//#ifdef UG_DEBUG
-	//	registerPlayground(reg);
-	//#endif
+	#ifdef UG_DEBUG
+		ug::vrl::registerPlayground(reg);
+	#endif
 
 	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 	ug::vrl::registerMessaging(reg);
