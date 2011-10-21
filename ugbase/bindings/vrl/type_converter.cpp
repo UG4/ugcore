@@ -1285,12 +1285,8 @@ jobjectArray functions2NativeGroups(JNIEnv *env, ug::bridge::Registry* reg) {
 
 		jmethodID setOverloads = env->GetMethodID(groupArrayCls,
 				"setOverloads", "([Ledu/gcsc/vrl/ug/NativeFunctionInfo;)V");
-		
-		jmethodID setName = env->GetMethodID(groupArrayCls,
-				"setName", "(Ljava/lang/String;)V");
 
 		env->CallVoidMethod(obj, setOverloads, functions);
-		env->CallVoidMethod(obj, setName, stringC2J(env,group.name().c_str()));
 
 		env->SetObjectArrayElement(result, i, obj);
 	} // end for i
