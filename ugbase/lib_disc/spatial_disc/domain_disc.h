@@ -88,12 +88,12 @@ class DomainDiscretization :
 		bool assemble_linear(matrix_type& A, vector_type& b, const vector_type& u)
 			{return assemble_linear(A, b, u, get_surface_dd());}
 
-	/// \copydoc IAssemble::assemble_solution()
-		bool assemble_solution(vector_type& u,
+	/// \copydoc IAssemble::adjust_solution()
+		bool adjust_solution(vector_type& u,
 		                       const dof_distribution_type& dd);
 
-		bool assemble_solution(vector_type& u)
-			{return assemble_solution(u, get_surface_dd());}
+		bool adjust_solution(vector_type& u)
+			{return adjust_solution(u, get_surface_dd());}
 
 	///////////////////////
 	// Time dependent part
@@ -136,12 +136,12 @@ class DomainDiscretization :
 		                     const std::vector<number>& vScaleStiff)
 		{return assemble_linear(A, b, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
 
-	/// \copydoc IDomainDiscretization::assemble_solution()
-		bool assemble_solution(vector_type& u, number time,
+	/// \copydoc IDomainDiscretization::adjust_solution()
+		bool adjust_solution(vector_type& u, number time,
 		                       const dof_distribution_type& dd);
 
-		bool assemble_solution(vector_type& u, number time)
-		{return assemble_solution(u, time, get_surface_dd());}
+		bool adjust_solution(vector_type& u, number time)
+		{return adjust_solution(u, time, get_surface_dd());}
 
 	///////////////////////////
 	// Mass and Stiffness Matrix

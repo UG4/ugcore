@@ -810,7 +810,7 @@ assemble_rhs(vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-assemble_solution(vector_type& u, const dof_distribution_type& dd)
+adjust_solution(vector_type& u, const dof_distribution_type& dd)
 {
 	if(!update_constraints()) return false;
 
@@ -1177,7 +1177,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-assemble_solution(vector_type& u, number time, const dof_distribution_type& dd)
+adjust_solution(vector_type& u, number time, const dof_distribution_type& dd)
 {
 	if(!update_constraints()) return false;
 

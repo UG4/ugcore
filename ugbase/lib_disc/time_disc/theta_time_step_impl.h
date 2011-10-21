@@ -131,12 +131,12 @@ assemble_defect(vector_type& d, const vector_type& u,
 template <typename TDoFDistribution, typename TAlgebra >
 bool
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-assemble_solution(vector_type& u, const dof_distribution_type& dd)
+adjust_solution(vector_type& u, const dof_distribution_type& dd)
 {
 //	check domain disc
 	if(this->m_pDomDisc == NULL)
 	{
-		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_solution':"
+		UG_LOG("ERROR in 'ThetaTimeDiscretization:adjust_solution':"
 				" Domain Discretization not set.\n");
 		return false;
 	}
@@ -145,7 +145,7 @@ assemble_solution(vector_type& u, const dof_distribution_type& dd)
 	bool res;
 
 //	assemble solution
-	res = this->m_pDomDisc->assemble_solution(u, m_futureTime, dd);
+	res = this->m_pDomDisc->adjust_solution(u, m_futureTime, dd);
 
 //	we're done
 	return res;

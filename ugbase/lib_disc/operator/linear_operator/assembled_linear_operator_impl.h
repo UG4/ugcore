@@ -211,7 +211,7 @@ set_dirichlet_values(vector_type& u)
 	}
 
 //	set dirichlet values etc.
-	if(m_pAss->assemble_solution(u, *m_pDoFDistribution) != true)
+	if(m_pAss->adjust_solution(u, *m_pDoFDistribution) != true)
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
 				" Cannot assemble solution.\n");

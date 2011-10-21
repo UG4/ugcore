@@ -47,7 +47,7 @@ class IAssemble {
 		                                        const vector_type& u,
 		                                        const dof_distribution_type& dofDistr)
 		{return false;}
-		virtual IAssembleReturn assemble_solution(vector_type& u,
+		virtual IAssembleReturn adjust_solution(vector_type& u,
 		                                          const dof_distribution_type& dofDistr)
 		{return false;}
 }
@@ -122,7 +122,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		{return false;}
 
 		virtual
-		IAssembleReturn assemble_solution(vector_type& u,
+		IAssembleReturn adjust_solution(vector_type& u,
 		                                  const dof_distribution_type& dofDistr,
 		                                  number time)
 		{return false;}

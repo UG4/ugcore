@@ -115,7 +115,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * 			false 			if function has not been implemented
 	 * 			false 			if implemented but error occurred
 	 */
-		virtual bool assemble_solution(vector_type& u, number time,
+		virtual bool adjust_solution(vector_type& u, number time,
 		                               const dof_distribution_type& dd) = 0;
 
 	///	returns the number of post processes

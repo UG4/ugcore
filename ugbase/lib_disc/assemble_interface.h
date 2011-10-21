@@ -145,7 +145,7 @@ class IAssemble {
 		 * 			false 	if function has not been implemented
 		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
-		virtual bool assemble_solution(vector_type& u,
+		virtual bool adjust_solution(vector_type& u,
 		                               const dof_distribution_type& dofDistr) = 0;
 
 

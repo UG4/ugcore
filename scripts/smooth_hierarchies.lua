@@ -138,7 +138,7 @@ domainDisc:assemble_linear(A, b, u)
 
 -- set dirichlet values
 u:set(0)
-domainDisc:assemble_solution(u)
+domainDisc:adjust_solution(u)
 
 -- write matrix for test purpose
 SaveMatrixForConnectionViewer(u, A, "Stiffness.mat")

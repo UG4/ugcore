@@ -50,7 +50,7 @@ prepare(vector_type& dOut, vector_type& uIn)
 	}
 
 // 	Set Dirichlet - Nodes to exact values
-	if(m_pAss->assemble_solution(uIn, *m_pDoFDistribution) != true)
+	if(m_pAss->adjust_solution(uIn, *m_pDoFDistribution) != true)
 	{
 		UG_LOG("ERROR in 'AssembledOperator::prepare': "
 				"Cannot set dirichlet values in solution.\n");
