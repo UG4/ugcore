@@ -134,7 +134,7 @@ u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
 
 -- assemble matrix and rhs
-domainDisc:assemble_linear(A, b, u)
+domainDisc:assemble_linear(A, b)
 
 -- set dirichlet values
 u:set(0)

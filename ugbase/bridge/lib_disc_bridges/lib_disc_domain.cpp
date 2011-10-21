@@ -137,7 +137,7 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						"", "Element Discretization")
 			.add_method("add", static_cast<void (T::*)(IDiscretizationItem<TDomain,TDoFDistribution,TAlgebra>&)>(&T::add),
 						"", "DiscItem")
-			.add_method("assemble_linear", static_cast<bool (T::*)(matrix_type&, vector_type&, const vector_type&)>(&T::assemble_linear))
+			.add_method("assemble_linear", static_cast<bool (T::*)(matrix_type&, vector_type&)>(&T::assemble_linear))
 			.add_method("adjust_solution", static_cast<bool (T::*)(vector_type&)>(&T::adjust_solution))
 			.add_method("assemble_mass_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&, const dof_distribution_type&)>(&T::assemble_mass_matrix))
 			.add_method("assemble_mass_matrix", static_cast<bool (T::*)(matrix_type&, const vector_type&)>(&T::assemble_mass_matrix))

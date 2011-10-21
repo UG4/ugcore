@@ -96,63 +96,58 @@ class IAssemble {
 		/**
 		 * Assembles Jacobian at a given iterate u.
 		 *
-		 * \param[out] 	J 			Jacobian J(u) matrix to be filled
-		 * \param[in]  	u 			Current iterate
-		 * \param[in]	dofDistr	DoF Distribution
+		 * \param[out] 	J 	Jacobian J(u) matrix to be filled
+		 * \param[in]  	u 	Current iterate
+		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual bool assemble_jacobian(matrix_type& J,
-		                               const vector_type& u,
-		                               const dof_distribution_type& dofDistr) = 0;
+		virtual bool assemble_jacobian(matrix_type& J, const vector_type& u,
+		                               const dof_distribution_type& dd) = 0;
 
 		/// assembles Defect
 		/**
 		 * Assembles Defect at a given Solution u.
 		 *
-		 * \param[out] 	d 			Defect d(u) to be filled
-		 * \param[in] 	u 			Current iterate
-		 * \param[in]	dofDistr	DoF Distribution
+		 * \param[out] 	d 	Defect d(u) to be filled
+		 * \param[in] 	u 	Current iterate
+		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual bool assemble_defect(vector_type& d,
-		                             const vector_type& u,
-		                             const dof_distribution_type& dofDistr) = 0;
+		virtual bool assemble_defect(vector_type& d, const vector_type& u,
+		                             const dof_distribution_type& dd) = 0;
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
 		 * Assembles matrix_type and Right-Hand-Side for a linear problem
 		 *
-		 * \param[out] 	A 			Mass-/Stiffness- Matrix
-		 * \param[out] 	b 			Right-Hand-Side
-		 * \param[in] 	u 			Current iterate
-		 * \param[in]	dofDistr	DoF Distribution
+		 * \param[out] 	A 	Mass-/Stiffness- Matrix
+		 * \param[out] 	b 	Right-Hand-Side
+		 * \param[in]	dd	DoF Distribution
 		 *
 		 * \return 	true 		if problem is linear and assembling successful
 		 * 			false 		if problem is non-linear or an error occurred during assembling
 		 */
-		virtual bool assemble_linear(matrix_type& A,
-		                             vector_type& b,
-		                             const vector_type& u,
-		                             const dof_distribution_type& dofDistr) = 0;
+		virtual bool assemble_linear(matrix_type& A, vector_type& b,
+		                             const dof_distribution_type& dd) = 0;
 
 		/// sets dirichlet values in solution vector
 		/**
 		 * Sets dirichlet values of the NumericalSolution u when components
 		 * are dirichlet
 		 *
-		 * \param[out] 	u			Numerical Solution
-		 * \param[in]	dofDistr	DoF Distribution
+		 * \param[out] 	u	Numerical Solution
+		 * \param[in]	dd	DoF Distribution
 		 *
 		 * \return 	true 				if function is implemented and assembling successful
 		 * 			false 	if function has not been implemented
 		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
 		virtual bool adjust_solution(vector_type& u,
-		                               const dof_distribution_type& dofDistr) = 0;
+		                               const dof_distribution_type& dd) = 0;
 
 
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) = 0;
 
-	///	sets a selector to exlude elements from assembling
+	///	sets a selector to exclude elements from assembling
 	/**
 	 * This methods sets a selector. Only elements that are selected will be
 	 * assembled during assembling process. If no selector is set, this

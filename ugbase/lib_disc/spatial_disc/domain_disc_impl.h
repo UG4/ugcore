@@ -573,7 +573,6 @@ assemble_defect(vector_type& d,
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
-                const vector_type& u,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
@@ -630,23 +629,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			bSuc &= AssembleLinear<Edge,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			break;
 		case 2:
 			bSuc &= AssembleLinear<Triangle,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			bSuc &= AssembleLinear<Quadrilateral,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			break;
 		case 3:
 			bSuc &= AssembleLinear<Tetrahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			bSuc &= AssembleLinear<Pyramid,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			bSuc &= AssembleLinear<Prism,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			bSuc &= AssembleLinear<Hexahedron,TDoFDistribution,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			break;
 		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
 						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
@@ -668,7 +667,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	{
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
-			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, u, dd))
+			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						" Cannot post process.\n");
@@ -1153,7 +1152,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	{
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
-			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, vSol.solution(0), dd, vSol.time(0)))
+			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd, vSol.time(0)))
 				return false;
 		}
 	}

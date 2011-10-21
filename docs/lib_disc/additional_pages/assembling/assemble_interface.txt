@@ -44,7 +44,6 @@ class IAssemble {
 
 		virtual IAssembleReturn assemble_linear(matrix_type& A,
 		                                        vector_type& b,
-		                                        const vector_type& u,
 		                                        const dof_distribution_type& dofDistr)
 		{return false;}
 		virtual IAssembleReturn adjust_solution(vector_type& u,
@@ -116,7 +115,6 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		virtual
 		IAssembleReturn assemble_linear(matrix_type& A,
 		                                vector_type& b,
-		                                const vector_type& u,
 		                                const dof_distribution_type& dofDistr,
 		                                number time, number s_m, number s_a)
 		{return false;}

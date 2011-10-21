@@ -1734,8 +1734,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 			m_pAss->assemble_jacobian(surfMat, *u, m_pApproxSpace->get_surface_dof_distribution());
 		else
 		{
-		// \todo: Currently assemble_linear needs a solution. Remove this and do
-		//	not use tmp vector here
+		//	\todo: not use tmp vector here
 			vector_type tmpVec; tmpVec.resize(m_pApproxSpace->get_surface_dof_distribution().num_indices());
 			m_pAss->assemble_jacobian(surfMat, tmpVec, m_pApproxSpace->get_surface_dof_distribution());
 		}

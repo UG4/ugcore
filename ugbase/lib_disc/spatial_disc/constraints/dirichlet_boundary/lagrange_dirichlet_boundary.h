@@ -131,7 +131,7 @@ class LagrangeDirichletBoundary
 		                     const dof_distribution_type& dd, number time = 0.0);
 
 	///	sets unity rows in A and dirichlet values in right-hand side b
-		bool adjust_linear(matrix_type& A, vector_type& b, const vector_type& u,
+		bool adjust_linear(matrix_type& A, vector_type& b,
 		                   const dof_distribution_type& dd, number time = 0.0);
 
 	///	sets the dirichlet value in the right-hand side
@@ -181,12 +181,12 @@ class LagrangeDirichletBoundary
 
 		template <typename TUserData>
 		bool adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
-		                   matrix_type& A, vector_type& b, const vector_type& u,
+		                   matrix_type& A, vector_type& b,
 		                   const dof_distribution_type& dd, number time);
 
 		template <typename TBaseElem, typename TUserData>
 		bool adjust_linear(const std::vector<TUserData>& vUserData, int si,
-		                   matrix_type& A, vector_type& b, const vector_type& u,
+		                   matrix_type& A, vector_type& b,
 		                   const dof_distribution_type& dd, number time);
 
 		template <typename TUserData>
@@ -978,16 +978,16 @@ adjust_solution(const std::vector<TUserData>& vUserData, int si,
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_linear(matrix_type& A, vector_type& b,
-              const vector_type& u, const dof_distribution_type& dd, number time)
+              const dof_distribution_type& dd, number time)
 {
 	extract_scheduled_data();
 
 	bool bRet = true;
-	bRet &= adjust_linear<BNDNumberData>(m_mBNDNumberBndSegment, A, b, u, dd, time);
-	bRet &= adjust_linear<NumberData>(m_mNumberBndSegment, A, b, u, dd, time);
-	bRet &= adjust_linear<ConstNumberData>(m_mConstNumberBndSegment, A, b, u, dd, time);
+	bRet &= adjust_linear<BNDNumberData>(m_mBNDNumberBndSegment, A, b, dd, time);
+	bRet &= adjust_linear<NumberData>(m_mNumberBndSegment, A, b, dd, time);
+	bRet &= adjust_linear<ConstNumberData>(m_mConstNumberBndSegment, A, b, dd, time);
 
-	bRet &= adjust_linear<VectorData>(m_mVectorBndSegment, A, b, u, dd, time);
+	bRet &= adjust_linear<VectorData>(m_mVectorBndSegment, A, b, dd, time);
 
 	return bRet;
 }
@@ -997,7 +997,7 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TUserData>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
-              matrix_type& A, vector_type& b, const vector_type& u,
+              matrix_type& A, vector_type& b,
            	  const dof_distribution_type& dd, number time)
 {
 //	loop boundary subsets
@@ -1013,13 +1013,13 @@ adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
 	//	adapt jacobian for dofs in each base element type
 		bool bRes = true;
 		if(dd.has_indices_on(VERTEX))
-			bRes &= adjust_linear<VertexBase, TUserData>(vUserData, si, A, b, u, dd, time);
+			bRes &= adjust_linear<VertexBase, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd.has_indices_on(EDGE))
-			bRes &= adjust_linear<EdgeBase, TUserData>(vUserData, si, A, b, u, dd, time);
+			bRes &= adjust_linear<EdgeBase, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd.has_indices_on(FACE))
-			bRes &= adjust_linear<Face, TUserData>(vUserData, si, A, b, u, dd, time);
+			bRes &= adjust_linear<Face, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd.has_indices_on(VOLUME))
-			bRes &= adjust_linear<Volume, TUserData>(vUserData, si, A, b, u, dd, time);
+			bRes &= adjust_linear<Volume, TUserData>(vUserData, si, A, b, dd, time);
 
 	//	check success
 		if(!bRes)
@@ -1038,7 +1038,7 @@ template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
 bool LagrangeDirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 adjust_linear(const std::vector<TUserData>& vUserData, int si,
-              matrix_type& A, vector_type& b, const vector_type& u,
+              matrix_type& A, vector_type& b,
               const dof_distribution_type& dd, number time)
 {
 //	create Multiindex

@@ -57,24 +57,20 @@ class SymP1ConstraintsPostProcess
 			return false;
 		}
 
-		virtual bool adjust_jacobian(matrix_type& J,
-		                                              const vector_type& u,
-		                                              const dof_distribution_type& dofDistr,
-		                                              number time = 0.0)
+		virtual bool adjust_jacobian(matrix_type& J, const vector_type& u,
+		                             const dof_distribution_type& dofDistr,
+		                             number time = 0.0)
 		{
 		//  \todo: Implement correctly
 		//	dummy for rhs
 			vector_type rhsDummy; rhsDummy.resize(u.size());
 
 
-			return adjust_linear(J, rhsDummy, u, dofDistr, time);
+			return adjust_linear(J, rhsDummy, dofDistr, time);
 		}
 
-		virtual bool adjust_linear(matrix_type& mat,
-		                                            vector_type& rhs,
-		                                            const vector_type& u,
-		                                            const dof_distribution_type& dofDistr,
-		                                            number time = 0.0)
+		virtual bool adjust_linear(matrix_type& mat, vector_type& rhs,
+		                           const dof_distribution_type& dofDistr, number time = 0.0)
 		{
 		//	algebra indices of constraining vertex
 			std::vector<algebra_index_vector_type> vConstrainingInd;
@@ -326,8 +322,8 @@ class SymP1ConstraintsPostProcess
 		}
 
 		virtual bool adjust_solution(vector_type& u,
-		                                   const dof_distribution_type& dofDistr,
-		                                   number time = 0.0)
+		                             const dof_distribution_type& dofDistr,
+		                             number time = 0.0)
 		{
 		//	algebra indices of constraining vertex
 			std::vector<algebra_index_vector_type> vConstrainingInd;
@@ -521,7 +517,7 @@ class SymP1ConstraintsPostProcess
 			return true;
 		}
 
-		bool SetInterpolation(matrix_type& A	,
+		bool SetInterpolation(matrix_type& A,
 		                      algebra_index_vector_type& constrainedIndex,
 		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
@@ -666,7 +662,7 @@ class OneSideP1ConstraintsPostProcess
 			vector_type rhsDummy; rhsDummy.resize(u.size());
 
 
-			return adjust_linear(J, rhsDummy, u, dofDistr, time);
+			return adjust_linear(J, rhsDummy, dofDistr, time);
 		}
 
 		virtual bool adjust_defect(vector_type& d, const vector_type& u,
@@ -693,11 +689,8 @@ class OneSideP1ConstraintsPostProcess
 			return false;
 		}
 
-		virtual bool adjust_linear(matrix_type& mat,
-		                                            vector_type& rhs,
-		                                            const vector_type& u,
-		                                            const dof_distribution_type& dofDistr,
-		                                            number time = 0.0)
+		virtual bool adjust_linear(matrix_type& mat, vector_type& rhs,
+		                           const dof_distribution_type& dofDistr, number time = 0.0)
 		{
 		//	algebra indices of constraining vertex
 			std::vector<algebra_index_vector_type> vConstrainingInd;

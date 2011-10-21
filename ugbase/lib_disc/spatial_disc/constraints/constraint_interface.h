@@ -74,7 +74,7 @@ class IConstraint{
 		                           number time = 0.0) = 0;
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
-		virtual bool adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
+		virtual bool adjust_linear(matrix_type& mat, vector_type& rhs,
 		                           const dof_distribution_type& dofDistr,
 		                           number time = 0.0) = 0;
 

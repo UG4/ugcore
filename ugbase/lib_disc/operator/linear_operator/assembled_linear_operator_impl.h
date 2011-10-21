@@ -116,7 +116,7 @@ init_op_and_rhs(vector_type& b)
 	b.resize(m_pDoFDistribution->num_indices());
 
 //	assemble matrix and rhs in one loop
-	if(!m_pAss->assemble_linear(*this, b, b, *m_pDoFDistribution))
+	if(!m_pAss->assemble_linear(*this, b, *m_pDoFDistribution))
 	{
 		UG_LOG("ERROR in AssembledLinearOperator::init_op_and_rhs:"
 				" Cannot assemble Matrix and Rhs.\n");

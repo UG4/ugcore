@@ -899,7 +899,6 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-               	const typename TAlgebra::vector_type& u,
             	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
@@ -920,7 +919,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	Eval.set_time_dependent(false);
 
 // 	local indices and local algebra
-	LocalIndices ind; LocalVector locU, locRhs; LocalMatrix locA;
+	LocalIndices ind; LocalVector locRhs; LocalMatrix locA;
 
 //	prepare element discs
 	if(!Eval.template prepare_elem_loop<TElem>(ind))
@@ -948,13 +947,10 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		dd.indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
-		locU.resize(ind); locRhs.resize(ind); locA.resize(ind);
-
-	// 	read local values of u
-		GetLocalVector(locU, u);
+		locRhs.resize(ind); locA.resize(ind);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		if(!Eval.prepare_elem(elem, locRhs, ind))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleLinear': "
 					"Cannot prepare element.\n");
@@ -962,7 +958,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, false))
+		if(!Eval.compute_elem_data(locRhs, false))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleLinear': "
 					"Cannot compute element data.\n");
@@ -971,7 +967,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	// 	Assemble JA
 		locA = 0.0;
-		if(!Eval.ass_JA_elem(locA, locU))
+		if(!Eval.ass_JA_elem(locA, locRhs))
 		{
 			UG_LOG("ERROR in '(stationary) AssembleLinear': "
 					"Cannot compute element contribution to Jacobian (A).\n");

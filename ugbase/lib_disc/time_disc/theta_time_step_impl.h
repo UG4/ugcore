@@ -154,7 +154,7 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd)
 template <typename TDoFDistribution, typename TAlgebra >
 bool
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-assemble_linear(matrix_type& A, vector_type& b, const vector_type& u,
+assemble_linear(matrix_type& A, vector_type& b,
                 const dof_distribution_type& dd)
 {
 	return false;
