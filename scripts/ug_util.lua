@@ -39,12 +39,6 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
--- creates FV1NavierStokes
-function util.CreateFV1NavierStokes(approxSpace, functions, subsets)
-	local elemDisc = FV1NavierStokes(functions, subsets)	
-	return elemDisc
-end
-
 --------------------------------------------------------------------------------
 -- User Data utils
 --------------------------------------------------------------------------------
