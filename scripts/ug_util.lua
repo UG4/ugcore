@@ -27,12 +27,6 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
--- creates FV1ConvDiff
-function util.CreateFV1ThermohalineFlow(approxSpace, functions, subsets)
-	local elemDisc = FV1ThermohalineFlow(functions, subsets)
-	return elemDisc
-end
-
 function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	local elemDisc = ConvectionDiffusion(functions, subsets)
 	elemDisc:set_disc_scheme("fe")
