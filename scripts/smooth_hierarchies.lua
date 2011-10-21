@@ -106,9 +106,9 @@ end
 -- create Discretization
 print("creating element discretization...")
 upwind = WeightedUpwind(); upwind:set_weight(0.0)
-elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
-if elemDisc:set_upwind(upwind) == false then exit() end
+elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
+if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)

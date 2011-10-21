@@ -90,7 +90,8 @@ exactSolution = LuaUserNumber("ExactSolution"..dim.."d")
 upwind = WeightedUpwind(); upwind:set_weight(0.0)
 --upwind = PartialUpwind()
 
-elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = ConvectionDiffusion("c", "Inner")
+elemDisc:set_disc_scheme("fv1")
 if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_disc_scheme(discType)
 elemDisc:set_diffusion_tensor(diffusionMatrix)

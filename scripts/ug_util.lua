@@ -20,13 +20,6 @@ function util.GlobalRefineParallelDomain(domain)
 	return false
 end
 
--- creates FV1ConvDiff
-function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
-	local elemDisc = ConvectionDiffusion(functions, subsets)
-	elemDisc:set_disc_scheme("fv1")
-	return elemDisc
-end
-
 --------------------------------------------------------------------------------
 -- User Data utils
 --------------------------------------------------------------------------------

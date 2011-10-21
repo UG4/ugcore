@@ -222,8 +222,8 @@ dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
-elemDisc:set_upwind_amount(0.0)
+elemDisc = ConvectionDiffusion("c", "Inner")
+elemDisc:set_disc_scheme("fv1")
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)

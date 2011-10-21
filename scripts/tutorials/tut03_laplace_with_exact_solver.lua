@@ -210,7 +210,8 @@ upwind = WeightedUpwind3d(); upwind:set_weight(0.0)
 --upwind = PartialUpwind3d()
 else print("Dim not supported for upwind"); exit() end
  
-elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = ConvectionDiffusion("c", "Inner")
+elemDisc:set_disc_scheme("fv1")
 if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_diffusion_tensor(diffMatrixCallback)	-- set the diffusion matrix
 elemDisc:set_source(rhsCallback)						-- set the right hand side

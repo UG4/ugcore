@@ -92,7 +92,8 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 	
 	
 --	set up the discretization
-	local elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", innerSubsets)
+	local elemDisc = ConvectionDiffusion("c", innerSubsets)
+	elemDisc:set_disc_scheme("fv1")
 	if dim == 1 then
 		upwind = NoUpwind1d() -- create an upwind procedure ("No Upwind")
 	elseif dim == 2 then

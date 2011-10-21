@@ -174,18 +174,18 @@ print ("Setting up Assembling")
  -- Antwort: Nein, es geht hier im die 2d elemente von "er", der Rand von "er"
  --          spielt f�r das assemblieren keine Rolle. Randwerte kommen dann 
  --          sp�ter extra. 
-elemDiscER = util.CreateFV1ConvDiff(approxSpace, "ca_er", "er") 
-elemDiscER:set_upwind_amount(0.0)
+elemDiscER = ConvectionDiffusion("ca_er", "er") 
+elemDisc:set_disc_scheme("fv1")
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscER:set_source(rhs)
 
-elemDiscCYT = util.CreateFV1ConvDiff(approxSpace, "ca_cyt", "cyt")
-elemDiscCYT:set_upwind_amount(0.0)
+elemDiscCYT = ConvectionDiffusion("ca_cyt", "cyt")
+elemDisc:set_disc_scheme("fv1")
 elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscCYT:set_source(rhs)
 
-elemDiscIP3 = util.CreateFV1ConvDiff(approxSpace, "ip3", "cyt")
-elemDiscIP3:set_upwind_amount(0.0)
+elemDiscIP3 = ConvectionDiffusion("ip3", "cyt")
+elemDisc:set_disc_scheme("fv1")
 elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
 elemDiscIP3:set_source(rhs)
 

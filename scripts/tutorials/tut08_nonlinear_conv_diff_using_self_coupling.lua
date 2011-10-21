@@ -267,9 +267,8 @@ rhsCallback = LuaUserNumber("ourRhs" .. dim .."d")
 -- and that the discretization shall only operate on elements in the subset
 -- "Inner". Note that one could specify multiple subsets here by enumerating
 -- them all in the subsets-string separated by , (i.e. "Inner1, Inner2"). 
-elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
-elemDisc:set_upwind_amount(0)
-
+elemDisc = ConvectionDiffusion("c", "Inner")
+elemDisc:set_disc_scheme("fv1")
 
 -- Now, the conv-diff assembling has been created. We can request from it the
 -- data it can produce. In the case of this equation, this is the concentration

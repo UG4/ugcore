@@ -165,7 +165,8 @@ else
 upwind = WeightedUpwind3d();
 end
 upwind:set_weight(0.0)
-elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = ConvectionDiffusion("c", "Inner")
+elemDisc:set_disc_scheme("fv1")
 my_assert(elemDisc:set_upwind(upwind), "could not set upwind")
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
