@@ -33,12 +33,6 @@ function util.CreateFV1ThermohalineFlow(approxSpace, functions, subsets)
 	return elemDisc
 end
 
--- creates FV1ConstEq
-function util.CreateFV1ConstEq(approxSpace, functions, subsets)
-	local elemDisc = FV1ConstantEquation(functions, subsets)
-	return elemDisc
-end
-
 function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	local elemDisc = ConvectionDiffusion(functions, subsets)
 	elemDisc:set_disc_scheme("fe")
