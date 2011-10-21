@@ -681,13 +681,13 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 {
 // 	Cast Operator
-	m_pSurfaceOp = dynamic_cast<operator_type*>(&J);
+	m_pSurfaceMat = dynamic_cast<matrix_type*>(&J);
 
 //	Check that Operator type is correct
-	if(m_pSurfaceOp == NULL)
+	if(m_pSurfaceMat == NULL)
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Can not cast Operator to AssembledLinearizedOperator.\n");
+				"Can not cast Operator to Matrix.\n");
 		return false;
 	}
 
@@ -781,13 +781,13 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& L)
 {
 // 	Cast Operator
-	m_pSurfaceOp = dynamic_cast<operator_type*>(&L);
+	m_pSurfaceMat = dynamic_cast<matrix_type*>(&L);
 
 //	Check that Operator type is correct
-	if(m_pSurfaceOp == NULL)
+	if(m_pSurfaceMat == NULL)
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Can not cast Operator to AssembledLinearizedOperator.\n");
+				"Can not cast Operator to Matrix.\n");
 		return false;
 	}
 
@@ -981,7 +981,7 @@ init_linear_level_operator()
 		{
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 			matrix_type& levMat = m_vLevData[lev]->LevMat;
-			matrix_type& surfMat = *m_pSurfaceOp;
+			matrix_type& surfMat = *m_pSurfaceMat;
 
 			levMat.resize( surfMat.num_rows(), surfMat.num_cols());
 			CopyMatrixByMapping(levMat, m_vSurfToTopMap, surfMat);
@@ -999,10 +999,10 @@ init_linear_level_operator()
 		//	will be assembled and force grid to be considered as regular
 			if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_vLevData[lev]->sel);
 			else m_pAss->set_selector(NULL);
-			m_vLevData[lev]->LevMat.force_regular_grid(true);
+			m_pAss->force_regular_grid(true);
 
 		//	init level operator
-			if(!m_vLevData[lev]->LevMat.init())
+			if(!m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
@@ -1010,7 +1010,7 @@ init_linear_level_operator()
 			}
 
 		//	remove force flag
-			m_vLevData[lev]->LevMat.force_regular_grid(false);
+			m_pAss->force_regular_grid(false);
 			m_pAss->set_selector(NULL);
 
 		//	copy the matrix into a new (smaller) one
@@ -1030,14 +1030,14 @@ init_linear_level_operator()
 			(lev == m_baseLev && m_bBaseParallel == false))
 		{
 		//	init level operator
-			m_vLevData[lev]->LevMat.force_regular_grid(true);
-			if(!m_vLevData[lev]->LevMat.init())
+			m_pAss->force_regular_grid(true);
+			if(!m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
 				return false;
 			}
-			m_vLevData[lev]->LevMat.force_regular_grid(false);
+			m_pAss->force_regular_grid(false);
 		}
 	//	else we can forget about the whole-level matrix, since the needed
 	//	smoothing matrix is stored in SmoothMat
@@ -1069,7 +1069,7 @@ init_non_linear_level_operator()
 		{
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 			matrix_type& levMat = m_vLevData[lev]->LevMat;
-			matrix_type& surfMat = *m_pSurfaceOp;
+			matrix_type& surfMat = *m_pSurfaceMat;
 
 			levMat.resize( surfMat.num_rows(), surfMat.num_cols());
 			CopyMatrixByMapping(levMat, m_vSurfToTopMap, surfMat);
@@ -1083,10 +1083,10 @@ init_non_linear_level_operator()
 	//	will be assembled and force grid to be considered as regular
 		if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_vLevData[lev]->sel);
 		else m_pAss->set_selector(NULL);
-		m_vLevData[lev]->LevMat.force_regular_grid(true);
+		m_pAss->force_regular_grid(true);
 
 	//	init level operator
-		if(!m_vLevData[lev]->LevMat.init(m_vLevData[lev]->u))
+		if(!m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 					" Cannot init operator for level "<< lev << ".\n");
@@ -1094,7 +1094,7 @@ init_non_linear_level_operator()
 		}
 
 	//	remove force flag
-		m_vLevData[lev]->LevMat.force_regular_grid(false);
+		m_pAss->force_regular_grid(false);
 		m_pAss->set_selector(NULL);
 		GMG_PROFILE_END();
 
@@ -1895,8 +1895,6 @@ update(size_t lev,
 	t.resize(numIndex);
 
 //	prepare level operator
-	LevMat.set_discretization(ass);
-	LevMat.set_dof_distribution(*pLevDD);
 #ifdef UG_PARALLEL
 	CopyLayoutsAndCommunicatorIntoMatrix(LevMat, *pLevDD);
 #endif

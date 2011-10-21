@@ -141,7 +141,7 @@ class IAssemble {
 		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
 		virtual bool adjust_solution(vector_type& u,
-		                               const dof_distribution_type& dd) = 0;
+		                             const dof_distribution_type& dd) = 0;
 
 
 	/// forces the assembling to consider the grid as regular

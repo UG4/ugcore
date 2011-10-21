@@ -68,9 +68,6 @@ class AssembledMultiGridCycle :
 	///	Matrix type
 		typedef typename algebra_type::matrix_type matrix_type;
 
-	///	Level Operator Type
-		typedef AssembledLinearOperator<dof_distribution_impl_type, algebra_type> operator_type;
-
 	///	Prolongation Operator
 		typedef IProlongationOperator<vector_type, vector_type> prolongation_operator_type;
 
@@ -238,7 +235,7 @@ class AssembledMultiGridCycle :
 
 	protected:
 	/// operator to invert (surface grid)
-		operator_type* m_pSurfaceOp;
+		matrix_type* m_pSurfaceMat;
 
 	///	assembling routine for coarse grid matrices
 		assemble_type* m_pAss;
@@ -378,7 +375,7 @@ class AssembledMultiGridCycle :
 			dof_distribution_type* pLevDD;
 
 		//	matrix operator for whole grid level
-			operator_type LevMat;
+			MatrixOperator<vector_type, vector_type, matrix_type> LevMat;
 
 		//	matrix for smoothing on smoothing patch of grid level
 			MatrixOperator<vector_type, vector_type, matrix_type> SmoothMat;
