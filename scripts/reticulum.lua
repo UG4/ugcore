@@ -198,7 +198,7 @@ neumannDiscCYT:add(neumann, "ca_cyt", "mem_cyt")
 
 -- we pass here the function needed to evaluate the flux function. The order in 
 -- which the discrete fct are passed is crutial!
-innerDisc = util.CreateInnerBoundary(approxSpace, "ca_cyt, ca_er, ip3", "mem_er")
+innerDisc = FV1InnerBoundary("ca_cyt, ca_er, ip3", "mem_er")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary

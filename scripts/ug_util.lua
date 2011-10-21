@@ -20,12 +20,6 @@ function util.GlobalRefineParallelDomain(domain)
 	return false
 end
 
--- creates Inner Boundary
-function util.CreateInnerBoundary(approxSpace, functions, subsets)
-	local innerDisc = FV1InnerBoundary(functions, subsets)
-	return innerDisc
-end
-
 -- creates FV1ConvDiff
 function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	local elemDisc = ConvectionDiffusion(functions, subsets)
