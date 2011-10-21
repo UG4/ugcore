@@ -22,6 +22,7 @@ namespace vrl {
 class TestClass {
 public:
     TestClass();
+    TestClass(std::string name);
 
     int performTest();
 

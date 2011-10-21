@@ -18,7 +18,11 @@ namespace vrl {
 
 
 TestClass::TestClass() {
-	//
+	UG_LOG("Constructor TestClass() called." << std::endl);
+}
+
+TestClass::TestClass(std::string name) {
+	UG_LOG("Constructor TestClass(std::string name) called." << std::endl);
 }
 
 std::string TestClass::getRev() {
@@ -85,6 +89,7 @@ int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
 void registerPlayground(ug::bridge::Registry& reg) {
 	reg.add_class_<TestClass > ("TestClass", "ug4/testing")
 			.add_constructor()
+			.add_constructor<void(*)(std::string)>()
 			.add_method("svnRevision|hide=true,interactive=true", &TestClass::getRev)
 			.add_method("add", &TestClass::add, "result",
 			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
