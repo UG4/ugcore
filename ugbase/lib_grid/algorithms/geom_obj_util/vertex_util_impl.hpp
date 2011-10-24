@@ -62,7 +62,7 @@ CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 		vMinOut = aaPos[*vrtsBegin];
 		vMaxOut = vMinOut;
 
-    	for(VertexBaseIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
+    	for(TVrtIter iter = vrtsBegin; iter != vrtsEnd; ++iter)
     	{
     		for(size_t i = 0; i < dim; ++i){
 				vMinOut[i] = std::min(vMinOut[i], aaPos[*iter][i]);
