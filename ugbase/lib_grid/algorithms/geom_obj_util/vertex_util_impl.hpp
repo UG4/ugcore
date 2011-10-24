@@ -48,6 +48,64 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt, TAAPosVRT
 }
 
 ////////////////////////////////////////////////////////////////////////
+template <class TVrtIter, class TAPosition>
+void
+CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
+					 typename TAPosition::ValueType& vMaxOut,
+					 TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+					 Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos)
+{
+	size_t dim = TAPosition::ValueType::Size;
+
+    if(vrtsBegin != vrtsEnd)
+    {
+		vMinOut = aaPos[*vrtsBegin];
+		vMaxOut = vMinOut;
+
+    	for(VertexBaseIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
+    	{
+    		for(size_t i = 0; i < dim; ++i){
+				vMinOut[i] = std::min(vMinOut[i], aaPos[*iter][i]);
+				vMaxOut[i] = std::max(vMaxOut[i], aaPos[*iter][i]);
+    		}
+    	}
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TVrtIter, class TAPosition>
+typename TAPosition::ValueType
+CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+				Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos)
+{
+	typename TAPosition::ValueType vMin, vMax;
+	CalculateBoundingBox(vMin, vMax, vrtsBegin, vrtsEnd, aaPos);
+	typename TAPosition::ValueType vRet;
+	VecScaleAdd(vRet, 0.5, vMin, 0.5, vMax);
+	return vRet;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TVrtIter, class TAPosition>
+typename TAPosition::ValueType
+CalculateBarycenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+					Grid::VertexAttachmentAccessor<TAPosition>& aaPos)
+{
+	typename TAPosition::ValueType v;
+	VecSet(v, 0);
+	int counter = 0;
+	for(TVrtIter iter = vrtsBegin; iter != vrtsEnd; ++iter)
+	{
+		VecAdd(v,v,aaPos[*iter]);
+		counter++;
+	}
+
+	if(counter>0)
+		VecScale(v,v,1.f/counter);
+	return v;
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class TIterator, class AAPosVRT>
 void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,

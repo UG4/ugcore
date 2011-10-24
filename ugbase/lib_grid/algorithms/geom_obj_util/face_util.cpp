@@ -335,7 +335,7 @@ bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f)
 		if(f->vertex(i) == ed.vertex(0))
 			break;
 	}
-	
+
 	if(i < f->num_vertices())
 	{
 	//	the first one has been found.
@@ -344,7 +344,7 @@ bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f)
 		if(ed.vertex(1) == f->vertex((i+1)%f->num_vertices()))
 			return true;//	the orientation is the same
 	}
-	
+
 //	the orientation is not the same.
 	return false;
 }

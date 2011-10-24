@@ -29,6 +29,7 @@ class GridSubsetHandler : public ISubsetHandler
 		GridSubsetHandler(const GridSubsetHandler& sh);
 		~GridSubsetHandler();
 		
+		GridSubsetHandler& operator = (const GridSubsetHandler& sh);
 		GridSubsetHandler& operator = (const ISubsetHandler& sh);
 
 		void assign_grid(Grid& grid);

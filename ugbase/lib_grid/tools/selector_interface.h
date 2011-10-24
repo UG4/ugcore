@@ -136,6 +136,9 @@ class ISelector : public GridObserver
 	//	non-virtual methods.
 		inline Grid* get_assigned_grid() const		{return m_pGrid;}
 
+	///	returns a geometric object collection, containing all selected objects
+		virtual GeometricObjectCollection get_geometric_objects() = 0;
+
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		inline bool elements_are_supported(uint shElements) const;

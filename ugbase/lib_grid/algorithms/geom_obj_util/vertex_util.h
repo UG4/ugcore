@@ -128,19 +128,13 @@ bool CalculateVertexNormals(Grid& grid,
 ////////////////////////////////////////////////////////////////////////
 //	CalculateBoundingBox
 /// calculates the BoundingBox
-/**	\{	*/
-void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator vrtsBegin,
-						  VertexBaseIterator vrtsEnd,
-						  Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
 
-void CalculateBoundingBox(vector2& vMinOut, vector2& vMaxOut, VertexBaseIterator vrtsBegin,
-						  VertexBaseIterator vrtsEnd,
-						  Grid::AttachmentAccessor<VertexBase, APosition2>& aaPos);
-
-void CalculateBoundingBox(vector1& vMinOut, vector1& vMaxOut, VertexBaseIterator vrtsBegin,
-						  VertexBaseIterator vrtsEnd,
-						  Grid::AttachmentAccessor<VertexBase, APosition1>& aaPos);
-/**	\}	*/
+template <class TVrtIter, class TAPosition>
+void
+CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
+					 typename TAPosition::ValueType& vMaxOut,
+					 TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+					 Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
@@ -148,16 +142,18 @@ void CalculateBoundingBox(vector1& vMinOut, vector1& vMaxOut, VertexBaseIterator
 /**	The difference to CalculateBarycenter is that this method
  * returns the center of the bounding box which contains the
  * given set of vertices.*/
-template <class TAPosition>
+template <class TVrtIter, class TAPosition>
 typename TAPosition::ValueType
-CalculateCenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
+CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 				Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
-//	CalculateBarycenter - mstepnie
+//	CalculateBarycenter
 /// calculates the barycenter of a set of vertices
-vector3 CalculateBarycenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
-							Grid::VertexAttachmentAccessor<AVector3>& aaPos);
+template <class TVrtIter, class TAPosition>
+typename TAPosition::ValueType
+CalculateBarycenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+					Grid::VertexAttachmentAccessor<TAPosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	MergeVertices

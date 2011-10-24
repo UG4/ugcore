@@ -174,8 +174,7 @@ class MGSelector : public ISelector
 		template <class TElem> TElem* back(int level);
 		
 	//	geometric-object-collection
-		GeometricObjectCollection
-		get_geometric_objects();
+		virtual GeometricObjectCollection get_geometric_objects();
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver

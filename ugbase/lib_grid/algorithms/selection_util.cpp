@@ -45,8 +45,74 @@ template void InvertSelection<Selector>(Selector&);
 template void InvertSelection<MGSelector>(MGSelector&);
 
 
-
 ////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
+										ISelector& sel)
+{
+	vrtsOut.clear();
+	Grid* pGrid = sel.get_assigned_grid();
+	if(!pGrid)
+		return 0;
+
+	Grid& grid = *pGrid;
+
+	grid.begin_marking();
+
+//	get the goc and iterate over all elements
+	GeometricObjectCollection goc = sel.get_geometric_objects();
+	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+		for(VertexBaseIterator iter = goc.begin<VertexBase>(lvl);
+			iter != goc.end<VertexBase>(lvl); ++iter)
+		{
+			if(!grid.is_marked(*iter)){
+				grid.mark(*iter);
+				vrtsOut.push_back(*iter);
+			}
+		}
+
+		for(EdgeBaseIterator iter = goc.begin<EdgeBase>(lvl);
+			iter != goc.end<EdgeBase>(lvl); ++iter)
+		{
+			for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+				VertexBase* vrt = (*iter)->vertex(i);
+				if(!grid.is_marked(vrt)){
+					grid.mark(vrt);
+					vrtsOut.push_back(vrt);
+				}
+			}
+		}
+
+		for(FaceIterator iter = goc.begin<Face>(lvl);
+			iter != goc.end<Face>(lvl); ++iter)
+		{
+			for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+				VertexBase* vrt = (*iter)->vertex(i);
+				if(!grid.is_marked(vrt)){
+					grid.mark(vrt);
+					vrtsOut.push_back(vrt);
+				}
+			}
+		}
+
+		for(VolumeIterator iter = goc.begin<Volume>(lvl);
+			iter != goc.end<Volume>(lvl); ++iter)
+		{
+			for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+				VertexBase* vrt = (*iter)->vertex(i);
+				if(!grid.is_marked(vrt)){
+					grid.mark(vrt);
+					vrtsOut.push_back(vrt);
+				}
+			}
+		}
+	}
+
+	grid.end_marking();
+
+	return vrtsOut.size();
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class TSelector>
 void EraseSelectedObjects(TSelector& sel)

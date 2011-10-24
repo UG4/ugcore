@@ -399,6 +399,20 @@ void Grid::flip_orientation(Face* f)
 		
 	for(i = 0; i < numVrts; ++i)
 		f->m_vertices[i] = vVrts[numVrts - 1 - i];
+
+//	update associated edge list
+	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES)){
+		m_aaEdgeContainerFACE[f].clear();
+		EdgeDescriptor ed;
+		for(size_t ind = 0; ind < f->num_edges(); ++ind){
+		//	get the descriptor of the i-th edge
+			f->edge(ind, ed);
+		//	find the edge by checking vertices.
+			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+			if(e)
+				m_aaEdgeContainerFACE[f].push_back(e);
+		}
+	}
 }
 
 void Grid::flip_orientation(Volume* vol)
@@ -412,6 +426,34 @@ void Grid::flip_orientation(Volume* vol)
 	size_t numVrts = vol->num_vertices();
 	for(size_t i = 0; i < numVrts; ++i)
 		vol->m_vertices[i] = vd.vertex(i);
+
+//	update associated edge list
+	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES)){
+		m_aaEdgeContainerVOLUME[vol].clear();
+		EdgeDescriptor ed;
+		for(size_t ind = 0; ind < vol->num_edges(); ++ind){
+		//	get the descriptor of the i-th edge
+			vol->edge(ind, ed);
+		//	find the edge by checking vertices.
+			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+			if(e)
+				m_aaEdgeContainerVOLUME[vol].push_back(e);
+		}
+	}
+
+//	update associated face list
+	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES)){
+		m_aaFaceContainerVOLUME[vol].clear();
+		FaceDescriptor fd;
+		for(size_t ind = 0; ind < vol->num_faces(); ++ind){
+		//	get the descriptor of the i-th face
+			vol->face(ind, fd);
+		//	find the face by checking vertices.
+			Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
+			if(f)
+				m_aaFaceContainerVOLUME[vol].push_back(f);
+		}
+	}
 }
 
 size_t Grid::vertex_fragmentation()

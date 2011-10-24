@@ -180,8 +180,7 @@ void MGSelector::erase_from_list(Volume* elem)
 }
 
 //	geometric-object-collection
-GeometricObjectCollection 
-MGSelector::get_geometric_objects()
+GeometricObjectCollection MGSelector::get_geometric_objects()
 {
 	uint numLevels = num_levels();
 	GeometricObjectCollection goc(numLevels);

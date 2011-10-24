@@ -87,6 +87,12 @@ void GridSubsetHandler::assign_grid(Grid& grid)
 		m_pGrid->attach_to_volumes(m_aSharedEntry);
 }
 
+GridSubsetHandler& GridSubsetHandler::operator = (const GridSubsetHandler& sh)
+{
+	ISubsetHandler::operator =(sh);
+	return *this;
+}
+
 GridSubsetHandler& GridSubsetHandler::operator = (const ISubsetHandler& sh)
 {
 	ISubsetHandler::operator =(sh);

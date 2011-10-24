@@ -83,9 +83,9 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 			//	get the candidate
 				Face* f = stkFaces.top();
 				stkFaces.pop();
-				
+
 			//	get the neighbours for each side
-				for(uint i = 0; i < f->num_edges(); ++i)
+				for(size_t i = 0; i < f->num_edges(); ++i)
 				{
 					f->edge(i, ed);
 					GetNeighbours(vNeighbours, grid, f, i);
@@ -104,7 +104,7 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 							//	the faces thus have different orientation.
 								grid.flip_orientation(fn);
 							}
-							
+
 						//	mark the face as processed and add it to the stack
 							grid.unmark(fn);
 							stkFaces.push(fn);

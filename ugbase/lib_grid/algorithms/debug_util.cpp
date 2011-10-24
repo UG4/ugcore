@@ -16,24 +16,36 @@ void PrintElementNumbers(const GeometricObjectCollection& goc)
 			UG_LOG("level " << i << endl);
 		}
 		UG_LOG("  vertices total:\t" << goc.num<VertexBase>(i) << endl);
-		UG_LOG("    normal vrts:\t" << goc.num<Vertex>(i) << endl);
-		UG_LOG("    hanging vrts:\t" << goc.num<HangingVertex>(i) << endl);
+		if(goc.num<VertexBase>() > 0){
+			UG_LOG("    normal vrts:\t" << goc.num<Vertex>(i) << endl);
+			UG_LOG("    hanging vrts:\t" << goc.num<HangingVertex>(i) << endl);
+		}
 
 		UG_LOG("  edges total:\t\t" << goc.num<EdgeBase>(i) << endl);
-		UG_LOG("    normal edges:\t" << goc.num<Edge>(i) << endl);
-		UG_LOG("    constraining edges:\t" << goc.num<ConstrainingEdge>(i) << endl);
-		UG_LOG("    constrained edges:\t" << goc.num<ConstrainedEdge>(i) << endl);
+		if(goc.num<EdgeBase>() > 0){
+			UG_LOG("    normal edges:\t" << goc.num<Edge>(i) << endl);
+			UG_LOG("    constraining edges:\t" << goc.num<ConstrainingEdge>(i) << endl);
+			UG_LOG("    constrained edges:\t" << goc.num<ConstrainedEdge>(i) << endl);
+		}
 
 		UG_LOG("  faces total:\t\t" << goc.num<Face>(i) << endl);
-		UG_LOG("    normal triangles:\t" << goc.num<Triangle>(i) << endl);
-		UG_LOG("    constraining tris:\t" << goc.num<ConstrainingTriangle>(i) << endl);
-		UG_LOG("    constrained tris:\t" << goc.num<ConstrainedTriangle>(i) << endl);
+		if(goc.num<Face>() > 0){
+			UG_LOG("    normal triangles:\t" << goc.num<Triangle>(i) << endl);
+			UG_LOG("    constraining tris:\t" << goc.num<ConstrainingTriangle>(i) << endl);
+			UG_LOG("    constrained tris:\t" << goc.num<ConstrainedTriangle>(i) << endl);
 
-		UG_LOG("    normal quads:\t" << goc.num<Quadrilateral>(i) << endl);
-		UG_LOG("    constraining quads:\t" << goc.num<ConstrainingQuadrilateral>(i) << endl);
-		UG_LOG("    constrained quads:\t" << goc.num<ConstrainedQuadrilateral>(i) << endl);
+			UG_LOG("    normal quads:\t" << goc.num<Quadrilateral>(i) << endl);
+			UG_LOG("    constraining quads:\t" << goc.num<ConstrainingQuadrilateral>(i) << endl);
+			UG_LOG("    constrained quads:\t" << goc.num<ConstrainedQuadrilateral>(i) << endl);
+		}
 
 		UG_LOG("  volumes total:\t" << goc.num<Volume>(i) << endl);
+		if(goc.num<Volume>() > 0){
+			UG_LOG("    tetrahedrons:\t" << goc.num<Tetrahedron>(i) << endl);
+			UG_LOG("    pyramids:\t" << goc.num<Pyramid>(i) << endl);
+			UG_LOG("    prisms:\t" << goc.num<Prism>(i) << endl);
+			UG_LOG("    hexahedrons:\t" << goc.num<Hexahedron>(i) << endl);
+		}
 
 		UG_LOG(endl);
 	}

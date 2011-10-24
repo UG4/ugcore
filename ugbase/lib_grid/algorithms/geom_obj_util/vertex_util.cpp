@@ -226,73 +226,6 @@ VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
-void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator vrtsBegin,
-						  VertexBaseIterator vrtsEnd,
-						  Grid::AttachmentAccessor<VertexBase, APosition>& aaPos)
-{
-    if(vrtsBegin != vrtsEnd)
-    {
-		vMinOut.x = aaPos[*vrtsBegin].x;
-		vMinOut.y = aaPos[*vrtsBegin].y;
-		vMinOut.z = aaPos[*vrtsBegin].z;
-
-		vMaxOut = vMinOut;
-
-    	for(VertexBaseIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
-    	{
-    		vMinOut.x = std::min(vMinOut.x, aaPos[*iter].x);
-    		vMinOut.y = std::min(vMinOut.y, aaPos[*iter].y);
-    		vMinOut.z = std::min(vMinOut.z, aaPos[*iter].z);
-
-    		vMaxOut.x = std::max(vMaxOut.x, aaPos[*iter].x);
-    		vMaxOut.y = std::max(vMaxOut.y, aaPos[*iter].y);
-    		vMaxOut.z = std::max(vMaxOut.z, aaPos[*iter].z);
-    	}
-    }
-}
-
-void CalculateBoundingBox(vector2& vMinOut, vector2& vMaxOut, VertexBaseIterator vrtsBegin,
-						  VertexBaseIterator vrtsEnd,
-						  Grid::AttachmentAccessor<VertexBase, APosition2>& aaPos)
-{
-    if(vrtsBegin != vrtsEnd)
-    {
-		vMinOut.x = aaPos[*vrtsBegin].x;
-		vMinOut.y = aaPos[*vrtsBegin].y;
-
-		vMaxOut = vMinOut;
-
-    	for(VertexBaseIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
-    	{
-    		vMinOut.x = std::min(vMinOut.x, aaPos[*iter].x);
-    		vMinOut.y = std::min(vMinOut.y, aaPos[*iter].y);
-
-    		vMaxOut.x = std::max(vMaxOut.x, aaPos[*iter].x);
-    		vMaxOut.y = std::max(vMaxOut.y, aaPos[*iter].y);
-    	}
-    }
-}
-
-void CalculateBoundingBox(vector1& vMinOut, vector1& vMaxOut, VertexBaseIterator vrtsBegin,
-						  VertexBaseIterator vrtsEnd,
-						  Grid::AttachmentAccessor<VertexBase, APosition1>& aaPos)
-{
-    if(vrtsBegin != vrtsEnd)
-    {
-		vMinOut.x = aaPos[*vrtsBegin].x;
-
-		vMaxOut = vMinOut;
-
-    	for(VertexBaseIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
-    	{
-    		vMinOut.x = std::min(vMinOut.x, aaPos[*iter].x);
-
-    		vMaxOut.x = std::max(vMaxOut.x, aaPos[*iter].x);
-    	}
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
 //	CalculateVertexNormals
 bool CalculateVertexNormals(Grid& grid,
 							Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
@@ -340,42 +273,6 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 	return CalculateVertexNormals(grid, aaPos, aaNorm);
 }
 
-template <class TAPosition>
-typename TAPosition::ValueType
-CalculateCenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
-				Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos)
-{
-	typename TAPosition::ValueType vMin, vMax;
-	CalculateBoundingBox(vMin, vMax, vrtsBegin, vrtsEnd, aaPos);
-	typename TAPosition::ValueType vRet;
-	VecScaleAdd(vRet, 0.5, vMin, 0.5, vMax);
-	return vRet;
-}
-
-template vector3 CalculateCenter<APosition>(VertexBaseIterator, VertexBaseIterator,
-											Grid::AttachmentAccessor<VertexBase, APosition>&);
-template vector2 CalculateCenter<APosition2>(VertexBaseIterator, VertexBaseIterator,
-											Grid::AttachmentAccessor<VertexBase, APosition2>&);
-template vector1 CalculateCenter<APosition1>(VertexBaseIterator, VertexBaseIterator,
-											Grid::AttachmentAccessor<VertexBase, APosition1>&);
-
-////////////////////////////////////////////////////////////////////////
-//	CalculateBarycenter - mstepnie
-vector3 CalculateBarycenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
-							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
-{
-	vector3 v = vector3(0,0,0);
-	int counter = 0;
-	for(VertexBaseIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
-	{
-		VecAdd(v,v,aaPos[*iter]);
-		counter++;
-	}
-
-	if(counter>0)
-		VecScale(v,v,1.f/counter);
-	return v;
-}
 
 ////////////////////////////////////////////////////////////////////////
 //	MergeVertices

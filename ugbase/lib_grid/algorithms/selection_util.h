@@ -32,6 +32,15 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 					 Selector& sel, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectVerticesTouchingSelection
+///	Collects all vertices which are selected or which touch a selected element.
+/**	This method uses Grid::mark
+ * returns the number of collected vertices.
+ */
+size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
+										ISelector& sel);
+
+////////////////////////////////////////////////////////////////////////
 //	EraseSelectedObjects
 ///	Erases selected objects from the associated grid
 /**
