@@ -80,7 +80,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		typedef IAssemble<TDoFDistribution, TAlgebra> T;
 		string name = string("IAssemble").append(algDDSuffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("assemble_jacobian", static_cast<bool (T::*)(matrix_type&, const vector_type&,
+			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&,
 								const IDoFDistribution<TDoFDistribution>&)>(&T::assemble_jacobian));
 		reg.add_class_to_group(name, "IAssemble", algDDTag);
 	}
@@ -92,7 +92,7 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> T;
 		string name = string("IDomainDiscretization").append(algDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_method("assemble_jacobian", static_cast<bool (T::*)
+			.add_method("assemble_jacobian", static_cast<void (T::*)
 			            (matrix_type&, const VectorTimeSeries<vector_type>&,
 			             number, const IDoFDistribution<TDoFDistribution>&)>(&T::assemble_jacobian));
 		reg.add_class_to_group(name, "IDomainDiscretization", algDDTag);
@@ -115,13 +115,12 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		typedef ITimeDiscretization<TDoFDistribution, TAlgebra> TBase;
 		typedef ThetaTimeDiscretization<TDoFDistribution, TAlgebra> T;
+		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> domain_discretization_type;
 		string name = string("ThetaTimeDiscretization").append(algDDSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-				.add_constructor()
-				.add_method("set_domain_discretization", &T::set_domain_discretization,
-							"", "Domain Discretization")
-				.add_method("set_theta", &T::set_theta,
-							"", "Theta (0.0 = Impl; 1.0 = Expl)")
+				.template add_constructor<void (*)(domain_discretization_type&)>("Domain Discretization")
+				.template add_constructor<void (*)(domain_discretization_type&,number)>("Domain Discretization#Theta")
+				.add_method("set_theta", &T::set_theta, "", "Theta (0.0 = Impl; 1.0 = Expl)")
 				.add_method("prepare_step", &T::prepare_step)
 				.add_method("num_prev_steps", &T::num_prev_steps);
 		reg.add_class_to_group(name, "ThetaTimeDiscretization", algDDTag);

@@ -100,7 +100,7 @@ class IAssemble {
 		 * \param[in]  	u 	Current iterate
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual bool assemble_jacobian(matrix_type& J, const vector_type& u,
+		virtual void assemble_jacobian(matrix_type& J, const vector_type& u,
 		                               const dof_distribution_type& dd) = 0;
 
 		/// assembles Defect
@@ -111,7 +111,7 @@ class IAssemble {
 		 * \param[in] 	u 	Current iterate
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual bool assemble_defect(vector_type& d, const vector_type& u,
+		virtual void assemble_defect(vector_type& d, const vector_type& u,
 		                             const dof_distribution_type& dd) = 0;
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
@@ -125,7 +125,7 @@ class IAssemble {
 		 * \return 	true 		if problem is linear and assembling successful
 		 * 			false 		if problem is non-linear or an error occurred during assembling
 		 */
-		virtual bool assemble_linear(matrix_type& A, vector_type& b,
+		virtual void assemble_linear(matrix_type& A, vector_type& b,
 		                             const dof_distribution_type& dd) = 0;
 
 		/// sets dirichlet values in solution vector
@@ -140,7 +140,7 @@ class IAssemble {
 		 * 			false 	if function has not been implemented
 		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
-		virtual bool adjust_solution(vector_type& u,
+		virtual void adjust_solution(vector_type& u,
 		                             const dof_distribution_type& dd) = 0;
 
 

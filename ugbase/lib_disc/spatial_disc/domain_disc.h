@@ -67,105 +67,105 @@ class DomainDiscretization :
 	///////////////////////////
 
 	/// \copydoc IAssemble::assemble_jacobian()
-		bool assemble_jacobian(matrix_type& J, const vector_type& u,
+		void assemble_jacobian(matrix_type& J, const vector_type& u,
 	                           const dof_distribution_type& dd);
 
-		bool assemble_jacobian(matrix_type& J, const vector_type& u)
-			{return assemble_jacobian(J, u, get_surface_dd());}
+		void assemble_jacobian(matrix_type& J, const vector_type& u)
+			{assemble_jacobian(J, u, get_surface_dd());}
 
 	/// \copydoc IAssemble::assemble_defect()
-		bool assemble_defect(vector_type& d, const vector_type& u,
+		void assemble_defect(vector_type& d, const vector_type& u,
 		                     const dof_distribution_type& dd);
 
-		bool assemble_defect(vector_type& d, const vector_type& u)
-			{return assemble_defect(d, u, get_surface_dd());}
+		void assemble_defect(vector_type& d, const vector_type& u)
+			{assemble_defect(d, u, get_surface_dd());}
 
 	/// \copydoc IAssemble::assemble_linear()
-		bool assemble_linear(matrix_type& A, vector_type& b,
+		void assemble_linear(matrix_type& A, vector_type& b,
 		                     const dof_distribution_type& dd);
 
-		bool assemble_linear(matrix_type& A, vector_type& b)
-			{return assemble_linear(A, b, get_surface_dd());}
+		void assemble_linear(matrix_type& A, vector_type& b)
+			{assemble_linear(A, b, get_surface_dd());}
 
 	/// \copydoc IAssemble::adjust_solution()
-		bool adjust_solution(vector_type& u,
+		void adjust_solution(vector_type& u,
 		                       const dof_distribution_type& dd);
 
-		bool adjust_solution(vector_type& u)
-			{return adjust_solution(u, get_surface_dd());}
+		void adjust_solution(vector_type& u)
+			{adjust_solution(u, get_surface_dd());}
 
 	///////////////////////
 	// Time dependent part
 	///////////////////////
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
-		bool assemble_jacobian(matrix_type& J,
+		void assemble_jacobian(matrix_type& J,
 		                       const VectorTimeSeries<vector_type>& vSol,
 		                       const number s_a0,
 		                       const dof_distribution_type& dd);
 
-		bool assemble_jacobian(matrix_type& J,
+		void assemble_jacobian(matrix_type& J,
 		                       const VectorTimeSeries<vector_type>& vSol,
 		                       const number s_a0)
-		{return assemble_jacobian(J, vSol, s_a0, get_surface_dd());}
+			{assemble_jacobian(J, vSol, s_a0, get_surface_dd());}
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
-		bool assemble_defect(vector_type& d,
+		void assemble_defect(vector_type& d,
 		                     const VectorTimeSeries<vector_type>& vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
 		                     const dof_distribution_type& dd);
 
-		bool assemble_defect(vector_type& d,
+		void assemble_defect(vector_type& d,
 		                     const VectorTimeSeries<vector_type>& vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff)
-		{return assemble_defect(d, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
+			{assemble_defect(d, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
-		bool assemble_linear(matrix_type& A, vector_type& b,
+		void assemble_linear(matrix_type& A, vector_type& b,
 		                     const VectorTimeSeries<vector_type>& vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
 		                     const dof_distribution_type& dd);
 
-		bool assemble_linear(matrix_type& A, vector_type& b,
+		void assemble_linear(matrix_type& A, vector_type& b,
 		                     const VectorTimeSeries<vector_type>& vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff)
-		{return assemble_linear(A, b, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
+			{assemble_linear(A, b, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
 
 	/// \copydoc IDomainDiscretization::adjust_solution()
-		bool adjust_solution(vector_type& u, number time,
+		void adjust_solution(vector_type& u, number time,
 		                       const dof_distribution_type& dd);
 
-		bool adjust_solution(vector_type& u, number time)
-		{return adjust_solution(u, time, get_surface_dd());}
+		void adjust_solution(vector_type& u, number time)
+			{adjust_solution(u, time, get_surface_dd());}
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
 	///////////////////////////
 
 	/// assembles the mass matrix
-		bool assemble_mass_matrix(matrix_type& M, const vector_type& u,
+		void assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		                          const dof_distribution_type& dd);
 
-		bool assemble_mass_matrix(matrix_type& M, const vector_type& u)
-		{return assemble_mass_matrix(M, u, get_surface_dd());}
+		void assemble_mass_matrix(matrix_type& M, const vector_type& u)
+			{assemble_mass_matrix(M, u, get_surface_dd());}
 
 	/// assembles the stiffness matrix
-		bool assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		                               const dof_distribution_type& dd);
 
-		bool assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
-		{return assemble_stiffness_matrix(A, u, get_surface_dd());}
+		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
+			{assemble_stiffness_matrix(A, u, get_surface_dd());}
 
 	/// assembles the stiffness matrix
-		bool assemble_rhs(vector_type& rhs, const vector_type& u,
+		void assemble_rhs(vector_type& rhs, const vector_type& u,
 		                  const dof_distribution_type& dd);
 
-		bool assemble_rhs(vector_type& rhs, const vector_type& u)
-		{return assemble_rhs(rhs, u, get_surface_dd());}
+		void assemble_rhs(vector_type& rhs, const vector_type& u)
+			{assemble_rhs(rhs, u, get_surface_dd());}
 
 	public:
 	/// forces the assembling to consider the grid as regular

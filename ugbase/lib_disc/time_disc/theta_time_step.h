@@ -59,15 +59,21 @@ class ThetaTimeDiscretization
 			domain_discretization_type;
 
 	public:
-		// theta = 0 -> Backward Euler
-		ThetaTimeDiscretization(domain_discretization_type& sd, number theta)
+	/// constructor
+		ThetaTimeDiscretization(domain_discretization_type& sd)
 			: ITimeDiscretization<TDoFDistribution, TAlgebra>(sd),
 			  m_pPrevSol(NULL)
 		{
 			set_theta(1.0);
 		}
 
-		ThetaTimeDiscretization(){set_theta(1.0);}
+	/// theta = 0 -> Backward Euler
+		ThetaTimeDiscretization(domain_discretization_type& sd, number theta)
+			: ITimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			  m_pPrevSol(NULL)
+		{
+			set_theta(theta);
+		}
 
 	///	sets the theta value
 		void set_theta(number theta)
@@ -76,31 +82,25 @@ class ThetaTimeDiscretization
 			m_prevSteps = 1;
 		}
 
-	///	sets the domain discretization
-		void set_domain_discretization(domain_discretization_type& dd)
-		{
-			this->m_pDomDisc = &dd;
-		}
-
 	/// \copydoc ITimeDiscretization::num_prev_steps()
 		size_t num_prev_steps() {return m_prevSteps;}
 
 	///	\copydoc ITimeDiscretization::prepare_step()
-		virtual bool prepare_step(VectorTimeSeries<vector_type>& prevSol,
+		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
 		                          number dt);
 
 	public:
 	//	Implements the assemble interface
-		bool assemble_jacobian(matrix_type& J, const vector_type& u,
+		void assemble_jacobian(matrix_type& J, const vector_type& u,
 		                       const dof_distribution_type& dofDistr);
 
-		bool assemble_defect(vector_type& d, const vector_type& u,
+		void assemble_defect(vector_type& d, const vector_type& u,
 		                     const dof_distribution_type& dofDistr);
 
-		bool assemble_linear(matrix_type& A, vector_type& b,
+		void assemble_linear(matrix_type& A, vector_type& b,
 		                     const dof_distribution_type& dofDistr);
 
-		bool adjust_solution(vector_type& u,
+		void adjust_solution(vector_type& u,
 		                       const dof_distribution_type& dofDistr);
 
 	private:

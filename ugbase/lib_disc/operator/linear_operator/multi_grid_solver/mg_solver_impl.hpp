@@ -1002,12 +1002,11 @@ init_linear_level_operator()
 			m_pAss->force_regular_grid(true);
 
 		//	init level operator
-			if(!m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-						" Cannot init operator for level "<< lev << ".\n");
-				return false;
+			try{
+			m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD);
 			}
+			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+						" Cannot init operator for level "<< lev << ".\n");
 
 		//	remove force flag
 			m_pAss->force_regular_grid(false);
@@ -1031,12 +1030,11 @@ init_linear_level_operator()
 		{
 		//	init level operator
 			m_pAss->force_regular_grid(true);
-			if(!m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-						" Cannot init operator for level "<< lev << ".\n");
-				return false;
+			try{
+			m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD);
 			}
+			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+						" Cannot init operator for level "<< lev << ".\n");
 			m_pAss->force_regular_grid(false);
 		}
 	//	else we can forget about the whole-level matrix, since the needed
@@ -1086,12 +1084,11 @@ init_non_linear_level_operator()
 		m_pAss->force_regular_grid(true);
 
 	//	init level operator
-		if(!m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-					" Cannot init operator for level "<< lev << ".\n");
-			return false;
+		try{
+		m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, *m_vLevData[lev]->pLevDD);
 		}
+		UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+					" Cannot init operator for level "<< lev << ".\n");
 
 	//	remove force flag
 		m_pAss->force_regular_grid(false);

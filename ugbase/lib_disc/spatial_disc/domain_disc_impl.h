@@ -103,12 +103,13 @@ get_surface_dd()
 // Mass Matrix
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("DomainDisc: Cannot update disc items.")
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -123,11 +124,8 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+					   " Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -177,19 +175,15 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
 			break;
 		default:
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
-					"Dimension " << dim << " (subset="<<si<<") not supported.\n");
-			return false;
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+							"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.\n");
 	}
 
 //	post process
@@ -198,7 +192,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_jacobian(M, u, dd))
-				return false;
+				UG_THROW_FATAL("DomainDiscretization: Cannot adjust jacobian.");
 		}
 	}
 
@@ -208,9 +202,6 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
 	CopyLayoutsAndCommunicatorIntoMatrix(M, *dist);
 #endif
-
-//	done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -218,12 +209,13 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -238,11 +230,8 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -292,19 +281,15 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
 			break;
 		default:
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
-					"Dimension " << dim << " (subset="<<si<<") not supported.\n");
-			return false;
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+							"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 					" Assembling of elements of Dimension " << dim << " in "
 					" subset "<<si<< " failed.\n");
-			return false;
-		}
 	}
 
 //	post process
@@ -313,7 +298,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_jacobian(A, u, dd))
-				return false;
+				UG_THROW_FATAL("Cannot adjust jacobian.");
 		}
 	}
 
@@ -323,9 +308,6 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
 	CopyLayoutsAndCommunicatorIntoMatrix(A, *dist);
 #endif
-
-//	done
-	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -339,13 +321,14 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 // Jacobian (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const vector_type& u,
                   const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -360,11 +343,8 @@ assemble_jacobian(matrix_type& J,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -414,19 +394,15 @@ assemble_jacobian(matrix_type& J,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
 			break;
 		default:
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian (stationary)':"
-					"Dimension " << dim << " (subset="<<si<<") not supported.\n");
-			return false;
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (stationary)':"
+							"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian (stationary)':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (stationary)':"
+							" Assembling of elements of Dimension " << dim << " in "
+							" subset "<<si<< " failed.\n");
 	}
 
 //	post process
@@ -435,11 +411,8 @@ assemble_jacobian(matrix_type& J,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_jacobian(J, u, dd))
-			{
-				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
-						" Cannot execute post process " << i << ".\n");
-				return false;
-			}
+				UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian':"
+								" Cannot execute post process " << i << ".\n");
 		}
 	}
 
@@ -449,9 +422,6 @@ assemble_jacobian(matrix_type& J,
 	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
 #endif
-
-//	done
-	return true;
 }
 
 
@@ -459,13 +429,14 @@ assemble_jacobian(matrix_type& J,
 // Defect (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d,
                 const vector_type& u,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -479,11 +450,8 @@ assemble_defect(vector_type& d,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -533,19 +501,15 @@ assemble_defect(vector_type& d,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
 			break;
 		default:
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_defect (stationary)':"
-					"Dimension " << dim << " (subset="<<si<<") not supported.\n");
-			return false;
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (stationary)':"
+						"Dimension " << dim << " (subset="<<si<<") not supported.\n");
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_defect (stationary)':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (stationary)':"
+							" Assembling of elements of Dimension " << dim << " in "
+							" subset "<<si<< " failed.\n");
 	}
 
 //	post process
@@ -554,7 +518,7 @@ assemble_defect(vector_type& d,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_defect(d, u, dd))
-				return false;
+				UG_THROW_FATAL("Cannot adjust defect.");
 		}
 	}
 
@@ -562,21 +526,19 @@ assemble_defect(vector_type& d,
 #ifdef UG_PARALLEL
 	d.set_storage_type(PST_ADDITIVE);
 #endif
-
-//	done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -594,11 +556,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -647,19 +606,16 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			bSuc &= AssembleLinear<Hexahedron,TDoFDistribution,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			break;
-		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
-						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
-				return false;
+		default:
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
+							" Assembling of elements of Dimension " << dim << " in "
+							" subset "<<si<< " failed.\n");
 	}
 
 //	post process
@@ -668,11 +624,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd))
-			{
-				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+				UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear':"
 						" Cannot post process.\n");
-				return false;
-			}
 		}
 	}
 
@@ -684,22 +637,20 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
-
-//	done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_rhs(vector_type& rhs,
 			const vector_type& u,
 			const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -713,11 +664,8 @@ assemble_rhs(vector_type& rhs,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -766,19 +714,16 @@ assemble_rhs(vector_type& rhs,
 			bSuc &= AssembleRhs<Hexahedron,TDoFDistribution,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
 			break;
-		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs (stationary)':"
+		default:
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_rhs (stationary)':"
 						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
-				return false;
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs (stationary)':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_rhs (stationary)':"
+							" Assembling of elements of Dimension " << dim << " in "
+							" subset "<<si<< " failed.\n");
 	}
 
 //	post process
@@ -787,11 +732,8 @@ assemble_rhs(vector_type& rhs,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_rhs(rhs, u, dd))
-			{
-				UG_LOG("ERROR in 'DomainDiscretization::assemble_rhs':"
-						" Cannot post process.\n");
-				return false;
-			}
+				UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_rhs':"
+							" Cannot post process.\n");
 		}
 	}
 
@@ -799,36 +741,31 @@ assemble_rhs(vector_type& rhs,
 #ifdef UG_PARALLEL
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
-
-//	done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // set constraints (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 adjust_solution(vector_type& u, const dof_distribution_type& dd)
 {
-	if(!update_constraints()) return false;
+	if(!update_constraints())
+		UG_THROW_FATAL("Cannot update constraints.");
 
 //	post process dirichlet
 	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
 	{
 		if(!m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd))
-			return false;
+			UG_THROW_FATAL("Cannot adjust solution.");
 	}
 
 //	post process constraints
 	for(size_t i = 0; i < m_vvConstraints[CT_CONSTRAINTS].size(); ++i)
 	{
 		if(!m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd))
-			return false;
+			UG_THROW_FATAL("Cannot adjust solution.");
 	}
-
-//	done
-	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -841,14 +778,15 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd)
 // Jacobian (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const VectorTimeSeries<vector_type>& vSol,
                   const number s_a0,
                   const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	get current time
 	const number time = vSol.time(0);
@@ -860,11 +798,8 @@ assemble_jacobian(matrix_type& J,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+					" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -913,19 +848,16 @@ assemble_jacobian(matrix_type& J,
 			bSuc &= AssembleJacobian<Hexahedron,TDoFDistribution,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			break;
-		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
+		default:
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
 				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
-				return false;
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
 					" Assembling of elements of Dimension " << dim << " in "
 					" subset "<<si<< " failed.\n");
-			return false;
-		}
 	}
 
 //	post process
@@ -934,7 +866,7 @@ assemble_jacobian(matrix_type& J,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_jacobian(J, vSol.solution(0), dd, time))
-				return false;
+				UG_THROW_FATAL("Cannot adjust jacobian.");
 		}
 	}
 
@@ -944,16 +876,13 @@ assemble_jacobian(matrix_type& J,
 	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
 #endif
-
-//	done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defect (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d,
                 const VectorTimeSeries<vector_type>& vSol,
                 const std::vector<number>& vScaleMass,
@@ -961,7 +890,8 @@ assemble_defect(vector_type& d,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -970,11 +900,8 @@ assemble_defect(vector_type& d,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 				" Can not Subset Groups and union.\n");
-		return false;
-	}
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -1023,19 +950,16 @@ assemble_defect(vector_type& d,
 			bSuc &= AssembleDefect<Hexahedron,TDoFDistribution,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
-		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
+		default:
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
 						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
-				return false;
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
+							" Assembling of elements of Dimension " << dim << " in "
+							" subset "<<si<< " failed.\n");
 	}
 
 //	post process
@@ -1044,7 +968,7 @@ assemble_defect(vector_type& d,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_defect(d, vSol.solution(0), dd, vSol.time(0)))
-				return false;
+				UG_THROW_FATAL("Cannot adjust defect.");
 		}
 	}
 
@@ -1052,16 +976,13 @@ assemble_defect(vector_type& d,
 #ifdef UG_PARALLEL
 	d.set_storage_type(PST_ADDITIVE);
 #endif
-
-//	done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 const VectorTimeSeries<vector_type>& vSol,
                 const std::vector<number>& vScaleMass,
@@ -1069,7 +990,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const dof_distribution_type& dd)
 {
 //	update the elem discs
-	if(!update_disc_items()) return false;
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1078,11 +1000,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	create list of all subsets
 	const ISubsetHandler& sh = dd.get_function_pattern().get_subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
-	{
-		UG_LOG("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -1131,19 +1050,16 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			bSuc &= AssembleLinear<Hexahedron,TDoFDistribution,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
-		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
+		default:
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
 						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
-				return false;
 		}
 
 	//	check success
 		if(!bSuc)
-		{
-			UG_LOG("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
 					" Assembling of elements of Dimension " << dim << " in "
 					" subset "<<si<< " failed.\n");
-			return false;
-		}
 	}
 
 
@@ -1153,7 +1069,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd, vSol.time(0)))
-				return false;
+				UG_THROW_FATAL("Cannot adjust linear.");
 		}
 	}
 
@@ -1165,37 +1081,31 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
-
-
-//	done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // set constraint values (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
 adjust_solution(vector_type& u, number time, const dof_distribution_type& dd)
 {
-	if(!update_constraints()) return false;
+	if(!update_constraints())
+		UG_THROW_FATAL("Cannot update constraints.");
 
 //	dirichlet
 	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
 	{
 		if(!m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd, time))
-			return false;
+			UG_THROW_FATAL("Cannot adjust solution.");
 	}
 
 //	constraints
 	for(size_t i = 0; i < m_vvConstraints[CT_CONSTRAINTS].size(); ++i)
 	{
 		if(!m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd, time))
-			return false;
+			UG_THROW_FATAL("Cannot adjust solution.");
 	}
-
-//	done
-	return true;
 }
 
 }

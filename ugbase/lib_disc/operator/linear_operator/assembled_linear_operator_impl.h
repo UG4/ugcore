@@ -44,12 +44,11 @@ init(const vector_type& u)
 	}
 
 //	assemble matrix (depending on u, i.e. J(u))
-	if(!m_pAss->assemble_jacobian(*this, u, *m_pDoFDistribution))
-	{
-		UG_LOG("ERROR in AssembledLinearOperator::init:"
-				" Cannot assemble Jacobi matrix.\n");
-		return false;
+	try{
+	m_pAss->assemble_jacobian(*this, u, *m_pDoFDistribution);
 	}
+	UG_CATCH_THROW("ERROR in AssembledLinearOperator::init:"
+				" Cannot assemble Jacobi matrix.\n");
 
 //  we're done
 	return true;
@@ -79,12 +78,11 @@ init()
 	vector_type dummy; dummy.resize(m_pDoFDistribution->num_indices());
 
 //	assemble only matrix
-	if(!m_pAss->assemble_jacobian(*this, dummy, *m_pDoFDistribution))
-	{
-		UG_LOG("ERROR in AssembledLinearOperator::init:"
-				" Cannot assemble Matrix.\n");
-		return false;
+	try{
+	m_pAss->assemble_jacobian(*this, dummy, *m_pDoFDistribution);
 	}
+	UG_CATCH_THROW("ERROR in AssembledLinearOperator::init:"
+				" Cannot assemble Matrix.\n");
 
 //	were done
 	return true;
@@ -116,12 +114,11 @@ init_op_and_rhs(vector_type& b)
 	b.resize(m_pDoFDistribution->num_indices());
 
 //	assemble matrix and rhs in one loop
-	if(!m_pAss->assemble_linear(*this, b, *m_pDoFDistribution))
-	{
-		UG_LOG("ERROR in AssembledLinearOperator::init_op_and_rhs:"
-				" Cannot assemble Matrix and Rhs.\n");
-		return false;
+	try{
+	m_pAss->assemble_linear(*this, b, *m_pDoFDistribution);
 	}
+	UG_CATCH_THROW("ERROR in AssembledLinearOperator::init_op_and_rhs:"
+				" Cannot assemble Matrix and Rhs.\n");
 
 //	were done
 	return true;
@@ -211,12 +208,11 @@ set_dirichlet_values(vector_type& u)
 	}
 
 //	set dirichlet values etc.
-	if(m_pAss->adjust_solution(u, *m_pDoFDistribution) != true)
-	{
-		UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
-				" Cannot assemble solution.\n");
-		return false;
+	try{
+	m_pAss->adjust_solution(u, *m_pDoFDistribution);
 	}
+	UG_CATCH_THROW("ERROR in AssembledLinearOperator::set_dirichlet_values:"
+				" Cannot assemble solution.\n");
 
 	return true;
 }

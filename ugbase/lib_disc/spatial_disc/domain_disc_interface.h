@@ -59,7 +59,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
-		virtual bool assemble_jacobian(matrix_type& J,
+		virtual void assemble_jacobian(matrix_type& J,
 		                               const VectorTimeSeries<vector_type>& vSol,
 		                               const number s_a,
 		                               const dof_distribution_type& dd) = 0;
@@ -77,7 +77,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
-		virtual	bool assemble_defect(vector_type& d,
+		virtual	void assemble_defect(vector_type& d,
 		       	                     const VectorTimeSeries<vector_type>& vSol,
 		       	                     const std::vector<number>& vScaleMass,
 		       	                     const std::vector<number>& vScaleStiff,
@@ -97,7 +97,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \return 	true  				if time dependent and linear and successful
 	 * 			false 				if an error occurred
 	 */
-		virtual bool assemble_linear(matrix_type& A, vector_type& b,
+		virtual void assemble_linear(matrix_type& A, vector_type& b,
 		                             const VectorTimeSeries<vector_type>& vSol,
 		                             const std::vector<number>& vScaleMass,
 		                             const std::vector<number>& vScaleStiff,
@@ -115,7 +115,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * 			false 			if function has not been implemented
 	 * 			false 			if implemented but error occurred
 	 */
-		virtual bool adjust_solution(vector_type& u, number time,
+		virtual void adjust_solution(vector_type& u, number time,
 		                               const dof_distribution_type& dd) = 0;
 
 	///	returns the number of post processes

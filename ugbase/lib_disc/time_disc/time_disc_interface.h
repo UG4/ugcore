@@ -55,33 +55,13 @@ class ITimeDiscretization
 			domain_discretization_type;
 
 	public:
-	/// Default constructor
-	/**
-	 * Creates an empty Time Discretization. In order to use this class a
-	 * spatial Discretization has to be set.
-	 */
-		ITimeDiscretization()
-			: m_pDomDisc(NULL), m_pSelector(NULL)	{}
-
 	/// create and set domain discretization
 	/**
 	 * \param[in] 	dd	Domain Discretization
 	 */
 		ITimeDiscretization(domain_discretization_type& dd)
-			: m_pDomDisc(&dd)
+			: m_rDomDisc(dd)
 		{}
-
-	///	set the domain discretization
-		void set_domain_discretization(domain_discretization_type& dd)
-		{
-			m_pDomDisc = &dd; forward_selector();
-		}
-
-	///	get the domain discretization
-		domain_discretization_type* get_domain_discretization()
-		{
-			return m_pDomDisc;
-		}
 
 	/// prepares the assembling of Defect/Jacobian for a time step
 	/**
@@ -92,7 +72,7 @@ class ITimeDiscretization
 	 * \param[in] time_old	the time at the previous time steps
 	 * \param[in] dt		size of time step
 	 */
-		virtual bool prepare_step(VectorTimeSeries<vector_type>& prevSol,
+		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
 		                          number dt) = 0;
 
 	/// returns number of previous time steps needed
@@ -101,8 +81,7 @@ class ITimeDiscretization
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce)
 		{
-			if(m_pDomDisc != NULL)
-				m_pDomDisc->force_regular_grid(bForce);
+			m_rDomDisc.force_regular_grid(bForce);
 		}
 
 	///	sets a selector to exlude elements from assembling
@@ -121,10 +100,10 @@ class ITimeDiscretization
 	protected:
 		void forward_selector()
 		{
-			if(m_pDomDisc) m_pDomDisc->set_selector(m_pSelector);
+			m_rDomDisc.set_selector(m_pSelector);
 		}
 
-		domain_discretization_type* m_pDomDisc; ///< Domain Discretization
+		domain_discretization_type& m_rDomDisc; ///< Domain Discretization
 
 		ISelector* m_pSelector;
 };
