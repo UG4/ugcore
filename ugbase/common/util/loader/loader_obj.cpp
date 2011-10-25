@@ -265,133 +265,141 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 			v.y = -atof((*PIter).c_str());
 			m_vTexCoords.push_back(v);
 		}
-		else if(pActiveObject)
-		{
-			if(strCommand == strFace)
+		else if(strCommand == strFace){
+			if(!pActiveObject){
+				pActiveObject = new LoaderObj::Object;
+				pActiveObject->m_strName = "default";
+				pActiveObject->m_iMaterialIndex = -1;
+			}
+
+			PIter = lstParams.begin();
+
+			if(lstParams.size() == 2)
 			{
-				PIter = lstParams.begin();
-
-				if(lstParams.size() == 2)
+				for(; PIter != lstParams.end(); PIter++)
 				{
-					for(; PIter != lstParams.end(); PIter++)
+					string tStr = replace_chars((*PIter), '/', ' ');
+					ParameterList	lstIndexParams;
+					split_parameters(&lstIndexParams, tStr.c_str());
+					uint iCount = 0;
+					if(bGotPosition && (iCount < lstIndexParams.size()))
 					{
-						string tStr = replace_chars((*PIter), '/', ' ');
-						ParameterList	lstIndexParams;
-						split_parameters(&lstIndexParams, tStr.c_str());
-						uint iCount = 0;
-						if(bGotPosition && (iCount < lstIndexParams.size()))
-						{
-							pActiveObject->m_vEdgeList.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
-							iCount++;
-						}
+						pActiveObject->m_vEdgeList.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
+						iCount++;
 					}
 				}
-				else if(lstParams.size() == 3)
+			}
+			else if(lstParams.size() == 3)
+			{
+				for(; PIter != lstParams.end(); PIter++)
 				{
-					for(; PIter != lstParams.end(); PIter++)
-					{
-						string tStr = replace_chars((*PIter), '/', ' ');
-						ParameterList	lstIndexParams;
-						split_parameters(&lstIndexParams, tStr.c_str());
+					string tStr = replace_chars((*PIter), '/', ' ');
+					ParameterList	lstIndexParams;
+					split_parameters(&lstIndexParams, tStr.c_str());
 
-						uint iCount = 0;
-						if(bGotPosition)
-						{
-							pActiveObject->m_vTriangleList.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
-							iCount++;
-						}
-						if(bGotTexture && iCount < lstIndexParams.size())
-						{
-							pActiveObject->m_vTriangleListTex.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
-							iCount++;
-						}
-						if(bGotNormal && iCount < lstIndexParams.size())
-						{
-							//pActiveObject->m_vTriangleList.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
-							iCount++;
-						}
-
-
-					}
-				}
-				else if(lstParams.size() == 4)
-				{
-					unsigned int tInd[4];
-					unsigned int tIndTex[4];
-
-					int counter = 0;
-					for(; PIter != lstParams.end(); PIter++)
+					uint iCount = 0;
+					if(bGotPosition)
 					{
-						string tStr = replace_chars((*PIter), '/', ' ');
-						ParameterList	lstIndexParams;
-						split_parameters(&lstIndexParams, tStr.c_str());
-						tInd[counter] = atoi((*lstIndexParams.begin()).c_str());
-						uint iCount = 0;
-						if(bGotPosition)
-						{
-							tInd[counter] = atoi(lstIndexParams[iCount].c_str());
-							iCount++;
-						}
-						if(bGotTexture && iCount < lstIndexParams.size())
-						{
-							tIndTex[counter] = atoi(lstIndexParams[iCount].c_str());
-							iCount++;
-						}
-						if(bGotNormal && iCount < lstIndexParams.size())
-						{
-							//iIndNorm
-							iCount++;
-						}
-						counter++;
+						pActiveObject->m_vTriangleList.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
+						iCount++;
 					}
-					if(convertQuadsToTris)
+					if(bGotTexture && iCount < lstIndexParams.size())
 					{
-                        if(bGotPosition)
-                        {
-                            pActiveObject->m_vTriangleList.push_back(tInd[0] - 1);
-                            pActiveObject->m_vTriangleList.push_back(tInd[1] - 1);
-                            pActiveObject->m_vTriangleList.push_back(tInd[2] - 1);
-                            pActiveObject->m_vTriangleList.push_back(tInd[0] - 1);
-                            pActiveObject->m_vTriangleList.push_back(tInd[2] - 1);
-                            pActiveObject->m_vTriangleList.push_back(tInd[3] - 1);
-                        }
-                        if(bGotTexture)
-                        {
-                            pActiveObject->m_vTriangleListTex.push_back(tIndTex[0] - 1);
-                            pActiveObject->m_vTriangleListTex.push_back(tIndTex[1] - 1);
-                            pActiveObject->m_vTriangleListTex.push_back(tIndTex[2] - 1);
-                            pActiveObject->m_vTriangleListTex.push_back(tIndTex[0] - 1);
-                            pActiveObject->m_vTriangleListTex.push_back(tIndTex[2] - 1);
-                            pActiveObject->m_vTriangleListTex.push_back(tIndTex[3] - 1);
-                        }
+						pActiveObject->m_vTriangleListTex.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
+						iCount++;
 					}
-					else
+					if(bGotNormal && iCount < lstIndexParams.size())
 					{
-					    if(bGotPosition)
-                        {
-                            pActiveObject->m_vQuadList.push_back(tInd[0] - 1);
-                            pActiveObject->m_vQuadList.push_back(tInd[1] - 1);
-                            pActiveObject->m_vQuadList.push_back(tInd[2] - 1);
-                            pActiveObject->m_vQuadList.push_back(tInd[3] - 1);
-                        }
-                        if(bGotTexture)
-                        {
-                            pActiveObject->m_vQuadListTex.push_back(tIndTex[0] - 1);
-                            pActiveObject->m_vQuadListTex.push_back(tIndTex[1] - 1);
-                            pActiveObject->m_vQuadListTex.push_back(tIndTex[2] - 1);
-                            pActiveObject->m_vQuadListTex.push_back(tIndTex[3] - 1);
-                        }
+						//pActiveObject->m_vTriangleList.push_back(atoi(lstIndexParams[iCount].c_str()) - 1);
+						iCount++;
 					}
+
 
 				}
 			}
-			else if(strCommand == strMtrl)
+			else if(lstParams.size() == 4)
 			{
-				if(lstParams.size())
+				unsigned int tInd[4];
+				unsigned int tIndTex[4];
+
+				int counter = 0;
+				for(; PIter != lstParams.end(); PIter++)
 				{
-					pActiveObject->m_strMaterialName = *lstParams.begin();
-					pActiveObject->m_iMaterialIndex = get_material_index_by_name(pActiveObject->m_strMaterialName.c_str());
+					string tStr = replace_chars((*PIter), '/', ' ');
+					ParameterList	lstIndexParams;
+					split_parameters(&lstIndexParams, tStr.c_str());
+					tInd[counter] = atoi((*lstIndexParams.begin()).c_str());
+					uint iCount = 0;
+					if(bGotPosition)
+					{
+						tInd[counter] = atoi(lstIndexParams[iCount].c_str());
+						iCount++;
+					}
+					if(bGotTexture && iCount < lstIndexParams.size())
+					{
+						tIndTex[counter] = atoi(lstIndexParams[iCount].c_str());
+						iCount++;
+					}
+					if(bGotNormal && iCount < lstIndexParams.size())
+					{
+						//iIndNorm
+						iCount++;
+					}
+					counter++;
 				}
+				if(convertQuadsToTris)
+				{
+					if(bGotPosition)
+					{
+						pActiveObject->m_vTriangleList.push_back(tInd[0] - 1);
+						pActiveObject->m_vTriangleList.push_back(tInd[1] - 1);
+						pActiveObject->m_vTriangleList.push_back(tInd[2] - 1);
+						pActiveObject->m_vTriangleList.push_back(tInd[0] - 1);
+						pActiveObject->m_vTriangleList.push_back(tInd[2] - 1);
+						pActiveObject->m_vTriangleList.push_back(tInd[3] - 1);
+					}
+					if(bGotTexture)
+					{
+						pActiveObject->m_vTriangleListTex.push_back(tIndTex[0] - 1);
+						pActiveObject->m_vTriangleListTex.push_back(tIndTex[1] - 1);
+						pActiveObject->m_vTriangleListTex.push_back(tIndTex[2] - 1);
+						pActiveObject->m_vTriangleListTex.push_back(tIndTex[0] - 1);
+						pActiveObject->m_vTriangleListTex.push_back(tIndTex[2] - 1);
+						pActiveObject->m_vTriangleListTex.push_back(tIndTex[3] - 1);
+					}
+				}
+				else
+				{
+					if(bGotPosition)
+					{
+						pActiveObject->m_vQuadList.push_back(tInd[0] - 1);
+						pActiveObject->m_vQuadList.push_back(tInd[1] - 1);
+						pActiveObject->m_vQuadList.push_back(tInd[2] - 1);
+						pActiveObject->m_vQuadList.push_back(tInd[3] - 1);
+					}
+					if(bGotTexture)
+					{
+						pActiveObject->m_vQuadListTex.push_back(tIndTex[0] - 1);
+						pActiveObject->m_vQuadListTex.push_back(tIndTex[1] - 1);
+						pActiveObject->m_vQuadListTex.push_back(tIndTex[2] - 1);
+						pActiveObject->m_vQuadListTex.push_back(tIndTex[3] - 1);
+					}
+				}
+
+			}
+		}
+		else if(strCommand == strMtrl)
+		{
+			if(!pActiveObject){
+				pActiveObject = new LoaderObj::Object;
+				pActiveObject->m_strName = "default";
+				pActiveObject->m_iMaterialIndex = -1;
+			}
+
+			if(lstParams.size())
+			{
+				pActiveObject->m_strMaterialName = *lstParams.begin();
+				pActiveObject->m_iMaterialIndex = get_material_index_by_name(pActiveObject->m_strMaterialName.c_str());
 			}
 		}
 	}
