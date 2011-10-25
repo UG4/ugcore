@@ -170,7 +170,7 @@ class AlgebraDebugWriter
 		//	check
 			if(m_pPositions == NULL)
 			{
-				UG_LOG("ERROR in 'AlgebraDebugWriter::write_vector':"
+				UG_LOG("ERROR in 'AlgebraDebugWriter::write_matrix':"
 						" No reference positions set.\n");
 				return false;
 			}
@@ -178,7 +178,7 @@ class AlgebraDebugWriter
 		//	check number of positions
 			if(mat.num_rows() != (size_t)m_numPos || mat.num_cols() != (size_t)m_numPos)
 			{
-				UG_LOG("ERROR in 'AlgebraDebugWriter::write_vector':"
+				UG_LOG("ERROR in 'AlgebraDebugWriter::write_matrix':"
 						" Number of positions does not match.\n");
 				return false;
 			}
