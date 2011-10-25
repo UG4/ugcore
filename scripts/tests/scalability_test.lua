@@ -451,7 +451,7 @@ b = GridFunction(approxSpace)
 -- debug writer
 dbgWriter = GridFunctionDebugWriter()
 dbgWriter:set_reference_grid_function(u)
-dbgWriter:set_vtk_output(true) -- TMP 06102011, war false
+dbgWriter:set_vtk_output(false)
 
 -- create algebraic Preconditioner
 jac = Jacobi()
@@ -541,26 +541,47 @@ bicgstabSolver:set_convergence_check(convCheck)
 solver = linSolver
 --solver = cgSolver
 
+-- Create new name of logfile (will be used in 'scalability_test.lua', 'GetLogAssistant:rename_log_file()')
+logpostfix    = ".txt" -- ".log"
+
+-- concatenate general part of logfile name
+str_problem = str_problem .. "-" .. dim .. "d"
+logfileName_tmp = str_problem .. "_" .. str_startgrid
+
+str_refs = "refs-" .. numPreRefs .. "-" .. numRefs
+logfileName_tmp = logfileName_tmp .. "_" .. str_refs
+
 if lsType == "feti" then
 	print("Loading FETI solver setup ...")
 	ug_load_script("setup_fetisolver.lua")
 
-	solver, logfileName = SetupFETISolver(str_problem,str_startgrid,
+	solver, logfileName = SetupFETISolver(str_problem,
 					      dim,
 					      lsMaxIter,
 					      numProcs,
 					      activateDbgWriter,
-					      dbgWriter,
-					      verbosity, logfileName)
+					      verbosity, logfileName_tmp)
 
 elseif lsType == "hlib" then
 	print("Loading HLIB solver setup ...")
 	ug_load_script("setup_hlibsolver.lua")
-	solver = SetupHLIBSolver(lsMaxIter,
+	solver = SetupHLIBSolver(str_problem,
+				 dim,
+				 lsMaxIter,
 				 activateDbgWriter,
 				 dbgWriter,
 				 verbosity)
+
+	-- maybe one would like to improve naming in this case ...
+	logfileName = logfileName_tmp .. "_" .. lsType
+else
+	-- maybe one would like to improve naming in this case ...
+	logfileName = logfileName_tmp .. "_" .. lsType
 end
+
+str_pe = "pe-" .. numProcs
+logfileName = logfileName .. "_" .. str_pe
+logfileName = logfileName .. logpostfix
 
 --------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h',
@@ -602,16 +623,16 @@ if lsType == "feti" then
 		print("# Testing FETI layouts ...")
 		solver:test_layouts(false) -- 'true' prints indices
 	end
-	if renameLogfileAfterRun then
-		print("Renaming logfile (name built in 'setup_fetisolver.lua') to '" .. logfileName .. "' ...")
-		if GetLogAssistant():rename_log_file(logfileName) == true then
-			print(".. done!")
-		else
-			print(".. could not rename - no logfile open! Try again with '-logtofile <name>'!")
-		end
-	end
 end
 
+if renameLogfileAfterRun > 0 then
+	print("Renaming logfile (name built in 'setup_fetisolver.lua') to '" .. logfileName .. "' ...")
+	if GetLogAssistant():rename_log_file(logfileName) == true then
+		print(".. done!")
+	else
+		print(".. could not rename - no logfile open! Try again with '-logtofile <name>'!")
+	end
+end
 --------------------------------------------------------------------------------
 --  Output of computed solution
 --------------------------------------------------------------------------------

@@ -48,7 +48,9 @@ salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 5
 ----------------------------------------------------------
 -- function 'SetupHLIBSolver()':
 ----------------------------------------------------------
-function SetupHLIBSolver(linMaxIterations,
+function SetupHLIBSolver(str_problem,
+			 dim,
+			 linMaxIterations,
 			 activateDbgWriter,
 			 dbgWriter,
 			 verbosity)

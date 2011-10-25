@@ -8,11 +8,10 @@
 --   Provides: Function which set up a FETI solver object.
 --
 --          Input parameters:
---          'problem', 'startgrid', -- two strings only for (re)naming of logfile
+--          'str_problem' -- string describing problem (not yet used)
 --          'dim',
 --          'linMaxIterations'
 --          'numProcs'
---          'linMaxIterations',
 --          'activateDbgWriter', 'verbosity', logfileName.
 --          Return value:
 --          Reference of the fully configured FETI solver object.
@@ -21,13 +20,11 @@
 --	1. In the calling LUA script:
 --
 --	ug_load_script("setup_fetisolver.lua")
---	solver = SetupFETISolver(problem,
---				 startgrid,
+--	solver = SetupFETISolver(str_problem,
 --				 dim
 --				 linMaxIterations,
 --				 numProcs,
 --				 activateDbgWriter,
---				 dbgWriter,
 --				 verbosity, logfileName)
 --
 --      where 'solver' is the solver object which is called by
@@ -168,12 +165,11 @@ grep "Could not solve Dirichlet problem " ug4_laplace_feti.204720.out_feti-sd1_8
 ----------------------------------------------------------
 -- function 'SetupFETISolver()' (first parameters only for (re)naming of logfile):
 ----------------------------------------------------------
-function SetupFETISolver(problem,startgrid,
+function SetupFETISolver(str_problem,
 			 dim,
 			 linMaxIterations,
 			 numProcs,
 			 activateDbgWriter,
-			 dbgWriter,
 			 verbosity, logfileName)
 
 	print("    'setup_fetisolver.lua': Setting up FETI solver...")
@@ -210,6 +206,8 @@ function SetupFETISolver(problem,startgrid,
         local fetiConvCheck
 	local linAbsLimit  = 1e-7
 	local linReduction = 1e-16
+
+        local fetidbgWriter
 
         local fetiSolver
 
@@ -377,6 +375,8 @@ function SetupFETISolver(problem,startgrid,
 	
 	elseif neumannProblemSolverType == "rsamg" then
 
+print ("TMP: RSAMG as Neumann problem solver!")
+
 		maxBase = util.GetParamNumber("-maxBase", 1000) -- TODO (maybe): make 'maxBase' different for "np solver" and "dp solver"!
 			
 		npRSAMG = RSAMGPreconditioner()
@@ -395,7 +395,7 @@ function SetupFETISolver(problem,startgrid,
 		npRSAMG:set_max_fill_before_base(0.7)
 		npRSAMG:set_fsmoothing(true)
 		npRSAMG:set_epsilon_truncation(0)		
-		npRSAMG:tostring()	
+		npRSAMG:tostring()
 		
 		neumannSolver = LinearSolver()
 		neumannSolver:set_preconditioner(npRSAMG)
@@ -499,7 +499,13 @@ function SetupFETISolver(problem,startgrid,
 	fetiSolver:set_convergence_check(fetiConvCheck)
 
 	if activateDbgWriter >= 1 then
-		fetiSolver:set_debug(dbgWriter)
+		-- debug writer
+		fetidbgWriter = GridFunctionDebugWriter()
+		fetidbgWriter:set_reference_grid_function(u)
+		fetidbgWriter:set_vtk_output(true)
+		fetidbgWriter:set_print_raw_data(true) -- if 'true' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI
+
+		fetiSolver:set_debug(fetidbgWriter)
 	end
 	
 	fetiSolver:set_test_one_to_many_layouts(true)
@@ -513,49 +519,17 @@ function SetupFETISolver(problem,startgrid,
 ]]
 
 	----------------------------------------------------------
-	-- Create new name of logfile (will be used in 'scalability_test.lua', 'GetLogAssistant:rename_log_file()')
-	--LOGPOSTFIX    = ".log"
-	logpostfix    = ".txt"
-	uscore        = "_"
-	score         = "-"
-	times         = "x"
-	space         = " "
-	slash         = "/"
-	colon         = ":"
-	doublequote   = '"'
-	comma         = ","
-
-	str_refs      = "refs"
+-- add feti specific name parts to new logfile name
 	str_spsolvers = "spss" -- "sub problem solvers"
-	str_nppsd     = "nppsd"
-	str_pe        = "pe"
-	str_d         = "d"
+	str_nppsd     = "nppsd" -- "nun of processes per Subdomain"
 
-	str_problem = problem
-	str_startgrid = startgrid
+	str_nppsd = str_nppsd .. "-" .. numProcsPerSubdomain
+	logfileName = logfileName .. "_" .. lsType .. "_" .. str_nppsd
 
-	str_lstype  = lsType
-
-
-	-- concatenate logfile name
-	str_problem = str_problem .. score .. dim .. str_d
-	logfileName = str_problem .. uscore .. str_startgrid
-
-	str_refs = str_refs .. score .. numPreRefs .. score .. numRefs
-	logfileName = logfileName .. uscore .. str_refs
-
-	str_nppsd = str_nppsd .. score .. numProcsPerSubdomain
-	logfileName = logfileName .. uscore .. str_lstype .. uscore .. str_nppsd
-
-	str_spsolvers = str_spsolvers .. score .. dirichletProblemSolverType
-                                      .. score .. neumannProblemSolverType
-                                      .. score .. coarseProblemSolverType
-	logfileName = logfileName .. uscore .. str_spsolvers
-
-	str_pe = str_pe .. score .. numProcs
-	logfileName = logfileName .. uscore .. str_pe
-
-	logfileName = logfileName .. logpostfix
+	str_spsolvers = str_spsolvers .. "-" .. dirichletProblemSolverType
+                                      .. "-" .. neumannProblemSolverType
+                                      .. "-" .. coarseProblemSolverType
+	logfileName = logfileName .. "_" .. str_spsolvers
 
 	print("    'setup_fetisolver.lua': returning FETI solver 'fetiSolver', ready for application!")
 	return fetiSolver, logfileName
