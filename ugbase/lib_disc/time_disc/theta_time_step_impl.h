@@ -20,7 +20,7 @@ prepare_step(VectorTimeSeries<vector_type>& prevSol,
 {
 //	perform checks
 	if(prevSol.size() < m_prevSteps)
-		UG_THROW_FATAL("ThetaTimeDiscretization::prepare_step:"
+		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must at least "<<m_prevSteps<<".\n");
 
 //	remember old values
@@ -29,8 +29,10 @@ prepare_step(VectorTimeSeries<vector_type>& prevSol,
 //	remember time step size
 	m_dt = dt;
 
-//	compute future time
-	m_futureTime = m_dt + m_pPrevSol->time(0);
+//	update scalings
+	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
+	                              m_dt, m_pPrevSol->time(0),
+	                              *m_pPrevSol);
 }
 
 template <typename TDoFDistribution, typename TAlgebra >
@@ -46,9 +48,6 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 //			   Solution list afterwards, such that nothing happens to u
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
 
-//	update scalings
-	update_scaling(m_dt);
-
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	J.resize(0,0);
@@ -58,7 +57,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 //	assemble jacobian using current iterate
 	try{
 		this->m_rDomDisc.assemble_jacobian(J, *m_pPrevSol, m_vScaleStiff[0], dd);
-	}UG_CATCH_THROW("ThetaTimeDiscretization: Cannot assemble jacobian.");
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
 
 //	pop unknown solution to solution time series
 	m_pPrevSol->remove_latest();
@@ -77,9 +76,6 @@ assemble_defect(vector_type& d, const vector_type& u,
 //			   Solution list afterwards, such that nothing happens to u
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
 
-//	update scalings
-	update_scaling(m_dt);
-
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
 	d.resize(numIndex);
@@ -90,7 +86,7 @@ assemble_defect(vector_type& d, const vector_type& u,
 // 	future solution part
 	try{
 	this->m_rDomDisc.assemble_defect(d, *m_pPrevSol, m_vScaleMass, m_vScaleStiff, dd);
-	}UG_CATCH_THROW("ThetaTimeDiscretization: Cannot assemble defect.");
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble defect.");
 
 //	pop unknown solution to solution time series
 	m_pPrevSol->remove_latest();
@@ -104,7 +100,7 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd)
 //	assemble solution
 	try{
 	this->m_rDomDisc.adjust_solution(u, m_futureTime, dd);
-	}UG_CATCH_THROW("ThetaTimeDiscretization: Cannot adjust solution.");
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust solution.");
 }
 
 template <typename TDoFDistribution, typename TAlgebra >

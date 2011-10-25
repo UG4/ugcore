@@ -328,7 +328,7 @@ domainDisc:add(dirichletBnd)
 -- stepping scheme gets passed the domain discretization and will assemble
 -- mass- and stiffness parts using the domain disc, then adding them in a
 -- weighted way.
-timeDisc = ThetaTimeDiscretization(domainDisc)
+timeDisc = ThetaTimeStep(domainDisc)
 timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 
 

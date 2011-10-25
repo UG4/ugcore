@@ -23,7 +23,7 @@ numRefs    = util.GetParamNumber("-numRefs",    2)
 -- choose number of time steps
 NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 10)
 dt =  util.GetParamNumber("-dt", 1)
-timeStepping = util.GetParam("-timeStepping", "theta")
+timeScheme = util.GetParam("-scheme", "Alexander")
 maxOrder = util.GetParamNumber("-maxOrder", 2)
 
 -- choose algebra
@@ -80,11 +80,17 @@ domainDisc = DomainDiscretization(approxSpace)
 domainDisc:add(elemDisc)
 domainDisc:add(dirichletBND)
 
-if timeStepping == "theta" then 
-timeDisc = ThetaTimeDiscretization(domainDisc)
+if timeScheme == "Theta" then 
+timeDisc = ThetaTimeStep(domainDisc)
 timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 
-elseif timeStepping == "bdf" then
+elseif timeScheme == "Alexander" then 
+timeDisc = ThetaTimeStep(domainDisc, "Alexander")
+
+elseif timeScheme == "FracStep" then 
+timeDisc = ThetaTimeStep(domainDisc, "FracStep")
+
+elseif timeScheme == "bdf" then
 timeDisc = BDF(domainDisc)
 timeDisc:set_order(1)
 
@@ -181,36 +187,44 @@ for step = 1, NumTimeSteps + maxOrder - 1 do
 		do_dt = dt
 	end
 	
-	-- setup time Disc for old solutions and timestep
-	timeDisc:prepare_step(solTimeSeries, do_dt)
-	
-	-- prepare newton solver
-	if newtonSolver:prepare(u) == false then 
-		print ("Newton solver failed at step "..step.."."); exit(); 
-	end 
-	
-	-- apply newton solver
-	if newtonSolver:apply(u) == false then 
-		print ("Newton solver failed at step "..step.."."); exit(); 
-	end 
+	for stage = 1, timeDisc:num_stages() do
+		print("      +++ STAGE " .. stage .. " BEGIN ++++++")
 
-	-- update new time
-	time = solTimeSeries:time(0) + do_dt
+		timeDisc:set_stage(stage)
+
+		-- setup time Disc for old solutions and timestep
+		timeDisc:prepare_step(solTimeSeries, do_dt)
+		
+		-- prepare newton solver
+		if newtonSolver:prepare(u) == false then 
+			print ("Newton solver failed at step "..step.."."); exit(); 
+		end 
+		
+		-- apply newton solver
+		if newtonSolver:apply(u) == false then 
+			print ("Newton solver failed at step "..step.."."); exit(); 
+		end 
+	
+		-- update new time
+		time = timeDisc:future_time()
+		
+		-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
+		if timeScheme == "bdf" and step < maxOrder then
+			print("Increasing order to "..step+1)
+			timeDisc:set_order(step+1)
+			uNew = u:clone()
+			solTimeSeries:push(uNew, time)
+		else 
+			oldestSol = solTimeSeries:oldest()
+			VecScaleAssign(oldestSol, 1.0, u)
+			solTimeSeries:push_discard_oldest(oldestSol, time)
+		end
+
+		print("      +++ STAGE " .. stage .. " END   ++++++")
+	end
 	
 	-- plot solution
 	out:print(filename, u, step, time)
-	
-	-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
-	if timeStepping == "bdf" and step < maxOrder then
-		print("Increasing order to "..step+1)
-		timeDisc:set_order(step+1)
-		uNew = u:clone()
-		solTimeSeries:push(uNew, time)
-	else 
-		oldestSol = solTimeSeries:oldest()
-		VecScaleAssign(oldestSol, 1.0, u)
-		solTimeSeries:push_discard_oldest(oldestSol, time)
-	end
 
 	print("++++++ TIMESTEP " .. step .. "  END ++++++");
 end

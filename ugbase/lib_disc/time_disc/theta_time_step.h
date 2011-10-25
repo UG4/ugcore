@@ -10,6 +10,7 @@
 
 // extern libraries
 #include <deque>
+#include <cmath>
 
 // other ug libraries
 #include "common/common.h"
@@ -54,11 +55,13 @@ class MultiStepTimeDiscretization
 		{}
 
 	/// \copydoc ITimeDiscretization::num_prev_steps()
-		size_t num_prev_steps() {return m_prevSteps;}
+		virtual size_t num_prev_steps() const {return m_prevSteps;}
 
 	///	\copydoc ITimeDiscretization::prepare_step()
 		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
 		                          number dt);
+
+		virtual number future_time() const {return m_futureTime;}
 
 	public:
 		void assemble_jacobian(matrix_type& J, const vector_type& u,
@@ -74,8 +77,11 @@ class MultiStepTimeDiscretization
 		                       const dof_distribution_type& dd);
 
 	protected:
-	///	updates the scaling factors
-		virtual void update_scaling(number dt) = 0;
+	///	updates the scaling factors, returns the future time
+		virtual number update_scaling(std::vector<number>& vSM,
+		                              std::vector<number>& vSA,
+		                              number dt, number currentTime,
+		                              const VectorTimeSeries<vector_type>& prevSol) = 0;
 
 		size_t m_prevSteps;					///< number of previous steps needed.
 		std::vector<number> m_vScaleMass;	///< Scaling for mass part
@@ -102,7 +108,7 @@ class MultiStepTimeDiscretization
  */
 template <	typename TDoFDistribution,
 			typename TAlgebra>
-class ThetaTimeDiscretization
+class ThetaTimeStep
 	: public MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>
 {
 	public:
@@ -112,37 +118,117 @@ class ThetaTimeDiscretization
 
 	public:
 	/// default constructor (implicit Euler)
-		ThetaTimeDiscretization(domain_discretization_type& sd)
-			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd)
+		ThetaTimeStep(domain_discretization_type& sd)
+			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			  m_stage(1), m_scheme("Theta")
 		{
 			set_theta(1.0);
 			this->m_prevSteps = 1;
 		}
 
 	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
-		ThetaTimeDiscretization(domain_discretization_type& sd, number theta)
-			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd)
+		ThetaTimeStep(domain_discretization_type& sd, number theta)
+			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			  m_stage(1), m_scheme("Theta")
 		{
 			set_theta(theta);
 			this->m_prevSteps = 1;
 		}
 
+	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
+		ThetaTimeStep(domain_discretization_type& sd, const char* scheme)
+			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			  m_stage(1), m_scheme(scheme)
+		{
+			set_theta(1.0);
+			this->m_prevSteps = 1;
+		}
+
+	///	sets the scheme
+		void set_scheme(const char* scheme) {m_scheme = scheme;}
+
+	///	returns number of stages
+		virtual size_t num_stages() const
+		{
+			if		(m_scheme == "Theta") 		return 1;
+			else if (m_scheme == "Alexander")	return 2;
+			else if	(m_scheme == "FracStep") 	return 3;
+			else UG_THROW_FATAL("Step Scheme not recognized.");
+		}
+
+	///	sets the stage
+		virtual void set_stage(size_t stage) {m_stage = stage;}
+
 	///	sets the theta value
 		void set_theta(number theta) {m_theta = theta;}
 
 	protected:
-		virtual void update_scaling(number dt)
+		virtual number update_scaling(std::vector<number>& vSM,
+		                              std::vector<number>& vSA,
+		                              number dt, number currentTime,
+		                              const VectorTimeSeries<typename TAlgebra::vector_type>& prevSol)
 		{
-			this->m_vScaleMass.resize(2);
-			this->m_vScaleMass[0] = 1.;
-			this->m_vScaleMass[1] = -1.;
+		//	resize scaling factors
+			vSM.resize(2);
+			vSM[0] = 1.;
+			vSM[1] = -1.;
 
-			this->m_vScaleStiff.resize(2);
-			this->m_vScaleStiff[0] = (m_theta) * dt;
-			this->m_vScaleStiff[1] = (1.- m_theta) * dt;
+			if(m_scheme == "Theta")
+			{
+				vSA.resize(2);
+				vSA[0] = (m_theta) * dt;
+				vSA[1] = (1.- m_theta) * dt;
+				return currentTime + dt;
+			}
+			else if(m_scheme == "Alexander")
+			{
+				vSA.resize(2);
+				const number gamma = 1 - 1. / sqrt(2);
+				switch(m_stage)
+				{
+					case 1:
+						vSA[0] = 1 * gamma * dt;
+						vSA[1] = 0;
+						return currentTime + gamma * dt;
+					case 2:
+						vSA[0] = gamma * dt;
+						vSA[1] = (1.- 2*gamma) * dt;
+						return currentTime + (1 - gamma) * dt;
+					default:
+						UG_THROW_FATAL("Alexander scheme has only 2 stages")
+				}
+			}
+			else if(m_scheme == "FracStep")
+			{
+				vSA.resize(2);
+				switch(m_stage)
+				{
+					case 1:
+						vSA[0] = (2.-sqrt(2.)) 		* (1-1./sqrt(2.)) * dt;
+						vSA[1] = (1.- (2.-sqrt(2.)))* (1-1./sqrt(2.)) * dt;
+						return currentTime + (1-1./sqrt(2.)) * dt;
+					case 2:
+						vSA[0] = (sqrt(2.)-1) 		* (sqrt(2.)-1) * dt;
+						vSA[1] = (1.- (sqrt(2.)-1)) * (sqrt(2.)-1) * dt;
+						return currentTime + (sqrt(2.)-1) * dt;
+					case 3:
+						vSA[0] = (2.-sqrt(2.)) 		* (1-1./sqrt(2.)) * dt;
+						vSA[1] = (1.- (2.-sqrt(2.)))* (1-1./sqrt(2.)) * dt;
+						return currentTime + (1-1./sqrt(2.)) * dt;
+					default:
+						UG_THROW_FATAL("Alexander scheme has only 2 stages")
+				}
+			}
+			else
+				UG_THROW_FATAL("Unknown Multi-Stage Theta Scheme: "<< m_scheme<<".");
+
 		}
 
 		number m_theta;
+
+		size_t m_stage;
+
+		std::string m_scheme;
 };
 
 
@@ -174,26 +260,37 @@ class BDF
 	///	sets the theta value
 		void set_order(size_t order) {m_order = order; this->m_prevSteps = order;}
 
-	protected:
-		virtual void update_scaling(number dt)
-		{
-		//	get reference to scaling factors
-			std::vector<number>& vSM = this->m_vScaleMass;
-			std::vector<number>& vSA = this->m_vScaleStiff;
+	///	returns the number of stages
+		virtual size_t num_stages() const {return 1;}
 
+	///	sets the stage
+		virtual void set_stage(size_t stage)
+		{
+			if(stage!=1) UG_THROW_FATAL("BDF has only one stage.");
+		}
+
+	protected:
+		virtual number update_scaling(std::vector<number>& vSM,
+		                              std::vector<number>& vSA,
+		                              number dt, number currentTime,
+		                              const VectorTimeSeries<typename TAlgebra::vector_type>& prevSol)
+		{
 		//	resize scaling factors
 			vSM.resize(m_order+1);
 			vSA.resize(m_order+1);
 
+		//	future time
+			const number futureTime = currentTime + dt;
+
 		//	get time points
-			VectorTimeSeries<typename TAlgebra::vector_type>& prevSol= *this->m_pPrevSol;
-			if(prevSol.size() < m_order+1)
+			if(prevSol.size() < m_order)
 				UG_THROW_FATAL("BDF("<<m_order<<") needs at least "<< m_order <<
-				               " previous solutions, but only "<<prevSol.size()-1<<"passed.");
+				               " previous solutions, but only "<<prevSol.size()<<"passed.");
 
 			std::vector<number> vTimePoint(m_order+1);
-			for(size_t i = 0; i <= m_order; ++i)
-				vTimePoint[i] = prevSol.time(i);
+			vTimePoint[0] = futureTime;
+			for(size_t i = 1; i <= m_order; ++i)
+				vTimePoint[i] = prevSol.time(i-1);
 
 		//	create Lagrange Polynoms with given time steps
 			for(size_t i = 0; i <= m_order; ++i)
@@ -215,6 +312,8 @@ class BDF
 
 		//	scale first s_m to 1.0
 			for(size_t i = 0; i <= m_order; ++i) vSM[i] *= scale;
+
+			return futureTime;
 		}
 
 		number m_order;

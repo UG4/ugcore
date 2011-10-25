@@ -228,7 +228,7 @@ domainDisc:add(innerDisc)
 -------------------------------------------
 
 -- create time discretization
-timeDisc = ThetaTimeDiscretization(domainDisc)
+timeDisc = ThetaTimeStep(domainDisc)
 timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 
 -- create operator from discretization

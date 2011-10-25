@@ -75,8 +75,17 @@ class ITimeDiscretization
 		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
 		                          number dt) = 0;
 
+	///	returns the future time point (i.e. the one that will be computed)
+		virtual number future_time() const = 0;
+
 	/// returns number of previous time steps needed
-		virtual size_t num_prev_steps() = 0;
+		virtual size_t num_prev_steps() const = 0;
+
+	///	returns the number of stages
+		virtual size_t num_stages() const = 0;
+
+	///	sets the stage
+		virtual void set_stage(size_t stage) = 0;
 
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce)
