@@ -82,7 +82,7 @@ domainDisc:add(dirichletBND)
 
 if timeStepping == "theta" then 
 timeDisc = ThetaTimeDiscretization(domainDisc)
-timeDisc:set_theta(0.0) -- 0.0 is backward euler
+timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 
 elseif timeStepping == "bdf" then
 timeDisc = BDF(domainDisc)

@@ -111,7 +111,7 @@ class ThetaTimeDiscretization
 			domain_discretization_type;
 
 	public:
-	/// constructor
+	/// default constructor (implicit Euler)
 		ThetaTimeDiscretization(domain_discretization_type& sd)
 			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd)
 		{
@@ -119,7 +119,7 @@ class ThetaTimeDiscretization
 			this->m_prevSteps = 1;
 		}
 
-	/// theta = 0 -> Backward Euler
+	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
 		ThetaTimeDiscretization(domain_discretization_type& sd, number theta)
 			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd)
 		{
@@ -138,8 +138,8 @@ class ThetaTimeDiscretization
 			this->m_vScaleMass[1] = -1.;
 
 			this->m_vScaleStiff.resize(2);
-			this->m_vScaleStiff[0] = (1.- m_theta) * dt;
-			this->m_vScaleStiff[1] = m_theta * dt;
+			this->m_vScaleStiff[0] = (m_theta) * dt;
+			this->m_vScaleStiff[1] = (1.- m_theta) * dt;
 		}
 
 		number m_theta;

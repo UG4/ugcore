@@ -229,7 +229,7 @@ domainDisc:add(innerDisc)
 
 -- create time discretization
 timeDisc = ThetaTimeDiscretization(domainDisc)
-timeDisc:set_theta(0.0) -- 0.0 is backward euler
+timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 
 -- create operator from discretization
 op = AssembledOperator()

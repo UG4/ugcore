@@ -329,7 +329,7 @@ domainDisc:add(dirichletBnd)
 -- mass- and stiffness parts using the domain disc, then adding them in a
 -- weighted way.
 timeDisc = ThetaTimeDiscretization(domainDisc)
-timeDisc:set_theta(0.0) -- 0.0 is backward euler
+timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 
 
 -- Now we create an operator from the time discretization. We use the 
