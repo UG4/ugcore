@@ -284,6 +284,9 @@ class GridFunctionDebugWriter
 	//	sets if writing to conn viewer
 		void set_conn_viewer_output(bool b) {bConnViewerOut = b;}
 
+	//	sets if printing "raw" data (no "make consistent" before printing)
+		void set_print_raw_data(bool b) {m_bPrintRawData = b;}
+
 	///	write vector
 		virtual bool write_vector(const vector_type& vec,
 		                          const char* filename)
@@ -389,7 +392,7 @@ class GridFunctionDebugWriter
 			VTKOutput<TGridFunction> out;
 
 		//	write
-			return out.print(filename, vtkFunc);
+			return out.print(filename, vtkFunc, m_bPrintRawData);
 		}
 
 	protected:
@@ -401,6 +404,9 @@ class GridFunctionDebugWriter
 
 	//	flag if write to vtk
 		bool bVTKOut;
+
+	//	flag if print "raw" data (no "make consistent" before printing)
+		bool m_bPrintRawData;
 };
 
 template <typename TGridFunction>
