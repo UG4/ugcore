@@ -65,6 +65,10 @@ endif("${SHELLTYPE}" STREQUAL "linenoise")
 message(STATUS)
 
 remove_definitions(-DBUILDING_DYNAMIC_LIBRARY)
+if(buildDynamicLibrary)
+	add_definitions(-DIMPORT_DYNAMIC_LIBRARY)
+endif(buildDynamicLibrary)
+
 remove_definitions(-DLUA_BUILD_AS_DLL)
 add_executable(${targetExecutableName} ${srcUGShell})
 

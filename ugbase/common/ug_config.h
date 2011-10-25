@@ -29,7 +29,11 @@
 #ifdef BUILDING_DYNAMIC_LIBRARY
 	#define UG_API EXPORT_IMPL
 #else
-	#define UG_API IMPORT_IMPL
+	#ifdef IMPORTING_DYNAMIC_LIBRARY
+		#define UG_API IMPORT_IMPL
+	#else
+		#define UG_API
+	#endif
 #endif
-
+	
 #endif
