@@ -14,7 +14,7 @@ namespace ug{
 
 template <typename TDoFDistribution, typename TAlgebra >
 void
-ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
+MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
 prepare_step(VectorTimeSeries<vector_type>& prevSol,
              number dt)
 {
@@ -31,14 +31,11 @@ prepare_step(VectorTimeSeries<vector_type>& prevSol,
 
 //	compute future time
 	m_futureTime = m_dt + m_pPrevSol->time(0);
-
-//	update scalings
-	update_scaling(m_dt);
 }
 
 template <typename TDoFDistribution, typename TAlgebra >
 void
-ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
+MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J, const vector_type& u,
                   const dof_distribution_type& dd)
 {
@@ -48,6 +45,9 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 //			   the solution will not be changed there and we pop it from the
 //			   Solution list afterwards, such that nothing happens to u
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
+
+//	update scalings
+	update_scaling(m_dt);
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -66,7 +66,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 
 template <typename TDoFDistribution, typename TAlgebra >
 void
-ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
+MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d, const vector_type& u,
                 const dof_distribution_type& dd)
 {
@@ -76,6 +76,9 @@ assemble_defect(vector_type& d, const vector_type& u,
 //			   the solution will not be changed there and we pop it from the
 //			   Solution list afterwards, such that nothing happens to u
 	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
+
+//	update scalings
+	update_scaling(m_dt);
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd.num_indices();
@@ -95,7 +98,7 @@ assemble_defect(vector_type& d, const vector_type& u,
 
 template <typename TDoFDistribution, typename TAlgebra >
 void
-ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
+MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
 adjust_solution(vector_type& u, const dof_distribution_type& dd)
 {
 //	assemble solution
@@ -106,7 +109,7 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd)
 
 template <typename TDoFDistribution, typename TAlgebra >
 void
-ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
+MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& A, vector_type& b,
                 const dof_distribution_type& dd)
 {

@@ -120,10 +120,22 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		reg.add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(domain_discretization_type&)>("Domain Discretization")
 				.template add_constructor<void (*)(domain_discretization_type&,number)>("Domain Discretization#Theta")
-				.add_method("set_theta", &T::set_theta, "", "Theta (0.0 = Impl; 1.0 = Expl)")
-				.add_method("prepare_step", &T::prepare_step)
-				.add_method("num_prev_steps", &T::num_prev_steps);
+				.add_method("set_theta", &T::set_theta, "", "Theta (0.0 = Impl; 1.0 = Expl)");
 		reg.add_class_to_group(name, "ThetaTimeDiscretization", algDDTag);
+	}
+
+//	BDF
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
+		typedef ITimeDiscretization<TDoFDistribution, TAlgebra> TBase;
+		typedef BDF<TDoFDistribution, TAlgebra> T;
+		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> domain_discretization_type;
+		string name = string("BDF").append(algDDSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+				.template add_constructor<void (*)(domain_discretization_type&)>("Domain Discretization")
+				.template add_constructor<void (*)(domain_discretization_type&,int)>("Domain Discretization#Order")
+				.add_method("set_order", &T::set_order, "", "Order");
+		reg.add_class_to_group(name, "BDF", algDDTag);
 	}
 
 //	AssembledLinearOperator
