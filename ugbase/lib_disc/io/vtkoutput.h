@@ -107,15 +107,17 @@ class VTKOutput{
 	 * \param[in]	time		time point corresponding to timestep
 	 */
 		bool print(const char*  filename, function_type& u,
-		           int step, number time);
+		           int step, number time,
+				   bool bPrintRawData);
 
 	/**
 	 * This function simply calles 'print' using step = -1 to indicate the
 	 * stationary case. It is intended to write time independent data.
 	 */
-		bool print(const char*  filename, function_type& u)
+		bool print(const char*  filename, function_type& u,
+				   bool bPrintRawData)
 		{
-			return print(filename, u, -1, 0.0);
+			return print(filename, u, -1, 0.0, bPrintRawData);
 		}
 
 	/**
@@ -140,7 +142,8 @@ class VTKOutput{
 	 * \param[in]		time			time point of timestep
 	 */
 		bool print_subset(const char* filename, function_type& u,
-		                  int si, int step = -1, number time = 0.0);
+		                  int si, int step = -1, number time = 0.0,
+						  bool bPrintRawData);
 
 	/**
 	 * When a time series has been computed, this function can be used to procduce
