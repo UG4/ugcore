@@ -143,7 +143,7 @@ class VTKOutput{
 	 */
 		bool print_subset(const char* filename, function_type& u,
 		                  int si, int step = -1, number time = 0.0,
-						  bool bPrintRawData);
+						  bool bPrintRawData = true);
 
 	/**
 	 * When a time series has been computed, this function can be used to procduce
