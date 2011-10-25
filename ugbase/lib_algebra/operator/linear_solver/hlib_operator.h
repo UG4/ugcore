@@ -587,11 +587,11 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			if(hlib_lu_inv_accuracy_achieved > m_hlib_accuracy_LU)
 			{
 				//m_bIsExecutable = false;
-				UG_LOG("ERROR: In 'HLIBSolver::init_hlib': "
+				UG_LOG("WARNING: In 'HLIBSolver::init_hlib': "
 					   "Cannot achieve prescribed LU inversion accuracy " <<
 					   m_hlib_accuracy_LU <<
 					   " (only " << hlib_lu_inv_accuracy_achieved << " reached)!\n");
-				return false;
+				//return false;
 			}
 
 			return (true);
