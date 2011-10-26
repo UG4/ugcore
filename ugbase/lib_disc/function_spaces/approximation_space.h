@@ -117,7 +117,8 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 	public:
 	///	Constructor
 		ApproximationSpace(domain_type& domain)
-			: IApproximationSpace<domain_type>(domain), m_bInit(false) {};
+			: IApproximationSpace<domain_type>(domain), m_bInit(false),
+			  m_bLevelDoFInit(false), m_bSurfDoFInit(false) {};
 
 	///	Destructor
 		~ApproximationSpace(){}
@@ -194,6 +195,10 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 	protected:
 	///	Init flag
 		bool m_bInit;
+
+	///	Init flag
+		bool m_bLevelDoFInit;
+		bool m_bSurfDoFInit;
 
 	/// Dof manager used for this Approximation Space
 		dof_manager_type m_MGDoFManager;

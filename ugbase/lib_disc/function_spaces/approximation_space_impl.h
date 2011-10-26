@@ -56,8 +56,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_level_function(s
 	init();
 
 //	enable level dofs
-	if(!m_MGDoFManager.enable_level_indices())
-		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
+	if(!m_bLevelDoFInit){
+		if(!m_MGDoFManager.enable_level_indices()){
+			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
+		}
+		else{
+			m_bLevelDoFInit = true;
+		}
+	}
 
 //	get level dof distribution
 	dof_distribution_type* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
@@ -78,8 +84,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_surface_function
 	init();
 
 //	enable surface dofs
-	if(!m_MGDoFManager.enable_surface_indices())
-		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
+	if(!m_bSurfDoFInit){
+		if(!m_MGDoFManager.enable_surface_indices()){
+			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
+		}
+		else{
+			m_bSurfDoFInit = true;
+		}
+	}
 
 //	get surface dof distribution
 	dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
@@ -100,8 +112,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_surface_dof_distrib
 	init();
 
 //	enable surface dofs
-	if(!m_MGDoFManager.enable_surface_indices())
-		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
+	if(!m_bSurfDoFInit){
+		if(!m_MGDoFManager.enable_surface_indices()){
+			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
+		}
+		else{
+			m_bSurfDoFInit = true;
+		}
+	}
 
 	dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
 
@@ -129,8 +147,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_level_dof_distribut
 	init();
 
 //	enable surface dofs
-	if(!m_MGDoFManager.enable_level_indices())
-		UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
+	if(!m_bLevelDoFInit){
+		if(!m_MGDoFManager.enable_level_indices()){
+			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
+		}
+		else{
+			m_bLevelDoFInit = true;
+		}
+	}
 
 	return *(m_MGDoFManager.get_level_dof_distribution(level));
 }
