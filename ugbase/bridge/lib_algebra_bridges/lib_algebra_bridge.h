@@ -50,12 +50,22 @@ bool RegisterAlgebraClass(Registry& reg, std::string parentGroup)
 		std::stringstream groupString; groupString << parentGroup << "/Algebra";
 		std::string grp = groupString.str();
 
-	//	register
+	//	register for each block type
+#ifdef UG_CPU_1
 		TRegister<CPUAlgebra >::reg(reg, grp);
-//		TRegister<CPUBlockAlgebra<2> >::reg(reg, grp);
+#endif
+#ifdef UG_CPU_2
+		TRegister<CPUBlockAlgebra<2> >::reg(reg, grp);
+#endif
+#ifdef UG_CPU_3
 		TRegister<CPUBlockAlgebra<3> >::reg(reg, grp);
-//		TRegister<CPUBlockAlgebra<4> >::reg(reg, grp);
-//		TRegister<CPUVariableBlockAlgebra>::reg(reg, grp);
+#endif
+#ifdef UG_CPU_4
+		TRegister<CPUBlockAlgebra<4> >::reg(reg, grp);
+#endif
+#ifdef UG_CPU_VAR
+		TRegister<CPUVariableBlockAlgebra>::reg(reg, grp);
+#endif
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

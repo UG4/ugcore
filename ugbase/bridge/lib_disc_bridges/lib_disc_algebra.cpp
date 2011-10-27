@@ -307,11 +307,21 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 bool RegisterLibDisc_Algebra(Registry& reg, string parentGroup)
 {
 	bool bReturn = true;
+#ifdef UG_CPU_1	
 	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUAlgebra>(reg, parentGroup);
-//	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
+#endif
+#ifdef UG_CPU_2
+	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
+#endif
+#ifdef UG_CPU_3
 	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
-//	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
-//	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUVariableBlockAlgebra>(reg, parentGroup);
+#endif
+#ifdef UG_CPU_4
+	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
+#endif
+#ifdef UG_CPU_VAR
+	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUVariableBlockAlgebra>(reg, parentGroup);
+#endif
 
 #ifdef DOF_P1
 	bReturn &= RegisterLibDiscAlgebra__DoFDistribution<P1DoFDistribution>(reg, parentGroup);

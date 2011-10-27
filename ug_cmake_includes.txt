@@ -44,6 +44,11 @@ set(targetLibraryName ug4)
 set(dimOptions "1, 2, 3, ALL")
 set(dimDefault "ALL")
 
+# Values for the CPU option
+#todo: add 1;2, 1;3, 2;3 (problematic since ';' is a list-separator)
+set(cpuOptions "1, 2, 3, 4, ALL")
+set(cpuDefault "1;3")
+
 # Values for the DOF option
 set(dofOptions "GEN, P1")
 set(dofDefault "P1")
@@ -83,6 +88,7 @@ include_directories (${Boost_INCLUDE_DIRS})
 # Their default values are defined in the section below.
 option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
 option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
+option(CPU "Set block sizes for which ug4 is build. Valid options are: "${cpuOptions})
 option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
 
 # the following options too are pseudo cmake-options. However, they should
@@ -117,6 +123,10 @@ if(NOT DIM)
 	set(DIM ${dimDefault})
 endif(NOT DIM)
 
+if(NOT CPU)
+	set(CPU ${cpuDefault})
+endif(NOT CPU)
+
 if(NOT DOF)
 	set(DOF ${dofDefault})
 endif(NOT DOF)
@@ -128,6 +138,7 @@ message(STATUS "")
 message(STATUS "Info: Current options:")
 message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOptions}")")
 message(STATUS "Info: DIM:               "${DIM}" (options are: "${dimOptions}")")
+message(STATUS "Info: CPU:               "${CPU}" (options are: "${cpuOptions}")")
 message(STATUS "Info: DOF:               "${DOF}" (options are: "${dofOptions}")")
 message(STATUS "Info: STATIC:            "${STATIC}" (options are: ON, OFF)")
 message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
@@ -224,6 +235,26 @@ else("${DIM}" STREQUAL "ALL")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
 	endforeach(d)
 endif("${DIM}" STREQUAL "ALL")
+
+########################################
+# CPU
+# The cpu option sets defines for C and C++
+if("${CPU}" STREQUAL "ALL")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3 -DUG_CPU_4 -DUG_CPU_VAR")
+	
+else("${CPU}" STREQUAL "ALL")
+	# CPU is a string of dimensions (e.g. "1;2")
+	# loop dims
+	foreach(d ${CPU})
+		# check if dim is valid
+		if(d GREATER 4 OR d LESS 1)
+			message(FATAL_ERROR "ERROR: Cannot build world dimension ${d}. "
+								"Valid options are: "${cpuOptions})
+		endif(d GREATER 4 OR d LESS 1)
+	
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_${d}")
+	endforeach(d)
+endif("${CPU}" STREQUAL "ALL")
 
 ########################################
 # DoFManager

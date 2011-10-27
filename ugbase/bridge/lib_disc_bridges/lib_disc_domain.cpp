@@ -207,6 +207,8 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 		reg.add_class_to_group(name, "IDiscretizationItem", dimAlgDDTag);
 	}
 
+
+
 //	MarkForRefinement_GradientIndicator
 	{
 		string grp("ug4/Refinement/");
@@ -322,11 +324,21 @@ static bool RegisterLibDiscDomain__Algebra(Registry& reg, string parentGroup)
 bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 {
 	bool bReturn = true;
+#ifdef UG_CPU_1
 	bReturn &= RegisterLibDiscDomain__Algebra<CPUAlgebra>(reg, parentGroup);
-//	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
+#endif
+#ifdef UG_CPU_2
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
+#endif
+#ifdef UG_CPU_3
 	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
-//	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
-//	bReturn &= RegisterLibDiscDomain__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
+#endif
+#ifdef UG_CPU_4
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
+#endif
+#ifdef UG_CPU_VAR
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
+#endif
 	return bReturn;
 }
 
