@@ -24,7 +24,7 @@
 ug_load_script("ug_util.lua")
 
 -- some parameters for renaming of logfiles (in the moment only used for FETI)
-str_problem = "laplace"
+str_problem = "scaltest-laplace"
 str_startgrid = ""
 
 -- output command line arguments
@@ -196,7 +196,6 @@ print("    hRedistStepSize = " .. hRedistStepSize)
 -- Checking for parameters (end)
 --------------------------------------------------------------------------------
 
-
 -- choose algebra
 InitUG(dim, AlgebraType("CPU", 1));
 
@@ -309,7 +308,7 @@ while numDistProcs > 0 do
 	-- Perform post-refine
 	print("Refine Parallel Grid")
 	for i = numCurRefs + 1, maxRefsInThisStep do
-		print( "Refinement step " .. i .. " ...")
+		write( "Refinement step " .. i .. " ...")
 		refiner:refine()
 		print( "  ... done.")
 	end
@@ -367,6 +366,8 @@ end
 --------------------------------------------------------------------------------
 --  Setup User Functions
 --------------------------------------------------------------------------------
+-------------------------------------------
+print ("Setting up Assembling")
 
 function ourRhs2d(x, y, t)
 	local s = 2*math.pi
@@ -499,17 +500,34 @@ end
 	-- Geometric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_base_level(baseLevel) -- variable defining baselevel, set from script
+	gmg:set_base_level(baseLevel) -- variable defining baselevel, set from parameters
 	gmg:set_base_solver(base)
 	gmg:set_parallel_base_solver(isBaseSolverParallel)
 	gmg:set_smoother(jac)
-	gmg:set_cycle_type(1)
-	gmg:set_num_presmooth(3)
-	gmg:set_num_postsmooth(3)
+	gmg_gamma = 1
+	gmg_nu1   = 3
+	gmg_nu2   = 3
+	gmg:set_cycle_type(gmg_gamma)
+	gmg:set_num_presmooth(gmg_nu1)
+	gmg:set_num_postsmooth(gmg_nu2)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
 	if activateDbgWriter >= 1 then
 		gmg:set_debug(dbgWriter)
+	end
+
+-- create AMG ---
+-----------------
+
+	if false then
+	amg = RSAMGPreconditioner()
+	amg:set_nu1(2)
+	amg:set_nu2(2)
+	amg:set_gamma(1)
+	amg:set_presmoother(jac)
+	amg:set_postsmoother(jac)
+	amg:set_base_solver(base)
+	--amg:set_debug(u)
 	end
 
 -- create Convergence Check
@@ -574,14 +592,17 @@ elseif lsType == "hlib" then
 
 	-- maybe one would like to improve naming in this case ...
 	logfileName = logfileName_tmp .. "_" .. lsType
-else
+else -- (lsType == "gmg")
 	-- maybe one would like to improve naming in this case ...
-	logfileName = logfileName_tmp .. "_" .. lsType
+	cycle_type  = "-gamma-" .. gmg_gamma .. "-nu1-" .. gmg_nu1 .. "-nu2-" .. gmg_nu2
+	logfileName = logfileName_tmp .. "_" .. lsType .. cycle_type
 end
 
 str_pe = "pe-" .. numProcs
 logfileName = logfileName .. "_" .. str_pe
 logfileName = logfileName .. logpostfix
+
+print("logfileName = '" .. logfileName .."'")
 
 --------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h',
