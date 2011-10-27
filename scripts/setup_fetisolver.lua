@@ -204,8 +204,8 @@ function SetupFETISolver(str_problem,
 
 	-- Stuff for the FETI-DP solver itself:
         local fetiConvCheck
-	local linAbsLimit  = 1e-7
-	local linReduction = 1e-16
+	local linAbsLimit  = 1e-16 -- before 25102011: 1e-7
+	local linReduction = 1e-7  -- acc. to Klawonn&Rheinbach, 2010; before 25102011: 1e-16
 
         local fetidbgWriter
 
@@ -472,7 +472,7 @@ print ("TMP: RSAMG as Neumann problem solver!")
 	dirichletConvCheck:set_maximum_steps(2000)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
-	dirichletConvCheck:set_verbose_level(true)
+	dirichletConvCheck:set_verbose_level(false)
 	
 	dirichletSolver:set_convergence_check(dirichletConvCheck)
 	
@@ -499,6 +499,7 @@ print ("TMP: RSAMG as Neumann problem solver!")
 	fetiSolver:set_convergence_check(fetiConvCheck)
 
 	if activateDbgWriter >= 1 then
+		print("    Setting debug writer for 'fetiSolver' (raw data)")
 		-- debug writer
 		fetidbgWriter = GridFunctionDebugWriter()
 		fetidbgWriter:set_reference_grid_function(u)
