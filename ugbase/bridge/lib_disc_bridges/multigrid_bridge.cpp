@@ -168,11 +168,21 @@ static bool Register__Algebra(Registry& reg, string parentGroup)
 bool RegisterMultiGrid(Registry& reg, string parentGroup)
 {
 	bool bReturn = true;
-	bReturn &= Register__Algebra<CPUAlgebra>(reg, parentGroup);
-//	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
-	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
-//	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
-//	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
+#ifdef UG_CPU_1
+	bReturn &= Register__Algebra<CPUAlgebra>(*reg, grp);
+#endif
+#ifdef UG_CPU_2
+	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(*reg, grp);
+#endif
+#ifdef UG_CPU_3
+	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(*reg, grp);
+#endif
+#ifdef UG_CPU_4
+	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(*reg, grp);
+#endif
+#ifdef UG_CPU_VAR
+	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(*reg, grp);
+#endif
 	return bReturn;
 }
 

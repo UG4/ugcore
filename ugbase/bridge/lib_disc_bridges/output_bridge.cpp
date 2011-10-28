@@ -154,6 +154,13 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 		reg.add_function("SaveVectorForConnectionViewer",
 						 &SaveVectorForConnectionViewer<function_type>, grp);
 	}
+
+	//	SaveVectorCSV
+	/*{
+		reg.add_function("SaveVectorCSV",
+						 &SaveVectorCSV<function_type>, grp);
+	}*/
+
 }
 
 template <typename TAlgebra, typename TDoFDistribution>
@@ -217,11 +224,21 @@ static bool Register__Algebra(Registry& reg, string parentGroup)
 bool RegisterOutput(Registry& reg, string parentGroup)
 {
 	bool bReturn = true;
-	bReturn &= Register__Algebra<CPUAlgebra>(reg, parentGroup);
-//	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
-	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
-//	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
-//	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
+#ifdef UG_CPU_1
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUAlgebra>(*reg, grp);
+#endif
+#ifdef UG_CPU_2
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<2> >(*reg, grp);
+#endif
+#ifdef UG_CPU_3
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<3> >(*reg, grp);
+#endif
+#ifdef UG_CPU_4
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<4> >(*reg, grp);
+#endif
+#ifdef UG_CPU_VAR
+	bReturn &= RegisterLibDiscDomain__Algebra<CPUVariableBlockAlgebra >(*reg, grp);
+#endif
 	return bReturn;
 }
 
