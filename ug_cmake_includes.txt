@@ -240,7 +240,10 @@ endif("${DIM}" STREQUAL "ALL")
 # CPU
 # The cpu option sets defines for C and C++
 if("${CPU}" STREQUAL "ALL")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3 -DUG_CPU_4 -DUG_CPU_VAR")
+	# todo checks for 4, VAR!
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3")
+	
+	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3 -DUG_CPU_4 -DUG_CPU_VAR")
 	
 else("${CPU}" STREQUAL "ALL")
 	# CPU is a string of dimensions (e.g. "1;2")
