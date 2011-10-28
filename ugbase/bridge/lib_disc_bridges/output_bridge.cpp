@@ -221,23 +221,23 @@ static bool Register__Algebra(Registry& reg, string parentGroup)
 	return bReturn;
 }
 
-bool RegisterOutput(Registry& reg, string parentGroup)
+bool RegisterOutput(Registry& reg, string grp)
 {
 	bool bReturn = true;
 #ifdef UG_CPU_1
-	bReturn &= RegisterLibDiscDomain__Algebra<CPUAlgebra>(*reg, grp);
+	bReturn &= Register__Algebra<CPUAlgebra>(reg, grp);
 #endif
 #ifdef UG_CPU_2
-	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<2> >(*reg, grp);
+	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(reg, grp);
 #endif
 #ifdef UG_CPU_3
-	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<3> >(*reg, grp);
+	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(reg, grp);
 #endif
 #ifdef UG_CPU_4
-	bReturn &= RegisterLibDiscDomain__Algebra<CPUBlockAlgebra<4> >(*reg, grp);
+	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(reg, grp);
 #endif
 #ifdef UG_CPU_VAR
-	bReturn &= RegisterLibDiscDomain__Algebra<CPUVariableBlockAlgebra >(*reg, grp);
+	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(reg, grp);
 #endif
 	return bReturn;
 }
