@@ -63,6 +63,16 @@ class GridVisualization
 	 * to re-retrieve those arrays by calls to the appropriate methods.*/
 		void update_visuals();
 
+
+	///	returns the number of vertices
+		int num_vertices();
+
+	///	returns the array of vertex positions.
+	/**	The returned array contains num_vertices() * 3 entries. Three consecutive
+	 * entries represent the x, y and z coordinate of one vertex (xyzxyzxyz...)*/
+		const TNumber* vertex_positions();
+
+
 	///	returns the number of visuals
 		int num_visuals();
 
@@ -71,14 +81,6 @@ class GridVisualization
 
 	///	returns an array of 4 numbers, describing the color of the specified visual (rgba).
 		const TNumber* visual_color(int visInd);
-
-	///	returns the number of vertices for the specified visual
-		int num_vertices(int visInd);
-
-	///	returns the array of vertex positions for the specified visual.
-	/**	The returned array contains num_vertices() * 3 entries. Three consecutive
-	 * entries represent the x, y and z coordinate of one vertex (xyzxyzxyz...)*/
-		const TNumber* vertex_positions(int visInd);
 
 	///	returns an array of face normals for the specified visual
 	/**	The returned array contains num_faces() * 3 entries. Three consecutive
@@ -144,12 +146,20 @@ class GridVisualization
 		std::vector<TNumber>	m_vrtPositions;
 		std::vector<SPVisual>	m_visuals;
 
-		TAVrtPos				m_aVrtPos;
+
+		AInt		m_aVrtInd;
+		TAVrtPos	m_aVrtPos;
+		AVector3	m_aNormal;
+
+		Grid::VertexAttachmentAccessor<AInt>		m_aaIndVRT; ///< indices the first coordinate in m_vrtPositions
 		Grid::VertexAttachmentAccessor<TAVrtPos>	m_aaPosVRT;
-		AVector3				m_aNormal;
-		Grid::FaceAttachmentAccessor<AVector3>		m_aaNormFACE;		
+		Grid::FaceAttachmentAccessor<AVector3>		m_aaNormFACE;
 };
 
 }//	end of namespace
+
+////////////////////////////////////////
+//	include implementation
+#include "grid_visualization_impl.hpp"
 
 #endif

@@ -22,6 +22,9 @@
 	#include "lib_grid/parallelization/parallelization.h"
 #endif
 
+// ONLY TEMPORARY
+#include "lib_grid/visualization/grid_visualization.h"
+
 using namespace std;
 
 namespace ug{
@@ -99,6 +102,45 @@ static bool TestDomainInterfaces(TDomain* dom)
 	return true;
 }
 
+//	ONLY TEMPORARY!!! DO NOT USE THIS METHOD!!!
+template <typename TDomain>
+static void TestDomainVisualization(TDomain& dom)
+{
+	GridVisualization<number, int, typename TDomain::position_attachment_type> gridVis;
+	gridVis.set_grid(dom.get_grid(), dom.get_position_attachment());
+	gridVis.update_visuals();
+
+//	log vertex positions
+	UG_LOG("GridVisualization:\n");
+	UG_LOG("Vertices (" << gridVis.num_vertices() << "):");
+	const number* pos = gridVis.vertex_positions();
+	for(int i = 0; i < gridVis.num_vertices(); ++i){
+		UG_LOG(" (" <<  pos[3*i] << ", " << pos[3*i+1] << ", " << pos[3*i+2] << ")");
+	}
+	UG_LOG("\n\n");
+
+//	iterate over all visuals
+	for(int i_vis = 0; i_vis < gridVis.num_visuals(); ++i_vis){
+		UG_LOG("Visual " << i_vis << ":\n");
+	//	log the triangles of this visual (triple of vertex indices.)
+		UG_LOG("Triangles:");
+		const int* tris = gridVis.triangle_list(i_vis);
+		for(int i = 0; i < gridVis.num_triangles(i_vis); ++i){
+			UG_LOG(" [" <<  tris[3*i] << ", " << tris[3*i+1] << ", " << tris[3*i+2] << "]");
+		}
+		UG_LOG("\n\n");
+
+	//	log the triangle normals of this visual
+		UG_LOG("Tri-Normals:");
+		const number* norms = gridVis.face_normals(i_vis);
+
+		for(int i = 0; i < gridVis.num_triangles(i_vis); ++i){
+			UG_LOG(" (" <<  norms[3*i] << ", " << norms[3*i+1] << ", " << norms[3*i+2] << ")");
+		}
+		UG_LOG("\n\n");
+	}
+}
+
 
 namespace bridge{
 
@@ -167,6 +209,9 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
+
+//	ONLY TEMPORARY
+	reg.add_function("TestDomainVisualization", &TestDomainVisualization<TDomain>, grp);
 
 	return true;
 }
