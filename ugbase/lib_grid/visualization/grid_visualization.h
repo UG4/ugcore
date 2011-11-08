@@ -12,7 +12,11 @@ namespace ug
 {
 
 ///	This class generates arrays of primitives, which can be used for the visualization of a grid
-template <class TNumber, class TInt>
+/**	It is suggested that you keep one GridVisualization object for each grid.
+ * If you change contents of the associated grid (positions, new elements, ...),
+ * you should call the method update_visuals().
+ */
+template <class TNumber, class TInt, class TAVrtPos>
 class GridVisualization
 {
 	public:
@@ -35,29 +39,29 @@ class GridVisualization
 		GridVisualization();
 		~GridVisualization();
 
-		void set_grid(Grid& grid);
-		void set_subset_handler(Grid& sh);
+		void set_grid(Grid& grid, TAVrtPos& aVrtPos);
+		//void set_subset_handler(Grid& sh);
 
 	///	Set visibility for a subset
-		void hide_subset(int subsetIndex);
+		//void hide_subset(int subsetIndex);
 
 	///	returns whether a subset is hidden
-		bool subset_is_hidden(int subsetIndex);
+		//bool subset_is_hidden(int subsetIndex);
 
 	///	defines which elements will be considered for geometry updates.
 	/**	Pass or-combinations of constants enumerated in GridVisualization::Elements.*/
-		void set_considered_elements(uint elems);
+		//void set_considered_elements(uint elems);
 
 	///	returns which elements are considered for geometry updates.
 	/**	Returns or-combinations of constants enumerated in GridVisualization::Elements.*/
-		uint considered_elements();
+		//uint considered_elements();
 
 	///	updates and creates visuals.
 	/**	Call this method if the underlying grid has changed. All visuals will
 	 * be recomputed. Note that all arrays returned by methods of this class
-	 * are invalidated by a call to update_geometry. You thus should make sure
+	 * are invalidated by a call to update_visuals. You thus should make sure
 	 * to re-retrieve those arrays by calls to the appropriate methods.*/
-		void update_geometry();
+		void update_visuals();
 
 	///	returns the number of visuals
 		int num_visuals();
@@ -86,25 +90,25 @@ class GridVisualization
 		const TNumber* face_normals(int visInd);
 
 	///	returns the number of points that shall be rendered
-		int num_points(int visInd);
+		//int num_points(int visInd);
 
 	///	returns a list describing which vertices shall be rendered.
 	/**	Returns a list of vertex indices.
 	 * The returned array has the size num_points(visInd).*/
-		const TInt* point_list(int visInd);
+		//const TInt* point_list(int visInd);
 
 	///	returns the number of edges that shall be rendered
-		int num_edges(int visInd);
+		//int num_edges(int visInd);
 
 	///	returns a list describing which edges shall be rendered.
 	/**	Returns a list of vertex indices.
 	 * Two consecutive indices represent an edge. The returned array has the size
 	 * num_edges(visInd) * 2.*/
-		const TInt* edge_list(int visInd);
+		//const TInt* edge_list(int visInd);
 
 	///	returns the number of faces that shall be rendered.
 	/**	num_faces(visInd) == num_triangles(visInd) + num_quadrilaterals(visInd);*/
-		int num_faces(int visInd);
+		//int num_faces(int visInd);
 
 	///	returns the number of triangles that shall be rendered
 		int num_triangles(int visInd);
@@ -116,13 +120,34 @@ class GridVisualization
 		const TInt* triangle_list(int visInd);
 
 	///	returns the number of quadrilaterals that shall be rendered
-		int num_quadrilaterals(int visInd);
+		//int num_quadrilaterals(int visInd);
 
 	///	returns a list describing which quadrilaterals shall be rendered.
 	/**	Returns a list of vertex indices.
 	 * Four consecutive indices represent a quadrilateral in counter-clockwise order.
 	 * The returned array has the size num_quadrilaterals(visInd) * 4.*/
-		const TInt* quadrilateral_list(int visInd);
+		//const TInt* quadrilateral_list(int visInd);
+	
+	protected:
+		void release_grid();
+		
+	protected:		
+		struct Visual{
+			std::vector<TNumber>	m_faceNormals;
+			std::vector<TInt>		m_triIndices;
+			TNumber					m_color[4];
+			int 					m_visType;
+		};
+		typedef SmartPtr<Visual>	SPVisual;
+		
+		Grid*	m_pGrid;
+		std::vector<TNumber>	m_vrtPositions;
+		std::vector<SPVisual>	m_visuals;
+
+		TAVrtPos				m_aVrtPos;
+		Grid::VertexAttachmentAccessor<TAVrtPos>	m_aaPosVRT;
+		AVector3				m_aNormal;
+		Grid::FaceAttachmentAccessor<AVector3>		m_aaNormFACE;		
 };
 
 }//	end of namespace
