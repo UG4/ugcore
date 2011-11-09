@@ -1879,8 +1879,22 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-		//	forward
-			return shape(multi_index(i), x);
+		//	only first order
+			if(p != 1) UG_THROW_FATAL("Only 1. order Lagrange Pyramid implemented.");
+
+		//	smaller value of x and y
+			number m = x[0];
+			if (x[0] > x[1]) m = x[1];
+
+			switch(i)
+			{
+			  case 0 : return((1.0-x[0])*(1.0-x[1]) + x[2]*(m-1.0));
+			  case 1 : return(x[0]*(1.0-x[1])       - x[2]*m);
+			  case 2 : return(x[0]*x[1]             + x[2]*m);
+			  case 3 : return((1.0-x[0])*x[1]       - x[2]*m);
+			  case 4 : return(x[2]);
+			  default: UG_THROW_FATAL("Wrong index "<< i<<" in Pyramid");
+			}
 		}
 
 	///	shape value for a Multi Index
@@ -1889,63 +1903,60 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			check_multi_index(ind);
 			ReferencePyramid::check_position(x);
 
-			throw(UGFatalError("Not Implemented correctly"));
-
-			if(ind[2] == 0 && ind[0]==0 && ind[1] == 0)
-				return 	  m_vvPolynom[ 0 ][ ind[0] ].value(x[0])
-						* m_vvPolynom[ 0 ][ ind[1] ].value(x[1])
-						- m_vvPolynom[ 0 ][ 1 ].value(x[2]);
-			else if(ind[2] == 0)
-				return    m_vvPolynom[ 0 ][ ind[0] ].value(x[0])
-						* m_vvPolynom[ 0 ][ ind[1] ].value(x[1]);
-			else
-				return m_vvPolynom[ 0 ][ 1 ].value(x[2]);
+		//	forward
+			return shape(index(ind), x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(grad_type& g, const size_t i, const position_type& x) const
 		{
-			grad(g, multi_index(i), x);
+		//	only first order
+			if(p != 1) UG_THROW_FATAL("Only 1. order Lagrange Pyramid implemented.");
+
+			int m = 0;
+			if (x[0] > x[1]) m = 1;
+
+			switch(i)
+			{
+			  case 0:
+				g[0] = -(1.0-x[1]);
+				g[1] = -(1.0-x[0]) + x[2];
+				g[2] = -(1.0-x[1]);
+				g[m] += x[2];
+				break;
+			  case 1:
+				g[0] = (1.0-x[1]);
+				g[1] = -x[0];
+				g[2] = -x[1];
+				g[m] -= x[2];
+				break;
+			  case 2:
+				g[0] = x[1];
+				g[1] = x[0];
+				g[2] = x[1];
+				g[m] += x[2];
+				break;
+			  case 3:
+				g[0] = -x[1];
+				g[1] = 1.0-x[0];
+				g[2] = -x[1];
+				g[m] -= x[2];
+				break;
+		      case 4:
+				g[0] = 0.0;
+				g[1] = 0.0;
+				g[2] = 1.0;
+				break;
+		      default: UG_THROW_FATAL("Wrong index "<< i<<" in Pyramid");
+			}
+
 		}
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
 		               	   	   	   	   	   const position_type& x) const
 		{
-			check_multi_index(ind);
-			ReferencePyramid::check_position(x);
-
-			throw(UGFatalError("Not Implemented correctly"));
-
-		//	loop x,y
-			if(ind[2] == 0)
-			{
-				for(int d = 0; d < 2; ++d)
-				{
-					g[d] = m_vvDPolynom[ 0 ][ ind[d] ].value(x[d]);
-
-				//	multiply by all functions not depending on x[d]
-					for(int d2 = 0; d2 < 2; ++d2)
-					{
-					// 	skip own value
-						if(d2 == d) continue;
-
-						g[d] *= m_vvPolynom[ 0 ][ ind[d2] ].value(x[d2]);
-					}
-
-				//	multiply by z factor
-					//grad[d] *= m_vvPolynom[ 0 ][ ind[2] ].value(x[2]);
-				}
-
-				if(ind[2] == 0 && ind[0]==0 && ind[1] == 0)
-					g[2] = - m_vvDPolynom[ 0 ][ 1 ].value(x[2]);
-				else
-					g[2] = 0.0;
-			}
-			else
-			{
-				g[0] = 0.0; g[1] = 0.0; g[2] = 1.0; return;
-			}
+			grad(g, index(ind), x);
 		}
 
 	///	return Multi index for index i
