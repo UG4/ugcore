@@ -634,9 +634,13 @@ static int LuaProxyFunction(lua_State* L)
 					UG_LOG(errSymb<<"Call stack:\n");
 					lua_stacktrace(L);
 					UG_LOG(errSymb<<"Terminating..." << endl);
-					exit(0);
+					lua_pushstring (L, err.get_msg().c_str());
+					bLuaError=true;
 				}
-				UG_LOG(errSymb<<" Continuing execution ...\n");
+				else
+				{
+					UG_LOG(errSymb<<" Continuing execution ...\n");
+				}
 			}
 			catch(bad_alloc& ba)
 			{

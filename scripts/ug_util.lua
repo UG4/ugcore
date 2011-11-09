@@ -1,6 +1,7 @@
 -- Create util namespace
 util = util or {}
 
+ug_load_script("util/test_utils.lua")
 ug_load_script("util/partition_maps.lua")
 
 -- returns the standard path at which grids are stored
