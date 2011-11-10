@@ -95,30 +95,6 @@ prepare(vector_type& u)
 		}
 	}
 
-	return true;
-}
-
-
-template <typename TDoFDistribution, typename TAlgebra>
-NewtonSolver<TDoFDistribution, TAlgebra>::
-~NewtonSolver()
-{
-	if(m_allocated)
-	{
-		if(!deallocate_memory())
-			UG_ASSERT(0, "Cannot deallocate memory");
-	}
-}
-
-
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-NewtonSolver<TDoFDistribution, TAlgebra>::
-apply(vector_type& u)
-{
-//	increase call count
-	m_dgbCall++;
-
 //	Check for linear solver
 	if(m_pLinearSolver == NULL)
 	{
@@ -133,14 +109,41 @@ apply(vector_type& u)
 		return false;
 	}
 
-// 	Compute first Defect
-	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
+//	Set dirichlet values
 	if(m_N->prepare(m_d, u) != true)
 	{
 		UG_LOG("ERROR in 'NewtonSolver::apply':"
 				" Cannot prepare Non-linear Operator.\n");
 		return false;
 	}
+
+	return true;
+}
+
+
+template <typename TDoFDistribution, typename TAlgebra>
+NewtonSolver<TDoFDistribution, TAlgebra>::
+~NewtonSolver()
+{
+	if(m_allocated)
+	{
+		if(!deallocate_memory())
+			UG_ASSERT(0, "Cannot deallocate memory");
+	}
+
+}
+
+
+template <typename TDoFDistribution, typename TAlgebra>
+bool
+NewtonSolver<TDoFDistribution, TAlgebra>::
+apply(vector_type& u)
+{
+//	increase call count
+	m_dgbCall++;
+
+// 	Compute first Defect
+	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
 	if(m_N->apply(m_d, u) != true)
 	{
 		UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Non-linear"
