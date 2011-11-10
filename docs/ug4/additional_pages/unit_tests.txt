@@ -42,22 +42,21 @@ BOOST_AUTO_TEST_CASE(myTest) {
 	// check 
 	BOOST_CHECK_MESSAGE(a+b == 3, "1+2 must be 3");
 	BOOST_REQUIRE_MESSAGE(a+b == 3, "1+2 must be 3");
-
-	//	end profiling of this section
-	//PROFILE_END();
 }
 
 // end of test suite
 BOOST_AUTO_TEST_SUITE_END();
 \endcode
 
-In detail: 
+In Detail: 
 
+A test suite is used to group several test together and all test suits will be
+detected and tested.
 BOOST_AUTO_TEST_SUITE starts a new test suite, that is ended by
-BOOST_AUTO_TEST_SUITE_END. The name of suite must be a valid C++-Name. A suite 
-is used to group several test together. The Ending of a Suite must be (by our 
+BOOST_AUTO_TEST_SUITE_END. The name of suite must be a valid C++-Name. 
+<b>The Ending of a Suite must be (by our 
 convention) "*NumProcsXX", where XX is the number of processes the suite should 
-be run with (i.e. MPI-Processes).
+be run with (i.e. MPI-Processes).</b>
 
 BOOST_AUTO_TEST_CASE defines a test. There can be as many test cases in a suite
 as you like. Using the macros BOOST_REQUIRE_MESSAGE, BOOST_CHECK_MESSAGE you can
@@ -95,9 +94,9 @@ BOOST_AUTO_TEST_SUITE_END();
 
 As you see, there are currently to test suits for scripts: one on a single Process
 and a second one on a 3-MPI-Process run. (If needed, other suits may be added. 
-Attention: this will require a change in the setting of Jenkins)
+<b>Attention</b>: this will require a change in the setting of Jenkins)
 
-The scripts, that you add for testing must be specified relative to "trunk/scripts/".
+<b>The scripts, that you add for testing must be specified relative to "trunk/scripts/".</b>
 
 Now, two things are tested:
 <ol>
