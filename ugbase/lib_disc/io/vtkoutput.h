@@ -101,10 +101,11 @@ class VTKOutput{
 	 * *.pvd file for paraview. If all subsets have to be written, then only
 	 * a single file is produced containing the whole grid.
 	 *
-	 * \param[in]	filename	filename for produced files
-	 * \param[in]	u			grid function
-	 * \param[in]	step 		time step counter (-1 indicates stationary case)
-	 * \param[in]	time		time point corresponding to timestep
+	 * \param[in]	filename		filename for produced files
+	 * \param[in]	u				grid function
+	 * \param[in]	step 			time step counter (-1 indicates stationary case)
+	 * \param[in]	time			time point corresponding to timestep
+	 * \param[in]	bPrintRawData	flag if print "raw" data (no "make consistent")
 	 */
 		bool print(const char*  filename, function_type& u,
 		           int step, number time,
@@ -140,6 +141,7 @@ class VTKOutput{
 	 * \param[in]		si				Subset (si < 0 indicates whole grid)
 	 * \param[in]		step			counter for timestep (-1 means stationary)
 	 * \param[in]		time			time point of timestep
+	 * \param[in]		bPrintRawData	flag if print "raw" data (no "make consistent")
 	 */
 		bool print_subset(const char* filename, function_type& u,
 		                  int si, int step = -1, number time = 0.0,
