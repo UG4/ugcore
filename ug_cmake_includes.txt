@@ -249,7 +249,8 @@ endif("${DIM}" STREQUAL "ALL")
 # The cpu option sets defines for C and C++
 if("${CPU}" STREQUAL "ALL")
 	# todo checks for 4, VAR!
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3")
+	add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
 	
 	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3 -DUG_CPU_4 -DUG_CPU_VAR")
 	
@@ -263,7 +264,8 @@ else("${CPU}" STREQUAL "ALL")
 								"Valid options are: "${cpuOptions})
 		endif(d GREATER 4 OR d LESS 1)
 	
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_${d}")
+		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_${d}")
+		add_definitions(-DUG_CPU_${d})
 	endforeach(d)
 endif("${CPU}" STREQUAL "ALL")
 
@@ -271,12 +273,13 @@ endif("${CPU}" STREQUAL "ALL")
 # DoFManager
 if("${DOF}" STREQUAL "GEN")
 	# if DOF is "GEN"
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_GEN")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_GEN")
+	add_definitions(-DDOF_GEN)
 
 elseif("${DOF}" STREQUAL "P1")
 	# if DOF is "P1"
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_P1")
-
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_P1")
+	add_definitions(-DDOF_P1)
 else("${DOF}" STREQUAL "GEN")
 	message(FATAL_ERROR "ERROR: Invalid DoFManager specified. Valid options are: "${dofOptions})
 endif("${DOF}" STREQUAL "GEN")
@@ -294,7 +297,8 @@ if(DEBUG)
 	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1")
 
 else(DEBUG)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall -funroll-loops -ftree-vectorize")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -funroll-loops -ftree-vectorize")
+	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
 endif(DEBUG)
 
 if(DEBUG_LOGS)
