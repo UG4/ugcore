@@ -1,0 +1,130 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y11 m11 d10
+
+/**	\page pageUnitTests Unit Tests
+
+For the unit testing of UG4, the <b>boost testing library</b> is used. The test are run
+by the Continuous Integration Service "Jenkins" (currently on cave1.gcsc.uni-frankfurt.de) 
+daily. If a test fails reporting email will be sent to the causing developers.
+
+Unit Tests can be carried out in two ways:
+
+	- \ref secUnitTestsCode "Testing Code"
+	- \ref secUnitTestsScripts "Testing Scripts"
+
+For any questions, contact martin.scherer@gcsc.uni-frankfurt.de or
+ andreas.vogel@gcsc.uni-frankfurt.de.
+
+<hr>
+\section secUnitTestsCode Testing Code
+<hr>
+
+In order to test the C++-Code directly one can write a piece of code, that is 
+tested automatically. All unit test code should be placed in "unit_tests/src/*.cpp".
+
+If you want to test your own code, add a *.cpp file in that section and add your
+file in the "CMakeList.txt" file.
+ 
+Then start your own test suite as shown by this self-explanatory example:
+\code
+// register test suite
+BOOST_AUTO_TEST_SUITE(myNameSuiteNumProc1);
+
+// add a test
+BOOST_AUTO_TEST_CASE(myTest) {
+	
+	int a = 1, b = 2;
+
+	// write a message
+	BOOST_MESSAGE("Staring some test")
+	
+	// check 
+	BOOST_CHECK_MESSAGE(a+b == 3, "1+2 must be 3");
+	BOOST_REQUIRE_MESSAGE(a+b == 3, "1+2 must be 3");
+
+	//	end profiling of this section
+	//PROFILE_END();
+}
+
+// end of test suite
+BOOST_AUTO_TEST_SUITE_END();
+\endcode
+
+In detail: 
+
+BOOST_AUTO_TEST_SUITE starts a new test suite, that is ended by
+BOOST_AUTO_TEST_SUITE_END. The name of suite must be a valid C++-Name. A suite 
+is used to group several test together. The Ending of a Suite must be (by our 
+convention) "*NumProcsXX", where XX is the number of processes the suite should 
+be run with (i.e. MPI-Processes).
+
+BOOST_AUTO_TEST_CASE defines a test. There can be as many test cases in a suite
+as you like. Using the macros BOOST_REQUIRE_MESSAGE, BOOST_CHECK_MESSAGE you can
+now assert several conditions in your code.
+
+<hr>
+\section secUnitTestsScripts Testing Scripts
+<hr>
+
+In order to test Lua-Scripts you just have to add the script, that you want to 
+test in the file "unit_tests/src/testScripts.cpp". See this example:
+
+\code
+////////////////////////////////////////////////////////////////////////////////
+// Test Cases for Num Proc = 1 (quasi-serial case)
+////////////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(testLUAScriptsNumProc1);
+
+// add more script test cases below...
+BOOST_AUTO_TEST_CASE(sampleScript) 	{loadScriptWrapper("../unit_tests/scripts/sample_test.lua");}
+BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("laplace_test.lua");}
+
+BOOST_AUTO_TEST_SUITE_END();
+
+////////////////////////////////////////////////////////////////////////////////
+// Test Cases for Num Proc = 3 (parallel case)
+////////////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(testLUAScriptsNumProc3);
+
+// add more script test cases below...
+BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("laplace_test.lua");}
+
+BOOST_AUTO_TEST_SUITE_END();
+\endcode
+
+As you see, there are currently to test suits for scripts: one on a single Process
+and a second one on a 3-MPI-Process run. (If needed, other suits may be added. 
+Attention: this will require a change in the setting of Jenkins)
+
+The scripts, that you add for testing must be specified relative to "trunk/scripts/".
+
+Now, two things are tested:
+<ol>
+<li> In any case the successful run of the script (i.e. no LuaError reported)
+<li> In your script you can add additional requirements and tests as shown in the
+example below.
+</ol>
+
+In your script use the functions "test.require(cond, "message")" and 
+"test.check(cond,"message") to ensure conditions during the run of the script. Please
+note, that this functions are available when "ug_util.lua" is included in your
+script and that - if no boost is available - the test functions are replaced by
+dummy methods (see scripts/util/test_utils.lua). An example:
+
+\code
+-- Create, Load, Refine and Distribute Domain
+neededSubsets = {"Inner", "Boundary"}
+dom = util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubsets)
+test.require(dom ~= nil, "Domain loaded.")
+
+-- create Approximation Space
+approxSpace = ApproximationSpace(dom)
+approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:print_statistic()
+
+-- lets order indices using Cuthill-McKee
+test.require(OrderCuthillMcKee(approxSpace, true), "ordering Cuthill-McKee")
+\endcode
+
+*/
