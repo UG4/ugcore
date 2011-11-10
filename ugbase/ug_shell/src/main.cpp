@@ -11,6 +11,9 @@
 #include "bindings/lua/info_commands.h"
 #include "common/util/parameter_parsing.h"
 #include "common/os_dependent/file_util.h"
+#include "common/svnrevision.h"
+#include "common/compiledate.h"
+#include "common/build_hostname.h"
 
 using namespace std;
 using namespace ug;
@@ -100,7 +103,9 @@ int main(int argc, char* argv[])
 	bool runInteractiveShell = true;
 
 	LOG("********************************************************************************\n");
-	LOG("* ugshell - v4.0.1                                                             *\n");
+	LOG("* ugshell - v4.0.1, head revision '" << SVN_REVISION << "',                                      *\n");
+	LOG("*                   compiled '" << COMPILE_DATE << "'                    *\n");
+	LOG("*                   on '" << BUILD_HOST << "'.                           *\n");
 	LOG("*                                                                              *\n");
 	LOG("* arguments:                                                                   *\n");
 	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");

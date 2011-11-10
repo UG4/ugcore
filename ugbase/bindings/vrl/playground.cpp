@@ -7,7 +7,8 @@
 
 #include "playground.h"
 
-#include "compiledate.h"
+#include "common/compiledate.h"
+#include "common/build_hostname.h"
 #include "bindings_vrl.h"
 #include "vrl_user_number.h"
 

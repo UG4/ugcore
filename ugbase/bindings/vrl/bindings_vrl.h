@@ -11,7 +11,7 @@
 #include "registry/registry.h"
 #include <jni.h>
 #include "messaging.h"
-#include "svnrevision.h"
+#include "common/svnrevision.h"
 
 #ifdef __GNUC__
 #define PRETTY_FUNCTION __PRETTY_FUNCTION__

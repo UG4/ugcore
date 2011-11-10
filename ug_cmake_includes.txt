@@ -57,6 +57,9 @@ set(dofDefault "P1")
 set(blasDefault ON)
 set(lapackDefault ON)
 
+# Option to add svn head revision, compile date and build host into ugshell's initial output
+set(svnDefault ON)
+
 # Those variables control the build process. They are later modified depending
 # on the value of TARGET.
 set(buildUGShell OFF)
@@ -110,6 +113,8 @@ option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid optio
 option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
 option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
 
+option(EMBED_SVN_REV "Enables output of SVN head revision, compile date and build host. Valid options are ON, OFF" ${svnDefault})
+
 # set default values for pseudo-options
 if(NOT TARGET)
 	if(BUILDING_PLUGIN)
@@ -149,6 +154,7 @@ message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
+message(STATUS "Info: EMBED_SVN_REV:     "${EMBED_SVN_REV}" (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (set them to the path, which contains the library):")
 message(STATUS "Info: METIS:    "${METIS})
@@ -220,7 +226,8 @@ endif(STATIC)
 # DIM
 # The dim option sets defines for C and C++
 if("${DIM}" STREQUAL "ALL")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3")
+	add_definitions(-DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3)
 	
 else("${DIM}" STREQUAL "ALL")
 	# DIM is a string of dimensions (e.g. "1;2")
@@ -232,7 +239,8 @@ else("${DIM}" STREQUAL "ALL")
 								"Valid options are: "${dimOptions})
 		endif(d GREATER 3 OR d LESS 1)
 	
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
+		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
+		add_definitions(-DUG_DIM_${d})
 	endforeach(d)
 endif("${DIM}" STREQUAL "ALL")
 
@@ -443,13 +451,19 @@ endif(HYPRE)
 ########################################
 # HLIBPRO
 if(HLIBPRO)
-	find_library(HLIBPRO_LIBS NAMES hpro PATHS ${HLIBPRO})
+#	find_library(HLIBPRO_LIBS NAMES hpro PATHS ${HLIBPRO})
+	find_library(HLIBPRO_LIBS NAMES libhpro.dylib PATH_SUFFIXES ../hlibpro-0.13.6/lib/ ${HLIBPRO}) # hlib built as shared lib via 'scons shared=1 static=0' (26092011ih)
+	find_path (HLIBPROLIB_DIR libhpro.dylib
+		PATHS ENV PATH
+		PATH_SUFFIXES ../hlibpro-0.13.6/lib/ )
+	message(STATUS "INFO: Using HLibPro; content of 'HLIBPRO_LIBS' is '${HLIBPRO_LIBS}', content of 'HLIBPROLIB_DIR' is '${HLIBPROLIB_DIR}'.")
 	if(HLIBPRO_LIBS-NOTFOUND)
 		message(FATAL_ERROR "ERROR: Couldn't find HLIBPRO in the specified path.")
 	else(HLIBPRO_LIBS-NOTFOUND)
-		add_definitions(-DHLIBPROLIB_DIR)
-		include_directories(${HLIBPRO}/../../../include/)
-		include_directories(${HLIBPRO}/../../../src/include/)
+#		add_definitions(-DHLIBPROLIB_DIR)
+		add_definitions(-DUSE_HLIBPRO)
+		include_directories(${HLIBPROLIB_DIR}/../include/)
+		include_directories(${HLIBPROLIB_DIR}/../src/include/)
 		set(linkLibraries ${linkLibraries} ${HLIBPRO_LIBS})
 	endif(HLIBPRO_LIBS-NOTFOUND)
 endif(HLIBPRO)
@@ -512,6 +526,64 @@ if(enableDynamicOption)
 	set(CMAKE_CXX_FLAGS "-dynamic")
 endif(enableDynamicOption)
 
+
+################################################################################
+# make global svn revision, compile date and build host available as C++ macro
+################################################################################
+IF(EMBED_SVN_REV)
+include(FindSubversion)
+
+IF(Subversion_FOUND)
+	MESSAGE(STATUS "INFO: Looking for Subversion - found (disable EMBED_SVN_REV with -DEMBED_SVN_REV=OFF)")
+        Subversion_WC_INFO(${CMAKE_SOURCE_DIR} "svn")
+        EXECUTE_PROCESS(
+                COMMAND "svnversion" "--no-newline" ${CMAKE_SOURCE_DIR}
+                OUTPUT_VARIABLE svn_version
+                ERROR_VARIABLE svn_version
+        )
+        #message( ${svn_version} )
+        #add_definitions(-DEMBED_SVN_REV_REVISION=${svn_version})
+
+        # write a file with the SVN_REVISION define
+        file(WRITE ugbase/common/svnrevision.h "#define SVN_REVISION \"${svn_version}\"\n")
+
+ELSE(Subversion_FOUND)
+	MESSAGE(STATUS "INFO: Looking for Subversion - not found (disable EMBED_SVN_REV with -DEMBED_SVN_REV=OFF)")
+        # write a file with the SVN_REVISION define
+        file(WRITE ugbase/common/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+ENDIF(Subversion_FOUND)
+ELSE(EMBED_SVN_REV)
+	MESSAGE(STATUS "INFO: Not looking for Subversion - (Enable EMBED_SVN_REV with -DEMBED_SVN_REV=ON)")
+        # write a file with the SVN_REVISION define
+        file(WRITE ugbase/common/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+ENDIF(EMBED_SVN_REV)
+####
+# make compile date stamp available as C++ macro
+####
+
+IF(UNIX)
+    MESSAGE(STATUS "INFO: On Unix: using date command to generate time stamp")
+    execute_process(COMMAND date
+        OUTPUT_VARIABLE compile_date OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # write a file with the COMPILE_DATE define
+    file(WRITE ugbase/common/compiledate.h "#define COMPILE_DATE \"${compile_date}\"\n")
+
+    MESSAGE(STATUS "INFO: On Unix: using hostname command to make build host name available")
+    execute_process(COMMAND hostname
+        OUTPUT_VARIABLE hostname OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # write a file with the BUILD_HOST define
+    file(WRITE ugbase/common/build_hostname.h "#define BUILD_HOST \"${hostname}\"\n")
+
+ELSEIF(WIN32)
+    MESSAGE(STATUS "INFO: On Windows: time stamp generation unsupported!")
+    # write a file with the COMPILE_DATE define
+    file(WRITE ugbase/common/compiledate.h "#define COMPILE_DATE \"unknown date\"\n")
+    MESSAGE(STATUS "INFO: On Windows: hostname generation unsupported!")
+    # write a file with the BUILD_HOST define
+    file(WRITE ugbase/common/build_hostname.h "#define BUILD_HOST \"unknown\"\n")
+ENDIF(UNIX)
 
 ################################################################################
 # Those options are temporary and should be removed in future builds.

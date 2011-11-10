@@ -20,7 +20,8 @@
 #include "bindings_vrl_native.h"
 
 #include "lib_grid/lib_grid.h"
-#include "compiledate.h"
+#include "common/compiledate.h"
+#include "common/build_hostname.h"
 #include "user_data.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 
