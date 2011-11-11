@@ -80,7 +80,9 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
 			.add_method("select_nodal_vector", &T::select_nodal_vector)
 			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
-			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, bool)>(&T::print));
+			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number)>(&T::print))
+			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, bool)>(&T::print))
+			.add_method("print", static_cast<bool (T::*)(const char*, function_type&)>(&T::print));
 		reg.add_class_to_group(name, "VTKOutput", dimAlgDDTag);
 	}
 
@@ -95,7 +97,7 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 			.add_method("set_vtk_output", &T::set_vtk_output, "", "vtkOutput")
 			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output, "", "cvOutput")
-			.add_method("set_print_raw_data",  &T::set_print_raw_data, "", "printRawData");
+			.add_method("set_print_consistent",  &T::set_print_consistent, "", "printConsistent");
 		reg.add_class_to_group(name, "GridFunctionDebugWriter", dimAlgDDTag);
 	}
 

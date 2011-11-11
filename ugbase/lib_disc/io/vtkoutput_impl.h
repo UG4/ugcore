@@ -96,10 +96,10 @@ static void BStreamFlush(FILE* File)
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-print(const char* filename, function_type& u, int step, number time, bool bPrintRawData)
+print(const char* filename, function_type& u, int step, number time, bool makeConsistent)
 {
 #ifdef UG_PARALLEL
-	if(!bPrintRawData)
+	if(makeConsistent)
 	{
 		if(!u.change_storage_type(PST_CONSISTENT))
 		{
@@ -128,7 +128,7 @@ print(const char* filename, function_type& u, int step, number time, bool bPrint
 		int si = -1;
 
 	//	write whole grid to a single file
-		if(!print_subset(filename, u, si, step, time, bPrintRawData))
+		if(!print_subset(filename, u, si, step, time, makeConsistent))
 		{
 			UG_LOG("ERROR in 'VTK::print': Can not write grid.\n");
 			return false;
@@ -140,7 +140,7 @@ print(const char* filename, function_type& u, int step, number time, bool bPrint
 		for(int si = 0; si < u.num_subsets(); ++si)
 		{
 		//	write each subset to a single file
-			if(!print_subset(filename, u, si, step, time, bPrintRawData))
+			if(!print_subset(filename, u, si, step, time, makeConsistent))
 			{
 				UG_LOG("ERROR in 'VTK::print': Can not write Subset "<< si << ".\n");
 				return false;
@@ -162,10 +162,10 @@ print(const char* filename, function_type& u, int step, number time, bool bPrint
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-print_subset(const char* filename, function_type& u, int si, int step, number time, bool bPrintRawData)
+print_subset(const char* filename, function_type& u, int si, int step, number time, bool makeConsistent)
 {
 #ifdef UG_PARALLEL
-	if(!bPrintRawData)
+	if(makeConsistent)
 	{
 		if(!u.change_storage_type(PST_CONSISTENT))
 		{

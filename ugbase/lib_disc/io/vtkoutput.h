@@ -105,20 +105,37 @@ class VTKOutput{
 	 * \param[in]	u				grid function
 	 * \param[in]	step 			time step counter (-1 indicates stationary case)
 	 * \param[in]	time			time point corresponding to timestep
-	 * \param[in]	bPrintRawData	flag if print "raw" data (no "make consistent")
+	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
 		bool print(const char*  filename, function_type& u,
 		           int step, number time,
-				   bool bPrintRawData);
+				   bool makeConsistent);
+
+	/**	Calls print with makeConsistent enabled.*/
+		bool print(const char*  filename, function_type& u,
+		           int step, number time)
+		{
+			return print(filename, u, step, time, true);
+		}
 
 	/**
 	 * This function simply calles 'print' using step = -1 to indicate the
 	 * stationary case. It is intended to write time independent data.
+	 *
+	 * \param[in]	filename		filename for produced files
+	 * \param[in]	u				grid function
+	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
 		bool print(const char*  filename, function_type& u,
-				   bool bPrintRawData)
+				   bool makeConsistent)
 		{
-			return print(filename, u, -1, 0.0, bPrintRawData);
+			return print(filename, u, -1, 0.0, makeConsistent);
+		}
+
+	/**	Calls print with makeConsistent enabled.*/
+		bool print(const char*  filename, function_type& u)
+		{
+			return print(filename, u, true);
 		}
 
 	/**
@@ -141,11 +158,18 @@ class VTKOutput{
 	 * \param[in]		si				Subset (si < 0 indicates whole grid)
 	 * \param[in]		step			counter for timestep (-1 means stationary)
 	 * \param[in]		time			time point of timestep
-	 * \param[in]		bPrintRawData	flag if print "raw" data (no "make consistent")
+	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
 		bool print_subset(const char* filename, function_type& u,
 		                  int si, int step = -1, number time = 0.0,
-						  bool bPrintRawData = true);
+						  bool makeConsistent = true);
+
+	/**	Calls print_subset with makeConsistent enabled.*/
+		bool print_subset(const char* filename, function_type& u,
+		                  int si, int step = -1, number time = 0.0)
+		{
+			return print_subset(filename, u, si, step, time, true);
+		}
 
 	/**
 	 * When a time series has been computed, this function can be used to procduce
