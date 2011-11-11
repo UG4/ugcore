@@ -22,9 +22,10 @@ set(UG_CMAKE_INCLUDES_INCLUDED on)
 # include ug header and library path
 get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 include_directories(${UG_ROOT_PATH}/ugbase)
-include_directories("./")
+include_directories(${CMAKE_CACHEFILE_DIR})
 link_directories(${UG_ROOT_PATH}/lib)
 
+message(STATUS ${CMAKE_CACHEFILE_DIR})
 
 ################################################################################
 # We want the code to be built into one library (except the plugins, of course)
@@ -550,17 +551,17 @@ IF(Subversion_FOUND)
         #add_definitions(-DEMBED_SVN_REV_REVISION=${svn_version})
 
         # write a file with the SVN_REVISION define
-        file(WRITE svnrevision.h "#define SVN_REVISION \"${svn_version}\"\n")
+        file(WRITE ${CMAKE_CACHEFILE_DIR}/svnrevision.h "#define SVN_REVISION \"${svn_version}\"\n")
 
 ELSE(Subversion_FOUND)
 	MESSAGE(STATUS "INFO: Looking for Subversion - not found (disable EMBED_SVN_REV with -DEMBED_SVN_REV=OFF)")
         # write a file with the SVN_REVISION define
-        file(WRITE svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+        file(WRITE ${CMAKE_CACHEFILE_DIR}/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
 ENDIF(Subversion_FOUND)
 ELSE(EMBED_SVN_REV)
 	MESSAGE(STATUS "INFO: Not looking for Subversion - (Enable EMBED_SVN_REV with -DEMBED_SVN_REV=ON)")
         # write a file with the SVN_REVISION define
-        file(WRITE svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+        file(WRITE ${CMAKE_CACHEFILE_DIR}/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
 ENDIF(EMBED_SVN_REV)
 ####
 # make compile date stamp available as C++ macro
@@ -572,22 +573,22 @@ IF(UNIX)
         OUTPUT_VARIABLE compile_date OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     # write a file with the COMPILE_DATE define
-    file(WRITE compiledate.h "#define COMPILE_DATE \"${compile_date}\"\n")
+    file(WRITE ${CMAKE_CACHEFILE_DIR}/compiledate.h "#define COMPILE_DATE \"${compile_date}\"\n")
 
     MESSAGE(STATUS "INFO: On Unix: using hostname command to make build host name available")
     execute_process(COMMAND hostname
         OUTPUT_VARIABLE hostname OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     # write a file with the BUILD_HOST define
-    file(WRITE build_hostname.h "#define BUILD_HOST \"${hostname}\"\n")
+    file(WRITE ${CMAKE_CACHEFILE_DIR}/build_hostname.h "#define BUILD_HOST \"${hostname}\"\n")
 
 ELSEIF(WIN32)
     MESSAGE(STATUS "INFO: On Windows: time stamp generation unsupported!")
     # write a file with the COMPILE_DATE define
-    file(WRITE compiledate.h "#define COMPILE_DATE \"unknown date\"\n")
+    file(WRITE ${CMAKE_CACHEFILE_DIR}/compiledate.h "#define COMPILE_DATE \"unknown date\"\n")
     MESSAGE(STATUS "INFO: On Windows: hostname generation unsupported!")
     # write a file with the BUILD_HOST define
-    file(WRITE build_hostname.h "#define BUILD_HOST \"unknown\"\n")
+    file(WRITE ${CMAKE_CACHEFILE_DIR}/build_hostname.h "#define BUILD_HOST \"unknown\"\n")
 ENDIF(UNIX)
 
 ################################################################################
