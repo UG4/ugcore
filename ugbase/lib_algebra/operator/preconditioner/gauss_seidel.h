@@ -179,7 +179,11 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				return gs_step_UR(mat, c, d);
+				if(!gs_step_UR(mat, c, d)) return false;
+#ifdef UG_PARALLEL
+				c.set_storage_type(PST_UNIQUE);
+#endif
+				return true;
 			}
 		}
 
@@ -263,7 +267,11 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				return sgs_step(mat, c, d);
+				if(!sgs_step(mat, c, d)) return false;
+#ifdef UG_PARALLEL
+				c.set_storage_type(PST_UNIQUE);
+#endif
+				return true;
 			}
 		}
 
