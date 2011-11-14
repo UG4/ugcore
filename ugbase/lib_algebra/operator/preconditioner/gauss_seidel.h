@@ -90,7 +90,11 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				return gs_step_LL(mat, c, d);
+				if(!gs_step_LL(mat, c, d)) return false;
+#ifdef UG_PARALLEL
+				c.set_storage_type(PST_UNIQUE);
+#endif
+				return true;
 			}
 		}
 
