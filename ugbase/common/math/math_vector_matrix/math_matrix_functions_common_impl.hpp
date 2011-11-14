@@ -508,7 +508,7 @@ inline
 typename MathMatrix<3,3,T>::value_type
 Trace(const MathMatrix<3,3,T>& m)
 {
-	return 	m(0,0)+m(1,1)+m(2,2);
+	return 	(m(0,0)+m(1,1)+m(2,2));
 }
 
 /// Set each matrix entry to a scalar (componentwise)

@@ -199,6 +199,9 @@ class DomainDiscretization :
 				if(m_vDomainElemDisc[i] == &elem)
 					return;
 
+		//	set approximation space
+			elem.set_approximation_space(*m_pApproxSpace);
+
 		//	add it
 			m_vDomainElemDisc.push_back(&elem);
 			return;
