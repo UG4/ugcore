@@ -254,7 +254,7 @@ bool SumValuesForSubsetGroup( number& addValue,
 			const number det = mapping.jacobian_det(locIP);
 
 		//	add contribution of integration point
-			intValElem += valIP * weightIP * det;
+			intValElem += valIP * weightIP * fabs(det);
 		}
 
 	//	add to global sum
