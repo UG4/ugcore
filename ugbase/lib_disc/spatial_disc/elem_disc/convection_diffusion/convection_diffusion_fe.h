@@ -734,14 +734,14 @@ void ConvectionDiffusionElemDisc<TDomain>::register_fe_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, TGeomProvider>);
-	set_prep_elem_fct(	   id, &T::template elem_prepare_fe<TElem, TGeomProvider>);
-	set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, TGeomProvider>);
-	set_ass_JA_elem_fct(   id, &T::template elem_JA_fe<TElem, TGeomProvider>);
-	set_ass_JM_elem_fct(   id, &T::template elem_JM_fe<TElem, TGeomProvider>);
-	set_ass_dA_elem_fct(   id, &T::template elem_dA_fe<TElem, TGeomProvider>);
-	set_ass_dM_elem_fct(   id, &T::template elem_dM_fe<TElem, TGeomProvider>);
-	set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fe<TElem, TGeomProvider>);
+	this->set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, TGeomProvider>);
+	this->set_prep_elem_fct(	   id, &T::template elem_prepare_fe<TElem, TGeomProvider>);
+	this->set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, TGeomProvider>);
+	this->set_ass_JA_elem_fct(   id, &T::template elem_JA_fe<TElem, TGeomProvider>);
+	this->set_ass_JM_elem_fct(   id, &T::template elem_JM_fe<TElem, TGeomProvider>);
+	this->set_ass_dA_elem_fct(   id, &T::template elem_dA_fe<TElem, TGeomProvider>);
+	this->set_ass_dM_elem_fct(   id, &T::template elem_dM_fe<TElem, TGeomProvider>);
+	this->set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fe<TElem, TGeomProvider>);
 
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fe<TElem, TGeomProvider>);

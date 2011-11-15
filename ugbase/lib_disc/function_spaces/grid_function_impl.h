@@ -165,9 +165,6 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			reference_element_type;
 
-//	reference element dimension
-	static const int refDim = reference_element_type::dim;
-
 //	physical world dimension
 	static const int dim = TDomain::dim;
 

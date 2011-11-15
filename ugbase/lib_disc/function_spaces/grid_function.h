@@ -224,6 +224,8 @@ class GridFunction
 		typedef typename IGridFunction<TDoFDistribution>::dof_distribution_type
 				dof_distribution_type;
 
+		using IGridFunction<TDoFDistribution>::assign_dof_distribution;
+
 	public:
 	/// Initializing Constructor
 		GridFunction(	approximation_space_type& approxSpace,

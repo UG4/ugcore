@@ -106,7 +106,6 @@ class ReferenceTriangle{
 };
 
 
-template <>
 template <int TWorldDim>
 class ReferenceMapping<ReferenceTriangle, TWorldDim>
 {

@@ -13,7 +13,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 template <class TGeomObj>
 void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
-								  AGeomObjID& aID = aGeomObjID)
+								  AGeomObjID& aID)
 {
 //	make sure that aID is attached to the objects of the grid
 	if(!g.has_attachment<TGeomObj>(aID)){

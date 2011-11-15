@@ -146,7 +146,7 @@ public:
 	inline bool
 	empty() const;
 
-	inline bool
+	inline void
 	reserve(size_type nrRows, size_type nrCols) const 	{ return; }
 
 

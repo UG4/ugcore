@@ -509,7 +509,7 @@ bool DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 			u.access_by_map(m_vDependentMap[i]);
 
 		//	compute the data
-			if(!m_vDependentIPData[i]->compute(u, bDeriv))
+			if(!m_vDependentIPData[i]->compute_with_sol(u, bDeriv))
 			{
 				UG_LOG("ERROR in 'DataEvaluator::compute_elem_data':"
 						"Cannot compute data for Export " << i <<".\n");

@@ -85,7 +85,6 @@ class MathVector
 /**
  * A mathematical Vector with 1 entry and static storage
  */
-template <>
 template <typename T>
 class MathVector<1, T>
 {
@@ -144,7 +143,6 @@ class MathVector<1, T>
 /**
  * A mathematical Vector with 2 entries and static storage
  */
-template <>
 template <typename T>
 class MathVector<2, T>
 {
@@ -205,7 +203,6 @@ class MathVector<2, T>
 /**
  * A mathematical Vector with 3 entries and static storage
  */
-template <>
 template <typename T>
 class MathVector<3, T>
 {
@@ -269,7 +266,6 @@ class MathVector<3, T>
 /**
  * A mathematical Vector with 4 entries and static storage
  */
-template <>
 template <typename T>
 class MathVector<4, T>
 {

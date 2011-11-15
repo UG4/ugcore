@@ -47,7 +47,8 @@ bool FindNormal(vector3& normOut, const vector3& v)
 bool ConstructOrthonormalSystem(matrix33& matOut, const vector3& v,
 								size_t vColInd)
 {
-	if(vColInd < 0 || vColInd > 2)
+	// the first expression has been always true for unsigned int (AV)
+	if(/*vColInd < 0 ||*/ vColInd > 2)
 		return false;
 		
 	vector3 newCols[2];

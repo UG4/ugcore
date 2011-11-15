@@ -43,6 +43,7 @@ public:
 	using base::at;
 	using base::num_rows;
 	using base::num_cols;
+	using base::resize;
 
 public:
 	// 'tors

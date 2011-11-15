@@ -314,15 +314,17 @@ template <typename TData, int dim>
 class DataExport : 	public DependentIPData<TData, dim>,
 					public IDataExport
 {
+	using IDependentIPData::compute;
+
 	public:
 	///	default constructor
 		DataExport();
 
 	//	implement compute() method of IIPData: Not available
-		virtual bool compute(bool bDeriv);
+		virtual bool compute(bool bDeriv = false);
 
 	///	compute export (implements IDependendIPData::compute)
-		virtual bool compute(const LocalVector& u, bool bDeriv);
+		virtual bool compute_with_sol(const LocalVector& u, bool bDeriv);
 
 	///	sets the geometric object type
 		virtual bool set_roid(ReferenceObjectID id);

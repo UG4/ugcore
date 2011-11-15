@@ -35,6 +35,8 @@ class ParallelGridFunction : public TGridFunction
 		// dof distribution
 		typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
 
+		using TGridFunction::clone_pattern;
+
 	public:
 	/// Default Constructor
 		ParallelGridFunction(approximation_space_type& approxSpace)

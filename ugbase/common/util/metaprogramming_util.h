@@ -126,35 +126,30 @@ struct BinomialCoefficient
 };
 
 // end rekursion
-template <>
 template <size_t n>
 struct BinomialCoefficient<n,0>
 {
     enum { value = 1};
 };
 // end rekursion
-template <>
 template <size_t n>
 struct BinomialCoefficient<n,-1>
 {
     enum { value = 0};
 };
 // end rekursion
-template <>
 template <size_t n>
 struct BinomialCoefficient<n,-2>
 {
     enum { value = 0};
 };
 // end rekursion
-template <>
 template <size_t n>
 struct BinomialCoefficient<n,-3>
 {
     enum { value = 0};
 };
 // end rekursion
-template <>
 template <size_t n>
 struct BinomialCoefficient<n,-4>
 {

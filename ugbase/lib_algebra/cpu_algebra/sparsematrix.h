@@ -444,7 +444,7 @@ private:
 
 	bool get_connection_nr(size_t r, size_t c, size_t &nr, get_connection_nr_flag flag=EQUAL) const;
 
-	template<get_connection_nr_flag flag>
+	template<size_t flag>
 	bool get_connection_nr_templ(size_t r, size_t c, size_t &nr) const;
 
 

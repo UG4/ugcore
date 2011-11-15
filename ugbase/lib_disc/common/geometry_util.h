@@ -413,7 +413,6 @@ struct ElementSideRayIntersectionWrapper
 };
 
 // specialization for 2d
-template <>
 template <typename TRefElem>
 struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 {
@@ -461,7 +460,6 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 };
 
 // specialization for 3d
-template <>
 template <typename TRefElem>
 struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 {

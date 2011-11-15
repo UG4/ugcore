@@ -250,14 +250,14 @@ class IDependentIPData : virtual public IIPData
 		                    const FunctionIndexMapping& map) = 0;
 
 	///	computation of data depending on current solution
-		virtual bool compute(bool bDeriv)
+		virtual bool compute(bool bDeriv = false)
 		{
 			UG_LOG("ERROR in 'IDependentIPData::compute': No implementation found.\n");
 			return false;
 		}
 
 	///	computation of data depending on current solution
-		virtual bool compute(const LocalVector& u, bool bDeriv)
+		virtual bool compute_with_sol(const LocalVector& u, bool bDeriv)
 		{
 			UG_LOG("ERROR in 'IDependentIPData::compute': No implementation found.\n");
 			return false;

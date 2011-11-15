@@ -1017,23 +1017,23 @@ DensityDrivenFlowElemDisc(const char* functions, const char* subsets) :
 
 //	register export
 	m_exDarcyVel.add_needed_data(m_exBrine);
-	register_export(m_exDarcyVel);
-	register_export(m_exBrine);
-	register_export(m_exBrineGrad);
-	register_export(m_exPressureGrad);
+	this->register_export(m_exDarcyVel);
+	this->register_export(m_exBrine);
+	this->register_export(m_exBrineGrad);
+	this->register_export(m_exPressureGrad);
 
 //	register import
-	register_import(m_imBrineScvf);
-	register_import(m_imBrineGradScvf);
-	register_import(m_imPressureGradScvf);
-	register_import(m_imPorosityScvf);
-	register_import(m_imPorosityScv);
-	register_import(m_imPermeabilityScvf);
-	register_import(m_imMolDiffusionScvf);
-	register_import(m_imViscosityScvf);
-	register_import(m_imDensityScv);
-	register_import(m_imDensityScvf);
-	register_import(m_imDarcyVelScvf);
+	this->register_import(m_imBrineScvf);
+	this->register_import(m_imBrineGradScvf);
+	this->register_import(m_imPressureGradScvf);
+	this->register_import(m_imPorosityScvf);
+	this->register_import(m_imPorosityScv);
+	this->register_import(m_imPermeabilityScvf);
+	this->register_import(m_imMolDiffusionScvf);
+	this->register_import(m_imViscosityScvf);
+	this->register_import(m_imDensityScv);
+	this->register_import(m_imDensityScvf);
+	this->register_import(m_imDarcyVelScvf);
 
 //	connect to own export
 	m_imBrineScvf.set_data(m_exBrine);
@@ -1069,14 +1069,14 @@ register_fv1_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem>);
-	set_prep_elem_fct(	 id, &T::template prepare_element<TElem>);
-	set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem>);
-	set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem>);
-	set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem>);
-	set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem>);
-	set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem>);
-	set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem>);
+	this->set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem>);
+	this->set_prep_elem_fct(	 id, &T::template prepare_element<TElem>);
+	this->set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem>);
+	this->set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem>);
+	this->set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem>);
+	this->set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem>);
+	this->set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem>);
+	this->set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem>);
 
 	if(m_bConsGravity)
 		m_exDarcyVel.template set_fct<T,refDim>(id, this, &T::template ex_darcy_cons_grav<TElem>);

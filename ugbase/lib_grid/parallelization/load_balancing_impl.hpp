@@ -117,7 +117,7 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										ug::Grid& grid,
 										int numSubsets,
 										TAPosition& aVrtPos,
-										int startDim = 0)
+										int startDim)
 {
 //	TODO: move implementation to separate ..._impl.hpp file.
 	using namespace ug;

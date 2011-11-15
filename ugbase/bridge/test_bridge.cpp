@@ -170,9 +170,9 @@ class Derived : public Base
 {
 	public:
 		virtual ~Derived()	{}
-		virtual void print(int arg1) const
+		virtual void print() const
 		{
-			UG_LOG("Derived::print() called with " << arg1 << "\n");
+			UG_LOG("Derived::print() called.\n");
 		}
 };
 
@@ -181,9 +181,9 @@ class FurtherDerived : public Derived
 {
 	public:
 		virtual ~FurtherDerived()	{}
-		virtual void print(int arg1, int arg2) const
+		virtual void print() const
 		{
-			UG_LOG("FurtherDerived::print() called with " << arg1 << ", " << arg2 << "\n");
+			UG_LOG("FurtherDerived::print() called.\n");
 		}
 };
 

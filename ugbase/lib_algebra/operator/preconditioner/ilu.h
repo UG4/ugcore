@@ -245,6 +245,9 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
+		using IPreconditioner<TAlgebra>::write_debug_vector;
+		using IPreconditioner<TAlgebra>::write_debug_matrix;
+
 	public:
 	//	Constructor
 		ILU(double beta=0.0) : m_beta(beta) {};

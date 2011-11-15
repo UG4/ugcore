@@ -34,7 +34,6 @@ class FlexLagrangeLSFS;
  * Lagrange shape function of any order for the Reference Edge
  * \tparam 	TOrder		requested order
  */
-template <>
 template <int TOrder>
 class LagrangeLSFS<ReferenceEdge, TOrder>
 	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceEdge, TOrder>, 1>
@@ -262,7 +261,6 @@ class FlexLagrangeLSFS<ReferenceEdge>
 // Triangle
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 class LagrangeLSFS<ReferenceTriangle, TOrder>
 	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTriangle, TOrder>, 2>
@@ -637,7 +635,6 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 // Quadrilateral
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2>
@@ -948,7 +945,6 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 // Tetrahedron
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3>
@@ -1379,7 +1375,6 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 // Prism
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 class LagrangeLSFS<ReferencePrism, TOrder>
 	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePrism, TOrder>, 3>
@@ -1815,7 +1810,6 @@ template <> struct NumberOfDoFsOfPyramid<-1>{enum {value = 0};};
 //			set for pyramids, that is continuous and allows a continuous
 //			derivative in the inner of the pyramid. This is basically, since
 //			one regards the pyramid as two tetrahedrons, glued together.
-template <>
 template <int TOrder>
 class LagrangeLSFS<ReferencePyramid, TOrder>
 	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePyramid, TOrder>, 3>
@@ -2037,7 +2031,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 // Hexahedron
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3>

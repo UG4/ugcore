@@ -56,7 +56,7 @@ enum matrix_algebra_type
 };
 
 template<typename vector_t, typename matrix_t, int type>
-class mat_operations_class;
+struct mat_operations_class;
 
 template<typename T>
 struct matrix_algebra_type_traits

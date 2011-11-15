@@ -47,6 +47,59 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
+		/// assembles Jacobian (or Approximation of Jacobian)
+		/**
+		 * Assembles Jacobian at a given iterate u.
+		 *
+		 * \param[out] 	J 	Jacobian J(u) matrix to be filled
+		 * \param[in]  	u 	Current iterate
+		 * \param[in]	dd	DoF Distribution
+		 */
+		virtual void assemble_jacobian(matrix_type& J, const vector_type& u,
+		                               const dof_distribution_type& dd) = 0;
+
+		/// assembles Defect
+		/**
+		 * Assembles Defect at a given Solution u.
+		 *
+		 * \param[out] 	d 	Defect d(u) to be filled
+		 * \param[in] 	u 	Current iterate
+		 * \param[in]	dd	DoF Distribution
+		 */
+		virtual void assemble_defect(vector_type& d, const vector_type& u,
+		                             const dof_distribution_type& dd) = 0;
+
+		/// Assembles Matrix and Right-Hand-Side for a linear problem
+		/**
+		 * Assembles matrix_type and Right-Hand-Side for a linear problem
+		 *
+		 * \param[out] 	A 	Mass-/Stiffness- Matrix
+		 * \param[out] 	b 	Right-Hand-Side
+		 * \param[in]	dd	DoF Distribution
+		 *
+		 * \return 	true 		if problem is linear and assembling successful
+		 * 			false 		if problem is non-linear or an error occurred during assembling
+		 */
+		virtual void assemble_linear(matrix_type& A, vector_type& b,
+		                             const dof_distribution_type& dd) = 0;
+
+		/// sets dirichlet values in solution vector
+		/**
+		 * Sets dirichlet values of the NumericalSolution u when components
+		 * are dirichlet
+		 *
+		 * \param[out] 	u	Numerical Solution
+		 * \param[in]	dd	DoF Distribution
+		 *
+		 * \return 	true 				if function is implemented and assembling successful
+		 * 			false 	if function has not been implemented
+		 * 			false 			if function is implemented and an error occurred during assembling
+		 */
+		virtual void adjust_solution(vector_type& u,
+		                             const dof_distribution_type& dd) = 0;
+
+
+	public:
 	/// assembles Jacobian (or Approximation of Jacobian)
 	/**
 	 * Assembles Jacobian at a given Solution u.

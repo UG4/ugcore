@@ -174,7 +174,7 @@ void SetLagrangeLocalDoFs(	std::vector<LocalDoF>& vLocalDoF,
 
 /// Lagrange DoF Set
 template <typename TRefElem>
-struct LagrangeLDS{};
+class LagrangeLDS{};
 
 
 ///////////////////////////////////////////////////////////////////////////////

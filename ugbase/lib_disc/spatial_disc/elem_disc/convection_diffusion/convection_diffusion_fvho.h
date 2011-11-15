@@ -991,14 +991,14 @@ register_fvho_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TGeomProvider>);
-	set_prep_elem_fct(	   id, &T::template elem_prepare_fvho<TElem, TGeomProvider>);
-	set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TGeomProvider>);
-	set_ass_JA_elem_fct(   id, &T::template elem_JA_fvho<TElem, TGeomProvider>);
-	set_ass_JM_elem_fct(   id, &T::template elem_JM_fvho<TElem, TGeomProvider>);
-	set_ass_dA_elem_fct(   id, &T::template elem_dA_fvho<TElem, TGeomProvider>);
-	set_ass_dM_elem_fct(   id, &T::template elem_dM_fvho<TElem, TGeomProvider>);
-	set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fvho<TElem, TGeomProvider>);
+	this->set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TGeomProvider>);
+	this->set_prep_elem_fct(	 id, &T::template elem_prepare_fvho<TElem, TGeomProvider>);
+	this->set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TGeomProvider>);
+	this->set_ass_JA_elem_fct(   id, &T::template elem_JA_fvho<TElem, TGeomProvider>);
+	this->set_ass_JM_elem_fct(   id, &T::template elem_JM_fvho<TElem, TGeomProvider>);
+	this->set_ass_dA_elem_fct(   id, &T::template elem_dA_fvho<TElem, TGeomProvider>);
+	this->set_ass_dM_elem_fct(   id, &T::template elem_dM_fvho<TElem, TGeomProvider>);
+	this->set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fvho<TElem, TGeomProvider>);
 
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fvho<TElem, TGeomProvider>);

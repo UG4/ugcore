@@ -513,13 +513,13 @@ FVConstantEquationElemDisc(const char* functions, const char* subsets)
 	register_all_fv1_funcs(false);
 
 //	register exports
-	register_export(m_exConcentration);
-	register_export(m_exConcentrationGrad);
+	this->register_export(m_exConcentration);
+	this->register_export(m_exConcentrationGrad);
 
 //	register imports
-	register_import(m_imVelocity);
-	register_import(m_imSource);
-	register_import(m_imMassScale);
+	this->register_import(m_imVelocity);
+	this->register_import(m_imSource);
+	this->register_import(m_imMassScale);
 
 	m_imMassScale.set_mass_part(true);
 }
@@ -553,14 +553,14 @@ register_fv1_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	set_prep_elem_loop_fct(	id, &T::template prepare_element_loop<TElem, TFVGeom>);
-	set_prep_elem_fct(		id, &T::template prepare_element<TElem, TFVGeom>);
-	set_fsh_elem_loop_fct( 	id, &T::template finish_element_loop<TElem, TFVGeom>);
-	set_ass_JA_elem_fct(	id, &T::template assemble_JA<TElem, TFVGeom>);
-	set_ass_JM_elem_fct(	id, &T::template assemble_JM<TElem, TFVGeom>);
-	set_ass_dA_elem_fct(	id, &T::template assemble_A<TElem, TFVGeom>);
-	set_ass_dM_elem_fct(	id, &T::template assemble_M<TElem, TFVGeom>);
-	set_ass_rhs_elem_fct(	id, &T::template assemble_f<TElem, TFVGeom>);
+	this->set_prep_elem_loop_fct(	id, &T::template prepare_element_loop<TElem, TFVGeom>);
+	this->set_prep_elem_fct(		id, &T::template prepare_element<TElem, TFVGeom>);
+	this->set_fsh_elem_loop_fct( 	id, &T::template finish_element_loop<TElem, TFVGeom>);
+	this->set_ass_JA_elem_fct(	id, &T::template assemble_JA<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(	id, &T::template assemble_JM<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(	id, &T::template assemble_A<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(	id, &T::template assemble_M<TElem, TFVGeom>);
+	this->set_ass_rhs_elem_fct(	id, &T::template assemble_f<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);

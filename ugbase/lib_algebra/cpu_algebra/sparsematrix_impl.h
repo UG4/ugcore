@@ -15,6 +15,7 @@
 
 #include "algebra_misc.h"
 #include "local_helper.h"
+#include "lib_algebra/common/operations_vec.h"
 #include <vector>
 #include <algorithm>
 
@@ -991,7 +992,7 @@ typename SparseMatrix<T>::row_iterator SparseMatrix<T>::get_connection(size_t r,
  * \remarks >=/>/=/<=/< depends on template parameter flag
  */
 template<typename T>
-template<typename SparseMatrix<T>::get_connection_nr_flag flag>
+template<size_t flag >
 bool SparseMatrix<T>::get_connection_nr_templ(size_t r, size_t c, size_t &nr) const
 {
 	nr = 0;

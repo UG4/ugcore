@@ -46,6 +46,7 @@ public:
 	using base::operator [];
 	using base::at;
 	using base::size;
+	using base::resize;
 
 public:
 	// constructors

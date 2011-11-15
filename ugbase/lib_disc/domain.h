@@ -12,6 +12,10 @@
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/distributed_grid.h"
+#endif
+
 namespace ug{
 
 /**
@@ -23,9 +27,6 @@ namespace ug{
 
 /// \ingroup lib_disc_domain
 /// @{
-
-//	predeclaration for parallel case
-class DistributedGridManager;
 
 /// describes physical domain
 /**

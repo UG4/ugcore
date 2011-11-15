@@ -14,6 +14,7 @@
 
 #include <vector>
 #include "rsamg_nodeinfo.h"
+#include "rsamg_impl.h"
 
 namespace ug {
 

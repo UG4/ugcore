@@ -319,7 +319,7 @@ bool DataExport<TData, dim>::compute(bool bDeriv)
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::compute(const LocalVector& u, bool bDeriv)
+bool DataExport<TData, dim>::compute_with_sol(const LocalVector& u, bool bDeriv)
 {
 	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
 	UG_ASSERT(m_vCompFct[m_id] != NULL, "Func pointer is NULL");

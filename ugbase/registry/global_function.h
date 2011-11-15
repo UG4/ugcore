@@ -154,10 +154,10 @@ class UG_API ExportedFunctionBase
 ///This class describes a wrapper for a c++ - function, that is exported by ug
 class UG_API ExportedFunction : public ExportedFunctionBase
 {
-//	all c++ functions are wrapped by a proxy function of the following type
-	typedef void (*ProxyFunc)(void* func, const ParameterStack& in, ParameterStack& out);
-
 	public:
+	//	all c++ functions are wrapped by a proxy function of the following type
+		typedef void (*ProxyFunc)(void* func, const ParameterStack& in, ParameterStack& out);
+
 		template <typename TFunc>
 		ExportedFunction(	TFunc f, ProxyFunc pf,
 							const std::string& name, const std::string& funcOptions,

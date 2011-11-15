@@ -73,15 +73,15 @@ ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
  : IDomainElemDisc<TDomain>(1, functions,subsets), m_pConvShape(NULL)
 {
 //	register exports
-	register_export(m_exConcentration);
-	register_export(m_exConcentrationGrad);
+	this->register_export(m_exConcentration);
+	this->register_export(m_exConcentrationGrad);
 
 //	register imports
-	register_import(m_imDiffusion);
-	register_import(m_imVelocity);
-	register_import(m_imReaction);
-	register_import(m_imSource);
-	register_import(m_imMassScale);
+	this->register_import(m_imDiffusion);
+	this->register_import(m_imVelocity);
+	this->register_import(m_imReaction);
+	this->register_import(m_imSource);
+	this->register_import(m_imMassScale);
 
 	m_imMassScale.set_mass_part(true);
 

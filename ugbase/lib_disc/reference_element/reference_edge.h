@@ -106,7 +106,6 @@ class ReferenceEdge
 };
 
 
-template <>
 template <int TWorldDim>
 class ReferenceMapping<ReferenceEdge, TWorldDim>
 {

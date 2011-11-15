@@ -50,7 +50,7 @@ static void EncodeTriplet(char *_in, char *out, int n)
 	out[3] = n > 2? digits[in[2] & 0x3F] : '=';
 }
 
-static void BStreamWrite(FILE* File, void *item)
+inline void BStreamWrite(FILE* File, void *item)
 {
 	int i;
 	char *p;
@@ -68,7 +68,7 @@ static void BStreamWrite(FILE* File, void *item)
 	}
 }
 
-static void BStreamFlush(FILE* File)
+inline void BStreamFlush(FILE* File)
 {
 	int i, r, to;
 	char *p;

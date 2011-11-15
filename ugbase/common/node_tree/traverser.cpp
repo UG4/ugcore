@@ -26,7 +26,8 @@ Traverser::~Traverser()
 
 bool Traverser::handler_function_registered(unsigned int oc)
 {
-	if(oc >= 0 && oc < m_vHandlerFuncs.size())
+	// the first expression has been always true for unsigned int (AV)
+	if(/*oc >= 0 &&*/ oc < m_vHandlerFuncs.size())
 	{
 		if(m_vHandlerFuncs[oc] != 0)
 			return true;

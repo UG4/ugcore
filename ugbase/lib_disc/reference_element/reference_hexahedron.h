@@ -106,7 +106,6 @@ class ReferenceHexahedron{
 		ReferenceObjectID m_vRefElemType[dim+1][MAXOBJECTS];
 };
 
-template <>
 template <int TWorldDim>
 class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 {

@@ -154,7 +154,7 @@ const char* FunctionGroup::name(size_t i) const
 	{
 		UG_LOG("No FunctionPattern set. Cannot use "
 				"FunctionGroup without FunctionPattern.\n");
-		return false;
+		UG_THROW_FATAL("Function Pattern not initialized.");
 	}
 
 //	Check, that subset exist

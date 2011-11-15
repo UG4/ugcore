@@ -13,6 +13,13 @@
 #ifndef __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_IMPL_H__
 #define __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_IMPL_H__
 
+
+inline double amg_diag_value(const double &d) { return d; }
+inline double amg_offdiag_value(const double &d) { return d; }
+
+template<typename T> inline double amg_diag_value(const T &d) { return BlockNorm(d); }
+template<typename T> inline double amg_offdiag_value(const T &d) { return -BlockNorm(d); }
+
 //#include "sparsematrix_util.h"
 
 #include "rsamg.h"
@@ -68,12 +75,6 @@ namespace ug{
 #define AMG_PRINT_COARSEN_RATINGS
 #define AMG_PRINT_COARSEN
 #endif
-
-inline double amg_diag_value(const double &d) { return d; }
-inline double amg_offdiag_value(const double &d) { return d; }
-
-template<typename T> inline double amg_diag_value(const T &d) { return BlockNorm(d); }
-template<typename T> inline double amg_offdiag_value(const T &d) { return -BlockNorm(d); }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

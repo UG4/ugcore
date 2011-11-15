@@ -147,7 +147,7 @@ public:
 	inline size_type
 	capacity_num_cols() const { return cols; };
 
-	inline bool
+	inline void
 	reserve(size_type nrRows, size_type nrCols) const 	{ return; }
 
 	// Element Access

@@ -241,7 +241,6 @@ void SetLagrangeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 // Edge
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
 {
@@ -296,7 +295,6 @@ template class FlexLagrangeLSFS<ReferenceEdge>;
 // Triangle
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
 {
@@ -353,7 +351,6 @@ template class FlexLagrangeLSFS<ReferenceTriangle>;
 // Quadrilateral
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
 {
@@ -410,7 +407,6 @@ template class FlexLagrangeLSFS<ReferenceQuadrilateral>;
 // Tetrahedron
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
 {
@@ -466,7 +462,6 @@ template class FlexLagrangeLSFS<ReferenceTetrahedron>;
 // Prism
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 {
@@ -531,7 +526,6 @@ template class FlexLagrangeLSFS<ReferencePrism>;
 // Pyramid
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
 {
@@ -565,7 +559,6 @@ template class LagrangeLSFS<ReferencePyramid, 2>;
 // Hexahedron
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
 template <int TOrder>
 LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
 {
