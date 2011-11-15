@@ -501,7 +501,7 @@ VertexBase* TryCollapse(Grid& grid, EdgeBase* e,
 		}
 	}
 
-	return false;
+	return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////
