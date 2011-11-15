@@ -277,7 +277,6 @@ static bool RedistributeDomain(TDomain& domainOut,
 {
 //todo	Use a process-communicator to restrict communication
 
-	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 	typedef typename TDomain::position_attachment_type	position_attachment_type;
 //	make sure that the input is fine
 	typename TDomain::grid_type& grid = domainOut.get_grid();
@@ -308,6 +307,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 	PCL_PROFILE(RedistributeDomain);
 
 //	make sure that manager exists
+	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
 	if(!pDistGridMgr)
 	{
