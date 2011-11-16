@@ -56,7 +56,7 @@ struct ConstSmartUserDataWrapper : public UserDataWrapper
 struct RawUserDataWrapper : public UserDataWrapper
 {
 	void*	obj;
-	void (*deleteFunc)(void*);
+	void (*deleteFunc)(const void*);
 };
 
 
@@ -108,7 +108,7 @@ static ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSma
 
 static RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 										  const char* metatableName,
-										  void (*deleteFunc)(void*),
+										  void (*deleteFunc)(const void*),
 										  bool is_const)
 {
 //	create the userdata
@@ -714,9 +714,17 @@ static int LuaProxyConstructor(lua_State* L)
 			continue;
 		}
 
-	//	correct parameterlist found, create
-		CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
-		                  c->get_delete_function(), false);
+	//	correct parameterlist found, create the user data.
+	//	check whether we have to create a SmartPointer or a RawPointer
+		if(c->construct_as_smart_pointer()){
+			CreateNewUserData(L,
+				SmartPtr<void>(constr.create(paramsIn), c->get_delete_function()),
+				c->name().c_str());
+		}
+		else{
+			CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
+							  c->get_delete_function(), false);
+		}
 
 	//	object created
 		return 1;

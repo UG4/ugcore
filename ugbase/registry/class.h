@@ -53,9 +53,9 @@ class MethodPtrWrapper
 };
 
 ///	Performs a reinterpret cast on the given pointer, then calls delete on it
-template <class TClass> void CastAndDelete(void* ptr)
+template <class TClass> void CastAndDelete(const void* ptr)
 {
-	delete reinterpret_cast<TClass*>(ptr);
+	delete reinterpret_cast<const TClass*>(ptr);
 }
 
 /** function exported from ug
@@ -393,7 +393,7 @@ void DestructorProxy(void* obj)
 class IExportedClass
 {
 	public:
-		typedef void (*DeleteFunction)(void*);
+		typedef void (*DeleteFunction)(const void*);
 
 	public:
 	///  name of class

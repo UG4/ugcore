@@ -341,6 +341,14 @@ class SmartPtr<void>
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
+		SmartPtr(void* ptr, void (*freeFunc)(const void*)) :
+			m_ptr(ptr),
+			m_refCountPtr(0),
+			m_freeFunc(freeFunc)
+		{
+			if(ptr) m_refCountPtr = new int(1);
+		}
+
 		template <class T>
 		SmartPtr(const SmartPtr<T>& sp) :
 			m_ptr((void*)sp.m_ptr),
@@ -426,6 +434,14 @@ class ConstSmartPtr<void>
 {
 	public:
 		ConstSmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
+
+		ConstSmartPtr(void* ptr, void (*freeFunc)(const void*)) :
+			m_ptr(ptr),
+			m_refCountPtr(0),
+			m_freeFunc(freeFunc)
+		{
+			if(ptr) m_refCountPtr = new int(1);
+		}
 
 		ConstSmartPtr(const SmartPtr<void>& sp) :
 			m_ptr(sp.m_ptr),
@@ -546,7 +562,7 @@ class ConstSmartPtr<void>
 				if((*m_refCountPtr) < 1)
 				{
 					delete m_refCountPtr;
-					m_freeFunc(m_ptr);
+					m_freeFunc(const_cast<void*>(m_ptr));
 				}
 			}
 		}
