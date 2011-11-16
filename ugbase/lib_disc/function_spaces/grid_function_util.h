@@ -278,6 +278,12 @@ class GridFunctionDebugWriter
 			ExtractPositions(u, vPos);
 		}
 
+	///	returns the reference grid function
+		const TGridFunction* get_reference_grid_function() const
+		{
+			return m_pGridFunc;
+		}
+
 	//	sets if writing to vtk
 		void set_vtk_output(bool b) {bVTKOut = b;}
 
