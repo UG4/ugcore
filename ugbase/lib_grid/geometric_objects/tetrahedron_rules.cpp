@@ -6,8 +6,6 @@
 #include "tetrahedron_rules.h"
 #include "rule_util.h"
 
-using namespace std;
-
 namespace ug{
 namespace tet_rules
 {

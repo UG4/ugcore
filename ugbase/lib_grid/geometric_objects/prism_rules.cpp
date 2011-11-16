@@ -6,8 +6,6 @@
 #include "prism_rules.h"
 #include "rule_util.h"
 
-using namespace std;
-
 namespace ug{
 namespace prism_rules{
 

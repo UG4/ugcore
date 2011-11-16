@@ -6,8 +6,6 @@
 #include "pyramid_rules.h"
 #include "rule_util.h"
 
-using namespace std;
-
 namespace ug{
 namespace pyra_rules{
 

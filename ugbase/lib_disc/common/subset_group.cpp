@@ -183,7 +183,7 @@ const char* SubsetGroup::name(size_t i) const
 	{
 		UG_LOG("No SubsetHandler set. "
 				"Cannot use SubsetGroup without SubsetHandler.\n");
-		return false;
+		return NULL;
 	}
 
 //	Check, that subset exist

@@ -611,7 +611,7 @@ bool VolumeContains(Volume* v, FaceVertices* fv)
 		v->face(i, fd);
 		if(hash == hash_key(&fd))
 		{
-			if(CompareVertices(fv, &fd));
+			if(CompareVertices(fv, &fd))
 				return true;
 		}
 	}

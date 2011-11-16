@@ -12,19 +12,19 @@ namespace ug{
 /**	Calculate the normal of a face. If the position accessor is not for
  * three dimensions, then (0, 0, 1) is returned.
  * \{ */
-static void CalculateNormalForVisualization(vector3& nOut, Face* f,
+inline void CalculateNormalForVisualization(vector3& nOut, Face* f,
 						Grid::AttachmentAccessor<VertexBase, APosition>& aaPos)
 {
 	CalculateNormal(nOut, f, aaPos);
 }
 
-static void CalculateNormalForVisualization(vector3& nOut, Face* f,
+inline void CalculateNormalForVisualization(vector3& nOut, Face* f,
 						Grid::AttachmentAccessor<VertexBase, APosition2>& aaPos)
 {
 	nOut = vector3(0, 0, 1);
 }
 
-static void CalculateNormalForVisualization(vector3& nOut, Face* f,
+inline void CalculateNormalForVisualization(vector3& nOut, Face* f,
 						Grid::AttachmentAccessor<VertexBase, APosition1>& aaPos)
 {
 	nOut = vector3(0, 0, 1);
