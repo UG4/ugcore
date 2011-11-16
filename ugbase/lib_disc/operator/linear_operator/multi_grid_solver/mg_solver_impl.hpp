@@ -1416,9 +1416,14 @@ write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 	GridFunctionDebugWriter<function_type>* dbgWriter =
 			dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
 
+	const function_type* dbgFuncOrig = NULL;
+
 //	set grid function
 	if(dbgWriter != NULL)
+	{
+		dbgFuncOrig = dbgWriter->get_reference_grid_function();
 		dbgWriter->set_reference_grid_function(*dbgFunc);
+	}
 	else
 	{
 		delete dbgFunc;
@@ -1435,6 +1440,7 @@ write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 	bool bRet = m_pDebugWriter->write_vector(vec, name.c_str());
 
 //	remove dbgFunc
+	dbgWriter->set_reference_grid_function(*dbgFuncOrig);
 	delete dbgFunc;
 
 	return bRet;
@@ -1458,9 +1464,14 @@ write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 	GridFunctionDebugWriter<function_type>* dbgWriter =
 			dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
 
+	const function_type* dbgFuncOrig = NULL;
+
 //	set grid function
 	if(dbgWriter != NULL)
+	{
+		dbgFuncOrig = dbgWriter->get_reference_grid_function();
 		dbgWriter->set_reference_grid_function(*dbgFunc);
+	}
 	else
 	{
 		delete dbgFunc;
@@ -1477,6 +1488,7 @@ write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 	bool bRet = m_pDebugWriter->write_matrix(mat, name.c_str());
 
 //	remove dbgFunc
+	dbgWriter->set_reference_grid_function(*dbgFuncOrig);
 	delete dbgFunc;
 
 	return bRet;
@@ -1500,9 +1512,14 @@ write_surface_debug(const vector_type& vec, const char* filename)
 	GridFunctionDebugWriter<function_type>* dbgWriter =
 			dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
 
+	const function_type* dbgFuncOrig = NULL;
+
 //	set grid function
 	if(dbgWriter != NULL)
+	{
+		dbgFuncOrig = dbgWriter->get_reference_grid_function();
 		dbgWriter->set_reference_grid_function(*dbgFunc);
+	}
 	else
 	{
 		delete dbgFunc;
@@ -1519,6 +1536,7 @@ write_surface_debug(const vector_type& vec, const char* filename)
 	bool bRet = m_pDebugWriter->write_vector(vec, name.c_str());
 
 //	remove dbgFunc
+	dbgWriter->set_reference_grid_function(*dbgFuncOrig);
 	delete dbgFunc;
 
 	return bRet;
@@ -1543,9 +1561,14 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 	GridFunctionDebugWriter<function_type>* dbgWriter =
 			dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
 
+	const function_type* dbgFuncOrig = NULL;
+
 //	set grid function
 	if(dbgWriter != NULL)
+	{
+		dbgFuncOrig = dbgWriter->get_reference_grid_function();
 		dbgWriter->set_reference_grid_function(*dbgFunc);
+	}
 	else
 	{
 		delete dbgFunc;
@@ -1562,6 +1585,7 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 	bool bRet = m_pDebugWriter->write_matrix(mat, name.c_str());
 
 //	remove dbgFunc
+	dbgWriter->set_reference_grid_function(*dbgFuncOrig);
 	delete dbgFunc;
 
 	return bRet;
