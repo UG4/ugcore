@@ -123,58 +123,6 @@ GeometricObject* MultiGrid::get_parent(GeometricObject* parent)
 	return NULL;
 }
 
-void MultiGrid::set_state(VertexBase* vrt, int state)
-{
-//	make sure that vertex-state rules apply.
-//	they are described in the documentation for MGVertexInfo.
-
-	MGVertexInfo& info = get_info(vrt);
-	info.m_state = state;
-	
-	if(info.m_pVrtChild)
-	{
-		switch(state)
-		{
-			case MGES_CONSTRAINED:
-				set_state(info.m_pVrtChild, state);
-				break;
-			case MGES_FIXED:
-				set_state(info.m_pVrtChild, state);
-				break;
-		}
-	}
-}
-
-void MultiGrid::set_state(EdgeBase* edge, int state)
-{
-	MGEdgeInfo& info = get_info(edge);
-	
-	switch(state)
-	{
-		case MGES_CONSTRAINING:
-			if(info.m_pVrtChild)
-				set_state(info.m_pVrtChild, MGES_CONSTRAINED);
-			for(byte i = 0; i < info.m_numEdgeChildren; ++i)
-				set_state(info.m_pEdgeChild[i], MGES_CONSTRAINED);
-			break;
-			
-		case MGES_CONSTRAINED:
-			if(info.m_pVrtChild)
-				set_state(info.m_pVrtChild, MGES_CONSTRAINED);
-			for(byte i = 0; i < info.m_numEdgeChildren; ++i)
-				set_state(info.m_pEdgeChild[i], MGES_CONSTRAINED);
-			break;
-	}
-}
-
-void MultiGrid::set_state(Face* face, int state)
-{
-}
-
-void MultiGrid::set_state(Volume* vol, int state)
-{
-}
-
 ////////////////////////////////////////////////////////////////////////
 //	grid-observer callbacks
 

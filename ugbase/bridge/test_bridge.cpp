@@ -75,6 +75,7 @@ class Test
 		int print() const	{UG_LOG("Test::print() const\n"); return 1;}
 };
 
+
 ///	calls non-const print on non-const object of class Test
 int TestFunc(Test& t)
 {
@@ -112,6 +113,29 @@ int ConstSmartTestFunc(ConstSmartPtr<Test> test)
 	UG_LOG("ConstSmartTestFunc: ");
 	return test->print();
 }
+
+///	SmartTest is a test-class which shall only be used encapsulated in a smart-pointer
+class SmartTest{
+	public:
+		SmartTest()	{}
+
+		void say_hello()	{UG_LOG("Hello, I'm SmartTest\n");}
+};
+
+typedef SmartPtr<SmartTest> SPSmartTest;
+
+SPSmartTest CreateSmartTest()
+{
+	return SPSmartTest(new SmartTest);
+}
+
+void SmartTestArrived(SPSmartTest test)
+{
+	UG_LOG("HE, SMART TEST ARRIVED. HI SMART TEST.\n");
+	UG_LOG("smart test answers: ");
+	test->say_hello();
+}
+
 
 
 class Piece
@@ -485,7 +509,13 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 			.add_function("StdStringTest", StdStringTest, grp)
 			.add_function("TestPageContainer", TestPageContainer, grp);
 
-		reg.add_function("PostRegisterTest", &PostRegisterTest, grp);
+		reg.add_class_<SmartTest>("SmartTest", grp)
+			.add_constructor()
+			.add_method("say_hello", &SmartTest::say_hello)
+			.set_construct_as_smart_pointer(true);// always last!
+
+		reg.add_function("CreateSmartTest", &CreateSmartTest, grp)
+			.add_function("SmartTestArrived", &SmartTestArrived, grp);
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered method takes an argument of an unregistered type.

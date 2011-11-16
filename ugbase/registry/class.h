@@ -451,6 +451,9 @@ class IExportedClass
 	///	get exported constructor
 		virtual const ExportedConstructor& get_constructor(size_t i) const = 0;
 
+	///	true if the class shall be wrapped in a SmartPtr on construction
+		virtual bool construct_as_smart_pointer() const = 0;
+
 	///	destructur for object
 		virtual void destroy(void* obj) const = 0;
 
@@ -464,9 +467,113 @@ class IExportedClass
 		virtual ~IExportedClass() {};
 };
 
+///	A base implementation with non-template methods.
+/**	Speeds up compilation times.*/
+class ExportedClassBaseImpl : public IExportedClass
+{
+	private:
+	//  disallow
+		ExportedClassBaseImpl();
+		ExportedClassBaseImpl(const ExportedClassBaseImpl& other);
 
+	public:
+		ExportedClassBaseImpl(const std::string& tooltip);
+
+	/// destructor
+		virtual ~ExportedClassBaseImpl();
+
+	/// tooltip
+		virtual const std::string& tooltip() const;
+
+	/// number of registered methods (overloads are not counted)
+		virtual size_t num_methods() const;
+
+	///	number of registered const-methods (overloads are not counted)
+		virtual size_t num_const_methods() const;
+
+	/// returns the first overload of an exported function
+		virtual const ExportedMethod& get_method(size_t i) const;
+
+	/// returns the first overload of an exported const function
+		virtual const ExportedMethod& get_const_method(size_t i) const;
+
+	///	returns the number of overloads of a method
+		virtual size_t num_overloads(size_t funcInd) const;
+
+	///	returns the number of overloads of a const method
+		virtual size_t num_const_overloads(size_t funcInd) const;
+
+	///	returns the i-th overload of a method
+		virtual const ExportedMethod& get_overload(size_t funcInd, size_t oInd) const;
+
+	///	returns the i-th overload of a const method
+		virtual const ExportedMethod& get_const_overload(size_t funcInd, size_t oInd) const;
+
+	///	returns the i-th method group (all overloads of the i-th function)
+		virtual const ExportedMethodGroup& get_method_group(size_t ind) const;
+
+	///	returns the i-th method group (all overloads of the i-th function)
+		virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const;
+
+	///	number of registered constructors
+		virtual size_t num_constructors() const;
+
+	///	get exported constructor
+		virtual const ExportedConstructor& get_constructor(size_t i) const;
+
+	///	returns whether the class shall be wrapped in a SmartPtr on construction
+		virtual bool construct_as_smart_pointer() const;
+
+	///	sets whether the class shall be wrapped in a SmartPtr
+	/**	Returns a reference to this, so that it can be used in a chained call.*/
+		virtual void set_construct_as_smart_pointer(bool enable);
+
+	/// is instantiable
+		virtual bool is_instantiable() const;
+
+	///	destructur for object
+		virtual void destroy(void* obj) const;
+
+	protected:
+	///	returns if a constructor overload is registered
+		bool constructor_type_id_registered(size_t typeID);
+
+	/// returns true if methodname is already used by a method in this class
+		bool constmethodname_registered(const std::string& name);
+
+	/// returns true if methodname is already used by a method in this class
+		bool methodname_registered(const std::string& name);
+
+		ExportedMethodGroup* get_exported_method_group(const std::string& name);
+
+		ExportedMethodGroup* get_const_exported_method_group(const std::string& name);
+
+	protected:
+		struct ConstructorOverload{
+			ConstructorOverload()	{}
+			ConstructorOverload(ExportedConstructor* func, size_t typeID)
+				: m_constructor(func), m_typeID(typeID)
+			{}
+			ExportedConstructor* 	m_constructor;
+			size_t					m_typeID;
+		};
+
+		std::vector<ConstructorOverload> m_vConstructor;
+
+		typedef void (*DestructorFunc)(void*);
+		DestructorFunc m_destructor;
+
+		std::vector<ExportedMethodGroup*> m_vMethod;
+		std::vector<ExportedMethodGroup*> m_vConstMethod;
+		std::string m_tooltip;
+
+		bool	m_constructAsSmartPtr;
+};
+
+
+///	This template class represents real c++ classes in the registry.
 template <typename TClass>
-class ExportedClass : public IExportedClass
+class ExportedClass : public ExportedClassBaseImpl
 {
 	private:
 	//  disallow
@@ -477,11 +584,14 @@ class ExportedClass : public IExportedClass
 	//  contructor
 		ExportedClass(const std::string& name, const std::string& group,
 		               const std::string& tooltip)
-				: m_destructor(NULL), m_tooltip(tooltip)
+				: ExportedClassBaseImpl(tooltip)
 		{
 			ClassNameProvider<TClass>::set_name(name, group, true);
 			ClassNameProvider<const TClass>::set_name(name, group, true);
 		}
+
+	/// destructor
+		virtual ~ExportedClass(){}
 
 	/// name of class
 		virtual const std::string& name() const {return ClassNameProvider<TClass>::name();}
@@ -489,51 +599,12 @@ class ExportedClass : public IExportedClass
 	///	name node of class
 		virtual const ClassNameNode& class_name_node() const {return ClassNameProvider<TClass>::class_name_node();}
 
-	/// tooltip
-		virtual const std::string& tooltip() const{return m_tooltip;}
-
 	///	get groups
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
 	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
-
-	/// number of registered methods (overloads are not counted)
-		virtual size_t num_methods() const {return m_vMethod.size();}
-
-	///	number of registered const-methods (overloads are not counted)
-		virtual size_t num_const_methods() const {return m_vConstMethod.size();}
-		
-	/// returns the first overload of an exported function
-		virtual const ExportedMethod& get_method(size_t i) const {return *m_vMethod.at(i)->get_overload(0);}
-
-	/// returns the first overload of an exported const function
-		virtual const ExportedMethod& get_const_method(size_t i) const {return *m_vConstMethod.at(i)->get_overload(0);}
-
-	///	returns the number of overloads of a method
-		virtual size_t num_overloads(size_t funcInd) const			{return m_vMethod.at(funcInd)->num_overloads();}
-
-	///	returns the number of overloads of a const method
-		virtual size_t num_const_overloads(size_t funcInd) const	{return m_vConstMethod.at(funcInd)->num_overloads();}
-
-	///	returns the i-th overload of a method
-		virtual const ExportedMethod& get_overload(size_t funcInd, size_t oInd) const	{return *m_vMethod.at(funcInd)->get_overload(oInd);}
-
-	///	returns the i-th overload of a const method
-		virtual const ExportedMethod& get_const_overload(size_t funcInd, size_t oInd) const	{return *m_vConstMethod.at(funcInd)->get_overload(oInd);}
-
-	///	returns the i-th method group (all overloads of the i-th function)
-		virtual const ExportedMethodGroup& get_method_group(size_t ind) const		{return *m_vMethod.at(ind);}
-
-	///	returns the i-th method group (all overloads of the i-th function)
-		virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const	{return *m_vConstMethod.at(ind);}
-
-	///	number of registered constructors
-		virtual size_t num_constructors() const {return m_vConstructor.size();}
-
-	///	get exported constructor
-		virtual const ExportedConstructor& get_constructor(size_t i) const {return *(m_vConstructor[i].m_constructor);}
 
 	/// Method registration
 		template <typename TMethod>
@@ -661,104 +732,11 @@ class ExportedClass : public IExportedClass
 			return *this;
 		}
 
-	/// is instantiable
-		virtual bool is_instantiable() const {return m_vConstructor.size() > 0;}
-
-	///	destructur for object
-		virtual void destroy(void* obj) const
-		{
-			if(m_destructor != NULL)
-				(*m_destructor)(obj);
-		}
-
 	///	return pointer to the delete method
 		virtual DeleteFunction get_delete_function() const
 		{
 			return CastAndDelete<TClass>;
 		}
-
-	/// destructor
-		virtual ~ExportedClass()
-		{
-		//	delete constructors
-			for(size_t i = 0; i < m_vConstructor.size(); ++i)
-				delete (m_vConstructor[i].m_constructor);
-
-		//  delete methods
-			for(size_t i = 0; i < m_vMethod.size(); ++i)
-				delete m_vMethod[i];
-
-			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
-				delete m_vConstMethod[i];
-		}
-
-	protected:
-	///	returns if a constructor overload is registered
-		bool constructor_type_id_registered(size_t typeID)
-		{
-			for(size_t i = 0; i < m_vConstructor.size(); ++i)
-				if(typeID == m_vConstructor[i].m_typeID)
-					return true;
-
-			return false;
-		}
-
-	/// returns true if methodname is already used by a method in this class
-		bool constmethodname_registered(const std::string& name)
-		{
-			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
-				if(name == m_vConstMethod[i]->name())
-					return true;
-
-			return false;
-		}
-
-	/// returns true if methodname is already used by a method in this class
-		bool methodname_registered(const std::string& name)
-		{
-			for(size_t i = 0; i < m_vMethod.size(); ++i)
-				if(name == m_vMethod[i]->name())
-					return true;
-
-			return false;
-		}
-
-		ExportedMethodGroup* get_exported_method_group(const std::string& name)
-		{
-			for(size_t i = 0; i < m_vMethod.size(); ++i)
-				if(name == m_vMethod[i]->name())
-					return m_vMethod[i];
-
-			return NULL;
-		}
-
-		ExportedMethodGroup* get_const_exported_method_group(const std::string& name)
-		{
-			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
-				if(name == m_vConstMethod[i]->name())
-					return m_vConstMethod[i];
-
-			return NULL;
-		}
-
-	private:
-		struct ConstructorOverload{
-			ConstructorOverload()	{}
-			ConstructorOverload(ExportedConstructor* func, size_t typeID)
-				: m_constructor(func), m_typeID(typeID)
-			{}
-			ExportedConstructor* 	m_constructor;
-			size_t					m_typeID;
-		};
-
-		std::vector<ConstructorOverload> m_vConstructor;
-
-		typedef void (*DestructorFunc)(void*);
-		DestructorFunc m_destructor;
-
-		std::vector<ExportedMethodGroup*> m_vMethod;
-		std::vector<ExportedMethodGroup*> m_vConstMethod;
-		std::string m_tooltip;
 };
 
 } // end namespace bridge

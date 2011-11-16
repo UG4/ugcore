@@ -122,6 +122,192 @@ bool IExportedClass::check_consistency() const
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Implementation of ExportedClassBaseImpl
+////////////////////////////////////////////////////////////////////////////////
+ExportedClassBaseImpl::
+ExportedClassBaseImpl()
+{
+}
+
+ExportedClassBaseImpl::
+ExportedClassBaseImpl(const ExportedClassBaseImpl& other)
+{
+}
+
+ExportedClassBaseImpl::
+ExportedClassBaseImpl(const std::string& tooltip)
+	: m_destructor(NULL), m_tooltip(tooltip), m_constructAsSmartPtr(false)
+{
+}
+
+ExportedClassBaseImpl::
+~ExportedClassBaseImpl()
+{
+//	delete constructors
+	for(size_t i = 0; i < m_vConstructor.size(); ++i)
+		delete (m_vConstructor[i].m_constructor);
+
+//  delete methods
+	for(size_t i = 0; i < m_vMethod.size(); ++i)
+		delete m_vMethod[i];
+
+	for(size_t i = 0; i < m_vConstMethod.size(); ++i)
+		delete m_vConstMethod[i];
+}
+
+const std::string& ExportedClassBaseImpl::
+tooltip() const
+{
+	return m_tooltip;
+}
+
+size_t ExportedClassBaseImpl::
+num_methods() const
+{
+	return m_vMethod.size();
+}
+
+size_t ExportedClassBaseImpl::
+num_const_methods() const
+{
+	return m_vConstMethod.size();
+}
+
+const ExportedMethod& ExportedClassBaseImpl::
+get_method(size_t i) const
+{
+	return *m_vMethod.at(i)->get_overload(0);
+}
+
+const ExportedMethod& ExportedClassBaseImpl::
+get_const_method(size_t i) const
+{
+	return *m_vConstMethod.at(i)->get_overload(0);
+}
+
+size_t ExportedClassBaseImpl::
+num_overloads(size_t funcInd) const
+{
+	return m_vMethod.at(funcInd)->num_overloads();
+}
+
+size_t ExportedClassBaseImpl::
+num_const_overloads(size_t funcInd) const
+{
+	return m_vConstMethod.at(funcInd)->num_overloads();
+}
+
+const ExportedMethod& ExportedClassBaseImpl::
+get_overload(size_t funcInd, size_t oInd) const
+{
+	return *m_vMethod.at(funcInd)->get_overload(oInd);
+}
+
+const ExportedMethod& ExportedClassBaseImpl::
+get_const_overload(size_t funcInd, size_t oInd) const
+{
+	return *m_vConstMethod.at(funcInd)->get_overload(oInd);
+}
+
+const ExportedMethodGroup& ExportedClassBaseImpl::
+get_method_group(size_t ind) const
+{
+	return *m_vMethod.at(ind);
+}
+
+const ExportedMethodGroup& ExportedClassBaseImpl::
+get_const_method_group(size_t ind) const
+{
+	return *m_vConstMethod.at(ind);
+}
+
+size_t ExportedClassBaseImpl::
+num_constructors() const
+{
+	return m_vConstructor.size();
+}
+
+const ExportedConstructor& ExportedClassBaseImpl::
+get_constructor(size_t i) const
+{
+	return *(m_vConstructor[i].m_constructor);
+}
+
+bool ExportedClassBaseImpl::
+construct_as_smart_pointer() const
+{
+	return m_constructAsSmartPtr;
+}
+
+void ExportedClassBaseImpl::
+set_construct_as_smart_pointer(bool enable)
+{
+	m_constructAsSmartPtr = enable;
+}
+
+bool ExportedClassBaseImpl::
+is_instantiable() const
+{
+	return m_vConstructor.size() > 0;
+}
+
+void ExportedClassBaseImpl::
+destroy(void* obj) const
+{
+	if(m_destructor != NULL)
+		(*m_destructor)(obj);
+}
+
+bool ExportedClassBaseImpl::
+constructor_type_id_registered(size_t typeID)
+{
+	for(size_t i = 0; i < m_vConstructor.size(); ++i)
+		if(typeID == m_vConstructor[i].m_typeID)
+			return true;
+
+	return false;
+}
+
+bool ExportedClassBaseImpl::
+constmethodname_registered(const std::string& name)
+{
+	for(size_t i = 0; i < m_vConstMethod.size(); ++i)
+		if(name == m_vConstMethod[i]->name())
+			return true;
+
+	return false;
+}
+
+bool ExportedClassBaseImpl::
+methodname_registered(const std::string& name)
+{
+	for(size_t i = 0; i < m_vMethod.size(); ++i)
+		if(name == m_vMethod[i]->name())
+			return true;
+
+	return false;
+}
+
+ExportedMethodGroup* ExportedClassBaseImpl::
+get_exported_method_group(const std::string& name)
+{
+	for(size_t i = 0; i < m_vMethod.size(); ++i)
+		if(name == m_vMethod[i]->name())
+			return m_vMethod[i];
+
+	return NULL;
+}
+
+ExportedMethodGroup* ExportedClassBaseImpl::
+get_const_exported_method_group(const std::string& name)
+{
+	for(size_t i = 0; i < m_vConstMethod.size(); ++i)
+		if(name == m_vConstMethod[i]->name())
+			return m_vConstMethod[i];
+
+	return NULL;
+}
 
 } // end namespace ug
 } // end namespace bridge

@@ -261,7 +261,7 @@ else("${CPU}" STREQUAL "ALL")
 	foreach(d ${CPU})
 		# check if dim is valid
 		if(d GREATER 4 OR d LESS 1)
-			message(FATAL_ERROR "ERROR: Cannot build world dimension ${d}. "
+			message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
 								"Valid options are: "${cpuOptions})
 		endif(d GREATER 4 OR d LESS 1)
 	

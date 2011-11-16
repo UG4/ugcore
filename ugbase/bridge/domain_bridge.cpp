@@ -29,6 +29,15 @@ using namespace std;
 
 namespace ug{
 
+//	This method is only a temporary test method and will be replaced by
+//	a more sophisticated approach
+template <typename TDomain>
+static void MinimizeMemoryFootprint(TDomain& dom)
+{
+	dom.get_grid().set_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
+							 | GRIDOPT_AUTOGENERATE_SIDES);
+}
+
 template <typename TDomain>
 static bool LoadDomain(TDomain& domain, const char* filename)
 {
@@ -212,6 +221,7 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 
 //	ONLY TEMPORARY
 	reg.add_function("TestDomainVisualization", &TestDomainVisualization<TDomain>, grp);
+	reg.add_function("MinimizeMemoryFootprint", &MinimizeMemoryFootprint<TDomain>, grp);
 
 	return true;
 }

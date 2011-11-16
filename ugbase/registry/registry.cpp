@@ -152,8 +152,10 @@ bool Registry::check_consistency()
 		const bridge::IExportedClass &c = get_class(i);
 
 	//	check class (e.g. that base classes have been named)
-		if(!c.check_consistency())
+		if(!c.check_consistency()){
+			UG_LOG("Registry::check_consistency: Base Class Error for class " << c.name()<<"\n");
 			baseClassUndef++;
+		}
 
 	//	check methods
 		for(size_t j=0; j<c.num_methods(); j++)
