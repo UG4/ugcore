@@ -26,7 +26,7 @@ namespace ug{
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 
-template <typename TElem, template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
 bool CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler& shOut,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
@@ -95,7 +95,7 @@ bool CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler
 	return true;
 }
 
-template <typename TElem, template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
 bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
 		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
@@ -135,10 +135,10 @@ bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
 }
 
 
-template <template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <template <class, int> class TFVGeom, int TWorldDim>
 struct ConstructGridOfSCVFWrapper{};
 
-template <template <class TElem, int TWorldDim> class TFVGeom>
+template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 1>
 {
 	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
@@ -159,7 +159,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 1>
 	}
 };
 
-template <template <class TElem, int TWorldDim> class TFVGeom>
+template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 2>
 {
 	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
@@ -185,7 +185,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 2>
 	}
 };
 
-template <template <class TElem, int TWorldDim> class TFVGeom>
+template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 3>
 {
 	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
@@ -220,7 +220,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 3>
 	}
 };
 
-template <template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <template <class, int> class TFVGeom, int TWorldDim>
 bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
@@ -236,7 +236,7 @@ bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 
-template <typename TElem, template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
 bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler& shOut,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
@@ -316,7 +316,7 @@ bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler&
 	return true;
 }
 
-template <typename TElem, template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
 bool ConstructGridOfSCV(SubsetHandler& shOut, const SubsetHandler& sh,
 		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
@@ -356,7 +356,7 @@ bool ConstructGridOfSCV(SubsetHandler& shOut, const SubsetHandler& sh,
 }
 
 
-template <template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <template <class, int> class TFVGeom, int TWorldDim>
 struct ConstructGridOfSCVWrapper{};
 
 template <template <class TElem, int TWorldDim> class TFVGeom>
@@ -380,7 +380,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 1>
 	}
 };
 
-template <template <class TElem, int TWorldDim> class TFVGeom>
+template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 2>
 {
 	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
@@ -406,7 +406,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 2>
 	}
 };
 
-template <template <class TElem, int TWorldDim> class TFVGeom>
+template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 3>
 {
 	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
@@ -441,7 +441,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 3>
 	}
 };
 
-template <template <class TElem, int TWorldDim> class TFVGeom, int TWorldDim>
+template <template <class, int> class TFVGeom, int TWorldDim>
 bool ConstructGridOfSCV(SubsetHandler& shOut, const SubsetHandler& sh,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
@@ -531,7 +531,7 @@ bool ColorControlVolume(SubsetHandler& shOut)
 }
 
 
-template <template <class TElem, int TWorldDim> class TFVGeom, typename TAPosition>
+template <template <class, int> class TFVGeom, typename TAPosition>
 bool CreateGridOfSubControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPosition& aPos, int si = -1)
 {
 	static const int dim = TAPosition::ValueType::Size;
@@ -586,7 +586,7 @@ bool CreateGridOfSubControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPo
 	return true;
 }
 
-template <template <class TElem, int TWorldDim> class TFVGeom, typename TAPosition>
+template <template <class, int> class TFVGeom, typename TAPosition>
 bool CreateGridOfControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPosition& aPos, int si = -1)
 {
 	static const int dim = TAPosition::ValueType::Size;
@@ -644,7 +644,7 @@ bool CreateGridOfControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPosit
 	return true;
 }
 
-template <template <class TElem, int TWorldDim> class TFVGeom, typename TAPosition>
+template <template <class, int> class TFVGeom, typename TAPosition>
 bool CreateGridOfSubControlVolumeFaces(SubsetHandler& shOut, SubsetHandler& sh, TAPosition& aPos, int si = -1)
 {
 	static const int dim = TAPosition::ValueType::Size;
