@@ -43,6 +43,9 @@ bool FactorizeILU(Matrix_type &A)
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
 			// so that A(i,k) is zero.
 			// safe A(i,k)/A(k,k) in A(i,k)
+			if(fabs(BlockNorm(A(k,k))) < 1e-50)
+				UG_THROW_FATAL("Diag is Zero for k="<<k<<", cannot factorize ILU.");
+
 			a_ik /= A(k,k);
 
 			row_iterator it_j = it_k;
@@ -155,6 +158,9 @@ bool FactorizeILUSorted(Matrix_type &A)
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
 			// so that A(i,k) is zero.
 			// safe A(i,k)/A(k,k) in A(i,k)
+			if(fabs(BlockNorm(a_kk)) < 1e-50)
+				UG_THROW_FATAL("Diag is Zero for k="<<k<<", cannot factorize ILU.");
+
 			a_ik /= a_kk;
 
 			typename Matrix_type::row_iterator it_ij = it_k; // of row i
@@ -276,9 +282,17 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
+		//	Debug output of matrices
+			write_debug_matrix(mat, "ILU_BeforeMakeConsistent");
+
 #ifdef 	UG_PARALLEL
 		//	copy original matrix
-			MakeConsistent(mat, m_ILU);
+			// commented-out function seems to be broken (A.Vogel)
+//			MakeConsistent(mat, m_ILU);
+
+			// we use new instead (A.Vogel)
+			m_ILU = mat;
+			MatAdditiveToConsistent(m_ILU);
 
 		//	set zero on slaves
 			std::vector<IndexLayout::Element> vIndex;
