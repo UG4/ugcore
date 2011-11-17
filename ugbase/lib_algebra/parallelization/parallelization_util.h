@@ -124,9 +124,6 @@ class ComPol_MatAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			: m_rMat(rMat), m_vGlobalID(vGlobalID)
 		{
 			UG_ASSERT(vGlobalID.size() >= m_rMat.num_rows(), "too few Global ids");
-
-		//	fill the map global->local
-			GenerateAlgebraIDHashList(m_algIDHash, vGlobalID);
 		}
 
 	///	writes the interface values into a buffer that will be sent
@@ -166,6 +163,14 @@ class ComPol_MatAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			}
 
 		///	done
+			return true;
+		}
+
+		virtual bool
+		begin_layout_extraction(Layout* pLayout)
+		{
+		//	fill the map global->local
+			GenerateAlgebraIDHashList(m_algIDHash, m_vGlobalID);
 			return true;
 		}
 
@@ -232,10 +237,15 @@ void MatAdditiveToConsistent(TMatrix& mat)
 	vector<AlgebraID> globalIDs;
 	IndexLayout& masters = mat.get_master_layout();
 	IndexLayout& slaves = mat.get_slave_layout();
+	pcl::ParallelCommunicator<IndexLayout>& comm = mat.get_communicator();
 
-	GenerateGlobalAlgebraIDs(mat.get_communicator(), globalIDs, mat.num_rows(),
-	                         masters, slaves);
+	GenerateGlobalAlgebraIDs(comm, globalIDs, mat.num_rows(), masters, slaves);
 
+//	global ids are applied, now communicate...
+	ComPol_MatAdd<TMatrix> comPolMatAdd(mat, globalIDs);
+	comm.send_data(slaves, comPolMatAdd);
+	comm.receive_data(masters, comPolMatAdd);
+	comm.communicate();
 }
 
 /// changes parallel storage type from additive to consistent
