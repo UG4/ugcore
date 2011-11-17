@@ -266,9 +266,10 @@ apply(vector_type& u)
 		sprintf(ext, "_iter%03d", loopCnt);
 
 	//	write defect for debug
-		std::string name("NEWTON_Defect");
-		name.append(ext);
+		std::string name("NEWTON_Defect"); name.append(ext);
 		write_debug(m_d, name.c_str());
+		std::string name2("NEWTON_Correction"); name2.append(ext);
+		write_debug(m_c, name2.c_str());
 
 	// 	check convergence
 		m_pConvCheck->update(m_d);
