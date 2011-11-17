@@ -13,6 +13,13 @@ using namespace pcl;
 
 namespace ug{
 
+template<>
+unsigned long hash_key<AlgebraID>(const AlgebraID& key)
+{
+	const unsigned long factor = 1000000;
+	const unsigned long ind = (unsigned long)key.index_on_master();
+	return  factor * (unsigned long)key.master_proc() * ind + ind;
+}
 
 std::ostream& operator<<(std::ostream &out, const AlgebraID &ID)
 {

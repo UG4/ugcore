@@ -8,6 +8,7 @@
 #include <list>
 #include <cassert>
 #include <iostream>
+#include <utility>
 
 namespace ug
 {
@@ -23,6 +24,7 @@ template <typename TKey> unsigned long hash_key(const TKey& key)
 {
 	return (unsigned long)key;
 }
+
 /** \} */
 
 /*
