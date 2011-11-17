@@ -316,7 +316,7 @@ class BDF
 			return futureTime;
 		}
 
-		number m_order;
+		size_t m_order;
 };
 
 
