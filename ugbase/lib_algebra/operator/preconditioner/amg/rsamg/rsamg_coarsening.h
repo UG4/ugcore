@@ -19,14 +19,14 @@ void CreateAggressiveCoarseningGraph(const cgraph &graph, cgraph &graph2, const 
 
 void CreateMeasureOfImportanceAggressiveCoarseningPQ(const cgraph &graphAC, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
-int Coarsen(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes);
+int Coarsen(const cgraph &S, const cgraph &ST, nodeinfo_pq_type &PQ, AMGNodes &nodes, bool bUnsymmetric, bool bAggressiveCoarsening);
 
 void PreventFFConnections(const cgraph &graphS, const cgraph &graphST, AMGNodes &nodes);
 
 
 void RemoveUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i);
-void MarkUnassignedNeighborsFine(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i);
-void UpdateNeighborsOfFineNode(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i);
+void MarkUnassignedNeighborsFine(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i, bool bMarkAsFineIndirect);
+void ChangeRatingOfUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i, int change);
 
 
 } // namespace ug

@@ -19,6 +19,21 @@ namespace ug{
 #define MYASSERT(a, b) assert(a && ##b)
 #endif
 
+template<typename T>
+inline int get_val(const T &t)
+{
+	return t.get_val();
+}
+
+inline int get_val(int i)
+{
+	return i;
+}
+inline int get_val(size_t i)
+{
+	return i;
+}
+
 //! maximal value for T::get_val(). Keep in mind that memory requirements are O(max get_val()).
 const int BOXPRIORITYQUEUE_MAXIMAL_VALUE = 500;
 
@@ -100,7 +115,7 @@ public:
 	void insert_item(size_t i)
 	{
 		size_check(i);
-		size_t val = arr[i].get_val();
+		size_t val = get_val(arr[i]);
 		UG_ASSERT(val < (size_t)BOXPRIORITYQUEUE_MAXIMAL_VALUE, "T::get_val() has to be < " << BOXPRIORITYQUEUE_MAXIMAL_VALUE << " but is " << val);
 		if(m_box.size() < val+1)
 		{
@@ -123,7 +138,8 @@ public:
 	{
 		size_check(i);
 
-		UG_ASSERT(m_posInBox[i] != -1, "item " << i << " cannot be removed from queue, since it is not in the queue.");
+		if(m_posInBox[i] == -1) return;
+		//UG_ASSERT(m_posInBox[i] != -1, "item " << i << " cannot be removed from queue, since it is not in the queue.");
 
 		size_t val = m_values[i];
 
@@ -176,11 +192,16 @@ public:
 	//! @param i index in arr for which to update
 	void update(size_t i)
 	{
-		if(m_posInBox[i] != -1 && m_values[i] != arr[i].get_val())
+		if(m_posInBox[i] != -1 && m_values[i] != get_val(arr[i]))
 		{
 			remove(i);
 			insert_item(i);
 		}
+	}
+
+	bool is_in(size_t i)
+	{
+		return m_posInBox[i] != -1;
 	}
 
 	//! returns size of external array

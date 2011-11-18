@@ -21,12 +21,26 @@ namespace ug
 {
 
 
-void FullSubdomainBlocking(const cgraph &graphST, nodeinfo_pq_type &PQ, AMGNodes &nodes);
+class IParallelCoarsening
+{
+public:
+	virtual ~IParallelCoarsening() {}
+	virtual void coarsen(ParallelNodes &PN, stdvector<IndexLayout> vMasterLayouts, stdvector<IndexLayout> vSlaveLayouts,
+				const cgraph &graphS, const cgraph &graphST, nodeinfo_pq_type &PQ, AMGNodes &nodes, bool bUnsymmetric) = 0;
+	virtual int overlap_depth_master() = 0;
+	virtual int overlap_depth_slave() = 0;
+	virtual const char *tostring() = 0;
+};
 
-void ColoringCoarsen(pcl::ParallelCommunicator<IndexLayout> &communicator,
-		IndexLayout &OLCoarseningSendLayout, IndexLayout &OLCoarseningReceiveLayout,
-		const cgraph &graphST, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 
+IParallelCoarsening *GetFullSubdomainBlockingCoarsening();
+IParallelCoarsening *GetColorCoarsening();
+IParallelCoarsening *GetRS3Coarsening();
+IParallelCoarsening *GetCLJPCoarsening();
+IParallelCoarsening *GetFalgoutCoarsening();
+IParallelCoarsening *GetMinimumSubdomainBlockingCoarsening();
+IParallelCoarsening *GetCoarseGridClassificationCoarsening();
+IParallelCoarsening *GetSimpleParallelCoarsening();
 }
 #endif /* RSAMG_PARALLEL_COARSENING_H_ */
 

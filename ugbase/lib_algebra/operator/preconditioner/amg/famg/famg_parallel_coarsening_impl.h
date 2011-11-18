@@ -44,8 +44,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelColoring)
 	stopwatch SW;
 
-	pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-	UG_DLOG(LIB_ALG_AMG, 1, "\ncoloring processor OL graph..."); if(bTiming) SW.start();
+	UG_DLOG(LIB_ALG_AMG, 0, "\ncoloring processor OL graph..."); if(bTiming) SW.start();
 	// add processors of overlap 1 to pidsOL
 	std::set<int> pidsOL;
 	for(IndexLayout::iterator iter = OLCoarseningSendLayout.begin(); iter != OLCoarseningSendLayout.end(); ++iter)
@@ -59,9 +58,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			pidsOL.insert(OLCoarseningReceiveLayout.proc_id(iter));
 	}
 
-	m_myColor = ColorProcessorGraph(communicator, pidsOL, processesWithLowerColor, processesWithHigherColor);
-	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
-	UG_DLOG(LIB_ALG_AMG, 1, "\nmy color is " << m_myColor);
+	m_myColor = ColorProcessorGraph(PN.get_communicator(), pidsOL, processesWithLowerColor, processesWithHigherColor);
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
+	UG_DLOG(LIB_ALG_AMG, 0, "\nmy color is " << m_myColor);
 	UG_DLOG(LIB_ALG_AMG, 1, "i am connected to");
 	for(std::set<int>::iterator it = pidsOL.begin(); it != pidsOL.end(); ++it)
 		UG_DLOG(LIB_ALG_AMG, 1, (*it) << " ");
@@ -71,36 +70,42 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	UG_DLOG(LIB_ALG_AMG, 1, "\nprocesses with higher color:");
 	for(size_t i=0; i<processesWithHigherColor.size(); i++)
 		UG_DLOG(LIB_ALG_AMG, 1, processesWithHigherColor[i] << " ");
-	UG_DLOG(LIB_ALG_AMG, 1, "\n");
+	UG_DLOG(LIB_ALG_AMG, 0, "\n");
 }
 
 
 
 
-class FAMGCoarseningCommunicationScheme
+class FAMGCoarseningCommunicationScheme : public CommunicationScheme<FAMGCoarseningCommunicationScheme >
 {
 public:
-	typedef int value_type;
+	typedef char value_type;
 	FAMGCoarseningCommunicationScheme(FAMGNodes &r) : rating(r)
 	{
 
 	}
-	int send(int pid, size_t index) const
+	char send(int pid, size_t index) const
 	{
-		return rating[index].get_state();
-	}
-	void receive(int pid, size_t index, int state)
-	{
+		int state = rating[index].get_state();
 		if(state == FAMG_FINE_RATING || state == FAMG_UNCALCULATED_FINE_RATING || state == FAMG_AGGRESSIVE_FINE_RATING)
-			rating.external_set_uncalculated_fine(index);
+			return 0;
 		else if(state == FAMG_COARSE_RATING)
-			rating.external_set_coarse(index);
+			return 1;
 		else if(state == 0.0)
-			; // nothing
+			return 2;
 		else
 		{
 			UG_ASSERT(0, "state is " << state << "?");
 		}
+
+	}
+	void receive(int pid, size_t index, char state)
+	{
+		if(state == 0)
+			rating.external_set_uncalculated_fine(index);
+		else if(state == 1)
+			rating.external_set_coarse(index);
+		// else ; // nothing
 	}
 
 	inline int get_element_size() const
@@ -136,15 +141,15 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	stopwatch SW;
 	if(bTiming) SW.start();
 
-	UG_DLOG(LIB_ALG_AMG, 1, "\n*** receive coarsening data from processes with lower color ***\n");
+	UG_DLOG(LIB_ALG_AMG, 0, "\n*** receive coarsening data from processes with lower color ***\n");
 	if(processesWithLowerColor.size() == 0)
 	{
-		UG_DLOG(LIB_ALG_AMG, 1, "no processes with lower color.");
+		UG_DLOG(LIB_ALG_AMG, 0, "no processes with lower color.");
 		return;
 	}
 
 	FAMGCoarseningCommunicationScheme scheme(rating);
-	ReceiveOnInterfaces(A_OL2.get_communicator(), processesWithLowerColor, OLCoarseningReceiveLayout, scheme);
+	ReceiveOnInterfaces(PN.get_communicator(), processesWithLowerColor, OLCoarseningReceiveLayout, scheme);
 
 	// issue receive of coarsening data from processes with lower color
 	/*IF_DEBUG(LIB_ALG_AMG, 11)
@@ -153,7 +158,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 		communicator.enable_communication_debugging(lowerPC);
 	}*/
 
-	if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 }
 
 // FAMGLevelCalculator::send_coarsening_data_to_processes_with_higher_color
@@ -171,17 +176,16 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelSendCoarsening);
 
 	stopwatch SW; if(bTiming) SW.start();
-	UG_DLOG(LIB_ALG_AMG, 1, "\n*** send coarsening data to processes ***\n");
+	UG_DLOG(LIB_ALG_AMG, 0, "\n*** send coarsening data to processes ***\n");
 	if(processesWithHigherColor.size() == 0)
 	{
-		UG_DLOG(LIB_ALG_AMG, 1, "no processes with higher color.");
+		UG_DLOG(LIB_ALG_AMG, 0, "no processes with higher color.");
 		return;
 	}
 
-	pcl::ParallelCommunicator<IndexLayout> communicator = A_OL2.get_communicator();
 
 	FAMGCoarseningCommunicationScheme scheme(rating);
-	SendOnInterfaces(A_OL2.get_communicator(), processesWithHigherColor, OLCoarseningSendLayout, scheme);
+	SendOnInterfaces(PN.get_communicator(), processesWithHigherColor, OLCoarseningSendLayout, scheme);
 
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
 
@@ -225,6 +229,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
+	UG_DLOG(LIB_ALG_AMG, 0, "\n********** create OL2 matrix **************\n\n")
 #ifdef UG_DEBUG
 	//int iDebugLevelMatrixPre = GET_DEBUG_LEVEL(LIB_ALG_MATRIX);
 	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, m_famg.iDebugLevelOverlapMatrix);
@@ -255,24 +260,22 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OL1SlaveLayout, slaveLayouts[0]);
 
 
-	/*UG_DLOG(LIB_ALG_AMG, 1, "\n\n\nOL1Layout:\n")
-	PrintLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout);
-
-	UG_DLOG(LIB_ALG_AMG, 1, "\n\n\nOL2Layout:\n")
-	PrintLayout(A_OL2.get_communicator(), OL2MasterLayout, OL2SlaveLayout);
-	*/
-
-	/*UG_LOG("\n\nA layout, level " << level << ":\n")
-	PrintLayout(A_OL2.get_communicator(), A.get_master_layout(), A.get_slave_layout());
-	UG_LOG("\n\nA1 layout, level " << level << ":\n")
-	PrintLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout);
-	UG_LOG("\n\nA2 layout, level " << level << ":\n")
-	PrintLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout);*/
+	UG_LOG("\n\nA layout, level " << level << ":\n")
+	/*
+	PRINTLAYOUT(PN.get_communicator(), A.get_master_layout(), A.get_slave_layout());
+	PRINTLAYOUT(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout);
+	PRINTLAYOUT(PN.get_communicator(), OL2MasterLayout, OL2SlaveLayout);
+*/
+/*	for(int i=0; i<3; i++)
+ 	{
+		UG_LOG("\n\n\noverlap[" << i << "] layout, level " << level << ":\n");
+		PRINTLAYOUT(PN.get_communicator(), masterLayouts[i], slaveLayouts[i]);
+	}*/
 
 #ifdef UG_DEBUG
-	UG_ASSERT(TestLayout(A_OL2.get_communicator(), A.get_master_layout(), A.get_slave_layout()) == true, "A layout wrong, level " << level);
-	UG_ASSERT(TestLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
-	UG_ASSERT(TestLayout(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(PN.get_communicator(), A.get_master_layout(), A.get_slave_layout()) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
 #endif
 
 	// get testvectors on newly created indices
@@ -288,10 +291,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		ComPol_VecCopy< Vector<double> > vecCopyPol;
 		m_testvectors[i].resize(A_OL2.num_rows());
 		vecCopyPol.set_vector(&m_testvectors[i]);
-		pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-		communicator.send_data(OL2MasterLayout, vecCopyPol);
-		communicator.receive_data(OL2SlaveLayout, vecCopyPol);
-		communicator.communicate();
+		PN.get_communicator().send_data(OL2MasterLayout, vecCopyPol);
+		PN.get_communicator().receive_data(OL2SlaveLayout, vecCopyPol);
+		PN.get_communicator().communicate();
 	}
 
 
@@ -313,10 +315,10 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OLCoarseningSendLayout, OL1SlaveLayout);
 	AddLayout(OLCoarseningReceiveLayout, OL1MasterLayout);
 
-	AddConnectionsBetweenSlaves(A_OL2.get_communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
+	AddConnectionsBetweenSlaves(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
 
 	//UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningLayout :\n")
-	//PrintLayout(A_OL2.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
+	//PrintLayout(PN.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
 
 
 	size_t N = A_OL2.num_rows();
@@ -358,19 +360,12 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 	if(pcl::GetNumProcesses() > 1 && m_famg.m_amghelper.has_positions())
 	{
-		std::vector<MathVector<3> > &vec2 = m_famg.m_amghelper.positions[level];
-		vec2.resize(A_OL2.num_rows());
-
-		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
-		pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-		communicator.send_data(OL2MasterLayout, copyPol);
-		communicator.receive_data(OL2SlaveLayout, copyPol);
-		communicator.communicate();
+		m_famg.m_amghelper.update_overlap_positions(level, PN.get_communicator(), OL2MasterLayout, OL2SlaveLayout, A_OL2.num_rows());
 
 		AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
 		if(m_famg.m_writeMatrices)
 				WriteMatrixToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_A_OL2_L") + ToString(level), ".mat").c_str(),
-						A_OL2, &vec2[0], 2);
+						A_OL2, &m_famg.m_amghelper.positions[level][0], 2);
 	}
 
 	IF_DEBUG(LIB_ALG_AMG, 4)

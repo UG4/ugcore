@@ -21,6 +21,8 @@
 
 #include "../amg_base.h"
 #include "rsamg_nodeinfo.h"
+#include "rsamg_parallel_coarsening.h"
+
 /**
  * \brief Algebraic Multigrid Functions.
  *
@@ -115,21 +117,23 @@ protected:
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 					prolongation_matrix_type &P, size_t level);
 
-private:
-	void debug_matrix_write(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
-			prolongation_matrix_type &P, size_t level, const AMGNodes &nodes);
-	void create_parentIndex(const stdvector<int> &newIndex, const AMGNodes &nodes, size_t level);
-	void create_new_indices(stdvector<int> &newIndex, const AMGNodes &nodes, size_t level);
+#ifdef UG_PARALLEL
+public:
+	void set_parallel_coarsening(IParallelCoarsening *pPC)
+	{
+		m_pParallelCoarsening = pPC;
+	}
+#endif
 
-	void write_debug_matrix_markers(size_t level, const AMGNodes &nodes);
-	template<typename TMatrix>
-	void write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name);
 // data
 	double m_dEpsilonTr;	///< parameter used for truncation of interpolation
 	double m_dTheta; 		///< measure for strong connectivity
 
 	bool m_bAggressiveCoarsening;				///< true if aggressive coarsening is used on first level
-	int m_iAggressiveCoarseningNrOfPaths;  	///<
+	int m_iAggressiveCoarseningNrOfPaths;  		///<
+#ifdef UG_PARALLEL
+	IParallelCoarsening *m_pParallelCoarsening; ///<
+#endif
 };
 	
 	

@@ -24,6 +24,8 @@
 #include <sstream>
 #include <string>
 #include "amg_debug_helper.h"
+#include "pcl/pcl.h"
+#include "lib_algebra/parallelization/parallel_nodes.h"
 
 template<typename T>
 std::string ToString(const T &t)
@@ -32,9 +34,11 @@ std::string ToString(const T &t)
 	out << t;
 	return out.str();
 }
+#define PRINTLAYOUT(com, Layout1, Layout2) MyPrintLayout(com, (Layout1), (Layout2), #Layout1, #Layout2)
 
 namespace ug{
 
+void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2);
 
 template <typename TAlgebra>
 class AMGBase:
@@ -124,6 +128,30 @@ protected:
 
 	void create_direct_solver(size_t level);
 	bool solve_on_base(vector_type &c, vector_type &d, size_t level);
+
+	template<typename TAMGNodes>
+	void create_fine_marks(int level, TAMGNodes &amgnodes, size_t N);
+#ifndef UG_PARALLEL
+	template<typename TAMGNodes>
+	void serial_process_prolongation(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices, double dEpsilonTruncation, int level, TAMGNodes &amgnodes);
+#else
+	template<typename TAMGNodes>
+	void parallel_process_prolongation(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices, double dEpsilonTruncation, int level, TAMGNodes &amgnodes,
+			ParallelNodes &PN, bool bCreateNewNodes, IndexLayout &nextLevelMasterLayout, IndexLayout &nextLevelSlaveLayout);
+
+	void communicate_prolongation(ParallelNodes &PN, prolongation_matrix_type &PoldIndices, bool bCreateNewNodes);
+
+	void create_condensed_layout_from_prolongation(ParallelNodes &PN, prolongation_matrix_type &P, IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout);
+
+	template<typename TAMGNodes>
+	void postset_coarse(ParallelNodes &PN, prolongation_matrix_type &PoldIndices, TAMGNodes &nodes);
+
+	void create_parent_index(int level, stdvector<int> newIndex, size_t nrOfCoarse);
+
+	template<typename TAMGNodes>
+	void create_new_indices(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices,
+			size_t N, TAMGNodes &amgnodes, stdvector<int> &newIndex, double dEpsilonTruncation);
+#endif
 
 public:
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel);
@@ -226,6 +254,16 @@ public:
 
 	void tostring() const;
 
+public:
+	void write_debug_matrices(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+			prolongation_matrix_type &P, size_t level);
+
+	template<typename TMatrix>
+	void write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name);
+
+	template<typename TNodeType>
+	void write_debug_matrix_markers(size_t level, const TNodeType &nodes);
+
 protected:
 	void init_fsmoothing();
 	bool writevec(std::string filename, const vector_type &d, size_t level);
@@ -235,6 +273,9 @@ protected:
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level) = 0;
 	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
+
+
+
 
 #ifdef UG_PARALLEL
 	bool agglomerate(size_t level);

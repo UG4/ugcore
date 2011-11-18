@@ -16,18 +16,28 @@
 #include "rsamg_nodeinfo.h"
 #include "rsamg_impl.h"
 
+//#define USE_DIRICHLET_AS_INTERPOLATION_NODES
+
 namespace ug {
 
 inline void SetRSInterpolation(SparseMatrix<double> &P, size_t i,
 		std::vector<SparseMatrix<double>::connection > &con,
-		double sumNeighbors, double sumInterpolatory, double diag)
+		double sumPosNeighbors, double sumNegNeighbors,
+		double sumPosInterpolatory, double sumNegInterpolatory,
+		double diag)
 {
 	// calculate alpha_i
-	double alpha = - (sumNeighbors / sumInterpolatory) / diag;
+	double alphaPos = - (sumPosNeighbors / sumPosInterpolatory) / diag;
+	double alphaNeg = - (sumNegNeighbors / sumNegInterpolatory) / diag;
 	// set w_ij = alpha * w'_ij = alpha * a_ij/a_jj.
 
 	for(size_t j=0; j<con.size(); j++)
-		con[j].dValue *= alpha;
+	{
+		if(con[j].dValue < 0)
+			con[j].dValue *= alphaNeg;
+		else
+			con[j].dValue *= alphaPos;
+	}
 
 	// set w_ij in matrix row P[i] forall j.
 	P.set_matrix_row(i, &con[0], con.size());
@@ -53,7 +63,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 {
 	AMG_PROFILE_FUNC();
 	//UG_ASSERT(newIndex.size() == nodes.size(), "");
-	P.resize(A.num_rows(), nodes.get_nr_of_coarse());
+	P.resize(A.num_rows(), A.num_rows());
 
 	std::vector<SparseMatrix<double>::connection> con(255);
 	SparseMatrix<double>::connection c;
@@ -62,6 +72,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
+		if(!nodes.is_master_or_inner(i))
+			continue;
 		if(nodes[i].is_coarse())
 		{
 			// a coarse node
@@ -78,77 +90,96 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			// a non-interpolated fine node. calculate interpolation weights
 
 			// calc min off-diag-entry, and sum of Neighbors
-			double dmax = 0, connValue, maxCoarseConnValue = 0;
-			double sumNeighbors =0, sumInterpolatory=0;
+			double maxConnValue = 0, minConnValue=1e12;
+			double maxCoarseConnValue = 0, minCoarseConnValue = 1e12;
+			double sumNegNeighbors =0, sumPosNeighbors=0;
 
-			double diag = amg_diag_value(A(i, i));
 
+			double diag=0;
 			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
-				if(conn.index() == i) continue; // skip diag
-				connValue = amg_offdiag_value(conn.value());
-
-				if(connValue > 0)
+				if(conn.index() == i)
 				{
-					diag += connValue;
+					diag = amg_diag_value(conn.value());
 					continue;
 				}
+				double connValue = amg_offdiag_value(conn.value());
 
-				sumNeighbors += connValue;
+				if(connValue > 0)	sumPosNeighbors += connValue;
+				else				sumNegNeighbors += connValue;
 
-				if(dmax > connValue)
-					dmax = connValue;
-				if(nodes[conn.index()].is_coarse() && maxCoarseConnValue > connValue)
-					maxCoarseConnValue = connValue;
+				if(maxConnValue < connValue) maxConnValue = connValue;
+				if(minConnValue > connValue) minConnValue = connValue;
 
+				if(nodes[conn.index()].is_coarse() || nodes[conn.index()].is_dirichlet())
+				{
+					if(maxCoarseConnValue > connValue)	maxCoarseConnValue = connValue;
+					if(minCoarseConnValue < connValue)	minCoarseConnValue = connValue;
+				}
 			}
 
-			double barrier;
 			// todo: check if it is ok to do it THIS way:
-			if(epsilonTruncation > 0)  // [AMGKS99] 7.2.4 truncation of interpolation
+			/*if(epsilonTruncation > 0)  // [AMGKS99] 7.2.4 truncation of interpolation
 				barrier = std::min(theta*dmax, epsilonTruncation*maxCoarseConnValue);
-			else
-				barrier = theta*dmax;
+			else*/
+				//barrier = theta*dmax;
+			double barrier = theta*std::max(maxConnValue, dabs(minConnValue));
 
+
+			double sumPosInterpolatory=0, sumNegInterpolatory=0;
 			con.clear();
 			// step 1: set w'_ij = a_ij/a_jj for suitable j
 			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
 				if(conn.index() == i) continue; // skip diagonal
-				if(!nodes[conn.index()].is_coarse()) continue;
+				if(!nodes[conn.index()].is_coarse()
+#ifdef USE_DIRICHLET_AS_INTERPOLATION_NODES
+					&& !nodes[conn.index()].is_dirichlet()
+#endif
+					) continue;
 
-				connValue = amg_offdiag_value(conn.value());
-				if(connValue > barrier)
+				double connValue = amg_offdiag_value(conn.value());
+				if(dabs(connValue) < barrier)
 					continue;
-				//c.iIndex = newIndex[conn.index()];
+
 				c.iIndex = conn.index();
 				c.dValue = connValue;
 
 				UG_ASSERT(c.iIndex >= 0, "not coarse?");
 
-				con.push_back(c);
-				sumInterpolatory += connValue;
+				if(!nodes[conn.index()].is_dirichlet())
+					con.push_back(c);
+				if(connValue > 0)
+					sumPosInterpolatory += connValue;
+				else
+					sumNegInterpolatory += connValue;
 			}
 
 			if(con.size() > 0)
-				SetRSInterpolation(P, i, con, sumNeighbors, sumInterpolatory, diag);
+				SetRSInterpolation(P, i, con, sumPosNeighbors, sumNegNeighbors,
+						sumPosInterpolatory, sumNegInterpolatory, diag);
 			else
 			{
+
+				UG_LOG("node " << i << " was marked direct, but no interpolation found. barrier = " << barrier << std::endl);
+				//UG_ASSERT(0,i);
 				// no suitable interpolating nodes for node i,
 				// so this node has to be treated by indirect interpolation
 				nodes.set_unassigned_fine_indirect(i);
 			}
 		}
-		else
+		/*else
 		{
 			UG_ASSERT(0, "?");
 			//unassigned++;
 			//UG_ASSERT(aggressiveCoarsening != 0, "no aggressive Coarsening but node " << i << " is fine and indirect??");
-		}
+		}*/
 	}
 
 	if(nodes.get_unassigned())
-		UG_DLOG(LIB_ALG_AMG, 1, "Pass 1: " << nodes.get_unassigned() << " left. ")
+		UG_DLOG(LIB_ALG_AMG, 1, nodes.get_unassigned() << " ? ")
+	if(nodes.get_unassigned_indirect_fine())
+		UG_DLOG(LIB_ALG_AMG, 1, "Pass 1: " << nodes.get_unassigned_indirect_fine() << " nodes need indirect interpolation.")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,36 +213,38 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 
 	size_t oldUnassigned = -1;
 	int pass=2;
-	while(nodes.get_unassigned())
+	while(nodes.get_unassigned_indirect_fine())
 	{
 #ifdef AMG_PRINT_INDIRECT
 		UG_DLOG(LIB_ALG_AMG, 1, std::endl);
 #endif
 		UG_DLOG(LIB_ALG_AMG, 1, "Pass " << pass << ": ");
-		for(size_t i=0; i<A.num_rows() && nodes.get_unassigned() > 0; i++)
+		for(size_t i=0; i<A.num_rows() && nodes.get_unassigned_indirect_fine() > 0; i++)
 		{
 			if(!nodes[i].is_unassigned_fine_indirect() || A.is_isolated(i))
 				continue;
 
-			double diag = amg_diag_value(A(i, i));
+			double diag=0;
 			// calculate min offdiag-entry
-			double dmax = 0;
+			double maxConnValue = 0, minConnValue=1e12;
 
 			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
-				if(conn.index() == i) continue; // skip diagonal
-				double connValue = amg_offdiag_value(conn.value());
-				if(connValue > 0)
+				if(conn.index() == i)
 				{
-					diag += connValue;
-					continue;
+					diag = conn.value();
+					continue; // skip diagonal
 				}
-				if(dmax > connValue)
-					dmax = connValue;
+				double connValue = amg_offdiag_value(conn.value());
+				if(minConnValue > connValue)
+					minConnValue = connValue;
+				else if(maxConnValue < connValue)
+					maxConnValue = connValue;
 			}
 
 			con.clear();
-			double sumInterpolatory=0, sumNeighbors=0;
+			double sumPosNeighbors=0, sumNegNeighbors=0;
+			double barrier = theta*std::max(maxConnValue, dabs(minConnValue));
 
 			//cout << "indirect interpolating node " << i << endl;
 
@@ -222,8 +255,11 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 				if(indexN == i) continue; // skip diagonal
 
 				double connValue = amg_offdiag_value(conn.value());
-				sumNeighbors += connValue;
-				if(connValue > theta * dmax)
+				if(connValue > 0)
+					sumPosNeighbors += connValue;
+				else
+					sumNegNeighbors += connValue;
+				if(dabs(connValue) < barrier)
 					continue;
 
 				// we dont want fine nodes which were indirectly interpolated in THIS pass
@@ -255,9 +291,13 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 				}
 			}
 
+			double sumPosInterpolatory=0,sumNegInterpolatory=0;
 			for(size_t j=0; j<con.size(); j++)
 			{
-				sumInterpolatory += con[j].dValue;		// calc sumInterpolatory
+				if(con[j].dValue > 0)
+					sumPosInterpolatory += con[j].dValue;
+				else
+					sumNegInterpolatory += con[j].dValue;
 				posInConnections[con[j].iIndex] = -1; 	// reset posInConnections
 			}
 
@@ -271,11 +311,12 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 #endif
 			//cout << endl;
 
-			SetRSInterpolation(P, i, con, sumNeighbors, sumInterpolatory, diag);
+			SetRSInterpolation(P, i, con, sumPosNeighbors, sumNegNeighbors,
+						sumPosInterpolatory, sumNegInterpolatory, diag);
 		}
 
 
-		if(nodes.get_unassigned() == oldUnassigned)
+		if(nodes.get_unassigned_indirect_fine() == oldUnassigned)
 		{
 			UG_LOG(std::endl << "unassigned nodes left: " << std::endl);
 			for(size_t i=0; i<A.num_rows(); i++)
@@ -285,19 +326,21 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 			}
 			UG_LOG("\n");
 		}
-		UG_ASSERT(nodes.get_unassigned() != oldUnassigned, "Pass " << pass <<
-				": Indirect Interpolation hangs at " << nodes.get_unassigned() << " unassigned nodes.");
+		UG_ASSERT(nodes.get_unassigned_indirect_fine() != oldUnassigned, "Pass " << pass <<
+				": Indirect Interpolation hangs at " << nodes.get_unassigned_indirect_fine() <<
+				" unassigned indirect fine nodes.");
 
 #ifdef AMG_PRINT_INDIRECT
 		UG_DLOG(LIB_ALG_AMG, 1, "calculated, ");
 #endif
-		UG_DLOG(LIB_ALG_AMG, 1, nodes.get_unassigned() << " left. ");
+		UG_DLOG(LIB_ALG_AMG, 1, nodes.get_unassigned_indirect_fine() << " left. ");
 		pass++;
-		oldUnassigned = nodes.get_unassigned();
+		oldUnassigned = nodes.get_unassigned_indirect_fine();
 		break;
 	}
 
-	UG_ASSERT(nodes.get_unassigned() == 0, "number of unassigned nodes is still " << nodes.get_unassigned());
+	UG_ASSERT(nodes.get_unassigned_indirect_fine() == 0, "number of unassigned nodes is still " <<
+			nodes.get_unassigned_indirect_fine());
 
 	P.defragment();
 	//P.print();

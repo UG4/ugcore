@@ -252,22 +252,22 @@ public:
 public:
 	bool is_inner_node(size_t i) const
 	{
-		return PN.overlap_type(i).is_inner();
+		return PN.is_inner(i);
 	}
 
 	bool is_master(size_t i) const
 	{
-		return PN.overlap_type(i).is_master();
+		return PN.is_master(i);
 	}
 
 	bool is_slave(size_t i) const
 	{
-		return PN.overlap_type(i).is_slave();
+		return PN.is_slave(i);
 	}
 
 	size_t distance_to_master_or_inner(size_t i) const
 	{
-		return PN.overlap_type(i).distance_to_master_or_inner();
+		return PN.distance_to_master_or_inner(i);
 	}
 
 	/*bool is_master_on(size_t i, int pid)

@@ -22,6 +22,8 @@
 
 #include "lib_algebra/common/connection_viewer_output.h"
 
+std::string GetProcFilename(std::string path, std::string name, std::string extension);
+
 namespace ug{
 
 
@@ -224,6 +226,8 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		SetParallelVectorAsMatrix(L.corr, A, PST_CONSISTENT);
 		SetParallelVectorAsMatrix(L.cH, AH, PST_ADDITIVE);
 		SetParallelVectorAsMatrix(L.dH, AH, PST_ADDITIVE);
+		/*UG_LOG("nextLevel Layouts:\n");
+				PrintLayout(nextL.pA->get_communicator(), nextL.masterLayout, nextL.slaveLayout);*/
 	#endif
 
 		// todo: set size for variable sized blockvectors
@@ -366,7 +370,6 @@ AMGBase<TAlgebra>::AMGBase() :
 	m_bFSmoothing = false;
 
 	m_dbgDimension = 0;
-
 }
 
 
@@ -725,10 +728,105 @@ void AMGBase<TAlgebra>::update_positions()
 }
 
 
+
+template<typename TAlgebra>
+template<typename TNodeType>
+void AMGBase<TAlgebra>::write_debug_matrix_markers
+	(size_t level, const TNodeType &nodes)
+{
+	// todo: replace some day with something like nodes.get_mark_count(), nodes.mark_name(i), nodes.is_marked(i)
+	AMG_PROFILE_FUNC();
+	std::fstream ffine(GetProcFilename(m_writeMatrixPath, std::string("AMG_fine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	ffine << "1 0 0 1 0\n";
+	std::fstream ffine2(GetProcFilename(m_writeMatrixPath, std::string("AMG_aggfine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	ffine2 << "1 0.2 1 1 0\n";
+	std::fstream fcoarse(GetProcFilename(m_writeMatrixPath, std::string("AMG_coarse_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	fcoarse << "0 0 1 1 2\n";
+	std::fstream fother(GetProcFilename(m_writeMatrixPath, std::string("AMG_other_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	fother << "1 1 0 1 0\n";
+	std::fstream fdirichlet(GetProcFilename(m_writeMatrixPath, std::string("AMG_dirichlet_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	fdirichlet << "0 1 1 1 0\n";
+	for(size_t i=0; i < nodes.size(); i++)
+	{
+		//int o = m_amghelper.GetOriginalIndex(level, i);
+		int o=i;
+		if(nodes[i].is_aggressive_fine()) ffine2 << o << "\n";
+		else if(nodes[i].is_fine_direct()) ffine << o << "\n";
+		else if(nodes[i].is_coarse()) fcoarse << o << "\n";
+		else if(nodes[i].is_dirichlet()) fdirichlet << o << "\n";
+		else fother << o << "\n";
+	}
+
+}
+
+
+#ifdef UG_PARALLEL
+inline void WritePMAT(std::string &path, std::string &name)
+{
+	std::string pmatname = path + name + ".pmat";
+	std::fstream file(pmatname.c_str(), std::ios::out);
+	file << pcl::GetNumProcesses() << "\n";
+	for(int i=0; i<pcl::GetNumProcesses(); i++)
+		file << name << "_" << i << ".mat\n";
+}
+#else
+inline void WritePMAT(std::string &path, std::string &name)
+{
+}
+#endif
+
+
+template<typename TAlgebra>
+template<typename TMatrix>
+void AMGBase<TAlgebra>::
+	write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name)
+{
+	if(m_writeMatrices)
+	{
+		AMG_PROFILE_FUNC();
+		std::string filename = name + ToString(fromlevel);
+		WritePMAT(m_writeMatrixPath, filename);
+
+		int level = std::min(fromlevel, tolevel);
+		filename = GetProcFilename(m_writeMatrixPath, filename,".mat");
+		AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_amghelper);
+		std::fstream f2(filename.c_str(), std::ios::out | std::ios::app);
+		f2 << "c " << GetProcFilename("", std::string("AMG_fine_L") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename("", std::string("AMG_aggfine_L") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename("", std::string("AMG_coarse_L") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename("", std::string("AMG_other_L") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetProcFilename("", std::string("AMG_dirichlet_L") + ToString(level), ".marks") << "\n";
+	}
+}
+
+template<typename TAlgebra>
+void AMGBase<TAlgebra>::write_debug_matrices(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+		prolongation_matrix_type &P, size_t level)
+{
+	AMG_PROFILE_FUNC();
+	UG_LOG("write matrices");
+
+	//if(A.num_rows() < AMG_WRITE_MATRICES_MAX)
+	{
+		write_debug_matrix(A, level, level, "AMG_A_L");		UG_LOG(".");
+		write_debug_matrix(P, level+1, level, "AMG_P_L");	UG_LOG(".");
+		write_debug_matrix(R, level, level+1, "AMG_R_L");	UG_LOG(".");
+	}
+
+	//if(AH.num_rows() < AMG_WRITE_MATRICES_MAX)
+		AMGWriteToFile(AH, level+1, level+1, GetProcFilename(m_writeMatrixPath, ToString("AMG_A_L") + ToString(level+1),".mat").c_str(), m_amghelper);
+
+	UG_LOG(". done.\n");
+}
+
+
+
 } // namespace ug
 
 #include "amg_agglomeration.h"
 #include "amg_checks.h"
-
+#ifdef UG_PARALLEL
+#include "amg_communicate_prolongation.h"
+#endif
 #endif //  __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_BASE_IMPL_H__
 

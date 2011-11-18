@@ -15,15 +15,21 @@
 //#include "maxheap.h"
 #include "../boxsort.h"
 #include "../amg_debug_helper.h"
+#ifdef UG_PARALLEL
+#include "lib_algebra/parallelization/parallel_nodes.h"
+#endif
 
 namespace ug {
 
 //  structs
 #define AMG_UNKNOWN							(-1)
 #define AMG_ASSIGNED_RATING					(-2)
-#define AMG_COARSE_RATING					(-3)
-#define AMG_UNASSIGNED_FINE_INDIRECT_RATING	(-4)
-#define AMG_FINE_RATING						(-6)
+#define AMG_PARALLEL_DONT_CARE				(-3)
+#define AMG_COARSE_RATING					(-4)
+#define AMG_UNASSIGNED_FINE_INDIRECT_RATING	(-5)
+#define AMG_DIRICHLET_RATING				(-6)
+#define AMG_FINE_RATING						(-10)
+
 class AMGNode
 {
 private:
@@ -32,22 +38,29 @@ private:
 	inline void set_assigned(){rating = AMG_ASSIGNED_RATING;}		
 	inline void set_coarse()	{rating = AMG_COARSE_RATING;}
 	inline void set_fine_direct(){rating = AMG_FINE_RATING;	}
-	
+
+
 	inline void set_unassigned_fine_indirect(){rating = AMG_UNASSIGNED_FINE_INDIRECT_RATING;}
+	// indirect level 1 == fine direct
 	inline void set_fine_indirect_level(int level) { rating = AMG_FINE_RATING+1-level;}
-	
+	inline void set_dirichlet() { rating = AMG_DIRICHLET_RATING; }
+
 public:
-	AMGNode() { rating = AMG_UNKNOWN; }
+	inline void set_parallel_dont_care() { rating = AMG_PARALLEL_DONT_CARE; }
+	AMGNode() { rating = AMG_ASSIGNED_RATING; }
 	int rating;
+	inline bool is_parallel_dont_care() const { return rating == AMG_PARALLEL_DONT_CARE; }
 	inline bool is_coarse() const {	return rating == AMG_COARSE_RATING;}
+	inline bool is_dirichlet() const { return rating == AMG_DIRICHLET_RATING; }
 	inline bool is_fine_direct() const {return (rating == AMG_FINE_RATING);}
+	inline bool is_fine() const {return rating==AMG_FINE_RATING;}
 	inline bool operator ==(int comp)
 	{
 		return comp == rating;
 	}
 	
 	inline bool is_unassigned_fine_indirect() const {return rating == AMG_UNASSIGNED_FINE_INDIRECT_RATING;}
-	
+	inline bool is_aggressive_fine() const { return rating < AMG_FINE_RATING; }
 	
 	inline bool is_fine_indirect_level(int level) const { return rating == AMG_FINE_RATING+1-level;}
 	
@@ -60,7 +73,9 @@ public:
 		if(n.rating < 0)
 		{
 			if(n.is_coarse()) out << " (coarse)";
+			else if (n.is_dirichlet()) out << " (dirichlet=fine) ";
 			else if(n.is_unassigned_fine_indirect()) out << "(unknown indirect fine)";
+			else if(n.is_parallel_dont_care()) out << "(parallel dont care)";
 			else if(n.is_fine_direct())
 				out << " (fine direct)";
 			else
@@ -96,16 +111,28 @@ class AMGNodes
 {
 public:
 	typedef AMGNode value_type;
+#ifdef UG_PARALLEL
+	AMGNodes(ParallelNodes &_PN) : PN(_PN)
+#else
 	AMGNodes()
+#endif
 	{
 		m_unassigned = 0;
+		m_unassignedIndirectFine = 0;
 		m_iNrOfCoarse = 0;
+		m_iNrOfIndirectFine = 0;
 	}
 
+	#ifdef UG_PARALLEL
+	AMGNodes(size_t N, ParallelNodes &_PN) : PN(_PN)
+#else
 	AMGNodes(size_t N)
+#endif
 	{
 		m_unassigned = 0;
+		m_unassignedIndirectFine = 0;
 		m_iNrOfCoarse = 0;
+		m_iNrOfIndirectFine = 0;
 		resize(N);
 	}
 
@@ -133,22 +160,19 @@ public:
 		return m_nodes.size();
 	}
 
-	inline void set_assigned(size_t i)
+	void assign(size_t i)
 	{
-		m_nodes[i].set_assigned();
-		UG_ASSERT(m_unassigned != 0, i);
-		m_unassigned--;
-	}
-
-	inline void external_set_coarse(size_t i)
-	{
-		//UG_ASSERT(!is_slave(i), i);
-		if(m_nodes[i].is_assigned() == false)
+		if(!m_nodes[i].is_assigned())
 		{
 			UG_ASSERT(m_unassigned != 0, i);
 			m_unassigned--;
 		}
-		else if(m_nodes[i].is_coarse()) return;
+	}
+
+	inline void external_set_coarse(size_t i)
+	{
+		assign(i);
+		if(m_nodes[i].is_coarse()) return;
 		m_nodes[i].set_coarse();
 		m_iNrOfCoarse++;
 	}
@@ -159,30 +183,43 @@ public:
 	}
 	inline void set_fine_direct(size_t i)
 	{
+		assign(i);
+		if(m_nodes[i].is_coarse()) m_iNrOfCoarse--;
 		m_nodes[i].set_fine_direct();
-		UG_ASSERT(m_unassigned != 0, i);
-		m_unassigned--;
+	}
+
+	inline void set_fine(size_t i)
+	{
+		set_fine_direct(i);
 	}
 
 	inline void set_unassigned_fine_indirect(size_t i)
 	{
-		UG_ASSERT(m_nodes[i].is_fine_direct(), "");
+		assign(i);
+		if(m_nodes[i].is_coarse()) m_iNrOfCoarse--;
+		m_unassignedIndirectFine++;
 		m_nodes[i].set_unassigned_fine_indirect();
-		m_unassigned++;
 	}
 
 	inline void set_fine_indirect_level(size_t i, int level)
 	{
-		UG_ASSERT(m_nodes[i].is_unassigned_fine_indirect(), "");
+		UG_ASSERT(m_nodes[i].is_unassigned_fine_indirect(), i << " is not marked as indirect fine, but as " << m_nodes[i]);
 		m_nodes[i].set_fine_indirect_level(level);
-		m_unassigned--;
+		m_unassignedIndirectFine--;
+		m_iNrOfIndirectFine++;
 	}
 
-	inline void set_isolated(size_t i)
+	inline void set_dirichlet(size_t i)
 	{
-		if(m_nodes[i].rating >=0)
-			m_unassigned--;
-		m_nodes[i].set_fine_direct();
+		assign(i);
+		if(m_nodes[i].is_coarse()) m_iNrOfCoarse--;
+		m_nodes[i].set_dirichlet();
+	}
+
+	inline void set_parallel_dont_care(size_t i)
+	{
+		assign(i);
+		m_nodes[i].set_parallel_dont_care();
 	}
 
 
@@ -191,9 +228,19 @@ public:
 		return m_unassigned;
 	}
 
+	size_t get_unassigned_indirect_fine() const
+	{
+		return m_unassignedIndirectFine;
+	}
+
 	size_t get_nr_of_coarse() const
 	{
 		return m_iNrOfCoarse;
+	}
+
+	size_t get_nr_of_indirect_fine() const
+	{
+		return m_iNrOfIndirectFine;
 	}
 
 	void set_rating(size_t i, int rating)
@@ -212,29 +259,45 @@ public:
 			UG_LOG(i << " [" << amghelper.GetOriginalIndex(level, i) << "] " << m_nodes[i] << std::endl);
 	}
 
+	void print()
+	{
+		UG_LOG(std::endl);
+		for(size_t i=0; i<size(); i++)
+			UG_LOG(i << ": " << m_nodes[i] << std::endl);
+		UG_LOG(std::endl);
+	}
+
 
 
 
 #ifdef UG_PARALLEL
 public:
+	bool needs_assignment(size_t i) const
+	{
+		return is_master_or_inner(i);
+	}
+	bool is_master_or_inner(size_t i) const
+	{
+		return PN.is_master_or_inner(i);
+	}
 	bool is_inner(size_t i) const
 	{
-		return !bMaster[i] && !bSlave[i];
+		return PN.is_inner(i);
 	}
 	bool is_master(size_t i) const
 	{
-		return bMaster[i];
+		return PN.is_master(i);
 	}
 
 	bool is_slave(size_t i) const
 	{
-		return bSlave[i];
+		return PN.is_slave(i);
 	}
 
-	stdvector<bool> bMaster;
-	stdvector<bool> bSlave;
 #else
 public:
+	bool needs_assignment(size_t i) const { return true; }
+	bool is_master_or_inner(size_t i) const { return true; }
 	bool is_inner(size_t i) const
 	{
 		return true;
@@ -251,9 +314,14 @@ public:
 #endif
 
 private:
+#ifdef UG_PARALLEL
+	ParallelNodes &PN;
+#endif
 	stdvector<AMGNode> m_nodes;
-	int m_unassigned;
-	int m_iNrOfCoarse;			//< nr of nodes to assign
+	size_t m_unassigned;
+	size_t m_unassignedIndirectFine;
+	size_t m_iNrOfCoarse;			//< nr of nodes to assign
+	size_t m_iNrOfIndirectFine;
 };
 
 //	typedef maxheap<AMGNode> nodeinfo_pq_type;

@@ -15,6 +15,14 @@
 
 #include "common/common.h" // MathVector<3>
 #include "common/math/ugmath.h"
+#include "pcl/pcl.h"
+
+#ifdef UG_PARALLEL
+#include "lib_algebra/parallelization/parallel_index_layout.h"
+#include "lib_algebra/parallelization/communication_policies.h"
+#endif
+
+#include "amg_profiling.h"
 
 namespace ug{
 
@@ -65,7 +73,30 @@ struct cAMG_helper
 		return positions[level][i];
 	}
 
+#ifdef UG_PARALLEL
+	void update_overlap_positions(int level,
+			pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &overlapMaster, IndexLayout &overlapSlave,
+			size_t newSize)
+	{
+		//AMG_PROFILE_FUNC();
+		std::vector<MathVector<3> > &vec2 = positions[level];
+		vec2.resize(newSize);
 
+		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
+		communicator.send_data(overlapMaster, copyPol);
+		communicator.receive_data(overlapSlave, copyPol);
+		communicator.communicate();
+	}
+#endif
+
+	void make_coarse_level(size_t level, const stdvector<int> &parentIndex)
+	{
+		//AMG_PROFILE_FUNC();
+		positions.resize(level+1);
+		positions[level].resize(parentIndex.size());
+		for(size_t i=0; i < parentIndex.size(); i++)
+			positions[level][i] = positions[level-1][parentIndex[i]];
+	}
 	bool has_positions() const
 	{
 		return dimension != 0;

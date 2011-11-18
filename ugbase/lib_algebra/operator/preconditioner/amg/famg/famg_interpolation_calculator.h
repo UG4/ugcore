@@ -962,5 +962,5 @@ private:
 	bool testvectorsExtern;
 };
 
-
+} // namespace ug
 #endif // __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_INTERPOLATION_CALCULATOR_H__
