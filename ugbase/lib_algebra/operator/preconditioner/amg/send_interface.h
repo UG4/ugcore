@@ -8,6 +8,7 @@
 #ifndef SEND_INTERFACE_H_
 #define SEND_INTERFACE_H_
 
+#ifdef UG_PARALLEL
 namespace ug
 {
 
@@ -221,3 +222,5 @@ void CommunicateOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicato
 
 } // namespace ug
 #endif /* SEND_INTERFACE_H_ */
+
+#endif /* UG_PARALLEL */

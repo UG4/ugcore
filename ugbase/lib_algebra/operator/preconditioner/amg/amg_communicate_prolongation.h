@@ -7,9 +7,12 @@
 
 #ifndef AMG_COMMUNICATE_PROLONGATION_H_
 #define AMG_COMMUNICATE_PROLONGATION_H_
+
+#ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #include "lib_algebra/parallelization/row_sending_scheme.h"
 #include "send_interface.h"
+#endif
 
 namespace ug
 {
@@ -28,6 +31,108 @@ void AMGBase<TAlgebra>::create_fine_marks(int level, TAMGNodes &amgnodes, size_t
 		vFine[i] = amgnodes[i].is_fine();
 }
 
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// create_parent_index
+//------------------------------
+/**
+ * calculate so that parentIndex[level+1][newIndex[i]] = i
+ *
+ * \param level		 current AMG level
+ * \param newIndex	 new indices of the nodes. -1 means node is fine.
+ * \param nrOfCoarse nr of Coarse nodes.
+ *
+ */
+template<typename TAlgebra>
+void AMGBase<TAlgebra>::create_parent_index(int level, stdvector<int> newIndex, size_t nrOfCoarse)
+
+{
+	AMG_PROFILE_FUNC();
+	m_parentIndex.resize(level+2);
+	m_parentIndex[level+1].resize(nrOfCoarse);
+	for(size_t i=0; i < nrOfCoarse; i++) m_parentIndex[level+1][i] = -1;
+	for(size_t i=0; i < newIndex.size(); i++)
+		if(newIndex[i] != -1)
+			m_parentIndex[level+1][ newIndex[i] ] = i;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// create_parent_index
+//------------------------------
+/**
+ * every coarse node c gets a unique new index newIndex[c]
+ * calculate PnewIndices(r, newIndex[c]) = PoldIndex(r, c)
+ *
+ * \param PoldIndices			prolongation matrix with old indices
+ * \param PnewIndices			prolongation matrix with new indices
+ * \param N						overlap 0 size (size of master+slave+inner nodes)
+ * \param amgnodes				amgnodes used for coarse/fine
+ * \param newIndex				new indices are stored here
+ * \param dEpsilonTruncation	connections in P with P(i,j) < dEpsilonTruction * max_k P(i,k) are dropped.
+ */
+template<typename TAlgebra>
+template<typename TAMGNodes>
+void AMGBase<TAlgebra>::create_new_indices(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices,
+		size_t N, TAMGNodes &amgnodes, stdvector<int> &newIndex, double dEpsilonTruncation)
+
+{
+	AMG_PROFILE_FUNC();
+
+	newIndex.clear();
+	newIndex.resize(PoldIndices.num_cols(), -1);
+	size_t nrOfCoarse=0;
+	for(size_t r=0; r<N; r++)
+	{
+		for(typename prolongation_matrix_type::row_iterator it = PoldIndices.begin_row(r);
+				it != PoldIndices.end_row(r); ++it)
+		{
+			size_t c = it.index();
+			UG_ASSERT(amgnodes[c].is_coarse(), c);
+			if(newIndex[c] == -1)
+				newIndex[c] = nrOfCoarse++;
+		}
+	}
+	PnewIndices.resize(N, nrOfCoarse);
+	for(size_t r=0; r<N; r++)
+	{
+		double maxCon=0;
+		for(typename prolongation_matrix_type::row_iterator conn = PoldIndices.begin_row(r);
+			conn != PoldIndices.end_row(r); ++conn)
+		{
+			double con = BlockNorm(conn.value());
+			maxCon = std::max(con, maxCon);
+		}
+
+		for(typename prolongation_matrix_type::row_iterator conn = PoldIndices.begin_row(r);
+				conn != PoldIndices.end_row(r); ++conn)
+		{
+			if(BlockNorm(conn.value()) < maxCon*dEpsilonTruncation)
+				continue;
+			size_t c = conn.index();
+			UG_ASSERT(amgnodes[c].is_coarse(), "node " << c << " is not even coarse.");
+			UG_ASSERT(newIndex[c] != -1, amgnodes[c]);
+			// assure we are only interpolating Master0 and Slave0 nodes from Master0, Slave0 or Slave1 nodes.
+			//UG_ASSERT(PN.distance_to_master_or_inner(c) <= 1
+				//	|| (PN.is_slave(r) && PN.distance_to_master_or_inner(c) == 2),
+					//c << " = " << PN.overlap_type());
+			PnewIndices(r, newIndex[c]) = conn.value();
+		}
+	}
+
+#ifdef UG_DEBUG
+	/*for(size_t r=N; r<overlapN; r++)
+		UG_ASSERT(amgnodes[r].is_fine() == false || amgnodes[r].is_uncalculated_fine(), amgnodes.info(r));*/
+#endif
+	UG_DLOG(LIB_ALG_AMG, 0, "amgnodes.get_nr_of_coarse() = " << amgnodes.get_nr_of_coarse() << ", nrOfCoarse = " << nrOfCoarse << "\n");
+	PnewIndices.defragment();
+#ifdef UG_PARALLEL
+	PnewIndices.set_storage_type(PST_CONSISTENT);
+#endif
+}
+
+
 #ifndef UG_PARALLEL
 
 
@@ -38,12 +143,12 @@ void AMGBase<TAlgebra>::serial_process_prolongation(prolongation_matrix_type &Po
 {
 	AMG_PROFILE_FUNC();
 	stdvector<int> newIndex;
-	create_new_indices(PoldIndices, PnewIndices, PN.local_size(), amgnodes, newIndex, dEpsilonTruncation);
+	create_new_indices(PoldIndices, PnewIndices, PoldIndices.num_rows(), amgnodes, newIndex, dEpsilonTruncation);
 	create_parent_index(level, newIndex, PnewIndices.num_cols());
 
 	if(m_writeMatrices)
 		m_amghelper.make_coarse_level(level+1, m_parentIndex[level+1]);
-	create_fine_marks(level, amgnodes, PN.local_size());
+	create_fine_marks(level, amgnodes, PoldIndices.num_rows());
 }
 
 #else
@@ -313,106 +418,6 @@ void AMGBase<TAlgebra>::create_condensed_layout_from_prolongation(ParallelNodes 
 			PN.get_total_slave_layout(), cclcs);
 	cclcs.get_new_layouts(newMasterLayout, newSlaveLayout);
 
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// create_parent_index
-//------------------------------
-/**
- * calculate so that parentIndex[level+1][newIndex[i]] = i
- *
- * \param level		 current AMG level
- * \param newIndex	 new indices of the nodes. -1 means node is fine.
- * \param nrOfCoarse nr of Coarse nodes.
- *
- */
-template<typename TAlgebra>
-void AMGBase<TAlgebra>::create_parent_index(int level, stdvector<int> newIndex, size_t nrOfCoarse)
-
-{
-	AMG_PROFILE_FUNC();
-	m_parentIndex.resize(level+2);
-	m_parentIndex[level+1].resize(nrOfCoarse);
-	for(size_t i=0; i < nrOfCoarse; i++) m_parentIndex[level+1][i] = -1;
-	for(size_t i=0; i < newIndex.size(); i++)
-		if(newIndex[i] != -1)
-			m_parentIndex[level+1][ newIndex[i] ] = i;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// create_parent_index
-//------------------------------
-/**
- * every coarse node c gets a unique new index newIndex[c]
- * calculate PnewIndices(r, newIndex[c]) = PoldIndex(r, c)
- *
- * \param PoldIndices			prolongation matrix with old indices
- * \param PnewIndices			prolongation matrix with new indices
- * \param N						overlap 0 size (size of master+slave+inner nodes)
- * \param amgnodes				amgnodes used for coarse/fine
- * \param newIndex				new indices are stored here
- * \param dEpsilonTruncation	connections in P with P(i,j) < dEpsilonTruction * max_k P(i,k) are dropped.
- */
-template<typename TAlgebra>
-template<typename TAMGNodes>
-void AMGBase<TAlgebra>::create_new_indices(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices,
-		size_t N, TAMGNodes &amgnodes, stdvector<int> &newIndex, double dEpsilonTruncation)
-
-{
-	AMG_PROFILE_FUNC();
-
-	newIndex.clear();
-	newIndex.resize(PoldIndices.num_cols(), -1);
-	size_t nrOfCoarse=0;
-	for(size_t r=0; r<N; r++)
-	{
-		for(typename prolongation_matrix_type::row_iterator it = PoldIndices.begin_row(r);
-				it != PoldIndices.end_row(r); ++it)
-		{
-			size_t c = it.index();
-			UG_ASSERT(amgnodes[c].is_coarse(), c);
-			if(newIndex[c] == -1)
-				newIndex[c] = nrOfCoarse++;
-		}
-	}
-	PnewIndices.resize(N, nrOfCoarse);
-	for(size_t r=0; r<N; r++)
-	{
-		double maxCon=0;
-		for(typename prolongation_matrix_type::row_iterator conn = PoldIndices.begin_row(r);
-			conn != PoldIndices.end_row(r); ++conn)
-		{
-			double con = BlockNorm(conn.value());
-			maxCon = std::max(con, maxCon);
-		}
-
-		for(typename prolongation_matrix_type::row_iterator conn = PoldIndices.begin_row(r);
-				conn != PoldIndices.end_row(r); ++conn)
-		{
-			if(BlockNorm(conn.value()) < maxCon*dEpsilonTruncation)
-				continue;
-			size_t c = conn.index();
-			UG_ASSERT(amgnodes[c].is_coarse(), "node " << c << " is not even coarse.");
-			UG_ASSERT(newIndex[c] != -1, amgnodes[c]);
-			// assure we are only interpolating Master0 and Slave0 nodes from Master0, Slave0 or Slave1 nodes.
-			//UG_ASSERT(PN.distance_to_master_or_inner(c) <= 1
-				//	|| (PN.is_slave(r) && PN.distance_to_master_or_inner(c) == 2),
-					//c << " = " << PN.overlap_type());
-			PnewIndices(r, newIndex[c]) = conn.value();
-		}
-	}
-
-#ifdef UG_DEBUG
-	/*for(size_t r=N; r<overlapN; r++)
-		UG_ASSERT(amgnodes[r].is_fine() == false || amgnodes[r].is_uncalculated_fine(), amgnodes.info(r));*/
-#endif
-	UG_DLOG(LIB_ALG_AMG, 0, "amgnodes.get_nr_of_coarse() = " << amgnodes.get_nr_of_coarse() << ", nrOfCoarse = " << nrOfCoarse << "\n");
-	PnewIndices.defragment();
-#ifdef UG_PARALLEL
-	PnewIndices.set_storage_type(PST_CONSISTENT);
-#endif
 }
 
 #endif
