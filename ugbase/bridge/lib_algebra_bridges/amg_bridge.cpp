@@ -55,6 +55,19 @@ struct RegisterAMGClass<CPUAlgebra>
 		string algSuffix = GetAlgebraSuffix<CPUAlgebra>();
 		string algTag = GetAlgebraTag<CPUAlgebra>();
 
+
+#ifdef UG_PARALLEL
+		reg.add_class_<	IParallelCoarsening > ("IParallelCoarsening", grp2.c_str(), "Parallel Coarsening Interface (RSAMG)");
+		reg.add_function("GetFullSubdomainBlockingCoarsening", GetFullSubdomainBlockingCoarsening, grp2.c_str());
+		reg.add_function("GetColorCoarsening", GetColorCoarsening, grp2.c_str());
+		reg.add_function("GetRS3Coarsening", GetRS3Coarsening, grp2.c_str());
+		reg.add_function("GetCLJPCoarsening", GetCLJPCoarsening, grp2.c_str());
+		reg.add_function("GetFalgoutCoarsening", GetFalgoutCoarsening, grp2.c_str());
+		reg.add_function("GetMinimumSubdomainBlockingCoarsening", GetMinimumSubdomainBlockingCoarsening, grp2.c_str());
+		reg.add_function("GetCoarseGridClassificationCoarsening", GetCoarseGridClassificationCoarsening, grp2.c_str());
+		reg.add_function("GetSimpleParallelCoarsening", GetSimpleParallelCoarsening, grp2.c_str());
+#endif
+
 	//	AMG
 
 		reg.add_class_< AMGBase<algebra_type>::LevelInformation > (string("AMGLevelInformation").append(algSuffix), grp2.c_str())
@@ -130,7 +143,12 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("enable_aggressive_coarsening_A", &RSAMG<algebra_type>::enable_aggressive_coarsening_A, "", "nrOfPaths", "enables aggressive coarsening (A1 or A2) on the first level.")
 			.add_method("disable_aggressive_coarsening", &RSAMG<algebra_type>::disable_aggressive_coarsening, "", "", "disables aggressive coarsening")
 			.add_method("is_aggressive_coarsening", &RSAMG<algebra_type>::is_aggressive_coarsening)
-			.add_method("is_aggressive_coarsening_A", &RSAMG<algebra_type>::is_aggressive_coarsening_A);
+			.add_method("is_aggressive_coarsening_A", &RSAMG<algebra_type>::is_aggressive_coarsening_A)
+#ifdef UG_PARALLEL
+			.add_method("set_parallel_coarsening", &RSAMG<algebra_type>::set_parallel_coarsening)
+#endif
+			;
+
 		reg.add_class_to_group(string("RSAMGPreconditioner").append(algSuffix), "RSAMGPreconditioner", algTag);
 
 		reg.add_class_<	FAMG<algebra_type>, AMGBase<algebra_type> > (string("FAMGPreconditioner").append(algSuffix), grp2.c_str(), "Filtering Algebraic Multigrid")
@@ -143,11 +161,14 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("get_theta", &FAMG<algebra_type>::get_theta, "theta")
 			.add_method("set_damping_for_smoother_in_interpolation_calculation",
 					&FAMG<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
+
 			.add_method("set_testvector_damps", &FAMG<algebra_type>::set_testvector_damps)
 			.add_method("reset_testvectors", &FAMG<algebra_type>::reset_testvectors)
 			.add_method("add_testvector", &FAMG<algebra_type>::add_testvector)
 			.add_method("add_vector_writer", &FAMG<algebra_type>::add_vector_writer)
 			.add_method("write_testvectors", &FAMG<algebra_type>::write_testvectors)
+			.add_method("set_testvector_from_matrix_rows", &FAMG<algebra_type>::set_testvector_from_matrix_rows)
+
 			.add_method("set_epsilon_truncation", &FAMG<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
 			.add_method("get_epsilon_truncation", &FAMG<algebra_type>::get_epsilon_truncation, "epsilon_tr")
 
@@ -168,6 +189,9 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
 			;
 		reg.add_class_to_group(string("FAMGPreconditioner").append(algSuffix), "FAMGPreconditioner", algTag);
+
+
+
 
 		return true;
 	}
