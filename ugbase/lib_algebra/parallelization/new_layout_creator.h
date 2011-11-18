@@ -14,7 +14,7 @@ namespace ug
 class NewLayoutCreator
 {
 private:
-	void create_mark_map()
+	void create_mark_map(IndexLayout &masterLayout)
 	{
 		PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::CreateMarks\n");
@@ -23,7 +23,6 @@ private:
 		{
 			IndexLayout::Interface &interface = masterLayout.interface(iter);
 			int pid = masterLayout.proc_id(iter);
-
 
 			std::set<size_t> &mark = notified[pid];
 			for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
@@ -54,7 +53,8 @@ private:
 	typedef std::map<int, BinaryBuffer>	BufferMap;
 
 	ParallelNodes &PN;
-	IndexLayout &masterLayout, &slaveLayout;
+	std::set<int> masterPIDs;
+	std::set<int> slavePIDs;
 
 	BufferMap notificationBufferMap;
 
@@ -84,10 +84,14 @@ private:
 
 public:
 
-	NewLayoutCreator(ParallelNodes &_PN, IndexLayout &_masterLayout, IndexLayout &_slaveLayout)
-		: PN(_PN), masterLayout(_masterLayout), slaveLayout(_slaveLayout)
+	NewLayoutCreator(ParallelNodes &_PN, IndexLayout &masterLayout, IndexLayout &slaveLayout)
+		: PN(_PN)
 	{
-		create_mark_map();
+		for(IndexLayout::iterator it = slaveLayout.begin(); it != slaveLayout.end(); ++it)
+			slavePIDs.insert(slaveLayout.proc_id(it));
+		for(IndexLayout::iterator it = masterLayout.begin(); it != masterLayout.end(); ++it)
+			masterPIDs.insert(masterLayout.proc_id(it));
+		create_mark_map(masterLayout);
 	}
 	size_t create_slave_node(const AlgebraID &globalID, int distanceToMasterOrInner)
 	{
@@ -184,10 +188,10 @@ public:
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::issue\n");
 		// notifications for new Master Nodes
-		for(IndexLayout::iterator it = slaveLayout.begin(); it != slaveLayout.end(); ++it)
+		for(std::set<int>::iterator it = slavePIDs.begin(); it != slavePIDs.end(); ++it)
 		{
 			BinaryBuffer buf;
-			int pid = slaveLayout.proc_id(it);
+			int pid = *it;
 			for(size_t i=0; i<newSlaveNotifications[pid].size(); i++)
 				Serialize(buf, newSlaveNotifications[pid][i]);
 			UG_DLOG(LIB_ALG_MATRIX, 4, " sending " << newSlaveNotifications[pid].size() << " notifications to processor " << pid << " (" << buf.write_pos() << " bytes)\n");
@@ -195,9 +199,9 @@ public:
 		}
 		newSlaveNotifications.clear();
 
-		for(IndexLayout::iterator it = masterLayout.begin(); it != masterLayout.end(); ++it)
+		for(std::set<int>::iterator it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
 		{
-			int pid = masterLayout.proc_id(it);
+			int pid = *it;
 			UG_DLOG(LIB_ALG_MATRIX, 4, " issue receive from processor " << pid << "\n");
 			communicator.receive_raw(pid, notificationBufferMap[pid]);
 		}
@@ -206,9 +210,9 @@ public:
 	void process()
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::process\n");
-		for(IndexLayout::iterator it = masterLayout.begin(); it != masterLayout.end(); ++it)
+		for(std::set<int>::iterator it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
 		{
-			int pid = masterLayout.proc_id(it);
+			int pid = *it;
 			BinaryBuffer &buf = notificationBufferMap[pid];
 			UG_DLOG(LIB_ALG_MATRIX, 4, "received " << buf.write_pos() << " bytes of notification from pid " << pid << ":\n");
 			while(!buf.eof())
@@ -249,6 +253,10 @@ public:
 	{
 		PN.insert_into_layout_sorted(newMasters, newMasterLayout);
 		PN.insert_into_layout_sorted(newSlaves, newSlaveLayout);
+		for(std::map<int, std::set<size_t> >::iterator it = newMasters.begin(); it != newMasters.end(); ++it)
+			masterPIDs.insert(it->first);
+		for(std::map<int, std::set<size_t> >::iterator it = newSlaves.begin(); it != newSlaves.end(); ++it)
+			slavePIDs.insert(it->first);
 		newMasters.clear();
 		newSlaves.clear();
 	}

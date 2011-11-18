@@ -68,7 +68,6 @@ private:
 	std::vector<IndexLayout> &m_vMasterLayouts; 	///< m_vMasterLayout[i] is the master layout from overlap i without others
 	std::vector<IndexLayout> &m_vSlaveLayouts;	///< m_vSlaveLayout[i] is the slave layout from overlap i without others
 	ParallelNodes &PN;
-	NewLayoutCreator newLayoutCreator;
 		//size_t m_overlapDepth;						///< overlap depth to be achieved
 
 public:
@@ -108,23 +107,21 @@ private:
 			PrintLayout(receivingLayout);
 			UG_LOG("\n\n");
 
-			TestLayout(m_com, sendingLayout, receivingLayout);
+			UG_ASSERT(TestLayout(m_com, sendingLayout, receivingLayout), "layout corrupted");
 		}
 
-		RowSendingScheme<matrix_type> rowSendingScheme(m_mat, PN, newLayoutCreator);
+		RowSendingScheme<matrix_type> rowSendingScheme(m_newMat, PN);
 
 		rowSendingScheme.set_create_new_nodes(bCreateNewNodes);
 		rowSendingScheme.issue_send(m_com, sendingLayout, receivingLayout);
 		m_com.communicate();
-
-
 
 		rowSendingScheme.process(receivingLayout);
 
 		if(bCreateNewNodes)
 		{
 			m_newMat.resize(PN.local_size(), PN.local_size());
-			newLayoutCreator.add_new_layouts_to(newMastersLayout, newSlavesLayout);
+			PN.add_new_layouts_to(newMastersLayout, newSlavesLayout);
 
 			AddLayout(m_totalMasterLayout, newMastersLayout);
 			AddLayout(m_totalSlaveLayout, newSlavesLayout);
@@ -137,12 +134,12 @@ private:
 				PrintLayout(newSlavesLayout);
 				UG_LOG("\n\n");
 
-				TestLayout(m_com, newMastersLayout, newSlavesLayout);
+				UG_ASSERT(TestLayout(m_com, newMastersLayout, newSlavesLayout), "layout corrupted");
 			}
 
 
-			AddLayout(m_vMasterLayouts[level], newMastersLayout);
-			AddLayout(m_vSlaveLayouts[level], newSlavesLayout);
+			AddLayout(m_vMasterLayouts[level+1], newMastersLayout);
+			AddLayout(m_vSlaveLayouts[level+1], newSlavesLayout);
 		}
 		if(bSet)
 			rowSendingScheme.set_rows_in_matrix(m_newMat);
@@ -167,8 +164,7 @@ public:
 			ParallelNodes &pn) :
 		m_com(mat.get_communicator()), m_mat(mat), m_newMat(newMat), m_totalMasterLayout(totalMasterLayout), m_totalSlaveLayout(totalSlaveLayout),
 		m_vMasterLayouts(vMasterLayouts), m_vSlaveLayouts(vSlaveLayouts),
-		PN(pn),
-		newLayoutCreator(pn, mat.get_master_layout(), mat.get_slave_layout())
+		PN(pn)
 	{
 
 	}
@@ -203,7 +199,7 @@ public:
 		PROFILE_END(); PROFILE_BEGIN(calculate_TestLayout);
 		IF_DEBUG(LIB_ALG_MATRIX, 1)
 		{
-		  TestLayout(m_com, masterLayout, slaveLayout);
+			UG_ASSERT(TestLayout(m_com, masterLayout, slaveLayout), "layout corrupted");
 		}
 
 		PROFILE_END(); PROFILE_BEGIN(calculate1_2);

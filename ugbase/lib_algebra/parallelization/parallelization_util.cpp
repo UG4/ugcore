@@ -731,13 +731,13 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 		//UG_LOG("index " << index << " is to processors ");
 		for(size_t i=0; i<procs.size(); i++)
 		{
-
 			BinaryBuffer &stream = sendpack[procs[i]];
 			size_t interfaceIndex = localToInterfaceIndex[procs[i]][index];
 			//UG_LOG(procs[i] << " (interfaceIndex " << interfaceIndex << ") ");
 			for(size_t j=0; j<procs.size(); j++)
 			{
 				if(i == j) continue;
+				UG_ASSERT(procs[i] != procs[j], procs[i] << " != " << procs[j]);
 				Serialize(stream, interfaceIndex);
 				Serialize(stream, procs[j]);
 			}

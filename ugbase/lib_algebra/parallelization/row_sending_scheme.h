@@ -28,11 +28,11 @@ private:
 	typedef typename matrix_type::connection connection;
 	std::map<size_t, std::vector<connection> > connections;
 	ParallelNodes &PN;
-	NewLayoutCreator &newLayoutCreator;
+	size_t rowMax, colMax;
 
 public:
-	RowSendingScheme(matrix_type &_mat, ParallelNodes &_PN, NewLayoutCreator &_nLC)
-	: mat(_mat), PN(_PN), newLayoutCreator(_nLC)
+	RowSendingScheme(matrix_type &_mat, ParallelNodes &_PN)
+	: mat(_mat), PN(_PN)
 	{
 
 	}
@@ -69,16 +69,15 @@ public:
 			communicator.receive_raw(pid, rowsBufferMap[pid]);
 		}
 
-		newLayoutCreator.issue(communicator);
+		PN.issue(communicator);
 
 	}
 
 	void process(IndexLayout &receiveLayout)
 	{
+		rowMax=0; colMax=0;
 		UG_DLOG(LIB_ALG_MATRIX, 4, "*** RowSendingScheme::process: ***\n");
 		connections.clear();
-
-		newLayoutCreator.process();
 
 		for(IndexLayout::iterator it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
 		{
@@ -90,10 +89,14 @@ public:
 			for(IndexLayout::Interface::iterator it = interface.begin(); it != interface.end(); ++it)
 				process(buf, pid, interface.get_element(it));
 		}
+
+		PN.process();
 	}
+
 
 	void set_rows_in_matrix(matrix_type &mat)
 	{
+		resize_mat(mat);
 		for(typename std::map<size_t, std::vector<connection> >::iterator it = connections.begin();
 				it != connections.end(); ++it)
 		{
@@ -104,6 +107,7 @@ public:
 
 	void add_rows_to_matrix(matrix_type &mat)
 	{
+		resize_mat(mat);
 		for(typename std::map<size_t, std::vector<connection> >::iterator it = connections.begin();
 				it != connections.end(); ++it)
 		{
@@ -114,6 +118,13 @@ public:
 
 
 private:
+	void resize_mat(matrix_type &mat)
+	{
+		size_t cols = std::max(colMax, mat.num_cols());
+		size_t rows = std::max(rowMax, mat.num_rows());
+		if(rows > mat.num_rows() || cols > mat.num_cols())
+			mat.resize(rows, cols);
+	}
 	void issue_send(BinaryBuffer &buf, int pid, int localRowIndex)
 	{
 		size_t num_connections = mat.num_connections(localRowIndex);
@@ -128,7 +139,7 @@ private:
 			size_t localColIndex = conn.index();
 			const AlgebraID &globalColIndex = PN.local_to_global(localColIndex);
 			if(m_bCreateNewNodes)
-				newLayoutCreator.create_node(globalColIndex, localColIndex, pid);
+				PN.create_node(globalColIndex, localColIndex, pid);
 
 			// serialize connection
 			Serialize(buf, globalColIndex);
@@ -138,16 +149,17 @@ private:
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n");
 	}
 
-	void process(BinaryBuffer &buf, int pid, int localRowIndex)
+	void process(BinaryBuffer &buf, int pid, size_t localRowIndex)
 	{
 		size_t num_connections;
+		rowMax = std::max(rowMax, localRowIndex+1);
 
 		// serialize number of connections
 		Deserialize(buf, num_connections);
 
 		UG_DLOG(LIB_ALG_MATRIX, 4, "processing received row " << localRowIndex << ", " << num_connections << " connections \n");
 
-		size_t distanceToMasterOrInner = PN.overlap_type(localRowIndex).distance_to_master_or_inner();
+		size_t distanceToMasterOrInner = PN.distance_to_master_or_inner(localRowIndex);
 
 		std::vector<connection> &cons = connections[localRowIndex];
 		size_t i = cons.size();
@@ -158,14 +170,18 @@ private:
 		{
 			AlgebraID globalColIndex;
 			Deserialize(buf, globalColIndex);
-			Deserialize(buf, cons[i].dValue);
+			Deserialize(buf, cons[j].dValue);
 			bool bHasIndex=true;
 			if(m_bCreateNewNodes)
-				cons[j].iIndex = newLayoutCreator.create_slave_node(globalColIndex, distanceToMasterOrInner+1);
+				cons[j].iIndex = PN.create_slave_node(globalColIndex, distanceToMasterOrInner+1);
 			else
 				cons[j].iIndex = PN.get_local_index_if_available(globalColIndex, bHasIndex);
-			UG_DLOG(LIB_ALG_MATRIX, 4, " " << cons[j].iIndex << " (" << globalColIndex << ") -> " << cons[j].dValue << "\n");
-			if(bHasIndex) j++;
+			UG_DLOG(LIB_ALG_MATRIX, 4, " " << (int)(cons[j].iIndex) << " (" << globalColIndex << ") -> " << cons[j].dValue << "\n");
+			if(bHasIndex)
+			{
+				colMax = std::max(colMax, cons[j].iIndex+1);
+				j++;
+			}
 		}
 		cons.resize(j);
 	}
