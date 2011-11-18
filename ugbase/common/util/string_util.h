@@ -43,6 +43,8 @@ UG_API int NumberOfDigits(int n);
 UG_API void AppendCounterToString(std::string& str, std::string indicator,
                            int counter, int maxCounter = -1);
 
+UG_API std::string AppendSpacesToString(std::string& str, int nSpaces);
+
 //sreiter
 ///	this template function creates a hash key for a string value.
 template <> UG_API unsigned long hash_key(const std::string& key);

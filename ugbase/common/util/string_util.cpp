@@ -78,6 +78,16 @@ void AppendCounterToString(std::string& str, std::string indicator,
 	str.append(ss.str());
 }
 
+///	appends a number of spaces to a string, returns "padded" string
+std::string AppendSpacesToString(std::string& str, int totalLength)
+{
+
+	int numSpaces = std::max((int)(totalLength-str.length()), 0);
+	for(int i = 0; i < numSpaces; ++i) str.append(" ");
+
+	return str;
+}
+
 std::string FilenameWithoutPath(const std::string& str)
 {
 	size_t pos = str.find_last_of("/");
