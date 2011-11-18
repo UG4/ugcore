@@ -118,16 +118,20 @@ int ConstSmartTestFunc(ConstSmartPtr<Test> test)
 class SmartTest{
 	public:
 		SmartTest()	{}
+		virtual ~SmartTest()		{UG_LOG("SmartTest destroyed...\n");}
+		virtual void say_hello()	{UG_LOG("Hello, I'm SmartTest\n");}
+};
 
-		void say_hello()	{UG_LOG("Hello, I'm SmartTest\n");}
+class SmartTestDerived : public SmartTest
+{
+	public:
+		SmartTestDerived()	{}
+		virtual ~SmartTestDerived()	{UG_LOG("SmartTestDerived destroyed...\n");}
+		virtual void say_hello()	{UG_LOG("Hello, I'm SmartTestDerived\n");}
 };
 
 typedef SmartPtr<SmartTest> SPSmartTest;
-
-SPSmartTest CreateSmartTest()
-{
-	return SPSmartTest(new SmartTest);
-}
+typedef SmartPtr<SmartTestDerived> SPSmartTestDerived;
 
 void SmartTestArrived(SPSmartTest test)
 {
@@ -514,8 +518,12 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 			.add_method("say_hello", &SmartTest::say_hello)
 			.set_construct_as_smart_pointer(true);// always last!
 
-		reg.add_function("CreateSmartTest", &CreateSmartTest, grp)
-			.add_function("SmartTestArrived", &SmartTestArrived, grp);
+		reg.add_class_<SmartTestDerived, SmartTest>("SmartTestDerived", grp)
+			.add_constructor()
+			.add_method("say_hello", &SmartTestDerived::say_hello)
+			.set_construct_as_smart_pointer(true);// always last!
+
+		reg.add_function("SmartTestArrived", &SmartTestArrived, grp);
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered method takes an argument of an unregistered type.
