@@ -735,6 +735,7 @@ inline size_t SparseMatrix<T>::num_connections(size_t row) const
 template<typename T>
 void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
+	if(nr==0) return;
 	definalize();
 	size_t oldNumConnections = num_connections(row);
 	if(in_consmem(row))
@@ -742,28 +743,44 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 	else
 		iFragmentedMem += nr - oldNumConnections;
 
-	connection *n = new connection[nr];
-	UG_ASSERT(n != NULL, "out of memory, no more space for " << sizeof(connection)*nr);
+	std::sort(c, c+nr);
+	size_t nrUnique=1;
+	for(size_t i=1; i<nr; i++)
+	{
+		if(c[i].iIndex != c[i-1].iIndex)
+			nrUnique++;
+	}
 
-	for(size_t i=0; i<nr; i++)
-		n[i] = c[i];
+	connection *n = new connection[nrUnique];
+	UG_ASSERT(n != NULL, "out of memory, no more space for " << sizeof(connection)*nrUnique);
 
-	std::sort(n, n+nr);
+	size_t i=0;
+	for(size_t ic=0; ic<nr;)
+	{
+		n[i] = c[ic++];
+		// check for double connections
+		while(c[ic-1].iIndex == c[ic].iIndex && ic < nr)
+		{
+			n[i].dValue += c[ic].dValue;
+			ic++;
+		}
+		i++;
+	}
 
 #ifdef DEBUG
-	for(size_t i=0; i<nr; i++)
+	for(size_t i=0; i<nrUnique; i++)
 		UG_ASSERT(n[i].iIndex >= 0 && n[i].iIndex < num_cols(), "Matrix is " << num_rows() << "x" << num_cols() << ", row " << row << " cannot have connection " << n[i] << ".");
 #endif
 
 	// calc bandwidth
 	bandwidth = std::max(bandwidth, abs(n[0].iIndex, row));
-	bandwidth = std::max(bandwidth, abs(n[nr-1].iIndex, row));
+	bandwidth = std::max(bandwidth, abs(n[nrUnique-1].iIndex, row));
 
 	safe_set_connections(row, n);
-	pRowEnd[row] = pRowStart[row]+nr;
+	pRowEnd[row] = pRowStart[row]+nrUnique;
 
-	iTotalNrOfConnections += nr - oldNumConnections;
-	iMaxNrOfConnections[row] = nr;
+	iTotalNrOfConnections += nrUnique - oldNumConnections;
+	iMaxNrOfConnections[row] = nrUnique;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -777,7 +794,7 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
  * \param c connections ("row") to be added the row.
  * \param nr number of connections in array c.
  * \return true on success.
- * \note you may not use double connections in c.
+ * \note you may use double connections in c.
  */
 template<typename T>
 void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
@@ -808,6 +825,8 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 		{
 			skipped++;
 			ic++;
+			// check for double connections
+			while(c[ic-1].iIndex == c[ic].iIndex && ic < nr) ic++;
 		}
 		else if(c[ic].iIndex > old[iold].iIndex)
 			iold++;
@@ -844,7 +863,15 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 		if(c[ic].iIndex < old[iold].iIndex)
 		{
 			UG_ASSERT(c[ic].iIndex >= 0 && c[ic].iIndex < num_cols(), "");
-			n[i++] = c[ic++];
+
+			n[i] = c[ic++];
+			// check for double connections
+			while(c[ic-1].iIndex == c[ic].iIndex && ic < nr)
+			{
+				n[i].dValue += c[ic].dValue;
+				ic++;
+			}
+			i++;
 		}
 		else if(c[ic].iIndex > old[iold].iIndex)
 			n[i++] = old[iold++];
@@ -857,7 +884,17 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 		}
 	}
 	// deal with the rest
-	while(ic<nr) n[i++] = c[ic++];
+	while(ic<nr)
+	{
+		n[i] = c[ic++];
+		// check for double connections
+		while(c[ic-1].iIndex == c[ic].iIndex && ic < nr)
+		{
+			n[i].dValue += c[ic].dValue;
+			ic++;
+		}
+		i++;
+	}
 	while(iold<oldNrOfConnections) n[i++] = old[iold++];
 
 	UG_ASSERT(i == iNewSize, "row: " << row << " i: " << i << " iNewSize: " << iNewSize);
