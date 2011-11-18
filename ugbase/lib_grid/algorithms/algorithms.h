@@ -10,6 +10,7 @@
 #include "trees/octree.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "grid_generation/grid_generation.h"
+#include "grid_generation/tetrakaidecahedron_generator.h"
 #include "refinement/hanging_node_refiner_grid.h"
 #include "refinement/hanging_node_refiner_multi_grid.h"
 #include "refinement/regular_refinement.h"

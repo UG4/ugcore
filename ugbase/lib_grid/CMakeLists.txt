@@ -34,6 +34,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/geom_obj_util/volume_util.cpp
 					algorithms/grid_generation/tetrahedralization.cpp
 					algorithms/grid_generation/triangle_fill.cpp
+					algorithms/grid_generation/tetrakaidecahedron_generator.cpp
 					algorithms/extrusion/extrude.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp

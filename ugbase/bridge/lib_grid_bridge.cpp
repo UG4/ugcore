@@ -504,6 +504,21 @@ class ExpandLayersDesc : public std::vector<FractureInfo>
 };
 
 
+
+////////////////////////////////////////////////////////////////////////
+///	test tetrakaidekahedron generator
+void TestTKDGenerator(const char* outfile, number& height, number& baseEdgeLength, number& diameter)
+{
+	Grid g;
+	SubsetHandler sh(g);
+	sh.set_default_subset_index(0);
+
+	g.attach_to_vertices(aPosition);
+
+	GenerateTetrakaidecahedron(g, height, baseEdgeLength, diameter);
+	SaveGridToFile(g, sh, outfile);
+}
+
 ////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 {
@@ -667,6 +682,9 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 
 		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
 			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
+
+	//	add TKD-Generator method
+		reg.add_function("TestTKDGenerator", &TestTKDGenerator, grp);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
