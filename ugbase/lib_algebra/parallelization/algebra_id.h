@@ -27,6 +27,8 @@ struct AlgebraID : public std::pair<int, size_t>
 
 	int master_proc() const { return first; }
 	size_t index_on_master() const { return second; }
+	bool is_slave() const { return master_proc() != pcl::GetProcRank(); }
+	bool is_master() const { return master_proc() == pcl::GetProcRank(); }
 };
 
 template<>
