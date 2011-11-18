@@ -147,7 +147,11 @@ public:
 	empty() const;
 
 	inline void
-	reserve(size_type nrRows, size_type nrCols) const 	{ return; }
+	reserve(size_type nrRows, size_type nrCols) const
+	{
+		assert(nrRows == rowsT && nrCols == colsT);
+		return nrRows == rowsT && nrCols == colsT;
+	}
 
 
 	// Element access
