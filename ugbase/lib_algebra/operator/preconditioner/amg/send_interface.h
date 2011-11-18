@@ -55,7 +55,7 @@ public:
 		}
 	}
 
-	void get_size(IndexLayout::Interface &interface)
+	int get_size(IndexLayout::Interface &interface)
 	{
 		return sizeof(char) * (interface.size()/8 + (interface.size()%8==0?0:1) );
 	}

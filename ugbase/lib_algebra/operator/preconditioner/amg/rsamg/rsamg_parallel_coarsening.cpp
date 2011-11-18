@@ -23,6 +23,7 @@ using namespace std;
 
 #include "lib_algebra/parallelization/parallel_coloring.h"
 #include "../send_interface.h"
+#include "rsamg_coarsening.h"
 
 namespace ug{
 
@@ -183,6 +184,20 @@ class RS3Coarsening: public IParallelCoarsening
 		AddLayout(slaveOL1, vSlaveLayouts[1]);
 
 		CommunicateOnInterfaces(PN.get_communicator(), slaveOL1, masterOL1, scheme);
+
+		// prevent FF
+		int nrOfFFCoarseNodes=0;
+		size_t N = graphS.size();
+		vector<bool> marks(N, false);
+
+		for(size_t i=0; i< N; i++)
+		{
+			if(nodes.is_master_or_inner(i)==false)
+				continue;
+			PreventFFConnection(graphS, graphST, nodes, i, marks, nrOfFFCoarseNodes);
+		}
+
+		CommunicateOnInterfaces(PN.get_communicator(), vSlaveLayouts[0], vMasterLayouts[0], scheme);
 	}
 
 	int overlap_depth_master()

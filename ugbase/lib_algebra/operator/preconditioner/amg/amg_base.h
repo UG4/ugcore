@@ -27,7 +27,6 @@
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #include "lib_algebra/parallelization/parallel_nodes.h"
-void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2);
 #endif
 
 template<typename T>
@@ -40,6 +39,9 @@ std::string ToString(const T &t)
 #define PRINTLAYOUT(com, Layout1, Layout2) MyPrintLayout(com, (Layout1), (Layout2), #Layout1, #Layout2)
 
 namespace ug{
+#ifdef UG_PARALLEL
+void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2);
+#endif
 
 
 template <typename TAlgebra>
