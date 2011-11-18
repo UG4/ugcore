@@ -26,8 +26,9 @@
 #include "amg_debug_helper.h"
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
-#endif
 #include "lib_algebra/parallelization/parallel_nodes.h"
+void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2);
+#endif
 
 template<typename T>
 std::string ToString(const T &t)
@@ -40,7 +41,6 @@ std::string ToString(const T &t)
 
 namespace ug{
 
-void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2);
 
 template <typename TAlgebra>
 class AMGBase:
@@ -133,6 +133,12 @@ protected:
 
 	template<typename TAMGNodes>
 	void create_fine_marks(int level, TAMGNodes &amgnodes, size_t N);
+
+	void create_parent_index(int level, stdvector<int> newIndex, size_t nrOfCoarse);
+
+	template<typename TAMGNodes>
+	void create_new_indices(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices,
+				size_t N, TAMGNodes &amgnodes, stdvector<int> &newIndex, double dEpsilonTruncation);
 #ifndef UG_PARALLEL
 	template<typename TAMGNodes>
 	void serial_process_prolongation(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices, double dEpsilonTruncation, int level, TAMGNodes &amgnodes);
@@ -147,12 +153,6 @@ protected:
 
 	template<typename TAMGNodes>
 	void postset_coarse(ParallelNodes &PN, prolongation_matrix_type &PoldIndices, TAMGNodes &nodes);
-
-	void create_parent_index(int level, stdvector<int> newIndex, size_t nrOfCoarse);
-
-	template<typename TAMGNodes>
-	void create_new_indices(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices,
-			size_t N, TAMGNodes &amgnodes, stdvector<int> &newIndex, double dEpsilonTruncation);
 #endif
 
 public:
