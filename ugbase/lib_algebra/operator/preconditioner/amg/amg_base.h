@@ -24,7 +24,9 @@
 #include <sstream>
 #include <string>
 #include "amg_debug_helper.h"
+#ifdef UG_PARALLEL
 #include "pcl/pcl.h"
+#endif
 #include "lib_algebra/parallelization/parallel_nodes.h"
 
 template<typename T>
