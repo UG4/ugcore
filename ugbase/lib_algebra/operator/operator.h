@@ -37,8 +37,4 @@
 // matrix operator methods
 #include "matrix_operator_functions.h"
 
-
-// for compatibilty. remove this later.
-#include "operator_impl.h"
-
 #endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR__ */
