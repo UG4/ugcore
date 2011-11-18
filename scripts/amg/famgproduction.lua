@@ -8,6 +8,9 @@
 -- SetOutputProcessRank(0)
 SetOutputProfileStats(false)
 
+GetLogAssistant():enable_file_output(true, "ug_log"..GetProcessRank())
+SetOutputProcessRank(-1)
+
 ug_load_script("ug_util.lua")
 
 -- constants
@@ -36,6 +39,8 @@ numRefs = util.GetParamNumber("-numRefs", 1)
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 
 maxBase = util.GetParamNumber("-maxBase", 1000)
+maxLevels = util.GetParamNumber("-maxLevels", 20)
+
 
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
@@ -43,8 +48,8 @@ RAalpha = util.GetParamNumber("-RAalpha", 0)
 epsx = util.GetParamNumber("-epsx", 1)
 epsy = util.GetParamNumber("-epsy", 1)
 
-bFileOutput = true
-bOutput = false
+bFileOutput = false
+bOutput = true
 
 if util.HasParamOption("-RSAMG") then
 	bRSAMG = true
@@ -70,17 +75,11 @@ function writeln(...)
 	write("\n")
 end
 
-function my_assert(condition, text)
-	if condition == false then
-		error(text)
-	end
-end
-
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
 	function cbDirichletBnd2d(x, y, t)
-		return true, 0		
+		return true, 5.9991		
 	end
 	dirchletBnd2d = LuaBoundaryNumber("cbDirichletBnd"..dim.."d")
 	
@@ -89,14 +88,14 @@ end
 		local s = 2*math.pi
 		return s*s*(math.sin(s*x) + math.sin(s*y))
 	end
-	sinRhs2d = util.CreateLuaUserNumber("cbSinRhs2d", 2)
+	sinRhs2d = LuaUserNumber("cbSinRhs2d")
 	
 	
 	function cbSinDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
 		return true, math.sin(s*x) + math.sin(s*y)
 	end
-	sinDirchletBnd2d = util.CreateLuaBoundaryNumber("cbSinDirichletBnd2d", 2)
+	sinDirchletBnd2d = LuaBoundaryNumber("cbSinDirichletBnd2d")
 	
 	-- anisotropic diffusion in corners
 	function cbAnisoDiffTensor2d(x, y, t)
@@ -105,27 +104,33 @@ end
 		return	fac1*epsx+fac2, 0, 
 				0, fac1+fac2*epsy
 	end
-	anisoDiffTensor2d = util.CreateLuaUserMatrix("cbAnisoDiffTensor2d", 2)
+	anisoDiffTensor2d = LuaUserMatrix("cbAnisoDiffTensor2d")
 
 	
 	function CreateRotatedAnisotropyMatrix2d(alpha, epsilon)
 		local sinalpha = math.sin(alpha)
 		local cosalpha = math.cos(alpha)
-		RAmat = ConstUserMatrix2d()
-		-- print((sinalpha*sinalpha + epsilon*cosalpha*cosalpha)..", "..(1-epsilon)*sinalpha*cosalpha)
-		-- print((1-epsilon)*sinalpha*cosalpha..", "..epsilon*sinalpha*sinalpha + cosalpha*cosalpha)
-		return util.CreateConstUserMatrix2d(sinalpha*sinalpha + epsilon*cosalpha*cosalpha, (1-epsilon)*sinalpha*cosalpha,	(1-epsilon)*sinalpha*cosalpha, epsilon*sinalpha*sinalpha + cosalpha*cosalpha)		
+		RAmat = ConstUserMatrix()
+		print(sinalpha.." "..cosalpha.." "..epsilon)
+		print((sinalpha*sinalpha + epsilon*cosalpha*cosalpha)..", "..(1-epsilon)*sinalpha*cosalpha)
+		print((1-epsilon)*sinalpha*cosalpha..", "..epsilon*sinalpha*sinalpha + cosalpha*cosalpha)
+		RAmat:set_entry(0,0,sinalpha*sinalpha + epsilon*cosalpha*cosalpha)
+		RAmat:set_entry(0,1,(1-epsilon)*sinalpha*cosalpha)
+		RAmat:set_entry(1,0,(1-epsilon)*sinalpha*cosalpha)
+		RAmat:set_entry(1,1, epsilon*sinalpha*sinalpha + cosalpha*cosalpha)
+		return RAmat		
 	end	
 
 
 	-- hedgehog diffusion 
 	function cbHedgehogDiffTensor2d(x, y, t)
+	
 		if x<0 then 
 			if y<0 then return 1.0, 0, 0, 1.0 
 			else return epsx, 0, 0, 1.0 end
 		else
 			if y<0 then return 1.0, 0, 0, epsy 
-			else return 1.0, -1.0, -1.0, 1.0 end
+			else return 1.0, -1.0, -1.0, 1.0 end			
 		end
 		
 		-- should never happen
@@ -150,25 +155,26 @@ problem = "rotatedAniso"
 -------------------------------------------
 if problem == "rotatedAniso" then
 diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
-velocityField = util.CreateConstUserVector2d(0,0)
-reaction = util.CreateConstUserNumber(0)
-rhs = util.CreateConstUserNumber(0)
+print(diffusionMatrix)
+velocityField = ConstUserVector2d(0)
+reaction = ConstUserNumber(0)
+rhs = ConstUserNumber(0)
 dirichlet = dirchletBnd2d
 end
 
 if problem == "hedgehog" then
-diffusionMatrix = util.CreateLuaUserMatrix("cbHedgehogDiffTensor2d", 2)
-velocityField = util.CreateConstUserVector2d(0,0)
-reaction = util.CreateConstUserNumber(0)
-rhs = util.CreateConstUserNumber(0)
+diffusionMatrix = LuaUserMatrix("cbHedgehogDiffTensor2d")
+velocityField = ConstUserVector2d(0)
+reaction = ConstUserNumber(0)
+rhs = ConstUserNumber(0)
 dirichlet = dirchletBnd2d
 end
 
 if problem == "jump" then
-diffusionMatrix = util.CreateLuaUserMatrix("cbJumpDiffTensor2d", 2)
-velocityField = util.CreateConstUserVector2d(0,0)
-reaction = util.CreateConstUserNumber(0)
-rhs = util.CreateConstUserNumber(0)
+diffusionMatrix = LuaUserMatrix("cbJumpDiffTensor2d")
+velocityField = ConstUserVector2d(0)
+reaction = ConstUserNumber(0)
+rhs = ConstUserNumber(0)
 dirichlet = dirchletBnd2d
 end
 
@@ -185,7 +191,7 @@ exit()
 end
 
 -- create Refiner
-my_assert(numPreRefs < numRefs, "numPreRefs must be smaller than numRefs");
+assert(numPreRefs < numRefs, "numPreRefs must be smaller than numRefs");
 
 refiner = GlobalDomainRefiner(dom)
 for i=1,numPreRefs do
@@ -193,7 +199,7 @@ refiner:refine()
 end
 
 -- Distribute the domain to all involved processes
-my_assert(DistributeDomain(dom) == true, "Error while Distributing Grid.")
+assert(DistributeDomain(dom) == true, "Error while Distributing Grid.")
 
 -- Perform post-refine
 for i=numPreRefs+1,numRefs do
@@ -204,7 +210,7 @@ tGrid = os.clock()-tBefore
 
 -- get subset handler
 sh = dom:get_subset_handler()
-my_assert(sh:num_subsets() == 2, "Domain must have 2 Subsets for this problem.")
+assert(sh:num_subsets() == 2, "Domain must have 2 Subsets for this problem.")
 sh:set_subset_name("Inner", 0)
 sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
@@ -228,7 +234,7 @@ end
 upwind:set_weight(0.0)
 elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
-my_assert(elemDisc:set_upwind(upwind), "could not set upwind")
+elemDisc:set_upwind(upwind)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
@@ -347,6 +353,7 @@ if bRSAMG == false then
 	testvector = GridFunction(approxSpace)
 	testvectorwriter:update(testvector)	
 	amg:add_vector_writer(testvectorwriter, 1.0)
+
 	amg:set_testvector_damps(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
 		
@@ -354,16 +361,22 @@ if bRSAMG == false then
 		amg:write_testvectors(true)
 	end
 	
-		
+	
+	-- amg:set_debug_level_overlap(4, 4)
+	-- amg:set_use_precalculate(false)
 	-- amg:set_debug_level_get_ratings(4)
 	-- amg:set_debug_level_coloring(4)
 	-- amg:set_debug_level_communicate_prolongation(4)
 	-- amg:set_debug_level_overlap(4,4)
-	-- amg:set_debug_level_precalculate_coarsening(4)
+	-- amg:set_debug_level_calculate_parent_pairs(2)
+	 -- amg:set_debug_level_precalculate_coarsening(4)
 	-- amg:set_debug_level_calculate_parent_pairs(4)
 else
 	print ("create AMG... ")
 	amg = RSAMGPreconditioner()
+	-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
+	amg:set_parallel_coarsening(GetColorCoarsening())
+	-- amg:set_parallel_coarsening(GetRS3Coarsening())
 	-- amg:enable_aggressive_coarsening_A(2)
 end
 
@@ -381,7 +394,7 @@ amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
 amg:set_base_solver(base)
-amg:set_max_levels(20)
+amg:set_max_levels(maxLevels)
 
 amg:set_min_nodes_on_one_processor(50000)
 -- amg:set_preferred_nodes_on_one_processor(1000)
@@ -507,7 +520,7 @@ if GetProfilerAvailable() == true then
 		printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
 	end
 	
-	if create_levelPN:is_valid() then
+	if create_levelPN:is_valid() and false then
 		if true then
 			print(create_levelPN:call_tree())
 			print(create_levelPN:child_self_time_sorted())

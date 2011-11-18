@@ -36,7 +36,7 @@ numRefs = util.GetParamNumber("-numRefs", 3)
 -- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 
-maxBase = util.GetParamNumber("-maxBase", 500)
+maxBase = util.GetParamNumber("-maxBase", 1000)
 
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
