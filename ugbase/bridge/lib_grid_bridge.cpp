@@ -507,7 +507,7 @@ class ExpandLayersDesc : public std::vector<FractureInfo>
 
 ////////////////////////////////////////////////////////////////////////
 ///	test tetrakaidekahedron generator
-void TestTKDGenerator(const char* outfile, number& height, number& baseEdgeLength, number& diameter)
+void TestTKDGenerator(const char* outfile, number height, number baseEdgeLength, number diameter)
 {
 	Grid g;
 	SubsetHandler sh(g);
