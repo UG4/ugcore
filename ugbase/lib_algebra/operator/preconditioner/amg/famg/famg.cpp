@@ -43,10 +43,12 @@
 
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+#include "../send_interface.h"
+
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
-#include "../send_interface.h"
+
 //#include "../row_sender.h"
 
 
@@ -119,6 +121,7 @@ void print_vector(const vector_type &vec, const char *p)
 
 namespace ug{
 
+#ifdef UG_PARALLEL
 void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2)
 {
 	UG_LOG("\n========================================\n");
@@ -130,7 +133,7 @@ void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLa
 	PrintLayout(communicator, layout1, layout2);
 	UG_LOG("\n\n");
 }
-
+#endif
 
 
 
