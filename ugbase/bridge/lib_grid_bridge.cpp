@@ -515,7 +515,7 @@ void TestTKDGenerator(const char* outfile, number height, number baseEdgeLength,
 
 	g.attach_to_vertices(aPosition);
 
-	GenerateTetrakaidecahedron(g, height, baseEdgeLength, diameter);
+	tkdGenerator::GenerateTetrakaidecahedron(g, height, baseEdgeLength, diameter);
 	SaveGridToFile(g, sh, outfile);
 }
 
