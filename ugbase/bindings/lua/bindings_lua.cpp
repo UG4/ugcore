@@ -716,14 +716,42 @@ static int LuaProxyConstructor(lua_State* L)
 
 	//	correct parameterlist found, create the user data.
 	//	check whether we have to create a SmartPointer or a RawPointer
-		if(c->construct_as_smart_pointer()){
-			CreateNewUserData(L,
-				SmartPtr<void>(constr.create(paramsIn), c->get_delete_function()),
-				c->name().c_str());
+		try{
+			if(c->construct_as_smart_pointer()){
+				CreateNewUserData(L,
+					SmartPtr<void>(constr.create(paramsIn), c->get_delete_function()),
+					c->name().c_str());
+			}
+			else{
+				CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
+								  c->get_delete_function(), false);
+			}
 		}
-		else{
-			CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
-							  c->get_delete_function(), false);
+		catch(UGError& err)
+		{
+			UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " while ");
+			UG_LOG("creating class "<<c->name());
+			UG_LOG(". Error traceback:\n");
+			for(size_t i=0;i<err.num_msg();++i)
+			{
+				UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
+				UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
+				       ", line "<<err.get_line(i)<<"]\n");
+			}
+			if(err.terminate())
+			{
+				UG_LOG(errSymb<<"Call stack:\n");
+				lua_stacktrace(L);
+				UG_LOG(errSymb<<"Terminating..." << endl);
+				lua_pushstring (L, err.get_msg().c_str());
+				lua_error(L);
+				return 0;
+			}
+			else
+			{
+				UG_LOG(errSymb<<" Continuing execution ...\n");
+				return 1;
+			}
 		}
 
 	//	object created
@@ -1171,9 +1199,37 @@ static int LuaProxyGroupCreate(lua_State* L)
 			continue;
 		}
 
-	//	correct parameterlist found, create
-		CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
-						  c->get_delete_function(), false);
+		try{
+		//	correct parameterlist found, create
+			CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
+							  c->get_delete_function(), false);
+		}
+		catch(UGError& err)
+		{
+			UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " while ");
+			UG_LOG("creating class "<<c->name());
+			UG_LOG(". Error traceback:\n");
+			for(size_t i=0;i<err.num_msg();++i)
+			{
+				UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
+				UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
+				       ", line "<<err.get_line(i)<<"]\n");
+			}
+			if(err.terminate())
+			{
+				UG_LOG(errSymb<<"Call stack:\n");
+				lua_stacktrace(L);
+				UG_LOG(errSymb<<"Terminating..." << endl);
+				lua_pushstring (L, err.get_msg().c_str());
+				lua_error(L);
+				return 0;
+			}
+			else
+			{
+				UG_LOG(errSymb<<" Continuing execution ...\n");
+				return 1;
+			}
+		}
 
 	//	object created
 		return 1;
