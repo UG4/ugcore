@@ -2,10 +2,12 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
-#include "registry/registry.h"
-#include "bridge.h"
 #include <iostream>
 #include <sstream>
+#include <boost/bind.hpp>
+#include "registry/registry.h"
+#include "bridge.h"
+#include "common/util/message_hub.h"
 
 //	temporary include
 #include "lib_grid/attachments/page_container.h"
@@ -403,6 +405,54 @@ void NonAllowedFct1() {};
 void NonAllowedFct2() {};
 void NonAllowedFct3() {};
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	The following test-case is used to check the MessageHub class
+class TestMessage : public MessageHub::IMessage
+{
+	public:
+		string	m_strMsg;
+};
+
+void TestMsgCallback(int msgId, const TestMessage* msg){
+	UG_LOG("Callback func received message: " << msg->m_strMsg << "\n");
+}
+
+
+class MessageHubTest
+{
+	public:
+		MessageHubTest(){
+			m_msgId = m_msgHub.get_message_id<TestMessage>("TestMsgId");
+
+			m_callbackId = m_msgHub.register_callback(m_msgId, this,
+										  &ug::bridge::MessageHubTest::callback);
+
+			m_msgHub.register_callback(m_msgId, &ug::bridge::TestMsgCallback);
+		}
+
+		void callback(int msgId, const TestMessage* msg){
+			UG_LOG("Received message: " << msg->m_strMsg << "\n");
+		}
+
+		void post_message(const char* message){
+			TestMessage msg;
+			msg.m_strMsg = message;
+			m_msgHub.post_message(m_msgId, &msg);
+		}
+
+	protected:
+		MessageHub	m_msgHub;
+		int m_msgId;
+		MessageHub::SPCallbackId m_callbackId;
+};
+
+
+
+
+
+
 bool RegisterTestInterface(Registry& reg, string parentGroup)
 {
 	try
@@ -524,6 +574,11 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 			.set_construct_as_smart_pointer(true);// always last!
 
 		reg.add_function("SmartTestArrived", &SmartTestArrived, grp);
+
+		reg.add_class_<MessageHubTest>("MessageHubTest", grp)
+			.add_constructor()
+			.add_method("post_message", &MessageHubTest::post_message);
+
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered method takes an argument of an unregistered type.
