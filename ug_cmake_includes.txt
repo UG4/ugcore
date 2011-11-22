@@ -41,13 +41,11 @@ set(targetExecutableName ugshell)
 set(targetLibraryName ug4)
 
 # Values for the DIM option
-#todo: add 1;2, 1;3, 2;3 (problematic since ';' is a list-separator)
-set(dimOptions "1, 2, 3, ALL")
+set(dimOptions "1, 2, 3, ALL, \"1\;2\", \"1\;3\", \"2\;3"\")
 set(dimDefault "ALL")
 
 # Values for the CPU option
-#todo: add 1;2, 1;3, 2;3 (problematic since ';' is a list-separator)
-set(cpuOptions "1, 2, 3, 4, VAR, ALL")
+set(cpuOptions "1, 2, 3, 4, VAR, ALL, \"2\;4\", \"1\;3\;4\" , ..." )
 set(cpuDefault "ALL")
 
 # Values for the DOF option
@@ -91,7 +89,7 @@ include_directories (${Boost_INCLUDE_DIRS})
 # the following options are pseudo cmake-options (normal options only support ON and OFF).
 # Their default values are defined in the section below.
 option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
-option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
+# option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
 option(CPU "Set block sizes for which ug4 is build. Valid options are: "${cpuOptions})
 option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
 
@@ -138,13 +136,34 @@ if(NOT DOF)
 endif(NOT DOF)
 
 
+# convert the DIM and CPU sets to readable sets
+# otherwise "2;3" gets "23" .
+# todo: make this a function/macro
+set(DIMReadable "")
+foreach(d ${DIM})
+	if("${DIMReadable}" STREQUAL "")
+		set(DIMReadable ${d})
+	else("${DIMReadable}" STREQUAL "")
+		set(DIMReadable "${DIMReadable}" "\;" ${d})
+	endif("${DIMReadable}" STREQUAL "")
+endforeach(d)
+set(CPUReadable "")
+foreach(d ${CPU})
+	if("${CPUReadable}" STREQUAL "")
+		set(CPUReadable ${d})
+	else("${CPUReadable}" STREQUAL "")
+		set(CPUReadable "${CPUReadable}" "\;" ${d})
+	endif("${CPUReadable}" STREQUAL "")
+endforeach(d)
+
+
 ################################################################################
 # We'll output the current options-setting in this section
 message(STATUS "")
 message(STATUS "Info: Current options:")
 message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOptions}")")
-message(STATUS "Info: DIM:               "${DIM}" (options are: "${dimOptions}")")
-message(STATUS "Info: CPU:               "${CPU}" (options are: "${cpuOptions}")")
+message(STATUS "Info: DIM:               "${DIMReadable}" (options are: "${dimOptions}")")
+message(STATUS "Info: CPU:               "${CPUReadable}" (options are: "${cpuOptions}")")
 message(STATUS "Info: DOF:               "${DOF}" (options are: "${dofOptions}")")
 message(STATUS "Info: STATIC:            "${STATIC}" (options are: ON, OFF)")
 message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
