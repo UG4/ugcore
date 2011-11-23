@@ -15,6 +15,60 @@ namespace ug
 template<typename matrix_t>
 bool LUDecomp(DenseMatrix<matrix_t> &A, size_t *pInterchange)
 {
+	// LU Decomposition, IKJ Variant
+	UG_ASSERT(A.num_rows() == A.num_cols(), "LU decomposition only for square matrices");
+	if(A.num_rows() != A.num_cols()) return false;
+
+	size_t n = A.num_rows();
+
+	if(pInterchange)
+	{
+		pInterchange[0] = 0;
+		for(size_t k=0; k<n; k++)
+		{
+			size_t biggest = k;
+			for(size_t j=k+1; j<n; j++)
+				if(dabs(A(biggest, k)) < dabs(A(j,k)))
+					biggest = j; // costly.
+			if(biggest != k)
+				for(size_t j=0; j<n; j++)
+					std::swap(A(k, j), A(biggest, j));
+
+			pInterchange[k] = biggest;
+			if(dabs(A(k,k)) < 1e-10)
+				return false;
+
+			for(size_t i=k+1; i<n; i++)
+			{
+				A(i,k) = A(i,k)/A(k,k);
+				for(size_t j=k+1; j<n; j++)
+					A(i,j) = A(i,j) - A(i,k)*A(k,j);
+			}
+		}
+	}
+	else
+	{
+		int n = A.num_rows();
+		for(size_t k=0; k<n; k++)
+		{
+			if(dabs(A(k,k)) < 1e-10)
+				return false;
+
+			for(size_t i=k+1; i<n; i++)
+			{
+				A(i,k) = A(i,k)/A(k,k);
+				for(size_t j=k+1; j<n; j++)
+					A(i,j) = A(i,j) - A(i,k)*A(k,j);
+			}
+		}
+	}
+	return true;
+}
+
+template<typename matrix_t>
+bool LUDecompIKJ(DenseMatrix<matrix_t> &A, size_t *pInterchange)
+{
+	// LU Decomposition, IKJ Variant
 	UG_ASSERT(A.num_rows() == A.num_cols(), "LU decomposition only for square matrices");
 	if(A.num_rows() != A.num_cols()) return false;
 
@@ -25,9 +79,15 @@ bool LUDecomp(DenseMatrix<matrix_t> &A, size_t *pInterchange)
 		pInterchange[0] = 0;
 		for(size_t i=0; i < n; i++)
 		{
+			UG_LOG("i=" << i << ": \n")
 			size_t biggest = i;
+			UG_LOG("A(i,i) = " << A(i,i) << "\n");
 			for(size_t j=i+1; j<n; j++)
+			{
+				UG_LOG("A(" << j << ", " << i << ")=" << A(j,i) << "\n");
 				if(dabs(A(biggest, i)) < dabs(A(j,i))) biggest = j; // costly.
+			}
+			UG_LOG(biggest << " is biggest.");
 
 			if(biggest != i)
 				for(size_t j=0; j<n; j++)
