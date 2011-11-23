@@ -98,7 +98,7 @@ void GenerateTetrakaidecahedron(CoordsArray& posOut, IndexArray& indsOut,
 
 	// TODO create G(Ki -> ObenAussenPr)
 
-	createPrism(vector3());
+//	createPrism(vector3());
 }
 
 void createPrism(vec3Ref v1, vec3Ref v2, vec3Ref v3,
