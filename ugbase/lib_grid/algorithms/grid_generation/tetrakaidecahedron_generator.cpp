@@ -70,8 +70,11 @@ void GenerateTetrakaidecahedron(CoordsArray& posOut, IndexArray& indsOut,
 	// height of base triangle of top inner prism
 	number h_Ap = sqrt(3) * a / 2;
 
-	// rotate prism around (0, y, 0) with angle 60° = PI/3 (rad)
+
+	// create G(Ki -> ObenInnen) = 6 prism with equilateral sites
+	// rotate prism around (0, y, 0) with step angle 60° = PI/3 (rad)
 	/**
+	 * rotation matrix:
 	 *  +cos(t)  0  - sin(t)+
         |                   |
         |  0     1     0    |
@@ -79,15 +82,23 @@ void GenerateTetrakaidecahedron(CoordsArray& posOut, IndexArray& indsOut,
         +sin(t)  0   cos(t) +
 	 */
 	for(number t = 0; t < 2*PI; t += PI/3) {
-		UG_LOG("creating prism with angle " << t << endl);
-		createPrism(vector3(0, 0, 0),
-				vector3(a*cos(t), 0, a*sin(t)),
-				vector3((-2*h_Ap * sin(t) + a*cos(t)) /2, 0, (a*sin(t) + 2*h_Ap * cos(t)) /2),
-				vector3(0, h, 0),
-				vector3(a*cos(t), h, a*sin(t)),
-				vector3((-2*h_Ap * sin(t) + a*cos(t)) /2, h, (a*sin(t) + 2*h_Ap * cos(t)) /2),
-				posOut, indsOut);
+		number x = (-2*h_Ap * sin(t) + a*cos(t)) /2;
+		number z = (a*sin(t) + 2*h_Ap * cos(t)) /2;
+
+		createPrism(vector3(0, 0, 0),				// invariant
+					vector3(a*cos(t), 0, a*sin(t)), // (a, 0, 0)
+					vector3(x, 0, z), 				// (a/2, 0, h_Ap)
+					vector3(0, h, 0), 				// invariant
+					vector3(a*cos(t), h, a*sin(t)), // (a, h, 0)
+					vector3(x, h, z), 				// (a/2, h, h_Ap)
+					posOut, indsOut);
 	}
+
+	// TODO create G(Ki -> ObenAussenPr2T)
+
+	// TODO create G(Ki -> ObenAussenPr)
+
+	createPrism(vector3());
 }
 
 void createPrism(vec3Ref v1, vec3Ref v2, vec3Ref v3,
