@@ -32,7 +32,7 @@ get_message_id(const char* messageIdName)
 //	it wasn't yet registered. Do this now.
 	int newId = m_highestMsgId++;
 	m_idMap[messageIdName] = newId;
-	m_callbackTable.push_back(SPCallbackVec(new CallbackVec()));
+	m_callbackTable.push_back(SPCallbackList(new CallbackList()));
 	m_msgTypeIds.push_back(msgTypeId);
 
 	return newId;
@@ -80,12 +80,11 @@ post_message(int msgId, const TMsg* msg)
 	}
 
 //	call the callbacks
-	CallbackVec& callbacks = *m_callbackTable[msgId].get_impl();
-	for(CallbackVec::iterator iter = callbacks.begin();
+	CallbackList& callbacks = *m_callbackTable[msgId].get_impl();
+	for(CallbackList::iterator iter = callbacks.begin();
 		iter != callbacks.end(); ++iter)
 	{
-		if(*iter)
-			(*iter)(msgId, msg);
+		(*iter)(msgId, msg);
 	}
 }
 
@@ -111,21 +110,10 @@ register_callback_impl(int msgId,
 //	everything is valid. Register the callback. Check whether the vector
 //	contains any empty callbacks. Use such a slot, if one exists.
 //todo: implement a speed up
-	CallbackVec& callbacks = *m_callbackTable[msgId].get_impl();
-	size_t cbInd = 0;
-	for(; cbInd < callbacks.size(); ++cbInd)
-	{
-		if(!callbacks[cbInd]){
-			callbacks[cbInd] = callback;
-			break;
-		}
-	}
+	CallbackList& callbacks = *m_callbackTable[msgId].get_impl();
+	CallbackList::iterator cbIter = callbacks.insert(callbacks.end(), callback);
 
-//	if none was found, just push it back
-	if(cbInd == callbacks.size())
-		callbacks.push_back(callback);
-
-	return SPCallbackId(new CallbackId(this, msgId, cbInd, autoFree));
+	return SPCallbackId(new CallbackId(this, msgId, cbIter, autoFree));
 }
 
 

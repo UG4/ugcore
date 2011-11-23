@@ -6,6 +6,7 @@
 #define __H__UG__message_hub__
 
 #include <vector>
+#include <list>
 #include <string>
 #include <map>
 #include <boost/function.hpp>
@@ -93,18 +94,22 @@ class MessageHub
 	 */
 		class CallbackId{
 			friend class MessageHub;
+			typedef boost::function<void (int, const IMessage*)> Callback;
+			typedef std::list<Callback>		CallbackList;
 
 			public:
 				~CallbackId();
 				void set_auto_free(bool autoFree)	{m_autoFree = autoFree;}
 
 			private:
-				CallbackId(MessageHub* hub, int msgId, int callbackIndex, bool autoFree);
+				CallbackId(MessageHub* hub, int msgId,
+						   CallbackList::iterator callbackIter,
+						   bool autoFree);
 
-				MessageHub*	m_hub;
-				int 		m_msgId;
-				int			m_callbackIndex;
-				bool		m_autoFree;
+				MessageHub*				m_hub;
+				int 					m_msgId;
+				CallbackList::iterator	m_callbackIter;
+				bool					m_autoFree;
 		};
 
 		typedef SmartPtr<CallbackId>	SPCallbackId;
@@ -226,11 +231,10 @@ class MessageHub
 
 	protected:
 		typedef boost::function<void (int, const IMessage*)> Callback;
-
 		typedef std::map<std::string, int> 	IdMap;
-		typedef std::vector<Callback>		CallbackVec;
-		typedef SmartPtr<CallbackVec>		SPCallbackVec;
-		typedef std::vector<SPCallbackVec>	CallbackTable;///< given a msg-id, this vec returns the associated callbacks
+		typedef std::list<Callback>			CallbackList;
+		typedef SmartPtr<CallbackList>		SPCallbackList;
+		typedef std::vector<SPCallbackList>	CallbackTable;///< given a msg-id, this vec returns the associated callbacks
 		typedef std::vector<size_t>			TypeIdVec;///< given a msg-id, this vec returns the msg-type-id
 
 		IdMap			m_idMap;
