@@ -5,7 +5,7 @@
 #ifndef __H__UG_BRIDGE__REGISTRY_IMPL__
 #define __H__UG_BRIDGE__REGISTRY_IMPL__
 
-#include "common/util/string_util.h"
+#include "registry_util.h"
 
 namespace ug{
 namespace bridge
@@ -46,11 +46,11 @@ add_function(std::string funcName, TFunc func, std::string group,
 	}
 	
 	// check that name does not contain illegal characters
-	if (!IdentifierIsValid(strippedMethodName)) {
+	if (!IsValidRegistryIdentifier(strippedMethodName)) {
 		UG_LOG("### Registry ERROR: Trying to register function '" 
 				<< strippedMethodName << "' that"
 				<< " contains illegal characters.\n"
-				<< GetIdentifierMessage()
+				<< GetRegistryIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
 	}
@@ -151,11 +151,11 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	}
 	
 	// check that name does not contain illegal characters
-	if (!IdentifierIsValid(className)) {
+	if (!IsValidRegistryIdentifier(className)) {
 		UG_LOG("### Registry ERROR: Trying to register class '" 
 				<< className << "' that"
 				<< " contains illegal characters.\n"
-				<< GetIdentifierMessage()
+				<< GetRegistryIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}
@@ -216,11 +216,11 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	}
 	
 	// check that name does not contain illegal characters
-	if (!IdentifierIsValid(className)) {
+	if (!IsValidRegistryIdentifier(className)) {
 		UG_LOG("### Registry ERROR: Trying to register class '" 
 				<< className << "' that"
 				<< " contains illegal characters.\n"
-				<< GetIdentifierMessage()
+				<< GetRegistryIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}
@@ -287,11 +287,11 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	}
 	
 	// check that name does not contain illegal characters
-	if (!IdentifierIsValid(className)) {
+	if (!IsValidRegistryIdentifier(className)) {
 		UG_LOG("### Registry ERROR: Trying to register class '" 
 				<< className << "' that"
 				<< " contains illegal characters.\n"
-				<< GetIdentifierMessage()
+				<< GetRegistryIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 	}

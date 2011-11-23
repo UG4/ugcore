@@ -11,6 +11,7 @@
 #include "lib_grid/lg_base.h"
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
+#include "common/util/message_hub.h"
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
@@ -93,6 +94,7 @@ class Domain {
 			//	create Distributed Grid Manager
 				m_distGridMgr = new DistributedGridManager(m_grid);
 #endif
+				m_messageHub = SPMessageHub(new MessageHub());
 			}
 
 	///	Destructor
@@ -148,6 +150,11 @@ class Domain {
 		}
 #endif
 
+		SPMessageHub get_message_hub() const
+		{
+			return m_messageHub;
+		}
+
 	protected:
 		TGrid m_grid;			///< Grid
 		TSubsetHandler m_sh;	///< Subset Handler
@@ -159,6 +166,7 @@ class Domain {
 #ifdef UG_PARALLEL
 		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
 #endif
+		SPMessageHub m_messageHub;
 };
 
 typedef Domain<1, MultiGrid, MGSubsetHandler> Domain1d;

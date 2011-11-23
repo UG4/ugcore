@@ -20,6 +20,8 @@
 
 namespace ug
 {
+class MessageHub;
+typedef SmartPtr<MessageHub> SPMessageHub;
 
 ///	Allows to register callbacks and post messages to those callbacks.
 /**
@@ -146,7 +148,7 @@ class MessageHub
 	 *
 	 * The method returns a smart-pointer to a callback-identifier.
 	 * The auto-free property is disabled for the returned callback-id by default.
-	 * Note that this behaviour differs from the similar register_callback method
+	 * Note that this behavior differs from the similar register_callback method
 	 * for class-methods.
 	 *
 	 * If the message-id was not registered or if it was registered with a
@@ -172,7 +174,7 @@ class MessageHub
 	 *
 	 * The method returns a smart-pointer to a callback-identifier. When the
 	 * instance is deleted, the callback is unregistered by default.
-	 * Not that this behaviour differs from the similar register_callback method
+	 * Note that this behavior differs from the similar register_callback method
 	 * for function pointers.
 	 * It's a good idea to store the smart-pointer as a member in the class from
 	 * which you register the callback (if it is registered from a class at all).

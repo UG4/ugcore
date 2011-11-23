@@ -16,7 +16,8 @@ set(srcRegistry    	registry.cpp
                     class.cpp
 					class_name_provider.cpp
 					global_function.cpp
-					class_helper.cpp)
+					class_helper.cpp
+					registry_util.cpp)
 
 set(Sources ${srcRegistry})
 

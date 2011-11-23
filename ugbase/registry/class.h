@@ -11,7 +11,7 @@
 #include "function_traits.h"
 #include "global_function.h"
 #include "common/common.h"
-#include "common/util/string_util.h"
+#include "registry_util.h"
 
 namespace ug
 {
@@ -636,11 +636,11 @@ class ExportedClass : public ExportedClassBaseImpl
 			}
 			
 			// check that name does not contain illegal characters
-			if (!IdentifierIsValid(strippedMethodName)) {
+			if (!IsValidRegistryIdentifier(strippedMethodName)) {
 				UG_LOG("### Registry ERROR: Trying to register method '" 
 				<< strippedMethodName << "' that"
 				<< " contains illegal characters.\n"
-				<< GetIdentifierMessage()
+				<< GetRegistryIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
 			}

@@ -87,25 +87,6 @@ UG_API bool StartsWith(std::string str, std::string search);
  */
 UG_API bool Contains(std::string str, std::string search);
 
-/**
- * Checks whether the specified name is a valid identifier name.
- * <p>
- * <b>Note:</b> identifiers starting with <code>F_</code>, <code>C_</code>,
- * <code>I_</code> or containing <code>__</code>
- *  (double underscore) or being equal to 'constructor' are invalid.
- * </p>
- * @param name name to check
- * @return  <code>true</code> if the specified name is valid;
- *          <code>false</code> otherwise
- */
-UG_API bool IdentifierIsValid(std::string name);
-
-/**
- * Returns a message describing which identifiers are valid and which ar not.
- * @return message string
- */
-UG_API std::string GetIdentifierMessage();
-
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/

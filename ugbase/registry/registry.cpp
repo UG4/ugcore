@@ -5,6 +5,7 @@
 #include <string>
 
 #include "registry.h"
+#include "registry_util.h"
 
 namespace ug{
 namespace bridge
@@ -222,11 +223,11 @@ ClassGroupDesc* Registry::get_class_group(const std::string& name)
 //	since we reached this point, no class-group with the given name exists.
 	
 	// check that name does not contain illegal characters
-	if (!IdentifierIsValid(name)) {
+	if (!IsValidRegistryIdentifier(name)) {
 		UG_LOG("### Registry ERROR: Trying add group '" 
 				<< name << "' that"
 				<< " contains illegal characters.\n"
-				<< GetIdentifierMessage()
+				<< GetRegistryIdentifierMessage()
 				<< "\n### Please change register process. Aborting ...\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(name));
 	}

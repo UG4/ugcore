@@ -406,6 +406,13 @@ void NonAllowedFct2() {};
 void NonAllowedFct3() {};
 
 
+const char* REFINEMENT_MESSAGE_NAME = "MSG_GRID_ADAPTION";
+
+class Message{
+	int msgType;
+};
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	The following test-case is used to check the MessageHub class
