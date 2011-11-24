@@ -146,7 +146,7 @@ public:
 	inline bool
 	empty() const;
 
-	inline void
+	inline bool
 	reserve(size_type nrRows, size_type nrCols) const
 	{
 		assert(nrRows == rowsT && nrCols == colsT);
