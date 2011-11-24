@@ -19,7 +19,9 @@
 
 #include "../amg_base.h"
 #include "../amg_profiling.h"
+#ifdef UG_PARALLEL
 #include "../rsamg/rsamg_parallel_coarsening.h"
+#endif
 /**
  * \brief Filtering Algebraic Multigrid Functions.
  *
@@ -209,8 +211,9 @@ private:
 
 	stdvector< vector_type > testvectors;
 	stdvector<double> omega;
-
+#ifdef UG_PARALLEL
 	IParallelCoarsening *m_pParallelCoarsening;
+#endif
 };
 
 
