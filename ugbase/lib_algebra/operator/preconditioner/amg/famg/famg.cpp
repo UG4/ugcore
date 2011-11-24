@@ -586,8 +586,8 @@ private:
 	void calculate_uncalculated_fine_nodes();
 	void update_interface_with_newIndex(IndexLayout &layout, IndexLayout &nextLevelLayout, stdvector<int> &newIndex);
 	void external_coarsening_calculate_prolongation();
-	void rs_amg_external_coarsening();
 #endif
+	void rs_amg_external_coarsening();
 };
 
 
