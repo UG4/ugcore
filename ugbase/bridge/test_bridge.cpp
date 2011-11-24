@@ -431,12 +431,13 @@ class MessageHubTest
 {
 	public:
 		MessageHubTest(){
-			m_msgId = m_msgHub.get_message_id<TestMessage>("TestMsgId");
+			m_msgHub = SPMessageHub(new MessageHub());
+			m_msgId = m_msgHub->get_message_id<TestMessage>("TestMsgId");
 
-			m_callbackId = m_msgHub.register_callback(m_msgId, this,
+			m_callbackId = m_msgHub->register_class_callback(m_msgId, this,
 										  &ug::bridge::MessageHubTest::callback);
 
-			m_msgHub.register_callback(m_msgId, &ug::bridge::TestMsgCallback);
+			m_msgHub->register_function_callback(m_msgId, &ug::bridge::TestMsgCallback);
 		}
 
 		void callback(int msgId, const TestMessage* msg){
@@ -444,13 +445,15 @@ class MessageHubTest
 		}
 
 		void post_message(const char* message){
-			TestMessage msg;
-			msg.m_strMsg = message;
-			m_msgHub.post_message(m_msgId, &msg);
+			if(m_msgHub.is_valid()){
+				TestMessage msg;
+				msg.m_strMsg = message;
+				m_msgHub->post_message(m_msgId, &msg);
+			}
 		}
 
 	protected:
-		MessageHub	m_msgHub;
+		SPMessageHub	m_msgHub;
 		int m_msgId;
 		MessageHub::SPCallbackId m_callbackId;
 };

@@ -32,7 +32,7 @@ get_message_id(const char* messageIdName)
 //	it wasn't yet registered. Do this now.
 	int newId = m_highestMsgId++;
 	m_idMap[messageIdName] = newId;
-	m_callbackTable.push_back(SPCallbackList(new CallbackList()));
+	m_callbackTable.push_back(new CallbackEntryList());
 	m_msgTypeIds.push_back(msgTypeId);
 
 	return newId;
@@ -41,7 +41,8 @@ get_message_id(const char* messageIdName)
 
 template <class TMsg>
 MessageHub::SPCallbackId MessageHub::
-register_callback(int msgId, void (*callback)(int, const TMsg*), bool autoFree)
+register_function_callback(int msgId, void (*callback)(int, const TMsg*),
+						   bool autoFree)
 {
 	typedef void (*FuncCallback)(int, const IMessage*);
 
@@ -51,9 +52,9 @@ register_callback(int msgId, void (*callback)(int, const TMsg*), bool autoFree)
 
 template <class TMsg, class TClass>
 MessageHub::SPCallbackId MessageHub::
-register_callback(int msgId, TClass* cls,
-				  void (TClass::*callback)(int, const TMsg*),
-				  bool autoFree)
+register_class_callback(int msgId, TClass* cls,
+						void (TClass::*callback)(int, const TMsg*),
+						bool autoFree)
 {
 	typedef void (TClass::*ClassCallback)(int, const IMessage*);
 
@@ -80,11 +81,11 @@ post_message(int msgId, const TMsg* msg)
 	}
 
 //	call the callbacks
-	CallbackList& callbacks = *m_callbackTable[msgId].get_impl();
-	for(CallbackList::iterator iter = callbacks.begin();
+	CallbackEntryList& callbacks = *m_callbackTable[msgId];
+	for(CallbackEntryList::iterator iter = callbacks.begin();
 		iter != callbacks.end(); ++iter)
 	{
-		(*iter)(msgId, msg);
+		iter->m_callback(msgId, msg);
 	}
 }
 
@@ -107,13 +108,18 @@ register_callback_impl(int msgId,
 					MSG_HUB_TYPE_MISMATCH));
 	}
 
-//	everything is valid. Register the callback. Check whether the vector
-//	contains any empty callbacks. Use such a slot, if one exists.
-//todo: implement a speed up
-	CallbackList& callbacks = *m_callbackTable[msgId].get_impl();
-	CallbackList::iterator cbIter = callbacks.insert(callbacks.end(), callback);
+//	everything is valid. Register the callback.
+//	Since the callback-id is created afterwards, we can't register it with the
+//	entry until then and thus pass NULL to the constructor.
+	CallbackEntryList& callbacks = *m_callbackTable[msgId];
+	CallbackEntryIterator cbIter = callbacks.insert(callbacks.end(),
+													CallbackEntry(callback, NULL));
 
-	return SPCallbackId(new CallbackId(this, msgId, cbIter, autoFree));
+	CallbackId* cbId = new CallbackId(this, msgId, cbIter, autoFree);
+
+	cbIter->m_callbackId = cbId;
+
+	return SPCallbackId(cbId);
 }
 
 
