@@ -16,7 +16,7 @@
 #include "rsamg_nodeinfo.h"
 #include "rsamg_impl.h"
 
-//#define USE_DIRICHLET_AS_INTERPOLATION_NODES
+#define USE_DIRICHLET_AS_INTERPOLATION_NODES
 
 namespace ug {
 
@@ -162,6 +162,34 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			{
 
 				UG_LOG("node " << i << " was marked direct, but no interpolation found. barrier = " << barrier << std::endl);
+				for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+				{
+					if(conn.index() == i) continue; // skip diagonal
+					if(!nodes[conn.index()].is_coarse())
+					{
+						UG_LOG(conn.index() << " is not coarse\n");
+						continue;
+					}
+
+					double connValue = amg_offdiag_value(conn.value());
+					if(dabs(connValue) < barrier)
+					{
+						UG_LOG(conn.index() << " has value " << connValue << "\n");
+						continue;
+					}
+
+					c.iIndex = conn.index();
+					c.dValue = connValue;
+
+					UG_ASSERT(c.iIndex >= 0, "not coarse?");
+
+					if(!nodes[conn.index()].is_dirichlet())
+						con.push_back(c);
+					if(connValue > 0)
+						sumPosInterpolatory += connValue;
+					else
+						sumNegInterpolatory += connValue;
+				}
 				//UG_ASSERT(0,i);
 				// no suitable interpolating nodes for node i,
 				// so this node has to be treated by indirect interpolation

@@ -19,6 +19,7 @@
 
 #include "../amg_base.h"
 #include "../amg_profiling.h"
+#include "../rsamg/rsamg_parallel_coarsening.h"
 /**
  * \brief Filtering Algebraic Multigrid Functions.
  *
@@ -95,6 +96,14 @@ public:
 
 	void set_external_coarsening(bool bUse) { m_bExternalCoarsening = bUse; }
 	void set_use_precalculate(bool bUse) { m_bUsePrecalculate = bUse; }
+
+#ifdef UG_PARALLEL
+public:
+	void set_parallel_coarsening(IParallelCoarsening *pPC)
+	{
+		m_pParallelCoarsening = pPC;
+	}
+#endif
 
 
 	size_t iDebugLevelOverlapAMG, iDebugLevelOverlapMatrix, iDebugLevelTestvectorCalc, iDebugLevelPhase3,
@@ -200,6 +209,8 @@ private:
 
 	stdvector< vector_type > testvectors;
 	stdvector<double> omega;
+
+	IParallelCoarsening *m_pParallelCoarsening;
 };
 
 

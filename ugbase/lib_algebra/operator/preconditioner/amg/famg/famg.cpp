@@ -36,15 +36,9 @@
 #include <stack>
 
 
-
-// for external coarsening
-#include "../rsamg/rsamg.h"
-#include "../rsamg/rsamg_coarsening.h"
-
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #include "../send_interface.h"
-
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
@@ -220,7 +214,7 @@ private:
 	// our testvectors
 	stdvector< vector_type > &m_testvectors;
 
-
+	prolongation_matrix_type PoldIndices;
 
 #ifdef UG_PARALLEL
 	ParallelNodes PN;
@@ -231,97 +225,20 @@ private:
 	//! processes with higher/lower color to distribute coarsening information
 	std::vector<int> processesWithLowerColor, processesWithHigherColor;
 	int m_myColor;
-#endif
 
-#ifdef UG_PARALLEL
 	// overlap 2 matrix in parallel case
 	matrix_type A_OL2;
 	IndexLayout &nextLevelMasterLayout;
 	IndexLayout &nextLevelSlaveLayout;
-
+	IndexLayout OL1MasterLayout, OL1SlaveLayout;
+	IndexLayout OL2MasterLayout, OL2SlaveLayout;
+	std::vector<size_t> overlapSize;
+	std::vector<IndexLayout> masterLayouts;
+	std::vector<IndexLayout> slaveLayouts;
 #else
 	const matrix_type &A_OL2;
 #endif
 
-	prolongation_matrix_type PoldIndices;
-
-
-	void rs_amg_external_coarsening()
-	{
-		AMG_PROFILE_FUNC();
-		stopwatch SW;
-		UG_DLOG(LIB_ALG_AMG, 0, std::endl << "external coarsening... "); if(bTiming) SW.start();
-		nodeinfo_pq_type PQ;
-		size_t N = A.num_rows();
-
-		// use RSAMG's methods to do standard rs coarsening
-#ifdef UG_PARALLEL
-		AMGNodes nodes(N, PN);
-#else
-		AMGNodes nodes(N);
-#endif
-		cgraph graphS, graphST;
-		CreateStrongConnectionGraph(A, graphS, 0.3);
-
-		graphST.set_as_transpose_of(graphS);
-		CreateMeasureOfImportancePQ(graphS, graphST, PQ, nodes);
-		Coarsen(graphS, graphST, PQ, nodes, true, false);
-		PreventFFConnections(graphS, graphST, nodes);
-
-		if(m_famg.m_writeMatrices)
-			m_famg.write_debug_matrix_markers(level, nodes);
-
-
-		// aggressive coarsening
-		if(0 && m_famg.get_aggressive_coarsening() == true && level == 0)
-		{
-			UG_DLOG(LIB_ALG_AMG, 2, std::endl << "building graph2... ");
-			UG_DLOG(LIB_ALG_AMG, 2, "unassigned = " << nodes.get_unassigned() << "\n");
-
-			//unassigned = 0; ??
-			cgraph graphAC(N);
-			size_t m_iAggressiveCoarseningNrOfPaths = 2;
-			stdvector<int> posInConnections; posInConnections.resize(N, -1);
-			CreateAggressiveCoarseningGraph(graphST, graphAC, nodes, m_iAggressiveCoarseningNrOfPaths, &posInConnections[0]);
-			CreateMeasureOfImportanceAggressiveCoarseningPQ(graphAC, PQ, nodes);
-			if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
-			// coarsen 2
-			//------------------
-
-			if(nodes.get_unassigned() == 0)
-			{
-				UG_DLOG(LIB_ALG_AMG, 2, std::endl << "skipping coarsening2: no unassigned nodes.");
-			}
-			else
-			{
-				UG_DLOG(LIB_ALG_AMG, 2, std::endl << "coarsening2... ");
-				Coarsen(graphAC, graphAC, PQ, nodes, true, true);
-				//PreventFFConnections(graphS, graphST, nodes);
-			}
-		}
-
-		// coarsening done. transfer AMG nodeinfo -> FAMG nodeinfo
-		for(size_t i=0; i<N; i++)
-		{
-			if(nodes[i].is_coarse())
-				rating.set_coarse(i);
-		}
-
-		for(size_t i=0; i<N; i++)
-		{
-			if(nodes[i].is_fine_direct())
-			{
-				if(graphS.is_isolated(i))
-					rating.set_fine(i);
-				else
-					calculator.get_all_neighbors_interpolation(i, PoldIndices, rating);
-			}
-		}
-
-		if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
-		//if(nodes[i].is_unassigned_fine_indirect())
-		//	rating.set_aggressive_fine(i);
-	}
 
 	void create_restriction()
 	{
@@ -473,20 +390,15 @@ public:
 			if(bUsePrecalculate)
 				// get possible parent nodes
 				calculate_all_possible_parent_pairs();
-		}
-		else
-			PoldIndices.resize(N, N);
 
-	#ifdef UG_PARALLEL
-		// 4. coloring in parallel
-		//-------------------------------------
-		color_process_graph();
-		receive_coarsening_from_processes_with_lower_color();
-	#endif
+#ifdef UG_PARALLEL
+			// 4. coloring in parallel
+			//-------------------------------------
+			color_process_graph();
+			receive_coarsening_from_processes_with_lower_color();
+#endif
+			rating.calculate_unassigned();
 
-		rating.calculate_unassigned();
-		if(bExternalCoarsening == false)
-		{
 			// 5. do coarsening
 			//-------------------------
 			if(bUsePrecalculate)
@@ -552,14 +464,18 @@ public:
 						nextLevelMasterLayout, nextLevelSlaveLayout, PN, rating);
 			}*/
 			#endif
-
-			// [ debug output
-			if(m_famg.m_writeMatrices)
-				m_famg.write_debug_matrix_markers(level, rating);
-			// ]
 		}
 		else
+		{
+			PoldIndices.resize(N, N);
 			rs_amg_external_coarsening();
+			external_coarsening_calculate_prolongation();
+		}
+
+		// [ debug output
+		if(m_famg.m_writeMatrices)
+			m_famg.write_debug_matrix_markers(level, rating);
+		// ]
 
 		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelAfterCommunicateProlongation);
 		IF_DEBUG(LIB_ALG_AMG, 3)
@@ -669,13 +585,9 @@ private:
 	void add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout);
 	void calculate_uncalculated_fine_nodes();
 	void update_interface_with_newIndex(IndexLayout &layout, IndexLayout &nextLevelLayout, stdvector<int> &newIndex);
-	//void create_layouts();
-	IndexLayout OL1MasterLayout, OL1SlaveLayout;
-	IndexLayout OL2MasterLayout, OL2SlaveLayout;
+	void external_coarsening_calculate_prolongation();
+	void rs_amg_external_coarsening();
 #endif
-
-
-	std::vector<size_t> overlapSize;
 };
 
 
@@ -783,4 +695,5 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 #include "famg_on_demand_coarsening_impl.h"
 #include "famg_precalculate_coarsening_impl.h"
 #include "famg_testvectors.h"
+#include "famg_external_coarsening.h"
 #endif //  __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__

@@ -459,7 +459,10 @@ public:
 				rating.set_coarse(i);
 			else
 			{
-				P(i, onlyN1[coarseNeighbors[0]]) = 1.0;
+				get_H(i, rating);
+				calculate_testvectors(i);
+
+				P(i, onlyN1[coarseNeighbors[0]]) = localTestvector[0][onlyN1.size()] / localTestvector[0][coarseNeighbors[0]];
 				rating.set_fine(i);
 			}
 			return true;
@@ -533,7 +536,7 @@ public:
 			else
 			{
 				std::map<size_t, double> localP;
-				for(size_t j=0; j<onlyN1.size(); j++)
+				for(size_t j=0; j<interpolateNeighbors.size(); j++)
 				{
 					size_t node = onlyN1[interpolateNeighbors[j]];
 					for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)

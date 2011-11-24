@@ -20,16 +20,12 @@ namespace ug{
 #endif
 
 template<typename T>
-inline int get_val(const T &t)
+inline size_t get_val(const T &t)
 {
 	return t.get_val();
 }
 
-inline int get_val(int i)
-{
-	return i;
-}
-inline int get_val(size_t i)
+inline size_t get_val(size_t i)
 {
 	return i;
 }

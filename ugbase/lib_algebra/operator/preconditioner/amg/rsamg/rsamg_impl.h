@@ -155,8 +155,8 @@ bool _MakeFullRowsMatrix(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix
 	c.m_slaveDirichletLast = false;
 	bool b = c.calculate();
 
-	PRINTLAYOUT(mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout());
-	PRINTLAYOUT(mat.get_communicator(), vMasterLayouts[0], vSlaveLayouts[0]);
+	//PRINTLAYOUT(mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout());
+	//PRINTLAYOUT(mat.get_communicator(), vMasterLayouts[0], vSlaveLayouts[0]);
 
 	//overlapSize = c.m_overlapSize;
 	return b;
@@ -211,7 +211,8 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	UG_LOG("NOL1 = " << NOL1 << "\n");
 
 	bool bTiming=true;
-	UG_DLOG(LIB_ALG_AMG, 1, "Creating level " << level << ". (" << N << " nodes, " << NOL1-N << " overlapping )" << std::endl << std::fixed);
+	//UG_DLOG(LIB_ALG_AMG, 0, "Creating level " << level << ". (" << N << " nodes, " << NOL1-N << " overlapping )" << std::endl << std::fixed);
+	UG_LOG("Creating level " << level << ". (" << N << " nodes, " << NOL1-N << " overlapping )" << std::endl << std::fixed);
 	stopwatch SW;
 
 	// todo: check for isolated condition
@@ -313,7 +314,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 
 	// todo: perhaps PreventFFConnections should be done HERE, after AC.
 
-	nodes.print();
+	//nodes.print();
 #ifdef AMG_PRINT_COARSENING
 	printCoarsening(level);
 #endif
@@ -341,10 +342,10 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	/// create layouts
 
 #ifdef UG_PARALLEL
-	parallel_process_prolongation(PoldIndices, PnewIndices, m_dEpsilonTr, level, nodes,
+	this->parallel_process_prolongation(PoldIndices, PnewIndices, m_dEpsilonTr, level, nodes,
 			PN, true, AH.get_master_layout(), AH.get_slave_layout());
 #else
-	serial_process_prolongation(PoldIndices, PnewIndices, m_dEpsilonTr, level, nodes);
+	this->serial_process_prolongation(PoldIndices, PnewIndices, m_dEpsilonTr, level, nodes);
 #endif
 
 	// construct restriction R = I_{h->2h}
@@ -399,7 +400,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	{
 		AMGBase<TAlgebra> *t = this;
 		t->write_debug_matrix_markers(level, nodes);
-		write_debug_matrices(AH, R, AOL1, PnewIndices, level);
+		this->write_debug_matrices(AH, R, AOL1, PnewIndices, level);
 	}
 }
 

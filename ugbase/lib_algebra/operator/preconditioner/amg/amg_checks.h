@@ -24,16 +24,13 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	{
 		levels[0]->R.apply(levels[0]->dH, d);
 		levels[0]->cH.set(0.0);
-		for(size_t i=0; i<m_usedLevels-1; i++)
+		for(size_t i=0; i<m_usedLevels-2; i++)
 		{
 			UG_LOG("\nLEVEL " << i << "\n\n");
-			check_level(levels[i-1]->cH, levels[i-1]->dH, i);
+			check_level(levels[i]->cH, levels[i]->dH, i+1);
 
-			if(i < m_usedLevels)
-			{
-				levels[i]->R.apply(levels[i]->dH, levels[i-1]->dH);
-				levels[i]->cH.set(0.0);
-			}
+			levels[i+1]->R.apply(levels[i+1]->dH, levels[i]->dH);
+			levels[i+1]->cH.set(0.0);
 		}
 	}
 	return true;
@@ -82,6 +79,12 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 	double n1 = d.two_norm(), n2;
 	CloneVector(corr, c);
+	corr.set(0.0);
+
+#ifdef UG_PARALLEL
+	corr.set_storage_type(PST_CONSISTENT);
+#endif
+
 	L.presmoother->apply_update_defect(c, d);
 	n2 = d.two_norm();	UG_LOG("presmoothing 1 " << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	for(size_t i=1; i < m_numPreSmooth; i++)
@@ -104,6 +107,11 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	vector_type &cH = levels[level]->cH;
 	vector_type &dH = levels[level]->dH;
 
+	cH.set(0.0);
+	dH.set(0.0);
+#ifdef UG_PARALLEL
+	cH.set_storage_type(PST_CONSISTENT);
+#endif
 	// restrict defect
 	// dH = m_R[level]*d;
 	L.R.apply(dH, d);

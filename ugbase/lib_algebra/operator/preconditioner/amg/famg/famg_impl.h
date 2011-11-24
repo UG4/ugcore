@@ -58,6 +58,10 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 	iDebugLevelOverlapAMG = iDebugLevelOverlapMatrix = iDebugLevelTestvectorCalc = iDebugLevelPhase3 =
 	iDebugLevelCalculateParentPairs = iDebugLevelColoring = iDebugLevelRecvCoarsening = iDebugLevelGetRatings = iDebugLevelPrecalculateCoarsening =
 				iDebugLevelAggressiveCoarsening = iDebugLevelSendCoarsening = iDebugLevelCommunicateProlongation = iDebugLevelAfterCommunicateProlongation = 0;
+
+#ifdef UG_PARALLEL
+	m_pParallelCoarsening = NULL;
+#endif
 }
 
 template<typename TAlgebra>

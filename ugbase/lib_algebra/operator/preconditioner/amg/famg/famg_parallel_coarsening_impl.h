@@ -244,8 +244,6 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 	AMG_PROFILE_BEGIN(AMG_GenerateOverlap2)
 
-	std::vector<IndexLayout> masterLayouts;
-	std::vector<IndexLayout> slaveLayouts;
 	//GenerateOverlap(A_OL1, A_OL2, OL2MasterLayout, OL2SlaveLayout, 1, 0, true, true);
 
 	AddLayout(OL2MasterLayout, A.get_master_layout());

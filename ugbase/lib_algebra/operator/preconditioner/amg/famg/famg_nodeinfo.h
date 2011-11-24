@@ -377,7 +377,7 @@ public:
 
 	void set_aggressive_fine(size_t index)
 	{
-		UG_ASSERT(nodes[index].is_fine() == false, "node " << index << " is already fine");
+		//UG_ASSERT(nodes[index].is_fine() == false, "node " << index << " is already fine");
 		if(i_must_assign(index))
 			m_iUnassigned--;
 		m_iNrOfAggressiveFine++;

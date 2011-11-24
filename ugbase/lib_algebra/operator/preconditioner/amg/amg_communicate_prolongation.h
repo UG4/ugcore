@@ -18,7 +18,16 @@ namespace ug
 {
 
 
-// create the bFine-Array for this level for F-smoothing
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// create_fine_marks
+//------------------------------
+/**
+ * create the bFine-Array for this level for F-smoothing
+ *
+ * \param level		current AMG level
+ * \param amgnodes	for getting amgnodes[i].is_fine()
+ * \param N			number of elements in amgnodes with is_fine() == true.
+ */
 template<typename TAlgebra>
 template<typename TAMGNodes>
 void AMGBase<TAlgebra>::create_fine_marks(int level, TAMGNodes &amgnodes, size_t N)
@@ -136,6 +145,28 @@ void AMGBase<TAlgebra>::create_new_indices(prolongation_matrix_type &PoldIndices
 #ifndef UG_PARALLEL
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// serial_process_prolongation:
+//--------------------------------
+/**
+ * this function processes the prolongation in old indices and returns a prolongation with new indices,
+ * computing the new indices and and everything associated with the new indices (fine marks, parent indices etc.)
+ * in detail, this is
+ * - create the new indices by counting used coarse nodes and creation of PnewIndices \sa create_new_indices
+ * - create parent index (for debugging) \sa create_parent_index
+ * - create the coarser level of positions (for debugging) \sa make_coarse_level
+ * - create fine marks for f-smoothing \sa create_fine_marks
+ *
+ * \note this function is the serial version of \sa parallel_process_prolongation
+ *
+ * \param 	PoldIndices				used Prolongation matrix with old (fine grid) indices. in/out.
+ * \param	PnewIndices				Prolongation matrix with new indices.
+ * \param	dEpsilonTruncation		used to trucation the prolongation /sa create_new_index
+ * \param	level					the amg level
+ * \param	amgnodes				coarse/fine ratings of the nodes
+ * \param	nextLevelMasterLayout	the master layout on the next coarser level
+ * \param	nextLevelSLaveLayout	the slave layout on the next coarser level
+ */
 template<typename TAlgebra>
 template<typename TAMGNodes>
 void AMGBase<TAlgebra>::serial_process_prolongation(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices, double dEpsilonTruncation, int level,
@@ -157,17 +188,22 @@ void AMGBase<TAlgebra>::serial_process_prolongation(prolongation_matrix_type &Po
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parallel_process_prolongation:
 //--------------------------------
-/** this function does the following
+/**
+ * this function processes the prolongation in old indices and returns a prolongation with new indices,
+ * computing the new indices and and everything associated with the new indices (fine marks, parent indices etc.)
+ * in detail, this is
  * - since we calculate the prolongation only in the master/inner nodes, we need to send this communication to the slave nodes (so we get additive AH=RAP again)
  * 	 \sa communicate_prolongation
  * - post set nodes which are interpolated from because of newly received prolongation rows \sa postset_coarse
- * - create a condensed layout for the next level: we start with the total overlap layout we have in ParallelNodes PN, which also includes some node which might have
- *   been added because of the sending of the prolongation rows, and then send a 'delete' to the master proc \sa create_condensed_layout_from_prolongation
+ * - create a minimal layout for the next level: we start with the total overlap layout we have in ParallelNodes PN, which also includes some node which might have
+ *   been added because of the sending of the prolongation rows, and then send a 'delete' to the master proc \sa create_minimal_layout_for_prolongation
  * - create the new indices by counting used coarse nodes and creation of PnewIndices \sa create_new_indices
  * - Replace Indices in the layout so we have our next level layouts with new indices \sa ReplaceIndicesInLayout
  * - create parent index (for debugging) \sa create_parent_index
  * - create the coarser level of positions (for debugging) \sa make_coarse_level
  * - create fine marks for f-smoothing \sa create_fine_marks
+ *
+ * \note this function is the parallel version of \sa serial_process_prolongation
  *
  * \param 	PoldIndices				used Prolongation matrix with old (fine grid) indices. in/out.
  * \param	PnewIndices				Prolongation matrix with new indices.
@@ -187,7 +223,7 @@ void AMGBase<TAlgebra>::parallel_process_prolongation(prolongation_matrix_type &
 	amgnodes.resize(PoldIndices.num_cols());
 
 	postset_coarse(PN, PoldIndices, amgnodes);
-	create_condensed_layout_from_prolongation(PN, PoldIndices, nextLevelMasterLayout, nextLevelSlaveLayout);
+	create_minimal_layout_for_prolongation(PN, PoldIndices, nextLevelMasterLayout, nextLevelSlaveLayout);
 	CheckMatrixLayout(PN, PoldIndices, nextLevelMasterLayout, nextLevelSlaveLayout);
 
 	stdvector<int> newIndex;
@@ -279,16 +315,16 @@ void AMGBase<TAlgebra>::postset_coarse(ParallelNodes &PN, prolongation_matrix_ty
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CreateCondensedLayoutCommunicationScheme:
-//------------------------------
+// CreateMinimalLayoutCommunicationScheme:
+//-----------------------------------------
 /** used to delete unused elements of interfaces on boths sides
  */
-class CreateCondensedLayoutCommunicationScheme
-	: public CommunicationScheme<CreateCondensedLayoutCommunicationScheme>
+class CreateMinimalLayoutCommunicationScheme
+	: public CommunicationScheme<CreateMinimalLayoutCommunicationScheme>
 {
 public:
 	typedef char value_type;
-	CreateCondensedLayoutCommunicationScheme(stdvector<bool> &bUsedSlave) : m_bUsedSlave(bUsedSlave)
+	CreateMinimalLayoutCommunicationScheme(stdvector<bool> &bUsedSlave) : m_bUsedSlave(bUsedSlave)
 	{
 		m_newMasterLayout.clear();
 		m_newSlaveLayout.clear();
@@ -386,14 +422,22 @@ void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &maste
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// create_condensed_layout:
-//------------------------------
-/** M is a matrix which has nodes from ParallelNodes PN.
- * here we take the totalOverlapLayout from PN and restrict it to the elements PN uses.
- * To do this, we use CreateCondensedLayoutCommunicationScheme, which sends a 'delete' flag for not used elements of the interfaces.
+// create_minimal_layout_for_prolongation
+//------------------------------------------
+/**
+ * P is a matrix which has nodes from ParallelNodes PN. We want to get a minimal layout for P.
+ * For this we first mark all slaves j for which there exist i with P(i, j) != 0.
+ * Since the P is P : Coarse -> Fine, this means we mark all slave elements we use on this processor.
+ * Then we create a slave layout out of it an communicate it to the master. This is necessary
+ * since the master cannot know which nodes we use.
+ *
+ * \param PN				Parallel Nodes structure
+ * \param P					used prolongation matrix
+ * \param newMasterLayout	new master layout for P, condensed from PN.get_total_master_layout();
+ * \param newSlaveLayout	new slave layout for P, condensed from PN.get_total_slave_layout();
  */
 template<typename TAlgebra>
-void AMGBase<TAlgebra>::create_condensed_layout_from_prolongation(ParallelNodes &PN, prolongation_matrix_type &P, IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout)
+void AMGBase<TAlgebra>::create_minimal_layout_for_prolongation(ParallelNodes &PN, prolongation_matrix_type &P, IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout)
 {
 	AMG_PROFILE_FUNC();
 	stdvector<bool> bUsedSlave(P.num_cols(), false);
@@ -413,10 +457,10 @@ void AMGBase<TAlgebra>::create_condensed_layout_from_prolongation(ParallelNodes 
 		UG_LOG(i << " used = " << bUsedSlave[i] << "\n");
 	}*/
 
-	CreateCondensedLayoutCommunicationScheme cclcs(bUsedSlave);
+	CreateMinimalLayoutCommunicationScheme cmlcs(bUsedSlave);
 	CommunicateOnInterfaces(PN.get_communicator(), PN.get_total_master_layout(),
-			PN.get_total_slave_layout(), cclcs);
-	cclcs.get_new_layouts(newMasterLayout, newSlaveLayout);
+			PN.get_total_slave_layout(), cmlcs);
+	cmlcs.get_new_layouts(newMasterLayout, newSlaveLayout);
 
 }
 
