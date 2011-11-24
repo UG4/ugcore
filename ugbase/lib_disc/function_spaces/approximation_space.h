@@ -34,15 +34,15 @@ class IApproximationSpace : public FunctionPattern
 	public:
 	/// constructor
 		IApproximationSpace(domain_type& domain)
-			: FunctionPattern(domain.get_subset_handler()),
-			  m_pDomain(&domain), m_pMGSH(&domain.get_subset_handler())
+			: FunctionPattern(domain.subset_handler()),
+			  m_pDomain(&domain), m_pMGSH(&domain.subset_handler())
 		{};
 
 	/// Return the domain
-		const domain_type& get_domain() const {return *m_pDomain;}
+		const domain_type& domain() const {return *m_pDomain;}
 
 	///	Return the domain
-		domain_type& get_domain() {return *m_pDomain;}
+		domain_type& domain() {return *m_pDomain;}
 
 	///	virtual destructor
 		virtual ~IApproximationSpace()	{}
@@ -167,23 +167,23 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		function_type* create_surface_function();
 
 	///	returns the surface dof distribution
-		dof_distribution_type& get_surface_dof_distribution();
+		dof_distribution_type& surface_dof_distribution();
 
 	///	returns the surface dof distribution
-		const dof_distribution_type& get_surface_dof_distribution() const;
+		const dof_distribution_type& surface_dof_distribution() const;
 
 	///	returns the surface view
-		const SurfaceView* get_surface_view() const {return m_MGDoFManager.get_surface_view();}
+		const SurfaceView* surface_view() const {return m_MGDoFManager.surface_view();}
 
 	///	returns the level dof distributions
-		std::vector<const dof_distribution_type*> get_level_dof_distributions() const
-				{return m_MGDoFManager.get_level_dof_distributions();}
+		std::vector<const dof_distribution_type*> level_dof_distributions() const
+				{return m_MGDoFManager.level_dof_distributions();}
 
 	///	returns the level dof distribution
-		dof_distribution_type& get_level_dof_distribution(size_t level);
+		dof_distribution_type& level_dof_distribution(size_t level);
 
 	///	returns the level dof distribution
-		const dof_distribution_type& get_level_dof_distribution(size_t level) const;
+		const dof_distribution_type& level_dof_distribution(size_t level) const;
 
 	///	returns the number of level
 		size_t num_levels() const {return m_MGDoFManager.num_levels();}

@@ -78,15 +78,15 @@ end
 -- create Refiner
 print("Create Hierarchy")
 if useLoopScheme == true then
-	CreateSmoothHierarchy(dom:get_grid(), numRefs)
+	CreateSmoothHierarchy(dom:grid(), numRefs)
 else
-	CreateSemiSmoothHierarchy(dom:get_grid(), numRefs)
+	CreateSemiSmoothHierarchy(dom:grid(), numRefs)
 end
 
 print("Saving domain for debug reasons")
 -- write grid to file for test purpose
 SaveDomain(dom, "refined_grid.ugx")
-SaveGridHierarchy(dom:get_grid(), "refined_grid_hierarchy.ugx")
+SaveGridHierarchy(dom:grid(), "refined_grid_hierarchy.ugx")
 
 
 --------------------------------------------------------------------------------

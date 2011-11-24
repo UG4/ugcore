@@ -84,7 +84,7 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 		fctNames.append(vScheduledUserData[i].fctName.c_str());
 
 	//	get subsethandler
-		const ISubsetHandler& rSH = this->get_fct_pattern().get_subset_handler();
+		const ISubsetHandler& rSH = this->get_fct_pattern().subset_handler();
 
 	// 	loop subsets
 		for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
@@ -258,7 +258,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 
 //  update Geometry for this element
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
+	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
 	{
 		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::prepare_element': "
 				"Cannot update Finite Volume Geometry.\n");

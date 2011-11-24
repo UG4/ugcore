@@ -35,7 +35,7 @@ bool ComputeGradient(TFunction& u,
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
-			= u.get_approximation_space().get_domain().get_position_accessor();
+			= u.approximation_space().domain().position_accessor();
 
 //	get trial space
 	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
@@ -226,10 +226,10 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              Int2Type<1>)
 {
 //	get domain
-	typename TFunction::domain_type& domain = u.get_approximation_space().get_domain();
+	typename TFunction::domain_type& domain = u.approximation_space().domain();
 
 //	get multigrid
-	typename TFunction::domain_type::grid_type& mg = domain.get_grid();
+	typename TFunction::domain_type::grid_type& mg = domain.grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
@@ -255,10 +255,10 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              Int2Type<2>)
 {
 //	get domain
-	typename TFunction::domain_type& domain = u.get_approximation_space().get_domain();
+	typename TFunction::domain_type& domain = u.approximation_space().domain();
 
 //	get multigrid
-	typename TFunction::domain_type::grid_type& mg = domain.get_grid();
+	typename TFunction::domain_type::grid_type& mg = domain.grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
@@ -285,10 +285,10 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              Int2Type<3>)
 {
 //	get domain
-	typename TFunction::domain_type& domain = u.get_approximation_space().get_domain();
+	typename TFunction::domain_type& domain = u.approximation_space().domain();
 
 //	get multigrid
-	typename TFunction::domain_type::grid_type& mg = domain.get_grid();
+	typename TFunction::domain_type::grid_type& mg = domain.grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;

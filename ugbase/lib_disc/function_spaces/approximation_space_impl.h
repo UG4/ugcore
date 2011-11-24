@@ -36,7 +36,7 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init(bool bInitDoFs)
 #ifdef UG_PARALLEL
 //	set distributed grid manager
 	m_MGDoFManager.set_distributed_grid_manager(
-			*this->m_pDomain->get_distributed_grid_manager());
+			*this->m_pDomain->distributed_grid_manager());
 #endif
 
 	if(bInitDoFs)
@@ -66,7 +66,7 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_level_function(s
 	}
 
 //	get level dof distribution
-	dof_distribution_type* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
+	dof_distribution_type* dofDistr = m_MGDoFManager.level_dof_distribution(level);
 
 //	check distribution
 	if(dofDistr == NULL)
@@ -94,7 +94,7 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_surface_function
 	}
 
 //	get surface dof distribution
-	dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+	dof_distribution_type* dofDistr = m_MGDoFManager.surface_dof_distribution();
 
 //	check distribution
 	if(dofDistr == NULL)
@@ -106,7 +106,7 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_surface_function
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
-ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_surface_dof_distribution()
+ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::surface_dof_distribution()
 {
 //	init space
 	init();
@@ -121,7 +121,7 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_surface_dof_distrib
 		}
 	}
 
-	dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+	dof_distribution_type* dofDistr = m_MGDoFManager.surface_dof_distribution();
 
 	if(dofDistr == NULL)
 		UG_THROW_FATAL( "ApproximationSpace: No surface DoFDistribution created.");
@@ -131,17 +131,17 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_surface_dof_distrib
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 const typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
-ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_surface_dof_distribution() const
+ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::surface_dof_distribution() const
 {
 	ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>* This =
 			const_cast<ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>*>(this);
 
-	return This->get_surface_dof_distribution();
+	return This->surface_dof_distribution();
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
-ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_level_dof_distribution(size_t level)
+ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::level_dof_distribution(size_t level)
 {
 //	init space
 	init();
@@ -156,17 +156,17 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_level_dof_distribut
 		}
 	}
 
-	return *(m_MGDoFManager.get_level_dof_distribution(level));
+	return *(m_MGDoFManager.level_dof_distribution(level));
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 const typename ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
-ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::get_level_dof_distribution(size_t level) const
+ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::level_dof_distribution(size_t level) const
 {
 	ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>* This =
 			const_cast<ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>*>(this);
 
-	return This->get_level_dof_distribution(level);
+	return This->level_dof_distribution(level);
 }
 
 }

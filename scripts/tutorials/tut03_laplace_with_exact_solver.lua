@@ -92,7 +92,7 @@ print("Saved domain to " .. outFileName)
 -- for their existance and exit if they are not present.
 -- We obtain the subset handler from the domain-object. Note that we use
 -- the : operator to access member methods of an object.
-sh = dom:get_subset_handler()
+sh = dom:subset_handler()
 if sh:get_subset_index("Inner") == -1 then
 	print("Domain does not contain subset 'Inner'. Aborting.")
 	exit()
@@ -248,7 +248,7 @@ linOp:set_discretization(domainDisc)
 -- since we do not use a multi-grid method here, we want to operate on the
 -- unknowns (degrees of freedom - dofs) of the surface grid. Since we
 -- didn't refine in this example, this of course is the same as the base grid.
-linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- Now lets solve the problem. Create a vector of unknowns and a vector
 -- which contains the right hand side. We will use the approximation space

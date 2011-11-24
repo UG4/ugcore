@@ -34,7 +34,7 @@ namespace ug{
 template <typename TDomain>
 static void MinimizeMemoryFootprint(TDomain& dom)
 {
-	dom.get_grid().set_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
+	dom.grid().set_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
 							 | GRIDOPT_AUTOGENERATE_SIDES);
 }
 
@@ -46,8 +46,8 @@ static bool LoadDomain(TDomain& domain, const char* filename)
 		return true;
 #endif
 
-	if(!LoadGridFromFile(domain.get_grid(), domain.get_subset_handler(),
-						 filename, domain.get_position_attachment()))
+	if(!LoadGridFromFile(domain.grid(), domain.subset_handler(),
+						 filename, domain.position_attachment()))
 	{
 		UG_LOG("Cannot load grid.\n");
 		return false;
@@ -65,14 +65,14 @@ static bool LoadAndRefineDomain(TDomain& domain, const char* filename,
 		return true;
 #endif
 
-	if(!LoadGridFromFile(domain.get_grid(), domain.get_subset_handler(),
-						 filename, domain.get_position_attachment()))
+	if(!LoadGridFromFile(domain.grid(), domain.subset_handler(),
+						 filename, domain.position_attachment()))
 	{
 		UG_LOG("Cannot load grid.\n");
 		return false;
 	}
 
-	GlobalMultiGridRefiner ref(domain.get_grid());
+	GlobalMultiGridRefiner ref(domain.grid());
 	for(int i = 0; i < numRefs; ++i)
 		ref.refine();
 
@@ -82,22 +82,22 @@ static bool LoadAndRefineDomain(TDomain& domain, const char* filename,
 template <typename TDomain>
 static bool SaveDomain(TDomain& domain, const char* filename)
 {
-	return SaveGridToFile(domain.get_grid(), domain.get_subset_handler(),
-						  filename, domain.get_position_attachment());
+	return SaveGridToFile(domain.grid(), domain.subset_handler(),
+						  filename, domain.position_attachment());
 }
 
 template <typename TDomain>
 static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 							 const char* filename)
 {
-	if(&domain.get_grid() != pmap.get_partition_handler().get_assigned_grid())
+	if(&domain.grid() != pmap.get_partition_handler().get_assigned_grid())
 	{
 		UG_LOG("WARNING in SavePartitionMap: The given partition map was not"
 				" created for the given domain. Aborting...\n");
 		return false;
 	}
 
-	return SavePartitionMapToFile(pmap, filename, domain.get_position_attachment());
+	return SavePartitionMapToFile(pmap, filename, domain.position_attachment());
 }
 
 
@@ -105,8 +105,8 @@ template <typename TDomain>
 static bool TestDomainInterfaces(TDomain* dom)
 {
 	#ifdef UG_PARALLEL
-		return TestGridLayoutMap(dom->get_grid(),
-					dom->get_distributed_grid_manager()->grid_layout_map());
+		return TestGridLayoutMap(dom->grid(),
+					dom->distributed_grid_manager()->grid_layout_map());
 	#endif
 	return true;
 }
@@ -116,7 +116,7 @@ template <typename TDomain>
 static void TestDomainVisualization(TDomain& dom)
 {
 	GridVisualization<number, int, typename TDomain::position_attachment_type> gridVis;
-	gridVis.set_grid(dom.get_grid(), dom.get_position_attachment());
+	gridVis.set_grid(dom.grid(), dom.position_attachment());
 	gridVis.update_visuals();
 
 //	log vertex positions
@@ -167,8 +167,8 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 		string name = string("Domain").append(dimSuffix);
 		reg.add_class_<TDomain>(name, grp)
 			.add_constructor()
-			.add_method("get_subset_handler|hide=true", static_cast<MGSubsetHandler& (TDomain::*)()>(&TDomain::get_subset_handler))
-			.add_method("get_grid|hide=true", static_cast<MultiGrid& (TDomain::*)()>(&TDomain::get_grid))
+			.add_method("subset_handler", static_cast<MGSubsetHandler& (TDomain::*)()>(&TDomain::subset_handler))
+			.add_method("grid", static_cast<MultiGrid& (TDomain::*)()>(&TDomain::grid))
 			.add_method("get_dim|hide=true", static_cast<int (TDomain::*)() const>(&TDomain::get_dim));
 
 		reg.add_class_to_group(name, "Domain", dimTag);

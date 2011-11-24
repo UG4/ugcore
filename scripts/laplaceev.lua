@@ -174,7 +174,7 @@ for i=numPreRefs+1,numRefs do
 end
 
 -- get subset handler
-sh = dom:get_subset_handler()
+sh = dom:subset_handler()
 if sh:num_subsets() ~= 2 then 
 print("Domain must have 2 Subsets for this problem.")
 exit()
@@ -194,7 +194,7 @@ if verbosity >= 1 then
 	
 	hierarchyOutName = "hierachy_p" .. GetProcessRank() .. ".ugx"
 	print("saving hierachy to " .. hierarchyOutName)
-	if SaveGridHierarchy(dom:get_grid(), hierarchyOutName) == false then
+	if SaveGridHierarchy(dom:grid(), hierarchyOutName) == false then
 		print("Saving of domain to " .. hierarchyOutName .. " failed. Aborting.")
 		    exit()
 	end
@@ -298,7 +298,7 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)
@@ -378,9 +378,9 @@ convCheck:set_reduction(1e-12)
 linOp:init_op_and_rhs(b)
 
 B = MatrixOperator()
--- domainDisc:assemble_stiffness_matrix(A, v, approxSpace:get_surface_dof_distribution())
+-- domainDisc:assemble_stiffness_matrix(A, v, approxSpace:surface_dof_distribution())
 v = GridFunction(approxSpace)
-domainDisc:assemble_mass_matrix(B, v, approxSpace:get_surface_dof_distribution())
+domainDisc:assemble_mass_matrix(B, v, approxSpace:surface_dof_distribution())
 SaveMatrixForConnectionViewer(v, B, "B.mat") 
 SaveMatrixForConnectionViewer(v, linOp, "A.mat")
 v:set(1.0)

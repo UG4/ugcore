@@ -89,7 +89,7 @@ if procRank == 0 then
 	PartitionDomain_RegularGrid(dom, partitionMap, 2, 1, true)
 	
 	-- We'll save the partition map. This should only be done for debugging.
-	SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(),
+	SaveGrid(dom:grid(), partitionMap:get_partition_handler(),
 		"partitionMap_1_p" .. procRank .. ".ugx")
 end
 
@@ -135,7 +135,7 @@ if procRank % 2 == 0 and procRank < 4 then
 	PartitionDomain_RegularGrid(dom, partitionMap, 1, 2, true)
 	
 	-- again we'll save the partition map. This should only be done for debugging.
-	SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(),
+	SaveGrid(dom:grid(), partitionMap:get_partition_handler(),
 		"partitionMap_2_p" .. procRank .. ".ugx")
 end
 
@@ -173,12 +173,12 @@ print("Saved domain to " .. outFileName)
 
 -- Now lets save the hierarchy on each process
 -- The SaveGridHierarchy routine directly works on the domains grid.
--- We can access the grid of a domain through its get_grid() member method.
+-- We can access the grid of a domain through its grid() member method.
 --
 -- SaveGridHierarchy outputs a grid, where each level is assigned to a subset.
 -- Original subsets are not contained in that file.
 outFileName = outHierarchyFilePrefix .. GetProcessRank() .. ".ugx"
-if SaveGridHierarchy(dom:get_grid(), outFileName) == false then
+if SaveGridHierarchy(dom:grid(), outFileName) == false then
 	print("Saving of grid-hierarch to " .. outFileName .. " failed. Aborting.")
 	exit()
 end

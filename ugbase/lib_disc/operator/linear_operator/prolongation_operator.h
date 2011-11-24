@@ -42,9 +42,9 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 {
 //	get DoFDistributions
 	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
-			= approxSpace.get_level_dof_distribution(coarseLevel);
+			= approxSpace.level_dof_distribution(coarseLevel);
 	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
-			= approxSpace.get_level_dof_distribution(fineLevel);
+			= approxSpace.level_dof_distribution(fineLevel);
 
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
@@ -57,7 +57,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 	}
 
 //  get subsethandler and grid
-	MultiGrid& grid = approxSpace.get_domain().get_grid();
+	MultiGrid& grid = approxSpace.domain().grid();
 
 //  get number of dofs on different levels
 	const size_t numFineDoFs = fineDoFDistr.num_indices();
@@ -340,7 +340,7 @@ class P1Prolongation :
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 			{
 				const dof_distribution_type& dofDistr =
-						m_pApproxSpace->get_level_dof_distribution(m_fineLevel);
+						m_pApproxSpace->level_dof_distribution(m_fineLevel);
 				if(m_vPostProcess[i]->adjust_defect(uFineOut, uFineOut, dofDistr) != true)
 				{
 					UG_LOG("ERROR in 'P1Prolongation::apply': "
@@ -395,7 +395,7 @@ class P1Prolongation :
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 			{
 				const dof_distribution_type& dofDistr =
-						m_pApproxSpace->get_level_dof_distribution(m_coarseLevel);
+						m_pApproxSpace->level_dof_distribution(m_coarseLevel);
 				if(m_vPostProcess[i]->adjust_defect(uCoarseOut, uCoarseOut, dofDistr) != true)
 				{
 					UG_LOG("ERROR in 'ProjectionOperator::apply_transposed': "

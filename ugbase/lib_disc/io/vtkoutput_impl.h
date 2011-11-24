@@ -177,7 +177,7 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 #endif
 
 //	get the grid associated to the solution
-	m_pGrid = dynamic_cast<Grid*>(&u.get_approximation_space().get_domain().get_grid());
+	m_pGrid = dynamic_cast<Grid*>(&u.approximation_space().domain().grid());
 
 //	check grid
 	if(!m_pGrid)
@@ -238,8 +238,8 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 
 // 	get dimension of grid-piece
 	int dim = -1;
-	if(si >= 0) dim = DimensionOfSubset(u.get_domain(), si);
-	else dim = DimensionOfDomain(u.get_domain());
+	if(si >= 0) dim = DimensionOfSubset(u.domain(), si);
+	else dim = DimensionOfDomain(u.domain());
 
 //	write piece of grid
 	if(dim >= 0){
@@ -254,7 +254,7 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 	{
 	//	if dim < 0, some is wrong with grid, except no element is in the grid
 		if( ((si < 0) && m_pGrid->num<VertexBase>() != 0) ||
-			((si >=0) && u.get_domain().get_subset_handler().template num<VertexBase>(si) != 0))
+			((si >=0) && u.domain().subset_handler().template num<VertexBase>(si) != 0))
 		{
 			UG_LOG("ERROR in 'VTK::print_subset': Dimension of grid/subset not"
 					" detected correctly although grid objects present.\n");
@@ -352,7 +352,7 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 	fprintf(File, "      <PointData>\n");
 
 //	get function pattern
-	const FunctionPattern& fctPatt = u.get_dof_distribution().get_function_pattern();
+	const FunctionPattern& fctPatt = u.dof_distribution().get_function_pattern();
 
 //	add all components if 'selectAll' chosen
 	if(m_bSelectAll)
@@ -733,7 +733,7 @@ write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 
 //	get position attachment
 	typename domain_type::position_accessor_type& aaPos =
-				u.get_approximation_space().get_domain().get_position_accessor();
+				u.approximation_space().domain().position_accessor();
 
 // 	write points and remember numbering
 	UG_ASSERT(m_aaDOFIndexVRT.valid(), "Missing attachment");

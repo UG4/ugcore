@@ -22,8 +22,8 @@ class GridObject : public Grid
 {
 	public:
 		GridObject() : Grid(GRIDOPT_STANDARD_INTERCONNECTION), m_sh(*this)	{}
-		inline Grid& get_grid()	{return *this;}
-		inline SubsetHandler& get_subset_handler()	{return m_sh;}
+		inline Grid& grid()	{return *this;}
+		inline SubsetHandler& subset_handler()	{return m_sh;}
 		
 	protected:
 		SubsetHandler m_sh;
@@ -31,12 +31,12 @@ class GridObject : public Grid
 
 bool LoadGridObject(GridObject& go, const char* filename)
 {
-	return LoadGridFromFile(go.get_grid(), go.get_subset_handler(), filename);
+	return LoadGridFromFile(go.grid(), go.subset_handler(), filename);
 }
 
 bool SaveGridObject(GridObject& go, const char* filename)
 {
-	return SaveGridToFile(go.get_grid(), go.get_subset_handler(), filename);
+	return SaveGridToFile(go.grid(), go.subset_handler(), filename);
 }
 
 GridObject* CreateGridObject(const char* filename)
@@ -625,8 +625,8 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 	//	GridObject
 		reg.add_class_<GridObject, Grid>("GridObject", grp)
 			.add_constructor()
-			.add_method("get_grid", &GridObject::get_grid)
-			.add_method("get_subset_handler", &GridObject::get_subset_handler);
+			.add_method("grid", &GridObject::grid)
+			.add_method("subset_handler", &GridObject::subset_handler);
 
 	//	Grid functions
 		reg.add_function("CreateFractal", &CreateFractal, grp)

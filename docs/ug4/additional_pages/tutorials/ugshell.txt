@@ -147,7 +147,7 @@ Example (excerpt):
 ug:> ClassUsage("Domain2d")
 
 --- Functions returning Domain2d: ---
- Domain2d* IApproximationSpace2d:get_domain ()
+ Domain2d* IApproximationSpace2d:domain()
 --- Functions using Domain2d: ---
  bool Domain2d:LoadDomain (Domain2d* Domain, string Filename, integer Number Refinements)
  bool Domain2d:DistributeDomain (Domain2d* )

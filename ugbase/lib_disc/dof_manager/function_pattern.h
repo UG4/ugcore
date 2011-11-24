@@ -40,7 +40,7 @@ class FunctionPattern
 		{clear();}
 
 	/// get underlying subset handler
-		const ISubsetHandler& get_subset_handler() const {return m_rSH;}
+		const ISubsetHandler& subset_handler() const {return m_rSH;}
 
 	//	returns if ansatz space is supported
 		virtual bool supports_trial_space(LFEID& id) const = 0;

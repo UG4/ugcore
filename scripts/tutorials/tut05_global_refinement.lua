@@ -92,12 +92,12 @@ print("Saved domain to " .. outFileName)
 
 -- Now lets save the hierarchy on each process
 -- The SaveGridHierarchy routine directly works on the domains grid.
--- We can access the grid of a domain through its get_grid() member method.
+-- We can access the grid of a domain through its grid() member method.
 --
 -- SaveGridHierarchy outputs a grid, where each level is assigned to a subset.
 -- Original subsets are not contained in that file.
 outFileName = outHierarchyFilePrefix .. GetProcessRank() .. ".ugx"
-if SaveGridHierarchy(dom:get_grid(), outFileName) == false then
+if SaveGridHierarchy(dom:grid(), outFileName) == false then
 	print("Saving of grid-hierarch to " .. outFileName .. " failed. Aborting.")
 	exit()
 end

@@ -84,7 +84,7 @@ class MGDoFManager : public GridObserver
 		bool surface_indices_enabled() const {return m_pSurfDD != NULL;}
 
 	///	returns Surface DoF Distribution
-		dof_distribution_type* get_surface_dof_distribution()
+		dof_distribution_type* surface_dof_distribution()
 		{
 		// 	update surface distribution
 			if(!surface_distribution_required())
@@ -97,7 +97,7 @@ class MGDoFManager : public GridObserver
 		}
 
 	///	returns Surface DoF Distribution
-		const dof_distribution_type* get_surface_dof_distribution() const
+		const dof_distribution_type* surface_dof_distribution() const
 		{
 		// 	update surface distribution
 			if(m_pSurfDD == NULL)
@@ -110,7 +110,7 @@ class MGDoFManager : public GridObserver
 		}
 
 	///	returns Level DoF Distribution
-		dof_distribution_type* get_level_dof_distribution(size_t level)
+		dof_distribution_type* level_dof_distribution(size_t level)
 		{
 			if(!level_distribution_required(level+1))
 			{
@@ -122,7 +122,7 @@ class MGDoFManager : public GridObserver
 		}
 
 	///	returns Level DoF Distribution
-		const dof_distribution_type* get_level_dof_distribution(size_t level) const
+		const dof_distribution_type* level_dof_distribution(size_t level) const
 		{
 			if(!(level < m_vLevelDD.size()))
 				throw(UGFatalError("Level DoF Distribution missing"));
@@ -131,7 +131,7 @@ class MGDoFManager : public GridObserver
 		}
 
 	///	returns the Level DoF Distributions in a vector
-		std::vector<const dof_distribution_type*> get_level_dof_distributions() const
+		std::vector<const dof_distribution_type*> level_dof_distributions() const
 		{
 			std::vector<const dof_distribution_type*> vLevelDD;
 			for(size_t i = 0; i < m_vLevelDD.size(); ++i)
@@ -140,7 +140,7 @@ class MGDoFManager : public GridObserver
 		}
 
 	///	returns the surface view
-		const SurfaceView* get_surface_view() const {return m_pSurfaceView;}
+		const SurfaceView* surface_view() const {return m_pSurfaceView;}
 
 	///	print a statistic on dof distribution
 		virtual void print_statistic(int verboseLev = 1) const;

@@ -186,15 +186,15 @@ bool OrderLex(ApproximationSpace<TDomain, TDoFImpl, TAlgebra>& approxSpace,
 	//	get position attachment
 	typedef TDomain domain_type;
 	typename domain_type::position_accessor_type& aaPos
-			= approxSpace.get_domain().get_position_accessor();
+			= approxSpace.domain().position_accessor();
 
 	//	order levels
 	for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-		if(!OrderLexForDofDist<TDoFImpl,TDomain>(approxSpace.get_level_dof_distribution(lev), aaPos, flag))
+		if(!OrderLexForDofDist<TDoFImpl,TDomain>(approxSpace.level_dof_distribution(lev), aaPos, flag))
 			return false;
 
 	//	order surface
-	if(!OrderLexForDofDist<TDoFImpl,TDomain>(approxSpace.get_surface_dof_distribution(), aaPos, flag))
+	if(!OrderLexForDofDist<TDoFImpl,TDomain>(approxSpace.surface_dof_distribution(), aaPos, flag))
 		return false;
 
 //	we're done

@@ -81,8 +81,8 @@ class LagrangeDirichletBoundary
 	///	sets the approximation space to work on
 		void set_approximation_space(IApproximationSpace<TDomain>& approxSpace)
 		{
-			m_pDomain = &approxSpace.get_domain();
-			m_aaPos = m_pDomain->get_position_accessor();
+			m_pDomain = &approxSpace.domain();
+			m_aaPos = m_pDomain->position_accessor();
 			m_pPattern = &approxSpace;
 		}
 
@@ -410,7 +410,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 	}
 
 //	get subsethandler
-	const ISubsetHandler& rSH = m_pPattern->get_subset_handler();
+	const ISubsetHandler& rSH = m_pPattern->subset_handler();
 
 // 	loop subsets
 	for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)

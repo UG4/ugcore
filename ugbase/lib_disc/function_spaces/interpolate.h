@@ -73,7 +73,7 @@ bool InterpolateFunctionOnElem(
 
 	//	get all corner coordinates
 		std::vector<position_type> vCorner;
-		CollectCornerCoordinates(vCorner, *elem, u.get_domain());
+		CollectCornerCoordinates(vCorner, *elem, u.domain());
 
 	//	update the reference mapping for the corners
 		mapping.update(&vCorner[0]);
@@ -323,7 +323,7 @@ bool InterpolateFunction(
 {
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
-				= u.get_approximation_space();
+				= u.approximation_space();
 
 //	get function id of name
 	const size_t fct = approxSpace.fct_id_by_name(name);
@@ -344,11 +344,11 @@ bool InterpolateFunction(
 	}
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.get_subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, approxSpace.get_subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, approxSpace.subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 
@@ -389,7 +389,7 @@ bool InterpolateFunctionOnVertices(
 
 // get position accessor
 	const typename domain_type::position_accessor_type& aaPos
-										= u.get_domain().get_position_accessor();
+										= u.domain().position_accessor();
 
 // 	iterate over all elements
 	typename geometry_traits<VertexBase>::const_iterator iterEnd, iter;
@@ -442,7 +442,7 @@ bool InterpolateFunctionOnVertices(
 {
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
-				= u.get_approximation_space();
+				= u.approximation_space();
 
 //	get function id of name
 	const size_t fct = approxSpace.fct_id_by_name(name);
@@ -463,11 +463,11 @@ bool InterpolateFunctionOnVertices(
 	}
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(*approxSpace.get_subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(*approxSpace.subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, *approxSpace.get_subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, *approxSpace.subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 

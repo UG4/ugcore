@@ -421,7 +421,7 @@ number L2ErrorDraft(
 {
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
-				= u.get_approximation_space();
+				= u.approximation_space();
 
 //	get function id of name
 	const size_t fct = approxSpace.fct_id_by_name(name);
@@ -435,11 +435,11 @@ number L2ErrorDraft(
 	}
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.get_subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, approxSpace.get_subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, approxSpace.subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 
@@ -466,7 +466,7 @@ number L2ErrorDraft(
 			//	integrate elements of subset
 				l2norm2 += Integrate(u.template begin<EdgeBase>(si),
 									 u.template end<EdgeBase>(si),
-									 u.get_domain().get_position_accessor(),
+									 u.domain().position_accessor(),
 									 integrandKernel,
 									 quadOrder);
 			}
@@ -478,7 +478,7 @@ number L2ErrorDraft(
 			//	integrate elements of subset
 				l2norm2 += Integrate(u.template begin<Face>(si),
 									 u.template end<Face>(si),
-									 u.get_domain().get_position_accessor(),
+									 u.domain().position_accessor(),
 									 integrandKernel,
 									 quadOrder);
 			}
@@ -490,7 +490,7 @@ number L2ErrorDraft(
 			//	integrate elements of subset
 				l2norm2 += Integrate(u.template begin<Volume>(si),
 									 u.template end<Volume>(si),
-									 u.get_domain().get_position_accessor(),
+									 u.domain().position_accessor(),
 									 integrandKernel,
 									 quadOrder);
 			}

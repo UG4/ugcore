@@ -243,7 +243,7 @@ class GridReaderUGX
 	/**	TPositionAttachments value type has to be compatible with MathVector.
 	 *	Make sure that a file has already been loaded.*/
 		template <class TPositionAttachment>
-		bool get_grid(Grid& gridOut, size_t index,
+		bool grid(Grid& gridOut, size_t index,
 					  TPositionAttachment& aPos);
 
 	///	returns the name of the i-th grid
@@ -253,7 +253,7 @@ class GridReaderUGX
 		size_t num_subset_handlers(size_t refGridIndex) const;
 
 	///	fills the given subset-handler
-		bool get_subset_handler(ISubsetHandler& shOut,
+		bool subset_handler(ISubsetHandler& shOut,
 								size_t subsetHandlerIndex,
 								size_t refGridIndex);
 

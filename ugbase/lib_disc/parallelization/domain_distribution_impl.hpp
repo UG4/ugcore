@@ -20,7 +20,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 									  int firstAxisToCut)
 {
 
-	MultiGrid& mg = domain.get_grid();
+	MultiGrid& mg = domain.grid();
 	partitionMap.assign_grid(mg);
 	#ifdef UG_PARALLEL
 	//	we need a process to which elements which are not considered will be send.
@@ -40,7 +40,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
-												domain.get_position_attachment(),
+												domain.position_attachment(),
 												firstAxisToCut);
 		}
 		else if(mg.num<Face>() > 0){
@@ -51,7 +51,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
-												domain.get_position_attachment(),
+												domain.position_attachment(),
 												firstAxisToCut);
 		}
 		else if(mg.num<EdgeBase>() > 0){
@@ -62,7 +62,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
-												domain.get_position_attachment(),
+												domain.position_attachment(),
 												firstAxisToCut);
 		}
 		else if(mg.num<VertexBase>() > 0){
@@ -73,7 +73,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 												partitionMap.get_partition_handler(),
 												mg, mg.num_levels() - 1,
 												partitionMap.num_target_procs(),
-												domain.get_position_attachment(),
+												domain.position_attachment(),
 												firstAxisToCut);
 		}
 		else{
@@ -105,22 +105,22 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 										bool surfaceOnly)
 {
 //	prepare the partition map and a vertex position attachment accessor
-	MultiGrid& mg = domain.get_grid();
+	MultiGrid& mg = domain.grid();
 	partitionMap.assign_grid(mg);
 
 	#ifdef UG_PARALLEL
 	//	a distributed grid manager is required
-		if(!domain.get_distributed_grid_manager()){
+		if(!domain.distributed_grid_manager()){
 			UG_LOG("A distributed grid manager is required in the given domain.\n");
 			return false;
 		}
 
 		typedef typename TDomain::position_attachment_type TAPos;
 		Grid::AttachmentAccessor<VertexBase, TAPos> aaPos(mg,
-												domain.get_position_attachment());
+												domain.position_attachment());
 
 	//	this callback allows us to only distribute surface elements, which are no ghosts
-		IsRegularSurfaceElem cbConsiderElem(*domain.get_distributed_grid_manager());
+		IsRegularSurfaceElem cbConsiderElem(*domain.distributed_grid_manager());
 
 	//	we need a process to which elements which are not considered will be send.
 	//	Those elements should stay on the current process.
@@ -216,7 +216,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 						  int hWeight, int vWeight)
 {
 //	prepare the partition map
-	MultiGrid& mg = domain.get_grid();
+	MultiGrid& mg = domain.grid();
 	partitionMap.assign_grid(mg);
 
 #ifdef UG_PARALLEL
@@ -279,7 +279,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 
 	typedef typename TDomain::position_attachment_type	position_attachment_type;
 //	make sure that the input is fine
-	typename TDomain::grid_type& grid = domainOut.get_grid();
+	typename TDomain::grid_type& grid = domainOut.grid();
 	SubsetHandler& shPart = partitionMap.get_partition_handler();
 
 	if(shPart.get_assigned_grid() != &grid){
@@ -308,7 +308,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 
 //	make sure that manager exists
 	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
-	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
+	distributed_grid_manager_type* pDistGridMgr = domainOut.distributed_grid_manager();
 	if(!pDistGridMgr)
 	{
 		UG_LOG("ERROR in RedistibuteDomain: Domain has to feature a Distributed Grid Manager.\n");
@@ -323,8 +323,8 @@ static bool RedistributeDomain(TDomain& domainOut,
 
 //	data serialization
 	GeomObjAttachmentSerializer<VertexBase, position_attachment_type>
-		posSerializer(grid, domainOut.get_position_attachment());
-	SubsetHandlerSerializer shSerializer(domainOut.get_subset_handler());
+		posSerializer(grid, domainOut.position_attachment());
+	SubsetHandlerSerializer shSerializer(domainOut.subset_handler());
 
 	GridDataSerializationHandler serializer;
 	serializer.add(&posSerializer);
@@ -352,7 +352,7 @@ static bool DistributeDomain(TDomain& domainOut)
 	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 
 //	get distributed grid manager
-	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
+	distributed_grid_manager_type* pDistGridMgr = domainOut.distributed_grid_manager();
 
 //	check that manager exists
 	if(!pDistGridMgr)
@@ -363,7 +363,7 @@ static bool DistributeDomain(TDomain& domainOut)
 	distributed_grid_manager_type& distGridMgrOut = *pDistGridMgr;
 
 //	get subset handler
-	subset_handler_type& sh = domainOut.get_subset_handler();
+	subset_handler_type& sh = domainOut.subset_handler();
 
 //	get number of processes
 	const int numProcs = pcl::GetNumProcesses();
@@ -384,7 +384,7 @@ static bool DistributeDomain(TDomain& domainOut)
 //	make sure that each grid has a position attachment - even if no data
 //	will be received.
 	typedef typename TDomain::position_attachment_type position_attachment_type;
-	position_attachment_type& domPosition = domainOut.get_position_attachment();
+	position_attachment_type& domPosition = domainOut.position_attachment();
 	bool tmpPosAttachment = false;
 	if(!mg.has_vertex_attachment(aPosition))
 	{
@@ -429,7 +429,7 @@ static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
 	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 
 //	get distributed grid manager
-	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
+	distributed_grid_manager_type* pDistGridMgr = domainOut.distributed_grid_manager();
 
 //	check that manager exists
 	if(!pDistGridMgr)
@@ -440,7 +440,7 @@ static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
 	distributed_grid_manager_type& distGridMgrOut = *pDistGridMgr;
 
 //	get subset handler
-	subset_handler_type& sh = domainOut.get_subset_handler();
+	subset_handler_type& sh = domainOut.subset_handler();
 
 //	get number of processes
 	const int numProcs = pcl::GetNumProcesses();
@@ -461,7 +461,7 @@ static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
 //	make sure that each grid has a position attachment - even if no data
 //	will be received.
 	typedef typename TDomain::position_attachment_type position_attachment_type;
-	position_attachment_type& domPosition = domainOut.get_position_attachment();
+	position_attachment_type& domPosition = domainOut.position_attachment();
 	bool tmpPosAttachment = false;
 	if(!mg.has_vertex_attachment(aPosition))
 	{

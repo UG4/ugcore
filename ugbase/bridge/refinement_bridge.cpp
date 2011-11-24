@@ -22,11 +22,11 @@ static IRefiner* GlobalDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			return new ParallelGlobalRefiner_MultiGrid(*dom->get_distributed_grid_manager());
+			return new ParallelGlobalRefiner_MultiGrid(*dom->distributed_grid_manager());
 		}
 	#endif
 
-	return new GlobalMultiGridRefiner(dom->get_grid());
+	return new GlobalMultiGridRefiner(dom->grid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -38,11 +38,11 @@ static IRefiner* HangingNodeDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			return new ParallelHangingNodeRefiner_MultiGrid(*dom->get_distributed_grid_manager());
+			return new ParallelHangingNodeRefiner_MultiGrid(*dom->distributed_grid_manager());
 		}
 	#endif
 
-	return new HangingNodeRefiner_MultiGrid(dom->get_grid());
+	return new HangingNodeRefiner_MultiGrid(dom->grid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,13 +74,13 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, IRefiner& refiner,
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.get_grid()){
+	if(refiner.get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInSphere: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 	Grid& grid = *refiner.get_associated_grid();
-	position_accessor_type& aaPos = dom.get_position_accessor();
+	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll compare against the square radius.
 	number radiusSq = radius * radius;
@@ -120,13 +120,13 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, IRefiner& refiner,
 	typedef typename geometry_traits<TElem>::iterator	ElemIter;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.get_grid()){
+	if(refiner.get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 	Grid& grid = *refiner.get_associated_grid();
-	position_accessor_type& aaPos = dom.get_position_accessor();
+	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll compare against the square radius.
 	number radiusSq = radius * radius;
@@ -173,13 +173,13 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.get_grid()){
+	if(refiner.get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 	Grid& grid = *refiner.get_associated_grid();
-	position_accessor_type& aaPos = dom.get_position_accessor();
+	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll store associated edges, faces and volumes in those containers
 	vector<EdgeBase*> vEdges;
@@ -246,14 +246,14 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.get_grid()){
+	if(refiner.get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 //	access the grid and the position attachment
 	Grid& grid = *refiner.get_associated_grid();
-	position_accessor_type& aaPos = dom.get_position_accessor();
+	position_accessor_type& aaPos = dom.position_accessor();
 
 //	If the grid is a multigrid, we want to avoid marking of elements, which do
 //	have children

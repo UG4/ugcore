@@ -146,7 +146,7 @@ function util.lexicographicMapping(numProcs, numCoresPerCNode, gridName, verbosi
 	
 		-- We'll save the partition map. This should only be done for debugging.
 		if verbosity >= 1 then
-			SaveGrid(dom:get_grid(), partitionMap:get_partition_handler(),
+			SaveGrid(dom:grid(), partitionMap:get_partition_handler(),
 				"partitionMap_1_p" .. procRank .. ".ugx")
 		end
 	end -- end 'if procRank == 0'

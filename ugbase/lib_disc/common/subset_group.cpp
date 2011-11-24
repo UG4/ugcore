@@ -70,7 +70,7 @@ bool SubsetGroup::add(const SubsetGroup& ssGroup)
 	}
 
 //	check that underlying subset handlers are equal
-	if(m_pSH != ssGroup.get_subset_handler())
+	if(m_pSH != ssGroup.subset_handler())
 	{
 		UG_LOG("Underlying subset handler does not match. Cannot add"
 				" subsets to subset group.\n");
@@ -160,7 +160,7 @@ bool SubsetGroup::remove(const SubsetGroup& ssGroup)
 	}
 
 //	check that underlying subset handlers are equal
-	if(m_pSH != ssGroup.get_subset_handler())
+	if(m_pSH != ssGroup.subset_handler())
 	{
 		UG_LOG("Underlying subset handler does not match. Cannot add"
 				" subsets to subset group.\n");

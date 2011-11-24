@@ -117,7 +117,7 @@ print("Refine Parallel Grid")
 end
 
 -- get subset handler
-sh = dom:get_subset_handler()
+sh = dom:subset_handler()
 if sh:num_subsets() ~= 4 then 
 print("Domain must have 4 Subsets for this problem.")
 exit()
@@ -234,7 +234,7 @@ timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 -- create operator from discretization
 op = AssembledOperator()
 op:set_discretization(timeDisc)
-op:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+op:set_dof_distribution(approxSpace:surface_dof_distribution())
 op:init()
 
 -------------------------------------------

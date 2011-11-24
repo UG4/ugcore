@@ -61,10 +61,10 @@ class ParallelGridFunction : public TGridFunction
 		///////////////////////////////
 
 	///	assign dof distribution
-		void assign_dof_distribution(dof_distribution_type& DoFDistr)
+		void set_dof_distribution(dof_distribution_type& DoFDistr)
 		{
 		//	assign distribution
-			TGridFunction::assign_dof_distribution(DoFDistr);
+			TGridFunction::set_dof_distribution(DoFDistr);
 
 		//	copy layouts into vector
 			copy_layouts_into_vector();
@@ -195,14 +195,14 @@ class ParallelGridFunction : public TGridFunction
 		// index layouts
 		///////////////////////////////
 
-		IndexLayout& get_slave_layout()	{return this->get_dof_distribution().get_slave_layout();}
-		IndexLayout& get_master_layout()	{return this->get_dof_distribution().get_master_layout();}
+		IndexLayout& get_slave_layout()	{return this->dof_distribution().get_slave_layout();}
+		IndexLayout& get_master_layout()	{return this->dof_distribution().get_master_layout();}
 
-		IndexLayout& get_vertical_slave_layout()		{return this->get_dof_distribution().get_vertical_slave_layout();}
-		IndexLayout& get_vertical_master_layout()	{return this->get_dof_distribution().get_vertical_master_layout();}
+		IndexLayout& get_vertical_slave_layout()		{return this->dof_distribution().get_vertical_slave_layout();}
+		IndexLayout& get_vertical_master_layout()	{return this->dof_distribution().get_vertical_master_layout();}
 
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return this->get_dof_distribution().get_communicator();}
-		pcl::ProcessCommunicator& get_process_communicator()	{return this->get_dof_distribution().get_process_communicator();}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return this->dof_distribution().get_communicator();}
+		pcl::ProcessCommunicator& get_process_communicator()	{return this->dof_distribution().get_process_communicator();}
 
 	protected:
 	///	copies references of the layouts from the underlying dof distribution into the vector

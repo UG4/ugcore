@@ -65,7 +65,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 {
 //	get MultiGrid for some checks
 	typename TApproximationSpace::domain_type::grid_type& mg =
-				m_pApproxSpace->get_domain().get_grid();
+				m_pApproxSpace->domain().grid();
 
 // 	Check if grid type is a Multigrid.
 	if(dynamic_cast<MultiGrid*>(&mg) == NULL)
@@ -187,7 +187,7 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 			}
 
 		//	get surface view
-			const SurfaceView& surfView = *m_pApproxSpace->get_surface_view();
+			const SurfaceView& surfView = *m_pApproxSpace->surface_view();
 
 		//	First we reset the correction to zero on the patch boundary.
 			if(!SetZeroOnShadowing(tmp, *m_vLevData[lev]->pLevDD, surfView))
@@ -406,7 +406,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 		}
 
 	//	get surface view
-		const SurfaceView& surfView = *m_pApproxSpace->get_surface_view();
+		const SurfaceView& surfView = *m_pApproxSpace->surface_view();
 
 	//	b) interpolate the coarse defect up
 		if(!AddProjectionOfShadows(d, cTmp, -1.0,
@@ -886,8 +886,8 @@ init_common(bool nonlinear)
 //		the grid can not be considered fully refined.
 //todo: Even if there are vrtMasters and m_bFullRefined is false and the top
 //		level matrix can't be copied, an injective SurfToTopLevMap might be useful...
-	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_indices() ==
-		m_pApproxSpace->get_surface_dof_distribution().num_indices())
+	if(m_pApproxSpace->level_dof_distribution(m_topLev).num_indices() ==
+		m_pApproxSpace->surface_dof_distribution().num_indices())
 		m_bAdaptive = false;
 	else
 		m_bAdaptive = true;
@@ -898,8 +898,8 @@ init_common(bool nonlinear)
 	{
 		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 		if(!CreateSurfaceToToplevelMap(m_vSurfToTopMap,
-									   m_pApproxSpace->get_surface_dof_distribution(),
-									   m_pApproxSpace->get_level_dof_distribution(m_topLev)))
+									   m_pApproxSpace->surface_dof_distribution(),
+									   m_pApproxSpace->level_dof_distribution(m_topLev)))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
 					"Cannot init Mapping Surface -> TopLevel (full refinement case).\n");
@@ -1281,14 +1281,14 @@ project_level_to_surface(vector_type& surfVec,
 {
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
-								m_pApproxSpace->get_level_dof_distributions();
+								m_pApproxSpace->level_dof_distributions();
 
 //	surface dof distribution
 	const dof_distribution_type& surfDD =
-								m_pApproxSpace->get_surface_dof_distribution();
+								m_pApproxSpace->surface_dof_distribution();
 
 //	surface view
-	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
+	const SurfaceView* surfView = m_pApproxSpace->surface_view();
 
 //	check that surface view exists
 	if(surfView == NULL)
@@ -1339,14 +1339,14 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 {
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
-								m_pApproxSpace->get_level_dof_distributions();
+								m_pApproxSpace->level_dof_distributions();
 
 //	surface dof distribution
 	const dof_distribution_type& surfDD =
-								m_pApproxSpace->get_surface_dof_distribution();
+								m_pApproxSpace->surface_dof_distribution();
 
 //	surface view
-	const SurfaceView* surfView = m_pApproxSpace->get_surface_view();
+	const SurfaceView* surfView = m_pApproxSpace->surface_view();
 
 //	check that surface view exists
 	if(surfView == NULL)
@@ -1678,7 +1678,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	if(!m_bAdaptive) return true;
 
 //	get the surface view
-	const SurfaceView& surfView = *m_pApproxSpace->get_surface_view();
+	const SurfaceView& surfView = *m_pApproxSpace->surface_view();
 
 //	check that surface view exists
 	if(&surfView == NULL)
@@ -1693,7 +1693,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	{
 	//	get dof distributions on levels
 		const dof_distribution_type& dofDistr
-							= m_pApproxSpace->get_level_dof_distribution(lev);
+							= m_pApproxSpace->level_dof_distribution(lev);
 
 	//	resize the matrix
 		m_vLevData[lev]->CoarseGridContribution.resize(dofDistr.num_indices(),
@@ -1706,11 +1706,11 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	level dof distributions
 	const std::vector<const dof_distribution_type*>& vLevelDD =
-								m_pApproxSpace->get_level_dof_distributions();
+								m_pApproxSpace->level_dof_distributions();
 
 //	surface dof distribution
 	const dof_distribution_type& surfDD =
-								m_pApproxSpace->get_surface_dof_distribution();
+								m_pApproxSpace->surface_dof_distribution();
 
 //	check that surface dof distribution exists
 	if(&surfDD == NULL)
@@ -1735,7 +1735,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	loop all levels to compute the missing contribution
 //	\todo: this is implemented very resource consuming, re-think arrangement
-	Selector sel(m_pApproxSpace->get_domain().get_grid());
+	Selector sel(m_pApproxSpace->domain().grid());
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
 	//	select all elements, that have a shadow as a subelement, but are not itself
@@ -1752,12 +1752,12 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	assemble the surface jacobian only for selected elements
 		if(u)
-			m_pAss->assemble_jacobian(surfMat, *u, m_pApproxSpace->get_surface_dof_distribution());
+			m_pAss->assemble_jacobian(surfMat, *u, m_pApproxSpace->surface_dof_distribution());
 		else
 		{
 		//	\todo: not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_pApproxSpace->get_surface_dof_distribution().num_indices());
-			m_pAss->assemble_jacobian(surfMat, tmpVec, m_pApproxSpace->get_surface_dof_distribution());
+			vector_type tmpVec; tmpVec.resize(m_pApproxSpace->surface_dof_distribution().num_indices());
+			m_pAss->assemble_jacobian(surfMat, tmpVec, m_pApproxSpace->surface_dof_distribution());
 		}
 
 	//	write matrix for debug purpose
@@ -1906,7 +1906,7 @@ update(size_t lev,
        prolongation_operator_type& prolongation)
 {
 //	get dof distribution
-	pLevDD = &approxSpace.get_level_dof_distribution(lev);
+	pLevDD = &approxSpace.level_dof_distribution(lev);
 
 //	resize vectors for operations on whole grid level
 	const size_t numIndex = pLevDD->num_indices();
@@ -2030,11 +2030,11 @@ update(size_t lev,
 //	use a selector to mark all non-ghosts and assemble on those later
 //	get distributed Grid manager
 	DistributedGridManager* pDstGrdMgr
-		= approxSpace.get_domain().get_distributed_grid_manager();
+		= approxSpace.domain().distributed_grid_manager();
 
 //	select all ghost geometric objects
 	sel.clear();
-	sel.assign_grid(approxSpace.get_domain().get_grid());
+	sel.assign_grid(approxSpace.domain().grid());
 	for(int si = 0; si < pLevDD->num_subsets(); ++si)
 	{
 		SelectNonGhosts<VertexBase>(sel, *pDstGrdMgr,

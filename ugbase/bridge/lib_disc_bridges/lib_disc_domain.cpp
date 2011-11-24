@@ -105,8 +105,8 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 			.add_method("print_local_dof_statistic", static_cast<void (T::*)(int)>(&T::print_local_dof_statistic))
 			.add_method("print_local_dof_statistic", static_cast<void (T::*)()>(&T::print_local_dof_statistic))
 			.add_method("defragment", &T::defragment)
-			.add_method("get_surface_view", &T::get_surface_view)
-			.add_method("get_surface_dof_distribution",  static_cast<const typename T::dof_distribution_type& (T::*)() const>(&T::get_surface_dof_distribution));
+			.add_method("surface_view", &T::surface_view)
+			.add_method("surface_dof_distribution",  static_cast<const typename T::dof_distribution_type& (T::*)() const>(&T::surface_dof_distribution));
 		reg.add_class_to_group(name, "ApproximationSpace", dimAlgDDTag);
 	}
 

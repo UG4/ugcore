@@ -107,51 +107,37 @@ class Domain {
 	///	World Dimension
 		inline int get_dim() const {return dim;}
 		
-	///	get grid
-		inline TGrid& get_grid() {return m_grid;};
+	///	returns Grid
+		inline TGrid& grid() {return m_grid;};
 
 	///	const access to Grid
-		inline const TGrid& get_grid() const {return m_grid;};
+		inline const TGrid& grid() const {return m_grid;};
 
-	///	get Subset Handler
-		inline TSubsetHandler& get_subset_handler() {return m_sh;};
+	///	returns Subset Handler
+		inline TSubsetHandler& subset_handler() {return m_sh;};
 
 	///	const access to Subset Handler
-		inline const TSubsetHandler& get_subset_handler() const {return m_sh;};
+		inline const TSubsetHandler& subset_handler() const {return m_sh;};
 
-	///	get Position Attachment
-		inline position_attachment_type& get_position_attachment()
-		{
-			return m_aPos;
-		}
+	///	returns Position Attachment
+		inline position_attachment_type& position_attachment(){return m_aPos;}
 
 	///	const access to Position Attachment
-		inline const position_attachment_type& get_position_attachment() const
-		{
-			return m_aPos;
-		}
+		inline const position_attachment_type& position_attachment() const {return m_aPos;}
 
 	///	get Position Accessor
-		inline position_accessor_type& get_position_accessor() {return m_aaPos;}
+		inline position_accessor_type& position_accessor() {return m_aaPos;}
 
 	///	const access to Position Accessor
-		inline const position_accessor_type& get_position_accessor() const
-		{
-			return m_aaPos;
-		}
+		inline const position_accessor_type& position_accessor() const{return m_aaPos;}
 
 #ifdef UG_PARALLEL
-	///	get Distributed Grid Manager
-		inline DistributedGridManager* get_distributed_grid_manager()
-		{
-			return m_distGridMgr;
-		}
+	///	returns Distributed Grid Manager
+		inline DistributedGridManager* distributed_grid_manager(){return m_distGridMgr;}
 #endif
 
-		SPMessageHub message_hub() const
-		{
-			return m_grid.message_hub();
-		}
+	///	returns the message hub of the grid
+		SPMessageHub message_hub() const {return m_grid.message_hub();}
 
 	protected:
 		TGrid m_grid;			///< Grid

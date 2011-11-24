@@ -45,14 +45,14 @@ class IGridFunction
 		IGridFunction() : m_pDD(NULL) {};
 
 	///	assigns the dof distribution
-		void assign_dof_distribution(dof_distribution_type& DoFDistr, bool adapt = true);
+		void set_dof_distribution(dof_distribution_type& DoFDistr, bool adapt = true);
 
 	/// get assigned dof distribution
-		const dof_distribution_type& get_dof_distribution() const
+		const dof_distribution_type& dof_distribution() const
 			{check(); return *m_pDD;}
 
 	/// get assigned dof distribution
-		dof_distribution_type& get_dof_distribution() {check(); return *m_pDD;}
+		dof_distribution_type& dof_distribution() {check(); return *m_pDD;}
 
 	///	permutes all values
 	/**
@@ -224,7 +224,7 @@ class GridFunction
 		typedef typename IGridFunction<TDoFDistribution>::dof_distribution_type
 				dof_distribution_type;
 
-		using IGridFunction<TDoFDistribution>::assign_dof_distribution;
+		using IGridFunction<TDoFDistribution>::set_dof_distribution;
 
 	public:
 	/// Initializing Constructor
@@ -232,15 +232,15 @@ class GridFunction
 						dof_distribution_type& DoFDistr)
 			: m_pApproxSpace(&approxSpace)
 		{
-			IGridFunction<TDoFDistribution>::assign_dof_distribution(DoFDistr);
+			IGridFunction<TDoFDistribution>::set_dof_distribution(DoFDistr);
 		};
 
 	/// Initializing Constructor using surface dof distribution
 		GridFunction(approximation_space_type& approxSpace)
 			: m_pApproxSpace(&approxSpace)
 		{
-			dof_distribution_type& DoFDistr = approxSpace.get_surface_dof_distribution();
-			IGridFunction<TDoFDistribution>::assign_dof_distribution(DoFDistr);
+			dof_distribution_type& DoFDistr = approxSpace.surface_dof_distribution();
+			IGridFunction<TDoFDistribution>::set_dof_distribution(DoFDistr);
 		};
 
 	/// Copy constructor
@@ -274,19 +274,17 @@ class GridFunction
 	/// Destructor
 		virtual ~GridFunction() {}
 
-	/// returns approximation space
-		const approximation_space_type& get_approximation_space() const
-			{return *m_pApproxSpace;}
-
 	///	returns approximation space
-		approximation_space_type& get_approximation_space()
-			{return *m_pApproxSpace;}
+		approximation_space_type& approximation_space()	{return *m_pApproxSpace;}
+
+	/// returns approximation space
+		const approximation_space_type& approximation_space() const {return *m_pApproxSpace;}
 
 	///	returns domain
-		domain_type& get_domain() {return m_pApproxSpace->get_domain();}
+		domain_type& domain() {return m_pApproxSpace->domain();}
 
 	///	returns const domain
-		const domain_type& get_domain() const {return m_pApproxSpace->get_domain();}
+		const domain_type& domain() const {return m_pApproxSpace->domain();}
 
 	/// access dof values
 		inline number get_dof_value(size_t i, size_t comp) const

@@ -839,7 +839,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 	static FV1Geometry<TElem, dim>& geo =
 				Provider<FV1Geometry<TElem,dim> >::get();
 
-	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
+	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
 	{
 		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
 				" Cannot update Finite Volume Geometry.\n"); return false;

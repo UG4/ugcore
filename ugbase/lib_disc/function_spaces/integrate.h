@@ -206,7 +206,7 @@ bool SumValuesForSubsetGroup( number& addValue,
 
 	//	get all corner coordinates
 		std::vector<position_type> vCorner;
-		CollectCornerCoordinates(vCorner, *elem, u.get_domain());
+		CollectCornerCoordinates(vCorner, *elem, u.domain());
 
 	//	update the reference mapping for the corners
 		mapping.update(&vCorner[0]);
@@ -446,7 +446,7 @@ number L2Error(
 {
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
-				= u.get_approximation_space();
+				= u.approximation_space();
 
 //	get function id of name
 	const size_t fct = approxSpace.fct_id_by_name(name);
@@ -467,11 +467,11 @@ number L2Error(
 	}
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.get_subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, approxSpace.get_subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, approxSpace.subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 

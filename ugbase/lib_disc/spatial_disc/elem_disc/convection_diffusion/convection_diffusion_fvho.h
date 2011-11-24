@@ -81,7 +81,7 @@ elem_prepare_fvho(TElem* elem, const LocalVector& u)
 //	request geometry
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
-	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
+	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
 	{
 		UG_LOG("ConvectionDiffusionElemDisc::prepare_element:"
 				" Cannot update Finite Volume Geometry.\n"); return false;

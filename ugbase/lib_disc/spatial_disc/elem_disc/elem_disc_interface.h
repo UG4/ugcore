@@ -402,7 +402,7 @@ class IDomainElemDisc : public IElemDisc
 			m_pApproxSpace = &approxSpace;
 
 		//	remember domain
-			set_domain(approxSpace.get_domain());
+			set_domain(approxSpace.domain());
 
 		//	invoke callback
 			approximation_space_changed();
@@ -418,18 +418,18 @@ class IDomainElemDisc : public IElemDisc
 			m_pDomain = &domain;
 
 		//	remember position accessor
-			m_aaPos = m_pDomain->get_position_accessor();
+			m_aaPos = m_pDomain->position_accessor();
 		}
 
 	///	returns the domain
-		domain_type& get_domain()
+		domain_type& domain()
 		{
 			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
 			return *m_pDomain;
 		}
 
 	///	returns the domain
-		const domain_type& get_domain() const
+		const domain_type& domain() const
 		{
 			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
 			return *m_pDomain;
@@ -442,17 +442,17 @@ class IDomainElemDisc : public IElemDisc
 		bool fct_pattern_set() const {return m_pApproxSpace != NULL;}
 
 	///	returns the subset handler
-		typename domain_type::subset_handler_type& get_subset_handler()
+		typename domain_type::subset_handler_type& subset_handler()
 		{
 			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return m_pDomain->get_subset_handler();
+			return m_pDomain->subset_handler();
 		}
 
 	///	returns the subset handler
-		const typename domain_type::subset_handler_type& get_subset_handler() const
+		const typename domain_type::subset_handler_type& subset_handler() const
 		{
 			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return m_pDomain->get_subset_handler();
+			return m_pDomain->subset_handler();
 		}
 
 	///	returns the corner coordinates of an Element in a C++-array

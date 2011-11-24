@@ -51,7 +51,7 @@ allocate_memory(const vector_type& u)
 {
 	// Jacobian
 	m_J = new AssembledLinearOperator<dof_distribution_type, algebra_type>(*m_pAss);
-	m_J->set_dof_distribution(*m_N->get_dof_distribution());
+	m_J->set_dof_distribution(*m_N->dof_distribution());
 
 	// defect
 	m_d.resize(u.size()); m_d = u;

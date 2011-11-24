@@ -730,13 +730,13 @@ size_t GridReaderUGX::num_subset_handlers(size_t refGridIndex) const
 }
 
 bool GridReaderUGX::
-get_subset_handler(ISubsetHandler& shOut,
+subset_handler(ISubsetHandler& shOut,
 					size_t subsetHandlerIndex,
 					size_t refGridIndex)
 {
 //	access the referred grid-entry
 	if(refGridIndex >= m_entries.size()){
-		UG_LOG("GridReaderUGX::get_subset_handler: bad refGridIndex. Aborting.\n");
+		UG_LOG("GridReaderUGX::subset_handler: bad refGridIndex. Aborting.\n");
 		return false;
 	}
 
@@ -744,7 +744,7 @@ get_subset_handler(ISubsetHandler& shOut,
 
 //	get the referenced subset-handler entry
 	if(subsetHandlerIndex >= gridEntry.subsetHandlerEntries.size()){
-		UG_LOG("GridReaderUGX::get_subset_handler: bad subsetHandlerIndex. Aborting.\n");
+		UG_LOG("GridReaderUGX::subset_handler: bad subsetHandlerIndex. Aborting.\n");
 		return false;
 	}
 

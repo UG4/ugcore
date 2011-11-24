@@ -37,7 +37,7 @@ void ExtractPositionsVertex(const TFunction &u,
 
 //	get position accessor
 	const typename domain_type::position_accessor_type& aaPos
-			= u.get_approximation_space().get_domain().get_position_accessor();
+			= u.approximation_space().domain().position_accessor();
 
 //	iterator
 	geometry_traits<VertexBase>::const_iterator iter, iterEnd;
@@ -384,8 +384,8 @@ class GridFunctionDebugWriter
 			}
 
 		//	create grid function
-			TGridFunction vtkFunc( m_pGridFunc->get_approximation_space(),
-			                       m_pGridFunc->get_dof_distribution());
+			TGridFunction vtkFunc( m_pGridFunc->approximation_space(),
+			                       m_pGridFunc->dof_distribution());
 
 		//	assign all patterns and sizes
 			vtkFunc.clone_pattern((*m_pGridFunc));
@@ -484,7 +484,7 @@ class GridFunctionVectorWriter
 		//	get position accessor
 
 			const typename domain_type::position_accessor_type& aaPos
-					= u.get_approximation_space().get_domain().get_position_accessor();
+					= u.approximation_space().domain().position_accessor();
 
 		//	number of total dofs
 			int nr = u.num_indices();
@@ -578,9 +578,9 @@ class GridFunctionVectorWriterDirichlet0
 
 			dof_distribution_type *pDOF;
 			if(m_level == (size_t)-1)
-				pDOF = &m_pApproxSpace->get_surface_dof_distribution();
+				pDOF = &m_pApproxSpace->surface_dof_distribution();
 			else
-				pDOF = &m_pApproxSpace->get_level_dof_distribution(m_level) ;
+				pDOF = &m_pApproxSpace->level_dof_distribution(m_level) ;
 
 			vec.resize(pDOF->num_indices());
 			vec.set(1.0);

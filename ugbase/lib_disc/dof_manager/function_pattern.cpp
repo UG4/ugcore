@@ -77,7 +77,7 @@ void FunctionPattern::add_fct(const char* name, LFEID lfeID,
 				" a supported.\n");
 
 //	check that subset handler are equal
-	if(&m_rSH != ssGrp.get_subset_handler())
+	if(&m_rSH != ssGrp.subset_handler())
 		UG_THROW_FATAL("FunctionPattern: "
 				"SubsetHandler of SubsetGroup does "
 				"not match SubsetHandler of FunctionPattern.\n");

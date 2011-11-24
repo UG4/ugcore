@@ -50,7 +50,7 @@ class P1StorageManager
 		Grid* get_assigned_grid() {return m_pGrid;}
 
 	///	returns the underlying subset handler
-		ISubsetHandler* get_subset_handler() {return m_pSH;}
+		ISubsetHandler* subset_handler() {return m_pSH;}
 
 	///	returns the attachment accessor
 		vertex_attachment_accessor_type& get_vertex_attachment_accessor()

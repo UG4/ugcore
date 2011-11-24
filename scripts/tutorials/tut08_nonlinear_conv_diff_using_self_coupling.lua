@@ -106,7 +106,7 @@ end
 print("Saved domain to " .. outFileName)
 
 -- Check the subset handler if all subsets are given
-sh = dom:get_subset_handler()
+sh = dom:subset_handler()
 if sh:get_subset_index("Inner") == -1 then
 	print("Domain does not contain subset 'Inner'. Aborting.")
 	exit()
@@ -336,7 +336,7 @@ timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 -- (nonlinear)-Operator interface.
 op = AssembledOperator()
 op:set_discretization(timeDisc)
-op:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+op:set_dof_distribution(approxSpace:surface_dof_distribution())
 op:init()
 
 ----------------------------------------------------

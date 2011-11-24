@@ -189,7 +189,7 @@ inline int DimensionOfSubset(const TDomain& domain, int si
 )
 {
 	// extract subset handler
-	const typename TDomain::subset_handler_type& sh = domain.get_subset_handler();
+	const typename TDomain::subset_handler_type& sh = domain.subset_handler();
 
 #ifdef UG_PARALLEL
 	return DimensionOfSubset(sh, si, pProcCom);
@@ -207,7 +207,7 @@ inline int DimensionOfDomain(const TDomain& domain
 							)
 {
 //	get grid
-	const typename TDomain::grid_type& grid = domain.get_grid();
+	const typename TDomain::grid_type& grid = domain.grid();
 
 // 	get local dimension of subset
 	int locDim = DIM_SUBSET_EMPTY_GRID;
@@ -265,7 +265,7 @@ void CollectCornerCoordinates(	std::vector<typename TDomain::position_type>& vCo
 								const TElem& elem, const TDomain& domain, bool clearContainer)
 {
 	// get position accessor
-	const typename TDomain::position_accessor_type& aaPos = domain.get_position_accessor();
+	const typename TDomain::position_accessor_type& aaPos = domain.position_accessor();
 
 	CollectCornerCoordinates(vCornerCoordsOut, elem, aaPos, clearContainer);
 }
@@ -296,7 +296,7 @@ template <typename TElem, typename TDomain>
 number ElementSize(const TElem& elem, const TDomain& domain)
 {
 	// get position accessor
-	const typename TDomain::position_accessor_type& aaPos = domain.get_position_accessor();
+	const typename TDomain::position_accessor_type& aaPos = domain.position_accessor();
 
 	return ElementSize(elem, aaPos);
 }
@@ -331,8 +331,8 @@ bool WriteDomainToUGX(const char* filename, const TDomain& domain)
 	typedef typename TDomain::subset_handler_type SubsetHandlerType ;
 
 	// extract grid and subset handler
-	GridType& grid = *const_cast<GridType*>(&domain.get_grid());
-	SubsetHandlerType& sh = *const_cast<SubsetHandlerType*>(&domain.get_subset_handler());
+	GridType& grid = *const_cast<GridType*>(&domain.grid());
+	SubsetHandlerType& sh = *const_cast<SubsetHandlerType*>(&domain.subset_handler());
 
 	// save grid
 	if(!SaveGridToUGX(grid, sh, strName.c_str()))

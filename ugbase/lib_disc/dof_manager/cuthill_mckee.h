@@ -62,11 +62,11 @@ bool OrderCuthillMcKee(MGDoFManager<TDoFImpl>& mgDoFManager,
 {
 //	order levels
 	for(size_t lev = 0; lev < mgDoFManager.num_levels(); ++lev)
-		if(!OrderCuthillMcKee(*mgDoFManager.get_level_dof_distribution(lev), bReverse))
+		if(!OrderCuthillMcKee(*mgDoFManager.level_dof_distribution(lev), bReverse))
 			return false;
 
 //	order surface
-	if(!OrderCuthillMcKee(*mgDoFManager.get_surface_dof_distribution(), bReverse))
+	if(!OrderCuthillMcKee(*mgDoFManager.surface_dof_distribution(), bReverse))
 		return false;
 
 //	we're done
@@ -80,11 +80,11 @@ bool OrderCuthillMcKee(ApproximationSpace<TDomain, TDoFImpl, TAlgebra>& approxSp
 {
 //	order levels
 	for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-		if(!OrderCuthillMcKee(approxSpace.get_level_dof_distribution(lev), bReverse))
+		if(!OrderCuthillMcKee(approxSpace.level_dof_distribution(lev), bReverse))
 			return false;
 
 //	order surface
-	if(!OrderCuthillMcKee(approxSpace.get_surface_dof_distribution(), bReverse))
+	if(!OrderCuthillMcKee(approxSpace.surface_dof_distribution(), bReverse))
 		return false;
 
 //	we're done

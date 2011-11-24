@@ -85,7 +85,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-	if(!geo.update(elem, &m_vCornerCoords[0], &(this->get_subset_handler())))
+	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
 	{
 		UG_LOG("ERROR in 'FVInnerBoundaryElemDisc::prepare_element: "
 				"Cannot update Finite Volume Geometry.\n"); return false;}

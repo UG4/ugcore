@@ -209,7 +209,7 @@ end
 tGrid = os.clock()-tBefore
 
 -- get subset handler
-sh = dom:get_subset_handler()
+sh = dom:subset_handler()
 assert(sh:num_subsets() == 2, "Domain must have 2 Subsets for this problem.")
 sh:set_subset_name("Inner", 0)
 sh:set_subset_name("DirichletBoundary", 1)
@@ -273,7 +273,7 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)

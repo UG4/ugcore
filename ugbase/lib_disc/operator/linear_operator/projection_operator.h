@@ -39,9 +39,9 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
 {
 //	get DoFDistributions
 	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
-		= approxSpace.get_level_dof_distribution(coarseLevel);
+		= approxSpace.level_dof_distribution(coarseLevel);
 	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
-		= approxSpace.get_level_dof_distribution(fineLevel);
+		= approxSpace.level_dof_distribution(fineLevel);
 
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
@@ -54,7 +54,7 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
 		}
 
 // 	get MultiGrid
-	MultiGrid& grid = approxSpace.get_domain().get_grid();
+	MultiGrid& grid = approxSpace.domain().grid();
 
 // 	get number of dofs on different levels
 	const size_t numFineDoFs = fineDoFDistr.num_indices();

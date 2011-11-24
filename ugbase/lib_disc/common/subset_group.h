@@ -46,7 +46,7 @@ class SubsetGroup
 		void set_subset_handler(const ISubsetHandler& sh) {m_pSH = &sh; clear();}
 
 	/// get underlying subset handler
-		const ISubsetHandler* get_subset_handler() const {return m_pSH;}
+		const ISubsetHandler* subset_handler() const {return m_pSH;}
 
 	/// adds a subset by number to this group
 		bool add(int si);

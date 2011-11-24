@@ -51,7 +51,7 @@ public:
 		}
 
 	///	returns dof distribution
-		const IDoFDistribution<TDoFDistribution>* get_dof_distribution()
+		const IDoFDistribution<TDoFDistribution>* dof_distribution()
 				{return m_pDoFDistribution;}
 
 	///	Init

@@ -15,7 +15,7 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern&
 {
 //	forward request
 	return ConvertStringToSubsetGroup(subsetGroup,
-	                                  pattern.get_subset_handler(),
+	                                  pattern.subset_handler(),
 	                                  subsets, separator);
 }
 

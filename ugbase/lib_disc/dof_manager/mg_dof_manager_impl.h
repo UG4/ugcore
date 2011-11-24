@@ -746,7 +746,7 @@ add_to_level_dof_distribution(VertexBase* vrt)
 		throw(UGFatalError("Cannot create level dof distribution"));
 
 //	announce element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_added(vrt);
+	level_dof_distribution(level)->grid_obj_added(vrt);
 }
 
 template <typename TDoFDistribution>
@@ -764,7 +764,7 @@ add_to_level_dof_distribution(EdgeBase* edge)
 		throw(UGFatalError("Cannot create level dof distribution"));
 
 //	announce element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_added(edge);
+	level_dof_distribution(level)->grid_obj_added(edge);
 }
 
 template <typename TDoFDistribution>
@@ -782,7 +782,7 @@ add_to_level_dof_distribution(Face* face)
 		throw(UGFatalError("Cannot create level dof distribution"));
 
 //	announce element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_added(face);
+	level_dof_distribution(level)->grid_obj_added(face);
 }
 
 template <typename TDoFDistribution>
@@ -800,7 +800,7 @@ add_to_level_dof_distribution(Volume* vol)
 		throw(UGFatalError("Cannot create level dof distribution"));
 
 //	announce element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_added(vol);
+	level_dof_distribution(level)->grid_obj_added(vol);
 }
 
 template <typename TDoFDistribution>
@@ -840,7 +840,7 @@ remove_from_level_dof_distribution(VertexBase* vrt)
 		throw(UGFatalError("Level dof distribution does not exist."));
 
 //	announce removal of element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_to_be_removed(vrt);
+	level_dof_distribution(level)->grid_obj_to_be_removed(vrt);
 }
 
 template <typename TDoFDistribution>
@@ -858,7 +858,7 @@ remove_from_level_dof_distribution(EdgeBase* edge)
 		throw(UGFatalError("Level dof distribution does not exist."));
 
 //	announce removal of element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_to_be_removed(edge);
+	level_dof_distribution(level)->grid_obj_to_be_removed(edge);
 }
 
 template <typename TDoFDistribution>
@@ -876,7 +876,7 @@ remove_from_level_dof_distribution(Face* face)
 		throw(UGFatalError("Level dof distribution does not exist."));
 
 //	announce removal of element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_to_be_removed(face);
+	level_dof_distribution(level)->grid_obj_to_be_removed(face);
 }
 
 template <typename TDoFDistribution>
@@ -894,7 +894,7 @@ remove_from_level_dof_distribution(Volume* vol)
 		throw(UGFatalError("Level dof distribution does not exist."));
 
 //	announce removal of element to level dof distribution
-	get_level_dof_distribution(level)->grid_obj_to_be_removed(vol);
+	level_dof_distribution(level)->grid_obj_to_be_removed(vol);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -932,7 +932,7 @@ vertex_created(Grid* grid, VertexBase* vrt,	GeometricObject* pParent, bool repla
 				//	a) Release index for parent (which may not be part of surface
 				//     view after adding the child; created shadows are not part of
 				//	   the surface view at this stage.)
-					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+					surface_dof_distribution()->grid_obj_to_be_removed(pParent);
 
 				//	b) Remove parent from surface view
 					remove_from_surface_view(pParent);
@@ -943,7 +943,7 @@ vertex_created(Grid* grid, VertexBase* vrt,	GeometricObject* pParent, bool repla
 			add_to_surface_view(vrt);
 
 		//	b) Add index
-			get_surface_dof_distribution()->grid_obj_added(vrt);
+			surface_dof_distribution()->grid_obj_added(vrt);
 		}
 	//	2. case: object is replaced
 		else
@@ -959,7 +959,7 @@ vertex_created(Grid* grid, VertexBase* vrt,	GeometricObject* pParent, bool repla
 				add_to_surface_view(vrt);
 
 			//	b) Add index
-				get_surface_dof_distribution()->grid_obj_replaced(vrt, pReplaced);
+				surface_dof_distribution()->grid_obj_replaced(vrt, pReplaced);
 			}
 
 		//	in any case the old obj is dropped. The index is not removed, since
@@ -1001,7 +1001,7 @@ edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replaces
 				//	a) Release index for parent (which may not be part of surface
 				//     view after adding the child; created shadows are not part of
 				//	   the surface view at this stage.)
-					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+					surface_dof_distribution()->grid_obj_to_be_removed(pParent);
 
 				//	b) Remove parent from surface view
 					remove_from_surface_view(pParent);
@@ -1012,7 +1012,7 @@ edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replaces
 			add_to_surface_view(edge);
 
 		//	b) Add index
-			get_surface_dof_distribution()->grid_obj_added(edge);
+			surface_dof_distribution()->grid_obj_added(edge);
 		}
 	//	2. case: object is replaced
 		else
@@ -1028,7 +1028,7 @@ edge_created(Grid* grid, EdgeBase* edge,	GeometricObject* pParent, bool replaces
 				add_to_surface_view(edge);
 
 			//	b) Add index
-				get_surface_dof_distribution()->grid_obj_replaced(edge, pReplaced);
+				surface_dof_distribution()->grid_obj_replaced(edge, pReplaced);
 			}
 			else
 			{
@@ -1079,7 +1079,7 @@ face_created(Grid* grid, Face* face,	GeometricObject* pParent, bool replacesPare
 				//	a) Release index for parent (which may not be part of surface
 				//     view after adding the child; created shadows are not part of
 				//	   the surface view at this stage.)
-					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+					surface_dof_distribution()->grid_obj_to_be_removed(pParent);
 
 				//	b) Remove parent from surface view
 					remove_from_surface_view(pParent);
@@ -1090,7 +1090,7 @@ face_created(Grid* grid, Face* face,	GeometricObject* pParent, bool replacesPare
 			add_to_surface_view(face);
 
 		//	b) Add index
-			get_surface_dof_distribution()->grid_obj_added(face);
+			surface_dof_distribution()->grid_obj_added(face);
 		}
 	//	2. case: object is replaced
 		else
@@ -1106,7 +1106,7 @@ face_created(Grid* grid, Face* face,	GeometricObject* pParent, bool replacesPare
 				add_to_surface_view(face);
 
 			//	b) Add index
-				get_surface_dof_distribution()->grid_obj_replaced(face, pReplaced);
+				surface_dof_distribution()->grid_obj_replaced(face, pReplaced);
 			}
 			else
 			{
@@ -1155,7 +1155,7 @@ volume_created(Grid* grid, Volume* vol,	GeometricObject* pParent, bool replacesP
 				//	a) Release index for parent (which may not be part of surface
 				//     view after adding the child; created shadows are not part of
 				//	   the surface view at this stage.)
-					get_surface_dof_distribution()->grid_obj_to_be_removed(pParent);
+					surface_dof_distribution()->grid_obj_to_be_removed(pParent);
 
 				//	b) Remove parent from surface view
 					remove_from_surface_view(pParent);
@@ -1166,7 +1166,7 @@ volume_created(Grid* grid, Volume* vol,	GeometricObject* pParent, bool replacesP
 			add_to_surface_view(vol);
 
 		//	b) Add index
-			get_surface_dof_distribution()->grid_obj_added(vol);
+			surface_dof_distribution()->grid_obj_added(vol);
 		}
 	//	2. case: object is replaced
 		else
@@ -1198,7 +1198,7 @@ vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
 		if(replacedBy != NULL) return;
 
 	//	1. Remove index for erased element
-		get_surface_dof_distribution()->grid_obj_to_be_removed(vrt);
+		surface_dof_distribution()->grid_obj_to_be_removed(vrt);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(vrt);
@@ -1208,7 +1208,7 @@ vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
 			add_to_surface_view(pParent);
 
 		//	3. Add index for parent
-			get_surface_dof_distribution()->grid_obj_added(pParent);
+			surface_dof_distribution()->grid_obj_added(pParent);
 		}
 	}
 }
@@ -1231,7 +1231,7 @@ edge_to_be_erased(Grid* grid, EdgeBase* edge, EdgeBase* replacedBy)
 		if(replacedBy != NULL) return;
 
 	//	1. Remove index for erased element
-		get_surface_dof_distribution()->grid_obj_to_be_removed(edge);
+		surface_dof_distribution()->grid_obj_to_be_removed(edge);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(edge);
@@ -1241,7 +1241,7 @@ edge_to_be_erased(Grid* grid, EdgeBase* edge, EdgeBase* replacedBy)
 			add_to_surface_view(pParent);
 
 		//	3. Add index for parent
-			get_surface_dof_distribution()->grid_obj_added(pParent);
+			surface_dof_distribution()->grid_obj_added(pParent);
 		}
 	}
 }
@@ -1264,7 +1264,7 @@ face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
 		if(replacedBy != NULL) return;
 
 	//	1. Remove index for erased element
-		get_surface_dof_distribution()->grid_obj_to_be_removed(face);
+		surface_dof_distribution()->grid_obj_to_be_removed(face);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(face);
@@ -1274,7 +1274,7 @@ face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
 			add_to_surface_view(pParent);
 
 		//	3. Add index for parent
-			get_surface_dof_distribution()->grid_obj_added(pParent);
+			surface_dof_distribution()->grid_obj_added(pParent);
 		}
 	}
 }
@@ -1297,7 +1297,7 @@ volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 		if(replacedBy == NULL) return;
 
 	//	1. Remove index for erased element
-		get_surface_dof_distribution()->grid_obj_to_be_removed(vol);
+		surface_dof_distribution()->grid_obj_to_be_removed(vol);
 
 	//	get parent
 		GeometricObject* pParent = m_pMultiGrid->get_parent(vol);
@@ -1307,7 +1307,7 @@ volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 			add_to_surface_view(pParent);
 
 		//	3. Add index for parent
-			get_surface_dof_distribution()->grid_obj_added(pParent);
+			surface_dof_distribution()->grid_obj_added(pParent);
 		}
 	}
 }
@@ -1352,10 +1352,10 @@ defragment()
 
 //	defragment dof distributions
 	if(surface_indices_enabled())
-		get_surface_dof_distribution()->defragment();
+		surface_dof_distribution()->defragment();
 	if(level_indices_enabled())
 		for(size_t lev = 0; lev < num_levels(); ++lev)
-			get_level_dof_distribution(lev)->defragment();
+			level_dof_distribution(lev)->defragment();
 
 }
 
@@ -1385,7 +1385,7 @@ add_associated_sides_to_surface_view()
 					if(!is_in_surface_view(s))
 					{
 						add_to_surface_view(s);
-						get_surface_dof_distribution()->grid_obj_added(s);
+						surface_dof_distribution()->grid_obj_added(s);
 					}
 				}
 			}

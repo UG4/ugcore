@@ -71,7 +71,7 @@ exit()
 end
 
 -- get subset handler
-sh = dom:get_subset_handler()
+sh = dom:subset_handler()
 if sh:num_subsets() ~= 3 then 
 print("Domain must have 3 Subsets for this problem.")
 exit()
@@ -83,7 +83,7 @@ sh:set_subset_name("NeumannBoundary", 2)
 -- create Refiner
 print("Create Refiner")
 refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
+refiner:assign_grid(dom:grid())
 for i=1,numRefs do
 refiner:refine()
 end
@@ -165,7 +165,7 @@ domainDisc:add(dirichletBND)
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)

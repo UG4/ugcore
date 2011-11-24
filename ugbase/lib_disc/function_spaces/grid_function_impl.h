@@ -281,7 +281,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDo
 template <typename TDoFDistribution>
 void
 IGridFunction<TDoFDistribution>::
-assign_dof_distribution(typename IGridFunction<TDoFDistribution>::dof_distribution_type& DoFDistr, bool adapt)
+set_dof_distribution(typename IGridFunction<TDoFDistribution>::dof_distribution_type& DoFDistr, bool adapt)
 {
 //	unregister from dof distribution iff already dd set
 	if(m_pDD != NULL)
@@ -308,7 +308,7 @@ bool
 GridFunction<TDomain, TDoFDistribution, TAlgebra>::
 dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
-	return DoFPosition(vPos, elem, get_domain, this->local_finite_element_id(fct));
+	return DoFPosition(vPos, elem, domain(), this->local_finite_element_id(fct));
 };
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
@@ -317,7 +317,7 @@ bool
 GridFunction<TDomain, TDoFDistribution, TAlgebra>::
 inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
-	return InnerDoFPosition(vPos, elem, get_domain(), this->local_finite_element_id(fct));
+	return InnerDoFPosition(vPos, elem, domain(), this->local_finite_element_id(fct));
 };
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
@@ -329,7 +329,7 @@ clone_pattern(const this_type& v)
 	m_pApproxSpace = v.m_pApproxSpace;
 
 //	assign dof distribution (resizes vector)
-	assign_dof_distribution(*v.m_pDD);
+	set_dof_distribution(*v.m_pDD);
 };
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
@@ -422,7 +422,7 @@ assign(const this_type& v)
 	m_pApproxSpace = v.m_pApproxSpace;
 
 //	assign dof distribution (resizes vector)
-	assign_dof_distribution(*v.m_pDD);
+	set_dof_distribution(*v.m_pDD);
 
 //  copy values
 	*(dynamic_cast<vector_type*>(this)) = *dynamic_cast<const vector_type*>(&v);

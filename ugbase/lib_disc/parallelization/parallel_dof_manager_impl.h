@@ -123,7 +123,7 @@ create_level_index_layouts(size_t numGlobalLevels)
 	for(size_t l = 0; l < numGlobalLevels; ++l)
 	{
 	//	get serial dof distribution
-		serial_dd_type* pDD = TMGDoFManager::get_level_dof_distribution(l);
+		serial_dd_type* pDD = TMGDoFManager::level_dof_distribution(l);
 
 	//	check serial DoF Distribution
 		if(pDD == NULL)
@@ -255,7 +255,7 @@ ParallelMGDoFManager<TMGDoFManager>::
 create_surface_index_layouts()
 {
 //	get serial dof distribution
-	serial_dd_type* pDD = TMGDoFManager::get_surface_dof_distribution();
+	serial_dd_type* pDD = TMGDoFManager::surface_dof_distribution();
 
 //	check serial DoF Distribution
 	if(pDD == NULL)

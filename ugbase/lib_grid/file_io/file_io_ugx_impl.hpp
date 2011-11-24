@@ -38,10 +38,10 @@ bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 		return false;
 	}
 
-	ugxReader.get_grid(grid, 0, aPos);
+	ugxReader.grid(grid, 0, aPos);
 
 	if(ugxReader.num_subset_handlers(0) > 0)
-		ugxReader.get_subset_handler(sh, 0, 0);
+		ugxReader.subset_handler(sh, 0, 0);
 
 	return true;
 }
@@ -223,7 +223,7 @@ create_constrained_vertex_node(HangingVertexIterator vrtsBegin,
 //	implementation of GridReaderUGX
 template <class TPositionAttachment>
 bool GridReaderUGX::
-get_grid(Grid& gridOut, size_t index,
+grid(Grid& gridOut, size_t index,
 		  TPositionAttachment& aPos)
 {
 	using namespace rapidxml;

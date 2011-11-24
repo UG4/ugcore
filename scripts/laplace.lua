@@ -235,7 +235,7 @@ if verbosity >= 1 then
 	
 	hierarchyOutName = "hierachy_p" .. GetProcessRank() .. ".ugx"
 	print("saving hierachy to " .. hierarchyOutName)
-	if SaveGridHierarchy(dom:get_grid(), hierarchyOutName) == false then
+	if SaveGridHierarchy(dom:grid(), hierarchyOutName) == false then
 		print("Saving of domain to " .. hierarchyOutName .. " failed. Aborting.")
 		    exit()
 	end
@@ -345,7 +345,7 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)
