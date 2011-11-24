@@ -136,6 +136,22 @@ MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m)
 	}
 }
 
+template <typename matrix_t>
+inline
+typename matrix_t::value_type
+MatContraction(const matrix_t& m1, const matrix_t& m2)
+{
+	typename matrix_t::value_type norm = 0;
+	typedef typename matrix_t::size_type size_type;
+	for(size_type i = 0; i < m1.num_rows(); ++i)
+		for(size_type j = 0; j < m1.num_cols(); ++j)
+		{
+			norm += m1(i,j)*m2(i,j);
+		}
+
+	return norm;
+}
+
 ///	scales a matrix_t and returns the resulting matrix_t
 // mOut = scaleFac * m
 template <typename matrix_t>

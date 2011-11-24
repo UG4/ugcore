@@ -64,6 +64,14 @@ void
 MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m);
 
 ////////////////////////////////////////////////////////////////
+// "Contraction" for Matrices (note: contraction is only known regarding tensors!)
+
+template <typename matrix_t>
+inline
+typename matrix_t::value_type
+MatContraction(const matrix_t& m1, const matrix_t& m2);
+
+////////////////////////////////////////////////////////////////
 // Scaling of Matrices
 
 ///	scales a matrix_t
