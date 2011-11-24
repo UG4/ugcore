@@ -215,7 +215,7 @@ defragment()
 
 //	request global number of levels
 	if(this->level_indices_enabled())
-		this->level_distribution_required(numLevGlobal);
+		this->level_distribution_required(numLevLocal);
 
 //	build up interfaces
 	try{
