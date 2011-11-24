@@ -12,6 +12,10 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wparentheses"
+#pragma clang diagnostic pop
+
 
 #include "luaconf.h"
 
