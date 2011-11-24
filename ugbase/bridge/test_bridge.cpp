@@ -448,7 +448,7 @@ class MessageHubTest
 			if(m_msgHub.is_valid()){
 				TestMessage msg;
 				msg.m_strMsg = message;
-				m_msgHub->post_message(m_msgId, &msg);
+				m_msgHub->post_message(m_msgId, msg);
 			}
 		}
 

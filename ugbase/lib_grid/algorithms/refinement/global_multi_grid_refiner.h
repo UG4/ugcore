@@ -64,6 +64,7 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 		
 	protected:
 		MultiGrid*	m_pMG;
+		int			m_msgIdAdaption;
 };
 
 /// @}

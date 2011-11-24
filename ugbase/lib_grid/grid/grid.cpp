@@ -29,6 +29,8 @@ Grid::Grid() :
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
+	m_messageHub = SPMessageHub(new MessageHub());
+
 	change_options(GRIDOPT_DEFAULT);
 }
 
@@ -42,6 +44,8 @@ Grid::Grid(uint options) :
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
+	m_messageHub = SPMessageHub(new MessageHub());
+
 	change_options(options);
 }
 
@@ -55,6 +59,7 @@ Grid::Grid(const Grid& grid) :
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
+	m_messageHub = SPMessageHub(new MessageHub());
 	
 	assign_grid(grid);
 }

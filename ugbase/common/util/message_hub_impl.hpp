@@ -66,7 +66,7 @@ register_class_callback(int msgId, TClass* cls,
 
 template <class TMsg>
 void MessageHub::
-post_message(int msgId, const TMsg* msg)
+post_message(int msgId, const TMsg& msg)
 {
 //	check whether the given msgId is valid
 	if((msgId < 0) || (msgId >= m_highestMsgId)){
@@ -85,7 +85,7 @@ post_message(int msgId, const TMsg* msg)
 	for(CallbackEntryList::iterator iter = callbacks.begin();
 		iter != callbacks.end(); ++iter)
 	{
-		iter->m_callback(msgId, msg);
+		iter->m_callback(msgId, &msg);
 	}
 }
 

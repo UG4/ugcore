@@ -28,13 +28,15 @@ namespace ug
 GlobalMultiGridRefiner::
 GlobalMultiGridRefiner(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
-	m_pMG(NULL)
+	m_pMG(NULL),
+	m_msgIdAdaption(-1)
 {
 }
 
 GlobalMultiGridRefiner::
 GlobalMultiGridRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
-	IRefiner(refCallback)
+	IRefiner(refCallback),
+	m_msgIdAdaption(-1)
 {
 	m_pMG = NULL;
 	assign_grid(mg);
@@ -66,6 +68,7 @@ void GlobalMultiGridRefiner::assign_grid(MultiGrid* mg)
 	
 	if(mg){
 		m_pMG = mg;
+		m_msgIdAdaption = GridMessageId_Adaption(mg->message_hub());
 		m_pMG->register_observer(this, OT_GRID_OBSERVER);
 	}
 }
@@ -83,6 +86,10 @@ void GlobalMultiGridRefiner::refine()
 
 //	the multi-grid
 	MultiGrid& mg = *m_pMG;
+
+//	notify the grid's message hub that refinement begins
+	mg.message_hub()->post_message(m_msgIdAdaption,
+							GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS));
 
 //	check if a refinement-callback is set.
 //	if not, we'll automatically set one, if a position attachment is available
@@ -380,6 +387,10 @@ void GlobalMultiGridRefiner::refine()
 	}
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.");
+
+//	notify the grid's message hub that refinement ends
+	mg.message_hub()->post_message(m_msgIdAdaption,
+							GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS));
 }
 	
 }//	end of namespace

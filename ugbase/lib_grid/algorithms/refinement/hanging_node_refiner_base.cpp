@@ -30,7 +30,8 @@ HangingNodeRefinerBase(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
 	m_pGrid(NULL),
 	m_nodeDependencyOrder1(true),
-	m_automarkHigherDimensionalObjects(false)
+	m_automarkHigherDimensionalObjects(false),
+	m_msgIdAdaption(-1)
 {
 }
 
@@ -65,6 +66,7 @@ set_grid(Grid* grid)
 		m_selMarkedElements.assign_grid(*grid);
 		m_selMarkedElements.enable_autoselection(false);
 		m_selMarkedElements.enable_selection_inheritance(false);
+		m_msgIdAdaption = GridMessageId_Adaption(grid->message_hub());
 	}
 }
 
@@ -156,6 +158,10 @@ void HangingNodeRefinerBase::refine()
 		throw(UGError("selector not initialized properly. Use HangingNodeRefinerBase::set_grid."));
 
 	Grid& grid = *m_pGrid;
+
+//	notify the grid's message hub that refinement begins
+	grid.message_hub()->post_message(m_msgIdAdaption,
+							GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
 
 //	check if a refinement-callback is set.
 //	if not, we'll automatically set one, if a position attachment is available
@@ -410,6 +416,10 @@ void HangingNodeRefinerBase::refine()
 	}
 
 	UG_DLOG(LIB_GRID, 1, "  done.\n");
+
+//	notify the grid's message hub that refinement ends
+	grid.message_hub()->post_message(m_msgIdAdaption,
+							GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
 }
 
 void HangingNodeRefinerBase::collect_objects_for_refine()

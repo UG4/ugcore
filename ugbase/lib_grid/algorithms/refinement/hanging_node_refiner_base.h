@@ -109,6 +109,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	performs refinement on the marked elements.
 	/**
+	 * The grid's message hub is informed using a "GridAdaption" message,
+	 * passing an instance of GridMessage_Adapation, with values
+	 * GMAT_HNODE_REFINEMENT_BEGINS and GMAT_HNODE_REFINEMENT_ENDS.
+	 * See lib_grid/lib_grid_messages.h for more details.
+	 *
+	 * as defined in lib_grid/
+	 *
 	 * automatically extends the refinement to avoid multiple hanging nodes
 	 * on a single edge or face.
 	 *
@@ -304,6 +311,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		Grid*		m_pGrid;
 		bool		m_nodeDependencyOrder1;
 		bool		m_automarkHigherDimensionalObjects;
+		int			m_msgIdAdaption;
 };
 
 /// @}	// end of add_to_group command

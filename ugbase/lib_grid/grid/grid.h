@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <list>
+#include "common/util/message_hub.h"
 #include "grid_constants.h"
 #include "geometric_base_objects.h"
 #include "grid_observer.h"
@@ -78,6 +79,9 @@ namespace ug
  * base objects should be passed (VertexBase, EdgeBase, Face and Volume).
  * This use if templates allows for a arbitrary number of custom elements, without
  * requiring any changes to the Grid-class itself.
+ *
+ * The Grid class features a message-hub, which can be used to distribute messages
+ * to registered callbacks.
  */
 class Grid
 {
@@ -680,6 +684,9 @@ class Grid
 	///	ends a marking sequence. Call this method when you're done with marking.
 		void end_marking();
 		
+	///	gives access to the grid's message-hub
+		SPMessageHub message_hub()		{return m_messageHub;}
+
 	///	a temporary testing method
 		void test_attached_linked_lists();
 
@@ -827,7 +834,7 @@ class Grid
 		ObserverContainer	m_faceObservers;
 		ObserverContainer	m_volumeObservers;
 
-	//	interconnection managment
+	//	interconnection management
 		AVertexContainer	m_aVertexContainer;
 		AEdgeContainer		m_aEdgeContainer;
 		AFaceContainer		m_aFaceContainer;
@@ -857,6 +864,8 @@ class Grid
 		EdgeAttachmentAccessor<AMark>	m_aaMarkEDGE;
 		FaceAttachmentAccessor<AMark>	m_aaMarkFACE;
 		VolumeAttachmentAccessor<AMark>	m_aaMarkVOL;
+
+		SPMessageHub m_messageHub;
 };
 
 ///	@}

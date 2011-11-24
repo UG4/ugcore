@@ -6,7 +6,6 @@
 #define __H__UG__REFINER_INTERFACE__
 
 #include "refinement_callbacks.h"
-#include "common/util/message_hub.h"
 
 namespace ug
 {
@@ -81,12 +80,8 @@ class IRefiner
 	/// Performs refinement on the marked elements. Pure virtual.
 		virtual void refine() = 0;
 
-	///	sets the message hub to which messages are posted.
-		void set_message_hub(SPMessageHub msgHub)		{m_messageHub = msgHub;}
-
 	protected:
 		IRefinementCallback*	m_refCallback;
-		SPMessageHub			m_messageHub;
 };
 
 /// @}	// end of add_to_group command

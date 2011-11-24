@@ -22,15 +22,11 @@ static IRefiner* GlobalDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			IRefiner* refiner = new ParallelGlobalRefiner_MultiGrid(*dom->get_distributed_grid_manager());
-			refiner->set_message_hub(dom->get_message_hub());
-			return refiner;
+			return new ParallelGlobalRefiner_MultiGrid(*dom->get_distributed_grid_manager());
 		}
 	#endif
 
-	IRefiner* refiner = new GlobalMultiGridRefiner(dom->get_grid());
-	refiner->set_message_hub(dom->get_message_hub());
-	return refiner;
+	return new GlobalMultiGridRefiner(dom->get_grid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -42,15 +38,11 @@ static IRefiner* HangingNodeDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			IRefiner* refiner = new ParallelHangingNodeRefiner_MultiGrid(*dom->get_distributed_grid_manager());
-			refiner->set_message_hub(dom->get_message_hub());
-			return refiner;
+			return new ParallelHangingNodeRefiner_MultiGrid(*dom->get_distributed_grid_manager());
 		}
 	#endif
 
-	IRefiner* refiner = new HangingNodeRefiner_MultiGrid(dom->get_grid());
-	refiner->set_message_hub(dom->get_message_hub());
-	return refiner;
+	return new HangingNodeRefiner_MultiGrid(dom->get_grid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

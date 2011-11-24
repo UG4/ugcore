@@ -231,7 +231,7 @@ class MessageHub
 	 * the given message-id.
 	 */
 		template <class TMsg>
-		void post_message(int msgId, const TMsg* msg);
+		void post_message(int msgId, const TMsg& msg);
 
 	private:
 	///	registers a callback given a message-id.

@@ -22,5 +22,6 @@
 #include "subset_handler.h"
 #include "tools/marker_points.h"
 #include "tools/surface_view.h"
+#include "lib_grid_messages.h"
 
 #endif
