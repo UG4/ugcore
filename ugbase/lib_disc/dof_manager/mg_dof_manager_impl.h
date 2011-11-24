@@ -14,8 +14,7 @@
 namespace ug{
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
+void MGDoFManager<TDoFDistribution>::
 assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh)
 {
 // 	Remember SubsetHandler and MultiGrid
@@ -24,15 +23,11 @@ assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh)
 
 // 	Set Function pattern if already assigned
 	if(m_pFuncPattern != NULL)
-		if(!assign_function_pattern(*m_pFuncPattern))
-			return false;
-
-	return true;
+		assign_function_pattern(*m_pFuncPattern);
 }
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
+void MGDoFManager<TDoFDistribution>::
 assign_function_pattern(FunctionPattern& dp)
 {
 	m_pFuncPattern = &dp;
@@ -50,8 +45,10 @@ assign_function_pattern(FunctionPattern& dp)
 			disable_level_indices();
 
 		// reallocate for new pattern
-		if(!level_distribution_required(num_level))
-			return false;
+			try{
+				level_distribution_required(num_level);
+			}
+			UG_CATCH_THROW("Cannot reallocate LevelDoFDisctribution.");
 		}
 
 	//	update surface dofs
@@ -61,187 +58,147 @@ assign_function_pattern(FunctionPattern& dp)
 			disable_surface_indices();
 
 		// reallocate for new pattern
-			if(!surface_distribution_required())
-				return false;
+			try{
+				surface_distribution_required();
+			}
+			UG_CATCH_THROW("Cannot reallocate SurfaceDoFDisctribution.");
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
-enable_indices()
+void MGDoFManager<TDoFDistribution>::enable_indices()
 {
 //	distribute level dofs
-	if(!enable_level_indices()) return false;
+	try{
+		enable_level_indices();
+	}
+	UG_CATCH_THROW("Cannot enable Level Indices.");
 
 // 	distribute surface dofs
-	if(!enable_surface_indices()) return false;
-
-//	we're done
-	return true;
+	try{
+		enable_surface_indices();
+	}
+	UG_CATCH_THROW("Cannot enable Surface Indices.");
 }
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
-enable_level_indices()
+void MGDoFManager<TDoFDistribution>::enable_level_indices()
 {
 //	Checks
 	if(m_pMGSubsetHandler == NULL)
-	{
-		UG_LOG("No Subset Handler set to MultiGrid DoF Manager.\n");
-		return false;
-	}
+		UG_THROW_FATAL("No Subset Handler set to MultiGrid DoF Manager.");
 
 	if(m_pFuncPattern == NULL)
-	{
-		UG_LOG("No Function Pattern set to MultiGrid DoF Manager.\n");
-		return false;
-	}
+		UG_THROW_FATAL("No Function Pattern set to MultiGrid DoF Manager.");
 
 //	check, that all geom objects are assigned to a subset
 	if(	m_pMGSubsetHandler->num<VertexBase>() != m_pMultiGrid->num<VertexBase>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Vertices "
+		UG_THROW_FATAL("All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
+
 	if(	m_pMGSubsetHandler->num<EdgeBase>() != m_pMultiGrid->num<EdgeBase>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Edges "
+		UG_THROW_FATAL("All Edges "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
+
 	if(	m_pMGSubsetHandler->num<Face>() != m_pMultiGrid->num<Face>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Faces "
+		UG_THROW_FATAL("All Faces "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
+
 	if(	m_pMGSubsetHandler->num<Volume>() != m_pMultiGrid->num<Volume>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Volumes "
+		UG_THROW_FATAL("All Volumes "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
 
 // 	require distributions on all levels
-	if(!level_distribution_required(num_levels()))
-	{
-		UG_LOG("Cannot access distribution of level.\n");
-		return false;
+	try{
+		level_distribution_required(num_levels());
 	}
+	UG_CATCH_THROW("Cannot access distribution of level.");
 
 // 	distribute on level grids
 	for(size_t l = 0; l < num_levels(); ++l)
 	{
 		if(!m_vLevelDD[l]->distribute_indices())
-		{
-			UG_LOG("Cannot distribute dofs on level "<<l<<".\n");
-			return false;
-		}
+			UG_THROW_FATAL("Cannot distribute dofs on level "<<l);
 	}
 
 //	register DoFManager as observer
+	try{
 	m_pMultiGrid->register_observer(this,	OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
 	                       	   			    OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
 	                       	   		        OT_VOLUME_OBSERVER);
-
-	return true;
+	}
+	UG_CATCH_THROW("Cannot register grid observer.");
 }
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
-enable_surface_indices()
+void MGDoFManager<TDoFDistribution>::enable_surface_indices()
 {
 	if(m_pMGSubsetHandler == NULL)
-	{
-		UG_LOG("No Subset Handler set to MultiGrid DoF Manager.\n");
-		return false;
-	}
+		UG_THROW_FATAL("No Subset Handler set to MultiGrid DoF Manager.");
+
 	if(m_pFuncPattern == NULL)
-	{
-		UG_LOG("No Function Pattern set to MultiGrid DoF Manager.\n");
-		return false;
-	}
+		UG_THROW_FATAL("No Function Pattern set to MultiGrid DoF Manager.");
 
 //	check, that all geom objects are assigned to a subset
 	if(	m_pMGSubsetHandler->num<VertexBase>() != m_pMultiGrid->num<VertexBase>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Vertices "
+		UG_THROW_FATAL("ERROR in 'MGDoFManager::enable_level_indices': All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
+
 	if(	m_pMGSubsetHandler->num<EdgeBase>() != m_pMultiGrid->num<EdgeBase>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Edges "
+		UG_THROW_FATAL("ERROR in 'MGDoFManager::enable_level_indices': All Edges "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
+
 	if(	m_pMGSubsetHandler->num<Face>() != m_pMultiGrid->num<Face>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Faces "
+		UG_THROW_FATAL("ERROR in 'MGDoFManager::enable_level_indices': All Faces "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
+
 	if(	m_pMGSubsetHandler->num<Volume>() != m_pMultiGrid->num<Volume>())
-	{
-		UG_LOG("ERROR in 'MGDoFManager::enable_level_indices': All Volumes "
+		UG_THROW_FATAL("ERROR in 'MGDoFManager::enable_level_indices': All Volumes "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
-			   " is not possible, aborting.\n");
-		return false;
-	}
+			   " is not possible, aborting.");
 
 // 	update surface distribution
-	if(!surface_distribution_required())
-	{
-		UG_LOG("Cannot update surface distribution.\n");
-		return false;
+	try{
+		surface_distribution_required();
 	}
+	UG_CATCH_THROW("Cannot update surface distribution.");
 
 // 	distribute on surface grid
 	if(!m_pSurfDD->distribute_indices())
-	{
-		UG_LOG("Cannot distribute dofs on surface.\n");
-		return false;
+		UG_THROW_FATAL("Cannot distribute dofs on surface.");
+
+	try{
+	//	unregister DoFManager
+		m_pMultiGrid->unregister_observer(this);
+
+	//	register SurfaceView first
+		m_pMultiGrid->register_observer(m_pSurfaceView,
+											  OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
+											  OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
+											  OT_VOLUME_OBSERVER);
+
+	//	register DoFManager again
+		m_pMultiGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
+											  OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
+											  OT_VOLUME_OBSERVER);
 	}
-
-//	unregister DoFManager
-	m_pMultiGrid->unregister_observer(this);
-
-//	register SurfaceView first
-	m_pMultiGrid->register_observer(m_pSurfaceView,
-	                                	  OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
-	                       	   			  OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
-	                       	   			  OT_VOLUME_OBSERVER);
-
-//	register DoFManager again
-	m_pMultiGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER |
-	                       	   			  OT_EDGE_OBSERVER | OT_FACE_OBSERVER |
-	                       	   			  OT_VOLUME_OBSERVER);
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("Cannot register observer.");
 }
 
 template <typename TDoFDistribution>
@@ -388,100 +345,84 @@ print_layout_statistic(int verboseLev) const
 }
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
-surface_view_required()
+void MGDoFManager<TDoFDistribution>::surface_view_required()
 {
 // 	serial version
-	if(m_pSurfaceView != NULL)
-		return true;
+	if(m_pSurfaceView != NULL) return;
 
 //	Create Surface view if not already created
-	if(m_pSurfaceView == NULL)
+	try{
 		m_pSurfaceView = new SurfaceView(*m_pMultiGrid);
-
-//	Check success
-	if(m_pSurfaceView == NULL)
-	{
-		UG_LOG("Allocation of Surface View failed.\n");
-		return false;
 	}
+	UG_CATCH_THROW("Cannot allocate SurfaceView.");
 
 // 	Create surface view for all elements
-	CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler);
-
-//	we're done
-	return true;
+	try{
+		CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler);
+	}
+	UG_CATCH_THROW("Cannot create surface view.");
 }
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
-surface_distribution_required()
+void MGDoFManager<TDoFDistribution>::surface_distribution_required()
 {
 //	Create surface view iff needed
-	if(!surface_view_required())
-		return false;
+	try{
+		surface_view_required();
+	}
+	UG_CATCH_THROW("Cannot create surface view.");
 
 // 	set storage manager
-	m_surfaceStorageManager.set_subset_handler(*m_pSurfaceView);
+	try{
+		m_surfaceStorageManager.set_subset_handler(*m_pSurfaceView);
+	}
+	UG_CATCH_THROW("Cannot set surface view for storage manager.");
 
 // 	Create surface dof distributions
 	if(m_pSurfDD == NULL)
 	{
 	//	create dof distribution on surface
+		try{
 		m_pSurfDD =
 			new TDoFDistribution(m_pSurfaceView->get_geometric_objects(),
 								 *m_pSurfaceView,
 								 m_surfaceStorageManager,
 								 *m_pFuncPattern,
 								 *m_pSurfaceView);
-
-	//	Check success
-		if(m_pSurfDD == NULL)
-		{
-			UG_LOG("Cannot allocate Surface DoF Distribution.\n");
-			return false;
 		}
+		UG_CATCH_THROW("Cannot create Surface DoFDistribution.");
 
 		m_pSurfDD->set_grouping(m_bGrouped);
 	}
-
-	return true;
 }
 
 template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
-level_distribution_required(size_t numLevel)
+void MGDoFManager<TDoFDistribution>::level_distribution_required(size_t numLevel)
 {
 // 	set StorageManager for levels
-	m_levelStorageManager.set_subset_handler(*m_pMGSubsetHandler);
+	try{
+		m_levelStorageManager.set_subset_handler(*m_pMGSubsetHandler);
+	}
+	UG_CATCH_THROW("Cannot assign SubsetHandler to Storage Manager.");
 
 // 	Create level dof distributions
 	for(size_t l = m_vLevelDD.size(); l < numLevel; ++l)
 	{
-		m_vLevelDD.push_back(
+		try{
+			m_vLevelDD.push_back(
 				new TDoFDistribution(m_pMGSubsetHandler->get_geometric_objects_in_level(l),
 									 *m_pMGSubsetHandler,
 									 m_levelStorageManager,
 									 *m_pFuncPattern));
-
-		if(m_vLevelDD[l] == NULL)
-		{
-			UG_LOG("Cannot allocate Level DoF Distribution on Level " << l << ".\n");
-			return false;
 		}
+		UG_CATCH_THROW("Cannot create DoFDistribution on level "<<l);
 
 		m_vLevelDD[l]->set_grouping(m_bGrouped);
 	}
-	return true;
 }
 
 template <typename TDoFDistribution>
-void
-MGDoFManager<TDoFDistribution>::
-disable_surface_indices()
+void MGDoFManager<TDoFDistribution>::disable_surface_indices()
 {
 // 	Delete surface dof distributions
 	m_surfaceStorageManager.clear();
@@ -742,8 +683,10 @@ add_to_level_dof_distribution(VertexBase* vrt)
 	const int level = m_pMGSubsetHandler->get_level(vrt);
 
 //	check if level dof distribution must be created
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Cannot create level dof distribution"));
+	try{
+		level_distribution_required(level+1);
+	}
+	UG_CATCH_THROW("Cannot create level dof distribution");
 
 //	announce element to level dof distribution
 	level_dof_distribution(level)->grid_obj_added(vrt);
@@ -760,8 +703,10 @@ add_to_level_dof_distribution(EdgeBase* edge)
 	const int level = m_pMGSubsetHandler->get_level(edge);
 
 //	check if level dof distribution must be created
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Cannot create level dof distribution"));
+	try{
+		level_distribution_required(level+1);
+	}
+	UG_CATCH_THROW("Cannot create level dof distribution");
 
 //	announce element to level dof distribution
 	level_dof_distribution(level)->grid_obj_added(edge);
@@ -778,8 +723,10 @@ add_to_level_dof_distribution(Face* face)
 	const int level = m_pMGSubsetHandler->get_level(face);
 
 //	check if level dof distribution must be created
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Cannot create level dof distribution"));
+	try{
+		level_distribution_required(level+1);
+	}
+	UG_CATCH_THROW("Cannot create level dof distribution");
 
 //	announce element to level dof distribution
 	level_dof_distribution(level)->grid_obj_added(face);
@@ -796,8 +743,10 @@ add_to_level_dof_distribution(Volume* vol)
 	const int level = m_pMGSubsetHandler->get_level(vol);
 
 //	check if level dof distribution must be created
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Cannot create level dof distribution"));
+	try{
+		level_distribution_required(level+1);
+	}
+	UG_CATCH_THROW("Cannot create level dof distribution");
 
 //	announce element to level dof distribution
 	level_dof_distribution(level)->grid_obj_added(vol);
@@ -836,8 +785,8 @@ remove_from_level_dof_distribution(VertexBase* vrt)
 	const int level = m_pMGSubsetHandler->get_level(vrt);
 
 //	check if level dof distribution exists
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Level dof distribution does not exist."));
+	try{level_distribution_required(level+1);}
+	UG_CATCH_THROW("Level dof distribution does not exist.");
 
 //	announce removal of element to level dof distribution
 	level_dof_distribution(level)->grid_obj_to_be_removed(vrt);
@@ -854,8 +803,8 @@ remove_from_level_dof_distribution(EdgeBase* edge)
 	const int level = m_pMGSubsetHandler->get_level(edge);
 
 //	check if level dof distribution exists
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Level dof distribution does not exist."));
+	try{level_distribution_required(level+1);}
+	UG_CATCH_THROW("Level dof distribution does not exist.");
 
 //	announce removal of element to level dof distribution
 	level_dof_distribution(level)->grid_obj_to_be_removed(edge);
@@ -872,8 +821,8 @@ remove_from_level_dof_distribution(Face* face)
 	const int level = m_pMGSubsetHandler->get_level(face);
 
 //	check if level dof distribution exists
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Level dof distribution does not exist."));
+	try{level_distribution_required(level+1);}
+	UG_CATCH_THROW("Level dof distribution does not exist.");
 
 //	announce removal of element to level dof distribution
 	level_dof_distribution(level)->grid_obj_to_be_removed(face);
@@ -890,8 +839,8 @@ remove_from_level_dof_distribution(Volume* vol)
 	const int level = m_pMGSubsetHandler->get_level(vol);
 
 //	check if level dof distribution exists
-	if(!level_distribution_required(level+1))
-		throw(UGFatalError("Level dof distribution does not exist."));
+	try{level_distribution_required(level+1);}
+	UG_CATCH_THROW("Level dof distribution does not exist.");
 
 //	announce removal of element to level dof distribution
 	level_dof_distribution(level)->grid_obj_to_be_removed(vol);

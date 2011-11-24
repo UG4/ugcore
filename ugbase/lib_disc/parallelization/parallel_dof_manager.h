@@ -56,13 +56,13 @@ class ParallelMGDoFManager : public TMGDoFManager
 		}
 
 	///	distribute dofs on levels and surface
-		bool enable_indices();
+		void enable_indices();
 
 	///	distribute dofs on levels
-		bool enable_level_indices();
+		void enable_level_indices();
 
 	///	distribute dofs on surface
-		bool enable_surface_indices();
+		void enable_surface_indices();
 
 	///	print a statistic on dof distribution
 		void print_statistic(int verboseLev = 1) const;
@@ -75,17 +75,17 @@ class ParallelMGDoFManager : public TMGDoFManager
 
 	protected:
 	///	create the layouts on all levels
-		bool create_level_index_layouts(size_t numGlobalLevels);
+		void create_level_index_layouts(size_t numGlobalLevels);
 
 	///	a helper, which will create the layouts for a given geometric object
-		template <class TElem> bool
-		create_level_index_layouts(serial_dd_type& dd, size_t lev);
+		template <class TElem>
+		void create_level_index_layouts(serial_dd_type& dd, size_t lev);
 
 	///	create the layouts on the surface level
-		bool create_surface_index_layouts();
+		void create_surface_index_layouts();
 
 	///	creates the surface view iff needed
-		virtual bool surface_view_required();
+		virtual void surface_view_required();
 
 	/// print statistic for a DoFDistribution
 		void print_statistic(typename TMGDoFManager::dof_distribution_type& dd,

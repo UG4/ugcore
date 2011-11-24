@@ -53,10 +53,10 @@ class MGDoFManager : public GridObserver
 		void set_grouping(bool bGrouped) {m_bGrouped = bGrouped;}
 
 	/// set multi grid subset handler
-		bool assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh);
+		void assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh);
 
 	/// set function pattern
-		bool assign_function_pattern(FunctionPattern& dp);
+		void assign_function_pattern(FunctionPattern& dp);
 
 	/// number of levels
 		virtual size_t num_levels() const
@@ -69,13 +69,13 @@ class MGDoFManager : public GridObserver
 		}
 
 	/// distribute dofs on all levels + surface level
-		bool enable_indices();
+		void enable_indices();
 
 	/// distribute dofs on all levels
-		bool enable_level_indices();
+		void enable_level_indices();
 
 	///	distribute dofs on surface grid
-		bool enable_surface_indices();
+		void enable_surface_indices();
 
 	///	returns if level dofs are enabled
 		bool level_indices_enabled() const {return m_vLevelDD.size() != 0;}
@@ -87,12 +87,8 @@ class MGDoFManager : public GridObserver
 		dof_distribution_type* surface_dof_distribution()
 		{
 		// 	update surface distribution
-			if(!surface_distribution_required())
-			{
-				UG_LOG("Cannot update surface distribution.\n");
-				throw(UGFatalError("Surface DoF Distribution missing but requested."));
-			}
-
+			try{surface_distribution_required();}
+			UG_CATCH_THROW("Surface DoF Distribution missing but requested.");
 			return m_pSurfDD;
 		}
 
@@ -101,10 +97,7 @@ class MGDoFManager : public GridObserver
 		{
 		// 	update surface distribution
 			if(m_pSurfDD == NULL)
-			{
-				UG_LOG("surface distribution missing.\n");
-				throw(UGFatalError("Surface DoF Distribution missing but requested."));
-			}
+				UG_THROW_FATAL("Surface DoF Distribution missing but requested.");
 
 			return m_pSurfDD;
 		}
@@ -112,11 +105,8 @@ class MGDoFManager : public GridObserver
 	///	returns Level DoF Distribution
 		dof_distribution_type* level_dof_distribution(size_t level)
 		{
-			if(!level_distribution_required(level+1))
-			{
-				UG_LOG("Cannot update level distribution.\n");
-				throw(UGFatalError("Cannot update level distribution.\n"));
-			}
+			try{level_distribution_required(level+1);}
+			UG_CATCH_THROW("Cannot create level dof distribution");
 
 			return m_vLevelDD[level];
 		}
@@ -125,7 +115,7 @@ class MGDoFManager : public GridObserver
 		const dof_distribution_type* level_dof_distribution(size_t level) const
 		{
 			if(!(level < m_vLevelDD.size()))
-				throw(UGFatalError("Level DoF Distribution missing"));
+				UG_THROW_FATAL("Level DoF Distribution missing");
 
 			return m_vLevelDD[level];
 		}
@@ -216,7 +206,7 @@ class MGDoFManager : public GridObserver
 		void add_associated_sides_to_surface_view();
 
 	///	creates the surface view
-		virtual bool surface_view_required();
+		virtual void surface_view_required();
 
 	///	returns if an element belongs to the surface view
 		bool is_in_surface_view(GeometricObject* obj);
@@ -240,7 +230,7 @@ class MGDoFManager : public GridObserver
 		void remove_from_surface_view(Volume* vol);
 
 	///	creates level DoF Distributions iff needed
-		bool level_distribution_required(size_t numLevel);
+		void level_distribution_required(size_t numLevel);
 
 	///	deletes all level distributions
 		void disable_level_indices();
@@ -260,7 +250,7 @@ class MGDoFManager : public GridObserver
 		void remove_from_level_dof_distribution(Volume* vol);
 
 	///	creates the surface distribution
-		bool surface_distribution_required();
+		void surface_distribution_required();
 
 	///	deletes the surface distributions
 		void disable_surface_indices();

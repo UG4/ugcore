@@ -16,60 +16,67 @@
 namespace ug{
 
 template <typename TMGDoFManager>
-bool
-ParallelMGDoFManager<TMGDoFManager>::
-enable_indices()
+void ParallelMGDoFManager<TMGDoFManager>::enable_indices()
 {
 //	distribute level dofs
-	if(!enable_level_indices()) return false;
+	try{
+		enable_level_indices();
+	}
+	UG_CATCH_THROW("Cannot enable Level Indices.");
 
 // 	distribute surface dofs
-	return enable_surface_indices();
+	try{
+		enable_surface_indices();
+	}
+	UG_CATCH_THROW("Cannot enable Surface Indices.");
 }
 
 template <typename TMGDoFManager>
-bool
-ParallelMGDoFManager<TMGDoFManager>::
-enable_level_indices()
+void ParallelMGDoFManager<TMGDoFManager>::enable_level_indices()
 {
-//	check that layout map has been set
-	if(!m_pLayoutMap)
-	{
-		UG_LOG("  no layout map specified. aborting.\n");
-		return false;
+	try{
+	//	check that layout map has been set
+		if(!m_pLayoutMap)
+			UG_THROW_FATAL("No layout map specified.");
+
+	// 	distribute dofs in sequential
+		try{
+			TMGDoFManager::enable_indices();
+		}
+		UG_CATCH_THROW("Cannot enable indices on each process.");
+
+	//	proc local number of level
+		int numLevLocal = 0;
+
+	//	without SubsetHandler, we have no level information
+		try{
+			if(this->m_pMGSubsetHandler != NULL)
+				numLevLocal = this->m_pMGSubsetHandler->num_levels();
+		}
+		UG_CATCH_THROW("Cannot determine number of levels.");
+
+	//	storage for global number of levels
+		int numLevGlobal;
+
+	//	\todo: This is MPI World, should only be a subgroup if not all
+	//			processes carry the grid.
+		pcl::ProcessCommunicator pCom;
+
+		pCom.allreduce(&numLevLocal, &numLevGlobal, 1,
+										PCL_DT_INT, PCL_RO_MAX);
+
+	//	in addition create the index layouts
+		try{
+			create_level_index_layouts(numLevGlobal);
+		}
+		UG_CATCH_THROW("Cannot create Level Index Layout.");
 	}
-
-// 	distribute dofs in sequential
-	if(!TMGDoFManager::enable_indices()) return false;
-
-//	proc local number of level
-	int numLevLocal = 0;
-
-//	without SubsetHandler, we have no level information
-	if(this->m_pMGSubsetHandler != NULL)
-		numLevLocal = this->m_pMGSubsetHandler->num_levels();
-
-//	storage for global number of levels
-	int numLevGlobal;
-
-//	\todo: This is MPI World, should only be a subgroup if not all
-//			processes carry the grid.
-	pcl::ProcessCommunicator pCom;
-
-	pCom.allreduce(&numLevLocal, &numLevGlobal, 1,
-									PCL_DT_INT, PCL_RO_MAX);
-
-//	in addition create the index layouts
-	bool bRet = create_level_index_layouts(numLevGlobal);
-
-//	return if all procs succeeded
-	return pcl::AllProcsTrue(bRet, pCom);
+	UG_CATCH_THROW("Cannot enable Level Indices.");
 }
 
 template <typename TMGDoFManager>
 template <class TElem>
-bool
-ParallelMGDoFManager<TMGDoFManager>::
+void ParallelMGDoFManager<TMGDoFManager>::
 create_level_index_layouts(serial_dd_type& dd, size_t lev)
 {
 //	type of layout for element type
@@ -102,37 +109,40 @@ create_level_index_layouts(serial_dd_type& dd, size_t lev)
 		bRet &= AddEntriesToLevelIndexLayout(dd.get_vertical_slave_layout(),
 							dd, layoutMap.get_layout<TElem>(INT_V_SLAVE).
 										layout_on_level(lev));
-	}
 
-//	return the success
-	return bRet;
+		if(!bRet)
+			UG_THROW_FATAL("Error while adding Indices on level "<<lev);
+	}
 }
 
 template <typename TMGDoFManager>
-bool
-ParallelMGDoFManager<TMGDoFManager>::
+void ParallelMGDoFManager<TMGDoFManager>::
 create_level_index_layouts(size_t numGlobalLevels)
 {
 //	TODO:	this communicator should be specified from the application
 	pcl::ProcessCommunicator commWorld;
 
-//	return flag
-	bool bRet = true;
+	size_t numLevLocal = 0;
+	if(this->m_pMGSubsetHandler != NULL)
+		numLevLocal = this->m_pMGSubsetHandler->num_levels();
 
 //	loop all levels to create the communicator
 	for(size_t l = 0; l < numGlobalLevels; ++l)
 	{
-	//	get serial dof distribution
-		serial_dd_type* pDD = TMGDoFManager::level_dof_distribution(l);
-
-	//	check serial DoF Distribution
-		if(pDD == NULL)
+	//	no grid level present, therefore no dof distribution.
+	//	just vote false in participate
+		if(l >= numLevLocal)
 		{
-			UG_LOG("ERROR in 'ParallelMGDoFManager::create_level_index_layouts':"
-					" Level DoF Distribution is missing on level "<<l<<".\n");
-			bRet = false;
+			commWorld.create_sub_communicator(false);
 			continue;
 		}
+
+	//	get serial dof distribution
+		serial_dd_type* pDD = NULL;
+		try{
+			pDD = TMGDoFManager::level_dof_distribution(l);
+		}
+		UG_CATCH_THROW("Level DoF Distribution is missing on level "<<l);
 
 	//	get a reference for convenience
 		serial_dd_type& dd = *pDD;
@@ -168,14 +178,14 @@ create_level_index_layouts(size_t numGlobalLevels)
 		dd.get_vertical_slave_layout().clear();
 
 	//	create the index layouts
-		bRet &= create_level_index_layouts<VertexBase>(dd, l);
-		bRet &= create_level_index_layouts<EdgeBase>(dd, l);
-		bRet &= create_level_index_layouts<Face>(dd, l);
-		bRet &= create_level_index_layouts<Volume>(dd, l);
+		try{
+			create_level_index_layouts<VertexBase>(dd, l);
+			create_level_index_layouts<EdgeBase>(dd, l);
+			create_level_index_layouts<Face>(dd, l);
+			create_level_index_layouts<Volume>(dd, l);
+		}
+		UG_CATCH_THROW("Cannot create Level Index Layout for some GridElemType.");
 	}
-
-//	we're done
-	return bRet;
 }
 
 template <typename TMGDoFManager>
@@ -208,62 +218,46 @@ defragment()
 		this->level_distribution_required(numLevGlobal);
 
 //	build up interfaces
-	bool bRet = true;
+	try{
+		if(this->level_indices_enabled())
+			create_level_index_layouts(numLevGlobal);
 
-	if(this->level_indices_enabled())
-	{
-		bRet = create_level_index_layouts(numLevGlobal);
+		if(this->surface_indices_enabled())
+			create_surface_index_layouts();
 	}
-
-	if(this->surface_indices_enabled())
-	{
-		bRet &= create_surface_index_layouts();
-	}
-
-	if(!bRet) throw(UGFatalError("Cannot build interfaces.\n"));
+	UG_CATCH_THROW("Cannot build interfaces.\n");
 }
 
 
 template <typename TMGDoFManager>
-bool
-ParallelMGDoFManager<TMGDoFManager>::
-enable_surface_indices()
+void ParallelMGDoFManager<TMGDoFManager>::enable_surface_indices()
 {
-	if(!m_pLayoutMap){
-		UG_LOG("  no layout map specified. aborting.\n");
-		return false;
-	}
+	if(!m_pLayoutMap)
+		UG_THROW_FATAL("No layout map specified. aborting.");
 
 //	create dofs on each process
-	TMGDoFManager::enable_surface_indices();
+	try{
+		TMGDoFManager::enable_surface_indices();
+	}UG_CATCH_THROW("Cannot enable Surface Indices on each process.");
 
-//	build up interfaces
-	bool bRet = create_surface_index_layouts();
-
-//	\todo: This is MPI World, should only be a subgroup if not all
-//			processes carry the grid.
-	pcl::ProcessCommunicator pCom;
-
-//	return if all procs succeeded
-	return pcl::AllProcsTrue(bRet, pCom);
+//	build up layouts
+	try{
+		create_surface_index_layouts();
+	}
+	UG_CATCH_THROW("Cannot init surface index layouts.");
 }
 
 
 template <typename TMGDoFManager>
-bool
-ParallelMGDoFManager<TMGDoFManager>::
-create_surface_index_layouts()
+void ParallelMGDoFManager<TMGDoFManager>::create_surface_index_layouts()
 {
 //	get serial dof distribution
-	serial_dd_type* pDD = TMGDoFManager::surface_dof_distribution();
+	serial_dd_type* pDD = NULL;
 
-//	check serial DoF Distribution
-	if(pDD == NULL)
-	{
-		UG_LOG("ERROR in 'ParallelMGDoFManager::create_level_index_layouts':"
-				" Surface DoF Distribution is missing.\n");
-		return false;
+	try{
+		pDD = TMGDoFManager::surface_dof_distribution();
 	}
+	UG_CATCH_THROW("Cannot get surface dof distribution.");
 
 //	get a reference for convenience
 	serial_dd_type& dd = *pDD;
@@ -304,50 +298,43 @@ create_surface_index_layouts()
 	dd.get_process_communicator() = commWorld.create_sub_communicator(participate);
 
 //	we're done
-	return bRet;
+	if(!bRet)
+		UG_THROW_FATAL("Cannot create surface index layouts.");
 }
 
 
 template <typename TMGDoFManager>
-bool
-ParallelMGDoFManager<TMGDoFManager>::
-surface_view_required()
+void ParallelMGDoFManager<TMGDoFManager>::surface_view_required()
 {
 //	Check that Distr. Grid Manager has been set
 	if(!m_pDistGridManager)
-	{
-		UG_LOG("No Distr. Grid Manager specified. aborting.\n");
-		return false;
-	}
+		UG_THROW_FATAL("No Distr. Grid Manager specified.");
 
 // 	Parallel version
-	if(this->m_pSurfaceView != NULL)
-		return true;
+	if(this->m_pSurfaceView != NULL) return;
 
 //	Create Surface View if not already created
-	if(this->m_pSurfaceView == NULL)
+	try{
 		this->m_pSurfaceView = new SurfaceView(*this->m_pMultiGrid);
-
-//	Check Success
-	if(this->m_pSurfaceView == NULL)
-	{
-		UG_LOG("Allocation of Surface View failed.\n");
-		return false;
 	}
+	UG_CATCH_THROW("Cannot allocate SurfaceView.");
 
 //  \todo: Use m_pDistGridManager to take care of ghost elements when creating
 //			the surface view (e.g. exclude vertical master/slave)
 // 	Create surface view for all elements
-	CreateSurfaceView(*this->m_pSurfaceView,
+	try{
+		CreateSurfaceView(*this->m_pSurfaceView,
 	                  *m_pDistGridManager,
 	                  *this->m_pMGSubsetHandler);
+	}
+	UG_CATCH_THROW("Cannot create SurfaceView.");
 
 // 	Set storage manager
-	this->m_surfaceStorageManager.
-			set_subset_handler(*(this->m_pSurfaceView));
-
-//	return view
-	return true;
+	try{
+		this->m_surfaceStorageManager.
+				set_subset_handler(*(this->m_pSurfaceView));
+	}
+	UG_CATCH_THROW("Cannot set SubsetHandler for Storage Manager.");
 }
 
 template <typename TMGDoFManager>

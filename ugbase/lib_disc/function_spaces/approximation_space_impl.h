@@ -20,29 +20,35 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init(bool bInitDoFs)
 //	check if already init
 	if(m_bInit) return;
 
-//	lock function pattern
-	this->lock();
+	try{
+	//	lock function pattern
+		this->lock();
 
-//	set subsethandler to DofManager
-	if(!m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSH)))
-		UG_THROW_FATAL("In 'ApproximationSpace::init':"
-						" Cannot assign multi grid subset handler.");
+	//	set subsethandler to DofManager
+		try{
+			m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSH));
+		}UG_CATCH_THROW("Cannot assign multi grid subset handler.");
 
-//	set the function pattern for dofmanager
-	if(!m_MGDoFManager.assign_function_pattern(*this))
-		UG_THROW_FATAL("In 'ApproximationSpace::init':"
-						" Cannot assign Function Pattern.");
+	//	set the function pattern for dofmanager
+		try{
+			m_MGDoFManager.assign_function_pattern(*this);
+		}UG_CATCH_THROW(" Cannot assign Function Pattern.");
 
-#ifdef UG_PARALLEL
-//	set distributed grid manager
-	m_MGDoFManager.set_distributed_grid_manager(
-			*this->m_pDomain->distributed_grid_manager());
-#endif
+		#ifdef UG_PARALLEL
+	//	set distributed grid manager
+		try{
+			m_MGDoFManager.set_distributed_grid_manager(
+					*this->m_pDomain->distributed_grid_manager());
+		}UG_CATCH_THROW(" Cannot assign Function Pattern.");
+		#endif
 
-	if(bInitDoFs)
-		if(!m_MGDoFManager.enable_indices())
-			UG_THROW_FATAL("In 'ApproximationSpace::init':"
-							" Cannot distribute dofs.");
+	//	init dofs
+		try{
+			if(bInitDoFs)
+				m_MGDoFManager.enable_indices();
+		}UG_CATCH_THROW(" Cannot distribute dofs.");
+	}
+	UG_CATCH_THROW("Cannot init ApproximationSpace");
 
 //	remember init flag
 	m_bInit = true;
@@ -56,13 +62,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_level_function(s
 	init();
 
 //	enable level dofs
-	if(!m_bLevelDoFInit){
-		if(!m_MGDoFManager.enable_level_indices()){
-			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
+	if(!m_bLevelDoFInit)
+	{
+		try{
+			m_MGDoFManager.enable_level_indices();
 		}
-		else{
-			m_bLevelDoFInit = true;
-		}
+		UG_CATCH_THROW("Cannot distribute level dofs.");
+
+		m_bLevelDoFInit = true;
 	}
 
 //	get level dof distribution
@@ -84,13 +91,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::create_surface_function
 	init();
 
 //	enable surface dofs
-	if(!m_bSurfDoFInit){
-		if(!m_MGDoFManager.enable_surface_indices()){
-			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
+	if(!m_bSurfDoFInit)
+	{
+		try{
+			m_MGDoFManager.enable_surface_indices();
 		}
-		else{
-			m_bSurfDoFInit = true;
-		}
+		UG_CATCH_THROW("Cannot distribute surface dofs.");
+
+		m_bSurfDoFInit = true;
 	}
 
 //	get surface dof distribution
@@ -112,13 +120,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::surface_dof_distributio
 	init();
 
 //	enable surface dofs
-	if(!m_bSurfDoFInit){
-		if(!m_MGDoFManager.enable_surface_indices()){
-			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute surface dofs.");
+	if(!m_bSurfDoFInit)
+	{
+		try{
+			m_MGDoFManager.enable_surface_indices();
 		}
-		else{
-			m_bSurfDoFInit = true;
-		}
+		UG_CATCH_THROW("Cannot distribute surface dofs.");
+
+		m_bSurfDoFInit = true;
 	}
 
 	dof_distribution_type* dofDistr = m_MGDoFManager.surface_dof_distribution();
@@ -147,13 +156,14 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::level_dof_distribution(
 	init();
 
 //	enable surface dofs
-	if(!m_bLevelDoFInit){
-		if(!m_MGDoFManager.enable_level_indices()){
-			UG_THROW_FATAL( "ApproximationSpace: Cannot distribute level dofs.");
+	if(!m_bLevelDoFInit)
+	{
+		try{
+			m_MGDoFManager.enable_level_indices();
 		}
-		else{
-			m_bLevelDoFInit = true;
-		}
+		UG_CATCH_THROW("Cannot distribute level dofs.");
+
+		m_bLevelDoFInit = true;
 	}
 
 	return *(m_MGDoFManager.level_dof_distribution(level));
