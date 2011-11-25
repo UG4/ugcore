@@ -36,6 +36,15 @@ UG_API std::string LuaGetString(lua_State *L, const char *name, const char *notA
 UG_API bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
 
 
+/// returns a String describing the content of the lua stack at a given index
+std::string GetLuaTypeString(lua_State* L, int index);
+
+/// prints information about lua's call stack (file:line source).
+void lua_stacktrace(lua_State* L);
+
+/// returns the current file and line ( \sa lua_stacktrace ).
+std::string GetLuaFileAndLine(lua_State* L);
+
 }
 }
 						  

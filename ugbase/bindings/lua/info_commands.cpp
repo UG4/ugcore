@@ -13,11 +13,13 @@
 
 #include <iomanip>
 #include "bindings/lua/lua_util.h"
+#include "bindings/lua/bindings_lua.h"
 #include "bridge/bridge.h"
 #include "registry/class_helper.h"
 #include "common/util/sort_util.h"
 #include "common/util/string_util.h"
 #include "lua_stack_check.h"
+#include "registry/class_name_provider.h"
 
 extern "C"
 {
@@ -34,12 +36,12 @@ namespace ug
 namespace bridge
 {
 
-namespace lua
-{
-	string GetLuaTypeString(lua_State* L, int index);
-}
-
-
+/**
+ * \brief returns an integer to a lua-variable.
+ * \param L				the lua state
+ * \param name			name of the variable. namespaces are possible (like math.pi)
+ * \param notAvailable	return value if variable was not found
+  */
 int LuaGetNumber(lua_State *L, const char *name, int notAvailable)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -53,6 +55,12 @@ int LuaGetNumber(lua_State *L, const char *name, int notAvailable)
 	return i;
 }
 
+/**
+ * \brief returns the string to a lua-variable.
+ * \param L				the lua state
+ * \param name			name of the variable. namespaces are possible (like math.pi)
+ * \param notAvailable	return value if variable was not found
+  */
 string LuaGetString(lua_State *L, const char *name, const char *notAvailable)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -66,6 +74,12 @@ string LuaGetString(lua_State *L, const char *name, const char *notAvailable)
 	return str;
 }
 
+/**
+ * \brief returns a boolean to a lua-variable.
+ * \param L				the lua state
+ * \param name			name of the variable. namespaces are possible (like math.pi)
+ * \param notAvailable	return value if variable was not found
+  */
 bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -83,10 +97,15 @@ bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable)
 
 string GetFileLine(const char *filename, size_t line);
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
-void LuaPrintTable(lua_State *L, size_t iSpace);
-bool ClassNameVecContains(const std::vector<const char*>& names, const std::string& name);
+void LuaPrintTable(lua_State *L, size_t iSpace, int index=-1);
 bool ClassInstantiations(const char *classname);
 
+/**
+ * \brief searches for a namespaces (lists) and pushes it onto the stack
+ * \param L				the lua state
+ * \param name			name of the namespace. also nested namespaces are allowed (like struc1.struc2)
+ * \return true if namespace found
+ */
 bool GetLuaNamespace(lua_State* L, string name)
 {
 	LUA_STACK_CHECK(L, 1);
@@ -117,6 +136,11 @@ bool GetLuaNamespace(lua_State* L, string name)
 	return true;
 }
 
+/**
+ * \param L 		the lua state
+ * \param index		the index of the lua object
+ * \return the corresponing ClassNameNode
+ */
 const ClassNameNode* GetClassNameNode(lua_State *L, int index)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -133,6 +157,12 @@ const ClassNameNode* GetClassNameNode(lua_State *L, int index)
 	return classNameNode;
 }
 
+
+/**
+ * \param L 		the lua state
+ * \param index		the index of the lua object
+ * \return a std::vector of class names
+ */
 const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -149,6 +179,11 @@ const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 	return p;
 }
 
+/**
+ * \param L 		the lua state
+ * \param name		the name of the lua object
+ * \return the class names of the object or NULL if not found
+ */
 const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
 {
 	// get the lua object with that name
@@ -164,7 +199,12 @@ const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
 	return p;
 }
 
-
+/**
+ * \brief prints out information for a lua function (a function defined in lua script)
+ * \param L 			the lua state
+ * \param bComplete		if complete, we print the source code of the function
+ * \return 0
+ */
 int PrintFunctionInfo(lua_State *L, bool bComplete)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -187,7 +227,13 @@ int PrintFunctionInfo(lua_State *L, bool bComplete)
 	return 0;
 }
 
-
+/**
+ * \brief prints out information for a method of a class
+ * \param L 			the lua state
+ * \param index			index of the class object on the lua stack
+ * \param thefunc		method to print
+ * \return 0
+ */
 void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc)
 {
 	const std::vector<const char*> *names = GetClassNames(L, index);
@@ -210,6 +256,7 @@ int UGTypeInfo(const char *p)
 {
 	bridge::Registry &reg = GetUGRegistry();
 
+	// check if it is a class
 	const IExportedClass *c = FindClass(reg, p);
 	if(c)
 	{
@@ -225,17 +272,12 @@ int UGTypeInfo(const char *p)
 	lua_State* L = script::GetDefaultLuaState();
 	LUA_STACK_CHECK(L, 0);
 
-	struct UserDataWrapper
-	{
-		bool	is_const;
-		void*	obj;
-	};
-
 	string str = p;
 	GetLuaNamespace(L, str);
 
 	if(lua_isnil(L, -1))
 	{
+		// it is nil
 		lua_pop(L, 1);
 		UG_LOG(p << " is neither a global variable nor a class name." << endl);
 		return false;
@@ -243,18 +285,21 @@ int UGTypeInfo(const char *p)
 
 	if(lua_iscfunction(L, -1))
 	{
+		// it is a cfunction
 		UG_LOG(p << " is a cfunction\n ");
 		PrintFunctionInfo(reg, p);
 		UG_LOG(endl);
 	}
 	else if(lua_isfunction(L, -1))
 	{
+		// it is a lua function
 		UG_LOG(p << " is a function\n ");
 		PrintFunctionInfo(L, true);
 		UG_LOG(endl);
 	}
 	else if(lua_isuserdata(L, -1))
 	{
+		// it is user data, that is a class object
 		// names = GetClassNames(L, -1))
 		if(lua_getmetatable(L, -1) == 0)
 		{
@@ -283,12 +328,14 @@ int UGTypeInfo(const char *p)
 	}
 	else if (lua_istable(L, -1))
 	{
+		// it is a table
 		LuaPrintTable(L, 1);
 		UG_LOG(p << " is a table" << "\n");
 	}
 	else
 	{
-		UG_LOG(p << ": type is " << lua::GetLuaTypeString(L, -1) << ": " << lua_tostring(L, -1));
+		// it is something else like number string or boolean
+		UG_LOG(p << ": type is " << GetLuaTypeString(L, -1) << ": " << lua_tostring(L, -1));
 	}
 	lua_pop(L, 1);
 
@@ -297,9 +344,15 @@ int UGTypeInfo(const char *p)
 }
 
 
-
+/**
+ * \brief this function prints all objects which are of a certain class
+ * \param 	classname	the class name to be searched
+ * \return true if class found, otherwise false
+ */
 bool ClassInstantiations(const char *classname)
-{	bridge::Registry &reg = GetUGRegistry();
+{
+	bridge::Registry &reg = GetUGRegistry();
+	// search for the class
 	const IExportedClass *c = FindClass(reg, classname);
 	if(c == NULL)
 	{
@@ -354,6 +407,7 @@ bool ClassInstantiations(const char *classname)
  *
  * \param classname the class to print usage in functions/member functions of (and all its subclasses) .
  * class in in/out parameters is highlighted with [class].
+ * \return true if class found, otherwise fals
  */
 bool ClassUsage(const char *classname)
 {
@@ -401,6 +455,15 @@ bool IsLonger(const std::string &a, const std::string &b)
 }
 
 
+/**
+ * \brief function to get some lines of a file
+ * \param filename				file name
+ * \param fromline
+ * \param toline
+ * \param includeLineNumbers	if true, add the line number in front of each line and a tab.
+ *
+ * \return lines fromline to toline of file filename.
+ */
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
 {
 	char buf[512];
@@ -423,22 +486,42 @@ string GetFileLines(const char *filename, size_t fromline, size_t toline, bool i
 	return ss.str();
 }
 
+/**
+ * \brief function to get a line of a file
+ * \param filename				file name
+ * \param line
+ * \return the line of the file.
+ */
 string GetFileLine(const char *filename, size_t line)
 {
 	return GetFileLines(filename, line, line, false);
 }
 
-void PrintLuaScriptFunction(lua_State *L)
+
+/**
+ * \brief prints the source of a lua script function which is on top of the stack
+ * \param L		the lua state
+  */
+void PrintLuaScriptFunction(lua_State *L, int index=-1)
 {
+	LUA_STACK_CHECK(L, 0);
+	lua_pushvalue(L, index);
 	lua_Debug ar;
 	lua_getinfo(L, ">S", &ar);
 	if(ar.linedefined != -1)
 		UG_LOG(GetFileLine(ar.source+1, ar.linedefined)); // skip '@'
 }
 
-void LuaPrintTable(lua_State *L, size_t iSpace)
+/**
+ * \brief prints the source of a lua script function which is on top of the stack
+ * \param L		the lua state
+ */
+void LuaPrintTable(lua_State *L, size_t iSpace, int index)
 {
 	LUA_STACK_CHECK(L, 0);
+
+	if(index != -1)
+		lua_pushvalue(L, index);
 
 	LOGFillSpace(iSpace);
 	UG_LOG("{\n");
@@ -462,7 +545,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace)
 		size_t indexIndex = -2*len+2*i;
 		const char *name = lua_tostring(L, indexIndex);
 		if(name) sorted[i].value = name;
-		else sorted[i].value = lua::GetLuaTypeString(L, indexIndex);
+		else sorted[i].value = GetLuaTypeString(L, indexIndex);
 	}
 
 	sort(sorted.begin(), sorted.end());
@@ -473,19 +556,16 @@ void LuaPrintTable(lua_State *L, size_t iSpace)
 
 		LOGFillSpace(iSpace);
 		UG_LOG(sorted[i].value);
-		UG_LOG(" (" << lua::GetLuaTypeString(L, index) << ")");
+		UG_LOG(" (" << GetLuaTypeString(L, index) << ")");
 		if(lua_isfunction(L, index))
 		{
 			UG_LOG(": ");
-			lua_pushvalue(L, index);
-			PrintLuaScriptFunction(L);
+			PrintLuaScriptFunction(L, index);
 		}
 		else if(lua_istable(L, index))
 		{
 			UG_LOG(" = \n");
-			lua_pushvalue(L, index);
-			LuaPrintTable(L, iSpace+1);
-			lua_pop(L, 1);
+			LuaPrintTable(L, iSpace+1, index);
 		}
 		else
 		{
@@ -498,13 +578,17 @@ void LuaPrintTable(lua_State *L, size_t iSpace)
 	lua_pop(L, 2*len);
 	LOGFillSpace(iSpace);
 	UG_LOG("}\n");
+	if(index != -1)
+		lua_pop(L, 1);
 }
 
 
 
 
 
-
+/**
+ * \brief prints information about lua variables and classes
+  */
 void LuaList()
 {
 	bridge::Registry &reg = GetUGRegistry();
@@ -568,12 +652,13 @@ void LuaList()
 
 	UG_LOG(endl << "--- Script Functions: ---" << endl)
 
-	std::vector<std::string>::const_iterator m = max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger);
+	int maxLength = (*max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger)).size();
 	for(size_t i=0; i<scriptFunctions.size(); i++)
 	{
 		lua_getglobal(L, scriptFunctions[i].c_str());  /* get global 'f' */
-		UG_LOG(left << setw((*m).size()) << scriptFunctions[i] << ": ");
+		UG_LOG(left << setw(maxLength) << scriptFunctions[i] << ": ");
 		PrintLuaScriptFunction(L);
+		lua_pop(L, 1);
 		UG_LOG("\n");
 	}
 
@@ -585,14 +670,14 @@ void LuaList()
 
 
 	UG_LOG(endl << "--- Lua Objects: ----------------" << endl)
-	m = max_element(names.begin(), names.end(), IsLonger);
+	maxLength = (*max_element(names.begin(), names.end(), IsLonger)).size();
 	for(size_t i=0; i<names.size(); i++)
 	{
 		if(names[i].compare("_G") == 0) continue;
 		if(names[i].compare("package") == 0) continue;
 		lua_getglobal(L, names[i].c_str());
-		UG_LOG(left << setw((*m).size()) << names[i]);
-		UG_LOG(" (" << lua::GetLuaTypeString(L, -1) << ")");
+		UG_LOG(left << setw(maxLength) << names[i]);
+		UG_LOG(" (" << GetLuaTypeString(L, -1) << ")");
 		if(lua_istable(L, -1))
 		{
 			UG_LOG(" = \n");
@@ -605,7 +690,7 @@ void LuaList()
 	}
 
 	UG_LOG(endl << "--- Class Instantiations: ---------" << endl)
-	m = max_element(instantiations.begin(), instantiations.end(), IsLonger);
+	maxLength = (*max_element(instantiations.begin(), instantiations.end(), IsLonger)).size();
 	for(size_t i=0; i<instantiations.size(); i++)
 	{
 		lua_getglobal(L, instantiations[i].c_str());
@@ -613,7 +698,7 @@ void LuaList()
 		const std::vector<const char*> *n  = GetClassNames(L, -1);
 		if(n && n->size() > 0)
 		{
-			UG_LOG(left << setw((*m).size()) << instantiations[i] << ": class ");
+			UG_LOG(left << setw(maxLength) << instantiations[i] << ": class ");
 			for(size_t j = 0; j < n->size(); j++)
 			{
 				if(j > 0) UG_LOG(", ");
@@ -623,6 +708,77 @@ void LuaList()
 		}
 		lua_pop(L, 1);
 	}
+}
+
+
+/**
+ * \brief returns a String describing the content of the lua stack at a given index
+ * and all types it is compatible with (for ex. "2" is string and number)
+ */
+string GetLuaTypeString(lua_State* L, int index)
+{
+	if(lua_isnil(L, index))
+		return string("nil");
+	string str("");
+	// somehow lua_typeinfo always prints userdata
+	if(lua_isboolean(L, index)) str.append("boolean/");
+	if(lua_iscfunction(L, index)) str.append("cfunction/");
+	if(lua_isfunction(L, index)) str.append("function/");
+	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
+	if(lua_isnil(L, index)) str.append("nil/");
+	if(lua_isnone(L, index)) str.append("none/");
+	if(lua_isnumber(L, index)) 	str.append("number/");
+	if(lua_isstring(L, index)) str.append("string/");
+
+	if(lua_istable(L, index)) str.append("table/");
+	if(lua_isthread(L, index)) str.append("thread/");
+	if(lua_isuserdata(L, index))
+	{
+		if(((lua::UserDataWrapper*)lua_touserdata(L, index))->is_const()){
+			str.append("const ");
+		}
+		const ClassNameNode* classNameNode = GetClassNameNode(L, index);
+		if(classNameNode == NULL || classNameNode->empty()) str.append("userdata/");
+		else str.append(classNameNode->name()); str.append("*/");
+	}
+
+	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
+
+	if(str.size() == 0)
+		return string("unknown type");
+	else
+		return str.substr(0, str.size()-1);
+}
+
+/// prints information about lua's call stack (file:line source).
+void lua_stacktrace(lua_State* L)
+{
+    lua_Debug entry;
+    for(int depth = 1; lua_getstack(L, depth, &entry); depth++)
+	{
+    	int status = lua_getinfo(L, "Sln", &entry);
+    	if(!status || !entry.short_src || entry.currentline < 0) return;
+		UG_LOG(entry.short_src << ":" << entry.currentline);
+		UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
+		UG_LOG("\n");
+    }
+}
+
+/// returns the current file and line ( \sa lua_stacktrace ).
+std::string GetLuaFileAndLine(lua_State* L)
+{
+	lua_Debug entry;
+	lua_getstack(L, 1, &entry);
+	int status = lua_getinfo(L, "Sln", &entry);
+	if(!status || !entry.short_src || entry.currentline < 0) return std::string("");
+	std::stringstream ss;
+	ss << entry.short_src << ":" << entry.currentline;
+	return ss.str();
+}
+
+void ScriptStacktrace()
+{
+	lua_stacktrace(script::GetDefaultLuaState());
 }
 
 bool ScriptPrintClassHierarchy(const char *classname)
@@ -642,6 +798,7 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		reg.add_function("ClassUsage", &ClassUsage, grp.c_str());
 		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str());
 		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp.c_str());
+		reg.add_function("Stacktrace", &ScriptStacktrace, grp.c_str());
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

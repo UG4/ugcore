@@ -22,43 +22,9 @@ namespace ug
 {
 namespace bridge
 {
-void PrintFileLineFunction(const char *source, int linedefined);
-const std::vector<const char*> *GetClassNames(lua_State *L, int index);
-	string ParameterToString(const ParameterStack &par, int i);
 	
 namespace lua
 {
-
-enum UserDataWrapperTypes{
-	RAW_POINTER = 1,
-	SMART_POINTER = 1 << 1,
-	IS_CONST = 1 << 2
-};
-
-struct UserDataWrapper{
-	byte type;
-
-	bool is_const()		{return (type & IS_CONST) == IS_CONST;}
-	bool is_raw_ptr()	{return (type & RAW_POINTER) == RAW_POINTER;}
-	bool is_smart_ptr()	{return (type & SMART_POINTER) == SMART_POINTER;}
-};
-
-struct SmartUserDataWrapper : public UserDataWrapper
-{
-	SmartPtr<void>	smartPtr;
-};
-
-struct ConstSmartUserDataWrapper : public UserDataWrapper
-{
-	ConstSmartPtr<void>	smartPtr;
-};
-
-struct RawUserDataWrapper : public UserDataWrapper
-{
-	void*	obj;
-	void (*deleteFunc)(const void*);
-};
-
 
 ///	creates a new UserDataWrapper and associates it with ptr in luas registry
 /**
@@ -132,52 +98,12 @@ static RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 }
 /** \} */
 
-
 /**
  *
- * \returns	String describing the content of the lua stack at a given index
- * and all types it is compatible with (for ex. "2" is string and number)
- */
-string GetLuaTypeString(lua_State* L, int index)
-{
-	if(lua_isnil(L, index))
-		return string("nil");
-	string str("");
-	// somehow lua_typeinfo always prints userdata
-	if(lua_isboolean(L, index)) str.append("boolean/");
-	if(lua_iscfunction(L, index)) str.append("cfunction/");
-	if(lua_isfunction(L, index)) str.append("function/");
-	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
-	if(lua_isnil(L, index)) str.append("nil/");
-	if(lua_isnone(L, index)) str.append("none/");
-	if(lua_isnumber(L, index)) 	str.append("number/");
-	if(lua_isstring(L, index)) str.append("string/");
-
-	if(lua_istable(L, index)) str.append("table/");
-	if(lua_isthread(L, index)) str.append("thread/");
-	if(lua_isuserdata(L, index))
-	{
-		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
-			str.append("const ");
-		}
-		const ClassNameNode* classNameNode = GetClassNameNode(L, index);
-		if(classNameNode == NULL || classNameNode->empty()) str.append("userdata/");
-		else str.append(classNameNode->name()); str.append("*/");
-	}
-
-	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
-
-	if(str.size() == 0)
-		return string("unknown type");
-	else
-		return str.substr(0, str.size()-1);
-}
-
-/**
- *
- * \returns	String describing the parameters on the lua stack
+ * \brief returns a String describing the parameters on the lua stack
  * ex. "GlobalMultiGridRefiner*, LuaUserNumber2d*, number, string"
  */
+// returns a String describing the parameters on the lua stack
 static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
 {
 	string str;
@@ -200,7 +126,7 @@ static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
  * \param badParamOneBased : return value as in LuaStackParams
  * \sa LuaStackToParams
  */
-string GetTypeMismatchString(const ParameterStack& paramsTemplate, lua_State* L, int offsetToFirstParam,
+static string GetTypeMismatchString(const ParameterStack& paramsTemplate, lua_State* L, int offsetToFirstParam,
 		int badParamOneBased)
 {
 	std::stringstream ss;
@@ -236,7 +162,8 @@ static int LuaStackToParams(ParameterStack& params,
 
 //	initialize temporary variables
 	int badParam = 0;
-	bool printDefaultParamErrorMsg = true;
+	// MR: commented out, unused?
+	//bool printDefaultParamErrorMsg = true;	
 	
 //	iterate through the parameter list and copy the value in the associated
 //	stack entry.
@@ -320,11 +247,9 @@ static int LuaStackToParams(ParameterStack& params,
 						}
 
 						if(typeMatch)
-						{
 							params.push_pointer(obj, classNameNode);
-						}
 						else{
-							printDefaultParamErrorMsg = false;
+							//printDefaultParamErrorMsg = false;
 							badParam = (int)i + 1;
 						}
 					}
@@ -380,11 +305,9 @@ static int LuaStackToParams(ParameterStack& params,
 						}
 
 						if(typeMatch)
-						{
 							params.push_const_pointer(obj, classNameNode);
-						}
 						else{
-							printDefaultParamErrorMsg = false;
+							//printDefaultParamErrorMsg = false;
 							badParam = (int)i + 1;
 						}
 					}
@@ -429,17 +352,15 @@ static int LuaStackToParams(ParameterStack& params,
 						}
 
 						if(typeMatch)
-						{
 							params.push_smart_pointer(obj, classNameNode);
-						}
 						else{
-							bool gotone = false;
+							/*bool gotone = false;
 							if(classNameNode){
 								if(!classNameNode->empty()){
 									gotone = true;
 								}
 							}
-							printDefaultParamErrorMsg = false;
+							printDefaultParamErrorMsg = false;*/
 							badParam = (int)i + 1;
 						}
 					}
@@ -482,17 +403,15 @@ static int LuaStackToParams(ParameterStack& params,
 						}
 
 						if(typeMatch)
-						{
 							params.push_const_smart_pointer(obj, classNameNode);
-						}
 						else{
-							bool gotone = false;
+							/*bool gotone = false;
 							if(classNameNode){
 								if(!classNameNode->empty()){
 									gotone = true;
 								}
 							}
-							printDefaultParamErrorMsg = false;
+							printDefaultParamErrorMsg = false;*/
 							badParam = (int)i + 1;
 						}
 					}
@@ -566,31 +485,15 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 }
 
 
-
-void lua_stacktrace(lua_State* L)
+static void PrintError(UGError &err)
 {
-    lua_Debug entry;
-    for(int depth = 1; lua_getstack(L, depth, &entry); depth++)
+	for(size_t i=0;i<err.num_msg();++i)
 	{
-    	int status = lua_getinfo(L, "Sln", &entry);
-    	if(!status || !entry.short_src || entry.currentline < 0) return;
-		UG_LOG(entry.short_src << ":" << entry.currentline);
-		UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
-		UG_LOG("\n");
-    }
+		UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
+		UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
+		       ", line "<<err.get_line(i)<<"]\n");
+	}
 }
-
-string GetLuaFileAndLine(lua_State* L)
-{
-	lua_Debug entry;
-	lua_getstack(L, 1, &entry);
-	int status = lua_getinfo(L, "Sln", &entry);
-	if(!status || !entry.short_src || entry.currentline < 0) return string("");
-	std::stringstream ss;
-	ss << entry.short_src << ":" << entry.currentline;
-	return ss.str();
-}
-
 
 //	global functions are handled here
 //	Note that not the best matching, but the first matchin overload is chosen!
@@ -623,12 +526,7 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " in function ")
 				PrintFunctionInfo(*func);
 				UG_LOG(". Error traceback:\n");
-				for(size_t i=0;i<err.num_msg();++i)
-				{
-					UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
-					UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
-					       ", line "<<err.get_line(i)<<"]\n");
-				}
+				PrintError(err);
 				if(err.terminate())
 				{
 					UG_LOG(errSymb<<"Call stack:\n");
@@ -732,12 +630,7 @@ static int LuaProxyConstructor(lua_State* L)
 			UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " while ");
 			UG_LOG("creating class "<<c->name());
 			UG_LOG(". Error traceback:\n");
-			for(size_t i=0;i<err.num_msg();++i)
-			{
-				UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
-				UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
-				       ", line "<<err.get_line(i)<<"]\n");
-			}
+			PrintError(err);
 			if(err.terminate())
 			{
 				UG_LOG(errSymb<<"Call stack:\n");
