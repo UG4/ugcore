@@ -12,9 +12,14 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+//<< mscherer:
+// added clang pragma to ignore warnings about parentheses
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wparentheses"
 #pragma clang diagnostic pop
+#endif
+//>>
 
 
 #include "luaconf.h"
