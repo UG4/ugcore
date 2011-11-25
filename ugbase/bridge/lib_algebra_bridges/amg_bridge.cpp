@@ -187,6 +187,9 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_send_coarsening", &FAMG<algebra_type>::set_debug_level_send_coarsening)
 			.add_method("set_debug_level_communicate_prolongation", &FAMG<algebra_type>::set_debug_level_communicate_prolongation)
 			.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
+#ifdef UG_PARALLEL
+			.add_method("set_parallel_coarsening", &FAMG<algebra_type>::set_parallel_coarsening)
+#endif
 			;
 		reg.add_class_to_group(string("FAMGPreconditioner").append(algSuffix), "FAMGPreconditioner", algTag);
 
