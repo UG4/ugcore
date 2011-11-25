@@ -48,7 +48,6 @@ bool LUDecomp(DenseMatrix<matrix_t> &A, size_t *pInterchange)
 	}
 	else
 	{
-		int n = A.num_rows();
 		for(size_t k=0; k<n; k++)
 		{
 			if(dabs(A(k,k)) < 1e-10)
