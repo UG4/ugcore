@@ -96,8 +96,8 @@ public:
 		else
 		{
 			UG_ASSERT(0, "state is " << state << "?");
+			return 0;
 		}
-
 	}
 	void receive(int pid, size_t index, char state)
 	{
