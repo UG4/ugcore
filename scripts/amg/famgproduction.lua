@@ -24,8 +24,8 @@ end
 InitUG(dim, AlgebraType("CPU", 1));
 
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
-	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
+	-- gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
+	gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -148,36 +148,44 @@ end
 	end	
 	
 
+if dim = 3 then
+	diffusionMatrix =  ConstUserMatrix()
+	print(diffusionMatrix)
+	velocityField = ConstUserVector2d(0)
+	reaction = ConstUserNumber(0)
+	rhs = ConstUserNumber(0)
+	dirichlet = dirchletBnd2d
 
-problem = "rotatedAniso"
--------------------------------------------
---  Setup User Functions
--------------------------------------------
-if problem == "rotatedAniso" then
-diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
-print(diffusionMatrix)
-velocityField = ConstUserVector2d(0)
-reaction = ConstUserNumber(0)
-rhs = ConstUserNumber(0)
-dirichlet = dirchletBnd2d
+else
+	problem = "rotatedAniso"
+	-------------------------------------------
+	--  Setup User Functions
+	-------------------------------------------
+	if problem == "rotatedAniso" then
+	diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
+	print(diffusionMatrix)
+	velocityField = ConstUserVector2d(0)
+	reaction = ConstUserNumber(0)
+	rhs = ConstUserNumber(0)
+	dirichlet = dirchletBnd2d
+	end
+	
+	if problem == "hedgehog" then
+	diffusionMatrix = LuaUserMatrix("cbHedgehogDiffTensor2d")
+	velocityField = ConstUserVector2d(0)
+	reaction = ConstUserNumber(0)
+	rhs = ConstUserNumber(0)
+	dirichlet = dirchletBnd2d
+	end
+	
+	if problem == "jump" then
+	diffusionMatrix = LuaUserMatrix("cbJumpDiffTensor2d")
+	velocityField = ConstUserVector2d(0)
+	reaction = ConstUserNumber(0)
+	rhs = ConstUserNumber(0)
+	dirichlet = dirchletBnd2d
+	end
 end
-
-if problem == "hedgehog" then
-diffusionMatrix = LuaUserMatrix("cbHedgehogDiffTensor2d")
-velocityField = ConstUserVector2d(0)
-reaction = ConstUserNumber(0)
-rhs = ConstUserNumber(0)
-dirichlet = dirchletBnd2d
-end
-
-if problem == "jump" then
-diffusionMatrix = LuaUserMatrix("cbJumpDiffTensor2d")
-velocityField = ConstUserVector2d(0)
-reaction = ConstUserNumber(0)
-rhs = ConstUserNumber(0)
-dirichlet = dirchletBnd2d
-end
-
 --------------------------------
 -- User Data Functions (end)
 --------------------------------
@@ -298,7 +306,7 @@ end
 
 print ("create preconditioners... ")
 jac = Jacobi()
-jac:set_damp(0.8)
+jac:set_damp(0.66)
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
@@ -361,6 +369,11 @@ if bRSAMG == false then
 		amg:write_testvectors(true)
 	end
 	
+	if true then
+		amg:set_external_coarsening(true)
+		amg:set_parallel_coarsening(GetColorCoarsening())
+		-- amg:set_parallel_coarsening(GetRS3Coarsening())
+	end
 	
 	-- amg:set_debug_level_overlap(4, 4)
 	-- amg:set_use_precalculate(false)
@@ -369,14 +382,15 @@ if bRSAMG == false then
 	-- amg:set_debug_level_communicate_prolongation(4)
 	-- amg:set_debug_level_overlap(4,4)
 	-- amg:set_debug_level_calculate_parent_pairs(2)
-	 -- amg:set_debug_level_precalculate_coarsening(4)
+	-- amg:set_debug_level_precalculate_coarsening(4)
 	-- amg:set_debug_level_calculate_parent_pairs(4)
 else
 	print ("create AMG... ")
 	amg = RSAMGPreconditioner()
 	-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
-	amg:set_parallel_coarsening(GetColorCoarsening())
-	-- amg:set_parallel_coarsening(GetRS3Coarsening())
+	-- amg:set_parallel_coarsening(GetColorCoarsening())
+	amg:set_parallel_coarsening(GetRS3Coarsening())
+	-- amg:set_parallel_coarsening(GetSimpleParallelCoarsening())
 	-- amg:enable_aggressive_coarsening_A(2)
 end
 
@@ -438,7 +452,18 @@ linSolver:init(linOp)
 -- 3. apply solver
 print("Apply solver.")
 tBefore = os.clock()
+
+
+-- amg:check(u, b)
+
+convCheck:set_maximum_steps(6)
+
 linSolver:apply_return_defect(u,b)
+
+
+SaveVectorForConnectionViewer(b, "Rhs2.vec")
+SaveVectorForConnectionViewer(u, "u2.vec")
+
 tSolve = os.clock()-tBefore
 -- WriteGridFunctionToVTK(u, "Solution")
 
