@@ -43,6 +43,9 @@ void createPrism(vec3Ref v1, vec3Ref v2, vec3Ref v3,
 				 vec3Ref v4, vec3Ref v5, vec3Ref v6,
 				 CoordsArray& posOut, IndexArray& indsOut);
 
+void createTetrahedron(vec3Ref v1, vec3Ref v2, vec3Ref v3, vec3Ref v4,
+		CoordsArray& posOut, IndexArray& indsOut);
+
 } // end of namespace tkdGenerator
 }//	end of namespace ug
 

@@ -13,6 +13,53 @@ namespace ug{
 
 namespace tkdGenerator{
 
+/*
+*  +cos(t)  0  - sin(t)+
+   |                   |
+   |  0     1     0    |
+   |                   |
+   +sin(t)  0   cos(t) +
+*/
+class rotationMatrix {
+public:
+	void setAngle(const number& theta) {
+		R[0][0] = cos(theta);
+		R[0][2] = -sin(theta);
+		R[2][0] = sin(theta);
+		R[2][2] = cos(theta);
+	}
+
+	rotationMatrix(const number& theta) {
+			R[0][0] = cos(theta);
+			R[0][1] = 0;
+			R[0][2] = -sin(theta);
+
+			R[1][0] = 0;
+			R[1][1] = 1;
+			R[1][2] = 0;
+
+			R[2][0] = sin(theta);
+			R[2][1] = 0;
+			R[2][2] = cos(theta);
+	}
+
+	const vector3& operator*(vector3& v) {
+		// temp values
+		number x, y, z;
+		x = R[0][0] * v[0] + R[0][1] * v[1] + R[0][2] * v[2];
+		y = R[1][0] * v[0] + R[1][1] * v[1] + R[1][2] * v[2];
+		z = R[2][0] * v[0] + R[2][1] * v[1] + R[2][2] * v[2];
+
+		v[0] = x;
+		v[1] = y;
+		v[2] = z;
+		return v;
+	}
+
+protected:
+	number R[3][3];
+};
+
 // global index for nodes
 static unsigned int index = 0;
 
@@ -20,7 +67,6 @@ void GenerateTetrakaidecahedron(Grid& grid, number& height, number& baseEdgeLeng
 {
 	CoordsArray positions;
 	IndexArray indices;
-
 
 //	fill the arrays
 	GenerateTetrakaidecahedron(positions, indices, height, baseEdgeLength, diameter);
@@ -65,73 +111,83 @@ void GenerateTetrakaidecahedron(CoordsArray& posOut, IndexArray& indsOut,
 	// baseEdgeLength
 	number a = baseEdgeLength;
 	// height of one level of decomposition which is 1/3 of overall height of the tkd
-	number h = height/ 3;
+	number h = height / 3;
 	// quantity s, overlap of two aligned tkd's
-	number s = 1 / pow(3, 0.5) * (diameter - 2 * baseEdgeLength);
+	number s = 1 / sqrt(3) * (diameter - 2 * baseEdgeLength);
 	// height of base triangle of top inner prism
-	number hAp = sqrt(3) * a / 2;
+	number g = sqrt(3) * a / 2;
+	// TODO whats this again?
+	number b = sqrt(3) * s / 2;
 
+	UG_LOG("g: " << g << endl);
+	UG_LOG("s: " << s << endl);
+
+	// origin of construction of tkd
+	const vector3 origin(30, 0, 30);
+	// Rotation matrix with initial rotation angle of 0 (rad)
+	rotationMatrix R(0);
 
 	// create G(Ki -> ObenInnen) = 6 prism with equilateral sites
 	// rotate prism around (0, y, 0) with step angle 60° = PI/3 (rad)
-	/**
-	 * rotation matrix:
-	 *  +cos(t)  0  - sin(t)+
-        |                   |
-        |  0     1     0    |
-        |                   |
-        +sin(t)  0   cos(t) +
-	 */
 	for(number t = 0; t < 2*PI; t += PI/3) {
-		number x = (-2*hAp * sin(t) + a*cos(t)) /2;
-		number z = (a*sin(t) + 2*hAp * cos(t)) /2;
+		// switch angle of rotation matrix
+		R.setAngle(t);
 
-		createPrism(vector3(0, 0, 0),				// invariant
-					vector3(a*cos(t), 0, a*sin(t)), // (a, 0, 0)
-					vector3(x, 0, z), 				// (a/2, 0, hAp)
-					vector3(0, h, 0), 				// invariant
-					vector3(a*cos(t), h, a*sin(t)), // (a, h, 0)
-					vector3(x, h, z), 				// (a/2, h, hAp)
-					posOut, indsOut);
+		// begin in origin
+		// copy origin, because operator works in place
+		vector3 copy = vector3(origin);
+		vector3 v1 = R * copy;
+		// create surrounding vertices relative to origin
+		vector3 v2 = R * (vector3(a, 0, 0) += origin);
+		vector3 v3 = R * (vector3(a/2, 0, g) += origin);
+		vector3 v4 = R * (vector3(0, h, 0) += origin);
+		vector3 v5 = R * (vector3(a, h, 0) += origin);
+		vector3 v6 = R * (vector3(a/2, h, g) += origin);
+
+		createPrism(v1,	v2, v3, v4, v5, v6,	posOut, indsOut);
 	}
 
-	// TODO create G(Ki -> ObenAussenPr2T)
-	for(number t = 0; t < 2*PI; t += (2./3 * PI)) {
+	// create G(Ki -> ObenAussenPr2T)
+	for(number t = 2./3 * PI; t < 2*PI; t += (2./3 * PI)) {
+		R.setAngle(t);
+		vector3 v1_a = R * (vector3(a/2, 0, g) += origin);
+		vector3 v2_a = R * (vector3(a/2, 0, g + s) += origin);
+		vector3 v3_a = R * (vector3(a/2 + b, 0, g + s/2) += origin);
+		vector3 v4_a = R * (vector3(a/2, h, g) += origin);
+		// left tetrahedron right of prism of ObenAussenPr
+		createTetrahedron(v1_a, v2_a, v3_a, v4_a, posOut, indsOut);
 
-	}
+		//TODO calculate correct offset
+//		number offset = a+2*b;
+//		vector3 v1_b = R * (vector3(a/2, 0, g) += origin);
+//		vector3 v2_b = R * (vector3(a/2, 0, g + offset) += origin);
+//		vector3 v3_b = R * (vector3(a/2 + b, 0, g + offset) += origin);
+//		vector3 v4_b = R * (vector3(a/2, h, g) += origin);
+//		// right
+//		createTetrahedron(v1_b, v2_b, v3_b, v4_b, posOut, indsOut);
 
+		// Prism of ObenAussenPr2T
+		vector3 v1p = R * (vector3(a/2, 0, g) += origin);
+		vector3 v2p = R * (vector3(a/2, h, g) += origin);
+		vector3 v3p = R * (vector3(a/2 + b, 0, g + s/2) += origin);
+		// OK
+		// vorzeichen wechsel x
+		vector3 v4p = R * (vector3(a/2 + b + a, 0, g) += origin);
+		vector3 v5p = R * (vector3(a/2, h, g) += origin);
+		vector3 v6p = R * (vector3(a/2 + b + a, 0, g + s/2) += origin);
 
-	// create G(Ki -> ObenAussenPr):
-	// create 3 prisms every 120° or 2/3 PI (rad)
-	for(number t = 0; t < 2*PI; t += (2./3 * PI)) {
-		// for vertex 1 and v2
-		number x = (-2*hAp*sin(t) + a*cos(t))/2;
-		number z = (a*sin(t) + 2*hAp*cos(t))/2;
+		createPrism(v1p, v2p, v3p, v4p, v5p, v6p, posOut, indsOut);
 
-		// for v3
-		number xs = ((-2*s - 2*hAp)*sin(t) + a* cos(t))/2;
-		number zs = (a*sin(t) + (2*s + 2*hAp)*cos(t))/2;
+		// create G(Ki -> ObenAussenPr):
+		// create 3 prisms every 120° or 2/3 PI (rad)
+		vector3 v1 = R * (vector3(a/2, 0, g) += origin);
+		vector3 v2 = R * (vector3(a/2, h, g) += origin);
+		vector3 v3 = R * (vector3(a/2, 0, g + s) += origin);
+		vector3 v4 = R * (vector3(-a/2, 0, g) += origin);
+		vector3 v5 = R * (vector3(-a/2, h, g) += origin);
+		vector3 v6 = R * (vector3(-a/2, 0, g + s) += origin);
 
-		// for v4: equal to x, z but with different sign
-		number xn = (-2*hAp*sin(t) - a*cos(t))/2;
-		number zn = (-a*sin(t) + 2*hAp*cos(t))/2;
-
-		// for v5:
-		number xng = (-2*hAp*sin(t) - a*cos(t))/2;
-		number zng = (-a*sin(t) + 2*hAp*cos(t))/2;
-
-		// for v6:
-		number xns = ((-2*s - 2*hAp)*sin(t) - a*cos(t))/2;
-		number zns = (-a*sin(t) + (2*s + 2*hAp)*cos(t))/2;
-
-		createPrism(vector3(x, 0, z), // a/2, 0, hAp
-					vector3(x, h, z), // a/2, h, hAp
-					vector3(xs, 0, zs), // a/2, 0, hAp + s
-
-					vector3(xn, 0, zn), // -a/2, 0, hAp
-					vector3(xng, h, zng), // -a/2, h, hAp
-					vector3(xns, 0, zns), // -a/2, 0, hAp + s
-					posOut, indsOut);
+		createPrism(v1, v2, v3, v4, v5, v6, posOut, indsOut);
 	}
 }
 
@@ -152,6 +208,28 @@ void createPrism(vec3Ref v1, vec3Ref v2, vec3Ref v3,
 	for(unsigned int current = index; index < current + 6; index++) {
 		indsOut.push_back(index);
 	}
+}
+
+
+/**
+ * please be sure to pass the vertices in the correct order:
+ * v1, v2, v3: bottom-vertices in counterclockwise order (if viewed from the top).
+ * v4: top
+ */
+void createTetrahedron(vec3Ref v1, vec3Ref v2, vec3Ref v3, vec3Ref v4,
+		CoordsArray& posOut, IndexArray& indsOut) {
+		posOut.push_back(v1);
+		posOut.push_back(v2);
+		posOut.push_back(v3);
+		// top
+		posOut.push_back(v4);
+
+		// 4 nodes
+		indsOut.push_back(4);
+		// enum each node of prism to assign unique node index
+		for(unsigned int current = index; index < current + 4; index++) {
+			indsOut.push_back(index);
+		}
 }
 
 }// end of namespace tkdGenerator
