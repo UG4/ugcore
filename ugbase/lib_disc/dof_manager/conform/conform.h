@@ -59,7 +59,7 @@ class ConformStorageManager
 		bool update_attachments();
 
 	///	returns the associated grid
-		Grid* get_assigned_grid() {return m_pGrid;}
+		Grid* grid() {return m_pGrid;}
 
 	///	returns the underlying subset handler
 		ISubsetHandler* subset_handler() {return m_pSH;}

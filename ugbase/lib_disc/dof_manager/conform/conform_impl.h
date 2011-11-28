@@ -367,7 +367,7 @@ void DoFDistribution::indices(TElem* elem, LocalIndices& ind, bool bHang) const
 	for(size_t fct = 0; fct < num_fct(); ++fct) ind.clear_dof(fct);
 
 // 	Grid
-	Grid* grid = m_pStorageManager->get_assigned_grid();
+	Grid* grid = m_pStorageManager->grid();
 
 //	Flag to indicate iff orientation is required. If this is the case, the
 //	vertices must be extracted in any case, since the orientation is done via
@@ -440,7 +440,7 @@ size_t DoFDistribution::multi_indices(TElem* elem, size_t fct,
 	static const int dim = ref_elem_type::dim;
 
 // 	Grid
-	Grid* grid = m_pStorageManager->get_assigned_grid();
+	Grid* grid = m_pStorageManager->grid();
 
 //	Flag to indicate iff orientation is required. If this is the case, the
 //	vertices must be extracted in any case, since the orientation is done via
@@ -656,7 +656,7 @@ size_t DoFDistribution::inner_multi_indices(TElem* elem, size_t fct,
 	if(d < m_maxDimWithDoFs && numDoFsOnSub > 1)
 	{
 	// 	Grid
-		Grid* grid = m_pStorageManager->get_assigned_grid();
+		Grid* grid = m_pStorageManager->grid();
 
 	//	get corners
 		std::vector<VertexBase*> vCorner;
@@ -726,7 +726,7 @@ size_t DoFDistribution::algebra_indices(TElem* elem,
 	static const int dim = ref_elem_type::dim;
 
 // 	Grid
-	Grid* grid = m_pStorageManager->get_assigned_grid();
+	Grid* grid = m_pStorageManager->grid();
 
 //	get all sub-elements and add indices on those
 //	\todo: Do we really need them sorted ?!

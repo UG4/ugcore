@@ -47,13 +47,13 @@ class P1StorageManager
 		bool update_attachments();
 
 	///	returns the associated grid
-		Grid* get_assigned_grid() {return m_pGrid;}
+		Grid* grid() {return m_pGrid;}
 
 	///	returns the underlying subset handler
 		ISubsetHandler* subset_handler() {return m_pSH;}
 
 	///	returns the attachment accessor
-		vertex_attachment_accessor_type& get_vertex_attachment_accessor()
+		vertex_attachment_accessor_type& vertex_attachment_accessor()
 			{return m_aaDoFVRT;}
 
 	protected:
@@ -111,7 +111,7 @@ class P1DoFDistribution
 		                  ISubsetHandler& sh, storage_manager_type& sm,
 		                  FunctionPattern& fp)
 		: base_type(goc, fp), m_bGrouped(false), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
+		  m_pStorageManager(&sm), m_raaVrtDoF(sm.vertex_attachment_accessor()),
 		  m_numIndex(0), m_sizeIndexSet(0)
 		{
 			m_vNumIndex.clear();
@@ -130,7 +130,7 @@ class P1DoFDistribution
 		                  FunctionPattern& fp,
 		                  const SurfaceView& surfView)
 		: base_type(goc, fp, surfView), m_bGrouped(false), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_raaVrtDoF(sm.get_vertex_attachment_accessor()),
+		  m_pStorageManager(&sm), m_raaVrtDoF(sm.vertex_attachment_accessor()),
 		  m_numIndex(0), m_sizeIndexSet(0)
 		{
 			m_vNumIndex.clear();

@@ -624,7 +624,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection)
 	std::vector<Volume*> vVols;
 
 // 	Grid
-	Grid* grid = m_pStorageManager->get_assigned_grid();
+	Grid* grid = m_pStorageManager->grid();
 
 // 	Iterators
 	typename geometry_traits<TBaseElem>::iterator iter, iterBegin, iterEnd;
