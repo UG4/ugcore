@@ -270,12 +270,14 @@ void HangingNodeRefinerBase::refine()
 			else
 				refine_edge_with_hanging_vertex(e);
 */
-			if(marked_for_hnode_refinement(e))
+			if(marked_for_hnode_refinement(e)){
 				refine_edge_with_hanging_vertex(e);
-			else
+			}
+			else{
 				refine_edge_with_normal_vertex(e);
-
+			}
 		}
+		UG_LOG("\n");
 	}
 
 
@@ -495,12 +497,12 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		{
 			if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>((*iter)->get_constraining_object()))
 			{
-				if(!is_marked(cge))
+				if(!is_marked(cge) && refinement_is_allowed(cge))
 					qEdges.push(cge);
 			}
 			else if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
 			{
-				if(!is_marked(cgf))
+				if(!is_marked(cgf) && refinement_is_allowed(cgf))
 					qFaces.push(cgf);
 			}
 		}
@@ -509,7 +511,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		{
 			if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
 			{
-				if(!is_marked(cgf))
+				if(!is_marked(cgf) && refinement_is_allowed(cgf))
 					qFaces.push(cgf);
 			}
 		}
@@ -518,11 +520,30 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		{
 			if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
 			{
-				if(!is_marked(cgf))
+				if(!is_marked(cgf) && refinement_is_allowed(cgf))
 					qFaces.push(cgf);
 			}
 		}
+
+	//	we have to make sure that all unmarked higher dimensional elements
+	//	of marked constraining elements are marked!
+		collect_associated_unmarked_faces(qFaces, grid,
+							m_selMarkedElements.begin<ConstrainingEdge>(),
+							m_selMarkedElements.end<ConstrainingEdge>(), true);
+
+		collect_associated_unmarked_volumes(qVols, grid,
+					m_selMarkedElements.begin<ConstrainingEdge>(),
+					m_selMarkedElements.end<ConstrainingEdge>(), true);
+
+		collect_associated_unmarked_volumes(qVols, grid,
+					m_selMarkedElements.begin<ConstrainingTriangle>(),
+					m_selMarkedElements.end<ConstrainingTriangle>(), true);
+
+		collect_associated_unmarked_volumes(qVols, grid,
+					m_selMarkedElements.begin<ConstrainingQuadrilateral>(),
+					m_selMarkedElements.end<ConstrainingQuadrilateral>(), true);
 	}
+
 
 //	if a hanging node may only lie on an edge or a face with regular corner-vertices,
 //	then we have to push all hanging nodes to a queue in order to further refine
@@ -533,7 +554,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
 		{
 			for(size_t i = 0; i < 2; ++i){
-				if(HangingVertex::type_match((*iter)->vertex(i))){
+				if(HangingVertex::type_match((*iter)->vertex(i))
+				   && refinement_is_allowed((*iter)->vertex(i))){
 					qHVrts.push(static_cast<HangingVertex*>((*iter)->vertex(i)));
 				}
 			}
@@ -547,7 +569,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			{
 				Face* f = *iter;
 				for(size_t i = 0; i < f->num_vertices(); ++i){
-					if(HangingVertex::type_match(f->vertex(i))){
+					if(HangingVertex::type_match(f->vertex(i))
+					   && refinement_is_allowed(f->vertex(i))){
 						qHVrts.push(static_cast<HangingVertex*>(f->vertex(i)));
 					}
 				}
@@ -566,15 +589,17 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			HangingVertex* hv = qHVrts.front();
 			qHVrts.pop();
 
+			UG_ASSERT(refinement_is_allowed(hv), "Vertex may only be queued if refinement is allowed.");
+
 		//	find unmarked parents of qHVrts.
 			GeometricObject* co = hv->get_parent();
 			if(co){
 				if(EdgeBase* e = dynamic_cast<EdgeBase*>(co)){
-					if(!is_marked(e))
+					if(!is_marked(e) && refinement_is_allowed(e))
 						qEdges.push(e);
 				}
 				else if(Face* f = dynamic_cast<Face*>(co)){
-					if(!is_marked(f))
+					if(!is_marked(f) && refinement_is_allowed(f))
 						qFaces.push(f);
 				}
 			}
@@ -587,6 +612,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			EdgeBase* e = qEdges.front();
 			qEdges.pop();
 
+			UG_ASSERT(refinement_is_allowed(e), "Edge may only be queued if refinement is allowed.");
+
 		//	if the edge is already marked, we'll continue with the next one.
 			if(is_marked(e))
 				continue;
@@ -598,7 +625,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		//	for associated hanging vertices and push them to qHVrts.
 			if(node_dependency_order_1_enabled()){
 				for(size_t i = 0; i < 2; ++i){
-					if(HangingVertex::type_match(e->vertex(i))){
+					if(HangingVertex::type_match(e->vertex(i))
+					   && refinement_is_allowed(e->vertex(i))){
 						qHVrts.push(static_cast<HangingVertex*>(e->vertex(i)));
 					}
 				}
@@ -612,13 +640,13 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 				if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(
 											cde->get_constraining_object()))
 				{
-					if(!is_marked(cge))
+					if(!is_marked(cge) && refinement_is_allowed(cge))
 						qEdges.push(cge);
 				}
 				else if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(
 											cde->get_constraining_object()))
 				{
-					if(!is_marked(cgf))
+					if(!is_marked(cgf) && refinement_is_allowed(cgf))
 						qFaces.push(cgf);
 				}
 				else{
@@ -631,7 +659,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 				if(grid.num_faces() > 0){
 					CollectFaces(vFaces, grid, cge);
 					for(size_t i = 0; i < vFaces.size(); ++i){
-						if(!is_marked(vFaces[i]))
+						if(!is_marked(vFaces[i]) && refinement_is_allowed(vFaces[i]))
 							qFaces.push(vFaces[i]);
 					}
 				}
@@ -639,7 +667,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 				if(grid.num_volumes() > 0){
 					CollectVolumes(vVols, grid, cge);
 					for(size_t i = 0; i < vVols.size(); ++i){
-						if(!is_marked(vVols[i]))
+						if(!is_marked(vVols[i]) && refinement_is_allowed(vVols[i]))
 							qVols.push(vVols[i]);
 					}
 				}
@@ -654,6 +682,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			Face* f = qFaces.front();
 			qFaces.pop();
 
+			UG_ASSERT(refinement_is_allowed(f), "Face may only be queued if refinement is allowed.");
+
 		//	if the face is already marked, we'll continue with the next one.
 			if(is_marked(f))
 				continue;
@@ -665,7 +695,9 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		//	for associated hanging vertices and push them to qHVrts.
 			if(node_dependency_order_1_enabled()){
 				for(size_t i = 0; i < f->num_vertices(); ++i){
-					if(HangingVertex::type_match(f->vertex(i))){
+					if(HangingVertex::type_match(f->vertex(i))
+					    && refinement_is_allowed(f->vertex(i)))
+					{
 						qHVrts.push(static_cast<HangingVertex*>(f->vertex(i)));
 					}
 				}
@@ -676,7 +708,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			if(!marked_anisotropic(f)){
 				CollectEdges(vEdges, grid, f);
 				for(size_t i = 0; i < vEdges.size(); ++i){
-					if(!is_marked(vEdges[i]))
+					if(!is_marked(vEdges[i]) && refinement_is_allowed(vEdges[i]))
 						qEdges.push(vEdges[i]);
 				}
 			}
@@ -687,7 +719,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 				if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(
 											cdf->get_constraining_object()))
 				{
-					if(!is_marked(cgf))
+					if(!is_marked(cgf) && refinement_is_allowed(cgf))
 						qFaces.push(cgf);
 				}
 				else{
@@ -699,7 +731,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 				if(grid.num_volumes() > 0){
 					CollectVolumes(vVols, grid, cgf);
 					for(size_t i = 0; i < vVols.size(); ++i){
-						if(!is_marked(vVols[i]))
+						if(!is_marked(vVols[i]) && refinement_is_allowed(vVols[i]))
 							qVols.push(vVols[i]);
 					}
 				}
@@ -713,6 +745,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			Volume* v = qVols.front();
 			qVols.pop();
 
+			UG_ASSERT(refinement_is_allowed(v), "Volume may only be queued if refinement is allowed.");
+
 		//	if the volume is already marked, we'll continue with the next one.
 			if(is_marked(v))
 				continue;
@@ -723,13 +757,13 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		//	we have to make sure that all associated edges and faces are marked.
 			CollectEdges(vEdges, grid, v);
 			for(size_t i = 0; i < vEdges.size(); ++i){
-				if(!is_marked(vEdges[i]))
+				if(!is_marked(vEdges[i]) && refinement_is_allowed(vEdges[i]))
 					qEdges.push(vEdges[i]);
 			}
 
 			CollectFaces(vFaces, grid, v);
 			for(size_t i = 0; i < vFaces.size(); ++i){
-				if(!is_marked(vFaces[i]))
+				if(!is_marked(vFaces[i]) && refinement_is_allowed(vFaces[i]))
 					qFaces.push(vFaces[i]);
 			}
 		}
@@ -748,7 +782,7 @@ collect_associated_unmarked_edges(std::queue<EdgeBase*>& qEdgesOut, Grid& grid,
 		{
 			CollectEdges(vEdges, grid, *iter);
 			for(size_t i = 0; i < vEdges.size(); ++i){
-				if(!is_marked(vEdges[i]))
+				if(!is_marked(vEdges[i]) && refinement_is_allowed(vEdges[i]))
 					qEdgesOut.push(vEdges[i]);
 			}
 		}
@@ -767,7 +801,7 @@ collect_associated_unmarked_faces(std::queue<Face*>& qFacesOut, Grid& grid,
 		{
 			CollectFaces(vFaces, grid, *iter);
 			for(size_t i = 0; i < vFaces.size(); ++i){
-				if(!is_marked(vFaces[i]))
+				if(!is_marked(vFaces[i]) && refinement_is_allowed(vFaces[i]))
 					qFacesOut.push(vFaces[i]);
 			}
 		}
@@ -786,7 +820,7 @@ collect_associated_unmarked_volumes(std::queue<Volume*>& qVolsOut, Grid& grid,
 		{
 			CollectVolumes(vVols, grid, *iter);
 			for(size_t i = 0; i < vVols.size(); ++i){
-				if(!is_marked(vVols[i]))
+				if(!is_marked(vVols[i]) && refinement_is_allowed(vVols[i]))
 					qVolsOut.push(vVols[i]);
 			}
 		}
@@ -801,39 +835,43 @@ assign_hnode_marks()
 //	Note that we won't mark any new elements here - we only adjust the marks.
 //	Note also that we won't remove any marks during this algorithm (neither normal
 //	nor hnode marks).
-	vector<EdgeBase*> edges;
 	vector<Face*> faces;
+	vector<Volume*> vols;
 
 //	the grid
 	UG_ASSERT(m_pGrid, "A grid is required to perform this operation!");
 	Grid& grid = *m_pGrid;
 
-//todo:	For small selections it might be beneficial to only iterate over the selected
-//		edges and check whether one of the associated faces is unselected...
-//		Same for volumes.
-	for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
-	{
-		Face* f = *iter;
-		if(!m_selMarkedElements.is_selected(f) && refinement_is_allowed(f)){
-			CollectAssociated(edges, grid, f);
-			for(size_t i = 0; i < edges.size(); ++i){
-				byte selStatus = m_selMarkedElements.get_selection_status(edges[i]);
-				if(selStatus != 0)
-					mark_for_hnode_refinement(edges[i], true);
+	if(grid.num<Face>() > 0){
+		for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
+			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
+		{
+			EdgeBase* e = *iter;
+			CollectAssociated(faces, grid, e);
+			for(size_t i = 0; i < faces.size(); ++i){
+				if(refinement_is_allowed(faces[i])
+				   && (!m_selMarkedElements.is_selected(faces[i])))
+				{
+					mark_for_hnode_refinement(e, true);
+					break;
+				}
 			}
 		}
 	}
 
-	for(VolumeIterator iter = grid.begin<Volume>();
-		iter != grid.end<Volume>(); ++iter)
-	{
-		Volume* v = *iter;
-		if(!m_selMarkedElements.is_selected(v) && refinement_is_allowed(v)){
-			CollectAssociated(faces, grid, v);
-			for(size_t i = 0; i < faces.size(); ++i){
-				byte selStatus = m_selMarkedElements.get_selection_status(faces[i]);
-				if(selStatus != 0)
-					mark_for_hnode_refinement(faces[i], true);
+	if(grid.num<Volume>() > 0){
+		for(FaceIterator iter = m_selMarkedElements.begin<Face>();
+			iter != m_selMarkedElements.end<Face>(); ++iter)
+		{
+			Face* f = *iter;
+			CollectAssociated(vols, grid, f);
+			for(size_t i = 0; i < vols.size(); ++i){
+				if(refinement_is_allowed(vols[i])
+				   && (!m_selMarkedElements.is_selected(vols[i])))
+				{
+					mark_for_hnode_refinement(f, true);
+					break;
+				}
 			}
 		}
 	}

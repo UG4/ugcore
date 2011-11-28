@@ -60,6 +60,36 @@ set_grid(MultiGrid* mg)
 	m_pMG = mg;
 }
 
+bool
+HangingNodeRefiner_MultiGrid::
+refinement_is_allowed(VertexBase* elem)
+{
+	return !m_pMG->has_children(elem);
+}
+
+bool
+HangingNodeRefiner_MultiGrid::
+refinement_is_allowed(EdgeBase* elem)
+{
+	return (!m_pMG->has_children(elem))
+			|| ConstrainingEdge::type_match(elem);
+}
+
+bool
+HangingNodeRefiner_MultiGrid::
+refinement_is_allowed(Face* elem)
+{
+	return (!m_pMG->has_children(elem))
+			|| ConstrainingFace::type_match(elem);
+}
+
+bool
+HangingNodeRefiner_MultiGrid::
+refinement_is_allowed(Volume* elem)
+{
+	return !m_pMG->has_children(elem);
+}
+
 void HangingNodeRefiner_MultiGrid::
 pre_refine()
 {
@@ -133,95 +163,10 @@ collect_objects_for_refine()
 
 	MultiGrid& mg = *m_pMG;
 
-//	make sure that no element which has children is selected
-//	(except constraining edges and faces)
-	for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-		iter != m_selMarkedElements.end<EdgeBase>();)
-	{
-		EdgeBase* e = *iter;
-		++iter;
-
-		if(mg.has_children(e)){
-			if(!ConstrainingEdge::type_match(e))
-				m_selMarkedElements.deselect(e);
-		}
-	}
-
-	for(FaceIterator iter = m_selMarkedElements.begin<Face>();
-		iter != m_selMarkedElements.end<Face>();)
-	{
-		Face* f = *iter;
-		++iter;
-
-		if(mg.has_children(f)){
-			if(!ConstrainingFace::type_match(f))
-				m_selMarkedElements.deselect(f);
-		}
-	}
-
-	for(VolumeIterator iter = m_selMarkedElements.begin<Volume>();
-		iter != m_selMarkedElements.end<Volume>();)
-	{
-		Volume* v = *iter;
-		++iter;
-
-		if(mg.has_children(v)){
-			m_selMarkedElements.deselect(v);
-		}
-	}
-
 //	first call base implementation
 	HangingNodeRefinerBase::collect_objects_for_refine();
 
-//	make sure that no element which has children is selected
-//	(except constraining edges and faces)
-	for(VertexBaseIterator iter = m_selMarkedElements.begin<VertexBase>();
-		iter != m_selMarkedElements.end<VertexBase>();)
-	{
-		VertexBase* v = *iter;
-		++iter;
-
-		if(mg.has_children(v)){
-			m_selMarkedElements.deselect(v);
-		}
-	}
-
-	for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-		iter != m_selMarkedElements.end<EdgeBase>();)
-	{
-		EdgeBase* e = *iter;
-		++iter;
-
-		if(mg.has_children(e)){
-			if(!ConstrainingEdge::type_match(e))
-				m_selMarkedElements.deselect(e);
-		}
-	}
-
-	for(FaceIterator iter = m_selMarkedElements.begin<Face>();
-		iter != m_selMarkedElements.end<Face>();)
-	{
-		Face* f = *iter;
-		++iter;
-
-		if(mg.has_children(f)){
-			if(!ConstrainingFace::type_match(f))
-				m_selMarkedElements.deselect(f);
-		}
-	}
-
-	for(VolumeIterator iter = m_selMarkedElements.begin<Volume>();
-		iter != m_selMarkedElements.end<Volume>();)
-	{
-		Volume* v = *iter;
-		++iter;
-
-		if(mg.has_children(v)){
-			m_selMarkedElements.deselect(v);
-		}
-	}
-
-//	finally we have to select all associated vertices of marked objects,
+//	now select all associated vertices of marked objects,
 //	since we have to create new vertices in the next levels of the hierarchies.
 //	only vertices which do not already have child vertices are selected.
 	for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();

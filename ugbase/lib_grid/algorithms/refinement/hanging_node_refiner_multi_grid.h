@@ -39,6 +39,15 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		virtual Grid* get_associated_grid()		{return m_pMG;}
 
 	protected:
+	///	a callback that allows to deny refinement of special vertices
+		virtual bool refinement_is_allowed(VertexBase* elem);
+	///	a callback that allows to deny refinement of special edges
+		virtual bool refinement_is_allowed(EdgeBase* elem);
+	///	a callback that allows to deny refinement of special faces
+		virtual bool refinement_is_allowed(Face* elem);
+	///	a callback that allows to deny refinement of special volumes
+		virtual bool refinement_is_allowed(Volume* elem);
+
 	///	performs registration and deregistration at a grid.
 	/**	Initializes all grid related variables.
 	 *  call set_grid(NULL) to unregister the observer from a grid.

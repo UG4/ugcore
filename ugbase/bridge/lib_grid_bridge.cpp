@@ -60,7 +60,7 @@ bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 
 ///	Saves a grid hierarchy by offsetting levels along the z-axis.
 /**	Note that this method might better be implemented for domains.*/
-void SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
+bool SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
 								  const char* filename, number offset)
 {
 //	cast away constness
@@ -91,12 +91,53 @@ void SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
 
 //	finally save the grid
 	//SaveGridToFile(mg, sh, filename, aPos);
-	SaveGridToUGX(mg, sh, filename, aPos);
+	bool writeSuccess = SaveGridToUGX(mg, sh, filename, aPos);
 
 //	clean up
 	mg.detach_from_vertices(aPos);
+
+	return writeSuccess;
 }
 
+///	Saves a grid hierarchy by offsetting levels along the z-axis.
+/**	Note that this method might better be implemented for domains.*/
+bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename, number offset)
+{
+//	cast away constness
+	SubsetHandler& sh = mg.get_hierarchy_handler();
+
+	APosition aPos;
+//	uses auto-attach
+	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+
+//	copy the existing position to aPos. We take care of dimension differences.
+//	Note:	if the method was implemented for domains, this could be implemented
+//			in a nicer way.
+	if(mg.has_vertex_attachment(aPosition))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+	else if(mg.has_vertex_attachment(aPosition2))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+	else if(mg.has_vertex_attachment(aPosition1))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+
+//	iterate through all vertices and apply an offset depending on their level.
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
+			iter != mg.end<VertexBase>(lvl); ++iter)
+		{
+			aaPos[*iter].z += (number)lvl * offset;
+		}
+	}
+
+//	finally save the grid
+	//SaveGridToFile(mg, sh, filename, aPos);
+	bool writeSuccess = SaveGridToUGX(mg, sh, filename, aPos);
+
+//	clean up
+	mg.detach_from_vertices(aPos);
+
+	return writeSuccess;
+}
 
 bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
@@ -640,7 +681,14 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const char*)>(&SaveGrid), grp)
 			.add_function("LoadGridObject", &LoadGridObject, grp)
 			.add_function("SaveGridObject", &SaveGridObject, grp)
-			.add_function("SaveGridHierarchyTransformed", &SaveGridHierarchyTransformed, grp)
+			.add_function("SaveGridHierarchyTransformed",
+						  static_cast<bool (*)(MultiGrid&, const SubsetHandler&, const char*, number)>(
+								  &SaveGridHierarchyTransformed),
+						  grp)
+			.add_function("SaveGridHierarchyTransformed",
+						  static_cast<bool (*)(MultiGrid&, const char*, number)>(
+								  &SaveGridHierarchyTransformed),
+						  grp)
 			.add_function("CreateGridObject", &CreateGridObject, grp)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(Grid&)>(&PrintGridElementNumbers), grp);

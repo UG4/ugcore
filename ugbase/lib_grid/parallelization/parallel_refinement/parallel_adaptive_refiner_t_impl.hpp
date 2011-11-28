@@ -95,7 +95,7 @@ mark(EdgeBase* e, RefinementMark refMark)
 		if((refMark != oldMark)
 		  && (!m_pMG->has_children(e))
 		  && m_pDistGridMgr->is_interface_element(e))
-			m_bNewInterfaceVerticesMarked = true;
+			m_bNewInterfaceEdgesMarked = true;
 		return true;
 	}
 	return false;
@@ -111,7 +111,7 @@ mark(Face* f, RefinementMark refMark)
 		if((refMark != oldMark)
 		  && (!m_pMG->has_children(f))
 		  && m_pDistGridMgr->is_interface_element(f))
-			m_bNewInterfaceVerticesMarked = true;
+			m_bNewInterfaceFacesMarked = true;
 		return true;
 	}
 	return false;
@@ -127,7 +127,7 @@ mark(Volume* v, RefinementMark refMark)
 		if((refMark != oldMark)
 		  && (!m_pMG->has_children(v))
 		  && m_pDistGridMgr->is_interface_element(v))
-			m_bNewInterfaceVerticesMarked = true;
+			m_bNewInterfaceVolumesMarked = true;
 		return true;
 	}
 	return false;
@@ -174,7 +174,6 @@ collect_objects_for_refine()
 		m_bNewInterfaceVolumesMarked = false;
 
 		if(exchangeFlag){
-
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
@@ -210,8 +209,9 @@ collect_objects_for_refine()
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
 		}
-		else
+		else{
 			break;
+		}
 	}
 }
 
@@ -257,7 +257,8 @@ bool
 TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(VertexBase* elem)
 {
-	return !m_pDistGridMgr->is_ghost(elem);
+	return (!m_pDistGridMgr->is_ghost(elem))
+			&& BaseClass::refinement_is_allowed(elem);
 }
 
 template <class TRefiner>
@@ -265,7 +266,8 @@ bool
 TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(EdgeBase* elem)
 {
-	return !m_pDistGridMgr->is_ghost(elem);
+	return (!m_pDistGridMgr->is_ghost(elem))
+			&& BaseClass::refinement_is_allowed(elem);
 }
 
 template <class TRefiner>
@@ -273,7 +275,8 @@ bool
 TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(Face* elem)
 {
-	return !m_pDistGridMgr->is_ghost(elem);
+	return (!m_pDistGridMgr->is_ghost(elem))
+			&& BaseClass::refinement_is_allowed(elem);
 }
 
 template <class TRefiner>
@@ -281,7 +284,8 @@ bool
 TParallelAdaptiveRefiner<TRefiner>::
 refinement_is_allowed(Volume* elem)
 {
-	return !m_pDistGridMgr->is_ghost(elem);
+	return (!m_pDistGridMgr->is_ghost(elem))
+			&& BaseClass::refinement_is_allowed(elem);
 }
 
 template <class TRefiner>
