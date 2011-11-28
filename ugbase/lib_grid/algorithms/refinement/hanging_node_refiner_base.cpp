@@ -417,6 +417,7 @@ void HangingNodeRefinerBase::refine()
 		m_refCallback = NULL;
 	}
 
+	clear_marks();
 	UG_DLOG(LIB_GRID, 1, "  done.\n");
 
 //	notify the grid's message hub that refinement ends
