@@ -116,9 +116,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 
 	public:
 	///	Constructor
-		ApproximationSpace(domain_type& domain)
-			: IApproximationSpace<domain_type>(domain), m_bInit(false),
-			  m_bLevelDoFInit(false), m_bSurfDoFInit(false) {};
+		ApproximationSpace(domain_type& domain);
 
 	///	Destructor
 		~ApproximationSpace(){}

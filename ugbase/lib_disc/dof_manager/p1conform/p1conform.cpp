@@ -6,63 +6,6 @@
 namespace ug{
 
 ///////////////////////////////////////////////////////////////////////////////
-// P1StorageManager
-///////////////////////////////////////////////////////////////////////////////
-
-void P1StorageManager::set_subset_handler(ISubsetHandler& sh)
-{
-//	do nothing if same subset handler
-	if(m_pSH == &sh) return;
-
-//	clear first if already subset handler set
-	clear();
-
-//	set SubsetHandler and grid
-	m_pSH = &sh;
-	m_pGrid = m_pSH->get_assigned_grid();
-}
-
-void P1StorageManager::clear()
-{
-//	if no subsethandler given, nothing is attached
-	if(m_pSH == NULL) return;
-
-//	detach DoFs
-	m_pGrid->detach_from<VertexBase>(m_aDoF);
-	m_aaDoFVRT.invalidate();
-
-//	reset SubsetHandler
-	m_pSH = NULL;
-	m_pGrid = NULL;
-}
-
-bool P1StorageManager::update_attachments()
-{
-//	check, that everything has been set
-	if(m_pSH == NULL)
-	{
-		UG_LOG("ERROR in 'P1StorageManager::update_attachments':"
-				" Updating indices, but no SubsetHandler set.\n");
-		return false;
-	}
-	if(m_pGrid == NULL)
-	{
-		UG_LOG("ERROR in 'P1StorageManager::update_attachments':"
-				" Updating indices, but no Grid in SubsetHandler set.\n");
-		return false;
-	}
-
-//	attach DoFs to vertices
-	m_pGrid->attach_to<VertexBase>(m_aDoF);
-
-//	access the
-	m_aaDoFVRT.access(*m_pGrid, m_aDoF);
-
-//	done
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // P1DoFDistribution
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -189,7 +132,7 @@ bool P1DoFDistribution::distribute_indices()
 	}
 
 // 	Attach indices
-	if(!m_pStorageManager->update_attachments()) return false;
+	m_pStorageManager->update_attachments(DoFStorageManager::DSM_VERTEX);
 
 // 	iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;

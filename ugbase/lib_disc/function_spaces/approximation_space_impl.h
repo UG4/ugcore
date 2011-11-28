@@ -13,6 +13,13 @@
 
 namespace ug{
 
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::ApproximationSpace(domain_type& domain)
+	: IApproximationSpace<domain_type>(domain), m_bInit(false),
+	  m_bLevelDoFInit(false), m_bSurfDoFInit(false),
+	  m_MGDoFManager(*(this->m_pMGSH), *this) {};
+
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 void
 ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init(bool bInitDoFs)
@@ -23,16 +30,6 @@ ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>::init(bool bInitDoFs)
 	try{
 	//	lock function pattern
 		this->lock();
-
-	//	set subsethandler to DofManager
-		try{
-			m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSH));
-		}UG_CATCH_THROW("Cannot assign multi grid subset handler.");
-
-	//	set the function pattern for dofmanager
-		try{
-			m_MGDoFManager.assign_function_pattern(*this);
-		}UG_CATCH_THROW(" Cannot assign Function Pattern.");
 
 		#ifdef UG_PARALLEL
 	//	set distributed grid manager

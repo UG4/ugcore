@@ -14,59 +14,6 @@
 namespace ug{
 
 template <typename TDoFDistribution>
-void MGDoFManager<TDoFDistribution>::
-assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh)
-{
-// 	Remember SubsetHandler and MultiGrid
-	m_pMGSubsetHandler = &mgsh;
-	m_pMultiGrid = m_pMGSubsetHandler->get_assigned_multi_grid();
-
-// 	Set Function pattern if already assigned
-	if(m_pFuncPattern != NULL)
-		assign_function_pattern(*m_pFuncPattern);
-}
-
-template <typename TDoFDistribution>
-void MGDoFManager<TDoFDistribution>::
-assign_function_pattern(FunctionPattern& dp)
-{
-	m_pFuncPattern = &dp;
-
-//	 if already subsethandler set
-	if(m_pMGSubsetHandler != NULL)
-	{
-	// 	remember current levels
-		size_t num_level = m_vLevelDD.size();
-
-	//	update level dofs
-		if(level_indices_enabled())
-		{
-		// free memory
-			disable_level_indices();
-
-		// reallocate for new pattern
-			try{
-				level_distribution_required(num_level);
-			}
-			UG_CATCH_THROW("Cannot reallocate LevelDoFDisctribution.");
-		}
-
-	//	update surface dofs
-		if(surface_indices_enabled())
-		{
-		// free memory
-			disable_surface_indices();
-
-		// reallocate for new pattern
-			try{
-				surface_distribution_required();
-			}
-			UG_CATCH_THROW("Cannot reallocate SurfaceDoFDisctribution.");
-		}
-	}
-}
-
-template <typename TDoFDistribution>
 void MGDoFManager<TDoFDistribution>::enable_indices()
 {
 //	distribute level dofs
@@ -374,7 +321,7 @@ void MGDoFManager<TDoFDistribution>::surface_distribution_required()
 
 // 	set storage manager
 	try{
-		m_surfaceStorageManager.set_subset_handler(*m_pSurfaceView);
+		m_surfaceStorageManager.set_subset_handler(m_pSurfaceView);
 	}
 	UG_CATCH_THROW("Cannot set surface view for storage manager.");
 
@@ -401,7 +348,7 @@ void MGDoFManager<TDoFDistribution>::level_distribution_required(size_t numLevel
 {
 // 	set StorageManager for levels
 	try{
-		m_levelStorageManager.set_subset_handler(*m_pMGSubsetHandler);
+		m_levelStorageManager.set_subset_handler(m_pMGSubsetHandler);
 	}
 	UG_CATCH_THROW("Cannot assign SubsetHandler to Storage Manager.");
 

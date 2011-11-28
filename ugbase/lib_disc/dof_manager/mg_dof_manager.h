@@ -13,6 +13,8 @@
 #include "lib_grid/lg_base.h"
 #include "./function_pattern.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
+#include "lib_disc/dof_manager/dof_storage_manager.h"
+
 
 namespace ug{
 
@@ -31,32 +33,17 @@ class MGDoFManager : public GridObserver
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	public:
-	///	Default Constructor
-		MGDoFManager()
-			: m_bGrouped(false), m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL),
-			  m_pSurfaceView(NULL), m_pFuncPattern(NULL), m_pSurfDD(NULL)
-		{
-			m_vLevelDD.clear();
-		};
-
 	///	Constructor setting Function Pattern and Multi Grid Subset Handler
 		MGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp)
-			: m_bGrouped(false), m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL),
-			  m_pSurfaceView(NULL), m_pFuncPattern(NULL), m_pSurfDD(NULL)
+			: m_bGrouped(false), m_pMGSubsetHandler(&mgsh),
+			  m_pMultiGrid(mgsh.get_assigned_multi_grid()),
+			  m_pSurfaceView(NULL), m_pFuncPattern(&dp), m_pSurfDD(NULL)
 		{
 			m_vLevelDD.clear();
-			assign_multi_grid_subset_handler(mgsh);
-			assign_function_pattern(dp);
 		};
 
 	///	set grouped
 		void set_grouping(bool bGrouped) {m_bGrouped = bGrouped;}
-
-	/// set multi grid subset handler
-		void assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh);
-
-	/// set function pattern
-		void assign_function_pattern(FunctionPattern& dp);
 
 	/// number of levels
 		virtual size_t num_levels() const
@@ -284,8 +271,8 @@ class MGDoFManager : public GridObserver
 		dof_distribution_type* m_pSurfDD;
 
 	// 	Storage manager
-		typename TDoFDistribution::storage_manager_type	m_levelStorageManager;
-		typename TDoFDistribution::storage_manager_type	m_surfaceStorageManager;
+		DoFStorageManager m_levelStorageManager;
+		DoFStorageManager m_surfaceStorageManager;
 };
 
 } // end namespace ug

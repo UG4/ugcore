@@ -16,59 +16,9 @@
 #include "../function_pattern.h"
 #include "../../reference_element/reference_element.h"
 #include "../dof_distribution_type.h"
+#include "../dof_storage_manager.h"
 
 namespace ug{
-
-/// accesses storage for DoFs and handles grid attachment process
-class P1StorageManager
-{
-	public:
-	///	type of DoF attachment
-		typedef ug::Attachment<size_t> ADoF;
-
-	///	type of accessor
-		typedef Grid::AttachmentAccessor<VertexBase, ADoF>
-				vertex_attachment_accessor_type;
-
-	public:
-	///	Constructor
-		P1StorageManager() : m_pSH(NULL), m_pGrid(NULL) {}
-
-	/// set subset handler
-		void set_subset_handler(ISubsetHandler& sh);
-
-	/// clear all dofs
-		void clear();
-
-	/// destructor
-		~P1StorageManager() {clear();};
-
-	/// attach dofs
-		bool update_attachments();
-
-	///	returns the associated grid
-		Grid* grid() {return m_pGrid;}
-
-	///	returns the underlying subset handler
-		ISubsetHandler* subset_handler() {return m_pSH;}
-
-	///	returns the attachment accessor
-		vertex_attachment_accessor_type& vertex_attachment_accessor()
-			{return m_aaDoFVRT;}
-
-	protected:
-	/// subset handler
-		ISubsetHandler* m_pSH;
-
-	///	assosicated grid
-		Grid* m_pGrid;
-
-	///	Attachment Accessor
-		vertex_attachment_accessor_type m_aaDoFVRT;
-
-	///	Attachment (for vertices)
-		ADoF m_aDoF;
-};
 
 /// DoF Manager for P1 Functions
 class P1DoFDistribution
@@ -93,11 +43,8 @@ class P1DoFDistribution
 	/// type of algebra index vector
 		typedef std::vector<size_t> algebra_index_vector_type;
 
-	/// Storage Manager type
-		typedef P1StorageManager storage_manager_type;
-
 	///	type of attachment for vertex dofs
-		typedef storage_manager_type::vertex_attachment_accessor_type
+		typedef DoFStorageManager::vertex_attachment_accessor_type
 				vertex_attachment_accessor_type;
 
 		using base_type::num_fct;
@@ -108,37 +55,35 @@ class P1DoFDistribution
 
 	public:
 		P1DoFDistribution(GeometricObjectCollection goc,
-		                  ISubsetHandler& sh, storage_manager_type& sm,
+		                  ISubsetHandler& sh, DoFStorageManager& sm,
 		                  FunctionPattern& fp)
 		: base_type(goc, fp), m_bGrouped(false), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_raaVrtDoF(sm.vertex_attachment_accessor()),
+		  m_pStorageManager(&sm), m_raaVrtDoF(sm.vertex_att_acc()),
 		  m_numIndex(0), m_sizeIndexSet(0)
 		{
 			m_vNumIndex.clear();
 			m_vNumIndex.resize(this->num_subsets(), 0);
 
 		// 	Attach indices
-			if(!m_pStorageManager->update_attachments())
-				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
+			m_pStorageManager->update_attachments(DoFStorageManager::DSM_VERTEX);
 
 		// 	create offsets
 			create_offsets();
 		}
 
 		P1DoFDistribution(GeometricObjectCollection goc,
-		                  ISubsetHandler& sh, storage_manager_type& sm,
+		                  ISubsetHandler& sh, DoFStorageManager& sm,
 		                  FunctionPattern& fp,
 		                  const SurfaceView& surfView)
 		: base_type(goc, fp, surfView), m_bGrouped(false), m_pISubsetHandler(&sh),
-		  m_pStorageManager(&sm), m_raaVrtDoF(sm.vertex_attachment_accessor()),
+		  m_pStorageManager(&sm), m_raaVrtDoF(sm.vertex_att_acc()),
 		  m_numIndex(0), m_sizeIndexSet(0)
 		{
 			m_vNumIndex.clear();
 			m_vNumIndex.resize(this->num_subsets(), 0);
 
 		// 	Attach indices
-			if(!m_pStorageManager->update_attachments())
-				throw(UGFatalError("Attachment missing in DoF Storage Manager."));
+			m_pStorageManager->update_attachments(DoFStorageManager::DSM_VERTEX);
 
 		// 	create offsets
 			create_offsets();
@@ -290,7 +235,7 @@ class P1DoFDistribution
 		ISubsetHandler* m_pISubsetHandler;
 
 	// 	Storage Manager for dofs
-		storage_manager_type* m_pStorageManager;
+		DoFStorageManager* m_pStorageManager;
 
 	///	attachment accessor for dof vertices
 		vertex_attachment_accessor_type& m_raaVrtDoF;

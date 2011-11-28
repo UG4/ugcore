@@ -332,7 +332,7 @@ void ParallelMGDoFManager<TMGDoFManager>::surface_view_required()
 // 	Set storage manager
 	try{
 		this->m_surfaceStorageManager.
-				set_subset_handler(*(this->m_pSurfaceView));
+				set_subset_handler( this->m_pSurfaceView );
 	}
 	UG_CATCH_THROW("Cannot set SubsetHandler for Storage Manager.");
 }

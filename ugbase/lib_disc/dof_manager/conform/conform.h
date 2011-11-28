@@ -14,90 +14,13 @@
 
 #include "../dof_distribution.h"
 #include "../dof_distribution_type.h"
+#include "../dof_storage_manager.h"
 #include "../function_pattern.h"
 #include "../../reference_element/reference_element.h"
 
 namespace ug{
 
-/// accesses storage for DoFs and handles grid attachment process
-class ConformStorageManager
-{
-	public:
-	///	type of DoF attachment
-		typedef ug::Attachment<size_t> ADoF;
-
-	///	type of accessor
-		typedef Grid::AttachmentAccessor<VertexBase, ADoF>
-				vertex_attachment_accessor_type;
-
-	///	type of accessor
-		typedef Grid::AttachmentAccessor<EdgeBase, ADoF>
-				edge_attachment_accessor_type;
-
-	///	type of accessor
-		typedef Grid::AttachmentAccessor<Face, ADoF>
-				face_attachment_accessor_type;
-
-	///	type of accessor
-		typedef Grid::AttachmentAccessor<Volume, ADoF>
-				volume_attachment_accessor_type;
-
-	public:
-	///	Constructor
-		ConformStorageManager() : m_pSH(NULL), m_pGrid(NULL) {}
-
-	/// set subset handler
-		void set_subset_handler(ISubsetHandler& sh);
-
-	/// clear all dofs
-		void clear();
-
-	/// destructor
-		~ConformStorageManager() {clear();};
-
-	/// attach indices
-		bool update_attachments();
-
-	///	returns the associated grid
-		Grid* grid() {return m_pGrid;}
-
-	///	returns the underlying subset handler
-		ISubsetHandler* subset_handler() {return m_pSH;}
-
-	///	returns the attachment accessor
-		vertex_attachment_accessor_type& vertex_attachment_accessor()
-			{return m_aaIndexVRT;}
-
-	///	returns the attachment accessor
-		edge_attachment_accessor_type& edge_attachment_accessor()
-			{return m_aaIndexEDGE;}
-
-	///	returns the attachment accessor
-		face_attachment_accessor_type& face_attachment_accessor()
-			{return m_aaIndexFACE;}
-
-	///	returns the attachment accessor
-		volume_attachment_accessor_type& volume_attachment_accessor()
-			{return m_aaIndexVOL;}
-
-	protected:
-	/// subset handler
-		ISubsetHandler* m_pSH;
-
-	///	assosicated grid
-		Grid* m_pGrid;
-
-	///	Attachment Accessor
-		vertex_attachment_accessor_type m_aaIndexVRT;
-		edge_attachment_accessor_type m_aaIndexEDGE;
-		face_attachment_accessor_type m_aaIndexFACE;
-		volume_attachment_accessor_type m_aaIndexVOL;
-
-	///	Attachment (for vertices)
-		ADoF m_aIndex;
-};
-
-/// DoF Manager for P1 Functions
+/// DoF Manager for General Functions
 /**
  * \tparam	bGrouped	true if dofs are grouped on elements
  */
@@ -123,18 +46,15 @@ class DoFDistribution
 	/// type of algebra index vector
 		typedef std::vector<size_t> algebra_index_vector_type;
 
-	/// Storage Manager type
-		typedef ConformStorageManager storage_manager_type;
-
 	public:
 	///	constructor for level DoFDistributions
 		DoFDistribution(GeometricObjectCollection goc,
-		                ISubsetHandler& sh, storage_manager_type& sm,
+		                ISubsetHandler& sh, DoFStorageManager& sm,
 		                FunctionPattern& fp);
 
 	///	constructor for surface DoFDistributions (passing surface view)
 		DoFDistribution(GeometricObjectCollection goc,
-		                  ISubsetHandler& sh, storage_manager_type& sm,
+		                  ISubsetHandler& sh, DoFStorageManager& sm,
 		                  FunctionPattern& fp,
 		                  const SurfaceView& surfView);
 
@@ -338,16 +258,16 @@ class DoFDistribution
 		ISubsetHandler* m_pISubsetHandler;
 
 	// 	Storage Manager for dofs
-		storage_manager_type* m_pStorageManager;
+		DoFStorageManager* m_pStorageManager;
 
 	//	type of attachment for indices
-		typedef storage_manager_type::vertex_attachment_accessor_type
+		typedef DoFStorageManager::vertex_attachment_accessor_type
 				vertex_attachment_accessor_type;
-		typedef storage_manager_type::edge_attachment_accessor_type
+		typedef DoFStorageManager::edge_attachment_accessor_type
 				edge_attachment_accessor_type;
-		typedef storage_manager_type::face_attachment_accessor_type
+		typedef DoFStorageManager::face_attachment_accessor_type
 				face_attachment_accessor_type;
-		typedef storage_manager_type::volume_attachment_accessor_type
+		typedef DoFStorageManager::volume_attachment_accessor_type
 				volume_attachment_accessor_type;
 
 	//	attachment accessor for vertices

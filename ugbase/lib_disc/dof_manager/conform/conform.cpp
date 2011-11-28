@@ -10,96 +10,26 @@
 
 namespace ug{
 
-///////////////////////////////////////////////////////////////////////////////
-// ConformStorageManager
-///////////////////////////////////////////////////////////////////////////////
-
-void ConformStorageManager::set_subset_handler(ISubsetHandler& sh)
-{
-//	do nothing if same subset handler
-	if(m_pSH == &sh) return;
-
-//	clear first if already subset handler set
-	clear();
-
-//	set SubsetHandler and grid
-	m_pSH = &sh;
-	m_pGrid = m_pSH->get_assigned_grid();
-}
-
-void ConformStorageManager::clear()
-{
-//	if no subsethandler given, nothing is attached
-	if(m_pSH == NULL) return;
-
-//	detach DoFs
-	m_pGrid->detach_from<VertexBase>(m_aIndex);
-	m_pGrid->detach_from<EdgeBase>(m_aIndex);
-	m_pGrid->detach_from<Face>(m_aIndex);
-	m_pGrid->detach_from<Volume>(m_aIndex);
-	m_aaIndexVRT.invalidate();
-	m_aaIndexEDGE.invalidate();
-	m_aaIndexFACE.invalidate();
-	m_aaIndexVOL.invalidate();
-
-//	reset SubsetHandler
-	m_pSH = NULL;
-	m_pGrid = NULL;
-}
-
-bool ConformStorageManager::update_attachments()
-{
-//	check, that everything has been set
-	if(m_pSH == NULL)
-	{
-		UG_LOG("ERROR in 'ConformStorageManager::update_attachments':"
-				" Updating indices, but no SubsetHandler set.\n");
-		return false;
-	}
-	if(m_pGrid == NULL)
-	{
-		UG_LOG("ERROR in 'ConformStorageManager::update_attachments':"
-				" Updating indices, but no Grid in SubsetHandler set.\n");
-		return false;
-	}
-
-//	attach DoFs to vertices
-	m_pGrid->attach_to<VertexBase>(m_aIndex);
-	m_pGrid->attach_to<EdgeBase>(m_aIndex);
-	m_pGrid->attach_to<Face>(m_aIndex);
-	m_pGrid->attach_to<Volume>(m_aIndex);
-
-//	access the
-	m_aaIndexVRT.access(*m_pGrid, m_aIndex);
-	m_aaIndexEDGE.access(*m_pGrid, m_aIndex);
-	m_aaIndexFACE.access(*m_pGrid, m_aIndex);
-	m_aaIndexVOL.access(*m_pGrid, m_aIndex);
-
-//	done
-	return true;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //	DoFDistribution
 ////////////////////////////////////////////////////////////////////////////////
 
 DoFDistribution::
 DoFDistribution(GeometricObjectCollection goc,
-                ISubsetHandler& sh, storage_manager_type& sm,
+                ISubsetHandler& sh, DoFStorageManager& sm,
                 FunctionPattern& fp)
 : base_type(goc, fp), m_pISubsetHandler(&sh), m_pStorageManager(&sm),
-  m_raaIndexVRT(sm.vertex_attachment_accessor()),
-  m_raaIndexEDGE(sm.edge_attachment_accessor()),
-  m_raaIndexFACE(sm.face_attachment_accessor()),
-  m_raaIndexVOL(sm.volume_attachment_accessor()),
+  m_raaIndexVRT(sm.vertex_att_acc()),
+  m_raaIndexEDGE(sm.edge_att_acc()),
+  m_raaIndexFACE(sm.face_att_acc()),
+  m_raaIndexVOL(sm.volume_att_acc()),
   m_numIndex(0), m_sizeIndexSet(0), m_bGrouped(false)
 {
 	m_vNumIndex.clear();
 	m_vNumIndex.resize(num_subsets(), 0);
 
 // 	Attach indices
-	if(!m_pStorageManager->update_attachments())
-		throw(UGFatalError("Attachment missing in DoF Storage Manager."));
+	m_pStorageManager->update_attachments(DoFStorageManager::DSM_ALL);
 
 // 	create offsets
 	create_offsets();
@@ -107,22 +37,21 @@ DoFDistribution(GeometricObjectCollection goc,
 
 DoFDistribution::
 DoFDistribution(GeometricObjectCollection goc,
-                ISubsetHandler& sh, storage_manager_type& sm,
+                ISubsetHandler& sh, DoFStorageManager& sm,
                 FunctionPattern& fp,
                 const SurfaceView& surfView)
 : base_type(goc, fp, surfView), m_pISubsetHandler(&sh), m_pStorageManager(&sm),
-  m_raaIndexVRT(sm.vertex_attachment_accessor()),
-  m_raaIndexEDGE(sm.edge_attachment_accessor()),
-  m_raaIndexFACE(sm.face_attachment_accessor()),
-  m_raaIndexVOL(sm.volume_attachment_accessor()),
+  m_raaIndexVRT(sm.vertex_att_acc()),
+  m_raaIndexEDGE(sm.edge_att_acc()),
+  m_raaIndexFACE(sm.face_att_acc()),
+  m_raaIndexVOL(sm.volume_att_acc()),
   m_numIndex(0), m_sizeIndexSet(0), m_bGrouped(false)
 {
 	m_vNumIndex.clear();
 	m_vNumIndex.resize(this->num_subsets(), 0);
 
 // 	Attach indices
-	if(!m_pStorageManager->update_attachments())
-		throw(UGFatalError("Attachment missing in DoF Storage Manager."));
+	m_pStorageManager->update_attachments(DoFStorageManager::DSM_ALL);
 
 // 	create offsets
 	create_offsets();
@@ -454,12 +383,7 @@ bool DoFDistribution::distribute_indices()
 	}
 
 // 	Attach indices
-	if(!m_pStorageManager->update_attachments())
-	{
-		UG_LOG("In 'DoFDistribution::distribute_indices:"
-				"Cannot update index attachments. Aborting.\n");
-		return false;
-	}
+	m_pStorageManager->update_attachments(DoFStorageManager::DSM_ALL);
 
 // 	create offsets
 	create_offsets();
