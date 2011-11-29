@@ -141,7 +141,7 @@ public:
 		UG_LOG("VTest::VTest(const char*) constructor used.\n")
 		UG_LOG("Message is: '" << msg << "'.\n");
 	}
-	
+
 	std::string hello() {
 		return "i am instantiated!";
 	}
@@ -160,8 +160,9 @@ public:
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
+
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
-  (JNIEnv *env, jclass cls, jobjectArray args) {
+(JNIEnv *env, jclass cls, jobjectArray args) {
 
 	ug::vrl::initJavaVM(env);
 
@@ -190,9 +191,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 
 	// Register Playground if we are in debug mode
 
-	#ifdef UG_DEBUG
-		ug::vrl::registerPlayground(reg);
-	#endif
+#ifdef UG_DEBUG
+	ug::vrl::registerPlayground(reg);
+#endif
 
 	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 	ug::vrl::registerMessaging(reg);
@@ -314,7 +315,76 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 	return result;
 }
 
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
+//JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
+//(JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
+//
+//	ug::bridge::IExportedClass* clazz =
+//			(ug::bridge::IExportedClass*) exportedClassPointer;
+//
+//	ug::bridge::ParameterStack paramsIn;
+//
+//	std::string name = "constructor";
+//
+//	try {
+//		const ug::bridge::ExportedConstructor* constructor =
+//				ug::vrl::invocation::getConstructorBySignature(
+//				env, ug::vrl::vrlRegistry,
+//				clazz, params);
+//
+//		if (constructor == NULL) {
+//
+//			std::stringstream ss;
+//
+//			ss << "Constructor not found: " <<
+//					EMPHASIZE_BEGIN << name <<
+//					"()" << EMPHASIZE_END << ".";
+//
+//			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+//			env->ThrowNew(Exception, ss.str().c_str());
+//			return (long)NULL;
+//		}
+//
+//		ug::vrl::jobjectArray2ParamStack(
+//				env, ug::vrl::vrlRegistry,
+//				paramsIn, constructor->params_in(), params);
+//
+//		return (long) constructor->create(paramsIn);
+//
+//	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
+//
+//		std::stringstream ss;
+//		ss << "Incompatible Conversion from " <<
+//				ex.m_from << " to " << ex.m_to;
+//
+//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+//		env->ThrowNew(Exception, ss.str().c_str());
+//	} catch (ug::bridge::ERROR_BadConversion ex) {
+//
+//		std::stringstream ss;
+//
+//		ss << "Incompatible Conversion from " <<
+//				ex.m_from << " to " << ex.m_to;
+//
+//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+//		env->ThrowNew(Exception, ss.str().c_str());
+//	} catch (ug::UGError ex) {
+//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+//		env->ThrowNew(Exception, ex.get_msg().c_str());
+//	} catch (...) {
+//
+//		std::stringstream ss;
+//
+//		ss << "Unknown exception thrown while"
+//				<< " trying to invoke method: " << name << "().";
+//
+//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+//		env->ThrowNew(Exception, ss.str().c_str());
+//	}
+//
+//	return (long) NULL;
+//}
+
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 (JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
 
 	ug::bridge::IExportedClass* clazz =
@@ -340,14 +410,23 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
-			return (long)NULL;
+			return (long) NULL;
 		}
-
+		
 		ug::vrl::jobjectArray2ParamStack(
 				env, ug::vrl::vrlRegistry,
 				paramsIn, constructor->params_in(), params);
 
-		return (long) constructor->create(paramsIn);
+		if (clazz->construct_as_smart_pointer()) {
+			SmartPtr<void> instance =
+					SmartPtr<void>(constructor->create(paramsIn),
+					clazz->get_delete_function());
+
+			return ug::vrl::smartPointer2JObject(env, instance);
+		} else {
+			void *ptr = constructor->create(paramsIn);
+			return ug::vrl::pointer2JObject(env, ptr);
+		}
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 

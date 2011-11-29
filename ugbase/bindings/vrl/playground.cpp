@@ -87,6 +87,10 @@ int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
 	return test.get_refcount();
 }
 
+void TestSmartPtr2ConstPtr(const TestClass* t) {
+	t->print2();
+}
+
 void registerPlayground(ug::bridge::Registry& reg) {
 	reg.add_class_<TestClass > ("TestClass", "ug4/testing")
 			.add_constructor()
@@ -102,6 +106,7 @@ void registerPlayground(ug::bridge::Registry& reg) {
 
 	reg.add_function("SmartTestFunction", &SmartTestFunction, "ug4/testing");
 	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "ug4/testing");
+	reg.add_function("TestSmartPtr2ConstPtr", &TestSmartPtr2ConstPtr, "ug4/testing");
 }
 
 } // end vrl::

@@ -168,6 +168,14 @@ std::string jObject2String(JNIEnv *env, jobject obj);
 jobject pointer2JObject(JNIEnv *env, void* value);
 
 /**
+ * Converts a native smart-pointer to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param value smart-pointer to convert
+ * @return a Java object (jobject)
+ */
+jobject smartPointer2JObject(JNIEnv *env, SmartPtr<void> value);
+
+/**
  * Indicates whether the specified smart pointer is const, i.e., if the
  * specified Java object represents a const smart pointer.
  * @param env JVM environment to operate on

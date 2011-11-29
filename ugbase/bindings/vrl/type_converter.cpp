@@ -389,6 +389,18 @@ bool isJSmartPointerConst(JNIEnv *env, jobject ptr) {
 	return boolJ2C(result);
 }
 
+//bool isJSmartPointer(JNIEnv *env, jobject ptr) {
+//	jclass cls = env->FindClass("edu/gcsc/vrl/ug/SmartPointer");
+//	jclass objCls = getClass(env,ptr);
+//	
+//	jmethodID equals = 
+//			env->GetMethodID(objCls, "equals", "(Ljava.lang.Object;)Z");  
+//	
+//	bool result = env->CallBooleanMethod(objCls, equals, cls);
+//	
+//	return boolJ2C(result);
+//}
+
 jobject string2JObject(JNIEnv *env, const char* value) {
 	return env->NewStringUTF(value);
 }
@@ -653,9 +665,10 @@ void jobjectArray2ParamStack(
 	//  associated stack entry.
 	for (size_t i = 0; i < (size_t) paramsTemplate.size(); ++i) {
 
-		int type = paramsTemplate.get_type(i);
+		uint template_value_Type = paramsTemplate.get_type(i);
 
 		jobject value = env->GetObjectArrayElement(array, i);
+		uint java_value_type = paramClass2ParamType(env, value);
 
 		// we don't allow null values
 		if (value == NULL) {
@@ -666,7 +679,7 @@ void jobjectArray2ParamStack(
 			env->ThrowNew(Exception, ss.str().c_str());
 		}
 
-		switch (type) {
+		switch (template_value_Type) {
 			case PT_BOOL:
 			{
 				paramsOut.push_bool(jObject2Boolean(env, value));
@@ -703,29 +716,45 @@ void jobjectArray2ParamStack(
 						ug::vrl::invocation::getClassNodePtrByName(reg,
 						jPointerGetName(env, value));
 
-				paramsOut.push_const_pointer(jObject2Pointer(env, value), node);
+				if (java_value_type == PT_CONST_SMART_POINTER) {
+					paramsOut.push_const_pointer(
+							(void*) jObject2ConstSmartPointer(
+							env, value).get_impl(), node);
+				} else
+					if (java_value_type == PT_SMART_POINTER) {
+					paramsOut.push_const_pointer(
+							(void*) jObject2SmartPointer(
+							env, value).get_impl(), node);
+				} else {
+					paramsOut.push_const_pointer(
+							jObject2Pointer(env, value), node);
+				}
 			}
 				break;
 			case PT_SMART_POINTER:
 			{
-
 				const ug::bridge::ClassNameNode* node =
 						ug::vrl::invocation::getClassNodePtrByName(reg,
 						jPointerGetName(env, value));
 
-				if (paramsOut.get_type(i) == PT_POINTER) {
-
-					paramsOut.push_pointer(
-							jObject2SmartPointer(env, value).get_impl(), node);
-
-				} else if (paramsOut.get_type(i) == PT_CONST_POINTER) {
-					// we allow cast to const pointer (but i don't like it!)
-					paramsOut.push_const_pointer(
-							jObject2SmartPointer(env, value).get_impl(), node);
-				} else {
-					paramsOut.push_smart_pointer(
-							jObject2SmartPointer(env, value), node);
-				}
+				//				if (paramsOut.get_type(i) == PT_POINTER) {
+				//					UG_LOG("TODO smart-ptr->ptr (do not allow!?!)");
+				//					std::cout << "1c\n";
+				//					paramsOut.push_pointer(
+				//							jObject2SmartPointer(env, value).get_impl(), node);
+				//
+				//				} else if (paramsOut.get_type(i) == PT_CONST_POINTER) {
+				//					UG_LOG("smart-ptr->const-ptr");
+				//					std::cout << "1d\n";
+				//					// we allow cast to const pointer (but i don't like it!)
+				//					paramsOut.push_const_pointer(
+				//							jObject2SmartPointer(env, value).get_impl(), node);
+				//				} else {
+				//					UG_LOG("smart-ptr->smart-ptr");
+				//					std::cout << "1e\n";
+				paramsOut.push_smart_pointer(
+						jObject2SmartPointer(env, value), node);
+				//				}
 			}
 				break;
 			case PT_CONST_SMART_POINTER:
@@ -734,14 +763,14 @@ void jobjectArray2ParamStack(
 						ug::vrl::invocation::getClassNodePtrByName(reg,
 						jPointerGetName(env, value));
 
-				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
-					// we allow cast to const pointer (but i don't like it!)
-					paramsOut.push_const_pointer(
-							jObject2ConstSmartPointer(env, value).get_impl(), node);
-				} else {
-					paramsOut.push_const_smart_pointer(
-							jObject2ConstSmartPointer(env, value), node);
-				}
+				//				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
+				//					// we allow cast to const pointer (but i don't like it!)
+				//					paramsOut.push_const_pointer(
+				//							jObject2ConstSmartPointer(env, value).get_impl(), node);
+				//				} else {
+				paramsOut.push_const_smart_pointer(
+						jObject2ConstSmartPointer(env, value), node);
+				//				}
 			}
 				break;
 		}
