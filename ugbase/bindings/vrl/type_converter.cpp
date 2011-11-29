@@ -573,7 +573,6 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		return false;
 	}
 
-
 	// iterate over all param stack elements and compare their type with
 	// the corresponding elements in the specified Java array
 	for (size_t i = 0; i < (size_t) paramStack.size(); i++) {
@@ -589,7 +588,6 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			env->ThrowNew(Exception, ss.str().c_str());
 		}
 
-
 		uint paramType = paramClass2ParamType(env, param);
 
 		// allow non-const * to const *
@@ -604,23 +602,24 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			paramType = ug::bridge::PT_CONST_SMART_POINTER;
 		}
 
-		// allow non-const-smart* to non const*
-		if (paramType == ug::bridge::PT_SMART_POINTER &&
-				paramStack.get_type(i) == ug::bridge::PT_POINTER) {
-			paramType = ug::bridge::PT_POINTER;
-		}
-
-		// allow non-const-smart* to const*
-		if (paramType == ug::bridge::PT_SMART_POINTER &&
-				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-			paramType = ug::bridge::PT_CONST_POINTER;
-		}
-
-		// allow const smart* to const*
-		if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
-				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-			paramType = ug::bridge::PT_CONST_POINTER;
-		}
+		// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
+//		// allow non-const-smart* to non const*
+//		if (paramType == ug::bridge::PT_SMART_POINTER &&
+//				paramStack.get_type(i) == ug::bridge::PT_POINTER) {
+//			paramType = ug::bridge::PT_POINTER;
+//		}
+//
+//		// allow non-const-smart* to const*
+//		if (paramType == ug::bridge::PT_SMART_POINTER &&
+//				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+//			paramType = ug::bridge::PT_CONST_POINTER;
+//		}
+//
+//		// allow const smart* to const*
+//		if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
+//				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+//			paramType = ug::bridge::PT_CONST_POINTER;
+//		}
 
 		if (paramType != paramStack.get_type(i)) {
 			//#ifdef UG_DEBUG
@@ -668,7 +667,10 @@ void jobjectArray2ParamStack(
 		uint template_value_Type = paramsTemplate.get_type(i);
 
 		jobject value = env->GetObjectArrayElement(array, i);
-		uint java_value_type = paramClass2ParamType(env, value);
+		
+		// only used for
+		// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
+//		uint java_value_type = paramClass2ParamType(env, value);
 
 		// we don't allow null values
 		if (value == NULL) {
@@ -716,19 +718,23 @@ void jobjectArray2ParamStack(
 						ug::vrl::invocation::getClassNodePtrByName(reg,
 						jPointerGetName(env, value));
 
-				if (java_value_type == PT_CONST_SMART_POINTER) {
-					paramsOut.push_const_pointer(
-							(void*) jObject2ConstSmartPointer(
-							env, value).get_impl(), node);
-				} else
-					if (java_value_type == PT_SMART_POINTER) {
-					paramsOut.push_const_pointer(
-							(void*) jObject2SmartPointer(
-							env, value).get_impl(), node);
-				} else {
-					paramsOut.push_const_pointer(
+				// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
+//				if (java_value_type == PT_CONST_SMART_POINTER) {
+//					paramsOut.push_const_pointer(
+//							(void*) jObject2ConstSmartPointer(
+//							env, value).get_impl(), node);
+//				} else
+//					if (java_value_type == PT_SMART_POINTER) {
+//					paramsOut.push_const_pointer(
+//							(void*) jObject2SmartPointer(
+//							env, value).get_impl(), node);
+//				} else {
+//					paramsOut.push_const_pointer(
+//							jObject2Pointer(env, value), node);
+//				}
+				
+				paramsOut.push_const_pointer(
 							jObject2Pointer(env, value), node);
-				}
 			}
 				break;
 			case PT_SMART_POINTER:
@@ -737,21 +743,6 @@ void jobjectArray2ParamStack(
 						ug::vrl::invocation::getClassNodePtrByName(reg,
 						jPointerGetName(env, value));
 
-				//				if (paramsOut.get_type(i) == PT_POINTER) {
-				//					UG_LOG("TODO smart-ptr->ptr (do not allow!?!)");
-				//					std::cout << "1c\n";
-				//					paramsOut.push_pointer(
-				//							jObject2SmartPointer(env, value).get_impl(), node);
-				//
-				//				} else if (paramsOut.get_type(i) == PT_CONST_POINTER) {
-				//					UG_LOG("smart-ptr->const-ptr");
-				//					std::cout << "1d\n";
-				//					// we allow cast to const pointer (but i don't like it!)
-				//					paramsOut.push_const_pointer(
-				//							jObject2SmartPointer(env, value).get_impl(), node);
-				//				} else {
-				//					UG_LOG("smart-ptr->smart-ptr");
-				//					std::cout << "1e\n";
 				paramsOut.push_smart_pointer(
 						jObject2SmartPointer(env, value), node);
 				//				}
@@ -763,14 +754,8 @@ void jobjectArray2ParamStack(
 						ug::vrl::invocation::getClassNodePtrByName(reg,
 						jPointerGetName(env, value));
 
-				//				if (paramsOut.get_type(i) == PT_CONST_POINTER) {
-				//					// we allow cast to const pointer (but i don't like it!)
-				//					paramsOut.push_const_pointer(
-				//							jObject2ConstSmartPointer(env, value).get_impl(), node);
-				//				} else {
 				paramsOut.push_const_smart_pointer(
 						jObject2ConstSmartPointer(env, value), node);
-				//				}
 			}
 				break;
 		}
