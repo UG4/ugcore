@@ -103,11 +103,46 @@ VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin,
 ///	calculates the normal of a vertex using associated faces
 /**
  * TAAPosVRT has to be an attachment accessor for the vector3 type that
- * works on the triangles in grid.
+ * works on the vertices in grid.
  */
 template <class TAAPosVRT>
 void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt,
 						   TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the normal of a boundary vertex using associated faces
+/**
+ * TAAPosVRT has to be an attachment accessor for the vector2 or vector3 type
+ * that works on the vertices in grid.
+ *
+ * Note that this method makes only sense if called for a boundary vertex,
+ * which is connected to some volume elements.
+ *
+ * The returned normal is normalized and will point outwards of the area
+ * defined by the associated volumes.
+ *
+ * Note that this method assumes, that all faces do lie in the x-y-plane.
+ */
+template <class TAAPosVRT>
+void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
+									 Grid& grid, VertexBase* vrt,
+						   	   	     TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the normal of a boundary vertex using associated volumes
+/**
+ * TAAPosVRT has to be an attachment accessor for the vector3 type that
+ * works on the vertices in grid.
+ *
+ * Note that this method makes only sense if called for a boundary vertex,
+ * which is connected to some volume elements.
+ *
+ * The returned normal is normalized and will point outwards of the area
+ * defined by the associated volumes.
+ */
+template <class TAAPosVRT>
+void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
+						   	   	     TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateVertexNormals

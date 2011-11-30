@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__VERTEX_UTIL_IMPL__
 
 #include "vertex_util.h"
+#include "edge_util.h"
 #include "face_util.h"
 #include "../trees/kd_tree_static.h"
 #include "misc_util.h"
@@ -42,6 +43,68 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt, TAAPosVRT
 		vector3 vN;
 		CalculateNormal(vN, *iter, aaPos);
 		VecAdd(nOut, nOut, vN);
+	}
+
+	VecNormalize(nOut, nOut);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
+									 Grid& grid, VertexBase* vrt,
+						   	   	     TAAPosVRT& aaPos)
+{
+//	set nOut to 0
+	VecSet(nOut, 0);
+
+//	iterate over associated faces
+	std::vector<Face*> faces;
+	CollectAssociated(faces, grid, vrt);
+
+	EdgeDescriptor ed;
+	for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+		Face* f = faces[i_face];
+	//	check for each side of f whether it is a boundary edge
+		for(size_t i_side = 0; i_side < f->num_sides(); ++i_side){
+			if(IsBoundaryEdge2D(grid, grid.get_edge(f, i_side))){
+				f->edge(i_side, ed);
+			//	the normal pointing outwards is clearly defined from the
+			//	orientation of the edge descriptor
+				nOut.x += aaPos[ed.vertex(1)].y - aaPos[ed.vertex(0)].y;
+				nOut.y += aaPos[ed.vertex(0)].x - aaPos[ed.vertex(1)].x;
+			}
+		}
+	}
+
+	VecNormalize(nOut, nOut);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
+						   	   	     TAAPosVRT& aaPos)
+{
+//	set nOut to 0
+	VecSet(nOut, 0);
+
+//	iterate over associated volumes
+	std::vector<Volume*> vols;
+	CollectAssociated(vols, grid, vrt);
+
+	FaceDescriptor fd;
+	for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
+		Volume* v = vols[i_vol];
+	//	check for each side of f whether it is a boundary edge
+		for(size_t i_side = 0; i_side < v->num_sides(); ++i_side){
+			if(IsBoundaryFace3D(grid, grid.get_face(v, i_side))){
+				v->face(i_side, fd);
+			//	the normal pointing outwards is clearly defined from the
+			//	orientation of the face descriptor
+				vector3 n;
+				CalculateNormal(n, &fd, aaPos);
+				VecAdd(nOut, nOut, n);
+			}
+		}
 	}
 
 	VecNormalize(nOut, nOut);

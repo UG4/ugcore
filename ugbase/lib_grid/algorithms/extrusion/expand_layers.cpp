@@ -482,6 +482,67 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		}
 	}
 
+//	assign the new positions
+	for(VertexBaseIterator iter = sel.vertices_begin();
+		iter != sel.vertices_end(); ++iter)
+	{
+		VertexBase* vrt = *iter;
+
+	//	calculate the width as the maximum of associated fracture widths
+		CollectEdges(edges, grid, vrt);
+
+		number width = 0;
+		for(size_t i = 0; i < edges.size(); ++i){
+			if(aaMarkEDGE[edges[i]])
+				width = max<number>(width, fracInfosBySubset.at(sh.get_subset_index(edges[i])).width);
+		}
+
+	//	iterate over associated vertices
+		vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+
+	//	note that the position attachment of new vertices holds their normal.
+		for(size_t i = 0; i < vrtVec.size(); ++i){
+			VertexBase* nVrt = vrtVec[i];
+			if(width > 0){
+				vector3 n = aaPos[nVrt];
+				if(VecLengthSq(n) > SMALL)
+					VecNormalize(n, n);
+
+				VecScale(n, n, width / 2.);
+
+			//	n now holds the offset for nVrt relative to vrt.
+			//	if width is higher than 0, we'll have to adjust the offset at
+			//	boundary vertices.
+				if(IsBoundaryVertex2D(grid, vrt)){
+				//	First determine the normal pointing outwards
+					vector3 nOut;
+					CalculateBoundaryVertexNormal2D(nOut, grid, vrt, aaPos);
+
+				//	flip it by 90 degrees
+					number tmp = nOut.x;
+					nOut.x = -nOut.y;
+					nOut.y = tmp;
+
+				//	now project the offset onto this vector
+					VecScale(nOut, nOut, VecDot(nOut, n));
+
+				//	and now scale the new offset so that we receive the final offset.
+					number dot = VecDot(n, nOut);
+					if(dot > SMALL)
+						VecScale(n, nOut, VecLengthSq(n) / dot);
+				}
+
+				VecAdd(aaPos[nVrt], n, aaPos[vrt]);
+			}
+			else
+				aaPos[nVrt] = aaPos[vrt];
+		}
+
+	//	the current position is only a guess. Especially vertices where
+	//	fractures cross, this is not yet optimal.
+	//todo: create an iterative spring system to find the new position.
+	}
+
 ////////////////////////////////
 //	create new elements
 
@@ -598,38 +659,6 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 		if(!aaMarkEDGE[e])
 			grid.erase(e);
-	}
-
-//	finally assign the new positions
-	for(VertexBaseIterator iter = sel.vertices_begin();
-		iter != sel.vertices_end(); ++iter)
-	{
-		VertexBase* vrt = *iter;
-
-	//	calculate the width as the maximum of associated fracture widths
-		CollectEdges(edges, grid, vrt);
-
-		number width = 0;
-		for(size_t i = 0; i < edges.size(); ++i){
-			if(sel.is_selected(edges[i]))
-				width = max<number>(width, fracInfosBySubset.at(sh.get_subset_index(edges[i])).width);
-		}
-
-	//	iterate over associated vertices
-		vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
-
-	//	note that the position attachment of new vertices holds their normal.
-		for(size_t i = 0; i < vrtVec.size(); ++i){
-			VertexBase* nVrt = vrtVec[i];
-			if(VecLengthSq(aaPos[nVrt]) > SMALL)
-				VecNormalize(aaPos[nVrt], aaPos[nVrt]);
-			VecScale(aaPos[nVrt], aaPos[nVrt], width / 2.);
-			VecAdd(aaPos[nVrt], aaPos[nVrt], aaPos[vrt]);
-		}
-
-	//	the current position is only a guess. Especially vertices where
-	//	fractures cross, this is not yet optimal.
-	//todo: create an iterative spring system to find the new position.
 	}
 
 //	remove the temporary attachments
@@ -990,6 +1019,62 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	}
 
 ////////////////////////////////
+//	assign positions
+	for(VertexBaseIterator iter = sel.vertices_begin();
+		iter != sel.vertices_end(); ++iter)
+	{
+		VertexBase* vrt = *iter;
+
+	//	calculate the width as the maximum of associated fracture widths
+		CollectFaces(faces, grid, vrt);
+
+		number width = 0;
+		for(size_t i = 0; i < faces.size(); ++i){
+			if(aaMarkFACE[faces[i]])
+				width = max<number>(width, fracInfosBySubset.at(sh.get_subset_index(faces[i])).width);
+		}
+
+	//	iterate over associated vertices
+		vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+
+	//	note that the position attachment of new vertices holds their normal.
+		for(size_t i = 0; i < vrtVec.size(); ++i){
+			VertexBase* nVrt = vrtVec[i];
+			if(width > 0){
+				vector3 n = aaPos[nVrt];
+				if(VecLengthSq(n) > SMALL)
+					VecNormalize(n, n);
+
+				VecScale(n, n, width / 2.);
+
+				if(IsBoundaryVertex3D(grid, vrt)){
+				//	First determine the normal pointing outwards
+					vector3 nOut;
+					CalculateBoundaryVertexNormal3D(nOut, grid, vrt, aaPos);
+
+				//	project the normal into the plane with the normal nOut
+					vector3 nNew;
+					ProjectPointToPlane(nNew, n, vector3(0, 0, 0), nOut);
+
+				//	and now scale the new offset so that we receive the final offset.
+					number dot = VecDot(n, nNew);
+					if(dot > SMALL)
+						VecScale(n, nNew, VecLengthSq(n) / dot);
+
+				}
+
+				VecAdd(aaPos[nVrt], n, aaPos[vrt]);
+			}
+			else
+				aaPos[nVrt] = aaPos[vrt];
+		}
+
+	//	the current position is only a guess. Especially at vertices where
+	//	fractures cross, this is not yet optimal.
+	//todo: create an iterative spring system to find the new position.
+	}
+
+////////////////////////////////
 //	create new elements
 
 //	holds local side vertex indices
@@ -1235,40 +1320,6 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 	//	currently all original fracture vertices are selected.
 	}*/
-
-
-	for(VertexBaseIterator iter = sel.vertices_begin();
-		iter != sel.vertices_end(); ++iter)
-	{
-		VertexBase* vrt = *iter;
-
-	//	calculate the width as the maximum of associated fracture widths
-		CollectFaces(faces, grid, vrt);
-
-		number width = 0;
-		for(size_t i = 0; i < faces.size(); ++i){
-			if(aaMarkFACE[faces[i]])
-				width = max<number>(width, fracInfosBySubset.at(sh.get_subset_index(faces[i])).width);
-		}
-
-//width = 1;
-
-	//	iterate over associated vertices
-		vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
-
-	//	note that the position attachment of new vertices holds their normal.
-		for(size_t i = 0; i < vrtVec.size(); ++i){
-			VertexBase* nVrt = vrtVec[i];
-			if(VecLengthSq(aaPos[nVrt]) > SMALL)
-				VecNormalize(aaPos[nVrt], aaPos[nVrt]);
-			VecScale(aaPos[nVrt], aaPos[nVrt], width / 2.);
-			VecAdd(aaPos[nVrt], aaPos[nVrt], aaPos[vrt]);
-		}
-
-	//	the current position is only a guess. Especially vertices where
-	//	fractures cross, this is not yet optimal.
-	//todo: create an iterative spring system to find the new position.
-	}
 
 //	remove the temporary attachments
 	grid.detach_from_vertices(aVrtVec);
