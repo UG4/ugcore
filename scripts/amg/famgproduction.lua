@@ -38,7 +38,7 @@ numRefs = util.GetParamNumber("-numRefs", 1)
 -- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 
-maxBase = util.GetParamNumber("-maxBase", 1000)
+maxBase = util.GetParamNumber("-maxBase", 300)
 maxLevels = util.GetParamNumber("-maxLevels", 20)
 
 
@@ -47,6 +47,8 @@ RAalpha = util.GetParamNumber("-RAalpha", 0)
 
 epsx = util.GetParamNumber("-epsx", 1)
 epsy = util.GetParamNumber("-epsy", 1)
+
+bCheck = util.HasParamOption("-bCheck")
 
 bFileOutput = false
 bOutput = true
@@ -81,7 +83,10 @@ end
 	function cbDirichletBnd2d(x, y, t)
 		return true, 5.9991		
 	end
-	dirchletBnd2d = LuaBoundaryNumber("cbDirichletBnd"..dim.."d")
+	function cbDirichletBnd3d(x, y, z, t)
+		return true, 5.9991		
+	end	
+	dirchletBnd = LuaBoundaryNumber("cbDirichletBnd"..dim.."d")
 	
 	
 	function cbSinRhs2d(x, y, t)
@@ -111,9 +116,9 @@ end
 		local sinalpha = math.sin(alpha)
 		local cosalpha = math.cos(alpha)
 		RAmat = ConstUserMatrix()
-		print(sinalpha.." "..cosalpha.." "..epsilon)
-		print((sinalpha*sinalpha + epsilon*cosalpha*cosalpha)..", "..(1-epsilon)*sinalpha*cosalpha)
-		print((1-epsilon)*sinalpha*cosalpha..", "..epsilon*sinalpha*sinalpha + cosalpha*cosalpha)
+		-- print(sinalpha.." "..cosalpha.." "..epsilon)
+		-- print((sinalpha*sinalpha + epsilon*cosalpha*cosalpha)..", "..(1-epsilon)*sinalpha*cosalpha)
+		-- print((1-epsilon)*sinalpha*cosalpha..", "..epsilon*sinalpha*sinalpha + cosalpha*cosalpha)
 		RAmat:set_entry(0,0,sinalpha*sinalpha + epsilon*cosalpha*cosalpha)
 		RAmat:set_entry(0,1,(1-epsilon)*sinalpha*cosalpha)
 		RAmat:set_entry(1,0,(1-epsilon)*sinalpha*cosalpha)
@@ -148,13 +153,14 @@ end
 	end	
 	
 
-if dim = 3 then
-	diffusionMatrix =  ConstUserMatrix()
-	print(diffusionMatrix)
-	velocityField = ConstUserVector2d(0)
+if dim == 3 then
+	diffusionMatrix =  util.CreateConstUserMatrix3d(1, 0, 0,
+													0, 1, 0,
+													0, 0, 1)
+	velocityField = util.CreateConstUserVector3d(0, 0, 0)
 	reaction = ConstUserNumber(0)
 	rhs = ConstUserNumber(0)
-	dirichlet = dirchletBnd2d
+	dirichlet = dirchletBnd
 
 else
 	problem = "rotatedAniso"
@@ -163,11 +169,10 @@ else
 	-------------------------------------------
 	if problem == "rotatedAniso" then
 	diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
-	print(diffusionMatrix)
 	velocityField = ConstUserVector2d(0)
 	reaction = ConstUserNumber(0)
 	rhs = ConstUserNumber(0)
-	dirichlet = dirchletBnd2d
+	dirichlet = dirchletBnd
 	end
 	
 	if problem == "hedgehog" then
@@ -175,7 +180,7 @@ else
 	velocityField = ConstUserVector2d(0)
 	reaction = ConstUserNumber(0)
 	rhs = ConstUserNumber(0)
-	dirichlet = dirchletBnd2d
+	dirichlet = dirchletBnd
 	end
 	
 	if problem == "jump" then
@@ -183,7 +188,7 @@ else
 	velocityField = ConstUserVector2d(0)
 	reaction = ConstUserNumber(0)
 	rhs = ConstUserNumber(0)
-	dirichlet = dirchletBnd2d
+	dirichlet = dirchletBnd
 	end
 end
 --------------------------------
@@ -372,8 +377,10 @@ if bRSAMG == false then
 	if true then
 		amg:set_external_coarsening(true)
 		amg:set_parallel_coarsening(GetColorCoarsening())
+		-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
 		-- amg:set_parallel_coarsening(GetRS3Coarsening())
 	end
+	amg:set_testvectorsmoother(jac)
 	
 	-- amg:set_debug_level_overlap(4, 4)
 	-- amg:set_use_precalculate(false)
@@ -397,7 +404,7 @@ end
 
 vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
-amg:set_position_provider2d(vectorWriter)
+amg:set_position_provider(vectorWriter)
 if bOutput then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
 end
@@ -450,24 +457,28 @@ print("Init solver for operator.")
 linSolver:init(linOp)
 
 -- 3. apply solver
-print("Apply solver.")
-tBefore = os.clock()
 
 
--- amg:check(u, b)
-
-convCheck:set_maximum_steps(6)
-
+if bCheck then
+amg:write_interfaces()
+convCheck:set_maximum_steps(4)
 linSolver:apply_return_defect(u,b)
-
-
+SaveVectorForConnectionViewer(b, "b.vec")
+SaveVectorForConnectionViewer(u, "u.vec")
+amg:check(u,b)
 SaveVectorForConnectionViewer(b, "Rhs2.vec")
 SaveVectorForConnectionViewer(u, "u2.vec")
 
-tSolve = os.clock()-tBefore
--- WriteGridFunctionToVTK(u, "Solution")
+else
 
+print("Apply solver.")
+tBefore = os.clock()
+linSolver:apply_return_defect(u,b)
+tSolve = os.clock()-tBefore
 print("done")
+
+end
+
 
 printf = function(s,...)
 	print(s:format(...))
@@ -484,91 +495,93 @@ function fsize (file)
     return size
 end
 
-if bFileOutput and GetProcessRank() == 0 then
-	output = io.open("output_"..os.date("y%Ym%md%d")..".txt", "a")
-	if fsize(output) == 0 then 
-		output:write("procs")
-		output:write("\tnumRefs")
-		output:write("\tndofs")
-		output:write("\tsteps")
-		output:write("\tlastReduction")
-		output:write("\ttSetupAmg [ms]")
-		output:write("\tc_A")
-		output:write("\tc_G")
-		output:write("\tused Levels")
-		output:write("\ttSolve [s]")
-		output:write("\ttGrid [s]")
-		output:write("\ttAssemble [s]")
-		output:write("\n")
-	end
-	output:write(GetNumProcesses())
-	output:write("\t"..numRefs)
-	output:write("\t"..amg:get_level_information(0):get_nr_of_nodes())
-	output:write("\t"..convCheck:step())
-	output:write("\t"..convCheck:defect()/convCheck:previous_defect())
-	output:write("\t"..amg:get_timing_whole_setup_ms())
-	output:write("\t"..amg:get_operator_complexity())
-	output:write("\t"..amg:get_grid_complexity())
-	output:write("\t"..amg:get_used_levels())
-	output:write("\t"..tSolve)
-	output:write("\t"..tGrid)
-	output:write("\t"..tAssemble)
-	output:write("\n")
-	print(s)
-	-- else
-end
-
-
-print("NumProcesses: "..GetNumProcesses())
-print("numRefs: "..numRefs)
-print("nr of nodes: "..amg:get_level_information(0):get_nr_of_nodes())
-print("steps: "..convCheck:step())
-print("last reduction: "..convCheck:defect()/convCheck:previous_defect())
-print("tSetupAmg [ms]: "..amg:get_timing_whole_setup_ms())
-print("c_A: "..amg:get_operator_complexity())
-print("c_G: "..amg:get_grid_complexity())
-print("used Levels: "..amg:get_used_levels())
-print("tSolve [s]: "..tSolve)
-print("tGrid [s]: "..tGrid)
-print("tAssemble [s]: "..tAssemble)
-
-
-
-if GetProfilerAvailable() == true then
-	create_levelPN = GetProfileNode("c_create_AMG_level")
-	
-	function PrintParallelProfileNode(name)
-		pn = GetProfileNode(name)
-		t = pn:get_avg_total_time_ms()/to100 * 100
-		tmin = ParallelMin(t)
-		tmax = ParallelMax(t)
-		printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
-	end
-	
-	if create_levelPN:is_valid() and false then
-		if true then
-			print(create_levelPN:call_tree())
-			print(create_levelPN:child_self_time_sorted())
+if not bCheck then
+	if bFileOutput and GetProcessRank() == 0  then
+		output = io.open("output_"..os.date("y%Ym%md%d")..".txt", "a")
+		if fsize(output) == 0 then 
+			output:write("procs")
+			output:write("\tnumRefs")
+			output:write("\tndofs")
+			output:write("\tsteps")
+			output:write("\tlastReduction")
+			output:write("\ttSetupAmg [ms]")
+			output:write("\tc_A")
+			output:write("\tc_G")
+			output:write("\tused Levels")
+			output:write("\ttSolve [s]")
+			output:write("\ttGrid [s]")
+			output:write("\ttAssemble [s]")
+			output:write("\n")
 		end
-		to100 = create_levelPN:get_avg_total_time_ms()
-		PrintParallelProfileNode("create_OL2_matrix")
-		PrintParallelProfileNode("CalculateTestvector")
-		PrintParallelProfileNode("CreateSymmConnectivityGraph")
-		PrintParallelProfileNode("calculate_all_possible_parent_pairs")
-		PrintParallelProfileNode("color_process_graph")
-		PrintParallelProfileNode("FAMG_recv_coarsening_communicate")
-		PrintParallelProfileNode("update_rating")
-		PrintParallelProfileNode("precalculate_coarsening")
-		PrintParallelProfileNode("send_coarsening_data_to_processes_with_higher_color")
-		PrintParallelProfileNode("communicate_prolongation")
-		PrintParallelProfileNode("create_new_index")
-		PrintParallelProfileNode("create_parent_index")
-		PrintParallelProfileNode("create_interfaces")
-		PrintParallelProfileNode("create_fine_marks")
-		PrintParallelProfileNode("create_galerkin_product")
-		PrintParallelProfileNode("CalculateNextTestvector")
+		output:write(GetNumProcesses())
+		output:write("\t"..numRefs)
+		output:write("\t"..amg:get_level_information(0):get_nr_of_nodes())
+		output:write("\t"..convCheck:step())
+		output:write("\t"..convCheck:defect()/convCheck:previous_defect())
+		output:write("\t"..amg:get_timing_whole_setup_ms())
+		output:write("\t"..amg:get_operator_complexity())
+		output:write("\t"..amg:get_grid_complexity())
+		output:write("\t"..amg:get_used_levels())
+		output:write("\t"..tSolve)
+		output:write("\t"..tGrid)
+		output:write("\t"..tAssemble)
+		output:write("\n")
+		print(s)
+		-- else
 	end
-
-else
-	print("Profiler not available.")
-end	
+	
+	
+	print("NumProcesses: "..GetNumProcesses())
+	print("numRefs: "..numRefs)
+	print("nr of nodes: "..amg:get_level_information(0):get_nr_of_nodes())
+	print("steps: "..convCheck:step())
+	print("last reduction: "..convCheck:defect()/convCheck:previous_defect())
+	print("tSetupAmg [ms]: "..amg:get_timing_whole_setup_ms())
+	print("c_A: "..amg:get_operator_complexity())
+	print("c_G: "..amg:get_grid_complexity())
+	print("used Levels: "..amg:get_used_levels())
+	print("tSolve [s]: "..tSolve)
+	print("tGrid [s]: "..tGrid)
+	print("tAssemble [s]: "..tAssemble)
+	
+	
+	
+	if GetProfilerAvailable() == true then
+		create_levelPN = GetProfileNode("c_create_AMG_level")
+		
+		function PrintParallelProfileNode(name)
+			pn = GetProfileNode(name)
+			t = pn:get_avg_total_time_ms()/to100 * 100
+			tmin = ParallelMin(t)
+			tmax = ParallelMax(t)
+			printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
+		end
+		
+		if create_levelPN:is_valid() and false then
+			if true then
+				print(create_levelPN:call_tree())
+				print(create_levelPN:child_self_time_sorted())
+			end
+			to100 = create_levelPN:get_avg_total_time_ms()
+			PrintParallelProfileNode("create_OL2_matrix")
+			PrintParallelProfileNode("CalculateTestvector")
+			PrintParallelProfileNode("CreateSymmConnectivityGraph")
+			PrintParallelProfileNode("calculate_all_possible_parent_pairs")
+			PrintParallelProfileNode("color_process_graph")
+			PrintParallelProfileNode("FAMG_recv_coarsening_communicate")
+			PrintParallelProfileNode("update_rating")
+			PrintParallelProfileNode("precalculate_coarsening")
+			PrintParallelProfileNode("send_coarsening_data_to_processes_with_higher_color")
+			PrintParallelProfileNode("communicate_prolongation")
+			PrintParallelProfileNode("create_new_index")
+			PrintParallelProfileNode("create_parent_index")
+			PrintParallelProfileNode("create_interfaces")
+			PrintParallelProfileNode("create_fine_marks")
+			PrintParallelProfileNode("create_galerkin_product")
+			PrintParallelProfileNode("CalculateNextTestvector")
+		end
+	
+	else
+		print("Profiler not available.")
+	end	
+end
