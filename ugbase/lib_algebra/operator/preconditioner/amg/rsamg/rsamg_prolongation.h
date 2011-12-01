@@ -43,6 +43,55 @@ inline void SetRSInterpolation(SparseMatrix<double> &P, size_t i,
 	P.set_matrix_row(i, &con[0], con.size());
 }
 
+template<typename TMatrix>
+void GetNeighborValues(const TMatrix &A, size_t i, double &minConnValue, double &maxConnValue, double &diag)
+{
+	diag = 0; maxConnValue=0; minConnValue = 1e12;
+	for(typename TMatrix::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	{
+		if(conn.index() == i)
+		{
+			diag = conn.value();
+			continue; // skip diagonal
+		}
+		double connValue = amg_offdiag_value(conn.value());
+		if(minConnValue > connValue)
+			minConnValue = connValue;
+		else if(maxConnValue < connValue)
+			maxConnValue = connValue;
+	}
+}
+
+template<typename TMatrix, typename TNodes>
+void GetNeighborValues(const TMatrix &A, TNodes &nodes, size_t i, double &minConnValue, double &maxConnValue,
+		double &minCoarseConnValue, double &maxCoarseConnValue, double &sumNegNeighbors, double &sumPosNeighbors, double &diag)
+{
+	maxConnValue = 0; minConnValue=1e12;
+	maxCoarseConnValue = 0; minCoarseConnValue = 1e12;
+	sumNegNeighbors = 0; sumPosNeighbors=0;
+	diag=0;
+	for(typename TMatrix::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	{
+		if(conn.index() == i)
+		{
+			diag = amg_diag_value(conn.value());
+			continue;
+		}
+		double connValue = amg_offdiag_value(conn.value());
+
+		if(connValue > 0)	sumPosNeighbors += connValue;
+		else				sumNegNeighbors += connValue;
+
+		if(maxConnValue < connValue) maxConnValue = connValue;
+		if(minConnValue > connValue) minConnValue = connValue;
+
+		if(nodes[conn.index()].is_coarse() || nodes[conn.index()].is_dirichlet())
+		{
+			if(maxCoarseConnValue > connValue)	maxCoarseConnValue = connValue;
+			if(minCoarseConnValue < connValue)	minCoarseConnValue = connValue;
+		}
+	}
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CreateProlongation:
 //-------------------------
@@ -90,33 +139,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			// a non-interpolated fine node. calculate interpolation weights
 
 			// calc min off-diag-entry, and sum of Neighbors
-			double maxConnValue = 0, minConnValue=1e12;
-			double maxCoarseConnValue = 0, minCoarseConnValue = 1e12;
-			double sumNegNeighbors =0, sumPosNeighbors=0;
-
-
-			double diag=0;
-			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
-			{
-				if(conn.index() == i)
-				{
-					diag = amg_diag_value(conn.value());
-					continue;
-				}
-				double connValue = amg_offdiag_value(conn.value());
-
-				if(connValue > 0)	sumPosNeighbors += connValue;
-				else				sumNegNeighbors += connValue;
-
-				if(maxConnValue < connValue) maxConnValue = connValue;
-				if(minConnValue > connValue) minConnValue = connValue;
-
-				if(nodes[conn.index()].is_coarse() || nodes[conn.index()].is_dirichlet())
-				{
-					if(maxCoarseConnValue > connValue)	maxCoarseConnValue = connValue;
-					if(minCoarseConnValue < connValue)	minCoarseConnValue = connValue;
-				}
-			}
+			double maxConnValue, minConnValue, diag;
+			GetNeighborValues(A, i, minConnValue, maxConnValue, diag);
 
 			// todo: check if it is ok to do it THIS way:
 			/*if(epsilonTruncation > 0)  // [AMGKS99] 7.2.4 truncation of interpolation
@@ -127,6 +151,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 
 			double sumPosInterpolatory=0, sumNegInterpolatory=0;
+			double sumPosNeighbors=0, sumNegNeighbors=0;
 			con.clear();
 			// step 1: set w'_ij = a_ij/a_jj for suitable j
 			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
@@ -139,6 +164,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 					) continue;
 
 				double connValue = amg_offdiag_value(conn.value());
+				if(connValue > 0) 	sumPosNeighbors += connValue;
+				else				sumNegNeighbors += connValue;
 				if(dabs(connValue) < barrier)
 					continue;
 
@@ -149,10 +176,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 				if(!nodes[conn.index()].is_dirichlet())
 					con.push_back(c);
-				if(connValue > 0)
-					sumPosInterpolatory += connValue;
-				else
-					sumNegInterpolatory += connValue;
+				if(connValue > 0)	sumPosInterpolatory += connValue;
+				else				sumNegInterpolatory += connValue;
 			}
 
 			if(con.size() > 0)
@@ -166,29 +191,9 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 				{
 					if(conn.index() == i) continue; // skip diagonal
 					if(!nodes[conn.index()].is_coarse())
-					{
-						UG_LOG(conn.index() << " is not coarse\n");
-						continue;
-					}
-
-					double connValue = amg_offdiag_value(conn.value());
-					if(dabs(connValue) < barrier)
-					{
-						UG_LOG(conn.index() << " has value " << connValue << "\n");
-						continue;
-					}
-
-					c.iIndex = conn.index();
-					c.dValue = connValue;
-
-					UG_ASSERT(c.iIndex >= 0, "not coarse?");
-
-					if(!nodes[conn.index()].is_dirichlet())
-						con.push_back(c);
-					if(connValue > 0)
-						sumPosInterpolatory += connValue;
+					{	UG_LOG(conn.index() << " is not coarse\n"); }
 					else
-						sumNegInterpolatory += connValue;
+					{	UG_LOG(conn.index() << " has value " << amg_offdiag_value(conn.value()) << "\n"); }
 				}
 				//UG_ASSERT(0,i);
 				// no suitable interpolating nodes for node i,
@@ -252,26 +257,14 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 			if(!nodes[i].is_unassigned_fine_indirect() || A.is_isolated(i))
 				continue;
 
-			double diag=0;
 			// calculate min offdiag-entry
-			double maxConnValue = 0, minConnValue=1e12;
+			double diag, maxConnValue, minConnValue;
+			double sumPosNeighbors=0, sumNegNeighbors=0;
 
-			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
-			{
-				if(conn.index() == i)
-				{
-					diag = conn.value();
-					continue; // skip diagonal
-				}
-				double connValue = amg_offdiag_value(conn.value());
-				if(minConnValue > connValue)
-					minConnValue = connValue;
-				else if(maxConnValue < connValue)
-					maxConnValue = connValue;
-			}
+			GetNeighborValues(A, i, minConnValue, maxConnValue, diag);
 
 			con.clear();
-			double sumPosNeighbors=0, sumNegNeighbors=0;
+
 			double barrier = theta*std::max(maxConnValue, dabs(minConnValue));
 
 			//cout << "indirect interpolating node " << i << endl;
@@ -283,10 +276,8 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 				if(indexN == i) continue; // skip diagonal
 
 				double connValue = amg_offdiag_value(conn.value());
-				if(connValue > 0)
-					sumPosNeighbors += connValue;
-				else
-					sumNegNeighbors += connValue;
+				if(connValue > 0) 	sumPosNeighbors += connValue;
+				else				sumNegNeighbors += connValue;
 				if(dabs(connValue) < barrier)
 					continue;
 

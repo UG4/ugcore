@@ -134,7 +134,7 @@ void AMGBase<TAlgebra>::create_new_indices(prolongation_matrix_type &PoldIndices
 	/*for(size_t r=N; r<overlapN; r++)
 		UG_ASSERT(amgnodes[r].is_fine() == false || amgnodes[r].is_uncalculated_fine(), amgnodes.info(r));*/
 #endif
-	UG_DLOG(LIB_ALG_AMG, 0, "amgnodes.get_nr_of_coarse() = " << amgnodes.get_nr_of_coarse() << ", nrOfCoarse = " << nrOfCoarse << "\n");
+	//UG_DLOG(LIB_ALG_AMG, 0, "\namgnodes.get_nr_of_coarse() = " << amgnodes.get_nr_of_coarse() << ", nrOfCoarse = " << nrOfCoarse);
 	PnewIndices.defragment();
 #ifdef UG_PARALLEL
 	PnewIndices.set_storage_type(PST_CONSISTENT);

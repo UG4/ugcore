@@ -9,6 +9,9 @@
  */
 
 #include "common/common.h"
+#ifdef UG_PARALLEL
+#include "lib_algebra/parallelization/parallelization_util.h"
+#endif
 
 #ifndef __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_TESTVECTORS_H__
 #define __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_TESTVECTORS_H__
@@ -112,14 +115,51 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 	stopwatch SW;
 	if(bTiming) SW.start();
 
+	vector_type d; d.resize(A.num_rows());
+	vector_type c; c.resize(A.num_rows());
+#ifdef UG_PARALLEL
+	c.set_layouts(A.get_master_layout(), A.get_slave_layout());
+	d.set_layouts(A.get_master_layout(), A.get_slave_layout());
+#endif
+
 	for(size_t i=0; i<m_testvectors.size(); i++)
 	{
+
+		UG_ASSERT(m_testvectors[i].size() == A.num_rows(), m_testvectors[i].size() << " != " << A.num_rows());
+
 #ifdef UG_PARALLEL
 		m_testvectors[i].set_storage_type(PST_CONSISTENT);
 #endif
-		CalculateTestvector(A_OL2,
-				m_testvectors[i], m_famg.get_testvector_damps());
+
+		for(size_t jj=0; jj < m_famg.get_testvector_damps(); jj++)
+			A.apply(d, m_testvectors[i]);
+
+
+		m_famg.m_testvectorsmoother->init(*m_famg.levels[level]->pA);
+		m_famg.m_testvectorsmoother->apply(c, d);
+		m_testvectors[i] -= c;
+
+#ifdef UG_PARALLEL
+
+		SetLayoutValues(&m_testvectors[i], A.get_slave_layout(), 0.0);
+		m_testvectors[i].resize(A_OL2.num_rows());
+		m_testvectors[i].set_master_layout(A_OL2.get_master_layout());
+		m_testvectors[i].set_slave_layout(A_OL2.get_slave_layout());
+		for(size_t j=A.num_rows(); j<A_OL2.num_rows(); j++)
+			m_testvectors[i][j]=0.0;
+
+
+		m_testvectors[i].set_storage_type(PST_ADDITIVE);
+		m_testvectors[i].change_storage_type(PST_CONSISTENT);
+#endif
+
+		if(m_famg.m_writeMatrices && m_famg.m_writeTestvectors)
+			for(size_t i=0; i<m_testvectors.size(); i++)
+				WriteVectorToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, ToString("testvector_S") + ToString(i) + ToString("_L") + ToString(level), ".vec").c_str(),
+					m_testvectors[i], &m_famg.m_amghelper.positions[level][0], m_famg.m_dbgDimension);
+		//VecScaleAdd(m_testvectors[i], 1.0, m_testvectors[i], -1.0, d);
 	}
+
 
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 }
@@ -132,10 +172,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 	// todo: remove dynamic cast, change big_testvector to parallel
 	for(size_t i=0; i<m_testvectors.size(); i++)
 	{
-		vector_type &v = m_testvectors[i];
-		for(size_t j=0; j < AH.num_rows(); j++)
-			t[j] = v[m_famg.m_parentIndex[level+1][j]];
-		v = t;
+		m_famg.injection(t, m_testvectors[i], level);
+		m_testvectors[i] = t;
 	}
 }
 

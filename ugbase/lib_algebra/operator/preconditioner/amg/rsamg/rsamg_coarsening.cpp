@@ -357,13 +357,12 @@ void PreventFFConnections(const cgraph &graphS, const cgraph &graphST, AMGNodes 
 
 	for(size_t i=0; i< N; i++)
 	{
-		if(nodes.is_inner(i)==false)
-			continue;
-		PreventFFConnection(graphS, graphST, nodes, i, marks, nrOfFFCoarseNodes);
+		if(nodes.is_inner(i) && nodes[i].is_fine())
+			PreventFFConnection(graphS, graphST, nodes, i, marks, nrOfFFCoarseNodes);
 	}
 
 	if(nrOfFFCoarseNodes)
-		UG_DLOG(LIB_ALG_AMG, 1, "F-F prevention, now " << nodes.get_nr_of_coarse() << " coarse nodes.\n");
+		UG_DLOG(LIB_ALG_AMG, 0, "F-F prevention, now " << nodes.get_nr_of_coarse() << " coarse nodes.\n");
 }
 
 /*

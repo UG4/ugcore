@@ -141,7 +141,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	stopwatch SW;
 	if(bTiming) SW.start();
 
-	UG_DLOG(LIB_ALG_AMG, 0, "\n*** receive coarsening data from processes with lower color ***\n");
+	UG_DLOG(LIB_ALG_AMG, 0, "\nreceive coarsening data from processes with lower color");
 	if(processesWithLowerColor.size() == 0)
 	{
 		UG_DLOG(LIB_ALG_AMG, 0, "no processes with lower color.");
@@ -176,7 +176,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelSendCoarsening);
 
 	stopwatch SW; if(bTiming) SW.start();
-	UG_DLOG(LIB_ALG_AMG, 0, "\n*** send coarsening data to processes ***\n");
+	UG_DLOG(LIB_ALG_AMG, 0, "\nsend coarsening data to processes...");
 	if(processesWithHigherColor.size() == 0)
 	{
 		UG_DLOG(LIB_ALG_AMG, 0, "no processes with higher color.");
@@ -187,7 +187,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	FAMGCoarseningCommunicationScheme scheme(rating);
 	SendOnInterfaces(PN.get_communicator(), processesWithHigherColor, OLCoarseningSendLayout, scheme);
 
-	if(bTiming) UG_DLOG(LIB_ALG_AMG, 3, "took " << SW.ms() << " ms");
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 
 	/*IF_DEBUG(LIB_ALG_AMG, 11)
 	{
@@ -229,7 +229,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
 {
-	UG_DLOG(LIB_ALG_AMG, 0, "\n********** create OL2 matrix **************\n\n")
+	UG_DLOG(LIB_ALG_AMG, 0, "\ncreate OL2 matrix...\n");
 #ifdef UG_DEBUG
 	//int iDebugLevelMatrixPre = GET_DEBUG_LEVEL(LIB_ALG_MATRIX);
 	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, m_famg.iDebugLevelOverlapMatrix);
@@ -258,7 +258,6 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OL1SlaveLayout, slaveLayouts[0]);
 
 
-	UG_LOG("\n\nA layout, level " << level << ":\n")
 	/*
 	PRINTLAYOUT(PN.get_communicator(), A.get_master_layout(), A.get_slave_layout());
 	PRINTLAYOUT(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout);
@@ -275,26 +274,6 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	UG_ASSERT(TestLayout(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
 	UG_ASSERT(TestLayout(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
 #endif
-
-	// get testvectors on newly created indices
-	//--------------------------------------------
-	// todo: use ONE communicate
-	//std::vector<ComPol_VecCopy< Vector<double> > > vecCopyPol;
-	//vecCopyPol.resize(m_testvectors.size());
-
-	AMG_PROFILE_NEXT(AMG_get_testvecs_on_OL2);
-
-	for(size_t i=0; i<m_testvectors.size(); i++)
-	{
-		ComPol_VecCopy< Vector<double> > vecCopyPol;
-		m_testvectors[i].resize(A_OL2.num_rows());
-		vecCopyPol.set_vector(&m_testvectors[i]);
-		PN.get_communicator().send_data(OL2MasterLayout, vecCopyPol);
-		PN.get_communicator().receive_data(OL2SlaveLayout, vecCopyPol);
-		PN.get_communicator().communicate();
-	}
-
-
 
 	// create OLCoarseningSendLayout, OLCoarseningReceiveLayout
 	//------------------------------------------------------------
@@ -383,6 +362,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		}
 	}
 
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 
 //	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelMatrixPre);
 }

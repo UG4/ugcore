@@ -32,7 +32,7 @@ void CreateAllToAllFromMasterSlave(pcl::ParallelCommunicator<IndexLayout> &commu
 		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout);
 
 
-
+void PreventFFConnections(const cgraph &graphS, const cgraph &graphST, AMGNodes &nodes);
 /**
 * \class FullSubdomainBlocking
 * \brief Full Subdomain Blocking Coarsening Scheme.
@@ -51,8 +51,6 @@ public:
 		size_t N = nodes.size();
 		for(size_t i=0; i<N; i++)
 		{
-			if(nodes[i].is_assigned()) continue;
-
 			if(nodes.is_master(i))
 			{
 				nodes.set_coarse(i);
@@ -68,6 +66,7 @@ public:
 		 * this COULD be OK if used with aggressive coarsening.
 		 * */
 		Coarsen(graphS, graphST, PQ, nodes, bUnsymmetric, false);
+		PreventFFConnections(graphS, graphST, nodes);
 	}
 
 	int overlap_depth_master()
@@ -208,6 +207,7 @@ class SimpleParallelCoarsening : public IParallelCoarsening
 		std::map<size_t, char> recv;
 		StdArrayCommunicationScheme<AMGNodes> scheme(nodes);
 		CommunicateOnInterfaces(PN.get_communicator(), slaveOL1, masterOL1, scheme);
+		PreventFFConnections(graphS, graphST, nodes);
 	}
 
 	int overlap_depth_master()
@@ -451,7 +451,6 @@ class ColorCoarsening : public IParallelCoarsening
 		}*/
 
 		// coarsen
-		UG_LOG("\nNow COARSENING...\n\n");
 		Coarsen(graphS, graphST, PQ, nodes, bUnsymmetric, false);
 
 		// send coarsening data
@@ -463,6 +462,8 @@ class ColorCoarsening : public IParallelCoarsening
 		SendOnInterfaces(PN.get_communicator(), processesWithHigherColor, vMasterLayouts[1], nodesCommunication);
 		ReceiveOnInterfaces(PN.get_communicator(), processesWithLowerColor, vSlaveLayouts[1], nodesCommunication);
 		nodesCommunication.set_coarse_and_fine();
+
+		PreventFFConnections(graphS, graphST, nodes);
 	}
 
 	int overlap_depth_master()

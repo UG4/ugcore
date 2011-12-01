@@ -52,6 +52,11 @@ void GetNeighborhoodRec(matrix_type &A, size_t node, std::vector<size_t> &onlyN1
 	for(size_t i=0; i<onlyN1.size(); i++)
 		GetNeighborhoodRec(A, onlyN1[i], onlyN2, bvisited);
 }
+void CleanupFlagArray(stdvector<bool> bFlagged, const stdvector<size_t> &iFlagged)
+{
+	for(size_t i=0; i<iFlagged.size(); i++)
+		bFlagged[iFlagged[i]] = false;
+}
 
 template<typename matrix_type>
 void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1, std::vector<size_t> &onlyN2, std::vector<bool> &bvisited)
@@ -62,10 +67,8 @@ void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1, s
 
 	// cleanup
 	bvisited[node] = false;
-	for(size_t i=0; i<onlyN1.size(); i++)
-		bvisited[onlyN1[i]] = false;
-	for(size_t i=0; i<onlyN2.size(); i++)
-		bvisited[onlyN2[i]] = false;
+	CleanupFlagArray(bvisited, onlyN1);
+	CleanupFlagArray(bvisited, onlyN2);
 }
 
 /**
@@ -106,13 +109,14 @@ public:
 	template<typename prolongation_matrix_type>
 	void check_weights(prolongation_matrix_type &P, size_t i)
 	{
-#ifdef UG_DEBUG
-		for(typename matrix_type::row_iterator it = P.begin_row(i); it != P.end_row(i); ++it)
+		IF_DEBUG(LIB_ALG_AMG, 2)
 		{
-			if(it.value() < 0.01 || it.value() > 1)
-				UG_LOG("P(" << i << ", " << it.index() << ") = " << it.value() << "\n");
+			for(typename matrix_type::row_iterator it = P.begin_row(i); it != P.end_row(i); ++it)
+			{
+				if(it.value() < 0.01 || it.value() > 1)
+					UG_LOG("P(" << i << ", " << it.index() << ") = " << it.value() << "\n");
+			}
 		}
-#endif
 	}
 
 	// get_possible_parent_pairs:
@@ -563,6 +567,34 @@ public:
 		return true;
 	}
 
+
+
+	void get_strong_connected_neighborhood(const matrix_type &A, const FAMGNodes &rating, size_t i, stdvector<size_t> &onlyN1,
+			stdvector<size_t> &onlyN2, stdvector<bool> &bvisited)
+	{
+		double minConnValue, maxConnValue, diag;
+		GetNeighborValues(A, i, minConnValue, maxConnValue, diag);
+		onlyN1.clear();
+
+		const double theta = 0.1;
+		double barrier = theta*std::max(maxConnValue, dabs(minConnValue));
+		for(typename matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+		{
+			if(conn.index() == i) continue; // skip diagonal
+			if(!rating[conn.index()].is_coarse()) continue; // only coarse
+			if(dabs(amg_offdiag_value(conn.value())) < barrier) // only strong
+				continue;
+			onlyN1.push_back(conn.index());
+			bvisited[conn.index()] = true;
+		}
+
+		for(size_t i=0; i<onlyN1.size(); i++)
+			GetNeighborhoodRec(A, onlyN1[i], onlyN2, bvisited);
+
+		CleanupFlagArray(bvisited, onlyN1);
+		CleanupFlagArray(bvisited, onlyN2);
+	}
+
 	// get_all_neighbors_interpolation:
 	//---------------------------------------
 	/** calculates an interpolation of the node i, when i is interpolating by all his neighbors
@@ -579,7 +611,9 @@ public:
 		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << rating.get_original_index(i) << "\n")
 
-		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
+
+		//GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
+		get_strong_connected_neighborhood(A_OL2, rating, i, onlyN1, onlyN2, bvisited);
 		if(onlyN1.size() == 0)
 		{
 			UG_DLOG(LIB_ALG_AMG, 3, "no neighbors -> gets fine");

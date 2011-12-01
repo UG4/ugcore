@@ -41,7 +41,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs
 	// use RSAMG's methods to do standard rs coarsening
 #ifdef UG_PARALLEL
 	AMGNodes nodes(N, PN);
-	UG_DLOG(LIB_ALG_AMG, 0, m_famg.m_pParallelCoarsening->tostring());
+	UG_DLOG(LIB_ALG_AMG, 0, m_famg.m_pParallelCoarsening->tostring() << "\n");
 #else
 	AMGNodes nodes(N);
 #endif
@@ -88,13 +88,18 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs
 	// coarsening done. transfer AMG nodeinfo -> FAMG nodeinfo
 	for(size_t i=0; i<N; i++)
 	{
-		//UG_LOG("rating " << i << " = " << nodes[i] << "\n");
 		if(graphS.is_isolated(i))
 			rating.set_fine(i);
 		if(nodes[i].is_coarse())
 			rating.external_set_coarse(i);
-		if(nodes[i].is_fine_direct())
+		else if(nodes[i].is_fine_direct() || nodes[i].is_fine())
 			rating.set_fine(i);
+		else
+		{
+			//UG_LOG("nodes " << i << " = " << nodes[i] << "\n");
+			rating.set_fine(i);
+			//UG_LOG("rating " << i << " = " << rating[i] << "\n");
+		}
 	}
 
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");

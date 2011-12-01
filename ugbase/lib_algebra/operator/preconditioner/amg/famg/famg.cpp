@@ -343,7 +343,6 @@ public:
 		AMG_PROFILE_FUNC();
 
 		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1);
-		UG_LOG("\n\nDO_CALCULATION\n\n");
 		UG_DLOG(LIB_ALG_AMG, 0, "Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
 		stopwatch SW, SWwhole; SWwhole.start();
@@ -487,7 +486,7 @@ public:
 		//UG_DLOG(LIB_ALG_AMG, 1, "parentIndex level " << level << "\n")
 		//for(size_t i=0; i<rating.get_nr_of_coarse(); i++) { UG_ASSERT(amghelper.parentIndex[level+1][i] != -1, i << " == -1???"); UG_LOG(i << " = " << amghelper.parentIndex[level+1][i] << "\n"); }
 
-		UG_DLOG(LIB_ALG_AMG, 0, std::endl << rating.get_nr_of_coarse() << " coarse, " << N - rating.get_unassigned() - rating.get_nr_of_coarse() << " fine.");
+		//UG_DLOG(LIB_ALG_AMG, 0, std::endl << rating.get_nr_of_coarse() << " coarse.");
 
 		// 8. construct restriction R = I_{h->2h}
 		//-----------------------------------------

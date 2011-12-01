@@ -38,43 +38,57 @@ void SetParallelVectorAsMatrix(TVector &v, TMatrix &m, ParallelStorageType t)
 }
 #endif
 
+template<typename TMatrix>
+size_t GetMaxConnections(const TMatrix &A)
+{
+	size_t m=0;
+	for(size_t i=0; i<A.num_rows(); i++)
+		if(m < A.num_connections(i)) m = A.num_connections(i);
+	return m;
+}
+
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createAMGlevelTiming)
 {
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
 
+	LevelInformation &li = L.m_levelInformation;
+
 	size_t nnz = A.total_num_connections();
+	size_t maxConnections = GetMaxConnections(A);
 #ifdef UG_PARALLEL
 	size_t N = A.num_rows() - A.get_slave_layout().num_interface_elements();
-
-	L.m_levelInformation.m_dCreationTimeMS = createAMGlevelTiming;
-	L.m_levelInformation.set_nr_of_nodes(
+	li.m_dCreationTimeMS = createAMGlevelTiming;
+	li.set_nr_of_nodes(
 			L.processCommunicator.allreduce(N, PCL_RO_MIN),
 			L.processCommunicator.allreduce(N, PCL_RO_MAX),
 			L.processCommunicator.allreduce(N, PCL_RO_SUM));
-	L.m_levelInformation.set_nnz(
+	li.set_nnz(
 			L.processCommunicator.allreduce(nnz, PCL_RO_MIN),
 			L.processCommunicator.allreduce(nnz, PCL_RO_MAX),
 			L.processCommunicator.allreduce(nnz, PCL_RO_SUM));
+	li.set_max_connections(L.processCommunicator.allreduce(maxConnections, PCL_RO_MAX));
 	size_t localInterfaceElements = A.get_master_layout().num_interface_elements() + A.get_slave_layout().num_interface_elements();
-	L.m_levelInformation.m_iInterfaceElements = L.processCommunicator.allreduce(localInterfaceElements, PCL_RO_SUM);
+	li.m_iInterfaceElements = L.processCommunicator.allreduce(localInterfaceElements, PCL_RO_SUM);
 #else
 	size_t N = A.num_rows();
-	L.m_levelInformation.set_nr_of_nodes(N, N, N);
-	L.m_levelInformation.set_nnz(nnz, nnz, nnz);
-	L.m_levelInformation.m_iInterfaceElements = 0;
+	li.set_nr_of_nodes(N, N, N);
+	li.set_nnz(nnz, nnz, nnz);
+	li.set_max_connections(maxConnections);
+	li.m_iInterfaceElements = 0;
 #endif
-	UG_LOG("nrOfCoarse: " << L.m_levelInformation.get_nr_of_nodes() << "\n");
-	IF_DEBUG(LIB_ALG_AMG, 1)
+
+	UG_LOG("nrOfCoarse: " << li.get_nr_of_nodes() << "\n");
+	IF_DEBUG(LIB_ALG_AMG, 0)
 	{
-		UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << L.m_levelInformation.get_nnz() << " Density: " <<
-				L.m_levelInformation.get_fill_in()*100.0 << "%, avg. nnz pre row: " <<
-				L.m_levelInformation.get_avg_nnz_per_row()  << std::endl);
+		UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << li.get_nnz() << " Density: " <<
+				li.get_fill_in()*100.0 << "%, avg. nnz pre row: " <<
+				li.get_avg_nnz_per_row() << ", max conns: " << li.get_max_connections() << std::endl);
 		if(level>0)
 		{
 			UG_DLOG(LIB_ALG_AMG, 1, "Coarsening rate: " <<
-				(100.0*L.m_levelInformation.get_nr_of_nodes())
+				(100.0*li.get_nr_of_nodes())
 				/ levels[level-1]->m_levelInformation.get_nr_of_nodes() <<
 				"%" << std::endl);
 			UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
@@ -370,6 +384,7 @@ AMGBase<TAlgebra>::AMGBase() :
 	m_bFSmoothing = false;
 
 	m_dbgDimension = 0;
+	iteration_glboal=0;
 }
 
 
@@ -534,6 +549,7 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 }
 
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // add_correction_and_update_defect:
 //------------------------------------
@@ -553,6 +569,8 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	UG_ASSERT(c.size() == d.size() && c.size() == A.num_rows(),
 			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << A.num_rows() << ": not matching");
 
+
+
 #ifdef UG_PARALLEL
 	if(!d.has_storage_type(PST_ADDITIVE) || !c.has_storage_type(PST_CONSISTENT))
 	{
@@ -562,36 +580,58 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 #endif
 	vector_type &corr = levels[level]->corr;
 	corr.set(0.0);
-	c.set(0.0);
+
 #ifdef UG_PARALLEL
 	corr.set_storage_type(PST_CONSISTENT);
+	c.set_storage_type(PST_CONSISTENT);
+#endif
+
+
+#if WRITEVEC_IN_SOLVER
+	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "aa_d_L").c_str(), d, level);
+	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "aa_c_L").c_str(), c, level);
 #endif
 
 	// presmooth
 	for(size_t i=0; i < m_numPreSmooth; i++)
 	{
+		corr.set(0.0);
 		L.presmoother->apply_update_defect(corr, d);
+		UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
 		c += corr;
 	}
 
 	// pre f-smoothing
 	if(m_bFSmoothing)
 	{
+		corr.set(0.0);
 		f_smoothing(corr, d, level);
+		UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
 		c+=corr;
 	}
+
+
+#if WRITEVEC_IN_SOLVER
+	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "pa_d_L").c_str(), d, level);
+	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "pa_c_L").c_str(), c, level);
+#endif
 
 	vector_type &cH = levels[level]->cH;
 	vector_type &dH = levels[level]->dH;
 	cH.set(0.0);
-	dH.set(0.0);
+
 #ifdef UG_PARALLEL
 	cH.set_storage_type(PST_CONSISTENT);
 #endif
 
+	dH.set(0.0);
 	// restrict defect
 	// dH = R*d;
 	L.R.apply(dH, d);
+
+#if WRITEVEC_IN_SOLVER
+	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "_dH_L").c_str(), dH, level+1);
+#endif
 
 	// apply lmgc on coarser nodes
 
@@ -599,11 +639,11 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 		add_correction_and_update_defect(cH, dH, level+1);
 	else
 	{
-		cH.set(0.0);
 		for(int i=0; i< m_cycleType; i++)
 			add_correction_and_update_defect(cH, dH, level+1);
 	}
 
+	corr.set(0.0);
 	//cH.set(0.0);
 	// interpolate correction
 	// corr = R*cH
@@ -614,13 +654,21 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 
 	c += corr;
 
-	// update defect
+		// update defect
 	// d = d - Ah*corr
 	A.matmul_minus(d, corr);
+
+
+#if WRITEVEC_IN_SOLVER
+	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "cc_d_L").c_str(), d, level);
+		writevec((std::string("AMG_") + ToString(iteration_glboal++) + "cc_c_L" ).c_str(), c, level);
+#endif
+
 
 	// post f-smoothing
 	if(m_bFSmoothing)
 	{
+		corr.set(0.0);
 		f_smoothing(corr, d, level);
 		c+=corr;
 	}
@@ -628,9 +676,15 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
 	{
+		corr.set(0.0);
 		L.postsmoother->apply_update_defect(corr, d);
 		c += corr;
 	}
+
+#if WRITEVEC_IN_SOLVER
+	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "pp_d_L").c_str(), d, level);
+		writevec((std::string("AMG_") + ToString(iteration_glboal++) + "pp_c_L").c_str(), c, level);
+#endif
 
 	return true;
 }
@@ -819,6 +873,16 @@ void AMGBase<TAlgebra>::write_debug_matrices(matrix_type &AH, prolongation_matri
 	UG_LOG(". done.\n");
 }
 
+template<typename TAlgebra>
+bool AMGBase<TAlgebra>::injection(vector_type &vH, const vector_type &v, size_t level)
+{
+	size_t nH = levels[level]->P.num_cols(); (void) nH;
+	size_t n = levels[level]->P.num_rows(); (void) n;
+	UG_ASSERT(nH == vH.size() && n <= v.size(), nH << " != " << vH.size() << " or " << n << " > " << v.size())
+	for(size_t j=0; j < nH; j++)
+		vH[j] = v[m_parentIndex[level+1][j]];
+	return true;
+}
 
 
 } // namespace ug

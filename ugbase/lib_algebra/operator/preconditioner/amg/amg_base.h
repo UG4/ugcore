@@ -81,6 +81,7 @@ public:
 
 		double get_fill_in() { return ((double)m_iNNZsSum)/(((double)m_iNrOfNodesSum)*((double)m_iNrOfNodesSum)); }
 		double get_avg_nnz_per_row() { return m_iNNZsSum/(double)m_iNrOfNodesSum; }
+		size_t get_max_connections() { return m_connectionsMax; }
 		bool is_valid() { return this != NULL; }
 
 	public:
@@ -92,6 +93,11 @@ public:
 		{
 			m_iNNZsMin = nnzMin; m_iNNZsMax = nnzMax; m_iNNZsSum= nnzSum;
 		}
+		void set_max_connections(size_t connectionsMax)
+		{
+			m_connectionsMax = connectionsMax;
+		}
+
 
 	public:
 		double m_dCreationTimeMS;
@@ -102,6 +108,7 @@ public:
 		size_t m_iNNZsMax;
 		size_t m_iNNZsSum;
 		size_t m_iInterfaceElements;
+		size_t m_connectionsMax;
 	};
 
 
@@ -155,15 +162,20 @@ protected:
 
 	template<typename TAMGNodes>
 	void postset_coarse(ParallelNodes &PN, prolongation_matrix_type &PoldIndices, TAMGNodes &nodes);
+
 #endif
 
 public:
+	void write_interfaces();
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel);
 	bool check2(const vector_type &const_c, const vector_type &const_d);
+	bool check_fsmoothing();
 
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
 	bool add_correction_and_update_defect2(vector_type &c, vector_type &d, size_t level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
+
+	bool injection(vector_type &vH, const vector_type &v, size_t level);
 /*
 	size_t get_nr_of_coarse(size_t level)
 	{
@@ -220,12 +232,12 @@ public:
 	void 	set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
 
 
-	void set_position_provider2d(IPositionProvider<2> *ppp2d)
+	void set_position_provider(IPositionProvider<2> *ppp2d)
 	{
 		m_pPositionProvider2d = ppp2d;
 	}
 
-	void set_position_provider3d(IPositionProvider<3> *ppp3d)
+	void set_position_provider(IPositionProvider<3> *ppp3d)
 	{
 		m_pPositionProvider3d = ppp3d;
 	}
@@ -304,7 +316,7 @@ protected:
 
 	vector_type *m_vec4;						///< temporary Vector for defect (in get_correction)
 
-
+	int iteration_glboal;
 
 
 	bool 	m_writeMatrices;

@@ -174,6 +174,8 @@ public:
 		m_bTestvectorsFromMatrixRows = bEnable;
 	}
 
+	void set_testvectorsmoother(ILinearIterator<vector_type, vector_type> *testvectorsmoother) { m_testvectorsmoother = testvectorsmoother; }
+
 
 private:
 //  functions
@@ -201,6 +203,8 @@ private:
 	bool m_bUsePrecalculate;
 	bool m_bTestvectorsFromMatrixRows;
 
+
+	ILinearIterator<vector_type, vector_type> *m_testvectorsmoother;
 
 	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;
 
