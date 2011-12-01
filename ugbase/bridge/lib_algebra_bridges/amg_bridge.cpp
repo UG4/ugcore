@@ -123,12 +123,16 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_base_solver", &AMGBase<algebra_type>::set_base_solver, "", "basesmoother")
 			.add_method("check", &AMGBase<algebra_type>::check, "", "x#b", "performs a check of convergence on all levels")
 			.add_method("check2", &AMGBase<algebra_type>::check2, "", "x#b", "performs a check of convergence on all levels")
+			.add_method("check_fsmoothing", &AMGBase<algebra_type>::check_fsmoothing, "", "", "")
 			.add_method("set_matrix_write_path", &AMGBase<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
 			.add_method("set_fsmoothing", &AMGBase<algebra_type>::set_fsmoothing, "", "enable", "")
 			.add_method("get_fsmoothing", &AMGBase<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
 
-			.add_method("set_position_provider2d", &AMGBase<algebra_type>::set_position_provider2d, "", "prov", "needed for connectionviewer output")
-			.add_method("set_position_provider3d", &AMGBase<algebra_type>::set_position_provider3d, "", "prov", "needed for connectionviewer output")
+			.add_method("set_position_provider",
+					(void(AMGBase<algebra_type>::*)(IPositionProvider<2> *))&AMGBase<algebra_type>::set_position_provider, "", "prov", "needed for connectionviewer output")
+			.add_method("set_position_provider",
+					(void(AMGBase<algebra_type>::*)(IPositionProvider<3> *))&AMGBase<algebra_type>::set_position_provider, "", "prov", "needed for connectionviewer output")
+			.add_method("write_interfaces", &AMGBase<algebra_type>::write_interfaces)
 			;
 		reg.add_class_to_group(string("AMGBase").append(algSuffix), "AMGBase", algTag);
 
@@ -187,6 +191,7 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_send_coarsening", &FAMG<algebra_type>::set_debug_level_send_coarsening)
 			.add_method("set_debug_level_communicate_prolongation", &FAMG<algebra_type>::set_debug_level_communicate_prolongation)
 			.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
+			.add_method("set_testvectorsmoother", &FAMG<algebra_type>::set_testvectorsmoother)
 #ifdef UG_PARALLEL
 			.add_method("set_parallel_coarsening", &FAMG<algebra_type>::set_parallel_coarsening)
 #endif
