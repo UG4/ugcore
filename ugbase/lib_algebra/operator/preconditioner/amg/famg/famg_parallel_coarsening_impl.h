@@ -20,6 +20,7 @@
 #include "../stopwatch.h"
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "../send_interface.h"
+#include "../rsamg/rsamg_impl.h"
 
 namespace ug
 {
@@ -220,6 +221,51 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 	return b;
 }
 
+template<typename TMatrix>
+void ReduceToStrongConnections(TMatrix &m1, const TMatrix &const_m2)
+{
+	UG_LOG("Reducing matrix...\n");
+	TMatrix &m2 = const_cast<TMatrix&>(const_m2);
+	std::vector<typename TMatrix::connection> con;
+	m1.resize(m2.num_rows(), m2.num_cols());
+
+	m1.set_layouts(m2.get_master_layout(), m2.get_slave_layout());
+	m1.set_communicator(m2.get_communicator());
+	m1.set_process_communicator(m2.get_process_communicator());
+
+	con.reserve(50);
+	for(size_t i=0; i<m1.num_rows(); i++)
+	{
+		con.clear();
+		double minConnValue, maxConnValue, diag;
+		GetNeighborValues(m2, i, minConnValue, maxConnValue, diag);
+		typename TMatrix::connection c;
+		const double theta = 0.3;
+		double barrier = theta*std::max(maxConnValue, dabs(minConnValue));
+		double offLumpedSum=0;
+		int iDiag=-1;
+		for(typename TMatrix::row_iterator conn = m2.begin_row(i); conn != m2.end_row(i); ++conn)
+		{
+			if(conn.index() != i)
+			{
+				if(dabs(amg_offdiag_value(conn.value())) < barrier) // only strong
+				{
+					offLumpedSum += conn.value();
+					continue;
+				}
+			}
+			else
+				iDiag = con.size();
+			c.dValue = conn.value();
+			c.iIndex = conn.index();
+			con.push_back(c);
+		}
+		UG_ASSERT(iDiag != -1, "");
+		con[iDiag].dValue += offLumpedSum;
+		m1.set_matrix_row(i, &con[0], con.size());
+	}
+}
+
 // FAMGLevelCalculator::create_OL2_matrix
 //---------------------------------------------------------------------------
 /**
@@ -249,7 +295,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OL2MasterLayout, A.get_master_layout());
 	AddLayout(OL2SlaveLayout, A.get_slave_layout());
 
-	GenerateOverlap2(A, A_OL2, OL2MasterLayout, OL2SlaveLayout, masterLayouts, slaveLayouts,
+	matrix_type Aeps;
+	ReduceToStrongConnections(Aeps, A);
+	GenerateOverlap2(Aeps, A_OL2, OL2MasterLayout, OL2SlaveLayout, masterLayouts, slaveLayouts,
 			2, 1, overlapSize, false, false, PN);
 	// PN.print();
 

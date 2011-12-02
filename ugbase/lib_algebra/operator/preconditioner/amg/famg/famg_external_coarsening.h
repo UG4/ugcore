@@ -90,7 +90,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs
 	{
 		if(graphS.is_isolated(i))
 			rating.set_fine(i);
-		if(nodes[i].is_coarse())
+		else if(nodes[i].is_coarse())
 			rating.external_set_coarse(i);
 		else if(nodes[i].is_fine_direct() || nodes[i].is_fine())
 			rating.set_fine(i);

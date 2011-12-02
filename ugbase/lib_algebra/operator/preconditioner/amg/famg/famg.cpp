@@ -466,6 +466,8 @@ public:
 		}
 		else
 		{
+			if(m_famg.m_writeMatrices)
+						m_famg.write_debug_matrix_markers(level, rating);
 			PoldIndices.resize(N, N);
 			rs_amg_external_coarsening();
 			external_coarsening_calculate_prolongation();

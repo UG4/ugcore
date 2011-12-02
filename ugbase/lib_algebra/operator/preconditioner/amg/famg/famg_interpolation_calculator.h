@@ -9,6 +9,7 @@
  */
 
 #include "famg_nodeinfo.h"
+#include "../rsamg/rsamg.h"
 
 #ifndef __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_INTERPOLATION_CALCULATOR_H__
 #define __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_INTERPOLATION_CALCULATOR_H__
@@ -52,7 +53,7 @@ void GetNeighborhoodRec(matrix_type &A, size_t node, std::vector<size_t> &onlyN1
 	for(size_t i=0; i<onlyN1.size(); i++)
 		GetNeighborhoodRec(A, onlyN1[i], onlyN2, bvisited);
 }
-void CleanupFlagArray(stdvector<bool> bFlagged, const stdvector<size_t> &iFlagged)
+void CleanupFlagArray(std::vector<bool> &bFlagged, const std::vector<size_t> &iFlagged)
 {
 	for(size_t i=0; i<iFlagged.size(); i++)
 		bFlagged[iFlagged[i]] = false;
@@ -569,30 +570,62 @@ public:
 
 
 
-	void get_strong_connected_neighborhood(const matrix_type &A, const FAMGNodes &rating, size_t i, stdvector<size_t> &onlyN1,
-			stdvector<size_t> &onlyN2, stdvector<bool> &bvisited)
+	void get_strong_connected_neighborhood(const matrix_type &A, const FAMGNodes &rating, size_t i,
+			stdvector<size_t> &onlyN1, stdvector<size_t> &onlyN2, stdvector<size_t> &coarseNeighbors,
+			stdvector<bool> &bvisited)
 	{
 		double minConnValue, maxConnValue, diag;
 		GetNeighborValues(A, i, minConnValue, maxConnValue, diag);
 		onlyN1.clear();
+		onlyN2.clear();
 
-		const double theta = 0.1;
+		bvisited[i] = true;
+		const double theta = 0.3;
 		double barrier = theta*std::max(maxConnValue, dabs(minConnValue));
 		for(typename matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
-			if(conn.index() == i) continue; // skip diagonal
-			if(!rating[conn.index()].is_coarse()) continue; // only coarse
 			if(dabs(amg_offdiag_value(conn.value())) < barrier) // only strong
 				continue;
+			if(conn.index() == i) continue; // skip diagonal
 			onlyN1.push_back(conn.index());
 			bvisited[conn.index()] = true;
+			if(!rating[conn.index()].is_coarse()) continue; // only coarse
+
+			coarseNeighbors.push_back(onlyN1.size()-1);
 		}
 
 		for(size_t i=0; i<onlyN1.size(); i++)
-			GetNeighborhoodRec(A, onlyN1[i], onlyN2, bvisited);
+		{
+			GetNeighborValues(A, onlyN1[i], minConnValue, maxConnValue, diag);
+			barrier = theta*std::max(maxConnValue, dabs(minConnValue));
+			for(typename matrix_type::const_row_iterator conn = A.begin_row(onlyN1[i]);
+					conn != A.end_row(onlyN1[i]); ++conn)
+			{
+				if(dabs(amg_offdiag_value(conn.value())) < barrier) // only strong
+					continue;
+				if(bvisited[conn.index()] == false)
+				{
+					onlyN2.push_back(conn.index());
+					bvisited[conn.index()] = true;
+				}
+			}
+			// GetNeighborhoodRec(A, onlyN1[i], onlyN2, bvisited);
+		}
 
 		CleanupFlagArray(bvisited, onlyN1);
 		CleanupFlagArray(bvisited, onlyN2);
+	}
+
+	void get_strong_connected_neighborhood2(const matrix_type &A, const FAMGNodes &rating, size_t i, stdvector<size_t> &onlyN1,
+				stdvector<size_t> &onlyN2, stdvector<size_t> &coarseNeighbors, stdvector<bool> &bvisited)
+	{
+		GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
+
+		for(size_t j=0; j<onlyN1.size(); j++)
+		{
+			if(rating[onlyN1[j]].is_coarse())
+				coarseNeighbors.push_back(j);
+		}
 	}
 
 	// get_all_neighbors_interpolation:
@@ -611,9 +644,9 @@ public:
 		AMG_PROFILE_FUNC();
 		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << rating.get_original_index(i) << "\n")
 
+		stdvector<size_t> coarseNeighbors;
 
-		//GetNeighborhood(A_OL2, i, onlyN1, onlyN2, bvisited);
-		get_strong_connected_neighborhood(A_OL2, rating, i, onlyN1, onlyN2, bvisited);
+		get_strong_connected_neighborhood2(A_OL2, rating, i, onlyN1, onlyN2, coarseNeighbors, bvisited);
 		if(onlyN1.size() == 0)
 		{
 			UG_DLOG(LIB_ALG_AMG, 3, "no neighbors -> gets fine");
@@ -623,12 +656,6 @@ public:
 
 		//const double &aii = A_OL2(i,i);
 
-		std::vector<size_t> coarseNeighbors;
-		for(size_t j=0; j<onlyN1.size(); j++)
-		{
-			if(rating[onlyN1[j]].is_coarse())
-				coarseNeighbors.push_back(j);
-		}
 
 		if(coarseNeighbors.size() >= 1)
 			return indirect_interpolation(i, P, rating, coarseNeighbors);
