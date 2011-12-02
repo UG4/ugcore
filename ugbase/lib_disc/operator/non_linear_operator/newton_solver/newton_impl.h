@@ -14,7 +14,7 @@
 #include "newton.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 
-//#define PROFILE_NEWTON
+#define PROFILE_NEWTON
 #ifdef PROFILE_NEWTON
 	#define NEWTON_PROFILE_FUNC()		PROFILE_FUNC()
 	#define NEWTON_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
@@ -231,12 +231,14 @@ apply(vector_type& u)
 		if(m_pLineSearch != NULL)
 		{
 			m_pLineSearch->set_offset("   #  ");
+			NEWTON_PROFILE_BEGIN(NewtonLineSearch);
 			if(!m_pLineSearch->search(*m_N, u, m_c, m_d, m_pConvCheck->defect()))
 			{
 				UG_LOG("ERROR in 'NewtonSolver::apply': "
 						"Newton Solver did not converge.\n");
 				return false;
 			}
+			NEWTON_PROFILE_END();
 		}
 	// 	No line search: Compute new defect
 		else
