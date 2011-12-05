@@ -863,6 +863,7 @@ int paramType2Int(const ug::bridge::ParameterStack& params, size_t index) {
 		{
 			return 4;
 		}
+			break;
 		case PT_CSTRING:
 		{
 //todo: 9 has been chosen by a totally inadequate person!!! Make sure that this
