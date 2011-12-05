@@ -12,12 +12,13 @@ Here is a short overview of the libraries included in the sources. All those
 libraries have a license, which allows to use and distribute them even for
 commercial purposes.
 
-	- linenoise			(BSD-like License)
-	- lua				(BSD-like License)
-	- rapidxml 			(Boost Software License - Version 1.0)
-	- shiny profiler	(zlib/libpng License)
-	- tribox			(custom license)
-	- tritri			(CHECK LICENSE)
+	- linenoise				(BSD-like License)
+	- lua					(BSD-like License)
+	- rapidxml 				(Boost Software License - Version 1.0)
+	- shiny profiler		(zlib/libpng License)
+	- lineintersect_utils	(custom license)
+	- tribox				(custom license)
+	- tritri				(CHECK LICENSE)
 	
 Libraries which can be used by ug4, but are not part of the source-distribution
 due to license restrictions or due to their size are the following:
@@ -140,6 +141,18 @@ Please note that those licenses only apply to the respective libraries.
 		
 		    3. This notice may not be removed or altered from any source distribution.
 
+<br>
+	\subsection subLineintersectUtils lineintersect_utils
+		 * Copyright (C) Graham Rhodes, 2001. 
+		 * All rights reserved worldwide.
+		 *
+		 * This software is provided "as is" without express or implied
+		 * warranties. You may freely copy and compile this source into
+		 * applications you distribute provided that the copyright text
+		 * below is included in the resulting source code, for example:
+		 * "Portions Copyright (C) Graham Rhodes, 2001"
+		 *
+	
 <br>
 	\subsection subTribox tribox
 		 * Copyright (C) Dan Ginsburg, 2000. 

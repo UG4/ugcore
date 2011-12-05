@@ -196,7 +196,6 @@ template <class vector_t>
 void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 						const vector_t& p, const vector_t& n);
 
-
 ////////////////////////////////////////////////////////////////////////
 //	RayPlaneIntersection
 ///	calculates the intersection of the ray rayFrom+t*rayDir and the plane (x-p)*n=0.
@@ -225,6 +224,31 @@ template <class vector_t>
 bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 						   const vector_t &p0, const vector_t &p1,
 						   const vector_t &vFrom, const vector_t &vDir);
+
+////////////////////////////////////////////////////////////////////////
+///	intersects two 3d line segments
+/**	Returns true, if the lines intersect. If they don't, the output
+ * parameters are filled with the points, at which the lines have the
+ * minimal distance.
+ * Specify lines a (given by endpoints a1, a2) and b (given by endpoints b1, b2).
+ *
+ * Output-parameters: aOut, bOut represent the closest points on the two lines.
+ *
+ * This method internally uses the IntersectLineSegments algorithm by Graham Rhodes.
+ * Please have a look at lineintersect_utils.h for more information.*/
+bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
+							const vector3& a1, const vector3& a2,
+						  	const vector3& b1, const vector3& b2);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the distance between two 3d line segments
+/**	Calculates the distance between the two finite line segments
+ * a (given by endpoints a1, a2) and b (given by endpoints b1, b2).
+ *
+ * This method internally uses the IntersectLineSegments algorithm by Graham Rhodes.
+ * Please have a look at lineintersect_utils.h for more information.*/
+number DistanceLineToLine(const vector3& a1, const vector3& a2,
+						  const vector3& b1, const vector3& b2);
 
 ////////////////////////////////////////////////////////////////////////
 //	RayTriangleIntersection

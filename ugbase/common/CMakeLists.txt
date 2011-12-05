@@ -22,6 +22,7 @@ set(srcCommon	log.cpp
 				math/math_vector_matrix/math_vector.cpp
 				math/misc/tri_box.cpp
 				math/misc/tritri.cpp
+				math/misc/lineintersect_utils.cpp
 				math/misc/eigenvalues.cpp
 				math/misc/math_util.cpp)
 

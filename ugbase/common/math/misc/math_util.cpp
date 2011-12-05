@@ -10,6 +10,7 @@
 #include "math_util.h"
 #include "../ugmath.h"
 #include "../ugmath_types.h"
+#include "lineintersect_utils.h"
 
 
 using namespace std;
@@ -161,6 +162,41 @@ bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
 
 //	done. return true.
 	return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
+							const vector3& a1, const vector3& a2,
+						  	const vector3& b1, const vector3& b2)
+{
+	vector3 vNear, vAB;
+	bool trueIntersection;
+
+	IntersectLineSegments(a1.x, a1.y, a1.z, a2.x, a2.y, a2.z,
+						  b1.x, b1.y, b1.z, b2.x, b2.y, b2.z,
+						  false, SMALL,
+						  aOut.x, aOut.y, aOut.z, bOut.x, bOut.y, bOut.z,
+						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
+						  trueIntersection);
+
+	return trueIntersection;
+}
+
+number DistanceLineToLine(const vector3& a1, const vector3& a2,
+						  const vector3& b1, const vector3& b2)
+{
+	vector3 vA, vB, vNear, vAB;
+	bool trueIntersection;
+
+	IntersectLineSegments(a1.x, a1.y, a1.z, a2.x, a2.y, a2.z,
+						  b1.x, b1.y, b1.z, b2.x, b2.y, b2.z,
+						  false, SMALL,
+						  vA.x, vA.y, vA.z, vB.x, vB.y, vB.z,
+						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
+						  trueIntersection);
+
+	return VecLength(vAB);
 }
 
 //	Returns the BinomialCoefficient
