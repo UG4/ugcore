@@ -498,9 +498,14 @@ void printParamType(const uint type, size_t index) {
 			UG_LOG("Param " << index << " = PT_NUMBER" << std::endl)
 		}
 			break;
-		case PT_STRING:
+		case PT_CSTRING:
 		{
-			UG_LOG("Param " << index << " = PT_STRING" << std::endl)
+			UG_LOG("Param " << index << " = PT_CSTRING" << std::endl)
+		}
+			break;
+		case PT_STD_STRING:
+		{
+			UG_LOG("Param " << index << " = PT_STD_STRING" << std::endl)
 		}
 			break;
 		case PT_POINTER:
@@ -541,7 +546,7 @@ uint paramClass2ParamType(JNIEnv *env, jobject obj) {
 	} else if (className.compare("java.lang.Double") == 0) {
 		result = ug::bridge::PT_NUMBER;
 	} else if (className.compare("java.lang.String") == 0) {
-		result = ug::bridge::PT_STRING;
+		result = ug::bridge::PT_STD_STRING;
 	} else if (className.compare("edu.gcsc.vrl.ug.Pointer") == 0) {
 		result = ug::bridge::PT_POINTER;
 	} else if (className.compare("edu.gcsc.vrl.ug.SmartPointer") == 0) {
@@ -697,10 +702,15 @@ void jobjectArray2ParamStack(
 				paramsOut.push_number(jObject2Double(env, value));
 			}
 				break;
-			case PT_STRING:
+			case PT_CSTRING:
 			{
-				paramsOut.push_string(
-						jObject2String(env, value).c_str(), true);
+				paramsOut.push_std_string(jObject2String(env, value));
+			}
+				break;
+
+			case PT_STD_STRING:
+			{
+				paramsOut.push_std_string(jObject2String(env, value));
 			}
 				break;
 
@@ -786,9 +796,14 @@ jobject param2JObject(
 			return double2JObject(env, params.to_number(index));
 		}
 			break;
-		case PT_STRING:
+		case PT_CSTRING:
 		{
-			return string2JObject(env, params.to_string(index));
+			return string2JObject(env, params.to_cstring(index));
+		}
+			break;
+		case PT_STD_STRING:
+		{
+			return string2JObject(env, params.to_std_string(index).c_str());
 		}
 			break;
 		case PT_POINTER:
@@ -844,9 +859,15 @@ int paramType2Int(const ug::bridge::ParameterStack& params, size_t index) {
 			return 3;
 		}
 			break;
-		case PT_STRING:
+		case PT_CSTRING:
 		{
 			return 4;
+		}
+		case PT_STD_STRING:
+		{
+//todo: 9 has been chosen by a totally inadequate person!!! Make sure that this
+//		is ok. Better yet: Remove this method!!! :)
+			return 9;
 		}
 			break;
 		case PT_POINTER:

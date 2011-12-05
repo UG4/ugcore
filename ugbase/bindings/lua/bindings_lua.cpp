@@ -196,9 +196,16 @@ static int LuaStackToParams(ParameterStack& params,
 					badParam = (int)i + 1;
 				}
 			}break;
-			case PT_STRING:{
+			case PT_CSTRING:{
 				if(lua_isstring(L, index))
-					params.push_string(lua_tostring(L, index));
+					params.push_cstring(lua_tostring(L, index));
+				else{
+					badParam = (int)i + 1;
+				}
+			}break;
+			case PT_STD_STRING:{
+				if(lua_isstring(L, index))
+					params.push_std_string(lua_tostring(L, index));
 				else{
 					badParam = (int)i + 1;
 				}
@@ -456,8 +463,11 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 			case PT_NUMBER:{
 				lua_pushnumber(L, params.to_number(i));
 			}break;
-			case PT_STRING:{
-				lua_pushstring(L, params.to_string(i));
+			case PT_CSTRING:{
+				lua_pushstring(L, params.to_cstring(i));
+			}break;
+			case PT_STD_STRING:{
+				lua_pushstring(L, params.to_std_string(i).c_str());
 			}break;
 			case PT_POINTER:{
 				void* obj = params.to_pointer(i);

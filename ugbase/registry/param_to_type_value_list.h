@@ -140,15 +140,15 @@ struct PLStack<const char*>
 {
 	static void push(ParameterStack& ps)
 	{
-		ps.push_string();
+		ps.push_cstring();
 	}
 	static void write(ParameterStack& ps, const char* data, int index)
 	{
-		ps.set_string(index, data);
+		ps.set_cstring(index, data);
 	}
 	static const char* read(const ParameterStack& ps, int index)
 	{
-		return ps.to_string(index);
+		return ps.to_cstring(index);
 	}
 };
 
@@ -157,15 +157,15 @@ struct PLStack<std::string>
 {
 	static void push(ParameterStack& ps)
 	{
-		ps.push_string();
+		ps.push_std_string();
 	}
 	static void write(ParameterStack& ps, const std::string& data, int index)
 	{
-		ps.set_string(index, data.c_str(), true);
+		ps.set_std_string(index, data.c_str());
 	}
 	static std::string read(const ParameterStack& ps, int index)
 	{
-		return std::string(ps.to_string(index));
+		return ps.to_std_string(index);
 	}
 };
 
@@ -174,15 +174,15 @@ struct PLStack<const std::string&>
 {
 	static void push(ParameterStack& ps)
 	{
-		ps.push_string();
+		ps.push_std_string();
 	}
 	static void write(ParameterStack& ps, const std::string& data, int index)
 	{
-		ps.set_string(index, data.c_str());
+		ps.set_std_string(index, data.c_str());
 	}
-	static std::string read(const ParameterStack& ps, int index)
+	static const std::string& read(const ParameterStack& ps, int index)
 	{
-		return std::string(ps.to_string(index));
+		return ps.to_std_string(index);
 	}
 };
 

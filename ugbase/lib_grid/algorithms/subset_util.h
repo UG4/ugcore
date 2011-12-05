@@ -408,7 +408,7 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si);
  * actual algorithm.
  *
  * You may forbid assignment of sides which already are in a subset through
- * the different preserve... parameters. Not that they all have true as
+ * the different preserve... parameters. Note that they all have true as
  * default parameter
  *
  * \todo	An additional parameter would be nice, with which one could
@@ -419,7 +419,7 @@ template <class TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 								bool preserveManifolds = true,
 								bool preserveInterfaces = true,
-								bool preserveInner = true);
+								bool preserveInnerLowDim = true);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

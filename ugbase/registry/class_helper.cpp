@@ -210,7 +210,10 @@ string ParameterToString(const ParameterStack &par, int i)
 	case PT_NUMBER:
 		return string("number");
 
-	case PT_STRING:
+	case PT_CSTRING:
+		return string("string");
+
+	case PT_STD_STRING:
 		return string("string");
 
 	case PT_POINTER:

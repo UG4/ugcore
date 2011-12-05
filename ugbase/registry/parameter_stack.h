@@ -16,6 +16,11 @@
 																m_entries[m_numEntries].pClassNameNode = (clName);\
 																++m_numEntries;}
 
+#define PUSH_STD_STRING_TO_STACK(val, clName)		{m_entries[m_numEntries].param.m_stdString = new std::string(val);\
+													 m_entries[m_numEntries].type = PT_STD_STRING;\
+													 m_entries[m_numEntries].pClassNameNode = (clName);\
+													 ++m_numEntries;}
+
 //	call the constructor and assign the smart-ptr afterwards.
 #define PUSH_SP_TO_STACK(val, clName)				{m_entries[m_numEntries].param.m_smartPtrWrapper = new SmartPtr<void>(val);\
 													 m_entries[m_numEntries].type = PT_SMART_POINTER;\
@@ -82,18 +87,12 @@ enum ParameterTypes
 	PT_BOOL,
 	PT_INTEGER,
 	PT_NUMBER,
-	PT_STRING,
+	PT_CSTRING,
+	PT_STD_STRING,
 	PT_POINTER,
 	PT_CONST_POINTER,
 	PT_SMART_POINTER,
-	PT_CONST_SMART_POINTER,
-	PT_RANGE = 0xFFFF
-};
-
-enum ParameterFlags
-{
-	PF_STRING_COPY = 0x10000,
-	PF_RANGE = 0xFFFF0000
+	PT_CONST_SMART_POINTER
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -140,8 +139,8 @@ class ParameterStack
 		//	we have to release all string copies and smart pointers.
 			if(m_bHasStringCopies){
 				for(int i = 0; i < m_numEntries; ++i){
-					if((m_entries[i].type & PF_RANGE) == PF_STRING_COPY)
-						delete[] m_entries[i].param.m_string;
+					if(m_entries[i].type == PT_STD_STRING)
+						delete m_entries[i].param.m_stdString;
 				}
 			}
 
@@ -180,21 +179,24 @@ class ParameterStack
 			  &ClassNameProvider<number>::class_name_node());}
 		
 	///	strings are not bufferd.
-		inline void push_string(const char* str = "", bool bCopy = false)
+		inline void push_cstring(const char* str = "")
 		{
-			if(bCopy){
-			//	copy the string and store it
-				int strSize = strlen(str) + 1;	// don't forget terminating 0
-				char* tstr = new char[strSize];
-				memcpy(tstr, str, strSize);
-				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY,
-				                    &ClassNameProvider<char>::class_name_node());
-				m_bHasStringCopies = true;
-			}
-			else{
-				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING,
-				                    &ClassNameProvider<char>::class_name_node());
-			}
+			PUSH_PARAM_TO_STACK(m_cstring, str, PT_CSTRING,
+								&ClassNameProvider<char>::class_name_node());
+		}
+
+		inline void push_std_string(const char* str = "")
+		{
+		//	push a std string to the stack. this performs a copy of the string
+			PUSH_STD_STRING_TO_STACK(str, &ClassNameProvider<char>::class_name_node());
+			m_bHasStringCopies = true;
+		}
+
+		inline void push_std_string(const std::string& str)
+		{
+		//	push a std string to the stack. this performs a copy of the string
+			PUSH_STD_STRING_TO_STACK(str, &ClassNameProvider<char>::class_name_node());
+			m_bHasStringCopies = true;
 		}
 
 	/// push user defined classes
@@ -245,8 +247,7 @@ class ParameterStack
 		uint get_type(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-		//	skip the flags by binary and operation
-			return m_entries[index].type & PT_RANGE;
+			return m_entries[index].type;
 		}
 		
 	//\todo: return const std::string&
@@ -311,16 +312,31 @@ class ParameterStack
 		}
 
 	///	return element in param stack casted to const char*
-		const char* to_string(int index) const
+		const char* to_cstring(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			
 			const Entry& e = m_entries[index];
 
-			if((e.type & PT_RANGE) == PT_STRING)
-				return e.param.m_string;
+			if(e.type == PT_CSTRING)
+				return e.param.m_cstring;
+			else if(e.type == PT_STD_STRING)
+				return e.param.m_stdString->c_str();
 			
-			throw(ERROR_BadConversion(index, e.type, PT_STRING));
+			throw(ERROR_BadConversion(index, e.type, PT_CSTRING));
+		}
+
+	///	return const reference to std::string
+		const std::string& to_std_string(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			const Entry& e = m_entries[index];
+
+			if(e.type == PT_STD_STRING)
+				return *e.param.m_stdString;
+
+			throw(ERROR_BadConversion(index, e.type, PT_STD_STRING));
 		}
 
 	///	return element in param stack casted to user defined type
@@ -533,33 +549,40 @@ class ParameterStack
 				throw(ERROR_BadConversion(index, e.type, PT_NUMBER));
 		}
 
-		void set_string(int index, const char* str, bool bCopy = false)
+		void set_cstring(int index, const char* str)
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			Entry& e = m_entries[index];
+
+			if(e.type == PT_CSTRING)
+				e.param.m_cstring = str;
+			else
+				throw(ERROR_BadConversion(index, e.type, PT_CSTRING));
+		}
+
+		void set_std_string(int index, const char* str)
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			Entry& e = m_entries[index];
+			if(e.type == PT_STD_STRING){
+				*e.param.m_stdString = str;
+			}
+			else
+				throw(ERROR_BadConversion(index, e.type, PT_STD_STRING));
+		}
+
+		void set_std_string(int index, const std::string& str)
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			
 			Entry& e = m_entries[index];
-		//	first check whether the old string has to be cleared
-			if(e.type == (PT_STRING | PF_STRING_COPY)){
-				delete[] e.param.m_string;
-				e.type = PT_STRING;
-			}
-
-			if(e.type == PT_STRING){
-				if(bCopy){
-					int strSize = strlen(str) + 1;	// don't forget terminating 0
-					char* tstr = new char[strSize];
-					memcpy(tstr, str, strSize);
-					e.param.m_string = tstr;
-					e.type = PT_STRING | PF_STRING_COPY;
-					m_bHasStringCopies = true;
-				}
-				else{
-					e.param.m_string = str;
-					e.type = PT_STRING;				
-				}
+			if(e.type == PT_STD_STRING){
+				*e.param.m_stdString = str;
 			}
 			else
-				throw(ERROR_BadConversion(index, e.type, PT_STRING));
+				throw(ERROR_BadConversion(index, e.type, PT_STD_STRING));
 		}
 
 		template <class T>
@@ -621,7 +644,8 @@ class ParameterStack
 			bool m_bool;
 			int	m_int;
 			number m_number;
-			const char* m_string;
+			const char* m_cstring;
+			std::string* m_stdString;
 			void* m_ptr;
 			const void* m_constPtr;
 			SmartPtr<void>* m_smartPtrWrapper;

@@ -343,6 +343,11 @@ string StdStringTest()
 	return string("stdJooik");
 }
 
+void PrintStringTest(const std::string& str)
+{
+	UG_LOG("PrintStringTest recieved: " << str << endl);
+}
+
 
 void TestPageContainer()
 {
@@ -571,6 +576,7 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 			.add_function("ToConst", ToConst, grp)
 			.add_function("StringTest", StringTest, grp)
 			.add_function("StdStringTest", StdStringTest, grp)
+			.add_function("PrintStringTest", PrintStringTest, grp)
 			.add_function("TestPageContainer", TestPageContainer, grp);
 
 		reg.add_class_<SmartTest>("SmartTest", grp)

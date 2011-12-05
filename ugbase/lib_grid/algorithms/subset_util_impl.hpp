@@ -359,7 +359,7 @@ template <class TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 								bool preserveManifolds,
 								bool preserveInterfaces,
-								bool preserveInner)
+								bool preserveInnerLowDim)
 {
 //	access the grid on which sh operates.
 	if(!sh.get_assigned_grid())
@@ -374,27 +374,30 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 	if(grid.num_volumes() > 0){
 		AssignUnassignedElemsToSubset<Volume>(sh, sh.num_subsets());
 		AssignSidesToSubsets<Volume>(sh, preserveManifolds,
-							preserveInterfaces, preserveInner);
+							preserveInterfaces, preserveInnerLowDim);
 		AssignSidesToSubsets<Face>(sh, preserveManifolds,
-							preserveInterfaces, preserveInner);
+							preserveInterfaces, preserveInnerLowDim);
 		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
-							preserveInterfaces, preserveInner);
+							preserveInterfaces, preserveInnerLowDim);
 	}
 	else if(grid.num_faces() > 0){
 		AssignUnassignedElemsToSubset<Face>(sh, sh.num_subsets());
 		AssignSidesToSubsets<Face>(sh, preserveManifolds,
-							preserveInterfaces, preserveInner);
+							preserveInterfaces, preserveInnerLowDim);
 		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
-							preserveInterfaces, preserveInner);
+							preserveInterfaces, preserveInnerLowDim);
 	}
 	else if(grid.num_edges() > 0){
 		AssignUnassignedElemsToSubset<EdgeBase>(sh, sh.num_subsets());
 		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
-							preserveInterfaces, preserveInner);
+							preserveInterfaces, preserveInnerLowDim);
 	}
 	else{
 		AssignUnassignedElemsToSubset<VertexBase>(sh, sh.num_subsets());
 	}
+
+//	erase empty subsets again
+	EraseEmptySubsets(sh);
 }
 
 
