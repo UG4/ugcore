@@ -859,11 +859,11 @@ int paramType2Int(const ug::bridge::ParameterStack& params, size_t index) {
 			return 3;
 		}
 			break;
-		case PT_CSTRING:
+		case PT_STD_STRING:
 		{
 			return 4;
 		}
-		case PT_STD_STRING:
+		case PT_CSTRING:
 		{
 //todo: 9 has been chosen by a totally inadequate person!!! Make sure that this
 //		is ok. Better yet: Remove this method!!! :)
