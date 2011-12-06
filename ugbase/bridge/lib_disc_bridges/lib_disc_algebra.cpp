@@ -106,6 +106,8 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 		string name = string("ITimeDiscretization").append(algDDSuffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("prepare_step", &T::prepare_step)
+			.add_method("prepare_step_elem", &T::prepare_step_elem)
+			.add_method("finish_step_elem", &T::finish_step_elem)
 			.add_method("num_stages", &T::num_stages)
 			.add_method("set_stage", &T::set_stage)
 			.add_method("future_time", &T::future_time)

@@ -100,6 +100,19 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 
 
 	public:
+	/// prepares Timestep
+	/**
+	 * prepares timestep at a given Solution u.
+	 *
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  dd 			DoF Distribution
+	 *
+	 * \return 	true  				if time dependent and successful
+	 * 			false 				if an error occurred
+	 */
+	virtual	void prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
+								 const dof_distribution_type& dd) = 0;
+
 	/// assembles Jacobian (or Approximation of Jacobian)
 	/**
 	 * Assembles Jacobian at a given Solution u.
@@ -170,6 +183,19 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 */
 		virtual void adjust_solution(vector_type& u, number time,
 		                               const dof_distribution_type& dd) = 0;
+
+	/// finishes timestep
+	/**
+	 * finishes timestep at a given Solution u.
+	 *
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  dd 			DoF Distribution
+	 *
+	 * \return 	true  				if time dependent and successful
+	 * 			false 				if an error occurred
+	 */
+		virtual	void finish_timestep(const VectorTimeSeries<vector_type>& vSol,
+									 const dof_distribution_type& dd) = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_dirichlet_constraints() const = 0;

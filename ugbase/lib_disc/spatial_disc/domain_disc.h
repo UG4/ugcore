@@ -98,6 +98,13 @@ class DomainDiscretization :
 	// Time dependent part
 	///////////////////////
 
+	/// \copydoc IDomainDiscretization::prepare_timestep()
+		void prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
+			                 const dof_distribution_type& dd);
+
+		void prepare_timestep(const VectorTimeSeries<vector_type>& vSol)
+				{prepare_timestep(vSol, get_surface_dd());}
+
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
 		void assemble_jacobian(matrix_type& J,
 		                       const VectorTimeSeries<vector_type>& vSol,
@@ -141,6 +148,13 @@ class DomainDiscretization :
 
 		void adjust_solution(vector_type& u, number time)
 			{adjust_solution(u, time, get_surface_dd());}
+
+	/// \copydoc IDomainDiscretization::finish_timestep()
+		void finish_timestep(const VectorTimeSeries<vector_type>& vSol,
+							 const dof_distribution_type& dd);
+
+		void finish_timestep(const VectorTimeSeries<vector_type>& vSol)
+			{finish_timestep(vSol, get_surface_dd());}
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
@@ -292,7 +306,7 @@ class DomainDiscretization :
 
 } // end namespace ug
 
-// inlcude documentation
+// include documentation
 #include "domain_disc_impl.h"
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__ */

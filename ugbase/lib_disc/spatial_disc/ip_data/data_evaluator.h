@@ -45,6 +45,10 @@ class DataEvaluator
 	///	returns if one of the element discs needs hanging dofs
 		bool use_hanging() const {return m_bUseHanging;}
 
+	///	prepares the element for all time-dependent IElemDiscs
+		template <typename TElem>
+		bool prepare_timestep_elem(TElem* elem, LocalVector& u);
+
 	///	prepares the element loop for all IElemDiscs
 		template <typename TElem>
 		bool prepare_elem_loop(LocalIndices& ind, number time = 0.0,
@@ -55,6 +59,10 @@ class DataEvaluator
 		bool prepare_elem(TElem* elem, LocalVector& u,
 		                  const LocalIndices& ind,
 		                  bool bDeriv = false, bool bMassPart = false);
+
+	///	finishes the element for all time-dependent IElemDiscs
+		template <typename TElem>
+		bool finish_timestep_elem(TElem* elem, LocalVector& u);
 
 	///	computes all needed data on the element
 		bool compute_elem_data(LocalVector & u, bool bDeriv = false);

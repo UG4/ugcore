@@ -57,7 +57,7 @@ class ITimeDiscretization
 	public:
 	/// create and set domain discretization
 	/**
-	 * \param[in] 	dd	Domain Discretization
+	 * \param[in] dd	Domain Discretization
 	 */
 		ITimeDiscretization(domain_discretization_type& dd)
 			: m_rDomDisc(dd)
@@ -68,12 +68,39 @@ class ITimeDiscretization
 	 *	This function supplies the TimeDiscretization with previous time
 	 *	steps and step size before the assembling routines can be called.
 	 *
-	 * \param[in] u_old 	the solution at the previous time steps
-	 * \param[in] time_old	the time at the previous time steps
+	 * \param[in] prevSol 	the solution at the previous time steps
 	 * \param[in] dt		size of time step
 	 */
 		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
 		                          number dt) = 0;
+
+	/// prepares the assembling of Defect/Jacobian for a time step
+	/**
+	 *	This function supplies the TimeDiscretization with previous time
+	 *	steps and step size before the assembling routines can be called.
+	 *	A sub-routine at element-level ("prepare_timestep_element") is called
+	 *	within this function.
+	 *
+	 * \param[in] prevSol 	the solution at the previous time steps
+	 * \param[in] dt		size of time step
+	 * \param[in] dd		DoF Distribution
+	 */
+		virtual void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		                          number dt, const dof_distribution_type& dd) = 0;
+
+	/// finishes the assembling of Defect/Jacobian for a time step
+	/**
+	 *	This function supplies the TimeDiscretization with previous time
+	 *	steps and step size after the assembling routines have been called.
+	 *	A sub-routine at element-level ("finish_timestep_element") is called
+	 *	within this function.
+	 *
+	 * \param[in] prevSol 	the solution at the previous time steps
+	 * \param[in] dt		size of time step
+	 * \param[in] dd		DoF Distribution
+	 */
+		virtual void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		                         number dt, const dof_distribution_type& dd) = 0;
 
 	///	returns the future time point (i.e. the one that will be computed)
 		virtual number future_time() const = 0;
@@ -93,7 +120,7 @@ class ITimeDiscretization
 			m_rDomDisc.force_regular_grid(bForce);
 		}
 
-	///	sets a selector to exlude elements from assembling
+	///	sets a selector to exclude elements from assembling
 	/**
 	 * This methods sets a selector. Only elements that are selected will be
 	 * assembled during assembling process. If no selector is set, this

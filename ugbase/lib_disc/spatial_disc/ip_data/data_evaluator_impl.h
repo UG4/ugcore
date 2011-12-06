@@ -13,6 +13,35 @@ namespace ug{
 template <typename TElem>
 bool
 DataEvaluator::
+prepare_timestep_elem(TElem* elem, LocalVector& u)
+{
+
+// 	prepare timestep
+	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	{
+	//	access disc functions
+		u.access_by_map(map(i));
+
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+
+	//	prepare timestep for elem disc
+		if(!(*m_pvElemDisc)[i]->prepare_timestep_elem(elem, u))
+		{
+			UG_LOG("ERROR in 'DataEvaluator::prepare_timestep_element': "
+					"Cannot prepare timestep on element for IElemDisc "<<i<<".\n");
+			return false;
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+template <typename TElem>
+bool
+DataEvaluator::
 prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 {
 //	type of reference element
@@ -126,6 +155,35 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_element': "
 					"Cannot prepare element for IElemDisc "<<i<<".\n");
+			return false;
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+template <typename TElem>
+bool
+DataEvaluator::
+finish_timestep_elem(TElem* elem, LocalVector& u)
+{
+
+// 	finish timestep
+	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	{
+	//	access disc functions
+		u.access_by_map(map(i));
+
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+
+	//	finish timestep for elem disc
+		if(!(*m_pvElemDisc)[i]->finish_timestep_elem(elem, u))
+		{
+			UG_LOG("ERROR in 'DataEvaluator::finish_timestep_element': "
+					"Cannot finish timestep on element for IElemDisc "<<i<<".\n");
 			return false;
 		}
 	}

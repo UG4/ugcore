@@ -775,6 +775,89 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd)
 //////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// Prepare Timestep (instationary)
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
+                const dof_distribution_type& dd)
+{
+//	update the elem discs
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
+
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+	std::vector<SubsetGroup> vSSGrp;
+
+//	create list of all subsets
+	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+				" Can not Subset Groups and union.\n");
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
+
+	//	success flag
+		bool bSuc = true;
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			bSuc &= PrepareTimestep<Edge,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			break;
+		case 2:
+			bSuc &= PrepareTimestep<Triangle,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= PrepareTimestep<Quadrilateral,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			break;
+		case 3:
+			bSuc &= PrepareTimestep<Tetrahedron,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= PrepareTimestep<Pyramid,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= PrepareTimestep<Prism,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= PrepareTimestep<Hexahedron,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			break;
+		default:
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::prepare_timestep (instationary)':"
+						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+		}
+
+	//	check success
+		if(!bSuc)
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::prepare_timestep (instationary)':"
+							" Assembling of elements of Dimension " << dim << " in "
+							" subset "<<si<< " failed.\n");
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Jacobian (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
@@ -1106,6 +1189,89 @@ adjust_solution(vector_type& u, number time, const dof_distribution_type& dd)
 		if(!m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd, time))
 			UG_THROW_FATAL("Cannot adjust solution.");
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Finish Timestep (instationary)
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+finish_timestep(const VectorTimeSeries<vector_type>& vSol,
+                const dof_distribution_type& dd)
+{
+//	update the elem discs
+	if(!update_disc_items())
+		UG_THROW_FATAL("Cannot update disc items.");
+
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+	std::vector<SubsetGroup> vSSGrp;
+
+//	create list of all subsets
+	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
+				" Can not Subset Groups and union.\n");
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
+
+	//	success flag
+		bool bSuc = true;
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			bSuc &= FinishTimestep<Edge,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			break;
+		case 2:
+			bSuc &= FinishTimestep<Triangle,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= FinishTimestep<Quadrilateral,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			break;
+		case 3:
+			bSuc &= FinishTimestep<Tetrahedron,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= FinishTimestep<Pyramid,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= FinishTimestep<Prism,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			bSuc &= FinishTimestep<Hexahedron,TDoFDistribution,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+			break;
+		default:
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::finish_timestep (instationary)':"
+						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+		}
+
+	//	check success
+		if(!bSuc)
+			UG_THROW_FATAL("ERROR in 'DomainDiscretization::finish_timestep (instationary)':"
+							" Assembling of elements of Dimension " << dim << " in "
+							" subset "<<si<< " failed.\n");
+	}
+
 }
 
 }

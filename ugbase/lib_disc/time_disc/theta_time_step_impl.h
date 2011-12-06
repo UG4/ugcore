@@ -38,6 +38,34 @@ prepare_step(VectorTimeSeries<vector_type>& prevSol,
 template <typename TDoFDistribution, typename TAlgebra >
 void
 MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
+prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+             number dt, const dof_distribution_type& dd)
+{
+//	perform checks
+	if(prevSol.size() < m_prevSteps)
+		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
+						" Number of previous solutions must at least "<<m_prevSteps<<".\n");
+
+//	remember old values
+	m_pPrevSol = &prevSol;
+
+//	remember time step size
+	m_dt = dt;
+
+//	update scalings
+	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
+	                              m_dt, m_pPrevSol->time(0),
+	                              *m_pPrevSol);
+
+// 	prepare timestep
+	try{
+	this->m_rDomDisc.prepare_timestep(*m_pPrevSol, dd);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot prepare timestep.");
+}
+
+template <typename TDoFDistribution, typename TAlgebra >
+void
+MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J, const vector_type& u,
                   const dof_distribution_type& dd)
 {
@@ -56,7 +84,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 
 //	assemble jacobian using current iterate
 	try{
-		this->m_rDomDisc.assemble_jacobian(J, *m_pPrevSol, m_vScaleStiff[0], dd);
+	this->m_rDomDisc.assemble_jacobian(J, *m_pPrevSol, m_vScaleStiff[0], dd);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
 
 //	pop unknown solution to solution time series
@@ -110,6 +138,34 @@ assemble_linear(matrix_type& A, vector_type& b,
                 const dof_distribution_type& dd)
 {
 	UG_THROW_FATAL("Not implemented.");
+}
+
+template <typename TDoFDistribution, typename TAlgebra >
+void
+MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>::
+finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+			number dt, const dof_distribution_type& dd)
+{
+//	perform checks
+	if(prevSol.size() < m_prevSteps)
+		UG_THROW_FATAL("ThetaTimeStep::finish_step_elem:"
+						" Number of previous solutions must at least "<<m_prevSteps<<".\n");
+
+//	remember old values and values of current timestep
+	m_pPrevSol = &prevSol;
+
+//	remember time step size
+//	m_dt = dt;
+
+//	update scalings
+/*	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
+	                              m_dt, m_pPrevSol->time(0),
+	                              *m_pPrevSol);*/
+
+// 	finish timestep
+	try{
+	this->m_rDomDisc.finish_timestep(*m_pPrevSol, dd);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
 }
 
 } // end namespace ug

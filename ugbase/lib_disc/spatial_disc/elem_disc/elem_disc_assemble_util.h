@@ -51,6 +51,7 @@ namespace ug {
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Stiffness matrix
  * \param[in]		u				solution
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -178,6 +179,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	M				Mass matrix
  * \param[in]		u				solution
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -293,6 +295,108 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Prepare Timestep (instationary)
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * This function calls the function "prepare_timestep_elem" of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		sel				Selector
+ */
+template <	typename TElem,
+			typename TDoFDistribution,
+			typename TAlgebra>
+bool
+PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
+               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	int si, bool bNonRegularGrid,
+                const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+            	ISelector* sel = NULL)
+{
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
+
+//	get current time and vector
+	const number time = vSol.time(0);
+	const typename TAlgebra::vector_type& u = vSol.solution(0);
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
+	{
+		UG_LOG("ERROR in '(instationary) PrepareTimestep': "
+				"Cannot init DataEvaluator with IElemDiscs.\n");
+		return false;
+	}
+
+//	set time-independent
+	LocalVectorTimeSeries locTimeSeries;
+	bool bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU;
+
+//	prepare element discs
+	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
+	{
+		UG_LOG("ERROR in '(instationary) PrepareTimestep': "
+				"Cannot prepare element loop.\n");
+		return false;
+	}
+
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
+
+	// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel) if(!sel->is_selected(elem)) continue;
+
+	// 	get global indices
+		dofDistr.indices(elem, ind, Eval.use_hanging());
+
+	// 	adapt local algebra
+		locU.resize(ind);
+
+	// 	read local values of u
+		GetLocalVector(locU, u);
+
+	//	read local values of time series
+		if(bNeedLocTimeSeries)
+		{
+			locTimeSeries.read_values(vSol, ind);
+			locTimeSeries.read_times(vSol);
+		}
+
+	// 	prepare timestep
+		if(!Eval.prepare_timestep_elem(elem, locU))
+		{
+			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
+					"Cannot prepare timestep.\n");
+			return false;
+		}
+
+	}
+
+//	we're done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Assemble (stationary) Jacobian
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -306,6 +410,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
  * \param[in]		u				solution
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -436,6 +541,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in,out]	J				jacobian
  * \param[in]		vSol			current and previous solutions
  * \param[in]		s_a0			scaling factor for stiffness part
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -600,6 +706,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
  * \param[in]		u				solution
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -730,6 +837,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		vScaleMass		scaling factors for mass part
  * \param[in]		vScaleStiff		scaling factors for stiffness part
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -888,7 +996,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
  * \param[in,out]	rhs				Right-hand side
- * \param[in]		u				solution
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -1019,6 +1127,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		vScaleMass		scaling factors for mass part
  * \param[in]		vScaleStiff		scaling factors for stiffness part
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -1237,6 +1346,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		u				solution
+ * \param[in]		sel				Selector
  */
 template <	typename TElem,
 			typename TDoFDistribution,
@@ -1335,6 +1445,108 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_LOG("ERROR in 'AssembleRhs': "
 				"Cannot finish element loop.\n");
 		return false;
+	}
+
+//	we're done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Finish Timestep (instationary)
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * This function calls the function "finish_timestep_elem" of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		sel				Selector
+ */
+template <	typename TElem,
+			typename TDoFDistribution,
+			typename TAlgebra>
+bool
+FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
+               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	int si, bool bNonRegularGrid,
+                const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+            	ISelector* sel = NULL)
+{
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
+
+//	get current time and vector
+	const number time = vSol.time(0);
+	const typename TAlgebra::vector_type& u = vSol.solution(0);
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
+	{
+		UG_LOG("ERROR in '(instationary) FinishTimestep': "
+				"Cannot init DataEvaluator with IElemDiscs.\n");
+		return false;
+	}
+
+//	set time-independent
+	LocalVectorTimeSeries locTimeSeries;
+	bool bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU;
+
+//	prepare element discs
+	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
+	{
+		UG_LOG("ERROR in '(instationary) FinishTimestep': "
+				"Cannot finish element loop.\n");
+		return false;
+	}
+
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
+
+	// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel) if(!sel->is_selected(elem)) continue;
+
+	// 	get global indices
+		dofDistr.indices(elem, ind, Eval.use_hanging());
+
+	// 	adapt local algebra
+		locU.resize(ind);
+
+	// 	read local values of u
+		GetLocalVector(locU, u);
+
+	//	read local values of time series
+		if(bNeedLocTimeSeries)
+		{
+			locTimeSeries.read_values(vSol, ind);
+			locTimeSeries.read_times(vSol);
+		}
+
+	// 	finish timestep
+		if(!Eval.finish_timestep_elem(elem, locU))
+		{
+			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
+					"Cannot finish timestep.\n");
+			return false;
+		}
+
 	}
 
 //	we're done

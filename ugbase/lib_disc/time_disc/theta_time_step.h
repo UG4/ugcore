@@ -61,6 +61,14 @@ class MultiStepTimeDiscretization
 		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
 		                          number dt);
 
+	///	\copydoc ITimeDiscretization::prepare_step_elem()
+		virtual void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		                          number dt, const dof_distribution_type& dd);
+
+	///	\copydoc ITimeDiscretization::finish_step_elem()
+		virtual void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		                          number dt, const dof_distribution_type& dd);
+
 		virtual number future_time() const {return m_futureTime;}
 
 	public:

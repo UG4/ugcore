@@ -214,6 +214,19 @@ class IElemDisc
 		const LocalVectorTimeSeries* local_time_solutions() const
 			{return m_pLocalVectorTimeSeries;}
 
+	/// prepare the timestep
+	/**
+	 * This function prepares a timestep (iff timedependent). This function is
+	 * called once for every element before the spatial assembling procedure
+	 * begins.
+	 * <b>NOTE:</b>Before this method can be used, the method
+	 * 'set_roid must have been called to set the elem type.
+	 */
+		/*bool prepare_timestep_elem(const LocalVector& u)
+			{return (this->*(m_vPrepareTimestepElemFct[m_id]))(u);}*/
+		template <typename TElem>
+		bool prepare_timestep_elem(TElem* elem, const LocalVector& u);
+
 	///	prepares the loop over all elements of one type
 	/**
 	 * This function should prepare the element loop for elements of one fixed
@@ -249,6 +262,16 @@ class IElemDisc
 	 */
 		bool finish_elem_loop()
 			{return (this->*(m_vFinishElemLoopFct[m_id]))();}
+
+	/// finish the timestep
+	/**
+	 * This function finishes the timestep (iff timedependent). This function is
+	 * called in the PostProcess of a timestep.
+	 * <b>NOTE:</b>Before this method can be used, the method
+	 * 'set_roid must have been called to set the elem type.
+	 */
+		template <typename TElem>
+		bool finish_timestep_elem(TElem* elem, const LocalVector& u);
 
 	/// Assembling of Jacobian (Stiffness part)
 	/**
@@ -320,6 +343,10 @@ class IElemDisc
 	//	abbreviation for own type
 		typedef IElemDisc T;
 
+	// 	types of timestep function pointers
+		typedef bool (T::*PrepareTimestepElemFct)(const LocalVector& u);
+		typedef bool (T::*FinishTimestepElemFct)(const LocalVector& u);
+
 	// 	types of loop function pointers
 		typedef bool (T::*PrepareElemLoopFct)();
 		typedef bool (T::*PrepareElemFct)(GeometricObject* obj, const LocalVector& u);
@@ -342,6 +369,9 @@ class IElemDisc
 
 	protected:
 	// 	register the functions
+		template <typename TAssFunc> void set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
+
 		template <typename TAssFunc> void set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_prep_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
@@ -353,6 +383,10 @@ class IElemDisc
 		template <typename TAssFunc> void set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
 
 	private:
+	// 	timestep function pointers
+		PrepareTimestepElemFct 		m_vPrepareTimestepElemFct[NUM_REFERENCE_OBJECTS];
+		FinishTimestepElemFct 		m_vFinishTimestepElemFct[NUM_REFERENCE_OBJECTS];
+
 	// 	loop function pointers
 		PrepareElemLoopFct 	m_vPrepareElemLoopFct[NUM_REFERENCE_OBJECTS];
 		PrepareElemFct 		m_vPrepareElemFct[NUM_REFERENCE_OBJECTS];
