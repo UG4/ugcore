@@ -89,7 +89,7 @@ include_directories (${Boost_INCLUDE_DIRS})
 # the following options are pseudo cmake-options (normal options only support ON and OFF).
 # Their default values are defined in the section below.
 option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
-# option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
+option(DIM "Set the dimension for which ug4 is build.")
 option(CPU "Set block sizes for which ug4 is build. Valid options are: "${cpuOptions})
 option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
 
