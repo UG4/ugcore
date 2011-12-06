@@ -75,12 +75,33 @@ class Domain {
 	 * Distributed Grid Manager is set in the parallel case.
 	 * \param[in]	options		Grid Options (optinal)
 	 */
-		Domain(uint options = GRIDOPT_STANDARD_INTERCONNECTION) :
-			m_grid(options), m_sh(m_grid)
+		Domain() :
+			m_grid(GRIDOPT_NONE), m_sh(m_grid)
 #ifdef UG_PARALLEL
 		, m_distGridMgr(NULL)
 #endif
 			{
+			//	Depending on the dimesion, we'll activeate different options.
+			//	Otherwise we probably would waste memory...
+			//	In any case, sides of elements should always be present
+				uint gridOpts = GRIDOPT_AUTOGENERATE_SIDES;
+
+			//	Furthermore vertices should store associated elements.
+			//	This option depends on the dimension of the domain
+				if(dim > 0)
+					gridOpts |= VRTOPT_STORE_ASSOCIATED_EDGES;
+				if(dim > 1)
+					gridOpts |= VRTOPT_STORE_ASSOCIATED_FACES;
+				if(dim > 2)
+					gridOpts |= VRTOPT_STORE_ASSOCIATED_VOLUMES;
+
+			//	thats it for now. One could think about enabling
+			//	FACEOPT_STORE_ASSOCIATED_EDGES, VOLOPT_STORE_ASSOCIATED_EDGES
+			//	and VOLOPT_STORE_ASSOCIATED_FACES. However this costs considerably
+			//	more memory compared to the performance benefits.
+			//	Now set the options
+				m_grid.set_options(gridOpts);
+
 			//	get position attachment
 				m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
 
