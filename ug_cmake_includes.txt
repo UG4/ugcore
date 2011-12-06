@@ -70,9 +70,6 @@ set(buildSharedLib OFF)
 # Here we'll store libs, if we find and need them
 set(linkLibraries)
 
-# We'll reset CMAKE_CXX_FLAGS, since many options are adding some values.
-# Removal of single values from CMAKE_CXX_FLAGS would be hard...
-set(CMAKE_CXX_FLAGS "")
 
 # We check for MPI here, since we use MPI_FOUND as default value for
 # the PARALLEL option
@@ -246,7 +243,6 @@ endif(STATIC)
 # DIM
 # The dim option sets defines for C and C++
 if("${DIM}" STREQUAL "ALL")
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3")
 	add_definitions(-DUG_DIM_1 -DUG_DIM_2 -DUG_DIM_3)
 	
 else("${DIM}" STREQUAL "ALL")
@@ -259,7 +255,6 @@ else("${DIM}" STREQUAL "ALL")
 								"Valid options are: "${dimOptions})
 		endif(d GREATER 3 OR d LESS 1)
 	
-		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_DIM_${d}")
 		add_definitions(-DUG_DIM_${d})
 	endforeach(d)
 endif("${DIM}" STREQUAL "ALL")
@@ -268,11 +263,8 @@ endif("${DIM}" STREQUAL "ALL")
 # CPU
 # The cpu option sets defines for C and C++
 if("${CPU}" STREQUAL "ALL")
-	# todo checks for 4, VAR!
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3")
+	# todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
 	add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
-	
-	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3 -DUG_CPU_4 -DUG_CPU_VAR")
 	
 else("${CPU}" STREQUAL "ALL")
 	# CPU is a string of dimensions (e.g. "1;2")
@@ -284,7 +276,6 @@ else("${CPU}" STREQUAL "ALL")
 								"Valid options are: "${cpuOptions})
 		endif(d GREATER 4 OR d LESS 1)
 	
-		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUG_CPU_${d}")
 		add_definitions(-DUG_CPU_${d})
 	endforeach(d)
 endif("${CPU}" STREQUAL "ALL")
@@ -293,12 +284,10 @@ endif("${CPU}" STREQUAL "ALL")
 # DoFManager
 if("${DOF}" STREQUAL "GEN")
 	# if DOF is "GEN"
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_GEN")
 	add_definitions(-DDOF_GEN)
 
 elseif("${DOF}" STREQUAL "P1")
 	# if DOF is "P1"
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDOF_P1")
 	add_definitions(-DDOF_P1)
 else("${DOF}" STREQUAL "GEN")
 	message(FATAL_ERROR "ERROR: Invalid DoFManager specified. Valid options are: "${dofOptions})
@@ -308,16 +297,16 @@ endif("${DOF}" STREQUAL "GEN")
 ########################################
 # DEBUG
 if(DEBUG)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
+	add_definitions(-g -Wall)
 	add_definitions(-DUG_DEBUG)
 	
 	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
 	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
 	# when this bug is fixed, one could set those flags (or similar) depending on the compiler.
-	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1")
+	# -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1
 
 else(DEBUG)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -funroll-loops -ftree-vectorize")
+	add_definitions(-O3 -Wall -funroll-loops -ftree-vectorize)
 	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
 endif(DEBUG)
 
@@ -547,7 +536,7 @@ endif(buildForVRL)
 # This is a hidden option, which is currently only required for builds on jugene.
 # Note that the associated option is enabled in toolchain_file_jugene.cmake
 if(enableDynamicOption)
-	set(CMAKE_CXX_FLAGS "-dynamic")
+	add_definitions(-dynamic)
 endif(enableDynamicOption)
 
 
