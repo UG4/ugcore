@@ -31,7 +31,7 @@ UG_API int UGTypeInfo(const char *p);
 
 UG_API bool GetLuaNamespace(lua_State* L, std::string name);
 
-UG_API int LuaGetNumber(lua_State *L, const char *name, int notAvailable);
+UG_API double LuaGetNumber(lua_State *L, const char *name, double notAvailable);
 UG_API std::string LuaGetString(lua_State *L, const char *name, const char *notAvailable);
 UG_API bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
 

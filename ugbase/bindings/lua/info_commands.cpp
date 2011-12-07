@@ -42,7 +42,7 @@ namespace bridge
  * \param name			name of the variable. namespaces are possible (like math.pi)
  * \param notAvailable	return value if variable was not found
   */
-int LuaGetNumber(lua_State *L, const char *name, int notAvailable)
+double LuaGetNumber(lua_State *L, const char *name, double notAvailable)
 {
 	LUA_STACK_CHECK(L, 0);
 	if(GetLuaNamespace(L, name)==false || !lua_isnumber(L, -1))
@@ -50,9 +50,9 @@ int LuaGetNumber(lua_State *L, const char *name, int notAvailable)
 		lua_pop(L, 1);
 		return notAvailable;
 	}
-	int i = lua_tonumber(L, -1);
+	double d = lua_tonumber(L, -1);
 	lua_pop(L, 1);
-	return i;
+	return d;
 }
 
 /**
