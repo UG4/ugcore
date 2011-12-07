@@ -22,31 +22,27 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 
 	GetFilesInDirectory(files, pluginPath);
 
-	//UG_LOG("Loading plugins (from " << pluginPath << "):");
-
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
 	for(size_t i = 0; i < files.size(); ++i){
-		//UG_LOG(" " << files[i]);
-
 		string fullPluginName(pluginPath);
 		fullPluginName.append("/").append(files[i]);
 
 		void* libHandle = dlopen(fullPluginName.c_str(), RTLD_LAZY);
 
 		if(!libHandle){
-			UG_LOG("(failed)");
+			UG_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i] << endl);
+			UG_LOG("NOTE: This could be due to incompatible build settings in ugshell and the plugin.\n");
 			continue;
 		}
 
 		std::string fctName("InitUGPlugin");
-		//fctName.append("_").append(pluginName); //pluginName not yet known...
 
 	//	find the init_ug_plugin function
 		FctInitPlugin fctInitPlugin = (FctInitPlugin) dlsym(libHandle, fctName.c_str());
 
 		if(!fctInitPlugin){
-			UG_LOG("(failed)");
+			UG_LOG("PLUGIN-ERROR: Couldn't find entry point 'InitUGPlugin' in plugin " << files[i] << endl);
 			continue;
 		}
 
@@ -56,8 +52,6 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 
 //	make sure that the registry is updated
 	reg.registry_changed();
-
-	//UG_LOG(endl);
 
 	return true;
 }

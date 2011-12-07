@@ -36,7 +36,9 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 		HMODULE libHandle = LoadLibrary(fullPluginName.c_str());
 
 		if(!libHandle){
-			UG_LOG("(failed: " << GetLastError() << ")");
+			UG_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i]);
+			UG_LOG(" (" << GetLastError() << ")\n");
+			UG_LOG("NOTE: This could be due to incompatible build settings in ugshell and the plugin.\n");
 			continue;
 		}
 
@@ -48,7 +50,8 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 			(FctInitPlugin) GetProcAddress(libHandle, fctName.c_str());
 
 		if(!fctInitPlugin){
-			UG_LOG("(failed: " << GetLastError() << ")");
+			UG_LOG("PLUGIN-ERROR: Couldn't find entry point 'InitUGPlugin' in plugin " << files[i]);
+			UG_LOG(" (" << GetLastError() << ")\n");
 			continue;
 		}
 
