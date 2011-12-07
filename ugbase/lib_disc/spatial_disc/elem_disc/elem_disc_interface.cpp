@@ -11,7 +11,7 @@ namespace ug{
 
 IElemDisc::IElemDisc(int numFct, const char* functions, const char* subsets)
 	: 	m_numFct(numFct), m_bTimeDependent(false), m_time(0.0),
-	  	m_pLocalVectorTimeSeries(NULL), m_id(ROID_INVALID)
+	  	m_pLocalVectorTimeSeries(NULL), m_id(ROID_UNKNOWN)
 {
 	set_functions(functions);
 	set_subsets(subsets);
@@ -91,7 +91,7 @@ bool IElemDisc::set_roid(ReferenceObjectID id)
 
 //	\todo: error check
 	{
-		m_id = ROID_INVALID;
+		m_id = ROID_UNKNOWN;
 		UG_LOG("No or not all functions registered "
 				"for object with reference object id " << id << ".\n");
 	}

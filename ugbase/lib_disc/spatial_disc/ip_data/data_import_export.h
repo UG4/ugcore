@@ -109,7 +109,7 @@ class DataImport : public IDataImport
 	public:
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
-			m_id(ROID_INVALID), m_pObj(NULL),
+			m_id(ROID_UNKNOWN), m_pObj(NULL),
 			m_seriesID(-1),	m_pIPData(NULL), m_vValue(NULL),
 			m_numIP(0), m_pDependentIPData(NULL)
 		{clear_fct();}

@@ -83,7 +83,7 @@ class Vertex : public VertexBase
 
 		virtual int shared_pipe_section() const	{return SPSVRT_VERTEX;}
 		virtual int base_object_type_id() const	{return VERTEX;}
-		virtual int reference_object_id() const {return ROID_VERTEX;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_VERTEX;}
 };
 
 template <>
@@ -130,7 +130,7 @@ class HangingVertex : public VertexBase
 
 		virtual int shared_pipe_section() const	{return SPSVRT_HANGING_VERTEX;}
 		virtual int base_object_type_id() const	{return VERTEX;}
-		virtual int reference_object_id() const {return ROID_VERTEX;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_VERTEX;}
 
 		inline void set_parent(GeometricObject* pParent)	{m_pParent = pParent;}
 		inline GeometricObject* get_parent()	{return m_pParent;}
@@ -210,7 +210,7 @@ class Edge : public EdgeBase
 
 		virtual int shared_pipe_section() const	{return SPSEDGE_EDGE;}
 		virtual int base_object_type_id() const	{return EDGE;}
-		virtual int reference_object_id() const {return ROID_EDGE;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to EdgeBase.
 	/**
@@ -291,7 +291,7 @@ class ConstrainedEdge : public EdgeBase
 
 		virtual int shared_pipe_section() const	{return SPSEDGE_CONSTRAINED_EDGE;}
 		virtual int base_object_type_id() const	{return EDGE;}
-		virtual int reference_object_id() const {return ROID_EDGE;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to EdgeBase.
 	/**
@@ -382,7 +382,7 @@ class ConstrainingEdge : public EdgeBase
 
 		virtual int shared_pipe_section() const	{return SPSEDGE_CONSTRAINING_EDGE;}
 		virtual int base_object_type_id() const	{return EDGE;}
-		virtual int reference_object_id() const {return ROID_EDGE;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to EdgeBase.
 	/**
@@ -556,7 +556,7 @@ class CustomTriangle : public BaseClass
 		CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3);
 
 		virtual GeometricObject* create_empty_instance() const	{return new ConcreteTriangleType;}
-		virtual int reference_object_id() const {return ROID_TRIANGLE;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_TRIANGLE;}
 
 	///	Refines a Triangle by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
@@ -915,7 +915,7 @@ class CustomQuadrilateral : public BaseClass
 							VertexBase* v3, VertexBase* v4);
 
 		virtual GeometricObject* create_empty_instance() const	{return new ConcreteQuadrilateralType;}
-		virtual int reference_object_id() const {return ROID_QUADRILATERAL;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_QUADRILATERAL;}
 
 	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
@@ -1186,7 +1186,7 @@ class Tetrahedron : public Volume
 		
 		virtual int shared_pipe_section() const	{return SPSVOL_TETRAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
-		virtual int reference_object_id() const {return ROID_TETRAHEDRON;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_TETRAHEDRON;}
 };
 
 template <>
@@ -1286,7 +1286,7 @@ class Hexahedron : public Volume
 		
 		virtual int shared_pipe_section() const	{return SPSVOL_HEXAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
-		virtual int reference_object_id() const {return ROID_HEXAHEDRON;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_HEXAHEDRON;}
 };
 
 template <>
@@ -1386,7 +1386,7 @@ class Prism : public Volume
 		
 		virtual int shared_pipe_section() const	{return SPSVOL_PRISM;}
 		virtual int base_object_type_id() const	{return VOLUME;}
-		virtual int reference_object_id() const {return ROID_PRISM;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_PRISM;}
 };
 
 template <>
@@ -1486,7 +1486,7 @@ class Pyramid : public Volume
 		
 		virtual int shared_pipe_section() const	{return SPSVOL_PYRAMID;}
 		virtual int base_object_type_id() const	{return VOLUME;}
-		virtual int reference_object_id() const {return ROID_PYRAMID;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_PYRAMID;}
 };
 
 template <>

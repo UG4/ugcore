@@ -237,13 +237,13 @@ class DimFEGeometry
 	public:
 	///	default Constructor
 		DimFEGeometry() :
-			m_roid(ROID_INVALID), m_quadOrder(0), m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
+			m_roid(ROID_UNKNOWN), m_quadOrder(0), m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
 			m_vIPLocal(NULL), m_vQuadWeight(NULL)
 		{}
 
 	///	Constructor
 		DimFEGeometry(size_t order, LFEID lfeid) :
-			m_roid(ROID_INVALID), m_quadOrder(order), m_lfeID(lfeid),
+			m_roid(ROID_UNKNOWN), m_quadOrder(order), m_lfeID(lfeid),
 			m_vIPLocal(NULL), m_vQuadWeight(NULL)
 		{}
 

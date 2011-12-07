@@ -906,7 +906,7 @@ class DimFV1Geometry : public FVGeometryBase
 
 	public:
 	/// construct object and initialize local values and sizes
-		DimFV1Geometry() : m_pElem(NULL), m_roid(ROID_INVALID) {};
+		DimFV1Geometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
 
 	///	update local data
 		bool update_local_data();

@@ -499,7 +499,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 		}
 
 	//	get the type of volume
-		int volType = ROID_INVALID;
+		int volType = ROID_UNKNOWN;
 		if(vTris.size() == 4 && vQuads.size() == 0)
 			volType = ROID_TETRAHEDRON;
 		else if(vTris.size() == 4 && vQuads.size() == 1)

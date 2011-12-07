@@ -34,7 +34,7 @@ bool DataImport<TData,dim>::set_roid(ReferenceObjectID id)
 	{
 		UG_LOG("ERROR in 'DataImport::set_roid':"
 				"No lin defect functions registered for " << id << ".\n");
-		m_id = ROID_INVALID;
+		m_id = ROID_UNKNOWN;
 		return false;
 	}
 }
@@ -180,7 +180,7 @@ inline void DataImport<TData,dim>::check_values() const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-DataExport<TData, dim>::DataExport() : m_id(ROID_INVALID), m_pObj(NULL)
+DataExport<TData, dim>::DataExport() : m_id(ROID_UNKNOWN), m_pObj(NULL)
 {
 //	this ipdata needs the solution for evaluation
 	this->m_bCompNeedsSol = true;
@@ -288,7 +288,7 @@ bool DataExport<TData, dim>::set_roid(ReferenceObjectID id)
 template <typename TData, int dim>
 bool DataExport<TData, dim>::is_ready() const
 {
-	if(m_id == ROID_INVALID) {
+	if(m_id == ROID_UNKNOWN) {
 		UG_LOG("ERROR in 'DataExport::is_ready': The reference element "
 				"type has not been set for evaluation.\n");
 		return false;

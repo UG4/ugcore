@@ -40,7 +40,7 @@ enum GeometricBaseObject
 ///	these ids are used to identify the shape of a geometric object.
 enum ReferenceObjectID
 {
-	ROID_INVALID = -1,
+	ROID_UNKNOWN = -1,
 	ROID_VERTEX,
 	ROID_EDGE,
 	ROID_TRIANGLE,
@@ -57,7 +57,7 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 {
 	switch(type)
 	{
-		case ROID_INVALID: outStream << "(invalid)"; break;
+		case ROID_UNKNOWN: outStream << "(invalid)"; break;
 		case ROID_VERTEX: outStream << "Vertex"; break;
 		case ROID_EDGE: outStream << "Edge"; break;
 		case ROID_TRIANGLE: outStream << "Triangle"; break;
@@ -136,7 +136,7 @@ class GeometricObject/* : public SmallObject<>*/
 	 * Tetrahedrons, Triangles etc are such classes.
 	 * Reference ids should be defined in the file in which concrete geometric objects are defined.
 	 */
-		virtual int reference_object_id() const = 0;///	returns the id of the reference-object.
+		virtual ReferenceObjectID reference_object_id() const = 0;///	returns the id of the reference-object.
 
 	protected:
 		uint						m_gridDataIndex;//	index to grid-attached data.
@@ -311,7 +311,7 @@ class VertexBase : public GeometricObject
 
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return VERTEX;}
-		virtual int reference_object_id() const	{return -1;}
+		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 	///	returns a value that can be used for hashing.
 	/**	this value is unique per grid.
@@ -391,7 +391,7 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return EDGE;}
-		virtual int reference_object_id() const	{return -1;}
+		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 		virtual int num_sides() const {return 2;}
 	/**
@@ -554,7 +554,7 @@ class Face : public GeometricObject, public FaceVertices
 
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return FACE;}
-		virtual int reference_object_id() const	{return -1;}
+		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 	/**	A default implementation is featured to allow empty instances of
 	 *	this class. This is required to allow the use of this class
@@ -656,7 +656,7 @@ class geometry_traits<Face>
 			SHARED_PIPE_SECTION = -1,
 			BASE_OBJECT_TYPE_ID = FACE
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_INVALID;
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -850,7 +850,7 @@ class Volume : public GeometricObject, public VolumeVertices
 		
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return VOLUME;}
-		virtual int reference_object_id() const	{return -1;}
+		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,
@@ -879,7 +879,7 @@ class geometry_traits<Volume>
 			SHARED_PIPE_SECTION = -1,
 			BASE_OBJECT_TYPE_ID = VOLUME
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_INVALID;
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
