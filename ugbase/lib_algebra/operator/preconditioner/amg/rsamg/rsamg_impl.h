@@ -92,7 +92,7 @@ namespace ug{
  * \note	you can also pre-calculate some connectivity-measurement matrix C, and call this function with C.
  */
 template<typename matrix_type>
-void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_dTheta)
+void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_dTheta, AMGNodes &nodes)
 {
 	AMG_PROFILE_FUNC();
 	graph.resize(A.num_rows());
@@ -100,7 +100,10 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_d
 	for(size_t i=0; i< A.num_rows(); i++)
 	{
 		if(A.is_isolated(i))
+		{
+			nodes.set_dirichlet(i);
 			continue;
+		}
 
 		double dmax = 0;
 
@@ -118,7 +121,8 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_d
 				graph.set_connection(i, conn.index());
 		}
 
-		UG_ASSERT(graph.num_connections(i) > 0, "");
+		if(graph.num_connections(i) == 0)
+			nodes.set_coarse(i);
 	}
 
 #ifdef AMG_PRINT_GRAPH
@@ -234,7 +238,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	UG_DLOG(LIB_ALG_AMG, 1, "building graph... ");
 	if(bTiming) SW.start();
 
-	CreateStrongConnectionGraph(AOL1, graphS);
+	CreateStrongConnectionGraph(AOL1, graphS, m_dTheta, nodes);
 
 	// we need the transpose, since when we set a node coarse, we want
 	// all nodes to be fine which can be interpolated by this coarse node

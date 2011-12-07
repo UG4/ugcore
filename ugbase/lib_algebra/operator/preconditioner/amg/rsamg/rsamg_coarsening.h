@@ -9,7 +9,7 @@ namespace ug
 
 template<typename Matrix_type>
 void
-CreateStrongConnectionGraph(const Matrix_type &A, cgraph &graph, double theta=0.25);
+CreateStrongConnectionGraph(const Matrix_type &A, cgraph &graph, double theta, AMGNodes &nodes);
 
 void CreateMeasureOfImportancePQ(const cgraph &strong, const cgraph &strongT, nodeinfo_pq_type &PQ, AMGNodes &nodes);
 

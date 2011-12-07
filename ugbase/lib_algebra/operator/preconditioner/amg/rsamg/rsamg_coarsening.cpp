@@ -52,9 +52,7 @@ void CreateMeasureOfImportancePQ(const cgraph &strong, const cgraph &strongT, no
 			nodes.set_parallel_dont_care(i);
 			continue;
 		}
-		if(strong.is_isolated(i))
-			nodes.set_dirichlet(i);
-		else
+		if(!strong.is_isolated(i))
 		{
 			//UG_ASSERT(graph.iNrOfConnections[i] > 0, "node " << i << " has " << graph.iNrOfConnections[i] << " connections?");
 			nodes.set_rating(i, strongT.num_connections(i));

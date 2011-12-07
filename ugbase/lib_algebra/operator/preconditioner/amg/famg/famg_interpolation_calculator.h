@@ -379,7 +379,12 @@ public:
 
 		q.resize(N+1);
 		if(InverseMatMult(q, 1.0, vKKT, rhs))
+		{
+			F = H(i_index, i_index) -localTestvector[0][i_index];
+			for(size_t j=0; j<N; j++)
+				F += q[j] * rhs[j];
 			return true;
+		}
 		else
 			return false;
 	}
@@ -410,7 +415,12 @@ public:
 
 		q.resize(N+1);
 		if(InverseMatMult(q, 1.0, vKKT, rhs))
+		{
+			F = H(i_index, i_index) -localTestvector[0][i_index];
+			for(size_t j=0; j<N; j++)
+				F += q[j] * rhs[j];
 			return true;
+		}
 		else
 			return false;
 	}
@@ -436,10 +446,8 @@ public:
 				UG_LOG(onlyN2[k] << " ");
 		}
 
-		for(size_t j=0; j<onlyN1.size(); j++)
-			bvisited[onlyN1[j]] = false;
-		for(size_t j=0; j<onlyN2.size(); j++)
-			bvisited[onlyN2[j]] = false;
+		CleanupFlagArray(bvisited, onlyN1);
+		CleanupFlagArray(bvisited, onlyN2);
 		bvisited[i] = false;
 		return true;
 	}
@@ -461,7 +469,7 @@ public:
 			UG_LOG("\n");*/
 			// todo: change this
 			if(rating.i_can_set_coarse(i))
-				rating.set_coarse(i);
+				rating.external_set_coarse(i);
 			else
 			{
 				get_H(i, rating);
@@ -481,14 +489,11 @@ public:
 			IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 
 			t.resize(q.size());
-			// todo: calc F
-			//MatMult(t, 1.0, H, q);
-			double F = 0; //aii * VecDot(q, t);
 
 			if(F > m_delta)
 			{
 				UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, had to set node " << i << " coarse!");
-				rating.set_coarse(i);
+				rating.external_set_coarse(i);
 			}
 			else
 			{
@@ -510,7 +515,7 @@ public:
 		}
 		else
 		{
-			rating.set_coarse(i);
+			rating.external_set_coarse(i);
 			UG_DLOG(LIB_ALG_AMG, 3, "indirect_interpolation: could not invert KKT system (coarse neighbors).\n");
 		}
 		return true;
@@ -523,47 +528,37 @@ public:
 		AMG_PROFILE_FUNC();
 		get_H(i, rating);
 		calculate_testvectors(i);
-
-		if(solve_KKT_on_subset(interpolateNeighbors))
+		F=0;
+		if(solve_KKT_on_subset(interpolateNeighbors) && F < m_delta)
 		{
 			IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
-
-			t.resize(q.size());
-			// todo: calc F
-			//MatMult(t, 1.0, H, q);
-			double F = 0; //aii * VecDot(q, t);
-
-			if(F > m_delta)
+			std::map<size_t, double> localP;
+			for(size_t j=0; j<interpolateNeighbors.size(); j++)
 			{
-				UG_LOG("had to set node " << i << " coarse!");
-				rating.set_coarse(i);
+				size_t node = onlyN1[interpolateNeighbors[j]];
+				for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
+					localP[it.index()] += -q[j] * it.value();
 			}
-			else
-			{
-				std::map<size_t, double> localP;
-				for(size_t j=0; j<interpolateNeighbors.size(); j++)
-				{
-					size_t node = onlyN1[interpolateNeighbors[j]];
-					for(typename matrix_type::row_iterator it=P.begin_row(node); it != P.end_row(node); ++it)
-						localP[it.index()] += -q[j] * it.value();
-				}
-				double dmax = -1000;
-				for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
-					if(dmax < (*it).second) dmax = (*it).second;
+			double dmax = -1000;
+			for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
+				if(dmax < (*it).second) dmax = (*it).second;
 
-				for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
-				{
-					if((*it).second > dmax*m_dEpsilonTr)
-						P(i, (*it).first) = (*it).second;
-				}
-				check_weights(P, i);
-				rating.set_aggressive_fine(i);
+			for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
+			{
+				if((*it).second > dmax*m_dEpsilonTr)
+					P(i, (*it).first) = (*it).second;
 			}
+			check_weights(P, i);
+			rating.set_aggressive_fine(i);
 		}
 		else
 		{
-			rating.set_coarse(i);
-			UG_DLOG(LIB_ALG_AMG, 3, "direct_interpolation: could not invert KKT system.\n");
+			rating.external_set_coarse(i);
+			UG_DLOG(LIB_ALG_AMG, 3, "had to set node " << i << " coarse: ");
+			if(F==0)
+			{	UG_DLOG(LIB_ALG_AMG, 3, "could not invert KKT system.\n"); }
+			else
+			{	UG_DLOG(LIB_ALG_AMG, 3, "F = " << F << " < delta = " << m_delta << "\n"); }
 		}
 		return true;
 	}
@@ -1014,6 +1009,7 @@ private:
 	DenseMatrix<VariableArray2<double> > vKKT;
 
 private:
+	double F;
 	const matrix_type &A;
 	const matrix_type &A_OL2;
 	double m_delta;

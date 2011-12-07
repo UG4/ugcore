@@ -23,7 +23,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ex
 	size_t N = A.num_rows();
 	for(size_t i=0; i<N; i++)
 	{
-		if(rating[i].is_fine_direct())
+		if(rating[i].is_fine_direct() && rating.i_must_assign(i))
 			calculator.get_all_neighbors_interpolation(i, PoldIndices, rating);
 	}
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
@@ -46,7 +46,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs
 	AMGNodes nodes(N);
 #endif
 	cgraph graphS, graphST;
-	CreateStrongConnectionGraph(A_OL2, graphS, 0.3);
+	CreateStrongConnectionGraph(A_OL2, graphS, 0.3, nodes);
 
 	graphST.set_as_transpose_of(graphS);
 	CreateMeasureOfImportancePQ(graphS, graphST, PQ, nodes);
