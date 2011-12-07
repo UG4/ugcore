@@ -6,7 +6,7 @@
 --
 ----------------------------------------------------------
 -- SetOutputProcessRank(0)
-SetOutputProfileStats(false)
+SetOutputProfileStats(true)
 
 GetLogAssistant():enable_file_output(true, "ug_log"..GetProcessRank())
 SetOutputProcessRank(-1)
