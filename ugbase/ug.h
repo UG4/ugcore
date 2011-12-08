@@ -32,6 +32,18 @@ namespace ug
  */
 UG_API int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
 
+///	Initializes the pathes of ug::PathProvider.
+/**	Initializes the following pathes in ug::PathProvider:
+ *	- ROOT_PATH
+ *	- APP_PATH
+ *	- SCRIPT_PATH
+ *	- DATA_PATH
+ *	- GRID_PATH
+ *	- PLUGIN_PATH
+ *
+ * Note: If you set a path before calling this method, it won't be overwritten.*/
+UG_API bool InitPaths(const char* argv0);
+
 ///	finalizes ug
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Finalize.

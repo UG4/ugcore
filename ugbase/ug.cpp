@@ -26,12 +26,14 @@
 //	only visible in this file!
 static bool outputProfileStats = false;
 
-namespace ug {
+namespace ug
+{
 
 /**
  *  init app, script and data paths
  */
-static bool InitPaths(const char* argv0) {
+bool InitPaths(const char* argv0)
+{
 	//The method currently only works if the path is explicitly specified
 	//during startup or if UG4_ROOT is defined.
 
@@ -96,9 +98,10 @@ static bool InitPaths(const char* argv0) {
  *	then this method will internally call pcl::Init.
  */
 //int UGInit(int argc, char* argv[], int parallelOutputProcRank)
-int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
-	//	make sure that things are only initialized once
-	// todo: afaik static in d methods is per-cpp-file
+int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
+{
+//	NOTE: UGInit is currently not called by ug_shell (recheck that!)
+
 	static bool firstCall = true;
 	if (firstCall) {
 		firstCall = false;
@@ -133,7 +136,8 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Finalize.
  */
-int UGFinalize() {
+int UGFinalize()
+{
 	if (outputProfileStats) {
 	//	output the profiled data.
 		PROFILER_UPDATE();
