@@ -15,6 +15,7 @@ namespace ug
 template <class TElem, class TElemHandler>
 AttachmentPipe<TElem, TElemHandler>::
 AttachmentPipe() :
+	m_attachmentEntryIteratorHash(13),
 	m_numElements(0),
 	m_containerSize(0),
 	m_pHandler(NULL)
@@ -24,6 +25,7 @@ AttachmentPipe() :
 template <class TElem, class TElemHandler>
 AttachmentPipe<TElem, TElemHandler>::
 AttachmentPipe(typename atraits::ElemHandlerPtr pHandler) :
+	m_attachmentEntryIteratorHash(13),
 	m_numElements(0),
 	m_containerSize(0),
 	m_pHandler(pHandler)

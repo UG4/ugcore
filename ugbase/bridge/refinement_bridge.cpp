@@ -17,32 +17,33 @@ namespace ug{
 ///	Creates a global domain refiner.
 /**	Automatically chooses whether a parallel refiner is required.*/
 template <typename TDomain>
-static IRefiner* GlobalDomainRefiner(TDomain* dom)
+static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain* dom)
 {
 //todo: support normal grids, too!
+
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			return new ParallelGlobalRefiner_MultiGrid(*dom->distributed_grid_manager());
+			return SmartPtr<IRefiner>(new ParallelGlobalRefiner_MultiGrid(*dom->distributed_grid_manager()));
 		}
 	#endif
 
-	return new GlobalMultiGridRefiner(dom->grid());
+	return SmartPtr<IRefiner>(new GlobalMultiGridRefiner(dom->grid()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Creates an adaptive hanging node domain refiner.
 /**	Automatically chooses whether a parallel refiner is required.*/
 template <typename TDomain>
-static IRefiner* HangingNodeDomainRefiner(TDomain* dom)
+static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
 {
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			return new ParallelHangingNodeRefiner_MultiGrid(*dom->distributed_grid_manager());
+			return SmartPtr<IRefiner>(new ParallelHangingNodeRefiner_MultiGrid(*dom->distributed_grid_manager()));
 		}
 	#endif
 
-	return new HangingNodeRefiner_MultiGrid(dom->grid());
+	return SmartPtr<IRefiner>(new HangingNodeRefiner_MultiGrid(dom->grid()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,23 +51,23 @@ static IRefiner* HangingNodeDomainRefiner(TDomain* dom)
 /**	If used in a parallel environment only elements on the calling procs
  * are marked.
  */
-static void MarkForRefinement_All(IRefiner& ref)
+static void MarkForRefinement_All(SmartPtr<IRefiner> ref)
 {
-	Grid* g = ref.get_associated_grid();
+	Grid* g = ref->get_associated_grid();
 	if(!g){
 		UG_LOG("Refiner is not registered at a grid. Aborting.\n");
 		return;
 	}
-	ref.mark(g->vertices_begin(), g->vertices_end());
-	ref.mark(g->edges_begin(), g->edges_end());
-	ref.mark(g->faces_begin(), g->faces_end());
-	ref.mark(g->volumes_begin(), g->volumes_end());
+	ref->mark(g->vertices_begin(), g->vertices_end());
+	ref->mark(g->edges_begin(), g->edges_end());
+	ref->mark(g->faces_begin(), g->faces_end());
+	ref->mark(g->volumes_begin(), g->volumes_end());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all vertices in the given d-dimensional sphere.
 template <class TDomain>
-void MarkForRefinement_VerticesInSphere(TDomain& dom, IRefiner& refiner,
+void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& center,
 									number radius)
 {
@@ -74,12 +75,12 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, IRefiner& refiner,
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.grid()){
+	if(refiner->get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInSphere: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
-	Grid& grid = *refiner.get_associated_grid();
+	Grid& grid = *refiner->get_associated_grid();
 	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll compare against the square radius.
@@ -100,9 +101,9 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, IRefiner& refiner,
 			CollectAssociated(vFaces, grid, *iter);
 			CollectAssociated(vVols, grid, *iter);
 
-			refiner.mark(vEdges.begin(), vEdges.end());
-			refiner.mark(vFaces.begin(), vFaces.end());
-			refiner.mark(vVols.begin(), vVols.end());
+			refiner->mark(vEdges.begin(), vEdges.end());
+			refiner->mark(vFaces.begin(), vFaces.end());
+			refiner->mark(vVols.begin(), vVols.end());
 		}
 	}
 }
@@ -111,7 +112,7 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, IRefiner& refiner,
 ///	Marks all elements which lie completely in the given d-dimensional sphere.
 /**	Valid parameters for TElem are EdgeBase, Face, Volume.*/
 template <class TDomain, class TElem>
-void MarkForRefinement_ElementsInSphere(TDomain& dom, IRefiner& refiner,
+void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& center,
 									number radius)
 {
@@ -120,12 +121,12 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, IRefiner& refiner,
 	typedef typename geometry_traits<TElem>::iterator	ElemIter;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.grid()){
+	if(refiner->get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
-	Grid& grid = *refiner.get_associated_grid();
+	Grid& grid = *refiner->get_associated_grid();
 	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll compare against the square radius.
@@ -157,7 +158,7 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, IRefiner& refiner,
 
 	//	mark the element
 		if(bInSphere)
-			refiner.mark(elem);
+			refiner->mark(elem);
 	}
 }
 
@@ -165,7 +166,7 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, IRefiner& refiner,
 ///	Marks all elements which have vertices in the given d-dimensional cube.
 /**	Make sure that TAPos is an attachment of vector_t position types.*/
 template <class TDomain>
-void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
+void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& min,
 									const typename TDomain::position_type& max)
 {
@@ -173,12 +174,12 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.grid()){
+	if(refiner->get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
-	Grid& grid = *refiner.get_associated_grid();
+	Grid& grid = *refiner->get_associated_grid();
 	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll store associated edges, faces and volumes in those containers
@@ -208,9 +209,9 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
 			CollectAssociated(vFaces, grid, *iter);
 			CollectAssociated(vVols, grid, *iter);
 
-			refiner.mark(vEdges.begin(), vEdges.end());
-			refiner.mark(vFaces.begin(), vFaces.end());
-			refiner.mark(vVols.begin(), vVols.end());
+			refiner->mark(vEdges.begin(), vEdges.end());
+			refiner->mark(vFaces.begin(), vFaces.end());
+			refiner->mark(vVols.begin(), vVols.end());
 		}
 	}
 }
@@ -239,20 +240,20 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, IRefiner& refiner,
  * \todo	activate and improve volume marks
  **/
 template <class TDomain>
-void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
+void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refiner,
 											number sizeRatio)
 {
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner.get_associated_grid() != &dom.grid()){
+	if(refiner->get_associated_grid() != &dom.grid()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
 //	access the grid and the position attachment
-	Grid& grid = *refiner.get_associated_grid();
+	Grid& grid = *refiner->get_associated_grid();
 	position_accessor_type& aaPos = dom.position_accessor();
 
 //	If the grid is a multigrid, we want to avoid marking of elements, which do
@@ -297,7 +298,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 			if(len > 0){
 				if(minLen / len <= sizeRatio){
 				//	the edge will be refined
-					refiner.mark(e);
+					refiner->mark(e);
 
 				//	we'll also mark the current face, or else just a hanging
 				//	node would be inserted.
@@ -306,7 +307,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 				//	in a parallel environment, compared to a serial environment.
 				//	By using RM_ANISOTROPIC, we avoid that associated edges of
 				//	the marked face will automatically be marked, too.
-					refiner.mark(f, RM_ANISOTROPIC);
+					refiner->mark(f, RM_ANISOTROPIC);
 				}
 			}
 		}
@@ -337,11 +338,11 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 	//	collect associated edges
 		CollectAssociated(edges, grid, f);
 /*
-		if(refiner.get_mark(f) == RM_NONE){
+		if(refiner->get_mark(f) == RM_NONE){
 			bool gotOne = false;
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 				EdgeBase* e = edges[i_edge];
-				if(refiner.get_mark(e) != RM_NONE){
+				if(refiner->get_mark(e) != RM_NONE){
 					gotOne = true;
 					break;
 				}
@@ -350,13 +351,13 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 			if(gotOne){
 				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 					EdgeBase* e = edges[i_edge];
-					if(refiner.get_mark(e) == RM_NONE){
-						refiner.mark(e);
+					if(refiner->get_mark(e) == RM_NONE){
+						refiner->mark(e);
 						CollectFaces(faces, grid, e);
 						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 							Face* nbr = faces[i_face];
 							if(!grid.is_marked(nbr)
-							   && (refiner.get_mark(nbr) == RM_ANISOTROPIC))
+							   && (refiner->get_mark(nbr) == RM_ANISOTROPIC))
 							{
 								grid.mark(nbr);
 								queFaces.push(nbr);
@@ -364,10 +365,10 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 						}
 					}
 				}
-				refiner.mark(f);
+				refiner->mark(f);
 			}
 		}
-		else */if(refiner.get_mark(f) == RM_ANISOTROPIC){
+		else */if(refiner->get_mark(f) == RM_ANISOTROPIC){
 		//	find the shortest edge
 			EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
 			UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
@@ -379,7 +380,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 				EdgeBase* e = edges[i_edge];
-				if(refiner.get_mark(e) == RM_NONE)
+				if(refiner->get_mark(e) == RM_NONE)
 					continue;
 
 				number len = EdgeLength(e, aaPos);
@@ -399,9 +400,9 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 			if(longEdgeSelected && shortEdgeSelected){
 				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 					EdgeBase* e = edges[i_edge];
-					if(refiner.get_mark(e) == RM_NONE){
+					if(refiner->get_mark(e) == RM_NONE){
 					//	mark it and push associated anisotropic faces to the queue
-						refiner.mark(e);
+						refiner->mark(e);
 	//!!!
 
 	if(ConstrainingEdge::type_match(e)){
@@ -412,7 +413,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 							Face* nbr = faces[i_face];
 							if(!grid.is_marked(nbr)
-							   && (refiner.get_mark(nbr) == RM_ANISOTROPIC))
+							   && (refiner->get_mark(nbr) == RM_ANISOTROPIC))
 							{
 								grid.mark(nbr);
 								queFaces.push(nbr);
@@ -436,7 +437,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 		Face* f = *iter;
 
 	//	if it is already marked, leave it as it is
-		if(refiner.get_mark(f) != RM_NONE)
+		if(refiner->get_mark(f) != RM_NONE)
 			continue;
 
 	//	ignore faces with children
@@ -444,8 +445,8 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 			continue;
 
 		for(size_t i = 0; i < f->num_edges(); ++i){
-			if(refiner.get_mark(grid.get_side(f, i)) != RM_NONE)
-				refiner.mark(f);
+			if(refiner->get_mark(grid.get_side(f, i)) != RM_NONE)
+				refiner->mark(f);
 		}
 	}*/
 
@@ -476,11 +477,11 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 				//	leave it at that, to keep the anisotropy.
 				//	If it wasn't marked, we'll mark it for full refinement
 				//	(all anisotropic faces have already been marked).
-					if(refiner.get_mark(f) == RM_NONE)
-						refiner.mark(f);
+					if(refiner->get_mark(f) == RM_NONE)
+						refiner->mark(f);
 
 				//	the volume itself now has to be marked, too.
-					refiner.mark(v, RM_ANISOTROPIC);
+					refiner->mark(v, RM_ANISOTROPIC);
 				}
 			}
 		}
