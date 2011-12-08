@@ -135,52 +135,41 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
 		int pid = masterLayout.proc_id(iter);
 		ug::BinaryBuffer &buffer = receiveMap[pid];
 		bool broken=false;
-		if(bPrint) UG_LOG("Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n");
+		if(bPrint) { UG_LOG("Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n"); }
 		typename TLayout::Interface &interface = masterLayout.interface(iter);
 		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
 			if(!buffer.eof() == false)
 			{
 				broken =true;
-				if(bPrint){
-					TValue value = cbToValue(interface.get_element(iter2));
-					UG_LOG(" " << std::setw(9) << value << " <-> " << "BROKEN!" << std::endl);
-				}
+				TValue value = cbToValue(interface.get_element(iter2));
+				if(bPrint) {	UG_LOG(" " << std::setw(9) << value << " <-> " << "BROKEN!" << std::endl); }
 			}
 			else
 			{
 				TValue val1 = cbToValue(interface.get_element(iter2));
 				TValue val2; Deserialize(buffer, val2);
-				if(bPrint){
-					UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << std::endl);
-				}
+				if(bPrint) { UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << std::endl); }
 			}
 		}
 		while(!buffer.eof())
 		{
 			broken = true;
-			if(!bPrint) break;
 			TValue value; Deserialize(buffer, value);
 
-			UG_LOG(" BROKEN! -> " << std::setw(9) << value << std::endl);
+			if(bPrint) { UG_LOG(" BROKEN! -> " << std::setw(9) << value << std::endl); }
 		}
 
 		if(broken)
 		{
-			if(!bPrint) break;
-			UG_LOG("Interface from processor " << std::setw(4) << pcl::GetProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
 			layout_broken=true;
+			UG_LOG("Interface from processor " << std::setw(4) << pcl::GetProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
+
 		}
 	}
 
-	if(!bPrint && layout_broken)
+	if(layout_broken == true)
 	{
-		UG_LOG("\n\nOne or more interfaces are broken, printing interfaces:\n")
-		TestSizeOfInterfacesInLayoutsMatch<TLayout, TValue>(com, masterLayout, slaveLayout,
-															true, cbToValue);
-		return false;
-	}
-	else if(layout_broken == true){
 		UG_LOG("One or more interfaces are broken\n");
 		return false;
 	}
@@ -202,11 +191,6 @@ bool TestLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
 {
-	bool bDoubleEnded = TestLayoutIsDoubleEnded(com, masterLayout, slaveLayout);
-
-	if(!pcl::AllProcsTrue(bDoubleEnded))
-		return false;
-
 	if(bPrint)
 	{
 		UG_LOG("MasterLayout is to processes ");
@@ -219,6 +203,9 @@ bool TestLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 		}
 		UG_LOG("\n");
 	}
+	bool bDoubleEnded = TestLayoutIsDoubleEnded(com, masterLayout, slaveLayout);
+	if(!pcl::AllProcsTrue(bDoubleEnded))
+		return false;
 
 	bool bSuccess = TestSizeOfInterfacesInLayoutsMatch<TLayout, TValue>(com, masterLayout,
 															slaveLayout, bPrint, cbToValue);
@@ -241,12 +228,20 @@ bool PrintLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 	return TestLayout(com, masterLayout, slaveLayout, true, cbToValue);
 }
 
+
 template<typename TLayout>
 bool PrintLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout)
 {
 	return TestLayout(com, masterLayout, slaveLayout, true);
 }
+
+
+#ifndef NDEBUG
+	#define TESTLAYOUT(com, master, slave) { if(TestLayout(com, master, slave) == false) { PrintLayout(com, master, slave); UG_ASSERT(false, "layout broken"); } }
+#else
+	#define TESTLAYOUT(com, master, slave)
+#endif
 
 }
 
