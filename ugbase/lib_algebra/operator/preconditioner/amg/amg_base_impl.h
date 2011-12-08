@@ -18,6 +18,8 @@
 #include "amg_debug.h"
 #ifdef UG_PARALLEL
 #include "collect_matrix.h"
+#include "lib_algebra/parallelization/parallel_vector.h"
+#include "lib_algebra/parallelization/parallel_storage_type.h"
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
@@ -597,7 +599,9 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	{
 		corr.set(0.0);
 		L.presmoother->apply_update_defect(corr, d);
-		UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
+        #ifdef UG_PARALLEL
+            UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
+        #endif
 		c += corr;
 	}
 
@@ -606,7 +610,9 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	{
 		corr.set(0.0);
 		f_smoothing(corr, d, level);
-		UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
+		#ifdef UG_PARALLEL
+            UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
+        #endif
 		c+=corr;
 	}
 
