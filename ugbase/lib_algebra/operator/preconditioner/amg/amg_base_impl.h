@@ -203,11 +203,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		AMGLevel &nextL = *levels[level+1];
 
 		L.presmoother = m_presmoother->clone();
-		if(level == 3)
-		{
-			//bool b = TestLayout(L.com, L.pA->get_master_layout(), L.pA->get_slave_layout());
-			PrintLayout(L.com, L.pA->get_master_layout(), L.pA->get_slave_layout());
-		}
+
 		L.presmoother->init(*L.pA);
 		if(m_presmoother == m_postsmoother)
 			L.postsmoother = L.presmoother;
