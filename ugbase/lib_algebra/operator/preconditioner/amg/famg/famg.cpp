@@ -39,6 +39,7 @@
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #include "../send_interface.h"
+#include "pcl/pcl_layout_tests.h"
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
@@ -527,9 +528,11 @@ private:
 #ifdef UG_PARALLEL
 		m_famg.parallel_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dEpsilonTr, level, rating,
 				PN, false, nextLevelMasterLayout, nextLevelSlaveLayout);
+		TESTLAYOUT(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 #else
 		m_famg.serial_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dEpsilonTr, level, rating);
 #endif
+
 	}
 
 	//	get_aggressive_coarsening_interpolation
