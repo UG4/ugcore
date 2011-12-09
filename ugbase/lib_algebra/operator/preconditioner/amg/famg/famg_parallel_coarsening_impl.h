@@ -224,6 +224,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 template<typename TMatrix>
 void ReduceToStrongConnections(TMatrix &m1, const TMatrix &const_m2)
 {
+	PROFILE_FUNC();
 	UG_LOG("Reducing matrix...\n");
 	TMatrix &m2 = const_cast<TMatrix&>(const_m2);
 	std::vector<typename TMatrix::connection> con;
