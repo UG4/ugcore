@@ -6,7 +6,7 @@
 --
 ----------------------------------------------------------
 -- SetOutputProcessRank(0)
-SetOutputProfileStats(true)
+SetOutputProfileStats(false)
 
 GetLogAssistant():enable_file_output(true, "ug_log"..GetProcessRank())
 SetOutputProcessRank(-1)
@@ -50,14 +50,9 @@ epsy = util.GetParamNumber("-epsy", 1)
 
 bCheck = util.HasParamOption("-bCheck")
 
-bFileOutput = false
-bOutput = true
-
-if util.HasParamOption("-RSAMG") then
-	bRSAMG = true
-else
-	bRSAMG = false
-end
+bWriteStats = util.HasParamOption("-bWriteStats")
+bWriteMat = util.HasParamOption("-bWriteMat")
+bRSAMG = util.HasParamOption("-RSAMG") 
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
@@ -302,7 +297,7 @@ linOp:set_dirichlet_values(u)
 print ("done")
 
 -- write matrix for test purpose
-if bOutput then
+if bMatOutput then
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
@@ -370,7 +365,7 @@ if bRSAMG == false then
 	amg:set_testvector_damps(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
 		
-	if bOutput then
+	if bWriteMat then
 		amg:write_testvectors(true)
 	end
 	
@@ -405,7 +400,7 @@ end
 vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider(vectorWriter)
-if bOutput then
+if bWriteMat then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
 end
 
@@ -420,7 +415,7 @@ amg:set_max_levels(maxLevels)
 amg:set_min_nodes_on_one_processor(50000)
 -- amg:set_preferred_nodes_on_one_processor(1000)
 amg:set_max_nodes_for_base(maxBase)
-amg:set_max_fill_before_base(0.7)
+amg:set_max_fill_before_base(0.5)
 amg:set_fsmoothing(true)
 amg:set_epsilon_truncation(0)
 amg:tostring()
@@ -434,7 +429,12 @@ convCheck:set_reduction(1e-12)
 
 print("done.")
 -- create Linear Solver
-linSolver = LinearSolver()
+
+if util.HasParamOption("-cg") then
+	linSolver = CG()
+else
+	linSolver = LinearSolver()
+end
 linSolver:set_preconditioner(amg)
 linSolver:set_convergence_check(convCheck)
 
@@ -545,6 +545,17 @@ if not bCheck then
 	print("tAssemble [s]: "..tAssemble)
 	
 	
+	LI = amg:get_level_information(0)
+	printf("Level 0: number of nodes: %d. fill in %.2f%%, nr of interface elements: %d (%.2f%%)", LI:get_nr_of_nodes(), LI:get_fill_in()*100, LI:get_nr_of_interface_elements(), LI:get_nr_of_interface_elements()/LI:get_nr_of_nodes()*100)
+	for i = 1, amg:get_used_levels()-1 do
+		LI = amg:get_level_information(i)
+		printf("Level %d: creation time: %.2f ms. number of nodes: %d. fill in %.2f%%. coarsening rate: %.2f%%, nr of interface elements: %d (%.2f%%)", i, 
+			LI:get_creation_time_ms(),  LI:get_nr_of_nodes(), LI:get_fill_in()*100,
+			LI:get_nr_of_nodes()*100/amg:get_level_information(i-1):get_nr_of_nodes(), LI:get_nr_of_interface_elements(), LI:get_nr_of_interface_elements()/LI:get_nr_of_nodes()*100)
+			
+	end
+	
+	
 	
 	if GetProfilerAvailable() == true then
 		create_levelPN = GetProfileNode("c_create_AMG_level")
@@ -557,7 +568,7 @@ if not bCheck then
 			printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
 		end
 		
-		if create_levelPN:is_valid() and false then
+		if false and create_levelPN:is_valid() then
 			if true then
 				print(create_levelPN:call_tree())
 				print(create_levelPN:child_self_time_sorted())
