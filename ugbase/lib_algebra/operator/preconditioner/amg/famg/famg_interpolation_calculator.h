@@ -459,25 +459,10 @@ public:
 		AMG_PROFILE_FUNC();
 		if(coarseNeighbors.size() == 1)
 		{
-			/*UG_LOG("only 1 coarse neighbor (" << rating.get_original_index(onlyN1[coarse_neighbors[0]]) << " for " << rating.get_original_index(i) << "?\n")
-			UG_LOG("coarse neighbors: ")
-			for(int j=0; j<onlyN1.size(); j++)
-			{
-				if(j>0) UG_LOG(", ");
-				UG_LOG(rating.get_original_index(onlyN1[j]));
-			}
-			UG_LOG("\n");*/
-			// todo: change this
-			if(rating.i_can_set_coarse(i))
-				rating.external_set_coarse(i);
-			else
-			{
-				get_H(i, rating);
-				calculate_testvectors(i);
-
-				P(i, onlyN1[coarseNeighbors[0]]) = localTestvector[0][onlyN1.size()] / localTestvector[0][coarseNeighbors[0]];
-				rating.set_fine(i);
-			}
+			get_H(i, rating);
+			calculate_testvectors(i);
+			P(i, onlyN1[coarseNeighbors[0]]) = localTestvector[0][onlyN1.size()] / localTestvector[0][coarseNeighbors[0]];
+			rating.set_fine(i);
 			return true;
 		}
 
@@ -516,7 +501,7 @@ public:
 		else
 		{
 			rating.external_set_coarse(i);
-			UG_DLOG(LIB_ALG_AMG, 3, "indirect_interpolation: could not invert KKT system (coarse neighbors).\n");
+			UG_DLOG(LIB_ALG_AMG, 3, "indirect_interpolation of node " << i << ": could not invert KKT system (coarse neighbors).\n");
 		}
 		return true;
 	}
@@ -753,7 +738,6 @@ private:
 		if(H.num_rows() != onlyN1.size()+1)
 			H.resize(onlyN1.size()+1, onlyN1.size()+1);
 
-		AMG_PROFILE_NEXT(cHflA)
 		//AMG_PROFILE_NEXT(AMG_HA_Dinv);
 		// get Dinv = 1/Aii
 
