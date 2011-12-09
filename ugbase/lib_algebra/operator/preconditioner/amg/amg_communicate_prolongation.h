@@ -161,7 +161,7 @@ void AMGBase<TAlgebra>::create_new_indices(prolongation_matrix_type &PoldIndices
  *
  * \param 	PoldIndices				used Prolongation matrix with old (fine grid) indices. in/out.
  * \param	PnewIndices				Prolongation matrix with new indices.
- * \param	dEpsilonTruncation		used to trucation the prolongation /sa create_new_index
+ * \param	dEpsilonTruncation		used to trucation the prolongation /sa create_new_indices
  * \param	level					the amg level
  * \param	amgnodes				coarse/fine ratings of the nodes
  * \param	nextLevelMasterLayout	the master layout on the next coarser level
@@ -207,19 +207,22 @@ void AMGBase<TAlgebra>::serial_process_prolongation(prolongation_matrix_type &Po
  *
  * \param 	PoldIndices				used Prolongation matrix with old (fine grid) indices. in/out.
  * \param	PnewIndices				Prolongation matrix with new indices.
- * \param	dEpsilonTruncation		used to trucation the prolongation /sa create_new_index
+ * \param	dEpsilonTruncation		used to trucation the prolongation /sa create_new_indices
  * \param	level					the amg level
  * \param	amgnodes				coarse/fine ratings of the nodes
  * \param	nextLevelMasterLayout	the master layout on the next coarser level
  * \param	nextLevelSLaveLayout	the slave layout on the next coarser level
  */
+
 template<typename TAlgebra>
 template<typename TAMGNodes>
 void AMGBase<TAlgebra>::parallel_process_prolongation(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices, double dEpsilonTruncation, int level,
 		TAMGNodes &amgnodes, ParallelNodes &PN, bool bCreateNewNodes, IndexLayout &nextLevelMasterLayout, IndexLayout &nextLevelSlaveLayout)
 {
+
 	AMG_PROFILE_FUNC();
 	communicate_prolongation(PN, PoldIndices, bCreateNewNodes);
+	PoldIndices.set_storage_type(PST_CONSISTENT);
 	amgnodes.resize(PoldIndices.num_cols());
 
 	postset_coarse(PN, PoldIndices, amgnodes);
@@ -229,9 +232,12 @@ void AMGBase<TAlgebra>::parallel_process_prolongation(prolongation_matrix_type &
 	stdvector<int> newIndex;
 	create_new_indices(PoldIndices, PnewIndices, PN.get_original_size(), amgnodes, newIndex,
 			dEpsilonTruncation);
+	PnewIndices.set_storage_type(PST_CONSISTENT);
 
 	ReplaceIndicesInLayout(nextLevelMasterLayout, newIndex);
 	ReplaceIndicesInLayout(nextLevelSlaveLayout, newIndex);
+
+	TESTLAYOUT(PN.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 
 	create_parent_index(level, newIndex, PnewIndices.num_cols());
 
@@ -379,14 +385,12 @@ private:
 template<typename TMatrix>
 void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &masterLayout, IndexLayout &slaveLayout)
 {
-#ifndef UG_DEBUG
-	return;
-#else
+#ifndef NDEBUG
 	AMG_PROFILE_FUNC();
 	// check slave layout
 	// go to every connection. if node not master on this processor, check that slave interface exists
 	bool bEverySlaveIsInLayout=true;
-	for(size_t r = 0; r<mat.num_rows(); r++)
+	for(size_t r = 0; r<PN.get_original_size(); r++)
 	{
 		for(typename TMatrix::const_row_iterator it = mat.begin_row(r); it != mat.end_row(r); ++it)
 		{
@@ -416,7 +420,7 @@ void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &maste
 	UG_ASSERT(bEverySlaveIsInLayout, "Error in Interfaces.");
 
 	// check if slave interfaces match the master interfaces.
-	UG_ASSERT(TestLayout(PN.get_communicator(), masterLayout, slaveLayout), "layout corrupted");
+	TESTLAYOUT(PN.get_communicator(), masterLayout, slaveLayout);
 #endif
 }
 
@@ -441,7 +445,7 @@ void AMGBase<TAlgebra>::create_minimal_layout_for_prolongation(ParallelNodes &PN
 {
 	AMG_PROFILE_FUNC();
 	stdvector<bool> bUsedSlave(P.num_cols(), false);
-	for(size_t r=0; r<P.num_rows(); r++)
+	for(size_t r=0; r<PN.get_original_size(); r++)
 	{
 		for(typename prolongation_matrix_type::row_iterator it = P.begin_row(r);
 				it != P.end_row(r); ++it)
