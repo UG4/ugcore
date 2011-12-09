@@ -614,10 +614,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	{
 		corr.set(0.0);
 		L.presmoother->apply_update_defect(corr, d);
-        #ifdef UG_PARALLEL
-            UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
-        #endif
-		c += corr;
+        c += corr;
 	}
 
 	// pre f-smoothing
@@ -625,13 +622,11 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	{
 		corr.set(0.0);
 		f_smoothing(corr, d, level);
-		#ifdef UG_PARALLEL
-            UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
-        #endif
 		c+=corr;
 	}
-
+#ifdef UG_PARALLEL
 	UG_ASSERT(c.has_storage_type(PST_CONSISTENT), "" );
+#endif
 
 #if WRITEVEC_IN_SOLVER
 	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "pa_d_L").c_str(), d, level);
@@ -651,7 +646,9 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	// R = additive, d additive -> consistent. dH is then additive.
 	// dH = R*d;
 	L.R.apply(dH, d);
+#ifdef UG_PARALLEL
 	UG_ASSERT(dH.has_storage_type(PST_ADDITIVE), "" );
+#endif
 
 
 #if WRITEVEC_IN_SOLVER
@@ -673,7 +670,9 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 	// interpolate correction. P = consistent, cH = consistent. -> corr consistent
 	// corr = R*cH
 	L.P.apply(corr, cH);
+#ifdef UG_PARALLEL
 	UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
+#endif
 
 	// add coarse grid correction to level correction
 	// c += corr;
