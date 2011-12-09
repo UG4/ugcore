@@ -24,6 +24,12 @@
 
 #include "lib_algebra/common/connection_viewer_output.h"
 
+#ifndef NDEBUG
+	#define TESTLAYOUT(com, master, slave) { if(TestLayout(com, master, slave) == false) { PrintLayout(com, master, slave); UG_ASSERT(false, "layout broken"); } }
+#else
+	#define TESTLAYOUT(com, master, slave)
+#endif
+
 std::string GetProcFilename(std::string path, std::string name, std::string extension);
 
 namespace ug{
@@ -174,9 +180,9 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 		calculate_level_information(level, createAMGlevelTiming);
 
-		if(L.m_levelInformation.get_nr_of_nodes() < m_maxNodesForBase ||
-				level >= m_maxLevels-1)
-			// || A.total_num_connections()/(L*L) > m_dMaxFillBeforeBase)
+		if(L.m_levelInformation.get_nr_of_nodes() < m_maxNodesForBase
+				|| L.m_levelInformation.get_fill_in() > m_dMaxFillBeforeBase
+				|| level >= m_maxLevels-1)
 		{
 			AMG_PROFILE_BEGIN(amg_createDirectSolver);
 			create_direct_solver(level);
@@ -197,6 +203,11 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		AMGLevel &nextL = *levels[level+1];
 
 		L.presmoother = m_presmoother->clone();
+		if(level == 3)
+		{
+			//bool b = TestLayout(L.com, L.pA->get_master_layout(), L.pA->get_slave_layout());
+			PrintLayout(L.com, L.pA->get_master_layout(), L.pA->get_slave_layout());
+		}
 		L.presmoother->init(*L.pA);
 		if(m_presmoother == m_postsmoother)
 			L.postsmoother = L.presmoother;
@@ -214,7 +225,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 #ifdef UG_PARALLEL
 		AH.set_storage_type(PST_ADDITIVE);
 		R.set_storage_type(PST_ADDITIVE);
-		P.set_storage_type(PST_ADDITIVE);
+		P.set_storage_type(PST_CONSISTENT);
 
 		nextL.com = L.com;
 		nextL.processCommunicator = L.processCommunicator;
@@ -237,6 +248,8 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		L.corr.resize(A.num_rows());
 		L.cH.resize(AH.num_rows());
 		L.dH.resize(AH.num_rows());
+
+		//PrintLayoutIfBroken(nextL.com, nextL.masterLayout, nextL.slaveLayout);
 
 	#ifdef UG_PARALLEL
 		SetParallelVectorAsMatrix(L.corr, A, PST_CONSISTENT);
@@ -559,6 +572,8 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector_type &d, size_t level)
 {
+	// c = consistent, d = additiv
+
 	if(level == m_usedLevels-1)
 	{
 		solve_on_base(c, d, level);
@@ -616,6 +631,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 		c+=corr;
 	}
 
+	UG_ASSERT(c.has_storage_type(PST_CONSISTENT), "" );
 
 #if WRITEVEC_IN_SOLVER
 	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "pa_d_L").c_str(), d, level);
@@ -632,8 +648,11 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 
 	dH.set(0.0);
 	// restrict defect
+	// R = additive, d additive -> consistent. dH is then additive.
 	// dH = R*d;
 	L.R.apply(dH, d);
+	UG_ASSERT(dH.has_storage_type(PST_ADDITIVE), "" );
+
 
 #if WRITEVEC_IN_SOLVER
 	writevec((std::string("AMG_") + ToString(iteration_glboal++) + "_dH_L").c_str(), dH, level+1);
@@ -651,9 +670,10 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 
 	corr.set(0.0);
 	//cH.set(0.0);
-	// interpolate correction
+	// interpolate correction. P = consistent, cH = consistent. -> corr consistent
 	// corr = R*cH
 	L.P.apply(corr, cH);
+	UG_ASSERT(corr.has_storage_type(PST_CONSISTENT), "" );
 
 	// add coarse grid correction to level correction
 	// c += corr;
