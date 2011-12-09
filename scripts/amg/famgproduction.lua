@@ -555,8 +555,6 @@ if not bCheck then
 			
 	end
 	
-	
-	
 	if GetProfilerAvailable() == true then
 		create_levelPN = GetProfileNode("c_create_AMG_level")
 		
@@ -568,11 +566,11 @@ if not bCheck then
 			printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
 		end
 		
-		if false and create_levelPN:is_valid() then
-			if true then
-				print(create_levelPN:call_tree())
-				print(create_levelPN:child_self_time_sorted())
-			end
+		if true then
+			print(create_levelPN:call_tree())
+			print(create_levelPN:child_self_time_sorted())
+		end
+		if false then			
 			to100 = create_levelPN:get_avg_total_time_ms()
 			PrintParallelProfileNode("create_OL2_matrix")
 			PrintParallelProfileNode("CalculateTestvector")
