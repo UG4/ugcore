@@ -2230,7 +2230,7 @@ class DimFVGeometry : public FVGeometryBase
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-// FV1 Monifold Boundary
+// FV1 Manifold Boundary
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2251,16 +2251,15 @@ class FV1ManifoldBoundary
 
 	// 	number of BoundaryFaces
 		static const size_t m_numBF = ref_elem_type::num_corners;
-
-	// 	type of BoundaryFaces
-		typedef typename fv1_traits<ref_elem_type, TWorldDim>::scv_type bf_type;
-
-	public:
+		
 	// 	dimension of reference element
 		static const int dim = ref_elem_type::dim;
-
+		
 	// 	dimension of world
 		static const int worldDim = TWorldDim;
+
+	// 	type of BoundaryFaces
+		typedef typename fv1_traits<ref_elem_type, dim>::scv_type bf_type;
 
 	// 	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
@@ -2285,7 +2284,7 @@ class FV1ManifoldBoundary
 				static const size_t m_numIP = 1;
 				
 			// 	max number of corners of bf
-				static const size_t m_maxNumCorners = fv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+				static const size_t m_maxNumCorners = fv1_traits<ref_elem_type, dim>::MaxNumCornersOfSCV;
 
 			public:
 				BF() : m_numCorners(m_maxNumCorners) {};
@@ -2298,11 +2297,11 @@ class FV1ManifoldBoundary
 
 			/// local integration point of bf
 				inline const MathVector<dim>& local_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vLocPos[0];}
+					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vLocPos[0];}	// <-- always the vertex
 
 			/// global integration point
 				inline const MathVector<worldDim>& global_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vGloPos[0];}
+					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vGloPos[0];}	// <-- here too
 
 			/// volume of bf
 				inline number volume() const {return vol;}
@@ -2408,7 +2407,7 @@ class FV1ManifoldBoundary
 		MathVector<dim> m_locMid[dim+1][m_numBF];
 		MathVector<worldDim> m_gloMid[dim+1][m_numBF];
 		
-	// 	SubControlVolumes
+	// 	BndFaces
 		BF m_vBF[m_numBF];
 		
 	// 	Reference Mapping

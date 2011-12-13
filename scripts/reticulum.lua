@@ -129,9 +129,9 @@ SaveDomain(dom, "refined_grid.ugx")
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
-approxSpace:add_fct_on_subset("ca_cyt", "Lagrange", 1, "cyt, mem_er, mem_cyt")
-approxSpace:add_fct_on_subset("ca_er", "Lagrange", 1, "er, mem_er")
-approxSpace:add_fct_on_subset("ip3", "Lagrange", 1, "cyt, mem_er, mem_cyt")
+approxSpace:add_fct("ca_cyt", "Lagrange", 1, "cyt, mem_er, mem_cyt")
+approxSpace:add_fct("ca_er", "Lagrange", 1, "er, mem_er")
+approxSpace:add_fct("ip3", "Lagrange", 1, "cyt, mem_er, mem_cyt")
 
 -------------------------------------------
 --  Setup User Functions
@@ -172,22 +172,32 @@ print ("Setting up Assembling")
 
  -- muss hier im letzten Arg (subsets) nicht auch ein mem_er stehen?
  -- Antwort: Nein, es geht hier im die 2d elemente von "er", der Rand von "er"
- --          spielt f�r das assemblieren keine Rolle. Randwerte kommen dann 
- --          sp�ter extra. 
+ --          spielt fuer das assemblieren keine Rolle. Randwerte kommen dann 
+ --          spaeter extra. 
+
+if dim == 2 then 
+    upwind = NoUpwind2d()
+elseif dim == 3 then 
+    upwind = NoUpwind3d()
+end
+
 elemDiscER = ConvectionDiffusion("ca_er", "er") 
-elemDisc:set_disc_scheme("fv1")
+elemDiscER:set_disc_scheme("fv1")
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscER:set_source(rhs)
+if elemDiscER:set_upwind(upwind) == false then exit() end
 
 elemDiscCYT = ConvectionDiffusion("ca_cyt", "cyt")
-elemDisc:set_disc_scheme("fv1")
+elemDiscCYT:set_disc_scheme("fv1")
 elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscCYT:set_source(rhs)
+if elemDiscCYT:set_upwind(upwind) == false then exit() end
 
 elemDiscIP3 = ConvectionDiffusion("ip3", "cyt")
-elemDisc:set_disc_scheme("fv1")
+elemDiscIP3:set_disc_scheme("fv1")
 elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
 elemDiscIP3:set_source(rhs)
+if elemDiscIP3:set_upwind(upwind) == false then exit() end
 
 -----------------------------------------------------------------
 --  Setup Neumann Boundary
@@ -196,9 +206,9 @@ elemDiscIP3:set_source(rhs)
 neumannDiscCYT = FV1NeumannBoundary("cyt")
 neumannDiscCYT:add(neumann, "ca_cyt", "mem_cyt")
 
--- we pass here the function needed to evaluate the flux function. The order in 
--- which the discrete fct are passed is crutial!
-innerDisc = FV1InnerBoundary("ca_cyt, ca_er, ip3", "mem_er")
+-- we pass here the function needed to evaluate the flux function.
+-- The order in which the discrete fct are passed is crucial!
+innerDisc = FV1InnerBoundary(3, "ca_cyt, ca_er, ip3", "mem_er")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -276,7 +286,7 @@ exactSolver = LU()
 	-- Gemoetric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_surface_level(numRefs)
+	--gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
 	gmg:set_smoother(jac)

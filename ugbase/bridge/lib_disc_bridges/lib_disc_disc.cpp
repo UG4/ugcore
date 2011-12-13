@@ -90,11 +90,11 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 
 //	Inner Boundary
 	{
-		typedef FVInnerBoundaryElemDisc<TDomain> T;
+		typedef FV1InnerBoundaryElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1InnerBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
-			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)");
+			.template add_constructor<void (*)(size_t, const char*, const char*)>("NumberOfFunctions#Function(s)#Subset(s)");
 		reg.add_class_to_group(name, "FV1InnerBoundary", dimTag);
 	}
 

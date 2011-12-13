@@ -2451,7 +2451,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			{AveragePositions(m_vBF[i].localIP, m_vBF[i].vLocPos, 2);}
 		else if (dim == 2)	// Quadrilateral
 			{AveragePositions(m_vBF[i].localIP, m_vBF[i].vLocPos, 4);}
-		else {UG_ASSERT(0, "Dimension higher that 2 not implemented.");}
+		else {UG_ASSERT(0, "Dimension higher than 2 not implemented.");}
 	}
 	
 	// 	compute size of BFs

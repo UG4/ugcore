@@ -1,5 +1,5 @@
 /*
- * neumann_boundary.h
+ * inner_boundary.h
  *
  *  Created on: 26.02.2010
  *      Author: markusbreit
@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
 
 #include <boost/function.hpp>
+#include <string>
 
 // other ug4 modules
 #include "common/common.h"
@@ -17,7 +18,6 @@
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 
-namespace ug{
 
 /// Finite Volume Element Discretization for an inner BndCond that depends on the unknowns (on the bnd)
 /**
@@ -29,9 +29,10 @@ namespace ug{
  * \tparam	TAlgebra	Algebra
  */
 
+namespace ug{
 
 template<typename TDomain>
-class FVInnerBoundaryElemDisc
+class FV1InnerBoundaryElemDisc
 : public IDomainElemDisc<TDomain>
 {
 	private:
@@ -39,7 +40,7 @@ class FVInnerBoundaryElemDisc
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	own type
-		typedef FVInnerBoundaryElemDisc<TDomain> this_type;
+		typedef FV1InnerBoundaryElemDisc<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -52,8 +53,8 @@ class FVInnerBoundaryElemDisc
 		typedef typename base_type::position_type position_type;
 
 	public:
-		FVInnerBoundaryElemDisc(const char* functions, const char* subsets)
-			: IDomainElemDisc<TDomain>(1, functions, subsets)
+		FV1InnerBoundaryElemDisc(size_t numFct, const char* functions, const char* subsets)
+			: IDomainElemDisc<TDomain>(numFct, functions, subsets), _numFct(numFct)
 		{
 			register_all_fv1_funcs();
 		}
@@ -63,7 +64,7 @@ class FVInnerBoundaryElemDisc
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
 		//	check number
-			if(vLfeID.size() != 1) return false;
+			if(vLfeID.size() != _numFct) return false;
 
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)
@@ -90,6 +91,9 @@ class FVInnerBoundaryElemDisc
 		virtual bool use_hanging() const {return false;}
 
 	private:
+	
+	///	number of unknowns involved
+		size_t _numFct; 
 	
 	///	prepares the loop over all elements
 	/**

@@ -1,5 +1,5 @@
 /*
- * neumann_boundary_impl.h
+ * inner_boundary_impl.h
  *
  *  Created on: 14.10.2010
  *      Author: markusbreit
@@ -52,7 +52,7 @@ namespace ug{
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 prepare_element_loop()
 {
 //	we're done
@@ -64,7 +64,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 finish_element_loop()
 {
 //	we're done
@@ -77,7 +77,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
@@ -87,7 +87,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
 	{
-		UG_LOG("ERROR in 'FVInnerBoundaryElemDisc::prepare_element: "
+		UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::prepare_element: "
 				"Cannot update Finite Volume Geometry.\n"); return false;}
 
 	return true;
@@ -100,7 +100,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 assemble_JA(LocalMatrix& J, const LocalVector& u)
 {
 	// get finite volume geometry
@@ -190,7 +190,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 assemble_JM(LocalMatrix& J, const LocalVector& u)
 {
 	// nothing to be done
@@ -203,7 +203,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 assemble_A(LocalVector& d, const LocalVector& u)
 {
 	// get finite volume geometry
@@ -268,7 +268,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 assemble_M(LocalVector& d, const LocalVector& u)
 {
 	// nothing to be done
@@ -281,7 +281,7 @@ template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 assemble_f(LocalVector& d)
 {
 	// nothing to be done
@@ -296,21 +296,21 @@ assemble_f(LocalVector& d)
 // register for 1D
 template<typename TDomain>
 void
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 register_all_fv1_funcs()
 {
 //	get all grid element types in this dimension and below
-	typedef typename domain_traits<dim>::DimElemList ElemList;
+	typedef typename domain_traits<dim>::ManifoldElemList ElemList;
 
 	// BROKEN !!!
 //	switch assemble functions
-//	boost::mpl::for_each<ElemList>( RegisterFV1<FV1ManifoldBoundary>(this) );
+	boost::mpl::for_each<ElemList>(RegisterFV1<FV1ManifoldBoundary>(this));
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 void
-FVInnerBoundaryElemDisc<TDomain>::
+FV1InnerBoundaryElemDisc<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -330,9 +330,9 @@ register_fv1_func()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-template class FVInnerBoundaryElemDisc<Domain1d>;
-template class FVInnerBoundaryElemDisc<Domain2d>;
-template class FVInnerBoundaryElemDisc<Domain3d>;
+template class FV1InnerBoundaryElemDisc<Domain1d>;
+template class FV1InnerBoundaryElemDisc<Domain2d>;
+template class FV1InnerBoundaryElemDisc<Domain3d>;
 
 
 
