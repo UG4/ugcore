@@ -15,22 +15,18 @@ typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 begin(int subsetIndex)
 {
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-											AttachedElemList::iterator());
-			
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"ERROR in SubsetHandler::begin(): bad element type.");
+					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].begin());
+				section_container<TElem>(subsetIndex).begin());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].section_begin(sectionInd));
+				section_container<TElem>(subsetIndex).section_begin(sectionInd));
 }
 
 template <class TElem>
@@ -38,22 +34,18 @@ typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 end(int subsetIndex)
 {
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-											AttachedElemList::iterator());
-
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"ERROR in SubsetHandler::end(): bad element type.");
+					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].end());
+				section_container<TElem>(subsetIndex).end());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].section_end(sectionInd));
+				section_container<TElem>(subsetIndex).section_end(sectionInd));
 }
 
 template <class TElem>
@@ -61,22 +53,18 @@ typename geometry_traits<TElem>::const_iterator
 GridSubsetHandler::
 begin(int subsetIndex) const
 {
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-												AttachedElemList::iterator());
-			
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"ERROR in SubsetHandler::begin(): bad element type.");
+					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].begin());
+				section_container<TElem>(subsetIndex).begin());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].section_begin(sectionInd));
+				section_container<TElem>(subsetIndex).section_begin(sectionInd));
 }
 
 template <class TElem>
@@ -84,22 +72,18 @@ typename geometry_traits<TElem>::const_iterator
 GridSubsetHandler::
 end(int subsetIndex) const
 {
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-												AttachedElemList::iterator());
-
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"ERROR in SubsetHandler::end(): bad element type.");
+					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].end());
+				section_container<TElem>(subsetIndex).end());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-				m_subsets[subsetIndex]->m_elements[baseObjID].section_end(sectionInd));
+				section_container<TElem>(subsetIndex).section_end(sectionInd));
 }
 
 
@@ -108,24 +92,23 @@ void
 GridSubsetHandler::
 clear_subset_elements(int subsetIndex)
 {
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return;
 
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"ERROR in SubsetHandler::clear_subsets_elements(): bad element type.");
-
 //	iterate through the elements of type TElem and erase them from the subsets list.
 	if(m_pGrid != NULL)
 	{
+		typename Grid::traits<TElem>::SectionContainer& secCon =
+											section_container<TElem>(subsetIndex);
+
 		typename geometry_traits<TElem>::iterator iter = begin<TElem>(subsetIndex);
 		while(iter != end<TElem>(subsetIndex))
 		{
 			typename geometry_traits<TElem>::iterator iterErase = iter++;
 			alter_subset_index(*iterErase) = -1;
-			m_subsets[subsetIndex]->m_elements[baseObjID].erase(iterErase, sectionInd);
+			secCon.erase(iterErase, sectionInd);
 		}
 	}
 }
@@ -135,19 +118,15 @@ uint
 GridSubsetHandler::
 num_elements(int subsetIndex) const
 {
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
 		return 0;
 		
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"ERROR in SubsetHandler::num_elements(): bad element type.");
-
 	if(sectionInd < 0)
-		return m_subsets[subsetIndex]->m_elements[baseObjID].num_elements();
+		return section_container<TElem>(subsetIndex).num_elements();
 	else
-		return m_subsets[subsetIndex]->m_elements[baseObjID].num_elements(sectionInd);
+		return section_container<TElem>(subsetIndex).num_elements(sectionInd);
 }
 
 template <class TElem>
@@ -155,19 +134,15 @@ uint
 GridSubsetHandler::
 num(int subsetIndex) const
 {
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
 		return 0;
-		
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"ERROR in SubsetHandler::num_elements(): bad element type.");
 
 	if(sectionInd < 0)
-		return m_subsets[subsetIndex]->m_elements[baseObjID].num_elements();
+		return section_container<TElem>(subsetIndex).num_elements();
 	else
-		return m_subsets[subsetIndex]->m_elements[baseObjID].num_elements(sectionInd);
+		return section_container<TElem>(subsetIndex).num_elements(sectionInd);
 }
 
 template <class TElem>
@@ -269,6 +244,27 @@ subset_required(int index) const
 						<< "num current subsets: " << num_subsets()
 						<< " required subset: " << index);
 	}
+}
+
+template <class TElem>
+typename Grid::traits<TElem>::SectionContainer&
+GridSubsetHandler::
+section_container(int si)
+{
+	Subset* sub = m_subsets[si];
+	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+			section_container(sub->m_vertices, sub->m_edges, sub->m_faces, sub->m_volumes);
+}
+
+
+template <class TElem>
+const typename Grid::traits<TElem>::SectionContainer&
+GridSubsetHandler::
+section_container(int si) const
+{
+	const Subset* sub = m_subsets[si];
+	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+			section_container(sub->m_vertices, sub->m_edges, sub->m_faces, sub->m_volumes);
 }
 
 }//	end of namespace

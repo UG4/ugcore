@@ -11,7 +11,7 @@
 #define __H__LIBGRID__SELECTOR_GRID_ELEM__
 
 #include <cassert>
-#include "selector_interface.h"
+#include "selector_grid.h"
 
 namespace ug
 {
@@ -61,116 +61,47 @@ namespace ug
  *	}
  * \endcode
  */
+
 template <class TBaseElem>
-class TElemSelector : public ISelector
+class TElemSelector : public Selector
 {
 	public:
-		typedef ISelector	BaseClass;
-		typedef typename geometry_traits<TBaseElem>::iterator BaseElemIterator;
+		typedef typename geometry_traits<TBaseElem>::iterator iterator;
+		typedef typename geometry_traits<TBaseElem>::const_iterator const_iterator;
+
+
 	public:
-		TElemSelector();
-		TElemSelector(Grid& grid);
-		virtual ~TElemSelector()	{}
-
-		void assign_grid(Grid& grid);
-
-		virtual void clear();
-
-		template <class TElem>
-		inline void clear();
-
-		template <class TElem>
-		inline uint num();
-		
-		inline uint num();
-		
-	//	empty
-		inline bool empty();
-
-		template <class TElem>
-		inline bool empty();
-
-	//	begin
-		template <class TElem>
-		inline typename geometry_traits<TElem>::iterator
-		begin();
-
-		inline BaseElemIterator begin();
-
-	//	end
-		template <class TElem>
-		inline typename geometry_traits<TElem>::iterator
-		end();
-
-		inline BaseElemIterator end();
-
-
-	//	geometric-object-collection
-		GeometricObjectCollection get_geometric_objects();
-
-	//	callbacks that allows us to clean-up
-	//	derived from GridObserver
-		virtual void unregistered_from_grid(Grid* grid);
-
-	protected:
-		void clear_lists();
-
-		virtual void add_to_list(VertexBase* elem);
-		virtual void add_to_list(EdgeBase* elem);
-		virtual void add_to_list(Face* elem);
-		virtual void add_to_list(Volume* elem);
-
-		virtual void erase_from_list(VertexBase* elem);
-		virtual void erase_from_list(EdgeBase* elem);
-		virtual void erase_from_list(Face* elem);
-		virtual void erase_from_list(Volume* elem);
-
-	protected:
-		template <class TElem>
-		inline SectionContainer& get_section_container();
-
-		template <class TElem>
-		inline int get_section_index();
-
-	///	returns the iterator at which the given element lies in the section container
-	/**	This method may only be called if the element is indeed selected
-	 * \{
-	 */
-		inline SectionContainer::iterator
-		get_iterator(VertexBase* o)
+		TElemSelector()	: Selector(SE_NONE)
 		{
-			assert((is_selected(o) >= 0) && "object not selected.");
-			return m_elements.get_container().get_iterator(o);
+			switch(geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID){
+				case VERTEX: this->enable_element_support(SE_VERTEX); break;
+				case EDGE: this->enable_element_support(SE_EDGE); break;
+				case FACE: this->enable_element_support(SE_FACE); break;
+				case VOLUME: this->enable_element_support(SE_VOLUME); break;
+				default: break;
+			}
 		}
 
-		inline SectionContainer::iterator
-		get_iterator(EdgeBase* o)
+		TElemSelector(Grid& grid) : Selector(grid, SE_NONE)
 		{
-			assert((is_selected(o) >= 0) && "object not selected");
-			return m_elements.get_container().get_iterator(o);
+			switch(geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID){
+				case VERTEX: this->enable_element_support(SE_VERTEX); break;
+				case EDGE: this->enable_element_support(SE_EDGE); break;
+				case FACE: this->enable_element_support(SE_FACE); break;
+				case VOLUME: this->enable_element_support(SE_VOLUME); break;
+				default: break;
+			}
 		}
 
-		inline SectionContainer::iterator
-		get_iterator(Face* o)
-		{
-			assert((is_selected(o) >= 0) && "object not selected");
-			return m_elements.get_container().get_iterator(o);
-		}
+		using Selector::begin;
+		inline iterator begin()						{return Selector::begin<TBaseElem>();}
+		inline const_iterator begin() const			{return Selector::begin<TBaseElem>();}
 
-		inline SectionContainer::iterator
-		get_iterator(Volume* o)
-		{
-			assert((is_selected(o) >= 0) && "object not selected");
-			return m_elements.get_container().get_iterator(o);
-		}
-	/**	\}	*/
-	private:
-		TElemSelector(const TElemSelector& sel){};///<	Copy Constructor not yet implemented!
+		using Selector::end;
+		inline iterator end()						{return Selector::end<TBaseElem>();}
+		inline const_iterator end() const			{return Selector::end<TBaseElem>();}
 
-	protected:
-		SectionContainer 	m_elements;
 };
-
 
 ////////////////////////////////////////////////////////////////////////
 //	typedefs of the four element-selectors
@@ -180,9 +111,5 @@ typedef TElemSelector<Face>			FaceSelector;
 typedef TElemSelector<Volume>		VolumeSelector;
 
 }//	end of namespace
-
-////////////////////////////////
-//	include implementation
-#include "selector_grid_elem_impl.hpp"
 
 #endif

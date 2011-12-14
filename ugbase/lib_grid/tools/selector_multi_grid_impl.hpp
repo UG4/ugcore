@@ -16,35 +16,6 @@ namespace ug
 {
 
 template <class TElem>
-inline MGSelector::SectionContainer&
-MGSelector::get_section_container(int level)
-{
-	assert(level >= 0 && "bad level index.");
-
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"no section-container associated with TElem.");
-
-	level_required(level);
-	return m_levels[level]->m_elements[baseObjID];
-}
-
-template <class TElem>
-inline const MGSelector::SectionContainer&
-MGSelector::get_section_container(int level) const
-{
-	assert((level >= 0) && (level < m_levels.size()) && "bad level index.");
-
-	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-
-	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
-			"no section-container associated with TElem.");
-
-	return m_levels[level]->m_elements[baseObjID];
-}
-
-template <class TElem>
 inline int
 MGSelector::get_section_index() const
 {
@@ -74,9 +45,9 @@ MGSelector::clear(int level)
 	//	clear the section
 		const int sInd = get_section_index<TElem>();
 		if(sInd < 0)
-			get_section_container<TElem>(level).clear();
+			section_container<TElem>(level).clear();
 		else
-			get_section_container<TElem>(level).clear_section(sInd);
+			section_container<TElem>(level).clear_section(sInd);
 	}
 }
 
@@ -96,9 +67,9 @@ MGSelector::num(int level)
 {
 	const int sInd = get_section_index<TElem>();
 	if(sInd < 0)
-		return get_section_container<TElem>(level).num_elements();
+		return section_container<TElem>(level).num_elements();
 	else
-		return get_section_container<TElem>(level).num_elements(sInd);
+		return section_container<TElem>(level).num_elements(sInd);
 }
 
 inline uint 
@@ -161,10 +132,10 @@ MGSelector::begin(int level)
 
 	if(sInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-								get_section_container<TElem>(level).begin());
+								section_container<TElem>(level).begin());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-					get_section_container<TElem>(level).section_begin(sInd));
+					section_container<TElem>(level).section_begin(sInd));
 }
 
 template <class TElem>
@@ -175,10 +146,10 @@ MGSelector::begin(int level) const
 
 	if(sInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-								get_section_container<TElem>(level).begin());
+								section_container<TElem>(level).begin());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-					get_section_container<TElem>(level).section_begin(sInd));
+					section_container<TElem>(level).section_begin(sInd));
 }
 
 template <class TElem>
@@ -189,10 +160,10 @@ MGSelector::end(int level)
 
 	if(sInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-								get_section_container<TElem>(level).end());
+								section_container<TElem>(level).end());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-					get_section_container<TElem>(level).section_end(sInd));
+					section_container<TElem>(level).section_end(sInd));
 }
 
 template <class TElem>
@@ -203,10 +174,10 @@ MGSelector::end(int level) const
 
 	if(sInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-								get_section_container<TElem>(level).end());
+								section_container<TElem>(level).end());
 	else
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
-					get_section_container<TElem>(level).section_end(sInd));
+					section_container<TElem>(level).section_end(sInd));
 }
 
 template <class TElem>
@@ -214,7 +185,7 @@ TElem*
 MGSelector::front(int level)
 {
 	const int sInd = get_section_index<TElem>();
-	return static_cast<TElem*>(get_section_container<TElem>(level).front(sInd));
+	return static_cast<TElem*>(section_container<TElem>(level).front(sInd));
 }
 
 template <class TElem>
@@ -222,7 +193,31 @@ TElem*
 MGSelector::back(int level)
 {
 	const int sInd = get_section_index<TElem>();
-	return static_cast<TElem*>(get_section_container<TElem>(level).back(sInd));
+	return static_cast<TElem*>(section_container<TElem>(level).back(sInd));
+}
+
+template <class TElem>
+typename Grid::traits<TElem>::SectionContainer&
+MGSelector::
+section_container(int level)
+{
+	assert(level >= 0 && "bad level index.");
+	level_required(level);
+	Level* lev = m_levels[level];
+	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+			section_container(lev->m_vertices, lev->m_edges, lev->m_faces, lev->m_volumes);
+}
+
+
+template <class TElem>
+const typename Grid::traits<TElem>::SectionContainer&
+MGSelector::
+section_container(int level) const
+{
+	assert((level >= 0) && (level < m_levels.size()) && "bad level index.");
+	const Level* lev = m_levels[level];
+	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+			section_container(lev->m_vertices, lev->m_edges, lev->m_faces, lev->m_volumes);
 }
 
 }//	end of namespace

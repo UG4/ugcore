@@ -16,13 +16,13 @@ GeometricObjectCollection(size_t levelEstimate)
 }
 
 GeometricObjectCollection::
-GeometricObjectCollection(GeometricObjectSectionContainer* pVrtSection,
-									GeometricObjectSectionContainer* pEdgeSection,
-									GeometricObjectSectionContainer* pFaceSection,
-									GeometricObjectSectionContainer* pVolSection)
+GeometricObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+							ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+							ElementStorage<Face>::SectionContainer* faceCon,
+							ElementStorage<Volume>::SectionContainer* volCon)
 {
 	m_levels.reserve(1);
-	add_level(pVrtSection, pEdgeSection, pFaceSection, pVolSection);
+	add_level(vrtCon, edgeCon, faceCon, volCon);
 }
 
 GeometricObjectCollection::
@@ -50,28 +50,28 @@ assign(const GeometricObjectCollection& mgoc)
 
 void
 GeometricObjectCollection::
-add_level(	GeometricObjectSectionContainer* pVrtSection,
-			GeometricObjectSectionContainer* pEdgeSection,
-			GeometricObjectSectionContainer* pFaceSection,
-			GeometricObjectSectionContainer* pVolSection)
+add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+			ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+			ElementStorage<Face>::SectionContainer* faceCon,
+			ElementStorage<Volume>::SectionContainer* volCon)
 {
-	m_levels.push_back(ContainerCollection(	pVrtSection,
-											pEdgeSection,
-											pFaceSection,
-											pVolSection));
+	m_levels.push_back(ContainerCollection(	vrtCon,
+											edgeCon,
+											faceCon,
+											volCon));
 }
 
 
 GeometricObjectCollection::ContainerCollection::
-ContainerCollection(GeometricObjectSectionContainer* vrtCon,
-					GeometricObjectSectionContainer* edgeCon,
-					GeometricObjectSectionContainer* faceCon,
-					GeometricObjectSectionContainer* volCon)
+ContainerCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+					ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+					ElementStorage<Face>::SectionContainer* faceCon,
+					ElementStorage<Volume>::SectionContainer* volCon)
 {
-	pSectionContainers[0] = vrtCon;
-	pSectionContainers[1] = edgeCon;
-	pSectionContainers[2] = faceCon;
-	pSectionContainers[3] = volCon;
+	vrtContainer = vrtCon;
+	edgeContainer = edgeCon;
+	faceContainer = faceCon;
+	volContainer = volCon;
 }
 
 }//	end of namespace

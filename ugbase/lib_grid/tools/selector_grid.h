@@ -187,6 +187,17 @@ class Selector : public ISelector
 
 
 	protected:
+		using ISelector::AttachedVertexList;
+		using ISelector::AttachedEdgeList;
+		using ISelector::AttachedFaceList;
+		using ISelector::AttachedVolumeList;
+
+		using ISelector::VertexSectionContainer;
+		using ISelector::EdgeSectionContainer;
+		using ISelector::FaceSectionContainer;
+		using ISelector::VolumeSectionContainer;
+
+	protected:
 		void clear_lists();
 
 		virtual void add_to_list(VertexBase* elem);
@@ -203,42 +214,45 @@ class Selector : public ISelector
 	/**	This method may only be called if the element is indeed selected
 	 * \{
 	 */
-		inline SectionContainer::iterator
+		inline VertexSectionContainer::iterator
 		get_iterator(VertexBase* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected.");
-			return m_elements[VERTEX].get_container().get_iterator(o);
+			return section_container<VertexBase>().get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline EdgeSectionContainer::iterator
 		get_iterator(EdgeBase* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return m_elements[EDGE].get_container().get_iterator(o);
+			return section_container<EdgeBase>().get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline FaceSectionContainer::iterator
 		get_iterator(Face* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return m_elements[FACE].get_container().get_iterator(o);
+			return section_container<Face>().get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline VolumeSectionContainer::iterator
 		get_iterator(Volume* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return m_elements[VOLUME].get_container().get_iterator(o);
+			return section_container<Volume>().get_container().get_iterator(o);
 		}
 	/**	\}	*/
 
-	protected:
-		template <class TElem>
-		inline SectionContainer& get_section_container();
+	///	returns the section container for the given type, subset and level
+		template <class TElem> inline
+		typename Grid::traits<TElem>::SectionContainer&
+		section_container();
 
-		template <class TElem>
-		inline const SectionContainer& get_section_container() const;
-		
+	///	returns the const section container for the given type, subset and level
+		template <class TElem> inline
+		const typename Grid::traits<TElem>::SectionContainer&
+		section_container() const;
+
 		template <class TElem>
 		inline int get_section_index() const;
 		
@@ -246,7 +260,10 @@ class Selector : public ISelector
 		Selector(const Selector& sel){};///<	Copy Constructor not yet implemented!
 
 	protected:
-		SectionContainer 	m_elements[NUM_GEOMETRIC_BASE_OBJECTS];
+		VertexSectionContainer 	m_vertices;
+		EdgeSectionContainer 	m_edges;
+		FaceSectionContainer 	m_faces;
+		VolumeSectionContainer 	m_volumes;
 };
 
 }//	end of namespace

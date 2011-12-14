@@ -198,17 +198,34 @@ class MGSelector : public ISelector
 		virtual void erase_from_list(Volume* elem);
 
 	protected:
+		using ISelector::AttachedVertexList;
+		using ISelector::AttachedEdgeList;
+		using ISelector::AttachedFaceList;
+		using ISelector::AttachedVolumeList;
+
+		using ISelector::VertexSectionContainer;
+		using ISelector::EdgeSectionContainer;
+		using ISelector::FaceSectionContainer;
+		using ISelector::VolumeSectionContainer;
+
 		struct Level{
-			SectionContainer m_elements[NUM_GEOMETRIC_BASE_OBJECTS];
+			VertexSectionContainer	m_vertices;
+			EdgeSectionContainer	m_edges;
+			FaceSectionContainer	m_faces;
+			VolumeSectionContainer	m_volumes;
 		};
 		typedef std::vector<Level*>	LevelVec;
 
 	protected:
-		template <class TElem>
-		inline SectionContainer& get_section_container(int level);
+	///	returns the section container for the given type, subset and level
+		template <class TElem> inline
+		typename Grid::traits<TElem>::SectionContainer&
+		section_container(int level);
 
-		template <class TElem>
-		inline const SectionContainer& get_section_container(int level) const;
+	///	returns the const section container for the given type, subset and level
+		template <class TElem> inline
+		const typename Grid::traits<TElem>::SectionContainer&
+		section_container(int level) const;
 		
 		template <class TElem>
 		inline int get_section_index() const;
@@ -223,35 +240,35 @@ class MGSelector : public ISelector
 	/**	This method may only be called if the element is indeed selected
 	 * \{
 	 */
-		inline SectionContainer::iterator
+		inline VertexSectionContainer::iterator
 		get_iterator(VertexBase* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected.");
-			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[VERTEX].
+			return section_container<VertexBase>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline EdgeSectionContainer::iterator
 		get_iterator(EdgeBase* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[EDGE].
+			return section_container<EdgeBase>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline FaceSectionContainer::iterator
 		get_iterator(Face* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[FACE].
+			return section_container<Face>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline VolumeSectionContainer::iterator
 		get_iterator(Volume* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return m_levels[m_pMultiGrid->get_level(o)]->m_elements[VOLUME].
+			return section_container<Volume>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
 	/**	\}	*/
@@ -265,7 +282,10 @@ class MGSelector : public ISelector
 		VertexBaseIterator m_tmpVEnd;
 
 	//	we use a shared attachment for the entry-lists of all section containers
-		AttachedElemList::AEntry	m_aSharedEntry;
+		AttachedVertexList::AEntry	m_aSharedEntryVRT;
+		AttachedEdgeList::AEntry	m_aSharedEntryEDGE;
+		AttachedFaceList::AEntry	m_aSharedEntryFACE;
+		AttachedVolumeList::AEntry	m_aSharedEntryVOL;
 };
 
 }//	end of namespace

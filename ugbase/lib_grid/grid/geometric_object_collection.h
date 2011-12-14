@@ -8,16 +8,13 @@
 #include <list>
 #include "geometric_base_objects.h"
 #include "common/util/section_container.h"
+#include "element_storage.h"
 
 namespace ug
 {
 
 /// \addtogroup lib_grid
 /// @{
-
-///	a section-container that holds geometric-objects in a std::list
-typedef SectionContainer<GeometricObject*, GeometricObjectContainer >
-		GeometricObjectSectionContainer;
 
 ////////////////////////////////////////////////////////////////////////
 //	GeometricObjectCollection
@@ -75,10 +72,10 @@ class GeometricObjectCollection
 		GeometricObjectCollection(size_t levelEstimate = 1);
 		
 	///	initializes level 0 with the given sections.
-		GeometricObjectCollection(GeometricObjectSectionContainer* pVrtSection,
-											GeometricObjectSectionContainer* pEdgeSection,
-											GeometricObjectSectionContainer* pFaceSection,
-											GeometricObjectSectionContainer* pVolSection);
+		GeometricObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+								ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+								ElementStorage<Face>::SectionContainer* faceCon,
+								ElementStorage<Volume>::SectionContainer* volCon);
 
 	//	copy constructor.
 		GeometricObjectCollection(const GeometricObjectCollection& mgoc);
@@ -86,10 +83,10 @@ class GeometricObjectCollection
 		GeometricObjectCollection& operator =(const GeometricObjectCollection& mgoc);
 		
 	///	only used during creation by the methods that create the collection
-		void add_level(	GeometricObjectSectionContainer* pVrtSection,
-						GeometricObjectSectionContainer* pEdgeSection,
-						GeometricObjectSectionContainer* pFaceSection,
-						GeometricObjectSectionContainer* pVolSection);
+		void add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+						ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+						ElementStorage<Face>::SectionContainer* faceCon,
+						ElementStorage<Volume>::SectionContainer* volCon);
 
 	///	returns the number of levels
 		inline size_t num_levels() const		{return m_levels.size();}
@@ -164,20 +161,25 @@ class GeometricObjectCollection
 		void assign(const GeometricObjectCollection& goc);
 
 		template <class TGeomObj> inline
-		const GeometricObjectSectionContainer* get_container(size_t level) const;
+		const typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+		SectionContainer* get_container(size_t level) const;
 		
 		template <class TGeomObj> inline
-		GeometricObjectSectionContainer* get_container(size_t level);
+		typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+		SectionContainer* get_container(size_t level);
 				
 	protected:
 		struct ContainerCollection{
 			ContainerCollection()	{}
-			ContainerCollection(GeometricObjectSectionContainer* vrtCon,
-								GeometricObjectSectionContainer* edgeCon,
-								GeometricObjectSectionContainer* faceCon,
-								GeometricObjectSectionContainer* volCon);
+			ContainerCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+								ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+								ElementStorage<Face>::SectionContainer* faceCon,
+								ElementStorage<Volume>::SectionContainer* volCon);
 
-			GeometricObjectSectionContainer*	pSectionContainers[4];
+			ElementStorage<VertexBase>::SectionContainer*	vrtContainer;
+			ElementStorage<EdgeBase>::SectionContainer*		edgeContainer;
+			ElementStorage<Face>::SectionContainer*			faceContainer;
+			ElementStorage<Volume>::SectionContainer*		volContainer;
 		};
 		
 		typedef std::vector<ContainerCollection> ContainerVec;

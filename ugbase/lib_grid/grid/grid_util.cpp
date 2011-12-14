@@ -30,12 +30,15 @@ bool CompareVertices(const FaceVertices* fv1,
 	if(numVrts != fv2->num_vertices())
 		return false;
 
+	FaceVertices::ConstVertexArray vrts1 = fv1->vertices();
+	FaceVertices::ConstVertexArray vrts2 = fv2->vertices();
+
 	for(uint i = 0; i < numVrts; ++i)
 	{
 		uint j;
 		for(j = 0; j < numVrts; ++j)
 		{
-			if(fv1->vertex(i) == fv2->vertex(j))
+			if(vrts1[i] == vrts2[j])
 				break;
 		}
 
@@ -55,12 +58,15 @@ bool CompareVertices(const VolumeVertices* vv1,
 	if(numVrts != vv2->num_vertices())
 		return false;
 
+	VolumeVertices::ConstVertexArray vrts1 = vv1->vertices();
+	VolumeVertices::ConstVertexArray vrts2 = vv2->vertices();
+
 	for(uint i = 0; i < numVrts; ++i)
 	{
 		uint j;
 		for(j = 0; j < numVrts; ++j)
 		{
-			if(vv1->vertex(i) == vv2->vertex(j))
+			if(vrts1[i] == vrts2[j])
 				break;
 		}
 
@@ -81,8 +87,8 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, VertexBas
 	if(clearContainer)
 		vVertexOut.clear();
 
-	// add vertex pointers to container
-		vVertexOut.push_back(v);
+// add vertex pointers to container
+	vVertexOut.push_back(v);
 }
 
 ///	Collects all vertices.
@@ -109,10 +115,11 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Face* f, 
 
 	// resize container
 	const size_t numVertex = f->num_vertices();
+	FaceVertices::ConstVertexArray vrts= f->vertices();
 
 	// add vertex pointers to container
 	for(size_t i = 0; i < numVertex; ++i)
-		vVertexOut.push_back(f->vertex(i));
+		vVertexOut.push_back(vrts[i]);
 }
 
 ///	Collects all vertices.
@@ -124,10 +131,11 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v
 
 	// resize container
 	const size_t numVertex = v->num_vertices();
+	VolumeVertices::ConstVertexArray vrts= v->vertices();
 
 	// add vertex pointers to container
 	for(size_t i = 0; i < numVertex; ++i)
-		vVertexOut.push_back(v->vertex(i));
+		vVertexOut.push_back(vrts[i]);
 }
 
 
@@ -428,9 +436,11 @@ bool FaceContains(Face* f, EdgeVertices* ev)
 bool FaceContains(Face* f, VertexBase* v)
 {
 	uint numVrts = f->num_vertices();
+	Face::ConstVertexArray vrts = f->vertices();
+
 	for(uint i = 0; i < numVrts; ++i)
 	{
-		if(f->vertex(i) == v)
+		if(vrts[i] == v)
 			return true;
 	}
 	return false;
@@ -576,9 +586,11 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 bool VolumeContains(Volume* v, VertexBase* vrt)
 {
 	uint numVrts = v->num_vertices();
+	Volume::ConstVertexArray vrts = v->vertices();
+
 	for(uint i = 0; i < numVrts; ++i)
 	{
-		if(v->vertex(i) == vrt)
+		if(vrts[i] == vrt)
 			return true;
 	}
 	return false;

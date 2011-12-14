@@ -14,21 +14,30 @@ namespace ug
 GridSubsetHandler::
 GridSubsetHandler(uint supportedElements) :
 	ISubsetHandler(supportedElements),
-	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
+	m_aSharedEntryVRT("SubsetHandler_SharedListEntryVRT", false),
+	m_aSharedEntryEDGE("SubsetHandler_SharedListEntryEDGE", false),
+	m_aSharedEntryFACE("SubsetHandler_SharedListEntryFACE", false),
+	m_aSharedEntryVOL("SubsetHandler_SharedListEntryVOL", false)
 {
 }
 
 GridSubsetHandler::
 GridSubsetHandler(Grid& grid, uint supportedElements) :
 	ISubsetHandler(supportedElements),
-	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
+	m_aSharedEntryVRT("SubsetHandler_SharedListEntryVRT", false),
+	m_aSharedEntryEDGE("SubsetHandler_SharedListEntryEDGE", false),
+	m_aSharedEntryFACE("SubsetHandler_SharedListEntryFACE", false),
+	m_aSharedEntryVOL("SubsetHandler_SharedListEntryVOL", false)
 {
 	assign_grid(grid);
 }
 
 GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
 	ISubsetHandler(sh.m_supportedElements),
-	m_aSharedEntry("MGSubsetHandler_SharedListEntry", false)
+	m_aSharedEntryVRT("SubsetHandler_SharedListEntryVRT", false),
+	m_aSharedEntryEDGE("SubsetHandler_SharedListEntryEDGE", false),
+	m_aSharedEntryFACE("SubsetHandler_SharedListEntryFACE", false),
+	m_aSharedEntryVOL("SubsetHandler_SharedListEntryVOL", false)
 {
 	Grid* pGrid = sh.get_assigned_grid();
 
@@ -60,13 +69,13 @@ void GridSubsetHandler::cleanup()
 	}
 
 	if(elements_are_supported(SHE_VERTEX))
-		m_pGrid->detach_from_vertices(m_aSharedEntry);
+		m_pGrid->detach_from_vertices(m_aSharedEntryVRT);
 	if(elements_are_supported(SHE_EDGE))
-		m_pGrid->detach_from_edges(m_aSharedEntry);
+		m_pGrid->detach_from_edges(m_aSharedEntryEDGE);
 	if(elements_are_supported(SHE_FACE))
-		m_pGrid->detach_from_faces(m_aSharedEntry);
+		m_pGrid->detach_from_faces(m_aSharedEntryFACE);
 	if(elements_are_supported(SHE_VOLUME))
-		m_pGrid->detach_from_volumes(m_aSharedEntry);
+		m_pGrid->detach_from_volumes(m_aSharedEntryVOL);
 }
 
 void GridSubsetHandler::assign_grid(Grid& grid)
@@ -78,13 +87,13 @@ void GridSubsetHandler::assign_grid(Grid& grid)
 
 //	attach shared entries
 	if(elements_are_supported(SHE_VERTEX))
-		m_pGrid->attach_to_vertices(m_aSharedEntry);
+		m_pGrid->attach_to_vertices(m_aSharedEntryVRT);
 	if(elements_are_supported(SHE_EDGE))
-		m_pGrid->attach_to_edges(m_aSharedEntry);
+		m_pGrid->attach_to_edges(m_aSharedEntryEDGE);
 	if(elements_are_supported(SHE_FACE))
-		m_pGrid->attach_to_faces(m_aSharedEntry);
+		m_pGrid->attach_to_faces(m_aSharedEntryFACE);
 	if(elements_are_supported(SHE_VOLUME))
-		m_pGrid->attach_to_volumes(m_aSharedEntry);
+		m_pGrid->attach_to_volumes(m_aSharedEntryVOL);
 }
 
 GridSubsetHandler& GridSubsetHandler::operator = (const GridSubsetHandler& sh)
@@ -112,15 +121,17 @@ void GridSubsetHandler::clear_subset_lists(int index)
 {
 	if(m_pGrid)
 	{
-		for(int i = 0; i < NUM_GEOMETRIC_BASE_OBJECTS; ++i)
-			m_subsets[index]->m_elements[i].clear();
+		section_container<VertexBase>(index).clear();
+		section_container<EdgeBase>(index).clear();
+		section_container<Face>(index).clear();
+		section_container<Volume>(index).clear();
 	}
 }
 
-template<class TElemPtr>
+template<class TElem>
 void
 GridSubsetHandler::
-assign_subset(TElemPtr elem, int subsetIndex, int elemType)
+assign_subset_impl(TElem* elem, int subsetIndex)
 {
 	assert((m_pGrid != NULL) && "ERROR in SubsetHandler::assign_subset(): No grid assigned to SubsetHandler.");
 	subset_required(subsetIndex);
@@ -129,12 +140,12 @@ assign_subset(TElemPtr elem, int subsetIndex, int elemType)
 	int oldIndex = get_subset_index(elem);
 
 	if(oldIndex != -1)
-		m_subsets[oldIndex]->m_elements[elemType].erase(get_list_iterator(elem), elem->shared_pipe_section());
+		section_container<TElem>(subsetIndex).erase(get_list_iterator(elem), elem->shared_pipe_section());
 
 //	add the element to the subset.
 	if(subsetIndex != -1)
 	{
-		m_subsets[subsetIndex]->m_elements[elemType].insert(elem, elem->shared_pipe_section());
+		section_container<TElem>(subsetIndex).insert(elem, elem->shared_pipe_section());
 		subset_assigned(elem, subsetIndex);
 	}
 	else{
@@ -146,22 +157,22 @@ assign_subset(TElemPtr elem, int subsetIndex, int elemType)
 
 void GridSubsetHandler::assign_subset(VertexBase* elem, int subsetIndex)
 {
-	assign_subset(elem, subsetIndex, VERTEX);
+	assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::assign_subset(EdgeBase* elem, int subsetIndex)
 {
-	assign_subset(elem, subsetIndex, EDGE);
+	assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::assign_subset(Face* elem, int subsetIndex)
 {
-	assign_subset(elem, subsetIndex, FACE);
+	assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::assign_subset(Volume* elem, int subsetIndex)
 {
-	assign_subset(elem, subsetIndex, VOLUME);
+	assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::
@@ -187,17 +198,17 @@ void GridSubsetHandler::add_required_subset_lists(int maxIndex)
 	//	initialize section containers
 		Subset* sub = new Subset;
 		if(elements_are_supported(SHE_VERTEX))
-			sub->m_elements[VERTEX].get_container().set_pipe(
-					&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntry);
+			sub->m_vertices.get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntryVRT);
 		if(elements_are_supported(SHE_EDGE))
-			sub->m_elements[EDGE].get_container().set_pipe(
-					&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntry);
+			sub->m_edges.get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntryEDGE);
 		if(elements_are_supported(SHE_FACE))
-			sub->m_elements[FACE].get_container().set_pipe(
-					&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntry);
+			sub->m_faces.get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntryFACE);
 		if(elements_are_supported(SHE_VOLUME))
-			sub->m_elements[VOLUME].get_container().set_pipe(
-					&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntry);
+			sub->m_volumes.get_container().set_pipe(
+					&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntryVOL);
 		m_subsets.push_back(sub);
 	}
 }
@@ -243,7 +254,7 @@ void GridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 		m_subsets[indexTo] = pFrom;
 	}
 }
-
+/*
 void GridSubsetHandler::
 register_subset_elements_at_pipe()
 {
@@ -269,7 +280,7 @@ register_subset_elements_at_pipe()
 			iter != end<Volume>(i); ++iter)
 			register_at_pipe(*iter);
 	}
-}
+}*/
 
 
 GeometricObjectCollection
@@ -280,10 +291,10 @@ get_geometric_objects_in_subset(int subsetIndex) const
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) && "invalid subset index!");
 
 	subset_required(subsetIndex);
-	return GeometricObjectCollection(&m_subsets[subsetIndex]->m_elements[VERTEX],
-									 &m_subsets[subsetIndex]->m_elements[EDGE],
-									 &m_subsets[subsetIndex]->m_elements[FACE],
-									 &m_subsets[subsetIndex]->m_elements[VOLUME]);
+	return GeometricObjectCollection(&m_subsets[subsetIndex]->m_vertices,
+									 &m_subsets[subsetIndex]->m_edges,
+									 &m_subsets[subsetIndex]->m_faces,
+									 &m_subsets[subsetIndex]->m_volumes);
 }
 
 GeometricObjectCollection
@@ -294,12 +305,12 @@ get_geometric_objects() const
 	GeometricObjectCollection goc(numSubsets);
 	for(uint i = 0; i < numSubsets; ++i)
 	{
-		goc.add_level(	&m_subsets[i]->m_elements[VERTEX],
-						&m_subsets[i]->m_elements[EDGE],
-						&m_subsets[i]->m_elements[FACE],
-						&m_subsets[i]->m_elements[VOLUME]);
+		goc.add_level(	&m_subsets[i]->m_vertices,
+						&m_subsets[i]->m_edges,
+						&m_subsets[i]->m_faces,
+						&m_subsets[i]->m_volumes);
 	}
-	
+
 	return goc;
 }
 /*

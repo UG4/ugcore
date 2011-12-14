@@ -140,20 +140,18 @@ template <class ConcreteTriangleType, class BaseClass>
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 CustomTriangle(const TriangleDescriptor& td)
 {
-	BaseClass::set_num_vertices(3);
-	BaseClass::m_vertices[0] = td.vertex(0);
-	BaseClass::m_vertices[1] = td.vertex(1);
-	BaseClass::m_vertices[2] = td.vertex(2);
+	m_vertices[0] = td.vertex(0);
+	m_vertices[1] = td.vertex(1);
+	m_vertices[2] = td.vertex(2);
 }
 
 template <class ConcreteTriangleType, class BaseClass>
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3)
 {
-	BaseClass::set_num_vertices(3);
-	BaseClass::m_vertices[0] = v1;
-	BaseClass::m_vertices[1] = v2;
-	BaseClass::m_vertices[2] = v3;
+	m_vertices[0] = v1;
+	m_vertices[1] = v2;
+	m_vertices[2] = v3;
 }
 
 template <class ConcreteTriangleType, class BaseClass>
@@ -175,7 +173,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = BaseClass::m_vertices;
+		vrts = m_vertices;
 
 //	get the number of new vertices.
 	uint numNewVrts = 0;
@@ -346,7 +344,7 @@ create_faces_by_edge_split(int splitEdgeIndex,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = BaseClass::m_vertices;
+		vrts = m_vertices;
 
 //	we have to find the indices ind0, ind1, ind2, where
 //	ind0 is the index of the vertex on e before newVertex,
@@ -391,22 +389,20 @@ template <class ConcreteQuadrilateralType, class BaseClass>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 CustomQuadrilateral(const QuadrilateralDescriptor& qd)
 {
-	BaseClass::set_num_vertices(4);
-	BaseClass::m_vertices[0] = qd.vertex(0);
-	BaseClass::m_vertices[1] = qd.vertex(1);
-	BaseClass::m_vertices[2] = qd.vertex(2);
-	BaseClass::m_vertices[3] = qd.vertex(3);
+	m_vertices[0] = qd.vertex(0);
+	m_vertices[1] = qd.vertex(1);
+	m_vertices[2] = qd.vertex(2);
+	m_vertices[3] = qd.vertex(3);
 }
 
 template <class ConcreteQuadrilateralType, class BaseClass>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 CustomQuadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
 {
-	BaseClass::set_num_vertices(4);
-	BaseClass::m_vertices[0] = v1;
-	BaseClass::m_vertices[1] = v2;
-	BaseClass::m_vertices[2] = v3;
-	BaseClass::m_vertices[3] = v4;
+	m_vertices[0] = v1;
+	m_vertices[1] = v2;
+	m_vertices[2] = v3;
+	m_vertices[3] = v4;
 }
 
 template <class ConcreteQuadrilateralType, class BaseClass>
@@ -427,7 +423,7 @@ create_faces_by_edge_split(int splitEdgeIndex,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = BaseClass::m_vertices;
+		vrts = m_vertices;
 
 //	we have to find the indices ind0, ind1, ind2, where
 //	ind0 is the index of the vertex on e before newVertex,
@@ -468,7 +464,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = BaseClass::m_vertices;
+		vrts = m_vertices;
 
 //	check which edges have to be refined and perform the required operations.
 //	get the number of new vertices.
@@ -636,7 +632,7 @@ collapse_edge(std::vector<Face*>& vNewFacesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = BaseClass::m_vertices;
+		vrts = m_vertices;
 
 //	the collapsed edge connects vertices at ind0 and ind1.
 	int ind0 = edgeIndex; //edge-index equals the index of its first vertex.

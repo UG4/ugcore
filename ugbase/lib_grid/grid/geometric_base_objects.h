@@ -10,6 +10,7 @@
 #include <iostream>
 #include "common/types.h"
 #include "common/common.h"
+#include "common/assert.h"
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "lib_grid/attachments/attached_list.h"
 #include "common/util/hash.h"
@@ -17,10 +18,9 @@
 
 namespace ug
 {
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-//	Predeclaration of the Grid-type.
-class Grid;
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	CONSTANTS
 
 ////////////////////////////////////////////////////////////////////////
 //	GeometricBaseObject
@@ -34,7 +34,6 @@ enum GeometricBaseObject
 	NUM_GEOMETRIC_BASE_OBJECTS		//always last!!!
 };
 
-////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	Reference-Object IDs
 ///	these ids are used to identify the shape of a geometric object.
@@ -52,6 +51,7 @@ enum ReferenceObjectID
 	NUM_REFERENCE_OBJECTS
 };
 
+////////////////////////////////////////////////////////////////////////
 inline
 std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 {
@@ -73,7 +73,10 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 
 
 ////////////////////////////////////////////////////////////////////////
-//	Predeclaration of geometric objects.
+//	PREDECLARATIONS
+class Grid;
+template<class TElem>	class ElementStorage;
+
 class GeometricObject;	//	geometric base object
 class VertexBase;		//	base for all 0-dimensional grid objects.
 class EdgeBase;			//	base for all 1-dimensional grid objects.
@@ -102,6 +105,10 @@ typedef EdgeVertices*		PEdgeVertices;
 typedef FaceVertices*		PFaceVertices;
 typedef VolumeVertices*	PVolumeVertices;
 
+template<> class attachment_traits<VertexBase*, ElementStorage<VertexBase> >;
+template<> class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >;
+template<> class attachment_traits<Face*, ElementStorage<Face> >;
+template<> class attachment_traits<Volume*, ElementStorage<Volume> >;
 
 /**
  * \brief Geometric objects are the building blocks of a grid.
@@ -121,7 +128,11 @@ typedef VolumeVertices*	PVolumeVertices;
 class GeometricObject/* : public SmallObject<>*/
 {
 	friend class Grid;
-	friend class attachment_traits<GeometricObject*, Grid>;
+	friend class attachment_traits<VertexBase*, ElementStorage<VertexBase> >;
+	friend class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >;
+	friend class attachment_traits<Face*, ElementStorage<Face> >;
+	friend class attachment_traits<Volume*, ElementStorage<Volume> >;
+
 	public:
 		virtual ~GeometricObject()	{}
 
@@ -139,43 +150,19 @@ class GeometricObject/* : public SmallObject<>*/
 		virtual ReferenceObjectID reference_object_id() const = 0;///	returns the id of the reference-object.
 
 	protected:
+	///	ATTENTION: Use this method with extreme care!
+	/**	This method is for internal use only and should almost never be called
+	 * by a user of lib_grid. The method sets the attachment data index and is
+	 * mainly used by attachment-traits classes.*/
+		inline void set_grid_data_index(uint index)		{m_gridDataIndex = index;}
+
+	///	Returns the grid attachment data index of a geometric object.
+		inline uint grid_data_index() const				{return m_gridDataIndex;}
+
+	protected:
 		uint						m_gridDataIndex;//	index to grid-attached data.
-		//GeometricObjectIterator		m_entryIter;//	used for fast list-access.
 };
 
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-//	specialization of attachment_traits for libGrid::GeometricObject
-
-template<>
-class attachment_traits<GeometricObject*, Grid>
-{
-	public:
-		typedef GeometricObject*&		ElemRef;
-		typedef GeometricObject*		ElemPtr;
-		typedef const GeometricObject*	ConstElemPtr;
-		typedef Grid*					ElemHandlerPtr;
-		typedef const Grid*				ConstElemHandlerPtr;
-
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)			{elem = NULL;}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)			{return elem != NULL;}
-		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->m_gridDataIndex;}
-		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->m_gridDataIndex = index;}
-};
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-//	GeometricObjectContainer
-///	Declaration of the container that will hold all geometric objects.
-//typedef std::list<GeometricObject*> 		GeometricObjectContainer;
-typedef AttachedElementList<AttachmentPipe<GeometricObject*, Grid> >
-		GeometricObjectContainer;
-
-////////////////////////////////////////////////////////////////////////
-//	GeometricObjectIterator
-///	This Iterator will be used as base-class for iterators of specialized geometric objects.
-typedef GeometricObjectContainer::iterator			GeometricObjectIterator;
-typedef GeometricObjectContainer::const_iterator	ConstGeometricObjectIterator;
 
 ////////////////////////////////////////////////////////////////////////
 //	The geometry_traits. This class can be specialized by each element-type.
@@ -205,13 +192,11 @@ template <class TElem>
 class geometry_traits
 {};
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	GenericGeometricObjectIterator
 ///	Use this class as a tool to create iterators to your own geometric objects.
-/**
- *
- */
-template <class TValue, class TBaseIterator = GeometricObjectIterator>
+template <class TValue, class TBaseIterator>
 class GenericGeometricObjectIterator : public TBaseIterator
 {
 	friend class Grid;
@@ -230,18 +215,15 @@ class GenericGeometricObjectIterator : public TBaseIterator
 		inline TValue operator* () const	{return static_cast<TValue>(TBaseIterator::operator*());}
 
 	protected:
-		GenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
+		GenericGeometricObjectIterator(const TBaseIterator& iter) :
 			TBaseIterator(iter)	{}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	ConstGenericGeometricObjectIterator
 ///	Use this class as a tool to create const_iterators to your own geometric objects.
-/**
- *
- */
-template <class TValue, class TBaseIterator = ConstGeometricObjectIterator>
-class ConstGenericGeometricObjectIterator : public TBaseIterator
+template <class TValue, class TBaseIterator, class TConstBaseIterator>
+class ConstGenericGeometricObjectIterator : public TConstBaseIterator
 {
 	friend class Grid;
 	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
@@ -253,19 +235,18 @@ class ConstGenericGeometricObjectIterator : public TBaseIterator
 		ConstGenericGeometricObjectIterator()	{}
 
 		ConstGenericGeometricObjectIterator(const ConstGenericGeometricObjectIterator& iter) :
-			TBaseIterator(iter)	{}
+			TConstBaseIterator(iter)	{}
 
 	///	note that the * operator is read only.
-		inline TValue operator* () const	{return static_cast<TValue>(TBaseIterator::operator*());}
+		inline TValue operator* () const	{return static_cast<TValue>(TConstBaseIterator::operator*());}
 
 	protected:
-		ConstGenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
-			TBaseIterator(iter)	{}
+		ConstGenericGeometricObjectIterator(const TBaseIterator& iter) :
+			TConstBaseIterator(iter)	{}
 
-		ConstGenericGeometricObjectIterator(const ConstGeometricObjectIterator& iter) :
-			TBaseIterator(iter)	{}
+		ConstGenericGeometricObjectIterator(const TConstBaseIterator& iter) :
+			TConstBaseIterator(iter)	{}
 };
-
 
 ////////////////////////////////////////////////////////////////////////
 //	iterator_cast
@@ -277,19 +258,6 @@ iterator_cast(const TIterSrc& iter)
 	return TIterDest(iter);
 }
 
-template <>
-class geometry_traits<GeometricObject>
-{
-	public:
-		typedef GeometricObjectIterator			iterator;
-		typedef ConstGeometricObjectIterator	const_iterator;
-
-		enum
-		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = -1
-		};
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VertexBase
@@ -323,22 +291,7 @@ class VertexBase : public GeometricObject
 		uint32	m_hashValue;//	a unique value for each vertex in a grid.
 };
 
-template <>
-class geometry_traits<VertexBase>
-{
-	public:
-		typedef GenericGeometricObjectIterator<VertexBase*>			iterator;
-		typedef ConstGenericGeometricObjectIterator<VertexBase*>	const_iterator;
 
-		typedef VertexBase	geometric_base_object;
-
-		enum
-		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = VERTEX
-		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeVertices
@@ -415,23 +368,6 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
 };
 
-template <>
-class geometry_traits<EdgeBase>
-{
-	public:
-		typedef GenericGeometricObjectIterator<EdgeBase*>		iterator;
-		typedef ConstGenericGeometricObjectIterator<EdgeBase*>	const_iterator;
-
-		typedef EdgeBase	geometric_base_object;
-
-		enum
-		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = EDGE
-		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
-};
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeDescriptor
@@ -454,69 +390,21 @@ class EdgeDescriptor : public EdgeVertices
 };
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-//	FaceVertices
-///	holds the vertices of a Face or an FaceDescriptor
-/*
-class FaceVertices
-{
-	friend class Grid;
-	public:
-		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
-		inline uint num_vertices() const			{return m_vertices.size();}
-
-	//	compatibility with std::vector for some template routines
-	///	returns the number of vertices.
-		inline size_t size() const	{return m_vertices.size();}
-	///	returns the i-th vertex.
-		VertexBase* operator[](uint index) const {return m_vertices[index];}
-
-	protected:
-		inline void set_num_vertices(int numVrts)	{m_vertices.resize(numVrts);}
-
-	protected:
-		typedef std::vector<VertexBase*> 	VertexVec;
-
-	protected:
-		VertexVec		m_vertices;
-};
-*/
-
-//	the following code-section was part of a quick test
-//	regarding speed limitations of the originally used std::vector.
-//	in a first test the speed increase was quite small.
-const int MAX_FACE_VERTICES = 4;
 /**	Please note that this class does not have a virtual destructor.*/
 class FaceVertices
 {
-	friend class Grid;
 	public:
-		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
-		inline size_t num_vertices() const			{return m_numVrts;}
+		typedef VertexBase* const* ConstVertexArray;
+
+		virtual VertexBase* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const	{return m_numVrts;}
+		inline size_t size() const	{return num_vertices();}
 	///	returns the i-th vertex.
-		VertexBase* operator[](size_t index) const {return m_vertices[index];}
-
-	protected:
-		inline void set_num_vertices(size_t numVrts)
-		{
-			assert((numVrts >= 0 && (int)numVrts <= MAX_FACE_VERTICES) && "unsupported number of vertices.");
-			m_numVrts = numVrts;
-		}
-
-		inline void assign_face_vertices(const FaceVertices& fv)
-		{
-			m_numVrts = fv.num_vertices();
-			for(size_t i = 0; i < m_numVrts; ++i)
-				m_vertices[i] = fv.m_vertices[i];
-		}
-
-	protected:
-		VertexBase* m_vertices[MAX_FACE_VERTICES];
-		uint m_numVrts;
+		inline VertexBase* operator[](size_t index) const {return vertex(index);}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -535,6 +423,8 @@ class Face : public GeometricObject, public FaceVertices
 {
 	friend class Grid;
 	public:
+		using FaceVertices::ConstVertexArray;
+
 		// lower dimensional Base Object
 		typedef EdgeBase lower_dim_base_object;
 
@@ -543,11 +433,15 @@ class Face : public GeometricObject, public FaceVertices
 
 		virtual ~Face()	{}
 
-		inline EdgeDescriptor edge(int index) const
-			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % size()]);}
+	///	returns the i-th edge of the face.
+	/**	This default implementation is reimplemented by derived classes for optimal speed.*/
+		virtual EdgeDescriptor edge(int index) const
+			{return EdgeDescriptor(vertex(index), vertex((index+1) % size()));}
 
-		inline void edge(int index, EdgeDescriptor& edOut)
-			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % size()]);}
+	///	returns the i-th edge of the face.
+	/**	This default implementation is reimplemented by derived classes for optimal speed.*/
+		virtual void edge(int index, EdgeDescriptor& edOut)
+			{edOut.set_vertices(vertex(index), vertex((index+1) % size()));}
 
 		inline uint num_edges() const	{return num_vertices();}
 		inline uint num_sides() const	{return num_edges();}
@@ -638,26 +532,14 @@ class Face : public GeometricObject, public FaceVertices
 		//						std::vector<Face*>& vNewFacesOut) = 0;
 
 	protected:
-		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{UG_ASSERT(0, "SHOULDN'T BE CALLED");}
 };
 
-template <>
-class geometry_traits<Face>
-{
-	public:
-		typedef GenericGeometricObjectIterator<Face*>		iterator;
-		typedef ConstGenericGeometricObjectIterator<Face*>	const_iterator;
 
-		typedef Face	geometric_base_object;
-		//typedef void Descriptor;	///< Faces can't be created directly
-
-		enum
-		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = FACE
-		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
-};
+///	constant that defines the maximal number of vertices per face.
+/**	This constant is mainly used by FaceDescriptor.
+ * If required, one should be able to increase it without any problems.*/
+const int MAX_FACE_VERTICES = 4;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	FaceDescriptor
@@ -671,19 +553,17 @@ class FaceDescriptor : public FaceVertices
 
 		FaceDescriptor& operator = (const FaceDescriptor& fd);
 
-		inline void set_num_vertices(uint numVertices)	{FaceVertices::set_num_vertices(numVertices);}
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const				{return m_numVertices;}
+
+		inline void set_num_vertices(uint numVertices)	{m_numVertices = numVertices;}
 		inline void set_vertex(uint index, VertexBase* vrt)
 			{m_vertices[index] = vrt;}
 
-/*
-		inline EdgeDescriptor edge(int index) const
-			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % m_vertices.size()]);}
-
-		inline void edge(int index, EdgeDescriptor& edOut) const
-			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % m_vertices.size()]);}
-
-		inline uint num_edges() const	{return m_vertices.size();}
-*/
+	protected:
+		VertexBase*	m_vertices[MAX_FACE_VERTICES];
+		uint		m_numVertices;
 };
 
 
@@ -697,30 +577,18 @@ class FaceDescriptor : public FaceVertices
 /**	Please note that this class does not have a virtual destructor.*/
 class VolumeVertices
 {
-	friend class Grid;
 	public:
-		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
-		inline uint num_vertices() const			{return m_vertices.size();}
+		typedef VertexBase* const* ConstVertexArray;
+
+		virtual VertexBase* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const	{return m_vertices.size();}
+		inline size_t size() const	{return num_vertices();}
 	///	returns the i-th vertex.
-		VertexBase* operator[](uint index) const {return m_vertices[index];}
-
-	protected:
-		inline void assign_volume_vertices(const VolumeVertices& vv)
-		{
-			m_vertices.resize(vv.num_vertices());
-			for(size_t i = 0; i < num_vertices(); ++i)
-				m_vertices[i] = vv.m_vertices[i];
-		}
-
-	protected:
-		typedef std::vector<VertexBase*> 	VertexVec;
-
-	protected:
-		VertexVec		m_vertices;
+		inline VertexBase* operator[](size_t index) const {return vertex(index);}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -742,6 +610,8 @@ class Volume : public GeometricObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
+		using VolumeVertices::ConstVertexArray;
+
 		// lower dimensional Base Object
 		typedef Face lower_dim_base_object;
 
@@ -862,25 +732,14 @@ class Volume : public GeometricObject, public VolumeVertices
 		//						VertexBase* newVertex,
 		//						std::vector<Volume*>& vNewFacesOut) = 0;
 	protected:
-		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{UG_ASSERT(0, "SHOULDN'T BE CALLED");}
 };
 
-template <>
-class geometry_traits<Volume>
-{
-	public:
-		typedef GenericGeometricObjectIterator<Volume*>			iterator;
-		typedef ConstGenericGeometricObjectIterator<Volume*>	const_iterator;
 
-		typedef Volume		geometric_base_object;
-
-		enum
-		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = VOLUME
-		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
-};
+///	constant that defines the maximal number of vertices per face.
+/**	This constant is mainly used by VolumeDescriptor.
+ * If required, one should be able to increase it without any problems.*/
+const int MAX_VOLUME_VERTICES = 8;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeDescriptor
@@ -892,47 +751,20 @@ class VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces);
 		VolumeDescriptor(const VolumeDescriptor& vd);
 
+		VolumeDescriptor& operator = (const VolumeDescriptor& vv);
 		VolumeDescriptor& operator = (const VolumeVertices& vv);
 
-		inline void set_num_vertices(uint numVertices)	{m_vertices.resize(numVertices);}
-		inline void set_vertex(uint index, VertexBase* vrt)
-			{m_vertices[index] = vrt;}
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const				{return m_numVertices;}
 
-/*
-		inline EdgeDescriptor edge(uint index) const				{return m_edges[index];}
-		inline void edge(uint index, EdgeDescriptor& edOut) const	{edOut = m_edges[index];}
-		inline uint num_edges() const								{return m_edges.size();}
-		inline void set_num_edges(uint numEdges)				{m_edges.resize(numEdges);}
-		inline void set_edge_descriptor(uint index, const EdgeDescriptor& ed)
-			{m_edges[index] = ed;}
-
-		inline FaceDescriptor face(uint index) const				{return m_faces[index];}
-		inline void face(uint index, FaceDescriptor& fdOut)	const	{fdOut = m_faces[index];}
-		inline uint num_faces() const								{return m_faces.size();}
-		inline void set_num_faces(uint numFaces)				{m_faces.resize(numFaces);}
-		inline void set_face_descriptor(uint index, const FaceDescriptor& fd)
-			{m_faces[index] = fd;}
+		inline void set_num_vertices(uint numVertices)		{m_numVertices = numVertices;}
+		inline void set_vertex(uint index, VertexBase* vrt)	{m_vertices[index] = vrt;}
 
 	protected:
-		typedef std::vector<EdgeDescriptor>	EdgeDescriptorVec;
-		typedef std::vector<FaceDescriptor>	FaceDescriptorVec;
-
-	protected:
-		EdgeDescriptorVec	m_edges;
-		FaceDescriptorVec	m_faces;
-*/
+		VertexBase*	m_vertices[MAX_VOLUME_VERTICES];
+		uint		m_numVertices;
 };
-
-
-typedef geometry_traits<VertexBase>::iterator	VertexBaseIterator;
-typedef geometry_traits<EdgeBase>::iterator		EdgeBaseIterator;
-typedef geometry_traits<Face>::iterator			FaceIterator;
-typedef geometry_traits<Volume>::iterator		VolumeIterator;
-
-typedef geometry_traits<VertexBase>::const_iterator	ConstVertexBaseIterator;
-typedef geometry_traits<EdgeBase>::const_iterator	ConstEdgeBaseIterator;
-typedef geometry_traits<Face>::const_iterator		ConstFaceIterator;
-typedef geometry_traits<Volume>::const_iterator		ConstVolumeIterator;
 
 
 ////////////////////////////////////////////////////////////////////////

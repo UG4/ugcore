@@ -210,6 +210,16 @@ class GridSubsetHandler : public ISubsetHandler
 		virtual void grid_to_be_destroyed(Grid* grid);
 
 	protected:
+		using ISubsetHandler::AttachedVertexList;
+		using ISubsetHandler::AttachedEdgeList;
+		using ISubsetHandler::AttachedFaceList;
+		using ISubsetHandler::AttachedVolumeList;
+
+		using ISubsetHandler::VertexSectionContainer;
+		using ISubsetHandler::EdgeSectionContainer;
+		using ISubsetHandler::FaceSectionContainer;
+		using ISubsetHandler::VolumeSectionContainer;
+
 	///	returns the number of subsets in the local list
 		inline uint num_subsets_in_list() const	{return m_subsets.size();}
 		
@@ -241,13 +251,13 @@ class GridSubsetHandler : public ISubsetHandler
 		void move_subset_lists(int indexFrom, int indexTo);
 
 	///	this method is called by ISubsetHandler when attachment_support has been enabled.
-		void register_subset_elements_at_pipe();
+		//void register_subset_elements_at_pipe();
 
 	////////////////////////////////////////////////
 	//	protected helper methods
 	///	a helper method for the public assign_subset methods.
-		template<class TElemPtr>
-		void assign_subset(TElemPtr elem, int subsetIndex, int elemType);
+		template<class TElem> inline
+		void assign_subset_impl(TElem* elem, int subsetIndex);
 							
 	///	helper for change_subset_indices
 		template<class TElem>
@@ -264,46 +274,56 @@ class GridSubsetHandler : public ISubsetHandler
 	/**	This method may only be called if the element is in a subset != -1.
 	 * \{
 	 */
-		inline ISubsetHandler::SectionContainer::iterator
+		inline VertexSectionContainer::iterator
 		get_list_iterator(VertexBase* o)
 		{
 			assert((get_subset_index(o) >= 0) && "invalid subset.");
-			return m_subsets[get_subset_index(o)]->m_elements[VERTEX].
+			return section_container<VertexBase>(get_subset_index(o)).
 				get_container().get_iterator(o);
 		}
 
-		inline ISubsetHandler::SectionContainer::iterator
+		inline EdgeSectionContainer::iterator
 		get_list_iterator(EdgeBase* o)
 		{
 			assert((get_subset_index(o) >= 0) && "invalid subset.");
-			return m_subsets[get_subset_index(o)]->m_elements[EDGE].
+			return section_container<EdgeBase>(get_subset_index(o)).
 				get_container().get_iterator(o);
 		}
 
-		inline ISubsetHandler::SectionContainer::iterator
+		inline FaceSectionContainer::iterator
 		get_list_iterator(Face* o)
 		{
 			assert((get_subset_index(o) >= 0) && "invalid subset.");
-			return m_subsets[get_subset_index(o)]->m_elements[FACE].
+			return section_container<Face>(get_subset_index(o)).
 				get_container().get_iterator(o);
 		}
 
-		inline ISubsetHandler::SectionContainer::iterator
+		inline VolumeSectionContainer::iterator
 		get_list_iterator(Volume* o)
 		{
 			assert((get_subset_index(o) >= 0) && "invalid subset.");
-			return m_subsets[get_subset_index(o)]->m_elements[VOLUME].
+			return section_container<Volume>(get_subset_index(o)).
 				get_container().get_iterator(o);
 		}
 	/**	\}	*/
 
+	///	returns the section container for the given type, subset and level
+		template <class TElem> inline
+		typename Grid::traits<TElem>::SectionContainer&
+		section_container(int si);
+
+	///	returns the const section container for the given type, subset and level
+		template <class TElem> inline
+		const typename Grid::traits<TElem>::SectionContainer&
+		section_container(int si) const;
+
 	protected:
-		typedef ISubsetHandler::SectionContainer SectionContainer;
-		typedef ISubsetHandler::AttachedElemList AttachedElemList;
-		
 		struct Subset
 		{
-			SectionContainer 	m_elements[NUM_GEOMETRIC_BASE_OBJECTS];	/// holds pointers to elements.
+			VertexSectionContainer	m_vertices;
+			EdgeSectionContainer	m_edges;
+			FaceSectionContainer	m_faces;
+			VolumeSectionContainer	m_volumes;
 		};
 
 		typedef std::vector<Subset*>	SubsetVec;
@@ -311,7 +331,10 @@ class GridSubsetHandler : public ISubsetHandler
 	protected:
 		SubsetVec			m_subsets;
 	//	we use a shared attachment for the entry-lists of all section containers
-		AttachedElemList::AEntry	m_aSharedEntry;
+		AttachedVertexList::AEntry	m_aSharedEntryVRT;
+		AttachedEdgeList::AEntry	m_aSharedEntryEDGE;
+		AttachedFaceList::AEntry	m_aSharedEntryFACE;
+		AttachedVolumeList::AEntry	m_aSharedEntryVOL;
 };
 
 

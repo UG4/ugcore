@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include "geometric_object_collection.h"
+#include "element_storage.h"
 
 namespace ug
 {
@@ -18,23 +19,23 @@ namespace ug
 //	get_container
 
 template <class TGeomObj> inline
-const GeometricObjectSectionContainer*
+const typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+SectionContainer*
 GeometricObjectCollection::get_container(size_t level) const
 {
-	int objType = geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID;
-	assert(objType >= 0 && objType < 5 && "ERROR. Invalid base_object_type of GeomObjType!");
-		
-	return m_levels[level].pSectionContainers[objType];
+	return SectionContainerSelector<typename geometry_traits<TGeomObj>::geometric_base_object>::
+			section_container(m_levels[level].vrtContainer, m_levels[level].edgeContainer,
+							  m_levels[level].faceContainer, m_levels[level].volContainer);
 }
 
 template <class TGeomObj> inline
-GeometricObjectSectionContainer*
+typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+SectionContainer*
 GeometricObjectCollection::get_container(size_t level)
 {
-	int objType = geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID;
-	assert(objType >= 0 && objType < 5 && "ERROR. Invalid base_object_type of GeomObjType!");
-		
-	return m_levels[level].pSectionContainers[objType];
+	return SectionContainerSelector<typename geometry_traits<TGeomObj>::geometric_base_object>::
+			section_container(m_levels[level].vrtContainer, m_levels[level].edgeContainer,
+							  m_levels[level].faceContainer, m_levels[level].volContainer);
 }
 
 ////////////////////////////////////////////////////////////////////////

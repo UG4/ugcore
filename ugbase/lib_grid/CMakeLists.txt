@@ -70,7 +70,6 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				tools/selector_interface.cpp
 				tools/selector_grid.cpp
 				tools/selector_multi_grid.cpp
-				tools/selector_grid_elem.cpp
 				tools/marker_points.cpp
 				tools/surface_view.cpp
 				tools/partition_map.cpp

@@ -8,8 +8,6 @@
 #include "attachment_pipe.h"
 #include "common/profiler/profiler.h"
 
-#define ATRAITS attachment_traits<TElem, TElemHandler>
-
 namespace ug
 {
 template <class TElem, class TElemHandler>
@@ -17,6 +15,7 @@ AttachmentPipe<TElem, TElemHandler>::
 AttachmentPipe() :
 	m_attachmentEntryIteratorHash(13),
 	m_numElements(0),
+	m_numDataEntries(0),
 	m_containerSize(0),
 	m_pHandler(NULL)
 {
@@ -27,6 +26,7 @@ AttachmentPipe<TElem, TElemHandler>::
 AttachmentPipe(typename atraits::ElemHandlerPtr pHandler) :
 	m_attachmentEntryIteratorHash(13),
 	m_numElements(0),
+	m_numDataEntries(0),
 	m_containerSize(0),
 	m_pHandler(pHandler)
 {
@@ -59,10 +59,10 @@ void
 AttachmentPipe<TElem, TElemHandler>::
 clear_elements()
 {
-	m_vEntries.resize(0);
 	m_stackFreeEntries = UINTStack();
 	resize_attachment_containers(0);
 	m_numElements = 0;
+	m_numDataEntries = 0;
 }
 
 template <class TElem, class TElemHandler>
@@ -93,10 +93,6 @@ void
 AttachmentPipe<TElem, TElemHandler>::
 reserve(size_t numElems)
 {
-//UG_LOG("reserving entries\n");
-	if(numElems > m_vEntries.size())
-		m_vEntries.reserve(numElems);
-//UG_LOG("done\n");
 	if(numElems > get_container_size())
 		resize_attachment_containers(numElems);
 }
@@ -114,7 +110,6 @@ register_element(TElem elem)
 	//	take it
 		newInd = m_stackFreeEntries.top();
 		m_stackFreeEntries.pop();
-		m_vEntries[newInd] = elem;
 
 	//	initialize attachments with default constructor
 		reset_values(newInd);
@@ -122,15 +117,13 @@ register_element(TElem elem)
 	else
 	{
 	//	add a new entry
-		newInd = m_vEntries.size();
-	//	push the elem to the end of the elem-vec.
-		m_vEntries.push_back(elem);
+		newInd = m_numDataEntries++;
 	//	make sure that the data containers are big enough.
-		grow_attachment_containers(m_vEntries.size());
+		grow_attachment_containers(m_numDataEntries);
 	}
 
 //	assign new attachment index to the element
-	ATRAITS::set_data_index(m_pHandler, elem, newInd);
+	atraits::set_data_index(m_pHandler, elem, newInd);
 
 //	increase element count
 	m_numElements++;
@@ -142,9 +135,7 @@ AttachmentPipe<TElem, TElemHandler>::
 unregister_element(const TElem& elem)
 {
 //	get the attachment index
-	size_t ind = ATRAITS::get_data_index(m_pHandler, elem);
-//	clear the entry
-	atraits::invalidate_entry(m_pHandler, m_vEntries[ind]);
+	size_t ind = atraits::get_data_index(m_pHandler, elem);
 //	store the index in the stack of free entries
 	m_stackFreeEntries.push(ind);
 //	decrease element count
@@ -267,7 +258,58 @@ get_data_container(TAttachment& attachment)
 	return NULL;
 }
 
+template <class TElem, class TElemHandler>
+void
+AttachmentPipe<TElem, TElemHandler>::
+defragment()
+{
+	if(!is_fragmented())
+		return;
 
+//	if num_elements == 0, then simply resize all data-containers to 0.
+	if(num_elements() == 0)
+	{
+	//	just clear the attachment containers.
+		for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
+			iter != m_attachmentEntryContainer.end(); iter++)
+		{
+			(*iter).m_pContainer->resize(0);
+		}
+		m_stackFreeEntries = UINTStack();
+		m_numDataEntries = 0;
+	}
+	else
+	{
+	//	calculate the fragmentation array. It has to be of the same size as the fragmented data containers.
+		std::vector<uint> vNewIndices(num_data_entries(), INVALID_ATTACHMENT_INDEX);
+
+	//	iterate through the elements and calculate the new index of each
+		size_t counter = 0;
+		typename atraits::element_iterator iter = atraits::elements_begin(m_pHandler);
+		typename atraits::element_iterator end = atraits::elements_end(m_pHandler);
+
+		for(; iter != end; ++iter){
+			vNewIndices[atraits::get_data_index(m_pHandler, (*iter))] = counter;
+			atraits::set_data_index(m_pHandler, (*iter), counter);
+			++counter;
+		}
+
+	//	after defragmentation there are no free indices.
+		m_stackFreeEntries = UINTStack();
+		m_numDataEntries = counter;
+
+	//	now iterate through the attached data-containers and defragment each one.
+		{
+			for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
+						iter != m_attachmentEntryContainer.end(); iter++)
+			{
+				(*iter).m_pContainer->defragment(&vNewIndices.front(), num_elements());
+			}
+		}
+	}
+}
+
+/*
 template <class TElem, class TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
@@ -300,8 +342,8 @@ defragment()
 			{
 				if(!atraits::entry_is_invalid(*iter))
 				{
-					vNewIndices[ATRAITS::get_data_index(m_pHandler, (*iter))] = counter;
-					ATRAITS::set_data_index(m_pHandler, (*iter), counter);
+					vNewIndices[atraits::get_data_index(m_pHandler, (*iter))] = counter;
+					atraits::set_data_index(m_pHandler, (*iter), counter);
 					++counter;
 
 				//	copy entries
@@ -324,7 +366,7 @@ defragment()
 		}
 	}
 }
-
+*/
 template <class TElem, class TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::

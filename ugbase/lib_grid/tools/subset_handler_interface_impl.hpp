@@ -9,6 +9,7 @@
 
 namespace ug
 {
+/*
 template <>
 inline AttachmentPipe<VertexBase*, ISubsetHandler>&
 ISubsetHandler::get_attachment_pipe<VertexBase>(int subsetIndex)
@@ -40,19 +41,19 @@ ISubsetHandler::get_attachment_pipe<Volume>(int subsetIndex)
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 	return *m_volumeAttachmentPipes[subsetIndex];
 }
-
+*/
 
 inline void ISubsetHandler::
 subset_assigned(VertexBase* v, int subsetIndex)
 {
-	if(subset_attachments_are_enabled())
+	/*if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(v) != -1)
 			get_attachment_pipe<VertexBase>(get_subset_index(v)).unregister_element(v);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<VertexBase>(subsetIndex).register_element(v);
-	}
+	}*/
 
 	m_aaSubsetIndexVRT[v] = subsetIndex;
 }
@@ -60,14 +61,14 @@ subset_assigned(VertexBase* v, int subsetIndex)
 inline void ISubsetHandler::
 subset_assigned(EdgeBase* e, int subsetIndex)
 {
-	if(subset_attachments_are_enabled())
+	/*if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(e) != -1)
 			get_attachment_pipe<EdgeBase>(get_subset_index(e)).unregister_element(e);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<EdgeBase>(subsetIndex).register_element(e);
-	}
+	}*/
 
 	m_aaSubsetIndexEDGE[e] = subsetIndex;
 }
@@ -76,14 +77,14 @@ inline void
 ISubsetHandler::
 subset_assigned(Face* f, int subsetIndex)
 {
-	if(subset_attachments_are_enabled())
+	/*if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(f) != -1)
 			get_attachment_pipe<Face>(get_subset_index(f)).unregister_element(f);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<Face>(subsetIndex).register_element(f);
-	}
+	}*/
 
 	m_aaSubsetIndexFACE[f] = subsetIndex;
 }
@@ -92,14 +93,14 @@ inline void
 ISubsetHandler::
 subset_assigned(Volume* v, int subsetIndex)
 {
-	if(subset_attachments_are_enabled())
+	/*if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(v) != -1)
 			get_attachment_pipe<Volume>(get_subset_index(v)).unregister_element(v);
 
 		if(subsetIndex != -1)
 			get_attachment_pipe<Volume>(subsetIndex).register_element(v);
-	}
+	}*/
 
 	m_aaSubsetIndexVOL[v] = subsetIndex;
 }
@@ -128,6 +129,7 @@ subset_info_required(int index)
 
 ////////////////////////////////////////////////////////////////////////
 //	attachment handling
+/*
 template <class TGeomObjClass>
 void ISubsetHandler::
 attach_to(IAttachment& attachment, int subsetIndex)
@@ -155,7 +157,8 @@ attach_to(IAttachment& attachment, int subsetIndex)
 			break;
 	};
 }
-
+*/
+/*
 template <class TGeomObjClass, class TAttachment>
 void ISubsetHandler::
 attach_to_dv(TAttachment& attachment, int subsetIndex,
@@ -184,7 +187,8 @@ attach_to_dv(TAttachment& attachment, int subsetIndex,
 			break;
 	};
 }
-
+*/
+/*
 template <class TGeomObjClass>
 void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 {
@@ -211,7 +215,8 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 			break;
 	};
 }
-
+*/
+/*
 template <class TGeomObj, class TAttachment>
 inline typename TAttachment::ContainerType*
 ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex)
@@ -219,10 +224,11 @@ ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subse
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 	return get_attachment_pipe<TGeomObj>(subsetIndex).get_data_container(attachment);
 }
-
+*/
 
 ////////////////////////////////////////////////////////////////////////
 //	attachments_traits
+/*
 inline uint
 attachment_traits<VertexBase*, ISubsetHandler>::
 get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)
@@ -278,7 +284,7 @@ set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)
 {
 	pHandler->set_attachment_data_index(elem, index);
 }
-
+*/
 }//	end of namespace
 
 #endif

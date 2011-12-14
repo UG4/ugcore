@@ -5,7 +5,7 @@
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECTS__
 #define __H__LIB_GRID__GEOMETRIC_OBJECTS__
 
-#include "../grid/geometric_base_objects.h"
+#include "../grid/grid.h"
 #include "common/math/ugmath.h"
 #include "common/assert.h"
 
@@ -90,8 +90,9 @@ template <>
 class geometry_traits<Vertex>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Vertex*, VertexBaseIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<Vertex*, ConstVertexBaseIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<Vertex*, VertexBaseIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Vertex*, VertexBaseIterator,
+														ConstVertexBaseIterator>	const_iterator;
 
 		typedef VertexBase	geometric_base_object;
 
@@ -157,8 +158,9 @@ template <>
 class geometry_traits<HangingVertex>
 {
 	public:
-		typedef GenericGeometricObjectIterator<HangingVertex*, VertexBaseIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<HangingVertex*, ConstVertexBaseIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<HangingVertex*, VertexBaseIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<HangingVertex*, VertexBaseIterator,
+																ConstVertexBaseIterator>	const_iterator;
 
 		typedef VertexBase	geometric_base_object;
 
@@ -236,8 +238,9 @@ template <>
 class geometry_traits<Edge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Edge*, EdgeBaseIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<Edge*, ConstEdgeBaseIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<Edge*, EdgeBaseIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Edge*, EdgeBaseIterator,
+														ConstEdgeBaseIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
@@ -327,8 +330,9 @@ template <>
 class geometry_traits<ConstrainedEdge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainedEdge*, ConstEdgeBaseIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator>		iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator,
+																ConstEdgeBaseIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
@@ -480,8 +484,9 @@ template <>
 class geometry_traits<ConstrainingEdge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainingEdge*, ConstEdgeBaseIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator,
+																	ConstEdgeBaseIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
@@ -502,24 +507,6 @@ typedef geometry_traits<ConstrainingEdge>::const_iterator 	ConstConstrainingEdge
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	FACES
-
-////////////////////////////////////////////////////////////////////////
-//	CustomFace
-///	this class can be used to create a new Face-Type.
-template <uint numVrts, uint sharedPipeSectionIndex>
-class CustomFace : public Face
-{
-	public:
-		CustomFace()	{Face::set_num_vertices(numVrts);}
-		virtual int shared_pipe_section() const	{return sharedPipeSectionIndex;}
-		virtual int base_object_type_id() const	{return FACE;}
-
-protected:
-	virtual EdgeBase* create_edge(int index)
-		{
-			return new Edge(m_vertices[index], m_vertices[(index+1) % numVrts]);
-		}
-};
 
 ////////////////////////////////////////////////////////////////////////
 //	TriangleDescriptor
@@ -551,12 +538,24 @@ template <class ConcreteTriangleType, class BaseClass>
 class CustomTriangle : public BaseClass
 {
 	public:
-		CustomTriangle()	{BaseClass::set_num_vertices(3);}
+		typedef Face::ConstVertexArray ConstVertexArray;
+
+		CustomTriangle()	{}
 		CustomTriangle(const TriangleDescriptor& td);
 		CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3);
 
 		virtual GeometricObject* create_empty_instance() const	{return new ConcreteTriangleType;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_TRIANGLE;}
+
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const	{return 3;}
+
+		virtual EdgeDescriptor edge(int index) const
+			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 3]);}
+
+		virtual void edge(int index, EdgeDescriptor& edOut)
+			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 3]);}
 
 	///	Refines a Triangle by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
@@ -580,6 +579,12 @@ class CustomTriangle : public BaseClass
 							VertexBase** pSubstituteVertices = NULL);
 
 		virtual int base_object_type_id() const	{return FACE;}
+
+	protected:
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+
+	protected:
+		VertexBase* m_vertices[3];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -612,8 +617,9 @@ template <>
 class geometry_traits<Triangle>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Triangle*, FaceIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<Triangle*, ConstFaceIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<Triangle*, FaceIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Triangle*, FaceIterator,
+															ConstFaceIterator>	const_iterator;
 
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
@@ -801,8 +807,9 @@ template <>
 class geometry_traits<ConstrainedTriangle>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainedTriangle*, FaceIterator>					iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainedTriangle*, ConstFaceIterator>		const_iterator;
+		typedef GenericGeometricObjectIterator<ConstrainedTriangle*, FaceIterator>		iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainedTriangle*, FaceIterator,
+																	ConstFaceIterator>	const_iterator;
 
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
@@ -857,8 +864,9 @@ template <>
 class geometry_traits<ConstrainingTriangle>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainingTriangle*, FaceIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainingTriangle*, ConstFaceIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<ConstrainingTriangle*, FaceIterator>		iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainingTriangle*, FaceIterator,
+																	ConstFaceIterator>	const_iterator;
 
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
@@ -909,13 +917,25 @@ template <class ConcreteQuadrilateralType, class BaseClass>
 class CustomQuadrilateral : public BaseClass
 {
 	public:
-		CustomQuadrilateral()	{BaseClass::set_num_vertices(4);}
+		typedef Face::ConstVertexArray ConstVertexArray;
+
+		CustomQuadrilateral()	{}
 		CustomQuadrilateral(const QuadrilateralDescriptor& qd);
 		CustomQuadrilateral(VertexBase* v1, VertexBase* v2,
 							VertexBase* v3, VertexBase* v4);
 
 		virtual GeometricObject* create_empty_instance() const	{return new ConcreteQuadrilateralType;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_QUADRILATERAL;}
+
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const	{return 4;}
+
+		virtual EdgeDescriptor edge(int index) const
+			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 4]);}
+
+		virtual void edge(int index, EdgeDescriptor& edOut)
+			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 4]);}
 
 	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
@@ -939,6 +959,12 @@ class CustomQuadrilateral : public BaseClass
 							VertexBase** pSubstituteVertices = NULL);
 
 		virtual int base_object_type_id() const	{return FACE;}
+
+	protected:
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+
+	protected:
+		VertexBase* m_vertices[4];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -972,8 +998,9 @@ template <>
 class geometry_traits<Quadrilateral>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Quadrilateral*, FaceIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<Quadrilateral*, ConstFaceIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<Quadrilateral*, FaceIterator>		iterator;
+		typedef ConstGenericGeometricObjectIterator<Quadrilateral*, FaceIterator,
+																ConstFaceIterator>	const_iterator;
 
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
@@ -1021,8 +1048,9 @@ template <>
 class geometry_traits<ConstrainedQuadrilateral>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainedQuadrilateral*, FaceIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainedQuadrilateral*, ConstFaceIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<ConstrainedQuadrilateral*, FaceIterator>	iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainedQuadrilateral*,
+													FaceIterator, ConstFaceIterator>	const_iterator;
 
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
@@ -1080,8 +1108,9 @@ template <>
 class geometry_traits<ConstrainingQuadrilateral>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainingQuadrilateral*, FaceIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainingQuadrilateral*, ConstFaceIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<ConstrainingQuadrilateral*, FaceIterator>	iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainingQuadrilateral*,
+														FaceIterator, ConstFaceIterator>	const_iterator;
 
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
@@ -1143,11 +1172,15 @@ class Tetrahedron : public Volume
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != NULL;}
 
-		Tetrahedron()	{m_vertices.resize(4);}
+		Tetrahedron()	{}
 		Tetrahedron(const TetrahedronDescriptor& td);
 		Tetrahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4);
 
 		virtual GeometricObject* create_empty_instance() const	{return new Tetrahedron;}
+
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const				{return 4;}
 
 		virtual EdgeDescriptor edge(int index) const;
 		virtual void edge(int index, EdgeDescriptor& edOut) const;
@@ -1187,14 +1220,21 @@ class Tetrahedron : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_TETRAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_TETRAHEDRON;}
+
+	protected:
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+
+	protected:
+		VertexBase*	m_vertices[4];
 };
 
 template <>
 class geometry_traits<Tetrahedron>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Tetrahedron*, VolumeIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<Tetrahedron*, ConstVolumeIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<Tetrahedron*, VolumeIterator>		iterator;
+		typedef ConstGenericGeometricObjectIterator<Tetrahedron*, VolumeIterator,
+															ConstVolumeIterator>	const_iterator;
 
 		typedef TetrahedronDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
@@ -1251,12 +1291,16 @@ class Hexahedron : public Volume
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != NULL;}
 
-		Hexahedron()	{m_vertices.resize(8);}
+		Hexahedron()	{}
 		Hexahedron(const HexahedronDescriptor& td);
 		Hexahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
 					VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8);
 
 		virtual GeometricObject* create_empty_instance() const	{return new Hexahedron;}
+
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const				{return 8;}
 
 		virtual EdgeDescriptor edge(int index) const;
 		virtual void edge(int index, EdgeDescriptor& edOut) const;
@@ -1287,14 +1331,21 @@ class Hexahedron : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_HEXAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_HEXAHEDRON;}
+
+	protected:
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+
+	protected:
+		VertexBase*	m_vertices[8];
 };
 
 template <>
 class geometry_traits<Hexahedron>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Hexahedron*, VolumeIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<Hexahedron*, ConstVolumeIterator>	const_iterator;
+		typedef GenericGeometricObjectIterator<Hexahedron*, VolumeIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Hexahedron*, VolumeIterator,
+															 ConstVolumeIterator>	const_iterator;
 
 		typedef HexahedronDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
@@ -1351,12 +1402,16 @@ class Prism : public Volume
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Prism*>(pObj) != NULL;}
 
-		Prism()	{m_vertices.resize(6);}
+		Prism()	{}
 		Prism(const PrismDescriptor& td);
 		Prism(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 				VertexBase* v4, VertexBase* v5, VertexBase* v6);
 
 		virtual GeometricObject* create_empty_instance() const	{return new Prism;}
+
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const				{return 6;}
 
 		virtual EdgeDescriptor edge(int index) const;
 		virtual void edge(int index, EdgeDescriptor& edOut) const;
@@ -1387,6 +1442,12 @@ class Prism : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_PRISM;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_PRISM;}
+
+	protected:
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+
+	protected:
+		VertexBase*	m_vertices[6];
 };
 
 template <>
@@ -1394,7 +1455,8 @@ class geometry_traits<Prism>
 {
 	public:
 		typedef GenericGeometricObjectIterator<Prism*, VolumeIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<Prism*, ConstVolumeIterator>	const_iterator;
+		typedef ConstGenericGeometricObjectIterator<Prism*, VolumeIterator,
+															 ConstVolumeIterator>	const_iterator;
 
 		typedef PrismDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
@@ -1451,12 +1513,16 @@ class Pyramid : public Volume
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != NULL;}
 
-		Pyramid()	{m_vertices.resize(5);}
+		Pyramid()	{}
 		Pyramid(const PyramidDescriptor& td);
 		Pyramid(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 				VertexBase* v4, VertexBase* v5);
 
 		virtual GeometricObject* create_empty_instance() const	{return new Pyramid;}
+
+		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const				{return 5;}
 
 		virtual EdgeDescriptor edge(int index) const;
 		virtual void edge(int index, EdgeDescriptor& edOut) const;
@@ -1487,6 +1553,12 @@ class Pyramid : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_PYRAMID;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_PYRAMID;}
+
+	protected:
+		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+
+	protected:
+		VertexBase*	m_vertices[5];
 };
 
 template <>
@@ -1494,7 +1566,8 @@ class geometry_traits<Pyramid>
 {
 	public:
 		typedef GenericGeometricObjectIterator<Pyramid*, VolumeIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<Pyramid*, ConstVolumeIterator>	const_iterator;
+		typedef ConstGenericGeometricObjectIterator<Pyramid*, VolumeIterator,
+															 ConstVolumeIterator>	const_iterator;
 
 		typedef PyramidDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;

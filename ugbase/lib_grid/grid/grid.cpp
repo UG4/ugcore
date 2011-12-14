@@ -117,36 +117,42 @@ void Grid::clear_geometry()
 	set_options(opts);
 }
 
+template <class TElem>
 void Grid::clear_attachments()
 {
+	typedef typename traits<TElem>::AttachmentPipe	AttachmentPipe;
+
 	vector<AttachmentEntry>	vEntries;
 
 //	iterate through all attachment pipes
-	for(int i = 0; i < NUM_GEOMETRIC_BASE_OBJECTS; ++i)
+	AttachmentPipe& ap = get_attachment_pipe<TElem>();
+
+//	collect all attachment entries
+	for(typename AttachmentPipe::ConstAttachmentEntryIterator iter = ap.attachments_begin();
+		iter != ap.attachments_end(); ++iter)
 	{
-		AttachmentPipe& ap = m_elementStorage[i].m_attachmentPipe;
+			vEntries.push_back(*iter);
+	}
+
+//	iterate through the entries in the vector and delete the ones
+//	that have an enabled pass-on behaviour
+	for(size_t j = 0; j < vEntries.size(); ++j)
+	{
+		const AttachmentEntry& ae = vEntries[j];
 		
-	//	collect all attachment entries
-		vEntries.clear();
-		for(AttachmentPipe::ConstAttachmentEntryIterator iter = ap.attachments_begin();
-			iter != ap.attachments_end(); ++iter)
-		{
-				vEntries.push_back(*iter);
-		}
-	
-	//	iterate through the entries in the vector and delete the ones
-	//	that have an enabled pass-on behaviour
-		for(size_t j = 0; j < vEntries.size(); ++j)
-		{
-			const AttachmentEntry& ae = vEntries[j];
-			
-			if(ae.m_userData == 1){
-				ap.detach(*ae.m_pAttachment);
-			}
+		if(ae.m_userData == 1){
+			ap.detach(*ae.m_pAttachment);
 		}
 	}
 }
 
+void Grid::clear_attachments()
+{
+	clear_attachments<VertexBase>();
+	clear_attachments<EdgeBase>();
+	clear_attachments<Face>();
+	clear_attachments<Volume>();
+}
 
 Grid& Grid::operator = (const Grid& grid)
 {
@@ -161,6 +167,26 @@ Grid& Grid::operator = (const Grid& grid)
 	return *this;
 }
 
+template <class TAttachmentPipe>
+void Grid::copy_user_attachments(const TAttachmentPipe& apSrc, TAttachmentPipe& apDest,
+								vector<int>& srcDataIndices)
+{
+	for(typename TAttachmentPipe::ConstAttachmentEntryIterator iter = apSrc.attachments_begin();
+		iter != apSrc.attachments_end(); ++iter)
+	{
+		const AttachmentEntry& ae = *iter;
+		if(ae.m_userData == 1){
+		//	attach the attachment to this grid
+			apDest.attach(*ae.m_pAttachment, ae.m_userData);
+			const IAttachmentDataContainer& conSrc = *ae.m_pContainer;
+			IAttachmentDataContainer& conDest = *apDest.get_data_container(*ae.m_pAttachment);
+
+		//	we use the containers copy-method
+			conSrc.copy_to_container(&conDest, &srcDataIndices.front(),
+									 (int)srcDataIndices.size());
+		}
+	}
+}
 
 void Grid::assign_grid(const Grid& grid)
 {
@@ -208,13 +234,14 @@ void Grid::assign_grid(const Grid& grid)
 	{
 		Face* f = *iter;
 		uint numVrts = f->num_vertices();
+		Face::ConstVertexArray vrts = f->vertices();
 
 	//	fill the face descriptor
 		if(numVrts != fd.num_vertices())
 			fd.set_num_vertices(numVrts);
 		
 		for(uint i = 0; i < numVrts; ++i)
-			fd.set_vertex(i, vrtMap[grid.get_attachment_data_index(f->vertex(i))]);
+			fd.set_vertex(i, vrtMap[grid.get_attachment_data_index(vrts[i])]);
 
 	//	create the new face
 		Face* nF = *create_by_cloning(f, fd);
@@ -230,13 +257,14 @@ void Grid::assign_grid(const Grid& grid)
 	{
 		Volume* v = *iter;
 		uint numVrts = v->num_vertices();
+		Volume::ConstVertexArray vrts = v->vertices();
 
 	//	fill the volume descriptor
 		if(numVrts != vd.num_vertices())
 			vd.set_num_vertices(numVrts);
 
 		for(uint i = 0; i < numVrts; ++i)
-			vd.set_vertex(i, vrtMap[grid.get_attachment_data_index(v->vertex(i))]);
+			vd.set_vertex(i, vrtMap[grid.get_attachment_data_index(vrts[i])]);
 
 	//	create the volume
 		Volume* nV = *create_by_cloning(v, vd);
@@ -248,26 +276,14 @@ void Grid::assign_grid(const Grid& grid)
 	enable_options(grid.get_options());
 
 //	copy attachments that may be passed on
-	for(int i = 0; i < NUM_GEOMETRIC_BASE_OBJECTS; ++i)
-	{
-		const AttachmentPipe& apSrc = grid.m_elementStorage[i].m_attachmentPipe;
-		AttachmentPipe& apDest = m_elementStorage[i].m_attachmentPipe;
-		for(AttachmentPipe::ConstAttachmentEntryIterator iter = apSrc.attachments_begin();
-			iter != apSrc.attachments_end(); ++iter)
-		{
-			const AttachmentEntry& ae = *iter;
-			if(ae.m_userData == 1){
-			//	attach the attachment to this grid
-				apDest.attach(*ae.m_pAttachment, ae.m_userData);
-				const IAttachmentDataContainer& conSrc = *ae.m_pContainer;
-				IAttachmentDataContainer& conDest = *apDest.get_data_container(*ae.m_pAttachment);
-
-			//	we use the containers copy-method
-				conSrc.copy_to_container(&conDest, &vSrcDataIndex[i].front(),
-										 (int)vSrcDataIndex[i].size());
-			}
-		}
-	}
+	copy_user_attachments(grid.m_vertexElementStorage.m_attachmentPipe,
+					m_vertexElementStorage.m_attachmentPipe, vSrcDataIndexVRT);
+	copy_user_attachments(grid.m_edgeElementStorage.m_attachmentPipe,
+					m_edgeElementStorage.m_attachmentPipe, vSrcDataIndexEDGE);
+	copy_user_attachments(grid.m_faceElementStorage.m_attachmentPipe,
+					m_faceElementStorage.m_attachmentPipe, vSrcDataIndexFACE);
+	copy_user_attachments(grid.m_volumeElementStorage.m_attachmentPipe,
+					m_volumeElementStorage.m_attachmentPipe, vSrcDataIndexVOL);
 
 //TODO: notify a grid observer that copying has ended
 }
@@ -293,8 +309,9 @@ FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, Geo
 {
 	Face* pNew = reinterpret_cast<Face*>(pCloneMe->create_empty_instance());
 	uint numVrts = fv.num_vertices();
+	Face::ConstVertexArray vrts = fv.vertices();
 	for(uint i = 0; i < numVrts; ++i)
-		pNew->set_vertex(i, fv.vertex(i));
+		pNew->set_vertex(i, vrts[i]);
 	register_face(pNew, pParent);
 	return iterator_cast<FaceIterator>(get_iterator(pNew));
 }
@@ -303,8 +320,9 @@ VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& v
 {
 	Volume* pNew = reinterpret_cast<Volume*>(pCloneMe->create_empty_instance());
 	uint numVrts = vv.num_vertices();
+	Volume::ConstVertexArray vrts = vv.vertices();
 	for(uint i = 0; i < numVrts; ++i)
-		pNew->set_vertex(i, vv.vertex(i));
+		pNew->set_vertex(i, vrts[i]);
 	register_volume(pNew, pParent);
 	return iterator_cast<VolumeIterator>(get_iterator(pNew));
 }
@@ -381,10 +399,10 @@ void Grid::erase(Volume* vol)
 //	the geometric-object-collection:
 GeometricObjectCollection Grid::get_geometric_objects()
 {
-	return GeometricObjectCollection(&m_elementStorage[VERTEX].m_sectionContainer,
-									 &m_elementStorage[EDGE].m_sectionContainer,
-									 &m_elementStorage[FACE].m_sectionContainer,
-									 &m_elementStorage[VOLUME].m_sectionContainer);
+	return GeometricObjectCollection(&m_vertexElementStorage.m_sectionContainer,
+									 &m_edgeElementStorage.m_sectionContainer,
+									 &m_faceElementStorage.m_sectionContainer,
+									 &m_volumeElementStorage.m_sectionContainer);
 }
 
 void Grid::flip_orientation(EdgeBase* e)
@@ -400,10 +418,10 @@ void Grid::flip_orientation(Face* f)
 	
 	uint i;
 	for(i = 0; i < numVrts; ++i)
-		vVrts[i] = f->m_vertices[i];
+		vVrts[i] = f->vertex(i);
 		
 	for(i = 0; i < numVrts; ++i)
-		f->m_vertices[i] = vVrts[numVrts - 1 - i];
+		f->set_vertex(i, vVrts[numVrts - 1 - i]);
 
 //	update associated edge list
 	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES)){
@@ -430,7 +448,7 @@ void Grid::flip_orientation(Volume* vol)
 //	change vertex order of the original volume
 	size_t numVrts = vol->num_vertices();
 	for(size_t i = 0; i < numVrts; ++i)
-		vol->m_vertices[i] = vd.vertex(i);
+		vol->set_vertex(i, vd.vertex(i));
 
 //	update associated edge list
 	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES)){
@@ -463,30 +481,32 @@ void Grid::flip_orientation(Volume* vol)
 
 size_t Grid::vertex_fragmentation()
 {
-	return m_elementStorage[VERTEX].m_attachmentPipe.num_data_entries() - m_elementStorage[VERTEX].m_attachmentPipe.num_elements();
+	return m_vertexElementStorage.m_attachmentPipe.num_data_entries() - m_vertexElementStorage.m_attachmentPipe.num_elements();
 }
 
 size_t Grid::edge_fragmentation()
 {
-	return m_elementStorage[EDGE].m_attachmentPipe.num_data_entries() - m_elementStorage[EDGE].m_attachmentPipe.num_elements();
+	return m_edgeElementStorage.m_attachmentPipe.num_data_entries() - m_edgeElementStorage.m_attachmentPipe.num_elements();
 }
 
 size_t Grid::face_fragmentation()
 {
-	return m_elementStorage[FACE].m_attachmentPipe.num_data_entries() - m_elementStorage[FACE].m_attachmentPipe.num_elements();
+	return m_faceElementStorage.m_attachmentPipe.num_data_entries() - m_faceElementStorage.m_attachmentPipe.num_elements();
 }
 
 size_t Grid::volume_fragmentation()
 {
-	return m_elementStorage[VOLUME].m_attachmentPipe.num_data_entries() - m_elementStorage[VOLUME].m_attachmentPipe.num_elements();
+	return m_volumeElementStorage.m_attachmentPipe.num_data_entries() - m_volumeElementStorage.m_attachmentPipe.num_elements();
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	pass_on_values
-void Grid::pass_on_values(Grid::AttachmentPipe& attachmentPipe,
-							GeometricObject* pSrc, GeometricObject* pDest)
+template <class TAttachmentPipe, class TElem>
+void Grid::pass_on_values(TAttachmentPipe& attachmentPipe,
+							TElem* pSrc, TElem* pDest)
 {
-	for(AttachmentPipe::ConstAttachmentEntryIterator iter = attachmentPipe.attachments_begin();
+	for(typename TAttachmentPipe::ConstAttachmentEntryIterator
+			iter = attachmentPipe.attachments_begin();
 		iter != attachmentPipe.attachments_end(); iter++)
 	{
 		if((*iter).m_userData == 1)
@@ -497,22 +517,22 @@ void Grid::pass_on_values(Grid::AttachmentPipe& attachmentPipe,
 
 void Grid::pass_on_values(VertexBase* objSrc, VertexBase* objDest)
 {
-	pass_on_values(m_elementStorage[VERTEX].m_attachmentPipe, objSrc, objDest);
+	pass_on_values(m_vertexElementStorage.m_attachmentPipe, objSrc, objDest);
 }
 
 void Grid::pass_on_values(EdgeBase* objSrc, EdgeBase* objDest)
 {
-	pass_on_values(m_elementStorage[EDGE].m_attachmentPipe, objSrc, objDest);
+	pass_on_values(m_edgeElementStorage.m_attachmentPipe, objSrc, objDest);
 }
 
 void Grid::pass_on_values(Face* objSrc, Face* objDest)
 {
-	pass_on_values(m_elementStorage[FACE].m_attachmentPipe, objSrc, objDest);
+	pass_on_values(m_faceElementStorage.m_attachmentPipe, objSrc, objDest);
 }
 
 void Grid::pass_on_values(Volume* objSrc, Volume* objDest)
 {
-	pass_on_values(m_elementStorage[VOLUME].m_attachmentPipe, objSrc, objDest);
+	pass_on_values(m_volumeElementStorage.m_attachmentPipe, objSrc, objDest);
 }
 
 ////////////////////////////////////////////////////////////////////////

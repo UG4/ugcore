@@ -13,7 +13,6 @@
 namespace ug
 {
 //	definition of the template-grid functions
-
 ////////////////////////////////////////////////////////////////////////
 //	create functions
 template<class TGeomObj>
@@ -85,8 +84,7 @@ void Grid::reserve(size_t num)
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 				invalid_geometry_type);
 
-	m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID]
-	         .m_attachmentPipe.reserve(num);
+	element_storage<TGeomObj>().m_attachmentPipe.reserve(num);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -120,7 +118,7 @@ Grid::begin()
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
-		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
 template <class TGeomObj>
@@ -131,7 +129,7 @@ Grid::end()
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
-		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
 template <class TGeomObj>
@@ -142,7 +140,7 @@ Grid::begin() const
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
-		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
 template <class TGeomObj>
@@ -153,7 +151,7 @@ Grid::end() const
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
-		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
 template <class TGeomObj>
@@ -163,7 +161,7 @@ Grid::front()
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);
 
-	return static_cast<TGeomObj*>(*m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.
+	return static_cast<TGeomObj*>(*element_storage<TGeomObj>().m_sectionContainer.
 										front(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
@@ -174,7 +172,7 @@ Grid::back()
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);
 
-	return static_cast<TGeomObj*>(*m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.
+	return static_cast<TGeomObj*>(*element_storage<TGeomObj>().m_sectionContainer.
 										back(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 ////////////////////////////////////////////////////////////////////////
@@ -185,13 +183,12 @@ size_t Grid::num() const
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);
 
-	int objType = geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID;
 	int secIndex = geometry_traits<TGeomObj>::SHARED_PIPE_SECTION;
 
 	if(secIndex == -1)
-		return m_elementStorage[objType].m_sectionContainer.num_elements();
+		return element_storage<TGeomObj>().m_sectionContainer.num_elements();
 
-	return m_elementStorage[objType].m_sectionContainer.num_elements(secIndex);
+	return element_storage<TGeomObj>().m_sectionContainer.num_elements(secIndex);
 }
 
 inline void Grid::
@@ -241,12 +238,7 @@ objects_will_be_merged(Volume* target, Volume* elem1,
 template <class TGeomObj>
 size_t Grid::attachment_container_size() const
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
-		invalid_GeomObj);
-
-	int objType = geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID;
-
-	return m_elementStorage[objType].m_attachmentPipe.num_data_entries();
+	return element_storage<TGeomObj>().m_attachmentPipe.num_data_entries();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -257,13 +249,12 @@ void Grid::attach_to(IAttachment& attachment, bool passOnValues)
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 			invalid_GeomObjClass);
 
-	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 //	setup the options for this attachment.
 	int options = 0;
 	if(passOnValues)
 		options = 1;
 
-	m_elementStorage[objType].m_attachmentPipe.attach(attachment, options);
+	element_storage<TGeomObjClass>().m_attachmentPipe.attach(attachment, options);
 }
 
 inline void Grid::attach_to_all(IAttachment& attachment, bool passOnValues)
@@ -305,13 +296,12 @@ void Grid::attach_to_dv(TAttachment& attachment, const typename TAttachment::Val
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 			invalid_GeomObjClass);
 
-	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 //	setup the options for this attachment.
 	int options = 0;
 	if(passOnValues)
 		options = 1;
 
-	m_elementStorage[objType].m_attachmentPipe.attach(attachment, defaultValue, options);
+	element_storage<TGeomObjClass>().m_attachmentPipe.attach(attachment, defaultValue, options);
 }
 
 template <class TAttachment>
@@ -332,8 +322,7 @@ void Grid::detach_from(IAttachment& attachment)
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 				invalid_GeomObjClass);
 
-	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
-	m_elementStorage[objType].m_attachmentPipe.detach(attachment);
+	element_storage<TGeomObjClass>().m_attachmentPipe.detach(attachment);
 }
 
 inline void Grid::detach_from_all(IAttachment& attachment)
@@ -363,25 +352,26 @@ Grid::get_attachment_data_container(TAttachment& attachment)
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 			invalid_GeomObj);
 
-	return m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].
-			m_attachmentPipe.get_data_container(attachment); 
+	return element_storage<TGeomObj>().m_attachmentPipe.get_data_container(attachment);
 }
 
 template <class TGeomObj>
-AttachmentPipe<GeometricObject*, Grid>&
+AttachmentPipe<TGeomObj*, ElementStorage<TGeomObj> >&
 Grid::get_attachment_pipe()
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 			invalid_GeomObj);
 
-	return m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_attachmentPipe;
+	return element_storage<TGeomObj>().m_attachmentPipe;
 }
 
 template <class TGeomObj>
 uint
 Grid::get_attachment_data_index(TGeomObj* pObj) const
 {
-	return attachment_traits<GeometricObject*, Grid>::get_data_index(this, pObj);
+	typedef typename geometry_traits<TGeomObj>::geometric_base_object BaseObj;
+	return attachment_traits<BaseObj*, ElementStorage<BaseObj> >::
+			get_data_index(&element_storage<TGeomObj>(), pObj);
 }
 
 inline void
@@ -484,28 +474,28 @@ Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor() :
-ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>()
+ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >()
 {
 }
 
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(const AttachmentAccessor& aa) :
-ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>(aa)
+ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >(aa)
 {
 }
 
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a) :
-ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>(grid.get_attachment_pipe<TElem>(), a)
+ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >(grid.get_attachment_pipe<TElem>(), a)
 {
 }
 
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>()
+ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >()
 {
 	if(autoAttach){
 		if(!grid.has_attachment<TElem>(a))

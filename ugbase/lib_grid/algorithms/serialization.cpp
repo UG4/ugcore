@@ -906,10 +906,10 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 					type = cobj->base_object_type_id();
 					switch(type){
 						case EDGE:
-							ind = aaIntEDGE[cobj];
+							ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
 							break;
 						case FACE:
-							ind = aaIntFACE[cobj];
+							ind = aaIntFACE[static_cast<Face*>(cobj)];
 							break;
 					}
 				}
@@ -993,10 +993,10 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 					type = cobj->base_object_type_id();
 					switch(type){
 						case EDGE:
-							ind = aaIntEDGE[cobj];
+							ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
 							break;
 						case FACE:
-							ind = aaIntFACE[cobj];
+							ind = aaIntFACE[static_cast<Face*>(cobj)];
 							break;
 					}
 				}

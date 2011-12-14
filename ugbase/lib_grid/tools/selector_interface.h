@@ -208,11 +208,15 @@ class ISelector : public GridObserver
 										 Volume* elem1, Volume* elem2);
 
 	protected:
-		//typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
-		typedef AttachedElementList<Grid::AttachmentPipe>
-				AttachedElemList;
-		typedef ug::SectionContainer<GeometricObject*, AttachedElemList>
-					SectionContainer;
+		typedef Grid::traits<VertexBase>::AttachedElementList	AttachedVertexList;
+		typedef Grid::traits<EdgeBase>::AttachedElementList		AttachedEdgeList;
+		typedef Grid::traits<Face>::AttachedElementList			AttachedFaceList;
+		typedef Grid::traits<Volume>::AttachedElementList		AttachedVolumeList;
+
+		typedef Grid::traits<VertexBase>::SectionContainer		VertexSectionContainer;
+		typedef Grid::traits<EdgeBase>::SectionContainer		EdgeSectionContainer;
+		typedef Grid::traits<Face>::SectionContainer			FaceSectionContainer;
+		typedef Grid::traits<Volume>::SectionContainer			VolumeSectionContainer;
 
 	protected:
 		virtual void add_to_list(VertexBase* elem) = 0;

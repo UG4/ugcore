@@ -217,7 +217,6 @@ TetrahedronDescriptor::TetrahedronDescriptor(VertexBase* v1, VertexBase* v2, Ver
 //	Tetrahedron
 Tetrahedron::Tetrahedron(const TetrahedronDescriptor& td)
 {
-	m_vertices.resize(4);
 	m_vertices[0] = td.vertex(0);
 	m_vertices[1] = td.vertex(1);
 	m_vertices[2] = td.vertex(2);
@@ -226,7 +225,6 @@ Tetrahedron::Tetrahedron(const TetrahedronDescriptor& td)
 
 Tetrahedron::Tetrahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
 {
-	m_vertices.resize(4);
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
 	m_vertices[2] = v3;
@@ -336,7 +334,7 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = &BaseClass::m_vertices.front();
+		vrts = m_vertices;
 
 	return Refine<TetrahedronClass>(vNewVolumesOut, ppNewVertexOut,
 									newEdgeVertices, newFaceVertices,
@@ -399,7 +397,6 @@ HexahedronDescriptor::HexahedronDescriptor(VertexBase* v1, VertexBase* v2, Verte
 //	Hexahedron
 Hexahedron::Hexahedron(const HexahedronDescriptor& td)
 {
-	m_vertices.resize(8);
 	m_vertices[0] = td.vertex(0);
 	m_vertices[1] = td.vertex(1);
 	m_vertices[2] = td.vertex(2);
@@ -413,7 +410,6 @@ Hexahedron::Hexahedron(const HexahedronDescriptor& td)
 Hexahedron::Hexahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
 						VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8)
 {
-	m_vertices.resize(8);
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
 	m_vertices[2] = v3;
@@ -512,7 +508,7 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = &BaseClass::m_vertices.front();
+		vrts = m_vertices;
 
 	return Refine<HexahedronClass>(vNewVolumesOut, ppNewVertexOut,
 								   newEdgeVertices, newFaceVertices,
@@ -576,7 +572,6 @@ PrismDescriptor::PrismDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 //	Prism
 Prism::Prism(const PrismDescriptor& td)
 {
-	m_vertices.resize(6);
 	m_vertices[0] = td.vertex(0);
 	m_vertices[1] = td.vertex(1);
 	m_vertices[2] = td.vertex(2);
@@ -588,7 +583,6 @@ Prism::Prism(const PrismDescriptor& td)
 Prism::Prism(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 						VertexBase* v4, VertexBase* v5, VertexBase* v6)
 {
-	m_vertices.resize(6);
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
 	m_vertices[2] = v3;
@@ -698,7 +692,7 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = &BaseClass::m_vertices.front();
+		vrts = m_vertices;
 
 	return Refine<PrismClass>(vNewVolumesOut, ppNewVertexOut,
 							  newEdgeVertices, newFaceVertices,
@@ -756,7 +750,6 @@ PyramidDescriptor::PyramidDescriptor(VertexBase* v1, VertexBase* v2, VertexBase*
 //	Pyramid
 Pyramid::Pyramid(const PyramidDescriptor& td)
 {
-	m_vertices.resize(5);
 	m_vertices[0] = td.vertex(0);
 	m_vertices[1] = td.vertex(1);
 	m_vertices[2] = td.vertex(2);
@@ -767,7 +760,6 @@ Pyramid::Pyramid(const PyramidDescriptor& td)
 Pyramid::Pyramid(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 				VertexBase* v4, VertexBase* v5)
 {
-	m_vertices.resize(5);
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
 	m_vertices[2] = v3;
@@ -876,7 +868,7 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = &BaseClass::m_vertices.front();
+		vrts = m_vertices;
 
 	return Refine<PyramidClass>(vNewVolumesOut, ppNewVertexOut,
 									newEdgeVertices, newFaceVertices,

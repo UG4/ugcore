@@ -280,10 +280,10 @@ class attachment_traits
 		typedef void*		ElemHandlerPtr;
 		typedef const void*	ConstElemHandlerPtr;
 
-	///	mark the element as invalid.
-	/**	You may do something like elem = NULL, if TElem is a pointer type.*/
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return true;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
+		typedef void		element_iterator;
+
+		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)					{return element_iterator();}
+		static inline element_iterator elements_end(ElemHandlerPtr pHandler)					{return element_iterator();}
 		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return INVALID_ATTACHMENT_INDEX;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, size_t index)	{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 };
@@ -425,7 +425,7 @@ class AttachmentPipe
 	/**	Note: If the pipe is fragmented, then num_elements and num_data_entries
 	 * differ. If the pipe however isn't fragmented, then both values are the same.
 	 */
-		inline size_t num_data_entries() const	{return m_vEntries.size();}
+		inline size_t num_data_entries() const	{return m_numDataEntries;}
 
 	///	Returns whether the attachment pipe is fragmented.
 	/**	The pipe gets fragmented whenever elements are erased.
@@ -433,7 +433,7 @@ class AttachmentPipe
 	 * defragmented.
 	 * Through a call to defragment() the pipe can be defragmented at any time.
 	 */
-		inline bool is_fragmented() const		{return m_numElements != m_vEntries.size();}
+		inline bool is_fragmented() const		{return m_numElements != m_numDataEntries;}
 
 		void reset_values(size_t dataIndex);///< fills the attached data at the given index with the default values.
 
@@ -443,17 +443,16 @@ class AttachmentPipe
 		inline size_t get_container_size();
 
 	protected:
-		typedef std::vector<TElem>		ElemEntryVec;
 		typedef std::stack<size_t>		UINTStack;
 
 	protected:
 		AttachmentEntryContainer	m_attachmentEntryContainer;
 		AttachmentEntryIteratorHash	m_attachmentEntryIteratorHash;
 
-		ElemEntryVec	m_vEntries;	///< same size as attachment containers.
 		UINTStack		m_stackFreeEntries;	///< holds indices to free entries.
 
 		size_t			m_numElements;
+		size_t			m_numDataEntries;
 		size_t			m_containerSize; ///< total size of containers.
 		
 		typename atraits::ElemHandlerPtr	m_pHandler;

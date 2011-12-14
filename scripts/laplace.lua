@@ -172,37 +172,41 @@ numProcs = GetNumProcesses()
 -- fill a partitionMap (but every process needs one and has to return his map
 -- by calling 'RedistributeDomain()', even if in this case the map is empty
 -- for all processes but process 0).
-print("Distribute domain with 'distributionType' = " .. distributionType .. "...")
-partitionMap = PartitionMap()
-
-if GetProcessRank() == 0 then
-	if distributionType == "bisect" then
-		util.PartitionMapBisection(dom, partitionMap, numProcs)
+if numProcs > 1 then
+	print("Distribute domain with 'distributionType' = " .. distributionType .. "...")
+	partitionMap = PartitionMap()
+	
+	if GetProcessRank() == 0 then
+		if distributionType == "bisect" then
+			util.PartitionMapBisection(dom, partitionMap, numProcs)
+			
+		elseif distributionType == "grid2d" then
+			local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numProcs / numProcsPerNode)
+			util.PartitionMapLexicographic2D(dom, partitionMap, numNodesX,
+											 numNodesY, numProcsPerNode)
+	
+		elseif distributionType == "metis" then
+			util.PartitionMapMetis(dom, partitionMap, numProcs)
+											 
+		else
+		    print( "distributionType not known, aborting!")
+		    exit()
+		end
 		
-	elseif distributionType == "grid2d" then
-		local numNodesX, numNodesY = util.FactorizeInPowersOfTwo(numProcs / numProcsPerNode)
-		util.PartitionMapLexicographic2D(dom, partitionMap, numNodesX,
-										 numNodesY, numProcsPerNode)
-
-	elseif distributionType == "metis" then
-		util.PartitionMapMetis(dom, partitionMap, numProcs)
-										 
-	else
-	    print( "distributionType not known, aborting!")
-	    exit()
+	-- save the partition map for debug purposes
+		if verbosity >= 1 then
+			SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
+		end
 	end
 	
--- save the partition map for debug purposes
-	if verbosity >= 1 then
-		SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
+	if RedistributeDomain(dom, partitionMap, true) == false then
+		print("Redistribution failed. Please check your partitionMap.")
+		exit()
 	end
+	print("... domain distributed!")
+	delete(partitionMap)
 end
 
-if RedistributeDomain(dom, partitionMap, true) == false then
-	print("Redistribution failed. Please check your partitionMap.")
-	exit()
-end
-print("... domain distributed!")
 
 --------------------------------------------------------------------------------
 -- end of partitioning

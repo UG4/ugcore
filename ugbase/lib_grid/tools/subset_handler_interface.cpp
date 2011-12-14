@@ -23,15 +23,15 @@ SubsetInfo::SubsetInfo()
 //	ISubsetHandler implementation
 ISubsetHandler::
 ISubsetHandler(uint supportedElements) :
-	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false),
-	m_aDataIndex("ISubsetHandler_DataIndex", false)
+	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false)
+//	m_aDataIndex("ISubsetHandler_DataIndex", false)
 {
 	m_pGrid = NULL;
 	m_supportedElements = supportedElements;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
 	m_bStrictInheritanceEnabled = false;
-	m_bSubsetAttachmentsEnabled = false;
+//	m_bSubsetAttachmentsEnabled = false;
 	m_defaultSubsetInfo.name = "defSub";
 	m_defaultSubsetInfo.materialIndex = 0;
 	m_defaultSubsetInfo.color = vector4(1., 1., 1., 1.);
@@ -40,15 +40,15 @@ ISubsetHandler(uint supportedElements) :
 
 ISubsetHandler::
 ISubsetHandler(Grid& grid, uint supportedElements) :
-	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false),
-	m_aDataIndex("ISubsetHandler_DataIndex", false)
+	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false)
+	//m_aDataIndex("ISubsetHandler_DataIndex", false)
 {
 	m_pGrid = &grid;
 	m_supportedElements = SHE_NONE;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
 	m_bStrictInheritanceEnabled = false;
-	m_bSubsetAttachmentsEnabled = false;
+	//m_bSubsetAttachmentsEnabled = false;
 	m_defaultSubsetInfo.name = "defSub";
 	m_defaultSubsetInfo.materialIndex = 0;
 	m_defaultSubsetInfo.color = vector4(1., 1., 1., 1.);
@@ -71,7 +71,7 @@ ISubsetHandler::
 		disable_element_support(m_supportedElements);
 
 	//	clear attachment data
-		if(subset_attachments_are_enabled())
+		/*if(subset_attachments_are_enabled())
 		{
 			m_pGrid->detach_from_vertices(m_aDataIndex);
 			m_pGrid->detach_from_edges(m_aDataIndex);
@@ -80,7 +80,7 @@ ISubsetHandler::
 
 		//	clear pipes
 			clear_attachment_pipes();
-		}
+		}*/
 
 		m_pGrid->unregister_observer(this);
 	}
@@ -163,8 +163,8 @@ create_required_subset_infos(int index)
 {
 	m_subsetInfos.resize(index+1, m_defaultSubsetInfo);
 
-	if(subset_attachments_are_enabled())
-		resize_attachment_pipes(index+1);
+	/*if(subset_attachments_are_enabled())
+		resize_attachment_pipes(index+1);*/
 
 	add_required_subset_lists(index);
 }
@@ -180,7 +180,7 @@ set_grid(Grid* grid)
 		disable_element_support(m_supportedElements);
 
 	//	clear attachment data
-		if(subset_attachments_are_enabled())
+		/*if(subset_attachments_are_enabled())
 		{
 			m_pGrid->detach_from_vertices(m_aDataIndex);
 			m_pGrid->detach_from_edges(m_aDataIndex);
@@ -189,7 +189,7 @@ set_grid(Grid* grid)
 
 		//	clear pipes
 			clear_attachment_pipes();
-		}
+		}*/
 
 		m_pGrid->unregister_observer(this);
 		m_pGrid = NULL;
@@ -207,11 +207,11 @@ set_grid(Grid* grid)
 		enable_element_support(tmpOpts);
 
 	//	enable attachments - if required
-		if(subset_attachments_are_enabled())
+		/*if(subset_attachments_are_enabled())
 		{
 			m_bSubsetAttachmentsEnabled = false;
 			enable_subset_attachments(true);
-		}
+		}*/
 
 		m_pGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
 										OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
@@ -532,14 +532,14 @@ erase_subset(int subsetIndex)
 		change_subset_indices(subsetIndex, -1);
 
 	//	clear and delete pipes of erased subset
-		if(subset_attachments_are_enabled())
+		/*if(subset_attachments_are_enabled())
 		{
 			clear_attachment_pipes(subsetIndex);
 			delete m_vertexAttachmentPipes[subsetIndex];
 			delete m_edgeAttachmentPipes[subsetIndex];
 			delete m_faceAttachmentPipes[subsetIndex];
 			delete m_volumeAttachmentPipes[subsetIndex];
-		}
+		}*/
 
 		for(int i = subsetIndex + 1; i < num_subsets(); ++i)
 		{
@@ -550,21 +550,21 @@ erase_subset(int subsetIndex)
 			m_subsetInfos[i-1] = m_subsetInfos[i];
 
 		//	move the pipes
-			if(subset_attachments_are_enabled())
+			/*if(subset_attachments_are_enabled())
 			{
 				m_vertexAttachmentPipes[i-1] = m_vertexAttachmentPipes[i];
 				m_edgeAttachmentPipes[i-1] = m_edgeAttachmentPipes[i];
 				m_faceAttachmentPipes[i-1] = m_faceAttachmentPipes[i];
 				m_volumeAttachmentPipes[i-1] = m_volumeAttachmentPipes[i];
-			}
+			}*/
 		}
 
 	//	resize the subset vector
 		uint numNewSubsets = num_subsets() - 1;
 		erase_subset_lists(subsetIndex);
 		m_subsetInfos.resize(numNewSubsets);
-		if(subset_attachments_are_enabled())
-			resize_attachment_pipes(numNewSubsets);
+		/*if(subset_attachments_are_enabled())
+			resize_attachment_pipes(numNewSubsets);*/
 	}
 	else
 		LOG("WARNING in SubsetHandler::erase_subset(...): bad subset index: " << subsetIndex << endl);
@@ -587,7 +587,7 @@ swap_subsets(int subsetIndex1, int subsetIndex2)
 		m_subsetInfos[subsetIndex2] = tmpSI;
 
 	//	store from-attachment-pipes
-		if(subset_attachments_are_enabled())
+		/*if(subset_attachments_are_enabled())
 		{
 			VertexAttachmentPipe* apFromVrt = m_vertexAttachmentPipes[subsetIndex1];
 			m_vertexAttachmentPipes[subsetIndex1] = m_vertexAttachmentPipes[subsetIndex2];
@@ -602,7 +602,7 @@ swap_subsets(int subsetIndex1, int subsetIndex2)
 			m_volumeAttachmentPipes[subsetIndex1] = m_volumeAttachmentPipes[subsetIndex2];
 			m_volumeAttachmentPipes[subsetIndex2] = apFromVol;
 		}
-
+*/
 	//	swap the lists
 		swap_subset_lists(subsetIndex1, subsetIndex2);
 	}
@@ -631,7 +631,7 @@ move_subset(int indexFrom, int indexTo)
 			SubsetInfo siFrom = m_subsetInfos[indexFrom];
 
 		//	store from-attachment-pipes
-			VertexAttachmentPipe* apFromVrt = NULL;
+			/*VertexAttachmentPipe* apFromVrt = NULL;
 			EdgeAttachmentPipe* apFromEdge = NULL;
 			FaceAttachmentPipe* apFromFace = NULL;
 			VolumeAttachmentPipe* apFromVol = NULL;
@@ -641,7 +641,7 @@ move_subset(int indexFrom, int indexTo)
 				apFromEdge = m_edgeAttachmentPipes[indexFrom];
 				apFromFace = m_faceAttachmentPipes[indexFrom];
 				apFromVol = m_volumeAttachmentPipes[indexFrom];
-			}
+			}*/
 
 		//	assign new indices to elements in from subset (no iterators are changed)
 			change_subset_indices(indexFrom, indexTo);
@@ -661,13 +661,13 @@ move_subset(int indexFrom, int indexTo)
 			m_subsetInfos[indexTo] = siFrom;
 
 		//	assign stored attachment pipes
-			if(subset_attachments_are_enabled())
+			/*if(subset_attachments_are_enabled())
 			{
 				m_vertexAttachmentPipes[indexTo] = apFromVrt;
 				m_edgeAttachmentPipes[indexTo] = apFromEdge;
 				m_faceAttachmentPipes[indexTo] = apFromFace;
 				m_volumeAttachmentPipes[indexTo] = apFromVol;
-			}
+			}*/
 
 		//	move the subsets lists
 			move_subset_lists(indexFrom, indexTo);
@@ -679,7 +679,7 @@ move_subset(int indexFrom, int indexTo)
 
 ////////////////////////////////////////////////////////////////////////
 //	attachments
-
+/*
 void ISubsetHandler::
 resize_attachment_pipes(size_t newSize)
 {
@@ -692,7 +692,8 @@ resize_attachment_pipes(size_t newSize)
 	while(m_volumeAttachmentPipes.size() < newSize)
 		m_volumeAttachmentPipes.push_back(new VolumeAttachmentPipe(this));
 }
-
+*/
+/*
 void ISubsetHandler::
 clear_attachment_pipes()
 {
@@ -708,7 +709,8 @@ clear_attachment_pipes()
 	m_faceAttachmentPipes.clear();
 	m_volumeAttachmentPipes.clear();
 }
-
+*/
+/*
 void ISubsetHandler::
 clear_attachment_pipes(int subsetIndex)
 {
@@ -717,7 +719,8 @@ clear_attachment_pipes(int subsetIndex)
 	m_faceAttachmentPipes[subsetIndex]->clear();
 	m_volumeAttachmentPipes[subsetIndex]->clear();
 }
-
+*/
+/*
 void ISubsetHandler::
 enable_subset_attachments(bool bEnable)
 {
@@ -767,7 +770,7 @@ enable_subset_attachments(bool bEnable)
 		}
 	}
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //	grid callbacks
 /*

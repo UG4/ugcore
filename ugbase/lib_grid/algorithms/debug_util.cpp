@@ -69,10 +69,11 @@ void PrintGridElementNumbers(GridSubsetHandler& sh)
 template <class TGeomObj>
 void PrintAttachmentInfo(Grid& grid)
 {
-	typedef Grid::AttachmentPipe::ConstAttachmentEntryIterator AttIter;
+	typedef typename Grid::traits<TGeomObj>::AttachmentPipe	AttachmentPipe;
+	typedef typename AttachmentPipe::ConstAttachmentEntryIterator AttIter;
 
 //	iterate over all attachments of the grid
-	Grid::AttachmentPipe& pipe = grid.get_attachment_pipe<TGeomObj>();
+	AttachmentPipe& pipe = grid.get_attachment_pipe<TGeomObj>();
 
 	int counter = 1;
 	size_t totalSize = 0;

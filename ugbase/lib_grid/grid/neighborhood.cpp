@@ -51,8 +51,10 @@ void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
 		{
 			if(considerFace(*iter)){
 				Face* f = *iter;
-				for(size_t i = 0; i < f->num_vertices(); ++i){
-					VertexBase* neighbour = f->vertex(i);
+				size_t numVrts = f->num_vertices();
+				Face::ConstVertexArray vrts = f->vertices();
+				for(size_t i = 0; i < numVrts; ++i){
+					VertexBase* neighbour = vrts[i];
 					if(!grid.is_marked(neighbour)){
 						grid.mark(neighbour);
 						vNeighborsOut.push_back(neighbour);
@@ -70,8 +72,10 @@ void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
 		{
 			if(considerVol(*iter)){
 				Volume* v = *iter;
-				for(size_t i = 0; i < v->num_vertices(); ++i){
-					VertexBase* neighbour = v->vertex(i);
+				size_t numVrts = v->num_vertices();
+				Volume::ConstVertexArray vrts = v->vertices();
+				for(size_t i = 0; i < numVrts; ++i){
+					VertexBase* neighbour = vrts[i];
 					if(!grid.is_marked(neighbour)){
 						grid.mark(neighbour);
 						vNeighborsOut.push_back(neighbour);
@@ -156,8 +160,9 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
 	
 //	mark the vertices of the face
 	uint numVrts = f->num_vertices();
+	Face::ConstVertexArray vrts = f->vertices();
 	for(uint i = 0; i < numVrts; ++i)
-		grid.mark(f->vertex(i));
+		grid.mark(vrts[i]);
 	
 //	in order to get the maximum speed-up, we'll try to use
 //	associated elements in grid.
@@ -201,8 +206,8 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
 	case NHT_VERTEX_NEIGHBORS:
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(f->vertex(i));
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(f->vertex(i));
+			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrts[i]);
+			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrts[i]);
 				iter != iterEnd; ++iter)
 			{
 				if(!grid.is_marked(*iter))
@@ -217,8 +222,8 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
 	case NHT_EDGE_NEIGHBORS:
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(f->vertex(i));
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(f->vertex(i));
+			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrts[i]);
+			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrts[i]);
 				iter != iterEnd; ++iter)
 			{
 				Face* nf = *iter;
@@ -229,9 +234,12 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
 				//	(at least in a regular grid)
 					int counter = 0;
 					
-					for(uint j = 0; j < nf->num_vertices(); ++j)
+					size_t numNVrts = nf->num_vertices();
+					Face::ConstVertexArray nvrts = nf->vertices();
+
+					for(uint j = 0; j < numNVrts; ++j)
 					{
-						if(grid.is_marked(nf->vertex(j)))
+						if(grid.is_marked(nvrts[j]))
 						{
 							++counter;
 							if(counter > 1)
@@ -274,8 +282,9 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 	
 //	mark the vertices of the volume
 	uint numVrts = v->num_vertices();
+	Volume::ConstVertexArray vrts = v->vertices();
 	for(uint i = 0; i < numVrts; ++i)
-		grid.mark(v->vertex(i));
+		grid.mark(vrts[i]);
 
 //	in order to get the maximum speed-up, we'll try to use
 //	associated elements in grid.
@@ -315,8 +324,8 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 	if(nbhType == NHT_VERTEX_NEIGHBORS)
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v->vertex(i));
-			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v->vertex(i));
+			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrts[i]);
+			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrts[i]);
 				iter != iterEnd; ++iter)
 			{
 				if(!grid.is_marked(*iter))
@@ -330,8 +339,8 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 	{
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v->vertex(i));
-			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v->vertex(i));
+			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrts[i]);
+			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrts[i]);
 				iter != iterEnd; ++iter)
 			{
 				Volume* nv = *iter;
@@ -341,10 +350,11 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 				//	if there as many as in nbhTypes, the volume is a neighbour.
 				//	(at least in a regular grid)
 					int counter = 0;
-					
-					for(uint j = 0; j < nv->num_vertices(); ++j)
+					size_t numNVrts = nv->num_vertices();
+					Volume::ConstVertexArray nvrts = nv->vertices();
+					for(uint j = 0; j < numNVrts; ++j)
 					{
-						if(grid.is_marked(nv->vertex(j)))
+						if(grid.is_marked(nvrts[j]))
 						{
 							++counter;
 							if(counter >= nbhType)
@@ -396,10 +406,12 @@ void CollectNeighborhood(std::vector<Face*>& facesOut, Grid& grid,
 				if(!grid.is_marked(f)){
 					grid.mark(f);
 					facesOut.push_back(f);
-					for(size_t i = 0; i < f->num_vertices(); ++i){
-						if(!grid.is_marked(f->vertex(i))){
-							grid.mark(f->vertex(i));
-							candidates.push_back(f->vertex(i));
+					size_t numVrts = f->num_vertices();
+					Face::ConstVertexArray vrts = f->vertices();
+					for(size_t i = 0; i < numVrts; ++i){
+						if(!grid.is_marked(vrts[i])){
+							grid.mark(vrts[i]);
+							candidates.push_back(vrts[i]);
 						}
 					}
 				}

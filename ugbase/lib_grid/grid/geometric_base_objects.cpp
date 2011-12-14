@@ -31,24 +31,29 @@ EdgeDescriptor& EdgeDescriptor::operator = (const EdgeDescriptor& ed)
 		
 ////////////////////////////////////////////////////////////////////////
 //	implementation of face-descriptor
-FaceDescriptor::FaceDescriptor()
+FaceDescriptor::FaceDescriptor() :
+	m_numVertices(0)
 {
-	FaceVertices::set_num_vertices(0);
 }
 
-FaceDescriptor::FaceDescriptor(uint numVertices)
+FaceDescriptor::FaceDescriptor(uint numVertices) :
+	m_numVertices(numVertices)
 {
-	set_num_vertices(numVertices);
 }
 
 FaceDescriptor::FaceDescriptor(const FaceDescriptor& fd)
 {
-	FaceVertices::assign_face_vertices(fd);
+	m_numVertices = fd.m_numVertices;
+	for(uint i = 0; i < m_numVertices; ++i)
+		m_vertices[i] = fd.m_vertices[i];
 }
 
 FaceDescriptor& FaceDescriptor::operator = (const FaceDescriptor& fd)
 {
-	FaceVertices::assign_face_vertices(fd);
+	m_numVertices = fd.m_numVertices;
+	for(uint i = 0; i < m_numVertices; ++i)
+		m_vertices[i] = fd.m_vertices[i];
+
 	return *this;
 }
 
@@ -74,12 +79,26 @@ VolumeDescriptor::VolumeDescriptor(uint numVertices, uint numEdges, uint numFace
 
 VolumeDescriptor::VolumeDescriptor(const VolumeDescriptor& vd)
 {
-	VolumeVertices::assign_volume_vertices(vd);
+	m_numVertices = vd.m_numVertices;
+	for(uint i = 0; i < m_numVertices; ++i)
+		m_vertices[i] = vd.m_vertices[i];
+}
+
+VolumeDescriptor& VolumeDescriptor::operator = (const VolumeDescriptor& vd)
+{
+	m_numVertices = vd.m_numVertices;
+	for(uint i = 0; i < m_numVertices; ++i)
+		m_vertices[i] = vd.m_vertices[i];
+
+	return *this;
 }
 
 VolumeDescriptor& VolumeDescriptor::operator = (const VolumeVertices& vv)
 {
-	VolumeVertices::assign_volume_vertices(vv);
+	m_numVertices = vv.num_vertices();
+	for(uint i = 0; i < m_numVertices; ++i)
+		m_vertices[i] = vv.vertex(i);
+
 	return *this;
 }
 
@@ -103,9 +122,11 @@ static inline unsigned long HashKey(const FaceVertices* key)
 {
 	unsigned long retVal = 0;
 	size_t numVrts = key->num_vertices();
+	FaceVertices::ConstVertexArray vrts = key->vertices();
+
 	for(size_t i = 0; i < numVrts; ++i)
 	{
-		unsigned long a = key->vertex(i)->get_hash_value();
+		unsigned long a = vrts[i]->get_hash_value();
 		retVal += (a*a);
 	}
 	return retVal;
@@ -116,9 +137,10 @@ static inline unsigned long HashKey(const VolumeVertices* key)
 {
 	unsigned long retVal = 0;
 	size_t numVrts = key->num_vertices();
+	VolumeVertices::ConstVertexArray vrts = key->vertices();
 	for(size_t i = 0; i < numVrts; ++i)
 	{
-		unsigned long a = key->vertex(i)->get_hash_value();
+		unsigned long a = vrts[i]->get_hash_value();
 		retVal += (a*a);
 	}
 

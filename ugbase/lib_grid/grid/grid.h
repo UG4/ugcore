@@ -11,8 +11,8 @@
 #include "grid_constants.h"
 #include "geometric_base_objects.h"
 #include "grid_observer.h"
-#include "common/util/section_container.h"
 #include "geometric_object_collection.h"
+#include "element_storage.h"
 
 //	Define PROFILE_GRID to profile some often used gird-methods
 //#define PROFILE_GRID
@@ -86,12 +86,26 @@ namespace ug
 class Grid
 {
 	public:
+	///	The traits class holds some important types for each element-type
+		template <class TElem>
+		struct traits{
+			typedef ElementStorage<typename geometry_traits<TElem>::geometric_base_object>
+				ElementStorage;
+			typedef typename ElementStorage::AttachmentPipe			AttachmentPipe;
+			typedef typename ElementStorage::AttachedElementList	AttachedElementList;
+			typedef typename ElementStorage::SectionContainer		SectionContainer;
+		};
+
 	///	the attachment-pipe used by Grid
-		typedef ug::AttachmentPipe<GeometricObject*, Grid>	AttachmentPipe;
+		typedef ug::AttachmentPipe<VertexBase*, VertexElementStorage>	VertexAttachmentPipe;
+		typedef ug::AttachmentPipe<EdgeBase*, EdgeElementStorage>		EdgeAttachmentPipe;
+		typedef ug::AttachmentPipe<Face*, FaceElementStorage>			FaceAttachmentPipe;
+		typedef ug::AttachmentPipe<Volume*, VolumeElementStorage>		VolumeAttachmentPipe;
+
 
 	///	the generic attachment-accessor for access to grids attachment pipes.
 		template <class TElem, class TAttachment>
-		class AttachmentAccessor : public ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>
+		class AttachmentAccessor : public ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >
 		{
 			public:
 				AttachmentAccessor();
@@ -100,7 +114,7 @@ class Grid
 				AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 
 				inline void access(Grid& grid, TAttachment& a)
-					{ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>::access(grid.get_attachment_pipe<TElem>(), a);}
+					{ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >::access(grid.get_attachment_pipe<TElem>(), a);}
 		};
 
 	//	half-specialized AttachmentAccessors:
@@ -140,10 +154,15 @@ class Grid
 				VolumeAttachmentAccessor(Grid& grid, TAttachment& a);
 		};
 
+	///	Container used to store associated vertices
 		typedef std::vector<VertexBase*>	VertexContainer;
-		typedef std::vector<EdgeBase*>	EdgeContainer;
-		typedef std::vector<Face*>		FaceContainer;
+	///	Container used to store associated edges
+		typedef std::vector<EdgeBase*>		EdgeContainer;
+	///	Container used to store associated faces
+		typedef std::vector<Face*>			FaceContainer;
+	///	Container used to store associated volumes
 		typedef std::vector<Volume*>		VolumeContainer;
+
 	///	used to iterate over associated edges of vertices, faces and volumes
 		typedef EdgeContainer::iterator 	AssociatedEdgeIterator;
 	///	used to iterate over associated faces of vertices, edges and volumes
@@ -558,7 +577,7 @@ class Grid
 	 * operating on the attachment pipe.
 	 */
 		template <class TGeomObj>
-		ug::AttachmentPipe<GeometricObject*, Grid>&
+		ug::AttachmentPipe<TGeomObj*, ElementStorage<TGeomObj> >&
 		get_attachment_pipe();
 
 	////////////////////////////////////////////////
@@ -691,28 +710,6 @@ class Grid
 		void test_attached_linked_lists();
 
 	protected:
-		typedef ug::SectionContainer<GeometricObject*,
-						AttachedElementList<AttachmentPipe> >
-					SectionContainer;
-
-	///	This struct is used to hold GeometricObjects and their attachment pipes.
-		struct ElementStorage
-		{
-			ElementStorage(){
-				m_sectionContainer.get_container().set_pipe(&m_attachmentPipe);
-			}
-		//	the destructor is important, since destruction order is undefined
-		//	and since the AttachedElementList in SectionContainer tries to
-		//	unregister itself fomt the assigned pipe.
-			~ElementStorage(){
-				m_sectionContainer.get_container().set_pipe(NULL);
-			}
-
-			SectionContainer	m_sectionContainer;///	holds elements
-			AttachmentPipe		m_attachmentPipe;///	holds the data of the stored elements.
-		};
-
-	//	typedefs
 		typedef std::vector<GridObserver*>	ObserverContainer;
 
 		typedef Attachment<VertexContainer>	AVertexContainer;
@@ -723,6 +720,24 @@ class Grid
 		typedef Attachment<int>	AMark;
 
 	protected:
+	///	returns the element storage for a given element type
+		template <class TElem> inline
+		typename traits<TElem>::ElementStorage&
+		element_storage()
+		{return ElementStorageSelector<typename geometry_traits<TElem>::geometric_base_object>::
+				element_storage(m_vertexElementStorage, m_edgeElementStorage,
+								m_faceElementStorage, m_volumeElementStorage);
+		}
+
+	///	returns the const element storage for a given element type
+		template <class TElem> inline
+		const typename traits<TElem>::ElementStorage&
+		element_storage() const
+		{return ElementStorageSelector<typename geometry_traits<TElem>::geometric_base_object>::
+				element_storage(m_vertexElementStorage, m_edgeElementStorage,
+								m_faceElementStorage, m_volumeElementStorage);
+		}
+
 	///	copies the contents from the given grid to this grid.
 	/**	Make sure that the grid on which this method is called is
 	 *	empty before the method is called.*/
@@ -764,8 +779,9 @@ class Grid
 		void volume_autogenerate_edges(bool bAutogen);
 		void volume_autogenerate_faces(bool bAutogen);
 
-		void pass_on_values(AttachmentPipe& attachmentPipe,
-							GeometricObject* pSrc, GeometricObject* pDest);
+		template <class TAttachmentPipe, class TElem>
+		void pass_on_values(TAttachmentPipe& attachmentPipe,
+							TElem* pSrc, TElem* pDest);
 
 	//	some methods that simplify auto-enabling of grid options
 		inline void autoenable_option(uint option, const char* caller, const char* optionName);
@@ -782,7 +798,14 @@ class Grid
 		template <class TGeomObj>
 		Volume* find_volume_in_associated_volumes(TGeomObj* obj,
 												VolumeVertices& vv);
-												
+
+	///	helps in copying attachment pipes during assign_grid
+	/**	Note that this method only copies attachments with m_userData==1.
+	 * \todo	Copy behavior should be changed to all user-attachments.*/
+		template <class TAttachmentPipe>
+		void copy_user_attachments(const TAttachmentPipe& apSrc, TAttachmentPipe& apDest,
+									std::vector<int>& srcDataIndices);
+
 	//	marks
 		void init_marks();
 		void reset_marks();
@@ -793,37 +816,46 @@ class Grid
 	/**	This method may only be called if the element has already been registered at the grid.
 	 * \{
 	 */
-		inline SectionContainer::iterator
+		inline traits<VertexBase>::SectionContainer::iterator
 		get_iterator(VertexBase* o)
 		{
-			return m_elementStorage[VERTEX].m_sectionContainer.
+			return m_vertexElementStorage.m_sectionContainer.
 					get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline traits<EdgeBase>::SectionContainer::iterator
 		get_iterator(EdgeBase* o)
 		{
-			return m_elementStorage[EDGE].m_sectionContainer.
+			return m_edgeElementStorage.m_sectionContainer.
 					get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline traits<Face>::SectionContainer::iterator
 		get_iterator(Face* o)
 		{
-			return m_elementStorage[FACE].m_sectionContainer.
+			return m_faceElementStorage.m_sectionContainer.
 					get_container().get_iterator(o);
 		}
 
-		inline SectionContainer::iterator
+		inline traits<Volume>::SectionContainer::iterator
 		get_iterator(Volume* o)
 		{
-			return m_elementStorage[VOLUME].m_sectionContainer.
+			return m_volumeElementStorage.m_sectionContainer.
 					get_container().get_iterator(o);
 		}
 	/**	\}	*/
 
+
+	///	helper to clear_attachments
+		template <class TElem>
+		void clear_attachments();
+
 	protected:
-		ElementStorage	m_elementStorage[NUM_GEOMETRIC_BASE_OBJECTS];
+		VertexElementStorage	m_vertexElementStorage;
+		EdgeElementStorage		m_edgeElementStorage;
+		FaceElementStorage		m_faceElementStorage;
+		VolumeElementStorage	m_volumeElementStorage;
+
 		uint			m_options;
 		uint32			m_hashCounter;
 
