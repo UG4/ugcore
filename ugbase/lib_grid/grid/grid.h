@@ -89,7 +89,7 @@ class Grid
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef ElementStorage<typename geometry_traits<TElem>::geometric_base_object>
+			typedef ug::ElementStorage<typename geometry_traits<TElem>::geometric_base_object>
 				ElementStorage;
 			typedef typename ElementStorage::AttachmentPipe			AttachmentPipe;
 			typedef typename ElementStorage::AttachedElementList	AttachedElementList;

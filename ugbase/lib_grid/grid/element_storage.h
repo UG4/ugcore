@@ -14,9 +14,9 @@ namespace ug
 template <class TElem>
 struct ElementStorage
 {
-	typedef AttachmentPipe<TElem*, ElementStorage<TElem> >	AttachmentPipe;
-	typedef AttachedElementList<AttachmentPipe>	AttachedElementList;
-	typedef SectionContainer<TElem*, AttachedElementList >
+	typedef ug::AttachmentPipe<TElem*, ElementStorage<TElem> >	AttachmentPipe;
+	typedef ug::AttachedElementList<AttachmentPipe>	AttachedElementList;
+	typedef ug::SectionContainer<TElem*, AttachedElementList >
 		SectionContainer;
 
 	ElementStorage() : m_attachmentPipe(this)
