@@ -49,7 +49,8 @@ bool PartitionElementsByRepeatedIntersection(SubsetHandler& shOut,
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Partitions the elements in the grid by sorting them into a regular grid.
-/**	Let xInd, yInd be the indices of the cell in which an element lies.
+/**	This method uses Grid::mark.
+ * Let xInd, yInd be the indices of the cell in which an element lies.
  * the associated subset index is then calculated by
  * \code
  * 		subsetIndex = yInd * numCellsX + xInd;

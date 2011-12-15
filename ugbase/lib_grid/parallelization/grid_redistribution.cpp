@@ -699,16 +699,20 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 					int type = parent->base_object_type_id();
 					switch(type){
 						case VERTEX:
-							nVrt = *mgDest.create_by_cloning(vrt, aaVrt[parent]);
+							nVrt = *mgDest.create_by_cloning(vrt,
+										aaVrt[static_cast<VertexBase*>(parent)]);
 							break;
 						case EDGE:
-							nVrt = *mgDest.create_by_cloning(vrt, aaEdge[parent]);
+							nVrt = *mgDest.create_by_cloning(vrt,
+										aaEdge[static_cast<EdgeBase*>(parent)]);
 							break;
 						case FACE:
-							nVrt = *mgDest.create_by_cloning(vrt, aaFace[parent]);
+							nVrt = *mgDest.create_by_cloning(vrt,
+											aaFace[static_cast<Face*>(parent)]);
 							break;
 						case VOLUME:
-							nVrt = *mgDest.create_by_cloning(vrt, aaVol[parent]);
+							nVrt = *mgDest.create_by_cloning(vrt,
+											aaVol[static_cast<Volume*>(parent)]);
 							break;
 					}
 				}
@@ -755,13 +759,16 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 					int type = parent->base_object_type_id();
 					switch(type){
 						case EDGE:
-							ne = *mgDest.create_by_cloning(e, ed, aaEdge[parent]);
+							ne = *mgDest.create_by_cloning(e, ed,
+										aaEdge[static_cast<EdgeBase*>(parent)]);
 							break;
 						case FACE:
-							ne = *mgDest.create_by_cloning(e, ed, aaFace[parent]);
+							ne = *mgDest.create_by_cloning(e, ed,
+											aaFace[static_cast<Face*>(parent)]);
 							break;
 						case VOLUME:
-							ne = *mgDest.create_by_cloning(e, ed, aaVol[parent]);
+							ne = *mgDest.create_by_cloning(e, ed,
+											aaVol[static_cast<Volume*>(parent)]);
 							break;
 					}
 				}
@@ -808,10 +815,12 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 					int type = parent->base_object_type_id();
 					switch(type){
 						case FACE:
-							nf = *mgDest.create_by_cloning(f, fd, aaFace[parent]);
+							nf = *mgDest.create_by_cloning(f, fd,
+											aaFace[static_cast<Face*>(parent)]);
 							break;
 						case VOLUME:
-							nf = *mgDest.create_by_cloning(f, fd, aaVol[parent]);
+							nf = *mgDest.create_by_cloning(f, fd,
+											aaVol[static_cast<Volume*>(parent)]);
 							break;
 					}
 				}
@@ -855,7 +864,8 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 				GeometricObject* parent = mgSrc.get_parent(v);
 				if(parent){
 					UG_ASSERT(parent->base_object_type_id() == VOLUME, "volumes can only be children to volumes.");
-					nv = *mgDest.create_by_cloning(v, vd, aaVol[parent]);
+					nv = *mgDest.create_by_cloning(v, vd,
+											aaVol[static_cast<Volume*>(parent)]);
 				}
 				else
 					nv = *mgDest.create_by_cloning(v, vd, lvl);

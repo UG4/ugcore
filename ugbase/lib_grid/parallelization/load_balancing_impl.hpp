@@ -206,6 +206,11 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	UG_STATIC_ASSERT(TAAPos::ValueType::Size >= 2,
 					TAPosition_has_to_be_at_least_two_dimensional);
 
+	UG_ASSERT(shOut.get_assigned_grid(), "A grid has to be associated with the "
+											"specified subset handler.");
+
+	Grid& grid = *shOut.get_assigned_grid();
+
 //	collect all elements which shall be considered for partitioning.
 //	All others are assigned to bucketSubset
 	vector<TElem*> elems;
@@ -218,7 +223,23 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 
 //	calculate the bounding box
 	vector_t min, max;
-	CalculateBoundingBox(min, max, elems.begin(), elems.end(), aaPos);
+	{
+		grid.begin_marking();
+		vector<VertexBase*>	vrts, associatedVrts;
+		for(TIterator iter = begin; iter != end; ++iter){
+			CollectAssociated(vrts, grid, *iter);
+			for(size_t i = 0; i < vrts.size(); ++i){
+				if(!grid.is_marked(vrts[i])){
+					associatedVrts.push_back(vrts[i]);
+					grid.mark(vrts[i]);
+				}
+			}
+		}
+		grid.end_marking();
+
+		CalculateBoundingBox(min, max, associatedVrts.begin(),
+							 associatedVrts.end(), aaPos);
+	}
 
 	number width = max.x - min.x;
 	number height = max.y - min.y;

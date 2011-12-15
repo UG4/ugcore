@@ -355,17 +355,17 @@ bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 				if(parent){
 					int parentType = parent->base_object_type_id();
 					switch(parentType){
-						case VOLUME:
-							ppivec = &aaInfoVecVOL[parent];
-							break;
-						case FACE:
-							ppivec = &aaInfoVecFACE[parent];
+						case VERTEX:
+							ppivec = &aaInfoVecVRT[static_cast<VertexBase*>(parent)];
 							break;
 						case EDGE:
-							ppivec = &aaInfoVecEDGE[parent];
+							ppivec = &aaInfoVecEDGE[static_cast<EdgeBase*>(parent)];
 							break;
-						case VERTEX:
-							ppivec = &aaInfoVecVRT[parent];
+						case FACE:
+							ppivec = &aaInfoVecFACE[static_cast<Face*>(parent)];
+							break;
+						case VOLUME:
+							ppivec = &aaInfoVecVOL[static_cast<Volume*>(parent)];
 							break;
 					}
 				}
