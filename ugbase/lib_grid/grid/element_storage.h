@@ -12,26 +12,27 @@ namespace ug
 {
 ///	This struct is used to hold GeometricObjects and their attachment pipes.
 template <class TElem>
-struct ElementStorage
+class ElementStorage
 {
-	typedef ug::AttachmentPipe<TElem*, ElementStorage<TElem> >	AttachmentPipe;
-	typedef ug::AttachedElementList<AttachmentPipe>	AttachedElementList;
-	typedef ug::SectionContainer<TElem*, AttachedElementList >
-		SectionContainer;
+	public:
+		typedef ug::AttachmentPipe<TElem*, ElementStorage<TElem> >	AttachmentPipe;
+		typedef ug::AttachedElementList<AttachmentPipe>	AttachedElementList;
+		typedef ug::SectionContainer<TElem*, AttachedElementList >
+			SectionContainer;
 
-	ElementStorage() : m_attachmentPipe(this)
-	{
-		m_sectionContainer.get_container().set_pipe(&m_attachmentPipe);
-	}
-//	the destructor is important, since destruction order is undefined
-//	and since the AttachedElementList in SectionContainer tries to
-//	unregister itself fomt the assigned pipe.
-	~ElementStorage(){
-		m_sectionContainer.get_container().set_pipe(NULL);
-	}
+		ElementStorage() : m_attachmentPipe(this)
+		{
+			m_sectionContainer.get_container().set_pipe(&m_attachmentPipe);
+		}
+	//	the destructor is important, since destruction order is undefined
+	//	and since the AttachedElementList in SectionContainer tries to
+	//	unregister itself fomt the assigned pipe.
+		~ElementStorage(){
+			m_sectionContainer.get_container().set_pipe(NULL);
+		}
 
-	SectionContainer	m_sectionContainer;///	holds elements
-	AttachmentPipe		m_attachmentPipe;///	holds the data of the stored elements.
+		SectionContainer	m_sectionContainer;///	holds elements
+		AttachmentPipe		m_attachmentPipe;///	holds the data of the stored elements.
 };
 
 
