@@ -149,9 +149,9 @@ create_subset_element_node(const char* name, const ISubsetHandler& sh,
 //	the stringstream to which we'll write the data
 	stringstream ss;
 
-	if(sh.get_assigned_grid()){
+	if(sh.grid()){
 	//	access the grid
-		Grid& grid = *sh.get_assigned_grid();
+		Grid& grid = *sh.grid();
 
 	//	access the attachment
 		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);

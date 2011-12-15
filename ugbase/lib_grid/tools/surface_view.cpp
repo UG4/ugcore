@@ -285,7 +285,7 @@ bool CheckSurfaceViewElements(const SurfaceView& surfView,
 bool CheckSurfaceView(const SurfaceView& surfView)
 {
 //	get underlying grid
-	Grid* grid = surfView.get_assigned_grid();
+	Grid* grid = surfView.grid();
 
 //	check that grid is a MultiGrid
 	MultiGrid* pMG = dynamic_cast<MultiGrid*>(grid);

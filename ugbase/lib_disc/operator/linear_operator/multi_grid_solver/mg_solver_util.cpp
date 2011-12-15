@@ -21,7 +21,7 @@ bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 	std::vector<Volume*> vAssVolume;
 
 //	get grid
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 //	get multigrid
 	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
@@ -101,7 +101,7 @@ bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 	sel.clear();
 
 //	get grid
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 //	get multigrid
 	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
@@ -144,7 +144,7 @@ bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfVi
 	std::vector<Volume*> vAssVolume;
 
 //	get grid
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 //	loop all subsets
 	for(int si = 0; si < surfView.num_subsets(); ++si)
@@ -199,7 +199,7 @@ bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfVi
 	sel.clear();
 
 //	get grid
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 //	select elements
 	bool bRes = true;

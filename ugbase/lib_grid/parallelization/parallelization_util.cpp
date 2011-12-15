@@ -259,7 +259,7 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 		}
 	}
 
-	if(shOut.get_assigned_grid() != &mgOut){
+	if(shOut.grid() != &mgOut){
 		throw(UGError("shOut has to operate on the grid in distGridMgrOut."));
 	}
 

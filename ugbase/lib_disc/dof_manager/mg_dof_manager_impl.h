@@ -1264,7 +1264,7 @@ add_associated_sides_to_surface_view()
 	typedef typename geometry_traits<TElem>::const_iterator iterator;
 	typedef typename TElem::lower_dim_base_object Side;
 	std::vector<Side*> vSides;
-	Grid& grid = *m_pSurfaceView->get_assigned_grid();
+	Grid& grid = *m_pSurfaceView->grid();
 
 	for(size_t l  = 0; l < m_pSurfaceView->num_levels(); ++l){
 		for(int si = 0; si < m_pSurfaceView->num_subsets(); ++si){

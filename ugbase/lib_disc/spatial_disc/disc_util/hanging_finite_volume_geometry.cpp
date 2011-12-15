@@ -47,7 +47,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	else m_pElem = elem;
 
 	// get grid
-	Grid& grid = *(ish->get_assigned_grid());
+	Grid& grid = *(ish->grid());
 
 	// reset to natural nodes
 	m_gloMid[0].resize(m_numNaturalSCV);

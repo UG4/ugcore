@@ -134,7 +134,7 @@ class ISelector : public GridObserver
 		inline bool is_selected(TElem* elem) const		{return get_selection_status(elem) != 0;}
 
 	//	non-virtual methods.
-		inline Grid* get_assigned_grid() const		{return m_pGrid;}
+		inline Grid* grid() const		{return m_pGrid;}
 
 	///	returns a geometric object collection, containing all selected objects
 		virtual GeometricObjectCollection get_geometric_objects() = 0;

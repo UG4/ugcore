@@ -154,7 +154,7 @@ void HangingNodeRefinerBase::refine()
 	if(!m_pGrid)
 		throw(UGError("ERROR in HangingNodeRefinerBase::refine(...): No grid assigned."));
 
-	if(m_selMarkedElements.get_assigned_grid() != m_pGrid)
+	if(m_selMarkedElements.grid() != m_pGrid)
 		throw(UGError("selector not initialized properly. Use HangingNodeRefinerBase::set_grid."));
 
 	Grid& grid = *m_pGrid;

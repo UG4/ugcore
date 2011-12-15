@@ -109,7 +109,7 @@ CopySubsetIndices(ISubsetHandler& dest, const ISubsetHandler& src,
 void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 {
 //	get the source grid
-	Grid* srcGrid = sh.get_assigned_grid();
+	Grid* srcGrid = sh.grid();
 	Grid* destGrid = m_pGrid;
 
 //	copy status and options
@@ -228,7 +228,7 @@ set_default_subset_index(int subsetIndex)
 
 
 Grid* ISubsetHandler::
-get_assigned_grid() const
+grid() const
 {
 	return m_pGrid;
 }

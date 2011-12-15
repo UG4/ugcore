@@ -223,7 +223,7 @@ class ISubsetHandler : public GridObserver
 
 	///	returns a pointer to the grid on which the subset-handler works.
 	/**	returns NULL if no grid is assigned.*/
-		Grid* get_assigned_grid() const;
+		Grid* grid() const;
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/

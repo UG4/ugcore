@@ -53,7 +53,7 @@ class DoFStorageManager
 		void update_attachments(AttachmentType type);
 
 	///	returns the associated grid
-		Grid* grid() {return m_pSH->get_assigned_grid();}
+		Grid* grid() {return m_pSH->grid();}
 
 	///	sets the underlying subset handler
 		void set_subset_handler(ISubsetHandler* pSH);

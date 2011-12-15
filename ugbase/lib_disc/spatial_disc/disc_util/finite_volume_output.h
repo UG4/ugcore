@@ -34,7 +34,7 @@ bool CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler
 	static const int refDim = TFVGeom<TElem, TWorldDim>::dim;
 
 	// extract grid
-	Grid& grid = *shOut.get_assigned_grid();
+	Grid& grid = *shOut.grid();
 
 	// tmp vector for vertices
 	std::vector<VertexBase*> vVert;
@@ -105,7 +105,7 @@ bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
 	TFVGeom<TElem, TWorldDim> geo;
 
 	// extract grid
-	Grid& grid = *sh.get_assigned_grid();
+	Grid& grid = *sh.grid();
 
 	// iterators for primary grid
 	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
@@ -244,7 +244,7 @@ bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler&
 	static const int refDim = TFVGeom<TElem, TWorldDim>::dim;
 
 	// extract grid
-	Grid& grid = *shOut.get_assigned_grid();
+	Grid& grid = *shOut.grid();
 
 	// tmp vector for vertices
 	std::vector<VertexBase*> vVert;
@@ -326,7 +326,7 @@ bool ConstructGridOfSCV(SubsetHandler& shOut, const SubsetHandler& sh,
 	TFVGeom<TElem, TWorldDim> geo;
 
 	// extract grid
-	Grid& grid = *sh.get_assigned_grid();
+	Grid& grid = *sh.grid();
 
 	// iterators for primary grid
 	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
@@ -461,7 +461,7 @@ template <typename TElem>
 bool ColorSubControlVolumeFaces(SubsetHandler& shOut)
 {
 	// extract grid
-	Grid& grid = *shOut.get_assigned_grid();
+	Grid& grid = *shOut.grid();
 
 	// iterators for primary grid
 	typename geometry_traits<TElem>::iterator iter, iterBegin, iterEnd;
@@ -481,7 +481,7 @@ template <typename TElem>
 bool ColorSubControlVolume(SubsetHandler& shOut)
 {
 	// extract grid
-	Grid& grid = *shOut.get_assigned_grid();
+	Grid& grid = *shOut.grid();
 
 	// iterators for primary grid
 	typename geometry_traits<TElem>::iterator iter, iterBegin, iterEnd;
@@ -502,7 +502,7 @@ template <int TRefDim>
 bool ColorControlVolume(SubsetHandler& shOut)
 {
 	// extract grid
-	Grid& grid = *shOut.get_assigned_grid();
+	Grid& grid = *shOut.grid();
 
 	std::vector<Volume*> vVols;
 	std::vector<Face*> vFaces;
@@ -537,8 +537,8 @@ bool CreateGridOfSubControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPo
 	static const int dim = TAPosition::ValueType::Size;
 
 	// get assigned grid
-	Grid& grid = *sh.get_assigned_grid();
-	Grid& gridOut = *shOut.get_assigned_grid();
+	Grid& grid = *sh.grid();
+	Grid& gridOut = *shOut.grid();
 
 	// create attachment accessor
 	Grid::VertexAttachmentAccessor<TAPosition> aaPos(grid, aPos);
@@ -592,8 +592,8 @@ bool CreateGridOfControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPosit
 	static const int dim = TAPosition::ValueType::Size;
 
 	// get assigned grid
-	Grid& grid = *sh.get_assigned_grid();
-	Grid& gridOut = *shOut.get_assigned_grid();
+	Grid& grid = *sh.grid();
+	Grid& gridOut = *shOut.grid();
 
 	// create attachment accessor
 	Grid::VertexAttachmentAccessor<TAPosition> aaPos(grid, aPos);
@@ -650,8 +650,8 @@ bool CreateGridOfSubControlVolumeFaces(SubsetHandler& shOut, SubsetHandler& sh, 
 	static const int dim = TAPosition::ValueType::Size;
 
 	// get assigned grid
-	Grid& grid = *sh.get_assigned_grid();
-	Grid& gridOut = *shOut.get_assigned_grid();
+	Grid& grid = *sh.grid();
+	Grid& gridOut = *shOut.grid();
 
 	// create attachment accessor
 	Grid::VertexAttachmentAccessor<TAPosition> aaPos(grid, aPos);

@@ -80,7 +80,7 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 // 	Handle Hanging DoFs on Natural edges
 //	collect all edges
 	std::vector<EdgeBase*> vEdges;
-	CollectEdgesSorted(vEdges, *(m_pISubsetHandler->get_assigned_grid()), elem);
+	CollectEdgesSorted(vEdges, *(m_pISubsetHandler->grid()), elem);
 
 //	loop all edges
 	for(size_t ed = 0; ed < vEdges.size(); ++ed)
@@ -133,7 +133,7 @@ indices(TElem* elem, LocalIndices& ind, bool bHang) const
 
 //	Collect all faces
 	std::vector<Face*> vFaces;
-	CollectFacesSorted(vFaces, *(m_pISubsetHandler->get_assigned_grid()), elem);
+	CollectFacesSorted(vFaces, *(m_pISubsetHandler->grid()), elem);
 
 //	loop faces
 	for(size_t fa = 0; fa < vFaces.size(); ++fa)

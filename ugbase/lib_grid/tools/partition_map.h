@@ -65,13 +65,13 @@ bool SavePartitionMapToFile(PartitionMap& pm, const char* filename,
 	SubsetHandler& partsh = pm.get_partition_handler();
 
 //	make sure that a grid exists
-	if(!partsh.get_assigned_grid()){
+	if(!partsh.grid()){
 		UG_LOG("WARNING IN SavePartitionMapToFile: a grid has to be assigned "
 				"to the PartitionMap. Aborting.\n");
 		return false;
 	}
 
-	Grid& grid = *partsh.get_assigned_grid();
+	Grid& grid = *partsh.grid();
 
 //	we need a subset-handler, which will have a 1-1 subset-process relation.
 	SubsetHandler sh(grid);

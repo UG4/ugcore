@@ -39,7 +39,7 @@ GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
 	m_aSharedEntryFACE("SubsetHandler_SharedListEntryFACE", false),
 	m_aSharedEntryVOL("SubsetHandler_SharedListEntryVOL", false)
 {
-	Grid* pGrid = sh.get_assigned_grid();
+	Grid* pGrid = sh.grid();
 
 	if(pGrid){
 //TODO: remove virtual function calls from constructor

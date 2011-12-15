@@ -51,7 +51,7 @@ size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 										ISelector& sel)
 {
 	vrtsOut.clear();
-	Grid* pGrid = sel.get_assigned_grid();
+	Grid* pGrid = sel.grid();
 	if(!pGrid)
 		return 0;
 
@@ -117,10 +117,10 @@ size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 template <class TSelector>
 void EraseSelectedObjects(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 	for(size_t i = 0; i < sel.num_levels(); ++i)
 	{
@@ -139,32 +139,29 @@ void EraseSelectedObjects(TSelector& sel)
 template <class TSelector>
 void InvertSelection(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	MGWrapper<typename TSelector::grid_type> wmg(*sel.get_assigned_grid());
+	Grid& grid = *sel.grid();
 	
-	for(size_t i = 0; i < wmg.num_levels(); ++i)
-	{
-		InvertSelection(sel, wmg.template begin<VertexBase>(i),
-						wmg.template end<VertexBase>(i));
-		InvertSelection(sel, wmg.template begin<EdgeBase>(i),
-						wmg.template end<EdgeBase>(i));
-		InvertSelection(sel, wmg.template begin<Face>(i),
-						wmg.template end<Face>(i));
-		InvertSelection(sel, wmg.template begin<Volume>(i),
-						wmg.template end<Volume>(i));
-	}
+	InvertSelection(sel, grid.begin<VertexBase>(),
+					grid.end<VertexBase>());
+	InvertSelection(sel, grid.begin<EdgeBase>(),
+					grid.end<EdgeBase>());
+	InvertSelection(sel, grid.begin<Face>(),
+					grid.end<Face>());
+	InvertSelection(sel, grid.begin<Volume>(),
+					grid.end<Volume>());
 }
 
 ////////////////////////////////////////////////////////////////////////
 void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
 							  FaceIterator facesEnd)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 //	iterate over associated edges of faces.
 //	mark edges if they have not yet been examined, unmark them if they
@@ -201,10 +198,10 @@ void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
 void SelectAreaBoundaryFaces(ISelector& sel, VolumeIterator volumesBegin,
 							 VolumeIterator volumesEnd)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 //	iterate over associated faces of volumes.
 //	select faces if they have not yet been examined, unselect them if they
@@ -240,12 +237,12 @@ void SelectAreaBoundaryFaces(ISelector& sel, VolumeIterator volumesBegin,
 //	SelectAssociatedGeometricObjects
 void SelectAssociatedGeometricObjects(Selector& sel)
 {
-	if(!sel.get_assigned_grid()){
+	if(!sel.grid()){
 		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
 		return;
 	}
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 //	select associated elements of selected elements
 	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>());
@@ -267,12 +264,12 @@ void SelectAssociatedGeometricObjects(Selector& sel)
 //	SelectAssociatedGeometricObjects
 void SelectAssociatedGeometricObjects(MGSelector& msel)
 {
-	if(!msel.get_assigned_grid()){
+	if(!msel.multi_grid()){
 		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
 		return;
 	}
 	
-	Grid& grid = *msel.get_assigned_grid();
+	Grid& grid = *msel.multi_grid();
 	
 //	select associated elements of selected elements on each level
 	for(size_t i = 0; i < msel.num_levels(); ++i)
@@ -314,12 +311,12 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 //	ExtendSelection
 void ExtendSelection(Selector& sel, size_t extSize)
 {
-	if(!sel.get_assigned_grid()){
+	if(!sel.grid()){
 		UG_LOG("ERROR in ExtendSelection: Selector has to be assigned to a grid.\n");
 		return;
 	}
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 //	first select associated elements of volumes, faces and edges.
 //	then select associated elements of selected vertices.
@@ -377,12 +374,12 @@ void SelectionFill(Selector& sel)
 	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
 	typedef typename TGeomObj::lower_dim_base_object Side;
 
-	if(sel.get_assigned_grid() == 0){
+	if(sel.grid() == 0){
 		UG_LOG("WARNING in SelectionFill: A grid has to be assigned! Aborting.\n");
 		return;
 	}
 
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 	vector<Side*> sides;
 	vector<TGeomObj*> objs;
@@ -433,7 +430,7 @@ template void SelectionFill<Volume>(Selector&);
 //	SelectAssociatedGenealogy
 void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 {
-	MultiGrid* mg = msel.get_assigned_grid();
+	MultiGrid* mg = msel.multi_grid();
 	if(!mg)
 		return;
 
@@ -471,10 +468,10 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 {
 	bool bMinimalNormalDeviation = true;
 	
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 //	access the position attachment
 	assert(grid.has_vertex_attachment(aPos) &&
@@ -649,10 +646,10 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 template <class TSelector>
 void SelectInnerSelectionVertices(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 	grid.begin_marking();
 	
@@ -756,10 +753,10 @@ void SelectInnerSelectionVertices(TSelector& sel)
 template <class TSelector>
 void SelectInnerSelectionEdges(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 	grid.begin_marking();
 	
@@ -843,10 +840,10 @@ void SelectInnerSelectionEdges(TSelector& sel)
 template <class TSelector>
 void SelectInnerSelectionFaces(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 	grid.begin_marking();
 	
@@ -893,10 +890,10 @@ void SelectInnerSelectionFaces(TSelector& sel)
 template <class TSelector>
 void DeselectBoundarySelectionVertices(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 //	check each selected vertex of each level
 	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
@@ -956,10 +953,10 @@ void DeselectBoundarySelectionVertices(TSelector& sel)
 template <class TSelector>
 void DeselectBoundarySelectionEdges(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 	vector<Face*> vAssFaces;
 	vector<Volume*> vAssVols;
@@ -1011,10 +1008,10 @@ void DeselectBoundarySelectionEdges(TSelector& sel)
 template <class TSelector>
 void DeselectBoundarySelectionFaces(TSelector& sel)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 	vector<Volume*> vAssVols;
 	
@@ -1047,10 +1044,10 @@ void DeselectBoundarySelectionFaces(TSelector& sel)
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 						   bool traverseFlipped, APosition& aPos)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 	if(!grid.has_vertex_attachment(aPosition))
 		return;
@@ -1111,10 +1108,10 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 number degThreshold,
 						   	   	   	     APosition& aPos)
 {
-	if(!sel.get_assigned_grid())
+	if(!sel.grid())
 		return;
 
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 
 	if(!grid.has_vertex_attachment(aPosition))
 		return;

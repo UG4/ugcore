@@ -698,7 +698,7 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 		//	do something
 			if(q < qualityThreshold){
 			//	make sure that the selector is connected to the grid
-				if(sel.get_assigned_grid() == NULL)
+				if(sel.grid() == NULL)
 					sel.assign_grid(grid);
 					
 			//	get associated edges and mark them for refinement
@@ -713,7 +713,7 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	}
 	
 //	if edges have been selected, we'll now call refine.
-	if(sel.get_assigned_grid() != NULL){
+	if(sel.grid() != NULL){
 		if(sel.num<EdgeBase>() > 0){
 			if(Refine(grid, sel)){
 				LOG(sel.num<VertexBase>() << " new vertices... ");

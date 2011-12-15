@@ -851,7 +851,7 @@ FV1Geometry<TElem, TWorldDim>::
 update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
-	Grid& grid = *(ish->get_assigned_grid());
+	Grid& grid = *(ish->grid());
 
 //	vector of subset indices of side
 	std::vector<int> vSubsetIndex;
@@ -1185,7 +1185,7 @@ DimFV1Geometry<TDim, TWorldDim>::
 update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
-	Grid& grid = *(ish->get_assigned_grid());
+	Grid& grid = *(ish->grid());
 
 //	vector of subset indices of side
 	std::vector<int> vSubsetIndex;
@@ -1624,7 +1624,7 @@ FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
 update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
-	Grid& grid = *(ish->get_assigned_grid());
+	Grid& grid = *(ish->grid());
 
 //	vector of subset indices of side
 	std::vector<int> vSubsetIndex;
@@ -2118,7 +2118,7 @@ DimFVGeometry<TDim, TWorldDim>::
 update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
-	Grid& grid = *(ish->get_assigned_grid());
+	Grid& grid = *(ish->grid());
 
 //	vector of subset indices of side
 	std::vector<int> vSubsetIndex;

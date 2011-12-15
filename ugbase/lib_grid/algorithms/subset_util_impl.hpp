@@ -113,7 +113,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 				iter != sh.template end<TElem>(si, l); ++iter)
 			{
 				TElem* e = *iter;
-				CollectEdges(vEdges, *sh.get_assigned_grid(), e);
+				CollectEdges(vEdges, *sh.grid(), e);
 
 				for(size_t i = 0; i < vEdges.size(); ++i)
 				{
@@ -139,7 +139,7 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 				iter != sh.template end<TElem>(si, l); ++iter)
 			{
 				TElem* e = *iter;
-				CollectFaces(vFaces, *sh.get_assigned_grid(), e);
+				CollectFaces(vFaces, *sh.grid(), e);
 
 				for(size_t i = 0; i < vFaces.size(); ++i)
 				{
@@ -158,7 +158,7 @@ void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
 	typedef typename geometry_traits<TElem>::const_iterator iterator;
 	typedef typename TElem::lower_dim_base_object Side;
 	std::vector<Side*> vSides;
-	Grid& grid = *sh.get_assigned_grid();
+	Grid& grid = *sh.grid();
 
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
 		for(int si = 0; si < sh.num_subsets(); ++si){
@@ -337,10 +337,10 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
 	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
 
 //	access the grid on which sh operates.
-	if(!sh.get_assigned_grid())
+	if(!sh.grid())
 		return;
 
-	Grid& grid = *sh.get_assigned_grid();
+	Grid& grid = *sh.grid();
 
 //	first make sure, that all elems are assigned to a subset, since
 //	those won't be processed later on.
@@ -362,10 +362,10 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 								bool preserveInnerLowDim)
 {
 //	access the grid on which sh operates.
-	if(!sh.get_assigned_grid())
+	if(!sh.grid())
 		return;
 
-	Grid& grid = *sh.get_assigned_grid();
+	Grid& grid = *sh.grid();
 
 //	erase empty subsets
 	EraseEmptySubsets(sh);

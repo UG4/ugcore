@@ -36,7 +36,7 @@ class MGDoFManager : public GridObserver
 	///	Constructor setting Function Pattern and Multi Grid Subset Handler
 		MGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp)
 			: m_bGrouped(false), m_pMGSubsetHandler(&mgsh),
-			  m_pMultiGrid(mgsh.get_assigned_multi_grid()),
+			  m_pMultiGrid(mgsh.multi_grid()),
 			  m_pSurfaceView(NULL), m_pFuncPattern(&dp), m_pSurfDD(NULL)
 		{
 			m_vLevelDD.clear();

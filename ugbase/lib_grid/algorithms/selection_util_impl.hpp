@@ -21,11 +21,11 @@ template <class TAAPosVRT>
 bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 					 Selector& sel, TAAPosVRT& aaPos)
 {
-	if(!sel.get_assigned_grid()){
+	if(!sel.grid()){
 		throw(UGFatalError("No grid assigned to selector"));
 	}
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 //	collect all vertices that are adjacent to selected elements
 //	we have to make sure that each vertex is only counted once.
@@ -118,7 +118,7 @@ void SelectAssociatedEdges(TSelector& sel,
 								TElemIterator elemsBegin,
 								TElemIterator elemsEnd)
 {
-	Grid* pGrid = sel.get_assigned_grid();
+	Grid* pGrid = sel.grid();
 	if(pGrid)
 	{
 		Grid& grid = *pGrid;
@@ -140,7 +140,7 @@ void SelectAssociatedFaces(TSelector& sel,
 								TElemIterator elemsBegin,
 								TElemIterator elemsEnd)
 {
-	Grid* pGrid = sel.get_assigned_grid();
+	Grid* pGrid = sel.grid();
 	if(pGrid)
 	{
 		Grid& grid = *pGrid;

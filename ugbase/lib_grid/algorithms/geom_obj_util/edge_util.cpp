@@ -765,12 +765,12 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
 bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 						APosition& aPos)
 {
-	if(!sel.get_assigned_grid()){
+	if(!sel.grid()){
 		UG_LOG("ERROR in CutEdgesWithPlane: sel has to be assigned to a grid.\n");
 		return false;
 	}
 	
-	Grid& grid = *sel.get_assigned_grid();
+	Grid& grid = *sel.grid();
 	
 	if(!grid.has_vertex_attachment(aPos)){
 		UG_LOG("ERROR in CutEdgesWithPlane: aPos has to be attached to the vertices of the grid.\n");

@@ -396,13 +396,13 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 		return false;
 
 //	get the grid behind the subset-handler
-	if(!sh.get_assigned_grid()){
+	if(!sh.grid()){
 		UG_LOG("ERROR in SplitIrregularManifoldSubset: No Grid associated");
 		UG_LOG(" with the given SubsetHandler.\n");
 		return false;
 	}
 
-	Grid& grid = *sh.get_assigned_grid();
+	Grid& grid = *sh.grid();
 
 //	edges are required
 	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
@@ -958,10 +958,10 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 	typedef basic_string<int> IntString;
 
 //	access the grid on which sh operates.
-	if(!sh.get_assigned_grid())
+	if(!sh.grid())
 		return;
 
-	Grid& grid = *sh.get_assigned_grid();
+	Grid& grid = *sh.grid();
 
 //	we'll use those marks to check whether a subset has already been
 //	processed in an iteration. A subset is considered to be marked, if

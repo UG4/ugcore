@@ -31,7 +31,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		~MultiGridSubsetHandler();
 				
 		void assign_grid(MultiGrid& mg);
-		inline MultiGrid* get_assigned_multi_grid()	{return m_pMG;}
+		inline MultiGrid* multi_grid()	{return m_pMG;}
 		
 	///	Makes sure that the subset with the given index exists.
 	/**	If required the subsets between num_subsets() and index will be created.*/

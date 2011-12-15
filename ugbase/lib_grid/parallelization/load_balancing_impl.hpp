@@ -206,10 +206,10 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	UG_STATIC_ASSERT(TAAPos::ValueType::Size >= 2,
 					TAPosition_has_to_be_at_least_two_dimensional);
 
-	UG_ASSERT(shOut.get_assigned_grid(), "A grid has to be associated with the "
+	UG_ASSERT(shOut.grid(), "A grid has to be associated with the "
 											"specified subset handler.");
 
-	Grid& grid = *shOut.get_assigned_grid();
+	Grid& grid = *shOut.grid();
 
 //	collect all elements which shall be considered for partitioning.
 //	All others are assigned to bucketSubset

@@ -282,7 +282,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 	typename TDomain::grid_type& grid = domainOut.grid();
 	SubsetHandler& shPart = partitionMap.get_partition_handler();
 
-	if(shPart.get_assigned_grid() != &grid){
+	if(shPart.grid() != &grid){
 		partitionMap.assign_grid(grid);
 	}
 

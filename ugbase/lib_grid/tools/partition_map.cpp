@@ -18,7 +18,7 @@ void PartitionMap::clear()
 
 void PartitionMap::assign_grid(Grid& grid)
 {
-	if(&grid != m_shPartitions.get_assigned_grid())
+	if(&grid != m_shPartitions.grid())
 		m_shPartitions.assign_grid(grid);
 }
 
