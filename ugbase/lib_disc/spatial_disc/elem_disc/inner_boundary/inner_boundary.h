@@ -17,6 +17,7 @@
 
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+#include "lib_disc/spatial_disc/ip_data/data_import_export.h"
 
 
 /// Finite Volume Element Discretization for an inner BndCond that depends on the unknowns (on the bnd)
@@ -53,12 +54,17 @@ class FV1InnerBoundaryElemDisc
 		typedef typename base_type::position_type position_type;
 
 	public:
+	
+	/// Constructor
 		FV1InnerBoundaryElemDisc(size_t numFct, const char* functions, const char* subsets)
 			: IDomainElemDisc<TDomain>(numFct, functions, subsets), _numFct(numFct)
 		{
 			register_all_fv1_funcs();
 		}
-		
+	
+	/// Setting the flux function
+		void set_fluxFunction(IPData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
+	
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
@@ -93,7 +99,11 @@ class FV1InnerBoundaryElemDisc
 	private:
 	
 	///	number of unknowns involved
-		size_t _numFct; 
+		size_t _numFct;
+		
+	///	Data import for flux
+		DataImport<number, dim> m_fluxFct;
+
 	
 	///	prepares the loop over all elements
 	/**
@@ -144,6 +154,7 @@ class FV1InnerBoundaryElemDisc
 	private:
 		void register_all_fv1_funcs();
 
+		//template <template <class Elem, int WorldDim> class TFVGeom>
 		template <template <class Elem, int WorldDim> class TFVGeom>
 		struct RegisterFV1 {
 				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
