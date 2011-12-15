@@ -55,7 +55,6 @@ void zgetrs_(char *trans, lapack_int *n, lapack_int *nrhs, const complex<lapack_
 	UG_ASSERT(0, "lapack not available");
 }
 
-}
 
 #endif // LAPACK_AVAILABLE
 
