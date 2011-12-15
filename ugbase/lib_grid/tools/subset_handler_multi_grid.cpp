@@ -143,18 +143,18 @@ assign_subset_impl(TElem* elem, int subsetIndex)
 	assert((m_pGrid != NULL) && "ERROR in SubsetHandler::assign_subset(): No grid assigned to SubsetHandler.");
 
 	int level = m_pMG->get_level(elem);
-	subset_required(subsetIndex);
-	level_required(level);
 
 //	check if we have to remove elem from a subset.
 	int oldIndex = get_subset_index(elem);
 	
 	if(oldIndex != -1)
-		section_container<TElem>(subsetIndex, level).erase(get_list_iterator(elem), elem->shared_pipe_section());
+		section_container<TElem>(oldIndex, level).erase(get_list_iterator(elem), elem->shared_pipe_section());
 
 //	add the element to the subset.
 	if(subsetIndex != -1)
 	{
+		subset_required(subsetIndex);
+		level_required(level);
 		section_container<TElem>(subsetIndex, level).insert(elem, elem->shared_pipe_section());
 		subset_assigned(elem, subsetIndex);
 	}
