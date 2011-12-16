@@ -349,7 +349,7 @@ public:
 
 	bool i_can_set_coarse(size_t i)
 	{
-		return nodes[i].is_valid_rating() || nodes[i].is_coarse();
+		return nodes[i].could_be_coarse();
 	}
 	void calculate_unassigned()
 	{
