@@ -187,33 +187,10 @@ private:
 	// the fine grid matrix (const!)
 	const matrix_type &A;
 
-	bool bTiming; //< if true, timing will be outputed
-
 	// interpolation/restriction matrices to be filled
 	prolongation_matrix_type &R, &PnewIndices;
 
 	size_t level; // current amg level
-
-
-	// this structure holds coarse/fine information as well as
-	// master/slave. it tries to replace the missing "node" object here
-	FAMGNodes rating;
-
-	//! list of possible interpolating parents for each node
-	stdvector<stdvector<neighborstruct2> > possible_parents;
-
-	stdvector<bool> prolongation_calculated;
-
-	//! heap used for sorting of ratings
-	maxheap<FAMGNode> heap;
-
-	//! used to determine which neighbors' rating needs to be updated:
-	cgraph SymmNeighGraph;
-
-	// our testvectors
-	stdvector< vector_type > &m_testvectors;
-
-	prolongation_matrix_type PoldIndices;
 
 #ifdef UG_PARALLEL
 	ParallelNodes PN;
@@ -237,10 +214,33 @@ private:
 #else
 	const matrix_type &A_OL2;
 #endif
+	FAMGNodes rating;
+	stdvector< vector_type > &m_testvectors;
 
 	// the calculator which calculates our interpolation weighs
-		FAMGInterpolationCalculator<matrix_type, vector_type> calculator;
+	FAMGInterpolationCalculator<matrix_type, vector_type> calculator;
 
+	bool bTiming; //< if true, timing will be outputed
+
+	// this structure holds coarse/fine information as well as
+	// master/slave. it tries to replace the missing "node" object here
+
+
+	//! list of possible interpolating parents for each node
+	stdvector<stdvector<neighborstruct2> > possible_parents;
+
+	stdvector<bool> prolongation_calculated;
+
+	//! heap used for sorting of ratings
+	maxheap<FAMGNode> heap;
+
+	//! used to determine which neighbors' rating needs to be updated:
+	cgraph SymmNeighGraph;
+
+	// our testvectors
+
+
+	prolongation_matrix_type PoldIndices;
 
 	void create_restriction()
 	{
