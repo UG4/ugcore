@@ -30,29 +30,42 @@ add_subdirectory(common)
 
 ########################
 # lib_grid
-add_subdirectory(lib_grid)
+if(buildGrid)
+	add_subdirectory(lib_grid)
+endif(buildGrid)
 
 ########################
 # lib_registry
-add_subdirectory(registry)
+if(buildRegistry)
+	add_subdirectory(registry)
+endif(buildRegistry)
 
 ########################
 # bridge
-add_subdirectory(bridge)
+if(buildBridge)
+	add_subdirectory(bridge)
+endif(buildBridge)
 
 ########################
 # bindings
-add_subdirectory(bindings/lua)
-if(buildForVRL)
-    add_subdirectory(bindings/vrl)
-endif(buildForVRL)
+if(buildBindings)
+	add_subdirectory(bindings/lua)
+	if(buildForVRL)
+    	add_subdirectory(bindings/vrl)
+	endif(buildForVRL)
+endif(buildBindings)
 
 ########################
-# lib_algebra and lib_discretization
+# lib_algebra
 if(buildAlgebra)
 	add_subdirectory(lib_algebra)	
-	add_subdirectory(lib_disc)
 endif(buildAlgebra)
+
+########################
+# lib_disc
+if(buildDisc)
+	add_subdirectory(lib_disc)
+endif(buildDisc)
 
 
 ########################
@@ -78,7 +91,7 @@ endif(BUILD_ONE_LIB)
 
 ########################
 # ug4 shell
-if(buildUGShell)
-    add_subdirectory(ug_shell)
-endif(buildUGShell)
+#if(buildUGShell)
+#    add_subdirectory(ug_shell)
+#endif(buildUGShell)
 
