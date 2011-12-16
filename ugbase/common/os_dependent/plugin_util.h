@@ -2,6 +2,8 @@
 // s.b.reiter@googlemail.com
 // 12.09.2011 (m,d,y)
 
+#ifdef UG_PLUGINS
+
 #ifndef __H__UG__plugin_util__
 #define __H__UG__plugin_util__
 
@@ -14,5 +16,7 @@ namespace ug
 bool LoadPlugins(const char* pluginPath, std::string);
 
 }//	end of namespace
+
+#endif
 
 #endif

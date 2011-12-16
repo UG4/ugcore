@@ -1,7 +1,9 @@
 // created by Sebastian Reiter
 // s.b.reiter@googlemail.com
 // 12.09.2011 (m,d,y)
- 
+
+#ifdef UG_PLUGINS
+
 #include <dlfcn.h>
 #include <string>
 #include "common/log.h"
@@ -57,3 +59,5 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 }
 
 }// end of namespace
+
+#endif // UG_PLUGINS
