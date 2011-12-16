@@ -91,7 +91,7 @@ endif(BUILD_ONE_LIB)
 
 ########################
 # ug4 shell
-#if(buildUGShell)
-#    add_subdirectory(ug_shell)
-#endif(buildUGShell)
+if(buildUGShell)
+    add_subdirectory(ug_shell)
+endif(buildUGShell)
 
