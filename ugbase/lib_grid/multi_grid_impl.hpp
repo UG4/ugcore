@@ -80,6 +80,60 @@ MultiGrid::create(const typename geometry_traits<TGeomObj>::Descriptor& descript
 	return iter;
 }
 
+
+//	info-access
+inline MultiGrid::VertexInfo& MultiGrid::get_info(VertexBase* v)
+{
+	return m_aaVrtInf[v];
+}
+
+inline MultiGrid::EdgeInfo& MultiGrid::get_info(EdgeBase* e)
+{
+	return m_aaEdgeInf[e];
+}
+
+inline MultiGrid::FaceInfo& MultiGrid::get_info(Face* f)
+{
+	if(FaceInfo* info = m_aaFaceInf[f])
+		return *info;
+	UG_THROW("MultiGrid::get_info(...): No face info available!");
+}
+
+inline MultiGrid::VolumeInfo& MultiGrid::get_info(Volume* v)
+{
+	if(VolumeInfo* info = m_aaVolInf[v])
+		return *info;
+	UG_THROW("MultiGrid::get_info(...): No vertex info available!");
+}
+
+//	const info-access
+inline const MultiGrid::VertexInfo& MultiGrid::get_info(VertexBase* v) const
+{
+	return m_aaVrtInf[v];
+}
+
+inline const MultiGrid::EdgeInfo& MultiGrid::get_info(EdgeBase* e) const
+{
+	return m_aaEdgeInf[e];
+}
+
+inline const MultiGrid::FaceInfo& MultiGrid::get_info(Face* f) const
+{
+	static FaceInfo	emptyInfo;
+	if(FaceInfo* info = m_aaFaceInf[f])
+		return *info;
+	return emptyInfo;
+}
+
+inline const MultiGrid::VolumeInfo& MultiGrid::get_info(Volume* v) const
+{
+	static VolumeInfo	emptyInfo;
+	if(VolumeInfo* info = m_aaVolInf[v])
+		return *info;
+	return emptyInfo;
+}
+
+
 template <class TElem, class TParent>
 void MultiGrid::element_created(TElem* elem, TParent* pParent)
 {
@@ -94,10 +148,14 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent)
 	}
 
 //	register parent and child
-	typename mginfo_traits<TElem>::info_type& info = get_info(elem);
-	info.m_pParent = pParent;
+	//typename mginfo_traits<TElem>::info_type& info = get_info(elem);
+	//info.m_pParent = pParent;
+	set_parent(elem, pParent);
 	if(pParent)
 	{
+	//	make sure that the parent has an info object
+		create_child_info(pParent);
+
 	//	add the element to the parents children list
 		typename mginfo_traits<TParent>::info_type& parentInfo = get_info(pParent);
 		parentInfo.add_child(elem);
@@ -122,12 +180,12 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent,
 	}
 
 //	register parent and child
-	typename mginfo_traits<TElem>::info_type& info = get_info(elem);
-	info.m_pParent = pParent;
+	set_parent(elem, pParent);
 
 	if(pParent)
 	{
 	//	add the element to the parents children list
+	//	pParent should have an info object at this time!
 		typename mginfo_traits<TParent>::info_type& parentInfo = get_info(pParent);
 		parentInfo.replace_child(elem, pReplaceMe);
 	}
@@ -140,14 +198,18 @@ template <class TElem>
 void MultiGrid::element_to_be_erased(TElem* elem)
 {
 //	we have to remove the elements children as well.
-	typename mginfo_traits<TElem>::info_type& info = get_info(elem);
-	info.unregister_from_children(*this);
+	if(has_children(elem)){
+		get_info(elem).unregister_from_children(*this);
+	}
+//	we have to remove the associated info object
+	release_child_info(elem);
 }
 
 template <class TElem, class TParent>
 void MultiGrid::element_to_be_erased(TElem* elem, TParent* pParent)
 {
 //	unregister the element from its parent.
+//	parents always have an info object
 	typename mginfo_traits<TParent>::info_type& parentInfo = get_info(pParent);
 	parentInfo.remove_child(elem);
 	element_to_be_erased(elem);

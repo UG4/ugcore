@@ -72,7 +72,7 @@ struct MGVertexInfo
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	void unregister_from_children(MultiGrid& mg);
-	GeometricObject* 	m_pParent;
+	GeometricObject*	m_pParent;
 	VertexBase*			m_pVrtChild;
 };
 
@@ -96,17 +96,18 @@ struct MGEdgeInfo
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
 	void unregister_from_children(MultiGrid& mg);
-	GeometricObject* 	m_pParent;
+	GeometricObject*	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
 	byte				m_numEdgeChildren;///< primarily required during refinement
 };
 
 ///	Holds information about face relations. Used internally.
+/**	No parent included, since MGFaceInfos are not stored for surface elements.*/
 struct MGFaceInfo
 {
 	MGFaceInfo()		{clear();}
-	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = 0;}
+	inline void clear()	{m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = 0;}
 	inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren;}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_FACE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
@@ -118,7 +119,7 @@ struct MGFaceInfo
 	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
 	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
 	void unregister_from_children(MultiGrid& mg);
-	GeometricObject* 	m_pParent;
+
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
 	Face*				m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
@@ -127,10 +128,11 @@ struct MGFaceInfo
 };
 
 ///	Holds information about volume relations. Used internally.
+/**	No parent included, since MGFaceInfos are not stored for surface elements.*/
 struct MGVolumeInfo
 {
 	MGVolumeInfo()		{clear();}
-	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = m_numVolChildren = 0;}
+	inline void clear()	{m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = m_numVolChildren = 0;}
 	inline bool has_children()	const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren || m_numVolChildren;}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_VOLUME_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
@@ -146,7 +148,6 @@ struct MGVolumeInfo
 	inline void replace_child(Volume* elem, Volume* child)			{ArrayReplaceEntry(m_pVolChild, elem, child, m_numVolChildren);}
 	void unregister_from_children(MultiGrid& mg);
 
-	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_VOLUME_MAX_EDGE_CHILDREN];
 	Face*				m_pFaceChild[MG_VOLUME_MAX_FACE_CHILDREN];
@@ -339,14 +340,14 @@ class MultiGrid : public Grid, public GridObserver
 		{return m_hierarchy.get_geometric_objects();}
 		
 		template <class TElem> inline
-		int get_level(TElem* elem)
+		int get_level(TElem* elem) const
 		{return m_hierarchy.get_subset_index(elem);}
 
-		GeometricObject* get_parent(GeometricObject* parent);
-
-		template <class TElem> inline
-		GeometricObject* get_parent(TElem* elem)
-		{return get_info(elem).m_pParent;}
+		GeometricObject* get_parent(GeometricObject* parent) const;
+		inline GeometricObject* get_parent(VertexBase* o) const	{return get_info(o).m_pParent;}
+		inline GeometricObject* get_parent(EdgeBase* o) const	{return get_info(o).m_pParent;}
+		inline GeometricObject* get_parent(Face* o) const		{return m_aaParentFACE[o];}
+		inline GeometricObject* get_parent(Volume* o) const		{return m_aaParentVOL[o];}
 
 	//	number of children
 		template <class TElem> inline
@@ -357,32 +358,32 @@ class MultiGrid : public Grid, public GridObserver
 	//	CHILD QUANTITIES
 	///	returns the number of children of the given child-type
 		template <class TChild, class TElem>
-		inline size_t num_children(TElem* elem)		{return num_children(elem, TChild());}
+		inline size_t num_children(TElem* elem)	const	{return num_children(elem, TChild());}
 
 	///	Returns the number of child vertices
 		template <class TElem>
-		inline size_t num_child_vertices(TElem* elem)	{return get_info(elem).m_pVrtChild ? 1 : 0;}
+		inline size_t num_child_vertices(TElem* elem) const	{return get_info(elem).m_pVrtChild ? 1 : 0;}
 
 	///	Returns the number of child edges
 	/**	\{	*/
 		template <class TElem>
-		inline size_t num_child_edges(TElem* elem)		{return get_info(elem).m_numEdgeChildren;}
-		inline size_t num_child_edges(VertexBase*)		{return 0;}
+		inline size_t num_child_edges(TElem* elem) const	{return get_info(elem).m_numEdgeChildren;}
+		inline size_t num_child_edges(VertexBase*) const	{return 0;}
 	/**	\}	*/
 
 	///	Returns the number of child faces
 	/**	\{	*/
 		template <class TElem>
-		inline size_t num_child_faces(TElem* elem)		{return get_info(elem).m_numFaceChildren;}
-		inline size_t num_child_faces(VertexBase*)		{return 0;}
-		inline size_t num_child_faces(EdgeBase*)		{return 0;}
+		inline size_t num_child_faces(TElem* elem) const	{return get_info(elem).m_numFaceChildren;}
+		inline size_t num_child_faces(VertexBase*) const	{return 0;}
+		inline size_t num_child_faces(EdgeBase*) const		{return 0;}
 	/**	\}	*/
 
 	///	Returns the number of child volumes
 	/**	\{	*/
-		inline size_t num_child_volumes(Volume* elem)		{return get_info(elem).m_numVolChildren;}
+		inline size_t num_child_volumes(Volume* elem) const	{return get_info(elem).m_numVolChildren;}
 		template <class TElem>
-		inline size_t num_child_volumes(TElem*)				{return 0;}
+		inline size_t num_child_volumes(TElem*) const		{return 0;}
 	/**	\}	*/
 
 
@@ -390,40 +391,40 @@ class MultiGrid : public Grid, public GridObserver
 	//	CHILD ACCESS
 	///	returns the i-th child of the given child-type
 		template <class TChild, class TElem>
-		inline TChild* get_child(TElem* elem, size_t ind)	{return get_child(elem, ind, TChild());}
+		inline TChild* get_child(TElem* elem, size_t ind) const	{return get_child(elem, ind, TChild());}
 
 	///	Returns the child vertex of the given element or NULL if there is none
 		template <class TElem>
-		inline VertexBase* get_child_vertex(TElem* elem)	{return get_info(elem).m_pVrtChild;}
+		inline VertexBase* get_child_vertex(TElem* elem) const	{return get_info(elem).m_pVrtChild;}
 
 	///	Returns the child edges of the given element or NULL if there is none
 	/**	\{	*/
 		template <class TElem>
-		inline EdgeBase* get_child_edge(TElem* elem, size_t ind)	{return get_info(elem).m_pEdgeChild[ind];}
-		inline EdgeBase* get_child_edge(VertexBase*, size_t)		{return NULL;}
+		inline EdgeBase* get_child_edge(TElem* elem, size_t ind) const	{return get_info(elem).m_pEdgeChild[ind];}
+		inline EdgeBase* get_child_edge(VertexBase*, size_t) const		{return NULL;}
 	/**	\}	*/
 
 	///	Returns the child faces of the given element or NULL if there is none
 	/**	\{	*/
 		template <class TElem>
-		inline Face* get_child_face(TElem* elem, size_t ind)	{return get_info(elem).m_pFaceChild[ind];}
-		inline Face* get_child_face(VertexBase*, size_t)		{return NULL;}
-		inline Face* get_child_face(EdgeBase*, size_t)			{return NULL;}
+		inline Face* get_child_face(TElem* elem, size_t ind) const	{return get_info(elem).m_pFaceChild[ind];}
+		inline Face* get_child_face(VertexBase*, size_t) const		{return NULL;}
+		inline Face* get_child_face(EdgeBase*, size_t) const			{return NULL;}
 	/**	\}	*/
 
 	///	Returns the child volumes of the given element or NULL if there is none
 	/**	\{	*/
-		inline Volume* get_child_volume(Volume* elem, size_t ind)	{return get_info(elem).m_pVolChild[ind];}
+		inline Volume* get_child_volume(Volume* elem, size_t ind) const	{return get_info(elem).m_pVolChild[ind];}
 		template <class TElem>
-		inline Volume* get_child_volume(TElem*, size_t)	{return NULL;}
+		inline Volume* get_child_volume(TElem*, size_t) const	{return NULL;}
 	/**	\}	*/
 
 	///	for debug purposes
-		void check_edge_elem_infos(int level);
+		void check_edge_elem_infos(int level) const;
 	///	for debug purposes
-		void check_face_elem_infos(int level);
+		void check_face_elem_infos(int level) const;
 	///	for debug purposes
-		void check_volume_elem_infos(int level);
+		void check_volume_elem_infos(int level) const;
 		
 	///	this method may be removed in future versions of the MultiGrid-class.
 	/**	You really shouldn't use this method!!!*/
@@ -486,26 +487,29 @@ class MultiGrid : public Grid, public GridObserver
 
 	protected:
 
-		typedef Attachment<VertexInfo>	AVertexInfo;
-		typedef Attachment<EdgeInfo>		AEdgeInfo;
-		typedef Attachment<FaceInfo>		AFaceInfo;
-		typedef Attachment<VolumeInfo>	AVolumeInfo;
+	//	Note: VertexInfo and EdgeInfo are stored directly, FaceInfo and
+	//	VolumeInfo are stored dynamically.
+		typedef Attachment<GeometricObject*>	AParent;
+		typedef Attachment<VertexInfo>			AVertexInfo;
+		typedef Attachment<EdgeInfo>			AEdgeInfo;
+		typedef Attachment<FaceInfo*>			AFaceInfo;
+		typedef Attachment<VolumeInfo*>			AVolumeInfo;
 
 	protected:
 	//	initialization
 		void init();
 		
 	//	info-access
-		inline VertexInfo& get_info(VertexBase* v)	{return m_aaVrtInf[v];}
-		inline EdgeInfo& get_info(EdgeBase* e)		{return m_aaEdgeInf[e];}
-		inline FaceInfo& get_info(Face* f)			{return m_aaFaceInf[f];}
-		inline VolumeInfo& get_info(Volume* v)		{return m_aaVolInf[v];}
+		inline VertexInfo& get_info(VertexBase* v);
+		inline EdgeInfo& get_info(EdgeBase* e);
+		inline FaceInfo& get_info(Face* f);
+		inline VolumeInfo& get_info(Volume* v);
 
 	//	const info-access
-		inline const VertexInfo& get_info(VertexBase* v) const	{return m_aaVrtInf[v];}
-		inline const EdgeInfo& get_info(EdgeBase* e) const		{return m_aaEdgeInf[e];}
-		inline const FaceInfo& get_info(Face* f) const			{return m_aaFaceInf[f];}
-		inline const VolumeInfo& get_info(Volume* v) const		{return m_aaVolInf[v];}
+		inline const VertexInfo& get_info(VertexBase* v) const;
+		inline const EdgeInfo& get_info(EdgeBase* e) const;
+		inline const FaceInfo& get_info(Face* f) const;
+		inline const VolumeInfo& get_info(Volume* v) const;
 
 	//	elem creation
 		template <class TElem>
@@ -533,39 +537,63 @@ class MultiGrid : public Grid, public GridObserver
 	///	returning the number of children of the type of the dummy-argument.
 	/**	\{ */
 		template <class TElem>
-		inline size_t num_children(TElem* elem, const VertexBase&)
+		inline size_t num_children(TElem* elem, const VertexBase&) const
 			{return num_child_vertices(elem);}
 
 		template <class TElem>
-		inline size_t num_children(TElem* elem, const EdgeBase&)
+		inline size_t num_children(TElem* elem, const EdgeBase&) const
 			{return num_child_edges(elem);}
 
 		template <class TElem>
-		inline size_t num_children(TElem* elem, const Face&)
+		inline size_t num_children(TElem* elem, const Face&) const
 			{return num_child_faces(elem);}
 
 		template <class TElem>
-		inline size_t num_children(TElem* elem, const Volume&)
+		inline size_t num_children(TElem* elem, const Volume&) const
 			{return num_child_volumes(elem);}
 	/**	\} */
 
 	///	returning the i-th child of the type of the dummy-argument.
 	/**	\{ */
 		template <class TElem>
-		inline VertexBase* get_child(TElem* elem, size_t ind, const VertexBase&)
+		inline VertexBase* get_child(TElem* elem, size_t ind, const VertexBase&) const
 			{return get_child_vertex(elem);}
 
 		template <class TElem>
-		inline EdgeBase* get_child(TElem* elem, size_t ind, const EdgeBase&)
+		inline EdgeBase* get_child(TElem* elem, size_t ind, const EdgeBase&) const
 			{return get_child_edge(elem, ind);}
 
 		template <class TElem>
-		inline Face* get_child(TElem* elem, size_t ind, const Face&)
+		inline Face* get_child(TElem* elem, size_t ind, const Face&) const
 			{return get_child_face(elem, ind);}
 
 		template <class TElem>
-		inline Volume* get_child(TElem* elem, size_t ind, const Volume&)
+		inline Volume* get_child(TElem* elem, size_t ind, const Volume&) const
 			{return get_child_volume(elem, ind);}
+	/**	\} */
+
+	///	sets the parent for the given object
+	/**	\{ */
+		inline void set_parent(VertexBase* o, GeometricObject* p)	{get_info(o).m_pParent = p;}
+		inline void set_parent(EdgeBase* o, GeometricObject* p)		{get_info(o).m_pParent = p;}
+		inline void set_parent(Face* o, GeometricObject* p)			{m_aaParentFACE[o] = p;}
+		inline void set_parent(Volume* o, GeometricObject* p)		{m_aaParentVOL[o] = p;}
+	/**	\} */
+
+	///	creates the info-object for the given object (if necessary)
+	/**	\{ */
+		inline void create_child_info(VertexBase* o){}
+		inline void create_child_info(EdgeBase* o)	{}
+		inline void create_child_info(Face* o)		{if(!m_aaFaceInf[o]) m_aaFaceInf[o] = new FaceInfo();}
+		inline void create_child_info(Volume* o)	{if(!m_aaVolInf[o]) m_aaVolInf[o] = new VolumeInfo();}
+	/**	\} */
+
+	///	releases the info-object for the given object (if necessary)
+	/**	\{ */
+		inline void release_child_info(VertexBase* o)	{}
+		inline void release_child_info(EdgeBase* o)		{}
+		inline void release_child_info(Face* o)			{if(m_aaFaceInf[o]) delete m_aaFaceInf[o]; m_aaFaceInf[o] = NULL;}
+		inline void release_child_info(Volume* o)		{if(m_aaVolInf[o]) delete m_aaVolInf[o]; m_aaVolInf[o] = NULL;}
 	/**	\} */
 
 	protected:
@@ -573,11 +601,18 @@ class MultiGrid : public Grid, public GridObserver
 		SubsetHandler	m_hierarchy;
 		bool m_bHierarchicalInsertion;
 
+	//	parent attachment
+		AParent		m_aParent;
+
 	//	info attachments
 		AVertexInfo	m_aVertexInfo;
 		AEdgeInfo	m_aEdgeInfo;
 		AFaceInfo	m_aFaceInfo;
 		AVolumeInfo	m_aVolumeInfo;
+
+	//	parent access - only required for faces and volumes.
+		Grid::FaceAttachmentAccessor<AParent>		m_aaParentFACE;
+		Grid::VolumeAttachmentAccessor<AParent>		m_aaParentVOL;
 
 	//	element info access
 		Grid::VertexAttachmentAccessor<AVertexInfo>	m_aaVrtInf;

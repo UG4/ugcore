@@ -45,6 +45,10 @@ void MultiGrid::init()
 //	the MultiGrid observes itself (its underlying grid).
 	register_observer(this, OT_FULL_OBSERVER);
 
+//	attach parent-pointers
+	attach_to_faces(m_aParent);
+	attach_to_volumes(m_aParent);
+
 //	attach elem-infos
 	attach_to_vertices(m_aVertexInfo);
 	attach_to_edges(m_aEdgeInfo);
@@ -55,7 +59,9 @@ void MultiGrid::init()
 	m_aaVrtInf.access(*this, m_aVertexInfo);
 	m_aaEdgeInf.access(*this, m_aEdgeInfo);
 	m_aaFaceInf.access(*this, m_aFaceInfo);
+	m_aaParentFACE.access(*this, m_aParent);
 	m_aaVolInf.access(*this, m_aVolumeInfo);
+	m_aaParentVOL.access(*this, m_aParent);
 }
 
 void MultiGrid::enable_hierarchical_insertion(bool bEnable)
@@ -110,15 +116,15 @@ create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, int level)
 }
 
 
-GeometricObject* MultiGrid::get_parent(GeometricObject* parent)
+GeometricObject* MultiGrid::get_parent(GeometricObject* parent) const
 {
 	int baseType = parent->base_object_type_id();
 	switch(baseType)
 	{
-	case VERTEX:	return get_parent((VertexBase*)parent);
-	case EDGE:		return get_parent((EdgeBase*)parent);
-	case FACE:		return get_parent((Face*)parent);
-	case VOLUME:	return get_parent((Volume*)parent);
+		case VERTEX:	return get_parent((VertexBase*)parent);
+		case EDGE:		return get_parent((EdgeBase*)parent);
+		case FACE:		return get_parent((Face*)parent);
+		case VOLUME:	return get_parent((Volume*)parent);
 	}
 	return NULL;
 }
@@ -147,7 +153,7 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_type_id() == VERTEX,
 				  "only objects of the same base type can be replaced.");
-		VertexBase* pReplaceMe = reinterpret_cast<VertexBase*>(pParent);
+		VertexBase* pReplaceMe = static_cast<VertexBase*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
@@ -164,13 +170,13 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 		else
 			element_created<VertexBase, VertexBase>(vrt, NULL, pReplaceMe);
 
-	//	copy pReplaceMes children and replace parent of children
+	//	copy pReplaceMe's children and replace parent of children
 		MGVertexInfo& myInfo = get_info(vrt);
 		MGVertexInfo& replaceInfo = get_info(pReplaceMe);
 
 		if(replaceInfo.m_pVrtChild){
 			myInfo.add_child(replaceInfo.m_pVrtChild);
-			get_info(replaceInfo.m_pVrtChild).m_pParent = vrt;
+			set_parent(replaceInfo.m_pVrtChild, vrt);
 		}
 	}
 	else{
@@ -201,8 +207,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
 	if(replacedBy)
 		return;
 
-	VertexInfo& info = get_info(vrt);
-	GeometricObject* pParent = info.m_pParent;
+	GeometricObject* pParent = get_parent(vrt);
 	if(pParent)
 	{
 		int baseType = pParent->base_object_type_id();
@@ -229,7 +234,7 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_type_id() == EDGE,
 				  "only objects of the same base type can be replaced.");
-		EdgeBase* pReplaceMe = reinterpret_cast<EdgeBase*>(pParent);
+		EdgeBase* pReplaceMe = static_cast<EdgeBase*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
 		if(realParent){
 		//	we call a version of element_created, which allows a replace
@@ -250,12 +255,12 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 
 		if(replaceInfo.m_pVrtChild){
 			myInfo.add_child(replaceInfo.m_pVrtChild);
-			get_info(replaceInfo.m_pVrtChild).m_pParent = edge;
+			set_parent(replaceInfo.m_pVrtChild, edge);
 		}
 
 		for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
 			myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
-			get_info(replaceInfo.m_pEdgeChild[i]).m_pParent = edge;
+			set_parent(replaceInfo.m_pEdgeChild[i], edge);
 		}
 	}
 	else{
@@ -283,8 +288,7 @@ void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge,
 	if(replacedBy)
 		return;
 
-	EdgeInfo& info = get_info(edge);
-	GeometricObject* pParent = info.m_pParent;
+	GeometricObject* pParent = get_parent(edge);
 	if(pParent)
 	{
 		int baseType = pParent->base_object_type_id();
@@ -310,7 +314,7 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_type_id() == FACE,
 				  "only objects of the same base type can be replaced.");
-		Face* pReplaceMe = reinterpret_cast<Face*>(pParent);
+		Face* pReplaceMe = static_cast<Face*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
@@ -326,22 +330,25 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			element_created<Face, Face>(face, NULL, pReplaceMe);
 
 	//	copy pReplaceMes children and replace parent of children
-		MGFaceInfo& myInfo = get_info(face);
-		MGFaceInfo& replaceInfo = get_info(pReplaceMe);
+		if(has_children(pReplaceMe)){
+			create_child_info(face);
+			MGFaceInfo& myInfo = get_info(face);
+			MGFaceInfo& replaceInfo = get_info(pReplaceMe);
 
-		if(replaceInfo.m_pVrtChild){
-			myInfo.add_child(replaceInfo.m_pVrtChild);
-			get_info(replaceInfo.m_pVrtChild).m_pParent = face;
-		}
+			if(replaceInfo.m_pVrtChild){
+				myInfo.add_child(replaceInfo.m_pVrtChild);
+				set_parent(replaceInfo.m_pVrtChild, face);
+			}
 
-		for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
-			myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
-			get_info(replaceInfo.m_pEdgeChild[i]).m_pParent = face;
-		}
+			for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
+				myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
+				set_parent(replaceInfo.m_pEdgeChild[i], face);
+			}
 
-		for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
-			myInfo.add_child(replaceInfo.m_pFaceChild[i]);
-			get_info(replaceInfo.m_pFaceChild[i]).m_pParent = face;
+			for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
+				myInfo.add_child(replaceInfo.m_pFaceChild[i]);
+				set_parent(replaceInfo.m_pFaceChild[i], face);
+			}
 		}
 	}
 	else{
@@ -368,8 +375,7 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
 	if(replacedBy)
 		return;
 
-	FaceInfo& info = get_info(face);
-	GeometricObject* pParent = info.m_pParent;
+	GeometricObject* pParent = get_parent(face);
 	if(pParent)
 	{
 		int baseType = pParent->base_object_type_id();
@@ -394,34 +400,37 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_type_id() == VOLUME,
 				  "only objects of the same base type can be replaced.");
-		Volume* pReplaceMe = reinterpret_cast<Volume*>(pParent);
+		Volume* pReplaceMe = static_cast<Volume*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
 		element_created(vol, (Volume*)realParent, pReplaceMe);
 
 	//	copy pReplaceMes children and replace parent of children
-		MGVolumeInfo& myInfo = get_info(vol);
-		MGVolumeInfo& replaceInfo = get_info(pReplaceMe);
+		if(has_children(pReplaceMe)){
+			create_child_info(vol);
+			MGVolumeInfo& myInfo = get_info(vol);
+			MGVolumeInfo& replaceInfo = get_info(pReplaceMe);
 
-		if(replaceInfo.m_pVrtChild){
-			myInfo.add_child(replaceInfo.m_pVrtChild);
-			get_info(replaceInfo.m_pVrtChild).m_pParent = vol;
-		}
+			if(replaceInfo.m_pVrtChild){
+				myInfo.add_child(replaceInfo.m_pVrtChild);
+				set_parent(replaceInfo.m_pVrtChild, vol);
+			}
 
-		for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
-			myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
-			get_info(replaceInfo.m_pEdgeChild[i]).m_pParent = vol;
-		}
+			for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
+				myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
+				set_parent(replaceInfo.m_pEdgeChild[i], vol);
+			}
 
-		for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
-			myInfo.add_child(replaceInfo.m_pFaceChild[i]);
-			get_info(replaceInfo.m_pFaceChild[i]).m_pParent = vol;
-		}
+			for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
+				myInfo.add_child(replaceInfo.m_pFaceChild[i]);
+				set_parent(replaceInfo.m_pFaceChild[i], vol);
+			}
 
-		for(size_t i = 0; i < replaceInfo.m_numVolChildren; ++i){
-			myInfo.add_child(replaceInfo.m_pVolChild[i]);
-			get_info(replaceInfo.m_pVolChild[i]).m_pParent = vol;
+			for(size_t i = 0; i < replaceInfo.m_numVolChildren; ++i){
+				myInfo.add_child(replaceInfo.m_pVolChild[i]);
+				set_parent(replaceInfo.m_pVolChild[i], vol);
+			}
 		}
 	}
 	else{
@@ -445,8 +454,7 @@ void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol,
 	if(replacedBy)
 		return;
 
-	VolumeInfo& info = get_info(vol);
-	GeometricObject* pParent = info.m_pParent;
+	GeometricObject* pParent = get_parent(vol);
 	if(pParent)
 	{
 		UG_ASSERT(pParent->base_object_type_id() == VOLUME,
@@ -458,43 +466,43 @@ void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol,
 }
 
 
-void MultiGrid::check_edge_elem_infos(int level)
+void MultiGrid::check_edge_elem_infos(int level) const
 {
 //	check the max fill rates of each child list.
 	byte maxChildEdges = 0;
 
-	for(EdgeBaseIterator iter = begin<EdgeBase>(level);
+	for(ConstEdgeBaseIterator iter = begin<EdgeBase>(level);
 		iter != end<EdgeBase>(level); ++iter)
 		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
 
-	cout << "MultiGrid: max edge child edges on level " << level << ": " << (int)maxChildEdges << endl;
+	UG_LOG("MultiGrid: max edge child edges on level " << level << ": " << (int)maxChildEdges << endl);
 }
 
-void MultiGrid::check_face_elem_infos(int level)
+void MultiGrid::check_face_elem_infos(int level) const
 {
 //	check the max fill rates of each child list.
 	byte maxChildEdges = 0;
 	byte maxChildFaces = 0;
 
-	for(FaceIterator iter = begin<Face>(level);
+	for(ConstFaceIterator iter = begin<Face>(level);
 		iter != end<Face>(level); ++iter)
 	{
 		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
 		maxChildFaces = max(get_info(*iter).m_numFaceChildren, maxChildFaces);
 	}
 
-	cout << "MultiGrid: max face child edges on level " << level << ": " << (int)maxChildEdges << endl;
-	cout << "MultiGrid: max face child faces on level " << level << ": " << (int)maxChildFaces << endl;
+	UG_LOG("MultiGrid: max face child edges on level " << level << ": " << (int)maxChildEdges << endl);
+	UG_LOG("MultiGrid: max face child faces on level " << level << ": " << (int)maxChildFaces << endl);
 }
 
-void MultiGrid::check_volume_elem_infos(int level)
+void MultiGrid::check_volume_elem_infos(int level) const
 {
 //	check the max fill rates of each child list.
 	byte maxChildEdges = 0;
 	byte maxChildFaces = 0;
 	byte maxChildVolumes = 0;
 
-	for(VolumeIterator iter = begin<Volume>(level);
+	for(ConstVolumeIterator iter = begin<Volume>(level);
 		iter != end<Volume>(level); ++iter)
 	{
 		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
@@ -502,9 +510,9 @@ void MultiGrid::check_volume_elem_infos(int level)
 		maxChildVolumes = max(get_info(*iter).m_numVolChildren, maxChildVolumes);
 	}
 
-	cout << "MultiGrid: max volume child edges on level " << level << ": " << (int)maxChildEdges << endl;
-	cout << "MultiGrid: max volume child faces on level " << level << ": " << (int)maxChildFaces << endl;
-	cout << "MultiGrid: max volume child volumes on level " << level << ": " << (int)maxChildVolumes << endl;
+	UG_LOG("MultiGrid: max volume child edges on level " << level << ": " << (int)maxChildEdges << endl);
+	UG_LOG("MultiGrid: max volume child faces on level " << level << ": " << (int)maxChildFaces << endl);
+	UG_LOG("MultiGrid: max volume child volumes on level " << level << ": " << (int)maxChildVolumes << endl);
 }
 
 
@@ -515,40 +523,40 @@ void MultiGrid::check_volume_elem_infos(int level)
 void MGVertexInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.get_info(m_pVrtChild).m_pParent = NULL;
+		mg.set_parent(m_pVrtChild, NULL);
 	clear();
 }
 
 void MGEdgeInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.get_info(m_pVrtChild).m_pParent = NULL;
+		mg.set_parent(m_pVrtChild, NULL);
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		mg.get_info(m_pEdgeChild[i]).m_pParent = NULL;
+		mg.set_parent(m_pEdgeChild[i], NULL);
 	clear();
 }
 
 void MGFaceInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.get_info(m_pVrtChild).m_pParent = NULL;
+		mg.set_parent(m_pVrtChild, NULL);
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		mg.get_info(m_pEdgeChild[i]).m_pParent = NULL;
+		mg.set_parent(m_pEdgeChild[i], NULL);
 	for(int i = 0; i < m_numFaceChildren; ++i)
-		mg.get_info(m_pFaceChild[i]).m_pParent = NULL;
+		mg.set_parent(m_pFaceChild[i], NULL);
 	clear();
 }
 
 void MGVolumeInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.get_info(m_pVrtChild).m_pParent = NULL;
+		mg.set_parent(m_pVrtChild, NULL);
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		mg.get_info(m_pEdgeChild[i]).m_pParent = NULL;
+		mg.set_parent(m_pEdgeChild[i], NULL);
 	for(int i = 0; i < m_numFaceChildren; ++i)
-		mg.get_info(m_pFaceChild[i]).m_pParent = NULL;
+		mg.set_parent(m_pFaceChild[i], NULL);
 	for(int i = 0; i < m_numVolChildren; ++i)
-		mg.get_info(m_pVolChild[i]).m_pParent = NULL;
+		mg.set_parent(m_pVolChild[i], NULL);
 	clear();
 }
 

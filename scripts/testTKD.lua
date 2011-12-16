@@ -8,7 +8,7 @@ h = math.sqrt(6)*a
 d_lipid = 9
 
 date = os.date("%d-%m-%y__%H-%M-%S")
-filename = "/tmp/tkd__" .. date .. ".ugx"
+filename = "tkd__" .. date .. ".ugx"
 
 -- calling testing method
 TestTKDGenerator(filename, h, a, w, d_lipid)
