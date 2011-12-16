@@ -56,4 +56,19 @@ bool ParamToString(const char ** strOut, const char* param, int argc, const char
 	return true;
 }
 
+int ParamToInt(const char* param, int argc, const char * const argv[], int iDefault)
+{
+	int i;
+	if(ParamToInt(i, param, argc, argv) == true)
+		return i;
+	else return iDefault;
+}
+double ParamToDouble(const char *param, int argc, const char * const argv[], double dDefault)
+{
+	double d;
+	if(ParamToDouble(d, param, argc, argv) == true)
+		return d;
+	else return dDefault;
+}
+
 }// end of namespace

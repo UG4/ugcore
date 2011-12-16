@@ -43,6 +43,11 @@ UG_API bool ParamToDouble(double &dOut, const char *param, int argc, const char 
  */
 UG_API bool ParamToString(const char** strOut, const char* param, int argc, const char * const argv[]);
 
+
+
+UG_API double ParamToDouble(const char *param, int argc, const char * const argv[], double dDefault);
+UG_API int ParamToInt(const char *param, int argc, const char * const argv[], int iDefault);
+
 }//	end of namespace
 
 #endif
