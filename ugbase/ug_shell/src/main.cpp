@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 //	if "-outproc" is not found, outputProc won't be changed.
 	ParamToInt(outputProc, "-outproc", argc, argv);
 	
-	char* logFileName = NULL;
+	const char* logFileName = NULL;
 	if(ParamToString(&logFileName, "-logtofile", argc, argv))
 		GetLogAssistant().enable_file_output(true, logFileName);
 
@@ -235,6 +235,13 @@ int main(int argc, char* argv[])
 				UGFinalize();
 				return 0; // exit with code 0
 			}
+		}
+		catch(UGError &err)
+		{
+			UG_LOG("UGError:\n");
+			for(size_t i=0; i<err.num_msg(); i++)
+				UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
+			UG_LOG("\n");
 		}
 		
 		if(FindParam("-noquit", argc, argv))

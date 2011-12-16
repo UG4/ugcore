@@ -9,7 +9,7 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
-int GetParamIndex(const char* param, int argc, char* argv[]) {
+int GetParamIndex(const char* param, int argc, const char * const argv[]) {
 	for (int i = 0; i < argc; ++i) {
 		if (strcmp(param, argv[i]) == 0) {
 			return i;
@@ -19,12 +19,13 @@ int GetParamIndex(const char* param, int argc, char* argv[]) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool FindParam(const char* param, int argc, char* argv[]) {
+bool FindParam(const char* param, int argc, const char * const argv[]) {
 	return GetParamIndex(param, argc, argv) != -1;
 }
 
+
 ////////////////////////////////////////////////////////////////////////
-bool ParamToInt(int& iOut, const char* param, int argc, char* argv[]) {
+bool ParamToInt(int& iOut, const char* param, int argc, const char * const argv[]) {
 	int i = GetParamIndex(param, argc, argv);
 	if (i == -1 || i + 1 >= argc) {
 		return false;
@@ -34,7 +35,19 @@ bool ParamToInt(int& iOut, const char* param, int argc, char* argv[]) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool ParamToString(char** strOut, const char* param, int argc, char* argv[]) {
+bool ParamToDouble(double &dOut, const char *param, int argc, const char * const argv[])
+{
+	int i = GetParamIndex(param, argc, argv);
+	if (i == -1 || i + 1 >= argc) {
+		return false;
+	}
+	dOut = atof(argv[i + 1]);
+	return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+bool ParamToString(const char ** strOut, const char* param, int argc, const char * const argv[]) {
 	int i = GetParamIndex(param, argc, argv);
 	if (i == -1 || i + 1 >= argc) {
 		return false;
