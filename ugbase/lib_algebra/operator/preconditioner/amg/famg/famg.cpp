@@ -194,8 +194,6 @@ private:
 
 	size_t level; // current amg level
 
-	// the calculator which calculates our interpolation weighs
-	FAMGInterpolationCalculator<matrix_type, vector_type> calculator;
 
 	// this structure holds coarse/fine information as well as
 	// master/slave. it tries to replace the missing "node" object here
@@ -239,6 +237,9 @@ private:
 #else
 	const matrix_type &A_OL2;
 #endif
+
+	// the calculator which calculates our interpolation weighs
+		FAMGInterpolationCalculator<matrix_type, vector_type> calculator;
 
 
 	void create_restriction()
@@ -316,25 +317,23 @@ public:
 			prolongation_matrix_type &_P, size_t _level,
 			stdvector< vector_type > &testvectors, stdvector<double> &omega)
 	: m_famg(f), AH(_AH), A(_A), R(_R), PnewIndices(_P), level(_level),
-				calculator(A, A_OL2,
+#ifdef UG_PARALLEL
+
+			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
+						const_cast<matrix_type&>(A).get_slave_layout(), A.num_rows()),
+			nextLevelMasterLayout(AH.get_master_layout()), nextLevelSlaveLayout(AH.get_slave_layout()),
+			rating(PoldIndices, _level, m_famg.m_amghelper, PN),
+#else
+			A_OL2(A),
+			rating(PoldIndices, _level, m_famg.m_amghelper),
+#endif
+			m_testvectors(testvectors),
+			calculator(A, A_OL2,
 					m_famg.get_delta(),
 					m_famg.get_theta(),
 					m_famg.get_damping_for_smoother_in_interpolation_calculation(),
 					m_famg.get_epsilon_truncation(),
-					testvectors, omega),
-#ifdef UG_PARALLEL
-			rating(PoldIndices, _level, m_famg.m_amghelper, PN),
-#else
-			rating(PoldIndices, _level, m_famg.m_amghelper),
-#endif
-			m_testvectors(testvectors),
-#ifndef UG_PARALLEL
-			A_OL2(A)
-#else
-			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
-											const_cast<matrix_type&>(A).get_slave_layout(), A.num_rows())
-			, nextLevelMasterLayout(AH.get_master_layout()), nextLevelSlaveLayout(AH.get_slave_layout())
-#endif
+					testvectors, omega)
 	{
 	}
 
