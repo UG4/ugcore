@@ -5,6 +5,10 @@
 #include "bridge.h"
 #include "lib_algebra/algebra_type.h"
 #include "lib_disc/dof_manager/dof_distribution_type.h"
+#include "common/util/path_provider.h"
+#ifdef UG_PLUGINS
+	#include "common/os_dependent/plugin_util.h"
+#endif
 
 using namespace std;
 
@@ -17,6 +21,26 @@ Registry & GetUGRegistry()
 {
 	static Registry ugReg;
 	return ugReg;
+}
+
+/// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
+bool InitBridge()
+{
+	//	initialize ug-interfaces
+	if(!RegisterStandardInterfaces(bridge::GetUGRegistry()))
+	{
+		std::cout<<"ERROR in 'UGInit': InitBridge register standard interfaces "
+				"using RegisterStandardInterfaces. Check registration process.\n";
+		return false;
+	}
+
+#ifdef UG_PLUGINS
+	if(!LoadPlugins(ug::PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))
+	{
+		std::cout<<"ERROR in 'UGInit': LoadPlugins failed.\n";
+		return false;
+	}
+#endif
 }
 
 

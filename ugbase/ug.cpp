@@ -10,13 +10,7 @@
 #include "ug.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
-#include "bindings/lua/lua_util.h"
-#include "bridge/bridge.h"
 #include "common/os_dependent/os_info.h"
-
-#ifdef UG_PLUGINS
-	#include "common/os_dependent/plugin_util.h"
-#endif
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -114,18 +108,6 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 
 	//todo: If initPaths fails, something should be done...
 		InitPaths((*argvp)[0]);
-
-		//	initialize ug-interfaces
-		if(!bridge::RegisterStandardInterfaces(bridge::GetUGRegistry()))
-		{
-			std::cout<<"ERROR in 'UGInit': Cannot register standard interfaces "
-					"using RegisterStandardInterfaces. Check registration process.\n";
-			return -1;
-		}
-
-		#ifdef UG_PLUGINS
-			LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/");
-		#endif
 	}
 
 	return 0;

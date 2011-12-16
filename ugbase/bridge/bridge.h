@@ -26,6 +26,10 @@ void InitUG(int dim, const AlgebraType& algebraType);
 ///	Sets the default classes of class-groups based on a tags
 void InitUG(int dim, const AlgebraType& algebraType, const char* ddType);
 
+
+/// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
+bool InitBridge();
+
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
