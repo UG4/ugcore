@@ -136,11 +136,8 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f)
 			iter != iterEnd; iter++)
 		{
 			uint numFaces = (*iter)->num_faces();
-			for(uint i = 0; i < numFaces; ++i)
-			{
-				if(VolumeContains(*iter, f))
-					counter++;
-			}
+			if(VolumeContains(*iter, f))
+				counter++;
 		}
 	}
 
