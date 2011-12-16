@@ -642,7 +642,9 @@ ENDIF(UNIX)
 # Those options are temporary and should be removed in future builds.
 # They are left from the old build script.
 set(UG_SHARED ON)
-add_definitions(-DUG_PLUGINS)
+if(buildCorePlugins)
+	add_definitions(-DUG_PLUGINS)
+endif(buildCorePlugins)
 set(UG_PROFILER ${PROFILER})
 set(UG_DEBUG ${DEBUG})
 set(USE_NEW_CMAKE_INCLUDES ON)
