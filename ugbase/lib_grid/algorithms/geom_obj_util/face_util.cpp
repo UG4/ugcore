@@ -135,7 +135,6 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f)
 		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f->vertex(0));
 			iter != iterEnd; iter++)
 		{
-			uint numFaces = (*iter)->num_faces();
 			if(VolumeContains(*iter, f))
 				counter++;
 		}

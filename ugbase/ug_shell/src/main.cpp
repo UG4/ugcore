@@ -141,8 +141,8 @@ int main(int argc, char* argv[])
 	else						{UG_LOG("fail");}
 	
 	UG_LOG(", bridge... ");
-	if(bridge::RegisterStandardInterfaces(bridge::GetUGRegistry()))	{UG_LOG("done");}
-	else															{UG_LOG("fail");}
+	if(bridge::InitBridge())	{UG_LOG("done");}
+	else						{UG_LOG("fail");}
 	
 	#ifdef UG_PLUGINS
 		UG_LOG(", plugins... ");

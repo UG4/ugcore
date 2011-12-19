@@ -45,8 +45,11 @@ endif(UG_PROFILER)
 # Platform dependend code
 ################################################################################
 if(UNIX)
-	set(sources ${sources}	os_dependent/file_util_posix.cpp
-							os_dependent/plugin_util_unix.cpp)
+	set(sources ${sources}	os_dependent/file_util_posix.cpp)
+	
+	if(buildPluginSystem)
+		set(sources ${sources}	os_dependent/plugin_util_unix.cpp)
+	endif(buildPluginSystem)
 	
 	if(MAC)
 		set(sources ${sources} os_dependent/os_info_osx.cpp)
@@ -55,8 +58,11 @@ if(UNIX)
 	endif(MAC)
 
 elseif(WIN32)
-	set(sources ${sources}	os_dependent/os_info_win.cpp
-							os_dependent/plugin_util_win.cpp)
+	set(sources ${sources}	os_dependent/os_info_win.cpp)
+	
+	if(buildPluginSystem)
+		set(sources ${sources}	os_dependent/plugin_util_win.cpp)
+	endif(buildPluginSystem)
 	
 	if(MINGW)
 		set(sources ${sources} os_dependent/file_util_posix.cpp)

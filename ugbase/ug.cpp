@@ -13,7 +13,13 @@
 #include "common/os_dependent/os_info.h"
 
 #ifdef UG_PARALLEL
-#include "pcl/pcl.h"
+	#include "pcl/pcl.h"
+#endif
+#ifdef UG_BRIDGE
+	#include "bridge/bridge.h"
+#endif
+#ifdef UG_PLUGINS
+	#include "common/os_dependent/plugin_util.h"
 #endif
 
 /** Tells whether profile-output is desired on exit.*/
@@ -108,6 +114,19 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 
 	//todo: If initPaths fails, something should be done...
 		InitPaths((*argvp)[0]);
+
+#ifdef UG_BRIDGE
+		if(!bridge::InitBridge()){
+			UG_LOG("ERROR in UGInig: InitBridge failed!\n");
+		}
+#endif
+
+#ifdef UG_PLUGINS
+		if(!LoadPlugins(ug::PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))
+		{
+			UG_LOG("ERROR in UGInit: LoadPlugins failed!\n");
+		}
+#endif
 	}
 
 	return 0;

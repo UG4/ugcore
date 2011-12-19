@@ -2,8 +2,6 @@
 // s.b.reiter@googlemail.com
 // 12.09.2011 (m,d,y)
 
-#ifdef UG_PLUGINS
-
 #ifndef __H__UG__plugin_util__
 #define __H__UG__plugin_util__
 
@@ -13,10 +11,8 @@ namespace ug
 {
 
 ///	Loads all plugins in the given path.
-bool LoadPlugins(const char* pluginPath, std::string);
+bool LoadPlugins(const char* pluginPath, std::string parentGroup);
 
 }//	end of namespace
-
-#endif
 
 #endif
