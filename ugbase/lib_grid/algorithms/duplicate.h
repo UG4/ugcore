@@ -10,7 +10,14 @@
 
 namespace ug
 {
-
+///	Duplicates the selected part of a grid and translates it by an offset
+/**	NOTE: This method is not suited for MultiGrids.
+ * Duplicates all selected elements and associated lower dimensional elements.
+ * New vertices are shifted by the given offset.
+ * You may specify whether the old selection shall be cleared and whether the
+ * new elements shall be selected. Note that this overrules the settings
+ * regarding autoselection and selection-inheritance in the given selector.
+ */
 template <class TAPos>
 bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offset,
 			   TAPos& aPos, bool deselectOld = true, bool selectNew = true)
