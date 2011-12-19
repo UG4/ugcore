@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
+#include "selection_util.h"
 
 namespace ug
 {
