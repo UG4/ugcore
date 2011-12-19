@@ -2,8 +2,6 @@
 // s.b.reiter@googlemail.com
 // 15.09.2011 (m,d,y)
 
-#ifdef UG_PLUGINS
-
 #include <windows.h>
 #include <string>
 #include "common/log.h"
@@ -71,4 +69,3 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 
 }// end of namespace
 
-#endif // UG_PLUGINS
