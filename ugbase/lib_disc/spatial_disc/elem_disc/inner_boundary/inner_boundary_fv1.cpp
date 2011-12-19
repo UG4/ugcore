@@ -316,14 +316,14 @@ register_fv1_func()
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
-	set_prep_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
-	set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
-	set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
-	set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
-	set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
-	set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
-	set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+	this->set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
+	this->set_prep_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
+	this->set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
+	this->set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
+	this->set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
