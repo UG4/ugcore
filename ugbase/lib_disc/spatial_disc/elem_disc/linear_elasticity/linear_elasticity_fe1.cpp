@@ -112,14 +112,15 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 					number integrand = 0;
 					for(size_t ip = 0; ip < geo.num_ip(); ++ip) // loop ip
 					{
+						number scalProd = 0;
 						for(size_t d1 = 0; d1 < (size_t)dim; ++d1) // loop dimension
 						{
 							for(size_t d2 = 0; d2 < (size_t)dim; ++d2) // loop dimension
 							{
-								integrand += geo.global_grad(ip, i)[d1] * m_ElasticityTensor[c1][d1][c2][d2] * geo.global_grad(ip, j)[d2];
+								scalProd += geo.global_grad(ip, i)[d1] * m_ElasticityTensor[c1][d1][c2][d2] * geo.global_grad(ip, j)[d2];
 							}
 						}
-						integrand *= geo.weight(ip);
+						integrand += scalProd * geo.weight(ip);
 					}
 
 					J(c1, i, c2, j) += integrand;
