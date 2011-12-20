@@ -24,13 +24,31 @@
 /**
  * This class implements the IElemDisc interface to provide element local
  * assemblings for the unknown-dependent Neumann-flux over an inner boundary.
- * The equation of this flux should be given on the script level.
+ * The equation of this flux should be given in a concretization of this class.
  * 
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
 
 namespace ug{
+
+/// struct that holds information about the flux densities and from where to where the flux occurs
+struct FluxCond
+{
+	// vector of fluxFctValues
+	std::vector<number> flux;
+	std::vector<size_t> from;
+	std::vector<size_t> to;
+};
+
+struct FluxDerivCond
+{
+	// vector of fluxFctDerivValues (wrt fct, flux number)
+	std::vector<std::vector<number> > fluxDeriv;
+	std::vector<size_t> from;
+	std::vector<size_t> to;
+};
+
 
 template<typename TDomain>
 class FV1InnerBoundaryElemDisc
@@ -63,7 +81,7 @@ class FV1InnerBoundaryElemDisc
 		}
 	
 	/// Setting the flux function
-		void set_fluxFunction(IPData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
+		//void set_fluxFunction(IPData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
 	
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
@@ -84,7 +102,7 @@ class FV1InnerBoundaryElemDisc
 		//	switch, which assemble functions to use.
 			if(bNonRegular)
 			{
-				UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::treat_non_regular_grid':"
+				UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::treat_non_regular_grid':"
 						" Non-regular grid not implemented.\n");
 				return false;
 			}
@@ -96,14 +114,26 @@ class FV1InnerBoundaryElemDisc
 	///	returns if hanging nodes are used
 		virtual bool use_hanging() const {return false;}
 
-	private:
+
+	protected:
 	
 	///	number of unknowns involved
 		size_t _numFct;
-		
-	///	Data import for flux
-		DataImport<number, dim> m_fluxFct;
-
+	
+	private:
+	
+	/// the flux function
+	/**	This is the actual flux function defining the flux density over the boundary
+	 *	depending on the unknowns on the boundary;
+	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
+	 */
+		virtual bool fluxDensityFct(const LocalVector& u, size_t node_id, FluxCond& fc) = 0;	/// the flux function
+	
+	/**	This is the flux derivative function defining the flux density derivatives over the boundary
+	 *	depending on the unknowns on the boundary;
+	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
+	 */
+		virtual bool fluxDensityDerivFct(const LocalVector& u, size_t node_id, FluxDerivCond& fdc) = 0;
 	
 	///	prepares the loop over all elements
 	/**

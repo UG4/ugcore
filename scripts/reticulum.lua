@@ -50,8 +50,8 @@ NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 5)
 	end
 	
 	function ourDiffTensor2dIP3(x, y, t)
-		return	500, 0, 
-				0, 500
+		return	280, 0, 
+				0, 280
 	end
 	
 	function ourRhs2d(x, y, t)
@@ -208,7 +208,7 @@ neumannDiscCYT:add(neumann, "ca_cyt", "mem_cyt")
 
 -- we pass here the function needed to evaluate the flux function.
 -- The order in which the discrete fct are passed is crucial!
-innerDisc = FV1InnerBoundary(3, "ca_cyt, ca_er, ip3", "mem_er")
+innerDisc = FV1InnerBoundaryCalciumER(3, "ca_cyt, ca_er, ip3", "mem_er")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -365,9 +365,9 @@ InterpolateFunction(CaERStartValue, u, "ca_er", 0.0)
 InterpolateFunction(IP3StartValue, u, "ip3", 0.0)
 
 -- timestep in seconds
-dt = 0.01
+dt = 0.001
 time = 0.0
-step = 1
+step = 0
 
 -- filename
 filename = "Con"

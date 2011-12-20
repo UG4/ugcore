@@ -27,6 +27,7 @@
 
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
+#include "lib_disc/spatial_disc/elem_disc/inner_boundary/FV1CalciumERElemDisc.h"
 #include "lib_disc/spatial_disc/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 using namespace std;
@@ -88,14 +89,20 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
 	}
 
-//	Inner Boundary
+//	Inner Boundaries
 	{
 		typedef FV1InnerBoundaryElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1InnerBoundary").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, elemGrp)
-			.template add_constructor<void (*)(size_t, const char*, const char*)>("NumberOfFunctions#Function(s)#Subset(s)");
+		reg.add_class_<T, TBase >(name, elemGrp);
 		reg.add_class_to_group(name, "FV1InnerBoundary", dimTag);
+		
+		typedef FV1CalciumERElemDisc<TDomain> T1;
+		typedef FV1InnerBoundaryElemDisc<TDomain> TBase1;
+		name = string("FV1InnerBoundaryCalciumER").append(dimSuffix);
+		reg.add_class_<T1, TBase1>(name, elemGrp)
+			.template add_constructor<void (*)(size_t, const char*, const char*)>("NumberOfFunctions#Function(s)#Subset(s)");
+		reg.add_class_to_group(name, "FV1InnerBoundaryCalciumER", dimTag);
 	}
 
 //	Constant Equation Finite Volume
