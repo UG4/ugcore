@@ -176,6 +176,15 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_prolongation_truncation", &FAMG<algebra_type>::set_prolongation_truncation, "", "prolongation_tr", "sets prolongation_truncation, a parameter used for truncation of interpolation")
 			.add_method("get_prolongation_truncation", &FAMG<algebra_type>::get_prolongation_truncation, "prolongation_tr")
 
+			.add_method("set_galerkin_truncation", &FAMG<algebra_type>::set_galerkin_truncation, "", "galerkin_tr", "sets galerkin truncation, a parameter used to truncate the galerkin product. use with care! (like 1e-12)")
+			.add_method("get_galerkin_truncation", &FAMG<algebra_type>::get_galerkin_truncation, "galerkin_tr")
+
+			.add_method("set_H_reduce_interpolation_nodes_parameter", &FAMG<algebra_type>::set_H_reduce_interpolation_nodes_parameter, "", "HreduceParameter", "we can restrict the number of parent nodes by looking at the entries of H(i,j) to prevent high fill in rates")
+			.add_method("get_H_reduce_interpolation_nodes_parameter", &FAMG<algebra_type>::get_H_reduce_interpolation_nodes_parameter, "HreduceParameter")
+
+			.add_method("set_prereduce_A_parameter", &FAMG<algebra_type>::set_prereduce_A_parameter, "", "prereduceA", "by setting this != 0.0, we reduce the matrix A before using it to its strong connections. ex. parameter is 0.1")
+			.add_method("get_prereduce_A_parameter", &FAMG<algebra_type>::get_prereduce_A_parameter, "prereduceA")
+
 			.add_method("set_external_coarsening", &FAMG<algebra_type>::set_external_coarsening)
 			.add_method("set_use_precalculate", &FAMG<algebra_type>::set_use_precalculate)
 
