@@ -67,6 +67,10 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
 bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns true, if the edge lies on a 2d or 3d boundary
+bool LiesOnBoundary(Grid& grid, EdgeBase* e);
+
+////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
 ///	writes associated faces of e to facesOut.
 /**

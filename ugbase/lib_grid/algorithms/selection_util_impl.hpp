@@ -155,6 +155,37 @@ void SelectAssociatedFaces(TSelector& sel,
 	}
 }
 
+
+template <class TElemIterator>
+void SelectBoundaryElements(ISelector& sel, TElemIterator elemsBegin,
+						 TElemIterator elemsEnd)
+{
+	UG_ASSERT(sel.grid(), "A grid has to be associated with the selector");
+	Grid& grid = *sel.grid();
+
+	for(TElemIterator iter = elemsBegin; iter != elemsEnd; ++iter){
+		typename TElemIterator::value_type e = *iter;
+		if(LiesOnBoundary(grid, e)){
+			sel.select(e);
+		}
+	}
+}
+
+template <class TElemIterator>
+void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
+						 TElemIterator elemsEnd)
+{
+	UG_ASSERT(sel.grid(), "A grid has to be associated with the selector");
+	Grid& grid = *sel.grid();
+
+	for(TElemIterator iter = elemsBegin; iter != elemsEnd; ++iter){
+		typename TElemIterator::value_type e = *iter;
+		if(!LiesOnBoundary(grid, e)){
+			sel.select(e);
+		}
+	}
+}
+
 }// end of namespace
 
 #endif

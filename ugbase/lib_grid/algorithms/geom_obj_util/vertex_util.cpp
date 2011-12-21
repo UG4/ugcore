@@ -440,6 +440,22 @@ bool IsBoundaryVertex3D(Grid& grid, VertexBase* v)
 
 	return false;
 }
+
+bool LiesOnBoundary(Grid& grid, VertexBase* v)
+{
+	if(IsBoundaryVertex1D(grid, v))
+		return true;
+
+	if(IsBoundaryVertex2D(grid, v))
+		return true;
+
+	if(IsBoundaryVertex3D(grid, v))
+		return true;
+
+	return false;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 bool IsRegularSurfaceVertex(Grid& grid, VertexBase* v)
 {

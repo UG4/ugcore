@@ -132,6 +132,21 @@ bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e)
 	return false;
 }
 
+bool LiesOnBoundary(Grid& grid, EdgeBase* e)
+{
+//	first check whether the edge is a 2d boundary element
+	if(IsBoundaryEdge2D(grid, e)){
+		return true;
+	}
+
+//	since it isn't a 2d boundary element, it might be a 3d boundary element
+	if(IsBoundaryEdge3D(grid, e))
+		return true;
+
+//	ok - it isn't a boundary element
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
 int GetAssociatedFaces(Face** facesOut, Grid& grid,

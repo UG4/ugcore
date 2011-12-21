@@ -251,6 +251,10 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
 */
 bool IsBoundaryVertex3D(Grid& grid, VertexBase* v);
 
+////////////////////////////////////////////////////////////////////////////////
+///	returns true, if the vertex lies on a 1d, 2d or 3d boundary
+bool LiesOnBoundary(Grid& grid, VertexBase* v);
+
 ////////////////////////////////////////////////////////////////////////
 //	IsRegularSurfaceVertex
 ///	returns true if the vertex lies inside a regular surface

@@ -111,6 +111,18 @@ void SelectAssociatedEdges(TSelector& sel,
 								TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
+///	selects elements that lie on the associated grid's boundary
+template <class TElemIterator>
+void SelectBoundaryElements(ISelector& sel, TElemIterator elemsBegin,
+						 TElemIterator elemsEnd);
+
+////////////////////////////////////////////////////////////////////////
+///	selects elements that do not lie on the associated grid's boundary
+template <class TElemIterator>
+void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
+						 TElemIterator elemsEnd);
+
+////////////////////////////////////////////////////////////////////////
 ///	selects edges that are only adjacent to one of the given faces
 /**
  * This algorithm uses Grid::mark.

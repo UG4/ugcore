@@ -396,6 +396,7 @@ class FaceVertices
 	public:
 		typedef VertexBase* const* ConstVertexArray;
 
+		virtual ~FaceVertices()							{}
 		virtual VertexBase* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
@@ -551,6 +552,8 @@ class FaceDescriptor : public FaceVertices
 		FaceDescriptor(uint numVertices);
 		FaceDescriptor(const FaceDescriptor& fd);
 
+		virtual ~FaceDescriptor()					{}
+
 		FaceDescriptor& operator = (const FaceDescriptor& fd);
 
 		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
@@ -579,6 +582,8 @@ class VolumeVertices
 {
 	public:
 		typedef VertexBase* const* ConstVertexArray;
+
+		virtual ~VolumeVertices()						{}
 
 		virtual VertexBase* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
@@ -750,6 +755,8 @@ class VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor();
 		VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces);
 		VolumeDescriptor(const VolumeDescriptor& vd);
+
+		virtual ~VolumeDescriptor()										{}
 
 		VolumeDescriptor& operator = (const VolumeDescriptor& vv);
 		VolumeDescriptor& operator = (const VolumeVertices& vv);

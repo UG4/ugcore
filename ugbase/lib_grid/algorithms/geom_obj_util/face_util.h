@@ -111,6 +111,12 @@ bool IsBoundaryFace3D(Grid& grid, TFace* f)
 {return IsVolumeBoundaryFace(grid, f);}
 
 ////////////////////////////////////////////////////////////////////////
+///	A wrapper for IsVolumeBoundaryFace
+template <class TFace>
+bool LiesOnBoundary(Grid& grid, TFace* f)
+{return IsBoundaryFace3D(grid, f);}
+
+////////////////////////////////////////////////////////////////////////
 //	FaceArea
 ///	Returns the area of a convex face
 template <class TAAPosVRT>
