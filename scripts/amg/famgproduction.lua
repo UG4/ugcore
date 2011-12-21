@@ -5,11 +5,11 @@
 --   Author: Martin Rupp / Andreas Vogel
 --
 ----------------------------------------------------------
--- SetOutputProcessRank(0)
+
 SetOutputProfileStats(false)
 
-GetLogAssistant():enable_file_output(true, "ug_log"..GetProcessRank())
 SetOutputProcessRank(-1)
+GetLogAssistant():enable_file_output(true, "ug_log"..GetProcessRank())
 
 ug_load_script("ug_util.lua")
 
@@ -41,7 +41,6 @@ numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 maxBase = util.GetParamNumber("-maxBase", 300)
 maxLevels = util.GetParamNumber("-maxLevels", 20)
 
-
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
 
@@ -51,8 +50,12 @@ epsy = util.GetParamNumber("-epsy", 1)
 bCheck = util.HasParamOption("-bCheck")
 
 bWriteStats = util.HasParamOption("-bWriteStats")
-bWriteMat = util.HasParamOption("-bWriteMat")
+bWriteMat = util.HasParamOption("-writeMatrices")
 bRSAMG = util.HasParamOption("-RSAMG") 
+
+bAggressiveCoarsening = util.HasParamOption("-AC")
+bExternalCoarsening = util.HasParamOption("-XC")
+jacBaseSolver = util.HasParamOption("-jacBaseSolver")
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
@@ -321,7 +324,7 @@ baseConvCheck:set_minimum_defect(1e-16)
 baseConvCheck:set_reduction(1e-16)
 baseConvCheck:set_verbose_level(false)
 
-if false then
+if jacBaseSolver then
 	base = LinearSolver()
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
@@ -353,7 +356,7 @@ if bRSAMG == false then
 	amg = FAMGPreconditioner()	
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
-	amg:set_aggressive_coarsening(false)
+	amg:set_aggressive_coarsening(bAggressiveCoarsening)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
 		
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
@@ -369,7 +372,7 @@ if bRSAMG == false then
 		amg:write_testvectors(true)
 	end
 	
-	if true then
+	if bExternalCoarsening then
 		amg:set_external_coarsening(true)
 		amg:set_parallel_coarsening(GetColorCoarsening())
 		-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
@@ -386,6 +389,9 @@ if bRSAMG == false then
 	-- amg:set_debug_level_calculate_parent_pairs(2)
 	-- amg:set_debug_level_precalculate_coarsening(4)
 	-- amg:set_debug_level_calculate_parent_pairs(4)
+	amg:set_galerkin_truncation(1e-6)
+	amg:set_H_reduce_interpolation_nodes_parameter(0.1)
+	amg:set_prereduce_A_parameter(0.0)
 else
 	print ("create AMG... ")
 	amg = RSAMGPreconditioner()
@@ -393,7 +399,9 @@ else
 	-- amg:set_parallel_coarsening(GetColorCoarsening())
 	amg:set_parallel_coarsening(GetRS3Coarsening())
 	-- amg:set_parallel_coarsening(GetSimpleParallelCoarsening())
-	-- amg:enable_aggressive_coarsening_A(2)
+	if bAggressiveCoarsening then
+		amg:enable_aggressive_coarsening_A(2)
+	end
 end
 
 
@@ -417,7 +425,7 @@ amg:set_min_nodes_on_one_processor(50000)
 amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.5)
 amg:set_fsmoothing(true)
-amg:set_epsilon_truncation(0)
+amg:set_prolongation_truncation(0)
 amg:tostring()
 
 
@@ -542,20 +550,9 @@ if not bCheck then
 	print("used Levels: "..amg:get_used_levels())
 	print("tSolve [s]: "..tSolve)
 	print("tGrid [s]: "..tGrid)
-	print("tAssemble [s]: "..tAssemble)
+	print("tAssemble [s]: "..tAssemble)	
 	
-	
-	LI = amg:get_level_information(0)
-	printf("Level 0: number of nodes: %d. fill in %.2f%%, nr of interface elements: %d (%.2f%%)", LI:get_nr_of_nodes(), LI:get_fill_in()*100, LI:get_nr_of_interface_elements(), LI:get_nr_of_interface_elements()/LI:get_nr_of_nodes()*100)
-	for i = 1, amg:get_used_levels()-1 do
-		LI = amg:get_level_information(i)
-		printf("Level %d: creation time: %.2f ms. number of nodes: %d. fill in %.2f%%. coarsening rate: %.2f%%, nr of interface elements: %d (%.2f%%)", i, 
-			LI:get_creation_time_ms(),  LI:get_nr_of_nodes(), LI:get_fill_in()*100,
-			LI:get_nr_of_nodes()*100/amg:get_level_information(i-1):get_nr_of_nodes(), LI:get_nr_of_interface_elements(), LI:get_nr_of_interface_elements()/LI:get_nr_of_nodes()*100)
-			
-	end
-	
-	if GetProfilerAvailable() == true then
+	if GetProfilerAvailable() == true and util.HasParamOption("-profiler") then
 		create_levelPN = GetProfileNode("c_create_AMG_level")
 		
 		function PrintParallelProfileNode(name)
