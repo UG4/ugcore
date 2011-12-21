@@ -140,8 +140,8 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_constructor()
 			.add_method("set_epsilon_strong", &RSAMG<algebra_type>::set_epsilon_strong, "", "epsilon_str", "sets epsilon_strong, a measure for strong connectivity")
 			.add_method("get_epsilon_strong", &RSAMG<algebra_type>::get_epsilon_strong, "epsilon_strong", "")
-			.add_method("set_epsilon_truncation", &RSAMG<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
-			.add_method("get_epsilon_truncation", &RSAMG<algebra_type>::get_epsilon_truncation, "epsilon_tr")
+			.add_method("set_prolongation_truncation", &RSAMG<algebra_type>::set_prolongation_truncation, "", "prolongation_tr", "sets the truncation of interpolation")
+			.add_method("get_prolongation_truncation", &RSAMG<algebra_type>::get_prolongation_truncation, "prolongation_tr")
 
 			.add_method("tostring", &RSAMG<algebra_type>::tostring)
 			.add_method("enable_aggressive_coarsening_A", &RSAMG<algebra_type>::enable_aggressive_coarsening_A, "", "nrOfPaths", "enables aggressive coarsening (A1 or A2) on the first level.")
@@ -173,8 +173,8 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("write_testvectors", &FAMG<algebra_type>::write_testvectors)
 			.add_method("set_testvector_from_matrix_rows", &FAMG<algebra_type>::set_testvector_from_matrix_rows)
 
-			.add_method("set_epsilon_truncation", &FAMG<algebra_type>::set_epsilon_truncation, "", "epsilon_tr", "sets epsilon_truncation, a parameter used for truncation of interpolation")
-			.add_method("get_epsilon_truncation", &FAMG<algebra_type>::get_epsilon_truncation, "epsilon_tr")
+			.add_method("set_prolongation_truncation", &FAMG<algebra_type>::set_prolongation_truncation, "", "prolongation_tr", "sets prolongation_truncation, a parameter used for truncation of interpolation")
+			.add_method("get_prolongation_truncation", &FAMG<algebra_type>::get_prolongation_truncation, "prolongation_tr")
 
 			.add_method("set_external_coarsening", &FAMG<algebra_type>::set_external_coarsening)
 			.add_method("set_use_precalculate", &FAMG<algebra_type>::set_use_precalculate)
