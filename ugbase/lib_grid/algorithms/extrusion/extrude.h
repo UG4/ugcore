@@ -45,8 +45,9 @@ enum ExtrusionOptions
  *
  * Pass any or-combination of const in ExtrusionOptions as extrusionOptions.
  *
- * After the algorithm has finished, the in-out-vectors hold the new elements
- * and can be directly used in a new call to Extrude.
+ * After the algorithm has finished, the in-out-vectors hold the elements
+ * which have been created from the input-elements of those vectors.
+ * The in-out-vectors thus can be directly used in a new call to Extrude.
  *
  * If you need to have access to all newly created elements you could use
  * a ug::Selector with enabled autoselection.
