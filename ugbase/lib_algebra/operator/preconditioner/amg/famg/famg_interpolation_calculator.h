@@ -8,11 +8,13 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
+#ifndef __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_INTERPOLATION_CALCULATOR_H__
+#define __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_INTERPOLATION_CALCULATOR_H__
+
+#include "famg.h"
 #include "famg_nodeinfo.h"
 #include "../rsamg/rsamg.h"
 
-#ifndef __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_INTERPOLATION_CALCULATOR_H__
-#define __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_INTERPOLATION_CALCULATOR_H__
 
 namespace ug {
 
@@ -87,16 +89,17 @@ private:
 	FAMGInterpolationCalculator(const FAMGInterpolationCalculator<matrix_type, vector_type> &other);
 
 public:
-	FAMGInterpolationCalculator(const matrix_type &A_,
-			const matrix_type &A_OL2_, double delta, double theta, double damping,
-			double truncation,
+	template<typename T>
+	FAMGInterpolationCalculator(const matrix_type &A_, const matrix_type &A_OL2_,
+			const FAMG<T> &famg,
 			stdvector< vector_type > &testvectors, stdvector<double> &omega)
 	: A(A_), A_OL2(A_OL2_), m_testvectors(testvectors), m_omega(omega)
 	{
-		m_delta = delta;
-		m_theta = theta;
-		m_damping = damping;
-		m_dEpsilonTr = truncation;
+		m_delta = famg.get_delta();
+		m_theta = famg.get_theta();
+		m_damping = famg.get_damping_for_smoother_in_interpolation_calculation();
+		m_dProlongationTruncation = famg.get_prolongation_truncation();
+		m_dHReduceInterpolationNodesParameter = famg.get_H_reduce_interpolation_nodes_parameter();
 
 		testvectorsExtern = (m_testvectors.size() > 0);
 	}
@@ -386,10 +389,14 @@ public:
 			return true;
 		}
 		else
+		{
+			UG_DLOG(LIB_ALG_AMG, 1, "solve_KKT: could not invert KKT :" << vKKT);
 			return false;
+
+		}
 	}
 
-	inline bool solve_KKT_on_subset(const std::vector<size_t> &indices)
+	inline bool solve_KKT_on_subset(const std::vector<size_t> &indices, size_t i)
 	{
 		AMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
@@ -403,6 +410,7 @@ public:
 		for(size_t j=0; j < N; j++)
 			vKKT(j, N) = vKKT(N, j) = localTestvector[0][indices[j]];
 
+
 		vKKT(N, N) = 0;
 
 		rhs.resize(N+1);
@@ -414,6 +422,7 @@ public:
 		IF_DEBUG(LIB_ALG_AMG, 5) rhs.maple_print("rhs");
 
 		q.resize(N+1);
+
 		if(InverseMatMult(q, 1.0, vKKT, rhs))
 		{
 			F = H(i_index, i_index) -localTestvector[0][i_index];
@@ -422,7 +431,27 @@ public:
 			return true;
 		}
 		else
+		{
+			UG_DLOG(LIB_ALG_AMG, 1, "solve_KKT_on_subset: could not invert KKT in "
+				 << i << ":\n" << vKKT);
 			return false;
+		}
+	}
+
+	void printH(size_t i)
+	{
+		std::vector<size_t> N;
+		for(size_t j=0; j < onlyN1.size(); j++)
+			N.push_back(onlyN1[j]);
+		N.push_back(i);
+
+		for(size_t r=0; r < H.num_rows(); r++)
+		{
+			UG_LOG(N[r] <<": ");
+			for(size_t c=0; c < H.num_cols();c ++)
+				UG_LOG("(" << N[c] << "): " << H(r, c) << " ");
+			UG_LOG("\n");
+		}
 	}
 
 	bool get_N2(size_t i, std::vector<size_t> &myN1)
@@ -452,6 +481,17 @@ public:
 		return true;
 	}
 
+	void reduceToStrong(const std::vector<size_t> &coarseNeighbors, std::vector<size_t> &strongNeighbors, double eps)
+	{
+		size_t i_index = onlyN1.size();
+		double maxVal = H(i_index, coarseNeighbors[0]);
+		for(size_t j=1; j<coarseNeighbors.size(); j++)
+			maxVal = std::max(H(i_index, coarseNeighbors[j]), maxVal);
+		for(size_t j=0; j<coarseNeighbors.size(); j++)
+			if(H(i_index, coarseNeighbors[j]) > eps*maxVal)
+				strongNeighbors.push_back(coarseNeighbors[j]);
+	}
+
 	template<typename prolongation_matrix_type>
 	bool indirect_interpolation(size_t i, prolongation_matrix_type &P,	FAMGNodes &rating,
 			std::vector<size_t> &coarseNeighbors)
@@ -469,7 +509,11 @@ public:
 		get_H(i, rating);
 		calculate_testvectors(i);
 
-		if(solve_KKT_on_subset(coarseNeighbors))
+		std::vector<size_t> strongNeighbors;
+		//reduceToStrong(coarseNeighbors, strongNeighbors, 0.5);
+		reduceToStrong(coarseNeighbors, strongNeighbors, 0.1);
+
+		if(solve_KKT_on_subset(strongNeighbors, i))
 		{
 			IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 
@@ -483,16 +527,28 @@ public:
 			else
 			{
 				UG_DLOG(LIB_ALG_AMG, 3, "coarse neighbors, Interpolating from ");
-				double dmax = -q[0];
-				size_t N = coarseNeighbors.size();
-				for(size_t j=1; j<N; j++)
-					if(dmax < -q[j]) dmax = -q[j];
-				for(size_t j=0; j<N; j++)
+				size_t N = strongNeighbors.size();
+				if(m_dProlongationTruncation > 0.0)
 				{
-					if(-q[j] < dmax*m_dEpsilonTr) continue;
-					size_t node = onlyN1[coarseNeighbors[j]];
-					UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
-					P(i, node) = -q[j];
+					double dmax = -q[0];
+					for(size_t j=1; j<N; j++)
+						if(dmax < -q[j]) dmax = -q[j];
+					for(size_t j=0; j<N; j++)
+					{
+						if(-q[j] < dmax*m_dProlongationTruncation) continue;
+						size_t node = onlyN1[strongNeighbors[j]];
+						UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
+						P(i, node) = -q[j];
+					}
+				}
+				else
+				{
+					for(size_t j=0; j<N; j++)
+					{
+						size_t node = onlyN1[strongNeighbors[j]];
+						P(i, node) = -q[j];
+						UG_DLOG(LIB_ALG_AMG, 3, node << ": " << q[j] << ", ");
+					}
 				}
 				check_weights(P, i);
 				rating.set_fine(i);
@@ -514,7 +570,7 @@ public:
 		get_H(i, rating);
 		calculate_testvectors(i);
 		F=0;
-		if(solve_KKT_on_subset(interpolateNeighbors) && F < m_delta)
+		if(solve_KKT_on_subset(interpolateNeighbors, i) && F < m_delta)
 		{
 			IF_DEBUG(LIB_ALG_AMG, 5) q.maple_print("q");
 			std::map<size_t, double> localP;
@@ -530,9 +586,10 @@ public:
 
 			for(std::map<size_t, double>::iterator it = localP.begin(); it != localP.end(); ++it)
 			{
-				if((*it).second > dmax*m_dEpsilonTr)
+				if((*it).second > dmax*m_dProlongationTruncation)
 					P(i, (*it).first) = (*it).second;
 			}
+
 			check_weights(P, i);
 			rating.set_aggressive_fine(i);
 		}
@@ -709,7 +766,7 @@ private:
 
 		//AMG_PROFILE_END();
 		// 3. calculate H from submatrix A
-		calculate_H_from_local_A();
+		calculate_H_from_local_A(i);
 
 		IF_DEBUG(LIB_ALG_AMG, 5) H.maple_print("\nsubH");
 
@@ -724,7 +781,7 @@ private:
 	 * - H = H = S Y S^T				 (on only1)
 	 * - Hi[.] = H(., i)				 (on only1)
 	 */
-	void calculate_H_from_local_A()
+	void calculate_H_from_local_A(size_t i)
 	{
 		AMG_PROFILE_FUNC();
 		size_t i_index = onlyN1.size();
@@ -740,18 +797,27 @@ private:
 
 		//AMG_PROFILE_NEXT(AMG_HA_Dinv);
 		// get Dinv = 1/Aii
+		
+		IF_DEBUG(LIB_ALG_AMG, 1)
+		{
+			for(size_t j=0; j<N; j++)
+				if(dabs(S(j,j)) < 1e-12)
+					UG_LOG(i << " j=" << j << " S(j,j)=" << S(j,j) << "\n");
+		}
 
 		for(size_t j=0; j < N; j++)
 			GetInverse(Dinv[j], S(j,j));
-
+		
 		// get SF = 1-wDF^{-1} A  (F-smoothing)
 		//AMG_PROFILE_BEGIN(AMG_HA_calculate_SF);
 
 		// bei f-smoothing nie und nimmer damping (arne 3.juni)
-		double diaginv = 1/S(i_index, i_index);
+		if(dabs(S(i_index, i_index)) < 1e-12)
+			UG_LOG("i=" << i << "S(i,i) = " << S(i,i) << "\n");
 		for(size_t j=0; j < N; j++)
-			SF[j] = - diaginv * S(i_index, j);
+			SF[j] = - Dinv[i_index] * S(i_index, j);
 		SF[i_index] += 1.0;
+
 
 		IF_DEBUG(LIB_ALG_AMG, 5) print_vector(SF, "SF");
 
@@ -774,14 +840,16 @@ private:
 		// r<N1size, c<N1size
 
 		// S'(i_index, i) = sum_t SF(i_index,t) * S(t, i)
-		for(size_t i=0; i<N; i++)
-			S(i_index, i) *= SF[i_index];
+		for(size_t j=0; j<N; j++)
+			S(i_index, j) *= SF[i_index];
 		for(size_t t = 0; t<N; t++)
 		{
 			if(t==i_index) continue;
 			for(size_t i=0; i < N; i++)
 				S(i_index, i) += SF[t] * S(t, i);
 		}
+
+
 
 
 		/* ?? for(size_t r=0; r<N; r++)
@@ -999,7 +1067,8 @@ private:
 	double m_delta;
 	double m_theta;
 	double m_damping;
-	double m_dEpsilonTr;
+	double m_dProlongationTruncation;
+	double m_dHReduceInterpolationNodesParameter;
 	stdvector< vector_type > &m_testvectors;
 	stdvector<double> &m_omega;
 

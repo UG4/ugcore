@@ -284,15 +284,14 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	else
 	{
 		cH.set(0.0);
-		for(int i=0; i<50; i++)
+		for(int i=0; i<20; i++)
 		{
 			for(int j=0; j< m_cycleType; j++)
 				add_correction_and_update_defect(cH, dH, level+1);
 			double nH2 = ConstTwoNorm(dH);
 			if(i < 6)
-			{
-				UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm <<  "\n"); nH1 = nH2;
-			}
+			{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm <<  "\n"); nH1 = nH2;	}
+			else UG_LOG(".");
 			if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_c_L")).c_str(), cH, level+1);
 			if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_d_L")).c_str(), dH, level+1);
 			if(i > 4 && nH2/preHnorm < 0.01)
@@ -479,7 +478,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 		{
 			UG_LOG("using normal MG cycle from level " << level+1 << "on: ");
 			int k;
-			for(k=0; k<100; k++)
+			for(k=0; k<20; k++)
 			{
 				for(int i=0; i< m_cycleType; i++)
 					add_correction_and_update_defect(cH, dH, level+1);

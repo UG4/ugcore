@@ -131,23 +131,24 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 		m_testvectors[i].set_storage_type(PST_CONSISTENT);
 #endif
 
-		for(size_t jj=0; jj < m_famg.get_testvector_damps(); jj++)
-			A.apply(d, m_testvectors[i]);
-
-
 		m_famg.m_testvectorsmoother->init(*m_famg.levels[level]->pA);
-		m_famg.m_testvectorsmoother->apply(c, d);
-		m_testvectors[i] -= c;
+
+		for(size_t jj=0; jj < m_famg.get_testvector_damps(); jj++)
+		{
+			d.set(0.0);
+			c.set(0.0);
+			A.apply(d, m_testvectors[i]);
+			m_famg.m_testvectorsmoother->apply(c, d);
+			m_testvectors[i] -= c;
+		}
 
 #ifdef UG_PARALLEL
-
 		SetLayoutValues(&m_testvectors[i], A.get_slave_layout(), 0.0);
 		m_testvectors[i].resize(A_OL2.num_rows());
 		m_testvectors[i].set_master_layout(A_OL2.get_master_layout());
 		m_testvectors[i].set_slave_layout(A_OL2.get_slave_layout());
 		for(size_t j=A.num_rows(); j<A_OL2.num_rows(); j++)
 			m_testvectors[i][j]=0.0;
-
 
 		m_testvectors[i].set_storage_type(PST_ADDITIVE);
 		m_testvectors[i].change_storage_type(PST_CONSISTENT);

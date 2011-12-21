@@ -67,22 +67,26 @@ public:
 	class LevelInformation
 	{
 	public:
-		double get_creation_time_ms() { return m_dCreationTimeMS; }
+		LevelInformation(int _level)
+		{
+			level = _level;
+		}
+		double get_creation_time_ms() const { return m_dCreationTimeMS; }
 
-		size_t get_nr_of_nodes_min() { return m_iNrOfNodesMin; }
-		size_t get_nr_of_nodes_max() { return m_iNrOfNodesMax; }
-		size_t get_nr_of_nodes() { return m_iNrOfNodesSum; }
-		size_t get_nnz() { return m_iNNZsSum; }
-		size_t get_nnz_min() { return m_iNNZsMin; }
-		size_t get_nnz_max() { return m_iNNZsMax; }
+		size_t get_nr_of_nodes_min() const { return m_iNrOfNodesMin; }
+		size_t get_nr_of_nodes_max() const { return m_iNrOfNodesMax; }
+		size_t get_nr_of_nodes() const { return m_iNrOfNodesSum; }
+		size_t get_nnz() const { return m_iNNZsSum; }
+		size_t get_nnz_min() const { return m_iNNZsMin; }
+		size_t get_nnz_max() const { return m_iNNZsMax; }
 
 		// nr of elements in master/slave interfaces (including multiplicities)
-		size_t get_nr_of_interface_elements() { return m_iInterfaceElements; }
+		size_t get_nr_of_interface_elements() const { return m_iInterfaceElements; }
 
-		double get_fill_in() { return ((double)m_iNNZsSum)/(((double)m_iNrOfNodesSum)*((double)m_iNrOfNodesSum)); }
-		double get_avg_nnz_per_row() { return m_iNNZsSum/(double)m_iNrOfNodesSum; }
-		size_t get_max_connections() { return m_connectionsMax; }
-		bool is_valid() { return this != NULL; }
+		double get_fill_in() const { return ((double)m_iNNZsSum)/(((double)m_iNrOfNodesSum)*((double)m_iNrOfNodesSum)); }
+		double get_avg_nnz_per_row() const { return m_iNNZsSum/(double)m_iNrOfNodesSum; }
+		size_t get_max_connections() const { return m_connectionsMax; }
+		bool is_valid() const { return this != NULL; }
 
 	public:
 		void set_nr_of_nodes(size_t nrOfNodesMin, size_t nrOfNodesMax, size_t nrOfNodesSum)
@@ -98,8 +102,30 @@ public:
 			m_connectionsMax = connectionsMax;
 		}
 
+		void set_coarsening_rate(double rate)
+		{
+			m_dCoarseningRate = rate;
+		}
+
+		double get_coarsening_rate() const
+		{
+			return m_dCoarseningRate;
+		}
+
+		std::string tostring() const
+		{
+			std::stringstream ss;
+			ss << "Level " << level << ": creation time: " << get_creation_time_ms() << " ms. number of nodes: " << get_nr_of_nodes() << ". fill in " <<
+					get_fill_in()*100 << "%. ";
+			if(level != 0) ss << "coarsening rate: " << get_coarsening_rate()*100 << "%. ";
+			ss << "nr of interface elements: " << get_nr_of_interface_elements() << " (" << get_nr_of_interface_elements()/get_nr_of_nodes()*100 << "%) "
+					<< "nnzs: " << get_nnz() << " avgNNZs/row: " << get_avg_nnz_per_row() << " maxCon: " << get_max_connections();
+			return ss.str();
+		}
 
 	public:
+		int level;
+		double m_dCoarseningRate;
 		double m_dCreationTimeMS;
 		size_t m_iNrOfNodesMin;
 		size_t m_iNrOfNodesMax;
@@ -183,7 +209,7 @@ public:
 		return A[level+1]->length;
 	}
 */
-	size_t get_used_levels() { return m_usedLevels; }
+	size_t get_used_levels() const { return m_usedLevels; }
 
 	bool check_level(vector_type &c, vector_type &d, size_t level);
 //	bool check(IMatrixOperator const vector_type &const_c, const vector_type &const_d);
@@ -221,10 +247,10 @@ public:
 
 
 	void 	set_min_nodes_on_one_processor(size_t newMinNodes)		{ m_minNodesOnOneProcessor = newMinNodes; }
-	size_t	get_min_nodes_on_one_processor()						{ return m_minNodesOnOneProcessor; }
+	size_t	get_min_nodes_on_one_processor() const					{ return m_minNodesOnOneProcessor; }
 
 	void 	set_preferred_nodes_on_one_processor(size_t i)			{ m_preferredNodesOnOneProcessor = i; }
-	size_t	get_preferred_nodes_on_one_processor()					{ return m_preferredNodesOnOneProcessor; }
+	size_t	get_preferred_nodes_on_one_processor() const			{ return m_preferredNodesOnOneProcessor; }
 
 
 	void 	set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
@@ -268,7 +294,7 @@ public:
 	}
 
 
-	void tostring() const;
+	virtual void tostring() const;
 
 public:
 	void write_debug_matrices(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
@@ -347,7 +373,7 @@ protected:
 
 	struct AMGLevel
 	{
-		AMGLevel()
+		AMGLevel(int level) : m_levelInformation(level)
 		{
 			pA = NULL;
 			presmoother = NULL;
@@ -409,18 +435,28 @@ protected:
 
 public:
 	//! \return c_A = total nnz of all matrices divided by nnz of matrix A
-	double get_operator_complexity() { return m_dOperatorComplexity; }
+	double get_operator_complexity() const { return m_dOperatorComplexity; }
 
 	//! \return c_G = total number of nodes of all levels divided by number of nodes on level 0
-	double get_grid_complexity() { return m_dGridComplexity; }
+	double get_grid_complexity() const { return m_dGridComplexity; }
 
 	//! \return the time spent on the whole setup in ms
-	double get_timing_whole_setup_ms() { return m_dTimingWholeSetupMS; }
+	double get_timing_whole_setup_ms() const { return m_dTimingWholeSetupMS; }
 
 	//! \return the time spent in the coarse solver setup in ms
-	double get_timing_coarse_solver_setup_ms() { return m_dTimingCoarseSolverSetupMS; }
+	double get_timing_coarse_solver_setup_ms() const { return m_dTimingCoarseSolverSetupMS; }
 
-	LevelInformation *get_level_information(size_t i)
+	void print_level_information() const
+	{
+		std::cout.setf(std::ios::fixed);
+		UG_LOG("Operator Complexity: " << get_operator_complexity() << ", grid complexity: " << get_grid_complexity() << ".\n");
+		UG_LOG("Whole setup took " << get_timing_whole_setup_ms() << " ms, coarse solver setup took " << get_timing_coarse_solver_setup_ms() << " ms.\n");
+		/*for(int i = 0; i<get_used_levels(); i++)
+			UG_LOG(get_level_information(i)->tostring() << "\n");*/
+
+	}
+
+	const LevelInformation *get_level_information(size_t i) const
 	{
 		if(i < levels.size())
 			return &levels[i]->m_levelInformation;

@@ -45,11 +45,17 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 {
 	m_theta = 0.95;
 	m_delta = 0.5;
-	m_dEpsilonTr = 0.3;
+
 	m_dDampingForSmootherInInterpolationCalculation = 0.8;
 	m_bAggressiveCoarsening = false;
 	m_writeTestvectors = false;
 	m_bTestvectorsFromMatrixRows = false;
+
+	m_dProlongationTruncation = 0.0;
+	m_dHReduceInterpolationNodesParameter = 0.0;
+	m_dPrereduceAToStrongParameter = 0.0;
+	m_dGalerkinTruncation = 1e-12;
+
 
 
 	m_bExternalCoarsening = false;
@@ -82,7 +88,7 @@ void FAMG<TAlgebra>::tostring() const
 	UG_LOG(" Aggressive Coarsening is " << (m_bAggressiveCoarsening ? "[ON]" : "OFF"));
 	UG_LOG(", external Coarsening is " << (m_bExternalCoarsening ? "[ON]" : "OFF"));
 	UG_LOG(", precalculate Coarsening is " << (m_bUsePrecalculate ? "[ON]" : "OFF"));
-	UG_LOG(", epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << "\n");
+	UG_LOG(", truncation of interpolation = " << m_dProlongationTruncation << "\n");
 
 	UG_LOG(" \n");
 	UG_LOG(m_testvectors.size() + m_vVectorWriters.size() << " test vectors. Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);

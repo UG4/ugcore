@@ -34,7 +34,7 @@
 #include <set>
 #include <string>
 #include <stack>
-
+#include "../amg_misc.h"
 
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
@@ -280,7 +280,7 @@ private:
 		// R.print("R");
 		// A.print("A");
 		// PnewIndices.print("P");
-		CreateAsMultiplyOf(AH, R, A, PnewIndices, 1e-12);
+		CreateAsMultiplyOf(AH, R, A, PnewIndices, m_famg.get_galerkin_truncation());
 		// AH.print();
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 
@@ -328,12 +328,7 @@ public:
 			rating(PoldIndices, _level, m_famg.m_amghelper),
 #endif
 			m_testvectors(testvectors),
-			calculator(A, A_OL2,
-					m_famg.get_delta(),
-					m_famg.get_theta(),
-					m_famg.get_damping_for_smoother_in_interpolation_calculation(),
-					m_famg.get_epsilon_truncation(),
-					testvectors, omega)
+			calculator(A, A_OL2, m_famg, testvectors, omega)
 	{
 	}
 
@@ -466,16 +461,14 @@ public:
 		}
 		else
 		{
-			if(m_famg.m_writeMatrices)
-						m_famg.write_debug_matrix_markers(level, rating);
+			if(m_famg.m_writeMatrices)	m_famg.write_debug_matrix_markers(level, rating);
 			PoldIndices.resize(N, N);
 			rs_amg_external_coarsening();
 			external_coarsening_calculate_prolongation();
 		}
 
 		// [ debug output
-		if(m_famg.m_writeMatrices)
-			m_famg.write_debug_matrix_markers(level, rating);
+		if(m_famg.m_writeMatrices)	m_famg.write_debug_matrix_markers(level, rating);
 		// ]
 
 		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelAfterCommunicateProlongation);
@@ -501,10 +494,7 @@ public:
 		// 10.
 		//-----------------------------------------
 
-		if(m_famg.m_writeMatrices)
-		{
-			m_famg.write_debug_matrices(AH, R, A, PnewIndices, level);
-		}
+		if(m_famg.m_writeMatrices)	m_famg.write_debug_matrices(AH, R, A, PnewIndices, level);
 
 		calculate_next_testvectors();
 
@@ -525,11 +515,11 @@ private:
 		UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, m_famg.iDebugLevelCommunicateProlongation);
 
 #ifdef UG_PARALLEL
-		m_famg.parallel_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dEpsilonTr, level, rating,
+		m_famg.parallel_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dProlongationTruncation, level, rating,
 				PN, false, nextLevelMasterLayout, nextLevelSlaveLayout);
 		TESTLAYOUT(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 #else
-		m_famg.serial_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dEpsilonTr, level, rating);
+		m_famg.serial_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dProlongationTruncation, level, rating);
 #endif
 
 	}
@@ -682,9 +672,22 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	// testvectors will be altered by FAMGLevelCalculator
 
 	// UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 4);
-	FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P,
+
+	if(m_dPrereduceAToStrongParameter > 0.0)
+	{
+		matrix_type Aeps;
+		ReduceToStrongConnections(Aeps, A, m_dPrereduceAToStrongParameter);
+
+		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, P,
 			level, testvectors, omega);
-	dummy.do_calculation();
+			dummy.do_calculation();
+	}
+	else
+	{
+		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P,
+				level, testvectors, omega);
+		dummy.do_calculation();
+	}
 
 }
 

@@ -16,8 +16,8 @@
 #include "rsamg_nodeinfo.h"
 #include "rsamg_impl.h"
 
-#define USE_DIRICHLET_AS_INTERPOLATION_NODES
-
+//#define USE_DIRICHLET_AS_INTERPOLATION_NODES
+#define SKIPDIRICHLET
 namespace ug {
 
 inline void SetRSInterpolation(SparseMatrix<double> &P, size_t i,
@@ -54,6 +54,10 @@ void GetNeighborValues(const TMatrix &A, size_t i, double &minConnValue, double 
 			diag = conn.value();
 			continue; // skip diagonal
 		}
+#ifdef SKIPDIRICHLET
+		if(A.is_isolated(conn.index()))
+			continue;
+#endif
 		double connValue = amg_offdiag_value(conn.value());
 		if(minConnValue > connValue)
 			minConnValue = connValue;
@@ -157,17 +161,25 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			{
 				if(conn.index() == i) continue; // skip diagonal
-				if(!nodes[conn.index()].is_coarse()
-#ifdef USE_DIRICHLET_AS_INTERPOLATION_NODES
-					&& !nodes[conn.index()].is_dirichlet()
+
+#ifdef SKIPDIRICHLET
+				if(A.is_isolated(conn.index()))
+					continue;
 #endif
-					) continue;
 
 				double connValue = amg_offdiag_value(conn.value());
 				if(connValue > 0) 	sumPosNeighbors += connValue;
 				else				sumNegNeighbors += connValue;
 				if(dabs(connValue) < barrier)
 					continue;
+
+				if(!nodes[conn.index()].is_coarse()
+#ifdef USE_DIRICHLET_AS_INTERPOLATION_NODES
+					&& !nodes[conn.index()].is_dirichlet()
+#endif
+					) continue;
+
+
 
 				c.iIndex = conn.index();
 				c.dValue = connValue;

@@ -65,9 +65,9 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 
 	size_t nnz = A.total_num_connections();
 	size_t maxConnections = GetMaxConnections(A);
+	li.m_dCreationTimeMS = createAMGlevelTiming;
 #ifdef UG_PARALLEL
 	size_t N = A.num_rows() - A.get_slave_layout().num_interface_elements();
-	li.m_dCreationTimeMS = createAMGlevelTiming;
 	li.set_nr_of_nodes(
 			L.processCommunicator.allreduce(N, PCL_RO_MIN),
 			L.processCommunicator.allreduce(N, PCL_RO_MAX),
@@ -86,22 +86,13 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 	li.set_max_connections(maxConnections);
 	li.m_iInterfaceElements = 0;
 #endif
+	if(level>0)
+		li.set_coarsening_rate((double)li.get_nr_of_nodes()/(double)levels[level-1]->m_levelInformation.get_nr_of_nodes());
+	else
+		li.set_coarsening_rate(0.0);
 
-	UG_LOG("nrOfCoarse: " << li.get_nr_of_nodes() << "\n");
-	IF_DEBUG(LIB_ALG_AMG, 0)
-	{
-		UG_DLOG(LIB_ALG_AMG, 1, "AH: nnz: " << li.get_nnz() << " Density: " <<
-				li.get_fill_in()*100.0 << "%, avg. nnz pre row: " <<
-				li.get_avg_nnz_per_row() << ", max conns: " << li.get_max_connections() << std::endl);
-		if(level>0)
-		{
-			UG_DLOG(LIB_ALG_AMG, 1, "Coarsening rate: " <<
-				(100.0*li.get_nr_of_nodes())
-				/ levels[level-1]->m_levelInformation.get_nr_of_nodes() <<
-				"%" << std::endl);
-			UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
-		}
-	}
+	UG_DLOG(LIB_ALG_AMG, 1, li.tostring() << "\n");
+	UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +155,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 #endif
 
 	levels.clear();
-	AMGLevel *pL = new AMGLevel;
+	AMGLevel *pL = new AMGLevel(0);
 	pL->pA = &mat;
 #ifdef UG_PARALLEL
 	pL->processCommunicator = mat.get_process_communicator();
@@ -179,6 +170,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		matrix_operator_type &A = *L.pA;
 
 		calculate_level_information(level, createAMGlevelTiming);
+		UG_LOG(get_level_information(level)->tostring() << "\n");
 
 		if(L.m_levelInformation.get_nr_of_nodes() < m_maxNodesForBase
 				|| L.m_levelInformation.get_fill_in() > m_dMaxFillBeforeBase
@@ -199,7 +191,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 #endif
 		//smoothem_R[level].init(*m_A[level]);
 
-		levels.push_back(new AMGLevel);
+		levels.push_back(new AMGLevel(level+1));
 		AMGLevel &nextL = *levels[level+1];
 
 		L.presmoother = m_presmoother->clone();
@@ -319,7 +311,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 		matrix_operator_type collectedBaseA;
 		collect_matrix(A, collectedBaseA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
 
-		if(m_writeMatrices && m_amghelper.has_positions())
+		if(false && m_writeMatrices && m_amghelper.has_positions())
 		{
 			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
 			vec.resize(collectedBaseA.num_rows());

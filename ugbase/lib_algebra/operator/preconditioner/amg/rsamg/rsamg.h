@@ -83,14 +83,14 @@ public:
 	virtual const char* name() const {return "AMGPreconditioner";}
 
 
-	//! 	sets epsilon_strong, a measure for strong connectivity
+	//! 	sets prolongation_strong, a measure for strong connectivity
 	void 	set_epsilon_strong(double new_theta) 		{ m_dTheta = new_theta; }
 	double 	get_epsilon_strong() const					{ return m_dTheta; }
 
 
-	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
-	void 	set_epsilon_truncation(double epsilonTr) 	{ m_dEpsilonTr = epsilonTr; }
-	double 	get_epsilon_truncation() const				{ return m_dEpsilonTr; }
+	//!		sets prolongation_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
+	void 	set_prolongation_truncation(double prolongationTr) 	{ m_dProlongationTr = prolongationTr; }
+	double 	get_prolongation_truncation() const				{ return m_dProlongationTr; }
 
 
 	/**
@@ -126,7 +126,7 @@ public:
 #endif
 
 // data
-	double m_dEpsilonTr;	///< parameter used for truncation of interpolation
+	double m_dProlongationTr;	///< parameter used for truncation of interpolation
 	double m_dTheta; 		///< measure for strong connectivity
 
 	bool m_bAggressiveCoarsening;				///< true if aggressive coarsening is used on first level

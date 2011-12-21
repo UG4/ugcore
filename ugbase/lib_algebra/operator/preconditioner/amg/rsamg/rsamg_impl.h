@@ -212,7 +212,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 #else
 	AMGNodes nodes(NOL1);
 #endif
-	UG_LOG("NOL1 = " << NOL1 << "\n");
+	//UG_LOG("NOL1 = " << NOL1 << "\n");
 
 	bool bTiming=true;
 	//UG_DLOG(LIB_ALG_AMG, 0, "Creating level " << level << ". (" << N << " nodes, " << NOL1-N << " overlapping )" << std::endl << std::fixed);
@@ -331,7 +331,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 
 	if(bTiming) SW.start();
 	CreateRugeStuebenProlongation(PoldIndices, AOL1, nodes, //newIndex,
-			m_dTheta, m_dEpsilonTr);
+			m_dTheta, m_dProlongationTr);
 	if(!(nodes.get_unassigned() == 0 || (m_bAggressiveCoarsening && level == 0)))
 	{
 		nodes.print_ratings(m_amghelper, level);
@@ -346,10 +346,10 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	/// create layouts
 
 #ifdef UG_PARALLEL
-	this->parallel_process_prolongation(PoldIndices, PnewIndices, m_dEpsilonTr, level, nodes,
+	this->parallel_process_prolongation(PoldIndices, PnewIndices, m_dProlongationTr, level, nodes,
 			PN, true, AH.get_master_layout(), AH.get_slave_layout());
 #else
-	this->serial_process_prolongation(PoldIndices, PnewIndices, m_dEpsilonTr, level, nodes);
+	this->serial_process_prolongation(PoldIndices, PnewIndices, m_dProlongationTr, level, nodes);
 #endif
 
 	// construct restriction R = I_{h->2h}
@@ -414,7 +414,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 template<typename TAlgebra>
 RSAMG<TAlgebra>::RSAMG() :
 	AMGBase<TAlgebra>(),
-	m_dEpsilonTr(0.3),
+	m_dProlongationTr(0.3),
 	m_dTheta(0.3),
 	//m_dSigma(0.3),
 	m_bAggressiveCoarsening(0),
@@ -435,7 +435,7 @@ void RSAMG<TAlgebra>::tostring() const
 	UG_LOG("Ruge/Stueben AMG Preconditioner:\n");
 	UG_LOG(" theta (epsilon_strong, strong connectivity) = " << m_dTheta << std::endl);
 	//UG_LOG(" sigma = " << m_dSigma << std::endl);
-	UG_LOG(" epsilon_tr (truncation of interpolation) = " << m_dEpsilonTr << std::endl);
+	UG_LOG(" prolongation_tr (truncation of interpolation) = " << m_dProlongationTr << std::endl);
 
 	if(m_bAggressiveCoarsening)	{UG_LOG(" Aggressive Coarsening is on, A" << m_iAggressiveCoarseningNrOfPaths << "-mode." << std::endl);}
 	else						{UG_LOG(" no Aggressive Coarsening" << std::endl);}

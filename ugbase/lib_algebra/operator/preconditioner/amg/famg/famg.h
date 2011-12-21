@@ -85,7 +85,7 @@ public:
 	void cleanup();
 
 	virtual const char* name() const {return "FAMGPreconditioner";}
-	void tostring() const;
+	virtual void tostring() const;
 
 	void set_aggressive_coarsening(bool bAggressiveCoarsening) { m_bAggressiveCoarsening = bAggressiveCoarsening; }
 	bool get_aggressive_coarsening() const { return m_bAggressiveCoarsening; }
@@ -132,9 +132,7 @@ public:
 	double get_delta() const { return m_delta;}
 	double get_theta() const { return m_theta;}
 
-	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
-	void 	set_epsilon_truncation(double epsilonTr) 	{ m_dEpsilonTr = epsilonTr; }
-	double 	get_epsilon_truncation() const				{ return m_dEpsilonTr; }
+
 
 	void set_testvector_damps(size_t testvectordamps) { m_iTestvectorDamps = testvectordamps; }
 	size_t get_testvector_damps() const { return m_iTestvectorDamps; }
@@ -176,6 +174,19 @@ public:
 
 	void set_testvectorsmoother(ILinearIterator<vector_type, vector_type> *testvectorsmoother) { m_testvectorsmoother = testvectorsmoother; }
 
+	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
+	//!		prolongation truncation: set all P(i,j) = 0 if they are too small compared to greatest P(i,.)
+	void 	set_prolongation_truncation(double prolongationTr) 	{ m_dProlongationTruncation = prolongationTr; }
+	double 	get_prolongation_truncation() const				{ return m_dProlongationTruncation; }
+
+	void 	set_prereduce_A_parameter(double d) 	{	m_dPrereduceAToStrongParameter = d; }
+	double 	get_prereduce_A_parameter() const		{	return m_dPrereduceAToStrongParameter; }
+
+	void 	set_H_reduce_interpolation_nodes_parameter(double d)	{	m_dHReduceInterpolationNodesParameter = d; 	}
+	double	get_H_reduce_interpolation_nodes_parameter() const		{	return m_dHReduceInterpolationNodesParameter; }
+
+	void	set_galerkin_truncation(double d)	{ m_dGalerkinTruncation = d; }
+	double	get_galerkin_truncation() const		{ return m_dGalerkinTruncation; }
 
 private:
 //  functions
@@ -192,7 +203,14 @@ private:
 	double m_dDampingForSmootherInInterpolationCalculation;
 	double m_delta;				///< "Interpolation quality" F may not be worse than this (F < m_delta)
 	double m_theta;				///< with multiple parents, discard pairs with m_theta * F > min F.
-	double m_dEpsilonTr;		///< parameter used for truncation of interpolation
+
+	double m_dProlongationTruncation;		///< parameter used for truncation of interpolation
+
+	double m_dHReduceInterpolationNodesParameter; ///< parameter used to reduce the number of interpolation nodes by looking at the H(i,j) value.
+
+	double m_dPrereduceAToStrongParameter;	///< parameter used to reduce the matrix A to
+	double m_dGalerkinTruncation;
+
 
 	size_t m_iTestvectorDamps;
 	bool m_writeTestvectors;
