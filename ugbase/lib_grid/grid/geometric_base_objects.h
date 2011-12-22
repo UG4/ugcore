@@ -273,6 +273,9 @@ class VertexBase : public GeometricObject
 {
 	friend class Grid;
 	public:
+		typedef VertexBase geometric_base_object;
+
+	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
 
 		virtual ~VertexBase()	{}
@@ -334,7 +337,9 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
-		// lower dimensional Base Object
+		typedef EdgeBase geometric_base_object;
+
+	//	lower dimensional Base Object
 		typedef VertexBase lower_dim_base_object;
 
 	public:
@@ -426,7 +431,9 @@ class Face : public GeometricObject, public FaceVertices
 	public:
 		using FaceVertices::ConstVertexArray;
 
-		// lower dimensional Base Object
+		typedef Face geometric_base_object;
+
+	//	lower dimensional Base Object
 		typedef EdgeBase lower_dim_base_object;
 
 	public:
@@ -617,7 +624,9 @@ class Volume : public GeometricObject, public VolumeVertices
 	public:
 		using VolumeVertices::ConstVertexArray;
 
-		// lower dimensional Base Object
+		typedef Volume geometric_base_object;
+
+	//	lower dimensional Base Object
 		typedef Face lower_dim_base_object;
 
 	public:

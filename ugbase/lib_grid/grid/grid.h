@@ -89,11 +89,13 @@ class Grid
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef ug::ElementStorage<typename geometry_traits<TElem>::geometric_base_object>
-				ElementStorage;
+			typedef ug::ElementStorage<typename TElem::geometric_base_object> ElementStorage;
 			typedef typename ElementStorage::AttachmentPipe			AttachmentPipe;
 			typedef typename ElementStorage::AttachedElementList	AttachedElementList;
 			typedef typename ElementStorage::SectionContainer		SectionContainer;
+
+			typedef typename geometry_traits<TElem>::iterator		iterator;
+			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
 		};
 
 	///	the attachment-pipe used by Grid
@@ -105,7 +107,9 @@ class Grid
 
 	///	the generic attachment-accessor for access to grids attachment pipes.
 		template <class TElem, class TAttachment>
-		class AttachmentAccessor : public ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >
+		class AttachmentAccessor : public ug::AttachmentAccessor<typename TElem::geometric_base_object*,
+																 TAttachment,
+																 typename traits<TElem>::ElementStorage>
 		{
 			public:
 				AttachmentAccessor();
@@ -114,7 +118,11 @@ class Grid
 				AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 
 				inline void access(Grid& grid, TAttachment& a)
-					{ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >::access(grid.get_attachment_pipe<TElem>(), a);}
+					{ug::AttachmentAccessor<typename TElem::geometric_base_object*,
+											TAttachment,
+											typename traits<TElem>::ElementStorage>::
+						access(grid.get_attachment_pipe<TElem>(), a);
+					}
 		};
 
 	//	half-specialized AttachmentAccessors:
@@ -577,7 +585,7 @@ class Grid
 	 * operating on the attachment pipe.
 	 */
 		template <class TGeomObj>
-		ug::AttachmentPipe<TGeomObj*, ElementStorage<TGeomObj> >&
+		typename traits<TGeomObj>::AttachmentPipe&
 		get_attachment_pipe();
 
 	////////////////////////////////////////////////

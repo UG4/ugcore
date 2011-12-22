@@ -356,7 +356,7 @@ Grid::get_attachment_data_container(TAttachment& attachment)
 }
 
 template <class TGeomObj>
-AttachmentPipe<TGeomObj*, ElementStorage<TGeomObj> >&
+typename Grid::traits<TGeomObj>::AttachmentPipe&
 Grid::get_attachment_pipe()
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
@@ -488,14 +488,17 @@ ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >(aa)
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a) :
-ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >(grid.get_attachment_pipe<TElem>(), a)
+ug::AttachmentAccessor<typename TElem::geometric_base_object*, TAttachment,
+					   typename traits<TElem>::ElementStorage>
+	(grid.get_attachment_pipe<TElem>(), a)
 {
 }
 
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >()
+ug::AttachmentAccessor<typename TElem::geometric_base_object*, TAttachment,
+					   typename traits<TElem>::ElementStorage>()
 {
 	if(autoAttach){
 		if(!grid.has_attachment<TElem>(a))
