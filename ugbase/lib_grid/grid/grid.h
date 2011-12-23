@@ -13,6 +13,7 @@
 #include "grid_observer.h"
 #include "geometric_object_collection.h"
 #include "element_storage.h"
+#include "geometric_base_object_traits.h"
 
 //	Define PROFILE_GRID to profile some often used gird-methods
 //#define PROFILE_GRID

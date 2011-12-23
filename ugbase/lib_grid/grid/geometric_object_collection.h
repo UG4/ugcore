@@ -9,6 +9,7 @@
 #include "geometric_base_objects.h"
 #include "common/util/section_container.h"
 #include "element_storage.h"
+#include "geometric_base_object_traits.h"
 
 namespace ug
 {
