@@ -8,6 +8,7 @@
 #ifndef AMG_MISC_H_
 #define AMG_MISC_H_
 
+#include "rsamg/rsamg_impl.h"
 namespace ug
 {
 
