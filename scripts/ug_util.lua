@@ -232,6 +232,14 @@ function util.HasParamOption(name)
 	return false 
 end
 
+function util.GetCommandLine()
+	local pline = ""
+	for i=1, ugargc do
+		pline = pline..ugargv[i].." "
+	end
+	return pline
+end
+
 --------------------------------------------------------------------------------
 -- lua script functions
 --------------------------------------------------------------------------------
