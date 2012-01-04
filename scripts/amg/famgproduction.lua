@@ -8,11 +8,19 @@
 
 SetOutputProfileStats(false)
 
-SetOutputProcessRank(-1)
-GetLogAssistant():enable_file_output(true, "ug_log"..GetProcessRank())
-
 ug_load_script("ug_util.lua")
+ug_load_script("util.lua")
 
+SetOutputProcessRank(util.GetParamNumber("-outproc", -1))
+if util.HasParamOption("-logtofile") then
+	GetLogAssistant():enable_file_output(false, "")
+	GetLogAssistant():enable_file_output(true, util.GetParam("-logtofile")..GetProcessRank())
+else
+	GetLogAssistant():enable_file_output(true, 
+		util.GetParam("-outdir").."uglog"..GetProcessRank())
+end
+
+print("ugshell "..util.GetCommandLine())
 -- constants
 if util.HasParamOption("-3d") then
 	dim = 3
@@ -24,8 +32,8 @@ end
 InitUG(dim, AlgebraType("CPU", 1));
 
 if dim == 2 then
-	-- gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
-	gridName = "unit_square/unit_square_quads_8x8.ugx"
+	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
+	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -69,6 +77,7 @@ RAalpha = RAalpha * (2*math.pi/360)
 print("    RAalpha = "..RAalpha.." grad")
 print("    epsx = "..epsx)
 print("    epsy = "..epsy)
+print("    gridName = "..gridName)
 
 function writeln(...)
 	write(...)
@@ -468,100 +477,56 @@ linSolver:init(linOp)
 
 
 if bCheck then
-amg:write_interfaces()
-convCheck:set_maximum_steps(4)
-linSolver:apply_return_defect(u,b)
-SaveVectorForConnectionViewer(b, "b.vec")
-SaveVectorForConnectionViewer(u, "u.vec")
-amg:check(u,b)
-SaveVectorForConnectionViewer(b, "Rhs2.vec")
-SaveVectorForConnectionViewer(u, "u2.vec")
-
+	amg:write_interfaces()
+	convCheck:set_maximum_steps(4)
+	linSolver:apply_return_defect(u,b)
+	SaveVectorForConnectionViewer(b, "b.vec")
+	SaveVectorForConnectionViewer(u, "u.vec")
+	amg:check(u,b)
+	SaveVectorForConnectionViewer(b, "Rhs2.vec")
+	SaveVectorForConnectionViewer(u, "u2.vec")
 else
-
-print("Apply solver.")
-tBefore = os.clock()
-linSolver:apply_return_defect(u,b)
-tSolve = os.clock()-tBefore
-print("done")
-
+	print("Apply solver.")
+	tBefore = os.clock()
+	linSolver:apply_return_defect(u,b)
+	tSolve = os.clock()-tBefore
+	print("done")
 end
 
 
-printf = function(s,...)
-	print(s:format(...))
-end -- function
 
-formatf = function(s, ...)
-	return s:format(...)
-end
 
-function fsize (file)
-	local current = file:seek()      -- get current position
-    local size = file:seek("end")    -- get file size
-    file:seek("set", current)        -- restore position
-    return size
-end
+
 
 if not bCheck then
-	if bFileOutput and GetProcessRank() == 0  then
-		output = io.open("output_"..os.date("y%Ym%md%d")..".txt", "a")
-		if fsize(output) == 0 then 
-			output:write("procs")
-			output:write("\tnumRefs")
-			output:write("\tndofs")
-			output:write("\tsteps")
-			output:write("\tlastReduction")
-			output:write("\ttSetupAmg [ms]")
-			output:write("\tc_A")
-			output:write("\tc_G")
-			output:write("\tused Levels")
-			output:write("\ttSolve [s]")
-			output:write("\ttGrid [s]")
-			output:write("\ttAssemble [s]")
-			output:write("\n")
-		end
-		output:write(GetNumProcesses())
-		output:write("\t"..numRefs)
-		output:write("\t"..amg:get_level_information(0):get_nr_of_nodes())
-		output:write("\t"..convCheck:step())
-		output:write("\t"..convCheck:defect()/convCheck:previous_defect())
-		output:write("\t"..amg:get_timing_whole_setup_ms())
-		output:write("\t"..amg:get_operator_complexity())
-		output:write("\t"..amg:get_grid_complexity())
-		output:write("\t"..amg:get_used_levels())
-		output:write("\t"..tSolve)
-		output:write("\t"..tGrid)
-		output:write("\t"..tAssemble)
-		output:write("\n")
-		print(s)
-		-- else
+		-- ..os.date("y%Ym%md%d").. -- table.insert
+	stats = {
+		{ "date", os.date("y%Ym%md%d") },
+		{ "procs", GetNumProcesses() },
+		{ "numPreRefs", numPreRefs},
+		{ "numRefs", numRefs },
+		{ "dim", dim},
+		{ "gridName", gridName},
+		{ "maxBase", maxBase},
+		{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
+		{ "steps", convCheck:step()},
+		{ "lastReduction", convCheck:defect()/convCheck:previous_defect()},
+		{ "tSetupAmg [ms]", amg:get_timing_whole_setup_ms()},
+		{ "c_A", amg:get_operator_complexity()},
+		{ "c_G", amg:get_grid_complexity()},
+		{ "used Levels", amg:get_used_levels()}, 
+		{ "tSolve [s]", tSolve},
+		{ "tGrid [s]",  tGrid},
+		{ "tAssemble [s]", tAssemble} } 
+		
+	printStats(stats)
+	if bWriteStats and GetProcessRank() == 0  then
+		writeFileStats(stats, util.GetParam("-outdir").."stats.txt")
 	end
 	
 	
-	print("NumProcesses: "..GetNumProcesses())
-	print("numRefs: "..numRefs)
-	print("nr of nodes: "..amg:get_level_information(0):get_nr_of_nodes())
-	print("steps: "..convCheck:step())
-	print("last reduction: "..convCheck:defect()/convCheck:previous_defect())
-	print("tSetupAmg [ms]: "..amg:get_timing_whole_setup_ms())
-	print("c_A: "..amg:get_operator_complexity())
-	print("c_G: "..amg:get_grid_complexity())
-	print("used Levels: "..amg:get_used_levels())
-	print("tSolve [s]: "..tSolve)
-	print("tGrid [s]: "..tGrid)
-	print("tAssemble [s]: "..tAssemble)	
-	
 	if GetProfilerAvailable() == true and util.HasParamOption("-profiler") then
 		create_levelPN = GetProfileNode("c_create_AMG_level")
-		
-		function PrintParallelProfileNode(name)
-			pn = GetProfileNode(name)
-			t = pn:get_avg_total_time_ms()/to100 * 100
-			tmin = ParallelMin(t)
-			tmax = ParallelMax(t)
-			printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
-		end
 		
 		if true then
 			print(create_levelPN:call_tree())
