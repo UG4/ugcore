@@ -494,23 +494,25 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 	ElementInfo<TParent>& parentInfo = elem_info(pParent);
 
 //	schedule one element for each horizontal parent-interface
-	for(entry_iter iter = parentInfo.entries_begin();
-		iter != parentInfo.entries_end(); ++iter)
-	{
-		int intfcType = parentInfo.get_interface_type(iter);
-		if(!(intfcType & (ES_V_MASTER | ES_V_SLAVE))){
-			UG_DLOG(LIB_GRID, 3, parentInfo.get_target_proc(iter) << ", ");
-			elemMap.insert(make_pair(parentInfo.get_local_id(iter),
-					ScheduledElement(elem, parentInfo.get_target_proc(iter))));
+	if(parentInfo.is_interface_element()){
+		for(entry_iter iter = parentInfo.entries_begin();
+			iter != parentInfo.entries_end(); ++iter)
+		{
+			int intfcType = parentInfo.get_interface_type(iter);
+			if(!(intfcType & (ES_V_MASTER | ES_V_SLAVE))){
+				UG_DLOG(LIB_GRID, 3, parentInfo.get_target_proc(iter) << ", ");
+				elemMap.insert(make_pair(parentInfo.get_local_id(iter),
+						ScheduledElement(elem, parentInfo.get_target_proc(iter))));
+			}
 		}
-	}
 	
-//	set the status
-	if(parentInfo.get_status() & (ES_H_MASTER))
-		elem_info(elem).set_status(ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
-	else{
-		UG_ASSERT(parentInfo.get_status() & (ES_H_SLAVE), "interface-elements have to be either master or slave!");
-		elem_info(elem).set_status(ES_H_SLAVE | ES_SCHEDULED_FOR_INTERFACE);
+	//	set the status
+		if(parentInfo.get_status() & (ES_H_MASTER))
+			elem_info(elem).set_status(ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+		else{
+			UG_ASSERT(parentInfo.get_status() & (ES_H_SLAVE), "interface-elements have to be either master or slave!");
+			elem_info(elem).set_status(ES_H_SLAVE | ES_SCHEDULED_FOR_INTERFACE);
+		}
 	}
 }
 
@@ -531,12 +533,14 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 			ElementInfo<TElem>& elemInfo = elem_info(pElem);
 			elemInfo = elem_info(parent);
 
-		//	update all pointers
-			for(typename ElementInfo<TElem>::EntryIterator iter = elemInfo.entries_begin();
-				iter != elemInfo.entries_end(); ++iter)
-			{
-				typename ElementInfo<TElem>::Entry& entry = *iter;
-				entry.m_interface->get_element(entry.m_interfaceElemIter) = pElem;
+			if(elemInfo.is_interface_element()){
+			//	update all pointers
+				for(typename ElementInfo<TElem>::EntryIterator iter = elemInfo.entries_begin();
+					iter != elemInfo.entries_end(); ++iter)
+				{
+					typename ElementInfo<TElem>::Entry& entry = *iter;
+					entry.m_interface->get_element(entry.m_interfaceElemIter) = pElem;
+				}
 			}
 
 		//	clear the parent-info.

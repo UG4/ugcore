@@ -9,6 +9,7 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "parallel_grid_layout.h"
+#include "common/util/owned_pointer.h"
 
 namespace ug
 {
@@ -35,11 +36,12 @@ enum ElementStatusTypes
 	ES_IN_INTERFACE = 1 << 7
 };
 
+
 ///	manages the layouts and interfaces which are associated with a distributed grid.
 /**
  * This class is work in progress. It not yet works in all situations.
  * The following things can be performed on a distributed grid:
- * 	- New elements can be created. If a vertex or an edge is created as
+ * 	- New elements can be created. If a vertex, an edge or a face is created as
  * 		a child of an element that lies in an interface, it will be
  *		added to the corresponding interfaces.
  *		Note that you have to call begin_ordered_element_insertion() before
@@ -47,7 +49,6 @@ enum ElementStatusTypes
  *	- Elements can be replaced. Interface entries are updated on the fly.
  *
  * The following things do not yet work properly:
- *	- Face-interfaces are not yet handled correctly during element-insertion.
  *	- When you erase elements, interfaces and layouts are not updated.
  *		That means if an interface element is deleted, a dangling pointer
  *		will remain in the interfaces - this may lead to bad errors later on.
@@ -200,6 +201,11 @@ class DistributedGridManager : public GridObserver
 		void add_element_to_interface(TElem* pElem, int procID);
 			
 	protected:
+	///	Be careful when creating copies of ElementInfo.
+	/**	Ownership of the internal data-object is transfered to the new copy.
+	 * The old instance will thus point to a NULL pointer instead of the data
+	 * object after the copy operation.
+	 */
 		template <class TGeomObj>
 		class ElementInfo
 		{
@@ -226,21 +232,32 @@ class DistributedGridManager : public GridObserver
 				typedef typename EntryList::const_iterator	ConstEntryIterator;
 				
 			//	methods
-				ElementInfo()	: m_status(ES_NONE)			{}
-				
-				void reset()								{m_status = ES_NONE; m_entries.clear();}
+				ElementInfo()	{}
+
+				~ElementInfo()	{if(has_data()) m_data.reset();}
+
+				void reset()
+					{
+						if(has_data()){
+						//todo: reuse m_data
+							m_data.reset();
+						}
+					}
 				
 				void add_entry(Interface* interface,
 								InterfaceElemIter iter,
-								int intfcType)				{m_entries.push_back(Entry(interface, iter, intfcType));}
+								int intfcType)				{data().m_entries.push_back(Entry(interface, iter, intfcType));}
 				
-				void remove_entry(Interface* interface)		{m_entries.erase(find_entry(interface));}
+				void remove_entry(Interface* interface)		{data().m_entries.erase(find_entry(interface));}
 				
-				inline EntryIterator entries_begin()		{return m_entries.begin();}
-				inline EntryIterator entries_end()			{return m_entries.end();}
+			///	Note: This method may only be called if is_interface_entry() returns true.
+			/**	\{ */
+				inline EntryIterator entries_begin()		{assert(has_data()); return m_data->m_entries.begin();}
+				inline EntryIterator entries_end()			{assert(has_data()); return m_data->m_entries.end();}
 				
-				inline ConstEntryIterator entries_begin() const	{return m_entries.begin();}
-				inline ConstEntryIterator entries_end() const	{return m_entries.end();}
+				inline ConstEntryIterator entries_begin() const	{assert(has_data()); return m_data->m_entries.begin();}
+				inline ConstEntryIterator entries_end() const	{assert(has_data()); return m_data->m_entries.end();}
+			/**	\} */
 
 				size_t get_local_id(EntryIterator iter) const	{return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
 				size_t get_local_id(ConstEntryIterator iter) const	{return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
@@ -250,20 +267,56 @@ class DistributedGridManager : public GridObserver
 				int get_interface_type(EntryIterator iter) const	{return iter->m_interfaceType;}
 				int get_interface_type(ConstEntryIterator iter) const	{return iter->m_interfaceType;}
 
+			///	Note: This method may only be called if is_interface_entry() returns true.
 				EntryIterator find_entry(Interface* interface)
-					{	for(EntryIterator iter = entries_begin(); iter != entries_end(); ++iter){
+					{	assert(has_data());
+						for(EntryIterator iter = entries_begin(); iter != entries_end(); ++iter){
 							if(iter->m_interface == interface)
 								return iter;
 						}
 						return entries_end();
 					}
 				
-				void set_status(byte status)				{m_status = status;}
-				byte get_status() const						{return m_status;}
+				void set_status(byte status)
+				{
+					if(!has_data() && (status == ES_NONE))
+						return;
+					data().m_status = status;
+				}
+				byte get_status() const
+				{
+					if(!has_data()) return ES_NONE;
+					return m_data->m_status;
+				}
 				
+				bool is_interface_element()
+				{
+					if(!has_data()) return false;
+					return !m_data->m_entries.empty();
+				}
+
 			protected:
-				EntryList	m_entries;
-				byte		m_status;
+				struct Data{
+					Data() : m_status(ES_NONE) {}
+					EntryList	m_entries;
+					byte		m_status;
+				};
+
+			///	returns the data object. Creates it if necessary.
+				inline Data& data()
+				{
+					if(!has_data())
+						m_data.get() = new Data;
+					return *m_data;
+				}
+
+				inline bool has_data() const	{return m_data.get() != NULL;}
+
+			///	OwnedPtr is required to transfer ownership of the data-ptr during copy-operations.
+			/**	Since ElementInfo objects are stored in attachments, they will be copied
+			 * from time to time. Ownership is thereby transfered to the new copy.
+			 */
+				OwnedPtr<Data>	m_data;
 		};
 		
 		typedef ElementInfo<VertexBase>	ElemInfoVrt;
