@@ -19,9 +19,17 @@ namespace ug
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::write_interfaces()
 {
+	if(!m_writeMatrices)
+	{
+		UG_LOG("no position data given.\n");
+		return;
+	}
 	cAMG_helper &h = m_amghelper;
 	for(size_t level=0; level<m_usedLevels; level++)
 	{
+
+
+
 		const char *filename = (std::string(m_writeMatrixPath) + std::string("AMG_interface_L") + ToString(level) + "_" + ToString(pcl::GetProcRank()) + std::string(".mat")).c_str();
 		std::fstream file(filename, std::ios::out);
 		file << 1 << std::endl; // connection viewer version
@@ -35,6 +43,11 @@ void AMGBase<TAlgebra>::write_interfaces()
 		IndexLayout &slaveLayout = levels[level]->pA->get_slave_layout();
 		std::vector<std::string> v;
 		v.resize(h.positions[level].size());
+
+
+		UG_LOG("==============================\n LEVEL "<< level << "\n============================\n")
+		PRINTLAYOUT(levels[level]->com, levels[level]->masterLayout, levels[level]->slaveLayout);
+		PRINTLAYOUT(levels[level]->com, masterLayout, slaveLayout);
 
 		for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 		{
