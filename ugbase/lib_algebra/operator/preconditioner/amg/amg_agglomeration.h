@@ -31,35 +31,36 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 		c.set_storage_type(PST_CONSISTENT);
 
 		A.matmul_minus(d, c);
-		return true;
 	}
+	else
+	{
+		L.collD.set(0.0);
+		for(size_t i=0; i<d.size(); i++)
+			L.collD[i] = d[i];
 
-	L.collD.set(0.0);
-	for(size_t i=0; i<d.size(); i++)
-		L.collD[i] = d[i];
+		L.collC.set_storage_type(PST_CONSISTENT);
+		L.collD.set_storage_type(PST_ADDITIVE);
+		// send d -> collD
+		ComPol_VecAdd<vector_type > compolAdd(&L.collD, &d);
+		com.receive_data(L.agglomerateMasterLayout, compolAdd);
+		com.communicate();
 
-	L.collC.set_storage_type(PST_CONSISTENT);
-	L.collD.set_storage_type(PST_ADDITIVE);
-	// send d -> collD
-	ComPol_VecAdd<vector_type > compolAdd(&L.collD, &d);
-	com.receive_data(L.agglomerateMasterLayout, compolAdd);
-	com.communicate();
+		L.collC.set(0.0);
+		add_correction_and_update_defect2(L.collC, L.collD, level);
 
-	L.collC.set(0.0);
-	add_correction_and_update_defect2(L.collC, L.collD, level);
+		// send collC -> c
+		ComPol_VecCopy<vector_type> compolCopy(&c, &L.collC);
+		com.send_data(L.agglomerateMasterLayout, compolCopy);
+		com.communicate();
 
-	// send collC -> c
-	ComPol_VecCopy<vector_type> compolCopy(&c, &L.collC);
-	com.send_data(L.agglomerateMasterLayout, compolCopy);
-	com.communicate();
-
-	for(size_t i=0; i<c.size(); i++)
-		c[i] = L.collC[i];
-	c.set_storage_type(PST_CONSISTENT);
-	L.uncollectedA.matmul_minus(d, c); // cannot use collD, because collD is not additive.
-#else
-	return add_correction_and_update_defect2(c, d, level);
-#endif
+		for(size_t i=0; i<c.size(); i++)
+			c[i] = L.collC[i];
+		c.set_storage_type(PST_CONSISTENT);
+		L.uncollectedA.matmul_minus(d, c); // cannot use collD, because collD is not additive.
+	#else
+		return add_correction_and_update_defect2(c, d, level);
+	#endif
+	}
 
 	return true;
 }
