@@ -11,13 +11,13 @@ SetOutputProfileStats(false)
 ug_load_script("ug_util.lua")
 ug_load_script("util.lua")
 
-SetOutputProcessRank(util.GetParamNumber("-outproc", -1))
+SetOutputProcessRank(util.GetParamNumber("-outproc", 0))
 if util.HasParamOption("-logtofile") then
 	GetLogAssistant():enable_file_output(false, "")
 	GetLogAssistant():enable_file_output(true, util.GetParam("-logtofile")..GetProcessRank())
 else
 	GetLogAssistant():enable_file_output(true, 
-		util.GetParam("-outdir").."uglog"..GetProcessRank())
+		util.GetParam("-outdir", "").."uglog"..GetProcessRank())
 end
 
 print("ugshell "..util.GetCommandLine())
@@ -58,7 +58,7 @@ epsy = util.GetParamNumber("-epsy", 1)
 bCheck = util.HasParamOption("-bCheck")
 
 bWriteStats = util.HasParamOption("-bWriteStats")
-bWriteMat = util.HasParamOption("-writeMatrices")
+bWriteMat = true -- util.HasParamOption("-writeMatrices")
 bRSAMG = util.HasParamOption("-RSAMG") 
 
 bAggressiveCoarsening = util.HasParamOption("-AC")
@@ -328,12 +328,12 @@ ilut = ILUT()
 
 -- create Base Solver
 baseConvCheck = StandardConvergenceCheck()
-baseConvCheck:set_maximum_steps(500)
+baseConvCheck:set_maximum_steps(1000)
 baseConvCheck:set_minimum_defect(1e-16)
 baseConvCheck:set_reduction(1e-16)
 baseConvCheck:set_verbose_level(false)
 
-if jacBaseSolver then
+if false then
 	base = LinearSolver()
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
@@ -398,8 +398,10 @@ if bRSAMG == false then
 	-- amg:set_debug_level_calculate_parent_pairs(2)
 	-- amg:set_debug_level_precalculate_coarsening(4)
 	-- amg:set_debug_level_calculate_parent_pairs(4)
-	amg:set_galerkin_truncation(1e-6)
-	amg:set_H_reduce_interpolation_nodes_parameter(0.1)
+	-- amg:set_galerkin_truncation(1e-6)
+	-- amg:set_H_reduce_interpolation_nodes_parameter(0.1)
+	amg:set_galerkin_truncation(1e-13)
+	amg:set_H_reduce_interpolation_nodes_parameter(0.0)
 	amg:set_prereduce_A_parameter(0.0)
 else
 	print ("create AMG... ")
