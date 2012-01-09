@@ -311,7 +311,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 		matrix_operator_type collectedBaseA;
 		collect_matrix(A, collectedBaseA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
 
-		if(false && m_writeMatrices && m_amghelper.has_positions())
+		if(m_writeMatrices && m_amghelper.has_positions())
 		{
 			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
 			vec.resize(collectedBaseA.num_rows());
