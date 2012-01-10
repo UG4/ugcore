@@ -38,11 +38,13 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 <hr>
 \section secInstallUG4UG4 ug4
+Create a ug4 directory and perform a svn checkout on the trunk.
 <hr>
 
 <ul>
-<li> <b>ug4</b>: Download ug4 from the repository <br />
-		svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4
+<li> "mkdir ug4"
+<li> "cd ug4"
+<li> "svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk"
 </ul>
 
 <hr>
