@@ -31,6 +31,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 		c.set_storage_type(PST_CONSISTENT);
 
 		A.matmul_minus(d, c);
+		return true;
 	}
 	else
 	{
@@ -57,12 +58,12 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 			c[i] = L.collC[i];
 		c.set_storage_type(PST_CONSISTENT);
 		L.uncollectedA.matmul_minus(d, c); // cannot use collD, because collD is not additive.
-	#else
-		return add_correction_and_update_defect2(c, d, level);
-	#endif
+		return true;
 	}
+#else
+	return add_correction_and_update_defect2(c, d, level);
+#endif
 
-	return true;
 }
 
 /*
