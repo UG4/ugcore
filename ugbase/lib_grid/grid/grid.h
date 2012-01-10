@@ -470,8 +470,8 @@ class Grid
 	///	This method returns the i-th side of an EdgeBase, Face or Volume.
 	/**	If obj has dimension d, then all associated elements of dimension d-1
 	 *	are regarded as sides. (Face -> EdgeBase). Only derivates of Volume,
-	 *	Face or EdgeBase may be queried for their sides. You may not pass a general
-	 * 	GeometricObject nor objects of a type not mentioned above.
+	 *	Face or EdgeBase may be queried for their sides. If you call this method
+	 *	with VertexBase*, an assertion is triggered, since vertices do not have sides.
 	 *
 	 *	It is not in all cases guaranteed that an object has sides.
 	 *	If i.e. the FACEOPT_AUTOGENERATE_EDGES is not enabled in the grids options,
@@ -485,9 +485,10 @@ class Grid
 	 *	elements. Options VOLOPT_STORE_ASSOCIATED_FACES and
 	 *	FACEOPT_STORE_ASSOCIATED_EDGES have to be enabled for this.
 	 */
-		template <class TGeomObj>
-		typename TGeomObj::lower_dim_base_object*
-		get_side(TGeomObj* obj, size_t side);
+		VertexBase::side* get_side(VertexBase* obj, size_t side);
+		EdgeBase::side* get_side(EdgeBase* obj, size_t side);
+		Face::side* get_side(Face* obj, size_t side);
+		Volume::side* get_side(Volume* obj, size_t side);
 
 	////////////////////////////////////////////////
 	//	attachments

@@ -79,11 +79,31 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	}
 }
 
-/*
+template <class TElem>
+bool IsSubSurfaceElement(MultiGrid& mg, TElem* e, bool checkSides)
+{
+	typedef typename TElem::geometric_base_object TBaseElem;
 
+	size_t numChildren = mg.num_children<TBaseElem>(e);
+	for(size_t i = 0; i < numChildren; ++i){
+		TBaseElem* child = mg.get_child<TBaseElem>(e, i);
+		assert(child);
+		if(mg.num_children<TBaseElem>(child) != 0)
+			return false;
+	}
 
+//	ok all children of the same base type are surface elements.
+	if(checkSides){
+	//	Now we have to check whether all sides are surface elements, too.
+	//	Since vertices do not have sides, this recursion will terminate.
+		for(size_t i = 0; i < e->num_sides(); ++i){
+			if(!IsSubSurfaceElement(mg, mg.get_side(e, i)))
+				return false;
+		}
+	}
 
-*/
+	return true;
+}
 
 }//	end of namespace
 

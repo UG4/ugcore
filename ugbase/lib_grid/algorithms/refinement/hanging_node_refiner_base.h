@@ -296,8 +296,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 							bool ignoreAnisotropicElements);
 	/** \} */
 
-		///	returns the selector which is internally used to mark elements.
-		/**	Be sure to use it carefully!*/
+	///	removes coarsen marks from the selection
+	/**	Note that derived classes are not informed about those deselections!*/
+		template <class TElem>
+		bool remove_coarsen_marks();
+
+	///	returns the selector which is internally used to mark elements.
+	/**	Be sure to use it carefully!*/
 		Selector& get_refmark_selector()	{return m_selMarkedElements;}
 
 	private:

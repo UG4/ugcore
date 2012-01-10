@@ -25,6 +25,17 @@ template <class TElem, class TSurfaceView>
 void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 						MultiGrid& mg,
 						MGSubsetHandler& mgsh);
+
+///	returns true, if the element lies one level below the surface
+/**	If checkSides == false, then only children of the same base type as TElem
+ * will be regarded. If checkSides == true, also children of the elements sides
+ * will be regarded, too.
+ * If all regarded children lie on the surface (i.e. do not have children them selfs),
+ * then the element is regarded as a surface element.
+ */
+template <class TElem>
+bool IsSubSurfaceElement(MultiGrid& mg, TElem* e, bool checkSides = false);
+
 						
 }//	end of namespace
 

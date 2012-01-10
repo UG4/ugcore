@@ -68,6 +68,7 @@ void InvertSelection(TSelector& sel, TIterator begin, TIterator end);
 template <class TSelector>
 void InvertSelection(TSelector& sel);
 
+
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedVertices
 ///	selects all associated vertices of the elements between elemsBegin and elemsEnd
@@ -88,7 +89,8 @@ void InvertSelection(TSelector& sel);
  */
 template <class TSelector, class TElemIterator>
 void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
-								TElemIterator elemsEnd);
+							  TElemIterator elemsEnd,
+							  ISelector::status_t status = ISelector::SELECTED);
 								
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedEdges
@@ -106,9 +108,40 @@ void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
  * at which the selector is registered.
  */
 template <class TSelector, class TElemIterator>
-void SelectAssociatedEdges(TSelector& sel,
-								TElemIterator elemsBegin,
-								TElemIterator elemsEnd);
+void SelectAssociatedEdges(TSelector& sel, TElemIterator elemsBegin,
+						   TElemIterator elemsEnd,
+						   ISelector::status_t status = ISelector::SELECTED);
+
+////////////////////////////////////////////////////////////////////////
+//	SelectAssociatedFaces
+///	selects all associated faces of the elements between elemsBegin and elemsEnd
+/**
+ * TSelector has to feature a method select(TElemIterator::value_type&);
+ *
+ * TElemIterator has to be a stl-compatible iterator.
+ * The underlying element-type has to be a pointer to a class that
+ * is supported by libGrid::CollectFaces(...)
+ *
+ * A valid classe is for example Volume.
+ *
+ * Make sure that the elements only reference faces that belong to the grid
+ * at which the selector is registered.
+ */
+template <class TSelector, class TElemIterator>
+void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
+						   TElemIterator elemsEnd,
+						   ISelector::status_t status = ISelector::SELECTED);
+
+////////////////////////////////////////////////////////////////////////
+///	selects associated geometric objects of selected ones.
+void SelectAssociatedGeometricObjects(Selector& sel,
+							  ISelector::status_t status = ISelector::SELECTED);
+
+////////////////////////////////////////////////////////////////////////
+///	selects associated geometric objects of selected ones on each level.
+void SelectAssociatedGeometricObjects(MGSelector& msel,
+							  ISelector::status_t status = ISelector::SELECTED);
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects elements that lie on the associated grid's boundary
@@ -151,34 +184,6 @@ void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
  */
 void SelectAreaBoundaryFaces(ISelector& sel, VolumeIterator volumesBegin,
 							 VolumeIterator volumesEnd);
-								  
-////////////////////////////////////////////////////////////////////////
-//	SelectAssociatedFaces
-///	selects all associated faces of the elements between elemsBegin and elemsEnd
-/**
- * TSelector has to feature a method select(TElemIterator::value_type&);
- *
- * TElemIterator has to be a stl-compatible iterator.
- * The underlying element-type has to be a pointer to a class that
- * is supported by libGrid::CollectFaces(...)
- *
- * A valid classe is for example Volume.
- *
- * Make sure that the elements only reference faces that belong to the grid
- * at which the selector is registered.
- */
-template <class TSelector, class TElemIterator>
-void SelectAssociatedFaces(TSelector& sel,
-								TElemIterator elemsBegin,
-								TElemIterator elemsEnd);
-
-////////////////////////////////////////////////////////////////////////
-///	selects associated geometric objects of selected ones.
-void SelectAssociatedGeometricObjects(Selector& sel);
-
-////////////////////////////////////////////////////////////////////////
-///	selects associated geometric objects of selected ones on each level.
-void SelectAssociatedGeometricObjects(MGSelector& msel);
 
 ////////////////////////////////////////////////////////////////////////
 ///	extends the selection to neighbours of selected elements.

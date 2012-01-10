@@ -425,12 +425,28 @@ void HangingNodeRefinerBase::refine()
 							GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
 }
 
+template <class TElem>
+bool HangingNodeRefinerBase::remove_coarsen_marks()
+{
+	typedef typename geometry_traits<TElem>::iterator	ElemIter;
+	bool removedCoarsenMark = false;
+	for(ElemIter iter = m_selMarkedElements.begin<TElem>();
+		iter != m_selMarkedElements.end<TElem>();)
+	{
+		TElem* e = *iter;
+		++iter;
+		if(get_mark(e) == RM_COARSEN){
+			m_selMarkedElements.deselect(e);
+			removedCoarsenMark = true;
+		}
+	}
+
+	return removedCoarsenMark;
+}
+
 void HangingNodeRefinerBase::collect_objects_for_refine()
 {
 	HNODE_PROFILE_FUNC();
-//	Algorithm Layout:
-//		The marks have to be adjusted. All edges on which a vertex has to be generated
-//		should be marked.
 
 //	This variable determines whether a marked edge leads to the refinement of
 //	associated faces and volumes.
@@ -450,7 +466,19 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	queue<Face*> 		qFaces;
 	queue<Volume*> 		qVols;
 
-//	assert correct selection. see HangingVertexRefiner description.
+
+//	build correct selection. see HangingVertexRefiner description.
+//	unmark all elements which are marked for coarsening
+	bool removedCoarseMarks = remove_coarsen_marks<VertexBase>();
+	removedCoarseMarks |= remove_coarsen_marks<EdgeBase>();
+	removedCoarseMarks |= remove_coarsen_marks<Face>();
+	removedCoarseMarks |= remove_coarsen_marks<Volume>();
+
+	if(removedCoarseMarks){
+		UG_LOG("WARNING in HangingNodeRefinerBase::collect_objects_for_refine: "
+				"Removed coarsen marks.\n");
+	}
+
 //	collect all unmarked edges, faces and volumes adjacent to marked elements.
 //	note that the queues may possibly contain several elements multiple times.
 	collect_associated_unmarked_edges(qEdges, grid,

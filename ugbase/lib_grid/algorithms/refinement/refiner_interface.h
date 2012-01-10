@@ -80,6 +80,13 @@ class IRefiner
 	/// Performs refinement on the marked elements. Pure virtual.
 		virtual void refine() = 0;
 
+	///	Performs coarsening on the elements marked RM_COARSEN.
+	/**	Note that coarsening is not supported by all refiners. Normally only
+	 * MultiGrid-Refiner do support coarsening. The default implementation thus
+	 * returns false.
+	 */
+		virtual bool coarsen()		{return false;}
+
 	protected:
 		IRefinementCallback*	m_refCallback;
 };

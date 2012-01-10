@@ -3,6 +3,8 @@
 // 11.01.2011 (m,d,y)
  
 #include "common/assert.h"
+#include "lib_grid/algorithms/multi_grid_util.h"
+#include "lib_grid/algorithms/selection_util.h"
 #include "hanging_node_refiner_multi_grid.h"
 
 //define PROFILE_HANGING_NODE_REFINER_MG if you want to profile
@@ -291,6 +293,133 @@ refine_constraining_edge(ConstrainingEdge* cge)
 
 //	the constrained edge is now a normal edge
 	m_pMG->create_and_replace<Edge>(cge);
+}
+
+
+template <class TElem>
+void HangingNodeRefiner_MultiGrid::
+select_subsurface_elements_only()
+{
+//todo:	This algorithm is too conservative. IsSubSurfaceElement(..., true)
+//		causes that many possible coarsening possibilities are being ignored.
+//		IsSubSurfaceElement should also take a callback 'cbConsiderElem', which
+//		allows to ignore all marked surface elements.
+//		In a first step one then should select all surface and sub-surface elements
+//		(use IsSubSurfaceElement(..., false)) and then use the version with
+//		IsSubSurfaceElement(..., true) and the mentioned callback.
+
+	MultiGrid& mg = *m_pMG;
+	Selector& sel = get_refmark_selector();
+
+	typedef typename geometry_traits<TElem>::iterator ElemIter;
+	typedef typename TElem::geometric_base_object TBaseElem;
+
+	bool removedRefinementMark = false;
+
+//	iterate over all selected elements of this type.
+//	Note that we only can advance the iterator on special occasions.
+//	Also note, that there are some continue commands in this loop.
+	for(ElemIter iter = sel.begin<TElem>(); iter != sel.end<TElem>();)
+	{
+		TBaseElem* e = *iter;
+
+	//	remove all refinement marks
+		if(get_mark(e) != RM_COARSEN){
+			++iter;
+			sel.deselect(e);
+			removedRefinementMark = true;
+			continue;
+		}
+
+	//	check whether e is in the surface level
+		int numChildren = mg.num_children<TBaseElem>(e);
+		if(numChildren == 0){
+		//	ok it is. if it has no parent of the same type, it can't be coarsened.
+		//	At least not directly
+			TBaseElem* parent = dynamic_cast<TBaseElem*>(mg.get_parent(e));
+			if(parent != NULL){
+			//	If the parent is not already marked, we'll
+			//	perform some checks to see, whether it can be coarsened.
+				if(!is_marked(parent)){
+				//	check whether the parent is a sub-surface element
+					if(IsSubSurfaceElement(mg, parent, true)){
+					//	check whether all children of the parent are marked for coarsening
+						bool markParent = true;
+						size_t numSiblings = mg.num_children<TBaseElem>(parent);
+						for(size_t i_child = 0; i_child < numSiblings; ++i_child){
+							TBaseElem* child = mg.get_child<TBaseElem>(parent, i_child);
+							if(get_mark(child) != RM_COARSEN)
+							{
+								markParent = false;
+								break;
+							}
+						}
+
+						if(markParent){
+						//	all are marked surface elements.
+						//	The parent thus can be coarsened.
+							mark(parent, RM_COARSEN);
+						}
+					}
+				}
+			}
+
+		//	we have to deselect the surface element. First advance the iterator
+		//	then perform deselection
+			++iter;
+			sel.deselect(e);
+			continue;
+
+		}
+		else{
+		//	this element does not lie on the surface. If it is not a sub-surface
+		//	element, we will deselect it.
+			if(!IsSubSurfaceElement(mg, e, true)){
+				++iter;
+				sel.deselect(e);
+				continue;
+			}
+		}
+
+	//	advance the iterator (*iter at this point should be a sub-surface element
+		++iter;
+	}
+
+	if(removedRefinementMark){
+		UG_LOG("WARNING in HangingNodeRefiner_MultiGrid::collect_objects_for_coarsen: "
+				"Removed refinement marks!\n");
+	}
+}
+
+void HangingNodeRefiner_MultiGrid::
+collect_objects_for_coarsen()
+{
+	select_subsurface_elements_only<Volume>();
+	select_subsurface_elements_only<Face>();
+	select_subsurface_elements_only<EdgeBase>();
+	select_subsurface_elements_only<VertexBase>();
+
+//	At this point it is clear, that only sub-surface elements are selected,
+//	whose sides are sub-surface elements themselves.
+//	All should be marked with RM_COARSEN
+//	we will now make sure that all sides are marked with RM_COARSEN, too.
+	SelectAssociatedGeometricObjects(get_refmark_selector(), RM_COARSEN);
+}
+
+bool HangingNodeRefiner_MultiGrid::
+coarsen()
+{
+	if(!m_pMG)
+		return false;
+
+	collect_objects_for_coarsen();
+
+//todo: erase elements and introduce constraining/constrained elements as required.
+
+//	...
+
+//todo:	return true
+	return false;
 }
 
 }// end of namespace

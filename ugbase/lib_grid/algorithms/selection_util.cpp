@@ -235,7 +235,7 @@ void SelectAreaBoundaryFaces(ISelector& sel, VolumeIterator volumesBegin,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGeometricObjects
-void SelectAssociatedGeometricObjects(Selector& sel)
+void SelectAssociatedGeometricObjects(Selector& sel, ISelector::status_t status)
 {
 	if(!sel.grid()){
 		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
@@ -245,24 +245,31 @@ void SelectAssociatedGeometricObjects(Selector& sel)
 	Grid& grid = *sel.grid();
 	
 //	select associated elements of selected elements
-	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>());
+	SelectAssociatedFaces(sel, sel.begin<Volume>(),
+						  sel.end<Volume>(), status);
 	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-		SelectAssociatedEdges(sel, sel.begin<Volume>(), sel.end<Volume>());
+	//	if faces are not automatically generated, there may be edges connected
+	//	to the volume, which are not connected to a face. Same goes for vertices.
+		SelectAssociatedEdges(sel, sel.begin<Volume>(),
+							  sel.end<Volume>(), status);
 		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
-			SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>());
+			SelectAssociatedVertices(sel, sel.begin<Volume>(),
+									 sel.end<Volume>(), status);
 	}
 	
-	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>());
+	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), status);
 	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
-		SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
+		SelectAssociatedVertices(sel, sel.begin<Face>(),
+								 sel.end<Face>(), status);
 		
-	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(),
+							 sel.end<EdgeBase>(), status);
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGeometricObjects
-void SelectAssociatedGeometricObjects(MGSelector& msel)
+void SelectAssociatedGeometricObjects(MGSelector& msel, ISelector::status_t status)
 {
 	if(!msel.multi_grid()){
 		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
@@ -274,18 +281,24 @@ void SelectAssociatedGeometricObjects(MGSelector& msel)
 //	select associated elements of selected elements on each level
 	for(size_t i = 0; i < msel.num_levels(); ++i)
 	{
-		SelectAssociatedFaces(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		SelectAssociatedFaces(msel, msel.begin<Volume>(i),
+							  msel.end<Volume>(i), status);
 		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-			SelectAssociatedEdges(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+			SelectAssociatedEdges(msel, msel.begin<Volume>(i),
+								  msel.end<Volume>(i), status);
 			if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
-				SelectAssociatedVertices(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+				SelectAssociatedVertices(msel, msel.begin<Volume>(i),
+										 msel.end<Volume>(i), status);
 		}
 		
-		SelectAssociatedEdges(msel, msel.begin<Face>(i), msel.end<Face>(i));
+		SelectAssociatedEdges(msel, msel.begin<Face>(i),
+							  msel.end<Face>(i), status);
 		if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
-			SelectAssociatedVertices(msel, msel.begin<Face>(i), msel.end<Face>(i));
+			SelectAssociatedVertices(msel, msel.begin<Face>(i),
+									 msel.end<Face>(i), status);
 			
-		SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i), msel.end<EdgeBase>(i));
+		SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i),
+								 msel.end<EdgeBase>(i), status);
 	}
 }
 

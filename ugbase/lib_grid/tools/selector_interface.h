@@ -92,6 +92,14 @@ enum SelectorElements
 class ISelector : public GridObserver
 {
 	public:
+		typedef byte	status_t;
+
+		enum{
+			DESELECTED = 0,
+			SELECTED = 1
+		};
+
+	public:
 		ISelector(uint supportedElements = SE_ALL);
 		ISelector(Grid& grid, uint supportedElements = SE_ALL);
 		virtual ~ISelector();

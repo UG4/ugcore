@@ -181,10 +181,19 @@ class VertexBase : public GeometricObject
 	public:
 		typedef VertexBase geometric_base_object;
 
+	//	lower dimensional Base Object
+		typedef void lower_dim_base_object;
+
+	/**	The side type is obviously wrong. It should be void.
+	 * However, void would cause problems with template instantiations.*/
+		typedef VertexBase side;
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
 
 		virtual ~VertexBase()	{}
+
+		inline uint num_sides()				{return 0;}
 
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return VERTEX;}
@@ -247,6 +256,7 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 
 	//	lower dimensional Base Object
 		typedef VertexBase lower_dim_base_object;
+		typedef VertexBase side;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
@@ -257,7 +267,7 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 		virtual int base_object_type_id() const	{return EDGE;}
 		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
-		virtual int num_sides() const {return 2;}
+		virtual uint num_sides() const {return 2;}
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
 	 * Newly created edges have to be registered at a grid manually by the caller.
@@ -341,6 +351,7 @@ class Face : public GeometricObject, public FaceVertices
 
 	//	lower dimensional Base Object
 		typedef EdgeBase lower_dim_base_object;
+		typedef EdgeBase side;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
@@ -534,6 +545,7 @@ class Volume : public GeometricObject, public VolumeVertices
 
 	//	lower dimensional Base Object
 		typedef Face lower_dim_base_object;
+		typedef Face side;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}

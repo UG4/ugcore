@@ -54,12 +54,19 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <li> move to ug4/trunk/
 <li> "mkdir build_debug"
 <li> "cd build_debug"
-<li> "cmake -DUG_DEBUG=ON .." --> Makefiles are generated
+<li> "cmake -DDEBUG=ON .." --> Makefiles are generated
 </ol>
 
 Note, that there are several options, that can be passed to cmake to change
 the build behaviour. You see always the current chosen setup when runnig cmake
-and usually you see what options you can choose. 
+and you should see a list of options which you can change. In order to change
+an option run cmake again with the parameter -D<option>=<val>, where <option>
+is one of the enumerated options and <val> is one of the possible values for
+that option ('<' and '>' should of course not be typed). The last argument to
+cmake always has to be the path which you used when you called cmake the first time.
+
+Note that you only have to specify the variables which you want to change. All other
+variables will keep their values.
 
 As default ug is build for all supported world dimensions (Dim = 1,2,3). If 
 you only need a special dimension (e.g. for code development) and you want to 
@@ -71,8 +78,8 @@ save compilation time, use the -DDIM option. Examples:
 <li> "cmake -DDIM="2;3" .." -> Builds dimension 2 and 3, but not 1
 </ul>
 
-For cmake Versions old than 2.8 yo must explicitly specify, that in the option
-DIM is passed a string. So, please use:
+For cmake Versions old than 2.8 yo may be forced to explicitly specify, that
+the option DIM is passed as a string. So, please use:
 "cmake -DDIM:STRING=2 .." etc.
 
 <hr>

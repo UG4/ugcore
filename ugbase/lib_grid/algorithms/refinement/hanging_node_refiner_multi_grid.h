@@ -19,7 +19,19 @@ namespace ug
  *
  * New elements will be constructed one level above their parent elements.
  *
+ * HangingNodeRefiner_MultiGrid supports coarsening. Please note that coarsening
+ * presumably has not yet reached its final implementation and behavior may
+ * thus change in future revisions.
+ * In the current implementation, refinement marks are removed during coarsening
+ * and coarsening marks are removed during refinement. In order to use
+ * coarsening and refinement on thus should first mark all elements which shall
+ * be coarsened, perform coarsening, then mark all elements will shall be
+ * refined and perform refinement (or vice versa).
+ *
  * Take a look at ug::HangingNodeRefinerBase for a more in-depth documentation.
+ *
+ * \todo: 	Avoid the removal of refinement marks during coarsening and of
+ * 			coarsening marks during refinement.
  *
  * \sa ug::HangingNodeRefinerBase, ug::HangingNodeRefiner_Grid
  */
@@ -37,6 +49,23 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 
 		void assign_grid(MultiGrid& mg);
 		virtual Grid* get_associated_grid()		{return m_pMG;}
+
+	///	performs coarsening on the elements marked with RM_COARSEN.
+	/**
+	 * The grid's message hub is informed using a "GridAdaption" message,
+	 * passing an instance of GridMessage_Adapation, with values
+	 * GMAT_HNODE_COARSENING_BEGINS and GMAT_HNODE_COARSENING_ENDS.
+	 * See lib_grid/lib_grid_messages.h for more details.
+	 *
+	 * automatically adjusts the selection so that only valid coarsening operations
+	 * are executed. Not that refinement marks are removed in this process.
+	 *
+	 * During a coarsening step only elements from the surface layer are removed.
+	 * Either mark all children of a sub-surface element or directly mark the
+	 * sub-surface element with RM_COARSEN. If not all children of an unmarked
+	 * sub-surface element are marked, then the marks are ignored.
+	 */
+		virtual bool coarsen();
 
 	protected:
 	///	a callback that allows to deny refinement of special vertices
@@ -114,6 +143,17 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 				cornersOut[i] = m_pMG->get_child_vertex(elem->vertex(i));
 			}
 		}
+
+	///	helper which adjusts marks for the given elements so that only sub-surface elements stay marked.
+		template <class TElem>
+		void select_subsurface_elements_only();
+
+	///	called be the coarsen method in order to adjust the selection to valid elements.
+	/**	This method is responsible to mark all elements that shall be coarsened.
+	 * Only sub-surface elements may be coarsened. If a sub-surface element has
+	 * a side, which is not a sub-surface element, then the element may not be
+	 * coarsened.*/
+		virtual void collect_objects_for_coarsen();
 
 	private:
 		MultiGrid*	m_pMG;

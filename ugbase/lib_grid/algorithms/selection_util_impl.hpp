@@ -100,13 +100,13 @@ void InvertSelection(TSelector& sel, TIterator begin, TIterator end)
 //	SelectAssociatedVertices
 template <class TSelector, class TElemIterator>
 void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
-								TElemIterator elemsEnd)
+							  TElemIterator elemsEnd, ISelector::status_t status)
 {
 	while(elemsBegin != elemsEnd)
 	{
 		uint numVrts = (*elemsBegin)->num_vertices();
 		for(uint i = 0; i < numVrts; ++i)
-			sel.select((*elemsBegin)->vertex(i));
+			sel.select((*elemsBegin)->vertex(i), status);
 		elemsBegin++;
 	}
 }
@@ -114,9 +114,8 @@ void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedEdges
 template <class TSelector, class TElemIterator>
-void SelectAssociatedEdges(TSelector& sel,
-								TElemIterator elemsBegin,
-								TElemIterator elemsEnd)
+void SelectAssociatedEdges(TSelector& sel, TElemIterator elemsBegin,
+						   TElemIterator elemsEnd, ISelector::status_t status)
 {
 	Grid* pGrid = sel.grid();
 	if(pGrid)
@@ -127,7 +126,7 @@ void SelectAssociatedEdges(TSelector& sel,
 		{
 			CollectEdges(vEdges, grid, *elemsBegin);
 			for(uint i = 0; i < vEdges.size(); ++i)
-				sel.select(vEdges[i]);
+				sel.select(vEdges[i], status);
 			elemsBegin++;
 		}
 	}
@@ -136,9 +135,8 @@ void SelectAssociatedEdges(TSelector& sel,
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedFaces
 template <class TSelector, class TElemIterator>
-void SelectAssociatedFaces(TSelector& sel,
-								TElemIterator elemsBegin,
-								TElemIterator elemsEnd)
+void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
+						   TElemIterator elemsEnd, ISelector::status_t status)
 {
 	Grid* pGrid = sel.grid();
 	if(pGrid)
@@ -149,7 +147,7 @@ void SelectAssociatedFaces(TSelector& sel,
 		{
 			CollectFaces(vFaces, grid, *elemsBegin);
 			for(uint i = 0; i < vFaces.size(); ++i)
-				sel.select(vFaces[i]);
+				sel.select(vFaces[i], status);
 			elemsBegin++;
 		}
 	}
