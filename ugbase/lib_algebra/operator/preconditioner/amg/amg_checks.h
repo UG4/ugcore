@@ -45,9 +45,9 @@ void AMGBase<TAlgebra>::write_interfaces()
 		v.resize(h.positions[level].size());
 
 
-		UG_LOG("==============================\n LEVEL "<< level << "\n============================\n")
-		PRINTLAYOUT(levels[level]->com, levels[level]->masterLayout, levels[level]->slaveLayout);
-		PRINTLAYOUT(levels[level]->com, masterLayout, slaveLayout);
+		//UG_LOG("==============================\n LEVEL "<< level << "\n============================\n")
+		//PRINTLAYOUT(levels[level]->com, levels[level]->masterLayout, levels[level]->slaveLayout);
+		//PRINTLAYOUT(levels[level]->com, masterLayout, slaveLayout);
 
 		for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 		{
@@ -187,6 +187,9 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	return true;
 }
 
+
+
+
 template<typename TVector>
 double ConstTwoNorm(const TVector &const_d)
 {
@@ -238,6 +241,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	/*for(size_t i=0; i<5; i++)
 		add_correction_and_update_defect(corr, d, level);*/
 
+
 	double prenorm = ConstTwoNorm(d);
 	UG_LOG("Prenorm = " << prenorm << "\n");
 
@@ -283,6 +287,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	// dH = m_R[level]*d;
 	L.R.apply(dH, d);
 
+	if(m_writeMatrices) writevec("AMG_dH_L", dH, level+1);
 	double nH1 = ConstTwoNorm(dH);
 
 	double preHnorm=nH1;
@@ -305,9 +310,9 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 			if(i < 6)
 			{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm <<  "\n"); nH1 = nH2;	}
 			else UG_LOG(".");
-			if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_c_L")).c_str(), cH, level+1);
-			if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_d_L")).c_str(), dH, level+1);
-			if(i > 4 && nH2/preHnorm < 0.01)
+			//if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_c_L")).c_str(), cH, level+1);
+			//if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_d_L")).c_str(), dH, level+1);
+			if(i > 4 && nH2 < 1e-12)
 				break;
 		}
 
@@ -327,7 +332,10 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 	// interpolate correction
 	// corr = m_P[level]*cH
+	if(m_writeMatrices) writevec("AMG_dH2_L", dH, level+1);
+	if(m_writeMatrices) writevec("AMG_cH_L", cH, level+1);
 	L.P.apply(corr, cH);
+	if(m_writeMatrices) writevec("AMG_corr_L", corr, level);
 
 #ifdef UG_PARALLEL
 	cH.set_storage_type(PST_CONSISTENT);
@@ -524,6 +532,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 
 	return true;
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
