@@ -390,20 +390,146 @@ select_subsurface_elements_only()
 				"Removed refinement marks!\n");
 	}
 }
+/*
+template <class TElem>
+void restrict_selection_to_surface_coarsen_elements()
+{
+	MultiGrid& mg = *m_pMG;
+	Selector& sel = get_refmark_selector();
 
+	for(typename Selector::traits<TElem>::iterator iter = sel.begin<TElem>();
+		iter != sel.end<TElem>();)
+	{
+		TElem* e = *iter;
+		++iter;
+
+	//	make sure that only coarsen-marks are applied
+		if(sel.get_mark(e) != RM_COARSEN){
+			sel.deselect(e);
+			continue;
+		}
+
+	//	make sure that the element is a surface element
+		if(mg.has_children(e))
+			sel.deselect(e);
+	}
+}
+
+template <class TElem>
+void deselect_undeletable_coarsen_elements()
+{
+	typedef typename TElem::GeometricBaseObject	TBaseElem;
+	MultiGrid& mg = *m_pMG;
+	Selector& sel = get_refmark_selector();
+
+	vector<VertexBase*> vrts;
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+	vector<Volume*> vols;
+
+	for(typename Selector::traits<TElem>::iterator iter = sel.begin<TElem>();
+		iter != sel.end<TElem>();)
+	{
+		TElem* e = *iter;
+		++iter;
+
+		size_t numChildren = mg.num_children<TBaseElem>(e);
+		if(numChildren > 0){
+		//	we have to deselect the element
+			sel.deselect(e);
+
+		//	check if one of the children of the same base type is not selected
+			bool gotOne = false;
+			for(size_t i = 0; i < numChildren; ++i){
+				if(!sel.is_selected(mg.get_child<TBaseElem>(e, i))){
+					gotOne = true;
+					break;
+				}
+			}
+
+			if(gotOne){
+			//	the element and all associated elements may not be erased.
+			//	Note that also elements of higher dimension may not be erased,
+			//	since otherwise neighbored surface elements could lie in
+			//	levels further apart than 1.
+				CollectAssociated(vrts, mg, e);
+				CollectAssociated(edges, mg, e);
+				CollectAssociated(faces, mg, e);
+				CollectAssociated(vols, mg, e);
+
+			//	Note that we'll deselect e a second time here. This is however
+			//	not a problem
+				for(size_t i = 0; i < vrts.size(); ++i)
+					sel.deselect(vrts[i]);
+				for(size_t i = 0; i < edges.size(); ++i)
+					sel.deselect(edges[i]);
+				for(size_t i = 0; i < faces.size(); ++i)
+					sel.deselect(faces[i]);
+				for(size_t i = 0; i < vols.size(); ++i)
+					sel.deselect(vols[i]);
+			}
+		}
+	}
+}
+
+template <class TElem>
+void restrict_selection_to_coarsen_families()
+{
+	typedef typename TElem::GeometricBaseObject	TBaseElem;
+	MultiGrid& mg = *m_pMG;
+	Selector& sel = get_refmark_selector();
+
+//	mark parents, which have been processed and mark siblings, which are valid
+//	candidates. If thus a surface element is encountered, which has a marked
+//	parent, but is not marked itself, then it is clear that it is not a valid
+//	candidate.
+	mg.begin_marking();
+	for(typename Selector::traits<TElem>::iterator iter = sel.begin<TElem>();
+		iter != sel.end<TElem>();)
+	{
+		TElem* e = *iter;
+		++iter;
+
+	//	get the parent
+		TBaseElem* parent = dynamic_cast<TBaseElem*>(mg.get_parent(e));
+		if(parent){
+		//	check whether all children of e of type TBaseElem are marked
+		}
+		else{
+		//	the parent of this element has a different type or it doesn't exist
+		//	at all. The element is thus not regarded as a valid candidate.
+			sel.deselect(e);
+		}
+	}
+	mg.end_marking();
+}
+*/
 void HangingNodeRefiner_MultiGrid::
 collect_objects_for_coarsen()
 {
-	select_subsurface_elements_only<Volume>();
-	select_subsurface_elements_only<Face>();
-	select_subsurface_elements_only<EdgeBase>();
-	select_subsurface_elements_only<VertexBase>();
+//	first we'll shrink the selection so that only surface elements are selected
+/*	restrict_selection_to_surface_coarsen_elements<Volume>();
+	restrict_selection_to_surface_coarsen_elements<Face>();
+	restrict_selection_to_surface_coarsen_elements<EdgeBase>();
+	restrict_selection_to_surface_coarsen_elements<VertexBase>();
+*/
+//	now select all associated geometric objects. Those will be needed, since
+//	we have to check whether objects in an adaptive multigrid may be removed at all.
+//	With this extended selection, the new surface level can be easily checked.
+/*	SelectAssociatedGeometricObjects(get_refmark_selector(), RM_COARSEN);
+*/
+//	now we'll deselect all elements which have a children. If a child is unselected,
+//	associated elements of higher dimension may not be removed, since this would lead
+//	to a jump in the hierarchy higher than 1.
 
-//	At this point it is clear, that only sub-surface elements are selected,
-//	whose sides are sub-surface elements themselves.
-//	All should be marked with RM_COARSEN
-//	we will now make sure that all sides are marked with RM_COARSEN, too.
-	SelectAssociatedGeometricObjects(get_refmark_selector(), RM_COARSEN);
+
+//	since an element may only be removed during coarsening, if all its siblings
+//	are also removed, we'll now deselect all those, which may not be removed
+/*	restrict_selection_to_valid_candidates<Volume>();
+	restrict_selection_to_valid_candidates<Face>();
+	restrict_selection_to_valid_candidates<EdgeBase>();
+	// no need to check vertices
+*/
 }
 
 bool HangingNodeRefiner_MultiGrid::

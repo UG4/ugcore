@@ -184,6 +184,9 @@ class VertexBase : public GeometricObject
 	//	lower dimensional Base Object
 		typedef void lower_dim_base_object;
 
+	//	higher dimensional Base Object
+		typedef EdgeBase higher_dim_base_object;
+
 	/**	The side type is obviously wrong. It should be void.
 	 * However, void would cause problems with template instantiations.*/
 		typedef VertexBase side;
@@ -256,6 +259,9 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 
 	//	lower dimensional Base Object
 		typedef VertexBase lower_dim_base_object;
+	//	higher dimensional Base Object
+		typedef Face higher_dim_base_object;
+
 		typedef VertexBase side;
 
 	public:
@@ -351,6 +357,9 @@ class Face : public GeometricObject, public FaceVertices
 
 	//	lower dimensional Base Object
 		typedef EdgeBase lower_dim_base_object;
+	//	higher dimensional Base Object
+		typedef Volume higher_dim_base_object;
+
 		typedef EdgeBase side;
 
 	public:
@@ -545,6 +554,9 @@ class Volume : public GeometricObject, public VolumeVertices
 
 	//	lower dimensional Base Object
 		typedef Face lower_dim_base_object;
+	//	higher dimensional Base Object
+		typedef void higher_dim_base_object;
+
 		typedef Face side;
 
 	public:

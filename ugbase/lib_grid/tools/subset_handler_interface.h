@@ -196,6 +196,13 @@ class ISubsetHandler : public GridObserver
 		typedef AttachmentPipe<Face*, ISubsetHandler>		FaceAttachmentPipe;
 		typedef AttachmentPipe<Volume*, ISubsetHandler>		VolumeAttachmentPipe;*/
 
+	///	The traits class holds some important types for each element-type
+		template <class TElem>
+		struct traits{
+			typedef typename geometry_traits<TElem>::iterator		iterator;
+			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
+		};
+
 	public:
 	///	pass an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.

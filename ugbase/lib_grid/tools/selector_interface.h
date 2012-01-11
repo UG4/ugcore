@@ -99,6 +99,13 @@ class ISelector : public GridObserver
 			SELECTED = 1
 		};
 
+	///	The traits class holds some important types for each element-type
+		template <class TElem>
+		struct traits{
+			typedef typename geometry_traits<TElem>::iterator		iterator;
+			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
+		};
+
 	public:
 		ISelector(uint supportedElements = SE_ALL);
 		ISelector(Grid& grid, uint supportedElements = SE_ALL);
