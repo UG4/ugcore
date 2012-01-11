@@ -58,7 +58,7 @@ epsy = util.GetParamNumber("-epsy", 1)
 bCheck = util.HasParamOption("-bCheck")
 
 bWriteStats = util.HasParamOption("-bWriteStats")
-bWriteMat = true -- util.HasParamOption("-writeMatrices")
+bWriteMat = util.HasParamOption("-writeMatrices")
 bRSAMG = util.HasParamOption("-RSAMG") 
 
 bAggressiveCoarsening = util.HasParamOption("-AC")
@@ -88,7 +88,7 @@ end
 -- User Data Functions (begin)
 --------------------------------
 	function cbDirichletBnd2d(x, y, t)
-		return true, 5.9991		
+		return true, 5.9991	
 	end
 	function cbDirichletBnd3d(x, y, z, t)
 		return true, 5.9991		
@@ -363,10 +363,9 @@ if bRSAMG == false then
 	end
 	
 	amg = FAMGPreconditioner()	
-	amg:set_delta(0.5)
+	amg:set_delta(0.1)
 	amg:set_theta(0.95)
 	amg:set_aggressive_coarsening(bAggressiveCoarsening)
-	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
 		
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
 	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
@@ -375,7 +374,7 @@ if bRSAMG == false then
 	amg:add_vector_writer(testvectorwriter, 1.0)
 
 	amg:set_testvector_damps(1)
-	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
 		
 	if bWriteMat then
 		amg:write_testvectors(true)
@@ -485,6 +484,8 @@ if bCheck then
 	SaveVectorForConnectionViewer(b, "b.vec")
 	SaveVectorForConnectionViewer(u, "u.vec")
 	amg:check(u,b)
+	
+	amg:check_testvector()
 	SaveVectorForConnectionViewer(b, "Rhs2.vec")
 	SaveVectorForConnectionViewer(u, "u2.vec")
 else
