@@ -142,18 +142,6 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 			m_testvectors[i] -= c;
 		}
 
-#ifdef UG_PARALLEL
-		SetLayoutValues(&m_testvectors[i], A.get_slave_layout(), 0.0);
-		m_testvectors[i].resize(A_OL2.num_rows());
-		m_testvectors[i].set_master_layout(A_OL2.get_master_layout());
-		m_testvectors[i].set_slave_layout(A_OL2.get_slave_layout());
-		for(size_t j=A.num_rows(); j<A_OL2.num_rows(); j++)
-			m_testvectors[i][j]=0.0;
-
-		m_testvectors[i].set_storage_type(PST_ADDITIVE);
-		m_testvectors[i].change_storage_type(PST_CONSISTENT);
-#endif
-
 		if(m_famg.m_writeMatrices && m_famg.m_writeTestvectors)
 			for(size_t i=0; i<m_testvectors.size(); i++)
 				WriteVectorToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, ToString("testvector_S") + ToString(i) + ToString("_L") + ToString(level), ".vec").c_str(),
@@ -164,6 +152,25 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 }
+template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::get_testvectors_on_OL2()
+{
+#ifdef UG_PARALLEL
+	for(size_t i=0; i<m_testvectors.size(); i++)
+	{
+		SetLayoutValues(&m_testvectors[i], A.get_slave_layout(), 0.0);
+		m_testvectors[i].resize(A_OL2.num_rows());
+		m_testvectors[i].set_master_layout(A_OL2.get_master_layout());
+		m_testvectors[i].set_slave_layout(A_OL2.get_slave_layout());
+		for(size_t j=A.num_rows(); j<A_OL2.num_rows(); j++)
+			m_testvectors[i][j]=0.0;
+
+		m_testvectors[i].set_storage_type(PST_ADDITIVE);
+		m_testvectors[i].change_storage_type(PST_CONSISTENT);
+	}
+#endif
+}
+
 
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_next_testvectors()

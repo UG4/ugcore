@@ -188,6 +188,8 @@ public:
 	void	set_galerkin_truncation(double d)	{ m_dGalerkinTruncation = d; }
 	double	get_galerkin_truncation() const		{ return m_dGalerkinTruncation; }
 
+	bool 	check_testvector();
+
 private:
 //  functions
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,

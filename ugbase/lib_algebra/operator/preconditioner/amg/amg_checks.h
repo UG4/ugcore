@@ -379,7 +379,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	if(m_writeMatrices) writevec("AMG_pp_d_L", d, level);
 	if(m_writeMatrices) writevec("AMG_pp_c_L", c, level);
 
-	UG_LOG("Postnorm = " << ConstTwoNorm(d) << "\n\n");
+	UG_LOG("Postnorm = " << postnorm << "\n\n");
 	return true;
 }
 

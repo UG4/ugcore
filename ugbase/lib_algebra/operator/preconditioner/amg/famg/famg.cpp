@@ -355,7 +355,9 @@ public:
 		//-----------------------------------------------
 
 		calculate_testvectors();
+		get_testvectors_on_OL2();
 		calculator.init();
+
 
 		// 3. create heap, P, SymmNeighGraph
 		//-------------------------------------
@@ -425,8 +427,7 @@ public:
 				set_uninterpolateable_as_coarse();
 			if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms.");
 
-			IF_DEBUG(LIB_ALG_AMG, 3)
-			{	rating.print(); 	}
+
 
 			#ifdef UG_PARALLEL
 			// 6. send coarsening data to processes with higher color
@@ -467,9 +468,7 @@ public:
 			external_coarsening_calculate_prolongation();
 		}
 
-		// [ debug output
-		if(m_famg.m_writeMatrices)	m_famg.write_debug_matrix_markers(level, rating);
-		// ]
+
 
 		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelAfterCommunicateProlongation);
 		IF_DEBUG(LIB_ALG_AMG, 3)
@@ -477,8 +476,6 @@ public:
 
 
 		create_new_indices();
-
-		//UG_DLOG(LIB_ALG_AMG, 1, "parentIndex level " << level << "\n")
 		//for(size_t i=0; i<rating.get_nr_of_coarse(); i++) { UG_ASSERT(amghelper.parentIndex[level+1][i] != -1, i << " == -1???"); UG_LOG(i << " = " << amghelper.parentIndex[level+1][i] << "\n"); }
 
 		//UG_DLOG(LIB_ALG_AMG, 0, std::endl << rating.get_nr_of_coarse() << " coarse.");
@@ -493,8 +490,13 @@ public:
 		create_galerkin_product();
 		// 10.
 		//-----------------------------------------
-
-		if(m_famg.m_writeMatrices)	m_famg.write_debug_matrices(AH, R, A, PnewIndices, level);
+		// [ debug output
+		if(m_famg.m_writeMatrices)
+		{
+			m_famg.write_debug_matrix_markers(level, rating);
+			m_famg.write_debug_matrices(AH, R, A, PnewIndices, level);
+		}
+		// ]
 
 		calculate_next_testvectors();
 
@@ -567,9 +569,6 @@ private:
 	void precalculate_coarsening();
 	void calculate_all_possible_parent_pairs();
 
-	void calculate_testvectors();
-	void calculate_next_testvectors();
-
 #ifdef UG_PARALLEL
 	void color_process_graph();
 	void receive_coarsening_from_processes_with_lower_color();
@@ -581,6 +580,20 @@ private:
 #endif
 	void external_coarsening_calculate_prolongation();
 	void rs_amg_external_coarsening();
+
+	void calculate_testvectors();
+	void get_testvectors_on_OL2();
+	void calculate_next_testvectors();
+public:
+	void onlyTV()
+	{
+#ifdef UG_PARALLEL
+		create_OL2_matrix();
+#endif
+		calculate_testvectors();
+		get_testvectors_on_OL2();
+		calculate_next_testvectors();
+	}
 };
 
 
@@ -659,6 +672,7 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 		get_testvectors(A, testvectors, omega);
 	}
 
+
 	if(m_writeMatrices && m_writeTestvectors)
 	{
 		for(size_t i=0; i<testvectors.size(); i++)
@@ -680,7 +694,7 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, P,
 			level, testvectors, omega);
-			dummy.do_calculation();
+		dummy.do_calculation();
 	}
 	else
 	{
@@ -691,6 +705,100 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//       check_testvector
+//--------------------------------
+/**
+ */
+template<>
+bool FAMG<CPUAlgebra>::check_testvector()
+{
+
+	UG_LOG("\n");
+	UG_LOG("            check_testvector\n");
+	UG_LOG("==========================================\n")
+	UG_LOG("check if testvectors are interpolated exactly\n")
+	if (0){
+		int level = AMGBase<CPUAlgebra>::m_usedLevels-1;
+		matrix_type &A = *AMGBase<CPUAlgebra>::levels[level]->pA;
+		for(size_t i=0; i<A.num_rows(); i++)
+		{
+			double sum=0;
+			for(matrix_type::row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+				sum += it.value();
+			if(dabs(sum) > 0.1)
+			{
+				UG_LOG("Row " << i << " has sum " << sum << ": ");
+				A.pr(i);
+				UG_LOG("\n");
+			}
+		}
+	}
+
+	size_t preSmooth = AMGBase<CPUAlgebra>::get_num_presmooth();
+	size_t postSmooth = AMGBase<CPUAlgebra>::get_num_postsmooth();
+	AMGBase<CPUAlgebra>::set_num_presmooth(get_testvector_damps());
+	AMGBase<CPUAlgebra>::set_num_postsmooth(get_testvector_damps());
+
+
+	matrix_type &A0 = *AMGBase<CPUAlgebra>::levels[0]->pA;
+	get_testvectors(A0, testvectors, omega);
+
+	for(size_t level=0; ; level++)
+	{
+		UG_LOG("Check Level " << level << "\n-----------------------------------\n")
+
+		matrix_type *pA, *pAH;
+#ifdef UG_PARALLEL
+		if(AMGBase<CPUAlgebra>::levels[level]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level)
+			pA = &AMGBase<CPUAlgebra>::levels[level]->uncollectedA;
+		else
+#endif
+			pA = AMGBase<CPUAlgebra>::levels[level]->pA;
+
+#if UG_PARALLEL
+		if(AMGBase<CPUAlgebra>::levels[level+1]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level+1)
+			pAH = &AMGBase<CPUAlgebra>::levels[level+1]->uncollectedA;
+		else
+#endif
+			pAH = AMGBase<CPUAlgebra>::levels[level+1]->pA;
+
+		matrix_type &A = *pA;
+		matrix_type &AH = *pAH;
+		matrix_type &R = AMGBase<CPUAlgebra>::levels[level]->R;
+		matrix_type &P = AMGBase<CPUAlgebra>::levels[level]->P;
+		vector_type c, d;
+
+	#ifdef UG_PARALLEL
+		SetParallelVectorAsMatrix(c, A, PST_CONSISTENT);
+		SetParallelVectorAsMatrix(d, A, PST_CONSISTENT);
+	#endif
+		d.resize(A.num_rows());
+		c.resize(A.num_rows());
+		for(size_t i=0; i<d.size(); i++)
+			d[i] = testvectors[0][i];
+		vector_type d2;
+		CloneVector(d2, d);
+		A.apply(d2, d);
+	#ifdef UG_PARALLEL
+		d.change_storage_type(PST_ADDITIVE);
+	#endif
+		c.set(0.0);
+
+		AMGBase<CPUAlgebra>::check_level(c, d2, level);
+
+		if(level+1 < AMGBase<CPUAlgebra>::m_usedLevels-1)
+		{
+			FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, omega);
+			dummy.onlyTV();
+		}
+		else break;
+
+	}
+	AMGBase<CPUAlgebra>::set_num_presmooth(preSmooth);
+	AMGBase<CPUAlgebra>::set_num_postsmooth(postSmooth);
+	return true;
+}
 } // namespace ug
 
 #ifdef UG_PARALLEL

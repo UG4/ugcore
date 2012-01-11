@@ -297,11 +297,11 @@ void AMGBase<TAlgebra>::postset_coarse(ParallelNodes &PN, prolongation_matrix_ty
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t i = interface.get_element(iter);
+			UG_ASSERT(PN.is_slave(i), i);
 
 			if(PoldIndices.num_connections(i) != 1 &&
 					amgnodes[i].is_fine() == false)
 			{
-				UG_ASSERT(PN.is_slave(i), i);
 				amgnodes.set_fine(i);
 				UG_DLOG(LIB_ALG_AMG, 4, "post-setted " << i << " fine.\n");
 			}

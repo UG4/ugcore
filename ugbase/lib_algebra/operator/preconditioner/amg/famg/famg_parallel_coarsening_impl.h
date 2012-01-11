@@ -103,10 +103,14 @@ public:
 	void receive(int pid, size_t index, char state)
 	{
 		if(state == 0)
-			rating.external_set_uncalculated_fine(index);
+		{
+			//rating.external_set_uncalculated_fine(index);
+			rating.set_fine(index);
+		}
 		else if(state == 1)
 			rating.external_set_coarse(index);
 		// else ; // nothing
+
 	}
 
 	inline int get_element_size() const
@@ -287,12 +291,23 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 	// master0 and slave0 nodes can be set coarse by anyone, so we need to send coarsening information
 	// master -> slave
-	AddLayout(OLCoarseningSendLayout, OL1MasterLayout);
+	/*AddLayout(OLCoarseningSendLayout, OL1MasterLayout);
 	AddLayout(OLCoarseningReceiveLayout, OL1SlaveLayout);
 
 	// slave -> master
 	AddLayout(OLCoarseningSendLayout, OL1SlaveLayout);
-	AddLayout(OLCoarseningReceiveLayout, OL1MasterLayout);
+	AddLayout(OLCoarseningReceiveLayout, OL1MasterLayout);*/
+
+
+	AddLayout(OLCoarseningSendLayout, masterLayouts[0]);
+	AddLayout(OLCoarseningSendLayout, slaveLayouts[0]);
+	AddLayout(OLCoarseningSendLayout, masterLayouts[1]);
+	AddLayout(OLCoarseningSendLayout, slaveLayouts[1]);
+
+	AddLayout(OLCoarseningReceiveLayout, slaveLayouts[0]);
+	AddLayout(OLCoarseningReceiveLayout, masterLayouts[0]);
+	AddLayout(OLCoarseningReceiveLayout, slaveLayouts[1]);
+	AddLayout(OLCoarseningReceiveLayout, masterLayouts[1]);
 
 	AddConnectionsBetweenSlaves(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
 
