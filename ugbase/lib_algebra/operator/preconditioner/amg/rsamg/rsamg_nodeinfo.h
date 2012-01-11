@@ -38,6 +38,7 @@ private:
 	inline void set_assigned(){rating = AMG_ASSIGNED_RATING;}		
 	inline void set_coarse()	{rating = AMG_COARSE_RATING;}
 	inline void set_fine_direct(){rating = AMG_FINE_RATING;	}
+	inline bool is_uncalculated_fine() { return false; }
 
 
 	inline void set_unassigned_fine_indirect(){rating = AMG_UNASSIGNED_FINE_INDIRECT_RATING;}
