@@ -98,21 +98,21 @@ prepare(vector_type& u)
 //	Check for linear solver
 	if(m_pLinearSolver == NULL)
 	{
-		UG_LOG("ERROR in 'NewtonSolver::apply': Linear Solver not set.\n");
+		UG_LOG("ERROR in 'NewtonSolver::prepare': Linear Solver not set.\n");
 		return false;
 	}
 
 //	Check if ConvCheck has been set
 	if(m_pConvCheck == NULL)
 	{
-		UG_LOG("ERROR in 'NewtonSolver::apply': Convergence Check not set.\n");
+		UG_LOG("ERROR in 'NewtonSolver::prepare': Convergence Check not set.\n");
 		return false;
 	}
 
 //	Set dirichlet values
 	if(m_N->prepare(m_d, u) != true)
 	{
-		UG_LOG("ERROR in 'NewtonSolver::apply':"
+		UG_LOG("ERROR in 'NewtonSolver::prepare':"
 				" Cannot prepare Non-linear Operator.\n");
 		return false;
 	}
