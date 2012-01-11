@@ -604,7 +604,9 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 		L.presmoother->apply_update_defect(corr, d);
         c += corr;
 	}
-
+#ifdef UG_PARALLEL
+	UG_ASSERT(c.has_storage_type(PST_CONSISTENT), "" );
+#endif
 	// pre f-smoothing
 	if(m_bFSmoothing)
 	{
