@@ -855,6 +855,8 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 							" subset "<<si<< " failed.\n");
 	}
 
+	//hier Dirichlet-Constraints abfragen?
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

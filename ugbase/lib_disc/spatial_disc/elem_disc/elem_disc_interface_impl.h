@@ -41,6 +41,15 @@ inline bool IElemDisc::finish_timestep_elem(TElem* elem, const LocalVector& u)
 	return (this->*(pFunc))(elem, u);
 }
 
+template <typename TElem>
+inline bool IElemDisc::sqp_check_tolerance_elem(TElem* elem, const LocalVector& u)
+{
+//	cast the method pointer back to the original type
+	typedef bool (IElemDisc::*Func)(TElem*, const LocalVector&);
+	Func pFunc = reinterpret_cast<Func>(m_vSQPCheckToleranceElemFct[m_id]);
+	return (this->*(pFunc))(elem, u);
+}
+
 template<typename TAssFunc>
 void IElemDisc::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
@@ -102,6 +111,13 @@ void IElemDisc::set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 //	we cast the method pointer to a different type
 	m_vFinishTimestepElemFct[id] = reinterpret_cast<FinishTimestepElemFct>(func);
+};
+
+template<typename TAssFunc>
+void IElemDisc::set_sqp_check_tolerance_elem_fct(ReferenceObjectID id, TAssFunc func)
+{
+//	we cast the method pointer to a different type
+	m_vSQPCheckToleranceElemFct[id] = reinterpret_cast<SQPCheckToleranceElemFct>(func);
 };
 
 

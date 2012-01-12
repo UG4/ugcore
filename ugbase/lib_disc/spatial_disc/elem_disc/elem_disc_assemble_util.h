@@ -338,7 +338,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	set time-independent
-	LocalVectorTimeSeries locTimeSeries;
+	LocalVectorTimeSeries locTimeSeries; //time series of local vectors
 	bool bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
 
 // 	local indices and local algebra
@@ -383,7 +383,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	// 	prepare timestep
-		if(!Eval.prepare_timestep_elem(elem, locU))
+		if(!Eval.prepare_timestep_elem(elem, locU)) //anstatt locU auf read_values(vSol,ind) zurückgreifen?!
 		{
 			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
 					"Cannot prepare timestep.\n");
@@ -918,6 +918,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		{
 		//	get local solution at timepoint
 			LocalVector& locU = locTimeSeries.solution(t);
+
+			//printf("locTimeSeries-size in assemble_defect: %lu \n", locTimeSeries.size());
+			//printf("time-iter in assemble_defect: %lu \n", t);
 
 		// 	prepare element
 			if(!Eval.prepare_elem(elem, locU, ind, false, true))
@@ -1542,7 +1545,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	// 	finish timestep
 		if(!Eval.finish_timestep_elem(elem, locU))
 		{
-			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
+			UG_LOG("ERROR in '(instationary) FinishTimestep': "
 					"Cannot finish timestep.\n");
 			return false;
 		}

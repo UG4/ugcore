@@ -42,6 +42,7 @@
 #include "lib_disc/spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
 #include "lib_disc/spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"
 
+#include "lib_disc/operator/non_linear_operator/sqp_method/sqp.h"
 
 using namespace std;
 
@@ -197,6 +198,18 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						"Success", "Constant Value#Function#Subsets")
 			.add_method("clear", &T::clear);
 		reg.add_class_to_group(name, "DirichletBoundary", dimAlgDDTag);
+	}
+
+//	SQPMethod
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
+		//typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra> TBase;
+		typedef SQPMethod<TDomain, TDoFDistribution, TAlgebra> T;
+		string name = string("SQPMethod").append(dimAlgDDSuffix);
+		//reg.add_class_<T, TBase>(name, grp) //domDiscGrp)
+		reg.add_class_<T>(name, grp) //domDiscGrp)
+			.add_constructor();
+		reg.add_class_to_group(name, "SQPMethod", dimAlgDDTag);
 	}
 
 //	IDiscretizationItem
