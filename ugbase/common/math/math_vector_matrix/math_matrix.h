@@ -13,6 +13,7 @@
 #include <ostream>
 #include <iomanip>
 #include "../../types.h"
+#include "math_vector.h"
 
 namespace ug
 {
@@ -198,7 +199,7 @@ class MathMatrix
 
 		//inline std::size_t row_size() const {return N;}
 		//inline std::size_t col_size() const {return M;}
-	
+
 		inline std::size_t num_rows() const {return N;}
 		inline std::size_t num_cols() const {return M;}
 
@@ -210,6 +211,12 @@ class MathMatrix
 
 		inline value_type& operator() (std::size_t row, std::size_t col)				{return m_data[row][col];}
 		inline const value_type& operator() (std::size_t row, std::size_t col) const	{return m_data[row][col];}
+
+		inline void assign(const MathVector<N, value_type> vec, const std::size_t row) {
+			assert(vec.Size == N);
+			for(std::size_t j = 0; j < N; j++)
+				m_data[row][j] = vec[j];
+		}
 
 	protected:
 		value_type m_data[N][M];
