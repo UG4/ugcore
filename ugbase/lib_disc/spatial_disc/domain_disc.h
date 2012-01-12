@@ -28,8 +28,8 @@ namespace ug {
 /// domain discretization implementing the interface
 /**
  * This class is an implementation of the IDomainDiscretization interface. It
- * is designed to simply group several discreizations on different subsets and
- * perform element based assemblings and costraints in the same order.
+ * is designed to simply group several discretizations on different subsets and
+ * perform element based assemblings and constraints in the same order.
  */
 template <	typename TDomain,
 			typename TDoFDistribution,
@@ -185,7 +185,7 @@ class DomainDiscretization :
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
 
-	///	sets a selector to exlude elements from assembling
+	///	sets a selector to exclude elements from assembling
 	/**
 	 * This methods sets a selector. Only elements that are selected will be
 	 * assembled during assembling process. If no selector is set, this
