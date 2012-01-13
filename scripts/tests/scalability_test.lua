@@ -62,6 +62,11 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 1)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
+if numPreRefs > numRefs then
+	print("It must be choosen: numPreRefs <= numRefs");
+	exit();
+end
+
 -- parameters concerning the linear solver:
 lsType     = util.GetParam("-lsType",         "gmg") -- choose one in ["gmg" | "feti" | "hlib"]
 lsIterator = util.GetParam("-lsIterator",     "gmg")
@@ -90,8 +95,8 @@ verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measur
 
 activateDbgWriter = 0	  
 activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
-						    -- >= 1 for debug output: this sets
-						    -- 'fetiSolver:set_debug(dbgWriter)'
+						    -- >= 1 for debug output: call 'set_debug(dbgWriter)'
+						    -- for the main solver ('gmg', 'fetiSolver')
 
 
 
@@ -212,11 +217,6 @@ end
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs > numRefs then
-	print("It must be choosen: numPreRefs <= numRefs");
-	exit();
-end
-
 -- Create a refiner instance. This is a factory method
 -- which automatically creates a parallel refiner if required.
 refiner = GlobalDomainRefiner(dom)
@@ -226,7 +226,7 @@ print("Perform (non parallel) pre-refinements of grid")
 for i=1,numPreRefs do
 	write( "PreRefinement step " .. i .. " ...")
 	refiner:refine()
-	print( "  done.")
+	print( " done.")
 end
 
 
@@ -310,7 +310,7 @@ while numDistProcs > 0 do
 	for i = numCurRefs + 1, maxRefsInThisStep do
 		write( "Refinement step " .. i .. " ...")
 		refiner:refine()
-		print( "  ... done.")
+		print( " done.")
 	end
 	numCurRefs = maxRefsInThisStep
 end
