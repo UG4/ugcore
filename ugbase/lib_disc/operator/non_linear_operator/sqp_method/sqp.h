@@ -52,7 +52,7 @@ class SQPMethod //:public DomainDiscretization<TDomain, TDoFDistribution, TAlgeb
 		virtual bool check_tolerance(const vector_type& u, const dof_distribution_type& dd);
 
 	// update Operator: this operator updates the SQP-variables
-		//virtual bool update(vector_type& u);
+		virtual bool update_variables(const vector_type& u, const dof_distribution_type& dd);
 
 		//~SQPMethod();
 		~SQPMethod(){};

@@ -333,6 +333,16 @@ class IElemDisc
 		template <typename TElem>
 		bool sqp_check_tolerance_elem(TElem* elem, const LocalVector& u);
 
+	/// updates the SQP variables for an element
+	/**
+	 * This function updates the variables due to the linearized
+	 * constraint within a SQP-method.
+	 * <b>NOTE:</b>Before this method can be used, the method
+	 * 'set_roid must have been called to set the elem type.
+	 */
+		template <typename TElem>
+		bool sqp_variables_update_elem(TElem* elem, const LocalVector& u);
+
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
 
@@ -379,6 +389,7 @@ class IElemDisc
 
 	// 	types of sqp function pointers
 		typedef bool (T::*SQPCheckToleranceElemFct)(const LocalVector& u);
+		typedef bool (T::*SQPVariablesUpdateElemFct)(const LocalVector& u);
 
 	protected:
 	// 	register the functions
@@ -396,6 +407,7 @@ class IElemDisc
 		template <typename TAssFunc> void set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
 
 		template <typename TAssFunc> void set_sqp_check_tolerance_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_sqp_variables_update_elem_fct(ReferenceObjectID id, TAssFunc func);
 
 	private:
 	// 	timestep function pointers
@@ -420,6 +432,7 @@ class IElemDisc
 
 	// 	SQP function pointers
 		SQPCheckToleranceElemFct	m_vSQPCheckToleranceElemFct[NUM_REFERENCE_OBJECTS];
+		SQPVariablesUpdateElemFct	m_vSQPVariablesUpdateElemFct[NUM_REFERENCE_OBJECTS];
 
 	protected:
 	/// current Geometric Object

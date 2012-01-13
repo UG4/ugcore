@@ -68,6 +68,10 @@ class DataEvaluator
 		template <typename TElem>
 		bool sqp_check_tolerance_elem(TElem* elem, LocalVector& u);
 
+	///	updates the sqp-variables for an element
+		template <typename TElem>
+		bool sqp_variables_update_elem(TElem* elem, LocalVector& u);
+
 	///	computes all needed data on the element
 		bool compute_elem_data(LocalVector & u, bool bDeriv = false);
 

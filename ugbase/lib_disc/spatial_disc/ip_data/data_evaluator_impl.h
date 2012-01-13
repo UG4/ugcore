@@ -198,7 +198,7 @@ DataEvaluator::
 sqp_check_tolerance_elem(TElem* elem, LocalVector& u)
 {
 
-// 	prepare timestep
+// 	check tolerance
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
 	//	access disc functions
@@ -208,11 +208,40 @@ sqp_check_tolerance_elem(TElem* elem, LocalVector& u)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
-	//	prepare timestep for elem disc
+	//	checks tolerance for elem disc
 		if(!(*m_pvElemDisc)[i]->sqp_check_tolerance_elem(elem, u))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::sqp_check_tolerance_elem': "
 					"Cannot check SQP tolerance on element for IElemDisc "<<i<<".\n");
+			return false;
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+template <typename TElem>
+bool
+DataEvaluator::
+sqp_variables_update_elem(TElem* elem, LocalVector& u)
+{
+
+// 	update variables
+	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	{
+	//	access disc functions
+		u.access_by_map(map(i));
+
+		if(m_vbNeedLocTimeSeries[i])
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+
+	//	updates variables for elem disc
+		if(!(*m_pvElemDisc)[i]->sqp_variables_update_elem(elem, u))
+		{
+			UG_LOG("ERROR in 'DataEvaluator::sqp_variables_update_elem': "
+					"Cannot update SQP variables on element for IElemDisc "<<i<<".\n");
 			return false;
 		}
 	}

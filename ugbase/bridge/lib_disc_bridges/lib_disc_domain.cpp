@@ -203,11 +203,9 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 //	SQPMethod
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		//typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra> TBase;
 		typedef SQPMethod<TDomain, TDoFDistribution, TAlgebra> T;
 		string name = string("SQPMethod").append(dimAlgDDSuffix);
-		//reg.add_class_<T, TBase>(name, grp) //domDiscGrp)
-		reg.add_class_<T>(name, grp) //domDiscGrp)
+		reg.add_class_<T>(name, grp)
 			.add_constructor();
 		reg.add_class_to_group(name, "SQPMethod", dimAlgDDTag);
 	}
