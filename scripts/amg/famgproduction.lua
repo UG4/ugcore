@@ -318,7 +318,7 @@ end
 
 print ("create preconditioners... ")
 jac = Jacobi()
-jac:set_damp(0.66)
+jac:set_damp(0.8)
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
@@ -363,7 +363,7 @@ if bRSAMG == false then
 	end
 	
 	amg = FAMGPreconditioner()	
-	amg:set_delta(0.1)
+	amg:set_delta(0.5)
 	amg:set_theta(0.95)
 	amg:set_aggressive_coarsening(bAggressiveCoarsening)
 		
@@ -374,7 +374,7 @@ if bRSAMG == false then
 	amg:add_vector_writer(testvectorwriter, 1.0)
 
 	amg:set_testvector_damps(1)
-	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
 		
 	if bWriteMat then
 		amg:write_testvectors(true)
@@ -419,7 +419,7 @@ vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider(vectorWriter)
 if bWriteMat then
-amg:set_matrix_write_path("/Users/mrupp/matrices/")
+amg:set_matrix_write_path("/Users/mrupp/matricesNew/")
 end
 
 amg:set_num_presmooth(2)
