@@ -190,13 +190,17 @@ class VertexBase : public GeometricObject
 	/**	The side type is obviously wrong. It should be void.
 	 * However, void would cause problems with template instantiations.*/
 		typedef VertexBase side;
+		typedef EdgeBase sideof;
+
+		static const bool HAS_SIDES = false;
+		static const bool CAN_BE_SIDE = true;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
 
 		virtual ~VertexBase()	{}
 
-		inline uint num_sides()				{return 0;}
+		inline uint num_sides() const	{return 0;}
 
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return VERTEX;}
@@ -263,6 +267,10 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 		typedef Face higher_dim_base_object;
 
 		typedef VertexBase side;
+		typedef Face sideof;
+
+		static const bool HAS_SIDES = true;
+		static const bool CAN_BE_SIDE = true;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
@@ -273,7 +281,8 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 		virtual int base_object_type_id() const	{return EDGE;}
 		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
-		virtual uint num_sides() const {return 2;}
+		inline uint num_sides() const	{return 2;}
+
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
 	 * Newly created edges have to be registered at a grid manually by the caller.
@@ -361,6 +370,10 @@ class Face : public GeometricObject, public FaceVertices
 		typedef Volume higher_dim_base_object;
 
 		typedef EdgeBase side;
+		typedef Volume sideof;
+
+		static const bool HAS_SIDES = true;
+		static const bool CAN_BE_SIDE = true;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
@@ -558,6 +571,11 @@ class Volume : public GeometricObject, public VolumeVertices
 		typedef void higher_dim_base_object;
 
 		typedef Face side;
+	//	this is just by convention. Use can_be_side() to stop recursions.
+		typedef Volume sideof;
+
+		static const bool HAS_SIDES = true;
+		static const bool CAN_BE_SIDE = false;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}

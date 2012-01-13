@@ -144,9 +144,22 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 			}
 		}
 
-	///	helper which adjusts marks for the given elements so that only sub-surface elements stay marked.
+
+	///	Deselects all non-surface elements and all elements not marked with RM_COARSEN
 		template <class TElem>
-		void select_subsurface_elements_only();
+		void restrict_selection_to_surface_coarsen_elements();
+
+	///	Only complete families (all siblings are selected) may be coarsened.
+	/**	When calling this method, make sure that only surface elements are
+	 * marked/selected and that only the mark RM_COARSEN is used.*/
+		template <class TElem>
+		void restrict_selection_to_coarsen_families();
+
+	///	Applies marks like RM_COARSEN_CONSTRAINING or RM_COARSEN_UNCONSTRAIN
+	/**	This method should first be called for Face, then for EdgeBase, then for
+	 * VertexBase.*/
+		template <class TElem>
+		void adjust_coarsen_marks_on_side_elements();
 
 	///	called be the coarsen method in order to adjust the selection to valid elements.
 	/**	This method is responsible to mark all elements that shall be coarsened.
