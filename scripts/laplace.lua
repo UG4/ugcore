@@ -28,6 +28,11 @@ end
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 numRefs    = util.GetParamNumber("-numRefs",    3)
 
+if numPreRefs > numRefs then
+	print("It must be choosen: numPreRefs <= numRefs");
+	exit();
+end
+
 -- parallelisation related stuff
 -- way the domain / the grid will be distributed to the processes:
 distributionType = util.GetParam("-distType", "bisect") -- [grid2d | bisect | metis]
@@ -147,11 +152,6 @@ end
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs > numRefs then
-	print("It must be choosen: numPreRefs <= numRefs");
-	exit();
-end
-
 -- Create a refiner instance. This is a factory method
 -- which automatically creates a parallel refiner if required.
 refiner = GlobalDomainRefiner(dom)
@@ -159,9 +159,9 @@ refiner = GlobalDomainRefiner(dom)
 -- Performing pre-refines
 print("Perform (non parallel) pre-refinements of grid")
 for i=1,numPreRefs do
-	print( "PreRefinement step " .. i .. " ...")
+	write( "PreRefinement step " .. i .. " ...")
 	refiner:refine()
-	print( "... done!")
+	print( " done.")
 end
 
 -- get number of processes
@@ -215,9 +215,9 @@ end
 -- Perform post-refine
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-	print( "Refinement step " .. i .. " ...")
+	write( "Refinement step " .. i .. " ...")
 	refiner:refine()
-	print( "... done!")
+	print( " done!")
 end
 
 
@@ -465,6 +465,7 @@ end
 
 -- 1.b write matrix for test purpose
 if verbosity >= 1 then
+	print("Save matrix and rhs for connection viewer ...")
 	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 	SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
@@ -479,6 +480,7 @@ end
 --  Output of computed solution
 --------------------------------------------------------------------------------
 if verbosity >= 1 then
+	print("Write vtk file for solution ...")
 	WriteGridFunctionToVTK(u, "Solution")
 end
 
