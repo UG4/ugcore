@@ -80,6 +80,9 @@ void DoFDistribution::create_offsets(ReferenceObjectID roid)
 	//	get dimension of subset
 		int dim = dim_subset(si);
 
+	//	check if subset has at least one element with dim >= 0
+		if(dim < 0) continue;
+
 	//	loop functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
