@@ -43,8 +43,8 @@ verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measur
 
 activateDbgWriter = 0	  
 activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
-						    -- >= 1 for debug output: this sets
-						    -- 'fetiSolver:set_debug(dbgWriter)'
+						    -- >= 1 for debug output: call 'set_debug(dbgWriter)'
+						    -- for the main solver ('gmg')
 
 
 -- Display parameters (or defaults):
@@ -192,13 +192,15 @@ if numProcs > 1 then
 		    print( "distributionType not known, aborting!")
 		    exit()
 		end
-		
+
 	-- save the partition map for debug purposes
 		if verbosity >= 1 then
+			print("saving partition map to 'partitionMap_p" .. GetProcessRank() .. ".ugx'")
 			SavePartitionMap(partitionMap, dom, "partitionMap_p" .. GetProcessRank() .. ".ugx")
 		end
 	end
 	
+	print("Redistribute domain with 'distributionType' = '" .. distributionType .. "' ...")
 	if RedistributeDomain(dom, partitionMap, true) == false then
 		print("Redistribution failed. Please check your partitionMap.")
 		exit()
