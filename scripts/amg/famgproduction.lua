@@ -453,7 +453,7 @@ convCheck:set_reduction(1e-12)
 print("done.")
 -- create Linear Solver
 
-if util.HasParamOption("-cg") then
+if true then -- util.HasParamOption("-cg") then
 	linSolver = CG()
 else
 	linSolver = LinearSolver()
