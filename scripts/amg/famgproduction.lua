@@ -46,7 +46,7 @@ numRefs = util.GetParamNumber("-numRefs", 1)
 -- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 
-maxBase = util.GetParamNumber("-maxBase", 300)
+maxBase = util.GetParamNumber("-maxBase", 1000)
 maxLevels = util.GetParamNumber("-maxLevels", 30)
 
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
@@ -56,6 +56,7 @@ epsx = util.GetParamNumber("-epsx", 1)
 epsy = util.GetParamNumber("-epsy", 1)
 
 bCheck = util.HasParamOption("-bCheck")
+bCG = util.HasParamOption("-cg")
 
 bWriteStats = util.HasParamOption("-bWriteStats")
 bWriteMat = util.HasParamOption("-writeMatrices")
@@ -453,7 +454,7 @@ convCheck:set_reduction(1e-12)
 print("done.")
 -- create Linear Solver
 
-if true then -- util.HasParamOption("-cg") then
+if bCG then
 	linSolver = CG()
 else
 	linSolver = LinearSolver()
