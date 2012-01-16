@@ -12,7 +12,7 @@ ISelector::ISelector(uint supportedElements) :
 	m_aSelected("ISelector_IsSelected")
 {
 	m_pGrid = NULL;
-	m_supportedElements = supportedElements;
+	m_supportedElements = supportedElements;// Since no grid is available, we can't yet activate them.
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
 	m_bStrictInheritanceEnabled = false;

@@ -45,15 +45,7 @@ void MGSelector::cleanup()
 
 //	detach shared entry-attachments of section containers
 	if(m_pMultiGrid){
-		if(elements_are_supported(SE_VERTEX))
-			m_pMultiGrid->detach_from_vertices(m_aSharedEntryVRT);
-		if(elements_are_supported(SE_EDGE))
-			m_pMultiGrid->detach_from_edges(m_aSharedEntryEDGE);
-		if(elements_are_supported(SE_FACE))
-			m_pMultiGrid->detach_from_faces(m_aSharedEntryFACE);
-		if(elements_are_supported(SE_VOLUME))
-			m_pMultiGrid->detach_from_volumes(m_aSharedEntryVOL);
-
+		disable_element_support(m_supportedElements);
 		m_pMultiGrid = NULL;
 	}
 
@@ -67,26 +59,105 @@ void MGSelector::assign_grid(MultiGrid& grid)
 
 void MGSelector::assign_grid(MultiGrid* grid)
 {
-//	if a grid already exists, we'll perform cleanup
-	if(m_pMultiGrid)
-		cleanup();
+	if(grid != m_pMultiGrid){
+		uint elementSupport = m_supportedElements;
+	//	if a grid already exists, we'll perform cleanup
+		if(m_pMultiGrid)
+			cleanup();
 
-	m_pMultiGrid = grid;
+		m_supportedElements = 0;
+		m_pMultiGrid = grid;
+		BaseClass::set_grid(grid);
 
-//	attach shared entry-attachments to section containers
-	if(m_pMultiGrid){
-		if(elements_are_supported(SE_VERTEX))
-			m_pMultiGrid->attach_to_vertices(m_aSharedEntryVRT);
-		if(elements_are_supported(SE_EDGE))
-			m_pMultiGrid->attach_to_edges(m_aSharedEntryVOL);
-		if(elements_are_supported(SE_FACE))
-			m_pMultiGrid->attach_to_faces(m_aSharedEntryEDGE);
-		if(elements_are_supported(SE_VOLUME))
-			m_pMultiGrid->attach_to_volumes(m_aSharedEntryFACE);
+	//	attach shared entry-attachments to section containers
+		if(m_pMultiGrid){
+			enable_element_support(elementSupport);
+		}
+		m_supportedElements = elementSupport;
 	}
-	BaseClass::set_grid(grid);
 }
 
+void MGSelector::set_supported_elements(uint shElements)
+{
+//	do this in two steps:
+//	1: disable the element-support that is no longer required.
+//	2: enable the element-support that was not already enabled.
+//	disable the elements that shall be disabled.
+
+//	(the ones which shall not be set, but are currently active.)
+	disable_element_support((~shElements) & m_supportedElements);
+
+//	enable the elements that are not already enabled
+	enable_element_support(shElements & (~m_supportedElements));
+}
+
+void MGSelector::enable_element_support(uint shElements)
+{
+	if((shElements & SE_VERTEX) && (!elements_are_supported(SE_VERTEX)))
+		m_pMultiGrid->attach_to_vertices(m_aSharedEntryVRT);
+
+	if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
+		m_pMultiGrid->attach_to_vertices(m_aSharedEntryEDGE);
+
+	if((shElements & SE_FACE) && (!elements_are_supported(SE_FACE)))
+		m_pMultiGrid->attach_to_vertices(m_aSharedEntryFACE);
+
+	if((shElements & SE_VOLUME) && (!elements_are_supported(SE_VOLUME)))
+		m_pMultiGrid->attach_to_vertices(m_aSharedEntryVOL);
+
+	for(size_t i = 0; i < m_levels.size(); ++i){
+		Level& lvl = *m_levels[i];
+		if((shElements & SE_VERTEX) && (!elements_are_supported(SE_VERTEX)))
+			lvl.m_vertices.get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntryVRT);
+
+		if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
+			lvl.m_edges.get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntryEDGE);
+
+		if((shElements & SE_FACE) && (!elements_are_supported(SE_FACE)))
+			lvl.m_faces.get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntryFACE);
+
+		if((shElements & SE_VOLUME) && (!elements_are_supported(SE_VOLUME)))
+			lvl.m_volumes.get_container().set_pipe(
+				&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntryVOL);
+	}
+	ISelector::enable_element_support(shElements);
+}
+
+void MGSelector::disable_element_support(uint shElements)
+{
+	//	release the attachments in the current grid
+	for(size_t i = 0; i < m_levels.size(); ++i){
+		Level& lvl = *m_levels[i];
+		if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))
+			lvl.m_vertices.get_container().set_pipe(NULL);
+
+		if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
+			lvl.m_edges.get_container().set_pipe(NULL);
+
+		if((shElements & SE_FACE) && elements_are_supported(SE_FACE))
+			lvl.m_faces.get_container().set_pipe(NULL);
+
+		if((shElements & SE_VOLUME) && elements_are_supported(SE_VOLUME))
+			lvl.m_volumes.get_container().set_pipe(NULL);
+	}
+
+	if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))
+		m_pMultiGrid->detach_from_vertices(m_aSharedEntryVRT);
+
+	if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
+		m_pMultiGrid->detach_from_vertices(m_aSharedEntryEDGE);
+
+	if((shElements & SE_FACE) && elements_are_supported(SE_FACE))
+		m_pMultiGrid->detach_from_vertices(m_aSharedEntryFACE);
+
+	if((shElements & SE_VOLUME) && elements_are_supported(SE_VOLUME))
+		m_pMultiGrid->detach_from_vertices(m_aSharedEntryVOL);
+
+	ISelector::disable_element_support(shElements);
+}
 
 void MGSelector::add_level()
 {

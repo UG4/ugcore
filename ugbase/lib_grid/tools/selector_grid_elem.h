@@ -71,10 +71,7 @@ class TElemSelector : public Selector
 
 
 	public:
-	//todo:	there are currently problems with this selector. ProMesh->AdjustEdgeLength
-	//		crashes, if the original version is used.
-		TElemSelector()	: Selector(SE_ALL)	{}
-		/*TElemSelector()	: Selector(SE_NONE)
+		TElemSelector()	: Selector(SE_NONE)
 		{
 			switch(geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID){
 				case VERTEX: this->enable_element_support(SE_VERTEX); break;
@@ -83,12 +80,9 @@ class TElemSelector : public Selector
 				case VOLUME: this->enable_element_support(SE_VOLUME); break;
 				default: break;
 			}
-		}*/
+		}
 
-	//todo:	there are currently problems with this selector. ProMesh->AdjustEdgeLength
-	//		crashes, if the original version is used.
-		TElemSelector(Grid& grid) : Selector(grid, SE_ALL)	{}
-		/*TElemSelector(Grid& grid) : Selector(grid, SE_NONE)
+		TElemSelector(Grid& grid) : Selector(grid, SE_NONE)
 		{
 			switch(geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID){
 				case VERTEX: this->enable_element_support(SE_VERTEX); break;
@@ -97,7 +91,7 @@ class TElemSelector : public Selector
 				case VOLUME: this->enable_element_support(SE_VOLUME); break;
 				default: break;
 			}
-		}*/
+		}
 
 		using Selector::begin;// support for iteration over Edge, ConstrainedEdge, ...
 		inline iterator begin()						{return Selector::begin<TBaseElem>();}

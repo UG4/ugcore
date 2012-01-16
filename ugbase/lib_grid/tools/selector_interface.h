@@ -255,14 +255,17 @@ class ISelector : public GridObserver
 	///	set the type of elements that shall be handled by the SubsetHandler.
 	/**	Pass an or-combination of constants enumerated in SubsetHandlerElements.
 	 *	\sa SubsetHandler::enable_element_support*/
+	//	Protected non-virtual to avoid virtual calls during construction
 		void set_supported_elements(uint shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
+	//	Protected non-virtual to avoid virtual calls during construction
 		void enable_element_support(uint shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
+	//	Protected non-virtual to avoid virtual calls during construction
 		void disable_element_support(uint shElements);
 
 		inline void mark_selected(VertexBase* elem, byte status)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = status;}

@@ -45,41 +45,74 @@ void Selector::assign_grid(Grid& grid)
 
 void Selector::assign_grid(Grid* grid)
 {
-	if(m_pGrid){
+	if(grid != m_pGrid){
+		uint elementSupport = m_supportedElements;
+
+		if(m_pGrid){
+		//	release the attachments in the current grid
+			disable_element_support(elementSupport);
+		}
+
+		BaseClass::set_grid(grid);
+
+		if(m_pGrid){
+		//	initialize attachment lists
+			enable_element_support(elementSupport);
+		}
+	}
+}
+
+void Selector::set_supported_elements(uint shElements)
+{
+//	do this in two steps:
+//	1: disable the element-support that is no longer required.
+//	2: enable the element-support that was not already enabled.
+//	disable the elements that shall be disabled.
+
+//	(the ones which shall not be set, but are currently active.)
+	disable_element_support((~shElements) & m_supportedElements);
+
+//	enable the elements that are not already enabled
+	enable_element_support(shElements & (~m_supportedElements));
+}
+
+void Selector::enable_element_support(uint shElements)
+{
+	if((shElements & SE_VERTEX) && (!elements_are_supported(SE_VERTEX)))
+		section_container<VertexBase>().get_container().
+				set_pipe(&m_pGrid->get_attachment_pipe<VertexBase>());
+
+	if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
+		section_container<EdgeBase>().get_container().
+				set_pipe(&m_pGrid->get_attachment_pipe<EdgeBase>());
+
+	if((shElements & SE_FACE) && (!elements_are_supported(SE_FACE)))
+		section_container<Face>().get_container().
+				set_pipe(&m_pGrid->get_attachment_pipe<Face>());
+
+	if((shElements & SE_VOLUME) && (!elements_are_supported(SE_VOLUME)))
+		section_container<Volume>().get_container().
+				set_pipe(&m_pGrid->get_attachment_pipe<Volume>());
+
+	ISelector::enable_element_support(shElements);
+}
+
+void Selector::disable_element_support(uint shElements)
+{
 	//	release the attachments in the current grid
-		if(elements_are_supported(SE_VERTEX))
-			section_container<VertexBase>().get_container().set_pipe(NULL);
+	if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))
+		section_container<VertexBase>().get_container().set_pipe(NULL);
 
-		if(elements_are_supported(SE_EDGE))
-			section_container<EdgeBase>().get_container().set_pipe(NULL);
+	if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
+		section_container<EdgeBase>().get_container().set_pipe(NULL);
 
-		if(elements_are_supported(SE_FACE))
-			section_container<Face>().get_container().set_pipe(NULL);
+	if((shElements & SE_FACE) && elements_are_supported(SE_FACE))
+		section_container<Face>().get_container().set_pipe(NULL);
 
-		if(elements_are_supported(SE_VOLUME))
-			section_container<Volume>().get_container().set_pipe(NULL);
-	}
+	if((shElements & SE_VOLUME) && elements_are_supported(SE_VOLUME))
+		section_container<Volume>().get_container().set_pipe(NULL);
 
-	BaseClass::set_grid(grid);
-
-	if(m_pGrid){
-	//	initialize attachment lists
-		if(elements_are_supported(SE_VERTEX))
-			section_container<VertexBase>().get_container().
-					set_pipe(&m_pGrid->get_attachment_pipe<VertexBase>());
-
-		if(elements_are_supported(SE_EDGE))
-			section_container<EdgeBase>().get_container().
-					set_pipe(&m_pGrid->get_attachment_pipe<EdgeBase>());
-
-		if(elements_are_supported(SE_FACE))
-			section_container<Face>().get_container().
-					set_pipe(&m_pGrid->get_attachment_pipe<Face>());
-
-		if(elements_are_supported(SE_VOLUME))
-			section_container<Volume>().get_container().
-					set_pipe(&m_pGrid->get_attachment_pipe<Volume>());
-	}
+	ISelector::disable_element_support(shElements);
 }
 
 void Selector::clear_lists()

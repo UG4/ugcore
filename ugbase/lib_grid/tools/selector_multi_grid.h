@@ -89,18 +89,21 @@ class MGSelector : public ISelector
 	///	set the type of elements that shall be handled by the Selector.
 	/**	Pass an or-combination of constants enumerated in SelectorElements.
 	 *	\sa Selector::enable_element_support*/
-	//	forwards to protected ISelector method
-		inline void set_supported_elements(uint shElements)	{ISelector::set_supported_elements(shElements);}
+	//	forwards to protected ISelector method. This rather complicated setup
+	//	is required to avoid virtual method calls during construction.
+		inline void set_supported_elements(uint shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
-	//	forwards to protected ISelector method
-		inline void enable_element_support(uint shElements)	{ISelector::enable_element_support(shElements);}
+	//	forwards to protected ISelector method. This rather complicated setup
+	//	is required to avoid virtual method calls during construction.
+		inline void enable_element_support(uint shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
-	//	forwards to protected ISelector method
-		void disable_element_support(uint shElements)		{ISelector::disable_element_support(shElements);}
+	//	forwards to protected ISelector method. This rather complicated setup
+	//	is required to avoid virtual method calls during construction.
+		void disable_element_support(uint shElements);
 
 		inline uint num_levels()	{return m_levels.size();}
 
