@@ -319,10 +319,10 @@ end
 
 print ("create preconditioners... ")
 jac = Jacobi()
-jac:set_damp(0.8)
+jac:set_damp(0.66)
 
 jac2 = Jacobi()
-jac2:set_damp(0.6)
+jac2:set_damp(0.66)
 
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
@@ -379,7 +379,7 @@ if bRSAMG == false then
 	amg:add_vector_writer(testvectorwriter, 1.0)
 
 	amg:set_testvector_damps(1)
-	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
 	amg:set_testvectorsmoother(jac2)
 		
 	if bWriteMat then
