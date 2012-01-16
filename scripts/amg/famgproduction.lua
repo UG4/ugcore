@@ -47,7 +47,7 @@ numRefs = util.GetParamNumber("-numRefs", 1)
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
 
 maxBase = util.GetParamNumber("-maxBase", 300)
-maxLevels = util.GetParamNumber("-maxLevels", 20)
+maxLevels = util.GetParamNumber("-maxLevels", 30)
 
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
