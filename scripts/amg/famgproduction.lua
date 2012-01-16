@@ -88,7 +88,7 @@ end
 -- User Data Functions (begin)
 --------------------------------
 	function cbDirichletBnd2d(x, y, t)
-		return true, 5.9991	
+		return true, 0 -- 5.9991	
 	end
 	function cbDirichletBnd3d(x, y, z, t)
 		return true, 5.9991		
@@ -319,6 +319,10 @@ end
 print ("create preconditioners... ")
 jac = Jacobi()
 jac:set_damp(0.8)
+
+jac2 = Jacobi()
+jac2:set_damp(0.6)
+
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
@@ -375,6 +379,7 @@ if bRSAMG == false then
 
 	amg:set_testvector_damps(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
+	amg:set_testvectorsmoother(jac2)
 		
 	if bWriteMat then
 		amg:write_testvectors(true)
@@ -386,7 +391,7 @@ if bRSAMG == false then
 		-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
 		-- amg:set_parallel_coarsening(GetRS3Coarsening())
 	end
-	amg:set_testvectorsmoother(jac)
+	
 	
 	-- amg:set_debug_level_overlap(4, 4)
 	-- amg:set_use_precalculate(false)
@@ -394,9 +399,9 @@ if bRSAMG == false then
 	-- amg:set_debug_level_coloring(4)
 	-- amg:set_debug_level_communicate_prolongation(4)
 	-- amg:set_debug_level_overlap(4,4)
-	-- amg:set_debug_level_calculate_parent_pairs(2)
-	-- amg:set_debug_level_precalculate_coarsening(4)
 	-- amg:set_debug_level_calculate_parent_pairs(4)
+	-- amg:set_debug_level_precalculate_coarsening(4)
+	 -- amg:set_debug_level_calculate_parent_pairs(6)
 	-- amg:set_galerkin_truncation(1e-6)
 	-- amg:set_H_reduce_interpolation_nodes_parameter(0.1)
 	amg:set_galerkin_truncation(1e-13)
