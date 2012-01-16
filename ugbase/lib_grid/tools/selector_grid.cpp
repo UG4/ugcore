@@ -53,6 +53,7 @@ void Selector::assign_grid(Grid* grid)
 			disable_element_support(elementSupport);
 		}
 
+		m_supportedElements = SE_NONE;
 		BaseClass::set_grid(grid);
 
 		if(m_pGrid){

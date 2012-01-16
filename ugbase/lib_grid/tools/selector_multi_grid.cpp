@@ -65,7 +65,7 @@ void MGSelector::assign_grid(MultiGrid* grid)
 		if(m_pMultiGrid)
 			cleanup();
 
-		m_supportedElements = 0;
+		m_supportedElements = SE_NONE;
 		m_pMultiGrid = grid;
 		BaseClass::set_grid(grid);
 
