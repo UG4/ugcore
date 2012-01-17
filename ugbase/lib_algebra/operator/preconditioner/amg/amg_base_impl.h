@@ -103,6 +103,9 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 {
+	if(m_bOneInit && m_bInited)
+		return true;
+
 	AMG_PROFILE_FUNC();
 
 	cleanup();

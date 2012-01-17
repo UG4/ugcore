@@ -127,6 +127,7 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_matrix_write_path", &AMGBase<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
 			.add_method("set_fsmoothing", &AMGBase<algebra_type>::set_fsmoothing, "", "enable", "")
 			.add_method("get_fsmoothing", &AMGBase<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
+			.add_method("set_one_init", &AMGBase<algebra_type>::set_one_init, "", "b")
 
 			.add_method("set_position_provider",
 					(void(AMGBase<algebra_type>::*)(IPositionProvider<2> *))&AMGBase<algebra_type>::set_position_provider, "", "prov", "needed for connectionviewer output")
@@ -201,6 +202,8 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_communicate_prolongation", &FAMG<algebra_type>::set_debug_level_communicate_prolongation)
 			.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
 			.add_method("set_testvectorsmoother", &FAMG<algebra_type>::set_testvectorsmoother)
+
+			.add_method("check_testvector", &FAMG<algebra_type>::check_testvector)
 #ifdef UG_PARALLEL
 			.add_method("set_parallel_coarsening", &FAMG<algebra_type>::set_parallel_coarsening)
 #endif

@@ -306,6 +306,11 @@ public:
 	template<typename TNodeType>
 	void write_debug_matrix_markers(size_t level, const TNodeType &nodes);
 
+	void set_one_init(bool b)
+	{
+		m_bOneInit = b;
+	}
+
 protected:
 	void init_fsmoothing();
 	bool writevec(std::string filename, const vector_type &d, size_t level);
@@ -315,7 +320,6 @@ protected:
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level) = 0;
 	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
-
 
 
 
@@ -338,6 +342,7 @@ protected:
 	bool 	m_bUseCollectedSolver;
 
 	bool	m_bFSmoothing;
+	bool	m_bOneInit;
 
 
 	vector_type *m_vec4;						///< temporary Vector for defect (in get_correction)
