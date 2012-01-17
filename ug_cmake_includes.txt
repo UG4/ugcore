@@ -59,6 +59,13 @@ set(lapackDefault ON)
 # Option to add svn head revision, compile date and build host into ugshell's initial output
 set(svnDefault OFF)
 
+# If we run the script the first time, search for MPI to determine the default value
+if(NOT mpiHasBeenSearched)
+	find_package(MPI)
+	set(mpiHasBeenSearched ON CACHE BOOL "This var is set to true after mpi has been searched the first time.")
+endif(NOT mpiHasBeenSearched)
+
+
 # Those variables control the build process. They are later modified depending
 # on the value of TARGET.
 set(buildUGShell OFF)
@@ -103,7 +110,7 @@ option(HLIBPRO "Sets the path in which hlibpro shall be searched.")
 option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
 option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
 option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
-option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ON)
+option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI_FOUND})
 option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
 option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
@@ -559,9 +566,7 @@ if(PARALLEL)
 		include_directories(${MPI_INCLUDE_PATH})
 		set(linkLibraries ${linkLibraries} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
 	else(MPI_FOUND)
-		message(STATUS "MPI not found. Setting PARALLEL to OFF.")
-		set(PARALLEL OFF)
-		remove_definitions(-DUG_PARALLEL)
+		message(FATAL_ERROR "MPI not found. Please set PARALLEL to OFF (run cmake -DPARALLEL=OFF ...)")
 	endif(MPI_FOUND)
 endif(PARALLEL)
 
