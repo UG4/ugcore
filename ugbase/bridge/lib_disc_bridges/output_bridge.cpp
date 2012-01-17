@@ -157,12 +157,11 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 						 &SaveVectorForConnectionViewer<function_type>, grp);
 	}
 
-	//	SaveVectorCSV
-	/*{
+//	SaveVectorCSV
+	{
 		reg.add_function("SaveVectorCSV",
 						 &SaveVectorCSV<function_type>, grp);
-	}*/
-
+	}
 }
 
 template <typename TAlgebra, typename TDoFDistribution>

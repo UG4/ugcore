@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include "lib_algebra/common/connection_viewer_output.h"
+#include "lib_algebra/common/csv_gnuplot_output.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -245,6 +246,52 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 	return WriteVectorToConnectionViewer(filename, b, b);
 }
 
+
+// Same as before, but for comma separated value (CSV)
+template <class TFunction>
+bool WriteVectorCSV(const char *filename,
+                                   const typename TFunction::algebra_type::vector_type &b,
+                                   const TFunction &u)
+{
+//	get dimension
+	const static int dim = TFunction::domain_type::dim;
+
+//	check name
+	std::string name(filename);
+	size_t iExtPos = name.find_last_of(".");
+	if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".csv") != 0)
+	{
+		UG_LOG("Only '.csv' format supported for vectors.\n");
+		return false;
+	}
+
+//	extended filename
+//	add p000X extension in parallel
+#ifdef UG_PARALLEL
+	name.resize(iExtPos);
+	int rank = pcl::GetProcRank();
+	char ext[20];
+	sprintf(ext, "_p%05d.csv", rank);
+	name.append(ext);
+#endif
+
+// 	get positions of vertices
+	std::vector<MathVector<dim> > positions;
+	ExtractPositions(u, positions);
+
+//	write vector
+	WriteVectorCSV(name.c_str(), b, &positions[0], dim);
+
+//	we're done
+	return true;
+}
+
+template <typename TGridFunction>
+bool SaveVectorCSV(	TGridFunction& b,
+									const char* filename)
+{
+	return WriteVectorCSV(filename, b, b);
+}
 
 template <typename TGridFunction>
 class GridFunctionDebugWriter
