@@ -80,11 +80,6 @@ void SetDebugLevel(const char* strTag, int level)
 	GetLogAssistant().set_debug_level(GetLogAssistantTag(strTag), level);
 }
 
-void int_srand(int seed)
-{
-	srand((unsigned int)seed);
-}
-
 bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 {
 	stringstream ss; ss << parentGroup << "/Util/Log";
@@ -111,7 +106,6 @@ bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 	{
 		reg.add_function("DefinedUG_DEBUG", &DefinedUG_DEBUG, grp, "");
 		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &DefinedUG_ENABLE_DEBUG_LOGS, grp, "");
-		reg.add_function("srand", int_srand, grp, "seed", "The pseudo-random number generator is initialized using the argument passed as seed.");
 	}
 
 	return true;

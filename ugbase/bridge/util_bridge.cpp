@@ -5,6 +5,8 @@
 #include "common/util/path_provider.h"
 #include "registry/registry.h"
 #include "bridge.h"
+#include "common/os_dependent/file_util.h"
+#include "ug.h"
 
 #include <cstdlib>
 #include <string>
@@ -41,6 +43,10 @@ static int ExecuteSystemCommand(const char* cmd)
 	return system(cmd);
 }
 
+void int_srand(int seed)
+{
+	srand((unsigned int)seed);
+}
 
 bool RegisterUtilInterface(Registry& reg, string parentGroup)
 {
@@ -61,6 +67,12 @@ bool RegisterUtilInterface(Registry& reg, string parentGroup)
 
 	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grp,
 					 "success", "command", "Executes a command in the system shell");
+
+	reg.add_function("srand", int_srand, grp, "seed", "The pseudo-random number generator is initialized using the argument passed as seed.")
+		.add_function("ug_file_exists", &FileExists, grp,
+				 "exists", "", "Returns true if a path exists, false if not.")
+		.add_function("exit", &UGForceExit, grp,
+				 "", "", "Immediatly terminates the application.");
 
 	return true;
 }

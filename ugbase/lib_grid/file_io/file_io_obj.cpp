@@ -47,6 +47,10 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			vVertices.push_back(pVrt);
 			aaPosVRT[pVrt] = *loader.point(i);
 		}
+	//	if a subset handler was specified, we'll push all vertices into subset 0
+		if(pSubsetHandler){
+			pSubsetHandler->assign_subset(grid.begin<Vertex>(), grid.end<Vertex>(), 0);
+		}
 	}
 
 //	iterate through the objects in loader and add edges and faces to grid.

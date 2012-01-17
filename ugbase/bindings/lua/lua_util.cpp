@@ -127,8 +127,9 @@ lua_State* GetDefaultLuaState()
 		L = lua_open();
 	//	open standard libs
 		luaL_openlibs(L);
-	//	create lua bindings for registered functions and objects
-		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
+
+		g_pRegistry->add_function("ug_load_script", &LoadUGScript, "/ug4/lua",
+					"success", "", "Loads and parses a script and returns whether it succeeded.");
 		
 	//	this define makes sure that no methods are referenced that
 	//	use the algebra, even if no algebra is included.
@@ -144,6 +145,9 @@ lua_State* GetDefaultLuaState()
 
 		if(!g_pRegistry->check_consistency())
 			throw(UGFatalError("Script-Registry not ok."));
+
+	//	create lua bindings for registered functions and objects
+		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
 	}
 	
 	return L;

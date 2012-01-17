@@ -155,19 +155,6 @@ int main(int argc, char* argv[])
 
 	LOG("********************************************************************************\n");
 
-
-//	register the load script method.
-//	this currently can't be done by the bridge, since it would
-//	introduce a dependency to scripting (this has to be avoided at all costs!!!)
-//todo: move it to ug_script
-	bridge::GetUGRegistry()
-		.add_function("ug_load_script", &LoadUGScript, "/ug4/shell",
-					"success", "", "Loads and parses a script and returns whether it succeeded.")
-		.add_function("ug_file_exists", &FileExists, "/ug4/shell",
-					 "exists", "", "Returns true if a path exists, false if not.")
-		.add_function("exit", &UGForceExit, "/ug4/shell",
-					 "", "", "Immediatly terminates the application.");
-
 	bool runInteractiveShell = true;
 	
 //	we want to forward argc and argv to the lua-environment.

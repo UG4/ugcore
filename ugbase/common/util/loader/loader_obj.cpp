@@ -153,7 +153,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 
 		split_parameters(&lstParams, tStr.c_str());
 		*/
-		split_parameters(lstParams, BUFFER, " \r");
+		split_parameters(lstParams, BUFFER, " \r\t");
 
 		if(!lstParams.size())
 			continue;
