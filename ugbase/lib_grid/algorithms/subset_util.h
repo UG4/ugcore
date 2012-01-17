@@ -360,7 +360,13 @@ void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 ///	assigns objects to subsets depending on whether they are inner or boundary objects.
 void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 									int inSubset, int bndSubset);
-									
+
+
+////////////////////////////////////////////////////////////////////////
+///	Returns an rgb vector (values ranging from 0 to 1), with the i-th default color.
+//todo: Move this method to common/util or something like that.
+vector3 GetColorFromStandardPalette(int index);
+
 ////////////////////////////////////////////////////////////////////////
 //	AssignSubsetColors
 ///	assigns a different color to each subset

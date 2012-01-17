@@ -883,10 +883,11 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 	}
 }
 
-static vector3 GetColorFromStandardPalette(int index)
+vector3 GetColorFromStandardPalette(int index)
 {
 //	values taken from http://en.wikipedia.org/wiki/Web_colors
-	float stdColors[][3] = {{255, 0, 0},	//Red
+	float stdColors[][3] = {{255, 255, 255},//White
+							{255, 0, 0},	//Red
 							{0, 255, 0},	//Lime
 							{0, 0, 255},	//Blue
 							{255, 0, 255},	//Magenta
@@ -901,7 +902,7 @@ static vector3 GetColorFromStandardPalette(int index)
 							{255, 160, 122}	//LightSalmon
 							};
 
-	int numCols = 13;
+	const int numCols = 14;
 
 	if(index >= 0 && index < numCols)
 		return vector3(stdColors[index][0] / 255.f, stdColors[index][1] / 255.f, stdColors[index][2] / 255.f);
@@ -910,23 +911,9 @@ static vector3 GetColorFromStandardPalette(int index)
 
 	float val = 2.f* 3.14159265 * (float)index / 3.148 + (float)index / 15.f;
 	vector3 vCol(1.f + cos(val), 1.f + sin(0.6* val), 1.f - cos(0.373*val));
-//	vCol.x *= vCol.x;
-//	vCol.y *= vCol.y;
-//	vCol.z *= vCol.z;
+
 	VecNormalize(vCol, vCol);
 	return vCol;
-/*
-	vector2 vRed(1.f, 0);
-	vector2 vGreen(0.866, -0.5);
-	vector2 vBlue(-0.866, -0.5);
-
-	vector3 col;
-	col.x = 0.5 * (1.f + VecDot(vCol, vRed));
-	col.y = 0.5 * (1.f + VecDot(vCol, vGreen));
-	col.z = 0.5 * (1.f + VecDot(vCol, vBlue));
-
-	return col;
-*/
 }
 
 ////////////////////////////////////////////////////////////////////////
