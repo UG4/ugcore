@@ -13,7 +13,7 @@ using namespace std;
 
 namespace ug{
 
-bool LoadPlugins(const char* pluginPath, string parentGroup)
+bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 {
 	typedef void (*FctInitPlugin)(ug::bridge::Registry*, std::string);
 

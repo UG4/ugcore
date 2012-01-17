@@ -21,20 +21,20 @@ namespace bridge
 UG_API Registry & GetUGRegistry();
 
 ///	Sets the default classes of class-groups based on a tags using default DoFManager
-void UG_API InitUG(int dim, const AlgebraType& algebraType);
+UG_API void InitUG(int dim, const AlgebraType& algebraType);
 
 ///	Sets the default classes of class-groups based on a tags
-void UG_API InitUG(int dim, const AlgebraType& algebraType, const char* ddType);
+UG_API void InitUG(int dim, const AlgebraType& algebraType, const char* ddType);
 
 
 /// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
-bool UG_API InitBridge();
+UG_API bool InitBridge();
 
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
  */
-bool UG_API RegisterStandardInterfaces(Registry& reg, std::string parentGroup = "/ug4");
+UG_API bool RegisterStandardInterfaces(Registry& reg, std::string parentGroup = "/ug4");
 
 ///	Registers types and functions for 1, 2, 3 and 4 dimensional vector math.
 bool RegisterVecMathBridge(Registry& reg, std::string parentGroup = "/ug4");

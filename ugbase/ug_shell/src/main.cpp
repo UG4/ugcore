@@ -144,6 +144,7 @@ int main(int argc, char* argv[])
 	if(bridge::InitBridge())	{UG_LOG("done");}
 	else						{UG_LOG("fail");}
 	
+	FileExists("");
 	#ifdef UG_PLUGINS
 		UG_LOG(", plugins... ");
 		if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}

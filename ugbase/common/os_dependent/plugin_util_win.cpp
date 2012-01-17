@@ -4,6 +4,7 @@
 
 #include <windows.h>
 #include <string>
+#include "plugin_util.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
 #include "bridge/bridge.h"
@@ -14,7 +15,7 @@ using namespace std;
 
 namespace ug{
 
-bool LoadPlugins(const char* pluginPath, string parentGroup)
+bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 {
 	typedef void (*FctInitPlugin)(ug::bridge::Registry*, std::string);
 
@@ -68,4 +69,3 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 }
 
 }// end of namespace
-

@@ -85,7 +85,7 @@ add_subdirectory(node_tree)
 #	add sources to library
 ################################################################################
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES("common" ${sources})
+	EXPORTSOURCES(common ${sources})
 else(BUILD_ONE_LIB)
 	add_library(common ${sources})
 endif(BUILD_ONE_LIB)

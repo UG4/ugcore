@@ -12,7 +12,7 @@ namespace ug
 {
 
 ///	Loads all plugins in the given path.
-bool UG_API LoadPlugins(const char* pluginPath, std::string parentGroup);
+UG_API bool LoadPlugins(const char* pluginPath, std::string parentGroup);
 
 }//	end of namespace
 
