@@ -28,6 +28,7 @@ function writeFileStats(stats, filename)
 	local output = io.open(filename, "a")
 	
 	if fsize(output) == 0 then
+		print("file is empty, writing header...")
 		output:write(getStats(stats, true, "\t", false, "\t"))		
 	end
 	output:write(getStats(stats, false, "\t", true, "\t"))
@@ -43,4 +44,12 @@ function PrintParallelProfileNode(name)
 	tmin = ParallelMin(t)
 	tmax = ParallelMax(t)
 	printf("%s:\n%.2f %%, min: %.2f %%, max: %.2f %%", name, t, tmin, tmax)
+end
+
+function bool2string(boolB)
+	if boolB then
+		return "true"
+	else
+		return "false"
+	end
 end
