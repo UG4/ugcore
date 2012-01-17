@@ -155,6 +155,7 @@ bool Registry::check_consistency()
 	std::vector<std::string> globFuncDuplicates = 
 			FindDuplicates(globalFunctionNames);
 	bool globFuncDuplicatesExist = globFuncDuplicates.size()>0;
+	//todo: use stringstream
 	std::string duplicateFuncMsg = 
 				"#### ERROR in 'Registry::check_consistency': "
 				"duplicate function names:\n";
@@ -164,7 +165,7 @@ bool Registry::check_consistency()
 		}
 		duplicateFuncMsg += "#### NOTE: it is not allowed to register two"
 				" functions with equal names. Comparison is NOT case sensitive,"
-				" e.g., 'F' and 'f' are equal.\n\n";
+				" e.g., 'Func' and 'func' are equal.\n\n";
 	}
 
 // 	check classes and their methods
@@ -207,6 +208,7 @@ bool Registry::check_consistency()
 	std::vector<std::string> classDuplicates = 
 			FindDuplicates(classNames);
 	bool classDuplicatesExist = classDuplicates.size()>0;
+	//todo: use stringstream
 	std::string duplicateClassMsg = 
 				"#### ERROR in 'Registry::check_consistency': "
 				"duplicate class names:\n";
@@ -216,7 +218,7 @@ bool Registry::check_consistency()
 		}
 		duplicateClassMsg += "#### NOTE: it is not allowed to register two"
 				"  classes with equal names. Comparison is NOT case sensitive,"
-				" e.g., 'Class and 'class' are equal.\n\n";
+				" e.g., 'Class' and 'class' are equal.\n\n";
 	}
 
 //	log error messages
