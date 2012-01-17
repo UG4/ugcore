@@ -6,12 +6,13 @@
 #define __H__UG__plugin_util__
 
 #include <string>
+#include "common/ug_config.h"
 
 namespace ug
 {
 
 ///	Loads all plugins in the given path.
-bool LoadPlugins(const char* pluginPath, std::string parentGroup);
+bool UG_API LoadPlugins(const char* pluginPath, std::string parentGroup);
 
 }//	end of namespace
 
