@@ -362,7 +362,7 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 //	loop all selected symbolic names
 	for(size_t sym = 0; sym < m_vSymbFct.size(); ++sym)
 	{
-	//	create functio group
+	//	create function group
 		FunctionGroup fctGrp;
 
 	//	get symb function
