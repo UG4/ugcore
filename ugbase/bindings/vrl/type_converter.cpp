@@ -835,68 +835,70 @@ jobject param2JObject(
 
 int paramType2Int(const ug::bridge::ParameterStack& params, size_t index) {
 	using namespace ug::bridge;
-	//	iterate through the parameter list and return corresponding int
+
 	int type = params.get_type(index);
+    
+    return type;
 
-	switch (type) {
-		case PT_UNKNOWN:
-		{
-			return 0;
-		}
-			break;
-		case PT_BOOL:
-		{
-			return 1;
-		}
-			break;
-		case PT_INTEGER:
-		{
-			return 2;
-		}
-			break;
-		case PT_NUMBER:
-		{
-			return 3;
-		}
-			break;
-		case PT_STD_STRING:
-		{
-			return 4;
-		}
-			break;
-		case PT_CSTRING:
-		{
-//todo: 9 has been chosen by a totally inadequate person!!! Make sure that this
-//		is ok. Better yet: Remove this method!!! :)
-			return 9;
-		}
-			break;
-		case PT_POINTER:
-		{
-			return 5;
-		}
-			break;
-		case PT_CONST_POINTER:
-		{
-			return 6;
-		}
-			break;
-		case PT_SMART_POINTER:
-		{
-			return 7;
-		}
-			break;
-		case PT_CONST_SMART_POINTER:
-		{
-			return 8;
-		}
-			break;
-		default:
-			return 0;
-			break;
-	}
-
-	return 0;
+//	switch (type) {
+//		case PT_UNKNOWN:
+//		{
+//			return 0;
+//		}
+//			break;
+//		case PT_BOOL:
+//		{
+//			return 1;
+//		}
+//			break;
+//		case PT_INTEGER:
+//		{
+//			return 2;
+//		}
+//			break;
+//		case PT_NUMBER:
+//		{
+//			return 3;
+//		}
+//			break;
+//		case PT_STD_STRING:
+//		{
+//			return 4;
+//		}
+//			break;
+//		case PT_CSTRING:
+//		{
+////todo: 9 has been chosen by a totally inadequate person!!! Make sure that this
+////		is ok. Better yet: Remove this method!!! :)
+//			return 9;
+//		}
+//			break;
+//		case PT_POINTER:
+//		{
+//			return 5;
+//		}
+//			break;
+//		case PT_CONST_POINTER:
+//		{
+//			return 6;
+//		}
+//			break;
+//		case PT_SMART_POINTER:
+//		{
+//			return 7;
+//		}
+//			break;
+//		case PT_CONST_SMART_POINTER:
+//		{
+//			return 8;
+//		}
+//			break;
+//		default:
+//			return 0;
+//			break;
+//	}
+//
+//	return 0;
 }
 
 jobjectArray params2NativeParams(JNIEnv *env,

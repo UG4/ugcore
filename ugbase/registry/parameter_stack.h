@@ -81,18 +81,22 @@ static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
 
 const int PARAMETER_STACK_MAX_SIZE = 10;
 
+// CAUTION:
+// Type values must not be changed! Bindings rely on the exact values.
+// Append new types at the end and update bindings.
+// If in doubt contact binding developers!
 enum ParameterTypes
 {
 	PT_UNKNOWN = 0,
-	PT_BOOL,
-	PT_INTEGER,
-	PT_NUMBER,
-	PT_CSTRING,
-	PT_STD_STRING,
-	PT_POINTER,
-	PT_CONST_POINTER,
-	PT_SMART_POINTER,
-	PT_CONST_SMART_POINTER
+	PT_BOOL = 1,
+	PT_INTEGER = 2,
+	PT_NUMBER = 3,
+	PT_CSTRING = 4,
+	PT_STD_STRING = 5,
+	PT_POINTER = 6,
+	PT_CONST_POINTER = 7,
+	PT_SMART_POINTER = 8,
+	PT_CONST_SMART_POINTER = 9
 };
 
 ////////////////////////////////////////////////////////////////////////

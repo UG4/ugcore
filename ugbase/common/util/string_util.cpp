@@ -138,5 +138,44 @@ template <> unsigned long hash_key(const std::string& key)
 	return hash;
 }
 
+
+std::string ToLower(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+}
+
+std::string ToUpper(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+    return str;
+}
+
+std::vector<std::string> FindDuplicates(const std::vector<std::string>& vec) {
+		
+	std::vector<std::string> result;
+	
+	// search for duplicates
+	for (size_t i = 0; i < vec.size();i++) {
+		
+		bool duplicateExists = false;
+		
+		for (size_t j = 0; j < vec.size();j++) {
+			if (vec[i]==vec[j] && i!=j) {
+				duplicateExists = true;
+				break;
+			}
+		}
+		
+		// if not already added, add entry to result vec
+		bool duplicateAddedToResult =
+			std::find(result.begin(), result.end(), vec[i])!=result.end();
+		
+		if (duplicateExists && !duplicateAddedToResult) {
+			result.push_back(vec[i]);
+		}
+	}
+	
+	return result;	
+}
+
 }
 

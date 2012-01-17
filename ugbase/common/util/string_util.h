@@ -6,6 +6,8 @@
 
 #include <string>
 #include <vector>
+#include <algorithm> 
+#include <cctype>
 #include "hash.h"
 #include "common/ug_config.h"
 
@@ -86,6 +88,32 @@ UG_API bool StartsWith(std::string str, std::string search);
  * <code>search</code>; <code>false</code> otherwise
  */
 UG_API bool Contains(std::string str, std::string search);
+
+/**
+ * Returns a lower case version of the specified string.
+ * <p><b>Note: </b>this function does not support custom locales. Thus,
+ *                 only ascii strings shall be specified.</p> 
+ * @param str string to convert
+ * @return a lower case version of the specified string
+ */
+UG_API std::string ToLower(std::string str);
+
+/**
+ * Returns an upper case version of the specified string.
+ * <p><b>Note: </b>this function does not support custom locales. Thus,
+ *                 only ascii strings shall be specified.</p> 
+ * @param str string to convert
+ * @return an upper case version of the specified string
+ */
+UG_API std::string ToUpper(std::string str);
+
+/**
+ * Searches for duplicates in the specified vector and returns a vector 
+ * containing all elements that occur multiple times.
+ * @param vec vector to analyze
+ * @return a vector containing all elements that occur multiple times
+ */
+UG_API std::vector<std::string> FindDuplicates(const std::vector<std::string>& vec);
 
 } // end namespace ug
 

@@ -129,28 +129,58 @@ IExportedClass* Registry::get_class(const std::string& name)
 
 bool Registry::check_consistency()
 {
-//	check global functions
+
+	// list to check for duplicates in global functions.
+	// comparison is not case sensitive.
+	std::vector<std::string> globalFunctionNames;
+    
+	//	check global functions
 	size_t globFctUndef = 0;
 	for(size_t i=0; i<num_functions(); i++)
 	{
-	//	get function
+		//	get function
 		ExportedFunctionGroup& funcGrp = get_function_group(i);
+		
+		// add lower case name entry
+		globalFunctionNames.push_back(ToLower(funcGrp.name()));
 
-	//	check all overloads
+		//	check all overloads
 		for(size_t j = 0; j < funcGrp.num_overloads(); ++j){
 			if(!funcGrp.get_overload(j)->check_consistency())
 				globFctUndef++;
 		}
+	}
+	
+	// check for duplicate function names. comparison is not case sensitive.
+	std::vector<std::string> globFuncDuplicates = 
+			FindDuplicates(globalFunctionNames);
+	bool globFuncDuplicatesExist = globFuncDuplicates.size()>0;
+	std::string duplicateFuncMsg = 
+				"#### ERROR in 'Registry::check_consistency': "
+				"duplicate function names:\n";
+	if (globFuncDuplicatesExist) {
+		for(size_t i = 0; i < globFuncDuplicates.size();i++) {
+			duplicateFuncMsg+=  + "\t" + globFuncDuplicates[i] + "\n";
+		}
+		duplicateFuncMsg += "#### NOTE: it is not allowed to register two"
+				" functions with equal names. Comparison is NOT case sensitive,"
+				" e.g., 'F' and 'f' are equal.\n\n";
 	}
 
 // 	check classes and their methods
 	size_t baseClassUndef = 0;
 	size_t methodUndef = 0;
 	size_t constructorUndef = 0;
+	// list to check for duplicate classes.
+	// comparison is not case sensitive.
+	std::vector<std::string> classNames;
 	for(size_t i=0; i<num_classes(); i++)
 	{
 	//	get class
 		const bridge::IExportedClass &c = get_class(i);
+		
+		// add lower case name entry
+		classNames.push_back(ToLower(c.name()));
 
 	//	check class (e.g. that base classes have been named)
 		if(!c.check_consistency()){
@@ -172,6 +202,22 @@ bool Registry::check_consistency()
 			if(!c.get_constructor(j).check_consistency(c.name()))
 				constructorUndef++;
 	}
+	
+	// check for duplicate class names. comparison is not case sensitive.
+	std::vector<std::string> classDuplicates = 
+			FindDuplicates(classNames);
+	bool classDuplicatesExist = classDuplicates.size()>0;
+	std::string duplicateClassMsg = 
+				"#### ERROR in 'Registry::check_consistency': "
+				"duplicate class names:\n";
+	if (classDuplicatesExist) {
+		for(size_t i = 0; i < classDuplicates.size();i++) {
+			duplicateClassMsg+= "\t" + classDuplicates[i] + "\n";
+		}
+		duplicateClassMsg += "#### NOTE: it is not allowed to register two"
+				"  classes with equal names. Comparison is NOT case sensitive,"
+				" e.g., 'Class and 'class' are equal.\n\n";
+	}
 
 //	log error messages
 	if(globFctUndef > 0)
@@ -186,12 +232,20 @@ bool Registry::check_consistency()
 	if(constructorUndef > 0)
 		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<constructorUndef<<
 		       " Constructors are using undeclared Classes.\n");
+	if(globFuncDuplicatesExist) {
+		UG_LOG(duplicateFuncMsg);
+	}
+	if(classDuplicatesExist) {
+		UG_LOG(duplicateClassMsg);
+	}
 
-//	return false if undefined classes have been found
+//	return false if undefined classes or functions and/or duplicates have been found
 	if(globFctUndef > 0) return false;
 	if(methodUndef > 0) return false;
 	if(baseClassUndef > 0) return false;
 	if(constructorUndef > 0) return false;
+	if(globFuncDuplicatesExist) return false;
+	if(classDuplicatesExist) return false;
 
 //	everything fine
 	return true;
