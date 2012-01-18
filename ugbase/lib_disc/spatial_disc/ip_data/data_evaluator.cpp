@@ -49,7 +49,36 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			return false;
 		}
 
-	//	check that number of functions is correct
+	//	check that all functions are defined on chosen subsets
+		SubsetGroup discSubsetGrp;
+		if(!ConvertStringToSubsetGroup(discSubsetGrp, fctPat.subset_handler(),
+		                                 (*m_pvElemDisc)[i]->symb_subsets()))
+		{
+			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Cannot find "
+					"some symbolic Subset Name for disc "<<i<<". (Incorrect"
+					" subset specification in: '");
+			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_subsets().size(); ++f)
+			{
+				if(f > 0) UG_LOG(", ");
+				UG_LOG((*m_pvElemDisc)[i]->symb_subsets()[f]);
+			}
+			UG_LOG("').\n");
+			return false;
+
+		}
+
+		for(size_t fct = 0; fct < discFctGrp.num_fct(); ++fct)
+		{
+			for(size_t si = 0; si < discSubsetGrp.num_subsets(); ++si)
+			{
+				if(!fctPat.is_def_in_subset(discFctGrp[fct], si))
+					UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': On disc "<<i<<
+					       ": symbolic Function "<< (*m_pvElemDisc)[i]->symb_fcts()[fct]
+                     << " is not defined on subset "<<(*m_pvElemDisc)[i]->symb_subsets()[si]);
+
+			}
+		}
+
 		if(discFctGrp.num_fct() != (*m_pvElemDisc)[i]->num_fct())
 		{
 			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<

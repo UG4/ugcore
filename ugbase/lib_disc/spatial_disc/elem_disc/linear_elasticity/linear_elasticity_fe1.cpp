@@ -29,8 +29,13 @@ namespace ug{
 template<typename TDomain>
 FE1LinearElasticityElemDisc<TDomain>::
 FE1LinearElasticityElemDisc(const char* functions, const char* subsets)
-	: 	IDomainElemDisc<TDomain>(TDomain::dim, functions,subsets), m_ElasticityTensorFct(NULL)
+	: 	IDomainElemDisc<TDomain>(functions,subsets), m_ElasticityTensorFct(NULL)
 {
+//	check number of functions
+	if(this->num_fct() != (size_t)TDomain::dim)
+		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'LinearElasticity'"
+					   " needs exactly "<<TDomain::dim<<" symbolic function.");
+
 	register_all_fe1_funcs();
 };
 

@@ -70,8 +70,13 @@ get_concentration_grad() {return m_exConcentrationGrad;}
 template<typename TDomain>
 ConvectionDiffusionElemDisc<TDomain>::
 ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
- : IDomainElemDisc<TDomain>(1, functions,subsets), m_pConvShape(NULL)
+ : IDomainElemDisc<TDomain>(functions,subsets), m_pConvShape(NULL)
 {
+//	check number of functions
+	if(this->num_fct() != 1)
+		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ConvectionDiffusion'"
+					   " needs exactly "<<1<<" symbolic function.");
+
 //	register exports
 	this->register_export(m_exConcentration);
 	this->register_export(m_exConcentrationGrad);

@@ -507,8 +507,13 @@ ex_concentration_grad(const LocalVector& u,
 template<typename TDomain>
 FVConstantEquationElemDisc<TDomain>::
 FVConstantEquationElemDisc(const char* functions, const char* subsets)
-:IDomainElemDisc<TDomain>(1, functions,subsets)
+:IDomainElemDisc<TDomain>(functions,subsets)
 {
+//	check number of functions
+	if(this->num_fct() != 1)
+		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ConstantEquation'"
+					   " needs exactly "<<1<<" symbolic function.");
+
 //	register assemling functions
 	register_all_fv1_funcs(false);
 

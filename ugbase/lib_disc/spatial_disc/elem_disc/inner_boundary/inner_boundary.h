@@ -74,8 +74,8 @@ class FV1InnerBoundaryElemDisc
 	public:
 	
 	/// Constructor
-		FV1InnerBoundaryElemDisc(size_t numFct, const char* functions, const char* subsets)
-			: IDomainElemDisc<TDomain>(numFct, functions, subsets), _numFct(numFct)
+		FV1InnerBoundaryElemDisc(const char* functions, const char* subsets)
+			: IDomainElemDisc<TDomain>(functions, subsets)
 		{
 			register_all_fv1_funcs();
 		}
@@ -88,7 +88,7 @@ class FV1InnerBoundaryElemDisc
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		{
 		//	check number
-			if(vLfeID.size() != _numFct) return false;
+			if(vLfeID.size() != this->num_fct()) return false;
 
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)
@@ -114,12 +114,6 @@ class FV1InnerBoundaryElemDisc
 	///	returns if hanging nodes are used
 		virtual bool use_hanging() const {return false;}
 
-
-	protected:
-	
-	///	number of unknowns involved
-		size_t _numFct;
-	
 	private:
 	
 	/// the flux function

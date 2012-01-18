@@ -45,16 +45,10 @@ class IElemDisc
 {
 	public:
 	///	Constructor
-		IElemDisc(int numFct, const char* functions, const char* subsets);
+		IElemDisc(const char* functions = NULL, const char* subsets = NULL);
 
 	////////////////////////////
 	// Functions and Subsets
-
-	/// sets number of functions this discretization handles
-		void set_num_fct(size_t numFct) {m_numFct = numFct;}
-
-	/// number of functions this discretization handles
-		size_t num_fct() const {return m_numFct;}
 
 	///	sets functions by name list, divided by ','
 		void set_functions(std::string functions);
@@ -62,8 +56,14 @@ class IElemDisc
 	///	sets subset(s) by name list, divided by ','
 		void set_subsets(std::string subsets);
 
+	/// number of functions this discretization handles
+		size_t num_fct() const {return m_vFct.size();}
+
 	///	returns the symbolic functions
 		const std::vector<std::string>& symb_fcts() const {return m_vFct;}
+
+	/// number of functions this discretization handles
+		size_t num_subsets() const {return m_vSubset.size();}
 
 	///	returns the symbolic subsets
 		const std::vector<std::string>& symb_subsets() const {return m_vSubset;}
@@ -457,8 +457,8 @@ class IDomainElemDisc : public IElemDisc
 		typedef typename TDomain::position_type position_type;
 
 	public:
-		IDomainElemDisc(size_t numFct, const char* functions, const char* subsets)
-			: IElemDisc(numFct, functions, subsets), m_pDomain(NULL), m_pApproxSpace(NULL) {};
+		IDomainElemDisc(const char* functions = NULL, const char* subsets = NULL)
+			: IElemDisc(functions, subsets), m_pDomain(NULL), m_pApproxSpace(NULL) {};
 
 	///	sets the approximation space
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)

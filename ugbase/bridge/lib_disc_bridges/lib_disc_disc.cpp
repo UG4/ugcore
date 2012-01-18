@@ -101,7 +101,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 		typedef FV1InnerBoundaryElemDisc<TDomain> TBase1;
 		name = string("FV1InnerBoundaryCalciumER").append(dimSuffix);
 		reg.add_class_<T1, TBase1>(name, elemGrp)
-			.template add_constructor<void (*)(size_t, const char*, const char*)>("NumberOfFunctions#Function(s)#Subset(s)");
+			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)");
 		reg.add_class_to_group(name, "FV1InnerBoundaryCalciumER", dimTag);
 	
 	}

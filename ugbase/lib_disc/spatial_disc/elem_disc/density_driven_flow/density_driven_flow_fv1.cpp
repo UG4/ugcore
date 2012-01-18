@@ -1004,7 +1004,7 @@ assemble_f(LocalVector& d)
 template<typename TDomain>
 DensityDrivenFlowElemDisc<TDomain>::
 DensityDrivenFlowElemDisc(const char* functions, const char* subsets) :
-	IDomainElemDisc<TDomain>(2, functions,subsets),
+	IDomainElemDisc<TDomain>(functions,subsets),
 	m_pUpwind(NULL), m_bConsGravity(true),
 	m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 	m_imBrineScvf(false), m_imBrineGradScvf(false),
@@ -1012,6 +1012,11 @@ DensityDrivenFlowElemDisc(const char* functions, const char* subsets) :
 	m_imDensityScv(false), m_imDensityScvf(false),
 	m_imDarcyVelScvf(false)
 {
+//	check number of functions
+	if(this->num_fct() != 2)
+		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'DensityDrivenFlow'"
+					   " needs exactly "<<2<<" symbolic function.");
+
 //	register assemble functions
 	register_all_fv1_funcs();
 

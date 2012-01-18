@@ -57,8 +57,8 @@ class FV1CalciumERElemDisc
 {
 	public:
 		
-		FV1CalciumERElemDisc(size_t numFct, const char* functions, const char* subsets)
-			: FV1InnerBoundaryElemDisc<TDomain>(numFct, functions, subsets){};
+		FV1CalciumERElemDisc(const char* functions, const char* subsets)
+			: FV1InnerBoundaryElemDisc<TDomain>(functions, subsets){};
 	
 	private:
 		virtual bool fluxDensityFct(const LocalVector& u, size_t node_id, FluxCond& fc)

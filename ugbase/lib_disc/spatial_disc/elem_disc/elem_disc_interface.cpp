@@ -9,12 +9,14 @@
 
 namespace ug{
 
-IElemDisc::IElemDisc(int numFct, const char* functions, const char* subsets)
-	: 	m_numFct(numFct), m_bTimeDependent(false), m_time(0.0),
+IElemDisc::IElemDisc(const char* functions, const char* subsets)
+	: 	m_bTimeDependent(false), m_time(0.0),
 	  	m_pLocalVectorTimeSeries(NULL), m_id(ROID_UNKNOWN)
 {
-	set_functions(functions);
-	set_subsets(subsets);
+	m_vFct.clear();
+	m_vSubset.clear();
+	if(functions) set_functions(functions);
+	if(subsets) set_subsets(subsets);
 }
 
 void IElemDisc::set_functions(std::string fctString)
@@ -26,13 +28,17 @@ void IElemDisc::set_functions(std::string fctString)
 	for(size_t i = 0; i < m_vFct.size(); ++i)
 		RemoveWhitespaceFromString(m_vFct[i]);
 
-//	check, that number of symbols is correct
-	if(m_vFct.size() != m_numFct)
+//	if no function passed, clear functions
+	if(m_vFct.size() == 1 && m_vFct[0].empty()) m_vFct.clear();
+
+//	if functions passed with separator, but not all tokens filled, throw error
+	for(size_t i = 0; i < m_vFct.size(); ++i)
 	{
-		UG_THROW("IElemDisc: Wrong number of symbolic "
-				 "names of functions passed: Required: "<< m_numFct <<
-				 " Passed: " << m_vFct.size() << " ('"<<fctString<<"'). Please "
-				 " pass correct number of symbolic names separated by ','.\n");
+		if(m_vFct.empty())
+			UG_THROW_FATAL("Error while setting functions in an ElemDisc: passed "
+							"function string '"<<fctString<<"' lacks a "
+							"function specification at position "<<i<<"(of "
+							<<m_vFct.size()-1<<")");
 	}
 }
 
@@ -45,9 +51,18 @@ void IElemDisc::set_subsets(std::string ssString)
 	for(size_t i = 0; i < m_vSubset.size(); ++i)
 		RemoveWhitespaceFromString(m_vSubset[i]);
 
-//	check that at least one subset given
-	if(m_vSubset.empty())
-		UG_THROW("IElemDisc: At least one Subset must be specified for an element disc.")
+//	if no subset passed, clear subsets
+	if(m_vFct.size() == 1 && m_vFct[0].empty()) m_vFct.clear();
+
+//	if subsets passed with separator, but not all tokens filled, throw error
+	for(size_t i = 0; i < m_vFct.size(); ++i)
+	{
+		if(m_vFct.empty())
+			UG_THROW_FATAL("Error while setting subsets in an ElemDisc: passed "
+							"subset string '"<<ssString<<"' lacks a "
+							"subset specification at position "<<i<<"(of "
+							<<m_vFct.size()-1<<")");
+	}
 }
 
 void IElemDisc::register_import(IDataImport& Imp)

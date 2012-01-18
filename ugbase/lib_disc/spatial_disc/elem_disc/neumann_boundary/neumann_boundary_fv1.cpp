@@ -139,7 +139,6 @@ extract_scheduled_data()
 	                               commonFctGrp, fctNames);
 
 //	set name of function
-	this->set_num_fct(commonFctGrp.num_fct());
 	this->set_functions(fctNames.c_str());
 
 //	done
@@ -405,7 +404,7 @@ assemble_f(LocalVector& d)
 
 template<typename TDomain>
 FV1NeumannBoundaryElemDisc<TDomain>::FV1NeumannBoundaryElemDisc(const char* subsets)
- :IDomainElemDisc<TDomain>(0, "",subsets)
+ :IDomainElemDisc<TDomain>("", subsets)
 {
 	m_mBNDNumberBndSegment.clear();
 	register_all_fv1_funcs(false);

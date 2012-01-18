@@ -1367,7 +1367,7 @@ assemble_f(LocalVector& d)
 
 template<typename TDomain>
 ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* functions, const char* subsets) :
-	IDomainElemDisc<TDomain>(3, functions,subsets),
+	IDomainElemDisc<TDomain>(functions,subsets),
 	m_pUpwind(NULL), m_pUpwindEnergy(NULL), m_bConsGravity(true),
 	m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 	m_BoussinesqEnergy(false),
@@ -1377,6 +1377,11 @@ ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* function
 	m_imDensityScv(false), m_imDensityScvf(false),
 	m_imDarcyVelScvf(false)
 {
+//	check number of functions
+	if(this->num_fct() != 3)
+		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ThermohalineFlow'"
+					   " needs exactly "<<3<<" symbolic function.");
+
 //	register assemble functions
 	register_all_fv1_funcs();
 
