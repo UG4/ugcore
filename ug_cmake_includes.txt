@@ -583,9 +583,11 @@ endif(buildForVRL)
 ################################################################################
 # This is a hidden option, which is currently only required for builds on jugene.
 # Note that the associated option is enabled in toolchain_file_jugene.cmake
-if(enableDynamicOption)
-	add_definitions(-dynamic)
-endif(enableDynamicOption)
+if(NOT STATIC)
+	if(enableDynamicOption)
+		add_definitions(-dynamic)
+	endif(enableDynamicOption)
+endif(NOT STATIC)
 
 
 ################################################################################
