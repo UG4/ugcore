@@ -317,15 +317,18 @@ end
 
 -- clean up
 delete(partitionMap)
+partitionMap = nil
+delete(refiner)
+refiner = nil
 
 --------------------------------------------------------------------------------
 -- end of partitioning
 --------------------------------------------------------------------------------
-
 -- get subset handler
 sh = dom:subset_handler()
 subsetsFine = (sh:num_subsets() == 2)
 if subsetsFine == true then subsetsFine = util.CheckSubsets(dom, {"Inner", "Boundary"}) end
+
 if AllProcsTrue(subsetsFine) == false then 
 	print("Domain must have 2 Subsets for this problem ('Inner' and 'Boundary').")
 	print("Make sure that every process received a part of the grid during distribution!")
