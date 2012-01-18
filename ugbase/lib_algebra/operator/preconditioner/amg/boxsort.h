@@ -140,7 +140,7 @@ public:
 		size_t val = m_values[i];
 
 		// swap last of this box and i
-		size_t last = m_box[val].back();
+		/*size_t last = m_box[val].back();
 		if(last!=i)
 			assert(m_posInBox[i] < (int)m_box[val].size()-1);
 		m_box[val].pop_back();
@@ -149,7 +149,12 @@ public:
 
 			m_box[val][m_posInBox[i]] = last;
 			m_posInBox[last] = m_posInBox[i];
-		}
+			}*/
+		m_box[val].erase(m_box[val].begin()+m_posInBox[i]);
+		for(size_t j=0; j<m_box[val].size(); j++)
+		  {
+		    m_posInBox[m_box[val][j]] = j;
+		  }
 
 		m_posInBox[i] = -1;
 
@@ -165,12 +170,8 @@ public:
 		UG_ASSERT(m_height > 0 && m_box.size() > 0, "queue empty! (height = " << m_height << ", boxsize = " << m_box.size() << ").");
 
 		size_t val = m_box.size()-1;
-		size_t i = m_box[val].back();
-		m_box[val].pop_back();
-		m_posInBox[i] = -1;
-		while(m_box.size() && m_box.back().size() == 0)
-			m_box.pop_back();
-		m_height--;
+		size_t i = m_box[val][0];
+		remove(i);
 		return i;
 	}
 
@@ -181,7 +182,7 @@ public:
 		UG_ASSERT(m_height > 0 || m_box.size() <= 0, "queue empty! (height = " << m_height << ", boxsize = " << m_box.size() << ").");
 
 		size_t val = m_box.size()-1;
-		return m_box[val].back();
+		return m_box[val][0];
 	}
 
 	//!
