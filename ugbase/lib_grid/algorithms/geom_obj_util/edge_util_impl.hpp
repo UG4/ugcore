@@ -243,6 +243,33 @@ EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 	return shortestEdge;
 }
 
+
+template <class TEdgeIterator, class TAAPosVRT>
+EdgeBase* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+							TAAPosVRT& aaPos)
+{
+//	if edgesBegin equals edgesEnd, then the list is empty and we can
+//	immediately return NULL
+	if(edgesBegin == edgesEnd)
+		return NULL;
+
+//	the first edge is the first candidate for the shortest edge.
+//	We compare squares to avoid computation of the square root.
+	EdgeBase* longestEdge = *edgesBegin;
+	number longestLen = EdgeLengthSq(longestEdge, aaPos);
+	++edgesBegin;
+
+	for(; edgesBegin != edgesEnd; ++edgesBegin){
+		EdgeBase* curEdge = *edgesBegin;
+		number curLen = EdgeLengthSq(curEdge, aaPos);
+		if(curLen > longestLen){
+			longestEdge = curEdge;
+			longestLen = curLen;
+		}
+	}
+
+	return longestEdge;
+}
 ////////////////////////////////////////////////////////////////////////////////
 template <class TEdgeIterator>
 void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd)
