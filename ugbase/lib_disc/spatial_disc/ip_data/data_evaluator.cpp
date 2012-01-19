@@ -71,11 +71,12 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		{
 			for(size_t si = 0; si < discSubsetGrp.num_subsets(); ++si)
 			{
-				if(!fctPat.is_def_in_subset(discFctGrp[fct], si))
+				if(!fctPat.is_def_in_subset(discFctGrp[fct], discSubsetGrp[si])){
 					UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': On disc "<<i<<
 					       ": symbolic Function "<< (*m_pvElemDisc)[i]->symb_fcts()[fct]
                      << " is not defined on subset "<<(*m_pvElemDisc)[i]->symb_subsets()[si]);
-
+					return false;
+				}
 			}
 		}
 
