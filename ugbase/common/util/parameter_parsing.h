@@ -13,26 +13,26 @@ namespace ug
 /**	searches argv for the given parameter and returns its position in argv.
  *	If the parameter is not contained in argv, -1 is returned.
  */
-UG_API int GetParamIndex(const char* param, int argc, const char * const argv[]);
+UG_API int GetParamIndex(const char* param, int argc, const char * const * argv);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter and returns true if it is found.
  */
-UG_API bool FindParam(const char* param, int argc, const char * const argv[]);
+UG_API bool FindParam(const char* param, int argc, const char * const * argv);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter, and converts the
  *	associated value to an integer. Returns true if the parameter was
  *	found, false if not.
  */
-UG_API bool ParamToInt(int& iOut, const char* param, int argc, const char * const argv[]);
+UG_API bool ParamToInt(int& iOut, const char* param, int argc, const char * const * argv);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter, and converts the
  *	associated value to a double value. Returns true if the parameter was
  *	found, false if not.
  */
-UG_API bool ParamToDouble(double &dOut, const char *param, int argc, const char * const argv[]);
+UG_API bool ParamToDouble(double &dOut, const char *param, int argc, const char * const * argv);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter, and returns the
@@ -41,12 +41,12 @@ UG_API bool ParamToDouble(double &dOut, const char *param, int argc, const char 
  *
  *	Please note that spaces may not be contained in the associated string.
  */
-UG_API bool ParamToString(const char** strOut, const char* param, int argc, const char * const argv[]);
+UG_API bool ParamToString(const char** strOut, const char* param, int argc, const char * const * argv);
 
 
 
-UG_API double ParamToDouble(const char *param, int argc, const char * const argv[], double dDefault);
-UG_API int ParamToInt(const char *param, int argc, const char * const argv[], int iDefault);
+UG_API double ParamToDouble(const char *param, int argc, const char * const * argv, double dDefault);
+UG_API int ParamToInt(const char *param, int argc, const char * const * argv, int iDefault);
 
 }//	end of namespace
 

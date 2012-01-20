@@ -9,7 +9,7 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
-int GetParamIndex(const char* param, int argc, const char * const argv[]) {
+int GetParamIndex(const char* param, int argc, const char * const * argv) {
 	for (int i = 0; i < argc; ++i) {
 		if (strcmp(param, argv[i]) == 0) {
 			return i;
@@ -19,13 +19,13 @@ int GetParamIndex(const char* param, int argc, const char * const argv[]) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool FindParam(const char* param, int argc, const char * const argv[]) {
+bool FindParam(const char* param, int argc, const char * const * argv) {
 	return GetParamIndex(param, argc, argv) != -1;
 }
 
 
 ////////////////////////////////////////////////////////////////////////
-bool ParamToInt(int& iOut, const char* param, int argc, const char * const argv[]) {
+bool ParamToInt(int& iOut, const char* param, int argc, const char * const * argv) {
 	int i = GetParamIndex(param, argc, argv);
 	if (i == -1 || i + 1 >= argc) {
 		return false;
@@ -35,7 +35,7 @@ bool ParamToInt(int& iOut, const char* param, int argc, const char * const argv[
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool ParamToDouble(double &dOut, const char *param, int argc, const char * const argv[])
+bool ParamToDouble(double &dOut, const char *param, int argc, const char * const * argv)
 {
 	int i = GetParamIndex(param, argc, argv);
 	if (i == -1 || i + 1 >= argc) {
@@ -47,7 +47,7 @@ bool ParamToDouble(double &dOut, const char *param, int argc, const char * const
 
 
 ////////////////////////////////////////////////////////////////////////
-bool ParamToString(const char ** strOut, const char* param, int argc, const char * const argv[]) {
+bool ParamToString(const char ** strOut, const char* param, int argc, const char * const * argv) {
 	int i = GetParamIndex(param, argc, argv);
 	if (i == -1 || i + 1 >= argc) {
 		return false;
@@ -56,14 +56,14 @@ bool ParamToString(const char ** strOut, const char* param, int argc, const char
 	return true;
 }
 
-int ParamToInt(const char* param, int argc, const char * const argv[], int iDefault)
+int ParamToInt(const char* param, int argc, const char * const * argv, int iDefault)
 {
 	int i;
 	if(ParamToInt(i, param, argc, argv) == true)
 		return i;
 	else return iDefault;
 }
-double ParamToDouble(const char *param, int argc, const char * const argv[], double dDefault)
+double ParamToDouble(const char *param, int argc, const char * const * argv, double dDefault)
 {
 	double d;
 	if(ParamToDouble(d, param, argc, argv) == true)
