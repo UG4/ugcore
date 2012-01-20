@@ -24,8 +24,11 @@ using namespace std;
 #include "../boxsort.h"
 //#define AMG_PRINT_COARSEN
 
+
 namespace ug
 {
+time_t global_t=0;
+
 
 // CreateMeasureOfImportancePQ:
 //------------------------------
@@ -56,7 +59,6 @@ void CreateMeasureOfImportancePQ(const cgraph &strong, const cgraph &strongT, no
 		{
 			//UG_ASSERT(graph.iNrOfConnections[i] > 0, "node " << i << " has " << graph.iNrOfConnections[i] << " connections?");
 			nodes.set_rating(i, strongT.num_connections(i));
-			nodes[i].t = 0;
 			PQ.insert_item(i);
 		}
 	}

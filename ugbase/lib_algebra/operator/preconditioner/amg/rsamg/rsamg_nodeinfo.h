@@ -19,7 +19,9 @@
 #include "lib_algebra/parallelization/parallel_nodes.h"
 #endif
 
+
 namespace ug {
+extern time_t global_t;
 
 //  structs
 #define AMG_UNKNOWN							(-1)
@@ -48,7 +50,7 @@ private:
 
 public:
 	inline void set_parallel_dont_care() { rating = AMG_PARALLEL_DONT_CARE; }
-	AMGNode() { rating = AMG_ASSIGNED_RATING; }
+	AMGNode() { rating = AMG_ASSIGNED_RATING; t=0;}
 	int rating;
 	time_t t;
 
@@ -88,7 +90,11 @@ public:
 		return out;
 	}
 
-	void update_time(){ t = clock(); }
+	void update_time()
+	{
+		t = global_t++; //clock();
+	}
+
 	void print() const
 	{
 		std::cout << *this << std::endl;
