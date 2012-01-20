@@ -21,6 +21,7 @@ else
 end
 
 print("ugshell "..util.GetCommandLine())
+print("SVN Revision: "..GetSVNRevision()..", compiled on "..GetBuildHostname().." on "..GetCompileDate())
 -- constants
 if util.HasParamOption("-3d") then
 	dim = 3
