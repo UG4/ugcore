@@ -688,10 +688,10 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 		
 	//	subset util
 		reg.add_function("AdjustSubsetsForSimulation",
-						static_cast<void (*)(SubsetHandler&, bool, bool, bool)>(
+						static_cast<void (*)(SubsetHandler&, bool)>(
 						&AdjustSubsetsForSimulation<SubsetHandler>), grp)
 			.add_function("AdjustSubsetsForSimulation",
-						static_cast<void (*)(MGSubsetHandler&, bool, bool, bool)>(
+						static_cast<void (*)(MGSubsetHandler&, bool)>(
 						&AdjustSubsetsForSimulation<MGSubsetHandler>), grp);
 
 	//	PartitionMap
