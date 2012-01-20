@@ -12,8 +12,8 @@
 #ifndef __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_NODEINFO_H__
 #define __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_NODEINFO_H__
 
-//#include "maxheap.h"
-#include "../boxsort.h"
+#include "../maxheap.h"
+//#include "../boxsort.h"
 #include "../amg_debug_helper.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_nodes.h"
@@ -50,6 +50,8 @@ public:
 	inline void set_parallel_dont_care() { rating = AMG_PARALLEL_DONT_CARE; }
 	AMGNode() { rating = AMG_ASSIGNED_RATING; }
 	int rating;
+	time_t t;
+
 	inline bool is_parallel_dont_care() const { return rating == AMG_PARALLEL_DONT_CARE; }
 	inline bool is_coarse() const {	return rating == AMG_COARSE_RATING;}
 	inline bool is_dirichlet() const { return rating == AMG_DIRICHLET_RATING; }
@@ -85,6 +87,8 @@ public:
 		out << " ";
 		return out;
 	}
+
+	void update_time(){ t = clock(); }
 	void print() const
 	{
 		std::cout << *this << std::endl;
@@ -93,7 +97,8 @@ public:
 	inline bool operator > (const AMGNode &other) const
 	{
 		if(rating == other.rating)
-			return this < &other; // we somehow want a STABLE sort, for that coarsening is in the direction of the numbering of the elements
+			//return this < &other; // we somehow want a STABLE sort, for that coarsening is in the direction of the numbering of the elements
+			return t < other.t;
 		else
 			return rating > other.rating;
 	}
@@ -325,8 +330,8 @@ private:
 	size_t m_iNrOfIndirectFine;
 };
 
-//	typedef maxheap<AMGNode> nodeinfo_pq_type;
-typedef BoxPriorityQueue<AMGNode> nodeinfo_pq_type;
+typedef maxheap<AMGNode> nodeinfo_pq_type;
+//typedef BoxPriorityQueue<AMGNode> nodeinfo_pq_type;
 
 }
 

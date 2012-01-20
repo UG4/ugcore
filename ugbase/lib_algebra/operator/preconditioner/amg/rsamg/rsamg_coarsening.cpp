@@ -56,6 +56,7 @@ void CreateMeasureOfImportancePQ(const cgraph &strong, const cgraph &strongT, no
 		{
 			//UG_ASSERT(graph.iNrOfConnections[i] > 0, "node " << i << " has " << graph.iNrOfConnections[i] << " connections?");
 			nodes.set_rating(i, strongT.num_connections(i));
+			nodes[i].t = 0;
 			PQ.insert_item(i);
 		}
 	}
@@ -169,6 +170,7 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(const cgraph &graphAC, node
 //-------------------------
 void RemoveUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i)
 {
+	AMG_PROFILE_FUNC();
 	for(cgraph::const_row_iterator conn = graph.begin_row(i); conn != graph.end_row(i); ++conn)
 	{
 		size_t indexN = (*conn);
@@ -179,6 +181,7 @@ void RemoveUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNod
 
 void ChangeRatingOfUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i, int change)
 {
+	AMG_PROFILE_FUNC();
 	for(cgraph::const_row_iterator conn = graph.begin_row(i); conn != graph.end_row(i); ++conn)
 	{
 		int indexN = (*conn);
@@ -187,6 +190,7 @@ void ChangeRatingOfUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ
 		if(nodes[indexN].is_assigned())
 			continue;
 		nodes[indexN].rating += change;
+		nodes[indexN].update_time();
 		PQ.update(indexN);
 	}
 
@@ -197,6 +201,7 @@ void ChangeRatingOfUnassignedNeighbors(const cgraph &graph, nodeinfo_pq_type &PQ
 //-------------------------
 void MarkUnassignedNeighborsFine(const cgraph &graph, nodeinfo_pq_type &PQ, AMGNodes &nodes, size_t i, bool bMarkAsFineIndirect)
 {
+	AMG_PROFILE_FUNC();
 	for(cgraph::const_row_iterator conn = graph.begin_row(i); conn != graph.end_row(i); ++conn)
 	{
 		int indexN = (*conn);
@@ -510,7 +515,7 @@ void PreventFFConnectionsMinimal(const cgraph &graphS, const cgraph &graphST, AM
 		{
 			ratings[*it]--;
 			if(ratings[*it]==0)	pq.remove(*it);
-			else				pq.update(*it);
+			else				{ pq.update(*it); }
 		}
 	}
 	if(nrOfFFCoarseNodes)
