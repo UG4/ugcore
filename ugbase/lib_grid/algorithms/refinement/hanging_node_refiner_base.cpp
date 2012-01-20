@@ -277,7 +277,6 @@ void HangingNodeRefinerBase::refine()
 				refine_edge_with_normal_vertex(e);
 			}
 		}
-		UG_LOG("\n");
 	}
 
 

@@ -28,12 +28,31 @@ namespace ug
  *	Allows to apply algorithms on arbitrary parts of a mesh.
  *	You may implement your own callbacks, which have to return true
  *	if the given geometric object should be considered in the algorithm.
+ *	Check out boost::function for more information on how such callbacks should
+ *	look like.
  */
 typedef boost::function<bool (VertexBase*)> CB_ConsiderVertex;
 typedef boost::function<bool (EdgeBase*)>	CB_ConsiderEdge;
 typedef boost::function<bool (Face*)>		CB_ConsiderFace;
 typedef boost::function<bool (Volume*)>		CB_ConsiderVolume;
 /** \} */
+
+////////////////////////////////////////////////////////////////////////
+/**
+ *\{
+ *	\brief Callback definition used to execute arbitrary code on an object
+ *
+ *	Allows to apply algorithms on arbitrary parts of a mesh.
+ *	You may implement your own callbacks, which can execute arbitrary code
+ *	on the given element. Check out boost::function for more information
+ *	on how such callbacks should look like.
+ */
+typedef boost::function<void (VertexBase*)> CB_VisitVertex;
+typedef boost::function<void (EdgeBase*)>	CB_VisitEdge;
+typedef boost::function<void (Face*)>		CB_VisitFace;
+typedef boost::function<void (Volume*)>		CB_VisitVolume;
+/** \} */
+
 
 ////////////////////////////////////////////////////////////////////////
 /**

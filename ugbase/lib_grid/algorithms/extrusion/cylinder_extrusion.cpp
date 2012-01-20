@@ -36,7 +36,7 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 
 //	select boundary edges
 	sel.clear<EdgeBase>();
-	SelectAreaBoundaryEdges(sel, sel.begin<Face>(), sel.end<Face>());
+	SelectAreaBoundary(sel, sel.begin<Face>(), sel.end<Face>());
 
 //	gather faces and edges for extrusion
 	vector<EdgeBase*> vEdges;

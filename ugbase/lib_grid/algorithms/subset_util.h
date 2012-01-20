@@ -31,6 +31,10 @@ template <class TElem>
 int GetMaxSubsetIndex(SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns the first subset, which does not contain any elements at all
+int GetFirstFreeSubset(const ISubsetHandler& sh);
+
+////////////////////////////////////////////////////////////////////////
 //	MakeSubsetsConsecutive
 ///	moves subsets so that no empty subset of type TElem is between filled ones.
 /**
@@ -376,24 +380,19 @@ void AssignSubsetColors(ISubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Assigns all sides of elements of the given type to a separate subset
-/**	All elements of type TElem::lower_dim_base_object are assigned to a
- * subset, depending on the subsets of neighbors of type TElem.
- * For each neighborhood constellation a separate subset index is chosen.
- * You may forbid assignment of sides, which already are in a subset through
- * the different preserve... parameters. Note that all have the
- * default parameter true.
+/**	All elements of type TElem::lower_dim_base_object, which are located in
+ * subset -1, are assigned to a subset, depending on the subsets of neighbors
+ * of type TElem. For each neighborhood constellation a separate subset index
+ * is chosen.
  *
  * Valid parameters for TElem are: EdgeBase, Face, Volume
  *
- * \todo	Some performance improvements could be implemented, by checking
- * 			for the different preserve... states as early as possible.
+ * You may specify a selector, which indicates which elements to check, when
+ * looking for neighbors in different subsets. Please note, that the selector
+ * is only used, if a selected side is encountered.
  */
 template <class TElem>
-void AssignSidesToSubsets(ISubsetHandler& sh,
-						bool preserveManifolds = true,
-						bool preserveInterfaces = true,
-						bool preserveInner = true);
-
+void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Assigns all elements of type TElem with subset index -1 to subset at index si
@@ -410,22 +409,14 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si);
  * Elements which form an interface between different subsets should
  * be in a separate subset.
  *
- * This method will erase all empty subsets before executing the
- * actual algorithm.
- *
- * You may forbid assignment of sides which already are in a subset through
- * the different preserve... parameters. Note that they all have true as
- * default parameter
- *
- * \todo	An additional parameter would be nice, with which one could
- * 			decide whether elements should only be added to existing
- * 			subsets (assignToExistingSubsets).
+ * You may specify, that existing subsets shall not be touched. This is
+ * a good idea, if you already specified some boundaries etc.
+ * However, you should in this case make sure, that all elements which are
+ * not assigned to a subset intentionally, are assigned to subset -1.
  */
 template <class TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
-								bool preserveManifolds = true,
-								bool preserveInterfaces = true,
-								bool preserveInnerLowDim = true);
+								bool preserveExistingSubsets);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

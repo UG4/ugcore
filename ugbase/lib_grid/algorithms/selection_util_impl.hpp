@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "common/util/metaprogramming_util.h"
 
 namespace ug
 {
@@ -181,6 +182,99 @@ void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 		if(!LiesOnBoundary(grid, e)){
 			sel.select(e);
 		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TIter>
+void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end)
+{
+	typedef typename Pointer2Value<typename TIter::value_type>::type	TElem;
+	typedef typename TElem::side										TSide;
+
+	if(!sel.grid())
+		return;
+
+	Grid& grid = *sel.grid();
+
+	grid.begin_marking();
+
+	std::vector<TSide*> sides;
+	TIter iter = begin;
+	while(iter != end){
+		TElem* elem = *iter;
+		++iter;
+		CollectAssociated(sides, grid, elem);
+		for(size_t i = 0; i < sides.size(); ++i){
+			TSide* side = sides[i];
+			if(!grid.is_marked(side)){
+			//	if the side was initially selected, it should stay that way
+				if(!sel.is_selected(side)){
+					grid.mark(side);
+					sel.select(side);
+				}
+			}
+			else{
+			//	if the side is marked, then it is an inner side
+				sel.deselect(side);
+			}
+		}
+	}
+
+	grid.end_marking();
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TIter>
+void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
+							 const TIter begin, const TIter end,
+							 bool regardSelectedNbrsOnly)
+{
+	typedef typename Pointer2Value<typename TIter::value_type>::type	TElem;
+	typedef typename TElem::sideof										TNbr;
+
+	if(!TElem::CAN_BE_SIDE)
+		return;
+
+	if(!sel.grid())
+		return;
+
+	Grid& grid = *sel.grid();
+
+	std::vector<TNbr*> nbrs;
+
+	for(TIter iter = begin; iter != end;){
+		TElem* elem = *iter;
+		++iter;
+
+		CollectAssociated(nbrs, grid, elem);
+
+		int si = -2;
+		for(size_t i = 0; i < nbrs.size(); ++i){
+			if(!regardSelectedNbrsOnly || sel.is_selected(nbrs[i])){
+				if(sh.get_subset_index(nbrs[i]) != si){
+					if(si == -2)
+						si = sh.get_subset_index(nbrs[i]);
+					else{
+					//	elem is an interface element
+						sel.select(elem);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+template <class TElem>
+void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex)
+{
+	typedef typename GeometricObjectCollection::traits<TElem>::iterator	TIter;
+	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(subsetIndex);
+
+	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+		for(TIter iter = goc.begin<TElem>(lvl); iter != goc.end<TElem>(lvl); ++iter)
+			sel.select(*iter);
 	}
 }
 

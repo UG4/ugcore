@@ -146,6 +146,8 @@ class ConstrainedEdge : public EdgeBase
 		virtual int base_object_type_id() const	{return EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
+		virtual bool is_constrained() const			{return true;}
+
 	///	virtual refine. Returns pointers to EdgeBase.
 	/**
 	 * create 2 new constrained edges, connecting the original edges end-points with vrtNew.
@@ -239,6 +241,8 @@ class ConstrainingEdge : public EdgeBase
 		virtual int shared_pipe_section() const	{return SPSEDGE_CONSTRAINING_EDGE;}
 		virtual int base_object_type_id() const	{return EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
+
+		virtual bool is_constraining() const	{return true;}
 
 	///	virtual refine. Returns pointers to EdgeBase.
 	/**

@@ -156,34 +156,34 @@ void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 						 TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
-///	selects edges that are only adjacent to one of the given faces
+///	selects sides that are only adjacent to one of the given inner elements
 /**
  * This algorithm uses Grid::mark.
- * selects the edges of the faces between facesBegin and facesEnd
- * that are only adjacent to one of those faces.
+ * selects the sides of the elements between begin and end
+ * that are only adjacent to one of those elements.
  *
  * Edges that already are selected will stay selected, even if they are
  * inner edges.
  *
- * Please note that only existing edges are checked.
+ * Please note that only existing sides are checked.
  */
-void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
-							 FaceIterator facesEnd);
+template <class TIter>
+void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end);
 
 ////////////////////////////////////////////////////////////////////////
-///	selects faces that are only adjacent to one of the given volumes
-/**
- * This algorithm uses Grid::mark.
- * selects the faces of the volumes between volumesBegin and volumesEnd
- * that are only adjacent to one of those volumes.
- *
- * Faces that already are selected will stay selected, even if they are
- * inner faces.
- *
- * Please note that only existing faces are checked.
- */
-void SelectAreaBoundaryFaces(ISelector& sel, VolumeIterator volumesBegin,
-							 VolumeIterator volumesEnd);
+///	Selects elements which are adjacent to higher dimensional elements of different subsets
+/**	Please note, that this method does not select boundary segments.
+ * If regardSelectedNbrsOnly is set to true (default false), then only selected
+ * neighbors are checked for different interfaces.*/
+template <class TIter>
+void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
+							 const TIter begin, const TIter end,
+							 bool regardSelectedNbrsOnly = false);
+
+////////////////////////////////////////////////////////////////////////
+/// selects all elements of the given type in the given subset
+template <class TElem>
+void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex);
 
 ////////////////////////////////////////////////////////////////////////
 ///	extends the selection to neighbours of selected elements.

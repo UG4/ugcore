@@ -149,6 +149,16 @@ class GeometricObject/* : public SmallObject<>*/
 	 */
 		virtual ReferenceObjectID reference_object_id() const = 0;///	returns the id of the reference-object.
 
+	///	returns true if the object constrains other objects.
+	/**	This is normally only the case for special constraining objects.
+	 * The default implementation returns false.*/
+		virtual bool is_constraining() const					{return false;}
+
+	///	returns true if the object is constrained by other objects.
+	/**	This is normally only the case for special constrained objects.
+	 * The default implementation returns false.*/
+		virtual bool is_constrained() const						{return false;}
+
 	protected:
 	///	ATTENTION: Use this method with extreme care!
 	/**	This method is for internal use only and should almost never be called

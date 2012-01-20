@@ -322,6 +322,8 @@ class ConstrainedFace : public Face
 		inline void set_constraining_object(GeometricObject* pObj)	{m_pConstrainingObject = pObj;}
 		inline GeometricObject* get_constraining_object()			{return m_pConstrainingObject;}
 
+		virtual bool is_constrained() const							{return true;}
+
 	protected:
 		GeometricObject*	m_pConstrainingObject;
 };
@@ -452,6 +454,8 @@ class ConstrainingFace : public Face
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainingFace*>(pObj) != NULL;}
 
 		virtual ~ConstrainingFace()	{}
+
+		virtual bool is_constraining() const					{return true;}
 
 		inline void add_constrained_object(VertexBase* pObj)
 			{

@@ -15,6 +15,21 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+int GetFirstFreeSubset(const ISubsetHandler& sh)
+{
+	for(int i = 0; i < sh.num_subsets(); ++i){
+		if(!(sh.contains_vertices(i) || sh.contains_edges(i)
+			 || sh.contains_faces(i) || sh.contains_volumes(i)))
+		 {
+			return i;
+		 }
+	}
+
+	return sh.num_subsets();
+}
+
+
+////////////////////////////////////////////////////////////////////////
 //	EraseEmptySubsets
 ///	Erases all subsets which do not contain any geometric objects
 void EraseEmptySubsets(ISubsetHandler& sh)
@@ -886,7 +901,7 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 vector3 GetColorFromStandardPalette(int index)
 {
 //	values taken from http://en.wikipedia.org/wiki/Web_colors
-	float stdColors[][3] = {{255, 255, 255},//White
+	float stdColors[][3] = {{150, 150, 255},//My blue
 							{255, 0, 0},	//Red
 							{0, 255, 0},	//Lime
 							{0, 0, 255},	//Blue
@@ -934,10 +949,7 @@ void AssignSubsetColors(ISubsetHandler& sh)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TElem>
-void AssignSidesToSubsets(ISubsetHandler& sh,
-						bool preserveManifolds,
-						bool preserveInterfaces,
-						bool preserveInner)
+void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 {
 	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
 	typedef typename TElem::lower_dim_base_object 		Side;
@@ -971,11 +983,19 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 //	used to collect neighbors of type TElem
 	vector<TElem*> elems;
 
-//	Now iterate over all elements which of type Side
+//	Now iterate over all elements of type Side
 	for(SideIter iterSide = grid.begin<Side>();
 		iterSide != grid.end<Side>(); ++iterSide)
 	{
 		Side* side = *iterSide;
+
+		if(sh.get_subset_index(side) != -1)
+			continue;
+
+	//	check whether we are working on a selected side
+		bool isSelected = false;
+		if(psel && psel->is_selected(side))
+			isSelected = true;
 
 	//	increase curMark
 		++curMark;
@@ -987,78 +1007,38 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 	//	same subset index twice to skey.
 		skey.clear();
 
-	//	we also want to use a little trick: All sides, which lie between two
-	//	neighbors of the same subset and some of other subsets (only two, which
-	//	lie in one subset), then the element shall be associated with that subset
-		int twoOfSame = -2;
 	//	this subset index shall be used if the key is new
-		int useSubsetInd = sh.num_subsets();
+		int useSubsetInd = GetFirstFreeSubset(sh);
 
 		for(size_t i_elems = 0; i_elems < elems.size(); ++i_elems){
-			int si = sh.get_subset_index(elems[i_elems]);
-		//	check if the subset is marked
-			if(marks[si] != curMark){
-			//	no - mark it and add si to subsets
-				marks[si] = curMark;
-				skey += si;
-			}
-			else{
-			//	twoOfSame is only interesting if there are exactly 2 elems
-			//	of higher dimension in the same subset
-				if(twoOfSame == -2)
-					twoOfSame = si;
-				else
-					twoOfSame = -1;
+			bool nbrIsSelected = false;
+			if(psel && psel->is_selected(elems[i_elems]))
+				nbrIsSelected = true;
+
+		//	either the element is not selected or it is selected and its neighbor
+		//	is selected, too.
+			if(!isSelected || nbrIsSelected){
+				int si = sh.get_subset_index(elems[i_elems]);
+			//	check if the subset is marked
+				if(marks[si] != curMark){
+				//	no - mark it and add si to subsets
+					marks[si] = curMark;
+					skey += si;
+				}
 			}
 		}
 
-	//	check whether we have an inner, an interface or a manifold element
-	//	and whether we really have to assign a new subset
-		if(sh.get_subset_index(side) != -1){
-			if(skey.size() == 0){
-				if(preserveManifolds)
-					continue;// no - we don't
-			}
-			else if(skey.size() == 1){
-			//	if there is more than 1 associated elem, we have an inner
-			//	side. If not, side is considered as an interface to the outer space
-				if(elems.size() > 1){
-				//	inner subset
-					if(preserveInner)
-						continue;// no - we don't
-				}
-				else{
-				//	interface subset
-					if(preserveInterfaces)
-						continue;// no - we don't
-				}
+		if(skey.size() == 1){
+			if(elems.size() > 1){
+			//	we've got an inner element. Assign the subset-index
+			//	of those inner neighbor elements.
+				useSubsetInd = skey[0];
 			}
 			else{
-			//	we've got an interface subset
-				if(preserveInterfaces)
-					continue;// no - we don't
-			}
-		}
-
-	//	if we found exactly two of the same subset, we'll use that subset index.
-		if(twoOfSame >= 0){
-			skey.clear();
-			skey += twoOfSame;
-			useSubsetInd = twoOfSame;
-		}
-		else{
-			if(skey.size() == 1){
-				if(elems.size() > 1){
-				//	we've got an inner element. Assign the subset-index
-				//	of those inner neighbor elements.
-					useSubsetInd = skey[0];
-				}
-				else{
-				//	An outer interface element.
-				//	add -2 to skey to make sure that they go into a separate subset
-				//	(-1 might occur as a normal subset index)
-					skey += -2;
-				}
+			//	An outer interface element.
+			//	add -2 to skey to make sure that they go into a separate subset
+			//	(-1 might occur as a normal subset index)
+				skey += -2;
 			}
 		}
 
@@ -1083,9 +1063,9 @@ void AssignSidesToSubsets(ISubsetHandler& sh,
 }
 
 //	template specialization
-template void AssignSidesToSubsets<EdgeBase>(ISubsetHandler&, bool, bool, bool);
-template void AssignSidesToSubsets<Face>(ISubsetHandler&, bool, bool, bool);
-template void AssignSidesToSubsets<Volume>(ISubsetHandler&, bool, bool, bool);
+template void AssignSidesToSubsets<EdgeBase>(ISubsetHandler&, ISelector*);
+template void AssignSidesToSubsets<Face>(ISubsetHandler&, ISelector*);
+template void AssignSidesToSubsets<Volume>(ISubsetHandler&, ISelector*);
 
 
 }//	end of namespace

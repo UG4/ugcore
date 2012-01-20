@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__SUBSET_UTIL_IMPL__
 
 #include "subset_util.h"
+#include "selection_util.h"
 
 namespace ug
 {
@@ -357,43 +358,74 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
 ////////////////////////////////////////////////////////////////////////
 template <class TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
-								bool preserveManifolds,
-								bool preserveInterfaces,
-								bool preserveInnerLowDim)
+								bool preserveExistingSubsets)
 {
 //	access the grid on which sh operates.
 	if(!sh.grid())
 		return;
 
 	Grid& grid = *sh.grid();
+	Selector sel(grid);
 
-//	erase empty subsets
-	EraseEmptySubsets(sh);
-
-//	to speed up the algo, we'll perform some checks
 	if(grid.num_volumes() > 0){
-		AssignUnassignedElemsToSubset<Volume>(sh, sh.num_subsets());
-		AssignSidesToSubsets<Volume>(sh, preserveManifolds,
-							preserveInterfaces, preserveInnerLowDim);
-		AssignSidesToSubsets<Face>(sh, preserveManifolds,
-							preserveInterfaces, preserveInnerLowDim);
-		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
-							preserveInterfaces, preserveInnerLowDim);
+	//	deselect all elements of lower dimension, if existing subsets are
+	//	not to be preserved.
+		if(!preserveExistingSubsets){
+			sh.assign_subset(grid.begin<Face>(), grid.end<Face>(), -1);
+			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
+			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
+		}
+
+		AssignUnassignedElemsToSubset<Volume>(sh, GetFirstFreeSubset(sh));
+		AssignSidesToSubsets<Volume>(sh);
+
+		SelectInterfaceElements(sel, sh, grid.begin<Face>(), grid.end<Face>());
+		SelectBoundaryElements(sel, grid.begin<Face>(), grid.end<Face>());
+		SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>());
+		SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
+
+		AssignSidesToSubsets<Face>(sh, &sel);
+		AssignSidesToSubsets<EdgeBase>(sh, &sel);
+
+	//	finally assign vertices on edge interfaces
+		sel.clear<EdgeBase>();
+		sel.clear<VertexBase>();
+		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(),
+								grid.end<EdgeBase>(), true);
+		sel.clear<Face>();
+		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+
+		AssignSidesToSubsets<EdgeBase>(sh, &sel);
 	}
 	else if(grid.num_faces() > 0){
-		AssignUnassignedElemsToSubset<Face>(sh, sh.num_subsets());
-		AssignSidesToSubsets<Face>(sh, preserveManifolds,
-							preserveInterfaces, preserveInnerLowDim);
-		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
-							preserveInterfaces, preserveInnerLowDim);
+	//	deselect all elements of lower dimension, if existing subsets are
+	//	not to be preserved.
+		if(!preserveExistingSubsets){
+			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
+			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
+		}
+
+		AssignUnassignedElemsToSubset<Face>(sh, GetFirstFreeSubset(sh));
+		AssignSidesToSubsets<Face>(sh);
+
+		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
+		SelectBoundaryElements(sel, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
+		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+
+		AssignSidesToSubsets<EdgeBase>(sh, &sel);
 	}
 	else if(grid.num_edges() > 0){
-		AssignUnassignedElemsToSubset<EdgeBase>(sh, sh.num_subsets());
-		AssignSidesToSubsets<EdgeBase>(sh, preserveManifolds,
-							preserveInterfaces, preserveInnerLowDim);
+	//	deselect all elements of lower dimension, if existing subsets are
+	//	not to be preserved.
+		if(!preserveExistingSubsets){
+			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
+		}
+
+		AssignUnassignedElemsToSubset<EdgeBase>(sh, GetFirstFreeSubset(sh));
+		AssignSidesToSubsets<EdgeBase>(sh);
 	}
 	else{
-		AssignUnassignedElemsToSubset<VertexBase>(sh, sh.num_subsets());
+		AssignUnassignedElemsToSubset<VertexBase>(sh, GetFirstFreeSubset(sh));
 	}
 
 //	erase empty subsets again

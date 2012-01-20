@@ -61,9 +61,13 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * are executed. Not that refinement marks are removed in this process.
 	 *
 	 * During a coarsening step only elements from the surface layer are removed.
-	 * Either mark all children of a sub-surface element or directly mark the
-	 * sub-surface element with RM_COARSEN. If not all children of an unmarked
-	 * sub-surface element are marked, then the marks are ignored.
+	 * If not all children of a sub-surface element are marked, then the marks are ignored.
+	 *
+	 * Note that coarsen in contrary to refine is conservative. While refine
+	 * extends the selection to construct a valid grid, coarsen shrinks the
+	 * selection. On could think of implementing an alternative non conservative
+	 * coarsen approach. However, the conservative one is the one mostly used
+	 * in adaptive multigrid methods and was thus chosen here.
 	 */
 		virtual bool coarsen();
 
@@ -160,6 +164,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * VertexBase.*/
 		template <class TElem>
 		void adjust_coarsen_marks_on_side_elements();
+
+	///deselect coarsen families, which are adjacent to unselected constraining elements
+		template <class TElem>
+		void deselect_invalid_coarsen_families();
 
 	///	called be the coarsen method in order to adjust the selection to valid elements.
 	/**	This method is responsible to mark all elements that shall be coarsened.

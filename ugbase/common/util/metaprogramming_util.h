@@ -11,6 +11,14 @@ struct Int2Type {
 	typedef int value_type;
 };
 
+template <class T>
+struct Pointer2Value{};
+
+template <class T>
+struct Pointer2Value<T*>{
+	typedef T type;
+};
+
 //////////////////////////////
 // TypeList
 //////////////////////////////

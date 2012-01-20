@@ -67,6 +67,13 @@ namespace ug
 class GeometricObjectCollection
 {
 	public:
+	///	The traits class holds some important types for each element-type
+		template <class TElem>
+		struct traits{
+			typedef typename geometry_traits<TElem>::iterator		iterator;
+			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
+		};
+
 	///	initializes the instance with an estimate of the number of levels.
 	/**	The estimate does not have to match exactly. However, if it does
 	 *  it makes things faster.*/

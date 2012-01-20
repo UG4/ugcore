@@ -437,7 +437,7 @@ restrict_selection_to_coarsen_families()
 		++iter;
 
 	//	make sure that only surface elements are selected
-		UG_ASSERT(mg.num_children<TBaseElem>(e) > 0,
+		UG_ASSERT(mg.num_children<TBaseElem>(e) == 0,
 				  "Only surface elements may be passed to this method.");
 
 	//	make sure that only RM_COARSEN marks are used
@@ -486,6 +486,8 @@ restrict_selection_to_coarsen_families()
 	mg.end_marking();
 }
 
+
+
 template <class TElem>
 void HangingNodeRefiner_MultiGrid::
 adjust_coarsen_marks_on_side_elements()
@@ -523,9 +525,71 @@ adjust_coarsen_marks_on_side_elements()
 	}
 }
 
+template<class TElem>
+static void DeselectFamily(ISelector& sel, MultiGrid& mg, TElem* elem)
+{
+	typedef typename TElem::geometric_base_object	TBaseElem;
+	sel.deselect(elem);
+	size_t numChildren = mg.num_children<TBaseElem>(elem);
+
+	for(size_t i = 0; i < numChildren; ++i)
+		DeselectFamily(sel, mg, mg.get_child<TBaseElem>(elem, i));
+
+//	here we also indirectly take care of low-dimensional children of elem.
+	for(size_t i = 0; i < elem->num_sides(); ++i)
+		DeselectFamily(sel, mg, mg.get_side(elem, i));
+}
+
+template <class TElem>
+void HangingNodeRefiner_MultiGrid::
+deselect_invalid_coarsen_families()
+{
+	typedef typename TElem::geometric_base_object	TBaseElem;
+	MultiGrid& mg = *m_pMG;
+	Selector& sel = get_refmark_selector();
+
+//	finally deselect families, which contain an element connected to an unselected
+//	constraining side. This is only important for volumes and faces.
+//	we'll use marks to collect subsurface elements
+	mg.begin_marking();
+
+	vector<TBaseElem*> doomedFamilies;
+	vector<typename TBaseElem::side*> sides;
+	for(typename Selector::template traits<TElem>::iterator
+		iter = sel.begin<TElem>(); iter != sel.end<TElem>(); ++iter)
+	{
+	//	check if the parent has the same base type
+		TBaseElem* parent = dynamic_cast<TBaseElem*>(mg.get_parent(*iter));
+		if(parent){
+			if(mg.is_marked(parent))
+				continue;
+			mg.mark(parent);
+
+			CollectAssociated(sides, mg, *iter);
+		//	check if a side is a constraining object
+			for(size_t i = 0; i < sides.size(); ++i){
+				if(sides[i]->is_constraining() && (!sel.is_selected(sides[i]))){
+				//	the family is doomed! We have to deselect it.
+					doomedFamilies.push_back(parent);
+				}
+			}
+		}
+	}
+
+//	now deselect all doomed families
+	for(size_t i = 0; i < doomedFamilies.size(); ++i){
+		DeselectFamily(sel, mg, doomedFamilies[i]);
+	}
+
+	mg.end_marking();
+}
+
 void HangingNodeRefiner_MultiGrid::
 collect_objects_for_coarsen()
 {
+//	this selector holds all refmarks
+	Selector& sel = get_refmark_selector();
+
 //	first we'll shrink the selection so that only surface elements are selected
 	restrict_selection_to_surface_coarsen_elements<Volume>();
 	restrict_selection_to_surface_coarsen_elements<Face>();
@@ -541,7 +605,7 @@ collect_objects_for_coarsen()
 //	now select all associated geometric objects. This is required so that
 //	elements in between hihgher dimensional coarsen elements will be deleted,
 //	too.
-	SelectAssociatedGeometricObjects(get_refmark_selector(), RM_COARSEN);
+	SelectAssociatedGeometricObjects(sel, RM_COARSEN);
 
 //todo:	This would be a good time to communicate between processes, so that
 //		all processes know, whether constrained / constraining edges are
@@ -554,11 +618,35 @@ collect_objects_for_coarsen()
 	adjust_coarsen_marks_on_side_elements<EdgeBase>();
 	adjust_coarsen_marks_on_side_elements<VertexBase>();
 
-//todo: check whether sides are selected or whether their children are selected.
-//		if not, whether its children are selected. If not, the whole family
-//		may not be refined.
-//		Note that this can be quite difficult. Probably one has to move through
-//		the levels from top-1 to bottom.
+//	now select constraining edges and faces of selected constrained ones.
+//	we can select the constraining object without further checks, since the
+//	preparations above assure, that either all its constrained objects are
+//	selected or that none is.
+	for(Selector::traits<ConstrainedEdge>::iterator iter = sel.begin<ConstrainedEdge>();
+		iter != sel.end<ConstrainedEdge>(); ++iter)
+	{
+		ConstrainedEdge* ce = *iter;
+		sel.select(ce->get_constraining_object(), RM_COARSEN);
+	}
+
+	for(Selector::traits<ConstrainedTriangle>::iterator iter = sel.begin<ConstrainedTriangle>();
+		iter != sel.end<ConstrainedTriangle>(); ++iter)
+	{
+		ConstrainedFace* cf = *iter;
+		sel.select(cf->get_constraining_object(), RM_COARSEN);
+	}
+
+	for(Selector::traits<ConstrainedQuadrilateral>::iterator iter = sel.begin<ConstrainedQuadrilateral>();
+		iter != sel.end<ConstrainedQuadrilateral>(); ++iter)
+	{
+		ConstrainedFace* cf = *iter;
+		sel.select(cf->get_constraining_object(), RM_COARSEN);
+	}
+
+//	now deselect coarsen families, which are adjacent to unselected constraining
+//	elements. Those may not be coarsened and are regarded as invalid.
+	deselect_invalid_coarsen_families<Volume>();
+	deselect_invalid_coarsen_families<Face>();
 }
 
 bool HangingNodeRefiner_MultiGrid::
@@ -567,14 +655,60 @@ coarsen()
 	if(!m_pMG)
 		return false;
 
+	MultiGrid& mg = *m_pMG;
+	Selector& sel = get_refmark_selector();
+
 	collect_objects_for_coarsen();
 
-//todo: erase elements and introduce constraining/constrained elements as required.
+//	erase elements and introduce constraining/constrained elements as required.
+	mg.erase(sel.begin<Volume>(), sel.end<Volume>());
 
-//	...
+	for(Selector::traits<Face>::iterator iter = sel.begin<Face>();
+		iter != sel.end<Face>();)
+	{
+		Face* elem = *iter;
+		++iter;
+		if(elem->is_constraining()){
+			sel.deselect(elem);
+		//	constraining elements have to be transformed to standard elements
+			switch(elem->reference_object_id()){
+				case ROID_TRIANGLE:
+					mg.create_and_replace<Triangle>(elem);
+					break;
+				case ROID_QUADRILATERAL:
+					mg.create_and_replace<Quadrilateral>(elem);
+					break;
+				default:
+					UG_THROW("Unknown face reference object type in "
+							 "HangingNodeRefiner_MultiGrid::coarsen");
+					break;
+			}
+		}
+		else{
+			mg.erase(elem);
+			continue;
+		}
+	}
 
-//todo:	return true
-	return false;
+	for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+		iter != sel.end<EdgeBase>();)
+	{
+		EdgeBase* elem = *iter;
+		++iter;
+		if(elem->is_constraining()){
+			sel.deselect(elem);
+		//	constraining elements have to be transformed to standard elements
+			mg.create_and_replace<Edge>(elem);
+		}
+		else{
+			mg.erase(elem);
+			continue;
+		}
+	}
+
+	mg.erase(sel.begin<VertexBase>(), sel.end<VertexBase>());
+
+	return true;
 }
 
 }// end of namespace
