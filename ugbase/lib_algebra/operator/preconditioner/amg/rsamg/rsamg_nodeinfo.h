@@ -97,10 +97,13 @@ public:
 	inline bool operator > (const AMGNode &other) const
 	{
 		if(rating == other.rating)
-			//return this < &other; // we somehow want a STABLE sort, for that coarsening is in the direction of the numbering of the elements
-			return t < other.t;
+			return compare2(*this, other);
 		else
 			return rating > other.rating;
+	}
+	static inline bool compare2(const AMGNode &a, const AMGNode &b)
+	{
+		return a.t < b.t;
 	}
 
 	inline size_t get_val() const
