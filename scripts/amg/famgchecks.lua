@@ -555,7 +555,7 @@ if not bCheck then
 	end
 	
 	
-	if GetProfilerAvailable() == true and util.HasParamOption("-profiler") then
+	if GetProfilerAvailable() == true then
 		create_levelPN = GetProfileNode("c_create_AMG_level")
 		
 		if true then
