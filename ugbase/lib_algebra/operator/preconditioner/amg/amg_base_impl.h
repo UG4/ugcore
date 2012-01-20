@@ -51,7 +51,28 @@ size_t GetMaxConnections(const TMatrix &A)
 {
 	size_t m=0;
 	for(size_t i=0; i<A.num_rows(); i++)
-		if(m < A.num_connections(i)) m = A.num_connections(i);
+	{
+		//if(m < A.num_connections(i)) m = A.num_connections(i);
+
+		size_t n=0;
+		for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+			if(it.value() != 0.0) n++;
+		if(m < n) m = n;
+	}
+
+	return m;
+}
+
+// returns the number of non-zeroes (!= number of connections)
+template<typename TMatrix>
+size_t GetNNZs(const TMatrix &A)
+{
+	size_t m=0;
+	for(size_t i=0; i<A.num_rows(); i++)
+	{
+		for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+			if(it.value() != 0.0) m++;
+	}
 	return m;
 }
 
@@ -63,7 +84,7 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 
 	LevelInformation &li = L.m_levelInformation;
 
-	size_t nnz = A.total_num_connections();
+	size_t nnz = GetNNZs(A); // A.total_num_connections();
 	size_t maxConnections = GetMaxConnections(A);
 	li.m_dCreationTimeMS = createAMGlevelTiming;
 #ifdef UG_PARALLEL
