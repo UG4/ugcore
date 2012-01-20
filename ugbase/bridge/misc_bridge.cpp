@@ -106,10 +106,11 @@ string GetBuildHostname()
 
 bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 {
-	stringstream ss; ss << parentGroup << "/Util/Log";
-	string grp = ss.str();
+	
 
 	{
+		stringstream ss; ss << parentGroup << "/Util/Log";
+		string grp = ss.str();
 		reg.add_class_<LogAssistant>("LogAssistant", grp)
 			.add_method("enable_file_output", &LogAssistant::enable_file_output,
 					"", "bEnable#filename", "Please note that only the filename given at the first call is considered")
@@ -128,8 +129,13 @@ bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 	}
 
 	{
+		stringstream ss; ss << parentGroup << "/Util/Internal";
+		string grp = ss.str();
 		reg.add_function("DefinedUG_DEBUG", &DefinedUG_DEBUG, grp, "");
 		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &DefinedUG_ENABLE_DEBUG_LOGS, grp, "");
+		reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
+		reg.add_function("GetCompileDate", &GetCompileDate, grp);
+		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
 	}
 
 	return true;
