@@ -118,7 +118,7 @@ public:
 			ss << "Level " << level << ": creation time: " << get_creation_time_ms() << " ms. number of nodes: " << get_nr_of_nodes() << ". fill in " <<
 					get_fill_in()*100 << "%. ";
 			if(level != 0) ss << "coarsening rate: " << get_coarsening_rate()*100 << "%. ";
-			ss << "nr of interface elements: " << get_nr_of_interface_elements() << " (" << get_nr_of_interface_elements()/get_nr_of_nodes()*100 << "%) "
+			ss << "nr of interface elements: " << get_nr_of_interface_elements() << " (" << (double)get_nr_of_interface_elements()/(double)get_nr_of_nodes()*100.0 << "%) "
 					<< "nnzs: " << get_nnz() << " avgNNZs/row: " << get_avg_nnz_per_row() << " maxCon: " << get_max_connections();
 			return ss.str();
 		}

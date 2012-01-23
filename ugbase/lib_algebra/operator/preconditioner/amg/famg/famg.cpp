@@ -187,6 +187,9 @@ private:
 	// the fine grid matrix (const!)
 	const matrix_type &A;
 
+	// the fine grid matrix (const!)
+	const matrix_type &Aorig;
+
 	// interpolation/restriction matrices to be filled
 	prolongation_matrix_type &R, &PnewIndices;
 
@@ -280,7 +283,7 @@ private:
 		// R.print("R");
 		// A.print("A");
 		// PnewIndices.print("P");
-		CreateAsMultiplyOf(AH, R, A, PnewIndices, m_famg.get_galerkin_truncation());
+		CreateAsMultiplyOf(AH, R, Aorig, PnewIndices, m_famg.get_galerkin_truncation());
 		// AH.print();
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 
@@ -313,10 +316,10 @@ private:
 public:
 	// todo: clean up this mess of constructor
 	FAMGLevelCalculator(FAMG<CPUAlgebra> &f,
-			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A,
+			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A, const matrix_type &_Aorig,
 			prolongation_matrix_type &_P, size_t _level,
 			stdvector< vector_type > &testvectors, stdvector<double> &omega)
-	: m_famg(f), AH(_AH), A(_A), R(_R), PnewIndices(_P), level(_level),
+	: m_famg(f), AH(_AH), A(_A), Aorig(_Aorig), R(_R), PnewIndices(_P), level(_level),
 #ifdef UG_PARALLEL
 
 			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
@@ -692,14 +695,12 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 		matrix_type Aeps;
 		ReduceToStrongConnections(Aeps, A, m_dPrereduceAToStrongParameter);
 
-		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, P,
-			level, testvectors, omega);
+		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
 		dummy.do_calculation();
 	}
 	else
 	{
-		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P,
-				level, testvectors, omega);
+		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, A, P, level, testvectors, omega);
 		dummy.do_calculation();
 	}
 
@@ -789,7 +790,9 @@ bool FAMG<CPUAlgebra>::check_testvector()
 
 		if(level+1 < AMGBase<CPUAlgebra>::m_usedLevels-1)
 		{
-			FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, P, level, testvectors, omega);
+			matrix_type Aeps;
+			ReduceToStrongConnections(Aeps, A, m_dPrereduceAToStrongParameter);
+			FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
 			dummy.onlyTV();
 		}
 		else break;

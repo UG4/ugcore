@@ -98,7 +98,7 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 			L.processCommunicator.allreduce(nnz, PCL_RO_MAX),
 			L.processCommunicator.allreduce(nnz, PCL_RO_SUM));
 	li.set_max_connections(L.processCommunicator.allreduce(maxConnections, PCL_RO_MAX));
-	size_t localInterfaceElements = A.get_master_layout().num_interface_elements() + A.get_slave_layout().num_interface_elements();
+	size_t localInterfaceElements = A.get_master_layout().num_interface_elements();
 	li.m_iInterfaceElements = L.processCommunicator.allreduce(localInterfaceElements, PCL_RO_SUM);
 #else
 	size_t N = A.num_rows();

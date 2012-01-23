@@ -46,7 +46,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs
 	AMGNodes nodes(N);
 #endif
 	cgraph graphS, graphST;
-	CreateStrongConnectionGraph(A_OL2, graphS, 0.3, nodes);
+	CreateStrongConnectionGraph(A_OL2, graphS, m_famg.m_dStrongConnectionExternal, nodes);
 
 	graphST.set_as_transpose_of(graphS);
 	CreateMeasureOfImportancePQ(graphS, graphST, PQ, nodes);

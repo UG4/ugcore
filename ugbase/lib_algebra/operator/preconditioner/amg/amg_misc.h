@@ -16,7 +16,7 @@ template<typename TMatrix>
 void ReduceToStrongConnections(TMatrix &m1, const TMatrix &const_m2, double theta)
 {
 	PROFILE_FUNC();
-	UG_LOG("Reducing matrix...\n");
+	UG_LOG("Reducing matrix...");
 	TMatrix &m2 = const_cast<TMatrix&>(const_m2);
 	std::vector<typename TMatrix::connection> con;
 	m1.resize(m2.num_rows(), m2.num_cols());
@@ -25,6 +25,7 @@ void ReduceToStrongConnections(TMatrix &m1, const TMatrix &const_m2, double thet
 	m1.set_layouts(m2.get_master_layout(), m2.get_slave_layout());
 	m1.set_communicator(m2.get_communicator());
 	m1.set_process_communicator(m2.get_process_communicator());
+	m1.copy_storage_type(m2);
 #endif
 
 	con.reserve(50);
@@ -57,6 +58,7 @@ void ReduceToStrongConnections(TMatrix &m1, const TMatrix &const_m2, double thet
 		con[iDiag].dValue += offLumpedSum;
 		m1.set_matrix_row(i, &con[0], con.size());
 	}
+	UG_LOG("done.\n");
 }
 
 }

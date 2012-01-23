@@ -56,6 +56,7 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 	m_dPrereduceAToStrongParameter = 0.0;
 	m_dGalerkinTruncation = 1e-12;
 
+	m_dStrongConnectionExternal = 0.1;
 
 
 	m_bExternalCoarsening = false;
@@ -89,6 +90,11 @@ void FAMG<TAlgebra>::tostring() const
 	UG_LOG(", external Coarsening is " << (m_bExternalCoarsening ? "[ON]" : "OFF"));
 	UG_LOG(", precalculate Coarsening is " << (m_bUsePrecalculate ? "[ON]" : "OFF"));
 	UG_LOG(", truncation of interpolation = " << m_dProlongationTruncation << "\n");
+	if(m_bExternalCoarsening)
+		UG_LOG("Strong Connection External Coarsening: " << m_dStrongConnectionExternal << "\n");
+	UG_LOG("H-Reduce Interpolation Nodes Parameter:" << m_dHReduceInterpolationNodesParameter << "\n");
+	UG_LOG("Galerkin Truncation: " << m_dGalerkinTruncation << "\n");
+	UG_LOG("prereduce A parameter: " << m_dPrereduceAToStrongParameter << "\n");
 
 	UG_LOG(" \n");
 	UG_LOG(m_testvectors.size() + m_vVectorWriters.size() << " test vectors. Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);
