@@ -94,7 +94,7 @@ include_directories (${Boost_INCLUDE_DIRS})
 # the following options are pseudo cmake-options (normal options only support ON and OFF).
 # Their default values are defined in the section below.
 option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
-option(DIM "Set the dimension for which ug4 is build.")
+# option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
 option(CPU "Set block sizes for which ug4 is build. Valid options are: "${cpuOptions})
 option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
 
@@ -280,6 +280,7 @@ if(STATIC)
 	set(buildDynamicLib OFF)
 	set(buildCorePlugins OFF)
 	set(targetLibraryName ${targetLibraryName}_s)
+	add_definitions(-DUG_STATIC) # dummy preprocessor macro used for printout build config
 else(STATIC)
 	set(buildDynamicLib ON)
 endif(STATIC)
@@ -313,7 +314,7 @@ if("${CPU}" STREQUAL "ALL")
 	add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
 	
 else("${CPU}" STREQUAL "ALL")
-	# CPU is a string of dimensions (e.g. "1;2")
+	# CPU is a string of numbers (e.g. "1;2")
 	# loop dims
 	foreach(d ${CPU})
 		# check if dim is valid
@@ -501,7 +502,7 @@ if(HYPRE)
 	if(HYPRE_LIBS-NOTFOUND)
 		message(FATAL_ERROR "ERROR: Couldn't find HYPRE in the specified path.")
 	else(HYPRE_LIBS-NOTFOUND)
-		add_definitions(-DHYPRELIB_DIR)
+		add_definitions(-DUG_HYPRE -DHYPRELIB_DIR) # TODO: Is '-DHYPRELIB_DIR' used?
 		include_directories(${HYPRE}/../include/)
 		set(linkLibraries ${linkLibraries} ${HYPRE_LIBS})
 	endif(HYPRE_LIBS-NOTFOUND)
@@ -515,12 +516,12 @@ if(HLIBPRO)
 	find_path (HLIBPROLIB_DIR libhpro.dylib
 		PATHS ENV PATH
 		PATH_SUFFIXES ../hlibpro-0.13.6/lib/ )
-	message(STATUS "INFO: Using HLibPro; content of 'HLIBPRO_LIBS' is '${HLIBPRO_LIBS}', content of 'HLIBPROLIB_DIR' is '${HLIBPROLIB_DIR}'.")
+#	message(STATUS "INFO: Using HLibPro; content of 'HLIBPRO_LIBS' is '${HLIBPRO_LIBS}', content of 'HLIBPROLIB_DIR' is '${HLIBPROLIB_DIR}'.")
 	if(HLIBPRO_LIBS-NOTFOUND)
 		message(FATAL_ERROR "ERROR: Couldn't find HLIBPRO in the specified path.")
 	else(HLIBPRO_LIBS-NOTFOUND)
 #		add_definitions(-DHLIBPROLIB_DIR)
-		add_definitions(-DUSE_HLIBPRO)
+		add_definitions(-DUG_HLIBPRO)
 		include_directories(${HLIBPROLIB_DIR}/../include/)
 		include_directories(${HLIBPROLIB_DIR}/../src/include/)
 		set(linkLibraries ${linkLibraries} ${HLIBPRO_LIBS})

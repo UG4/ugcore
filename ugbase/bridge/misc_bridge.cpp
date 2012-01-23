@@ -70,18 +70,329 @@ LogAssistant::Tags GetLogAssistantTag(const char *s)
 	return LogAssistant::MAIN;
 }
 
-#ifdef UG_DEBUG
-bool DefinedUG_DEBUG() { return true; }
+////////////////////////////////////////////////////////////////////////////////
+/*
+  A bunch of methods used for printing build configuration
+  (info for every primary and some dependent cmake setting(s)),
+  order as by a plain 'cmake ../'
+
+  (To generate a list of macro definitions:
+  grep add_definitions ug_cmake_includes.txt
+  grep "\-D" ug_cmake_includes.txt.)
+*/
+
+// DIM:
+#ifdef UG_DIM_1
+bool IsDefinedUG_DIM_1() { return true; }
 #else
-bool DefinedUG_DEBUG() { return false; }
+bool IsDefinedUG_DIM_1() { return false; }
 #endif
 
+#ifdef UG_DIM_2
+bool IsDefinedUG_DIM_2() { return true; }
+#else
+bool IsDefinedUG_DIM_2() { return false; }
+#endif
+
+#ifdef UG_DIM_3
+bool IsDefinedUG_DIM_3() { return true; }
+#else
+bool IsDefinedUG_DIM_3() { return false; }
+#endif
+
+// CPU:
+#ifdef UG_CPU_1
+bool IsDefinedUG_CPU_1() { return true; }
+#else
+bool IsDefinedUG_CPU_1() { return false; }
+#endif
+
+#ifdef UG_CPU_2
+bool IsDefinedUG_CPU_2() { return true; }
+#else
+bool IsDefinedUG_CPU_2() { return false; }
+#endif
+
+#ifdef UG_CPU_3
+bool IsDefinedUG_CPU_3() { return true; }
+#else
+bool IsDefinedUG_CPU_3() { return false; }
+#endif
+
+#ifdef UG_CPU_4
+bool IsDefinedUG_CPU_4() { return true; }
+#else
+bool IsDefinedUG_CPU_4() { return false; }
+#endif
+
+#ifdef UG_CPU_VAR
+bool IsDefinedUG_CPU_VAR() { return true; }
+#else
+bool IsDefinedUG_CPU_VAR() { return false; }
+#endif
+
+// DOF:
+#ifdef DOF_GEN
+bool IsDefinedDOF_GEN() { return true; }
+#else
+bool IsDefinedDOF_GEN() { return false; }
+#endif
+
+#ifdef DOF_P1
+bool IsDefinedDOF_P1() { return true; }
+#else
+bool IsDefinedDOF_P1() { return false; }
+#endif
+
+// STATIC:
+#ifdef UG_STATIC
+bool IsDefinedUG_STATIC() { return true; }
+#else
+bool IsDefinedUG_STATIC() { return false; }
+#endif
+
+// DEBUG, DEBUG_LOGS:
+#ifdef UG_DEBUG
+bool IsDefinedUG_DEBUG() { return true; }
+#else
+bool IsDefinedUG_DEBUG() { return false; }
+#endif
 
 #ifdef UG_ENABLE_DEBUG_LOGS
-bool DefinedUG_ENABLE_DEBUG_LOGS() { return true; }
+bool IsDefinedUG_ENABLE_DEBUG_LOGS() { return true; }
 #else
-bool DefinedUG_ENABLE_DEBUG_LOGS() { return false; }
+bool IsDefinedUG_ENABLE_DEBUG_LOGS() { return false; }
 #endif
+
+// PARALLEL:
+#ifdef UG_PARALLEL
+bool IsDefinedUG_PARALLEL() { return true; }
+#else
+bool IsDefinedUG_PARALLEL() { return false; }
+#endif
+
+// PCL_DEBUG_BARRIER:
+#ifdef PCL_DEBUG_BARRIER_ENABLED
+bool IsDefinedPCL_DEBUG_BARRIER_ENABLED() { return true; }
+#else
+bool IsDefinedPCL_DEBUG_BARRIER_ENABLED() { return false; }
+#endif
+
+// PROFILE:
+#ifdef UG_PROFILER
+bool IsDefinedUG_PROFILER() { return true; }
+#else
+bool IsDefinedUG_PROFILER() { return false; }
+#endif
+
+// PROFILE_PCL:
+#ifdef PROFILE_PCL
+bool IsDefinedPROFILE_PCL() { return true; }
+#else
+bool IsDefinedPROFILE_PCL() { return false; }
+#endif
+
+// ALGEBRA - derived, no output by 'cmake' until now:
+#ifdef UG_ALGEBRA
+bool IsDefinedUG_ALGEBRA() { return true; }
+#else
+bool IsDefinedUG_ALGEBRA() { return false; }
+#endif
+
+// LAPACK_AVAILABLE - derived:
+#ifdef LAPACK_AVAILABLE
+bool IsDefinedLAPACK_AVAILABLE() { return true; }
+#else
+bool IsDefinedLAPACK_AVAILABLE() { return false; }
+#endif
+
+// BLAS_AVAILABLE - derived:
+#ifdef BLAS_AVAILABLE
+bool IsDefinedBLAS_AVAILABLE() { return true; }
+#else
+bool IsDefinedBLAS_AVAILABLE() { return false; }
+#endif
+
+// EMBED_SVN_REV - no special output nec. since this info is already visible!
+
+// External libraries:
+#ifdef UG_METIS
+bool IsDefinedUG_METIS() { return true; }
+#else
+bool IsDefinedUG_METIS() { return false; }
+#endif
+
+#ifdef UG_PARMETIS
+bool IsDefinedUG_PARMETIS() { return true; }
+#else
+bool IsDefinedUG_PARMETIS() { return false; }
+#endif
+
+#ifdef UG_TETGEN
+bool IsDefinedUG_TETGEN() { return true; }
+#else
+bool IsDefinedUG_TETGEN() { return false; }
+#endif
+
+#ifdef UG_HYPRE
+bool IsDefinedUG_HYPRE() { return true; }
+#else
+bool IsDefinedUG_HYPRE() { return false; }
+#endif
+
+#ifdef UG_HLIBPRO
+bool IsDefinedUG_HLIBPRO() { return true; }
+#else
+bool IsDefinedUG_HLIBPRO() { return false; }
+#endif
+
+// VRL - derived (depends on target):
+#ifdef FOR_VRL
+bool IsDefinedFOR_VRL() { return true; }
+#else
+bool IsDefinedFOR_VRL() { return false; }
+#endif
+
+// PLUGIN - derived (depends on target)
+#ifdef UG_PLUGINS
+bool IsDefinedUG_PLUGINS() { return true; }
+#else
+bool IsDefinedUG_PLUGINS() { return false; }
+#endif
+
+// BRIDGE - derived (depends on target)
+#ifdef UG_BRIDGE
+bool IsDefinedUG_BRIDGE() { return true; }
+#else
+bool IsDefinedUG_BRIDGE() { return false; }
+#endif
+
+
+void PrintBuildConfiguration()
+{
+	UG_LOG("--------------------------------------------------------------------------------\n");
+	UG_LOG("Build configuration:\n");
+
+	// 1. Primary (direct, independent) cmake parameters:
+	UG_LOG("1. Primary 'cmake' parameters:\n");
+	UG_LOG("TARGET - TODO: If this info should also be printed, add appropriate"
+		   << " (dummy) preprocessor directives in 'ug_cmake_includes.txt'"
+		   << " (e.g. '-DUG_UGSHELL', '-DUG_VRL' etc.)!\n");
+
+	UG_LOG("Build for VRL:     ");
+	UG_LOG( (IsDefinedFOR_VRL() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	// TODO: Shall the following two things be included (cf. comment in
+	//       'ug_cmake_includes.txt', "Those options are temporary and
+	//       should be removed in future builds ....)"?
+	UG_LOG("PLUGIN:            ");
+	UG_LOG( (IsDefinedUG_PLUGINS() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("BRIDGE:            ");
+	UG_LOG( (IsDefinedUG_BRIDGE() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+
+	UG_LOG("STATIC:            ");
+	UG_LOG( (IsDefinedUG_STATIC() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("DIM:               ");
+	if (IsDefinedUG_DIM_1() && IsDefinedUG_DIM_2() && IsDefinedUG_DIM_3()) {
+		UG_LOG("ALL");
+	} else {
+		UG_LOG( (IsDefinedUG_DIM_1() ? "1 " : " ") );
+		UG_LOG( (IsDefinedUG_DIM_2() ? "2 " : " ") );
+		UG_LOG( (IsDefinedUG_DIM_3() ? "3 " : " ") );
+	}
+	UG_LOG("\n");
+
+	UG_LOG("CPU:               ");
+	if (IsDefinedUG_CPU_1() && IsDefinedUG_CPU_2() &&
+		IsDefinedUG_CPU_3() && IsDefinedUG_CPU_4() &&
+		IsDefinedUG_CPU_VAR()) {
+		UG_LOG("ALL");
+	} else {
+		UG_LOG( (IsDefinedUG_CPU_1() ? "1 " : " ") );
+		UG_LOG( (IsDefinedUG_CPU_2() ? "2 " : " ") );
+		UG_LOG( (IsDefinedUG_CPU_3() ? "3 " : " ") );
+		UG_LOG( (IsDefinedUG_CPU_4() ? "4 " : " ") );
+		UG_LOG( (IsDefinedUG_CPU_VAR() ? "VAR" : " ") );
+	}
+	UG_LOG("\n");
+
+	UG_LOG("DOF:               ");
+	UG_LOG( (IsDefinedDOF_GEN() ? "GEN " : " ") );
+	UG_LOG( (IsDefinedDOF_P1()  ? "P1  " : " ") );
+	UG_LOG("\n");
+
+	UG_LOG("DEBUG:             ");
+	UG_LOG( (IsDefinedUG_DEBUG() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("DEBUG_LOGS:        ");
+	UG_LOG( (IsDefinedUG_ENABLE_DEBUG_LOGS() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("PARALLEL:          ");
+	UG_LOG( (IsDefinedUG_PARALLEL() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("PCL_DEBUG_BARRIER: ");
+	UG_LOG( (IsDefinedPCL_DEBUG_BARRIER_ENABLED() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("PROFILER:          ");
+	UG_LOG( (IsDefinedUG_PROFILER() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("PROFILE_PCL:       ");
+	UG_LOG( (IsDefinedPROFILE_PCL() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	// Please note that there are also independent cmake parameters 'LAPACK' and 'BLAS',
+	// but we are only interested if they are found (if requested).
+	UG_LOG("LAPACK available:  ");
+	UG_LOG( (IsDefinedLAPACK_AVAILABLE() ? "YES" : "NO ") );
+	UG_LOG("\n");
+	UG_LOG("BLAS available:    ");
+	UG_LOG( (IsDefinedBLAS_AVAILABLE()   ? "YES" : "NO ") );
+	UG_LOG("\n\n");
+
+	// 2. Derived parameters (no direct parameters to cmake):
+	UG_LOG("2. Derived parameters:\n");
+	UG_LOG("ALGEBRA:           "); //  no output by 'cmake ../' til now - TODO?
+	UG_LOG( (IsDefinedUG_ALGEBRA() ? "ON " : "OFF") );
+	UG_LOG("\n\n");
+
+	// 3. External stuff:
+	UG_LOG("3. External libraries:\n");
+	UG_LOG("METIS:             ");
+	UG_LOG( (IsDefinedUG_METIS() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("PARMETIS:          ");
+	UG_LOG( (IsDefinedUG_PARMETIS() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("TETGEN:            ");
+	UG_LOG( (IsDefinedUG_TETGEN() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("HYPRE:             ");
+	UG_LOG( (IsDefinedUG_HYPRE() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("HLIBPRO:           ");
+	UG_LOG( (IsDefinedUG_HLIBPRO() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("--------------------------------------------------------------------------------\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void SetDebugLevel(const char* strTag, int level)
 {
@@ -131,8 +442,14 @@ bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 	{
 		stringstream ss; ss << parentGroup << "/Util/Internal";
 		string grp = ss.str();
-		reg.add_function("DefinedUG_DEBUG", &DefinedUG_DEBUG, grp, "");
-		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &DefinedUG_ENABLE_DEBUG_LOGS, grp, "");
+		reg.add_function("DefinedUG_DEBUG", &IsDefinedUG_DEBUG, grp, ""); // TODO: only for backward compatibility - remove if not / no longer used!
+		reg.add_function("IsDefinedUG_DEBUG", &IsDefinedUG_DEBUG, grp, "");
+
+		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &IsDefinedUG_ENABLE_DEBUG_LOGS, grp, ""); // TODO: only for backward compatibility - remove if not / no longer used!
+		reg.add_function("IsDefinedUG_ENABLE_DEBUG_LOGS", &IsDefinedUG_ENABLE_DEBUG_LOGS, grp, "");
+
+		reg.add_function("PrintBuildConfiguration", &PrintBuildConfiguration, grp, "");
+
 		reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
 		reg.add_function("GetCompileDate", &GetCompileDate, grp);
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
