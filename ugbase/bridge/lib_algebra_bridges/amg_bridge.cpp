@@ -202,6 +202,8 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_communicate_prolongation", &FAMG<algebra_type>::set_debug_level_communicate_prolongation)
 			.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
 			.add_method("set_testvectorsmoother", &FAMG<algebra_type>::set_testvectorsmoother)
+			.add_method("set_strong_connection_external", &FAMG<algebra_type>::set_strong_connection_external)
+			.add_method("get_strong_connection_external", &FAMG<algebra_type>::get_strong_connection_external)
 
 			.add_method("check_testvector", &FAMG<algebra_type>::check_testvector)
 #ifdef UG_PARALLEL
