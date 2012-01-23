@@ -41,7 +41,7 @@
 #include "linear_solver/feti.h"
 
 // HLIBpro based solver
-#ifdef USE_HLIBPRO
+#ifdef UG_HLIBPRO
 #include "linear_solver/hlib_operator.h"
 #endif
 

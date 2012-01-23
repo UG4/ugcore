@@ -423,7 +423,7 @@ static bool reg(Registry& reg, string parentGroup)
 #endif
 
 	// 	HLIBSolver
-#ifdef USE_HLIBPRO
+#ifdef UG_HLIBPRO
 	{
 		typedef HLIBSolver<TAlgebra> T;
 		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
