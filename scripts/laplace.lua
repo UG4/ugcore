@@ -5,6 +5,7 @@
 --   Author: Andreas Vogel
 --
 ----------------------------------------------------------
+PrintBuildConfiguration()
 
 ug_load_script("ug_util.lua")
 

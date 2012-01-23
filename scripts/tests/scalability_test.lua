@@ -20,6 +20,7 @@
 -- llrun -v -np 32 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid  unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs 8"
 
 --------------------------------------------------------------------------------
+PrintBuildConfiguration()
 
 ug_load_script("ug_util.lua")
 
@@ -274,7 +275,7 @@ while numDistProcs > 0 do
 		end
 	end
 	
-	print("Distribute domain with 'distributionType' = '" .. distributionType .. "' ...")
+	print("Redistribute domain with 'distributionType' = '" .. distributionType .. "' ...")
 	if RedistributeDomain(dom, partitionMap, true) == false then
 		print("Redistribution failed. Please check your partitionMap.")
 		exit()
