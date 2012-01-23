@@ -399,6 +399,7 @@ if bRSAMG == false then
 	if bExternalCoarsening then
 		amg:set_external_coarsening(true)
 		amg:set_parallel_coarsening(GetColorCoarsening())
+		amg:set_strong_connection_external(0.1)
 		-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
 		-- amg:set_parallel_coarsening(GetRS3Coarsening())
 	end
@@ -415,9 +416,9 @@ if bRSAMG == false then
 	-- amg:set_debug_level_calculate_parent_pairs(6)
 	-- amg:set_galerkin_truncation(1e-6)
 	-- amg:set_H_reduce_interpolation_nodes_parameter(0.1)
-	amg:set_galerkin_truncation(1e-9)
+	amg:set_galerkin_truncation(1e-5)
 	amg:set_H_reduce_interpolation_nodes_parameter(0.1)
-	amg:set_prereduce_A_parameter(0.0)
+	amg:set_prereduce_A_parameter(0.1)
 else
 	print ("create AMG... ")
 	amg = RSAMGPreconditioner()
