@@ -163,7 +163,7 @@ bool Registry::check_consistency()
 		for(size_t i = 0; i < globFuncDuplicates.size();i++) {
 			duplicateFuncMsg+=  + "\t" + globFuncDuplicates[i] + "\n";
 		}
-		duplicateFuncMsg += "#### NOTE: it is not allowed to register two"
+		duplicateFuncMsg += "#### NOTE: it is not allowed to register multiple"
 				" functions with equal names. Comparison is NOT case sensitive,"
 				" e.g., 'Func' and 'func' are equal.\n\n";
 	}
@@ -216,7 +216,7 @@ bool Registry::check_consistency()
 		for(size_t i = 0; i < classDuplicates.size();i++) {
 			duplicateClassMsg+= "\t" + classDuplicates[i] + "\n";
 		}
-		duplicateClassMsg += "#### NOTE: it is not allowed to register two"
+		duplicateClassMsg += "#### NOTE: it is not allowed to register multiple"
 				"  classes with equal names. Comparison is NOT case sensitive,"
 				" e.g., 'Class' and 'class' are equal.\n\n";
 	}
