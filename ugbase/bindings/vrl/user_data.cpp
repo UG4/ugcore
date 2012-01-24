@@ -407,7 +407,7 @@ public:
 				localEnv, userDataClass, returnValueDim, "([D)[D");
 
 		if (checkException(localEnv, "creatinerror")) {
-			UG_LOG(">> HERE 0\n");
+			//
 		}
 
 		// create thread-safe references
@@ -416,7 +416,7 @@ public:
 		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
 
 		if (checkException(localEnv, "globalref error")) {
-			UG_LOG(">> HERE 1\n");
+			//
 		}
 
 		initialized = true;
@@ -439,7 +439,7 @@ public:
 		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
 
 		if (checkException(localEnv, "paramconverter error")) {
-			UG_LOG(">> HERE 2\n");
+			//
 		}
 
 		if (runMethod != NULL) {
@@ -454,7 +454,7 @@ public:
 		}
 
 		if (checkException(localEnv, "???")) {
-			UG_LOG(">> HERE 3\n");
+			//
 		}
 	}
 

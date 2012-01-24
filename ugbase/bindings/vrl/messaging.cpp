@@ -79,18 +79,25 @@ std::string getExceptionMessageString(JNIEnv* env, jthrowable exception) {
 	return result;
 }
 
-bool checkException(JNIEnv* env, std::string msg) {
+bool checkException(JNIEnv* env, std::string msg, bool throwCPPException) {
 	jthrowable ex = env->ExceptionOccurred();
 	env->ExceptionClear();
 	std::string exMsg = getExceptionMessageString(env,ex);
 
 	if (exMsg!="") {
-		UG_LOG(msg << std::endl);
-		UG_LOG("<font color=\"red\">" << exMsg << "</font>\n");
+		UG_LOG(msg << " (See Java exception for details)"<< std::endl);
+		exMsg = "<font color=\"red\">" + exMsg + "</font>\n";
+		
+		if (throwCPPException) {
+			UG_THROW(exMsg);
+		} else {
+			UG_LOG(exMsg << std::endl);
+		}
 	}
 
 	return ex == NULL;
 }
+
 
 } // end vrl::
 } // end ug::
