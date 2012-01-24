@@ -399,7 +399,11 @@ if bRSAMG == false then
 	if bExternalCoarsening then
 		amg:set_external_coarsening(true)
 		amg:set_parallel_coarsening(GetColorCoarsening())
-		amg:set_strong_connection_external(0.1)
+		if dim == 2
+			amg:set_strong_connection_external(0.2)
+		else
+			amg:set_strong_connection_external(0.1)
+		end
 		-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
 		-- amg:set_parallel_coarsening(GetRS3Coarsening())
 	end
@@ -522,40 +526,42 @@ lastReductionCG = convCheck:defect()/convCheck:previous_defect()
 stepsCG = convCheck:step()
 
 
-if not bCheck then
-		-- ..os.date("y%Ym%md%d").. -- table.insert
-	if GetProcessRank() == 0 then
-		stats = {
-		{ "date", os.date("y%Ym%md%d") },
-		{ "procs", GetNumProcesses() },
-		{ "numPreRefs", numPreRefs},
-		{ "numRefs", numRefs },
-		{ "dim", dim},
-		{ "gridName", gridName},
-		{ "maxBase", maxBase},
-		{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
-		{ "tSetupAmg [ms]", amg:get_timing_whole_setup_ms()},
-		{ "XC", bool2string(bExternalCoarsening)},
-		{ "AC", bool2string(bAggressiveCoarsening)},
-		{ "c_A", amg:get_operator_complexity()},
-		{ "c_G", amg:get_grid_complexity()},
-		{ "used Levels", amg:get_used_levels()}, 
-		{ "tSolve [s]", tSolve},
-		{ "steps", steps},
-		{ "lastReduction", lastReduction},
-		{ "tSolveCG [s]", tSolveCG},
-		{ "stepsCG", stepsCG},
-		{ "lastReductionCG", lastReductionCG},
-		{ "tGrid [s]",  tGrid},
-		{ "tAssemble [s]", tAssemble},
-		{"commandline", util.GetCommandLine() } } 
-		
-		printStats(stats)
-		if bWriteStats  then	
-			writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
-		end
-	end
+if GetProcessRank() == 0 then
+	stats = {
+	{ "date", os.date("y%Ym%md%d") },
+	{ "SVN Revision", GetSVNRevision()},
+	{"host",GetBuildHostname()},
+	{ "procs", GetNumProcesses() },
+	--{ "numPreRefs", numPreRefs},
+	{ "numRefs", numRefs },
+	{ "dim", dim},
+	{ "gridName", gridName},
+	{ "maxBase", maxBase},
+	{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
+	{ "tSetupAmg [ms]", amg:get_timing_whole_setup_ms()},
+	{ "XC", bool2string(bExternalCoarsening)},
+	{ "AC", bool2string(bAggressiveCoarsening)},
+	{ "c_A", amg:get_operator_complexity()},
+	{ "c_G", amg:get_grid_complexity()},
+	{ "used Levels", amg:get_used_levels()}, 
+	{ "tSolve [s]", tSolve},
+	{ "steps", steps},
+	{ "lastReduction", lastReduction},
+	{ "tSolveCG [s]", tSolveCG},
+	{ "stepsCG", stepsCG},
+	{ "lastReductionCG", lastReductionCG},
+	{ "tGrid [s]",  tGrid},
+	{ "tAssemble [s]", tAssemble},
+	{"commandline", util.GetCommandLine() } } 
 	
+	printStats(stats)
+	if bWriteStats  then	
+		writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
+	end
+end
+	
+if not bCheck and bWriteStats then
+		-- ..os.date("y%Ym%md%d").. -- table.insert
 	
 	if GetProfilerAvailable() == true then
 		create_levelPN = GetProfileNode("c_create_AMG_level")
