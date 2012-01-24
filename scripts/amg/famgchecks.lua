@@ -36,7 +36,7 @@ ninePoint = util.HasParamOption("-ninePoint")
 
 if dim == 2 then
 	if ninePoint then
-		gridName = "unit_square/unit_square_quads_8x8.ugx"
+		gridName = "unit_square/unit_square_quads_8x8.ugx"		
 	else
 		gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
 	end	
@@ -50,10 +50,15 @@ end
 numRefs = util.GetParamNumber("-numRefs", 1)
 if ninePoint then
 	numRefs = numRefs - 2
+	numPreRefs = util.GetParamNumber("-numPreRefs", math.min(3, numRefs-3))
 end
 
--- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
+-- choose number of pre-Refinements (before sending grid onto different processes)
+if dim == 2 then	
+	numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-3))
+else
+	numPreRefs = util.GetParamNumber("-numPreRefs", math.min(3, numRefs-3))
+end
 
 maxBase = util.GetParamNumber("-maxBase", 1000)
 maxLevels = util.GetParamNumber("-maxLevels", 30)
@@ -224,6 +229,7 @@ assert(numPreRefs < numRefs, "numPreRefs must be smaller than numRefs");
 
 refiner = GlobalDomainRefiner(dom)
 for i=1,numPreRefs do
+print("refining "..i.."..")
 refiner:refine()
 end
 
@@ -232,10 +238,13 @@ assert(DistributeDomain(dom) == true, "Error while Distributing Grid.")
 
 -- Perform post-refine
 for i=numPreRefs+1,numRefs do
+print("refining "..i.."..")
 refiner:refine()
 end
 
 tGrid = os.clock()-tBefore
+
+
 
 -- get subset handler
 sh = dom:subset_handler()
@@ -446,8 +455,8 @@ end
 amg:set_num_presmooth(2)
 amg:set_num_postsmooth(2)
 amg:set_cycle_type(1)
-amg:set_presmoother(jac)
-amg:set_postsmoother(jac)
+amg:set_presmoother(sgs)
+amg:set_postsmoother(sgs)
 amg:set_base_solver(base)
 amg:set_max_levels(maxLevels)
 
@@ -538,7 +547,7 @@ if GetProcessRank() == 0 then
 	{ "gridName", gridName},
 	{ "maxBase", maxBase},
 	{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
-	{ "tSetupAmg [ms]", amg:get_timing_whole_setup_ms()},
+	{ "tSetupAmg [s]", amg:get_timing_whole_setup_ms()/1000},
 	{ "XC", bool2string(bExternalCoarsening)},
 	{ "AC", bool2string(bAggressiveCoarsening)},
 	{ "c_A", amg:get_operator_complexity()},
