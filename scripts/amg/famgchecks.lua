@@ -399,7 +399,7 @@ if bRSAMG == false then
 	if bExternalCoarsening then
 		amg:set_external_coarsening(true)
 		amg:set_parallel_coarsening(GetColorCoarsening())
-		if dim == 2
+		if dim == 2 then
 			amg:set_strong_connection_external(0.2)
 		else
 			amg:set_strong_connection_external(0.1)
