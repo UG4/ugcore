@@ -1009,7 +1009,7 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 			//	mark as used
 				m_pGrid->mark(v);
 
-			//	loop all compenents
+			//	loop all components
 				for(size_t i = 0; i < vFct.num_fct(); ++i)
 				{
 				//	get multi index of vertex for the function
