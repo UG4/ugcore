@@ -1543,7 +1543,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	// 	finish timestep
-		if(!Eval.finish_timestep_elem(elem, locU))
+		if(!Eval.finish_timestep_elem(elem, time, locU))
 		{
 			UG_LOG("ERROR in '(instationary) FinishTimestep': "
 					"Cannot finish timestep.\n");

@@ -155,10 +155,10 @@ finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
 	m_pPrevSol = &prevSol;
 
 //	remember time step size
-//	m_dt = dt;
+/*	m_dt = dt;
 
 //	update scalings
-/*	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
+	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
 	                              m_dt, m_pPrevSol->time(0),
 	                              *m_pPrevSol);*/
 

@@ -62,7 +62,7 @@ class DataEvaluator
 
 	///	finishes the element for all time-dependent IElemDiscs
 		template <typename TElem>
-		bool finish_timestep_elem(TElem* elem, LocalVector& u);
+		bool finish_timestep_elem(TElem* elem, const number time, LocalVector& u);
 
 	///	checks if sqp-tolerance is achieved for an element
 		template <typename TElem>

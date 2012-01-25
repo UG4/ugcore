@@ -33,7 +33,7 @@ inline bool IElemDisc::prepare_elem(TElem* elem, const LocalVector& u)
 }
 
 template <typename TElem>
-inline bool IElemDisc::finish_timestep_elem(TElem* elem, const LocalVector& u)
+inline bool IElemDisc::finish_timestep_elem(TElem* elem, const number time, const LocalVector& u)
 {
 //	cast the method pointer back to the original type
 	typedef bool (IElemDisc::*Func)(TElem*, const LocalVector&);

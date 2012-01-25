@@ -166,7 +166,7 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 template <typename TElem>
 bool
 DataEvaluator::
-finish_timestep_elem(TElem* elem, LocalVector& u)
+finish_timestep_elem(TElem* elem, const number time, LocalVector& u)
 {
 
 // 	finish timestep
@@ -180,7 +180,7 @@ finish_timestep_elem(TElem* elem, LocalVector& u)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	finish timestep for elem disc
-		if(!(*m_pvElemDisc)[i]->finish_timestep_elem(elem, u))
+		if(!(*m_pvElemDisc)[i]->finish_timestep_elem(elem, time, u))
 		{
 			UG_LOG("ERROR in 'DataEvaluator::finish_timestep_element': "
 					"Cannot finish timestep on element for IElemDisc "<<i<<".\n");

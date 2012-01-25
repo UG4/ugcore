@@ -271,7 +271,7 @@ class IElemDisc
 	 * 'set_roid must have been called to set the elem type.
 	 */
 		template <typename TElem>
-		bool finish_timestep_elem(TElem* elem, const LocalVector& u);
+		bool finish_timestep_elem(TElem* elem, const number time, const LocalVector& u);
 
 	/// Assembling of Jacobian (Stiffness part)
 	/**
