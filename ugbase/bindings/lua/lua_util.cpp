@@ -153,17 +153,26 @@ lua_State* GetDefaultLuaState()
 	return L;
 }
 
+int luaCallStackError( lua_State *L )
+{
+	UG_LOG("Error: " << lua_tostring(L, -1) << ". ");
+    UG_LOG("call stack:\n"); ug::bridge::lua_stacktrace(L);
+    return 1;
+}
+
 bool ParseBuffer(const char* buffer, const char *bufferName)
 {
 	lua_State* L = GetDefaultLuaState();
+	lua_pushcfunction(L, luaCallStackError);
 	int error = luaL_loadbuffer(L, buffer, strlen(buffer), bufferName) ||
-				lua_pcall(L, 0, 0, 0);
+				lua_pcall(L, 0, 0, -2);
 
 	if(error)
 	{
 //		LOG("PARSE-ERROR: " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
+		ug::bridge::lua_stacktrace(L);
 		throw(LuaError(msg.c_str()));
 //		return false;
 	}
@@ -175,13 +184,15 @@ bool ParseFile(const char* filename)
 {
 	lua_State* L = GetDefaultLuaState();
 
-	int error = luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0);
+	lua_pushcfunction(L, luaCallStackError);
+	int error = luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, -2);
 
 	if(error)
 	{
 		//LOG("PARSE-ERROR in parse_file(" << filename << "): " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
+		ug::bridge::lua_stacktrace(L);
 		throw(LuaError(msg.c_str()));
 	}
 	return true;
