@@ -49,6 +49,7 @@ class AMGBase:
 	public IPreconditioner<	TAlgebra >
 {
 public:
+
 //	Algebra type
 	typedef TAlgebra algebra_type;
 
@@ -137,6 +138,18 @@ public:
 		size_t m_connectionsMax;
 	};
 
+	struct checkResult
+	{
+		double preSmoothing;
+		double preFSmoothing;
+		size_t iInnerIterations;
+		double lastCoarseReduction;
+		double coarseDefect;
+		double coarseCorrection;
+		double reduction;
+		double postFSmoothing;
+		double postSmoothing;
+	};
 
 //  functions
 	AMGBase();
@@ -211,7 +224,7 @@ public:
 */
 	size_t get_used_levels() const { return m_usedLevels; }
 
-	bool check_level(vector_type &c, vector_type &d, size_t level);
+	bool check_level(vector_type &c, vector_type &d, size_t level, checkResult &res);
 //	bool check(IMatrixOperator const vector_type &const_c, const vector_type &const_d);
 	bool check(const vector_type &const_c, const vector_type &const_d);
 //  data

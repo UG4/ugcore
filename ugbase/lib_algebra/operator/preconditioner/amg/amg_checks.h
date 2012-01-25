@@ -160,11 +160,14 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	c = const_c;
 	d = const_d;
 
-	UG_LOG("\nLEVEL 0\n\n");
-	check_level(c, d, 0);
+	//UG_LOG("\nLEVEL 0\n\n");
+
+	std::vector<checkResult> checkRes(m_usedLevels-1);
+	check_level(c, d, 0, checkRes[0]);
 
 	if(m_usedLevels > 1)
 	{
+
 		//levels[0]->R.apply(levels[0]->dH, d);
 		levels[0]->cH.set(0.0);
 		levels[0]->R.apply(levels[0]->dH, const_d);
@@ -176,14 +179,20 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 			vector_type d2;
 			CloneVector(d2, levels[i]->dH);
 			d2 = levels[i]->dH;
-			check_level(levels[i]->cH, levels[i]->dH, i+1);
+			check_level(levels[i]->cH, levels[i]->dH, i+1, checkRes[i+1]);
+
 
 			levels[i+1]->R.apply(levels[i+1]->dH, d2);
 			levels[i+1]->cH.set(0.0);
 		}
 	}
 
-	UG_LOG("finished check.\n");
+	UG_LOG("finished check.\n"); // results:\n");
+	/*for(size_t i=0; i<checkRes.size(); i++)
+	{
+		if(checkRes[i].reduction < 0.1)
+		UG_LOG("results level " << i << "";
+	}*/
 	return true;
 }
 
@@ -221,7 +230,7 @@ double ConstTwoNorm(const TVector &const_d)
  * \param	level
  */
 template<typename TAlgebra>
-bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level)
+bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level, checkResult &res)
 {
 	AMGLevel &L = *levels[level];
 	const matrix_operator_type &A = *L.pA;
@@ -237,17 +246,31 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	}
 #endif
 
+	std::stringstream reason;
 	//UG_LOG("preprenorm: " << d.two_norm() << std::endl);
-	/*for(size_t i=0; i<5; i++)
-		add_correction_and_update_defect(corr, d, level);*/
+	vector_type &corr = levels[level]->corr;
 
+	double firstnorm = ConstTwoNorm(d), n2=firstnorm, n1;
+	//UG_LOG("firstnorm " <<  firstnorm << "\n");
+	for(size_t i=0; i<10; i++)
+	{
+		add_correction_and_update_defect(c, d, level);
+
+		n1 = n2;
+		n2 = ConstTwoNorm(d);
+		//UG_LOG(i << ":	" << n2/n1 << "\t" << n2 << "\n");
+
+	}
 
 	double prenorm = ConstTwoNorm(d);
-	UG_LOG("Prenorm = " << prenorm << "\n");
+	//UG_LOG("Prenorm = " << prenorm << "\n");
 
-	double n1 = ConstTwoNorm(d), n2;
+	n1 = ConstTwoNorm(d);
+	n2=n1;
 
-	vector_type &corr = levels[level]->corr;
+	if(n1 < 1e-13) reason << "- error too small\n";
+
+
 	corr.set(0.0);
 	//c.set(0.0);
 #ifdef UG_PARALLEL
@@ -265,6 +288,9 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 		n2 = ConstTwoNorm(d);	UG_LOG("presmoothing " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	}
 
+	res.preSmoothing = n2/prenorm;
+
+
 	if(m_bFSmoothing)
 	{
 		f_smoothing(corr, d, level);
@@ -272,6 +298,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 		n2 = ConstTwoNorm(d);	UG_LOG("pre f-smoothing: " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	}
 
+	res.preFSmoothing = n2/prenorm;
 
 	if(m_writeMatrices) writevec("AMG_pa_d_L", d, level);
 	if(m_writeMatrices) writevec("AMG_pa_c_L", c, level);
@@ -289,6 +316,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 	if(m_writeMatrices) writevec("AMG_dH_L", dH, level+1);
 	double nH1 = ConstTwoNorm(dH);
+	UG_LOG("norm of dH = " << nH1 << "\n");
 
 	double preHnorm=nH1;
 	size_t i=0;
@@ -302,19 +330,26 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	else
 	{
 		cH.set(0.0);
-		for(int i=0; i<20; i++)
+		double nH2;
+		for(i=0; i<20; i++)
 		{
 			for(int j=0; j< m_cycleType; j++)
 				add_correction_and_update_defect(cH, dH, level+1);
-			double nH2 = ConstTwoNorm(dH);
-			if(i < 6)
-			{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm <<  "\n"); nH1 = nH2;	}
-			else UG_LOG(".");
+			if(i!=0) nH1 = nH2;
+			nH2 = ConstTwoNorm(dH);
+			/*if(i == 0)
+			{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm << "\n"); }
+			else UG_LOG(".");*/
 			//if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_c_L")).c_str(), cH, level+1);
 			//if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_d_L")).c_str(), dH, level+1);
-			if(i > 4 && nH2 < 1e-12)
+			if(nH2 < 1e-12)
 				break;
 		}
+		res.iInnerIterations = i;
+		res.coarseDefect = nH2;
+		res.lastCoarseReduction = nH2/nH1;
+
+		UG_LOG("\ncoarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm <<  "\n");
 
 
 		/*cH.set(0.0);
@@ -351,6 +386,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 	n2 = ConstTwoNorm(d);
 	UG_LOG("complete coarse correction " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+	res.coarseCorrection = n2/prenorm;
 
 	if(m_writeMatrices) writevec("AMG_ap_d_L", d, level);
 	if(m_writeMatrices) writevec("AMG_ap_c_L", c, level);
@@ -363,6 +399,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 		c+=corr;
 	}
 	n2 = ConstTwoNorm(d);	UG_LOG("post f-smoothing: " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+	res.postFSmoothing = n2/prenorm;
 
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
@@ -370,6 +407,23 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 		L.postsmoother->apply_update_defect(corr, d);
 		c += corr;
 		n2 = ConstTwoNorm(d);	UG_LOG("postsmoothing " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+	}
+
+	res.postSmoothing = n2/prenorm;
+
+
+	if(res.postSmoothing > 0.1)
+	{
+		UG_LOG("\nERROR: Level " << level << " not working: total correction is " << res.postSmoothing << "\n");
+
+		if(res.preSmoothing > 0.99)
+		{	UG_LOG("- presmoother not working (reduction rate " << res.preSmoothing << ")\n"); }
+		if(res.lastCoarseReduction > 0.2 || res.coarseDefect > 1e-10)
+		{
+			UG_LOG("- lower level not working (done " << res.iInnerIterations << " iterations):\n");
+			if(res.lastCoarseReduction > 0.2) { UG_LOG(" - bad convergence rate (" << res.lastCoarseReduction << ")\n"); }
+			if(res.coarseDefect > 1e-8) { UG_LOG(" - coarse reduction not sufficient (" << res.coarseDefect << ")\n"); }
+		}
 	}
 
 
@@ -380,7 +434,9 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	if(m_writeMatrices) writevec("AMG_pp_c_L", c, level);
 
 	UG_LOG("Postnorm = " << postnorm << "\n\n");
-	return true;
+	res.reduction = postnorm/prenorm;
+
+	return postnorm/prenorm;
 }
 
 
@@ -580,8 +636,8 @@ bool AMGBase<TAlgebra>::check_fsmoothing()
 			double n2 = ConstTwoNorm(d);
 			UG_LOG(j << ": " << n2/n << "\n");
 			n = n2;
-			writevec((std::string("AMG_fsmoothing_c_") + ToString(j) + std::string("d_L")).c_str(), c, level);
-			writevec((std::string("AMG_fsmoothing_d_") + ToString(j) + std::string("d_L")).c_str(), d, level);
+			if(m_writeMatrices) writevec((std::string("AMG_fsmoothing_c_") + ToString(j) + std::string("d_L")).c_str(), c, level);
+			if(m_writeMatrices) writevec((std::string("AMG_fsmoothing_d_") + ToString(j) + std::string("d_L")).c_str(), d, level);
 		}
 	}
 

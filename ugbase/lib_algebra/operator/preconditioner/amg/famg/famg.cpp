@@ -785,8 +785,9 @@ bool FAMG<CPUAlgebra>::check_testvector()
 		d.change_storage_type(PST_ADDITIVE);
 	#endif
 		c.set(0.0);
+		checkResult res;
 
-		AMGBase<CPUAlgebra>::check_level(c, d2, level);
+		AMGBase<CPUAlgebra>::check_level(c, d2, level, res);
 
 		if(level+1 < AMGBase<CPUAlgebra>::m_usedLevels-1)
 		{
