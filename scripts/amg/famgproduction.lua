@@ -31,9 +31,14 @@ end
 -- choose dimension and algebra
 InitUG(dim, AlgebraType("CPU", 1));
 
+ninePoint = util.HasParamOption("-ninePoint")
+
 if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")	
-	-- gridName = "unit_square/unit_square_quads_8x8.ugx"
+	if ninePoint then
+		gridName = "unit_square/unit_square_quads_8x8.ugx"
+	else
+		gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
+	end	
 end
 if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square/unit_cube_hex.ugx")
@@ -42,6 +47,9 @@ end
 
 -- choose number of total Refinements (incl. pre-Refinements)
 numRefs = util.GetParamNumber("-numRefs", 1)
+if ninePoint then
+	numRefs = numRefs - 2
+end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = util.GetParamNumber("-numPreRefs", math.min(5, numRefs-2))
@@ -84,6 +92,7 @@ function writeln(...)
 	write(...)
 	write("\n")
 end
+
 
 --------------------------------
 -- User Data Functions (begin)
@@ -402,11 +411,11 @@ if bRSAMG == false then
 	-- amg:set_debug_level_overlap(4,4)
 	-- amg:set_debug_level_calculate_parent_pairs(4)
 	-- amg:set_debug_level_precalculate_coarsening(4)
-	 -- amg:set_debug_level_calculate_parent_pairs(6)
+	-- amg:set_debug_level_calculate_parent_pairs(6)
 	-- amg:set_galerkin_truncation(1e-6)
 	-- amg:set_H_reduce_interpolation_nodes_parameter(0.1)
-	amg:set_galerkin_truncation(1e-13)
-	amg:set_H_reduce_interpolation_nodes_parameter(0.0)
+	amg:set_galerkin_truncation(1e-9)
+	amg:set_H_reduce_interpolation_nodes_parameter(0.1)
 	amg:set_prereduce_A_parameter(0.0)
 else
 	print ("create AMG... ")
@@ -521,16 +530,19 @@ if not bCheck then
 		{ "steps", convCheck:step()},
 		{ "lastReduction", convCheck:defect()/convCheck:previous_defect()},
 		{ "tSetupAmg [ms]", amg:get_timing_whole_setup_ms()},
+		{ "XC", bExternalCoarsening},
+		{ "AC", bAggressiveCoarsening},
 		{ "c_A", amg:get_operator_complexity()},
 		{ "c_G", amg:get_grid_complexity()},
 		{ "used Levels", amg:get_used_levels()}, 
 		{ "tSolve [s]", tSolve},
 		{ "tGrid [s]",  tGrid},
-		{ "tAssemble [s]", tAssemble} } 
+		{ "tAssemble [s]", tAssemble},
+		"commandline", util.GetCommandLine() } 
 		
 	printStats(stats)
 	if bWriteStats and GetProcessRank() == 0  then
-		writeFileStats(stats, util.GetParam("-outdir").."stats.txt")
+		writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
 	end
 	
 	

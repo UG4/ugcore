@@ -29,9 +29,9 @@ function writeFileStats(stats, filename)
 	
 	if fsize(output) == 0 then
 		print("file is empty, writing header...")
-		output:write(getStats(stats, true, "\t", false, "\t"))		
+		output:write(getStats(stats, true, " \t", false, " \t"))		
 	end
-	output:write(getStats(stats, false, "\t", true, "\t"))
+	output:write(getStats(stats, false, " \t", true, " \t"))
 end
 
 function printStats(stats)
