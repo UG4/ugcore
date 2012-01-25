@@ -584,12 +584,9 @@ endif(buildForVRL)
 ################################################################################
 # This is a hidden option, which is currently only required for builds on jugene.
 # Note that the associated option is enabled in toolchain_file_jugene.cmake
-if(NOT STATIC)
-	if(enableDynamicOption)
-		add_definitions(-dynamic)
-	endif(enableDynamicOption)
-endif(NOT STATIC)
-
+if(enableDynamicOption)
+	add_definitions(-dynamic)
+endif(enableDynamicOption)
 
 ################################################################################
 # make global svn revision, compile date and build host available as C++ macro
