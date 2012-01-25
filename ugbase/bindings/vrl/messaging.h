@@ -111,7 +111,7 @@ std::string getExceptionMessageString(JNIEnv* env, jthrowable ex);
  */
 bool checkException(JNIEnv* env, std::string msg = "", bool throwCPPException = true);
 
-UG_API class MessageBuffer {
+class UG_API MessageBuffer {
 public:
 	/**
 	 * Adds a message to this message buffer.
