@@ -410,7 +410,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
-			return (long) NULL;
+			return (jlong) NULL;
 		}
 		
 		ug::vrl::jobjectArray2ParamStack(
@@ -459,7 +459,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 		env->ThrowNew(Exception, ss.str().c_str());
 	}
 
-	return (long) NULL;
+	return (jlong) NULL;
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
@@ -538,17 +538,17 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_getExportedClassPtrByName
 				ug::vrl::stringJ2C(env, name).c_str());
 
 		if (grpDesc == NULL || grpDesc->get_default_class() == NULL) {
-			return (long) NULL;
+			return (jlong) NULL;
 		}
 
-		return (long) grpDesc->get_default_class();
+		return (jlong) grpDesc->get_default_class();
 
 	} else {
-		return (long) ug::vrl::invocation::getExportedClassPtrByName(
+		return (jlong) ug::vrl::invocation::getExportedClassPtrByName(
 				ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
 	}
 
-	return (long) NULL;
+	return (jlong) NULL;
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
