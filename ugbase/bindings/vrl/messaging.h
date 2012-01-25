@@ -11,6 +11,8 @@
 #include <vector>
 #include  <jni.h>
 
+#include "common/ug_config.h"
+
 #ifndef MESSAGING_H
 #define	MESSAGING_H
 
@@ -109,7 +111,7 @@ std::string getExceptionMessageString(JNIEnv* env, jthrowable ex);
  */
 bool checkException(JNIEnv* env, std::string msg = "", bool throwCPPException = true);
 
-class MessageBuffer {
+UG_API class MessageBuffer {
 public:
 	/**
 	 * Adds a message to this message buffer.
