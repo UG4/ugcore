@@ -29,6 +29,8 @@ else
 	dim = 2
 end
 
+iSeed = 23
+
 -- choose dimension and algebra
 InitUG(dim, AlgebraType("CPU", 1));
 
@@ -341,7 +343,7 @@ jac = Jacobi()
 jac:set_damp(0.66)
 
 jac2 = Jacobi()
-jac2:set_damp(0.8)
+jac2:set_damp(0.66)
 
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
@@ -452,11 +454,11 @@ if bWriteMat then
 amg:set_matrix_write_path("/Users/mrupp/matricesNew/")
 end
 
-amg:set_num_presmooth(2)
-amg:set_num_postsmooth(2)
+amg:set_num_presmooth(3)
+amg:set_num_postsmooth(3)
 amg:set_cycle_type(1)
-amg:set_presmoother(sgs)
-amg:set_postsmoother(sgs)
+amg:set_presmoother(jac)
+amg:set_postsmoother(jac)
 amg:set_base_solver(base)
 amg:set_max_levels(maxLevels)
 
@@ -504,39 +506,61 @@ linSolver:set_preconditioner(amg)
 linSolver:set_convergence_check(convCheck)
 linSolver:init(linOp)
 
-print("Apply solver.")
-u:set_random(-1.0, 1.0)
-domainDisc:assemble_rhs(b, u)
-tBefore = os.clock()
-linSolver:apply_return_defect(u,b)
-tSolve = os.clock()-tBefore
-print("done")
-
-lastReduction = convCheck:defect()/convCheck:previous_defect()
-steps = convCheck:step()
+	print("Apply solver: LINEAR SOLVER.")
+	srand(iSeed)
+	u:set_random(-1.0, 1.0)
+	domainDisc:assemble_rhs(b, u)
+	tBefore = os.clock()
+	linSolver:apply_return_defect(u,b)
+	tSolve = os.clock()-tBefore
+	print("done")
+	
+	lastReduction = convCheck:defect()/convCheck:previous_defect()
+	steps = convCheck:step()
 
 ---------
 
-print("Init solver for operator.")
-linSolver = CG()
-linSolver:set_preconditioner(amg)
-linSolver:set_convergence_check(convCheck)
-linSolver:init(linOp)
+	linSolver = CG()
+	linSolver:set_preconditioner(amg)
+	linSolver:set_convergence_check(convCheck)
+	linSolver:init(linOp)
+	
+	print("Apply solver: CG.")
+	srand(iSeed)
+	u:set_random(-1.0, 1.0)
+	domainDisc:assemble_rhs(b, u)
+	tBefore = os.clock()
+	linSolver:apply_return_defect(u,b)
+	tSolveCG = os.clock()-tBefore
+	print("done")
+	
+	lastReductionCG = convCheck:defect()/convCheck:previous_defect()
+	stepsCG = convCheck:step()
 
-print("Apply solver.")
-u:set_random(-1.0, 1.0)
-domainDisc:assemble_rhs(b, u)
-tBefore = os.clock()
-linSolver:apply_return_defect(u,b)
-tSolveCG = os.clock()-tBefore
-print("done")
+---------
 
-lastReductionCG = convCheck:defect()/convCheck:previous_defect()
-stepsCG = convCheck:step()
+	print("CHECKS:")
+	srand(iSeed)
+	linSolver = LinearSolver()	
+	linSolver:set_preconditioner(amg)
+	linSolver:set_convergence_check(convCheck)
+	linSolver:init(linOp)
+	u:set_random(-1.0, 1.0)
+	domainDisc:assemble_rhs(b, u)
+
+	convCheck:set_maximum_steps(1)
+	linSolver:apply_return_defect(u,b)
+	amg:check(u,b)
+	-- amg:check_testvector()
+	-- amg:check_fsmoothing()	
+
+---------
+
 
 
 if GetProcessRank() == 0 then
 	stats = {
+	{ "XC", bool2string(bExternalCoarsening)},
 	{ "date", os.date("y%Ym%md%d") },
 	{ "SVN Revision", GetSVNRevision()},
 	{"host",GetBuildHostname()},
@@ -548,7 +572,7 @@ if GetProcessRank() == 0 then
 	{ "maxBase", maxBase},
 	{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
 	{ "tSetupAmg [s]", amg:get_timing_whole_setup_ms()/1000},
-	{ "XC", bool2string(bExternalCoarsening)},
+	
 	{ "AC", bool2string(bAggressiveCoarsening)},
 	{ "c_A", amg:get_operator_complexity()},
 	{ "c_G", amg:get_grid_complexity()},
