@@ -88,11 +88,11 @@ static bool PerformTetrahedralization(Grid& grid,
 					edges.push_back(*iter);
 				}
 			}
-			
+
 			in.numberofedges = (int)edges.size();
 			in.edgelist = new int[in.numberofedges*2];
 			in.edgemarkerlist = new int[in.numberofedges];
-			
+
 			for(size_t i = 0; i < edges.size(); ++i){
 				in.edgelist[i*2] = aaInd[edges[i]->vertex(0)];
 				in.edgelist[i*2 + 1] = aaInd[edges[i]->vertex(1)];
@@ -100,7 +100,7 @@ static bool PerformTetrahedralization(Grid& grid,
 			}
 			UG_LOG("number of edges in: " << in.numberofedges << endl);
 		}*/
-		
+
 		in.numberoffacets = grid.num_faces();
 		in.facetlist = new tetgenio::facet[in.numberoffacets];
 		in.facetmarkerlist = new int[in.numberoffacets];
@@ -206,7 +206,7 @@ static bool PerformTetrahedralization(Grid& grid,
 
 	if(out.numberoftetrahedra < 1)
 		return false;
-		
+
 //	add new volumes
 	for(int i = 0; i < out.numberoftetrahedra; ++i)
 	{
@@ -230,6 +230,215 @@ static bool PerformTetrahedralization(Grid& grid,
 }
 
 
+static bool PerformRetetrahedralization(Grid& grid,
+										SubsetHandler& sh,
+										number quality,
+										bool preserveBnds,
+										bool preserveAll,
+										APosition& aPos,
+										ANumber& aVolCon)
+{
+#ifdef UG_TETGEN
+	if(!grid.has_vertex_attachment(aPos))
+		return false;
+
+	if(!grid.has_volume_attachment(aVolCon))
+		return false;
+
+	if(grid.num<Tetrahedron>() == 0)
+		return false;
+
+//	access data
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	Grid::VolumeAttachmentAccessor<ANumber> aaVolCon(grid, aVolCon);
+
+//	attach an index to the vertices
+	AInt aInd;
+	grid.attach_to_vertices(aInd);
+	Grid::VertexAttachmentAccessor<AInt> aaInd(grid, aInd);
+
+//	datastructures to communicate with tetgenio
+	tetgenio in, out;
+
+//	setup points
+	{
+		in.numberofpoints = grid.num_vertices();
+		in.pointlist = new REAL[in.numberofpoints*3];
+
+	//	copy position data
+		int counter = 0;
+
+		for(VertexBaseIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); ++iter, ++counter)
+		{
+			aaInd[*iter] = counter;
+			vector3& v = aaPos[*iter];
+		//	position types are casted to float, since this circumvents an
+		//	error that occurs on some geometries. Somehow tetgen constructs
+		//	selfintersecting facets otherwise (sometimes). I didn't really understand
+		//	this behaviour yet.
+		//TODO: Think about how the following code could be improved.
+
+			in.pointlist[counter * 3] = (float)v.x;
+			in.pointlist[counter * 3 + 1] = (float)v.y;
+			in.pointlist[counter * 3 + 2] = (float)v.z;
+			//in.pointlist[counter * 3] = v.x;
+			//in.pointlist[counter * 3 + 1] = v.y;
+			//in.pointlist[counter * 3 + 2] = v.z;
+		}
+	}
+
+//	set up triangles
+	{
+	//	count the total number of triangles in subsets
+		int numTris = 0;
+		for(int i = 0; i < sh.num_subsets(); ++i)
+			numTris += sh.num<Triangle>(i);
+
+		in.numberoftrifaces = numTris;
+		in.trifacelist = new int[in.numberoftrifaces * 3];
+		in.trifacemarkerlist = new int[in.numberoftrifaces];
+
+		int curTri = 0;
+		for(TriangleIterator iter = grid.begin<Triangle>();
+			iter != grid.end<Triangle>(); ++iter, ++curTri)
+		{
+			Triangle* t = *iter;
+
+		//	ignore faces in subset -1
+			if(sh.get_subset_index(t) == -1)
+				continue;
+
+		//	add the triangle
+			in.trifacelist[curTri * 3] = aaInd[t->vertex(0)];
+			in.trifacelist[curTri * 3 + 1] = aaInd[t->vertex(1)];
+			in.trifacelist[curTri * 3 + 2] = aaInd[t->vertex(2)];
+
+		//	set the face mark
+			in.trifacemarkerlist[curTri] = sh.get_subset_index(t);
+		}
+	}
+
+//	now fill the tetrahedron lists
+	{
+		in.numberoftetrahedra = grid.num<Tetrahedron>();
+		in.tetrahedronlist = new int[in.numberoftetrahedra * 4];
+		in.tetrahedronvolumelist = new REAL[in.numberoftetrahedra];
+		in.numberoftetrahedronattributes = 1;
+		in.tetrahedronattributelist = new REAL[in.numberoftetrahedra];
+
+	//	fill the lists
+		int curTet = 0;
+		for(Grid::traits<Tetrahedron>::iterator iter = grid.begin<Tetrahedron>();
+			iter != grid.end<Tetrahedron>(); ++iter, ++curTet)
+		{
+			Tetrahedron* t = *iter;
+			in.tetrahedronlist[curTet * 4] = aaInd[t->vertex(0)];
+			in.tetrahedronlist[curTet * 4 + 1] = aaInd[t->vertex(1)];
+			in.tetrahedronlist[curTet * 4 + 2] = aaInd[t->vertex(2)];
+			in.tetrahedronlist[curTet * 4 + 3] = aaInd[t->vertex(3)];
+
+			in.tetrahedronvolumelist[curTet] = aaVolCon[t];
+			in.tetrahedronattributelist[curTet] = (REAL)sh.get_subset_index(t);
+		}
+	}
+
+//	the aInd attachment is no longer required
+	grid.detach_from_vertices(aInd);
+	aaInd.invalidate();
+
+//	call tetrahedralization
+	try{
+		stringstream ss;
+		ss << "ar";
+		if(quality > SMALL)
+			ss << "qq" << quality;
+		if(preserveBnds || preserveAll)
+			ss << "Y";
+		if(preserveAll)
+			ss << "Y";	// if inner bnds shall be preserved "YY" has to be passed to tetgen
+
+		ss << "Q";
+		tetrahedralize(const_cast<char*>(ss.str().c_str()), &in, &out);
+	}
+	catch(int errCode){
+		UG_LOG("  aborting retetrahedralization. Received error: " << errCode << endl);
+		return false;
+	}
+
+//	first we'll erase all existing tetrahedrons
+	grid.erase(grid.begin<Tetrahedron>(), grid.end<Tetrahedron>());
+
+//	add new vertices to the grid. store all vertices in a vector.
+	vector<VertexBase*> vVrts(out.numberofpoints);
+	{
+		int counter = 0;
+	//	add the old ones to the vector
+		for(VertexBaseIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); ++iter, ++counter)
+		{
+			aaPos[*iter].x = out.pointlist[counter*3];
+			aaPos[*iter].y = out.pointlist[counter*3+1];
+			aaPos[*iter].z = out.pointlist[counter*3+2];
+			vVrts[counter] = *iter;
+			if(counter == out.numberofpoints -1){
+				UG_LOG("WARNING: Unused points may remain!\n");
+				break;
+			}
+		}
+	//	create new ones and add them to the vector
+		for(; counter < out.numberofpoints; ++counter)
+		{
+			Vertex* v = *grid.create<Vertex>();
+			aaPos[v].x = out.pointlist[counter*3];
+			aaPos[v].y = out.pointlist[counter*3+1];
+			aaPos[v].z = out.pointlist[counter*3+2];
+			vVrts[counter] = v;
+		}
+	}
+
+//	erase edges if boundary segments were not preserved
+	if(!preserveAll){
+		grid.erase(grid.edges_begin(), grid.edges_end());
+	}
+
+//	add new faces
+	grid.erase(grid.faces_begin(), grid.faces_end());
+	for(int i = 0; i < out.numberoftrifaces; ++i)
+	{
+		Triangle* tri = *grid.create<Triangle>(TriangleDescriptor(vVrts[out.trifacelist[i*3]],
+												vVrts[out.trifacelist[i*3 + 1]],
+												vVrts[out.trifacelist[i*3 + 2]]));
+
+		sh.assign_subset(tri, out.trifacemarkerlist[i]);
+	}
+
+	if(out.numberoftetrahedra < 1)
+		return false;
+		
+//	add new volumes
+	for(int i = 0; i < out.numberoftetrahedra; ++i)
+	{
+		Tetrahedron* tet = *grid.create<Tetrahedron>(
+								TetrahedronDescriptor(vVrts[out.tetrahedronlist[i*4]],
+														vVrts[out.tetrahedronlist[i*4 + 1]],
+														vVrts[out.tetrahedronlist[i*4 + 2]],
+														vVrts[out.tetrahedronlist[i*4 + 3]]));
+
+		sh.assign_subset(tet, (int)out.tetrahedronattributelist[i]);
+	}
+
+	return true;
+
+#else
+	UG_LOG("WARNING in PerformRetetrahedralization: Tetgen is not available in the "
+			"current build. Please consider recompiling with Tetgen support enabled.\n");
+	return false;
+#endif
+
+}
+
+
 bool Tetrahedralize(Grid& grid, number quality, bool preserveBnds,
 					bool preserveAll, APosition& aPos)
 {
@@ -242,6 +451,17 @@ bool Tetrahedralize(Grid& grid, SubsetHandler& sh, number quality,
 {
 	return PerformTetrahedralization(grid, &sh, quality, preserveBnds,
 									preserveAll, aPos);
+}
+
+bool Retetrahedralize(Grid& grid, SubsetHandler& sh,
+					ANumber& aVolumeConstraint,
+					number quality,
+					bool preserveBnds,
+					bool preserveAll,
+					APosition& aPos)
+{
+	return PerformRetetrahedralization(grid, sh, quality, preserveBnds,
+									preserveAll, aPos, aVolumeConstraint);
 }
 
 }//	end of namespace

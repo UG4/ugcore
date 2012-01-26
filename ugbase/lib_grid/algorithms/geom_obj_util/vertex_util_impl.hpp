@@ -54,6 +54,10 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 									 Grid& grid, VertexBase* vrt,
 						   	   	     TAAPosVRT& aaPos)
 {
+//	The algorithm is a little cumbersome. However, through this setup, we
+//	make sure that the orientation of the normal indeed points outwards,
+//	based only on the topology.
+
 //	set nOut to 0
 	VecSet(nOut, 0);
 
@@ -68,6 +72,10 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 		for(size_t i_side = 0; i_side < f->num_sides(); ++i_side){
 			if(IsBoundaryEdge2D(grid, grid.get_edge(f, i_side))){
 				f->edge(i_side, ed);
+			//	make sure that e contains the specified vertex
+				if(!EdgeContains(&ed, vrt))
+					continue;
+
 			//	the normal pointing outwards is clearly defined from the
 			//	orientation of the edge descriptor
 				nOut.x += aaPos[ed.vertex(1)].y - aaPos[ed.vertex(0)].y;
@@ -84,6 +92,10 @@ template <class TAAPosVRT>
 void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
 						   	   	     TAAPosVRT& aaPos)
 {
+//	The algorithm is a little cumbersome. However, through this setup, we
+//	make sure that the orientation of the normal indeed points outwards,
+//	based only on the topology.
+
 //	set nOut to 0
 	VecSet(nOut, 0);
 
@@ -98,6 +110,11 @@ void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
 		for(size_t i_side = 0; i_side < v->num_sides(); ++i_side){
 			if(IsBoundaryFace3D(grid, grid.get_face(v, i_side))){
 				v->face(i_side, fd);
+
+			//	make sure that fd contains the given vertex
+				if(!FaceContains(&fd, vrt))
+					continue;
+
 			//	the normal pointing outwards is clearly defined from the
 			//	orientation of the face descriptor
 				vector3 n;

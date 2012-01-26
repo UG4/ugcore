@@ -439,7 +439,7 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 //	FaceContains
 ///	returns true if the given face contains the given vertex
 /// \ingroup lib_grid_algorithms_face_util
-bool FaceContains(Face* f, VertexBase* v);
+bool FaceContains(FaceVertices* f, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
@@ -514,7 +514,7 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 //	VolumeContains
 /// \ingroup lib_grid_algorithms_volume_util
 ///	returns true if the given volume contains the given vertex
-bool VolumeContains(Volume* v, VertexBase* vrt);
+bool VolumeContains(VolumeVertices* v, VertexBase* vrt);
 
 /// \ingroup lib_grid_algorithms_volume_util
 ///	returns true if the given volume contains the given edge

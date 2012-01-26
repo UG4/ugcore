@@ -433,7 +433,7 @@ bool FaceContains(Face* f, EdgeVertices* ev)
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
 ///	returns true if the given face contains the given vertex
-bool FaceContains(Face* f, VertexBase* v)
+bool FaceContains(FaceVertices* f, VertexBase* v)
 {
 	uint numVrts = f->num_vertices();
 	Face::ConstVertexArray vrts = f->vertices();
@@ -583,7 +583,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 ////////////////////////////////////////////////////////////////////////
 //	VolumeContains
 ///	returns true if the given volume contains the given vertex
-bool VolumeContains(Volume* v, VertexBase* vrt)
+bool VolumeContains(VolumeVertices* v, VertexBase* vrt)
 {
 	uint numVrts = v->num_vertices();
 	Volume::ConstVertexArray vrts = v->vertices();

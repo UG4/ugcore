@@ -22,6 +22,8 @@ namespace ug
  *	a lower quality parameter (careful with quality < 1), the algotithm may
  *	not terminate. The lower the quality parameter (but > 0), the
  *	better the tetrahedron quality.
+ *
+ *	Using tetgen by Hang Si.
  *	\{
  */
 bool Tetrahedralize(Grid& grid, number quality = 5,
@@ -36,6 +38,14 @@ bool Tetrahedralize(Grid& grid, SubsetHandler& sh,
 					APosition& aPos = aPosition);
 ///	\}
 
+///	If tetrahedrons are already present, this method refines them based on the given volume constraints.
+/**	A negative volume constraint implies no constraint for that element.*/
+bool Retetrahedralize(Grid& grid, SubsetHandler& sh,
+					ANumber& aVolumeConstraint,
+					number quality = 5,
+					bool preserveBnds = false,
+					bool preserveAll = false,
+					APosition& aPos = aPosition);
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

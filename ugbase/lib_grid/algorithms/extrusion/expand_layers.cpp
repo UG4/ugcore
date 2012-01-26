@@ -471,7 +471,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 					}
 				}
 
-			//	if we didn't find one then create an associate one.
+			//	if we didn't find one then create and associate one.
 			//	store the normal in the position attachment of the new vertex
 				if(!newVrts[i_vrt]){
 					newVrts[i_vrt] = *grid.create<Vertex>();
@@ -510,6 +510,8 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 				VecScale(n, n, width / 2.);
 
+				UG_LOG("n: " << n << endl);
+
 			//	n now holds the offset for nVrt relative to vrt.
 			//	if width is higher than 0, we'll have to adjust the offset at
 			//	boundary vertices.
@@ -523,6 +525,8 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 					nOut.x = -nOut.y;
 					nOut.y = tmp;
 
+					UG_LOG("nOut: " << nOut << endl);
+
 				//	now project the offset onto this vector
 					VecScale(nOut, nOut, VecDot(nOut, n));
 
@@ -532,7 +536,9 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 						VecScale(n, nOut, VecLengthSq(n) / dot);
 				}
 
+				UG_LOG("nFinal: " << n << endl);
 				VecAdd(aaPos[nVrt], n, aaPos[vrt]);
+				UG_LOG("\n");
 			}
 			else
 				aaPos[nVrt] = aaPos[vrt];
