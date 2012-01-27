@@ -146,7 +146,7 @@ if(NOT DOF)
 endif(NOT DOF)
 
 if(NOT PRECISION)
-	set(DOF ${precisionDefault})
+	set(PRECISION ${precisionDefault})
 endif(NOT PRECISION)
 
 # convert the DIM and CPU sets to readable sets
