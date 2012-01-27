@@ -125,7 +125,7 @@ template<> class attachment_traits<Volume*, ElementStorage<Volume> >;
  *
  * \ingroup lib_grid_geometric_objects
  */
-class GeometricObject/* : public SmallObject<>*/
+class UG_API GeometricObject/* : public SmallObject<>*/
 {
 	friend class Grid;
 	friend class attachment_traits<VertexBase*, ElementStorage<VertexBase> >;
@@ -185,7 +185,7 @@ class GeometricObject/* : public SmallObject<>*/
  *
  * \ingroup lib_grid_geometric_objects
  */
-class VertexBase : public GeometricObject
+class UG_API VertexBase : public GeometricObject
 {
 	friend class Grid;
 	public:
@@ -232,7 +232,7 @@ class VertexBase : public GeometricObject
 //	EdgeVertices
 ///	holds the vertices of an EdgeBase or an EdgeDescriptor.
 /**	Please note that this class does not have a virtual destructor.*/
-class EdgeVertices
+class UG_API EdgeVertices
 {
 	friend class Grid;
 	public:
@@ -265,7 +265,7 @@ class EdgeVertices
  *
  * \ingroup lib_grid_geometric_objects
  */
-class EdgeBase : public GeometricObject, public EdgeVertices
+class UG_API EdgeBase : public GeometricObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
@@ -318,7 +318,7 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeDescriptor
 ///	Can be used to store information about an edge and to construct an edge.
-class EdgeDescriptor : public EdgeVertices
+class UG_API EdgeDescriptor : public EdgeVertices
 {
 	public:
 		EdgeDescriptor();
@@ -337,7 +337,7 @@ class EdgeDescriptor : public EdgeVertices
 
 
 /**	Please note that this class does not have a virtual destructor.*/
-class FaceVertices
+class UG_API FaceVertices
 {
 	public:
 		typedef VertexBase* const* ConstVertexArray;
@@ -366,7 +366,7 @@ class FaceVertices
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Face : public GeometricObject, public FaceVertices
+class UG_API Face : public GeometricObject, public FaceVertices
 {
 	friend class Grid;
 	public:
@@ -501,7 +501,7 @@ const int MAX_FACE_VERTICES = 4;
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	FaceDescriptor
 ///	Can be queried for the edges and vertices of a face.
-class FaceDescriptor : public FaceVertices
+class UG_API FaceDescriptor : public FaceVertices
 {
 	public:
 		FaceDescriptor();
@@ -534,7 +534,7 @@ class FaceDescriptor : public FaceVertices
 //	VolumeVertices
 ///	holds the vertices of a Volume or a VolumeDescriptor
 /**	Please note that this class does not have a virtual destructor.*/
-class VolumeVertices
+class UG_API VolumeVertices
 {
 	public:
 		typedef VertexBase* const* ConstVertexArray;
@@ -567,7 +567,7 @@ class VolumeVertices
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Volume : public GeometricObject, public VolumeVertices
+class UG_API Volume : public GeometricObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
@@ -716,7 +716,7 @@ const int MAX_VOLUME_VERTICES = 8;
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeDescriptor
 ///	Can be queried for the edges, faces and vertices of a volume.
-class VolumeDescriptor : public VolumeVertices
+class UG_API VolumeDescriptor : public VolumeVertices
 {
 	public:
 		VolumeDescriptor();

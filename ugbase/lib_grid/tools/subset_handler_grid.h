@@ -16,7 +16,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	GridSubsetHandler
 /// \ingroup lib_grid
-class GridSubsetHandler : public ISubsetHandler
+class UG_API GridSubsetHandler : public ISubsetHandler
 {
 	public:
 		using ISubsetHandler::assign_subset;

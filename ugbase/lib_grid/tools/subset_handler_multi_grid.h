@@ -17,7 +17,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	MultiGridSubsetHandlerBase
 /// \ingroup lib_grid
-class MultiGridSubsetHandler : public ISubsetHandler
+class UG_API MultiGridSubsetHandler : public ISubsetHandler
 {
 	public:
 		using ISubsetHandler::assign_subset;

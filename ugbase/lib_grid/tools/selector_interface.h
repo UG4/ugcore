@@ -89,7 +89,7 @@ enum SelectorElements
  * element behind the scenes (avoids select, deselect), then it
  * may use the protected methods mark_selected, mark_deselected.
  */
-class ISelector : public GridObserver
+class UG_API ISelector : public GridObserver
 {
 	public:
 		typedef byte	status_t;

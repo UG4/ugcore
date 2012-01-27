@@ -8,6 +8,7 @@
 #include <vector>
 #include <list>
 #include "common/util/message_hub.h"
+#include "common/ug_config.h"
 #include "grid_constants.h"
 #include "geometric_base_objects.h"
 #include "grid_observer.h"
@@ -84,7 +85,7 @@ namespace ug
  * The Grid class features a message-hub, which can be used to distribute messages
  * to registered callbacks.
  */
-class Grid
+class UG_API Grid
 {
 	public:
 	///	The traits class holds some important types for each element-type

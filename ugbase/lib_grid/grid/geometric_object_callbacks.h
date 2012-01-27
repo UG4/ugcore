@@ -59,15 +59,15 @@ typedef boost::function<void (Volume*)>		CB_VisitVolume;
  *\{
  *	\brief A callback that returns true for all given objects.
  */
-inline bool ConsiderAllVertices(VertexBase*)	{return true;}
-inline bool ConsiderAllEdges(EdgeBase*)			{return true;}
-inline bool ConsiderAllFaces(Face*)				{return true;}
-inline bool ConsiderAllVolumes(Volume*)			{return true;}
+UG_API inline bool ConsiderAllVertices(VertexBase*)	{return true;}
+UG_API inline bool ConsiderAllEdges(EdgeBase*)		{return true;}
+UG_API inline bool ConsiderAllFaces(Face*)			{return true;}
+UG_API inline bool ConsiderAllVolumes(Volume*)		{return true;}
 
-inline bool ConsiderAll(VertexBase*)	{return true;}
-inline bool ConsiderAll(EdgeBase*)		{return true;}
-inline bool ConsiderAll(Face*)			{return true;}
-inline bool ConsiderAll(Volume*)		{return true;}
+UG_API inline bool ConsiderAll(VertexBase*)	{return true;}
+UG_API inline bool ConsiderAll(EdgeBase*)	{return true;}
+UG_API inline bool ConsiderAll(Face*)		{return true;}
+UG_API inline bool ConsiderAll(Volume*)		{return true;}
 
 /** \} */
 

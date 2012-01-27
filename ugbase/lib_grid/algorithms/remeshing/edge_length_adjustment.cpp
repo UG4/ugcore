@@ -140,7 +140,7 @@ number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 {
 	number lenFac = CalculateAverageCurvature(grid, shMarks, e, aaPos);
 	lenFac = (lenFac - 0.95) / 0.05;
-	return max(0.25, lenFac);
+	return max(number(0.25), lenFac);
 }
 
 ////////////////////////////////////////////////////////////////////////

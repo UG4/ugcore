@@ -13,6 +13,7 @@
 #include "common/types.h"
 #include "common/util/uid.h"
 #include "common/util/hash.h"
+#include "common/ug_config.h"
 #include "page_container.h"
 
 namespace ug
@@ -40,7 +41,7 @@ enum ATTACHMENT_CONSTANTS
 *	if possible you should use the derivate-class AttachmentDataContainer<T> instead creating
 	your own derivate of IAttachedDataContainer.
 */
-class IAttachmentDataContainer
+class UG_API IAttachmentDataContainer
 {
 	public:
 		virtual ~IAttachmentDataContainer()		{}
@@ -91,7 +92,7 @@ class IAttachmentDataContainer
 	it also defines some types, operators and values, which are essential to use an AttachmentDataContainer with libGrid.
 	In particular libGrids AttachmentAccessors require these definitions.
 */
-template <class T> class AttachmentDataContainer : public IAttachmentDataContainer
+template <class T> class UG_API AttachmentDataContainer : public IAttachmentDataContainer
 {
 	private:
 		typedef AttachmentDataContainer<T>	ClassType;
@@ -204,7 +205,7 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 	derivatives of IAttachment have to feature some special typedefs (see Attachment<T> for more information).
 *	Whenever possible you should use the template-derivative Attachment<T> instead of IAttachment.
 */
-class IAttachment : public UID
+class UG_API IAttachment : public UID
 {
 	public:
 		IAttachment() : m_name("")   {}
@@ -229,7 +230,7 @@ class IAttachment : public UID
 *	This class is intended to simplify the process of Attachment creation.
 *	Note that there are typedefs, which are required by libGrids AttachmentAccessors.
 */
-template <class T> class Attachment : public IAttachment
+template <class T> class UG_API Attachment : public IAttachment
 {
 	public:
 		typedef AttachmentDataContainer<T>	ContainerType;
@@ -305,7 +306,7 @@ class attachment_traits
  * - swap_entry_indices()?!?
  */
 template<class TElem, class TElemHandler>
-class AttachmentPipe
+class UG_API AttachmentPipe
 {
 	public:
 		typedef TElem								element;
@@ -467,7 +468,7 @@ class AttachmentPipe
  * the data stored in the given AttachmentPipe
  */
 template <class TElem, class TAttachment, class TElemHandler>
-class AttachmentAccessor
+class UG_API AttachmentAccessor
 {
 	public:
 		typedef TElem								element;

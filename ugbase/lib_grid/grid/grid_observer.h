@@ -50,7 +50,7 @@ enum ObserverType
  * volume_to_be_erased. Those method are called in reverse order of
  * registration.
  */
-class GridObserver
+class UG_API GridObserver
 {
 	public:
 		virtual ~GridObserver()	{}

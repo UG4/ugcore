@@ -86,7 +86,11 @@ typedef ugtypes::uint64_t uint64;
 typedef ugtypes::int32_t int32;
 typedef ugtypes::int64_t int64;
 
-typedef double number;
+#ifdef UG_SINGLE_PRECISION
+	typedef float number;
+#else
+	typedef double number;
+#endif
 
 
 #endif

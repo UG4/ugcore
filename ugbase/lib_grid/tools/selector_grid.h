@@ -64,7 +64,7 @@ namespace ug
  * }
  * \endcode
  */
-class Selector : public ISelector
+class UG_API Selector : public ISelector
 {
 	public:
 		typedef ISelector	BaseClass;

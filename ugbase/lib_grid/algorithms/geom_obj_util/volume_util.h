@@ -30,6 +30,7 @@ namespace ug
  *
  * collects all volumes that are adjacent to the given side of v.
  */
+UG_API 
 void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 					int side, bool clearContainer = true);
 
@@ -37,6 +38,7 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 //	CalculateMinTetrahedronHeight - mstepnie
 /// calculates the minimal height of a tetrahedral element
 //double CalculateMinTetrahedronHeight(Grid& grid, Volume& v);
+UG_API 
 number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b, 
 									 const vector3& c, const vector3& d);
 
@@ -44,24 +46,28 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 ////////////////////////////////////////////////////////////////////////
 //	CalculateMinTetrahedronEdge - mstepnie
 /// calculates the shortest edge of a tetrahedral element
+UG_API 
 number CalculateMaxTetrahedronEdgelength(Grid& grid, Volume& v);
 
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronAspectRatio - mstepnie
 /// calculates the aspect ratio of a tetrahedral element
+UG_API 
 number CalculateTetrahedronAspectRatio(Grid& grid, Volume& v);
 
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronVolume - mstepnie
 /// calculates the volume of a tetrahedral element
+UG_API 
 number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 								  const vector3& c, const vector3& d);
 
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron - sreiter
 ///	returns true if the point lies inside the tetrahedron
+UG_API 
 inline bool
 PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 						 Grid::VertexAttachmentAccessor<APosition>& aaPos);
@@ -69,6 +75,7 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the center of a volume by averaging the positions of its corners
 template<class TVertexPositionAttachmentAccessor>
+UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT);
 
@@ -88,6 +95,7 @@ CalculateCenter(VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT
  *		 the different volume types.
  */
 template<class TAAPosVRT>
+UG_API 
 bool
 CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT);
 
@@ -103,6 +111,7 @@ CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT);
  * \return number of reoriented volumes.
  */
 template<class TVolIterator, class TAAPosVRT>
+UG_API 
 int
 FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 			   TAAPosVRT& aaPosVRT);

@@ -59,6 +59,10 @@ set(lapackDefault ON)
 # Option to add svn head revision, compile date and build host into ugshell's initial output
 set(svnDefault OFF)
 
+# Precision of the number type
+set(precisionDefault "double")
+set(precisionOptions "single, double")
+
 # If we run the script the first time, search for MPI to determine the default value
 if(NOT mpiHasBeenSearched)
 	find_package(MPI)
@@ -97,6 +101,7 @@ option(TARGET "Set the target of this build process. Valid options are: "${targe
 # option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
 option(CPU "Set block sizes for which ug4 is build. Valid options are: "${cpuOptions})
 option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
+option(PRECISION "Set the precision of the number type. Valid options are: "${precisionOptions})
 
 # the following options too are pseudo cmake-options. However, they should
 # contains pathes, if set.
@@ -140,6 +145,9 @@ if(NOT DOF)
 	set(DOF ${dofDefault})
 endif(NOT DOF)
 
+if(NOT PRECISION)
+	set(DOF ${precisionDefault})
+endif(NOT PRECISION)
 
 # convert the DIM and CPU sets to readable sets
 # otherwise "2;3" gets "23" .
@@ -170,6 +178,7 @@ message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOpti
 message(STATUS "Info: DIM:               "${DIMReadable}" (options are: "${dimOptions}")")
 message(STATUS "Info: CPU:               "${CPUReadable}" (options are: "${cpuOptions}")")
 message(STATUS "Info: DOF:               "${DOF}" (options are: "${dofOptions}")")
+message(STATUS "Info: PRECISION:         "${PRECISION}" (options are: "${precisionOptions}")")
 message(STATUS "Info: STATIC:            "${STATIC}" (options are: ON, OFF)")
 message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
 message(STATUS "Info: DEBUG_LOGS:        "${DEBUG_LOGS}" (options are: ON, OFF)")
@@ -270,6 +279,15 @@ else("${TARGET}" STREQUAL "ugshell")
 	
 endif("${TARGET}" STREQUAL "ugshell")
 
+########################################
+# PRECISION
+if("${PRECISION}" STREQUAL "single")
+	add_definitions(-DUG_SINGLE_PRECISION)
+elseif("${PRECISION}" STREQUAL "double")
+	# Nothing to do here. double-precision is the default
+else("${PRECISION}" STREQUAL "single")
+	message(FATAL_ERROR "Unsupported PRECISION: "${PRECISION}". Options are: "${precisionOptions})
+endif("${PRECISION}" STREQUAL "single")
 
 ########################################
 # STATIC

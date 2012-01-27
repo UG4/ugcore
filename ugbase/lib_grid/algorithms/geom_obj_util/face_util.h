@@ -25,7 +25,7 @@ namespace ug
 /**
  * returns -1 if the face was not found.
  */
-int GetFaceIndex(Volume* vol, Face* f);
+UG_API int GetFaceIndex(Volume* vol, Face* f);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -44,6 +44,7 @@ int GetFaceIndex(Volume* vol, Face* f);
  *
  * Performs normalization on the calcluated normals.
  */
+UG_API 
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
 
@@ -63,6 +64,7 @@ void CalculateNormal(vector3& vNormOut, FaceVertices* face,
  *
  * performs no normalization on the calculated normals
  */
+UG_API 
 void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
 						Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
 					
@@ -74,6 +76,7 @@ void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
  * aPos should contain the position data.
  * Normals will be written to aNorm (face attachment).
  */
+UG_API 
 void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
 						const FaceIterator& facesEnd,
 						AVector3& aPos, AVector3& aNorm);
@@ -86,6 +89,7 @@ void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
  *
  *	Please note that overloads of this function for Constrained- and
  *	ConstrainingFaces exist.*/
+UG_API 
 bool IsVolumeBoundaryFace(Grid& grid, Face* f);
 
 ////////////////////////////////////////////////////////////////////////
@@ -94,6 +98,7 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f);
 /**	Overload for ConstrainedFace.
  *	A face is regarded as a boundary face if it is adjacent
  *	to exactly one volume.*/
+UG_API 
 bool IsVolumeBoundaryFace(Grid& grid, ConstrainedFace* f);
 
 ////////////////////////////////////////////////////////////////////////
@@ -102,17 +107,20 @@ bool IsVolumeBoundaryFace(Grid& grid, ConstrainedFace* f);
 /**	Overload for ConstrainedFace.
  *	A face is regarded as a boundary face if it is adjacent
  *	to exactly one volume.*/
+UG_API 
 bool IsVolumeBoundaryFace(Grid& grid, ConstrainingFace* f);
 
 ////////////////////////////////////////////////////////////////////////
 ///	A wrapper for IsVolumeBoundaryFace
 template <class TFace>
+UG_API 
 bool IsBoundaryFace3D(Grid& grid, TFace* f)
 {return IsVolumeBoundaryFace(grid, f);}
 
 ////////////////////////////////////////////////////////////////////////
 ///	A wrapper for IsVolumeBoundaryFace
 template <class TFace>
+UG_API 
 bool LiesOnBoundary(Grid& grid, TFace* f)
 {return IsBoundaryFace3D(grid, f);}
 
@@ -120,6 +128,7 @@ bool LiesOnBoundary(Grid& grid, TFace* f)
 //	FaceArea
 ///	Returns the area of a convex face
 template <class TAAPosVRT>
+UG_API 
 number FaceArea(Face* f, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -129,6 +138,7 @@ number FaceArea(Face* f, TAAPosVRT& aaPos);
  * on the grid from which the faces were taken.
  */
 template <class TIterator, class TAAPosVRT>
+UG_API 
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -141,8 +151,8 @@ Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPo
  * The worst one (closest to 1 or -1) determines the quality.
  * \sa TriangleQuality
  */
-number FaceQuality(Face* f,
-				Grid::VertexAttachmentAccessor<APosition> aaPos);
+UG_API 
+number FaceQuality(Face* f, Grid::VertexAttachmentAccessor<APosition> aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	AreaFaceQuality
@@ -152,6 +162,7 @@ number FaceQuality(Face* f,
  * TIterator has to be an iterator with a value-type compatible to Face*.
  */
 template <class TIterator>
+UG_API 
 number AreaFaceQuality(TIterator facesBegin, TIterator facesEnd,
 					   Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
@@ -165,9 +176,7 @@ number AreaFaceQuality(TIterator facesBegin, TIterator facesEnd,
  * The worst one (closest to 1 or -1) determines the quality.
  * \sa FaceQuality
  */
-number TriangleQuality(vector3& v1,
-						vector3& v2,
-						vector3& v3);
+UG_API number TriangleQuality(vector3& v1, vector3& v2, vector3& v3);
 
 ////////////////////////////////////////////////////////////////////////
 //	Triangulate
@@ -179,6 +188,7 @@ number TriangleQuality(vector3& v1,
  * then the new edge will be chosen so that the worst triangle-quality
  * is better.
  */
+UG_API 
 void Triangulate(Grid& grid, Quadrilateral* q,
 				Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
 
@@ -192,11 +202,13 @@ void Triangulate(Grid& grid, Quadrilateral* q,
  * then the new edge will be chosen so that the worst triangle-quality
  * is better.
  */
+UG_API 
 void Triangulate(Grid& grid,
 				QuadrilateralIterator iterBegin,
 				QuadrilateralIterator iterEnd,
 				Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
 
+UG_API 
 inline void Triangulate(Grid& grid,
 						Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
 
@@ -206,6 +218,7 @@ inline void Triangulate(Grid& grid,
 /**
  *	collects all faces that are adjacent to the given side of f.
  */
+UG_API 
 void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 					int side, bool clearContainer = true);
 					
@@ -219,6 +232,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
  * faces have the same edge-orientation as ed, then the face-orientation
  * of the faces differ.
  */
+UG_API 
 bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f);
 
 ////////////////////////////////////////////////////////////////////////
@@ -235,6 +249,7 @@ bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f);
  * of the specified grid.
  */
 template <class TFaceIterator>
+UG_API 
 void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 						TFaceIterator facesEnd);
 
@@ -244,6 +259,7 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 /**	Make sure that TFaceIterator::value_type is castable to Face*.
  *	TFaceIterator has to be compatible with stl-iterators.*/
 template <class TFaceIterator>
+UG_API 
 void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
 					   TFaceIterator facesEnd);
 
@@ -261,11 +277,13 @@ void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
  * to which f refers.
  */
 template<class TVertexPositionAttachmentAccessor>
+UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateFaceCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 ////////////////////////////////////////////////////////////////////////
 template<class TVertexPositionAttachmentAccessor>
+UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 
@@ -284,6 +302,7 @@ CalculateCenter(FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
  * to which the faces between iterBegin and iterEnd refer.
  */
 template<class TVertexPositionAttachmentAccessor>
+UG_API 
 Face* FindFaceByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
 							FaceIterator iterBegin, FaceIterator iterEnd,
 							TVertexPositionAttachmentAccessor& aaPosVRT);
@@ -291,6 +310,7 @@ Face* FindFaceByCoordinate(const typename TVertexPositionAttachmentAccessor::Val
 ////////////////////////////////////////////////////////////////////////
 //	project points to surface 
 template <class TTriangleIterator, class TAAPosVRT>
+UG_API 
 bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 						   TTriangleIterator trisBegin, TTriangleIterator trisEnd,
 						   TAAPosVRT& aaPos, bool compareNormals = false);
@@ -303,12 +323,14 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
  * operates on vector3.
  */
 template <class TAAPosVRT>
+UG_API 
 int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns true if the given face is degenerated.
 /**	Faces are degenerated if at least one edge is shorter than the given threshold.*/
 template <class TAAPosVRT>
+UG_API 
 bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold = SMALL);
 
 /// @}

@@ -36,7 +36,7 @@ enum SharedPipeSectionFace
 ////////////////////////////////////////////////////////////////////////
 //	TriangleDescriptor
 ///	only used to initialize a triangle. for all other tasks you should use FaceDescriptor.
-class TriangleDescriptor
+class UG_API TriangleDescriptor
 {
 	public:
 		TriangleDescriptor()	{}
@@ -62,7 +62,7 @@ class TriangleDescriptor
  * of newly created objects.
  */
 template <class ConcreteTriangleType, class BaseClass>
-class CustomTriangle : public BaseClass
+class UG_API CustomTriangle : public BaseClass
 {
 	public:
 		typedef Face::ConstVertexArray ConstVertexArray;
@@ -123,7 +123,7 @@ class CustomTriangle : public BaseClass
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Triangle : public CustomTriangle<Triangle, Face>
+class UG_API Triangle : public CustomTriangle<Triangle, Face>
 {
 	typedef CustomTriangle<Triangle, Face> BaseClass;
 	public:
@@ -169,7 +169,7 @@ typedef geometry_traits<Triangle>::const_iterator	ConstTriangleIterator;
 ////////////////////////////////////////////////////////////////////////
 //	QuadrilateralDescriptor
 ///	only used to initialize a quadrilateral. for all other tasks you should use FaceDescriptor.
-class QuadrilateralDescriptor
+class UG_API QuadrilateralDescriptor
 {
 	public:
 		QuadrilateralDescriptor()	{}
@@ -195,7 +195,7 @@ class QuadrilateralDescriptor
  * of newly created objects.
  */
 template <class ConcreteQuadrilateralType, class BaseClass>
-class CustomQuadrilateral : public BaseClass
+class UG_API CustomQuadrilateral : public BaseClass
 {
 	public:
 		typedef Face::ConstVertexArray ConstVertexArray;
@@ -256,7 +256,7 @@ class CustomQuadrilateral : public BaseClass
 /**
  * \ingroup lib_grid_geometric_objects
  */
-class Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
+class UG_API Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
 {
 	public:
 		typedef CustomQuadrilateral<Quadrilateral, Face> BaseClass;
@@ -312,7 +312,7 @@ typedef geometry_traits<Quadrilateral>::const_iterator	ConstQuadrilateralIterato
  * Please note, that the user is has to link and unlink constraining
  * objects manually.
  */
-class ConstrainedFace : public Face
+class UG_API ConstrainedFace : public Face
 {
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedFace*>(pObj) != NULL;}
@@ -335,7 +335,7 @@ class ConstrainedFace : public Face
 /**
  * \ingroup lib_grid_geometric_objects
  */
-class ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, ConstrainedFace>
+class UG_API ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, ConstrainedFace>
 {
 	typedef CustomTriangle<ConstrainedTriangle, ConstrainedFace> BaseTriangle;
 
@@ -390,7 +390,7 @@ typedef geometry_traits<ConstrainedTriangle>::const_iterator	ConstConstrainedTri
 /**
  * \ingroup lib_grid_geometric_objects
  */
-class ConstrainedQuadrilateral : public CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace>
+class UG_API ConstrainedQuadrilateral : public CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace>
 {
 	typedef CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace> BaseClass;
 
@@ -447,7 +447,7 @@ typedef geometry_traits<ConstrainedQuadrilateral>::const_iterator	ConstConstrain
  * Please note, that the user is has to link and unlink constrained
  * objects manually.
  */
-class ConstrainingFace : public Face
+class UG_API ConstrainingFace : public Face
 {
 
 	public:
@@ -566,7 +566,7 @@ class ConstrainingFace : public Face
 /**
  * \ingroup lib_grid_geometric_objects
  */
-class ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, ConstrainingFace>
+class UG_API ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, ConstrainingFace>
 {
 	typedef CustomTriangle<ConstrainingTriangle, ConstrainingFace> BaseTriangle;
 
@@ -625,7 +625,7 @@ typedef geometry_traits<ConstrainingTriangle>::const_iterator	ConstConstrainingT
 /**
  * \ingroup lib_grid_geometric_objects
  */
-class ConstrainingQuadrilateral : public CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>
+class UG_API ConstrainingQuadrilateral : public CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>
 {
 	typedef CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace> BaseClass;
 

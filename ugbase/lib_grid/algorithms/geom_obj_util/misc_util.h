@@ -25,6 +25,7 @@ namespace ug
  *  VertexBase*, EdgeBase*, Face* or Volume*.
  */
 template <class TIterator, class TAAPosVRT>
+UG_API 
 typename TAAPosVRT::ValueType
 CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos);
 
@@ -44,6 +45,7 @@ CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos);
  * This method can be called like this: FindByCoordinate<Face>(...).
  */
 template<class TElem, class TVertexPositionAttachmentAccessor>
+UG_API 
 TElem* FindByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
@@ -57,6 +59,7 @@ TElem* FindByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueT
  * Make sure that TAAPos::ValueType == vector_t.
  */
 template<class vector_t, class TIterator, class TAAPos>
+UG_API 
 void CalculateBoundingBox(vector_t& vMinOut, vector_t& vMaxOut,
 						  TIterator begin, TIterator end,
 						  TAAPos& aaPos);
@@ -70,17 +73,20 @@ void CalculateBoundingBox(vector_t& vMinOut, vector_t& vMaxOut,
  *	You may combine different types in one query.
  */
 template <class TElemPtr1, class TElemPtr2>
+UG_API 
 size_t NumSharedVertices(Grid& grid, TElemPtr1 elem1, TElemPtr2 elem2);
 
 ////////////////////////////////////////////////////////////////////////
 //	EraseConnectingElements
 ///	erases all elements that connect v1 and v2
+UG_API 
 void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2);
 
 ////////////////////////////////////////////////////////////////////////
 //	EraseElements
 ///	erases all elements between iterBegin and iterEnd.
 template <class TElem>
+UG_API 
 void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd);
 

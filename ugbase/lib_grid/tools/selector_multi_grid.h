@@ -71,7 +71,7 @@ class MultiGrid;
  * \endcode
  */
 
-class MGSelector : public ISelector
+class UG_API MGSelector : public ISelector
 {
 	public:
 		typedef ISelector	BaseClass;

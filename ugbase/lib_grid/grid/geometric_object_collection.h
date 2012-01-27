@@ -64,7 +64,7 @@ namespace ug
  * if you want to get the number of hexahedrons in level 0 you would go like this:
  * uint numHexas = goc.num<Hexahedron>(0);
  */
-class GeometricObjectCollection
+class UG_API GeometricObjectCollection
 {
 	public:
 	///	The traits class holds some important types for each element-type

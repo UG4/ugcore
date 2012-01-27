@@ -35,7 +35,7 @@ enum SharedPipeSectionVolume
  * v1, v2, v3: bottom-vertices in counterclockwise order (if viewed from the top).
  * v4: top
  */
-class TetrahedronDescriptor
+class UG_API TetrahedronDescriptor
 {
 	public:
 		TetrahedronDescriptor()	{}
@@ -58,7 +58,7 @@ class TetrahedronDescriptor
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Tetrahedron : public Volume
+class UG_API Tetrahedron : public Volume
 {
 	public:
 		typedef Volume BaseClass;
@@ -153,7 +153,7 @@ typedef geometry_traits<Tetrahedron>::const_iterator	ConstTetrahedronIterator;
  * v1, v2, v3, v4: bottom-vertices in counterclockwise order (if viewed from the top).
  * v5, v6, v7, v8: top-vertices in counterclockwise order (if viewed from the top).
  */
-class HexahedronDescriptor
+class UG_API HexahedronDescriptor
 {
 	public:
 		HexahedronDescriptor()	{}
@@ -177,7 +177,7 @@ class HexahedronDescriptor
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Hexahedron : public Volume
+class UG_API Hexahedron : public Volume
 {
 	public:
 		typedef Volume BaseClass;
@@ -264,7 +264,7 @@ typedef geometry_traits<Hexahedron>::const_iterator	ConstHexahedronIterator;
  * v1, v2, v3: bottom-vertices in counterclockwise order (if viewed from the top).
  * v4, v5, v6: top-vertices in counterclockwise order (if viewed from the top).
  */
-class PrismDescriptor
+class UG_API PrismDescriptor
 {
 	public:
 		PrismDescriptor()	{}
@@ -288,7 +288,7 @@ class PrismDescriptor
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Prism : public Volume
+class UG_API Prism : public Volume
 {
 	public:
 		typedef Volume BaseClass;
@@ -375,7 +375,7 @@ typedef geometry_traits<Prism>::const_iterator	ConstPrismIterator;
  * v1, v2, v3, v4: bottom-vertices in counterclockwise order (if viewed from the top).
  * v5: top-vertex.
  */
-class PyramidDescriptor
+class UG_API PyramidDescriptor
 {
 	public:
 		PyramidDescriptor()	{}
@@ -399,7 +399,7 @@ class PyramidDescriptor
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Pyramid : public Volume
+class UG_API Pyramid : public Volume
 {
 	public:
 		typedef Volume BaseClass;

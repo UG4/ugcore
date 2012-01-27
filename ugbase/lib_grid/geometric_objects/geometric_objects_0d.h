@@ -30,7 +30,7 @@ enum SharedPipeSectionVertex
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Vertex : public VertexBase
+class UG_API Vertex : public VertexBase
 {
 	friend class Grid;
 	public:
@@ -79,7 +79,7 @@ typedef geometry_traits<Vertex>::const_iterator	ConstVertexIterator;
  *
  * \ingroup lib_grid_geometric_objects
  */
-class HangingVertex : public VertexBase
+class UG_API HangingVertex : public VertexBase
 {
 	friend class Grid;
 	public:

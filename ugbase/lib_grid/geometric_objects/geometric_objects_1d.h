@@ -36,7 +36,7 @@ enum SharedPipeSectionEdge
  *
  * \ingroup lib_grid_geometric_objects
  */
-class Edge : public EdgeBase
+class UG_API Edge : public EdgeBase
 {
 	friend class Grid;
 	public:
@@ -117,7 +117,7 @@ typedef geometry_traits<Edge>::const_iterator 	ConstEdgeIterator;
  *
  * \ingroup lib_grid_geometric_objects
  */
-class ConstrainedEdge : public EdgeBase
+class UG_API ConstrainedEdge : public EdgeBase
 {
 	friend class Grid;
 	public:
@@ -211,7 +211,7 @@ typedef geometry_traits<ConstrainedEdge>::const_iterator 	ConstConstrainedEdgeIt
  *
  * \ingroup lib_grid_geometric_objects
  */
-class ConstrainingEdge : public EdgeBase
+class UG_API ConstrainingEdge : public EdgeBase
 {
 	friend class Grid;
 	public:

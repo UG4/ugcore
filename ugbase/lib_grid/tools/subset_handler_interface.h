@@ -183,7 +183,7 @@ struct ERROR_BadSubsetIndex{
  *
  * Subset-attachments currently do not support pass-on behaviours.
  */
-class ISubsetHandler : public GridObserver
+class UG_API ISubsetHandler : public GridObserver
 {/*
 	friend class attachment_traits<VertexBase*, ISubsetHandler>;
 	friend class attachment_traits<EdgeBase*, ISubsetHandler>;

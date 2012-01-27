@@ -63,7 +63,7 @@ namespace ug
  */
 
 template <class TBaseElem>
-class TElemSelector : public Selector
+class UG_API TElemSelector : public Selector
 {
 	public:
 		typedef typename geometry_traits<TBaseElem>::iterator iterator;

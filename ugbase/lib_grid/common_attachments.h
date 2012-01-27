@@ -48,13 +48,17 @@ typedef ANormal3	ANormal;
 ////////////////////////////////////////////////////////////////////////
 //	concrete attachments
 ///	The standard 3d position type.
+UG_API
 extern APosition	aPosition;
 ///	The standard 2d position type
+UG_API
 extern APosition2	aPosition2;
 ///	The standard 1d position type
+UG_API
 extern APosition1	aPosition1;
 
 ///	The standard 3d normal type
+UG_API
 extern ANormal		aNormal;
 
 ////////////////////////////////////////////////////////////////////////
@@ -67,6 +71,7 @@ extern ANormal		aNormal;
  *		- APosition2 (AVector2)		the default 2d position type. Returns aPosition2.
  */
 template <class TAttachment>
+UG_API
 inline
 TAttachment&
 GetDefaultPositionAttachment();
@@ -76,6 +81,7 @@ GetDefaultPositionAttachment();
 //	dimension of Position Attachment
 ///	this function returns the dimension of the position attachment at compile time
 template <typename TAPos>
+UG_API
 inline int GetPositionAttachmentDimension();
 
 

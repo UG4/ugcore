@@ -36,10 +36,12 @@ namespace ug
  * \{
  */
 template <class TAPos>
+UG_API
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
 					  const char* filename, TAPos& aPos);
 
 template <class TAPos>
+UG_API
 bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos);
 /**	\} */
 
@@ -52,8 +54,10 @@ bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos);
  * 	- PathProvider::get_path(GRID_PATH)
  *
  * \{ */
+UG_API
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename);
 
+UG_API
 bool LoadGridFromFile(Grid& grid, const char* filename);
 /** \} */
 
@@ -67,18 +71,22 @@ bool LoadGridFromFile(Grid& grid, const char* filename);
  * \{
  */
 template <class TAPos>
+UG_API
 bool SaveGridToFile(Grid& grid, ISubsetHandler& sh,
 					const char* filename, TAPos& aPos);
 
 template <class TAPos>
+UG_API
 bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos);
 /**	\} */
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Saves a grid to a file. Position data is read from aPosition.
 /** \{ */
+UG_API
 bool SaveGridToFile(Grid& grid, ISubsetHandler& sh, const char* filename);
 
+UG_API
 bool SaveGridToFile(Grid& grid, const char* filename);
 /** \} */
 

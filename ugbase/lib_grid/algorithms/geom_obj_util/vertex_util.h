@@ -26,7 +26,7 @@ namespace ug
 /**
  * returns -1 if the vertex was not found.
  */
-int GetVertexIndex(EdgeBase* e, VertexBase* v);
+UG_API int GetVertexIndex(EdgeBase* e, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetVertexIndex
@@ -34,7 +34,7 @@ int GetVertexIndex(EdgeBase* e, VertexBase* v);
 /**
  * returns -1 if the vertex was not found.
  */
-int GetVertexIndex(Face* f, VertexBase* v);
+UG_API int GetVertexIndex(Face* f, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetVertexIndex
@@ -42,7 +42,7 @@ int GetVertexIndex(Face* f, VertexBase* v);
 /**
  * returns -1 if the vertex was not found.
  */
-int GetVertexIndex(Volume* vol, VertexBase* v);
+UG_API int GetVertexIndex(Volume* vol, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetConnectedVertex
@@ -50,22 +50,22 @@ int GetVertexIndex(Volume* vol, VertexBase* v);
 /**
  * returns NULL if v is not contained in e.
  */
-VertexBase* GetConnectedVertex(EdgeBase* e, VertexBase* v);
+UG_API VertexBase* GetConnectedVertex(EdgeBase* e, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetConnectedVertex
 ///	returns the index of the first vertex that is contained in f and is not contained in e.
-VertexBase* GetConnectedVertex(EdgeVertices* e, Face* f);
+UG_API VertexBase* GetConnectedVertex(EdgeVertices* e, Face* f);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetConnectedVertexIndex
 ///	returns the index of the first vertex that is contained in the specified face and is not contained in the given edge.
-int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
+UG_API int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the edge in the triangle tri, which does not contain vrt.
 /**	Make sure that tri is a triangle!*/
-EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
+UG_API EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceNeighborsSorted
@@ -77,17 +77,20 @@ EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
  *
  *	Current implementation requires FACEOPT_AUTOGENERATE_EDGES (could be avoided).
  */
+UG_API 
 bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
 								   Grid& grid, VertexBase* v);
 									
 ////////////////////////////////////////////////////////////////////////
 ///	Returns the squared distance between two vertices
 template <class TAAPos>
+UG_API 
 number VertexDistanceSq(VertexBase* v0, VertexBase* v1, TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Returns the distance between two vertices
 template <class TAAPos>
+UG_API 
 number VertexDistance(VertexBase* v0, VertexBase* v1, TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -96,7 +99,9 @@ number VertexDistance(VertexBase* v0, VertexBase* v1, TAAPos& aaPos);
 /**
  * returns NULL if no vertex was found (if iterBegin == iterEnd).
  */
-VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin, VertexIterator iterEnd,
+UG_API 
+VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin,
+									VertexIterator iterEnd,
 									Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -106,6 +111,7 @@ VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin,
  * works on the vertices in grid.
  */
 template <class TAAPosVRT>
+UG_API 
 void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt,
 						   TAAPosVRT& aaPos);
 
@@ -124,6 +130,7 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt,
  * Note that this method assumes, that all faces do lie in the x-y-plane.
  */
 template <class TAAPosVRT>
+UG_API 
 void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 									 Grid& grid, VertexBase* vrt,
 						   	   	     TAAPosVRT& aaPos);
@@ -141,6 +148,7 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
  * defined by the associated volumes.
  */
 template <class TAAPosVRT>
+UG_API 
 void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
 						   	   	     TAAPosVRT& aaPos);
 
@@ -152,8 +160,10 @@ void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
  * If some attachments were not attached correctly, the method returns false.
  * \{
  */
+UG_API 
 bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm);
 
+UG_API 
 bool CalculateVertexNormals(Grid& grid,
 							Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
 							Grid::AttachmentAccessor<VertexBase, ANormal>& aaNorm);
@@ -165,6 +175,7 @@ bool CalculateVertexNormals(Grid& grid,
 /// calculates the BoundingBox
 
 template <class TVrtIter, class TAPosition>
+UG_API 
 void
 CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 					 typename TAPosition::ValueType& vMaxOut,
@@ -178,6 +189,7 @@ CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
  * returns the center of the bounding box which contains the
  * given set of vertices.*/
 template <class TVrtIter, class TAPosition>
+UG_API 
 typename TAPosition::ValueType
 CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 				Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos);
@@ -186,6 +198,7 @@ CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 //	CalculateBarycenter
 /// calculates the barycenter of a set of vertices
 template <class TVrtIter, class TAPosition>
+UG_API 
 typename TAPosition::ValueType
 CalculateBarycenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 					Grid::VertexAttachmentAccessor<TAPosition>& aaPos);
@@ -198,6 +211,7 @@ CalculateBarycenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
  * of this vertex have to be replaced by new ones. Values attached to
  * old elements are passed on to the new ones using grid::pass_on_values.
  */
+UG_API 
 void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2);
 
 ////////////////////////////////////////////////////////////////////////
@@ -205,6 +219,7 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2);
 /**	Note that connected elements may be removed or replaced during this process.
  * The method returns the remaining vertex in the given list (*vrtsBegin).*/
 template <class TVrtIterator>
+UG_API 
 VertexBase* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
 						  	  	  TVrtIterator vrtsEnd);
 
@@ -220,6 +235,7 @@ VertexBase* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
  *	\todo	remove container restrictions as described above.
  */
 template <int dim, class TVrtIterator>
+UG_API 
 void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					const TVrtIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
 					number threshold);
@@ -230,6 +246,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
  *	and volume elements. To distinguish which edges should be part of
  *	the polygonal chain, you may specify a callback to identify them.
  */
+UG_API 
 bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
 						CB_ConsiderEdge cbConsiderEdge = ConsiderAllEdges);
 
@@ -240,7 +257,7 @@ bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
  * if EDGEOPT_STORE_ASSOCIATED_FACES and VRTOPT_STORE_ASSOCIATED_EDGES
  * are enabled, the algorithm will be faster.
  */
-bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
+UG_API bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns true if a vertex lies on the boundary of a 3D grid.
@@ -249,11 +266,11 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
  * if FACEOPT_STORE_ASSOCIATED_VOLUMES and VRTOPT_STORE_ASSOCIATED_FACES
  * are enabled, the algorithm will be faster.
 */
-bool IsBoundaryVertex3D(Grid& grid, VertexBase* v);
+UG_API bool IsBoundaryVertex3D(Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	returns true, if the vertex lies on a 1d, 2d or 3d boundary
-bool LiesOnBoundary(Grid& grid, VertexBase* v);
+UG_API bool LiesOnBoundary(Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	IsRegularSurfaceVertex
@@ -264,7 +281,7 @@ bool LiesOnBoundary(Grid& grid, VertexBase* v);
  * The vertex is regarded as a regular surface vertex, if all associated
  * edges are connected to exactly 2 faces.
  */
-bool IsRegularSurfaceVertex(Grid& grid, VertexBase* v);
+UG_API bool IsRegularSurfaceVertex(Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -273,11 +290,13 @@ bool IsRegularSurfaceVertex(Grid& grid, VertexBase* v);
  * Vertices that are adjacent with more than two crease-edges are
  * regarded as a fixed vertex.
  */
+UG_API 
 void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 							int creaseSI, int fixedSI);
 
 ////////////////////////////////////////////////////////////////////////
 template <class TIterator, class AAPosVRT>
+UG_API 
 void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,
 					number alpha, int numIterations);
@@ -287,6 +306,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 /**	Main purpose is to allow the use of vertices in template-methods
  *	that call CalculateCenter*/
 template<class TVertexPositionAttachmentAccessor>
+UG_API 
 inline
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
@@ -294,11 +314,13 @@ CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
 ////////////////////////////////////////////////////////////////////////
 ///	transforms a vertex by a given matrix
 template<class TAAPos> inline
+UG_API 
 void TransformVertex(VertexBase* vrt, matrix33& m, TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	transforms all given vertices by a given matrix
 template<class TIterator, class TAAPos> inline
+UG_API 
 void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 					   matrix33& m, TAAPos& aaPos);
 

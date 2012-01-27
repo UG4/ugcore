@@ -25,7 +25,7 @@ namespace ug
 /**
  * returns -1 if the edge was not found.
  */
-int GetEdgeIndex(Face* f, EdgeBase* e);
+UG_API int GetEdgeIndex(Face* f, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetEdgeIndex
@@ -33,7 +33,7 @@ int GetEdgeIndex(Face* f, EdgeBase* e);
 /**
  * returns -1 if the edge was not found.
  */
-int GetEdgeIndex(Volume* vol, EdgeBase* e);
+UG_API int GetEdgeIndex(Volume* vol, EdgeBase* e);
 
 
 ///	returns true if the edge is connected to exactly one surface face.
@@ -43,6 +43,7 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e);
  * a boundary edge and true is returned.
  * Take a look at existing standard callbacks, if you want to use this method.
  */
+UG_API 
 bool IsBoundaryEdge(Grid& grid, EdgeBase* e, CB_ConsiderFace funcIsSurfFace);
 
 
@@ -52,7 +53,7 @@ bool IsBoundaryEdge(Grid& grid, EdgeBase* e, CB_ConsiderFace funcIsSurfFace);
  *	to exactly one face.
  *	if EDGEOPT_STORE_ASSOCIATED_FACES is enabled, the algorithm will be faster.
  */
-bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
+UG_API bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns whether an edge lies on the boundary of a 3D grid.
@@ -64,11 +65,11 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
  *	If it is not enabled, this algorithm will enable it.
  *	\todo This algorithm should work without VOLOPT_AUTOGENERATE_FACES, too.
  */
-bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e);
+UG_API bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns true, if the edge lies on a 2d or 3d boundary
-bool LiesOnBoundary(Grid& grid, EdgeBase* e);
+UG_API bool LiesOnBoundary(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
@@ -83,6 +84,7 @@ bool LiesOnBoundary(Grid& grid, EdgeBase* e);
  *
  * The method returns the number of total number of associated faces.
  */
+UG_API 
 int GetAssociatedFaces(Face** facesOut, Grid& grid,
 						EdgeBase* e, int maxNumFaces);
 
@@ -94,6 +96,7 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
  *
  * The method returns the number of total number of associated faces.
  */
+UG_API 
 int NumAssociatedFaces(Grid& grid, EdgeBase* e);
 						
 ////////////////////////////////////////////////////////////////////////
@@ -101,6 +104,7 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e);
 /**	The specified accessor has to access a MathVector compatible type
  * in the vertices of the underlying grid.*/
 template <class TAAPosVRT>
+UG_API 
 inline number EdgeLengthSq(EdgeBase* e, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -108,6 +112,7 @@ inline number EdgeLengthSq(EdgeBase* e, TAAPosVRT& aaPos);
 /**	The specified accessor has to access a MathVector compatible type
  * in the vertices of the underlying grid.*/
 template <class TAAPosVRT>
+UG_API 
 inline number EdgeLength(EdgeBase* e, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -129,6 +134,7 @@ inline number EdgeLength(EdgeBase* e, TAAPosVRT& aaPos);
  *
  * \returns the number of faces that are associated with the edge.
  */
+UG_API 
 int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
 					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
 					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE = NULL);
@@ -152,6 +158,7 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
  *
  * \returns the number of faces that are associated with the edge.
  */
+UG_API 
 int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE = NULL);
@@ -168,6 +175,7 @@ int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
  * replaced by new ones. Same for volumes. Several edges will be
  * deleted as well.
  */
+UG_API 
 bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt);
 
 ////////////////////////////////////////////////////////////////////////
@@ -177,6 +185,7 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt);
  * returns true if the topology would not be affected by the collapse.
  * returns false if the topology would be affected.
  */
+UG_API 
 bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e);
 
 
@@ -190,6 +199,7 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e);
  * geometry by the newly generated geometry.
  */
 template<class TVertex>
+UG_API 
 TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false);
 
 ////////////////////////////////////////////////////////////////////////
@@ -210,6 +220,7 @@ TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false);
  * constructed in this case.
  */
 template<class TVertex>
+UG_API 
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 						AVertexBase* paAssociatedVertices = NULL,
 						bool bConservative = false);
@@ -224,6 +235,7 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
  *
  *	The swapped edge is returned.
  */
+UG_API 
 EdgeBase* SwapEdge(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
@@ -240,7 +252,10 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e);
  * no associated vertex exists in destGrid. New ones will be automatically
  * constructed in this case by cloning the associated ones in srcGrid.
  */
-bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e, VertexBase* newVertex, AVertexBase* paAssociatedVertices = NULL);
+UG_API 
+bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
+							 VertexBase* newVertex,
+							 AVertexBase* paAssociatedVertices = NULL);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -251,6 +266,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e, VertexB
  * four times. This can be improved!
  */
 template <class TEdgeIterator>
+UG_API 
 void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 					TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 					int subsetIndex, number angle,
@@ -261,6 +277,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the center of an edge
 template<class TVertexPositionAttachmentAccessor>
+UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 
@@ -268,6 +285,7 @@ CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 ///	refines all edges in sel which cut the given plane.
 /**	New vertices are inserted on the plane.
  *	When the method is done, sel will contain all refined elements.*/
+UG_API 
 bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 						APosition& aPos = aPosition);
 
@@ -288,6 +306,7 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
  * the given edges share at most 2 edges between edgesBegin and edgesEnd.
  */
 template <class TEdgeIterator>
+UG_API 
 void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						TEdgeIterator edgesEnd);
 
@@ -301,6 +320,7 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
  * If multiple shortest edges exist, the first one is returned.
  */
 template <class TEdgeIterator, class TAAPosVRT>
+UG_API 
 EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos);
 
@@ -308,6 +328,7 @@ EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 ///	Removes edges that connect the same two vertices as another edge.
 /**	THIS ALGORITHM USES Grid::mark*/
 template <class TEdgeIterator>
+UG_API 
 void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd);
 
 ///	Transforms the given edge-set so that the sum of the length the edges is minimized.
@@ -317,6 +338,7 @@ void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edges
  * \todo	add support for 2d position attachments.
  */
 template <class EdgeIterator, class TAAPos>
+UG_API 
 void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 								  EdgeIterator edgesEnd, TAAPos& aaPos);
 
