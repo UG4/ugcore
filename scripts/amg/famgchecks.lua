@@ -451,11 +451,11 @@ vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider(vectorWriter)
 if bWriteMat then
-amg:set_matrix_write_path("/Users/mrupp/matricesNew/")
+amg:set_matrix_write_path("/Users/mrupp/matrices/")
 end
 
-amg:set_num_presmooth(3)
-amg:set_num_postsmooth(3)
+amg:set_num_presmooth(1)
+amg:set_num_postsmooth(1)
 amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
@@ -550,8 +550,11 @@ linSolver:init(linOp)
 
 	convCheck:set_maximum_steps(1)
 	linSolver:apply_return_defect(u,b)
-	amg:check(u,b)
-	-- amg:check_testvector()
+	--SaveVectorForConnectionViewer(b, "b.vec")
+	--SaveVectorForConnectionViewer(u, "u.vec")
+	
+	--amg:check(u,b)
+	amg:check_testvector()
 	-- amg:check_fsmoothing()	
 
 ---------
