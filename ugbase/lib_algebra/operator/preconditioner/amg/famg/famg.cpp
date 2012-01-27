@@ -768,26 +768,23 @@ bool FAMG<CPUAlgebra>::check_testvector()
 		matrix_type &AH = *pAH;
 		matrix_type &R = AMGBase<CPUAlgebra>::levels[level]->R;
 		matrix_type &P = AMGBase<CPUAlgebra>::levels[level]->P;
-		vector_type c, d;
+		vector_type c, d, tv;
 
 	#ifdef UG_PARALLEL
 		SetParallelVectorAsMatrix(c, A, PST_CONSISTENT);
 		SetParallelVectorAsMatrix(d, A, PST_CONSISTENT);
+		SetParallelVectorAsMatrix(tv, A, PST_CONSISTENT);
 	#endif
+		tv.resize(A.num_rows());
 		d.resize(A.num_rows());
 		c.resize(A.num_rows());
 		for(size_t i=0; i<d.size(); i++)
-			d[i] = testvectors[0][i];
-		vector_type d2;
-		CloneVector(d2, d);
-		A.apply(d2, d);
-	#ifdef UG_PARALLEL
-		d.change_storage_type(PST_ADDITIVE);
-	#endif
+			tv[i] = testvectors[0][i];
+		A.apply(d, tv);
 		c.set(0.0);
 		checkResult res;
 
-		AMGBase<CPUAlgebra>::check_level(c, d2, level, res);
+		AMGBase<CPUAlgebra>::check_level(c, d, level, res, &tv);
 
 		if(level+1 < AMGBase<CPUAlgebra>::m_usedLevels-1)
 		{

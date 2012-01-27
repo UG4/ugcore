@@ -224,7 +224,7 @@ public:
 */
 	size_t get_used_levels() const { return m_usedLevels; }
 
-	bool check_level(vector_type &c, vector_type &d, size_t level, checkResult &res);
+	bool check_level(vector_type &c, vector_type &d, size_t level, checkResult &res, const vector_type *solution=NULL);
 //	bool check(IMatrixOperator const vector_type &const_c, const vector_type &const_d);
 	bool check(const vector_type &const_c, const vector_type &const_d);
 //  data
@@ -326,7 +326,7 @@ public:
 
 protected:
 	void init_fsmoothing();
-	bool writevec(std::string filename, const vector_type &d, size_t level);
+	bool writevec(std::string filename, const vector_type &d, size_t level, const vector_type *solution=NULL);
 	void update_positions();
 
 	bool create_level_vectors(size_t level);
