@@ -21,7 +21,10 @@
 
 #include "../amg_base.h"
 #include "rsamg_nodeinfo.h"
+
+#ifdef UG_PARALLEL
 #include "rsamg_parallel_coarsening.h"
+#endif
 
 /**
  * \brief Algebraic Multigrid Functions.

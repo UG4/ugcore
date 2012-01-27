@@ -173,13 +173,13 @@ public:
 	}
 
 	//! returns size of external array
-	int arr_size() const
+	size_t arr_size() const
 	{
 		return m_size;
 	}
 
 	//! returns nr of elements in the heap.
-	int height() const
+	size_t height() const
 	{
 		return m_height;
 	}

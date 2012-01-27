@@ -5,7 +5,10 @@
  *      Author: mrupp
  */
 
-#ifdef UG_PARALLEL
+#ifndef UG_PARALLEL
+#error "This only works with a UG_PARALLEL define."
+#endif
+
 
 #ifndef RSAMG_PARALLEL_COARSENING_H_
 #define RSAMG_PARALLEL_COARSENING_H_
@@ -43,5 +46,3 @@ IParallelCoarsening *GetCoarseGridClassificationCoarsening();
 IParallelCoarsening *GetSimpleParallelCoarsening();
 }
 #endif /* RSAMG_PARALLEL_COARSENING_H_ */
-
-#endif /* UG_PARALLEL */

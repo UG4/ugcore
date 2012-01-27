@@ -22,11 +22,9 @@ set(src_Algebra)
 
 set(src_Algebra	 ${src_Algebra}
 	algebra_type.cpp
-	operator/preconditioner/amg/rsamg/rsamg_coarsening.cpp
-	operator/preconditioner/amg/rsamg/rsamg_parallel_coarsening.cpp
+	operator/preconditioner/amg/rsamg/rsamg_coarsening.cpp	
 	operator/preconditioner/amg/famg/famg.cpp
-	operator/preconditioner/amg/agglomeration.cpp
-	operator/preconditioner/amg/global_layout.cpp		
+	operator/preconditioner/amg/agglomeration.cpp			
 	 )
 
 if(PARALLEL)
@@ -34,7 +32,9 @@ if(PARALLEL)
 	set(src_Algebra	 ${src_Algebra}
 						operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
-						parallelization/parallel_coloring.cpp						
+						parallelization/parallel_coloring.cpp
+						operator/preconditioner/amg/rsamg/rsamg_parallel_coarsening.cpp
+						operator/preconditioner/amg/global_layout.cpp						
 						 )
 endif(PARALLEL)
 

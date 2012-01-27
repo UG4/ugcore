@@ -8,12 +8,16 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION_H_
 #define __H__LIB_ALGEBRA__PARALLELIZATION_H_
 
+
+#ifndef UG_PARALLEL
+#error "This only works with a UG_PARALLEL define."
+#endif
+
 #include "pcl/pcl.h"
 #include "lib_algebra/parallelization/parallelization.h"
 namespace ug
 {
 
-#ifdef UG_PARALLEL
 template<typename T>
 T Deserialize(BinaryBuffer &stream)
 {
@@ -160,7 +164,6 @@ void MergeInterfaces(TLayout &layout, const std::map<int, int> merge)
 		RemoveInterface(layout, it->first);
 	}
 }
-#endif
 
 }
 #endif /* PARALLELIZATION_H_ */

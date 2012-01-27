@@ -8,6 +8,9 @@
 #ifndef COLLECTED_SOLVER_H_
 #define COLLECTED_SOLVER_H_
 
+#ifndef UG_PARALLEL
+#error "This only works with a UG_PARALLEL define."
+#endif
 
 
 template <typename TAlgebra>

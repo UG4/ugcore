@@ -5,7 +5,9 @@
  *      Author: mrupp
  */
 
-#ifdef UG_PARALLEL
+#ifndef UG_PARALLEL
+#error "This only works with a UG_PARALLEL define."
+#endif
 
 #include "global_layout.h"
 
@@ -90,5 +92,3 @@ void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge)
 }
 
 }
-
-#endif // UG_PARALLEL
