@@ -250,7 +250,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	//UG_LOG("preprenorm: " << d.two_norm() << std::endl);
 	vector_type &corr = levels[level]->corr;
 
-	double firstnorm = ConstTwoNorm(d), n2=firstnorm, n1;
+	double firstnorm = ConstTwoNorm(d), n2=firstnorm, n1=n2;
 	//UG_LOG("firstnorm " <<  firstnorm << "\n");
 	for(size_t i=0; i<10; i++)
 	{
@@ -330,12 +330,12 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	else
 	{
 		cH.set(0.0);
-		double nH2;
+		double nH2=nH1;
 		for(i=0; i<20; i++)
 		{
 			for(int j=0; j< m_cycleType; j++)
 				add_correction_and_update_defect(cH, dH, level+1);
-			if(i!=0) nH1 = nH2;
+			nH1 = nH2;
 			nH2 = ConstTwoNorm(dH);
 			/*if(i == 0)
 			{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm << "\n"); }
