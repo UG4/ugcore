@@ -296,11 +296,13 @@ endif("${PRECISION}" STREQUAL "single")
 # Note that no plugins are built if STATIC is enabled. 
 if(STATIC)
 	set(buildDynamicLib OFF)
+	set(buildPluginSystem OFF)
 	set(buildCorePlugins OFF)
 	set(targetLibraryName ${targetLibraryName}_s)
 	add_definitions(-DUG_STATIC) # dummy preprocessor macro used for printout build config
 else(STATIC)
 	set(buildDynamicLib ON)
+	set(UG_SHARED ON)
 endif(STATIC)
 
 
@@ -663,7 +665,6 @@ ENDIF(UNIX)
 ################################################################################
 # Those options are temporary and should be removed in future builds.
 # They are left from the old build script.
-set(UG_SHARED ON)
 if(buildPluginSystem)
 	add_definitions(-DUG_PLUGINS)
 endif(buildPluginSystem)
