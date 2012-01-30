@@ -22,7 +22,7 @@ namespace ug
 /**
  * extends the filename (add p000X extension in parallel) and writes a parallel pvec/pmat "header" file
  */
-static bool GetParallelName(std::string &name)
+static std::string GetParallelName(std::string name)
 {
 	char buf[20];
 	int rank = pcl::GetProcRank();
@@ -46,7 +46,7 @@ static bool GetParallelName(std::string &name)
 
 	sprintf(buf, "_p%04d.%s", rank, ext.c_str());
 	name.append(buf);
-	return true;
+	return name;
 }
 #endif
 
