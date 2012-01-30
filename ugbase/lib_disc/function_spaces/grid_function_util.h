@@ -143,6 +143,7 @@ void ExtractPositions(const TFunction &u,
 	ExtractPositionsElem<TFunction, Volume>(u, vPos);
 }
 
+
 template <class TFunction>
 bool WriteMatrixToConnectionViewer(const char *filename,
                                    const typename TFunction::algebra_type::matrix_type &A,
@@ -156,23 +157,13 @@ bool WriteMatrixToConnectionViewer(const char *filename,
 		return false;
 	}
 
-//	extended filename
 	std::string name(filename);
-
-//	add parallel ending
-#ifdef UG_PARALLEL
-//	search for ending
-	size_t found = name.find_first_of(".");
-
-//	remove endings
-	name.resize(found);
-
-//	add new ending, containing process number
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.mat", rank);
-	name.append(ext);
-#endif
+	size_t iExtPos = name.find_last_of(".");
+	if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".mat") != 0)
+	{
+		UG_LOG("Only '.mat' format supported for matrices.\n");
+		return false;
+	}
 
 //	position array
 	const static int dim = TFunction::domain_type::dim;
@@ -218,15 +209,6 @@ bool WriteVectorToConnectionViewer(const char *filename,
 		return false;
 	}
 
-//	extended filename
-//	add p000X extension in parallel
-#ifdef UG_PARALLEL
-	name.resize(iExtPos);
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.vec", rank);
-	name.append(ext);
-#endif
 
 // 	get positions of vertices
 	std::vector<MathVector<dim> > positions;
