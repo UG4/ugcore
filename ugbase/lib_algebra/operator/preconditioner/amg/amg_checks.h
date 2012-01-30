@@ -122,7 +122,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 	const vector_type &d = const_d;
 	size_t pid = 0;
 #endif
-	std::string name = (m_writeMatrixPath + std::string("AMG_L") + ToString(level) + "_" + filename + "_p"+ ToString(pid)  + ".mat");
+	std::string name = (m_writeMatrixPath + std::string("AMG_L") + ToString(level) + "_" + filename + ".mat");
 
 
 
