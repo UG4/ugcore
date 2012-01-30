@@ -11,11 +11,44 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 
 namespace ug
 {
 
 #define CONNECTION_VIEWER_VERSION 1
+
+#ifdef UG_PARALLEL
+/**
+ * extends the filename (add p000X extension in parallel) and writes a parallel pvec/pmat "header" file
+ */
+static bool GetParallelName(std::string &name)
+{
+	char buf[20];
+	int rank = pcl::GetProcRank();
+
+	size_t iExtPos = name.find_last_of(".");
+	std::string ext = name.substr(iExtPos+1);
+	name.resize(iExtPos);
+	if(rank == 0)
+	{
+		size_t iSlashPos = name.find_last_of("/");
+		if(iSlashPos == std::string::npos) iSlashPos = 0; else iSlashPos++;
+		std::string name2 = name.substr(iSlashPos);
+		std::fstream file((name+".p"+ext).c_str(), std::ios::out);
+		file << pcl::GetNumProcesses() << "\n";
+		for(int i=0; i<pcl::GetNumProcesses(); i++)
+		{
+			sprintf(buf, "_p%04d.%s", i, ext.c_str());
+			file << name2 << buf << "\n";
+		}
+	}
+
+	sprintf(buf, "_p%04d.%s", rank, ext.c_str());
+	name.append(buf);
+	return true;
+}
+#endif
 
 // WriteMatrixToConnectionViewer
 //--------------------------------------------------
@@ -27,9 +60,13 @@ namespace ug
  * \param dimensions Dimension of positions
  */
 template<typename Matrix_type, typename postype>
-void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, postype *positions, int dimensions)
+void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
 {
-	std::fstream file(filename, std::ios::out);
+#ifdef UG_PARALLEL
+	filename = GetParallelName(filename);
+#endif
+
+	std::fstream file(filename.c_str(), std::ios::out);
 	file << CONNECTION_VIEWER_VERSION << std::endl;
 	file << dimensions << std::endl;
 
@@ -65,16 +102,20 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
  * this version can handle different from and to spaces
  */
 template <typename Matrix_type, typename postype>
-bool WriteMatrixToConnectionViewer(	const char *filename,
+bool WriteMatrixToConnectionViewer(	std::string filename,
 									const Matrix_type &A,
 									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
 {
-	const char * p = strstr(filename, ".mat");
+#ifdef UG_PARALLEL
+	filename = GetParallelName(filename);
+#endif
+
+	/*const char * p = strstr(filename, ".mat");
 	if(p == NULL)
 	{
 		UG_LOG("Currently only '.mat' format supported for domains.\n");
 		return false;
-	}
+	}*/
 
 	if(positionsFrom.size() != A.num_cols())
 	{
@@ -139,7 +180,7 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 	}
 
 
-	std::fstream file(filename, std::ios::out);
+	std::fstream file(filename.c_str(), std::ios::out);
 	file << CONNECTION_VIEWER_VERSION << std::endl;
 	file << dimensions << std::endl;
 
@@ -181,9 +222,12 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
  * \param dimensions	Dimensions of Positions
  */
 template<typename Vector_type, typename postype>
-void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, postype *positions, int dimensions)
+void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, postype *positions, int dimensions)
 {
-	std::fstream file(filename, std::ios::out);
+#ifdef UG_PARALLEL
+	filename = GetParallelName(filename);
+#endif
+	std::fstream file(filename.c_str(), std::ios::out);
 	file << CONNECTION_VIEWER_VERSION << std::endl;
 	file << dimensions << std::endl;
 
@@ -212,9 +256,13 @@ void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, p
 
 #if 0
 template<typename Vector_type, typename postype>
-void WriteVectorToConnectionViewerNEW(const char *filename, const Vector_type &b, postype *positions, int dimensions)
+void WriteVectorToConnectionViewerNEW(std::string filename, const Vector_type &b, postype *positions, int dimensions)
 {
-	std::fstream file(filename, std::ios::out);
+#ifdef UG_PARALLEL
+	filename = GetParallelName(filename);
+#endif
+
+	std::fstream file(filename.c_str(), std::ios::out);
 	file << CONNECTION_VIEWER_VERSION << std::endl;
 	file << 3 << std::endl;
 
