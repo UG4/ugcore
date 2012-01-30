@@ -362,7 +362,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 		AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
 		if(m_famg.m_writeMatrices)
-				WriteMatrixToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, std::string("AMG_A_OL2_L") + ToString(level), ".mat").c_str(),
+				WriteMatrixToConnectionViewer((m_famg.m_writeMatrixPath + std::string("AMG_A_OL2_L") + ToString(level) + ".mat").c_str(),
 						A_OL2, &m_famg.m_amghelper.positions[level][0], 2);
 	}
 

@@ -821,6 +821,48 @@ void AMGBase<TAlgebra>::update_positions()
 }
 
 
+#ifdef UG_PARALLEL
+/**
+ * extends the filename (add p000X extension in parallel) and writes a parallel pvec/pmat "header" file
+ */
+static std::string GetParallelName2(std::string name, bool bWriteHeader)
+{
+	char buf[20];
+	int rank = pcl::GetProcRank();
+
+	size_t iExtPos = name.find_last_of(".");
+	std::string ext = name.substr(iExtPos+1);
+	name.resize(iExtPos);
+	if(bWriteHeader && rank == 0)
+	{
+		size_t iSlashPos = name.find_last_of("/");
+		if(iSlashPos == std::string::npos) iSlashPos = 0; else iSlashPos++;
+		std::string name2 = name.substr(iSlashPos);
+		std::fstream file((name+".p"+ext).c_str(), std::ios::out);
+		file << pcl::GetNumProcesses() << "\n";
+		for(int i=0; i<pcl::GetNumProcesses(); i++)
+		{
+			sprintf(buf, "_p%04d.%s", i, ext.c_str());
+			file << name2 << buf << "\n";
+		}
+	}
+
+	sprintf(buf, "_p%04d.%s", rank, ext.c_str());
+	name.append(buf);
+	return name;
+}
+#else
+static std::string GetParallelName2(std::string name, bool bWriteHeader)
+{
+	return name;
+}
+#endif
+
+static std::string GetAMGFilename(std::string name, int level, std::string extension,
+		bool bWriteHeader=false)
+{
+	return GetParallelName2(std::string("AMG_") + name + "_L" + ToString(level) + extension, bWriteHeader);
+}
 
 template<typename TAlgebra>
 template<typename TNodeType>
@@ -829,15 +871,15 @@ void AMGBase<TAlgebra>::write_debug_matrix_markers
 {
 	// todo: replace some day with something like nodes.get_mark_count(), nodes.mark_name(i), nodes.is_marked(i)
 	AMG_PROFILE_FUNC();
-	std::fstream ffine(GetProcFilename(m_writeMatrixPath, std::string("AMG_fine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	std::fstream ffine((m_writeMatrixPath + GetAMGFilename("fine", level, ".marks")).c_str(), std::ios::out);
 	ffine << "1 0 0 1 0\n";
-	std::fstream ffine2(GetProcFilename(m_writeMatrixPath, std::string("AMG_aggfine_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	std::fstream ffine2((m_writeMatrixPath + GetAMGFilename("aggfine", level, ".marks")).c_str(), std::ios::out);
 	ffine2 << "1 0.2 1 1 0\n";
-	std::fstream fcoarse(GetProcFilename(m_writeMatrixPath, std::string("AMG_coarse_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	std::fstream fcoarse((m_writeMatrixPath + GetAMGFilename("coarse", level, ".marks")).c_str(), std::ios::out);
 	fcoarse << "0 0 1 1 2\n";
-	std::fstream fother(GetProcFilename(m_writeMatrixPath, std::string("AMG_other_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	std::fstream fother((m_writeMatrixPath + GetAMGFilename("other", level, ".marks")).c_str(), std::ios::out);
 	fother << "1 1 0 1 0\n";
-	std::fstream fdirichlet(GetProcFilename(m_writeMatrixPath, std::string("AMG_dirichlet_L") + ToString(level), ".marks").c_str(), std::ios::out);
+	std::fstream fdirichlet((m_writeMatrixPath + GetAMGFilename("dirichlet", level, ".marks")).c_str(), std::ios::out);
 	fdirichlet << "0 1 1 1 0\n";
 	for(size_t i=0; i < nodes.size(); i++)
 	{
@@ -853,20 +895,6 @@ void AMGBase<TAlgebra>::write_debug_matrix_markers
 }
 
 
-#ifdef UG_PARALLEL
-inline void WritePMAT(std::string &path, std::string &name)
-{
-	std::string pmatname = path + name + ".pmat";
-	std::fstream file(pmatname.c_str(), std::ios::out);
-	file << pcl::GetNumProcesses() << "\n";
-	for(int i=0; i<pcl::GetNumProcesses(); i++)
-		file << name << "_" << i << ".mat\n";
-}
-#else
-inline void WritePMAT(std::string &path, std::string &name)
-{
-}
-#endif
 
 
 template<typename TAlgebra>
@@ -877,18 +905,19 @@ void AMGBase<TAlgebra>::
 	if(m_writeMatrices)
 	{
 		AMG_PROFILE_FUNC();
-		std::string filename = name + ToString(fromlevel);
-		WritePMAT(m_writeMatrixPath, filename);
+		std::string filename = m_writeMatrixPath + name + ToString(fromlevel) + ".mat";
+#ifdef UG_PARALLEL
+		filename = GetParallelName2(filename, true);
+#endif
 
 		int level = std::min(fromlevel, tolevel);
-		filename = GetProcFilename(m_writeMatrixPath, filename,".mat");
 		AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_amghelper);
 		std::fstream f2(filename.c_str(), std::ios::out | std::ios::app);
-		f2 << "c " << GetProcFilename("", std::string("AMG_fine_L") + ToString(level), ".marks") << "\n";
-		f2 << "c " << GetProcFilename("", std::string("AMG_aggfine_L") + ToString(level), ".marks") << "\n";
-		f2 << "c " << GetProcFilename("", std::string("AMG_coarse_L") + ToString(level), ".marks") << "\n";
-		f2 << "c " << GetProcFilename("", std::string("AMG_other_L") + ToString(level), ".marks") << "\n";
-		f2 << "c " << GetProcFilename("", std::string("AMG_dirichlet_L") + ToString(level), ".marks") << "\n";
+		f2 << "c " << GetAMGFilename("fine", level, ".marks") << "\n";
+		f2 << "c " << GetAMGFilename("aggfine", level, ".marks") << "\n";
+		f2 << "c " << GetAMGFilename("coarse", level, ".marks") << "\n";
+		f2 << "c " << GetAMGFilename("other", level, ".marks") << "\n";
+		f2 << "c " << GetAMGFilename("dirichlet", level, ".marks") << "\n";
 	}
 }
 
@@ -907,7 +936,11 @@ void AMGBase<TAlgebra>::write_debug_matrices(matrix_type &AH, prolongation_matri
 	}
 
 	//if(AH.num_rows() < AMG_WRITE_MATRICES_MAX)
-		AMGWriteToFile(AH, level+1, level+1, GetProcFilename(m_writeMatrixPath, ToString("AMG_A_L") + ToString(level+1),".mat").c_str(), m_amghelper);
+	std::string name = m_writeMatrixPath + std::string("AMG_A_L") + ToString(level+1) + ".mat";
+#ifdef UG_PARALLEL
+	name = GetParallelName2(name, true);
+#endif
+	AMGWriteToFile(AH, level+1, level+1, name.c_str(), m_amghelper);
 
 	UG_LOG(". done.\n");
 }

@@ -60,6 +60,7 @@ std::stack<int> g_DebugLevelStack;
 #define SET_AND_PUSH_DEBUG_LEVEL(level) g_DebugLevelStack.push(GET_DEBUG_LEVEL(LIB_ALG_AMG)); ug::GetLogAssistant().set_debug_level(level)
 #define POP_DEBUG_LEVEL() ug::GetLogAssistant().set_debug_level(g_DebugLevelStack.pop())
 
+/*
 #ifdef UG_PARALLEL
 std::string GetProcFilename(std::string name, std::string extension)
 {
@@ -75,7 +76,7 @@ std::string GetProcFilename(std::string name, std::string extension)
 std::string GetProcFilename(std::string path, std::string name, std::string extension)
 {
 	return path + GetProcFilename(name, extension);
-}
+}*/
 
 
 template<typename vector_type>
@@ -679,7 +680,7 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	if(m_writeMatrices && m_writeTestvectors)
 	{
 		for(size_t i=0; i<testvectors.size(); i++)
-			WriteVectorToConnectionViewer(GetProcFilename(m_writeMatrixPath, ToString("testvector") + ToString(i) + ToString("_L") + ToString(level), ".vec").c_str(),
+			WriteVectorToConnectionViewer((m_writeMatrixPath + ToString("testvector") + ToString(i) + ToString("_L") + ToString(level) + ".vec").c_str(),
 					testvectors[i], &m_amghelper.positions[level][0], m_dbgDimension);
 	}
 

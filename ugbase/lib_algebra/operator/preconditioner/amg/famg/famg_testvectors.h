@@ -144,7 +144,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 
 		if(m_famg.m_writeMatrices && m_famg.m_writeTestvectors)
 			for(size_t i=0; i<m_testvectors.size(); i++)
-				WriteVectorToConnectionViewer(GetProcFilename(m_famg.m_writeMatrixPath, ToString("testvector_S") + ToString(i) + ToString("_L") + ToString(level), ".vec").c_str(),
+				WriteVectorToConnectionViewer((m_famg.m_writeMatrixPath + ToString("testvector_S") + ToString(i) + ToString("_L") + ToString(level) + ".vec").c_str(),
 					m_testvectors[i], &m_famg.m_amghelper.positions[level][0], m_famg.m_dbgDimension);
 		//VecScaleAdd(m_testvectors[i], 1.0, m_testvectors[i], -1.0, d);
 	}
