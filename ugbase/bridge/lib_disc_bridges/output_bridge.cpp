@@ -153,8 +153,12 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 
 //	SaveVectorForConnectionViewer
 	{
+		typedef MatrixOperator<vector_type,	vector_type, matrix_type> matOp;
+
 		reg.add_function("SaveVectorForConnectionViewer",
-						 &SaveVectorForConnectionViewer<function_type>, grp);
+						 (bool (*)(function_type& ,const char*)) &SaveVectorForConnectionViewer<function_type>, grp);
+		reg.add_function("SaveVectorForConnectionViewer", (bool (*)(function_type& , matOp&, const char*))&SaveVectorForConnectionViewer<function_type>, grp);
+		reg.add_function("SaveVectorForConnectionViewer", (bool (*)(function_type& , function_type& , matOp&, const char*))&SaveVectorForConnectionViewer<function_type>, grp);
 	}
 
 //	SaveVectorCSV

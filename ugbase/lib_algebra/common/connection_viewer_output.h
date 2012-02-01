@@ -212,7 +212,7 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 }
 
 
-// WriteMatrixToConnectionViewer
+// WriteVectorToConnectionViewer
 //--------------------------------------------------
 /**
  * \brief writes to a file in somewhat SparseMatrix-market format (for connection viewer)
@@ -253,6 +253,69 @@ void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, p
 	}
 }
 
+
+template<typename Matrix_type, typename Vector_type, typename postype>
+void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, const Vector_type &v,
+		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+{
+	if(dimensions != 2)
+	{
+		UG_LOG(__FILE__ << ":" << __LINE__ << " WriteVectorToConnectionViewer: only dimension=2 supported");
+		return;
+	}
+#ifdef UG_PARALLEL
+	filename = GetParallelName(filename);
+#endif
+
+	std::fstream file(filename.c_str(), std::ios::out);
+	file << CONNECTION_VIEWER_VERSION << std::endl;
+	file << dimensions << std::endl;
+
+	size_t rows = A.num_rows();
+
+	// write positions
+	file << rows << std::endl;
+
+		for(size_t i=0; i < rows; i++)
+			file << positions[i][0] << " " << positions[i][1] << std::endl;
+
+
+
+	file << 1 << std::endl; // show all cons
+	// write connections
+	for(size_t i=0; i < rows; i++)
+	{
+		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+			if(conn.value() != 0.0)
+				file << i << " " << conn.index() << " " << conn.value() <<		std::endl;
+			else
+				file << i << " " << conn.index() << " 0" <<	std::endl;
+	}
+
+
+	std::string nameValues = filename;
+	nameValues.resize(nameValues.find_last_of("."));
+	nameValues.append(".values");
+	file << "v " << nameValues << "\n";
+
+	std::fstream fileValues(nameValues.c_str(), std::ios::out);
+	if(compareVec == NULL)
+	{
+		for(size_t i=0; i < rows; i++)
+			fileValues << i << " " << v[i] <<	"\n";
+	}
+	else
+	{
+		typename Vector_type::value_type t;
+		for(size_t i=0; i < rows; i++)
+		{
+			t = v[i];
+			t -= (*compareVec)[i];
+			fileValues << i << " " << t <<	"\n";
+		}
+	}
+
+}
 
 #if 0
 template<typename Vector_type, typename postype>

@@ -196,6 +196,7 @@ bool WriteVectorToConnectionViewer(const char *filename,
                                    const typename TFunction::algebra_type::vector_type &b,
                                    const TFunction &u)
 {
+
 //	get dimension
 	const static int dim = TFunction::domain_type::dim;
 
@@ -221,6 +222,40 @@ bool WriteVectorToConnectionViewer(const char *filename,
 	return true;
 }
 
+
+
+template <class TFunction>
+bool WriteVectorToConnectionViewer(const char *filename,
+									const typename TFunction::algebra_type::matrix_type &A,
+                                   const typename TFunction::algebra_type::vector_type &b,
+                                   const TFunction &u,
+                                   const typename TFunction::algebra_type::vector_type *pCompareVec=NULL)
+{
+//	get dimension
+	const static int dim = TFunction::domain_type::dim;
+
+//	check name
+
+	std::string name(filename);
+	size_t iExtPos = name.find_last_of(".");
+	if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
+	{
+		UG_LOG("Only '.vec' format supported for vectors.\n");
+		return false;
+	}
+
+
+// 	get positions of vertices
+	std::vector<MathVector<dim> > positions;
+	ExtractPositions(u, positions);
+
+//	write vector
+	WriteVectorToConnectionViewer(name.c_str(), A, b, &positions[0], dim, pCompareVec);
+
+//	we're done
+	return true;
+}
+
 template <typename TGridFunction>
 bool SaveVectorForConnectionViewer(	TGridFunction& b,
 									const char* filename)
@@ -228,6 +263,27 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 	return WriteVectorToConnectionViewer(filename, b, b);
 }
 
+template <typename TGridFunction>
+bool SaveVectorForConnectionViewer(	TGridFunction& u,
+									MatrixOperator<typename TGridFunction::vector_type,
+									typename TGridFunction::vector_type,
+									typename TGridFunction::algebra_type::matrix_type>& A,
+									const char* filename)
+{
+	return WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u);
+}
+
+template <typename TGridFunction>
+bool SaveVectorForConnectionViewer(	TGridFunction& u,
+									TGridFunction& compareVec,
+									MatrixOperator<typename TGridFunction::vector_type,
+									typename TGridFunction::vector_type,
+									typename TGridFunction::algebra_type::matrix_type>& A,
+									const char* filename)
+{
+//	forward
+	return WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u, &compareVec);
+}
 
 // Same as before, but for comma separated value (CSV)
 template <class TFunction>
