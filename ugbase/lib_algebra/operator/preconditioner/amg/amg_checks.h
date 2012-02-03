@@ -272,12 +272,17 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	double firstnorm = ConstTwoNorm(d), n2=firstnorm, n1=n2;
 	//UG_LOG("firstnorm " <<  firstnorm << "\n");
 	double prevrate=0;
-	for(size_t i=0; i<10; i++)
+	if(m_writeMatrices) writevec((std::string("cc0")).c_str(), c, level, solution);
+	if(m_writeMatrices) writevec((std::string("c0")).c_str(), c, level);
+	if(m_writeMatrices) writevec((std::string("d0")).c_str(), d, level);
+	UG_LOG(0 << ":	" << " - " << "\t" << firstnorm << "\n");
+	for(size_t i=0; i<0; i++)
 	{
 		add_correction_and_update_defect(c, d, level);
 
-		if(m_writeMatrices) writevec((std::string("c")+ToString(i)).c_str(), c, level, solution);
-		if(m_writeMatrices) writevec((std::string("d")+ToString(i)).c_str(), d, level);
+		if(m_writeMatrices) writevec((std::string("cc")+ToString(i+1)).c_str(), c, level, solution);
+		if(m_writeMatrices) writevec((std::string("c")+ToString(i+1)).c_str(), c, level);
+		if(m_writeMatrices) writevec((std::string("d")+ToString(i+1)).c_str(), d, level);
 
 		n1 = n2;
 		n2 = ConstTwoNorm(d);
@@ -287,7 +292,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 		prevrate = n2/n1;
 
-		UG_LOG(i << ":	" << n2/n1 << "\t" << n2 << "\n");
+		UG_LOG(i+1 << ":	" << n2/n1 << "\t" << n2 << "\n");
 
 	}
 
@@ -319,6 +324,8 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 	res.preSmoothing = n2/prenorm;
 
+	if(m_writeMatrices) writevec("S1_d_presmoothed", d, level);
+	if(m_writeMatrices) writevec("S1_c_presmoothed", c, level, solution);
 
 	if(m_bFSmoothing)
 	{
@@ -329,8 +336,8 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 	res.preFSmoothing = n2/prenorm;
 
-	if(m_writeMatrices) writevec("S1_d_presmoothed", d, level);
-	if(m_writeMatrices) writevec("S1_c_presmoothed", c, level, solution);
+	if(m_writeMatrices) writevec("S1_d_fpresmoothed", d, level);
+	if(m_writeMatrices) writevec("S1_c_fpresmoothed", c, level, solution);
 
 	vector_type &cH = levels[level]->cH;
 	vector_type &dH = levels[level]->dH;
@@ -429,6 +436,9 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	}
 	n2 = ConstTwoNorm(d);	UG_LOG("post f-smoothing: " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	res.postFSmoothing = n2/prenorm;
+
+	if(m_writeMatrices) writevec("S5_d_fpost", d, level);
+	if(m_writeMatrices) writevec("S5_c_fpost", c, level, solution);
 
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
