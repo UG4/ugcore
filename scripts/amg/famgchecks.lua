@@ -330,6 +330,7 @@ linOp:set_dirichlet_values(u)
 
 print ("done")
 
+
 -- write matrix for test purpose
 if bMatOutput then
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
@@ -454,8 +455,8 @@ if bWriteMat then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
 end
 
-amg:set_num_presmooth(1)
-amg:set_num_postsmooth(1)
+amg:set_num_presmooth(100)
+amg:set_num_postsmooth(100)
 amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
@@ -536,6 +537,9 @@ linSolver:init(linOp)
 	
 	lastReductionCG = convCheck:defect()/convCheck:previous_defect()
 	stepsCG = convCheck:step()
+	
+	solution = GridFunction(approxSpace)
+	solution:assign(u)
 
 ---------
 
@@ -548,14 +552,18 @@ linSolver:init(linOp)
 	u:set_random(-1.0, 1.0)
 	domainDisc:assemble_rhs(b, u)
 
-	convCheck:set_maximum_steps(1)
+	convCheck:set_maximum_steps(0)
 	linSolver:apply_return_defect(u,b)
-	--SaveVectorForConnectionViewer(b, "b.vec")
-	--SaveVectorForConnectionViewer(u, "u.vec")
+	
+	SaveVectorForConnectionViewer(b, linOp, "b.vec")
+	SaveVectorForConnectionViewer(solution, linOp, "solution.vec")
+	SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
 	
 	--amg:check(u,b)
 	amg:check_testvector()
-	-- amg:check_fsmoothing()	
+	-- amg:check_fsmoothing()
+	
+	amg:write_interfaces()	
 
 ---------
 
