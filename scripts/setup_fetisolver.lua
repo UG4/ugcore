@@ -29,7 +29,7 @@
 --
 --      where 'solver' is the solver object which is called by
 --      'ApplyLinearSolver(., ., ., <solver>)', i.e.:
---
+--	
 --	print("Apply solver.")
 --	if ApplyLinearSolver(linOp, u, b, solver) == false then
 --		print("Could not apply linear solver.");
@@ -373,32 +373,71 @@ function SetupFETISolver(str_problem,
 		-- (apply_F), z.T. eine Verringerung von einem Viertel bis zur Haelfte (backsolve; compute_d) bewirkt!?
 		neumannSolver:set_preconditioner(npILU) -- npJac
 	
-	elseif neumannProblemSolverType == "rsamg" then
+	elseif neumannProblemSolverType == "rsamg" or neumannProblemSolverType == "famg" then
+		print ("TMP: RSAMG as Neumann problem solver!")
 
-print ("TMP: RSAMG as Neumann problem solver!")
-
-		maxBase = util.GetParamNumber("-maxBase", 1000) -- TODO (maybe): make 'maxBase' different for "np solver" and "dp solver"!
+		if neumannProblemSolverType == "famg" then
+			npAMG = FAMGPreconditioner()	
+			npAMG:set_delta(0.5)
+			npAMG:set_theta(0.95)
+			npAMG:set_aggressive_coarsening(bAggressiveCoarsening)
+				
+			local FAMGtestvectorSmoother = Jacobi()
+			FAMGtestvectorSmoother:set_damp(0.66)
+				
+			npAMG:set_testvector_damps(1)
+			npAMG:set_damping_for_smoother_in_interpolation_calculation(0.66)
+			npAMG:set_testvectorsmoother(FAMGtestvectorSmoother)
+			npAMG:set_testvector_from_matrix_rows(true)
+				
+			if bExternalCoarsening then
+				npAMG:set_external_coarsening(true)
+				npAMG:set_parallel_coarsening(GetColorCoarsening())
+				-- npAMG:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
+				-- npAMG:set_parallel_coarsening(GetRS3Coarsening())
+				if dim == 2 then
+					npAMG:set_strong_connection_external(0.2)
+				else
+					npAMG:set_strong_connection_external(0.1)
+				end				
+			end
 			
-		npRSAMG = RSAMGPreconditioner()
+			npAMG:set_galerkin_truncation(1e-9)
+			npAMG:set_H_reduce_interpolation_nodes_parameter(0.1)
+			npAMG:set_prereduce_A_parameter(0.01)
+		else
+			npAMG = RSAMGPreconditioner()
+			-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
+			-- amg:set_parallel_coarsening(GetColorCoarsening()) --
+			npAMG:set_parallel_coarsening(GetRS3Coarsening()) --
+			-- amg:set_parallel_coarsening(GetSimpleParallelCoarsening())
+			if bAggressiveCoarsening then
+				npAMG:enable_aggressive_coarsening_A(2)
+			end
+		end
 		
-		npRSAMGGS = GaussSeidel()
-		npRSAMGBase = LU()
+		maxBase = util.GetParamNumber("-maxBase", 1000) -- TODO (maybe): make 'maxBase' different for "np solver" and "dp solver"!
 		
-		npRSAMG:set_num_presmooth(3)
-		npRSAMG:set_num_postsmooth(3)
-		npRSAMG:set_cycle_type(1)
-		npRSAMG:set_presmoother(npRSAMGGS)
-		npRSAMG:set_postsmoother(npRSAMGGS)
-		npRSAMG:set_base_solver(npRSAMGBase)
-		npRSAMG:set_max_levels(20)
-		npRSAMG:set_max_nodes_for_base(maxBase)
-		npRSAMG:set_max_fill_before_base(0.7)
-		npRSAMG:set_fsmoothing(true)
-		npRSAMG:set_epsilon_truncation(0)		
-		npRSAMG:tostring()
+		npAMGGS = GaussSeidel()
+		npAMGBase = LU()
+		
+		npAMG:set_num_presmooth(3)
+		npAMG:set_num_postsmooth(3)
+		npAMG:set_cycle_type(1)
+		npAMG:set_presmoother(npRSAMGGS)
+		npAMG:set_postsmoother(npRSAMGGS)
+		npAMG:set_base_solver(npRSAMGBase)
+		npAMG:set_max_levels(20)
+		npAMG:set_max_nodes_for_base(maxBase)
+		npAMG:set_max_fill_before_base(0.7)
+		npAMG:set_fsmoothing(true)
+		
+		print("\nThe AMG solver:")
+		npAMG:tostring()
+		print("")
 		
 		neumannSolver = LinearSolver()
-		neumannSolver:set_preconditioner(npRSAMG)
+		neumannSolver:set_preconditioner(npAMG)
 	
 	else
 		print ("ERROR: Neumann problem solver not specified ==> exit")
@@ -437,30 +476,70 @@ print ("TMP: RSAMG as Neumann problem solver!")
 		dirichletSolver = BiCGStab() -- not yet tested for Dirichlet problem!
 		dirichletSolver:set_preconditioner(dpILU) -- dpJac
 	
-	elseif dirichletProblemSolverType == "rsamg" then
-
-		maxBase = util.GetParamNumber("-maxBase", 1000)
+	elseif dirichletProblemSolverType == "rsamg" or dirichletProblemSolverType == "famg" then
+		bAggressiveCoarsening = false
+		if dirichletProblemSolverType == "famg" then
+			dpAMG = FAMGPreconditioner()	
+			dpAMG:set_delta(0.5)
+			dpAMG:set_theta(0.95)
+			dpAMG:set_aggressive_coarsening(bAggressiveCoarsening)
+				
+			local FAMGtestvectorSmoother = Jacobi()
+			FAMGtestvectorSmoother:set_damp(0.66)
+				
+			dpAMG:set_testvector_damps(1)
+			dpAMG:set_damping_for_smoother_in_interpolation_calculation(0.66)
+			dpAMG:set_testvectorsmoother(FAMGtestvectorSmoother)
+			dpAMG:set_testvector_from_matrix_rows(true)
+				
+			if bExternalCoarsening then
+				dpAMG:set_external_coarsening(true)
+				dpAMG:set_parallel_coarsening(GetColorCoarsening())
+				-- dpAMG:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
+				-- dpAMG:set_parallel_coarsening(GetRS3Coarsening())
+				if dim == 2 then
+					dpAMG:set_strong_connection_external(0.2)
+				else
+					dpAMG:set_strong_connection_external(0.1)
+				end				
+			end
 			
-		dpRSAMG = RSAMGPreconditioner()
+			dpAMG:set_galerkin_truncation(1e-9)
+			dpAMG:set_H_reduce_interpolation_nodes_parameter(0.1)
+			dpAMG:set_prereduce_A_parameter(0.01)
+		else
+			dpAMG = RSAMGPreconditioner()
+			-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
+			-- amg:set_parallel_coarsening(GetColorCoarsening()) --
+			dpAMG:set_parallel_coarsening(GetRS3Coarsening()) --
+			-- amg:set_parallel_coarsening(GetSimpleParallelCoarsening())
+			if bAggressiveCoarsening then
+				dpAMG:enable_aggressive_coarsening_A(2)
+			end
+		end
 		
-		dpRSAMGGS = GaussSeidel()
-		dpRSAMGBase = LU()
+		maxBase = util.GetParamNumber("-maxBase", 1000) -- TODO (maybe): make 'maxBase' different for "np solver" and "dp solver"!
 		
-		dpRSAMG:set_num_presmooth(3)
-		dpRSAMG:set_num_postsmooth(3)
-		dpRSAMG:set_cycle_type(1)
-		dpRSAMG:set_presmoother(dpRSAMGGS)
-		dpRSAMG:set_postsmoother(dpRSAMGGS)
-		dpRSAMG:set_base_solver(dpRSAMGBase)
-		dpRSAMG:set_max_levels(20)
-		dpRSAMG:set_max_nodes_for_base(maxBase)
-		dpRSAMG:set_max_fill_before_base(0.7)
-		dpRSAMG:set_fsmoothing(true)
-		dpRSAMG:set_epsilon_truncation(0)		
-		dpRSAMG:tostring()	
+		dpAMGGS = GaussSeidel()
+		dpAMGBase = LU()
+		
+		dpAMG:set_num_presmooth(3)
+		dpAMG:set_num_postsmooth(3)
+		dpAMG:set_cycle_type(1)
+		dpAMG:set_presmoother(dpAMGGS)
+		dpAMG:set_postsmoother(dpAMGGS)
+		dpAMG:set_base_solver(dpAMGBase)
+		dpAMG:set_max_levels(20)
+		dpAMG:set_max_nodes_for_base(maxBase)
+		dpAMG:set_max_fill_before_base(0.7)
+		dpAMG:set_fsmoothing(true)
+		
+		print("\nThe AMG solver:")
+		dpAMG:tostring()
+		print("")
 		
 		dirichletSolver = LinearSolver()
-		dirichletSolver:set_preconditioner(dpRSAMG)
+		dirichletSolver:set_preconditioner(dpAMG)
 	
 	else
 		print ("ERROR: Dirichlet problem solver not specified ==> exit")
