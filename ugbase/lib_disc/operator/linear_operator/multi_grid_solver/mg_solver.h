@@ -233,6 +233,9 @@ class AssembledMultiGridCycle :
 	///	defect. (i.e. assembles A^c, with d^f -= A^c * c^c)
 		bool init_missing_coarse_grid_coupling(const vector_type* u);
 
+	///	checks if all necessary pointers have been set
+		bool check_setting() const;
+
 	protected:
 	/// operator to invert (surface grid)
 		matrix_type* m_pSurfaceMat;

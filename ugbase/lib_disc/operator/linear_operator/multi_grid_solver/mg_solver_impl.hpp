@@ -680,6 +680,14 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 {
+//	check necessary comps
+	if(!check_setting())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+				"Not all necessary components set.\n");
+		return false;
+	}
+
 // 	Cast Operator
 	m_pSurfaceMat = dynamic_cast<matrix_type*>(&J);
 
@@ -780,6 +788,14 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& L)
 {
+//	check necessary comps
+	if(!check_setting())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+				"Not all necessary components set.\n");
+		return false;
+	}
+
 // 	Cast Operator
 	m_pSurfaceMat = dynamic_cast<matrix_type*>(&L);
 
@@ -835,6 +851,45 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	return true;
 }
 
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+check_setting() const
+{
+//	Perform some checks:
+	if(m_pAss == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::check_setting': "
+				"Discretization not set.\n");
+		return false;
+	}
+	if(m_pApproxSpace == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::check_setting': "
+				"Approximation Space not set.\n");
+		return false;
+	}
+	if(m_pBaseSolver == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::check_setting': "
+				"Base Solver not set.\n");
+		return false;
+	}
+	if(m_pSmootherPrototype == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::check_setting': "
+				"Smoother not set.\n");
+		return false;
+	}
+	if(m_pProlongationPrototype == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::check_setting': "
+				"Prolongation not set.\n");
+		return false;
+	}
+
+	return true;
+}
 
 
 template <typename TApproximationSpace, typename TAlgebra>
@@ -842,38 +897,6 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 init_common(bool nonlinear)
 {
-//	Perform some checks:
-	if(m_pAss == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Discretization not set.\n");
-		return false;
-	}
-	if(m_pApproxSpace == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Approximation Space not set.\n");
-		return false;
-	}
-	if(m_pBaseSolver == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Base Solver not set.\n");
-		return false;
-	}
-	if(m_pSmootherPrototype == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Smoother not set.\n");
-		return false;
-	}
-	if(m_pProlongationPrototype == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Prolongation not set.\n");
-		return false;
-	}
-
 	if(m_baseLev > m_topLev)
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
