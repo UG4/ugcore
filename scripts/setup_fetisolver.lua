@@ -210,6 +210,10 @@ function SetupFETISolver(str_problem,
         local fetidbgWriter
 
         local fetiSolver
+        
+     -- options for AMG
+        local bWriteMat = util.HasParamOption("-AMGwriteMat")
+        local bAggressiveCoarsening = false
 
 
 	--------------------------------------------------------------------------------
@@ -341,7 +345,7 @@ function SetupFETISolver(str_problem,
 	
 	-- define convergence criteria for the coarse problem solver
 	cpConvCheck = StandardConvergenceCheck()
-	cpConvCheck:set_maximum_steps(2000)
+	cpConvCheck:set_maximum_steps(20)
 	cpConvCheck:set_minimum_defect(1e-10)
 	cpConvCheck:set_reduction(1e-16)
 	cpConvCheck:set_verbose_level(false)
@@ -402,6 +406,9 @@ function SetupFETISolver(str_problem,
 				end				
 			end
 			
+			if bWriteMat then
+				npAMG:write_testvectors(true)
+			end
 			npAMG:set_galerkin_truncation(1e-9)
 			npAMG:set_H_reduce_interpolation_nodes_parameter(0.1)
 			npAMG:set_prereduce_A_parameter(0.01)
@@ -418,15 +425,23 @@ function SetupFETISolver(str_problem,
 		
 		maxBase = util.GetParamNumber("-maxBase", 1000) -- TODO (maybe): make 'maxBase' different for "np solver" and "dp solver"!
 		
+		if bWriteMat then
+			vectorWriter = GridFunctionPositionProvider()
+			vectorWriter:set_reference_grid_function(u)
+			npAMG:set_position_provider(vectorWriter)
+			npAMG:set_matrix_write_path("/Users/mrupp/matrices/")
+		end
+		
+		
 		npAMGGS = GaussSeidel()
 		npAMGBase = LU()
 		
 		npAMG:set_num_presmooth(3)
 		npAMG:set_num_postsmooth(3)
 		npAMG:set_cycle_type(1)
-		npAMG:set_presmoother(npRSAMGGS)
-		npAMG:set_postsmoother(npRSAMGGS)
-		npAMG:set_base_solver(npRSAMGBase)
+		npAMG:set_presmoother(npAMGGS)
+		npAMG:set_postsmoother(npAMGGS)
+		npAMG:set_base_solver(npAMGBase)
 		npAMG:set_max_levels(20)
 		npAMG:set_max_nodes_for_base(maxBase)
 		npAMG:set_max_fill_before_base(0.7)
@@ -446,7 +461,7 @@ function SetupFETISolver(str_problem,
 	
 	-- define convergence criteria for the Neumann problem solver
 	neumannConvCheck = StandardConvergenceCheck()
-	neumannConvCheck:set_maximum_steps(2000)
+	neumannConvCheck:set_maximum_steps(20)
 	neumannConvCheck:set_minimum_defect(1e-10)
 	neumannConvCheck:set_reduction(1e-16)
 	neumannConvCheck:set_verbose_level(false)
@@ -477,13 +492,15 @@ function SetupFETISolver(str_problem,
 		dirichletSolver:set_preconditioner(dpILU) -- dpJac
 	
 	elseif dirichletProblemSolverType == "rsamg" or dirichletProblemSolverType == "famg" then
-		bAggressiveCoarsening = false
 		if dirichletProblemSolverType == "famg" then
 			dpAMG = FAMGPreconditioner()	
 			dpAMG:set_delta(0.5)
 			dpAMG:set_theta(0.95)
 			dpAMG:set_aggressive_coarsening(bAggressiveCoarsening)
 				
+			if bWriteMat then
+				dpAMG:write_testvectors(true)
+			end
 			local FAMGtestvectorSmoother = Jacobi()
 			FAMGtestvectorSmoother:set_damp(0.66)
 				
@@ -520,6 +537,13 @@ function SetupFETISolver(str_problem,
 		
 		maxBase = util.GetParamNumber("-maxBase", 1000) -- TODO (maybe): make 'maxBase' different for "np solver" and "dp solver"!
 		
+		if bWriteMat then
+			vectorWriter = GridFunctionPositionProvider()
+			vectorWriter:set_reference_grid_function(u)
+			dpAMG:set_position_provider(vectorWriter)
+			dpAMG:set_matrix_write_path("/Users/mrupp/matricesNew/")
+		end
+		
 		dpAMGGS = GaussSeidel()
 		dpAMGBase = LU()
 		
@@ -548,7 +572,7 @@ function SetupFETISolver(str_problem,
 	
 	-- define convergence criteria for the Dirichlet problem solver
 	dirichletConvCheck = StandardConvergenceCheck()
-	dirichletConvCheck:set_maximum_steps(2000)
+	dirichletConvCheck:set_maximum_steps(20)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
 	dirichletConvCheck:set_verbose_level(false)
