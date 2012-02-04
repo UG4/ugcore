@@ -268,32 +268,128 @@ bool IsDefinedUG_BRIDGE() { return false; }
 #endif
 
 
+/// prints CMake build parameters in a quite compact (pairwise) form
 void PrintBuildConfiguration()
 {
+	std::string aux_str("");
+
 	UG_LOG("--------------------------------------------------------------------------------\n");
-	UG_LOG("Build configuration:\n");
+	UG_LOG("Build configuration:\n\n");
+
+	// TODO: Maybe there is a nicer order for displaying the parameters!?
 
 	// 1. Primary (direct, independent) cmake parameters:
 	UG_LOG("1. Primary 'cmake' parameters:\n");
-	UG_LOG("TARGET - TODO: If this info should also be printed, add appropriate"
-		   << " (dummy) preprocessor directives in 'ug_cmake_includes.txt'"
-		   << " (e.g. '-DUG_UGSHELL', '-DUG_VRL' etc.)!\n");
 
-	UG_LOG("Build for VRL:     ");
-	UG_LOG( (IsDefinedFOR_VRL() ? "ON " : "OFF") );
+	// first pair
+	aux_str = "";
+	aux_str.append("TARGET:            ").append(UG_TARGET);
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("STATIC:            ").append( (IsDefinedUG_STATIC() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next pair
+	aux_str = "";
+	aux_str.append("PARALLEL:          ").append( (IsDefinedUG_PARALLEL() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("PCL_DEBUG_BARRIER: ").append( (IsDefinedPCL_DEBUG_BARRIER_ENABLED() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next pair
+	aux_str = "";
+	aux_str.append("DEBUG:             ").append( (IsDefinedUG_DEBUG() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("DEBUG_LOGS:        ").append( (IsDefinedUG_ENABLE_DEBUG_LOGS() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next pair
+	aux_str = "";
+	aux_str.append("PROFILER:          ").append( (IsDefinedUG_PROFILER() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("PROFILE_PCL:       ").append( (IsDefinedPROFILE_PCL() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next pair
+	// Please note that there are also independent cmake parameters 'LAPACK' and 'BLAS',
+	// but we are only interested if LAPACK/BLAS was found or not (if requested).
+	aux_str = "";
+	aux_str.append("LAPACK available:  ").append( (IsDefinedLAPACK_AVAILABLE() ? "YES" : "NO ") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("BLAS   available:  ").append( (IsDefinedBLAS_AVAILABLE() ? "YES" : "NO ") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// DIM gets its own line
+	UG_LOG("DIM:               ");
+	if (IsDefinedUG_DIM_1() && IsDefinedUG_DIM_2() && IsDefinedUG_DIM_3()) {
+		UG_LOG("ALL");
+	} else {
+		UG_LOG( (IsDefinedUG_DIM_1() ? "1 " : "") ); // or maybe a "-" for dim not defined!?
+		UG_LOG( (IsDefinedUG_DIM_2() ? "2 " : "") );
+		UG_LOG( (IsDefinedUG_DIM_3() ? "3 " : "") );
+	}
 	UG_LOG("\n");
 
-	// TODO: Shall the following two things be included (cf. comment in
-	//       'ug_cmake_includes.txt', "Those options are temporary and
-	//       should be removed in future builds ....)"?
-	UG_LOG("PLUGIN:            ");
-	UG_LOG( (IsDefinedUG_PLUGINS() ? "ON " : "OFF") );
-	UG_LOG("\n");
+	// next pair
+	aux_str = "";
+	aux_str.append("CPU:               ");
+	if (IsDefinedUG_CPU_1() && IsDefinedUG_CPU_2() &&
+		IsDefinedUG_CPU_3() && IsDefinedUG_CPU_4() &&
+		IsDefinedUG_CPU_VAR()) {
+		aux_str.append("ALL");
+	} else {
+		aux_str.append( (IsDefinedUG_CPU_1() ? "1 " : "") );
+		aux_str.append( (IsDefinedUG_CPU_2() ? "2 " : "") );
+		aux_str.append( (IsDefinedUG_CPU_3() ? "3 " : "") );
+		aux_str.append( (IsDefinedUG_CPU_4() ? "4 " : "") );
+		aux_str.append( (IsDefinedUG_CPU_VAR() ? "VAR" : "") );
+	}
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("DOF:               ");
+	aux_str.append( (IsDefinedDOF_P1()  ? "P1  " : " ") );
+	aux_str.append( (IsDefinedDOF_GEN() ? "GEN " : " ") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
-	UG_LOG("BRIDGE:            ");
-	UG_LOG( (IsDefinedUG_BRIDGE() ? "ON " : "OFF") );
-	UG_LOG("\n");
+	// We've decided so far not to display the following derived parameters!
 
+	// 2. External stuff:
+	UG_LOG("\n2. External libraries:\n");
+	aux_str = "";
+	aux_str.append("METIS:             ").append( (IsDefinedUG_METIS() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+
+	aux_str = "";
+	aux_str.append("PARMETIS:          ").append( (IsDefinedUG_PARMETIS() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next pair
+	aux_str = "";
+	aux_str.append("TETGEN:            ").append( (IsDefinedUG_TETGEN() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+
+	aux_str = "";
+	aux_str.append("HYPRE:             ").append( (IsDefinedUG_HYPRE() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next pair
+	aux_str = "";
+	aux_str.append("HLIBPRO:           ").append( (IsDefinedUG_HLIBPRO() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+
+	aux_str = "";
+	//aux_str.append("???:               ").append( (IsDefinedUG_???() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+/* TODO: If the compact form above is considered "d'accord",
+         one can remove the following "non compact form":
+
+	UG_LOG("TARGET:            " << UG_TARGET );
+	UG_LOG("\n");
 
 	UG_LOG("STATIC:            ");
 	UG_LOG( (IsDefinedUG_STATIC() ? "ON " : "OFF") );
@@ -324,8 +420,8 @@ void PrintBuildConfiguration()
 	UG_LOG("\n");
 
 	UG_LOG("DOF:               ");
-	UG_LOG( (IsDefinedDOF_GEN() ? "GEN " : " ") );
 	UG_LOG( (IsDefinedDOF_P1()  ? "P1  " : " ") );
+	UG_LOG( (IsDefinedDOF_GEN() ? "GEN " : " ") );
 	UG_LOG("\n");
 
 	UG_LOG("DEBUG:             ");
@@ -353,7 +449,7 @@ void PrintBuildConfiguration()
 	UG_LOG("\n");
 
 	// Please note that there are also independent cmake parameters 'LAPACK' and 'BLAS',
-	// but we are only interested if they are found (if requested).
+	// but we are only interested if LAPACK/BLAS was found or not (if requested).
 	UG_LOG("LAPACK available:  ");
 	UG_LOG( (IsDefinedLAPACK_AVAILABLE() ? "YES" : "NO ") );
 	UG_LOG("\n");
@@ -361,14 +457,28 @@ void PrintBuildConfiguration()
 	UG_LOG( (IsDefinedBLAS_AVAILABLE()   ? "YES" : "NO ") );
 	UG_LOG("\n\n");
 
+
+// We've decided so far not to display the following derived parameters:
 	// 2. Derived parameters (no direct parameters to cmake):
 	UG_LOG("2. Derived parameters:\n");
-	UG_LOG("ALGEBRA:           "); //  no output by 'cmake ../' til now - TODO?
+	UG_LOG("Build for VRL:     ");
+	UG_LOG( (IsDefinedFOR_VRL() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("PLUGIN:            ");
+	UG_LOG( (IsDefinedUG_PLUGINS() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("BRIDGE:            ");
+	UG_LOG( (IsDefinedUG_BRIDGE() ? "ON " : "OFF") );
+	UG_LOG("\n");
+
+	UG_LOG("ALGEBRA:           ");
 	UG_LOG( (IsDefinedUG_ALGEBRA() ? "ON " : "OFF") );
 	UG_LOG("\n\n");
 
-	// 3. External stuff:
-	UG_LOG("3. External libraries:\n");
+// Derived parameters END
+
 	UG_LOG("METIS:             ");
 	UG_LOG( (IsDefinedUG_METIS() ? "ON " : "OFF") );
 	UG_LOG("\n");
@@ -388,7 +498,7 @@ void PrintBuildConfiguration()
 	UG_LOG("HLIBPRO:           ");
 	UG_LOG( (IsDefinedUG_HLIBPRO() ? "ON " : "OFF") );
 	UG_LOG("\n");
-
+*/
 	UG_LOG("--------------------------------------------------------------------------------\n");
 }
 
