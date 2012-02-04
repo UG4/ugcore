@@ -12,7 +12,7 @@ ug_load_script("ug_util.lua")
 -- Methods exist, which automatically parse required parameters. Optionally 
 -- parameters can be set from the outside.
 --
--- All functions and variables reside in the gdu namespace.
+-- All functions and variables reside in the ddu namespace.
 
 -- This table holds all our parameters. It should not be altered by other scripts.
 ddu.numPreRefs = 0
@@ -54,7 +54,7 @@ ddu.hRedistStepSize = 1
 -- parameter initialization)
 ddu.hRedistEnabled = false
 
--- only if verbose is set to true, gdu will print something during distribution
+-- only if verbose is set to true, ddu will print something during distribution
 ddu.verbosity = false
 
 

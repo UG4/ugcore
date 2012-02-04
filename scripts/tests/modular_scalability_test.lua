@@ -23,7 +23,7 @@
 PrintBuildConfiguration()
 
 ug_load_script("ug_util.lua")
-ug_load_script("grid_distribution_util.lua")
+ug_load_script("domain_distribution_util.lua")
 
 -- some parameters for renaming of logfiles (in the moment only used for FETI)
 str_problem = "scaltest-laplace"
@@ -91,10 +91,10 @@ logfileName = "" -- empty at start; will be built by concatenating some paramete
 -- Here all parameters related to refinement and distribution are parsed.
 -- -numPreRefs, -numRefs, -distType, -numPPN, -hRedistFirstLevel,
 -- -numRedistNewProcsPerStep, -hRedistStepSize.
--- Check the documentation of grid_distribution_util.lua for more information.
+-- Check the documentation of domain_distribution_util.lua for more information.
 -- distribution related parameters
-if(gdu.ParseAndInitializeParameters(dim) == false) then
-	print("An error occured during gdu.ParseAndInitializeParameters. Aborting")
+if(ddu.ParseAndInitializeParameters(dim) == false) then
+	print("An error occured during ddu.ParseAndInitializeParameters. Aborting")
 	exit()
 end
 
@@ -119,7 +119,7 @@ if lsIterator == "gmg" then
 end
 
 print(" Parallelisation related parameters chosen:")
-gdu.PrintParameters("    ")
+ddu.PrintParameters("    ")
 
 numProcs = GetNumProcesses()
 
@@ -144,7 +144,7 @@ end
 --------------------------------------------------------------------------------
 -- refine, partition and distribute the domain.
 -- Parameters were initialized above.
-gdu.RefineAndDistributeDomain(dom, verbosity)
+ddu.RefineAndDistributeDomain(dom, verbosity)
 -- end of partitioning
 --------------------------------------------------------------------------------
 
@@ -176,7 +176,7 @@ if verbosity >= 1 then
 	end
 end
 
-gdu.PrintAnalyzerInfo()
+ddu.PrintAnalyzerInfo()
 print("#ANALYZER INFO: grid = " .. gridName)
 
 -- create Approximation Space
@@ -394,7 +394,7 @@ logpostfix    = ".txt" -- ".log"
 str_problem = str_problem .. "-" .. dim .. "d"
 logfileName_tmp = str_problem .. "_" .. str_startgrid
 
-str_refs = "refs-" .. gdu.numPreRefs .. "-" .. gdu.numRefs
+str_refs = "refs-" .. ddu.numPreRefs .. "-" .. ddu.numRefs
 logfileName_tmp = logfileName_tmp .. "_" .. str_refs
 
 if lsType == "feti" then
