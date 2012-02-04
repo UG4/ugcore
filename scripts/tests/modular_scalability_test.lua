@@ -45,8 +45,10 @@ end
 --------------------------------------------------------------------------------
 -- Several definitions which can be changed by command line parameters
 -- space dimension and grid file:
+-- choose dimension
 dim = util.GetParamNumber("-dim", 2)
 
+-- choose grid
 if dim == 2 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_8x8.ugx")
 	str_startgrid = "8x8-quads"
@@ -58,6 +60,18 @@ if dim == 3 then
 	gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_hex_2x2x2.ugx")
 	str_startgrid = "2x2x2-quads"
 	--gridName = "unit_square/unit_cube_tets_regular.ugx"
+end
+
+-- refinements:
+-- choose number of pre-Refinements (before sending grid onto different processes)	
+numPreRefs = util.GetParamNumber("-numPreRefs", 1)
+
+-- choose number of total Refinements (incl. pre-Refinements)
+numRefs    = util.GetParamNumber("-numRefs",    3)
+
+if numPreRefs > numRefs then
+	print("It must be choosen: numPreRefs <= numRefs");
+	exit();
 end
 
 -- parameters concerning the linear solver:
@@ -77,13 +91,15 @@ end
 -- amount of output
 verbosity = util.GetParamNumber("-verb", 0)	    -- set to 0 i.e. for time measurements,
 						    -- >= 1 for writing matrix files etc.
+printSol  = util.GetParamNumber("-ps",   0)	    -- set to 0 i.e. for time measurements,
+						    -- >= 1 for VTK output of solution
 
 activateDbgWriter = 0	  
 activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time measurements,
 						    -- >= 1 for debug output: call 'set_debug(dbgWriter)'
 						    -- for the main solver ('gmg', 'fetiSolver')
 
-renameLogfileAfterRun = 0	  
+renameLogfileAfterRun = 0
 renameLogfileAfterRun = util.GetParamNumber("-rlf", 0)
 logfileName = "" -- empty at start; will be built by concatenating some parameters
 
@@ -104,8 +120,11 @@ end
 print(" General parameters chosen:")
 print("    dim        = " .. dim)
 print("    grid       = " .. gridName)
+print("    numRefs    = " .. numRefs)
+print("    numPreRefs = " .. numPreRefs)
 
 print("    verb (verbosity)         = " .. verbosity)
+print("    printSol (ps)            = " .. printSol)
 print("    dbgw (activateDbgWriter) = " .. activateDbgWriter)
 
 print(" Linear solver related parameters chosen:")
@@ -119,16 +138,17 @@ if lsIterator == "gmg" then
 end
 
 print(" Parallelisation related parameters chosen:")
-ddu.PrintParameters("    ")
+numProcs = GetNumProcesses() -- TODO: Wenn das hier "Display of parameters" ist, sollte das weiter oben schon eingelesen worden sein!
+print("    numProcs   = " .. numProcs)
+ddu.PrintParameters("    ") -- numRefs and numPreRefs already displayed above!
 
-numProcs = GetNumProcesses()
 
 --------------------------------------------------------------------------------
 -- Checking for parameters (end)
 --------------------------------------------------------------------------------
 
 -- choose algebra
-InitUG(dim, AlgebraType("CPU", 1));
+InitUG(dim, AlgebraType("CPU", 1))
 
 -- create Instance of a Domain
 print("Create Domain.")
@@ -145,10 +165,11 @@ end
 -- refine, partition and distribute the domain.
 -- Parameters were initialized above.
 ddu.RefineAndDistributeDomain(dom, verbosity)
--- end of partitioning
+--------------------------------------------------------------------------------
+-- End of partitioning
 --------------------------------------------------------------------------------
 
--- get subset handler
+-- get subset handler -- TODO: koennte - und sollte dann m.E. auch - Check fuer Subsets frueher erfolgen? Oder muss das nach dem Verteilen erfolgen?
 sh = dom:subset_handler()
 subsetsFine = (sh:num_subsets() == 2)
 if subsetsFine == true then subsetsFine = util.CheckSubsets(dom, {"Inner", "Boundary"}) end
@@ -158,6 +179,7 @@ if AllProcsTrue(subsetsFine) == false then
 	print("Make sure that every process received a part of the grid during distribution!")
 	exit()
 end
+--------------------------------------------------------------------------------
 
 -- write grid to file for test purpose
 if verbosity >= 1 then
@@ -175,6 +197,7 @@ if verbosity >= 1 then
 		    exit()
 	end
 end
+--------------------------------------------------------------------------------
 
 ddu.PrintAnalyzerInfo()
 print("#ANALYZER INFO: grid = " .. gridName)
@@ -186,7 +209,7 @@ approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
--- lets order indices using Cuthill-McKee
+-- lets order indices using Cuthill-McKee (last arg: flag if "reverse Cuthill-McKee" is used)
 if OrderCuthillMcKee(approxSpace, true) == false then
 	print("ERROR when ordering Cuthill-McKee"); exit();
 end
@@ -261,6 +284,7 @@ dirichletBND:add(dirichlet, "c", "Boundary")
 
 domainDisc = DomainDiscretization(approxSpace)
 domainDisc:add(elemDisc)
+print("Adding bnd conds to global problem.")
 domainDisc:add(dirichletBND)
 
 --------------------------------------------------------------------------------
@@ -283,13 +307,16 @@ dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 
 -- create algebraic Preconditioner
+print("Creating Preconditioner.")
 jac = Jacobi()
 jac:set_damp(0.8)
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
 ilu = ILU()
-ilu:set_debug(dbgWriter)
+if activateDbgWriter >= 1 then
+	ilu:set_debug(dbgWriter)
+end
 ilut = ILUT()
 
 -- create GMG ---
@@ -474,18 +501,10 @@ if lsType == "feti" then
 	end
 end
 
-if renameLogfileAfterRun > 0 then
-	print("Renaming logfile (name built in 'setup_fetisolver.lua') to '" .. logfileName .. "' ...")
-	if GetLogAssistant():rename_log_file(logfileName) == true then
-		print(".. done!")
-	else
-		print(".. could not rename - no logfile open! Try again with '-logtofile <name>'!")
-	end
-end
 --------------------------------------------------------------------------------
 --  Output of computed solution
 --------------------------------------------------------------------------------
-if verbosity >= 1 then
+if verbosity >= 1 or printSol >= 1 then
 	print("Write vtk file for solution ...")
 	WriteGridFunctionToVTK(u, "Solution")
 end
@@ -509,3 +528,15 @@ if GetProfilerAvailable() == true then
 else
     print("Profiler not available.")
 end 
+
+--------------------------------------------------------------------------------
+--  Rename logfile
+--------------------------------------------------------------------------------
+if renameLogfileAfterRun > 0 then
+	print("Renaming logfile to '" .. logfileName .. "' ...")
+	if GetLogAssistant():rename_log_file(logfileName) == true then
+		print(".. done!")
+	else
+		print(".. could not rename - no logfile open! Try again with '-logtofile <name>'!")
+	end
+end
