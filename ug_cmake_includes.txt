@@ -203,6 +203,8 @@ message(STATUS "")
 
 ########################################
 # TARGET
+add_definitions(-DUG_TARGET="${TARGET}") # (dummy) preprocessor directive used for displaying build configuration
+
 # The target option enables specific build variables
 if("${TARGET}" STREQUAL "ugshell")
 	set(buildUGShell ON)
