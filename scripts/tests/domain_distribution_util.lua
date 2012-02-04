@@ -163,6 +163,7 @@ function ddu.PrintParameters(prefix)
 	print(prefix .. "hRedistFirstLevel = " .. ddu.hRedistFirstLevel)
 	print(prefix .. "hRedistNewProcsPerStep = " .. ddu.hRedistNewProcsPerStep)
 	print(prefix .. "hRedistStepSize = " .. ddu.hRedistStepSize)
+	print(prefix .. "numInitialDistProcs = " .. ddu.numInitialDistProcs)
 end
 
 
@@ -180,6 +181,7 @@ end
 function ddu.RefineAndDistributeDomain(dom, verbosity)
 	ddu.verbosity = verbosity
 	-- Create a refiner instance.
+	print("Create Refiner")
 	local refiner = GlobalDomainRefiner(dom)
 	
 	-- Performing pre-refines
