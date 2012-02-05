@@ -32,6 +32,7 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 		if(!libHandle){
 			UG_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i] << endl);
+			UG_LOG("Error message: " << dlerror() << endl);
 			UG_LOG("NOTE: This could be due to incompatible build settings in ugshell and the plugin.\n");
 			continue;
 		}
