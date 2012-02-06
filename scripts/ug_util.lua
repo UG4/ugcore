@@ -3,6 +3,7 @@ util = util or {}
 
 ug_load_script("util/test_utils.lua")
 ug_load_script("util/partition_maps.lua")
+ug_load_script("util/stats_util.lua")
 
 -- returns the standard path at which grids are stored
 function util.GetGridPath()
@@ -264,8 +265,41 @@ function util.PrintTable(tablePar)
 	util.PrintTableHelper("", tablePar)
 end
 
+
+--------------------------------------------------------------------------------
+-- basic functions missing lua
+--------------------------------------------------------------------------------
+
 -- adds writeln 
 function writeln(...)
 	write(...)
 	write("\n")
+end
+
+
+formatf = function(s, ...)
+	return s:format(...)
+end
+
+printf = function(s,...)
+	print(formatf(...))
+end
+
+--- fsize
+-- returns the filesize of a file (http://www.lua.org/pil/21.3.html)
+-- @param file
+-- @return filesize
+function fsize (file)
+	local current = file:seek()      -- get current position
+    local size = file:seek("end")    -- get file size
+    file:seek("set", current)        -- restore position
+    return size
+end
+
+function bool2string(boolB)
+	if boolB then
+		return "true"
+	else
+		return "false"
+	end
 end

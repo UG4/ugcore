@@ -1,6 +1,8 @@
 -- created by Sebastian Reiter
 -- s.b.reiter@googlemail.com
 
+util = util or {}
+
 -- creates partition maps of different structure
 
 -- create a partition map by performing repeated bisection
