@@ -2,7 +2,7 @@
 util = util or {}
 
 -- This file and the comments are intended to make your life easier when you want to do several runs of a script and
--- you need to evaluate date of the runs, like compare solution times for different number of refinements.
+-- you need to evaluate data from the runs, like compare solution times for different number of refinements.
 
 -- First you need to know, what statistics you want to output and compare. 
 -- Imagine you want to run laplace.lua for several different numRefs or even num procs, 
