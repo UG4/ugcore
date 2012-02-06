@@ -752,16 +752,16 @@ bool FAMG<CPUAlgebra>::check_testvector()
 
 		matrix_type *pA, *pAH;
 #ifdef UG_PARALLEL
-		if(AMGBase<CPUAlgebra>::levels[level]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level)
+/*		if(AMGBase<CPUAlgebra>::levels[level]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level)
 			pA = &AMGBase<CPUAlgebra>::levels[level]->uncollectedA;
-		else
+		else*/
 #endif
 			pA = AMGBase<CPUAlgebra>::levels[level]->pA;
 
 #if UG_PARALLEL
-		if(AMGBase<CPUAlgebra>::levels[level+1]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level+1)
+		/*if(AMGBase<CPUAlgebra>::levels[level+1]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level+1)
 			pAH = &AMGBase<CPUAlgebra>::levels[level+1]->uncollectedA;
-		else
+		else*/
 #endif
 			pAH = AMGBase<CPUAlgebra>::levels[level+1]->pA;
 
