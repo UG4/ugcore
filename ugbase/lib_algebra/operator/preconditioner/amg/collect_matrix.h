@@ -58,7 +58,7 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 	SerializeLayout(stream, A.get_master_layout(), PN);
 	SerializeLayout(stream, A.get_slave_layout(), PN);
 
-	IndexLayout::Interface &verticalInterface = verticalSlaveLayout.interface(0);
+	IndexLayout::Interface &verticalInterface = verticalSlaveLayout.interface(destproc);
 	for(size_t i=0; i<A.num_rows(); i++)
 		verticalInterface.push_back(i);
 
