@@ -57,7 +57,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 		for(size_t i=0; i<c.size(); i++)
 			c[i] = L.collC[i];
 		c.set_storage_type(PST_CONSISTENT);
-		L.uncollectedA.matmul_minus(d, c); // cannot use collD, because collD is not additive.
+		A.matmul_minus(d, c); // cannot use collD, because collD is not additive.
 		return true;
 	}
 #else
@@ -127,6 +127,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::agglomerate(size_t level)
 {
+	UG_ASSERT(0, "not working");
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
 

@@ -261,9 +261,12 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		L.cH.resize(AH.num_rows());
 		L.dH.resize(AH.num_rows());
 
-		//PrintLayoutIfBroken(nextL.com, nextL.masterLayout, nextL.slaveLayout);
+
 
 	#ifdef UG_PARALLEL
+	#ifdef UG_DEBUG
+//			PrintLayoutIfBroken(nextL.com, nextL.masterLayout, nextL.slaveLayout);
+	#endif
 		SetParallelVectorAsMatrix(L.corr, A, PST_CONSISTENT);
 		SetParallelVectorAsMatrix(L.cH, AH, PST_ADDITIVE);
 		SetParallelVectorAsMatrix(L.dH, AH, PST_ADDITIVE);
@@ -332,13 +335,12 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 	{
 		L.bHasBeenMerged = true;
 		// create basesolver
-		matrix_operator_type collectedBaseA;
-		collect_matrix(A, collectedBaseA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
+		collect_matrix(A, L.collectedA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
 
 		if(m_writeMatrices && m_amghelper.has_positions())
 		{
 			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
-			vec.resize(collectedBaseA.num_rows());
+			vec.resize(L.collectedA.num_rows());
 			ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
 			pcl::ParallelCommunicator<IndexLayout> &communicator = A.get_communicator();
 			communicator.send_data(agglomerateSlaveLayout, copyPol);
@@ -347,24 +349,22 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 			if(pcl::GetProcRank() == L.processCommunicator.get_proc_id(0))
 			{
 				std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
-				WriteMatrixToConnectionViewer(name.c_str(), collectedBaseA, &vec[0], m_amghelper.dimension);
+				WriteMatrixToConnectionViewer(name.c_str(), L.collectedA, &vec[0], m_amghelper.dimension);
 			}
 		}
 		if(pcl::GetProcRank() == L.processCommunicator.get_proc_id(0))
 		{
 			L.processCommunicator = L.processCommunicator.create_sub_communicator(true);
-			collectedBaseA.set_master_layout(m_emptyLayout);
-			collectedBaseA.set_slave_layout(m_emptyLayout);
-			collectedBaseA.set_process_communicator(m_emptyPC);
-			L.uncollectedA = A;
-			A = collectedBaseA;
-			m_basesolver->init(A);
+			L.collectedA.set_master_layout(m_emptyLayout);
+			L.collectedA.set_slave_layout(m_emptyLayout);
+			L.collectedA.set_process_communicator(m_emptyPC);
+			m_basesolver->init(L.collectedA);
 
-			collectedBaseA.set_layouts(m_emptyLayout, m_emptyLayout);
-			L.collC.resize(A.num_rows());
-			L.collD.resize(A.num_rows());
-			SetParallelVectorAsMatrix(L.collC, A, PST_ADDITIVE);
-			SetParallelVectorAsMatrix(L.collD, A, PST_ADDITIVE);
+			L.collectedA.set_layouts(m_emptyLayout, m_emptyLayout);
+			L.collC.resize(L.collectedA.num_rows());
+			L.collD.resize(L.collectedA.num_rows());
+			SetParallelVectorAsMatrix(L.collC, L.collectedA, PST_ADDITIVE);
+			SetParallelVectorAsMatrix(L.collD, L.collectedA, PST_ADDITIVE);
 		}
 		else
 		{
@@ -522,9 +522,10 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 	{
 		vector_type collC;
 		vector_type collD;
+		pcl::ParallelCommunicator<IndexLayout> &com = A.get_communicator();
 		if(pcl::GetProcRank() == 0)
 		{
-			size_t N = collectedBaseA.num_rows();
+			size_t N = L.collectedA.num_rows();
 			collC.resize(N);
 			collC.set(0.0);
 			collC.set_master_layout(m_emptyLayout);
@@ -539,12 +540,15 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 			collD.set_master_layout(m_emptyLayout);
 			collD.set_slave_layout(m_emptyLayout);
 			collD.set_process_communicator(m_emptyPC);
+
+
+
+			com.communicate();
 		}
 		// send d -> collD
 		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
-		pcl::ParallelCommunicator<IndexLayout> &com = A.get_communicator();
-		com.send_data(slaveColl, compolAdd);
-		com.receive_data(masterColl, compolAdd);
+		com.receive_data(L.agglomerateMasterLayout, compolAdd);
+		com.send_data(agglomerateSlaveLayout, compolAdd);
 		com.communicate();
 
 
@@ -553,8 +557,8 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 
 		// send c -> collC
 		ComPol_VecCopy<vector_type> compolCopy(&c, &collC);
-		com.send_data(masterColl, compolCopy);
-		com.receive_data(slaveColl, compolCopy);
+		com.receive_data(L.agglomerateMasterLayout, compolPoly);
+		com.send_data(agglomerateSlaveLayout, compolPoly);
 		com.communicate();
 
 		if(pcl::GetProcRank() == 0)
@@ -750,12 +754,12 @@ bool AMGBase<TAlgebra>::get_correction(vector_type &c, const vector_type &const_
 
 	d = const_d;
 
-	if(m_usedLevels == 1)
+	/*if(m_usedLevels == 1)
 	{
 		solve_on_base(c, d, 0);
 		return true;
 	}
-	else
+	else*/
 	{
 		c.set(0.0);
 		return add_correction_and_update_defect(c, d);

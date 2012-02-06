@@ -128,9 +128,9 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 
 #ifdef UG_PARALLEL
 	name = GetParallelName2(name, true);
-	if(levels[level]->bHasBeenMerged && m_agglomerateLevel != level)
+	/*if(levels[level]->bHasBeenMerged && m_agglomerateLevel != level)
 		AMGWriteToFile(levels[level]->uncollectedA, level, level, name.c_str(), m_amghelper);
-	else
+	else*/
 #endif
 		AMGWriteToFile(*levels[level]->pA, level, level, name.c_str(), m_amghelper);
 	std::fstream f(name.c_str(), std::ios::out | std::ios::app);

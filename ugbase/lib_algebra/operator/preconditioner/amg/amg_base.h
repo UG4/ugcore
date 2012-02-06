@@ -430,7 +430,7 @@ protected:
 		// level 0 - m_agglomerateLevel-1
 		IndexLayout agglomerateMasterLayout;
 		vector_type collC, collD;
-		matrix_operator_type uncollectedA;
+		matrix_operator_type collectedA;
 #endif
 
 
