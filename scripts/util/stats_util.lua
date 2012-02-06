@@ -28,7 +28,7 @@ util = util or {}
 -- to the console
 -- 
 -- for boolean values, use bool2string(bExternalCoarsening) -> "true" / "false"
-
+--
 --
 -- you can seperate your runs by date with the following example bash script:
 -- mydate=`date +%Y-%m-%d-%H.%M.%S`
