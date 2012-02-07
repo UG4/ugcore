@@ -385,9 +385,9 @@ if bRSAMG == false then
 	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
 	testvector = GridFunction(approxSpace)
 	testvectorwriter:update(testvector)	
-	amg:add_vector_writer(testvectorwriter, 1.0)
+	amg:add_testvector(testvectorwriter, 1.0)
 
-	amg:set_testvector_damps(1)
+	amg:set_testvector_smooths(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
 	amg:set_testvectorsmoother(jac2)
 		
@@ -434,7 +434,7 @@ vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
 amg:set_position_provider(vectorWriter)
 if bWriteMat then
-amg:set_matrix_write_path("/Users/mrupp/matricesNew/")
+amg:set_matrix_write_path("/Users/mrupp/matrices/")
 end
 
 amg:set_num_presmooth(2)

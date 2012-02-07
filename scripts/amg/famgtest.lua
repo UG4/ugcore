@@ -343,8 +343,8 @@ if bUseFAMG == 1 then
 	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
 	testvector = GridFunction(approxSpace)
 	testvectorwriter:update(testvector)	
-	amg:add_vector_writer(testvectorwriter, 1.0)
-	amg:set_testvector_damps(1)
+	amg:add_testvector(testvectorwriter, 1.0)
+	amg:set_testvector_smooths(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
 		
 	-- SetDebugLevel("LIB_ALG_MATRIX", 4)

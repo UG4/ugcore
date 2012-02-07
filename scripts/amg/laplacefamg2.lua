@@ -398,8 +398,8 @@ if bUseFAMG == 1 then
 	-- there you write it
 	testvectorwriter:update(testvector)
 	
-	amg:add_vector_writer(testvectorwriter, 1.0)
-	amg:set_testvector_damps(1)
+	amg:add_testvector(testvectorwriter, 1.0)
+	amg:set_testvector_smooths(1)
 	
 	
 
