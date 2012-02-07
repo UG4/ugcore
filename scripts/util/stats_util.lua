@@ -54,7 +54,7 @@ function util.getStats(stats, bHeader, seperator, bStats, seperator2)
 				print("value for item "..v[1].." is nil!")
 				output = output.." "..seperator2
 			else				
-				output = output..v[2]..seperator2
+				output = output..tostring(v[2])..seperator2
 			end
 		end
 	end
@@ -86,13 +86,4 @@ end
 -- @param filename
 function util.printStats(stats)
 	print(util.getStats(stats, true, ": ", true, "\n"))
-end
-
-
-function bool2string(boolB)
-	if boolB then
-		return "true"
-	else
-		return "false"
-	end
 end
