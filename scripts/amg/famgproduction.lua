@@ -389,7 +389,7 @@ if bRSAMG == false then
 
 	amg:set_testvector_smooths(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
-	amg:set_testvectorsmoother(jac2)
+	amg:set_testvector_smoother(jac2)
 		
 	if bWriteMat then
 		amg:write_testvectors(true)

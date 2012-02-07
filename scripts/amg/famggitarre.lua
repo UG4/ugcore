@@ -41,8 +41,8 @@ maxBase = util.GetParamNumber("-maxBase", 1000)
 RAepsilon = util.GetParamNumber("-RAepsilon", 1)
 RAalpha = util.GetParamNumber("-RAalpha", 0)
 
-bFileOutput = true
-bOutput = true
+bFileOutput = false
+bWriteMat = util.HasParamOption("-writeMatrices")
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
@@ -153,7 +153,7 @@ diffusionMatrix = LuaUserMatrix("ourDiffTensor"..dim.."d")
 velocityField = LuaUserVector("ourVelocityField"..dim.."d")
 reaction = LuaUserNumber("ourReaction"..dim.."d")
 rhs = LuaUserNumber("ourRhs"..dim.."d")
-neumann = LuaBoundaryNumber("ourNeumannBnd"..dim.."d")
+-- neumann = LuaBoundaryNumber("ourNeumannBnd"..dim.."d")
 dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
 
 -----------------------------------------------------------------
@@ -281,7 +281,18 @@ if bUseFAMG == 1 then
 	amg:set_delta(0.5)
 	amg:set_theta(0.95)
 	amg:set_aggressive_coarsening(false)
-	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)	
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.8)
+	
+	if bWriteMat then
+		amg:write_testvectors(true)
+		amg:set_write_f_values(true)
+	end	
+	
+	jac2 = Jacobi()
+	jac2:set_damp(0.66)
+	amg:set_testvector_damps(1)
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
+	amg:set_testvectorsmoother(jac2)
 		
 	-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
 	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
@@ -306,10 +317,9 @@ end
 
 vectorWriter = GridFunctionPositionProvider()
 vectorWriter:set_reference_grid_function(u)
-amg:set_position_provider2d(vectorWriter)
-if bOutput then
+amg:set_position_provider(vectorWriter)
+if bWriteMat then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
-amg:write_testvectors(true)
 end
 
 amg:set_num_presmooth(2)
@@ -325,7 +335,7 @@ amg:set_preferred_nodes_on_one_processor(10000)
 amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.7)
 amg:set_fsmoothing(true)
-amg:set_epsilon_truncation(0)
+--amg:set_epsilon_truncation(0)
 amg:tostring()
 
 
