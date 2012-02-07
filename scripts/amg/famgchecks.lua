@@ -572,7 +572,7 @@ linSolver:init(linOp)
 
 if GetProcessRank() == 0 then
 	stats = {
-	{ "XC", bool2string(bExternalCoarsening)},
+	{ "XC", bExternalCoarsening},
 	{ "date", os.date("y%Ym%md%d") },
 	{ "SVN Revision", GetSVNRevision()},
 	{"host",GetBuildHostname()},
@@ -585,7 +585,7 @@ if GetProcessRank() == 0 then
 	{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
 	{ "tSetupAmg [s]", amg:get_timing_whole_setup_ms()/1000},
 	
-	{ "AC", bool2string(bAggressiveCoarsening)},
+	{ "AC", bAggressiveCoarsening},
 	{ "c_A", amg:get_operator_complexity()},
 	{ "c_G", amg:get_grid_complexity()},
 	{ "used Levels", amg:get_used_levels()}, 

@@ -538,11 +538,11 @@ if not bCheck then
 		{ "tSolve [s]", tSolve},
 		{ "tGrid [s]",  tGrid},
 		{ "tAssemble [s]", tAssemble},
-		"commandline", util.GetCommandLine() } 
+		{"commandline", util.GetCommandLine() } } 
 		
-	printStats(stats)
+	util.printStats(stats)
 	if bWriteStats and GetProcessRank() == 0  then
-		writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
+		util.writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
 	end
 	
 	
