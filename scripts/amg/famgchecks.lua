@@ -398,14 +398,15 @@ if bRSAMG == false then
 	testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
 	testvector = GridFunction(approxSpace)
 	testvectorwriter:update(testvector)	
-	amg:add_vector_writer(testvectorwriter, 1.0)
+	amg:add_testvector(testvectorwriter, 1.0)
 
-	amg:set_testvector_damps(1)
+	amg:set_testvector_smooths(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
-	amg:set_testvectorsmoother(jac2)
+	amg:set_testvector_smoother(jac2)
 		
 	if bWriteMat then
 		amg:write_testvectors(true)
+		amg:set_write_f_values(true)
 	end
 	
 	if bExternalCoarsening then
@@ -432,8 +433,8 @@ if bRSAMG == false then
 	-- amg:set_debug_level_calculate_parent_pairs(6)
 	-- amg:set_galerkin_truncation(1e-6)
 	-- amg:set_H_reduce_interpolation_nodes_parameter(0.1)
-	amg:set_galerkin_truncation(1e-5)
-	amg:set_H_reduce_interpolation_nodes_parameter(0.1)
+	amg:set_galerkin_truncation(0)
+	amg:set_H_reduce_interpolation_nodes_parameter(0.0) --1)
 	amg:set_prereduce_A_parameter(0.1)
 else
 	print ("create AMG... ")
@@ -455,8 +456,8 @@ if bWriteMat then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
 end
 
-amg:set_num_presmooth(100)
-amg:set_num_postsmooth(100)
+amg:set_num_presmooth(2)
+amg:set_num_postsmooth(2)
 amg:set_cycle_type(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
@@ -598,9 +599,9 @@ if GetProcessRank() == 0 then
 	{ "tAssemble [s]", tAssemble},
 	{"commandline", util.GetCommandLine() } } 
 	
-	printStats(stats)
+	util.printStats(stats)
 	if bWriteStats  then	
-		writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
+		util.writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
 	end
 end
 	
