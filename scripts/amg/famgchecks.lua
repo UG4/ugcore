@@ -405,7 +405,7 @@ if bRSAMG == false then
 	amg:set_testvector_smoother(jac2)
 		
 	if bWriteMat then
-		amg:write_testvectors(true)
+		amg:set_write_testvectors(true)
 		amg:set_write_f_values(true)
 	end
 	
