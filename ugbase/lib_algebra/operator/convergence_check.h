@@ -145,6 +145,7 @@ class StandardConvCheck : public IConvergenceCheck
 
 		void start_defect(number initialDefect)
 		{
+			_defects.clear();
 			m_initialDefect = initialDefect;
 			m_currentDefect = m_initialDefect;
 			m_currentStep = 0;
@@ -188,7 +189,6 @@ class StandardConvCheck : public IConvergenceCheck
 
 		void start(IFunctionBase& d)
 		{
-			_defects.clear();
 			start_defect(d.two_norm());
 		}
 
