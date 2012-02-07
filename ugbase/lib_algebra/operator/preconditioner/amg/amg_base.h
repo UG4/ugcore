@@ -265,6 +265,9 @@ public:
 	void 	set_preferred_nodes_on_one_processor(size_t i)			{ m_preferredNodesOnOneProcessor = i; }
 	size_t	get_preferred_nodes_on_one_processor() const			{ return m_preferredNodesOnOneProcessor; }
 
+	void 	set_checkLevel_post_iterations(size_t i)				{ m_checkLevelPostIterations = i; }
+	size_t	get_checkLevel_post_iterations() const					{ return m_checkLevelPostIterations; }
+
 
 	void 	set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
 	void 	set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
@@ -357,6 +360,7 @@ protected:
 	bool	m_bFSmoothing;
 	bool	m_bOneInit;
 
+	size_t m_checkLevelPostIterations;
 
 	vector_type *m_vec4;						///< temporary Vector for defect (in get_correction)
 
@@ -382,6 +386,8 @@ protected:
 	double m_dGridComplexity;
 	double m_dTimingWholeSetupMS;
 	double m_dTimingCoarseSolverSetupMS;
+
+
 
 
 	IPositionProvider<2> *m_pPositionProvider2d;
@@ -480,6 +486,8 @@ public:
 			return &levels[i]->m_levelInformation;
 		else return NULL;
 	}
+
+
 };
 
 

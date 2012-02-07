@@ -92,8 +92,8 @@ public:
 	template<typename T>
 	FAMGInterpolationCalculator(const matrix_type &A_, const matrix_type &A_OL2_,
 			const FAMG<T> &famg,
-			stdvector< vector_type > &testvectors, stdvector<double> &omega)
-	: A(A_), A_OL2(A_OL2_), m_testvectors(testvectors), m_omega(omega)
+			stdvector< vector_type > &testvectors, stdvector<double> &omega, stdvector<double> &_fvalues)
+	: A(A_), A_OL2(A_OL2_), m_testvectors(testvectors), m_omega(omega), fvalues(_fvalues)
 	{
 		m_delta = famg.get_delta();
 		m_theta = famg.get_theta();
@@ -551,6 +551,7 @@ public:
 					}
 				}
 				check_weights(P, i);
+				if(fvalues.size() > i) fvalues[i] = F;
 				rating.set_fine(i);
 			}
 		}
@@ -591,6 +592,7 @@ public:
 			}
 
 			check_weights(P, i);
+			if(fvalues.size() > i) fvalues[i] = F;
 			rating.set_aggressive_fine(i);
 		}
 		else
@@ -1071,6 +1073,7 @@ private:
 	double m_dHReduceInterpolationNodesParameter;
 	stdvector< vector_type > &m_testvectors;
 	stdvector<double> &m_omega;
+	stdvector<double> &fvalues;
 
 	bool testvectorsExtern;
 };

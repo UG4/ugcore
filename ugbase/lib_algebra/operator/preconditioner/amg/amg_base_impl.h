@@ -412,6 +412,7 @@ AMGBase<TAlgebra>::AMGBase() :
 
 	m_dbgDimension = 0;
 	iteration_glboal=0;
+	m_checkLevelPostIterations = 10;
 }
 
 

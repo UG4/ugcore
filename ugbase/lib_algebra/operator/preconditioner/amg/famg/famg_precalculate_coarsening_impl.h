@@ -79,6 +79,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::pr
 		rating.set_fine(i);
 		UpdateNeighbors(SymmNeighGraph, i, possible_parents, rating, heap);
 
+		if(fvalues.size() > i) fvalues[i] = n.F;
+
 		UG_DLOG(LIB_ALG_AMG, 4, "Set coarse parents:\n");
 		// get parent pair, set as coarse (if not already done), update neighbors.
 

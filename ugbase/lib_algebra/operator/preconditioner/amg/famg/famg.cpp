@@ -241,6 +241,7 @@ private:
 	//! used to determine which neighbors' rating needs to be updated:
 	cgraph SymmNeighGraph;
 
+	stdvector<double> fvalues;
 	// our testvectors
 
 
@@ -332,7 +333,7 @@ public:
 			rating(PoldIndices, _level, m_famg.m_amghelper),
 #endif
 			m_testvectors(testvectors),
-			calculator(A, A_OL2, m_famg, testvectors, omega)
+			calculator(A, A_OL2, m_famg, testvectors, omega, fvalues)
 	{
 	}
 
@@ -354,6 +355,9 @@ public:
 		rating.create(A_OL2.num_rows());
 #endif
 		size_t N = A_OL2.num_rows();
+
+		if(m_famg.m_bWriteFValues)	fvalues.resize(N, 0.0);
+		else 						fvalues.clear();
 
 		// 2. global Testvector calculation (damping)
 		//-----------------------------------------------
@@ -511,6 +515,12 @@ public:
 		}
 #endif
 
+		if(m_famg.m_bWriteFValues)
+		{
+			WriteVectorToConnectionViewer(
+				m_famg.m_writeMatrixPath + std::string("AMG_fvalues_L") + ToString(level) + ".vec",
+				fvalues, &m_famg.m_amghelper.positions[level][0], 2);
+		}
 	}
 
 private:
@@ -669,6 +679,8 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 	  //MPI_Comm_call_errhandler( MPI_COMM_WORLD, MPI_ERR_OTHER );
 #endif
 
+
+	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
 
 	if(level == 0)
 	{

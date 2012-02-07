@@ -156,13 +156,13 @@ public:
 		m_omegaVectors.push_back(weight);
 	}
 
-	void add_vector_writer(IVectorWriter<vector_type> *vw, double weight)
+	void add_testvector(IVectorWriter<vector_type> *vw, double weight)
 	{
 		m_vVectorWriters.push_back(vw);
 		m_omegaVectorWriters.push_back(weight);
 	}
 
-	void write_testvectors(bool wt)
+	void set_write_testvectors(bool wt)
 	{
 		m_writeTestvectors = wt;
 	}
@@ -172,7 +172,7 @@ public:
 		m_bTestvectorsFromMatrixRows = bEnable;
 	}
 
-	void set_testvectorsmoother(ILinearIterator<vector_type, vector_type> *testvectorsmoother) { m_testvectorsmoother = testvectorsmoother; }
+	void set_testvector_smoother(ILinearIterator<vector_type, vector_type> *testvectorsmoother) { m_testvectorsmoother = testvectorsmoother; }
 
 	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
 	//!		prolongation truncation: set all P(i,j) = 0 if they are too small compared to greatest P(i,.)
@@ -188,9 +188,10 @@ public:
 	void	set_galerkin_truncation(double d)	{ m_dGalerkinTruncation = d; }
 	double	get_galerkin_truncation() const		{ return m_dGalerkinTruncation; }
 
-	void	set_strong_connection_external(double d) { m_dStrongConnectionExternal = d; }
-	double	get_strong_connection_external() { return m_dStrongConnectionExternal; }
+	void	set_strong_connection_external(double d) 	{ m_dStrongConnectionExternal = d; }
+	double	get_strong_connection_external() 			{ return m_dStrongConnectionExternal; }
 
+	void	set_write_f_values(bool b)	{ m_bWriteFValues = b; }
 
 	bool 	check_testvector();
 
@@ -228,6 +229,7 @@ private:
 	bool m_bExternalCoarsening;
 	bool m_bUsePrecalculate;
 	bool m_bTestvectorsFromMatrixRows;
+	bool m_bWriteFValues;
 
 
 	ILinearIterator<vector_type, vector_type> *m_testvectorsmoother;

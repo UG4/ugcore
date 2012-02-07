@@ -192,6 +192,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on
 
 		AddUnmarkedNeighbors(SymmNeighGraph, i, bvisited, neighborsToUpdate);
 
+		if(fvalues.size() > i) fvalues[i] = n.F;
+
 		UG_DLOG(LIB_ALG_AMG, 2, "Set coarse parents:\n");
 		// get parent pair, set as coarse (if not already done), update neighbors.
 
