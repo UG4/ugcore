@@ -134,7 +134,11 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -240,7 +244,11 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -353,7 +361,11 @@ assemble_jacobian(matrix_type& J,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -460,7 +472,11 @@ assemble_defect(vector_type& d,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -566,7 +582,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -674,7 +694,11 @@ assemble_rhs(vector_type& rhs,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -803,7 +827,11 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -893,7 +921,11 @@ assemble_jacobian(matrix_type& J,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -995,7 +1027,11 @@ assemble_defect(vector_type& d,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -1095,7 +1131,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -1222,7 +1262,11 @@ finish_timestep(const VectorTimeSeries<vector_type>& vSol,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
+#ifdef UG_PARALLEL
+		const int dim = unionSubsets.dim(i, &(const_cast<dof_distribution_type*>(&dd)->get_process_communicator()));
+#else
 		const int dim = unionSubsets.dim(i);
+#endif
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);

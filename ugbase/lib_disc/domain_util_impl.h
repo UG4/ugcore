@@ -88,7 +88,7 @@ inline int DimensionOfSubset(const SubsetHandler& sh, int si
 
 //	in parallel, we have to check if another proc has a higher dimension
 #ifdef UG_PARALLEL
-	if(pProcCom) pProcCom->allreduce(locDim, PCL_RO_MAX);
+	if(pProcCom) locDim = pProcCom->allreduce(locDim, PCL_RO_MAX);
 #endif
 
 //	return result
@@ -111,7 +111,7 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
 
 //	in parallel, we have to check if another proc has a higher dimension
 #ifdef UG_PARALLEL
-	if(pProcCom) pProcCom->allreduce(locDim, PCL_RO_MAX);
+	if(pProcCom) locDim = pProcCom->allreduce(locDim, PCL_RO_MAX);
 #endif
 
 //	return result
@@ -173,7 +173,7 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh
 
 //	get globally highest subset
 #ifdef UG_PARALLEL
-	if(pProcCom) pProcCom->allreduce(dim, PCL_RO_MAX);
+	if(pProcCom) dim = pProcCom->allreduce(dim, PCL_RO_MAX);
 #endif
 
 //	return computed domain
@@ -218,7 +218,7 @@ inline int DimensionOfDomain(const TDomain& domain
 
 //	in parallel, we have to check if another proc has a higher dimension
 #ifdef UG_PARALLEL
-	if(pProcCom) pProcCom->allreduce(locDim, PCL_RO_MAX);
+	if(pProcCom) locDim = pProcCom->allreduce(locDim, PCL_RO_MAX);
 #endif
 
 //	return result

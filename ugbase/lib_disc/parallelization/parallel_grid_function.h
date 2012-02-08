@@ -201,8 +201,8 @@ class ParallelGridFunction : public TGridFunction
 		IndexLayout& get_vertical_slave_layout()		{return this->dof_distribution().get_vertical_slave_layout();}
 		IndexLayout& get_vertical_master_layout()	{return this->dof_distribution().get_vertical_master_layout();}
 
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return this->dof_distribution().get_communicator();}
-		pcl::ProcessCommunicator& get_process_communicator()	{return this->dof_distribution().get_process_communicator();}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator() 				{return this->dof_distribution().get_communicator();}
+		pcl::ProcessCommunicator& get_process_communicator()				{return this->dof_distribution().get_process_communicator();}
 
 	protected:
 	///	copies references of the layouts from the underlying dof distribution into the vector

@@ -72,10 +72,10 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			for(size_t si = 0; si < discSubsetGrp.num_subsets(); ++si)
 			{
 				if(!fctPat.is_def_in_subset(discFctGrp[fct], discSubsetGrp[si])){
-					UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': On disc "<<i<<
+					UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': On disc "<<i<<
 					       ": symbolic Function "<< (*m_pvElemDisc)[i]->symb_fcts()[fct]
-                     << " is not defined on subset "<<(*m_pvElemDisc)[i]->symb_subsets()[si]);
-					return false;
+                     << " is not defined on subset "<<(*m_pvElemDisc)[i]->symb_subsets()[si]
+                     << ". This may be senseful only in particular cases.\n");
 				}
 			}
 		}
@@ -101,14 +101,13 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			vLfeID[f] = discFctGrp.local_finite_element_id(f);
 		if(!((*m_pvElemDisc)[i]->request_finite_element_id(vLfeID)))
 		{
-			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
+			UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
 					" can not assemble the specified local finite element space set:\n");
 			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
 			{
 				UG_LOG("  Fct "<<f<<": '"<<(*m_pvElemDisc)[i]->symb_fcts()[f]);
 				UG_LOG("' using "<< vLfeID[f] << "\n");
 			}
-			return false;
 		}
 
 
