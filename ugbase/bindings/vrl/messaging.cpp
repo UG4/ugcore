@@ -73,7 +73,10 @@ std::string getExceptionMessageString(JNIEnv* env, jthrowable exception) {
 		cls = env->FindClass("java/lang/Throwable");
 		getMessage = env->GetMethodID(cls, "getMessage", "()Ljava/lang/String;");
 		jstring msgObj = (jstring)env->CallObjectMethod(exception,getMessage);
-		result = stringJ2C(env,msgObj);
+		
+		if (msgObj != NULL) {
+			result = stringJ2C(env,msgObj);
+		}
 	}
 
 	return result;
