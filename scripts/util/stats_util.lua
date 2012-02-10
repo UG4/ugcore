@@ -27,7 +27,7 @@ util = util or {}
 --   SVN Revision: 4459M
 -- to the console
 -- 
--- for boolean values, use bool2string(bExternalCoarsening) -> "true" / "false"
+-- for boolean values, use tostring(bExternalCoarsening) -> "true" / "false"
 --
 --
 -- you can seperate your runs by date with the following example bash script:
