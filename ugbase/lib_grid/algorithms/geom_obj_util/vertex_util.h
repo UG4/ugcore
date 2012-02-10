@@ -309,7 +309,7 @@ template<class TVertexPositionAttachmentAccessor>
 UG_API 
 inline
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
+CalculateCenter(const VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 ////////////////////////////////////////////////////////////////////////
 ///	transforms a vertex by a given matrix

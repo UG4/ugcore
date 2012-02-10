@@ -229,9 +229,9 @@ assign_hnode_marks()
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
 	ComPol_EnableSelectionStateBits<EdgeLayout> compolEDGE(BaseClass::m_selMarkedElements,
-														 BaseClass::HNRM_REFINE_CONSTRAINED);
+														 BaseClass::HNRM_CONSTRAINED);
 	ComPol_EnableSelectionStateBits<FaceLayout> compolFACE(BaseClass::m_selMarkedElements,
-														 BaseClass::HNRM_REFINE_CONSTRAINED);
+														 BaseClass::HNRM_CONSTRAINED);
 
 	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
 								compolEDGE);

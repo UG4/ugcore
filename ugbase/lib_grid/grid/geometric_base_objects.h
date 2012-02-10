@@ -204,6 +204,8 @@ class UG_API VertexBase : public GeometricObject
 
 		static const bool HAS_SIDES = false;
 		static const bool CAN_BE_SIDE = true;
+	/// reference dimension
+		static const int dim = 0;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
@@ -281,6 +283,8 @@ class UG_API EdgeBase : public GeometricObject, public EdgeVertices
 
 		static const bool HAS_SIDES = true;
 		static const bool CAN_BE_SIDE = true;
+	/// reference dimension
+		static const int dim = 1;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
@@ -384,6 +388,8 @@ class UG_API Face : public GeometricObject, public FaceVertices
 
 		static const bool HAS_SIDES = true;
 		static const bool CAN_BE_SIDE = true;
+	/// reference dimension
+		static const int dim = 2;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
@@ -586,6 +592,8 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 
 		static const bool HAS_SIDES = true;
 		static const bool CAN_BE_SIDE = false;
+	/// reference dimension
+		static const int dim = 3;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}

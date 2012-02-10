@@ -135,13 +135,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	additional mark to RefinementMarks. Used to flag whether an element
 	 * will be refined with constraining.*/
 		enum HNodeRefMarks{
-			HNRM_REFINE_CONSTRAINED = 128
+			HNRM_CONSTRAINED = 128
 		};
 
 	///	returns true if an element is marked for hnode refinement.
 		template<class TElem>
 		bool marked_for_hnode_refinement(TElem* elem)
-			{return m_selMarkedElements.get_selection_status(elem) & HNRM_REFINE_CONSTRAINED;}
+			{return m_selMarkedElements.get_selection_status(elem) & HNRM_CONSTRAINED;}
 
 	///	use this method to set whether an element should be refined with hnode refinement.
 		template<class TElem>
@@ -150,11 +150,11 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 				if(bMark)
 					m_selMarkedElements.select(elem,
 								m_selMarkedElements.get_selection_status(elem)
-									| HNRM_REFINE_CONSTRAINED);
+									| HNRM_CONSTRAINED);
 				else
 					m_selMarkedElements.select(elem,
 								m_selMarkedElements.get_selection_status(elem)
-									& ~HNRM_REFINE_CONSTRAINED);
+									& ~HNRM_CONSTRAINED);
 			}
 
 	///	a callback that allows to deny refinement of special vertices

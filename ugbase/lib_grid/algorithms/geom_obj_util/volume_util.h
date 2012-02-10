@@ -77,7 +77,7 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT);
+CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 
 ////////////////////////////////////////////////////////////////////////

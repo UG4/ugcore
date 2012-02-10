@@ -279,7 +279,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
+CalculateCenter(const EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 ////////////////////////////////////////////////////////////////////////
 ///	refines all edges in sel which cut the given plane.

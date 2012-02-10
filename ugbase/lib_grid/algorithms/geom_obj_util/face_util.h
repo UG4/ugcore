@@ -285,7 +285,7 @@ CalculateFaceCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
+CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 
 ////////////////////////////////////////////////////////////////////////

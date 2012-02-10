@@ -47,6 +47,19 @@ template <class TElem>
 void MakeSubsetsConsecutive(SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
+///	Assigns all elements of the given grid to the given subset
+/**	Make sure, that the given subset handler operates on the given grid.
+ */
+void AssignGridToSubset(Grid& g, ISubsetHandler& sh, int subsetInd);
+
+////////////////////////////////////////////////////////////////////////
+///	Assigns all selected elements to the specified subset
+/**	Make sure that the specified subset handler and the specified selector
+ * operate on the same grid.
+ */
+void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd);
+
+////////////////////////////////////////////////////////////////////////
 //	AssignFaceInterfaceEdgesToSubsets
 ///	assigns edges which belong to no subset and are adjacent to faces of different subsets to new subsets.
 /**

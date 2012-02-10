@@ -125,25 +125,29 @@ bool HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 RefinementMark HangingNodeRefinerBase::
 get_mark(VertexBase* v)
 {
-	return (RefinementMark)m_selMarkedElements.get_selection_status(v);
+	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
+							& ~HNRM_CONSTRAINED);
 }
 
 RefinementMark HangingNodeRefinerBase::
 get_mark(EdgeBase* e)
 {
-	return (RefinementMark)m_selMarkedElements.get_selection_status(e);
+	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
+							& ~HNRM_CONSTRAINED);
 }
 
 RefinementMark HangingNodeRefinerBase::
 get_mark(Face* f)
 {
-	return (RefinementMark)m_selMarkedElements.get_selection_status(f);
+	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
+							& ~HNRM_CONSTRAINED);
 }
 
 RefinementMark HangingNodeRefinerBase::
 get_mark(Volume* v)
 {
-	return (RefinementMark)m_selMarkedElements.get_selection_status(v);
+	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
+							& ~HNRM_CONSTRAINED);
 }
 
 
@@ -182,10 +186,16 @@ void HangingNodeRefinerBase::refine()
 	}
 
 //	check grid options.
-	if(!grid.option_is_enabled(GRIDOPT_STANDARD_INTERCONNECTION))
+	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION))
 	{
-		LOG("WARNING in HangingNodeRefiner_IR1::refine(): grid option GRIDOPT_STANDARD_INTERCONNECTION auto-enabled." << endl);
-		grid.enable_options(GRIDOPT_STANDARD_INTERCONNECTION);
+		LOG("WARNING in HangingNodeRefiner::refine(): grid option GRIDOPT_VERTEXCENTRIC_INTERCONNECTION auto-enabled." << endl);
+		grid.enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
+	}
+
+	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES))
+	{
+		LOG("WARNING in HangingNodeRefiner::refine(): grid option GRIDOPT_AUTOGENERATE_SIDES auto-enabled." << endl);
+		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
 	}
 
 //	containers used for temporary results
@@ -1108,7 +1118,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	//	if the face is refined with a regular rule, then every edge has to have
 	//	an associated center vertex
 		assert((get_mark(f) == RM_ANISOTROPIC) ||
-				(get_mark(f) == RM_REGULAR && get_center_vertex(e) != NULL));
+				((get_mark(f) == RM_REGULAR) && (get_center_vertex(e) != NULL)));
 
 	//	assign the center vertex
 		vNewEdgeVertices[i] = get_center_vertex(e);
@@ -1325,10 +1335,38 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 	for(size_t i = 0; i < numFaces; ++i){
 		Face* f = grid.get_face(v, i);
 
+		/*if(!VolumeContains(v, f))
+		{
+			UG_LOG("Grid::get_face(vol, ind) returned bad face.");
+			MultiGrid* pmg = dynamic_cast<MultiGrid*>(m_pGrid);
+			UG_LOG("Vol in level " << pmg->get_level(v));
+			UG_LOG(", face in level " << pmg->get_level(f) << endl);
+			UG_LOG("positions of volume vertices:");
+			for(size_t i_c = 0; i_c < v->num_vertices(); ++i_c){
+				UG_LOG(" " << GetGeometricObjectCenter(grid, v->vertex(i_c)));
+			}
+			UG_LOG("\npositions of face vertices:");
+			for(size_t i_c = 0; i_c < f->num_vertices(); ++i_c){
+				UG_LOG(" " << GetGeometricObjectCenter(grid, f->vertex(i_c)));
+			}
+			UG_LOG(endl);
+		}*/
+
 		if(f->num_vertices() == 3)
 			vNewFaceVertices[i] = NULL;
-		else
+		else{
 			vNewFaceVertices[i] = get_center_vertex(f);
+		//todo:remove this!!!
+			/*if(!vNewFaceVertices[i]){
+				UG_LOG("missing face-vertex: " << GetGeometricObjectCenter(grid, f) << endl);
+				UG_LOG("corners of face:");
+				for(size_t i_c = 0; i_c < f->num_vertices(); ++i_c){
+					UG_LOG(" " << GetGeometricObjectCenter(grid, f->vertex(i_c)));
+				}
+				UG_LOG(endl);
+				UG_LOG("during refinement of volume: " << GetGeometricObjectCenter(grid, v) << endl);
+			}*/
+		}
 	}
 
 //	refine the volume and register new volumes at the grid.

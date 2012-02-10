@@ -772,6 +772,11 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 		}
 	}
 
+// todo:	Quadrilaterals which have more than 2 boundary vertices or have two boundary
+//			vertices, which are not adjacent to each other, have to be transformed to
+//			triangles.
+
+
 //	now make sure that no inner edge is associated with two
 //	boundary vertices (referring to the selection)
 	edges.clear();

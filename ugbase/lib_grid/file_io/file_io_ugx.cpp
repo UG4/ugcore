@@ -820,6 +820,7 @@ read_subset_handler_elements(ISubsetHandler& shOut,
 			else{
 				UG_LOG("Bad element index in subset-node " << elemNodeName <<
 						": " << index << ". Ignoring element.\n");
+				return false;
 			}
 		}
 
@@ -908,7 +909,8 @@ create_edges(std::vector<EdgeBase*>& edgesOut,
 		if(i1 < 0 || i1 > maxInd ||
 		   i2 < 0 || i2 > maxInd)
 		{
-			UG_LOG("  ERROR in GridReaderUGX::create_edges: invalid vertex index.\n");
+			UG_LOG("  ERROR in GridReaderUGX::create_edges: invalid vertex index: "
+					"(" << i1 << ", " << i2 << ")\n");
 			return false;
 		}
 

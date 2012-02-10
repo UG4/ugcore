@@ -94,6 +94,8 @@ class UG_API HangingVertex : public VertexBase
 		virtual int base_object_type_id() const	{return VERTEX;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_VERTEX;}
 
+		virtual bool is_constrained() const			{return true;}
+
 		inline void set_parent(GeometricObject* pParent)	{m_pParent = pParent;}
 		inline GeometricObject* get_parent()	{return m_pParent;}
 		inline int get_parent_base_object_type_id()	{return m_pParent->base_object_type_id();}

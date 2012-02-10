@@ -82,8 +82,12 @@ class IRefiner
 
 	///	Performs coarsening on the elements marked RM_COARSEN.
 	/**	Note that coarsening is not supported by all refiners. Normally only
-	 * MultiGrid-Refiner do support coarsening. The default implementation thus
-	 * returns false.
+	 * MultiGrid-Refiner do support coarsening.
+	 *
+	 * coarsen returns false, if no elements have been coarsened, true if at
+	 * least one has been coarsened.
+	 *
+	 * Since the default implementation does not perform coarsening, it returns false.
 	 */
 		virtual bool coarsen()		{return false;}
 

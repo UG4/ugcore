@@ -23,7 +23,7 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 //	CalculateCenter
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT)
+CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
 	uint numVrts = vol->num_vertices();
 	typename TVertexPositionAttachmentAccessor::ValueType v;

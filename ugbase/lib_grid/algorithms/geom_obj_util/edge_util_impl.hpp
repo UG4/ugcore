@@ -146,7 +146,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT)
+CalculateCenter(const EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
 	typename TVertexPositionAttachmentAccessor::ValueType v;
 //	init v with 0.

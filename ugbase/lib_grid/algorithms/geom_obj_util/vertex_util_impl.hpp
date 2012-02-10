@@ -221,7 +221,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 template<class TVertexPositionAttachmentAccessor>
 inline
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
+CalculateCenter(const VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
 	return aaPosVRT[v];
 }

@@ -35,7 +35,35 @@ void PrintAttachmentInfo(Grid& grid);
 
 /**@}*/ // end of doxygen defgroup command
 
+///	Returns the center of the given element (SLOW - for debugging only!)
+/**	Caution: This method is pretty slow and should only be used for debugging
+ * purposes. It only works if one of the standard position attachments
+ * aPosition, aPosition2 or aPosition1 is attached to the vertices of g.
+ *
+ * The method returns the center of the specified element in a vector3 structure,
+ * regardless of the actual dimension of the position attachment. Unused
+ * coordinates are set to 0.
+ *
+ * TElem has to be compatible with VertexBase, EdgeBase, Face or Volume.
+ */
+template <class TElem>
+vector3 GetGeometricObjectCenter(Grid& g, TElem* elem);
+
+///	checks whether all constraining and constrained objects are correctly connected.
+bool CheckHangingVertexConsistency(Grid& g);
+
+///	checks whether a multigrid is a valid haging vertex grid.
+/**	This algorithm e.g. checks, whether adaptivity is represented by
+ * constrained / constraining objects.
+ *
+ * Calls CheckHangingVertexConsistency(Grid&)
+ */
+bool CheckHangingVertexConsistency(MultiGrid& mg);
 
 }//	end of namespace
+
+////////////////////////////////////////
+//	include implementation
+#include "debug_util_impl.hpp"
 
 #endif

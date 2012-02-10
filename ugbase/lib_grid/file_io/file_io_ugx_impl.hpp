@@ -578,8 +578,10 @@ create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
 				v[i] = 0;
 
 		//	make sure that everything went right
-			if(ss.fail())
-				break;
+			if(ss.fail()){
+				UG_LOG("GridReaderUGX::create_vertices: Failed to read vertex.\n");
+				return false;
+			}
 
 		//	create a new vertex
 			Vertex* vrt = *grid.create<Vertex>();
@@ -642,7 +644,8 @@ create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
 			v[i] = 0;
 
 	//	now read the type of the constraining object and its index
-		int conObjType, conObjIndex;
+		int conObjType = -1;
+		int conObjIndex = -1;
 		ss >> conObjType;
 		
 		if(conObjType != -1)
@@ -662,8 +665,15 @@ create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
 		}
 				
 	//	make sure that everything went right
-		if(ss.fail())
-			break;
+		if(ss.fail()){
+			UG_LOG("GridReaderUGX::create_constrained_vertices: Failed to read constrained vertex.\n");
+			UG_LOG("  currently set are: "
+					<< "position = " << v
+					<< ", conObjType = " << conObjType
+					<< ", conObjIndex = " << conObjIndex
+					<< ", localCoords = " << localCoords << "\n");
+			return false;
+		}
 
 	//	create a new vertex
 		HangingVertex* vrt = *grid.create<HangingVertex>();

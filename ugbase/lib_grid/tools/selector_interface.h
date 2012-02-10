@@ -118,6 +118,10 @@ class UG_API ISelector : public GridObserver
 	///	selects an element
 	/**	You may optionally pass a status-flag. Note that 0 is reserved for
 	 * non-selected elements. status thus has to be bigger then 0.
+	 *
+	 * If the element is already selected, then select only alters the status-
+	 * flag of the element. It however does not change the elements position
+	 * in the list of selected elements.
 	 * \{
 	 */
 		inline void select(GeometricObject* elem, byte status = 1);

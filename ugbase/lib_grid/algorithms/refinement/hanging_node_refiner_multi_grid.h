@@ -68,10 +68,21 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * selection. On could think of implementing an alternative non conservative
 	 * coarsen approach. However, the conservative one is the one mostly used
 	 * in adaptive multigrid methods and was thus chosen here.
+	 *
+	 * coarsen returns false, if no elements have been coarsened, true if at
+	 * least one has been coarsened.
 	 */
 		virtual bool coarsen();
 
 	protected:
+		void debug_save(Selector& sel, const char* filename);
+
+		enum HNodeCoarsenMarks{
+			HNCM_ALL_NBRS_SELECTED = RM_MAX + 1,
+			HNCM_SOME_NBRS_SELECTED,
+			HNCM_NO_NBRS_SELECTED
+		};
+
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(VertexBase* elem);
 	///	a callback that allows to deny refinement of special edges
@@ -159,15 +170,34 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		template <class TElem>
 		void restrict_selection_to_coarsen_families();
 
+	///	adjusts the selection marks to those specified in HNodeCoarsenMarks.
+	/**	This method does not alter the selection itself, it only alters the
+	 * selection-mark, associated with each selected element. It neither
+	 * selects nor deselects any elements.
+	 * It iterates over all selected elements of the given type and assigns one
+	 * of the marks, depending on how many associated elements of the next higher
+	 * dimension are selected.
+	 * Note that this method should only be called for vertices, edges and faces.
+	 * It does not make sense to call it for volumes.*/
+		template <class TElem>
+		void classify_selection();
+
 	///	Applies marks like RM_COARSEN_CONSTRAINING or RM_COARSEN_UNCONSTRAIN
 	/**	This method should first be called for Face, then for EdgeBase, then for
 	 * VertexBase.*/
-		template <class TElem>
-		void adjust_coarsen_marks_on_side_elements();
+		//template <class TElem>
+		//void adjust_coarsen_marks_on_side_elements();
 
 	///deselect coarsen families, which are adjacent to unselected constraining elements
+	/**	If at least one family was deselected, this method returns true.*/
 		template <class TElem>
-		void deselect_invalid_coarsen_families();
+		bool deselect_invalid_coarsen_families();
+
+		template <class TElem>
+		void deselect_isolated_sides();
+
+		template <class TElem>
+		void deselect_uncoarsenable_parents();
 
 	///	called be the coarsen method in order to adjust the selection to valid elements.
 	/**	This method is responsible to mark all elements that shall be coarsened.

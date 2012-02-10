@@ -50,6 +50,39 @@ void EraseEmptySubsets(ISubsetHandler& sh)
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	AssignGridToSubset
+void AssignGridToSubset(Grid& g, ISubsetHandler& sh, int subsetInd)
+{
+	UG_ASSERT(&g == sh.grid(), "Specified subset-handler has to operate on the specified grid!");
+
+	sh.assign_subset(g.begin<VertexBase>(), g.end<VertexBase>(), subsetInd);
+	sh.assign_subset(g.begin<EdgeBase>(), g.end<EdgeBase>(), subsetInd);
+	sh.assign_subset(g.begin<Face>(), g.end<Face>(), subsetInd);
+	sh.assign_subset(g.begin<Volume>(), g.end<Volume>(), subsetInd);
+}
+
+////////////////////////////////////////////////////////////////////////
+//	AssignSelectionToSubset
+void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd)
+{
+	UG_ASSERT(sel.grid() == sh.grid(), "Specified selector and subset-handler "
+									   "have to operate on the same grid!");
+
+	GeometricObjectCollection selGoc = sel.get_geometric_objects();
+
+	for(size_t i = 0; i < selGoc.num_levels(); ++i){
+		sh.assign_subset(selGoc.begin<VertexBase>(i),
+						 selGoc.end<VertexBase>(i), subsetInd);
+		sh.assign_subset(selGoc.begin<EdgeBase>(i),
+						 selGoc.end<EdgeBase>(i), subsetInd);
+		sh.assign_subset(selGoc.begin<Face>(i),
+						 selGoc.end<Face>(i), subsetInd);
+		sh.assign_subset(selGoc.begin<Volume>(i),
+						 selGoc.end<Volume>(i), subsetInd);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	AssignInterfaceEdgesToSubsets
 void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh)
 {

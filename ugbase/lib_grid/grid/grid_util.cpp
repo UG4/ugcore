@@ -617,7 +617,7 @@ bool VolumeContains(Volume* v, FaceVertices* fv)
 {
 	FaceDescriptor fd;
 	uint numFaces = v->num_faces();
-	uint hash = hash_key(fv);
+	unsigned long hash = hash_key(fv);
 	for(uint i = 0; i < numFaces; ++i)
 	{
 		v->face(i, fd);
