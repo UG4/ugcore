@@ -274,7 +274,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
  * UG_LOG will use PCLLOG to output its data.
  */
 #ifdef FOR_VRL
-	#define VRL_LOG(msg) {std::stringstream ss;ss << "<!--UG4-->" << msg;\
+	#define VRL_LOG(msg) {std::stringstream ss;ss << "" << msg;\
                           ug::vrl::MessageBuffer::addMessage(ss.str());}
 #else
 	#define VRL_LOG(msg)
