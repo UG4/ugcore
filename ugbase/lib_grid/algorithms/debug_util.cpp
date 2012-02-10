@@ -113,6 +113,11 @@ bool CheckHangingVertexConsistency(Grid& g)
 {
 	bool isConsistent = true;
 
+	if(g.num<Volume>() > 0){
+		UG_LOG("check consistency: volumes are currently not supported... sorry.\n");
+		return true;
+	}
+
 //	iterate over all hanging nodes and check whether the associated parent
 //	contains the node in its list of constraiend objects
 	for(Grid::traits<HangingVertex>::iterator iter = g.begin<HangingVertex>();
@@ -208,6 +213,11 @@ bool CheckHangingVertexConsistency(Grid& g)
 
 bool CheckHangingVertexConsistency(MultiGrid& mg)
 {
+	if(mg.num<Volume>() > 0){
+		UG_LOG("check consistency: volumes are currently not supported... sorry.\n");
+		return true;
+	}
+
 	Grid& g = mg;
 	bool isConsistent = CheckHangingVertexConsistency(g);
 

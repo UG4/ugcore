@@ -1233,15 +1233,17 @@ refine_constraining_face(ConstrainingFace* cgf)
 
 	size_t numVrts = cgf->num_vertices();
 
-//	make sure that there is one hanging vertex and two constrained edges.
-	if(cgf->num_constrained_edges() != numVrts){
-		UG_LOG("cgf->num_constrained_edges() != numVrts: nce = " << cgf->num_constrained_edges() << ", numVrts = " << numVrts << endl);
-	}
-	assert(cgf->num_constrained_edges() == numVrts && "bad number of constrained edges. There have to be as many as vertices.");
-	assert(cgf->num_constrained_faces() == 4 && "bad number of constrained faces. There have to be exactly 4.");
-
 //	the grid
 	Grid& grid = *m_pGrid;
+
+//	make sure that there is one hanging vertex and two constrained edges.
+	UG_ASSERT(cgf->num_constrained_edges() == numVrts,
+			 "bad number of constrained edges: " << cgf->num_constrained_edges()
+			 << ". There have to be as many as vertices: " << numVrts << "."
+			 << "At face with center " << GetGeometricObjectCenter(grid, cgf) << endl);
+	UG_ASSERT(cgf->num_constrained_faces() == 4,
+			  "bad number of constrained faces. There have to be exactly 4. "
+			  << "At face with center " << GetGeometricObjectCenter(grid, cgf) << endl);
 
 	HangingVertex* centralHV = NULL;
 	Vertex* centerVrt = NULL;
