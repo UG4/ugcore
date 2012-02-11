@@ -10,62 +10,114 @@
 
 #include <cmath>
 
-// modul intern headers
+// other ug4 modules
+#include "common/common.h"
+#include "common/util/string_util.h"
+
+// library intern headers
+#include "lib_disc/spatial_disc/subset_assemble_util.h"
+#include "lib_disc/spatial_disc/domain_disc_interface.h"
+#include "lib_disc/common/function_group.h"
+#include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
+#include "lib_disc/spatial_disc/disc_item.h"
+
+// for base class
 #include "lib_disc/spatial_disc/domain_disc.h"
-#include "lib_disc/common/groups_util.h"
 
 namespace ug {
 
 template <	typename TDomain,
 			typename TDoFDistribution,
 			typename TAlgebra>
-class SQPMethod //:public DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>
+class SQPMethod : public DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>
 {
+	private:
+	/// Base class type
+		typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>
+				base_type;
 	public:
+	///	Type of Domain Disc
+	/*	typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>
+						domain_disc_type;*/
+
 	///	Type of Domain
-		typedef TDomain domain_type;
+		//typedef TDomain domain_type;
 
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+	//	typedef TAlgebra algebra_type;
 
 	//	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
 	//	DoFDistribution Type
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
+		//typedef TDoFDistribution dof_distribution_type;
+
+	///	Type of approximation space
+		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>
+					approx_space_type;
 
 	public:
-		SQPMethod():
-			m_tolerance_check(0.0)
+		SQPMethod(approx_space_type& pApproxSpace): DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>(pApproxSpace),
+			m_toleranceCheck(0.0)
 			{};
+		/*SQPMethod():
+			m_toleranceCheck(0.0)
+			{};*/
 
-		void set_tolerance_check(number TolCheck) {m_tolerance_check = TolCheck;}
+		void set_tolerance_check(number TolCheck) {m_toleranceCheck = TolCheck;}
+
+		//void set_discretization(domain_disc_type& domDisc) {m_domDisc = domDisc;}
 
 	// init Operator
-		virtual bool init();
+		//virtual bool init();
+		bool init();
 
 	// prepare Operator
-		virtual bool prepare();
+		//virtual bool prepare();
+		bool prepare();
 
 	// tolerance_check Operator: this operator checks,
 	// if the linearized constraint is fulfilled sufficiently
-		virtual bool check_tolerance(const vector_type& u, const dof_distribution_type& dd);
+		//virtual bool check_tolerance(const vector_type& u, const dof_distribution_type& dd); // const domain_disc_type& domDisc);
+		bool check_tolerance(const vector_type& u, const dof_distribution_type& dd, base_type& domDisc);
 
 	// update Operator: this operator updates the SQP-variables
-		virtual bool update_variables(const vector_type& u, const dof_distribution_type& dd);
+		//virtual bool update_variables(const vector_type& u, const dof_distribution_type& dd);
+		bool update_variables(const vector_type& u, const dof_distribution_type& dd, base_type& domDisc);
 
 		//~SQPMethod();
 		virtual ~SQPMethod(){};
 
-	protected:
-	// Tolerance Check
-		number m_tolerance_check;
+	/*protected:
+	///	set the approximation space in the elem discs and extract IElemDiscs
+		bool update_elem_discs();
+		bool update_constraints();
+		bool update_disc_items();*/
+
+
+	private:
+	// 	Tolerance Check
+		number m_toleranceCheck;
+
+	// 	domain disc
+	//	domain_disc_type m_domDisc;
 
 	///	vector holding all registered elem discs
-		std::vector<IElemDisc*> m_vElemDisc;
+	//	std::vector<IElemDisc*> m_vElemDisc;
 
 	/// forces the assembling to regard the grid as regular
-		bool m_bForceRegGrid;
+	//	bool m_bForceRegGrid;
+
+	//	vector holding all registered constraints
+	//	std::vector<IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
+
+	///	current approximation space
+	//	approx_space_type* m_pApproxSpace;
+
+	///	vector holding all registered elem discs
+	//	std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;
 
 };
 

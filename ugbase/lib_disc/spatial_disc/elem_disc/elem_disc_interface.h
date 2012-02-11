@@ -331,7 +331,7 @@ class IElemDisc
 	 * 'set_roid must have been called to set the elem type.
 	 */
 		template <typename TElem>
-		bool sqp_check_tolerance_elem(TElem* elem, const LocalVector& u);
+		bool sqp_check_tolerance_elem(TElem* elem, const LocalVector& u); // number& sqp_error);
 
 	/// updates the SQP variables for an element
 	/**

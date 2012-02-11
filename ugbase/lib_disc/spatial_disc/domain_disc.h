@@ -261,6 +261,14 @@ class DomainDiscretization :
 				add(*di.get_constraint(i));
 		}
 
+		bool update_elem_discs();
+		bool update_constraints();
+		bool update_disc_items();
+
+		std::vector<IElemDisc*> m_vElemDisc;
+		approx_space_type* m_pApproxSpace;
+		bool m_bForceRegGrid;
+
 	protected:
 	///	returns number of registered dirichlet constraints
 		virtual size_t num_dirichlet_constraints() const
@@ -275,9 +283,9 @@ class DomainDiscretization :
 		}
 
 	///	set the approximation space in the elem discs and extract IElemDiscs
-		bool update_elem_discs();
+		/*bool update_elem_discs();
 		bool update_constraints();
-		bool update_disc_items();
+		bool update_disc_items();*/
 
 	///	returns the surface dof distribution
 		dof_distribution_type& get_surface_dd();
@@ -287,16 +295,16 @@ class DomainDiscretization :
 		std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;
 
 	///	vector holding all registered elem discs
-		std::vector<IElemDisc*> m_vElemDisc;
+		//std::vector<IElemDisc*> m_vElemDisc;
 
 	//	vector holding all registered constraints
 		std::vector<IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
 
 	///	current approximation space
-		approx_space_type* m_pApproxSpace;
+		//approx_space_type* m_pApproxSpace;
 
 	/// forces the assembling to regard the grid as regular
-		bool m_bForceRegGrid;
+		//bool m_bForceRegGrid;
 
 	///	selector used to skip elements
 		ISelector* m_pSelector;

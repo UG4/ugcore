@@ -42,7 +42,7 @@ inline bool IElemDisc::finish_timestep_elem(TElem* elem, const number time, cons
 }
 
 template <typename TElem>
-inline bool IElemDisc::sqp_check_tolerance_elem(TElem* elem, const LocalVector& u)
+inline bool IElemDisc::sqp_check_tolerance_elem(TElem* elem, const LocalVector& u) // number& sqp_error)
 {
 //	cast the method pointer back to the original type
 	typedef bool (IElemDisc::*Func)(TElem*, const LocalVector&);
