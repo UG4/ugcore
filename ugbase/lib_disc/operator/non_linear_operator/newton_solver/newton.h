@@ -81,6 +81,12 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 
 		~NewtonSolver();
 
+		// prints average linear solver convergence
+		void print_average_convergence() const;
+
+		// resets average linear solver convergence
+		void clear_average_convergence();
+
 	private:
 		bool allocate_memory(const vector_type& u);
 		bool deallocate_memory();
@@ -141,6 +147,10 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 
 		int m_dgbCall;
+
+		// convergence history of linear solver
+		std::vector<int> m_vTotalLinSolverSteps;
+		std::vector<int> m_vLinSolverCalls;
 };
 
 }

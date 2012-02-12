@@ -227,6 +227,14 @@ apply(vector_type& u)
 		}
 		NEWTON_PROFILE_END();
 
+	//	store convergence history
+		IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
+		const int numSteps = pLinConvCheck->step();
+		if(loopCnt >= (int)m_vTotalLinSolverSteps.size()) m_vTotalLinSolverSteps.resize(loopCnt+1);
+		if(loopCnt >= (int)m_vLinSolverCalls.size()) m_vLinSolverCalls.resize(loopCnt+1, 0);
+		m_vTotalLinSolverSteps[loopCnt] += numSteps;
+		m_vLinSolverCalls[loopCnt] += 1;
+
 	// 	Line Search
 		if(m_pLineSearch != NULL)
 		{
@@ -285,6 +293,41 @@ apply(vector_type& u)
 
 	return m_pConvCheck->post();
 }
+
+template <typename TDoFDistribution, typename TAlgebra>
+void
+NewtonSolver<TDoFDistribution, TAlgebra>::
+print_average_convergence() const
+{
+	UG_LOG("\nNewton solver convergence history:\n");
+	UG_LOG("Newton Step | Num Calls | Total Lin Iters | Avg Lin Iters \n");
+	int allCalls = 0, allSteps = 0;
+	for(int call = 0; call < (int)m_vLinSolverCalls.size(); ++call)
+	{
+		UG_LOG( " " << std::setw(10) << call+1 << " | ");
+		UG_LOG(std::setw(9) << m_vLinSolverCalls[call] << " | ");
+		allCalls += m_vLinSolverCalls[call];
+		UG_LOG(std::setw(15) << m_vTotalLinSolverSteps[call] << " | ");
+		allSteps += m_vTotalLinSolverSteps[call];
+		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call]);
+		UG_LOG("\n");
+	}
+	UG_LOG( "        all | ");
+	UG_LOG(std::setw(9) << allCalls << " | ");
+	UG_LOG(std::setw(15) << allSteps << " | ");
+	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allSteps / (double)allCalls);
+	UG_LOG("\n");
+}
+
+template <typename TDoFDistribution, typename TAlgebra>
+void
+NewtonSolver<TDoFDistribution, TAlgebra>::
+clear_average_convergence()
+{
+	m_vLinSolverCalls.clear();
+	m_vTotalLinSolverSteps.clear();
+}
+
 
 }
 

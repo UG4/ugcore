@@ -174,7 +174,9 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 			.add_method("init", &T::init)
 			.add_method("prepare", &T::prepare)
 			.add_method("apply", &T::apply)
-			.add_method("set_debug", &T::set_debug);
+			.add_method("set_debug", &T::set_debug)
+			.add_method("print_average_convergence", &T::print_average_convergence)
+			.add_method("clear_average_convergence", &T::clear_average_convergence);
 		reg.add_class_to_group(name, "NewtonSolver", algDDTag);
 	}
 
