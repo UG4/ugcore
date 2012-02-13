@@ -12,16 +12,7 @@ ug_load_script("ug_util.lua")
 ug_load_script("util.lua")
 
 SetOutputProcessRank(util.GetParamNumber("-outproc", 0))
-if util.HasParamOption("-logtofile") then
-	GetLogAssistant():enable_file_output(false, "")
-	GetLogAssistant():enable_file_output(true, util.GetParam("-logtofile")..GetProcessRank())
-else
-	GetLogAssistant():enable_file_output(true, 
-		util.GetParam("-outdir", "").."uglog"..GetProcessRank())
-end
 
-print("ugshell "..util.GetCommandLine())
-print("SVN Revision: "..GetSVNRevision()..", compiled on "..GetBuildHostname().." on "..GetCompileDate())
 -- constants
 if util.HasParamOption("-3d") then
 	dim = 3
@@ -79,6 +70,36 @@ bRSAMG = util.HasParamOption("-RSAMG")
 bAggressiveCoarsening = util.HasParamOption("-AC")
 bExternalCoarsening = util.HasParamOption("-XC")
 jacBaseSolver = util.HasParamOption("-jacBaseSolver")
+
+
+if util.HasParamOption("-logtofile") then
+	GetLogAssistant():enable_file_output(false, "")
+	GetLogAssistant():enable_file_output(true, util.GetParam("-logtofile")..GetProcessRank())
+	filename = util.GetParam("-logtofile")
+else
+	if dim == 2 then
+		if ninePoint then 
+			discName = "9pt"
+		else
+			discName = "5pt"
+		end
+	else
+		discName = "27pt"
+	end
+	filename = "uglog_"..discName.."_procs"..GetNumProcesses().."_numRefs"..numRefs
+	if bExternalCoarsening then
+		filename = filename.."_XC"
+	end	
+	if bAggressiveCoarsening
+		filename = filename.."_AC"
+	end
+
+	GetLogAssistant():enable_file_output(true, util.GetParam("-outdir", "")..filename..GetProcessRank())
+end
+
+print("ugshell "..util.GetCommandLine())
+print("SVN Revision: "..GetSVNRevision()..", compiled on "..GetBuildHostname().." on "..GetCompileDate())
+
 
 print("Parameters: ")
 print("    numPreRefs = "..numPreRefs)
@@ -566,9 +587,12 @@ linSolver:init(linOp)
 	convCheck:set_maximum_steps(0)
 	linSolver:apply_return_defect(u,b)
 	
-	SaveVectorForConnectionViewer(b, linOp, "b.vec")
-	SaveVectorForConnectionViewer(solution, linOp, "solution.vec")
-	SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
+	if bWriteMat then
+		SaveVectorForConnectionViewer(b, linOp, "b.vec")
+		SaveVectorForConnectionViewer(solution, linOp, "solution.vec")
+		SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
+		amg:write_interfaces()
+	end
 	
 	print("amg:check(u, b)")
 	amg:check(u,b)
@@ -577,7 +601,7 @@ linSolver:init(linOp)
 	print("amg:check_fsmoothing()")
 	amg:check_fsmoothing()
 	
-	amg:write_interfaces()	
+		
 
 ---------
 
@@ -614,6 +638,7 @@ if GetProcessRank() == 0 then
 	{ "date", os.date("y%Ym%md%d") },
 	{ "SVN Revision", GetSVNRevision()},
 	{"host",GetBuildHostname()},
+	{"filename", filename},
 	{"commandline", util.GetCommandLine() } } 
 	
 	util.printStats(stats)
