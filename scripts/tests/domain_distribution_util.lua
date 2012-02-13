@@ -23,11 +23,14 @@ ddu.distributionType = "bisect" -- [grid2d | bisect | metis]
 -- should be a square number
 ddu.numProcsPerNode = 1
 
+-- number of processes on which distribution runs
+ddu.numProcesses = GetNumProcesses()
+
 -- number of processes to which the grid will be distributed during the initial
 -- distribution step. This value will be recalculated when either
 -- ParseAndInitializeParameters or SetAndInitializeParameters
 -- is called
-ddu.numInitialDistProcs = GetNumProcesses()
+ddu.numInitialDistProcs = ddu.numProcesses
 
 
 -- HIERARCHICAL REDISTRIBUTION
@@ -49,6 +52,10 @@ ddu.hRedistNewProcsPerStep = -1
 -- hRedistNewProcsPerStep processes.
 -- Only has effect, if hierarchicalRedistFirstLevel ~= -1.
 ddu.hRedistStepSize = 1
+
+-- defines the maximal number of redistributions (note that this does not
+-- include initial redistribution)
+ddu.hRedistMaxSteps = 1000000000
 
 -- tells whehter horizontal redistribution is enabled or not (will be set during
 -- parameter initialization)
@@ -84,7 +91,8 @@ function ddu.ParseAndInitializeParameters(dim)
 					util.GetParamNumber("-numPPN", 1),
 					util.GetParamNumber("-hRedistFirstLevel", -1),
 					util.GetParamNumber("-hRedistNewProcsPerStep", math.pow(2, dim)),
-					util.GetParamNumber("-hRedistStepSize", 1))
+					util.GetParamNumber("-hRedistStepSize", 1),
+					util.GetParamNumber("-hRedistMaxSteps", 1000000000))
 end
 
 
@@ -92,7 +100,7 @@ end
 -- returns true, if everything went well and false if something went wrong
 function ddu.SetAndInitializeParameters(numPreRefs, numRefs, distType,
 				numProcsPerNode, hRedistFirstLevel, hRedistNewProcsPerStep,
-				hRedistStepSize)
+				hRedistStepSize, hRedistMaxSteps)
 	-- set parameters
 	ddu.numPreRefs = numPreRefs
 	ddu.numRefs    = numRefs
@@ -108,6 +116,7 @@ function ddu.SetAndInitializeParameters(numPreRefs, numRefs, distType,
 	ddu.hRedistFirstLevel = hRedistFirstLevel
 	ddu.hRedistNewProcsPerStep = hRedistNewProcsPerStep
 	ddu.hRedistStepSize = hRedistStepSize
+	ddu.hRedistMaxSteps = hRedistMaxSteps
 	
 	-- the number of processes to which we will distribute the grid during
 	-- initial distribution has to be calculated now.
@@ -131,21 +140,23 @@ function ddu.SetAndInitializeParameters(numPreRefs, numRefs, distType,
 		
 		ddu.hRedistEnabled = true
 		
-		local procs = GetNumProcesses()
+		local procs = ddu.numProcesses
 		local refinements = numRefs - ddu.hRedistFirstLevel
-		while refinements > 0 do
+		local curRedistStep = 0
+		while refinements > 0 and curRedistStep < ddu.hRedistMaxSteps do
 			refinements = refinements - ddu.hRedistStepSize
 			if procs / ddu.hRedistNewProcsPerStep < 1 then
 				break
 			else
 				procs = math.floor(procs / ddu.hRedistNewProcsPerStep)
+				curRedistStep = curRedistStep + 1
 			end
 		end
 		
 		ddu.numInitialDistProcs = procs
 	elseif hierarchicalRedistFirstLevel ~= -1 then
 		print("WARNING: hierarchical redistribution disabled. To enable it, "
-			  .. "set hierarchicalRedistFirstLevel to a value > numPreRefs and <= numRefs.")
+			  .. "set hRedistFirstLevel to a value > numPreRefs and <= numRefs.")
 	end
 	
 	return true
@@ -173,7 +184,7 @@ function ddu.PrintAnalyzerInfo()
 		print("#ANALYZER INFO: hierarchical redistribution: initial distribution at level "
 				.. ddu.numPreRefs .. " to " .. ddu.numInitialDistProcs .. " processes.")
 	end
-	print("#ANALYZER INFO: NumProcs is " .. GetNumProcesses() .. ", numPreRefs = " .. ddu.numPreRefs
+	print("#ANALYZER INFO: NumProcs is " .. ddu.numProcesses .. ", numPreRefs = " .. ddu.numPreRefs
 		  .. ", numRefs = " .. ddu.numRefs)
 end
 
@@ -192,7 +203,7 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 		print( " done.")
 	end
 
-	local numProcs = GetNumProcesses()
+	local numProcs = ddu.numProcesses
 	local numDistProcs = ddu.numInitialDistProcs
 	local numProcsWithGrid = 1
 	local numCurRefs = ddu.numPreRefs
@@ -281,4 +292,53 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 	-- clean up
 	delete(partitionMap)
 	delete(refiner)
+end
+
+function ddu.PrintSteps()
+	-- Performing pre-refines
+	print("Performing (non parallel) pre-refinements")
+	for i=1,ddu.numPreRefs do
+		write( "PreRefinement step " .. i .. " ...")
+		print( " done.")
+	end
+
+	local numProcs = ddu.numProcesses
+	local numDistProcs = ddu.numInitialDistProcs
+	local numProcsWithGrid = 1
+	local numCurRefs = ddu.numPreRefs
+
+	while numDistProcs > 0 do
+		print("redistributing to " .. numDistProcs .. " processes")
+		numProcsWithGrid = numProcsWithGrid * numDistProcs
+		numDistProcs = 0
+		
+		-- check whether we have to perform another hierarchical distribution.
+		-- calculate the number of required refinements in this step.
+		local maxRefsInThisStep = ddu.numRefs
+		if ddu.hRedistEnabled == true then
+			if numCurRefs < ddu.hRedistFirstLevel then
+				maxRefsInThisStep = ddu.hRedistFirstLevel
+			else
+				maxRefsInThisStep = numCurRefs + ddu.hRedistStepSize
+			end
+			if maxRefsInThisStep >= ddu.numRefs then
+				numDistProcs = 0
+				maxRefsInThisStep = ddu.numRefs
+			else
+				numDistProcs = ddu.hRedistNewProcsPerStep
+				if numProcsWithGrid * numDistProcs > numProcs then
+					numDistProcs = 0
+					maxRefsInThisStep = ddu.numRefs
+				end
+			end
+		end
+		
+		-- Perform post-refine
+		print("Refine Parallel Grid")
+		for i = numCurRefs + 1, maxRefsInThisStep do
+			write( "Refinement step " .. i .. " ...")
+			print( " done.")
+		end
+		numCurRefs = maxRefsInThisStep
+	end
 end
