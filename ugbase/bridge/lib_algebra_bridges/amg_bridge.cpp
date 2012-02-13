@@ -124,6 +124,8 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("check", &AMGBase<algebra_type>::check, "", "x#b", "performs a check of convergence on all levels")
 			.add_method("check2", &AMGBase<algebra_type>::check2, "", "x#b", "performs a check of convergence on all levels")
 			.add_method("check_fsmoothing", &AMGBase<algebra_type>::check_fsmoothing, "", "", "")
+			.add_method("set_nr_of_preiterations_at_check", &AMGBase<algebra_type>::set_nr_of_preiterations_at_check,
+					"i")
 			.add_method("set_matrix_write_path", &AMGBase<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
 			.add_method("set_fsmoothing", &AMGBase<algebra_type>::set_fsmoothing, "", "enable", "")
 			.add_method("get_fsmoothing", &AMGBase<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
@@ -176,7 +178,7 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_write_testvectors", &FAMG<algebra_type>::set_write_testvectors, "bWrite", "if true, write testvectors to path specified in set_matrix_write_path")
 			.add_method("set_testvector_from_matrix_rows", &FAMG<algebra_type>::set_testvector_from_matrix_rows, "", "testvector is obtained by setting 1 for dirichlet nodes (nodes with only A(i,i) != 0) and 0 everywhere else")
 			.add_method("set_testvector_smoother", &FAMG<algebra_type>::set_testvector_smoother, "smoother", "sets the smoother to smooth testvectors")
-			.add_method("set_testvector_smooths", &FAMG<algebra_type>::set_testvector_damps, "n", "number of smoothing steps to smooth testvectors")
+			.add_method("set_testvector_smooths", &FAMG<algebra_type>::set_testvector_smooths, "n", "number of smoothing steps to smooth testvectors")
 
 			.add_method("reset_testvectors", &FAMG<algebra_type>::reset_testvectors, "", "removes all added testvectors")
 
@@ -213,7 +215,6 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_debug_level_send_coarsening", &FAMG<algebra_type>::set_debug_level_send_coarsening)
 			.add_method("set_debug_level_communicate_prolongation", &FAMG<algebra_type>::set_debug_level_communicate_prolongation)
 			.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
-
 
 
 			.add_method("set_write_f_values", &FAMG<algebra_type>::set_write_f_values)
