@@ -423,7 +423,7 @@ if bRSAMG == false then
 	testvectorwriter:update(testvector)	
 	amg:add_testvector(testvectorwriter, 1.0)
 
-	amg:set_testvector_smooths(1)
+	amg:set_testvector_smooths(3)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
 	amg:set_testvector_smoother(jac2)
 		
