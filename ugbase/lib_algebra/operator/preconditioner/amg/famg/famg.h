@@ -134,8 +134,8 @@ public:
 
 
 
-	void set_testvector_damps(size_t testvectordamps) { m_iTestvectorDamps = testvectordamps; }
-	size_t get_testvector_damps() const { return m_iTestvectorDamps; }
+	void set_testvector_smooths(size_t testvectordamps) { m_iTestvectorDamps = testvectordamps; }
+	size_t get_testvector_smooths() const { return m_iTestvectorDamps; }
 
 
 	void reset_testvectors()

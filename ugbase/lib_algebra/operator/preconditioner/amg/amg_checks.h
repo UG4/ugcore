@@ -276,7 +276,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 	if(m_writeMatrices) writevec((std::string("c0")).c_str(), c, level);
 	if(m_writeMatrices) writevec((std::string("d0")).c_str(), d, level);
 	UG_LOG(0 << ":	" << " - " << "\t" << firstnorm << "\n");
-	for(size_t i=0; i<0; i++)
+	for(size_t i=0; i<m_iNrOfPreiterationsCheck; i++)
 	{
 		add_correction_and_update_defect(c, d, level);
 
@@ -359,7 +359,62 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level
 
 	if(level+1 == m_usedLevels-1)
 	{
+#if 0
+		// tried to check basesolver here
+
+				AMGLevel &L = *levels[level+1];
+				matrix_operator_type &A = *L.pA;
+				pcl::ParallelCommunicator<IndexLayout> &com = A.get_communicator();
+
+				if(m_agglomerateLevel == level+1)
+				{
+					// send d -> collD
+					ComPol_VecAdd<vector_type > compolAdd(&dH, &dH);
+					com.send_data(agglomerateSlaveLayout, compolAdd);
+					com.communicate();
+
+					ComPol_VecCopy<vector_type> compolCopy(&cH, &cH);
+					com.receive_data(agglomerateSlaveLayout, compolCopy);
+					com.communicate();
+
+					c.set_storage_type(PST_CONSISTENT);
+
+					A.matmul_minus(dH, cH);
+					return true;
+				}
+				else
+				{
+					L.collD.set(0.0);
+					for(size_t i=0; i<dH.size(); i++)
+						L.collD[i] = dH[i];
+
+					L.collC.set_storage_type(PST_CONSISTENT);
+					L.collD.set_storage_type(PST_ADDITIVE);
+					// send d -> collD
+					ComPol_VecAdd<vector_type > compolAdd(&L.collD, &dH);
+					com.receive_data(L.agglomerateMasterLayout, compolAdd);
+					com.communicate();
+
+					L.collC.set(0.0);
+					add_correction_and_update_defect2(L.collC, L.collD, level+1);
+
+					// send collC -> c
+					ComPol_VecCopy<vector_type> compolCopy(&cH, &L.collC);
+					com.send_data(L.agglomerateMasterLayout, compolCopy);
+					com.communicate();
+
+					for(size_t i=0; i<cH.size(); i++)
+						cH[i] = L.collC[i];
+					cH.set_storage_type(PST_CONSISTENT);
+					A.matmul_minus(dH, cH); // cannot use collD, because collD is not additive.
+					return true;
+				}
+
+				double nH2 = ConstTwoNorm(dH);
+				UG_LOG("base solver reduced by " << nH2/nH1 << " (on coarse)" << std::endl);
+#else
 		add_correction_and_update_defect(cH, dH, level+1);
+#endif
 		double nH2 = ConstTwoNorm(dH);
 		UG_LOG("base solver reduced by " << nH2/nH1 << " (on coarse)" << std::endl);
 	}

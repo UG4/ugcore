@@ -133,7 +133,12 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 
 		m_famg.m_testvectorsmoother->init(*m_famg.levels[level]->pA);
 
-		for(size_t jj=0; jj < m_famg.get_testvector_damps(); jj++)
+		if(m_famg.m_writeMatrices && m_famg.m_writeTestvectors)
+					for(size_t i=0; i<m_testvectors.size(); i++)
+						WriteVectorToConnectionViewer((m_famg.m_writeMatrixPath + ToString("testvector_pS") + ToString(i) + ToString("_L") + ToString(level) + ".vec").c_str(),
+							m_testvectors[i], &m_famg.m_amghelper.positions[level][0], m_famg.m_dbgDimension);
+
+		for(size_t jj=0; jj < m_famg.get_testvector_smooths(); jj++)
 		{
 			d.set(0.0);
 			c.set(0.0);

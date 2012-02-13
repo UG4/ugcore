@@ -327,6 +327,11 @@ public:
 		m_bOneInit = b;
 	}
 
+	void set_nr_of_preiterations_at_check(int i)
+	{
+		m_iNrOfPreiterationsCheck = i;
+	}
+
 protected:
 	void init_fsmoothing();
 	bool writevec(std::string filename, const vector_type &d, size_t level, const vector_type *solution=NULL);
@@ -359,6 +364,8 @@ protected:
 
 	bool	m_bFSmoothing;
 	bool	m_bOneInit;
+
+	int 	m_iNrOfPreiterationsCheck;
 
 	size_t m_checkLevelPostIterations;
 

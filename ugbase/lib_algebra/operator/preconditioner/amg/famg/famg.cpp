@@ -492,6 +492,12 @@ public:
 		//-----------------------------------------
 		create_restriction();
 
+
+		for(size_t i=0; i<A.num_rows(); i++)
+		{
+			if(PoldIndices.num_connections(i) > 1 && (rating[i].is_fine() || rating[i].is_fine_direct()) == false)
+			{	UG_LOG("level " << level << " node " << i << "\n");		}
+		}
 		// 9. create Galerkin product AH = R A P
 		//-----------------------------------------
 
@@ -751,8 +757,8 @@ bool FAMG<CPUAlgebra>::check_testvector()
 
 	size_t preSmooth = AMGBase<CPUAlgebra>::get_num_presmooth();
 	size_t postSmooth = AMGBase<CPUAlgebra>::get_num_postsmooth();
-	AMGBase<CPUAlgebra>::set_num_presmooth(get_testvector_damps());
-	AMGBase<CPUAlgebra>::set_num_postsmooth(get_testvector_damps());
+	AMGBase<CPUAlgebra>::set_num_presmooth(get_testvector_smooths());
+	AMGBase<CPUAlgebra>::set_num_postsmooth(get_testvector_smooths());
 
 
 	matrix_type &A0 = *AMGBase<CPUAlgebra>::levels[0]->pA;
@@ -796,6 +802,20 @@ bool FAMG<CPUAlgebra>::check_testvector()
 		A.apply(d, tv);
 		c.set(0.0);
 		checkResult res;
+
+		/*PRINTLAYOUT(A.get_communicator(), d.get_master_layout(), d.get_slave_layout());
+		d.change_storage_type(PST_CONSISTENT);
+
+		UG_LOG("\n\ntv level " << level << "\n");
+		tv.print();
+		UG_LOG("\n\nA level " << level << "\n");
+		A.print();
+		UG_LOG("\n\ntestvectors level " << level << "\n");
+		testvectors[0].print();
+		UG_LOG("\n\nd level " << level << "\n");
+		d.print();
+
+		d.change_storage_type(PST_ADDITIVE);*/
 
 		AMGBase<CPUAlgebra>::check_level(c, d, level, res, &tv);
 
