@@ -632,7 +632,7 @@ if not bCheck and bWriteStats then
 			print(create_levelPN:call_tree())
 			print(create_levelPN:child_self_time_sorted())
 		end
-		if false then			
+		if true then			
 			to100 = create_levelPN:get_avg_total_time_ms()
 			PrintParallelProfileNode("create_OL2_matrix")
 			PrintParallelProfileNode("CalculateTestvector")
