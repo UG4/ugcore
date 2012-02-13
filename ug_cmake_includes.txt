@@ -56,6 +56,9 @@ set(dofDefault "P1")
 set(blasDefault ON)
 set(lapackDefault ON)
 
+# If enabled, the boost version contained in the externals folder will be used
+set(ugBoostDefault ON)
+
 # Option to add svn head revision, compile date and build host into ugshell's initial output
 set(svnDefault OFF)
 
@@ -87,10 +90,6 @@ set(buildRegistry OFF)
 # Here we'll store libs, if we find and need them
 set(linkLibraries)
 
-# Boost is required.
-find_package(Boost REQUIRED)
-include_directories (${Boost_INCLUDE_DIRS})
-
 ################################################################################
 # All available options should be defined here:
 # cmake-options can either be on or off.
@@ -121,6 +120,7 @@ option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, 
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
 option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
 option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
+option(UG_BOOST "If enabled, the boost version found in the externals directory will be used. Valid options are ON, OFF" ${ugBoostDefault})
 
 option(EMBED_SVN_REV "Enables output of SVN head revision, compile date and build host. Valid options are ON, OFF" ${svnDefault})
 
@@ -188,6 +188,7 @@ message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
+message(STATUS "Info: UG_BOOST:          "${UG_BOOST}" (options are: ON, OFF)")
 message(STATUS "Info: EMBED_SVN_REV:     "${EMBED_SVN_REV}" (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (set them to the path, which contains the library):")
@@ -555,18 +556,27 @@ endif(HLIBPRO)
 # find and collect required libraries
 
 ########################################
-# boost
-if(Boost_FOUND)
-	if(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
-		#message(STATUS "Info: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}').")
-		
-	else(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
-		# we require a newer version of boost
-		message(FATAL_ERROR " BOOST in ${Boost_INCLUDE_DIRS} is not compatible (required 1.40.0, but is ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}) . NO Boost available. Aborting.")	
-	endif(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
-else(Boost_FOUND)
-	message(FATAL_ERROR " BOOST not found! NO Boost available, but at least boost 1.40.0 is required. Aborting.")
-endif(Boost_FOUND)
+# boost (required)
+if(UG_BOOST)
+	include_directories(${UG_ROOT_PATH}/externals/boost_1_43_0/)
+	message(STATUS "Info: Using externals/boost_1_43_0")
+else(UG_BOOST)
+	find_package(Boost REQUIRED)
+	include_directories(${Boost_INCLUDE_DIRS})
+
+	if(Boost_FOUND)
+		if(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+			#message(STATUS "Info: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}').")
+			
+		else(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+			# we require a newer version of boost
+			message(FATAL_ERROR " BOOST in ${Boost_INCLUDE_DIRS} is not compatible (required 1.40.0, but is ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}) . NO Boost available. Aborting.")	
+		endif(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
+	else(Boost_FOUND)
+		message(FATAL_ERROR " BOOST not found! NO Boost available, but at least boost 1.40.0 is required. Aborting.")
+	endif(Boost_FOUND)
+	
+endif(UG_BOOST)
 
 
 ########################################
@@ -617,7 +627,7 @@ IF(EMBED_SVN_REV)
 include(FindSubversion)
 
 	IF(Subversion_FOUND)
-		MESSAGE(STATUS "Info: Embedding svn-revision number.")
+		#MESSAGE(STATUS "Info: Embedding svn-revision number.")
 	        EXECUTE_PROCESS(
 	                COMMAND "svnversion" "--no-newline" ${CMAKE_SOURCE_DIR}
 	                OUTPUT_VARIABLE svn_version
@@ -628,13 +638,13 @@ include(FindSubversion)
 	        file(WRITE ${CMAKE_BINARY_DIR}/svnrevision.h "#define SVN_REVISION \"${svn_version}\"\n")
 	
 	ELSE(Subversion_FOUND)
-		MESSAGE(STATUS "INFO: Looking for Subversion - not found (disable EMBED_SVN_REV with -DEMBED_SVN_REV=OFF)")
+		MESSAGE(STATUS "WARNING: Looking for Subversion - not found (disable EMBED_SVN_REV with -DEMBED_SVN_REV=OFF)")
 	        # write a file with the SVN_REVISION define
 	        file(WRITE ${CMAKE_BINARY_DIR}/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
 	ENDIF(Subversion_FOUND)
 	
 ELSE(EMBED_SVN_REV)
-	MESSAGE(STATUS "INFO: Not looking for Subversion - (Enable EMBED_SVN_REV with -DEMBED_SVN_REV=ON)")
+	#MESSAGE(STATUS "INFO: Not looking for Subversion - (Enable EMBED_SVN_REV with -DEMBED_SVN_REV=ON)")
         # write a file with the SVN_REVISION define
         file(WRITE ${CMAKE_BINARY_DIR}/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
 ENDIF(EMBED_SVN_REV)
