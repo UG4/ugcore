@@ -230,20 +230,22 @@ end
 assert(numPreRefs < numRefs, "numPreRefs must be smaller than numRefs");
 
 refiner = GlobalDomainRefiner(dom)
-for i=1,numPreRefs do
-print("refining "..i.."..")
-refiner:refine()
+if numPreRefs > 0 then 
+	for i=1,numPreRefs do
+	print("refining "..i.."..")
+	refiner:refine()
+	end
 end
-
 -- Distribute the domain to all involved processes
 assert(DistributeDomain(dom) == true, "Error while Distributing Grid.")
 
 -- Perform post-refine
-for i=numPreRefs+1,numRefs do
-print("refining "..i.."..")
-refiner:refine()
+if numRefs > 0 then
+	for i=numPreRefs+1,numRefs do
+	print("refining "..i.."..")
+	refiner:refine()
+	end
 end
-
 tGrid = os.clock()-tBefore
 
 
@@ -333,8 +335,8 @@ print ("done")
 
 -- write matrix for test purpose
 if bMatOutput then
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.vec")
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
 
 -- create algebraic Preconditioners
@@ -435,7 +437,9 @@ if bRSAMG == false then
 	-- amg:set_H_reduce_interpolation_nodes_parameter(0.1)
 	amg:set_galerkin_truncation(0)
 	amg:set_H_reduce_interpolation_nodes_parameter(0.0) --1)
-	amg:set_prereduce_A_parameter(0.1)
+	amg:set_prereduce_A_parameter(0.0)
+	
+	amg:set_nr_of_preiterations_at_check(5)	
 else
 	print ("create AMG... ")
 	amg = RSAMGPreconditioner()
@@ -560,9 +564,12 @@ linSolver:init(linOp)
 	SaveVectorForConnectionViewer(solution, linOp, "solution.vec")
 	SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
 	
-	--amg:check(u,b)
+	print("amg:check(u, b)")
+	amg:check(u,b)
+	print("amg:check_testvector()")
 	amg:check_testvector()
-	-- amg:check_fsmoothing()
+	print("amg:check_fsmoothing()")
+	amg:check_fsmoothing()
 	
 	amg:write_interfaces()	
 
