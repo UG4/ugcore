@@ -90,7 +90,7 @@ else
 	if bExternalCoarsening then
 		filename = filename.."_XC"
 	end	
-	if bAggressiveCoarsening
+	if bAggressiveCoarsening then
 		filename = filename.."_AC"
 	end
 
