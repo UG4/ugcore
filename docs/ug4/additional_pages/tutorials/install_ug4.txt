@@ -4,27 +4,11 @@
 
 /**	\page pageInstallUG4 ug4 - Installation
 
-	- \ref secInstallUG4Boost "Download Boost"
 	- \ref secInstallUG4CMake "Download CMake"
 	- \ref secInstallUG4UG4 "Download UG4"
-
+	- \ref secInstallUG4Boost "Download Boost"
+	
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
-
-<hr>
-\section secInstallUG4Boost Boost
-<hr>
-
-<ul>
-<li> <b>Boost</b>: Download latest release of Boost from <a href="http://www.boost.org/users/download/">http://www.boost.org/users/download/</a> .
-<li> Extract/Copy the library to some folder on your computer. The folder is arbitrary. 
-	(e.g. home/lib/boost_1_46_0)
-<li> Add the path of the folder, where boost is located, to the environment 
-	variable <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, e.g.: 
-	<ul>
-	<li> in bash: add <i>PATH=$PATH:$HOME/lib/boost_1_46_0</i> to the end of the file ~/.bashrc 
-	<li> in tcsh/csh: add <i>set PATH = ($PATH $HOME/lib/boost_1_46_0)</i> to the end of the file ~/.tcshrc
-	</ul>
-</ul> 
 
 <hr>
 \section secInstallUG4CMake CMake
@@ -92,5 +76,24 @@ the option DIM is passed as a string. So, please use:
 <li> move to ug4/trunk/build_debug
 <li> "make" --> ug4 is build
 </ol>
+
+
+<hr>
+\section secInstallUG4Boost Boost
+<hr>
+
+<ul>
+<li> <b>Boost</b>: 
+Note: Boost-Headers are now automatically checked out with UG4 into the folder /externals. You have to download boost only if you want to use a different version of boost. <br>
+Download latest release of Boost from <a href="http://www.boost.org/users/download/">http://www.boost.org/users/download/</a> .
+<li> Extract/Copy the library to some folder on your computer. The folder is arbitrary. 
+	(e.g. home/lib/boost_1_46_0)
+<li> Add the path of the folder, where boost is located, to the environment 
+	variable <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, e.g.: 
+	<ul>
+	<li> in bash: add <i>PATH=$PATH:$HOME/lib/boost_1_46_0</i> to the end of the file ~/.bashrc 
+	<li> in tcsh/csh: add <i>set PATH = ($PATH $HOME/lib/boost_1_46_0)</i> to the end of the file ~/.tcshrc
+	</ul>
+</ul> 
 
 */
