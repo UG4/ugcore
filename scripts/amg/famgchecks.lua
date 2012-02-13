@@ -435,9 +435,15 @@ if bRSAMG == false then
 	-- amg:set_debug_level_calculate_parent_pairs(6)
 	-- amg:set_galerkin_truncation(1e-6)
 	-- amg:set_H_reduce_interpolation_nodes_parameter(0.1)
-	amg:set_galerkin_truncation(0)
+	amg:set_galerkin_truncation(1e-9)
 	amg:set_H_reduce_interpolation_nodes_parameter(0.0) --1)
-	amg:set_prereduce_A_parameter(0.0)
+	
+	if bExternalCoarsening then
+		amg:set_prereduce_A_parameter(0.01)
+	else
+		amg:set_prereduce_A_parameter(0.0001)	
+	end
+	
 	
 	amg:set_nr_of_preiterations_at_check(5)	
 else
@@ -579,31 +585,35 @@ linSolver:init(linOp)
 
 if GetProcessRank() == 0 then
 	stats = {
-	{ "XC", bExternalCoarsening},
-	{ "date", os.date("y%Ym%md%d") },
-	{ "SVN Revision", GetSVNRevision()},
-	{"host",GetBuildHostname()},
+	
 	{ "procs", GetNumProcesses() },
 	--{ "numPreRefs", numPreRefs},
 	{ "numRefs", numRefs },
 	{ "dim", dim},
 	{ "gridName", gridName},
-	{ "maxBase", maxBase},
 	{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
 	{ "tSetupAmg [s]", amg:get_timing_whole_setup_ms()/1000},
-	
+	{ "XC", bExternalCoarsening},	
 	{ "AC", bAggressiveCoarsening},
 	{ "c_A", amg:get_operator_complexity()},
 	{ "c_G", amg:get_grid_complexity()},
-	{ "used Levels", amg:get_used_levels()}, 
+	{ "used Levels", amg:get_used_levels()},
+	 
 	{ "tSolve [s]", tSolve},
 	{ "steps", steps},
 	{ "lastReduction", lastReduction},
+	
 	{ "tSolveCG [s]", tSolveCG},
 	{ "stepsCG", stepsCG},
 	{ "lastReductionCG", lastReductionCG},
-	{ "tGrid [s]",  tGrid},
+	
+	{ "tGrid [s]",  tGrid},	
 	{ "tAssemble [s]", tAssemble},
+	
+	{ "maxBase", maxBase},
+	{ "date", os.date("y%Ym%md%d") },
+	{ "SVN Revision", GetSVNRevision()},
+	{"host",GetBuildHostname()},
 	{"commandline", util.GetCommandLine() } } 
 	
 	util.printStats(stats)
