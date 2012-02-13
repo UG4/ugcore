@@ -57,7 +57,7 @@ set(blasDefault ON)
 set(lapackDefault ON)
 
 # If enabled, the boost version contained in the externals folder will be used
-set(ugBoostDefault ON)
+set(internalBoostDefault ON)
 
 # Option to add svn head revision, compile date and build host into ugshell's initial output
 set(svnDefault OFF)
@@ -120,7 +120,7 @@ option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, 
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
 option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
 option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
-option(UG_BOOST "If enabled, the boost version found in the externals directory will be used. Valid options are ON, OFF" ${ugBoostDefault})
+option(INTERNAL_BOOST "If enabled, the boost version found in the externals directory will be used. Valid options are ON, OFF" ${internalBoostDefault})
 
 option(EMBED_SVN_REV "Enables output of SVN head revision, compile date and build host. Valid options are ON, OFF" ${svnDefault})
 
@@ -188,7 +188,7 @@ message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
-message(STATUS "Info: UG_BOOST:          "${UG_BOOST}" (options are: ON, OFF)")
+message(STATUS "Info: INTERNAL_BOOST:    "${INTERNAL_BOOST}" (options are: ON, OFF)")
 message(STATUS "Info: EMBED_SVN_REV:     "${EMBED_SVN_REV}" (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (set them to the path, which contains the library):")
@@ -557,10 +557,10 @@ endif(HLIBPRO)
 
 ########################################
 # boost (required)
-if(UG_BOOST)
+if(INTERNAL_BOOST)
 	include_directories(${UG_ROOT_PATH}/externals/boost_1_43_0/)
 	message(STATUS "Info: Using externals/boost_1_43_0")
-else(UG_BOOST)
+else(INTERNAL_BOOST)
 	find_package(Boost REQUIRED)
 	include_directories(${Boost_INCLUDE_DIRS})
 
@@ -576,7 +576,7 @@ else(UG_BOOST)
 		message(FATAL_ERROR " BOOST not found! NO Boost available, but at least boost 1.40.0 is required. Aborting.")
 	endif(Boost_FOUND)
 	
-endif(UG_BOOST)
+endif(INTERNAL_BOOST)
 
 
 ########################################
