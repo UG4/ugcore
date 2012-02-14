@@ -20,6 +20,11 @@
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "disc_item.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_process_communicator.h"
+#endif
+
+
 namespace ug {
 
 /// \ingroup lib_disc_domain_assemble
@@ -290,6 +295,10 @@ class DomainDiscretization :
 	///	returns the surface dof distribution
 		dof_distribution_type& get_surface_dd();
 
+	///	returns the dimension of the given subset.
+	/**	This method automatically gathers dimensions from all involved processes.*/
+		int subset_dim(SubsetGroup& subsetGrp, int subsetInd);
+
 	protected:
 	///	vector holding all registered elem discs
 		std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;
@@ -299,6 +308,13 @@ class DomainDiscretization :
 
 	//	vector holding all registered constraints
 		std::vector<IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
+
+
+		#ifdef UG_PARALLEL
+		///	Holds all processes on which this domain discretization operates
+		/**	\todo	One should be able to set this communicator from outside.*/
+			pcl::ProcessCommunicator	m_procCom;
+		#endif
 
 	///	current approximation space
 		//approx_space_type* m_pApproxSpace;

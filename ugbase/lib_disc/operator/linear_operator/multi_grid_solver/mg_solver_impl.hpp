@@ -1014,8 +1014,71 @@ init_linear_level_operator()
 		}
 
 		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
-	//	if ghosts are present we have to assemble the matrix only on non-ghosts
-	//	for the smoothing matrices
+//WARNING - the code below was changed by a total amateur! (Thats me - sreiter)
+	//	I changed it, since during adaptive refinement, situations could arise,
+	//	where some processes had ghosts and others didn't have any. The old
+	//	implementation performed a different number of calls to assemble_jacobian
+	//	on such processes. This again led to a stall in mpi-routines, which were
+	//	called by assemble_jacobian.
+	//	The new implementation always performs the same number of assemble_jacobian,
+	//	regardless of ghosts. It is however a little more wasteful, since we're
+	//	assembling the level-mat on the base level twice, even if no ghosts are
+	//	present in the whole grid / on the whole level.
+	//	One should think about improving that!
+		if(m_vLevData[lev]->has_ghosts())
+			m_pAss->set_selector(&m_vLevData[lev]->sel);
+		else
+			m_pAss->set_selector(NULL);
+
+		m_pAss->force_regular_grid(true);
+
+	//	init level operator
+		try{
+			m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u,
+									  *m_vLevData[lev]->pLevDD);
+		}
+		UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+					" Cannot init operator for level "<< lev << ".\n");
+
+	//	remove force flag
+		m_pAss->force_regular_grid(false);
+
+		if(m_vLevData[lev]->has_ghosts()){
+			m_pAss->set_selector(NULL);
+
+		//	copy the matrix into a new (smaller) one
+			matrix_type& mat = m_vLevData[lev]->LevMat;
+			matrix_type& smoothMat = m_vLevData[lev]->SmoothMat;
+
+			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
+			smoothMat.resize(numSmoothIndex, numSmoothIndex);
+			CopyMatrixByMapping(smoothMat, m_vLevData[lev]->vMapFlag, mat);
+
+			if(!(lev == m_baseLev && m_bBaseParallel == false)){
+			//	we can forget about the whole-level matrix, since the needed
+			//	smoothing matrix is stored in SmoothMat
+				m_vLevData[lev]->LevMat.resize(0,0);
+			}
+		}
+
+	//	if we're on the base level, then we have to assemble anew, since the
+	//	possible presence of ghosts may have led to a level matrix, which is
+	//	not suited for the base-solver.
+		if(lev == m_baseLev && m_bBaseParallel == false){
+		//	init level operator
+			m_pAss->force_regular_grid(true);
+			try{
+				m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u,
+										  *m_vLevData[lev]->pLevDD);
+			}
+			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+						" Cannot init operator for base-level on level "<< lev << ".\n");
+			m_pAss->force_regular_grid(false);
+		}
+
+//END OF CHANGES.	The code below was the original, however lead to problems in
+//					adaptive mg.
+/*
 		if(m_vLevData[lev]->has_ghosts())
 		{
 		//	set this selector to the assembling, such that only those elements
@@ -1066,7 +1129,7 @@ init_linear_level_operator()
 		{
 			m_vLevData[lev]->LevMat.resize(0,0);
 		}
-
+*/
 		GMG_PROFILE_END();
 	}
 
