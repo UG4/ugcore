@@ -165,7 +165,7 @@ private:
 		size_t i = cons.size();
 		num_connections += cons.size();
 		cons.resize(num_connections);
-		int j=0;
+		int j=i;
 		for(; i<num_connections; i++)
 		{
 			AlgebraID globalColIndex;
@@ -176,11 +176,24 @@ private:
 				cons[j].iIndex = PN.create_slave_node(globalColIndex, distanceToMasterOrInner+1);
 			else
 				cons[j].iIndex = PN.get_local_index_if_available(globalColIndex, bHasIndex);
+
 			UG_DLOG(LIB_ALG_MATRIX, 4, " " << (int)(cons[j].iIndex) << " (" << globalColIndex << ") -> " << cons[j].dValue << "\n");
 			if(bHasIndex)
 			{
-				colMax = std::max(colMax, cons[j].iIndex+1);
-				j++;
+				size_t k;
+				for(k=0; k<j; k++)
+				{
+					if(cons[k].iIndex == cons[j].iIndex)
+					{
+						cons[k].dValue += cons[j].dValue;
+						break;
+					}
+				}
+				if(k==j)
+				{
+					colMax = std::max(colMax, cons[j].iIndex+1);
+					j++;
+				}
 			}
 		}
 		cons.resize(j);
