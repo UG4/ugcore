@@ -1020,11 +1020,10 @@ init_linear_level_operator()
 	//	implementation performed a different number of calls to assemble_jacobian
 	//	on such processes. This again led to a stall in mpi-routines, which were
 	//	called by assemble_jacobian.
-	//	The new implementation always performs the same number of assemble_jacobian,
-	//	regardless of ghosts. It is however a little more wasteful, since we're
-	//	assembling the level-mat on the base level twice, even if no ghosts are
-	//	present in the whole grid / on the whole level.
-	//	One should think about improving that!
+	//	The new implementation always performs the same number of assemble_jacobian.
+	//	It however has to perform parallel communication on the base-level in a
+	//	parallel environment, to check if a second call to assemble_jacobian is
+	//	necessary.
 		if(m_vLevData[lev]->has_ghosts())
 			m_pAss->set_selector(&m_vLevData[lev]->sel);
 		else
@@ -1064,16 +1063,34 @@ init_linear_level_operator()
 	//	if we're on the base level, then we have to assemble anew, since the
 	//	possible presence of ghosts may have led to a level matrix, which is
 	//	not suited for the base-solver.
-		if(lev == m_baseLev && m_bBaseParallel == false){
-		//	init level operator
-			m_pAss->force_regular_grid(true);
-			try{
-				m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u,
-										  *m_vLevData[lev]->pLevDD);
+		if(lev == m_baseLev && m_bBaseParallel == false)
+		{
+		//	we have to check whether one of the processes contains ghosts on
+		//	this level. If this is the case, then we have to assemble again.
+			bool assembleAgain = false;
+
+			#ifdef UG_PARALLEL
+			//	We use a temporary global process communicator. Note that if only
+			//	some processes are involved in assembling of this problem, then
+			//	a more elaborate approach would be needed for the procCom.
+			//	Also note, that such a restricted proc-com had to be set as the
+			//	proc-com of the m_pAss object.
+				pcl::ProcessCommunicator procCom;
+				assembleAgain = procCom.allreduce(m_vLevData[lev]->has_ghosts(),
+												  PCL_RO_LOR);
+			#endif
+
+			if(assembleAgain){
+			//	init level operator
+				m_pAss->force_regular_grid(true);
+				try{
+					m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u,
+											  *m_vLevData[lev]->pLevDD);
+				}
+				UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
+							" Cannot init operator for base-level on level "<< lev << ".\n");
+				m_pAss->force_regular_grid(false);
 			}
-			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-						" Cannot init operator for base-level on level "<< lev << ".\n");
-			m_pAss->force_regular_grid(false);
 		}
 
 //END OF CHANGES.	The code below was the original, however lead to problems in
