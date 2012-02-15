@@ -364,16 +364,26 @@ end
 
 print ("create preconditioners... ")
 jac = Jacobi()
-jac:set_damp(0.66)
-
-jac2 = Jacobi()
-jac2:set_damp(0.66)
+jac:set_damp(0.8)
 
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
 ilu = ILU()
 ilut = ILUT()
+
+
+if false then
+	presmoother = jac
+	postsmoother = jac
+else
+	presmoother = gs
+	postsmoother = gs
+end
+
+jac2 = Jacobi()
+jac2:set_damp(0.8)
+
 
 
 -- create Base Solver
@@ -423,8 +433,8 @@ if bRSAMG == false then
 	testvectorwriter:update(testvector)	
 	amg:add_testvector(testvectorwriter, 1.0)
 
-	amg:set_testvector_smooths(3)
-	amg:set_damping_for_smoother_in_interpolation_calculation(0.66)
+	amg:set_testvector_smooths(1)
+	amg:set_damping_for_smoother_in_interpolation_calculation(0.6)
 	amg:set_testvector_smoother(jac2)
 		
 	if bWriteMat then
@@ -460,9 +470,9 @@ if bRSAMG == false then
 	amg:set_H_reduce_interpolation_nodes_parameter(0.0) --1)
 	
 	if bExternalCoarsening then
-		amg:set_prereduce_A_parameter(0.01)
+		amg:set_prereduce_A_parameter(0.1)
 	else
-		amg:set_prereduce_A_parameter(0.0001)	
+		amg:set_prereduce_A_parameter(0.0)	
 	end
 	
 	
@@ -490,8 +500,8 @@ end
 amg:set_num_presmooth(2)
 amg:set_num_postsmooth(2)
 amg:set_cycle_type(1)
-amg:set_presmoother(jac)
-amg:set_postsmoother(jac)
+amg:set_presmoother(presmoother)
+amg:set_postsmoother(postsmoother)
 amg:set_base_solver(base)
 amg:set_max_levels(maxLevels)
 
@@ -507,8 +517,8 @@ amg:tostring()
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(100)
-convCheck:set_minimum_defect(1e-11)
-convCheck:set_reduction(1e-12)
+convCheck:set_minimum_defect(1e-16)
+convCheck:set_reduction(1e-16)
 
 print("done.")
 -- create Linear Solver
@@ -576,18 +586,18 @@ linSolver:init(linOp)
 ---------
 
 	print("CHECKS:")
-	srand(iSeed)
 	linSolver = LinearSolver()	
 	linSolver:set_preconditioner(amg)
 	linSolver:set_convergence_check(convCheck)
 	linSolver:init(linOp)
+	srand(iSeed)
 	u:set_random(-1.0, 1.0)
 	domainDisc:assemble_rhs(b, u)
 
-	convCheck:set_maximum_steps(0)
+	convCheck:set_maximum_steps(2)
 	linSolver:apply_return_defect(u,b)
 	
-	if bWriteMat then
+	if true then
 		SaveVectorForConnectionViewer(b, linOp, "b.vec")
 		SaveVectorForConnectionViewer(solution, linOp, "solution.vec")
 		SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
@@ -595,11 +605,11 @@ linSolver:init(linOp)
 	end
 	
 	print("amg:check(u, b)")
-	amg:check(u,b)
+	-- amg:check(u,b)
 	print("amg:check_testvector()")
-	amg:check_testvector()
+	-- amg:check_testvector()
 	print("amg:check_fsmoothing()")
-	amg:check_fsmoothing()
+	-- amg:check_fsmoothing()
 	
 		
 
