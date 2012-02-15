@@ -377,9 +377,13 @@ if false then
 	presmoother = jac
 	postsmoother = jac
 else
-	presmoother = gs
-	postsmoother = gs
+	presmoother = sgs
+	postsmoother = sgs
 end
+
+jac2 = Jacobi()
+jac2:set_damp(0.8)
+
 
 jac2 = Jacobi()
 jac2:set_damp(0.8)
@@ -584,7 +588,7 @@ linSolver:init(linOp)
 	solution:assign(u)
 
 ---------
-
+if false then
 	print("CHECKS:")
 	linSolver = LinearSolver()	
 	linSolver:set_preconditioner(amg)
@@ -597,7 +601,7 @@ linSolver:init(linOp)
 	convCheck:set_maximum_steps(2)
 	linSolver:apply_return_defect(u,b)
 	
-	if true then
+	if bWriteMat then
 		SaveVectorForConnectionViewer(b, linOp, "b.vec")
 		SaveVectorForConnectionViewer(solution, linOp, "solution.vec")
 		SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
@@ -610,7 +614,7 @@ linSolver:init(linOp)
 	-- amg:check_testvector()
 	print("amg:check_fsmoothing()")
 	-- amg:check_fsmoothing()
-	
+end	
 		
 
 ---------
