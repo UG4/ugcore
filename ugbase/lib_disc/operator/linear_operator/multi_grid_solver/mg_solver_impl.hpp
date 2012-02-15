@@ -1028,7 +1028,9 @@ init_linear_level_operator()
 
 	//	set the level-process-communicator, so that only processes will communicate,
 	//	which contain elements on the given level.
-		m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
+		#ifdef UG_PARALLEL
+			m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
+		#endif
 
 		if(m_vLevData[lev]->has_ghosts())
 			m_pAss->set_selector(&m_vLevData[lev]->sel);
@@ -1853,7 +1855,9 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	set the level-process-communicator, so that only processes will communicate,
 	//	which contain elements on the given level.
-		m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
+		#ifdef UG_PARALLEL
+			m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
+		#endif
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
