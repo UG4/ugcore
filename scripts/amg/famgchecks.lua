@@ -385,10 +385,6 @@ jac2 = Jacobi()
 jac2:set_damp(0.8)
 
 
-jac2 = Jacobi()
-jac2:set_damp(0.8)
-
-
 
 -- create Base Solver
 baseConvCheck = StandardConvergenceCheck()
@@ -503,7 +499,12 @@ end
 
 amg:set_num_presmooth(2)
 amg:set_num_postsmooth(2)
-amg:set_cycle_type(1)
+if util.HasParamOption("-Wcycle") then
+	amg:set_cycle_type(2)
+else
+	amg:set_cycle_type(1)
+end
+-- amg:set_Y_cycle(2, 1e-1, 1e-12)
 amg:set_presmoother(presmoother)
 amg:set_postsmoother(postsmoother)
 amg:set_base_solver(base)
@@ -607,14 +608,14 @@ if false then
 		SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
 		amg:write_interfaces()
 	end
-	
+end	
 	print("amg:check(u, b)")
 	-- amg:check(u,b)
 	print("amg:check_testvector()")
 	-- amg:check_testvector()
 	print("amg:check_fsmoothing()")
 	-- amg:check_fsmoothing()
-end	
+	
 		
 
 ---------
@@ -627,6 +628,7 @@ if GetProcessRank() == 0 then
 	{ "procs", GetNumProcesses() },
 	--{ "numPreRefs", numPreRefs},
 	{ "numRefs", numRefs },
+	{ "RAepsilon", RAepsilon},
 	{ "dim", dim},
 	{ "gridName", gridName},
 	{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
