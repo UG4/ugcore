@@ -327,7 +327,7 @@ public:
 		m_bOneInit = b;
 	}
 
-	void set_nr_of_preiterations_at_check(int i)
+	void set_nr_of_preiterations_at_check(size_t i)
 	{
 		m_iNrOfPreiterationsCheck = i;
 	}
@@ -365,7 +365,7 @@ protected:
 	bool	m_bFSmoothing;
 	bool	m_bOneInit;
 
-	int 	m_iNrOfPreiterationsCheck;
+	size_t 	m_iNrOfPreiterationsCheck;
 
 	size_t m_checkLevelPostIterations;
 
