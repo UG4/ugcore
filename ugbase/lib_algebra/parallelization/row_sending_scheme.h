@@ -165,7 +165,7 @@ private:
 		size_t i = cons.size();
 		num_connections += cons.size();
 		cons.resize(num_connections);
-		int j=i;
+		size_t j=i;
 		for(; i<num_connections; i++)
 		{
 			AlgebraID globalColIndex;
