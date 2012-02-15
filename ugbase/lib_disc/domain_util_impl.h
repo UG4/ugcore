@@ -75,7 +75,7 @@ inline bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
 ///	returns the current dimension of the subset
 inline int DimensionOfSubset(const SubsetHandler& sh, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom
+                             , const pcl::ProcessCommunicator* pProcCom
 #endif
 							)
 {
@@ -98,7 +98,7 @@ inline int DimensionOfSubset(const SubsetHandler& sh, int si
 ///	returns the current dimension of the subset
 inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom
+                             , const pcl::ProcessCommunicator* pProcCom
 #endif
                              )
 {
@@ -121,7 +121,7 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
 ///	returns the current dimension of the subset
 inline int DimensionOfSubset(const ISubsetHandler& ish, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom
+                             , const pcl::ProcessCommunicator* pProcCom
 #endif
 							)
 {
@@ -150,7 +150,7 @@ inline int DimensionOfSubset(const ISubsetHandler& ish, int si
 
 inline int DimensionOfSubsets(const ISubsetHandler& sh
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom
+                             , const pcl::ProcessCommunicator* pProcCom
 #endif
 							)
 {
@@ -184,7 +184,7 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh
 template <typename TDomain>
 inline int DimensionOfSubset(const TDomain& domain, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom
+                             , const pcl::ProcessCommunicator* pProcCom
 #endif
 )
 {
@@ -202,7 +202,7 @@ inline int DimensionOfSubset(const TDomain& domain, int si
 template <typename TDomain>
 inline int DimensionOfDomain(const TDomain& domain
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom
+                             , const pcl::ProcessCommunicator* pProcCom
 #endif
 							)
 {

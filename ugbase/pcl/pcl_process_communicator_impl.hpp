@@ -12,7 +12,7 @@ template<class TValue>
 void ProcessCommunicator::
 gatherv(std::vector<TValue>& recBufOut,
 		 std::vector<TValue>& sendBuf, int root,
-		 std::vector<int>* pSizesOut, std::vector<int>* pOffsetsOut)
+		 std::vector<int>* pSizesOut, std::vector<int>* pOffsetsOut) const
 {
 //todo: One could declare a special MPI_Datatype and could thus
 //	directly work on pSizesOut and pOffsetsOut.
@@ -66,7 +66,7 @@ void ProcessCommunicator::
 allgatherv(std::vector<TValue>& recBufOut,
 			std::vector<TValue>& sendBuf,
 			std::vector<int>* pSizesOut,
-			std::vector<int>* pOffsetsOut)
+			std::vector<int>* pOffsetsOut) const
 {
 //todo: One could declare a special MPI_Datatype and could thus
 //	directly work on pSizesOut and pOffsetsOut.

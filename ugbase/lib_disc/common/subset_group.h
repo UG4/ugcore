@@ -120,7 +120,7 @@ class SubsetGroup
 	 */
 		int dim(size_t i
 #ifdef UG_PARALLEL
-                     ,pcl::ProcessCommunicator* pProcCom =NULL
+                     , const pcl::ProcessCommunicator* pProcCom =NULL
 #endif
 				) const;
 

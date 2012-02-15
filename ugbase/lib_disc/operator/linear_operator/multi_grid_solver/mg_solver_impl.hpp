@@ -78,6 +78,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 // 	Check if surface level has been chosen correctly
 //	Please note, that the approximation space returns the global number of levels,
 //	i.e. the maximum of levels among all processes.
+//THIS IS NOT TRUE!!! It seems to return the local number of levels.
 	if(m_topLev >= m_pApproxSpace->num_levels())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
@@ -1024,6 +1025,11 @@ init_linear_level_operator()
 	//	It however has to perform parallel communication on the base-level in a
 	//	parallel environment, to check if a second call to assemble_jacobian is
 	//	necessary.
+
+	//	set the level-process-communicator, so that only processes will communicate,
+	//	which contain elements on the given level.
+		m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
+
 		if(m_vLevData[lev]->has_ghosts())
 			m_pAss->set_selector(&m_vLevData[lev]->sel);
 		else
@@ -1835,7 +1841,6 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 ///////////////////////////////////////
 //	assemble contribution for each level and project
 ///////////////////////////////////////
-
 //	loop all levels to compute the missing contribution
 //	\todo: this is implemented very resource consuming, re-think arrangement
 	Selector sel(m_pApproxSpace->domain().grid());
@@ -1845,6 +1850,10 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	//	a shadow
 		sel.clear();
 		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
+
+	//	set the level-process-communicator, so that only processes will communicate,
+	//	which contain elements on the given level.
+		m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
@@ -1884,7 +1893,6 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	write matrix for debug purpose
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
-
 /////////////
 // end project
 /////////////

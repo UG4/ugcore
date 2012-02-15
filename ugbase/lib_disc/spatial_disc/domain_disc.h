@@ -274,6 +274,17 @@ class DomainDiscretization :
 		approx_space_type* m_pApproxSpace;
 		bool m_bForceRegGrid;
 
+	#ifdef UG_PARALLEL
+	///	sets the process communicator, which is used during assembling
+	/**	Set a process communicator, which only contains the processes, on
+	 * which an assembling step is performed. It may be necessary to set
+	 * a new process communicator before each call to assemble_...*/
+		virtual void set_process_communicator(const pcl::ProcessCommunicator& procCom)
+		{
+			m_procCom = procCom;
+		}
+	#endif
+
 	protected:
 	///	returns number of registered dirichlet constraints
 		virtual size_t num_dirichlet_constraints() const
@@ -309,12 +320,11 @@ class DomainDiscretization :
 	//	vector holding all registered constraints
 		std::vector<IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
 
-
-		#ifdef UG_PARALLEL
-		///	Holds all processes on which this domain discretization operates
-		/**	\todo	One should be able to set this communicator from outside.*/
-			pcl::ProcessCommunicator	m_procCom;
-		#endif
+	#ifdef UG_PARALLEL
+	///	The process communicator is used to calculate the dimension of one subset
+	/**	The process communicator can be set via set_process_communicator(...)*/
+		pcl::ProcessCommunicator	m_procCom;
+	#endif
 
 	///	current approximation space
 		//approx_space_type* m_pApproxSpace;

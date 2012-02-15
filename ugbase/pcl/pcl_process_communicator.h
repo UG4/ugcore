@@ -56,7 +56,7 @@ class ProcessCommunicator
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current
 	 *	communicator - even if they don't want to participate in the new one.*/
-		ProcessCommunicator create_sub_communicator(bool participate);
+		ProcessCommunicator create_sub_communicator(bool participate) const;
 		
 	///	performs MPI_Allreduce on the processes of the communicator.
 	/**	This method synchronises involved processes.
@@ -119,7 +119,7 @@ class ProcessCommunicator
 		void gatherv(std::vector<TValue>& recBufOut,
 					 std::vector<TValue>& sendBuf, int root,
 					 std::vector<int>* pSizesOut = NULL,
-					 std::vector<int>* pOffsetsOut = NULL);
+					 std::vector<int>* pOffsetsOut = NULL) const;
 
 	///	performs MPI_Allgather on the processes of the communicator.
 	/**	This method synchronises involved processes.
@@ -166,11 +166,11 @@ class ProcessCommunicator
 		void allgatherv(std::vector<TValue>& recBufOut,
 						std::vector<TValue>& sendBuf,
 						std::vector<int>* pSizesOut = NULL,
-						std::vector<int>* pOffsetsOut = NULL);
+						std::vector<int>* pOffsetsOut = NULL) const;
 
 	///	sends data with the given tag to the specified process.
 	/**	This method waits until the data has been sent.*/
-		void send_data(void* pBuffer, int bufferSize, int destProc, int tag);
+		void send_data(void* pBuffer, int bufferSize, int destProc, int tag) const;
 		
 	///	sends data in different blocks of pBuffer to the processes in pRecProcMap.
 	/**	This method synchronises involved processes.
@@ -187,12 +187,12 @@ class ProcessCommunicator
 	 *	\param tag: A tag that tags the message. Use the same tag in receive_data.
 	 */
 		void send_data(void* pBuffer, int* pBufferSegSizes,
-					   int* pRecProcMap, int numRecProcs, int tag);
+					   int* pRecProcMap, int numRecProcs, int tag) const;
 							 
 	///	receives data from srcPrc with the specified tag.
 	/**	This method waits until the data has been received
 	 */
-		void receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag);
+		void receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const;
 
 	///	sends and receives data to / from multiple processes.
 	/**
@@ -259,7 +259,7 @@ class ProcessCommunicator
 	 * \return the reduced result
 	 */
 		template<typename T>
-		T allreduce(const T &t, pcl::ReduceOperation op)
+		T allreduce(const T &t, pcl::ReduceOperation op) const
 		{
 			T ret;
 			allreduce(&t, &ret, 1, get_data_type(ret), op);
@@ -267,7 +267,7 @@ class ProcessCommunicator
 		}
 
 	///	overload for size_t
-		size_t allreduce(const size_t &t, pcl::ReduceOperation op)
+		size_t allreduce(const size_t &t, pcl::ReduceOperation op) const
 		{
 			int ret, tt = (int)t;
 			allreduce(&tt, &ret, 1, PCL_DT_INT, op);
@@ -282,7 +282,8 @@ class ProcessCommunicator
 	 * \param op the Reduce Operation
 	 */
 		template<typename T>
-		void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op)
+		void allreduce(const T *pSendBuff, T *pReceiveBuff,
+					   size_t count, pcl::ReduceOperation op) const
 		{
 			allreduce(pSendBuff, pReceiveBuff, count, get_data_type(T()), op);
 		}

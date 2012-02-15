@@ -213,7 +213,7 @@ bool SubsetGroup::regular_grid(size_t i) const
 
 int SubsetGroup::dim(size_t i
 #ifdef UG_PARALLEL
-                     ,pcl::ProcessCommunicator* pProcCom
+                     , const pcl::ProcessCommunicator* pProcCom
 #endif
                      ) const
 {

@@ -72,7 +72,7 @@ get_local_proc_id() const
 
 ProcessCommunicator
 ProcessCommunicator::
-create_sub_communicator(bool participate)
+create_sub_communicator(bool participate) const
 {
 	PCL_PROFILE(pcl_ProcCom_create_sub_com);
 
@@ -225,7 +225,7 @@ allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 
 void
 ProcessCommunicator::
-send_data(void* pBuffer, int bufferSize, int destProc, int tag)
+send_data(void* pBuffer, int bufferSize, int destProc, int tag) const
 {
 	PCL_PROFILE(pcl_ProcCom_send_data);
 
@@ -246,7 +246,7 @@ send_data(void* pBuffer, int bufferSize, int destProc, int tag)
 void
 ProcessCommunicator::
 send_data(void* pBuffer, int* pBufferSegSizes,
-		  int* pRecProcMap, int numRecProcs, int tag)
+		  int* pRecProcMap, int numRecProcs, int tag) const
 {
 	PCL_PROFILE(pcl_ProcCom_send_data__to_many);
 
@@ -273,7 +273,7 @@ send_data(void* pBuffer, int* pBufferSegSizes,
 
 void
 ProcessCommunicator::
-receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag)
+receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const
 {
 	PCL_PROFILE(pcl_ProcCom_recv_data);
 

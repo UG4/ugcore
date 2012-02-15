@@ -89,7 +89,7 @@ enum {DIM_SUBSET_EMPTY_GRID = -1};
  */
 inline int DimensionOfSubset(const SubsetHandler& sh, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom = NULL
+                             , const pcl::ProcessCommunicator* pProcCom = NULL
 #endif
 							);
 
@@ -111,7 +111,7 @@ inline int DimensionOfSubset(const SubsetHandler& sh, int si
  */
 inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom = NULL
+                             , const pcl::ProcessCommunicator* pProcCom = NULL
 #endif
 							);
 
@@ -133,7 +133,7 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
  */
 inline int DimensionOfSubset(const ISubsetHandler& sh, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom = NULL
+                             , const pcl::ProcessCommunicator* pProcCom = NULL
 #endif
 							);
 
@@ -154,7 +154,7 @@ inline int DimensionOfSubset(const ISubsetHandler& sh, int si
  */
 inline int DimensionOfSubsets(const ISubsetHandler& sh
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom = NULL
+                             , const pcl::ProcessCommunicator* pProcCom = NULL
 #endif
 							);
 
@@ -177,7 +177,7 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh
 template <typename TDomain>
 inline int DimensionOfSubset(const TDomain& domain, int si
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom = NULL
+                             , const pcl::ProcessCommunicator* pProcCom = NULL
 #endif
 							);
 
@@ -199,7 +199,7 @@ inline int DimensionOfSubset(const TDomain& domain, int si
 template <typename TDomain>
 inline int DimensionOfDomain(const TDomain& domain
 #ifdef UG_PARALLEL
-                             ,pcl::ProcessCommunicator* pProcCom = NULL
+                             , const pcl::ProcessCommunicator* pProcCom = NULL
 #endif
 							);
 

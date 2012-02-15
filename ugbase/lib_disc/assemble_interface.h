@@ -10,6 +10,10 @@
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_grid/tools/selector_interface.h"
 
+#ifdef UG_PARALLEL
+#include "pcl/pcl_process_communicator.h"
+#endif
+
 namespace ug{
 
 /**
@@ -159,6 +163,11 @@ class IAssemble {
 
 	/// Virtual Destructor
 		virtual ~IAssemble(){};
+
+	#ifdef UG_PARALLEL
+	///	set an process communicator, which may be used during assemble_...
+		virtual void set_process_communicator(const pcl::ProcessCommunicator&)	{}
+	#endif
 };
 
 /// @}
