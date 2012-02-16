@@ -358,7 +358,6 @@ class IDoFDistribution
 
 		pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
 		pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
-		const pcl::ProcessCommunicator& get_process_communicator() const	{return m_processCommunicator;}
 
 		size_t num_master_indices() const {return num_indices(*const_cast<IndexLayout*>(&m_masterLayout));}
 		size_t num_slave_indices() const {return num_indices(*const_cast<IndexLayout*>(&m_slaveLayout));}

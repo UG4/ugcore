@@ -78,7 +78,6 @@ apply_update_defect(vector_type &c, vector_type& d)
 // 	Check if surface level has been chosen correctly
 //	Please note, that the approximation space returns the global number of levels,
 //	i.e. the maximum of levels among all processes.
-//THIS IS NOT TRUE!!! It seems to return the local number of levels.
 	if(m_topLev >= m_pApproxSpace->num_levels())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
@@ -1015,95 +1014,8 @@ init_linear_level_operator()
 		}
 
 		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
-//WARNING - the code below was changed by a total amateur! (Thats me - sreiter)
-	//	I changed it, since during adaptive refinement, situations could arise,
-	//	where some processes had ghosts and others didn't have any. The old
-	//	implementation performed a different number of calls to assemble_jacobian
-	//	on such processes. This again led to a stall in mpi-routines, which were
-	//	called by assemble_jacobian.
-	//	The new implementation always performs the same number of assemble_jacobian.
-	//	It however has to perform parallel communication on the base-level in a
-	//	parallel environment, to check if a second call to assemble_jacobian is
-	//	necessary.
-
-	//	set the level-process-communicator, so that only processes will communicate,
-	//	which contain elements on the given level.
-		#ifdef UG_PARALLEL
-			m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
-		#endif
-
-		if(m_vLevData[lev]->has_ghosts())
-			m_pAss->set_selector(&m_vLevData[lev]->sel);
-		else
-			m_pAss->set_selector(NULL);
-
-		m_pAss->force_regular_grid(true);
-
-	//	init level operator
-		try{
-			m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u,
-									  *m_vLevData[lev]->pLevDD);
-		}
-		UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-					" Cannot init operator for level "<< lev << ".\n");
-
-	//	remove force flag
-		m_pAss->force_regular_grid(false);
-
-		if(m_vLevData[lev]->has_ghosts()){
-			m_pAss->set_selector(NULL);
-
-		//	copy the matrix into a new (smaller) one
-			matrix_type& mat = m_vLevData[lev]->LevMat;
-			matrix_type& smoothMat = m_vLevData[lev]->SmoothMat;
-
-			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
-			smoothMat.resize(numSmoothIndex, numSmoothIndex);
-			CopyMatrixByMapping(smoothMat, m_vLevData[lev]->vMapFlag, mat);
-
-			if(!(lev == m_baseLev && m_bBaseParallel == false)){
-			//	we can forget about the whole-level matrix, since the needed
-			//	smoothing matrix is stored in SmoothMat
-				m_vLevData[lev]->LevMat.resize(0,0);
-			}
-		}
-
-	//	if we're on the base level, then we have to assemble anew, since the
-	//	possible presence of ghosts may have led to a level matrix, which is
-	//	not suited for the base-solver.
-		if(lev == m_baseLev && m_bBaseParallel == false)
-		{
-		//	we have to check whether one of the processes contains ghosts on
-		//	this level. If this is the case, then we have to assemble again.
-			bool assembleAgain = false;
-
-			#ifdef UG_PARALLEL
-			//	We use a temporary global process communicator. Note that if only
-			//	some processes are involved in assembling of this problem, then
-			//	a more elaborate approach would be needed for the procCom.
-			//	Also note, that such a restricted proc-com had to be set as the
-			//	proc-com of the m_pAss object.
-				pcl::ProcessCommunicator procCom;
-				assembleAgain = procCom.allreduce(m_vLevData[lev]->has_ghosts(),
-												  PCL_RO_LOR);
-			#endif
-
-			if(assembleAgain){
-			//	init level operator
-				m_pAss->force_regular_grid(true);
-				try{
-					m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u,
-											  *m_vLevData[lev]->pLevDD);
-				}
-				UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-							" Cannot init operator for base-level on level "<< lev << ".\n");
-				m_pAss->force_regular_grid(false);
-			}
-		}
-
-//END OF CHANGES.	The code below was the original, however lead to problems in
-//					adaptive mg.
-/*
+	//	if ghosts are present we have to assemble the matrix only on non-ghosts
+	//	for the smoothing matrices
 		if(m_vLevData[lev]->has_ghosts())
 		{
 		//	set this selector to the assembling, such that only those elements
@@ -1154,7 +1066,7 @@ init_linear_level_operator()
 		{
 			m_vLevData[lev]->LevMat.resize(0,0);
 		}
-*/
+
 		GMG_PROFILE_END();
 	}
 
@@ -1843,6 +1755,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 ///////////////////////////////////////
 //	assemble contribution for each level and project
 ///////////////////////////////////////
+
 //	loop all levels to compute the missing contribution
 //	\todo: this is implemented very resource consuming, re-think arrangement
 	Selector sel(m_pApproxSpace->domain().grid());
@@ -1852,12 +1765,6 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	//	a shadow
 		sel.clear();
 		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
-
-	//	set the level-process-communicator, so that only processes will communicate,
-	//	which contain elements on the given level.
-		#ifdef UG_PARALLEL
-			m_pAss->set_process_communicator(m_vLevData[lev]->pLevDD->get_process_communicator());
-		#endif
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
@@ -1897,6 +1804,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	write matrix for debug purpose
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
+
 /////////////
 // end project
 /////////////
