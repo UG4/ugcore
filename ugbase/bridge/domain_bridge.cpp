@@ -39,51 +39,17 @@ static void MinimizeMemoryFootprint(TDomain& dom)
 }
 
 template <typename TDomain>
-static bool LoadDomain(TDomain& domain, const char* filename)
-{
-#ifdef UG_PARALLEL
-	if(pcl::GetProcRank() != 0)
-		return true;
-#endif
-
-	if(!LoadGridFromFile(domain.grid(), domain.subset_handler(),
-						 filename, domain.position_attachment()))
-	{
-		UG_LOG("Cannot load grid.\n");
-		return false;
-	}
-
-	return true;
-}
-
-template <typename TDomain>
 static bool LoadAndRefineDomain(TDomain& domain, const char* filename,
 								int numRefs)
 {
-#ifdef UG_PARALLEL
-	if(pcl::GetProcRank() != 0)
-		return true;
-#endif
-
-	if(!LoadGridFromFile(domain.grid(), domain.subset_handler(),
-						 filename, domain.position_attachment()))
-	{
-		UG_LOG("Cannot load grid.\n");
+	if(!LoadDomain(domain, filename))
 		return false;
-	}
 
 	GlobalMultiGridRefiner ref(domain.grid());
 	for(int i = 0; i < numRefs; ++i)
 		ref.refine();
 
 	return true;
-}
-
-template <typename TDomain>
-static bool SaveDomain(TDomain& domain, const char* filename)
-{
-	return SaveGridToFile(domain.grid(), domain.subset_handler(),
-						  filename, domain.position_attachment());
 }
 
 template <typename TDomain>
@@ -175,7 +141,8 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 	}
 
 // 	LoadDomain
-	reg.add_function("LoadDomain", &LoadDomain<TDomain>, grp,
+	reg.add_function("LoadDomain", static_cast<bool (*)(TDomain&, const char*)>(
+					 &LoadDomain<TDomain>), grp,
 					"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 					"Loads a domain", "No help");
 

@@ -91,6 +91,7 @@ write_info(std::ostream& out) const
 		SubsetInfo& si = m_sh.subset_info(i);
 		Serialize(out, si.name);
 		Serialize(out, si.color);
+		Serialize(out, si.m_propertyMap);
 	}
 }
 
@@ -105,6 +106,7 @@ read_info(std::istream& in) const
 		SubsetInfo& si = m_sh.subset_info(i);
 		Deserialize(in, si.name);
 		Deserialize(in, si.color);
+		Deserialize(in, si.m_propertyMap);
 	}
 }
 
@@ -1616,6 +1618,8 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 		out.write((char*)&si.color, sizeof(vector4));
 	//	write the subset-state
 		out.write((char*)&si.subsetState, sizeof(uint));
+	//	write the property map
+		Serialize(out, si.m_propertyMap);
 	}
 
 	for(size_t i = 0; i < goc.num_levels(); ++i)
@@ -1715,6 +1719,8 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 		in.read((char*)&si.color, sizeof(vector4));
 	//	read the subset-state
 		in.read((char*)&si.subsetState, sizeof(uint));
+	//	read the property map
+		Deserialize(in, si.m_propertyMap);
 	}
 
 	for(size_t i = 0; i < goc.num_levels(); ++i)

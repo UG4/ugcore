@@ -431,6 +431,16 @@ template <class TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 								bool preserveExistingSubsets);
 
+
+////////////////////////////////////////////////////////////////////////
+///	Gathers the dimension of each subset
+/**	Stores the max-dimension of each subset in the specified subset-property.
+ *
+ * The dimension is set to -1, if the subset does not contain any elements at all.
+ */
+void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
+								const std::string propertyName);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

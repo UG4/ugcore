@@ -290,6 +290,8 @@ class DomainDiscretization :
 	///	returns the surface dof distribution
 		dof_distribution_type& get_surface_dd();
 
+		int subset_dim(const ISubsetHandler& sh, int subsetIndex);
+
 	protected:
 	///	vector holding all registered elem discs
 		std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;

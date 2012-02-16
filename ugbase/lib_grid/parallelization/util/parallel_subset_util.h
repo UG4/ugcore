@@ -13,6 +13,7 @@ namespace ug
 /// \addtogroup lib_grid_parallelization
 /// @{
 
+////////////////////////////////////////////////////////////////////////
 template <class TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
                                 DistributedGridManager& distGridMgr,
@@ -37,6 +38,23 @@ template <class TSurfaceView>
 void CreateSurfaceView(TSurfaceView& surfaceViewOut,
                        DistributedGridManager& distGridMgr,
 						MultiGridSubsetHandler& mgsh);
+
+
+////////////////////////////////////////////////////////////////////////
+///	Gathers the global dimension of each subset
+/**	Globally communicates the max-dimension of each subset and stores
+ * it in the specified subset-property.
+ * You may optionally specify a process-communicator, which shall be used for
+ * communication.
+ *
+ * The dimension is set to -1, if the subset does not contain any elements at all.
+ *
+ * Note that all subset-handlers on all processes have to have the same number
+ * of subsets!
+ */
+void UpdateGlobalMaxDimensionOfSubset(ISubsetHandler& sh,
+						const std::string propertyName,
+						pcl::ProcessCommunicator com = pcl::ProcessCommunicator());
 
 /// @}
 }//	end of namespace

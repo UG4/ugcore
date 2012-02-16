@@ -18,6 +18,7 @@ set(srcCommon	log.cpp
 				util/ostream_util.cpp
 				util/parameter_parsing.cpp
 				util/message_hub.cpp
+				util/variant.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp
 				math/misc/tri_box.cpp

@@ -22,6 +22,42 @@
 
 namespace ug{
 
+template <typename TDomain>
+bool LoadDomain(TDomain& domain, const char* filename)
+{
+	return LoadDomain(domain, filename, 0);
+}
+
+
+template <typename TDomain>
+bool LoadDomain(TDomain& domain, const char* filename, int procId)
+{
+#ifdef UG_PARALLEL
+	if((procId >= 0 ) && (pcl::GetProcRank() != procId))
+		return true;
+#endif
+
+	if(!LoadGridFromFile(domain.grid(), domain.subset_handler(),
+						 filename, domain.position_attachment()))
+	{
+		return false;
+	}
+
+	domain.update_local_subset_dim_property();
+
+	return true;
+}
+
+
+template <typename TDomain>
+bool SaveDomain(TDomain& domain, const char* filename)
+{
+	return SaveGridToFile(domain.grid(), domain.subset_handler(),
+						  filename, domain.position_attachment());
+}
+
+
+
 /// returns if a subset is a regular grid
 inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
 {
@@ -73,79 +109,28 @@ inline bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
 }
 
 ///	returns the current dimension of the subset
-inline int DimensionOfSubset(const SubsetHandler& sh, int si
-#ifdef UG_PARALLEL
-                             , const pcl::ProcessCommunicator* pProcCom
-#endif
-							)
-{
-// 	get local dimension of subset
-	int locDim = DIM_SUBSET_EMPTY_GRID;
-	if(sh.num<VertexBase>(si) > 0) locDim = 0;
-	if(sh.num<EdgeBase>(si) > 0) locDim = 1;
-	if(sh.num<Face>(si) > 0) locDim = 2;
-	if(sh.num<Volume>(si) > 0) locDim = 3;
-
-//	in parallel, we have to check if another proc has a higher dimension
-#ifdef UG_PARALLEL
-	if(pProcCom) locDim = pProcCom->allreduce(locDim, PCL_RO_MAX);
-#endif
-
-//	return result
-	return locDim;
-}
-
-///	returns the current dimension of the subset
-inline int DimensionOfSubset(const MGSubsetHandler& sh, int si
-#ifdef UG_PARALLEL
-                             , const pcl::ProcessCommunicator* pProcCom
-#endif
-                             )
-{
-// 	get local dimension of subset
-	int locDim = DIM_SUBSET_EMPTY_GRID;
-	if(sh.num<VertexBase>(si) > 0) locDim = 0;
-	if(sh.num<EdgeBase>(si) > 0) locDim = 1;
-	if(sh.num<Face>(si) > 0) locDim = 2;
-	if(sh.num<Volume>(si) > 0) locDim = 3;
-
-//	in parallel, we have to check if another proc has a higher dimension
-#ifdef UG_PARALLEL
-	if(pProcCom) locDim = pProcCom->allreduce(locDim, PCL_RO_MAX);
-#endif
-
-//	return result
-	return locDim;
-}
-
-///	returns the current dimension of the subset
 inline int DimensionOfSubset(const ISubsetHandler& ish, int si
 #ifdef UG_PARALLEL
                              , const pcl::ProcessCommunicator* pProcCom
 #endif
 							)
 {
-//	test SubsetHandler
-	const SubsetHandler* sh = dynamic_cast<const SubsetHandler*>(&ish);
-	if(sh != NULL)
-#ifdef UG_PARALLEL
-		return DimensionOfSubset(*sh, si, pProcCom);
-#else
-	return DimensionOfSubset(*sh, si);
-#endif
+	int dim = DIM_SUBSET_EMPTY_GRID;
+	if(ish.contains_volumes(si))
+		dim = 3;
+	else if(ish.contains_faces(si))
+		dim = 2;
+	else if(ish.contains_edges(si))
+		dim = 1;
+	else if(ish.contains_vertices(si))
+		dim = 0;
 
-//	test MGSubsetHandler
-	const MGSubsetHandler* mgsh = dynamic_cast<const MGSubsetHandler*>(&ish);
-	if(mgsh != NULL)
-#ifdef UG_PARALLEL
-		return DimensionOfSubset(*mgsh, si, pProcCom);
-#else
-	return DimensionOfSubset(*mgsh, si);
-#endif
+//	in parallel, we have to check if another proc has a higher dimension
+	#ifdef UG_PARALLEL
+		if(pProcCom) dim = pProcCom->allreduce(dim, PCL_RO_MAX);
+	#endif
 
-//	unknown type of subset handler
-	throw(UGFatalError("Unknown SubsetHandler type."));
-	return false;
+	return dim;
 }
 
 inline int DimensionOfSubsets(const ISubsetHandler& sh
@@ -182,7 +167,7 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh
 
 ///	returns the current dimension of the subset
 template <typename TDomain>
-inline int DimensionOfSubset(const TDomain& domain, int si
+inline int DimensionOfDomainSubset(const TDomain& domain, int si
 #ifdef UG_PARALLEL
                              , const pcl::ProcessCommunicator* pProcCom
 #endif

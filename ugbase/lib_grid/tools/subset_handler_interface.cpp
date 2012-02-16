@@ -19,6 +19,37 @@ SubsetInfo::SubsetInfo()
 	subsetState = SS_NONE;
 }
 
+void SubsetInfo::
+set_property(const char* name, Variant prop)
+{
+	m_propertyMap[name] = prop;
+}
+
+void SubsetInfo::
+set_property(const std::string& name, Variant prop)
+{
+	m_propertyMap[name] = prop;
+}
+
+Variant SubsetInfo::
+get_property(const char* name, Variant defaultValue) const
+{
+	PropertyMap::const_iterator iter = m_propertyMap.find(name);
+	if(iter == m_propertyMap.end())
+		return defaultValue;
+	return iter->second;
+}
+
+Variant SubsetInfo::
+get_property(const std::string& name, Variant defaultValue) const
+{
+	PropertyMap::const_iterator iter = m_propertyMap.find(name);
+	if(iter == m_propertyMap.end())
+		return defaultValue;
+	return iter->second;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler implementation
 ISubsetHandler::

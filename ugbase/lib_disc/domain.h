@@ -8,12 +8,14 @@
 #ifndef __H__UG__LIB_DISC__DOMAIN__
 #define __H__UG__LIB_DISC__DOMAIN__
 
-#include "lib_grid/lg_base.h"
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/subset_util.h"
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
+#include "lib_grid/parallelization/util/parallel_subset_util.h"
 #endif
 
 namespace ug{
@@ -159,6 +161,32 @@ class Domain {
 
 	///	returns the message hub of the grid
 		SPMessageHub message_hub() const {return m_grid.message_hub();}
+
+	///	updates the subsets dimension property "dim" (integer) locally.
+	/** This method normally only has to be called after the subset-handler
+	 * has been changed. In most cases a call after the domain has been loaded
+	 * should be enough. This is done automatically by e.g. LoadDomain.
+	 *
+	 * \todo	calling this method after coarsening could be useful.
+	 * 			Think about registering a callback at the message-hub.*/
+		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(m_sh, "dim");}
+
+#ifdef UG_PARALLEL
+	///	updates the subsets dimension property "dim" (integer) globally.
+	/** This method normally only has to be called after the subset-handler
+	 * has been changed. In most cases a call after the domain has been loaded
+	 * should be enough. This is done automatically by e.g. LoadDomain.
+	 *
+	 * You may optionally specify a process communicator, which will be used
+	 * to perform the communication involved.
+	 *
+	 * \todo	calling this method after coarsening could be useful.
+	 * 			Think about registering a callback at the message-hub.*/
+		void update_global_subset_dim_property(pcl::ProcessCommunicator procCom =
+													pcl::ProcessCommunicator())
+		{UpdateGlobalMaxDimensionOfSubset(m_sh, "dim", procCom);}
+#endif
+
 
 	protected:
 		TGrid m_grid;			///< Grid

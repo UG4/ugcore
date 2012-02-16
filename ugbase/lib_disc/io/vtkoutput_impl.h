@@ -238,7 +238,7 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 
 // 	get dimension of grid-piece
 	int dim = -1;
-	if(si >= 0) dim = DimensionOfSubset(u.domain(), si);
+	if(si >= 0) dim = DimensionOfDomainSubset(u.domain(), si);
 	else dim = DimensionOfDomain(u.domain());
 
 //	write piece of grid

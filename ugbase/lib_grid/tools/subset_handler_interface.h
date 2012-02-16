@@ -8,9 +8,11 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <map>
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/grid/geometric_object_callbacks.h"
 #include "lib_grid/common_attachments.h"
+#include "common/util/variant.h"
 
 namespace ug
 {
@@ -57,13 +59,12 @@ enum SubsetState
 //	SubsetInfo
 ///	a struct that holds information associated with subsets.
 /**
- * In the moment a SubsetInfo is a collection of various types.
- * None of them are really required for libGrid (indeed only name and
- * materialIndex are used in the moment).
- * The other variables are introduced mainly for applications that use
- * libGrid. This is not the best way to do this!
- * It would be a good idea to think about an attachment-like system
- * for subsets.
+ * The subset info can be used to store additional information with each subset.
+ * On the one hand it features some often used entries like name and color,
+ * on the other hand it features a property system, which allows to associate
+ * custom properties with each subset. Note that the property system isn't that
+ * fast, that it should be frequently used in performance critical sections of
+ * the code.
  */
 struct SubsetInfo
 {
@@ -72,6 +73,25 @@ struct SubsetInfo
 	int			materialIndex;///< mostly ignored.
 	vector4		color;
 	uint		subsetState;///< an or-combination of SubsetState flags.
+
+	typedef std::map<std::string, Variant>	PropertyMap;
+///	custom properties can be stored in this map.
+/**	One should access it through set_property and get_property.*/
+	PropertyMap	m_propertyMap;
+
+///	associate a property with the given name
+/**	\{ */
+	void set_property(const char* name, Variant prop);
+	void set_property(const std::string& name, Variant prop);
+/**	\} */
+
+///	retrieve the property with the given name
+/** You may optionally specify a default value, which will be returned if the
+ * entry is not found.
+ * \{ */
+	Variant get_property(const char* name, Variant defaultValue = Variant()) const;
+	Variant get_property(const std::string& name, Variant defaultValue = Variant()) const;
+/**	\} */
 };
 
 /// \}
