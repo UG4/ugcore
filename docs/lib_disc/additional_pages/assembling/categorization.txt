@@ -25,7 +25,7 @@ Let the Domain \f$\Omega\f$ be covered by a grid \f$\Omega_h\f$. By choosing an
 appropriate trial space, each unknown continuous function \f$u_i(\vec{x},t)\f$
 is now approximated by an finite-dimensional numerical function
 \f$u_{h,i}(\vec{x},t)\f$. For each function \f$u_{h,i}\f$ a certain number of
-degrees of freedoms (DoF) has to distrubuted on the grid, being associated with
+degrees of freedoms (DoF) has to distributed on the grid, being associated with
 the geometric objects. For example, one can think of piecewise linear 
 functions on each grid elements, requiring one DoF per vertex of the element and
 no DoFs on the other Geometric Objects like edges or faces. Let \f$N_{h,i}\f$ be
@@ -51,7 +51,7 @@ For the discretization of the PDE there are several possibilities.
 	<li> discontinuous galerkin method (DG)
 </ul>
 
-This gives rise to an discretized operators \f$\mathcal{M}_h(\cdot)\f$ and \f$\mathcal{A}_h(\cdot)\f$
+This gives rise to discretized operators \f$\mathcal{M}_h(\cdot)\f$ and \f$\mathcal{A}_h(\cdot)\f$
 and a discrete right-hand side \f$\vec{f_h}\f$, with \f$	\mathcal{M}_h, \mathcal{A}_h:
  \mathbb{R}^{N_h} \mapsto \mathbb{R}^{N_h} \f$ and \f$\vec{f_h} \in \mathbb{R}^{N_h}\f$.
 
@@ -146,7 +146,7 @@ the exact jacobian. Choosing the Jacobian as a preconditioner will result in
 a quadratic convergence rate of the iteration. The other schemes give only
 a linear convergence rate.
 
-One mayor part of the non-linear iteration is the solution of the linear 
+One major part of the non-linear iteration is the solution of the linear 
 problem
 \f{align*}
 	J_h(\vec{u}_{h_k}) \vec{c}_{h,k} = \vec{d}_h(\vec{u}_{h_k}).
@@ -198,7 +198,7 @@ where
 <li> \f$u^{(k-l)} (l \geq 1)\f$ are the known solutions at previous timesteps
 </ul>
 
-Donote by \f$\vec{s} := (s_0, s_1, \ldots, s_{L-1})\f$ the specific scaling 
+Denote by \f$\vec{s} := (s_0, s_1, \ldots, s_{L-1})\f$ the specific scaling 
 factors. 
 
 Some common schemes are
@@ -229,7 +229,7 @@ This gives \f$L = 2\f$ and
 	\vec{s}_a &= (\theta \Delta t^k, (1- \theta)\Delta t^k)\\
 	\vec{s}_m &= (1, -1)
 \f}
-with implements the three forementined scheme by specifing \f$ \theta\f$.
+with implements the three forementioned schemes by specifing \f$ \theta\f$.
 <li> BDF(2): \f$ u^{k} - \frac{4}{3}u^{k-1} + \frac{1}{3}u^{k-2}
 	+ \frac{2}{3} \Delta t^k f(t^{k}, u^{k}) = 0\f$
 This gives \f$L = 3\f$ and 
@@ -343,8 +343,8 @@ solver framework can be reused.
 
 <hr>
 \section secCategorizationAcknowledgment Acknowledgment
-This spliting concept is strongly influenced by a short but very
-illuminative paper by Dmitry Logashenko. Special thanks to him for
+This splitting concept is strongly influenced by a short but very
+illuminative paper by Dmitriy Logashenko. Special thanks to him for
 sharing his insight.
 
 */
