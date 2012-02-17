@@ -228,8 +228,8 @@ class AttachedElementList
 			else
 				set_pipe(ael.m_pipe);
 
-			if(ael.m_first){
-				iterator iter(ael.m_first, m_aaEntry);
+			if(ael.m_front){
+				iterator iter(ael.m_front, m_aaEntry);
 				while(*iter){
 					push_back(*iter);
 					++iter;

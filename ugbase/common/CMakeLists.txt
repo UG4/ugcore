@@ -67,8 +67,8 @@ elseif(WIN32)
 	
 	if(MINGW)
 		set(sources ${sources} os_dependent/file_util_posix.cpp)
-		
 	else(MINGW)
+		set(sources ${sources} os_dependent/file_util_win.cpp)
 	endif(MINGW)
 	
 else(UNIX)

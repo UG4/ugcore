@@ -596,7 +596,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 {
 	switch(order)
 	{
-	case 1:
+	case 1:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 1>& q1 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 1> >::get();
 
@@ -604,9 +604,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q1.size();
 		m_pvPoint = q1.points();
 		m_pvWeight = q1.weights();
-		break;
+		}break;
 
-	case 2:
+	case 2:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 2>& q2 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 2> >::get();
 
@@ -614,9 +614,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q2.size();
 		m_pvPoint = q2.points();
 		m_pvWeight = q2.weights();
-		break;
+		}break;
 
-	case 3:
+	case 3:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 3>& q3 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 3> >::get();
 
@@ -624,9 +624,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q3.size();
 		m_pvPoint = q3.points();
 		m_pvWeight = q3.weights();
-		break;
+		}break;
 
-	case 4:
+	case 4:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 4>& q4 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 4> >::get();
 
@@ -634,9 +634,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q4.size();
 		m_pvPoint = q4.points();
 		m_pvWeight = q4.weights();
-		break;
+		}break;
 
-	case 5:
+	case 5:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 5>& q5 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 5> >::get();
 
@@ -644,9 +644,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q5.size();
 		m_pvPoint = q5.points();
 		m_pvWeight = q5.weights();
-		break;
+		}break;
 
-	case 6:
+	case 6:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 6>& q6 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 6> >::get();
 
@@ -654,9 +654,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q6.size();
 		m_pvPoint = q6.points();
 		m_pvWeight = q6.weights();
-		break;
+		}break;
 
-	case 7:
+	case 7:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 7>& q7 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 7> >::get();
 
@@ -664,9 +664,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q7.size();
 		m_pvPoint = q7.points();
 		m_pvWeight = q7.weights();
-		break;
+		}break;
 
-	case 8:
+	case 8:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 8>& q8 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 8> >::get();
 
@@ -674,9 +674,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q8.size();
 		m_pvPoint = q8.points();
 		m_pvWeight = q8.weights();
-		break;
+		}break;
 
-	case 9:
+	case 9:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 9>& q9 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 9> >::get();
 
@@ -684,9 +684,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q9.size();
 		m_pvPoint = q9.points();
 		m_pvWeight = q9.weights();
-		break;
+		}break;
 
-	case 11:
+	case 11:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 11>& q11 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 11> >::get();
 
@@ -694,9 +694,9 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q11.size();
 		m_pvPoint = q11.points();
 		m_pvWeight = q11.weights();
-		break;
+		}break;
 
-	case 13:
+	case 13:{
 		const static GaussQuadrature<ReferenceQuadrilateral, 13>& q13 
 			= Provider<GaussQuadrature<ReferenceQuadrilateral, 13> >::get();
 
@@ -704,7 +704,7 @@ FlexGaussQuadrature<ReferenceQuadrilateral>::FlexGaussQuadrature(int order)
 		m_numPoints = q13.size();
 		m_pvPoint = q13.points();
 		m_pvWeight = q13.weights();
-		break;
+		}break;
 
 	default: UG_ASSERT(0, "Order not availabile. Can not construct GaussQuadrature.\n");
 	}

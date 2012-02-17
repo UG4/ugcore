@@ -84,7 +84,7 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 {
 	switch(order)
 	{
-	case 0:
+	case 0:{
 		const static GaussQuadrature<ReferencePrism, 0>& q0 
 			= Provider<GaussQuadrature<ReferencePrism, 0> >::get();
 
@@ -92,9 +92,9 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 		m_numPoints = q0.size();
 		m_pvPoint = q0.points();
 		m_pvWeight = q0.weights();
-		break;
+		}break;
 
-	case 2:
+	case 2:{
 		const static GaussQuadrature<ReferencePrism, 2>& q2 
 			= Provider<GaussQuadrature<ReferencePrism, 2> >::get();
 
@@ -102,7 +102,7 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 		m_numPoints = q2.size();
 		m_pvPoint = q2.points();
 		m_pvWeight = q2.weights();
-		break;
+		}break;
 
 	default: UG_ASSERT(0, "Order not availabile. Can not construct GaussQuadrature.\n");
 	}

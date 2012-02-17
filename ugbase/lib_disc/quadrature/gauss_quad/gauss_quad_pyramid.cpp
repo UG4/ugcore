@@ -60,7 +60,7 @@ FlexGaussQuadrature<ReferencePyramid>::FlexGaussQuadrature(int order)
 {
 	switch(order)
 	{
-	case 2:
+	case 2:{
 		const static GaussQuadrature<ReferencePyramid, 2>& q2 
 			= Provider<GaussQuadrature<ReferencePyramid, 2> >::get();
 
@@ -68,7 +68,7 @@ FlexGaussQuadrature<ReferencePyramid>::FlexGaussQuadrature(int order)
 		m_numPoints = q2.size();
 		m_pvPoint = q2.points();
 		m_pvWeight = q2.weights();
-		break;
+		}break;
 
 	default: UG_ASSERT(0, "Order not availabile. Can not construct GaussQuadrature.\n");
 	}

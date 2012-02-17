@@ -77,7 +77,7 @@ DenseMatrix<TStorage>::operator = (const T &rhs)
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator += (const DenseMatrix<TStorage>::value_type &alpha)
+DenseMatrix<TStorage>::operator += (const typename DenseMatrix<TStorage>::value_type &alpha)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
@@ -87,7 +87,7 @@ DenseMatrix<TStorage>::operator += (const DenseMatrix<TStorage>::value_type &alp
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator -= (const DenseMatrix<TStorage>::value_type &alpha)
+DenseMatrix<TStorage>::operator -= (const typename DenseMatrix<TStorage>::value_type &alpha)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
@@ -108,7 +108,7 @@ DenseMatrix<TStorage>::operator *= (const T &alpha)
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator /= (const DenseMatrix<TStorage>::value_type &alpha)
+DenseMatrix<TStorage>::operator /= (const typename DenseMatrix<TStorage>::value_type &alpha)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)

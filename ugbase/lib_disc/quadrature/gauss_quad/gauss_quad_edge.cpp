@@ -221,7 +221,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 {
 	switch(order)
 	{
-	case 1:
+	case 1:{
 		const static GaussQuadrature<ReferenceEdge, 1>& q1 
 			= Provider<GaussQuadrature<ReferenceEdge, 1> >::get();
 
@@ -229,9 +229,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q1.size();
 		m_pvPoint = q1.points();
 		m_pvWeight = q1.weights();
-		break;
+		}break;
 
-	case 3:
+	case 3:{
 		const static GaussQuadrature<ReferenceEdge, 3>& q3 
 			= Provider<GaussQuadrature<ReferenceEdge, 3> >::get();
 
@@ -239,9 +239,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q3.size();
 		m_pvPoint = q3.points();
 		m_pvWeight = q3.weights();
-		break;
+		}break;
 
-	case 5:
+	case 5:{
 		const static GaussQuadrature<ReferenceEdge, 5>& q5 
 			= Provider<GaussQuadrature<ReferenceEdge, 5> >::get();
 
@@ -249,9 +249,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q5.size();
 		m_pvPoint = q5.points();
 		m_pvWeight = q5.weights();
-		break;
+		}break;
 
-	case 7:
+	case 7:{
 		const static GaussQuadrature<ReferenceEdge, 7>& q7 
 			= Provider<GaussQuadrature<ReferenceEdge, 7> >::get();
 
@@ -259,9 +259,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q7.size();
 		m_pvPoint = q7.points();
 		m_pvWeight = q7.weights();
-		break;
+		}break;
 
-	case 9:
+	case 9:{
 		const static GaussQuadrature<ReferenceEdge, 9>& q9 
 			= Provider<GaussQuadrature<ReferenceEdge, 9> >::get();
 
@@ -269,9 +269,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q9.size();
 		m_pvPoint = q9.points();
 		m_pvWeight = q9.weights();
-		break;
+		}break;
 
-	case 11:
+	case 11:{
 		const static GaussQuadrature<ReferenceEdge, 11>& q11 
 			= Provider<GaussQuadrature<ReferenceEdge, 11> >::get();
 
@@ -279,9 +279,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q11.size();
 		m_pvPoint = q11.points();
 		m_pvWeight = q11.weights();
-		break;
+		}break;
 
-	case 13:
+	case 13:{
 		const static GaussQuadrature<ReferenceEdge, 13>& q13 
 			= Provider<GaussQuadrature<ReferenceEdge, 13> >::get();
 
@@ -289,9 +289,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q13.size();
 		m_pvPoint = q13.points();
 		m_pvWeight = q13.weights();
-		break;
+		}break;
 
-	case 15:
+	case 15:{
 		const static GaussQuadrature<ReferenceEdge, 15>& q15 
 			= Provider<GaussQuadrature<ReferenceEdge, 15> >::get();
 
@@ -299,9 +299,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q15.size();
 		m_pvPoint = q15.points();
 		m_pvWeight = q15.weights();
-		break;
+		}break;
 
-	case 17:
+	case 17:{
 		const static GaussQuadrature<ReferenceEdge, 17>& q17 
 			= Provider<GaussQuadrature<ReferenceEdge, 17> >::get();
 
@@ -309,9 +309,9 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q17.size();
 		m_pvPoint = q17.points();
 		m_pvWeight = q17.weights();
-		break;
+		}break;
 
-	case 19:
+	case 19:{
 		const static GaussQuadrature<ReferenceEdge, 19>& q19 
 			= Provider<GaussQuadrature<ReferenceEdge, 19> >::get();
 
@@ -319,7 +319,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q19.size();
 		m_pvPoint = q19.points();
 		m_pvWeight = q19.weights();
-		break;
+		}break;
 
 	default: UG_ASSERT(0, "Order not availabile. Can not construct GaussQuadrature.\n");
 	}

@@ -728,7 +728,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 {
 	switch(order)
 	{
-	case 1:
+	case 1:{
 		const static GaussQuadrature<ReferenceTriangle, 1>& q1 
 			= Provider<GaussQuadrature<ReferenceTriangle, 1> >::get();
 
@@ -736,9 +736,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q1.size();
 		m_pvPoint = q1.points();
 		m_pvWeight = q1.weights();
-		break;
+		}break;
 
-	case 2:
+	case 2:{
 		const static GaussQuadrature<ReferenceTriangle, 2>& q2 
 			= Provider<GaussQuadrature<ReferenceTriangle, 2> >::get();
 
@@ -746,9 +746,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q2.size();
 		m_pvPoint = q2.points();
 		m_pvWeight = q2.weights();
-		break;
+		}break;
 
-	case 3:
+	case 3:{
 		const static GaussQuadrature<ReferenceTriangle, 3>& q3 
 			= Provider<GaussQuadrature<ReferenceTriangle, 3> >::get();
 
@@ -756,9 +756,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q3.size();
 		m_pvPoint = q3.points();
 		m_pvWeight = q3.weights();
-		break;
+		}break;
 
-	case 4:
+	case 4:{
 		const static GaussQuadrature<ReferenceTriangle, 4>& q4 
 			= Provider<GaussQuadrature<ReferenceTriangle, 4> >::get();
 
@@ -766,9 +766,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q4.size();
 		m_pvPoint = q4.points();
 		m_pvWeight = q4.weights();
-		break;
+		}break;
 
-	case 5:
+	case 5:{
 		const static GaussQuadrature<ReferenceTriangle, 5>& q5 
 			= Provider<GaussQuadrature<ReferenceTriangle, 5> >::get();
 
@@ -776,9 +776,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q5.size();
 		m_pvPoint = q5.points();
 		m_pvWeight = q5.weights();
-		break;
+		}break;
 
-	case 6:
+	case 6:{
 		const static GaussQuadrature<ReferenceTriangle, 6>& q6 
 			= Provider<GaussQuadrature<ReferenceTriangle, 6> >::get();
 
@@ -786,9 +786,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q6.size();
 		m_pvPoint = q6.points();
 		m_pvWeight = q6.weights();
-		break;
+		}break;
 
-	case 7:
+	case 7:{
 		const static GaussQuadrature<ReferenceTriangle, 7>& q7 
 			= Provider<GaussQuadrature<ReferenceTriangle, 7> >::get();
 
@@ -796,9 +796,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q7.size();
 		m_pvPoint = q7.points();
 		m_pvWeight = q7.weights();
-		break;
+		}break;
 
-	case 8:
+	case 8:{
 		const static GaussQuadrature<ReferenceTriangle, 8>& q8 
 			= Provider<GaussQuadrature<ReferenceTriangle, 8> >::get();
 
@@ -806,9 +806,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q8.size();
 		m_pvPoint = q8.points();
 		m_pvWeight = q8.weights();
-		break;
+		}break;
 
-	case 9:
+	case 9:{
 		const static GaussQuadrature<ReferenceTriangle, 9>& q9 
 			= Provider<GaussQuadrature<ReferenceTriangle, 9> >::get();
 
@@ -816,9 +816,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q9.size();
 		m_pvPoint = q9.points();
 		m_pvWeight = q9.weights();
-		break;
+		}break;
 
-	case 10:
+	case 10:{
 		const static GaussQuadrature<ReferenceTriangle, 10>& q10 
 			= Provider<GaussQuadrature<ReferenceTriangle, 10> >::get();
 
@@ -826,9 +826,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q10.size();
 		m_pvPoint = q10.points();
 		m_pvWeight = q10.weights();
-		break;
+		}break;
 
-	case 11:
+	case 11:{
 		const static GaussQuadrature<ReferenceTriangle, 11>& q11 
 			= Provider<GaussQuadrature<ReferenceTriangle, 11> >::get();
 
@@ -836,9 +836,9 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q11.size();
 		m_pvPoint = q11.points();
 		m_pvWeight = q11.weights();
-		break;
+		}break;
 
-	case 12:
+	case 12:{
 		const static GaussQuadrature<ReferenceTriangle, 12>& q12 
 			= Provider<GaussQuadrature<ReferenceTriangle, 12> >::get();
 
@@ -846,7 +846,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 		m_numPoints = q12.size();
 		m_pvPoint = q12.points();
 		m_pvWeight = q12.weights();
-		break;
+		}break;
 
 	default: UG_ASSERT(0, "Order not availabile. Can not construct GaussQuadrature.\n");
 	}
