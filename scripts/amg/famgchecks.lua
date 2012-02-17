@@ -381,8 +381,6 @@ else
 	postsmoother = sgs
 end
 
-jac2 = Jacobi()
-jac2:set_damp(0.8)
 
 
 
@@ -423,7 +421,7 @@ if bRSAMG == false then
 	end
 	
 	amg = FAMGPreconditioner()	
-	amg:set_delta(0.5)
+	amg:set_delta(0.1)
 	amg:set_theta(0.95)
 	amg:set_aggressive_coarsening(bAggressiveCoarsening)
 		
@@ -433,6 +431,9 @@ if bRSAMG == false then
 	testvectorwriter:update(testvector)	
 	amg:add_testvector(testvectorwriter, 1.0)
 
+
+	jac2 = Jacobi()
+	jac2:set_damp(0.8)
 	amg:set_testvector_smooths(1)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.6)
 	amg:set_testvector_smoother(jac2)
@@ -589,7 +590,7 @@ linSolver:init(linOp)
 	solution:assign(u)
 
 ---------
-if false then
+if util.HasParamOption("-bCheck") then
 	print("CHECKS:")
 	linSolver = LinearSolver()	
 	linSolver:set_preconditioner(amg)
@@ -608,13 +609,13 @@ if false then
 		SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
 		amg:write_interfaces()
 	end
-end	
 	print("amg:check(u, b)")
-	-- amg:check(u,b)
+	amg:check(u,b)
 	print("amg:check_testvector()")
-	-- amg:check_testvector()
+	--amg:check_testvector()
 	print("amg:check_fsmoothing()")
 	-- amg:check_fsmoothing()
+end	
 	
 		
 
