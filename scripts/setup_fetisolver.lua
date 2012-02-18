@@ -42,6 +42,7 @@
 ########
 setenv UGARGS "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 0 -lsType feti -nPPSD 1"
 openmpirun -np 4 ugshell $UGARGS -numRefs 5 # etc.
+openmpirun -np 4 ugshell $UGARGS -numRefs 5 -dbgw 1 # with debug writer
 	
 # cekon:
 ########
@@ -62,9 +63,9 @@ salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps rsamg -nps cg    -cps exac
 -- RSAMG for Dirichlet+Neumann problem:
 salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps rsamg -nps rsamg -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-rsamg_nps-rsamg_cps-exact_pe04.txt
 
--- exact for Dirichlet problem:
+-- exact for Dirichlet problem - only for one process per subdomain since 'exact' isn't parallelized:
 salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps exact -nps cg    -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-exact_nps-cg_cps-exact_pe04.txt
--- exact for Dirichlet+Neumann problem:
+-- exact for Dirichlet+Neumann problem - only for one process per subdomain since 'exact' isn't parallelized:
 salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -dps exact -nps exact -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-exact_nps-exact_cps-exact_pe04.txt
 
 
@@ -79,7 +80,58 @@ salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -logtofile feti-sd1_8x8-quad_pr
 salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -distType grid2d -logtofile feti-sd1_8x8-quad_prerefs3-refs8_grid2d_pe64.txt - jetzt geht "step 3.b" auf folgenden Procs nicht:
 39, 47, 31, 55, 60, 61, 62, 3, 1, 2
 
+
+################################################################################
+# With new naming scheme (27102011):
+################################################################################
+UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
+#  -nPPSD 1:
+############
+salloc          -n   4 mpirun                            ./ugshell $UGARGS -numRefs 5 -dps exact -nps cg -cps exact -logtofile bla -rlf 1
+salloc          -n   4 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps exact -nps cg -cps exact -logtofile bla -rlf 1 - Absturz, wohl wegen Speicherbedarf fuer exact-Solvers
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps exact -nps cg -cps exact -logtofile bla -rlf 1
+salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps exact -nps cg -cps exact -logtofile bla -rlf 1
+
+# Auswertung auf Anzahl FETI-Schritte:
+grep " Relative reduction 1" scaltest-laplace-2d_8x8-quads_refs-3-?_feti_nppsd-1_spss-exact-cg-exact_pe-*.txt
+
+salloc          -n   4 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1 -- step 3.b failed nur auf Proc 8 (wie bisher)
+salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1
+salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 8 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1 -- TODO! Duerfte wohl ebenfalls an 3.b failen!?
+salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1
+salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1
+salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 9 -dps cg    -nps cg -cps exact -logtofile bla -rlf 1 -- TODO!
+
+# Auswertung auf Anzahl FETI-Schritte:
+grep " Relative reduction 1" scaltest-laplace-2d_8x8-quads_refs-3-?_feti_nppsd-1_spss-cg-cg-exact_pe-*.txt
+
+#  -nPPSD 4:
+############
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 4 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- Solve Neumann problem failed
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 5 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- Solve Neumann problem failed
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- Solve Neumann problem failed
+
+# Da mit diesen Parameter schon 16 PE nicht laufen, das folgende noch gar nicht probiert ...
+salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf 1
+salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf 1
+salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf 1
+
+# ... leider geht das folgende, Neumann-Solver 'exact', nicht, da dieser Loeser nicht parallel ...:
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- step 3.b failed
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 5 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- step 3.b failed, mit 'nans' als last defect! 
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 4 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- step 3.b failed
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 3 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- step 3.b failed, mit 'nans' als last defect!
+salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- TODO!
+salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- TODO!
+# ... stattdessen sowohl fuer Dirichlet- als auch fuer Neumann-Solver 'exact' gewaehlt:
+salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps exact -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- abgebrochen nach 2 1/2 Schritten (6h)
+salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps exact -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf 1 -- abgebrochen nach 1 1/2 Schritten ...
+
+################################################################################
 # Test, ob S_PiPi identisch fuer konstante Anzahl Subdomains:
+################################################################################
 UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
 salloc        -n  16 mpirun ./ugshell $UGARGS -numRefs 3 -dps rsamg -verb 2 -dbgw 1 -nPPSD 1
 salloc        -n  64 mpirun ./ugshell $UGARGS -numRefs 3 -dps bicg  -verb 2 -dbgw 1 -nPPSD 4
@@ -602,12 +654,13 @@ function SetupFETISolver(str_problem,
 	fetiSolver:set_convergence_check(fetiConvCheck)
 
 	if activateDbgWriter >= 1 then
-		print("    Setting debug writer for 'fetiSolver' (raw data)")
+		print("    Setting debug writer for 'fetiSolver' (no make consistent (former: 'raw data')")
 		-- debug writer
 		fetidbgWriter = GridFunctionDebugWriter()
 		fetidbgWriter:set_reference_grid_function(u)
 		fetidbgWriter:set_vtk_output(true)
-		fetidbgWriter:set_print_raw_data(true) -- if 'true' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI
+		-- alt:fetidbgWriter:set_print_raw_data(true) -- if 'true' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI
+		fetidbgWriter:set_print_consistent(false) -- if 'false' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI
 
 		fetiSolver:set_debug(fetidbgWriter)
 	end
