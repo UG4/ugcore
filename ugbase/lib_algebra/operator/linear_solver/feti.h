@@ -258,6 +258,7 @@ class FetiLayouts
 		}
 
 	public:
+/// calculates vecDest = alpha1*vecSource1 + alpha2*vecSource2 on dual
 		void vec_scale_add_on_dual(vector_type& vecDest,
 		                           number alpha1, const vector_type& vecSrc1,
 		                           number alpha2, const vector_type& vecSrc2)
@@ -265,6 +266,7 @@ class FetiLayouts
 			VecScaleAdd(vecDest, alpha1, vecSrc1, alpha2, vecSrc2, m_vUniqueDualIndex);
 		}
 
+/// calculates vecDest = alpha1*vecSource1 + alpha2*vecSource2 on primal
 		void vec_scale_add_on_primal(vector_type& vecDest,
 		                           number alpha1, const vector_type& vecSrc1,
 		                           number alpha2, const vector_type& vecSrc2)
@@ -272,38 +274,45 @@ class FetiLayouts
 			VecScaleAdd(vecDest, alpha1, vecSrc1, alpha2, vecSrc2, m_vUniquePrimalIndex);
 		}
 
+/// calculates vecInOut += alpha1*vecSrc1 on dual
 		void vec_scale_append_on_dual(vector_type& vecInOut,
 		                              const vector_type& vecSrc1, number alpha1)
 		{
 			VecScaleAdd(vecInOut, alpha1, vecSrc1, 1.0, vecInOut, m_vUniqueDualIndex);
 		}
 
+/// calculates vecInOut += alpha1*vecSrc1 on primal
 		void vec_scale_append_on_primal(vector_type& vecInOut,
 		                              const vector_type& vecSrc1, number alpha1)
 		{
 			VecScaleAdd(vecInOut, alpha1, vecSrc1, 1.0, vecInOut, m_vUniquePrimalIndex);
 		}
 
+/// sets vecDest = alpha on dual
 		void vec_set_on_dual(vector_type& vecDest, number alpha)
 		{
 			VecSet(vecDest, alpha, m_vUniqueDualIndex);
 		}
 
+/// sets vecDest = alpha on primal
 		void vec_set_on_primal(vector_type& vecDest, number alpha)
 		{
 			VecSet(vecDest, alpha, m_vUniquePrimalIndex);
 		}
 
+/// calculates vecDest = alpha*vecSrc on dual
 		void vec_scale_assign_on_dual(vector_type& vecDest, const vector_type& vecSrc, number alpha)
 		{
 			VecScaleAssign(vecDest, alpha, vecSrc, m_vUniqueDualIndex);
 		}
 
+/// calculates vecDest = alpha*vecSrc on primal
 		void vec_scale_assign_on_primal(vector_type& vecDest, const vector_type& vecSrc, number alpha)
 		{
 			VecScaleAssign(vecDest, alpha, vecSrc, m_vUniquePrimalIndex);
 		}
 
+/// calculates norm on dual
 		number vec_norm_on_identified_dual(vector_type& vec)
 		{
 		//	forward to VecProc
@@ -744,8 +753,8 @@ class PrimalSubassembledMatrixInverse
 	///	prints some convergence statistic of inner solvers
 		void print_statistic_of_inner_solver() const;
 
-	///	set 'm_bTestOnToManyLayouts'
-		void set_test_one_to_many_layouts(bool bTest) {m_bTestOnToManyLayouts = bTest;}
+	///	set 'm_bTestOneToManyLayouts'
+		void set_test_one_to_many_layouts(bool bTest) {m_bTestOneToManyLayouts = bTest;}
 
 	//  destructor
 		virtual ~PrimalSubassembledMatrixInverse() {};
@@ -813,7 +822,7 @@ class PrimalSubassembledMatrixInverse
 		std::map<std::string, std::vector<StepConv> > m_mvStepConv;
 
 	//	testing of 'one-to-many layouts'
-		bool m_bTestOnToManyLayouts;
+		bool m_bTestOneToManyLayouts;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
@@ -941,7 +950,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	tests layouts:
 		void test_layouts(bool print);
 
-	//	set member 'm_bTestOnToManyLayouts' of class 'PrimalSubassembledMatrixInverse':
+	//	set member 'm_bTestOneToManyLayouts' of class 'PrimalSubassembledMatrixInverse':
 		void set_test_one_to_many_layouts(bool bTest)
 		{
 			m_PrimalSubassembledMatrixInverse.set_test_one_to_many_layouts(bTest);
