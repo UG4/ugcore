@@ -36,7 +36,7 @@ discretized using libDiscretization.
 
 The starting point for any discretization is a physical domain, \f$ \Omega 
 \subset \mathbb{R}^d \f$. In Ug currently 1d, 2, and 3d domains are 
-supported. Furthermore, for time dependent problems on has a finite time 
+supported. Furthermore, for time dependent problems one has a finite time 
 interval \f$ I := [t_{start}, t_{end}] \f$ where the solution is searched.
 
 The PDE model the behaviour of a set of \f$n\f$ functions on the domain:
