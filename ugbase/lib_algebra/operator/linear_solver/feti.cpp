@@ -1695,7 +1695,7 @@ compute_d(vector_type& d, const vector_type& f)
 
 //  1. Apply PrimalSubassembledMatrixInverse to 'f'
 //	1.1. let vectors use communication within feti subdomain - no 'vec_use_intra_sd_communication()' nec. before 'm_PrimalSubassembledMatrixInverse.apply()' (01112011ih)!
-	m_fetiLayouts.vec_use_intra_sd_communication(dTmp);// added 25022011ih
+
 	dTmp.set_storage_type(PST_CONSISTENT);
 	FETI_PROFILE_BEGIN(FETISolverCompute_d_ApplyPrimalSubassMatInv);
 	if(!m_PrimalSubassembledMatrixInverse.apply(dTmp, f))
