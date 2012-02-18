@@ -682,7 +682,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			{
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 						" Could not solve local Neumann problem to compute Schur"
-						" complement w.r.t. primal unknowns.\n");
+						" complement w.r.t. primal unknowns: "
+								 << procInFetiSD << ", " << pvTo_j << ".\n"); // TODO: info about current repetition of loop? (28102011ih)
 
 				IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
@@ -1128,7 +1129,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	if(!pcl::AllProcsTrue(bSuccess))
 	{
 		UG_LOG("ERROR in PrimalSubassembledMatrixInverse::apply: Some processes "
-			   "could not apply 'PrimalSubassembledMatrixInverseback' (end of method).\n");
+			   "could not apply 'PrimalSubassembledMatrixInverse' (end of method).\n");
 		return false;
 	}
 
@@ -1234,6 +1235,7 @@ print_statistic_of_inner_solver() const
 		UG_LOG("\n");
 	}
 } /* end 'PrimalSubassembledMatrixInverse::print_statistic_of_inner_solver()' */
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -1430,7 +1432,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	search direction
 	vector_type p; p.create(u.size());
 	m_fetiLayouts.vec_use_std_communication(p);
-	//m_fetiLayouts.vec_use_???_communication(u); unnec. since this setting is done before usage in 'm_PrimalSubassembledMatrixInverse.apply()' (see below)!
+	//m_fetiLayouts.vec_use_???_communication(u); // unnec. since this setting is done before usage in 'm_PrimalSubassembledMatrixInverse.apply()' (see below)!
 
 //	preconditioned residuum
 	vector_type z; z.create(u.size());
@@ -1733,7 +1735,7 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	z.set(0.0); zTmp.set(0.0);
 
 //	1. Apply scaling: z := D_{\Delta}^{(i)} * r
-	apply_scaling_matrix(z, r); // maybe restrict to layout
+	apply_scaling_matrix(z, r); // maybe restrict to layout (but it performs no communication until now)
 
 //  2. 	Apply transposed jump operator: zTmp := B_{\Delta}^T * z
 //		Afterwards, zTmp is consistent on Delta (Please note that 'ComputeDifferenceOnDeltaTransposed()'
