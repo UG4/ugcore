@@ -53,9 +53,8 @@ get_proc_id(size_t index) const
 }
 
 int ProcessCommunicator::
-get_local_proc_id() const
+get_local_proc_id(int globalProcID) const
 {
-	int globalProcID = pcl::GetProcRank();
 	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
 		return globalProcID;
 

@@ -51,7 +51,7 @@ class ProcessCommunicator
 
 	///	returns the proc-id relative to this communicator
 	/**	This method has a worst time complexity of O(n)*/
-		int get_local_proc_id() const;
+		int get_local_proc_id(int globalProcID = pcl::GetProcRank()) const;
 
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current
@@ -281,12 +281,11 @@ class ProcessCommunicator
 	 * \param count number of elements in the input/output buffers
 	 * \param op the Reduce Operation
 	 */
-		template<typename T>
-		void allreduce(const T *pSendBuff, T *pReceiveBuff,
-					   size_t count, pcl::ReduceOperation op) const
-		{
-			allreduce(pSendBuff, pReceiveBuff, count, get_data_type(T()), op);
-		}
+	template<typename T>
+	void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const
+	{
+		allreduce(pSendBuff, pReceiveBuff, count, get_data_type(T()), op);
+	}
 
 	///	this method will not return until all processes in the communicator have called it.
 		void barrier() const;
