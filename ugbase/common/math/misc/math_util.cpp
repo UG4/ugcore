@@ -18,6 +18,159 @@ using namespace std;
 namespace ug
 {
 
+bool TriangleCircumcenter(vector2& centerOut, const vector2& p1,
+						  const vector2& p2, const vector2& p3)
+{
+	using std::swap;
+
+	number d12 = VecDistanceSq(p1, p2);
+	number d23 = VecDistanceSq(p2, p3);
+	number d13 = VecDistanceSq(p1, p3);
+
+//	if any of the sides is too short, then we'll simply calculate the center
+	if(d12 < SMALL || d23 < SMALL || d13 < SMALL){
+		centerOut = TriangleBarycenter(p1, p2, p3);
+		return true;
+	}
+
+//	centers of sides and side-normals
+	vector2 c1, c2, n1, n2;
+
+//	for maximal accuracy, we'll choose the two longest sides
+	if(d12 >= d23){
+		VecScaleAdd(c1, 0.5, p1, 0.5, p2);
+		VecSubtract(n1, p2, p1);//	perform swapping later
+		if(d23 >= d13){
+			VecScaleAdd(c2, 0.5, p2, 0.5, p3);
+			VecSubtract(n2, p3, p2);//	perform swapping later
+		}
+		else{
+			VecScaleAdd(c2, 0.5, p1, 0.5, p3);
+			VecSubtract(n2, p3, p1);//	perform swapping later
+		}
+	}
+	else{
+		VecScaleAdd(c1, 0.5, p2, 0.5, p3);
+		VecSubtract(n1, p3, p2);//	perform swapping later
+		if(d12 >= d13){
+			VecScaleAdd(c2, 0.5, p1, 0.5, p2);
+			VecSubtract(n2, p2, p1);//	perform swapping later
+		}
+		else{
+			VecScaleAdd(c2, 0.5, p1, 0.5, p3);
+			VecSubtract(n2, p3, p1);//	perform swapping later
+		}
+	}
+
+//	swap normal-coefficients
+	swap(n1.x, n1.y);
+	n1.x *= -1.;
+	swap(n2.x, n2.y);
+	n2.x *= -1.;
+
+//	calculate intersection of the two lines
+	number t0, t1;
+	if(!RayRayIntersection2d(centerOut, t0, t1, c1, n1, c2, n2)){
+	//	line-line intersection failed. return the barycenter instead.
+		return false;
+	}
+
+	return true;
+}
+
+bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
+						  const vector3& p2, const vector3& p3)
+{
+	using std::swap;
+
+	number d12 = VecDistanceSq(p1, p2);
+	number d23 = VecDistanceSq(p2, p3);
+	number d13 = VecDistanceSq(p1, p3);
+
+//	if any of the sides is too short, or if one is way shorter than the others,
+//	then we'll simply calculate the bary-center. This should be a good approximation.
+//\todo: This could be a little dangerous!!!
+	bool degTri = d12 < SMALL || d23 < SMALL || d13 < SMALL;
+	const number badRatio = SMALL;
+
+	if(d12 > 0){
+		degTri |= (d13 / d12 < badRatio);
+		degTri |= (d23 / d12 < badRatio);
+	}
+	if(d13 > 0){
+		degTri |= (d12 / d13 < badRatio);
+		degTri |= (d23 / d13 < badRatio);
+	}
+	if(d23 > 0){
+		degTri |= (d12 / d23 < badRatio);
+		degTri |= (d13 / d23 < badRatio);
+	}
+
+	if(degTri){
+		centerOut = TriangleBarycenter(p1, p2, p3);
+		return true;
+	}
+
+//	centers of sides, direction of sides and side-normals
+	vector3 c1, c2, dir1, dir2, n1, n2;
+
+//	triangle normal. Used to construct the side normals so that they lie in
+//	the triangles plane
+	vector3 n;
+
+//	for maximal accuracy, we'll choose the two longest sides
+	if(d12 >= d23){
+		VecScaleAdd(c1, 0.5, p1, 0.5, p2);
+		VecSubtract(dir1, p2, p1);
+		if(d23 >= d13){
+			VecScaleAdd(c2, 0.5, p2, 0.5, p3);
+			VecSubtract(dir2, p3, p2);
+		}
+		else{
+			VecScaleAdd(c2, 0.5, p1, 0.5, p3);
+			VecSubtract(dir2, p3, p1);
+		}
+	}
+	else{
+		VecScaleAdd(c1, 0.5, p2, 0.5, p3);
+		VecSubtract(dir1, p3, p2);
+		if(d12 >= d13){
+			VecScaleAdd(c2, 0.5, p1, 0.5, p2);
+			VecSubtract(dir2, p2, p1);
+		}
+		else{
+			VecScaleAdd(c2, 0.5, p1, 0.5, p3);
+			VecSubtract(dir2, p3, p1);
+		}
+	}
+
+//	calculate side-normals
+	VecCross(n, dir1, dir2);
+	VecCross(n1, n, dir1);
+	VecCross(n2, n, dir2);
+
+	VecNormalize(n1, n1);
+	VecNormalize(n2, n2);
+
+//	calculate intersection of the two lines
+	vector3 a, b;
+	RayRayIntersection3d(a, b, c1, n1, c2, n2);
+		//UG_LOG("LineLine Intersection failed!\n");
+		/*
+		UG_LOG("points:        " << p1 << ",\t " << p2 << ",\t " << p3 << endl);
+		UG_LOG("centers:       " << c1 << ",\t " << c2 << endl);
+		UG_LOG("ray-dirs:      " << n1 << ",\t " << n2 << endl);
+		UG_LOG("normal:        " << n << endl);
+		UG_LOG("intersections: " << centerOut << ",\t " << b << endl);
+		*/
+	//	line-line intersection failed. return the barycenter instead.
+		//return false;
+
+	VecScaleAdd(centerOut, 0.5, a, 0.5, b);
+
+	return true;
+}
+
 bool FindNormal(vector3& normOut, const vector3& v)
 {
 //	normalize v to avoid problems with oversized vectors.
@@ -164,6 +317,26 @@ bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////
+bool RayRayIntersection3d(vector3& aOut, vector3& bOut,
+						  const vector3& p0, const vector3& dir0,
+						  const vector3& p1, const vector3& dir1)
+{
+	vector3 vNear, vAB;
+	bool trueIntersection;
+	vector3 q0, q1;
+	VecAdd(q0, p0, dir0);
+	VecAdd(q1, p1, dir1);
+
+	IntersectLineSegments(p0.x, p0.y, p0.z, q0.x, q0.y, q0.z,
+						  p1.x, p1.y, p1.z, q1.x, q1.y, q1.z,
+						  true, 1.e-6,
+						  aOut.x, aOut.y, aOut.z, bOut.x, bOut.y, bOut.z,
+						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
+						  trueIntersection);
+
+	return trueIntersection;
+}
 
 ////////////////////////////////////////////////////////////////////////
 bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
@@ -175,7 +348,7 @@ bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
 
 	IntersectLineSegments(a1.x, a1.y, a1.z, a2.x, a2.y, a2.z,
 						  b1.x, b1.y, b1.z, b2.x, b2.y, b2.z,
-						  false, SMALL,
+						  false, 1.e-6,
 						  aOut.x, aOut.y, aOut.z, bOut.x, bOut.y, bOut.z,
 						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
 						  trueIntersection);
@@ -191,7 +364,7 @@ number DistanceLineToLine(const vector3& a1, const vector3& a2,
 
 	IntersectLineSegments(a1.x, a1.y, a1.z, a2.x, a2.y, a2.z,
 						  b1.x, b1.y, b1.z, b2.x, b2.y, b2.z,
-						  false, SMALL,
+						  false, 1.e-6,
 						  vA.x, vA.y, vA.z, vB.x, vB.y, vB.z,
 						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
 						  trueIntersection);

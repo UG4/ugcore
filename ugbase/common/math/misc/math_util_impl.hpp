@@ -72,7 +72,16 @@ void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
 		VecScale(centerOut, centerOut, 1. / (number)numPoints);
 	}
 }
-					 
+
+template <class vector_t>
+vector_t
+TriangleBarycenter(const vector_t& p1, const vector_t& p2, const vector_t& p3)
+{
+	vector_t bc;
+	VecScaleAdd(bc, 1./3., p1, 1./3., p2, 1./3., p3);
+	return bc;
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 number DropAPerpendicular(vector_t& vOut, const vector_t& v,
@@ -300,27 +309,25 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 	return true;
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
-bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
-						   const vector_t &p0, const vector_t &p1,
-						   const vector_t &vFrom, const vector_t &vDir)
+bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
+						   const vector_t &p0, const vector_t &dir0,
+						   const vector_t &p1, const vector_t &dir1)
 {
 	// we search for the intersection of the ray vFrom + tOut*vDir with the
 	// Line p0 + bcOut*(p1-p0). Intersection is true, if c0 in [0,1].
 	// We set up the system
-	//   | (p1-p0)[0] , - vDir[0] | ( bcOut ) = ( (vFrom - p0)[0] )
-	//   | (p1-p0)[1] , - vDir[1] | (  tOut ) = ( (vFrom - p0)[1] )
+	//   | dir0[0] , - dir1[0] | ( t0Out ) = ( (p1 - p0)[0] )
+	//   | dir0[1] , - dir1[1] | ( t1Out ) = ( (p1 - p0)[1] )
 
 	vector_t v, b;
 	MathMatrix<2,2> m, mInv;
 
-	// compute vector connecting the points of the line (p0 -> p1)
-	VecSubtract(v, p1, p0);
-
 	// set up matrix
-	m[0][0] = v[0]; m[0][1] = -1 * vDir[0];
-	m[1][0] = v[1]; m[1][1] = -1 * vDir[1];
+	m[0][0] = dir0[0]; 	m[0][1] = -1 * dir1[0];
+	m[1][0] = dir0[1]; 	m[1][1] = -1 * dir1[1];
 
 	// invert matrix
 	number det = Determinant(m);
@@ -332,27 +339,34 @@ bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 	Inverse(mInv, m, det);
 
 	// compute rhs of system
-	VecSubtract(b, vFrom, p0);
+	VecSubtract(b, p1, p0);
 
 	// solve system
 	MatVecMult(v, mInv, b);
 
-	// if bcOut in range
-	bcOut = v[0];
-	if(bcOut >= 0.0 && bcOut <= 1.0)
-	{
-		// return intersection parameter
-		tOut = v[1];
+	// parameters of the intersection
+	t0Out = v[0];
+	t1Out = v[1];
 
-		// compute intersection point
-		vOut = vFrom;
-		VecScaleAppend(vOut, tOut, vDir);
+	// compute intersection point
+	vOut = p0;
+	VecScaleAppend(vOut, t0Out, dir0);
 
-		// intersection
-		return true;
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
+						   const vector_t &p0, const vector_t &p1,
+						   const vector_t &vFrom, const vector_t &vDir)
+{
+	vector_t dir0;
+	VecSubtract(dir0, p1, p0);
+	if(RayRayIntersection2d(vOut, bcOut, tOut, p0, dir0, vFrom, vDir)){
+		if(bcOut >= 0 && bcOut <= 1.)
+			return true;
 	}
-
-	// no intersection
 	return false;
 }
 						  

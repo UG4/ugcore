@@ -396,8 +396,9 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 				number newDot = VecDot(n0, n1);
 
 			//	if both have the same sign, we're fine!
-				if(oldDot * newDot < 0)
+				if(oldDot * newDot < 0){
 					continue;//	not fine!
+				}
 
 			//	ok - everything is fine. Now swap the edge
 				e = SwapEdge(grid,  e);

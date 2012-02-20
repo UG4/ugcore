@@ -15,50 +15,116 @@ namespace ug
 /**	THIS METHOD USES Grid::mark
  *
  */
-/*
+
 template <class TriIter, class TAAPos>
-bool MakeDelaunay(Grid& grid, TriIter trisBegin, TriIter trisEnd, TAAPos& aaPos)
+bool MakeDelaunay(Grid& grid, TriIter trisBegin, TriIter trisEnd, TAAPos& aaPos,
+				  CB_ConsiderEdge cbConstrainedEdge = ConsiderNoEdge)
 {
 	using namespace std;
-
-	bool isDelaunay = false;
+	typedef typename TAAPos::ValueType vector_t;
 
 //	helper to collect neighbors
 	Face* nbrFaces[2];
 	vector<EdgeBase*> edges;
 
-//	flipCandidates
-	queue<EdgeBase*> flipCandidates;
+//	flip candidates
+	queue<EdgeBase*> candidates;
+//	all flip candidates are marked in this attachment
+	AByte aIsCandidate;
+	grid.attach_to_edges_dv(aIsCandidate, 0, false);
+	Grid::AttachmentAccessor<EdgeBase, AByte> aaIsCandidate(grid, aIsCandidate);
 
-	grid.begin_marking();
+	grid.attach_to_faces_dv(aIsCandidate, 0, false);
+	Grid::AttachmentAccessor<Face, AByte> aaIsMarkedFACE(grid, aIsCandidate);
 
 //	first mark all triangles
-	for(triIter = trisBegin; triIter != trisEnd; ++triIter)
-		grid.mark(*triIter);
+	for(TriIter triIter = trisBegin; triIter != trisEnd; ++triIter)
+		aaIsMarkedFACE[*triIter] = 1;
 
 //	Collect all candidates for flips (only edges with two neighbors, both marked).
-	for(triIter = trisBegin; triIter != trisEnd; ++triIter){
-		Triangle* t = *triIter;
+	for(TriIter triIter = trisBegin; triIter != trisEnd; ++triIter){
+		Face* t = *triIter;
 		CollectEdges(edges, grid, t);
 		for(size_t i = 0; i < edges.size(); ++i){
 			EdgeBase* e = edges[i];
-			int numNbrs = GetAssociatedFaces(nbrFaces, grid, e, 2);
-		//	two neighbors, both marked
-			if(numNbrs == 2 && grid.is_marked(nbrFaces[0])
-				&& grid.is_marked(nbrFaces[1]))
-			{
-			//	the edge is a flip candidate
-				flipCandidates.push(e);
-				grid.mark(e);
+			if(!(cbConstrainedEdge(e) || aaIsCandidate[e])){
+				int numNbrs = GetAssociatedFaces(nbrFaces, grid, e, 2);
+			//	two neighbors, both marked
+				if(numNbrs == 2 && aaIsMarkedFACE[nbrFaces[0]]
+					&& aaIsMarkedFACE[nbrFaces[1]])
+				{
+				//	the edge is a flip candidate
+					candidates.push(e);
+					aaIsCandidate[e] = 1;
+				}
 			}
 		}
 	}
 
-
 	grid.end_marking();
-	return isDelaunay;
+
+	while(!candidates.empty()){
+		EdgeBase* e = candidates.front();
+		candidates.pop();
+		aaIsCandidate[e] = 0;
+
+	//	we only perform swaps on regular manifolds.
+		if(GetAssociatedFaces(nbrFaces, grid, e, 2) == 2){
+		//	make sure that both neighbors are triangles
+			if(nbrFaces[0]->num_vertices() != 3 || nbrFaces[1]->num_vertices() != 3)
+				continue;
+
+		//	This section is just temporary...
+			VertexBase* conVrt0 = GetConnectedVertex(e, nbrFaces[0]);
+			VertexBase* conVrt1 = GetConnectedVertex(e, nbrFaces[1]);
+
+			vector3& v0 = aaPos[e->vertex(0)];
+			vector3& v1 = aaPos[e->vertex(1)];
+			vector3& v2 = aaPos[conVrt0];
+			vector3& v3 = aaPos[conVrt1];
+
+			vector3 cc;
+			if(!TriangleCircumcenter(cc, v0, v1, v2)){
+				UG_LOG("TriangleCircumcenter failed! Excpect non-delaunay output!\n");
+				continue;
+			}
+
+			if(VecDistanceSq(cc, v0) < VecDistanceSq(cc, v3) + SMALL*SMALL){
+			//	the edge is fine - it doesn't have to be swapped.
+				continue;
+			}
+
+		//	ok - everything is fine. Now swap the edge
+			e = SwapEdge(grid,  e);
+
+			if(!e){
+				UG_LOG("An edge-swap failed. Expect degenerated or flipped triangles"
+						"and a non-delaunay output!\n");
+				continue;
+			}
+
+		//	all edges of associated triangles are candidates again (except e)
+			GetAssociatedFaces(nbrFaces, grid, e, 2);
+			for(size_t i = 0; i < 2; ++i){
+				CollectAssociated(edges, grid, nbrFaces[i]);
+				for(size_t j = 0; j < edges.size(); ++j){
+					if(edges[j] != e && !(cbConstrainedEdge(edges[j])
+										  || aaIsCandidate[edges[j]]))
+					{
+						candidates.push(edges[j]);
+						aaIsCandidate[edges[j]] = 1;
+					}
+				}
+			}
+		}
+	}
+
+	grid.detach_from_faces(aIsCandidate);
+	grid.detach_from_edges(aIsCandidate);
+
+	return true;
 }
-*/
+
 }//	end of namespace
 
 #endif

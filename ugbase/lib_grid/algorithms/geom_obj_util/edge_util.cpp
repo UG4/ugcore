@@ -715,12 +715,16 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
 //	get the associated faces.
 //	Only 2 associated faces are allowed.
 	Face* f[2];
-	if(GetAssociatedFaces(f, grid, e, 2) != 2)
+	if(GetAssociatedFaces(f, grid, e, 2) != 2){
+		UG_LOG("Swap Failed: #neighbor-faces != 2.\n");
 		return NULL;
+	}
 
 //	make sure that both faces are triangles
-	if((f[0]->num_vertices() != 3) || (f[1]->num_vertices() != 3))
+	if((f[0]->num_vertices() != 3) || (f[1]->num_vertices() != 3)){
+		UG_LOG("Swap Failed: At least one neighbor-face is not a triangle.\n");
 		return NULL;
+	}
 
 //	begin marking
 	grid.begin_marking();
@@ -748,12 +752,16 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
 	grid.end_marking();
 
 //	make sure that both vertices have been found.
-	if(!(v[0] && v[1]))
+	if(!(v[0] && v[1])){
+		UG_LOG("Swap Failed: connected vertices were not found correctly.\n");
 		return NULL;
+	}
 
 //	make sure that no edge exists between v[0] and v[1]
-	if(grid.get_edge(v[0], v[1]))
+	if(grid.get_edge(v[0], v[1])){
+		UG_LOG("Swap Failed: New edge already exists in the grid.\n");
 		return NULL;
+	}
 
 //	the indices of the marked points in the first triangle
 	int ind1 = (vrtInd[0] + 1) % 3;

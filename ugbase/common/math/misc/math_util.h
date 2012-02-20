@@ -76,6 +76,26 @@ void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
 					 size_t numPoints);
 
 ////////////////////////////////////////////////////////////////////////
+///	Calculates the barycenter of a triangle (1/3) * (p1+p2+p3)
+template <class vector_t>
+vector_t
+TriangleBarycenter(const vector_t& p1, const vector_t& p2, const vector_t& p3);
+
+////////////////////////////////////////////////////////////////////////
+///	Calculates the circumcenter of a triangle
+/**	Calculates the center of the circle, on which all three points lie.
+ * In cases where this is not possible (all three points lie on a line), the
+ * method returns false.
+ * If the method succeeds, the calculated center is written to centerOut.
+ * \{ */
+bool TriangleCircumcenter(vector2& centerOut, const vector2& p1,
+						  const vector2& p2, const vector2& p3);
+
+bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
+						  const vector3& p2, const vector3& p3);
+/**	\} */
+
+////////////////////////////////////////////////////////////////////////
 ///	Calculates the covariance matrix of a given point-set.
 /**	
  * Please note that you have to specify the point-set together with
@@ -205,6 +225,21 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 						  const vector_t& p, const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
+//	LineLineIntersection2d
+///	calculates the intersection of two Lines in 2d
+/** If the two lines intersect (are not parallel), the method returns true.
+ * It writes its results to the parameters vOut (intersection point),
+ * t0Out (vOut = p0 + t0Out * dir0) and t1Out (vOut = p1 + t1Out * dir1).
+ *
+ * You have to specify a point of each line (p0 and p1) and the directions of
+ * each line (dir0 and dir1).
+ */
+template <class vector_t>
+bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
+						   const vector_t &p0, const vector_t &dir0,
+						   const vector_t &p1, const vector_t &dir1);
+
+////////////////////////////////////////////////////////////////////////
 //	RayLineIntersection2d
 ///	calculates the intersection of a ray with a Line in 2d
 /**
@@ -218,12 +253,28 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
  * Furthermore the local (barycentric) coordinate of the
  * intersection is written to bcOut. tOut
  * will contain the local coordinate of the intersection
- * regarding the rays parameter form.
+ * regarding the lines parameter form.
  */
 template <class vector_t>
 bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 						   const vector_t &p0, const vector_t &p1,
 						   const vector_t &vFrom, const vector_t &vDir);
+
+////////////////////////////////////////////////////////////////////////
+///	intersects two 3d rays
+/**	Returns true, if the rays intersect. If they don't, the output
+ * parameters are filled with the points, at which the rays have the
+ * minimal distance.
+ * Specify each ray by one point on the ray (p0 and p1) and the direction
+ * of the ray (dir0 and dir1).
+ *
+ * Output-parameters: aOut, bOut represent the closest points on the two rays.
+ *
+ * This method internally uses the IntersectLineSegments algorithm by Graham Rhodes.
+ * Please have a look at lineintersect_utils.h for more information.*/
+bool RayRayIntersection3d(vector3& aOut, vector3& bOut,
+						  const vector3& p0, const vector3& dir0,
+						  const vector3& p1, const vector3& dir1);
 
 ////////////////////////////////////////////////////////////////////////
 ///	intersects two 3d line segments

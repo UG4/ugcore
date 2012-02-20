@@ -64,11 +64,26 @@ UG_API inline bool ConsiderAllEdges(EdgeBase*)		{return true;}
 UG_API inline bool ConsiderAllFaces(Face*)			{return true;}
 UG_API inline bool ConsiderAllVolumes(Volume*)		{return true;}
 
-UG_API inline bool ConsiderAll(VertexBase*)	{return true;}
-UG_API inline bool ConsiderAll(EdgeBase*)	{return true;}
-UG_API inline bool ConsiderAll(Face*)		{return true;}
-UG_API inline bool ConsiderAll(Volume*)		{return true;}
+UG_API inline bool ConsiderAll(VertexBase*)		{return true;}
+UG_API inline bool ConsiderAll(EdgeBase*)		{return true;}
+UG_API inline bool ConsiderAll(Face*)			{return true;}
+UG_API inline bool ConsiderAll(Volume*)			{return true;}
+/** \} */
 
+////////////////////////////////////////////////////////////////////////
+/**
+ *\{
+ *	\brief A callback that returns false for all given objects.
+ */
+UG_API inline bool ConsiderNoVertex(VertexBase*)	{return false;}
+UG_API inline bool ConsiderNoEdge(EdgeBase*)		{return false;}
+UG_API inline bool ConsiderNoFace(Face*)			{return false;}
+UG_API inline bool ConsiderNoVolume(Volume*)		{return false;}
+
+UG_API inline bool ConsiderNone(VertexBase*)	{return false;}
+UG_API inline bool ConsiderNone(EdgeBase*)		{return false;}
+UG_API inline bool ConsiderNone(Face*)			{return false;}
+UG_API inline bool ConsiderNone(Volume*)		{return false;}
 /** \} */
 
 /** \} */	// end of group definition
