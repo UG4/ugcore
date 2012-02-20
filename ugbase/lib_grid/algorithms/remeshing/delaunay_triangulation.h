@@ -84,12 +84,20 @@ bool MakeDelaunay(Grid& grid, TriIter trisBegin, TriIter trisEnd, TAAPos& aaPos,
 			vector3& v3 = aaPos[conVrt1];
 
 			vector3 cc;
+			vector3 testPoint = v3;
 			if(!TriangleCircumcenter(cc, v0, v1, v2)){
-				UG_LOG("TriangleCircumcenter failed! Excpect non-delaunay output!\n");
-				continue;
+			//	check the other triangle
+				testPoint = v2;
+				if(!TriangleCircumcenter(cc, v0, v1, v3)){
+					UG_LOG("TriangleCircumcenter failed! Excpect non-delaunay output!\n");
+					UG_LOG("  This is most likely caused by two degenerated triangles which "
+							"share an edge.\n");
+					continue;
+				}
 			}
 
-			if(VecDistanceSq(cc, v0) < VecDistanceSq(cc, v3) + SMALL*SMALL){
+			//if(VecDistanceSq(cc, v0) < VecDistanceSq(cc, v3) + SMALL*SMALL){
+			if(VecDistanceSq(cc, v0) <= VecDistanceSq(cc, testPoint)){
 			//	the edge is fine - it doesn't have to be swapped.
 				continue;
 			}
@@ -98,7 +106,7 @@ bool MakeDelaunay(Grid& grid, TriIter trisBegin, TriIter trisEnd, TAAPos& aaPos,
 			e = SwapEdge(grid,  e);
 
 			if(!e){
-				UG_LOG("An edge-swap failed. Expect degenerated or flipped triangles"
+				UG_LOG("An edge-swap failed. Expect degenerated or flipped triangles "
 						"and a non-delaunay output!\n");
 				continue;
 			}

@@ -83,14 +83,20 @@ bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 {
 	using std::swap;
 
-	number d12 = VecDistanceSq(p1, p2);
-	number d23 = VecDistanceSq(p2, p3);
-	number d13 = VecDistanceSq(p1, p3);
+	vector3 dir12, dir13, dir23;
+	VecSubtract(dir12, p2, p1);
+	VecSubtract(dir13, p3, p1);
+	VecSubtract(dir23, p3, p2);
+
+	number d12 = VecLengthSq(dir12);
+	number d13 = VecLengthSq(dir13);
+	number d23 = VecLengthSq(dir23);
 
 //	if any of the sides is too short, or if one is way shorter than the others,
 //	then we'll simply calculate the bary-center. This should be a good approximation.
 //\todo: This could be a little dangerous!!!
 	bool degTri = d12 < SMALL || d23 < SMALL || d13 < SMALL;
+
 	const number badRatio = SMALL;
 
 	if(d12 > 0){
@@ -107,8 +113,8 @@ bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 	}
 
 	if(degTri){
-		centerOut = TriangleBarycenter(p1, p2, p3);
-		return true;
+		//centerOut = TriangleBarycenter(p1, p2, p3);
+		return false;
 	}
 
 //	centers of sides, direction of sides and side-normals
@@ -146,11 +152,14 @@ bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 
 //	calculate side-normals
 	VecCross(n, dir1, dir2);
+	VecNormalize(n, n);
+
+	if(VecLengthSq(n) < SMALL){// this means that the triangle is degenerated.
+		return false;
+	}
+
 	VecCross(n1, n, dir1);
 	VecCross(n2, n, dir2);
-
-	VecNormalize(n1, n1);
-	VecNormalize(n2, n2);
 
 //	calculate intersection of the two lines
 	vector3 a, b;
