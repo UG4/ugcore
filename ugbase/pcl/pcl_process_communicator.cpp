@@ -8,6 +8,7 @@
 #include "common/util/smart_pointer.h"
 #include "pcl_process_communicator.h"
 #include "common/log.h"
+#include "common/assert.h"
 #include "pcl_profiling.h"
 
 using namespace std;
@@ -45,11 +46,11 @@ size() const
 }
 
 int ProcessCommunicator::
-get_proc_id(size_t index) const
+get_proc_id(size_t groupIndex) const
 {
 	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
-		return (int)index;
-	return m_comm->m_procs[index];
+		return (int)groupIndex;
+	return m_comm->m_procs[groupIndex];
 }
 
 int ProcessCommunicator::
@@ -59,6 +60,14 @@ get_local_proc_id(int globalProcID) const
 		return globalProcID;
 
 	const vector<int>& procs = m_comm->m_procs;
+	if(globalProcID == pcl::GetProcRank())
+	{
+		int rank;
+		MPI_Comm_rank(m_comm->m_mpiComm, &rank);
+		UG_ASSERT(procs[rank] == pcl::GetProcRank(), "?");
+		return rank;
+	}
+
 	for(size_t i = 0; i < procs.size(); ++i){
 		if(globalProcID == procs[i])
 			return (int)i;
@@ -90,11 +99,10 @@ create_sub_communicator(bool participate) const
 	vector<int> srcArray(size, 0);
 
 //	if the process wants to participate, set his entry to 1
-	if(participate){
-		int rank;
-		MPI_Comm_rank(m_comm->m_mpiComm, &rank);
+	int rank;
+	MPI_Comm_rank(m_comm->m_mpiComm, &rank);
+	if(participate)
 		srcArray[rank] = 1;
-	}
 
 //	synchronize the newProcs array between all processes in the communicator
 	vector<int> destArray(size, 0);
@@ -107,6 +115,10 @@ create_sub_communicator(bool participate) const
 	vector<int> newProcs;
 	newProcs.reserve(size);
 
+	// note: ranks are ranks in the (group!) communicator m_comm->m_mpiComm
+	// since we building the new group relative to the old,
+	// we add to newProcs the group ranks
+	// these are NOT the global ranks like in pcl::GetProcRank
 	for(size_t i = 0; i < destArray.size(); ++i){
 		if(destArray[i])
 			newProcs.push_back(i);
@@ -129,10 +141,19 @@ create_sub_communicator(bool participate) const
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
 
+	// calculate global ranks for our newProcs array:
+	for(size_t i = 0; i < newProcs.size(); ++i)
+		newProcs[i] = get_proc_id(newProcs[i]);
+
+	// note: since get_proc_rank uses newProcs, don't sort newProcs
+	// otherwise above code won't work. here it is now
+	// newProcs[group rank] = global rank. (!)
+
 //	the process participates - create the ProcessCommunicator
 	ProcessCommunicator newProcComm;
 	newProcComm.m_comm = SPCommWrapper(new CommWrapper(commNew, true));
 	newProcComm.m_comm->m_procs = newProcs;
+
 	return newProcComm;
 }
 
